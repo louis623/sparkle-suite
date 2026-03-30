@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!
 
     // Read up to 10 jobs from the queue
-    const queueRes = await fetch(`${supabaseUrl}/rest/v1/rpc/pgmq_read`, {
+    const queueRes = await fetch(`${supabaseUrl}/rest/v1/rpc/read`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
       })
 
       // Delete job from queue
-      await fetch(`${supabaseUrl}/rest/v1/rpc/pgmq_delete`, {
+      await fetch(`${supabaseUrl}/rest/v1/rpc/delete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
