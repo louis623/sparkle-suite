@@ -26,8 +26,17 @@ async function generateEmbedding(text: string): Promise<number[] | null> {
         input: text,
       }),
     })
+
     const data = await res.json()
-    return data.data?.[0]?.embedding ?? null
+    const embedding = data.data?.[0]?.embedding ?? null
+
+    // Validate that we got a proper 1536-dimension array back
+    if (!embedding || !Array.isArray(embedding) || embedding.length !== 1536) {
+      console.error('Invalid embedding response:', JSON.stringify(data).slice(0, 200))
+      return null
+    }
+
+    return embedding
   } catch (err) {
     console.error('Embedding generation failed:', err)
     return null
@@ -50,13 +59,17 @@ export async function handleTelegramUpdate(body: any) {
 
   const embedding = await generateEmbedding(content)
 
+  // Convert number[] to Postgres vector literal string
+  // halfvec(1536) expects "[0.012,-0.034,...]" not a JSON array
+  const embeddingString = embedding ? `[${embedding.join(',')}]` : null
+
   const { error } = await supabase
     .from('open_brain')
     .insert({
       content,
       source,
       metadata,
-      embedding: embedding ? embedding : null,
+      embedding: embeddingString,
     })
 
   if (error) {
