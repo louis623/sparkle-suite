@@ -29,6 +29,7 @@ async function generateEmbedding(text: string): Promise<number[] | null> {
       console.error('Invalid embedding response:', JSON.stringify(data).slice(0, 200))
       return null
     }
+    console.log('Embedding generated successfully, length:', embedding.length)
     return embedding
   } catch (err) {
     console.error('Embedding generation failed:', err)
@@ -49,7 +50,9 @@ export async function handleTelegramUpdate(body: any) {
   }
   const embedding = await generateEmbedding(content)
   const embeddingString = embedding ? `[${embedding.join(',')}]` : null
-  const { error } = await supabase
+  console.log('Embedding string type:', typeof embeddingString)
+  console.log('Embedding string preview:', embeddingString ? embeddingString.slice(0, 60) + '...' : 'NULL')
+  const { data, error } = await supabase
     .from('open_brain')
     .insert({
       content,
@@ -57,6 +60,9 @@ export async function handleTelegramUpdate(body: any) {
       metadata,
       embedding: embeddingString,
     })
+    .select('id, embedding')
+  console.log('Insert result - data:', JSON.stringify(data))
+  console.log('Insert result - error:', JSON.stringify(error))
   if (error) {
     console.error('Open Brain insert error:', error)
   }
