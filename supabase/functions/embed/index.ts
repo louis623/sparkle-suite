@@ -24,7 +24,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({ queue_name: 'embed_jobs', sleep_seconds: 0, n: 10 }),
     })
 
-    const jobs = await queueRes.json()
+    const rawJobs = await queueRes.json()
+    const jobs = Array.isArray(rawJobs) ? rawJobs : (rawJobs ? [rawJobs] : [])
     if (!jobs || jobs.length === 0) {
       return new Response(JSON.stringify({ processed: 0 }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
