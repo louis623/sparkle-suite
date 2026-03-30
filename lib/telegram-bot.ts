@@ -56,7 +56,7 @@ export async function handleTelegramUpdate(body: any) {
       content,
       source,
       metadata,
-      embedding: embedding ? `[${embedding.join(',')}]` : null,
+      embedding: embedding ? embedding : null,
     })
 
   if (error) {
