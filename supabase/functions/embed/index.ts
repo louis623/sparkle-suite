@@ -14,12 +14,14 @@ Deno.serve(async (req) => {
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!
 
     // Read up to 10 jobs from the queue
-    const queueRes = await fetch(`${supabaseUrl}/rest/v1/rpc/read`, {
+    const queueRes = await fetch(`${supabaseUrl}/rest/v1/rpc/pgmq_read`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': supabaseServiceKey,
         'Authorization': `Bearer ${supabaseServiceKey}`,
+        'Accept-Profile': 'pgmq',
+        'Content-Profile': 'pgmq',
       },
       body: JSON.stringify({ queue_name: 'embed_jobs', sleep_seconds: 0, n: 10 }),
     })
@@ -81,12 +83,14 @@ Deno.serve(async (req) => {
       })
 
       // Delete job from queue
-      await fetch(`${supabaseUrl}/rest/v1/rpc/delete`, {
+      await fetch(`${supabaseUrl}/rest/v1/rpc/pgmq_delete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': supabaseServiceKey,
           'Authorization': `Bearer ${supabaseServiceKey}`,
+          'Accept-Profile': 'pgmq',
+          'Content-Profile': 'pgmq',
         },
         body: JSON.stringify({ queue_name: 'embed_jobs', msg_id: job.msg_id }),
       })
