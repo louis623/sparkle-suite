@@ -1,17 +1,21 @@
 import TelegramBot from 'node-telegram-bot-api'
-import { supabase } from './supabase'
+
 const token = process.env.TELEGRAM_BOT_TOKEN!
 const openaiApiKey = process.env.OPENAI_API_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
 let bot: TelegramBot | null = null
+
 export function getBot(): TelegramBot {
   if (!bot) {
     bot = new TelegramBot(token, { polling: false })
   }
   return bot
 }
+
 async function generateEmbedding(text: string): Promise<number[] | null> {
   try {
-    console.log('OPENAI KEY STATUS:', openaiApiKey ? 'SET (length: ' + openaiApiKey.length + ')' : 'UNDEFINED')
     const res = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
       headers: {
@@ -36,9 +40,11 @@ async function generateEmbedding(text: string): Promise<number[] | null> {
     return null
   }
 }
+
 export async function handleTelegramUpdate(body: any) {
   const message = body?.message
   if (!message || !message.text) return
+
   const content = message.text
   const source = 'telegram'
   const metadata = {
@@ -48,22 +54,36 @@ export async function handleTelegramUpdate(body: any) {
     message_id: message.message_id,
     date: message.date,
   }
+
   const embedding = await generateEmbedding(content)
   const embeddingString = embedding ? `[${embedding.join(',')}]` : null
-  console.log('Embedding string type:', typeof embeddingString)
-  console.log('Embedding string preview:', embeddingString ? embeddingString.slice(0, 60) + '...' : 'NULL')
-  const { data, error } = await supabase
-    .from('open_brain')
-    .insert({
-      content,
-      source,
-      metadata,
-      embedding: embeddingString,
-    })
-    .select('id, embedding')
-  console.log('Insert result - data:', JSON.stringify(data))
-  console.log('Insert result - error:', JSON.stringify(error))
-  if (error) {
-    console.error('Open Brain insert error:', error)
+
+  const insertBody = {
+    content,
+    source,
+    metadata,
+    embedding: embeddingString,
+  }
+
+  console.log('Inserting via direct REST call')
+  console.log('Embedding preview:', embeddingString ? embeddingString.slice(0, 60) + '...' : 'NULL')
+
+  const res = await fetch(`${supabaseUrl}/rest/v1/open_brain`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': supabaseAnonKey,
+      'Authorization': `Bearer ${supabaseAnonKey}`,
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(insertBody),
+  })
+
+  const responseText = await res.text()
+  console.log('REST insert status:', res.status)
+  console.log('REST insert response:', responseText.slice(0, 200))
+
+  if (!res.ok) {
+    console.error('Open Brain insert error:', responseText)
   }
 }
