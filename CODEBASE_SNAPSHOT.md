@@ -1,5 +1,5 @@
 # Codebase Snapshot — Sparkle Suite
-_Generated: 2026-04-10T5 (updated)_
+_Generated: 2026-04-10T6 (updated)_
 
 ## Project
 **Sparkle Suite** — Louis's operational HQ and client platform for his social selling / live-sales business (Neon Rabbit brand). Built on Next.js 16 + React 19, Supabase (Postgres + Edge Functions), and Telegram Bot integration.
@@ -203,6 +203,16 @@ Website component
   → Supabase Realtime subscription on live_queue
   → Real-time queue display to viewers
 ```
+
+---
+
+## Claude Skills (`.claude/skills/`)
+
+Local-only (gitignored). Not committed to the repo.
+
+| Skill | Trigger | Description |
+|-------|---------|-------------|
+| `sparkle-live-queue` | chrome-extension work, "live queue", "bomb party scraper", "party orders", "reveal queue", "sparkle sync" | Complete reference for the Live Queue Chrome extension — BP HTML structure (confirmed April 2026), three absolute safety rules, past incidents, architecture, debugging checklist |
 
 ---
 
