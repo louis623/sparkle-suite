@@ -1,5 +1,5 @@
 # Codebase Snapshot — Sparkle Suite
-_Generated: 2026-04-10T2 (updated)_
+_Generated: 2026-04-10T3 (updated)_
 
 ## Project
 **Sparkle Suite** — Louis's operational HQ and client platform for his social selling / live-sales business (Neon Rabbit brand). Built on Next.js 16 + React 19, Supabase (Postgres + Edge Functions), and Telegram Bot integration.
@@ -217,7 +217,7 @@ Manifest V3 extension that scrapes the Bomb Party back-office live-party-orders 
 | File | Purpose |
 |------|---------|
 | `manifest.json` | MV3 manifest: permissions (storage, alarms), host (myoffice.bombparty.com), content script + service worker + popup |
-| `content.js` | Read-only DOM scraper — finds the orders table by ID (`party-order-table`), fallback to `div.table-responsive`, fallback to header-text scan; observes tbody for row changes, scrapes unrevealed first names, pushes to edge function |
+| `content.js` | Read-only DOM scraper — finds the orders table by ID (`party-order-table`), fallback to `div.table-responsive`, fallback to header-text scan; attaches MutationObserver even when table is empty (pushes `[]` until rows appear); observes tbody for row changes, scrapes unrevealed first names, pushes to edge function |
 | `background.js` | Service worker — 60s alarm triggers content script sync via message passing |
 | `popup.html/css/js` | Setup UI (sync code input) and status UI (toggle, last sync time, status dot) |
 | `icons/` | Pink (#ec4899) placeholder icons with white sparkle (16/48/128px) |
@@ -229,13 +229,13 @@ Manifest V3 extension that scrapes the Bomb Party back-office live-party-orders 
 - **Checkbox detection:** Multi-pattern: native checkbox, ARIA, checkmark chars, CSS class.
 - **Queue ordering:** Sorts by "Order Date" column if present; otherwise reverses DOM order (assumes newest-first).
 - **Row filtering:** Skips empty/short names, canceled/refunded status, deduplicates.
-- **Observer:** `{ childList: true, subtree: false }` on `<tbody>` only — fires on row add/remove, not attribute churn. 3-second debounce.
+- **Observer:** Attaches to `<tbody>` with `subtree: false` when tbody present; falls back to observing `<table>` with `subtree: true` when tbody absent (catches first row insertions). 3-second debounce.
 - **Deduplication:** Queue hash comparison skips push if unchanged since last successful push.
 - **In-flight lock:** `isSyncing` flag prevents overlapping requests.
 - **Fetch timeout:** 8-second AbortController timeout.
 - **Auth failure:** 401 response pauses syncing until popup re-enables.
 - **Dead DOM recovery:** Checks `tbody.isConnected` before each scrape; re-discovers table if detached.
-- **Table retry cap:** 20 attempts (10 minutes), then stops. 60s alarm still re-triggers.
+- **Table retry:** Retries every 30s indefinitely — no cap. Page may be open before any orders arrive; table becomes ready whenever it does.
 - **Storage split:** `chrome.storage.sync` for settings (sync_code, enabled). `chrome.storage.local` for runtime state (lastSyncTime, lastSyncStatus).
 - **Message errors:** `chrome.runtime.lastError` silently consumed in background.js.
 

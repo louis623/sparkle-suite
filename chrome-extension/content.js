@@ -6,7 +6,6 @@ const EDGE_FUNCTION_URL =
 const SYNC_KEY = "K7mX9pQrN2vLsT4wHjBdCeF8aYuZgR6n";
 
 const LOG = "[SparkleSync]";
-const MAX_TABLE_RETRIES = 20; // 20 × 30s = 10 minutes
 const DEBOUNCE_MS = 3000;
 const FETCH_TIMEOUT_MS = 8000;
 
@@ -24,7 +23,6 @@ let isSyncing = false;
 let authFailed = false;
 let observer = null;
 let debounceTimer = null;
-let tableRetries = 0;
 let tableRetryTimer = null;
 
 // Settings (cached from storage.sync, updated via onChanged)
@@ -132,11 +130,13 @@ function scrapeQueue() {
     if (!cachedTable) return null;
     if (!findColumnIndices(cachedTable)) return null;
     cachedTbody = cachedTable.querySelector("tbody");
-    if (!cachedTbody) return null;
-    // Re-attach observer to new tbody
+    // Re-attach observer to new tbody (or table if tbody still absent)
     if (observer) observer.disconnect();
     startObserver();
   }
+
+  // Table present but tbody absent — valid empty state
+  if (!cachedTbody) return [];
 
   var rows = cachedTbody.querySelectorAll("tr");
   var entries = [];
@@ -268,12 +268,14 @@ function syncIfNeeded() {
 // ── MutationObserver ────────────────────────────────────────────
 
 function startObserver() {
-  if (!cachedTbody) return;
+  var target = cachedTbody || cachedTable;
+  if (!target) return;
   observer = new MutationObserver(function () {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(syncIfNeeded, DEBOUNCE_MS);
   });
-  observer.observe(cachedTbody, { childList: true, subtree: false });
+  // If watching the full table (no tbody yet), use subtree to catch row additions
+  observer.observe(target, { childList: true, subtree: !cachedTbody });
 }
 
 // ── Init ────────────────────────────────────────────────────────
@@ -311,32 +313,21 @@ function init() {
 function attemptTableDiscovery() {
   cachedTable = findTargetTable();
   if (cachedTable && findColumnIndices(cachedTable)) {
+    // tbody may be absent or empty — both are valid; observer covers future rows
     cachedTbody = cachedTable.querySelector("tbody");
-    if (cachedTbody) {
-      console.log(LOG, "Table found. Columns:", {
-        firstName: firstNameIdx,
-        revealed: revealedIdx,
-        orderDate: orderDateIdx,
-        status: statusIdx,
-      });
-      startObserver();
-      syncIfNeeded(); // Initial sync
-      return;
-    }
-  }
-
-  tableRetries++;
-  if (tableRetries >= MAX_TABLE_RETRIES) {
-    console.log(LOG, "Table not found after 10 minutes — stopping.");
+    console.log(LOG, "Table found. Columns:", {
+      firstName: firstNameIdx,
+      revealed: revealedIdx,
+      orderDate: orderDateIdx,
+      status: statusIdx,
+    });
+    startObserver();
+    syncIfNeeded(); // Initial sync — pushes [] if no rows yet
     return;
   }
 
-  console.log(
-    LOG,
-    "Table not found, retry",
-    tableRetries + "/" + MAX_TABLE_RETRIES,
-    "in 30s"
-  );
+  // Table or required columns not ready — keep retrying every 30s indefinitely
+  console.log(LOG, "Table not found, retrying in 30s…");
   tableRetryTimer = setTimeout(attemptTableDiscovery, 30000);
 }
 
