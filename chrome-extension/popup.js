@@ -8,11 +8,10 @@ var saveBtn = document.getElementById("save-btn");
 var displayCode = document.getElementById("display-code");
 var toggleEnabled = document.getElementById("toggle-enabled");
 var statusDot = document.getElementById("status-dot");
-var lastSyncTimeEl = document.getElementById("last-sync-time");
+var statusText = document.getElementById("status-text");
 var resetLink = document.getElementById("reset-link");
 
 var CODE_PATTERN = /^[A-Z]{3}-\d{4}$/;
-var refreshInterval = null;
 
 function showSetup() {
   setupView.classList.remove("hidden");
@@ -27,36 +26,21 @@ function showActive(code) {
   displayCode.textContent = code;
 }
 
-function formatAgo(ts) {
-  if (!ts) return "Not yet synced";
-  var diff = Math.floor((Date.now() - ts) / 1000);
-  if (diff < 5) return "Just now";
-  if (diff < 60) return diff + "s ago";
-  if (diff < 3600) return Math.floor(diff / 60) + "m ago";
-  return Math.floor(diff / 3600) + "h ago";
-}
-
 function updateStatus() {
-  chrome.storage.local.get(["lastSyncTime", "lastSyncStatus"], function (data) {
-    var ts = data.lastSyncTime;
-    var status = data.lastSyncStatus;
-
-    lastSyncTimeEl.textContent = formatAgo(ts);
-
+  var isOn = toggleEnabled.checked;
+  if (!isOn) {
     statusDot.className = "dot";
-    if (!ts || !status) {
+    statusText.textContent = "Paused";
+    return;
+  }
+  chrome.storage.local.get(["lastSyncStatus"], function (data) {
+    statusDot.className = "dot";
+    if (data.lastSyncStatus === "error") {
       statusDot.classList.add("red");
-    } else if (status === "error") {
-      statusDot.classList.add("red");
+      statusText.textContent = "Error";
     } else {
-      var ageMs = Date.now() - ts;
-      if (ageMs < 120000) {
-        statusDot.classList.add("green");
-      } else if (ageMs < 300000) {
-        statusDot.classList.add("yellow");
-      } else {
-        statusDot.classList.add("red");
-      }
+      statusDot.classList.add("green");
+      statusText.textContent = "Connected";
     }
   });
 }
@@ -67,7 +51,6 @@ chrome.storage.sync.get(["sync_code", "enabled"], function (data) {
     showActive(data.sync_code);
     toggleEnabled.checked = data.enabled !== false;
     updateStatus();
-    refreshInterval = setInterval(updateStatus, 10000);
   } else {
     showSetup();
   }
@@ -84,7 +67,6 @@ saveBtn.addEventListener("click", function () {
     showActive(val);
     toggleEnabled.checked = true;
     updateStatus();
-    refreshInterval = setInterval(updateStatus, 10000);
   });
 });
 
@@ -96,12 +78,19 @@ syncInput.addEventListener("keydown", function (e) {
 // Toggle
 toggleEnabled.addEventListener("change", function () {
   chrome.storage.sync.set({ enabled: toggleEnabled.checked });
+  updateStatus();
+});
+
+// React to sync status changes from content script
+chrome.storage.onChanged.addListener(function (changes, area) {
+  if (area === "local" && changes.lastSyncStatus) {
+    updateStatus();
+  }
 });
 
 // Reset
 resetLink.addEventListener("click", function (e) {
   e.preventDefault();
-  clearInterval(refreshInterval);
   chrome.storage.sync.remove(["sync_code", "enabled"]);
   chrome.storage.local.remove(["lastSyncTime", "lastSyncStatus"]);
   showSetup();

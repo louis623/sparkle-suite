@@ -24,7 +24,6 @@ let observer = null;
 let debounceTimer = null;
 let bodyObserver = null;
 let pollTimer = null;
-let heartbeatTimer = null;
 
 // Settings (cached from storage.sync, updated via onChanged)
 let syncCode = "";
@@ -201,8 +200,6 @@ function onTableFound(table) {
   console.log(LOG, "Table found. Column indices — firstName:", firstNameIdx, "revealed:", revealedIdx);
   startObserver();
   syncIfNeeded();
-  heartbeatTimer = setInterval(syncIfNeeded, 30000);
-  console.log(LOG, "30s heartbeat started");
 }
 
 function startTableWatcher() {

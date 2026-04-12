@@ -402,9 +402,9 @@ Manifest V3 extension that scrapes the Bomb Party back-office live-party-orders 
 | File | Purpose |
 |------|---------|
 | `manifest.json` | MV3 manifest: permissions (storage, alarms), host (myoffice.bombparty.com), content script + service worker + popup |
-| `content.js` | Read-only DOM scraper — finds the orders table by `#party-order-table` ID only (no fallbacks); uses `data-sort-by` attribute on `<th>` elements (`FirstName`, `IsRevealed`) for column detection, not textContent; selects `<tr class="product product-row">` rows from tbody; reads checkbox.checked for revealed state; attaches MutationObserver on document.body to detect table appearance (5s timeout then falls back to 2s polling); observes tbody for row/attribute changes; 30s setInterval heartbeat for reliable sync during quiet periods; reverses DOM order for oldest-first queue; pushes to edge function |
-| `background.js` | Service worker — 60s alarm triggers content script sync via message passing (last-resort fallback; content script 30s heartbeat is the primary backup) |
-| `popup.html/css/js` | Setup UI (sync code input) and status UI (toggle, last sync time, status dot) |
+| `content.js` | Read-only DOM scraper — finds the orders table by `#party-order-table` ID only (no fallbacks); uses `data-sort-by` attribute on `<th>` elements (`FirstName`, `IsRevealed`) for column detection, not textContent; selects `<tr class="product product-row">` rows from tbody; reads checkbox.checked for revealed state; attaches MutationObserver on document.body to detect table appearance (5s timeout then falls back to 2s polling); observes tbody for row/attribute changes; reverses DOM order for oldest-first queue; pushes to edge function |
+| `background.js` | Service worker — 60s alarm triggers content script sync via message passing (last-resort safety net) |
+| `popup.html/css/js` | Setup UI (sync code input) and status UI (toggle, status dot — Connected/Error/Paused) |
 | `icons/` | Pink (#ec4899) placeholder icons with white sparkle (16/48/128px) |
 
 ### Data Flow
