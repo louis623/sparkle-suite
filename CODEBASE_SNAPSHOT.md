@@ -1,5 +1,5 @@
 # Codebase Snapshot — Sparkle Suite
-_Generated: 2026-04-12 (Phase 0.3 + 0.6 complete)_
+_Generated: 2026-04-12_
 
 ## Project
 **Sparkle Suite** — Louis's operational HQ and client platform for his social selling / live-sales business (Neon Rabbit brand). Built on Next.js 16 + React 19, Supabase (Postgres + Edge Functions), and Telegram Bot integration.
@@ -402,7 +402,7 @@ Manifest V3 extension that scrapes the Bomb Party back-office live-party-orders 
 | File | Purpose |
 |------|---------|
 | `manifest.json` | MV3 manifest: permissions (storage, alarms), host (myoffice.bombparty.com), content script + service worker + popup |
-| `content.js` | Read-only DOM scraper — finds the orders table by `#party-order-table` ID only (no fallbacks); uses `data-sort-by` attribute on `<th>` elements (`FirstName`, `IsRevealed`) for column detection, not textContent; selects `<tr class="product product-row">` rows from tbody; reads checkbox.checked for revealed state; attaches MutationObserver on document.body to detect table appearance (5s timeout then falls back to 2s polling); observes tbody for row/attribute changes; reverses DOM order for oldest-first queue; pushes to edge function |
+| `content.js` | Read-only DOM scraper — finds the orders table by `#party-order-table` ID only (no fallbacks); uses `data-sort-by` attribute on `<th>` elements (`FirstName`, `IsRevealed`) for column detection, not textContent; selects `<tr class="product product-row">` rows from tbody; reads checkbox.checked for revealed state; attaches MutationObserver on document.body to detect table appearance (5s timeout then falls back to 2s polling); observes tbody for row/attribute changes; reverses DOM order for oldest-first queue; every unrevealed order gets its own entry (no dedup); pushes to edge function |
 | `background.js` | Service worker — 60s alarm triggers content script sync via message passing (last-resort safety net) |
 | `popup.html/css/js` | Setup UI (sync code input) and status UI (toggle, status dot — Connected/Error/Paused) |
 | `icons/` | Pink (#ec4899) placeholder icons with white sparkle (16/48/128px) |
@@ -412,7 +412,7 @@ Manifest V3 extension that scrapes the Bomb Party back-office live-party-orders 
 ```
 Bomb Party live-party-orders page
   → content.js scrapes <tbody> rows
-  → Filters: unrevealed, not canceled, name >= 2 chars, consecutive duplicates collapsed
+  → Filters: unrevealed, name >= 2 chars (no dedup — each order is a separate entry)
   → Sorts oldest-first (by Order Date or reversed DOM order)
   → Hashes queue, skips if unchanged
   → POST to live-queue-sync edge function (x-sync-key header)

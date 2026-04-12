@@ -92,12 +92,7 @@ function scrapeQueue() {
   // Reverse: oldest unrevealed (currently being unboxed) comes first
   names.reverse();
 
-  // Collapse consecutive duplicates (same person back-to-back = one unboxing)
-  var queue = names.filter(function (name, i) {
-    return i === 0 || name !== names[i - 1];
-  });
-
-  return queue;
+  return names;
 }
 
 // ── Push to edge function ───────────────────────────────────────
