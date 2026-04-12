@@ -412,7 +412,7 @@ Manifest V3 extension that scrapes the Bomb Party back-office live-party-orders 
 ```
 Bomb Party live-party-orders page
   → content.js scrapes <tbody> rows
-  → Filters: unrevealed, not canceled, name >= 2 chars, deduplicated
+  → Filters: unrevealed, not canceled, name >= 2 chars, consecutive duplicates collapsed
   → Sorts oldest-first (by Order Date or reversed DOM order)
   → Hashes queue, skips if unchanged
   → POST to live-queue-sync edge function (x-sync-key header)
