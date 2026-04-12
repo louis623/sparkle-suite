@@ -21,3 +21,15 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/live-queue-sync/deno.json"
 entrypoint = "./functions/live-queue-sync/index.ts"
+
+[functions.daily-financial-sync]
+enabled = true
+verify_jwt = false
+import_map = "./functions/daily-financial-sync/deno.json"
+entrypoint = "./functions/daily-financial-sync/index.ts"
+
+[functions.open-brain-status-updater]
+enabled = true
+verify_jwt = false
+import_map = "./functions/open-brain-status-updater/deno.json"
+entrypoint = "./functions/open-brain-status-updater/index.ts"
