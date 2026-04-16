@@ -439,15 +439,18 @@ Idempotent seed script for the test rep development sandbox.
 
 | File | Description |
 |------|-------------|
-| `001_initial_schema.sql` | Base schema: open_brain, clients, pipeline_status, builds, payments |
+| `001_initial_schema.sql` | Base schema: open_brain, clients (→ clients_build_pipeline in 010), pipeline_status, builds, payments |
 | `002_open_brain_embedding_pipeline.sql` | pgvector, pgmq, pg_net, pg_cron; embed pipeline; HNSW index |
-| `003_neon_rabbit_hq.sql` | Business management tables: projects, financials, expenses, clients, todos, ideas |
+| `003_neon_rabbit_hq.sql` | Business management tables: projects, financials, expenses, clients (IF NOT EXISTS — no-op over 001), todos, ideas |
 | `004_march_open_brain.sql` | Isolated thoughts_march table + RPCs for user March |
 | `005_live_queue.sql` | live_queue table, RLS, seeded 5 rep rows, Realtime enabled |
 | `006_sparkle_suite_schema.sql` | Sparkle Suite platform: 16 tables, 17 enums, all indexes, RLS policies, Realtime (4 tables), 3 RPC functions |
 | `007_fix_reps_admin_rls_recursion.sql` | Fix: admin RLS on reps table uses JWT claim instead of self-referencing subquery |
 | `008_stripe_billing.sql` | Stripe billing infra: stripe_events (idempotency), refund_operations (state machine), subscriptions additions (cancel_at_period_end, stripe_livemode, stripe_event_timestamp), reps.stripe_customer_id |
 | `009_sms_wallet_cents.sql` | SMS wallet cents conversion (DECIMAL → INTEGER cents on `sms_wallet` + `wallet_transactions`), enum rebuild (split `adjustment` → credit/debit + add `auto_recharge`), auto-recharge lock fields (`auto_recharge_pending`, `auto_recharge_attempt_id`), fail-loud pre-validation guards, and three SECURITY DEFINER RPCs: `deduct_wallet_balance`, `credit_wallet` (idempotent via unique partial index on `stripe_payment_intent_id`), `release_wallet_recharge_lock`. Deduct RPC self-heals locks stale > 30 min. |
+| `010_nr_client_table_renames.sql` | Rename `clients` → `clients_build_pipeline` (SS build pipeline; pipeline_status/builds/payments FKs auto-track), `sparkle_clients` → `neon_rabbit_clients` (HQ canonical client DB; daily-financial-sync Edge Function target). Rename-only — no schema or data changes. |
+| `011_nr_open_items.sql` | `open_items` governance tracker: 3 enums (`open_item_category`, `open_item_status`, `open_item_priority`), table + `updated_at` trigger, 4 indexes, RLS (service_role full / anon read), 15-row seed across gap(1) / research(5) / legal(3) / grey_area(6). |
+| `012_nr_open_items_sync_secret.sql` | Append `open_items` task row flagging the pre-existing SYNC_SECRET auth disconnect on `daily-financial-sync` (cron silently 401-ing for ~12 days; last good `financial_snapshots` write 2026-04-04). Guarded on title — idempotent. |
 
 ---
 
@@ -592,3 +595,24 @@ Bomb Party live-party-orders page
   → Edge function updates live_queue table
   → Supabase Realtime pushes to website subscribers
 ```
+
+---
+
+## Session 2026-04-16 — Memory Library Task 2 (client table renames + open_items)
+
+Two migration files landed, one Edge Function redeployed. Goal: align client-table names with the umbrella rebrand and stand up a governance tracker for pre-launch blockers before the 6 AM EST cron runs on 2026-04-17.
+
+**Renames (migration 010, rename-only — no schema or data changes):**
+- `clients` → `clients_build_pipeline` — the SS build pipeline table (001-lineage). `pipeline_status.client_id`, `builds.client_id`, `payments.client_id` FKs auto-track the renamed parent via `pg_catalog` OIDs; no FK DDL required.
+- `sparkle_clients` → `neon_rabbit_clients` — the HQ canonical client DB written by `daily-financial-sync`. (This table had never been checked in as a migration — only lived in live Supabase. Task 2 chose not to backfill a CREATE safety net; the inferred column set would likely be wrong-shape and mask a real miss. `supabase db reset` has never been run on this project.)
+
+**Edge Function (`daily-financial-sync/index.ts`):** six references updated — four `.from("neon_rabbit_clients")` call sites + one `source:` string + one comment. Deployed via `supabase functions deploy daily-financial-sync`. Smoke-tested with `type: "evening"` (skips Stripe/Plaid writes, exercises only the brief-generation path that queries `neon_rabbit_clients`).
+
+**New table (migration 011 — `open_items`):** 15 seed rows tracking gap(1) / research(5) / legal(3) / grey_area(6) items across the pre-launch plan. Migration 012 appends one additional `task` row flagging a pre-existing SYNC_SECRET auth disconnect (see below). Legal + grey_area rows are the current BLOCKING-LAUNCH items (A2P 10DLC, attorney session, BP Policy 7.1, platform/start/launch fee amounts). Enums include `decision` and `task` categories reserved for future use. RLS: service_role full write, anon read.
+
+**Other app code audit:** confirmed via repo-wide grep that no other Edge Function, `app/` route, `lib/` module, or script referenced `sparkle_clients` or `.from("clients")`. The historical comment on line 21 of `005_live_queue.sql` ("will be linked to sparkle_clients table later") was left as-is — rewriting a shipped migration is worse than a stale comment.
+
+**Guardrails honored:** no data dropped, no column changes, no touch of `construction_*` tables, `open_brain`, embedding infrastructure, cron schedules, or the `neon-rabbit-hq` repo.
+
+**Side finding (flagged via migration 012 → `open_items` task row):** during verification, the smoke-test curl returned HTTP 401. Investigation showed the 6 AM/9 PM cron (`morning-financial-sync`, `evening-brief`) has been silently 401-ing for ~12 days — the Edge Function reads `SYNC_SECRET` via `Deno.env.get()` but the secret is absent from `supabase secrets list`, while the cron sources `sync_secret` from Supabase Vault. Last successful `financial_snapshots` write was 2026-04-04. Pre-existing, not caused by the Task 2 rename, but now tracked as a high-priority open item blocking HQ Phase 2B (financial sync).
+

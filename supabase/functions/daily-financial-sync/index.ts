@@ -312,14 +312,14 @@ async function generateBrief(
 
   // Client status
   const { data: clientIssues } = await supabase
-    .from("sparkle_clients")
+    .from("neon_rabbit_clients")
     .select("name, payment_status, stripe_customer_id")
     .neq("payment_status", "current")
     .neq("payment_status", "free")
     .neq("payment_status", "unknown");
 
   const { count: totalClients } = await supabase
-    .from("sparkle_clients")
+    .from("neon_rabbit_clients")
     .select("*", { count: "exact", head: true });
 
   // Maintenance flags
@@ -352,7 +352,7 @@ async function generateBrief(
           status: c.payment_status,
         })),
       },
-      source: "sparkle_clients",
+      source: "neon_rabbit_clients",
     },
     {
       title: "Maintenance Flags",
@@ -522,7 +522,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Update sparkle_clients from Stripe data (only those with stripe_customer_id)
+      // Update neon_rabbit_clients from Stripe data (only those with stripe_customer_id)
       if (stripeResult) {
         for (const sub of stripeResult.activeSubscriptions) {
           const items = sub.items as { data: { price: { nickname?: string; id: string } }[] };
@@ -530,7 +530,7 @@ Deno.serve(async (req) => {
           const periodEnd = sub.current_period_end as number;
 
           await supabase
-            .from("sparkle_clients")
+            .from("neon_rabbit_clients")
             .update({
               payment_status: "current",
               current_plan: planName,
@@ -544,7 +544,7 @@ Deno.serve(async (req) => {
 
         for (const sub of stripeResult.pastDueSubscriptions) {
           await supabase
-            .from("sparkle_clients")
+            .from("neon_rabbit_clients")
             .update({ payment_status: "past_due" })
             .eq("stripe_customer_id", sub.customer as string)
             .not("stripe_customer_id", "is", null);
