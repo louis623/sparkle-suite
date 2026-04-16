@@ -1,8 +1,8 @@
-# Codebase Snapshot — Sparkle Suite
-_Generated: 2026-04-15_
+# Codebase Snapshot — Neon Rabbit Core
+_Generated: 2026-04-16_
 
 ## Project
-**Sparkle Suite** — Louis's operational HQ and client platform for his social selling / live-sales business (Neon Rabbit brand). Built on Next.js 16 + React 19, Supabase (Postgres + Edge Functions), and Telegram Bot integration.
+**Neon Rabbit Core** — the umbrella repo (formerly `sparkle-suite`) housing every codebase under the Neon Rabbit brand: the **Sparkle Suite** rep-facing platform, the **NR HQ** internal build tracker, the **Open Brain** semantic memory store, and the **Live Queue** Chrome extension. Built on Next.js 16 + React 19, Supabase (Postgres + Edge Functions), Stripe billing, and Telegram Bot integration.
 
 ---
 
@@ -26,7 +26,7 @@ _Generated: 2026-04-15_
 ## Directory Tree
 
 ```
-sparkle-suite/
+neon-rabbit-core/
 ├── app/
 │   ├── api/
 │   │   ├── open-brain/context/route.ts

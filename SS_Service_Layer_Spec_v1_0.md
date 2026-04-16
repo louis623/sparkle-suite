@@ -53,7 +53,7 @@ Thumper Tool Handler              Dashboard API Route
 
 ## File Organization
 
-Four service files plus two supporting files. All in `lib/services/` in the sparkle-suite repo.
+Four service files plus two supporting files. All in `lib/services/` in the neon-rabbit-core repo.
 
 | File | Domain | Tools Covered |
 |------|--------|---------------|

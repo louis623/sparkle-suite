@@ -15,7 +15,7 @@
 - **Live URL:** yoursparklesuite.com
 - **Hosting:** Vercel
 - **Framework:** Next.js 16
-- **Repo:** louis623/sparkle-suite on GitHub
+- **Repo:** louis623/neon-rabbit-core on GitHub
 
 ---
 

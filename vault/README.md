@@ -27,4 +27,4 @@ This is the AI-readable memory vault for the Neon Rabbit / Sparkle Suite project
 
 ---
 
-> This vault is committed to the GitHub repo `louis623/sparkle-suite` under `/vault/`. It is the bridge memory system until the Phase 2 Supabase-backed Open Brain context store is live.
+> This vault is committed to the GitHub repo `louis623/neon-rabbit-core` under `/vault/`. It is the bridge memory system until the Phase 2 Supabase-backed Open Brain context store is live.

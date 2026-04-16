@@ -9,11 +9,11 @@
 | Vercel | Hosting | Zero-config CI/CD from GitHub |
 | Next.js 16 | Framework | TypeScript + Tailwind CSS + App Router |
 | Supabase | Database | Postgres + pgvector for Open Brain (Phase 2) |
-| GitHub | Repo | louis623/sparkle-suite |
+| GitHub | Repo | louis623/neon-rabbit-core |
 | GitLab | Mirror | To be set up |
 | Cloudflare | DNS | neonrabbit.net |
 | Cheapnames | DNS | Client domains |
-| Windows / VS Code | Local dev | C:\Users\louis\sparkle-suite — Node.js v24.14.1 — Command Prompt |
+| Windows / VS Code | Local dev | C:\Users\louis\neon-rabbit-core — Node.js v24.14.1 — Command Prompt |
 
 ---
 
