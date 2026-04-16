@@ -74,7 +74,7 @@ neon-rabbit-core/
 │   │   ├── daily-financial-sync/index.ts
 │   │   ├── embed/index.ts
 │   │   ├── live-queue-sync/index.ts
-│   │   ├── nr-hq-mcp/index.ts          ← NR HQ build tracker MCP (read-only)
+│   │   ├── nr-hq-mcp/index.ts          ← NR HQ build tracker MCP (5 reads + 12 writes)
 │   │   ├── open-brain-mcp/index.ts
 │   │   ├── open-brain-mcp-march/index.ts
 │   │   └── open-brain-status-updater/index.ts
@@ -615,4 +615,58 @@ Two migration files landed, one Edge Function redeployed. Goal: align client-tab
 **Guardrails honored:** no data dropped, no column changes, no touch of `construction_*` tables, `open_brain`, embedding infrastructure, cron schedules, or the `neon-rabbit-hq` repo.
 
 **Side finding (flagged via migration 012 → `open_items` task row):** during verification, the smoke-test curl returned HTTP 401. Investigation showed the 6 AM/9 PM cron (`morning-financial-sync`, `evening-brief`) has been silently 401-ing for ~12 days — the Edge Function reads `SYNC_SECRET` via `Deno.env.get()` but the secret is absent from `supabase secrets list`, while the cron sources `sync_secret` from Supabase Vault. Last successful `financial_snapshots` write was 2026-04-04. Pre-existing, not caused by the Task 2 rename, but now tracked as a high-priority open item blocking HQ Phase 2B (financial sync).
+
+---
+
+## Session 2026-04-16 — Memory Library Task 3 (12 MCP write tools on `nr-hq-mcp`)
+
+Single-file Edge Function change — extends `supabase/functions/nr-hq-mcp/index.ts` from 5 read-only tools to 17 tools total (5 reads + 12 writes). Goal: let Claude Chat update Build Tracker state, Open Items, and canonical Clients mid-conversation without prompting Claude Code.
+
+**Architecture:**
+- The 5 pre-existing read tools (`get_phases`, `get_tasks`, `get_gates`, `get_action_cards`, `get_build_summary`) stay on the anon-key Supabase client + RLS.
+- The 12 new write tools use a second Supabase client created with `SUPABASE_SERVICE_ROLE_KEY`. Same Hono `x-brain-key` / `?key=` auth gate — writes still require `MCP_ACCESS_KEY` to reach the handler.
+- Zero new tables, zero new migrations.
+
+**The 12 new tools:**
+
+*Build Tracker (4)*
+| Tool | Behavior |
+|------|----------|
+| `update_task_status` | Updates a construction task by `task_key` + `project`. Auto-sets `completion_date=now()` when `status='complete'` and no date supplied. Never nulls `completion_date` on moves away from complete (historical record preserved). |
+| `update_phase_status` | Updates a phase by `phase_key` + `project`, then recomputes `total_tasks` / `completed_tasks` from live `construction_tasks` counts in the same handler. |
+| `update_gate_status` | Updates a gate by `gate_key` + `project`. Typo-fix from the original task spec which said `phase_key`. |
+| `update_action_cards` | Atomic triple-write: archives all active `build_action_log` rows for the project (`is_active=false`), then inserts 3 new cards (`previous`/`current`/`next`). All 3 positions required per call. Each card is `{title, description?}`. Sequential writes — tiny race window between archive and insert is acceptable for a single-user system. |
+
+*Open Items CRUD (4)*
+| Tool | Behavior |
+|------|----------|
+| `create_open_item` | Inserts into `open_items` with defaults `project='neon_rabbit'`, `status='open'`, `priority='medium'`. |
+| `update_open_item` | Patches any updatable field by `id`. Rejects empty patches. |
+| `resolve_open_item` | Sets `status='resolved'`, writes resolution text, sets `resolved_at=now()`. Rejects empty/whitespace resolution. |
+| `get_open_items` | Lists with optional `status` / `category` / `priority` filters. When `status` unspecified, defaults to active set: `open`, `deferred`, `in_progress` (hides resolved). |
+
+*Clients CRUD targeting `neon_rabbit_clients` (4)*
+| Tool | Behavior |
+|------|----------|
+| `create_client` | Inserts with 10 writable columns only. `id` (uuid) is the sole unique key. Returns the full row. |
+| `update_client` | Patches any of the 10 writable columns by `id` (uuid). |
+| `get_clients` | Lists all clients; optional `status` filter. Returns full rows INCLUDING the 5 cron-owned columns. |
+| `get_client` | Fetch by `id` (uuid). Returns full row. |
+
+**Locked decisions:**
+1. `update_client` / `get_client` look up by `id` (uuid) only. **Decision 10 correction:** the original task prompt assumed a `code` column existed on `neon_rabbit_clients`; first-pass smoke tests exposed that the real table (created via Supabase dashboard, never in migrations) has no `code`, no `updated_at`, and only `id` is unique.
+2. **5 cron-owned columns on `neon_rabbit_clients` are read-only from MCP.** Write schemas for `create_client` / `update_client` omit all 5. Principle: any column written by `daily-financial-sync` is cron-owned. The 5: `payment_status`, `stripe_customer_id`, `current_plan`, `next_charge_date`, `lifetime_revenue`. `get_client` / `get_clients` return them all. (The original 7-Stripe-column set in the task spec was speculative — the live table has none of stripe_subscription_id, subscription_status, current_period_end, last_payment_date, payment_amount, or latest_invoice_status.)
+3. `neon_rabbit_clients` **writable set = 10:** `name`, `user_id`, `site_name`, `site_url`, `status`, `tier`, `mrr`, `started_at`, `launched_at`, `notes` (+ server-managed `id`, `created_at`). No `updated_at` column exists. `name` and `user_id` are required in `create_client` — `user_id` is NOT NULL at DB level and cannot fall back to an implicit current-user on service_role.
+4. `update_task_status` completion_date behavior — auto-set on `status='complete'` when absent; never nulled on moves away.
+5. `update_phase_status` recomputes `total_tasks` / `completed_tasks` from live `construction_tasks` after every status write.
+6. `resolve_open_item` requires non-empty resolution text (whitespace rejected).
+7. `update_gate_status` keyed by `gate_key` — single row match, no cascade.
+8. `update_action_cards` accepts objects `{title (required, non-empty), description? (optional)}` for all 3 positions (all three required every call).
+9. `update_action_cards` atomicity: sequential archive-then-insert. Race window is tens of ms for a single-user system; a Postgres RPC/transaction wasn't justified.
+
+**Smoke test artifact:** `supabase/functions/nr-hq-mcp/smoke-test.sh` — runnable bash script with 14 curl calls (12 new tools + 2 baseline reads). Reads `MCP_ACCESS_KEY` from env (not hardcoded). Exits non-zero on any failure. Prints cleanup SQL at the end for removing the `SMOKE-0000` client + `SMOKE TEST — DELETE ME` open item rows. Louis runs this post-commit from 1Password-sourced key.
+
+**Guardrails honored:** 5 read tools are byte-identical to pre-Task-3 state (schemas, return shapes, anon client). `open-brain-mcp` and `daily-financial-sync` untouched. No new tables/migrations. `clients_build_pipeline` untouched. NR HQ Claude.ai connector config untouched — Louis reloads the connector post-deploy (disconnect + reconnect) to pick up the new tool list.
+
+**Post-deploy verification (Louis):** reload NR HQ connector, confirm 17 tools load in a fresh Claude Chat, fire one write to confirm end-to-end path.
 
