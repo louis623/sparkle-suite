@@ -135,6 +135,7 @@ Dev: TypeScript 5, Tailwind CSS 4, ESLint 9, tsx, dotenv
 - **Auth users:**
   - `louis@neonrabbit.net` — admin (full cross-rep visibility via RLS)
   - `testrep@neonrabbit.net` — development sandbox rep account
+  - `gatetest@neonrabbit.net` — Gate 0 Item 4 webhook verification rep (live test subscription on Stripe; do not delete)
 - **Link to data:** `reps.auth_user_id` references `auth.users(id)`
 - **Client utilities:**
   - `lib/supabase/client.ts` — browser client (createBrowserClient from @supabase/ssr)
