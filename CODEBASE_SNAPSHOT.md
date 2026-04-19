@@ -68,7 +68,21 @@ neon-rabbit-core/
 │   │   └── admin.ts              ← service role client (bypasses RLS)
 │   └── telegram-bot.ts
 ├── scripts/
-│   └── seed-test-rep.ts          ← idempotent test rep seeder (cents-aware)
+│   ├── seed-test-rep.ts          ← idempotent test rep seeder (cents-aware)
+│   └── gates/                    ← gate verification scripts (Gate 0 billing + wallet)
+│       ├── gate0-inspect-prices.mjs
+│       ├── gate0-inspect-schema.mjs
+│       ├── gate0-inspect-state.mjs
+│       ├── gate0-item4-archive-prices.mjs
+│       ├── gate0-item4-checkout.mjs
+│       ├── gate0-item4-pay.mjs
+│       ├── gate0-item4-setup.mjs
+│       ├── gate0-item4-verify.mjs
+│       ├── gate0-item5-deduct.mjs       ← deduct_wallet_balance RPC × 5 (SMS charge path)
+│       ├── gate0-item5-pay.mjs          ← Playwright driver for wallet-load Checkout redirect
+│       ├── gate0-item5-setup.mjs        ← sms_wallet row bootstrap + baseline capture for gatetest
+│       ├── gate0-item5-verify.mjs       ← wallet + wallet_transactions post-state assertions
+│       └── gate0-item5-wallet-load.mjs  ← create Stripe Checkout (mode=payment) w/ wallet_load metadata
 ├── supabase/
 │   ├── config.toml
 │   ├── README.md
@@ -95,7 +109,11 @@ neon-rabbit-core/
 │       ├── 012_nr_open_items_sync_secret.sql
 │       ├── 013_build_action_log_audit.sql  ← entry_kind discriminator + 4 atomic state/audit RPCs
 │       ├── 014_build_action_log_description_nullable.sql
-│       └── 015_build_action_log_position_scope.sql
+│       ├── 015_build_action_log_position_scope.sql
+│       ├── 016_drop_legacy_action_log_policies.sql
+│       ├── 017_nr_clients_reconcile_reseed.sql
+│       ├── 018_dashboard_authenticated_read.sql
+│       └── 019_dashboard_read_thoughts.sql
 ├── vault/                         ← project docs/notes
 ├── .env.example
 ├── package.json
