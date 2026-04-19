@@ -1,5 +1,7 @@
 # Codebase Snapshot — Neon Rabbit Core
-_Generated: 2026-04-17_
+_Generated: 2026-04-19_
+
+> **Pricing — monthly-only forever (April 19, 2026 decision).** `ss_quarterly_test` (price_1TNcicHRBK3pZpO2Map0zvq0, $129/3mo) and `ss_annual_test` (price_1TNcjcHRBK3pZpO2817mT1CP, $468/yr) are archived on Stripe (active=false, history preserved). Only active price on product `prod_UMLNC0ybgRkVKX` is `ss_monthly_test` (price_1TNciVHRBK3pZpO2Vsz9xfSH, $49/mo).
 
 ## Project
 **Neon Rabbit Core** — the umbrella repo (formerly `sparkle-suite`) housing every codebase under the Neon Rabbit brand: the **Sparkle Suite** rep-facing platform, the **NR HQ** internal build tracker, the **Open Brain** semantic memory store, and the **Live Queue** Chrome extension. Built on Next.js 16 + React 19, Supabase (Postgres + Edge Functions), Stripe billing, and Telegram Bot integration.
