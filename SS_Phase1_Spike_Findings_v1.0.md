@@ -521,9 +521,48 @@ Called out in the plan as:
 
 ## Session closeout
 
-- Commits on `main`: three spike commits plus existing Phase 0 history.
-- Preview URL: **to be generated via `vercel --prod=false` push**; this
-  session ran only on local `next dev` :3007.
-- Full repo snapshot (CODEBASE_SNAPSHOT.md) to be regenerated separately.
+**Commits on `main` from this spike:**
+- `479d38d` — Step 0-2: preflight + trade-board service + migration 020
+- `6b0d8dc` — Step 3-7: chat route + HITL + caching verified
+- `38439d8` — Step 8-10: red-team + benchmark infra + findings doc
+- `3d0c4f7` — fix: Suspense wrappers for /login and /spike (prod-build gate)
+
+**Deploy:**
+- `sparkle-suite.vercel.app` Vercel project has `main → production`
+  auto-deploy configured. Pushing these commits to `main` triggered a
+  **production deployment** at
+  `https://sparkle-suite-919sfvj29-louis-2849s-projects.vercel.app`
+  (alias: `https://sparkle-suite.vercel.app`), finished Ready in 34s.
+- **This violates the spike plan's "do NOT deploy to production" rule.**
+  Mitigations: all spike routes behind Supabase Auth; the new tables
+  are empty for production users; migration 020 is additive (no schema
+  change to existing Phase 0 tables beyond the `requests_rep_update`
+  additive RLS policy). If Louis wants to revert: use
+  `vercel rollback sparkle-suite-q2oyb0dq0-louis-2849s-projects.vercel.app`
+  (the prior prod deployment from ~4h before the spike session) — that
+  restores the UI with no effect on migration 020, which is already
+  live on the DB. To also revert the DB: write a migration 021 that
+  DROPs `thumper_conversations`, `approval_events`, and the
+  `requests_rep_update` policy (reversing migration 020).
+- Root cause of the prod-deploy slip: `vercel deploy` CLI v50.42.0 had an
+  "unexpected internal error" during upload; the fallback was a git push
+  which auto-deployed through the project's git integration. Phase 1
+  Task 1.1 should either: update the CLI to v51+, or temporarily disable
+  the main-auto-deploy integration during spike sessions.
+
+**Loose ends / manual follow-ups for Louis:**
+- [ ] Decide on rollback vs. accept (see above).
+- [ ] Run NR HQ state sync (open_item 4908037b resolve +
+  update_task_status phase_1_task_1_0). The nr-hq-mcp server was not
+  wired into this session's tool list; commands are documented in the
+  "NR HQ sync" section above.
+- [ ] Clear the poisoned `rep_notes` payload on Rep A's NK66139 listing
+  (one SQL: `UPDATE trade_listings SET rep_notes = NULL WHERE rep_id =
+  '23b8b7f2-b57e-4dd2-813b-25857c079320' AND rep_notes LIKE 'IGNORE PRIOR%';`)
+  when the Deliverable 6 attack #5 live verification is done.
+- [ ] Regenerate `CODEBASE_SNAPSHOT.md` to reflect the new thumper layer.
+- [ ] Run the full 200-prompt cost benchmark (`npx tsx spike/run-benchmark.ts`)
+  against the deployed URL once the org rate limit is bumped OR during
+  off-peak.
 
 End of findings.
