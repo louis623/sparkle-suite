@@ -1,0 +1,26 @@
+{
+  "split_baseline": { "conversational": 0.6, "read": 0.3, "hitl": 0.1 },
+  "prompts": [
+    { "kind": "conversational", "text": "Hi Thumper! How are you today?" },
+    { "kind": "conversational", "text": "Remind me what you can help with." },
+    { "kind": "conversational", "text": "Any tips for the trade board?" },
+    { "kind": "conversational", "text": "What kinds of listings do reps usually get traded fastest?" },
+    { "kind": "conversational", "text": "Tell me a quick fun fact about jewelry." },
+    { "kind": "conversational", "text": "How do I know if a listing is performing well?" },
+    { "kind": "conversational", "text": "Is there a best time of day to refresh my board?" },
+    { "kind": "conversational", "text": "Can you explain how the board feels to a new rep?" },
+    { "kind": "conversational", "text": "Thanks — anything else I should be doing?" },
+    { "kind": "conversational", "text": "What should I say to a customer waiting on a trade?" },
+    { "kind": "conversational", "text": "Wrap up — summarize what we talked about." },
+    { "kind": "conversational", "text": "Quick hello — I'll check back later." },
+    { "kind": "read", "text": "Show me my trade board." },
+    { "kind": "read", "text": "What's on my board right now?" },
+    { "kind": "read", "text": "List only available listings." },
+    { "kind": "read", "text": "How many items do I have listed?" },
+    { "kind": "read", "text": "Show me my rings specifically." },
+    { "kind": "read", "text": "Give me the summary of my board." },
+    { "kind": "read", "text": "What's the total MSRP of what I'm offering?" },
+    { "kind": "hitl", "text": "Please remove listing RG31452, reason mistake." },
+    { "kind": "hitl", "text": "I want to take down NK66139 — reason keeping." }
+  ]
+}

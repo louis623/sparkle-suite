@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import { streamText, stepCountIs, convertToModelMessages, type UIMessage } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { getAuthenticatedThumperContext, AuthError } from '@/lib/thumper/auth'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   loadCanonicalHistory,
   getConversationOwner,
@@ -81,9 +82,11 @@ export async function POST(request: Request) {
   const { conversationId, messages } = body
   const cacheMode = body.cacheMode ?? 'padded'
 
-  // Ownership check. First-message case: no row exists yet, this rep becomes
-  // the implicit owner via the first insert below.
-  const existingOwner = await getConversationOwner(supabase, conversationId)
+  // Ownership check. MUST use admin client — an RLS-filtered client returns
+  // null for cross-tenant conversations (red-team attack #7), which would
+  // silently let a rep inject into another rep's conversationId.
+  const adminSupabase = createAdminClient()
+  const existingOwner = await getConversationOwner(adminSupabase, conversationId)
   if (existingOwner && existingOwner !== repId) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 })
   }
