@@ -46,3 +46,6 @@ next-env.d.ts
 # leftover artifacts
 sparkle-suite-live-queue.zip
 supabase/.temp/
+
+.vercel
+.env*.local
