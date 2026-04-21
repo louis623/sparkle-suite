@@ -883,6 +883,647 @@ server.registerTool(
   }
 );
 
+// ═══════════════════════════════════════════════════════════════════════
+// VAC (VA Compensation) — 20 tools: 4 readers + 16 writers. All writers
+// delegate to fn_* RPCs in migration 021 (SECURITY INVOKER, service_role
+// only). Readers query vac_* tables directly via service_role — dashboard
+// reads come through PostgREST with authenticated role, not this path.
+// ═══════════════════════════════════════════════════════════════════════
+
+const VAC_PIPELINE_STAGES = [
+  "discovery","intake","extraction","analysis","strategy",
+  "filed","decision_pending","granted","denied","appeal","deferred",
+] as const;
+const VAC_TIERS = [1,2,3,4,5] as const;
+const VAC_CLAIM_TYPES = [
+  "original","supplemental","hlr","bva","secondary","presumptive",
+] as const;
+const VAC_SOURCE_BUCKETS = [
+  "va_clinical","decision_letters","nexus","mayo",
+  "lay_statements","va_correspondence","service_records",
+] as const;
+const VAC_SOURCE_STAGES = ["intake","extraction","analysis","complete","skipped"] as const;
+const VAC_LINK_TYPES = ["causation","evidence","dependency","presumptive"] as const;
+const VAC_LINK_RELEVANCE = ["primary","supporting","contextual"] as const;
+const VAC_PHASES = ["records_scrub","records_expansion","deep_research"] as const;
+const VAC_ACTIVITY_ENTRY_TYPES = [
+  "condition_created","condition_updated","condition_stage_changed",
+  "condition_rating_changed","condition_deadline_changed",
+  "condition_archived","condition_restored",
+  "source_added","source_updated","source_processed",
+  "source_linked_to_condition","source_unlinked",
+  "interlink_added","interlink_removed",
+  "phase_changed","phase_progress_updated",
+  "filing_made","decision_received","note",
+] as const;
+const VAC_ACTIVITY_SUBJECT_TYPES = ["condition","source","interlink","phase"] as const;
+
+// ── Readers ────────────────────────────────────────────────────────────
+
+server.registerTool(
+  "get_vac_conditions",
+  {
+    title: "Get VAC Conditions",
+    description: "List VAC conditions with optional filters. Excludes archived by default.",
+    inputSchema: {
+      tier: z.enum(VAC_TIERS.map(String) as unknown as [string, ...string[]]).optional(),
+      pipeline_stage: z.enum(VAC_PIPELINE_STAGES).optional(),
+      include_archived: z.boolean().default(false),
+      limit: z.number().int().min(1).max(200).default(100),
+      offset: z.number().int().min(0).default(0),
+    },
+  },
+  async ({ tier, pipeline_stage, include_archived, limit, offset }) => {
+    try {
+      let q = supabaseWrite
+        .from("vac_conditions")
+        .select("*", { count: "exact" })
+        .order("tier", { ascending: true })
+        .order("name", { ascending: true })
+        .range(offset, offset + limit - 1);
+      if (!include_archived) q = q.is("archived_at", null);
+      if (tier) q = q.eq("tier", Number(tier));
+      if (pipeline_stage) q = q.eq("pipeline_stage", pipeline_stage);
+      const { data, error, count } = await q;
+      if (error) return errorResult(error.message);
+      const rows = data ?? [];
+      return textResult({
+        count: count ?? rows.length,
+        page_size: rows.length,
+        limit, offset,
+        has_more: hasMore(offset, rows.length, count ?? null),
+        conditions: rows,
+      });
+    } catch (err) {
+      return errorResult((err as Error).message);
+    }
+  }
+);
+
+server.registerTool(
+  "get_vac_sources",
+  {
+    title: "Get VAC Sources",
+    description: "List VAC source records. Excludes archived by default.",
+    inputSchema: {
+      bucket: z.enum(VAC_SOURCE_BUCKETS).optional(),
+      processing_stage: z.enum(VAC_SOURCE_STAGES).optional(),
+      include_archived: z.boolean().default(false),
+      limit: z.number().int().min(1).max(200).default(100),
+      offset: z.number().int().min(0).default(0),
+    },
+  },
+  async ({ bucket, processing_stage, include_archived, limit, offset }) => {
+    try {
+      let q = supabaseWrite
+        .from("vac_sources")
+        .select("*", { count: "exact" })
+        .order("date_of_record", { ascending: false, nullsFirst: false })
+        .range(offset, offset + limit - 1);
+      if (!include_archived) q = q.is("archived_at", null);
+      if (bucket) q = q.eq("bucket", bucket);
+      if (processing_stage) q = q.eq("processing_stage", processing_stage);
+      const { data, error, count } = await q;
+      if (error) return errorResult(error.message);
+      const rows = data ?? [];
+      return textResult({
+        count: count ?? rows.length,
+        page_size: rows.length,
+        limit, offset,
+        has_more: hasMore(offset, rows.length, count ?? null),
+        sources: rows,
+      });
+    } catch (err) {
+      return errorResult((err as Error).message);
+    }
+  }
+);
+
+server.registerTool(
+  "get_vac_interlinks",
+  {
+    title: "Get VAC Interlinks",
+    description: "List VAC condition interlinks. Optional filter by condition id.",
+    inputSchema: {
+      condition_id: z.string().uuid().optional(),
+      link_type: z.enum(VAC_LINK_TYPES).optional(),
+      limit: z.number().int().min(1).max(500).default(200),
+      offset: z.number().int().min(0).default(0),
+    },
+  },
+  async ({ condition_id, link_type, limit, offset }) => {
+    try {
+      let q = supabaseWrite
+        .from("vac_interlinks")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+      if (condition_id) {
+        q = q.or(`condition_a_id.eq.${condition_id},condition_b_id.eq.${condition_id}`);
+      }
+      if (link_type) q = q.eq("link_type", link_type);
+      const { data, error, count } = await q;
+      if (error) return errorResult(error.message);
+      const rows = data ?? [];
+      return textResult({
+        count: count ?? rows.length,
+        page_size: rows.length,
+        limit, offset,
+        has_more: hasMore(offset, rows.length, count ?? null),
+        interlinks: rows,
+      });
+    } catch (err) {
+      return errorResult((err as Error).message);
+    }
+  }
+);
+
+server.registerTool(
+  "get_vac_activity_log",
+  {
+    title: "Get VAC Activity Log",
+    description: "Recent VAC activity entries, most recent first.",
+    inputSchema: {
+      subject_type: z.enum(VAC_ACTIVITY_SUBJECT_TYPES).optional(),
+      subject_id: z.string().uuid().optional(),
+      entry_type: z.enum(VAC_ACTIVITY_ENTRY_TYPES).optional(),
+      limit: z.number().int().min(1).max(500).default(50),
+      offset: z.number().int().min(0).default(0),
+    },
+  },
+  async ({ subject_type, subject_id, entry_type, limit, offset }) => {
+    try {
+      let q = supabaseWrite
+        .from("vac_activity_log")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+      if (subject_type) q = q.eq("subject_type", subject_type);
+      if (subject_id) q = q.eq("subject_id", subject_id);
+      if (entry_type) q = q.eq("entry_type", entry_type);
+      const { data, error, count } = await q;
+      if (error) return errorResult(error.message);
+      const rows = data ?? [];
+      return textResult({
+        count: count ?? rows.length,
+        page_size: rows.length,
+        limit, offset,
+        has_more: hasMore(offset, rows.length, count ?? null),
+        entries: rows,
+      });
+    } catch (err) {
+      return errorResult((err as Error).message);
+    }
+  }
+);
+
+// ── Writers (delegate to fn_* RPCs) ────────────────────────────────────
+
+server.registerTool(
+  "create_vac_condition",
+  {
+    title: "Create VAC Condition",
+    description: "Create a new VA claim condition. Slug is normalized (lowercase/trimmed) and globally unique.",
+    inputSchema: {
+      slug: z.string().min(1).max(128),
+      name: z.string().min(1).max(256),
+      tier: z.number().int().min(1).max(5),
+      icd_code: z.string().max(32).optional(),
+      claim_type: z.enum(VAC_CLAIM_TYPES).optional(),
+      evidence_score: z.number().int().min(0).max(100).optional(),
+      current_rating_pct: z.number().int().min(0).max(100).refine((v) => v % 10 === 0, "must be multiple of 10").optional(),
+      deadline: z.string().optional(),
+      causation_root: z.string().optional(),
+      notes: z.string().optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_create_vac_condition", {
+        p_slug: a.slug,
+        p_name: a.name,
+        p_tier: a.tier,
+        p_icd_code: a.icd_code ?? null,
+        p_claim_type: a.claim_type ?? null,
+        p_evidence_score: a.evidence_score ?? null,
+        p_current_rating_pct: a.current_rating_pct ?? null,
+        p_deadline: a.deadline ?? null,
+        p_causation_root: a.causation_root ?? null,
+        p_notes: a.notes ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ condition: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "update_vac_condition",
+  {
+    title: "Update VAC Condition",
+    description: "Update metadata on a non-archived condition (identified by id or slug). Cannot change stage/rating/deadline/archived_at here — use dedicated tools.",
+    inputSchema: {
+      id_or_slug: z.string().min(1).max(128),
+      name: z.string().min(1).max(256).optional(),
+      icd_code: z.string().max(32).optional(),
+      claim_type: z.enum(VAC_CLAIM_TYPES).optional(),
+      evidence_score: z.number().int().min(0).max(100).optional(),
+      causation_root: z.string().optional(),
+      notes: z.string().optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_update_vac_condition", {
+        p_id_or_slug: a.id_or_slug,
+        p_name: a.name ?? null,
+        p_icd_code: a.icd_code ?? null,
+        p_claim_type: a.claim_type ?? null,
+        p_evidence_score: a.evidence_score ?? null,
+        p_causation_root: a.causation_root ?? null,
+        p_notes: a.notes ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ condition: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "set_vac_condition_stage",
+  {
+    title: "Set VAC Condition Stage",
+    description: "Change pipeline_stage on a non-archived condition. Logs stage transition.",
+    inputSchema: {
+      id_or_slug: z.string().min(1).max(128),
+      new_stage: z.enum(VAC_PIPELINE_STAGES),
+      reason: z.string().optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_set_vac_condition_stage", {
+        p_id_or_slug: a.id_or_slug,
+        p_new_stage: a.new_stage,
+        p_reason: a.reason ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ condition: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "set_vac_condition_rating",
+  {
+    title: "Set VAC Condition Rating",
+    description: "Update current_rating_pct (multiple of 10, 0-100). Cannot change rating on archived.",
+    inputSchema: {
+      id_or_slug: z.string().min(1).max(128),
+      new_rating_pct: z.number().int().min(0).max(100).refine((v) => v % 10 === 0, "must be multiple of 10"),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_set_vac_condition_rating", {
+        p_id_or_slug: a.id_or_slug,
+        p_new_rating_pct: a.new_rating_pct,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ condition: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "set_vac_condition_deadline",
+  {
+    title: "Set VAC Condition Deadline",
+    description: "Update deadline DATE on a non-archived condition. Pass null via omitting to clear.",
+    inputSchema: {
+      id_or_slug: z.string().min(1).max(128),
+      new_deadline: z.string().nullable().optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_set_vac_condition_deadline", {
+        p_id_or_slug: a.id_or_slug,
+        p_new_deadline: a.new_deadline ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ condition: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "archive_vac_condition",
+  {
+    title: "Archive VAC Condition",
+    description: "Soft-delete a condition (sets archived_at). Fails if already archived. Slug stays reserved for restore.",
+    inputSchema: {
+      id_or_slug: z.string().min(1).max(128),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_archive_vac_condition", {
+        p_id_or_slug: a.id_or_slug, p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ condition: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "restore_vac_condition",
+  {
+    title: "Restore VAC Condition",
+    description: "Clear archived_at on a soft-deleted condition. Fails if not archived.",
+    inputSchema: {
+      id_or_slug: z.string().min(1).max(128),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_restore_vac_condition", {
+        p_id_or_slug: a.id_or_slug, p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ condition: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "create_vac_source",
+  {
+    title: "Create VAC Source",
+    description: "Register a new source record in one of 7 buckets.",
+    inputSchema: {
+      title: z.string().min(1).max(256),
+      bucket: z.enum(VAC_SOURCE_BUCKETS),
+      physical_location: z.string().optional(),
+      external_ref: z.string().optional(),
+      checksum: z.string().optional(),
+      date_of_record: z.string().optional(),
+      processing_stage: z.enum(VAC_SOURCE_STAGES).default("intake"),
+      summary: z.string().optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_create_vac_source", {
+        p_title: a.title,
+        p_bucket: a.bucket,
+        p_physical_location: a.physical_location ?? null,
+        p_external_ref: a.external_ref ?? null,
+        p_checksum: a.checksum ?? null,
+        p_date_of_record: a.date_of_record ?? null,
+        p_processing_stage: a.processing_stage,
+        p_summary: a.summary ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ source: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "update_vac_source",
+  {
+    title: "Update VAC Source",
+    description: "Update metadata on a non-archived source record (by id).",
+    inputSchema: {
+      id: z.string().uuid(),
+      title: z.string().min(1).max(256).optional(),
+      bucket: z.enum(VAC_SOURCE_BUCKETS).optional(),
+      physical_location: z.string().optional(),
+      external_ref: z.string().optional(),
+      checksum: z.string().optional(),
+      date_of_record: z.string().optional(),
+      summary: z.string().optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_update_vac_source", {
+        p_id: a.id,
+        p_title: a.title ?? null,
+        p_bucket: a.bucket ?? null,
+        p_physical_location: a.physical_location ?? null,
+        p_external_ref: a.external_ref ?? null,
+        p_checksum: a.checksum ?? null,
+        p_date_of_record: a.date_of_record ?? null,
+        p_summary: a.summary ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ source: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "set_source_processing_stage",
+  {
+    title: "Set Source Processing Stage",
+    description: "Move a source through the 5-stage processing pipeline. 'complete' logs as 'source_processed'.",
+    inputSchema: {
+      id: z.string().uuid(),
+      new_stage: z.enum(VAC_SOURCE_STAGES),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_set_source_processing_stage", {
+        p_id: a.id, p_new_stage: a.new_stage, p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ source: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "link_source_to_condition",
+  {
+    title: "Link Source to Condition",
+    description: "Associate a source record with a condition. Upserts on (source_id, condition_id).",
+    inputSchema: {
+      source_id: z.string().uuid(),
+      condition_id_or_slug: z.string().min(1).max(128),
+      relevance: z.enum(VAC_LINK_RELEVANCE).optional(),
+      notes: z.string().optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_link_source_to_condition", {
+        p_source_id: a.source_id,
+        p_condition_id_or_slug: a.condition_id_or_slug,
+        p_relevance: a.relevance ?? null,
+        p_notes: a.notes ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ link: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "unlink_source_from_condition",
+  {
+    title: "Unlink Source from Condition",
+    description: "Remove a source↔condition link.",
+    inputSchema: {
+      source_id: z.string().uuid(),
+      condition_id_or_slug: z.string().min(1).max(128),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_unlink_source_from_condition", {
+        p_source_id: a.source_id,
+        p_condition_id_or_slug: a.condition_id_or_slug,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ result: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "create_vac_interlink",
+  {
+    title: "Create VAC Interlink",
+    description: "Link two conditions. causation/dependency are directional (A→B ≠ B→A); evidence/presumptive are undirected.",
+    inputSchema: {
+      condition_a_id_or_slug: z.string().min(1).max(128),
+      condition_b_id_or_slug: z.string().min(1).max(128),
+      link_type: z.enum(VAC_LINK_TYPES),
+      reason: z.string().optional(),
+      source_id: z.string().uuid().optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_create_vac_interlink", {
+        p_condition_a_id_or_slug: a.condition_a_id_or_slug,
+        p_condition_b_id_or_slug: a.condition_b_id_or_slug,
+        p_link_type: a.link_type,
+        p_reason: a.reason ?? null,
+        p_source_id: a.source_id ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ interlink: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "remove_vac_interlink",
+  {
+    title: "Remove VAC Interlink",
+    description: "Delete an interlink by id.",
+    inputSchema: {
+      interlink_id: z.string().uuid(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_remove_vac_interlink", {
+        p_interlink_id: a.interlink_id, p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ interlink: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "log_vac_activity",
+  {
+    title: "Log VAC Activity",
+    description: "Append a free-form activity entry. entry_type must match the CHECK constraint.",
+    inputSchema: {
+      entry_type: z.enum(VAC_ACTIVITY_ENTRY_TYPES),
+      description: z.string().min(1),
+      subject_type: z.enum(VAC_ACTIVITY_SUBJECT_TYPES).optional(),
+      subject_id: z.string().uuid().optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_log_vac_activity", {
+        p_entry_type: a.entry_type,
+        p_description: a.description,
+        p_subject_type: a.subject_type ?? null,
+        p_subject_id: a.subject_id ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ entry: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "update_vac_phase_state",
+  {
+    title: "Update VAC Phase State",
+    description: "Update the singleton phase tracker with optimistic concurrency. Pass the current version; conflict if stale.",
+    inputSchema: {
+      expected_version: z.number().int().min(1),
+      current_phase: z.enum(VAC_PHASES).optional(),
+      progress_count: z.number().int().min(0).optional(),
+      progress_total: z.number().int().min(0).optional(),
+      notes: z.string().optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_update_vac_phase_state", {
+        p_expected_version: a.expected_version,
+        p_current_phase: a.current_phase ?? null,
+        p_progress_count: a.progress_count ?? null,
+        p_progress_total: a.progress_total ?? null,
+        p_notes: a.notes ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ phase_state: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
 // --- Hono App with Auth + CORS (mirrors open-brain-mcp) ---
 
 const corsHeaders = {
