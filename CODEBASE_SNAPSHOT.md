@@ -1,5 +1,5 @@
 # Codebase Snapshot — Neon Rabbit Core
-_Generated: 2026-04-19_
+_Generated: 2026-04-20 (HEAD: 8c8ea32 — docs(thumper-spike): findings closeout)_
 
 > **Pricing — monthly-only forever (April 19, 2026 decision).** `ss_quarterly_test` (price_1TNcicHRBK3pZpO2Map0zvq0, $129/3mo) and `ss_annual_test` (price_1TNcjcHRBK3pZpO2817mT1CP, $468/yr) are archived on Stripe (active=false, history preserved). Only active price on product `prod_UMLNC0ybgRkVKX` is `ss_monthly_test` (price_1TNciVHRBK3pZpO2Vsz9xfSH, $49/mo).
 
@@ -41,7 +41,13 @@ neon-rabbit-core/
 │   │   │   │   ├── auto-recharge/route.ts     ← update auto-recharge settings
 │   │   │   │   └── load/route.ts              ← create checkout session for wallet load
 │   │   │   └── webhook/route.ts
-│   │   └── telegram/route.ts
+│   │   ├── telegram/route.ts
+│   │   └── thumper/spike/                  ← Phase 1 vertical-slice chat route
+│   │       ├── route.ts                    ← streamText with 2 tools + HITL + persistence
+│   │       ├── conversation/[conversationId]/route.ts
+│   │       └── me/route.ts
+│   ├── login/{page.tsx, _client.tsx}       ← Supabase Auth email/password login
+│   ├── spike/{page.tsx, _client.tsx}       ← useChat UI for Thumper spike
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
@@ -54,7 +60,13 @@ neon-rabbit-core/
 │   └── icons/
 ├── lib/
 │   ├── services/
-│   │   └── wallet.ts             ← ensureWallet, deductSmsCharge, auto-recharge trigger
+│   │   ├── wallet.ts             ← ensureWallet, deductSmsCharge, auto-recharge trigger
+│   │   └── trade-board.ts        ← listMyTradeBoard + removeListing (Phase 1 spike)
+│   ├── thumper/                  ← Phase 1 Thumper assistant (spike)
+│   │   ├── auth.ts               ← getAuthenticatedRepForThumper()
+│   │   ├── persistence.ts        ← thumper_conversations + approval_events I/O
+│   │   ├── system-prompt.ts
+│   │   └── tools/{list-my-trade-board.ts, remove-listing.ts}
 │   ├── stripe/
 │   │   ├── config.ts             ← Zod env validation, lazy-loaded
 │   │   ├── client.ts             ← Stripe instance (v22 dahlia API)
@@ -113,8 +125,10 @@ neon-rabbit-core/
 │       ├── 016_drop_legacy_action_log_policies.sql
 │       ├── 017_nr_clients_reconcile_reseed.sql
 │       ├── 018_dashboard_authenticated_read.sql
-│       └── 019_dashboard_read_thoughts.sql
+│       ├── 019_dashboard_read_thoughts.sql
+│       └── 020_thumper_conversations.sql    ← thumper_conversations + approval_events
 ├── vault/                         ← project docs/notes
+├── verification/                  ← Gate 0 + Phase 1 spike verification artifacts
 ├── .env.example
 ├── package.json
 ├── tsconfig.json
@@ -122,6 +136,7 @@ neon-rabbit-core/
 ├── README.md
 ├── SS_Service_Layer_Spec_v1_0.md
 ├── SS_Supabase_Schema_v1_0.md
+├── SS_Phase1_Spike_Findings_v1.0.md  ← Phase 1 Task 1.0 closeout
 └── CODEBASE_SNAPSHOT.md
 ```
 
@@ -131,6 +146,9 @@ neon-rabbit-core/
 
 ```json
 {
+  "@ai-sdk/anthropic": "^3.0.71",
+  "@ai-sdk/react": "^3.0.170",
+  "ai": "^6.0.168",
   "@supabase/supabase-js": "^2.100.1",
   "@supabase/ssr": "^0.10.2",
   "next": "16.2.1",
@@ -484,6 +502,11 @@ Idempotent seed script for the test rep development sandbox.
 | `013_build_action_log_audit.sql` | Codify dashboard-created `build_action_log` canonical shape + extend to a unified build-activity log. Adds `entry_kind` discriminator (`card_snapshot`/`audit`) + audit columns (`target_type`, `target_key`, `actor`, `old_value`, `new_value`, `summary`) with DEFAULTs for rollout safety. NULL-validation DO block before tightening NOT NULL on base columns. Backfill existing 36 rows to `entry_kind='card_snapshot'`. 4 CHECK constraints (`entry_kind`, `target_type`, `actor`, audit-shape guard). 2 indexes (project+kind+created, target+kind). RLS: service_role full, anon SELECT scoped to `card_snapshot`. 4 atomic state+audit RPCs with `SELECT FOR UPDATE` and actor/status validation: `rpc_update_task_status`, `rpc_update_phase_status`, `rpc_update_gate_status`, `rpc_update_action_cards`. Follow-up open_item row tracking the scheduled NOT-NULL enforcement migration. Fully transactional, idempotent on rerun. |
 | `014_build_action_log_description_nullable.sql` | `alter column description drop not null`. The live column was NOT NULL from dashboard creation; audit rows legitimately don't carry a description (payload lives in summary/old/new). Also bumps the reserved NOT-NULL follow-up open_item to reference migration 016. |
 | `015_build_action_log_position_scope.sql` | Rewrite `build_action_log_position_check` (dashboard-created CHECK restricting `position` to `previous/current/next`) so it only applies to `card_snapshot` rows. Audit rows use `position=target_key` (e.g. `task_0_1`) which needed the broader predicate. |
+| `016_drop_legacy_action_log_policies.sql` | Drop pre-013 legacy RLS policies on `build_action_log` superseded by the entry_kind-scoped anon SELECT. |
+| `017_nr_clients_reconcile_reseed.sql` | Reconcile `neon_rabbit_clients` canonical seed set after HQ renames. |
+| `018_dashboard_authenticated_read.sql` | Allow authenticated dashboard reads on HQ tables (scoped). |
+| `019_dashboard_read_thoughts.sql` | Allow authenticated dashboard reads on `open_brain`. |
+| `020_thumper_conversations.sql` | Phase 1 Task 1.0 spike: `thumper_conversations` (UIMessage rows per rep) + `approval_events` (HITL approval ledger, UNIQUE approval_id for replay protection) + `requests_rep_update` RLS policy enabling removeListing auto-cancel of pending trade_requests. Additive only. |
 
 ---
 
@@ -744,4 +767,22 @@ All 4 RPCs validate `actor` (`'chat'|'claude_code'`) and status values up front 
 **Guardrails honored:** Response contracts of the 4 status tools are byte-identical (wrappers reshape RPC output). Only additive surface changes: 1 new optional param on 4 existing tools + 1 new read tool. `get_phases`/`get_tasks`/`get_gates` untouched. `get_action_cards`/`get_build_summary` gain a defensive filter with no observable change (all valid rows satisfy it after backfill). `open_items` written only via the idempotent migration-013 insert (precedent: migration 012). `create_client`/`update_client` untouched. `daily-financial-sync`, `open-brain-mcp`, other Edge Functions untouched.
 
 **Post-deploy verification (Louis, Rule 18):** reload NR HQ connector to pick up the new `actor` param + `get_recent_audit_log`, confirm 18 tools in a fresh Claude Chat, fire one `update_task_status` with `actor='chat'`, call `get_recent_audit_log` to confirm the row lands with the expected shape. Run the MCP smoke test with the 1Password-sourced `MCP_ACCESS_KEY` — all 17 logical tests should pass. Inspect the new rows in Supabase → Database → `build_action_log` (6 new columns; 36 historical rows carry `entry_kind='card_snapshot'`).
+
+---
+
+## Session 2026-04-20 — SS Phase 1 Task 1.0 Spike (vertical-slice validation)
+
+End-to-end spike validating AI SDK 6 + Anthropic (Claude Sonnet 4.6) + Supabase for the Thumper conversational assistant. Shipped to `sparkle-suite.vercel.app`; closed out in commit `8c8ea32`.
+
+**New surface area:**
+- `app/api/thumper/spike/route.ts` — `streamText` with 2 tools (`list_my_trade_board`, `remove_listing`), HITL approval gate on mutating tool, per-rep rate limiting, ephemeral prompt caching, conversation persistence.
+- `app/api/thumper/spike/{conversation/[conversationId], me}/route.ts` — load prior conversation; identify current rep.
+- `app/spike/{page.tsx, _client.tsx}` + `app/login/{page.tsx, _client.tsx}` — `useChat` UI + Supabase Auth login (both wrapped in Suspense boundaries).
+- `lib/thumper/` — `auth.ts`, `persistence.ts`, `system-prompt.ts`, `tools/{list-my-trade-board, remove-listing}.ts`.
+- `lib/services/trade-board.ts` — `listMyTradeBoard()` + `removeListing()` service functions (remove cascades to auto-cancel any pending `trade_requests` on the listing via RLS policy from migration 020).
+- `supabase/migrations/020_thumper_conversations.sql` — see migrations table.
+
+**Deliverables / artifacts:** `SS_Phase1_Spike_Findings_v1.0.md` (preflight → Step 10 red-team + benchmark findings + deploy URL + rollback plan).
+
+**Dependencies added:** `ai@^6.0.168`, `@ai-sdk/anthropic@^3.0.71`, `@ai-sdk/react@^3.0.170`.
 
