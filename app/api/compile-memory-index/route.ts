@@ -38,15 +38,19 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!
 const COMPILE_SECRET    = process.env.MEMORY_INDEX_COMPILE_SECRET ?? ''
 
 const MODEL                 = 'claude-sonnet-4-6'
-// Vercel Fluid Compute gives 300s wall-clock on Pro. Sonnet at ~50 tok/s can
-// emit 16K output in ~320s worst case, but typical is 60-120s. The 300s cap
-// and the Anthropic 300s fetch timeout match so a genuine Anthropic hang
-// surfaces as a function timeout rather than a silent truncation.
-const MAX_OUTPUT_TOKENS     = 16_000
+// Measured Sonnet 4.6 output rate in this project: ~44 tok/s. Vercel Pro
+// caps serverless functions at 300s (maxDuration below). 12K output tokens
+// → ~272s generation time, leaving ~28s headroom for validation + the
+// compile_memory_index_pages RPC write + lock release. 16K was the original
+// target but blows the cap (~360s). Raise only after a platform move.
+const MAX_OUTPUT_TOKENS     = 12_000
 const CAPTURE_LIMIT_N       = 2_000
 const INPUT_TOKEN_LIMIT_M   = 180_000
 const LOCK_TTL_SECONDS      = 600 // ≈ 2× the Anthropic timeout
-const ANTHROPIC_TIMEOUT_MS  = 5 * 60 * 1000
+// Anthropic fetch timeout is deliberately shorter than Vercel's maxDuration
+// so a genuine Anthropic hang surfaces as an HTTP error we can audit, not a
+// silent function kill. 280s = 300s Vercel cap − 20s buffer for post-call work.
+const ANTHROPIC_TIMEOUT_MS  = 280_000
 const MAX_REPLAY_PASSES     = 10
 // PostgREST enforces a project-wide 1000-row cap even with explicit .range();
 // we pull the newest 1000 captures and drop untagged/out-of-window client-side.
