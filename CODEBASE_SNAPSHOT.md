@@ -356,7 +356,8 @@ Mirror of open-brain-mcp for user March.
 - URL: `https://bqhzfkgkjyuhlsozpylf.supabase.co/functions/v1/open-brain-mcp-march`
 
 ### `nr-hq-mcp`
-MCP server exposing NR HQ build tracker, open items, clients, and audit log to Claude Desktop / claude.ai. **18 tools total** (6 reads + 12 writes).
+MCP server exposing NR HQ build tracker, open items, clients, VAC, and audit log to Claude Desktop / claude.ai.
+- **VAC Key Dates tools (migration 025):** `get_vac_key_dates` (status/date_type filters, default excludes past dates), `create_vac_key_date` (title+date_value+date_type required; provider/condition_id/description optional), `update_vac_key_date` (id required; all fields including status optional). No delete tool exposed — callers set `status='cancelled'` instead. Writers call `supabaseWrite.rpc('fn_*_vac_key_date')`; reader queries `vac_key_dates` directly via service_role client, ordered by `date_value` ascending.
 - Auth: `x-brain-key: MCP_ACCESS_KEY` header (query `?key=` fallback)
 - Read tools: `get_phases`, `get_tasks`, `get_gates`, `get_action_cards`, `get_build_summary`, `get_recent_audit_log`
 - Write tools: `update_task_status`, `update_phase_status`, `update_gate_status`, `update_action_cards` (the 4 status tools are thin wrappers over SECURITY DEFINER RPCs — `rpc_update_{task,phase,gate,action_cards}_status` — that use `SELECT FOR UPDATE` row locks for atomic state+audit writes in one transaction. All 4 accept an optional `actor` param (`'chat' | 'claude_code'`, default `'claude_code'`) that labels the audit row); `create_open_item`, `update_open_item`, `resolve_open_item`, `get_open_items`; `create_client`, `update_client`, `get_clients`, `get_client`
@@ -507,6 +508,7 @@ Idempotent seed script for the test rep development sandbox.
 | `018_dashboard_authenticated_read.sql` | Allow authenticated dashboard reads on HQ tables (scoped). |
 | `019_dashboard_read_thoughts.sql` | Allow authenticated dashboard reads on `open_brain`. |
 | `020_thumper_conversations.sql` | Phase 1 Task 1.0 spike: `thumper_conversations` (UIMessage rows per rep) + `approval_events` (HITL approval ledger, UNIQUE approval_id for replay protection) + `requests_rep_update` RLS policy enabling removeListing auto-cancel of pending trade_requests. Additive only. |
+| `025_vac_key_dates.sql` | VAC key dates: `vac_key_dates` table (title/date_value/date_type/provider/condition_id→vac_conditions ON DELETE SET NULL/description/status + `updated_at` trigger) with CHECK constraints on `date_type` (`appointment/deadline/follow_up/filing/records_request`) and `status` (`upcoming/completed/cancelled/missed`). Three indexes (date_value, status, partial on condition_id). RLS: authenticated SELECT only — mutations gated to service_role via `fn_create_vac_key_date` / `fn_update_vac_key_date` / `fn_delete_vac_key_date` (SECURITY INVOKER, REVOKE FROM PUBLIC/anon/authenticated, GRANT TO service_role). All three log to `vac_activity_log` with `entry_type='note'`. `fn_update_*` uses COALESCE-over-NULL for optional updates; `fn_delete_*` hard-deletes (scheduling only, not medical records). Numbered 025 because 024 was already taken by the memory-index compiler migration. |
 
 ---
 
