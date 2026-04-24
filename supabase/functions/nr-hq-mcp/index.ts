@@ -917,6 +917,8 @@ const VAC_ACTIVITY_ENTRY_TYPES = [
   "filing_made","decision_received","note",
 ] as const;
 const VAC_ACTIVITY_SUBJECT_TYPES = ["condition","source","interlink","phase"] as const;
+const VAC_KEY_DATE_TYPES = ["appointment","deadline","follow_up","filing","records_request"] as const;
+const VAC_KEY_DATE_STATUSES = ["upcoming","completed","cancelled","missed"] as const;
 
 // ── Readers ────────────────────────────────────────────────────────────
 
@@ -1490,6 +1492,108 @@ server.registerTool(
       });
       if (error) return errorResult(error.message);
       return textResult({ entry: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+// ── VAC Key Dates ──────────────────────────────────────────────────────
+
+server.registerTool(
+  "get_vac_key_dates",
+  {
+    title: "Get VAC Key Dates",
+    description: "List VAC key dates (appointments, deadlines, follow-ups, filings, records requests). Sorted by date ascending. Past dates excluded unless include_past=true.",
+    inputSchema: {
+      status: z.enum(VAC_KEY_DATE_STATUSES).optional(),
+      date_type: z.enum(VAC_KEY_DATE_TYPES).optional(),
+      include_past: z.boolean().default(false),
+      limit: z.number().int().min(1).max(200).default(20),
+    },
+  },
+  async ({ status, date_type, include_past, limit }) => {
+    try {
+      let q = supabaseWrite
+        .from("vac_key_dates")
+        .select("*")
+        .order("date_value", { ascending: true })
+        .limit(limit);
+      if (status) q = q.eq("status", status);
+      if (date_type) q = q.eq("date_type", date_type);
+      if (!include_past) {
+        const today = new Date().toISOString().slice(0, 10);
+        q = q.gte("date_value", today);
+      }
+      const { data, error } = await q;
+      if (error) return errorResult(error.message);
+      return textResult({ key_dates: data ?? [] });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "create_vac_key_date",
+  {
+    title: "Create VAC Key Date",
+    description: "Create a new VAC key date (appointment, deadline, follow-up, filing, or records request). Optionally linked to a condition.",
+    inputSchema: {
+      title: z.string().min(1).max(256),
+      date_value: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "must be YYYY-MM-DD"),
+      date_type: z.enum(VAC_KEY_DATE_TYPES),
+      provider: z.string().max(128).optional(),
+      condition_id: z.string().uuid().optional(),
+      description: z.string().max(2000).optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_create_vac_key_date", {
+        p_title: a.title,
+        p_date_value: a.date_value,
+        p_date_type: a.date_type,
+        p_provider: a.provider ?? null,
+        p_condition_id: a.condition_id ?? null,
+        p_description: a.description ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ key_date: data });
+    } catch (err) { return errorResult((err as Error).message); }
+  }
+);
+
+server.registerTool(
+  "update_vac_key_date",
+  {
+    title: "Update VAC Key Date",
+    description: "Update any field on a key date including status. Use status='cancelled' rather than deleting.",
+    inputSchema: {
+      id: z.string().uuid(),
+      title: z.string().min(1).max(256).optional(),
+      date_value: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "must be YYYY-MM-DD").optional(),
+      date_type: z.enum(VAC_KEY_DATE_TYPES).optional(),
+      provider: z.string().max(128).optional(),
+      condition_id: z.string().uuid().optional(),
+      description: z.string().max(2000).optional(),
+      status: z.enum(VAC_KEY_DATE_STATUSES).optional(),
+      actor: z.enum(AUDIT_ACTORS).default("chat"),
+    },
+  },
+  async (a) => {
+    try {
+      const { data, error } = await supabaseWrite.rpc("fn_update_vac_key_date", {
+        p_id: a.id,
+        p_title: a.title ?? null,
+        p_date_value: a.date_value ?? null,
+        p_date_type: a.date_type ?? null,
+        p_provider: a.provider ?? null,
+        p_condition_id: a.condition_id ?? null,
+        p_description: a.description ?? null,
+        p_status: a.status ?? null,
+        p_actor: a.actor,
+      });
+      if (error) return errorResult(error.message);
+      return textResult({ key_date: data });
     } catch (err) { return errorResult((err as Error).message); }
   }
 );
