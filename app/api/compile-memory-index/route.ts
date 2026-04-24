@@ -1,26 +1,40 @@
 // Memory Index Compiler — Vercel Next.js route (Node runtime, Fluid Compute).
 //
-// Invoked by the Postgres trigger `tg_thoughts_fire_memory_index` (via pg_net)
-// on every SESSION CLOSE capture, and invokable directly with a service-role
-// JWT OR X-Compile-Secret for testing.
+// Invokable via the manual daily trigger for the 3-day cost pilot (v1.2
+// Editorial Policy §0). Not yet wired to a Postgres trigger — migration
+// 025 stays unattached until pilot cost data is in hand.
 //
-// Design notes / hard rules:
-//  - Fresh-context agent: the only inputs are the bundled Editorial Policy,
-//    the raw `public.thoughts` table, and `memory_index_pages` metadata.
-//    body_markdown is NEVER read back from memory_index_pages (R10).
-//  - Concurrency: lease-row lock (not pg_try_advisory_lock) because PostgREST
-//    borrows a pooled session per request and advisory locks would not
-//    survive predictably across separate RPC calls.
-//  - Audit ledger: one row per compile pass (UNIQUE on compile_id). Insert
-//    once at pass start → UPDATE by compile_id thereafter.
-//  - Coalesced skips: an in-process while-loop consumes the pending flag
-//    after each pass and runs another pass under the same lock if set.
-//  - The Anthropic call is bracketed by refresh_compile_lock() heartbeats.
+// Auth: service-role Bearer JWT OR X-Compile-Secret header.
 //
-// Ported from the Supabase Edge Function (supabase/functions/memory-index-compiler/)
-// which was retired because its undocumented ~2min wall-clock cap could not
-// accommodate a full Sonnet Memory Index compile. Vercel Fluid Compute gives
-// us 300s, so MAX_OUTPUT_TOKENS is raised back to 16K per the original plan.
+// Architecture (v1.2 Editorial Policy §0.1 per-page-type pass architecture):
+//  - 7 sequential Anthropic calls per compile, one per page_type
+//    (project, person, decision, rule, concept, open_question, index).
+//  - Each pass reads the FULL tagged corpus (no calendar window), then
+//    filters client-side to the slice relevant to that page type.
+//  - Each pass sees only metadata from EXISTING memory_index_pages for its
+//    type. body_markdown is NEVER read back (R10 locked CEO call, 2026-04-23).
+//  - The `index` pass is always last — it synthesizes a map page from the
+//    buffered metadata of passes 1-6 only (no corpus).
+//  - Pages are BUFFERED across all 7 passes. After pass 7 the entire
+//    buffered array is written in a single atomic call to the existing
+//    compile_memory_index_pages RPC (DELETE-ALL + INSERT). If any pass
+//    completely fails to produce pages we abort the write to avoid wiping
+//    the prior compile.
+//
+// Concurrency: lease-row lock (lease TTL 600s). The lock is refreshed
+// between every pass so a long compile does not drop the lock mid-run.
+// Coalesced-skip replay via consume_compile_pending under the same lock.
+//
+// Audit ledger: one row per compile pass on memory_index_compile_runs
+// (UNIQUE on compile_id). Insert once at pass start → UPDATE by compile_id
+// thereafter. Per-pass results are JSON-encoded into error_message when
+// any pass failed (schema extension deferred).
+//
+// Per-pass MAX_OUTPUT_TOKENS = 3000: Sonnet 4.6 at ~44 tok/s × 7 passes
+// must fit inside Vercel's 300s maxDuration. If a pass hits
+// stop_reason=max_tokens it is logged as failed and the compile continues
+// with remaining passes (v1.2 §0.1 — loud failure = page type has grown
+// beyond single-call capacity and needs subdivision).
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { timingSafeEqual as nodeTimingSafeEqual, randomUUID } from 'node:crypto'
@@ -38,12 +52,14 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!
 const COMPILE_SECRET    = process.env.MEMORY_INDEX_COMPILE_SECRET ?? ''
 
 const MODEL                 = 'claude-sonnet-4-6'
-// Measured Sonnet 4.6 output rate in this project: ~44 tok/s. Vercel Pro
-// caps serverless functions at 300s (maxDuration below). 12K output tokens
-// → ~272s generation time, leaving ~28s headroom for validation + the
-// compile_memory_index_pages RPC write + lock release. 16K was the original
-// target but blows the cap (~360s). Raise only after a platform move.
-const MAX_OUTPUT_TOKENS     = 12_000
+// Per-page-type architecture (v1.2 Editorial Policy §0.1): the compiler makes
+// 7 sequential Anthropic calls, one per page_type. Vercel Pro caps functions
+// at 300s (maxDuration below). Measured Sonnet 4.6 output ≈ 44 tok/s, so
+// budget ~35–40s / pass ≈ ~1500–1800 output tokens. 3000 gives headroom; if
+// a pass hits stop_reason=max_tokens it's logged as failed and the compile
+// continues with remaining passes (Editorial Policy §0.1: loud failure =
+// page type has grown beyond single-call capacity and needs subdivision).
+const MAX_OUTPUT_TOKENS_PER_PASS = 3_000
 const CAPTURE_LIMIT_N       = 2_000
 const INPUT_TOKEN_LIMIT_M   = 180_000
 const LOCK_TTL_SECONDS      = 600 // ≈ 2× the Anthropic timeout
@@ -53,23 +69,17 @@ const LOCK_TTL_SECONDS      = 600 // ≈ 2× the Anthropic timeout
 const ANTHROPIC_TIMEOUT_MS  = 280_000
 const MAX_REPLAY_PASSES     = 10
 // PostgREST enforces a project-wide 1000-row cap even with explicit .range();
-// we pull the newest 1000 captures and drop untagged/out-of-window client-side.
-// When the corpus grows past that cap we will switch to a SECURITY DEFINER RPC
-// that returns the full tagged corpus server-side (bypassing PostgREST's cap).
+// we pull the newest 1000 captures and drop untagged client-side. When the
+// corpus grows past that cap we will switch to a SECURITY DEFINER RPC that
+// returns the full tagged corpus server-side (bypassing PostgREST's cap).
 const THOUGHTS_FETCH_CAP    = 1_000
 
-// Optional recency window on top of the tag filter. Controlled by env var
-// MEMORY_INDEX_COMPILE_WINDOW_DAYS. Unset or 0 → no recency filter (all
-// tagged captures). Set to e.g. "7" → keep only tagged captures from the
-// last 7 days. Recency is a pilot tuning knob because Sonnet has a 200K
-// input ceiling; the Editorial Policy §6.5 explicitly reserves the right
-// to add windowing when corpus size demands it.
-const COMPILE_WINDOW_DAYS = (() => {
-  const raw = process.env.MEMORY_INDEX_COMPILE_WINDOW_DAYS
-  if (!raw) return 0
-  const n = Number.parseInt(raw, 10)
-  return Number.isFinite(n) && n > 0 ? n : 0
-})()
+// Safety net: if cumulative estimated cost across all 7 passes exceeds this,
+// abort remaining passes. Expected cost per compile is $2–4; $10 is a 2–3×
+// margin. Sonnet 4.6 pricing: $3/M input, $15/M output.
+const TOTAL_SPEND_CEILING_USD = 10
+const SONNET_INPUT_USD_PER_MTOK  = 3
+const SONNET_OUTPUT_USD_PER_MTOK = 15
 
 // The Editorial Policy's page triggers all key off tagged capture prefixes
 // (SESSION CLOSE, DECISION, CLAUDE LESSON, etc.). Untagged captures are raw
@@ -79,7 +89,7 @@ const CAPTURE_TAG_RE = new RegExp(
   '^\\s*(SESSION CLOSE|ACTIVE TASK|DECISION|MILESTONE|' +
   'CLAUDE LESSON|CLAUDE PATTERN|CLAUDE DRIFT|CLAUDE HEURISTIC|' +
   'CLAUDE ANTI-PATTERN|CLAUDE ABOUT LOUIS|PERSON NOTE|RULE REVISION|' +
-  'TOOL AWARENESS|FILE SHIPPED|CO-WORK PROMPT)',
+  'TOOL AWARENESS|FILE SHIPPED|CO-WORK PROMPT|RESEARCH FINDINGS SUMMARY)',
   'i',
 )
 
@@ -95,6 +105,31 @@ const VALID_STATUSES = new Set([
   'current', 'potentially_stale', 'parked', 'historical',
 ])
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+// Per-page-type compilation order. `index` MUST be last because it reads
+// metadata from all pages produced in passes 1–6 (Editorial Policy §0.1).
+type PageType =
+  | 'project' | 'person' | 'decision' | 'rule'
+  | 'concept' | 'open_question' | 'index'
+
+const PAGE_TYPE_ORDER: PageType[] = [
+  'project', 'person', 'decision', 'rule', 'concept', 'open_question', 'index',
+]
+
+// Per-page-type corpus relevance filter (Editorial Policy §0.1 step 2).
+// Values are the tag-prefix allowlist for the page type.
+// `null` means "all captures" (for open_question — surface-able from any tag).
+// `index` is handled specially: it never sees the corpus; it reads metadata
+// from the buffered results of passes 1–6.
+const PAGE_TYPE_CORPUS_FILTERS: Record<Exclude<PageType, 'index'>, string[] | null> = {
+  project:       ['SESSION CLOSE', 'ACTIVE TASK', 'MILESTONE', 'DECISION'],
+  person:        ['PERSON NOTE', 'CLAUDE ABOUT LOUIS', 'SESSION CLOSE'],
+  decision:      ['DECISION', 'SESSION CLOSE'],
+  rule:          ['CLAUDE LESSON', 'CLAUDE PATTERN', 'CLAUDE DRIFT',
+                  'CLAUDE HEURISTIC', 'CLAUDE ANTI-PATTERN', 'RULE REVISION'],
+  concept:       ['DECISION', 'SESSION CLOSE', 'ACTIVE TASK'],
+  open_question: null,
+}
 
 // ---------- helpers ----------
 
@@ -403,25 +438,15 @@ async function runCompilePass(args: {
     if (error) console.error('audit update failed', error, fields)
   }
 
-  // --- Load corpus.
+  // --- Load FULL tagged corpus (v1.2 §0.1 step 1 — no calendar window).
   // Fetch newest-first so we keep the most relevant captures even when the
-  // PostgREST 1000-row cap truncates the tail. Then apply the tag filter and
-  // optional recency window client-side, then reverse to oldest-first so the
-  // model reads chronologically.
-  let fetchQuery = supa
+  // PostgREST 1000-row cap truncates the tail, then apply the tag filter
+  // client-side, then reverse to oldest-first for chronological reading.
+  const { data: thoughtsData, error: thoughtsErr } = await supa
     .from('thoughts')
     .select('id, content, created_at, metadata')
     .order('created_at', { ascending: false })
     .range(0, THOUGHTS_FETCH_CAP - 1)
-
-  if (COMPILE_WINDOW_DAYS > 0) {
-    const sinceIso = new Date(
-      Date.now() - COMPILE_WINDOW_DAYS * 24 * 60 * 60 * 1000,
-    ).toISOString()
-    fetchQuery = fetchQuery.gte('created_at', sinceIso)
-  }
-
-  const { data: thoughtsData, error: thoughtsErr } = await fetchQuery
   if (thoughtsErr) {
     await updateAudit({
       status: 'failed',
@@ -432,17 +457,14 @@ async function runCompilePass(args: {
   }
   const allThoughts = (thoughtsData ?? []) as ThoughtRow[]
 
-  // Tag filter — the Editorial Policy's page triggers all key off tagged
-  // captures. Untagged rows are raw session chatter, noise for the compiler.
+  // Tag filter — Editorial Policy page triggers all key off tagged captures.
   const taggedDescending = allThoughts.filter((t) => CAPTURE_TAG_RE.test(t.content))
-  // Reverse to ascending (oldest-first) for the LLM.
   const thoughts = taggedDescending.slice().reverse()
   const untaggedDropped = allThoughts.length - taggedDescending.length
   console.log('corpus', {
     fetched: allThoughts.length,
     tagged_kept: thoughts.length,
     untagged_dropped: untaggedDropped,
-    window_days: COMPILE_WINDOW_DAYS || 'unbounded',
     fetch_cap: THOUGHTS_FETCH_CAP,
   })
 
@@ -464,7 +486,7 @@ async function runCompilePass(args: {
 
   // --- Corpus guard (N).
   if (thoughts.length > CAPTURE_LIMIT_N) {
-    const msg = `Corpus has N=${thoughts.length} captures (limit ${CAPTURE_LIMIT_N}). Implement windowing/summarization/incremental — see Editorial Policy §6.5.`
+    const msg = `Corpus has N=${thoughts.length} captures (limit ${CAPTURE_LIMIT_N}). Implement subdivision per page type — see Editorial Policy §0.1.`
     await updateAudit({
       status: 'guard_tripped',
       error_message: msg,
@@ -479,236 +501,257 @@ async function runCompilePass(args: {
     }
   }
 
-  // --- Build the user message.
-  const userMessage = buildUserMessage(thoughts, pagesMeta)
-
-  // --- Token count (M guard). Authoritative if Anthropic count endpoint works;
-  // conservative 4-chars-per-token fallback otherwise.
-  let corpusEstimatedTokens = 0
-  try {
-    const countResp = await fetch(ANTHROPIC_COUNT_URL, {
-      method: 'POST',
-      headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': ANTHROPIC_VERSION,
-        'anthropic-beta': ANTHROPIC_COUNT_BETA,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        system: EDITORIAL_POLICY,
-        messages: [{ role: 'user', content: userMessage }],
-      }),
-    })
-    if (countResp.ok) {
-      const cj = await countResp.json()
-      corpusEstimatedTokens = typeof cj.input_tokens === 'number' ? cj.input_tokens : 0
-    } else {
-      const ct = await countResp.text().catch(() => '')
-      console.warn('count_tokens endpoint non-2xx', countResp.status, ct.slice(0, 200))
-    }
-  } catch (e) {
-    console.warn('count_tokens fetch failed', e)
-  }
-  if (corpusEstimatedTokens === 0) {
-    corpusEstimatedTokens = Math.ceil((EDITORIAL_POLICY.length + userMessage.length) / 4)
-  }
-
-  if (corpusEstimatedTokens > INPUT_TOKEN_LIMIT_M) {
-    const msg = `Estimated input ${corpusEstimatedTokens} > ${INPUT_TOKEN_LIMIT_M}. See Editorial Policy §6.5.`
-    await updateAudit({
-      status: 'guard_tripped',
-      error_message: msg,
-      corpus_captures_count: thoughts.length,
-      corpus_estimated_tokens: corpusEstimatedTokens,
-      finished_at: new Date().toISOString(),
-    })
-    return {
-      compile_id: currentCompileId,
-      status: 'guard_tripped',
-      error_message: msg,
-      corpus_captures_count: thoughts.length,
-      corpus_estimated_tokens: corpusEstimatedTokens,
-    }
-  }
-
-  // --- validate_only short-circuit (R12).
+  // ---------- validate_only fast path ----------
+  // Per-page-type split: report captures, estimated input tokens per pass.
+  // No Anthropic call (uses count_tokens endpoint only), no writes.
   if (validateOnly) {
+    const perTypeValidate: Array<Record<string, unknown>> = []
+    let totalEstimatedInput = 0
+
+    for (const pageType of PAGE_TYPE_ORDER) {
+      const filtered = pageType === 'index'
+        ? []
+        : filterCorpusByPageType(thoughts, pageType)
+      const metaOfType = pageType === 'index'
+        ? []
+        : pagesMeta.filter((p) => p.page_type === pageType)
+      const userMsg = pageType === 'index'
+        ? buildIndexPageUserMessage([])
+        : buildUserMessageForPageType(pageType, filtered, metaOfType)
+      const systemPrompt = buildSystemPromptForPageType(pageType)
+
+      const estimated = await estimateInputTokens(systemPrompt, userMsg)
+      totalEstimatedInput += estimated
+
+      perTypeValidate.push({
+        page_type: pageType,
+        captures_sent: filtered.length,
+        existing_pages: metaOfType.length,
+        estimated_input_tokens: estimated,
+      })
+    }
+
     await updateAudit({
       status: 'completed',
       corpus_captures_count: thoughts.length,
-      corpus_estimated_tokens: corpusEstimatedTokens,
+      corpus_estimated_tokens: totalEstimatedInput,
       finished_at: new Date().toISOString(),
     })
     return {
       compile_id: currentCompileId,
       status: 'completed',
       corpus_captures_count: thoughts.length,
-      corpus_estimated_tokens: corpusEstimatedTokens,
+      corpus_estimated_tokens: totalEstimatedInput,
+      per_type: perTypeValidate,
     }
   }
 
-  // --- Anthropic API call, bracketed by heartbeats.
-  await supa.rpc('refresh_compile_lock', {
-    p_compile_id: invocationId,
-    p_ttl_seconds: LOCK_TTL_SECONDS,
-  })
+  // ---------- per-page-type compilation loop ----------
+  const bufferedPages: CompiledPage[] = []
+  const perPassResults: Array<Record<string, unknown>> = []
+  let cumulativeInputTokens = 0
+  let cumulativeOutputTokens = 0
+  let spendAborted = false
 
-  let response: Response
-  let retriedOnce = false
-  while (true) {
-    try {
-      response = await fetch(ANTHROPIC_URL, {
-        method: 'POST',
-        headers: {
-          'x-api-key': ANTHROPIC_API_KEY,
-          'anthropic-version': ANTHROPIC_VERSION,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          max_tokens: MAX_OUTPUT_TOKENS,
-          system: EDITORIAL_POLICY,
-          messages: [{ role: 'user', content: userMessage }],
-        }),
-        signal: AbortSignal.timeout(ANTHROPIC_TIMEOUT_MS),
+  for (const pageType of PAGE_TYPE_ORDER) {
+    const passStart = Date.now()
+
+    // Heartbeat the lease before every pass. A long compile can easily outlive
+    // a default TTL; refreshing between passes keeps the lock alive and also
+    // detects a lost lock (refresh returns false but we do not block on that).
+    await supa.rpc('refresh_compile_lock', {
+      p_compile_id: invocationId,
+      p_ttl_seconds: LOCK_TTL_SECONDS,
+    })
+
+    if (spendAborted) {
+      perPassResults.push({
+        page_type: pageType,
+        status: 'skipped',
+        reason: `total_spend_ceiling_reached (>= $${TOTAL_SPEND_CEILING_USD})`,
       })
-    } catch (e) {
-      const msg = `anthropic_fetch_failed: ${String(e)}`
-      await updateAudit({
+      continue
+    }
+
+    // Build prompt material.
+    let filtered: ThoughtRow[]
+    let metaOfType: PageMetaRow[]
+    let userMsg: string
+    const systemPrompt = buildSystemPromptForPageType(pageType)
+
+    if (pageType === 'index') {
+      filtered = []
+      metaOfType = []
+      userMsg = buildIndexPageUserMessage(bufferedPages)
+    } else {
+      filtered = filterCorpusByPageType(thoughts, pageType)
+      metaOfType = pagesMeta.filter((p) => p.page_type === pageType)
+      // If there are zero captures for this type, skip the pass entirely.
+      if (filtered.length === 0) {
+        perPassResults.push({
+          page_type: pageType,
+          status: 'skipped',
+          reason: 'no_captures_in_filtered_corpus',
+        })
+        continue
+      }
+      userMsg = buildUserMessageForPageType(pageType, filtered, metaOfType)
+    }
+
+    // Per-pass M-guard. Skip this pass (loud), keep going with the rest.
+    const estimatedInput = await estimateInputTokens(systemPrompt, userMsg)
+    if (estimatedInput > INPUT_TOKEN_LIMIT_M) {
+      perPassResults.push({
+        page_type: pageType,
+        status: 'skipped',
+        reason: `estimated_input_${estimatedInput}>${INPUT_TOKEN_LIMIT_M}`,
+        captures_sent: filtered.length,
+      })
+      continue
+    }
+
+    // Call Claude for this pass.
+    const call = await callAnthropicForPass(systemPrompt, userMsg)
+    if (call.status === 'failed') {
+      perPassResults.push({
+        page_type: pageType,
         status: 'failed',
-        error_message: msg,
-        corpus_captures_count: thoughts.length,
-        corpus_estimated_tokens: corpusEstimatedTokens,
-        finished_at: new Date().toISOString(),
+        error: call.error,
+        captures_sent: filtered.length,
+        estimated_input_tokens: estimatedInput,
       })
-      return { compile_id: currentCompileId, status: 'failed', error_message: msg }
-    }
-
-    // Retry-once logic for transient server errors and 429s.
-    if (!retriedOnce && response.status === 429) {
-      retriedOnce = true
-      await new Promise((r) => setTimeout(r, 5_000))
       continue
     }
-    if (!retriedOnce && (response.status === 500 || response.status === 502 || response.status === 503)) {
-      retriedOnce = true
-      await new Promise((r) => setTimeout(r, 3_000))
+
+    cumulativeInputTokens += call.inputTokens ?? 0
+    cumulativeOutputTokens += call.outputTokens ?? 0
+
+    // Refresh heartbeat after the API call (pre-validation).
+    await supa.rpc('refresh_compile_lock', {
+      p_compile_id: invocationId,
+      p_ttl_seconds: LOCK_TTL_SECONDS,
+    })
+
+    // Validate response.
+    const validated = validateCompiledPages(call.rawText, thoughts)
+    if (!validated.ok) {
+      perPassResults.push({
+        page_type: pageType,
+        status: 'failed',
+        error: `validation_failed: ${validated.error}`,
+        input_tokens: call.inputTokens,
+        output_tokens: call.outputTokens,
+        captures_sent: filtered.length,
+      })
       continue
     }
-    break
-  }
 
-  await supa.rpc('refresh_compile_lock', {
-    p_compile_id: invocationId,
-    p_ttl_seconds: LOCK_TTL_SECONDS,
-  })
+    // Enforce that every page this pass produced is of the expected page_type.
+    // (Exception: passes other than index may never produce an index page.)
+    const mismatched = validated.pages.filter((p) => p.page_type !== pageType)
+    if (mismatched.length > 0) {
+      perPassResults.push({
+        page_type: pageType,
+        status: 'failed',
+        error: `pass_emitted_wrong_types: ${mismatched.map((p) => p.page_type).join(',')}`,
+        input_tokens: call.inputTokens,
+        output_tokens: call.outputTokens,
+      })
+      continue
+    }
 
-  if (!response.ok) {
-    const body = await response.text().catch(() => '')
-    const msg = `anthropic_http_${response.status}: ${body.slice(0, 500)}`
-    await updateAudit({
-      status: 'failed',
-      error_message: msg,
-      corpus_captures_count: thoughts.length,
-      corpus_estimated_tokens: corpusEstimatedTokens,
-      finished_at: new Date().toISOString(),
+    // Cross-pass slug uniqueness.
+    const existingSlugs = new Set(bufferedPages.map((p) => p.slug))
+    const dup = validated.pages.find((p) => existingSlugs.has(p.slug))
+    if (dup) {
+      perPassResults.push({
+        page_type: pageType,
+        status: 'failed',
+        error: `duplicate_slug_across_passes: ${dup.slug}`,
+        input_tokens: call.inputTokens,
+        output_tokens: call.outputTokens,
+      })
+      continue
+    }
+
+    bufferedPages.push(...validated.pages)
+    perPassResults.push({
+      page_type: pageType,
+      status: 'completed',
+      pages_produced: validated.pages.length,
+      captures_sent: filtered.length,
+      input_tokens: call.inputTokens,
+      output_tokens: call.outputTokens,
+      estimated_input_tokens: estimatedInput,
+      pass_ms: Date.now() - passStart,
     })
-    return { compile_id: currentCompileId, status: 'failed', error_message: msg }
-  }
 
-  const apiResp = await response.json()
-  const usage = apiResp?.usage ?? {}
-  const inputTokens = typeof usage.input_tokens === 'number' ? usage.input_tokens : null
-  const outputTokens = typeof usage.output_tokens === 'number' ? usage.output_tokens : null
-
-  if (apiResp?.stop_reason === 'max_tokens') {
-    const msg = 'Output truncated — max_tokens hit. Increase MAX_OUTPUT_TOKENS or reduce corpus.'
-    await updateAudit({
-      status: 'failed',
-      error_message: msg,
-      input_tokens: inputTokens ?? undefined,
-      output_tokens: outputTokens ?? undefined,
-      corpus_captures_count: thoughts.length,
-      corpus_estimated_tokens: corpusEstimatedTokens,
-      finished_at: new Date().toISOString(),
-    })
-    return { compile_id: currentCompileId, status: 'failed', error_message: msg }
-  }
-  if (apiResp?.stop_reason === 'refusal') {
-    const msg = 'Anthropic refused the request (stop_reason=refusal).'
-    await updateAudit({
-      status: 'failed',
-      error_message: msg,
-      input_tokens: inputTokens ?? undefined,
-      output_tokens: outputTokens ?? undefined,
-      corpus_captures_count: thoughts.length,
-      corpus_estimated_tokens: corpusEstimatedTokens,
-      finished_at: new Date().toISOString(),
-    })
-    return { compile_id: currentCompileId, status: 'failed', error_message: msg }
-  }
-
-  // Extract text blocks.
-  const textBlock = Array.isArray(apiResp?.content)
-    ? apiResp.content.find((c: { type?: string }) => c?.type === 'text')
-    : null
-  const rawText: string = textBlock?.text ?? ''
-
-  // Parse + validate.
-  const validated = validateCompiledPages(rawText, thoughts)
-  if (!validated.ok) {
-    await updateAudit({
-      status: 'failed',
-      error_message: `validation_failed: ${validated.error}`,
-      input_tokens: inputTokens ?? undefined,
-      output_tokens: outputTokens ?? undefined,
-      corpus_captures_count: thoughts.length,
-      corpus_estimated_tokens: corpusEstimatedTokens,
-      finished_at: new Date().toISOString(),
-    })
-    return {
-      compile_id: currentCompileId,
-      status: 'failed',
-      error_message: `validation_failed: ${validated.error}`,
+    // Safety net: abort remaining passes if cumulative cost exceeds ceiling.
+    const spendUsd = estimateSpendUsd(cumulativeInputTokens, cumulativeOutputTokens)
+    if (spendUsd >= TOTAL_SPEND_CEILING_USD) {
+      spendAborted = true
     }
   }
 
-  // Dry-run short-circuit.
+  const anyPassFailed = perPassResults.some(
+    (r) => r.status === 'failed' || r.status === 'skipped',
+  )
+  const anyPassCompleted = perPassResults.some((r) => r.status === 'completed')
+
+  // ---------- dry_run short-circuit ----------
   if (dryRun) {
     await updateAudit({
-      status: 'completed',
-      input_tokens: inputTokens ?? undefined,
-      output_tokens: outputTokens ?? undefined,
-      pages_written: validated.pages.length,
+      status: anyPassCompleted ? 'completed' : 'failed',
+      input_tokens: cumulativeInputTokens,
+      output_tokens: cumulativeOutputTokens,
+      pages_written: bufferedPages.length,
       corpus_captures_count: thoughts.length,
-      corpus_estimated_tokens: corpusEstimatedTokens,
+      error_message: anyPassFailed ? JSON.stringify(perPassResults).slice(0, 2000) : undefined,
       finished_at: new Date().toISOString(),
     })
     return {
       compile_id: currentCompileId,
-      status: 'completed',
-      pages_written: validated.pages.length,
-      input_tokens: inputTokens ?? undefined,
-      output_tokens: outputTokens ?? undefined,
+      status: anyPassCompleted ? 'completed' : 'failed',
+      pages_buffered: bufferedPages.length,
+      input_tokens: cumulativeInputTokens,
+      output_tokens: cumulativeOutputTokens,
       corpus_captures_count: thoughts.length,
-      corpus_estimated_tokens: corpusEstimatedTokens,
+      estimated_cost_usd: estimateSpendUsd(cumulativeInputTokens, cumulativeOutputTokens),
+      per_pass: perPassResults,
     }
   }
 
-  // --- Atomic write via the server-side RPC (R1).
+  // ---------- real compile: atomic write ----------
+  // If NO passes produced pages, do NOT call the RPC — it would delete the
+  // prior compile without replacement.
+  if (bufferedPages.length === 0) {
+    await updateAudit({
+      status: 'failed',
+      error_message: `no_pages_produced: ${JSON.stringify(perPassResults).slice(0, 1500)}`,
+      input_tokens: cumulativeInputTokens,
+      output_tokens: cumulativeOutputTokens,
+      corpus_captures_count: thoughts.length,
+      finished_at: new Date().toISOString(),
+    })
+    return {
+      compile_id: currentCompileId,
+      status: 'failed',
+      error_message: 'no_pages_produced',
+      per_pass: perPassResults,
+    }
+  }
+
   const { data: rpcData, error: rpcErr } = await supa.rpc(
     'compile_memory_index_pages',
-    { pages_json: validated.pages },
+    { pages_json: bufferedPages },
   )
   if (rpcErr) {
     await updateAudit({
       status: 'failed',
       error_message: `rpc_write_failed: ${rpcErr.message}`,
-      input_tokens: inputTokens ?? undefined,
-      output_tokens: outputTokens ?? undefined,
+      input_tokens: cumulativeInputTokens,
+      output_tokens: cumulativeOutputTokens,
       corpus_captures_count: thoughts.length,
-      corpus_estimated_tokens: corpusEstimatedTokens,
       finished_at: new Date().toISOString(),
     })
     return { compile_id: currentCompileId, status: 'failed', error_message: rpcErr.message }
@@ -717,15 +760,15 @@ async function runCompilePass(args: {
   const rpcRow = Array.isArray(rpcData) ? rpcData[0] : rpcData
   const pagesWritten = typeof rpcRow?.pages_written === 'number'
     ? rpcRow.pages_written
-    : validated.pages.length
+    : bufferedPages.length
 
   await updateAudit({
-    status: 'completed',
-    input_tokens: inputTokens ?? undefined,
-    output_tokens: outputTokens ?? undefined,
+    status: anyPassFailed ? 'completed' : 'completed',
+    input_tokens: cumulativeInputTokens,
+    output_tokens: cumulativeOutputTokens,
     pages_written: pagesWritten,
     corpus_captures_count: thoughts.length,
-    corpus_estimated_tokens: corpusEstimatedTokens,
+    error_message: anyPassFailed ? JSON.stringify(perPassResults).slice(0, 2000) : undefined,
     finished_at: new Date().toISOString(),
   })
 
@@ -733,21 +776,51 @@ async function runCompilePass(args: {
     compile_id: currentCompileId,
     status: 'completed',
     pages_written: pagesWritten,
-    input_tokens: inputTokens ?? undefined,
-    output_tokens: outputTokens ?? undefined,
+    input_tokens: cumulativeInputTokens,
+    output_tokens: cumulativeOutputTokens,
     corpus_captures_count: thoughts.length,
-    corpus_estimated_tokens: corpusEstimatedTokens,
+    estimated_cost_usd: estimateSpendUsd(cumulativeInputTokens, cumulativeOutputTokens),
+    per_pass: perPassResults,
   }
 }
 
-// ---------- user message construction ----------
+// ---------- per-page-type helpers ----------
 
-function buildUserMessage(thoughts: ThoughtRow[], pagesMeta: PageMetaRow[]): string {
-  // Pull only the metadata fields the Editorial Policy actually uses:
-  // type, topics, people, action_items, dates_mentioned. Skip `source`
-  // (internal plumbing) and anything else that might show up. Embedding
-  // already lives in its own column and is never fetched.
-  const corpus = thoughts.map((t) => {
+// Filter the full tagged corpus to captures relevant to this page type
+// (v1.2 §0.1 step 2). Matching is prefix-based: a capture is kept when its
+// content starts with any of the allowed prefixes. `open_question` gets the
+// full corpus (any capture can surface a recurring question). `index` never
+// uses the corpus — caller handles that branch separately.
+function filterCorpusByPageType(
+  corpus: ThoughtRow[],
+  pageType: Exclude<PageType, 'index'>,
+): ThoughtRow[] {
+  const allow = PAGE_TYPE_CORPUS_FILTERS[pageType]
+  if (allow === null) return corpus.slice()
+  const regex = new RegExp(
+    `^\\s*(${allow.map((p) => p.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')).join('|')})`,
+    'i',
+  )
+  return corpus.filter((t) => regex.test(t.content))
+}
+
+// The system prompt is the full Editorial Policy plus a single directive
+// scoping THIS pass to one page type only. Per-pass targeting happens in
+// both the system prompt (the directive) and the user prompt (scoped corpus
+// and metadata).
+function buildSystemPromptForPageType(pageType: PageType): string {
+  return `${EDITORIAL_POLICY}\n\n## THIS PASS\nProduce ALL and ONLY ${pageType} pages. Every page in your output array MUST have page_type="${pageType}". Respond ONLY with a JSON array — no preamble, no markdown fences, no explanation.`
+}
+
+// User message for passes 1-6 (every type except `index`). Contract matches
+// the original single-call message: CORPUS + EXISTING PAGE METADATA + INSTRUCTIONS,
+// just scoped to one page type.
+function buildUserMessageForPageType(
+  pageType: Exclude<PageType, 'index'>,
+  filteredCorpus: ThoughtRow[],
+  existingMetadata: PageMetaRow[],
+): string {
+  const corpus = filteredCorpus.map((t) => {
     const m = (t.metadata ?? {}) as Record<string, unknown>
     return {
       id: t.id,
@@ -761,7 +834,7 @@ function buildUserMessage(thoughts: ThoughtRow[], pagesMeta: PageMetaRow[]): str
     }
   })
 
-  const existingPages = pagesMeta.map((p) => ({
+  const existingPages = existingMetadata.map((p) => ({
     slug: p.slug,
     title: p.title,
     page_type: p.page_type,
@@ -772,34 +845,185 @@ function buildUserMessage(thoughts: ThoughtRow[], pagesMeta: PageMetaRow[]): str
     source_capture_ids: p.source_capture_ids ?? [],
   }))
 
-  // Compact JSON (no indentation) — pretty-printing can inflate tokens 20%+.
   return [
-    'You are compiling the Memory Index. Follow the system prompt (Editorial Policy) exactly.',
+    `You are the Memory Index compiler. Produce ALL ${pageType} pages from the corpus below per the Editorial Policy section for ${pageType}.`,
     '',
-    '## CORPUS — tagged rows from public.thoughts, ascending by created_at',
+    `## CORPUS — tagged rows from public.thoughts, filtered for page_type=${pageType}, ascending by created_at`,
     '```json',
     JSON.stringify(corpus),
     '```',
     '',
-    '## EXISTING PAGE METADATA',
+    `## EXISTING ${pageType.toUpperCase()} PAGE METADATA`,
     '(metadata only — body_markdown is deliberately NOT included to prevent hallucination-laundering; rebuild pages from the corpus above and the Editorial Policy)',
     '```json',
     JSON.stringify(existingPages),
     '```',
     '',
     '## INSTRUCTIONS',
-    'Compile all Memory Index pages per the Editorial Policy. Return ONLY a JSON array of page objects. Each object MUST have:',
-    '  - page_type: one of project | person | decision | rule | concept | open_question | index',
+    `Return ONLY a JSON array of ${pageType} page objects. Each object MUST have:`,
+    `  - page_type: exactly "${pageType}"`,
     '  - slug: non-empty URL-safe string (lowercase, digits, underscores, hyphens)',
     '  - title: non-empty display title',
-    '  - body_markdown: the full page content',
-    '  - source_capture_ids: array of thought UUIDs taken from the CORPUS above (must match real ids)',
+    '  - body_markdown: the full page content per the Editorial Policy required sections for this page type',
+    '  - source_capture_ids: array of thought UUIDs from the CORPUS above (must match real ids)',
     '  - connected_page_slugs: array of slugs referenced via [[wiki-links]] in body_markdown',
     '  - status: one of current | potentially_stale | parked | historical',
     '  - last_capture_seen_at (optional): ISO timestamp of the newest capture reflected on this page',
     '',
-    'Slugs MUST be unique across the array. Do NOT include any text outside the JSON array — no markdown fence, no prose, no headings.',
+    'Slugs MUST be unique within the array. Every claim must trace to a source capture. Use [[double bracket]] links for cross-references. Preserve uncertainty and surface contradictions with ⚠️ per Editorial Policy §4. Do NOT include any text outside the JSON array.',
   ].join('\n')
+}
+
+// The `index` pass user message. No corpus. Reads metadata only from the
+// buffered pages produced in passes 1-6 (v1.2 §0.1: "The index pass is
+// always last because it synthesizes metadata from all other pages produced
+// in the current compile").
+function buildIndexPageUserMessage(bufferedPages: CompiledPage[]): string {
+  const metadata = bufferedPages.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    page_type: p.page_type,
+    status: p.status,
+    connected_page_slugs: p.connected_page_slugs,
+    last_capture_seen_at: p.last_capture_seen_at ?? null,
+  }))
+
+  return [
+    'You are the Memory Index compiler. Produce the single `index` page that maps the entire Memory Index for the current compile.',
+    '',
+    '## BUFFERED PAGE METADATA (from this compile, passes 1-6)',
+    '(this is the ONLY input for the index pass — metadata only, no corpus and no body_markdown)',
+    '```json',
+    JSON.stringify(metadata),
+    '```',
+    '',
+    '## INSTRUCTIONS',
+    'Return ONLY a JSON array containing EXACTLY ONE page object with page_type="index" per the Editorial Policy §2.7 required sections. Use slug "index". The body_markdown must cross-link every referenced page via [[wiki-links]]. source_capture_ids MUST be the empty array [] (the index page derives from page metadata, not captures).',
+  ].join('\n')
+}
+
+// Input-token estimator: use Anthropic's count_tokens endpoint when
+// available (authoritative), fall back to a 4-chars-per-token heuristic.
+async function estimateInputTokens(systemPrompt: string, userMsg: string): Promise<number> {
+  try {
+    const countResp = await fetch(ANTHROPIC_COUNT_URL, {
+      method: 'POST',
+      headers: {
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': ANTHROPIC_VERSION,
+        'anthropic-beta': ANTHROPIC_COUNT_BETA,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMsg }],
+      }),
+    })
+    if (countResp.ok) {
+      const cj = await countResp.json()
+      if (typeof cj.input_tokens === 'number') return cj.input_tokens
+    } else {
+      const ct = await countResp.text().catch(() => '')
+      console.warn('count_tokens endpoint non-2xx', countResp.status, ct.slice(0, 200))
+    }
+  } catch (e) {
+    console.warn('count_tokens fetch failed', e)
+  }
+  return Math.ceil((systemPrompt.length + userMsg.length) / 4)
+}
+
+// Cost estimator (Sonnet 4.6 on-demand pricing).
+function estimateSpendUsd(inputTokens: number, outputTokens: number): number {
+  const input = (inputTokens / 1_000_000) * SONNET_INPUT_USD_PER_MTOK
+  const output = (outputTokens / 1_000_000) * SONNET_OUTPUT_USD_PER_MTOK
+  return Math.round((input + output) * 1000) / 1000
+}
+
+// Call Anthropic for a single pass. Preserves the pre-existing error matrix
+// (timeout, 429, 500/502/503 retry-once, stop_reason=max_tokens, stop_reason=refusal,
+// http non-2xx). Returns a structured result instead of throwing so the
+// orchestrator can continue with remaining passes on failure.
+type AnthropicCallResult =
+  | { status: 'ok'; rawText: string; inputTokens: number | null; outputTokens: number | null }
+  | { status: 'failed'; error: string; inputTokens?: number | null; outputTokens?: number | null }
+
+async function callAnthropicForPass(
+  systemPrompt: string,
+  userMsg: string,
+): Promise<AnthropicCallResult> {
+  let response: Response
+  let retriedOnce = false
+  while (true) {
+    try {
+      response = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers: {
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': ANTHROPIC_VERSION,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: MAX_OUTPUT_TOKENS_PER_PASS,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userMsg }],
+        }),
+        signal: AbortSignal.timeout(ANTHROPIC_TIMEOUT_MS),
+      })
+    } catch (e) {
+      return { status: 'failed', error: `anthropic_fetch_failed: ${String(e)}` }
+    }
+
+    if (!retriedOnce && response.status === 429) {
+      retriedOnce = true
+      await new Promise((r) => setTimeout(r, 5_000))
+      continue
+    }
+    if (!retriedOnce && (response.status === 500 || response.status === 502 || response.status === 503)) {
+      retriedOnce = true
+      await new Promise((r) => setTimeout(r, 3_000))
+      continue
+    }
+    break
+  }
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '')
+    return {
+      status: 'failed',
+      error: `anthropic_http_${response.status}: ${body.slice(0, 500)}`,
+    }
+  }
+
+  const apiResp = await response.json()
+  const usage = apiResp?.usage ?? {}
+  const inputTokens = typeof usage.input_tokens === 'number' ? usage.input_tokens : null
+  const outputTokens = typeof usage.output_tokens === 'number' ? usage.output_tokens : null
+
+  if (apiResp?.stop_reason === 'max_tokens') {
+    return {
+      status: 'failed',
+      error: 'stop_reason=max_tokens (output truncated; page type may need subdivision)',
+      inputTokens,
+      outputTokens,
+    }
+  }
+  if (apiResp?.stop_reason === 'refusal') {
+    return {
+      status: 'failed',
+      error: 'stop_reason=refusal',
+      inputTokens,
+      outputTokens,
+    }
+  }
+
+  const textBlock = Array.isArray(apiResp?.content)
+    ? apiResp.content.find((c: { type?: string }) => c?.type === 'text')
+    : null
+  const rawText: string = textBlock?.text ?? ''
+
+  return { status: 'ok', rawText, inputTokens, outputTokens }
 }
 
 // ---------- response validation ----------
