@@ -7,7 +7,7 @@
 // Auth: service-role Bearer JWT OR X-Compile-Secret header.
 //
 // Architecture (v1.2 Editorial Policy §0.1 per-page-type pass architecture):
-//  - 7 sequential Anthropic calls per compile, one per page_type
+//  - 7 sequential LLM calls per compile, one per page_type
 //    (project, person, decision, rule, concept, open_question, index).
 //  - Each pass reads the FULL tagged corpus (no calendar window), then
 //    filters client-side to the slice relevant to that page type.
@@ -30,11 +30,10 @@
 // thereafter. Per-pass results are JSON-encoded into error_message when
 // any pass failed (schema extension deferred).
 //
-// Per-pass MAX_OUTPUT_TOKENS = 3000: Sonnet 4.6 at ~44 tok/s × 7 passes
-// must fit inside Vercel's 300s maxDuration. If a pass hits
-// stop_reason=max_tokens it is logged as failed and the compile continues
-// with remaining passes (v1.2 §0.1 — loud failure = page type has grown
-// beyond single-call capacity and needs subdivision).
+// Per-pass MAX_OUTPUT_TOKENS = 3000: 7 passes must fit inside Vercel's 300s
+// maxDuration. If a pass hits MAX_TOKENS it is logged as failed and the
+// compile continues with remaining passes (v1.2 §0.1 — loud failure = page
+// type has grown beyond single-call capacity and needs subdivision).
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { timingSafeEqual as nodeTimingSafeEqual, randomUUID } from 'node:crypto'
@@ -48,25 +47,23 @@ export const maxDuration = 300
 
 const SUPABASE_URL      = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_ROLE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!
+const GEMINI_API_KEY    = process.env.GEMINI_API_KEY!
 const COMPILE_SECRET    = process.env.MEMORY_INDEX_COMPILE_SECRET ?? ''
 
-const MODEL                 = 'claude-sonnet-4-6'
 // Per-page-type architecture (v1.2 Editorial Policy §0.1): the compiler makes
-// 7 sequential Anthropic calls, one per page_type. Vercel Pro caps functions
-// at 300s (maxDuration below). Measured Sonnet 4.6 output ≈ 44 tok/s, so
-// budget ~35–40s / pass ≈ ~1500–1800 output tokens. 3000 gives headroom; if
-// a pass hits stop_reason=max_tokens it's logged as failed and the compile
-// continues with remaining passes (Editorial Policy §0.1: loud failure =
-// page type has grown beyond single-call capacity and needs subdivision).
+// 7 sequential LLM calls, one per page_type. Vercel Pro caps functions at
+// 300s (maxDuration below). 3000 output tokens per pass gives headroom; if a
+// pass exhausts the budget it's logged as failed and the compile continues
+// with remaining passes (Editorial Policy §0.1: loud failure = page type has
+// grown beyond single-call capacity and needs subdivision).
 const MAX_OUTPUT_TOKENS_PER_PASS = 3_000
 const CAPTURE_LIMIT_N       = 2_000
 const INPUT_TOKEN_LIMIT_M   = 180_000
-const LOCK_TTL_SECONDS      = 600 // ≈ 2× the Anthropic timeout
-// Anthropic fetch timeout is deliberately shorter than Vercel's maxDuration
-// so a genuine Anthropic hang surfaces as an HTTP error we can audit, not a
-// silent function kill. 280s = 300s Vercel cap − 20s buffer for post-call work.
-const ANTHROPIC_TIMEOUT_MS  = 280_000
+const LOCK_TTL_SECONDS      = 600 // ≈ 2× the LLM timeout
+// LLM fetch timeout is deliberately shorter than Vercel's maxDuration so a
+// genuine provider hang surfaces as an HTTP error we can audit, not a silent
+// function kill. 280s = 300s Vercel cap − 20s buffer for post-call work.
+const LLM_TIMEOUT_MS        = 280_000
 const MAX_REPLAY_PASSES     = 10
 // PostgREST enforces a project-wide 1000-row cap even with explicit .range();
 // we pull the newest 1000 captures and drop untagged client-side. When the
@@ -75,11 +72,12 @@ const MAX_REPLAY_PASSES     = 10
 const THOUGHTS_FETCH_CAP    = 1_000
 
 // Safety net: if cumulative estimated cost across all 7 passes exceeds this,
-// abort remaining passes. Expected cost per compile is $2–4; $10 is a 2–3×
-// margin. Sonnet 4.6 pricing: $3/M input, $15/M output.
+// abort remaining passes. Gemini 2.5 Flash pricing: $0.30/M input, $2.50/M
+// output. Expected cost per compile is ~$0.20; $10 ceiling is a wide margin
+// kept identical across provider swaps so a regression is loudly capped.
 const TOTAL_SPEND_CEILING_USD = 10
-const SONNET_INPUT_USD_PER_MTOK  = 3
-const SONNET_OUTPUT_USD_PER_MTOK = 15
+const GEMINI_INPUT_USD_PER_MTOK  = 0.30
+const GEMINI_OUTPUT_USD_PER_MTOK = 2.50
 
 // The Editorial Policy's page triggers all key off tagged capture prefixes
 // (SESSION CLOSE, DECISION, CLAUDE LESSON, etc.). Untagged captures are raw
@@ -93,10 +91,9 @@ const CAPTURE_TAG_RE = new RegExp(
   'i',
 )
 
-const ANTHROPIC_URL        = 'https://api.anthropic.com/v1/messages'
-const ANTHROPIC_COUNT_URL  = 'https://api.anthropic.com/v1/messages/count_tokens'
-const ANTHROPIC_VERSION    = '2023-06-01'
-const ANTHROPIC_COUNT_BETA = 'token-counting-2024-11-01'
+// Single LLM endpoint. Provider swaps live entirely inside callLLMForPass.
+const GEMINI_MODEL = 'gemini-2.5-flash'
+const GEMINI_URL   = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
 
 const VALID_PAGE_TYPES = new Set([
   'project', 'person', 'decision', 'rule', 'concept', 'open_question', 'index',
@@ -236,7 +233,7 @@ export async function POST(req: Request): Promise<Response> {
       finished_at: new Date().toISOString(),
       status: 'failed',
       error_message: `lock_acquire_failed: ${lockErr.message}`,
-      model: MODEL,
+      model: GEMINI_MODEL,
       policy_hash: POLICY_HASH,
       dry_run: dryRun,
       validate_only: validateOnly,
@@ -253,7 +250,7 @@ export async function POST(req: Request): Promise<Response> {
       finished_at: new Date().toISOString(),
       status: 'skipped',
       error_message: 'concurrent_compile — pending flag set, will be replayed in-process',
-      model: MODEL,
+      model: GEMINI_MODEL,
       policy_hash: POLICY_HASH,
       dry_run: dryRun,
       validate_only: validateOnly,
@@ -319,7 +316,7 @@ export async function POST(req: Request): Promise<Response> {
           finished_at: new Date().toISOString(),
           status: 'failed',
           error_message: `unhandled_exception: ${String(err)}`,
-          model: MODEL,
+          model: GEMINI_MODEL,
           policy_hash: POLICY_HASH,
           dry_run: dryRun,
           validate_only: validateOnly,
@@ -333,8 +330,8 @@ export async function POST(req: Request): Promise<Response> {
     return passSummaries
   }
 
-  // validate_only is fast (count_tokens only, ~1-3s). Run inline and return
-  // full results as a plain JSON response.
+  // validate_only is fast (heuristic token estimate only, no LLM call).
+  // Run inline and return full results as a plain JSON response.
   if (validateOnly) {
     const passes = await runAllPasses()
     return json(200, {
@@ -345,8 +342,8 @@ export async function POST(req: Request): Promise<Response> {
     })
   }
 
-  // dry_run and real compiles call Anthropic /v1/messages, which routinely
-  // runs 30-180s. Streaming NDJSON solves two problems: keeps the client
+  // dry_run and real compiles make 7 LLM calls, which routinely runs
+  // 30-180s end-to-end. Streaming NDJSON solves two problems: keeps the client
   // connection alive past intermediate proxies that enforce idle timeouts,
   // and lets the client observe progress. 25-second heartbeat lines keep
   // the connection active.
@@ -421,7 +418,7 @@ async function runCompilePass(args: {
     triggered_at: startedAt,
     started_at: startedAt,
     status: 'started',
-    model: MODEL,
+    model: GEMINI_MODEL,
     policy_hash: POLICY_HASH,
     dry_run: dryRun,
     validate_only: validateOnly,
@@ -503,7 +500,7 @@ async function runCompilePass(args: {
 
   // ---------- validate_only fast path ----------
   // Per-page-type split: report captures, estimated input tokens per pass.
-  // No Anthropic call (uses count_tokens endpoint only), no writes.
+  // No LLM call, no writes — heuristic token estimate per pass.
   if (validateOnly) {
     const perTypeValidate: Array<Record<string, unknown>> = []
     let totalEstimatedInput = 0
@@ -520,7 +517,7 @@ async function runCompilePass(args: {
         : buildUserMessageForPageType(pageType, filtered, metaOfType)
       const systemPrompt = buildSystemPromptForPageType(pageType)
 
-      const estimated = await estimateInputTokens(systemPrompt, userMsg)
+      const estimated = heuristicInputTokens(systemPrompt, userMsg)
       totalEstimatedInput += estimated
 
       perTypeValidate.push({
@@ -599,7 +596,7 @@ async function runCompilePass(args: {
     }
 
     // Per-pass M-guard. Skip this pass (loud), keep going with the rest.
-    const estimatedInput = await estimateInputTokens(systemPrompt, userMsg)
+    const estimatedInput = heuristicInputTokens(systemPrompt, userMsg)
     if (estimatedInput > INPUT_TOKEN_LIMIT_M) {
       perPassResults.push({
         page_type: pageType,
@@ -610,8 +607,8 @@ async function runCompilePass(args: {
       continue
     }
 
-    // Call Claude for this pass.
-    const call = await callAnthropicForPass(systemPrompt, userMsg)
+    // Call the LLM for this pass.
+    const call = await callLLMForPass(systemPrompt, userMsg, MAX_OUTPUT_TOKENS_PER_PASS)
     if (call.status === 'failed') {
       perPassResults.push({
         page_type: pageType,
@@ -623,8 +620,8 @@ async function runCompilePass(args: {
       continue
     }
 
-    cumulativeInputTokens += call.inputTokens ?? 0
-    cumulativeOutputTokens += call.outputTokens ?? 0
+    cumulativeInputTokens += call.inputTokens
+    cumulativeOutputTokens += call.outputTokens
 
     // Refresh heartbeat after the API call (pre-validation).
     await supa.rpc('refresh_compile_lock', {
@@ -633,7 +630,7 @@ async function runCompilePass(args: {
     })
 
     // Validate response.
-    const validated = validateCompiledPages(call.rawText, thoughts)
+    const validated = validateCompiledPages(call.text, thoughts)
     if (!validated.ok) {
       perPassResults.push({
         page_type: pageType,
@@ -902,77 +899,57 @@ function buildIndexPageUserMessage(bufferedPages: CompiledPage[]): string {
   ].join('\n')
 }
 
-// Input-token estimator: use Anthropic's count_tokens endpoint when
-// available (authoritative), fall back to a 4-chars-per-token heuristic.
-async function estimateInputTokens(systemPrompt: string, userMsg: string): Promise<number> {
-  try {
-    const countResp = await fetch(ANTHROPIC_COUNT_URL, {
-      method: 'POST',
-      headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': ANTHROPIC_VERSION,
-        'anthropic-beta': ANTHROPIC_COUNT_BETA,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMsg }],
-      }),
-    })
-    if (countResp.ok) {
-      const cj = await countResp.json()
-      if (typeof cj.input_tokens === 'number') return cj.input_tokens
-    } else {
-      const ct = await countResp.text().catch(() => '')
-      console.warn('count_tokens endpoint non-2xx', countResp.status, ct.slice(0, 200))
-    }
-  } catch (e) {
-    console.warn('count_tokens fetch failed', e)
-  }
+// Input-token heuristic. Used by validate_only and the per-pass M-guard.
+// Gemini returns authoritative usage on every generation response, so we no
+// longer call a separate count-tokens endpoint pre-flight.
+function heuristicInputTokens(systemPrompt: string, userMsg: string): number {
   return Math.ceil((systemPrompt.length + userMsg.length) / 4)
 }
 
-// Cost estimator (Sonnet 4.6 on-demand pricing).
+// Cost estimator (Gemini 2.5 Flash on-demand pricing).
 function estimateSpendUsd(inputTokens: number, outputTokens: number): number {
-  const input = (inputTokens / 1_000_000) * SONNET_INPUT_USD_PER_MTOK
-  const output = (outputTokens / 1_000_000) * SONNET_OUTPUT_USD_PER_MTOK
+  const input = (inputTokens / 1_000_000) * GEMINI_INPUT_USD_PER_MTOK
+  const output = (outputTokens / 1_000_000) * GEMINI_OUTPUT_USD_PER_MTOK
   return Math.round((input + output) * 1000) / 1000
 }
 
-// Call Anthropic for a single pass. Preserves the pre-existing error matrix
-// (timeout, 429, 500/502/503 retry-once, stop_reason=max_tokens, stop_reason=refusal,
-// http non-2xx). Returns a structured result instead of throwing so the
-// orchestrator can continue with remaining passes on failure.
-type AnthropicCallResult =
-  | { status: 'ok'; rawText: string; inputTokens: number | null; outputTokens: number | null }
-  | { status: 'failed'; error: string; inputTokens?: number | null; outputTokens?: number | null }
+// Provider abstraction: the entire LLM API contract for the compiler lives
+// inside this function. Swapping providers means editing only this body.
+// Returns a structured result so the orchestrator can continue with remaining
+// passes on failure.
+type LLMCallResult =
+  | { status: 'ok'; text: string; inputTokens: number; outputTokens: number }
+  | { status: 'failed'; error: string; inputTokens?: number; outputTokens?: number }
 
-async function callAnthropicForPass(
+async function callLLMForPass(
   systemPrompt: string,
-  userMsg: string,
-): Promise<AnthropicCallResult> {
+  userPrompt: string,
+  maxOutputTokens: number,
+): Promise<LLMCallResult> {
   let response: Response
   let retriedOnce = false
   while (true) {
     try {
-      response = await fetch(ANTHROPIC_URL, {
+      response = await fetch(GEMINI_URL, {
         method: 'POST',
         headers: {
-          'x-api-key': ANTHROPIC_API_KEY,
-          'anthropic-version': ANTHROPIC_VERSION,
+          'x-goog-api-key': GEMINI_API_KEY,
           'content-type': 'application/json',
         },
         body: JSON.stringify({
-          model: MODEL,
-          max_tokens: MAX_OUTPUT_TOKENS_PER_PASS,
-          system: systemPrompt,
-          messages: [{ role: 'user', content: userMsg }],
+          contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: {
+            maxOutputTokens,
+            // Force JSON output. Schema is enforced by the Editorial Policy
+            // prompt, not a responseSchema (per spec).
+            responseMimeType: 'application/json',
+          },
         }),
-        signal: AbortSignal.timeout(ANTHROPIC_TIMEOUT_MS),
+        signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
       })
     } catch (e) {
-      return { status: 'failed', error: `anthropic_fetch_failed: ${String(e)}` }
+      return { status: 'failed', error: `gemini_fetch_failed: ${String(e)}` }
     }
 
     if (!retriedOnce && response.status === 429) {
@@ -992,38 +969,62 @@ async function callAnthropicForPass(
     const body = await response.text().catch(() => '')
     return {
       status: 'failed',
-      error: `anthropic_http_${response.status}: ${body.slice(0, 500)}`,
+      error: `gemini_http_${response.status}: ${body.slice(0, 500)}`,
     }
   }
 
   const apiResp = await response.json()
-  const usage = apiResp?.usage ?? {}
-  const inputTokens = typeof usage.input_tokens === 'number' ? usage.input_tokens : null
-  const outputTokens = typeof usage.output_tokens === 'number' ? usage.output_tokens : null
 
-  if (apiResp?.stop_reason === 'max_tokens') {
+  // Prompt-level block (safety, etc.) — Gemini may return no candidates here.
+  if (apiResp?.promptFeedback?.blockReason) {
     return {
       status: 'failed',
-      error: 'stop_reason=max_tokens (output truncated; page type may need subdivision)',
+      error: `prompt_block: ${apiResp.promptFeedback.blockReason}`,
+    }
+  }
+
+  if (!Array.isArray(apiResp?.candidates) || apiResp.candidates.length === 0) {
+    return { status: 'failed', error: 'no_candidates_returned' }
+  }
+
+  const cand = apiResp.candidates[0]
+  const usage = apiResp?.usageMetadata ?? {}
+  const inputTokens =
+    typeof usage.promptTokenCount === 'number' ? usage.promptTokenCount : 0
+  const outputTokens =
+    typeof usage.candidatesTokenCount === 'number' ? usage.candidatesTokenCount : 0
+
+  if (cand.finishReason && cand.finishReason !== 'STOP') {
+    return {
+      status: 'failed',
+      error: `finish_reason=${cand.finishReason}`,
       inputTokens,
       outputTokens,
     }
   }
-  if (apiResp?.stop_reason === 'refusal') {
+
+  const text: string =
+    Array.isArray(cand?.content?.parts) && cand.content.parts[0]?.text
+      ? cand.content.parts[0].text
+      : ''
+  if (text.length === 0) {
+    return { status: 'failed', error: 'empty_text', inputTokens, outputTokens }
+  }
+
+  // Per spec: confirm parseable JSON before returning so a malformed body
+  // surfaces as a pass failure here, not as a crash in validateCompiledPages.
+  try {
+    JSON.parse(text)
+  } catch (e) {
     return {
       status: 'failed',
-      error: 'stop_reason=refusal',
+      error: `json_parse_failed: ${String(e).slice(0, 200)}`,
       inputTokens,
       outputTokens,
     }
   }
 
-  const textBlock = Array.isArray(apiResp?.content)
-    ? apiResp.content.find((c: { type?: string }) => c?.type === 'text')
-    : null
-  const rawText: string = textBlock?.text ?? ''
-
-  return { status: 'ok', rawText, inputTokens, outputTokens }
+  return { status: 'ok', text, inputTokens, outputTokens }
 }
 
 // ---------- response validation ----------

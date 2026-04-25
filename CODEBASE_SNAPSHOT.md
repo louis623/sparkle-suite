@@ -1,5 +1,5 @@
 # Codebase Snapshot — Neon Rabbit Core
-_Generated: 2026-04-20 (HEAD: 8c8ea32 — docs(thumper-spike): findings closeout)_
+_Generated: 2026-04-25 (HEAD: post-Gemini-swap — feat(memory-index): swap Anthropic Sonnet to Gemini 2.5 Flash)_
 
 > **Pricing — monthly-only forever (April 19, 2026 decision).** `ss_quarterly_test` (price_1TNcicHRBK3pZpO2Map0zvq0, $129/3mo) and `ss_annual_test` (price_1TNcjcHRBK3pZpO2817mT1CP, $468/yr) are archived on Stripe (active=false, history preserved). Only active price on product `prod_UMLNC0ybgRkVKX` is `ss_monthly_test` (price_1TNciVHRBK3pZpO2Vsz9xfSH, $49/mo).
 
@@ -787,4 +787,29 @@ End-to-end spike validating AI SDK 6 + Anthropic (Claude Sonnet 4.6) + Supabase 
 **Deliverables / artifacts:** `SS_Phase1_Spike_Findings_v1.0.md` (preflight → Step 10 red-team + benchmark findings + deploy URL + rollback plan).
 
 **Dependencies added:** `ai@^6.0.168`, `@ai-sdk/anthropic@^3.0.71`, `@ai-sdk/react@^3.0.170`.
+
+---
+
+## Session 2026-04-21 to 2026-04-25 — Memory Index Compiler
+
+The Memory Index compiler at `app/api/compile-memory-index/route.ts` synthesizes Louis's tagged thought corpus (`thoughts` table) into structured memory pages (`memory_index_pages`) under the v1.2 Editorial Policy. It runs as a Vercel Node-runtime route (`maxDuration = 300`) with a Postgres lease lock, audit ledger, and atomic DELETE-ALL + INSERT writes via the `compile_memory_index_pages` RPC.
+
+**Architecture (v1.2 §0.1 per-page-type pass):**
+- 7 sequential LLM calls per compile, one per `page_type` (`project`, `person`, `decision`, `rule`, `concept`, `open_question`, `index`).
+- Each pass loads the FULL tagged corpus (no calendar window) and filters client-side to the slice relevant to that page type.
+- Each pass sees only metadata from existing `memory_index_pages` of its type — `body_markdown` is never read back (R10, 2026-04-23 CEO call).
+- The `index` pass is always last; it synthesizes a map page from the buffered metadata of passes 1–6 only (no corpus).
+- Pages are buffered across all 7 passes; written in a single atomic call after pass 7. If zero pages were produced the write is aborted (avoids wiping the prior compile).
+
+**Provider abstraction:** the entire LLM API contract lives inside one async function `callLLMForPass(systemPrompt, userPrompt, maxOutputTokens)`. Swapping providers means editing only this function. As of 2026-04-25 the compiler calls **Google Gemini 2.5 Flash** via plain `fetch` against `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent` with `responseMimeType: 'application/json'`. Token counts come from `usageMetadata.promptTokenCount` / `candidatesTokenCount` on every response — there is no separate count-tokens call. Pricing constants are `GEMINI_INPUT_USD_PER_MTOK = 0.30` and `GEMINI_OUTPUT_USD_PER_MTOK = 2.50`. The `$10` cumulative spend ceiling and per-pass `MAX_OUTPUT_TOKENS_PER_PASS = 3000` carry over from the prior Anthropic Sonnet 4.6 implementation.
+
+**Modes:** request body fields `validate_only` (heuristic token estimate per pass, no LLM call, no writes), `dry_run` (full LLM compile but skip the atomic write), and the default real compile.
+
+**Auth:** `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>` OR `X-Compile-Secret: <MEMORY_INDEX_COMPILE_SECRET>` (timing-safe).
+
+**Editorial Policy is embedded** as a string constant + SHA-256 hash in `app/api/compile-memory-index/policy.ts`, generated from a markdown source via `scripts/build-memory-index-policy.mjs`. Cannot be read from disk at runtime in Vercel.
+
+**Migration 024** (`memory_index_pages`, `memory_index_compile_runs`, `compile_memory_index_pages` RPC, lease-lock RPCs, `mark_compile_pending` / `consume_compile_pending`) — see migrations table.
+
+**Manual trigger only.** Migration 025's Postgres trigger remains unattached pending the 3-day cost pilot.
 
