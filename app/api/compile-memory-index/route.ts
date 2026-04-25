@@ -58,7 +58,11 @@ const COMPILE_SECRET    = process.env.MEMORY_INDEX_COMPILE_SECRET ?? ''
 // grown beyond single-call capacity and needs subdivision).
 const MAX_OUTPUT_TOKENS_PER_PASS = 3_000
 const CAPTURE_LIMIT_N       = 2_000
-const INPUT_TOKEN_LIMIT_M   = 180_000
+// Gemini 2.5 Flash supports a 1M-token input context. Heuristic estimator
+// (4 chars/token) over-counts real tokens by ~3-4×, so this ceiling is sized
+// against the heuristic, not real usage. 800K leaves a wide margin under the
+// 1M cap while still loudly catching a runaway corpus.
+const INPUT_TOKEN_LIMIT_M   = 800_000
 const LOCK_TTL_SECONDS      = 600 // ≈ 2× the LLM timeout
 // LLM fetch timeout is deliberately shorter than Vercel's maxDuration so a
 // genuine provider hang surfaces as an HTTP error we can audit, not a silent
