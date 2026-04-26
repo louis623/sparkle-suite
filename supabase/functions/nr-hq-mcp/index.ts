@@ -529,9 +529,10 @@ server.registerTool(
       blocking_phase: z.string().max(128).optional(),
       source_session: z.string().max(128).optional(),
       is_action_item: z.boolean().optional(),
+      sort_order: z.number().int().optional(),
     },
   },
-  async ({ project, title, description, category, status, priority, blocking_phase, source_session, is_action_item }) => {
+  async ({ project, title, description, category, status, priority, blocking_phase, source_session, is_action_item, sort_order }) => {
     try {
       const row: Record<string, unknown> = {
         project: project ?? OPEN_ITEMS_DEFAULT_PROJECT,
@@ -544,6 +545,7 @@ server.registerTool(
       if (description !== undefined) row.description = description;
       if (blocking_phase !== undefined) row.blocking_phase = blocking_phase;
       if (source_session !== undefined) row.source_session = source_session;
+      if (sort_order !== undefined) row.sort_order = sort_order;
       const { data, error } = await supabaseWrite
         .from("open_items")
         .insert(row)
@@ -574,9 +576,10 @@ server.registerTool(
       blocking_phase: z.string().max(128).optional(),
       source_session: z.string().max(128).optional(),
       is_action_item: z.boolean().optional(),
+      sort_order: z.number().int().optional(),
     },
   },
-  async ({ id, title, description, category, status, priority, blocking_phase, source_session, is_action_item }) => {
+  async ({ id, title, description, category, status, priority, blocking_phase, source_session, is_action_item, sort_order }) => {
     try {
       const patch: Record<string, unknown> = {};
       if (title !== undefined) patch.title = title;
@@ -587,6 +590,7 @@ server.registerTool(
       if (blocking_phase !== undefined) patch.blocking_phase = blocking_phase;
       if (source_session !== undefined) patch.source_session = source_session;
       if (is_action_item !== undefined) patch.is_action_item = is_action_item;
+      if (sort_order !== undefined) patch.sort_order = sort_order;
       if (Object.keys(patch).length === 0) {
         return errorResult("No fields provided to update.");
       }
@@ -665,8 +669,7 @@ server.registerTool(
       let q = supabaseWrite
         .from("open_items")
         .select("*")
-        .eq("project", p)
-        .order("created_at", { ascending: false });
+        .eq("project", p);
       if (status) {
         q = q.eq("status", status);
       } else {
@@ -675,6 +678,14 @@ server.registerTool(
       if (category) q = q.eq("category", category);
       if (priority) q = q.eq("priority", priority);
       if (is_action_item !== undefined) q = q.eq("is_action_item", is_action_item);
+      if (is_action_item === true) {
+        q = q
+          .order("sort_order", { ascending: true, nullsFirst: false })
+          .order("priority", { ascending: false })
+          .order("created_at", { ascending: false });
+      } else {
+        q = q.order("created_at", { ascending: false });
+      }
       const { data, error } = await q;
       if (error) return errorResult(error.message);
       const rows = data ?? [];

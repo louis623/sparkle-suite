@@ -1,5 +1,5 @@
 # Codebase Snapshot — Neon Rabbit Core
-_Generated: 2026-04-25 (HEAD: post-Gemini-swap — fix(memory-index): MAX_OUTPUT_TOKENS_PER_PASS 3000 → 8192 for Gemini Flash throughput)_
+_Generated: 2026-04-26 (HEAD: feat(open-items): add sort_order column + seed action item ranks + update nr-hq-mcp)_
 
 > **Pricing — monthly-only forever (April 19, 2026 decision).** `ss_quarterly_test` (price_1TNcicHRBK3pZpO2Map0zvq0, $129/3mo) and `ss_annual_test` (price_1TNcjcHRBK3pZpO2817mT1CP, $468/yr) are archived on Stripe (active=false, history preserved). Only active price on product `prod_UMLNC0ybgRkVKX` is `ss_monthly_test` (price_1TNciVHRBK3pZpO2Vsz9xfSH, $49/mo).
 
@@ -126,7 +126,10 @@ neon-rabbit-core/
 │       ├── 017_nr_clients_reconcile_reseed.sql
 │       ├── 018_dashboard_authenticated_read.sql
 │       ├── 019_dashboard_read_thoughts.sql
-│       └── 020_thumper_conversations.sql    ← thumper_conversations + approval_events
+│       ├── 020_thumper_conversations.sql    ← thumper_conversations + approval_events
+│       ├── 025_vac_key_dates.sql
+│       ├── 026_nr_open_items_action_flag.sql ← is_action_item BOOLEAN flag + 8-row seed
+│       └── 027_nr_open_items_sort_order.sql  ← sort_order INTEGER for manual dashboard ranking
 ├── vault/                         ← project docs/notes
 ├── verification/                  ← Gate 0 + Phase 1 spike verification artifacts
 ├── .env.example
@@ -509,6 +512,8 @@ Idempotent seed script for the test rep development sandbox.
 | `019_dashboard_read_thoughts.sql` | Allow authenticated dashboard reads on `open_brain`. |
 | `020_thumper_conversations.sql` | Phase 1 Task 1.0 spike: `thumper_conversations` (UIMessage rows per rep) + `approval_events` (HITL approval ledger, UNIQUE approval_id for replay protection) + `requests_rep_update` RLS policy enabling removeListing auto-cancel of pending trade_requests. Additive only. |
 | `025_vac_key_dates.sql` | VAC key dates: `vac_key_dates` table (title/date_value/date_type/provider/condition_id→vac_conditions ON DELETE SET NULL/description/status + `updated_at` trigger) with CHECK constraints on `date_type` (`appointment/deadline/follow_up/filing/records_request`) and `status` (`upcoming/completed/cancelled/missed`). Three indexes (date_value, status, partial on condition_id). RLS: authenticated SELECT only — mutations gated to service_role via `fn_create_vac_key_date` / `fn_update_vac_key_date` / `fn_delete_vac_key_date` (SECURITY INVOKER, REVOKE FROM PUBLIC/anon/authenticated, GRANT TO service_role). All three log to `vac_activity_log` with `entry_type='note'`. `fn_update_*` uses COALESCE-over-NULL for optional updates; `fn_delete_*` hard-deletes (scheduling only, not medical records). Numbered 025 because 024 was already taken by the memory-index compiler migration. |
+| `026_nr_open_items_action_flag.sql` | Adds `is_action_item BOOLEAN NOT NULL DEFAULT false` to `open_items` + partial index `idx_open_items_action` on `(project, is_action_item) WHERE is_action_item=true`. Seeds 8 va_compensation rows so the HQ dashboard's Action Items card has content. |
+| `027_nr_open_items_sort_order.sql` | Adds `sort_order INTEGER NULL` to `open_items` for manual ranking on the HQ dashboard (lower numbers first; NULL sorts last). Seeds the 9 current va_compensation action items with Louis-approved ranks 1–9. nr-hq-mcp `get_open_items` switches to `ORDER BY sort_order ASC NULLS LAST, priority DESC, created_at DESC` when `is_action_item=true`; default ordering preserved otherwise. `create_open_item` and `update_open_item` accept optional integer `sort_order`. |
 
 ---
 
