@@ -22,6 +22,23 @@
   color: var(--thumper-text-muted);
 }
 
+.retryLink {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-left: 4px;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.retryLink:focus-visible {
+  outline: 2px solid var(--thumper-focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .desktopReopen {
   position: fixed;
   bottom: 24px;

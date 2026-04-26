@@ -1,5 +1,5 @@
 # Codebase Snapshot — Neon Rabbit Core
-_Generated: 2026-04-26 (HEAD: feat(thumper): Task 1.3 — conversation UI polish + image input)_
+_Generated: 2026-04-26 (HEAD: feat(thumper): Task 1.3 follow-up — cross-device conversation sync + hybrid auto-scroll)_
 
 > **Pricing — monthly-only forever (April 19, 2026 decision).** `ss_quarterly_test` (price_1TNcicHRBK3pZpO2Map0zvq0, $129/3mo) and `ss_annual_test` (price_1TNcjcHRBK3pZpO2817mT1CP, $468/yr) are archived on Stripe (active=false, history preserved). Only active price on product `prod_UMLNC0ybgRkVKX` is `ss_monthly_test` (price_1TNciVHRBK3pZpO2Vsz9xfSH, $49/mo).
 
@@ -45,12 +45,13 @@ neon-rabbit-core/
 │   │   └── thumper/                       ← Phase 1 Task 1.1 production chat surface
 │   │       ├── route.ts                    ← streamText + 2 tools + HITL + Guardian telemetry + Enforcer audit
 │   │       ├── conversation/[conversationId]/route.ts
+│   │       ├── conversation/latest/route.ts ← Task 1.3 follow-up — returns rep's most recent conversation_id (cross-device sync)
 │   │       ├── health/route.ts             ← public health probe (api/db reachable, recent_error_rate)
 │   │       └── me/route.ts
 │   ├── login/{page.tsx, _client.tsx}       ← Supabase Auth email/password login (redirects to /thumper)
 │   ├── thumper/                           ← Production Thumper UI (Task 1.1 port of Claude Design handoff)
 │   │   ├── page.tsx                        ← server wrapper (Suspense)
-│   │   ├── _client.tsx                     ← useChat client + matchMedia desktop/mobile switch
+│   │   ├── _client.tsx                     ← useChat client + matchMedia desktop/mobile switch + cross-device init resolver (URL?c → /latest → fresh; AbortController + retry UI)
 │   │   ├── _shell.module.css               ← root layout (reserves 400px right column on desktop)
 │   │   ├── thumper-tokens.css              ← global :root tokens (Section A of handoff bundle)
 │   │   └── components/                    ← 14 atoms × {.tsx, .module.css} + 2 helpers (Markdown, RelativeTime)
@@ -74,7 +75,7 @@ neon-rabbit-core/
 │   │   └── trade-board.ts        ← getMyBoard + removeListing (used by Thumper tools)
 │   ├── thumper/                  ← Phase 1 Task 1.1 Thumper assistant (production)
 │   │   ├── auth.ts               ← getAuthenticatedThumperContext()
-│   │   ├── persistence.ts        ← thumper_conversations + approval_events I/O
+│   │   ├── persistence.ts        ← thumper_conversations + approval_events I/O (incl. getLatestConversationId for cross-device sync)
 │   │   ├── system-prompt.ts      ← THUMPER_SYSTEM_PROMPT (Task 1.2 — 7 sections, ~4500 tokens; +disclosure/affiliation/content-screening; warmer personality)
 │   │   ├── probe-conversation-owner.ts ← admin-client cross-tenant ownership probe
 │   │   ├── guardian-telemetry.ts ← logIncident, logToolExecution (writes thumper_incidents, tool_executions)
@@ -933,4 +934,37 @@ Selected files run through `lib/thumper/image-compress.ts` (canvas-based resize 
 - Dev server compiles on every save; desktop column renders with both new "New conversation" + "Minimize Thumper" buttons; Escape minimizes; reopen pill restores.
 - URL allowlist sanity: `javascript:`, `data:`, `vbscript:`, `file:`, relative paths, empty, and whitespace-padded `javascript:` all reject; only `http:`/`https:`/`mailto:` accept.
 - Live-rep verification (auto-scroll during streaming, image upload + vision round-trip, inline retry with images, mobile keyboard behavior, reload-image-persistence) requires a signed-in test rep — local session was expired during the build, so Louis to run those steps before push approval per the task self-audit checklist.
+
+---
+
+## Session 2026-04-26 — SS Phase 1 Task 1.3 Follow-Up (cross-device sync + auto-scroll fix)
+
+Two issues from Louis's live testing of the Task 1.3 build:
+
+**1. Cross-device conversation sync.** Each device tracked its own conversationId via URL `?c=` + `localStorage`, so a conversation started on mobile didn't appear on desktop. Reps using mobile to photograph items during shows and desktop to manage the trade board need both surfaces to land on the same active conversation by default.
+
+New init priority: `URL ?c= → GET /api/thumper/conversation/latest → fresh UUID`. localStorage drops out of the read chain (still written for cache); DB is the source of truth. Three-state error handling — 401 advances to placeholder UUID and lets the existing history-load surface the auth error; 5xx/network shows a retry UI and refuses to fabricate a fresh UUID (the silent "fork to new conversation" was exactly the cross-device drift bug being fixed). AbortController cancels the in-flight `/latest` fetch on unmount. RLS policy `thumper_conv_own_data` ([020_thumper_conversations.sql:36](supabase/migrations/020_thumper_conversations.sql#L36)) is `FOR ALL` and already covers the new SELECT — no migration needed.
+
+Edge case (intentional): if a rep clicks "New conversation" but never sends a message, no row exists in `thumper_conversations` — the other device loads the previous conversation. Empty conversations don't sync.
+
+**2. Hybrid auto-scroll.** First follow-up attempt used `scrollTo({ behavior: 'smooth' })` on every ResizeObserver tick. That broke streaming visually: smooth animations take ~300ms, tokens arrive every ~50-100ms, the viewport never caught up, and the chat appeared to "expand off-screen" until streaming finished and the final paint snapped into view.
+
+Final approach uses a gap heuristic. RO fires within `STREAMING_GAP_MS` (200ms) of each other → instant scroll (`scrollTop = scrollHeight`); the viewport stays pinned to bottom every tick. Quiet-then-fire (>200ms gap) → smooth scroll, for discrete events: new user message, streaming-complete repaint, history load. `lastFireTime` is seeded with `performance.now()` at mount so the first RO fire after content populates is treated as a tight follow-up — initial load stays instant. A simple `setTimeout` guard suppresses the scroll listener during the smooth animation so mid-animation scroll events don't flip stickiness off; instant scrolls don't need the guard because they leave `scrollTop` exactly at `scrollHeight`. Manual scroll-up still disengages stickiness within 100px.
+
+**Files added (1):**
+- `app/api/thumper/conversation/latest/route.ts` — GET handler returning `{ conversationId: string | null }` for the authenticated rep's most recent message; 401 on unauthenticated.
+
+**Files modified:**
+- `lib/thumper/persistence.ts` — `getLatestConversationId(supabase, repId)` with deterministic `(created_at desc, id desc)` sort + comment explaining `thumper_conversations` is per-message despite the name.
+- `app/thumper/_client.tsx` — init `useEffect` rewritten: AbortController, three-state branching (`200+id` / `200+null` / `401` / `5xx-network`), `initResolveError` + `resolveAttempt` state for retry; chatContent ternary renders the retry button when `/latest` fails.
+- `app/thumper/_shell.module.css` — `.retryLink` inline-button style.
+- `app/thumper/components/ChatHistory.tsx` — hybrid scroll: instant during streaming bursts, smooth on discrete events; `setTimeout` guard during smooth animations; `prefers-reduced-motion` falls back to instant.
+
+**Files NOT touched:** system prompt, API route, persistence write paths, auth flow, RLS, migrations.
+
+**Verification (2026-04-26):**
+- `npm test` — 4/4 abort-modes pass.
+- `GET /api/thumper/conversation/latest` returns `401 {"error":"unauthenticated"}` when signed out (smoke test in browser preview).
+- Init effect 401 path renders "Not signed in — visit /login and come back." with a clean `/thumper` URL (no fake `?c=` written) — confirmed in browser.
+- Authenticated cross-device sync, three-state retry UI, smooth-vs-instant scroll behavior during real streaming, and `prefers-reduced-motion` fallback require a signed-in session — Louis to run the live verification steps before push approval.
 

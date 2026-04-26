@@ -48,6 +48,12 @@ export default function ThumperClient() {
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [initialMessages, setInitialMessages] = useState<UIMessage[] | null>(null)
   const [initLoadError, setInitLoadError] = useState<string | null>(null)
+  // Distinct from initLoadError: this fires when /latest itself fails (5xx /
+  // network). We deliberately do NOT fall through to a fresh UUID here —
+  // that would silently fork the rep onto a new conversation and re-create
+  // the cross-device drift bug this whole change is fixing.
+  const [initResolveError, setInitResolveError] = useState<string | null>(null)
+  const [resolveAttempt, setResolveAttempt] = useState(0)
   const [isDesktop, setIsDesktop] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [desktopOpen, setDesktopOpen] = useState(true)
@@ -58,19 +64,61 @@ export default function ThumperClient() {
     hasPendingApproval: boolean
   }>({ isStreaming: false, hasPendingApproval: false })
 
-  // Resolve conversationId from URL, localStorage, or fresh.
+  // Resolve conversationId via URL → /latest → fresh UUID. localStorage is
+  // written for cache consistency but no longer read during init — DB is the
+  // source of truth so cross-device sessions land on the same conversation.
   useEffect(() => {
-    const urlId = searchParams.get('c')
-    const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
-    const id = urlId || stored || newConversationId()
-    setConversationId(id)
-    if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, id)
-    if (!urlId) {
-      const qs = new URLSearchParams(Array.from(searchParams.entries()))
-      qs.set('c', id)
-      router.replace(`/thumper?${qs.toString()}`)
+    const controller = new AbortController()
+    let cancelled = false
+    ;(async () => {
+      setInitResolveError(null)
+      const urlId = searchParams.get('c')
+      if (urlId) {
+        if (cancelled) return
+        setConversationId(urlId)
+        if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, urlId)
+        return
+      }
+      try {
+        const res = await fetch('/api/thumper/conversation/latest', {
+          credentials: 'include',
+          signal: controller.signal,
+        })
+        if (cancelled) return
+        if (res.status === 401) {
+          // Let the history-load effect surface the auth error against
+          // /conversation/[id]; it already renders "Not signed in — visit
+          // /login and come back." Generate a placeholder id to advance.
+          const id = newConversationId()
+          setConversationId(id)
+          if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, id)
+          return
+        }
+        if (!res.ok) {
+          // 5xx — DO NOT fabricate a UUID. Hold the loading region with a
+          // retry affordance so transient DB failures don't fork the rep.
+          setInitResolveError("Couldn't load your conversation.")
+          return
+        }
+        const body = (await res.json()) as { conversationId: string | null }
+        const resolved = body?.conversationId ?? null
+        const id = resolved ?? newConversationId()
+        setConversationId(id)
+        if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, id)
+        const qs = new URLSearchParams(Array.from(searchParams.entries()))
+        qs.set('c', id)
+        router.replace(`/thumper?${qs.toString()}`)
+      } catch (err) {
+        if (cancelled) return
+        if ((err as { name?: string })?.name === 'AbortError') return
+        setInitResolveError("Couldn't load your conversation.")
+      }
+    })()
+    return () => {
+      cancelled = true
+      controller.abort()
     }
-  }, [router, searchParams])
+  }, [router, searchParams, resolveAttempt])
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)')
@@ -163,6 +211,17 @@ export default function ThumperClient() {
       onChatStateChange={setChatState}
       resetSignal={conversationId!}
     />
+  ) : initResolveError ? (
+    <div className={shellStyles.loading}>
+      {initResolveError}
+      <button
+        type="button"
+        onClick={() => setResolveAttempt((n) => n + 1)}
+        className={shellStyles.retryLink}
+      >
+        Tap to retry
+      </button>
+    </div>
   ) : (
     <div className={shellStyles.loading}>{initLoadError ?? 'Loading…'}</div>
   )

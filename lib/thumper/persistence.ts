@@ -52,6 +52,27 @@ export async function getConversationOwner(
   return (data?.rep_id as string | undefined) ?? null
 }
 
+// Find the rep's most recently active conversation by locating their newest
+// message row. NOTE: thumper_conversations is a per-MESSAGE table despite the
+// name (one row per UIMessage). The secondary `.order('id', desc)` is a
+// deterministic tiebreaker for messages that share a created_at timestamp
+// (rare but possible under bulk inserts or clock granularity).
+export async function getLatestConversationId(
+  supabase: SupabaseClient,
+  repId: string
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('thumper_conversations')
+    .select('conversation_id')
+    .eq('rep_id', repId)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return (data?.conversation_id as string | undefined) ?? null
+}
+
 export async function insertUserMessage(
   supabase: SupabaseClient,
   args: {
