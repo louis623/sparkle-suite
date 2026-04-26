@@ -1,5 +1,5 @@
 # Codebase Snapshot — Neon Rabbit Core
-_Generated: 2026-04-26 (HEAD: feat(thumper): Task 1.1 — promote spike to production route + Guardian/Enforcer hooks)_
+_Generated: 2026-04-26 (HEAD: refine(thumper): Task 1.2 system prompt — personality, disclosure, content screening)_
 
 > **Pricing — monthly-only forever (April 19, 2026 decision).** `ss_quarterly_test` (price_1TNcicHRBK3pZpO2Map0zvq0, $129/3mo) and `ss_annual_test` (price_1TNcjcHRBK3pZpO2817mT1CP, $468/yr) are archived on Stripe (active=false, history preserved). Only active price on product `prod_UMLNC0ybgRkVKX` is `ss_monthly_test` (price_1TNciVHRBK3pZpO2Vsz9xfSH, $49/mo).
 
@@ -74,7 +74,7 @@ neon-rabbit-core/
 │   ├── thumper/                  ← Phase 1 Task 1.1 Thumper assistant (production)
 │   │   ├── auth.ts               ← getAuthenticatedThumperContext()
 │   │   ├── persistence.ts        ← thumper_conversations + approval_events I/O
-│   │   ├── system-prompt.ts      ← THUMPER_SYSTEM_PROMPT (~3600 tokens, real prompt; TEST_PAD removed)
+│   │   ├── system-prompt.ts      ← THUMPER_SYSTEM_PROMPT (Task 1.2 — 7 sections, ~4500 tokens; +disclosure/affiliation/content-screening; warmer personality)
 │   │   ├── probe-conversation-owner.ts ← admin-client cross-tenant ownership probe
 │   │   ├── guardian-telemetry.ts ← logIncident, logToolExecution (writes thumper_incidents, tool_executions)
 │   │   ├── audit.ts              ← hashState (SHA-256 of sorted-key JSON), writeTradeActionAudit
@@ -831,6 +831,22 @@ Promoted the Task 1.0 spike into the production `/thumper` route. Real ~3600-tok
 **Deletions:** `app/api/thumper/spike/`, `app/spike/` (entire directories) via `git rm -r` after build + test green. `spike/run-benchmark.ts` + `spike/prompts.json` preserved as benchmark infra.
 
 **Dependencies added:** `vitest@^4.1.5`, `pg@^8.20.0`, `@types/pg@^8.20.0` (pg was already in tree but pulled by vitest install).
+
+---
+
+## Session 2026-04-26 — SS Phase 1 Task 1.2 (System prompt refinement)
+
+Refined `lib/thumper/system-prompt.ts` from the Task 1.1 baseline. File contract unchanged — single `THUMPER_SYSTEM_PROMPT` string export consumed by `app/api/thumper/route.ts:267`. No tool, route, schema, or UI changes.
+
+**Section deltas vs Task 1.1:**
+- §1 Identity & personality — rewritten as "work friend." Adds tone rules (match-energy, sarcasm-ok, no-performative-helpfulness), a small-talk/banter block with five paired voice examples (rough show, killer run, hey-how's-it-going, thanks, do-you-sleep), and an anti-pattern example for the brittle "I'm just an AI" deflection.
+- §3 Scope boundaries — final small-talk paragraph swapped for the gravity model: "Your gravity is always toward the work — you will naturally find your way back to being useful without forcing it." No more one-line redirects.
+- §7 (new) Disclosure, affiliation, and content screening — three sub-blocks: (a) AI disclosure: honest when asked, never volunteered, light tone; (b) Non-affiliation: Sparkle Suite/Thumper are Neon Rabbit, not Bomb Party — stated only when asked or when confusion is apparent; (c) Content screening: refuses to ghostwrite MLM-coded recruiting copy ("passive income," "be your own boss," "ground floor," "this business sells itself," income testimonials/projections), reframes toward honest descriptions instead — does NOT restrict normal business conversation.
+- §§2, 4, 5, 6 — unchanged.
+
+**Token budget:** still inside the 3500–5000 cache-friendly window (Haiku 4.5 minimum cacheable prefix is comfortably exceeded; no TEST_PAD needed).
+
+**Verification:** `npm test` (vitest) → 4/4 pass on `tests/thumper/abort-modes.test.ts`. No new tests added — the prompt is a string, not behavior; behavioral coverage comes from the existing red-team integration suite. tsc on the file produces no errors.
 
 ---
 
