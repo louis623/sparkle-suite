@@ -56,7 +56,7 @@ const COMPILE_SECRET    = process.env.MEMORY_INDEX_COMPILE_SECRET ?? ''
 // pass exhausts the budget it's logged as failed and the compile continues
 // with remaining passes (Editorial Policy §0.1: loud failure = page type has
 // grown beyond single-call capacity and needs subdivision).
-const MAX_OUTPUT_TOKENS_PER_PASS = 3_000
+const MAX_OUTPUT_TOKENS_PER_PASS = 8_192
 const CAPTURE_LIMIT_N       = 2_000
 // Gemini 2.5 Flash supports a 1M-token input context. Heuristic estimator
 // (4 chars/token) over-counts real tokens by ~3-4×, so this ceiling is sized

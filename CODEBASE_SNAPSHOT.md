@@ -1,5 +1,5 @@
 # Codebase Snapshot — Neon Rabbit Core
-_Generated: 2026-04-25 (HEAD: post-Gemini-swap — feat(memory-index): swap Anthropic Sonnet to Gemini 2.5 Flash)_
+_Generated: 2026-04-25 (HEAD: post-Gemini-swap — fix(memory-index): MAX_OUTPUT_TOKENS_PER_PASS 3000 → 8192 for Gemini Flash throughput)_
 
 > **Pricing — monthly-only forever (April 19, 2026 decision).** `ss_quarterly_test` (price_1TNcicHRBK3pZpO2Map0zvq0, $129/3mo) and `ss_annual_test` (price_1TNcjcHRBK3pZpO2817mT1CP, $468/yr) are archived on Stripe (active=false, history preserved). Only active price on product `prod_UMLNC0ybgRkVKX` is `ss_monthly_test` (price_1TNciVHRBK3pZpO2Vsz9xfSH, $49/mo).
 
@@ -801,7 +801,7 @@ The Memory Index compiler at `app/api/compile-memory-index/route.ts` synthesizes
 - The `index` pass is always last; it synthesizes a map page from the buffered metadata of passes 1–6 only (no corpus).
 - Pages are buffered across all 7 passes; written in a single atomic call after pass 7. If zero pages were produced the write is aborted (avoids wiping the prior compile).
 
-**Provider abstraction:** the entire LLM API contract lives inside one async function `callLLMForPass(systemPrompt, userPrompt, maxOutputTokens)`. Swapping providers means editing only this function. As of 2026-04-25 the compiler calls **Google Gemini 2.5 Flash** via plain `fetch` against `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent` with `responseMimeType: 'application/json'`. Token counts come from `usageMetadata.promptTokenCount` / `candidatesTokenCount` on every response — there is no separate count-tokens call. Pricing constants are `GEMINI_INPUT_USD_PER_MTOK = 0.30` and `GEMINI_OUTPUT_USD_PER_MTOK = 2.50`. The `$10` cumulative spend ceiling and per-pass `MAX_OUTPUT_TOKENS_PER_PASS = 3000` carry over from the prior Anthropic Sonnet 4.6 implementation.
+**Provider abstraction:** the entire LLM API contract lives inside one async function `callLLMForPass(systemPrompt, userPrompt, maxOutputTokens)`. Swapping providers means editing only this function. As of 2026-04-25 the compiler calls **Google Gemini 2.5 Flash** via plain `fetch` against `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent` with `responseMimeType: 'application/json'`. Token counts come from `usageMetadata.promptTokenCount` / `candidatesTokenCount` on every response — there is no separate count-tokens call. Pricing constants are `GEMINI_INPUT_USD_PER_MTOK = 0.30` and `GEMINI_OUTPUT_USD_PER_MTOK = 2.50`. The `$10` cumulative spend ceiling carries over from the prior Anthropic implementation. `MAX_OUTPUT_TOKENS_PER_PASS = 8192` (raised from the prior 3000 — Gemini Flash throughput easily fits 7 × 8192 within Vercel's 300s cap, and at 3000 six of seven passes hit `finish_reason=MAX_TOKENS` with the current 700-capture corpus).
 
 **Modes:** request body fields `validate_only` (heuristic token estimate per pass, no LLM call, no writes), `dry_run` (full LLM compile but skip the atomic write), and the default real compile.
 
