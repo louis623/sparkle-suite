@@ -1,0 +1,60 @@
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.glyphSlot {
+  width: 22px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  background: var(--thumper-surface-thumper-message);
+  border: 1px solid var(--thumper-border);
+  border-radius: 14px 14px 14px 4px;
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--thumper-text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--thumper-text-muted);
+  animation: thumper-dot-pulse 1.2s ease-in-out infinite;
+}
+
+.dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}

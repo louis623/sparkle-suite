@@ -1,0 +1,43 @@
+.repRow {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0;
+}
+
+.thumperRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.glyphSlot {
+  width: 22px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--thumper-text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rep {
+  background: var(--thumper-surface-rep-message);
+  border-radius: 14px 14px 4px 14px;
+  font-weight: 500;
+}
+
+.thumper {
+  background: var(--thumper-surface-thumper-message);
+  border: 1px solid var(--thumper-border);
+  border-radius: 14px 14px 14px 4px;
+  font-weight: 400;
+}

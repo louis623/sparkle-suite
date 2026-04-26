@@ -49,3 +49,9 @@ supabase/.temp/
 
 .vercel
 .env*.local
+
+# Local-only secrets / scratch (never committed)
+.local/
+
+# Attack #5 transcript dumps (ephemeral test output)
+tests/thumper/attack-5-results/

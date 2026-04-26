@@ -3,6 +3,13 @@
 Built for Phase 1 Task 1.0 Deliverable 7. Replaces the Gemini-report estimate
 of $0.0017/message for Phase 1 budget modelling.
 
+> **Status:** the `/spike` route was promoted to `/thumper` in Task 1.1
+> (commit `feat(thumper): Task 1.1 — promote spike to production route +
+> Guardian/Enforcer hooks`). The benchmark driver below was originally
+> wired to `/api/thumper/spike`; if you re-run it after Task 1.1, swap that
+> path for `/api/thumper`. Production responses now also carry the
+> `x-thumper-run-id` header for log correlation.
+
 ## Generation approach
 
 `prompts.json` was authored by hand to approximate a realistic Thumper
@@ -14,10 +21,10 @@ distributions will need to be sampled from production logs once Phase 1 ships.
 
 - `prompts.json` — 40 hand-authored prompts. Each has `{ kind, text }` where
   `kind ∈ { 'conversational', 'read', 'hitl' }`.
-- `run-benchmark.ts` — driver. Hits the real `/api/thumper/spike` route via
-  authenticated HTTP (signInWithPassword against the test rep), signs in,
-  sends prompts, records per-prompt tokens + USD. Retries on 429 with
-  exponential backoff.
+- `run-benchmark.ts` — driver. Hits the spike route via authenticated HTTP
+  (signInWithPassword against the test rep), signs in, sends prompts, records
+  per-prompt tokens + USD. Retries on 429 with exponential backoff. After
+  Task 1.1, point this at `/api/thumper` (the production route).
 
 ## Running
 

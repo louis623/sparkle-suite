@@ -1,0 +1,49 @@
+/* Thumper design tokens — Section A of handoff bundle.
+   Imported once by app/thumper/page.tsx. All component .module.css files
+   consume these via var(--thumper-*). Source of truth: tokens.js from the
+   Claude Design handoff. */
+
+:root {
+  /* Accents */
+  --thumper-accent: #C4A0E8;
+  --thumper-accent-hover: #B48EDB;
+  --thumper-accent-pressed: #A47CCD;
+  --thumper-destructive: #DC2626;
+  --thumper-destructive-hover: #B91C1C;
+  --thumper-destructive-pressed: #991B1B;
+
+  /* Surfaces */
+  --thumper-surface-primary: #FAFAFC;
+  --thumper-surface-primary-solid: #FFFFFF;
+  --thumper-surface-dashboard: #F6F7F9;
+  --thumper-surface-dashboard-placeholder: #ECEEF2;
+  --thumper-surface-rep-message: #F1EAFB;
+  --thumper-surface-thumper-message: #FFFFFF;
+  --thumper-surface-input: #FFFFFF;
+  --thumper-surface-input-disabled: #F4F5F8;
+  --thumper-surface-error: #FEF2F2;
+
+  /* Borders */
+  --thumper-border: #E6E8EC;
+  --thumper-border-strong: #D4D7DD;
+  --thumper-border-input-focus: #C4A0E8;
+  --thumper-border-error: #FECACA;
+
+  /* Text */
+  --thumper-text-primary: #1A1C20;
+  --thumper-text-secondary: #5A5F6A;
+  --thumper-text-muted: #8A8F9A;
+  --thumper-text-placeholder: #A8ACB6;
+  --thumper-text-inverse: #FFFFFF;
+  --thumper-text-on-accent: #1A1C20;
+  --thumper-text-error: #991B1B;
+
+  /* Focus ring */
+  --thumper-focus-ring: #C4A0E8;
+}
+
+/* Streaming dot pulse — used by StreamingBubble.module.css via composition */
+@keyframes thumper-dot-pulse {
+  0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-2px); }
+}

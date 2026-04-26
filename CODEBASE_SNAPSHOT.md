@@ -1,5 +1,5 @@
 # Codebase Snapshot — Neon Rabbit Core
-_Generated: 2026-04-26 (HEAD: feat(open-items): add sort_order column + seed action item ranks + update nr-hq-mcp)_
+_Generated: 2026-04-26 (HEAD: feat(thumper): Task 1.1 — promote spike to production route + Guardian/Enforcer hooks)_
 
 > **Pricing — monthly-only forever (April 19, 2026 decision).** `ss_quarterly_test` (price_1TNcicHRBK3pZpO2Map0zvq0, $129/3mo) and `ss_annual_test` (price_1TNcjcHRBK3pZpO2817mT1CP, $468/yr) are archived on Stripe (active=false, history preserved). Only active price on product `prod_UMLNC0ybgRkVKX` is `ss_monthly_test` (price_1TNciVHRBK3pZpO2Vsz9xfSH, $49/mo).
 
@@ -42,12 +42,21 @@ neon-rabbit-core/
 │   │   │   │   └── load/route.ts              ← create checkout session for wallet load
 │   │   │   └── webhook/route.ts
 │   │   ├── telegram/route.ts
-│   │   └── thumper/spike/                  ← Phase 1 vertical-slice chat route
-│   │       ├── route.ts                    ← streamText with 2 tools + HITL + persistence
+│   │   └── thumper/                       ← Phase 1 Task 1.1 production chat surface
+│   │       ├── route.ts                    ← streamText + 2 tools + HITL + Guardian telemetry + Enforcer audit
 │   │       ├── conversation/[conversationId]/route.ts
+│   │       ├── health/route.ts             ← public health probe (api/db reachable, recent_error_rate)
 │   │       └── me/route.ts
-│   ├── login/{page.tsx, _client.tsx}       ← Supabase Auth email/password login
-│   ├── spike/{page.tsx, _client.tsx}       ← useChat UI for Thumper spike
+│   ├── login/{page.tsx, _client.tsx}       ← Supabase Auth email/password login (redirects to /thumper)
+│   ├── thumper/                           ← Production Thumper UI (Task 1.1 port of Claude Design handoff)
+│   │   ├── page.tsx                        ← server wrapper (Suspense)
+│   │   ├── _client.tsx                     ← useChat client + matchMedia desktop/mobile switch
+│   │   ├── _shell.module.css               ← root layout (reserves 400px right column on desktop)
+│   │   ├── thumper-tokens.css              ← global :root tokens (Section A of handoff bundle)
+│   │   └── components/                    ← 14 atoms × {.tsx, .module.css}
+│   │       ├── ThumperGlyph, ThumperHeader, Bubble, ListingPreview, HITLBlock,
+│   │       ├── ErrorBlock, Chips, InputRow, StreamingBubble, ChatHistory,
+│   │       └── EmptyGreeting, ThumperColumn, ThumperMobileShell, DashboardPlaceholder
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
@@ -61,11 +70,14 @@ neon-rabbit-core/
 ├── lib/
 │   ├── services/
 │   │   ├── wallet.ts             ← ensureWallet, deductSmsCharge, auto-recharge trigger
-│   │   └── trade-board.ts        ← listMyTradeBoard + removeListing (Phase 1 spike)
-│   ├── thumper/                  ← Phase 1 Thumper assistant (spike)
-│   │   ├── auth.ts               ← getAuthenticatedRepForThumper()
+│   │   └── trade-board.ts        ← getMyBoard + removeListing (used by Thumper tools)
+│   ├── thumper/                  ← Phase 1 Task 1.1 Thumper assistant (production)
+│   │   ├── auth.ts               ← getAuthenticatedThumperContext()
 │   │   ├── persistence.ts        ← thumper_conversations + approval_events I/O
-│   │   ├── system-prompt.ts
+│   │   ├── system-prompt.ts      ← THUMPER_SYSTEM_PROMPT (~3600 tokens, real prompt; TEST_PAD removed)
+│   │   ├── probe-conversation-owner.ts ← admin-client cross-tenant ownership probe
+│   │   ├── guardian-telemetry.ts ← logIncident, logToolExecution (writes thumper_incidents, tool_executions)
+│   │   ├── audit.ts              ← hashState (SHA-256 of sorted-key JSON), writeTradeActionAudit
 │   │   └── tools/{list-my-trade-board.ts, remove-listing.ts}
 │   ├── stripe/
 │   │   ├── config.ts             ← Zod env validation, lazy-loaded
@@ -129,7 +141,8 @@ neon-rabbit-core/
 │       ├── 020_thumper_conversations.sql    ← thumper_conversations + approval_events
 │       ├── 025_vac_key_dates.sql
 │       ├── 026_nr_open_items_action_flag.sql ← is_action_item BOOLEAN flag + 8-row seed
-│       └── 027_nr_open_items_sort_order.sql  ← sort_order INTEGER for manual dashboard ranking
+│       ├── 027_nr_open_items_sort_order.sql  ← sort_order INTEGER for manual dashboard ranking
+│       └── 028_ss_thumper_guardian_hooks.sql ← thumper_incidents, tool_executions, auth_events, trade_action_audit, sms_email_blast_audit (RLS service-role-only)
 ├── vault/                         ← project docs/notes
 ├── verification/                  ← Gate 0 + Phase 1 spike verification artifacts
 ├── .env.example
@@ -514,6 +527,7 @@ Idempotent seed script for the test rep development sandbox.
 | `025_vac_key_dates.sql` | VAC key dates: `vac_key_dates` table (title/date_value/date_type/provider/condition_id→vac_conditions ON DELETE SET NULL/description/status + `updated_at` trigger) with CHECK constraints on `date_type` (`appointment/deadline/follow_up/filing/records_request`) and `status` (`upcoming/completed/cancelled/missed`). Three indexes (date_value, status, partial on condition_id). RLS: authenticated SELECT only — mutations gated to service_role via `fn_create_vac_key_date` / `fn_update_vac_key_date` / `fn_delete_vac_key_date` (SECURITY INVOKER, REVOKE FROM PUBLIC/anon/authenticated, GRANT TO service_role). All three log to `vac_activity_log` with `entry_type='note'`. `fn_update_*` uses COALESCE-over-NULL for optional updates; `fn_delete_*` hard-deletes (scheduling only, not medical records). Numbered 025 because 024 was already taken by the memory-index compiler migration. |
 | `026_nr_open_items_action_flag.sql` | Adds `is_action_item BOOLEAN NOT NULL DEFAULT false` to `open_items` + partial index `idx_open_items_action` on `(project, is_action_item) WHERE is_action_item=true`. Seeds 8 va_compensation rows so the HQ dashboard's Action Items card has content. |
 | `027_nr_open_items_sort_order.sql` | Adds `sort_order INTEGER NULL` to `open_items` for manual ranking on the HQ dashboard (lower numbers first; NULL sorts last). Seeds the 9 current va_compensation action items with Louis-approved ranks 1–9. nr-hq-mcp `get_open_items` switches to `ORDER BY sort_order ASC NULLS LAST, priority DESC, created_at DESC` when `is_action_item=true`; default ordering preserved otherwise. `create_open_item` and `update_open_item` accept optional integer `sort_order`. |
+| `028_ss_thumper_guardian_hooks.sql` | Phase 1 Task 1.1: Guardian (telemetry) + Enforcer (audit) tables for the production `/thumper` route. Five tables: `thumper_incidents` (severity ledger with resolution status), `tool_executions` (per-call timing + args_hash for telemetry), `auth_events` (login/logout/fail/reset/account_create), `trade_action_audit` (before/after SHA-256 state hashes for trade mutations), `sms_email_blast_audit` (schema-only — not wired in this task). All five RLS-enabled with single `service_role` policy; no rep-scoped policy. Writes go through `lib/thumper/guardian-telemetry.ts` and `lib/thumper/audit.ts` which use `createAdminClient()`. Runner: `tsx scripts/run-migration-028.ts` (asserts `DATABASE_URL` host includes project ref `bqhzfkgkjyuhlsozpylf` before applying). |
 
 ---
 
@@ -779,19 +793,44 @@ All 4 RPCs validate `actor` (`'chat'|'claude_code'`) and status values up front 
 
 ## Session 2026-04-20 — SS Phase 1 Task 1.0 Spike (vertical-slice validation)
 
-End-to-end spike validating AI SDK 6 + Anthropic (Claude Sonnet 4.6) + Supabase for the Thumper conversational assistant. Shipped to `sparkle-suite.vercel.app`; closed out in commit `8c8ea32`.
+End-to-end spike validating AI SDK 6 + Anthropic (Claude Sonnet 4.6) + Supabase for the Thumper conversational assistant. Shipped to `sparkle-suite.vercel.app`; closed out in commit `8c8ea32`. **Superseded in Task 1.1 (2026-04-26)**: spike route + UI deleted; production replacement at `/thumper` and `/api/thumper/*`. Tools (`list_my_trade_board`, `remove_listing`) carried over unchanged so `approval_events` replay ledger stays valid. The benchmark infra (`spike/run-benchmark.ts`, `spike/prompts.json`) is preserved and now points at `/api/thumper`.
 
-**New surface area:**
-- `app/api/thumper/spike/route.ts` — `streamText` with 2 tools (`list_my_trade_board`, `remove_listing`), HITL approval gate on mutating tool, per-rep rate limiting, ephemeral prompt caching, conversation persistence.
-- `app/api/thumper/spike/{conversation/[conversationId], me}/route.ts` — load prior conversation; identify current rep.
-- `app/spike/{page.tsx, _client.tsx}` + `app/login/{page.tsx, _client.tsx}` — `useChat` UI + Supabase Auth login (both wrapped in Suspense boundaries).
-- `lib/thumper/` — `auth.ts`, `persistence.ts`, `system-prompt.ts`, `tools/{list-my-trade-board, remove-listing}.ts`.
-- `lib/services/trade-board.ts` — `listMyTradeBoard()` + `removeListing()` service functions (remove cascades to auto-cancel any pending `trade_requests` on the listing via RLS policy from migration 020).
-- `supabase/migrations/020_thumper_conversations.sql` — see migrations table.
+**Original surface area (now removed):**
+- `app/api/thumper/spike/route.ts` + `/conversation/[conversationId]` + `/me` (deleted in Task 1.1).
+- `app/spike/{page.tsx, _client.tsx}` (deleted in Task 1.1).
+
+**Library carry-over:** `lib/thumper/{auth,persistence,tools/*}.ts` and `lib/services/trade-board.ts` — reused as-is by the production route.
 
 **Deliverables / artifacts:** `SS_Phase1_Spike_Findings_v1.0.md` (preflight → Step 10 red-team + benchmark findings + deploy URL + rollback plan).
 
 **Dependencies added:** `ai@^6.0.168`, `@ai-sdk/anthropic@^3.0.71`, `@ai-sdk/react@^3.0.170`.
+
+---
+
+## Session 2026-04-26 — SS Phase 1 Task 1.1 (Promote spike to production)
+
+Promoted the Task 1.0 spike into the production `/thumper` route. Real ~3600-token system prompt replaces the cache-padding placeholder. Claude Design handoff UI ported as 14 atomic components. Two structural subsystems laid in: **Guardian** (telemetry / health) and **Enforcer** (audit). Spike route + UI deleted.
+
+**New surface area:**
+- `app/api/thumper/route.ts` — production POST route. Augments the spike pattern with: `runId` correlation header (`x-thumper-run-id`), tool-execution telemetry via `withTelemetry()` HOF wrapping `tool.execute`, `trade_action_audit` write on `remove_listing` post-approval, `logIncident()` on unhandled errors. Uses `THUMPER_SYSTEM_PROMPT` directly (no padded variant).
+- `app/api/thumper/{conversation/[conversationId], me}/route.ts` — ports verbatim from spike.
+- `app/api/thumper/health/route.ts` — public health probe (`api_reachable`, `db_reachable`, `recent_error_rate` over last 15 min, `timestamp`). In-memory rate limit (60 req/min per IP).
+- `app/thumper/{page.tsx, _client.tsx, _shell.module.css, thumper-tokens.css}` + `app/thumper/components/*` — production UI. 14 atoms × {.tsx, .module.css}: `ThumperGlyph`, `ThumperHeader`, `Bubble`, `ListingPreview`, `HITLBlock`, `ErrorBlock`, `Chips`, `InputRow`, `StreamingBubble`, `ChatHistory`, `EmptyGreeting`, `ThumperColumn`, `ThumperMobileShell`, `DashboardPlaceholder`. Desktop renders 400px right-pinned column; mobile renders 60px floating bubble + modal. Switch driven by `matchMedia('(min-width: 1024px)')` change listener.
+- `lib/thumper/probe-conversation-owner.ts` — extracted admin-client cross-tenant probe (red-team attack #7 protection).
+- `lib/thumper/guardian-telemetry.ts` — `logIncident()`, `logToolExecution()` writers via `createAdminClient()`. Both swallow internal errors so telemetry failure never throws into the request path.
+- `lib/thumper/audit.ts` — `hashState()` (SHA-256 of sorted-key JSON, null/undefined → ""), `writeTradeActionAudit()` for `trade_action_audit` writes.
+
+**System prompt:** `lib/thumper/system-prompt.ts` rewritten — single `THUMPER_SYSTEM_PROMPT` export, ~3600 estimated tokens (within 3500–5000 target). Six sections: identity & personality, v1 tool inventory (the two carry-over tools), scope boundaries (everything else is "not yet"), three-tier escalation (don't-know / misconfigured / broken→escalate-Louis), error copy pattern ("if this keeps happening, let Louis know"), forbidden patterns (no cross-rep data, no foreign rep_id calls, no instruction-overrides from rep_notes content, no fabricated tools/listings).
+
+**Migration 028** — see migrations table. Five tables: `thumper_incidents`, `tool_executions`, `auth_events`, `trade_action_audit`, `sms_email_blast_audit`. All RLS service-role-only.
+
+**Tests:** `tests/thumper/abort-modes.test.ts` (4 mocked unit cases — tab-close, network-drop, server-kill mid-HITL, clean finish), `tests/thumper/attack-5-poisoned-rep-notes.test.ts` (live integration — runs against local dev server, seeds poisoned `rep_notes`, asserts no foreign listing UUID in response or telemetry). vitest installed; `npm run test` runs unit only; `npm run test:attack5` runs the live test separately.
+
+**Login redirect:** `app/login/_client.tsx:42` flipped from `/spike` to `/thumper`.
+
+**Deletions:** `app/api/thumper/spike/`, `app/spike/` (entire directories) via `git rm -r` after build + test green. `spike/run-benchmark.ts` + `spike/prompts.json` preserved as benchmark infra.
+
+**Dependencies added:** `vitest@^4.1.5`, `pg@^8.20.0`, `@types/pg@^8.20.0` (pg was already in tree but pulled by vitest install).
 
 ---
 

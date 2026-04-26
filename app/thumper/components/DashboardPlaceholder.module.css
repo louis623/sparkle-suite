@@ -1,0 +1,55 @@
+.main {
+  min-height: 100vh;
+  background: var(--thumper-surface-dashboard);
+  padding: 24px;
+}
+
+.topbar {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.brand {
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--thumper-text-primary);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--thumper-surface-primary-solid);
+  border: 1px solid var(--thumper-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardTitle {
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--thumper-text-primary);
+}
+
+.cardSubtitle {
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--thumper-text-secondary);
+}
+
+.cardFill {
+  height: 120px;
+  border-radius: 8px;
+  background: var(--thumper-surface-dashboard-placeholder);
+  margin-top: 4px;
+}

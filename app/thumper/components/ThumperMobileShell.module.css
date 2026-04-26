@@ -1,0 +1,60 @@
+.bubble {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom) + 24px);
+  right: calc(env(safe-area-inset-right) + 20px);
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--thumper-accent);
+  color: var(--thumper-text-on-accent);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 10px 24px -6px rgba(196, 160, 232, 0.55),
+    0 4px 10px -2px rgba(16, 20, 30, 0.12);
+  z-index: 1000;
+  transition: background 120ms ease, box-shadow 120ms ease;
+}
+
+.bubble:hover {
+  background: var(--thumper-accent-hover);
+  box-shadow:
+    0 12px 28px -6px rgba(196, 160, 232, 0.6),
+    0 6px 12px -2px rgba(16, 20, 30, 0.14);
+}
+
+.bubble:active {
+  background: var(--thumper-accent-pressed);
+}
+
+.bubble:focus-visible {
+  outline: 2px solid var(--thumper-focus-ring);
+  outline-offset: 2px;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 20, 30, 0.42);
+  z-index: 1001;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.modal {
+  position: fixed;
+  top: calc(48px + env(safe-area-inset-top));
+  left: calc(16px + env(safe-area-inset-left));
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  background: var(--thumper-surface-primary);
+  border: 1px solid var(--thumper-border);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}

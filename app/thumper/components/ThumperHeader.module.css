@@ -1,0 +1,51 @@
+.header {
+  height: 48px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--thumper-border);
+  background: var(--thumper-surface-primary-solid);
+  flex-shrink: 0;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  font-family: 'Geist', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.3;
+  color: var(--thumper-text-primary);
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--thumper-text-secondary);
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.closeBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--thumper-text-primary);
+}
+
+.closeBtn:active {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.closeBtn:focus-visible {
+  outline: 2px solid var(--thumper-focus-ring);
+  outline-offset: 2px;
+}

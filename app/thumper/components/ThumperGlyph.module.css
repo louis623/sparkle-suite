@@ -1,0 +1,12 @@
+.glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--thumper-accent);
+  color: var(--thumper-text-on-accent);
+  border-radius: 6px;
+  font-weight: 700;
+  font-family: 'Geist', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+}

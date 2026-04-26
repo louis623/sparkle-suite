@@ -1,0 +1,20 @@
+.root {
+  min-height: 100vh;
+  background: var(--thumper-surface-dashboard);
+  font-family: 'Geist', system-ui, sans-serif;
+  color: var(--thumper-text-primary);
+}
+
+@media (min-width: 1024px) {
+  .root {
+    /* Reserve space for the fixed-right Thumper column on desktop. */
+    padding-right: 400px;
+  }
+}
+
+.loading {
+  padding: 24px;
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--thumper-text-muted);
+}

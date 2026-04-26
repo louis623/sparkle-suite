@@ -1,0 +1,81 @@
+.form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 8px 8px 12px;
+  margin: 8px 16px 16px 16px;
+  background: var(--thumper-surface-input);
+  border: 1px solid var(--thumper-border);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.form:focus-within {
+  border-color: var(--thumper-border-input-focus);
+  box-shadow: 0 0 0 2px rgba(196, 160, 232, 0.25);
+}
+
+.textarea {
+  flex: 1;
+  resize: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--thumper-text-primary);
+  min-height: 28px;
+  max-height: 160px;
+  padding: 4px 0;
+  overflow-y: auto;
+}
+
+.textarea::placeholder {
+  color: var(--thumper-text-placeholder);
+}
+
+.textarea[aria-disabled='true'],
+.textarea:disabled {
+  background: var(--thumper-surface-input-disabled);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.send {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 8px;
+  background: var(--thumper-accent);
+  color: var(--thumper-text-on-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.send:hover:not(:disabled) {
+  background: var(--thumper-accent-hover);
+}
+
+.send:active:not(:disabled) {
+  background: var(--thumper-accent-pressed);
+}
+
+.send:focus-visible {
+  outline: 2px solid var(--thumper-focus-ring);
+  outline-offset: 2px;
+}
+
+.send:disabled {
+  background: var(--thumper-border);
+  color: var(--thumper-text-muted);
+  cursor: default;
+}
+
+/* Disabled form (HITL state) */
+.form[data-disabled='true'] {
+  background: var(--thumper-surface-input-disabled);
+}
