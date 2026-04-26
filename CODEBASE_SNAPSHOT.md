@@ -1,5 +1,5 @@
 # Codebase Snapshot — Neon Rabbit Core
-_Generated: 2026-04-26 (HEAD: refine(thumper): Task 1.2 system prompt — personality, disclosure, content screening)_
+_Generated: 2026-04-26 (HEAD: feat(thumper): Task 1.3 — conversation UI polish + image input)_
 
 > **Pricing — monthly-only forever (April 19, 2026 decision).** `ss_quarterly_test` (price_1TNcicHRBK3pZpO2Map0zvq0, $129/3mo) and `ss_annual_test` (price_1TNcjcHRBK3pZpO2817mT1CP, $468/yr) are archived on Stripe (active=false, history preserved). Only active price on product `prod_UMLNC0ybgRkVKX` is `ss_monthly_test` (price_1TNciVHRBK3pZpO2Vsz9xfSH, $49/mo).
 
@@ -53,10 +53,11 @@ neon-rabbit-core/
 │   │   ├── _client.tsx                     ← useChat client + matchMedia desktop/mobile switch
 │   │   ├── _shell.module.css               ← root layout (reserves 400px right column on desktop)
 │   │   ├── thumper-tokens.css              ← global :root tokens (Section A of handoff bundle)
-│   │   └── components/                    ← 14 atoms × {.tsx, .module.css}
+│   │   └── components/                    ← 14 atoms × {.tsx, .module.css} + 2 helpers (Markdown, RelativeTime)
 │   │       ├── ThumperGlyph, ThumperHeader, Bubble, ListingPreview, HITLBlock,
 │   │       ├── ErrorBlock, Chips, InputRow, StreamingBubble, ChatHistory,
-│   │       └── EmptyGreeting, ThumperColumn, ThumperMobileShell, DashboardPlaceholder
+│   │       ├── EmptyGreeting, ThumperColumn, ThumperMobileShell, DashboardPlaceholder
+│   │       └── Markdown.tsx, RelativeTime.tsx     ← Task 1.3 (no .module.css; styles co-located in Bubble.module.css)
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
@@ -78,6 +79,7 @@ neon-rabbit-core/
 │   │   ├── probe-conversation-owner.ts ← admin-client cross-tenant ownership probe
 │   │   ├── guardian-telemetry.ts ← logIncident, logToolExecution (writes thumper_incidents, tool_executions)
 │   │   ├── audit.ts              ← hashState (SHA-256 of sorted-key JSON), writeTradeActionAudit
+│   │   ├── image-compress.ts     ← Task 1.3 client-only canvas resize → JPEG q0.8, max 1024px edge, EXIF strip
 │   │   └── tools/{list-my-trade-board.ts, remove-listing.ts}
 │   ├── stripe/
 │   │   ├── config.ts             ← Zod env validation, lazy-loaded
@@ -872,4 +874,63 @@ The Memory Index compiler at `app/api/compile-memory-index/route.ts` synthesizes
 **Migration 024** (`memory_index_pages`, `memory_index_compile_runs`, `compile_memory_index_pages` RPC, lease-lock RPCs, `mark_compile_pending` / `consume_compile_pending`) — see migrations table.
 
 **Manual trigger only.** Migration 025's Postgres trigger remains unattached pending the 3-day cost pilot.
+
+---
+
+## Session 2026-04-26 — SS Phase 1 Task 1.3 (Thumper conversation UI polish + image input)
+
+Polished the Task 1.1 Thumper UI (no rebuild) and added camera + gallery image input. The system prompt (Task 1.2), API route, auth, telemetry, and persistence schema are unchanged. No new Supabase tables or RLS edits.
+
+**Auto-scroll fix.** `app/thumper/components/ChatHistory.tsx` now uses a `ResizeObserver` on the inner content node + a scroll listener that updates a `stickToBottomRef`. Each chunk during streaming triggers the observer; the scroll position only snaps to bottom when the user is within 100px of the edge. The previous `scrollKey`-on-effect path didn't fire on streaming chunks. Manual scroll-up is respected.
+
+**Markdown rendering.** `app/thumper/components/Markdown.tsx` — pure-React, zero-dep parser handling `**bold**`, `*italic*`, `[label](url)`, bare URLs, `- ` / `* ` bullet lists, and `\d+. ` numbered lists. Single chokepoint `isSafeUrl()` allowlists `http:`, `https:`, `mailto:` only — `javascript:`, `data:`, `vbscript:`, `file:`, relative paths, and whitespace-padded variants render as inert text. Verified at `Markdown.tsx:11`. Markdown is applied only to completed assistant bubbles; streaming text stays raw to avoid mid-token flicker.
+
+**Timestamps.** `app/thumper/components/RelativeTime.tsx` renders "just now" / "Nm ago" / "Nh ago" / locale clock with a 30s `setInterval` refresh. `lib/thumper/persistence.ts:loadCanonicalHistory` merges `created_at` into a `metadata` field on each returned UIMessage (forward-compat spread guards a possible future `metadata` column). Optimistic local timestamps are stamped at submit time via a sentinel that resolves onto the latest user message id once `messages` updates.
+
+**Image input.** Two icon buttons left of the textarea in `InputRow.tsx`:
+- Camera: `<input type=file accept=image/* capture=environment>` — opens device camera on mobile, file picker on desktop.
+- Gallery: `<input type=file accept=image/* multiple>` — multi-select for bulk uploads.
+
+Selected files run through `lib/thumper/image-compress.ts` (canvas-based resize to ≤1024px longest edge, JPEG quality 0.8, EXIF stripped via re-encode). Each compressed image becomes an `InputAttachment { id, dataUrl, mediaType: 'image/jpeg' }` rendered as a thumbnail row above the textarea with per-thumb X-remove. Hidden file inputs reset `value=''` after each selection so re-picking the same file fires `onChange`. Cap is 10 attachments per message; overflow shows an inline notice ("Kept first N — max 10 per message"). Per-file compression failures are caught individually — the failing file is dropped with a notice, the rest of the batch sends.
+
+**Canonical wire shape — `FileUIPart` with data URL.** End-to-end the same shape: `{ type: 'file', mediaType: 'image/jpeg', url: 'data:image/jpeg;base64,...' }`. Sent via `useChat.sendMessage({ text, files: FileUIPart[] })` (AI SDK v6 supports this directly — verified at `node_modules/ai/dist/index.d.ts:3805`). The existing `convertToModelMessages(messages)` in `app/api/thumper/route.ts:264` maps these to Anthropic vision content blocks with no route changes. `parts` columns store JSON, so reload round-trips the images cleanly. User bubbles render images by filtering `parts` on `type === 'file' && mediaType.startsWith('image/')` (mediaType filter is the gate, not just type).
+
+**Inline retry on failed sends.** `_client.tsx` keeps a `failedMessages: Map<messageId, { parts }>`. When `useChat.status` flips to `'error'` the most-recent unanswered user message is captured. The inline retry button calls `sendMessage` again with the original `parts` and the same `messageId`, which the SDK treats as a replace (per `sendMessage` overload signature) — so retries don't duplicate the failed user message. Retry works for image-bearing messages because parts (not stale attachment state) are stored.
+
+**New conversation.** Header "New" button (`ThumperHeader.tsx`) rotates the conversationId, replaces the `?c=` URL param, and explicitly clears parent-owned state (draft, attachments, attachmentNotice, failedMessages — via `key={conversationId}` re-mount on `ChatBody`). Disabled while streaming or while an HITL approval is pending — gated at both the button and the handler.
+
+**Desktop minimize.** `desktopOpen` state in `ThumperClient`. The existing close button on the desktop column (now labeled "Minimize Thumper") collapses the column. A floating accent-pill button at bottom-right re-opens. Window keydown listener triggers minimize on Escape (skipped while typing in textarea/input or while HITL is pending). Reserved 400px right padding on the dashboard root is removed via `_shell.module.css:.rootMinimized` while collapsed.
+
+**Empty/Loading states.**
+- Empty: `EmptyGreeting.tsx` copy refreshed to "Hey, I'm Thumper. What's on your mind?" matching the Task 1.2 personality.
+- Loading: existing `_shell.module.css:.loading` text is shown until conversation history loads.
+
+**Files added (3):**
+- `app/thumper/components/Markdown.tsx`
+- `app/thumper/components/RelativeTime.tsx`
+- `lib/thumper/image-compress.ts`
+
+**Files modified:**
+- `app/thumper/_client.tsx` — full orchestration: attachments state, optimistic timestamps, retry map, sendWithParts helper, escape-to-minimize, focus-after-streaming, new-conversation handler with state cleanup.
+- `app/thumper/_shell.module.css` — `.rootMinimized` + `.desktopReopen` (floating pill button).
+- `app/thumper/components/ChatHistory.tsx` — ResizeObserver path; `scrollKey` prop removed.
+- `app/thumper/components/Bubble.tsx` — accepts `text`, `images`, `timestamp`, `renderMarkdown`; renders image grid + RelativeTime + Markdown.
+- `app/thumper/components/Bubble.module.css` — `.timestamp`, `.imageGrid`, `.imageThumb`, `.mdRoot` selectors (using `:global(...)` to reach Markdown class names).
+- `app/thumper/components/InputRow.tsx` — `forwardRef` for parent focus; new `attachments`, `onPickFiles`, `onRemoveAttachment`, `attachmentNotice`, `isStreaming` props; thumb row + camera/gallery icons; image-only submit allowed.
+- `app/thumper/components/InputRow.module.css` — `.iconBtn`, `.thumbRow`, `.thumb`, `.thumbRemove`, `.hiddenFile`; mobile media query bumps tap targets to 44px.
+- `app/thumper/components/StreamingBubble.tsx` + `.module.css` — `timestamp` passthrough + `.col` wrapper.
+- `app/thumper/components/ErrorBlock.tsx` + `.module.css` — `variant: 'global' | 'inline'`; inline collapses to compact right-aligned form near the failed user message.
+- `app/thumper/components/ThumperHeader.tsx` + `.module.css` — `onNewConversation`, `newConversationDisabled`, `closeLabel` props; `.newBtn` styles; `.actions` wrapper.
+- `app/thumper/components/ThumperColumn.tsx` — forwards `onNewConversation` + `newConversationDisabled` to header; passes desktop/mobile-aware `closeLabel`.
+- `app/thumper/components/EmptyGreeting.tsx` — copy refresh.
+- `lib/thumper/persistence.ts` — `loadCanonicalHistory` merges `created_at` into UIMessage `metadata`.
+
+**Files NOT touched (per task guardrails):** `lib/thumper/system-prompt.ts`, RLS policies, Supabase migrations, auth flow, `app/api/thumper/route.ts` logic.
+
+**Verification (2026-04-26):**
+- `npx tsc --noEmit` — clean for app/lib (only pre-existing `tests/thumper/attack-5-poisoned-rep-notes.test.ts` errors remain — unrelated).
+- `npm test` — 4/4 abort-modes pass.
+- Dev server compiles on every save; desktop column renders with both new "New conversation" + "Minimize Thumper" buttons; Escape minimizes; reopen pill restores.
+- URL allowlist sanity: `javascript:`, `data:`, `vbscript:`, `file:`, relative paths, empty, and whitespace-padded `javascript:` all reject; only `http:`/`https:`/`mailto:` accept.
+- Live-rep verification (auto-scroll during streaming, image upload + vision round-trip, inline retry with images, mobile keyboard behavior, reload-image-persistence) requires a signed-in test rep — local session was expired during the build, so Louis to run those steps before push approval per the task self-audit checklist.
 

@@ -4,11 +4,26 @@
   margin: 8px 0;
 }
 
+.repCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: 75%;
+}
+
 .thumperRow {
   display: flex;
   align-items: flex-start;
   gap: 8px;
   margin: 8px 0;
+}
+
+.thumperCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 0 1 auto;
+  max-width: calc(100% - 30px);
 }
 
 .glyphSlot {
@@ -19,7 +34,6 @@
 }
 
 .bubble {
-  max-width: 75%;
   padding: 10px 14px;
   font-family: 'Geist', system-ui, sans-serif;
   font-size: 14px;
@@ -27,6 +41,10 @@
   color: var(--thumper-text-primary);
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.plain {
+  white-space: pre-wrap;
 }
 
 .rep {
@@ -40,4 +58,83 @@
   border: 1px solid var(--thumper-border);
   border-radius: 14px 14px 14px 4px;
   font-weight: 400;
+}
+
+.timestamp {
+  font-size: 11px;
+  color: var(--thumper-text-muted);
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+.timestampRep {
+  text-align: right;
+}
+
+.timestampThumper {
+  text-align: left;
+}
+
+.imageGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.imageThumb {
+  display: block;
+  width: 96px;
+  height: 96px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--thumper-surface-dashboard-placeholder);
+  flex-shrink: 0;
+}
+
+.imageThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.imageThumb:focus-visible {
+  outline: 2px solid var(--thumper-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Markdown body inside completed assistant bubbles */
+.mdRoot :global(.thumper-md-p) {
+  margin: 0;
+}
+
+.mdRoot :global(.thumper-md-p) + :global(.thumper-md-p) {
+  margin-top: 8px;
+}
+
+.mdRoot :global(.thumper-md-ul),
+.mdRoot :global(.thumper-md-ol) {
+  margin: 6px 0 6px 0;
+  padding-left: 20px;
+}
+
+.mdRoot :global(.thumper-md-ul) li,
+.mdRoot :global(.thumper-md-ol) li {
+  margin: 2px 0;
+}
+
+.mdRoot a {
+  color: var(--thumper-accent-pressed);
+  text-decoration: underline;
+}
+
+.mdRoot a:focus-visible {
+  outline: 2px solid var(--thumper-focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.mdRoot strong {
+  font-weight: 600;
 }

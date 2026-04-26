@@ -49,3 +49,41 @@
   outline: 2px solid var(--thumper-focus-ring);
   outline-offset: 2px;
 }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.newBtn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--thumper-text-secondary);
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.newBtn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--thumper-text-primary);
+}
+
+.newBtn:active:not(:disabled) {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.newBtn:focus-visible {
+  outline: 2px solid var(--thumper-focus-ring);
+  outline-offset: 2px;
+}
+
+.newBtn:disabled {
+  color: var(--thumper-text-placeholder);
+  cursor: not-allowed;
+}

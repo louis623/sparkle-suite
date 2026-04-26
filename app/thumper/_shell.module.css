@@ -10,6 +10,9 @@
     /* Reserve space for the fixed-right Thumper column on desktop. */
     padding-right: 400px;
   }
+  .rootMinimized {
+    padding-right: 0;
+  }
 }
 
 .loading {
@@ -17,4 +20,38 @@
   font-family: 'Geist', system-ui, sans-serif;
   font-size: 14px;
   color: var(--thumper-text-muted);
+}
+
+.desktopReopen {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--thumper-accent);
+  color: var(--thumper-text-on-accent);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 10px 24px -6px rgba(196, 160, 232, 0.55),
+    0 4px 10px -2px rgba(16, 20, 30, 0.12);
+  z-index: 1000;
+  transition: background 120ms ease, box-shadow 120ms ease;
+}
+
+.desktopReopen:hover {
+  background: var(--thumper-accent-hover);
+}
+
+.desktopReopen:active {
+  background: var(--thumper-accent-pressed);
+}
+
+.desktopReopen:focus-visible {
+  outline: 2px solid var(--thumper-focus-ring);
+  outline-offset: 2px;
 }

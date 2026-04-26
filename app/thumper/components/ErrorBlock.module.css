@@ -57,3 +57,24 @@
   outline: 2px solid var(--thumper-focus-ring);
   outline-offset: 2px;
 }
+
+/* Inline variant — sits under a failed user message, right-aligned and tighter. */
+.block.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 8px auto;
+  padding: 8px 12px;
+  max-width: 75%;
+  border-radius: 10px 10px 4px 10px;
+}
+
+.block.inline .message {
+  font-size: 13px;
+}
+
+.block.inline .retry {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
+}

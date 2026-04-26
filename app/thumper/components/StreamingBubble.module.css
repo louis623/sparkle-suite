@@ -58,3 +58,19 @@
 .dots span:nth-child(3) {
   animation-delay: 0.3s;
 }
+
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 0 1 auto;
+  max-width: calc(100% - 30px);
+}
+
+.timestamp {
+  font-size: 11px;
+  color: var(--thumper-text-muted);
+  margin-top: 4px;
+  padding: 0 4px;
+  text-align: left;
+}

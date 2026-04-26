@@ -25,11 +25,17 @@ export async function loadCanonicalHistory(
   // visibility; only the model should skip them.
   return (data ?? [])
     .filter((row) => row.role === 'user' || row.status === 'complete')
-    .map((row) => ({
-      id: row.message_id as string,
-      role: row.role as 'user' | 'assistant',
-      parts: row.parts as UIMessage['parts'],
-    }))
+    .map((row) => {
+      // Merge any pre-existing metadata (forward-compat) with created_at.
+      // No metadata column today, but spread guards against clobber if added.
+      const existing = (row as { metadata?: Record<string, unknown> }).metadata
+      return {
+        id: row.message_id as string,
+        role: row.role as 'user' | 'assistant',
+        parts: row.parts as UIMessage['parts'],
+        metadata: { ...(existing ?? {}), created_at: row.created_at as string },
+      }
+    })
 }
 
 export async function getConversationOwner(

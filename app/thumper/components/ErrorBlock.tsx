@@ -3,12 +3,18 @@ import styles from './ErrorBlock.module.css'
 export function ErrorBlock({
   message,
   onRetry,
+  variant,
 }: {
   message: string
   onRetry?: () => void
+  variant?: 'global' | 'inline'
 }) {
+  const isInline = variant === 'inline'
   return (
-    <div className={styles.block} role="alert">
+    <div
+      className={`${styles.block} ${isInline ? styles.inline : ''}`}
+      role="alert"
+    >
       <div className={styles.row}>
         <svg
           width="16"
@@ -36,7 +42,7 @@ export function ErrorBlock({
       </div>
       {onRetry ? (
         <button type="button" className={styles.retry} onClick={onRetry}>
-          Try again
+          {isInline ? 'Retry' : 'Try again'}
         </button>
       ) : null}
     </div>
