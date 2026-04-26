@@ -528,9 +528,10 @@ server.registerTool(
       priority: z.enum(OPEN_ITEM_PRIORITIES).optional(),
       blocking_phase: z.string().max(128).optional(),
       source_session: z.string().max(128).optional(),
+      is_action_item: z.boolean().optional(),
     },
   },
-  async ({ project, title, description, category, status, priority, blocking_phase, source_session }) => {
+  async ({ project, title, description, category, status, priority, blocking_phase, source_session, is_action_item }) => {
     try {
       const row: Record<string, unknown> = {
         project: project ?? OPEN_ITEMS_DEFAULT_PROJECT,
@@ -538,6 +539,7 @@ server.registerTool(
         category,
         status: status ?? "open",
         priority: priority ?? "medium",
+        is_action_item: is_action_item ?? false,
       };
       if (description !== undefined) row.description = description;
       if (blocking_phase !== undefined) row.blocking_phase = blocking_phase;
@@ -571,9 +573,10 @@ server.registerTool(
       priority: z.enum(OPEN_ITEM_PRIORITIES).optional(),
       blocking_phase: z.string().max(128).optional(),
       source_session: z.string().max(128).optional(),
+      is_action_item: z.boolean().optional(),
     },
   },
-  async ({ id, title, description, category, status, priority, blocking_phase, source_session }) => {
+  async ({ id, title, description, category, status, priority, blocking_phase, source_session, is_action_item }) => {
     try {
       const patch: Record<string, unknown> = {};
       if (title !== undefined) patch.title = title;
@@ -583,6 +586,7 @@ server.registerTool(
       if (priority !== undefined) patch.priority = priority;
       if (blocking_phase !== undefined) patch.blocking_phase = blocking_phase;
       if (source_session !== undefined) patch.source_session = source_session;
+      if (is_action_item !== undefined) patch.is_action_item = is_action_item;
       if (Object.keys(patch).length === 0) {
         return errorResult("No fields provided to update.");
       }
@@ -652,9 +656,10 @@ server.registerTool(
       status: z.enum(OPEN_ITEM_STATUSES).optional(),
       category: z.enum(OPEN_ITEM_CATEGORIES).optional(),
       priority: z.enum(OPEN_ITEM_PRIORITIES).optional(),
+      is_action_item: z.boolean().optional(),
     },
   },
-  async ({ project, status, category, priority }) => {
+  async ({ project, status, category, priority, is_action_item }) => {
     try {
       const p = project ?? OPEN_ITEMS_DEFAULT_PROJECT;
       let q = supabaseWrite
@@ -669,6 +674,7 @@ server.registerTool(
       }
       if (category) q = q.eq("category", category);
       if (priority) q = q.eq("priority", priority);
+      if (is_action_item !== undefined) q = q.eq("is_action_item", is_action_item);
       const { data, error } = await q;
       if (error) return errorResult(error.message);
       const rows = data ?? [];
