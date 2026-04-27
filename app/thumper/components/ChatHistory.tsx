@@ -72,9 +72,21 @@ export function ChatHistory({
       }, 600)
     }
 
+    // Coalesce rapid resize bursts into a single per-frame triggerScroll
+    // call. Without this, fast token streaming fires the observer dozens of
+    // times per frame and stacks scrollTop assignments, causing visible
+    // jitter when content height grows non-monotonically (e.g. a transient
+    // ThinkingIndicator collapsing as the first text chunk lands).
+    let rafScheduled: number | null = null
+
     const ro = new ResizeObserver(() => {
       if (!stickToBottomRef.current) return
-      triggerScroll()
+      if (rafScheduled !== null) return
+      rafScheduled = window.requestAnimationFrame(() => {
+        rafScheduled = null
+        if (!stickToBottomRef.current) return
+        triggerScroll()
+      })
     })
     ro.observe(inner)
 
@@ -84,6 +96,7 @@ export function ChatHistory({
     return () => {
       scroll.removeEventListener('scroll', onScroll)
       ro.disconnect()
+      if (rafScheduled !== null) window.cancelAnimationFrame(rafScheduled)
     }
   }, [])
 

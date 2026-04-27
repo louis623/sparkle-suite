@@ -6,7 +6,14 @@
 
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
-import { streamText, stepCountIs, convertToModelMessages, type UIMessage } from 'ai'
+import {
+  streamText,
+  stepCountIs,
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  type UIMessage,
+} from 'ai'
 import { createAnthropic } from '@ai-sdk/anthropic'
 
 // Pin baseURL explicitly to avoid an inherited ANTHROPIC_BASE_URL env var
@@ -180,42 +187,116 @@ export async function POST(request: Request) {
   const tools = buildAllTools({ repId, supabase, conversationId, runId })
 
   const modelMessages = await convertToModelMessages(messages)
-  const result = streamText({
-    model: anthropic('claude-haiku-4-5-20251001'),
-    system: THUMPER_SYSTEM_PROMPT,
-    messages: modelMessages,
-    tools,
-    stopWhen: stepCountIs(5),
-    providerOptions: {
-      anthropic: {
-        cacheControl: { type: 'ephemeral' },
-      },
-    },
-    onError: async (err) => {
-      console.error('[thumper] streamText error:', err)
-      await logIncident({
-        errorType: 'streamtext_error',
-        repId,
-        conversationId,
-        severity: 'error',
-        details: { runId, message: (err as { error?: Error })?.error?.message ?? String(err) },
-      })
-    },
-    onFinish: (event) => {
-      console.log('[thumper] streamText finish', {
-        runId,
-        rep: rep.email,
-        conversationId,
-        totalUsage: event.totalUsage,
-      })
-    },
-  })
 
-  return result.toUIMessageStreamResponse({
+  // Server-owned ThinkingIndicator phase stream. The route emits transient
+  // `data-thinking` signals so the client never has to sniff `parts`. State:
+  //   activeToolCalls — depth (handles parallel/nested tool calls)
+  //   currentlyVisible — server's belief about whether the rabbit should show
+  //   toolEverFired   — distinguishes preamble→hide('plain-text') from
+  //                     post-tool→hide('final-text')
+  // No global `toolConfirmed` / `hideSent` latches: confirm re-fires on every
+  // depth 0→1 transition so tool→text→tool sequences re-show correctly.
+  const stream = createUIMessageStream({
     originalMessages: messages,
-    generateMessageId: () => assistantMessageId,
-    headers: responseHeaders,
+    generateId: () => assistantMessageId,
+    execute: async ({ writer }) => {
+      let activeToolCalls = 0
+      let currentlyVisible = false
+      let toolEverFired = false
+
+      const emitHide = (reason: 'plain-text' | 'final-text' | 'finish' | 'error') => {
+        if (!currentlyVisible) return
+        currentlyVisible = false
+        writer.write({
+          type: 'data-thinking',
+          data: { phase: 'hide', messageId: assistantMessageId, reason },
+          transient: true,
+        })
+      }
+
+      // Explicit assistant start chunk so the client has an assistant row to
+      // render during TTFT, plus provisional show. The reserved
+      // assistantMessageId is wired via createUIMessageStream's generateId.
+      writer.write({ type: 'start', messageId: assistantMessageId })
+      writer.write({
+        type: 'data-thinking',
+        data: { phase: 'show', messageId: assistantMessageId },
+        transient: true,
+      })
+      currentlyVisible = true
+
+      const result = streamText({
+        model: anthropic('claude-haiku-4-5-20251001'),
+        system: THUMPER_SYSTEM_PROMPT,
+        messages: modelMessages,
+        tools,
+        stopWhen: stepCountIs(5),
+        providerOptions: {
+          anthropic: {
+            cacheControl: { type: 'ephemeral' },
+          },
+        },
+        abortSignal: request.signal,
+        experimental_onToolCallStart: () => {
+          activeToolCalls += 1
+          toolEverFired = true
+          if (activeToolCalls === 1) {
+            // 0 → 1 transition. Re-emit confirm every cycle so a hide-then-
+            // tool sequence (e.g. preamble flicker, or tool→text→tool) brings
+            // the rabbit back.
+            writer.write({
+              type: 'data-thinking',
+              data: { phase: 'confirm', messageId: assistantMessageId },
+              transient: true,
+            })
+            currentlyVisible = true
+          }
+        },
+        experimental_onToolCallFinish: () => {
+          activeToolCalls = Math.max(0, activeToolCalls - 1)
+        },
+        onError: async (err) => {
+          console.error('[thumper] streamText error:', err)
+          await logIncident({
+            errorType: 'streamtext_error',
+            repId,
+            conversationId,
+            severity: 'error',
+            details: { runId, message: (err as { error?: Error })?.error?.message ?? String(err) },
+          })
+        },
+        onFinish: (event) => {
+          console.log('[thumper] streamText finish', {
+            runId,
+            rep: rep.email,
+            conversationId,
+            totalUsage: event.totalUsage,
+          })
+        },
+      })
+
+      // Inspect chunks before forwarding so we can hide on first visible
+      // non-whitespace text. sendStart:false because we already emitted start.
+      // try/finally guarantees a terminal hide even if iteration throws.
+      try {
+        for await (const chunk of result.toUIMessageStream({ sendStart: false })) {
+          if (
+            chunk.type === 'text-delta' &&
+            /\S/.test(chunk.delta) &&
+            currentlyVisible &&
+            activeToolCalls === 0
+          ) {
+            emitHide(toolEverFired ? 'final-text' : 'plain-text')
+          }
+          writer.write(chunk)
+        }
+      } finally {
+        emitHide('finish')
+      }
+    },
     onFinish: async ({ responseMessage, isAborted }) => {
+      // data-thinking parts are transient and will not appear in
+      // responseMessage.parts, so persistence stays clean.
       try {
         if (isAborted) {
           await abortAssistant(supabase, {
@@ -241,6 +322,11 @@ export async function POST(request: Request) {
         })
       }
     },
+  })
+
+  return createUIMessageStreamResponse({
+    stream,
+    headers: responseHeaders,
     consumeSseStream: async ({ stream }) => {
       const reader = stream.getReader()
       try {

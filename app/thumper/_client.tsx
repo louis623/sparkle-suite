@@ -285,6 +285,110 @@ function ChatBody({
   onChatStateChange: (s: { isStreaming: boolean; hasPendingApproval: boolean }) => void
   resetSignal: string
 }) {
+  // Server-owned ThinkingIndicator state machine. The server emits transient
+  // `data-thinking` parts with phase: 'show' | 'confirm' | 'hide'. The client
+  // only owns presentation timing (150ms provisional debounce, 800ms confirmed
+  // minimum). `activeMessageIdRef` outlives provisional hides so a later
+  // confirm for the same message can re-show — supports preamble→tool and
+  // tool→text→tool sequences.
+  const [thinkingFor, setThinkingFor] = useState<string | null>(null)
+  const thinkingForRef = useRef<string | null>(null)
+  useEffect(() => {
+    thinkingForRef.current = thinkingFor
+  }, [thinkingFor])
+  const activeMessageIdRef = useRef<string | null>(null)
+  const confirmedRef = useRef(false)
+  const shownAtRef = useRef<number | null>(null)
+  const showTimerRef = useRef<number | null>(null)
+  const hideTimerRef = useRef<number | null>(null)
+
+  const clearShowTimer = useCallback(() => {
+    if (showTimerRef.current !== null) {
+      window.clearTimeout(showTimerRef.current)
+      showTimerRef.current = null
+    }
+  }, [])
+  const clearHideTimer = useCallback(() => {
+    if (hideTimerRef.current !== null) {
+      window.clearTimeout(hideTimerRef.current)
+      hideTimerRef.current = null
+    }
+  }, [])
+
+  const requestShow = useCallback(
+    (id: string) => {
+      if (activeMessageIdRef.current !== id) {
+        clearShowTimer()
+        clearHideTimer()
+        activeMessageIdRef.current = id
+        confirmedRef.current = false
+        shownAtRef.current = null
+        setThinkingFor(null)
+      }
+      if (thinkingForRef.current === id) return
+      clearShowTimer()
+      showTimerRef.current = window.setTimeout(() => {
+        showTimerRef.current = null
+        shownAtRef.current = Date.now()
+        setThinkingFor(id)
+      }, 150)
+    },
+    [clearShowTimer, clearHideTimer]
+  )
+
+  const confirmThinking = useCallback(
+    (id: string) => {
+      if (activeMessageIdRef.current !== id) {
+        clearShowTimer()
+        clearHideTimer()
+        activeMessageIdRef.current = id
+      }
+      confirmedRef.current = true
+      clearShowTimer()
+      // Stamp shownAtRef so the 800ms minimum has a fresh basis when
+      // upgrading from provisional → confirmed (or re-confirming after a
+      // prior hide in a tool→text→tool sequence).
+      shownAtRef.current = Date.now()
+      if (thinkingForRef.current !== id) {
+        setThinkingFor(id)
+      }
+    },
+    [clearShowTimer, clearHideTimer]
+  )
+
+  const requestHide = useCallback(
+    (id: string) => {
+      if (activeMessageIdRef.current !== id) return
+      clearShowTimer()
+      // Not visible: cancel pending show, clear confirmation, but KEEP
+      // activeMessageIdRef so a later confirm for this same id can resurrect.
+      if (thinkingForRef.current !== id) {
+        confirmedRef.current = false
+        shownAtRef.current = null
+        return
+      }
+      // Visible + unconfirmed: hide immediately. KEEP activeMessageIdRef.
+      if (!confirmedRef.current) {
+        setThinkingFor(null)
+        confirmedRef.current = false
+        shownAtRef.current = null
+        return
+      }
+      // Visible + confirmed: enforce 800ms minimum from the last show.
+      const elapsed = Date.now() - (shownAtRef.current ?? Date.now())
+      const remaining = Math.max(0, 800 - elapsed)
+      clearHideTimer()
+      hideTimerRef.current = window.setTimeout(() => {
+        hideTimerRef.current = null
+        setThinkingFor(null)
+        confirmedRef.current = false
+        shownAtRef.current = null
+        // activeMessageIdRef stays — supports tool-text-tool resumption.
+      }, remaining)
+    },
+    [clearShowTimer, clearHideTimer]
+  )
+
   const {
     messages,
     sendMessage,
@@ -297,6 +401,16 @@ function ChatBody({
     transport,
     messages: initialMessages,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
+    onData: (dataPart) => {
+      if (dataPart.type !== 'data-thinking') return
+      const data = dataPart.data as {
+        phase: 'show' | 'confirm' | 'hide'
+        messageId: string
+      }
+      if (data.phase === 'show') requestShow(data.messageId)
+      else if (data.phase === 'confirm') confirmThinking(data.messageId)
+      else if (data.phase === 'hide') requestHide(data.messageId)
+    },
   })
 
   const [draft, setDraft] = useState('')
@@ -332,7 +446,9 @@ function ChatBody({
     onChatStateChange({ isStreaming, hasPendingApproval })
   }, [isStreaming, hasPendingApproval, onChatStateChange])
 
-  // Auto-focus input when streaming completes (ready/error transitions).
+  // Auto-focus input when streaming completes (ready/error transitions), and
+  // fire a terminal ThinkingIndicator hide as a safety net in case the server
+  // didn't (e.g. transport-level error before the finally clause ran).
   useEffect(() => {
     if (prevStatusRef.current !== status) {
       if (
@@ -341,9 +457,15 @@ function ChatBody({
       ) {
         textareaRef.current?.focus()
       }
+      if (
+        (status === 'error' || status === 'ready') &&
+        activeMessageIdRef.current
+      ) {
+        requestHide(activeMessageIdRef.current)
+      }
       prevStatusRef.current = status
     }
-  }, [status])
+  }, [status, requestHide])
 
   // On error transition, mark the most recent user message without a paired
   // assistant response as failed so the inline retry surfaces.
@@ -572,6 +694,7 @@ function ChatBody({
               timestamp={ts}
               isFirstInRun={isFirstThumperInRun(messages, idx)}
               isStreamingTail={isStreaming && idx === messages.length - 1}
+              isThinking={thinkingFor === m.id}
               onApprove={addToolApprovalResponse}
             />
           )
@@ -651,12 +774,14 @@ function AssistantMessage({
   timestamp,
   isFirstInRun,
   isStreamingTail,
+  isThinking,
   onApprove,
 }: {
   message: UIMessage
   timestamp?: string | number
   isFirstInRun: boolean
   isStreamingTail: boolean
+  isThinking: boolean
   onApprove: ApprovalResponseFn
 }) {
   const parts = message.parts ?? []
@@ -679,37 +804,10 @@ function AssistantMessage({
       }
     | undefined
 
-  // Tool-call in flight detection: a pulsing logo replaces the partial text +
-  // dots that otherwise sit there during the 2-4s tool execution window. Once
-  // the model resumes streaming text after the tool returns, we swap back to
-  // the normal StreamingBubble.
-  const inFlightTool = parts.some((p) => {
-    const pt = p as { type?: string; state?: string }
-    return (
-      typeof pt.type === 'string' &&
-      pt.type.startsWith('tool-') &&
-      (pt.state === 'input-streaming' || pt.state === 'input-available')
-    )
-  })
-  let lastToolIdx = -1
-  parts.forEach((p, i) => {
-    const pt = p as { type?: string }
-    if (typeof pt.type === 'string' && pt.type.startsWith('tool-')) {
-      lastToolIdx = i
-    }
-  })
-  let postToolText = false
-  if (lastToolIdx >= 0) {
-    for (let i = lastToolIdx + 1; i < parts.length; i++) {
-      const pt = parts[i] as { type?: string; text?: string }
-      if (pt.type === 'text' && pt.text && pt.text.length > 0) {
-        postToolText = true
-        break
-      }
-    }
-  }
-  const showThinking =
-    isStreamingTail && inFlightTool && !postToolText && !pendingApproval
+  // Visibility is server-owned: the route emits transient `data-thinking`
+  // signals (show / confirm / hide) and the parent threads `isThinking` here.
+  // Approval cards always win so they're never hidden behind the rabbit.
+  const showThinking = isThinking && !pendingApproval
 
   return (
     <>
