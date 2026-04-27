@@ -21,12 +21,10 @@ import {
   abortAssistant,
   recordApprovalEvent,
 } from '@/lib/thumper/persistence'
-import { makeListMyTradeBoardTool } from '@/lib/thumper/tools/list-my-trade-board'
-import { makeRemoveListingTool } from '@/lib/thumper/tools/remove-listing'
+import { buildAllTools } from '@/lib/thumper/tools'
 import { THUMPER_SYSTEM_PROMPT } from '@/lib/thumper/system-prompt'
 import { probeConversationOwner } from '@/lib/thumper/probe-conversation-owner'
-import { logIncident, logToolExecution } from '@/lib/thumper/guardian-telemetry'
-import { hashState, writeTradeActionAudit } from '@/lib/thumper/audit'
+import { logIncident } from '@/lib/thumper/guardian-telemetry'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -63,79 +61,6 @@ function extractApprovalResponses(
     }
   }
   return out
-}
-
-// Closure wrapper that records a tool_executions row + (for remove_listing)
-// a trade_action_audit row. Wraps the existing tool factory output without
-// modifying lib/thumper/tools/* source.
-type AnyTool = ReturnType<typeof makeListMyTradeBoardTool> | ReturnType<typeof makeRemoveListingTool>
-
-function withTelemetry<T extends AnyTool>(
-  toolName: string,
-  ctx: { repId: string; conversationId: string; runId: string },
-  tool: T
-): T {
-  const original = (tool as { execute?: (...args: unknown[]) => unknown }).execute
-  if (typeof original !== 'function') return tool
-  const wrapped = async (...args: unknown[]): Promise<unknown> => {
-    const start = performance.now()
-    let success = false
-    let errorMessage: string | undefined
-    let result: unknown
-    const toolArgs = (args[0] ?? {}) as Record<string, unknown>
-    try {
-      result = await original.apply(tool, args)
-      success = true
-      return result
-    } catch (err) {
-      errorMessage = (err as Error).message
-      throw err
-    } finally {
-      const durationMs = Math.round(performance.now() - start)
-      try {
-        await logToolExecution({
-          toolName,
-          repId: ctx.repId,
-          conversationId: ctx.conversationId,
-          success,
-          durationMs,
-          errorMessage,
-          argsHash: hashState(toolArgs),
-        })
-      } catch {
-        /* swallowed inside helper */
-      }
-      if (toolName === 'remove_listing' && success && result) {
-        const r = result as {
-          listingId?: string
-          previousStatus?: string
-        }
-        if (r.listingId) {
-          const beforeState = {
-            listingId: r.listingId,
-            status: r.previousStatus ?? '',
-            removalReason: '',
-            repId: ctx.repId,
-          }
-          const afterState = {
-            listingId: r.listingId,
-            status: 'removed',
-            removalReason: (toolArgs.reason as string) ?? '',
-            repId: ctx.repId,
-          }
-          await writeTradeActionAudit({
-            actionType: 'remove_listing',
-            repId: ctx.repId,
-            targetListingId: r.listingId,
-            beforeState,
-            afterState,
-            details: { runId: ctx.runId, conversationId: ctx.conversationId },
-          })
-        }
-      }
-    }
-  }
-  return { ...(tool as object), execute: wrapped } as unknown as T
 }
 
 export async function POST(request: Request) {
@@ -247,19 +172,7 @@ export async function POST(request: Request) {
     messageId: assistantMessageId,
   })
 
-  const tCtx = { repId, conversationId, runId }
-  const tools = {
-    list_my_trade_board: withTelemetry(
-      'list_my_trade_board',
-      tCtx,
-      makeListMyTradeBoardTool({ repId, supabase })
-    ),
-    remove_listing: withTelemetry(
-      'remove_listing',
-      tCtx,
-      makeRemoveListingTool({ repId, supabase })
-    ),
-  }
+  const tools = buildAllTools({ repId, supabase, conversationId, runId })
 
   const modelMessages = await convertToModelMessages(messages)
   const result = streamText({

@@ -1,5 +1,5 @@
 # Codebase Snapshot — Neon Rabbit Core
-_Generated: 2026-04-26 (HEAD: feat(thumper): Task 1.3 follow-up — cross-device conversation sync + hybrid auto-scroll)_
+_Generated: 2026-04-27 (HEAD: feat(thumper): Task 1.4 — tool registry + 3-tier error handling + telemetry wrapper)_
 
 > **Pricing — monthly-only forever (April 19, 2026 decision).** `ss_quarterly_test` (price_1TNcicHRBK3pZpO2Map0zvq0, $129/3mo) and `ss_annual_test` (price_1TNcjcHRBK3pZpO2817mT1CP, $468/yr) are archived on Stripe (active=false, history preserved). Only active price on product `prod_UMLNC0ybgRkVKX` is `ss_monthly_test` (price_1TNciVHRBK3pZpO2Vsz9xfSH, $49/mo).
 
@@ -81,7 +81,15 @@ neon-rabbit-core/
 │   │   ├── guardian-telemetry.ts ← logIncident, logToolExecution (writes thumper_incidents, tool_executions)
 │   │   ├── audit.ts              ← hashState (SHA-256 of sorted-key JSON), writeTradeActionAudit
 │   │   ├── image-compress.ts     ← Task 1.3 client-only canvas resize → JPEG q0.8, max 1024px edge, EXIF strip
-│   │   └── tools/{list-my-trade-board.ts, remove-listing.ts}
+│   │   ├── errors.ts             ← Task 1.4 — ThumperToolError base class for Tier 2 EXPLAIN classification
+│   │   └── tools/                ← Task 1.4 tool registry
+│   │       ├── index.ts          ← buildAllTools(ctx) — barrel + duplicate-name guard + needsApproval-survives-wrapping assertion
+│   │       ├── types.ts          ← ToolContext, ToolDefinition (name + readOnly + build)
+│   │       ├── wrappers/
+│   │       │   ├── with-telemetry.ts      ← inner wrapper — logs tool_executions row per call (success/failure/duration/argsHash); composition: INSIDE error handler
+│   │       │   └── with-error-handling.ts ← outer wrapper — Tier 1 RETRY (read-only only), Tier 2 EXPLAIN (ThumperToolError → friendly return), Tier 3 ESCALATE (incident + friendly return)
+│   │       ├── list-my-trade-board.ts     ← ToolDefinition (readOnly: true), translates TradeBoardError → ThumperToolError
+│   │       └── remove-listing.ts          ← ToolDefinition (readOnly: false, needsApproval: true), owns its own trade_action_audit write (audit failure isolated, never reverses success)
 │   ├── stripe/
 │   │   ├── config.ts             ← Zod env validation, lazy-loaded
 │   │   ├── client.ts             ← Stripe instance (v22 dahlia API)
@@ -967,4 +975,47 @@ Final approach uses a gap heuristic. RO fires within `STREAMING_GAP_MS` (200ms) 
 - `GET /api/thumper/conversation/latest` returns `401 {"error":"unauthenticated"}` when signed out (smoke test in browser preview).
 - Init effect 401 path renders "Not signed in — visit /login and come back." with a clean `/thumper` URL (no fake `?c=` written) — confirmed in browser.
 - Authenticated cross-device sync, three-state retry UI, smooth-vs-instant scroll behavior during real streaming, and `prefers-reduced-motion` fallback require a signed-in session — Louis to run the live verification steps before push approval.
+
+---
+
+## Session 2026-04-27 — SS Phase 1 Task 1.4 (Thumper tool registry + 3-tier error handling)
+
+Infrastructure refactor — no new tools, no behavior changes for tools that ran before. Makes adding the next ~28 tools (Tasks 1.5-1.8) mechanical.
+
+**Tool registry pattern.** `lib/thumper/tools/index.ts` exposes `buildAllTools(ctx)` that takes `ToolContext = { repId, supabase, conversationId, runId }` and returns an AI SDK `ToolSet`. Each tool file exports a `ToolDefinition` (`name`, `readOnly`, `build(ctx) => Tool`) and is registered by pushing into a single `REGISTRY` array. Adding tool #3+ = create the file, push the def, done — no `route.ts` edits. Duplicate-name guard runs at build time and throws loudly. A post-wrap assertion confirms `needsApproval` survived both wrappers (HITL silently breaking is the worst-case bug class).
+
+**Three-tier error handling** ([lib/thumper/tools/wrappers/with-error-handling.ts](lib/thumper/tools/wrappers/with-error-handling.ts)):
+- **Tier 1 — RETRY (read-only tools only).** Transient errors (`ETIMEDOUT|ECONNRESET|ENOTFOUND|fetch failed|socket hang up|408|429|502|503|504`) get one 500ms-backoff retry. **Mutation tools (`readOnly: false`) skip Tier 1 entirely** to avoid double-applying side effects (the original adversarial-review fix #2). Retry-then-fail falls into Tier 3.
+- **Tier 2 — EXPLAIN (`instanceof ThumperToolError`).** Returns `{ ok: false, errorTier: 'explain', code, message }` to the SDK; the model sees a tool result and explains in plain language. No incident written. Each tool translates its own service-layer errors → `ThumperToolError` inside `execute` (services in `lib/services/*` stay untouched per repo convention). Helper pattern: `explainTradeBoardError(err)` in both tool files maps `LISTING_NOT_FOUND` / `UNAUTHORIZED` / `INVALID_INPUT` to friendly text.
+- **Tier 3 — ESCALATE.** Best-effort `logIncident({ errorType: 'tool_unhandled', ... })` then returns the friendly "I've flagged this for the Neon Rabbit team" message.
+
+**Composition order** is load-bearing: `withErrorHandling( { name, ctx, readOnly }, withTelemetry(name, ctx, raw) )`. Telemetry is the INNER wrapper so it sees the raw `execute()` outcome — if the underlying call throws, telemetry logs `success=false`, then re-throws so error-handling can decide tier. If telemetry lived OUTSIDE error-handling, Tier 2/3 friendly returns would silently look like successes in `tool_executions`. Documented in both wrapper file headers.
+
+**Stream lifecycle behavior change** (intentional, documented in `with-error-handling.ts` header): previously, an unhandled tool throw propagated to streamText, fired `onError`, and the route's persistence path treated the assistant message as aborted. Now Tier 2/3 errors return structured values, the model continues, `onFinish` fires, the assistant message COMPLETES with the model's explanation. True fatal errors (auth wrapper crash, errors in the wrapper itself) still throw past us and trigger `onError` — abort path preserved for those.
+
+**Failure isolation** (Codex review fixes #6 + #8): `logToolExecution`, `logIncident`, and `writeTradeActionAudit` already swallow internal errors at the helper level. Each call site adds a defensive outer try/catch — the contract is explicit at the wrapper/tool level even if today's helpers can't actually throw. **Audit failure must never reverse a successful mutation:** `remove_listing.execute` runs the audit write inside its own try/catch and returns the successful tool result regardless of audit fate. Best-effort `logIncident({ errorType: 'audit_write_failed' })` on audit failure.
+
+**Telemetry semantics under retry** (documented in `with-telemetry.ts` header): a Tier 1 retry on a read-only tool produces TWO `tool_executions` rows — one `success=false` (initial transient failure) and one `success=true` (retry success). The table reflects what actually happened; success-rate dashboards should account for it.
+
+**Files added (5):**
+- `lib/thumper/errors.ts` — `ThumperToolError` base class (`code` + `userMessage` + `cause`).
+- `lib/thumper/tools/types.ts` — `ToolContext`, `ToolDefinition`.
+- `lib/thumper/tools/wrappers/with-telemetry.ts` — moved from inline route wrapper; inner-wrapper composition; defensive try/catch around `logToolExecution`.
+- `lib/thumper/tools/wrappers/with-error-handling.ts` — 3-tier wrapper; readOnly-gated retry; `ThumperToolError` Tier 2 detection; defensive try/catch around `logIncident`.
+- `lib/thumper/tools/index.ts` — barrel + `buildAllTools(ctx)` + duplicate-name guard + post-wrap `needsApproval` assertion.
+
+**Files modified:**
+- `lib/thumper/tools/list-my-trade-board.ts` — exports `listMyTradeBoardTool: ToolDefinition` (`readOnly: true`); execute wraps the service call to translate `TradeBoardError` → `ThumperToolError`.
+- `lib/thumper/tools/remove-listing.ts` — exports `removeListingTool: ToolDefinition` (`readOnly: false`, factory accepts `conversationId` + `runId`); owns its own `trade_action_audit` write (lifted from route wrapper, behavior identical) wrapped in audit-failure isolation; translates `TradeBoardError` → `ThumperToolError`.
+- `app/api/thumper/route.ts` — deleted inline `withTelemetry` (~70 lines) + `AnyTool` union + per-tool factory imports + special-case `trade_action_audit` write. Tools literal replaced with `const tools = buildAllTools({ repId, supabase, conversationId, runId })`. All other route logic untouched (auth, ownership probe, approval replay, streaming, `onError`, `onFinish`, persistence reserve/checkpoint/complete).
+
+**Files NOT touched (per task guardrails):** system prompt, persistence, HITL/approval flow, streaming, cross-device sync, `lib/services/*` (TradeBoardError stays as-is — translation lives in the tool execute).
+
+**Verification (2026-04-27):**
+- `npx tsc --noEmit` — clean for changed files (only pre-existing `tests/thumper/attack-5-poisoned-rep-notes.test.ts` errors remain — unrelated, Supabase generated-types issue).
+- `npm test` — 4/4 abort-modes pass.
+- Throwaway `scripts/verify-task-1-4-wrappers.ts` (deleted post-run) — 13/13 PASS covering: `needsApproval` survives both wrappers; Tier 2 returns explain shape with code+message preserved; Tier 3 returns escalate shape with friendly message; Tier 1 retries read-only tools; Tier 1 SKIPS write tools (single attempt → escalate); duplicate-name guard accepts the real registry. Bonus: live evidence of fix #6 — wrappers continued correctly while telemetry/incident writes failed against a fake Supabase URL (ECONNREFUSED).
+- `grep -nE "makeListMyTradeBoardTool|makeRemoveListingTool|withTelemetry" app/api/thumper/route.ts` → no matches (route is registry-only).
+- Dev server boots clean (`Ready in 1175ms`); `POST /api/thumper` (unauthenticated) returns `401 {"error":"unauthenticated"}` — proves the registry compiles and the route loads.
+- Authenticated runtime verification (UI-driven HITL approval card, real `tool_executions` / `trade_action_audit` / `thumper_incidents` rows, end-to-end Tier 2 conversational explain, end-to-end Tier 3 incident escalation + assistant-message-completes) — Louis to run the live steps (plan verification items 3-6, 8) before push approval. Failure-injection items (9-12) are documented and would each require a temporary code change + revert; recommend covering by routine review rather than one-shot synthetic injection.
 

@@ -6,7 +6,15 @@
 import { z } from 'zod'
 import { tool } from 'ai'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { removeListing, type RemovalReason } from '@/lib/services/trade-board'
+import {
+  removeListing,
+  TradeBoardError,
+  type RemovalReason,
+} from '@/lib/services/trade-board'
+import { writeTradeActionAudit } from '@/lib/thumper/audit'
+import { logIncident } from '@/lib/thumper/guardian-telemetry'
+import { ThumperToolError } from '@/lib/thumper/errors'
+import type { ToolDefinition } from './types'
 
 const inputSchema = z.object({
   listingId: z.string().uuid().optional(),
@@ -16,7 +24,25 @@ const inputSchema = z.object({
   message: 'listingId or itemNumber required',
 })
 
-export function makeRemoveListingTool(ctx: { repId: string; supabase: SupabaseClient }) {
+function explainTradeBoardError(err: unknown): never {
+  if (err instanceof TradeBoardError) {
+    const msg =
+      err.code === 'LISTING_NOT_FOUND'
+        ? "I couldn't find that listing on your board."
+        : err.code === 'UNAUTHORIZED'
+          ? "That listing isn't on your board, so I can't change it."
+          : err.message
+    throw new ThumperToolError({ code: err.code, userMessage: msg, cause: err })
+  }
+  throw err
+}
+
+export function makeRemoveListingTool(ctx: {
+  repId: string
+  supabase: SupabaseClient
+  conversationId: string
+  runId: string
+}) {
   return tool({
     description:
       "Remove a listing from the authenticated rep's trade board (soft delete — sets status='removed' and records the reason). " +
@@ -25,11 +51,63 @@ export function makeRemoveListingTool(ctx: { repId: string; supabase: SupabaseCl
     inputSchema,
     needsApproval: true,
     execute: async ({ listingId, itemNumber, reason }) => {
-      const result = await removeListing(ctx.supabase, ctx.repId, {
-        listingId,
-        itemNumber,
-        reason: reason as RemovalReason,
-      })
+      let result: Awaited<ReturnType<typeof removeListing>>
+      try {
+        result = await removeListing(ctx.supabase, ctx.repId, {
+          listingId,
+          itemNumber,
+          reason: reason as RemovalReason,
+        })
+      } catch (err) {
+        explainTradeBoardError(err)
+      }
+
+      // Audit write is observability, not business logic. The mutation has
+      // already succeeded; audit failure must NEVER reverse the rep's view
+      // of success. Same isolation discipline as telemetry — log + best-effort
+      // incident + return the successful result regardless of audit fate.
+      try {
+        await writeTradeActionAudit({
+          actionType: 'remove_listing',
+          repId: ctx.repId,
+          targetListingId: result.listingId,
+          beforeState: {
+            listingId: result.listingId,
+            status: result.previousStatus ?? '',
+            removalReason: '',
+            repId: ctx.repId,
+          },
+          afterState: {
+            listingId: result.listingId,
+            status: 'removed',
+            removalReason: reason,
+            repId: ctx.repId,
+          },
+          details: { runId: ctx.runId, conversationId: ctx.conversationId },
+        })
+      } catch (auditErr) {
+        console.error('[thumper] trade_action_audit write failed', {
+          listingId: result.listingId,
+          auditErr,
+        })
+        try {
+          await logIncident({
+            errorType: 'audit_write_failed',
+            repId: ctx.repId,
+            conversationId: ctx.conversationId,
+            severity: 'warn',
+            details: {
+              toolName: 'remove_listing',
+              runId: ctx.runId,
+              listingId: result.listingId,
+              message: (auditErr as Error)?.message,
+            },
+          })
+        } catch {
+          /* swallow — observability must not affect outcome */
+        }
+      }
+
       return {
         listingId: result.listingId,
         designName: result.designName,
@@ -43,4 +121,16 @@ export function makeRemoveListingTool(ctx: { repId: string; supabase: SupabaseCl
       }
     },
   })
+}
+
+export const removeListingTool: ToolDefinition = {
+  name: 'remove_listing',
+  readOnly: false,
+  build: (ctx) =>
+    makeRemoveListingTool({
+      repId: ctx.repId,
+      supabase: ctx.supabase,
+      conversationId: ctx.conversationId,
+      runId: ctx.runId,
+    }),
 }
