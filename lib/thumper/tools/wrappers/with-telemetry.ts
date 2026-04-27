@@ -39,21 +39,23 @@ export function withTelemetry(toolName: string, ctx: ToolContext, tool: Tool): T
       errorMessage = (err as Error).message
       throw err
     } finally {
+      // Fire-and-forget — do NOT await. The telemetry insert was previously in
+      // the critical path of returning the tool result to the model, costing
+      // ~50-150ms per call. logToolExecution already swallows its own errors;
+      // the .catch() here is defense-in-depth for unexpected promise rejections.
       const durationMs = Math.round(performance.now() - start)
       const toolArgs = (args[0] ?? {}) as Record<string, unknown>
-      try {
-        await logToolExecution({
-          toolName,
-          repId: ctx.repId,
-          conversationId: ctx.conversationId,
-          success,
-          durationMs,
-          errorMessage,
-          argsHash: hashState(toolArgs),
-        })
-      } catch (logErr) {
+      void logToolExecution({
+        toolName,
+        repId: ctx.repId,
+        conversationId: ctx.conversationId,
+        success,
+        durationMs,
+        errorMessage,
+        argsHash: hashState(toolArgs),
+      }).catch((logErr) => {
         console.error('[thumper] tool_executions write failed', { toolName, logErr })
-      }
+      })
     }
   }
 

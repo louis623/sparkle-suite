@@ -5,11 +5,23 @@ import styles from './ChatHistory.module.css'
 
 const NEAR_BOTTOM_PX = 100
 
-export function ChatHistory({ children }: { children: ReactNode }) {
+export function ChatHistory({
+  children,
+  isStreaming,
+}: {
+  children: ReactNode
+  isStreaming: boolean
+}) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
   // Defaults to true so the very first render snaps to bottom.
   const stickToBottomRef = useRef(true)
+  // Mirror prop into a ref so the ResizeObserver callback always reads the
+  // current value (no stale closure).
+  const isStreamingRef = useRef(isStreaming)
+  useEffect(() => {
+    isStreamingRef.current = isStreaming
+  }, [isStreaming])
 
   useEffect(() => {
     const scroll = scrollRef.current
@@ -18,21 +30,15 @@ export function ChatHistory({ children }: { children: ReactNode }) {
 
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    // Hybrid scroll strategy. Smooth-scroll-on-every-token can't keep up with
-    // streaming (tokens arrive every ~50-100ms; smooth animations take ~300ms),
-    // so the viewport falls behind and the chat appears to "expand off-screen"
-    // until streaming finishes. Instead:
-    //   - Tight RO bursts (gap <= STREAMING_GAP_MS) → instant scroll. This is
-    //     active streaming; we need the viewport pinned to bottom every tick.
-    //   - Quiet-then-fire (gap > STREAMING_GAP_MS) → smooth scroll. This is a
-    //     discrete event: new user message, streaming complete repaint, etc.
-    // Seeded with `performance.now()` so the very first RO fire after mount
-    // (history populating into the DOM) is treated as a tight follow-up — no
-    // animated slide on initial load.
-    const STREAMING_GAP_MS = 200
-    const SMOOTH_GUARD_MS = 600
-    let lastFireTime = performance.now()
-    let smoothGuardTimer: ReturnType<typeof setTimeout> | null = null
+    // Hybrid scroll strategy, signal-driven:
+    //   - During active streaming (isStreamingRef.current === true): instant
+    //     scroll. Smooth animations queue up and fight rapidly arriving tokens,
+    //     producing the "viewport falls behind, then jumps" glitch.
+    //   - Discrete events (streaming completes, new conversation loaded):
+    //     smooth scroll. Single-fire repaints look intentional with smooth.
+    // The previous time-gap heuristic broke down when the model paused mid-
+    // stream (between steps, during a tool call): gaps stretched past the
+    // threshold, kicking off a smooth animation that fought the next token batch.
     let isAnimatingSmooth = false
 
     const updateStick = () => {
@@ -50,30 +56,20 @@ export function ChatHistory({ children }: { children: ReactNode }) {
     scroll.addEventListener('scroll', onScroll, { passive: true })
 
     const triggerScroll = () => {
-      const now = performance.now()
-      const gap = now - lastFireTime
-      lastFireTime = now
-
-      if (prefersReduced || gap <= STREAMING_GAP_MS) {
-        // Instant. Cancels any in-flight smooth animation by direct assignment;
-        // that's intentional — streaming just resumed, catch up immediately.
-        if (smoothGuardTimer !== null) {
-          clearTimeout(smoothGuardTimer)
-          smoothGuardTimer = null
-        }
+      if (prefersReduced || isStreamingRef.current) {
+        // Instant. Cancels any in-flight smooth animation by direct assignment.
         isAnimatingSmooth = false
         scroll.scrollTop = scroll.scrollHeight
         return
       }
-
       // Smooth — discrete transition.
       isAnimatingSmooth = true
       scroll.scrollTo({ top: scroll.scrollHeight, behavior: 'smooth' })
-      if (smoothGuardTimer !== null) clearTimeout(smoothGuardTimer)
-      smoothGuardTimer = setTimeout(() => {
-        smoothGuardTimer = null
+      // Browser smooth-scroll completes within ~600ms; clear the flag after a
+      // generous window so onScroll resumes updating stickiness.
+      window.setTimeout(() => {
         isAnimatingSmooth = false
-      }, SMOOTH_GUARD_MS)
+      }, 600)
     }
 
     const ro = new ResizeObserver(() => {
@@ -88,7 +84,6 @@ export function ChatHistory({ children }: { children: ReactNode }) {
     return () => {
       scroll.removeEventListener('scroll', onScroll)
       ro.disconnect()
-      if (smoothGuardTimer !== null) clearTimeout(smoothGuardTimer)
     }
   }, [])
 

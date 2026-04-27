@@ -1,0 +1,76 @@
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.glyphSlot {
+  width: 22px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 0 1 auto;
+  max-width: calc(100% - 30px);
+}
+
+.bubble {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px;
+  background: var(--thumper-surface-thumper-message);
+  border: 1px solid var(--thumper-border);
+  border-radius: 14px 14px 14px 4px;
+  font-family: 'Geist', system-ui, sans-serif;
+}
+
+.logo {
+  width: 56px;
+  height: 56px;
+  mix-blend-mode: multiply;
+  animation: nr-thinking-pulse 2s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--thumper-text-muted);
+  letter-spacing: 0.01em;
+}
+
+@keyframes nr-thinking-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 4px rgba(196, 160, 232, 0.35))
+      drop-shadow(0 0 8px rgba(255, 140, 90, 0));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 10px rgba(236, 90, 170, 0.55))
+      drop-shadow(0 0 18px rgba(255, 140, 90, 0.45));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo {
+    animation: nr-thinking-pulse-reduced 3s ease-in-out infinite;
+  }
+  @keyframes nr-thinking-pulse-reduced {
+    0%,
+    100% {
+      filter: drop-shadow(0 0 4px rgba(196, 160, 232, 0.25));
+    }
+    50% {
+      filter: drop-shadow(0 0 6px rgba(236, 90, 170, 0.35));
+    }
+  }
+}

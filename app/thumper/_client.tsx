@@ -18,6 +18,7 @@ import { ErrorBlock } from './components/ErrorBlock'
 import { HITLBlock } from './components/HITLBlock'
 import { InputRow, type InputAttachment } from './components/InputRow'
 import { StreamingBubble } from './components/StreamingBubble'
+import { ThinkingIndicator } from './components/ThinkingIndicator'
 import { ThumperColumn } from './components/ThumperColumn'
 import { ThumperGlyph } from './components/ThumperGlyph'
 import { ThumperMobileShell } from './components/ThumperMobileShell'
@@ -545,7 +546,7 @@ function ChatBody({
 
   return (
     <>
-      <ChatHistory>
+      <ChatHistory isStreaming={isStreaming}>
         {!hasMessages ? <EmptyGreeting /> : null}
         {messages.map((m, idx) => {
           const ts = readCreatedAt(m, optimisticCreated)
@@ -678,9 +679,43 @@ function AssistantMessage({
       }
     | undefined
 
+  // Tool-call in flight detection: a pulsing logo replaces the partial text +
+  // dots that otherwise sit there during the 2-4s tool execution window. Once
+  // the model resumes streaming text after the tool returns, we swap back to
+  // the normal StreamingBubble.
+  const inFlightTool = parts.some((p) => {
+    const pt = p as { type?: string; state?: string }
+    return (
+      typeof pt.type === 'string' &&
+      pt.type.startsWith('tool-') &&
+      (pt.state === 'input-streaming' || pt.state === 'input-available')
+    )
+  })
+  let lastToolIdx = -1
+  parts.forEach((p, i) => {
+    const pt = p as { type?: string }
+    if (typeof pt.type === 'string' && pt.type.startsWith('tool-')) {
+      lastToolIdx = i
+    }
+  })
+  let postToolText = false
+  if (lastToolIdx >= 0) {
+    for (let i = lastToolIdx + 1; i < parts.length; i++) {
+      const pt = parts[i] as { type?: string; text?: string }
+      if (pt.type === 'text' && pt.text && pt.text.length > 0) {
+        postToolText = true
+        break
+      }
+    }
+  }
+  const showThinking =
+    isStreamingTail && inFlightTool && !postToolText && !pendingApproval
+
   return (
     <>
-      {text ? (
+      {showThinking ? (
+        <ThinkingIndicator showGlyph={isFirstInRun} />
+      ) : text ? (
         isStreamingTail ? (
           <StreamingBubble text={text} showGlyph={isFirstInRun} timestamp={timestamp} />
         ) : (

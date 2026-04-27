@@ -109,13 +109,19 @@ export async function POST(request: Request) {
 
   // Ownership probe — admin client, NOT RLS-filtered. RLS would return null
   // for cross-tenant conversations and silently let cross-tenant injection
-  // through (red-team attack #7).
+  // through (red-team attack #7). Parallelized with the canonical-history load
+  // since neither depends on the other; saves ~one round-trip of pre-stream
+  // latency.
   let existingOwner: string | null = null
+  let existingHistory: Awaited<ReturnType<typeof loadCanonicalHistory>>
   try {
-    existingOwner = await probeConversationOwner(conversationId)
+    ;[existingOwner, existingHistory] = await Promise.all([
+      probeConversationOwner(conversationId),
+      loadCanonicalHistory(supabase, conversationId),
+    ])
   } catch (err) {
     await logIncident({
-      errorType: 'probe_owner_failed',
+      errorType: 'pre_stream_setup_failed',
       repId,
       conversationId,
       severity: 'error',
@@ -149,7 +155,6 @@ export async function POST(request: Request) {
   }
 
   // Idempotent persist of any new user-role messages from the client array.
-  const existingHistory = await loadCanonicalHistory(supabase, conversationId)
   const existingIds = new Set(existingHistory.map((m) => m.id))
   for (const m of messages) {
     if (m.role !== 'user') continue
