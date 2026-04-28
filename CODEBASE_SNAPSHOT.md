@@ -95,7 +95,8 @@ neon-rabbit-core/
 │   │       │   ├── with-telemetry.ts      ← inner wrapper — logs tool_executions row per call (success/failure/duration/argsHash); composition: INSIDE error handler
 │   │       │   └── with-error-handling.ts ← outer wrapper — Tier 1 RETRY (read-only only), Tier 2 EXPLAIN (ThumperToolError → friendly return), Tier 3 ESCALATE (incident + friendly return)
 │   │       ├── list-my-trade-board.ts     ← ToolDefinition (readOnly: true), translates TradeBoardError → ThumperToolError
-│   │       └── remove-listing.ts          ← ToolDefinition (readOnly: false, needsApproval: true), owns its own trade_action_audit write (audit failure isolated, never reverses success)
+│   │       ├── remove-listing.ts          ← ToolDefinition (readOnly: false, needsApproval: true), owns its own trade_action_audit write (audit failure isolated, never reverses success)
+│   │       └── add-listing.ts             ← Task 1.5B — ToolDefinition (readOnly: false), single + batch modes; obtains its own service-role admin client (createAdminClient) for addListing/addListingBatch/createDesign which require admin RLS; clickwrap is the rep's confirmation gate (not HITL); NEEDS_FULL_INFO recovery flow creates the design (createDesign) then lists it; NEEDS_COLLECTION returned as a hard limitation (no service patch path); writes trade_action_audit per add and per create_design; translates ServiceError → ThumperToolError for Tier 2 explain
 │   ├── stripe/
 │   │   ├── config.ts             ← Zod env validation, lazy-loaded
 │   │   ├── client.ts             ← Stripe instance (v22 dahlia API)
@@ -1071,3 +1072,38 @@ The "kitchen" — both Thumper (waiter 1) and the future dashboard (waiter 2) se
 - Throwaway `scripts/check-services-barrel.ts` (deleted post-run) — referenced every named export from `@/lib/services` and compiled clean. Confirms no missing/misnamed re-exports.
 - End-to-end live runtime verification (`npx tsx scripts/verify-trade-board.ts` against cloud Supabase, plus exercising the new functions through any tool that wires them up) — deferred to Task 1.5B+ which will land tool handlers that call into these new functions.
 
+---
+
+## Session 2026-04-28 — SS Phase 1 Task 1.5B (`add_listing` Thumper tool + system prompt update)
+
+**Goal:** Land the third Thumper tool — `add_listing` — wrapping `addListing` / `addListingBatch` from Task 1.5A, plus `createDesign` from `lib/services/jewelry-database.ts` for the unknown-piece recovery flow. Update the system prompt to reflect three tools and remove "you cannot add listings" language.
+
+**New file:**
+- `lib/thumper/tools/add-listing.ts` — exports `addListingTool: ToolDefinition` (`readOnly: false`, no `needsApproval` — clickwrap acceptance is the rep's confirmation gate, gathered conversationally rather than via the HITL approval dialog used for `remove_listing`).
+
+**Modified:**
+- `lib/thumper/tools/index.ts` — `addListingTool` added to `REGISTRY`.
+- `lib/thumper/system-prompt.ts` — full consistency sweep: "two tools" / "exactly two" / "cannot add" all replaced; new `add_listing` description bullet in tool inventory; new `add_listing` boundary bullet (clickwrap rule); voice example on line 39 swapped from a "can't add yet" decline to a successful-add example.
+
+**Service-role client decision:** `ctx.supabase` from the route is the SSR-authenticated client (RLS-enforced), but `addListing`, `addListingBatch`, and `createDesign` all REQUIRE admin permissions to UPDATE `jewelry_designs.times_listed` and INSERT into `jewelry_designs` / `collections`. The tool obtains its own `createAdminClient()` inside `execute` and passes it to every service call. `repId` stays closure-bound from the authenticated session — the model never supplies it, and the service functions validate `repId` themselves so the admin client cannot enable cross-rep writes.
+
+**Composite parameter schema:** Built from `AddListingInput` + `CreateDesignInput` + `mode` discriminator + batch `items` array. Field names verbatim from the service-layer types (`clickwrapAccepted`, `repNotes`, `tradePreferences`, `listingPhotoUrl`, `designName`, `piecePhotoUrl`, `material`, `mainStone`, `bpMsrp`, `collectionName`, `specialFeatures`, `lengthInfo`).
+
+**Recovery-flow gate:** `collectionName` is REQUIRED at the tool level whenever `designName` + `piecePhotoUrl` are present (i.e. the rep is retrying after `NEEDS_FULL_INFO`). `createDesign` accepts a null collection at the service layer, but `addListing` rejects any design without one — so creating a design without a collection would dead-end on the very next call. The tool throws `ThumperToolError({ code: 'NEEDS_COLLECTION_FOR_NEW_DESIGN' })` before any DB write happens, and the system-prompt copy reflects "three required fields — design name, photo, and collection name."
+
+**Error mapping:**
+- `NEEDS_FULL_INFO` → structured success-shaped return `{ needsAction: 'create_design', itemNumber, requiredFields: ['designName','piecePhotoUrl','collectionName'], optionalFields: [...], message }` so Thumper can drive the follow-up turn without throwing.
+- `NEEDS_COLLECTION` → structured limitation return `{ needsAction: 'cannot_complete', code: 'NEEDS_COLLECTION', itemNumber, message }`. Does NOT parse `designId` / `designName` out of `err.userMessage` — `ServiceError` only guarantees opaque strings, so promising structured fields from a string-parse would be brittle. The rep already supplied `itemNumber`, that's all we structurally promise back.
+- `DUPLICATE_LISTING` / `CLICKWRAP_REQUIRED` / `MISSING_ITEM_INPUT` / `UNAUTHORIZED` / `INVALID_INPUT` / any other `ServiceError` → translated to `ThumperToolError` for Tier 2 explain via `instanceof ServiceError`.
+- Non-`ServiceError` → propagates → Tier 3 escalate.
+
+**Audit writes:** `'add_listing'` for every successful add (single or per-row in batch) and `'create_design'` when a new design is created during the recovery path. Same fire-and-forget isolation as `remove-listing.ts` — audit failure never reverses the rep's view of success. Note: `writeTradeActionAudit` already swallows internally, so the outer `try/catch` and `logIncident('audit_write_failed')` are effectively unreachable today; we keep them for pattern consistency.
+
+**Files NOT touched (per task guardrails):** `lib/services/*` (used as-is), `app/api/thumper/route.ts`, `lib/thumper/tools/list-my-trade-board.ts`, `lib/thumper/tools/remove-listing.ts`, `lib/thumper/tools/wrappers/*`, `lib/thumper/auth.ts`, `lib/thumper/persistence.ts`, `lib/thumper/errors.ts`, all UI, all migrations.
+
+**Verification (2026-04-28):**
+- `npx tsc --noEmit` — clean across all touched files. Only pre-existing `tests/thumper/attack-5-poisoned-rep-notes.test.ts` errors remain (unrelated, accepted per CLAUDE.md).
+- `npm test` — 4/4 abort-modes pass. No regression on the existing tool wrapper / 3-tier path.
+- Registry shape — `REGISTRY.length` goes from 2 → 3; `buildAllTools(ctx)` returns `{ list_my_trade_board, remove_listing, add_listing }`; the `needsApproval`-survives-wrapping assertion at `lib/thumper/tools/index.ts:42-44` continues to pass (`add_listing` doesn't set `needsApproval`, so `built.needsApproval === undefined === outer.needsApproval`).
+- `grep -niE "two tools|exactly two|cannot add|adding listings is coming|two-tool|one of two" lib/thumper/system-prompt.ts` → 0 hits. `grep -nE "add_listing|three tools" lib/thumper/system-prompt.ts` → 6+ hits.
+- End-to-end conversational sanity (boot dev server, exercise single / NEEDS_FULL_INFO recovery / batch flows against cloud Supabase) — deferred to live verification before push, NOT a hard gate for this commit.
