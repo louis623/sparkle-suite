@@ -1,61 +1,64 @@
+// Trade Board service — stable facade for the existing 4 callers
+// (lib/thumper/tools/list-my-trade-board.ts, lib/thumper/tools/remove-listing.ts,
+// scripts/verify-trade-board.ts, scripts/red-team.ts). Public surface
+// (getMyBoard, removeListing, TradeBoardError, and the legacy types) is
+// preserved at this exact module path. New functions (addListing,
+// addListingBatch, updateListing) live alongside.
+//
+// Client requirements (caller passes the right SupabaseClient):
+//
+//   getMyBoard      — auth client. RLS scopes by rep_id.
+//   removeListing   — auth client. UPDATE on trade_listings is rep-scoped;
+//                     auto-cancel on trade_requests works because
+//                     supabase/migrations/020_thumper_conversations.sql added
+//                     the `requests_rep_update` policy specifically for this.
+//   addListing      — service client. Touches jewelry_designs.times_listed,
+//                     for which only the admin policy permits UPDATE. The
+//                     function explicitly validates `repId` so a misrouted
+//                     auth client can't enable cross-rep writes.
+//   addListingBatch — service client. Same reason as addListing.
+//   updateListing   — auth client. Rep-scoped UPDATE on trade_listings.
+
 import type { SupabaseClient } from '@supabase/supabase-js'
+import {
+  type ListingStatus,
+  type JewelryType,
+  type RemovalReason,
+  type TradeRequestStatus,
+  type TradeListingWithDesign,
+  type BoardResult,
+  type RemoveListingResult,
+  type GetMyBoardFilters,
+  type AddListingInput,
+  type AddListingResult,
+  type BatchListingItem,
+  type AddListingBatchInput,
+  type AddListingBatchResult,
+  type UpdateListingInput,
+  type UpdateListingResult,
+} from './types'
+import { TradeBoardError, errors } from './errors'
+import { resolveItemNumber } from './jewelry-database'
 
-export type ListingStatus = 'available' | 'pending_trade' | 'traded' | 'removed'
-export type JewelryType = 'RG' | 'NK' | 'ER' | 'ST' | 'BR'
-export type RemovalReason = 'sold' | 'keeping' | 'mistake' | 'other'
-export type TradeRequestStatus = 'pending' | 'approved' | 'denied' | 'cancelled'
-
-export interface TradeListingWithDesign {
-  id: string
-  rep_id: string
-  status: ListingStatus
-  rep_notes: string | null
-  trade_preferences: string | null
-  listing_photo_url: string | null
-  uses_canonical_photo: boolean
-  listed_at: string | null
-  removal_reason: RemovalReason | null
-  created_at: string
-  updated_at: string
-  design: {
-    id: string
-    item_number: string
-    design_name: string
-    material: string | null
-    main_stone: string | null
-    bp_msrp: number | null
-    canonical_photo_url: string | null
-    type_prefix: JewelryType
-    collection: { id: string; name: string } | null
-  }
-}
-
-export interface BoardResult {
-  listings: TradeListingWithDesign[]
-  summary: {
-    totalPieces: number
-    totalMsrp: number
-    typeBreakdown: Record<JewelryType, number>
-    pendingRequestCount: number
-  }
-}
-
-export interface RemoveListingResult {
-  listingId: string
-  designName: string
-  previousStatus: ListingStatus
-  cancelledRequestId?: string
-  cancelledRequestCustomerName?: string
-}
-
-export interface GetMyBoardFilters {
-  statusFilter?: ListingStatus
-  collectionFilter?: string
-  typeFilter?: JewelryType
-  sortBy?: 'created_at' | 'listed_at' | 'msrp' | 'design_name' | 'collection'
-  sortOrder?: 'asc' | 'desc'
-  limit?: number
-  offset?: number
+// Re-export for the existing 4 callers that import from
+// '@/lib/services/trade-board'. Do not remove these without updating callers.
+export { TradeBoardError } from './errors'
+export type {
+  ListingStatus,
+  JewelryType,
+  RemovalReason,
+  TradeRequestStatus,
+  TradeListingWithDesign,
+  BoardResult,
+  RemoveListingResult,
+  GetMyBoardFilters,
+  AddListingInput,
+  AddListingResult,
+  BatchListingItem,
+  AddListingBatchInput,
+  AddListingBatchResult,
+  UpdateListingInput,
+  UpdateListingResult,
 }
 
 const DESIGN_SELECT =
@@ -126,6 +129,11 @@ export async function getMyBoard(
     typeBreakdown[l.design.type_prefix] = (typeBreakdown[l.design.type_prefix] ?? 0) + 1
   }
 
+  // TODO(SS-spec-alignment): SS Service Spec wants this count across ALL of
+  // the rep's listings, but current shipped behavior counts across the
+  // collection-filtered set. Preserved here for Task 1.5A; reconcile in the
+  // task that wires the dashboard view (likely by adding a separate
+  // pendingRequestCountTotal field).
   const listingIds = filteredByCollection.map((l) => l.id)
   let pendingRequestCount = 0
   if (listingIds.length > 0) {
@@ -140,13 +148,6 @@ export async function getMyBoard(
   return {
     listings: filteredByCollection,
     summary: { totalPieces, totalMsrp, typeBreakdown, pendingRequestCount },
-  }
-}
-
-export class TradeBoardError extends Error {
-  constructor(public code: 'LISTING_NOT_FOUND' | 'UNAUTHORIZED' | 'INVALID_INPUT', message: string) {
-    super(message)
-    this.name = 'TradeBoardError'
   }
 }
 
@@ -170,6 +171,11 @@ export async function removeListing(
     if (!designRow) {
       throw new TradeBoardError('LISTING_NOT_FOUND', `No design for item ${input.itemNumber}`)
     }
+    // COMPAT: when a rep has multiple non-removed listings for the same design,
+    // we deliberately pick the most-recent one by created_at DESC limit 1.
+    // This is "ambiguous, pick one" rather than a defined product rule —
+    // scripts/verify-trade-board.ts intentionally does not assert which row
+    // gets hit. Don't refactor this into something cleaner without product input.
     const { data: listingRows, error: listingErr } = await supabase
       .from('trade_listings')
       .select('id, created_at')
@@ -240,4 +246,239 @@ export async function removeListing(
     cancelledRequestId,
     cancelledRequestCustomerName,
   }
+}
+
+// ============================================================================
+// New functions — service client required (validates repId in body).
+// ============================================================================
+
+export async function addListing(
+  supabase: SupabaseClient,
+  repId: string,
+  input: AddListingInput
+): Promise<AddListingResult> {
+  if (!repId) throw errors.UNAUTHORIZED('repId required')
+  if (!input.clickwrapAccepted) throw errors.CLICKWRAP_REQUIRED()
+  if (!input.itemNumber) throw errors.MISSING_ITEM_INPUT()
+
+  const resolved = await resolveItemNumber(supabase, input.itemNumber)
+  if (!resolved.found) throw errors.NEEDS_FULL_INFO(input.itemNumber)
+  if (!resolved.hasCollection) {
+    throw errors.NEEDS_COLLECTION(resolved.design.id, resolved.design.designName)
+  }
+
+  // Duplicate check: rep already has an available listing for this design.
+  const { data: existing, error: dupErr } = await supabase
+    .from('trade_listings')
+    .select('id')
+    .eq('rep_id', repId)
+    .eq('design_id', resolved.design.id)
+    .eq('status', 'available')
+    .limit(1)
+    .maybeSingle()
+  if (dupErr) throw dupErr
+  if (existing) throw errors.DUPLICATE_LISTING(input.itemNumber)
+
+  const usesCanonicalPhoto = !input.listingPhotoUrl
+  const { data: inserted, error: insErr } = await supabase
+    .from('trade_listings')
+    .insert({
+      rep_id: repId,
+      design_id: resolved.design.id,
+      status: 'available',
+      rep_notes: input.repNotes ?? null,
+      trade_preferences: input.tradePreferences ?? null,
+      listing_photo_url: input.listingPhotoUrl ?? null,
+      uses_canonical_photo: usesCanonicalPhoto,
+      listed_at: new Date().toISOString(),
+    })
+    .select('id, status')
+    .single()
+  if (insErr) throw insErr
+
+  // Increment times_listed via fetch-then-update (counter, not load-bearing).
+  const { data: designRow } = await supabase
+    .from('jewelry_designs')
+    .select('times_listed')
+    .eq('id', resolved.design.id)
+    .maybeSingle()
+  if (designRow) {
+    await supabase
+      .from('jewelry_designs')
+      .update({
+        times_listed: ((designRow.times_listed as number | null) ?? 0) + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', resolved.design.id)
+  }
+
+  return {
+    listingId: inserted.id as string,
+    designId: resolved.design.id,
+    itemNumber: resolved.design.itemNumber,
+    designName: resolved.design.designName,
+    status: inserted.status as ListingStatus,
+    usesCanonicalPhoto,
+  }
+}
+
+export async function addListingBatch(
+  supabase: SupabaseClient,
+  repId: string,
+  input: AddListingBatchInput
+): Promise<AddListingBatchResult> {
+  if (!repId) throw errors.UNAUTHORIZED('repId required')
+  if (!input.clickwrapAccepted) throw errors.CLICKWRAP_REQUIRED()
+  if (!input.items || input.items.length === 0) {
+    return { added: [], pending: { needCollection: [], needFullInfo: [] } }
+  }
+
+  const itemNumbers = input.items.map((i) => i.itemNumber)
+  const { data: designs, error: designErr } = await supabase
+    .from('jewelry_designs')
+    .select('id, item_number, design_name, collection_id')
+    .in('item_number', itemNumbers)
+  if (designErr) throw designErr
+
+  const designByItem = new Map<string, { id: string; design_name: string; collection_id: string | null }>()
+  for (const d of designs ?? []) {
+    designByItem.set(d.item_number as string, {
+      id: d.id as string,
+      design_name: d.design_name as string,
+      collection_id: (d.collection_id as string | null) ?? null,
+    })
+  }
+
+  const ready: Array<{ item: BatchListingItem; designId: string; designName: string }> = []
+  const needCollection: Array<{ itemNumber: string; designId: string; designName: string }> = []
+  const needFullInfo: Array<{ itemNumber: string }> = []
+
+  for (const item of input.items) {
+    const d = designByItem.get(item.itemNumber)
+    if (!d) {
+      needFullInfo.push({ itemNumber: item.itemNumber })
+      continue
+    }
+    if (!d.collection_id) {
+      needCollection.push({
+        itemNumber: item.itemNumber,
+        designId: d.id,
+        designName: d.design_name,
+      })
+      continue
+    }
+    ready.push({ item, designId: d.id, designName: d.design_name })
+  }
+
+  if (ready.length === 0) {
+    return { added: [], pending: { needCollection, needFullInfo } }
+  }
+
+  // Skip duplicates within the rep's existing available listings.
+  const designIds = ready.map((r) => r.designId)
+  const { data: existing } = await supabase
+    .from('trade_listings')
+    .select('design_id')
+    .eq('rep_id', repId)
+    .eq('status', 'available')
+    .in('design_id', designIds)
+  const dupSet = new Set<string>(((existing ?? []) as Array<{ design_id: string }>).map((e) => e.design_id))
+
+  const toInsert = ready.filter((r) => !dupSet.has(r.designId))
+  if (toInsert.length === 0) {
+    return { added: [], pending: { needCollection, needFullInfo } }
+  }
+
+  const nowIso = new Date().toISOString()
+  const insertRows = toInsert.map((r) => ({
+    rep_id: repId,
+    design_id: r.designId,
+    status: 'available' as const,
+    rep_notes: r.item.repNotes ?? null,
+    trade_preferences: r.item.tradePreferences ?? null,
+    listing_photo_url: r.item.listingPhotoUrl ?? null,
+    uses_canonical_photo: !r.item.listingPhotoUrl,
+    listed_at: nowIso,
+  }))
+
+  const { data: inserted, error: insErr } = await supabase
+    .from('trade_listings')
+    .insert(insertRows)
+    .select('id, design_id, status')
+  if (insErr) throw insErr
+
+  // Bump times_listed per design (one update per design).
+  for (const r of toInsert) {
+    const { data: designRow } = await supabase
+      .from('jewelry_designs')
+      .select('times_listed')
+      .eq('id', r.designId)
+      .maybeSingle()
+    if (designRow) {
+      await supabase
+        .from('jewelry_designs')
+        .update({
+          times_listed: ((designRow.times_listed as number | null) ?? 0) + 1,
+          updated_at: nowIso,
+        })
+        .eq('id', r.designId)
+    }
+  }
+
+  const added: AddListingResult[] = (inserted ?? []).map((row) => {
+    const r = toInsert.find((x) => x.designId === row.design_id)!
+    return {
+      listingId: row.id as string,
+      designId: r.designId,
+      itemNumber: r.item.itemNumber,
+      designName: r.designName,
+      status: row.status as ListingStatus,
+      usesCanonicalPhoto: !r.item.listingPhotoUrl,
+    }
+  })
+
+  return { added, pending: { needCollection, needFullInfo } }
+}
+
+export async function updateListing(
+  supabase: SupabaseClient,
+  repId: string,
+  listingId: string,
+  patch: UpdateListingInput
+): Promise<UpdateListingResult> {
+  if (!repId) throw errors.UNAUTHORIZED('repId required')
+  if (!listingId) throw errors.MISSING_ITEM_INPUT()
+
+  const { data: current, error: fetchErr } = await supabase
+    .from('trade_listings')
+    .select('id, rep_id, status')
+    .eq('id', listingId)
+    .maybeSingle()
+  if (fetchErr) throw fetchErr
+  if (!current) throw errors.LISTING_NOT_FOUND(listingId)
+  if (current.rep_id !== repId) throw errors.UNAUTHORIZED('listing belongs to another rep')
+  const status = current.status as ListingStatus
+  if (status !== 'available' && status !== 'pending_trade') {
+    throw errors.INVALID_STATUS_TRANSITION(status, 'edit')
+  }
+
+  const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  if (patch.repNotes !== undefined) update.rep_notes = patch.repNotes
+  if (patch.tradePreferences !== undefined) update.trade_preferences = patch.tradePreferences
+  if (patch.useCanonicalPhoto === true) {
+    update.listing_photo_url = null
+    update.uses_canonical_photo = true
+  } else if (patch.listingPhotoUrl !== undefined) {
+    update.listing_photo_url = patch.listingPhotoUrl
+    update.uses_canonical_photo = patch.listingPhotoUrl === null
+  }
+
+  const { error: updErr } = await supabase
+    .from('trade_listings')
+    .update(update)
+    .eq('id', listingId)
+    .eq('rep_id', repId)
+  if (updErr) throw updErr
+
+  return { listingId, status }
 }

@@ -1,5 +1,5 @@
 # Codebase Snapshot — Neon Rabbit Core
-_Generated: 2026-04-27 (HEAD: feat(thumper): Task 1.4 — tool registry + 3-tier error handling + telemetry wrapper)_
+_Generated: 2026-04-27 (HEAD: feat(ss): shared service layer foundation [Task 1.5A])_
 
 > **Pricing — monthly-only forever (April 19, 2026 decision).** `ss_quarterly_test` (price_1TNcicHRBK3pZpO2Map0zvq0, $129/3mo) and `ss_annual_test` (price_1TNcjcHRBK3pZpO2817mT1CP, $468/yr) are archived on Stripe (active=false, history preserved). Only active price on product `prod_UMLNC0ybgRkVKX` is `ss_monthly_test` (price_1TNciVHRBK3pZpO2Vsz9xfSH, $49/mo).
 
@@ -70,9 +70,15 @@ neon-rabbit-core/
 │   ├── popup.js
 │   └── icons/
 ├── lib/
-│   ├── services/
+│   ├── services/                 ← Task 1.5A — shared service layer (Thumper + future dashboard call into here)
+│   │   ├── index.ts              ← barrel; re-exports all services + types + ServiceError + errors factory
+│   │   ├── types.ts              ← source of truth for shared types (enums + I/O DTOs); trade-board.ts re-exports legacy names
+│   │   ├── errors.ts             ← ServiceError base + TradeBoardError compat subclass + predefined errors map (LISTING_NOT_FOUND, DUPLICATE_LISTING, …)
 │   │   ├── wallet.ts             ← ensureWallet, deductSmsCharge, auto-recharge trigger
-│   │   └── trade-board.ts        ← getMyBoard + removeListing (used by Thumper tools)
+│   │   ├── trade-board.ts        ← FACADE — getMyBoard + removeListing (auth client) + addListing/addListingBatch/updateListing
+│   │   ├── trade-requests.ts     ← submitTradeRequest (svc, RPC), getTradeRequests (auth), approveTrade/rejectTrade (svc, RPC), getTradeHistory (auth)
+│   │   ├── trade-fulfillment.ts  ← updateFulfillmentStatus (auth, forward-only approved→shipped→completed), getFulfillmentQueue (auth)
+│   │   └── jewelry-database.ts   ← searchJewelryDatabase (svc, GIN→ILIKE fallback), resolveItemNumber (auth/svc), createDesign (svc), updateCanonicalPhoto (svc)
 │   ├── thumper/                  ← Phase 1 Task 1.1 Thumper assistant (production)
 │   │   ├── auth.ts               ← getAuthenticatedThumperContext()
 │   │   ├── persistence.ts        ← thumper_conversations + approval_events I/O (incl. getLatestConversationId for cross-device sync)
@@ -1018,4 +1024,50 @@ Infrastructure refactor — no new tools, no behavior changes for tools that ran
 - `grep -nE "makeListMyTradeBoardTool|makeRemoveListingTool|withTelemetry" app/api/thumper/route.ts` → no matches (route is registry-only).
 - Dev server boots clean (`Ready in 1175ms`); `POST /api/thumper` (unauthenticated) returns `401 {"error":"unauthenticated"}` — proves the registry compiles and the route loads.
 - Authenticated runtime verification (UI-driven HITL approval card, real `tool_executions` / `trade_action_audit` / `thumper_incidents` rows, end-to-end Tier 2 conversational explain, end-to-end Tier 3 incident escalation + assistant-message-completes) — Louis to run the live steps (plan verification items 3-6, 8) before push approval. Failure-injection items (9-12) are documented and would each require a temporary code change + revert; recommend covering by routine review rather than one-shot synthetic injection.
+
+---
+
+## Session 2026-04-27 — SS Phase 1 Task 1.5A (Shared Service Layer Foundation)
+
+The "kitchen" — both Thumper (waiter 1) and the future dashboard (waiter 2) send orders here. Neither interface owns business logic; all rules live in `lib/services/`. This task **extended** the existing `lib/services/trade-board.ts` (which had `getMyBoard` + `removeListing` + `TradeBoardError`) into a complete service layer covering trade board, trade requests, fulfillment, and the shared jewelry database — without changing any of the existing 4 callers (`lib/thumper/tools/list-my-trade-board.ts:9`, `lib/thumper/tools/remove-listing.ts:9`, `scripts/verify-trade-board.ts:65`, `scripts/red-team.ts:14`).
+
+**Files added (5):**
+- [lib/services/types.ts](lib/services/types.ts) — single source of truth for shared types: 6 Postgres-mirrored enum unions (ListingStatus, TradeRequestStatus, FulfillmentStatus, JewelryType, RemovalReason, RejectionReason) + every public function's I/O interface. `trade-board.ts` imports its legacy types (`GetMyBoardFilters`, `BoardResult`, `RemoveListingResult`, `TradeListingWithDesign`) from here and re-exports them so the existing module path is unchanged. No imports flow back into types.ts (no circular).
+- [lib/services/errors.ts](lib/services/errors.ts) — `ServiceError` (canonical, `code` + `message` + `userMessage` + `statusCode`) and `TradeBoardError` as an empty subclass for backward compat (existing tool handlers' `instanceof TradeBoardError` checks still work). `errors` factory exposes 14 stable codes: MISSING_ITEM_INPUT, MISSING_PIECE_PHOTO, CLICKWRAP_REQUIRED, LISTING_NOT_FOUND, DUPLICATE_LISTING, REQUEST_NOT_PENDING, REQUEST_ALREADY_EXISTS (statusCode 409), INVALID_STATUS_TRANSITION, AMBIGUOUS_CUSTOMER, FULFILLMENT_NOT_FOUND, UNAUTHORIZED (403), INVALID_INPUT, NEEDS_COLLECTION, NEEDS_FULL_INFO. **No `LISTING_NOT_AVAILABLE`** — that case folds into `LISTING_NOT_FOUND` to keep the catalog consistent.
+- [lib/services/trade-requests.ts](lib/services/trade-requests.ts) — `submitTradeRequest` (svc client, calls `rpc_submit_trade_request`), `getTradeRequests` (auth, default `statusFilter='pending'`), `approveTrade` (svc, validates request ownership via repId before RPC, calls `rpc_approve_trade`), `rejectTrade` (svc, same shape), `getTradeHistory` (**auth client** — pure rep-scoped read; cross-rep aggregation is explicitly NOT done here). RPC error mapping helper `rpcError()` translates `LISTING_NOT_FOUND`/`REQUEST_ALREADY_EXISTS`/`REQUEST_NOT_FOUND`/`REQUEST_NOT_PENDING` raises plus Postgres `23505` (partial-unique-index collision) into ServiceError instances.
+- [lib/services/trade-fulfillment.ts](lib/services/trade-fulfillment.ts) — `updateFulfillmentStatus` (auth) accepts `{ requestId | customerName, nextStatus, shippingNotes?, addToBoard? }`. Status progression is **forward-only**: approved→shipped→completed (any other transition throws `INVALID_STATUS_TRANSITION`). Same-status is a no-op accepted. Customer-name lookup multi-match throws `AMBIGUOUS_CUSTOMER`. On `completed` with `addToBoard=true`, returns `shouldPromptAddToBoard: true` — no automatic re-listing in this layer. `getFulfillmentQueue` returns non-completed fulfillments ordered by `status_updated_at ASC` with derived `daysSinceLastUpdate`.
+- [lib/services/jewelry-database.ts](lib/services/jewelry-database.ts) — `resolveItemNumber` (accepts either client) returns `{ found: false } | { found: true, design, hasCollection }`. `searchJewelryDatabase` (svc, attempts `.textSearch` first then ILIKE fallback against `design_name|material|main_stone|item_number`; ILIKE pattern escapes `%`/`_`) attaches `isOnMyBoard` (rep-scoped) and `activeListingsCount` (cross-rep aggregate — the reason for the service client). `createDesign` (svc) — collection lookup is **by `name` only** (the `collections` schema has no `type_prefix` column); auto-creates the collection if not found. Type prefix derived from `itemNumber.slice(0,2)` and validated against the `JewelryType` set. `updateCanonicalPhoto` (svc) — admin-only UPDATE on `jewelry_designs`.
+- [lib/services/index.ts](lib/services/index.ts) — public barrel. Both Thumper tools and dashboard routes can `import { ... } from '@/lib/services'`.
+
+**Files modified (1):**
+- [lib/services/trade-board.ts](lib/services/trade-board.ts) — facade. Imports types from `./types` and `TradeBoardError` from `./errors`; re-exports them under the same names for the existing 4 callers. Adds `addListing` (svc, validates clickwrap + duplicate, increments `jewelry_designs.times_listed` via fetch-then-update, throws `NEEDS_FULL_INFO`/`NEEDS_COLLECTION` for the 2 fallback cases), `addListingBatch` (svc, single `IN(item_numbers)` query, sorts into ready/needCollection/needFullInfo buckets, batched INSERT for ready items, skips intra-rep duplicates), `updateListing` (auth, partial update; rejects edits when status not in `available|pending_trade`; `useCanonicalPhoto=true` clears `listing_photo_url` and sets `uses_canonical_photo=true`).
+
+**Compatibility decisions documented in code:**
+1. `getMyBoard.summary.pendingRequestCount` preserves current shipped behavior (counts only the collection-filtered listing set, not the rep's whole board) — divergence-from-spec accepted for Task 1.5A. Marked `// TODO(SS-spec-alignment)` in [lib/services/trade-board.ts](lib/services/trade-board.ts).
+2. `removeListing(itemNumber)` selection logic (most-recent non-removed by `created_at DESC limit 1`) is intentionally ambiguous when a rep has multiple active listings for the same design — `scripts/verify-trade-board.ts:125` explicitly avoids asserting which row gets hit. Marked `// COMPAT:` in the function body so future readers don't refactor it into a "clean rule."
+3. `removeListing`'s auto-cancel of the pending `trade_request` runs on the auth client because [supabase/migrations/020_thumper_conversations.sql:84](supabase/migrations/020_thumper_conversations.sql#L84) added the `requests_rep_update` policy specifically for this — named in the file-header comment so future maintainers don't generalize from older schema and unnecessarily move request writes to the service client.
+
+**Client choice per function** (REQUIRED = current RLS or auth status forces; CHOSEN = simplicity/consistency call):
+| Function | Client | Why |
+|---|---|---|
+| `getMyBoard`, `removeListing`, `updateListing` | auth | REQUIRED — rep-scoped RLS |
+| `addListing`, `addListingBatch` | svc | REQUIRED — `jewelry_designs.times_listed` UPDATE is admin-only; both validate `repId` in body |
+| `submitTradeRequest` | svc | REQUIRED — customer unauthenticated |
+| `approveTrade`, `rejectTrade` | svc | CHOSEN — RPCs are SECURITY DEFINER so auth would also work; svc kept for uniform error mapping |
+| `getTradeRequests`, `getFulfillmentQueue`, `updateFulfillmentStatus` | auth | REQUIRED — rep RLS via `requests_rep_read` / `fulfillment_own_data` |
+| `getTradeHistory` | auth | REQUIRED, **explicitly not service** — pure rep-scoped read |
+| `searchJewelryDatabase` | svc | REQUIRED for cross-rep `activeListingsCount` aggregate; validates `repId` for `isOnMyBoard` |
+| `resolveItemNumber` | auth (or svc) | `designs_read_all` covers auth; svc accepted for callers that already hold one |
+| `createDesign`, `updateCanonicalPhoto` | svc | REQUIRED — admin-only INSERT/UPDATE on `jewelry_designs` |
+
+**No new migrations** — `rpc_submit_trade_request`, `rpc_approve_trade`, `rpc_reject_trade`, `idx_one_pending_request_per_listing`, and `idx_designs_fulltext` (GIN over `coalesce(design_name,'')||' '||coalesce(material,'')||' '||coalesce(main_stone,'')`) all pre-exist in migration 006.
+
+**Files NOT touched (per task guardrails):** `app/api/thumper/route.ts`, `lib/thumper/tools/index.ts` (registry/buildAllTools), `lib/thumper/tools/wrappers/*`, `lib/thumper/auth.ts`, `lib/thumper/persistence.ts`, the system prompt, all UI, the 4 existing callers of `@/lib/services/trade-board`, all migrations.
+
+**Verification (2026-04-27):**
+- `npx tsc --noEmit` — clean across `lib/services/**`, `lib/thumper/tools/**`, `scripts/verify-trade-board.ts`. Only pre-existing `tests/thumper/attack-5-poisoned-rep-notes.test.ts` errors remain (unrelated, accepted per plan).
+- `git diff --stat lib/thumper/tools/list-my-trade-board.ts lib/thumper/tools/remove-listing.ts scripts/verify-trade-board.ts scripts/red-team.ts` → empty. Existing callers unchanged.
+- `npm test` — 4/4 abort-modes pass. Confirms no regression on the existing `instanceof TradeBoardError` path.
+- Throwaway `scripts/check-services-barrel.ts` (deleted post-run) — referenced every named export from `@/lib/services` and compiled clean. Confirms no missing/misnamed re-exports.
+- End-to-end live runtime verification (`npx tsx scripts/verify-trade-board.ts` against cloud Supabase, plus exercising the new functions through any tool that wires them up) — deferred to Task 1.5B+ which will land tool handlers that call into these new functions.
 
