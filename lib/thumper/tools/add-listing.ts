@@ -16,6 +16,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { addListing, addListingBatch } from '@/lib/services/trade-board'
 import { createDesign } from '@/lib/services/jewelry-database'
 import { ServiceError } from '@/lib/services/errors'
+import { uploadJewelryPhoto } from '@/lib/services/storage'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { writeTradeActionAudit } from '@/lib/thumper/audit'
 import { logIncident } from '@/lib/thumper/guardian-telemetry'
@@ -119,9 +120,55 @@ async function writeAuditIsolated(args: {
   }
 }
 
+// Look up the most recent user-uploaded image part in this conversation and
+// upload it to Supabase Storage, returning the resulting public URL. Returns
+// null if no image part is found in any complete user message — caller is
+// responsible for surfacing MISSING_PIECE_PHOTO. Mirrors the persistence.ts
+// pattern of ordering by created_at DESC with id as the deterministic
+// tiebreaker so timestamp collisions don't pick the wrong message.
+async function resolvePhotoFromConversation(ctx: {
+  supabase: SupabaseClient
+  conversationId: string
+  repId: string
+}): Promise<string | null> {
+  const { data, error } = await ctx.supabase
+    .from('thumper_conversations')
+    .select('parts')
+    .eq('conversation_id', ctx.conversationId)
+    .eq('role', 'user')
+    .eq('status', 'complete')
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+  if (error) throw error
+  for (const row of data ?? []) {
+    const parts = row.parts as Array<{
+      type?: string
+      mediaType?: string
+      url?: string
+    }> | null
+    if (!parts) continue
+    const imagePart = parts.find(
+      (p) =>
+        p?.type === 'file' &&
+        typeof p.mediaType === 'string' &&
+        p.mediaType.startsWith('image/') &&
+        typeof p.url === 'string',
+    )
+    if (imagePart?.url) {
+      return await uploadJewelryPhoto(ctx.repId, imagePart.url)
+    }
+  }
+  return null
+}
+
 async function runSingle(
   input: ToolInput,
-  ctx: { repId: string; conversationId: string; runId: string },
+  ctx: {
+    repId: string
+    conversationId: string
+    runId: string
+    supabase: SupabaseClient
+  },
   admin: SupabaseClient,
 ) {
   const { itemNumber, designName, piecePhotoUrl, collectionName } = input
@@ -139,7 +186,9 @@ async function runSingle(
   // Require collectionName here even though the service layer accepts a
   // null collection — addListing rejects any design without a collection,
   // so creating one without it would dead-end on the very next call.
-  if (designName && piecePhotoUrl) {
+  // The photo URL is resolved server-side: prefer the manual fallback if the
+  // model passed one, otherwise upload the most recent chat image.
+  if (designName) {
     if (!collectionName) {
       throw new ThumperToolError({
         code: 'NEEDS_COLLECTION_FOR_NEW_DESIGN',
@@ -148,12 +197,28 @@ async function runSingle(
       })
     }
 
+    let resolvedPhotoUrl: string | null = piecePhotoUrl?.trim() || null
+    if (!resolvedPhotoUrl) {
+      resolvedPhotoUrl = await resolvePhotoFromConversation({
+        supabase: ctx.supabase,
+        conversationId: ctx.conversationId,
+        repId: ctx.repId,
+      })
+      if (!resolvedPhotoUrl) {
+        throw new ThumperToolError({
+          code: 'MISSING_PIECE_PHOTO',
+          userMessage:
+            "I don't see a photo of this piece in our conversation. Send me a photo and I'll add it.",
+        })
+      }
+    }
+
     let createResult: Awaited<ReturnType<typeof createDesign>>
     try {
       createResult = await createDesign(admin, {
         itemNumber,
         designName,
-        piecePhotoUrl,
+        piecePhotoUrl: resolvedPhotoUrl,
         collectionName,
         material: input.material,
         mainStone: input.mainStone,
@@ -197,15 +262,16 @@ async function runSingle(
         return {
           needsAction: 'create_design' as const,
           itemNumber,
-          requiredFields: ['designName', 'piecePhotoUrl', 'collectionName'],
+          requiredFields: ['designName', 'collectionName'],
           optionalFields: [
+            'piecePhotoUrl',
             'material',
             'mainStone',
             'bpMsrp',
             'specialFeatures',
             'lengthInfo',
           ],
-          message: `I don't have ${itemNumber} on file yet. To add it I'll need three things: a design name, a photo, and a collection name. Optional: material, main stone, MSRP, special features, length.`,
+          message: `${itemNumber} isn't in our database yet. Use vision on the rep's photos to extract designName and any optional metadata you can read. Then ask the rep to confirm or provide collectionName before retrying — never extract or autofill the collection from vision alone (collections match by exact-string and a vision guess creates a junk row). The handler uploads the photo from chat automatically — do NOT ask the rep for a URL or include piecePhotoUrl unless they explicitly volunteered a real one.`,
         }
       }
       if (err.code === 'NEEDS_COLLECTION') {
@@ -336,12 +402,13 @@ export function makeAddListingTool(ctx: {
 }) {
   return tool({
     description:
-      "Adds one or more pieces to the authenticated rep's trade board. " +
-      'Two modes: single (one item number) or batch (an array of items). ' +
+      "Adds a piece to the authenticated rep's trade board. Single add (one item number per call). " +
       "Requires clickwrap acceptance — the rep must confirm in conversation that they own the piece and the MSRP is accurate before this is set true. " +
-      "If a piece isn't in the jewelry database, the tool returns NEEDS_FULL_INFO requiring designName, piecePhotoUrl, and collectionName from the rep on the next call (collection name is mandatory — without it the listing fails). " +
-      "If a piece exists in the database but has no collection assigned, the tool returns NEEDS_COLLECTION as a hard limitation (no service path to patch the collection from this tool). " +
-      'In batch mode, items already on the board are silently skipped — never invent a dedup list.',
+      "When photos are attached to the conversation, extract the item number and supporting fields from the reveal box via vision before calling — don't ask the rep to type fields you can read off the photo. " +
+      "If the resolved item exists in the jewelry database, just pass mode:'single', itemNumber, clickwrapAccepted. " +
+      "If the item isn't in the database, the tool returns needsAction:'create_design'. Use vision to extract designName, then confirm collectionName with the rep before retrying — never autofill the collection from vision alone. The handler uploads the photo from chat automatically; only include piecePhotoUrl if the rep volunteered a real URL. " +
+      "If the item exists but has no collection assigned, the tool returns needsAction:'cannot_complete' (NEEDS_COLLECTION) — same flag-to-Louis pattern. " +
+      'Batch mode exists in the schema but is not currently exercised.',
     inputSchema,
     execute: async (input) => {
       const admin = createAdminClient()

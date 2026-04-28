@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run tests/thumper/abort-modes.test.ts",
+    "test": "vitest run tests/thumper/abort-modes.test.ts tests/thumper/add-listing-recovery.test.ts",
     "test:attack5": "vitest run tests/thumper/attack-5-poisoned-rep-notes.test.ts"
   },
   "dependencies": {
