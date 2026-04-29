@@ -279,19 +279,62 @@ async function main() {
     }
   }
 
-  // 11. trade_listings (3 of 5 designs)
+  // 11. trade_listings (3 of 5 designs). We need the inserted listing ids
+  // back so the trade_requests step below can target them by item_number.
   console.log('Inserting trade listings...')
   const listingItems = ['RG31452', 'NK66139', 'ER84972']
+  const listingIdByItem: Record<string, string> = {}
   for (const itemNum of listingItems) {
-    const { error: tlErr } = await admin.from('trade_listings').insert({
-      rep_id: repId,
-      design_id: designMap[itemNum],
-      uses_canonical_photo: true,
-      status: 'available',
-      listed_at: now,
-    })
+    const { data: tl, error: tlErr } = await admin
+      .from('trade_listings')
+      .insert({
+        rep_id: repId,
+        design_id: designMap[itemNum],
+        uses_canonical_photo: true,
+        status: 'available',
+        listed_at: now,
+      })
+      .select('id')
+      .single()
     if (tlErr) throw new Error(`trade_listings (${itemNum}): ${tlErr.message}`)
-    console.log(`  Listed ${itemNum}`)
+    listingIdByItem[itemNum] = tl.id
+    console.log(`  Listed ${itemNum} (${tl.id})`)
+  }
+
+  // 11b. trade_requests — submit two pending requests via rpc_submit_trade_request.
+  // The RPC flips the targeted listing's status to pending_trade automatically,
+  // which gives Thumper a real two-request inbox for testing approve + reject
+  // flows independently. The third listing (ER84972) intentionally stays
+  // available so other tests (e.g. remove_listing) have an untouched target.
+  console.log('Submitting trade requests...')
+  const tradeRequestSeed = [
+    {
+      itemNumber: 'RG31452',
+      customerName: 'Test Customer Alice',
+      customerDescription:
+        'I have a Galaxy ring to trade — NK55201, rose gold with lab citrine. Similar MSRP.',
+    },
+    {
+      itemNumber: 'NK66139',
+      customerName: 'Test Customer Bob',
+      customerDescription:
+        'Trading my Celestial earrings — ER44821, rhodium with CZ. Close MSRP match.',
+    },
+  ]
+  for (const req of tradeRequestSeed) {
+    const listingId = listingIdByItem[req.itemNumber]
+    if (!listingId) {
+      throw new Error(`trade_requests: no listing id for ${req.itemNumber}`)
+    }
+    const { error: trErr } = await admin.rpc('rpc_submit_trade_request', {
+      p_listing_id: listingId,
+      p_customer_name: req.customerName,
+      p_customer_description: req.customerDescription,
+    })
+    if (trErr) {
+      throw new Error(`trade_requests (${req.itemNumber}): ${trErr.message}`)
+    }
+    console.log(`  Submitted request from ${req.customerName} for ${req.itemNumber}`)
   }
 
   // 12. calendar_events

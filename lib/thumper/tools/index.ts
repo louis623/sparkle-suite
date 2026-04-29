@@ -12,6 +12,9 @@ import type { Tool, ToolSet } from 'ai'
 import { listMyTradeBoardTool } from './list-my-trade-board'
 import { removeListingTool } from './remove-listing'
 import { addListingTool } from './add-listing'
+import { getTradeRequestsTool } from './get-trade-requests'
+import { approveTradeTool } from './approve-trade'
+import { rejectTradeTool } from './reject-trade'
 import { withTelemetry } from './wrappers/with-telemetry'
 import { withErrorHandling } from './wrappers/with-error-handling'
 import type { ToolContext, ToolDefinition } from './types'
@@ -20,6 +23,9 @@ const REGISTRY: ToolDefinition[] = [
   listMyTradeBoardTool,
   removeListingTool,
   addListingTool,
+  getTradeRequestsTool,
+  approveTradeTool,
+  rejectTradeTool,
 ]
 
 export function buildAllTools(ctx: ToolContext): ToolSet {
