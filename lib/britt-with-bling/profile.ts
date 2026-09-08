@@ -5,6 +5,10 @@ import type {
 } from '@/lib/amethyst/join-template-data'
 import type { AmethystTradeTemplateData } from '@/lib/amethyst/trade-template-data'
 import type { SiteSettingsDashboardResult } from '@/lib/services/types'
+import {
+  BRITT_WITH_BLING_PUBLIC_SITE_SLUG,
+  BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
+} from '@/lib/britt-with-bling/constants'
 
 export const BRITT_WITH_BLING_PROFILE = {
   email: '',
@@ -12,7 +16,7 @@ export const BRITT_WITH_BLING_PROFILE = {
   publicName: 'Brittany',
   businessName: 'Britt with Bling',
   teamName: 'The Virtuous Fizzers',
-  publicSiteSlug: 'brittwithbling',
+  publicSiteSlug: BRITT_WITH_BLING_PUBLIC_SITE_SLUG,
   futureCustomDomain: 'brittwithbling.com',
   sourceSite: 'https://brittwithbling.com/',
   shopUrl: 'https://bombparty.com/brittwithbling/parties',
@@ -22,6 +26,7 @@ export const BRITT_WITH_BLING_PROFILE = {
   facebookVipUrl: 'https://www.facebook.com/groups/390848873287947',
   heroImageUrl: '/britt-with-bling/hero.jpeg',
   joinHeroImageUrl: '/britt-with-bling/join-hero.jpeg',
+  showcaseVideoUrl: BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
   announcementText:
     'Sterling Club & 12k Gold Vermeil collections are here - genuine precious metals, elevated designs.',
   promoTickerText:
@@ -366,7 +371,7 @@ export function applyBrittWithBlingHomepage(
       paragraph,
     ),
   )
-  const hasConfiguredAboutMedia = homepage.aboutMediaSlots.some(
+  const hasConfiguredAboutMedia = homepage.aboutMediaManaged === true || homepage.aboutMediaSlots.some(
     (slot) => Boolean(slot.mediaUrl?.trim()) || (slot.href && slot.href !== '#'),
   )
   const tiktokSocial = homepage.socialLinks.find((link) => link.label === 'TikTok')?.href
@@ -408,7 +413,7 @@ export function applyBrittWithBlingHomepage(
         'Experience the thrilling, must-watch excitement of a Bomb Party jewelry reveal. Submit your order and watch live as Brittany fizzes, opens, and reveals your beautiful, unique piece of handcrafted jewelry. Join the live party to chase highly sought-after unicorns and diamond pieces while sharing in the fun of discovering your next favorite pieces.',
       videoCaption: 'Watch a Live Reveal!',
       videoHandle: '@brittwithbling on TikTok',
-      videoUrl: 'https://www.tiktok.com/embed/7602795836380073229',
+      videoUrl: BRITT_WITH_BLING_PROFILE.showcaseVideoUrl,
       videoTitle: 'Britt with Bling TikTok Video',
       ctaLabel: 'Follow for More Reveals',
       ctaHref: BRITT_WITH_BLING_PROFILE.tiktokUrl,

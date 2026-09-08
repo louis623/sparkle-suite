@@ -1114,8 +1114,11 @@ function AboutPortraitCard({ fallbackCaption }) {
   );
 }
 
-function AboutShortCard({ index }) {
+function AboutShortCard({ index, hideEmptyMedia = false }) {
   const slot = getAboutMediaSlot(index + 1);
+  const presentation = getCustomerVideoPresentation(slot?.href);
+  if (hideEmptyMedia && !presentation.provider) return null;
+
   return (
     <CustomerVideoCard
       className="hp-about-short-card slot"
@@ -1828,7 +1831,7 @@ function BlingKitchenRevealGuide({ repName }) {
 // ============================================================
 // About
 // ============================================================
-function AboutSection({ repName }) {
+function AboutSection({ repName, hideEmptyMedia = false }) {
   const neutralAbout = [
     `${repName} will share more about this live reveal community soon.`,
     "Customer details, show style, and favorite reveal notes will appear here after they are added.",
@@ -1864,9 +1867,9 @@ function AboutSection({ repName }) {
           <AboutPortraitCard fallbackCaption={`${repName} - ${CONTENT.businessName || "Sparkle Suite"}`} />
         </div>
         <div className="hp-about-shorts-grid">
-          <AboutShortCard index={0} />
-          <AboutShortCard index={1} />
-          <AboutShortCard index={2} />
+          <AboutShortCard index={0} hideEmptyMedia={hideEmptyMedia} />
+          <AboutShortCard index={1} hideEmptyMedia={hideEmptyMedia} />
+          <AboutShortCard index={2} hideEmptyMedia={hideEmptyMedia} />
         </div>
       </div>
     </section>
@@ -2296,13 +2299,14 @@ function BrittWithBlingFeaturedReveal() {
 function BrittWithBlingRevealExplainer() {
   const explainer = CONTENT.revealExplainer;
   if (!explainer) return null;
+  const showcaseVisible = CONTENT.showcaseVideoVisible !== false;
   const configuredShowcase = getCustomerVideoProvider(CONTENT.showcaseVideoUrl)
     ? CONTENT.showcaseVideoUrl
     : explainer.videoUrl;
 
   return (
     <section id="wibp" className="bwb-source-explainer" aria-labelledby="bwb-explainer-title">
-      <div className="bwb-source-shell bwb-explainer-grid">
+      <div className={`bwb-source-shell bwb-explainer-grid ${showcaseVisible ? "" : "is-copy-only"}`.trim()}>
         <div className="bwb-explainer-copy">
           <h2 id="bwb-explainer-title" className="bwb-source-title">{explainer.title}</h2>
           <p className="bwb-source-body">{explainer.body}</p>
@@ -2318,14 +2322,16 @@ function BrittWithBlingRevealExplainer() {
             ))}
           </div>
         </div>
-        <CustomerVideoCard
-          className="bwb-tiktok-card slot"
-          dataSlot="showcase video"
-          subtitle={explainer.videoHandle || CONTENT.showcaseVideoCaption}
-          title={explainer.videoCaption || "Watch a Live Reveal"}
-          videoUrl={configuredShowcase}
-          variant="showcase"
-        />
+        {showcaseVisible ? (
+          <CustomerVideoCard
+            className="bwb-tiktok-card slot"
+            dataSlot="showcase video"
+            subtitle={explainer.videoHandle || CONTENT.showcaseVideoCaption}
+            title={explainer.videoCaption || "Watch a Live Reveal"}
+            videoUrl={configuredShowcase}
+            variant="showcase"
+          />
+        ) : null}
       </div>
     </section>
   );
@@ -2374,7 +2380,9 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
         <div className="bwb-automation-panel">
           {t.showEvents && <Events count={t.eventCount} />}
           {t.showWibp && <BrittWithBlingRevealExplainer />}
-          {/* Brittany-only: unused About/media cards hidden during her show; saved content preserved. */}
+          {t.showAbout && CONTENT.showAboutSection && (
+            <AboutSection repName={repName} hideEmptyMedia />
+          )}
           {t.showSignup && <Signup repName={repName} businessName={businessName} />}
           {t.showFooter && <Footer businessName={businessName} />}
         </div>

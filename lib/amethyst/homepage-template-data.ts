@@ -128,6 +128,11 @@ export interface AmethystHomepageTemplateData {
   legalDisclaimer: string
   showcaseVideoCaption: string
   showcaseVideoUrl: string
+  showcaseVideoVisible?: boolean
+  /** Brittany-only publication switch for her restored About/Sparkle Moments section. */
+  showAboutSection?: boolean
+  /** True once Brittany's About media has been saved from Site Settings. */
+  aboutMediaManaged?: boolean
   showcaseImageUrl?: string
   showJoinPage: boolean
   streamLinks: {

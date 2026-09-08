@@ -580,6 +580,10 @@ export interface PublicSiteMediaSlot {
   caption: string
   imageUrl: string
   videoUrl: string
+  /** Explicitly false means the rep removed this media and fallbacks must stay off. */
+  isVisible?: boolean
+  /** Brittany-only publication state for the About/Sparkle Moments section. */
+  sectionVisible?: boolean
   portraitFocusX?: number
   portraitFocusY?: number
   portraitZoom?: number

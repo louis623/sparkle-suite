@@ -149,6 +149,94 @@ describe('Britt With Bling hybrid public site contract', () => {
     expect(homepage.showcaseVideoUrl).toBe(videoUrl)
   })
 
+  it('lets Brittany remove the showcase video without the static fallback restoring it', () => {
+    const homepage = mapPreviewSettingsToHomepageTemplateData(
+      {
+        ...brittWithBlingSettings,
+        homepageMediaSlots: [
+          {
+            key: 'showcase',
+            caption: '',
+            imageUrl: '',
+            videoUrl: '',
+            isVisible: false,
+          },
+        ],
+      },
+      brittWithBlingExtras,
+    )
+
+    expect(homepage.showcaseVideoVisible).toBe(false)
+    expect(homepage.featuredReveal?.title).toBe('The Rise of Her')
+  })
+
+  it('restores Brittany About media only when she explicitly publishes the section', () => {
+    const homepage = mapPreviewSettingsToHomepageTemplateData(
+      {
+        ...brittWithBlingSettings,
+        homepageMediaSlots: [
+          {
+            key: 'showcase',
+            caption: '',
+            imageUrl: '',
+            videoUrl: BRITT_WITH_BLING_PROFILE.showcaseVideoUrl,
+          },
+          {
+            key: 'about_1',
+            caption: 'Brittany from Britt with Bling',
+            imageUrl: 'https://www.yoursparklesuite.com/britt-with-bling/hero.jpeg',
+            videoUrl: '',
+            isVisible: true,
+            sectionVisible: true,
+          },
+          {
+            key: 'about_2',
+            caption: '',
+            imageUrl: '',
+            videoUrl: 'https://www.tiktok.com/@brittwithbling/video/7412345678901234567',
+            isVisible: true,
+          },
+          {
+            key: 'about_3',
+            caption: '',
+            imageUrl: '',
+            videoUrl: '',
+            isVisible: false,
+          },
+        ],
+      },
+      brittWithBlingExtras,
+    )
+
+    expect(homepage.showAboutSection).toBe(true)
+    expect(homepage.aboutMediaSlots[0]?.mediaUrl).toContain('/britt-with-bling/hero.jpeg')
+    expect(homepage.aboutMediaSlots[1]?.href).toContain('/video/7412345678901234567')
+    expect(homepage.aboutMediaSlots[2]?.href).toBe('#')
+  })
+
+  it('keeps an intentionally removed Brittany portrait removed', () => {
+    const homepage = mapPreviewSettingsToHomepageTemplateData(
+      {
+        ...brittWithBlingSettings,
+        homepageMediaSlots: [
+          {
+            key: 'about_1',
+            caption: '',
+            imageUrl: '',
+            videoUrl: '',
+            isVisible: false,
+            sectionVisible: true,
+          },
+        ],
+      },
+      brittWithBlingExtras,
+    )
+
+    expect(homepage.aboutMediaManaged).toBe(true)
+    expect(homepage.aboutMediaSlots[0]?.mediaUrl).toBeUndefined()
+    expect(homepage.showAboutSection).toBe(true)
+  })
+
   it('keeps future Workspace Site Settings changes across the BWB public pages', () => {
     const futureSettings: SiteSettingsDashboardResult = {
       ...brittWithBlingSettings,
@@ -265,6 +353,25 @@ describe('Britt With Bling hybrid public site contract', () => {
     expect(blackDiamondScript).toContain('"bgTreatment":"black-velvet"')
     expect(moonstoneScript).toContain('"preset":"moonstone"')
     expect(moonstoneScript).toContain('"bgTreatment":"moonstone-charcoal"')
+
+    const css = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/homepage.css'),
+      'utf8',
+    )
+    expect(css).toMatch(/\.bwb-below-hero-shell\s*\{[\s\S]*?background:\s*var\(--hp-bg\)/)
+    expect(css).toMatch(/\.bwb-source-explainer\s*\{[\s\S]*?background:\s*var\(--hp-bg-elevated\)/)
+    expect(css).toMatch(/body\.britt-with-bling\s*\{[\s\S]*?color:\s*var\(--fg\)/)
+  })
+
+  it('renders the Brittany About section conditionally and omits empty video cards', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/homepage.jsx'),
+      'utf8',
+    )
+
+    expect(source).toContain('CONTENT.showAboutSection &&')
+    expect(source).toContain('<AboutSection repName={repName} hideEmptyMedia />')
+    expect(source).toContain('if (hideEmptyMedia && !presentation.provider) return null;')
   })
 
   it('scrubs stale live queue operational copy for Brittany customers', () => {
@@ -505,7 +612,8 @@ describe('Britt With Bling hybrid public site contract', () => {
 
     expect(homepageJsx).toContain('function BrittWithBlingHomepage')
     const brittPage = homepageJsx.split('function BrittWithBlingHomepage')[1].split('function BlingKitchenHomepage')[0]
-    expect(brittPage).not.toContain('<AboutSection')
+    expect(brittPage).toContain('CONTENT.showAboutSection &&')
+    expect(brittPage).toContain('<AboutSection repName={repName} hideEmptyMedia />')
     expect(brittPage).toContain('<BrittWithBlingRevealExplainer />')
     expect(brittPage).toContain('<Signup repName={repName} businessName={businessName} />')
     expect(homepageJsx.match(/<AboutSection repName=\{repName\} \/>/g)).toHaveLength(3)

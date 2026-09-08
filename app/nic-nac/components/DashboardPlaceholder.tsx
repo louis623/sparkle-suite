@@ -50,6 +50,12 @@ import {
 } from '@/lib/amethyst/appearance-presets'
 import { AMETHYST_SKIN_CARDS } from '@/lib/amethyst/skin-cards'
 import {
+  BRITT_WITH_BLING_ABOUT_PORTRAIT_URL,
+  BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
+  isBrittWithBlingPublicSiteSlug,
+} from '@/lib/britt-with-bling/constants'
+import { normalizeSupportedPublicVideoUrl } from '@/lib/public-site/media-url'
+import {
   buildCustomerSparkleSiteHref,
   buildCustomerTradeBoardHref,
 } from '@/lib/nic-nac/rep-links'
@@ -1726,16 +1732,42 @@ const EMPTY_HOMEPAGE_MEDIA_SLOTS: PublicSiteMediaSlot[] = [
 
 export function getSiteSettingsDraft(
   settings: SiteSettingsDashboardResult,
+  options: { isBrittWithBling?: boolean } = {},
 ): SiteSettingsDraft {
   const homepageMediaSlots =
     settings.homepageMediaSlots ?? EMPTY_HOMEPAGE_MEDIA_SLOTS
+  const normalizedMediaSlots = homepageMediaSlots.map((slot) => ({ ...slot }))
+  const preparedMediaSlots = options.isBrittWithBling
+    ? normalizedMediaSlots.map((slot) => {
+        if (slot.key === 'showcase') {
+          if (slot.isVisible === false) return slot
+          return {
+            ...slot,
+            videoUrl:
+              normalizeSupportedPublicVideoUrl(slot.videoUrl) ||
+              BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
+            isVisible: true,
+          }
+        }
+        if (slot.key === 'about_1') {
+          if (slot.isVisible === false) return slot
+          return {
+            ...slot,
+            imageUrl: slot.imageUrl || BRITT_WITH_BLING_ABOUT_PORTRAIT_URL,
+            isVisible: true,
+            sectionVisible: slot.sectionVisible === true,
+          }
+        }
+        return slot
+      })
+    : normalizedMediaSlots
   return {
     ...settings,
     appearancePreset: normalizeAmethystAppearancePreset(
       settings.appearancePreset,
     ) as SiteAppearancePreset,
     socialHandles: { ...settings.socialHandles },
-    homepageMediaSlots: homepageMediaSlots.map((slot) => ({ ...slot })),
+    homepageMediaSlots: preparedMediaSlots,
   }
 }
 
@@ -2033,8 +2065,9 @@ export function getWorkspaceSkinPreset(
 
 export function getNormalizedSiteSettingsDraft(
   draft: SiteSettingsDraft,
+  options: { isBrittWithBling?: boolean } = {},
 ): SiteSettingsDraft {
-  const normalizedDraft = getSiteSettingsDraft(draft)
+  const normalizedDraft = getSiteSettingsDraft(draft, options)
   return {
     ...normalizedDraft,
     appearancePreset: normalizeAmethystAppearancePreset(
@@ -2046,14 +2079,21 @@ export function getNormalizedSiteSettingsDraft(
 export function hasSiteSettingsUnsavedChanges({
   settings,
   draft,
+  isBrittWithBling = false,
 }: {
   settings?: SiteSettingsDashboardResult | null
   draft?: SiteSettingsDraft | null
+  isBrittWithBling?: boolean
 }) {
   if (!settings || !draft) return false
   return (
-    JSON.stringify(getNormalizedSiteSettingsDraft(draft)) !==
-    JSON.stringify(getNormalizedSiteSettingsDraft(getSiteSettingsDraft(settings)))
+    JSON.stringify(getNormalizedSiteSettingsDraft(draft, { isBrittWithBling })) !==
+    JSON.stringify(
+      getNormalizedSiteSettingsDraft(
+        getSiteSettingsDraft(settings, { isBrittWithBling }),
+        { isBrittWithBling },
+      ),
+    )
   )
 }
 
@@ -2062,16 +2102,18 @@ export function getSiteSettingsManualSaveStatusText({
   draft,
   actionState,
   statusMessage,
+  isBrittWithBling = false,
 }: {
   settings?: SiteSettingsDashboardResult | null
   draft?: SiteSettingsDraft | null
   actionState?: SiteSettingsActionState
   statusMessage?: string | null
+  isBrittWithBling?: boolean
 }) {
   if (!settings || !draft) return null
   if (actionState?.error) return 'Changes need attention.'
   if (actionState?.pending) return 'Saving changes...'
-  if (hasSiteSettingsUnsavedChanges({ settings, draft })) {
+  if (hasSiteSettingsUnsavedChanges({ settings, draft, isBrittWithBling })) {
     return 'Unsaved changes.'
   }
   return statusMessage ?? 'No unsaved changes.'
@@ -2625,6 +2667,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     publicSiteSlug: publicSiteSlugOverride ?? null,
     liveQueueSyncCode: liveQueueSyncCodeOverride ?? null,
   })
+  const isBrittWithBlingWorkspace = isBrittWithBlingPublicSiteSlug(
+    publicSiteSlugOverride ?? repProfileState.publicSiteSlug,
+  )
   const [audienceState, setAudienceState] = useState<AudienceState>({
     status: reviewWorkspaceMode ? 'ready' : 'loading',
     summary: reviewWorkspaceMode
@@ -2785,7 +2830,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     useState<WalletAutoRechargeDraft | null>(null)
   const [siteSettingsDraft, setSiteSettingsDraft] =
     useState<SiteSettingsDraft | null>(
-      initialSiteSettings ? getSiteSettingsDraft(initialSiteSettings) : null,
+      initialSiteSettings
+        ? getSiteSettingsDraft(initialSiteSettings, {
+            isBrittWithBling: isBrittWithBlingWorkspace,
+          })
+        : null,
     )
   const siteSettingsDraftRef = useRef<SiteSettingsDraft | null>(
     siteSettingsDraft,
@@ -3445,8 +3494,16 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   useEffect(() => {
     if (siteSettingsState.status !== 'ready' || !siteSettingsState.settings) return
 
-    setSiteSettingsDraft(getSiteSettingsDraft(siteSettingsState.settings))
-  }, [siteSettingsState.status, siteSettingsState.settings])
+    setSiteSettingsDraft(
+      getSiteSettingsDraft(siteSettingsState.settings, {
+        isBrittWithBling: isBrittWithBlingWorkspace,
+      }),
+    )
+  }, [
+    isBrittWithBlingWorkspace,
+    siteSettingsState.status,
+    siteSettingsState.settings,
+  ])
 
   useEffect(() => {
     siteSettingsDraftRef.current = siteSettingsDraft
@@ -3838,6 +3895,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         current
           ? updateHomepageMediaSlot(current, key, {
               imageUrl: payload.imageUrl,
+              ...(isBrittWithBlingWorkspace ? { isVisible: true } : {}),
               ...(smartPortraitFraming ?? {}),
             })
           : current,
@@ -3906,7 +3964,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       setSiteSettingsDraft((current) =>
         current
           ? { ...current, teamName: savedSettings.teamName }
-          : getSiteSettingsDraft(savedSettings),
+          : getSiteSettingsDraft(savedSettings, {
+              isBrittWithBling: isBrittWithBlingWorkspace,
+            }),
       )
       setTeamManagementActionState({
         pendingKey: null,
@@ -3926,7 +3986,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   async function saveSiteSettingsDraft(draftToSave: SiteSettingsDraft) {
     const requestId = siteSettingsSaveRequestRef.current + 1
     siteSettingsSaveRequestRef.current = requestId
-    const normalizedDraft = getNormalizedSiteSettingsDraft(draftToSave)
+    const normalizedDraft = getNormalizedSiteSettingsDraft(draftToSave, {
+      isBrittWithBling: isBrittWithBlingWorkspace,
+    })
 
     setSiteSettingsActionState({
       pending: true,
@@ -3959,7 +4021,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         !latestDraft ||
         JSON.stringify(latestDraft) === JSON.stringify(normalizedDraft)
       ) {
-        setSiteSettingsDraft(getSiteSettingsDraft(payload.settings))
+        setSiteSettingsDraft(
+          getSiteSettingsDraft(payload.settings, {
+            isBrittWithBling: isBrittWithBlingWorkspace,
+          }),
+        )
       }
       if (siteSettingsSaveRequestRef.current === requestId) {
         setSiteSettingsActionState({
@@ -3988,6 +4054,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       !hasSiteSettingsUnsavedChanges({
         settings: siteSettingsState.settings,
         draft: siteSettingsDraft,
+        isBrittWithBling: isBrittWithBlingWorkspace,
       })
     ) {
       setSiteSettingsActionState({
@@ -5822,12 +5889,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const siteSettingsHasUnsavedChanges = hasSiteSettingsUnsavedChanges({
     settings: siteSettingsState.settings,
     draft: siteSettingsDraft,
+    isBrittWithBling: isBrittWithBlingWorkspace,
   })
   const siteSettingsSaveStatusText = getSiteSettingsManualSaveStatusText({
     settings: siteSettingsState.settings,
     draft: siteSettingsDraft,
     actionState: siteSettingsActionState,
     statusMessage: siteSettingsActionState.helperMessage,
+    isBrittWithBling: isBrittWithBlingWorkspace,
   })
   const activeWorkspaceShellSection = WORKSPACE_SECTIONS.some(
     (section) => section.key === activeSection,
@@ -6184,6 +6253,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             onHomepageMediaUpload={handleHomepageMediaUpload}
             mediaUploadKey={siteSettingsMediaUploadKey}
             mediaUploadFeedback={siteSettingsMediaUploadFeedback}
+            isBrittWithBling={isBrittWithBlingWorkspace}
             canPreview={Boolean(customerSparkleSiteHref)}
             onPreview={handleOpenCustomerSitePreview}
             onWriteAboutNarrative={() => {
@@ -8277,6 +8347,7 @@ export function SiteSettingsCard({
   onHomepageMediaUpload,
   mediaUploadKey,
   mediaUploadFeedback,
+  isBrittWithBling = false,
   canPreview,
   onPreview,
   onWriteAboutNarrative,
@@ -8303,6 +8374,7 @@ export function SiteSettingsCard({
     message: string
     tone: 'error' | 'success'
   } | null
+  isBrittWithBling?: boolean
   canPreview?: boolean
   onPreview?: () => void
   onWriteAboutNarrative?: () => void
@@ -8391,6 +8463,10 @@ export function SiteSettingsCard({
       </div>
     )
   }
+
+  const aboutPortraitSlot = (draft.homepageMediaSlots ?? []).find(
+    (slot) => slot.key === 'about_1',
+  )
 
   return (
     <div className={styles.siteSettingsCard}>
@@ -8690,11 +8766,41 @@ export function SiteSettingsCard({
 
       <div className={styles.siteSettingsSection}>
         <div>
-          <div className={styles.walletSettingsTitle}>Homepage photos and videos</div>
+          <div className={styles.walletSettingsTitle}>
+            {isBrittWithBling ? 'Brittany custom media' : 'Homepage photos and videos'}
+          </div>
           <p className={styles.siteSettingsPreviewNote}>
-            Add one clean portrait photo and up to four customer videos.
+            {isBrittWithBling
+              ? 'Manage the changeable media on Britt with Bling. Your theme and all standard site settings remain available above.'
+              : 'Add one clean portrait photo and up to four customer videos.'}
           </p>
+          {isBrittWithBling ? (
+            <p className={styles.siteSettingsPreviewNote}>
+              Hero and “The Rise of Her” stay managed for this custom site.
+            </p>
+          ) : null}
         </div>
+        {isBrittWithBling ? (
+          <label className={styles.walletToggleRow}>
+            <span>
+              <span className={styles.searchLabel}>
+                Show the About Brittany and Sparkle Moments section
+              </span>
+              <span className={styles.helperNote}>
+                Empty video spots stay hidden. Turn this off without deleting any saved media.
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={aboutPortraitSlot?.sectionVisible === true}
+              onChange={(event) =>
+                onHomepageMediaChange?.('about_1', {
+                  sectionVisible: event.target.checked,
+                })
+              }
+            />
+          </label>
+        ) : null}
         <div className={styles.homepageMediaGrid}>
           <aside className={styles.homepageMediaHelp} aria-label="Video links and embeds">
             <strong>Video links and embeds</strong>
@@ -8708,13 +8814,25 @@ export function SiteSettingsCard({
           {(draft.homepageMediaSlots ?? EMPTY_HOMEPAGE_MEDIA_SLOTS).map((slot) => {
             const label =
               slot.key === 'showcase'
-                ? 'Showcase video'
+                ? isBrittWithBling
+                  ? 'What is a Bomb Party? showcase video'
+                  : 'Showcase video'
                 : slot.key === 'about_1'
-                  ? 'About portrait photo'
-                  : `About short video ${Number(slot.key.slice(-1)) - 1}`
+                  ? isBrittWithBling
+                    ? 'About Brittany portrait'
+                    : 'About portrait photo'
+                  : isBrittWithBling
+                    ? `Sparkle moment ${Number(slot.key.slice(-1)) - 1}`
+                    : `About short video ${Number(slot.key.slice(-1)) - 1}`
             const allowsPhoto = slot.key === 'about_1'
             const allowsVideo = slot.key !== 'about_1'
             const isUploading = mediaUploadKey === slot.key
+            const hasVisiblePhoto =
+              allowsPhoto && Boolean(slot.imageUrl) && slot.isVisible !== false
+            const hasVisibleVideo =
+              allowsVideo &&
+              Boolean(normalizeSupportedPublicVideoUrl(slot.videoUrl)) &&
+              slot.isVisible !== false
 
             return (
               <section
@@ -8727,9 +8845,11 @@ export function SiteSettingsCard({
               >
                 <div className={styles.homepageMediaCardHeader}>
                   <strong>{label}</strong>
-                  {allowsPhoto && slot.imageUrl ? <span>Photo added</span> : null}
+                  {hasVisiblePhoto ? <span>Photo added</span> : null}
+                  {isBrittWithBling && hasVisibleVideo ? <span>Video added</span> : null}
+                  {isBrittWithBling && slot.isVisible === false ? <span>Removed</span> : null}
                 </div>
-                {allowsPhoto && slot.imageUrl ? (
+                {hasVisiblePhoto ? (
                   <div className={styles.homepagePortraitFramePreview}>
                     <img
                       className={styles.homepageMediaPreview}
@@ -8787,12 +8907,35 @@ export function SiteSettingsCard({
                       value={slot.videoUrl}
                       onChange={(event) => {
                         const videoUrl = event.target.value
-                        onHomepageMediaChange?.(slot.key, { videoUrl, caption: '' })
+                        onHomepageMediaChange?.(slot.key, {
+                          videoUrl,
+                          caption: '',
+                          ...(isBrittWithBling
+                            ? { isVisible: Boolean(videoUrl.trim()) }
+                            : {}),
+                        })
                       }}
                     />
                   </label>
                 ) : null}
-                {allowsPhoto && slot.imageUrl ? (
+                {isBrittWithBling && hasVisibleVideo ? (
+                  <div className={styles.homepageMediaCurrentState}>
+                    <span>Current video is ready.</span>
+                    <a href={slot.videoUrl} target="_blank" rel="noreferrer noopener">
+                      Open video
+                    </a>
+                  </div>
+                ) : null}
+                {isBrittWithBling &&
+                allowsVideo &&
+                slot.isVisible !== false &&
+                slot.videoUrl.trim() &&
+                !hasVisibleVideo ? (
+                  <p className={styles.homepageMediaUploadError} role="status">
+                    This link is not a playable public video. Replace it before saving.
+                  </p>
+                ) : null}
+                {hasVisiblePhoto ? (
                   <fieldset className={styles.homepagePortraitControls}>
                     <legend>Smart Frame</legend>
                     <span>Fine-tune only if the automatic preview needs it.</span>
@@ -8856,15 +8999,32 @@ export function SiteSettingsCard({
                     />
                   </label>
                 ) : null}
-                {allowsPhoto && slot.imageUrl ? (
+                {hasVisiblePhoto ? (
                   <button
                     type="button"
                     className={styles.homepageMediaRemoveButton}
                     onClick={() =>
-                      onHomepageMediaChange?.(slot.key, { imageUrl: '' })
+                      onHomepageMediaChange?.(slot.key, {
+                        imageUrl: '',
+                        ...(isBrittWithBling ? { isVisible: false } : {}),
+                      })
                     }
                   >
                     Remove photo
+                  </button>
+                ) : null}
+                {isBrittWithBling && hasVisibleVideo ? (
+                  <button
+                    type="button"
+                    className={styles.homepageMediaRemoveButton}
+                    onClick={() =>
+                      onHomepageMediaChange?.(slot.key, {
+                        videoUrl: '',
+                        isVisible: false,
+                      })
+                    }
+                  >
+                    Remove video
                   </button>
                 ) : null}
               </section>

@@ -4,6 +4,10 @@ import {
   normalizeAmethystAppearancePreset,
   normalizeCustomerSiteTemplate,
 } from '@/lib/amethyst/appearance-presets'
+import {
+  isSupportedPublicVideoUrl,
+  normalizePublicMediaUrl,
+} from '@/lib/public-site/media-url'
 import type {
   HeroAnimationType,
   PublicSiteMediaSlot,
@@ -132,60 +136,6 @@ export function getDefaultPublicSiteMediaSlots(): PublicSiteMediaSlot[] {
   }))
 }
 
-function normalizePublicMediaUrl(value: unknown) {
-  if (typeof value !== 'string') return ''
-  const trimmed = value.trim()
-  if (!trimmed) return ''
-
-  const decoded = trimmed
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&apos;/gi, "'")
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-
-  const candidates = [decoded]
-  const attributePattern = /\b(?:cite|src|href)\s*=\s*["']([^"']+)["']/gi
-  let attributeMatch: RegExpExecArray | null
-  while ((attributeMatch = attributePattern.exec(decoded))) {
-    candidates.push(attributeMatch[1])
-  }
-
-  const urlPattern = /https?:\/\/[^\s"'<>]+/gi
-  const embeddedUrls = decoded.match(urlPattern)
-  if (embeddedUrls) candidates.push(...embeddedUrls)
-
-  for (const candidate of candidates) {
-    try {
-      const url = new URL(candidate.replace(/&amp;/gi, '&'))
-      if (url.protocol === 'http:' || url.protocol === 'https:') {
-        return url.toString()
-      }
-    } catch {
-      // Keep looking through URLs extracted from embed markup.
-    }
-  }
-
-  return ''
-}
-
-function isSupportedPublicVideoUrl(value: string) {
-  try {
-    const host = new URL(value).hostname.toLowerCase().replace(/^www\./, '')
-    return (
-      host === 'tiktok.com' ||
-      host === 'vm.tiktok.com' ||
-      host === 'youtube.com' ||
-      host === 'youtu.be' ||
-      host === 'instagram.com' ||
-      host === 'facebook.com' ||
-      host === 'fb.watch'
-    )
-  } catch {
-    return false
-  }
-}
-
 function normalizePortraitFramingValue(
   value: unknown,
   fallback: number,
@@ -261,6 +211,12 @@ export function normalizePublicSiteMediaSlots(
             portraitZoom: normalizePortraitFramingValue(row?.portraitZoom, 1.18, 1, 1.5),
           }
         : {}
+    const visibility =
+      typeof row?.isVisible === 'boolean' ? { isVisible: row.isVisible } : {}
+    const sectionVisibility =
+      key === 'about_1' && typeof row?.sectionVisible === 'boolean'
+        ? { sectionVisible: row.sectionVisible }
+        : {}
 
     return {
       key,
@@ -270,6 +226,8 @@ export function normalizePublicSiteMediaSlots(
       // portrait card, and the public template never renders these legacy URLs.
       imageUrl: key === 'showcase' ? '' : imageUrl,
       videoUrl: key === 'about_1' ? '' : videoUrl,
+      ...visibility,
+      ...sectionVisibility,
       ...portraitFraming,
     }
   })

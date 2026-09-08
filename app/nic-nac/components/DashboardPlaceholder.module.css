@@ -5141,6 +5141,27 @@
   margin: 8px 0 0;
 }
 
+.homepageMediaCurrentState {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--nic-nac-border);
+  border-radius: 10px;
+  background: var(--nic-nac-surface-input);
+  color: var(--nic-nac-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.homepageMediaCurrentState a {
+  color: var(--nic-nac-text-primary);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .homepageMediaCard {
   display: flex;
   flex-direction: column;

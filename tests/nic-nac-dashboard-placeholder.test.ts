@@ -61,6 +61,7 @@ import {
   getCalendarEventDetailGroups,
   getShowCalendarMetrics,
   getSiteSettingsManualSaveStatusText,
+  getSiteSettingsDraft,
   hasSiteSettingsUnsavedChanges,
   getWorkspaceSkinPreset,
   calculateBusinessCalculator,
@@ -2860,6 +2861,48 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Preview customer site')
     expect(html).toContain('No unsaved changes.')
     expect(html).toContain('data-testid="site-settings-save-status"')
+    expect(html).not.toContain('Brittany custom media')
+  })
+
+  it('renders Brittany custom media controls without removing standard theme controls', () => {
+    const settings = {
+      ...SITE_SETTINGS_READY_STATE.settings,
+      appearancePreset: 'black_diamond' as const,
+      homepageMediaSlots: [
+        {
+          key: 'showcase' as const,
+          caption: '',
+          imageUrl: '',
+          videoUrl: 'https://www.tiktok.com/@brittwithbling/photo/7680907837425388814',
+        },
+        { key: 'about_1' as const, caption: '', imageUrl: '', videoUrl: '' },
+        { key: 'about_2' as const, caption: '', imageUrl: '', videoUrl: '' },
+        { key: 'about_3' as const, caption: '', imageUrl: '', videoUrl: '' },
+        { key: 'about_4' as const, caption: '', imageUrl: '', videoUrl: '' },
+      ],
+    }
+    const draft = getSiteSettingsDraft(settings, { isBrittWithBling: true })
+    const html = renderToStaticMarkup(
+      createElement(SiteSettingsCard, {
+        state: { status: 'ready', settings },
+        draft,
+        isBrittWithBling: true,
+      }),
+    )
+
+    expect(html).toContain('Brittany custom media')
+    expect(html).toContain('What is a Bomb Party? showcase video')
+    expect(html).toContain('About Brittany portrait')
+    expect(html).toContain('Sparkle moment 1')
+    expect(html).toContain('Sparkle moment 3')
+    expect(html).toContain('Show the About Brittany and Sparkle Moments section')
+    expect(html).toContain('Hero and “The Rise of Her” stay managed for this custom site.')
+    expect(html).toContain('Customer-facing site theme')
+    expect(html).toContain('Rose Gold')
+    expect(html).toContain('Remove video')
+    expect(html).toContain('7602795836380073229')
+    expect(html).toContain('https://www.yoursparklesuite.com/britt-with-bling/hero.jpeg')
+    expect(html).not.toContain('7680907837425388814')
   })
 
   it('links only the selected ticker words and can recover old whole-message links', () => {

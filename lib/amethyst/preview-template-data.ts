@@ -585,16 +585,25 @@ export function mapPreviewSettingsToHomepageTemplateData(
     socialLinks: buildSocialLinks(settings),
     showcaseVideoCaption: '',
     showcaseVideoUrl: showcaseMedia?.videoUrl || '#',
+    showcaseVideoVisible: showcaseMedia?.isVisible !== false,
+    showAboutSection: aboutMedia[0]?.sectionVisible === true,
+    aboutMediaManaged: aboutMedia.some(
+      (media) =>
+        media?.isVisible !== undefined ||
+        media?.sectionVisible !== undefined ||
+        Boolean(media?.imageUrl || media?.videoUrl),
+    ),
     showcaseImageUrl: '',
     aboutMediaSlots: defaultAmethystHomepageTemplateData.aboutMediaSlots.map(
       (fallback, index) => {
         const media = aboutMedia[index]
         const isPortrait = index === 0
+        const mediaVisible = media?.isVisible !== false
         return {
           typeLabel: isPortrait ? 'Portrait photo' : `Short video ${index}`,
-          caption: isPortrait ? media?.caption || fallback.caption : '',
-          href: isPortrait ? '#' : media?.videoUrl || '#',
-          mediaUrl: isPortrait ? media?.imageUrl || undefined : undefined,
+          caption: isPortrait && mediaVisible ? media?.caption || fallback.caption : '',
+          href: isPortrait || !mediaVisible ? '#' : media?.videoUrl || '#',
+          mediaUrl: isPortrait && mediaVisible ? media?.imageUrl || undefined : undefined,
           portraitFocusX: isPortrait ? media?.portraitFocusX : undefined,
           portraitFocusY: isPortrait ? media?.portraitFocusY : undefined,
           portraitZoom: isPortrait ? media?.portraitZoom : undefined,

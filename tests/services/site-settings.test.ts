@@ -128,6 +128,48 @@ describe('site settings service', () => {
     ).toThrow('about_2 video URL or embed code is invalid')
   })
 
+  it('rejects TikTok photo posts because the customer-site player needs a video id', () => {
+    expect(() =>
+      normalizePublicSiteMediaSlots(
+        [
+          {
+            key: 'showcase',
+            videoUrl: 'https://www.tiktok.com/@brittwithbling/photo/7680907837425388814',
+          },
+        ],
+        { rejectInvalidUrls: true },
+      ),
+    ).toThrow('showcase video URL or embed code is invalid')
+  })
+
+  it('preserves explicit media removal and Brittany section visibility state', () => {
+    expect(
+      normalizePublicSiteMediaSlots([
+        {
+          key: 'showcase',
+          videoUrl: '',
+          isVisible: false,
+        },
+        {
+          key: 'about_1',
+          imageUrl: 'https://www.yoursparklesuite.com/britt-with-bling/hero.jpeg',
+          isVisible: true,
+          sectionVisible: true,
+        },
+      ]),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: 'showcase', videoUrl: '', isVisible: false }),
+        expect.objectContaining({
+          key: 'about_1',
+          imageUrl: 'https://www.yoursparklesuite.com/britt-with-bling/hero.jpeg',
+          isVisible: true,
+          sectionVisible: true,
+        }),
+      ]),
+    )
+  })
+
   it('returns rep profile data with safe defaults when site settings row is missing', async () => {
     const siteSettingsChain = makeSelectSingle({ data: null, error: null })
     const repsChain = makeSelectSingle({
