@@ -1,5 +1,17 @@
 # Open Items
 
+## September 8, 2026 - Brittany Workspace media controls
+
+- [x] **Release Brittany-only Workspace media parity** — application
+  `a2e0f467` / Ready deployment `dpl_2QEEHmatFCVaoGV53q45AyYWWFQi` adds
+  preloaded showcase/portrait controls, three optional short-video controls,
+  durable remove/replace state, About publication, and visible standard theme
+  switching while preserving the fixed hero and “The Rise of Her.”
+- [ ] **Copy Brittany's remaining legacy media when Louis resumes it** — use
+  the new Workspace controls to add only the media Louis selects from the old
+  site, then explicitly publish the About/Sparkle Moments section when ready.
+  Do not fetch, upload, or publish this automatically.
+
 ## September 8, 2026 - Consolidated memory closeout
 
 See [session closeout and handoff](2026-09-08-session-closeout-and-handoff.md) for completed welcome/email work, live-show mitigation, final styling, decisions, lessons, and deferred items. Last session-verified app is 48615edf / dpl_GeV9T1ad1sktsRt7VUPr8y6RRvE6; not freshly checked today. This is documentation only. Next session opens Control Center read-only and stands by; no automatic work, sending, credit application, auth repair, or extension changes.

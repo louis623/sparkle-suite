@@ -1,5 +1,23 @@
 # Decision Log
 
+## 2026-09-08 - Brittany keeps normal site controls plus scoped legacy media controls
+
+Decision: Treat `brittwithbling` as a grandfathered custom tenant, not a new
+template or a new tool family. Brittany keeps the standard rep Site Settings,
+including theme selection, and receives tenant-only controls for the existing
+showcase video, About portrait, three optional short videos, and About-section
+publication. Her hero image and “The Rise of Her” remain curated and static.
+
+Explicit media visibility is stored inside the existing homepage-media JSON so
+remove and hide actions are durable without a schema migration or deleting the
+underlying uploaded asset. Missing legacy media may preload from current public
+fallbacks, but an explicit removal always wins. Empty optional video cards do
+not render.
+
+Reason: Brittany must be able to maintain her migrated site like any other rep
+without exposing the two bespoke brand assets Louis chose to keep fixed or
+creating abnormal tools for future reps.
+
 ## September 8, 2026 - Consolidated memory closeout
 
 See [session closeout and handoff](2026-09-08-session-closeout-and-handoff.md) for completed welcome/email work, live-show mitigation, final styling, decisions, lessons, and deferred items. Last session-verified app is 48615edf / dpl_GeV9T1ad1sktsRt7VUPr8y6RRvE6; not freshly checked today. This is documentation only. Next session opens Control Center read-only and stands by; no automatic work, sending, credit application, auth repair, or extension changes.

@@ -1,5 +1,31 @@
 # Session Log
 
+## September 8, 2026 - Brittany Workspace media parity release
+
+- Audited the migrated Britt with Bling Workspace/site contract. The saved
+  showcase value was a TikTok photo URL that the public player could not render,
+  there was no About media configured, the About cards were hidden in source,
+  and hard-coded custom CSS masked ordinary theme changes.
+- Added Brittany-only Workspace labels and controls for the showcase video,
+  About portrait, three optional short videos, explicit remove/replace state,
+  and non-destructive About publication. The current visible showcase and an
+  existing portrait preload into her draft; explicit removals do not restore
+  fallback media.
+- Preserved the locked hero image and static “The Rise of Her.” Empty short
+  cards remain absent, and ordinary reps keep their existing Site Settings UI.
+- Final proof: 195 focused tests, 91 Amethyst template tests, local Amethyst link
+  checks, two production builds, a rendered local customer-page smoke, and a
+  safe synthetic Workspace remove/theme/save smoke. Synthetic settings were
+  restored after the test.
+- Pushed application commit `a2e0f467` and manually released exact tip as Ready
+  deployment `dpl_2QEEHmatFCVaoGV53q45AyYWWFQi`. Both Suite aliases resolve
+  to it. Live `/brittwithbling` visual and asset checks passed without browser
+  errors; apex redirects to the same www path.
+- No customer/personal account, extension, store, email, credit, billing,
+  Live Queue, or registrar/DNS-provider state was changed. Exact signed-in
+  Brittany production Workspace proof remains unperformed because smoke used
+  the supported synthetic reviewer rather than her account.
+
 ## September 8, 2026 - Consolidated memory closeout
 
 See [session closeout and handoff](2026-09-08-session-closeout-and-handoff.md) for completed welcome/email work, live-show mitigation, final styling, decisions, lessons, and deferred items. Last session-verified app is 48615edf / dpl_GeV9T1ad1sktsRt7VUPr8y6RRvE6; not freshly checked today. This is documentation only. Next session opens Control Center read-only and stands by; no automatic work, sending, credit application, auth repair, or extension changes.

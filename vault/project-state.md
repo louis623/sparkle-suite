@@ -1,5 +1,17 @@
 # Project State
 
+## September 8, 2026 - Brittany Workspace media controls released
+
+See [Brittany Workspace media controls closeout](2026-09-08-brittany-workspace-media-controls-closeout.md).
+Application `a2e0f467` is live as Ready deployment
+`dpl_2QEEHmatFCVaoGV53q45AyYWWFQi`. Brittany-only Site Settings now preload,
+replace, and explicitly remove the current showcase video, About portrait, and
+three optional Sparkle Moment videos; the About/Sparkle Moments section has a
+non-destructive publication switch. Her normal theme selector now visibly
+themes the custom homepage. Hero image and “The Rise of Her” remain curated
+and static. No Brittany account data was changed during smoke, so the About
+section remains hidden and missing legacy media remains for Louis to copy later.
+
 ## September 8, 2026 - Consolidated memory closeout
 
 See [session closeout and handoff](2026-09-08-session-closeout-and-handoff.md) for completed welcome/email work, live-show mitigation, final styling, decisions, lessons, and deferred items. Last session-verified app is 48615edf / dpl_GeV9T1ad1sktsRt7VUPr8y6RRvE6; not freshly checked today. This is documentation only. Next session opens Control Center read-only and stands by; no automatic work, sending, credit application, auth repair, or extension changes.
