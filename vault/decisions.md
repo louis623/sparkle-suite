@@ -1,5 +1,9 @@
 # Decision Log
 
+## September 8, 2026 - Consolidated memory closeout
+
+See [session closeout and handoff](2026-09-08-session-closeout-and-handoff.md) for completed welcome/email work, live-show mitigation, final styling, decisions, lessons, and deferred items. Last session-verified app is 48615edf / dpl_GeV9T1ad1sktsRt7VUPr8y6RRvE6; not freshly checked today. This is documentation only. Next session opens Control Center read-only and stands by; no automatic work, sending, credit application, auth repair, or extension changes.
+
 ## Latest September 5 release - Brittany button polish
 
 See [button polish closeout](2026-09-05-britt-hero-buttons-closeout.md): app 48615edf / dpl_GeV9T1ad1sktsRt7VUPr8y6RRvE6 on Brittany and Suite apex/www only. Equal hero buttons and matching gold-to-blue gradients, desktop/mobile verified. No live-show behavior changes. Earlier unresolved items remain deferred.
