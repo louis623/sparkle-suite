@@ -1,5 +1,27 @@
 # Session Log
 
+## September 8, 2026 - Brittany customer-facing About/media restoration
+
+- Louis clarified that “unhide” referred to Brittany's actual public site, not
+  only the new Workspace controls. The live template confirmed
+  `showAboutSection: false` despite preserved migrated copy and imagery.
+- Restored the Brittany-only public About/media block by default when no
+  explicit Workspace visibility choice exists. Existing migrated copy and
+  portrait render immediately; empty optional video cards stay omitted. An
+  explicit future hide remains durable, and the Workspace switch now reflects
+  the restored default.
+- Focused public-site/Workspace/service checks passed 397 tests; the wider
+  affected template run passed 309 tests; the local and Vercel production
+  builds passed, including Next.js TypeScript and static generation.
+- Pushed application `4cf10ebf` and manually released exact tip as Ready
+  deployment `dpl_BESV662NEXSgJnNPCHo4hD7HWs69`. Both Suite domains resolve to
+  it. A fresh live in-app-browser reload visibly confirmed the About/media block
+  between “What is a Bomb Party?” and “Never Miss a Show”; the live template
+  reports `showAboutSection: true`, www returns 200, and apex redirects to www.
+- The shared Vercel production aliases advanced normally. No registrar/DNS
+  record, customer data, extension, email, credit, billing, or Live Lineup
+  state was changed. `artifacts/` and `test-results/` remain preserved.
+
 ## September 8, 2026 - Brittany Workspace media parity release
 
 - Audited the migrated Britt with Bling Workspace/site contract. The saved

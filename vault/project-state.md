@@ -1,5 +1,19 @@
 # Project State
 
+## September 8, 2026 - Brittany public About/media section restored
+
+Louis clarified that the September 5 hide needed to be reversed on the actual
+customer-facing site, not only represented as Workspace controls. Application
+`4cf10ebf` is live as Ready deployment
+`dpl_BESV662NEXSgJnNPCHo4hD7HWs69`. The About/media block is again visible on
+`/brittwithbling` with the existing migrated portrait and copy; empty optional
+Sparkle Moment video positions remain omitted until media is added. The
+Workspace switch defaults to on for Brittany when she has not made an explicit
+visibility choice, and an explicit future hide still wins. Live www visual
+verification passed and the apex redirects to the same path. No Brittany
+account data, DNS-provider record, extension, email, credit, billing, or Live
+Lineup state changed.
+
 ## September 8, 2026 - Brittany Workspace media controls released
 
 See [Brittany Workspace media controls closeout](2026-09-08-brittany-workspace-media-controls-closeout.md).
@@ -9,8 +23,9 @@ replace, and explicitly remove the current showcase video, About portrait, and
 three optional Sparkle Moment videos; the About/Sparkle Moments section has a
 non-destructive publication switch. Her normal theme selector now visibly
 themes the custom homepage. Hero image and “The Rise of Her” remain curated
-and static. No Brittany account data was changed during smoke, so the About
-section remains hidden and missing legacy media remains for Louis to copy later.
+and static. No Brittany account data was changed during smoke. The later
+customer-site correction above supersedes the original hidden-section state;
+missing optional legacy video media still remains for Louis to copy later.
 
 ## September 8, 2026 - Consolidated memory closeout
 

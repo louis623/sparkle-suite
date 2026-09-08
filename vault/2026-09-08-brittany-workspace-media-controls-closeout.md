@@ -2,6 +2,23 @@
 
 Date: September 8, 2026
 
+## Customer-site correction after closeout
+
+Louis clarified that the September 5 hidden About/media block needed to be
+restored on Brittany's actual customer-facing site, not merely exposed through
+Workspace controls. Application `4cf10ebf` is live as Ready deployment
+`dpl_BESV662NEXSgJnNPCHo4hD7HWs69`. `/brittwithbling` now renders the existing
+About copy and migrated portrait between “What is a Bomb Party?” and “Never
+Miss a Show.” Empty optional Sparkle Moment video cards remain absent until
+media is added. The Workspace visibility switch defaults to on when Brittany
+has made no explicit choice; a deliberate future off choice still wins.
+
+Focused checks, affected template tests, local and Vercel builds, live template
+inspection, www/apex resolution, and a fresh in-app-browser visual reload all
+passed. No Brittany account data or unrelated external state changed. This
+section supersedes the earlier statements below that the About block remained
+hidden pending explicit publication.
+
 ## Outcome
 
 Brittany's grandfathered Britt with Bling site now has Brittany-only Workspace
@@ -30,8 +47,8 @@ her customer site.
 - The hero image remains curated and has no upload control.
 - “The Rise of Her” remains static and has no Workspace editor.
 - Brittany's saved customer data was not changed during implementation or
-  smoke testing. The restored About section remains hidden until she or Louis
-  explicitly saves and publishes it.
+  smoke testing. The later customer-site correction above restores the About
+  section by default without a database mutation.
 - No extension, Chrome Web Store, email, credit, billing, DNS-provider, Live
   Queue, or unrelated customer change was made.
 - Existing `artifacts/` and `test-results/` were preserved.
@@ -45,17 +62,16 @@ her customer site.
 - Two clean production builds passed, including Next.js TypeScript validation
   and static generation.
 - Local rendered Brittany page: meaningful content, no framework overlay or
-  browser errors, fixed hero present, one Rise iframe, one showcase iframe, and
-  hidden unpublished About section.
+  browser errors, fixed hero present, one Rise iframe, and one showcase iframe.
 - Safe synthetic Workspace smoke: opened Tools → Customer-facing site setup,
   removed a showcase video, changed Black Diamond to Rose Gold, saved, and
   confirmed the persisted result with no browser errors. The reusable reviewer
   settings were manually restored to Black Diamond and their original showcase
   video after the test.
-- Live `https://www.yoursparklesuite.com/brittwithbling`: HTTP 200 and visual
-  smoke passed. Hero, “The Rise of Her,” current showcase video, Dance Floor
-  Coming soon language, and hidden unpublished About section were confirmed.
-  The apex path redirects to the same www route.
+- Live `https://www.yoursparklesuite.com/brittwithbling`: the original smoke
+  confirmed the hero, “The Rise of Her,” showcase video, and Dance Floor copy.
+  The later correction above additionally confirms the restored public
+  About/media block. The apex path redirects to the same www route.
 - Vercel inspection confirms both Suite domains resolve to Ready deployment
   `dpl_2QEEHmatFCVaoGV53q45AyYWWFQi`. As expected for this shared Vercel
   project, its configured customer aliases also moved with the production

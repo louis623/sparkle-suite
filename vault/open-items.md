@@ -1,5 +1,14 @@
 # Open Items
 
+## September 8, 2026 - Brittany public section correction
+
+- [x] **Restore Brittany's hidden customer-facing About/media block** —
+  application `4cf10ebf` / Ready deployment
+  `dpl_BESV662NEXSgJnNPCHo4hD7HWs69` restores the existing copy and portrait by
+  default while keeping empty optional Sparkle Moment video cards hidden. The
+  Workspace switch reflects the restored default and can explicitly hide the
+  section later.
+
 ## September 8, 2026 - Brittany Workspace media controls
 
 - [x] **Release Brittany-only Workspace media parity** — application
@@ -8,9 +17,10 @@
   durable remove/replace state, About publication, and visible standard theme
   switching while preserving the fixed hero and “The Rise of Her.”
 - [ ] **Copy Brittany's remaining legacy media when Louis resumes it** — use
-  the new Workspace controls to add only the media Louis selects from the old
-  site, then explicitly publish the About/Sparkle Moments section when ready.
-  Do not fetch, upload, or publish this automatically.
+  the new Workspace controls to add only the optional videos Louis selects from
+  the old site. The About/media section is already public with existing content;
+  empty optional video positions remain hidden until populated. Do not fetch or
+  upload missing media automatically.
 
 ## September 8, 2026 - Consolidated memory closeout
 

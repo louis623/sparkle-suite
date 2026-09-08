@@ -1,5 +1,18 @@
 # Decision Log
 
+## 2026-09-08 - Brittany's migrated About/media block is public by default
+
+Decision: The September 5 show-night hide is reversed on Brittany's actual
+customer-facing site. When Brittany has never made an explicit About-section
+visibility choice, the migrated About/media block defaults to visible and the
+Workspace switch reflects that state. An explicit later off choice still wins.
+Existing copy and portrait may render immediately; optional short-video cards
+remain absent while empty.
+
+Reason: Louis clarified that restoring the Workspace controls alone did not
+satisfy “unhide.” This keeps the grandfathered site visibly restored without
+publishing broken empty cards or changing Brittany's stored customer data.
+
 ## 2026-09-08 - Brittany keeps normal site controls plus scoped legacy media controls
 
 Decision: Treat `brittwithbling` as a grandfathered custom tenant, not a new
