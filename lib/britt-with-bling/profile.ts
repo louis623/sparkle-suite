@@ -459,6 +459,11 @@ export function applyBrittWithBlingHomepage(
             mediaUrl: BRITT_WITH_BLING_PROFILE.joinHeroImageUrl,
           },
         ],
+    // The migrated About/media section existed before the September 5
+    // show-night hide. Restore it by default when Brittany has not yet used
+    // the Workspace visibility control; an explicit off choice still wins.
+    showAboutSection:
+      homepage.aboutMediaManaged === true ? homepage.showAboutSection : true,
     showcaseVideoCaption: '@brittwithbling live reveal highlights',
     // Keep a rep-configured customer video intact; this profile URL is only
     // the fallback for the legacy site configuration.

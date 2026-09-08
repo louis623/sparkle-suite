@@ -2882,6 +2882,10 @@ describe('DashboardPlaceholder', () => {
       ],
     }
     const draft = getSiteSettingsDraft(settings, { isBrittWithBling: true })
+    expect(
+      draft.homepageMediaSlots?.find((slot) => slot.key === 'about_1')
+        ?.sectionVisible,
+    ).toBe(true)
     const html = renderToStaticMarkup(
       createElement(SiteSettingsCard, {
         state: { status: 'ready', settings },

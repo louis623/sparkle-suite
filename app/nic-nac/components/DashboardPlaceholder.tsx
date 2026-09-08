@@ -1755,7 +1755,9 @@ export function getSiteSettingsDraft(
             ...slot,
             imageUrl: slot.imageUrl || BRITT_WITH_BLING_ABOUT_PORTRAIT_URL,
             isVisible: true,
-            sectionVisible: slot.sectionVisible === true,
+            // Brittany's migrated public About/media section is live by
+            // default. Preserve an explicit future hide choice.
+            sectionVisible: slot.sectionVisible !== false,
           }
         }
         return slot

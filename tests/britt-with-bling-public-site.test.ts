@@ -126,6 +126,7 @@ describe('Britt With Bling hybrid public site contract', () => {
     expect(homepage.footerLinks.faq).toBe('#wibp')
     expect(homepage.footerLinks).not.toHaveProperty('about')
     expect(homepage.publicSiteVariant).toBe('britt_with_bling_hybrid')
+    expect(homepage.showAboutSection).toBe(true)
     expect(homepage.aboutMediaSlots.map((slot) => slot.caption).join(' ')).not.toMatch(
       /ask nic-nac/i,
     )
@@ -170,7 +171,7 @@ describe('Britt With Bling hybrid public site contract', () => {
     expect(homepage.featuredReveal?.title).toBe('The Rise of Her')
   })
 
-  it('restores Brittany About media only when she explicitly publishes the section', () => {
+  it('keeps Brittany About media published when she explicitly leaves the section visible', () => {
     const homepage = mapPreviewSettingsToHomepageTemplateData(
       {
         ...brittWithBlingSettings,
@@ -212,6 +213,26 @@ describe('Britt With Bling hybrid public site contract', () => {
     expect(homepage.aboutMediaSlots[0]?.mediaUrl).toContain('/britt-with-bling/hero.jpeg')
     expect(homepage.aboutMediaSlots[1]?.href).toContain('/video/7412345678901234567')
     expect(homepage.aboutMediaSlots[2]?.href).toBe('#')
+  })
+
+  it('lets Brittany explicitly hide the restored About media section', () => {
+    const homepage = mapPreviewSettingsToHomepageTemplateData(
+      {
+        ...brittWithBlingSettings,
+        homepageMediaSlots: [
+          {
+            key: 'about_1',
+            caption: '',
+            imageUrl: '',
+            videoUrl: '',
+            sectionVisible: false,
+          },
+        ],
+      },
+      brittWithBlingExtras,
+    )
+
+    expect(homepage.showAboutSection).toBe(false)
   })
 
   it('keeps an intentionally removed Brittany portrait removed', () => {
