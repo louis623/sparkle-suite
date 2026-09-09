@@ -94,6 +94,7 @@ or Brittany's customer account. No authentication bypass or repair was attempted
 ## Next step owned by Louis
 
 Louis plans to copy any still-missing media from Brittany's old site. Do not
-automatically fetch, upload, publish, or replace that media. Use Brittany's new
-Workspace controls when Louis explicitly resumes that work, and publish the
-About section only after its chosen portrait/videos are ready.
+automatically fetch, upload, or replace that media. The public About/media
+section has already been restored with its migrated copy and portrait; use
+Brittany's new Workspace controls when Louis explicitly resumes adding the
+optional videos.

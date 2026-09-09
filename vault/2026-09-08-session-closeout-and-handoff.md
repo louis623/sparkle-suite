@@ -4,6 +4,17 @@ This consolidates the September 5 work and September 8 memory-only closeout.
 Historical completion evidence is not a fresh September 8 production, mailbox,
 billing, or live-show check. Do not infer that a show is currently running.
 
+## Later same-session correction
+
+The Brittany-only Workspace/media release and a subsequent customer-facing
+correction supersede the September 5 temporary hide for her About/media block.
+Current source/deployment authority is application `4cf10ebf` / Ready Vercel
+deployment `dpl_BESV662NEXSgJnNPCHo4hD7HWs69`; see
+[Brittany Workspace media controls closeout](2026-09-08-brittany-workspace-media-controls-closeout.md).
+The public `/brittwithbling` About/media block is visible with its migrated
+portrait/copy, empty optional video cards remain omitted, and Brittany’s
+Workspace visibility switch defaults to on unless she explicitly turns it off.
+
 ## Completed work
 
 - Brittany's existing public Workspace welcome guide was rewritten and published
@@ -128,4 +139,3 @@ or make other changes. Ask only when required information is genuinely missing.
 - [Live-show mitigation](2026-09-05-live-lineup-closeout.md)
 - [Final button release](2026-09-05-britt-hero-buttons-closeout.md)
 - Four current vault files, especially September 5 welcome/email session-log entries.
-
