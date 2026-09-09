@@ -2642,11 +2642,13 @@ export function buildWorkspacePublicSiteLocation({
   repId?: string | null
 }) {
   const normalizedCustomDomain = normalizeAmethystCustomDomainCandidate(customDomain)
-  const href = normalizedCustomDomain
-    ? `https://${normalizedCustomDomain}`
-    : publicSiteSlug || repId
+  const previewHref =
+    publicSiteSlug || repId
       ? buildCustomerSparkleSiteHref({ publicSiteSlug, repId })
       : null
+  const href = normalizedCustomDomain
+    ? `https://${normalizedCustomDomain}`
+    : previewHref
   const url = href
     ? /^https:\/\//i.test(href)
       ? href
@@ -2655,6 +2657,7 @@ export function buildWorkspacePublicSiteLocation({
 
   return {
     href,
+    previewHref,
     url,
     display: url ? url.replace(/^https:\/\/(?:www\.)?/, '') : null,
   }
@@ -5844,6 +5847,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     repId: currentRepId,
   })
   const customerSparkleSiteHref = customerSparkleSiteLocation.href
+  const customerSparkleSitePreviewHref = customerSparkleSiteLocation.previewHref
   const customerSparkleSiteUrl = customerSparkleSiteLocation.url
   const customerSparkleSiteDisplay = customerSparkleSiteLocation.display
     ? customerSparkleSiteLocation.display
@@ -5872,10 +5876,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
   }
   const handleOpenCustomerSitePreview = () => {
-    if (!customerSparkleSiteHref) return
+    if (!customerSparkleSitePreviewHref) return
     openWorkspacePreview({
       mode: 'live_site_preview',
-      href: customerSparkleSiteHref,
+      href: customerSparkleSitePreviewHref,
       title: 'Live Site Preview',
     })
   }

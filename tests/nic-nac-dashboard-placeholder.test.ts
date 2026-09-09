@@ -541,7 +541,7 @@ const TRADE_BOARD_READY_STATE = {
 }
 
 describe('DashboardPlaceholder', () => {
-  it('uses a saved custom domain for the Workspace public-site header and preview', () => {
+  it('uses a saved custom domain for the Workspace header while keeping preview same-origin', () => {
     expect(
       buildWorkspacePublicSiteLocation({
         customDomain: 'https://www.BrisGlowtique.com/',
@@ -550,6 +550,7 @@ describe('DashboardPlaceholder', () => {
       }),
     ).toEqual({
       href: 'https://www.brisglowtique.com',
+      previewHref: '/brisglowtique',
       url: 'https://www.brisglowtique.com',
       display: 'brisglowtique.com',
     })
@@ -564,6 +565,7 @@ describe('DashboardPlaceholder', () => {
       }),
     ).toEqual({
       href: '/brisglowtique',
+      previewHref: '/brisglowtique',
       url: 'https://www.yoursparklesuite.com/brisglowtique',
       display: 'yoursparklesuite.com/brisglowtique',
     })
