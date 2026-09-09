@@ -105,8 +105,13 @@ export function summarizeSparkleSuiteProjectedRevenue(
 export async function loadSparkleSuiteAccountingProjection(
   supabase: SupabaseClient,
 ): Promise<SparkleSuiteAccountingProjection> {
-  const customers = await listOperatorCustomerProfiles(supabase, { limit: 500 })
-  return summarizeSparkleSuiteProjectedRevenue(customers)
+  const customers: Awaited<ReturnType<typeof listOperatorCustomerProfiles>> = []
+  for(let offset=0;offset<50000;offset+=500) {
+    const page=await listOperatorCustomerProfiles(supabase,{limit:500,offset,classification:'customer'})
+    customers.push(...page)
+    if(page.length<500)return summarizeSparkleSuiteProjectedRevenue(customers)
+  }
+  throw new Error('Accounting projection exceeded its bounded source read. It cannot be shown as a complete total.')
 }
 
 function easternMonthStart(now = new Date()) {

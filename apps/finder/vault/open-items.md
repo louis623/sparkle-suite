@@ -1,5 +1,9 @@
 # Sparkle Finder Open Items
 
+## September 8, 2026 - LOC evidence release follow-up
+
+Configure the dedicated server-only review credential pair, deploy the verified branch to Finder's own Vercel project, and verify private evidence and exact-variant finalization using designated synthetic data. Preserve current live systems until acceptance. Supported protected reviewer access remains unavailable; see Suite vault `2026-09-08-loc-control-center-build-checkpoint.md`.
+
 - Suite compatibility prerequisites are complete in live release `f3de6c15`, and Finder Releases 1-3 are complete in `0c54a32`, `93107f6`, `b8ecf57`, and smoke-test follow-up `0613800`. Finder-private migration `20260825143000_sparkle_finder_showcase_studio_recovery.sql` is applied with current remote history; Release 3 deployment `dpl_34Hs61FVJmuLi4E6pMcX8zZCJSvc` is `READY` and custom-domain verified.
 - The four-release Suite compatibility plan is complete through Finder commit `1b52f44` and deployment `dpl_GKS4RzyHxnpchfYsypE3q3UT67DR`; keep the strict v2 gate and sanitized fixtures in the normal release matrix as Suite evolves.
 - With Louis's designated demo account and demo data, run a positive signed-in production Showcase Studio v2 pass covering Google OAuth return as applicable, two-photo evidence persistence, ambiguous exact-candidate confirmation, temporary retry/replay, terminal status, and cleanup. Do not run these mutations against an arbitrary production customer account.

@@ -12,6 +12,7 @@ export interface CustomerWaitlistRow {
   operator_notes: string | null
   account_activated_at: string | null
   created_at: string
+  updated_at?: string
 }
 
 export interface CustomerWaitlistLead {
@@ -24,6 +25,7 @@ export interface CustomerWaitlistLead {
   notes: string
   accountActivatedAt: string | null
   createdAt: string
+  updatedAt?: string
 }
 
 export const CUSTOMER_WAITLIST_SELECT = [
@@ -36,6 +38,7 @@ export const CUSTOMER_WAITLIST_SELECT = [
   'operator_notes',
   'account_activated_at',
   'created_at',
+  'updated_at',
 ].join(', ')
 
 export function normalizeCustomerWaitlistRow(
@@ -53,6 +56,7 @@ export function normalizeCustomerWaitlistRow(
     notes: row.operator_notes?.trim() ?? '',
     accountActivatedAt: row.account_activated_at,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
   }
 }
 

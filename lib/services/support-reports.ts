@@ -280,7 +280,7 @@ export async function createSupportReport(
 
 export async function listOperatorSupportReports(
   supabase: SupabaseClient,
-  options: { status?: SupportReportStatus; limit?: number } = {},
+  options: { status?: SupportReportStatus; limit?: number; offset?: number } = {},
 ) {
   let query = supabase.from('support_reports').select(SUPPORT_REPORT_SELECT)
 
@@ -289,10 +289,11 @@ export async function listOperatorSupportReports(
   }
 
   const limit = Math.min(Math.max(options.limit ?? 50, 1), 100)
-  const { data, error } = await query
+  const ordered = query
     .order('urgency_rank', { ascending: false })
     .order('created_at', { ascending: false })
-    .limit(limit)
+    .order('id', { ascending: false })
+  const { data, error } = await (options.offset === undefined ? ordered.limit(limit) : ordered.range(options.offset, options.offset + limit - 1))
 
   if (error) throw error
   return data ?? []

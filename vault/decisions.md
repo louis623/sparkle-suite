@@ -1,5 +1,9 @@
 # Decision Log
 
+## 2026-09-08 - Sparkle controls use LOC style and assignable agent access
+
+Louis confirmed full control-center functionality should be rebuilt using LOC cream/sage styling and mobile navigation. Keep the existing center operational until parallel testing and acceptance. Use one named operation catalog for owner UI and agent API/MCP, with current per-area/action/target grants, durable receipts and explicit selected memory routing. Shared agent credentials represent a shared identity, not isolated bots; shared connections cannot Act. See [checkpoint](2026-09-08-loc-control-center-build-checkpoint.md).
+
 ## 2026-09-08 (ET) - Live Lineup audit precedes implementation
 
 Louis requested a full-system audit before hardening. The completed audit is at

@@ -34,11 +34,13 @@ function makeUpsertResult(data: unknown, error: unknown = null) {
 }
 
 function makeListResult(data: unknown[], error: unknown = null) {
+  let filtered = data
   const query = {
     select: vi.fn(() => query),
-    in: vi.fn(() => query),
+    in: vi.fn((key:string,values:string[]) => { filtered=filtered.filter(row=>values.includes(String((row as Record<string,unknown>)[key]))); return query }),
     order: vi.fn(() => query),
-    limit: vi.fn(async () => ({ data, error })),
+    range: vi.fn(async (start:number,end:number) => ({data:filtered.slice(start,end+1),error})),
+    limit: vi.fn(async () => ({ data:filtered, error })),
   }
   return query
 }
@@ -71,11 +73,11 @@ function makeClient(options: {
         source_snapshot: {},
       },
     ),
-  } satisfies Record<TableName, unknown>
+  } satisfies Partial<Record<TableName, unknown>>
 
   return {
     client: {
-      from: vi.fn((table: TableName) => queries[table]),
+      from: vi.fn((table: TableName) => queries[table as keyof typeof queries]),
     },
     queries,
   }
@@ -377,4 +379,27 @@ describe('listOperatorCustomerProfiles', () => {
       },
     ])
   })
+})
+
+
+describe('LOC paginated customer reads', () => {
+ it('finds later customers and fetches relationships only for that page',async()=>{
+  const reps=Array.from({length:502},(_,i)=>({id:'rep-'+i,business_name:'Customer '+i,email:'c'+i+'@example.com',status:'active'}))
+  const {client,queries}=makeListClient({reps,subscriptions:[{rep_id:'rep-0',status:'past_due'},{rep_id:'rep-501',status:'active',monthly_amount:49}],profiles:[],setupSessions:[]})
+  const result=await listOperatorCustomerProfiles(client as never,{offset:501,limit:1})
+  expect(result.map(row=>row.repId)).toEqual(['rep-501'])
+  expect(result[0].billing.status).toBe('active')
+  expect(queries.subscriptions.in).toHaveBeenCalledWith('rep_id',['rep-501'])
+ })
+ it('reads relationship history beyond one database page rather than truncating referral totals',async()=>{
+  const {client,queries}=makeListClient({reps:[{id:'rep-1',email:'safe@example.com'}],subscriptions:[],profiles:[],setupSessions:[],repReferrals:Array.from({length:1201},()=>({referrer_rep_id:'rep-1'}))})
+  const result=await listOperatorCustomerProfiles(client as never,{limit:1})
+  expect(result[0].referral.usageCount).toBe(1201)
+  expect(queries.rep_referrals.range).toHaveBeenCalledTimes(3)
+ })
+ it('targets one exact customer independently of its normal list position',async()=>{
+  const {client}=makeListClient({reps:[{id:'rep-1'},{id:'rep-2'}],subscriptions:[],profiles:[],setupSessions:[]})
+  const result=await listOperatorCustomerProfiles(client as never,{repIds:['rep-2'],limit:1})
+  expect(result.map(row=>row.repId)).toEqual(['rep-2'])
+ })
 })

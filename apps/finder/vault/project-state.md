@@ -1,5 +1,9 @@
 # Sparkle Finder Project State
 
+## September 8, 2026 - LOC private review integration built locally
+
+Added a separately authenticated private review-evidence endpoint for LOC's native Finder control-center review. Finder retains its own database, auth and deployment. 38 focused tests and production build pass; LOC fixture review/picker checks pass. No Finder deployment or secret configuration changed. Live synthetic evidence verification remains. See Suite vault `2026-09-08-loc-control-center-build-checkpoint.md`.
+
 Sparkle Finder's active implementation workspace is `C:\Users\louis\sparkle-suite-repo\apps\finder` on the Suite repository's allowlisted `codex/nic-nac-trade-hardening` branch.
 
 The former lightweight binder at `C:\Users\louis\sparkle-finder` has been folded into this repo for durable docs, plans, handoffs, vault memory, and repo-local skills. This keeps Sparkle Finder code and Open Brain/binder memory under one workspace root and avoids recurring Codex sandbox permission prompts.

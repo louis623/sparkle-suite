@@ -505,7 +505,7 @@ export async function updateRepConversationState(
 
 export async function listOperatorConversations(
   supabase: SupabaseClient,
-  options: { type?: WorkspaceConversationType; state?: WorkspaceConversationState; reportedOnly?: boolean; limit?: number } = {},
+  options: { type?: WorkspaceConversationType; state?: WorkspaceConversationState; reportedOnly?: boolean; limit?: number; offset?: number } = {},
 ) {
   const limit = Math.min(Math.max(options.limit ?? 50, 1), 100)
   let query = supabase.from('workspace_conversations').select(CONVERSATION_SELECT)
@@ -525,7 +525,8 @@ export async function listOperatorConversations(
       ? query.or(`conversation_type.neq.rep_direct,id.in.(${reportedIds.join(',')})`)
       : query.neq('conversation_type', 'rep_direct')
   }
-  const { data, error } = await query.order('last_message_at', { ascending: false }).order('id', { ascending: false }).limit(limit)
+  const ordered = query.order('last_message_at', { ascending: false }).order('id', { ascending: false })
+  const { data, error } = await (options.offset === undefined ? ordered.limit(limit) : ordered.range(options.offset, options.offset + limit - 1))
   if (error) throw serviceFailure('OPERATOR_CONVERSATION_LIST_FAILED', 'failed to list operator conversations', 'Conversations could not be loaded.', error)
   const rows = (data ?? []) as unknown as ConversationRow[]
   if (rows.length === 0) return { conversations: [], nextCursor: null }
@@ -611,7 +612,7 @@ function normalizeOperatorSupportReport(report: Record<string, unknown> | null) 
   }
 }
 
-export async function getOperatorConversation(supabase: SupabaseClient, conversationId: string) {
+export async function getOperatorConversation(supabase: SupabaseClient, conversationId: string, options: { markRead?: boolean } = {}) {
   const [conversation, messages, report, moderationReports, attachments, participants] = await Promise.all([
     supabase.from('workspace_conversations').select(CONVERSATION_SELECT).eq('id', conversationId).single(),
     supabase.from('workspace_conversation_messages').select(MESSAGE_SELECT).eq('conversation_id', conversationId).order('created_at', { ascending: true }).order('id', { ascending: true }),
@@ -640,7 +641,7 @@ export async function getOperatorConversation(supabase: SupabaseClient, conversa
     (participant) => participant.principal_type === 'support_queue',
   )
   const requesterLabel = operatorParticipantLabel(requester)
-  if (row.conversation_type === 'support' && supportQueue) {
+  if (row.conversation_type === 'support' && supportQueue && options.markRead !== false) {
     const markedRead = await supabase
       .from('workspace_conversation_participants')
       .update({
@@ -666,7 +667,7 @@ export async function getOperatorConversation(supabase: SupabaseClient, conversa
       state: row.state,
       subject: row.subject,
       updatedAt: row.updated_at,
-      unreadCount: 0,
+      unreadCount: options.markRead === false ? supportQueue?.unread_count ?? 0 : 0,
       participantLabels: requesterLabel ? [requesterLabel] : [],
       latestMessagePreview: row.latest_message_preview,
     },

@@ -1,0 +1,16 @@
+import { createHash } from 'node:crypto'
+import { describe,expect,it,vi } from 'vitest'
+import { authorizeReviewEvidence,parseReviewEvidenceQuery,readControlCenterReviewEvidence } from '@/lib/sparkle-finder/control-center-review-evidence'
+import { buildShowcaseStudioAssetPath,showcaseStudioBucket } from '@/lib/sparkle-finder/showcase-studio-persistence'
+const owner='00000000-0000-4000-8000-000000000001',submissionId='00000000-0000-4000-8000-000000000002',assetId='00000000-0000-4000-8000-000000000003'
+function client(options:{stage?:string;asset?:Record<string,unknown>}={}) {
+ const signed=vi.fn(async()=>({data:{signedUrl:'https://finder-project.supabase.co/storage/v1/object/sign/sparkle-finder-private/safe?token=short'},error:null}))
+ const rows:Record<string,Record<string,unknown>>={sparkle_finder_nic_nac_intake_submissions:{id:submissionId,user_id:owner,status:options.stage??'publish_queued'},sparkle_finder_nic_nac_intake_assets:{id:assetId,submission_id:submissionId,user_id:owner,asset_kind:'original_label',storage_bucket:showcaseStudioBucket,storage_path:buildShowcaseStudioAssetPath(owner,submissionId,'original_label','image/jpeg'),content_type:'image/jpeg',byte_size:1000,...options.asset}}
+ const from=(table:string)=>{let matches=true;const builder={select:()=>builder,eq:(field:string,value:unknown)=>{if(rows[table]?.[field]!==value)matches=false;return builder},maybeSingle:async()=>({data:matches?rows[table]:null,error:null})};return builder}
+ return {admin:{from,storage:{from:()=>({createSignedUrl:signed})}} as never,signed}
+}
+describe('Finder private review evidence',()=>{
+ it('requires its dedicated bearer digest, never a cookie or caller supplied owner',()=>{const token='dedicated-review-token'.repeat(3),digest=createHash('sha256').update(token).digest('hex');expect(()=>authorizeReviewEvidence(new Request('https://example.com',{headers:{authorization:`Bearer ${token}`}}),digest)).not.toThrow();expect(()=>authorizeReviewEvidence(new Request('https://example.com',{headers:{cookie:'owner=true'}}),digest)).toThrow('unauthorized');expect(()=>authorizeReviewEvidence(new Request('https://example.com',{headers:{authorization:'Bearer '+'other'.repeat(10)}}),digest)).toThrow('unauthorized');expect(()=>parseReviewEvidenceQuery(new URL(`https://example.com?finderSubmissionId=${submissionId}&finderAssetId=${assetId}&ownerId=${owner}`))).toThrow()})
+ it('signs only the exact owner-bound queued photo for120 seconds',async()=>{const {admin,signed}=client();const result=await readControlCenterReviewEvidence(admin,{finderSubmissionId:submissionId,finderAssetId:assetId},new Date('2026-09-08T00:00:00Z'));expect(result.expiresAt).toBe('2026-09-08T00:02:00.000Z');expect(signed).toHaveBeenCalledWith(buildShowcaseStudioAssetPath(owner,submissionId,'original_label','image/jpeg'),120)})
+ it.each([{stage:'published'},{asset:{submission_id:'other'}},{asset:{user_id:'other'}},{asset:{storage_bucket:'public'}},{asset:{storage_path:'other/customer/private.jpg'}},{asset:{content_type:'image/svg+xml'}},{asset:{byte_size:1500001}}])('denies stale queues, cross-customer paths and unsafe metadata %j',async(options)=>{const {admin,signed}=client(options);await expect(readControlCenterReviewEvidence(admin,{finderSubmissionId:submissionId,finderAssetId:assetId})).rejects.toThrow();expect(signed).not.toHaveBeenCalled()})
+})

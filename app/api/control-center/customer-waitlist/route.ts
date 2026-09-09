@@ -103,12 +103,13 @@ export async function PATCH(request: Request) {
     }
 
     const admin = createAdminClient()
-    const { data, error } = await admin
+    let query = admin
       .from('sparkle_suite_waitlist')
       .update(update)
       .eq('id', id)
-      .select(CUSTOMER_WAITLIST_SELECT)
-      .single()
+    if(typeof body.expectedUpdatedAt==='string')query=query.eq('updated_at',body.expectedUpdatedAt)
+    const {data,error}=await query.select(CUSTOMER_WAITLIST_SELECT).single()
+    if(error?.code==='PGRST116'&&typeof body.expectedUpdatedAt==='string')return NextResponse.json({error:'This waitlist entry changed. Refresh it before saving.'},{status:409})
 
     if (error || !data) throw error ?? new Error('Waitlist update returned no row')
     return NextResponse.json({
@@ -139,12 +140,19 @@ export async function DELETE(request: Request) {
     if (!lead) {
       return NextResponse.json({ error: 'Waitlist entry was not found.' }, { status: 404 })
     }
-    const { error: deleteError } = await admin
+    let deletion = admin
       .from('sparkle_suite_waitlist')
       .delete()
       .eq('id', id)
-
-    if (deleteError) throw deleteError
+    if(typeof body.expectedUpdatedAt==='string') {
+      deletion=deletion.eq('updated_at',body.expectedUpdatedAt)
+      const removed=await deletion.select('id').maybeSingle()
+      if(removed.error)throw removed.error
+      if(!removed.data)return NextResponse.json({error:'This waitlist entry changed. Refresh it before deleting.'},{status:409})
+    } else {
+      const {error:deleteError}=await deletion
+      if(deleteError)throw deleteError
+    }
     return NextResponse.json({ ok: true, id })
   } catch (error) {
     return errorResponse(error)

@@ -1,5 +1,9 @@
 # Session Log
 
+## September 8, 2026 - LOC control-center rebuild and verification
+
+Implemented and tested the LOC integration with coordinated UI, agent registry and Suite/Finder bridge work. See [checkpoint](2026-09-08-loc-control-center-build-checkpoint.md) for exact verification and remaining gates. Final browser requests validate against the actual catalog; Fold/cover layouts preserve LOC styling. Preserved concurrent Live Lineup audit work. No live customer mutations or release occurred. Protected reviewer link requested from Louis; do not substitute personal customer data.
+
 ## September 8, 2026 (ET) - Full-system Live Lineup reliability audit
 
 - Louis requested a very deep audit first, covering Workspace/backend,

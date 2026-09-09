@@ -1,5 +1,9 @@
 # Project State
 
+## September 8, 2026 - LOC control-center local implementation checkpoint
+
+See [LOC build checkpoint](2026-09-08-loc-control-center-build-checkpoint.md). Native LOC-themed Suite/Finder controls, signed bridge, agent API/MCP/jobs, audited support, and selected memory capture are implemented and locally tested. All three production builds pass. No deployment, migration or operations secret was changed; existing control center remains live. Supported protected reviewer access is the current release blocker; live integration, client proof and acceptance remain.
+
 ## September 8, 2026 (ET) - Deep Live Lineup audit completed; repairs not started
 
 See `docs/sparkle-suite/audits/2026-09-08-live-lineup-system-audit.md` for the

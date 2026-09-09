@@ -103,10 +103,10 @@ export async function createRemyReplyApprovalRequest(
 
 export async function listRemyReplyApprovals(
   supabase: SupabaseClient,
-  options: { status?: 'requested' | 'approved' | 'executed'; limit?: number } = {},
+  options: { status?: 'requested' | 'approved' | 'executed'; limit?: number; expireRequests?: boolean } = {},
 ) {
   const now = new Date().toISOString()
-  await supabase
+  if(options.expireRequests!==false) await supabase
     .from('remy_communications_reply_approvals')
     .update({ status: 'expired' })
     .eq('status', 'requested')
@@ -118,6 +118,7 @@ export async function listRemyReplyApprovals(
     .order('requested_at', { ascending: false })
     .limit(Math.min(Math.max(options.limit ?? 50, 1), 100))
   if (options.status) query = query.eq('status', options.status)
+  if(options.expireRequests===false&&options.status==='requested')query=query.gt('expires_at',now)
   const result = await query
   if (result.error) throw result.error
   return (result.data ?? []).map((row) => mapApproval(asRow(row)))

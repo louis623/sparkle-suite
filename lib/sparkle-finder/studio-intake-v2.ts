@@ -831,7 +831,7 @@ export async function listSparkleFinderStudioReviewQueue(options: {
   return { items, hasMore: rows.length > limit }
 }
 
-function mapStudioReviewQueueRow(row: {
+export function mapStudioReviewQueueRow(row: {
   finder_submission_id: string
   resolve_input: unknown
   resolve_result: unknown

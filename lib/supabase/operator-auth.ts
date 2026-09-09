@@ -2,6 +2,7 @@ import { AuthError, getAuthenticatedRep } from './auth'
 import { createAdminClient } from './admin'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { cookies } from 'next/headers'
+import { getLocOperatorContext } from '@/lib/loc-control-center/context'
 
 const CONTROL_CENTER_SESSION_COOKIE = 'sparkle_control_center_session'
 const CONTROL_CENTER_SESSION_MAX_AGE_SECONDS = 60 * 60 * 12
@@ -18,7 +19,7 @@ type ControlCenterSession = {
 export type ControlCenterOperatorScope = 'owner' | 'site_support' | 'accounting_viewer'
 
 export type ControlCenterAccess = {
-  method: 'control_center_session'
+  method: 'control_center_session' | 'loc_service'
   operator: { email: string; repId: string }
   scope: ControlCenterOperatorScope
 }
@@ -144,6 +145,8 @@ async function getDevBypassOperator() {
 }
 
 export async function getAuthenticatedOperator() {
+  const locContext = getLocOperatorContext()
+  if (locContext) return locContext.operator
   let context: OperatorContext
 
   try {
@@ -254,6 +257,8 @@ export async function getControlCenterSession() {
 }
 
 async function getScopedControlCenterAccess(): Promise<ControlCenterAccess> {
+  const locContext = getLocOperatorContext()
+  if (locContext) return { method: 'loc_service', operator: { email: locContext.operator.rep.email, repId: locContext.operator.repId }, scope: 'owner' }
   const session = await getControlCenterSession()
   if (!session) throw new AuthError('Control Center sign in is required.')
 

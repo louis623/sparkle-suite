@@ -281,50 +281,70 @@ export async function ensureClientAccountProfile(
   return normalizeProfile(profile as ClientAccountProfileRow, sourceSnapshot)
 }
 
+async function readAllProfileRelations<T>(query: { range: (start: number, end: number) => PromiseLike<{ data: T[] | null; error: unknown }> }): Promise<{data:T[];error:unknown}> {
+  const rows:T[]=[]
+  for(let offset=0;offset<100000;offset+=500) {
+    const page=await query.range(offset,offset+499)
+    if(page.error) return {data:[],error:page.error}
+    rows.push(...(page.data??[]))
+    if((page.data??[]).length<500) return {data:rows,error:null}
+  }
+  throw new Error('Customer relationship history exceeds the bounded read limit; refine the customer page.')
+}
+
 export async function listOperatorCustomerProfiles(
   supabase: SupabaseClient,
-  options: { limit?: number } = {},
+  options: { limit?: number; offset?: number; repIds?: string[]; query?: string; classification?: RepAccountClassification } = {},
 ): Promise<OperatorCustomerProfile[]> {
   const limit = Math.min(Math.max(options.limit ?? 200, 1), 500)
 
-  const [repsResult, subscriptionsResult, profilesResult, setupSessionsResult, liveQueueResult] =
-    await Promise.all([
-      supabase
+  let repQuery = supabase
         .from('reps')
         .select(
           'id, account_classification, display_name, business_name, email, phone, status, referral_code, public_site_slug, custom_domain, shop_link, streaming_links, social_handles, created_at, updated_at',
         )
         .order('business_name', { ascending: true })
-        .limit(limit),
-      supabase
+        .order('id', { ascending: true })
+  if (options.repIds) repQuery = repQuery.in('id', options.repIds)
+  if(options.classification)repQuery=repQuery.eq('account_classification',options.classification)
+  if (options.query?.trim()) {
+    const term = options.query.trim().replace(/[,"\\()%_*]/g, ' ').slice(0, 240)
+    repQuery = repQuery.or(`business_name.ilike.%${term}%,display_name.ilike.%${term}%,email.ilike.%${term}%`)
+  }
+  const offset = Math.max(0, options.offset ?? 0)
+  const repsResult = await repQuery.range(offset, offset + limit - 1)
+  if (repsResult.error) throw repsResult.error
+  const pageRepIds = (repsResult.data ?? []).map((rep) => rep.id as string)
+  if (!pageRepIds.length) return []
+  const [subscriptionsResult, profilesResult, setupSessionsResult, liveQueueResult] = await Promise.all([
+      readAllProfileRelations(supabase
         .from('subscriptions')
         .select(
           'rep_id, status, plan_tier, pricing_tier, monthly_amount, current_period_end, stripe_customer_id, updated_at',
         )
         .order('updated_at', { ascending: false })
-        .limit(limit * 2),
-      supabase
+        .order('id').in('rep_id', pageRepIds)),
+      readAllProfileRelations(supabase
         .from('client_account_profiles')
         .select(
           'id, rep_id, client_name, show_name, primary_contact_name, email, phone, account_status, subscription_status, support_tier, public_site_slug, custom_domain, internal_notes, updated_at',
         )
         .order('updated_at', { ascending: false })
-        .limit(limit * 2),
-      supabase
+        .order('id').in('rep_id', pageRepIds)),
+      readAllProfileRelations(supabase
         .from('self_serve_setup_sessions')
         .select(
           'rep_id, status, current_step, dashboard_unlocked_at, updated_at',
         )
         .order('updated_at', { ascending: false })
-        .limit(limit * 2),
-      supabase
+        .order('id').in('rep_id', pageRepIds)),
+      readAllProfileRelations(supabase
         .from('live_queue')
         .select('rep_id, sync_code, created_at')
         .order('created_at', { ascending: true })
-        .limit(limit * 2),
+        .order('id').in('rep_id', pageRepIds)),
     ])
 
-  if (repsResult.error) throw repsResult.error
   if (subscriptionsResult.error) throw subscriptionsResult.error
   if (profilesResult.error) throw profilesResult.error
   if (setupSessionsResult.error) throw setupSessionsResult.error
@@ -334,11 +354,11 @@ export async function listOperatorCustomerProfiles(
   const repIds = repRows.map((rep) => rep.id)
   const referralRowsResult =
     repIds.length > 0
-      ? await supabase
+      ? await readAllProfileRelations(supabase
           .from('rep_referrals')
           .select('referrer_rep_id, referral_code_used')
           .in('referrer_rep_id', repIds)
-          .limit(limit * 10)
+          .order('id'))
       : { data: [], error: null }
 
   if (referralRowsResult.error) throw referralRowsResult.error

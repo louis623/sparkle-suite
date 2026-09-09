@@ -1,5 +1,9 @@
 # Sparkle Finder Decisions
 
+## 2026-09-08 - LOC consumes scoped private evidence through Finder
+
+Finder alone validates private review evidence against the queued submission, owner, bucket/path, MIME and size before issuing short-lived access. Suite receives a dedicated server credential; Finder stores its digest. LOC operator presentation follows LOC styling while Finder customer styling and independent systems stay intact. Local implementation is not live proof.
+
 ## 2026-08-25 - Finder Is Contained In The Suite Repository
 
 Decision: Sparkle Finder's active workspace is `C:\Users\louis\sparkle-suite-repo\apps\finder`. It remains an independent application with its own package lock, authentication, Supabase project, Vercel project, and runtime configuration. The former standalone repository is retained as a rollback copy and is not used for new work.

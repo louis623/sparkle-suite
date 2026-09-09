@@ -1,5 +1,9 @@
 # Open Items
 
+## September 8, 2026 - LOC rebuild release gates
+
+Local implementation and automated/browser checks are recorded in the [checkpoint](2026-09-08-loc-control-center-build-checkpoint.md). Remaining: supported protected synthetic reviewer entry; additive migrations and new server connection configuration; deployed workflow/receipt/support/Finder/memory verification; real Codex/Grok connection proof; physical Fold and parallel-use acceptance. Current center stays live. This is a build handoff, not a replacement for the live Control Center Task List.
+
 ## September 8, 2026 (ET) - Live Lineup audit delivered
 
 - [x] Deep audit of weekend incidents and the full current Live Lineup path.

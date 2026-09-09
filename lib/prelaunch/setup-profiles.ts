@@ -39,7 +39,10 @@ export interface PrelaunchLaunchSetupProfile {
   updatedAt: string
 }
 
+export class PrelaunchSetupProfileConflictError extends Error {}
+
 export interface UpsertPrelaunchLaunchSetupProfileInput {
+  expectedUpdatedAt?: string | null
   launchBuildId: string
   businessName: string
   publicSiteGoal?: string
@@ -189,10 +192,7 @@ export async function upsertPrelaunchLaunchSetupProfile(
   const businessName = cleanRequiredString(input.businessName, 'businessName')
   const status = input.status ?? 'draft'
 
-  const { data, error } = await admin
-    .from('sparkle_suite_launch_setup_profiles')
-    .upsert(
-      {
+  const values = {
         launch_build_id: launchBuildId,
         business_name: businessName,
         public_site_goal: cleanText(input.publicSiteGoal),
@@ -204,13 +204,18 @@ export async function upsertPrelaunchLaunchSetupProfile(
         must_have_launch_notes: cleanText(input.mustHaveLaunchNotes),
         open_questions: cleanOpenQuestions(input.openQuestions),
         status,
-      },
-      { onConflict: 'launch_build_id' },
-    )
-    .select(PRELAUNCH_LAUNCH_SETUP_PROFILE_SELECT)
-    .single()
-
-  if (error) throw error
+      }
+  const table = admin.from('sparkle_suite_launch_setup_profiles')
+  const query = input.expectedUpdatedAt === undefined
+    ? table.upsert(values,{onConflict:'launch_build_id'})
+    : input.expectedUpdatedAt === null
+      ? table.insert(values)
+      : table.update({...values,updated_at:new Date().toISOString()}).eq('launch_build_id',launchBuildId).eq('updated_at',input.expectedUpdatedAt)
+  const {data,error} = await query.select(PRELAUNCH_LAUNCH_SETUP_PROFILE_SELECT).single()
+  if(error) {
+    if(input.expectedUpdatedAt!==undefined && (error.code==='23505'||error.code==='PGRST116'))throw new PrelaunchSetupProfileConflictError('This setup profile changed. Refresh it before saving.')
+    throw error
+  }
 
   const setupProfileStatus = status === 'ready' ? 'ready' : 'drafted'
   const gateRow = await loadLaunchBuildReadinessRow(launchBuildId, admin)

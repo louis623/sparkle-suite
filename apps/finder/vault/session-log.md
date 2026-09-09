@@ -1,5 +1,9 @@
 # Sparkle Finder Session Log
 
+## September 8, 2026 - LOC evidence adapter checkpoint
+
+Built and tested owner/submission/asset checks and short-lived private evidence access for Suite's signed LOC bridge. Focused Finder tests: 38 across 3 files; production build passed. Native LOC named-variant review passed isolated mobile fixtures. No deployment or production secret changes. See Suite vault `2026-09-08-loc-control-center-build-checkpoint.md` for live release gates.
+
 ## 2026-08-25 - Repository Relocation Into Sparkle Suite
 
 - With Louis's explicit follow-up approval, Vercel project
