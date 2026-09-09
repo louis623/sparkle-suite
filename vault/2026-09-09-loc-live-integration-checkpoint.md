@@ -2,6 +2,23 @@
 
 This supersedes the earlier LOC reviewer-link blocker. Louis instructed Codex to keep working and own the test setup. The rebuild remains in progress; the original control center stays available and has not been decommissioned.
 
+## Latest verified checkpoint — September 9, 9:54 AM ET
+
+This section supersedes historical rollout counts, native-client blockers and deployment references below. Suite production is READY `dpl_GZ299JJciFm3aiTW1da4iovzaCTQ`, exact Git source `911b2a17ba88a2a7dfe711740054b78e1df3592a`; direct www/apex alias checks match. All 37 source reads and 33 writes are enabled. LOC application remains `9e957a0`; Finder remains `6e9f708e`. Concurrent dirty Live Lineup work was excluded from every deployment.
+
+- Live synthetic approval approve/decline and moderation remove-message/suspend-sender/close-conversation/dismiss-report pass, including replay, source readback and four audit rows. Temporary reports, approvals, conversations and peer identity removed; reviewer suspension restored. No customer recipient was used.
+- Lab manual run `cead1f4b-dcbf-491c-9624-1005518f165f` completed in recommendations-only mode with one finding and artifact, zero model calls/cost, authoritative readback and identical-ID replay. Manual runs are enabled; model synthesis is explicitly disabled. The internal report is retained.
+- Actual native Codex passed connection/discovery, assigned read completion, fresh-process reconnect, another-agent job denial and revoked-credential rejection. A separate target-restricted native task write completed and replayed without a second change; source readback passed and original task text was restored. Temporary credentials revoked and agents removed. Older native usage-limit claims are superseded; no usage credit was consumed.
+- Twenty-three live product reads pass, including Suite/Finder overview, accounting, usage and CSV exports. This is response availability evidence, not complete accounting reconciliation or every field/filter check.
+- Actual LOC browser resource list and empty composer verified; Announce to reps defaults unchecked. No test resource was published to all reps. Actual resource publication remains unverified.
+- Sam's actual Grok Bot desktop conversation is reachable and Louis confirmed the account username. Regular grok.com Chat's upgrade screen is not a fleet-access blocker. A private credential setup path and actual Grok LOC round trip remain under investigation; no connector or credential has been sent to Sam.
+
+Sanitized evidence is in LOC's ignored `.local`: `native-codex-proof.json`, `native-write-proof.json`, `native-revocation-proof.json` with LOC-realm authentication stderr, `approval-moderation-proof.json`, `lab-run-proof.json`, `read-sweep-proof.json`, `suite-all-controls-alias-proof.json`. All assertions were checked; two test-harness name/matcher corrections are disclosed in their proof files. Credentials stay out of Git and Open Brain.
+
+Remaining: actual Grok interoperability, existing support-session lifecycle, legitimate resource publication, detailed parity/reconciliation, rollback and parallel-use acceptance, physical Fold 6 review. Do not retire the old control center or release the unrelated Live Lineup tree.
+
+Grok follow-up: Sam's 9:51:48 AM ET reply reports his actual add-connector widget is yes/no only, without a documented private bearer-header field; his secret-request tool is not intended for connector configuration. No key was shared and no connector added. A supported private provisioning path or OAuth flow is required for LOC's current bearer endpoint. This is not a password/account-name issue. LOC `docs/sparkle-control-center-acceptance.md` now records workflow controls, live evidence and remaining acceptance explicitly.
+
 ## Released and verified
 
 ### September 9 continuation: expanded live workflow proof
