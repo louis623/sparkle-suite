@@ -869,6 +869,7 @@ type MeResponsePayload = {
     display_name?: string
     business_name?: string
     public_site_slug?: string | null
+    custom_domain?: string | null
     time_zone?: string | null
     live_queue_sync_code?: string | null
     secret_rep_id_number?: string | null
