@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { resolvePublicSiteVisibility, type PublicSiteVisibility } from '@/lib/public-site/visibility'
 
 import {
   applyCustomDomainToPantryTemplateData,
@@ -38,6 +39,7 @@ export async function GET(request: Request) {
   const publicSiteSlug = target.publicSiteSlug
   let repId = rawRepId
   let repEmail: string | null = null
+  let visibility: PublicSiteVisibility | undefined
   let baseTemplateData = defaultAmethystPantryTemplateData
   let appearancePreset = defaultAmethystPantryTemplateData.appearancePreset
 
@@ -55,6 +57,7 @@ export async function GET(request: Request) {
       try {
         const settings = await getSiteSettingsDashboard(admin, rep.id)
         appearancePreset = settings.appearancePreset
+        visibility = resolvePublicSiteVisibility(settings)
       } catch {
         appearancePreset = defaultAmethystPantryTemplateData.appearancePreset
       }
@@ -87,6 +90,7 @@ export async function GET(request: Request) {
   const templateData = applyPublicSiteSlugToPantryTemplateData(
     {
       ...baseTemplateData,
+      visibility,
       appearancePreset,
     },
     publicSiteSlug,

@@ -1,4 +1,5 @@
 import { type AmethystTradeBoardListing } from './trade-board-listings'
+import { buildPublicSiteVisibilityScript, type PublicSiteVisibility } from '@/lib/public-site/visibility'
 import {
   applyAmethystAppearancePreset,
   type AmethystAppearancePresetId,
@@ -29,6 +30,7 @@ export interface AmethystTradeBoardTickerItem {
 }
 
 export interface AmethystTradeTemplateData {
+  visibility?: PublicSiteVisibility
   publicSiteVariant?: 'mile_high_fizz_hybrid' | 'britt_with_bling_hybrid' | 'bling_kitchen_hybrid'
   repName: string
   businessName: string
@@ -287,6 +289,7 @@ export function buildAmethystTradeBootstrapScript(
 
   return [
     `window.AMETHYST_RUNTIME_CONTEXT = ${safeScriptJson(publicRuntimeContext)};`,
+    buildPublicSiteVisibilityScript(publicData.visibility),
     `window.AMETHYST_TRADE_TEMPLATE_DATA = ${safeScriptJson(publicData)};`,
     `window.TRADE_TWEAK_DEFAULTS = ${safeScriptJson(defaults)};`,
     `window.AMETHYST_TRADE_BOARD_LISTINGS = ${safeScriptJson(listings)};`,

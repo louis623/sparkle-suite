@@ -1,0 +1,19 @@
+.section { margin-top: 1.25rem; padding: 1.25rem; border: 1px solid #e5dced; border-radius: 16px; background: #fff; color: #24163f; }
+.section h3 { margin: 0 0 .5rem; font-size: 1rem; }
+.section > p { margin: 0 0 1rem; font-size: .875rem; line-height: 1.5; color: #65567b; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border: 1px solid #e5dced; padding: 1rem; border-radius: 12px; cursor: pointer; }
+.row strong { display: block; font-size: .9rem; }
+.description { display: block; margin-top: .3rem; font-size: .8rem; line-height: 1.45; color: #65567b; }
+.control { position: relative; display: grid; justify-items: center; gap: .3rem; flex-shrink: 0; }
+.control input { position: absolute; width: 44px; height: 44px; top: -8px; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+.track { width: 44px; height: 26px; border-radius: 20px; background: #81758f; border: 1px solid transparent; }
+.track::after { content: ''; display: block; width: 18px; height: 18px; margin: 3px; border-radius: 50%; background: #fff; }
+.control input:checked + .track { background: #7136bd; }
+.control input:checked + .track::after { transform: translateX(18px); }
+.control input:focus-visible + .track { outline: 3px solid #be93ef; outline-offset: 3px; }
+.row:has(input:disabled) { opacity: .65; cursor: default; }
+.control input:disabled { cursor: default; }
+.status { font-size: .75rem; }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+@media (forced-colors: active) { .track { border-color: ButtonText; } .control input:checked + .track { background: Highlight; } .track::after { background: ButtonText; } }

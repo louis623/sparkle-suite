@@ -1,3 +1,4 @@
+import { buildPublicSiteVisibilityScript, type PublicSiteVisibility } from '@/lib/public-site/visibility'
 import {
   applyAmethystAppearancePreset,
   type AmethystAppearancePresetId,
@@ -50,6 +51,7 @@ export interface AmethystTradeBoardTickerItem {
 }
 
 export interface AmethystJoinTemplateData {
+  visibility?: PublicSiteVisibility
   publicSiteVariant?: 'mile_high_fizz_hybrid' | 'britt_with_bling_hybrid' | 'bling_kitchen_hybrid'
   repName: string
   repCity: string
@@ -421,6 +423,7 @@ export function buildAmethystJoinBootstrapScript(
 
   return [
     `window.AMETHYST_RUNTIME_CONTEXT = ${safeScriptJson(publicRuntimeContext)};`,
+    buildPublicSiteVisibilityScript(publicData.visibility),
     `window.AMETHYST_JOIN_TEMPLATE_DATA = ${safeScriptJson(publicData)};`,
     `window.JOIN_TWEAK_DEFAULTS = ${safeScriptJson(defaults)};`,
   ].join('\n')

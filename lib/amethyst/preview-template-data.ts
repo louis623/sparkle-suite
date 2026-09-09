@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { resolvePublicSiteVisibility } from '@/lib/public-site/visibility'
 import {
   getSiteSettingsDashboard,
 } from '@/lib/services/site-settings'
@@ -553,6 +554,7 @@ export function mapPreviewSettingsToHomepageTemplateData(
 
   const homepage: AmethystHomepageTemplateData = {
     ...defaultAmethystHomepageTemplateData,
+    visibility: resolvePublicSiteVisibility(settings),
     repName,
     businessName,
     teamName: resolveTenantTeamName(settings.teamName, businessName),
@@ -651,6 +653,7 @@ export function mapPreviewSettingsToTradeTemplateData(
 
   const trade: AmethystTradeTemplateData = {
     ...defaultAmethystTradeTemplateData,
+    visibility: resolvePublicSiteVisibility(settings),
     repName,
     businessName,
     memberTeamName: settings.memberTeamName?.trim() || undefined,
@@ -702,6 +705,7 @@ export function mapPreviewSettingsToJoinTemplateData(
 
   const join: AmethystJoinTemplateData = {
     ...defaultAmethystJoinTemplateData,
+    visibility: resolvePublicSiteVisibility(settings),
     repName,
     repCity: '',
     repState: '',

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { PublicSiteVisibility } from './PublicSiteVisibility'
 import dynamic from 'next/dynamic'
 import type {
   ChangeEvent,
@@ -8555,7 +8556,7 @@ export function SiteSettingsCard({
       </div>
 
       <div className={styles.siteSettingsSection}>
-        <div className={styles.walletSettingsTitle}>Announcement ticker and Join Team page</div>
+        <div className={styles.walletSettingsTitle}>Announcement messages</div>
         <div className={styles.siteSettingsGrid}>
           <label className={styles.sortFieldWide}>
             <span className={styles.searchLabel}>Announcement ticker messages</span>
@@ -8642,37 +8643,11 @@ export function SiteSettingsCard({
             </div>
           </label>
         </div>
-        <div className={styles.siteSettingsToggleGrid}>
-          <label className={styles.walletToggleRow}>
-            <span className={styles.searchLabel}>Show announcement ticker on your public site</span>
-            <input
-              type="checkbox"
-              checked={draft.tickerVisible}
-              onChange={(event) =>
-                onDraftChange?.({ tickerVisible: event.target.checked })
-              }
-            />
-          </label>
-          {state.status === 'ready' && state.settings?.joinTeamAccessEnabled ? (
-            <label className={styles.walletToggleRow}>
-              <span className={styles.searchLabel}>
-                Show the “Join My Team” recruiting page on your public site
-              </span>
-              <input
-                type="checkbox"
-                checked={draft.showJoinPage}
-                onChange={(event) =>
-                  onDraftChange?.({ showJoinPage: event.target.checked })
-                }
-              />
-            </label>
-          ) : (
-            <div className={styles.helperNote} role="status">
-              <strong>Join Team: Coming soon.</strong> This recruiting page is
-              currently available only to selected early-access team leaders.
-            </div>
-          )}
-        </div>
+        <PublicSiteVisibility
+          settings={draft}
+          joinTeamAccessEnabled={state.status === 'ready' && state.settings?.joinTeamAccessEnabled === true}
+          onChange={onDraftChange}
+        />
       </div>
 
       <div className={styles.siteSettingsSection}>

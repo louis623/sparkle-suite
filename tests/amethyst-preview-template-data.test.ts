@@ -64,6 +64,13 @@ const demoSettings: SiteSettingsDashboardResult = {
   ],
 }
 
+it('propagates each saved visibility preference to all three customer templates', () => {
+  const settings = { ...demoSettings, tickerVisible: false, danceFloorVisible: false, liveLineupVisible: false, showJoinPage: true, joinTeamAccessEnabled: false }
+  for (const map of [mapPreviewSettingsToHomepageTemplateData, mapPreviewSettingsToTradeTemplateData, mapPreviewSettingsToJoinTemplateData]) {
+    expect(map(settings).visibility).toEqual({ announcements: false, danceFloor: false, liveLineup: false, joinTeam: false })
+  }
+})
+
 const repExtras = {
   shopLink: 'https://www.bombparty.com/shop/sparkle-suite-demo',
   streamingLinks: {

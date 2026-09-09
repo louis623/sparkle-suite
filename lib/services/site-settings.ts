@@ -25,6 +25,8 @@ type SiteSettingsRow = {
   banner_visible: boolean | null
   ticker_text: string | null
   ticker_visible: boolean | null
+  dance_floor_visible: boolean | null
+  live_lineup_visible: boolean | null
   tagline: string | null
   hero_headline: string | null
   hero_subtitle: string | null
@@ -52,7 +54,7 @@ type RepProfileRow = {
 }
 
 const SITE_SETTINGS_SELECT =
-  'banner_text, banner_visible, ticker_text, ticker_visible, tagline, hero_headline, hero_subtitle, hero_image_url, hero_animation_type, team_name, member_team_name, join_team_access_enabled, show_join_page, customer_site_template, appearance_preset, about_heading, about_subheading, about_narrative, homepage_media_slots'
+  'banner_text, banner_visible, ticker_text, ticker_visible, dance_floor_visible, live_lineup_visible, tagline, hero_headline, hero_subtitle, hero_image_url, hero_animation_type, team_name, member_team_name, join_team_access_enabled, show_join_page, customer_site_template, appearance_preset, about_heading, about_subheading, about_narrative, homepage_media_slots'
 const REP_PROFILE_SELECT =
   'display_name, business_name, email, phone, shop_link, social_handles'
 
@@ -262,6 +264,8 @@ function buildDashboardResult(args: {
     bannerVisible: args.siteSettings?.banner_visible ?? false,
     tickerText: normalizeText(args.siteSettings?.ticker_text),
     tickerVisible: args.siteSettings?.ticker_visible ?? false,
+    danceFloorVisible: args.siteSettings?.dance_floor_visible ?? true,
+    liveLineupVisible: args.siteSettings?.live_lineup_visible ?? true,
     tagline: normalizeText(args.siteSettings?.tagline),
     heroHeadline: normalizeText(args.siteSettings?.hero_headline),
     heroSubtitle: normalizeText(args.siteSettings?.hero_subtitle),
@@ -380,6 +384,13 @@ export async function updateSiteSettingsDashboard(
 ): Promise<SiteSettingsDashboardResult> {
   const siteSettingsPatch: Record<string, unknown> = {}
   const repPatch: Record<string, unknown> = {}
+
+  for (const [key, column] of Object.entries({ tickerVisible: 'ticker_visible', showJoinPage: 'show_join_page', danceFloorVisible: 'dance_floor_visible', liveLineupVisible: 'live_lineup_visible' }) as [keyof UpdateSiteSettingsDashboardInput, string][]) {
+    const value = input[key]
+    if (value === undefined) continue
+    if (typeof value !== 'boolean') throw errors.INVALID_INPUT(`${key} must be a boolean`, 'Website visibility must be On or Off.')
+    siteSettingsPatch[column] = value
+  }
 
   if (input.bannerText !== undefined) {
     siteSettingsPatch.banner_text = normalizeNullableText(input.bannerText)

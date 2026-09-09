@@ -614,6 +614,8 @@ export interface SiteSettingsDashboardResult {
   bannerVisible: boolean
   tickerText: string
   tickerVisible: boolean
+  danceFloorVisible?: boolean
+  liveLineupVisible?: boolean
   tagline: string
   heroHeadline?: string
   heroSubtitle?: string
@@ -645,6 +647,8 @@ export interface UpdateSiteSettingsDashboardInput {
   bannerVisible?: boolean
   tickerText?: string
   tickerVisible?: boolean
+  danceFloorVisible?: boolean
+  liveLineupVisible?: boolean
   tagline?: string
   heroHeadline?: string
   heroSubtitle?: string

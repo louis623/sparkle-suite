@@ -1,3 +1,4 @@
+import { buildPublicSiteVisibilityScript, type PublicSiteVisibility } from '@/lib/public-site/visibility'
 import {
   defaultAmethystHomepageEvents,
   type AmethystHomepageEventCard,
@@ -85,6 +86,7 @@ export interface AmethystHomepageTradeBoardTickerItem {
 }
 
 export interface AmethystHomepageTemplateData {
+  visibility?: PublicSiteVisibility
   publicSiteVariant?: 'mile_high_fizz_hybrid' | 'britt_with_bling_hybrid' | 'bling_kitchen_hybrid'
   repName: string
   businessName: string
@@ -503,6 +505,7 @@ export function buildAmethystHomepageBootstrapScript(
 
   return [
     `window.AMETHYST_RUNTIME_CONTEXT = ${safeScriptJson(publicRuntimeContext)};`,
+    buildPublicSiteVisibilityScript(publicData.visibility),
     `window.AMETHYST_HOMEPAGE_TEMPLATE_DATA = ${safeScriptJson(publicData)};`,
     `window.HOMEPAGE_TWEAK_DEFAULTS = ${safeScriptJson(defaults)};`,
     `window.AMETHYST_HOMEPAGE_EVENTS = ${safeScriptJson(events)};`,

@@ -1,3 +1,4 @@
+import { buildPublicSiteVisibilityScript, type PublicSiteVisibility } from '@/lib/public-site/visibility'
 import {
   BLING_KITCHEN_PROFILE,
   BLING_KITCHEN_RECIPE_COUNT,
@@ -31,6 +32,7 @@ export interface AmethystPantryRecipe {
 }
 
 export interface AmethystPantryTemplateData {
+  visibility?: PublicSiteVisibility
   publicSiteVariant?: 'bling_kitchen_hybrid'
   appearancePreset: AmethystAppearancePresetId
   repName: string
@@ -232,6 +234,7 @@ export function buildAmethystPantryBootstrapScript(
 
   return [
     `window.AMETHYST_RUNTIME_CONTEXT = ${safeScriptJson(publicRuntimeContext)};`,
+    buildPublicSiteVisibilityScript(publicData.visibility),
     `window.AMETHYST_PANTRY_TEMPLATE_DATA = ${safeScriptJson(publicData)};`,
   ].join('\n')
 }
