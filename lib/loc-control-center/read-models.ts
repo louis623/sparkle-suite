@@ -133,6 +133,7 @@ export async function readLocOperation(
     const result = await listOperatorConversations(admin, {
       limit,
       offset,
+      query: typeof input.query === "string" ? input.query : undefined,
       type: type as WorkspaceConversationType | undefined,
       state: input.state as WorkspaceConversationState | undefined,
       reportedOnly:

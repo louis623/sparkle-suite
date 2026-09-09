@@ -8,6 +8,7 @@ import {
   type WorkspaceConversationType,
 } from '@/lib/services/workspace-conversation-permissions'
 import { assertWorkspaceConversationComposingEnabled } from '@/lib/services/workspace-conversation-feature-flags'
+import { operatorConversationSearch } from '@/lib/services/operator-conversation-search'
 
 export type WorkspaceConversationView = 'all' | 'team' | 'rep_network' | 'support' | 'archived'
 
@@ -505,10 +506,18 @@ export async function updateRepConversationState(
 
 export async function listOperatorConversations(
   supabase: SupabaseClient,
-  options: { type?: WorkspaceConversationType; state?: WorkspaceConversationState; reportedOnly?: boolean; limit?: number; offset?: number } = {},
+  options: { type?: WorkspaceConversationType; state?: WorkspaceConversationState; reportedOnly?: boolean; limit?: number; offset?: number; query?: string } = {},
 ) {
   const limit = Math.min(Math.max(options.limit ?? 50, 1), 100)
-  let query = supabase.from('workspace_conversations').select(CONVERSATION_SELECT)
+  const search = operatorConversationSearch(options.query)
+  let query = supabase.from('workspace_conversations').select(CONVERSATION_SELECT + (search ? `,${search.select}` : ''))
+  if (search) {
+    query = query
+      .eq('search_requester.principal_type', 'rep')
+      .eq('search_requester.role', 'requester')
+      .or(search.repFilter, { referencedTable: 'search_requester.search_rep' })
+      .or(search.conversationFilter)
+  }
   if (options.type) query = query.eq('conversation_type', options.type)
   if (options.state) query = query.eq('state', options.state)
   const reported = await supabase
