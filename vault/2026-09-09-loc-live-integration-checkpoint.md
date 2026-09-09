@@ -2,7 +2,18 @@
 
 This supersedes the earlier LOC reviewer-link blocker. Louis instructed Codex to keep working and own the test setup. The rebuild remains in progress; the original control center stays available and has not been decommissioned.
 
-## Latest verified checkpoint — September 9, 10:47 AM ET
+## Current Grok checkpoint — September 9, 11:13 AM ET
+
+The actual Grok Bot private-authentication dependency is resolved. Supported CopyToBox transferred a harmless file with matching SHA256, then privately staged a scoped credential for the command adapter. Adapter source is committed as LOC97bce8c; all seven focused tests pass. Windows credential ACL is private; Grok reports runtime ownership, directory0700 and file0600. No bearer value entered chat, command arguments, connector headers or Git.
+
+Actual Grok discovered nine tools, verified its identity and completed two assigned Task List reads. Source jobs17d7c0be-7d25-4c5e-9498-5b8d14db8894 and7150a66c-1c88-49f0-afed-918801ea9d93 both succeeded with one attempt. Same active-lease execution replay returned the original successful receipt. Completed-job receipt recovery passed; completed leases cannot execute again. Another agent's job was denied. Revoking temporary connection11b5d533-eeb6-4c1e-972a-f7b7d2b21dd8 produced HTTP401 in the actual Grok client.
+
+Retained LOC identity is **Grok fleet (shared)**, agent301aeb19-d3a8-401f-87b3-b87b3c1db166. Replacement connectionbdf97881-0133-4053-8d75-05ced92f93c5 was independently verified by LOC at2026-09-09T15:12:49.562Z and expires2026-10-09T15:11:10.488Z. It has only suite.tasks.list read access. Shared credentials identify the fleet, not individual bots; no routine or automatic job polling was enabled. Renew privately before expiry through LOC credential replacement.
+
+Proof: LOC ignored .local/grok-live-proof.json, grok-retained-proof.json and the visible Sam conversation. Temporary key is revoked; retained key is active and verified. Application deployments remain LOC64466d5, Suite31849894 and Finder6e9f708e; adapter/docs require no application release. Held Lineup work is untouched. Financial reconciliation, proper legacy support-session lifecycle, legitimate publication/provider workflows, rollback/parallel-use and physical Fold acceptance remain open. Existing operator center stays available.
+
+
+## Previous verified checkpoint — September 9, 10:47 AM ET
 
 Suite `3184989450350e238d006a34ab45b1d405dfd244` READY deployment `dpl_Bd25eKsusDngRbyxARV7PYLd1sSH`; LOC `64466d52abaa3ca5333532c99caf46e2e3965290` READY `dpl_jYg3NtP763MEULp2ThiDxfF9QJDV`. Direct www/apex Suite and LOC aliases match. Only four explicit Suite search source/test files released; separate Lineup source/migrations stay held. Finder unchanged.
 
