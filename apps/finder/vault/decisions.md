@@ -1,5 +1,7 @@
 # Sparkle Finder Decisions
 
+September 9 LOC evidence: grant the server role only SELECT on intake submissions/assets. Preserve customer RLS and private storage; do not broaden anonymous or authenticated table grants. Production behavior, including denials and fixture cleanup, is verified rather than inferred from unit tests.
+
 ## 2026-09-08 - LOC consumes scoped private evidence through Finder
 
 Finder alone validates private review evidence against the queued submission, owner, bucket/path, MIME and size before issuing short-lived access. Suite receives a dedicated server credential; Finder stores its digest. LOC operator presentation follows LOC styling while Finder customer styling and independent systems stay intact. Local implementation is not live proof.

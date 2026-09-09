@@ -1,5 +1,7 @@
 # Sparkle Finder Session Log
 
+September 9: live evidence request exposed missing service SELECT grants. Applied only `20260909123000` to Finder project `pzksocboqauqjdtsgpdp`; authenticated signed image succeeds, mismatched assets/submissions and anonymous/public requests fail. Removed synthetic auth/submission/image fixture. Released exact Git `6e9f708e`; customer alias and landing verified. No customer records, customer auth boundary or Live Lineup changes.
+
 ## September 8, 2026 - LOC evidence adapter checkpoint
 
 Built and tested owner/submission/asset checks and short-lived private evidence access for Suite's signed LOC bridge. Focused Finder tests: 38 across 3 files; production build passed. Native LOC named-variant review passed isolated mobile fixtures. No deployment or production secret changes. See Suite vault `2026-09-08-loc-control-center-build-checkpoint.md` for live release gates.

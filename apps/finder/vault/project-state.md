@@ -1,5 +1,7 @@
 # Sparkle Finder Project State
 
+September 9 LOC integration: private evidence is live and verified. Migration `20260909123000` fixes missing server-role SELECT on the two intake tables; RLS and anonymous denial remain. Synthetic signed-image/read-denial tests pass and test data was removed. Production `6e9f708e` / `dpl_4RShdV6kTVsD9NjDuYiAFVsf1er9` is confirmed at `yoursparklefinder.com`. Full LOC queued-review mutation remains a separate gate.
+
 ## September 8, 2026 - LOC private review integration built locally
 
 Added a separately authenticated private review-evidence endpoint for LOC's native Finder control-center review. Finder retains its own database, auth and deployment. 38 focused tests and production build pass; LOC fixture review/picker checks pass. No Finder deployment or secret configuration changed. Live synthetic evidence verification remains. See Suite vault `2026-09-08-loc-control-center-build-checkpoint.md`.

@@ -1,5 +1,7 @@
 # Sparkle Finder Open Items
 
+September 9 LOC: private evidence endpoint, credential, database permission and signed-image checks are complete. Remaining full LOC-to-Suite queued-review selection/mutation should use a synthetic review; endpoint proof alone does not close that workflow.
+
 ## September 8, 2026 - LOC evidence release follow-up
 
 Configure the dedicated server-only review credential pair, deploy the verified branch to Finder's own Vercel project, and verify private evidence and exact-variant finalization using designated synthetic data. Preserve current live systems until acceptance. Supported protected reviewer access remains unavailable; see Suite vault `2026-09-08-loc-control-center-build-checkpoint.md`.

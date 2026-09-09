@@ -28,7 +28,9 @@ Live verification request `e56f91ee-6fd1-43b6-b21f-175e82c5aa9a` receives the cl
 - Verify actual Codex and Grok runtime connections and assignments. Native Codex helper hit account usage limits; no reset credit was consumed. Synthetic HTTP/MCP proof is not native runtime proof.
 - Finish remaining safe workflow rollout, real parallel-use acceptance and physical Galaxy Z Fold 6 review. Preserve LOC cream/sage styling and current customer-facing Sparkle branding.
 - Finder evidence service is live and proven; full LOC-to-Suite review-queue/variant mutation with a synthetic queued review remains a separate test.
-- Reviewer workspace succeeded initially; one post-release browser recheck timed out waiting for POST, while subsequent direct supported bootstrap returned 200. Continue browser validation rather than claiming that later check passed.
+- Reviewer workspace and required setup now both pass post-release browser verification, including visible Help & Resources and reviewer labeling. The fixture was restored to `dashboard_unlocked`. Initial fixed-delay checks raced loading; final checks waited for rendered content. Normal synthetic setup allocated a reviewer-only queue code; no customer queue or extension was changed.
+
+Finder release is `6e9f708e7bf2e385f166b0eff21edf963722ec3b` / `dpl_4RShdV6kTVsD9NjDuYiAFVsf1er9`. Direct alias lookup confirms `yoursparklefinder.com` points to that Ready release; the public landing page renders normally. Suite remains on the verified `53118967` application; subsequent commit changes are Finder migration and documentation only.
 
 ## Worktree and release notes
 
