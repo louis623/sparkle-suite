@@ -1,12 +1,12 @@
 'use client'
 
-import type { SiteSettingsDashboardResult, UpdateSiteSettingsDashboardInput } from '@/lib/services/types'
+import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 import styles from './PublicSiteVisibility.module.css'
 
 export function PublicSiteVisibility({ settings, joinTeamAccessEnabled, onChange }: {
   settings: Pick<SiteSettingsDashboardResult, 'tickerVisible' | 'showJoinPage' | 'danceFloorVisible' | 'liveLineupVisible'>
   joinTeamAccessEnabled: boolean
-  onChange?: (patch: UpdateSiteSettingsDashboardInput) => void
+  onChange?: (patch: Partial<Pick<SiteSettingsDashboardResult, 'tickerVisible' | 'showJoinPage' | 'danceFloorVisible' | 'liveLineupVisible'>>) => void
 }) {
   const switches = [
     { key: 'tickerVisible', label: 'Announcements', description: 'Show your scrolling announcement messages.', checked: settings.tickerVisible },

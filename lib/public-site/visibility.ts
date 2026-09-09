@@ -11,13 +11,13 @@ export function resolvePublicSiteVisibility(settings: {
   danceFloorVisible?: boolean
   liveLineupVisible?: boolean
   showJoinPage: boolean
-  joinTeamAccessEnabled: boolean
+  joinTeamAccessEnabled?: boolean
 }): PublicSiteVisibility {
   return {
     announcements: settings.tickerVisible,
     danceFloor: settings.danceFloorVisible !== false,
     liveLineup: settings.liveLineupVisible !== false,
-    joinTeam: settings.joinTeamAccessEnabled && settings.showJoinPage,
+    joinTeam: settings.joinTeamAccessEnabled === true && settings.showJoinPage,
   }
 }
 
