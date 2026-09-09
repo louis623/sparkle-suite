@@ -5,6 +5,7 @@ const mock = vi.hoisted(() => ({
   failSave: false,
   ended: 0,
   started: 0,
+  openSessions: [] as unknown[],
   requests: [] as Request[],
   connection: "owner-connection",
 }));
@@ -60,6 +61,7 @@ vi.mock("@/lib/supabase/admin", () => ({
   }),
 }));
 vi.mock("@/lib/operator-support/session-service", () => ({
+  listOperatorSupportSessions: async () => mock.openSessions,
   getOperatorSupportSession: async () => ({
     id: "00000000-0000-4000-8000-000000000010",
     targetRepId: "00000000-0000-4000-8000-000000000020",
@@ -122,6 +124,7 @@ beforeEach(() => {
   mock.mapping = null;
   mock.failSave = false;
   mock.started = 0;
+  mock.openSessions = [];
   mock.ended = 0;
   mock.requests = [];
   mock.connection = "owner-connection";
@@ -134,6 +137,13 @@ const start = () =>
     "00000000-0000-4000-8000-000000000030",
   );
 describe("LOC native transparent support adapter", () => {
+  it("rejects an existing session before notices or activation", async () => {
+    mock.openSessions = [{ id: "existing-session" }];
+    await expect(start()).rejects.toMatchObject({ status: 409, message: expect.stringContaining("existing support session") });
+    expect(mock.started).toBe(0);
+    expect(mock.ended).toBe(0);
+    expect(mock.mapping).toBeNull();
+  });
   it("uses original notice/activation and stores only encrypted credentials", async () => {
     const output = await start();
     expect(mock.started).toBe(1);

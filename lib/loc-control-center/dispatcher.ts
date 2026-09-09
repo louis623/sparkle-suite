@@ -8,7 +8,7 @@ import {
 } from "@/lib/control-center/bug-hunt";
 import { runWithLocOperator, type LocOperatorContext } from "./context";
 import { locOperationCatalog, findLocOperation } from "./catalog";
-import { digestLocInput, LocBridgeError, verifyLocSignature } from "./security";
+import { digestLocInput, LocBridgeError, LocPreconditionError, verifyLocSignature } from "./security";
 import { readLocOperation } from "./read-models";
 import { runExistingLocRoute } from "./legacy-routes";
 import { runLocSupportOperation } from "./support";
@@ -171,6 +171,7 @@ async function updateTask(input: Record<string, unknown>) {
 }
 export async function dispatchLocRequest(request: Request): Promise<Response> {
   let operationId: string | undefined;
+  let failureReceiptStatus = "reconcile";
   try {
     if (Number(request.headers.get("content-length") ?? 0) > 128_000)
       throw new LocBridgeError(413, "Request too large.");
@@ -345,6 +346,7 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
       );
     } catch (error) {
       const certain =
+        error instanceof LocPreconditionError ||
         error instanceof z.ZodError ||
           (['tasks.update','onboarding.setup-profile','onboarding.waitlist.update','onboarding.waitlist.delete'].includes(operation.name) &&
           error instanceof LocBridgeError &&
@@ -352,7 +354,7 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
       // Existing handlers can return an error after committing one of several
       // business effects. Never label those retry-safe or automatically replay.
       const state = certain ? "failed" : "uncertain";
-      await admin
+      const recorded = await admin
         .from("loc_control_center_operations")
         .update({
           status: state,
@@ -362,7 +364,10 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
               : "The result requires reconciliation before retrying.",
           completed_at: new Date().toISOString(),
         })
-        .eq("id", operationId);
+        .eq("id", operationId)
+        .select("id")
+        .single();
+      if (certain && !recorded.error && recorded.data) failureReceiptStatus = "failed";
       throw error;
     }
   } catch (error) {
@@ -394,7 +399,7 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
                 : "The product service could not complete this request.",
         },
         ...(operationId
-          ? { receipt: { operationId, status: "reconcile" } }
+          ? { receipt: { operationId, status: failureReceiptStatus } }
           : {}),
       },
       { status, headers: { "cache-control": "no-store" } },

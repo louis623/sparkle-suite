@@ -1,14 +1,14 @@
 import "server-only";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getOperatorSupportSession } from "@/lib/operator-support/session-service";
+import { getOperatorSupportSession, listOperatorSupportSessions } from "@/lib/operator-support/session-service";
 import {
   mapOperatorSupportSessionSummary,
   OPERATOR_SUPPORT_CSRF_COOKIE_PREFIX,
 } from "@/lib/operator-support/http";
 import { OPERATOR_SUPPORT_REASON_CODES } from "@/lib/operator-support/types";
 import { getLocOperatorContext } from "./context";
-import { LocBridgeError } from "./security";
+import { LocBridgeError, LocPreconditionError } from "./security";
 import { sealSupportToken, openSupportToken } from "./support-credentials";
 
 const origin = "https://www.yoursparklesuite.com";
@@ -142,6 +142,16 @@ export async function runLocSupportOperation(
     const parsed = startSchema.parse(input),
       current = context(),
       admin = createAdminClient();
+    const openSessions = await listOperatorSupportSessions(admin, {
+      operatorRepId: current.operator.repId,
+      statuses: ["active", "pending_notice"],
+      limit: 1,
+    });
+    if (openSessions.length)
+      throw new LocPreconditionError(
+        409,
+        "An existing support session is open. End it in the current control center before opening another account.",
+      );
     // Fail before customer notice or activation if encrypted storage is absent.
     const preflight = await admin
       .from("loc_control_center_support_sessions")

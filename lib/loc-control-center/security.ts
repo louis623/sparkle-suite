@@ -9,6 +9,9 @@ export class LocBridgeError extends Error {
     super(message);
   }
 }
+// Only use before any business effect has been attempted.
+export class LocPreconditionError extends LocBridgeError {}
+
 export function verifyLocSignature(
   raw: string,
   headers: Headers,

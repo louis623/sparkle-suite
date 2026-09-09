@@ -3,6 +3,7 @@ import { createHmac } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   digestLocInput,
+  LocPreconditionError,
   verifyLocSignature,
 } from "@/lib/loc-control-center/security";
 import { locOperationCatalog } from "@/lib/loc-control-center/catalog";
@@ -11,6 +12,7 @@ const mock = vi.hoisted(() => ({
   rows: new Map<string, Record<string, unknown>>(),
   calls: 0,
   fail: false,
+  precondition: false,
   active: true,
   queryCalls: 0,
 }));
@@ -19,6 +21,7 @@ vi.mock("@/lib/loc-control-center/read-models", () => ({
 }));
 vi.mock("@/lib/loc-control-center/legacy-routes", () => ({
   runExistingLocRoute: vi.fn(async () => {
+    if (mock.precondition) throw new LocPreconditionError(409, "Existing support session is open.");
     mock.calls++;
     if (mock.fail) throw new Error("after side effect");
     return { item: { id: "safe-task" } };
@@ -118,6 +121,7 @@ beforeEach(() => {
   mock.rows.clear();
   mock.calls = 0;
   mock.fail = false;
+  mock.precondition = false;
   mock.active = true;
   mock.queryCalls = 0;
   vi.stubEnv("LOC_CONTROL_CENTER_SECRET", secret);
@@ -133,6 +137,14 @@ beforeEach(() => {
   );
 });
 describe("LOC signed service boundary", () => {
+  it("reports a verified precondition as failed without a business effect", async () => {
+    mock.precondition = true;
+    const response = await dispatchLocRequest(request({}));
+    expect(response.status).toBe(409);
+    expect((await response.json()).receipt.status).toBe("failed");
+    expect(mock.rows.get(opId)?.status).toBe("failed");
+    expect(mock.calls).toBe(0);
+  });
   it("requires server-signed owner authority for owner-only actions and discovery", async () => {
     vi.stubEnv("LOC_CONTROL_CENTER_OPERATIONS", "approvals.decide");
     expect(
