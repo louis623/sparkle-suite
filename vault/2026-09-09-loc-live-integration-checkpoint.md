@@ -2,7 +2,17 @@
 
 This supersedes the earlier LOC reviewer-link blocker. Louis instructed Codex to keep working and own the test setup. The rebuild remains in progress; the original control center stays available and has not been decommissioned.
 
-## Latest verified checkpoint — September 9, 9:54 AM ET
+## Latest verified checkpoint — September 9, 10:36 AM ET
+
+Suite `63f8be6b145a55e98aa444cd0b6446d53a0b6913` is READY as `dpl_C7BXDqDc3eHVFNCn4TQSMCFDCz7g`; LOC `8cf71cd98e7713758774a83ecfe4b9e86a114150` is READY as `dpl_Dz2o8RtDevRoag4uyY39xZKm1DfM`. Direct www/apex Suite and LOC alias checks match. Only explicit LOC-owned files were staged; concurrent Lineup work/migrations remain unreleased. Finder is unchanged.
+
+Customer/task parity restores setup/legacy identity/checklist cues, Today/source text, six-field literal search and priority-first pagination. Deployed read-only comparison matches 47 actual tasks over 10 pages and six literal/status/type/priority search cases. Product cost reporting scopes source reads and aggregation before recent50 limiting, restores rates/warnings/billing link/monetary units, rejects unavailable Finder exports and warns for partial CSV. Missing telemetry/cache counts stay unknown; independent provider actuals remain available.
+
+39 focused Suite tests and scoped source/dependency TypeScript pass. Broad standalone TypeScript retains unrelated existing test typing failures; no claim it passes. LOC financial tests/build and synthetic 344/882px customer/task/money checks pass. Both hosted builds READY. Live LOC seven-area sweep, both product cost screens at344/882, source snapshots/exports, stable Suite landing and normal synthetic reviewer sign-in to `/nic-nac` pass. Reviewer response capture needed a browser-harness navigation timing fix; the successful normal session was subsequently verified.
+
+Actual Grok LOC round trip remains blocked on a supported private credential handoff or OAuth flow: Sam's documented connector confirmation has no private header-entry field. Username confirmed; no key shared or connector installed. Existing support-session lifecycle, legitimate resource publication, reconciliation, rollback/parallel use and physical Fold acceptance remain. Old operator center stays available. Sanitized proof files are in LOC `.local/parity-live-proof.json`, `parity-alias-proof.json`, `live-money-browser-proof.json`, `live-loc-browser-proof.json`, `loc-reviewer-live-proof.json`; detailed LOC ledger has remaining limits.
+
+## Previous verified checkpoint — September 9, 9:54 AM ET
 
 This section supersedes historical rollout counts, native-client blockers and deployment references below. Suite production is READY `dpl_GZ299JJciFm3aiTW1da4iovzaCTQ`, exact Git source `911b2a17ba88a2a7dfe711740054b78e1df3592a`; direct www/apex alias checks match. All 37 source reads and 33 writes are enabled. LOC application remains `9e957a0`; Finder remains `6e9f708e`. Concurrent dirty Live Lineup work was excluded from every deployment.
 
