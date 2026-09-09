@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildPersonalizedRepGreeting,
   normalizeRepDisplayName,
+  getRepGivenName,
 } from '@/lib/nic-nac/core/rep-personalization'
 
 describe('Nic-Nac rep personalization', () => {
@@ -26,5 +27,11 @@ describe('Nic-Nac rep personalization', () => {
 
   it('normalizes profile formatting before deriving the given name', () => {
     expect(normalizeRepDisplayName('  Brittany\n\tSmith  ')).toBe('Brittany Smith')
+  })
+
+  it('keeps Workspace welcome names to the first natural name', () => {
+    expect(getRepGivenName('Brianna Williams')).toBe('Brianna')
+    expect(getRepGivenName('  Brianna\nWilliams  ')).toBe('Brianna')
+    expect(getRepGivenName(undefined)).toBe('')
   })
 })

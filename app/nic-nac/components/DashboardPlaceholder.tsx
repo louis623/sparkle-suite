@@ -61,6 +61,7 @@ import {
 } from '@/lib/nic-nac/rep-links'
 import { sparkleSuitePublicLandingContent } from '@/lib/sparkle-suite/public-landing-content'
 import { createClient } from '@/lib/supabase/client'
+import { getRepGivenName } from '@/lib/nic-nac/core/rep-personalization'
 import { AccountSecurityCard } from './AccountSecurityCard'
 import { SupportAccessHistoryCard } from './SupportAccessHistoryCard'
 import {
@@ -6740,7 +6741,7 @@ function ConceptHomeWorkspace({
               </div>
             ) : null}
           </div>
-          <p>Hi {repName?.trim() || 'there'}, how can I help you today?</p>
+          <p>Hi {getRepGivenName(repName ?? undefined) || 'there'}, how can I help you today?</p>
           <div className={styles.mobileHeroQuickActions}>
             <button type="button" onClick={() => onLaunchAction('add_trade_piece')}>
               <span className={styles.railLaunchPieceIcon} aria-hidden="true">+</span>

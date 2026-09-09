@@ -8,6 +8,15 @@ export function normalizeRepDisplayName(repDisplayName: string | undefined) {
   )
 }
 
+/**
+ * Names in the private Workspace welcome are deliberately limited to the
+ * profile's first natural name. A greeting should feel personal without
+ * needlessly repeating the rep's full name.
+ */
+export function getRepGivenName(repDisplayName: string | undefined) {
+  return normalizeRepDisplayName(repDisplayName).split(' ')[0]?.trim() ?? ''
+}
+
 export function buildPersonalizedRepGreeting(input: {
   latestUserText: string
   repDisplayName: string | undefined
@@ -18,8 +27,7 @@ export function buildPersonalizedRepGreeting(input: {
   )
   if (!greetingMatch) return null
 
-  const displayName = normalizeRepDisplayName(input.repDisplayName)
-  const givenName = displayName.split(' ')[0]?.trim() ?? ''
+  const givenName = getRepGivenName(input.repDisplayName)
   const greeting = greetingMatch[1]!.toLowerCase()
   const opening =
     greeting === 'good morning'

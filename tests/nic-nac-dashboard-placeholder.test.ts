@@ -626,6 +626,21 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Understand the Chrome extension and Live Queue')
   })
 
+
+  it('uses only the first name in the Nic-Nac Workspace welcome', () => {
+    const html = renderToStaticMarkup(
+      createElement<DashboardPlaceholderProps>(DashboardPlaceholder, {
+        reviewWorkspaceMode: true,
+        initialSiteSettings: {
+          ...SITE_SETTINGS_READY_STATE.settings,
+          displayName: 'Brianna Williams',
+        },
+      }),
+    )
+
+    expect(html).toContain('Hi Brianna, how can I help you today?')
+    expect(html).not.toContain('Hi Brianna Williams, how can I help you today?')
+  })
   it('keeps the SMS wallet out of Account until customer messaging launches', () => {
     const html = renderToStaticMarkup(
       createElement<DashboardPlaceholderProps>(DashboardPlaceholder, {
