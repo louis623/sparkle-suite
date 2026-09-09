@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { normalizeSocialVisibility, SOCIAL_PLATFORMS } from '@/lib/public-site/social-visibility'
 import { ServiceError, errors } from '@/lib/services/errors'
 import {
   normalizeAmethystAppearancePreset,
@@ -42,6 +43,7 @@ type SiteSettingsRow = {
   about_subheading: string | null
   about_narrative: string | null
   homepage_media_slots: unknown
+  social_visibility?: unknown
 }
 
 type RepProfileRow = {
@@ -54,7 +56,7 @@ type RepProfileRow = {
 }
 
 const SITE_SETTINGS_SELECT =
-  'banner_text, banner_visible, ticker_text, ticker_visible, dance_floor_visible, live_lineup_visible, tagline, hero_headline, hero_subtitle, hero_image_url, hero_animation_type, team_name, member_team_name, join_team_access_enabled, show_join_page, customer_site_template, appearance_preset, about_heading, about_subheading, about_narrative, homepage_media_slots'
+  'banner_text, banner_visible, ticker_text, ticker_visible, dance_floor_visible, live_lineup_visible, tagline, hero_headline, hero_subtitle, hero_image_url, hero_animation_type, team_name, member_team_name, join_team_access_enabled, show_join_page, customer_site_template, appearance_preset, about_heading, about_subheading, about_narrative, homepage_media_slots, social_visibility'
 const REP_PROFILE_SELECT =
   'display_name, business_name, email, phone, shop_link, social_handles'
 
@@ -284,6 +286,7 @@ function buildDashboardResult(args: {
       args.siteSettings?.appearance_preset,
     ),
     socialHandles: normalizeSocialHandles(args.repProfile.social_handles),
+    socialVisibility: normalizeSocialVisibility(args.siteSettings?.social_visibility),
     aboutHeading: normalizeText(args.siteSettings?.about_heading),
     aboutSubheading: normalizeText(args.siteSettings?.about_subheading),
     aboutNarrative: normalizeText(args.siteSettings?.about_narrative),
@@ -384,6 +387,15 @@ export async function updateSiteSettingsDashboard(
 ): Promise<SiteSettingsDashboardResult> {
   const siteSettingsPatch: Record<string, unknown> = {}
   const repPatch: Record<string, unknown> = {}
+
+  if (input.socialVisibility !== undefined) {
+    const value = input.socialVisibility
+    if (!value || typeof value !== 'object' || Array.isArray(value) ||
+      Object.entries(value).some(([key, visible]) => typeof visible !== 'boolean' || !SOCIAL_PLATFORMS.some(platform => platform.key === key))) {
+      throw errors.INVALID_INPUT('Invalid socialVisibility', 'Social visibility must be On or Off for a supported platform.')
+    }
+    siteSettingsPatch.social_visibility = normalizeSocialVisibility(value)
+  }
 
   for (const [key, column] of Object.entries({ tickerVisible: 'ticker_visible', showJoinPage: 'show_join_page', danceFloorVisible: 'dance_floor_visible', liveLineupVisible: 'live_lineup_visible' }) as [keyof UpdateSiteSettingsDashboardInput, string][]) {
     const value = input[key]

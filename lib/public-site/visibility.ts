@@ -1,9 +1,11 @@
+import { socialVisibilitySelectors, type SocialVisibility } from './social-visibility'
 /** Presentation preferences, never feature entitlements or data deletion. */
 export interface PublicSiteVisibility {
   announcements?: boolean
   danceFloor?: boolean
   liveLineup?: boolean
   joinTeam?: boolean
+  social?: SocialVisibility
 }
 
 export function resolvePublicSiteVisibility(settings: {
@@ -12,19 +14,21 @@ export function resolvePublicSiteVisibility(settings: {
   liveLineupVisible?: boolean
   showJoinPage: boolean
   joinTeamAccessEnabled?: boolean
+  socialVisibility?: SocialVisibility
 }): PublicSiteVisibility {
   return {
     announcements: settings.tickerVisible,
     danceFloor: settings.danceFloorVisible !== false,
     liveLineup: settings.liveLineupVisible !== false,
     joinTeam: settings.joinTeamAccessEnabled === true && settings.showJoinPage,
+    ...(settings.socialVisibility ? { social: settings.socialVisibility } : {}),
   }
 }
 
 // Shared presentation layer covers the standard theme and custom renderers,
 // including links rewritten to a rep slug or custom domain. No queue mutation.
 export function buildPublicSiteVisibilityCss(visibility: PublicSiteVisibility = {}) {
-  const selectors: string[] = []
+  const selectors: string[] = socialVisibilitySelectors(visibility.social)
   if (visibility.announcements === false) selectors.push('.hp-ticker-row:not(.reverse)', '.hp-ticker-sr > p:first-child', '.hp-ticker-sr > a:not(:last-child)')
   if (visibility.danceFloor === false) selectors.push('.hp-ticker-row.reverse', '.hp-ticker-sr > a:last-child', 'a[href*="/amethyst/Trade.html"]', 'a[href$="/trade"]', 'a[href*="/trade?"]', 'a[href*="/trade#"]')
   if (visibility.liveLineup === false) selectors.push('.hp-trade-preview', '.hp-lrq', '.hp-queue-modal-mask', '.hp-ticker-sr > p:not(:first-child)')

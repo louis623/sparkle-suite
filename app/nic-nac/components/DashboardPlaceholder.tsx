@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { PublicSiteVisibility } from './PublicSiteVisibility'
+import { SocialVisibilitySwitch } from './SocialVisibilitySwitch'
 import dynamic from 'next/dynamic'
 import type {
   ChangeEvent,
@@ -1313,7 +1314,7 @@ const SOCIAL_HANDLE_FIELDS = [
   { key: 'tiktok', label: 'TikTok' },
   { key: 'youtube', label: 'YouTube' },
   { key: 'whatnot', label: 'Whatnot' },
-]
+] as const
 
 const WORKSPACE_APPEARANCE_PRESET: SiteAppearancePreset =
   DEFAULT_AMETHYST_APPEARANCE_PRESET
@@ -9045,7 +9046,8 @@ export function SiteSettingsCard({
         <div className={styles.walletSettingsTitle}>Social handles</div>
         <div className={styles.siteSettingsGrid}>
           {SOCIAL_HANDLE_FIELDS.map((field) => (
-            <label key={field.key} className={styles.searchField}>
+            <div key={field.key} className={styles.searchField}>
+              <label className={styles.searchField}>
               <span className={styles.searchLabel}>{field.label}</span>
               <input
                 className={styles.searchInput}
@@ -9054,7 +9056,13 @@ export function SiteSettingsCard({
                   onSocialHandleChange?.(field.key, event.target.value)
                 }
               />
-            </label>
+              </label>
+              {draft.socialHandles[field.key]?.trim() ? <SocialVisibilitySwitch
+                platform={field.label}
+                checked={draft.socialVisibility?.[field.key] !== false}
+                onChange={visible => onDraftChange?.({ socialVisibility: { ...draft.socialVisibility, [field.key]: visible } })}
+              /> : null}
+            </div>
           ))}
         </div>
       </div>

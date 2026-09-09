@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { build } from 'esbuild'
 import { createRequire } from 'node:module'
 import { expect, it } from 'vitest'
+import { buildPublicSiteVisibilityScript } from '@/lib/public-site/visibility'
+import { SOCIAL_PLATFORMS } from '@/lib/public-site/social-visibility'
 import { buildAmethystHomepageBootstrapScript, defaultAmethystHomepageTemplateData } from '@/lib/amethyst/homepage-template-data'
 
 // Optional browser suite: use an installed Playwright or an explicitly supplied
@@ -11,10 +13,27 @@ const chromium = (() => {
   catch (error) { if (process.env.VISIBILITY_PLAYWRIGHT_PATH) throw error; return null }
 })()
 
+it.skipIf(!chromium)('individually hides social links across header, hero, calendar and footer and restores them', async () => {
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.VISIBILITY_BROWSER_PATH })
+  try {
+    const page = await browser.newPage()
+    await page.setContent(['header', 'main', 'footer'].map(tag => `<${tag}>${SOCIAL_PLATFORMS.map(({ key, domains }) => `<a data-platform="${key}" href="https://www.${domains[0]}/synthetic">${key}</a>`).join('')}</${tag}>`).join('') + '<a id="unrelated" href="https://example.com/tiktok.com/synthetic">Unrelated</a>')
+    for (const platform of SOCIAL_PLATFORMS) {
+      for (const visible of [false, true]) {
+        await page.addScriptTag({ content: buildPublicSiteVisibilityScript({ social: { [platform.key]: visible } }) })
+        for (const other of SOCIAL_PLATFORMS) {
+          for (const link of await page.locator(`[data-platform="${other.key}"]`).all()) expect(await link.isVisible()).toBe(other.key === platform.key ? visible : true)
+        }
+        expect(await page.locator('#unrelated').isVisible()).toBe(true)
+      }
+    }
+  } finally { await browser.close() }
+}, 30000)
+
 it.skipIf(!chromium)('hides and restores the actual public homepage links, ticker rows and lineup', async () => {
   const source = readFileSync('public/amethyst/tweaks-panel.jsx', 'utf8') + '\n' + readFileSync('public/amethyst/homepage.jsx', 'utf8')
   const bundle = await build({ stdin: { contents: `import React from 'react'; import ReactDOM from 'react-dom/client'; window.React = React; window.ReactDOM = ReactDOM;\n${source}`, resolveDir: process.cwd(), loader: 'jsx' }, bundle: true, write: false, format: 'iife', define: { 'process.env.NODE_ENV': '"production"' } })
-  const browser = await chromium.launch({ headless: true })
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.VISIBILITY_BROWSER_PATH })
   try {
     const page = await browser.newPage()
     await page.route('**/*', (route: { abort(): Promise<void> }) => route.abort())
@@ -37,7 +56,7 @@ it.skipIf(!chromium)('hides and restores the actual public homepage links, ticke
 
 it.skipIf(!chromium)('groups accessible switches with reversible keyboard changes and locked Join Team', async () => {
   const bundle = await build({ stdin: { contents: `import React from 'react'; import { createRoot } from 'react-dom/client'; import { PublicSiteVisibility } from './app/nic-nac/components/PublicSiteVisibility'; function App() { const [settings, setSettings] = React.useState({ tickerVisible: true, showJoinPage: true, danceFloorVisible: true, liveLineupVisible: true }); return <PublicSiteVisibility settings={settings} joinTeamAccessEnabled={false} onChange={patch => setSettings(previous => ({ ...previous, ...patch }))} />; } createRoot(document.getElementById('root')).render(<App />);`, resolveDir: process.cwd(), loader: 'tsx' }, bundle: true, write: false, outdir: 'unused-browser-output', format: 'iife', define: { 'process.env.NODE_ENV': '"production"' }, jsx: 'automatic' })
-  const browser = await chromium.launch({ headless: true })
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.VISIBILITY_BROWSER_PATH })
   try {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
     await page.setContent('<html><head></head><body><div id="root"></div></body></html>')

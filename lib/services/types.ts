@@ -631,6 +631,7 @@ export interface SiteSettingsDashboardResult {
   customerSiteTemplate: CustomerSiteTemplate
   appearancePreset: SiteAppearancePreset
   socialHandles: Record<string, string>
+  socialVisibility?: import('@/lib/public-site/social-visibility').SocialVisibility
   aboutHeading?: string
   aboutSubheading?: string
   aboutNarrative?: string
@@ -660,6 +661,7 @@ export interface UpdateSiteSettingsDashboardInput {
   customerSiteTemplate?: string
   appearancePreset?: SiteAppearancePreset | string
   socialHandles?: Record<string, string>
+  socialVisibility?: import('@/lib/public-site/social-visibility').SocialVisibility
   aboutHeading?: string
   aboutSubheading?: string
   aboutNarrative?: string

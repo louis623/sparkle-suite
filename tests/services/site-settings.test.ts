@@ -221,6 +221,7 @@ describe('site settings service', () => {
       appearancePreset: 'sparkle_suite_morganite',
       aboutHeading: '',
       aboutSubheading: '',
+      socialVisibility: {},
       socialHandles: {
         instagram: '@sparklebysasha',
       },
