@@ -84,6 +84,7 @@ export type CostCapacitySnapshot = {
   telemetryAt: string | null
   providerCostsAt: string | null
   rowsTruncated: boolean
+  telemetryAvailable: boolean
   providerBalance: {
     cents: null
     basis: 'unavailable'
@@ -102,6 +103,7 @@ export type CostCapacitySnapshot = {
     inputTokens: number
     outputTokens: number
     cachedTokens: number
+    unknownCachedTokenRuns: number
     customerFacingEstimatedCents: number
     internalEstimatedCents: number
     estimatedCents: number
@@ -129,6 +131,7 @@ export type CostCapacitySnapshot = {
     inputTokens: number
     outputTokens: number
     cachedTokens: number
+    unknownCachedTokenRuns: number
     estimatedCents: number
     costPerSuccessfulWorkflowCents: number | null
     policyDrift: boolean
@@ -366,6 +369,7 @@ function groupByModel(rows: CostCapacityRun[]) {
         inputTokens: aggregate.inputTokens,
         outputTokens: aggregate.outputTokens,
         cachedTokens: aggregate.cachedTokens,
+        unknownCachedTokenRuns: aggregate.unknownCachedTokenRuns,
         estimatedCents,
         costPerSuccessfulWorkflowCents:
           aggregate.successfulWorkflows > 0
@@ -440,24 +444,26 @@ export function buildCostCapacitySnapshot(input: {
   provider: Record<ProductClass, ProviderProductCost>
   providerCostsAt: string | null
   rowsTruncated?: boolean
+  product?: ProductClass
 }): CostCapacitySnapshot {
-  const rows = [...input.suiteRows, ...input.finderRows].sort(
+  const productClasses: ProductClass[] = input.product ? [input.product] : ['suite', 'finder']
+  const rows = [...input.suiteRows, ...input.finderRows].filter(row => productClasses.includes(row.productClass)).sort(
     (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
   )
   const estimatedCents = rows.reduce(
     (sum, row) => sum + (row.estimatedCents ?? 0),
     0,
   )
-  const actualValues = Object.values(input.provider)
+  const actualValues = productClasses.map(product => input.provider[product])
     .map((entry) => entry.actualCents)
     .filter((value): value is number => value !== null)
-  const actualCents = actualValues.length === 2
+  const actualCents = actualValues.length === productClasses.length
     ? actualValues.reduce((sum, value) => sum + value, 0)
     : null
   const totals = aggregateRuns(rows)
   const elapsedMs = Math.max(1, input.end.getTime() - input.start.getTime())
   const elapsedDays = Math.max(1 / 24, elapsedMs / (24 * 60 * 60 * 1_000))
-  const products = (['suite', 'finder'] as ProductClass[]).map((productClass) => {
+  const products = productClasses.map((productClass) => {
     const productRows = rows.filter((row) => row.productClass === productClass)
     const aggregate = aggregateRuns(productRows)
     const productEstimatedCents = productRows.reduce(
@@ -472,6 +478,7 @@ export function buildCostCapacitySnapshot(input: {
       inputTokens: aggregate.inputTokens,
       outputTokens: aggregate.outputTokens,
       cachedTokens: aggregate.cachedTokens,
+      unknownCachedTokenRuns: aggregate.unknownCachedTokenRuns,
       customerFacingEstimatedCents: productRows
         .filter((row) => row.costClass === 'customer_facing')
         .reduce((sum, row) => sum + (row.estimatedCents ?? 0), 0),
@@ -488,11 +495,11 @@ export function buildCostCapacitySnapshot(input: {
   })
   const byModel = groupByModel(rows)
   const coverageHoles: string[] = []
-  if (input.finderIssue) coverageHoles.push(input.finderIssue)
+  if (productClasses.includes('finder') && input.finderIssue) coverageHoles.push(input.finderIssue)
   if (rows.some((row) => row.productClass === 'finder' && row.cachedTokens === null)) {
     coverageHoles.push('Finder cached-input tokens are not recorded yet; those cells remain unavailable.')
   }
-  for (const productClass of ['suite', 'finder'] as ProductClass[]) {
+  for (const productClass of productClasses) {
     const provider = input.provider[productClass]
     if (provider.issue) coverageHoles.push(provider.issue)
   }
@@ -524,6 +531,7 @@ export function buildCostCapacitySnapshot(input: {
     telemetryAt: rows[0]?.startedAt ?? null,
     providerCostsAt: input.providerCostsAt,
     rowsTruncated: Boolean(input.rowsTruncated),
+    telemetryAvailable: !(productClasses.includes('finder') && input.finderIssue),
     providerBalance: {
       cents: null,
       basis: 'unavailable',
@@ -540,7 +548,7 @@ export function buildCostCapacitySnapshot(input: {
       actualCentsPerDay: actualCents === null ? null : actualCents / elapsedDays,
     },
     byModel,
-    modelPolicies: (['suite', 'finder'] as ProductClass[]).flatMap(productClass => (['default', 'escalated', 'utility', 'lab'] as RunPurpose[]).map((purpose) => {
+    modelPolicies: productClasses.flatMap(productClass => (['default', 'escalated', 'utility', 'lab'] as RunPurpose[]).map((purpose) => {
       const policy = policyForPurpose(purpose, productClass)
       return {
         productClass,
@@ -677,9 +685,10 @@ export async function readCostCapacityRuns(
   supabase: Pick<SupabaseClient, 'from'>,
   month: string | undefined,
   now = new Date(),
+  product?: ProductClass,
 ) {
   const range = parseCostCapacityMonth(month, now)
-  const suitePromise = supabase
+  const suitePromise = product === 'finder' ? Promise.resolve({ data: [], error: null }) : supabase
     .from('nic_nac_runs')
     .select(
       'run_id,product,surface,model,model_provider,model_policy,reasoning_level,routed_intents,workflow_type,status,input_tokens,output_tokens,cache_read_tokens,estimated_cost_cents,hard_fail_phrase_count,created_at',
@@ -690,7 +699,7 @@ export async function readCostCapacityRuns(
     .limit(MAX_MONTHLY_ROWS + 1)
   const [suiteResult, finder] = await Promise.all([
     suitePromise,
-    readFinderRows(range.start, range.end),
+    product === 'suite' ? Promise.resolve({ rows: [] as CostCapacityRun[], issue: null, truncated: false }) : readFinderRows(range.start, range.end),
   ])
   if (suiteResult.error) throw suiteResult.error
   const suiteRaw = (suiteResult.data ?? []) as SuiteRunRow[]
@@ -699,6 +708,10 @@ export async function readCostCapacityRuns(
     suiteRows: suiteRaw.slice(0, MAX_MONTHLY_ROWS).map(normalizeSuiteRun),
     finderRows: finder.rows.slice(0, MAX_MONTHLY_ROWS),
     finderIssue: finder.issue,
+    truncatedByProduct: {
+      suite: suiteRaw.length > MAX_MONTHLY_ROWS,
+      finder: finder.truncated || finder.rows.length > MAX_MONTHLY_ROWS,
+    },
     rowsTruncated:
       suiteRaw.length > MAX_MONTHLY_ROWS || finder.truncated || finder.rows.length > MAX_MONTHLY_ROWS,
   }
@@ -708,18 +721,22 @@ export async function getNicNacCostCapacity(
   supabase: Pick<SupabaseClient, 'from'>,
   month?: string,
   now = new Date(),
+  product?: ProductClass,
 ) {
-  const telemetry = await readCostCapacityRuns(supabase, month, now)
+  const telemetry = await readCostCapacityRuns(supabase, month, now, product)
+  const unselectedProvider = { actualCents: null, issue: null, projectIdsConfigured: 0 }
   const [suiteProvider, finderProvider] = await Promise.all([
-    readOpenAICosts('suite', telemetry.start, telemetry.end),
-    readOpenAICosts('finder', telemetry.start, telemetry.end),
+    product === 'finder' ? unselectedProvider : readOpenAICosts('suite', telemetry.start, telemetry.end),
+    product === 'suite' ? unselectedProvider : readOpenAICosts('finder', telemetry.start, telemetry.end),
   ])
   const provider = { suite: suiteProvider, finder: finderProvider }
-  const providerCostsAt = Object.values(provider).some((entry) => entry.actualCents !== null)
+  const providerCostsAt = (product ? [provider[product]] : Object.values(provider)).some((entry) => entry.actualCents !== null)
     ? now.toISOString()
     : null
   return buildCostCapacitySnapshot({
     ...telemetry,
+    product,
+    rowsTruncated: product ? telemetry.truncatedByProduct[product] : telemetry.rowsTruncated,
     now,
     provider,
     providerCostsAt,

@@ -2,10 +2,8 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { listOperatorCustomerProfiles } from "@/lib/services/client-account-profiles";
 import { listOperatorOnboardingChecklists } from "@/lib/services/operator-onboarding-checklists";
-import {
-  BUG_HUNT_SELECT,
-  normalizeBugHuntItem,
-} from "@/lib/control-center/bug-hunt";
+import { readLocTaskList } from "./task-list";
+import { locCostSnapshot } from "./cost-snapshot";
 import {
   loadCurrentAccountingSnapshot,
   loadSparkleSuiteAccountingProjection,
@@ -218,37 +216,7 @@ export async function readLocOperation(
     };
   }
   if (name === "tasks.list") {
-    const { limit, offset } = pagination(input);
-    let query = admin
-      .from("sparkle_suite_bug_hunt_items")
-      .select(BUG_HUNT_SELECT)
-      .order("updated_at", { ascending: false })
-      .order("id", { ascending: true });
-    if (input.status) query = query.eq("status", String(input.status));
-    if (input.excludeComplete === true) query = query.neq("status", "complete");
-    if (input.updatedSince) {
-      const since = new Date(String(input.updatedSince));
-      if (!Number.isFinite(since.getTime()))
-        throw new LocBridgeError(400, "Choose a valid updated date.");
-      query = query.gte("updated_at", since.toISOString());
-    }
-    if (input.priority) query = query.eq("priority", String(input.priority));
-    if (input.query) {
-      const term = String(input.query)
-        .replace(/[,"\\()%_*]/g, " ")
-        .slice(0, 240);
-      query = query.or(
-        `title.ilike.%${term}%,details.ilike.%${term}%,owner.ilike.%${term}%`,
-      );
-    }
-    const { data, error } = await query.range(offset, offset + limit);
-    if (error) throw error;
-    return {
-      items: (data ?? [])
-        .slice(0, limit)
-        .map((row) => normalizeBugHuntItem(row)),
-      nextOffset: (data ?? []).length > limit ? offset + limit : null,
-    };
+    return readLocTaskList(admin, input, pagination(input));
   }
   if (name === "onboarding.waitlist") {
     const { limit, offset } = pagination(input);
@@ -279,43 +247,27 @@ export async function readLocOperation(
     const snapshot = await getNicNacCostCapacity(
       admin,
       typeof input.month === "string" ? input.month : undefined,
-    );
-    const selected = snapshot.products.filter(
-      (row) => row.productClass === product,
-    );
-    return {
+      new Date(),
       product,
-      month: snapshot.month,
-      monthLabel: snapshot.monthLabel,
-      generatedAt: snapshot.generatedAt,
-      telemetryAt: snapshot.telemetryAt,
-      providerCostsAt: snapshot.providerCostsAt,
-      rowsTruncated: snapshot.rowsTruncated,
-      products: selected,
-      totals: selected[0] ?? null,
-      byModel: snapshot.byModel.filter((row) => row.productClass === product),
-      modelPolicies: snapshot.modelPolicies.filter(
-        (row) => row.productClass === product,
-      ),
-      recentRuns: snapshot.recentRuns.filter(
-        (row) => row.productClass === product,
-      ),
-      provider: { [product]: snapshot.provider[product] },
-      coverageHoles: [snapshot.provider[product].issue].filter(Boolean),
-    };
+    );
+    return locCostSnapshot(snapshot, product);
   }
   if (name === "usage.export") {
     const rows = await readCostCapacityRuns(
       admin,
       typeof input.month === "string" ? input.month : undefined,
+      new Date(),
+      product,
     );
+    if (product === "finder" && rows.finderIssue)
+      throw new LocBridgeError(503, "Finder usage is unavailable. Refresh the usage screen for source status before exporting.");
     return {
       contentType: "text/csv",
       filename: `${product}-usage-${rows.month}.csv`,
       content: formatCostCapacityCsv(
         product === "suite" ? rows.suiteRows : rows.finderRows,
       ),
-      truncated: rows.rowsTruncated,
+      truncated: rows.truncatedByProduct[product],
     };
   }
   if (name === "health.snapshot") {
