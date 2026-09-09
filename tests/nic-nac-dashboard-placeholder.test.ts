@@ -2061,6 +2061,8 @@ describe('DashboardPlaceholder', () => {
     expect(source).not.toContain('Refresh preview')
     expect(source).toContain('<iframe')
     expect(source).toContain('title="Sparkle Suite live site preview"')
+    expect(source).toContain('fullSiteHref: customerSparkleSiteHref ?? customerSparkleSitePreviewHref')
+    expect(source).toContain('activeWorkspacePreview.fullSiteHref ?? activeWorkspacePreview.href')
     expect(source).not.toContain('Preview site')
     expect(source).not.toContain('Sparkle with us.')
     expect(source).not.toContain('href={customerSparkleSiteHref}\n              target="_blank"')

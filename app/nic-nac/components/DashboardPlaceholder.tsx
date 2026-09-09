@@ -2668,6 +2668,7 @@ type WorkspacePreviewState =
   | {
       mode: 'live_site_preview'
       href: string
+      fullSiteHref?: string
       title: 'Live Site Preview' | 'Customer Dance Floor Preview'
     }
 
@@ -5880,6 +5881,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     openWorkspacePreview({
       mode: 'live_site_preview',
       href: customerSparkleSitePreviewHref,
+      fullSiteHref: customerSparkleSiteHref ?? customerSparkleSitePreviewHref,
       title: 'Live Site Preview',
     })
   }
@@ -6418,7 +6420,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
               </button>
               <a
                 className={styles.previewAction}
-                href={activeWorkspacePreview.href}
+                href={activeWorkspacePreview.fullSiteHref ?? activeWorkspacePreview.href}
                 target="_blank"
                 rel="noreferrer"
               >
