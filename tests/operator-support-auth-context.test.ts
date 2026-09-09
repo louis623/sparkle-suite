@@ -24,6 +24,7 @@ const targetRep = {
   business_name: 'Kim Sparkles',
   stripe_customer_id: null,
   public_site_slug: 'kim-sparkles',
+  custom_domain: null,
   time_zone: 'America/New_York',
   status: 'active',
 }

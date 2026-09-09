@@ -133,7 +133,7 @@ async function getDevBypassOperator() {
   const admin = createAdminClient()
   const { data: rep, error } = await admin
     .from('reps')
-    .select('id, auth_user_id, email, display_name, business_name, stripe_customer_id, public_site_slug, time_zone, status')
+    .select('id, auth_user_id, email, display_name, business_name, stripe_customer_id, public_site_slug, custom_domain, time_zone, status')
     .eq('email', email)
     .single()
 
@@ -226,7 +226,7 @@ export async function authenticateControlCenterOperator(email: string, password:
   const admin = createAdminClient()
   const { data: rep, error: repError } = await admin
     .from('reps')
-    .select('id, auth_user_id, email, display_name, business_name, stripe_customer_id, public_site_slug, time_zone, status')
+    .select('id, auth_user_id, email, display_name, business_name, stripe_customer_id, public_site_slug, custom_domain, time_zone, status')
     .eq('email', operatorEmail)
     .single()
   if (repError || !rep) throw new AuthError('Operator account was not found.')

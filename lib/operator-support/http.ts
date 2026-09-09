@@ -88,7 +88,7 @@ export async function loadVerifiedOperatorSupportContext(
   const { data: targetRep, error } = await admin
     .from('reps')
     .select(
-      'id, auth_user_id, email, display_name, business_name, stripe_customer_id, public_site_slug, time_zone, status',
+      'id, auth_user_id, email, display_name, business_name, stripe_customer_id, public_site_slug, custom_domain, time_zone, status',
     )
     .eq('id', verified.session.targetRepId)
     .maybeSingle()

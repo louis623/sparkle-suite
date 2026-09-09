@@ -23,6 +23,7 @@ import {
   WalletSummaryCard,
   WorkspaceAppHeader,
   WorkspaceAccessNotice,
+  buildWorkspacePublicSiteLocation,
   buildJoinTeamRosterSavePayload,
   buildJoinTeamRosterRemovalPayload,
   confirmJoinTeamRosterRemoval,
@@ -540,6 +541,34 @@ const TRADE_BOARD_READY_STATE = {
 }
 
 describe('DashboardPlaceholder', () => {
+  it('uses a saved custom domain for the Workspace public-site header and preview', () => {
+    expect(
+      buildWorkspacePublicSiteLocation({
+        customDomain: 'https://www.BrisGlowtique.com/',
+        publicSiteSlug: 'brisglowtique',
+        repId: 'rep-bri',
+      }),
+    ).toEqual({
+      href: 'https://www.brisglowtique.com',
+      url: 'https://www.brisglowtique.com',
+      display: 'brisglowtique.com',
+    })
+  })
+
+  it('keeps the Sparkle Suite slug as the Workspace header fallback', () => {
+    expect(
+      buildWorkspacePublicSiteLocation({
+        customDomain: null,
+        publicSiteSlug: 'brisglowtique',
+        repId: 'rep-bri',
+      }),
+    ).toEqual({
+      href: '/brisglowtique',
+      url: 'https://www.yoursparklesuite.com/brisglowtique',
+      display: 'yoursparklesuite.com/brisglowtique',
+    })
+  })
+
   it('keeps only the membership team in the workspace header', () => {
     const html = renderToStaticMarkup(
       createElement(WorkspaceAppHeader, {
@@ -2863,11 +2892,13 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('maxLength="1200"')
     expect(html).toContain('siteSettingsTextarea')
     expect(html).not.toContain('Write with Nic-Nac')
-    expect(html).toContain('Showcase video')
+    expect(html).toContain('Live reveal video')
     expect(html).toContain('About portrait photo')
     expect(html).toContain('About short video 1')
     expect(html).toContain('About short video 3')
     expect(html.match(/Video link or embed/g)).toHaveLength(4)
+    expect(html.match(/Video caption \(optional\)/g)).toHaveLength(4)
+    expect(html).toContain('maxLength="180"')
     expect(html.match(/Upload photo/g)).toHaveLength(1)
     expect(html).toContain('Video links and embeds')
     expect(html).not.toContain('<summary>')

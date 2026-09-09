@@ -214,8 +214,11 @@ export function normalizePublicSiteMediaSlots(
       )
     }
 
+    const captionLimit = key === 'about_1' ? 240 : 180
     const caption =
-      typeof row?.caption === 'string' ? row.caption.trim().slice(0, 240) : ''
+      typeof row?.caption === 'string'
+        ? row.caption.trim().slice(0, captionLimit)
+        : ''
 
     const hasPortraitFraming =
       key === 'about_1' &&
@@ -239,7 +242,7 @@ export function normalizePublicSiteMediaSlots(
 
     return {
       key,
-      caption: key === 'about_1' ? caption : '',
+      caption,
       // Keep legacy images in About short video 1 stored rather than silently
       // deleting them on a settings save. New UI only exposes images for the
       // portrait card, and the public template never renders these legacy URLs.

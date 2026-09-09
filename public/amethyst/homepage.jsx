@@ -797,27 +797,6 @@ function getCustomerVideoPresentation(value) {
   };
 }
 
-function getCustomerVideoSubtitle(videoUrl, subtitle) {
-  const presentation = getCustomerVideoPresentation(videoUrl);
-  const suppliedSubtitle = String(subtitle || "").trim();
-  if (!presentation.provider) {
-    return suppliedSubtitle || "A new sparkle moment is on the way";
-  }
-
-  if (!suppliedSubtitle) return `Watch on ${presentation.label}`;
-
-  const platformTail = /\s+(?:on|via)\s+(?:TikTok|YouTube|Instagram|Facebook)\s*$/i;
-  if (platformTail.test(suppliedSubtitle)) {
-    const baseSubtitle = suppliedSubtitle.replace(platformTail, "").trim();
-    return baseSubtitle ? `${baseSubtitle} on ${presentation.label}` : `Watch on ${presentation.label}`;
-  }
-
-  const handle = suppliedSubtitle.match(/^@([\w.-]+)$/)?.[1];
-  if (handle) return `@${handle} on ${presentation.label}`;
-
-  return suppliedSubtitle;
-}
-
 function CustomerMediaIcon({ name }) {
   return (
     <svg className="hp-customer-media-icon-svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -876,19 +855,21 @@ function CustomerVideoCard({
   variant,
 }) {
   const presentation = getCustomerVideoPresentation(videoUrl);
+  const caption = String(subtitle || "").trim();
   return (
     <CustomerMediaCard
       className={className}
       dataSlot={dataSlot}
       emptyLabel="Video coming soon"
-      icon={presentation.provider || "video"}
+      icon="video"
       mediaUrl={presentation.outboundUrl}
       provider={presentation.provider}
-      subtitle={getCustomerVideoSubtitle(videoUrl, subtitle)}
+      subtitle=""
       title={title}
       variant={variant}
       footer={presentation.outboundUrl ? (
-        <figcaption className="hp-customer-media-footer">
+        <figcaption className="hp-customer-media-footer hp-customer-video-footer">
+          {caption ? <span className="hp-customer-video-caption">{caption}</span> : null}
           <a className="hp-customer-media-action" href={presentation.outboundUrl} target="_blank" rel="noreferrer noopener">
             <CustomerMediaIcon name={presentation.provider || "play"} />
             <span>{presentation.ctaLabel}</span>
@@ -1123,6 +1104,7 @@ function AboutShortCard({ index, hideEmptyMedia = false }) {
     <CustomerVideoCard
       className="hp-about-short-card slot"
       dataSlot={`about short ${index + 1}`}
+      subtitle={slot?.caption}
       title={`Sparkle moment ${index + 1}`}
       videoUrl={slot?.href}
       variant="short"
@@ -1749,7 +1731,7 @@ function Wibp({ repName }) {
             <div className="hp-wibp-eyebrow">First time here?</div>
             <h2 className="hp-wibp-title">It's a live jewelry reveal — with <span className="slot" data-slot="rep name">{repName}</span></h2>
             <p className="hp-wibp-body">
-              You order a sealed box, then watch <span className="slot" data-slot="rep name">{repName}</span> open it live{isHeatherBlingKitchenSite ? "." : " on TikTok or Facebook."}{" "}
+              You order a sealed box, then watch it revealed live on <span className="slot" data-slot="rep name">{repName}</span>&apos;s platform.{" "}
               Every box has real jewelry inside — some Everyday Sparkle, some Diamond Territory, and a few rare Unicorn Magic pieces hidden throughout the show.
               After the reveal, your jewelry ships straight to your door from Bomb Party.
             </p>
@@ -1808,7 +1790,7 @@ function BlingKitchenRevealGuide({ repName }) {
         <a {...linkProps(watchHref)} className="bk-home-guide-step">
           <strong>2</strong>
           <b>Watch with Heather</b>
-          <span>Join TikTok live for the reveal, kitchen conversation, and community fun.</span>
+          <span>Join Heather live for the reveal, kitchen conversation, and community fun.</span>
         </a>
         <a {...linkProps(vipHref)} className="bk-home-guide-step">
           <strong>3</strong>
@@ -2326,8 +2308,8 @@ function BrittWithBlingRevealExplainer() {
           <CustomerVideoCard
             className="bwb-tiktok-card slot"
             dataSlot="showcase video"
-            subtitle={explainer.videoHandle || CONTENT.showcaseVideoCaption}
-            title={explainer.videoCaption || "Watch a Live Reveal"}
+            subtitle={explainer.videoCaption || explainer.videoHandle || CONTENT.showcaseVideoCaption}
+            title="Watch a Live Reveal"
             videoUrl={configuredShowcase}
             variant="showcase"
           />

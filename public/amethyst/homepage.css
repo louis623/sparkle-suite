@@ -2755,6 +2755,29 @@ body.bg-quartz-paper .hp-step-num {
   background: var(--hp-media-card-footer-bg);
   border-top: 1px solid var(--hp-media-card-border);
 }
+.hp-customer-video-footer {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 16px;
+}
+.hp-customer-video-footer::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 6px;
+  background: var(--hp-media-card-header-bg);
+}
+.hp-customer-video-caption {
+  display: block;
+  padding: 2px 8px 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
 .hp-customer-media-action {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

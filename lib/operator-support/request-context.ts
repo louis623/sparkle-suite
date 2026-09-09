@@ -17,6 +17,7 @@ export type OperatorSupportRequestContext = {
     business_name: string
     stripe_customer_id: string | null
     public_site_slug: string | null
+    custom_domain: string | null
     time_zone: string
     status: string
   }

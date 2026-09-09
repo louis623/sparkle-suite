@@ -110,7 +110,7 @@ async function operatorContext(
   const { data: rep, error } = await createAdminClient()
     .from("reps")
     .select(
-      "id, auth_user_id, email, display_name, business_name, stripe_customer_id, public_site_slug, time_zone, status",
+      "id, auth_user_id, email, display_name, business_name, stripe_customer_id, public_site_slug, custom_domain, time_zone, status",
     )
     .eq("email", email)
     .maybeSingle();

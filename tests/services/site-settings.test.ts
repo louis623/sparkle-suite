@@ -66,7 +66,7 @@ describe('site settings service', () => {
       },
       {
         key: 'about_2',
-        caption: '',
+        caption: 'Live reveal',
         imageUrl: '',
         videoUrl:
           'https://www.tiktok.com/@sparkle/video/7412345678901234567',
@@ -256,7 +256,7 @@ describe('site settings service', () => {
         homepage_media_slots: [
           {
             key: 'showcase',
-            caption: '',
+            caption: 'Favorite reveal',
             imageUrl: '',
             videoUrl: 'https://www.tiktok.com/@sparkle/video/1',
           },
@@ -346,7 +346,7 @@ describe('site settings service', () => {
         homepage_media_slots: [
           {
             key: 'showcase',
-            caption: '',
+            caption: 'Favorite reveal',
             imageUrl: '',
             videoUrl: 'https://www.tiktok.com/@sparkle/video/1',
           },

@@ -152,7 +152,7 @@ describe('Amethyst preview template data', () => {
     expect(data.streamLinks.tiktok).toBe(
       'https://www.tiktok.com/@sparklesuitedemo',
     )
-    expect(data.showcaseVideoCaption).toBe('')
+    expect(data.showcaseVideoCaption).toBe('A favorite live reveal')
     expect(data.showcaseVideoUrl).toBe(
       'https://www.tiktok.com/@sparklesuitedemo/video/1',
     )
@@ -166,7 +166,7 @@ describe('Amethyst preview template data', () => {
       },
       {
         typeLabel: 'Short video 1',
-        caption: '',
+        caption: 'Behind the scenes',
         href: 'https://www.tiktok.com/@sparklesuitedemo/video/2',
         mediaUrl: undefined,
       },

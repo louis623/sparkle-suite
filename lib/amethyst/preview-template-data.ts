@@ -585,7 +585,7 @@ export function mapPreviewSettingsToHomepageTemplateData(
       : '',
     streamLinks,
     socialLinks: buildSocialLinks(settings),
-    showcaseVideoCaption: '',
+    showcaseVideoCaption: showcaseMedia?.caption?.trim() || '',
     showcaseVideoUrl: showcaseMedia?.videoUrl || '#',
     showcaseVideoVisible: showcaseMedia?.isVisible !== false,
     showAboutSection: aboutMedia[0]?.sectionVisible === true,
@@ -603,7 +603,7 @@ export function mapPreviewSettingsToHomepageTemplateData(
         const mediaVisible = media?.isVisible !== false
         return {
           typeLabel: isPortrait ? 'Portrait photo' : `Short video ${index}`,
-          caption: isPortrait && mediaVisible ? media?.caption || fallback.caption : '',
+          caption: mediaVisible ? media?.caption || (isPortrait ? fallback.caption : '') : '',
           href: isPortrait || !mediaVisible ? '#' : media?.videoUrl || '#',
           mediaUrl: isPortrait && mediaVisible ? media?.imageUrl || undefined : undefined,
           portraitFocusX: isPortrait ? media?.portraitFocusX : undefined,

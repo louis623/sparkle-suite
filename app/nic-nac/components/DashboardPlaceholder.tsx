@@ -50,6 +50,7 @@ import {
   DEFAULT_AMETHYST_APPEARANCE_PRESET,
   normalizeAmethystAppearancePreset,
 } from '@/lib/amethyst/appearance-presets'
+import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
 import { AMETHYST_SKIN_CARDS } from '@/lib/amethyst/skin-cards'
 import {
   BRITT_WITH_BLING_ABOUT_PORTRAIT_URL,
@@ -608,6 +609,7 @@ type RepProfileState = {
   displayName?: string
   businessName?: string
   publicSiteSlug?: string | null
+  customDomain?: string | null
   liveQueueSyncCode?: string | null
   timeZone?: string | null
 }
@@ -2629,6 +2631,34 @@ export type DashboardPlaceholderProps = {
   desktopChat?: ReactNode
 }
 
+export function buildWorkspacePublicSiteLocation({
+  customDomain,
+  publicSiteSlug,
+  repId,
+}: {
+  customDomain?: string | null
+  publicSiteSlug?: string | null
+  repId?: string | null
+}) {
+  const normalizedCustomDomain = normalizeAmethystCustomDomainCandidate(customDomain)
+  const href = normalizedCustomDomain
+    ? `https://${normalizedCustomDomain}`
+    : publicSiteSlug || repId
+      ? buildCustomerSparkleSiteHref({ publicSiteSlug, repId })
+      : null
+  const url = href
+    ? /^https:\/\//i.test(href)
+      ? href
+      : `https://www.yoursparklesuite.com${href}`
+    : null
+
+  return {
+    href,
+    url,
+    display: url ? url.replace(/^https:\/\/(?:www\.)?/, '') : null,
+  }
+}
+
 type WorkspacePreviewState =
   | { mode: 'workspace' }
   | {
@@ -2674,6 +2704,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     displayName: initialSiteSettings?.displayName,
     businessName: initialSiteSettings?.businessName,
     publicSiteSlug: publicSiteSlugOverride ?? null,
+    customDomain: null,
     liveQueueSyncCode: liveQueueSyncCodeOverride ?? null,
   })
   const isBrittWithBlingWorkspace = isBrittWithBlingPublicSiteSlug(
@@ -2989,6 +3020,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       displayName: payload.rep?.display_name,
       businessName: payload.rep?.business_name,
       publicSiteSlug: payload.rep?.public_site_slug ?? null,
+      customDomain: payload.rep?.custom_domain ?? null,
       liveQueueSyncCode: payload.rep?.live_queue_sync_code ?? null,
       timeZone: payload.rep?.time_zone ?? null,
     })
@@ -5805,18 +5837,15 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const currentRepId = repIdOverride ?? repProfileState.repId
   const currentLiveQueueSyncCode =
     liveQueueSyncCodeOverride ?? repProfileState.liveQueueSyncCode
-  const customerSparkleSiteHref =
-    currentPublicSiteSlug || currentRepId
-      ? buildCustomerSparkleSiteHref({
-          repId: currentRepId,
-          publicSiteSlug: currentPublicSiteSlug,
-        })
-      : null
-  const customerSparkleSiteUrl = customerSparkleSiteHref
-    ? `https://www.yoursparklesuite.com${customerSparkleSiteHref}`
-    : null
-  const customerSparkleSiteDisplay = customerSparkleSiteUrl
-    ? customerSparkleSiteUrl.replace(/^https:\/\/www\./, '')
+  const customerSparkleSiteLocation = buildWorkspacePublicSiteLocation({
+    customDomain: repProfileState.customDomain,
+    publicSiteSlug: currentPublicSiteSlug,
+    repId: currentRepId,
+  })
+  const customerSparkleSiteHref = customerSparkleSiteLocation.href
+  const customerSparkleSiteUrl = customerSparkleSiteLocation.url
+  const customerSparkleSiteDisplay = customerSparkleSiteLocation.display
+    ? customerSparkleSiteLocation.display
     : repProfileState.status === 'loading'
       ? 'Site address loading'
       : 'Site address not set'
@@ -8791,7 +8820,7 @@ export function SiteSettingsCard({
               slot.key === 'showcase'
                 ? isBrittWithBling
                   ? 'What is a Bomb Party? showcase video'
-                  : 'Showcase video'
+                  : 'Live reveal video'
                 : slot.key === 'about_1'
                   ? isBrittWithBling
                     ? 'About Brittany portrait'
@@ -8884,12 +8913,25 @@ export function SiteSettingsCard({
                         const videoUrl = event.target.value
                         onHomepageMediaChange?.(slot.key, {
                           videoUrl,
-                          caption: '',
                           ...(isBrittWithBling
                             ? { isVisible: Boolean(videoUrl.trim()) }
                             : {}),
                         })
                       }}
+                    />
+                  </label>
+                ) : null}
+                {allowsVideo ? (
+                  <label className={styles.searchField}>
+                    <span className={styles.searchLabel}>Video caption (optional)</span>
+                    <input
+                      className={styles.searchInput}
+                      maxLength={180}
+                      placeholder="Add a short caption shown below the video"
+                      value={slot.caption}
+                      onChange={(event) =>
+                        onHomepageMediaChange?.(slot.key, { caption: event.target.value })
+                      }
                     />
                   </label>
                 ) : null}
