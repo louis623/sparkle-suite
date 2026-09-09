@@ -1,5 +1,6 @@
 import "server-only";
-import { LocBridgeError } from "./security";
+import { LocBridgeError, LocPreconditionError } from "./security";
+import { getPrelaunchSignWellConfig } from "@/lib/prelaunch/signwell";
 type Input = Record<string, unknown>;
 type Handler = (
   request: Request,
@@ -209,6 +210,11 @@ const routes: Record<
 export async function runExistingLocRoute(name: string, input: Input) {
   const route = routes[name];
   if (!route) throw new LocBridgeError(404, "Unknown operation.");
+  if (name === "onboarding.agreement-document" && !getPrelaunchSignWellConfig())
+    throw new LocPreconditionError(
+      409,
+      "Agreement drafting needs its SignWell connection and template configured. No document was created or sent.",
+    );
   const params: Record<string, string> = {};
   for (const key of ["conversationId", "attachmentId", "reportId", "sessionId"])
     if (input[key] !== undefined) {
