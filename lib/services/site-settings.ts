@@ -15,6 +15,10 @@ import type {
   SiteSettingsDashboardResult,
   UpdateSiteSettingsDashboardInput,
 } from '@/lib/services/types'
+import {
+  ABOUT_NARRATIVE_MAX_LENGTH,
+  ABOUT_TITLE_MAX_LENGTH,
+} from '@/lib/public-site/about-section'
 
 type SiteSettingsRow = {
   banner_text: string | null
@@ -80,6 +84,17 @@ function normalizeHeroAnimationType(
   }
   if (value === 'pan') return 'soft_glow'
   return 'sparkle_rise'
+}
+
+function normalizeAboutNarrative(value: string) {
+  const normalized = normalizeNullableText(value)
+  if (normalized && normalized.length > ABOUT_NARRATIVE_MAX_LENGTH) {
+    throw errors.INVALID_INPUT(
+      'aboutNarrative exceeds the maximum length',
+      `About narrative can be up to ${ABOUT_NARRATIVE_MAX_LENGTH} characters.`,
+    )
+  }
+  return normalized
 }
 
 function normalizeShopLink(value: unknown) {
@@ -423,15 +438,15 @@ export async function updateSiteSettingsDashboard(
     )
   }
   if (input.aboutHeading !== undefined) {
-    siteSettingsPatch.about_heading = normalizeNullableText(input.aboutHeading.slice(0, 180))
+    siteSettingsPatch.about_heading = normalizeNullableText(
+      input.aboutHeading.slice(0, ABOUT_TITLE_MAX_LENGTH),
+    )
   }
   if (input.aboutSubheading !== undefined) {
     siteSettingsPatch.about_subheading = normalizeNullableText(input.aboutSubheading.slice(0, 240))
   }
   if (input.aboutNarrative !== undefined) {
-    siteSettingsPatch.about_narrative = normalizeNullableText(
-      input.aboutNarrative.slice(0, 3000),
-    )
+    siteSettingsPatch.about_narrative = normalizeAboutNarrative(input.aboutNarrative)
   }
   if (input.homepageMediaSlots !== undefined) {
     siteSettingsPatch.homepage_media_slots = normalizePublicSiteMediaSlots(

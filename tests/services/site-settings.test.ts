@@ -385,6 +385,17 @@ describe('site settings service', () => {
     expect(supabase.from).not.toHaveBeenCalled()
   })
 
+  it('rejects an About narrative longer than 1,200 characters before writing', async () => {
+    const supabase = { from: vi.fn() }
+
+    await expect(
+      updateSiteSettingsDashboard(supabase as never, 'rep-1', {
+        aboutNarrative: 'x'.repeat(1201),
+      }),
+    ).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+    expect(supabase.from).not.toHaveBeenCalled()
+  })
+
   it('lets Nic-Nac save only the customer-site appearance preset', async () => {
     const siteSettingsChain = makeUpsertSingle({
       data: {

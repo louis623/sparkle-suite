@@ -56,6 +56,10 @@ import {
 } from '@/lib/britt-with-bling/constants'
 import { normalizeSupportedPublicVideoUrl } from '@/lib/public-site/media-url'
 import {
+  ABOUT_NARRATIVE_MAX_LENGTH,
+  ABOUT_TITLE_MAX_LENGTH,
+} from '@/lib/public-site/about-section'
+import {
   buildCustomerSparkleSiteHref,
   buildCustomerTradeBoardHref,
 } from '@/lib/nic-nac/rep-links'
@@ -6259,12 +6263,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             isBrittWithBling={isBrittWithBlingWorkspace}
             canPreview={Boolean(customerSparkleSiteHref)}
             onPreview={handleOpenCustomerSitePreview}
-            onWriteAboutNarrative={() => {
-              setActiveSection('home')
-              onSendNicNacPrompt?.(
-                'Help me write my customer-facing About section narrative. Ask me to free-talk first, then give me 2 or 3 polished choices that keep my real details and voice. Once I choose one, save it to my customer-facing site.',
-              )
-            }}
             onSave={handleSaveSiteSettings}
           />
         </div>
@@ -8353,7 +8351,6 @@ export function SiteSettingsCard({
   isBrittWithBling = false,
   canPreview,
   onPreview,
-  onWriteAboutNarrative,
   onSave,
 }: {
   state: SiteSettingsState
@@ -8380,7 +8377,6 @@ export function SiteSettingsCard({
   isBrittWithBling?: boolean
   canPreview?: boolean
   onPreview?: () => void
-  onWriteAboutNarrative?: () => void
   onSave?: () => void
 }) {
   const tickerTextareaRef = useRef<HTMLTextAreaElement>(null)
@@ -9037,22 +9033,36 @@ export function SiteSettingsCard({
       </div>
 
       <div className={styles.siteSettingsSection}>
-        <div className={styles.workspaceSectionHeader}>
-          <div>
-            <div className={styles.walletSettingsTitle}>About section narrative</div>
-            <p className={styles.siteSettingsPreviewNote}>
-              Build this with Nic-Nac: share your story, refine a few options
-              together, then approve the one that feels right. Nic-Nac publishes
-              the approved narrative directly to your customer-facing site.
-            </p>
-          </div>
-          <button
-            type="button"
-            className={styles.previewSiteButton}
-            onClick={onWriteAboutNarrative}
-          >
-            Write with Nic-Nac
-          </button>
+        <div className={styles.walletSettingsTitle}>About section</div>
+        <p className={styles.siteSettingsPreviewNote}>
+          Add a short title and paste your customer-facing story. Keep it concise
+          so it stays balanced beside your photo.
+        </p>
+        <div className={styles.siteSettingsGrid}>
+          <label className={styles.searchField}>
+            <span className={styles.searchLabel}>About title</span>
+            <input
+              className={styles.searchInput}
+              maxLength={ABOUT_TITLE_MAX_LENGTH}
+              placeholder="Meet Brianna"
+              value={draft.aboutHeading ?? ''}
+              onChange={(event) => onDraftChange?.({ aboutHeading: event.target.value })}
+            />
+          </label>
+          <label className={styles.searchField}>
+            <span className={styles.searchLabel}>About narrative</span>
+            <textarea
+              className={styles.tickerTextarea}
+              maxLength={ABOUT_NARRATIVE_MAX_LENGTH}
+              rows={7}
+              placeholder="Paste the story you want customers to read."
+              value={draft.aboutNarrative ?? ''}
+              onChange={(event) => onDraftChange?.({ aboutNarrative: event.target.value })}
+            />
+            <span className={styles.siteSettingsPreviewNote}>
+              {(draft.aboutNarrative ?? '').length} / {ABOUT_NARRATIVE_MAX_LENGTH} characters
+            </span>
+          </label>
         </div>
       </div>
 

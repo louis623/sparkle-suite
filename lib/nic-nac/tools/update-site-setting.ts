@@ -7,6 +7,10 @@ import {
   normalizeCustomerSiteTemplate,
 } from '@/lib/amethyst/appearance-presets'
 import { normalizeAmethystSkinSelection } from '@/lib/amethyst/skin-cards'
+import {
+  ABOUT_NARRATIVE_MAX_LENGTH,
+  ABOUT_TITLE_MAX_LENGTH,
+} from '@/lib/public-site/about-section'
 import type { ToolDefinition } from './types'
 
 const inputSchema = z.object({
@@ -22,9 +26,9 @@ const inputSchema = z.object({
   showJoinPage: z.boolean().optional(),
   customerSiteTemplate: z.string().optional(),
   appearancePreset: z.string().optional(),
-  aboutHeading: z.string().max(180).optional(),
+  aboutHeading: z.string().max(ABOUT_TITLE_MAX_LENGTH).optional(),
   aboutSubheading: z.string().max(240).optional(),
-  aboutNarrative: z.string().max(3000).optional(),
+  aboutNarrative: z.string().max(ABOUT_NARRATIVE_MAX_LENGTH).optional(),
   socialHandles: z.record(z.string(), z.string().min(1)).optional(),
 })
 
