@@ -1,5 +1,16 @@
 # Project State
 
+## September 9, 2026 - Brittany's three original TikTok Sparkle Moments restored
+
+At Louis's explicit direction, the three existing TikTok videos were copied
+from Brittany's retained Readdy About page into the Brittany-only Workspace
+Sparkle Moment 1–3 fields and saved through transparent support access. The
+live `https://www.yoursparklesuite.com/brittwithbling` page visibly renders the
+three cards in a row between the restored About content and “Never Miss a
+Show,” each with its matching TikTok player and Watch on TikTok link. This was
+a live customer-facing content update; no application deployment, code,
+extension, billing, email, DNS, or other customer setting changed.
+
 ## September 8, 2026 - Brittany public About/media section restored
 
 Louis clarified that the September 5 hide needed to be reversed on the actual

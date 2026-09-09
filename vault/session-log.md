@@ -1,5 +1,22 @@
 # Session Log
 
+## September 9, 2026 - Brittany original TikTok Sparkle Moments published
+
+- Louis explicitly authorized restoring the three original TikTok embeds from
+  Brittany's retained Readdy About page into her live Sparkle Suite Workspace.
+- Source links, preserved in the same order: `7476510653268806958`,
+  `7387364398832094495`, and `7338490860503387434` under
+  `@brittwithbling`.
+- Used the existing transparent support session for Brittany, entered the three
+  links in Sparkle Moment 1–3, and received the Workspace confirmation “Site
+  settings saved.”
+- Fresh visual verification on
+  `https://www.yoursparklesuite.com/brittwithbling` showed all three playable
+  TikTok cards in a row, each with the matching Watch on TikTok destination.
+- No code, deployment, extension, billing, email, DNS, or unrelated customer
+  state was changed. The retained Readdy project and its other content were not
+  modified.
+
 ## September 8, 2026 - Brittany customer-facing About/media restoration
 
 - Louis clarified that “unhide” referred to Brittany's actual public site, not
