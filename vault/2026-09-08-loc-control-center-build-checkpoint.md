@@ -1,5 +1,7 @@
 # LOC control-center implementation checkpoint
 
+September 9 follow-up: LOC first-visit guidance is now implemented and verified in isolated browser tests (automatic first opening, remembered dismissal, reopen, Suite/Finder shortcuts, 690/344px layouts). Fresh LOC production build passed. Live `/start` still redirects to prelaunch with no reviewer controls; protected synthetic access remains the same release blocker. No new deployment, migration or operations secret was applied.
+
 ## Scope and current state
 
 Louis authorized rebuilding the Sparkle Suite/Finder control center inside Louis's Ops Center, with full functional parity, LOC styling, Galaxy Z Fold-friendly layouts, selected findings sent to memory destinations, and replaceable Codex/Grok agents assigned to areas. The existing control center stays operational until deployed testing and acceptance support a later transition.
