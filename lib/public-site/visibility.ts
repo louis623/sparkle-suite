@@ -28,7 +28,7 @@ export function buildPublicSiteVisibilityCss(visibility: PublicSiteVisibility = 
   if (visibility.announcements === false) selectors.push('.hp-ticker-row:not(.reverse)', '.hp-ticker-sr > p:first-child', '.hp-ticker-sr > a:not(:last-child)')
   if (visibility.danceFloor === false) selectors.push('.hp-ticker-row.reverse', '.hp-ticker-sr > a:last-child', 'a[href*="/amethyst/Trade.html"]', 'a[href$="/trade"]', 'a[href*="/trade?"]', 'a[href*="/trade#"]')
   if (visibility.liveLineup === false) selectors.push('.hp-trade-preview', '.hp-lrq', '.hp-queue-modal-mask', '.hp-ticker-sr > p:not(:first-child)')
-  if (visibility.joinTeam === false) selectors.push('a[href*="/amethyst/Join.html"]', 'a[href$="/join"]', 'a[href*="/join?"]', 'a[href*="/join#"]')
+  if (visibility.joinTeam === false) selectors.push('.mhf-cta-join', '.bwb-cta-join', 'a[href*="/amethyst/Join.html"]', 'a[href$="/join"]', 'a[href*="/join?"]', 'a[href*="/join#"]')
   if (visibility.announcements === false && visibility.danceFloor === false) selectors.push('.hp-ticker')
   return selectors.length ? `${selectors.join(',')} { display: none !important; }` : ''
 }

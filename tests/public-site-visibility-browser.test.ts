@@ -18,16 +18,19 @@ it.skipIf(!chromium)('hides and restores the actual public homepage links, ticke
   try {
     const page = await browser.newPage()
     await page.route('**/*', (route: { abort(): Promise<void> }) => route.abort())
+    for (const publicSiteVariant of [undefined, 'mile_high_fizz_hybrid', 'britt_with_bling_hybrid', 'bling_kitchen_hybrid'] as const) {
     for (const visible of [true, false, true]) {
       await page.setContent('<html><head></head><body><div id="root"></div></body></html>')
       await page.addScriptTag({ content: readFileSync('public/amethyst/live-lineup.js', 'utf8') })
-      await page.addScriptTag({ content: buildAmethystHomepageBootstrapScript({ ...defaultAmethystHomepageTemplateData, visibility: { announcements: visible, danceFloor: visible, liveLineup: visible, joinTeam: visible } }) })
+      await page.addScriptTag({ content: buildAmethystHomepageBootstrapScript({ ...defaultAmethystHomepageTemplateData, publicSiteVariant, footerLinks: { ...defaultAmethystHomepageTemplateData.footerLinks, joinTeam: visible ? defaultAmethystHomepageTemplateData.footerLinks.joinTeam : undefined }, visibility: { announcements: visible, danceFloor: visible, liveLineup: visible, joinTeam: visible } }) })
       await page.addScriptTag({ content: bundle.outputFiles[0].text })
       await page.waitForSelector('.hp-header')
       expect(await page.locator('.hp-header a[href*="Trade.html"]').first().isVisible()).toBe(visible)
       expect(await page.locator('.hp-ticker-row:not(.reverse)').first().isVisible()).toBe(visible)
       expect(await page.locator('.hp-ticker-row.reverse').first().isVisible()).toBe(visible)
       expect(await page.locator('.hp-trade-preview').first().isVisible()).toBe(visible)
+      for (const link of await page.locator('.mhf-cta-join, .bwb-cta-join').all()) expect(await link.isVisible()).toBe(visible)
+    }
     }
   } finally { await browser.close() }
 }, 60000)
