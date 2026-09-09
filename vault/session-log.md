@@ -1,5 +1,27 @@
 # Session Log
 
+## September 8, 2026 (ET) - Full-system Live Lineup reliability audit
+
+- Louis requested a very deep audit first, covering Workspace/backend,
+  customer-facing pages, and Chrome extension. Reviewed earlier tasks, actual
+  Open Brain, incident records, current source, live service metadata, and the
+  customer page. Report: `docs/sparkle-suite/audits/2026-09-08-live-lineup-system-audit.md`.
+- Deployed Edge source matches local after line-ending normalization. Public
+  store version is 1.0.1; retained ZIP functional files match local source.
+  Brittany's actual installed show-computer build remains unverified.
+- Safe reads confirmed correct Brittany mapping, anonymous sync-code exposure,
+  two duplicate internal/demo rep mappings, Brittany-only poll endpoint, and
+  current delayed-name retention. Current stale data alone is not proof of an
+  active-show outage. No ingestion POST or production mutations were attempted.
+- Added 18 mocked characterization tests (passing reproduces current defects,
+  not fixes) and a sanitized read-only audit script. Focused six-suite run:
+  40 tests passed. Desktop public modal/strip inspected; status overlays content
+  when scrolled, and modal focus/semantics need hardening.
+- No product fix, release, extension change, authentication workaround, or
+  live Task List mutation. Preserve all unrelated Control Center/Finder edits,
+  artifacts, and test results. Next: owner-directed staged hardening and a
+  confirmed safe show/release window before any production-affecting work.
+
 ## September 9, 2026 - Brittany original TikTok Sparkle Moments published
 
 - Louis explicitly authorized restoring the three original TikTok embeds from

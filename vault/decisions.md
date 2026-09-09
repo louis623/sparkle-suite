@@ -1,5 +1,17 @@
 # Decision Log
 
+## 2026-09-08 (ET) - Live Lineup audit precedes implementation
+
+Louis requested a full-system audit before hardening. The completed audit is at
+`docs/sparkle-suite/audits/2026-09-08-live-lineup-system-audit.md`. Recommendations
+are not implemented decisions: prioritize identity/ordered writes, separate
+heartbeat from content changes, then shared customer refresh and operational UI.
+Preserve Brittany's grandfathered mapping and number/name-only presentation.
+Do not infer authority for live queue/store/account changes from the audit.
+Extension implementation remains routed through the authorized Codespace under
+`LIVE_EXTENSION_SAFETY.md`; verify installed-store rollout separately from app
+and Edge/schema releases. No old-commit reset or unrelated open-item pursuit.
+
 ## 2026-09-08 - Brittany's migrated About/media block is public by default
 
 Decision: The September 5 show-night hide is reversed on Brittany's actual

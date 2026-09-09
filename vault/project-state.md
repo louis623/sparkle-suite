@@ -1,5 +1,18 @@
 # Project State
 
+## September 8, 2026 (ET) - Deep Live Lineup audit completed; repairs not started
+
+See `docs/sparkle-suite/audits/2026-09-08-live-lineup-system-audit.md` for the
+weekend timeline, deployed/source evidence, 12 prioritized findings, and staged
+hardening plan. Confirmed separate migration mapping and stale-display failures;
+remaining risks include deduplicated heartbeat, missed checkbox observation,
+false-empty snapshots, competing writers, client timestamps, public sync-code
+exposure/shared credential, route parity, and misleading health indicators.
+Brittany remains correctly mapped to her grandfathered queue. No live queues,
+codes, extension/store, deployment, account, or order changed during this audit.
+Existing live Task List `e453d5cc-0ac8-4d46-9dab-182a6aa723d7` remains the repair
+record; this vault entry is not a substitute Task List. No automatic repair.
+
 ## September 9, 2026 - Brittany's three original TikTok Sparkle Moments restored
 
 At Louis's explicit direction, the three existing TikTok videos were copied

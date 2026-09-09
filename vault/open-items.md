@@ -1,5 +1,15 @@
 # Open Items
 
+## September 8, 2026 (ET) - Live Lineup audit delivered
+
+- [x] Deep audit of weekend incidents and the full current Live Lineup path.
+  See `docs/sparkle-suite/audits/2026-09-08-live-lineup-system-audit.md`.
+- Permanent repair remains the existing **live Control Center Task List** item
+  `e453d5cc-0ac8-4d46-9dab-182a6aa723d7`, not a new vault task. No live task
+  state changed during this audit. Recommendations, installed-extension tests,
+  safe synthetic end-to-end/load/mobile verification, and release-window
+  decisions remain for the next explicitly directed hardening phase.
+
 ## September 8, 2026 - Brittany public section correction
 
 - [x] **Restore Brittany's hidden customer-facing About/media block** —
