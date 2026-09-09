@@ -1,5 +1,7 @@
 # Sparkle Finder Session Log
 
+September 9 follow-up: the full live LOC review workflow now passes at 882/344px: two private images render, exact existing variant selection completes the queued review, source readback and same-ID replay pass, and existing catalog content is unchanged. All temporary review/submission/image/user fixtures were removed. This closes the LOC queued-review gate above historical notes; it does not close unrelated customer Showcase acceptance. Finder release remains 6e9f708e / dpl_4RShdV6kTVsD9NjDuYiAFVsf1er9. See Suite vault 2026-09-09-loc-live-integration-checkpoint.md.
+
 September 9: live evidence request exposed missing service SELECT grants. Applied only `20260909123000` to Finder project `pzksocboqauqjdtsgpdp`; authenticated signed image succeeds, mismatched assets/submissions and anonymous/public requests fail. Removed synthetic auth/submission/image fixture. Released exact Git `6e9f708e`; customer alias and landing verified. No customer records, customer auth boundary or Live Lineup changes.
 
 ## September 8, 2026 - LOC evidence adapter checkpoint

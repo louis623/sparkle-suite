@@ -1,5 +1,7 @@
 # Sparkle Finder Project State
 
+September 9 follow-up: the full live LOC review workflow now passes at 882/344px: two private images render, exact existing variant selection completes the queued review, source readback and same-ID replay pass, and existing catalog content is unchanged. All temporary review/submission/image/user fixtures were removed. This closes the LOC queued-review gate above historical notes; it does not close unrelated customer Showcase acceptance. Finder release remains 6e9f708e / dpl_4RShdV6kTVsD9NjDuYiAFVsf1er9. See Suite vault 2026-09-09-loc-live-integration-checkpoint.md.
+
 September 9 LOC integration: private evidence is live and verified. Migration `20260909123000` fixes missing server-role SELECT on the two intake tables; RLS and anonymous denial remain. Synthetic signed-image/read-denial tests pass and test data was removed. Production `6e9f708e` / `dpl_4RShdV6kTVsD9NjDuYiAFVsf1er9` is confirmed at `yoursparklefinder.com`. Full LOC queued-review mutation remains a separate gate.
 
 ## September 8, 2026 - LOC private review integration built locally

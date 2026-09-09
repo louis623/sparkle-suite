@@ -4,6 +4,30 @@ This supersedes the earlier LOC reviewer-link blocker. Louis instructed Codex to
 
 ## Released and verified
 
+### September 9 continuation: expanded live workflow proof
+
+The old protected-link question is resolved; Louis needs to supply nothing for reviewer access. LOC retains its cream/sage style and the original operator center remains available.
+
+- Full Finder review now passes through live LOC at 882/344px: private submission images render, an exact existing variant is selected, review completion is read back from the source ledger, and same-ID replay does not repeat the write. The existing catalog design is unchanged. All temporary submissions, images, user and review ledger fixture were removed.
+- Waitlist create/read/update/delete and same-ID replay pass; an outdated edit is rejected with 409. Temporary lead removed.
+- Dedicated reviewer onboarding checkbox readback passes. Finder appearance same-current-preset save/read/replay passes without changing the public preset.
+- Synthetic onboarding contact/progress/scheduling, conversation completion, setup drafting, work readiness, build draft and profile save pass. Contact/scheduling used the official Resend delivery-simulation recipient; actual provider delivery was not independently verified. A separate no-email tail test passed launch checks, readiness flags and linking the existing synthetic reviewer. All temporary leads/builds removed; no real checkout, contract, domain or customer launch changed.
+- Agreement drafting has a real missing SignWell configuration. Commit `ac74ce91` adds a known-failure preflight before any handler effect. Seventeen focused tests passed; live request `7a111bc1-3efd-4139-9cf7-beee05e168da` returned the clear 409 with no document created/sent. Earlier uncertain request `65951d0d-be9b-468c-b006-656e1d748f8b` remains unchanged.
+- LOC browser announcement draft/preview/publish targeted only the synthetic reviewer. Publication `468d579d-1103-4257-8e64-7b51db3a936c` has exactly one delivery; same-ID replay and actual recipient inbox visibility pass. It remains as a clearly labeled synthetic message. The reviewer starts on the Support inbox filter; selecting All exposes the announcement.
+- Source configuration advanced to 37 reads/25 writes on ready release `dpl_7otfGjA9LNhk5HLrYeUhKLYMMtti` (`7f1a720a`). Agreement clarity is ready on `dpl_AtGGKppjvQHVjXKubtR57GkYPft8` (`ac74ce91`). A further 29-write rollout is currently building as `dpl_9A66KZK1GQMSosDdPJvNJK1gsAGX`; do not treat that rollout as verified until its final follow-up below.
+
+Evidence: LOC ignored `.local/review-flow-proof.json`, `live-waitlist-proof.json`, `appearance-proof.json`, `onboarding-flow-proof.json`, `onboarding-preparation-proof.json`, `announcement-flow-proof.json`, `agreement-precondition-proof.json`. The first onboarding proof correctly records failure only at the missing agreement configuration; do not present the whole provider pipeline as passed.
+
+The historical six-write and pending-Finder-review notes below are superseded. Native runtime, existing support-session lifecycle, remaining write rollout and acceptance still remain.
+
+Follow-up: 29-write release `dpl_9A66KZK1GQMSosDdPJvNJK1gsAGX` is Ready. Live synthetic support report status/reply/same-ID replay/promotion-to-task/close and messaging suspension/restoration all pass. Task, report and conversation fixtures are removed; reviewer access is restored. Evidence: `.local/support-controls-proof.json`. The four not-yet-enabled source writes are `approvals.decide`, `moderation.conversation`, `resources.publish`, and `lab.run`. Five focused resource/Remy/Lab files passed 22 tests; this does not establish live publication/provider execution.
+
+SignWell recovery: the May runbook and Vercel metadata identified the existing reusable template/API configuration in Suite Development, absent from Production. Those three existing values were copied privately to Production for internal draft tracking. Live sending and provider-draft call flags are explicitly false. No SignWell provider was contacted. Configuration release `dpl_DQFRduC9q9dTWRy6HdQRdcbxG88x` is building from `ac74ce91`; draft-tracker verification is pending that release. Credentials remain only in private environment storage. Louis need not recover or supply these settings.
+
+Final release verification for this pass: `dpl_DQFRduC9q9dTWRy6HdQRdcbxG88x` is READY from `ac74ce91ceeb3cfc2af3ac60864b14c7daa7b4bc`; direct Vercel alias lookups confirm both www and apex point to it. It enables 37 reads and 29 writes. Live LOC internal agreement draft tracking, same-ID replay and source readback now pass, with `test_mode=true`, `draft=true`, `send_email=false`, and no provider document. Temporary tracker, build and lead are removed. Evidence: `.local/agreement-tracker-proof.json`, `.local/suite-final-alias-proof.json`. The earlier missing-configuration constraint is resolved for internal drafts; real provider sending remains deliberately disabled and is not claimed verified.
+
+Next work remains the four individually gated writes listed above, native Codex/Grok runtime proof, support access lifecycle without disrupting the existing operator session, and final acceptance. No link/password/configuration question is pending for Louis. Separate Live Lineup work remains excluded from every release in this pass.
+
 - Dedicated, clearly labeled reviewer at `https://www.yoursparklesuite.com/start/loc`; no legacy reviewer token reset or Louis account replacement. Separate server credential, immutable synthetic identity guard, normal auth cookies, zero-dollar non-live entitlement, hidden Finder presence, no customer audience. Access credentials remain private, never in this vault.
 - Core database migrations `202609080008`, `20260909000100`, `20260909000200` applied to `bqhzfkgkjyuhlsozpylf`; eight new operations tables retain RLS and deny anonymous/authenticated direct SELECT.
 - LOC edge service and native frontend are live. Current LOC application `9e957a0`, deployment `dpl_EEne9NFj9nYQ92DhNobxmM8KKJ6H` at `https://louis-ops-center.vercel.app`.

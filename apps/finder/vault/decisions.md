@@ -1,5 +1,7 @@
 # Sparkle Finder Decisions
 
+September 9 follow-up: the full live LOC review workflow now passes at 882/344px: two private images render, exact existing variant selection completes the queued review, source readback and same-ID replay pass, and existing catalog content is unchanged. All temporary review/submission/image/user fixtures were removed. This closes the LOC queued-review gate above historical notes; it does not close unrelated customer Showcase acceptance. Finder release remains 6e9f708e / dpl_4RShdV6kTVsD9NjDuYiAFVsf1er9. See Suite vault 2026-09-09-loc-live-integration-checkpoint.md.
+
 September 9 LOC evidence: grant the server role only SELECT on intake submissions/assets. Preserve customer RLS and private storage; do not broaden anonymous or authenticated table grants. Production behavior, including denials and fixture cleanup, is verified rather than inferred from unit tests.
 
 ## 2026-09-08 - LOC consumes scoped private evidence through Finder
