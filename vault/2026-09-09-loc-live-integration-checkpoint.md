@@ -2,7 +2,15 @@
 
 This supersedes the earlier LOC reviewer-link blocker. Louis instructed Codex to keep working and own the test setup. The rebuild remains in progress; the original control center stays available and has not been decommissioned.
 
-## Latest verified checkpoint — September 9, 10:36 AM ET
+## Latest verified checkpoint — September 9, 10:47 AM ET
+
+Suite `3184989450350e238d006a34ab45b1d405dfd244` READY deployment `dpl_Bd25eKsusDngRbyxARV7PYLd1sSH`; LOC `64466d52abaa3ca5333532c99caf46e2e3965290` READY `dpl_jYg3NtP763MEULp2ThiDxfF9QJDV`. Direct www/apex Suite and LOC aliases match. Only four explicit Suite search source/test files released; separate Lineup source/migrations stay held. Finder unchanged.
+
+Database-side conversation search precedes range and keeps direct-conversation reported-only privacy. Searches subject/latest preview/sender/support requester business/display names.19focused tests/scoped TypeScript and actual read-only PostgREST/deployed LOC checks pass. Current source has3visible rows/no requester rows; true multi-page/requester matches are synthetic coverage only. LOC resets search paging and trusts source results. Screenshot failure now offers fresh authorized refresh without retry loops; synthetic expired403-to-image recovery/mobile checks pass, no real attachment fixture/access used.
+
+Guardian visibly exposes usage warnings, Lab guards, coverage gaps and surface/model summaries with dollars rather than raw cents; missing values stay unknown and clear banner is health-specific. Synthetic344/882warning/missing states pass. Live Guardian/search, source comparison, stable Suite landing and normal synthetic reviewer login pass. LOC typecheck/build and both hosted builds pass. Proof in LOC `.local/support-guardian-live-proof.json`, `support-guardian-alias-proof.json`, `conversation-source-parity-proof.json`, `support-parity-proof.json`, `guardian-parity-proof.json`. Legacy center retained; Grok private-auth and remaining acceptance unchanged. No full completion claim.
+
+## Previous verified checkpoint — September 9, 10:36 AM ET
 
 Suite `63f8be6b145a55e98aa444cd0b6446d53a0b6913` is READY as `dpl_C7BXDqDc3eHVFNCn4TQSMCFDCz7g`; LOC `8cf71cd98e7713758774a83ecfe4b9e86a114150` is READY as `dpl_Dz2o8RtDevRoag4uyY39xZKm1DfM`. Direct www/apex Suite and LOC alias checks match. Only explicit LOC-owned files were staged; concurrent Lineup work/migrations remain unreleased. Finder is unchanged.
 
