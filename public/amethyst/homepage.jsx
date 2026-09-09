@@ -1744,7 +1744,7 @@ function Wibp({ repName }) {
               <div className="hp-step">
                 <div className="hp-step-num"><CustomerMediaIcon name="video" /></div>
                 <div className="hp-step-label">Watch Live</div>
-                <div className="hp-step-desc">{isHeatherBlingKitchenSite ? "Join the reveal live." : "Join the reveal on TikTok or Facebook."}</div>
+                <div className="hp-step-desc">Watch the reveal on <span className="slot" data-slot="rep name">{repName}</span>&apos;s platform.</div>
               </div>
               <div className="hp-step">
                 <div className="hp-step-num"><CustomerMediaIcon name="gift" /></div>
