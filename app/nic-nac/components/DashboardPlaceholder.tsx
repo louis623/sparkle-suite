@@ -9052,7 +9052,7 @@ export function SiteSettingsCard({
           <label className={styles.searchField}>
             <span className={styles.searchLabel}>About narrative</span>
             <textarea
-              className={styles.tickerTextarea}
+              className={styles.siteSettingsTextarea}
               maxLength={ABOUT_NARRATIVE_MAX_LENGTH}
               rows={7}
               placeholder="Paste the story you want customers to read."

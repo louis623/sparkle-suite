@@ -2861,6 +2861,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('0 / 1200 characters')
     expect(html).toContain('maxLength="70"')
     expect(html).toContain('maxLength="1200"')
+    expect(html).toContain('siteSettingsTextarea')
     expect(html).not.toContain('Write with Nic-Nac')
     expect(html).toContain('Showcase video')
     expect(html).toContain('About portrait photo')
