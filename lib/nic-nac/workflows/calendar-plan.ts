@@ -106,8 +106,6 @@ function missingAddShowFields(fields: CalendarPlanFields) {
   if (!fields.platform?.trim()) missingFields.push('platform')
   if (!fields.eventTime?.trim()) missingFields.push('eventTime')
   if (!fields.timeZone?.trim()) missingFields.push('timeZone')
-  if (!fields.title?.trim()) missingFields.push('title')
-  if (!fields.durationMinutes) missingFields.push('durationMinutes')
   return missingFields
 }
 

@@ -8,6 +8,8 @@ import { logIncident } from '@/lib/nic-nac/guardian-telemetry'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
 import type { ToolDefinition } from './types'
 
+const MAX_INLINE_MUTATION_EVENTS = 5
+
 const inputSchema = z.object({
   eventId: z.string().uuid(),
   reason: z.string().optional(),
@@ -86,7 +88,12 @@ export function makeCancelShowSeriesTool(ctx: {
       }
 
       return {
-        events: result.events,
+        events:
+          result.cancelledCount <= MAX_INLINE_MUTATION_EVENTS
+            ? result.events
+            : undefined,
+        firstEvent: result.events[0] ?? null,
+        lastEvent: result.events[result.events.length - 1] ?? null,
         cancelledCount: result.cancelledCount,
         reason: reason ?? null,
         futureSeriesCancelled: true,

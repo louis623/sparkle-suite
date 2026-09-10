@@ -32,6 +32,15 @@ function makeWorkflow(recurring?: {
 }
 
 describe('calendar plan contract', () => {
+  it('does not require optional title or duration to create a show', () => {
+    const plan = buildCalendarPlanFromText(
+      'Add a TikTok show July 4 at 7 p.m. Eastern.',
+    )
+
+    expect(plan.missingFields).not.toContain('title')
+    expect(plan.missingFields).not.toContain('durationMinutes')
+  })
+
   it('plans exact-count repeats as standalone bounded occurrences', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-07-03T12:00:00Z'))

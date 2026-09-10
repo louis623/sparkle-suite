@@ -15,6 +15,8 @@ const COMPLETING_CALENDAR_TOOLS = new Set([
 type CalendarToolOutput = {
   event?: CalendarEvent
   events?: CalendarEvent[]
+  firstEvent?: CalendarEvent | null
+  lastEvent?: CalendarEvent | null
   count?: number
   updatedCount?: number
   cancelledCount?: number
@@ -25,6 +27,8 @@ function extractEventIds(output: unknown): string[] {
   const result = output as CalendarToolOutput
   const ids = new Set<string>()
   if (result.event?.id) ids.add(result.event.id)
+  if (result.firstEvent?.id) ids.add(result.firstEvent.id)
+  if (result.lastEvent?.id) ids.add(result.lastEvent.id)
   for (const event of result.events ?? []) {
     if (event?.id) ids.add(event.id)
   }

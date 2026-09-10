@@ -41,6 +41,7 @@ function makeListChain(result: { data: unknown[]; count?: number | null; error: 
   const state = {
     eq: [] as Array<[string, unknown]>,
     gt: [] as Array<[string, unknown]>,
+    lte: [] as Array<[string, unknown]>,
     in: [] as Array<[string, unknown[]]>,
     order: [] as Array<[string, { ascending: boolean }]>,
     limit: [] as number[],
@@ -53,6 +54,10 @@ function makeListChain(result: { data: unknown[]; count?: number | null; error: 
     }),
     gt: vi.fn((column: string, value: unknown) => {
       state.gt.push([column, value])
+      return chain
+    }),
+    lte: vi.fn((column: string, value: unknown) => {
+      state.lte.push([column, value])
       return chain
     }),
     in: vi.fn((column: string, value: unknown[]) => {
@@ -553,6 +558,29 @@ describe('calendar service', () => {
     expect(scheduledChain.state.gt[0][0]).toBe('event_time')
     expect(result.totalCount).toBe(2)
     expect(result.events.map((event) => event.id)).toEqual(['live-1', 'event-2'])
+  })
+
+  it('listMyShows can constrain history to events whose start time has passed', async () => {
+    const historyChain = makeListChain({
+      data: [baseRow({ status: 'cancelled', event_time: '2026-09-08T20:00:00.000Z' })],
+      count: 1,
+      error: null,
+    })
+    const supabase = {
+      from: vi.fn(() => ({ select: vi.fn(() => historyChain.chain) })),
+    } as never
+
+    const result = await listMyShows(supabase, 'rep-1', {
+      upcoming: false,
+      pastOnly: true,
+      status: ['completed', 'cancelled'],
+      limit: 60,
+    })
+
+    expect(historyChain.state.gt).toEqual([])
+    expect(historyChain.state.lte[0][0]).toBe('event_time')
+    expect(historyChain.state.order).toEqual([['event_time', { ascending: false }]])
+    expect(result.events).toHaveLength(1)
   })
 
   it('updateShow rejects events that are no longer scheduled', async () => {

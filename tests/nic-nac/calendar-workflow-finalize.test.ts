@@ -65,10 +65,8 @@ describe('calendar workflow finalization', () => {
       },
       output: {
         count: 2,
-        events: [
-          { id: 'event-1', title: 'Coffee and Fizz' },
-          { id: 'event-2', title: 'Coffee and Fizz' },
-        ],
+        firstEvent: { id: 'event-1', title: 'Coffee and Fizz' },
+        lastEvent: { id: 'event-2', title: 'Coffee and Fizz' },
       },
     })
 

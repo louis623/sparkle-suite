@@ -551,6 +551,7 @@ describe('calendar tools', () => {
     expect(result).toMatchObject({
       count: 1,
       totalCount: 3,
+      truncated: true,
     })
     expect((result.events as Array<Record<string, unknown>>)[0]).toMatchObject({
       eventId: VALID_EVENT_ID,
@@ -559,6 +560,46 @@ describe('calendar tools', () => {
       timeZone: 'America/New_York',
       discountCodes: [{ code: 'SPARKLE10', description: 'Ten percent off' }],
     })
+    expect((result.events as Array<Record<string, unknown>>)[0]).toMatchObject({
+      localStart: expect.stringContaining('4:00 PM'),
+      localEnd: expect.stringContaining('5:00 PM'),
+      displaySchedule: expect.stringContaining('through'),
+    })
+  })
+
+  it('list_my_shows groups returned recurring rows around one series update target', async () => {
+    listMyShowsMock.mockResolvedValueOnce({
+      events: [
+        calendarEvent({
+          id: 'event-1',
+          recurrenceGroupId: 'group-1',
+          recurrenceRule: 'weekday',
+          isRecurring: true,
+        }),
+        calendarEvent({
+          id: 'event-2',
+          eventTime: '2099-05-04T20:00:00.000Z',
+          recurrenceGroupId: 'group-1',
+          recurrenceRule: 'weekday',
+          isRecurring: true,
+        }),
+      ],
+      totalCount: 130,
+    })
+    const tool = makeListMyShowsTool(makeCtx()) as unknown as ToolDef
+
+    const result = await tool.execute({ upcoming: true, limit: 20 })
+
+    expect(result.recurringSeries).toEqual([
+      expect.objectContaining({
+        recurrenceGroupId: 'group-1',
+        cadence: 'weekday',
+        returnedOccurrenceCount: 2,
+        nextEventId: 'event-1',
+        firstEventTime: '2099-05-01T20:00:00.000Z',
+        lastEventTime: '2099-05-04T20:00:00.000Z',
+      }),
+    ])
   })
 
   it('update_show blocks empty patches before calling the service', async () => {
@@ -672,6 +713,99 @@ describe('calendar tools', () => {
       errorType: 'audit_write_failed',
       severity: 'warn',
     })
+  })
+
+  it('update_show preserves duration when the rep changes an end time', async () => {
+    updateShowMock.mockResolvedValueOnce({
+      event: calendarEvent({ durationMinutes: 480 }),
+      updatedCount: 130,
+    })
+    const tool = makeUpdateShowTool({
+      ...makeCtx(),
+      latestUserText:
+        'Correct the existing weekday shows so they start at 9 a.m. and end at 5 p.m.',
+    }) as unknown as ToolDef
+
+    await tool.execute({
+      eventId: VALID_EVENT_ID,
+      durationMinutes: 480,
+      applyToSeries: true,
+    })
+
+    expect(updateShowMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      VALID_EVENT_ID,
+      expect.objectContaining({
+        durationMinutes: 480,
+        applyToSeries: true,
+      }),
+    )
+  })
+
+  it('update_show preserves duration for a correction phrased as bare clock ranges', async () => {
+    updateShowMock.mockResolvedValueOnce({
+      event: calendarEvent({ durationMinutes: 480 }),
+      updatedCount: 130,
+    })
+    const tool = makeUpdateShowTool({
+      ...makeCtx(),
+      latestUserText:
+        'Change the pre-existing shows from 10 to 4 so they run from 9 to 5.',
+    }) as unknown as ToolDef
+
+    await tool.execute({
+      eventId: VALID_EVENT_ID,
+      durationMinutes: 480,
+      applyToSeries: true,
+    })
+
+    expect(updateShowMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      VALID_EVENT_ID,
+      expect.objectContaining({ durationMinutes: 480 }),
+    )
+  })
+
+  it('update_show exposes streaming destination edits in its schema', () => {
+    const tool = makeUpdateShowTool(makeCtx())
+    expect(tool.inputSchema.safeParse({
+      eventId: VALID_EVENT_ID,
+      streamingDestinations: [{
+        platform: 'YouTube',
+        url: 'https://www.youtube.com/watch?v=example',
+        label: 'Watch live',
+      }],
+    }).success).toBe(true)
+  })
+
+  it('add_show compacts large recurring-series results', async () => {
+    addShowMock.mockResolvedValueOnce({
+      count: 130,
+      events: Array.from({ length: 130 }, (_, index) =>
+        calendarEvent({
+          id: `event-${index + 1}`,
+          eventTime: new Date(Date.parse('2099-05-01T20:00:00.000Z') + index * 86_400_000).toISOString(),
+          isRecurring: true,
+          recurrenceGroupId: 'group-1',
+          recurrenceRule: 'weekday',
+        }),
+      ),
+    })
+    const tool = makeAddShowTool(makeCtx()) as unknown as ToolDef
+
+    const result = await tool.execute({
+      platform: 'TikTok',
+      eventTime: '2099-05-01T20:00:00.000Z',
+      timeZone: 'America/New_York',
+      recurring: { cadence: 'weekday', duration: 'ongoing' },
+    })
+
+    expect(result.count).toBe(130)
+    expect(result.events).toBeUndefined()
+    expect(result.firstEvent).toMatchObject({ id: 'event-1' })
+    expect(result.lastEvent).toMatchObject({ id: 'event-130' })
   })
 
   it('update_show ignores blank optional model fields before series patches', async () => {

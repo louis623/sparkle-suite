@@ -14,6 +14,8 @@ import {
 } from '@/lib/nic-nac/workflows/calendar-plan'
 import type { ToolContext, ToolDefinition } from './types'
 
+const MAX_INLINE_MUTATION_EVENTS = 5
+
 const inputSchema = z.object({
   platform: z.string(),
   eventTime: z.iso.datetime({ offset: true }).describe('ISO timestamp with an explicit UTC offset or Z, e.g. 2026-09-04T19:00:00-04:00. timeZone is the display/recurrence zone, not a substitute for the offset.'),
@@ -128,8 +130,13 @@ export function makeAddShowTool(ctx: {
           customerSiteWatchLinks: customerSiteWatch.links,
           missingCustomerSitePlatforms: customerSiteWatch.missingPlatforms,
           count: result.count,
-          events: result.events,
+          events:
+            result.count <= MAX_INLINE_MUTATION_EVENTS
+              ? result.events
+              : undefined,
           event: result.count === 1 ? firstEvent : null,
+          firstEvent,
+          lastEvent,
           summary:
             result.count === 1
               ? null

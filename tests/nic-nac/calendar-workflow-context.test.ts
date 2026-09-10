@@ -103,6 +103,28 @@ describe('calendar workflow context', () => {
     ).toBe('add_show')
   })
 
+  it('lets the latest correction supersede an earlier add-show request', () => {
+    expect(
+      inferCalendarIntent([
+        {
+          id: 'msg-1',
+          role: 'user',
+          parts: [{ type: 'text', text: 'Add weekday shows from 10 a.m. to 4 p.m.' }],
+        },
+        {
+          id: 'msg-2',
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'I scheduled those shows.' }],
+        },
+        {
+          id: 'msg-3',
+          role: 'user',
+          parts: [{ type: 'text', text: 'Correction: edit those existing shows to end at 5 p.m.' }],
+        },
+      ] as never),
+    ).toBe('update_show')
+  })
+
   it('continues the existing write intent for a short clarification answer', () => {
     expect(
       resolveCalendarIntentForTurn({

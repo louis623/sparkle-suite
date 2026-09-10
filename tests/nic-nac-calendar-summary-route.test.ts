@@ -61,6 +61,7 @@ describe('GET /api/nic-nac/calendar-summary', () => {
       'rep-1',
       {
         upcoming: false,
+        pastOnly: true,
         limit: 60,
         status: ['completed', 'cancelled'],
       },

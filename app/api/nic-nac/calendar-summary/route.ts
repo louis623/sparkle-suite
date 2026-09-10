@@ -57,6 +57,7 @@ export async function GET(request: Request) {
       }),
       listMyShows(supabase, repId, {
         upcoming: false,
+        pastOnly: true,
         limit: historyLimit ?? 4,
         status: ['completed', 'cancelled'],
       }),

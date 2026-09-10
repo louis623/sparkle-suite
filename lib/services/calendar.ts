@@ -294,7 +294,13 @@ async function runListShowsQuery(
   supabase: SupabaseClient,
   repId: string,
   statuses: EventStatus[],
-  opts: { upcomingOnly: boolean; nowIso: string; limit: number; ascending: boolean },
+  opts: {
+    upcomingOnly: boolean
+    pastOnly: boolean
+    nowIso: string
+    limit: number
+    ascending: boolean
+  },
 ): Promise<{ rows: CalendarEventRow[]; totalCount: number }> {
   let query = supabase
     .from('calendar_events')
@@ -303,6 +309,8 @@ async function runListShowsQuery(
 
   if (opts.upcomingOnly) {
     query = query.gt('event_time', opts.nowIso)
+  } else if (opts.pastOnly) {
+    query = query.lte('event_time', opts.nowIso)
   }
 
   if (statuses.length === 1) {
@@ -473,14 +481,18 @@ export async function addShow(
 export async function listMyShows(
   supabase: SupabaseClient,
   repId: string,
-  input: ListShowsInput = {},
+  input: ListShowsInput & { pastOnly?: boolean } = {},
 ): Promise<ListShowsResult> {
   if (!repId) throw errors.UNAUTHORIZED('repId required')
 
   const upcoming = input.upcoming ?? true
+  const pastOnly = input.pastOnly ?? false
   const limit = input.limit ?? 10
   if (!Number.isInteger(limit) || limit <= 0) {
     throw errors.INVALID_INPUT('limit must be a positive integer')
+  }
+  if (upcoming && pastOnly) {
+    throw errors.INVALID_INPUT('upcoming and pastOnly cannot both be true')
   }
 
   const requestedStatuses = input.status
@@ -500,6 +512,7 @@ export async function listMyShows(
     if (futureStatuses.length === 0) {
       const result = await runListShowsQuery(supabase, repId, liveStatuses, {
         upcomingOnly: false,
+        pastOnly,
         nowIso,
         limit,
         ascending,
@@ -514,12 +527,14 @@ export async function listMyShows(
     const [liveResult, futureResult] = await Promise.all([
       runListShowsQuery(supabase, repId, liveStatuses, {
         upcomingOnly: false,
+        pastOnly,
         nowIso,
         limit,
         ascending,
       }),
       runListShowsQuery(supabase, repId, futureStatuses, {
         upcomingOnly: true,
+        pastOnly: false,
         nowIso,
         limit,
         ascending,
@@ -539,6 +554,7 @@ export async function listMyShows(
 
   const result = await runListShowsQuery(supabase, repId, requestedStatuses, {
     upcomingOnly: upcoming,
+    pastOnly,
     nowIso,
     limit,
     ascending,

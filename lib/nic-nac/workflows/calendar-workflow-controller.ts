@@ -441,8 +441,6 @@ export function computeCalendarWorkflowReadiness(args: {
     if (!args.knownFields.platform) missingFields.push('platform')
     if (!args.knownFields.eventTime) missingFields.push('eventTime')
     if (!args.knownFields.timeZone) missingFields.push('timeZone')
-    if (!args.knownFields.title) missingFields.push('title')
-    if (!args.knownFields.durationMinutes) missingFields.push('durationMinutes')
     return {
       phase: missingFields.length ? 'details_capture' : 'ready_to_add',
       missingFields,

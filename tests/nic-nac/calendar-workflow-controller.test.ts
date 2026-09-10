@@ -85,7 +85,7 @@ describe('calendar workflow controller', () => {
     })
   })
 
-  it('does not mark add_show ready before title and duration are known', () => {
+  it('treats title and duration as optional when core scheduling facts are known', () => {
     const knownFields = mergeCalendarKnownFieldsFromText(
       {},
       'Tiktok July 4 7p Est',
@@ -97,8 +97,8 @@ describe('calendar workflow controller', () => {
     })
 
     expect(readiness).toEqual({
-      phase: 'details_capture',
-      missingFields: ['title', 'durationMinutes'],
+      phase: 'ready_to_add',
+      missingFields: [],
     })
   })
 

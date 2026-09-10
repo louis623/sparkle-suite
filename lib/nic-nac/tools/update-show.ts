@@ -22,6 +22,11 @@ const inputSchema = z
       description: z.string(),
     })).max(10).optional(),
     featuredCollections: z.array(z.string()).optional(),
+    streamingDestinations: z.array(z.object({
+      platform: z.string().min(1),
+      url: z.url(),
+      label: z.string().optional(),
+    })).optional(),
     applyToSeries: z.boolean().optional().default(false),
   })
   .refine(
@@ -33,7 +38,8 @@ const inputSchema = z
       value.title !== undefined ||
       value.description !== undefined ||
       value.discountCodes !== undefined ||
-      value.featuredCollections !== undefined,
+      value.featuredCollections !== undefined ||
+      value.streamingDestinations !== undefined,
     { message: 'at least one patch field is required' },
   )
 
@@ -57,9 +63,11 @@ function normalizeOptionalToolText(value: string | undefined) {
 
 function latestTurnRequestsDurationChange(text: string | undefined) {
   if (!text) return true
-  return /\b(?:duration|length|run(?:s)?\s+for|last(?:s)?\s+for|\d+(?:\.\d+)?\s*(?:minutes?|hours?|hrs?)|(?:one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:minutes?|hours?|hrs?))\b/i.test(
-    text,
-  )
+  const explicitDuration = /\b(?:duration|length|run(?:s)?\s+for|last(?:s)?\s+for|\d+(?:\.\d+)?\s*(?:minutes?|hours?|hrs?)|(?:one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:minutes?|hours?|hrs?))\b/i
+  const explicitEndTime = /\b(?:end(?:s|ing)?|finish(?:es|ing)?|stop(?:s|ping)?|go(?:es|ing)?\s+until|until)\b[^.!?]{0,40}\b(?:at\s+)?\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?\b/i
+  const clockRange = /\b\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)\s*(?:-|–|—|to|through)\s*\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)\b/i
+  const fromClockRange = /\bfrom\s+\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?\s+(?:to|through|until)\s+\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?\b/i
+  return explicitDuration.test(text) || explicitEndTime.test(text) || clockRange.test(text) || fromClockRange.test(text)
 }
 
 export function makeUpdateShowTool(ctx: {
@@ -72,14 +80,16 @@ export function makeUpdateShowTool(ctx: {
   return tool({
     description:
       'Update details on a scheduled show. Can change time, platform, title, description, discount codes, or featured collections. A show platform always uses the matching link configured in the rep\'s customer-site social settings; do not collect or save a separate event URL. ' +
-      'Set applyToSeries=true to apply non-time changes to all future shows in a recurring series. ' +
-      'Do not combine applyToSeries=true with eventTime. Do not include durationMinutes unless the rep asks to change duration or length.',
+      'Set applyToSeries=true to apply non-time changes to the selected occurrence and every future show in its recurring series. ' +
+      'A rep who changes the end time or gives a new start-to-end range is explicitly changing duration; include durationMinutes. ' +
+      'Do not combine applyToSeries=true with eventTime. Do not include durationMinutes unless the rep asks to change duration, length, end time, or a start-to-end range.',
     inputSchema,
     execute: async (input) => {
       const {
         eventId,
         discountCodes,
         featuredCollections,
+        streamingDestinations,
         applyToSeries,
       } = input
       const platform = normalizeOptionalToolText(input.platform)
@@ -100,6 +110,7 @@ export function makeUpdateShowTool(ctx: {
         description,
         discountCodes,
         featuredCollections,
+        streamingDestinations,
         applyToSeries,
       }
 

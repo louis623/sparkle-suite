@@ -72,12 +72,6 @@ export function inferCalendarIntent(messages: UIMessage[]): CalendarWorkflowInte
     .toLowerCase()
 
   if (isCalendarReadQueryText(latestUserText)) return 'list_shows'
-  if (/\b(add|schedule|set up|create|put)\b[\s\S]{0,100}\b(show|live|event|calendar)\b/.test(recentText)) {
-    return 'add_show'
-  }
-  if (/\breplace\b[\s\S]{0,120}\bwith\b[\s\S]{0,80}\bnew\b[\s\S]{0,80}\b(show|live|event)\b/.test(recentText)) {
-    return 'add_show'
-  }
   if (/\b(skip|suspend)\b/.test(latestUserText)) return 'skip_occurrence'
   if (/\b(cancel|delete)\b/.test(latestUserText)) return 'cancel_show'
   if (/\b(reminder|text|sms|email)\b/.test(latestUserText)) {
@@ -85,7 +79,21 @@ export function inferCalendarIntent(messages: UIMessage[]): CalendarWorkflowInte
       ? 'default_reminder_preferences'
       : 'show_reminder_override'
   }
-  if (/\b(update|change|move|replace)\b/.test(recentText)) return 'update_show'
+  if (/\b(update|change|move|replace|edit|adjust|reschedule|correct|correction)\b/.test(latestUserText)) {
+    return 'update_show'
+  }
+  if (/\b(add|schedule|set up|create|put)\b[\s\S]{0,100}\b(show|live|event|calendar)\b/.test(latestUserText)) {
+    return 'add_show'
+  }
+  if (/\breplace\b[\s\S]{0,120}\bwith\b[\s\S]{0,80}\bnew\b[\s\S]{0,80}\b(show|live|event)\b/.test(latestUserText)) {
+    return 'add_show'
+  }
+  if (/\b(update|change|move|replace|edit|adjust|reschedule|correct|correction)\b/.test(recentText)) {
+    return 'update_show'
+  }
+  if (/\b(add|schedule|set up|create|put)\b[\s\S]{0,100}\b(show|live|event|calendar)\b/.test(recentText)) {
+    return 'add_show'
+  }
   if (/\bcalendar|schedule|upcoming|next show\b/.test(recentText)) return 'list_shows'
   return 'unknown'
 }
