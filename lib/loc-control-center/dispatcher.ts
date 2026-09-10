@@ -14,9 +14,12 @@ import { runExistingLocRoute } from "./legacy-routes";
 import { runLocSupportOperation } from "./support";
 import {saveLocSetupProfile} from './setup-profile'
 
+import { locJobDelegationSchema, verifyLocJobDelegation } from './job-delegation'
+
 const envelope = z
   .object({
     authority: z.enum(["owner", "agent"]).default("agent"),
+    delegation: locJobDelegationSchema.optional(),
     ownerId: z.uuid(),
     operation: z.string().min(1).max(100),
     input: z.record(z.string(), z.unknown()).default({}),
@@ -199,7 +202,8 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
       );
     const operation = findLocOperation(body.operation);
     if (!operation) throw new LocBridgeError(404, "Unknown LOC operation.");
-    if (operation.ownerOnly && body.authority !== "owner")
+    const delegated = verifyLocJobDelegation(body, operation.targetKeys)
+    if (operation.ownerOnly && body.authority !== "owner" && !delegated)
       throw new LocBridgeError(
         403,
         "This operation requires the verified LOC owner.",

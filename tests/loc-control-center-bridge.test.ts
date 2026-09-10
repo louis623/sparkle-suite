@@ -317,3 +317,65 @@ describe("LOC signed service boundary", () => {
     ).toBe(false);
   });
 });
+
+describe('LOC owner-approved job dispatcher boundary', () => {
+  const connectionId='00000000-0000-4000-8000-000000000011';
+  function approved() {
+    const operation='approvals.decide';
+    const input={product:'suite',requestId:'00000000-0000-4000-8000-000000000014',decision:'decline',note:'Exact synthetic approval'};
+    return {authority:'agent' as 'agent'|'owner',connectionId,operationId:opId,operation,input,intendedAssignee:'Shared fleet',
+      delegation:{mode:'owner-approved',ownerId:owner,jobId:'00000000-0000-4000-8000-000000000012',agentId:'00000000-0000-4000-8000-000000000013',operationId:opId,connectionId,
+        operation:'suite.approvals.decide',inputHash:'a'.repeat(64),bridgeInputHash:digestLocInput({operation,input}),targetIds:[input.requestId],expiresAt:new Date(Date.now()+3600000).toISOString()}};
+  }
+  beforeEach(()=>vi.stubEnv('LOC_CONTROL_CENTER_OPERATIONS','approvals.decide,receipts.get'));
+  it('executes exact signed delegated action once and records agent authority in receipt digest',async()=>{
+    const body=approved();
+    const first=await dispatchLocRequest(request(body));expect(first.status).toBe(200);
+    const firstData=await first.json();expect(firstData.receipt.status).toBe('succeeded');
+    const row=mock.rows.get(opId)!;
+    expect(row.connection_id).toBe(connectionId);expect(row.intended_assignee).toBe('Shared fleet');
+    expect(row.input_digest).toBe(digestLocInput({operation:body.operation,input:body.input,connectionId,authority:'agent'}));
+    expect(row.input_digest).not.toBe(digestLocInput({operation:body.operation,input:body.input,connectionId,authority:'owner'}));
+    const replay=await dispatchLocRequest(request(body));expect(replay.status).toBe(200);
+    expect(await replay.json()).toMatchObject({result:firstData.result,receipt:{operationId:opId,status:'succeeded'}});
+    expect(mock.calls).toBe(1);expect(mock.rows.size).toBe(1);
+  });
+  it('keeps direct calls and ordinary catalog discovery denied',async()=>{
+    const {delegation,...body}=approved();void delegation;
+    expect((await dispatchLocRequest(request(body))).status).toBe(403);
+    expect((await (await dispatchLocRequest(request({operation:'catalog',authority:'agent',connectionId}))).json()).result.operations.every((op:{ownerOnly?:boolean})=>!op.ownerOnly)).toBe(true);
+    expect(mock.calls).toBe(0);expect(mock.rows.size).toBe(0);
+  });
+  const mutations: Record<string,(b:ReturnType<typeof approved>)=>void>={
+    'changed decision':b=>{b.input.decision='approve'},
+    'changed target':b=>{b.input.requestId='00000000-0000-4000-8000-000000000015'},
+    'changed operation':b=>{b.operation='moderation.suspension'},
+    'changed operation ID':b=>{b.operationId='00000000-0000-4000-8000-000000000016'},
+    'changed connection':b=>{b.connectionId='00000000-0000-4000-8000-000000000017'},
+    'wrong proof owner':b=>{b.delegation.ownerId='00000000-0000-4000-8000-000000000018'},
+    'expired proof':b=>{b.delegation.expiresAt=new Date(Date.now()-1).toISOString()},
+    'unbounded proof':b=>{b.delegation.expiresAt=new Date(Date.now()+31*86400000).toISOString()},
+    'wrong proof targets':b=>{b.delegation.targetIds=[]},
+    'authority impersonation':b=>{b.authority='owner'},
+  };
+  for(const [name,mutate] of Object.entries(mutations)) it(`rejects ${name} before effect or receipt reservation`,async()=>{
+    const body=approved();mutate(body);expect((await dispatchLocRequest(request(body))).status).toBe(403);
+    expect(mock.calls).toBe(0);expect(mock.rows.size).toBe(0);
+  });
+  it('validates proof schema and does not accept approval flags in business input',async()=>{
+    const b=approved();
+    for(const delegation of [{...b.delegation,expiresAt:'not-a-date'},{...b.delegation,approved:true},{...b.delegation,agentId:'Sam'}])
+      expect((await dispatchLocRequest(request({...b,delegation}))).status).toBe(400);
+    const {delegation,...direct}=b;
+    expect((await dispatchLocRequest(request({...direct,input:{...direct.input,delegation,approved:true}}))).status).toBe(403);
+    expect(mock.calls).toBe(0);expect(mock.rows.size).toBe(0);
+  });
+  it('rejects unsigned proof and rechecks expiry even before replaying a completed receipt',async()=>{
+    const body=approved();
+    const unsigned=new Request('https://example.com',{method:'POST',body:JSON.stringify({ownerId:owner,...body})});
+    expect((await dispatchLocRequest(unsigned)).status).toBe(401);expect(mock.queryCalls).toBe(0);
+    expect((await dispatchLocRequest(request(body))).status).toBe(200);
+    body.delegation.expiresAt=new Date(Date.now()-1).toISOString();
+    expect((await dispatchLocRequest(request(body))).status).toBe(403);expect(mock.calls).toBe(1);
+  });
+});

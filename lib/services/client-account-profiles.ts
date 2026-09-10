@@ -1,3 +1,4 @@
+import { operatorCustomerSearch } from '@/lib/services/operator-customer-search'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 type JsonObject = Record<string, unknown>
@@ -298,21 +299,22 @@ export async function listOperatorCustomerProfiles(
 ): Promise<OperatorCustomerProfile[]> {
   const limit = Math.min(Math.max(options.limit ?? 200, 1), 500)
 
+  const search = operatorCustomerSearch(options.query)
+
   let repQuery = supabase
         .from('reps')
         .select(
-          'id, account_classification, display_name, business_name, email, phone, status, referral_code, public_site_slug, custom_domain, shop_link, streaming_links, social_handles, created_at, updated_at',
+          'id, account_classification, display_name, business_name, email, phone, status, referral_code, public_site_slug, custom_domain, shop_link, streaming_links, social_handles, created_at, updated_at' + (search ? ',' + search.select : ''),
         )
         .order('business_name', { ascending: true })
         .order('id', { ascending: true })
   if (options.repIds) repQuery = repQuery.in('id', options.repIds)
   if(options.classification)repQuery=repQuery.eq('account_classification',options.classification)
-  if (options.query?.trim()) {
-    const term = options.query.trim().replace(/[,"\\()%_*]/g, ' ').slice(0, 240)
-    repQuery = repQuery.or(`business_name.ilike.%${term}%,display_name.ilike.%${term}%,email.ilike.%${term}%`)
+  if (search) {
+    repQuery = repQuery.or(search.profileFilter, { referencedTable: 'search_profile' }).or(search.repFilter)
   }
   const offset = Math.max(0, options.offset ?? 0)
-  const repsResult = await repQuery.range(offset, offset + limit - 1)
+  const repsResult = await repQuery.range(offset, offset + limit - 1).returns<OperatorRepRow[]>()
   if (repsResult.error) throw repsResult.error
   const pageRepIds = (repsResult.data ?? []).map((rep) => rep.id as string)
   if (!pageRepIds.length) return []

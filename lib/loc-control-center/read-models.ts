@@ -15,11 +15,7 @@ import {
   readCostCapacityRuns,
   formatCostCapacityCsv,
 } from "@/lib/remy-communications/nic-nac-cost-capacity";
-import {
-  CUSTOMER_WAITLIST_SELECT,
-  normalizeCustomerWaitlistRow,
-  type CustomerWaitlistRow,
-} from "@/lib/prelaunch/customer-waitlist";
+import { readLocWaitlist } from "./waitlist";
 import {
   loadSparkleFinderAppearanceSetting,
   resolveSparkleFinderAppearance,
@@ -220,20 +216,7 @@ export async function readLocOperation(
     return readLocTaskList(admin, input, pagination(input));
   }
   if (name === "onboarding.waitlist") {
-    const { limit, offset } = pagination(input);
-    const { data, error } = await admin
-      .from("sparkle_suite_waitlist")
-      .select(CUSTOMER_WAITLIST_SELECT)
-      .order("created_at", { ascending: false })
-      .order("id")
-      .range(offset, offset + limit);
-    if (error) throw error;
-    return {
-      items: ((data ?? []) as unknown as CustomerWaitlistRow[])
-        .slice(0, limit)
-        .map(normalizeCustomerWaitlistRow),
-      nextOffset: (data ?? []).length > limit ? offset + limit : null,
-    };
+    return readLocWaitlist(admin, input, pagination(input));
   }
   if (name === "accounting.snapshot")
     return {
