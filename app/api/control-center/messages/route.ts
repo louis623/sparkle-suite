@@ -48,6 +48,9 @@ const audienceSchema = z.discriminatedUnion('kind', [
 
 const contentSchema = z.object({
   publicationId: z.string().trim().min(1).max(100).optional(),
+  // Sender identity is an operator-owned choice. Keep this closed rather than
+  // accepting an arbitrary database sender key from the browser.
+  senderKey: z.enum(['owner', 'nic_nac']).default('owner'),
   title: z.string().trim().min(3).max(160),
   summary: z.string().trim().max(500).optional(),
   body: z.string().trim().min(3).max(20_000),
@@ -294,7 +297,7 @@ export async function POST(request: Request) {
 
     const publicationInput = {
       publicationId: input.publicationId,
-      senderKey: 'owner',
+      senderKey: input.senderKey,
       title: validated.text.title,
       summary: validated.text.summary,
       body: validated.body,

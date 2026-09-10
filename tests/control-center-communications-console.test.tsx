@@ -15,6 +15,8 @@ describe('CommunicationsConsole', () => {
     expect(html).toContain('Review the frozen audience, then use')
     expect(html).toContain('Publish now')
     expect(html).toContain('Safe preview')
+    expect(html).toContain('Post as')
+    expect(html).toContain('Nic-Nac')
     expect(html).toContain('All active reps')
     expect(html).toContain('Selected reps')
     expect(html).toContain('Publication history')

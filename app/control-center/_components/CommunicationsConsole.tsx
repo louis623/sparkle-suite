@@ -168,6 +168,7 @@ export function CommunicationsConsole() {
   const [notice, setNotice] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [publicationId, setPublicationId] = useState<string | null>(null)
+  const [senderKey, setSenderKey] = useState<'owner' | 'nic_nac'>('owner')
   const [summary, setSummary] = useState('')
   const [body, setBody] = useState('')
   const [category, setCategory] = useState('announcement')
@@ -242,6 +243,7 @@ export function CommunicationsConsole() {
 
   const messagePayload = {
     publicationId: publicationId || undefined,
+    senderKey,
     title,
     summary: summary || undefined,
     body,
@@ -358,6 +360,7 @@ export function CommunicationsConsole() {
       setConfirmed(false)
       setTitle('')
       setPublicationId(null)
+      setSenderKey('owner')
       setSummary('')
       setBody('')
       setActionUrl('')
@@ -389,6 +392,7 @@ export function CommunicationsConsole() {
 
   function continueDraft(publication: MessageConsolePublication) {
     setPublicationId(publication.id)
+    setSenderKey(publication.senderKey === 'nic_nac' ? 'nic_nac' : 'owner')
     setTitle(publication.title)
     setSummary(publication.summary ?? '')
     setBody(publication.body)
@@ -485,6 +489,24 @@ export function CommunicationsConsole() {
                   placeholder="One-line context shown in the inbox"
                   value={summary}
                 />
+              </label>
+
+              <label className="grid gap-2 text-sm font-semibold text-slate-800">
+                Post as
+                <select
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-normal"
+                  onChange={(event) => {
+                    setSenderKey(event.target.value as 'owner' | 'nic_nac')
+                    setPreview(null)
+                  }}
+                  value={senderKey}
+                >
+                  <option value="owner">Sparkle Suite</option>
+                  <option value="nic_nac">Nic-Nac</option>
+                </select>
+                <span className="text-xs font-normal text-slate-500">
+                  The selected sender is recorded with the publication and shown to every recipient.
+                </span>
               </label>
 
               <label className="grid gap-2 text-sm font-semibold text-slate-800">

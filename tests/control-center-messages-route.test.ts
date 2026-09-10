@@ -228,6 +228,46 @@ describe('/api/control-center/messages', () => {
     expect(publishWorkspaceMessageMock).not.toHaveBeenCalled()
   })
 
+  it('allows the audited Nic-Nac sender identity, but no arbitrary sender key', async () => {
+    createWorkspaceMessageDraftMock.mockResolvedValueOnce({
+      id: 'draft-nic-nac',
+      status: 'draft',
+    })
+
+    const response = await POST(
+      new Request('http://localhost/api/control-center/messages', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          operation: 'save_draft',
+          senderKey: 'nic_nac',
+          ...baseMessage,
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(201)
+    expect(createWorkspaceMessageDraftMock).toHaveBeenCalledWith(
+      admin,
+      expect.objectContaining({ senderKey: 'nic_nac' }),
+    )
+
+    const invalidResponse = await POST(
+      new Request('http://localhost/api/control-center/messages', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          operation: 'save_draft',
+          senderKey: 'untrusted_sender',
+          ...baseMessage,
+        }),
+      }),
+    )
+
+    expect(invalidResponse.status).toBe(400)
+    expect(createWorkspaceMessageDraftMock).toHaveBeenCalledOnce()
+  })
+
   it('updates a loaded draft instead of creating an unrelated publication', async () => {
     createWorkspaceMessageDraftMock.mockResolvedValueOnce({
       id: 'draft-existing',
@@ -309,7 +349,6 @@ describe('/api/control-center/messages', () => {
           audienceToken: preview.audienceToken,
           expectedRecipientCount: 2,
           confirmed: true,
-          senderKey: 'monthly_reporter',
         }),
       }),
     )
