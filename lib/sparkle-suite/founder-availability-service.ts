@@ -17,7 +17,7 @@ export async function getFounderAvailability(): Promise<FounderAvailability> {
     const signal = AbortSignal.timeout(5_000)
     const [reps, subscriptions] = await Promise.all([
       admin.from('reps')
-        .select('id,founder_sequence,account_classification,subscriptions(stripe_livemode)', { count: 'exact' })
+        .select('id,founder_sequence,account_classification', { count: 'exact' })
         .eq('pricing_tier', 'founder')
         .not('founder_sequence', 'is', null)
         .limit(FOUNDER_PRICING_REP_LIMIT + 1)
@@ -25,6 +25,7 @@ export async function getFounderAvailability(): Promise<FounderAvailability> {
       admin.from('subscriptions')
         .select('rep_id,founder_sequence,stripe_livemode,reps(account_classification)', { count: 'exact' })
         .eq('pricing_tier', 'founder')
+        .eq('stripe_livemode', true)
         .not('founder_sequence', 'is', null)
         .limit(FOUNDER_PRICING_REP_LIMIT + 1)
         .abortSignal(signal),
