@@ -19,6 +19,7 @@ export type SparkleSuiteFinderCatalogItem = {
   mainStone: string | null;
   bpMsrp: number | null;
   canonicalPhotoUrl: string | null;
+  rarityClassification?: BombPartyLabel;
   description?: string | null;
   searchTags: string[];
   availableListingCount: number;
@@ -1475,26 +1476,9 @@ function emptyCatalogFacetOptions(): CatalogFacetOptions {
 }
 
 function deriveBombPartyLabel(item: SparkleSuiteFinderCatalogItem): BombPartyLabel {
-  const searchableText = [
-    item.designName,
-    item.material,
-    item.mainStone,
-    item.collectionName,
-    ...(Array.isArray(item.searchTags) ? item.searchTags : []),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLocaleLowerCase();
-
-  if (searchableText.includes("unicorn")) {
-    return "unicorn";
-  }
-
-  if (searchableText.includes("diamond")) {
-    return "diamond";
-  }
-
-  return "standard";
+  return item.rarityClassification === "diamond" || item.rarityClassification === "unicorn"
+    ? item.rarityClassification
+    : "standard";
 }
 
 function fallbackItems(options: CatalogReadOptions): JewelryItem[] {

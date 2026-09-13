@@ -196,12 +196,25 @@ describe('Amethyst trade page template wiring', () => {
       material: 'Sterling silver',
       stone: 'Diamond accent',
       msrp: 88,
-      tier: 'diamond',
+      tier: 'everyday',
       photoUrl: 'https://cdn.example.com/listing-photo.jpg',
       photoSource: 'listing',
       quantityAvailable: 1,
     })
     expect(mapped.note).toContain('Item-for-item only')
+  })
+
+  it('uses only explicit rarity classification for Diamond and Unicorn tiers', () => {
+    expect(
+      mapTradeListingToAmethystTradeBoardListing(
+        makeTradeListing({ rarity_classification: 'diamond' }),
+      ).tier,
+    ).toBe('diamond')
+    expect(
+      mapTradeListingToAmethystTradeBoardListing(
+        makeTradeListing({ rarity_classification: 'unicorn' }),
+      ).tier,
+    ).toBe('unicorn')
   })
 
   it('maps trade listing ring size to the customer-facing board size', () => {

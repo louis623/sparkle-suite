@@ -230,6 +230,22 @@ export function ShowcaseStudioIntakePanel({
           <TextField help="Optional — use the wording printed on the label." label="Main stone" maxLength={120} name="mainStone" />
           <TextField help="Optional — for example rose gold or rhodium." label="Material" maxLength={120} name="material" />
           <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)] sm:col-span-2">
+            Is this piece a diamond or unicorn?
+            <select
+              className="rounded-[var(--sparkle-radius-sm)] border border-[var(--sparkle-border-strong)] bg-white px-3 py-3 text-base font-medium text-[var(--sparkle-ink)] outline-none transition focus:border-[var(--sparkle-plum)] focus:ring-2 focus:ring-[rgba(123,47,135,0.16)]"
+              defaultValue="standard"
+              name="rarityClassification"
+              required
+            >
+              <option value="standard">No — standard piece</option>
+              <option value="diamond">Diamond</option>
+              <option value="unicorn">Unicorn</option>
+            </select>
+            <span className="font-medium text-[var(--sparkle-ink-muted)]">
+              Choose Diamond or Unicorn only when that is the piece’s actual Bomb Party classification.
+            </span>
+          </label>
+          <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)] sm:col-span-2">
             Note for Nic-Nac <span className="font-medium text-[var(--sparkle-ink-muted)]">(optional)</span>
             <textarea
               className="min-h-28 rounded-[var(--sparkle-radius-sm)] border border-[var(--sparkle-border-strong)] bg-white px-3 py-3 text-base font-medium text-[var(--sparkle-ink)] outline-none transition focus:border-[var(--sparkle-plum)] focus:ring-2 focus:ring-[rgba(123,47,135,0.16)]"

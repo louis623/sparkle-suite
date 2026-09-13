@@ -136,6 +136,7 @@ interface FinderCatalogRpcRow {
   main_stone: string | null
   bp_msrp: number | string | null
   canonical_photo_url: string | null
+  catalog_label: FinderCatalogLabel | null
   search_tags: string[] | null
   created_at: string | null
 }
@@ -487,6 +488,7 @@ function mapCatalogRpcRow(
     mainStone: cleanNullableText(row.main_stone),
     bpMsrp: finiteNumberOrNull(row.bp_msrp),
     canonicalPhotoUrl: cleanNullableText(row.canonical_photo_url),
+    rarityClassification: normalizeFinderCatalogLabel(row.catalog_label),
     description: null,
     searchTags: Array.isArray(row.search_tags)
       ? row.search_tags.filter((tag): tag is string => typeof tag === 'string')
@@ -498,6 +500,10 @@ function mapCatalogRpcRow(
     availableLeadCount: 0,
     availableDancerCount: 0,
   }
+}
+
+function normalizeFinderCatalogLabel(value: unknown): FinderCatalogLabel {
+  return value === 'diamond' || value === 'unicorn' ? value : 'standard'
 }
 
 function parsePageRpcResult(data: unknown, requestedLimit: number): FinderCatalogPageRpcResult {

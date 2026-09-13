@@ -7,12 +7,24 @@ import {
 } from "../scripts/check-active-branch.mjs";
 
 describe("Sparkle Suite active branch policy", () => {
-  it("accepts only the verified repository, branch, and primary worktree", () => {
+  it("accepts the verified repository, protected development branch, and primary worktree", () => {
     expect(
       evaluateBranchPolicy({
         branch: "codex/nic-nac-trade-hardening",
         remoteRepository: "louis623/sparkle-suite",
         worktree: "C:\\Users\\louis\\sparkle-suite-repo",
+        platform: "win32",
+      }),
+    ).toEqual([]);
+  });
+
+  it("accepts the isolated release branch only from its explicitly registered worktree", () => {
+    expect(
+      evaluateBranchPolicy({
+        branch: "codex/nic-nac-photo-rarity-repair",
+        remoteRepository: "louis623/sparkle-suite",
+        worktree:
+          "C:\\Users\\louis\\sparkle-suite-repo\\.local\\worktrees\\nic-nac-photo-rarity",
         platform: "win32",
       }),
     ).toEqual([]);
@@ -27,7 +39,7 @@ describe("Sparkle Suite active branch policy", () => {
         platform: "win32",
       }),
     ).toContain(
-      'branch "main" is not active; allowed: codex/nic-nac-trade-hardening',
+      'branch "main" is not active; allowed: codex/nic-nac-photo-rarity-repair, codex/nic-nac-trade-hardening',
     );
   });
 

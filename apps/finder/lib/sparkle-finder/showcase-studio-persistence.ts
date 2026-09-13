@@ -99,6 +99,7 @@ export type ShowcaseStudioRetryReconstructionResult =
       jewelryFrontPhoto: Blob;
       mainStone: string | null;
       material: string | null;
+      rarityClassification: "standard" | "diamond" | "unicorn";
       originalLabelPhoto: Blob;
       photoEvidence: ShowcaseStudioPhotoEvidence;
       submissionId: string;
@@ -383,6 +384,7 @@ export async function reconstructShowcaseStudioRetryForOwner(
     jewelryFrontPhoto: jewelryBlob,
     mainStone: nullableString(submission.row.main_stone),
     material: nullableString(submission.row.material),
+    rarityClassification: normalizeRarityClassification(submission.row.bp_label),
     originalLabelPhoto: labelBlob,
     photoEvidence: photoEvidenceResult.evidence,
     submissionId,
@@ -397,6 +399,10 @@ export function asRecord(value: unknown): ShowcaseStudioPersistenceRow | null {
 
 export function readString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeRarityClassification(value: unknown): "standard" | "diamond" | "unicorn" {
+  return value === "diamond" || value === "unicorn" ? value : "standard";
 }
 
 const allowedStudioTransitions: Record<string, ReadonlySet<ShowcaseStudioBridgePersistedStatus>> = {

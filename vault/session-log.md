@@ -7206,3 +7206,25 @@ Lessons retained:
   passed. Commit `2fb315a1` is live as Ready deployment
   `dpl_FGVMmph4EBoTKmTrEJackiDvgnXj`; both Suite aliases resolve to it.
   Kim's `goforthebling.com` remains at `dpl_Fr6JTn8snhNY1jmqJFoudTt3oqWH`.
+
+## September 13, 2026 - Nic-Nac photo and rarity corrective release prepared
+
+- Audited all 58 active/pending Dance Floor listings and visually reviewed the
+  complete contact sheets: 49 customer-facing photos were correct and 9 were
+  wrong (8 from Heather's September 11 submissions plus older ER38483).
+- Prepared guarded, reviewable recovery manifests for those 9 replacements;
+  Heather's manifest also records 3 correct photos that must be retained.
+- Hardened Suite and Finder intake so workflow-owned image identity is stable,
+  readable label photos stay detail-only, practical centered/presentable
+  jewelry photos are accepted even with packaging, and customer-facing photos
+  cannot be swapped by attachment-order or stale-reference mistakes.
+- Added explicit standard/diamond/unicorn persistence and the required direct
+  rarity question. Existing rows migrate to standard; rarity is never inferred
+  from descriptions, item names, stones, tags, price, or the word diamond.
+- Work is isolated on `codex/nic-nac-photo-rarity-repair`; the shared dirty
+  checkout and its undeployed Live Lineup/Kelly changes were not modified.
+- Pre-release verification: the focused release set passed 189 tests, the
+  corrected route-context file passed 20/20, the complete Nic-Nac directory
+  passed 1,221 tests with one intentional skip, the configured Suite suite
+  passed 245 tests, and Finder passed all 778 tests. Migration, guarded repair,
+  builds, manual deployments, and live smoke are the remaining release steps.

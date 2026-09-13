@@ -6,6 +6,7 @@ import {
 } from '@/lib/services/trade-listing-display'
 import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { jewelryRarityToTradeBoardTier } from '@/lib/services/jewelry-rarity'
 
 export type AmethystTradeBoardTier = 'everyday' | 'diamond' | 'unicorn'
 
@@ -110,23 +111,9 @@ export function getTradeBoardPhotoSource(
 }
 
 function inferTradeBoardTier(listing: TradeListingWithDesign): AmethystTradeBoardTier {
-  // Until rarity becomes an explicit field, keep inference conservative and
-  // only tag listings when the source text explicitly says so.
-  const display = getTradeListingDisplayFields(listing)
-  const haystack = [
-    display.designName,
-    display.collectionName,
-    display.mainStone,
-    listing.rep_notes,
-    listing.trade_preferences,
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase()
-
-  if (haystack.includes('unicorn')) return 'unicorn'
-  if (haystack.includes('diamond')) return 'diamond'
-  return 'everyday'
+  return jewelryRarityToTradeBoardTier(
+    listing.rarity_classification ?? listing.design?.rarity_classification,
+  )
 }
 
 export function mapTradeListingToAmethystTradeBoardListing(

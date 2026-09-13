@@ -86,11 +86,14 @@ export function evaluateBranchPolicy({
   if (
     platform === "win32" &&
     !isVercel &&
-    normalize(worktree).toLowerCase() !==
-      normalize(policy.primaryLocalWorktree).toLowerCase()
+    !(policy.activeLocalWorktrees || [policy.primaryLocalWorktree]).some(
+      (allowedWorktree) =>
+        normalize(worktree).toLowerCase() ===
+        normalize(allowedWorktree).toLowerCase(),
+    )
   ) {
     errors.push(
-      `worktree "${worktree}" is not the primary Sparkle Suite workbench ${policy.primaryLocalWorktree}`,
+      `worktree "${worktree}" is not an active Sparkle Suite workbench: ${(policy.activeLocalWorktrees || [policy.primaryLocalWorktree]).join(", ")}`,
     );
   }
 

@@ -13,6 +13,7 @@ export type ListingStatus = 'available' | 'pending_trade' | 'traded' | 'removed'
 export type TradeRequestStatus = 'pending' | 'approved' | 'denied' | 'cancelled'
 export type FulfillmentStatus = 'approved' | 'shipped' | 'completed'
 export type JewelryType = 'RG' | 'NK' | 'ER' | 'ST' | 'BR'
+export type JewelryRarityClassification = 'standard' | 'diamond' | 'unicorn'
 export type ListingSource = 'catalog' | 'non_item_number'
 export type RemovalReason = 'sold' | 'keeping' | 'mistake' | 'other'
 export type RejectionReason = 'msrp_mismatch' | 'not_interested' | 'changed_mind' | 'other'
@@ -31,6 +32,7 @@ export interface TradeListingDesign {
   canonical_photo_url: string | null
   type_prefix: JewelryType
   collection: { id: string; name: string } | null
+  rarity_classification?: JewelryRarityClassification
 }
 
 export interface TradeListingWithDesign {
@@ -45,6 +47,7 @@ export interface TradeListingWithDesign {
   ring_size?: string | null
   listing_photo_url: string | null
   uses_canonical_photo: boolean
+  rarity_classification?: JewelryRarityClassification
   manual_type_prefix?: JewelryType | null
   manual_collection_family?: string | null
   manual_collection_name?: string | null
@@ -121,6 +124,7 @@ export interface AddListingInput {
   repNotes?: string
   tradePreferences?: string
   listingPhotoUrl?: string // when omitted, falls back to canonical photo
+  rarityClassification?: JewelryRarityClassification
   /** Stable key for replaying one logical physical-piece add. */
   idempotencyKey?: string
   /** Stable digest of the logical add inputs; guards key reuse with new data. */
@@ -148,6 +152,7 @@ export interface BatchListingItem {
   repNotes?: string
   tradePreferences?: string
   listingPhotoUrl?: string
+  rarityClassification?: JewelryRarityClassification
   idempotencyKey?: string
   inputSignature?: string
 }
@@ -160,6 +165,7 @@ export interface AddNonItemNumberListingInput {
   photoUrl: string
   repNotes?: string | null
   tradePreferences?: string | null
+  rarityClassification?: JewelryRarityClassification
 }
 
 export interface AddNonItemNumberListingResult {
@@ -1331,6 +1337,7 @@ export type ResolveItemNumberResult =
         collectionName: string | null
         collectionYear: number | null
         searchTags: string[]
+        rarityClassification: JewelryRarityClassification
       }
       hasCollection: boolean
     }
@@ -1351,6 +1358,7 @@ export interface CreateDesignInput {
   photoPipeline?: PhotoPipelineStatePatch
   createdByRepId?: string | null
   conversationId?: string | null
+  rarityClassification?: JewelryRarityClassification
 }
 
 export interface CreateDesignResult {

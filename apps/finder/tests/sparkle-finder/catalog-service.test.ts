@@ -23,6 +23,7 @@ describe("Sparkle Finder public API catalog service", () => {
     const item = mapSparkleSuiteFinderCatalogItem(
       apiCatalogItem({
         designName: "Starlight Diamond Ring",
+        rarityClassification: "standard",
         jewelryType: "ring",
         searchTags: ["rose gold", "diamond"],
       }),
@@ -39,7 +40,7 @@ describe("Sparkle Finder public API catalog service", () => {
       description: null,
       bpMsrp: 19.95,
       imageUrl: "https://cdn.example.test/design-123.jpg",
-      bpLabel: "diamond",
+      bpLabel: "standard",
       itemNumber: "RG1234",
       searchTags: ["rose gold", "diamond"],
       availableListingCount: 2,
@@ -47,6 +48,19 @@ describe("Sparkle Finder public API catalog service", () => {
       availableDancerCount: 3,
       knownRepListingIds: [],
     });
+  });
+
+  it("uses only the explicit rarity classification, never descriptive diamond text", () => {
+    expect(mapSparkleSuiteFinderCatalogItem(apiCatalogItem({
+      designName: "Diamond Cubic Zirconia Earrings",
+      mainStone: "Diamond CZ",
+      searchTags: ["diamond"],
+      rarityClassification: "standard",
+    })).bpLabel).toBe("standard");
+    expect(mapSparkleSuiteFinderCatalogItem(apiCatalogItem({
+      rarityClassification: "unicorn",
+      searchTags: [],
+    })).bpLabel).toBe("unicorn");
   });
 
   it("keeps Sparkle Suite stack items as a first-class Finder type", () => {
@@ -1466,6 +1480,7 @@ function apiCatalogItem(overrides: Partial<SparkleSuiteFinderCatalogItem> = {}):
     mainStone: "Pink stone",
     bpMsrp: 19.95,
     canonicalPhotoUrl: "https://cdn.example.test/design-123.jpg",
+    rarityClassification: "standard",
     description: null,
     searchTags: ["rose gold"],
     availableListingCount: 2,

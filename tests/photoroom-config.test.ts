@@ -59,4 +59,14 @@ describe('photoroom config', () => {
       provider: 'photoroom',
     })
   })
+
+  it('keeps the core photo pipeline available when optional production enhancement is unconfigured', () => {
+    delete mutableEnv.PHOTOROOM_API_KEY
+    mutableEnv.NODE_ENV = 'production'
+    delete mutableEnv.NEXT_PHASE
+    resetPhotoroomConfigCacheForTests()
+
+    expect(isPhotoroomEnabled()).toBe(false)
+    expect(getPhotoroomConfig()).toBeNull()
+  })
 })

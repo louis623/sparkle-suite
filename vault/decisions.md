@@ -2703,6 +2703,33 @@ Reason: Lane needs to inspect the displayed accounting books without receiving
 an owner session or any ability to see customer information, alter operations,
 or perform payment/provider actions.
 
+## 2026-09-13 - Nic-Nac photo acceptance and rarity classification
+
+Decision: Dance Floor and Sparkle Finder intake accept a jewelry-facing photo
+when the piece is clear, visually presentable, and centered enough to be the
+listing focus. Packaging is not itself a rejection reason. A label/details
+photo only needs to be readable enough for Nic-Nac to capture the product
+details, and it can never silently replace the customer-facing jewelry photo.
+
+Every submission must separately ask, "Is this piece a diamond or unicorn?"
+and persist the rep's explicit answer as standard, diamond, or unicorn. Names,
+descriptions, prices, stones, tags, and the word "diamond" are never rarity
+evidence.
+
+Reason: Rep photo training supplies the practical capture discipline. The
+software should prevent wrong-photo attachment and unreadable/unusable images
+without inventing studio-photo restrictions or rarity labels.
+
+## 2026-09-13 - Isolate the Nic-Nac corrective release
+
+Decision: Release the photo/rarity hardening from
+`codex/nic-nac-photo-rarity-repair` in its registered isolated worktree. Keep
+`codex/nic-nac-trade-hardening` active for the separate undeployed Live Lineup
+and Kelly work, but on release hold until that work is reviewed independently.
+
+Reason: The corrective release must not absorb or deploy unrelated shared
+checkout changes.
+
 ## 2026-09-03 - Keep Lane accounting writes in the single dedicated MCP
 
 Decision: Lane's website credential remains visual-review-only. The single

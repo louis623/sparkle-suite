@@ -156,3 +156,14 @@ Reason: A shared provider key/project makes authoritative product attribution im
 Decision: Leave the first unused Finder runtime key unchanged indefinitely unless concrete evidence shows a security, billing, access, or operational problem. It is not pending cleanup. Any later revocation requires Louis's explicit authorization and a dependency audit.
 
 Reason: The active Finder configuration is working, and speculative credential cleanup is not worth risking another setup setback.
+
+## 2026-09-13 - Finder shares the explicit rarity and practical photo contract
+
+Decision: Showcase Studio intake records only an explicit standard, diamond,
+or unicorn answer and uses the same practical customer-facing photo rule as
+Suite: jewelry must be clear, presentable, and centered enough to be the focus;
+packaging alone is not a rejection. Readable label photos remain detail-only.
+
+Reason: Finder collection uploads will be the likeliest source of genuinely
+rare pieces, but rarity still belongs to the rep's direct confirmation rather
+than text inference.

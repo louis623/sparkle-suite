@@ -52,7 +52,8 @@ export function computeTradeBoardIntakeReadiness(
   )
   const jewelryFrontPhoto = state.photos.find(
     (photo) =>
-      photo.declaredRole === 'jewelry_front' && photo.quality !== 'blocked',
+      photo.declaredRole === 'jewelry_front' &&
+      photo.quality !== 'blocked',
   )
   const blockedLabel = state.photos.find(
     (photo) =>
@@ -60,7 +61,8 @@ export function computeTradeBoardIntakeReadiness(
   )
   const blockedJewelry = state.photos.find(
     (photo) =>
-      photo.declaredRole === 'jewelry_front' && photo.quality === 'blocked',
+      photo.declaredRole === 'jewelry_front' &&
+      photo.quality === 'blocked',
   )
 
   if (catalogMode === 'non_item_number') {
@@ -74,6 +76,7 @@ export function computeTradeBoardIntakeReadiness(
     if (!labelDetailsPhoto && !known.itemNumber) missing.push('labelDetailsPhoto')
   }
   if (!jewelryFrontPhoto) missing.push('jewelryFrontPhoto')
+  if (!known.rarityClassification) missing.push('rarityClassification')
   if (blockedLabel) blockers.push('labelPhotoUnreadable')
   if (blockedJewelry) blockers.push('jewelryPhotoUnusable')
 
@@ -97,6 +100,7 @@ export function computeTradeBoardAddAttemptReadiness(
     collectionName?: string
     collectionYear?: number
     ringSize?: string
+    rarityClassification?: TradeBoardIntakeSessionState['known']['rarityClassification']
   },
 ): {
   ready: boolean
@@ -112,6 +116,7 @@ export function computeTradeBoardAddAttemptReadiness(
     collectionName: normalizeOptionalText(input.collectionName),
     collectionYear: input.collectionYear,
     ringSize: normalizeOptionalText(input.ringSize),
+    rarityClassification: input.rarityClassification,
   })
   const missing: string[] = []
   const blockers: string[] = []
@@ -119,7 +124,8 @@ export function computeTradeBoardAddAttemptReadiness(
 
   const jewelryFrontPhoto = state.photos.find(
     (photo) =>
-      photo.declaredRole === 'jewelry_front' && photo.quality !== 'blocked',
+      photo.declaredRole === 'jewelry_front' &&
+      photo.quality !== 'blocked',
   )
   const blockedLabel = state.photos.find(
     (photo) =>
@@ -127,7 +133,8 @@ export function computeTradeBoardAddAttemptReadiness(
   )
   const blockedJewelry = state.photos.find(
     (photo) =>
-      photo.declaredRole === 'jewelry_front' && photo.quality === 'blocked',
+      photo.declaredRole === 'jewelry_front' &&
+      photo.quality === 'blocked',
   )
 
   if (catalogMode === 'non_item_number') {
@@ -138,6 +145,7 @@ export function computeTradeBoardAddAttemptReadiness(
     missing.push('itemNumber')
   }
   if (!jewelryFrontPhoto) missing.push('jewelryFrontPhoto')
+  if (!known.rarityClassification) missing.push('rarityClassification')
   if (blockedLabel) blockers.push('labelPhotoUnreadable')
   if (blockedJewelry) blockers.push('jewelryPhotoUnusable')
 
@@ -219,6 +227,7 @@ export function buildTradeBoardIntakePromptState(
       },
       known: state.known,
       photos: state.photos.map((photo, index) => ({
+        id: photo.id,
         index: index + 1,
         declaredRole: photo.declaredRole,
         visualRole: photo.visualRole,
@@ -253,6 +262,7 @@ export function buildTradeBoardIntakePromptState(
     },
     known: state.known,
     photos: state.photos.map((photo, index) => ({
+      id: photo.id,
       index: index + 1,
       declaredRole: photo.declaredRole,
       visualRole: photo.visualRole,
@@ -290,6 +300,7 @@ function inferPhase(state: TradeBoardIntakeSessionState): TradeBoardIntakePhase 
     state.missing.includes('ringSize') ||
     state.missing.includes('collectionName') ||
     state.missing.includes('designName')
+    || state.missing.includes('rarityClassification')
   ) {
     return 'details_capture'
   }
@@ -317,6 +328,9 @@ function chooseNextAction(args: {
     return 'ask_for_jewelry_front_photo'
   }
   if (args.ready) return 'call_add_listing'
+  if (args.missing.includes('rarityClassification')) {
+    return 'ask_for_rarity_classification'
+  }
   if (args.missing.includes('itemNumber')) return 'ask_for_item_number'
   if (
     args.missing.includes('jewelryType') ||

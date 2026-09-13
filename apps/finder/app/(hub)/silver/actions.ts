@@ -248,7 +248,11 @@ export async function submitShowcaseStudioRequestAction(
   const itemNumber = readFormText(formData, "itemNumber");
   const mainStone = readFormText(formData, "mainStone");
   const material = readFormText(formData, "material");
+  const rarityClassification = readRarityClassification(formData);
   const customerNote = readFormText(formData, "customerNote");
+  if (!rarityClassification) {
+    return studioDeniedState(previousState, "Please answer whether this piece is a Diamond or Unicorn.");
+  }
 
   const result = await persistShowcaseStudioSubmissionForAccount(
     serviceClient as unknown as SupabaseShowcaseStudioClient,
@@ -260,6 +264,7 @@ export async function submitShowcaseStudioRequestAction(
     mainStone,
     material,
     originalLabelPhoto,
+    rarityClassification,
     submissionId,
     },
   );
@@ -273,6 +278,7 @@ export async function submitShowcaseStudioRequestAction(
     itemNumber,
     mainStone,
     material,
+    rarityClassification,
     ownerId: verified.accountState.customer.id,
     photoEvidence: result.photoEvidence,
     previousState,
@@ -311,6 +317,7 @@ export async function retryShowcaseStudioRequestAction(
     itemNumber: retry.itemNumber,
     mainStone: retry.mainStone ?? "",
     material: retry.material ?? "",
+    rarityClassification: retry.rarityClassification,
     ownerId: verified.accountState.customer.id,
     photoEvidence: retry.photoEvidence,
     previousState,
@@ -383,6 +390,7 @@ async function runShowcaseStudioResolve(input: {
   itemNumber: string;
   mainStone: string;
   material: string;
+  rarityClassification: "standard" | "diamond" | "unicorn";
   ownerId: string;
   photoEvidence: ShowcaseStudioPhotoEvidence;
   previousState: ShowcaseStudioPanelActionState;
@@ -396,6 +404,7 @@ async function runShowcaseStudioResolve(input: {
     finderSubmissionId: input.submissionId,
     labelDetails: {
       itemNumber: input.itemNumber,
+      bpLabel: input.rarityClassification,
       ...(input.mainStone ? { mainStone: input.mainStone } : {}),
       ...(input.material ? { material: input.material } : {}),
     },
@@ -417,6 +426,11 @@ async function runShowcaseStudioResolve(input: {
 
   revalidatePath("/silver");
   return studioPanelStateFromResult(input.previousState, input.submissionId, suiteIntakeResult, "resolve");
+}
+
+function readRarityClassification(formData: FormData): "standard" | "diamond" | "unicorn" | null {
+  const value = readFormText(formData, "rarityClassification");
+  return value === "standard" || value === "diamond" || value === "unicorn" ? value : null;
 }
 
 async function getVerifiedSilverClient(): Promise<

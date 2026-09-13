@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "batchId": "76d31472-4e09-4eb4-9fa6-bff2492a4040",
+  "sourceWindow": {
+    "listedAfter": "2026-08-24T00:00:00-04:00",
+    "listedBefore": "2026-08-25T00:00:00-04:00",
+    "repId": "9a971c05-3631-443e-bcb8-4e9a26e15885"
+  },
+  "review": {
+    "reviewedAt": "2026-09-13T00:00:00-04:00",
+    "method": "Full-current-inventory contact-sheet review followed by side-by-side comparison of the public photo and the sole retained jewelry-front workflow attachment, with exact SHA-256 lineage verification.",
+    "policy": "No source asset is deleted. Apply requires the current public hash and selected workflow-photo hash to match this manifest exactly."
+  },
+  "entries": [
+    {
+      "listingId": "b4e9e363-cb09-442b-b5e7-e334927a22bd",
+      "designId": "f81ff785-84a2-4983-93d7-6f634a7a98b8",
+      "itemNumber": "ER38483",
+      "designName": "A Stunning Addition",
+      "decision": "replace_from_workflow_photo",
+      "currentPhotoSha256": "f37ee6db4d3962701b65c7bcaf466488ed54a30cb040213463564f12fd134bbc",
+      "selectedPhotoId": "06bffebd-c246-4071-9129-949c98074020",
+      "selectedPhotoSha256": "9ebfe044fad7e5a67ddc2b7882f51d9aa3cc1b1c6ac33ee459419581327ecc5c",
+      "visualFinding": "Current image shows a different piece; the sole retained and confirmed jewelry-front source shows the light-blue hoop pair belonging to ER38483 A Stunning Addition.",
+      "rarityClassification": "standard"
+    }
+  ]
+}

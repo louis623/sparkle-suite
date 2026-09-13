@@ -110,12 +110,12 @@ describe("Showcase Studio Silver actions", () => {
     expect(persistSubmission).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ status: "authenticated" }),
-      expect.objectContaining({ submissionId, itemNumber: "RBP5902", mainStone: "Rose Quartz" }),
+      expect.objectContaining({ submissionId, itemNumber: "RBP5902", mainStone: "Rose Quartz", rarityClassification: "standard" }),
     );
     expect(submitIntake).toHaveBeenCalledWith({
       action: "resolve",
       finderSubmissionId: submissionId,
-      labelDetails: { itemNumber: "RBP5902", mainStone: "Rose Quartz", material: "Rose gold" },
+      labelDetails: { itemNumber: "RBP5902", bpLabel: "standard", mainStone: "Rose Quartz", material: "Rose gold" },
       customerNote: "Original label is readable.",
       photoEvidence: [...photoEvidence],
     });
@@ -307,6 +307,7 @@ function studioFormData(): FormData {
   form.set("itemNumber", "RBP5902");
   form.set("mainStone", "Rose Quartz");
   form.set("material", "Rose gold");
+  form.set("rarityClassification", "standard");
   form.set("customerNote", "Original label is readable.");
   form.set("originalLabelPhoto", new File([jpegBytes()], "label.jpg", { type: "image/jpeg" }));
   form.set("jewelryFrontPhoto", new File([jpegBytes()], "jewelry.jpg", { type: "image/jpeg" }));

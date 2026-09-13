@@ -153,14 +153,20 @@ describe('Sparkle Finder internal jewelry intake', () => {
       mainStone: 'Pearl',
       material: 'Rose gold',
       photoPipeline: {
+        enhancedUrl: undefined,
         originalPath: 'finder/finder-submission-1/original.jpg',
         originalUrl: 'https://signed.example.com/original.jpg',
+        processedAt: undefined,
+        provider: undefined,
+        qaConfidence: undefined,
+        qaDecision: undefined,
         status: 'ready',
         preflightScore: 0.96,
         preflightIssues: [],
       },
       piecePhotoUrl: 'https://cdn.example.com/finder-approved/moonlit.png',
-      searchTags: ['diamond', 'sparkle finder'],
+      rarityClassification: 'diamond',
+      searchTags: ['sparkle finder'],
       specialFeatures: undefined,
     })
     expect(result).toEqual({

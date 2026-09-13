@@ -335,3 +335,12 @@ Built and tested owner/submission/asset checks and short-lived private evidence 
 - Commit `91273c87` expands the read-only cost bridge with persisted reasoning and requested-intent evidence so Suite can show workload, expected model/reasoning, and policy fit without sharing customer auth or conversation content.
 - Deployment `dpl_9W8PJNL7xKZ88uKfgcb6omrcirfd` is `READY` and aliased at `https://yoursparklefinder.com`; the live signed-in surface loaded successfully.
 - The final synthetic authenticated model smoke remains pending because the production smoke token is write-only and unavailable to the terminal. Louis's signed-in account was not used for reviewer testing.
+
+## 2026-09-13 - Photo and rarity hardening prepared for isolated release
+
+- Showcase Studio now carries an explicit standard/diamond/unicorn answer into
+  catalog persistence and does not infer rarity from product language.
+- Finder uses the practical centered, clear, presentable jewelry-photo contract
+  while keeping readable label/details images out of customer-facing slots.
+- All 61 Finder test files passed (778 tests) from the isolated release
+  worktree. Lint, build, manual deployment, and live verification remain.

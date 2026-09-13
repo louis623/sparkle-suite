@@ -454,6 +454,7 @@ function studioInput(overrides: Partial<ShowcaseStudioSubmissionInput> = {}): Sh
     jewelryFrontPhoto: new File([validWebp(900, 900)], "jewelry.webp", { type: "image/webp" }),
     mainStone: "Ruby", material: "Rose gold",
     originalLabelPhoto: new File([validPng(1200, 800)], "label.png", { type: "image/png" }),
+    rarityClassification: "standard",
     submissionId, ...overrides,
   };
 }
