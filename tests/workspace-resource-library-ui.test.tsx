@@ -99,4 +99,39 @@ describe('workspace resource library UI', () => {
     expect(html).toContain('https://i.ytimg.com/vi/abc123/hqdefault.jpg')
     expect(html).not.toContain('<p></p>')
   })
+
+  it('highlights and opens a resource targeted from Message Center', () => {
+    const html = renderToStaticMarkup(
+      createElement(WorkspaceResourceLibraryView, {
+        targetResourceKey: 'monthly-planning',
+        resources: [
+          {
+            id: 'blog-target',
+            resourceKey: 'monthly-planning',
+            resourceType: 'blog',
+            title: 'Plan a strong month',
+            summary: 'A practical monthly planning guide.',
+            body: 'Choose three priorities and review them weekly.',
+            category: 'Business',
+            tags: ['planning'],
+            thumbnailUrl: null,
+            videoProvider: null,
+            videoUrl: null,
+            actionUrl: '/nic-nac?section=resources&resource=monthly-planning',
+            status: 'published',
+            version: 1,
+            changeSummary: 'New guide',
+            isFeatured: false,
+            authorLabel: 'Sparkle Suite',
+            publishedAt: null,
+          },
+        ],
+      }),
+    )
+
+    expect(html).toContain('id="workspace-resource-monthly-planning"')
+    expect(html).toContain('Opened from Message Center')
+    expect(html).toContain('<details')
+    expect(html).toContain('open=""')
+  })
 })

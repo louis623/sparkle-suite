@@ -20,6 +20,8 @@ export type WorkspacePublicationSummary = {
   priority?: string | null
   actionLabel?: string | null
   actionUrl?: string | null
+  secondaryActionLabel?: string | null
+  secondaryActionUrl?: string | null
   deliveredAt?: string
   createdAt?: string
   messageType?: string

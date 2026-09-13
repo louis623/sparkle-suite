@@ -39,7 +39,10 @@ vi.mock('@/lib/services/workspace-monthly-reports', async (importOriginal) => {
   }
 })
 
-import { processWorkspaceMessageAutomation } from '@/lib/services/workspace-message-automation'
+import {
+  getTrustedYouTubeUrl,
+  processWorkspaceMessageAutomation,
+} from '@/lib/services/workspace-message-automation'
 
 describe('workspace message automation', () => {
   beforeEach(() => {
@@ -242,7 +245,7 @@ describe('workspace message automation', () => {
                     resource_type: 'blog',
                     title: 'Trade smarter',
                     summary: 'A practical Dance Floor guide.',
-                    action_url: '/nic-nac?section=resources&resource=trade-guide',
+                    video_provider: null,
                     video_url: null,
                     status: 'published',
                   },
@@ -289,8 +292,96 @@ describe('workspace message automation', () => {
         category: 'blog',
         audience: { kind: 'all_active' },
         idempotencyKey: 'resource-published:resource-1:2',
+        actionLabel: 'Open in Resources & Help',
+        actionUrl: '/nic-nac?section=resources&resource=trade-guide',
+        secondaryActionLabel: null,
+        secondaryActionUrl: null,
       }),
     )
     expect(revisionUpdate).toHaveBeenCalledWith('id', 'revision-2')
+  })
+
+  it('gives a YouTube video both a direct workspace destination and a safe YouTube action', async () => {
+    claimEvents.mockResolvedValue([
+      {
+        id: 'event-video',
+        eventType: 'workspace_resource_published',
+        idempotencyKey: 'resource-published:video-1:1',
+        payload: { resourceId: 'video-1', revisionId: 'revision-video', version: 1 },
+        attemptCount: 0,
+      },
+    ])
+    publishMessage.mockResolvedValue({ id: 'publication-video' })
+    const revisionUpdate = vi.fn().mockResolvedValue({ error: null })
+    const supabase = {
+      from(table: string) {
+        if (table === 'workspace_resources') {
+          return {
+            select: () => ({
+              eq: () => ({
+                single: async () => ({
+                  data: {
+                    id: 'video-1',
+                    resource_key: 'show-prep',
+                    resource_type: 'video',
+                    title: 'Prepare your next show',
+                    summary: 'A practical preparation walkthrough.',
+                    video_provider: 'youtube',
+                    video_url: 'https://www.youtube.com/watch?v=abc123',
+                    status: 'published',
+                  },
+                  error: null,
+                }),
+              }),
+            }),
+          }
+        }
+        if (table === 'workspace_resource_revisions') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  single: async () => ({
+                    data: {
+                      id: 'revision-video',
+                      version: 1,
+                      change_summary: 'New show preparation walkthrough.',
+                      announcement_status: 'pending',
+                    },
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+            update: () => ({ eq: revisionUpdate }),
+          }
+        }
+        throw new Error(`Unexpected table ${table}`)
+      },
+    }
+
+    const result = await processWorkspaceMessageAutomation({
+      supabase: supabase as never,
+      workerId: 'worker-1',
+    })
+
+    expect(result).toMatchObject({ claimed: 1, completed: 1, failed: 0 })
+    expect(publishMessage).toHaveBeenCalledWith(
+      supabase,
+      expect.objectContaining({
+        actionLabel: 'Open in Resources & Help',
+        actionUrl: '/nic-nac?section=resources&resource=show-prep',
+        secondaryActionLabel: 'Watch on YouTube',
+        secondaryActionUrl: 'https://www.youtube.com/watch?v=abc123',
+      }),
+    )
+  })
+
+  it('does not produce a direct-video action for a non-YouTube URL', () => {
+    expect(getTrustedYouTubeUrl('https://example.com/watch?v=abc123')).toBeNull()
+    expect(getTrustedYouTubeUrl('http://www.youtube.com/watch?v=abc123')).toBeNull()
+    expect(getTrustedYouTubeUrl('https://www.youtube.com/watch?v=abc123')).toBe(
+      'https://www.youtube.com/watch?v=abc123',
+    )
   })
 })

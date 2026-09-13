@@ -33,6 +33,8 @@ export type ResourceAnnouncementPublisher = (input: {
   category: 'help_update' | 'blog' | 'video'
   actionLabel: string
   actionUrl: string
+  secondaryActionLabel: string | null
+  secondaryActionUrl: string | null
   idempotencyKey: string
   sourceType: 'workspace_resource'
   sourceId: string
@@ -176,6 +178,24 @@ function announcementTitle(type: WorkspaceResourceType, title: string, version: 
   return version === 1 ? `New help resource: ${title}` : `Help updated: ${title}`
 }
 
+function getTrustedYouTubeUrl(value: string | null) {
+  if (!value) return null
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' &&
+      !url.username &&
+      !url.password &&
+      !url.port &&
+      ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'].includes(
+        url.hostname.toLowerCase(),
+      )
+      ? url.toString()
+      : null
+  } catch {
+    return null
+  }
+}
+
 export async function publishWorkspaceResource(args: {
   supabase: SupabaseClient
   input: PublishWorkspaceResourceInput
@@ -269,14 +289,21 @@ export async function publishWorkspaceResource(args: {
     return { resource, announcement: null }
   }
 
+  const youtubeUrl =
+    input.resourceType === 'video' && input.videoProvider === 'youtube'
+      ? getTrustedYouTubeUrl(resource.videoUrl)
+      : null
+
   try {
     const announcement = await args.publishAnnouncement({
       title: announcementTitle(input.resourceType, input.title, version),
       summary: input.changeSummary,
       body: input.summary,
       category: announcementCategory(input.resourceType),
-      actionLabel: input.resourceType === 'video' ? 'Watch video' : 'Open resource',
-      actionUrl: resource.actionUrl || `/nic-nac?section=resources&resource=${input.resourceKey}`,
+      actionLabel: 'Open in Resources & Help',
+      actionUrl: `/nic-nac?section=resources&resource=${encodeURIComponent(input.resourceKey)}`,
+      secondaryActionLabel: youtubeUrl ? 'Watch on YouTube' : null,
+      secondaryActionUrl: youtubeUrl,
       idempotencyKey: `resource-published:${resource.id}:${version}`,
       sourceType: 'workspace_resource',
       sourceId: resource.id,

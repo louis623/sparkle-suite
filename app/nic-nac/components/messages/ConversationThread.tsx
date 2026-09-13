@@ -33,6 +33,13 @@ const APPROVED_SPARKLE_HOSTS = new Set([
   'www.yoursparklefinder.com',
 ])
 
+const APPROVED_YOUTUBE_HOSTS = new Set([
+  'youtube.com',
+  'www.youtube.com',
+  'm.youtube.com',
+  'youtu.be',
+])
+
 export function getSafeMessageActionUrl(value?: string | null) {
   const href = value?.trim()
   if (!href) return null
@@ -49,6 +56,23 @@ export function getSafeMessageActionUrl(value?: string | null) {
       !parsed.password &&
       !parsed.port &&
       APPROVED_SPARKLE_HOSTS.has(parsed.hostname.toLowerCase())
+      ? parsed.toString()
+      : null
+  } catch {
+    return null
+  }
+}
+
+export function getSafeYouTubeActionUrl(value?: string | null) {
+  const href = value?.trim()
+  if (!href) return null
+  try {
+    const parsed = new URL(href)
+    return parsed.protocol === 'https:' &&
+      !parsed.username &&
+      !parsed.password &&
+      !parsed.port &&
+      APPROVED_YOUTUBE_HOSTS.has(parsed.hostname.toLowerCase())
       ? parsed.toString()
       : null
   } catch {
@@ -210,6 +234,9 @@ export function ConversationThread({
   const actionUrl = !isConversationItem(item)
     ? getSafeMessageActionUrl(item.actionUrl)
     : getSafeMessageActionUrl(item.context?.href)
+  const secondaryActionUrl = !isConversationItem(item)
+    ? getSafeYouTubeActionUrl(item.secondaryActionUrl)
+    : null
 
   return (
     <section className={styles.thread} aria-labelledby="active-message-title">
@@ -289,21 +316,36 @@ export function ConversationThread({
         <div className={styles.officialMessage}>
           {item.summary ? <p className={styles.messageLead}>{item.summary}</p> : null}
           <PublicationBody body={item.body} />
-          {actionUrl ? (
-            actionUrl.startsWith('/') ? (
-              <Link href={actionUrl} className={styles.primaryLink}>
-                {item.actionLabel || 'Open update'}
-              </Link>
-            ) : (
-              <a
-                href={actionUrl}
-                target="_blank"
-                rel="noreferrer"
-                className={styles.primaryLink}
-              >
-                {item.actionLabel || 'Open update'}
-              </a>
-            )
+          {actionUrl || secondaryActionUrl ? (
+            <div className={styles.officialMessageActions}>
+              {actionUrl ? (
+                actionUrl.startsWith('/') ? (
+                  <Link href={actionUrl} className={styles.primaryLink}>
+                    {item.actionLabel || 'Open update'}
+                  </Link>
+                ) : (
+                  <a
+                    href={actionUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.primaryLink}
+                  >
+                    {item.actionLabel || 'Open update'}
+                  </a>
+                )
+              ) : null}
+              {secondaryActionUrl ? (
+                <a
+                  href={secondaryActionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.secondaryLink}
+                >
+                  {item.secondaryActionLabel || 'Watch on YouTube'}
+                  <ExternalLink aria-hidden="true" />
+                </a>
+              ) : null}
+            </div>
           ) : null}
           <div className={styles.readOnlyNotice}>
             <BadgeCheck aria-hidden="true" />

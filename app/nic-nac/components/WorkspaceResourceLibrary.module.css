@@ -84,6 +84,16 @@
   transform: translateY(-2px);
 }
 
+.cardTarget {
+  border-color: #e2198f;
+  box-shadow: 0 0 0 4px rgba(226, 25, 143, 0.15), 0 10px 20px rgba(54, 35, 65, 0.1);
+}
+
+.cardTarget:focus {
+  outline: 3px solid rgba(226, 25, 143, 0.4);
+  outline-offset: 3px;
+}
+
 .art {
   position: relative;
   display: grid;
@@ -126,6 +136,14 @@
 .cardBody h3,
 .cardBody p {
   margin: 0;
+}
+
+.cardBody .targetNotice {
+  overflow: visible;
+  color: #b21670;
+  font-size: 0.76rem;
+  font-weight: 800;
+  -webkit-line-clamp: unset;
 }
 
 .cardBody h3 {

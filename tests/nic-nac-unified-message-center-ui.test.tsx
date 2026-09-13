@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   ConversationThread,
   getSafeMessageActionUrl,
+  getSafeYouTubeActionUrl,
 } from '@/app/nic-nac/components/messages/ConversationThread'
 import { MessageCenter } from '@/app/nic-nac/components/messages/MessageCenter'
 import { MESSAGE_CENTER_PRIMARY_VIEW_COUNT } from '@/app/nic-nac/components/messages/MessageCenterFilters'
@@ -65,7 +66,8 @@ describe('unified Workspace Message Center UI', () => {
     ).toBe(true)
     expect(filterInboxItems(REVIEW_INBOX_FIXTURES, 'rep-network', 'all')).toHaveLength(2)
     expect(filterInboxItems(REVIEW_INBOX_FIXTURES, 'support', 'all')).toHaveLength(2)
-    expect(filterInboxItems(REVIEW_INBOX_FIXTURES, 'sparkle-suite', 'all')).toHaveLength(1)
+    expect(filterInboxItems(REVIEW_INBOX_FIXTURES, 'sparkle-suite', 'all')).toHaveLength(2)
+    expect(filterInboxItems(REVIEW_INBOX_FIXTURES, 'sparkle-suite', 'resources')).toHaveLength(1)
     expect(filterInboxItems(REVIEW_INBOX_FIXTURES, 'archived', 'all')).toHaveLength(1)
   })
 
@@ -140,6 +142,49 @@ describe('unified Workspace Message Center UI', () => {
     expect(html).not.toContain('Reply to')
   })
 
+  it('renders a workspace link and a separately protected YouTube action for a video update', () => {
+    const publication: WorkspacePublicationSummary = {
+      kind: 'publication',
+      id: 'video-update-1',
+      deliveryId: 'delivery-video-1',
+      senderDisplayName: 'Sparkle Suite',
+      title: 'New video: Prepare your next show',
+      summary: 'A practical preparation walkthrough.',
+      body: 'Watch the new resource when you are ready.',
+      category: 'video',
+      actionLabel: 'Open in Resources & Help',
+      actionUrl: '/nic-nac?section=resources&resource=show-prep',
+      secondaryActionLabel: 'Watch on YouTube',
+      secondaryActionUrl: 'https://www.youtube.com/watch?v=abc123',
+      isRead: false,
+      readAt: null,
+      createdAt: '2026-09-13T12:00:00.000Z',
+    }
+    const html = renderToStaticMarkup(
+      createElement(ConversationThread, {
+        item: publication,
+        detail: null,
+        detailStatus: 'idle',
+        actionPending: false,
+        actionError: null,
+        headingRef: createRef<HTMLHeadingElement>(),
+        onBack: vi.fn(),
+        onSendReply: vi.fn(),
+        onRequestDecision: vi.fn(),
+        onReport: vi.fn(),
+        onBlock: vi.fn(),
+        onArchive: vi.fn(),
+        onMute: vi.fn(),
+        onRetry: vi.fn(),
+      }),
+    )
+
+    expect(html).toContain('Open in Resources &amp; Help')
+    expect(html).toContain('href="/nic-nac?section=resources&amp;resource=show-prep"')
+    expect(html).toContain('Watch on YouTube')
+    expect(html).toContain('href="https://www.youtube.com/watch?v=abc123"')
+  })
+
   it('renders authenticated private Support screenshots after a detail reload', () => {
     const item = REVIEW_INBOX_FIXTURES.find(
       (candidate) =>
@@ -202,6 +247,15 @@ describe('unified Workspace Message Center UI', () => {
     expect(
       getSafeMessageActionUrl('https://user@yoursparklesuite.com/nic-nac'),
     ).toBeNull()
+  })
+
+  it('permits a direct action only for safe YouTube hosts', () => {
+    expect(getSafeYouTubeActionUrl('https://youtu.be/abc123')).toBe(
+      'https://youtu.be/abc123',
+    )
+    expect(getSafeYouTubeActionUrl('https://example.com/watch?v=abc123')).toBeNull()
+    expect(getSafeYouTubeActionUrl('https://youtube.com.evil.test/watch?v=abc123')).toBeNull()
+    expect(getSafeYouTubeActionUrl('javascript:alert(1)')).toBeNull()
   })
 
   it('keeps Support usable without exposing paid Message Center views', () => {

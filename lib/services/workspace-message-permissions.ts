@@ -267,11 +267,14 @@ export function normalizeWorkspaceMessageText(input: {
       input.summary == null || input.summary.trim() === ''
         ? null
         : assertSafeText(input.summary, 'Summary', 500),
-    actionLabel:
-      input.actionLabel == null || input.actionLabel.trim() === ''
-        ? null
-        : assertSafeText(input.actionLabel, 'Action label', 80),
+    actionLabel: normalizeWorkspaceMessageActionLabel(input.actionLabel),
   }
+}
+
+export function normalizeWorkspaceMessageActionLabel(value?: string | null) {
+  return value == null || value.trim() === ''
+    ? null
+    : assertSafeText(value, 'Action label', 80)
 }
 
 export function normalizeWorkspaceMessageActionUrl(

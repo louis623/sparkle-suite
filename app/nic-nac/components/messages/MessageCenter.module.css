@@ -497,6 +497,38 @@
   text-decoration: none;
 }
 
+.officialMessageActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--workspace-border, rgba(67, 42, 116, 0.22));
+  border-radius: 10px;
+  color: var(--workspace-text-primary, #171034);
+  background: var(--workspace-surface-primary, #fff);
+  font-size: 0.84rem;
+  font-weight: 760;
+  text-decoration: none;
+}
+
+.secondaryLink:hover {
+  border-color: var(--workspace-accent, #e2198f);
+  color: var(--workspace-accent, #e2198f);
+}
+
+.secondaryLink svg {
+  width: 15px;
+  height: 15px;
+}
+
 .contextLink {
   margin-left: auto;
 }

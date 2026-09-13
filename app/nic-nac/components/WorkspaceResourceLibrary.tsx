@@ -7,6 +7,18 @@ import styles from './WorkspaceResourceLibrary.module.css'
 
 type ResourceFilter = 'all' | 'blog' | 'video'
 
+function normalizeTargetResourceKey(value?: string | null) {
+  const key = value?.trim() ?? ''
+  return /^[a-z0-9][a-z0-9-]*$/.test(key) ? key : null
+}
+
+function getTargetResourceKeyFromLocation() {
+  if (typeof window === 'undefined') return null
+  return normalizeTargetResourceKey(
+    new URLSearchParams(window.location.search).get('resource'),
+  )
+}
+
 const RESOURCE_FILTERS: Array<readonly [ResourceFilter, string]> = [
   ['all', 'All resources'],
   ['blog', 'Blogs'],
@@ -49,13 +61,26 @@ export function WorkspaceResourceLibraryView({
   resources,
   loading = false,
   error = null,
+  targetResourceKey = null,
 }: {
   resources: WorkspaceResource[]
   loading?: boolean
   error?: string | null
+  targetResourceKey?: string | null
 }) {
   const [filter, setFilter] = useState<ResourceFilter>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const targetKey = normalizeTargetResourceKey(targetResourceKey)
+
+  useEffect(() => {
+    if (!targetKey || !resources.some((resource) => resource.resourceKey === targetKey)) return
+    const frame = window.requestAnimationFrame(() => {
+      const target = document.getElementById(`workspace-resource-${targetKey}`)
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      target?.focus({ preventScroll: true })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [resources, targetKey])
   const visibleResources = useMemo(() => {
     const normalized = searchQuery.trim().toLowerCase()
     return resources.filter((resource) => {
@@ -105,6 +130,7 @@ export function WorkspaceResourceLibraryView({
 
       <div className={styles.grid}>
         {visibleResources.map((resource) => {
+          const isTarget = resource.resourceKey === targetKey
           const href = resource.videoUrl || resource.actionUrl
           const thumbnailUrl =
             resource.videoProvider === 'youtube'
@@ -115,7 +141,13 @@ export function WorkspaceResourceLibraryView({
             resource.actionUrl && resource.actionUrl !== generatedDetailHref,
           )
           return (
-            <article className={styles.card} key={resource.id}>
+            <article
+              className={`${styles.card} ${isTarget ? styles.cardTarget : ''}`}
+              data-resource-key={resource.resourceKey}
+              id={`workspace-resource-${resource.resourceKey}`}
+              key={resource.id}
+              tabIndex={isTarget ? -1 : undefined}
+            >
               <div className={styles.art}>
                 {thumbnailUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -134,6 +166,7 @@ export function WorkspaceResourceLibraryView({
                   {resource.version === 1 ? <span>New</span> : null}
                 </div>
                 <h3>{resource.title}</h3>
+                {isTarget ? <p className={styles.targetNotice}>Opened from Message Center</p> : null}
                 {resource.summary ? <p>{resource.summary}</p> : null}
                 <div className={styles.cardFooter}>
                   <small>{resource.authorLabel}</small>
@@ -150,7 +183,7 @@ export function WorkspaceResourceLibraryView({
                   ) : null}
                 </div>
                 {resource.resourceType !== 'video' && resource.body ? (
-                  <details className={styles.articleDetails}>
+                  <details className={styles.articleDetails} open={isTarget}>
                     <summary>
                       {resource.resourceType === 'blog' ? 'Read article' : 'Read update'}
                     </summary>
@@ -172,6 +205,7 @@ export default function WorkspaceResourceLibrary() {
     loading: boolean
     error: string | null
   }>({ resources: [], loading: true, error: null })
+  const [targetResourceKey] = useState(getTargetResourceKeyFromLocation)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -197,5 +231,5 @@ export default function WorkspaceResourceLibrary() {
     return () => controller.abort()
   }, [])
 
-  return <WorkspaceResourceLibraryView {...state} />
+  return <WorkspaceResourceLibraryView {...state} targetResourceKey={targetResourceKey} />
 }

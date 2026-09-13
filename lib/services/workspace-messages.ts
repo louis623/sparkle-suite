@@ -5,6 +5,7 @@ import {
   assertWorkspaceMessagePriority,
   assertWorkspaceMessageSenderCanPublish,
   mapWorkspaceMessageSender,
+  normalizeWorkspaceMessageActionLabel,
   normalizeWorkspaceMessageActionUrl,
   normalizeWorkspaceMessageBody,
   normalizeWorkspaceMessageText,
@@ -38,6 +39,8 @@ export interface WorkspaceMessagePublicationInput {
   priority?: WorkspaceMessagePriority
   actionLabel?: string | null
   actionUrl?: string | null
+  secondaryActionLabel?: string | null
+  secondaryActionUrl?: string | null
   audience: WorkspaceMessageAudience
   expectedRecipientCount?: number
   expectedRecipientIds?: string[]
@@ -57,6 +60,8 @@ export interface WorkspaceMessagePublicationSummary {
   body: WorkspaceMessageBody
   actionLabel: string | null
   actionUrl: string | null
+  secondaryActionLabel: string | null
+  secondaryActionUrl: string | null
   status: WorkspaceMessagePublicationStatus
   audienceRule: WorkspaceMessageAudience
   audienceSnapshot: Array<{
@@ -89,6 +94,8 @@ export interface RepWorkspaceMessage {
   body: WorkspaceMessageBody
   actionLabel: string | null
   actionUrl: string | null
+  secondaryActionLabel: string | null
+  secondaryActionUrl: string | null
   deliveredAt: string
   readAt: string | null
   archivedAt: string | null
@@ -134,6 +141,8 @@ type PublicationRow = {
   body: WorkspaceMessageBody
   action_label: string | null
   action_url: string | null
+  secondary_action_label: string | null
+  secondary_action_url: string | null
   status: WorkspaceMessagePublicationStatus
   audience_rule: WorkspaceMessageAudience
   audience_snapshot: WorkspaceMessagePublicationSummary['audienceSnapshot']
@@ -159,6 +168,8 @@ type RepPublicationRow = Pick<
   | 'body'
   | 'action_label'
   | 'action_url'
+  | 'secondary_action_label'
+  | 'secondary_action_url'
   | 'status'
   | 'published_at'
   | 'created_at'
@@ -174,10 +185,10 @@ type DeliveryWithPublicationRow = {
 }
 
 const PUBLICATION_SELECT =
-  'id, sender_id, sender_key, sender_display_name, category, priority, title, summary, body, action_label, action_url, status, audience_rule, audience_snapshot, audience_count, source_type, source_id, idempotency_key, scheduled_at, published_at, created_at, updated_at'
+  'id, sender_id, sender_key, sender_display_name, category, priority, title, summary, body, action_label, action_url, secondary_action_label, secondary_action_url, status, audience_rule, audience_snapshot, audience_count, source_type, source_id, idempotency_key, scheduled_at, published_at, created_at, updated_at'
 
 const REP_PUBLICATION_SELECT =
-  'id, sender_key, sender_display_name, category, priority, title, summary, body, action_label, action_url, status, published_at, created_at'
+  'id, sender_key, sender_display_name, category, priority, title, summary, body, action_label, action_url, secondary_action_label, secondary_action_url, status, published_at, created_at'
 
 function workspaceMessageError(
   code: string,
@@ -239,6 +250,8 @@ function assertIdempotentPublicationMatches(
     canonicalJson(existing.body) === canonicalJson(validated.body) &&
     existing.action_label === validated.actionLabel &&
     existing.action_url === validated.actionUrl &&
+    existing.secondary_action_label === validated.secondaryActionLabel &&
+    existing.secondary_action_url === validated.secondaryActionUrl &&
     existing.source_type === validated.sourceType &&
     existing.source_id === validated.sourceId &&
     existing.audience_rule.kind === input.audience.kind &&
@@ -259,10 +272,18 @@ function validatePublicationInput(input: WorkspaceMessagePublicationInput) {
   const text = normalizeWorkspaceMessageText(input)
   const body = normalizeWorkspaceMessageBody(input.body)
   const actionUrl = normalizeWorkspaceMessageActionUrl(input.actionUrl)
+  const secondaryActionLabel = normalizeWorkspaceMessageActionLabel(input.secondaryActionLabel)
+  const secondaryActionUrl = normalizeWorkspaceMessageActionUrl(input.secondaryActionUrl)
   if (Boolean(text.actionLabel) !== Boolean(actionUrl)) {
     throw workspaceMessageError(
       'WORKSPACE_MESSAGE_INVALID_ACTION',
       'Action label and action URL must be provided together.',
+    )
+  }
+  if (Boolean(secondaryActionLabel) !== Boolean(secondaryActionUrl)) {
+    throw workspaceMessageError(
+      'WORKSPACE_MESSAGE_INVALID_SECONDARY_ACTION',
+      'Secondary action label and URL must be provided together.',
     )
   }
   if (
@@ -293,6 +314,8 @@ function validatePublicationInput(input: WorkspaceMessagePublicationInput) {
     priority,
     actionLabel: text.actionLabel,
     actionUrl,
+    secondaryActionLabel,
+    secondaryActionUrl,
     idempotencyKey: normalizeOptionalKey(input.idempotencyKey),
     sourceType: normalizeOptionalKey(input.sourceType),
     sourceId: normalizeOptionalKey(input.sourceId),
@@ -373,6 +396,8 @@ function publicationPayload(
     body: validated.body,
     action_label: validated.actionLabel,
     action_url: validated.actionUrl,
+    secondary_action_label: validated.secondaryActionLabel,
+    secondary_action_url: validated.secondaryActionUrl,
     status,
     audience_rule: input.audience,
     source_type: validated.sourceType,
@@ -398,6 +423,8 @@ function mapPublication(
     body: row.body,
     actionLabel: row.action_label,
     actionUrl: row.action_url,
+    secondaryActionLabel: row.secondary_action_label,
+    secondaryActionUrl: row.secondary_action_url,
     status: row.status,
     audienceRule: row.audience_rule,
     audienceSnapshot: row.audience_snapshot,
@@ -992,6 +1019,8 @@ export async function listRepWorkspaceMessages(
       body: publication.body,
       actionLabel: publication.action_label,
       actionUrl: publication.action_url,
+      secondaryActionLabel: publication.secondary_action_label,
+      secondaryActionUrl: publication.secondary_action_url,
       deliveredAt: row.delivered_at,
       readAt: row.read_at,
       archivedAt: row.archived_at,

@@ -21,6 +21,29 @@ import {
   recordOperatorSupportCompletionNotice,
 } from '@/lib/operator-support/session-service'
 
+const YOUTUBE_HOSTS = new Set([
+  'youtube.com',
+  'www.youtube.com',
+  'm.youtube.com',
+  'youtu.be',
+])
+
+export function getTrustedYouTubeUrl(value: unknown) {
+  if (typeof value !== 'string' || !value.trim()) return null
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' &&
+      !url.username &&
+      !url.password &&
+      !url.port &&
+      YOUTUBE_HOSTS.has(url.hostname.toLowerCase())
+      ? url.toString()
+      : null
+  } catch {
+    return null
+  }
+}
+
 function requiredString(payload: Record<string, unknown>, key: string) {
   const value = payload[key]
   if (typeof value !== 'string' || !value.trim()) {
@@ -101,7 +124,7 @@ async function processResourcePublished(
     await Promise.all([
       supabase
         .from('workspace_resources')
-        .select('id, resource_key, resource_type, title, summary, action_url, video_url, status')
+        .select('id, resource_key, resource_type, title, summary, video_provider, video_url, status')
         .eq('id', resourceId)
         .single(),
       supabase
@@ -132,12 +155,10 @@ async function processResourcePublished(
   const resourceLibraryUrl = `/nic-nac?section=resources&resource=${encodeURIComponent(
     String(resource.resource_key),
   )}`
-  const actionUrl =
-    resourceType === 'video' && typeof resource.video_url === 'string'
-      ? resource.video_url
-      : typeof resource.action_url === 'string'
-        ? resource.action_url
-        : resourceLibraryUrl
+  const youtubeUrl =
+    resourceType === 'video' && resource.video_provider === 'youtube'
+      ? getTrustedYouTubeUrl(resource.video_url)
+      : null
   const publication = await publishWorkspaceMessage(supabase, {
     senderKey: 'resource_publisher',
     title,
@@ -145,8 +166,10 @@ async function processResourcePublished(
     body: String(resource.summary),
     category,
     priority: 'normal',
-    actionLabel: resourceType === 'video' ? 'Watch video' : 'Open resource',
-    actionUrl,
+    actionLabel: 'Open in Resources & Help',
+    actionUrl: resourceLibraryUrl,
+    secondaryActionLabel: youtubeUrl ? 'Watch on YouTube' : null,
+    secondaryActionUrl: youtubeUrl,
     audience: { kind: 'all_active' },
     idempotencyKey: event.idempotencyKey,
     sourceType: 'workspace_resource',

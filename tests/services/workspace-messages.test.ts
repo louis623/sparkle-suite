@@ -56,6 +56,8 @@ const basePublicationRow = {
   body: [{ type: 'paragraph', text: 'Here is the news.' }],
   action_label: null,
   action_url: null,
+  secondary_action_label: null,
+  secondary_action_url: null,
   status: 'publishing',
   audience_rule: { kind: 'selected', repIds: ['rep-1'] },
   audience_snapshot: [
@@ -431,6 +433,8 @@ describe('workspace message publishing service', () => {
             body: [{ type: 'paragraph', text: 'Details.' }],
             action_label: 'Open update',
             action_url: '/nic-nac?section=tools',
+            secondary_action_label: 'Watch on YouTube',
+            secondary_action_url: 'https://www.youtube.com/watch?v=abc123',
             status: 'published',
             published_at: '2026-08-18T00:01:00.000Z',
             created_at: '2026-08-18T00:00:00.000Z',
@@ -469,6 +473,8 @@ describe('workspace message publishing service', () => {
           category: 'announcement',
           archivedAt: null,
           isRead: false,
+          secondaryActionLabel: 'Watch on YouTube',
+          secondaryActionUrl: 'https://www.youtube.com/watch?v=abc123',
         },
       ],
     })
