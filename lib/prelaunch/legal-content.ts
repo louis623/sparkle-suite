@@ -37,7 +37,7 @@ export const privacyPolicyDocument: LegalDocument = {
   seoDescription:
     "Privacy Policy for Sparkle Suite, the Live Queue Chrome Extension, Sparkle Suite websites, and Sparkle Suite SMS and email updates.",
   description: "Sparkle Suite Live Queue Chrome Extension, Sparkle Suite Websites, and SMS Updates",
-  lastUpdated: "June 22, 2026",
+  lastUpdated: "September 13, 2026",
   developer: "Neon Rabbit Digital Services, Jacksonville, FL",
   contact: "louis@neonrabbit.net",
   sections: [
@@ -58,7 +58,7 @@ export const privacyPolicyDocument: LegalDocument = {
     {
       title: "What The Sparkle Suite Live Queue Extension Does",
       paragraphs: [
-        "Sparkle Suite Live Queue is a Chrome extension that reads the live reveal queue from the Bomb Party rep dashboard and syncs it to the rep's Sparkle Suite website. This allows customers to see their position in the unboxing queue during live jewelry shows.",
+        "Sparkle Suite Live Queue is a Chrome extension that lets a Bomb Party representative deliberately connect a selected Party Orders source to the Live Lineup in that representative's Sparkle Suite Workspace and customer-facing website. The extension reads the selected source without refreshing, clicking, editing, or otherwise changing the Bomb Party page.",
       ],
     },
     {
@@ -70,29 +70,37 @@ export const privacyPolicyDocument: LegalDocument = {
       paragraphs: ["The Sparkle Suite Live Queue Chrome Extension may read:"],
       bullets: [
         "customer first names from the Party Orders table",
+        "stable order and party identifiers used to distinguish and scope lineup entries",
+        "order timing used to preserve the intended lineup order",
         "revealed or unrevealed status of each order",
-        "queue order",
+        "the readiness state of the selected Party Orders source",
       ],
     },
     {
       title: "Stored locally in your browser by the Chrome extension",
       paragraphs: ["The extension may store:"],
       bullets: [
-        "your sync code, entered once during setup",
-        "syncing on/off toggle state",
-        "last sync status",
+        "a private, revocable browser pairing key created by the representative in the Sparkle Suite Workspace",
+        "publisher identifiers, ordered sequence, acknowledgment, retry, parser-health, and pause state needed to send updates reliably",
+        "the explicitly selected Bomb Party source tab, show generation, and party scope for the current browser session",
+      ],
+      postBulletsParagraphs: [
+        "The private pairing key and durable publisher state are restricted to trusted extension contexts. The selected source-tab details are stored only for the browser session. Removing the browser pairing deletes the saved key from that browser; the representative can also revoke a connection from the Sparkle Suite Workspace.",
       ],
     },
     {
       title: "Transmitted to our server by the Chrome extension",
       paragraphs: [
         "The extension may transmit:",
-        "This information is sent to a database hosted by or on behalf of Neon Rabbit Digital Services solely for displaying the queue on the representative's website.",
+        "This information is transmitted over HTTPS to the official Sparkle Suite Live Lineup service solely to authenticate the selected publisher, maintain connection health, operate the representative's lineup, and display the public lineup on the representative's website.",
       ],
       bullets: [
+        "the private pairing credential in an authorization header",
         "customer first names",
-        "queue order",
-        "reveal status",
+        "stable order and party identifiers",
+        "order timing and intended queue order",
+        "revealed or unrevealed status",
+        "selected show and party scope, extension version, parser readiness, ordered sequence, and connection-health information",
       ],
     },
     {
@@ -125,21 +133,22 @@ export const privacyPolicyDocument: LegalDocument = {
         "email addresses",
         "phone numbers",
         "mailing addresses",
-        "order IDs",
         "payment information",
         "transaction details",
         "browsing history",
         "website visits",
         "cookies",
+        "Bomb Party login credentials",
         "saved passwords",
         "autofill data",
-        "data from pages other than the Bomb Party dashboard",
+        "content from pages other than the explicitly selected Bomb Party Party Orders source",
       ],
     },
     {
       title: "How We Use Your Data",
       paragraphs: [
-        "We use information collected through the Sparkle Suite Live Queue Chrome Extension exclusively to display the live reveal queue on the representative's Sparkle Suite website. Queue data is overwritten with each sync and is not retained for any other purpose.",
+        "We use information handled through the Sparkle Suite Live Queue Chrome Extension exclusively to authenticate the representative's selected publisher, build and operate the Live Lineup, preserve deliberate ordering and hold/reveal state, provide recovery and connection status, and display the public lineup on the representative's Sparkle Suite website. Extension data is not used for advertising, creditworthiness, lending, or purposes unrelated to the Live Lineup feature.",
+        "The anonymous customer-facing lineup displays first names, positions, and public lineup status only. It does not expose order IDs, party IDs, pairing credentials, publisher identifiers, private Hold entries, or recovery history.",
         "We may use information collected through Sparkle Suite websites and forms to:",
       ],
       bullets: [
@@ -197,7 +206,8 @@ export const privacyPolicyDocument: LegalDocument = {
     {
       title: "Data Retention",
       paragraphs: [
-        "Queue data from the Sparkle Suite Live Queue Chrome Extension is overwritten each time the extension syncs. We do not maintain historical records of queue data for the extension.",
+        "The current Live Lineup state is updated as the selected source changes. Private show archives may retain lineup entries, stable identifiers, show scope, and operational timestamps so the representative can deliberately recover selected customers into a later show's private Hold area. These archives are not part of the anonymous customer-facing lineup and are retained only as needed to provide the Live Lineup service, support recovery, protect the service, resolve disputes, or comply with legal obligations.",
+        "Browser pairing credentials expire, may be revoked by the representative, and are stored on our server only as non-reversible hashes. Limited credential metadata may be retained for security and audit purposes. Removing a pairing from the extension deletes the saved key from that browser.",
         "Information collected through Sparkle Suite websites and forms may be retained for as long as needed to provide services, maintain consent records, honor opt-out requests, comply with legal or carrier requirements, resolve disputes, enforce agreements, or operate Sparkle Suite.",
         "SMS opt-in, opt-out, and consent records may be retained as needed to document compliance and prevent unwanted messages.",
       ],
@@ -206,7 +216,7 @@ export const privacyPolicyDocument: LegalDocument = {
       title: "Your Rights and Choices",
       paragraphs: [],
       bullets: [
-        "You can stop Chrome extension data collection at any time by toggling the extension off or uninstalling it.",
+        "You can pause Chrome extension updates, remove the browser's saved pairing, revoke a connection from the Sparkle Suite Workspace, or uninstall the extension.",
         "You can opt out of SMS messages at any time by replying STOP.",
         "You can request help for SMS messages by replying HELP.",
         "You can unsubscribe from email messages by using the unsubscribe method provided in the email, if available, or by contacting us.",
@@ -217,6 +227,7 @@ export const privacyPolicyDocument: LegalDocument = {
       title: "Security",
       paragraphs: [
         "Data is transmitted over HTTPS.",
+        "The extension limits its Party Orders access to the Bomb Party source explicitly selected by the representative. The private pairing key is restricted to trusted extension contexts, is never exposed to the customer-facing lineup, and is stored on our server only as a non-reversible hash.",
         "Our database uses security controls, including row-level security where applicable, to help keep representative data isolated.",
         "We take reasonable steps to protect information from unauthorized access, loss, misuse, or disclosure. However, no electronic transmission or storage system can be guaranteed to be completely secure.",
       ],
