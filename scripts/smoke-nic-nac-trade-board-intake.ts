@@ -327,6 +327,30 @@ export async function runTradeBoardIntakeSmoke(
       rep.id,
       conversationId,
     )
+    if (workflow?.missing_fields?.includes('rarityClassification')) {
+      messages = await sendTurn({
+        appUrl,
+        env,
+        cookie: session.cookie,
+        supabase,
+        conversationId,
+        currentMessages: messages,
+        turn: 'rarity_confirmation',
+        parts: [
+          {
+            type: 'text',
+            text: 'No — this is a standard piece, not a diamond or unicorn.',
+          },
+        ],
+        expectedAssistantCount: 4,
+        turns,
+      })
+      workflow = await getLatestTradeBoardWorkflow(
+        supabase,
+        rep.id,
+        conversationId,
+      )
+    }
     if (workflow?.status !== 'completed') {
       messages = await sendTurn({
         appUrl,
@@ -342,7 +366,7 @@ export async function runTradeBoardIntakeSmoke(
             text: 'Add a second physical pair of ER13229 to my Dance Floor.',
           },
         ],
-        expectedAssistantCount: 4,
+        expectedAssistantCount: turns.length + 1,
         turns,
       })
       workflow = await getLatestTradeBoardWorkflow(

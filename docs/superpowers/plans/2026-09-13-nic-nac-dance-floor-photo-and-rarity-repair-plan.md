@@ -1,8 +1,9 @@
 # Nic-Nac Dance Floor Photo and Rarity Repair Plan
 
-**Status:** locally implemented and verified; production migration, repair,
-commit, push, and deployment remain intentionally unapplied because the active
-working tree also contains protected Live Lineup and Kelly work.
+**Status:** completed September 13, 2026 from the isolated
+`codex/nic-nac-photo-rarity-repair` branch. Migration, guarded repair, full
+58-listing re-audit, Suite reviewer smoke, and Suite/Finder release checks are
+complete; protected Live Lineup and Kelly work was not included.
 
 **Purpose:** repair every current Dance Floor/catalog photo mismatch (including
 the September 11 intake failures), prevent a recurrence, and establish an

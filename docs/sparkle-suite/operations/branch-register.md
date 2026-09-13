@@ -64,7 +64,7 @@ The comparison column is relative to the active branch at safety checkpoint
 
 | Branch/ref | Tip | Comparison | Status | Required treatment |
 |---|---:|---|---|---|
-| `codex/nic-nac-photo-rarity-repair` | starts at `d77b64a2` | Isolated Nic-Nac photo/rarity release; excludes protected Lineup commits | **ACTIVE RELEASE** | Only approved production release/migration branch |
+| `codex/nic-nac-photo-rarity-repair` | release commits `c7fddaa7`, `8257210f` plus closeout tip | Isolated Nic-Nac photo/rarity release; excludes protected Lineup commits | **ACTIVE RELEASE** | Approved production release/migration branch; exact final tip is the branch head |
 | `codex/nic-nac-trade-hardening` | `89087998` | Contains undeployed Live Lineup commits `d2377d86` and `89087998` | **ACTIVE DEVELOPMENT — RELEASE HOLD** | Preserve for the separate Lineup session; never deploy until Louis lifts the hold |
 | `main` | `00f8f4c7` | Active has 483 unique commits; main has 20 unique commits | **QUARANTINED — LEGACY DEFAULT** | Do not use; audit unique team-onboarding history before eventual trunk replacement |
 | `codex/sparkle-cross-phase-hardening` | `8da7dc11` | Zero branch-only commits; fully contained in active | **ARCHIVE-SAFE** | Preserve tag; no new work |

@@ -1,7 +1,7 @@
 # Nic-Nac Photo/Rarity Isolated Release Scope
 
-**Status:** prepared and locally verified; no branch, push, migration,
-deployment, alias, or production-data action authorized or performed.
+**Status:** implemented, migrated, repaired, released, and verified from the
+isolated branch. The protected Live Lineup/Kelly work remained excluded.
 
 ## Provenance boundary
 
@@ -90,3 +90,37 @@ hunks. Confirm the resulting diff contains no excluded path or protected
 8. Re-audit all 58 current listing dispositions and visually confirm the nine
    corrected public cards. Retain before/after receipts; do not rewrite the 49
    listings already verified correct.
+
+## Completed release evidence
+
+- The branch was created from the pinned pre-Lineup base, pushed, and made the
+  coordinated GitHub/Vercel production branch. The two protected Live Lineup
+  commits and their routes are absent from the release.
+- Suite verification passed 1,221 Nic-Nac tests (one intentional skip), the
+  configured 245-test suite, a 20-test route-context set, the focused release
+  set, and a production build. Finder passed 778 tests, lint, and its
+  production build.
+- Migration `20260913000100_nic_nac_photo_rarity_hardening.sql` was applied
+  directly and recorded without rewriting the unrelated remote-only migration
+  ledger. Readback found zero non-standard design or listing classifications.
+- The guarded manifests processed 12 reviewed rows: nine exact photo
+  replacements and three explicit retains. Every row passed identity, hash,
+  published-object, and database-readback checks. No other row was eligible
+  for mutation.
+- The post-repair audit still contained all 58 current listings. Disposition:
+  nine repaired, three explicitly retained, and 46 untouched. Ten complete
+  contact-sheet pages were visually reviewed; every current public photo was
+  jewelry-facing, clear, presentable, and adequately centered. Remaining exact
+  duplicate groups are six same-item-number physical duplicates, never
+  cross-item photo reuse.
+- A disposable Suite reviewer completed label OCR, boxed jewelry-photo
+  acceptance, an explicit Standard rarity answer, and Dance Floor publication
+  on the canonical live domain. The created listing and reviewer records were
+  removed by the smoke cleanup.
+- The first Finder alias attempt exposed an empty deployment because the root
+  `.vercelignore` excluded `apps/finder`. Direct canonical checks caught the
+  404 before closeout. The corrected monorepo-root upload produced a full
+  Finder build and restored `/` and `/auth/sign-in` to HTTP 200; an anonymous
+  Nic-Nac POST fails closed with HTTP 401. The secured model smoke remains
+  unavailable to the terminal because its production bearer is intentionally
+  write-only; no personal or customer account was substituted.

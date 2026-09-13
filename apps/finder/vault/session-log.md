@@ -344,3 +344,18 @@ Built and tested owner/submission/asset checks and short-lived private evidence 
   while keeping readable label/details images out of customer-facing slots.
 - All 61 Finder test files passed (778 tests) from the isolated release
   worktree. Lint, build, manual deployment, and live verification remain.
+
+## 2026-09-13 - Photo and rarity hardening released
+
+- Finder passed all 778 tests, lint, and production build from the isolated
+  release branch. Explicit standard/diamond/unicorn answers persist without
+  inference from product wording, and the practical clear/centered photo rule
+  accepts presentable jewelry even when packaging is visible.
+- Direct canonical verification caught and replaced one empty Vercel alias
+  attempt caused by the monorepo root `.vercelignore`. Corrected deployment
+  `dpl_8HuEwEJnZjiYmFtxENLw7Xnx5r3H` restored the full Finder application:
+  `/` and `/auth/sign-in` returned 200, while anonymous `/api/finder/nic-nac`
+  returned 401 as designed.
+- The production reviewer-smoke bearer remains intentionally write-only and
+  could not be pulled by the terminal. No personal/customer account was used;
+  the existing secured synthetic model-smoke follow-up remains open.

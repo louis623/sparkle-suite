@@ -44,6 +44,7 @@ scripts/audit-nic-nac-listing-recovery.mjs
 scripts/check-active-branch.mjs
 scripts/render-nic-nac-recovery-contact-sheet.mjs
 scripts/repair-nic-nac-listings.ts
+scripts/smoke-nic-nac-trade-board-intake.ts
 supabase/migrations/20260913000100_nic_nac_photo_rarity_hardening.sql
 tests/active-branch-policy.test.ts
 tests/amethyst-trade-template.test.ts

@@ -797,12 +797,12 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
 
 ## Nic-Nac photo and rarity corrective release
 
-- [ ] Finish lint and production builds for Suite and Finder from the isolated
+- [x] Finish lint and production builds for Suite and Finder from the isolated
   `codex/nic-nac-photo-rarity-repair` worktree.
-- [ ] Push the isolated branch, coordinate GitHub/Vercel production-branch
+- [x] Push the isolated branch, coordinate GitHub/Vercel production-branch
   controls, apply migration `20260913000100`, and manually deploy the exact
   verified tip for both applications.
-- [ ] Apply only the two reviewed recovery manifests, verify every repaired
+- [x] Apply only the two reviewed recovery manifests, verify every repaired
   row by identity/hash/readback, then rerun the full 58-listing audit.
-- [ ] Verify both Suite customer-domain aliases, the Finder live domain, and
+- [x] Verify both Suite customer-domain aliases, the Finder live domain, and
   the reviewer-safe Nic-Nac/Dance Floor workflow without using Louis's account.

@@ -7228,3 +7228,34 @@ Lessons retained:
   passed 1,221 tests with one intentional skip, the configured Suite suite
   passed 245 tests, and Finder passed all 778 tests. Migration, guarded repair,
   builds, manual deployments, and live smoke are the remaining release steps.
+
+## September 13, 2026 - Nic-Nac photo and rarity corrective release completed
+
+- Released only the isolated `codex/nic-nac-photo-rarity-repair` lineage. The
+  shared checkout, the protected Live Lineup commits/routes, Kelly work, Chrome
+  extension, customer sites, billing, and unrelated production data were not
+  included or modified.
+- Suite verification passed the complete relevant test/build matrix; Finder
+  passed 778 tests, lint, and build. The live Suite deployment used for the
+  mutation smoke was `dpl_4U1DGRPi671XEJfAUpTrgNc6fjtz`; both Suite domains
+  resolved to it before the final exact-tip closeout deployment.
+- Applied migration `20260913000100` without rewriting three unrelated
+  remote-only ledger entries. Explicit rarity readback returned zero
+  non-standard values. Descriptive uses of words such as “Diamond Cubic
+  Zirconia” remain ordinary product data and no longer imply rarity.
+- Applied exactly the Heather and ER38483 manifests: nine replacements, three
+  retains, zero blocked rows. All 12 receipts passed guarded database and
+  published-object readback. The full post-repair inventory remains 58 rows:
+  nine repaired, three retained, 46 untouched.
+- Visually reviewed all 10 post-repair contact sheets. Every listing now has a
+  clear, jewelry-facing, presentable, adequately centered public image. The six
+  remaining duplicate hashes are legitimate same-item-number physical
+  duplicates; there is no cross-item duplicate-photo group.
+- Live disposable Suite reviewer smoke completed the new explicit rarity turn,
+  accepted a readable label and clear boxed jewelry photo, published the
+  listing, verified it, and removed all synthetic data.
+- Finder deployment `dpl_8HuEwEJnZjiYmFtxENLw7Xnx5r3H` corrected an empty
+  alias attempt caught by direct canonical testing. The live `/` and
+  `/auth/sign-in` routes returned 200 and anonymous Nic-Nac returned 401. The
+  secured model smoke bearer remains intentionally write-only, so no personal
+  or customer session was used as a substitute.
