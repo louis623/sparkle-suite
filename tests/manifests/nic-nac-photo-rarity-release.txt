@@ -7,6 +7,7 @@ apps/finder/tests/sparkle-finder/catalog-service.test.ts
 apps/finder/tests/sparkle-finder/showcase-studio-actions.test.ts
 apps/finder/tests/sparkle-finder/showcase-studio-persistence.test.ts
 apps/finder/vault/decisions.md
+apps/finder/vault/project-state.md
 apps/finder/vault/session-log.md
 config/active-branches.json
 docs/sparkle-suite/audits/2026-09-13-nic-nac-er38483-recovery-manifest.json
@@ -65,4 +66,5 @@ tests/sparkle-finder-internal-intake.test.ts
 tests/sparkle-finder-public-api.test.ts
 vault/decisions.md
 vault/open-items.md
+vault/project-state.md
 vault/session-log.md

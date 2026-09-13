@@ -7259,3 +7259,35 @@ Lessons retained:
   `/auth/sign-in` routes returned 200 and anonymous Nic-Nac returned 401. The
   secured model smoke bearer remains intentionally write-only, so no personal
   or customer session was used as a substitute.
+
+## September 13, 2026 - Final release provenance and lessons
+
+- Final Git/release tip is `619361db1f3d6cd0ac73e9ac22fa69661f6ed2af`.
+  Suite is `dpl_5X3qwPPVmJ5qDCqbEscCJNBY9CzM`; Finder is
+  `dpl_DSEynERE79SEYrJPJc1euo5n4VSp`. Both Vercel project targets report that
+  exact SHA and the coordinated production branch. Automatic Git deployment
+  creation is disabled for both projects.
+- Vercel initially marked an empty Finder deployment Ready because the Suite
+  root `.vercelignore` excluded `apps/finder`. A second attempt showed that the
+  Finder project's configured monorepo Root Directory is applied remotely even
+  though the CLI starts at repository root. The reliable Finder release path is
+  therefore: use the Finder project link at repo root, include `apps/finder` in
+  the upload, verify the build route inventory, then restore the Suite project
+  link and ignore file locally.
+- A standard Suite `--prod` deploy auto-assigned every attached customer
+  hostname. Direct alias inspection caught this. All 11 unrelated customer
+  hostnames were returned to preserved pre-release deployment
+  `dpl_EhFsjCBTfWkV2WfYfttvfiWqzFia`; alias API verification and a complete
+  HTTP sweep passed. Only the two Suite domains remain on the new Suite build.
+- Operational lesson: a Vercel Ready state proves build completion, not the
+  intended application, route set, source root, account boundary, or alias
+  boundary. Every manual release must inspect route inventory, exact commit
+  metadata, canonical URLs, and each potentially moved alias before closeout.
+- Data-repair lesson: preserve original workflow evidence and repair only by
+  immutable identity/hash guards. The 58-row closeout succeeded because nine
+  replacements, three retains, and 46 untouched rows each had an explicit
+  disposition; no bulk rewrite was needed.
+- Product lesson: photo coaching should focus on jewelry clarity,
+  presentability, and adequate centering. Packaging is not a defect. Readable
+  label photos are valuable details evidence but must remain structurally
+  unable to become customer-facing media.

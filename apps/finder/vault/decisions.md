@@ -167,3 +167,16 @@ packaging alone is not a rejection. Readable label photos remain detail-only.
 Reason: Finder collection uploads will be the likeliest source of genuinely
 rare pieces, but rarity still belongs to the rep's direct confirmation rather
 than text inference.
+
+## 2026-09-13 - Finder manual releases require monorepo-root proof
+
+Decision: Finder continues to build from Vercel Root Directory `apps/finder`,
+but a manual CLI upload from the repository root must include that directory.
+The release is not accepted until the output contains Finder routes such as
+`/api/finder/nic-nac` and `/auth/sign-in`, the canonical domain returns the
+Finder application, and the production target reports the intended Git SHA.
+Automatic Git deployment creation remains disabled.
+
+Reason: An upload that omitted `apps/finder` still produced a Vercel Ready
+deployment with no application routes and temporarily returned 404. Ready
+status alone is not sufficient release evidence.

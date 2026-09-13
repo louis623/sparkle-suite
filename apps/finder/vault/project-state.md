@@ -52,3 +52,18 @@ Future Codex sessions should open `C:\Users\louis\sparkle-suite-repo` with Works
 - August 26, 2026 later: all customer links that leave Finder now open in protected new tabs. The shared `FinderLink` component covers rep, Dance Floor, show, availability, Showcase, and Nic-Nac lead destinations while keeping local Finder routes same-tab. Commit `15f60885` is live as deployment `dpl_EEA1gzkRrdMwJk35KHnF1DzZat3s` on `https://yoursparklefinder.com`.
 - September 2, 2026: Finder now exposes a bounded bearer-protected read-only Nic-Nac usage endpoint for the owner-only Suite Cost & Capacity dashboard. The dedicated token is configured as a Vercel Secret in both products' production/preview environments. Commit `97903157` is live as `dpl_CCyNBUN9XUSW4vCfZ9mSxMkoynv5` on `https://yoursparklefinder.com`; an unauthenticated request returns `401`.
 - September 2, 2026 later: Finder uses its own OpenAI project and restricted model-request runtime key. Application tip `91273c87` is live as `dpl_9W8PJNL7xKZ88uKfgcb6omrcirfd` on `https://yoursparklefinder.com`. The cost bridge includes persisted reasoning effort and requested intents for owner-only purpose/model-fit reporting.
+
+## September 13, 2026 - Current photo/rarity release
+
+- Finder production is `dpl_DSEynERE79SEYrJPJc1euo5n4VSp` at
+  `https://yoursparklefinder.com`, built from exact repository commit
+  `619361db1f3d6cd0ac73e9ac22fa69661f6ed2af` on
+  `codex/nic-nac-photo-rarity-repair` with Root Directory `apps/finder`.
+  Automatic Git deployment creation is disabled.
+- The live homepage and sign-in route return 200. Anonymous Nic-Nac returns
+  401. The secured synthetic model smoke remains open because its bearer is
+  intentionally write-only; no personal or customer account may substitute.
+- Showcase Studio now uses explicit standard/diamond/unicorn confirmation and
+  the shared practical jewelry-photo contract. Product wording never sets
+  rarity, packaging is permitted, and label/details photos cannot silently
+  become customer-facing media.

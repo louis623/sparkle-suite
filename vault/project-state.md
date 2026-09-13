@@ -3642,3 +3642,29 @@ Verification passed:
 - Commit `95272bd1` is live as Ready deployment
   `dpl_CyBQpBseq7sNZCJqAJ4bAhYZp8So`; both Suite aliases resolve to it. Kim's
   `goforthebling.com` remains on `dpl_Fr6JTn8snhNY1jmqJFoudTt3oqWH`.
+
+## September 13, 2026 - Current Nic-Nac photo/rarity release
+
+- Active release branch and GitHub default:
+  `codex/nic-nac-photo-rarity-repair`; exact released commit
+  `619361db1f3d6cd0ac73e9ac22fa69661f6ed2af`.
+- Suite production: `dpl_5X3qwPPVmJ5qDCqbEscCJNBY9CzM`, assigned only to
+  `www.yoursparklesuite.com` and `yoursparklesuite.com` after customer-alias
+  restoration. Finder production: `dpl_DSEynERE79SEYrJPJc1euo5n4VSp` on
+  `yoursparklefinder.com`. Both Vercel projects use the release branch and have
+  automatic Git deployment creation disabled.
+- Unrelated customer hostnames were returned to the pre-release deployment
+  `dpl_EhFsjCBTfWkV2WfYfttvfiWqzFia` and all returned HTTP 200. Protected Live
+  Lineup/Kelly work remains only in the separate shared checkout and was not
+  included in either production build.
+- Migration `20260913000100` is applied and recorded once. Production has zero
+  explicitly non-standard jewelry designs or listings. Rarity is the rep's
+  direct standard/diamond/unicorn answer, never an inference from product text.
+- Current listing disposition is complete across 58 rows: nine photos repaired,
+  three reviewed and retained, 46 untouched. All 58 customer-facing photos
+  passed the final visual review. The six remaining duplicate hashes represent
+  repeated physical listings of the same item number, not cross-item reuse.
+- The live Suite reviewer workflow passed label reading, boxed jewelry-front
+  acceptance, explicit Standard confirmation, listing persistence, published
+  readback, and synthetic cleanup. Active Suite demo and active rep accounts use
+  this same production Nic-Nac/Dance Floor path.

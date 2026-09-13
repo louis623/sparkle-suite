@@ -359,3 +359,13 @@ Built and tested owner/submission/asset checks and short-lived private evidence 
 - The production reviewer-smoke bearer remains intentionally write-only and
   could not be pulled by the terminal. No personal/customer account was used;
   the existing secured synthetic model-smoke follow-up remains open.
+
+## 2026-09-13 - Final Finder release provenance
+
+- Exact released commit `619361db1f3d6cd0ac73e9ac22fa69661f6ed2af`
+  is live as `dpl_DSEynERE79SEYrJPJc1euo5n4VSp` on
+  `https://yoursparklefinder.com`. Vercel production target readback matches
+  the commit and branch, and automatic Git deployment creation is disabled.
+- Final route inventory contained the full Finder app, canonical `/` and
+  `/auth/sign-in` returned 200, and anonymous `/api/finder/nic-nac` returned
+  401. The earlier empty Ready deployment was not accepted as evidence.

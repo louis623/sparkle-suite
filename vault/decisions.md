@@ -2730,6 +2730,47 @@ and Kelly work, but on release hold until that work is reviewed independently.
 Reason: The corrective release must not absorb or deploy unrelated shared
 checkout changes.
 
+## 2026-09-13 - Repair listing photos only through guarded evidence
+
+Decision: Historical Nic-Nac attachments may be used to repair a listing only
+through an owner-reviewed manifest that pins the listing, design, source
+attachment, expected current hash, intended replacement hash, and current
+canonical-photo consumer count. The repair must fail closed on drift, write an
+audit receipt, verify the published object and database readback, and be safely
+replayable. Correct listings are explicitly retained or left outside mutation
+scope; a broad regeneration or best-guess image swap is prohibited.
+
+Reason: The database retained enough original submission evidence to recover
+the nine incorrect photos, but attachment order and duplicate output hashes
+proved that positional or heuristic cleanup could damage correct listings.
+
+## 2026-09-13 - Treat workflow photo identity as application-owned state
+
+Decision: Nic-Nac may assess whether a declared photo is readable or
+presentable, but it may not choose customer-facing catalog media by raw URL or
+attachment order. Label/details and jewelry-front roles remain separate, and
+the stable application-owned attachment identity selected for the jewelry
+front must survive every workflow turn through final persistence.
+
+Reason: The incident was not caused by ordinary packaging. It was caused by
+losing which attachment represented which role, allowing stale or neighboring
+photos to become canonical images for different item numbers.
+
+## 2026-09-13 - Production releases preserve unrelated aliases explicitly
+
+Decision: Manual Suite releases must capture the current deployment target of
+every attached hostname before deployment. After the Suite production build,
+only the two Suite domains may remain on the new deployment unless a customer
+site release is separately authorized. Any Vercel auto-assigned customer
+aliases must be returned to their exact preserved deployment and verified by
+alias API plus direct HTTP checks. Automatic Git deployment creation remains
+disabled for both Suite and Finder.
+
+Reason: Vercel can report a build as Ready while resolving a nested worktree or
+monorepo root incorrectly, and a normal production deployment can move every
+project alias. Route-level verification and explicit alias restoration are
+required to prove an isolated release did not change customer sites.
+
 ## 2026-09-03 - Keep Lane accounting writes in the single dedicated MCP
 
 Decision: Lane's website credential remains visual-review-only. The single
