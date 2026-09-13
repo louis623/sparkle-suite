@@ -13,9 +13,9 @@
 
 - No Stripe customer, checkout, invoice, payment link, provider subscription, or charge.
 - No custom butterfly, pink, glitter, unicorn, or bling skin work; that is a separate later pass.
-- No custom domain, shop URL, Live Queue code, customer list, or personal About content.
+- No custom domain, shop URL, customer list, or personal About content.
 - No downline accounts or placeholder participants. Two future downlines remain warm leads until names are supplied.
-- No email or Message Center communication was sent.
+- No sales, billing, onboarding-email, or custom-content communication was sent. A transparent support-access notice and completion record were sent in the Workspace Message Center during the later read-only smoke test.
 
 ## Remaining operator/rep work
 
@@ -30,3 +30,10 @@
 - The customer profile shows: active customer, founder, active monthly access, $50 monthly metadata, public slug, TikTok, and dashboard-unlocked setup.
 - Team Management is verified from its durable entitlement record and the application access rule: `active` (or `manual_beta`) is enabled.
 - The direct public `/sparklybutterflies/join` request was blocked by the local browser client, so it was not claimed as browser-smoked in this session.
+
+## Follow-up verification — September 12, 2026
+
+- Provisioned Kelly's Live Queue code through the real Sparkle Suite service and confirmed its presence in both the classic Control Center and the LOC customer record. The code itself is intentionally omitted from this handoff.
+- Rechecked classic Control Center and LOC: both show the same active Sparkly Butterflies customer, active founder subscription, dashboard-unlocked setup, default Amethyst site, and Live Queue readiness.
+- Started a transparent, disclosed support session with Louis's approval, then verified the live Workspace as Kelly: correct public-site identity, Live Queue panel/code and setup guidance, and an enabled Team Management panel with team name `Sparkly Butterflies`, Join Team preview, and private onboarding controls.
+- The support session was closed immediately after read-only verification. Its customer-visible completion record states that Live Queue setup was completed and Workspace access was verified.
