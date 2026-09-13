@@ -12,7 +12,7 @@ export function renderTradeBoardIntakePromptState(
   const photos = state.photos
     .map(
       (photo) =>
-        `- photo ${photo.index}: declaredRole=${photo.declaredRole}, visualRole=${photo.visualRole}, roleConfirmed=${photo.roleConfirmed}, quality=${photo.quality}${
+        `- photo ${photo.index}${photo.id ? ` (selectedPhotoId=${photo.id})` : ''}: declaredRole=${photo.declaredRole}, visualRole=${photo.visualRole}, roleConfirmed=${photo.roleConfirmed}, quality=${photo.quality}${
           photo.notes.length ? `, notes=${photo.notes.join('; ')}` : ''
         }`,
     )
@@ -29,6 +29,9 @@ export function renderTradeBoardIntakePromptState(
     `Missing: ${state.missing.length ? state.missing.join(', ') : 'none'}`,
     `Blockers: ${state.blockers.length ? state.blockers.join(', ') : 'none'}`,
     `Next action: ${state.nextAction}`,
+    state.nextAction === 'ask_for_rarity_classification'
+      ? 'Ask exactly: "Is this piece a diamond or unicorn?" Accept only: No — standard, Diamond, or Unicorn.'
+      : '',
     `Hard rules:\n${state.hardRules.map((rule) => `- ${rule}`).join('\n')}`,
-  ].join('\n')
+  ].filter(Boolean).join('\n')
 }

@@ -21,6 +21,7 @@ import {
 } from '@/lib/services/postgrest-filter'
 import {
   type JewelryType,
+  type JewelryRarityClassification,
   type SearchJewelryInput,
   type JewelryDatabaseResult,
   type ResolveItemNumberResult,
@@ -111,14 +112,11 @@ type JewelryBrowseFilterRequest<TRequest> = {
 }
 
 function deriveCatalogLabel(row: {
-  search_tags: string[] | null
+  rarity_classification?: JewelryRarityClassification | null
 }): 'diamond' | 'unicorn' | 'standard' {
-  const explicitTags = Array.isArray(row.search_tags)
-    ? row.search_tags.map((tag) => tag.trim().toLowerCase())
-    : []
-  if (explicitTags.includes('unicorn')) return 'unicorn'
-  if (explicitTags.includes('diamond')) return 'diamond'
-  return 'standard'
+  return row.rarity_classification === 'diamond' || row.rarity_classification === 'unicorn'
+    ? row.rarity_classification
+    : 'standard'
 }
 
 async function loadJewelryCollectionFilterIds(
@@ -341,6 +339,7 @@ type ResolveDesignRow = {
   type_prefix: JewelryType
   collection_id: string | null
   search_tags: string[] | null
+  rarity_classification: JewelryRarityClassification | null
   collection:
     | { name: string; collection_year: number | null }
     | { name: string; collection_year: number | null }[]
@@ -381,6 +380,9 @@ function mapResolvedDesign(row: ResolveDesignRow): Extract<ResolveItemNumberResu
       collectionName: collection?.name ?? null,
       collectionYear: collection?.collection_year ?? null,
       searchTags: Array.isArray(row.search_tags) ? row.search_tags : [],
+      rarityClassification: row.rarity_classification === 'diamond' || row.rarity_classification === 'unicorn'
+        ? row.rarity_classification
+        : 'standard',
     },
     hasCollection: !!row.collection_id,
   }
@@ -402,7 +404,7 @@ export async function resolveItemNumber(
   let request = supabase
     .from('jewelry_designs')
     .select(
-      'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, collection_id, search_tags, collection:collections(name, collection_year)'
+      'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, collection_id, search_tags, rarity_classification, collection:collections(name, collection_year)'
     )
     .eq('item_number', normalizedItemNumber)
   if (requestedDesignId) request = request.eq('id', requestedDesignId)
@@ -503,6 +505,7 @@ export async function searchJewelryDatabase(
     canonical_photo_url: string | null
     type_prefix: JewelryType
     search_tags: string[] | null
+    rarity_classification?: JewelryRarityClassification | null
     collection:
       | { name: string; collection_year: number | null }
       | { name: string; collection_year: number | null }[]
@@ -512,7 +515,7 @@ export async function searchJewelryDatabase(
 
   if (!hasQuery) {
     let request = supabase.from('jewelry_designs').select(
-      'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, search_tags, collection:collections(name, collection_year)',
+      'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, search_tags, rarity_classification, collection:collections(name, collection_year)',
     )
     request = applyJewelryBrowseFilters(request, input, collectionIds)
     const { data, error } = await request.order('created_at', { ascending: false }).limit(limit)
@@ -523,7 +526,7 @@ export async function searchJewelryDatabase(
       let request = supabase
         .from('jewelry_designs')
         .select(
-          'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, search_tags, collection:collections(name, collection_year)'
+          'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, search_tags, rarity_classification, collection:collections(name, collection_year)'
         )
         .textSearch('design_name', q, { type: 'plain', config: 'english' })
       request = applyJewelryBrowseFilters(request, input, collectionIds)
@@ -540,7 +543,7 @@ export async function searchJewelryDatabase(
     let request = supabase
       .from('jewelry_designs')
       .select(
-        'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, search_tags, collection:collections(name, collection_year)'
+        'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, search_tags, rarity_classification, collection:collections(name, collection_year)'
       )
       .or(
         buildPostgrestIlikeAnyFilter(
@@ -560,7 +563,7 @@ export async function searchJewelryDatabase(
       let request = supabase
         .from('jewelry_designs')
         .select(
-          'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, search_tags, collection:collections(name, collection_year)'
+          'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, search_tags, rarity_classification, collection:collections(name, collection_year)'
         )
         .overlaps('search_tags', normalizedTagQuery)
       request = applyJewelryBrowseFilters(request, input, collectionIds)
@@ -585,7 +588,7 @@ export async function searchJewelryDatabase(
       const { data, error } = await supabase
         .from('jewelry_designs')
         .select(
-          'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, search_tags, collection:collections(name, collection_year)'
+          'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, search_tags, rarity_classification, collection:collections(name, collection_year)'
         )
         .in('collection_id', collectionIds)
         .limit(limit)
@@ -715,6 +718,9 @@ export async function createDesign(
       special_features: input.specialFeatures ?? null,
       length_info: input.lengthInfo ?? null,
       created_by_rep_id: input.createdByRepId ?? null,
+      rarity_classification: input.rarityClassification ?? 'standard',
+      rarity_confirmed_at: new Date().toISOString(),
+      rarity_confirmation_source: 'nic_nac_explicit_answer',
       ...buildPhotoPipelineUpdate(input.photoPipeline),
     })
     .select('id, item_number, type_prefix')
@@ -741,6 +747,7 @@ export async function createDesign(
       canonicalPhotoUrl: input.piecePhotoUrl,
       specialFeatures: input.specialFeatures ?? null,
       lengthInfo: input.lengthInfo ?? null,
+      rarityClassification: input.rarityClassification ?? 'standard',
     },
   })
 

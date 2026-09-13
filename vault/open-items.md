@@ -794,3 +794,15 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
 - [ ] Have Lane append reconciled aggregate snapshots when he has verified
   source totals. Do not fabricate figures to populate the dashboard. The
   weekday 6:30 a.m. routine should flag any unavailable source rail.
+
+## Nic-Nac photo and rarity corrective release
+
+- [x] Finish lint and production builds for Suite and Finder from the isolated
+  `codex/nic-nac-photo-rarity-repair` worktree.
+- [x] Push the isolated branch, coordinate GitHub/Vercel production-branch
+  controls, apply migration `20260913000100`, and manually deploy the exact
+  verified tip for both applications.
+- [x] Apply only the two reviewed recovery manifests, verify every repaired
+  row by identity/hash/readback, then rerun the full 58-listing audit.
+- [x] Verify both Suite customer-domain aliases, the Finder live domain, and
+  the reviewer-safe Nic-Nac/Dance Floor workflow without using Louis's account.

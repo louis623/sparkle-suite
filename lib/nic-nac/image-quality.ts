@@ -3,6 +3,8 @@ export interface ImageQualitySignals {
   lightingRisk: number
   subjectCoverage: number
   subjectCentered: boolean
+  subjectCenterX: number
+  subjectCenterY: number
   detailConfidence: number
   backgroundUniformity: number
   backgroundCleanliness: number
@@ -48,6 +50,8 @@ export function measureImageQualitySignals(
       lightingRisk: 1,
       subjectCoverage: 0,
       subjectCentered: false,
+      subjectCenterX: 0.5,
+      subjectCenterY: 0.5,
       detailConfidence: 0,
       backgroundUniformity: 0,
       backgroundCleanliness: 0,
@@ -119,6 +123,8 @@ export function measureImageQualitySignals(
     lightingRisk: round3(lightingRisk),
     subjectCoverage: round3(subjectCoverage),
     subjectCentered,
+    subjectCenterX: round3(subjectMask.centroidX / width),
+    subjectCenterY: round3(subjectMask.centroidY / height),
     detailConfidence: round3(detailConfidence),
     backgroundUniformity: round3(backgroundUniformity),
     backgroundCleanliness: round3(backgroundCleanliness),
@@ -303,8 +309,11 @@ function buildSubjectMask(
 
   return {
     count,
-    centroidX: count > 0 ? totalX / count : 0,
-    centroidY: count > 0 ? totalY / count : 0,
+    // A missing foreground mask means localization is uncertain, not that the
+    // subject is in the top-left corner. A neutral center fallback prevents a
+    // guarded crop from cutting toward an arbitrary edge.
+    centroidX: count > 0 ? totalX / count : width / 2,
+    centroidY: count > 0 ? totalY / count : height / 2,
     borderCount,
     detailPixelRatio: count > 0 ? detailPixels / count : 0,
   }

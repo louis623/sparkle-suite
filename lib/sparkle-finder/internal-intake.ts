@@ -13,7 +13,7 @@ import type {
 } from '@/lib/services/types'
 
 type FinderIntakeLabel = {
-  bpLabel?: string
+  bpLabel?: 'standard' | 'diamond' | 'unicorn'
   collectionName?: string
   collectionYear?: number
   designName?: string
@@ -121,6 +121,7 @@ export async function publishSparkleFinderJewelryIntake(
       message: 'This piece already exists in the shared master jewelry database.',
       suiteDesignId: existing.design.id,
       catalogDraft: {
+        bpLabel: existing.design.rarityClassification ?? 'standard',
         collectionName: existing.design.collectionName ?? catalogDraft.collectionName,
         collectionYear: existing.design.collectionYear ?? catalogDraft.collectionYear,
         designName: existing.design.designName,
@@ -170,7 +171,8 @@ export async function publishSparkleFinderJewelryIntake(
     material: catalogDraft.material,
     photoPipeline: payload.photoPipeline,
     piecePhotoUrl: payload.approvedCanonicalPhotoUrl,
-    searchTags: buildFinderSearchTags(catalogDraft),
+    rarityClassification: catalogDraft.bpLabel ?? 'standard',
+    searchTags: buildFinderSearchTags(),
     specialFeatures: cleanText(readString(readRecord(rawPayload).specialFeatures), 240) || undefined,
   })
 
@@ -256,22 +258,14 @@ function hasApprovedPhotoPipeline(payload: ReturnType<typeof normalizePayload>):
   )
 }
 
-function buildFinderSearchTags(label: FinderIntakeLabel): string[] {
-  const tags = ['sparkle finder']
-
-  if (label.bpLabel === 'diamond' || label.bpLabel === 'unicorn') {
-    tags.unshift(label.bpLabel)
-  }
-
-  return tags
+function buildFinderSearchTags(): string[] {
+  return ['sparkle finder']
 }
 
 function normalizeBpLabel(value: unknown): FinderIntakeLabel['bpLabel'] {
   const label = cleanText(readString(value), 40).toLowerCase()
 
-  if (label === 'diamond' || label === 'unicorn') return label
-  if (label) return label
-
+  if (label === 'standard' || label === 'diamond' || label === 'unicorn') return label
   return undefined
 }
 

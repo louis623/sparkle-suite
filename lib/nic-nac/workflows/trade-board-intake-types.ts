@@ -41,6 +41,7 @@ export type TradeBoardIntakeNextAction =
   | 'ask_for_jewelry_front_photo'
   | 'ask_for_collection'
   | 'ask_for_collection_type_and_size'
+  | 'ask_for_rarity_classification'
   | 'confirm_non_item_number_piece'
   | 'confirm_extracted_details'
   | 'call_search_jewelry_database'
@@ -59,6 +60,11 @@ export type TradeBoardIntakeCatalogMode = 'item_number' | 'non_item_number'
 
 export type TradeBoardIntakeJewelryType = 'RG' | 'NK' | 'ER' | 'ST' | 'BR'
 
+export type TradeBoardIntakeRarityClassification =
+  | 'standard'
+  | 'diamond'
+  | 'unicorn'
+
 export interface TradeBoardIntakeKnownFields {
   itemNumber?: string
   jewelryType?: TradeBoardIntakeJewelryType
@@ -74,6 +80,7 @@ export interface TradeBoardIntakeKnownFields {
   repNotes?: string
   tradePreferences?: string
   duplicatePhysicalConfirmed?: boolean
+  rarityClassification?: TradeBoardIntakeRarityClassification
 }
 
 export interface TradeBoardIntakePhotoState {
@@ -84,10 +91,12 @@ export interface TradeBoardIntakePhotoState {
   visualRole: TradeBoardPhotoVisualRole
   roleConfirmed: boolean
   imageUrl?: string
+  contentSha256?: string
   quality: TradeBoardPhotoQuality
   qualityScore?: number
   qualityIssues: string[]
   notes: string[]
+  visualRoleSource?: string
 }
 
 export interface TradeBoardIntakeSessionState {
@@ -122,6 +131,7 @@ export interface TradeBoardIntakePromptState {
   }
   known: TradeBoardIntakeKnownFields
   photos: Array<{
+    id?: string
     index: number
     declaredRole: TradeBoardPhotoDeclaredRole
     visualRole: TradeBoardPhotoVisualRole

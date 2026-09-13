@@ -564,7 +564,7 @@ describe('Dance Floor intake route context', () => {
             {
               type: 'text',
               text:
-                'ER13229, The Florence Earrings. Lab-Created Ruby, Rhodium Plating, $160 MSRP. Collection is July Birthday Collection 2026. Use the attached boxed display photo as the customer-facing jewelry photo.',
+                'ER13229, The Florence Earrings. Lab-Created Ruby, Rhodium Plating, $160 MSRP. Collection is July Birthday Collection 2026. This is a standard piece, not a diamond or unicorn. Use the attached boxed display photo as the customer-facing jewelry photo.',
             },
             {
               type: 'file',
@@ -587,6 +587,7 @@ describe('Dance Floor intake route context', () => {
       mainStone: 'Lab-Created Ruby',
       material: 'Rhodium Plating',
       bpMsrp: 160,
+      rarityClassification: 'standard',
     })
     expect(context.sessionAfter?.phase).toBe('ready_to_add')
     expect(context.sessionAfter?.missing).toEqual([])
@@ -602,6 +603,7 @@ describe('Dance Floor intake route context', () => {
         main_stone: 'Lab-Created Ruby',
         material: 'Rhodium Plating',
         bp_msrp: 160,
+        rarity_classification: 'standard',
         current_phase: 'ready_to_add',
         missing_fields: [],
         metadata: {
@@ -832,6 +834,10 @@ describe('Dance Floor intake route context', () => {
           role: 'user',
           parts: [
             {
+              type: 'text',
+              text: 'No, this is a standard piece, not a diamond or unicorn.',
+            },
+            {
               type: 'file',
               mediaType: 'image/jpeg',
               url: 'data:image/jpeg;base64,SkVXRUxSWQ==',
@@ -852,6 +858,7 @@ describe('Dance Floor intake route context', () => {
       mainStone: 'Lab-Created Ruby',
       material: 'Rhodium Plating',
       bpMsrp: 160,
+      rarityClassification: 'standard',
     })
     expect(context.sessionAfter?.photos).toEqual(
       expect.arrayContaining([
@@ -875,6 +882,7 @@ describe('Dance Floor intake route context', () => {
       design_name: 'The Florence Earrings',
       collection_name: 'July Birthday',
       collection_year: 2026,
+      rarity_classification: 'standard',
       missing_fields: ['jewelryFrontPhoto'],
       hard_blockers: [],
       soft_warnings: [],
@@ -971,7 +979,7 @@ describe('Dance Floor intake route context', () => {
 
     expect(context.sessionAfter?.photos[1]).toMatchObject({
       declaredRole: 'jewelry_front',
-      visualRole: 'jewelry',
+      visualRole: 'uncertain',
       roleConfirmed: true,
       imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
     })
@@ -982,7 +990,7 @@ describe('Dance Floor intake route context', () => {
         conversation_message_id: 'jewelry-msg-1',
         attachment_index: 1,
         declared_role: 'jewelry_front',
-        visual_role: 'jewelry',
+        visual_role: 'uncertain',
         role_confirmed: true,
         image_url: 'data:image/jpeg;base64,SkVXRUxSWQ==',
       }),
@@ -1002,6 +1010,7 @@ describe('Dance Floor intake route context', () => {
       design_name: 'The Florence Earrings',
       collection_name: 'July Birthday',
       collection_year: 2026,
+      rarity_classification: 'standard',
       missing_fields: ['jewelryFrontPhoto'],
       hard_blockers: [],
       soft_warnings: [],
@@ -1098,7 +1107,7 @@ describe('Dance Floor intake route context', () => {
 
     expect(context.sessionAfter?.photos[1]).toMatchObject({
       declaredRole: 'jewelry_front',
-      visualRole: 'jewelry',
+      visualRole: 'uncertain',
       roleConfirmed: true,
       imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
     })
@@ -1118,6 +1127,7 @@ describe('Dance Floor intake route context', () => {
       design_name: 'Quiet Luxury',
       collection_name: 'July Birthday',
       collection_year: 2026,
+      rarity_classification: 'standard',
       missing_fields: ['jewelryFrontPhoto'],
       hard_blockers: [],
       soft_warnings: [],
@@ -1208,7 +1218,7 @@ describe('Dance Floor intake route context', () => {
 
     expect(context.sessionAfter?.photos[0]).toMatchObject({
       declaredRole: 'jewelry_front',
-      visualRole: 'jewelry',
+      visualRole: 'uncertain',
       roleConfirmed: true,
       imageUrl: 'data:image/jpeg;base64,RVIxODAxMl9GUk9OVA==',
     })
@@ -1219,7 +1229,7 @@ describe('Dance Floor intake route context', () => {
         conversation_message_id: 'earrings-msg-1',
         attachment_index: 1,
         declared_role: 'jewelry_front',
-        visual_role: 'jewelry',
+        visual_role: 'uncertain',
         role_confirmed: true,
         image_url: 'data:image/jpeg;base64,RVIxODAxMl9GUk9OVA==',
       }),

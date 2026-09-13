@@ -7206,3 +7206,88 @@ Lessons retained:
   passed. Commit `2fb315a1` is live as Ready deployment
   `dpl_FGVMmph4EBoTKmTrEJackiDvgnXj`; both Suite aliases resolve to it.
   Kim's `goforthebling.com` remains at `dpl_Fr6JTn8snhNY1jmqJFoudTt3oqWH`.
+
+## September 13, 2026 - Nic-Nac photo and rarity corrective release prepared
+
+- Audited all 58 active/pending Dance Floor listings and visually reviewed the
+  complete contact sheets: 49 customer-facing photos were correct and 9 were
+  wrong (8 from Heather's September 11 submissions plus older ER38483).
+- Prepared guarded, reviewable recovery manifests for those 9 replacements;
+  Heather's manifest also records 3 correct photos that must be retained.
+- Hardened Suite and Finder intake so workflow-owned image identity is stable,
+  readable label photos stay detail-only, practical centered/presentable
+  jewelry photos are accepted even with packaging, and customer-facing photos
+  cannot be swapped by attachment-order or stale-reference mistakes.
+- Added explicit standard/diamond/unicorn persistence and the required direct
+  rarity question. Existing rows migrate to standard; rarity is never inferred
+  from descriptions, item names, stones, tags, price, or the word diamond.
+- Work is isolated on `codex/nic-nac-photo-rarity-repair`; the shared dirty
+  checkout and its undeployed Live Lineup/Kelly changes were not modified.
+- Pre-release verification: the focused release set passed 189 tests, the
+  corrected route-context file passed 20/20, the complete Nic-Nac directory
+  passed 1,221 tests with one intentional skip, the configured Suite suite
+  passed 245 tests, and Finder passed all 778 tests. Migration, guarded repair,
+  builds, manual deployments, and live smoke are the remaining release steps.
+
+## September 13, 2026 - Nic-Nac photo and rarity corrective release completed
+
+- Released only the isolated `codex/nic-nac-photo-rarity-repair` lineage. The
+  shared checkout, the protected Live Lineup commits/routes, Kelly work, Chrome
+  extension, customer sites, billing, and unrelated production data were not
+  included or modified.
+- Suite verification passed the complete relevant test/build matrix; Finder
+  passed 778 tests, lint, and build. The live Suite deployment used for the
+  mutation smoke was `dpl_4U1DGRPi671XEJfAUpTrgNc6fjtz`; both Suite domains
+  resolved to it before the final exact-tip closeout deployment.
+- Applied migration `20260913000100` without rewriting three unrelated
+  remote-only ledger entries. Explicit rarity readback returned zero
+  non-standard values. Descriptive uses of words such as “Diamond Cubic
+  Zirconia” remain ordinary product data and no longer imply rarity.
+- Applied exactly the Heather and ER38483 manifests: nine replacements, three
+  retains, zero blocked rows. All 12 receipts passed guarded database and
+  published-object readback. The full post-repair inventory remains 58 rows:
+  nine repaired, three retained, 46 untouched.
+- Visually reviewed all 10 post-repair contact sheets. Every listing now has a
+  clear, jewelry-facing, presentable, adequately centered public image. The six
+  remaining duplicate hashes are legitimate same-item-number physical
+  duplicates; there is no cross-item duplicate-photo group.
+- Live disposable Suite reviewer smoke completed the new explicit rarity turn,
+  accepted a readable label and clear boxed jewelry photo, published the
+  listing, verified it, and removed all synthetic data.
+- Finder deployment `dpl_8HuEwEJnZjiYmFtxENLw7Xnx5r3H` corrected an empty
+  alias attempt caught by direct canonical testing. The live `/` and
+  `/auth/sign-in` routes returned 200 and anonymous Nic-Nac returned 401. The
+  secured model smoke bearer remains intentionally write-only, so no personal
+  or customer session was used as a substitute.
+
+## September 13, 2026 - Final release provenance and lessons
+
+- Final Git/release tip is `619361db1f3d6cd0ac73e9ac22fa69661f6ed2af`.
+  Suite is `dpl_5X3qwPPVmJ5qDCqbEscCJNBY9CzM`; Finder is
+  `dpl_DSEynERE79SEYrJPJc1euo5n4VSp`. Both Vercel project targets report that
+  exact SHA and the coordinated production branch. Automatic Git deployment
+  creation is disabled for both projects.
+- Vercel initially marked an empty Finder deployment Ready because the Suite
+  root `.vercelignore` excluded `apps/finder`. A second attempt showed that the
+  Finder project's configured monorepo Root Directory is applied remotely even
+  though the CLI starts at repository root. The reliable Finder release path is
+  therefore: use the Finder project link at repo root, include `apps/finder` in
+  the upload, verify the build route inventory, then restore the Suite project
+  link and ignore file locally.
+- A standard Suite `--prod` deploy auto-assigned every attached customer
+  hostname. Direct alias inspection caught this. All 11 unrelated customer
+  hostnames were returned to preserved pre-release deployment
+  `dpl_EhFsjCBTfWkV2WfYfttvfiWqzFia`; alias API verification and a complete
+  HTTP sweep passed. Only the two Suite domains remain on the new Suite build.
+- Operational lesson: a Vercel Ready state proves build completion, not the
+  intended application, route set, source root, account boundary, or alias
+  boundary. Every manual release must inspect route inventory, exact commit
+  metadata, canonical URLs, and each potentially moved alias before closeout.
+- Data-repair lesson: preserve original workflow evidence and repair only by
+  immutable identity/hash guards. The 58-row closeout succeeded because nine
+  replacements, three retains, and 46 untouched rows each had an explicit
+  disposition; no bulk rewrite was needed.
+- Product lesson: photo coaching should focus on jewelry clarity,
+  presentability, and adequate centering. Packaging is not a defect. Readable
+  label photos are valuable details evidence but must remain structurally
+  unable to become customer-facing media.

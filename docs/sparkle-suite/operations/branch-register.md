@@ -1,6 +1,6 @@
 # Sparkle Suite Branch Register
 
-**Reviewed:** July 31, 2026
+**Reviewed:** September 13, 2026
 
 **Repository:** `louis623/sparkle-suite`
 
@@ -8,24 +8,30 @@
 
 Current external controls:
 
-- GitHub default branch:
-  `codex/nic-nac-trade-hardening` (corrected July 31)
-- Local `origin/HEAD`:
-  `origin/codex/nic-nac-trade-hardening`
-- Vercel production branch:
-  `codex/nic-nac-trade-hardening` (verified through the authenticated project
-  API; no Vercel change was required)
+- GitHub default branch: `codex/nic-nac-photo-rarity-repair`
+- Local `origin/HEAD`: update to `origin/codex/nic-nac-photo-rarity-repair`
+  after the coordinated GitHub default-branch change is fetched.
+- Vercel production branch for both `sparkle-suite` and
+  `sparkle-finder-dev`: `codex/nic-nac-photo-rarity-repair`
 - GitHub quarantine ruleset:
   fully configured for all branches except the active branch; creation is
   pending GitHub identity verification by email
 
 ## Active Branch Allowlist
 
-Only the following branch is approved for ordinary Sparkle Suite development,
-commits, pushes, builds, deployments, alias changes, migrations, or production
-data work:
+The following branch is the only approved Sparkle Suite release branch for
+deployments, alias changes, migrations, or production-data work:
+
+- `codex/nic-nac-photo-rarity-repair`
+
+The protected Live Lineup development branch remains allowlisted for its
+separate session to build, test, commit, and push, but it is under an explicit
+release hold:
 
 - `codex/nic-nac-trade-hardening`
+
+Never deploy, migrate, promote, or move aliases from the protected branch until
+Louis explicitly releases the Live Lineup hold.
 
 Every other branch is read-only until Louis explicitly approves a status
 change. Do not infer approval from branch age, name, an old task, a worktree, or
@@ -58,7 +64,8 @@ The comparison column is relative to the active branch at safety checkpoint
 
 | Branch/ref | Tip | Comparison | Status | Required treatment |
 |---|---:|---|---|---|
-| `codex/nic-nac-trade-hardening` | `483e70a` | Active line; contains verified live app commit `af7cef25` | **ACTIVE** | Only approved work/release branch |
+| `codex/nic-nac-photo-rarity-repair` | release commits `c7fddaa7`, `8257210f` plus closeout tip | Isolated Nic-Nac photo/rarity release; excludes protected Lineup commits | **ACTIVE RELEASE** | Approved production release/migration branch; exact final tip is the branch head |
+| `codex/nic-nac-trade-hardening` | `89087998` | Contains undeployed Live Lineup commits `d2377d86` and `89087998` | **ACTIVE DEVELOPMENT — RELEASE HOLD** | Preserve for the separate Lineup session; never deploy until Louis lifts the hold |
 | `main` | `00f8f4c7` | Active has 483 unique commits; main has 20 unique commits | **QUARANTINED — LEGACY DEFAULT** | Do not use; audit unique team-onboarding history before eventual trunk replacement |
 | `codex/sparkle-cross-phase-hardening` | `8da7dc11` | Zero branch-only commits; fully contained in active | **ARCHIVE-SAFE** | Preserve tag; no new work |
 | `codex/sparkle-phase-8-prelaunch` | `4b2ea01b` | Zero branch-only commits; fully contained in active | **ARCHIVE-SAFE** | Preserve tag; no new work |
@@ -73,6 +80,7 @@ The comparison column is relative to the active branch at safety checkpoint
 | Worktree | Ref | State | Treatment |
 |---|---|---|---|
 | `C:\Users\louis\sparkle-suite-repo` | active branch | Only generated `artifacts/` and `test-results/` untracked before this safety change | Primary workbench |
+| `C:\Users\louis\sparkle-suite-repo\.local\worktrees\nic-nac-photo-rarity` | `codex/nic-nac-photo-rarity-repair` | Isolated allowlisted Nic-Nac/Finder release only | Release worktree; no Live Lineup or Kelly files |
 | `.codex\worktrees\2f19\sparkle-suite-repo` | `codex/workspace-header-logout` | Clean | Quarantined; preserve |
 | `.codex\worktrees\5d26\sparkle-suite-repo` | detached `799b4faa` | Generated artifacts/test output untracked | Preserve until task audit |
 | `.codex\worktrees\6977\sparkle-suite-repo` | `codex/collection-intake-tools-entry` | Clean | Needs review; preserve |

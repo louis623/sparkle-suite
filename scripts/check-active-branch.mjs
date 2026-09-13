@@ -86,26 +86,42 @@ export function evaluateBranchPolicy({
   if (
     platform === "win32" &&
     !isVercel &&
-    normalize(worktree).toLowerCase() !==
-      normalize(policy.primaryLocalWorktree).toLowerCase()
+    !(policy.activeLocalWorktrees || [policy.primaryLocalWorktree]).some(
+      (allowedWorktree) =>
+        normalize(worktree).toLowerCase() ===
+        normalize(allowedWorktree).toLowerCase(),
+    )
   ) {
     errors.push(
-      `worktree "${worktree}" is not the primary Sparkle Suite workbench ${policy.primaryLocalWorktree}`,
+      `worktree "${worktree}" is not an active Sparkle Suite workbench: ${(policy.activeLocalWorktrees || [policy.primaryLocalWorktree]).join(", ")}`,
     );
   }
 
   return errors;
 }
 
-function currentBranch() {
+export function currentBranch() {
   const environmentBranch =
     process.env.VERCEL_GIT_COMMIT_REF ||
     process.env.GITHUB_HEAD_REF ||
     process.env.GITHUB_REF_NAME;
+  const declaredReleaseBranch = process.env.SPARKLE_RELEASE_BRANCH?.trim();
+
+  if (
+    environmentBranch &&
+    declaredReleaseBranch &&
+    environmentBranch.replace(/^refs\/heads\//, "") !== declaredReleaseBranch
+  ) {
+    throw new Error(
+      `Declared release branch "${declaredReleaseBranch}" does not match platform branch "${environmentBranch}".`,
+    );
+  }
 
   if (environmentBranch) {
     return environmentBranch.replace(/^refs\/heads\//, "");
   }
+
+  if (declaredReleaseBranch) return declaredReleaseBranch;
 
   return gitMetadata().branch;
 }
@@ -114,14 +130,29 @@ export function currentRepository() {
   if (process.env.VERCEL === "1") {
     const owner = process.env.VERCEL_GIT_REPO_OWNER?.trim();
     const repository = process.env.VERCEL_GIT_REPO_SLUG?.trim();
+    const declaredReleaseRepository =
+      process.env.SPARKLE_RELEASE_REPOSITORY?.trim();
 
-    if (!owner || !repository) {
+    if (owner && repository) {
+      const platformRepository = `${owner}/${repository}`;
+      if (
+        declaredReleaseRepository &&
+        platformRepository !== declaredReleaseRepository
+      ) {
+        throw new Error(
+          `Declared release repository "${declaredReleaseRepository}" does not match Vercel repository "${platformRepository}".`,
+        );
+      }
+      return platformRepository;
+    }
+
+    if (!declaredReleaseRepository) {
       throw new Error(
-        "Vercel Git repository metadata is missing; expected VERCEL_GIT_REPO_OWNER and VERCEL_GIT_REPO_SLUG.",
+        "Vercel Git repository metadata is missing; expected platform metadata or SPARKLE_RELEASE_REPOSITORY for a manual CLI deployment.",
       );
     }
 
-    return `${owner}/${repository}`;
+    return declaredReleaseRepository;
   }
 
   return normalizeRepository(gitMetadata().originUrl);

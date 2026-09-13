@@ -4,7 +4,10 @@ import {
   analyzeServerImageQuality,
   type ServerImageQualityAnalysis,
 } from '@/lib/services/server-image-quality'
-import { classifyJewelryPhotoSemantics } from '@/lib/services/jewelry-photo-semantics'
+import {
+  canUseConfirmedJewelryFront,
+  classifyJewelryPhotoSemantics,
+} from '@/lib/services/jewelry-photo-semantics'
 import { createGuardedJewelryPhotoCrop } from '@/lib/services/jewelry-photo-crop'
 import {
   removeCatalogDesignPhotoAssets,
@@ -107,17 +110,6 @@ export async function prepareDesignSourcePhoto(
 
   const analysis = await analyzeServerImageQuality(fetched.bytes)
   const semantic = classifyJewelryPhotoSemantics(analysis)
-  if (semantic.role === 'label_or_packaging' && !confirmedJewelryFront) {
-    throw new ServiceError({
-      code: 'PIECE_PHOTO_NOT_JEWELRY',
-      message: `piece photo appears to be packaging or a label: ${semantic.reasons.join(
-        '; ',
-      )}`,
-      userMessage:
-        'I need the actual jewelry photo before I can create that piece. This image looks more like packaging, a label, or the back of the card.',
-      statusCode: 422,
-    })
-  }
   const preflight = assessJewelryPhotoPreflight({
     width: analysis.width,
     height: analysis.height,
@@ -129,10 +121,11 @@ export async function prepareDesignSourcePhoto(
     subjectCentered: analysis.subjectCentered,
   })
   const crop = semantic.canAttemptCrop
-    ? await createGuardedJewelryPhotoCrop({
-        bytes: fetched.bytes,
-        analysis,
-      })
+      ? await createGuardedJewelryPhotoCrop({
+          bytes: fetched.bytes,
+          analysis,
+          allowReviewableOutput: confirmedJewelryFront,
+        })
     : null
   const selectedBytes = crop?.bytes ?? fetched.bytes
   const selectedAnalysis = crop?.analysis ?? analysis
@@ -140,7 +133,11 @@ export async function prepareDesignSourcePhoto(
 
   if (
     !selectedPreflight.passed &&
-    !canUseWorkflowConfirmedJewelryPhoto(selectedPreflight, confirmedJewelryFront)
+    !canUseConfirmedJewelryFront(
+      selectedAnalysis,
+      classifyJewelryPhotoSemantics(selectedAnalysis),
+      confirmedJewelryFront,
+    )
   ) {
     throw new ServiceError({
       code: 'PHOTO_PREFLIGHT_FAILED',
@@ -193,16 +190,4 @@ export async function prepareDesignSourcePhoto(
     analysis: selectedAnalysis,
     selectedSource: crop ? 'cropped' : 'original',
   }
-}
-
-function canUseWorkflowConfirmedJewelryPhoto(
-  _preflight: ReturnType<typeof assessJewelryPhotoPreflight>,
-  confirmedJewelryFront: boolean,
-): boolean {
-  if (!confirmedJewelryFront) return false
-
-  // Once workflow state has positively accepted the customer-facing jewelry
-  // photo, do not block on subjective photo-quality scoring here. Decode,
-  // fetch, and analysis failures still fail before this point.
-  return true
 }

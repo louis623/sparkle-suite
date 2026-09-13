@@ -41,12 +41,37 @@ export function classifyJewelryPhotoSemantics(
     reasons.push('background or packaging dominates the image')
   }
 
-  if (tinySubject && packagingDominates) {
+  // Low subject coverage plus a busy card/box is not enough to call an image a
+  // label. Small earrings on a Bomb Party display produce the same signals.
+  // Reserve the hard label result for a measurable, off-center foreground
+  // region; zero-coverage and centered cases need workflow confirmation.
+  const strongLabelSignal =
+    tinySubject &&
+    packagingDominates &&
+    !input.subjectCentered &&
+    input.subjectCoverage >= 0.015
+
+  if (strongLabelSignal) {
     return {
       role: 'label_or_packaging',
       confidence: 0.9,
       reasons,
       canAttemptCrop: false,
+    }
+  }
+
+  const reviewableDisplayCropCandidate =
+    tinySubject &&
+    packagingDominates &&
+    input.detailConfidence >= 0.6 &&
+    input.blurRisk <= 0.45 &&
+    input.detailRisk <= 0.55
+  if (reviewableDisplayCropCandidate) {
+    return {
+      role: 'uncertain',
+      confidence: 0.58,
+      reasons: ['small boxed display jewelry needs workflow confirmation'],
+      canAttemptCrop: true,
     }
   }
 
@@ -108,4 +133,19 @@ export function classifyJewelryPhotoSemantics(
     reasons: reasons.length ? reasons : ['photo needs human confirmation'],
     canAttemptCrop: false,
   }
+}
+
+export function canUseConfirmedJewelryFront(
+  input: JewelryPhotoSemanticInput,
+  _semantic: JewelryPhotoSemanticResult,
+  confirmedJewelryFront: boolean,
+): boolean {
+  if (!confirmedJewelryFront) return false
+  return (
+    Math.min(input.width, input.height) >= 720 &&
+    input.width * input.height >= 700_000 &&
+    input.blurRisk <= 0.45 &&
+    input.detailRisk <= 0.55 &&
+    input.detailConfidence >= 0.6
+  )
 }

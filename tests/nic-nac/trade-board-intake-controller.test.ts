@@ -20,13 +20,16 @@ function baseState(
     catalogMode: 'item_number',
     status: 'active',
     phase: 'started',
-    known: {},
     missing: [],
     blockers: [],
     warnings: [],
     metadata: {},
     photos: [],
     ...overrides,
+    known: {
+      rarityClassification: 'standard',
+      ...(overrides.known ?? {}),
+    },
   }
 }
 

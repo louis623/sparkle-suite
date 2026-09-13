@@ -48,6 +48,7 @@ import {
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
+import { selectWorkflowJewelryPhoto } from '@/lib/nic-nac/workflows/workflow-photo-selection'
 import type { ToolContext, ToolDefinition } from './types'
 
 const itemBaseShape = {
@@ -57,6 +58,8 @@ const itemBaseShape = {
   tradePreferences: z.string().optional(),
   listingPhotoUrl: z.string().optional(),
   listingPhotoIndex: z.number().int().min(1).max(10).optional(),
+  selectedPhotoId: z.string().uuid().optional(),
+  rarityClassification: z.enum(['standard', 'diamond', 'unicorn']),
 }
 
 const newDesignShape = {
@@ -91,6 +94,8 @@ const inputSchema = z.object({
   tradePreferences: z.string().optional(),
   listingPhotoUrl: z.string().optional(),
   listingPhotoIndex: z.number().int().min(1).max(10).optional(),
+  selectedPhotoId: z.string().uuid().optional(),
+  rarityClassification: z.enum(['standard', 'diamond', 'unicorn']).optional(),
   // New-design recovery fields (single-mode follow-up after NEEDS_FULL_INFO).
   ...newDesignShape,
   // Batch-mode array.
@@ -241,6 +246,31 @@ async function resolvePhotoFromConversation(ctx: {
     }
   }
   return null
+}
+
+function requireRarityClassification(
+  value: ToolInput['rarityClassification'],
+): 'standard' | 'diamond' | 'unicorn' {
+  if (value) return value
+  throw new NicNacToolError({
+    code: 'RARITY_CONFIRMATION_REQUIRED',
+    userMessage:
+      'Before I save this dancer, I need to ask: Is this piece a diamond or unicorn?',
+  })
+}
+
+function resolveRarityClassification(
+  value: ToolInput['rarityClassification'],
+  workflow?: ToolContext['activeTradeBoardWorkflow'],
+) {
+  // Legacy/internal callers that do not run through conversational intake are
+  // backfilled as standard. Every active Nic-Nac submission is still blocked
+  // until the rep supplies the explicit answer stored on the workflow.
+  if (!workflow && !value) return 'standard' as const
+  return requireRarityClassification(
+    value ??
+      (workflow?.known.rarityClassification as ToolInput['rarityClassification']),
+  )
 }
 
 function throwMutationFailure(
@@ -591,30 +621,20 @@ function workflowConfirmsJewelryFrontPhoto(
 function getWorkflowConfirmedJewelryFrontImageUrl(
   workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
   photoIndex?: number,
+  selectedPhotoId?: string,
 ): string | null {
-  const confirmedPhotos = getConfirmedJewelryFrontPhotos(workflow)
-  if (confirmedPhotos.length === 0) return null
-
-  if (photoIndex !== undefined) {
-    const modelIndexedPhoto = getWorkflowPhotoByModelIndex(workflow, photoIndex)
-    if (modelIndexedPhoto?.imageUrl) return modelIndexedPhoto.imageUrl
-
-    const matchingPhoto = confirmedPhotos.find(
-      (photo) => photo.attachmentIndex === photoIndex,
-    )
-    if (matchingPhoto?.imageUrl) return matchingPhoto.imageUrl
-  }
-
-  if (photoIndex === undefined) {
-    return confirmedPhotos[confirmedPhotos.length - 1]?.imageUrl ?? null
-  }
-
-  return null
+  return (
+    selectWorkflowJewelryPhoto(workflow?.photos, {
+      selectedPhotoId,
+      modelIndex: photoIndex,
+    })?.imageUrl ?? null
+  )
 }
 
 async function processListingPhotoForAdd(input: {
   listingPhotoUrl?: string
   listingPhotoIndex?: number
+  selectedPhotoId?: string
   itemNumber?: string
   activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
   repId: string
@@ -629,7 +649,27 @@ async function processListingPhotoForAdd(input: {
   const workflowPhotoUrl = getWorkflowConfirmedJewelryFrontImageUrl(
     input.activeTradeBoardWorkflow,
     photoIndex,
+    input.selectedPhotoId,
   )
+  // In an active workflow the app-owned attachment is authoritative. Raw URLs
+  // emitted by the model may be stale copies from an earlier piece.
+  if (workflowPhotoUrl) {
+    try {
+      return (
+        await processRepListingPhotoUrl(
+          {
+            repId: input.repId,
+            sourceImageUrl: workflowPhotoUrl,
+            filenameStem: `${itemNumber}-listing-photo`,
+            mutationAssetKey: input.mutationAssetKey,
+          },
+          { confirmedJewelryFront: true },
+        )
+      ).photoUrl
+    } catch (err) {
+      explainServiceError(err)
+    }
+  }
   if (input.listingPhotoUrl) {
     try {
       const processInput = {
@@ -645,24 +685,6 @@ async function processListingPhotoForAdd(input: {
             })
           : await processRepListingPhotoUrl(processInput)
       return processed.photoUrl
-    } catch (err) {
-      explainServiceError(err)
-    }
-  }
-
-  if (workflowPhotoUrl) {
-    try {
-      return (
-        await processRepListingPhotoUrl(
-          {
-            repId: input.repId,
-            sourceImageUrl: workflowPhotoUrl,
-            filenameStem: `${itemNumber}-listing-photo`,
-            mutationAssetKey: input.mutationAssetKey,
-          },
-          { confirmedJewelryFront: true },
-        )
-      ).photoUrl
     } catch (err) {
       explainServiceError(err)
     }
@@ -931,6 +953,7 @@ async function runNonItemNumberSingle(
       collectionFamily,
       collectionName,
       ringSize,
+      rarityClassification: input.rarityClassification,
     })
     if (!readiness.ready) {
       const missing = formatMissingFieldsForRep(readiness.missing)
@@ -966,6 +989,7 @@ async function runNonItemNumberSingle(
   const processedListingPhotoUrl = await processListingPhotoForAdd({
     listingPhotoUrl: input.listingPhotoUrl,
     listingPhotoIndex: input.listingPhotoIndex,
+    selectedPhotoId: input.selectedPhotoId,
     itemNumber: 'non-item-number-piece',
     activeTradeBoardWorkflow: activeWorkflow,
     repId: ctx.repId,
@@ -992,6 +1016,7 @@ async function runNonItemNumberSingle(
       photoUrl: processedListingPhotoUrl,
       repNotes: input.repNotes,
       tradePreferences: input.tradePreferences,
+      rarityClassification: resolveRarityClassification(input.rarityClassification, activeWorkflow),
     })
   } catch (err) {
     explainServiceError(err)
@@ -1094,6 +1119,7 @@ async function runSingle(
       designName: input.designName,
       collectionName: input.collectionName,
       collectionYear: input.collectionYear,
+      rarityClassification: input.rarityClassification,
     })
     if (!readiness.ready) {
       const needsJewelryPhoto = readiness.missing.includes('jewelryFrontPhoto')
@@ -1201,6 +1227,7 @@ async function runSingle(
           : await processListingPhotoForAdd({
               listingPhotoUrl: input.listingPhotoUrl,
               listingPhotoIndex: input.listingPhotoIndex,
+              selectedPhotoId: input.selectedPhotoId,
               itemNumber,
               activeTradeBoardWorkflow: activeWorkflow,
               repId: ctx.repId,
@@ -1217,6 +1244,7 @@ async function runSingle(
           ringSize: input.ringSize,
           repNotes: input.repNotes,
           tradePreferences: input.tradePreferences,
+          rarityClassification: resolveRarityClassification(input.rarityClassification, activeWorkflow),
           listingPhotoUrl: existingListingPhotoUrl,
           ...mutationIdentity,
         })
@@ -1282,7 +1310,6 @@ async function runSingle(
     // The vendor item number stays unchanged and may be shared by multiple
     // stone/material variants; this UUID owns assets for one design row.
     const newDesignId = randomUUID()
-    let resolvedPhotoUrl: string | null = piecePhotoUrl?.trim() || null
     let publicPhotoObjectPath: string | null = null
     const designSourcePhotoIndex = input.piecePhotoIndex ?? input.listingPhotoIndex
     const workflowConfirmedDesignPhoto = workflowConfirmsJewelryFrontPhoto(
@@ -1292,7 +1319,12 @@ async function runSingle(
     const workflowConfirmedPhotoUrl = getWorkflowConfirmedJewelryFrontImageUrl(
       activeWorkflow,
       designSourcePhotoIndex,
+      input.selectedPhotoId,
     )
+    // Workflow-owned selection wins. A model-provided URL is a legacy fallback
+    // only when no durable workflow photo is available.
+    let resolvedPhotoUrl: string | null =
+      workflowConfirmedPhotoUrl ?? piecePhotoUrl?.trim() ?? null
     let stagedOriginal:
       | {
           objectPath: string
@@ -1438,6 +1470,7 @@ async function runSingle(
         lengthInfo: input.lengthInfo,
         createdByRepId: ctx.repId,
         conversationId: ctx.conversationId,
+        rarityClassification: resolveRarityClassification(input.rarityClassification, activeWorkflow),
         photoPipeline: stagedOriginal
           ? {
               originalPath: stagedOriginal.objectPath,
@@ -1744,6 +1777,7 @@ async function runSingle(
       (await processListingPhotoForAdd({
         listingPhotoUrl: input.listingPhotoUrl,
         listingPhotoIndex: input.listingPhotoIndex,
+        selectedPhotoId: input.selectedPhotoId,
         itemNumber,
         activeTradeBoardWorkflow: activeWorkflow,
         repId: ctx.repId,
@@ -1764,6 +1798,7 @@ async function runSingle(
       ringSize: input.ringSize,
       repNotes: input.repNotes,
       tradePreferences: input.tradePreferences,
+      rarityClassification: resolveRarityClassification(input.rarityClassification, activeWorkflow),
       listingPhotoUrl: processedListingPhotoUrl,
       ...mutationIdentity,
     })
@@ -1906,6 +1941,7 @@ async function runBatch(
       repNotes: item.repNotes,
       tradePreferences: item.tradePreferences,
       listingPhotoUrl,
+      rarityClassification: item.rarityClassification,
       ...mutationIdentity,
     })
   }
@@ -1950,6 +1986,8 @@ async function runBatch(
           tradePreferences: recoveryItem.tradePreferences,
           listingPhotoUrl: recoveryItem.listingPhotoUrl,
           listingPhotoIndex: recoveryItem.listingPhotoIndex,
+          selectedPhotoId: recoveryItem.selectedPhotoId,
+          rarityClassification: recoveryItem.rarityClassification,
           designName: recoveryItem.designName,
           piecePhotoUrl: recoveryItem.piecePhotoUrl,
           piecePhotoIndex: recoveryItem.piecePhotoIndex,
@@ -2101,8 +2139,9 @@ export function makeAddListingTool(ctx: {
       "Three entry paths are supported: item number, label photo, or item number + label photo. When photos are attached to the conversation, extract the item number and supporting fields from the reveal box via vision before calling — don't ask the rep to type fields you can read off the photo. " +
       "For rings (RG item numbers), capture ringSize before saving. Ring size is usually printed on the box instead of the label; if you cannot read it from a box/details photo, ask the rep for the ring size. " +
       "If the resolved item exists in the jewelry database, pass mode:'single' and itemNumber for one piece, or mode:'batch' and items[] for several pieces at once. " +
+      "Every dancer requires the rep's explicit answer to: 'Is this piece a diamond or unicorn?' Pass rarityClassification:'standard' for No, 'diamond' for Diamond, or 'unicorn' for Unicorn. Never infer rarity from a name, description, stone, tag, price, or the word diamond. " +
       "Order does not matter; use photos and facts in whatever order the rep provides them. Only block on unreadable item details or a genuinely unusable jewelry image. Accept clear rep-provided collection, name, stone, material, MSRP, and ring size instead of requiring proof photos. " +
-      "Label, box, and back-of-card photos can provide details; the saved listing/canonical image must show the jewelry clearly. Boxed display photos for earrings, rings, necklaces, and similar pieces count as jewelry-front photos when the jewelry is centered, close, and clear, even with Bomb Party packaging visible. Do not treat label/details photos as bad jewelry photos; a label/details photo is only a label/details photo, and visible jewelry in that label/details photo does not satisfy the jewelry photo requirement. If the only uploaded image is a label/details or back-of-card photo, ask for the first customer-facing jewelry photo. Do not ask for unboxed, no-packaging, or plain-background retakes. Do not ask for retakes without the box/card or on a plain surface. If multiple chat photos are present and the rep identifies the front photo by order, pass listingPhotoIndex or piecePhotoIndex as a 1-based recent add-flow photo number. Ask for another photo only when you cannot tell which attached image is the jewelry-front photo, and do not ask for a reupload when the rep has already confirmed a prior jewelry-front photo. " +
+      "Label, box, and back-of-card photos can provide details; the saved listing/canonical image must show the jewelry clearly. Boxed display photos for earrings, rings, necklaces, and similar pieces count as jewelry-front photos when the jewelry is centered, close, and clear, even with Bomb Party packaging visible. Do not treat label/details photos as bad jewelry photos; a label/details photo is only a label/details photo, and visible jewelry in that label/details photo does not satisfy the jewelry photo requirement. If the only uploaded image is a label/details or back-of-card photo, ask for the first customer-facing jewelry photo. Do not ask for unboxed, no-packaging, or plain-background retakes. Do not ask for retakes without the box/card or on a plain surface. Select the app-owned workflow photo with selectedPhotoId when available; otherwise use listingPhotoIndex or piecePhotoIndex. Never copy or reuse a raw photo URL from another piece. Ask for another photo only when you cannot tell which attached image is the jewelry-front photo. " +
       "If the item isn't in the Sparkle Suite jewelry database, the tool returns needsAction:'create_design'. Use vision to extract designName and readable metadata, and use clear rep-provided fields. Birthday collection names must include the year. For Birthday boxes like 'Birthday Collection March 2026', use collectionName:'March Birthday 2026' and collectionYear:2026 when clear. The handler uploads the photo from chat automatically. " +
       "If the item exists but has no collection assigned, the tool returns needsAction:'provide_collection' (NEEDS_COLLECTION). Ask the rep for the exact collection name, then retry with collectionName. Do not guess it from vision. " +
       "If an item number is already on the rep's board, treat that as physical inventory, not a catalog duplicate: confirm whether this is an identical additional physical piece. After confirmation, add it to the same dancer and report the updated quantity available; a different material, main stone/color, size, photo, note, or trade preference remains a separate dancer. " +

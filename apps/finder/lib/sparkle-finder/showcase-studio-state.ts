@@ -25,6 +25,7 @@ export type ShowcaseStudioSubmissionInput = {
   mainStone?: string;
   material?: string;
   originalLabelPhoto: File;
+  rarityClassification: "standard" | "diamond" | "unicorn";
   submissionId: string;
 };
 
@@ -226,6 +227,7 @@ export async function persistShowcaseStudioSubmissionForAccount(
     itemNumber: cleanText(input.itemNumber, 80),
     mainStone: cleanText(input.mainStone, 120),
     material: cleanText(input.material, 120),
+    rarityClassification: input.rarityClassification,
     ownerId,
     submissionId,
   });
@@ -266,6 +268,7 @@ export async function persistShowcaseStudioSubmissionForAccount(
       itemNumber: cleanText(input.itemNumber, 80),
       mainStone: cleanText(input.mainStone, 120),
       material: cleanText(input.material, 120),
+      rarityClassification: input.rarityClassification,
       ownerId,
       submissionId,
     }, true);
@@ -383,6 +386,7 @@ async function createOrResumeStudioDraft(
     itemNumber: string;
     mainStone: string;
     material: string;
+    rarityClassification: "standard" | "diamond" | "unicorn";
     ownerId: string;
     submissionId: string;
   },
@@ -401,6 +405,7 @@ async function createOrResumeStudioDraft(
       customer_note: input.customerNote,
       main_stone: input.mainStone,
       material: input.material,
+      bp_label: input.rarityClassification,
     })
     .select("*")
     .maybeSingle());
@@ -425,6 +430,7 @@ function validateResumableStudioRow(
     itemNumber: string;
     mainStone: string;
     material: string;
+    rarityClassification: "standard" | "diamond" | "unicorn";
     ownerId: string;
     submissionId: string;
   },
@@ -438,6 +444,7 @@ function validateResumableStudioRow(
     || readPersistenceString(row.item_number) !== input.itemNumber
     || readPersistenceString(row.main_stone) !== input.mainStone
     || readPersistenceString(row.material) !== input.material
+    || readPersistenceString(row.bp_label) !== input.rarityClassification
     || readPersistenceString(row.customer_note) !== input.customerNote
   ) {
     return { ok: false, reason: "submission_conflict" };

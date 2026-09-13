@@ -5,7 +5,10 @@ import { assessJewelryPhotoPreflight } from '@/lib/services/jewelry-photo-prefli
 import { executePhotoEnhancement } from '@/lib/services/photo-enhancement'
 import { inspectEnhancedPhotoOutput } from '@/lib/services/photo-enhancement-qa'
 import { analyzeServerImageQuality } from '@/lib/services/server-image-quality'
-import { classifyJewelryPhotoSemantics } from '@/lib/services/jewelry-photo-semantics'
+import {
+  canUseConfirmedJewelryFront,
+  classifyJewelryPhotoSemantics,
+} from '@/lib/services/jewelry-photo-semantics'
 import { createGuardedJewelryPhotoCrop } from '@/lib/services/jewelry-photo-crop'
 import { uploadJewelryPhoto } from '@/lib/services/storage'
 
@@ -111,18 +114,6 @@ export async function processRepListingPhotoUrl(
   const fetched = await fetchImageBytes(input, fetchImpl)
   const metadata = await analyzeServerImageQuality(fetched.bytes)
   const semantic = classifyJewelryPhotoSemantics(metadata)
-  if (semantic.role === 'label_or_packaging' && !confirmedJewelryFront) {
-    throw new ServiceError({
-      code: 'LISTING_PHOTO_NOT_JEWELRY',
-      message: `listing photo appears to be packaging or a label: ${semantic.reasons.join(
-        '; ',
-      )}`,
-      userMessage:
-        'I need the actual jewelry photo before I can save that listing photo. This image looks more like packaging, a label, or the back of the card.',
-      statusCode: 422,
-    })
-  }
-
   const preflight = assessJewelryPhotoPreflight({
     width: metadata.width,
     height: metadata.height,
@@ -137,6 +128,7 @@ export async function processRepListingPhotoUrl(
     ? await createGuardedJewelryPhotoCrop({
         bytes: fetched.bytes,
         analysis: metadata,
+        allowReviewableOutput: confirmedJewelryFront,
       })
     : null
   const selectedBytes = crop?.bytes ?? fetched.bytes
@@ -145,7 +137,11 @@ export async function processRepListingPhotoUrl(
 
   if (
     !selectedPreflight.passed &&
-    !canUseWorkflowConfirmedJewelryPhoto(selectedPreflight, confirmedJewelryFront)
+    !canUseConfirmedJewelryFront(
+      selectedMetadata,
+      classifyJewelryPhotoSemantics(selectedMetadata),
+      confirmedJewelryFront,
+    )
   ) {
     throw errors.LISTING_PHOTO_PREFLIGHT_FAILED(preflight.coachingMessages)
   }
@@ -306,18 +302,6 @@ export async function processRepListingPhotoUrl(
       },
     }
   }
-}
-
-function canUseWorkflowConfirmedJewelryPhoto(
-  _preflight: ReturnType<typeof assessJewelryPhotoPreflight>,
-  confirmedJewelryFront: boolean,
-): boolean {
-  if (!confirmedJewelryFront) return false
-
-  // Once the workflow has positively identified and accepted the customer-facing
-  // jewelry photo, this service should not re-litigate subjective photo quality.
-  // Corrupt/unreadable files still fail before this point during decode/analysis.
-  return true
 }
 
 export const processRepCustomListingPhotoUrl = processRepListingPhotoUrl

@@ -38,7 +38,7 @@ export type SparkleFinderStudioCatalogDraft = {
   jewelryType?: string
   mainStone?: string
   material?: string
-  bpLabel?: string
+  bpLabel?: 'standard' | 'diamond' | 'unicorn'
 }
 
 export type SparkleFinderStudioReviewReceipt = {
@@ -199,7 +199,7 @@ const commonRequestShape = {
 }
 
 const labelDetailsSchema = z.object({
-  bpLabel: z.string().trim().min(1).max(40).optional(),
+  bpLabel: z.enum(['standard', 'diamond', 'unicorn']).optional(),
   collectionName: z.string().trim().min(1).max(120).optional(),
   collectionYear: z.number().int().min(1900).max(2100).optional(),
   designName: z.string().trim().min(1).max(160).optional(),
@@ -583,7 +583,7 @@ async function confirmStudioCandidate(
 
 function normalizeResolveRequest(request: StudioResolveRequest) {
   const labelDetails = compactObject({
-    bpLabel: request.labelDetails.bpLabel?.trim(),
+    bpLabel: request.labelDetails.bpLabel,
     collectionName: request.labelDetails.collectionName?.trim(),
     collectionYear: request.labelDetails.collectionYear,
     designName: request.labelDetails.designName?.trim(),
