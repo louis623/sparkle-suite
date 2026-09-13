@@ -50,15 +50,19 @@ export function calculateFounderAvailability(
   }
 
   for (const rep of reps) {
-    // rep_id is unique: PostgREST embeds the current schema as an object/null.
-    // Also accept arrays for compatible one-to-many schema representations.
-    const linkedSubscriptions = rep.subscriptions === null ? []
-      : Array.isArray(rep.subscriptions) ? rep.subscriptions : [rep.subscriptions]
-    const qualified = rep.account_classification === 'customer'
-      && linkedSubscriptions.every(subscription => subscription.stripe_livemode === true)
-    if (!add(rep.founder_sequence, rep.id, qualified)) return unavailableFounderAvailability()
+    // The checkout allocator reserves the durable rep row before a subscription
+    // exists, so historical test subscriptions must not invalidate a real
+    // customer allocation. The separate subscription pass below only retains
+    // live subscription allocations if their rep row is no longer present.
+    if (!add(rep.founder_sequence, rep.id, rep.account_classification === 'customer')) {
+      return unavailableFounderAvailability()
+    }
   }
   for (const subscription of subscriptions) {
+    // Test-mode history is not a customer-facing founder allocation. Ignoring
+    // it here avoids turning the public count into an unavailable state while
+    // preserving the allocator's durable customer rep reservation above.
+    if (subscription.stripe_livemode !== true) continue
     const qualified = subscription.reps?.account_classification === 'customer'
       && subscription.stripe_livemode === true
     if (!add(subscription.founder_sequence, subscription.rep_id, qualified)) return unavailableFounderAvailability()

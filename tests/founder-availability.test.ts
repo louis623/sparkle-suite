@@ -30,6 +30,17 @@ describe('public founder availability matches durable checkout allocation', () =
     expect(calculateFounderAvailability([rep(1, { subscriptions: { stripe_livemode: true } })], [subscription(1)], checkedAt).remaining).toBe(19)
     expect(calculateFounderAvailability([rep(1, { subscriptions: null })], [], checkedAt).remaining).toBe(19)
   })
+  it('keeps a customer founder allocation visible when test subscription history exists', () => {
+    expect(calculateFounderAvailability(
+      [rep(1, { subscriptions: [{ stripe_livemode: false }, { stripe_livemode: true }] }), rep(2)],
+      [subscription(1), subscription(2)],
+      checkedAt,
+    )).toEqual({ status: 'available', remaining: 18, checkedAt })
+  })
+  it('ignores non-live subscription history that is not a durable customer allocation', () => {
+    expect(calculateFounderAvailability([], [subscription(1, { stripe_livemode: false })], checkedAt))
+      .toEqual({ status: 'available', remaining: 20, checkedAt })
+  })
   it('reports full without exposing internal totals or customer fields', () => {
     expect(calculateFounderAvailability(Array.from({ length: 20 }, (_, i) => rep(i + 1)), [], checkedAt)).toEqual({ status: 'full', remaining: 0, checkedAt })
   })
@@ -38,9 +49,6 @@ describe('public founder availability matches durable checkout allocation', () =
   })
   it.each([
     [[rep(1, { account_classification: 'demo' })], []],
-    [[rep(1, { subscriptions: [{ stripe_livemode: false }] })], []],
-    [[rep(1, { subscriptions: [{ stripe_livemode: null }] })], []],
-    [[], [subscription(1, { stripe_livemode: false })]],
     [[], [subscription(1, { reps: { account_classification: 'demo' } })]],
     [[], [subscription(1, { reps: null })]],
     [[rep(0)], []],

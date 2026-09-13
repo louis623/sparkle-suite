@@ -32,6 +32,7 @@ describe('read-only founder availability service', () => {
     expect(result).toEqual({ status: 'available', remaining: 19, checkedAt: expect.any(String) })
     for (const builder of Object.values(queries)) {
       expect(builder.eq).toHaveBeenCalledWith('pricing_tier', 'founder')
+      if (builder === queries.subscriptions) expect(builder.eq).toHaveBeenCalledWith('stripe_livemode', true)
       expect(builder.not).toHaveBeenCalledWith('founder_sequence', 'is', null)
       expect(builder.limit).toHaveBeenCalledWith(21)
       expect(builder.abortSignal).toHaveBeenCalledWith(expect.any(AbortSignal))
