@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { runInNewContext } from 'node:vm'
 import { GET } from '@/app/skin-preview/[skin]/[page]/route'
-import { buildGnomeSkinPreviewDocument, SKIN_PREVIEW_GUARDS, SKIN_PREVIEW_PAGES } from '@/lib/amethyst/skin-preview'
+import { buildGnomeSkinPreviewDocument, GNOME_PREVIEW_LINEUP, SKIN_PREVIEW_GUARDS, SKIN_PREVIEW_PAGES } from '@/lib/amethyst/skin-preview'
 
 describe('read-only Gnome Forest skin preview', () => {
   it.each(SKIN_PREVIEW_PAGES)('serves shared %s components with isolated sample content', async (page) => {
@@ -24,6 +24,11 @@ describe('read-only Gnome Forest skin preview', () => {
     expect(inner).toContain("form-action 'none'")
     expect(inner).not.toMatch(/<script[^>]+(?:src|data-template-src)="\/api\/amethyst/)
     expect(inner).not.toMatch(/<script[^>]+src="(?:homepage|trade|unsubscribe|tweaks-panel)\.jsx/)
+    expect(inner).not.toMatch(/<script[^>]+src="(?:\/amethyst\/)?live-lineup\.js/)
+    if (page !== 'unsubscribe') {
+      expect(inner).toContain('root.SparkleLiveLineup =')
+      expect(inner).toContain('Sample lineup for appearance preview. No live show is connected.')
+    }
   })
 
   it.each([['other-skin', 'homepage'], ['gnome_garden', '../secret'], ['gnome_garden', 'pantry']])('rejects unregistered %s/%s', async (skin, page) => {
@@ -68,6 +73,28 @@ describe('read-only Gnome Forest skin preview', () => {
     const section = eventFor('#events')
     click(section)
     expect(section.preventDefault).not.toHaveBeenCalled()
+  })
+
+  it('answers lineup reads locally with labeled fixtures and never raises mutation notices for polling', async () => {
+    const notice = { textContent: '', remove: vi.fn() }
+    const originalFetch = vi.fn()
+    const context = { window: { fetch: originalFetch } as Record<string, unknown>, document: { addEventListener: vi.fn(), getElementById: () => notice }, clearTimeout: vi.fn(), setTimeout: vi.fn(), Response }
+    runInNewContext(SKIN_PREVIEW_GUARDS, context)
+    const fetch = context.window.fetch as (url: string, options?: { method: string }) => Promise<Response>
+    for (let i = 0; i < 3; i++) {
+      const response = await fetch('/api/amethyst/live-lineup?publicSiteSlug=real-customer-ignored')
+      const body = await response.json()
+      expect(body.liveQueueEntries).toEqual(GNOME_PREVIEW_LINEUP.liveQueueEntries)
+      expect(body.liveQueueSummary).toContain('Sample lineup')
+      expect(body.liveQueueAgeSeconds).toBe(0)
+      expect(JSON.stringify(body)).not.toContain('real-customer')
+    }
+    expect(originalFetch).not.toHaveBeenCalled()
+    expect(context.setTimeout).not.toHaveBeenCalled()
+    expect(notice.textContent).toBe('')
+    await expect(fetch('/api/amethyst/live-lineup', { method: 'POST' })).rejects.toThrow('Nothing was sent')
+    await expect(fetch('https://www.yoursparklesuite.com/api/amethyst/live-lineup')).rejects.toThrow('Nothing was sent')
+    expect(originalFetch).not.toHaveBeenCalled()
   })
 
   it('shows an honest notice on submission buttons before sandbox form handling and disables file inputs', () => {

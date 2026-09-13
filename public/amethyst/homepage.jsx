@@ -141,10 +141,13 @@ function buildContextSearch() {
   const repId = runtimeText(RUNTIME_CONTEXT.repId);
   const publicSiteSlug = runtimeText(RUNTIME_CONTEXT.publicSiteSlug).toLowerCase();
 
-  if (repId && !params.has("c") && !params.has("repId")) params.set("c", repId);
-  if (publicSiteSlug && !params.has("publicSiteSlug")) {
-    params.set("publicSiteSlug", publicSiteSlug);
-  }
+  // Tenant identity comes only from the server bootstrap. Keep harmless view
+  // parameters, but never let a shared/crafted page URL retarget API reads.
+  params.delete("c");
+  params.delete("repId");
+  params.delete("publicSiteSlug");
+  if (repId) params.set("c", repId);
+  if (publicSiteSlug) params.set("publicSiteSlug", publicSiteSlug);
 
   const query = params.toString();
   return query ? `?${query}` : "";
@@ -152,6 +155,17 @@ function buildContextSearch() {
 
 function withCurrentSearch(path) {
   return `${path}${buildContextSearch()}`;
+}
+
+// Capture the shared helper once so a missing/blocked optional lineup script
+// cannot crash the rest of the customer site during React rendering.
+const LIVE_LINEUP_DIALOG_HOOK = window.SparkleLiveLineup?.useDialog || null;
+
+function useLiveLineupDialog(open, onClose) {
+  const fallbackRef = React.useRef(null);
+  return LIVE_LINEUP_DIALOG_HOOK
+    ? LIVE_LINEUP_DIALOG_HOOK(React, open, onClose)
+    : fallbackRef;
 }
 
 function getShopHref() {
@@ -368,7 +382,7 @@ function LiveLineupStatus() {
   const lineup = React.useContext(LiveLineupContext);
   if (!lineup) return null;
   const updated = Date.parse(lineup.liveQueueLastUpdated);
-  return <p role="status" style={{ margin: '12px auto', padding: '0 20px', maxWidth: 1200, fontSize: 14, color: 'var(--fg)' }}>
+  return <p className="hp-lineup-status">
     {lineup.liveQueueSummary}{' '}
     {Number.isFinite(updated) && <>Last received: {new Date(updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.</>}
   </p>;
@@ -1316,7 +1330,7 @@ function LiveQueueStrip({ state, onOpen }) {
       <div className="hp-trade-preview-inner">
         <div className="hp-trade-preview-head">
           <span className="live-dot" style={state === "delayed" ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
-          <span>Live Lineup</span>
+          <span>Live Lineup{state === "delayed" ? " · Update delayed" : ""}</span>
         </div>
         <div className="hp-trade-preview-items">
           {entries.slice(0, 4).map((entry) => (
@@ -1337,24 +1351,25 @@ function LiveQueueStrip({ state, onOpen }) {
 function LiveQueueModal({ open, onClose, state }) {
   const lineup = React.useContext(LiveLineupContext);
   const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
+  const dialogRef = useLiveLineupDialog(open, onClose);
   if (!open) return null;
 
   const live = state !== "offline" && state !== "loading" && state !== "empty" && entries.length > 0;
 
   return (
     <div className="hp-queue-modal-mask" onClick={onClose}>
-      <div className="hp-queue-modal" onClick={(event) => event.stopPropagation()}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="live-lineup-title" tabIndex={-1} className="hp-queue-modal" onClick={(event) => event.stopPropagation()}>
         <div className="hp-queue-modal-head">
           <div>
             <div className="hp-queue-modal-eyebrow">Live Lineup</div>
-            <h2 className="hp-queue-modal-title">
+            <h2 id="live-lineup-title" className="hp-queue-modal-title">
               {live ? "Full lineup" : state === "loading" ? "Loading lineup" : state === "empty" ? "Lineup ready" : "No Live Lineup right now"}
             </h2>
           </div>
           <button type="button" className="hp-queue-modal-close" onClick={onClose} aria-label="Close Live Lineup">×</button>
         </div>
 
-        <LiveLineupStatus />
+        {entries.length > 0 && <LiveLineupStatus />}
         {state === "offline" ? (
           <div className="hp-queue-modal-empty">{lineup?.liveQueueSummary || getLiveQueueSummary("No show is running right now. Check the calendar for the next scheduled reveal.")}</div>
         ) : state === "loading" ? (
@@ -2191,7 +2206,6 @@ function SparkleSuiteHeaderStack({ t, scheduleIsLive, effectiveLrqState, onOpenQ
       {t.showTicker && <Ticker topText={t.tickerTopText} />}
 
       {t.showLrq && <LiveQueueStrip state={effectiveLrqState} onOpen={onOpenQueue} />}
-      {t.showLrq && <LiveLineupStatus />}
     </div>
   );
 }
@@ -2431,9 +2445,9 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
 // Main App
 // ============================================================
 function App() {
-  const [lineup, setLineup] = useState(() => isBrittWithBlingHybrid ? CONTENT : null);
+  const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? CONTENT : null);
   useEffect(() => {
-    if (!isBrittWithBlingHybrid || !window.SparkleLiveLineup) return;
+    if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
     return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });
   }, []);
   const [t, setTweak] = useTweaks(DEFAULTS);
@@ -2551,17 +2565,6 @@ function App() {
     if (t.shapeRadius === "sharp") body.classList.add("shape-sharp");
     if (t.shapeRadius === "soft") body.classList.add("shape-soft");
   }, [t]);
-
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    if (queueOpen) {
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [queueOpen]);
 
   useEffect(() => {
     window.AMETHYST_APPLY_HOMEPAGE_TEMPLATE?.(t);

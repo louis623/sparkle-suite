@@ -12,6 +12,8 @@ export interface ServerImageQualityAnalysis {
   backgroundDistractionRisk: number
   subjectCoverage: number
   subjectCentered: boolean
+  subjectCenterX: number
+  subjectCenterY: number
   detailConfidence: number
   backgroundUniformity: number
   backgroundCleanliness: number

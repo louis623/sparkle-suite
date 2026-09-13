@@ -27,6 +27,8 @@ export function extractKnownFieldsFromText(
 ): TradeBoardIntakeKnownFields {
   const known: TradeBoardIntakeKnownFields = {}
   const normalizedText = text.replace(/\s+/g, ' ').trim()
+  const rarityClassification = extractRarityClassification(normalizedText)
+  if (rarityClassification) known.rarityClassification = rarityClassification
   const itemNumber = normalizedText.match(/\b[A-Z]{1,4}\d{3,}\b/i)?.[0]
   if (itemNumber) known.itemNumber = itemNumber.toUpperCase()
 
@@ -67,6 +69,27 @@ export function extractKnownFieldsFromText(
   if (ringSize?.[1]) known.ringSize = ringSize[1]
 
   return known
+}
+
+function extractRarityClassification(
+  text: string,
+): TradeBoardIntakeKnownFields['rarityClassification'] | undefined {
+  // Only parse a direct answer in rarity-question language. Material/stone
+  // phrases such as "diamond cubic zirconia" are deliberately ignored.
+  if (/^\s*unicorn\s*[.!]?\s*$/i.test(text) || /\b(?:this (?:piece|one) is|it is|it'?s)\s+(?:a\s+)?unicorn\b/i.test(text)) {
+    return 'unicorn'
+  }
+  if (/^\s*diamond\s*[.!]?\s*$/i.test(text) || /\b(?:this (?:piece|one) is|it is|it'?s)\s+(?:a\s+)?diamond(?:\s+piece)?\b/i.test(text)) {
+    return 'diamond'
+  }
+  if (
+    /^\s*(?:no|neither|standard|normal|regular)(?:\s*[-—]\s*standard)?\s*[.!]?\s*$/i.test(text) ||
+    (/\b(?:no|neither|standard|normal|regular)\b/i.test(text) &&
+      /\b(?:diamond|unicorn|piece|one|rarity)\b/i.test(text))
+  ) {
+    return 'standard'
+  }
+  return undefined
 }
 
 export function extractKnownFieldsFromCatalogToolOutputs(

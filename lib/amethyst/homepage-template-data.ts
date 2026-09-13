@@ -109,6 +109,11 @@ export interface AmethystHomepageTemplateData {
   liveQueueState?: AmethystHomepageLiveQueueState
   liveQueueSummary?: string
   liveQueueLastUpdated?: string | null
+  liveQueueRevision?: number
+  liveQueueSourceReady?: boolean
+  liveQueueServerTime?: string
+  liveQueueAgeSeconds?: number | null
+  liveQueueStaleAfterSeconds?: number
   liveQueueEntries?: AmethystHomepageLiveQueueEntry[]
   tradeBoardSummary?: string
   tradeBoardTickerItems?: AmethystHomepageTradeBoardTickerItem[]
@@ -304,52 +309,10 @@ function formatTradeBoardTickerItem(
   }
 }
 
-function mapLiveQueueEntries(
-  snapshot: LiveQueueSnapshot | null | undefined,
-): AmethystHomepageLiveQueueEntry[] {
-  if (!snapshot?.isFresh) return []
-
-  return snapshot.queue.map((name, index) => ({
-    position: index + 1,
-    label:
-      index === 0
-        ? 'Currently Unboxing'
-        : index === 1
-          ? 'On Deck'
-          : index === 2
-            ? 'Up Next'
-            : 'In Lineup',
-    name,
-    highlight: index === 0,
-  }))
-}
-
-function liveQueueStateFromSnapshot(
-  snapshot: LiveQueueSnapshot | null | undefined,
-): AmethystHomepageLiveQueueState {
-  if (!snapshot) return 'offline'
-  if (!snapshot.isFresh) return 'offline'
-  return snapshot.queueLength > 0 ? 'live' : 'empty'
-}
-
-function liveQueueSummaryFromSnapshot(
-  snapshot: LiveQueueSnapshot | null | undefined,
-) {
-  if (!snapshot) return 'Live Lineup will open closer to the next show.'
-  if (!snapshot.isFresh) return 'Live Lineup is waiting for an update.'
-  if (snapshot.currentCustomer) {
-    return `Live Lineup: ${snapshot.currentCustomer} is currently unboxing`
-  }
-  return 'Live Lineup connected and ready'
-}
-
 function tradeBoardSummaryFromListings(listings: AmethystTradeBoardListing[]) {
   if (listings.length === 0) return 'Dance Floor ready for new listings'
   return `Dance Floor: ${listings.length} available ${listings.length === 1 ? 'piece' : 'pieces'}`
 }
-
-const CUSTOMER_READY_LIVE_QUEUE_SUMMARY =
-  'Live Lineup is ready. Customer names appear here when a live show is connected.'
 
 export function enrichAmethystHomepageFeatureData(
   homepage: AmethystHomepageTemplateData,
@@ -361,13 +324,6 @@ export function enrichAmethystHomepageFeatureData(
   const tradeBoardListings = options.tradeBoardListings ?? []
   const tradeBoardSummary = tradeBoardSummaryFromListings(tradeBoardListings)
   const liveQueueSnapshot = options.liveQueueSnapshot
-  const scrubStaleBrittQueue =
-    homepage.publicSiteVariant === 'britt_with_bling_hybrid' &&
-    liveQueueSnapshot &&
-    !liveQueueSnapshot.isFresh
-  const liveQueueSummary = scrubStaleBrittQueue
-    ? CUSTOMER_READY_LIVE_QUEUE_SUMMARY
-    : liveQueueSummaryFromSnapshot(liveQueueSnapshot)
   return {
     ...homepage,
     tickerTopText: normalizeTickerPart(homepage.tickerTopText),
@@ -375,15 +331,7 @@ export function enrichAmethystHomepageFeatureData(
     tradeBoardTickerItems: tradeBoardListings
       .slice(0, 8)
       .map(formatTradeBoardTickerItem),
-    liveQueueState: scrubStaleBrittQueue
-      ? 'empty'
-      : liveQueueStateFromSnapshot(liveQueueSnapshot),
-    liveQueueSummary,
-    liveQueueEntries: scrubStaleBrittQueue
-      ? []
-      : mapLiveQueueEntries(liveQueueSnapshot),
-    ...(homepage.publicSiteVariant === 'britt_with_bling_hybrid'
-      ? buildPublicLiveLineup(liveQueueSnapshot) : {}),
+    ...buildPublicLiveLineup(liveQueueSnapshot),
   }
 }
 

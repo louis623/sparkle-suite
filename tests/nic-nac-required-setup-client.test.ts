@@ -143,13 +143,15 @@ describe('Nic-Nac required setup client', () => {
     expect(source).toContain('customer-facing website')
   })
 
-  it('sends structured Live Queue completion evidence from the setup panel', () => {
-    expect(liveQueuePanel).toContain('extensionInstalled: true')
-    expect(liveQueuePanel).toContain('syncCodeEntered: true')
-    expect(liveQueuePanel).toContain('partyOrdersOpen: true')
-    expect(liveQueuePanel).toContain('partyFilterSet: true')
-    expect(liveQueuePanel).toContain('liveQueueConnected: true')
-    expect(liveQueuePanel).toContain('Live Queue status is connected')
+  it('verifies server readiness instead of manufacturing checklist completion evidence', () => {
+    expect(liveQueuePanel).toContain('/api/workspace/live-lineup/readiness')
+    expect(liveQueuePanel).toContain('LiveLineupPublisherControls')
+    expect(liveQueuePanel).toContain('isLineupSetupReadiness(next)')
+    expect(liveQueuePanel).toContain('if (!next.ready)')
+    expect(liveQueuePanel).not.toContain('extensionInstalled: true')
+    expect(liveQueuePanel).not.toContain('syncCodeEntered: true')
+    expect(liveQueuePanel).not.toContain('liveQueueConnected: true')
+    expect(liveQueuePanel).toContain('Do not use checklist claims as connection proof')
   })
 
   it('refreshes setup state after required setup chat responses settle', () => {

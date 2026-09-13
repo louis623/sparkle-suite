@@ -36,7 +36,7 @@ import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 import {
   REQUIRED_SETUP_STEPS,
   type RequiredSetupState,
-} from '@/lib/self-serve/required-setup'
+} from '@/lib/self-serve/required-setup-contract'
 import { createClient } from '@/lib/supabase/client'
 import shellStyles from './_shell.module.css'
 
@@ -225,9 +225,11 @@ type ReviewerSmokeResponse =
 
 export default function NicNacClient({
   reviewerSmokeVisible = false,
+  liveLineupReadOnly = false,
   operatorSupport,
 }: {
   reviewerSmokeVisible?: boolean
+  liveLineupReadOnly?: boolean
   operatorSupport?: {
     sessionId: string
     operatorDisplayName: string
@@ -239,6 +241,7 @@ export default function NicNacClient({
   const wantsCheckout = searchParams.get('onboarding') === 'checkout-required'
   const wantsRequiredSetup = searchParams.get('onboarding') === 'required-setup'
   const billingState = searchParams.get('billing')
+  const reviewerSmokeToken = searchParams.get('review')?.trim() ?? ''
   const checkoutSessionId = searchParams.get('session_id')?.trim() ?? ''
   const activeWorkspaceSection = searchParams.get('section')?.trim() ?? ''
   const operatorSupportSessionId = operatorSupport?.sessionId ?? null
@@ -881,7 +884,10 @@ export default function NicNacClient({
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ state: 'required_setup' }),
+        body: JSON.stringify({
+          token: reviewerSmokeToken,
+          state: 'required_setup',
+        }),
       })
       const body = (await res.json().catch(() => null)) as
         | ReviewerSmokeResponse
@@ -900,7 +906,9 @@ export default function NicNacClient({
 
       if (typeof window !== 'undefined') {
         localStorage.removeItem(STORAGE_KEY)
-        window.location.href = body.next
+        window.location.href = reviewerSmokeToken
+          ? `${body.next}${body.next.includes('?') ? '&' : '?'}review=${encodeURIComponent(reviewerSmokeToken)}`
+          : body.next
       }
     } catch (err) {
       setReviewerResetError(
@@ -908,7 +916,7 @@ export default function NicNacClient({
       )
       setReviewerResetBusy(false)
     }
-  }, [])
+  }, [reviewerSmokeToken])
 
   const chatContent = isReady ? (
     <NicNacChatBody
@@ -997,6 +1005,7 @@ export default function NicNacClient({
       }`}
     >
       <DashboardPlaceholder
+        liveLineupReadOnly={liveLineupReadOnly}
         repIdOverride={setupState?.repId ?? undefined}
         publicSiteSlugOverride={requiredSetupPublicSiteSlug}
         liveQueueSyncCodeOverride={requiredSetupSyncCode}

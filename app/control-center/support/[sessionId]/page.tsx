@@ -6,6 +6,7 @@ import { loadVerifiedOperatorSupportContext } from '@/lib/operator-support/http'
 import { OperatorSupportError } from '@/lib/operator-support/session-service'
 import { AuthError, OperatorAuthError } from '@/lib/supabase/operator-auth'
 import { SupportWorkspaceClient } from './SupportWorkspaceClient'
+import { liveLineupOwnerMutationsAvailable } from '@/lib/live-lineup/runtime-mode'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,6 +66,7 @@ export default async function OperatorSupportWorkspacePage({
   })
   return (
     <SupportWorkspaceClient
+      liveLineupReadOnly={!liveLineupOwnerMutationsAvailable()}
       context={{
         sessionId: context.session.id,
         csrfToken: context.csrfToken,

@@ -183,7 +183,7 @@ describe('Nic-Nac show-session tools', () => {
     expect(loadNicNacShowSessionContextMock).toHaveBeenCalledWith(
       { marker: 'supabase' },
       'rep-1',
-      { eventLimit: 20, memoryLimit: 10 },
+      { eventLimit: 20, memoryLimit: 10, loadEffectiveLineup: expect.any(Function) },
     )
   })
 

@@ -7232,3 +7232,14 @@
     gap: 4px;
   }
 }
+.homeWithLineup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 340px);
+  align-items: start;
+  gap: 16px;
+  min-width: 0;
+}
+
+@container (max-width: 740px) {
+  .homeWithLineup { grid-template-columns: minmax(0, 1fr); }
+}

@@ -102,6 +102,7 @@ import type { WorkspaceResource } from '@/lib/services/workspace-resources'
 import { WorkspaceShell } from './WorkspaceShell'
 import type { WorkspaceSectionTab } from './WorkspaceSectionTabs'
 import { NicNacHomeWorkspaceCard } from './NicNacHomeWorkspaceCard'
+import { LiveLineupCard } from './LiveLineupCard'
 import { TradeBoardWorkspaceCard } from './TradeBoardWorkspaceCard'
 import { MessageCenter as UnifiedMessageCenter } from './messages/MessageCenter'
 import {
@@ -2618,6 +2619,7 @@ export function getCustomerRecoveryActions(customer: CustomerAudienceMember) {
 }
 
 export type DashboardPlaceholderProps = {
+  liveLineupReadOnly?: boolean
   repIdOverride?: string
   publicSiteSlugOverride?: string | null
   liveQueueSyncCodeOverride?: string | null
@@ -2674,6 +2676,7 @@ type WorkspacePreviewState =
 
 export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const {
+    liveLineupReadOnly = false,
     repIdOverride,
     publicSiteSlugOverride,
     liveQueueSyncCodeOverride,
@@ -6058,6 +6061,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
 
     if (canRenderWorkspaceSections && activeSection === 'home') {
       return (
+        <div className={styles.homeWithLineup}>
         <NicNacHomeWorkspaceCard
           tradeRequestsCount={tradeRequestsState.requests?.length ?? 0}
           cleanupCount={tradeSwapCleanupState.items?.length ?? 0}
@@ -6070,6 +6074,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           onOpenCalendar={() => setActiveSection('show-calendar')}
           onOpenCustomerBoardPreview={handleOpenTradeBoardPreview}
         />
+        <LiveLineupCard readOnly={liveLineupReadOnly} />
+        </div>
       )
     }
 
@@ -6104,6 +6110,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (canRenderWorkspaceSections && activeSection === 'live-queue') {
       return (
         <LiveQueueTool
+          liveLineupReadOnly={liveLineupReadOnly}
           liveQueueSyncCode={currentLiveQueueSyncCode}
           customerSiteHref={customerSparkleSiteHref}
           onOpenHelp={() => setActiveSection('help-resources')}
@@ -7041,10 +7048,12 @@ const LIVE_QUEUE_PARTY_ORDERS_URL =
   'https://myoffice.bombparty.com/live-party-orders'
 
 export function LiveQueueTool({
+  liveLineupReadOnly = false,
   liveQueueSyncCode,
   customerSiteHref,
   onOpenHelp,
 }: {
+  liveLineupReadOnly?: boolean
   liveQueueSyncCode?: string | null
   customerSiteHref?: string | null
   onOpenHelp?: () => void
@@ -7061,6 +7070,17 @@ export function LiveQueueTool({
 
   return (
     <div className={styles.workspaceSectionStack}>
+      <section className={styles.workspaceIntroCard}>
+        <h2>Live Lineup</h2>
+        <p>Use the upgraded extension with a private connection key from the card below. Keep the selected Party Orders tab open, confirm the current show, and check recent ready updates before going live.</p>
+        <p>Drag customers to reorder, use Hold when someone steps away, and Return when they are ready. Show controls manage deliberate new shows and reversible party visibility. None of these actions change Bomb Party orders.</p>
+        <p>If your installed extension still asks for a short code, use the legacy reference below and ask support about the upgrade. Never paste a private key into the legacy version or chat.</p>
+        {customerSiteHref ? <a href={customerSiteHref} target="_blank" rel="noreferrer noopener">Open customer site</a> : null}
+        <button type="button" className={styles.liveQueueHelpButton} onClick={onOpenHelp}>Open Help &amp; Resources</button>
+      </section>
+      <LiveLineupCard readOnly={liveLineupReadOnly} />
+      <details>
+        <summary>Legacy installed extension reference—short code versions only</summary>
       <section className={styles.workspaceIntroCard}>
         <div className={styles.workspaceSectionHeader}>
           <div>
@@ -7308,6 +7328,7 @@ export function LiveQueueTool({
           Party page, or change anything in the Bomb Party back office.
         </p>
       </section>
+      </details>
     </div>
   )
 }

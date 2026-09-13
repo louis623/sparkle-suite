@@ -186,6 +186,7 @@ function activeWorkflow(
     status: 'active',
     phase: 'photo_capture',
     known: {
+      rarityClassification: 'standard',
       itemNumber: 'ER13229',
       designName: 'The Florence Earrings',
       collectionName: 'July Birthday',
@@ -206,6 +207,13 @@ function activeWorkflow(
       },
     ],
     ...overrides,
+    known: {
+      rarityClassification: 'standard',
+      itemNumber: 'ER13229',
+      designName: 'The Florence Earrings',
+      collectionName: 'July Birthday',
+      ...(overrides.known ?? {}),
+    },
   }
 }
 
@@ -2827,13 +2835,13 @@ describe('add_listing - active workflow readiness guard', () => {
     })
   })
 
-  it('trusts a workflow-confirmed boxed display jewelry photo when generic semantics see packaging', async () => {
+  it('accepts a clear workflow-confirmed boxed display jewelry photo', async () => {
     analyzeServerImageQualityMock.mockResolvedValueOnce(
       makeCleanAnalysis({
-        subjectCoverage: 0.06,
-        backgroundDistractionRisk: 0.9,
-        backgroundUniformity: 0.2,
-        backgroundCleanliness: 0.2,
+        subjectCoverage: 0.34,
+        backgroundDistractionRisk: 0.2,
+        backgroundUniformity: 0.8,
+        backgroundCleanliness: 0.8,
         detailConfidence: 0.9,
         detailRisk: 0.2,
         blurRisk: 0.05,
@@ -3187,6 +3195,7 @@ describe('add_listing - active workflow readiness guard', () => {
           'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/non-item-ring.jpg',
         repNotes: undefined,
         tradePreferences: undefined,
+        rarityClassification: 'standard',
       },
     )
     expect(updateTradeBoardIntakeSessionMock).toHaveBeenCalledWith(

@@ -1,5 +1,91 @@
 # Project State
 
+## September 12 — LOC control-center parity and agent-assignment checkpoint
+
+LOC control-center work continued and is live on the LOC alias. Familiar old entry points now land on their matching LOC areas; accounting uses Lane’s reconciled projection, matching the live old values ($127.99 projected, $138.98 actual collected, $71.61 actual expenses). The original Suite control center remains live and is not approved for retirement. No new standing agent grant was made. The next controlled work is screen-by-screen parity, beginning with detailed AI Cost & Capacity presentation. See `vault/2026-09-12-loc-control-center-parity-and-agent-map-closeout.md`.
+
+September 10 Live Lineup consolidated-source checkpoint: Louis approved GitHub CLI Codespaces access and the exact reviewed 127-file application patch was applied in the approved Codespace without changing any of its ten protected extension/test hashes. The provenance-bound extension→actual Next routes→exact SQL→Workspace ordering→public runtime E2E now passes. The v2 application manifest passes **764 tests/46 files**; the frozen September 8 v1 defect-characterization audit is correctly excluded from this v2 release manifest. Extension fake-network/parser/worker/popup, syntax, prohibited navigation/DOM/dialog, selected ESLint, diff integrity, and the exact consolidated production build all pass. Final patch receipt: **127 files, 1,167,263 bytes, SHA-256 `b3a5d11322aa3c3b949949f547236d983fad4b49df3671b223d78962777cd9a5`**. No commit, push, migration, deploy, package, Store submission, extension install/reload, live-show interaction, or customer/provider mutation occurred.
+
+September 10 Live Lineup gate checkpoint: frozen application manifest remains green at **782 tests/47 files** and a fresh exact build passes TypeScript/32 pages. Independent review found five defects in the consolidated E2E evidence; all are fixed locally. The gate now binds optional read-only source fixtures to exact publisher/worker hashes, checks both files before setup, keeps mocked time monotonic, evicts CommonJS cache, and accurately scopes shared-runtime coverage. A deliberate missing-worker execution failed closed. Exact selected lint and diff check pass. Approved Codespace is visibly stopped; final same-checkout execution awaits scoped CLI access or another approved exact-source transfer. No extension source change, push, deployment, migration, package, Store, install, live-show, or customer action.
+
+September 9 late Live Lineup hardening: same-source fail-safe read-only compatibility mode is implemented for rollback, preserving publisher/public reads and revocation while disabling owner writes/new credentials. Deterministic ZIP verification now has nine adversarial tests and an exact 12-file allowlist. The consolidated worker→real API→exact SQL→Workspace→custom-domain/public Home/Join/Trade harness is implemented with lost-ack restart, competing tabs, show generation, stale packets, Hold/Return/reorder/Reveal/Undo, missing/empty source, revoke/expiry, privacy, delayed/offline coverage; it must still pass after safe Codespace consolidation. Current application-only gate is **782 tests/47 files**, exact lint/diff and production build/TypeScript/32 pages pass. Local/origin HEAD remains `db07a1b5`; no push/deploy/migration/package/store/install/reload/live-show action occurred. Separate LOC/Control Center work remains excluded.
+
+September 9 Live Lineup source-ready checkpoint: final adversarial fixes are frozen locally and in the approved extension Codespace at unchanged local/origin HEAD `db07a1b56d7432e001929b1f5186355c6daa4204`. Fresh real PostgreSQL multi-session proof passed the eight-publisher race and post-lock 90-day issue-time checks; the isolated socket-only fixture was stopped. Final application verification passes **771 tests/46 files**, selected production lint, diff check, and exact `npm run build` through TypeScript and 32 static pages. No push, deployment, migration, installed-extension/store action, live-show interaction, or customer/provider mutation occurred. See `vault/2026-09-09-live-lineup-source-ready-handoff.md`.
+
+September 9 final Lineup hardening checkpoint: local/origin remain aligned at allowlisted HEAD `db07a1b56d7432e001929b1f5186355c6daa4204`. The root build contamination was safely isolated by excluding standalone `sites/` projects from the root TypeScript program; exact `npm run build` now passes (Next compile, TypeScript, 32 static pages). Tenant-context corroboration, semantic Workspace mutation receipts, publisher credential concurrency/caps, honest lease-expiry health, exact extension-origin CORS, and publisher-limit UX are hardened. The frozen broad application run passes **755 tests/45 files**. Approved Codespace extension tests now also enforce exact production/Bomb Party manifest scope and packaged helpers; worker/parser/popup, JavaScript syntax, prohibited navigation/DOM/dialog scans, and scoped diff checks pass. No push, deployment, migration, installed-extension/store action, account/customer/provider mutation, or live-show interaction occurred. See `vault/2026-09-09-live-lineup-post-reconcile-handoff.md`.
+
+September 9 Lineup post-reconciliation checkpoint: local/origin and the approved Codespace are aligned at allowlisted HEAD `db07a1b56d7432e001929b1f5186355c6daa4204`, with protected extension drafts preserved. The custom-domain Join/Trade polling context defect is fixed and the Join runtime rebuilt. Source-frozen focused verification passes 587 tests/41 files; new production modules pass selective lint, isolated strict service TypeScript passes, and remote fake-network/adversarial extension plus syntax/diff checks pass. Root compile succeeds, but final build typechecking is blocked by unrelated `sites/bri-beta-onboarding` dependency contamination. No release, migration, account/customer/provider, installed-extension, or store action. See `vault/2026-09-09-live-lineup-post-reconcile-handoff.md`.
+
+September 9 session close: customer-site preview destination hotfix is live and
+verified. The Workspace iframe intentionally uses the same-origin platform slug
+because customer pages enforce `X-Frame-Options: SAMEORIGIN`; the displayed
+domain and "Open full site" link use the rep's saved custom domain. Exact
+release: commits `4bcc258a` and `49b5012f`, Vercel deployment
+`dpl_6cmCfDMu8kahVbVdquA12znpoZQT`. The substantial dirty Live Lineup work
+remains paused, uncommitted, unreleased, and excluded from that deployment.
+Resume only with fresh direction using
+`vault/2026-09-09-live-lineup-resume-prompt.md`.
+
+September 9 visibility release: grouped Announcements, Join Team, Dance Floor,
+and Live Lineup switches are live in Site Settings. See
+`vault/2026-09-09-public-site-visibility-closeout.md` for final commit/deployment,
+verified migration, synthetic live Off/On proof, and preserved Lineup release
+hold. The paused Lineup work below remains unreleased.
+
+PAUSED per Louis for meeting work: Live Lineup source/test work preserved, final 12 regression/CLI tests pass, earlier real multi-session PG checks pass. Disposable DB, task-owned4317 preview and approved Codespace are stopped (visibly verified). No release. Resume from `vault/2026-09-09-live-lineup-resume-prompt.md`; preserve newer meeting/Control Center work and do not auto-continue during pause.
+
+Latest Lineup: isolated PostgreSQL 15.19 concurrency run passed with exit 0; 10 local harness safety tests pass. One accepted in-flight lease-renewal timing observation awaits service-policy review. Runtime is socket-only in approved Codespace; no hosted data, live-show, installed-extension, push or deployment action. See current Lineup checkpoint for exact evidence and remaining integration gates.
+
+Latest: resumed approved Codespace and safely fast-forwarded841cfa6c to currentf0507571; all9dirty source/test SHA256 fingerprints unchanged, remote synthetic tests pass. No source edits/commit/push/deploy. PostgreSQL/Docker unavailable both locally and in Codespace; isolated PostgreSQL test-runtime approval needed for true concurrency. App source still local, extension source still Codespace—history alignment is not source consolidation.
+
+Final latest verification: build14332 EXIT0 (NextTS48s,32pages),566tests39suites pass; independent recovery/fix reviews found no blocker in inspected scope. Three reproduced setup/reviewer issues fixed. All work remains source-only/unreleased; signed/installed/concurrent/hosted gates remain.
+
+Cross-layer verification now566tests39suites passed; independent review of the three new fixes found no blocker. Build14332 compiled69s, finalresult pending. No release or remote source edits; HEADf0507571 unchanged.
+
+Latest Lineup adversarial pass reproduced and source-fixed delayed-read false readiness, reviewer identity email overwrite at final publication, and swallowed migration errors. Added real route/service/exactSQL/public-runtime integration (identity mocked),40focusedtests pass; agent117tests pass. Fresh broad84539/build14332 pending. Independent recovery53tests pass/no blocker. No release; HEADf0507571 preserved.
+
+Final recovery/reviewer continuation: fullbuild85224 EXIT0 (NextTS45s,32pages);461Lineup tests29suites and92reviewer/setup tests10suites pass (overlap; do not sum). Recovery UI/model smoke and selectedlint pass. Reviewer safeguards are source-only; hosted identity migration/reset and full signed e2e not performed. No release.
+
+Recovery continuation verification:461selected Lineup tests29suites now pass after bounded rerun; reviewer safety agent reports70tests7suites passing. Freshbuild85224 compiled, finalresult pending. Chrome control recovered read-only; Codespace/popup handoff confirmed. No release.
+
+Latest Lineup continuation: private archive route and bounded Workspace recovery UI implemented locally;16 route tests and synthetic recovery/stale-preview browser checks pass. Reviewer reset safety work and fresh combined tests/build remain in progress. Host-load timeouts are not a green test run. Local/remote HEAD nowf0507571 from separate LOC docs, preserved; no release. See current Lineup checkpoint.
+
+Final setup/recovery pass: shared contract boundary fixed with server-only guard intact; frozen-source fullbuild93796 exit0 and448tests/28suites pass. Setup integration and private recovery backend are local only. RecoveryUI, reviewer entitlement/v2reset, full e2e/concurrency and release gates remain; no release.
+
+Latest Lineup pass: setup UI/central server verification integrated locally, legacy reference retained; private archive recovery backend implemented (no recoveryUI yet).446tests/27suites pass. Current build51708 failed shared server/client boundary; proper module split/freshbuild in progress. Reviewer entitlement/v2reset gaps remain; no release.
+
+Latest Lineup verification: durable exact-SQL/service integration and internal sanitized setup-readiness module now pass282 combined tests/16suites. Pending-setup pairing access gap confirmed UI-only; existing setup/completion unchanged. Full e2e/concurrency/recovery/onboarding integration and release gates remain. No release; HEAD911b2a17 preserved.
+
+Final verification addendum: frozen-source build31866 passed (compile, Next TypeScript,32 static pages), with application base911b2a17 unchanged.260 combined tests/14 suites pass. All Lineup changes remain unreleased; integration/onboarding/recovery/release gates remain.
+
+Latest Lineup pass: remote worker navigation/config cancellation, same-show claim reuse, immediate pull, and popup keyboard focus are fixed and synthetically verified. Local atomic revocation now invalidates the selected lease immediately. Reversible Workspace party visibility is implemented and browser-tested; 260 combined tests pass. Full final build is pending below; no release. Local/remote HEAD advanced through separate LOC docs to `911b2a17`; preserve it. See current Lineup checkpoint for remaining gates.
+
+Remote v2 popup replacement now exists with masked pairing, explicit show/source selection and honest readiness. Combined fake popup/worker/content/parser/transport regressions and popup/fixture lint pass. Visual popup, races, full e2e and release gates remain; nothing installed or deployed.
+
+Worker descriptor/source generation/scope wiring now implemented remotely; source tests and payload boundaries pass. Local API/worker request cap aligned at4MiB;94 focused backend tests pass. Legacy popup remains incompatible; navigation/active-lease reselection and full e2e remain gates. No release.
+
+Remote transport now preserves revelation dates, echoes selected generation and stops on stale-show responses. Combined fake worker/content/parser/transport tests pass. Worker setup still must supply generation; draft deliberately fails closed meanwhile. No release.
+
+Remote Lineup parser now supports validated multi-party/show cutoff/carry scope and dated revelations. Saved synthetic regressions pass, including 15,000 historical rows. Worker/content/popup consumption still unfinished; draft remains uninstalled and unreleased.
+
+Latest Lineup continuation: private token-authenticated source setup descriptor implemented; 93 focused tests pass. Remote popup/worker consumption remains unfinished; prior full build predates this endpoint addition. No release. See current Lineup checkpoint.
+
+Carry-forward final verification: exact-source build12133 exit0 and245 affected tests14suites pass. Still unreleased and incomplete pending remote integration/recovery/e2e gates.
+
+Latest carry-forward pass: explicit selected carry/held preservation and a stale-safe Show controls confirmation panel now have 125 focused passing tests and laptop/mobile synthetic browser proof. Dated revelation backend avoids old-history cap refill; extension wiring remains pending. Separate LOC/Finder work advanced local/remote HEAD to `7f1a720a`; preserve it. See checkpoint for exact build/release provenance.
+
+LOC September 9: reviewer access is resolved and staged integration is live. See [live integration checkpoint](2026-09-09-loc-live-integration-checkpoint.md). Task writes, selected memory routing, scoped connections/jobs and Finder private evidence have live proof. Support lifecycle, native runtime and acceptance gates remain. This does not release the separate Live Lineup work below.
+
+Latest September 9 lifecycle pass: local explicit show generations, private atomic archives, and reversible multi-party visibility now pass 119 focused tests and 37 embedded PostgreSQL checks. Fresh root production build passes. UI/extension generation handshake, carry-forward/recovery and long-term revelation-cap handling remain incomplete. No release.
+
+Latest September 9 continuation: remote worker/content/manifest wiring now exists and saved fake-Chrome/DOM regressions pass. Popup remains legacy/incompatible; party lifecycle/filter parity and full integration remain release gates. No install/push/deploy/package. See current checkpoint for exact dirty scope.
+
+September 9 continuation: Nic-Nac effective show-context integration passed 20 focused tests. Codespace parser and transport helpers are saved but unwired; transport passed syntax and 24 fake-network assertions. Release hold remains. See the current Live Lineup checkpoint below.
+
+## September 9, 2026 - Live Lineup implementation in progress, unreleased
+
+Louis approved local hardening and adversarial/subagent testing, but **no push or deploy until approval**. Backend v2, scrollable Workspace reorder/hold/undo card, and shared customer display are implemented locally and under verification. Extension source-only work began in an explicitly approved new Codespace; only an unwired parser draft exists there so far. See [current checkpoint](2026-09-09-live-lineup-local-hardening-checkpoint.md) for evidence and remaining setup/show-context/lifecycle/extension gates. This supersedes the historical audit's “repairs not started” status; it is not a completed release.
+
 ## September 8, 2026 - LOC control-center local implementation checkpoint
 
 See [LOC build checkpoint](2026-09-08-loc-control-center-build-checkpoint.md). Native LOC-themed Suite/Finder controls, signed bridge, agent API/MCP/jobs, audited support, and selected memory capture are implemented and locally tested. All three production builds pass. No deployment, migration or operations secret was changed; existing control center remains live. Supported protected reviewer access is the current release blocker; live integration, client proof and acceptance remain.
@@ -3642,3 +3728,77 @@ Verification passed:
 - Commit `95272bd1` is live as Ready deployment
   `dpl_CyBQpBseq7sNZCJqAJ4bAhYZp8So`; both Suite aliases resolve to it. Kim's
   `goforthebling.com` remains on `dpl_Fr6JTn8snhNY1jmqJFoudTt3oqWH`.
+
+## September 9, 2026 - Bri onboarding and shared customer-site closeout
+
+- Shared Workspace behavior now welcomes reps by first name only. Customer-site
+  settings provide direct About-title and About-narrative editing in an explicit
+  text box, with a 1,200-character narrative limit.
+- Customer-facing visibility controls are grouped for Announcements, Join Team,
+  Dance Floor, and Live Lineup. Individual visibility switches cover Instagram,
+  Facebook, TikTok, YouTube, and Whatnot. Turning an item off hides only its
+  public presentation; saved links, Workspace tools, and underlying data remain
+  available so turning it back on restores the feature immediately.
+- Reveal-video presentation is platform-neutral across current and future sites:
+  generic video treatment, “Watch a Live Reveal,” optional 180-character
+  captions, and a skin-colored bottom accent. Workspace headers prefer a saved
+  custom domain.
+- Bri's standard Sparkle Suite onboarding was completed around the reusable
+  system rather than a bespoke site fork. Her public welcome guide is at
+  `https://bris-glowtique-beta-welcome.louis526569.chatgpt.site/`; the Gmail
+  welcome remains an unsent draft. Bri is classified in the Customer Database
+  with the standard operator checklist, and `brisglowtique.com` plus its public
+  subpages route to her Sparkle Suite customer site.
+- Bri's grandfathered billing is $39/month with no setup fee and a five-day
+  trial. The Workspace billing path uses Stripe. Do not place provider IDs,
+  payment details, credentials, Live Lineup codes, or private referral values in
+  Git-tracked memory.
+- The final customer-site preview release is commits `4bcc258a` and `49b5012f`,
+  Ready as deployment `dpl_6cmCfDMu8kahVbVdquA12znpoZQT`: the iframe uses the
+  same-origin platform slug, while the header and “Open full site” use the saved
+  custom domain.
+- All dirty Live Lineup hardening remains deliberately paused, uncommitted, and
+  unreleased. It is not part of these customer-site releases. Do not edit, reset,
+  discard, commit, push, deploy, migrate, package, install, submit, or otherwise
+  advance it unless Louis explicitly resumes that work.
+
+## September 12, 2026 - Live Lineup adversarial hardening source-ready
+
+- Louis explicitly resumed build/test/strengthening work. The combined local
+  application and isolated Codespace extension draft are aligned at current
+  local/origin base `d77b64a2` on `codex/nic-nac-trade-hardening`.
+- Compatibility-mode publisher administration, reviewer-reset request safety,
+  reset/issuance locking, ZIP source binding, and real worker dependency wiring
+  are hardened and verified.
+- Final application receipt: 130 files / 1,194,611 bytes / SHA-256
+  `045b89274e8c73022d1d5076238b57d52fe0e50ad7252af85a4f93f07c556d01`.
+  The 48-file manifest passed 801 tests (800 passed, one intentional skip), the
+  genuine two-session PostgreSQL fixture passed, and the exact build completed.
+- This remains uncommitted and unreleased. No push, migration, deploy, package,
+  install, Store action, live queue/customer change, or Some Dude AI action
+  occurred. See `vault/2026-09-12-live-lineup-adversarial-hardening-checkpoint.md`.
+- Final exact-scope verification proves the combined Codespace has exactly 140
+  dirty release files (130 application plus ten protected extension/support),
+  with no unrelated mismatch. Three omitted reviewer-security paths were added
+  to the manifests before release.
+
+## September 13, 2026 - Live Lineup 2.0.0 staged for Store submission
+
+- The exact 140-file hardened source scope was committed in the isolated
+  Codespace and pushed to the allowlisted branch as
+  `d2377d869218c4a307334681cb541f0a98fa63c7`. Its parent is the verified base
+  `d77b64a2b3a760f75fbaa61bf05c5b871706756a`.
+- The Chrome extension manifest version is `2.0.0`. The strict 12-file package
+  verifier passed against the committed source. ZIP SHA-256 is
+  `24c28df76ee5caeaa4bc08233213c5c8d0af7004b08d0b95b19274059057c129`
+  and size is 17,136 bytes. The retained 1.0.1 emergency ZIP SHA-256 is
+  `05e0e8d4c652dc6391522046d67abba3b1a3ed36ea127ba9511d7aa8b4dc0a0b`.
+- The Git push created no Vercel deployment; the newest deployment remains
+  three days old. No migration, deployment, extension upload/submission,
+  publication, install/reload, live queue/customer mutation, or Some Dude AI
+  action occurred.
+- Store submission is blocked only by the current computer-control surface:
+  Codex controls Chrome profile `neonrabbit.net`, while the signed-in Developer
+  Dashboard is in the separate `Person 1` profile. Chrome also prohibits
+  extension-based automation on its own Web Store pages, and native desktop
+  control is unavailable in this task.

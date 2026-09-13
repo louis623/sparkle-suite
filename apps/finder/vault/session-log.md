@@ -335,3 +335,14 @@ Built and tested owner/submission/asset checks and short-lived private evidence 
 - Commit `91273c87` expands the read-only cost bridge with persisted reasoning and requested-intent evidence so Suite can show workload, expected model/reasoning, and policy fit without sharing customer auth or conversation content.
 - Deployment `dpl_9W8PJNL7xKZ88uKfgcb6omrcirfd` is `READY` and aliased at `https://yoursparklefinder.com`; the live signed-in surface loaded successfully.
 - The final synthetic authenticated model smoke remains pending because the production smoke token is write-only and unavailable to the terminal. Louis's signed-in account was not used for reviewer testing.
+
+## 2026-09-13 - Explicit jewelry rarity intake hardening
+
+- Showcase Studio now asks “Is this piece a diamond or unicorn?” with Standard,
+  Diamond, and Unicorn answers, persists the answer through retries, and passes
+  it through the shared Suite intake contract.
+- Finder catalog mapping now consumes Suite's explicit rarity classification;
+  descriptive text and search tags no longer create Diamond/Unicorn badges.
+- Focused Finder verification passed 110 tests, targeted lint, TypeScript during
+  the production build, and the full Finder production build. Nothing was
+  deployed and no Finder production data was changed.

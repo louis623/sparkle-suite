@@ -21,6 +21,8 @@ export type TradeBoardIntakeSessionPatch = {
   ring_size?: string | null
   rep_notes?: string | null
   trade_preferences?: string | null
+  rarity_classification?: string | null
+  rarity_confirmed_at?: string | null
   missing_fields?: string[]
   hard_blockers?: string[]
   soft_warnings?: string[]
@@ -79,6 +81,14 @@ export function mapTradeBoardIntakeSessionRow(
       ...(row.trade_preferences
         ? { tradePreferences: row.trade_preferences as string }
         : {}),
+      ...(row.rarity_classification
+        ? {
+            rarityClassification:
+              row.rarity_classification as NonNullable<
+                TradeBoardIntakeSessionState['known']['rarityClassification']
+              >,
+          }
+        : {}),
       ...((row.metadata as { duplicatePhysicalConfirmed?: unknown } | null)
         ?.duplicatePhysicalConfirmed
         ? { duplicatePhysicalConfirmed: true }
@@ -120,12 +130,18 @@ export function mapTradeBoardIntakePhotoRow(
     visualRole: row.visual_role as TradeBoardIntakePhotoState['visualRole'],
     roleConfirmed: Boolean(row.role_confirmed),
     ...(row.image_url ? { imageUrl: row.image_url as string } : {}),
+    ...(row.content_sha256
+      ? { contentSha256: row.content_sha256 as string }
+      : {}),
     quality: row.quality as TradeBoardIntakePhotoState['quality'],
     ...(row.quality_score !== null && row.quality_score !== undefined
       ? { qualityScore: row.quality_score as number }
       : {}),
     qualityIssues: (row.quality_issues as string[] | null) ?? [],
     notes: (row.notes as string[] | null) ?? [],
+    ...(row.visual_role_source
+      ? { visualRoleSource: row.visual_role_source as string }
+      : {}),
   }
 }
 
@@ -316,9 +332,12 @@ export async function upsertTradeBoardIntakePhoto(
     roleConfirmed: boolean
     imageUrl?: string
     quality: TradeBoardIntakePhotoState['quality']
+    qualityScore?: number
     qualityIssues: string[]
     notes: string[]
     ocrOrVisionSummary?: string
+    contentSha256?: string
+    visualRoleSource?: string
   },
 ): Promise<void> {
   const { error } = await supabase.from('trade_board_intake_photos').upsert(
@@ -333,9 +352,13 @@ export async function upsertTradeBoardIntakePhoto(
       role_confirmed: args.roleConfirmed,
       image_url: args.imageUrl ?? null,
       quality: args.quality,
+      quality_score: args.qualityScore ?? null,
       quality_issues: args.qualityIssues,
       notes: args.notes,
       ocr_or_vision_summary: args.ocrOrVisionSummary ?? null,
+      content_sha256: args.contentSha256 ?? null,
+      inspected_at: args.visualRoleSource ? new Date().toISOString() : null,
+      visual_role_source: args.visualRoleSource ?? null,
     },
     { onConflict: 'session_id,conversation_message_id,attachment_index' },
   )

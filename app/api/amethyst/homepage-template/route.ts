@@ -16,10 +16,7 @@ import {
   applyPublicSiteSlugToTemplateData,
 } from '@/lib/amethyst/public-site-links'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
-import {
-  getLiveQueueSnapshot,
-  getLiveQueueSyncCodeForRep,
-} from '@/lib/services/live-queue'
+import { getEffectiveLiveQueueSnapshot } from '@/lib/live-lineup/service'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { LiveQueueSnapshot } from '@/lib/services/types'
 
@@ -38,8 +35,7 @@ async function loadHomepageLiveQueueSnapshot(
 
   try {
     const admin = createAdminClient()
-    const syncCode = await getLiveQueueSyncCodeForRep(admin, repId)
-    return getLiveQueueSnapshot(admin, { repId, syncCode })
+    return getEffectiveLiveQueueSnapshot(admin, repId)
   } catch {
     return null
   }
@@ -49,11 +45,15 @@ async function resolveHomepageFeatureRepId(lookupTarget: {
   publicSiteSlug?: string
   repId?: string | null
 }) {
+  const fallbackRepId = lookupTarget.publicSiteSlug
+    ? null
+    : lookupTarget.repId?.trim() || null
+
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.SUPABASE_SERVICE_ROLE_KEY
   ) {
-    return lookupTarget.repId?.trim() || null
+    return fallbackRepId
   }
 
   try {
@@ -63,9 +63,9 @@ async function resolveHomepageFeatureRepId(lookupTarget: {
       ...lookupTarget,
       select: 'id, email',
     })
-    return rep?.id ?? lookupTarget.repId?.trim() ?? null
+    return rep?.id ?? null
   } catch {
-    return lookupTarget.repId?.trim() || null
+    return null
   }
 }
 

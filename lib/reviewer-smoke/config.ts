@@ -12,10 +12,7 @@ export const REVIEWER_SMOKE_NEXT_PATHS: Record<ReviewerSmokeState, string> = {
 export function reviewerSmokeModeEnabled(env: NodeJS.ProcessEnv = process.env) {
   const flag = env.SPARKLE_REVIEWER_SMOKE_MODE?.trim().toLowerCase()
   if (flag !== 'true' && flag !== '1') return false
-  if (env.VERCEL_ENV === 'production') {
-    return getReviewerSmokeToken(env).length >= 12
-  }
-  return true
+  return getReviewerSmokeToken(env).length >= 12
 }
 
 export function workspaceReviewAccessEnabled(env: NodeJS.ProcessEnv = process.env) {
@@ -34,8 +31,6 @@ export function isReviewerSmokeTokenValid(
   if (!reviewerSmokeModeEnabled(env)) return false
 
   const received = typeof token === 'string' ? token.trim() : ''
-  if (env.VERCEL_ENV === 'preview' && received.length === 0) return true
-
   return expected.length >= 12 && received === expected
 }
 
@@ -44,7 +39,6 @@ export function reviewerSmokeControlsVisible(
   env: NodeJS.ProcessEnv = process.env,
 ) {
   if (!reviewerSmokeModeEnabled(env)) return false
-  if (env.VERCEL_ENV !== 'production') return true
   return isReviewerSmokeTokenValid(token, env)
 }
 

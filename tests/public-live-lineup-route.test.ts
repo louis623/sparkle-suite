@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({ rep: vi.fn(), code: vi.fn(), snapshot: vi.fn(), admin: vi.fn() }))
 vi.mock('@/lib/amethyst/preview-rep', () => ({ resolveAmethystPreviewRep: mocks.rep }))
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: mocks.admin }))
-vi.mock('@/lib/services/live-queue', () => ({ getLiveQueueSyncCodeForRep: mocks.code, getLiveQueueSnapshot: mocks.snapshot }))
+vi.mock('@/lib/live-lineup/service', () => ({ getEffectiveLiveQueueSnapshot: mocks.snapshot }))
 import { GET } from '@/app/api/amethyst/live-lineup/route'
 beforeEach(() => {
   vi.resetAllMocks()
@@ -11,13 +11,19 @@ beforeEach(() => {
   mocks.code.mockResolvedValue('TEST-PRIVATE')
   mocks.snapshot.mockResolvedValue({ queue: ['Example One'], ageSeconds: 208, isFresh: false, lastUpdated: '2026-09-06T01:00:00Z' })
 })
-describe('read-only Brittany-scoped lineup endpoint', () => {
+describe('read-only tenant-scoped lineup endpoint', () => {
   it('does not fall back to a demo rep or expose another rep', async () => {
     expect((await GET(new Request('https://www.yoursparklesuite.com/api/amethyst/live-lineup'))).status).toBe(404)
     expect(mocks.rep).not.toHaveBeenCalled()
-    mocks.rep.mockResolvedValue({ id: 'other', public_site_slug: 'other' })
+    mocks.rep.mockResolvedValue(null)
     expect((await GET(new Request('https://www.yoursparklesuite.com/api/amethyst/live-lineup?c=other'))).status).toBe(404)
     expect(mocks.snapshot).not.toHaveBeenCalled()
+  })
+  it('supports other strictly resolved tenants, not only Brittany', async () => {
+    mocks.rep.mockResolvedValue({ id: 'synthetic-other', public_site_slug: 'other' })
+    const response = await GET(new Request('https://www.yoursparklesuite.com/api/amethyst/live-lineup?c=other'))
+    expect(response.status).toBe(200)
+    expect(mocks.snapshot).toHaveBeenCalledWith(expect.anything(), 'synthetic-other')
   })
   it('returns no-store customer data without codes or internal identities', async () => {
     const result = await GET(new Request('https://brittwithbling.com/api/amethyst/live-lineup'))

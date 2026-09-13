@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { RequiredSetupState } from '@/lib/self-serve/required-setup'
+import type { RequiredSetupState } from '@/lib/self-serve/required-setup-contract'
 import { getHelpResources } from '@/lib/services/help-resources'
 import { HelpResourcesCard } from './DashboardPlaceholder'
 import { NicNacGlyph } from './NicNacGlyph'

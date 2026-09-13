@@ -82,7 +82,7 @@ function makeAdminClient(options: AdminMockOptions = {}) {
     if (table === 'reps') {
       return {
         select: vi.fn(() => ({
-          eq: vi.fn(() => ({ maybeSingle: repMaybeSingle })),
+          eq: vi.fn(() => ({ maybeSingle: repMaybeSingle, in: () => ({maybeSingle:async()=>({data:null,error:null})}) })),
         })),
         update: vi.fn((patch: Record<string, unknown>) => {
           repUpdates.push(patch)

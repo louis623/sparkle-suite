@@ -51,6 +51,7 @@ type FinderDesignRow = {
   main_stone: string | null
   bp_msrp: number | null
   canonical_photo_url: string | null
+  rarity_classification?: FinderCatalogLabel | null
   type_prefix: JewelryType
   search_tags: string[] | null
   collection: FinderCollectionRelation
@@ -110,6 +111,7 @@ export interface SparkleFinderCatalogItem {
   mainStone: string | null
   bpMsrp: number | null
   canonicalPhotoUrl: string | null
+  rarityClassification: FinderCatalogLabel
   searchTags: string[]
   /** Legacy eligible listing-row count retained during the Finder rollout. */
   availableListingCount: number
@@ -244,6 +246,7 @@ export type FinderAvailabilityRpcRow = {
   canonical_photo_url: string | null
   type_prefix: JewelryType | null
   search_tags: string[] | null
+  rarity_classification?: FinderCatalogLabel | null
   collection_name: string | null
   collection_year: number | null
   rep_display_name: string | null
@@ -266,7 +269,7 @@ export interface SparkleFinderDirectoryOptions {
 }
 
 const FINDER_CATALOG_SELECT =
-  'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, search_tags, created_at, collection:collections(name, collection_year)'
+  'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, rarity_classification, type_prefix, search_tags, created_at, collection:collections(name, collection_year)'
 
 const FINDER_LIVE_SHOW_SELECT =
   'id, rep_id, event_time, title, status, duration_minutes, rep:reps(id, display_name, business_name, profile_photo_url, custom_domain, public_site_slug, status)'
@@ -329,6 +332,7 @@ export function mapSparkleFinderDesignRow(
     mainStone: row.main_stone,
     bpMsrp: row.bp_msrp,
     canonicalPhotoUrl: row.canonical_photo_url,
+    rarityClassification: normalizeFinderCatalogLabel(row.rarity_classification),
     searchTags: Array.isArray(row.search_tags) ? row.search_tags : [],
     availableListingCount,
     availableLeadCount,
@@ -771,12 +775,11 @@ type FinderCatalogBrowseFilterRequest<TRequest> = {
 }
 
 function deriveSparkleFinderCatalogLabel(row: FinderDesignRow): FinderCatalogLabel {
-  const explicitTags = Array.isArray(row.search_tags)
-    ? row.search_tags.map((tag) => tag.trim().toLowerCase())
-    : []
-  if (explicitTags.includes('unicorn')) return 'unicorn'
-  if (explicitTags.includes('diamond')) return 'diamond'
-  return 'standard'
+  return normalizeFinderCatalogLabel(row.rarity_classification)
+}
+
+function normalizeFinderCatalogLabel(value: unknown): FinderCatalogLabel {
+  return value === 'diamond' || value === 'unicorn' ? value : 'standard'
 }
 
 function incrementFacet(counts: Map<string, number>, value: string | null | undefined) {
@@ -1207,6 +1210,7 @@ export function mapFinderAvailabilityRpcRows(
         canonical_photo_url: row.canonical_photo_url,
         type_prefix: row.type_prefix,
         search_tags: row.search_tags,
+        rarity_classification: row.rarity_classification,
         collection: row.collection_name
           ? {
               name: row.collection_name,

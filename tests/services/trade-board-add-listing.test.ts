@@ -659,7 +659,7 @@ describe('addListing', () => {
     )
     expect(spies.patchIs).toHaveBeenCalledWith('collection_id', null)
     expect(spies.rpc).toHaveBeenCalledWith(
-      'rpc_add_or_increment_catalog_listing_v2',
+      'rpc_add_or_increment_catalog_listing_v3',
       expect.objectContaining({ p_rep_id: 'rep-1', p_design_id: 'design-1' }),
     )
     expect(result).toMatchObject({
@@ -703,7 +703,7 @@ describe('addListing', () => {
 
     expect(result.pending).toEqual({ needCollection: [], needFullInfo: [] })
     expect(spies.rpc).toHaveBeenCalledWith(
-      'rpc_add_or_increment_catalog_listing_v2',
+      'rpc_add_or_increment_catalog_listing_v3',
       expect.objectContaining({ p_design_id: 'design-ruby' }),
     )
   })
@@ -721,7 +721,7 @@ describe('addListing', () => {
     })
 
     expect(spies.rpc).toHaveBeenCalledWith(
-      'rpc_add_or_increment_catalog_listing_v2',
+      'rpc_add_or_increment_catalog_listing_v3',
       expect.objectContaining({ p_ring_size: '8' }),
     )
   })
@@ -740,7 +740,7 @@ describe('addListing', () => {
     })
 
     expect(spies.rpc).toHaveBeenCalledWith(
-      'rpc_add_or_increment_catalog_listing_v2',
+      'rpc_add_or_increment_catalog_listing_v3',
       expect.objectContaining({
         p_idempotency_key: 'trade-board-add:workflow-1:single:signature',
         p_input_signature: 'signature',

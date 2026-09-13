@@ -202,19 +202,20 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     title: 'Use Live Queue during a show',
     summary: 'Understand what the queue is doing and what to check when it looks wrong.',
     body:
-      'Live Queue readiness can be coming soon or launch-gated depending on rollout state. Reps should follow the current approved setup path and ask for help if the queue is stale or empty. Check the sync code, extension status, and Party Filter before escalating. Web Store approval, unpacked testing, rep rollout, and verified installed copies are separate readiness steps.',
+      'Live Queue can be coming soon or launch-gated depending on rollout state. Follow the approved extension rollout for your account. The upgraded Live Lineup uses a private computer key, explicitly selected Party Orders tab/show, and recent server-verified updates. Ask support when the queue is stale, unexpectedly empty, or missing customers. Creating a key alone is not proof of connection. Older versions use the legacy sync code and Party Filter reference; never paste a new private key into those versions. Web Store approval, unpacked testing, rep rollout, and installed-copy verification remain separate release steps.',
     goal: 'Keep the public queue understandable during a live show.',
     useWhen: 'Use this when checking Live Queue before or during a live show.',
     beforeYouStart: [
-      'Sparkle Suite sync code',
+      'The approved extension version for your account; keep private keys out of chat',
       'Bomb Party Party Orders tab',
       'Current party or show context',
     ],
     steps: [
       'Confirm the approved Live Queue setup path for this account.',
-      'Check that the sync code matches the workspace.',
+      'For the upgraded extension, pair using Extension connection setup and verify the selected source. Legacy versions use their assigned short code instead.',
       'Confirm the Bomb Party Party Orders tab is open when queue sync is expected.',
-      'Use Party Filter when only one party should sync from a busy dashboard.',
+      'Confirm the selected show and parties. In upgraded Workspace Show controls, hiding a party is reversible and keeps its order and holds private.',
+      'Drag to reorder, Hold customers who step away, and Return them deliberately. These controls do not change Bomb Party orders.',
       'Check whether the queue is stale, empty, or missing expected names.',
       'Ask Nic-Nac to gather status details if the queue still looks wrong.',
     ],
@@ -222,7 +223,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
       'The queue state makes sense for the current show, or the right support details are collected.',
     nicNacPrompt: 'Help me check my Live Queue.',
     stillStuck:
-      'Include sync code status, Party Filter, whether Chrome and the BP tab are open, and what the public queue shows.',
+      'Include extension version, visible status, selected show/parties, whether Chrome and the selected BP tab are open, and what the public queue shows. Never include private keys or customer order details.',
     relatedFeatureIds: ['live-queue'],
     quickActions: ['Check extension status', 'Review stale queue', 'Ask Nic-Nac for help'],
   }),

@@ -103,6 +103,15 @@ const boxedDisplayCroppedAnalysis = {
   backgroundCleanliness: 0.58,
 }
 
+const clearJewelryAnalysis = {
+  ...boxedDisplayAnalysis,
+  backgroundDistractionRisk: 0.12,
+  subjectCoverage: 0.34,
+  subjectCentered: true,
+  backgroundUniformity: 0.9,
+  backgroundCleanliness: 0.9,
+}
+
 const confirmedBoxedDisplayAnalysisClassifiedAsPackaging = {
   contentType: 'image/jpeg',
   width: 1512,
@@ -112,7 +121,7 @@ const confirmedBoxedDisplayAnalysisClassifiedAsPackaging = {
   detailRisk: 0.22,
   backgroundDistractionRisk: 0.86,
   subjectCoverage: 0.07,
-  subjectCentered: true,
+  subjectCentered: false,
   detailConfidence: 0.78,
   backgroundUniformity: 0.22,
   backgroundCleanliness: 0.22,
@@ -143,7 +152,7 @@ describe('listing/design photo semantic integration', () => {
     createGuardedJewelryPhotoCropMock.mockReset()
   })
 
-  it('rejects a listing photo that looks like packaging/card instead of jewelry', async () => {
+  it('rejects an unconfirmed listing photo only when its usable-photo quality fails', async () => {
     analyzeServerImageQualityMock.mockResolvedValueOnce(labelCardAnalysis)
 
     await expect(
@@ -155,58 +164,25 @@ describe('listing/design photo semantic integration', () => {
         },
         { fetch: vi.fn().mockResolvedValueOnce(makeImageResponse()) },
       ),
-    ).rejects.toMatchObject({
-      code: 'LISTING_PHOTO_NOT_JEWELRY',
-      userMessage: expect.stringContaining('actual jewelry photo'),
-    })
+    ).rejects.toMatchObject({ code: 'LISTING_PHOTO_PREFLIGHT_FAILED' })
     expect(uploadJewelryPhotoMock).not.toHaveBeenCalled()
   })
 
-  it('accepts a workflow-confirmed boxed display listing photo even when semantic heuristics call it packaging', async () => {
+  it('does not reject a workflow-confirmed clear photo merely because packaging is visible', async () => {
     analyzeServerImageQualityMock.mockResolvedValueOnce(
       confirmedBoxedDisplayAnalysisClassifiedAsPackaging,
     )
-    uploadJewelryPhotoMock.mockResolvedValueOnce(
-      'https://cdn.example.com/confirmed-boxed-display.jpg',
-    )
-
-    const result = await processRepListingPhotoUrl(
-      {
-        repId: 'rep-1',
-        sourceImageUrl: 'https://images.example.com/confirmed-boxed-display.jpg',
-        filenameStem: 'confirmed-boxed-display',
-      },
-      {
-        fetch: vi.fn().mockResolvedValueOnce(makeImageResponse()),
-        confirmedJewelryFront: true,
-      },
-    )
-
-    expect(createGuardedJewelryPhotoCropMock).not.toHaveBeenCalled()
-    expect(uploadJewelryPhotoMock).toHaveBeenCalledWith(
-      'rep-1',
-      expect.stringMatching(/^data:image\/jpeg;base64,/),
-      expect.stringMatching(
-        /^confirmed-boxed-display-[0-9a-f-]+-source$/,
-      ),
-    )
-    expect(result).toMatchObject({
-      photoUrl: 'https://cdn.example.com/confirmed-boxed-display.jpg',
-      originalPhotoUrl: 'https://cdn.example.com/confirmed-boxed-display.jpg',
-      selectedSource: 'original',
-      preflight: {
-        passed: false,
-        issues: expect.arrayContaining([
-          expect.objectContaining({ code: 'background_distraction' }),
-          expect.objectContaining({ code: 'subject_framing' }),
-        ]),
-      },
-    })
+    uploadJewelryPhotoMock.mockResolvedValueOnce('https://cdn.example.com/confirmed.jpg')
+    await expect(processRepListingPhotoUrl(
+      { repId: 'rep-1', sourceImageUrl: 'https://images.example.com/confirmed-boxed-display.jpg', filenameStem: 'confirmed-boxed-display' },
+      { fetch: vi.fn().mockResolvedValueOnce(makeImageResponse()), confirmedJewelryFront: true },
+    )).resolves.toMatchObject({ photoUrl: 'https://cdn.example.com/confirmed.jpg' })
+    expect(uploadJewelryPhotoMock).toHaveBeenCalledTimes(1)
   })
 
   it('uses one deterministic upsert path for retries of the same listing mutation', async () => {
     analyzeServerImageQualityMock.mockResolvedValueOnce(
-      confirmedBoxedDisplayAnalysisClassifiedAsPackaging,
+      clearJewelryAnalysis,
     )
     uploadJewelryPhotoMock.mockResolvedValueOnce(
       'https://cdn.example.com/deterministic-listing.jpg',
@@ -233,50 +209,18 @@ describe('listing/design photo semantic integration', () => {
     )
   })
 
-  it('does not let subjective preflight reject a workflow-accepted listing photo', async () => {
+  it('does not let workflow confirmation override critical quality failures', async () => {
     analyzeServerImageQualityMock.mockResolvedValueOnce(
       workflowAcceptedPhotoWithSubjectivePreflightFailures,
     )
-    uploadJewelryPhotoMock.mockResolvedValueOnce(
-      'https://cdn.example.com/rep-approved-boxed-display.jpg',
-    )
-
-    const result = await processRepListingPhotoUrl(
-      {
-        repId: 'rep-1',
-        sourceImageUrl: 'https://images.example.com/rep-approved-boxed-display.jpg',
-        filenameStem: 'rep-approved-boxed-display',
-      },
-      {
-        fetch: vi.fn().mockResolvedValueOnce(makeImageResponse()),
-        confirmedJewelryFront: true,
-      },
-    )
-
-    expect(uploadJewelryPhotoMock).toHaveBeenCalledWith(
-      'rep-1',
-      expect.stringMatching(/^data:image\/jpeg;base64,/),
-      expect.stringMatching(
-        /^rep-approved-boxed-display-[0-9a-f-]+-source$/,
-      ),
-    )
-    expect(result).toMatchObject({
-      photoUrl: 'https://cdn.example.com/rep-approved-boxed-display.jpg',
-      selectedSource: 'original',
-      preflight: {
-        passed: false,
-        issues: expect.arrayContaining([
-          expect.objectContaining({ code: 'low_resolution' }),
-          expect.objectContaining({ code: 'blur_risk' }),
-          expect.objectContaining({ code: 'lighting_risk' }),
-          expect.objectContaining({ code: 'detail_risk' }),
-          expect.objectContaining({ code: 'subject_framing' }),
-        ]),
-      },
-    })
+    await expect(processRepListingPhotoUrl(
+      { repId: 'rep-1', sourceImageUrl: 'https://images.example.com/rep-approved-boxed-display.jpg', filenameStem: 'rep-approved-boxed-display' },
+      { fetch: vi.fn().mockResolvedValueOnce(makeImageResponse()), confirmedJewelryFront: true },
+    )).rejects.toMatchObject({ code: 'LISTING_PHOTO_PREFLIGHT_FAILED' })
+    expect(uploadJewelryPhotoMock).not.toHaveBeenCalled()
   })
 
-  it('rejects a new design source photo that looks like packaging/card instead of jewelry', async () => {
+  it('rejects an unconfirmed new-design photo only when its usable-photo quality fails', async () => {
     analyzeServerImageQualityMock.mockResolvedValueOnce(labelCardAnalysis)
 
     await expect(
@@ -286,10 +230,7 @@ describe('listing/design photo semantic integration', () => {
         filenameStem: 'card-back',
         sourceImageDataUrl: 'data:image/jpeg;base64,AQID',
       }),
-    ).rejects.toMatchObject({
-      code: 'PIECE_PHOTO_NOT_JEWELRY',
-      userMessage: expect.stringContaining('actual jewelry photo'),
-    })
+    ).rejects.toMatchObject({ code: 'PHOTO_PREFLIGHT_FAILED' })
     expect(uploadJewelryPhotoMock).not.toHaveBeenCalled()
     expect(uploadCatalogDesignSourcePhotoMock).not.toHaveBeenCalled()
   })
@@ -427,20 +368,11 @@ describe('listing/design photo semantic integration', () => {
     })
   })
 
-  it('does not let subjective preflight reject a workflow-accepted new design source photo', async () => {
+  it('does not let workflow confirmation override critical new-design failures', async () => {
     analyzeServerImageQualityMock.mockResolvedValueOnce(
       workflowAcceptedPhotoWithSubjectivePreflightFailures,
     )
-    uploadStagedOriginalPhotoMock.mockResolvedValueOnce({
-      objectPath: 'rep-1/originals/rep-approved-original.jpg',
-      signedUrl: 'https://signed.example.com/rep-approved-original.jpg',
-    })
-    uploadCatalogDesignSourcePhotoMock.mockResolvedValueOnce({
-      objectPath: 'rep-1/designs/design-approved/rep-approved-design-source.jpg',
-      publicUrl: 'https://cdn.example.com/rep-approved-design.jpg',
-    })
-
-    const result = await prepareDesignSourcePhoto(
+    await expect(prepareDesignSourcePhoto(
       {
         repId: 'rep-1',
         designId: 'design-approved',
@@ -448,25 +380,8 @@ describe('listing/design photo semantic integration', () => {
         sourceImageDataUrl: 'data:image/jpeg;base64,AQID',
       },
       { confirmedJewelryFront: true },
-    )
-
-    expect(result).toMatchObject({
-      publicPhotoUrl: 'https://cdn.example.com/rep-approved-design.jpg',
-      selectedSource: 'original',
-      preflight: {
-        passed: false,
-        issues: expect.arrayContaining([
-          expect.objectContaining({ code: 'low_resolution' }),
-          expect.objectContaining({ code: 'blur_risk' }),
-          expect.objectContaining({ code: 'lighting_risk' }),
-          expect.objectContaining({ code: 'detail_risk' }),
-          expect.objectContaining({ code: 'subject_framing' }),
-        ]),
-      },
-      stagedOriginal: {
-        objectPath: 'rep-1/originals/rep-approved-original.jpg',
-      },
-    })
+    )).rejects.toMatchObject({ code: 'PHOTO_PREFLIGHT_FAILED' })
+    expect(uploadStagedOriginalPhotoMock).not.toHaveBeenCalled()
   })
 
   it('uses a guarded crop for clear small new design photos while staging the untouched original', async () => {

@@ -91,7 +91,7 @@ describe('required setup tools', () => {
       testCtx.supabase,
       'rep-1',
     )
-  })
+  }, 15_000)
 
   it('includes the saved Live Queue sync code in required setup state', async () => {
     getRequiredSetupStateMock.mockResolvedValue({
@@ -189,7 +189,8 @@ describe('required setup tools', () => {
     expect(completeRequiredSetupStepMock).not.toHaveBeenCalled()
   })
 
-  it('blocks Live Queue completion until the operational checklist is confirmed', async () => {
+  it('surfaces server readiness rejection without saving caller connection claims', async () => {
+    completeRequiredSetupStepMock.mockRejectedValue(new Error('Live Lineup connection is not ready (stale).'))
     const { saveRequiredSetupAnswerTool } = await import(
       '@/lib/nic-nac/tools/save-required-setup-answer'
     )
@@ -201,10 +202,10 @@ describe('required setup tools', () => {
         answer: { liveQueueConnected: true },
         completeStep: true,
       }),
-    ).rejects.toThrow('Live Queue setup requires')
+    ).rejects.toThrow('Live Lineup connection is not ready')
 
     expect(saveRequiredSetupAnswerMock).not.toHaveBeenCalled()
-    expect(completeRequiredSetupStepMock).not.toHaveBeenCalled()
+    expect(completeRequiredSetupStepMock).toHaveBeenCalledWith('rep-1', 'live_queue_setup')
   })
 
   it('completes the step when requested after saving an answer', async () => {
@@ -235,7 +236,7 @@ describe('required setup tools', () => {
     )
   })
 
-  it('saves structured Live Queue checklist evidence when completing setup', async () => {
+  it('ignores Live Queue checklist claims and delegates to the server completion boundary', async () => {
     saveRequiredSetupAnswerMock.mockResolvedValue({ currentStep: 'live_queue_setup' })
     completeRequiredSetupStepMock.mockResolvedValue({
       currentStep: 'trade_board_orientation',
@@ -260,16 +261,21 @@ describe('required setup tools', () => {
       }),
     ).resolves.toEqual({ currentStep: 'trade_board_orientation' })
 
-    expect(saveRequiredSetupAnswerMock).toHaveBeenCalledWith(
-      'rep-1',
-      'live_queue_setup',
-      answer,
-      {},
-    )
+    expect(saveRequiredSetupAnswerMock).not.toHaveBeenCalled()
     expect(completeRequiredSetupStepMock).toHaveBeenCalledWith(
       'rep-1',
       'live_queue_setup',
     )
+  })
+
+  it('does not forward Live Queue private text or arbitrary patches when only saving', async () => {
+    const { saveRequiredSetupAnswerTool } = await import('@/lib/nic-nac/tools/save-required-setup-answer')
+    await executeTool(saveRequiredSetupAnswerTool.build(ctx()), {
+      stepId: 'live_queue_setup', answer: { publisherKey: 'private-key' },
+      generatedCopy: { text: 'private-key' }, supportState: { text: 'private-key' },
+    })
+    expect(saveRequiredSetupAnswerMock).toHaveBeenCalledWith('rep-1', 'live_queue_setup', {})
+    expect(completeRequiredSetupStepMock).not.toHaveBeenCalled()
   })
 
   it('surfaces skipped setup blocker alerts so Nic-Nac does not claim Louis was notified', async () => {

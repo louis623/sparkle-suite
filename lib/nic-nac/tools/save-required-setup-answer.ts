@@ -32,10 +32,15 @@ export const saveRequiredSetupAnswerTool: ToolDefinition = {
   build: (ctx) =>
     tool({
       description:
-        'Save a required setup answer and optionally mark that setup step complete.',
+        'Save a required setup answer and optionally mark that setup step complete. Live Queue completion is verified by the server, not checklist claims. Never send publisher keys; use an empty answer for Live Queue.',
       inputSchema,
       execute: async (input) => {
         validateCompletion(input)
+        if (input.stepId === 'live_queue_setup') {
+          return input.completeStep
+            ? completeRequiredSetupStep(ctx.repId, input.stepId)
+            : saveRequiredSetupAnswer(ctx.repId, input.stepId, {})
+        }
         const options = {
           ...(input.generatedCopy
             ? { generatedCopyPatch: input.generatedCopy }
@@ -69,22 +74,6 @@ function validateCompletion(input: z.infer<typeof inputSchema>) {
     }
   }
 
-  if (input.stepId === 'live_queue_setup') {
-    const required = [
-      'extensionInstalled',
-      'syncCodeEntered',
-      'partyOrdersOpen',
-      'partyFilterSet',
-      'liveQueueConnected',
-    ]
-    const missing = required.filter((key) => input.answer[key] !== true)
-
-    if (missing.length > 0) {
-      throw new Error(
-        `Live Queue setup requires confirmed checklist fields before completion: ${missing.join(', ')}.`,
-      )
-    }
-  }
 }
 
 function validateSavedCompletion(

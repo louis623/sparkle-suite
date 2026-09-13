@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ensureLiveQueueSyncCodeForRep } from '@/lib/services/live-queue'
-import { REQUIRED_SETUP_STEPS } from '@/lib/self-serve/required-setup'
+import { REQUIRED_SETUP_STEPS } from '@/lib/self-serve/required-setup-contract'
 import { MILE_HIGH_FIZZ_PROFILE } from './profile'
 
 type AdminClient = SupabaseClient

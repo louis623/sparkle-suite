@@ -1,5 +1,71 @@
 # Open Items
 
+Current Lineup status: source consolidation and the complete synthetic same-checkout journey are finished and green in the approved Codespace. Remaining work is release-only and requires a confirmed no-live-show window plus Louis's action-time authorization: preserve/commit the exact local application and Codespace extension sources without unrelated work, apply the additive Supabase migration, deploy the matching app tip, prepare/verify the exact extension package, coordinate Store/install rollout, and complete live-domain/installed-extension rollback-aware smoke. Nothing was pushed, migrated, deployed, packaged, installed, reloaded, or submitted in this checkpoint.
+
+Current top Lineup blocker: final same-checkout execution requires exact transfer of the reviewed 127-file application scope into the approved Codespace while preserving its ten protected dirty extension/test files. Browser local-file transfer is unavailable and GitHub CLI lacks the `codespace` scope; request Louis's approval before authenticating the CLI. The E2E harness itself is now provenance-bound and fail-closed, and the app baseline/build remain green. Do not substitute the optional hashed forensic-fixture mode for the final combined-checkout gate. No push/deploy/migration/package/store/install/live-show action is authorized.
+
+Current Lineup hard stops: safely consolidate the local application and protected extension drafts in the approved Codespace without unrelated LOC/Control Center work; run and fix `tests/live-lineup-extension-app-e2e.test.ts` there until the complete journey passes; then rerun all exact-source gates. Package creation/upload/submission, Git push, Supabase migration, Vercel deployment, install/reload, and live-show checks remain separately gated. Deterministic ZIP verification itself is now implemented and unit-green; its real package receipt remains pending because packaging is not authorized.
+
+Latest Lineup release gates: source hardening is frozen and green at HEAD `db07a1b5` (771 tests/46 files, exact root build/TypeScript/32 pages, selected production lint, final adversarial reviews, fresh real PostgreSQL publisher-cap/time proof, and approved Codespace extension synthetic/syntax/safety/package checks). Remaining work begins only in a confirmed quiet window with action-time approval: safely consolidate the local app and Codespace extension drafts, run the complete synthetic consolidated source-to-public journey, then coordinate additive Supabase/app/extension release and rollback plus live-domain/installed-extension verification. No push/deploy/migration/package/install/reload/store/live-show authority is implied. See `vault/2026-09-09-live-lineup-source-ready-handoff.md`.
+
+Latest Lineup next steps: application and isolated extension source gates are green at HEAD `db07a1b5` (755 tests/45 files, exact root build, Codespace worker/parser/popup + manifest/package + syntax/safety/diff checks). Remaining work is controlled consolidation of the local app and Codespace extension drafts, a complete authorized synthetic source-to-worker-to-API-to-Workspace-to-public-site journey, final exact-source/adversarial review after consolidation, and a coordinated additive database/app/extension rollout plus rollback plan. Push/deploy/migration/package/install/store and live-show actions still require action-time approval and a confirmed quiet window. Do not treat this Vault item as authority to change the live Control Center Task List.
+
+Latest Lineup next steps: preserve local and Codespace drafts at `db07a1b5`; consolidate them only in an approved quiet window, resolve/isolate unrelated `sites/bri-beta-onboarding` build-type contamination, run the full authorized synthetic source-to-public journey, complete final adversarial review/build, then coordinate database/app/extension rollout with action-time approval and no live shows. Focused 587-test source state and remote extension adversarial checks are green. No release is authorized by this checkpoint.
+
+Lineup PAUSED by owner: resume prompt `vault/2026-09-09-live-lineup-resume-prompt.md`. Timing assessment/regression and real concurrency baseline are complete. Remaining: careful draft consolidation, full synthetic worker/API/setup/Workspace/public integration, final exact-source review/build, then separately approved compatible migration/app/extension rollout. Do not pursue during the meeting-work pause or mistake this Vault list for live Control Center Task List authority.
+
+Lineup PostgreSQL-runtime approval and real concurrent SQL baseline are now resolved (15.19 socket-only fixture, exit 0). Next assess observed in-flight lease renewal, consolidate drafts, and prove complete synthetic source/setup/Workspace/public flow. Hosted migration/identity and installed-extension/release gates remain separately authorized. Active shows: no live changes. Latest exact details are in the Lineup checkpoint.
+
+Older Codespace history divergence resolved: nowf0507571 with all9dirtyfiles byte-identical and synthetic tests passing. Need isolated PostgreSQL runtime approval for true concurrency (none installed), source consolidation without losing local/remote drafts, full installed/signed/hosted synthetic integration, then separate release/store/install authority. No live release is authorized.
+
+Build14332 now passes;566tests and independent fix review green. Remaining are full installed/signed synthetic source-to-public verification, true concurrent PostgreSQL/hosted transport, stopped older Codespace reconciliation, approved hosted/identity migration prerequisites, and release/store/install approval. Do not repeat completed recovery/readiness fixes or imply live readiness.
+
+566tests39suites and independent fix review now pass. Await14332 final build; then retain signed/installed-source/hosted/concurrent verification, stopped-Codespace reconciliation and release gates. No fresh code-fix blocker identified in reviewed scope.
+
+Latest: verify broad84539/build14332 after three adversarial setup/reviewer fixes, plus independent fix review. Actual route/service/SQL/public integration added; signed-in/installed-source/full network and concurrent SQL gates still open. Codespace is visibly stopped; reconcile saved older source when resumed, no release/package/install approval. HEADf0507571 preserved.
+
+Freshbuild85224,461Lineup tests and92reviewer/setup tests now pass. Remaining: independent finalreview; full signed-in synthetic source/setup/Workspace/public e2e; approved migration and explicit existing reviewer identity migration; true concurrent PostgreSQL/hostedtransport; dirtyCodespace reconciliation; separate release/store/install approvals. Stop publisher/pairing before any approved synthetic reset. All current changes remain unreleased.
+
+461Lineup tests now green; Chrome handoff recovered. Await freshbuild85224 finalresult and final reviewer tests/typecheck/review. Full signed synthetic e2e, realconcurrentSQL/hostedtransport, Codespace reconciliation and release approvals remain.
+
+Latest: archive routes/UI now implemented and synthetically verified. Finish reviewer provisioning/reset safeguards/tests, rerun combined regressions and fullbuild after source freeze, then full signed-in synthetic source/setup/Workspace/public integration, real concurrent SQL/hosted transport, final review, dirty Codespace reconciliation and release approvals. Browser claim timeout diagnosed read-only; do not assume Chrome handoff preserved. No release.
+
+Build boundary is resolved:93796exit0,448tests28suites pass. Remaining top priorities: owner archive recoveryroutes/UI, synthetic required-setup entitlement and v2reset/seed, fullsignedsource-to-setup-to-public e2e, actualconcurrentPostgreSQL/hostedtransport, finalreview/Codespacereconciliation and releaseapproval. No production mutation authorized/performed.
+
+Latest Lineup nextsteps: finish proper sharedsetup server/client boundary and freshbuild after51708 failure; implement recovery routes/preview/confirmationUI; safe reviewer requiredsetup entitlement and v2reset/seed (no authrelaxation); fullsignedsynthetic source-to-setup-to-public e2e; realPostgreSQL concurrency/hostedtransport; finalreview/Codespacereconcile/releaseapprovals.446tests27suites passing but not a currentbuild or releaseclaim.
+
+Latest remaining Lineup work: integrate safe v2 pairing/readiness into pending setup (APIs already allow paid pending reps; UI hides pairing), implement owner-confirmed private archive recovery, full remote-source/worker/backend/browser integration, real PostgreSQL concurrent schedules and hosted transport verification, final combined review/build and dirty Codespace reconciliation. Internal readiness module and durable sequentialSQL integration now pass;282tests/16suites. Release holds unchanged.
+
+Build31866 is now verified exit0 at unchanged911b2a17; remove final-build-result from the pending gates immediately below. Integration/concurrency/onboarding/recovery/final combined review and release approvals remain pending.
+
+Latest Lineup status supersedes earlier popup/race/filter gaps: worker race/reselection/initial-pull and generation1 tests, synthetic popup visual/focus, atomic revocation, and Workspace reversible party-visibility UI now pass. Remaining: final build31866 result, full source-to-backend-to-public synthetic integration, genuine concurrent SQL/hosted transport verification, safe v2 onboarding and archive recovery, final combined review, and safe reconciliation of older dirty Codespace HEAD841cfa6c with newer local/remote911b2a17. No push/deploy/package/store/install approval. Vault remains separate from the live Task List.
+
+Remote popup replacement and synthetic behavior/lint checks pass. Next synthetic visual popup review, generation>0 worker round trip, navigation/config/active-lease reselection races, immediate initial pull, filter parity, full e2e/independent review. Earlier eight fixture diagnostics are resolved. No installed/release readiness claim.
+
+Worker/content generation-scope and size-limit integration now passes synthetic tests. Replace legacy popup next; test scoped generation>0 full worker flow, navigation in-flight, and active-lease same-generation reselection (new nonce currently conflicts until expiry). Full app build and whole-system synthetic e2e remain. Eight remote fixture diagnostics persist.
+
+Transport generation/dated metadata now implemented and tested remotely. Worker must persist deliberately chosen generation, recognize show_changed/invalid_scope, consume descriptor and pass scope to content; popup remains incompatible. Test/align maximum valid snapshot request bytes and descriptor response bytes. Eight fixture diagnostics remain.
+
+Remote scoped parser is implemented/tested. Next pass must wire descriptor/generation/scope through worker/content/transport and replace incompatible popup. Seven remote fixture lint diagnostics remain. No installed/e2e or release readiness claim.
+
+Lineup setup descriptor now exists and passes focused tests. Next wire remote popup/worker/parser; allow a bounded descriptor response large enough for 2,000 carry IDs while retaining the small ordinary receipt cap. Full build must be rerun after latest endpoint change; release hold remains.
+
+Build12133 is now confirmed passed;245 affected tests14suites also pass. Remaining extension protocol/popup, filtering/recovery and full integration/review gates still apply.
+
+Latest carry-forward pass: carry confirmation UI/model now implemented and synthetically verified; dated revelation scoping now tested on backend. Remaining: remote parser/transport/popup generation+date+multi-party integration, filtering/recovery UI, full e2e and independent review. Inspect build12133. Preserve separate LOC/Finder HEAD7f1a720a; no Lineup release authorization.
+
+LOC September 9: old reviewer-link/configuration blockers are resolved. Remaining: support lifecycle with the existing session properly closed, native runtime proof after account limits, remaining writes, full Finder queued-review mutation and Fold/parallel-use acceptance. See [checkpoint](2026-09-09-loc-live-integration-checkpoint.md). Keep the old center available.
+
+September 9 lifecycle update: generation/CAS archive backend is implemented and tested; fresh app build passes. Still required before readiness: show preview/confirmation plus carry-forward and archive recovery UI; popup generation/scope handshake; full multi-party parity; timestamped revelation handling to avoid refilling the 10,000-ID cap from old source rows; hosted concurrency/e2e and final independent review. No push/deploy authorization.
+
+Latest September 9 continuation: remote worker/content/manifest drafts and repeatable isolated regressions now exist. Priority remaining: compatible popup pairing/health/source selection, multi-party filter parity and server-fenced show lifecycle, navigation/config races, genuine end-to-end verification, fixture lint, independent review and final app build. Draft is not installable/release-ready.
+
+September 9 continuation: effective Nic-Nac show-context implementation and focused deterministic tests are now done locally; independent/model-in-loop and final build verification remain. Remote parser/transport helpers pass isolated tests but still need actual extension wiring, safe lifecycle/party scope, onboarding, and end-to-end verification. No release is authorized.
+
+## September 9, 2026 - Live Lineup hardening now active, not released
+
+The owner-directed local implementation supersedes the audit-only status below. See [checkpoint](2026-09-09-live-lineup-local-hardening-checkpoint.md) for outstanding extension integration, safe party/show lifecycle, onboarding pairing, Nic-Nac effective show context, database concurrency/e2e verification, and explicit release approvals. Keep work attached to existing live Control Center Task List item `e453d5cc-0ac8-4d46-9dab-182a6aa723d7`; no live task state changed. No push/deploy/store publication is authorized yet.
+
 ## September 8, 2026 - LOC rebuild release gates
 
 Local implementation and automated/browser checks are recorded in the [checkpoint](2026-09-08-loc-control-center-build-checkpoint.md). Remaining: supported protected synthetic reviewer entry; additive migrations and new server connection configuration; deployed workflow/receipt/support/Finder/memory verification; real Codex/Grok connection proof; physical Fold and parallel-use acceptance. Current center stays live. This is a build handoff, not a replacement for the live Control Center Task List.
@@ -673,6 +739,16 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
   extension, enter the assigned sync code, and complete one real queue
   sync/readback before treating the device handoff as fully proven.
 
+## September 9 protected Live Lineup pause
+
+- [ ] Leave all dirty Live Lineup hardening untouched in the next session. Do
+  not edit, reset, discard, commit, push, deploy, migrate, package, install,
+  submit, mutate a queue, or perform extension/provider work unless Louis
+  explicitly resumes Live Lineup. If resumed later, first read
+  `vault/2026-09-09-live-lineup-resume-prompt.md` and
+  `vault/2026-09-09-live-lineup-local-hardening-checkpoint.md` and verify the
+  active allowlisted branch.
+
 ## Nic-Nac reliability
 
 - [x] **Recover live apostrophe-free Calendar reads from zero-output turns** —
@@ -794,3 +870,47 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
 - [ ] Have Lane append reconciled aggregate snapshots when he has verified
   source totals. Do not fabricate figures to populate the dashboard. The
   weekday 6:30 a.m. routine should flag any unavailable source rail.
+
+## Live Lineup coordinated release follow-up
+
+- [x] Complete the September 12 adversarial source-hardening pass and rerun the
+  frozen combined gates at current base `d77b64a2`.
+- [x] Review and commit only the exact combined Live Lineup release scope.
+  Commit `d2377d869218c4a307334681cb541f0a98fa63c7` contains the verified 140 files.
+- [x] Push the exact verified source commit to the allowlisted GitHub branch and
+  confirm the push did not create a Vercel deployment.
+- [x] Build and strictly verify the 12-file Sparkle Suite Live Queue 2.0.0 Store
+  ZIP; SHA-256
+  `24c28df76ee5caeaa4bc08233213c5c8d0af7004b08d0b95b19274059057c129`.
+- [ ] Upload version 2.0.0 to the exact Sparkle Suite Store item, select manual
+  publishing, and submit it for review. Do not touch Some Dude AI and do not
+  publish the extension. Current blocker: the signed-in Store Dashboard is in a
+  Chrome profile not attached to Codex, and Web Store pages reject extension
+  automation; use native computer control or perform the upload manually.
+- [ ] After Store approval and in a confirmed no-live-show window, follow the
+  coordinated additive migration, exact app deployment, compatibility bridge,
+  and manual extension publication sequence in the release runbook. Each
+  state-changing phase requires its applicable action-time approval.
+- [ ] Complete safe live-domain reviewer verification and separate installed
+  extension/real Bomb Party proof. Do not use Louis's or a customer's account,
+  mutate live queue data, or touch Some Dude AI.
+
+## Nic-Nac photo and rarity repair follow-up
+
+- [x] Audit Heather's 11 submissions, preserve source lineage, visually review
+  every retained source, and produce the immutable recovery manifest.
+- [x] Audit all 58 current listings and retained workflow sources. Pin the one
+  additional mismatch (`ER38483`) in a separate immutable manifest; 49 current
+  photos are verified correct and must not be bulk rewritten.
+- [x] Implement and locally verify the photo-selection, centering, readable
+  label, explicit rarity, Finder intake, audit, and guarded repair paths.
+- [ ] Establish an isolated approved release tip that excludes protected Live
+  Lineup and Kelly work; then commit/push the exact Nic-Nac/Finder scope. The
+  sorted machine-checked allowlist and two selective-overlap files are pinned
+  in the September 13 isolated-release scope document.
+- [ ] Apply only `20260913000100_nic_nac_photo_rarity_hardening.sql`, deploy the
+  exact verified tip, and run synthetic reviewer smoke on the live domain.
+- [ ] Run both reviewed repair manifests with their explicit apply token,
+  verify the 11 Heather outcomes plus supplemental `ER38483`, confirm all 58
+  current review dispositions (including nine corrected cards), and retain the
+  final repair receipts.

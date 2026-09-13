@@ -156,3 +156,14 @@ Reason: A shared provider key/project makes authoritative product attribution im
 Decision: Leave the first unused Finder runtime key unchanged indefinitely unless concrete evidence shows a security, billing, access, or operational problem. It is not pending cleanup. Any later revocation requires Louis's explicit authorization and a dependency audit.
 
 Reason: The active Finder configuration is working, and speculative credential cleanup is not worth risking another setup setback.
+
+## 2026-09-13 - Finder rarity follows the shared explicit classification
+
+Decision: Finder collection intake asks the same plain-language rarity question
+as Suite and sends only `standard`, `diamond`, or `unicorn`. Catalog badges and
+facets consume the explicit Suite field and never infer rarity from searchable
+text or tags.
+
+Reason: Finder is expected to receive many future collection uploads, including
+the rare genuine Diamond or Unicorn. A shared explicit contract prevents false
+rarity while preserving ordinary “diamond” descriptions for search.

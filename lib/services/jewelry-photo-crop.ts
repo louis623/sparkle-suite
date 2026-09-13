@@ -10,6 +10,7 @@ import {
 export interface GuardedJewelryPhotoCropInput {
   bytes: Uint8Array
   analysis: ServerImageQualityAnalysis
+  allowReviewableOutput?: boolean
 }
 
 export interface GuardedJewelryPhotoCropResult {
@@ -36,7 +37,12 @@ export async function createGuardedJewelryPhotoCrop(
     .metadata()
   if (!metadata.width || !metadata.height) return null
 
-  const cropBox = getCenteredCropBox(metadata.width, metadata.height)
+  const cropBox = getSubjectCenteredCropBox(
+    metadata.width,
+    metadata.height,
+    input.analysis.subjectCenterX,
+    input.analysis.subjectCenterY,
+  )
   if (!cropBox) return null
 
   const croppedBuffer = await sharp(Buffer.from(input.bytes), { failOn: 'error' })
@@ -54,13 +60,24 @@ export async function createGuardedJewelryPhotoCrop(
   const croppedAnalysis = await analyzeServerImageQuality(croppedBytes)
   const croppedSemantic = classifyJewelryPhotoSemantics(croppedAnalysis)
   if (croppedSemantic.role === 'label_or_packaging') return null
+  const minimumCoverageGain = input.analysis.subjectCoverage < 0.08
+    ? Math.max(0.005, input.analysis.subjectCoverage * 0.2)
+    : MIN_COVERAGE_GAIN
+  const noMaskPortraitFallback =
+    input.allowReviewableOutput === true &&
+    input.analysis.subjectCoverage === 0 &&
+    metadata.height > metadata.width
   if (
+    !noMaskPortraitFallback &&
     croppedAnalysis.subjectCoverage <
-    input.analysis.subjectCoverage + MIN_COVERAGE_GAIN
+      input.analysis.subjectCoverage + minimumCoverageGain
   ) {
     return null
   }
-  if (croppedAnalysis.subjectCoverage < MIN_CROP_COVERAGE) return null
+  if (
+    croppedAnalysis.subjectCoverage < MIN_CROP_COVERAGE &&
+    input.allowReviewableOutput !== true
+  ) return null
   if (croppedAnalysis.blurRisk > input.analysis.blurRisk + 0.12) return null
   if (croppedAnalysis.detailRisk > input.analysis.detailRisk + 0.12) return null
 
@@ -74,7 +91,17 @@ export async function createGuardedJewelryPhotoCrop(
     subjectCoverage: croppedAnalysis.subjectCoverage,
     subjectCentered: croppedAnalysis.subjectCentered,
   })
-  if (!preflight.passed) return null
+  if (
+    !preflight.passed &&
+    !(
+      input.allowReviewableOutput === true &&
+      croppedAnalysis.width >= 720 &&
+      croppedAnalysis.height >= 720 &&
+      croppedAnalysis.blurRisk <= 0.45 &&
+      croppedAnalysis.detailRisk <= 0.55 &&
+      croppedAnalysis.detailConfidence >= 0.6
+    )
+  ) return null
 
   return {
     bytes: croppedBytes,
@@ -85,14 +112,25 @@ export async function createGuardedJewelryPhotoCrop(
   }
 }
 
-function getCenteredCropBox(width: number, height: number) {
+function getSubjectCenteredCropBox(
+  width: number,
+  height: number,
+  subjectCenterX: number,
+  subjectCenterY: number,
+) {
   const shortestEdge = Math.min(width, height)
   const cropEdge = Math.max(MIN_CROP_EDGE, Math.round(shortestEdge * 0.42))
   if (cropEdge > width || cropEdge > height) return null
 
   return {
-    left: Math.max(0, Math.round((width - cropEdge) / 2)),
-    top: Math.max(0, Math.round((height - cropEdge) / 2)),
+    left: Math.max(
+      0,
+      Math.min(width - cropEdge, Math.round(subjectCenterX * width - cropEdge / 2)),
+    ),
+    top: Math.max(
+      0,
+      Math.min(height - cropEdge, Math.round(subjectCenterY * height - cropEdge / 2)),
+    ),
     width: cropEdge,
     height: cropEdge,
   }

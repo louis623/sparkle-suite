@@ -158,3 +158,7 @@
     flex-direction: column;
   }
 }
+.pairingArea { min-width: 0; }
+.pairingArea button { min-height: 44px; padding: 8px 12px; margin: 4px 4px 4px 0; border: 1px solid #8b749b70; border-radius: 8px; font: inherit; color: inherit; background: var(--workspace-surface, #fff); cursor: pointer; }
+.pairingArea button:disabled { opacity: .55; cursor: default; }
+.pairingArea button:focus-visible { outline: 3px solid #8052a7; outline-offset: 2px; }

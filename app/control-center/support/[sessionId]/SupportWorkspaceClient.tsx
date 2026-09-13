@@ -8,8 +8,10 @@ import { buildOperatorSupportGatewayUrl } from '@/lib/operator-support/client-ru
 
 export function SupportWorkspaceClient({
   context,
+  liveLineupReadOnly = false,
 }: {
   context: OperatorSupportClientContext
+  liveLineupReadOnly?: boolean
 }) {
   const [ready, setReady] = useState(false)
   const [ending, setEnding] = useState(false)
@@ -204,7 +206,10 @@ export function SupportWorkspaceClient({
           </div>
         </div>
       ) : null}
-      <NicNacClient operatorSupport={operatorSupportContext} />
+      <NicNacClient
+        operatorSupport={operatorSupportContext}
+        liveLineupReadOnly={liveLineupReadOnly}
+      />
     </div>
   )
 }

@@ -1774,6 +1774,7 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   }
 }
 
+.hp-lineup-status { margin: 0; font-size: 14px; color: var(--fg-muted); }
 .hp-queue-modal-mask {
   position: fixed;
   inset: 0;
@@ -1788,6 +1789,7 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
 }
 
 .hp-queue-modal {
+  overflow: hidden;
   width: min(560px, 100%);
   max-height: min(80vh, 760px);
   display: flex;
@@ -1865,6 +1867,8 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
 }
 
 .hp-queue-modal-list {
+  min-height: 0;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1927,12 +1931,14 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
 }
 
 .hp-queue-modal-row .name {
+  overflow-wrap: anywhere;
   font-size: 14px;
   font-weight: 700;
   color: #2b1b1f;
 }
 
 .hp-queue-modal-empty {
+  overflow-wrap: anywhere;
   padding: 20px 0 6px;
   font-size: 14px;
   line-height: 1.6;

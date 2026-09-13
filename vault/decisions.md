@@ -1,5 +1,59 @@
 # Decision Log
 
+## September 12, 2026 — LOC agent rollout follows human/data parity
+
+Decision: preserve the old control center until LOC passes parallel smoke testing and Louis explicitly approves retirement. Agent rollout proceeds only after Louis/Sam choose sections from `docs/sparkle-agent-section-map.md`; begin each agent at Check, use Prepare for drafts, and add Act only through narrow, smoke-tested authority or one exact owner-approved task. Shared Grok fleet credentials remain a shared identity and must not be treated as individual-bot attribution or receive broad direct Act access.
+
+Reason: LOC can now support controlled assignments, but full visual/behavioral parity and individual agent ownership are still being proved. This preserves the existing operational fallback and prevents a connection test from becoming unreviewed business authority.
+
+Late Lineup release decision: rollback after compatible extension uptake uses the same tested Git SHA with `SPARKLE_LIVE_LINEUP_MODE` fail-safe read-only behavior, not an older deployment lacking v2 source endpoints. Package acceptance requires the deterministic exact-inventory ZIP receipt. The consolidated harness must run in the approved Codespace against both real drafts and cover the entire worker/API/SQL/Workspace/public journey before Store submission. Unrelated LOC/Control Center files are outside the Lineup manifest and consolidation patch.
+
+Final source-ready Lineup decision: public-slug resolution is fail-closed; missing optional lineup runtime cannot take down customer pages; service reads require returned tenant identity; publisher creation is tenant-serialized before the issue timestamp with an eight-usable-device cap and exact `2160 hours` lifetime; same-revision Workspace refreshes may age health only and ambiguous mutations require confirmed reload. Fresh real concurrent PostgreSQL, 771-test, build, lint, and adversarial evidence closes source hardening, not release authorization. Consolidation and the database/app/extension rollout remain one coordinated no-live-show operation with rollback.
+
+Final Lineup hardening decision: standalone `sites/` projects are outside the root Sparkle Suite TypeScript/build program and retain their own build gates; this prevents their generated dependency types from redefining root Next.js modules without deleting or modifying separate-site work. Workspace command success requires a semantic receipt for the requested mutation, not merely a higher revision. Publisher credential issuance is transactionally capped at eight usable tenant credentials with a database-authoritative 90-day lifetime and bounded auditable listing. Publisher lease expiry means offline immediately. Extension packaging must contain only the exact production Suite/Bomb Party scopes and referenced helpers, while the content script remains read-only. These are verified source decisions, not release authorization.
+
+Lineup rollout decision after reconciliation: mandatory v2 setup must not be deployed until the compatible extension is actually obtainable. Treat database, application, and extension as one coordinated no-live-show rollout with an explicit rollback path; retain legacy guidance/path and additive migration history. Clean custom-domain Join/Trade pollers must send server-provided rep/site context rather than relying on Referer-path slug inference. Focused green evidence does not authorize signed-in, installed-extension, hosted, store, migration, or production work.
+
+Louis explicitly paused Lineup for more urgent same-repo meeting work. Finish only underway regression, save dual-memory handoff and stop task-owned test resources; do not begin consolidation or release during pause. Receipt-time renewal semantics are now regression-proven, not an outstanding repair request. Resume only from current provenance, never old handoff HEAD.
+
+Active live shows prohibit installed-extension reload/change, production queue mutation and release work. Codespace synthetic PostgreSQL testing is isolated by Unix socket only and pristine fixture identity guards. A passing observational probe is not a normative safety assertion: assess accepted in-flight renewal against the service contract before labeling it a defect or changing behavior. Tonight still requires explicit release approval.
+
+Codespace history can be fast-forwarded only after exact target/ancestor/protected-path checks and before/after dirty-source fingerprints. History alignment does not consolidate uncommitted local app and remote extension changes. Embedded single-connection SQL cannot substitute for real concurrent-write proof; use an explicitly approved isolated synthetic database runtime, not live customer tables.
+
+Readiness deadlines must be evaluated after the final awaited database read, not only before it; completion remains point-in-time evidence, not an atomic long-lived source lease. Reviewer publication must not replace trusted reset/login identity with a contact answer. Reviewer safety errors use an own-property allowlist and fixed non-sensitive guidance, never raw provider error text. Route/SQL integration with mocked identity is not authenticated end-to-end proof.
+
+Reviewer fixture reset is not a readiness shortcut: remove only guarded synthetic data and return NOT READY. Keep shared catalog records and unexpected provider entitlements untouched. Stop the synthetic publisher and pairing before reset; a single-connection atomic SQL test is not concurrency proof. Preserve reserved reviewer slugs only for trusted server-scoped fixture identities; ordinary setup naming remains unchanged.
+
+Archive recovery UI must require deliberate identities and acknowledgment, validate the exact server result, and stop on changed current lineup; no automatic retry or public return. Reviewer reset authority must come from exact supported identity plus server-owned scope and isolated non-live entitlement, never a user-editable marker or fixture ID alone. Existing unmarked identities require separately approved migration, not automatic retagging or password reset.
+
+New Live Queue setup completion is server-verified and setup-row-fenced; existing completed/unlocked accounts remain unchanged. Do not deploy mandatory v2 setup ahead of approved upgraded extension availability. Recovery is explicit selected identities into privateHold, not whole-state rollback: preserve current scope/start/order, advancegeneration/expirelease/clearUndo. Current-generation revelations blocked; no cross-archive historical revelation guarantee. Keep server-only protection when splitting shared setup helpers.
+
+V2 setup readiness is sanitized point-in-time server evidence, not a reusable authorization or unlock receipt. Read owner-scoped state, selected credential, then unchanged state; exclude arbitrary source labels/version strings, customer/order/device IDs and keys. Completion must later reverify at its mutation boundary. No automatic relock or legacy setup replacement before rollout. PGlite tests are sequential SQL evidence, never multi-session concurrency proof.
+
+Lineup source invalidation happens immediately on selected-tab departure or configuration mutation, before serialized cleanup; pending reads cannot publish and active requests are aborted (not a promise to undo a request already committed). Same-show reselection reuses the claim nonce/sequence and starts an immediate pull. Server revocation atomically expires only the matching selected publisher, preserving lineup/holds/show/undo. Workspace party visibility is reversible, server-confirmed, and scoped to the current show; it is not order deletion or an Undo action.
+
+V2 popup keeps key input masked/ephemeral, delegates credentials to trusted worker, requires source confirmation, and distinguishes ready acknowledgement from mere transport activity. Removing a browser key is separate from server revocation. Legacy filter storage is preserved, not silently deleted or adopted.
+
+Worker selection re-reads the private descriptor and refuses stale generations. Scope stays session-only; generation-zero supports deliberate multi-party selection. Snapshot cap is bounded4MiB for supported maxima; descriptor-only responses512KiB, ordinary receipts16KiB. Source-only and unreleased.
+
+Scoped parser now filters dated historical rows before current-show capacity limits, with a separate 50,000 raw-row scan bound. Explicit carried IDs may retain older/missing dates; new scoped orders require dates. This is source-only behavior awaiting worker integration.
+
+Lineup setup decision: a private descriptor is not a lease or health heartbeat. Worker must require deliberate selection and echo the chosen generation; never silently join a newer show. Visibility exclusions remain Workspace presentation, not source omission.
+
+Carry-forward decision: only explicit rep-selected identities enter the new show from old waiting/held entries; ordering and holds are preserved. Confirmation may survive transport heartbeats but not changed candidate/scope state. Scoped revelations require order dates so old rows cannot silently exhaust the new show’s tombstone budget. These are unreleased source decisions; remote protocol wiring and recovery UI remain.
+
+LOC September 9: use a separately guarded synthetic reviewer instead of recovering an unknown link or rotating old credentials. Preserve existing support sessions. Stage writes individually; real HTTP/MCP proof does not establish native Codex/Grok runtime support. See [checkpoint](2026-09-09-loc-live-integration-checkpoint.md).
+
+September 9 show-boundary decision: leases alone do not define a new show. An explicit confirmed owner action increments generation and atomically archives prior state; old workers must reselect the new generation. New shows default empty and exclude pre-start orders, but release must include explicit preview and deliberate carry-forward of waiting/held customers. Party exclusion is reversible visibility, not deletion. These controls are backend drafts, not yet available in the UI.
+
+Latest September 9 continuation: content scripts cannot store/read publisher credentials or perform network publishing. Worker accepts one explicitly selected source tab and fails closed on navigation, wrong sender, malformed response, or timeout. Party/show transitions must be server-fenced before release; current single-party prototype is not permission to drop existing filter semantics.
+
+September 9 continuation: Nic-Nac reads effective lineup only after fresh owner-context validation, without automatically altering show lifecycle. Extension recovery must reuse the same claim attempt after ambiguous acknowledgment and reserve sequence before sending; transport acknowledgment alone cannot mean source readiness. These are unreleased source changes.
+
+## 2026-09-09 - Live Lineup source-first hardening, explicit release hold
+
+Louis authorized implementation and adversarial/subagent tests, with an explicit **no push/deploy until approval** hold. He approved only Sparkle Suite extension source edits in its Codespace and separately approved creating that Codespace. No extension packaging/store action or Some Dude AI access. The rep's manual order/holds must survive incoming sync; public output remains number/name-only. Laptop-first Workspace card must have bounded internal scrolling; keyboard/tap controls complement drag. Server-verified source readiness is separate from transport heartbeat. Missing rows never implicitly complete orders; lifecycle/reset and party-scope behavior require explicit safe controls, not silent deletion. See [checkpoint](2026-09-09-live-lineup-local-hardening-checkpoint.md).
+
 ## 2026-09-08 - Sparkle controls use LOC style and assignable agent access
 
 Louis confirmed full control-center functionality should be rebuilt using LOC cream/sage styling and mobile navigation. Keep the existing center operational until parallel testing and acceptance. Use one named operation catalog for owner UI and agent API/MCP, with current per-area/action/target grants, durable receipts and explicit selected memory routing. Shared agent credentials represent a shared identity, not isolated bots; shared connections cannot Act. See [checkpoint](2026-09-08-loc-control-center-build-checkpoint.md).
@@ -2715,3 +2769,110 @@ second accounting MCP or make the website viewer editable.
 Reason: This keeps visual proof and bookkeeping work clearly separate, gives
 Lane the write ability needed for his bookkeeper role, and avoids sharing the
 Control Center bearer or adding a Vercel-secret dependency.
+
+## 2026-09-09 - Preserve split customer-site preview destinations
+
+Decision: The Workspace iframe uses the platform's same-origin customer-site
+slug, while the visible domain label and "Open full site" link use the rep's
+saved custom domain.
+
+Reason: Customer pages deliberately return `X-Frame-Options: SAMEORIGIN` and
+cannot be embedded under the custom-domain origin. This preserves a working
+preview and sends customers to their branded public domain when they open the
+site directly.
+
+## 2026-09-09 - Customer-site visibility hides presentation, not capability
+
+Decision: Public-site and individual social switches control only whether a
+configured item is presented on customer-facing pages. Turning off Dance Floor,
+Live Lineup, Announcements, Join Team, or a social platform must preserve the
+saved configuration and underlying Workspace capability so turning it on again
+restores it immediately. Missing social visibility preferences default on for
+existing and future workspaces.
+
+Reason: Reps need temporary control over what customers see without losing
+links, data, tool readiness, or configuration.
+
+## 2026-09-09 - Keep shared customer media platform-neutral
+
+Decision: Shared reveal copy and media cards must describe the rep's platform
+or a live reveal, not assume TikTok or Facebook. Video captions are optional and
+bounded at 180 characters; About narratives are directly editable in a visible
+text box and bounded at 1,200 characters.
+
+Reason: A rep can change or hide individual platforms, and platform-specific
+copy becomes incorrect even when the underlying video remains valid. Explicit
+bounded inputs reduce confusion and keep shared layouts stable.
+
+## 2026-09-09 - Preserve paused Live Lineup work across session handoffs
+
+Decision: The dirty Live Lineup hardening in the shared worktree remains paused,
+uncommitted, and unreleased. Memory-only closeout work does not authorize an
+edit, reset, commit, push, deploy, migration, package/install, extension action,
+queue mutation, or production action for that work.
+
+Reason: The Lineup work is still in progress in another session and must not be
+mixed into completed customer-site releases or a routine handoff.
+
+## 2026-09-12 - Bind Live Lineup release evidence to reviewed source
+
+Decision: A Live Lineup release candidate is not package-ready unless its ZIP
+bytes match the approved same-checkout source inventory, expected manifest
+version, exact permissions, and exact host permissions, and its combined E2E
+executes the worker's real `importScripts` dependency wiring. Reviewer resets
+and publisher issuance must share the same per-tenant advisory lock.
+
+Reason: Inventory-only ZIP inspection and pre-injected E2E dependencies can
+produce false green evidence, while unsynchronized fixture reset and credential
+issuance can revive state during reset. Source-bound receipts and one tenant
+lock make the release evidence and reset behavior deterministic.
+
+## 2026-09-13 - Stage Store review before the coordinated production cutover
+
+Decision: Submit Sparkle Suite Live Queue 2.0.0 for Chrome Web Store review with
+manual publishing, but do not publish it, migrate Supabase, or deploy the app
+until the coordinated no-live-show release window. The package is bound to
+source commit `d2377d869218c4a307334681cb541f0a98fa63c7`.
+
+Reason: Google review can take days. Manual publishing lets the compatible new
+extension clear review without exposing it before the additive backend and
+customer-site cutover are ready, while the currently published 1.0.1 extension
+and existing app continue serving live shows.
+
+## 2026-09-13 - Jewelry photos use practical role and quality gates
+
+Decision: Packaging is never a rejection signal. A declared label/details
+photo is accepted when readable; a declared jewelry-front photo is eligible
+for publication when the piece is clear, adequately resolved, and can be
+centered without cutting it off. Only the declared jewelry-front role can
+become public.
+
+Reason: Reps will be trained to take useful photos. The product should protect
+photo identity and presentation without imposing unnecessary staging rules.
+
+## 2026-09-13 - Rarity is explicit, shared, and never inferred
+
+Decision: Standard, Diamond, and Unicorn are stored classifications sourced
+from the rep's explicit answer to “Is this piece a diamond or unicorn?” Suite
+and Finder must ignore names, descriptions, stones, OCR text, prices, and tags
+when assigning rarity.
+
+Reason: “Diamond Cubic Zirconia” describes an ordinary stone and previously
+caused false Diamond listings. Searchable wording is not product rarity.
+
+## 2026-09-13 - Repair only verified current photo mismatches
+
+Decision: Treat the 58-listing current-inventory contact-sheet review as the
+cleanup boundary. Replace only the nine public photos whose bytes differ from
+their visually confirmed, session-linked jewelry-front source. Preserve the 49
+correct listings, including legitimate same-design duplicate listings, even
+when their historical optional-enhancement status says `error`.
+
+Reason: Fifty-six historical pipeline errors mostly describe missing optional
+PhotoRoom configuration, not wrong public photos. Using that status as a bulk
+rewrite trigger would replace good assets and create unnecessary risk.
+
+The guarded repair may update a design's canonical photo only while its target
+is the sole active/pending listing for that design. If another current listing
+appears, both dry-run/apply tooling and the database RPC must stop for a new
+visual review rather than assuming the canonical update is still isolated.

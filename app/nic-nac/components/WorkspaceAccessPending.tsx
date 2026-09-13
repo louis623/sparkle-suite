@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { RequiredSetupStatus } from '@/lib/self-serve/required-setup'
+import type { RequiredSetupStatus } from '@/lib/self-serve/required-setup-contract'
 import { createClient } from '@/lib/supabase/client'
 import styles from './WorkspaceAccessPending.module.css'
 

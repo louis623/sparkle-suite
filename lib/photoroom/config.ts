@@ -56,11 +56,12 @@ function loadPhotoroomConfig(): {
   }
 
   if (process.env.NODE_ENV === 'production') {
-    console.error(
+    console.warn(
       '[photoroom] Missing required environment variables in production:',
       result.error.flatten().fieldErrors,
     )
-    throw new Error('Photoroom configuration is incomplete - cannot start in production')
+    cached = { config: null, enabled: false, cacheKey }
+    return cached
   }
 
   console.warn(

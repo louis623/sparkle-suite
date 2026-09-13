@@ -80,11 +80,11 @@ export type {
 }
 
 const DESIGN_SELECT =
-  'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, collection:collections(id, name)'
+  'id, item_number, design_name, material, main_stone, bp_msrp, canonical_photo_url, type_prefix, rarity_classification, collection:collections(id, name)'
 
 const LISTING_SELECT = `
   id, rep_id, quantity_available, status, rep_notes, trade_preferences, ring_size, listing_photo_url,
-  uses_canonical_photo, listing_source, manual_type_prefix, manual_collection_family,
+  uses_canonical_photo, rarity_classification, listing_source, manual_type_prefix, manual_collection_family,
   manual_collection_name, manual_size, manual_photo_url,
   listed_at, removal_reason, deleted_at, created_at, updated_at,
   design:jewelry_designs(${DESIGN_SELECT})
@@ -344,6 +344,7 @@ async function addOrIncrementCatalogListing(
     ringSize?: string | null
     listingPhotoUrl?: string | null
     usesCanonicalPhoto: boolean
+    rarityClassification: import('./types').JewelryRarityClassification
     idempotencyKey?: string
     inputSignature?: string
   },
@@ -354,7 +355,7 @@ async function addOrIncrementCatalogListing(
     )
   }
   const { data, error } = await supabase.rpc(
-    'rpc_add_or_increment_catalog_listing_v2',
+    'rpc_add_or_increment_catalog_listing_v3',
     {
       p_rep_id: args.repId,
       p_design_id: args.designId,
@@ -365,6 +366,7 @@ async function addOrIncrementCatalogListing(
       p_uses_canonical_photo: args.usesCanonicalPhoto,
       p_idempotency_key: args.idempotencyKey,
       p_input_signature: args.inputSignature,
+      p_rarity_classification: args.rarityClassification,
     },
   )
   if (error) throw error
@@ -733,6 +735,9 @@ export async function addNonItemNumberListing(
       manual_size: size,
       manual_photo_url: photoUrl,
       listed_at: nowIso,
+      rarity_classification: input.rarityClassification ?? 'standard',
+      rarity_confirmed_at: nowIso,
+      rarity_confirmation_source: 'nic_nac_explicit_answer',
     })
     .select('id, status')
     .single()
@@ -798,6 +803,7 @@ export async function addListing(
     ringSize: input.ringSize,
     listingPhotoUrl: input.listingPhotoUrl,
     usesCanonicalPhoto,
+    rarityClassification: input.rarityClassification ?? 'standard',
     idempotencyKey: input.idempotencyKey,
     inputSignature: input.inputSignature,
   })
@@ -917,6 +923,7 @@ export async function addListingBatch(
       ringSize: r.item.ringSize,
       listingPhotoUrl: r.item.listingPhotoUrl,
       usesCanonicalPhoto,
+      rarityClassification: r.item.rarityClassification ?? 'standard',
       idempotencyKey: r.item.idempotencyKey,
       inputSignature: r.item.inputSignature,
     })

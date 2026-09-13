@@ -1,6 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { createHash } from 'crypto'
 import type { UIMessage } from 'ai'
 import type { NicNacToolIntent } from '@/lib/nic-nac/tools'
+import { analyzeServerImageQuality } from '@/lib/services/server-image-quality'
+import {
+  canUseConfirmedJewelryFront,
+  classifyJewelryPhotoSemantics,
+} from '@/lib/services/jewelry-photo-semantics'
+import { assessJewelryPhotoPreflight } from '@/lib/services/jewelry-photo-preflight'
 import {
   extractKnownFieldsFromCatalogToolOutputs,
   extractKnownFieldsFromText,
@@ -309,7 +316,11 @@ export async function ingestLatestTradeBoardIntakeTurn(
       latestUserText,
       photos,
     })
-    const visualRole = inferVisualRole(declaredRole)
+    const inspected = await inspectWorkflowPhoto(filePart.url, declaredRole)
+    const visualRole =
+      declaredRole === 'jewelry_front' && inspected.visualRole === 'label_or_packaging'
+        ? 'uncertain'
+        : inspected.visualRole
     const photo = {
       conversationMessageId: args.latestUserMessageId ?? latestUser.id,
       attachmentIndex: index + 1,
@@ -317,8 +328,11 @@ export async function ingestLatestTradeBoardIntakeTurn(
       visualRole,
       roleConfirmed: declaredRole !== 'unknown',
       imageUrl: filePart.url,
-      quality: 'unknown' as const,
-      qualityIssues: [],
+      quality: inspected.quality,
+      qualityScore: inspected.qualityScore,
+      qualityIssues: inspected.qualityIssues,
+      contentSha256: inspected.contentSha256,
+      visualRoleSource: inspected.visualRoleSource,
       notes:
         declaredRole === 'label_details'
           ? ['declared as label/details source']
@@ -338,8 +352,11 @@ export async function ingestLatestTradeBoardIntakeTurn(
       roleConfirmed: photo.roleConfirmed,
       imageUrl: photo.imageUrl,
       quality: photo.quality,
+      qualityScore: photo.qualityScore,
       qualityIssues: photo.qualityIssues,
       notes: photo.notes,
+      contentSha256: photo.contentSha256,
+      visualRoleSource: photo.visualRoleSource,
     })
   }
 
@@ -366,6 +383,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
         roleConfirmed: confirmedPhoto.roleConfirmed,
         imageUrl: confirmedPhoto.imageUrl,
         quality: confirmedPhoto.quality,
+        qualityScore: confirmedPhoto.qualityScore,
         qualityIssues: confirmedPhoto.qualityIssues,
         notes: confirmedPhoto.notes,
       })
@@ -407,6 +425,10 @@ export async function ingestLatestTradeBoardIntakeTurn(
       ring_size: known.ringSize ?? null,
       rep_notes: known.repNotes ?? null,
       trade_preferences: known.tradePreferences ?? null,
+      rarity_classification: known.rarityClassification ?? null,
+      rarity_confirmed_at: known.rarityClassification
+        ? new Date().toISOString()
+        : null,
       metadata: {
         ...normalized.metadata,
         duplicatePhysicalConfirmed:
@@ -531,7 +553,6 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
     const confirmed = {
       ...photo,
       declaredRole: 'jewelry_front' as const,
-      visualRole: 'jewelry' as const,
       roleConfirmed: true,
       notes: [
         ...photo.notes,
@@ -596,12 +617,69 @@ function assistantIdentifiedJewelryFront(text: string): boolean {
   )
 }
 
-function inferVisualRole(
+async function inspectWorkflowPhoto(
+  imageUrl: string | undefined,
   declaredRole: TradeBoardPhotoDeclaredRole,
-): TradeBoardPhotoVisualRole {
-  if (declaredRole === 'label_details') return 'label_or_packaging'
-  if (declaredRole === 'jewelry_front') return 'jewelry'
-  return 'uncertain'
+): Promise<{
+  visualRole: TradeBoardPhotoVisualRole
+  quality: 'usable' | 'warning' | 'blocked' | 'unknown'
+  qualityScore?: number
+  qualityIssues: string[]
+  contentSha256?: string
+  visualRoleSource?: string
+}> {
+  if (!imageUrl) {
+    return { visualRole: 'uncertain', quality: 'unknown', qualityIssues: [] }
+  }
+  try {
+    const dataMatch = /^data:[^;]+;base64,(.+)$/i.exec(imageUrl)
+    const bytes = dataMatch
+      ? new Uint8Array(Buffer.from(dataMatch[1], 'base64'))
+      : new Uint8Array(await (await fetch(imageUrl)).arrayBuffer())
+    const analysis = await analyzeServerImageQuality(bytes)
+    const semantic = classifyJewelryPhotoSemantics(analysis)
+    const preflight = assessJewelryPhotoPreflight(analysis)
+    const reviewableJewelryFront = canUseConfirmedJewelryFront(
+      analysis,
+      semantic,
+      true,
+    )
+    const labelUnreadable =
+      Math.min(analysis.width, analysis.height) < 500 ||
+      analysis.blurRisk >= 0.75 ||
+      analysis.detailRisk >= 0.82 ||
+      analysis.detailConfidence < 0.35
+    const quality =
+      declaredRole === 'label_details'
+        ? labelUnreadable
+          ? 'blocked'
+          : analysis.blurRisk >= 0.45 || analysis.detailRisk >= 0.58
+            ? 'warning'
+            : 'usable'
+        : preflight.passed
+          ? 'usable'
+          : reviewableJewelryFront
+            ? 'warning'
+            : 'blocked'
+    return {
+      visualRole: semantic.role,
+      quality,
+      qualityScore: preflight.score,
+      qualityIssues: [
+        ...semantic.reasons,
+        ...preflight.issues.map((issue) => issue.code),
+      ],
+      contentSha256: createHash('sha256').update(bytes).digest('hex'),
+      visualRoleSource: 'server_image_analysis_v1',
+    }
+  } catch {
+    return {
+      visualRole: 'uncertain',
+      quality: 'unknown',
+      qualityIssues: ['server_visual_inspection_unavailable'],
+      visualRoleSource: 'inspection_failed',
+    }
+  }
 }
 
 function findLatestUserMessageIndex(messages: UIMessage[]): number {

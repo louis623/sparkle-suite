@@ -657,7 +657,6 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Understand the Chrome extension and Live Queue')
   })
 
-
   it('uses only the first name in the Nic-Nac Workspace welcome', () => {
     const html = renderToStaticMarkup(
       createElement<DashboardPlaceholderProps>(DashboardPlaceholder, {
@@ -672,6 +671,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Hi Brianna, how can I help you today?')
     expect(html).not.toContain('Hi Brianna Williams, how can I help you today?')
   })
+
   it('keeps the SMS wallet out of Account until customer messaging launches', () => {
     const html = renderToStaticMarkup(
       createElement<DashboardPlaceholderProps>(DashboardPlaceholder, {
@@ -2839,7 +2839,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('This powers the Shop buttons across your customer-facing site.')
     expect(html).not.toContain('Business name')
     expect(html).not.toContain('Phone</span>')
-    expect(html).toContain('Announcement ticker and Join Team page')
+    expect(html).toContain('Show on your website')
     expect(html).not.toContain('Banner and ticker')
     expect(html).not.toContain('Banner text')
     expect(html).not.toContain('Banner visible')
@@ -2874,7 +2874,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain(
       'Applies only to your public customer-facing site.',
     )
-    expect(html).toContain('Join Team: Coming soon.')
+    expect(html).toContain('Available to selected early-access team leaders.')
     expect(html).not.toContain('Show the “Join My Team” recruiting page on your public site')
     expect(html).toContain('Announcement ticker messages')
     expect(html).toContain('Use one announcement per line. Add emojis, then highlight only the words you want to link.')

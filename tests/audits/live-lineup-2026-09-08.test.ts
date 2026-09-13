@@ -1,5 +1,7 @@
-// Audit characterizations: passing assertions reproduce current defects,
-// not acceptance criteria for a repaired system. All I/O is mocked.
+// Legacy audit characterizations reproduce protected, unchanged v1 defects.
+// The final public-runtime block is now regression coverage for the repaired
+// application runtime. Historical findings remain in the September 8 audit.
+// All I/O is mocked; no extension source is changed or built here.
 import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { runInNewContext, createContext, runInContext } from 'node:vm'
@@ -96,14 +98,14 @@ describe('Edge function audit with fake database only',()=>{
   it('null JSON crashes before a structured validation response',async()=>{await expect(edgeHarness().send(null)).rejects.toThrow()})
 })
 
-describe('Public runtime audit',()=>{
-  it('equal timestamp payload may replace names with empty',()=>{
+describe('Public runtime audit findings — repaired regression coverage',()=>{
+  it('equal timestamp empty payload cannot erase retained names',()=>{
     const context:any={};runInNewContext(readFileSync('public/amethyst/live-lineup.js','utf8'),context)
     const first={liveQueueState:'live',liveQueueLastUpdated:'2026-09-09T00:00:00Z',liveQueueEntries:[{name:'Synthetic',position:1}]}
-    expect(context.SparkleLiveLineup.merge(first,{...first,liveQueueState:'empty',liveQueueEntries:[]}).liveQueueEntries).toEqual([])
+    expect(context.SparkleLiveLineup.merge(first,{...first,liveQueueState:'empty',liveQueueEntries:[]}).liveQueueEntries).toEqual(first.liveQueueEntries)
   })
-  it('future response is trusted by browser retention',()=>{
+  it('future response is rejected by browser retention',()=>{
     const context:any={};runInNewContext(readFileSync('public/amethyst/live-lineup.js','utf8'),context)
-    expect(context.SparkleLiveLineup.unavailable({liveQueueLastUpdated:'2099-01-01T00:00:00Z',liveQueueEntries:[{name:'Synthetic',position:1}]}).liveQueueEntries).toHaveLength(1)
+    expect(context.SparkleLiveLineup.unavailable({liveQueueLastUpdated:'2099-01-01T00:00:00Z',liveQueueEntries:[{name:'Synthetic',position:1}]}).liveQueueEntries).toHaveLength(0)
   })
 })

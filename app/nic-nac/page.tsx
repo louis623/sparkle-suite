@@ -6,6 +6,7 @@ import {
 } from '@/lib/reviewer-smoke/config'
 import styles from './page.module.css'
 import './nic-nac-tokens.css'
+import { liveLineupOwnerMutationsAvailable } from '@/lib/live-lineup/runtime-mode'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,6 +16,7 @@ export default function NicNacPage() {
       <div className={styles.app}>
         <Suspense fallback={<div style={{ padding: 24 }}>Loading...</div>}>
           <NicNacClient
+            liveLineupReadOnly={!liveLineupOwnerMutationsAvailable()}
             reviewerSmokeVisible={
               reviewerSmokeModeEnabled() || workspaceReviewAccessEnabled()
             }
