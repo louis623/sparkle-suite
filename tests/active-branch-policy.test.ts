@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  currentBranch,
   currentRepository,
   evaluateBranchPolicy,
   normalizeRepository,
@@ -84,6 +85,58 @@ describe("Sparkle Suite active branch policy", () => {
       if (previous.repository === undefined)
         delete process.env.VERCEL_GIT_REPO_SLUG;
       else process.env.VERCEL_GIT_REPO_SLUG = previous.repository;
+    }
+  });
+
+  it("accepts explicit, matching provenance for a sourceless manual Vercel deployment", () => {
+    const previous = {
+      vercel: process.env.VERCEL,
+      branch: process.env.SPARKLE_RELEASE_BRANCH,
+      repository: process.env.SPARKLE_RELEASE_REPOSITORY,
+      vercelBranch: process.env.VERCEL_GIT_COMMIT_REF,
+      owner: process.env.VERCEL_GIT_REPO_OWNER,
+      slug: process.env.VERCEL_GIT_REPO_SLUG,
+    };
+
+    process.env.VERCEL = "1";
+    process.env.SPARKLE_RELEASE_BRANCH = "codex/nic-nac-photo-rarity-repair";
+    process.env.SPARKLE_RELEASE_REPOSITORY = "louis623/sparkle-suite";
+    delete process.env.VERCEL_GIT_COMMIT_REF;
+    delete process.env.VERCEL_GIT_REPO_OWNER;
+    delete process.env.VERCEL_GIT_REPO_SLUG;
+
+    try {
+      expect(currentBranch()).toBe("codex/nic-nac-photo-rarity-repair");
+      expect(currentRepository()).toBe("louis623/sparkle-suite");
+    } finally {
+      for (const [key, value] of Object.entries({
+        VERCEL: previous.vercel,
+        SPARKLE_RELEASE_BRANCH: previous.branch,
+        SPARKLE_RELEASE_REPOSITORY: previous.repository,
+        VERCEL_GIT_COMMIT_REF: previous.vercelBranch,
+        VERCEL_GIT_REPO_OWNER: previous.owner,
+        VERCEL_GIT_REPO_SLUG: previous.slug,
+      })) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+    }
+  });
+
+  it("rejects conflicting manual and platform provenance", () => {
+    const previousBranch = process.env.SPARKLE_RELEASE_BRANCH;
+    const previousVercelBranch = process.env.VERCEL_GIT_COMMIT_REF;
+    process.env.SPARKLE_RELEASE_BRANCH = "codex/nic-nac-photo-rarity-repair";
+    process.env.VERCEL_GIT_COMMIT_REF = "codex/nic-nac-trade-hardening";
+
+    try {
+      expect(() => currentBranch()).toThrow("does not match platform branch");
+    } finally {
+      if (previousBranch === undefined) delete process.env.SPARKLE_RELEASE_BRANCH;
+      else process.env.SPARKLE_RELEASE_BRANCH = previousBranch;
+      if (previousVercelBranch === undefined)
+        delete process.env.VERCEL_GIT_COMMIT_REF;
+      else process.env.VERCEL_GIT_COMMIT_REF = previousVercelBranch;
     }
   });
 });
