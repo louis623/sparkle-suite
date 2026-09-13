@@ -806,3 +806,24 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
   row by identity/hash/readback, then rerun the full 58-listing audit.
 - [x] Verify both Suite customer-domain aliases, the Finder live domain, and
   the reviewer-safe Nic-Nac/Dance Floor workflow without using Louis's account.
+
+## Live Lineup 2.0 staged review
+
+- [x] Publish and verify the corrected canonical privacy policy.
+- [x] Preserve the completed Nic-Nac/Dance Floor release in the future Live
+  Lineup source and rerun the frozen combined gates.
+- [x] Submit Chrome Web Store draft 2.0.0 with automatic publication disabled;
+  published 1.0.1 remains live while status is Pending review.
+- [ ] Wait for Google approval. Do not migrate, deploy the Lineup application,
+  publish/install/reload 2.0.0, or touch customer queues while review is pending.
+- [ ] After approval and explicit confirmation of a no-live-show window, follow
+  the coordinated migration, application verification, compatibility-bridge,
+  and manual extension-publication phases in the release runbook.
+- [ ] Before manual publication, visibly confirm the Store still shows draft
+  `2.0.0`, published `1.0.1`, manual publishing, and the expected item ID
+  `kmodgfffflplfdlkkhadgimmobplhoih`; reverify the submitted ZIP hash and the
+  deployed application commit/tree.
+- [ ] After publication, verify a real Web Store-installed copy and the full
+  extension-to-backend-to-Workspace-to-customer-site workflow with safe reviewer
+  data, then record the installed version and live evidence in OpenBrain and the
+  repository Vault.

@@ -3668,3 +3668,33 @@ Verification passed:
   acceptance, explicit Standard confirmation, listing persistence, published
   readback, and synthetic cleanup. Active Suite demo and active rep accounts use
   this same production Nic-Nac/Dance Floor path.
+
+## September 13, 2026 - Live Lineup 2.0 submitted for staged review
+
+- The corrected Live Lineup privacy disclosures are live from application
+  commit `1c55c60d76625fd71a22be8ce7121cae04fbc9cc` as Ready deployment
+  `dpl_3tcxFvW4qBanhEs5bjufN5WLfefH`. Both Suite domains resolve to it;
+  `/privacy-policy` returns 200 with the September 13 policy, and the landing
+  page links to that canonical route.
+- The active Nic-Nac/Dance Floor history is preserved in the future Live Lineup
+  source through GitHub merge commit
+  `61e592d0c152dc7d35e0dd76c42ddfd9171fcd77`. Its tree exactly matches the
+  Codespace merge that passed 801 application tests, the extension worker suite,
+  the consolidated extension-to-app E2E test, lint, diff checks, and the
+  production build.
+- Chrome Web Store item `kmodgfffflplfdlkkhadgimmobplhoih` now reports
+  **Pending review** for draft version `2.0.0`; published version `1.0.1`
+  remains live. Automatic publication was unchecked, and Google's confirmation
+  states the item is staged for later publication after approval.
+- Submitted ZIP SHA-256:
+  `24c28df76ee5caeaa4bc08233213c5c8d0af7004b08d0b95b19274059057c129`.
+  No Live Lineup database migration, application cutover, extension
+  publication/install/reload, or customer queue mutation occurred.
+- Current live-show state is business as usual: Chrome Web Store version
+  `1.0.1` remains the installed/published extension, the released Nic-Nac and
+  Dance Floor photo/rarity work remains current, and no pending-review source
+  can affect a show until it is deliberately published.
+- The staged draft will not publish automatically. After Google approves it,
+  it remains staged for manual publication and expires after 30 days if not
+  published. The coordinated cutover must use
+  `docs/sparkle-suite/operations/2026-09-09-live-lineup-coordinated-release-runbook.md`.

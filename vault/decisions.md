@@ -2771,6 +2771,31 @@ monorepo root incorrectly, and a normal production deployment can move every
 project alias. Route-level verification and explicit alias restoration are
 required to prove an isolated release did not change customer sites.
 
+## 2026-09-13 - Stage Live Lineup 2.0 before coordinated cutover
+
+Decision: Keep published extension 1.0.1 and the current Live Lineup application
+unchanged while Google reviews version 2.0.0. Version 2.0.0 was submitted with
+automatic publication disabled. After approval, the additive database and
+application cutover must occur in a confirmed no-live-show window before manual
+extension publication.
+
+Reason: Staged approval separates Google's unpredictable review time from the
+controlled production cutover and preserves compatibility for active shows.
+The active Nic-Nac/Dance Floor release history is merged into the future Lineup
+source so the later deployment cannot overwrite that completed repair.
+
+Implementation guardrails:
+
+- Google approval alone does not authorize publication, migration, or an
+  application release.
+- Manual publication remains required; automatic publication stays disabled.
+- Production cutover occurs only in a Louis-confirmed no-live-show window and
+  follows the coordinated release runbook in order.
+- The exact combined Lineup tree
+  `c8cdb29b62e5fe0d5ecf0a311923b448c485b9f7` and submitted ZIP hash
+  `24c28df76ee5caeaa4bc08233213c5c8d0af7004b08d0b95b19274059057c129`
+  are the immutable provenance references for the staged release.
+
 ## 2026-09-03 - Keep Lane accounting writes in the single dedicated MCP
 
 Decision: Lane's website credential remains visual-review-only. The single

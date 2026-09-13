@@ -7291,3 +7291,48 @@ Lessons retained:
   presentability, and adequate centering. Packaging is not a defect. Readable
   label photos are valuable details evidence but must remain structurally
   unable to become customer-facing media.
+
+## September 13, 2026 - Live Lineup staged Store submission
+
+- Cherry-picked the reviewed two-file privacy correction onto the active
+  Nic-Nac/Dance Floor release line as `1c55c60d`. Focused policy coverage,
+  ESLint, diff checks, and a 32-page production build passed.
+- Released only that policy correction as Vercel deployment
+  `dpl_3tcxFvW4qBanhEs5bjufN5WLfefH`; live policy, landing link, both Suite
+  domains, and a representative customer domain returned 200. The previous
+  deployment `dpl_5X3qwPPVmJ5qDCqbEscCJNBY9CzM` remains preserved evidence.
+- Merged the active Nic-Nac/Dance Floor history into the protected Live Lineup
+  source. The tested Codespace tree
+  `c8cdb29b62e5fe0d5ecf0a311923b448c485b9f7` was written to GitHub as merge
+  commit `61e592d0`; no extension file changed during reconciliation.
+- Reverified the exact 17,136-byte 2.0.0 ZIP against the merged source. SHA-256
+  remained `24c28df76ee5caeaa4bc08233213c5c8d0af7004b08d0b95b19274059057c129`.
+- Through native computer control, verified the exact Store item and publisher,
+  saved the canonical privacy URL, unchecked automatic publication, submitted
+  the draft, and received Google's visible confirmation. Final Package page:
+  status Pending review, draft 2.0.0, published 1.0.1.
+- No migrations, Lineup application deployment, extension publication,
+  install/reload, customer-account use, or live queue mutation occurred.
+
+Lessons retained:
+
+- A Chrome Web Store draft and the currently published package are separate
+  release lanes. Uploading/submitting `2.0.0` does not change active shows while
+  `1.0.1` remains published, provided automatic publication is disabled.
+- Before staging an extension that depends on future application work, merge
+  the current production release lineage into that future source and verify the
+  exact resulting tree. This prevents a later Lineup deployment from silently
+  overwriting the completed Nic-Nac/Dance Floor repair.
+- Freeze and identify the exact package bytes before upload. Store the version,
+  byte size, complete inventory, and SHA-256; then verify the Store item,
+  publisher, review state, published version, and auto-publish choice visibly.
+- Keep policy-only application releases separate from the held Lineup cutover.
+  A live privacy-policy correction can be deployed safely without applying the
+  new Lineup schema or activating new extension behavior.
+- Store approval is not authorization to cut over production. Approval starts
+  a new controlled phase requiring Louis's confirmation that no live shows are
+  running, additive migrations, application/backend/customer-site verification,
+  compatibility-bridge checks, and only then manual extension publication.
+- Authentication or tooling failures must not be worked around by changing the
+  tested source. The tested tree hash is the durable artifact; use an authorized
+  transport that preserves that exact tree and verify the resulting remote hash.
