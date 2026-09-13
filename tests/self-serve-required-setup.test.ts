@@ -846,6 +846,7 @@ describe('self-serve required setup service contract', () => {
 
     fromMock
       .mockReturnValueOnce({ select: selectMock })
+      .mockReturnValueOnce({ select:()=>({eq:()=>({in:()=>({maybeSingle:async()=>({data:null,error:null})})})}) })
       .mockReturnValueOnce({ update: repsUpdateMock })
       .mockReturnValueOnce({ upsert: siteSettingsUpsertMock })
       .mockReturnValueOnce({ update: setupUpdateMock })
@@ -952,6 +953,7 @@ describe('self-serve required setup service contract', () => {
 
     fromMock
       .mockReturnValueOnce({ select: selectMock })
+      .mockReturnValueOnce({ select:()=>({eq:()=>({in:()=>({maybeSingle:async()=>({data:null,error:null})})})}) })
       .mockReturnValueOnce({ update: updateMock })
     selectMock.mockReturnValueOnce({ eq: eqMock })
     eqMock.mockReturnValueOnce({ maybeSingle: maybeSingleMock })

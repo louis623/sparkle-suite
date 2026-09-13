@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { tool } from 'ai'
 import { loadNicNacShowSessionContext } from '@/lib/nic-nac/show-sessions'
+import { loadOwnedShowLineup } from '@/lib/live-lineup/show-context'
 import type { ToolDefinition } from './types'
 
 const inputSchema = z.object({
@@ -20,6 +21,7 @@ export function makeGetShowSessionContextTool(ctx: {
       loadNicNacShowSessionContext(ctx.supabase, ctx.repId, {
         eventLimit,
         memoryLimit,
+        loadEffectiveLineup: () => loadOwnedShowLineup(ctx.repId),
       }),
   })
 }

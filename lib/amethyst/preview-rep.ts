@@ -101,6 +101,23 @@ async function loadRepByPublicSiteSlug(
   return data ?? null
 }
 
+async function loadRepByExplicitTarget(
+  admin: PreviewAdminClient,
+  repId: string,
+  select: string,
+) {
+  for (const customDomain of getAmethystCustomDomainCandidates(repId)) {
+    const customDomainRep = await loadRepByCustomDomain(
+      admin,
+      customDomain,
+      select,
+    )
+    if (customDomainRep) return customDomainRep
+  }
+
+  return loadRepById(admin, repId, select)
+}
+
 async function loadLatestReadyLaunchRepId(admin: PreviewAdminClient) {
   const query = admin.from('sparkle_suite_launch_builds').select('rep_id') as {
     eq(column: string, value: string): {
@@ -154,6 +171,17 @@ export async function resolveAmethystPreviewRep(
   const publicSiteSlug = options.publicSiteSlug?.trim().toLowerCase()
   const repId = options.repId?.trim()
 
+  if (publicSiteSlug && repId) {
+    // Both values are server-issued corroborating identity, not alternatives.
+    // A stale or crafted mismatch must never silently choose one tenant.
+    const [slugRep, explicitRep] = await Promise.all([
+      loadRepByPublicSiteSlug(admin, publicSiteSlug, select),
+      loadRepByExplicitTarget(admin, repId, select),
+    ])
+    if (!slugRep || !explicitRep || slugRep.id !== explicitRep.id) return null
+    return (await canServePublicCustomerSite(admin, slugRep.id)) ? slugRep : null
+  }
+
   if (publicSiteSlug) {
     const rep = await loadRepByPublicSiteSlug(admin, publicSiteSlug, select)
     if (!rep) return null
@@ -162,16 +190,7 @@ export async function resolveAmethystPreviewRep(
   }
 
   if (repId) {
-    for (const customDomain of getAmethystCustomDomainCandidates(repId)) {
-      const customDomainRep = await loadRepByCustomDomain(admin, customDomain, select)
-      if (customDomainRep) {
-        return (await canServePublicCustomerSite(admin, customDomainRep.id))
-          ? customDomainRep
-          : null
-      }
-    }
-
-    const rep = await loadRepById(admin, repId, select)
+    const rep = await loadRepByExplicitTarget(admin, repId, select)
     if (rep) return (await canServePublicCustomerSite(admin, rep.id)) ? rep : null
     if (options.strict) return null
   }

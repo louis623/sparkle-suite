@@ -125,41 +125,18 @@ describe('required Nic-Nac setup prompt', () => {
     expect(prompt).toContain('Live Queue is not optional')
     expect(prompt).toContain('If Live Queue setup is blocked')
     expect(prompt).toContain('Secret Rep ID Number')
-    expect(prompt).toContain(
-      'Only provide a Secret Rep ID Number that came from get_required_setup_state.liveQueueSyncCode or a successful ensure_live_queue_sync_code result',
-    )
-    expect(prompt).toContain(
-      'Never invent, infer, shorten, lengthen, or make a Fizz-style Secret Rep ID Number',
-    )
-    expect(prompt).toContain(
-      'Expected assigned-code examples look like MHF-7342 or BWB-5819',
-    )
-    expect(prompt).toContain(
-      'Do not present codes like GBBFIZZ2024 unless that exact value came from get_required_setup_state.liveQueueSyncCode or ensure_live_queue_sync_code',
-    )
-    expect(prompt).toContain(
-      'If get_required_setup_state returns no liveQueueSyncCode, call ensure_live_queue_sync_code before giving the rep a code',
-    )
-    expect(prompt).toContain(
-      'Only use the syncCode returned by ensure_live_queue_sync_code when that tool succeeds',
-    )
+    expect(prompt).toContain('use its private publisher pairing controls')
+    expect(prompt).toContain('Never request, repeat, invent, or send a private publisher key through chat')
+    expect(prompt).toContain('legacy identity references, not v2 publisher keys or proof of connection')
+    expect(prompt).toContain('the upgraded publisher extension is required')
     expect(prompt).toContain(
       'Do not mark Live Queue setup complete from vague replies like yes, okay, install now, or set it up now',
     )
-    expect(prompt).toContain(
-      'Only complete Live Queue setup after the rep confirms the extension is installed, the saved Secret Rep ID Number was entered, Bomb Party Party Orders is open, Party Filter is set, and Live Queue status is connected',
-    )
-    expect(prompt).toContain(
-      'Give the rep their saved Secret Rep ID Number in the same reply as the Chrome Extension Store link',
-    )
-    expect(prompt).toContain(
-      'If the extension asks for a code, provide the saved Secret Rep ID Number directly',
-    )
-    expect(prompt).toContain(
-      'Do not say the extension generates or displays the code',
-    )
-    expect(prompt).toContain('Say this number is private and should not be shared publicly')
-    expect(prompt).toContain('Do not ask for the rep email to look up the code')
+    expect(prompt).toContain('server rechecks fresh source readiness at completion')
+    expect(prompt).toContain('answer: {}, and completeStep: true')
+    expect(prompt).toContain('A valid empty Party Orders table can be ready')
+    expect(prompt).toContain('Announce completion only after that tool succeeds')
+    expect(prompt).toContain('Never re-open an already completed Live Queue setup')
     expect(prompt).toContain(
       'https://chromewebstore.google.com/detail/sparkle-suite-live-queue/kmodgfffflplfdlkkhadgimmobplhoih',
     )

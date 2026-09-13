@@ -80,6 +80,36 @@ const isMileHighFizzHybrid = CONTENT.publicSiteVariant === "mile_high_fizz_hybri
 const isBrittWithBlingHybrid = CONTENT.publicSiteVariant === "britt_with_bling_hybrid";
 const isBlingKitchenHybrid = CONTENT.publicSiteVariant === "bling_kitchen_hybrid";
 
+function buildContextSearch() {
+  const params = new URLSearchParams(window.location.search || "");
+  const repId = runtimeText(RUNTIME_CONTEXT.repId);
+  const publicSiteSlug = runtimeText(RUNTIME_CONTEXT.publicSiteSlug).toLowerCase();
+  // Tenant identity comes only from the server bootstrap. Keep harmless view
+  // parameters, but never let a shared/crafted page URL retarget API reads.
+  params.delete("c");
+  params.delete("repId");
+  params.delete("publicSiteSlug");
+  if (repId) params.set("c", repId);
+  if (publicSiteSlug) params.set("publicSiteSlug", publicSiteSlug);
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+function withCurrentSearch(path) {
+  return `${path}${buildContextSearch()}`;
+}
+
+// Capture the shared helper once so a missing/blocked optional lineup script
+// cannot crash the rest of the customer site during React rendering.
+const LIVE_LINEUP_DIALOG_HOOK = window.SparkleLiveLineup?.useDialog || null;
+
+function useLiveLineupDialog(open, onClose) {
+  const fallbackRef = React.useRef(null);
+  return LIVE_LINEUP_DIALOG_HOOK
+    ? LIVE_LINEUP_DIALOG_HOOK(React, open, onClose)
+    : fallbackRef;
+}
+
 function isExternalHref(href) {
   return /^https?:\/\//.test(href || "");
 }
@@ -591,17 +621,36 @@ function Ticker({ topText }) {
   );
 }
 
+const LiveLineupContext = React.createContext(null);
+function LiveLineupProvider({ children }) {
+  const [lineup, setLineup] = React.useState(() => RUNTIME_CONTEXT.targeted ? CONTENT : null);
+  React.useEffect(() => {
+    if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
+    return window.SparkleLiveLineup.start({
+      url: withCurrentSearch("/api/amethyst/live-lineup"),
+      initial: CONTENT,
+      onUpdate: setLineup,
+    });
+  }, []);
+  return <LiveLineupContext.Provider value={lineup}>{children}</LiveLineupContext.Provider>;
+}
+
 function LiveQueueStrip({ onOpen }) {
-  if (LIVE_QUEUE_ENTRIES.length === 0) {
+  const lineup = React.useContext(LiveLineupContext);
+  const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
+  const lineupState = lineup?.liveQueueState;
+  const delayed = lineupState === "delayed";
+  const current = lineupState === "live" || lineupState === "empty";
+  if (entries.length === 0) {
     return (
       <section className="hp-trade-preview">
         <div className="hp-trade-preview-inner">
           <div className="hp-trade-preview-head">
-            <span className="live-dot" />
-            <span>Live Lineup</span>
+            <span className="live-dot" style={!current ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
+            <span>Live Lineup{delayed ? " · Update delayed" : ""}</span>
           </div>
           <div className="hp-trade-preview-items">
-            Live Lineup is ready. Customer names appear here when a live show is connected.
+            {lineup?.liveQueueSummary || "Live Lineup is waiting for a recent update."}
           </div>
           <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
         </div>
@@ -613,11 +662,11 @@ function LiveQueueStrip({ onOpen }) {
     <section className="hp-trade-preview">
       <div className="hp-trade-preview-inner">
         <div className="hp-trade-preview-head">
-          <span className="live-dot" />
-          <span>Live Lineup</span>
+          <span className="live-dot" style={!current ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
+          <span>Live Lineup{delayed ? " · Update delayed" : ""}</span>
         </div>
         <div className="hp-trade-preview-items">
-          {LIVE_QUEUE_ENTRIES.slice(0, 4).map((entry) => (
+          {entries.slice(0, 4).map((entry) => (
             <button key={entry.position} type="button" onClick={onOpen} className="hp-trade-preview-pill">
               <span className="pos">{entry.position}</span>
               <span className="meta">
@@ -633,21 +682,25 @@ function LiveQueueStrip({ onOpen }) {
 }
 
 function LiveQueueModal({ open, onClose }) {
+  const lineup = React.useContext(LiveLineupContext);
+  const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
+  const dialogRef = useLiveLineupDialog(open, onClose);
   if (!open) return null;
 
   return (
     <div className="hp-queue-modal-mask" onClick={onClose}>
-      <div className="hp-queue-modal" onClick={(event) => event.stopPropagation()}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="live-lineup-title" tabIndex={-1} className="hp-queue-modal" onClick={(event) => event.stopPropagation()}>
         <div className="hp-queue-modal-head">
           <div>
             <div className="hp-queue-modal-eyebrow">Live Lineup</div>
-            <h2 className="hp-queue-modal-title">Full lineup</h2>
+            <h2 id="live-lineup-title" className="hp-queue-modal-title">Full lineup</h2>
           </div>
           <button type="button" className="hp-queue-modal-close" onClick={onClose} aria-label="Close Live Lineup">x</button>
         </div>
-        {LIVE_QUEUE_ENTRIES.length > 0 ? (
+        {entries.length > 0 && <p className="hp-lineup-status">{lineup?.liveQueueSummary}</p>}
+        {entries.length > 0 ? (
           <div className="hp-queue-modal-list">
-            {LIVE_QUEUE_ENTRIES.map((entry) => (
+            {entries.map((entry) => (
               <div key={entry.position} className={`hp-queue-modal-row ${entry.highlight ? "now" : ""}`}>
                 <span className="pos">{entry.position}</span>
                 <div className="meta">
@@ -657,7 +710,7 @@ function LiveQueueModal({ open, onClose }) {
             ))}
           </div>
         ) : (
-          <div className="hp-queue-modal-empty">Live Lineup is ready. Customer names appear here when a live show is connected.</div>
+          <div className="hp-queue-modal-empty">{lineup?.liveQueueSummary || "Live Lineup is waiting for a recent update."}</div>
         )}
       </div>
     </div>
@@ -1197,17 +1250,6 @@ function App() {
     if (t.shapeRadius === "soft") body.classList.add("shape-soft");
   }, [t]);
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    if (queueOpen) {
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [queueOpen]);
-
   const applyPreset = (preset) => {
     const presetValues = PRESETS[preset];
     if (!presetValues) return;
@@ -1495,4 +1537,4 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(<LiveLineupProvider><App /></LiveLineupProvider>);

@@ -960,6 +960,9 @@ export interface ReorderPublicSiteRecipesInput {
 }
 
 export interface LiveQueueSnapshot {
+  revision?: number
+  sourceReady?: boolean
+  serverTime?: string
   syncCode: string
   queue: string[]
   queueLength: number

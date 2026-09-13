@@ -41,7 +41,7 @@ import {
   isTradeWorkspaceMutationPart,
   NIC_NAC_WORKSPACE_REFRESH_EVENT,
 } from '@/lib/nic-nac/workspace-refresh-events'
-import type { RequiredSetupStepId } from '@/lib/self-serve/required-setup'
+import type { RequiredSetupStepId } from '@/lib/self-serve/required-setup-contract'
 
 const MAX_ATTACHMENTS = 10
 const CONVERSATION_MESSAGE_REFRESH_MS = 15_000

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildPersonalizedRepGreeting,
-  normalizeRepDisplayName,
   getRepGivenName,
+  normalizeRepDisplayName,
 } from '@/lib/nic-nac/core/rep-personalization'
 
 describe('Nic-Nac rep personalization', () => {

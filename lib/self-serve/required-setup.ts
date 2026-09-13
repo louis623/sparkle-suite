@@ -5,84 +5,23 @@ import {
   validatePublicSiteSlug,
 } from '@/lib/public-site/show-link'
 import { publishRequiredSetupCustomerSiteDraft } from './required-setup-site-draft'
+import { reservedReviewerSetupSlug } from '@/lib/reviewer-smoke/identity'
+import {
+  REQUIRED_SETUP_STEPS,
+  type RequiredSetupStepId,
+  type RequiredSetupStatus,
+  type RequiredSetupSessionRow,
+  type RequiredSetupState,
+  type SaveRequiredSetupAnswerOptions,
+} from './required-setup-contract'
+// Preserve existing server imports; browser consumers import the contract directly.
+export { REQUIRED_SETUP_STEPS } from './required-setup-contract'
+export type { RequiredSetupStepId, RequiredSetupStatus, RequiredSetupSessionRow, RequiredSetupState, SaveRequiredSetupAnswerOptions } from './required-setup-contract'
 
 type JsonObject = Record<string, unknown>
 type AdminClient = ReturnType<
   typeof import('@/lib/supabase/admin')['createAdminClient']
 >
-
-export const REQUIRED_SETUP_STEPS = [
-  { id: 'account_basics', label: 'Account basics', required: true },
-  { id: 'site_skin', label: 'Customer-facing site theme', required: true },
-  { id: 'welcome_copy', label: 'Welcome copy', required: true },
-  { id: 'about_page', label: 'About page', required: true },
-  { id: 'show_schedule', label: 'Show schedule', required: true },
-  {
-    id: 'customer_site_orientation',
-    label: 'Customer-facing website orientation',
-    required: true,
-  },
-  {
-    id: 'live_queue_setup',
-    label: 'Live Queue setup',
-    required: true,
-  },
-  {
-    id: 'trade_board_orientation',
-    label: 'Dance Floor orientation',
-    required: true,
-  },
-  {
-    id: 'final_preview_approval',
-    label: 'Final preview approval',
-    required: true,
-  },
-] as const
-
-export type RequiredSetupStepId = (typeof REQUIRED_SETUP_STEPS)[number]['id']
-
-export type RequiredSetupStatus =
-  | 'checkout_required'
-  | 'payment_pending'
-  | 'required_setup'
-  | 'setup_blocked'
-  | 'dashboard_unlocked'
-
-export type RequiredSetupSessionRow = {
-  id: string
-  rep_id: string
-  status: string | null
-  current_step: string | null
-  completed_steps: unknown
-  answers: unknown
-  generated_copy: unknown
-  support_state: unknown
-  dashboard_unlocked_at: string | null
-  created_at: string | null
-  updated_at: string | null
-}
-
-export type RequiredSetupState = {
-  id: string | null
-  repId: string | null
-  status: RequiredSetupStatus
-  currentStep: RequiredSetupStepId
-  completedSteps: RequiredSetupStepId[]
-  steps: typeof REQUIRED_SETUP_STEPS
-  answers: JsonObject
-  generatedCopy: JsonObject
-  supportState: JsonObject
-  dashboardUnlockedAt: string | null
-  createdAt: string | null
-  updatedAt: string | null
-  nextStep: RequiredSetupStepId | null
-  canUnlockDashboard: boolean
-}
-
-export type SaveRequiredSetupAnswerOptions = {
-  generatedCopyPatch?: JsonObject
-  supportStatePatch?: JsonObject
-}
 
 const REQUIRED_SETUP_STEP_IDS = REQUIRED_SETUP_STEPS.map((step) => step.id)
 const REQUIRED_SETUP_STATUSES: RequiredSetupStatus[] = [
@@ -184,9 +123,10 @@ async function buildAccountBasicsPublicSitePatch(
     return answerPatch
   }
 
-  const generatedSlug = hasExplicitSlug
+  const reservedSlug = await reservedReviewerSetupSlug(admin, repId)
+  const generatedSlug = reservedSlug ?? (hasExplicitSlug
     ? generatePublicSiteSlug(answerPatch.publicSiteSlug as string)
-    : generatePublicSiteSlug(answerPatch.liveShowName as string)
+    : generatePublicSiteSlug(answerPatch.liveShowName as string))
 
   const validation = validatePublicSiteSlug(generatedSlug)
   if (!validation.ok) {
@@ -332,17 +272,25 @@ async function updateRequiredSetupSession(
   admin: AdminClient,
   repId: string,
   patch: Record<string, unknown>,
+  expected?: RequiredSetupSessionRow,
 ) {
-  const { data, error } = await admin
+  let query = admin
     .from('self_serve_setup_sessions')
     .update({
       ...patch,
       updated_at: new Date().toISOString(),
     })
     .eq('rep_id', repId)
-    .select('*')
-    .single()
+  if (expected) {
+    // Never overwrite a concurrent completion/unlock or another setup answer.
+    query = query.eq('status', expected.status)
+    query = expected.updated_at === null
+      ? query.is('updated_at', null)
+      : query.eq('updated_at', expected.updated_at)
+  }
+  const { data, error } = await query.select('*').single()
 
+  if (expected && error?.code === 'PGRST116') throw new Error('Required setup changed; refresh the setup state and check again.')
   if (error) throw error
   return normalizeRequiredSetupSession(data as RequiredSetupSessionRow)
 }
@@ -398,6 +346,7 @@ function requireExistingRequiredSetupSession(
   if (!row) {
     throw new Error(`Required setup session not found for rep ${repId}.`)
   }
+  if (row.rep_id !== repId) throw new Error('Required setup tenant mismatch.')
 
   return row
 }
@@ -452,6 +401,9 @@ export async function saveRequiredSetupAnswer(
     await loadRequiredSetupSessionRow(admin, repId),
     repId,
   )
+  // Live Lineup evidence is server-owned. Never persist chat claims, keys,
+  // generated text, or support patches as this step's connection receipt.
+  if (stepId === 'live_queue_setup') return normalizeRequiredSetupSession(row)
   const normalizedAnswerPatch =
     stepId === 'account_basics'
       ? await buildAccountBasicsPublicSitePatch(admin, repId, answerPatch)
@@ -493,6 +445,25 @@ export async function completeRequiredSetupStep(
     repId,
   )
   const completedSteps = normalizeCompletedSteps(row.completed_steps)
+  if (stepId === 'live_queue_setup') {
+    // A historical completion remains valid; source health is not an access lease.
+    if (completedSteps.includes(stepId) || row.status === 'dashboard_unlocked') {
+      return normalizeRequiredSetupSession(row)
+    }
+    if (row.status !== 'required_setup' && row.status !== 'setup_blocked') {
+      throw new Error('Live Lineup setup requires an active required setup session.')
+    }
+    const { readLineupSetupReadiness } = await import('@/lib/live-lineup/setup-readiness')
+    const readiness = await readLineupSetupReadiness(admin, repId)
+    if (!readiness.ready) {
+      throw new Error(`Live Lineup connection is not ready (${readiness.reason}). Use the setup connection panel, then check again.`)
+    }
+    // Replace (do not merge) arbitrary prior claims. No credentials/customer IDs.
+    answerPatch = { serverReceipt: {
+      protocol: readiness.protocol, ready: true, checkedAt: readiness.checkedAt,
+      lastReadyAt: readiness.lastReadyAt, generation: readiness.generation, revision: readiness.revision,
+    } }
+  }
   const nextCompletedSteps = completedSteps.includes(stepId)
     ? completedSteps
     : [...completedSteps, stepId]
@@ -504,10 +475,12 @@ export async function completeRequiredSetupStep(
   }
 
   if (answerPatch) {
-    patch.answers = mergeStepPatch(row.answers, stepId, answerPatch)
+    patch.answers = stepId === 'live_queue_setup'
+      ? { ...normalizeJsonObject(row.answers), [stepId]: answerPatch }
+      : mergeStepPatch(row.answers, stepId, answerPatch)
   }
 
-  return updateRequiredSetupSession(admin, repId, patch)
+  return updateRequiredSetupSession(admin, repId, patch, stepId === 'live_queue_setup' ? row : undefined)
 }
 
 export async function unlockRequiredSetup(repId: string) {

@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ensureLiveQueueSyncCodeForRep } from '@/lib/services/live-queue'
 import { getJoinTeamRoster, upsertJoinTeamMember } from '@/lib/services/join-team-roster'
-import { REQUIRED_SETUP_STEPS } from '@/lib/self-serve/required-setup'
+import { REQUIRED_SETUP_STEPS } from '@/lib/self-serve/required-setup-contract'
 import {
   BRITT_WITH_BLING_PROFILE,
   BRITT_WITH_BLING_TEAM_MEMBERS,

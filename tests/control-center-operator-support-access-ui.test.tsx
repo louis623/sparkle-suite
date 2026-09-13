@@ -91,8 +91,9 @@ describe('Control Center transparent operator support access UI', () => {
 
     expect(supportClientSource).toContain('const operatorSupportContext = useMemo(')
     expect(supportClientSource).toContain(
-      '<NicNacClient operatorSupport={operatorSupportContext} />',
+      'operatorSupport={operatorSupportContext}',
     )
+    expect(supportClientSource).toContain('liveLineupReadOnly={liveLineupReadOnly}')
     expect(clientSource).toContain(
       'const operatorSupportSessionId = operatorSupport?.sessionId ?? null',
     )

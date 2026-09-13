@@ -1,0 +1,12 @@
+background.js
+content.js
+icons/icon128.png
+icons/icon16.png
+icons/icon48.png
+manifest.json
+popup.css
+popup.html
+popup.js
+publisher-client.js
+queue-filter.js
+queue-parser.js

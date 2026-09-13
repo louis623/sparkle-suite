@@ -1,17 +1,28 @@
 {
   "manifest_version": 3,
   "name": "Sparkle Suite Live Queue",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Syncs live party order queue from Bomb Party to Sparkle Suite websites in real time.",
-  "permissions": ["storage", "alarms"],
-  "host_permissions": ["https://myoffice.bombparty.com/*"],
+  "permissions": [
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://myoffice.bombparty.com/*",
+    "https://www.yoursparklesuite.com/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["https://myoffice.bombparty.com/live-party-orders*"],
-      "js": ["queue-filter.js", "content.js"],
+      "matches": [
+        "https://myoffice.bombparty.com/live-party-orders*"
+      ],
+      "js": [
+        "queue-parser.js",
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
@@ -27,5 +38,6 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "minimum_chrome_version": "120"
 }

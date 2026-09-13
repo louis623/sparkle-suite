@@ -4,6 +4,7 @@ import {
 } from './required-setup-draft'
 import { DEFAULT_AMETHYST_APPEARANCE_PRESET } from '@/lib/amethyst/appearance-presets'
 import type { RequiredSetupState } from './required-setup'
+import { trustedReviewerSetupIdentity } from '@/lib/reviewer-smoke/identity'
 
 type RequiredSetupDraftAdminClient = {
   from(table: string): unknown
@@ -43,6 +44,9 @@ export async function publishRequiredSetupCustomerSiteDraft(
   state: RequiredSetupState,
 ) {
   if (!state.repId) return
+  const reviewer = await trustedReviewerSetupIdentity(
+    admin as Parameters<typeof trustedReviewerSetupIdentity>[0], state.repId,
+  )
   const draft = buildRequiredSetupCustomerSiteDraft(state)
   const hasSiteDraft =
     Boolean(draft.welcomeHeadline) ||
@@ -53,7 +57,9 @@ export async function publishRequiredSetupCustomerSiteDraft(
   const repPatch = withoutEmptyValues({
     display_name: draft.conversationName,
     business_name: draft.customerFacingDisplayName,
-    email: draft.bestContactEmail,
+    // A reviewer's contact answer is synthetic draft content, not authority to
+    // reassign its reset/login identity. Ordinary customer behavior is unchanged.
+    email: reviewer ? undefined : draft.bestContactEmail,
     shop_link: draft.bombPartyRepStoreLink,
     streaming_links: draft.primarySocialLinks,
     social_handles: draft.primarySocialLinks,

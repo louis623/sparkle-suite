@@ -106,11 +106,13 @@ export interface BuildNicNacShowSessionContextInput {
   recentEvents: NicNacShowSessionEvent[]
   memoryNotes: NicNacShowMemoryNote[]
   liveQueueSnapshot?: LiveQueueSnapshot | null
+  effectiveLineup?: { repId: string; snapshot: LiveQueueSnapshot | null } | null
 }
 
 export interface LoadNicNacShowSessionContextOptions {
   eventLimit?: number
   memoryLimit?: number
+  loadEffectiveLineup?: () => Promise<{ repId: string; snapshot: LiveQueueSnapshot | null }>
 }
 
 function mapSession(row: SessionRow): NicNacShowSession {
@@ -316,10 +318,9 @@ export function buildNicNacShowSessionContext(
 
   return {
     activeSession,
-    liveQueueSnapshot:
-      activeSession && input.liveQueueSnapshot?.syncCode === activeSession.liveQueueSyncCode
-        ? input.liveQueueSnapshot
-        : null,
+    liveQueueSnapshot: !activeSession ? null : input.effectiveLineup !== undefined
+      ? input.effectiveLineup?.repId === input.repId ? input.effectiveLineup.snapshot : null
+      : input.liveQueueSnapshot?.syncCode === activeSession.liveQueueSyncCode ? input.liveQueueSnapshot : null,
     recentEvents,
     memory: {
       preferences: memoryNotes
@@ -355,7 +356,11 @@ export async function loadNicNacShowSessionContext(
   const activeSession = await loadActiveNicNacShowSession(supabase, repId)
 
   let recentEvents: NicNacShowSessionEvent[] = []
-  const liveQueueSnapshot = activeSession
+  // V2 identity is the freshly authorized rep, not the historical legacy sync-code anchor.
+  // Reading the lineup never starts, ends, or reanchors the Nic-Nac show session.
+  const effectiveLineup = activeSession && options.loadEffectiveLineup
+    ? await options.loadEffectiveLineup() : undefined
+  const liveQueueSnapshot = activeSession && !options.loadEffectiveLineup
     ? await getLiveQueueSnapshot(supabase, {
         repId,
         syncCode: activeSession.liveQueueSyncCode,
@@ -415,6 +420,7 @@ export async function loadNicNacShowSessionContext(
     repId,
     activeSession,
     liveQueueSnapshot,
+    effectiveLineup,
     recentEvents,
     memoryNotes,
   })

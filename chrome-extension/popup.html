@@ -1,64 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=280">
-  <link rel="stylesheet" href="popup.css">
-  <title>Sparkle Suite</title>
-</head>
-<body>
-  <div class="header">
-    <span class="logo">&#10024; Sparkle Suite</span>
-  </div>
-
-  <div class="body">
-    <!-- Setup View -->
-    <div id="setup-view">
-      <label for="sync-input">Enter your Sync Code</label>
-      <input type="text" id="sync-input" placeholder="e.g. MHF-7342" maxlength="8" spellcheck="false" autocomplete="off">
-      <div id="setup-error" class="error"></div>
-      <button id="save-btn">Save</button>
-    </div>
-
-    <!-- Active View -->
-    <div id="active-view" class="hidden">
-      <div class="info-row">
-        <span class="label">Sync Code</span>
-        <span id="display-code" class="value code"></span>
-      </div>
-
-      <div class="info-row">
-        <span class="label">Syncing</span>
-        <label class="toggle">
-          <input type="checkbox" id="toggle-enabled">
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <div class="info-row">
-        <span class="label">Status</span>
-        <span class="value">
-          <span id="status-dot" class="dot"></span>
-          <span id="status-text"></span>
-        </span>
-      </div>
-
-      <div class="party-filter">
-        <div class="party-filter-header">
-          <span class="label">Party Filter</span>
-          <span id="party-filter-summary" class="party-filter-summary"></span>
-        </div>
-        <div id="party-filter-list" class="party-filter-list">
-          <span class="party-filter-empty">Open the Bomb Party orders page to detect parties.</span>
-        </div>
-      </div>
-
-      <div class="footer">
-        <a href="#" id="reset-link">Reset</a>
-      </div>
-    </div>
-  </div>
-
-  <script src="popup.js"></script>
-</body>
-</html>
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sparkle Suite Live Lineup</title><link rel="stylesheet" href="popup.css"></head>
+<body><header><h1>Sparkle Suite</h1><p>Live Lineup · Read-only Bomb Party connection</p></header><main>
+<p id="error" role="alert"></p><div class="panel"><p id="health" role="status">Checking connection…</p><p id="last-ready" class="muted"></p></div>
+<fieldset id="controls"><section id="pairing" hidden><h2>Pair this browser</h2><p class="muted">Create a pairing key in your Sparkle Suite Workspace’s Live Lineup card. The old short Sync Code does not work here.</p>
+<form id="pair-form"><label for="pair-key">Workspace pairing key</label><input id="pair-key" type="password" maxlength="48" autocomplete="off" spellcheck="false" required placeholder="Paste your pairing key"><button type="submit">Save pairing key</button></form></section>
+<section id="connected" hidden><h2>Your source</h2><p id="current-source" class="muted"></p><p id="source-warning"></p><div class="actions"><button id="review-source" type="button">Review / select source</button><button id="pause" type="button" class="secondary">Pause</button></div><p class="muted">Pausing stops this browser’s updates. It does not clear your customer-facing lineup.</p>
+<div id="review" hidden><h2>Confirm source</h2><p id="show-summary"></p><form id="select-form"><label for="source-tab">Open Bomb Party orders tab</label><select id="source-tab" required></select><div id="initial-parties"><label for="party-ids">Party IDs, separated by commas</label><input id="party-ids" type="text" maxlength="6200" spellcheck="false" autocomplete="off" placeholder="123, 456"></div><label class="check"><input id="confirm-source" type="checkbox" required><span>I reviewed this show and want this browser to publish from the selected orders tab.</span></label><div class="actions"><button type="submit">Use this source</button><button type="button" id="cancel-review" class="secondary">Cancel</button></div></form></div>
+<p class="muted">Reorder, hold and return customers in Workspace. Start a new show there before switching to its parties.</p><details><summary>Remove this browser’s pairing</summary><p class="muted">This removes the saved key from this browser only. Revoke the key in Workspace if it must no longer work anywhere.</p><label class="check"><input id="confirm-disconnect" type="checkbox"><span>Remove this browser’s saved pairing key.</span></label><button id="disconnect" type="button" class="secondary">Remove pairing</button></details></section></fieldset>
+<p class="muted">Keep your Bomb Party orders tab open. This extension never refreshes or changes that page.</p></main><script src="popup.js"></script></body></html>

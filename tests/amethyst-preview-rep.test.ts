@@ -4,6 +4,7 @@ import {
   DEFAULT_AMETHYST_PREVIEW_EMAIL,
   resolveAmethystPreviewRep,
 } from '@/lib/amethyst/preview-rep'
+import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 
 function makeAdminClient({
   repsByEmail = {},
@@ -206,6 +207,46 @@ describe('Amethyst preview rep resolver', () => {
       id: 'rep-slug',
       email: 'sasha@example.com',
     })
+  })
+
+  it('requires matching explicit rep and public slug identities', async () => {
+    const rep = { id: 'rep-same', email: 'same@example.com' }
+    const admin = makeAdminClient({
+      repsById: { 'rep-same': rep },
+      repsByPublicSiteSlug: { sparklebysasha: rep },
+      paidRepIds: ['rep-same'],
+    })
+
+    await expect(resolveAmethystPreviewRep(admin, {
+      repId: 'rep-same',
+      publicSiteSlug: 'SparkleBySasha',
+      strict: true,
+    })).resolves.toEqual(rep)
+  })
+
+  it('fails closed when explicit rep and public slug resolve to different tenants', async () => {
+    const admin = makeAdminClient({
+      repsById: {
+        'rep-one': { id: 'rep-one', email: 'one@example.com' },
+      },
+      repsByPublicSiteSlug: {
+        sparkletwo: { id: 'rep-two', email: 'two@example.com' },
+      },
+      paidRepIds: ['rep-one', 'rep-two'],
+    })
+
+    const target = resolveAmethystRequestTarget(new Request(
+      'https://www.yoursparklesuite.com/api/amethyst/live-lineup?c=rep-one&publicSiteSlug=sparkletwo',
+    ))
+    expect(target).toMatchObject({
+      repId: 'rep-one', publicSiteSlug: 'sparkletwo', targeted: true,
+    })
+
+    await expect(resolveAmethystPreviewRep(admin, {
+      repId: target.repId ?? target.customDomain,
+      publicSiteSlug: target.publicSiteSlug,
+      strict: true,
+    })).resolves.toBeNull()
   })
 
   it('returns null for an unpaid public site slug match without preview email fallback', async () => {

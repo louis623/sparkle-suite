@@ -52,6 +52,7 @@ const AMETHYST_ASSETS = new Set([
   'join.css',
   'Join.html',
   'join-runtime.js',
+  'live-lineup.js',
   'join.jsx',
   'pantry.css',
   'Pantry.html',

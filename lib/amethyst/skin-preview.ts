@@ -16,6 +16,21 @@ const LABELS: Record<SkinPreviewPage, string> = {
 }
 const previewPath = (page: SkinPreviewPage) => `/skin-preview/gnome_garden/${page}`
 
+// Explicit sample data only. The opaque preview never contacts the live lineup endpoint.
+export const GNOME_PREVIEW_LINEUP = {
+  liveQueueRevision: 0,
+  liveQueueSourceReady: true,
+  liveQueueServerTime: '2026-09-09T00:00:00.000Z',
+  liveQueueLastUpdated: '2026-09-09T00:00:00.000Z',
+  liveQueueAgeSeconds: 0,
+  liveQueueStaleAfterSeconds: 45,
+  liveQueueState: 'live' as const,
+  liveQueueSummary: 'Sample lineup for appearance preview. No live show is connected.',
+  liveQueueEntries: ['Sample Harper', 'Sample Rowan', 'Sample Sage'].map((name, index) => ({
+    name, position: index + 1, highlight: false, label: 'Sample only',
+  })),
+}
+
 // Fixture-only data: this module never resolves a rep or reads customer records.
 export const GNOME_PREVIEW_LISTINGS: AmethystTradeBoardListing[] = [
   { id: 'sample-ring', name: 'Woodland Wishes', collection: 'OG', type: 'Ring', material: 'Rose gold plating', stone: 'Green crystal', msrp: 48, size: '8', note: 'Sample dancer. Same collection and jewelry type for requests.', glyph: 'W', tier: 'everyday', photoUrl: null, photoSource: 'missing', quantityAvailable: 2 },
@@ -35,6 +50,7 @@ function fixtureBootstrap(page: SkinPreviewPage) {
     unsubscribe: previewPath('unsubscribe'), catalog: '#preview-action', preOrders: '#preview-action',
   }
   const common = {
+    ...GNOME_PREVIEW_LINEUP,
     businessName: 'The Gnome Forest', repName: 'Sasha', footerLinks,
     tickerTopText: 'Welcome to the garden | Live reveals & lovely surprises | Explore the Dance Floor',
     footerTagline: 'A little wonder. A little sparkle. A place to feel at home.',
@@ -98,6 +114,11 @@ export const SKIN_PREVIEW_GUARDS = `
     if (method === 'GET' && /^\\/api\\/amethyst\\/trade-board(?:[?]|$)/.test(url)) {
       return new Response(JSON.stringify({ listings: window.AMETHYST_TRADE_BOARD_LISTINGS || [] }), { status: 200, headers: { 'content-type': 'application/json' } });
     }
+    if (method === 'GET' && /^\\/api\\/amethyst\\/live-lineup(?:[?]|$)/.test(url)) {
+      var sample = ${JSON.stringify(GNOME_PREVIEW_LINEUP)};
+      sample.liveQueueServerTime = sample.liveQueueLastUpdated = new Date().toISOString();
+      return new Response(JSON.stringify(sample), { status: 200, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+    }
     notice(); throw new Error('Sample preview: requests are disabled. Nothing was sent.');
   };
   document.addEventListener('submit', function (event) { event.preventDefault(); event.stopImmediatePropagation(); notice(); }, true);
@@ -132,7 +153,7 @@ export async function buildGnomeSkinPreviewDocument(page: SkinPreviewPage, origi
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
   // Inline only allowlisted repository runtime files. Inline Babel input does not need network XHR.
-  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js']
+  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js']
   for (const name of runtimeNames) {
     const escaped = name.replace('.', '\\.')
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')

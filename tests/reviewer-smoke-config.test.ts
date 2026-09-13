@@ -70,13 +70,25 @@ describe('reviewer smoke config', () => {
     expect(reviewerSmokeControlsVisible('review-token-12345')).toBe(true)
   })
 
-  it('shows preview reviewer controls when reviewer mode is enabled', () => {
+  it('shows preview reviewer controls only with the explicit matching token', () => {
     vi.stubEnv('NODE_ENV', 'production')
     vi.stubEnv('VERCEL_ENV', 'preview')
     vi.stubEnv('SPARKLE_REVIEWER_SMOKE_MODE', 'true')
     vi.stubEnv('SPARKLE_REVIEWER_SMOKE_TOKEN', 'review-token-12345')
 
-    expect(reviewerSmokeControlsVisible('')).toBe(true)
+    expect(reviewerSmokeControlsVisible('')).toBe(false)
+    expect(reviewerSmokeControlsVisible('wrong-token')).toBe(false)
+    expect(reviewerSmokeControlsVisible('review-token-12345')).toBe(true)
+  })
+
+  it('does not enable preview reviewer mode without a long configured token', () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('VERCEL_ENV', 'preview')
+    vi.stubEnv('SPARKLE_REVIEWER_SMOKE_MODE', 'true')
+    vi.stubEnv('SPARKLE_REVIEWER_SMOKE_TOKEN', '')
+
+    expect(reviewerSmokeModeEnabled()).toBe(false)
+    expect(isReviewerSmokeTokenValid('')).toBe(false)
   })
 
   it('does not enable production reviewer mode without a long configured token', () => {

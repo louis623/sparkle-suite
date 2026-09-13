@@ -1,4 +1,4 @@
-import type { RequiredSetupStatus } from '@/lib/self-serve/required-setup'
+import type { RequiredSetupStatus } from '@/lib/self-serve/required-setup-contract'
 
 export type NicNacWorkspaceMode =
   | 'checkout_required'
