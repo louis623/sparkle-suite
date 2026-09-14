@@ -35,6 +35,7 @@ type SiteSettingsRow = {
   hero_image_url: string | null
   hero_animation_type: string | null
   team_name: string | null
+  recruiting_link: string | null
   member_team_name: string | null
   join_team_access_enabled: boolean | null
   show_join_page: boolean | null
@@ -57,7 +58,7 @@ type RepProfileRow = {
 }
 
 const SITE_SETTINGS_SELECT =
-  'banner_text, banner_visible, ticker_text, ticker_visible, dance_floor_visible, live_lineup_visible, tagline, hero_headline, hero_subtitle, hero_image_url, hero_animation_type, team_name, member_team_name, join_team_access_enabled, show_join_page, customer_site_template, appearance_preset, about_heading, about_subheading, about_narrative, homepage_media_slots, social_visibility'
+  'banner_text, banner_visible, ticker_text, ticker_visible, dance_floor_visible, live_lineup_visible, tagline, hero_headline, hero_subtitle, hero_image_url, hero_animation_type, team_name, recruiting_link, member_team_name, join_team_access_enabled, show_join_page, customer_site_template, appearance_preset, about_heading, about_subheading, about_narrative, homepage_media_slots, social_visibility'
 const REP_PROFILE_SELECT =
   'display_name, business_name, email, phone, shop_link, social_handles'
 
@@ -123,6 +124,35 @@ function normalizeShopLink(value: unknown) {
     throw errors.INVALID_INPUT(
       'shopLink must be a complete http(s) URL',
       'Bomb Party rep store link needs a complete https:// or http:// URL.',
+    )
+  }
+}
+
+function normalizeRecruitingLink(value: unknown) {
+  if (value === undefined) return undefined
+  if (typeof value !== 'string') {
+    throw errors.INVALID_INPUT(
+      'recruitingLink must be a string',
+      'Bomb Party recruiting link needs a complete bombparty.com URL.',
+    )
+  }
+  const trimmed = value.trim()
+  if (!trimmed) return null
+
+  try {
+    const url = new URL(trimmed)
+    const hostname = url.hostname.toLowerCase()
+    if (
+      url.protocol !== 'https:' ||
+      (hostname !== 'bombparty.com' && !hostname.endsWith('.bombparty.com'))
+    ) {
+      throw new Error('unsupported recruiting URL')
+    }
+    return url.toString()
+  } catch {
+    throw errors.INVALID_INPUT(
+      'recruitingLink must be a secure Bomb Party URL',
+      'Bomb Party recruiting link needs a complete https://bombparty.com URL.',
     )
   }
 }
@@ -280,6 +310,7 @@ function buildDashboardResult(args: {
       args.siteSettings?.hero_animation_type,
     ),
     teamName: normalizeText(args.siteSettings?.team_name),
+    recruitingLink: normalizeText(args.siteSettings?.recruiting_link),
     memberTeamName: normalizeText(args.siteSettings?.member_team_name),
     // Join Team is included for every rep; showJoinPage remains the rep-controlled
     // public visibility switch.
@@ -443,6 +474,9 @@ export async function updateSiteSettingsDashboard(
   }
   if (input.teamName !== undefined) {
     siteSettingsPatch.team_name = normalizeNullableText(input.teamName)
+  }
+  if (input.recruitingLink !== undefined) {
+    siteSettingsPatch.recruiting_link = normalizeRecruitingLink(input.recruitingLink)
   }
   if (input.memberTeamName !== undefined) {
     siteSettingsPatch.member_team_name = normalizeNullableText(input.memberTeamName)

@@ -160,8 +160,6 @@ export function applyMileHighFizzJoin(
     heroCtaText: 'Review Official Join Details',
     finalPitch:
       `Review the current official enrollment details, then ask ${join.repName} any questions about the ${join.teamName} before you decide.`,
-    bpReferralUrl: MILE_HIGH_FIZZ_PROFILE.joinPackUrl,
-    hasRecruitingLink: true,
     tickerTopText:
       `Explore the ${join.teamName} | Review official requirements | Ask about current team support | Income is not guaranteed`,
     footerTagline:

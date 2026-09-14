@@ -202,6 +202,7 @@ describe('site settings service', () => {
       email: 'louis@example.com',
       phone: '+19045551234',
       shopLink: '',
+      recruitingLink: '',
       bannerText: '',
       bannerVisible: false,
       tickerText: '',
@@ -249,6 +250,7 @@ describe('site settings service', () => {
         hero_image_url: 'https://cdn.example.com/hero.jpg',
         hero_animation_type: 'soft_glow',
         team_name: 'Moonstone Squad',
+        recruiting_link: 'https://bombparty.com/sparkle-by-sasha/packs',
         show_join_page: false,
         customer_site_template: 'amethyst',
         appearance_preset: 'rose_gold',
@@ -305,6 +307,7 @@ describe('site settings service', () => {
       heroImageUrl: 'https://cdn.example.com/hero.jpg',
       heroAnimationType: 'soft_glow',
       teamName: 'Moonstone Squad',
+      recruitingLink: 'https://bombparty.com/sparkle-by-sasha/packs',
       showJoinPage: false,
       customerSiteTemplate: 'not-a-real-template',
       appearancePreset: 'rose_gold',
@@ -339,6 +342,7 @@ describe('site settings service', () => {
         hero_image_url: 'https://cdn.example.com/hero.jpg',
         hero_animation_type: 'soft_glow',
         team_name: 'Moonstone Squad',
+        recruiting_link: 'https://bombparty.com/sparkle-by-sasha/packs',
         show_join_page: false,
         customer_site_template: 'amethyst',
         appearance_preset: 'rose_gold',
@@ -378,6 +382,21 @@ describe('site settings service', () => {
     expect(result.customerSiteTemplate).toBe('amethyst')
     expect(result.appearancePreset).toBe('rose_gold')
     expect(result.shopLink).toBe('https://bombparty.com/shop/sparkle-by-sasha')
+    expect(result.recruitingLink).toBe(
+      'https://bombparty.com/sparkle-by-sasha/packs',
+    )
+  })
+
+  it('rejects a recruiting destination outside Bomb Party before writing', async () => {
+    const supabase = { from: vi.fn() }
+
+    await expect(
+      updateSiteSettingsDashboard(supabase as never, 'rep-1', {
+        recruitingLink: 'https://example.com/join-me',
+      }),
+    ).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+
+    expect(supabase.from).not.toHaveBeenCalled()
   })
 
   it('rejects unsafe Bomb Party store links before writing the rep profile', async () => {

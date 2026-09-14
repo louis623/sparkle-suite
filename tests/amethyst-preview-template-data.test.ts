@@ -24,6 +24,7 @@ const demoSettings: SiteSettingsDashboardResult = {
   businessName: 'Sparkle Suite Demo Boutique',
   email: 'demo@example.com',
   phone: '',
+  recruitingLink: 'https://www.bombparty.com/shop/sparkle-suite-demo/packs',
   bannerText: 'Demo launch week',
   bannerVisible: true,
   tickerText: 'New demo listings added before every live show.',
@@ -227,19 +228,26 @@ describe('Amethyst preview template data', () => {
     expect(join.footerLinks.contact).toBe('mailto:demo@example.com')
   })
 
-  it('uses only an explicit recruiting or exact shop link and stays honest when neither exists', () => {
-    const exactShop = mapPreviewSettingsToJoinTemplateData(demoSettings, {
+  it('uses only the dedicated recruiting link and stays honest when it is missing', () => {
+    const explicitRecruitingLink = mapPreviewSettingsToJoinTemplateData(demoSettings, {
       shopLink: 'https://www.bombparty.com/shop/exact-rep',
       streamingLinks: {},
     })
-    const noLink = mapPreviewSettingsToJoinTemplateData(demoSettings, {
-      streamingLinks: {},
-    })
-
-    expect(exactShop.bpReferralUrl).toBe(
-      'https://www.bombparty.com/shop/exact-rep',
+    const noLink = mapPreviewSettingsToJoinTemplateData(
+      { ...demoSettings, recruitingLink: '' },
+      {
+        shopLink: 'https://www.bombparty.com/shop/exact-rep',
+        streamingLinks: {
+          join: 'https://www.bombparty.com/legacy-join-link/packs',
+        },
+      },
     )
-    expect(exactShop.hasRecruitingLink).toBe(true)
+
+    expect(explicitRecruitingLink.bpReferralUrl).toBe(
+      'https://www.bombparty.com/shop/sparkle-suite-demo/packs',
+    )
+    expect(explicitRecruitingLink.hasRecruitingLink).toBe(true)
+    expect(noLink.shopUrl).toBe('https://www.bombparty.com/shop/exact-rep')
     expect(noLink.bpReferralUrl).toBe('')
     expect(noLink.hasRecruitingLink).toBe(false)
     expect(noLink.finalPitch).toContain('not connected here yet')

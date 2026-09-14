@@ -552,8 +552,6 @@ export function applyBrittWithBlingJoin(
     heroCtaText: 'REVIEW OFFICIAL JOIN DETAILS',
     finalPitch:
       `Review the current official enrollment details, then ask ${join.repName} any questions about ${join.teamName} before you decide.`,
-    bpReferralUrl: BRITT_WITH_BLING_PROFILE.joinPackUrl,
-    hasRecruitingLink: true,
     tickerTopText:
       `Explore ${join.teamName} | Review official requirements | Ask about current team support | Income is not guaranteed`,
     footerTagline:

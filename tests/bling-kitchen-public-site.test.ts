@@ -110,7 +110,8 @@ describe('BlingKitchen hybrid public site contract', () => {
     expect(join.publicSiteVariant).toBeUndefined()
     expect(join.teamName).toBe('Opal Sparkling Gems')
     expect(join.pantryPageUrl).toBe('/amethyst/Pantry.html')
-    expect(join.bpReferralUrl).toBe(BLING_KITCHEN_PROFILE.shopUrl)
+    expect(join.bpReferralUrl).toBe('')
+    expect(join.hasRecruitingLink).toBe(false)
   })
 
   it('preserves source recipes as structured Pantry content', () => {

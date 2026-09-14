@@ -699,8 +699,7 @@ export function mapPreviewSettingsToJoinTemplateData(
   )
   const teamName = resolveTenantTeamName(settings.teamName, businessName)
   const shopUrl = resolveShopUrl(extras)
-  const streamingLinks = asRecord(extras.streamingLinks)
-  const joinUrl = clean(streamingLinks.join) || clean(extras.shopLink)
+  const joinUrl = clean(settings.recruitingLink)
   const hasRecruitingLink = Boolean(joinUrl)
 
   const join: AmethystJoinTemplateData = {

@@ -1174,6 +1174,7 @@ describe('DashboardPlaceholder', () => {
           ],
         },
         teamName: 'Moonstone Squad',
+        recruitingLink: 'https://bombparty.com/moonstone-squad/packs',
         onCreateParticipant: () => {},
         onRefreshInvite: () => {},
         onCopyInvite: () => {},
@@ -1185,6 +1186,10 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Replace link')
     expect(html).toContain('Team I manage')
     expect(html).toContain('Moonstone Squad')
+    expect(html).toContain('Bomb Party recruiting link')
+    expect(html).toContain('https://bombparty.com/moonstone-squad/packs')
+    expect(html).toContain('Every Join My Team action on your customer site uses this')
+    expect(html).toContain('Save team details')
     expect(html).toContain('Private onboarding')
     expect(html).toContain('Workspace only')
     expect(html).toContain('Private onboarding link')

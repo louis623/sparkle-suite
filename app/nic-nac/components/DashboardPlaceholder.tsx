@@ -3980,8 +3980,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }
 
-  async function handleSaveManagedTeamName() {
+  async function handleSaveManagedTeamDetails() {
     const teamName = siteSettingsDraft?.teamName ?? siteSettingsState.settings?.teamName ?? ''
+    const recruitingLink =
+      siteSettingsDraft?.recruitingLink ??
+      siteSettingsState.settings?.recruitingLink ??
+      ''
 
     setTeamManagementActionState({
       pendingKey: 'team-name',
@@ -3994,23 +3998,27 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        // Save only this identity field. Other unsaved Site Settings edits must
+        // Save only these team fields. Other unsaved Site Settings edits must
         // not be published incidentally from Team Management.
-        body: JSON.stringify({ teamName }),
+        body: JSON.stringify({ teamName, recruitingLink }),
       })
       const payload = (await response.json().catch(() => null)) as
         | { error?: string; settings?: SiteSettingsDashboardResult }
         | null
 
       if (!response.ok || !payload?.settings) {
-        throw new Error(payload?.error || 'Unable to save the team name.')
+        throw new Error(payload?.error || 'Unable to save the team details.')
       }
 
       const savedSettings = payload.settings
       setSiteSettingsState({ status: 'ready', settings: savedSettings })
       setSiteSettingsDraft((current) =>
         current
-          ? { ...current, teamName: savedSettings.teamName }
+          ? {
+              ...current,
+              teamName: savedSettings.teamName,
+              recruitingLink: savedSettings.recruitingLink,
+            }
           : getSiteSettingsDraft(savedSettings, {
               isBrittWithBling: isBrittWithBlingWorkspace,
             }),
@@ -4018,13 +4026,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       setTeamManagementActionState({
         pendingKey: null,
         error: null,
-        helperMessage: 'Managed team name saved.',
+        helperMessage: 'Team name and recruiting link saved.',
       })
       refreshLiveSitePreviewAfterSiteSettingsSave()
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error: error instanceof Error ? error.message : 'Unable to save the team name.',
+        error: error instanceof Error ? error.message : 'Unable to save the team details.',
         helperMessage: null,
       })
     }
@@ -6148,9 +6156,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             actionState={teamManagementActionState}
             publicTeamDraft={publicTeamDraft}
             teamName={managedTeamName}
+            recruitingLink={siteSettingsDraft?.recruitingLink ?? ''}
             joinTeamPreviewHref={customerJoinTeamHref}
             onTeamNameChange={(teamName) => handleSiteSettingsDraftChange({ teamName })}
-            onSaveTeamName={handleSaveManagedTeamName}
+            onRecruitingLinkChange={(recruitingLink) =>
+              handleSiteSettingsDraftChange({ recruitingLink })
+            }
+            onSaveTeamDetails={handleSaveManagedTeamDetails}
             onCreateParticipant={handleCreateTeamOnboardingParticipant}
             onRefreshInvite={handleRefreshTeamOnboardingInvite}
             onCopyInvite={handleCopyTeamOnboardingInvite}
@@ -10304,9 +10316,11 @@ export function TeamManagementCard({
   actionState,
   publicTeamDraft = getJoinTeamRosterDraft(),
   teamName = '',
+  recruitingLink = '',
   joinTeamPreviewHref = '/amethyst/Join.html',
   onTeamNameChange,
-  onSaveTeamName,
+  onRecruitingLinkChange,
+  onSaveTeamDetails,
   onCreateParticipant,
   onRefreshInvite,
   onCopyInvite,
@@ -10324,9 +10338,11 @@ export function TeamManagementCard({
   actionState?: TeamManagementActionState
   publicTeamDraft?: JoinTeamRosterDraft
   teamName?: string
+  recruitingLink?: string
   joinTeamPreviewHref?: string
   onTeamNameChange?: (value: string) => void
-  onSaveTeamName?: () => void
+  onRecruitingLinkChange?: (value: string) => void
+  onSaveTeamDetails?: () => void
   onCreateParticipant?: (member: JoinTeamMember) => void
   onRefreshInvite?: (participantId: string) => void
   onCopyInvite?: (accessUrl?: string) => void
@@ -10455,13 +10471,31 @@ export function TeamManagementCard({
               onChange={(event) => onTeamNameChange?.(event.target.value)}
             />
           </label>
+          <label className={styles.searchField}>
+            <span className={styles.searchLabel}>Bomb Party recruiting link</span>
+            <input
+              className={`${styles.searchInput} ph-no-capture`}
+              type="url"
+              inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
+              placeholder="https://bombparty.com/your-name/packs"
+              value={recruitingLink}
+              onChange={(event) => onRecruitingLinkChange?.(event.target.value)}
+            />
+          </label>
+          <div className={styles.helperNote}>
+            Paste the official Bomb Party enrollment or starter-pack link for
+            your team. Every Join My Team action on your customer site uses this
+            link; your Shop link stays separate.
+          </div>
           <button
             type="button"
             className={styles.actionButton}
             disabled={actionState?.pendingKey === 'team-name' || isLoading}
-            onClick={onSaveTeamName}
+            onClick={onSaveTeamDetails}
           >
-            {actionState?.pendingKey === 'team-name' ? 'Saving team name...' : 'Save team name'}
+            {actionState?.pendingKey === 'team-name' ? 'Saving team details...' : 'Save team details'}
           </button>
         </section>
         <PublicTeamRosterPanel

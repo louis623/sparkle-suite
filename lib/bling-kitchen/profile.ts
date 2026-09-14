@@ -172,8 +172,6 @@ export function applyBlingKitchenJoin(
     heroCtaText: 'Start Your Business Today',
     finalPitch:
       "Join Heather's team today and build a business that brings joy, community, and financial freedom.",
-    bpReferralUrl: BLING_KITCHEN_PROFILE.joinPackUrl,
-    hasRecruitingLink: true,
     tickerTopText:
       'Join Heather at BlingKitchen | No-pressure mentorship | Warm community | Work from home | Build at your own pace',
     footerTagline:

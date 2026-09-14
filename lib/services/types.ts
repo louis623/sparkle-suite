@@ -617,6 +617,8 @@ export interface SiteSettingsDashboardResult {
   phone: string
   /** The rep-owned store destination used by public customer-site Shop actions. */
   shopLink?: string
+  /** The rep-owned Bomb Party enrollment destination used by public Join Team actions. */
+  recruitingLink?: string
   bannerText: string
   bannerVisible: boolean
   tickerText: string
@@ -651,6 +653,7 @@ export interface UpdateSiteSettingsDashboardInput {
   email?: string
   phone?: string
   shopLink?: string
+  recruitingLink?: string
   bannerText?: string
   bannerVisible?: boolean
   tickerText?: string

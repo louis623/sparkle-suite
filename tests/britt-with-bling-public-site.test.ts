@@ -25,6 +25,7 @@ const brittWithBlingSettings: SiteSettingsDashboardResult = {
   businessName: 'Britt with Bling',
   email: 'brittany@example.com',
   phone: '',
+  recruitingLink: BRITT_WITH_BLING_PROFILE.joinPackUrl,
   bannerText: BRITT_WITH_BLING_PROFILE.announcementText,
   bannerVisible: true,
   tickerText: BRITT_WITH_BLING_PROFILE.promoTickerText,
