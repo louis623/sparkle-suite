@@ -1,5 +1,20 @@
 # Project State
 
+## September 14, 2026 - Neon Butterfly final state and reusable hero standard
+
+Kelly's private Neon Butterfly skin is live on `sparklybutterflies.com` and is
+selectable only by Kelly plus Louis's `The Dudes Fizzfest` demo workspace. The
+final hero is the approved cinematic plum-curtain jewelry studio with coherent
+shelving, source-faithful neon butterfly signs, restrained independent motion,
+responsive copy-safe art direction, and full Amethyst page continuity. The
+standing private-custom-skin rule is enforced across UI, write paths, Nic-Nac,
+required setup, and the database. Reusable art, motion, iteration, responsive,
+and QA lessons are recorded in
+`vault/2026-09-14-neon-butterfly-hero-lessons.md` and the skin-builder's new
+`references/cinematic-hero-contract.md`. Application release remains
+`8f4f08ea` / `dpl_DPcYwvfeSoLLGqAEv9fcNMkYxJ6G`; unrelated customer aliases
+were restored, and protected Live Lineup work remains untouched.
+
 ## September 8, 2026 - LOC control-center local implementation checkpoint
 
 See [LOC build checkpoint](2026-09-08-loc-control-center-build-checkpoint.md). Native LOC-themed Suite/Finder controls, signed bridge, agent API/MCP/jobs, audited support, and selected memory capture are implemented and locally tested. All three production builds pass. No deployment, migration or operations secret was changed; existing control center remains live. Supported protected reviewer access is the current release blocker; live integration, client proof and acceptance remain.

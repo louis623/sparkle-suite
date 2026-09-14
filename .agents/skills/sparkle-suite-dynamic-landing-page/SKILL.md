@@ -9,6 +9,11 @@ description: "Use when designing, reviewing, or implementing a dynamic Sparkle S
 
 Build Sparkle Suite public pages that sell the product with taste, clarity, and product proof. The page must feel like Sparkle Suite can make a rep's business look more polished and easier for customers to use. Do not improvise from generic SaaS instincts.
 
+This skill governs Sparkle Suite's master public/acquisition pages. A rep's
+Amethyst customer-site skin uses `sparkle-suite-skin-builder` instead. Reuse
+cinematic composition and QA methods across both surfaces, but never transplant
+a private rep skin's palette, motifs, or visual identity into the master brand.
+
 ## Required Reading
 
 Before writing copy, creating concepts, or touching page code, read:
@@ -59,12 +64,25 @@ A good Sparkle Suite page must answer these in the first screen:
    - Produce screenshot-style concepts or high-fidelity mockups before coding.
    - HTML-only rough drafts are not acceptable for wow-factor exploration.
    - Show the user a visible artifact that works in chat or the browser before implementing.
+   - Show enough below the hero to prove how the visual language flows into a
+     real card or product section; a hero-only concept is incomplete.
 
-4. Product proof first.
+4. Plan cinematic heroes in layers.
+   - Separate the environment/product plate, tonal grade, source-specific
+     assets, ambient light/effects, content, and interaction controls.
+   - When a supplied reference is exact, inventory its silhouettes, counts,
+     perspective, crop, negative space, and exclusions before generating.
+   - Reserve copy-safe areas before creating artwork and use independently
+     art-directed desktop and mobile compositions when one crop cannot work.
+   - Keep ambient motion staggered, low-frequency, reduced-motion safe,
+     pausable, and subordinate to the CTA. Animate object mechanics rather than
+     pulsing a flat picture and calling it motion.
+
+5. Product proof first.
    - Use a large product universe: customer site, live queue, trade board, event calendar, updates, and Nic-Nac in context.
    - The visual should feel like a real polished product surface, not generic white cards.
 
-5. Tool choice comes after direction.
+6. Tool choice comes after direction.
    - Image generation: use for high-fidelity page concepts and hero mockups.
    - Pomelli: use only for campaign ideation or marketing angle exploration when useful.
    - Higgsfield: use only when high-energy visuals, motion, or ad-style assets are useful.
@@ -125,6 +143,13 @@ Before showing a concept or implementation, check:
 - Would a Bomb Party rep understand the value in five seconds?
 - Does the hero visual prove we can build something polished?
 - Does the first viewport have one clear CTA?
+- Does the hero remain composed at desktop, tablet, mobile, and a nonstandard
+  right-panel width without copy/art collisions or horizontal overflow?
+- If a reference-specific motif was requested, does its rendered silhouette
+  actually match instead of merely sharing the theme?
+- Do decorative effects preserve pointer access, reduced motion, page-hidden
+  pausing, and a usable pause control when motion persists?
+- Has the concept shown at least one real below-hero card/section transition?
 - Does the visual have more craft than a generic card stack?
 - Does the page sell both rep ease and customer experience?
 - Would Louis plausibly say it has the Beacons-level confidence he wanted?

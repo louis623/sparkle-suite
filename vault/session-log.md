@@ -7314,3 +7314,31 @@ Lessons retained:
 - The skin-builder skill and contract now record the standing rule that custom
   rep skins are private to the named rep plus Louis's demo workspace unless he
   explicitly authorizes broader availability.
+
+## September 14, 2026 - Neon Butterfly lessons promoted into the design system
+
+- Reviewed the complete Neon Butterfly trail from initial skin through shape
+  refinement, source-silhouette correction, full Kelly studio rebuild,
+  typography/mobile protection, and private Kelly release.
+- Added a detailed Git-vault lessons record covering the failed approximate
+  butterfly shapes, accumulated decorative overlays, implausible shelf/floor
+  composition, alpha-export bars, washed-out neon, flat-picture motion, and the
+  successful layer-by-layer recovery.
+- Added the skin-builder `cinematic-hero-contract.md` and wired it into the
+  required workflow. It now governs reference inventories, independent visual
+  planes, believable set composition, responsive art direction, alpha-asset
+  sanitation, object-mechanical animation, restrained choreography,
+  typography safe lanes, iteration resets, accessibility, and visual QA.
+- Expanded the skin contract with hard requirements for exact motifs, clean
+  transparent assets, non-blocking decorative layers, reduced motion,
+  page-hidden pausing, and a working Pause/Resume control.
+- Updated the dynamic landing-page skill to require below-hero proof,
+  responsive copy-safe composition, reference-fidelity checks, layered motion,
+  and cross-viewport visual QA while explicitly keeping private rep-skin visual
+  identities separate from the Sparkle Suite master brand.
+- Verified the new design and motion lessons through semantic Open Brain
+  search. That audit surfaced an older pre-exclusivity memory saying the skin
+  was available to every rep; captured an explicit authoritative correction
+  naming the final Kelly-plus-Louis-demo boundary.
+- Reaffirmed that the approved Neon Butterfly implementation is the precedent
+  for process and quality, not a palette to copy into other skins.

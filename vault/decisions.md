@@ -2786,6 +2786,28 @@ without entering the customer's account, while the skin must still feel truly
 exclusive and remain impossible for other reps to select through alternate
 write paths.
 
+## 2026-09-14 - Exact hero references are visual contracts
+
+Decision: When Louis supplies a reference and asks for a motif or environment
+to match it, the defining silhouette, proportions, object count, perspective,
+color behavior, crop, and explicit exclusions are acceptance criteria. Build a
+cinematic hero as independent environment, motif, tonal-grade, ambient-effect,
+content, and motion planes. Use source-faithful assets for exact motifs,
+art-directed desktop/mobile plates with copy-safe lanes, and object-mechanical
+motion with reduced-motion, page-hidden pausing, and Pause/Resume support.
+
+After more than one revision fails on the same structural problem, stop adding
+overlays or making incremental CSS adjustments and rebuild the incorrect layer.
+Approval requires rendered side-by-side reference review across desktop,
+tablet, mobile, and a nonstandard panel width, including enough below the hero
+to verify real Amethyst card and section continuity.
+
+Reason: Neon Butterfly improved only after generic butterfly drawings and an
+overdecorated, structurally implausible lounge were replaced by a coherent
+Kelly studio plate and source-faithful sign cutouts. Layer isolation made it
+possible to fix silhouette, alpha residue, neon hierarchy, shelf perspective,
+motion, and typography without repeatedly destabilizing the whole page.
+
 ## 2026-09-03 - Keep Lane accounting writes in the single dedicated MCP
 
 Decision: Lane's website credential remains visual-review-only. The single

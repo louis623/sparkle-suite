@@ -44,6 +44,26 @@ Skins must not change:
 - SEO metadata or real rep/customer data mapping
 - authorization, provider, payment, SMS, email, SignWell, or calendar behavior
 
+## Custom Hero Art and Motion
+
+When a skin adds a custom illustrated, generated, photographed, or animated
+hero, read and follow `cinematic-hero-contract.md`. The hero remains a visual
+layer inside the Amethyst structure. It may art-direct responsive environment
+plates and decorative motifs, but it may not replace required content slots or
+customer actions.
+
+If Louis supplies a visual reference and asks for an exact motif, the motif's
+silhouette, proportions, count, and defining color behavior become acceptance
+criteria. A generic themed substitute is not an acceptable first draft. Keep
+environment, motif assets, lighting effects, copy, and motion in independent
+planes so the incorrect layer can be replaced without accumulating patches.
+
+Persistent ambient motion must honor reduced-motion preferences, pause while
+the page is hidden, expose a usable Pause/Resume control, and remain decorative
+and non-blocking. Source-specific transparent assets require automated edge,
+crop-coverage, and near-black-pixel checks so export boxes cannot appear in the
+render.
+
 ## Ticker Motion Contract
 
 Announcement and Trade Board tickers use measured constant pixel speed. The

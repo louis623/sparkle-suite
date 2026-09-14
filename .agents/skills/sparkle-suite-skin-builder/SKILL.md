@@ -14,6 +14,8 @@ Create visual-only skins for Sparkle Suite customer sites while preserving the A
 Before designing or implementing a skin, read:
 
 - `references/skin-contract.md`
+- `references/cinematic-hero-contract.md` when the skin uses custom hero art,
+  supplied visual references, source-specific motifs, or ambient animation
 - `docs/sparkle-suite/brand/00-master-index.md`
 - `docs/sparkle-suite/brand/05-public-site-version-lock.md`
 - `docs/sparkle-suite/brand/06-public-site-incident-lesson.md`
@@ -40,22 +42,33 @@ For rep-facing copy or Sparkle Suite brand language, also use `sparkle-suite-mas
    - Use the browser visual companion or a lightweight local mockup.
    - When Louis asks to see a skin, preview, branding card, card, or direction before approval, show the reference artifact from `.superpowers/brainstorm/.../content` in the same workflow used for Morganite and Black Diamond, not a registry card or one-off image.
    - Show the same Amethyst page structure in different clothes.
+   - Show the hero and enough of the next section to prove how real cards,
+     typography, and section transitions inherit the skin.
    - Ask for approval before production edits.
 
-4. Add red tests first.
+4. Lock the reference contract before building a source-led hero.
+   - List exact motifs, object counts, colors, placement relationships,
+     negative space, physical structures, crop, and explicit exclusions.
+   - Mark which details are reference-faithful and which are interpretive.
+   - Plan independent environment, motif, light/effect, content, and motion
+     planes using `references/cinematic-hero-contract.md`.
+   - If an exact supplied shape is required, do not substitute a generic icon
+     or approximate AI/SVG interpretation.
+
+5. Add red tests first.
    - Preset normalization recognizes the new ID.
    - Homepage, Trade, and Join receive the same visual tokens.
    - Site Settings and Nic-Nac can save the new preset.
    - The skin appears in the skin-card registry with a stable code and label.
    - Existing default remains `amethyst`.
 
-5. Create the skin branding card.
+6. Create the skin branding card.
    - Add a compact card artifact or registry entry for the Help/More Info surface.
    - Include the skin label, stable code, short feel description, palette swatches, type pairing, surface/shape notes, and a small visual sample.
    - Keep cards cheap to browse: no live skin switching, no provider calls, no generated media at runtime.
    - Nic-Nac may direct reps to browse cards and then provide the code/label to apply.
 
-6. Implement the token set and render branches.
+7. Implement the token set and render branches.
    - Add the preset to `lib/amethyst/appearance-presets.ts`.
    - Extend TypeScript unions, Zod schemas, dropdown options, and database constraints.
    - Add CSS/JS branches only for visual tokens and interaction polish.
@@ -71,10 +84,13 @@ When Louis requests a skin for one named rep, treat it as private by default:
 - A private skin may keep a noindex sample-content preview route for design QA, but that preview is not a selectable customer option.
 - Use Louis's requested special dropdown label for allowed workspaces. Never infer a new private owner or expand an allowlist without explicit authorization.
 
-7. Verify.
+8. Verify.
    - Run the focused Vitest suite for Amethyst appearance, Site Settings, Nic-Nac customization, and affected templates.
    - Run `npx tsc --noEmit --pretty false`.
    - Browser-smoke Homepage, Trade, and Join if rendering logic changed.
+   - For a cinematic hero, complete the asset, responsive, motion,
+     accessibility, and visual-comparison gates in
+     `references/cinematic-hero-contract.md`.
    - Run `npm run qa:amethyst` when available and practical.
 
 ## Output Rules
