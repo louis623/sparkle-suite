@@ -51,7 +51,10 @@ import {
   normalizeAmethystAppearancePreset,
 } from '@/lib/amethyst/appearance-presets'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
-import { AMETHYST_SKIN_CARDS } from '@/lib/amethyst/skin-cards'
+import {
+  getAmethystSkinCardsForRep,
+  getAmethystSkinDropdownLabel,
+} from '@/lib/amethyst/skin-cards'
 import {
   BRITT_WITH_BLING_ABOUT_PORTRAIT_URL,
   BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
@@ -1322,11 +1325,6 @@ const SOCIAL_HANDLE_FIELDS = [
 
 const WORKSPACE_APPEARANCE_PRESET: SiteAppearancePreset =
   DEFAULT_AMETHYST_APPEARANCE_PRESET
-const SITE_APPEARANCE_PRESET_OPTIONS = AMETHYST_SKIN_CARDS.map((skin) => ({
-  value: skin.id as SiteAppearancePreset,
-  label: `${skin.label} (${skin.code})`,
-}))
-
 const SIGNUP_FORM_PATH = '/amethyst/Homepage.html#signup'
 const MESSAGE_TYPE_LABELS: Record<string, string> = {
   monthly_report: 'Monthly report',
@@ -6294,6 +6292,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       return (
         <div className={styles.workspaceSectionStack}>
           <SiteSettingsCard
+            repId={currentRepId}
             state={siteSettingsState}
             draft={siteSettingsDraft}
             actionState={siteSettingsActionState}
@@ -8396,6 +8395,7 @@ function SiteAnalyticsCard({ state }: { state: AnalyticsState }) {
 }
 
 export function SiteSettingsCard({
+  repId,
   state,
   draft,
   actionState,
@@ -8412,6 +8412,7 @@ export function SiteSettingsCard({
   onPreview,
   onSave,
 }: {
+  repId?: string | null
   state: SiteSettingsState
   draft?: SiteSettingsDraft | null
   actionState?: SiteSettingsActionState
@@ -8504,6 +8505,10 @@ export function SiteSettingsCard({
   }
 
   const hasTickerLinks = /\[[^\]]+\]\([^()\s]+\)/.test(draft?.tickerText ?? '')
+  const appearancePresetOptions = getAmethystSkinCardsForRep(repId).map((skin) => ({
+    value: skin.id as SiteAppearancePreset,
+    label: getAmethystSkinDropdownLabel(skin),
+  }))
 
   if (state.status === 'error') {
     return (
@@ -8722,7 +8727,7 @@ export function SiteSettingsCard({
                 })
               }
             >
-              {SITE_APPEARANCE_PRESET_OPTIONS.map((option) => (
+              {appearancePresetOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

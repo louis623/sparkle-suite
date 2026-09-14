@@ -5,6 +5,7 @@ import {
   normalizeAmethystAppearancePreset,
   normalizeCustomerSiteTemplate,
 } from '@/lib/amethyst/appearance-presets'
+import { isAmethystSkinSelectionAvailableToRep } from '@/lib/amethyst/skin-cards'
 import {
   isSupportedPublicVideoUrl,
   normalizePublicMediaUrl,
@@ -459,6 +460,12 @@ export async function updateSiteSettingsDashboard(
     siteSettingsPatch.hero_subtitle = normalizeNullableText(input.heroSubtitle.slice(0, 240))
   }
   if (input.appearancePreset !== undefined) {
+    if (!isAmethystSkinSelectionAvailableToRep(input.appearancePreset, repId)) {
+      throw errors.INVALID_INPUT(
+        'appearancePreset is not available to this rep',
+        'That customer-facing site theme is private to another Sparkle Suite rep.',
+      )
+    }
     siteSettingsPatch.appearance_preset = normalizeAmethystAppearancePreset(
       input.appearancePreset,
     )

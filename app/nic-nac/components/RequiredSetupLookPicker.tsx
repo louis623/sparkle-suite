@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { AMETHYST_SKIN_CARDS } from '@/lib/amethyst/skin-cards'
+import { getAmethystSkinCardsForRep } from '@/lib/amethyst/skin-cards'
 import styles from './RequiredSetupLookPicker.module.css'
 
 export function RequiredSetupLookPicker({
@@ -22,7 +22,7 @@ export function RequiredSetupLookPicker({
         </p>
       </div>
       <div className={styles.grid}>
-        {AMETHYST_SKIN_CARDS.map((skin, index) => {
+        {getAmethystSkinCardsForRep(null).map((skin, index) => {
           const [ground, primary, accent] = skin.swatches
           return (
             <article key={skin.id} className={styles.card}>

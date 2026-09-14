@@ -16,6 +16,8 @@ export interface AmethystSkinCard {
   description: string
   aliases?: readonly string[]
   previewHref?: string
+  exclusiveRepIds?: readonly string[]
+  exclusiveLabel?: string
   headingFont: string
   bodyFont: string
   surfaceNote: string
@@ -151,6 +153,11 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     label: 'Neon Butterfly',
     aliases: ['Neon Butterflies', 'Kelly Neon Butterfly'],
     previewHref: '/skin-preview/neon_butterfly/homepage',
+    exclusiveRepIds: [
+      'b5404543-b90a-41cf-85f6-4e6d1d576cfa',
+      'ac3e643a-6ccf-4400-8230-662f63a07f3e',
+    ],
+    exclusiveLabel: 'Only Kelly has',
     description:
       'A glamorous neon lounge with velvet plum depth, glowing butterflies, and warm golden light.',
     headingFont: 'Playfair Display',
@@ -251,6 +258,38 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     ],
   },
 ]
+
+export function isAmethystSkinAvailableToRep(
+  skin: Pick<AmethystSkinCard, 'exclusiveRepIds'>,
+  repId: string | null | undefined,
+) {
+  if (!skin.exclusiveRepIds?.length) return true
+  return typeof repId === 'string' && skin.exclusiveRepIds.includes(repId)
+}
+
+export function getAmethystSkinCardsForRep(
+  repId: string | null | undefined,
+) {
+  return AMETHYST_SKIN_CARDS.filter((skin) =>
+    isAmethystSkinAvailableToRep(skin, repId),
+  )
+}
+
+export function isAmethystSkinSelectionAvailableToRep(
+  value: string | null | undefined,
+  repId: string | null | undefined,
+) {
+  const selectedId = normalizeAmethystSkinSelection(value)
+  const card = AMETHYST_SKIN_CARDS.find((candidate) => candidate.id === selectedId)
+  return !card || isAmethystSkinAvailableToRep(card, repId)
+}
+
+export function getAmethystSkinDropdownLabel(skin: AmethystSkinCard) {
+  const baseLabel = `${skin.label} (${skin.code})`
+  return skin.exclusiveLabel
+    ? `${baseLabel} — ${skin.exclusiveLabel}`
+    : baseLabel
+}
 
 export function getAmethystSkinCard(
   value: string | null | undefined,

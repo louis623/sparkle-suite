@@ -61,6 +61,16 @@ For rep-facing copy or Sparkle Suite brand language, also use `sparkle-suite-mas
    - Add CSS/JS branches only for visual tokens and interaction polish.
    - Update public Amethyst page preset maps if the shipped runtime exposes local preset pickers.
 
+### Private custom skins
+
+When Louis requests a skin for one named rep, treat it as private by default:
+
+- Store an explicit stable rep-ID allowlist on the skin card. Include the named rep and Louis's established `louis@neonrabbit.net` admin/demo workspace so he can safely review and tune the skin without entering the customer's account.
+- Omit the skin entirely from every other rep's Site Settings dropdown and from the generic required-setup Look picker. Do not show a disabled or locked teaser.
+- Enforce the same allowlist in direct Site Settings writes, Nic-Nac writes, required-setup publication, and a database constraint. UI filtering alone is not exclusivity.
+- A private skin may keep a noindex sample-content preview route for design QA, but that preview is not a selectable customer option.
+- Use Louis's requested special dropdown label for allowed workspaces. Never infer a new private owner or expand an allowlist without explicit authorization.
+
 7. Verify.
    - Run the focused Vitest suite for Amethyst appearance, Site Settings, Nic-Nac customization, and affected templates.
    - Run `npx tsc --noEmit --pretty false`.

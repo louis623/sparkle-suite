@@ -392,6 +392,18 @@ describe('site settings service', () => {
     expect(supabase.from).not.toHaveBeenCalled()
   })
 
+  it('rejects Kelly\'s private Neon Butterfly skin for other reps before writing', async () => {
+    const supabase = { from: vi.fn() }
+
+    await expect(
+      updateSiteSettingsDashboard(supabase as never, 'another-rep', {
+        appearancePreset: 'neon_butterfly',
+      }),
+    ).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+
+    expect(supabase.from).not.toHaveBeenCalled()
+  })
+
   it('rejects an About narrative longer than 1,200 characters before writing', async () => {
     const supabase = { from: vi.fn() }
 

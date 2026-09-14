@@ -81,6 +81,10 @@ Cards should be suitable for a Help, More Info, or Site Settings browsing surfac
 
 Amethyst also needs a card because it is the default skin.
 
+### Private custom-skin ownership
+
+A custom skin created for a named rep is private unless Louis explicitly makes it shared. Its registry card must carry an explicit stable rep-ID allowlist containing the named rep and Louis's established admin/demo workspace for safe review. Non-owners must not see the skin in dropdowns, setup pickers, or Nic-Nac suggestions, and all write paths plus the database must reject non-owner assignment. A noindex sample-content preview may remain available for design QA; it does not grant selection access.
+
 ## Required Implementation Surface
 
 When adding a skin, inspect and update as needed:

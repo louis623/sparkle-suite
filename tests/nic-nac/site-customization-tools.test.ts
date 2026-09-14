@@ -133,6 +133,19 @@ describe('site customization tools', () => {
     expect(from).not.toHaveBeenCalled()
   })
 
+  it('update_site_setting rejects Kelly\'s private skin for another rep', async () => {
+    const from = vi.fn()
+    const tool = makeUpdateSiteSettingTool(
+      makeCtx({ from }),
+    ) as unknown as ToolDef
+
+    await expect(tool.execute({ appearancePreset: 'NB-01' })).rejects.toMatchObject({
+      name: 'NicNacToolError',
+      code: 'SITE_SKIN_NOT_AVAILABLE',
+    })
+    expect(from).not.toHaveBeenCalled()
+  })
+
   it('update_site_setting patches site_settings fields, updates reps.social_handles separately, and returns only the changed values', async () => {
     const siteSettingsChain = makeUpdateChain({
       data: {

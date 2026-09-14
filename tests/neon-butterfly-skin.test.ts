@@ -23,7 +23,10 @@ import {
   defaultAmethystJoinTemplateData,
 } from '@/lib/amethyst/join-template-data'
 import {
+  getAmethystSkinCardsForRep,
   getAmethystSkinCard,
+  getAmethystSkinDropdownLabel,
+  isAmethystSkinSelectionAvailableToRep,
   normalizeAmethystSkinSelection,
 } from '@/lib/amethyst/skin-cards'
 import { GET as getSkinPreview } from '@/app/skin-preview/[skin]/[page]/route'
@@ -72,6 +75,23 @@ describe('Neon Butterfly Amethyst skin', () => {
       headingFont: 'Playfair Display',
       bodyFont: 'DM Sans',
     })
+  })
+
+  it('shows Neon Butterfly only to Kelly and Louis demo with Kelly\'s special label', () => {
+    const kellyRepId = 'b5404543-b90a-41cf-85f6-4e6d1d576cfa'
+    const louisDemoRepId = 'ac3e643a-6ccf-4400-8230-662f63a07f3e'
+    const kellyCards = getAmethystSkinCardsForRep(kellyRepId)
+    const otherCards = getAmethystSkinCardsForRep('another-rep')
+    const neonCard = kellyCards.find(({ id }) => id === 'neon_butterfly')
+
+    expect(neonCard).toBeDefined()
+    expect(getAmethystSkinDropdownLabel(neonCard!)).toBe(
+      'Neon Butterfly (NB-01) — Only Kelly has',
+    )
+    expect(otherCards.some(({ id }) => id === 'neon_butterfly')).toBe(false)
+    expect(isAmethystSkinSelectionAvailableToRep('NB-01', kellyRepId)).toBe(true)
+    expect(isAmethystSkinSelectionAvailableToRep('NB-01', louisDemoRepId)).toBe(true)
+    expect(isAmethystSkinSelectionAvailableToRep('Neon Butterfly', 'another-rep')).toBe(false)
   })
 
   it.each(['homepage', 'trade', 'join', 'unsubscribe'] as const)(
@@ -195,5 +215,21 @@ describe('Neon Butterfly Amethyst skin', () => {
     for (const id of ['neon_butterfly', 'pearl', 'luxe', 'ocean_sapphire']) {
       expect(migration).toContain(`'${id}'`)
     }
+  })
+
+  it('locks the preset to Kelly and Louis demo while making it Kelly\'s live default', () => {
+    const migration = read(
+      'supabase',
+      'migrations',
+      '20260914000200_make_neon_butterfly_kelly_exclusive.sql',
+    )
+
+    expect(migration).toContain("public_site_slug = 'sparklybutterflies'")
+    expect(migration).toContain("email = 'louis@neonrabbit.net'")
+    expect(migration).toContain("appearance_preset <> 'neon_butterfly'")
+    expect(migration).toContain("appearance_preset = 'neon_butterfly'")
+    expect(migration).toContain("customer_site_template = 'amethyst'")
+    expect(migration).toContain('b5404543-b90a-41cf-85f6-4e6d1d576cfa')
+    expect(migration).toContain('ac3e643a-6ccf-4400-8230-662f63a07f3e')
   })
 })

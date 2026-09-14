@@ -16,9 +16,9 @@ describe('skin browsing preview', () => {
     expect(card).toContain('aria-label="Preview Gnome Forest (opens in a new tab)"')
     expect(card).toContain('Preview this skin')
     expect(card).toMatch(/<button[^>]*type="button"[^>]*>Choose this customer-site Look<\/button>/)
-    expect(html).toContain('href="/skin-preview/neon_butterfly/homepage"')
-    expect(html).toContain('aria-label="Preview Neon Butterfly (opens in a new tab)"')
-    expect(html.match(/Preview this skin/g)).toHaveLength(2)
+    expect(html).not.toContain('href="/skin-preview/neon_butterfly/homepage"')
+    expect(html).not.toContain('Neon Butterfly')
+    expect(html.match(/Preview this skin/g)).toHaveLength(1)
     expect(onChoose).not.toHaveBeenCalled()
     expect(AMETHYST_SKIN_CARDS.filter(({ previewHref }) => previewHref).map(({ id }) => id)).toEqual([
       'gnome_garden',

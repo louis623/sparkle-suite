@@ -6,7 +6,10 @@ import {
   normalizeAmethystAppearancePreset,
   normalizeCustomerSiteTemplate,
 } from '@/lib/amethyst/appearance-presets'
-import { normalizeAmethystSkinSelection } from '@/lib/amethyst/skin-cards'
+import {
+  isAmethystSkinSelectionAvailableToRep,
+  normalizeAmethystSkinSelection,
+} from '@/lib/amethyst/skin-cards'
 import {
   ABOUT_NARRATIVE_MAX_LENGTH,
   ABOUT_TITLE_MAX_LENGTH,
@@ -139,6 +142,13 @@ export function makeUpdateSiteSettingTool(ctx: {
           normalizeCustomerSiteTemplate(customerSiteTemplate)
       }
       if (appearancePreset !== undefined) {
+        if (!isAmethystSkinSelectionAvailableToRep(appearancePreset, ctx.repId)) {
+          throw new NicNacToolError({
+            code: 'SITE_SKIN_NOT_AVAILABLE',
+            userMessage:
+              'That customer-facing site theme is private to another Sparkle Suite rep.',
+          })
+        }
         siteSettingsPatch.appearance_preset =
           normalizeAmethystSkinSelection(appearancePreset)
       }
