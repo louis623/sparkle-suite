@@ -457,6 +457,7 @@ body.joinpage .hp-saturate {
    ============================================================ */
 .jp-why {
   background: var(--hp-bg-elevated);
+  scroll-margin-top: 220px;
 }
 .jp-benefits {
   display: grid;
@@ -514,6 +515,68 @@ body.joinpage .hp-saturate {
   line-height: 1.55;
   color: var(--fg-muted);
   margin: 0;
+}
+
+.jp-why--kelly .jp-section-sub {
+  max-width: 720px;
+}
+.jp-why--kelly .jp-benefits {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.jp-why-actions {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.jp-why-btn {
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.jp-why-btn:hover {
+  transform: translateY(-2px);
+}
+.jp-why-btn--primary {
+  color: var(--hp-action-fg);
+  background: var(--hp-card-accent);
+  border: 1px solid transparent;
+  box-shadow: 0 12px 28px rgba(72, 13, 223, 0.24);
+}
+.jp-why-btn--secondary {
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--border);
+}
+.jp-why-text-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.jp-why-text-links a {
+  color: var(--hp-primary);
+  font-size: 14px;
+  font-weight: 700;
+  text-underline-offset: 4px;
+}
+@media (max-width: 900px) {
+  .jp-why--kelly .jp-benefits { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .jp-why-actions { align-items: stretch; flex-direction: column; }
+  .jp-why-btn { width: 100%; box-sizing: border-box; }
+  .jp-why-text-links { padding: 10px 4px 0; flex-direction: column; gap: 12px; text-align: center; }
 }
 
 /* ============================================================
@@ -640,6 +703,9 @@ body.joinpage .hp-saturate {
   position: relative;
   z-index: 1;
   color: var(--hp-final-icon-fg);
+}
+#faq {
+  scroll-margin-top: 220px;
 }
 .jp-final-title {
   font-family: var(--hp-display-font);

@@ -76,6 +76,8 @@ function runtimeText(value) {
 
 const CONTENT = window.AMETHYST_JOIN_TEMPLATE_DATA || {};
 const RUNTIME_CONTEXT = window.AMETHYST_RUNTIME_CONTEXT || {};
+const publicSiteSlug = runtimeText(RUNTIME_CONTEXT.publicSiteSlug).toLowerCase();
+const isKellySparklyButterflies = RUNTIME_CONTEXT.targeted && publicSiteSlug === "sparklybutterflies";
 const isMileHighFizzHybrid = CONTENT.publicSiteVariant === "mile_high_fizz_hybrid";
 const isBrittWithBlingHybrid = CONTENT.publicSiteVariant === "britt_with_bling_hybrid";
 const isBlingKitchenHybrid = CONTENT.publicSiteVariant === "bling_kitchen_hybrid";
@@ -362,6 +364,9 @@ const FOOTER_LINKS = CONTENT.footerLinks || {};
 const FOOTER_SOCIALS = Array.isArray(CONTENT.socialLinks)
   ? CONTENT.socialLinks.filter((social) => social?.href && social.href !== "#")
   : [];
+const KELLY_FACEBOOK_URL = FOOTER_SOCIALS.find((social) =>
+  String(social?.label || "").toLowerCase().includes("facebook"),
+)?.href || "";
 const FAQ_ANSWERS = CONTENT.faqAnswers || {};
 const REP_SOCIALS = CONTENT.repSocialLinks || {};
 const HOME_HREF = FOOTER_LINKS.home || "/amethyst/Homepage.html";
@@ -940,18 +945,41 @@ const BENEFITS = [
   { key: "growth", title: "Understand the Path", desc: "Learn the official requirements and talk through your goals without promises or pressure." },
 ];
 
-function WhyJoin({ teamName, repName, locationLabel }) {
+const KELLY_BENEFITS = [
+  {
+    key: "community",
+    title: "A real welcome from Kelly",
+    desc: "Start with Kelly, not a generic checklist. She'll help you get acquainted with Sparkly Butterflies and talk through the questions that matter to you.",
+  },
+  {
+    key: "training",
+    title: "Clear answers before you join",
+    desc: "Kelly can explain how her team stays connected, what support is currently available, and what your first steps could look like.",
+  },
+  {
+    key: "growth",
+    title: "Space to choose your pace",
+    desc: "Tell Kelly what you want your business to fit around. She can help you think through a realistic start, without pressure or income promises.",
+  },
+];
+
+function WhyJoin({ teamName, repName, locationLabel, ctaUrl, hasRecruitingLink, contactUrl, facebookUrl }) {
   const displayTeamName = isMileHighFizzHybrid ? "the Diamond Peak Society" : teamName;
+  const benefits = isKellySparklyButterflies ? KELLY_BENEFITS : BENEFITS;
   return (
-    <section className="jp-section jp-why" id="why">
+    <section className={`jp-section jp-why${isKellySparklyButterflies ? " jp-why--kelly" : ""}`} id="why">
       <div className="jp-container">
         <div className="jp-section-head">
           <div className="jp-section-eyebrow">Why join</div>
-          <h2 className="jp-section-title">Why Join {displayTeamName}?</h2>
-          <p className="jp-section-sub">Review the official requirements and ask {repName}{locationLabel ? ` in ${locationLabel}` : ""} what this team currently offers before you decide.</p>
+          <h2 className="jp-section-title">{isKellySparklyButterflies ? "Come sparkle with Kelly" : `Why Join ${displayTeamName}?`}</h2>
+          <p className="jp-section-sub">
+            {isKellySparklyButterflies
+              ? "Joining a team should feel personal. Kelly would love to help you understand the opportunity, see the current starter packs, and decide whether Sparkly Butterflies feels right for you."
+              : `Review the official requirements and ask ${repName}${locationLabel ? ` in ${locationLabel}` : ""} what this team currently offers before you decide.`}
+          </p>
         </div>
         <div className="jp-benefits">
-          {BENEFITS.map((benefit) => (
+          {benefits.map((benefit) => (
             <article key={benefit.key} className="jp-benefit-card">
               <div className="jp-benefit-icon">{BENEFIT_ICONS[benefit.key]}</div>
               <h3 className="jp-benefit-title">{benefit.title}</h3>
@@ -959,10 +987,64 @@ function WhyJoin({ teamName, repName, locationLabel }) {
             </article>
           ))}
         </div>
+        {isKellySparklyButterflies ? (
+          <div className="jp-why-actions" aria-label="Kelly team next steps">
+            {contactUrl ? (
+              <a {...linkProps(contactUrl)} className="jp-why-btn jp-why-btn--primary">Ask Kelly a question <span aria-hidden="true">→</span></a>
+            ) : null}
+            <RecruitingAction
+              enabled={hasRecruitingLink}
+              href={ctaUrl}
+              className="jp-why-btn jp-why-btn--secondary"
+              unavailableText="Ask Kelly for current starter-pack details"
+            >
+              See Kelly's starter packs <span aria-hidden="true">→</span>
+            </RecruitingAction>
+            <div className="jp-why-text-links">
+              <a href="#faq">Read Kelly's FAQs <span aria-hidden="true">↓</span></a>
+              {facebookUrl ? (
+                <a {...linkProps(facebookUrl)}>Visit Kelly's Facebook community <span aria-hidden="true">→</span></a>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </div>
     </section>
   );
 }
+
+const KELLY_FAQ_QUESTIONS = [
+  {
+    q: "What is it like to join Kelly's Sparkly Butterflies team?",
+    aSlot: "FAQ answer — Kelly's team",
+    a: "Kelly wants you to feel comfortable asking questions before you make a decision. She'll introduce you to how Sparkly Butterflies stays connected, explain what the team currently offers, and help you decide whether it feels like a good fit.",
+  },
+  {
+    q: "How much does it cost to join Kelly's team?",
+    aSlot: "FAQ answer — Kelly's starter packs",
+    a: "Bomb Party sets the official starter-pack options, contents, and prices, and those details can change. Use Kelly's starter-pack link on this page for the current information, then ask Kelly about anything you would like help understanding.",
+  },
+  {
+    q: "Does Kelly expect me to have experience?",
+    aSlot: "FAQ answer — experience with Kelly",
+    a: "You do not need to arrive knowing how to run a live show. Kelly can explain the current enrollment requirements, point you toward official training resources, and share how new Sparkly Butterflies team members get oriented.",
+  },
+  {
+    q: "How much time will Kelly expect me to commit?",
+    aSlot: "FAQ answer — time with Kelly",
+    a: "Kelly knows that every rep's schedule and goals are different. Talk with Kelly about what you want your business to fit around so you can think through a pace that is realistic for you.",
+  },
+  {
+    q: "What support does Kelly offer new team members?",
+    aSlot: "FAQ answer — Kelly's support",
+    a: "Kelly can help you find the official onboarding resources, understand how her team communicates, and get answers as you take your first steps. She'll also tell you clearly what personal support is currently available before you enroll.",
+  },
+  {
+    q: "Can Kelly guarantee how much I will earn?",
+    aSlot: "FAQ answer — income with Kelly",
+    a: "No. Kelly cannot guarantee income, and results vary by sales, expenses, effort, and time. Review the official Income Disclosure Statement and talk through your questions with Kelly before you decide.",
+  },
+];
 
 const FAQ_QUESTIONS = (teamName, repName) => ([
   {
@@ -1000,14 +1082,18 @@ const FAQ_QUESTIONS = (teamName, repName) => ([
 function Faq({ teamName, repName, locationLabel }) {
   const [open, setOpen] = useState(0);
   const displayTeamName = isMileHighFizzHybrid ? "the Diamond Peak Society" : teamName;
-  const questions = FAQ_QUESTIONS(displayTeamName, repName);
+  const questions = isKellySparklyButterflies ? KELLY_FAQ_QUESTIONS : FAQ_QUESTIONS(displayTeamName, repName);
   return (
     <section className="jp-section" id="faq">
       <div className="jp-faq-wrap">
         <div className="jp-section-head">
           <div className="jp-section-eyebrow">FAQ</div>
           <h2 className="jp-section-title">Frequently Asked Questions</h2>
-          <p className="jp-section-sub">Everything you need to know about joining {displayTeamName}{locationLabel ? ` with ${repName} in ${locationLabel}` : ""}.</p>
+          <p className="jp-section-sub">
+            {isKellySparklyButterflies
+              ? "Straight answers about joining Kelly and the Sparkly Butterflies team."
+              : `Everything you need to know about joining ${displayTeamName}${locationLabel ? ` with ${repName} in ${locationLabel}` : ""}.`}
+          </p>
         </div>
         <div className="jp-faq-list">
           {questions.map((item, index) => (
@@ -1312,7 +1398,17 @@ function App() {
               />
             ) : null}
 
-            {t.showWhy ? <WhyJoin teamName={t.teamName} repName={repName} locationLabel={locationLabel} /> : null}
+            {t.showWhy ? (
+              <WhyJoin
+                teamName={t.teamName}
+                repName={repName}
+                locationLabel={locationLabel}
+                ctaUrl={t.bpReferralUrl}
+                hasRecruitingLink={hasRecruitingLink}
+                contactUrl={FOOTER_LINKS.contact}
+                facebookUrl={KELLY_FACEBOOK_URL}
+              />
+            ) : null}
 
             {t.showFaq ? <Faq teamName={t.teamName} repName={repName} locationLabel={locationLabel} /> : null}
 
