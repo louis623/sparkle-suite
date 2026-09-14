@@ -18,7 +18,9 @@ approved Kelly studio composition: plum curtain, black jewelry shelving,
   `kelly-studio-desktop.webp` and `kelly-studio-mobile.webp`.
 - The final built-in ImageGen masters are
   `exec-87e55ae8-5d84-4066-a4a6-8dc1f860465c.png` (wide) and
-  `exec-7d67d65c-2957-44a6-90b1-4a44a0642edc.png` (portrait).
+  `exec-d1fd575f-9019-4aa4-9287-c680d1ec6672.png` (portrait). The portrait
+  composition intentionally crops more of both shelves so mobile copy remains
+  inside an uninterrupted center-curtain safe area.
 - The three butterfly tubes are isolated directly from Kelly's reference signs
   rather than redrawn as generic icons. Transparent export padding was fixed so
   no black bars or crop-box pixels remain.
@@ -27,6 +29,10 @@ approved Kelly studio composition: plum curtain, black jewelry shelving,
   signs away from the jewelry shelves.
 - Pink and violet use saturated color-only bloom; yellow retains the approved
   warm white-hot core and yellow halo.
+- The hero headline uses slightly relaxed tracking with display ligatures
+  disabled so the “fl” pair remains crisp at nonstandard zoom levels. The
+  supporting line is constrained to the center curtain safe area and narrows
+  to 66% of the mobile viewport so neither edge runs into the shelving.
 - Each sign has independent, staggered left/right wing motion. The surrounding
   set also has restrained LED color drift, lamp shimmer, and 24 intermittent
   sparkle points. Pause/Resume, hidden-page pausing, and reduced-motion support

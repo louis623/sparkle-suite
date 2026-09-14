@@ -119,7 +119,8 @@ body.bg-neon-butterfly :is(.hp-hero-headline, .tp-hero-title, .jp-hero-title, .m
   -webkit-text-fill-color: currentColor;
   font-family: "Playfair Display", Georgia, serif;
   font-weight: 600;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.026em;
+  font-variant-ligatures: none;
   text-shadow: 0 2px 18px rgba(20, 0, 25, 0.92), 0 0 24px rgba(255, 42, 205, 0.22);
   animation: none;
   text-wrap: balance;
@@ -129,7 +130,7 @@ body.bg-neon-butterfly :is(.hp-hero-sub, .tp-hero-sub, .jp-hero-pitch, .jp-hero-
   color: #f1dfea;
   text-shadow: 0 2px 16px rgba(10, 0, 12, 0.94);
 }
-body.bg-neon-butterfly .hp-hero-sub { max-width: 54ch; }
+body.bg-neon-butterfly .hp-hero-sub { max-width: 44ch; }
 body.bg-neon-butterfly .jp-hero-eyebrow { color: #ff80e4; }
 
 body.bg-neon-butterfly :is(.hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .tp-card-expand-cta, .tp-sheet-submit, .jp-spot-btn, .jp-final-btn) {
@@ -270,10 +271,11 @@ body.bg-neon-butterfly .hp-footer a:hover { color: #ff75df; }
 }
 
 @media (max-width: 767px) {
-  body.bg-neon-butterfly :is(.hp-hero, .tp-hero, .jp-hero, .mhf-hero, .bwb-hero, .bk-home-hero) { background-image: url('/amethyst/skins/neon-butterfly/kelly-studio-mobile.webp'); }
+  body.bg-neon-butterfly :is(.hp-hero, .tp-hero, .jp-hero, .mhf-hero, .bwb-hero, .bk-home-hero) { background-image: url('/amethyst/skins/neon-butterfly/kelly-studio-mobile.webp'); background-size: 120% 100%; background-position: center; }
   body.bg-neon-butterfly .hp-hero { min-height: 660px; }
   body.bg-neon-butterfly .hp-hero-inner { min-height: 630px; padding: 90px 24px 128px; }
   body.bg-neon-butterfly .hp-hero-headline { font-size: clamp(43px, 13vw, 62px); line-height: 1.02; }
+  body.bg-neon-butterfly .hp-hero-sub { max-width: 66vw; font-size: 17px; }
   body.bg-neon-butterfly :is(.tp-hero, .jp-hero) { padding: 96px 20px 126px; }
   body.bg-neon-butterfly .jp-hero-card { padding: 30px 22px; }
   .nb-butterfly--crown { width: 106px; left: 8%; top: 4%; opacity: .98; }

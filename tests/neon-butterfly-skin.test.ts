@@ -98,6 +98,8 @@ describe('Neon Butterfly Amethyst skin', () => {
     const motion = read('public', 'amethyst', 'neon-butterfly.js')
 
     expect(css).toContain('body.bg-neon-butterfly')
+    expect(css).toContain('font-variant-ligatures: none')
+    expect(css).toContain('.hp-hero-sub { max-width: 44ch; }')
     expect(css).toContain('kelly-studio-desktop.webp')
     expect(css).toContain('kelly-studio-mobile.webp')
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
