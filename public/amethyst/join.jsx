@@ -77,7 +77,12 @@ function runtimeText(value) {
 const CONTENT = window.AMETHYST_JOIN_TEMPLATE_DATA || {};
 const RUNTIME_CONTEXT = window.AMETHYST_RUNTIME_CONTEXT || {};
 const publicSiteSlug = runtimeText(RUNTIME_CONTEXT.publicSiteSlug).toLowerCase();
-const isKellySparklyButterflies = RUNTIME_CONTEXT.targeted && publicSiteSlug === "sparklybutterflies";
+const runtimeRepTarget = runtimeText(RUNTIME_CONTEXT.repId).toLowerCase();
+const isKellySparklyButterflies = RUNTIME_CONTEXT.targeted && (
+  publicSiteSlug === "sparklybutterflies"
+  || runtimeRepTarget === "sparklybutterflies.com"
+  || runtimeRepTarget === "b5404543-b90a-41cf-85f6-4e6d1d576cfa"
+);
 const isMileHighFizzHybrid = CONTENT.publicSiteVariant === "mile_high_fizz_hybrid";
 const isBrittWithBlingHybrid = CONTENT.publicSiteVariant === "britt_with_bling_hybrid";
 const isBlingKitchenHybrid = CONTENT.publicSiteVariant === "bling_kitchen_hybrid";

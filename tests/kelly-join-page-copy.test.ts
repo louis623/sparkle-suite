@@ -10,6 +10,8 @@ describe("Kelly's Sparkly Butterflies join-page copy", () => {
 
   it('uses a Kelly-only recruiting section with fewer, useful choices', () => {
     expect(jsx).toContain("publicSiteSlug === \"sparklybutterflies\"")
+    expect(jsx).toContain('runtimeRepTarget === "sparklybutterflies.com"')
+    expect(jsx).toContain('runtimeRepTarget === "b5404543-b90a-41cf-85f6-4e6d1d576cfa"')
     expect(jsx).toContain('Come sparkle with Kelly')
     expect(jsx).toContain('A real welcome from Kelly')
     expect(jsx).toContain('Ask Kelly a question')

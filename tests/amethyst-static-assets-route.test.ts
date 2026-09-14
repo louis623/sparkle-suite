@@ -137,9 +137,9 @@ describe('Amethyst static asset route', () => {
 
       expect(html).toContain('src="/amethyst/template-loader.js"')
       if (assetName === 'Join.html') {
-        expect(html).toContain('src="/amethyst/join-runtime.js?v=20260914-kelly-join-v1"')
-        expect(html).toContain('href="/amethyst/join.css?v=20260914-kelly-join-v1"')
-        expect(html).toContain('href="/amethyst/neon-butterfly.css?v=20260914-kelly-join-v1"')
+        expect(html).toContain('src="/amethyst/join-runtime.js?v=20260914-kelly-join-v2"')
+        expect(html).toContain('href="/amethyst/join.css?v=20260914-kelly-join-v2"')
+        expect(html).toContain('href="/amethyst/neon-butterfly.css?v=20260914-kelly-join-v2"')
         expect(html).not.toContain('tweaks-panel.jsx')
       } else {
         expect(html).toContain('src="/amethyst/tweaks-panel.jsx?v=20260725-emerald-garden"')
