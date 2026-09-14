@@ -10,8 +10,8 @@
     '.bwb-hero',
     '.bk-home-hero',
   ].join(',');
-  var BUTTERFLY_PATH = 'M60 43C51 20 29 7 17 14C5 22 12 42 36 48C20 55 19 72 30 78C41 84 53 66 60 53C67 66 79 84 90 78C101 72 100 55 84 48C108 42 115 22 103 14C91 7 69 20 60 43Z';
-  var INNER_PATH = 'M60 43C53 39 47 38 41 39M60 43C67 39 73 38 79 39M60 44V57';
+  var LEFT_WING_PATH = 'M60 44C53 37 50 29 44 20C39 10 31 5 24 8C16 11 15 20 19 28C22 34 27 39 33 43C27 43 22 46 20 51C16 59 20 68 27 71C35 74 42 67 47 61C52 55 56 49 60 47';
+  var RIGHT_WING_PATH = 'M60 44C67 37 70 29 76 20C81 10 89 5 96 8C104 11 105 20 101 28C98 34 93 39 87 43C93 43 98 46 100 51C104 59 100 68 93 71C85 74 78 67 73 61C68 55 64 49 60 47';
   var butterflies = [
     { tone: 'pink', size: 'large', place: 'upper-right' },
     { tone: 'gold', size: 'medium', place: 'left' },
@@ -29,8 +29,8 @@
       ' nb-butterfly--' + item.size + ' nb-butterfly--' + item.place +
       '" data-nb-butterfly="' + (index + 1) + '">' +
       '<svg viewBox="0 0 120 90" focusable="false" aria-hidden="true">' +
-      '<path class="nb-butterfly-outline" d="' + BUTTERFLY_PATH + '" />' +
-      '<path class="nb-butterfly-detail" d="' + INNER_PATH + '" />' +
+      '<g class="nb-wing nb-wing--left"><path class="nb-butterfly-outline" d="' + LEFT_WING_PATH + '" /></g>' +
+      '<g class="nb-wing nb-wing--right"><path class="nb-butterfly-outline" d="' + RIGHT_WING_PATH + '" /></g>' +
       '</svg></span>';
   }
 

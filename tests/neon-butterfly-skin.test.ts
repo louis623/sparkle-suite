@@ -108,6 +108,16 @@ describe('Neon Butterfly Amethyst skin', () => {
     expect(motion).not.toContain('requestAnimationFrame')
     expect(motion).not.toContain('setInterval')
 
+    expect(motion).toContain('nb-wing--left')
+    expect(motion).toContain('nb-wing--right')
+    expect(motion).not.toContain('INNER_PATH')
+    expect(motion).not.toContain('nb-butterfly-detail')
+    expect(css).toContain('@keyframes nb-wing-flap-left')
+    expect(css).toContain('@keyframes nb-wing-flap-right')
+    expect(css).toContain('--nb-flap-duration: 19s')
+    expect(css).toContain('--nb-flap-duration: 23s')
+    expect(css).toContain('--nb-flap-duration: 27s')
+
     for (const asset of ['velvet-room-desktop.webp', 'velvet-room-mobile.webp']) {
       const bytes = readFileSync(resolve(root, 'public', 'amethyst', 'skins', 'neon-butterfly', asset))
       expect(bytes.length).toBeGreaterThan(20_000)
