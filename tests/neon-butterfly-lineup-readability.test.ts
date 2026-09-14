@@ -11,6 +11,8 @@ describe('Neon Butterfly Live Lineup readability', () => {
 
     expect(css).toContain('body.bg-neon-butterfly .hp-trade-preview {')
     expect(css).toContain('body.bg-neon-butterfly .hp-trade-preview-items { color: #fff5fa; }')
+    expect(css).toContain('background: #FF3366;')
+    expect(css).toContain('background: linear-gradient(130deg, #ff2acd, #8d2cff 78%);')
     expect(css).toContain('body.bg-neon-butterfly .hp-queue-modal {')
     expect(css).toContain('body.bg-neon-butterfly .hp-queue-modal-empty { color: #ead8e8; }')
   })

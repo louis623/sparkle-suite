@@ -92,8 +92,8 @@ body.bg-neon-butterfly .hp-trade-preview-head {
   text-shadow: 0 0 16px rgba(255, 42, 205, 0.32);
 }
 body.bg-neon-butterfly .hp-trade-preview-head .live-dot {
-  background: var(--nb-live);
-  box-shadow: 0 0 0 4px rgba(97, 242, 155, 0.16), 0 0 14px rgba(97, 242, 155, 0.58);
+  background: #FF3366;
+  box-shadow: 0 0 0 4px rgba(255, 51, 102, 0.2), 0 0 14px rgba(255, 51, 102, 0.58);
 }
 body.bg-neon-butterfly .hp-trade-preview-items { color: #fff5fa; }
 body.bg-neon-butterfly .hp-trade-preview-pill {
@@ -111,13 +111,13 @@ body.bg-neon-butterfly .hp-trade-preview-pill .name { color: #fff8fc; }
 body.bg-neon-butterfly .hp-trade-preview-link {
   min-height: 36px;
   padding: 8px 14px;
-  color: #2a072b;
-  background: linear-gradient(135deg, #ffd36d, var(--nb-gold));
-  border: 1px solid rgba(255, 236, 183, 0.72);
+  color: #fff9fd;
+  background: linear-gradient(130deg, #ff2acd, #8d2cff 78%);
+  border: 1px solid rgba(255, 183, 238, 0.74);
   border-radius: 999px;
-  box-shadow: 0 6px 18px rgba(255, 194, 74, 0.2);
+  box-shadow: 0 8px 24px rgba(255, 42, 205, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.26);
 }
-body.bg-neon-butterfly .hp-trade-preview-link:hover { color: #1b041d; }
+body.bg-neon-butterfly .hp-trade-preview-link:hover { color: #fff; }
 
 body.bg-neon-butterfly .hp-queue-modal {
   color: #fff5fa;
