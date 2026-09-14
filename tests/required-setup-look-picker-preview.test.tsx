@@ -5,7 +5,7 @@ import { RequiredSetupLookPicker } from '@/app/nic-nac/components/RequiredSetupL
 import { AMETHYST_SKIN_CARDS } from '@/lib/amethyst/skin-cards'
 
 describe('skin browsing preview', () => {
-  it('offers a separate new-tab Gnome Forest preview without applying any skin', () => {
+  it('offers separate new-tab previews without applying a skin', () => {
     const onChoose = vi.fn()
     const html = renderToStaticMarkup(createElement(RequiredSetupLookPicker, { onChoose }))
     const card = html.split('<article').find((markup) => markup.includes('GG-01'))!
@@ -16,9 +16,14 @@ describe('skin browsing preview', () => {
     expect(card).toContain('aria-label="Preview Gnome Forest (opens in a new tab)"')
     expect(card).toContain('Preview this skin')
     expect(card).toMatch(/<button[^>]*type="button"[^>]*>Choose this customer-site Look<\/button>/)
-    expect(html.match(/Preview this skin/g)).toHaveLength(1)
+    expect(html).toContain('href="/skin-preview/neon_butterfly/homepage"')
+    expect(html).toContain('aria-label="Preview Neon Butterfly (opens in a new tab)"')
+    expect(html.match(/Preview this skin/g)).toHaveLength(2)
     expect(onChoose).not.toHaveBeenCalled()
-    expect(AMETHYST_SKIN_CARDS.filter(({ previewHref }) => previewHref).map(({ id }) => id)).toEqual(['gnome_garden'])
+    expect(AMETHYST_SKIN_CARDS.filter(({ previewHref }) => previewHref).map(({ id }) => id)).toEqual([
+      'gnome_garden',
+      'neon_butterfly',
+    ])
   })
 
   it('keeps read-only preview available while applying a skin is disabled', () => {

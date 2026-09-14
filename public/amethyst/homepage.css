@@ -162,6 +162,21 @@ body.surface-storybook-parchment {
 
 body.btn-lantern-lift { --hp-action-fg: #fff3d6; }
 
+body.surface-neon-velvet-glass {
+  --hp-card-fg: #fff5fa;
+  --hp-card-muted: #d8bdd8;
+  --hp-card-accent: #ff54d7;
+  --hp-final-fg: #fff5fa;
+  --hp-final-muted: #d8bdd8;
+  --hp-final-icon-fg: #160318;
+  --hp-form-panel-bg: rgba(42, 9, 46, 0.84);
+  --hp-form-panel-fg: #fff5fa;
+  --hp-field-bg: rgba(13, 2, 16, 0.84);
+  --hp-field-fg: #fff5fa;
+}
+
+body.btn-neon-lift { --hp-action-fg: #fff8fd; }
+
 body.surface-pearl-rose {
   --hp-card-fg: #2b1717;
   --hp-card-muted: #7e5457;

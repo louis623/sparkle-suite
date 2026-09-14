@@ -268,6 +268,15 @@ const PRESETS = {
     textureOverlay: "fireflies", buttonEnergy: "lantern-lift", ctaEmphasis: "standard",
     tradeFlair: "mushroom-glow", cursorEffect: "default", tickerSpeed: 1,
   },
+  neon_butterfly: {
+    primaryColor: "#ff2acd", accentColor: "#ffc24a", bgTone: "neonButterfly",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular", saturation: 112,
+    heroMotion: "soft_glow", sparkleLevel: "subtle",
+    bgTreatment: "neon-butterfly", cardSurface: "neon-velvet-glass",
+    textureOverlay: "neon-butterflies", buttonEnergy: "neon-lift", ctaEmphasis: "standard",
+    tradeFlair: "butterfly-glow", cursorEffect: "default", tickerSpeed: 1,
+  },
   rose_gold: {
     sparkleLevel: "subtle", bgTreatment: "rose-gold-paper", cardSurface: "pearl-rose",
     textureOverlay: "none", buttonEnergy: "rose-gold-lift", ctaEmphasis: "standard",
@@ -318,6 +327,7 @@ const TONES = {
   alpineOpal: { bg: "#fdf2f8", elevated: "#f0f9ff", deep: "#1e1b4b" },
   emeraldGarden: { bg: "#f8f7f0", elevated: "#ffffff", deep: "#dfe9dd" },
   gnomeGarden: { bg: "#173126", elevated: "#FFF3D6", deep: "#102319" },
+  neonButterfly: { bg: "#120414", elevated: "#261029", deep: "#09010c" },
   roseGold: { bg: "#fff5f6", elevated: "#fffafa", deep: "#ffe8ec" },
   garnet: { bg: "#FFE5DD", elevated: "#fff8f5", deep: "#ffd0c4" },
   amber: { bg: "#FAFAFA", elevated: "#fffaf5", deep: "#ffe4cf" },
@@ -1756,6 +1766,7 @@ function App() {
     if (t.bgTreatment === "alpine-opal") body.classList.add("bg-alpine-opal");
     if (t.bgTreatment === "emerald-garden") body.classList.add("bg-emerald-garden");
     if (t.bgTreatment === "gnome-garden") body.classList.add("bg-gnome-garden");
+    if (t.bgTreatment === "neon-butterfly") body.classList.add("bg-neon-butterfly");
     if (t.bgTreatment === "rose-gold-paper") body.classList.add("bg-rose-gold-paper");
     if (t.bgTreatment === "garnet-shell") body.classList.add("bg-garnet-shell");
     if (t.bgTreatment === "amber-paper") body.classList.add("bg-amber-paper");
@@ -1769,6 +1780,7 @@ function App() {
     if (t.cardSurface === "frosted-opal") body.classList.add("surface-frosted-opal");
     if (t.cardSurface === "spa-ivory") body.classList.add("surface-spa-ivory");
     if (t.cardSurface === "storybook-parchment") body.classList.add("surface-storybook-parchment");
+    if (t.cardSurface === "neon-velvet-glass") body.classList.add("surface-neon-velvet-glass");
     if (t.cardSurface === "pearl-rose") body.classList.add("surface-pearl-rose");
     if (t.cardSurface === "blush-shell") body.classList.add("surface-blush-shell");
     if (t.cardSurface === "sunlit-pearl") body.classList.add("surface-sunlit-pearl");
@@ -1777,6 +1789,7 @@ function App() {
     if (t.textureOverlay === "grain") body.classList.add("tex-grain");
     if (t.textureOverlay === "sparkle") body.classList.add("tex-sparkle");
     if (t.textureOverlay === "fireflies") body.classList.add("tex-fireflies");
+    if (t.textureOverlay === "neon-butterflies") body.classList.add("tex-neon-butterflies");
     if (t.buttonEnergy === "bouncy") body.classList.add("btn-bouncy");
     if (t.buttonEnergy === "wiggle") body.classList.add("btn-wiggle");
     if (t.buttonEnergy === "suite-lift") body.classList.add("btn-suite-lift");
@@ -1785,6 +1798,7 @@ function App() {
     if (t.buttonEnergy === "alpine-pop") body.classList.add("btn-alpine-pop");
     if (t.buttonEnergy === "garden-lift") body.classList.add("btn-garden-lift");
     if (t.buttonEnergy === "lantern-lift") body.classList.add("btn-lantern-lift");
+    if (t.buttonEnergy === "neon-lift") body.classList.add("btn-neon-lift");
     if (t.buttonEnergy === "rose-gold-lift") body.classList.add("btn-rose-gold-lift");
     if (t.buttonEnergy === "garnet-lift") body.classList.add("btn-garnet-lift");
     if (t.buttonEnergy === "amber-pop") body.classList.add("btn-amber-pop");
@@ -1798,6 +1812,7 @@ function App() {
     if (t.tradeFlair === "opal-summit") body.classList.add("opal-summit");
     if (t.tradeFlair === "champagne-botanical") body.classList.add("champagne-botanical");
     if (t.tradeFlair === "mushroom-glow") body.classList.add("mushroom-glow");
+    if (t.tradeFlair === "butterfly-glow") body.classList.add("butterfly-glow");
     if (t.tradeFlair === "champagne-rose") body.classList.add("champagne-rose");
     if (t.tradeFlair === "ruby-polish") body.classList.add("ruby-polish");
     if (t.tradeFlair === "citrine-glow") body.classList.add("citrine-glow");
@@ -2077,6 +2092,7 @@ function App() {
               { value: "alpine_opal", label: "Alpine Opal" },
               { value: "emerald_garden", label: "Emerald Garden" },
               { value: "gnome_garden", label: "Gnome Forest" },
+              { value: "neon_butterfly", label: "Neon Butterfly" },
               { value: "rose_gold", label: "Rose Gold" },
               { value: "garnet", label: "Garnet" },
               { value: "amber", label: "Amber" },

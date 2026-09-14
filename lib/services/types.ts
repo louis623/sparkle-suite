@@ -603,6 +603,7 @@ export type SiteAppearancePreset =
   | 'alpine_opal'
   | 'emerald_garden'
   | 'gnome_garden'
+  | 'neon_butterfly'
   | 'rose_gold'
   | 'garnet'
   | 'amber'

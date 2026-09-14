@@ -1,0 +1,288 @@
+/* Neon Butterfly (NB-01). Original art; decorative layers never capture input. */
+body.bg-neon-butterfly {
+  --nb-ink: #fff5fa;
+  --nb-muted: #d8bdd8;
+  --nb-plum: #100312;
+  --nb-aubergine: #2a092e;
+  --nb-pink: #ff2acd;
+  --nb-violet: #a83cff;
+  --nb-gold: #ffc24a;
+  --nb-live: #61f29b;
+  --fg: var(--nb-ink);
+  --fg-muted: var(--nb-muted);
+  --border: rgba(255, 104, 220, 0.3);
+  --hp-bg: #120414;
+  --hp-bg-elevated: #261029;
+  --bg-deep: #09010c;
+  --hp-card-fg: #fff5fa;
+  --hp-card-muted: #d8bdd8;
+  --hp-card-accent: #ff54d7;
+  --hp-form-panel-bg: rgba(42, 9, 46, 0.84);
+  --hp-form-panel-fg: #fff5fa;
+  --hp-field-bg: rgba(13, 2, 16, 0.84);
+  --hp-field-fg: #fff5fa;
+  --hp-action-fg: #fff8fd;
+  background: var(--nb-plum);
+  color: var(--nb-ink);
+}
+
+body.bg-neon-butterfly .hp-header {
+  background:
+    linear-gradient(90deg, rgba(255, 42, 205, 0.08), transparent 34%, rgba(168, 60, 255, 0.08)),
+    rgba(16, 3, 18, 0.97);
+  border-bottom: 1px solid rgba(255, 84, 215, 0.38);
+  box-shadow: 0 8px 30px rgba(10, 0, 12, 0.34);
+}
+body.bg-neon-butterfly :is(.hp-brand-name, .hp-footer-brand) {
+  color: #fff4f9;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  text-shadow: 0 0 18px rgba(255, 42, 205, 0.24);
+}
+body.bg-neon-butterfly :is(.hp-brand-sub, .hp-header-link, .hp-header-link-disabled) { color: #ead8e8; }
+body.bg-neon-butterfly :is(.hp-header-link:hover, .hp-header-link[aria-current="page"], .hp-coming-soon-badge) { color: #ff74df; }
+body.bg-neon-butterfly .hp-header-link[aria-current="page"]::after { background: linear-gradient(90deg, var(--nb-pink), var(--nb-violet)); }
+
+body.bg-neon-butterfly .hp-ticker-row {
+  background: #fff3f9;
+  color: #341036;
+  border-color: rgba(87, 22, 88, 0.18);
+}
+body.bg-neon-butterfly .hp-ticker-label {
+  color: #5b0b51;
+  background: #ffd8ef;
+  border-right-color: rgba(255, 42, 205, 0.3);
+}
+body.bg-neon-butterfly .hp-ticker-row:not(.reverse) :is(.hp-ticker-item, .hp-ticker-empty, .hp-ticker-track) {
+  color: #341036;
+}
+body.bg-neon-butterfly .hp-ticker-row.reverse {
+  color: #fff6fb;
+  background: linear-gradient(90deg, #150417, #2c092b 50%, #16051e);
+  border-color: rgba(255, 42, 205, 0.32);
+}
+body.bg-neon-butterfly .hp-ticker-row.reverse .hp-ticker-label {
+  color: #ff80e4;
+  background: #19051e;
+  border-right-color: rgba(255, 194, 74, 0.32);
+}
+body.bg-neon-butterfly .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #fff6fb; font-weight: 700; }
+body.bg-neon-butterfly .hp-ticker-item .dot { background: var(--nb-pink); box-shadow: 0 0 10px rgba(255, 42, 205, 0.68); }
+body.bg-neon-butterfly :is(.hp-lrq-strip, .tp-lrq-strip, .jp-lrq-strip) {
+  color: #361037;
+  background: rgba(255, 246, 251, 0.96);
+  border-color: rgba(106, 34, 109, 0.2);
+}
+
+body.bg-neon-butterfly :is(.hp-hero, .tp-hero, .jp-hero, .mhf-hero, .bwb-hero, .bk-home-hero) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--nb-ink);
+  background: #130416 url('/amethyst/skins/neon-butterfly/velvet-room-desktop.webp') center / cover no-repeat;
+  border-bottom: 1px solid rgba(255, 194, 74, 0.45);
+}
+body.bg-neon-butterfly :is(.hp-hero-media, .jp-hero-media) { background: transparent; }
+body.bg-neon-butterfly :is(.hp-hero-media, .jp-hero-media)::after,
+body.bg-neon-butterfly .jp-hero-media::before { background: none; }
+body.bg-neon-butterfly :is(.mhf-hero-video, .mhf-hero-shade, .bwb-hero-image, .bwb-hero-shade, .bk-home-hero-image) { display: none; }
+body.bg-neon-butterfly .bk-home-hero::after { background: none; }
+body.bg-neon-butterfly :is(.hp-hero-fx-layer, .hp-fx-layer) { display: none; }
+body.bg-neon-butterfly :is(.mhf-hero, .bwb-hero, .bk-home-hero) { place-items: center; }
+body.bg-neon-butterfly :is(.hp-hero-inner, .tp-hero-inner, .jp-hero-card, .mhf-hero-content, .bwb-hero-content, .bk-home-hero-content) {
+  position: relative;
+  z-index: 3;
+}
+body.bg-neon-butterfly .hp-hero { min-height: 650px; }
+body.bg-neon-butterfly .hp-hero-inner { min-height: 620px; padding-block: 112px 118px; }
+body.bg-neon-butterfly .hp-hero-inner > div { background: transparent; border: 0; box-shadow: none; backdrop-filter: none; }
+body.bg-neon-butterfly .tp-hero { padding-block: 92px 108px; }
+body.bg-neon-butterfly .jp-hero { padding-block: 92px 108px; }
+body.bg-neon-butterfly .jp-hero-card {
+  color: var(--nb-ink);
+  background: linear-gradient(145deg, rgba(47, 10, 50, 0.87), rgba(14, 2, 17, 0.82));
+  border: 1px solid rgba(255, 92, 216, 0.56);
+  box-shadow: 0 22px 70px rgba(7, 0, 9, 0.58), inset 0 1px 0 rgba(255, 235, 249, 0.14);
+  backdrop-filter: blur(14px);
+}
+body.bg-neon-butterfly :is(.hp-hero-headline, .tp-hero-title, .jp-hero-title, .mhf-hero-title, .bwb-hero-title, .bk-home-hero-content h1) {
+  color: #fff8fc;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  text-shadow: 0 2px 18px rgba(20, 0, 25, 0.92), 0 0 24px rgba(255, 42, 205, 0.22);
+  animation: none;
+  text-wrap: balance;
+}
+body.bg-neon-butterfly .hp-hero-headline { font-size: clamp(54px, 6.4vw, 92px); line-height: 0.99; }
+body.bg-neon-butterfly :is(.hp-hero-sub, .tp-hero-sub, .jp-hero-pitch, .jp-hero-localized, .jp-hero-compliance, .mhf-hero-with, .mhf-hero-line, .mhf-hero-instruction, .bwb-hero-team, .bwb-hero-line, .bwb-hero-instruction, .bk-home-hero-content p, .bk-home-hero-content > span) {
+  color: #f1dfea;
+  text-shadow: 0 2px 16px rgba(10, 0, 12, 0.94);
+}
+body.bg-neon-butterfly .hp-hero-sub { max-width: 54ch; }
+body.bg-neon-butterfly .jp-hero-eyebrow { color: #ff80e4; }
+
+body.bg-neon-butterfly :is(.hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .tp-card-expand-cta, .tp-sheet-submit, .jp-spot-btn, .jp-final-btn) {
+  color: #fff9fd;
+  background: linear-gradient(130deg, #ff2acd, #8d2cff 78%);
+  border: 1px solid rgba(255, 183, 238, 0.74);
+  box-shadow: 0 8px 28px rgba(255, 42, 205, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+body.bg-neon-butterfly :is(.hp-btn-outline, .hp-btn-watch) {
+  color: #fff5fa;
+  background: rgba(22, 4, 25, 0.76);
+  border-color: rgba(255, 208, 242, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 24px rgba(6, 0, 8, 0.28);
+  backdrop-filter: blur(9px);
+}
+body.bg-neon-butterfly .hp-btn-sparkle .spark { background: #fff7fb; box-shadow: 0 0 12px #ff2acd; }
+
+body.bg-neon-butterfly :is(#events, #about, .tp-main, .jp-team, .jp-benefits, .jp-faq) {
+  color: var(--nb-ink);
+  background:
+    radial-gradient(circle at 7% 10%, rgba(255, 42, 205, 0.12), transparent 28%),
+    radial-gradient(circle at 93% 88%, rgba(168, 60, 255, 0.13), transparent 34%),
+    #130416;
+}
+body.bg-neon-butterfly :is(#wibp, .hp-signup, .jp-final) {
+  color: var(--nb-ink);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 194, 74, 0.1), transparent 28%),
+    linear-gradient(145deg, #19051d, #0c020f);
+  border-block: 1px solid rgba(255, 92, 216, 0.22);
+}
+body.bg-neon-butterfly :is(.hp-section-title, .hp-wibp-title, .hp-signup-title, .jp-section-title, .tp-section-title) {
+  color: #fff6fb;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+}
+body.bg-neon-butterfly :is(.hp-section-eyebrow, .hp-wibp-eyebrow, .hp-signup-eyebrow, .jp-section-eyebrow, .tp-section-eyebrow) { color: #ff7be1; }
+
+body.bg-neon-butterfly :is(.hp-event-card, .hp-wibp-card, .hp-trade-card, .hp-about-copy, .hp-signup-card, .tp-lrq-rail, .tp-filters, .tp-card, .tp-card-expand, .tp-sheet, .jp-team-card, .jp-benefit-card, .jp-faq-item, .jp-final-card) {
+  color: var(--hp-card-fg);
+  background:
+    linear-gradient(145deg, rgba(52, 11, 55, 0.91), rgba(18, 3, 21, 0.88));
+  border: 1px solid rgba(255, 93, 217, 0.44);
+  box-shadow: 0 16px 48px rgba(5, 0, 7, 0.36), inset 0 1px 0 rgba(255, 242, 251, 0.1);
+  backdrop-filter: blur(12px);
+}
+body.bg-neon-butterfly .hp-event-card.featured {
+  border-color: rgba(255, 96, 219, 0.88);
+  box-shadow: 0 18px 56px rgba(255, 42, 205, 0.2), inset 0 1px 0 rgba(255, 242, 251, 0.16);
+}
+body.bg-neon-butterfly :is(.hp-event-name, .tp-card-name, .tp-card-expand-name, .tp-sheet-title, .jp-team-name, .jp-benefit-title, .jp-spot-title, .jp-final-title) { color: var(--hp-card-fg); }
+body.bg-neon-butterfly :is(.hp-section-sub, .hp-event-description, .hp-about-body, .hp-signup-sub, .tp-hero-sub, .tp-card-meta, .jp-section-sub, .jp-benefit-copy, .jp-faq-answer) { color: var(--hp-card-muted); }
+body.bg-neon-butterfly :is(.hp-step, .hp-signup-consent-box, .hp-signup-preferences, .tp-filter-panel, .jp-faq-note) {
+  color: var(--hp-card-fg);
+  background: rgba(12, 2, 15, 0.56);
+  border-color: rgba(255, 115, 223, 0.26);
+}
+body.bg-neon-butterfly :is(.hp-event-pill, .hp-step-num, .jp-benefit-icon, .jp-final-icon) {
+  color: #2a072b;
+  background: linear-gradient(135deg, #ff80e4, #ffc24a);
+}
+body.bg-neon-butterfly :is(.hp-event-code, .hp-event-collection-pill, .hp-event-add, .hp-event-platform, .tp-chip, .tp-filter-chip) {
+  color: #fff5fa;
+  background: rgba(41, 8, 44, 0.76);
+  border-color: rgba(255, 112, 222, 0.42);
+}
+body.bg-neon-butterfly :is(.hp-event-add:hover, .hp-event-platform:hover, .hp-event-collection-pill:hover) { border-color: #ff75df; box-shadow: 0 0 20px rgba(255, 42, 205, 0.2); }
+body.bg-neon-butterfly :is(.hp-signup-input, .tp-sheet-field input, .tp-sheet-field textarea, .tp-sheet-field select, input, textarea, select) {
+  color: var(--hp-field-fg);
+  background: var(--hp-field-bg);
+  border-color: rgba(255, 115, 223, 0.34);
+}
+body.bg-neon-butterfly :is(input, textarea)::placeholder { color: rgba(216, 189, 216, 0.62); }
+body.bg-neon-butterfly :is(a, button, input, select, textarea):focus-visible { outline: 3px solid var(--nb-gold); outline-offset: 4px; }
+body.bg-neon-butterfly .hp-footer {
+  color: #d9c2d6;
+  background: #09010c;
+  border-top: 1px solid rgba(255, 91, 217, 0.32);
+}
+body.bg-neon-butterfly .hp-footer a:hover { color: #ff75df; }
+
+.nb-decoration { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.nb-scene { position: absolute; inset: 0; pointer-events: none; user-select: none; overflow: hidden; }
+.nb-ambient { position: absolute; inset: -18%; background: radial-gradient(circle at 70% 35%, rgba(255, 42, 205, 0.17), transparent 31%), radial-gradient(circle at 24% 62%, rgba(255, 194, 74, 0.1), transparent 23%), radial-gradient(circle at 93% 70%, rgba(97, 242, 155, 0.07), transparent 20%); animation: nb-ambient-breathe 22s ease-in-out infinite; }
+.nb-lamp-shimmer { position: absolute; left: -7%; bottom: -8%; width: 34%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(255, 214, 124, 0.28), rgba(255, 153, 46, 0.08) 37%, transparent 69%); mix-blend-mode: screen; opacity: .42; animation: nb-lamp-shimmer 19s ease-in-out infinite; }
+.nb-butterfly { position: absolute; display: block; color: #ff2acd; filter: drop-shadow(0 0 7px currentColor) drop-shadow(0 0 18px currentColor); transform-origin: 50% 50%; will-change: transform, opacity, filter; }
+.nb-butterfly svg { display: block; width: 100%; height: auto; overflow: visible; }
+.nb-butterfly-outline { fill: rgba(255,255,255,.025); stroke: currentColor; stroke-width: 5.2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.nb-butterfly-detail { fill: none; stroke: rgba(255,255,255,.82); stroke-width: 1.35; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.nb-butterfly--pink { color: #ff35d1; }
+.nb-butterfly--gold { color: #ffc24a; }
+.nb-butterfly--violet { color: #b56bff; }
+.nb-butterfly--upper-right { width: clamp(138px, 16vw, 225px); right: clamp(28px, 7vw, 120px); top: clamp(36px, 8%, 82px); animation: nb-sign-flutter 21s ease-in-out infinite, nb-neon-breathe 8s ease-in-out infinite; }
+.nb-butterfly--left { width: clamp(108px, 13vw, 182px); left: clamp(20px, 6vw, 104px); top: 32%; animation: nb-sign-flutter 27s -9s ease-in-out infinite, nb-neon-breathe 11s -3s ease-in-out infinite; }
+.nb-butterfly--lower-right { width: clamp(92px, 11vw, 160px); right: clamp(18px, 9vw, 145px); bottom: 13%; animation: nb-sign-flutter 24s -15s ease-in-out infinite, nb-neon-breathe 9s -5s ease-in-out infinite; }
+.nb-butterfly--flyer { width: clamp(40px, 4.6vw, 66px); left: 8%; bottom: 9%; opacity: 0; animation: nb-butterfly-flight 29s -6s cubic-bezier(.42,0,.28,1) infinite; }
+.nb-decoration[data-choreography="2"] .nb-butterfly--flyer { animation-delay: -15s; animation-duration: 33s; }
+.nb-decoration[data-choreography="3"] .nb-butterfly--flyer { animation-delay: -24s; animation-duration: 36s; }
+.nb-sparkle { --nb-size: 4px; position: absolute; left: var(--nb-x); top: var(--nb-y); width: var(--nb-size); height: var(--nb-size); border-radius: 50%; background: #fff9fd; box-shadow: 0 0 7px 2px rgba(255,255,255,.48), 0 0 15px 4px rgba(255,42,205,.24); opacity: .2; animation: nb-sparkle-twinkle 9s var(--nb-delay) ease-in-out infinite; }
+.nb-sparkle:nth-of-type(3n) { --nb-size: 3px; animation-duration: 13s; }
+.nb-sparkle:nth-of-type(4n) { --nb-size: 5px; animation-duration: 16s; box-shadow: 0 0 8px 2px rgba(255,194,74,.58); }
+.nb-motion-control { position: absolute; left: 18px; bottom: 16px; z-index: 5; min-height: 36px; padding: 8px 13px; pointer-events: auto; border: 1px solid rgba(255, 220, 245, 0.42); border-radius: 999px; background: rgba(12, 2, 15, 0.76); color: #fff5fa; font: 600 12px/1.3 "DM Sans", sans-serif; box-shadow: 0 8px 22px rgba(7,0,9,.28); backdrop-filter: blur(8px); cursor: pointer; }
+.nb-decoration[data-paused="true"] .nb-scene *,
+.nb-page-hidden .nb-scene * { animation-play-state: paused !important; }
+
+@keyframes nb-ambient-breathe { 0%,100% { opacity: .68; transform: scale(1); } 48% { opacity: .95; transform: scale(1.035); } 54% { opacity: .9; transform: scale(1.025); } }
+@keyframes nb-lamp-shimmer { 0%,57%,100% { opacity: .34; transform: scale(.96); } 63% { opacity: .7; transform: scale(1.035); } 70% { opacity: .42; transform: scale(1); } }
+@keyframes nb-neon-breathe { 0%,100% { opacity: .86; filter: drop-shadow(0 0 6px currentColor) drop-shadow(0 0 16px currentColor); } 50% { opacity: 1; filter: drop-shadow(0 0 9px currentColor) drop-shadow(0 0 25px currentColor); } }
+@keyframes nb-sign-flutter { 0%,38%,46%,72%,80%,100% { transform: rotate(0deg) scaleX(1) translateY(0); } 41% { transform: rotate(-1deg) scaleX(.91) translateY(-2px); } 43% { transform: rotate(1deg) scaleX(1.025) translateY(0); } 75% { transform: rotate(.8deg) scaleX(.94) translateY(-1px); } 77% { transform: rotate(-.5deg) scaleX(1.015) translateY(0); } }
+@keyframes nb-butterfly-flight { 0%,58% { opacity: 0; transform: translate(0,0) rotate(-18deg) scale(.78); } 61% { opacity: .76; } 69% { opacity: .9; transform: translate(27vw,-19vh) rotate(6deg) scale(1); } 76% { opacity: .72; transform: translate(53vw,-29vh) rotate(-8deg) scale(.92); } 81%,100% { opacity: 0; transform: translate(76vw,-43vh) rotate(12deg) scale(.72); } }
+@keyframes nb-sparkle-twinkle { 0%,38%,52%,100% { opacity: .15; transform: scale(.7); } 44% { opacity: .9; transform: scale(1.55); } 48% { opacity: .38; transform: scale(.9); } }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  body.btn-neon-lift :is(.hp-btn-primary, .hp-btn-outline, .hp-shop-btn, .hp-signup-submit, .tp-card-expand-cta, .tp-sheet-submit, .jp-spot-btn, .jp-final-btn):hover { transform: translateY(-2px); filter: saturate(1.08); box-shadow: 0 12px 34px rgba(255,42,205,.38), 0 0 22px rgba(168,60,255,.16); }
+  body.bg-neon-butterfly :is(.hp-event-card, .tp-card, .jp-team-card, .jp-benefit-card):hover { transform: translateY(-2px); border-color: rgba(255,111,223,.74); box-shadow: 0 20px 54px rgba(255,42,205,.16), inset 0 1px 0 rgba(255,242,251,.14); }
+}
+
+@media (max-width: 900px) {
+  body.bg-neon-butterfly .hp-hero-headline { font-size: clamp(48px, 8vw, 72px); }
+  .nb-butterfly--upper-right { right: 3vw; }
+  .nb-butterfly--left { left: 2vw; }
+  .nb-butterfly--lower-right { right: 3vw; }
+}
+
+@media (max-width: 767px) {
+  body.bg-neon-butterfly :is(.hp-hero, .tp-hero, .jp-hero, .mhf-hero, .bwb-hero, .bk-home-hero) { background-image: url('/amethyst/skins/neon-butterfly/velvet-room-mobile.webp'); }
+  body.bg-neon-butterfly .hp-hero { min-height: 660px; }
+  body.bg-neon-butterfly .hp-hero-inner { min-height: 630px; padding: 90px 24px 128px; }
+  body.bg-neon-butterfly .hp-hero-headline { font-size: clamp(43px, 13vw, 62px); line-height: 1.02; }
+  body.bg-neon-butterfly :is(.tp-hero, .jp-hero) { padding: 96px 20px 126px; }
+  body.bg-neon-butterfly .jp-hero-card { padding: 30px 22px; }
+  .nb-butterfly--upper-right { width: 96px; right: 8px; top: 30px; opacity: .76; }
+  .nb-butterfly--left { width: 76px; left: 5px; top: 52%; opacity: .72; }
+  .nb-butterfly--lower-right { width: 70px; right: 15px; bottom: 18%; opacity: .72; }
+  .nb-butterfly--flyer { display: none; }
+  .nb-sparkle:nth-of-type(even) { display: none; }
+  .nb-lamp-shimmer { width: 58%; left: -19%; }
+  .nb-motion-control { left: 12px; bottom: 12px; min-height: 34px; padding: 7px 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-motion-control { display: none; }
+  .nb-scene *, .nb-scene *::before, .nb-scene *::after { animation: none !important; transition: none !important; }
+  .nb-butterfly { opacity: .82; transform: none !important; }
+  .nb-butterfly--flyer { display: none; }
+  .nb-sparkle { opacity: .34; }
+  body.btn-neon-lift :is(a, button),
+  body.bg-neon-butterfly :is(.hp-event-card, .tp-card, .jp-team-card, .jp-benefit-card) { transition: none; transform: none; }
+}
+
+body.nb-utility.bg-neon-butterfly .hp-signup {
+  min-height: 68vh;
+  padding-block: 90px;
+  background:
+    radial-gradient(circle at 82% 24%, rgba(255,42,205,.16), transparent 25%),
+    #120414 url('/amethyst/skins/neon-butterfly/velvet-room-desktop.webp') center / cover no-repeat;
+}
+body.nb-utility.bg-neon-butterfly .hp-signup-card { max-width: 980px; margin-inline: auto; }
+@media (max-width: 767px) {
+  body.nb-utility.bg-neon-butterfly .hp-signup { background-image: linear-gradient(rgba(12,2,15,.18), rgba(12,2,15,.18)), url('/amethyst/skins/neon-butterfly/velvet-room-mobile.webp'); }
+}

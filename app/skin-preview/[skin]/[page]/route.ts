@@ -1,15 +1,24 @@
-import { renderGnomeSkinPreview, SKIN_PREVIEW_PAGES, type SkinPreviewPage } from '@/lib/amethyst/skin-preview'
+import {
+  renderSkinPreview,
+  SKIN_PREVIEW_PAGES,
+  SKIN_PREVIEW_SKINS,
+  type SkinPreviewPage,
+  type SkinPreviewSkin,
+} from '@/lib/amethyst/skin-preview'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request, { params }: { params: Promise<{ skin: string; page: string }> }) {
   const { skin, page } = await params
-  if (skin !== 'gnome_garden' || !SKIN_PREVIEW_PAGES.includes(page as SkinPreviewPage)) {
+  if (
+    !SKIN_PREVIEW_SKINS.includes(skin as SkinPreviewSkin) ||
+    !SKIN_PREVIEW_PAGES.includes(page as SkinPreviewPage)
+  ) {
     return new Response('Not found', { status: 404 })
   }
   const origin = new URL(request.url).origin
-  return new Response(await renderGnomeSkinPreview(page as SkinPreviewPage, origin), {
+  return new Response(await renderSkinPreview(skin as SkinPreviewSkin, page as SkinPreviewPage, origin), {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-store',

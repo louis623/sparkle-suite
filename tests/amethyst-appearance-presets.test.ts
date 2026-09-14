@@ -84,6 +84,7 @@ describe('Amethyst appearance presets', () => {
       'alpine_opal',
       'emerald_garden',
       'gnome_garden',
+      'neon_butterfly',
       'rose_gold',
       'garnet',
       'amber',
@@ -98,6 +99,7 @@ describe('Amethyst appearance presets', () => {
       'Alpine Opal',
       'Emerald Garden',
       'Gnome Forest',
+      'Neon Butterfly',
       'Rose Gold',
       'Garnet',
       'Amber',
@@ -295,6 +297,7 @@ describe('Amethyst appearance presets', () => {
       'moonstone',
       'emerald_garden',
       'gnome_garden',
+      'neon_butterfly',
       'garnet',
     ])
 
@@ -305,7 +308,13 @@ describe('Amethyst appearance presets', () => {
       if (softGlowSkins.has(id)) {
         expect(preset.values.heroMotion).toBe('soft_glow')
         expect(preset.values.sparkleLevel).toBe('subtle')
-        expect(preset.values.textureOverlay).toBe(id === 'gnome_garden' ? 'fireflies' : 'none')
+        expect(preset.values.textureOverlay).toBe(
+          id === 'gnome_garden'
+            ? 'fireflies'
+            : id === 'neon_butterfly'
+              ? 'neon-butterflies'
+              : 'none',
+        )
       } else {
         expect(preset.values.heroMotion).toBe('sparkle_rise')
       }

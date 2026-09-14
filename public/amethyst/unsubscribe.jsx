@@ -11,7 +11,27 @@ const HOME_HREF = FOOTER_LINKS.home || "/amethyst/Homepage.html";
 const TRADE_BOARD_HREF = FOOTER_LINKS.tradeBoard || "/amethyst/Trade.html";
 
 function applyUnsubscribeAppearance() {
-  if (window.HOMEPAGE_TWEAK_DEFAULTS?.preset !== "gnome_garden") return;
+  const preset = window.HOMEPAGE_TWEAK_DEFAULTS?.preset;
+
+  if (preset === "neon_butterfly") {
+    document.body.classList.add("bg-neon-butterfly", "surface-neon-velvet-glass", "shape-soft", "nb-utility");
+    const neonTokens = {
+      "--hp-primary": "#ff2acd",
+      "--hp-accent": "#ffc24a",
+      "--primary": "#ff2acd",
+      "--accent": "#ffc24a",
+      "--hp-bg": "#120414",
+      "--hp-bg-elevated": "#261029",
+      "--bg-deep": "#09010c",
+      "--hp-display-font": '"Playfair Display", Georgia, serif',
+      "--hp-body-font": '"DM Sans", "Inter", system-ui, sans-serif',
+      "--hp-heading-weight": "600",
+    };
+    Object.entries(neonTokens).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
+    return;
+  }
+
+  if (preset !== "gnome_garden") return;
 
   document.body.classList.add("bg-gnome-garden", "surface-storybook-parchment", "shape-soft", "gg-utility");
   const tokens = {

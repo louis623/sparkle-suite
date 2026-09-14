@@ -146,6 +146,26 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     ],
   },
   {
+    id: 'neon_butterfly',
+    code: 'NB-01',
+    label: 'Neon Butterfly',
+    aliases: ['Neon Butterflies', 'Kelly Neon Butterfly'],
+    previewHref: '/skin-preview/neon_butterfly/homepage',
+    description:
+      'A glamorous neon lounge with velvet plum depth, glowing butterflies, and warm golden light.',
+    headingFont: 'Playfair Display',
+    bodyFont: 'DM Sans',
+    surfaceNote: 'Translucent plum glass cards with pink-violet neon edges',
+    motionNote: 'Occasional butterfly flights, slow color drift, lamp shimmer, and reduced-motion support',
+    swatches: [
+      { label: 'Velvet plum', value: '#120414' },
+      { label: 'Neon pink', value: '#ff2acd' },
+      { label: 'Electric violet', value: '#a855f7' },
+      { label: 'Lamp gold', value: '#ffc24a' },
+      { label: 'Live green', value: '#35f287' },
+    ],
+  },
+  {
     id: 'rose_gold',
     code: 'RG-01',
     label: 'Rose Gold',

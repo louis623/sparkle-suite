@@ -79,6 +79,12 @@ const FINDER_THEME_TOKENS: Record<AmethystAppearancePresetId, SparkleFinderAppea
     accent: '#F4C45E', border: '#D4C49F', borderStrong: '#CFB77C',
     panel: '#173126', panelText: '#FFF3D6', headingFont: 'playfair', bodyFont: 'dmSans',
   },
+  neon_butterfly: {
+    background: '#120414', backgroundSoft: '#1D071F', surface: '#261029', surfaceSoft: '#321137',
+    foreground: '#FFF5FA', foregroundMuted: '#D8BDD8', primary: '#FF2ACD', primaryStrong: '#D817A9',
+    accent: '#FFC24A', border: 'rgba(255, 84, 215, 0.28)', borderStrong: 'rgba(255, 194, 74, 0.5)',
+    panel: '#09010C', panelText: '#FFF5FA', headingFont: 'playfair', bodyFont: 'dmSans',
+  },
   rose_gold: {
     background: '#FFF5F6', backgroundSoft: '#FFF0F3', surface: '#FFFFFF', surfaceSoft: '#FFF8F3',
     foreground: '#4A2530', foregroundMuted: '#7B5B63', primary: '#E04F73', primaryStrong: '#B72C52',

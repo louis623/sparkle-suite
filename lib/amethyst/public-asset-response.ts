@@ -39,11 +39,15 @@ const CONTENT_TYPES: Record<string, string> = {
 
 const AMETHYST_ASSETS = new Set([
   'gnome-garden.css',
+  'neon-butterfly.css',
+  'neon-butterfly.js',
   'skins/gnome-garden/forest.webp',
   'skins/gnome-garden/forest-mobile.webp',
   'skins/gnome-garden/gnome.webp',
   'skins/gnome-garden/lantern.webp',
   'skins/gnome-garden/storybook-original.webp',
+  'skins/neon-butterfly/velvet-room-desktop.webp',
+  'skins/neon-butterfly/velvet-room-mobile.webp',
   'Amethyst Design System.html',
   'components.css',
   'homepage.css',

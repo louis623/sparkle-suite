@@ -8,13 +8,15 @@ import type { AmethystHomepageEventCard } from './homepage-upcoming-shows'
 
 export const SKIN_PREVIEW_PAGES = ['homepage', 'trade', 'join', 'unsubscribe'] as const
 export type SkinPreviewPage = (typeof SKIN_PREVIEW_PAGES)[number]
+export const SKIN_PREVIEW_SKINS = ['gnome_garden', 'neon_butterfly'] as const
+export type SkinPreviewSkin = (typeof SKIN_PREVIEW_SKINS)[number]
 const FILES: Record<SkinPreviewPage, string> = {
   homepage: 'Homepage.html', trade: 'Trade.html', join: 'Join.html', unsubscribe: 'Unsubscribe.html',
 }
 const LABELS: Record<SkinPreviewPage, string> = {
   homepage: 'Home', trade: 'Dance Floor', join: 'Join', unsubscribe: 'Preferences',
 }
-const previewPath = (page: SkinPreviewPage) => `/skin-preview/gnome_garden/${page}`
+const previewPath = (skin: SkinPreviewSkin, page: SkinPreviewPage) => `/skin-preview/${skin}/${page}`
 
 // Explicit sample data only. The opaque preview never contacts the live lineup endpoint.
 export const GNOME_PREVIEW_LINEUP = {
@@ -39,45 +41,38 @@ export const GNOME_PREVIEW_LISTINGS: AmethystTradeBoardListing[] = [
 ]
 
 export const GNOME_PREVIEW_EVENTS: AmethystHomepageEventCard[] = [
-  { id: 'sample-garden-evening', title: 'A Little Woodland Sparkle', description: 'Pull up a chair for a cozy evening of live reveals.\nBring your favorite mug and see what the garden has in store.', eventTime: '2099-09-12T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{ code: 'SAMPLE10', desc: 'Sample offer for this preview' }], collections: [{ label: 'OG Collection', href: previewPath('trade') }], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
+  { id: 'sample-garden-evening', title: 'A Little Woodland Sparkle', description: 'Pull up a chair for a cozy evening of live reveals.\nBring your favorite mug and see what the garden has in store.', eventTime: '2099-09-12T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{ code: 'SAMPLE10', desc: 'Sample offer for this preview' }], collections: [{ label: 'OG Collection', href: previewPath('gnome_garden', 'trade') }], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
   { id: 'sample-morning-show', title: 'Coffee, Gnomes & a Little Surprise', description: 'A relaxed weekend gathering with new favorites, familiar faces, and plenty of sparkle.', eventTime: '2099-09-14T15:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 60, featured: false, codes: [], collections: [], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
 ]
 
-function fixtureBootstrap(page: SkinPreviewPage) {
-  const footerLinks = {
-    ...defaultAmethystHomepageTemplateData.footerLinks,
-    home: previewPath('homepage'), tradeBoard: previewPath('trade'), joinTeam: previewPath('join'),
-    unsubscribe: previewPath('unsubscribe'), catalog: '#preview-action', preOrders: '#preview-action',
-  }
-  const common = {
-    ...GNOME_PREVIEW_LINEUP,
-    businessName: 'The Gnome Forest', repName: 'Sasha', footerLinks,
-    tickerTopText: 'Welcome to the garden | Live reveals & lovely surprises | Explore the Dance Floor',
-    footerTagline: 'A little wonder. A little sparkle. A place to feel at home.',
-    tradeBoardTickerItems: GNOME_PREVIEW_LISTINGS.map(({ name, type, collection }) => ({ name, type, collection })),
-  }
-  const context = { targeted: true } as const
-  if (page === 'trade') {
-    return buildAmethystTradeBootstrapScript({ ...defaultAmethystTradeTemplateData, ...common, shopUrl: '#preview-action' }, GNOME_PREVIEW_LISTINGS, 'gnome_garden', context)
-  }
-  if (page === 'join') {
-    return buildAmethystJoinBootstrapScript({
-      ...defaultAmethystJoinTemplateData, ...common, teamName: 'The Garden Circle', heroTitle: 'Find your place in the garden.',
-      shopUrl: '#preview-action', bpReferralUrl: '', hasRecruitingLink: false,
-      teamMembers: [
-        { name: 'Sasha', business: 'The Gnome Forest', state: 'Virginia', initials: 'S', socialLinks: {} },
-        { name: 'Alex', business: 'Moonlit Sparkle', state: 'North Carolina', initials: 'A', socialLinks: {} },
-        { name: 'Jamie', business: 'Little Lantern Reveals', state: 'Georgia', initials: 'J', socialLinks: {} },
-      ],
-    }, 'gnome_garden', context, GNOME_PREVIEW_LISTINGS)
-  }
-  return buildAmethystHomepageBootstrapScript({
-    ...defaultAmethystHomepageTemplateData, ...common,
-    teamName: 'The Garden Circle', tagline: 'Live reveals, lovely surprises, and a little woodland magic.',
-    heroEyebrow: 'Come for the sparkle. Stay for the company.',
-    heroHeadline: 'A little wonder. A lot of sparkle.',
+const NEON_PREVIEW_EVENTS: AmethystHomepageEventCard[] = [
+  { id: 'sample-neon-night', title: 'Neon Butterfly Night', description: 'Join us for a glowing evening of live jewelry reveals.\nCome for the color, stay for the sparkle.', eventTime: '2099-09-12T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{ code: 'SAMPLE10', desc: 'Sample offer for this preview' }], collections: [{ label: 'OG Collection', href: previewPath('neon_butterfly', 'trade') }], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
+  { id: 'sample-afterglow', title: 'The Afterglow Reveal', description: 'A relaxed weekend show with bright surprises, familiar faces, and plenty of sparkle.', eventTime: '2099-09-14T15:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 60, featured: false, codes: [], collections: [], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
+]
+
+type PreviewProfile = {
+  label: string
+  businessName: string
+  repName: string
+  teamName: string
+  ticker: string
+  tagline: string
+  eyebrow: string
+  headline: string
+  heroSub: string
+  aboutHeadline: string
+  aboutParagraphs: [string, string, string]
+  signupSub: string
+  events: AmethystHomepageEventCard[]
+}
+
+const PREVIEW_PROFILES = {
+  gnome_garden: {
+    label: 'Gnome Forest', businessName: 'The Gnome Forest', repName: 'Sasha', teamName: 'The Garden Circle',
+    ticker: 'Welcome to the garden | Live reveals & lovely surprises | Explore the Dance Floor',
+    tagline: 'A little wonder. A little sparkle. A place to feel at home.',
+    eyebrow: 'Come for the sparkle. Stay for the company.', headline: 'A little wonder. A lot of sparkle.',
     heroSub: 'Settle in for live jewelry reveals, friendly faces, and the joy of discovering something you love.',
-    tickerTopText: 'Welcome to the garden | Live reveals & lovely surprises | Explore the Dance Floor',
     aboutHeadline: 'There is always room for you here.',
     aboutParagraphs: [
       'The best part of a reveal is sharing the surprise. This little corner of the garden is a place to unwind, chat, and discover a new favorite together.',
@@ -85,9 +80,79 @@ function fixtureBootstrap(page: SkinPreviewPage) {
       'Our sample calendar shows how upcoming live gatherings, collection notes, and helpful details fit together on your site.',
     ],
     signupSub: 'A friendly heads-up for the next gathering in the garden.',
+    events: GNOME_PREVIEW_EVENTS,
+  },
+  neon_butterfly: {
+    label: 'Neon Butterfly', businessName: "Kelly's Sparkle Lounge", repName: 'Kelly', teamName: 'The Butterfly Circle',
+    ticker: 'Welcome to the glow | Live reveals & neon surprises | Explore the Dance Floor',
+    tagline: 'Bright color. Warm company. A little magic in every reveal.',
+    eyebrow: 'Step into the glow.', headline: 'Let your sparkle take flight.',
+    heroSub: 'Live jewelry reveals, electric color, and a welcoming place to find your next favorite.',
+    aboutHeadline: 'A bright place to land.',
+    aboutParagraphs: [
+      'The best part of a reveal is sharing the surprise. This neon lounge is a place to unwind, connect, and discover a new favorite together.',
+      'Whether your style is a quiet shimmer or full electric color, you are welcome here. Bring your curiosity and let your sparkle take flight.',
+      'The sample calendar shows how upcoming live gatherings, collection notes, and helpful details flow through every page.',
+    ],
+    signupSub: 'A friendly heads-up before the next night in the glow.',
+    events: NEON_PREVIEW_EVENTS,
+  },
+} satisfies Record<SkinPreviewSkin, PreviewProfile>
+
+function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_garden') {
+  const profile = PREVIEW_PROFILES[skin]
+  const footerLinks = {
+    ...defaultAmethystHomepageTemplateData.footerLinks,
+    home: previewPath(skin, 'homepage'), tradeBoard: previewPath(skin, 'trade'), joinTeam: previewPath(skin, 'join'),
+    unsubscribe: previewPath(skin, 'unsubscribe'), catalog: '#preview-action', preOrders: '#preview-action',
+  }
+  const common = {
+    ...GNOME_PREVIEW_LINEUP,
+    businessName: profile.businessName, repName: profile.repName, footerLinks,
+    tickerTopText: profile.ticker,
+    footerTagline: profile.tagline,
+    tradeBoardTickerItems: GNOME_PREVIEW_LISTINGS.map(({ name, type, collection }) => ({ name, type, collection })),
+  }
+  const context = { targeted: true } as const
+  if (page === 'trade') {
+    return buildAmethystTradeBootstrapScript({ ...defaultAmethystTradeTemplateData, ...common, shopUrl: '#preview-action' }, GNOME_PREVIEW_LISTINGS, skin, context)
+  }
+  if (page === 'join') {
+    return buildAmethystJoinBootstrapScript({
+      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'neon_butterfly' ? 'Find your place in the glow.' : 'Find your place in the garden.',
+      shopUrl: '#preview-action', bpReferralUrl: '', hasRecruitingLink: false,
+      teamMembers: [
+        ...(skin === 'neon_butterfly'
+          ? [
+              { name: 'Maya', business: 'Electric Gem Co.', state: 'Florida', initials: 'M', socialLinks: {} },
+              { name: 'Tori', business: 'Afterglow Reveals', state: 'Georgia', initials: 'T', socialLinks: {} },
+              { name: 'Jules', business: 'Bright Wing Sparkle', state: 'Virginia', initials: 'J', socialLinks: {} },
+            ]
+          : [
+              { name: 'Sasha', business: 'The Gnome Forest', state: 'Virginia', initials: 'S', socialLinks: {} },
+              { name: 'Alex', business: 'Moonlit Sparkle', state: 'North Carolina', initials: 'A', socialLinks: {} },
+              { name: 'Jamie', business: 'Little Lantern Reveals', state: 'Georgia', initials: 'J', socialLinks: {} },
+            ]),
+      ],
+      faqAnswers: {
+        ...defaultAmethystJoinTemplateData.faqAnswers,
+        whatIsTeam: `${profile.businessName} is a team of independent Bomb Party reps led by ${profile.repName}. Ask the team lead how the group communicates and what support is currently available.`,
+      },
+    }, skin, context, GNOME_PREVIEW_LISTINGS)
+  }
+  return buildAmethystHomepageBootstrapScript({
+    ...defaultAmethystHomepageTemplateData, ...common,
+    teamName: profile.teamName, tagline: profile.tagline,
+    heroEyebrow: profile.eyebrow,
+    heroHeadline: profile.headline,
+    heroSub: profile.heroSub,
+    tickerTopText: profile.ticker,
+    aboutHeadline: profile.aboutHeadline,
+    aboutParagraphs: profile.aboutParagraphs,
+    signupSub: profile.signupSub,
     streamLinks: { shop: '#preview-action', watch: '#preview-action', tiktok: '#preview-action', facebook: '#preview-action', whatnot: '#preview-action' },
-    joinTeamUrl: previewPath('join'),
-  }, GNOME_PREVIEW_EVENTS, 'gnome_garden', context)
+    joinTeamUrl: previewPath(skin, 'join'),
+  }, profile.events, skin, context)
 }
 
 function escapeAttribute(value: string) {
@@ -131,7 +196,7 @@ export const SKIN_PREVIEW_GUARDS = `
     if (href.charAt(0) === '#' && href !== '#' && href !== '#preview-action') return;
     event.preventDefault(); event.stopImmediatePropagation();
     var path = href.split('?')[0].split('#')[0];
-    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/gnome_garden\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
+    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:gnome_garden|neon_butterfly)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
     if (page) window.parent.postMessage({ type: 'sparkle-skin-preview-page', page: page }, '*'); else notice();
   }, true);
   function disableUploads() {
@@ -148,12 +213,12 @@ export const SKIN_PREVIEW_GUARDS = `
 })();`
 
 /** Renders the unchanged customer components with fixture data inside an opaque sandbox. */
-export async function buildGnomeSkinPreviewDocument(page: SkinPreviewPage, origin: string) {
+export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string) {
   const root = join(process.cwd(), 'public', 'amethyst')
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
   // Inline only allowlisted repository runtime files. Inline Babel input does not need network XHR.
-  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js']
+  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js']
   for (const name of runtimeNames) {
     const escaped = name.replace('.', '\\.')
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')
@@ -165,18 +230,31 @@ export async function buildGnomeSkinPreviewDocument(page: SkinPreviewPage, origi
   const csp = `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' ${origin} https://fonts.googleapis.com https://api.fontshare.com; font-src ${origin} https://fonts.gstatic.com https://cdn.fontshare.com https://api.fontshare.com data:; img-src ${origin} https: data: blob:; connect-src 'none'; form-action 'none'; frame-src 'none'; base-uri ${origin}; object-src 'none'`
   document = document.replace('<head>', `<head><meta http-equiv="Content-Security-Policy" content="${escapeAttribute(csp)}"><base href="${escapeAttribute(origin)}/amethyst/"><meta name="robots" content="noindex,nofollow">`)
   document = document.replace(/<meta name="robots" content="index,follow" \/>/g, '')
-  const bootstrap = fixtureBootstrap(page).replaceAll('Sparkle by Sasha', 'The Gnome Forest')
+  const profile = PREVIEW_PROFILES[skin]
+  const bootstrap = fixtureBootstrap(page, skin).replaceAll('Sparkle by Sasha', profile.businessName)
   document = document.replace('<div id="root"></div>', `<div id="root"></div><script>${inlineScript(SKIN_PREVIEW_GUARDS)}\n${inlineScript(bootstrap)}</script>`)
-  return document.replaceAll('Sparkle by Sasha', 'The Gnome Forest')
+  return document.replaceAll('Sparkle by Sasha', profile.businessName)
+}
+
+export async function buildGnomeSkinPreviewDocument(page: SkinPreviewPage, origin: string) {
+  return buildSkinPreviewDocument('gnome_garden', page, origin)
+}
+
+export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string) {
+  const profile = PREVIEW_PROFILES[skin]
+  const document = await buildSkinPreviewDocument(skin, page, origin)
+  const navigation = SKIN_PREVIEW_PAGES.map((item) => `<a href="${previewPath(skin, item)}"${item === page ? ' aria-current="page"' : ''}>${LABELS[item]}</a>`).join('')
+  const chrome = skin === 'neon_butterfly'
+    ? { bg: '#160318', fg: '#fff4fa', muted: '#d9bcd4', border: '#ff2acd55', active: '#ff2acd', focus: '#ffc24a' }
+    : { bg: '#173126', fg: '#fff3d6', muted: '#dfd4ba', border: '#f4c45e44', active: '#fff3d6', focus: '#f4c45e' }
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${profile.label} · Skin preview</title><style>
+  *{box-sizing:border-box}body{margin:0;background:${chrome.bg};color:${chrome.fg};font:14px/1.4 system-ui,sans-serif}header{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;border-bottom:1px solid ${chrome.border}}header strong{font-size:14px}header small{display:block;color:${chrome.muted};font-size:12px}nav{display:flex;gap:5px;flex-wrap:wrap}nav a{color:inherit;text-decoration:none;border-radius:20px;padding:8px 12px}nav a:hover,nav a[aria-current]{background:${chrome.active};color:${chrome.bg}}a:focus-visible{outline:3px solid ${chrome.focus};outline-offset:3px}iframe{display:block;width:100%;height:calc(100dvh - 65px);border:0;background:${chrome.bg}}@media(max-width:600px){header{padding:10px 12px;flex-direction:column;align-items:flex-start;gap:7px}header small{display:inline;margin-left:6px}nav{width:100%;justify-content:space-between}nav a{padding:7px 9px}iframe{height:calc(100dvh - 100px)}}
+  html,body{height:100%;overflow:hidden}body{height:100dvh;display:flex;flex-direction:column}header{flex:0 0 auto}iframe{flex:1 1 0;min-height:0;height:auto}
+  </style></head><body><header><div><strong>Skin preview · Sample content</strong><small>${profile.label}</small></div><nav aria-label="Preview pages">${navigation}</nav></header><iframe id="skin-preview" title="${LABELS[page]} — sample ${profile.label} site" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escapeAttribute(document)}"></iframe><script>
+  window.addEventListener('message',function(event){var frame=document.getElementById('skin-preview');if(event.source!==frame.contentWindow||event.data?.type!=='sparkle-skin-preview-page')return;var page=event.data.page;if(['homepage','trade','join','unsubscribe'].includes(page))window.location.assign('/skin-preview/${skin}/'+page);});
+  </script></body></html>`
 }
 
 export async function renderGnomeSkinPreview(page: SkinPreviewPage, origin: string) {
-  const document = await buildGnomeSkinPreviewDocument(page, origin)
-  const navigation = SKIN_PREVIEW_PAGES.map((item) => `<a href="${previewPath(item)}"${item === page ? ' aria-current="page"' : ''}>${LABELS[item]}</a>`).join('')
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Gnome Forest · Skin preview</title><style>
-  *{box-sizing:border-box}body{margin:0;background:#173126;color:#fff3d6;font:14px/1.4 system-ui,sans-serif}header{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;border-bottom:1px solid #f4c45e44}header strong{font-size:14px}header small{display:block;color:#dfd4ba;font-size:12px}nav{display:flex;gap:5px;flex-wrap:wrap}nav a{color:inherit;text-decoration:none;border-radius:20px;padding:8px 12px}nav a:hover,nav a[aria-current]{background:#fff3d6;color:#173126}a:focus-visible{outline:3px solid #f4c45e;outline-offset:3px}iframe{display:block;width:100%;height:calc(100dvh - 65px);border:0;background:#173126}@media(max-width:600px){header{padding:10px 12px;flex-direction:column;align-items:flex-start;gap:7px}header small{display:inline;margin-left:6px}nav{width:100%;justify-content:space-between}nav a{padding:7px 9px}iframe{height:calc(100dvh - 100px)}}
-  html,body{height:100%;overflow:hidden}body{height:100dvh;display:flex;flex-direction:column}header{flex:0 0 auto}iframe{flex:1 1 0;min-height:0;height:auto}
-  </style></head><body><header><div><strong>Skin preview · Sample content</strong><small>Gnome Forest</small></div><nav aria-label="Preview pages">${navigation}</nav></header><iframe id="skin-preview" title="${LABELS[page]} — sample Gnome Forest site" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escapeAttribute(document)}"></iframe><script>
-  window.addEventListener('message',function(event){var frame=document.getElementById('skin-preview');if(event.source!==frame.contentWindow||event.data?.type!=='sparkle-skin-preview-page')return;var page=event.data.page;if(['homepage','trade','join','unsubscribe'].includes(page))window.location.assign('/skin-preview/gnome_garden/'+page);});
-  </script></body></html>`
+  return renderSkinPreview('gnome_garden', page, origin)
 }
