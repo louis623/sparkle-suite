@@ -2771,6 +2771,21 @@ monorepo root incorrectly, and a normal production deployment can move every
 project alias. Route-level verification and explicit alias restoration are
 required to prove an isolated release did not change customer sites.
 
+## 2026-09-14 - Custom rep skins are private by default
+
+Decision: A custom skin made for a named rep is selectable only by that rep and
+Louis's established `louis@neonrabbit.net` demo workspace. Non-owners do not
+see the skin in their dropdown, including as a disabled teaser. UI pickers,
+Site Settings writes, Nic-Nac tools, required-setup publication, and the
+database must all enforce the same allowlist. The public noindex design preview
+may remain available. Expanding the allowlist requires Louis's explicit
+approval.
+
+Reason: Louis needs a safe way to preview and tune each rep's bespoke skin
+without entering the customer's account, while the skin must still feel truly
+exclusive and remain impossible for other reps to select through alternate
+write paths.
+
 ## 2026-09-03 - Keep Lane accounting writes in the single dedicated MCP
 
 Decision: Lane's website credential remains visual-review-only. The single

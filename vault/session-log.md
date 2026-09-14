@@ -7291,3 +7291,26 @@ Lessons retained:
   presentability, and adequate centering. Packaging is not a defect. Readable
   label photos are valuable details evidence but must remain structurally
   unable to become customer-facing media.
+
+## September 14, 2026 - Neon Butterfly made private to Kelly
+
+- Released application commit `8f4f08ea2fff87f449f37996abbfe364f187cec7`
+  and deployment `dpl_DPcYwvfeSoLLGqAEv9fcNMkYxJ6G`.
+- Kelly's `Sparkly Butterflies` workspace now defaults to Neon Butterfly.
+  Louis's `The Dudes Fizzfest` demo can select it under the special label
+  `Only Kelly has`, but remains saved as Amethyst.
+- All other reps are excluded across dropdowns, direct settings writes,
+  Nic-Nac, required setup, and the production database constraint. Production
+  readback found zero non-owner Neon selections.
+- The exact commit passed 87 focused tests and a complete production build.
+  Live Chrome checks confirmed Kelly's approved homepage and Louis's owner-only
+  dropdown with no console errors. Kelly's pre-existing disabled Join route
+  remains 404 and is not claimed as part of this verification.
+- Migration `20260914000200` was applied in isolation. Protected Live Lineup
+  migrations remain pending and untouched.
+- Vercel auto-moved attached customer aliases during release; all unrelated
+  customer aliases were restored to their preserved deployment and verified.
+  Only the Suite and Kelly domains remain on the new release.
+- The skin-builder skill and contract now record the standing rule that custom
+  rep skins are private to the named rep plus Louis's demo workspace unless he
+  explicitly authorizes broader availability.
