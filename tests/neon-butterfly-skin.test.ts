@@ -110,6 +110,14 @@ describe('Neon Butterfly Amethyst skin', () => {
 
     expect(motion).toContain('nb-wing--left')
     expect(motion).toContain('nb-wing--right')
+    expect(motion).toContain('neon-sign-pink.png')
+    expect(motion).toContain('neon-sign-gold.png')
+    expect(motion).toContain('neon-sign-violet.png')
+    expect(motion).toContain('<img class="nb-butterfly-art"')
+    expect(motion).not.toContain('<svg')
+    expect(css).toContain('.nb-butterfly-art')
+    expect(css).toContain('transform-origin: 100% 50%')
+    expect(css).toContain('transform-origin: 0 50%')
     expect(motion).not.toContain('INNER_PATH')
     expect(motion).not.toContain('nb-butterfly-detail')
     expect(css).toContain('@keyframes nb-wing-flap-left')
@@ -124,6 +132,13 @@ describe('Neon Butterfly Amethyst skin', () => {
       expect(bytes.length).toBeLessThan(250_000)
       expect(bytes.toString('ascii', 0, 4)).toBe('RIFF')
       expect(bytes.toString('ascii', 8, 12)).toBe('WEBP')
+    }
+
+    for (const asset of ['neon-sign-pink.png', 'neon-sign-gold.png', 'neon-sign-violet.png']) {
+      const bytes = readFileSync(resolve(root, 'public', 'amethyst', 'skins', 'neon-butterfly', asset))
+      expect(bytes.length).toBeGreaterThan(5_000)
+      expect(bytes.length).toBeLessThan(150_000)
+      expect(bytes.toString('hex', 0, 8)).toBe('89504e470d0a1a0a')
     }
   })
 

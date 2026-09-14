@@ -210,10 +210,13 @@ body.bg-neon-butterfly .hp-footer a:hover { color: #ff75df; }
 .nb-scene { position: absolute; inset: 0; z-index: 2; pointer-events: none; user-select: none; overflow: hidden; }
 .nb-ambient { position: absolute; inset: -18%; background: radial-gradient(circle at 70% 35%, rgba(255, 42, 205, 0.17), transparent 31%), radial-gradient(circle at 24% 62%, rgba(255, 194, 74, 0.1), transparent 23%), radial-gradient(circle at 93% 70%, rgba(97, 242, 155, 0.07), transparent 20%); animation: nb-ambient-breathe 22s ease-in-out infinite; }
 .nb-lamp-shimmer { position: absolute; left: -7%; bottom: -8%; width: 34%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(255, 214, 124, 0.28), rgba(255, 153, 46, 0.08) 37%, transparent 69%); mix-blend-mode: screen; opacity: .42; animation: nb-lamp-shimmer 19s ease-in-out infinite; }
-.nb-butterfly { --nb-flap-duration: 21s; --nb-flap-delay: 0s; position: absolute; display: block; color: #ff2acd; filter: drop-shadow(0 0 7px currentColor) drop-shadow(0 0 18px currentColor); transform-origin: 50% 50%; will-change: transform, opacity, filter; }
-.nb-butterfly svg { display: block; width: 100%; height: auto; overflow: visible; }
-.nb-butterfly-outline { fill: none; stroke: currentColor; stroke-width: 5.2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.nb-wing { transform-box: view-box; transform-origin: 60px 45px; will-change: transform; }
+.nb-butterfly { --nb-flap-duration: 21s; --nb-flap-delay: 0s; position: absolute; display: block; aspect-ratio: 4 / 3; color: #ff2acd; transform-origin: 50% 50%; perspective: 360px; will-change: transform, opacity, filter; }
+.nb-wing { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; backface-visibility: hidden; transform-style: preserve-3d; will-change: transform; }
+.nb-wing--left { left: 0; transform-origin: 100% 50%; }
+.nb-wing--right { right: 0; transform-origin: 0 50%; }
+.nb-butterfly-art { position: absolute; top: 0; width: 200%; height: 100%; max-width: none; object-fit: contain; pointer-events: none; user-select: none; }
+.nb-wing--left .nb-butterfly-art { left: 0; }
+.nb-wing--right .nb-butterfly-art { right: 0; }
 .nb-wing--left { animation: nb-wing-flap-left var(--nb-flap-duration) var(--nb-flap-delay) ease-in-out infinite; }
 .nb-wing--right { animation: nb-wing-flap-right var(--nb-flap-duration) calc(var(--nb-flap-delay) + .07s) ease-in-out infinite; }
 .nb-butterfly--pink { color: #ff35d1; }
@@ -234,10 +237,10 @@ body.bg-neon-butterfly .hp-footer a:hover { color: #ff75df; }
 
 @keyframes nb-ambient-breathe { 0%,100% { opacity: .68; transform: scale(1); } 48% { opacity: .95; transform: scale(1.035); } 54% { opacity: .9; transform: scale(1.025); } }
 @keyframes nb-lamp-shimmer { 0%,57%,100% { opacity: .34; transform: scale(.96); } 63% { opacity: .7; transform: scale(1.035); } 70% { opacity: .42; transform: scale(1); } }
-@keyframes nb-neon-breathe { 0%,100% { opacity: .86; filter: drop-shadow(0 0 6px currentColor) drop-shadow(0 0 16px currentColor); } 50% { opacity: 1; filter: drop-shadow(0 0 9px currentColor) drop-shadow(0 0 25px currentColor); } }
+@keyframes nb-neon-breathe { 0%,100% { opacity: .92; filter: drop-shadow(0 0 4px currentColor); } 50% { opacity: 1; filter: drop-shadow(0 0 9px currentColor); } }
 @keyframes nb-sign-drift { 0%,38%,46%,72%,80%,100% { transform: rotate(0deg) translateY(0); } 42% { transform: rotate(-1deg) translateY(-2px); } 76% { transform: rotate(.8deg) translateY(-1px); } }
-@keyframes nb-wing-flap-left { 0%,34%,40%,67%,71%,100% { transform: scaleX(1); } 35.4%,38.2%,68.2% { transform: scaleX(.48); } 36.7%,39.3%,69.5% { transform: scaleX(.9); } }
-@keyframes nb-wing-flap-right { 0%,34%,40%,67%,71%,100% { transform: scaleX(1); } 35.4%,38.2%,68.2% { transform: scaleX(.48); } 36.7%,39.3%,69.5% { transform: scaleX(.9); } }
+@keyframes nb-wing-flap-left { 0%,34%,40%,67%,71%,100% { transform: rotateY(0deg); } 35.4%,38.2%,68.2% { transform: rotateY(-58deg); } 36.7%,39.3%,69.5% { transform: rotateY(-12deg); } }
+@keyframes nb-wing-flap-right { 0%,34%,40%,67%,71%,100% { transform: rotateY(0deg); } 35.4%,38.2%,68.2% { transform: rotateY(58deg); } 36.7%,39.3%,69.5% { transform: rotateY(12deg); } }
 @keyframes nb-butterfly-flight { 0%,58% { opacity: 0; transform: translate(0,0) rotate(-18deg) scale(.78); } 61% { opacity: .76; } 69% { opacity: .9; transform: translate(27vw,-19vh) rotate(6deg) scale(1); } 76% { opacity: .72; transform: translate(53vw,-29vh) rotate(-8deg) scale(.92); } 81%,100% { opacity: 0; transform: translate(76vw,-43vh) rotate(12deg) scale(.72); } }
 @keyframes nb-sparkle-twinkle { 0%,38%,52%,100% { opacity: .15; transform: scale(.7); } 44% { opacity: .9; transform: scale(1.55); } 48% { opacity: .38; transform: scale(.9); } }
 

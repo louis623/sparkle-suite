@@ -10,13 +10,12 @@
     '.bwb-hero',
     '.bk-home-hero',
   ].join(',');
-  var LEFT_WING_PATH = 'M60 44C53 37 50 29 44 20C39 10 31 5 24 8C16 11 15 20 19 28C22 34 27 39 33 43C27 43 22 46 20 51C16 59 20 68 27 71C35 74 42 67 47 61C52 55 56 49 60 47';
-  var RIGHT_WING_PATH = 'M60 44C67 37 70 29 76 20C81 10 89 5 96 8C104 11 105 20 101 28C98 34 93 39 87 43C93 43 98 46 100 51C104 59 100 68 93 71C85 74 78 67 73 61C68 55 64 49 60 47';
+  var ASSET_ROOT = '/amethyst/skins/neon-butterfly/';
   var butterflies = [
-    { tone: 'pink', size: 'large', place: 'upper-right' },
-    { tone: 'gold', size: 'medium', place: 'left' },
-    { tone: 'violet', size: 'medium', place: 'lower-right' },
-    { tone: 'pink', size: 'small', place: 'flyer' },
+    { tone: 'pink', size: 'large', place: 'upper-right', asset: 'neon-sign-pink.png' },
+    { tone: 'gold', size: 'medium', place: 'left', asset: 'neon-sign-gold.png' },
+    { tone: 'violet', size: 'medium', place: 'lower-right', asset: 'neon-sign-violet.png' },
+    { tone: 'pink', size: 'small', place: 'flyer', asset: 'neon-sign-pink.png' },
   ];
   var sparkles = [
     [12, 21, -2], [19, 70, -7], [28, 14, -11], [38, 79, -5],
@@ -25,13 +24,13 @@
   ];
 
   function butterflyMarkup(item, index) {
+    var src = ASSET_ROOT + item.asset;
     return '<span class="nb-butterfly nb-butterfly--' + item.tone +
       ' nb-butterfly--' + item.size + ' nb-butterfly--' + item.place +
       '" data-nb-butterfly="' + (index + 1) + '">' +
-      '<svg viewBox="0 0 120 90" focusable="false" aria-hidden="true">' +
-      '<g class="nb-wing nb-wing--left"><path class="nb-butterfly-outline" d="' + LEFT_WING_PATH + '" /></g>' +
-      '<g class="nb-wing nb-wing--right"><path class="nb-butterfly-outline" d="' + RIGHT_WING_PATH + '" /></g>' +
-      '</svg></span>';
+      '<span class="nb-wing nb-wing--left"><img class="nb-butterfly-art" src="' + src + '" alt="" draggable="false" /></span>' +
+      '<span class="nb-wing nb-wing--right"><img class="nb-butterfly-art" src="' + src + '" alt="" draggable="false" /></span>' +
+      '</span>';
   }
 
   function sparkleMarkup(item, index) {
