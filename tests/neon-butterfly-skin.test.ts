@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import sharp from 'sharp'
 
 import {
   AMETHYST_CUSTOMER_SITE_TEMPLATE,
@@ -97,8 +98,8 @@ describe('Neon Butterfly Amethyst skin', () => {
     const motion = read('public', 'amethyst', 'neon-butterfly.js')
 
     expect(css).toContain('body.bg-neon-butterfly')
-    expect(css).toContain('velvet-room-desktop.webp')
-    expect(css).toContain('velvet-room-mobile.webp')
+    expect(css).toContain('kelly-studio-desktop.webp')
+    expect(css).toContain('kelly-studio-mobile.webp')
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
     expect(css).toContain('.nb-motion-control')
     expect(css).toContain('animation-play-state: paused')
@@ -110,23 +111,28 @@ describe('Neon Butterfly Amethyst skin', () => {
 
     expect(motion).toContain('nb-wing--left')
     expect(motion).toContain('nb-wing--right')
-    expect(motion).toContain('neon-sign-pink.png')
-    expect(motion).toContain('neon-sign-gold.png')
-    expect(motion).toContain('neon-sign-violet.png')
     expect(motion).toContain('<img class="nb-butterfly-art"')
+    expect(motion).toContain('kelly-sign-pink.png')
+    expect(motion).toContain('kelly-sign-gold.png')
+    expect(motion).toContain('kelly-sign-violet.png')
     expect(motion).not.toContain('<svg')
+    expect(motion).not.toContain('neon-sign-')
     expect(css).toContain('.nb-butterfly-art')
-    expect(css).toContain('transform-origin: 100% 50%')
-    expect(css).toContain('transform-origin: 0 50%')
+    expect(css).toContain('.nb-wing--left')
+    expect(css).toContain('drop-shadow(0 0 22px currentColor)')
     expect(motion).not.toContain('INNER_PATH')
     expect(motion).not.toContain('nb-butterfly-detail')
     expect(css).toContain('@keyframes nb-wing-flap-left')
     expect(css).toContain('@keyframes nb-wing-flap-right')
-    expect(css).toContain('--nb-flap-duration: 19s')
-    expect(css).toContain('--nb-flap-duration: 23s')
-    expect(css).toContain('--nb-flap-duration: 27s')
+    expect(motion).toContain("duration: 17")
+    expect(motion).toContain("duration: 21")
+    expect(motion).toContain("duration: 19")
+    expect(motion).toContain("{ tone: 'pink', place: 'crown'")
+    expect(motion).toContain("{ tone: 'gold', place: 'left'")
+    expect(motion).toContain("{ tone: 'violet', place: 'right'")
+    expect(css).not.toContain('nb-butterfly--flyer')
 
-    for (const asset of ['velvet-room-desktop.webp', 'velvet-room-mobile.webp']) {
+    for (const asset of ['kelly-studio-desktop.webp', 'kelly-studio-mobile.webp']) {
       const bytes = readFileSync(resolve(root, 'public', 'amethyst', 'skins', 'neon-butterfly', asset))
       expect(bytes.length).toBeGreaterThan(20_000)
       expect(bytes.length).toBeLessThan(250_000)
@@ -134,11 +140,38 @@ describe('Neon Butterfly Amethyst skin', () => {
       expect(bytes.toString('ascii', 8, 12)).toBe('WEBP')
     }
 
-    for (const asset of ['neon-sign-pink.png', 'neon-sign-gold.png', 'neon-sign-violet.png']) {
+    for (const asset of ['kelly-sign-pink.png', 'kelly-sign-gold.png', 'kelly-sign-violet.png']) {
       const bytes = readFileSync(resolve(root, 'public', 'amethyst', 'skins', 'neon-butterfly', asset))
-      expect(bytes.length).toBeGreaterThan(5_000)
+      expect(bytes.length).toBeGreaterThan(20_000)
       expect(bytes.length).toBeLessThan(150_000)
       expect(bytes.toString('hex', 0, 8)).toBe('89504e470d0a1a0a')
+    }
+  })
+
+  it('keeps the source-faithful Kelly sign cutouts transparent outside the neon tubes', async () => {
+    for (const asset of ['kelly-sign-pink.png', 'kelly-sign-gold.png', 'kelly-sign-violet.png']) {
+      const { data, info } = await sharp(
+        resolve(root, 'public', 'amethyst', 'skins', 'neon-butterfly', asset),
+      ).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+      const alphaAt = (x: number, y: number) => data[(y * info.width + x) * info.channels + 3]
+      const edgeAlphas = [
+        ...Array.from({ length: info.width }, (_, x) => alphaAt(x, 0)),
+        ...Array.from({ length: info.width }, (_, x) => alphaAt(x, info.height - 1)),
+        ...Array.from({ length: info.height }, (_, y) => alphaAt(0, y)),
+        ...Array.from({ length: info.height }, (_, y) => alphaAt(info.width - 1, y)),
+      ]
+      const visiblePixels = Array.from(
+        { length: info.width * info.height },
+        (_, index) => data[index * info.channels + 3],
+      ).filter((alpha) => alpha > 4).length
+      const opaqueDarkPixels = Array.from({ length: info.width * info.height }, (_, index) => {
+        const offset = index * info.channels
+        return data[offset + 3] > 8 && Math.max(data[offset], data[offset + 1], data[offset + 2]) < 40
+      }).filter(Boolean).length
+
+      expect(Math.max(...edgeAlphas)).toBe(0)
+      expect(visiblePixels / (info.width * info.height)).toBeLessThan(0.17)
+      expect(opaqueDarkPixels).toBe(0)
     }
   })
 

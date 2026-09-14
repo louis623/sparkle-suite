@@ -79,8 +79,16 @@ body.bg-neon-butterfly :is(.hp-hero, .tp-hero, .jp-hero, .mhf-hero, .bwb-hero, .
   isolation: isolate;
   overflow: hidden;
   color: var(--nb-ink);
-  background: #130416 url('/amethyst/skins/neon-butterfly/velvet-room-desktop.webp') center / cover no-repeat;
-  border-bottom: 1px solid rgba(255, 194, 74, 0.45);
+  background: #130416 url('/amethyst/skins/neon-butterfly/kelly-studio-desktop.webp') center / cover no-repeat;
+  border-bottom: 1px solid rgba(255, 74, 214, 0.4);
+}
+body.bg-neon-butterfly :is(.hp-hero, .tp-hero, .jp-hero, .mhf-hero, .bwb-hero, .bk-home-hero)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: rgba(9, 0, 15, .25);
 }
 body.bg-neon-butterfly :is(.hp-hero-media, .jp-hero-media) { background: transparent; }
 body.bg-neon-butterfly :is(.hp-hero-media, .jp-hero-media)::after,
@@ -208,40 +216,45 @@ body.bg-neon-butterfly .hp-footer a:hover { color: #ff75df; }
 
 .nb-decoration { position: static; pointer-events: none; }
 .nb-scene { position: absolute; inset: 0; z-index: 2; pointer-events: none; user-select: none; overflow: hidden; }
-.nb-ambient { position: absolute; inset: -18%; background: radial-gradient(circle at 70% 35%, rgba(255, 42, 205, 0.17), transparent 31%), radial-gradient(circle at 24% 62%, rgba(255, 194, 74, 0.1), transparent 23%), radial-gradient(circle at 93% 70%, rgba(97, 242, 155, 0.07), transparent 20%); animation: nb-ambient-breathe 22s ease-in-out infinite; }
-.nb-lamp-shimmer { position: absolute; left: -7%; bottom: -8%; width: 34%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(255, 214, 124, 0.28), rgba(255, 153, 46, 0.08) 37%, transparent 69%); mix-blend-mode: screen; opacity: .42; animation: nb-lamp-shimmer 19s ease-in-out infinite; }
-.nb-butterfly { --nb-flap-duration: 21s; --nb-flap-delay: 0s; position: absolute; display: block; aspect-ratio: 4 / 3; color: #ff2acd; transform-origin: 50% 50%; perspective: 360px; will-change: transform, opacity, filter; }
-.nb-wing { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; backface-visibility: hidden; transform-style: preserve-3d; will-change: transform; }
-.nb-wing--left { left: 0; transform-origin: 100% 50%; }
-.nb-wing--right { right: 0; transform-origin: 0 50%; }
+.nb-led-wash,
+.nb-curtain-light,
+.nb-lamp-shimmer { position: absolute; pointer-events: none; mix-blend-mode: screen; }
+.nb-led-wash { top: 7%; bottom: 4%; width: 31%; opacity: .18; filter: blur(24px); animation: nb-led-color-cycle 24s ease-in-out infinite; }
+.nb-led-wash--left { left: -6%; background: radial-gradient(ellipse at 52% 48%, rgba(16, 92, 255, .72), transparent 69%); }
+.nb-led-wash--right { right: -5%; background: radial-gradient(ellipse at 45% 48%, rgba(255, 22, 191, .72), transparent 70%); animation-delay: -12s; animation-direction: reverse; }
+.nb-curtain-light { inset: -12% 18%; background: radial-gradient(ellipse at 50% 42%, rgba(187, 34, 255, .16), transparent 64%); opacity: .38; filter: blur(34px); animation: nb-curtain-breathe 18s ease-in-out infinite; }
+.nb-lamp-shimmer { left: 4.5%; top: 34%; width: 15%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(255, 239, 190, .28), rgba(255, 166, 65, .07) 34%, transparent 68%); filter: blur(10px); opacity: .32; animation: nb-lamp-shimmer 17s ease-in-out infinite; }
+.nb-butterfly { --nb-flap-duration: 21s; --nb-flap-delay: 0s; --nb-rest-angle: 0deg; position: absolute; display: block; width: clamp(116px, 11vw, 172px); aspect-ratio: 13 / 12; color: #ff2acd; transform: rotate(var(--nb-rest-angle)); transform-origin: 50% 50%; filter: brightness(1.12) saturate(1.22) drop-shadow(0 0 8px currentColor) drop-shadow(0 0 21px currentColor); will-change: opacity, filter; }
+.nb-wing { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; will-change: transform; }
+.nb-wing--left { left: 0; transform-origin: 100% 52%; animation: nb-wing-flap-left var(--nb-flap-duration) var(--nb-flap-delay) cubic-bezier(.45,.02,.4,1) infinite; }
+.nb-wing--right { right: 0; transform-origin: 0 52%; animation: nb-wing-flap-right var(--nb-flap-duration) calc(var(--nb-flap-delay) + .06s) cubic-bezier(.45,.02,.4,1) infinite; }
 .nb-butterfly-art { position: absolute; top: 0; width: 200%; height: 100%; max-width: none; object-fit: contain; pointer-events: none; user-select: none; }
 .nb-wing--left .nb-butterfly-art { left: 0; }
 .nb-wing--right .nb-butterfly-art { right: 0; }
-.nb-wing--left { animation: nb-wing-flap-left var(--nb-flap-duration) var(--nb-flap-delay) ease-in-out infinite; }
-.nb-wing--right { animation: nb-wing-flap-right var(--nb-flap-duration) calc(var(--nb-flap-delay) + .07s) ease-in-out infinite; }
-.nb-butterfly--pink { color: #ff35d1; }
-.nb-butterfly--gold { color: #ffc24a; }
-.nb-butterfly--violet { color: #b56bff; }
-.nb-butterfly--upper-right { --nb-flap-duration: 19s; --nb-flap-delay: -4s; width: clamp(138px, 16vw, 225px); right: clamp(28px, 7vw, 120px); top: clamp(36px, 8%, 82px); animation: nb-sign-drift 21s ease-in-out infinite, nb-neon-breathe 8s ease-in-out infinite; }
-.nb-butterfly--left { --nb-flap-duration: 23s; --nb-flap-delay: -12s; width: clamp(108px, 13vw, 182px); left: clamp(20px, 6vw, 104px); top: 32%; animation: nb-sign-drift 27s -9s ease-in-out infinite, nb-neon-breathe 11s -3s ease-in-out infinite; }
-.nb-butterfly--lower-right { --nb-flap-duration: 27s; --nb-flap-delay: -19s; width: clamp(92px, 11vw, 160px); right: clamp(18px, 9vw, 145px); bottom: 13%; animation: nb-sign-drift 24s -15s ease-in-out infinite, nb-neon-breathe 9s -5s ease-in-out infinite; }
-.nb-butterfly--flyer { width: clamp(40px, 4.6vw, 66px); left: 8%; bottom: 9%; opacity: 0; animation: nb-butterfly-flight 29s -6s cubic-bezier(.42,0,.28,1) infinite; }
-.nb-decoration[data-choreography="2"] .nb-butterfly--flyer { animation-delay: -15s; animation-duration: 33s; }
-.nb-decoration[data-choreography="3"] .nb-butterfly--flyer { animation-delay: -24s; animation-duration: 36s; }
+.nb-butterfly--pink { color: #ff29d8; }
+.nb-butterfly--gold { color: #ffd348; }
+.nb-butterfly--gold { filter: brightness(1.2) saturate(1.08) drop-shadow(0 0 3px rgba(255,255,255,.96)) drop-shadow(0 0 9px currentColor) drop-shadow(0 0 22px currentColor); }
+.nb-butterfly--violet { color: #a844ff; }
+.nb-butterfly--crown { width: clamp(144px, 12vw, 184px); left: 25%; top: 4%; animation: nb-neon-breathe 8s ease-in-out infinite; }
+.nb-butterfly--left { width: clamp(130px, 10.5vw, 164px); left: 24%; top: auto; bottom: .5%; animation: nb-neon-breathe 10s -3s ease-in-out infinite; }
+.nb-butterfly--right { width: clamp(140px, 11.5vw, 178px); right: 17%; top: 29%; animation: nb-neon-breathe 9s -5s ease-in-out infinite; }
 .nb-sparkle { --nb-size: 4px; position: absolute; left: var(--nb-x); top: var(--nb-y); width: var(--nb-size); height: var(--nb-size); border-radius: 50%; background: #fff9fd; box-shadow: 0 0 7px 2px rgba(255,255,255,.48), 0 0 15px 4px rgba(255,42,205,.24); opacity: .2; animation: nb-sparkle-twinkle 9s var(--nb-delay) ease-in-out infinite; }
 .nb-sparkle:nth-of-type(3n) { --nb-size: 3px; animation-duration: 13s; }
 .nb-sparkle:nth-of-type(4n) { --nb-size: 5px; animation-duration: 16s; box-shadow: 0 0 8px 2px rgba(255,194,74,.58); }
+.nb-sparkle:nth-of-type(5n)::before,
+.nb-sparkle:nth-of-type(5n)::after { content: ""; position: absolute; left: 50%; top: 50%; border-radius: 999px; background: rgba(255,255,255,.9); transform: translate(-50%, -50%); box-shadow: 0 0 8px rgba(255,42,205,.72); }
+.nb-sparkle:nth-of-type(5n)::before { width: 1px; height: 13px; }
+.nb-sparkle:nth-of-type(5n)::after { width: 13px; height: 1px; }
 .nb-motion-control { position: absolute; left: 18px; bottom: 16px; z-index: 5; min-height: 36px; padding: 8px 13px; pointer-events: auto; border: 1px solid rgba(255, 220, 245, 0.42); border-radius: 999px; background: rgba(12, 2, 15, 0.76); color: #fff5fa; font: 600 12px/1.3 "DM Sans", sans-serif; box-shadow: 0 8px 22px rgba(7,0,9,.28); backdrop-filter: blur(8px); cursor: pointer; }
 .nb-decoration[data-paused="true"] .nb-scene *,
 .nb-page-hidden .nb-scene * { animation-play-state: paused !important; }
 
-@keyframes nb-ambient-breathe { 0%,100% { opacity: .68; transform: scale(1); } 48% { opacity: .95; transform: scale(1.035); } 54% { opacity: .9; transform: scale(1.025); } }
-@keyframes nb-lamp-shimmer { 0%,57%,100% { opacity: .34; transform: scale(.96); } 63% { opacity: .7; transform: scale(1.035); } 70% { opacity: .42; transform: scale(1); } }
-@keyframes nb-neon-breathe { 0%,100% { opacity: .92; filter: drop-shadow(0 0 4px currentColor); } 50% { opacity: 1; filter: drop-shadow(0 0 9px currentColor); } }
-@keyframes nb-sign-drift { 0%,38%,46%,72%,80%,100% { transform: rotate(0deg) translateY(0); } 42% { transform: rotate(-1deg) translateY(-2px); } 76% { transform: rotate(.8deg) translateY(-1px); } }
-@keyframes nb-wing-flap-left { 0%,34%,40%,67%,71%,100% { transform: rotateY(0deg); } 35.4%,38.2%,68.2% { transform: rotateY(-58deg); } 36.7%,39.3%,69.5% { transform: rotateY(-12deg); } }
-@keyframes nb-wing-flap-right { 0%,34%,40%,67%,71%,100% { transform: rotateY(0deg); } 35.4%,38.2%,68.2% { transform: rotateY(58deg); } 36.7%,39.3%,69.5% { transform: rotateY(12deg); } }
-@keyframes nb-butterfly-flight { 0%,58% { opacity: 0; transform: translate(0,0) rotate(-18deg) scale(.78); } 61% { opacity: .76; } 69% { opacity: .9; transform: translate(27vw,-19vh) rotate(6deg) scale(1); } 76% { opacity: .72; transform: translate(53vw,-29vh) rotate(-8deg) scale(.92); } 81%,100% { opacity: 0; transform: translate(76vw,-43vh) rotate(12deg) scale(.72); } }
+@keyframes nb-led-color-cycle { 0%,100% { filter: blur(24px) hue-rotate(0deg); opacity: .14; } 30% { filter: blur(26px) hue-rotate(52deg); opacity: .25; } 63% { filter: blur(22px) hue-rotate(-54deg); opacity: .19; } 82% { filter: blur(25px) hue-rotate(105deg); opacity: .23; } }
+@keyframes nb-curtain-breathe { 0%,100% { opacity: .26; transform: scale(1); } 48% { opacity: .46; transform: scale(1.025); } 54% { opacity: .4; transform: scale(1.018); } }
+@keyframes nb-lamp-shimmer { 0%,58%,100% { opacity: .22; transform: scale(.94); } 63% { opacity: .5; transform: scale(1.04); } 69% { opacity: .29; transform: scale(1); } }
+@keyframes nb-neon-breathe { 0%,100% { opacity: .93; } 46% { opacity: 1; } 49% { opacity: .82; } 52% { opacity: 1; } }
+@keyframes nb-wing-flap-left { 0%,27%,35%,62%,70%,100% { transform: scaleX(1) skewY(0deg); } 29%,33%,64%,68% { transform: scaleX(.7) skewY(-1.5deg); } 31%,66% { transform: scaleX(.92) skewY(.6deg); } }
+@keyframes nb-wing-flap-right { 0%,27%,35%,62%,70%,100% { transform: scaleX(1) skewY(0deg); } 29%,33%,64%,68% { transform: scaleX(.7) skewY(1.5deg); } 31%,66% { transform: scaleX(.92) skewY(-.6deg); } }
 @keyframes nb-sparkle-twinkle { 0%,38%,52%,100% { opacity: .15; transform: scale(.7); } 44% { opacity: .9; transform: scale(1.55); } 48% { opacity: .38; transform: scale(.9); } }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -251,24 +264,23 @@ body.bg-neon-butterfly .hp-footer a:hover { color: #ff75df; }
 
 @media (max-width: 900px) {
   body.bg-neon-butterfly .hp-hero-headline { font-size: clamp(48px, 8vw, 72px); }
-  .nb-butterfly--upper-right { right: 3vw; }
-  .nb-butterfly--left { left: 2vw; }
-  .nb-butterfly--lower-right { right: 3vw; }
+  .nb-butterfly--crown { left: 24%; }
+  .nb-butterfly--left { left: 22%; }
+  .nb-butterfly--right { right: 17%; }
 }
 
 @media (max-width: 767px) {
-  body.bg-neon-butterfly :is(.hp-hero, .tp-hero, .jp-hero, .mhf-hero, .bwb-hero, .bk-home-hero) { background-image: url('/amethyst/skins/neon-butterfly/velvet-room-mobile.webp'); }
+  body.bg-neon-butterfly :is(.hp-hero, .tp-hero, .jp-hero, .mhf-hero, .bwb-hero, .bk-home-hero) { background-image: url('/amethyst/skins/neon-butterfly/kelly-studio-mobile.webp'); }
   body.bg-neon-butterfly .hp-hero { min-height: 660px; }
   body.bg-neon-butterfly .hp-hero-inner { min-height: 630px; padding: 90px 24px 128px; }
   body.bg-neon-butterfly .hp-hero-headline { font-size: clamp(43px, 13vw, 62px); line-height: 1.02; }
   body.bg-neon-butterfly :is(.tp-hero, .jp-hero) { padding: 96px 20px 126px; }
   body.bg-neon-butterfly .jp-hero-card { padding: 30px 22px; }
-  .nb-butterfly--upper-right { width: 96px; right: 8px; top: 30px; opacity: .76; }
-  .nb-butterfly--left { width: 76px; left: 5px; top: 52%; opacity: .72; }
-  .nb-butterfly--lower-right { width: 70px; right: 15px; bottom: 18%; opacity: .72; }
-  .nb-butterfly--flyer { display: none; }
+  .nb-butterfly--crown { width: 106px; left: 8%; top: 4%; opacity: .98; }
+  .nb-butterfly--left { width: 92px; left: 9%; top: auto; bottom: 1%; opacity: .96; }
+  .nb-butterfly--right { width: 100px; right: 22%; top: 29%; opacity: .98; }
   .nb-sparkle:nth-of-type(even) { display: none; }
-  .nb-lamp-shimmer { width: 58%; left: -19%; }
+  .nb-lamp-shimmer { width: 36%; left: -8%; top: 31%; }
   .nb-motion-control { left: 12px; bottom: 12px; min-height: 34px; padding: 7px 11px; }
 }
 
@@ -276,7 +288,6 @@ body.bg-neon-butterfly .hp-footer a:hover { color: #ff75df; }
   .nb-motion-control { display: none; }
   .nb-scene *, .nb-scene *::before, .nb-scene *::after { animation: none !important; transition: none !important; }
   .nb-butterfly { opacity: .82; transform: none !important; }
-  .nb-butterfly--flyer { display: none; }
   .nb-sparkle { opacity: .34; }
   body.btn-neon-lift :is(a, button),
   body.bg-neon-butterfly :is(.hp-event-card, .tp-card, .jp-team-card, .jp-benefit-card) { transition: none; transform: none; }
@@ -287,9 +298,9 @@ body.nb-utility.bg-neon-butterfly .hp-signup {
   padding-block: 90px;
   background:
     radial-gradient(circle at 82% 24%, rgba(255,42,205,.16), transparent 25%),
-    #120414 url('/amethyst/skins/neon-butterfly/velvet-room-desktop.webp') center / cover no-repeat;
+    #120414 url('/amethyst/skins/neon-butterfly/kelly-studio-desktop.webp') center / cover no-repeat;
 }
 body.nb-utility.bg-neon-butterfly .hp-signup-card { max-width: 980px; margin-inline: auto; }
 @media (max-width: 767px) {
-  body.nb-utility.bg-neon-butterfly .hp-signup { background-image: linear-gradient(rgba(12,2,15,.18), rgba(12,2,15,.18)), url('/amethyst/skins/neon-butterfly/velvet-room-mobile.webp'); }
+  body.nb-utility.bg-neon-butterfly .hp-signup { background-image: linear-gradient(rgba(12,2,15,.18), rgba(12,2,15,.18)), url('/amethyst/skins/neon-butterfly/kelly-studio-mobile.webp'); }
 }

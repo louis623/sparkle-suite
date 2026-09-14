@@ -12,24 +12,28 @@
   ].join(',');
   var ASSET_ROOT = '/amethyst/skins/neon-butterfly/';
   var butterflies = [
-    { tone: 'pink', size: 'large', place: 'upper-right', asset: 'neon-sign-pink.png' },
-    { tone: 'gold', size: 'medium', place: 'left', asset: 'neon-sign-gold.png' },
-    { tone: 'violet', size: 'medium', place: 'lower-right', asset: 'neon-sign-violet.png' },
-    { tone: 'pink', size: 'small', place: 'flyer', asset: 'neon-sign-pink.png' },
+    { tone: 'pink', place: 'crown', duration: 17, delay: -3.4, angle: -4, asset: 'kelly-sign-pink.png' },
+    { tone: 'gold', place: 'left', duration: 21, delay: -12.1, angle: -7, asset: 'kelly-sign-gold.png' },
+    { tone: 'violet', place: 'right', duration: 19, delay: -7.6, angle: 12, asset: 'kelly-sign-violet.png' },
   ];
   var sparkles = [
     [12, 21, -2], [19, 70, -7], [28, 14, -11], [38, 79, -5],
     [49, 24, -13], [58, 68, -3], [67, 17, -9], [74, 77, -15],
     [82, 34, -6], [89, 61, -12], [94, 19, -4], [7, 48, -10],
+    [23, 43, -16], [34, 61, -8], [54, 84, -18], [64, 42, -14],
+    [78, 57, -20], [91, 81, -9], [17, 33, -17], [31, 88, -6],
+    [44, 47, -21], [61, 75, -12], [72, 10, -19], [86, 68, -4],
   ];
 
   function butterflyMarkup(item, index) {
     var src = ASSET_ROOT + item.asset;
+    var art = '<img class="nb-butterfly-art" src="' + src + '" alt="" draggable="false" />';
     return '<span class="nb-butterfly nb-butterfly--' + item.tone +
-      ' nb-butterfly--' + item.size + ' nb-butterfly--' + item.place +
-      '" data-nb-butterfly="' + (index + 1) + '">' +
-      '<span class="nb-wing nb-wing--left"><img class="nb-butterfly-art" src="' + src + '" alt="" draggable="false" /></span>' +
-      '<span class="nb-wing nb-wing--right"><img class="nb-butterfly-art" src="' + src + '" alt="" draggable="false" /></span>' +
+      ' nb-butterfly--' + item.place +
+      '" data-nb-butterfly="' + (index + 1) + '" style="--nb-flap-duration:' + item.duration +
+      's;--nb-flap-delay:' + item.delay + 's;--nb-rest-angle:' + item.angle + 'deg">' +
+      '<span class="nb-wing nb-wing--left">' + art + '</span>' +
+      '<span class="nb-wing nb-wing--right">' + art + '</span>' +
       '</span>';
   }
 
@@ -53,7 +57,9 @@
     decoration.dataset.choreography = String(1 + Math.floor(Math.random() * 3));
     decoration.innerHTML =
       '<div class="nb-scene" aria-hidden="true">' +
-      '<span class="nb-ambient"></span>' +
+      '<span class="nb-led-wash nb-led-wash--left"></span>' +
+      '<span class="nb-led-wash nb-led-wash--right"></span>' +
+      '<span class="nb-curtain-light"></span>' +
       '<span class="nb-lamp-shimmer"></span>' +
       butterflies.map(butterflyMarkup).join('') +
       sparkles.map(sparkleMarkup).join('') +

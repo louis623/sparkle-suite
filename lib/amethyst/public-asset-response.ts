@@ -28,6 +28,7 @@ interface RenderAmethystPublicAssetResponseOptions {
 }
 
 const CONTENT_TYPES: Record<string, string> = {
+  '.png': 'image/png',
   '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
   '.css': 'text/css; charset=utf-8',
@@ -46,8 +47,11 @@ const AMETHYST_ASSETS = new Set([
   'skins/gnome-garden/gnome.webp',
   'skins/gnome-garden/lantern.webp',
   'skins/gnome-garden/storybook-original.webp',
-  'skins/neon-butterfly/velvet-room-desktop.webp',
-  'skins/neon-butterfly/velvet-room-mobile.webp',
+  'skins/neon-butterfly/kelly-studio-desktop.webp',
+  'skins/neon-butterfly/kelly-studio-mobile.webp',
+  'skins/neon-butterfly/kelly-sign-pink.png',
+  'skins/neon-butterfly/kelly-sign-gold.png',
+  'skins/neon-butterfly/kelly-sign-violet.png',
   'Amethyst Design System.html',
   'components.css',
   'homepage.css',
