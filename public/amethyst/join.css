@@ -517,10 +517,10 @@ body.joinpage .hp-saturate {
   margin: 0;
 }
 
-.jp-why--kelly .jp-section-sub {
+.jp-why--personal .jp-section-sub {
   max-width: 720px;
 }
-.jp-why--kelly .jp-benefits {
+.jp-why--personal .jp-benefits {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .jp-why-actions {
@@ -571,7 +571,7 @@ body.joinpage .hp-saturate {
   text-underline-offset: 4px;
 }
 @media (max-width: 900px) {
-  .jp-why--kelly .jp-benefits { grid-template-columns: 1fr; }
+  .jp-why--personal .jp-benefits { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
   .jp-why-actions { align-items: stretch; flex-direction: column; }

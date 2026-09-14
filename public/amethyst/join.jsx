@@ -83,6 +83,14 @@ const isKellySparklyButterflies = RUNTIME_CONTEXT.targeted && (
   || runtimeRepTarget === "sparklybutterflies.com"
   || runtimeRepTarget === "b5404543-b90a-41cf-85f6-4e6d1d576cfa"
 );
+const isHeatherBlingKitchen = RUNTIME_CONTEXT.targeted && (
+  publicSiteSlug === "blingkitchen"
+  || runtimeRepTarget === "theblingkitchen.com"
+);
+const isKimGoForTheBling = RUNTIME_CONTEXT.targeted && (
+  publicSiteSlug === "goforthebling"
+  || runtimeRepTarget === "goforthebling.com"
+);
 const isMileHighFizzHybrid = CONTENT.publicSiteVariant === "mile_high_fizz_hybrid";
 const isBrittWithBlingHybrid = CONTENT.publicSiteVariant === "britt_with_bling_hybrid";
 const isBlingKitchenHybrid = CONTENT.publicSiteVariant === "bling_kitchen_hybrid";
@@ -369,7 +377,7 @@ const FOOTER_LINKS = CONTENT.footerLinks || {};
 const FOOTER_SOCIALS = Array.isArray(CONTENT.socialLinks)
   ? CONTENT.socialLinks.filter((social) => social?.href && social.href !== "#")
   : [];
-const KELLY_FACEBOOK_URL = FOOTER_SOCIALS.find((social) =>
+const FACEBOOK_COMMUNITY_URL = FOOTER_SOCIALS.find((social) =>
   String(social?.label || "").toLowerCase().includes("facebook"),
 )?.href || "";
 const FAQ_ANSWERS = CONTENT.faqAnswers || {};
@@ -968,18 +976,80 @@ const KELLY_BENEFITS = [
   },
 ];
 
+const HEATHER_BENEFITS = [
+  {
+    key: "community",
+    title: "A warm welcome from Heather",
+    desc: "Get to know Heather and Opal Sparkling Gems before you decide. She can answer your questions and help you understand what joining her team looks like today.",
+  },
+  {
+    key: "training",
+    title: "Practical guidance to get started",
+    desc: "Heather can walk you through the official resources, explain how her team stays connected, and share what support is currently available to new reps.",
+  },
+  {
+    key: "growth",
+    title: "A start that fits your life",
+    desc: "Talk with Heather about your schedule and goals so you can consider a realistic pace without pressure or income promises.",
+  },
+];
+
+const KIM_BENEFITS = [
+  {
+    key: "community",
+    title: "A personal welcome from Kim",
+    desc: "Start with a real conversation about GofortheBling. Kim can tell you about her team and help you decide whether it feels like the right place to begin.",
+  },
+  {
+    key: "training",
+    title: "Clear answers and next steps",
+    desc: "Kim can point you to the current official information, explain how her team communicates, and tell you what support is available now.",
+  },
+  {
+    key: "growth",
+    title: "Room to build your way",
+    desc: "Share what you want your business to fit around, then talk through a practical starting pace without pressure or income promises.",
+  },
+];
+
+const recruitingProfile = isKellySparklyButterflies
+  ? {
+      name: "Kelly",
+      teamName: "Sparkly Butterflies",
+      heading: "Come sparkle with Kelly",
+      intro: "Joining a team should feel personal. Kelly would love to help you understand the opportunity, see the current starter packs, and decide whether Sparkly Butterflies feels right for you.",
+      benefits: KELLY_BENEFITS,
+    }
+  : isHeatherBlingKitchen
+    ? {
+        name: "Heather",
+        teamName: "Opal Sparkling Gems",
+        heading: "Find your place with Heather",
+        intro: "Joining a team is a personal decision. Heather would love to answer your questions, show you the current starter packs, and help you decide whether Opal Sparkling Gems feels right for you.",
+        benefits: HEATHER_BENEFITS,
+      }
+    : isKimGoForTheBling
+      ? {
+          name: "Kim",
+          teamName: "GofortheBling",
+          heading: "Find your sparkle with Kim",
+          intro: "You deserve more than a generic recruiting checklist. Kim can help you understand the opportunity, review the current starter packs, and decide whether GofortheBling feels right for you.",
+          benefits: KIM_BENEFITS,
+        }
+      : null;
+
 function WhyJoin({ teamName, repName, locationLabel, ctaUrl, hasRecruitingLink, contactUrl, facebookUrl }) {
   const displayTeamName = isMileHighFizzHybrid ? "the Diamond Peak Society" : teamName;
-  const benefits = isKellySparklyButterflies ? KELLY_BENEFITS : BENEFITS;
+  const benefits = recruitingProfile?.benefits || BENEFITS;
   return (
-    <section className={`jp-section jp-why${isKellySparklyButterflies ? " jp-why--kelly" : ""}`} id="why">
+    <section className={`jp-section jp-why${recruitingProfile ? " jp-why--personal" : ""}`} id="why">
       <div className="jp-container">
         <div className="jp-section-head">
           <div className="jp-section-eyebrow">Why join</div>
-          <h2 className="jp-section-title">{isKellySparklyButterflies ? "Come sparkle with Kelly" : `Why Join ${displayTeamName}?`}</h2>
+          <h2 className="jp-section-title">{recruitingProfile?.heading || `Why Join ${displayTeamName}?`}</h2>
           <p className="jp-section-sub">
-            {isKellySparklyButterflies
-              ? "Joining a team should feel personal. Kelly would love to help you understand the opportunity, see the current starter packs, and decide whether Sparkly Butterflies feels right for you."
+            {recruitingProfile
+              ? recruitingProfile.intro
               : `Review the official requirements and ask ${repName}${locationLabel ? ` in ${locationLabel}` : ""} what this team currently offers before you decide.`}
           </p>
         </div>
@@ -992,23 +1062,23 @@ function WhyJoin({ teamName, repName, locationLabel, ctaUrl, hasRecruitingLink, 
             </article>
           ))}
         </div>
-        {isKellySparklyButterflies ? (
-          <div className="jp-why-actions" aria-label="Kelly team next steps">
+        {recruitingProfile ? (
+          <div className="jp-why-actions" aria-label={`${recruitingProfile.name} team next steps`}>
             {contactUrl ? (
-              <a {...linkProps(contactUrl)} className="jp-why-btn jp-why-btn--primary">Ask Kelly a question <span aria-hidden="true">→</span></a>
+              <a {...linkProps(contactUrl)} className="jp-why-btn jp-why-btn--primary">Ask {recruitingProfile.name} a question <span aria-hidden="true">→</span></a>
             ) : null}
             <RecruitingAction
               enabled={hasRecruitingLink}
               href={ctaUrl}
               className="jp-why-btn jp-why-btn--secondary"
-              unavailableText="Ask Kelly for current starter-pack details"
+              unavailableText={`Ask ${recruitingProfile.name} for current starter-pack details`}
             >
-              See Kelly's starter packs <span aria-hidden="true">→</span>
+              See {recruitingProfile.name}'s starter packs <span aria-hidden="true">→</span>
             </RecruitingAction>
             <div className="jp-why-text-links">
-              <a href="#faq">Read Kelly's FAQs <span aria-hidden="true">↓</span></a>
+              <a href="#faq">Read {recruitingProfile.name}'s FAQs <span aria-hidden="true">↓</span></a>
               {facebookUrl ? (
-                <a {...linkProps(facebookUrl)}>Visit Kelly's Facebook community <span aria-hidden="true">→</span></a>
+                <a {...linkProps(facebookUrl)}>Visit {recruitingProfile.name}'s Facebook community <span aria-hidden="true">→</span></a>
               ) : null}
             </div>
           </div>
@@ -1051,6 +1121,41 @@ const KELLY_FAQ_QUESTIONS = [
   },
 ];
 
+function personalizedFaqQuestions(name, teamName) {
+  return [
+    {
+      q: `What is it like to join ${name}'s ${teamName} team?`,
+      aSlot: `FAQ answer — ${name}'s team`,
+      a: `${name} wants you to feel comfortable asking questions before you decide. ${name} can explain how ${teamName} stays connected, what the team currently offers, and whether it feels like a good fit for you.`,
+    },
+    {
+      q: `How much does it cost to join ${name}'s team?`,
+      aSlot: `FAQ answer — ${name}'s starter packs`,
+      a: `Bomb Party sets the official starter-pack options, contents, and prices, and those details can change. Use ${name}'s starter-pack link on this page for current information, then ask ${name} about anything you would like help understanding.`,
+    },
+    {
+      q: `Does ${name} expect me to have experience?`,
+      aSlot: `FAQ answer — experience with ${name}`,
+      a: `You do not need to arrive knowing how to run a live show. ${name} can explain the current enrollment requirements, point you toward official training resources, and tell you how new ${teamName} team members get oriented.`,
+    },
+    {
+      q: `How much time will ${name} expect me to commit?`,
+      aSlot: `FAQ answer — time with ${name}`,
+      a: `${name} knows that every rep's schedule and goals are different. Talk with ${name} about what you want your business to fit around so you can consider a pace that is realistic for you.`,
+    },
+    {
+      q: `What support does ${name} offer new team members?`,
+      aSlot: `FAQ answer — ${name}'s support`,
+      a: `${name} can help you find the official onboarding resources, understand how the team communicates, and get answers as you take your first steps. Ask ${name} what personal support is currently available before you enroll.`,
+    },
+    {
+      q: `Can ${name} guarantee how much I will earn?`,
+      aSlot: `FAQ answer — income with ${name}`,
+      a: `No. ${name} cannot guarantee income, and results vary by sales, expenses, effort, and time. Review the official Income Disclosure Statement and talk through your questions with ${name} before you decide.`,
+    },
+  ];
+}
+
 const FAQ_QUESTIONS = (teamName, repName) => ([
   {
     q: `What is ${teamName}?`,
@@ -1087,7 +1192,11 @@ const FAQ_QUESTIONS = (teamName, repName) => ([
 function Faq({ teamName, repName, locationLabel }) {
   const [open, setOpen] = useState(0);
   const displayTeamName = isMileHighFizzHybrid ? "the Diamond Peak Society" : teamName;
-  const questions = isKellySparklyButterflies ? KELLY_FAQ_QUESTIONS : FAQ_QUESTIONS(displayTeamName, repName);
+  const questions = isKellySparklyButterflies
+    ? KELLY_FAQ_QUESTIONS
+    : recruitingProfile
+      ? personalizedFaqQuestions(recruitingProfile.name, recruitingProfile.teamName)
+      : FAQ_QUESTIONS(displayTeamName, repName);
   return (
     <section className="jp-section" id="faq">
       <div className="jp-faq-wrap">
@@ -1095,8 +1204,8 @@ function Faq({ teamName, repName, locationLabel }) {
           <div className="jp-section-eyebrow">FAQ</div>
           <h2 className="jp-section-title">Frequently Asked Questions</h2>
           <p className="jp-section-sub">
-            {isKellySparklyButterflies
-              ? "Straight answers about joining Kelly and the Sparkly Butterflies team."
+            {recruitingProfile
+              ? `Straight answers about joining ${recruitingProfile.name} and the ${recruitingProfile.teamName} team.`
               : `Everything you need to know about joining ${displayTeamName}${locationLabel ? ` with ${repName} in ${locationLabel}` : ""}.`}
           </p>
         </div>
@@ -1411,7 +1520,7 @@ function App() {
                 ctaUrl={t.bpReferralUrl}
                 hasRecruitingLink={hasRecruitingLink}
                 contactUrl={FOOTER_LINKS.contact}
-                facebookUrl={KELLY_FACEBOOK_URL}
+                facebookUrl={FACEBOOK_COMMUNITY_URL}
               />
             ) : null}
 

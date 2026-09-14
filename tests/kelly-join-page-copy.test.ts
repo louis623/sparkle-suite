@@ -14,10 +14,10 @@ describe("Kelly's Sparkly Butterflies join-page copy", () => {
     expect(jsx).toContain('runtimeRepTarget === "b5404543-b90a-41cf-85f6-4e6d1d576cfa"')
     expect(jsx).toContain('Come sparkle with Kelly')
     expect(jsx).toContain('A real welcome from Kelly')
-    expect(jsx).toContain('Ask Kelly a question')
-    expect(jsx).toContain("See Kelly's starter packs")
-    expect(jsx).toContain("Read Kelly's FAQs")
-    expect(jsx).toContain("Visit Kelly's Facebook community")
+    expect(jsx).toContain('Ask {recruitingProfile.name} a question')
+    expect(jsx).toContain("See {recruitingProfile.name}'s starter packs")
+    expect(jsx).toContain("Read {recruitingProfile.name}'s FAQs")
+    expect(jsx).toContain("Visit {recruitingProfile.name}'s Facebook community")
   })
 
   it('keeps the recruiting and FAQ headings visible below the sticky site chrome', () => {
