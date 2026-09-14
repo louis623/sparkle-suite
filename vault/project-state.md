@@ -15,6 +15,13 @@ and QA lessons are recorded in
 `8f4f08ea` / `dpl_DPcYwvfeSoLLGqAEv9fcNMkYxJ6G`; unrelated customer aliases
 were restored, and protected Live Lineup work remains untouched.
 
+## September 14 — Team Management is included for every Workspace
+
+Louis approved Team Management and Join Team as standard Sparkle Suite services
+instead of a separately charged upgrade. The application no longer requires a
+Team Management entitlement row or Join Team early-access flag. Each rep still
+controls whether their public Join Team page is shown.
+
 ## September 8, 2026 - LOC control-center local implementation checkpoint
 
 See [LOC build checkpoint](2026-09-08-loc-control-center-build-checkpoint.md). Native LOC-themed Suite/Finder controls, signed bridge, agent API/MCP/jobs, audited support, and selected memory capture are implemented and locally tested. All three production builds pass. No deployment, migration or operations secret was changed; existing control center remains live. Supported protected reviewer access is the current release blocker; live integration, client proof and acceptance remain.

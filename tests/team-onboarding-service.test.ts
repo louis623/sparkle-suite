@@ -435,21 +435,16 @@ describe('team onboarding service', () => {
     )
   })
 
-  it('reports paid add-on access as entitlement-ready for future Stripe upgrades', async () => {
-    const query = createQueryResult({
-      id: 'entitlement-1',
-      rep_id: 'rep-britt',
-      status: 'manual_beta',
-      source: 'manual_beta',
-    })
+  it('includes Team Management for every Sparkle Suite workspace without an add-on lookup', async () => {
     const supabase = {
-      from: vi.fn(() => query),
+      from: vi.fn(),
     } as never
 
     await expect(getTeamOnboardingAccess(supabase, 'rep-britt')).resolves.toEqual({
       enabled: true,
-      status: 'manual_beta',
-      source: 'manual_beta',
+      status: 'active',
+      source: null,
     })
+    expect((supabase as { from: ReturnType<typeof vi.fn> }).from).not.toHaveBeenCalled()
   })
 })

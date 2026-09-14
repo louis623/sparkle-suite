@@ -24,7 +24,7 @@ export async function GET(
   })
   if (!rep) return new Response('Not found', { status: 404 })
   const settings = await getSiteSettingsDashboard(admin, rep.id)
-  if (!settings.joinTeamAccessEnabled || !settings.showJoinPage) {
+  if (!settings.showJoinPage) {
     return new Response('Not found', { status: 404 })
   }
 

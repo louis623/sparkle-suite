@@ -118,11 +118,6 @@ type ParticipantRow = {
   workspace_conversation_id: string | null
 }
 
-type EntitlementRow = {
-  status: TeamManagementEntitlementStatus
-  source: TeamManagementEntitlementSource
-}
-
 type ProgressRow = {
   participant_id: string
   step_id: string
@@ -280,35 +275,12 @@ async function touchParticipantActivity(
 }
 
 export async function getTeamOnboardingAccess(
-  supabase: SupabaseClient,
-  repId: string,
+  _supabase: SupabaseClient,
+  _repId: string,
 ): Promise<TeamOnboardingAccess> {
-  const { data, error } = await supabase
-    .from('team_management_entitlements')
-    .select('status, source')
-    .eq('rep_id', repId)
-    .maybeSingle()
-
-  if (error) {
-    throw toServiceError(
-      'TEAM_MANAGEMENT_ACCESS_LOOKUP_FAILED',
-      'failed to look up team management entitlement',
-      'Unable to load Team Management right now.',
-      error,
-    )
-  }
-
-  if (!data) {
-    return { enabled: false, status: 'not_enabled', source: null }
-  }
-
-  const row = data as EntitlementRow
-  const enabled = row.status === 'manual_beta' || row.status === 'active'
-  return {
-    enabled,
-    status: row.status,
-    source: row.source ?? null,
-  }
+  // Team Management is included with every active Sparkle Suite workspace.
+  // Keep the access shape stable while no longer requiring a separate add-on row.
+  return { enabled: true, status: 'active', source: null }
 }
 
 export async function createTeamOnboardingParticipant(

@@ -281,7 +281,9 @@ function buildDashboardResult(args: {
     ),
     teamName: normalizeText(args.siteSettings?.team_name),
     memberTeamName: normalizeText(args.siteSettings?.member_team_name),
-    joinTeamAccessEnabled: args.siteSettings?.join_team_access_enabled === true,
+    // Join Team is included for every rep; showJoinPage remains the rep-controlled
+    // public visibility switch.
+    joinTeamAccessEnabled: true,
     showJoinPage: args.siteSettings?.show_join_page ?? true,
     customerSiteTemplate: normalizeCustomerSiteTemplate(
       args.siteSettings?.customer_site_template,
@@ -379,7 +381,7 @@ export async function getTargetedJoinPageAccessFlags(
   }
 
   return {
-    joinTeamAccessEnabled: data?.join_team_access_enabled === true,
+    joinTeamAccessEnabled: true,
     showJoinPage: data?.show_join_page === true,
   }
 }

@@ -7206,7 +7206,6 @@ Lessons retained:
   passed. Commit `2fb315a1` is live as Ready deployment
   `dpl_FGVMmph4EBoTKmTrEJackiDvgnXj`; both Suite aliases resolve to it.
   Kim's `goforthebling.com` remains at `dpl_Fr6JTn8snhNY1jmqJFoudTt3oqWH`.
-
 ## September 13, 2026 - Nic-Nac photo and rarity corrective release prepared
 
 - Audited all 58 active/pending Dance Floor listings and visually reviewed the
@@ -7342,3 +7341,11 @@ Lessons retained:
   naming the final Kelly-plus-Louis-demo boundary.
 - Reaffirmed that the approved Neon Butterfly implementation is the precedent
   for process and quality, not a palette to copy into other skins.
+
+## September 14, 2026 - Team Management inclusion release
+
+- Replaced the per-rep Team Management add-on lookup with standard Workspace access.
+- Removed the operator early-access requirement from the public Join Team route and settings model.
+- Preserved each rep's Join Team show/hide choice.
+- Verified the isolated release patch with 56 focused tests across the service,
+  Workspace APIs, public Join route, roster, and profile-photo boundary.

@@ -34,7 +34,7 @@ describe('public Join Team route', () => {
     renderAmethystPublicAssetResponseMock.mockResolvedValue(new Response('join page'))
   })
 
-  it('returns not found until the rep has operator-provisioned early access', async () => {
+  it('serves Join Team for every rep when their visibility setting is enabled', async () => {
     getSiteSettingsDashboardMock.mockResolvedValue({
       joinTeamAccessEnabled: false,
       showJoinPage: true,
@@ -45,11 +45,11 @@ describe('public Join Team route', () => {
       { params: Promise.resolve({ publicSiteSlug: 'goforthebling' }) },
     )
 
-    expect(response.status).toBe(404)
-    expect(renderAmethystPublicAssetResponseMock).not.toHaveBeenCalled()
+    expect(response.status).toBe(200)
+    expect(renderAmethystPublicAssetResponseMock).toHaveBeenCalled()
   })
 
-  it('serves the route only when early access and the rep visibility setting are both enabled', async () => {
+  it('serves the route when the rep visibility setting is enabled', async () => {
     getSiteSettingsDashboardMock.mockResolvedValue({
       joinTeamAccessEnabled: true,
       showJoinPage: true,
@@ -74,7 +74,7 @@ describe('public Join Team route', () => {
     )
   })
 
-  it('returns not found when the rep hides Join even with operator access', async () => {
+  it('returns not found when the rep hides Join', async () => {
     getSiteSettingsDashboardMock.mockResolvedValue({
       joinTeamAccessEnabled: true,
       showJoinPage: false,

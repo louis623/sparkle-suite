@@ -215,7 +215,7 @@ describe('site settings service', () => {
       heroAnimationType: 'sparkle_rise',
       teamName: '',
       memberTeamName: '',
-      joinTeamAccessEnabled: false,
+      joinTeamAccessEnabled: true,
       showJoinPage: true,
       customerSiteTemplate: 'amethyst',
       appearancePreset: 'sparkle_suite_morganite',

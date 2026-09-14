@@ -2820,3 +2820,13 @@ second accounting MCP or make the website viewer editable.
 Reason: This keeps visual proof and bookkeeping work clearly separate, gives
 Lane the write ability needed for his bookkeeper role, and avoids sharing the
 Control Center bearer or adding a Vercel-secret dependency.
+## September 14, 2026 - Team Management and Join Team are standard services
+
+Team Management, public Join Team configuration, public team cards, and private
+New Rep Onboarding are included in every active Sparkle Suite Workspace and demo.
+Do not require, sell, or provision a separate Team Management add-on.
+
+Keep the rep-controlled Join Team visibility switch. Inclusion makes the feature
+available; it does not force a rep to publish a recruiting page.
+
+---
