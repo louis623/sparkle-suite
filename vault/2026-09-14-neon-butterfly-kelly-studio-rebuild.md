@@ -56,3 +56,24 @@ approved Kelly studio composition: plum curtain, black jewelry shelving,
 
 No Finder, Live Lineup, extension, queue, Store, migration, billing,
 authentication, or customer-data behavior was changed by this rebuild.
+
+## Release
+
+- Final application commit:
+  `a0cbfa0e0e482abac9d48797e0f1c7632ed07f5a` (studio rebuild parent
+  `f8bda14c51045a28c9170e061f05123892a636bc`).
+- Final READY Vercel deployment:
+  `dpl_5S4omxT8Eo8YKx4P5eU3dZzuJ8uU`.
+- Direct Vercel inspection confirmed both `https://www.yoursparklesuite.com`
+  and `https://yoursparklesuite.com` resolve to that exact deployment.
+- The exact live preview path verified in the browser was
+  `https://www.yoursparklesuite.com/skin-preview/neon_butterfly/homepage?release=a0cbfa0e`.
+- Live desktop-panel, 768x1024 tablet, and 390x844 mobile checks passed; the
+  live console reported zero errors. Reviewer-smoke authentication was not
+  used because the affected route is the safe public fixture preview.
+- The pre-release deployment remained on
+  `dpl_5DEQiLQ4mfHZCLkBYRRVknxiKiSX` until final verification and aliasing.
+  An initial held manual upload failed safely before aliasing because it lacked
+  Vercel Git metadata; the retry supplied the verified repository and branch
+  metadata and passed the branch-safety gate. No domain moved during the
+  failed attempt.
