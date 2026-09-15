@@ -3522,7 +3522,7 @@ describe('DashboardPlaceholder', () => {
     expect(source).toContain('WORKSPACE_APPEARANCE_PRESET')
     expect(source).toContain('getAmethystSkinCardsForRep')
     expect(source).not.toContain('Full skin gallery')
-    expect(source).toContain('skin.code')
+    expect(source).toContain('skin.id')
     expect(source).toContain('normalizeAmethystAppearancePreset')
   })
 
