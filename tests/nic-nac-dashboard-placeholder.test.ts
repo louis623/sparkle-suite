@@ -1225,6 +1225,17 @@ describe('DashboardPlaceholder', () => {
     expect(css).not.toContain('grid-row: span 2;')
   })
 
+  it('keeps shared action buttons painted and readable on hover', () => {
+    const css = readFileSync(
+      resolve(process.cwd(), 'app/nic-nac/components/WorkspaceSurface.module.css'),
+      'utf8',
+    )
+
+    expect(css).toContain('.actionButton:hover:not(:disabled)')
+    expect(css).toContain('var(--nic-nac-accent-hover, #d91d89)')
+    expect(css).toContain('color: #fff6fb;')
+  })
+
   it('renders private onboarding controls inside each public team card workspace record', () => {
     const html = renderToStaticMarkup(
       createElement(TeamManagementCard, {

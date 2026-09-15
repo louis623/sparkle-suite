@@ -127,9 +127,24 @@
     0 10px 22px rgba(54, 34, 29, 0.1);
 }
 
-.actionButton:hover {
-  background: linear-gradient(180deg, #f73fa5 0%, var(--nic-nac-accent-hover) 100%);
+.actionButton:hover:not(:disabled),
+.actionButton:focus-visible {
+  background: linear-gradient(
+    180deg,
+    #f73fa5 0%,
+    var(--nic-nac-accent-hover, #d91d89) 100%
+  );
   border-color: transparent;
+  color: #fff6fb;
+  outline: none;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.38),
+    0 12px 24px rgba(216, 27, 135, 0.2);
+}
+
+.actionButton:focus-visible {
+  outline: 3px solid rgba(238, 44, 155, 0.28);
+  outline-offset: 2px;
 }
 
 .actionButton:disabled {
