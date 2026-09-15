@@ -960,6 +960,7 @@ const EMPTY_JEWELRY_LIBRARY_FILTERS: JewelryLibraryFilters = {
 const EMPTY_JOIN_TEAM_ROSTER_DRAFT: JoinTeamRosterDraft = {
   displayName: '',
   businessName: '',
+  state: '',
   photoUrl: '',
   tiktok: '',
   facebook: '',
@@ -10745,6 +10746,21 @@ function PublicTeamRosterPanel({
                 }
               />
             </label>
+            <label className={styles.searchField}>
+              <span className={styles.searchLabel}>State</span>
+              <input
+                className={`${styles.searchInput} ph-no-capture`}
+                placeholder="Colorado"
+                autoComplete="address-level1"
+                value={draft.state ?? ''}
+                onChange={(event) =>
+                  onDraftChange?.({ state: event.target.value })
+                }
+              />
+              <span className={styles.helperNote}>
+                Shown on this team member&apos;s customer-facing card.
+              </span>
+            </label>
           </div>
 
           <div className={styles.teamPhotoWorkflow}>
@@ -10933,6 +10949,9 @@ function PublicTeamRosterPanel({
                     <div>
                       <strong>{member.businessName || 'Show name missing'}</strong>
                       <div className={styles.helperNote}>{member.displayName}</div>
+                      {member.state ? (
+                        <div className={styles.helperNote}>{member.state}</div>
+                      ) : null}
                     </div>
                     <span className={styles.rosterTag}>
                       {member.isVisible ? 'Visible' : 'Hidden'}

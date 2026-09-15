@@ -1260,6 +1260,7 @@ describe('DashboardPlaceholder', () => {
         publicTeamDraft: {
           displayName: 'Rayna',
           businessName: 'Queen of Blingy Thingz',
+          state: 'Georgia',
           photoUrl: '/team/rayna.jpg',
           tiktok: 'https://www.tiktok.com/@queenofblingythingz',
           facebook: '',
@@ -1282,6 +1283,10 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Save team member card')
     expect(html).toContain('First name')
     expect(html).toContain('Show name')
+    expect(html).toContain('State')
+    expect(html).toContain('value="Georgia"')
+    expect(html).toContain('Shown on this team member&#x27;s customer-facing card.')
+    expect(html).toContain('Colorado')
     expect(html).toContain('Profile photo process')
     expect(html).toContain('Save or download the team member&#x27;s profile photo')
     expect(html).toContain('I have permission to publish this team member&#x27;s photo')
@@ -1449,7 +1454,7 @@ describe('DashboardPlaceholder', () => {
     })
   })
 
-  it('preserves unshown public team card fields in edit save payloads', () => {
+  it('preserves public team card fields in edit save payloads', () => {
     expect(
       buildJoinTeamRosterSavePayload({
         id: 'member-lindsey',

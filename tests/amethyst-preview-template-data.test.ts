@@ -458,6 +458,56 @@ describe('Amethyst preview template data', () => {
     expect(JSON.stringify(data.join.faqAnswers)).not.toContain('Sasha')
   })
 
+  it('maps a saved team member state onto the shared customer-facing card', async () => {
+    const data = await loadAmethystPreviewTemplateData({
+      repId: 'rep-heather',
+      env: {
+        NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+        SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
+      },
+      dependencies: {
+        createAdminClient:
+          vi.fn(() => ({ from: vi.fn() })) as unknown as typeof createAdminClient,
+        resolveAmethystPreviewRep: vi.fn(async () => ({
+          id: 'rep-heather',
+          email: 'heather@example.com',
+          shop_link: 'https://example.com/shop',
+          streaming_links: {},
+          public_site_slug: 'theblingkitchen',
+        })),
+        getSiteSettingsDashboard: vi.fn(async () => demoSettings),
+        getJoinTeamRoster: vi.fn(async () => [
+          {
+            id: 'member-jordan',
+            repId: 'rep-heather',
+            displayName: 'Jordan',
+            businessName: 'Jordan Sparkles',
+            state: 'Tennessee',
+            city: '',
+            initials: 'J',
+            photoUrl: '',
+            photoAlt: '',
+            imageClassName: '',
+            bio: '',
+            links: {},
+            sortOrder: 0,
+            isVisible: true,
+            createdAt: null,
+            updatedAt: null,
+          },
+        ]),
+      },
+    })
+
+    expect(data.join.teamMembers).toEqual([
+      expect.objectContaining({
+        name: 'Jordan',
+        business: 'Jordan Sparkles',
+        state: 'Tennessee',
+      }),
+    ])
+  })
+
   it('keeps Join Team hidden after applying a customer target', async () => {
     const data = await loadAmethystPreviewTemplateData({
       repId: 'rep-hidden-join',
