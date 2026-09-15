@@ -12,6 +12,40 @@ import { AMETHYST_APPEARANCE_PRESETS } from '@/lib/amethyst/appearance-presets'
 
 describe('Amethyst homepage template data wiring', () => {
 
+  it('shows the last lineup update at the far right without customer-facing delay copy', () => {
+    const publicLineupSources = [
+      'public/amethyst/homepage.jsx',
+      'public/amethyst/trade.jsx',
+      'public/amethyst/join.jsx',
+    ].map((file) => readFileSync(resolve(process.cwd(), file), 'utf8'))
+    const css = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/homepage.css'),
+      'utf8',
+    )
+    const sharedRuntime = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/live-lineup.js'),
+      'utf8',
+    )
+
+    for (const source of publicLineupSources) {
+      expect(source).not.toContain('Update delayed')
+      expect(source).toContain('className="hp-trade-preview-updated"')
+      expect(source).toContain('Updated {new Date(updatedAt)')
+      expect(source).toMatch(
+        /className="hp-trade-preview-items"[\s\S]*?className="hp-trade-preview-link"[\s\S]*?<LiveLineupUpdatedAt lineup=\{lineup\} \/>/,
+      )
+    }
+    expect(publicLineupSources[0]).not.toContain('Last received:')
+    expect(sharedRuntime).not.toContain('Connection delayed')
+
+    expect(css).toMatch(
+      /\.hp-trade-preview-inner\s*\{[\s\S]*?grid-template-areas:\s*"head items link updated";/,
+    )
+    expect(css).toMatch(
+      /\.hp-trade-preview-updated\s*\{[\s\S]*?grid-area:\s*updated;[\s\S]*?justify-self:\s*end;/,
+    )
+  })
+
   it('stacks the customer-facing reveal explainer into compact readable rows on phones', () => {
     const css = readFileSync(
       resolve(process.cwd(), 'public/amethyst/homepage.css'),

@@ -650,6 +650,20 @@ function Ticker({ topText }) {
 }
 
 const LiveLineupContext = React.createContext(null);
+function LiveLineupUpdatedAt({ lineup }) {
+  const updatedAt = Date.parse(lineup?.liveQueueLastUpdated);
+  if (!Number.isFinite(updatedAt)) return null;
+  return (
+    <time
+      className="hp-trade-preview-updated"
+      dateTime={new Date(updatedAt).toISOString()}
+      title={new Date(updatedAt).toLocaleString()}
+    >
+      Updated {new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+    </time>
+  );
+}
+
 function LiveLineupProvider({ children }) {
   const [lineup, setLineup] = React.useState(() => RUNTIME_CONTEXT.targeted ? CONTENT : null);
   React.useEffect(() => {
@@ -667,7 +681,6 @@ function LiveQueueStrip({ onOpen }) {
   const lineup = React.useContext(LiveLineupContext);
   const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
   const lineupState = lineup?.liveQueueState;
-  const delayed = lineupState === "delayed";
   const current = lineupState === "live" || lineupState === "empty";
   if (entries.length === 0) {
     return (
@@ -675,12 +688,13 @@ function LiveQueueStrip({ onOpen }) {
         <div className="hp-trade-preview-inner">
           <div className="hp-trade-preview-head">
             <span className="live-dot" style={!current ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
-            <span>Live Lineup{delayed ? " · Update delayed" : ""}</span>
+            <span>Live Lineup</span>
           </div>
           <div className="hp-trade-preview-items">
             {lineup?.liveQueueSummary || "Live Lineup is waiting for a recent update."}
           </div>
           <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
+          <LiveLineupUpdatedAt lineup={lineup} />
         </div>
       </section>
     );
@@ -691,7 +705,7 @@ function LiveQueueStrip({ onOpen }) {
       <div className="hp-trade-preview-inner">
         <div className="hp-trade-preview-head">
           <span className="live-dot" style={!current ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
-          <span>Live Lineup{delayed ? " · Update delayed" : ""}</span>
+          <span>Live Lineup</span>
         </div>
         <div className="hp-trade-preview-items">
           {entries.slice(0, 4).map((entry) => (
@@ -704,6 +718,7 @@ function LiveQueueStrip({ onOpen }) {
           ))}
         </div>
         <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
+        <LiveLineupUpdatedAt lineup={lineup} />
       </div>
     </section>
   );

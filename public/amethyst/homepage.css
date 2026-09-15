@@ -1664,11 +1664,13 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   margin: 0 auto;
   padding: 10px 24px;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "head items link updated";
   gap: 16px;
   align-items: center;
 }
 .hp-trade-preview-head {
+  grid-area: head;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -1688,6 +1690,7 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   animation: hp-pulse 1.6s var(--ease) infinite;
 }
 .hp-trade-preview-items {
+  grid-area: items;
   display: flex;
   gap: 10px;
   overflow-x: auto;
@@ -1742,6 +1745,7 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   white-space: nowrap;
 }
 .hp-trade-preview-link {
+  grid-area: link;
   white-space: nowrap;
   font-size: 12px;
   font-weight: 700;
@@ -1756,6 +1760,14 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   transition: transform var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
   transform-origin: center right;
 }
+.hp-trade-preview-updated {
+  grid-area: updated;
+  justify-self: end;
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 .hp-trade-preview-link:hover {
   transform: translateX(2px);
 }
@@ -1769,7 +1781,11 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
 }
 @media (max-width: 860px) {
   .hp-trade-preview-inner {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "head updated"
+      "items items"
+      "link link";
     align-items: stretch;
   }
   .hp-trade-preview-link {

@@ -382,10 +382,24 @@ function LiveLineupStatus() {
   const lineup = React.useContext(LiveLineupContext);
   if (!lineup) return null;
   const updated = Date.parse(lineup.liveQueueLastUpdated);
+  if (!Number.isFinite(updated)) return null;
   return <p className="hp-lineup-status">
-    {lineup.liveQueueSummary}{' '}
-    {Number.isFinite(updated) && <>Last received: {new Date(updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.</>}
+    Updated {new Date(updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
   </p>;
+}
+
+function LiveLineupUpdatedAt({ lineup }) {
+  const updatedAt = Date.parse(lineup?.liveQueueLastUpdated);
+  if (!Number.isFinite(updatedAt)) return null;
+  return (
+    <time
+      className="hp-trade-preview-updated"
+      dateTime={new Date(updatedAt).toISOString()}
+      title={new Date(updatedAt).toLocaleString()}
+    >
+      Updated {new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+    </time>
+  );
 }
 
 // ============================================================
@@ -1296,6 +1310,7 @@ function LiveQueueStrip({ state, onOpen }) {
             {lineup?.liveQueueSummary || getLiveQueueSummary("Lineup opens when the next scheduled show starts.")}
           </div>
           <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View lineup</button>
+          <LiveLineupUpdatedAt lineup={lineup} />
         </div>
       </section>
     );
@@ -1313,6 +1328,7 @@ function LiveQueueStrip({ state, onOpen }) {
             Loading lineup...
           </div>
           <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
+          <LiveLineupUpdatedAt lineup={lineup} />
         </div>
       </section>
     );
@@ -1330,6 +1346,7 @@ function LiveQueueStrip({ state, onOpen }) {
             {lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup is ready. Customer names appear here when a live show is connected.")}
           </div>
           <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
+          <LiveLineupUpdatedAt lineup={lineup} />
         </div>
       </section>
     );
@@ -1340,7 +1357,7 @@ function LiveQueueStrip({ state, onOpen }) {
       <div className="hp-trade-preview-inner">
         <div className="hp-trade-preview-head">
           <span className="live-dot" style={state === "delayed" ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
-          <span>Live Lineup{state === "delayed" ? " · Update delayed" : ""}</span>
+          <span>Live Lineup</span>
         </div>
         <div className="hp-trade-preview-items">
           {entries.slice(0, 4).map((entry) => (
@@ -1353,6 +1370,7 @@ function LiveQueueStrip({ state, onOpen }) {
           ))}
         </div>
         <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
+        <LiveLineupUpdatedAt lineup={lineup} />
       </div>
     </section>
   );

@@ -45,7 +45,7 @@
       ...current,
       liveQueueState: retain ? 'delayed' : 'offline',
       liveQueueEntries: retain ? (current?.liveQueueEntries || []).map((entry) => ({ ...entry, label: 'Position at last update', highlight: false })) : [],
-      liveQueueSummary: retain ? 'Connection delayed. Showing the last received lineup; retrying automatically.' : 'Live Lineup is waiting for a recent update. Retrying automatically.',
+      liveQueueSummary: retain ? 'Showing the latest lineup while we check for updates.' : 'Live Lineup is waiting for a recent update. Retrying automatically.',
     };
   }
   function start({ url, initial, onUpdate, random = Math.random, monotonicNow = () => typeof performance === 'undefined' ? Date.now() : performance.now() }) {
