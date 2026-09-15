@@ -297,7 +297,7 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
         <p className={styles.connection} data-connection={error ? 'delayed' : snapshot?.connection ?? 'connecting'}>
           <span aria-hidden="true" />{error ? 'Not connected' : CONNECTION_LABELS[snapshot?.connection ?? 'connecting']}
         </p>
-        <p id={instructionsId} className={styles.hint}>Drag customers to change their order.</p>
+        <p id={instructionsId} className={styles.hint}>{readOnly ? 'Customers are shown in their current order.' : 'Drag customers to change their order.'}</p>
       </header>
       {(saving || error || notice || (!compact && (readOnly || (snapshot && !snapshot.canManage)))) && <div className={styles.feedback} aria-live="polite" aria-atomic="true">
         {saving ? 'Saving…' : error ? 'We can’t update your lineup right now. We’ll keep trying.' : notice || (readOnly

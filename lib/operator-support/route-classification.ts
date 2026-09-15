@@ -41,6 +41,8 @@ export type OperatorSupportRouteInventoryEntry = {
   /** Next.js URL pattern. Dynamic segment names remain in brackets. */
   path: `/api/${string}`
   methods: readonly OperatorSupportHttpMethod[]
+  /** Optional narrower method allowlist for the support gateway. */
+  supportMethods?: readonly OperatorSupportHttpMethod[]
   classification: OperatorSupportRouteClassification
   /** Capability required by the future explicit support handler, if planned. */
   capabilities?: readonly OperatorSupportCapabilityHint[]
@@ -64,6 +66,10 @@ export const OPERATOR_SUPPORT_ROUTE_INVENTORY_ROOTS = [
   'app/api/telnyx',
 ] as const
 
+export const OPERATOR_SUPPORT_ROUTE_INVENTORY_ADDITIONAL_FILES = [
+  'app/api/workspace/live-lineup/route.ts',
+] as const
+
 export const OPERATOR_SUPPORT_PROVIDER_ROUTE_ROOTS = [
   'app/api/stripe',
   'app/api/telegram',
@@ -71,6 +77,15 @@ export const OPERATOR_SUPPORT_PROVIDER_ROUTE_ROOTS = [
 ] as const
 
 export const OPERATOR_SUPPORT_ROUTE_INVENTORY = [
+  {
+    file: 'app/api/workspace/live-lineup/route.ts',
+    path: '/api/workspace/live-lineup',
+    methods: ['GET', 'POST'],
+    supportMethods: ['GET'],
+    classification: 'support_allowed_read',
+    capabilities: ['live_queue.view'],
+    rationale: 'Shows the frozen target rep live queue for diagnosis without allowing support-mode reordering.',
+  },
   {
     file: 'app/api/control-center/support-sessions/route.ts',
     path: '/api/control-center/support-sessions',

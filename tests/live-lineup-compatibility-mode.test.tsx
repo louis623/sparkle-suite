@@ -31,6 +31,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@/lib/live-lineup/http', async (original) => ({
   ...await original<typeof import('@/lib/live-lineup/http')>(),
   workspaceLineupContext: mocks.context,
+  workspaceLineupReadContext: mocks.context,
 }))
 vi.mock('@/lib/live-lineup/service', () => ({
   changeLineup: mocks.change,
@@ -202,6 +203,11 @@ describe('Live Lineup read-only Workspace UI contract', () => {
     expect(card).toContain('const disabled = readOnly || baseDisabled')
     expect(card).toContain("if (readOnly || !current?.canManage")
     expect(card).toContain("if (readOnly || !current || mutation.current")
+    expect(card).toContain("readOnly ? 'Customers are shown in their current order.'")
+
+    const supportPage = readFileSync(resolve(process.cwd(), 'app/control-center/support/[sessionId]/page.tsx'), 'utf8')
+    expect(supportPage).toContain('<SupportWorkspaceClient\n      liveLineupReadOnly')
+    expect(supportPage).not.toContain('liveLineupOwnerMutationsAvailable')
   })
 
   it('disables key creation without disabling safe connection reads or revocation controls', () => {

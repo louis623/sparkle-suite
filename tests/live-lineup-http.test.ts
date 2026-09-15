@@ -90,6 +90,22 @@ describe('Live Lineup HTTP tenant/auth/CSRF boundaries', () => {
     expect((await publishers.GET()).status).toBe(403)
     expect(mocks.admin).not.toHaveBeenCalled()
   })
+  it('reads the frozen support target lineup without granting support-mode mutations', async () => {
+    const supportDb = { support: true }
+    mocks.support.mockReturnValue({
+      targetRep: { id: 'target-rep' },
+      supabase: supportDb,
+    })
+
+    const response = await workspace.GET()
+
+    expect(response.status).toBe(200)
+    expect(mocks.get).toHaveBeenCalledWith(supportDb, 'target-rep')
+    expect(mocks.auth).not.toHaveBeenCalled()
+    expect(mocks.admin).not.toHaveBeenCalled()
+    expect((await workspace.POST(request('/api/workspace/live-lineup', { command: { type: 'undo' } }))).status).toBe(403)
+    expect(mocks.change).not.toHaveBeenCalled()
+  })
   it('scopes publisher issuance and revocation to the authenticated rep and prevents caching one-time credentials', async () => {
     const issued = await publishers.POST(request('/api/workspace/live-lineup/publishers', { label: 'Laptop', repId: 'victim' }))
     expect(issued.status).toBe(201)

@@ -14,6 +14,7 @@ const WORKSPACE_API_PREFIXES = [
   '/api/nic-nac',
   '/api/self-serve',
   '/api/stripe',
+  '/api/workspace',
 ] as const
 
 export function isWorkspaceApiPath(pathname: string) {

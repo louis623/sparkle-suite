@@ -676,7 +676,7 @@ describe('Amethyst homepage template data wiring', () => {
     )
 
     expect(jsx).toContain('Array.isArray(CONTENT.socialLinks)')
-    expect(jsx).toContain('CONTENT.socialLinks\n    : []')
+    expect(jsx).toMatch(/CONTENT\.socialLinks\r?\n\s*: \[\]/)
     expect(jsx).not.toContain('const defaultSocials = [')
   })
 
@@ -763,7 +763,9 @@ describe('Amethyst homepage template data wiring', () => {
     expect(jsx).toContain('Live Lineup')
     expect(jsx).toContain('View full lineup')
     expect(jsx).toContain('function LiveQueueModal')
-    expect(jsx).toContain('entries.slice(0, 4)')
+    expect(jsx).toContain('entries.map((entry) =>')
+    expect(jsx).not.toContain('entries.slice(0, 4)')
+    expect(css).toMatch(/\.hp-trade-preview-items\s*\{[\s\S]*?overflow-x:\s*auto;/)
     expect(jsx).not.toContain('Next to reveal')
     expect(jsx).not.toContain('Open dance floor')
     expect(jsx).not.toContain('<LiveQueueSection />')

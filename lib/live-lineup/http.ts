@@ -16,6 +16,12 @@ export function lineupFailure(error: unknown) {
   if (error instanceof SyntaxError) return lineupJson({ error: 'invalid_payload' }, 400)
   return lineupJson({ error: 'lineup_unavailable' }, 503)
 }
+export async function workspaceLineupReadContext() {
+  const support = getOperatorSupportRequestContext()
+  if (support) return { repId: support.targetRep.id, db: support.supabase }
+  const context = await getPaidNicNacContext()
+  return { repId: context.repId, db: createAdminClient() }
+}
 export async function workspaceLineupContext(request?: Request) {
   if (request) {
     // Cookie-authenticated mutations accept same-origin requests only; no wildcard CORS.

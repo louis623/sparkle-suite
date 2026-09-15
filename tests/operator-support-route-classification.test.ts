@@ -6,6 +6,7 @@ import {
   isOperatorSupportGatewayClassificationAllowed,
   OPERATOR_SUPPORT_HTTP_METHODS,
   OPERATOR_SUPPORT_PROVIDER_ROUTE_ROOTS,
+  OPERATOR_SUPPORT_ROUTE_INVENTORY_ADDITIONAL_FILES,
   OPERATOR_SUPPORT_ROUTE_CLASSIFICATIONS,
   OPERATOR_SUPPORT_ROUTE_INVENTORY,
   OPERATOR_SUPPORT_ROUTE_INVENTORY_ROOTS,
@@ -55,7 +56,10 @@ describe('operator support route classification manifest', () => {
   })
 
   it('classifies every governed route and no removed route', () => {
-    const discovered = OPERATOR_SUPPORT_ROUTE_INVENTORY_ROOTS.flatMap(listRouteFiles).sort()
+    const discovered = [
+      ...OPERATOR_SUPPORT_ROUTE_INVENTORY_ROOTS.flatMap(listRouteFiles),
+      ...OPERATOR_SUPPORT_ROUTE_INVENTORY_ADDITIONAL_FILES,
+    ].sort()
     const classified = OPERATOR_SUPPORT_ROUTE_INVENTORY.map((entry) => entry.file).sort()
 
     expect(classified).toEqual(discovered)
@@ -114,6 +118,7 @@ describe('operator support route classification manifest', () => {
       ['/api/nic-nac', 'support_allowed_write'],
       ['/api/nic-nac/conversation/clear', 'support_allowed_write'],
       ['/api/self-serve/setup-state', 'support_allowed_read'],
+      ['/api/workspace/live-lineup', 'support_allowed_read'],
     ])
 
     for (const [path, expected] of expectedAllowed) {
@@ -163,10 +168,20 @@ describe('operator support route classification manifest', () => {
 
     for (const entry of OPERATOR_SUPPORT_ROUTE_INVENTORY) {
       if (entry.classification !== 'support_allowed_read') continue
+      const supportMethods = 'supportMethods' in entry && entry.supportMethods
+        ? entry.supportMethods
+        : entry.methods
       expect(
-        entry.methods.some((method) => mutatingMethods.has(method)),
+        supportMethods.some((method) => mutatingMethods.has(method)),
         entry.file,
       ).toBe(false)
+    }
+  })
+
+  it('keeps any narrower support method allowlist within the route exports', () => {
+    for (const entry of OPERATOR_SUPPORT_ROUTE_INVENTORY) {
+      if (!('supportMethods' in entry) || !entry.supportMethods) continue
+      for (const method of entry.supportMethods) expect(entry.methods).toContain(method)
     }
   })
 

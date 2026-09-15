@@ -43,6 +43,7 @@ import * as tradeRevealScreenshot from '@/app/api/nic-nac/trade-requests/[reques
 import * as tradeSwapCleanup from '@/app/api/nic-nac/trade-swap-cleanup/route'
 import * as walletSummary from '@/app/api/nic-nac/wallet-summary/route'
 import * as setupState from '@/app/api/self-serve/setup-state/route'
+import * as workspaceLiveLineup from '@/app/api/workspace/live-lineup/route'
 import {
   appendOperatorSupportAuditEvent,
   OperatorSupportAuditUnavailableError,
@@ -67,6 +68,7 @@ type RouteModule = Partial<Record<OperatorSupportHttpMethod, RouteHandler>>
 
 const STATIC_ROUTE_MODULES = new Map<string, RouteModule>([
   ['/api/self-serve/setup-state', setupState as unknown as RouteModule],
+  ['/api/workspace/live-lineup', workspaceLiveLineup as unknown as RouteModule],
   ['/api/nic-nac', nicNac as unknown as RouteModule],
   ['/api/nic-nac/conversation-state', nicNacConversationState as unknown as RouteModule],
   ['/api/nic-nac/conversation/clear', nicNacConversationClear as unknown as RouteModule],
@@ -289,7 +291,11 @@ async function handleGateway(
         { status: 403 },
       )
     }
-    const allowedMethods = classification.methods as readonly OperatorSupportHttpMethod[]
+    const allowedMethods = (
+      'supportMethods' in classification && classification.supportMethods
+        ? classification.supportMethods
+        : classification.methods
+    ) as readonly OperatorSupportHttpMethod[]
     if (!resolved || !allowedMethods.includes(method)) {
       return NextResponse.json(
         { error: 'That support operation is not available.', code: 'SUPPORT_ACTION_BLOCKED' },
