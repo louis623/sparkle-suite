@@ -228,6 +228,48 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     quickActions: ['Check extension status', 'Review stale queue', 'Ask Nic-Nac for help'],
   }),
   helpResource({
+    id: 'use-live-lineup-on-a-mac',
+    type: 'workflow',
+    group: 'Live Shows',
+    category: 'Live Queue',
+    title: 'Use Live Lineup on a Mac',
+    summary:
+      'You can use Live Lineup on a MacBook or Mac desktop—just install Google Chrome and the Sparkle Suite extension.',
+    body:
+      'You do not need a Windows PC to use Live Lineup. Safari is fine for everyday browsing, but the Sparkle Suite Live Queue extension runs in Google Chrome on a computer. It can be used on a MacBook, iMac, or other Mac desktop. Chrome extensions cannot be installed or run from an iPhone or iPad.',
+    goal:
+      'Use Chrome on a Mac so your Live Lineup can update normally during a live show.',
+    useWhen:
+      'Use this when you have a MacBook or Mac desktop and need to set up or use Live Lineup.',
+    beforeYouStart: [
+      'A MacBook, iMac, or other Mac desktop',
+      'Your Sparkle Suite Workspace',
+      'Your Bomb Party back office sign-in',
+    ],
+    steps: [
+      'Open Safari and go to google.com/chrome.',
+      'Choose Download Chrome, open the downloaded file, and follow the on-screen steps to install it.',
+      'Open Google Chrome from Applications or by searching for “Chrome” with Spotlight.',
+      'In Chrome, open your Sparkle Suite Workspace and open the Live Queue setup tool.',
+      'Choose Open Chrome Web Store, then choose Add to Chrome and Add extension for Sparkle Suite Live Queue.',
+      'Select Chrome’s puzzle-piece icon, find Sparkle Suite Live Queue, and pin it so it is easy to find.',
+      'Use that same Chrome profile to sign in to your Bomb Party back office and open Party Orders.',
+      'Open the Sparkle Suite extension and follow the connection steps for your Workspace. Keep private connection details private.',
+      'Keep Chrome open on Party Orders while you are live, then check that the extension shows it is connected before relying on your customer-facing lineup.',
+    ],
+    goodResult:
+      'Chrome, the Sparkle Suite extension, and Party Orders are open on your Mac, and your Live Lineup is connected for the show.',
+    nicNacPrompt: 'Help me set up Live Lineup on my Mac.',
+    stillStuck:
+      'Tell support that you are using a Mac, confirm whether Chrome and Party Orders are open in the same Chrome profile, and share the extension status you see. Never send a private connection key in chat.',
+    relatedFeatureIds: ['live-queue'],
+    quickActions: [
+      'Open Live Queue setup',
+      'Open Chrome Web Store',
+      'Check extension status',
+    ],
+  }),
+  helpResource({
     id: 'add-jewelry-to-trade-board',
     type: 'workflow',
     group: 'Dance Floor',

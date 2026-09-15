@@ -16,6 +16,7 @@ describe('help resources', () => {
       'Embed a TikTok video on your customer-facing site',
       'Get ready for a live show',
       'Use Live Queue during a show',
+      'Use Live Lineup on a Mac',
       'Add a dancer to your Dance Floor',
       'Handle trade requests',
       'Manage customers and updates',
@@ -39,7 +40,7 @@ describe('help resources', () => {
   it('gives every workflow guide the standard operator-manual fields', () => {
     const workflows = getHelpResources().filter((resource) => resource.type === 'workflow')
 
-    expect(workflows.length).toBe(12)
+    expect(workflows.length).toBe(13)
 
     for (const workflow of workflows) {
       expect(workflow.group).toMatch(/Setup|Live Shows|Dance Floor|Customers & Account|Help/)
@@ -144,6 +145,34 @@ describe('help resources', () => {
     expect(liveQueueText).toContain('coming soon or launch-gated')
     expect(liveQueueText).toContain('Web Store')
     expect(liveQueueText).not.toContain('fully live for every rep')
+  })
+
+  it('gives Mac users a complete Chrome setup path for Live Lineup', () => {
+    const guide = getHelpResources('Mac Chrome Live Lineup')
+      .find((resource) => resource.id === 'use-live-lineup-on-a-mac')
+
+    expect(guide).toMatchObject({
+      type: 'workflow',
+      group: 'Live Shows',
+      category: 'Live Queue',
+      title: 'Use Live Lineup on a Mac',
+      nicNacPrompt: 'Help me set up Live Lineup on my Mac.',
+    })
+
+    const guideText = [
+      guide?.summary,
+      guide?.body,
+      ...(guide?.steps ?? []),
+      guide?.goodResult,
+      guide?.stillStuck,
+    ].join(' ')
+
+    expect(guideText).toContain('do not need a Windows PC')
+    expect(guideText).toContain('google.com/chrome')
+    expect(guideText).toContain('Open Chrome Web Store')
+    expect(guideText).toContain('Party Orders')
+    expect(guideText).toContain('iPhone or iPad')
+    expect(guideText).toContain('Never send a private connection key in chat')
   })
 
   it('keeps Email and SMS update guidance honest about readiness', () => {
