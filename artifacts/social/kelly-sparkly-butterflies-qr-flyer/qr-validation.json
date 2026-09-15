@@ -1,0 +1,15 @@
+{
+  "targetUrl": "https://sparklybutterflies.com",
+  "dimensions": {
+    "width": 1080,
+    "height": 1920
+  },
+  "png": {
+    "decodedUrl": "https://sparklybutterflies.com",
+    "valid": true
+  },
+  "jpg": {
+    "decodedUrl": "https://sparklybutterflies.com",
+    "valid": true
+  }
+}
