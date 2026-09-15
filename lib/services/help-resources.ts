@@ -242,7 +242,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     useWhen:
       'Use this when you have a MacBook or Mac desktop and need to set up or use Live Lineup.',
     beforeYouStart: [
-      'A MacBook, iMac, or other Mac desktop',
+      'A MacBook, iMac, or other Mac desktop. This needs Chrome on a computer, not an iPhone or iPad.',
       'Your Sparkle Suite Workspace',
       'Your Bomb Party back office sign-in',
     ],

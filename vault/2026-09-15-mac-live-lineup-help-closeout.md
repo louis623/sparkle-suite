@@ -6,7 +6,7 @@ Help & Resources now includes a dedicated Live Shows workflow, **Use Live
 Lineup on a Mac**. It confirms that a MacBook or Mac desktop can run the
 Sparkle Suite Live Queue extension through Google Chrome, gives the plain
 English Chrome and extension setup path, and clearly distinguishes computers
-from iPhone/iPad use.
+from iPhone/iPad use in the visible guide checklist.
 
 ## Safety and support guidance
 

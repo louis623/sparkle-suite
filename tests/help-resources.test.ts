@@ -173,6 +173,9 @@ describe('help resources', () => {
     expect(guideText).toContain('Party Orders')
     expect(guideText).toContain('iPhone or iPad')
     expect(guideText).toContain('Never send a private connection key in chat')
+    expect(guide?.beforeYouStart).toContain(
+      'A MacBook, iMac, or other Mac desktop. This needs Chrome on a computer, not an iPhone or iPad.',
+    )
   })
 
   it('keeps Email and SMS update guidance honest about readiness', () => {
