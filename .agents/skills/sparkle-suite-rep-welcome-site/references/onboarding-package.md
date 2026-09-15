@@ -18,7 +18,7 @@ Use this reference only when a request includes more than the public starter gui
 
 1. Read-only discovery: verify identity, waitlist/intake details, existing account, feature readiness, price, and fulfillment status.
 2. Prepare the requested account shell and non-sensitive settings using only confirmed intake values. Persist real onboarding as `customer`, reserve `demo` for deliberate reviewer/test accounts, and verify the resulting Control Center database placement. For a live walkthrough, also verify the intended Workspace subscription/trial row, Sparkle Suite public-site slug, site settings, and reachable Home, Dance Floor, and Join routes; `dashboard_unlocked` alone is not readiness evidence.
-3. Create or update the public guide from the tokenized template. Keep it educational: welcome, overview, self-paced checklist, tools, Nic-Nac, help, Live Queue, Coming soon, fulfillment, and transparent pricing.
+3. Create or update the public guide from the canonical Kelly long-form walkthrough template. Preserve its contents rail and guided Workspace sections; customize only verified rep facts, account terms, team access, and explicitly ready/deferred features. Do not substitute a compact generic guide or a feature-card landing page.
 4. Build and publish the guide only after explicit authorization; validate the actual public URL.
 5. Prepare the unsent welcome-email draft. Include the guide link high in the message, sign-in instructions, and the official Live Queue Store link if relevant. Add private credentials, payment links, or meeting links only with their specific approval.
 6. Publish a credential-free Message Center welcome only after exact-recipient preview and final approval.
@@ -53,15 +53,9 @@ later operator can resume without reverse-engineering a session.
 The checklist is intentionally checkbox-only. The legacy `onboarding_status` and a
 dashboard-unlocked flag must not be repurposed as the launch ledger.
 
-## Starter-guide content map
+## Canonical guide content map
 
-- **Welcome and meeting:** a precise date/time with time-zone abbreviation; meeting link only when explicitly approved.
-- **First-week checklist:** Workspace, customer-site customization, Live Queue self-setup, live calendar, and Dance Floor. Local checkbox state is a guide only.
-- **Tools:** customer-facing site, Live Queue, Dance Floor, live event calendar, Nic-Nac, and Help & Resources. Keep each claim factual and distinct.
-- **Coming soon:** move features that are not ready, including Email updates and SMS updates when applicable, into clearly labeled cards.
-- **Light box:** encourage confirmation of the best shipping address without disclosing it.
-- **Pricing:** exact promo amount and number of months, then exact monthly amount after the promotion.
-
+The canonical guide is the Kelly 12-section Workspace walkthrough. Its fixed reading order is: Sparkle Suite home; first visit; Workspace map; Nic-Nac; Calendar; Dance Floor; customer-facing site; Customer List; Messages and Help; Team Management when verified; account and plan; and first-session guidance. It includes a required Live Queue device note: Google Chrome on a Mac or Windows computer works, while an iPhone or iPad cannot run the browser extension; Help & Resources is the setup path. It ends with common questions and a calm closing. See `assets/rep-welcome-site-template.md` for the required shape and the allowed rep-specific substitutions.
 ## Communication patterns
 
 ### Draft email

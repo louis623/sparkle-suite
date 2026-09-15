@@ -108,13 +108,14 @@ complete merely because the former has a completed setup session.
 
 ### Public starter guide
 
-Use [assets/rep-welcome-site-template.md](assets/rep-welcome-site-template.md) for a published guide. It is educational and encouraging, not a promotional landing page.
+Use [assets/rep-welcome-site-template.md](assets/rep-welcome-site-template.md) as the one canonical published-guide format. It is the Kelly long-form Workspace walkthrough, not a generic starter-guide pattern. Preserve its contents rail, 12-section guided walkthrough, questions, and calm closing; personalize verified facts rather than inventing a different page shape.
 
 - Keep the schedule precise, including the confirmed time-zone abbreviation.
 - Explain customer-site customization as the rep’s own work, with a guided walkthrough and help available on request; do not imply Sparkle Suite is completing it during the onboarding meeting.
-- Include a local, independently checkable first-week checklist when useful. Clearly keep progress device-local; it does not update the Workspace or prove a setup task is done.
+- A device-local checklist is optional supporting material only. It must never replace the canonical walkthrough or imply a checked item updates the Workspace or proves a setup task is done.
 - Keep deferred features as visible **Coming soon** cards, and remove them from ready-now guidance. Do not give roadmap dates.
 - Link only the verified official Live Queue Chrome Web Store listing when requested. Never expose the private code or alter the protected extension.
+- When Live Queue is included in a guide, plainly state the verified device path: Google Chrome on a Mac or Windows computer works; an iPhone or iPad cannot run the browser extension. Point the rep to Help & Resources for setup steps.
 - A meeting link is private by default; publish it only with explicit approval. Do not create a Calendar event, invite, or transcription setting merely because the guide has a meeting card.
 - Publish only when the user explicitly authorizes the public page. Build, check desktop and mobile, check console errors, exercise a navigation link, and deploy through the Sites project/version flow. Do not deploy the main Sparkle Suite app for a guide-only change.
 
