@@ -17,6 +17,8 @@ const outputThumb = path.join(here, 'kelly-sparkly-butterflies-qr-flyer-thumbnai
 const validationPath = path.join(here, 'qr-validation.json');
 const qrPath = path.join(here, 'sparklybutterflies-qr.png');
 
+const playfairFontPath = path.join(here, 'PlayfairDisplay.ttf');
+
 const asset = (name) =>
   path.join(repoRoot, 'public', 'amethyst', 'skins', 'neon-butterfly', name);
 
@@ -40,15 +42,48 @@ const background = await sharp(asset('kelly-studio-mobile.webp'))
   .modulate({ brightness: 0.76, saturation: 1.08 })
   .toBuffer();
 
+const title = await sharp({
+  text: {
+    text: '<span foreground="#fff8fc" font_weight="600">&#160;Sparkly&#160;\n&#160;Butterflies&#160;</span>',
+    font: 'Playfair Display 82',
+    fontfile: playfairFontPath,
+    width: 816,
+    height: 226,
+    align: 'centre',
+    rgba: true,
+  },
+})
+  .png()
+  .toBuffer();
+const titleMetadata = await sharp(title).metadata();
+const titleLeft = Math.round((width - titleMetadata.width) / 2);
+
 const pinkSign = await sharp(asset('kelly-sign-pink.png'))
   .resize({ width: 180 })
   .toBuffer();
 const violetSign = await sharp(asset('kelly-sign-violet.png'))
   .resize({ width: 170 })
   .toBuffer();
-const goldSign = await sharp(asset('kelly-sign-gold.png'))
+const { data: goldAlpha, info: goldInfo } = await sharp(asset('kelly-sign-gold.png'))
   .resize({ width: 190 })
+  .ensureAlpha()
+  .extractChannel('alpha')
+  .raw()
+  .toBuffer({ resolveWithObject: true });
+const goldSign = await sharp({
+  create: {
+    width: goldInfo.width,
+    height: goldInfo.height,
+    channels: 3,
+    background: '#ffe600',
+  },
+})
+  .joinChannel(goldAlpha, {
+    raw: { width: goldInfo.width, height: goldInfo.height, channels: 1 },
+  })
+  .png()
   .toBuffer();
+const goldGlow = await sharp(goldSign).blur(12).toBuffer();
 
 const sparkles = [
   [99, 120, 9], [936, 164, 6], [832, 406, 8], [181, 498, 5],
@@ -96,42 +131,40 @@ const overlay = Buffer.from(`
   ${sparkleMarkup}
 
   <g filter="url(#softShadow)">
-    <rect x="132" y="130" width="816" height="520" rx="46" fill="url(#glass)" stroke="#ff76e6" stroke-width="2"/>
+    <rect x="132" y="118" width="816" height="420" rx="46" fill="url(#glass)" stroke="#ff76e6" stroke-width="2"/>
   </g>
-  <text x="540" y="208" text-anchor="middle" fill="#ffc24a" font-family="Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="7">SPARKLY BUTTERFLIES</text>
-  <line x1="306" y1="239" x2="774" y2="239" stroke="#ffc24a" stroke-width="2" opacity="0.72"/>
-  <text x="540" y="342" text-anchor="middle" fill="#fff8fc" font-family="Georgia, serif" font-size="80" font-weight="700" letter-spacing="1" filter="url(#pinkGlow)">LET YOURSELF</text>
-  <text x="540" y="448" text-anchor="middle" fill="#ff71df" font-family="Georgia, serif" font-size="112" font-style="italic" font-weight="700" filter="url(#pinkGlow)">sparkle</text>
-  <text x="540" y="533" text-anchor="middle" fill="#fff8fc" font-family="Arial, sans-serif" font-size="33" font-weight="600">Kelly’s latest treasures are one scan away.</text>
-  <text x="540" y="584" text-anchor="middle" fill="#ead7ed" font-family="Arial, sans-serif" font-size="27">New reveals, beautiful finds, and your next favorite piece.</text>
+  <text x="540" y="456" text-anchor="middle" fill="#fff8fc" font-family="Arial, sans-serif" font-size="28" font-weight="650">Pick Your Collection. We Reveal Together Live.</text>
+  <text x="540" y="500" text-anchor="middle" fill="#ff82e4" font-family="Arial, sans-serif" font-size="29" font-weight="800">You Love.</text>
 
   <g filter="url(#softShadow)">
-    <rect x="200" y="692" width="680" height="682" rx="52" fill="#fffdfd"/>
-    <rect x="200" y="692" width="680" height="682" rx="52" fill="none" stroke="url(#rim)" stroke-width="10"/>
-    <rect x="216" y="708" width="648" height="650" rx="40" fill="none" stroke="#300b39" stroke-width="3" opacity="0.24"/>
+    <rect x="200" y="575" width="680" height="682" rx="52" fill="#fffdfd"/>
+    <rect x="200" y="575" width="680" height="682" rx="52" fill="none" stroke="url(#rim)" stroke-width="10"/>
+    <rect x="216" y="591" width="648" height="650" rx="40" fill="none" stroke="#300b39" stroke-width="3" opacity="0.24"/>
   </g>
-  <rect x="341" y="731" width="398" height="58" rx="29" fill="#26062d"/>
-  <text x="540" y="771" text-anchor="middle" fill="#fff8fc" font-family="Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="4">SCAN TO SHOP</text>
-  <rect x="294" y="818" width="492" height="492" rx="20" fill="#ffffff" stroke="#f2d7ed" stroke-width="3"/>
-  <text x="540" y="1340" text-anchor="middle" fill="#4b124d" font-family="Arial, sans-serif" font-size="24" font-weight="700">Point your phone’s camera at the code</text>
+  <rect x="341" y="614" width="398" height="58" rx="29" fill="#26062d"/>
+  <text x="540" y="654" text-anchor="middle" fill="#fff8fc" font-family="Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="4">SCAN TO SHOP</text>
+  <rect x="294" y="701" width="492" height="492" rx="20" fill="#ffffff" stroke="#f2d7ed" stroke-width="3"/>
+  <text x="540" y="1223" text-anchor="middle" fill="#4b124d" font-family="Arial, sans-serif" font-size="24" font-weight="700">Point your phone’s camera at the code</text>
 
   <g filter="url(#softShadow)">
-    <rect x="132" y="1430" width="816" height="252" rx="38" fill="url(#glass)" stroke="#9f65ff" stroke-width="2"/>
+    <rect x="132" y="1312" width="816" height="252" rx="38" fill="url(#glass)" stroke="#9f65ff" stroke-width="2"/>
   </g>
-  <text x="540" y="1502" text-anchor="middle" fill="#ffc24a" font-family="Arial, sans-serif" font-size="25" font-weight="800" letter-spacing="3">SAVE IT FOR LATER</text>
-  <text x="540" y="1561" text-anchor="middle" fill="#fff8fc" font-family="Arial, sans-serif" font-size="27" font-weight="600">Screenshot this flyer and open it in Photos.</text>
-  <text x="540" y="1608" text-anchor="middle" fill="#fff8fc" font-family="Arial, sans-serif" font-size="27" font-weight="600">Then press and hold the QR code.</text>
-  <text x="540" y="1768" text-anchor="middle" fill="#fff8fc" font-family="Arial, sans-serif" font-size="37" font-weight="900" letter-spacing="2">SPARKLYBUTTERFLIES.COM</text>
-  <text x="540" y="1813" text-anchor="middle" fill="#ffc24a" font-family="Georgia, serif" font-size="26" font-style="italic">Shop with Kelly anytime</text>
+  <text x="540" y="1384" text-anchor="middle" fill="#ffc24a" font-family="Arial, sans-serif" font-size="25" font-weight="800" letter-spacing="3">SAVE IT FOR LATER</text>
+  <text x="540" y="1443" text-anchor="middle" fill="#fff8fc" font-family="Arial, sans-serif" font-size="27" font-weight="600">Screenshot this flyer and open it in Photos.</text>
+  <text x="540" y="1490" text-anchor="middle" fill="#fff8fc" font-family="Arial, sans-serif" font-size="27" font-weight="600">Then press and hold the QR code.</text>
+  <text x="540" y="1705" text-anchor="middle" fill="#fff8fc" font-family="Arial, sans-serif" font-size="37" font-weight="900" letter-spacing="2">SPARKLYBUTTERFLIES.COM</text>
+  <text x="540" y="1750" text-anchor="middle" fill="#ffc24a" font-family="Georgia, serif" font-size="26" font-style="italic">Shop with Kelly anytime</text>
 </svg>`);
 
 const composed = await sharp(background)
   .composite([
     { input: overlay, top: 0, left: 0 },
-    { input: pinkSign, top: 492, left: 28 },
-    { input: violetSign, top: 500, left: 882 },
-    { input: goldSign, top: 1570, left: 786 },
-    { input: qr, top: 830, left: 306 },
+    { input: title, top: 156, left: titleLeft },
+    { input: pinkSign, top: 408, left: 28 },
+    { input: violetSign, top: 415, left: 882 },
+    { input: goldGlow, top: 1470, left: 786 },
+    { input: goldSign, top: 1470, left: 786 },
+    { input: qr, top: 713, left: 306 },
   ])
   .png({ compressionLevel: 9, palette: false })
   .toBuffer();
