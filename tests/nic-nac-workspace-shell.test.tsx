@@ -94,6 +94,17 @@ describe('Nic-Nac workspace shell reset', () => {
     expect(homeSource).toContain('className={styles.railLiveLineup}')
     expect(homeSource).toContain('<LiveLineupCard compact readOnly={liveLineupReadOnly} />')
     expect(homeSource.indexOf('className={styles.railLiveLineup}')).toBeLessThan(homeSource.indexOf('className={styles.conceptCenter}'))
+    expect(hasDeclaration(dashboardCss, '.railLiveLineup', 'flex: 1 1 460px')).toBe(true)
+    expect(hasDeclaration(dashboardCss, '.railLiveLineup', 'min-height: 460px')).toBe(true)
+
+    const lineupCss = readFileSync(
+      resolve(process.cwd(), 'app/nic-nac/components/LiveLineupCard.module.css'),
+      'utf8',
+    )
+    expect(hasDeclaration(lineupCss, '.card.compact', 'height: 100%')).toBe(true)
+    expect(hasDeclaration(lineupCss, '.card.compact', 'max-height: none')).toBe(true)
+    expect(hasDeclaration(lineupCss, '.compact .scroll', 'flex: 1 1 auto')).toBe(true)
+    expect(hasDeclaration(lineupCss, '.compact .row', 'grid-template-columns: minmax(0, 1fr) auto')).toBe(true)
   })
 
   it('keeps the compact workspace header while removing only the duplicate search', () => {
