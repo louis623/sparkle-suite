@@ -111,3 +111,38 @@ expected public/offline behavior and rejected an unauthenticated publisher.
   match the supported identity contract.
 - Post-release error scans can surface unrelated operational debt. Prove the
   runtime diff before attributing a coincident error to the release.
+
+## September 15 post-release Workspace visibility correction
+
+Louis correctly reported that the promised Live Lineup side card was not
+visible on the Workspace homepage. The component, owner APIs, drag/drop logic,
+and bounded internal scroller were deployed, but the card had been placed in
+an obsolete `renderActiveWorkspaceSection()` home branch. The current homepage
+uses `ConceptHomeWorkspace` through a separate final render path, so the old
+branch was unreachable. This was a real release defect, not browser caching or
+rep error.
+
+The obsolete branch was removed and the existing `LiveLineupCard` was mounted
+beside `ConceptHomeWorkspace` in the actual homepage path. Desktop uses the
+existing two-column `homeWithLineup` grid; widths at or below the existing
+740px container breakpoint stack to one column. The card remains capped at
+480px / 70dvh with its own vertical scroller, so a long queue does not extend
+the Workspace page unnecessarily.
+
+Regression coverage now renders the default Workspace homepage and requires
+both the `Scrollable live lineup` region and the visible drag/reorder
+instructions. Focused Workspace/compatibility tests passed (15 passed, one
+intentional skip), the active-branch guard passed in the authorized clean
+Codespace, `git diff --check` passed, and the exact Next.js 16.2.1 production
+build passed.
+
+- Fix commit: `8f2ca26990d0e184901eab64b3f5d660c38f590c`
+- Corrected production deployment: `dpl_DYKVKfGw58hpeseUEgfoxPVLiJtj`
+- Deployment URL: `sparkle-suite-ez8ygv1ek-louis-2849s-projects.vercel.app`
+
+All Suite and active customer aliases resolve to the corrected READY
+deployment. The Suite apex redirects to `www`, Suite and Brittany public checks
+returned 200, and the corrected deployment's post-release scan found no HTTP
+500 responses. Logged-in visual smoke still requires the separately approved
+synthetic reviewer identity migration; no personal or customer account was
+used to bypass that boundary.
