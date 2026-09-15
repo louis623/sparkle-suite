@@ -42,6 +42,8 @@ describe('Nic-Nac workspace shell reset', () => {
     expect(html).toContain('role="tab"')
     expect(html).toContain('aria-selected="true"')
     expect(html).toContain('role="tabpanel"')
+    expect(html).toContain('aria-label="Scrollable live lineup"')
+    expect(html).toContain('Drag a handle to reorder, or use the move buttons.')
     expect(html).toContain('>Dance Floor<')
     expect(html).not.toContain('>Jewelry Library<')
     expect(html).toContain('>Calendar<')

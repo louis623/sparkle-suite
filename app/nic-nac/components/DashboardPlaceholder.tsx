@@ -6066,26 +6066,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       )
     }
 
-    if (canRenderWorkspaceSections && activeSection === 'home') {
-      return (
-        <div className={styles.homeWithLineup}>
-        <NicNacHomeWorkspaceCard
-          tradeRequestsCount={tradeRequestsState.requests?.length ?? 0}
-          cleanupCount={tradeSwapCleanupState.items?.length ?? 0}
-          fulfillmentCount={fulfillmentQueueState.items?.length ?? 0}
-          nextShowLabel={buildHomeNextShowLabel(
-            calendarState.summary?.upcomingEvents ?? [],
-          )}
-          onLaunchAction={(action) => onLaunchNicNacAction?.(action)}
-          onOpenTradeBoard={() => setActiveSection('trade-board')}
-          onOpenCalendar={() => setActiveSection('show-calendar')}
-          onOpenCustomerBoardPreview={handleOpenTradeBoardPreview}
-        />
-        <LiveLineupCard readOnly={liveLineupReadOnly} />
-        </div>
-      )
-    }
-
     if (canRenderWorkspaceSections && activeSection === 'jewelry-library') {
       return (
         <JewelryLibraryCard
@@ -6475,22 +6455,25 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           notice={showWorkspaceAccessNotice ? accessNotice : null}
         >
           {showConceptHome ? (
-            <ConceptHomeWorkspace
-              chat={desktopChat}
-              tradeRequestsCount={homeTradeRequestsCount}
-              cleanupCount={homeCleanupCount}
-              fulfillmentCount={homeFulfillmentCount}
-              nextShow={homeNextShow}
-              siteLive={Boolean(customerSparkleSiteHref)}
-              onLaunchAction={(action) => onLaunchNicNacAction?.(action)}
-              onOpenTradeBoard={() => setActiveSection('trade-board')}
-              onOpenCalendar={() => setActiveSection('show-calendar')}
-              onOpenPublicSite={handleOpenCustomerSitePreview}
-              onOpenHelp={() => setActiveSection('help-resources')}
-              onNewConversation={onNewConversation}
-              repName={repProfileState.displayName ?? siteSettingsState.settings?.displayName ?? null}
-              conversationControlsDisabled={conversationControlsDisabled}
-            />
+            <div className={styles.homeWithLineup}>
+              <ConceptHomeWorkspace
+                chat={desktopChat}
+                tradeRequestsCount={homeTradeRequestsCount}
+                cleanupCount={homeCleanupCount}
+                fulfillmentCount={homeFulfillmentCount}
+                nextShow={homeNextShow}
+                siteLive={Boolean(customerSparkleSiteHref)}
+                onLaunchAction={(action) => onLaunchNicNacAction?.(action)}
+                onOpenTradeBoard={() => setActiveSection('trade-board')}
+                onOpenCalendar={() => setActiveSection('show-calendar')}
+                onOpenPublicSite={handleOpenCustomerSitePreview}
+                onOpenHelp={() => setActiveSection('help-resources')}
+                onNewConversation={onNewConversation}
+                repName={repProfileState.displayName ?? siteSettingsState.settings?.displayName ?? null}
+                conversationControlsDisabled={conversationControlsDisabled}
+              />
+              <LiveLineupCard readOnly={liveLineupReadOnly} />
+            </div>
           ) : (
             <div className={styles.workspaceSectionPage}>
               {workspaceBackDestination ? (
