@@ -1557,7 +1557,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('aria-label="Copy public site address"')
     expect(html).toContain('Live Queue code')
     expect(html).toContain('MHF-7342')
-    expect(html).toContain('aria-label="Open Message Center, 4 unread messages"')
+    expect(html).toContain('aria-label="Open Message Center, 5 unread messages"')
     expect(html).toContain('title="Message Center"')
     expect(html).not.toContain('Secret Rep ID Number')
     expect(html).not.toContain('>Rep<')
@@ -3520,7 +3520,7 @@ describe('DashboardPlaceholder', () => {
 
     expect(source).toContain('Customer-facing site theme')
     expect(source).toContain('WORKSPACE_APPEARANCE_PRESET')
-    expect(source).toContain('AMETHYST_SKIN_CARDS')
+    expect(source).toContain('getAmethystSkinCardsForRep')
     expect(source).not.toContain('Full skin gallery')
     expect(source).toContain('skin.code')
     expect(source).toContain('normalizeAmethystAppearancePreset')
