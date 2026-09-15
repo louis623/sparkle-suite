@@ -8,7 +8,7 @@ import {
 } from "../scripts/check-active-branch.mjs";
 
 describe("Sparkle Suite active branch policy", () => {
-  it("accepts the verified repository, protected development branch, and primary worktree", () => {
+  it("accepts the verified repository, production branch, and primary worktree", () => {
     expect(
       evaluateBranchPolicy({
         branch: "codex/nic-nac-trade-hardening",
@@ -19,16 +19,23 @@ describe("Sparkle Suite active branch policy", () => {
     ).toEqual([]);
   });
 
-  it("accepts the isolated release branch only from its explicitly registered worktree", () => {
+  it("rejects the retired photo-rarity release branch and worktree", () => {
+    const errors = evaluateBranchPolicy({
+      branch: "codex/nic-nac-photo-rarity-repair",
+      remoteRepository: "louis623/sparkle-suite",
+      worktree:
+        "C:\\Users\\louis\\sparkle-suite-repo\\.local\\worktrees\\nic-nac-photo-rarity",
+      platform: "win32",
+    });
+
+    expect(errors).toContain(
+      'branch "codex/nic-nac-photo-rarity-repair" is not active; allowed: codex/nic-nac-trade-hardening',
+    );
     expect(
-      evaluateBranchPolicy({
-        branch: "codex/nic-nac-photo-rarity-repair",
-        remoteRepository: "louis623/sparkle-suite",
-        worktree:
-          "C:\\Users\\louis\\sparkle-suite-repo\\.local\\worktrees\\nic-nac-photo-rarity",
-        platform: "win32",
-      }),
-    ).toEqual([]);
+      errors.some((error) =>
+        error.includes("is not an active Sparkle Suite workbench"),
+      ),
+    ).toBe(true);
   });
 
   it("fails closed on legacy or unknown branches", () => {
@@ -40,7 +47,7 @@ describe("Sparkle Suite active branch policy", () => {
         platform: "win32",
       }),
     ).toContain(
-      'branch "main" is not active; allowed: codex/nic-nac-photo-rarity-repair, codex/nic-nac-trade-hardening',
+      'branch "main" is not active; allowed: codex/nic-nac-trade-hardening',
     );
   });
 
@@ -99,14 +106,14 @@ describe("Sparkle Suite active branch policy", () => {
     };
 
     process.env.VERCEL = "1";
-    process.env.SPARKLE_RELEASE_BRANCH = "codex/nic-nac-photo-rarity-repair";
+    process.env.SPARKLE_RELEASE_BRANCH = "codex/nic-nac-trade-hardening";
     process.env.SPARKLE_RELEASE_REPOSITORY = "louis623/sparkle-suite";
     delete process.env.VERCEL_GIT_COMMIT_REF;
     delete process.env.VERCEL_GIT_REPO_OWNER;
     delete process.env.VERCEL_GIT_REPO_SLUG;
 
     try {
-      expect(currentBranch()).toBe("codex/nic-nac-photo-rarity-repair");
+      expect(currentBranch()).toBe("codex/nic-nac-trade-hardening");
       expect(currentRepository()).toBe("louis623/sparkle-suite");
     } finally {
       for (const [key, value] of Object.entries({

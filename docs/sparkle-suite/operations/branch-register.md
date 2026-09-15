@@ -1,141 +1,97 @@
 # Sparkle Suite Branch Register
 
-**Reviewed:** September 13, 2026
+**Reviewed:** September 15, 2026
 
 **Repository:** `louis623/sparkle-suite`
 
 **Primary workbench:** `C:\Users\louis\sparkle-suite-repo`
 
-Current external controls:
+## Authoritative controls
 
-- GitHub default branch: `codex/nic-nac-photo-rarity-repair`
-- Local `origin/HEAD`: update to `origin/codex/nic-nac-photo-rarity-repair`
-  after the coordinated GitHub default-branch change is fetched.
-- Vercel production branch for both `sparkle-suite` and
-  `sparkle-finder-dev`: `codex/nic-nac-photo-rarity-repair`
-- GitHub quarantine ruleset:
-  fully configured for all branches except the active branch; creation is
-  pending GitHub identity verification by email
+- Active and production branch: `codex/nic-nac-trade-hardening`
+- GitHub default branch: `codex/nic-nac-trade-hardening`
+- Local `origin/HEAD`: `origin/codex/nic-nac-trade-hardening`
+- Vercel `sparkle-suite` production branch:
+  `codex/nic-nac-trade-hardening`
+- Production remains manual-deploy only. A Git push or branch-setting change is
+  provenance/housekeeping and must not create or promote a deployment.
+- Canonical live review target: `https://www.yoursparklesuite.com`
 
-## Active Branch Allowlist
+The machine-readable source is `config/active-branches.json`. The local/build
+guard is `scripts/check-active-branch.mjs`. Only the primary workbench is
+allowlisted on Windows; isolated release work must use the documented manual
+Vercel provenance declarations without weakening the guard.
 
-The following branch is the only approved Sparkle Suite release branch for
-deployments, alias changes, migrations, or production-data work:
+## September 15 consolidation evidence
 
-- `codex/nic-nac-photo-rarity-repair`
+The active branch tip at audit time was `69110afc`. The application code served
+in production is `8f2ca269`, deployed as
+`dpl_DYKVKfGw58hpeseUEgfoxPVLiJtj`. Commit `69110afc` adds documentation only.
+Changing GitHub/Vercel branch metadata during this consolidation does not move
+an alias, deploy code, run a migration, publish an extension, or touch customer
+data.
 
-The protected Live Lineup development branch remains allowlisted for its
-separate session to build, test, commit, and push, but it is under an explicit
-release hold:
+Remote-branch comparison against `codex/nic-nac-trade-hardening` found:
 
-- `codex/nic-nac-trade-hardening`
+| Branch/ref | Tip | Branch-only work | Classification |
+|---|---:|---|---|
+| `codex/nic-nac-trade-hardening` | `69110afc` | Authoritative combined history | **ACTIVE / PRODUCTION** |
+| `codex/nic-nac-photo-rarity-repair` | `5a1aa7ec` | One Vault-only staged-review closeout; application history was merged through `61e592d0` | **ARCHIVED — NO RELEASES** |
+| `main` | `00f8f4c7` | Twenty legacy standalone/team-onboarding commits | **ARCHIVED LEGACY**; newer integrated Team Management exists on active |
+| `codex/incident-archive-2026-07-31-main` | `659f4ef8` | Legacy onboarding plus logout/build-exclusion work | **ARCHIVED LEGACY**; logout and exclusion exist on active |
+| `codex/incident-archive-2026-07-31-approved-line` | `0fda2b47` | Old source guard and Collection Intake entry | **ARCHIVED LEGACY**; both were superseded on active |
+| `codex/sparkle-cross-phase-hardening` | `8da7dc11` | Zero | **ARCHIVE-SAFE / CONTAINED** |
+| `codex/sparkle-phase-8-prelaunch` | `4b2ea01b` | Zero | **ARCHIVE-SAFE / CONTAINED** |
+| `codex/sparkle-phase-9-seo-geo` | `9b6983cf` | Zero | **ARCHIVE-SAFE / CONTAINED** |
 
-Never deploy, migrate, promote, or move aliases from the protected branch until
-Louis explicitly releases the Live Lineup hold.
+The June `main` Team Management implementation is not blindly mergeable. The
+active branch contains a later service, participant/message routes, public
+token-access routes, updated standalone onboarding client, migrations, and
+broader tests. The July Collection Intake and workspace logout changes are also
+present in later form on the active branch. No application feature was found
+that should be copied from those old branches into production.
 
-Every other branch is read-only until Louis explicitly approves a status
-change. Do not infer approval from branch age, name, an old task, a worktree, or
-session history.
+## Preservation and dirty-worktree boundary
 
-The machine-readable source is `config/active-branches.json`. The build and
-local Git push guard is `scripts/check-active-branch.mjs`.
+Existing July archive tags remain authoritative. The September 15 cleanup also
+preserves:
 
-The guard validates ordinary local Git metadata and Vercel's injected
-`VERCEL_GIT_COMMIT_REF`, `VERCEL_GIT_REPO_OWNER`, and
-`VERCEL_GIT_REPO_SLUG` metadata. Missing platform provenance fails closed.
+- `archive/2026-09-15/nic-nac-photo-rarity-final` at `5a1aa7ec`
+- `rescue/2026-09-15/pre-release-autostash` at `9b87c752`
 
-## Evidence Used
+The shared primary workbench was intentionally not cleaned, reset, stashed, or
+mass-staged. It had 83 modified/deleted/untracked entries spanning separate
+message-center, resource-library, skin, Finder, documentation, generated
+artifact, and extension work.
 
-A branch is classified from all of the following:
+Important quarantines:
 
-1. the exact commit/deployment serving the live domain;
-2. Git ancestry and branch-only commits;
-3. current Open Brain/vault decisions;
-4. attached worktree state, including uncommitted files; and
-5. explicit Louis approval.
+- The primary workbench's uncommitted `chrome-extension/` state exactly matches
+  the pre-2.0 source at `d77b64a2`; committed history and the Web Store remain
+  on 2.0.0. Never include that local 1.0.1 overlay in a broad commit.
+- `.codex\worktrees\1c27\sparkle-suite-repo` contains three uncommitted
+  rep-welcome skill/template edits not present in the primary workbench.
+- `.codex\worktrees\c385\sparkle-suite-repo` contains an untracked standalone
+  Collection Intake prototype. The active app has the later integrated
+  Collection Intake tool, but the prototype remains preserved as historical
+  design material.
+- Other dirty worktrees contain generated output, line-ending drift, or
+  explicitly separate in-progress files. None was removed.
 
-Age and naming are not sufficient evidence. A branch with unique commits or
-uncommitted work is quarantined, not deleted.
+These files are not production omissions. They require task-by-task
+reconciliation and must not be swept into the active branch merely to make
+`git status` empty.
 
-## Branch Classification
+## Branch lifecycle
 
-The comparison column is relative to the active branch at safety checkpoint
-`483e70a75a9057f101e9dbef55f07a23f85b501d`.
-
-| Branch/ref | Tip | Comparison | Status | Required treatment |
-|---|---:|---|---|---|
-| `codex/nic-nac-photo-rarity-repair` | release commits `c7fddaa7`, `8257210f` plus closeout tip | Isolated Nic-Nac photo/rarity release; excludes protected Lineup commits | **ACTIVE RELEASE** | Approved production release/migration branch; exact final tip is the branch head |
-| `codex/nic-nac-trade-hardening` | `89087998` | Contains undeployed Live Lineup commits `d2377d86` and `89087998` | **ACTIVE DEVELOPMENT — RELEASE HOLD** | Preserve for the separate Lineup session; never deploy until Louis lifts the hold |
-| `main` | `00f8f4c7` | Active has 483 unique commits; main has 20 unique commits | **QUARANTINED — LEGACY DEFAULT** | Do not use; audit unique team-onboarding history before eventual trunk replacement |
-| `codex/sparkle-cross-phase-hardening` | `8da7dc11` | Zero branch-only commits; fully contained in active | **ARCHIVE-SAFE** | Preserve tag; no new work |
-| `codex/sparkle-phase-8-prelaunch` | `4b2ea01b` | Zero branch-only commits; fully contained in active | **ARCHIVE-SAFE** | Preserve tag; no new work |
-| `codex/sparkle-phase-9-seo-geo` | `9b6983cf` | Zero branch-only commits; fully contained in active | **ARCHIVE-SAFE** | Preserve tag; no new work |
-| `codex/incident-archive-2026-07-31-main` | `659f4ef8` | Active has 483 unique commits; branch has 22 unique commits | **QUARANTINED — DIVERGENT** | No new work; review only |
-| local `codex/workspace-header-logout` | `659f4ef8` | Same tip as incident-main; attached clean worktree | **QUARANTINED — DIVERGENT** | No new work; do not remove worktree until reviewed |
-| `codex/incident-archive-2026-07-31-approved-line` | `0fda2b47` | Two branch-only commits (`621708b1`, `0fda2b47`) | **NEEDS REVIEW** | Audit guard/Collection Intake changes against active line |
-| local `codex/collection-intake-tools-entry` | `90dda81f` | One branch-only Collection Intake commit | **NEEDS REVIEW** | Compare with `0fda2b47`; merge only after approval and verification |
-
-## Worktree Register
-
-| Worktree | Ref | State | Treatment |
-|---|---|---|---|
-| `C:\Users\louis\sparkle-suite-repo` | active branch | Only generated `artifacts/` and `test-results/` untracked before this safety change | Primary workbench |
-| `C:\Users\louis\sparkle-suite-repo\.local\worktrees\nic-nac-photo-rarity` | `codex/nic-nac-photo-rarity-repair` | Isolated allowlisted Nic-Nac/Finder release only | Release worktree; no Live Lineup or Kelly files |
-| `.codex\worktrees\2f19\sparkle-suite-repo` | `codex/workspace-header-logout` | Clean | Quarantined; preserve |
-| `.codex\worktrees\5d26\sparkle-suite-repo` | detached `799b4faa` | Generated artifacts/test output untracked | Preserve until task audit |
-| `.codex\worktrees\6977\sparkle-suite-repo` | `codex/collection-intake-tools-entry` | Clean | Needs review; preserve |
-| `.codex\worktrees\c385\sparkle-suite-repo` | detached legacy `main` | Untracked `app/demos/` and `tests/collection-intake-demo.test.ts` | Backed up separately; preserve and review |
-| `.codex\worktrees\d674\sparkle-suite-repo` | detached legacy `main` | Clean | Quarantined; preserve |
-
-## Preservation Checkpoints
-
-Annotated GitHub tags:
-
-- `safety/2026-07-31/live-app-af7cef25`
-- `safety/2026-07-31/active-line-483e70a`
-- `archive/2026-07-31/legacy-main`
-- `archive/2026-07-31/incident-main-and-workspace-header`
-- `archive/2026-07-31/incident-approved-line`
-- `archive/2026-07-31/collection-intake-local`
-- `archive/2026-07-31/sparkle-cross-phase-hardening`
-- `archive/2026-07-31/sparkle-phase-8-prelaunch`
-- `archive/2026-07-31/sparkle-phase-9-seo-geo`
-
-Local recovery artifacts, intentionally ignored by Git:
-
-- `.local\git-backups\2026-07-31-branch-containment\sparkle-suite-all-refs.bundle`
-  - SHA-256:
-    `4D7AE5D3159AC8A394D727B9A1861ADA891DEFDA8E620DAE5553D23915D0A37D`
-- `.local\git-backups\2026-07-31-branch-containment\c385-uncommitted-demo-files.zip`
-  - SHA-256:
-    `7DB93847424E6E9B84E993908AC1B07B578C1DD48E247BCCD842837391D0CF70`
-
-The Git bundle was verified as complete. No branch or worktree was deleted,
-renamed, reset, or rewritten during containment.
-
-## Branch Lifecycle Going Forward
-
-1. New work starts from the active allowlisted branch only.
-2. A new branch becomes active only after Louis explicitly approves it and the
-   branch register, machine allowlist, GitHub default, and Vercel production
-   branch are updated together.
-3. When work returns to the active line, the superseded branch is immediately
-   classified:
-   - **archive-safe** only if it has zero branch-only commits and no dirty
-     worktree;
-   - **needs review** if it has unique commits;
-   - **quarantined** if its provenance or intent is uncertain.
-4. Before deleting any branch pointer, create and verify a preservation tag and
-   full-ref backup.
-5. Branch deletion remains a separate, explicit Louis-approved action.
-
-## Containment Release Verification
-
-- Implementation commits: `973195e0`, `37c89c86`
-- Focused policy tests: 5 passed
-- Local Next.js production build: passed
-- Vercel deployment: `dpl_HHZmsd7AK6iVTtKdDRKtZUmLfxA2` (READY)
-- Stable review alias: promoted to the exact deployment above
-- Browser check: stable landing page remained in place after five seconds; no
-  Stripe redirect
-- Personal-account use: none during this containment release smoke
+1. New work and releases start from `codex/nic-nac-trade-hardening` only.
+2. A branch-status change requires Louis's explicit approval and a coordinated
+   update of this register, `config/active-branches.json`, GitHub's default
+   branch, and Vercel's production branch.
+3. Before deleting a branch or worktree, verify it has no unique commits or
+   uncommitted files and create a preservation tag or backup.
+4. Branch/worktree deletion remains a separate explicit action. This
+   consolidation changes no branch history and deletes nothing.
+5. Never broadly stage the shared workbench. Release only exact reviewed files
+   from a clean checkout, then verify the production deployment and aliases did
+   not move unexpectedly.

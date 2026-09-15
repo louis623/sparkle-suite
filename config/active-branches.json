@@ -3,15 +3,13 @@
   "repository": "louis623/sparkle-suite",
   "primaryLocalWorktree": "C:\\Users\\louis\\sparkle-suite-repo",
   "activeLocalWorktrees": [
-    "C:\\Users\\louis\\sparkle-suite-repo",
-    "C:\\Users\\louis\\sparkle-suite-repo\\.local\\worktrees\\nic-nac-photo-rarity"
+    "C:\\Users\\louis\\sparkle-suite-repo"
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
-    "codex/nic-nac-photo-rarity-repair",
     "codex/nic-nac-trade-hardening"
   ],
-  "productionBranch": "codex/nic-nac-photo-rarity-repair",
+  "productionBranch": "codex/nic-nac-trade-hardening",
   "productionReviewUrl": "https://www.yoursparklesuite.com",
   "productionDomains": [
     "www.yoursparklesuite.com",
@@ -20,5 +18,5 @@
   "environmentModel": "single-live-surface",
   "reviewerMode": "safe-data-on-production-domain",
   "temporaryDeploymentUrls": "provenance-only",
-  "lastReviewed": "2026-09-13"
+  "lastReviewed": "2026-09-15"
 }
