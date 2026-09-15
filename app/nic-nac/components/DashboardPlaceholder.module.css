@@ -774,6 +774,11 @@
   overscroll-behavior: contain;
 }
 
+.railLiveLineup {
+  min-width: 0;
+  order: 3;
+}
+
 .railLaunchAction {
   width: 100%;
   min-height: 58px;
@@ -7231,15 +7236,4 @@
     grid-template-columns: 1fr;
     gap: 4px;
   }
-}
-.homeWithLineup {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(290px, 340px);
-  align-items: start;
-  gap: 16px;
-  min-width: 0;
-}
-
-@container (max-width: 740px) {
-  .homeWithLineup { grid-template-columns: minmax(0, 1fr); }
 }

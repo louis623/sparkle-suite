@@ -13,16 +13,15 @@ import { archiveRecoveryRequest, isArchiveRecoveryAcknowledgement, type ArchiveD
 import { canConfirmShow } from './live-lineup-client'
 
 const ENDPOINT = '/api/workspace/live-lineup'
-const CONNECTION_LABELS = { connecting: 'Waiting for source', connected: 'Receiving updates', delayed: 'Updates delayed', offline: 'Source offline' }
+const CONNECTION_LABELS = { connecting: 'Checking connection', connected: 'Connected', delayed: 'Waiting for an update', offline: 'Not connected' }
 
-export function LiveLineupCard({ readOnly = false }: { readOnly?: boolean }) {
+export function LiveLineupCard({ compact = false, readOnly = false }: { compact?: boolean; readOnly?: boolean }) {
   const headingId = useId()
   const instructionsId = useId()
   const [snapshot, setSnapshot] = useState<WorkspaceLineupSnapshot | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState('')
   const [saving, setSaving] = useState(false)
-  const [expanded, setExpanded] = useState(false)
   const [dragging, setDragging] = useState<string | null>(null)
   const [dropBefore, setDropBefore] = useState<string | null>(null)
   const snapshotRef = useRef(snapshot)
@@ -290,32 +289,27 @@ export function LiveLineupCard({ readOnly = false }: { readOnly?: boolean }) {
   const disabled = readOnly || baseDisabled
   const entries = snapshot?.entries ?? []
   return (
-    <section className={`${styles.card} ${expanded ? styles.expanded : ''}`} aria-labelledby={headingId} aria-busy={saving}>
+    <section className={`${styles.card} ${compact ? styles.compact : ''}`} aria-labelledby={headingId} aria-busy={saving}>
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <h2 id={headingId}>Live Lineup <span>{entries.length}</span></h2>
-          <button type="button" disabled={saving || !!dragging} onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>{expanded ? 'Compact' : 'Expand'}</button>
         </div>
         <p className={styles.connection} data-connection={error ? 'delayed' : snapshot?.connection ?? 'connecting'}>
-          <span aria-hidden="true" />{error ? 'Connection needs attention' : CONNECTION_LABELS[snapshot?.connection ?? 'connecting']}
+          <span aria-hidden="true" />{error ? 'Not connected' : CONNECTION_LABELS[snapshot?.connection ?? 'connecting']}
         </p>
-        <p className={styles.received}>Last received: {snapshot?.lastReceivedAt ? <time dateTime={snapshot.lastReceivedAt}>{new Date(snapshot.lastReceivedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}</time> : 'Not yet'}</p>
-        <p id={instructionsId} className={styles.hint}>Drag a handle to reorder, or use the move buttons. Holds are private.</p>
+        <p id={instructionsId} className={styles.hint}>Drag customers to change their order.</p>
       </header>
-      <div className={styles.feedback} aria-live="polite" aria-atomic="true">
-        {saving ? 'Saving lineup…' : error || notice || snapshot?.warning || (readOnly
-          ? 'Viewing live updates. Workspace editing is temporarily paused.'
-          : snapshot && !snapshot.canManage ? 'Viewing only. Reordering needs the updated order-aware source.' : 'Changes here update your customer-facing lineup.')}
-      </div>
-      {readOnly && <p className={styles.feedback} role="status">
-        Live Lineup safety mode is on. Connected extensions can keep sending updates and customer sites can keep showing them, but Workspace lineup changes and new connection keys are temporarily paused. Existing connections can still be reviewed or revoked.
-      </p>}
+      {(saving || error || notice || (!compact && (readOnly || (snapshot && !snapshot.canManage)))) && <div className={styles.feedback} aria-live="polite" aria-atomic="true">
+        {saving ? 'Saving…' : error ? 'We can’t update your lineup right now. We’ll keep trying.' : notice || (readOnly
+          ? 'Lineup changes are temporarily unavailable. Customer updates will continue.'
+          : 'Connect the updated extension to use lineup controls.')}
+      </div>}
       <div ref={scrollRef} className={styles.scroll} tabIndex={0} role="region" aria-label="Scrollable live lineup" aria-describedby={instructionsId}
         onKeyDown={(event) => { if (event.key === 'Escape') stopDrag() }}>
         {!snapshot && <p className={styles.empty}>{error ? 'Your lineup is unavailable right now. No orders have been changed.' : 'Loading your lineup…'}</p>}
         {snapshot && !entries.length && <p className={styles.empty}>{snapshot.management?.candidates.some(entry => !entry.held)
-          ? 'Waiting customers are hidden by party visibility. Open Show controls to show them again.'
-          : 'No customers waiting. New orders will appear here.'}</p>}
+          ? 'Some waiting customers are hidden. Open the Live Lineup tool to show them.'
+          : snapshot.connection === 'connected' ? 'No customers are waiting right now.' : 'Once connected, customers will appear here.'}</p>}
         <ol className={styles.list} aria-label="Customers waiting">
           {entries.map((entry, index) => (
             <li key={entry.id} data-lineup-entry={entry.id} data-lineup-active tabIndex={-1} aria-label={`${entry.name}, position ${index + 1}`} className={`${styles.row} ${dragging === entry.id ? styles.dragging : ''} ${dragging && dropBefore === entry.id ? styles.dropTarget : ''}`}>
@@ -327,29 +321,29 @@ export function LiveLineupCard({ readOnly = false }: { readOnly?: boolean }) {
               <div className={styles.actions}>
                 <button type="button" disabled={disabled || index === 0} aria-label={`Move ${entry.name} up from position ${index + 1}`} onClick={() => { const command = moveCommand(entries, index, -1); if (command) void submit(command) }}>↑</button>
                 <button type="button" disabled={disabled || index === entries.length - 1} aria-label={`Move ${entry.name} down from position ${index + 1}`} onClick={() => { const command = moveCommand(entries, index, 1); if (command) void submit(command) }}>↓</button>
-                <button type="button" disabled={disabled || index === 0} aria-label={`Reveal ${entry.name} next, position ${index + 1}`} onClick={() => void submit({ type: 'reveal-next', entryId: entry.id })}>Reveal next</button>
-                <button type="button" disabled={disabled} aria-label={`Hold ${entry.name} for later, position ${index + 1}`} onClick={() => void submit({ type: 'hold', entryId: entry.id })}>Hold</button>
+                {!compact && <button type="button" disabled={disabled || index === 0} aria-label={`Reveal ${entry.name} next, position ${index + 1}`} onClick={() => void submit({ type: 'reveal-next', entryId: entry.id })}>Reveal next</button>}
+                {!compact && <button type="button" disabled={disabled} aria-label={`Hold ${entry.name} for later, position ${index + 1}`} onClick={() => void submit({ type: 'hold', entryId: entry.id })}>Hold</button>}
               </div>
             </li>
           ))}
         </ol>
         {dragging && <div className={styles.endDrop}>Drop at end of lineup</div>}
-        {!!snapshot?.heldEntries.length && <section className={styles.held} aria-label="Held for later">
+        {!compact && !!snapshot?.heldEntries.length && <section className={styles.held} aria-label="Held for later">
           <h3>Held for later <span>{snapshot.heldEntries.length}</span></h3>
           <ul className={styles.list}>{snapshot.heldEntries.map((entry, index) => <li key={entry.id} data-lineup-entry={entry.id} tabIndex={-1} aria-label={`${entry.name}, held for later, position ${index + 1}`} className={styles.heldRow}><strong>{entry.name}</strong><button type="button" disabled={disabled} aria-label={`Return ${entry.name} to lineup, held position ${index + 1}`} onClick={() => void submit({ type: 'return', entryId: entry.id })}>Return</button></li>)}</ul>
         </section>}
-        {snapshot && <LiveLineupShowControls snapshot={snapshot} disabled={disabled || !!dragging} submit={submit} />}
-        {snapshot && <LiveLineupArchiveControls snapshot={snapshot} disabled={disabled || !!dragging} recover={recover} />}
-        <LiveLineupPublisherControls
+        {!compact && snapshot && <LiveLineupShowControls snapshot={snapshot} disabled={disabled || !!dragging} submit={submit} />}
+        {!compact && snapshot && <LiveLineupArchiveControls snapshot={snapshot} disabled={disabled || !!dragging} recover={recover} />}
+        {!compact && <LiveLineupPublisherControls
           disabled={publisherChangeDisabled || !!dragging}
           creationDisabled={readOnly || publisherChangeDisabled || !!dragging}
           onChanged={() => { void refresh() }}
-        />
+        />}
       </div>
-      <footer className={styles.footer}>
+      {!compact && <footer className={styles.footer}>
         <button type="button" disabled={disabled || !!dragging || !snapshot?.undoAvailable} title="Undo the last reorder, Reveal next, Hold, or Return—not party visibility" onClick={() => void submit({ type: 'undo' })}>Undo order / hold</button>
         <span>Bomb Party orders are unchanged.</span>
-      </footer>
+      </footer>}
     </section>
   )
 }

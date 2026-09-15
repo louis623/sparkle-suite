@@ -189,9 +189,8 @@ describe('Live Lineup server compatibility mode', () => {
 describe('Live Lineup read-only Workspace UI contract', () => {
   it('visibly explains safety mode and receives it through a server-provided prop', () => {
     const html = renderToStaticMarkup(createElement(LiveLineupCard, { readOnly: true }))
-    expect(html).toContain('Live Lineup safety mode is on')
-    expect(html).toContain('Connected extensions can keep sending updates')
-    expect(html).toContain('Existing connections can still be reviewed or revoked')
+    expect(html).toContain('Lineup changes are temporarily unavailable')
+    expect(html).toContain('Customer updates will continue')
 
     const page = readFileSync(resolve(process.cwd(), 'app/nic-nac/page.tsx'), 'utf8')
     const client = readFileSync(resolve(process.cwd(), 'app/nic-nac/_client.tsx'), 'utf8')

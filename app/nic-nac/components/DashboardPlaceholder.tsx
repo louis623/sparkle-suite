@@ -6455,25 +6455,23 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           notice={showWorkspaceAccessNotice ? accessNotice : null}
         >
           {showConceptHome ? (
-            <div className={styles.homeWithLineup}>
-              <ConceptHomeWorkspace
-                chat={desktopChat}
-                tradeRequestsCount={homeTradeRequestsCount}
-                cleanupCount={homeCleanupCount}
-                fulfillmentCount={homeFulfillmentCount}
-                nextShow={homeNextShow}
-                siteLive={Boolean(customerSparkleSiteHref)}
-                onLaunchAction={(action) => onLaunchNicNacAction?.(action)}
-                onOpenTradeBoard={() => setActiveSection('trade-board')}
-                onOpenCalendar={() => setActiveSection('show-calendar')}
-                onOpenPublicSite={handleOpenCustomerSitePreview}
-                onOpenHelp={() => setActiveSection('help-resources')}
-                onNewConversation={onNewConversation}
-                repName={repProfileState.displayName ?? siteSettingsState.settings?.displayName ?? null}
-                conversationControlsDisabled={conversationControlsDisabled}
-              />
-              <LiveLineupCard readOnly={liveLineupReadOnly} />
-            </div>
+            <ConceptHomeWorkspace
+              chat={desktopChat}
+              tradeRequestsCount={homeTradeRequestsCount}
+              cleanupCount={homeCleanupCount}
+              fulfillmentCount={homeFulfillmentCount}
+              nextShow={homeNextShow}
+              siteLive={Boolean(customerSparkleSiteHref)}
+              onLaunchAction={(action) => onLaunchNicNacAction?.(action)}
+              onOpenTradeBoard={() => setActiveSection('trade-board')}
+              onOpenCalendar={() => setActiveSection('show-calendar')}
+              onOpenPublicSite={handleOpenCustomerSitePreview}
+              onOpenHelp={() => setActiveSection('help-resources')}
+              onNewConversation={onNewConversation}
+              repName={repProfileState.displayName ?? siteSettingsState.settings?.displayName ?? null}
+              conversationControlsDisabled={conversationControlsDisabled}
+              liveLineupReadOnly={liveLineupReadOnly}
+            />
           ) : (
             <div className={styles.workspaceSectionPage}>
               {workspaceBackDestination ? (
@@ -6715,6 +6713,7 @@ function ConceptHomeWorkspace({
   onNewConversation,
   conversationControlsDisabled,
   repName,
+  liveLineupReadOnly,
 }: {
   chat?: ReactNode | null
   tradeRequestsCount: number
@@ -6730,6 +6729,7 @@ function ConceptHomeWorkspace({
   onNewConversation?: () => void
   conversationControlsDisabled: boolean
   repName: string | null
+  liveLineupReadOnly: boolean
 }) {
   return (
     <section className={styles.conceptHome} aria-label="Nic-Nac first workspace">
@@ -6754,6 +6754,9 @@ function ConceptHomeWorkspace({
             Open Trade Workspace
           </button>
         </ConceptPanel>
+        <div className={styles.railLiveLineup}>
+          <LiveLineupCard compact readOnly={liveLineupReadOnly} />
+        </div>
       </aside>
 
       <div className={styles.conceptCenter}>

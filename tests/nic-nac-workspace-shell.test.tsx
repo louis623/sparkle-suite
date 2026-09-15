@@ -43,7 +43,12 @@ describe('Nic-Nac workspace shell reset', () => {
     expect(html).toContain('aria-selected="true"')
     expect(html).toContain('role="tabpanel"')
     expect(html).toContain('aria-label="Scrollable live lineup"')
-    expect(html).toContain('Drag a handle to reorder, or use the move buttons.')
+    expect(html).toContain('Drag customers to change their order.')
+    expect(html).toContain('Checking connection')
+    expect(html).not.toContain('Recover from a private archive')
+    expect(html).not.toContain('Extension connection setup')
+    expect(html).not.toContain('Last received')
+    expect(html).not.toContain('>Expand<')
     expect(html).toContain('>Dance Floor<')
     expect(html).not.toContain('>Jewelry Library<')
     expect(html).toContain('>Calendar<')
@@ -77,6 +82,18 @@ describe('Nic-Nac workspace shell reset', () => {
     expect(hasDeclaration(dashboardCss, '.main', 'overflow: hidden')).toBe(true)
     expect(hasDeclaration(dashboardCss, '.conceptHome', 'overflow: hidden')).toBe(true)
     expect(hasDeclaration(dashboardCss, '.embeddedChat', 'overflow: hidden')).toBe(true)
+
+    const dashboardSource = readFileSync(
+      resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
+      'utf8',
+    )
+    const homeSource = dashboardSource.slice(
+      dashboardSource.indexOf('function ConceptHomeWorkspace'),
+      dashboardSource.indexOf('function ConceptPanel'),
+    )
+    expect(homeSource).toContain('className={styles.railLiveLineup}')
+    expect(homeSource).toContain('<LiveLineupCard compact readOnly={liveLineupReadOnly} />')
+    expect(homeSource.indexOf('className={styles.railLiveLineup}')).toBeLessThan(homeSource.indexOf('className={styles.conceptCenter}'))
   })
 
   it('keeps the compact workspace header while removing only the duplicate search', () => {

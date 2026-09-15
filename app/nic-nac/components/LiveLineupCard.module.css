@@ -12,7 +12,7 @@
   box-shadow: 0 10px 30px #34203c0a;
   font-size: .84rem;
 }
-.expanded { height: 80dvh; max-height: 80dvh; }
+.compact { height: auto; max-height: min(360px, 48dvh); border-radius: 16px; box-shadow: 0 18px 48px rgba(48, 30, 92, 0.06); }
 .header { padding: 14px 14px 8px; flex: 0 0 auto; }
 .titleRow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .titleRow h2 { margin: 0; font-size: 1rem; font-weight: 800; }
@@ -25,7 +25,11 @@
 .connection > span { width: 7px; height: 7px; border-radius: 50%; background: #83778e; }
 .connection[data-connection='connected'] > span { background: #178159; }
 .connection[data-connection='delayed'] > span { background: #b77709; }
-.received, .hint { margin: 4px 0; font-size: .74rem; line-height: 1.4; color: var(--nic-nac-text-muted, #6c607a); }
+.hint { margin: 4px 0; font-size: .74rem; line-height: 1.4; color: var(--nic-nac-text-muted, #6c607a); }
+.compact .header { padding: 14px 16px 10px; }
+.compact .scroll { flex: 0 1 auto; padding: 0 12px; }
+.compact .row { padding-block: 9px; }
+.compact .actions { padding-left: 34px; }
 .feedback { padding: 8px 14px; flex: 0 0 auto; font-size: .75rem; line-height: 1.4; border-top: 1px solid #8b749b20; border-bottom: 1px solid #8b749b20; background: #8b64ab09; }
 .scroll { min-height: 0; flex: 1 1 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 0 10px; }
 .list { list-style: none; padding: 0; margin: 0; }
