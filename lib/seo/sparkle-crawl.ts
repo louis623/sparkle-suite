@@ -146,7 +146,7 @@ export function buildSparkleRobots(
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/internal/'],
+        disallow: ['/api/', '/internal/', '/onboarding/'],
       },
     ],
     sitemap: `${normalizedOrigin}/sitemap.xml`,

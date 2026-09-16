@@ -44,10 +44,8 @@ import { POST as POST_MESSAGE_QUERY } from '@/app/api/team-onboarding/access/mes
 
 describe('/api/team-onboarding/access/[token]', () => {
   beforeEach(() => {
-    process.env.TEAM_ONBOARDING_BASE_URL =
-      'https://approved-lead-onboarding.chatgpt.site'
-    process.env.TEAM_ONBOARDING_ALLOWED_ORIGINS =
-      'https://approved-lead-onboarding.chatgpt.site,https://brittwithbling-start-strong.louis526569.chatgpt.site'
+    delete process.env.TEAM_ONBOARDING_BASE_URL
+    delete process.env.TEAM_ONBOARDING_ALLOWED_ORIGINS
     process.env.TEAM_ONBOARDING_CUSTOM_DOMAIN_ENABLED = 'true'
     resetTeamOnboardingPublicRateLimitsForTests()
     getTeamOnboardingParticipantByTokenMock.mockReset()

@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  archiveTeamOnboardingParticipant,
   createTeamOnboardingParticipant,
   createTeamOnboardingUrlSlug,
+  getTeamOnboardingParticipantByToken,
   getTeamOnboardingAccess,
+  hashTeamOnboardingToken,
   listTeamOnboardingParticipants,
   refreshTeamOnboardingParticipantAccess,
   recordTeamOnboardingProgress,
@@ -69,7 +72,7 @@ describe('team onboarding service', () => {
     const result = await createTeamOnboardingParticipant(supabase, 'rep-britt', {
       displayName: ' Lindsey ',
       contactEmail: ' lindsey@example.com ',
-      baseUrl: 'https://onboarding.yoursparklesuite.com',
+      appOrigin: 'https://www.yoursparklesuite.com',
       leadDisplayName: 'Brittany James',
       teamName: 'The Virtuous Fizzers',
       tokenFactory: () => 'visible-token-for-lindsey',
@@ -89,7 +92,7 @@ describe('team onboarding service', () => {
       'visible-token-for-lindsey',
     )
     expect(result.accessUrl).toBe(
-      'https://onboarding.yoursparklesuite.com/lindsey-brittany-virtuous-fizzers?invite=visible-token-for-lindsey',
+      'https://www.yoursparklesuite.com/onboarding/lindsey-brittany-virtuous-fizzers?invite=visible-token-for-lindsey',
     )
     expect(result.participant.displayName).toBe('Lindsey')
   })
@@ -180,7 +183,15 @@ describe('team onboarding service', () => {
     expect(participantUpdateQuery.neq).toHaveBeenCalledWith('status', 'archived')
     expect(result.participant.id).toBe('participant-rayna')
     expect(result.accessUrl).toContain('invite=fresh-visible-token')
-    expect(result.accessUrl).toContain('/rayna-brittany-virtuous-fizzers?')
+    expect(result.accessUrl).toContain(
+      '/onboarding/rayna-brittany-virtuous-fizzers?',
+    )
+    expect(
+      (supabase as { from: ReturnType<typeof vi.fn> }).from.mock.calls,
+    ).toEqual([
+      ['team_onboarding_participants'],
+      ['team_onboarding_participants'],
+    ])
   })
 
   it('does not rotate a token when the participant identity cannot produce a safe URL', async () => {
@@ -446,5 +457,61 @@ describe('team onboarding service', () => {
       source: null,
     })
     expect((supabase as { from: ReturnType<typeof vi.fn> }).from).not.toHaveBeenCalled()
+  })
+
+  it('archives the participant thread and rejects the archived private token', async () => {
+    const archiveQuery = createQueryResult({
+      id: 'participant-archive',
+      status: 'archived',
+      workspace_conversation_id: 'conversation-archive',
+    })
+    const conversationQuery = createQueryResult({ id: 'conversation-archive' })
+    const membershipQuery = createQueryResult({ id: 'membership-archive' })
+    const archivedLookupQuery = createQueryResult({
+      id: 'participant-archive',
+      owner_rep_id: 'rep-kelly',
+      display_name: 'Alex',
+      status: 'archived',
+      archived_at: '2026-09-16T15:00:00.000Z',
+      access_token_hash: hashTeamOnboardingToken('archived-token'),
+      access_slug: 'alex-123abc',
+      created_at: '2026-09-16T14:00:00.000Z',
+      updated_at: '2026-09-16T15:00:00.000Z',
+      last_activity_at: null,
+      workspace_conversation_id: 'conversation-archive',
+    })
+    const queries = [
+      archiveQuery,
+      conversationQuery,
+      membershipQuery,
+      archivedLookupQuery,
+    ]
+    const supabase = {
+      from: vi.fn(() => queries.shift()),
+    } as never
+
+    await expect(
+      archiveTeamOnboardingParticipant(
+        supabase,
+        'rep-kelly',
+        'participant-archive',
+      ),
+    ).resolves.toEqual({
+      participantId: 'participant-archive',
+      status: 'archived',
+    })
+    expect(archiveQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'archived' }),
+    )
+    expect(conversationQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({ state: 'closed' }),
+    )
+    expect(membershipQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({ membership_state: 'left' }),
+    )
+
+    await expect(
+      getTeamOnboardingParticipantByToken(supabase, 'archived-token'),
+    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' })
   })
 })

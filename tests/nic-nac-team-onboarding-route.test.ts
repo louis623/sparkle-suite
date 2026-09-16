@@ -48,11 +48,9 @@ import { POST as POST_MESSAGE } from '@/app/api/nic-nac/team-onboarding/particip
 
 describe('/api/nic-nac/team-onboarding/participants', () => {
   beforeEach(() => {
-    process.env.TEAM_ONBOARDING_BASE_URL =
-      'https://onboarding.yoursparklesuite.com'
-    process.env.TEAM_ONBOARDING_ALLOWED_ORIGINS =
-      'https://onboarding.yoursparklesuite.com'
-    process.env.TEAM_ONBOARDING_CUSTOM_DOMAIN_ENABLED = 'true'
+    delete process.env.TEAM_ONBOARDING_BASE_URL
+    delete process.env.TEAM_ONBOARDING_ALLOWED_ORIGINS
+    delete process.env.TEAM_ONBOARDING_CUSTOM_DOMAIN_ENABLED
     getPaidNicNacContextMock.mockReset()
     getTeamOnboardingAccessMock.mockReset()
     getTeamOnboardingTeamNameMock.mockReset()
@@ -64,26 +62,37 @@ describe('/api/nic-nac/team-onboarding/participants', () => {
     sendTeamOnboardingMessageMock.mockReset()
   })
 
-  it('fails closed instead of using a personal legacy host when no approved base is configured', async () => {
-    delete process.env.TEAM_ONBOARDING_BASE_URL
+  it('creates native links without any manually configured onboarding host', async () => {
     getPaidNicNacContextMock.mockResolvedValueOnce({
-      repId: 'rep-britt',
-      rep: { display_name: 'Brittany James' },
+      repId: 'rep-kelly',
+      rep: { display_name: 'Kelly James' },
       supabase: { marker: 'supabase' },
     })
     getTeamOnboardingAccessMock.mockResolvedValueOnce({ enabled: true })
+    createTeamOnboardingParticipantMock.mockResolvedValueOnce({
+      participant: { id: 'participant-1', displayName: 'Alex' },
+      accessUrl:
+        'https://www.yoursparklesuite.com/onboarding/alex-kelly?invite=token',
+    })
     const response = await POST_PARTICIPANTS(
       new Request('http://localhost/api/nic-nac/team-onboarding/participants', {
         method: 'POST',
-        body: JSON.stringify({ displayName: 'Participant' }),
+        body: JSON.stringify({ displayName: 'Alex' }),
       }),
     )
 
-    expect(response.status).toBe(503)
-    await expect(response.json()).resolves.toEqual(
-      expect.objectContaining({ code: 'TEAM_ONBOARDING_HOST_NOT_CONFIGURED' }),
+    expect(response.status).toBe(200)
+    expect(createTeamOnboardingParticipantMock).toHaveBeenCalledWith(
+      adminClient,
+      'rep-kelly',
+      expect.objectContaining({
+        appOrigin: 'http://localhost',
+        leadDisplayName: 'Kelly James',
+      }),
     )
-    expect(createTeamOnboardingParticipantMock).not.toHaveBeenCalled()
+    expect(JSON.stringify(createTeamOnboardingParticipantMock.mock.calls)).not.toContain(
+      'Brittany',
+    )
   })
 
   it('lists participants only when the paid add-on entitlement is enabled', async () => {
@@ -165,7 +174,7 @@ describe('/api/nic-nac/team-onboarding/participants', () => {
         status: 'invited',
       },
       accessUrl:
-        'https://onboarding.yoursparklesuite.com/virtuous-fizzers?invite=visible-token',
+        'https://www.yoursparklesuite.com/onboarding/lindsey-brittany-virtuous-fizzers?invite=visible-token',
     })
 
     const response = await POST_PARTICIPANTS(
@@ -176,7 +185,6 @@ describe('/api/nic-nac/team-onboarding/participants', () => {
           displayName: 'Lindsey',
           contactEmail: 'lindsey@example.com',
           joinTeamMemberId: 'member-lindsey',
-          baseUrl: 'https://onboarding.yoursparklesuite.com',
           delivery: 'copy_link',
         }),
       }),
@@ -189,7 +197,7 @@ describe('/api/nic-nac/team-onboarding/participants', () => {
         displayName: 'Lindsey',
         contactEmail: 'lindsey@example.com',
         joinTeamMemberId: 'member-lindsey',
-        baseUrl: 'https://onboarding.yoursparklesuite.com/',
+        appOrigin: 'http://localhost',
         leadDisplayName: 'Brittany James',
         teamName: 'The Virtuous Fizzers',
       }),
@@ -206,18 +214,23 @@ describe('/api/nic-nac/team-onboarding/participants', () => {
         status: 'invited',
       },
       accessUrl:
-        'https://onboarding.yoursparklesuite.com/virtuous-fizzers?invite=visible-token',
+        'https://www.yoursparklesuite.com/onboarding/lindsey-brittany-virtuous-fizzers?invite=visible-token',
       delivery: 'copy_link',
     })
   })
 
-  it('rejects an attacker-controlled onboarding origin before creating a token', async () => {
+  it('ignores an attacker-controlled onboarding origin and uses the server-owned app origin', async () => {
     getPaidNicNacContextMock.mockResolvedValueOnce({
       repId: 'rep-britt',
       rep: { display_name: 'Brittany James' },
       supabase: { marker: 'supabase' },
     })
     getTeamOnboardingAccessMock.mockResolvedValueOnce({ enabled: true })
+    createTeamOnboardingParticipantMock.mockResolvedValueOnce({
+      participant: { id: 'participant-1', displayName: 'Alex' },
+      accessUrl:
+        'https://www.yoursparklesuite.com/onboarding/alex-brittany?invite=token',
+    })
 
     const response = await POST_PARTICIPANTS(
       new Request('http://localhost/api/nic-nac/team-onboarding/participants', {
@@ -229,11 +242,15 @@ describe('/api/nic-nac/team-onboarding/participants', () => {
       }),
     )
 
-    expect(response.status).toBe(400)
-    await expect(response.json()).resolves.toEqual(
-      expect.objectContaining({ code: 'INVALID_INPUT' }),
+    expect(response.status).toBe(200)
+    expect(createTeamOnboardingParticipantMock).toHaveBeenCalledWith(
+      adminClient,
+      'rep-britt',
+      expect.objectContaining({ appOrigin: 'http://localhost' }),
     )
-    expect(createTeamOnboardingParticipantMock).not.toHaveBeenCalled()
+    expect(JSON.stringify(createTeamOnboardingParticipantMock.mock.calls)).not.toContain(
+      'evil.example',
+    )
   })
 
   it('creates a fresh card-linked onboarding URL without replacing the participant', async () => {
@@ -251,7 +268,7 @@ describe('/api/nic-nac/team-onboarding/participants', () => {
         status: 'started',
       },
       accessUrl:
-        'https://onboarding.yoursparklesuite.com/virtuous-fizzers?invite=fresh-token',
+        'https://www.yoursparklesuite.com/onboarding/lindsey-brittany-virtuous-fizzers?invite=fresh-token',
     })
 
     const response = await PATCH_PARTICIPANT(
@@ -270,7 +287,7 @@ describe('/api/nic-nac/team-onboarding/participants', () => {
       'rep-britt',
       'participant-1',
       expect.objectContaining({
-        baseUrl: 'https://onboarding.yoursparklesuite.com/',
+        appOrigin: 'http://localhost',
         leadDisplayName: 'Brittany James',
         teamName: 'The Virtuous Fizzers',
       }),
@@ -280,7 +297,7 @@ describe('/api/nic-nac/team-onboarding/participants', () => {
       expect.objectContaining({
         ok: true,
         accessUrl:
-          'https://onboarding.yoursparklesuite.com/virtuous-fizzers?invite=fresh-token',
+          'https://www.yoursparklesuite.com/onboarding/lindsey-brittany-virtuous-fizzers?invite=fresh-token',
       }),
     )
   })

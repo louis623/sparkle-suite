@@ -14,6 +14,13 @@ export function proxy(request: NextRequest) {
   const headers = new Headers(request.headers)
   // Only this proxy may introduce the internal tenant handoff header.
   headers.delete('x-sparkle-customer-domain')
+  if (request.nextUrl.pathname.startsWith('/onboarding/')) {
+    const response = NextResponse.next({ request: { headers } })
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+    response.headers.set('Cache-Control', 'private, no-store, max-age=0')
+    response.headers.set('Referrer-Policy', 'no-referrer')
+    return response
+  }
   const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
   const customerDomain = normalizeAmethystCustomDomainCandidate(host)
   if (!customerDomain || isAmethystPlatformHost(host)) {
@@ -37,5 +44,12 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/trade', '/join', '/in-the-pantry', '/api/:path*'],
+  matcher: [
+    '/',
+    '/trade',
+    '/join',
+    '/in-the-pantry',
+    '/onboarding/:path*',
+    '/api/:path*',
+  ],
 }

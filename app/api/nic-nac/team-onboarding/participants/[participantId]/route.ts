@@ -8,7 +8,7 @@ import {
   refreshTeamOnboardingParticipantAccess,
 } from '@/lib/services/team-onboarding'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { resolveTeamOnboardingBaseUrl } from '@/lib/team-onboarding/invite-url'
+import { resolveTeamOnboardingAppOrigin } from '@/lib/team-onboarding/invite-url'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -49,10 +49,6 @@ export async function PATCH(
     }
 
     const admin = createAdminClient()
-    const baseUrl =
-      body.action === 'refresh_access'
-        ? resolveTeamOnboardingBaseUrl(body?.baseUrl)
-        : undefined
     const teamName =
       body.action === 'refresh_access'
         ? await getTeamOnboardingTeamName(admin, repId)
@@ -64,7 +60,7 @@ export async function PATCH(
             repId,
             participantId,
             {
-              baseUrl,
+              appOrigin: resolveTeamOnboardingAppOrigin(request.url),
               leadDisplayName: rep.display_name,
               teamName,
             },

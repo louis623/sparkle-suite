@@ -9,7 +9,7 @@ import {
 import {
   buildTeamOnboardingAccessUrl,
   createTeamOnboardingUrlSlug,
-  resolveTeamOnboardingBaseUrl,
+  resolveTeamOnboardingAppOrigin,
 } from '@/lib/team-onboarding/invite-url'
 
 export { createTeamOnboardingUrlSlug }
@@ -290,13 +290,13 @@ export async function createTeamOnboardingParticipant(
     displayName?: unknown
     contactEmail?: unknown
     joinTeamMemberId?: unknown
-    baseUrl?: unknown
+    appOrigin?: unknown
     leadDisplayName?: unknown
     teamName?: unknown
     tokenFactory?: () => string
   },
 ) {
-  const baseUrl = resolveTeamOnboardingBaseUrl(input.baseUrl)
+  const appOrigin = resolveTeamOnboardingAppOrigin(input.appOrigin)
   const leadDisplayName = normalizeText(input.leadDisplayName)
   if (!leadDisplayName) {
     throw errors.INVALID_INPUT(
@@ -341,7 +341,7 @@ export async function createTeamOnboardingParticipant(
   const token = input.tokenFactory?.() ?? createTeamOnboardingToken()
   const accessTokenHash = hashTeamOnboardingToken(token)
   const accessUrl = buildTeamOnboardingAccessUrl({
-    baseUrl,
+    appOrigin,
     token,
     participantDisplayName: displayName,
     leadDisplayName,
@@ -386,13 +386,13 @@ export async function refreshTeamOnboardingParticipantAccess(
   ownerRepId: string,
   participantId: string,
   input: {
-    baseUrl?: unknown
+    appOrigin?: unknown
     leadDisplayName?: unknown
     teamName?: unknown
     tokenFactory?: () => string
   } = {},
 ) {
-  const baseUrl = resolveTeamOnboardingBaseUrl(input.baseUrl)
+  const appOrigin = resolveTeamOnboardingAppOrigin(input.appOrigin)
   const leadDisplayName = normalizeText(input.leadDisplayName)
   if (!leadDisplayName) {
     throw errors.INVALID_INPUT(
@@ -425,7 +425,7 @@ export async function refreshTeamOnboardingParticipantAccess(
   }
 
   const accessUrl = buildTeamOnboardingAccessUrl({
-    baseUrl,
+    appOrigin,
     token,
     participantDisplayName: (existingData as ParticipantRow).display_name,
     leadDisplayName,

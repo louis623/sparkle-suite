@@ -23,6 +23,7 @@ export const RESERVED_PUBLIC_SITE_SLUGS = new Set([
   'prelaunch',
   'controlcenter',
   'control-center',
+  'onboarding',
 ])
 
 export type PublicSiteSlugValidation =

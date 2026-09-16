@@ -8,7 +8,7 @@ import {
   listTeamOnboardingParticipants,
 } from '@/lib/services/team-onboarding'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { resolveTeamOnboardingBaseUrl } from '@/lib/team-onboarding/invite-url'
+import { resolveTeamOnboardingAppOrigin } from '@/lib/team-onboarding/invite-url'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -55,14 +55,13 @@ export async function POST(request: Request) {
     const access = await getTeamOnboardingAccess(supabase, repId)
     if (!access.enabled) return addonRequiredResponse(access)
 
-    const baseUrl = resolveTeamOnboardingBaseUrl(body?.baseUrl)
     const admin = createAdminClient()
     const teamName = await getTeamOnboardingTeamName(admin, repId)
     const result = await createTeamOnboardingParticipant(admin, repId, {
       displayName: body?.displayName,
       contactEmail: body?.contactEmail,
       joinTeamMemberId: body?.joinTeamMemberId,
-      baseUrl,
+      appOrigin: resolveTeamOnboardingAppOrigin(request.url),
       leadDisplayName: rep.display_name,
       teamName,
     })

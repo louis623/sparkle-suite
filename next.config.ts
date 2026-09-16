@@ -4,6 +4,23 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: '/onboarding/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow, noarchive',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'private, no-store, max-age=0',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'no-referrer',
+          },
+        ],
+      },
+      {
         source: '/:path*',
         headers: [
           {
@@ -25,6 +42,15 @@ const nextConfig: NextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
+          },
+        ],
+      },
+      {
+        source: '/onboarding/:path*',
+        headers: [
+          {
+            key: 'Referrer-Policy',
+            value: 'no-referrer',
           },
         ],
       },

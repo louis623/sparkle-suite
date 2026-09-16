@@ -4,63 +4,61 @@ import { ServiceError } from '@/lib/services/errors'
 import {
   buildTeamOnboardingAccessUrl,
   createTeamOnboardingInviteSlug,
-  resolveTeamOnboardingBaseUrl,
+  getTeamOnboardingAllowedOrigins,
+  LEGACY_BRITTANY_ONBOARDING_ORIGIN,
+  resolveTeamOnboardingAppOrigin,
+  SPARKLE_SUITE_ONBOARDING_ORIGIN,
 } from '@/lib/team-onboarding/invite-url'
 
 describe('team onboarding invite URLs', () => {
   beforeEach(() => {
-    process.env.TEAM_ONBOARDING_BASE_URL =
-      'https://brittany-start-strong.chatgpt.site'
-    process.env.TEAM_ONBOARDING_ALLOWED_ORIGINS =
-      'https://brittany-start-strong.chatgpt.site'
+    delete process.env.TEAM_ONBOARDING_BASE_URL
+    delete process.env.TEAM_ONBOARDING_ALLOWED_ORIGINS
     delete process.env.TEAM_ONBOARDING_CUSTOM_DOMAIN_ENABLED
   })
 
-  it('includes the new rep first name, sending lead identity, optional team, and opaque query token', () => {
+  it('builds a native Sparkle Suite route with personalized first names and an opaque query token', () => {
     const result = buildTeamOnboardingAccessUrl({
-      baseUrl: 'https://brittany-start-strong.chatgpt.site',
       token: 'opaque-token-value',
       participantDisplayName: 'Alex Rivera',
-      leadDisplayName: 'Brittany James',
-      teamName: 'The Virtuous Fizzers',
+      leadDisplayName: 'Kelly James',
+      teamName: 'Sparkly Butterflies',
     })
 
     expect(result).toBe(
-      'https://brittany-start-strong.chatgpt.site/alex-brittany-virtuous-fizzers?invite=opaque-token-value',
+      'https://www.yoursparklesuite.com/onboarding/alex-kelly-sparkly-butterflies?invite=opaque-token-value',
     )
     expect(result).not.toContain('rivera')
     expect(result).not.toContain('james')
+    expect(result.toLowerCase()).not.toContain('brittany')
   })
 
-  it('rejects missing, attacker-controlled, and retired personal bases', () => {
-    delete process.env.TEAM_ONBOARDING_BASE_URL
-    expect(() => resolveTeamOnboardingBaseUrl()).toThrowError(
-      expect.objectContaining({ code: 'TEAM_ONBOARDING_HOST_NOT_CONFIGURED' }),
+  it('does not depend on or trust a caller-provided ChatGPT Sites address', () => {
+    expect(resolveTeamOnboardingAppOrigin()).toBe(
+      SPARKLE_SUITE_ONBOARDING_ORIGIN,
     )
+    expect(
+      resolveTeamOnboardingAppOrigin('https://evil.example/collect'),
+    ).toBe(SPARKLE_SUITE_ONBOARDING_ORIGIN)
+    expect(
+      buildTeamOnboardingAccessUrl({
+        appOrigin: 'https://evil.example/collect',
+        token: 'opaque-token-value',
+        participantDisplayName: 'Alex',
+        leadDisplayName: 'Kelly',
+      }),
+    ).toMatch(/^https:\/\/www\.yoursparklesuite\.com\/onboarding\//)
+  })
 
-    process.env.TEAM_ONBOARDING_BASE_URL =
-      'https://brittany-start-strong.chatgpt.site'
-    expect(() =>
-      resolveTeamOnboardingBaseUrl('https://evil.example/collect'),
-    ).toThrowError(expect.objectContaining({ code: 'INVALID_INPUT' }))
-    expect(() =>
-      resolveTeamOnboardingBaseUrl(
-        'https://brittany-start-strong.chatgpt.site/alex@example.com',
-      ),
-    ).toThrowError(expect.objectContaining({ code: 'INVALID_INPUT' }))
-
-    process.env.TEAM_ONBOARDING_BASE_URL =
-      'https://brittwithbling-start-strong.louis526569.chatgpt.site'
-    process.env.TEAM_ONBOARDING_ALLOWED_ORIGINS =
-      'https://brittwithbling-start-strong.louis526569.chatgpt.site'
-    expect(() => resolveTeamOnboardingBaseUrl()).toThrowError(
-      expect.objectContaining({ code: 'TEAM_ONBOARDING_HOST_RETIRED' }),
-    )
+  it('keeps the frozen Brittany origin available only for legacy CORS compatibility', () => {
+    const origins = getTeamOnboardingAllowedOrigins()
+    expect(origins.has(LEGACY_BRITTANY_ONBOARDING_ORIGIN)).toBe(true)
+    expect(origins.has(SPARKLE_SUITE_ONBOARDING_ORIGIN)).toBe(true)
   })
 
   it('rejects email or phone identities and omits contact-like optional team text', () => {
     const unsafeIdentities = [
-      { participantDisplayName: 'alex@example.com', leadDisplayName: 'Brittany' },
+      { participantDisplayName: 'alex@example.com', leadDisplayName: 'Kelly' },
       { participantDisplayName: 'Alex', leadDisplayName: '+1 (555) 123-4567' },
     ]
 
@@ -73,9 +71,9 @@ describe('team onboarding invite URLs', () => {
     expect(
       createTeamOnboardingInviteSlug({
         participantDisplayName: 'Alex Rivera',
-        leadDisplayName: 'Brittany James',
+        leadDisplayName: 'Kelly James',
         teamName: 'Call 555-123-4567',
       }),
-    ).toBe('alex-brittany')
+    ).toBe('alex-kelly')
   })
 })
