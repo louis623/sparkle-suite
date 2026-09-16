@@ -75,6 +75,8 @@ import {
   getRecipeDraftSavePayload,
   getRecipeSaveStatusText,
   getJewelryLibrarySearchErrorMessage,
+  getLatestPublishedYouTubeResource,
+  getYouTubeResourceThumbnail,
   type DashboardPlaceholderProps,
   type WorkspaceMessageSummary,
   formatHeaderRepName,
@@ -646,6 +648,10 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Site setup in progress')
     expect(html).not.toContain('Sparkle with us.')
     expect(html).toContain('Need help?')
+    expect(html).toContain('More help on YouTube')
+    expect(html).toContain('Get tips, demos, and step-by-step how-tos.')
+    expect(html).toContain('Visit YouTube channel')
+    expect(html).toContain('https://www.youtube.com/@SparkleSuite')
     expect(html).not.toContain('Trade history')
     expect(html).toContain('Nic-Nac')
     expect(html).toContain('Dance Floor')
@@ -1225,6 +1231,56 @@ describe('DashboardPlaceholder', () => {
     )
     expect(css).toContain('.teamPublicCardsPanel {')
     expect(css).not.toContain('grid-row: span 2;')
+  })
+
+  it('selects the newest published YouTube tutorial for the Workspace card', () => {
+    const latest = getLatestPublishedYouTubeResource([
+      {
+        id: 'older',
+        resourceKey: 'older-video',
+        resourceType: 'video',
+        title: 'Older tutorial',
+        summary: '',
+        body: '',
+        category: 'Tutorials',
+        tags: [],
+        thumbnailUrl: null,
+        videoProvider: 'youtube',
+        videoUrl: 'https://youtu.be/olderVideo1',
+        actionUrl: null,
+        status: 'published',
+        version: 1,
+        changeSummary: '',
+        isFeatured: true,
+        authorLabel: 'Sparkle Suite',
+        publishedAt: '2026-09-01T12:00:00.000Z',
+      },
+      {
+        id: 'newer',
+        resourceKey: 'newer-video',
+        resourceType: 'video',
+        title: 'Newest tutorial',
+        summary: '',
+        body: '',
+        category: 'Tutorials',
+        tags: [],
+        thumbnailUrl: null,
+        videoProvider: 'youtube',
+        videoUrl: 'https://www.youtube.com/watch?v=newerVideo2',
+        actionUrl: null,
+        status: 'published',
+        version: 1,
+        changeSummary: '',
+        isFeatured: false,
+        authorLabel: 'Sparkle Suite',
+        publishedAt: '2026-09-15T12:00:00.000Z',
+      },
+    ])
+
+    expect(latest?.title).toBe('Newest tutorial')
+    expect(getYouTubeResourceThumbnail(latest?.videoUrl ?? null)).toBe(
+      'https://i.ytimg.com/vi/newerVideo2/hqdefault.jpg',
+    )
   })
 
   it('keeps shared action buttons painted and readable on hover', () => {

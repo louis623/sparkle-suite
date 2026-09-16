@@ -1334,6 +1334,107 @@
   font: inherit;
 }
 
+.youtubeHelpCard {
+  display: grid;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.youtubeHelpThumbnail {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid rgba(67, 42, 116, 0.1);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fff0f8, #f2e9ff);
+}
+
+.youtubeHelpThumbnail img,
+.youtubeHelpFallback {
+  width: 100%;
+  height: 100%;
+}
+
+.youtubeHelpThumbnail img {
+  display: block;
+  object-fit: cover;
+}
+
+.youtubeHelpFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e2198f;
+}
+
+.youtubeHelpPlay {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #e2198f;
+  box-shadow: 0 8px 22px rgba(48, 30, 92, 0.2);
+  transform: translate(-50%, -50%);
+}
+
+.youtubeHelpPlay svg {
+  width: 22px;
+  height: 22px;
+}
+
+.youtubeHelpCopy {
+  display: grid;
+  gap: 5px;
+}
+
+.youtubeHelpCopy strong {
+  color: #2f2547;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.youtubeHelpCopy small {
+  overflow: hidden;
+  color: #6f6389;
+  font-size: 0.7rem;
+  font-weight: 650;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.youtubeHelpCopy > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #6f2bd0;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.youtubeHelpCopy > span svg {
+  width: 13px;
+  height: 13px;
+}
+
+.youtubeHelpCard:hover .youtubeHelpCopy > span,
+.youtubeHelpCard:focus-visible .youtubeHelpCopy > span {
+  color: #e2198f;
+}
+
+.youtubeHelpCard:focus-visible {
+  border-radius: 12px;
+  outline: 2px solid rgba(115, 69, 202, 0.35);
+  outline-offset: 3px;
+}
+
 .previewUnavailableNotice {
   max-width: 1180px;
   width: 100%;

@@ -90,6 +90,7 @@ import {
   LogOut,
   Mail,
   MessagesSquare,
+  PlayCircle,
   RadioTower,
   Search,
   Settings2,
@@ -703,6 +704,49 @@ const REVIEW_RESOURCE_FIXTURES: WorkspaceResource[] = [
     publishedAt: '2026-08-16T16:00:00.000Z',
   },
 ]
+
+const SPARKLE_SUITE_YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@SparkleSuite'
+
+export function getYouTubeResourceThumbnail(videoUrl: string | null) {
+  if (!videoUrl) return null
+
+  try {
+    const url = new URL(videoUrl)
+    const host = url.hostname.replace(/^www\./, '').toLowerCase()
+    let videoId: string | null = null
+
+    if (host === 'youtu.be') {
+      videoId = url.pathname.split('/').filter(Boolean)[0] ?? null
+    } else if (host === 'youtube.com' || host.endsWith('.youtube.com')) {
+      videoId =
+        url.searchParams.get('v') ||
+        url.pathname.match(/^\/(?:embed|shorts|live)\/([^/?#]+)/)?.[1] ||
+        null
+    }
+
+    return videoId && /^[A-Za-z0-9_-]{6,}$/.test(videoId)
+      ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+      : null
+  } catch {
+    return null
+  }
+}
+
+export function getLatestPublishedYouTubeResource(resources: WorkspaceResource[]) {
+  return [...resources]
+    .filter(
+      (resource) =>
+        resource.resourceType === 'video' &&
+        resource.videoProvider === 'youtube' &&
+        resource.status === 'published' &&
+        Boolean(getYouTubeResourceThumbnail(resource.videoUrl)),
+    )
+    .sort((left, right) => {
+      const leftTime = left.publishedAt ? Date.parse(left.publishedAt) : 0
+      const rightTime = right.publishedAt ? Date.parse(right.publishedAt) : 0
+      return rightTime - leftTime
+    })[0] ?? null
+}
 
 function getActiveUnreadMessageCount(messages: WorkspaceInboxItem[]) {
   return messages.reduce((count, message) => {
@@ -6470,6 +6514,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
               repName={repProfileState.displayName ?? siteSettingsState.settings?.displayName ?? null}
               conversationControlsDisabled={conversationControlsDisabled}
               liveLineupReadOnly={liveLineupReadOnly}
+              reviewWorkspaceMode={reviewWorkspaceMode}
             />
           ) : (
             <div className={styles.workspaceSectionPage}>
@@ -6713,6 +6758,7 @@ function ConceptHomeWorkspace({
   conversationControlsDisabled,
   repName,
   liveLineupReadOnly,
+  reviewWorkspaceMode,
 }: {
   chat?: ReactNode | null
   tradeRequestsCount: number
@@ -6729,7 +6775,45 @@ function ConceptHomeWorkspace({
   conversationControlsDisabled: boolean
   repName: string | null
   liveLineupReadOnly: boolean
+  reviewWorkspaceMode: boolean
 }) {
+  const [latestYouTubeResource, setLatestYouTubeResource] =
+    useState<WorkspaceResource | null>(() =>
+      reviewWorkspaceMode
+        ? getLatestPublishedYouTubeResource(REVIEW_RESOURCE_FIXTURES)
+        : null,
+    )
+
+  useEffect(() => {
+    if (reviewWorkspaceMode) return
+
+    const controller = new AbortController()
+    void fetch('/api/nic-nac/resource-library?type=video&limit=200', {
+      credentials: 'include',
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`resource request failed: ${response.status}`)
+        return response.json() as Promise<{ resources?: WorkspaceResource[] }>
+      })
+      .then((payload) => {
+        setLatestYouTubeResource(
+          getLatestPublishedYouTubeResource(payload.resources ?? []),
+        )
+      })
+      .catch((error: unknown) => {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          setLatestYouTubeResource(null)
+        }
+      })
+
+    return () => controller.abort()
+  }, [reviewWorkspaceMode])
+
+  const latestYouTubeThumbnail = getYouTubeResourceThumbnail(
+    latestYouTubeResource?.videoUrl ?? null,
+  )
+
   return (
     <section className={styles.conceptHome} aria-label="Nic-Nac first workspace">
       <aside className={styles.conceptRail} aria-label="Trade info at a glance">
@@ -6867,6 +6951,42 @@ function ConceptHomeWorkspace({
             <BookOpen aria-hidden="true" />
             Guides, playbooks, and quick answers
           </button>
+        </ConceptPanel>
+        <ConceptPanel title="More help on YouTube">
+          <a
+            className={styles.youtubeHelpCard}
+            href={SPARKLE_SUITE_YOUTUBE_CHANNEL_URL}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Visit the Sparkle Suite YouTube channel"
+          >
+            <span className={styles.youtubeHelpThumbnail}>
+              {latestYouTubeThumbnail ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={latestYouTubeThumbnail}
+                  alt={latestYouTubeResource?.title
+                    ? `Thumbnail for ${latestYouTubeResource.title}`
+                    : 'Latest Sparkle Suite video'}
+                />
+              ) : (
+                <span className={styles.youtubeHelpFallback} aria-hidden="true" />
+              )}
+              <span className={styles.youtubeHelpPlay} aria-hidden="true">
+                <PlayCircle />
+              </span>
+            </span>
+            <span className={styles.youtubeHelpCopy}>
+              <strong>Get tips, demos, and step-by-step how-tos.</strong>
+              {latestYouTubeResource?.title ? (
+                <small>Latest: {latestYouTubeResource.title}</small>
+              ) : null}
+              <span>
+                Visit YouTube channel
+                <ExternalLink aria-hidden="true" />
+              </span>
+            </span>
+          </a>
         </ConceptPanel>
         <ConceptPanel title="Recent conversations" className={styles.mobileRecentPanel}>
           <div className={styles.recentConversationList}>
