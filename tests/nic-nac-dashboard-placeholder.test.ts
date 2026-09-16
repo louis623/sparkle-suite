@@ -3585,56 +3585,50 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('BP dashboard number import')
   })
 
-  it('renders a plain-English Live Queue setup and verification tool', () => {
+  it('renders a plain-English Live Lineup 2.0 setup and verification guide', () => {
     const html = renderToStaticMarkup(
       createElement(LiveQueueTool, {
-        liveQueueSyncCode: 'TDF-8535',
         customerSiteHref:
           '/amethyst/Homepage.html?c=ac3e643a-6ccf-4400-8230-662f63a07f3e',
         onOpenHelp: () => {},
       }),
     )
 
-    expect(html).toContain('Live Queue')
+    expect(html).toContain('Live Lineup')
     expect(html).toContain('Install the Chrome extension')
     expect(html).toContain(
       'https://chromewebstore.google.com/detail/sparkle-suite-live-queue/kmodgfffflplfdlkkhadgimmobplhoih',
     )
     expect(html).toContain('https://myoffice.bombparty.com/live-party-orders')
-    expect(html).toContain('TDF-8535')
-    expect(html).toContain('Copy code')
-    expect(html).toContain('Keep this code private')
+    expect(html).toContain('MacBook')
+    expect(html).toContain('Windows laptop')
+    expect(html).toContain('Pair this show computer')
+    expect(html).toContain('Create private connection key')
+    expect(html).toContain('Review / select source')
+    expect(html).toContain('Save pairing key')
     expect(html).toContain('Set it up step by step')
     expect(html).toContain('Make sure everything is working')
-    expect(html).toContain('How Live Queue works')
+    expect(html).toContain('How Live Lineup works')
     expect(html).toContain('oldest unrevealed customer first')
     expect(html).toContain('Open customer site')
     expect(html).toContain('Open Help &amp; Resources')
+    expect(html).not.toContain('Recover from a private archive')
+    expect(html).not.toContain('Legacy installed extension reference')
+    expect(html).not.toContain('Show controls manage deliberate new shows')
   })
 
-  it('does not invent a Live Queue code when one is not assigned', () => {
+  it('keeps connection mutation controls out of read-only support mode', () => {
     const html = renderToStaticMarkup(
       createElement(LiveQueueTool, {
-        liveQueueSyncCode: null,
+        liveLineupReadOnly: true,
         customerSiteHref: null,
         onOpenHelp: () => {},
       }),
     )
 
-    expect(html).toContain('Code not assigned yet')
-    expect(html).toContain(
-      'Ask Nic-Nac or support to retrieve your assigned code',
-    )
-    expect(html).toContain('disabled=""')
-
-    const source = readFileSync(
-      resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
-      'utf8',
-    )
-    expect(source).toContain('liveQueueSyncCode={currentLiveQueueSyncCode}')
-    expect(source).not.toContain(
-      'liveQueueSyncCode={repProfileState.liveQueueSyncCode ?? null}',
-    )
+    expect(html).toContain('Set it up step by step')
+    expect(html).not.toContain('Create private connection key')
+    expect(html).not.toContain('Refresh connections')
   })
 
   it('formats wallet amounts and estimated texts for display', () => {

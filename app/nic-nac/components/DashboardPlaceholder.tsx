@@ -106,6 +106,7 @@ import { WorkspaceShell } from './WorkspaceShell'
 import type { WorkspaceSectionTab } from './WorkspaceSectionTabs'
 import { NicNacHomeWorkspaceCard } from './NicNacHomeWorkspaceCard'
 import { LiveLineupCard } from './LiveLineupCard'
+import { LiveLineupPublisherControls } from './LiveLineupPublisherControls'
 import { TradeBoardWorkspaceCard } from './TradeBoardWorkspaceCard'
 import { MessageCenter as UnifiedMessageCenter } from './messages/MessageCenter'
 import {
@@ -6098,7 +6099,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       return (
         <LiveQueueTool
           liveLineupReadOnly={liveLineupReadOnly}
-          liveQueueSyncCode={currentLiveQueueSyncCode}
           customerSiteHref={customerSparkleSiteHref}
           onOpenHelp={() => setActiveSection('help-resources')}
         />
@@ -7047,78 +7047,41 @@ const LIVE_QUEUE_PARTY_ORDERS_URL =
 
 export function LiveQueueTool({
   liveLineupReadOnly = false,
-  liveQueueSyncCode,
   customerSiteHref,
   onOpenHelp,
 }: {
   liveLineupReadOnly?: boolean
-  liveQueueSyncCode?: string | null
   customerSiteHref?: string | null
   onOpenHelp?: () => void
 }) {
-  const [codeCopied, setCodeCopied] = useState(false)
-  const assignedCode = liveQueueSyncCode?.trim() || null
-
-  async function copyLiveQueueCode() {
-    if (!assignedCode) return
-    await navigator.clipboard.writeText(assignedCode)
-    setCodeCopied(true)
-    window.setTimeout(() => setCodeCopied(false), 1800)
-  }
-
   return (
     <div className={styles.workspaceSectionStack}>
       <section className={styles.workspaceIntroCard}>
-        <h2>Live Lineup</h2>
-        <p>Use the upgraded extension with a private connection key from the card below. Keep the selected Party Orders tab open, confirm the current show, and check recent ready updates before going live.</p>
-        <p>Drag customers to reorder, use Hold when someone steps away, and Return when they are ready. Show controls manage deliberate new shows and reversible party visibility. None of these actions change Bomb Party orders.</p>
-        <p>If your installed extension still asks for a short code, use the legacy reference below and ask support about the upgrade. Never paste a private key into the legacy version or chat.</p>
-        {customerSiteHref ? <a href={customerSiteHref} target="_blank" rel="noreferrer noopener">Open customer site</a> : null}
-        <button type="button" className={styles.liveQueueHelpButton} onClick={onOpenHelp}>Open Help &amp; Resources</button>
-      </section>
-      <LiveLineupCard readOnly={liveLineupReadOnly} />
-      <details>
-        <summary>Legacy installed extension reference—short code versions only</summary>
-      <section className={styles.workspaceIntroCard}>
         <div className={styles.workspaceSectionHeader}>
           <div>
-            <div className={styles.cardTitle}>Live Queue</div>
+            <div className={styles.cardTitle}>Live Lineup</div>
             <div className={styles.cardSubtitle}>
-              Install the Chrome extension, connect it with your private code,
-              and confirm your customer-facing reveal queue is ready before a
-              live show.
+              Automatically share the customer reveal order from Bomb Party on
+              your Sparkle Suite customer site while you are live.
             </div>
           </div>
-          <span className={styles.rosterTag}>Live-show setup</span>
+          <span className={styles.rosterTag}>Chrome setup</span>
         </div>
 
         <div className={styles.liveQueueSetupGrid}>
           <div className={styles.liveQueueCodePanel}>
-            <span className={styles.liveQueueEyebrow}>
-              Your private Live Queue code
-            </span>
-            <strong className={styles.liveQueueCode}>
-              {assignedCode ?? 'Code not assigned yet'}
-            </strong>
+            <span className={styles.liveQueueEyebrow}>What it does</span>
+            <strong className={styles.liveQueueCode}>One clear live lineup</strong>
             <p className={styles.liveQueueBody}>
-              Keep this code private. Use the exact code shown here when the
-              extension asks for it. Some setup messages may call it your
-              Secret Rep ID Number.
+              The Sparkle Suite extension reads your open Bomb Party Party
+              Orders page and sends only the customer first names needed for
+              your lineup. It never places orders, reveals jewelry, refreshes
+              the page, or changes your Bomb Party back office.
             </p>
-            {!assignedCode ? (
-              <p className={styles.liveQueueWarning}>
-                Ask Nic-Nac or support to retrieve your assigned code. Do not
-                make one up.
-              </p>
-            ) : null}
-            <button
-              type="button"
-              className={styles.secondaryActionButton}
-              disabled={!assignedCode}
-              onClick={copyLiveQueueCode}
-            >
-              {codeCopied ? 'Code copied' : 'Copy code'}
-            </button>
+            <p className={styles.liveQueueBody}>
+              It works in Google Chrome on a MacBook, iMac, Windows laptop, or
+              Windows desktop. It cannot run on an iPhone or iPad.
+            </p>
           </div>
 
           <div className={styles.liveQueueInstallPanel}>
@@ -7126,7 +7089,8 @@ export function LiveQueueTool({
             <h3>Install the Chrome extension</h3>
             <p className={styles.liveQueueBody}>
               Use the official Sparkle Suite Live Queue listing. Install it in
-              the same Chrome profile you use for the Bomb Party back office.
+              the same Chrome profile you will use for the Bomb Party back
+              office.
             </p>
             <a
               className={styles.liveQueuePrimaryLink}
@@ -7146,8 +7110,8 @@ export function LiveQueueTool({
           <div>
             <div className={styles.cardTitle}>Set it up step by step</div>
             <div className={styles.cardSubtitle}>
-              Complete these steps in order. You only need to enter the code
-              once unless the extension is reset or reinstalled.
+              Complete these steps in order. You normally pair each show
+              computer only once.
             </div>
           </div>
         </div>
@@ -7156,20 +7120,22 @@ export function LiveQueueTool({
           <li>
             <span className={styles.liveQueueStepNumber}>1</span>
             <div>
-              <strong>Add the extension to Chrome</strong>
+              <strong>Open this page in Google Chrome</strong>
               <p>
-                Open the Chrome Web Store link above, choose <b>Add to Chrome</b>,
-                and confirm <b>Add extension</b>.
+                On either a Mac or Windows computer, open Chrome and sign in to
+                your Sparkle Suite Workspace. If you usually use Safari on a
+                Mac, you can still install and use Chrome for Live Lineup.
               </p>
             </div>
           </li>
           <li>
             <span className={styles.liveQueueStepNumber}>2</span>
             <div>
-              <strong>Pin Sparkle Suite Live Queue</strong>
+              <strong>Add and pin the Sparkle Suite extension</strong>
               <p>
-                Select the puzzle-piece icon in Chrome, find Sparkle Suite Live
-                Queue, and choose the pin so it stays easy to reach.
+                Choose <b>Open Chrome Web Store</b> above, then <b>Add to Chrome</b>
+                and <b>Add extension</b>. Select Chrome&apos;s puzzle-piece icon
+                and pin Sparkle Suite Live Queue so it stays easy to reach.
               </p>
             </div>
           </li>
@@ -7195,34 +7161,50 @@ export function LiveQueueTool({
           <li>
             <span className={styles.liveQueueStepNumber}>4</span>
             <div>
-              <strong>Enter your private code</strong>
+              <strong>Pair this show computer</strong>
               <p>
-                Open the extension, paste the exact Live Queue code shown
-                above, save it, and turn syncing on.
+                Open <b>Extension connection setup</b> below, name the computer,
+                and create a private pairing key. Copy that one-time key into
+                the extension and choose <b>Save pairing key</b>. Never share
+                the key or paste it into chat.
               </p>
             </div>
           </li>
           <li>
             <span className={styles.liveQueueStepNumber}>5</span>
             <div>
-              <strong>Choose the right Party Filter</strong>
+              <strong>Review and select the live source</strong>
               <p>
-                In the extension, choose the party you are actively working
-                from so orders from another party do not appear in this queue.
+                In the extension, choose <b>Review / select source</b>, select
+                the open Party Orders tab, enter the party IDs for this show,
+                check the confirmation box, and choose <b>Use this source</b>.
               </p>
             </div>
           </li>
           <li>
             <span className={styles.liveQueueStepNumber}>6</span>
             <div>
-              <strong>Leave Party Orders open while you are live</strong>
+              <strong>Confirm the connection and go live</strong>
               <p>
-                The extension reads that page and syncs the unrevealed queue.
-                It never needs to refresh or change your Bomb Party page.
+                Leave the selected Party Orders tab open while you are live.
+                Confirm the extension shows a healthy connection and a recent
+                ready update before relying on the customer-facing lineup.
               </p>
             </div>
           </li>
         </ol>
+
+        {!liveLineupReadOnly ? (
+          <div className={styles.liveQueueTroubleshooting}>
+            <strong>Extension connection setup</strong>
+            <p>
+              Create the private, one-time pairing key required in step 4. A
+              key only pairs this browser; you still select the correct Party
+              Orders source inside the extension.
+            </p>
+            <LiveLineupPublisherControls onChanged={() => {}} />
+          </div>
+        ) : null}
       </section>
 
       <section className={styles.workspacePanel}>
@@ -7239,11 +7221,11 @@ export function LiveQueueTool({
         </div>
 
         <ul className={styles.liveQueueChecklist}>
-          <li>The extension is installed, pinned, and turned on.</li>
-          <li>The saved code exactly matches the code shown on this page.</li>
+          <li>The official extension is installed and pinned in Chrome.</li>
+          <li>This computer is paired with its private Workspace key.</li>
           <li>Bomb Party Party Orders is open in the same Chrome profile.</li>
-          <li>The correct Party Filter is selected.</li>
-          <li>The extension status shows connected or green.</li>
+          <li>The correct orders tab and party IDs are selected.</li>
+          <li>The extension shows a healthy connection and recent ready update.</li>
           <li>
             Your customer site shows the first unrevealed customer, or a clear
             empty state when nobody is waiting.
@@ -7274,11 +7256,10 @@ export function LiveQueueTool({
         <div className={styles.liveQueueTroubleshooting}>
           <strong>If the queue looks stale or does not connect</strong>
           <p>
-            Confirm Party Orders is still open, syncing is on, the code matches
-            exactly, and the right Party Filter is selected. Give it up to one
-            minute to run the backup sync. If it is still not connected, use
-            Help &amp; Resources and tell support exactly what the extension
-            status shows.
+            Confirm Party Orders is still open, this browser is paired, and the
+            correct source tab and party IDs are selected. If it is still not
+            connected, open Help &amp; Resources and tell support exactly what
+            the extension status shows. Never send your private pairing key.
           </p>
         </div>
       </section>
@@ -7286,7 +7267,7 @@ export function LiveQueueTool({
       <section className={styles.workspacePanel}>
         <div className={styles.workspaceSectionHeader}>
           <div>
-            <div className={styles.cardTitle}>How Live Queue works</div>
+            <div className={styles.cardTitle}>How Live Lineup works</div>
             <div className={styles.cardSubtitle}>
               The extension connects the reveal order you already manage in
               Bomb Party to the queue customers see on your Sparkle Suite site.
@@ -7313,20 +7294,19 @@ export function LiveQueueTool({
           <div>
             <strong>3. It updates your customer site</strong>
             <p>
-              The queue syncs automatically as orders and reveal statuses
-              change, so customers can follow their place without asking in
-              chat.
+              The lineup syncs automatically as orders and reveal statuses
+              change. You can reorder, hold, or return customers from the
+              compact Live Lineup card on your Workspace home.
             </p>
           </div>
         </div>
 
         <p className={styles.liveQueuePrivacyNote}>
-          Live Queue sends only the queue information needed for the customer
+          Live Lineup sends only the queue information needed for the customer
           display. It does not place orders, reveal jewelry, refresh the Bomb
           Party page, or change anything in the Bomb Party back office.
         </p>
       </section>
-      </details>
     </div>
   )
 }
