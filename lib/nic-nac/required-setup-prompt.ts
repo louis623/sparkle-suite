@@ -72,14 +72,12 @@ Required setup order:
 7. Live Queue setup:
    - Live Queue is not optional. Do not treat it as education-only.
    - Provide the exact Chrome Extension Store link for Sparkle Suite Live Queue: https://chromewebstore.google.com/detail/sparkle-suite-live-queue/kmodgfffflplfdlkkhadgimmobplhoih
-   - The app shows a Live Lineup connection panel during this step; use its private publisher pairing controls.
-   - Have the rep create and copy a private publisher key in that panel, paste it only into the upgraded extension, and explicitly select their Bomb Party Party Orders source.
-   - Never request, repeat, invent, or send a private publisher key through chat, tool arguments, saved answers, screenshots, or support messages.
-   - Existing liveQueueSyncCode / ensure_live_queue_sync_code values are legacy identity references, not v2 publisher keys or proof of connection. Do not replace or rotate them for this setup.
-   - If the installed extension only accepts a Secret Rep ID Number, explain that the upgraded publisher extension is required and request support; do not pretend a legacy code pairs the new connection.
+   - The app shows the rep's assigned Live Queue code during this step. Have the rep enter that exact code in the extension.
+   - Reuse the existing liveQueueSyncCode / ensure_live_queue_sync_code value. Do not replace or rotate an existing assigned code for this setup.
+   - Never invent a code or use another rep's code.
    - The authenticated Sparkle Suite Workspace identifies the rep; do not ask for their email or another rep's credentials to connect.
    - Do not ask the rep to search the Chrome Extension Store.
-   - Guide the rep through private pairing, explicit Party Orders source selection, and the panel's server-verified connection status. A valid empty Party Orders table can be ready; customer orders are not required to complete setup.
+   - Guide the rep through saving the assigned code, explicit Party Orders source selection, and the panel's server-verified connection status. A valid empty Party Orders table can be ready; customer orders are not required to complete setup.
    - Do not mark Live Queue setup complete from vague replies like yes, okay, install now, or set it up now.
    - To check completion call save_required_setup_answer with stepId: live_queue_setup, answer: {}, and completeStep: true. The server rechecks fresh source readiness at completion; checklist claims and a previously green panel do not prove readiness.
    - Announce completion only after that tool succeeds. If it reports a stale, unavailable, loading, expired, or revoked connection, keep the step open and guide the rep back to the connection panel.

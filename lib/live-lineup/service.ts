@@ -102,6 +102,7 @@ const MAX_LISTED_PUBLISHERS = 100
 const AUTH_CLOCK_SKEW_MS = 30_000
 type Publisher = { id: string; rep_id: string; label: string; created_at: string; expires_at: string; revoked_at: string | null }
 type PublisherAuthRow = Publisher & { token_hash: string }
+type AuthenticatedPublisher = Publisher & { durableTokenId: string | null }
 type PublisherListRow = Publisher & { is_valid: boolean }
 type PublisherListReceipt = { checked_at: string; active_count: number | string; listed_count: number | string; publishers: unknown[] }
 type PublisherIssueRow = Publisher & { active_count: number | string }
@@ -193,19 +194,32 @@ export async function revokePublisher(db: SupabaseClient, repId: string, id: unk
     || typeof data[0]?.invalidated !== 'boolean') throw new LineupServiceError('invalid_publisher_receipt')
 }
 
-async function authenticatePublisher(db: SupabaseClient, token: string | null, now: number): Promise<Publisher> {
-  if (!token || !/^sslp_[A-Za-z0-9_-]{43}$/.test(token)) throw new LineupServiceError('unauthorized', 401)
-  const tokenHash = hashPublisherToken(token)
+async function authenticatePublisher(db: SupabaseClient, credential: string | null, now: number): Promise<AuthenticatedPublisher> {
+  if (credential && /^[A-Z0-9]{3}-[0-9]{4}$/.test(credential)) {
+    const { data, error } = await db.from('live_queue').select('rep_id,sync_code').eq('sync_code', credential).limit(2)
+    if (error) throw new LineupServiceError('publisher_service_unavailable')
+    if (!Array.isArray(data) || data.length !== 1) throw new LineupServiceError('unauthorized', 401)
+    const row = data[0] as { rep_id?: unknown; sync_code?: unknown }
+    const repId = typeof row.rep_id === 'string' ? row.rep_id.toLowerCase() : ''
+    if (!publisherUuid.test(repId) || row.sync_code !== credential) throw new LineupServiceError('unauthorized', 401)
+    return {
+      id: repId, rep_id: repId, label: 'Workspace code',
+      created_at: new Date(0).toISOString(), expires_at: new Date(8_640_000_000_000_000).toISOString(),
+      revoked_at: null, durableTokenId: null,
+    }
+  }
+  if (!credential || !/^sslp_[A-Za-z0-9_-]{43}$/.test(credential)) throw new LineupServiceError('unauthorized', 401)
+  const tokenHash = hashPublisherToken(credential)
   const { data, error } = await db.from('live_lineup_publisher_tokens').select('id,rep_id,token_hash,label,created_at,expires_at,revoked_at').eq('token_hash', tokenHash).maybeSingle()
   if (error) throw new LineupServiceError('publisher_service_unavailable')
-  // The credential row is the tenant authority: the opaque bearer contains no
-  // embedded rep identity, so a valid hash resolves to exactly this row's rep.
+  // Retain 2.0.1 token acceptance so an already-paired browser is not interrupted
+  // before Chrome installs the assigned-code update.
   const tenant = data && typeof data === 'object' && typeof data.rep_id === 'string' ? data.rep_id.toLowerCase() : ''
   const publisher = validatedPublisher(data, tenant)
   if (!publisher || (data as Partial<PublisherAuthRow>)?.token_hash !== tokenHash || publisher.rep_id !== tenant
     || publisher.revoked_at || Date.parse(publisher.created_at) > now + AUTH_CLOCK_SKEW_MS
     || Date.parse(publisher.expires_at) <= now) throw new LineupServiceError('unauthorized', 401)
-  return publisher
+  return { ...publisher, durableTokenId: publisher.id }
 }
 
 function claimReceipt(state: LineupState, now: number) {
@@ -230,7 +244,15 @@ export async function describeSource(db: SupabaseClient, token: string | null, n
   }
 }
 
-async function replayClaim(db: SupabaseClient, publisher: Publisher, claimId: string, now: number, generation: number) {
+async function replayClaim(db: SupabaseClient, publisher: AuthenticatedPublisher, claimId: string, now: number, generation: number) {
+  if (!publisher.durableTokenId) {
+    const state = await readLineupState(db, publisher.rep_id)
+    if (!state || state.publisher?.id !== publisher.id || state.publisher.claimId !== claimId
+      || (state.show?.generation ?? 0) !== generation || Date.parse(state.publisher.leaseExpiresAt) <= now) {
+      throw new LineupServiceError('publisher_conflict', 409)
+    }
+    return claimReceipt(state, now)
+  }
   const { data, error } = await db.rpc('live_lineup_claim_receipt', { p_rep_id: publisher.rep_id, p_token_id: publisher.id, p_claim_id: claimId })
   if (error?.code === '28000') throw new LineupServiceError('unauthorized', 401)
   if (error) throw new LineupServiceError('lineup_unavailable')
@@ -252,7 +274,7 @@ export async function claimSource(db: SupabaseClient, token: string | null, clai
   if (!result.ok) throw new LineupServiceError(result.code, 409)
   if (result.state.revision === state.revision) return replayClaim(db, publisher, claimId, now, generation as number)
   try {
-    await saveState(db, publisher.rep_id, state.revision, result.state, publisher.id)
+    await saveState(db, publisher.rep_id, state.revision, result.state, publisher.durableTokenId ?? undefined)
     return claimReceipt(result.state, now)
   } catch (error) {
     // Concurrent retries of the same attempt may lose the first-write CAS. Only the matching
@@ -272,6 +294,6 @@ export async function receiveSource(db: SupabaseClient, token: string | null, in
   if (state.lastReceivedAt && now - Date.parse(state.lastReceivedAt) < 500) throw new LineupServiceError('rate_limited', 429)
   const result = applySourcePacket(state, input, now)
   if (!result.ok) throw new LineupServiceError(result.code, result.code === 'invalid_payload' ? 400 : 409)
-  await saveState(db, publisher.rep_id, state.revision, result.state, publisher.id)
+  await saveState(db, publisher.rep_id, state.revision, result.state, publisher.durableTokenId ?? undefined)
   return { ok: true, revision: result.state.revision, acceptedSequence: result.state.publisher!.lastSequence, serverTime: new Date(now).toISOString(), leaseExpiresAt: result.state.publisher!.leaseExpiresAt }
 }

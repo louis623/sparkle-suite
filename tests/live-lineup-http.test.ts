@@ -129,6 +129,15 @@ describe('Live Lineup HTTP tenant/auth/CSRF boundaries', () => {
 })
 
 describe('Live Lineup publisher HTTP boundary', () => {
+  it('accepts the rep assigned Workspace code as the source credential', async () => {
+    mocks.describe.mockResolvedValue({ protocol: 2, generation: 0, scope: null })
+    const response = await publish.POST(sourceRequest(
+      { action: 'describe' },
+      { authorization: 'Bearer MHF-9446' },
+    ))
+    expect(response.status).toBe(200)
+    expect(mocks.describe).toHaveBeenCalledExactlyOnceWith(db, 'MHF-9446')
+  })
   it('accepts maximum-sized valid identity metadata but rejects bodies beyond four MiB before service access', async () => {
     const id = (prefix: string, n: number) => `${prefix}${String(n).padStart(6, '0')}`.padEnd(128, 'x')
     const revealedEntries = Array.from({ length: 10_000 }, (_, n) => ({ id: id('r', n), orderedAt: 8_640_000_000_000_000 }))

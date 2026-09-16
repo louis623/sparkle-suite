@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- This standalone Node CommonJS fixture runs without a TS loader. */
 const a=require('node:assert/strict'), vm=require('node:vm'), fs=require('node:fs');
-const endpoint='https://www.yoursparklesuite.com/api/live-lineup/publish', token='sslp_'+'a'.repeat(43);
+const endpoint='https://www.yoursparklesuite.com/api/live-lineup/publish', token='sslp_'+'a'.repeat(43), code='MHF-9446';
 const data={}, session={}, listeners={}, access=[];
 function area(obj){return {setAccessLevel:async x=>access.push(x.accessLevel),get:async k=>({[k]:structuredClone(obj[k])}),set:async x=>Object.assign(obj,structuredClone(x)),remove:async k=>{delete obj[k];}};}
 const event=k=>({addListener:f=>listeners[k]=f});
@@ -20,9 +20,9 @@ fetcher=async()=>response('{}',200,{'content-type':'text/html'});await a.rejects
 fetcher=async()=>response('x'.repeat(16385));await a.rejects(run('post("'+token+'", {})'),{code:'invalid_receipt'});
 fetcher=async()=>response('{"error":"private-provider-message"}',401);await a.rejects(run('post("'+token+'", {})'),{code:'unauthorized'});
 fetcher=()=>new Promise(()=>{});await a.rejects(run('post("'+token+'", {})'),{code:'connection_failed'});
-await run('exclusive(()=>popupMessage({action:"sparkle-v2-connect",token:"'+token+'"}))');
-const state=await run('exclusive(status)');a.equal(state.configured,true);a.equal(state.enabled,false);a.equal(JSON.stringify(state).includes(token),false);
-let replied=false;a.equal(listeners.message({action:'sparkle-v2-connect',token},{id:'test-extension',url:'https://evil.test'},()=>{replied=true;}),false);a.equal(replied,false);
+await run('exclusive(()=>popupMessage({action:"sparkle-v2-connect",credential:"'+code+'"}))');
+const state=await run('exclusive(status)');a.equal(state.configured,true);a.equal(state.enabled,false);a.equal(JSON.stringify(state).includes(code),false);
+let replied=false;a.equal(listeners.message({action:'sparkle-v2-connect',credential:code},{id:'test-extension',url:'https://evil.test'},()=>{replied=true;}),false);a.equal(replied,false);
 a.equal(listeners.message({action:'sparkle-v2-changed'},{id:'test-extension',frameId:1,url:'https://myoffice.bombparty.com/live-party-orders',tab:{id:9}},()=>{}),false);
 fetcher=async()=>response(JSON.stringify({protocol:2,generation:0,scope:null,serverTime:new Date().toISOString()}));
 await run('exclusive(()=>popupMessage({action:"sparkle-v2-select",tabId:9,generation:0,partyIds:["123","456"]}))');a.equal((await run('exclusive(status)')).selectedTabId,9);
@@ -151,7 +151,7 @@ console.log('PASS: transport generation, dated metadata, restart sequences and s
 const html=fs.readFileSync('chrome-extension/popup.html','utf8'), code=fs.readFileSync('chrome-extension/popup.js','utf8'), css=fs.readFileSync('chrome-extension/popup.css','utf8');
 const nodes=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],{value:'',checked:false,hidden:false,disabled:false,textContent:'',dataset:{},handlers:{},children:[],addEventListener(n,f){this.handlers[n]=f;},replaceChildren(){this.children=[];this.value='';},appendChild(x){this.children.push(x);if(!this.value)this.value=x.value;},focus(){this.focused=true;}}]));
 for(const match of code.matchAll(/el[(]"([^"]+)"[)]/g)) a.ok(nodes[match[1]],'missing popup control '+match[1]);
-a.match(html,/id="pair-key" type="password"/);a.equal((code.includes("chrome.storage") || code.includes("fetch(")),false);
+a.match(html,/id="pair-key" type="text"/);a.doesNotMatch(html,/id="pair-key" type="password"/);a.equal((code.includes("chrome.storage") || code.includes("fetch(")),false);
 a.match(html,/content="width=280,initial-scale=1"/);
 a.match(html,/&#10024;<\/span> Sparkle Suite/);
 a.match(css,/html,body\{width:280px;min-width:280px;max-width:280px/);
@@ -163,7 +163,7 @@ const worker=async m=>{calls.push(structuredClone(m));if(m.action==='sparkle-v2-
 vm.runInNewContext(code,{document:{getElementById:id=>nodes[id],createElement:()=>({})},window:{addEventListener:(n,f)=>events[n]=f},chrome:{runtime:{sendMessage:worker},tabs:{query:async()=>[{id:9,url:'https://myoffice.bombparty.com/live-party-orders'},{id:10,url:'https://myoffice.bombparty.com.evil.test/live-party-orders'}]}},URL,Date,setTimeout,clearTimeout,setInterval:f=>{intervals.push(f);return 1;},clearInterval:()=>{}});
 const settle=()=>new Promise(resolve=>setImmediate(resolve));const fire=async(id,name='click')=>{nodes[id].handlers[name]({preventDefault(){}});await settle();};await settle();
 a.equal(nodes.pairing.hidden,false);a.equal(nodes.health.textContent,'Not paired');
-nodes['pair-key'].value=token;await fire('pair-form','submit');a.equal(nodes['pair-key'].value,'');a.equal(nodes.pairing.hidden,true);a.equal(nodes.health.textContent,'Paused');
+nodes['pair-key'].value='MHF-9446';await fire('pair-form','submit');a.equal(nodes['pair-key'].value,'');a.equal(nodes.pairing.hidden,true);a.equal(nodes.health.textContent,'Paused');a.equal(calls.at(-1).credential,'MHF-9446');
 await fire('review-source');a.equal(nodes.review.hidden,false);a.equal(nodes['source-tab'].children.length,1);a.equal(nodes['source-tab'].value,'9');
 nodes['party-ids'].value='123, 456';const before=calls.length;await fire('select-form','submit');a.equal(calls.length,before);
 nodes['confirm-source'].checked=true;stale=true;await fire('select-form','submit');a.match(nodes.error.textContent,/show changed/i);a.equal(nodes.review.hidden,false);
@@ -181,7 +181,7 @@ console.log('PASS: popup pairing, source confirmation, stale show, honest freshn
 // Packaged extension contract: exact production hosts and every manifest-referenced file must ship.
 {
 const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
-a.equal(manifest.version,'2.0.1');
+a.equal(manifest.version,'2.0.2');
 a.equal(manifest.name,'Sparkle Suite Live Queue');
 a.deepEqual(manifest.permissions,['storage','alarms']);
 a.deepEqual(manifest.host_permissions,['https://myoffice.bombparty.com/*','https://www.yoursparklesuite.com/*']);

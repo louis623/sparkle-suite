@@ -80,12 +80,12 @@ export const privacyPolicyDocument: LegalDocument = {
       title: "Stored locally in your browser by the Chrome extension",
       paragraphs: ["The extension may store:"],
       bullets: [
-        "a private, revocable browser pairing key created by the representative in the Sparkle Suite Workspace",
+        "the representative's assigned Live Queue code entered from the Sparkle Suite Workspace",
         "publisher identifiers, ordered sequence, acknowledgment, retry, parser-health, and pause state needed to send updates reliably",
         "the explicitly selected Bomb Party source tab, show generation, and party scope for the current browser session",
       ],
       postBulletsParagraphs: [
-        "The private pairing key and durable publisher state are restricted to trusted extension contexts. The selected source-tab details are stored only for the browser session. Removing the browser pairing deletes the saved key from that browser; the representative can also revoke a connection from the Sparkle Suite Workspace.",
+        "The assigned Live Queue code and durable publisher state are restricted to trusted extension contexts. The selected source-tab details are stored only for the browser session. Disconnecting the browser deletes its saved code without changing the code assigned to the representative's Workspace.",
       ],
     },
     {
@@ -95,7 +95,7 @@ export const privacyPolicyDocument: LegalDocument = {
         "This information is transmitted over HTTPS to the official Sparkle Suite Live Lineup service solely to authenticate the selected publisher, maintain connection health, operate the representative's lineup, and display the public lineup on the representative's website.",
       ],
       bullets: [
-        "the private pairing credential in an authorization header",
+        "the assigned Live Queue code in an authorization header",
         "customer first names",
         "stable order and party identifiers",
         "order timing and intended queue order",
@@ -216,7 +216,7 @@ export const privacyPolicyDocument: LegalDocument = {
       title: "Your Rights and Choices",
       paragraphs: [],
       bullets: [
-        "You can pause Chrome extension updates, remove the browser's saved pairing, revoke a connection from the Sparkle Suite Workspace, or uninstall the extension.",
+        "You can pause Chrome extension updates, disconnect the browser, or uninstall the extension.",
         "You can opt out of SMS messages at any time by replying STOP.",
         "You can request help for SMS messages by replying HELP.",
         "You can unsubscribe from email messages by using the unsubscribe method provided in the email, if available, or by contacting us.",
@@ -227,7 +227,7 @@ export const privacyPolicyDocument: LegalDocument = {
       title: "Security",
       paragraphs: [
         "Data is transmitted over HTTPS.",
-        "The extension limits its Party Orders access to the Bomb Party source explicitly selected by the representative. The private pairing key is restricted to trusted extension contexts, is never exposed to the customer-facing lineup, and is stored on our server only as a non-reversible hash.",
+        "The extension limits its Party Orders access to the Bomb Party source explicitly selected by the representative. The assigned Live Queue code is restricted to trusted extension contexts and is never exposed to the customer-facing lineup.",
         "Our database uses security controls, including row-level security where applicable, to help keep representative data isolated.",
         "We take reasonable steps to protect information from unauthorized access, loss, misuse, or disclosure. However, no electronic transmission or storage system can be guaranteed to be completely secure.",
       ],

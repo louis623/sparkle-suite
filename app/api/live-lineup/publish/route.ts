@@ -17,14 +17,14 @@ export async function POST(request: Request) {
   try {
     const origin = request.headers.get('origin')
     if (origin && !origins.has(origin)) return cors(request, lineupJson({ error: 'invalid_origin' }, 403))
-    const token = request.headers.get('authorization')?.match(/^Bearer (sslp_[A-Za-z0-9_-]{43})$/)?.[1] ?? null
-    if (!token) return cors(request, lineupJson({ error: 'unauthorized' }, 401))
+    const credential = request.headers.get('authorization')?.match(/^Bearer (sslp_[A-Za-z0-9_-]{43}|[A-Z0-9]{3}-[0-9]{4})$/)?.[1] ?? null
+    if (!credential) return cors(request, lineupJson({ error: 'unauthorized' }, 401))
     // Bounded maximum accommodates 2,000 names plus 10,000 dated revelations.
     const body = await readLineupJson(request, 4_194_304) as { action?: unknown; claimId?: unknown; generation?: unknown; packet?: unknown } | null
     const db = createAdminClient()
-    const result = body?.action === 'describe' ? await describeSource(db, token)
-      : body?.action === 'claim' ? await claimSource(db, token, body.claimId, Date.now(), body.generation ?? 0)
-      : body?.action === 'snapshot' ? await receiveSource(db, token, body.packet) : null
+    const result = body?.action === 'describe' ? await describeSource(db, credential)
+      : body?.action === 'claim' ? await claimSource(db, credential, body.claimId, Date.now(), body.generation ?? 0)
+      : body?.action === 'snapshot' ? await receiveSource(db, credential, body.packet) : null
     return cors(request, result ? lineupJson(result) : lineupJson({ error: 'invalid_payload' }, 400))
   } catch (error) { return cors(request, lineupFailure(error)) }
 }

@@ -106,7 +106,6 @@ import { WorkspaceShell } from './WorkspaceShell'
 import type { WorkspaceSectionTab } from './WorkspaceSectionTabs'
 import { NicNacHomeWorkspaceCard } from './NicNacHomeWorkspaceCard'
 import { LiveLineupCard } from './LiveLineupCard'
-import { LiveLineupPublisherControls } from './LiveLineupPublisherControls'
 import { TradeBoardWorkspaceCard } from './TradeBoardWorkspaceCard'
 import { MessageCenter as UnifiedMessageCenter } from './messages/MessageCenter'
 import {
@@ -6098,7 +6097,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (canRenderWorkspaceSections && activeSection === 'live-queue') {
       return (
         <LiveQueueTool
-          liveLineupReadOnly={liveLineupReadOnly}
+          liveQueueSyncCode={currentLiveQueueSyncCode}
           customerSiteHref={customerSparkleSiteHref}
           onOpenHelp={() => setActiveSection('help-resources')}
         />
@@ -7046,11 +7045,11 @@ const LIVE_QUEUE_PARTY_ORDERS_URL =
   'https://myoffice.bombparty.com/live-party-orders'
 
 export function LiveQueueTool({
-  liveLineupReadOnly = false,
+  liveQueueSyncCode,
   customerSiteHref,
   onOpenHelp,
 }: {
-  liveLineupReadOnly?: boolean
+  liveQueueSyncCode?: string | null
   customerSiteHref?: string | null
   onOpenHelp?: () => void
 }) {
@@ -7070,8 +7069,10 @@ export function LiveQueueTool({
 
         <div className={styles.liveQueueSetupGrid}>
           <div className={styles.liveQueueCodePanel}>
+            <span className={styles.liveQueueEyebrow}>Your Live Queue code</span>
+            <strong className={styles.liveQueueCode}>{liveQueueSyncCode?.trim() || 'Preparing code…'}</strong>
+            <p className={styles.liveQueueBody}>Enter this exact code in the Sparkle Suite extension. Your assigned code stays the same.</p>
             <span className={styles.liveQueueEyebrow}>What it does</span>
-            <strong className={styles.liveQueueCode}>One clear live lineup</strong>
             <p className={styles.liveQueueBody}>
               The Sparkle Suite extension reads your open Bomb Party Party
               Orders page and sends only the customer first names needed for
@@ -7161,12 +7162,10 @@ export function LiveQueueTool({
           <li>
             <span className={styles.liveQueueStepNumber}>4</span>
             <div>
-              <strong>Pair this show computer</strong>
+              <strong>Enter your Live Queue code</strong>
               <p>
-                Open <b>Extension connection setup</b> below, name the computer,
-                and create a private pairing key. Copy that one-time key into
-                the extension and choose <b>Save pairing key</b>. Never share
-                the key or paste it into chat.
+                Open the extension, enter the same code shown above and at the
+                top of your Workspace, then choose <b>Save code</b>.
               </p>
             </div>
           </li>
@@ -7194,17 +7193,6 @@ export function LiveQueueTool({
           </li>
         </ol>
 
-        {!liveLineupReadOnly ? (
-          <div className={styles.liveQueueTroubleshooting}>
-            <strong>Extension connection setup</strong>
-            <p>
-              Create the private, one-time pairing key required in step 4. A
-              key only pairs this browser; you still select the correct Party
-              Orders source inside the extension.
-            </p>
-            <LiveLineupPublisherControls onChanged={() => {}} />
-          </div>
-        ) : null}
       </section>
 
       <section className={styles.workspacePanel}>
@@ -7222,7 +7210,7 @@ export function LiveQueueTool({
 
         <ul className={styles.liveQueueChecklist}>
           <li>The official extension is installed and pinned in Chrome.</li>
-          <li>This computer is paired with its private Workspace key.</li>
+          <li>The extension is connected with the assigned Live Queue code shown in this Workspace.</li>
           <li>Bomb Party Party Orders is open in the same Chrome profile.</li>
           <li>The correct orders tab and party IDs are selected.</li>
           <li>The extension shows a healthy connection and recent ready update.</li>
@@ -7256,10 +7244,10 @@ export function LiveQueueTool({
         <div className={styles.liveQueueTroubleshooting}>
           <strong>If the queue looks stale or does not connect</strong>
           <p>
-            Confirm Party Orders is still open, this browser is paired, and the
+            Confirm Party Orders is still open, the assigned Live Queue code is saved, and the
             correct source tab and party IDs are selected. If it is still not
             connected, open Help &amp; Resources and tell support exactly what
-            the extension status shows. Never send your private pairing key.
+            the extension status shows.
           </p>
         </div>
       </section>

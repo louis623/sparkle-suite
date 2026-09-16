@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sparkle Suite Live Queue",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Syncs live party order queue from Bomb Party to Sparkle Suite websites in real time.",
   "permissions": [
     "storage",

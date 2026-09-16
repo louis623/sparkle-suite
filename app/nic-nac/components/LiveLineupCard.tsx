@@ -6,7 +6,6 @@ import type { WorkspaceLineupEntry, WorkspaceLineupSnapshot } from '@/lib/live-l
 import { canAcceptWorkspaceRefresh, canRebaseDrag, dragScrollDelta, edgeScrollSpeed, isLineupCommandAcknowledgement, isWorkspaceLineupSnapshot, moveCommand, pointerDropAnchor } from './live-lineup-client'
 import type { WorkspaceLineupCommand } from './live-lineup-client'
 import styles from './LiveLineupCard.module.css'
-import { LiveLineupPublisherControls } from './LiveLineupPublisherControls'
 import { LiveLineupShowControls } from './LiveLineupShowControls'
 import { LiveLineupArchiveControls } from './LiveLineupArchiveControls'
 import { archiveRecoveryRequest, isArchiveRecoveryAcknowledgement, type ArchiveDetail } from './live-lineup-archive-client'
@@ -334,11 +333,6 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
         </section>}
         {!compact && snapshot && <LiveLineupShowControls snapshot={snapshot} disabled={disabled || !!dragging} submit={submit} />}
         {!compact && snapshot && <LiveLineupArchiveControls snapshot={snapshot} disabled={disabled || !!dragging} recover={recover} />}
-        {!compact && <LiveLineupPublisherControls
-          disabled={publisherChangeDisabled || !!dragging}
-          creationDisabled={readOnly || publisherChangeDisabled || !!dragging}
-          onChanged={() => { void refresh() }}
-        />}
       </div>
       {!compact && <footer className={styles.footer}>
         <button type="button" disabled={disabled || !!dragging || !snapshot?.undoAvailable} title="Undo the last reorder, Reveal next, Hold, or Return—not party visibility" onClick={() => void submit({ type: 'undo' })}>Undo order / hold</button>

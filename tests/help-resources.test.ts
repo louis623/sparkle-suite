@@ -105,8 +105,8 @@ describe('help resources', () => {
 
     expect(liveQueueResources.length).toBeGreaterThanOrEqual(2)
     expect(combinedText).toContain('Nic-Nac')
-    expect(combinedText).toContain('sync code')
-    expect(combinedText).toContain('Party Filter')
+    expect(combinedText).toContain('assigned code')
+    expect(combinedText).not.toContain('private computer key')
     expect(combinedText).toContain('extension status')
     expect(combinedText).toContain('Web Store')
     expect(combinedText).toContain('unpacked')
@@ -190,7 +190,6 @@ describe('help resources', () => {
 
   it.each([
     ['sync code', 'use-live-queue-during-show'],
-    ['Party Filter', 'use-live-queue-during-show'],
     ['Web Store', 'use-live-queue-during-show'],
     ['unpacked', 'use-live-queue-during-show'],
     ['stale queue', 'use-live-queue-during-show'],

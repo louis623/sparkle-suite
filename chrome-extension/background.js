@@ -4,7 +4,7 @@ const ENDPOINT = "https://www.yoursparklesuite.com/api/live-lineup/publish";
 const KEY = "sparklePublisherV2";
 const SOURCE = "sparkleSourceV2";
 const POPUP = chrome.runtime.getURL("popup.html");
-const TOKEN = /^sslp_[A-Za-z0-9_-]{43}$/;
+const CREDENTIAL = /^(?:sslp_[A-Za-z0-9_-]{43}|[A-Z0-9]{3}-[0-9]{4})$/;
 const fail = code => Object.assign(new Error(code), {code});
 const safeCodes = new Set(["unauthorized", "lease_expired", "publisher_conflict", "revision_conflict", "stale_sequence", "rate_limited", "invalid_payload", "show_changed", "invalid_scope", "configuration_changed"]);
 let serial = Promise.resolve(), requesting = false, lastRequest = 0, activePull = null;
@@ -39,7 +39,7 @@ const store = {
 };
 async function post(token, body, guard = null) {
   if (guard?.invalidated) throw fail("configuration_changed");
-  if (!TOKEN.test(token)) throw fail("unauthorized");
+  if (!CREDENTIAL.test(token)) throw fail("unauthorized");
   const encoded = JSON.stringify(body);
   if (new TextEncoder().encode(encoded).byteLength > 4194304) throw fail("invalid_payload");
   const responseLimit = body.action === "describe" ? 524288 : 16384;
@@ -97,7 +97,7 @@ function cleanDescriptor(value) {
 }
 async function describe() {
   const state = await store.load();
-  if (!state || !TOKEN.test(state.token)) throw fail("unauthorized");
+  if (!state || !CREDENTIAL.test(state.token)) throw fail("unauthorized");
   return cleanDescriptor(await post(state.token, {action: "describe"}));
 }
 const publisher = SparklePublisherClient.createPublisherClient({store, post: (token, body) => post(token, body, activePull)});
@@ -105,7 +105,7 @@ async function selected() { return (await chrome.storage.session.get(SOURCE))[SO
 async function clearSource() { await chrome.storage.session.remove(SOURCE); }
 async function status() {
   const state = await store.load(), source = await selected();
-  return {ok: true, configured: Boolean(state && TOKEN.test(state.token)), enabled: Boolean(state?.enabled),
+  return {ok: true, configured: Boolean(state && CREDENTIAL.test(state.token)), enabled: Boolean(state?.enabled),
     selectedTabId: source?.tabId ?? null, partyIds: source?.partyIds ?? [], generation: source?.generation ?? null, needsSelection: Boolean(state?.needsSelection || !source),
     lastAckAt: state?.lastAckAt ?? null, lastReadyAckAt: state?.lastReadyAckAt ?? null,
     parserState: state?.parserState ?? null, lastError: state?.lastError ?? null, needsConnection: Boolean(state?.authFailed)};
@@ -142,9 +142,9 @@ async function popupMessage(message) {
   if (message.action === "sparkle-v2-status") return status();
   if (message.action === "sparkle-v2-describe") return {ok: true, descriptor: await describe()};
   if (message.action === "sparkle-v2-connect") {
-    if (typeof message.token !== "string" || !TOKEN.test(message.token)) return {ok: false, error: "invalid_token"};
+    if (typeof message.credential !== "string" || !/^[A-Z0-9]{3}-[0-9]{4}$/.test(message.credential)) return {ok: false, error: "invalid_token"};
     await clearSource();
-    await chrome.storage.local.set({[KEY]: {token: message.token, enabled: false, configVersion: crypto.randomUUID(),
+    await chrome.storage.local.set({[KEY]: {token: message.credential, enabled: false, configVersion: crypto.randomUUID(),
       claimId: null, nextSequence: 0, needsClaim: true}});
     return status();
   }

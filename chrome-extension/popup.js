@@ -2,7 +2,7 @@
 (function () {
   "use strict";
   const el = id => document.getElementById(id);
-  const errors = {unauthorized: "This pairing key expired or was revoked. Create a new key in Workspace.", show_changed: "The show changed. Review the current show again before selecting it.", invalid_scope: "The selected parties do not match this show. Review the source again.", publisher_conflict: "Another publisher still owns the connection. Pause it and wait for its lease to expire before reconnecting.", invalid_source: "Choose an open Bomb Party orders tab and valid party IDs.", invalid_token: "Paste the complete Workspace pairing key.", invalid_receipt: "The server response could not be verified. Nothing was confirmed.", operation_failed: "The operation could not be confirmed. Check status before retrying.", connection_failed: "Could not reach Sparkle Suite. Your existing lineup is retained."};
+  const errors = {unauthorized: "That Live Queue code was not recognized.", show_changed: "The show changed. Review the current show again before selecting it.", invalid_scope: "The selected parties do not match this show. Review the source again.", publisher_conflict: "Another publisher still owns the connection. Pause it and wait for its lease to expire before reconnecting.", invalid_source: "Choose an open Bomb Party orders tab and valid party IDs.", invalid_token: "Enter the complete Live Queue code shown in your Workspace.", invalid_receipt: "The server response could not be verified. Nothing was confirmed.", operation_failed: "The operation could not be confirmed. Check status before retrying.", connection_failed: "Could not reach Sparkle Suite. Your existing lineup is retained."};
   let busy = false, refreshing = false, review = null, state = null, readEpoch = 0, focusAfterAction = null;
   function fail(code) { return Object.assign(new Error(code), {code}); }
   async function send(message) {
@@ -59,9 +59,9 @@
   }
   function closeReview() { review = null; el("review").hidden = true; el("confirm-source").checked = false; }
   el("pair-form").addEventListener("submit", event => { event.preventDefault(); void act(async () => {
-    const token = el("pair-key").value.trim(); el("pair-key").value = "";
-    if (!/^sslp_[A-Za-z0-9_-]{43}$/.test(token)) throw fail("invalid_token");
-    closeReview(); render(await send({action:"sparkle-v2-connect",token}));
+    const credential = el("pair-key").value.trim().toUpperCase(); el("pair-key").value = "";
+    if (!/^[A-Z0-9]{3}-[0-9]{4}$/.test(credential)) throw fail("invalid_token");
+    closeReview(); render(await send({action:"sparkle-v2-connect",credential}));
   }); });
   el("review-source").addEventListener("click", () => { void act(async () => {
     closeReview();
@@ -91,7 +91,7 @@
   el("cancel-review").addEventListener("click", closeReview);
   el("pause").addEventListener("click", () => { void act(async () => { closeReview(); render(await send({action:"sparkle-v2-pause"})); }); });
   el("disconnect").addEventListener("click", () => { void act(async () => {
-    if (!el("confirm-disconnect").checked) { el("error").textContent = "Confirm removal of this browser's pairing key first."; return; }
+    if (!el("confirm-disconnect").checked) { el("error").textContent = "Confirm disconnecting this browser first."; return; }
     closeReview(); render(await send({action:"sparkle-v2-disconnect"})); el("confirm-disconnect").checked = false;
   }); });
   void refresh(); const interval = setInterval(() => { void refresh(); }, 2000);

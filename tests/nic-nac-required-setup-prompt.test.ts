@@ -124,11 +124,10 @@ describe('required Nic-Nac setup prompt', () => {
     expect(prompt).toContain('Live Queue setup')
     expect(prompt).toContain('Live Queue is not optional')
     expect(prompt).toContain('If Live Queue setup is blocked')
-    expect(prompt).toContain('Secret Rep ID Number')
-    expect(prompt).toContain('use its private publisher pairing controls')
-    expect(prompt).toContain('Never request, repeat, invent, or send a private publisher key through chat')
-    expect(prompt).toContain('legacy identity references, not v2 publisher keys or proof of connection')
-    expect(prompt).toContain('the upgraded publisher extension is required')
+    expect(prompt).toContain("assigned Live Queue code")
+    expect(prompt).toContain('enter that exact code in the extension')
+    expect(prompt).toContain('Do not replace or rotate an existing assigned code')
+    expect(prompt).toContain("Never invent a code or use another rep's code")
     expect(prompt).toContain(
       'Do not mark Live Queue setup complete from vague replies like yes, okay, install now, or set it up now',
     )

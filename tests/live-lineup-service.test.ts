@@ -112,6 +112,26 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     expect(await describeSource(d.db, token, now)).toEqual({ protocol: 2, generation: 0, scope: null, serverTime: new Date(now).toISOString() })
     expect(d.rows).toEqual(before)
   })
+  it('uses an existing assigned Workspace code for the full v2 claim and snapshot flow without rotating it', async () => {
+    const d = database()
+    d.rows.live_queue.push({ rep_id: repA, sync_code: 'MHF-9446', queue: [], last_updated: null })
+    const beforeCode = d.rows.live_queue[0].sync_code
+    expect(await describeSource(d.db, 'MHF-9446', now)).toEqual({
+      protocol: 2, generation: 0, scope: null, serverTime: new Date(now).toISOString(),
+    })
+    const claim = await claimSource(d.db, 'MHF-9446', claimId, now, 0)
+    const assignedCodePacket = {
+      publisherId: repA, epoch: claim.epoch, sequence: 0, sourceVersion: '2.0.2', generation: 0,
+      parserState: 'ready', entries: [{ id: 'party:order', name: 'Reviewer', orderedAt: now }], revealedIds: [],
+    }
+    await receiveSource(d.db, 'MHF-9446', assignedCodePacket, now + 1000)
+    expect(await getWorkspaceLineup(d.db, repA, now + 1000)).toMatchObject({
+      canManage: true,
+      entries: [{ id: 'party:order', name: 'Reviewer', position: 1, held: false }],
+    })
+    expect(d.rows.live_queue[0].sync_code).toBe(beforeCode)
+    expect(d.rows.live_lineup_publisher_tokens).toHaveLength(1)
+  })
   it('returns only the authenticated show parsing scope, never names, private holds or lease credentials', async () => {
     const d = database()
     const claim = claimPublisher(createLineupState(), publisherId, 0, now, { claimId })

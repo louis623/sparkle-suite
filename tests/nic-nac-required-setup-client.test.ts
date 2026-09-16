@@ -145,7 +145,8 @@ describe('Nic-Nac required setup client', () => {
 
   it('verifies server readiness instead of manufacturing checklist completion evidence', () => {
     expect(liveQueuePanel).toContain('/api/workspace/live-lineup/readiness')
-    expect(liveQueuePanel).toContain('LiveLineupPublisherControls')
+    expect(liveQueuePanel).toContain('Your Live Queue code')
+    expect(liveQueuePanel).not.toContain('LiveLineupPublisherControls')
     expect(liveQueuePanel).toContain('isLineupSetupReadiness(next)')
     expect(liveQueuePanel).toContain('if (!next.ready)')
     expect(liveQueuePanel).not.toContain('extensionInstalled: true')

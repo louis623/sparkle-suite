@@ -14,7 +14,7 @@ describe('Sparkle Suite privacy policy page', () => {
     expect(html).toContain('Neon Rabbit Digital Services')
     expect(html).toContain('Sparkle Suite Live Queue Chrome Extension')
     expect(html).toContain('stable order and party identifiers')
-    expect(html).toContain('private, revocable browser pairing key')
+    expect(html).toContain('assigned Live Queue code')
     expect(html).toContain('stored on our server only as non-reversible hashes')
     expect(html).not.toContain('<li>order IDs</li>')
     expect(html).toContain('does not expose order IDs, party IDs, pairing credentials')

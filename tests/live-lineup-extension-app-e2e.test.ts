@@ -69,6 +69,7 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
   try {
     await sql.exec('create role anon; create role authenticated; create role service_role bypassrls; create table reps(id uuid primary key); create table live_queue(rep_id uuid,sync_code text,queue jsonb,last_updated timestamptz); grant select on live_queue to service_role;')
     await sql.query('insert into reps values($1)', [rep])
+    await sql.query(`insert into live_queue(rep_id, sync_code, queue, last_updated) values($1, 'MHF-9446', '[]'::jsonb, now())`, [rep])
     await sql.exec(readFileSync(new URL('../supabase/migrations/20260910000100_live_lineup_v2.sql', import.meta.url), 'utf8'))
     await sql.exec('set role service_role')
     const fixtureClock = Date.now()
@@ -172,7 +173,7 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     let activeWorkerContext = createWorkerContext()
     const runWorker = (source: string) => runInContext(source, activeWorkerContext)
     await runWorker('ready')
-    expect((await runWorker(`exclusive(()=>popupMessage({action:"sparkle-v2-connect",token:${JSON.stringify(issued.token)}}))`)).configured).toBe(true)
+    expect((await runWorker('exclusive(()=>popupMessage({action:"sparkle-v2-connect",credential:"MHF-9446"}))')).configured).toBe(true)
     await runWorker('exclusive(()=>popupMessage({action:"sparkle-v2-select",tabId:9,generation:0,partyIds:["p1"]}))')
     expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
 
@@ -306,14 +307,14 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     elapsed += 501
     const staleSource = await publish.POST(request('/api/live-lineup/publish', { action: 'snapshot', packet: stalePacket }, {
       origin: extensionOrigin,
-      authorization: `Bearer ${issued.token}`,
+      authorization: 'Bearer MHF-9446',
     }))
     expect(staleSource.status).toBe(409)
     expect(await staleSource.json()).toEqual({ error: 'stale_sequence' })
     await json(await publishers.DELETE(request('/api/workspace/live-lineup/publishers', { publisherId: issued.publisher.id }, {}, 'DELETE')))
-    elapsed += 1_000
-    expect((await runWorker('exclusive(pull)')).status).toBe('unauthorized')
-    expect((await runWorker('exclusive(status)')).needsConnection).toBe(true)
+    expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
+    expect((await runWorker('exclusive(status)')).needsConnection).toBe(false)
+    elapsed += 46_000
     const delayed = await json(await publicRoute.GET(new Request(`${origin}/api/amethyst/live-lineup?publicSiteSlug=synthetic`)))
     expect(delayed.liveQueueState).toBe('delayed')
     expect(delayed.liveQueueEntries.length).toBeGreaterThan(0)

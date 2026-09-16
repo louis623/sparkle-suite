@@ -3590,6 +3590,7 @@ describe('DashboardPlaceholder', () => {
   it('renders a plain-English Live Lineup 2.0 setup and verification guide', () => {
     const html = renderToStaticMarkup(
       createElement(LiveQueueTool, {
+        liveQueueSyncCode: 'MHF-9446',
         customerSiteHref:
           '/amethyst/Homepage.html?c=ac3e643a-6ccf-4400-8230-662f63a07f3e',
         onOpenHelp: () => {},
@@ -3604,10 +3605,11 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('https://myoffice.bombparty.com/live-party-orders')
     expect(html).toContain('MacBook')
     expect(html).toContain('Windows laptop')
-    expect(html).toContain('Pair this show computer')
-    expect(html).toContain('Create private connection key')
+    expect(html).toContain('Enter your Live Queue code')
+    expect(html).toContain('MHF-9446')
+    expect(html).not.toContain('Create private connection key')
     expect(html).toContain('Review / select source')
-    expect(html).toContain('Save pairing key')
+    expect(html).toContain('Save code')
     expect(html).toContain('Set it up step by step')
     expect(html).toContain('Make sure everything is working')
     expect(html).toContain('How Live Lineup works')

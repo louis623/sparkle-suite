@@ -9,7 +9,7 @@ it.each([null, [], {}, {...ready,protocol:1}, {...ready,reason:'stale'}, {...rea
   expect(isLineupSetupReadiness(value)).toBe(false)
 })
 it('offers safe actionable support text without passing server strings through', () => {
-  expect(readinessHelp('publisher_revoked')).toContain('new private key')
+  expect(readinessHelp('publisher_revoked')).toContain('assigned Live Queue code')
   expect(readinessHelp('state_changed')).toContain('verify again')
   expect(readinessHelp('schema_unavailable')).toContain('support')
 })

@@ -9,16 +9,16 @@ const rep = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const otherRep = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 const publisherId = '11111111-1111-4111-8111-111111111111'
 const credential = {id:publisherId,rep_id:rep,expires_at:new Date(T+86400000).toISOString(),revoked_at:null}
-function ready(empty = false): LineupState {
-  const claimed = claimPublisher(createLineupState(),publisherId,0,T,{claimId:'22222222-2222-4222-8222-222222222222'})
+function ready(empty = false, sourceId = publisherId): LineupState {
+  const claimed = claimPublisher(createLineupState(),sourceId,0,T,{claimId:'22222222-2222-4222-8222-222222222222'})
   if(!claimed.ok) throw Error(claimed.code)
-  const result = applySourcePacket(claimed.state,{publisherId,epoch:1,sequence:0,sourceVersion:'2.0.0',parserState:'ready',
+  const result = applySourcePacket(claimed.state,{publisherId:sourceId,epoch:1,sequence:0,sourceVersion:'2.0.0',parserState:'ready',
     entries:empty?[]:[{id:'private-order',name:'Private Customer',orderedAt:T}],revealedIds:[]},T)
   if(!result.ok) throw Error(result.code)
   return result.state
 }
 function dbFixture(options: {state?: unknown; stateTenant?: string; revision?: number | string; token?: unknown; finalState?: unknown; finalTenant?: string;
-  stateError?: {code:string}; tokenError?: {code:string}; throwMessage?: string; onFinalRead?: () => void} = {}) {
+  stateError?: {code:string}; tokenError?: {code:string}; assignedCode?: unknown; throwMessage?: string; onFinalRead?: () => void} = {}) {
   const state = 'state' in options ? options.state : ready()
   const token = 'token' in options ? options.token : credential
   const calls: {table:string; selected:string; filters:[string,unknown][]}[] = []
@@ -28,9 +28,12 @@ function dbFixture(options: {state?: unknown; stateTenant?: string; revision?: n
     const query = {
       select(value:string) {call.selected=value;return query},
       eq(key:string,value:unknown) {call.filters.push([key,value]);return query},
+      order() {return query},
+      limit() {return query},
       async maybeSingle() {
         if(options.throwMessage) throw Error(options.throwMessage)
         if(table==='live_lineup_publisher_tokens') return {data:token,error:options.tokenError??null}
+        if(table==='live_queue') return {data:'assignedCode' in options?options.assignedCode:{rep_id:rep,sync_code:'MHF-9446'},error:options.tokenError??null}
         if(table!=='live_lineup_states') throw Error('Unexpected table access')
         const final = stateReads++ > 0
         if (final) options.onFinalRead?.()
@@ -68,6 +71,12 @@ describe('sanitized v2 setup readiness reads', () => {
     expect(f.calls.every(c=>c.filters.some(([key,value])=>key==='rep_id'&&value===rep))).toBe(true)
     expect(f.calls[1].filters).toContainEqual(['id',publisherId])
     expect(f.calls[1].selected).toBe('id,rep_id,expires_at,revoked_at')
+  })
+  it('accepts a fresh assigned-code source without requiring a generated publisher token',async()=>{
+    const f=dbFixture({state:ready(false,rep),assignedCode:{rep_id:rep,sync_code:'MHF-9446'}})
+    expect(await readLineupSetupReadiness(f.db,rep,T)).toMatchObject({ready:true,reason:'ready'})
+    expect(f.calls.map(c=>c.table)).toEqual(['live_lineup_states','live_queue','live_lineup_states'])
+    expect(f.calls[1].selected).toBe('rep_id,sync_code')
   })
   it.each([{state:null,reason:'not_initialized'},{stateError:{code:'42P01'},reason:'schema_unavailable'},
     {stateError:{code:'PGRST205'},reason:'schema_unavailable'},{stateError:{code:'XX000'},reason:'unavailable'},

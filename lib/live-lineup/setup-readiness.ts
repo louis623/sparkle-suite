@@ -60,15 +60,28 @@ export async function readLineupSetupReadiness(db: SupabaseClient, repId: string
     if (state.parserState !== 'ready') return result('source_not_ready', state)
     if (now - Date.parse(state.lastReadyAt) > LINEUP_FRESH_MS) return result('stale', state)
 
-    // Select neither token_hash nor labels; database filters AND returned identity must agree.
-    const credential = await db.from('live_lineup_publisher_tokens').select('id,rep_id,expires_at,revoked_at')
-      .eq('rep_id', tenant).eq('id', publisher.id).maybeSingle()
-    if (credential.error) return result(missingSchema(credential.error.code) ? 'schema_unavailable' : 'unavailable', state)
-    if (!credential.data) return result('publisher_unavailable', state)
-    if (credential.data.rep_id !== tenant || credential.data.id !== publisher.id) return result('tenant_mismatch')
-    if (credential.data.revoked_at !== null) return result('publisher_revoked', state)
-    if (typeof credential.data.expires_at !== 'string' || !Number.isFinite(Date.parse(credential.data.expires_at))
-      || Date.parse(credential.data.expires_at) <= now) return result('publisher_expired', state)
+    let credentialExpiresAt: string | null = null
+    if (publisher.id === tenant) {
+      const assigned = await db.from('live_queue').select('rep_id,sync_code').eq('rep_id', tenant)
+        .order('created_at', { ascending: true }).limit(1).maybeSingle()
+      if (assigned.error) return result(missingSchema(assigned.error.code) ? 'schema_unavailable' : 'unavailable', state)
+      if (!assigned.data) return result('publisher_unavailable', state)
+      if (assigned.data.rep_id !== tenant) return result('tenant_mismatch')
+      if (typeof assigned.data.sync_code !== 'string' || !/^[A-Z0-9]{3}-[0-9]{4}$/.test(assigned.data.sync_code)) {
+        return result('publisher_unavailable', state)
+      }
+    } else {
+      // Preserve readiness for 2.0.1 browsers until Chrome installs the assigned-code update.
+      const credential = await db.from('live_lineup_publisher_tokens').select('id,rep_id,expires_at,revoked_at')
+        .eq('rep_id', tenant).eq('id', publisher.id).maybeSingle()
+      if (credential.error) return result(missingSchema(credential.error.code) ? 'schema_unavailable' : 'unavailable', state)
+      if (!credential.data) return result('publisher_unavailable', state)
+      if (credential.data.rep_id !== tenant || credential.data.id !== publisher.id) return result('tenant_mismatch')
+      if (credential.data.revoked_at !== null) return result('publisher_revoked', state)
+      if (typeof credential.data.expires_at !== 'string' || !Number.isFinite(Date.parse(credential.data.expires_at))
+        || Date.parse(credential.data.expires_at) <= now) return result('publisher_expired', state)
+      credentialExpiresAt = credential.data.expires_at
+    }
 
     // Revoke/show/source changes atomically advance state; do not confirm the older read.
     // Pure heartbeat races are conservatively retried by the caller on a subsequent read.
@@ -83,7 +96,7 @@ export async function readLineupSetupReadiness(db: SupabaseClient, repId: string
     checkedAt = validNow(finalNow) ? new Date(finalNow).toISOString() : null
     if (!checkedAt || finalNow < now) return result('clock_invalid', state)
     if (Date.parse(publisher.leaseExpiresAt) <= finalNow) return result('lease_expired', state)
-    if (Date.parse(credential.data.expires_at) <= finalNow) return result('publisher_expired', state)
+    if (credentialExpiresAt && Date.parse(credentialExpiresAt) <= finalNow) return result('publisher_expired', state)
     if (finalNow - Date.parse(state.lastReadyAt) > LINEUP_FRESH_MS) return result('stale', state)
     return result('ready', state)
   } catch {

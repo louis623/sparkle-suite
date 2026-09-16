@@ -1,7 +1,7 @@
 // Sparkle Suite v2 transport core. Dependencies are worker-only; never expose credentials to a page.
 (function (root) {
   "use strict";
-  const TOKEN = /^sslp_[A-Za-z0-9_-]{43}$/;
+  const CREDENTIAL = /^(?:sslp_[A-Za-z0-9_-]{43}|[A-Z0-9]{3}-[0-9]{4})$/;
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
   const ID = /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/;
   const integer = n => Number.isSafeInteger(n) && n >= 0;
@@ -59,7 +59,7 @@
       let state;
       try {
         state = await store.load();
-        if (!state || !state.enabled || !TOKEN.test(state.token || "")) return {status: "not_configured"};
+        if (!state || !state.enabled || !CREDENTIAL.test(state.token || "")) return {status: "not_configured"};
         if (state.authFailed) return {status: "needs_connection"};
         if (state.needsSelection || !integer(state.generation)) return {status: "needs_selection"};
         if (state.generation > 0 && snapshot.parserState === "ready" && snapshot.revealedIds.length && !snapshot.revealedEntries) return {status: "invalid_source"};
