@@ -652,6 +652,8 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Jewelry Library')
     expect(html).toContain('Calendar')
     expect(html).toContain('Tools')
+    expect(source).toContain("label: 'Live Lineup'")
+    expect(source).not.toContain("label: 'Live Queue'")
     expect(html).not.toContain('Setup Checklist')
     expect(html).not.toContain('Confirm business/profile basics')
     expect(html).not.toContain('Understand the Chrome extension and Live Queue')

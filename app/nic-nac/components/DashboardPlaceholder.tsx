@@ -186,8 +186,8 @@ const SECONDARY_WORKSPACE_SECTIONS = [
   },
   {
     key: 'live-queue',
-    label: 'Live Queue',
-    shortLabel: 'Queue',
+    label: 'Live Lineup',
+    shortLabel: 'Lineup',
     icon: RadioTower,
   },
   {
