@@ -148,10 +148,15 @@ console.log('PASS: transport generation, dated metadata, restart sequences and s
 
 // Popup behavior with synthetic controls and a fake extension worker; never opens real tabs.
 (async()=>{
-const html=fs.readFileSync('chrome-extension/popup.html','utf8'), code=fs.readFileSync('chrome-extension/popup.js','utf8');
+const html=fs.readFileSync('chrome-extension/popup.html','utf8'), code=fs.readFileSync('chrome-extension/popup.js','utf8'), css=fs.readFileSync('chrome-extension/popup.css','utf8');
 const nodes=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],{value:'',checked:false,hidden:false,disabled:false,textContent:'',dataset:{},handlers:{},children:[],addEventListener(n,f){this.handlers[n]=f;},replaceChildren(){this.children=[];this.value='';},appendChild(x){this.children.push(x);if(!this.value)this.value=x.value;},focus(){this.focused=true;}}]));
 for(const match of code.matchAll(/el[(]"([^"]+)"[)]/g)) a.ok(nodes[match[1]],'missing popup control '+match[1]);
 a.match(html,/id="pair-key" type="password"/);a.equal((code.includes("chrome.storage") || code.includes("fetch(")),false);
+a.match(html,/content="width=280,initial-scale=1"/);
+a.match(html,/&#10024;<\/span> Sparkle Suite/);
+a.match(css,/html,body\{width:280px;min-width:280px;max-width:280px/);
+a.equal(css.includes('max-width:100vw'),false);
+a.match(css,/linear-gradient\(135deg,#ec4899,#8b5cf6\)/);
 const calls=[], intervals=[], events={};let stale=false;
 let s={ok:true,configured:false,enabled:false,selectedTabId:null,partyIds:[],generation:null,needsSelection:true,needsConnection:false,lastAckAt:null,lastReadyAckAt:null,parserState:null,lastError:null};
 const worker=async m=>{calls.push(structuredClone(m));if(m.action==='sparkle-v2-connect')s={...s,configured:true};if(m.action==='sparkle-v2-describe')return {ok:true,descriptor:{protocol:2,generation:0,scope:null}};if(m.action==='sparkle-v2-select'){if(stale)return {ok:false,error:'show_changed'};s={...s,enabled:true,selectedTabId:m.tabId,partyIds:m.partyIds,generation:m.generation,needsSelection:false};}if(m.action==='sparkle-v2-pause')s={...s,enabled:false};if(m.action==='sparkle-v2-disconnect')s={...s,configured:false,enabled:false,selectedTabId:null,needsSelection:true};return structuredClone(s);};
@@ -176,6 +181,7 @@ console.log('PASS: popup pairing, source confirmation, stale show, honest freshn
 // Packaged extension contract: exact production hosts and every manifest-referenced file must ship.
 {
 const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
+a.equal(manifest.version,'2.0.1');
 a.equal(manifest.name,'Sparkle Suite Live Queue');
 a.deepEqual(manifest.permissions,['storage','alarms']);
 a.deepEqual(manifest.host_permissions,['https://myoffice.bombparty.com/*','https://www.yoursparklesuite.com/*']);
