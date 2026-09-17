@@ -310,4 +310,39 @@ describe('Amethyst join page template data wiring', () => {
     expect(jsx).toContain('rep city and state')
     expect(jsx).toContain('Proud member of the {CONTENT.memberTeamName} team')
   })
+
+  it('renders shared SVG social marks on team cards and hides empty or hash hrefs', () => {
+    const jsx = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/join.jsx'),
+      'utf8',
+    )
+    const css = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/join.css'),
+      'utf8',
+    )
+    const runtime = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/join-runtime.js'),
+      'utf8',
+    )
+
+    expect(jsx).toContain('import { SocialMark }')
+    expect(jsx).toContain('isLiveSocialHref')
+    expect(jsx).toContain('function TeamConnect')
+    expect(jsx).not.toContain('return <span title="TikTok">TT</span>')
+    expect(jsx).not.toContain('return <span title="Facebook">FB</span>')
+    expect(jsx).not.toContain('return <span title="YouTube">YT</span>')
+    expect(jsx).not.toContain('return <span title="Whatnot">WN</span>')
+    expect(jsx).toContain('aria-label={label}')
+    expect(jsx).toContain('function SocialLogo')
+    expect(jsx).toContain('hp-footer-social-logo')
+
+    expect(css).toMatch(/\.jp-team-social\s*\{[\s\S]*?min-width:\s*44px;/)
+    expect(css).toMatch(/\.jp-team-social\s*\{[\s\S]*?min-height:\s*44px;/)
+    expect(css).toContain('.jp-team-social-logo')
+    expect(css).toContain('.jp-team-social-logo-stroke')
+
+    expect(runtime).toContain('M16.6 3c.4 2.4 1.9 4 4.2 4.3')
+    expect(runtime).not.toContain('title:"TikTok"')
+    expect(runtime).not.toContain('title:"Whatnot"')
+  })
 })
