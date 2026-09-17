@@ -55,12 +55,13 @@ type RepProfileRow = {
   phone: string | null
   shop_link: string | null
   social_handles: Record<string, string> | null
+  profile_photo_url: string | null
 }
 
 const SITE_SETTINGS_SELECT =
   'banner_text, banner_visible, ticker_text, ticker_visible, dance_floor_visible, live_lineup_visible, tagline, hero_headline, hero_subtitle, hero_image_url, hero_animation_type, team_name, recruiting_link, member_team_name, join_team_access_enabled, show_join_page, customer_site_template, appearance_preset, about_heading, about_subheading, about_narrative, homepage_media_slots, social_visibility'
 const REP_PROFILE_SELECT =
-  'display_name, business_name, email, phone, shop_link, social_handles'
+  'display_name, business_name, email, phone, shop_link, social_handles, profile_photo_url'
 
 function normalizeText(value: string | null | undefined) {
   return typeof value === 'string' ? value.trim() : ''
@@ -295,6 +296,7 @@ function buildDashboardResult(args: {
     businessName: args.repProfile.business_name,
     email: args.repProfile.email,
     phone: normalizePhone(args.repProfile.phone),
+    profilePhotoUrl: normalizeText(args.repProfile.profile_photo_url),
     shopLink: normalizeText(args.repProfile.shop_link),
     bannerText: normalizeText(args.siteSettings?.banner_text),
     bannerVisible: args.siteSettings?.banner_visible ?? false,
@@ -526,6 +528,9 @@ export async function updateSiteSettingsDashboard(
 
   if (input.displayName !== undefined) {
     repPatch.display_name = normalizeText(input.displayName)
+  }
+  if (input.profilePhotoUrl !== undefined) {
+    repPatch.profile_photo_url = normalizeNullableText(input.profilePhotoUrl)
   }
   if (input.businessName !== undefined) {
     repPatch.business_name = normalizeText(input.businessName)

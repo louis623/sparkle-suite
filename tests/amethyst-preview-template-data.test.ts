@@ -287,6 +287,51 @@ describe('Amethyst preview template data', () => {
     )
   })
 
+  it('puts the public profile photo on the Join Team lead card and matching roster member', () => {
+    const join = mapPreviewSettingsToJoinTemplateData(
+      {
+        ...demoSettings,
+        displayName: 'Kelly',
+        businessName: 'Sparkly Butterflies',
+        profilePhotoUrl: 'https://cdn.example.com/public-site-media/kelly.jpg',
+      },
+      {},
+      [
+        {
+          name: 'Kelly',
+          business: 'Sparkly Butterflies',
+          state: 'Texas',
+          initials: 'K',
+          socialLinks: {},
+        },
+        {
+          name: 'Dara',
+          business: 'Dara Sparkle',
+          state: 'Texas',
+          initials: 'D',
+          socialLinks: {},
+        },
+        {
+          name: 'Erika',
+          business: 'Erika Sparkle',
+          state: 'Texas',
+          initials: 'E',
+          imageUrl: 'https://cdn.example.com/public-site-media/erika.jpg',
+          socialLinks: {},
+        },
+      ],
+    )
+
+    expect(join.repImageUrl).toBe('https://cdn.example.com/public-site-media/kelly.jpg')
+    expect(join.teamMembers[0]?.imageUrl).toBe(
+      'https://cdn.example.com/public-site-media/kelly.jpg',
+    )
+    expect(join.teamMembers[1]?.imageUrl).toBeUndefined()
+    expect(join.teamMembers[2]?.imageUrl).toBe(
+      'https://cdn.example.com/public-site-media/erika.jpg',
+    )
+  })
+
   it('maps saved TikTok and Whatnot destinations independently for hero actions', () => {
     const homepage = mapPreviewSettingsToHomepageTemplateData({
       ...demoSettings,

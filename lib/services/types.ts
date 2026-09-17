@@ -615,6 +615,11 @@ export interface SiteSettingsDashboardResult {
   businessName: string
   email: string
   phone: string
+  /**
+   * Public profile photo for the Join Team lead card.
+   * Stored on reps.profile_photo_url. Member cards use join_team_members.photo_url.
+   */
+  profilePhotoUrl?: string
   /** The rep-owned store destination used by public customer-site Shop actions. */
   shopLink?: string
   /** The rep-owned Bomb Party enrollment destination used by public Join Team actions. */
@@ -652,6 +657,7 @@ export interface UpdateSiteSettingsDashboardInput {
   businessName?: string
   email?: string
   phone?: string
+  profilePhotoUrl?: string
   shopLink?: string
   recruitingLink?: string
   bannerText?: string

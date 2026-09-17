@@ -5041,6 +5041,15 @@
   gap: 10px;
 }
 
+.teamLeadCard {
+  display: grid;
+  gap: 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(238, 44, 155, 0.16);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 14px;
+}
+
 .teamRosterCard {
   display: grid;
   grid-template-columns: 54px minmax(0, 1fr);

@@ -57,6 +57,8 @@ export interface AmethystJoinTemplateData {
   repCity: string
   repState: string
   businessName: string
+  /** Join Team lead-card photo. Separate from member card imageUrl values. */
+  repImageUrl?: string
   teamName: string
   /** The upline or other team this rep belongs to, shown in the public footer. */
   memberTeamName?: string

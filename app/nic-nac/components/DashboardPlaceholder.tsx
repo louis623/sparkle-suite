@@ -50,6 +50,10 @@ import {
   DEFAULT_AMETHYST_APPEARANCE_PRESET,
   normalizeAmethystAppearancePreset,
 } from '@/lib/amethyst/appearance-presets'
+import {
+  findMatchingLeadRosterMember,
+  resolveLeadCardPhotoUrl,
+} from '@/lib/amethyst/join-lead-card'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
 import {
   getAmethystSkinCardsForRep,
@@ -1988,6 +1992,31 @@ const TEAM_PROFILE_PHOTO_TYPES = new Set([
   'image/png',
   'image/webp',
 ])
+
+async function requestJoinTeamProfilePhotoUpload(file: File) {
+  if (!TEAM_PROFILE_PHOTO_TYPES.has(file.type)) {
+    throw new Error('Choose a JPG, PNG, or WebP image.')
+  }
+
+  if (file.size > TEAM_PROFILE_PHOTO_MAX_BYTES) {
+    throw new Error('Profile photos must be 3 MB or smaller.')
+  }
+
+  const base64Data = await readFileAsDataUrl(file)
+  const response = await fetch('/api/nic-nac/join-team-roster/photo', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ base64Data, filename: file.name }),
+  })
+  const payload = (await response.json().catch(() => null)) as
+    | { error?: string; imageUrl?: string }
+    | null
+  if (!response.ok || !payload?.imageUrl) {
+    throw new Error(payload?.error || 'Unable to upload that profile photo right now.')
+  }
+  return payload.imageUrl
+}
 
 type BrowserFaceDetector = {
   detect: (image: HTMLImageElement) => Promise<Array<{ boundingBox: DOMRectReadOnly }>>
@@ -5419,24 +5448,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   async function handlePublicTeamPhotoUpload(file: File | null) {
     if (!file) return
 
-    if (!TEAM_PROFILE_PHOTO_TYPES.has(file.type)) {
-      setTeamManagementActionState({
-        pendingKey: null,
-        error: 'Choose a JPG, PNG, or WebP image.',
-        helperMessage: null,
-      })
-      return
-    }
-
-    if (file.size > TEAM_PROFILE_PHOTO_MAX_BYTES) {
-      setTeamManagementActionState({
-        pendingKey: null,
-        error: 'Profile photos must be 3 MB or smaller.',
-        helperMessage: null,
-      })
-      return
-    }
-
     setTeamManagementActionState({
       pendingKey: 'public-team:photo-upload',
       error: null,
@@ -5444,23 +5455,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const base64Data = await readFileAsDataUrl(file)
-      const response = await fetch('/api/nic-nac/join-team-roster/photo', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ base64Data, filename: file.name }),
-      })
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: string; imageUrl?: string }
-        | null
-      if (!response.ok || !payload?.imageUrl) {
-        throw new Error(payload?.error || 'Unable to upload that profile photo right now.')
-      }
-
+      const imageUrl = await requestJoinTeamProfilePhotoUpload(file)
       setPublicTeamDraft((current) => ({
         ...current,
-        photoUrl: payload.imageUrl ?? current.photoUrl,
+        photoUrl: imageUrl,
       }))
       setTeamManagementActionState({
         pendingKey: null,
@@ -5474,6 +5472,151 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           error instanceof Error
             ? error.message
             : 'Unable to upload that profile photo right now.',
+        helperMessage: null,
+      })
+    }
+  }
+
+  async function persistLeadCardPhotoUrl(imageUrl: string) {
+    const response = await fetch('/api/nic-nac/site-settings', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ profilePhotoUrl: imageUrl }),
+    })
+    const payload = (await response.json().catch(() => null)) as
+      | { error?: string; settings?: SiteSettingsDashboardResult }
+      | null
+    if (!response.ok || !payload?.settings) {
+      throw new Error(payload?.error || 'Unable to save that lead card photo right now.')
+    }
+    const savedSettings = payload.settings
+    setSiteSettingsState({ status: 'ready', settings: savedSettings })
+    setSiteSettingsDraft((current) =>
+      current
+        ? { ...current, profilePhotoUrl: savedSettings.profilePhotoUrl ?? imageUrl }
+        : getSiteSettingsDraft(savedSettings, {
+            isBrittWithBling: isBrittWithBlingWorkspace,
+          }),
+    )
+    return savedSettings.profilePhotoUrl ?? imageUrl
+  }
+
+  async function persistMemberCardPhotoUrl(member: JoinTeamMember, imageUrl: string) {
+    const draft = {
+      ...getJoinTeamRosterDraft(member),
+      photoUrl: imageUrl,
+    }
+    const response = await fetch('/api/nic-nac/join-team-roster', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        action: 'upsert',
+        member: buildJoinTeamRosterSavePayload(draft),
+      }),
+    })
+    const payload = (await response.json().catch(() => null)) as
+      | JoinTeamRosterResponsePayload
+      | null
+    if (!response.ok || !payload?.member) {
+      throw new Error(payload?.error || 'Unable to save that team card photo right now.')
+    }
+    const savedMember = payload.member
+    setTeamManagementState((current) => {
+      const roster = current.publicTeamRoster ?? []
+      return {
+        ...current,
+        publicTeamRoster: roster.map((item) =>
+          item.id === savedMember.id ? savedMember : item,
+        ),
+      }
+    })
+    setPublicTeamDraft((current) =>
+      current.id === savedMember.id
+        ? { ...current, photoUrl: savedMember.photoUrl }
+        : current,
+    )
+    return savedMember
+  }
+
+  async function handleLeadCardPhotoUpload(file: File | null) {
+    if (!file) return
+
+    setTeamManagementActionState({
+      pendingKey: 'lead-card:photo-upload',
+      error: null,
+      helperMessage: null,
+    })
+
+    try {
+      const imageUrl = await requestJoinTeamProfilePhotoUpload(file)
+      await persistLeadCardPhotoUrl(imageUrl)
+      const matchingMember = findMatchingLeadRosterMember(
+        teamManagementState.publicTeamRoster ?? [],
+        {
+          name: siteSettingsDraft?.displayName ?? siteSettingsState.settings?.displayName,
+          business:
+            siteSettingsDraft?.businessName ?? siteSettingsState.settings?.businessName,
+        },
+      )
+      if (matchingMember) {
+        await persistMemberCardPhotoUrl(matchingMember, imageUrl)
+      }
+      setTeamManagementActionState({
+        pendingKey: null,
+        error: null,
+        helperMessage: 'Lead card photo saved. Customers see it on your Join Team lead card.',
+      })
+    } catch (error) {
+      setTeamManagementActionState({
+        pendingKey: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unable to save that lead card photo right now.',
+        helperMessage: null,
+      })
+    }
+  }
+
+  async function handleMemberCardPhotoUpload(
+    member: JoinTeamMember,
+    file: File | null,
+  ) {
+    if (!file) return
+
+    setTeamManagementActionState({
+      pendingKey: `member-card:photo-upload:${member.id}`,
+      error: null,
+      helperMessage: null,
+    })
+
+    try {
+      const imageUrl = await requestJoinTeamProfilePhotoUpload(file)
+      const savedMember = await persistMemberCardPhotoUrl(member, imageUrl)
+      const matchesLead = Boolean(
+        findMatchingLeadRosterMember([savedMember], {
+          name: siteSettingsDraft?.displayName ?? siteSettingsState.settings?.displayName,
+          business:
+            siteSettingsDraft?.businessName ?? siteSettingsState.settings?.businessName,
+        }),
+      )
+      if (matchesLead) {
+        await persistLeadCardPhotoUrl(imageUrl)
+      }
+      setTeamManagementActionState({
+        pendingKey: null,
+        error: null,
+        helperMessage: `${savedMember.displayName}'s photo is on their Join Team card.`,
+      })
+    } catch (error) {
+      setTeamManagementActionState({
+        pendingKey: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unable to save that team card photo right now.',
         helperMessage: null,
       })
     }
@@ -6192,6 +6335,20 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             teamName={managedTeamName}
             recruitingLink={siteSettingsDraft?.recruitingLink ?? ''}
             joinTeamPreviewHref={customerJoinTeamHref}
+            leadCard={{
+              displayName:
+                siteSettingsDraft?.displayName ??
+                siteSettingsState.settings?.displayName ??
+                '',
+              businessName:
+                siteSettingsDraft?.businessName ??
+                siteSettingsState.settings?.businessName ??
+                '',
+              photoUrl:
+                siteSettingsDraft?.profilePhotoUrl ??
+                siteSettingsState.settings?.profilePhotoUrl ??
+                '',
+            }}
             onTeamNameChange={(teamName) => handleSiteSettingsDraftChange({ teamName })}
             onRecruitingLinkChange={(recruitingLink) =>
               handleSiteSettingsDraftChange({ recruitingLink })
@@ -6203,6 +6360,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             onArchiveParticipant={handleArchiveTeamOnboardingParticipant}
             onPublicTeamDraftChange={handlePublicTeamDraftChange}
             onUploadPublicTeamPhoto={handlePublicTeamPhotoUpload}
+            onUploadLeadCardPhoto={handleLeadCardPhotoUpload}
+            onUploadMemberCardPhoto={handleMemberCardPhotoUpload}
             onSavePublicTeamMember={handleSavePublicTeamMember}
             onEditPublicTeamMember={handleEditPublicTeamMember}
             onTogglePublicTeamMember={handleTogglePublicTeamMember}
@@ -10416,6 +10575,7 @@ export function TeamManagementCard({
   teamName = '',
   recruitingLink = '',
   joinTeamPreviewHref = '/amethyst/Join.html',
+  leadCard,
   onTeamNameChange,
   onRecruitingLinkChange,
   onSaveTeamDetails,
@@ -10425,6 +10585,8 @@ export function TeamManagementCard({
   onArchiveParticipant,
   onPublicTeamDraftChange,
   onUploadPublicTeamPhoto,
+  onUploadLeadCardPhoto,
+  onUploadMemberCardPhoto,
   onSavePublicTeamMember,
   onEditPublicTeamMember,
   onTogglePublicTeamMember,
@@ -10438,6 +10600,11 @@ export function TeamManagementCard({
   teamName?: string
   recruitingLink?: string
   joinTeamPreviewHref?: string
+  leadCard?: {
+    displayName: string
+    businessName: string
+    photoUrl: string
+  }
   onTeamNameChange?: (value: string) => void
   onRecruitingLinkChange?: (value: string) => void
   onSaveTeamDetails?: () => void
@@ -10447,6 +10614,8 @@ export function TeamManagementCard({
   onArchiveParticipant?: (participantId: string) => void
   onPublicTeamDraftChange?: (patch: Partial<JoinTeamRosterDraft>) => void
   onUploadPublicTeamPhoto?: (file: File | null) => void
+  onUploadLeadCardPhoto?: (file: File | null) => void
+  onUploadMemberCardPhoto?: (member: JoinTeamMember, file: File | null) => void
   onSavePublicTeamMember?: () => void
   onEditPublicTeamMember?: (member: JoinTeamMember) => void
   onTogglePublicTeamMember?: (member: JoinTeamMember) => void
@@ -10603,8 +10772,11 @@ export function TeamManagementCard({
           actionState={actionState}
           joinTeamPreviewHref={joinTeamPreviewHref}
           isLoading={isLoading}
+          leadCard={leadCard}
           onDraftChange={onPublicTeamDraftChange}
           onUploadPhoto={onUploadPublicTeamPhoto}
+          onUploadLeadPhoto={onUploadLeadCardPhoto}
+          onUploadMemberPhoto={onUploadMemberCardPhoto}
           onSave={onSavePublicTeamMember}
           onEdit={onEditPublicTeamMember}
           onToggle={onTogglePublicTeamMember}
@@ -10726,6 +10898,95 @@ function findParticipantForRosterMember(
   )
 }
 
+function TeamCardPhotoField({
+  photoUrl,
+  photoAlt,
+  emptyLabel,
+  permissionLabel,
+  isUploading,
+  showInstructions = false,
+  instructionTitle = 'Profile photo process',
+  onUpload,
+}: {
+  photoUrl: string
+  photoAlt: string
+  emptyLabel: string
+  permissionLabel: string
+  isUploading: boolean
+  showInstructions?: boolean
+  instructionTitle?: string
+  onUpload?: (file: File | null) => void
+}) {
+  const [photoPermissionConfirmed, setPhotoPermissionConfirmed] = useState(false)
+  const uploadLabel = isUploading
+    ? 'Uploading photo...'
+    : photoUrl
+      ? 'Replace photo'
+      : 'Upload photo'
+
+  return (
+    <div className={styles.teamPhotoWorkflow}>
+      {showInstructions ? (
+        <div className={styles.teamPhotoInstructions}>
+          <strong>{instructionTitle}</strong>
+          <ol>
+            <li>Save or download the photo to your device.</li>
+            <li>Confirm you have permission to publish it.</li>
+            <li>Upload it, review the square preview, then keep the card saved.</li>
+          </ol>
+          <span>
+            Use JPG, PNG, or WebP up to 3 MB. A TikTok page link is not a
+            photo file.
+          </span>
+        </div>
+      ) : null}
+
+      <div className={styles.teamPhotoControls}>
+        <div className={styles.teamPhotoPreview} aria-label="Profile photo preview">
+          {photoUrl ? (
+            <img src={photoUrl} alt={photoAlt} />
+          ) : (
+            <span>{emptyLabel}</span>
+          )}
+        </div>
+        <div className={styles.teamPhotoActions}>
+          <label className={styles.teamPhotoPermission}>
+            <input
+              type="checkbox"
+              checked={photoPermissionConfirmed}
+              onChange={(event) =>
+                setPhotoPermissionConfirmed(event.target.checked)
+              }
+            />
+            <span>{permissionLabel}</span>
+          </label>
+          <label
+            className={`${styles.helperButton} ${styles.teamPhotoUploadButton} ${
+              !photoPermissionConfirmed || isUploading
+                ? styles.teamPhotoUploadButtonDisabled
+                : ''
+            }`}
+          >
+            {uploadLabel}
+            <input
+              className={styles.visuallyHiddenFileInput}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              disabled={!photoPermissionConfirmed || isUploading}
+              onChange={(event) => {
+                const file = event.target.files?.[0] ?? null
+                onUpload?.(file)
+                event.target.value = ''
+                setPhotoPermissionConfirmed(false)
+              }}
+            />
+          </label>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function PublicTeamRosterPanel({
   members,
   participants,
@@ -10733,8 +10994,11 @@ function PublicTeamRosterPanel({
   actionState,
   joinTeamPreviewHref,
   isLoading,
+  leadCard,
   onDraftChange,
   onUploadPhoto,
+  onUploadLeadPhoto,
+  onUploadMemberPhoto,
   onSave,
   onEdit,
   onToggle,
@@ -10752,8 +11016,15 @@ function PublicTeamRosterPanel({
   actionState?: TeamManagementActionState
   joinTeamPreviewHref: string
   isLoading: boolean
+  leadCard?: {
+    displayName: string
+    businessName: string
+    photoUrl: string
+  }
   onDraftChange?: (patch: Partial<JoinTeamRosterDraft>) => void
   onUploadPhoto?: (file: File | null) => void
+  onUploadLeadPhoto?: (file: File | null) => void
+  onUploadMemberPhoto?: (member: JoinTeamMember, file: File | null) => void
   onSave?: () => void
   onEdit?: (member: JoinTeamMember) => void
   onToggle?: (member: JoinTeamMember) => void
@@ -10765,10 +11036,21 @@ function PublicTeamRosterPanel({
   onArchiveParticipant?: (participantId: string) => void
   onOpenMessages?: (conversationId: string) => void
 }) {
-  const [photoPermissionConfirmed, setPhotoPermissionConfirmed] = useState(false)
   const saveLabel = draft.id ? 'Save card changes' : 'Save team member card'
   const isPhotoUploading =
     actionState?.pendingKey === 'public-team:photo-upload'
+  const isLeadPhotoUploading =
+    actionState?.pendingKey === 'lead-card:photo-upload'
+  const matchingLeadMember = findMatchingLeadRosterMember(members, {
+    name: leadCard?.displayName,
+    business: leadCard?.businessName,
+  })
+  const leadPhotoUrl = resolveLeadCardPhotoUrl(
+    leadCard?.photoUrl,
+    matchingLeadMember?.photoUrl,
+  )
+  const leadInitials = (leadCard?.displayName?.trim().charAt(0) || '?').toUpperCase()
+  const leadName = leadCard?.displayName?.trim() || 'your lead card'
 
   return (
     <section
@@ -10810,6 +11092,43 @@ function PublicTeamRosterPanel({
           </li>
           <li>Open onboarding questions through the Message Center.</li>
         </ul>
+      </div>
+
+      <div className={styles.teamLeadCard}>
+        <div className={styles.workspaceSectionHeader}>
+          <div>
+            <div className={styles.walletSettingsTitle}>Your Join Team card</div>
+            <div className={styles.helperNote}>
+              This photo is the one customers see on your lead card. Member
+              cards below keep their own photos. Letter initials show only when
+              no photo is saved. This is not a separate Finder profile picture
+              field — Sparkle Suite stores it as your public profile photo so
+              the Join Team lead card can show it.
+            </div>
+          </div>
+          <span className={styles.rosterTag}>Lead</span>
+        </div>
+        <div className={styles.helperNote}>
+          {leadCard?.businessName?.trim()
+            ? `${leadName} · ${leadCard.businessName.trim()}`
+            : leadName}
+        </div>
+        {matchingLeadMember ? (
+          <div className={styles.helperNote}>
+            Your lead card also appears in the team list below. Uploading here
+            updates the photo customers see.
+          </div>
+        ) : null}
+        <TeamCardPhotoField
+          photoUrl={leadPhotoUrl}
+          photoAlt={`${leadName} Join Team lead card photo`}
+          emptyLabel={leadInitials}
+          permissionLabel="I have permission to publish this photo on the public Join Team page."
+          isUploading={isLeadPhotoUploading}
+          showInstructions
+          instructionTitle="Lead card photo"
+          onUpload={onUploadLeadPhoto}
+        />
       </div>
 
       <div className={styles.teamRosterWorkspace}>
@@ -10860,67 +11179,16 @@ function PublicTeamRosterPanel({
             </label>
           </div>
 
-          <div className={styles.teamPhotoWorkflow}>
-            <div className={styles.teamPhotoInstructions}>
-              <strong>Profile photo process</strong>
-              <ol>
-                <li>Save or download the team member&apos;s profile photo to your device.</li>
-                <li>Confirm you have permission to publish it.</li>
-                <li>Upload it, review the square preview, then save the card.</li>
-              </ol>
-              <span>
-                Use JPG, PNG, or WebP up to 3 MB. A TikTok page link is not a
-                photo file.
-              </span>
-            </div>
-
-            <div className={styles.teamPhotoControls}>
-              <div className={styles.teamPhotoPreview} aria-label="Profile photo preview">
-                {draft.photoUrl ? (
-                  <img src={draft.photoUrl} alt="Team member card preview" />
-                ) : (
-                  <span>No photo selected</span>
-                )}
-              </div>
-              <div className={styles.teamPhotoActions}>
-                <label className={styles.teamPhotoPermission}>
-                  <input
-                    type="checkbox"
-                    checked={photoPermissionConfirmed}
-                    onChange={(event) =>
-                      setPhotoPermissionConfirmed(event.target.checked)
-                    }
-                  />
-                  <span>
-                    I have permission to publish this team member&apos;s photo on
-                    the public Join Team page.
-                  </span>
-                </label>
-                <label
-                  className={`${styles.helperButton} ${styles.teamPhotoUploadButton} ${
-                    !photoPermissionConfirmed || isPhotoUploading
-                      ? styles.teamPhotoUploadButtonDisabled
-                      : ''
-                  }`}
-                >
-                  {isPhotoUploading ? 'Uploading photo...' : 'Upload profile photo'}
-                  <input
-                    className={styles.visuallyHiddenFileInput}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    disabled={!photoPermissionConfirmed || isPhotoUploading}
-                    onChange={(event) => {
-                      const file = event.target.files?.[0] ?? null
-                      onUploadPhoto?.(file)
-                      event.target.value = ''
-                      setPhotoPermissionConfirmed(false)
-                    }}
-                  />
-                </label>
-              </div>
-            </div>
-
-          </div>
+          <TeamCardPhotoField
+            photoUrl={draft.photoUrl}
+            photoAlt="Team member card preview"
+            emptyLabel="No photo selected"
+            permissionLabel="I have permission to publish this team member's photo on the public Join Team page."
+            isUploading={isPhotoUploading}
+            showInstructions
+            instructionTitle="Profile photo process"
+            onUpload={onUploadPhoto}
+          />
 
           <div className={styles.teamSocialGrid}>
             <label className={styles.searchField}>
@@ -11031,6 +11299,9 @@ function PublicTeamRosterPanel({
                 participant &&
                 actionState?.pendingKey ===
                   `onboarding:refresh:${participant.id}`
+              const isMemberPhotoUploading =
+                actionState?.pendingKey ===
+                `member-card:photo-upload:${member.id}`
 
               return (
               <div key={member.id} className={styles.teamRosterCard} role="listitem">
@@ -11065,6 +11336,16 @@ function PublicTeamRosterPanel({
                       <span>No links yet</span>
                     ) : null}
                   </div>
+                  <TeamCardPhotoField
+                    photoUrl={member.photoUrl}
+                    photoAlt={member.photoAlt || member.displayName}
+                    emptyLabel={
+                      member.initials || member.displayName.slice(0, 1) || '?'
+                    }
+                    permissionLabel="I have permission to publish this photo on the public Join Team page."
+                    isUploading={Boolean(isMemberPhotoUploading)}
+                    onUpload={(file) => onUploadMemberPhoto?.(member, file)}
+                  />
                   <div className={styles.teamOnboardingCardPanel}>
                     <div className={styles.workspaceSectionHeader}>
                       <div>

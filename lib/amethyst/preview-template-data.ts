@@ -22,6 +22,10 @@ import {
   type AmethystJoinTeamMember,
   type AmethystJoinTemplateData,
 } from './join-template-data'
+import {
+  joinLeadIdentityMatches,
+  resolveJoinCardImageUrl,
+} from './join-lead-card'
 import { resolveAmethystPreviewRep } from './preview-rep'
 import {
   getRequiredSetupState,
@@ -701,6 +705,21 @@ export function mapPreviewSettingsToJoinTemplateData(
   const shopUrl = resolveShopUrl(extras)
   const joinUrl = clean(settings.recruitingLink)
   const hasRecruitingLink = Boolean(joinUrl)
+  const leadImageUrl = settings.profilePhotoUrl?.trim() || undefined
+  const leadIdentity = { name: repName, business: businessName }
+  const resolvedTeamMembers = (teamMembers ?? defaultAmethystJoinTemplateData.teamMembers).map(
+    (member) => ({
+      ...member,
+      imageUrl: resolveJoinCardImageUrl(
+        member.imageUrl,
+        leadImageUrl,
+        joinLeadIdentityMatches(
+          { name: member.name, business: member.business },
+          leadIdentity,
+        ),
+      ),
+    }),
+  )
 
   const join: AmethystJoinTemplateData = {
     ...defaultAmethystJoinTemplateData,
@@ -709,6 +728,7 @@ export function mapPreviewSettingsToJoinTemplateData(
     repCity: '',
     repState: '',
     businessName,
+    repImageUrl: leadImageUrl,
     teamName,
     memberTeamName: settings.memberTeamName?.trim() || undefined,
     heroTitle: `Join ${teamName}`,
@@ -736,12 +756,12 @@ export function mapPreviewSettingsToJoinTemplateData(
       preOrders: shopUrl,
       contact: `mailto:${settings.email}`,
     },
-    ...(teamMembers ? { teamMembers } : {}),
+    teamMembers: teamMembers ? resolvedTeamMembers : defaultAmethystJoinTemplateData.teamMembers,
   }
 
   if (isMileHighFizzSettings(settings)) return applyMileHighFizzJoin(join)
   if (isBrittWithBlingSettings(settings, extras.publicSiteSlug)) {
-    return applyBrittWithBlingJoin(join, teamMembers ?? [])
+    return applyBrittWithBlingJoin(join, teamMembers ? resolvedTeamMembers : [])
   }
   if (isBlingKitchenSettings(settings)) {
     return {
