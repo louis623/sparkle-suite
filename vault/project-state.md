@@ -1,5 +1,19 @@
 # Project State
 
+## September 17, 2026 - GitHub now mirrors live Pass C
+
+Louis authorized a Git hygiene merge so GitHub matches Suite production.
+`codex/nic-nac-trade-hardening` fast-forwarded through PR #5 to application
+SHA `8dccff6f` (`fix(join): clip team-card photos to the circular avatar
+disc`). Join cache-bust on the branch tip is
+`20260917-team-social-lead-photo-avatar-clip-v1`. That SHA was already live
+on Vercel Suite prod (`dpl_B3Z65C1C95vhPq3UKuayRPC3ryZX`); this change is
+provenance only — no redeploy. PR #5 is merged. Pass A PR #2 and Pass B
+PR #3 were already merged onto this branch (`4f211888` / `9262be6c` via
+`6d49b9bb` / `0d4d1416`); left closed. Live Queue PR #1 left open. Pass A
+Connect SVG icons, Pass B Upload/Replace, and Pass C avatar clip are all
+on the production tip. No Live Lineup / CWS / waitlist work.
+
 ## September 17, 2026 - Pass C Join team-card avatar clip (merge-ready)
 
 Louis approved Pass C: clip Join team-card photos (lead + members) to the

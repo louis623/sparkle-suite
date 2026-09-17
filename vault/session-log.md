@@ -1,5 +1,21 @@
 # Session Log
 
+## September 17, 2026 - Git hygiene: merge PR #5 so GitHub matches prod
+
+- Louis authorized merging Pass C into `codex/nic-nac-trade-hardening`
+  after Sam's GitHub MCP got 403 on merge. No redeploy.
+- Origin production tip was `f76bc20e`. PR #5 head `8dccff6f` was a
+  clean fast-forward (Pass C already live on Vercel).
+- Fast-forwarded and pushed. Origin tip is now
+  `8dccff6ff688550fd2dc7f5e339d4921a3dcf7af`. GitHub marked PR #5 merged.
+- Join cache-bust on the tip:
+  `20260917-team-social-lead-photo-avatar-clip-v1`.
+- PR #2 (Pass A, `4f211888`) and PR #3 (Pass B, `9262be6c`) were already
+  merged/closed; their commits remain ancestors. No extra close needed.
+- Left Live Queue PR #1 open. Confirmed no feature drop: Connect SVG
+  `TeamConnect`, Workspace Upload/Replace, and avatar `overflow: hidden`
+  / `border-radius: 50%` all remain on the tip.
+
 ## September 17, 2026 - Pass C clip Join team-card photos to the avatar disc
 
 - Started from production tip `f76bc20e` on `codex/nic-nac-trade-hardening`.
