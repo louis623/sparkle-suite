@@ -1,5 +1,23 @@
 # Session Log
 
+## September 17, 2026 - Merge Pass A + Pass B; Suite deploy not released
+
+- Inspected PR #2 (`4f211888`, Connect SVG marks) and PR #3 (`9262be6c`,
+  lead/member photo upload) against production tip `b15caaa2`.
+- Fast-forwarded `codex/nic-nac-trade-hardening` through integration branch
+  `cursor/team-card-icons-and-photo-8050` / PR #4. Application SHA
+  `0d4d1416`. PRs #2, #3, and #4 are merged on GitHub.
+- Resolved Join.html / join-runtime cache-bust to
+  `20260917-team-social-lead-photo-v1` so icons and lead photo both ship.
+  Rebuilt `join-runtime.js` from merged `join.jsx`.
+- Tests: 9 files / 281 passed (social marks, Join template, static assets,
+  lead-card identity, preview data, Team Management UI, site-settings) plus
+  3 files / 15 passed (roster/photo routes).
+- Branch gate passed. Pushed production. `npx vercel --prod` failed:
+  login required, no `VERCEL_TOKEN` in this environment. Live Join still
+  uses `20260914-team-recruiting-v1`. Finder Git deploy on the shared
+  branch completed; Suite aliases did not move.
+
 ## September 8, 2026 - LOC control-center rebuild and verification
 
 Implemented and tested the LOC integration with coordinated UI, agent registry and Suite/Finder bridge work. See [checkpoint](2026-09-08-loc-control-center-build-checkpoint.md) for exact verification and remaining gates. Final browser requests validate against the actual catalog; Fold/cover layouts preserve LOC styling. Preserved concurrent Live Lineup audit work. No live customer mutations or release occurred. Protected reviewer link requested from Louis; do not substitute personal customer data.

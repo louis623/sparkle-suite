@@ -1,5 +1,23 @@
 # Project State
 
+## September 17, 2026 - Pass A + Pass B merged; Suite production deploy blocked
+
+Louis authorized combining Pass A (Connect SVG icons, PR #2) and Pass B
+(Team Management lead/member photo upload, PR #3) and deploying to production.
+Both are on production branch `codex/nic-nac-trade-hardening` at application
+SHA `0d4d1416`. Integration PR #4 merged. Join cache-bust is the single
+combined version `20260917-team-social-lead-photo-v1` on `join.css` and
+`join-runtime.js`. Focused tests passed. The Suite Git push is provenance
+only. This Cloud Agent had no Vercel login/`VERCEL_TOKEN`, so the manual
+Suite production deploy did not run. Live
+`https://www.yoursparklesuite.com` still served
+`join-runtime.js?v=20260914-team-recruiting-v1` after the push. Do not smoke
+Kelly `/join` icons or Workspace lead photo Upload/Replace as live until a
+manual Suite deploy of `0d4d1416` (or a later docs tip) is confirmed on www
+and apex. A shared-branch Git deploy for `sparkle-finder-dev` completed as a
+side effect; Finder live `https://yoursparklefinder.com` still returned 200.
+No Live Lineup / CWS / waitlist changes.
+
 ## September 14, 2026 - Neon Butterfly final state and reusable hero standard
 
 Kelly's private Neon Butterfly skin is live on `sparklybutterflies.com` and is

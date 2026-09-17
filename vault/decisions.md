@@ -1,5 +1,12 @@
 # Decision Log
 
+## 2026-09-17 - Combined Join cache-bust for Connect icons + lead photo
+
+When Pass A (`team-social-v1`) and Pass B (`team-lead-photo-v1`) both bump
+Join.html cache-bust query strings, ship one combined version that includes
+both intents. Production merge used `20260917-team-social-lead-photo-v1` on
+both `join.css` and `join-runtime.js`. Do not deploy either pass alone.
+
 ## 2026-09-08 - Sparkle controls use LOC style and assignable agent access
 
 Louis confirmed full control-center functionality should be rebuilt using LOC cream/sage styling and mobile navigation. Keep the existing center operational until parallel testing and acceptance. Use one named operation catalog for owner UI and agent API/MCP, with current per-area/action/target grants, durable receipts and explicit selected memory routing. Shared agent credentials represent a shared identity, not isolated bots; shared connections cannot Act. See [checkpoint](2026-09-08-loc-control-center-build-checkpoint.md).
