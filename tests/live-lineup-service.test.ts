@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { claimPublisher, createLineupState, applySourcePacket, applyLineupCommand } from '@/lib/live-lineup/model'
-import { changeLineup, claimSource, describeSource, getEffectiveLiveQueueSnapshot, getWorkspaceLineup, hashPublisherToken, issuePublisher, listPublishers, readLineupState, receiveSource, revokePublisher } from '@/lib/live-lineup/service'
+import { changeLineup, claimSource, configureSourceParties, describeSource, getEffectiveLiveQueueSnapshot, getWorkspaceLineup, hashPublisherToken, issuePublisher, listPublishers, readLineupState, receiveSource, revokePublisher } from '@/lib/live-lineup/service'
 
 const now = Date.parse('2026-09-09T12:00:00.000Z')
 const repA = '11111111-1111-4111-8111-111111111111'
@@ -132,6 +132,31 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     expect(d.rows.live_queue[0].sync_code).toBe(beforeCode)
     expect(d.rows.live_lineup_publisher_tokens).toHaveLength(1)
   })
+  it('configures detected parties behind the assigned code and keeps exclusions tenant-bound', async () => {
+    const d = database()
+    d.rows.live_queue.push(
+      { rep_id: repA, sync_code: 'MHF-9446', queue: [], last_updated: null },
+      { rep_id: repB, sync_code: 'BBB-0002', queue: [], last_updated: null },
+    )
+    const firstClaim = await claimSource(d.db, 'MHF-9446', claimId, now, 0)
+    await receiveSource(d.db, 'MHF-9446', {
+      publisherId: repA, epoch: firstClaim.epoch, sequence: 0, sourceVersion: '2.0.3', generation: 0,
+      parserState: 'ready', entries: [
+        { id: 'p1:a', name: 'Reviewer One', orderedAt: now },
+        { id: 'p2:b', name: 'Reviewer Two', orderedAt: now + 1 },
+      ], revealedIds: [],
+    }, now + 1000)
+    const started = await configureSourceParties(d.db, 'MHF-9446', 0, ['p1', 'p2'], ['p2'], now + 2000)
+    expect(started).toMatchObject({ generation: 1, scope: { partyIds: ['p1', 'p2'], excludedPartyIds: ['p2'] } })
+    const secondClaim = await claimSource(d.db, 'MHF-9446', otherClaimId, now + 3000, 1)
+    expect(secondClaim.generation).toBe(1)
+    const changed = await configureSourceParties(d.db, 'MHF-9446', 1, ['p1', 'p2'], ['p1'], now + 4000)
+    expect(changed.scope?.excludedPartyIds).toEqual(['p1'])
+    const publicQueue = await getEffectiveLiveQueueSnapshot(d.db, repA, now + 4000)
+    expect(publicQueue?.queue).toEqual(['Reviewer Two'])
+    await expect(configureSourceParties(d.db, 'BBB-0002', 1, ['p1'], [], now + 4000)).rejects.toMatchObject({ code: 'lease_required' })
+    await expect(configureSourceParties(d.db, 'MHF-9446', 0, ['p1'], [], now + 4000)).rejects.toMatchObject({ code: 'show_changed' })
+  })
   it('returns only the authenticated show parsing scope, never names, private holds or lease credentials', async () => {
     const d = database()
     const claim = claimPublisher(createLineupState(), publisherId, 0, now, { claimId })
@@ -144,8 +169,8 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     d.rows.live_lineup_states.push({ rep_id: '33333333-3333-4333-8333-333333333333', revision: 999, state: { secret: 'other-tenant' } })
     const before = structuredClone(d.rows)
     const result = await describeSource(d.db, token, now + 3000)
-    expect(result).toEqual({ protocol: 2, generation: 1, scope: { partyIds: ['123'], startedAt: new Date(now + 2000).toISOString(), carryEntryIds: ['123:a'] }, serverTime: new Date(now + 3000).toISOString() })
-    expect(JSON.stringify(result)).not.toMatch(/PrivateName|other-tenant|rep-a|sslp_|claimId|publisher|held|excluded|revision/)
+    expect(result).toEqual({ protocol: 2, generation: 1, scope: { partyIds: ['123'], excludedPartyIds: [], startedAt: new Date(now + 2000).toISOString(), carryEntryIds: ['123:a'] }, serverTime: new Date(now + 3000).toISOString() })
+    expect(JSON.stringify(result)).not.toMatch(/PrivateName|other-tenant|rep-a|sslp_|claimId|publisher|held|revision/)
     expect(d.rows).toEqual(before)
   })
   it('rejects missing, revoked and expired setup credentials and fails closed on stored corruption', async () => {

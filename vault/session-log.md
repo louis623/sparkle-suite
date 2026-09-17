@@ -7349,3 +7349,20 @@ Lessons retained:
 - Preserved each rep's Join Team show/hide choice.
 - Verified the isolated release patch with 56 focused tests across the service,
   Workspace APIs, public Join route, roster, and profile-photo boundary.
+## September 17, 2026 - Live Lineup 2.0.3 implementation and verification
+
+- Replaced the rejected manual tab/source/party-ID flow with the approved
+  one-code experience and preserved every rep's existing assigned code.
+- Added automatic active Party Orders detection, automatic party discovery,
+  on/off control, party checkboxes, reload recovery, browser-restart recovery,
+  and migration from the 1.0.1 saved-code fields.
+- Added a narrow assigned-code-authenticated party configuration action. It is
+  tenant-derived, lease-bound, generation-checked, CAS-protected, and cannot
+  select another rep.
+- Verified the read-only content script has no navigation, DOM-writing,
+  credential storage, network, or dialog behavior.
+- Verification passed: extension-specific Node test, 455 Live Lineup/public/UI
+  tests, real HTTP/SQL/application end-to-end coverage, strict 12-file ZIP
+  verification, and the full production build.
+- Package: `sparkle-suite-live-lineup-2.0.3.zip`; SHA-256
+  `2f85e3f2c39e4e3eaf45f6522f9084ef60844c447f46456e7996751c554f351a`.

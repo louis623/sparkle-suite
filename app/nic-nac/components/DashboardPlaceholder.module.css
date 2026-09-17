@@ -1857,6 +1857,42 @@
   text-transform: uppercase;
 }
 
+.liveQueueCodeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.liveQueueCopyButton {
+  border: 1px solid rgba(139, 79, 240, 0.35);
+  border-radius: 10px;
+  background: var(--workspace-accent-soft);
+  color: var(--nic-nac-text-primary);
+  cursor: pointer;
+  padding: 8px 12px;
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.liveQueueCopyButton:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.liveQueueCopyButton:focus-visible {
+  outline: 3px solid rgba(139, 79, 240, 0.3);
+  outline-offset: 2px;
+}
+
+.liveQueueCopyError {
+  margin: 0;
+  color: #9f2444;
+  font-size: 12px;
+}
+
 .liveQueueCode {
   color: var(--nic-nac-text-primary);
   font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;

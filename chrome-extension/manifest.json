@@ -1,43 +1,20 @@
 {
   "manifest_version": 3,
   "name": "Sparkle Suite Live Queue",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Syncs live party order queue from Bomb Party to Sparkle Suite websites in real time.",
-  "permissions": [
-    "storage",
-    "alarms"
-  ],
-  "host_permissions": [
-    "https://myoffice.bombparty.com/*",
-    "https://www.yoursparklesuite.com/*"
-  ],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://myoffice.bombparty.com/live-party-orders*"
-      ],
-      "js": [
-        "queue-parser.js",
-        "content.js"
-      ],
-      "run_at": "document_idle"
-    }
-  ],
+  "permissions": ["storage", "alarms"],
+  "host_permissions": ["https://myoffice.bombparty.com/*", "https://www.yoursparklesuite.com/*"],
+  "background": {"service_worker": "background.js"},
+  "content_scripts": [{
+    "matches": ["https://myoffice.bombparty.com/live-party-orders*"],
+    "js": ["queue-parser.js", "content.js"],
+    "run_at": "document_idle"
+  }],
   "action": {
     "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
+    "default_icon": {"16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png"}
   },
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
+  "icons": {"16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png"},
   "minimum_chrome_version": "120"
 }

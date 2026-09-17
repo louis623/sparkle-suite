@@ -3690,3 +3690,17 @@ Verification passed:
   acceptance, explicit Standard confirmation, listing persistence, published
   readback, and synthetic cleanup. Active Suite demo and active rep accounts use
   this same production Nic-Nac/Dance Floor path.
+## September 17, 2026 - Live Lineup 2.0.3 release candidate
+
+- The established rep workflow is restored: enter the assigned Workspace Live
+  Queue code once, see a green Connected light, use one on/off switch, and
+  uncheck detected parties that should not appear.
+- Existing assigned codes remain unchanged and legacy 1.0.1 saved codes migrate
+  automatically. Ordinary Party Orders reloads and browser restarts reconnect
+  without manual tab or party-ID selection.
+- The strengthened backend remains in place: tenant isolation, publisher
+  leases, sequence/replay protection, bounded retries, parser safety, and
+  last-known-lineup retention.
+- Workspace Live Lineup now includes a Copy code button and plain-English setup
+  instructions. Version 2.0.3 is built and packaged for Chrome Web Store review;
+  automatic publishing must remain disabled.

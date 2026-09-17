@@ -2830,3 +2830,21 @@ Keep the rep-controlled Join Team visibility switch. Inclusion makes the feature
 available; it does not force a rep to publish a recruiting page.
 
 ---
+## 2026-09-17 - Live Lineup uses the assigned Workspace code and automatic source discovery
+
+Decision: The standard rep workflow is one existing assigned Live Queue code,
+entered once. The extension automatically finds the open Bomb Party Party
+Orders page and its parties, shows a green Connected light, provides one on/off
+switch, and lets the rep uncheck parties. Do not add computer names, one-time
+private keys, manual tab selection, manual party-ID entry, source confirmation,
+or a separate first-time-setup mode without Louis's explicit plain-English
+approval.
+
+Decision: Consequential workflow approval must be summarized first in short,
+plain-English bullets covering what reps do differently, what stops working,
+what stays compatible, and exactly what will be published. Long technical
+detail is supporting evidence, never the approval surface.
+
+Reason: The private-key/manual-source design broke the familiar working
+experience and made rep support materially harder. The reliability protections
+belong behind the simple workflow, not in front of the rep.

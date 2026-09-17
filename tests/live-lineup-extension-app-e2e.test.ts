@@ -111,20 +111,22 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
         getManifest: () => ({ version: '2.0.0' }),
         onMessage: { addListener: (listener: (...args: unknown[]) => unknown) => { workerListeners.message = listener } },
       },
-      storage: { local: storageArea(localStorage), session: storageArea(sessionStorage) },
+      storage: { local: storageArea(localStorage), session: storageArea(sessionStorage), sync: storageArea({}) },
       alarms: { create: async () => undefined, onAlarm: { addListener: (listener: (...args: unknown[]) => unknown) => { workerListeners.alarm = listener } } },
       tabs: {
-        get: async (id: number) => ({ id, url: 'https://myoffice.bombparty.com/live-party-orders' }),
-        sendMessage: async (_id: number, message: { generation: number; selection: string[] | { partyIds: string[] } }) => {
-          if (message.generation === 0) expect(message.selection).toEqual(['p1'])
-          else {
-            expect(Array.isArray(message.selection)).toBe(false)
-            expect((message.selection as { partyIds: string[] }).partyIds).toEqual(['p1'])
-          }
+        query: async () => [
+          { id: 9, active: true, url: 'https://myoffice.bombparty.com/live-party-orders' },
+          { id: 10, active: false, url: 'https://myoffice.bombparty.com/live-party-orders' },
+        ],
+        sendMessage: async (_id: number, message: { action: string; generation?: number; selection?: { partyIds: string[] } }) => {
+          if (message.action === 'sparkle-v2-inspect') return { protocol: 2, snapshot: sourceSnapshot }
+          expect(message.action).toBe('sparkle-v2-read')
+          expect(message.selection?.partyIds).toEqual(['p1'])
           return { protocol: 2, generation: message.generation, snapshot: sourceSnapshot }
         },
         onRemoved: { addListener: (listener: (...args: unknown[]) => unknown) => { workerListeners.removed = listener } },
         onUpdated: { addListener: (listener: (...args: unknown[]) => unknown) => { workerListeners.updated = listener } },
+        onActivated: { addListener: (listener: (...args: unknown[]) => unknown) => { workerListeners.activated = listener } },
       },
     }
     const workerContext = {
@@ -174,7 +176,6 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     const runWorker = (source: string) => runInContext(source, activeWorkerContext)
     await runWorker('ready')
     expect((await runWorker('exclusive(()=>popupMessage({action:"sparkle-v2-connect",credential:"MHF-9446"}))')).configured).toBe(true)
-    await runWorker('exclusive(()=>popupMessage({action:"sparkle-v2-select",tabId:9,generation:0,partyIds:["p1"]}))')
     expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
 
     // The server commits one snapshot but its acknowledgment is lost. A fresh
@@ -190,15 +191,14 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     await runWorker('ready')
     expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
 
-    // A second eligible tab cannot silently take authority; the most recent
-    // explicit selection wins, and navigation invalidates it before any post.
-    await runWorker('exclusive(()=>popupMessage({action:"sparkle-v2-select",tabId:10,generation:0,partyIds:["p1"]}))')
-    await runWorker('exclusive(()=>popupMessage({action:"sparkle-v2-select",tabId:9,generation:0,partyIds:["p1"]}))')
-    expect((await runWorker('exclusive(status)')).selectedTabId).toBe(9)
+    // Multiple eligible tabs use the active Party Orders tab. A normal reload
+    // keeps that choice and reconnects without asking the rep to select it.
+    expect((await runWorker('selected()')).tabId).toBe(9)
     workerListeners.updated!(9, { status: 'loading' })
     await runWorker('serial')
-    expect((await runWorker('exclusive(status)')).selectedTabId).toBeNull()
-    await runWorker('exclusive(()=>popupMessage({action:"sparkle-v2-select",tabId:9,generation:0,partyIds:["p1"]}))')
+    expect((await runWorker('selected()')).tabId).toBe(9)
+    workerListeners.updated!(9, { status: 'complete' })
+    await runWorker('serial')
 
     let owner = await json(await workspace.GET())
     const command = async (value: unknown) => json(await workspace.POST(request('/api/workspace/live-lineup', {
@@ -208,7 +208,7 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     owner = await command({ type: 'hold', entryId: 'p1:a' })
     owner = await command({ type: 'move', entryId: 'p1:c', beforeEntryId: 'p1:b' })
 
-    elapsed += 1_000
+    elapsed += 60_000
     const second = {
       ...first,
       entries: [first.entries[0], first.entries[2], { id: 'p1:d', name: 'New customer', orderedAt: Date.now() }],
@@ -270,16 +270,11 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
       expect(rendered.liveQueueEntries.map((entry: { name: string }) => entry.name)).toEqual(['Jessica', 'Casey', 'Morgan', 'New customer'])
     }
 
-    // A new show generation invalidates stale extension authority. After an
-    // explicit reselection, revocation stops the source and retained customer
-    // data ages honestly from delayed to offline.
+    // A new show generation is adopted automatically; no source selection is shown.
     owner = await json(await workspace.GET())
     owner = await command({ type: 'start-show', confirmed: true, partyIds: ['p1'], carryEntryIds: [] })
     elapsed += 1_000
-    expect((await runWorker('exclusive(pull)')).status).toBe('show_changed')
-    expect((await runWorker('exclusive(status)')).needsSelection).toBe(true)
     sourceSnapshot = { parserState: 'ready', entries: [], revealedIds: [], revealedEntries: [] }
-    await runWorker('exclusive(()=>popupMessage({action:"sparkle-v2-select",tabId:9,generation:1,partyIds:["p1"]}))')
     expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
     const empty = await json(await publicRoute.GET(new Request(`${origin}/api/amethyst/live-lineup?publicSiteSlug=synthetic`)))
     expect(empty.liveQueueState).toBe('empty')

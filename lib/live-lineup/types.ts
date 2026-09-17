@@ -8,7 +8,7 @@ export interface LineupShow { generation: number; partyIds: string[]; excludedPa
 export interface SourceDescriptor {
   protocol: 2
   generation: number
-  scope: { partyIds: string[]; startedAt: string; carryEntryIds: string[] } | null
+  scope: { partyIds: string[]; excludedPartyIds: string[]; startedAt: string; carryEntryIds: string[] } | null
   serverTime: string
 }
 export interface LineupState {

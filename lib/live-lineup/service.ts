@@ -227,21 +227,82 @@ function claimReceipt(state: LineupState, now: number) {
     acceptedSequence: state.publisher!.lastSequence, serverTime: new Date(now).toISOString(), leaseExpiresAt: state.publisher!.leaseExpiresAt }
 }
 
+function sourceDescriptor(state: LineupState | null, now: number): SourceDescriptor {
+  const show = state?.show
+  return {
+    protocol: 2,
+    generation: show?.generation ?? 0,
+    scope: show ? {
+      partyIds: [...show.partyIds], excludedPartyIds: [...show.excludedPartyIds],
+      startedAt: show.startedAt, carryEntryIds: [...show.carryEntryIds],
+    } : null,
+    serverTime: new Date(now).toISOString(),
+  }
+}
+
 /** Private setup read, not a lease or a ready heartbeat. The worker must require
  * deliberate source selection and echo this generation when claiming/publishing.
  * Never automatically adopt a newer generation after a show_changed response. */
 export async function describeSource(db: SupabaseClient, token: string | null, now = Date.now()): Promise<SourceDescriptor> {
   const publisher = await authenticatePublisher(db, token, now)
   const state = await readLineupState(db, publisher.rep_id)
-  const show = state?.show
-  return {
-    protocol: 2,
-    generation: show?.generation ?? 0,
-    scope: show ? {
-      partyIds: [...show.partyIds], startedAt: show.startedAt, carryEntryIds: [...show.carryEntryIds],
-    } : null,
-    serverTime: new Date(now).toISOString(),
+  return sourceDescriptor(state, now)
+}
+
+const sourcePartyId = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,60}$/.test(value)
+function sourcePartyList(value: unknown, allowEmpty = false): string[] {
+  if (!Array.isArray(value) || (!allowEmpty && value.length === 0) || value.length > 100
+    || !value.every(sourcePartyId) || new Set(value).size !== value.length) throw new LineupServiceError('invalid_payload', 400)
+  return [...value].sort()
+}
+
+/** Assigned-code authenticated plumbing for the old one-code experience. It can only
+ * configure the currently leased publisher for its own tenant; it cannot choose a rep. */
+export async function configureSourceParties(db: SupabaseClient, token: string | null, generation: unknown,
+  partyIds: unknown, excludedPartyIds: unknown, now = Date.now()): Promise<SourceDescriptor> {
+  if (!Number.isSafeInteger(generation) || (generation as number) < 0) throw new LineupServiceError('invalid_payload', 400)
+  const detected = sourcePartyList(partyIds), excluded = sourcePartyList(excludedPartyIds, true)
+  if (excluded.some(id => !detected.includes(id))) throw new LineupServiceError('invalid_scope', 409)
+  const publisher = await authenticatePublisher(db, token, now)
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const state = await readLineupState(db, publisher.rep_id)
+    if (!state?.publisher || state.publisher.id !== publisher.id || Date.parse(state.publisher.leaseExpiresAt) <= now) {
+      throw new LineupServiceError('lease_required', 409)
+    }
+    if ((state.show?.generation ?? 0) !== generation) throw new LineupServiceError('show_changed', 409)
+    let next: LineupState
+    if (!state.show) {
+      if (!state.lastReadyAt) throw new LineupServiceError('source_not_ready', 409)
+      const parties = [...new Set([...detected, ...state.entries.map(entry => entry.id.split(':')[0])])].sort()
+      if (parties.length > 100 || parties.some(id => !sourcePartyId(id))) throw new LineupServiceError('invalid_scope', 409)
+      const started = applyLineupCommand(state, {
+        type: 'start-show', partyIds: parties, carryEntryIds: state.entries.map(entry => entry.id),
+        confirmed: true, expectedRevision: state.revision,
+      }, now)
+      if (!started.ok || !started.state.show) throw new LineupServiceError(started.ok ? 'invalid_scope' : started.code, 409)
+      next = { ...started.state, show: { ...started.state.show, excludedPartyIds: excluded } }
+    } else {
+      const parties = [...new Set([...state.show.partyIds, ...detected])].sort()
+      if (parties.length > 100) throw new LineupServiceError('invalid_scope', 409)
+      const visibleNow = new Set(detected)
+      const exclusions = [...new Set([
+        ...state.show.excludedPartyIds.filter(id => !visibleNow.has(id)), ...excluded,
+      ])].sort()
+      if (isDeepStrictEqual(parties, state.show.partyIds) && isDeepStrictEqual(exclusions, state.show.excludedPartyIds)) {
+        return sourceDescriptor(state, now)
+      }
+      next = { ...state, revision: state.revision + 1, lastChangedAt: new Date(now).toISOString(),
+        show: { ...state.show, partyIds: parties, excludedPartyIds: exclusions } }
+    }
+    if (!isLineupState(next)) throw new LineupServiceError('invalid_scope', 409)
+    try {
+      await saveState(db, publisher.rep_id, state.revision, next, publisher.durableTokenId ?? undefined)
+      return sourceDescriptor(next, now)
+    } catch (error) {
+      if (!(error instanceof LineupServiceError) || error.code !== 'revision_conflict' || attempt === 2) throw error
+    }
   }
+  throw new LineupServiceError('revision_conflict', 409)
 }
 
 async function replayClaim(db: SupabaseClient, publisher: AuthenticatedPublisher, claimId: string, now: number, generation: number) {

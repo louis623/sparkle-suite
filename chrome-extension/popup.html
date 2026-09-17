@@ -1,10 +1,17 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=280,initial-scale=1"><title>Sparkle Suite Live Lineup</title><link rel="stylesheet" href="popup.css"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=300,initial-scale=1"><title>Sparkle Suite Live Lineup</title><link rel="stylesheet" href="popup.css"></head>
 <body><header><h1><span aria-hidden="true">&#10024;</span> Sparkle Suite</h1><p>Live Lineup · Read-only Bomb Party connection</p></header><main>
-<p id="error" role="alert"></p><div class="panel"><p id="health" role="status">Checking connection…</p><p id="last-ready" class="muted"></p></div>
-<fieldset id="controls"><section id="pairing" hidden><h2>Connect this browser</h2><p class="muted">Enter the Live Queue code shown at the top of your Sparkle Suite Workspace.</p>
-<form id="pair-form"><label for="pair-key">Live Queue code</label><input id="pair-key" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" required placeholder="ABC-1234"><button type="submit">Save code</button></form></section>
-<section id="connected" hidden><h2>Your source</h2><p id="current-source" class="muted"></p><p id="source-warning"></p><div class="actions"><button id="review-source" type="button">Review / select source</button><button id="pause" type="button" class="secondary">Pause</button></div><p class="muted">Pausing stops this browser’s updates. It does not clear your customer-facing lineup.</p>
-<div id="review" hidden><h2>Confirm source</h2><p id="show-summary"></p><form id="select-form"><label for="source-tab">Open Bomb Party orders tab</label><select id="source-tab" required></select><div id="initial-parties"><label for="party-ids">Party IDs, separated by commas</label><input id="party-ids" type="text" maxlength="6200" spellcheck="false" autocomplete="off" placeholder="123, 456"></div><label class="check"><input id="confirm-source" type="checkbox" required><span>I reviewed this show and want this browser to publish from the selected orders tab.</span></label><div class="actions"><button type="submit">Use this source</button><button type="button" id="cancel-review" class="secondary">Cancel</button></div></form></div>
-<p class="muted">Reorder, hold and return customers in Workspace. Start a new show there before switching to its parties.</p><details><summary>Disconnect this browser</summary><p class="muted">This removes the saved Live Queue code from this browser only. Your assigned Workspace code does not change.</p><label class="check"><input id="confirm-disconnect" type="checkbox"><span>Remove this browser’s saved Live Queue code.</span></label><button id="disconnect" type="button" class="secondary">Disconnect</button></details></section></fieldset>
-<p class="muted">Keep your Bomb Party orders tab open. This extension never refreshes or changes that page.</p></main><script src="popup.js"></script></body></html>
+<p id="error" role="alert"></p>
+<fieldset id="controls">
+  <section id="connect-card"><h2>Connect Live Lineup</h2><p>Enter the Live Queue code shown in your Sparkle Suite Workspace.</p>
+    <form id="connect-form"><label for="live-code">Live Queue code</label><input id="live-code" type="text" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" required placeholder="ABC-1234"><button type="submit">Connect</button></form>
+    <p class="note">You only need to enter this code once.</p>
+  </section>
+  <section id="lineup-card" hidden>
+    <div class="status-row"><div><div class="status-title"><span id="status-dot" class="dot"></span><span id="status-text" role="status">Checking connection…</span></div><p id="status-detail" class="note"></p></div>
+      <label class="switch"><input id="enabled" type="checkbox"><span class="slider"></span><span class="sr-only">Turn Live Lineup on or off</span></label></div>
+    <div class="saved-code"><span>Live Queue code</span><strong id="saved-code">—</strong></div>
+    <div id="parties-wrap"><h2>Detected parties</h2><p class="note">Uncheck a party if you do not want it to appear in Live Lineup.</p><div id="parties"></div></div>
+    <p class="footer-note">Keep your Bomb Party Party Orders page open. If it reloads, Live Lineup reconnects automatically.</p>
+  </section>
+</fieldset></main><script src="popup.js"></script></body></html>

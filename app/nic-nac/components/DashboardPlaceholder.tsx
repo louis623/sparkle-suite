@@ -7188,6 +7188,18 @@ export function LiveQueueTool({
   customerSiteHref?: string | null
   onOpenHelp?: () => void
 }) {
+  const code = liveQueueSyncCode?.trim() || ''
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const copyCode = async () => {
+    if (!code) return
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopyState('copied')
+      window.setTimeout(() => setCopyState('idle'), 2000)
+    } catch {
+      setCopyState('failed')
+    }
+  }
   return (
     <div className={styles.workspaceSectionStack}>
       <section className={styles.workspaceIntroCard}>
@@ -7205,7 +7217,15 @@ export function LiveQueueTool({
         <div className={styles.liveQueueSetupGrid}>
           <div className={styles.liveQueueCodePanel}>
             <span className={styles.liveQueueEyebrow}>Your Live Queue code</span>
-            <strong className={styles.liveQueueCode}>{liveQueueSyncCode?.trim() || 'Preparing code…'}</strong>
+            <div className={styles.liveQueueCodeRow}>
+              <strong className={styles.liveQueueCode}>{code || 'Preparing code…'}</strong>
+              <button type="button" className={styles.liveQueueCopyButton} onClick={copyCode} disabled={!code}>
+                {copyState === 'copied' ? 'Copied!' : 'Copy code'}
+              </button>
+            </div>
+            {copyState === 'failed' ? (
+              <p className={styles.liveQueueCopyError} role="alert">Could not copy the code. Please try again.</p>
+            ) : null}
             <p className={styles.liveQueueBody}>Enter this exact code in the Sparkle Suite extension. Your assigned code stays the same.</p>
             <span className={styles.liveQueueEyebrow}>What it does</span>
             <p className={styles.liveQueueBody}>
@@ -7300,29 +7320,18 @@ export function LiveQueueTool({
               <strong>Enter your Live Queue code</strong>
               <p>
                 Open the extension, enter the same code shown above and at the
-                top of your Workspace, then choose <b>Save code</b>.
+                top of your Workspace, then choose <b>Connect</b>.
               </p>
             </div>
           </li>
           <li>
             <span className={styles.liveQueueStepNumber}>5</span>
             <div>
-              <strong>Review and select the live source</strong>
+              <strong>Confirm the green Connected light</strong>
               <p>
-                In the extension, choose <b>Review / select source</b>, select
-                the open Party Orders tab, enter the party IDs for this show,
-                check the confirmation box, and choose <b>Use this source</b>.
-              </p>
-            </div>
-          </li>
-          <li>
-            <span className={styles.liveQueueStepNumber}>6</span>
-            <div>
-              <strong>Confirm the connection and go live</strong>
-              <p>
-                Leave the selected Party Orders tab open while you are live.
-                Confirm the extension shows a healthy connection and a recent
-                ready update before relying on the customer-facing lineup.
+                Leave Party Orders open while you are live. The extension finds
+                your parties automatically. Uncheck any party you do not want
+                to appear in Live Lineup.
               </p>
             </div>
           </li>
@@ -7347,8 +7356,7 @@ export function LiveQueueTool({
           <li>The official extension is installed and pinned in Chrome.</li>
           <li>The extension is connected with the assigned Live Queue code shown in this Workspace.</li>
           <li>Bomb Party Party Orders is open in the same Chrome profile.</li>
-          <li>The correct orders tab and party IDs are selected.</li>
-          <li>The extension shows a healthy connection and recent ready update.</li>
+          <li>The extension shows a green Connected light and the expected parties.</li>
           <li>
             Your customer site shows the first unrevealed customer, or a clear
             empty state when nobody is waiting.
@@ -7379,10 +7387,10 @@ export function LiveQueueTool({
         <div className={styles.liveQueueTroubleshooting}>
           <strong>If the queue looks stale or does not connect</strong>
           <p>
-            Confirm Party Orders is still open, the assigned Live Queue code is saved, and the
-            correct source tab and party IDs are selected. If it is still not
-            connected, open Help &amp; Resources and tell support exactly what
-            the extension status shows.
+            Confirm Party Orders is still open and the assigned Live Queue code
+            is connected. Turn Live Lineup off and back on once. If it is still
+            not connected, open Help &amp; Resources and tell support exactly what
+            the extension shows.
           </p>
         </div>
       </section>
