@@ -339,6 +339,19 @@ const FALLBACK_TEAM = [
   { name: "Joelle", business: "Joelle Glows", initials: "J", state: "California", socialLinks: { tiktok: "#" } },
 ];
 
+function sameJoinLeadIdentity(left, right) {
+  const leftName = String(left?.name || "").trim().toLowerCase();
+  const rightName = String(right?.name || "").trim().toLowerCase();
+  if (!leftName || leftName !== rightName) return false;
+  return String(left?.business || "").trim().toLowerCase() === String(right?.business || "").trim().toLowerCase();
+}
+
+const LEAD_IMAGE_URL = runtimeText(CONTENT.repImageUrl);
+const LEAD_IDENTITY = {
+  name: CONTENT.repName,
+  business: CONTENT.businessName,
+};
+
 const TEAM_MEMBERS = (CONTENT.teamMembers && CONTENT.teamMembers.length > 0
   ? CONTENT.teamMembers
   : RUNTIME_CONTEXT.targeted
@@ -348,6 +361,7 @@ const TEAM_MEMBERS = (CONTENT.teamMembers && CONTENT.teamMembers.length > 0
   ...member,
   initials: deriveInitials(member.name, member.initials),
   socialLinks: member.socialLinks || {},
+  imageUrl: member.imageUrl || (sameJoinLeadIdentity(member, LEAD_IDENTITY) ? LEAD_IMAGE_URL : "") || undefined,
 }));
 
 const FOOTER_LINKS = CONTENT.footerLinks || {};
@@ -1322,6 +1336,7 @@ function App() {
     business: t.businessName,
     initials: (repName[0] || "S").toUpperCase(),
     state: locationLabel || t.repState,
+    imageUrl: LEAD_IMAGE_URL || undefined,
     socialLinks: {
       tiktok: REP_SOCIALS.tiktok,
       website: REP_SOCIALS.website || SHOP_HREF,

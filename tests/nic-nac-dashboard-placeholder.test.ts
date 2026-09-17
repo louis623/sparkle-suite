@@ -1361,10 +1361,13 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Shown on this team member&#x27;s customer-facing card.')
     expect(html).toContain('Colorado')
     expect(html).toContain('Profile photo process')
-    expect(html).toContain('Save or download the team member&#x27;s profile photo')
+    expect(html).toContain('Save or download the photo to your device.')
     expect(html).toContain('I have permission to publish this team member&#x27;s photo')
-    expect(html).toContain('Upload profile photo')
+    expect(html).toContain('Your Join Team card')
+    expect(html).toContain('Upload photo')
+    expect(html).toContain('Replace photo')
     expect(html).not.toContain('Photo URL or saved path (optional fallback)')
+    expect(html).not.toContain('Upload profile photo')
     expect(html).toContain('accept="image/jpeg,image/png,image/webp"')
     expect(html).toContain('Mile High Fizz')
     expect(html).toContain('Lindsey')
@@ -1387,6 +1390,101 @@ describe('DashboardPlaceholder', () => {
     )
     expect(source).toContain("fetch('/api/nic-nac/join-team-roster/photo'")
     expect(source).toContain('TEAM_PROFILE_PHOTO_MAX_BYTES = 3 * 1024 * 1024')
+    expect(source).toContain('body: JSON.stringify({ profilePhotoUrl: imageUrl })')
+  })
+
+  it('lets a lead and members upload or replace Join Team photos on the shared Team Management path', () => {
+    const kellyHtml = renderToStaticMarkup(
+      createElement(TeamManagementCard, {
+        state: {
+          status: 'ready',
+          access: { enabled: true, status: 'active', source: null },
+          participants: [],
+          publicTeamRoster: [
+            {
+              id: 'member-dara',
+              repId: 'rep-kelly',
+              displayName: 'Dara',
+              businessName: 'Dara Sparkle',
+              state: 'Texas',
+              city: '',
+              initials: 'D',
+              photoUrl: '',
+              photoAlt: '',
+              imageClassName: '',
+              bio: '',
+              links: {},
+              sortOrder: 1,
+              isVisible: true,
+              createdAt: '2026-09-17T12:00:00.000Z',
+              updatedAt: '2026-09-17T12:00:00.000Z',
+            },
+            {
+              id: 'member-erika',
+              repId: 'rep-kelly',
+              displayName: 'Erika',
+              businessName: 'Erika Sparkle',
+              state: 'Texas',
+              city: '',
+              initials: 'E',
+              photoUrl: 'https://cdn.example.com/public-site-media/erika.jpg',
+              photoAlt: 'Erika',
+              imageClassName: '',
+              bio: '',
+              links: {},
+              sortOrder: 2,
+              isVisible: true,
+              createdAt: '2026-09-17T12:00:00.000Z',
+              updatedAt: '2026-09-17T12:00:00.000Z',
+            },
+          ],
+        },
+        leadCard: {
+          displayName: 'Kelly',
+          businessName: 'Sparkly Butterflies',
+          photoUrl: '',
+        },
+      }),
+    )
+    const heatherHtml = renderToStaticMarkup(
+      createElement(TeamManagementCard, {
+        state: {
+          status: 'ready',
+          access: { enabled: true, status: 'active', source: null },
+          participants: [],
+          publicTeamRoster: [],
+        },
+        leadCard: {
+          displayName: 'Heather',
+          businessName: 'The Bling Kitchen',
+          photoUrl: 'https://cdn.example.com/public-site-media/heather.jpg',
+        },
+      }),
+    )
+
+    expect(kellyHtml).toContain('Your Join Team card')
+    expect(kellyHtml).toContain('Kelly')
+    expect(kellyHtml).toContain('Sparkly Butterflies')
+    expect(kellyHtml).toContain('Lead card photo')
+    expect(kellyHtml).toContain('Dara')
+    expect(kellyHtml).toContain('Erika')
+    expect(kellyHtml).toContain('Upload photo')
+    expect(kellyHtml).toContain('Replace photo')
+    expect(kellyHtml).not.toContain('Photo URL or saved path')
+    expect(heatherHtml).toContain('Your Join Team card')
+    expect(heatherHtml).toContain('Heather')
+    expect(heatherHtml).toContain('Replace photo')
+    expect(heatherHtml).not.toContain('Photo URL or saved path')
+
+    const source = readFileSync(
+      resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
+      'utf8',
+    )
+    expect(source).toContain('handleLeadCardPhotoUpload')
+    expect(source).toContain('handleMemberCardPhotoUpload')
+    expect(source).toContain("fetch('/api/nic-nac/join-team-roster/photo'")
+    expect(source).toContain('profilePhotoUrl')
+    expect(source).not.toContain('Photo URL or saved path')
   })
 
   it('requires explicit UI confirmation and sends the confirmed hard-delete contract', () => {

@@ -168,6 +168,8 @@ describe('Amethyst join page template data wiring', () => {
 
     expect(jsx).toContain('const leaderAlreadyAppearsInRoster')
     expect(jsx).toContain('{!leaderAlreadyAppearsInRoster && <TeamCard member={rep} isLeader />}')
+    expect(jsx).toContain('const LEAD_IMAGE_URL = runtimeText(CONTENT.repImageUrl)')
+    expect(jsx).toContain('imageUrl: LEAD_IMAGE_URL || undefined')
     expect(css).toContain('.jp-hero-eyebrow::after')
   })
 

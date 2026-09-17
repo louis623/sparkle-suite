@@ -201,6 +201,7 @@ describe('site settings service', () => {
       businessName: 'Sparkle by Sasha',
       email: 'louis@example.com',
       phone: '+19045551234',
+      profilePhotoUrl: '',
       shopLink: '',
       recruitingLink: '',
       bannerText: '',
@@ -384,6 +385,38 @@ describe('site settings service', () => {
     expect(result.shopLink).toBe('https://bombparty.com/shop/sparkle-by-sasha')
     expect(result.recruitingLink).toBe(
       'https://bombparty.com/sparkle-by-sasha/packs',
+    )
+  })
+
+  it('saves a Join Team lead-card photo onto the existing public profile photo field', async () => {
+    const repsChain = makeUpdateSingle({
+      data: {
+        display_name: 'Kelly',
+        business_name: 'Sparkly Butterflies',
+        email: 'kelly@example.com',
+        phone: null,
+        shop_link: null,
+        social_handles: {},
+        profile_photo_url: 'https://cdn.example.com/public-site-media/kelly.jpg',
+      },
+      error: null,
+    })
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === 'reps') return repsChain.api
+        throw new Error(`Unexpected table ${table}`)
+      }),
+    }
+
+    const result = await updateSiteSettingsDashboard(supabase as never, 'rep-kelly', {
+      profilePhotoUrl: 'https://cdn.example.com/public-site-media/kelly.jpg',
+    })
+
+    expect(repsChain.spies.update).toHaveBeenCalledWith({
+      profile_photo_url: 'https://cdn.example.com/public-site-media/kelly.jpg',
+    })
+    expect(result.profilePhotoUrl).toBe(
+      'https://cdn.example.com/public-site-media/kelly.jpg',
     )
   })
 
