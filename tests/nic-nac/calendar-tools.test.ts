@@ -180,6 +180,19 @@ describe('calendar tools', () => {
     expect(result.events).toHaveLength(1)
   })
 
+  it('uses the signed-in rep timezone when the tool input omits one', async () => {
+    addShowMock.mockResolvedValueOnce({ count: 1, events: [calendarEvent({ timeZone: 'America/Denver' })] })
+    const tool = makeAddShowTool({ ...makeCtx(), defaultTimeZone: 'America/Denver' }) as unknown as ToolDef
+
+    await tool.execute({ platform: 'TikTok', eventTime: '2026-09-18T01:00:00.000Z' })
+
+    expect(addShowMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({ timeZone: 'America/Denver' }),
+    )
+  })
+
   it('uses the matching configured customer-site social link for a scheduled platform', async () => {
     addShowMock.mockResolvedValueOnce({ count: 1, events: [calendarEvent()] })
     const tool = makeAddShowTool(

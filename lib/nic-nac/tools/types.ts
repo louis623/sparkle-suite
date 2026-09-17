@@ -14,6 +14,7 @@ export type ToolContext = {
   supabase: SupabaseClient
   conversationId: string
   runId: string
+  defaultTimeZone?: string
   agentHarness?: boolean
   latestUserText?: string
   latestUserHasImage?: boolean

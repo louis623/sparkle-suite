@@ -754,6 +754,7 @@ export async function POST(request: Request) {
         mode,
         nowIso: workflowNowIso,
         preloadedSession: workflowTaskContinuity.calendarSession,
+        defaultTimeZone: rep.time_zone,
       })
     : {
         sessionBefore: null,
@@ -786,6 +787,7 @@ export async function POST(request: Request) {
       supabase,
       conversationId,
       runId,
+      defaultTimeZone: rep.time_zone,
       agentHarness: true,
       latestUserText,
       latestUserHasImage:

@@ -157,6 +157,7 @@ async function ingestCalendarWorkflowTurn(
     session: CalendarWorkflowSessionState
     messages: UIMessage[]
     latestUserMessageId?: string
+    defaultTimeZone?: string
   },
 ): Promise<CalendarWorkflowSessionState> {
   const latestUserText = getMessageText(getLatestUserMessage(args.messages))
@@ -168,7 +169,11 @@ async function ingestCalendarWorkflowTurn(
     args.session.intent !== 'unknown' && intent !== args.session.intent
   const priorKnownFields = changedIntent ? {} : args.session.knownFields
   const knownFields = latestUserText
-    ? mergeCalendarKnownFieldsFromText(priorKnownFields, latestUserText)
+    ? mergeCalendarKnownFieldsFromText(
+        priorKnownFields,
+        latestUserText,
+        args.defaultTimeZone,
+      )
     : priorKnownFields
   const readiness = computeCalendarWorkflowReadiness({
     intent,
@@ -196,6 +201,7 @@ export async function getOrCreateCalendarWorkflowContext(args: {
   mode: Mode
   nowIso: string
   preloadedSession?: CalendarWorkflowSessionState | null
+  defaultTimeZone?: string
 }): Promise<CalendarWorkflowContextResult> {
   if (args.mode !== 'workspace') {
     return emptyCalendarWorkflowContext('mode_required_setup')
@@ -244,6 +250,7 @@ export async function getOrCreateCalendarWorkflowContext(args: {
       session: baseSession,
       messages: args.messages,
       latestUserMessageId: args.latestUserMessageId,
+      defaultTimeZone: args.defaultTimeZone,
     })
     const activeWorkflow = toActiveWorkflow(ingested)
 

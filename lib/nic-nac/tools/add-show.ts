@@ -88,6 +88,7 @@ export function makeAddShowTool(ctx: {
   repId: string
   supabase: SupabaseClient
   agentHarness?: boolean
+  defaultTimeZone?: string
   latestUserText?: string
   activeCalendarWorkflow?: ToolContext['activeCalendarWorkflow']
 }) {
@@ -104,7 +105,7 @@ export function makeAddShowTool(ctx: {
         // On the ToolLoopAgent path, the validated structured arguments are
         // authoritative. Saved Calendar context may help the model form those
         // arguments, but it must never rewrite them after tool selection.
-        const { input: safeInput, plan } = ctx.agentHarness
+        const { input: reconciledInput, plan } = ctx.agentHarness
           ? {
               input,
               plan: buildCalendarCreatePlan({
@@ -118,6 +119,13 @@ export function makeAddShowTool(ctx: {
               latestUserText: ctx.latestUserText,
               activeCalendarWorkflow: ctx.activeCalendarWorkflow,
             })
+        const safeInput = {
+          ...reconciledInput,
+          timeZone: reconciledInput.timeZone ?? ctx.defaultTimeZone,
+        }
+        const safePlan = safeInput.timeZone
+          ? { ...plan, missingFields: plan.missingFields.filter((field) => field !== 'timeZone') }
+          : plan
         const [result, customerSiteWatch] = await Promise.all([
           addShow(ctx.supabase, ctx.repId, safeInput),
           configuredCustomerSiteWatchLinks(ctx.supabase, ctx.repId, safeInput.platform),
@@ -126,7 +134,7 @@ export function makeAddShowTool(ctx: {
         const lastEvent = result.events[result.events.length - 1] ?? null
 
         return {
-          calendarPlan: plan,
+          calendarPlan: safePlan,
           customerSiteWatchLinks: customerSiteWatch.links,
           missingCustomerSitePlatforms: customerSiteWatch.missingPlatforms,
           count: result.count,
@@ -161,6 +169,7 @@ export const addShowTool: ToolDefinition = {
       repId: ctx.repId,
       supabase: ctx.supabase,
       agentHarness: ctx.agentHarness,
+      defaultTimeZone: ctx.defaultTimeZone,
       latestUserText: ctx.latestUserText,
       activeCalendarWorkflow: ctx.activeCalendarWorkflow,
     }),

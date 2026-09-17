@@ -6129,7 +6129,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (canRenderWorkspaceSections && activeSection === 'show-calendar') {
       return (
         <div className={styles.workspaceSectionStack}>
-          <ShowCalendarCard state={calendarState} />
+          <ShowCalendarCard
+            state={calendarState}
+            repTimeZone={repProfileState.timeZone}
+            onRepTimeZoneChange={(timeZone) =>
+              setRepProfileState((current) => ({ ...current, timeZone }))
+            }
+          />
         </div>
       )
     }
@@ -11651,12 +11657,17 @@ export function ReferralProgramCard({
 export function ShowCalendarCard({
   state,
   referenceDate,
+  repTimeZone,
+  onRepTimeZoneChange,
 }: {
   state: CalendarState
   referenceDate?: Date
+  repTimeZone?: string | null
+  onRepTimeZoneChange?: (timeZone: string) => void
 }) {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [visibleMonthDate, setVisibleMonthDate] = useState(() => referenceDate ?? new Date())
+  const [savingTimeZone, setSavingTimeZone] = useState(false)
 
   useEffect(() => {
     if (referenceDate) setVisibleMonthDate(referenceDate)
@@ -11697,6 +11708,24 @@ export function ShowCalendarCard({
     ? getCalendarEventDetailGroups(selectedEvent)
     : []
 
+  async function saveRepTimeZone(timeZone: string) {
+    if (!repTimeZone || timeZone === repTimeZone) return
+    setSavingTimeZone(true)
+    try {
+      const response = await fetch('/api/nic-nac/time-zone', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ timeZone }),
+      })
+      if (!response.ok) throw new Error('timezone update failed')
+      const payload = (await response.json()) as { timeZone?: string }
+      if (payload.timeZone) onRepTimeZoneChange?.(payload.timeZone)
+    } finally {
+      setSavingTimeZone(false)
+    }
+  }
+
   return (
     <div className={styles.calendarCard}>
       <div className={styles.workspaceSectionHeader}>
@@ -11710,6 +11739,23 @@ export function ShowCalendarCard({
           Read-only here. Ask Nic-Nac to add or edit shows.
         </span>
       </div>
+      <label className={styles.siteSettingsToggle}>
+        <span>My show time zone</span>
+        <select
+          value={repTimeZone ?? 'America/New_York'}
+          disabled={savingTimeZone}
+          onChange={(event) => void saveRepTimeZone(event.currentTarget.value)}
+        >
+          <option value="America/New_York">Eastern time</option>
+          <option value="America/Chicago">Central time</option>
+          <option value="America/Denver">Mountain time</option>
+          <option value="America/Phoenix">Arizona time (no daylight saving)</option>
+          <option value="America/Los_Angeles">Pacific time</option>
+          <option value="America/Anchorage">Alaska time</option>
+          <option value="Pacific/Honolulu">Hawaii time</option>
+        </select>
+        <span>Show times stay in this region; customers see them in their own local time.</span>
+      </label>
       <div className={styles.metricGrid}>
         <div className={styles.metricBlock}>
           <span className={styles.metricLabel}>Upcoming</span>

@@ -26,6 +26,15 @@ describe('calendar workflow controller', () => {
     expect(state.missingFields).not.toContain('description')
   })
 
+  it('uses the rep region by default and recognizes a Mountain override', () => {
+    expect(
+      mergeCalendarKnownFieldsFromText({}, 'Schedule a TikTok show tomorrow at 7 PM', 'America/Denver'),
+    ).toMatchObject({ timeZone: 'America/Denver' })
+    expect(
+      mergeCalendarKnownFieldsFromText({}, 'Schedule a TikTok show tomorrow at 7 PM Eastern', 'America/Denver'),
+    ).toMatchObject({ timeZone: 'America/New_York' })
+  })
+
   it('retains add_show details when a rep rejects optional description', () => {
     const merged = mergeCalendarKnownFieldsFromText(
       {

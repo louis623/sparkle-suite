@@ -335,9 +335,13 @@ function extractPlainTitle(text: string): string | undefined {
 export function mergeCalendarKnownFieldsFromText(
   current: CalendarWorkflowKnownFields,
   text: string,
+  defaultTimeZone?: string,
 ): CalendarWorkflowKnownFields {
   const normalized = text.trim().toLowerCase()
-  const next: CalendarWorkflowKnownFields = { ...current }
+  const next: CalendarWorkflowKnownFields = {
+    ...current,
+    timeZone: current.timeZone ?? defaultTimeZone,
+  }
 
   if (
     /\bno\b[\s\S]{0,80}\bdescription\b/.test(normalized) ||
@@ -362,11 +366,20 @@ export function mergeCalendarKnownFieldsFromText(
     next.platform = 'YouTube'
   }
 
-  if (
-    /\bamerica\/new_york\b/i.test(text) ||
-    /\b(eastern|edt|est)\b/i.test(text)
-  ) {
-    next.timeZone = 'America/New_York'
+  const timeZoneByMention: Array<[RegExp, string]> = [
+    [/\bamerica\/new_york\b|\b(eastern|edt|est)\b/i, 'America/New_York'],
+    [/\bamerica\/chicago\b|\b(central|cdt|cst)\b/i, 'America/Chicago'],
+    [/\bamerica\/denver\b|\b(mountain|mdt|mst)\b/i, 'America/Denver'],
+    [/\bamerica\/phoenix\b|\barizona\b/i, 'America/Phoenix'],
+    [/\bamerica\/los_angeles\b|\b(pacific|pdt|pst)\b/i, 'America/Los_Angeles'],
+    [/\bamerica\/anchorage\b|\balaska\b/i, 'America/Anchorage'],
+    [/\bpacific\/honolulu\b|\bhawaii\b/i, 'Pacific/Honolulu'],
+  ]
+  for (const [pattern, timeZone] of timeZoneByMention) {
+    if (pattern.test(text)) {
+      next.timeZone = timeZone
+      break
+    }
   }
 
   const timeRange = parseTimeRange(text)

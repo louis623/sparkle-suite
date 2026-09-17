@@ -20,4 +20,11 @@ describe('calendar timezone helpers', () => {
     )
     expect(() => assertValidTimeZone('America/New_York')).not.toThrow()
   })
+
+  it('rejects ambiguous abbreviations and preserves Mountain daylight time', () => {
+    expect(() => assertValidTimeZone('MST')).toThrow()
+    expect(assertValidTimeZone('America/Denver')).toBe('America/Denver')
+    expect(formatEventTimeForZone('2026-09-18T01:00:00.000Z', 'America/Denver')).toContain('7:00 PM')
+    expect(formatEventTimeForZone('2026-09-18T01:00:00.000Z', 'America/Denver')).toMatch(/MDT|Mountain/)
+  })
 })
