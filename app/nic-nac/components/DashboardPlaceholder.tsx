@@ -11739,23 +11739,29 @@ export function ShowCalendarCard({
           Read-only here. Ask Nic-Nac to add or edit shows.
         </span>
       </div>
-      <label className={styles.siteSettingsToggle}>
-        <span>My show time zone</span>
-        <select
-          value={repTimeZone ?? 'America/New_York'}
-          disabled={savingTimeZone}
-          onChange={(event) => void saveRepTimeZone(event.currentTarget.value)}
-        >
-          <option value="America/New_York">Eastern time</option>
-          <option value="America/Chicago">Central time</option>
-          <option value="America/Denver">Mountain time</option>
-          <option value="America/Phoenix">Arizona time (no daylight saving)</option>
-          <option value="America/Los_Angeles">Pacific time</option>
-          <option value="America/Anchorage">Alaska time</option>
-          <option value="Pacific/Honolulu">Hawaii time</option>
-        </select>
-        <span>Show times stay in this region; customers see them in their own local time.</span>
-      </label>
+      <div className={styles.calendarTimezoneControl}>
+        <div className={styles.calendarTimezoneCopy}>
+          <span className={styles.calendarTimezoneEyebrow}>Your show time zone</span>
+          <span>Show times stay in this region; customers see them in their own local time.</span>
+        </div>
+        <label className={styles.calendarTimezoneField}>
+          <span className={styles.srOnly}>My show time zone</span>
+          <select
+            className={styles.calendarTimezoneSelect}
+            value={repTimeZone ?? 'America/New_York'}
+            disabled={savingTimeZone}
+            onChange={(event) => void saveRepTimeZone(event.currentTarget.value)}
+          >
+            <option value="America/New_York">Eastern time</option>
+            <option value="America/Chicago">Central time</option>
+            <option value="America/Denver">Mountain time</option>
+            <option value="America/Phoenix">Arizona time (no daylight saving)</option>
+            <option value="America/Los_Angeles">Pacific time</option>
+            <option value="America/Anchorage">Alaska time</option>
+            <option value="Pacific/Honolulu">Hawaii time</option>
+          </select>
+        </label>
+      </div>
       <div className={styles.metricGrid}>
         <div className={styles.metricBlock}>
           <span className={styles.metricLabel}>Upcoming</span>
