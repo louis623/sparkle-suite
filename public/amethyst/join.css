@@ -368,30 +368,47 @@ body.joinpage .hp-saturate {
 }
 .jp-team-socials {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
   justify-content: center;
 }
 .jp-team-social {
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
-  background: white;
-  border: 1px solid var(--border);
+  background: #fff;
+  border: 1.5px solid rgba(20, 12, 34, 0.22);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--fg);
-  color: var(--hp-card-fg);
+  color: #140c22;
   text-decoration: none;
   transition: all var(--dur-fast) var(--ease);
-  font-size: 13px;
-  font-weight: 700;
 }
 .jp-team-social:hover {
   background: var(--hp-card-accent);
   color: var(--hp-action-fg);
   border-color: var(--hp-card-accent);
   transform: translateY(-2px);
+}
+.jp-team-social:focus-visible {
+  outline: 2px solid var(--hp-primary, #480DDF);
+  outline-offset: 3px;
+}
+.jp-team-social-logo {
+  width: 20px;
+  height: 20px;
+  display: block;
+  fill: currentColor;
+}
+.jp-team-social-logo-stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* "This is Your Spot" CTA card */
@@ -1438,9 +1455,16 @@ body.britt-with-bling-join .jp-team-bio {
 }
 
 body.britt-with-bling-join .jp-team-social {
-  border-color: rgba(0, 217, 255, 0.3);
-  background: rgba(0, 217, 255, 0.08);
-  color: var(--bwb-cyan);
+  background: #061820;
+  border-color: #00d9ff;
+  color: #f4feff;
+  box-shadow: 0 0 0 1px rgba(0, 217, 255, 0.35);
+}
+
+body.britt-with-bling-join .jp-team-social:hover {
+  background: #00d9ff;
+  color: #041018;
+  border-color: #00d9ff;
 }
 
 body.britt-with-bling-join .jp-final {

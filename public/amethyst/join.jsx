@@ -1,4 +1,12 @@
 /* global React, ReactDOM */
+import {
+  isLiveSocialHref,
+  resolveSocialPlatform,
+  socialMarkClassName,
+  TEAM_SOCIAL_SLOTS,
+} from '../../lib/amethyst/social-mark'
+import { SocialMark } from '../../lib/amethyst/social-mark-icon'
+
 const { useState, useEffect, useMemo } = React;
 
 const {
@@ -146,41 +154,10 @@ function RecruitingAction({ enabled, href, className, unavailableText, children,
   return <a {...linkProps(href)} className={className} {...props}>{children}</a>;
 }
 
-function SocialLogo({ label, shortLabel }) {
-  const key = `${label || ""} ${shortLabel || ""}`.toLowerCase();
-
-  if (key.includes("tiktok") || key.includes("tt")) {
-    return (
-      <svg className="hp-footer-social-logo" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M16.6 3c.4 2.4 1.9 4 4.2 4.3v3.4c-1.6 0-3-.4-4.2-1.3v6.2c0 3.4-2.5 5.7-5.8 5.7-3.1 0-5.5-2.1-5.5-5.1 0-3.2 2.5-5.3 5.8-5.3.4 0 .8 0 1.1.1v3.4c-.4-.1-.8-.2-1.2-.2-1.4 0-2.4.8-2.4 2s.9 2 2.2 2c1.4 0 2.3-.9 2.3-2.8V3h3.5Z" />
-      </svg>
-    );
-  }
-
-  if (key.includes("facebook") || key.includes("fb")) {
-    return (
-      <svg className="hp-footer-social-logo" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M14.2 8.1V6.6c0-.7.5-.9.9-.9h2.3V2.2L14.2 2c-3.2 0-4.8 1.9-4.8 5.1v1H7v3.8h2.4V22h4.2V11.9h3.1l.5-3.8h-3Z" />
-      </svg>
-    );
-  }
-
-  if (key.includes("instagram") || key.includes("ig")) {
-    return (
-      <svg className="hp-footer-social-logo hp-footer-social-logo-stroke" viewBox="0 0 24 24" aria-hidden="true">
-        <rect x="4" y="4" width="16" height="16" rx="4.5" />
-        <circle cx="12" cy="12" r="3.4" />
-        <circle cx="17" cy="7" r="1" />
-      </svg>
-    );
-  }
-
-  if (key.includes("youtube") || key.includes("yt")) {
-    return (
-      <svg className="hp-footer-social-logo" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M21.6 7.2a3 3 0 0 0-2.1-2.1C17.7 4.6 12 4.6 12 4.6s-5.7 0-7.5.5a3 3 0 0 0-2.1 2.1A31 31 0 0 0 2 12a31 31 0 0 0 .4 4.8 3 3 0 0 0 2.1 2.1c1.8.5 7.5.5 7.5.5s5.7 0 7.5-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 22 12a31 31 0 0 0-.4-4.8ZM10 15.4V8.6l5.9 3.4-5.9 3.4Z" />
-      </svg>
-    );
+function SocialLogo({ label, shortLabel, href }) {
+  const platform = resolveSocialPlatform({ key: shortLabel, label, href });
+  if (platform) {
+    return <SocialMark platform={platform} className={socialMarkClassName("hp-footer-social-logo", platform)} />;
   }
 
   return <span className="hp-footer-social-fallback">{shortLabel || (label || "").slice(0, 2).toUpperCase()}</span>;
@@ -842,37 +819,36 @@ function PinIcon() {
   );
 }
 
-function SocialIcon({ kind }) {
-  if (kind === "tt") return <span title="TikTok">TT</span>;
-  if (kind === "fb") return <span title="Facebook">FB</span>;
-  if (kind === "ig") return <span title="Instagram">IG</span>;
-  if (kind === "web") {
-    return (
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M2 12h20" />
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z" />
-      </svg>
-    );
-  }
-  if (kind === "crown") {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M2 19h20l-1-9-5 4-4-7-4 7-5-4-1 9zm0 2h20v2H2z" />
-      </svg>
-    );
-  }
-  if (kind === "yt") return <span title="YouTube">YT</span>;
-  if (kind === "wn") return <span title="Whatnot">WN</span>;
-  return null;
-}
-
 function TeamSocial({ href, label, kind }) {
-  if (!href) return null;
+  if (!isLiveSocialHref(href)) return null;
+  const platform = resolveSocialPlatform({ key: kind, href, label });
+  if (!platform) return null;
   return (
     <a className="jp-team-social" {...linkProps(href)} aria-label={label}>
-      <SocialIcon kind={kind} />
+      <SocialMark platform={platform} className={socialMarkClassName("jp-team-social-logo", platform)} />
     </a>
+  );
+}
+
+function TeamConnect({ socialLinks }) {
+  const links = TEAM_SOCIAL_SLOTS
+    .map((slot) => ({
+      ...slot,
+      href: socialLinks?.[slot.key],
+    }))
+    .filter((slot) => isLiveSocialHref(slot.href) && resolveSocialPlatform(slot));
+
+  if (links.length === 0) return null;
+
+  return (
+    <div className="jp-team-connect">
+      <div className="jp-team-connect-label">Connect</div>
+      <div className="jp-team-socials">
+        {links.map((slot) => (
+          <TeamSocial key={slot.key} href={slot.href} label={slot.label} kind={slot.kind} />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -893,17 +869,7 @@ function TeamCard({ member, isLeader }) {
       <div className="jp-team-name slot" data-slot="first name">{member.name}</div>
       <div className="jp-team-location"><PinIcon /><span className="slot" data-slot="state">{member.state}</span></div>
       {member.bio ? <p className="jp-team-bio">{member.bio}</p> : null}
-      <div className="jp-team-connect">
-        <div className="jp-team-connect-label">Connect</div>
-        <div className="jp-team-socials">
-          <TeamSocial href={member.socialLinks?.tiktok} label="TikTok" kind="tt" />
-          <TeamSocial href={member.socialLinks?.facebook} label="Facebook VIP" kind="fb" />
-          <TeamSocial href={member.socialLinks?.instagram} label="Instagram" kind="ig" />
-          <TeamSocial href={member.socialLinks?.website} label="Website" kind="web" />
-          <TeamSocial href={member.socialLinks?.youtube} label="YouTube" kind="yt" />
-          <TeamSocial href={member.socialLinks?.whatnot} label="Whatnot" kind="wn" />
-        </div>
-      </div>
+      <TeamConnect socialLinks={member.socialLinks} />
     </article>
   );
 }
