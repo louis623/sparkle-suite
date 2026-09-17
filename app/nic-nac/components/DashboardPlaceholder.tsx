@@ -707,6 +707,10 @@ const REVIEW_RESOURCE_FIXTURES: WorkspaceResource[] = [
 
 const SPARKLE_SUITE_YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@SparkleSuite'
 
+export function getLatestYouTubeResourceHref(resource: WorkspaceResource | null) {
+  return resource?.videoUrl ?? SPARKLE_SUITE_YOUTUBE_CHANNEL_URL
+}
+
 export function getYouTubeResourceThumbnail(videoUrl: string | null) {
   if (!videoUrl) return null
 
@@ -6819,6 +6823,7 @@ function ConceptHomeWorkspace({
   const latestYouTubeThumbnail = getYouTubeResourceThumbnail(
     latestYouTubeResource?.videoUrl ?? null,
   )
+  const latestYouTubeHref = getLatestYouTubeResourceHref(latestYouTubeResource)
 
   return (
     <section className={styles.conceptHome} aria-label="Nic-Nac first workspace">
@@ -6961,10 +6966,14 @@ function ConceptHomeWorkspace({
         <ConceptPanel title="More help on YouTube">
           <a
             className={styles.youtubeHelpCard}
-            href={SPARKLE_SUITE_YOUTUBE_CHANNEL_URL}
+            href={latestYouTubeHref}
             target="_blank"
             rel="noreferrer"
-            aria-label="Visit the Sparkle Suite YouTube channel"
+            aria-label={
+              latestYouTubeResource?.title
+                ? `Watch ${latestYouTubeResource.title} on YouTube`
+                : 'Visit the Sparkle Suite YouTube channel'
+            }
           >
             <span className={styles.youtubeHelpThumbnail}>
               {latestYouTubeThumbnail ? (
@@ -6988,7 +6997,7 @@ function ConceptHomeWorkspace({
                 <small>Latest: {latestYouTubeResource.title}</small>
               ) : null}
               <span>
-                Visit YouTube channel
+                {latestYouTubeResource ? 'Watch this video' : 'Visit YouTube channel'}
                 <ExternalLink aria-hidden="true" />
               </span>
             </span>

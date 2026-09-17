@@ -75,6 +75,7 @@ import {
   getRecipeDraftSavePayload,
   getRecipeSaveStatusText,
   getJewelryLibrarySearchErrorMessage,
+  getLatestYouTubeResourceHref,
   getLatestPublishedYouTubeResource,
   getYouTubeResourceThumbnail,
   type DashboardPlaceholderProps,
@@ -1280,6 +1281,9 @@ describe('DashboardPlaceholder', () => {
     expect(latest?.title).toBe('Newest tutorial')
     expect(getYouTubeResourceThumbnail(latest?.videoUrl ?? null)).toBe(
       'https://i.ytimg.com/vi/newerVideo2/hqdefault.jpg',
+    )
+    expect(getLatestYouTubeResourceHref(latest)).toBe(
+      'https://www.youtube.com/watch?v=newerVideo2',
     )
   })
 
