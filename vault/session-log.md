@@ -1,5 +1,18 @@
 # Session Log
 
+## September 17, 2026 - Pass C clip Join team-card photos to the avatar disc
+
+- Started from production tip `f76bc20e` on `codex/nic-nac-trade-hardening`.
+- Shared Join CSS now clips lead and member photos to the circular
+  `.jp-team-avatar` disc: `overflow: hidden` on the disc plus
+  `border-radius: 50%` and `object-fit: cover` on `.jp-team-avatar-img`.
+- Letter placeholders stay text inside the same disc. Pass A Connect SVG
+  marks and Pass B upload markup were left alone.
+- Cache-bust bumped to `20260917-team-social-lead-photo-avatar-clip-v1` on
+  `join.css` / `join-runtime.js` / `Join.html`.
+- Feature branch `cursor/join-team-avatar-clip-5009`. Suite production
+  deploy left for Sam (`VERCEL_TOKEN` on the box).
+
 ## September 17, 2026 - Merge Pass A + Pass B; Suite deploy not released
 
 - Inspected PR #2 (`4f211888`, Connect SVG marks) and PR #3 (`9262be6c`,

@@ -313,6 +313,24 @@ describe('Amethyst join page template data wiring', () => {
     expect(jsx).toContain('Proud member of the {CONTENT.memberTeamName} team')
   })
 
+  it('clips lead and member team-card photos to the circular avatar disc', () => {
+    const css = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/join.css'),
+      'utf8',
+    )
+    const html = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/Join.html'),
+      'utf8',
+    )
+
+    expect(css).toMatch(/\.jp-team-avatar\s*\{[^}]*border-radius:\s*50%;/)
+    expect(css).toMatch(/\.jp-team-avatar\s*\{[^}]*overflow:\s*hidden;/)
+    expect(css).toMatch(/\.jp-team-avatar-img\s*\{[^}]*object-fit:\s*cover;/)
+    expect(css).toMatch(/\.jp-team-avatar-img\s*\{[^}]*border-radius:\s*50%;/)
+    expect(html).toContain('join.css?v=20260917-team-social-lead-photo-avatar-clip-v1')
+    expect(html).toContain('join-runtime.js?v=20260917-team-social-lead-photo-avatar-clip-v1')
+  })
+
   it('renders shared SVG social marks on team cards and hides empty or hash hrefs', () => {
     const jsx = readFileSync(
       resolve(process.cwd(), 'public/amethyst/join.jsx'),

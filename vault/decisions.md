@@ -1,5 +1,14 @@
 # Decision Log
 
+## 2026-09-17 - Clip Join team-card photos to the circular avatar disc
+
+Approved Pass C: every Join/team skin using the shared Amethyst runtime
+must clip uploaded lead and member photos to the round avatar disc
+(`overflow: hidden` + `border-radius: 50%` + `object-fit: cover`). Do not
+leave a square photo sitting on the circular background. Cache-bust must
+move past `20260917-team-social-lead-photo-v1` and include `avatar-clip`.
+Do not restyle Pass A Connect icons or Pass B upload UX for this pass.
+
 ## 2026-09-17 - Combined Join cache-bust for Connect icons + lead photo
 
 When Pass A (`team-social-v1`) and Pass B (`team-lead-photo-v1`) both bump

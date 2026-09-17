@@ -1,5 +1,18 @@
 # Project State
 
+## September 17, 2026 - Pass C Join team-card avatar clip (merge-ready)
+
+Louis approved Pass C: clip Join team-card photos (lead + members) to the
+round avatar disc on the shared Amethyst Join runtime, not Kelly-only.
+Application change is CSS-only on `.jp-team-avatar` / `.jp-team-avatar-img`
+(`overflow: hidden`, `border-radius: 50%`, existing `object-fit: cover`).
+Pass A Connect icons and Pass B upload UX were not changed. Join cache-bust
+is now `20260917-team-social-lead-photo-avatar-clip-v1` on `join.css` and
+`join-runtime.js`. Branch `cursor/join-team-avatar-clip-5009` is the
+merge-ready tip for `codex/nic-nac-trade-hardening`. Do not treat live
+Kelly `/join` photos as clipped until Sam deploys this SHA to Suite
+production. No Live Lineup / CWS / waitlist / photo-upload backend changes.
+
 ## September 17, 2026 - Pass A + Pass B merged; Suite production deploy blocked
 
 Louis authorized combining Pass A (Connect SVG icons, PR #2) and Pass B
