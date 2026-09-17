@@ -808,7 +808,7 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
   the reviewer-safe Nic-Nac/Dance Floor workflow without using Louis's account.
 ## Live Lineup 2.0.3 release
 
-- [ ] Deploy the application/backend commit to Sparkle Suite production and
+- [x] Deploy the application/backend commit to Sparkle Suite production and
   verify both Suite domains resolve to the exact deployment.
 - [ ] Upload the exact verified 2.0.3 ZIP to the Chrome Web Store and submit it
   for review with automatic publishing disabled.

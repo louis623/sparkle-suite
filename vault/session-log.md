@@ -7366,3 +7366,6 @@ Lessons retained:
   verification, and the full production build.
 - Package: `sparkle-suite-live-lineup-2.0.3.zip`; SHA-256
   `2f85e3f2c39e4e3eaf45f6522f9084ef60844c447f46456e7996751c554f351a`.
+- Pushed commit `8f144d74`, deployed it without moving customer hostnames,
+  then assigned only the Suite www/apex domains to READY deployment
+  `dpl_DeuotbeZEV3xWnUYZA84qbYqGCcG`. Both aliases resolve to that deployment.
