@@ -48,7 +48,8 @@ import {
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
-import { selectWorkflowJewelryPhoto } from '@/lib/nic-nac/workflows/workflow-photo-selection'
+import { resolveWorkflowCustomerFacingPhoto } from '@/lib/nic-nac/workflows/workflow-photo-selection'
+import { isAcceptedCustomerFacingWorkflowPhoto } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import type { ToolContext, ToolDefinition } from './types'
 
 const itemBaseShape = {
@@ -588,11 +589,7 @@ function isConfirmedJewelryFrontPhoto(
     | NonNullable<ToolContext['activeTradeBoardWorkflow']>['photos'][number]
     | undefined,
 ): boolean {
-  return (
-    photo?.declaredRole === 'jewelry_front' &&
-    photo.roleConfirmed &&
-    photo.quality !== 'blocked'
-  )
+  return isAcceptedCustomerFacingWorkflowPhoto(photo) && photo.roleConfirmed
 }
 
 function getWorkflowPhotoByModelIndex(
@@ -624,11 +621,39 @@ function getWorkflowConfirmedJewelryFrontImageUrl(
   selectedPhotoId?: string,
 ): string | null {
   return (
-    selectWorkflowJewelryPhoto(workflow?.photos, {
+    resolveWorkflowCustomerFacingPhoto(workflow?.photos, {
       selectedPhotoId,
       modelIndex: photoIndex,
     })?.imageUrl ?? null
   )
+}
+
+function workflowHasUsableJewelryFrontRole(
+  workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
+): boolean {
+  if (workflow?.status !== 'active') return false
+  return workflow.photos.some(
+    (photo) =>
+      photo.declaredRole === 'jewelry_front' &&
+      photo.visualRole !== 'label_or_packaging' &&
+      photo.quality !== 'blocked',
+  )
+}
+
+function workflowOwnedListingPhotoUrl(input: {
+  listingPhotoUrl?: string
+  activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
+}): string | undefined {
+  const listingPhotoUrl = input.listingPhotoUrl?.trim()
+  if (!listingPhotoUrl) return undefined
+  const workflow = input.activeTradeBoardWorkflow
+  if (workflow?.status !== 'active') return listingPhotoUrl
+  const matchesAcceptedJewelry = workflow.photos.some(
+    (photo) =>
+      isAcceptedCustomerFacingWorkflowPhoto(photo) &&
+      photo.imageUrl === listingPhotoUrl,
+  )
+  return matchesAcceptedJewelry ? listingPhotoUrl : undefined
 }
 
 async function processListingPhotoForAdd(input: {
@@ -670,16 +695,20 @@ async function processListingPhotoForAdd(input: {
       explainServiceError(err)
     }
   }
-  if (input.listingPhotoUrl) {
+  const listingPhotoUrl = workflowOwnedListingPhotoUrl({
+    listingPhotoUrl: input.listingPhotoUrl,
+    activeTradeBoardWorkflow: input.activeTradeBoardWorkflow,
+  })
+  if (listingPhotoUrl) {
     try {
       const processInput = {
         repId: input.repId,
-        sourceImageUrl: input.listingPhotoUrl,
+        sourceImageUrl: listingPhotoUrl,
         filenameStem: `${itemNumber}-listing-photo`,
         mutationAssetKey: input.mutationAssetKey,
       }
       const processed =
-        workflowPhotoUrl === input.listingPhotoUrl
+        workflowPhotoUrl === listingPhotoUrl
           ? await processRepListingPhotoUrl(processInput, {
               confirmedJewelryFront: true,
             })
@@ -688,6 +717,13 @@ async function processListingPhotoForAdd(input: {
     } catch (err) {
       explainServiceError(err)
     }
+  }
+
+  if (
+    input.activeTradeBoardWorkflow?.status === 'active' &&
+    !workflowHasUsableJewelryFrontRole(input.activeTradeBoardWorkflow)
+  ) {
+    return undefined
   }
 
   if (photoIndex === undefined && !input.allowImplicitConversationPhoto) {
@@ -1321,10 +1357,16 @@ async function runSingle(
       designSourcePhotoIndex,
       input.selectedPhotoId,
     )
+    const ownedPiecePhotoUrl = workflowOwnedListingPhotoUrl({
+      listingPhotoUrl: piecePhotoUrl,
+      activeTradeBoardWorkflow: activeWorkflow,
+    })
     // Workflow-owned selection wins. A model-provided URL is a legacy fallback
-    // only when no durable workflow photo is available.
+    // only when no durable workflow is active.
     let resolvedPhotoUrl: string | null =
-      workflowConfirmedPhotoUrl ?? piecePhotoUrl?.trim() ?? null
+      workflowConfirmedPhotoUrl ??
+      (activeWorkflow?.status === 'active' ? ownedPiecePhotoUrl : null) ??
+      (activeWorkflow?.status === 'active' ? null : piecePhotoUrl?.trim() ?? null)
     let stagedOriginal:
       | {
           objectPath: string
@@ -1403,6 +1445,15 @@ async function runSingle(
         subjectCoverage: preparedSource.analysis.subjectCoverage,
         subjectCentered: preparedSource.analysis.subjectCentered,
       }
+    } else if (
+      activeWorkflow?.status === 'active' &&
+      !workflowHasUsableJewelryFrontRole(activeWorkflow)
+    ) {
+      throw new NicNacToolError({
+        code: 'JEWELRY_FRONT_PHOTO_REQUIRED',
+        userMessage:
+          'I still need the customer-facing jewelry photo before I can save this listing. The label/details photo is only for reading the card.',
+      })
     } else {
       const resolvedPhoto = await resolvePhotoFromConversation({
         supabase: ctx.supabase,

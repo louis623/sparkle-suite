@@ -4,7 +4,7 @@ import { mapTradeListingToAmethystTradeBoardListing } from '@/lib/amethyst/trade
 import { extractKnownFieldsFromText } from '@/lib/nic-nac/workflows/trade-board-known-fields'
 import { computeTradeBoardIntakeReadiness } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
-import { selectWorkflowJewelryPhoto } from '@/lib/nic-nac/workflows/workflow-photo-selection'
+import { resolveWorkflowCustomerFacingPhoto, selectWorkflowJewelryPhoto } from '@/lib/nic-nac/workflows/workflow-photo-selection'
 import type { TradeListingWithDesign } from '@/lib/services/types'
 
 function workflow(known: TradeBoardIntakeSessionState['known']): TradeBoardIntakeSessionState {
@@ -42,7 +42,9 @@ describe('Nic-Nac photo and rarity hardening', () => {
     ]
     expect(selectWorkflowJewelryPhoto(photos, { selectedPhotoId: photos[0].id })?.imageUrl).toBe('current-piece')
     expect(selectWorkflowJewelryPhoto(photos, { selectedPhotoId: photos[1].id })).toBeNull()
+    expect(resolveWorkflowCustomerFacingPhoto(photos, { selectedPhotoId: photos[1].id })?.imageUrl).toBe('current-piece')
   })
+
 
   it('maps only the explicit rarity field to the public tier', () => {
     const listing = {

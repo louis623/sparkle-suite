@@ -251,6 +251,129 @@ describe('Dance Floor intake route context', () => {
     ).toBe('label_details')
   })
 
+  it('leaves both same-turn photos unknown after a jewelry ask when visuals are uncertain', async () => {
+    const sessionRow = {
+      id: 'workflow-1',
+      rep_id: 'rep-1',
+      conversation_id: 'conv-1',
+      workflow_type: 'trade_board_add_listing',
+      status: 'active',
+      current_phase: 'photo_capture',
+      item_number: 'ER13229',
+      design_name: 'The Florence Earrings',
+      collection_name: 'July Birthday',
+      collection_year: 2026,
+      rarity_classification: 'standard',
+      missing_fields: ['jewelryFrontPhoto'],
+      hard_blockers: [],
+      soft_warnings: [],
+    }
+    const activeBuilder = {
+      select: vi.fn(() => activeBuilder),
+      eq: vi.fn(() => activeBuilder),
+      in: vi.fn(() => activeBuilder),
+      gt: vi.fn(() => activeBuilder),
+      order: vi.fn(() => activeBuilder),
+      limit: vi.fn(() => activeBuilder),
+      maybeSingle: vi.fn(() => ({ data: sessionRow, error: null })),
+    }
+    const selectPhotosBuilder = {
+      select: vi.fn(() => selectPhotosBuilder),
+      eq: vi.fn(() => selectPhotosBuilder),
+      order: vi.fn(() => ({ data: [], error: null })),
+    }
+    const upsertPhotoBuilder = {
+      upsert: vi.fn(() => ({ error: null })),
+    }
+    const updateBuilder = {
+      update: vi.fn(() => updateBuilder),
+      eq: vi.fn(() => ({ error: null })),
+    }
+    const workflowSupabase = {
+      from: vi.fn((table: string) => {
+        const callsForTable = workflowSupabase.from.mock.calls.filter(
+          ([name]) => name === table,
+        ).length
+        if (table === 'trade_board_intake_sessions') {
+          return callsForTable === 1 ? activeBuilder : updateBuilder
+        }
+        if (table === 'trade_board_intake_photos') {
+          return callsForTable === 1 ? selectPhotosBuilder : upsertPhotoBuilder
+        }
+        throw new Error(`Unexpected table ${table}`)
+      }),
+    }
+
+    const context = await getOrCreateTradeBoardIntakeContext({
+      supabase: workflowSupabase as never,
+      workflowSupabase: workflowSupabase as never,
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      messages: [
+        {
+          id: 'assistant-1',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'text',
+              text: 'I still need the customer-facing jewelry photo.',
+            },
+          ],
+        } as UIMessage,
+        {
+          id: 'user-two-photos',
+          role: 'user',
+          parts: [
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TEFCRUw=',
+            },
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+            },
+          ],
+        } as UIMessage,
+      ],
+      latestUserMessageId: 'user-two-photos',
+      mode: 'workspace',
+      nowIso: '2026-06-16T00:00:00.000Z',
+    } as never)
+
+    expect(context.sessionAfter?.photos).toEqual([
+      expect.objectContaining({
+        attachmentIndex: 1,
+        declaredRole: 'unknown',
+        imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
+      }),
+      expect.objectContaining({
+        attachmentIndex: 2,
+        declaredRole: 'unknown',
+        imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+      }),
+    ])
+    expect(upsertPhotoBuilder.upsert).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        attachment_index: 1,
+        declared_role: 'unknown',
+        image_url: 'data:image/jpeg;base64,TEFCRUw=',
+      }),
+      { onConflict: 'session_id,conversation_message_id,attachment_index' },
+    )
+    expect(upsertPhotoBuilder.upsert).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        attachment_index: 2,
+        declared_role: 'unknown',
+        image_url: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+      }),
+      { onConflict: 'session_id,conversation_message_id,attachment_index' },
+    )
+  })
+
   it('keeps dance floor intents when workflow intents are active', () => {
     expect(mergeWorkflowToolIntents(['memory'], ['trade_board', 'catalog'])).toEqual([
       'memory',

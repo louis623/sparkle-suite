@@ -32,6 +32,13 @@ import {
   upsertTradeBoardIntakePhoto,
 } from './trade-board-intake-store'
 import { isExplicitTradeBoardAddRequest } from './trade-board-add-intent'
+import {
+  assignDeclaredPhotoRolesForTurn,
+  inferExplicitAttachmentRole,
+  inferRoleFromText,
+} from './workflow-photo-roles'
+
+export { reconcileDeclaredPhotoRoleWithWorkflow } from './workflow-photo-roles'
 
 export function inferDeclaredPhotoRoleFromConversation(
   messages: UIMessage[],
@@ -58,30 +65,6 @@ export function inferDeclaredPhotoRoleFromConversation(
   return inferRoleFromText(getMessageText(previousAssistant))
 }
 
-export function reconcileDeclaredPhotoRoleWithWorkflow(args: {
-  inferredRole: TradeBoardPhotoDeclaredRole
-  latestUserText: string
-  photos: TradeBoardIntakeSessionState['photos']
-}): TradeBoardPhotoDeclaredRole {
-  const latestUserDeclaredRole = inferRoleFromText(args.latestUserText)
-  if (latestUserDeclaredRole !== 'unknown') return latestUserDeclaredRole
-
-  const alreadyHasLabel = args.photos.some(
-    (photo) => photo.declaredRole === 'label_details',
-  )
-  const alreadyHasJewelryFront = args.photos.some(
-    (photo) => photo.declaredRole === 'jewelry_front',
-  )
-  if (
-    alreadyHasLabel &&
-    !alreadyHasJewelryFront &&
-    (args.inferredRole === 'label_details' || args.inferredRole === 'unknown')
-  ) {
-    return 'jewelry_front'
-  }
-
-  return args.inferredRole
-}
 
 export function mergeWorkflowToolIntents(
   latestIntents: NicNacToolIntent[],
@@ -306,19 +289,38 @@ export async function ingestLatestTradeBoardIntakeTurn(
       (part as { type?: string; mediaType?: string }).type === 'file' &&
       (part as { mediaType?: string }).mediaType?.startsWith('image/'),
   ) as Array<{ type?: string; mediaType?: string; url?: string }>
+  const inspectedPhotos = await Promise.all(
+    fileParts.map((filePart) => inspectWorkflowPhoto(filePart.url, 'unknown')),
+  )
+  const declaredRoles = assignDeclaredPhotoRolesForTurn({
+    attachmentCount: fileParts.length,
+    inheritedRole:
+      fileParts.length === 1
+        ? inferDeclaredPhotoRoleFromConversation(args.messages, 0)
+        : 'unknown',
+    latestUserText,
+    existingPhotos: photos,
+    visualRoles: inspectedPhotos.map((inspected) => inspected.visualRole),
+  })
 
   for (const [index, filePart] of fileParts.entries()) {
-    const declaredRole = reconcileDeclaredPhotoRoleWithWorkflow({
-      inferredRole: inferDeclaredPhotoRoleFromConversation(
-        args.messages,
-        index,
-      ),
-      latestUserText,
-      photos,
-    })
-    const inspected = await inspectWorkflowPhoto(filePart.url, declaredRole)
+    const declaredRole = declaredRoles[index] ?? 'unknown'
+    const inspected = scoreInspectedWorkflowPhoto(
+      declaredRole,
+      inspectedPhotos[index] ??
+        ({
+          visualRole: 'uncertain',
+          quality: 'unknown',
+          qualityIssues: [],
+        } satisfies InspectedWorkflowPhoto),
+    )
+    const userDeclaredJewelry =
+      inferExplicitAttachmentRole(latestUserText, index, fileParts.length) ===
+      'jewelry_front'
     const visualRole =
-      declaredRole === 'jewelry_front' && inspected.visualRole === 'label_or_packaging'
+      declaredRole === 'jewelry_front' &&
+      inspected.visualRole === 'label_or_packaging' &&
+      userDeclaredJewelry
         ? 'uncertain'
         : inspected.visualRole
     const photo = {
@@ -470,58 +472,26 @@ function isMissingWorkflowSchemaError(err: unknown): boolean {
   )
 }
 
-function inferRoleFromText(text: string): TradeBoardPhotoDeclaredRole {
-  const asksForJewelryPhoto =
-    /\b(?:need|needs|send|upload|snap|take|provide|use|show|get|got)\b[\s\S]{0,120}\b(?:jewelry|customer-facing|front\s+(?:photo|shot|image)|boxed display|piece photo|listing photo|earrings themselves|just the earrings|actual jewelry)\b/i.test(
-      text,
-    ) ||
-    /\b(?:jewelry|customer-facing|front\s+(?:photo|shot|image)|boxed display|piece photo|listing photo|earrings themselves|just the earrings|actual jewelry)\b[\s\S]{0,80}\b(?:photo|shot|image|front and center|clear|close)\b/i.test(
-      text,
-    )
-  const asksForLabelPhoto =
-    /\b(?:need|needs|send|upload|snap|take|provide|use|show|get|got)\b[\s\S]{0,120}\b(?:label(?:\/details)?|details\s+(?:photo|shot|image|source)|tag|back.of.card|item-info|item info)\b/i.test(
-      text,
-    ) ||
-    /\b(?:label(?:\/details)?|tag|back.of.card|item-info|item info)\b[\s\S]{0,80}\b(?:photo|shot|image|source)\b/i.test(
-      text,
-    ) ||
-    /\bdetails\s+(?:photo|shot|image|source)\b/i.test(
-      text,
-    )
-  const rejectsLabelAsListingPhoto =
-    /\blabel(?:\/details)?\s+photo\b[\s\S]{0,80}\b(?:doesn'?t|does not|isn'?t|is not|won'?t|will not|can'?t|cannot)\b[\s\S]{0,120}\b(?:listing|jewelry|earrings|front|photo|shot|image)\b/i.test(
-      text,
-    )
-  const treatsLabelAsDetailsSource =
-    /\blabel(?:\/details)?\s+photo\b[\s\S]{0,120}\b(?:helpful|details|source|read|got\s+the\s+details|shows\s+the\s+info|super\s+helpful)\b/i.test(
-      text,
-    ) ||
-    /\blabel(?:\/details)?\s+photo\b[\s\S]{0,160}\bbut\b[\s\S]{0,160}\b(?:need|see|show|get|use)\b[\s\S]{0,120}\b(?:earrings|jewelry|customer-facing|front|boxed display|listing)\b/i.test(
-      text,
-    )
+type InspectedWorkflowPhoto = {
+  visualRole: TradeBoardPhotoVisualRole
+  quality: 'usable' | 'warning' | 'blocked' | 'unknown'
+  qualityScore?: number
+  qualityIssues: string[]
+  contentSha256?: string
+  visualRoleSource?: string
+  labelQuality?: 'usable' | 'warning' | 'blocked' | 'unknown'
+  jewelryQuality?: 'usable' | 'warning' | 'blocked' | 'unknown'
+}
 
-  if (
-    asksForJewelryPhoto &&
-    (rejectsLabelAsListingPhoto ||
-      treatsLabelAsDetailsSource ||
-      !asksForLabelPhoto)
-  ) {
-    return 'jewelry_front'
-  }
-  if (asksForLabelPhoto && !asksForJewelryPhoto) {
-    return 'label_details'
-  }
-  if (asksForJewelryPhoto && asksForLabelPhoto) {
-    return 'unknown'
-  }
-  if (
-    /\b(jewelry|customer-facing|front photo|boxed display|piece photo)\b/i.test(
-      text,
-    )
-  ) {
-    return 'jewelry_front'
-  }
-  return 'unknown'
+function scoreInspectedWorkflowPhoto(
+  declaredRole: TradeBoardPhotoDeclaredRole,
+  inspected: InspectedWorkflowPhoto,
+): InspectedWorkflowPhoto {
+  const quality =
+    declaredRole === 'label_details'
+      ? (inspected.labelQuality ?? inspected.quality)
+      : (inspected.jewelryQuality ?? inspected.quality)
+  return { ...inspected, quality }
 }
 
 function maybeConfirmLatestJewelryFrontPhoto(args: {
@@ -620,14 +590,7 @@ function assistantIdentifiedJewelryFront(text: string): boolean {
 async function inspectWorkflowPhoto(
   imageUrl: string | undefined,
   declaredRole: TradeBoardPhotoDeclaredRole,
-): Promise<{
-  visualRole: TradeBoardPhotoVisualRole
-  quality: 'usable' | 'warning' | 'blocked' | 'unknown'
-  qualityScore?: number
-  qualityIssues: string[]
-  contentSha256?: string
-  visualRoleSource?: string
-}> {
+): Promise<InspectedWorkflowPhoto> {
   if (!imageUrl) {
     return { visualRole: 'uncertain', quality: 'unknown', qualityIssues: [] }
   }
@@ -649,21 +612,23 @@ async function inspectWorkflowPhoto(
       analysis.blurRisk >= 0.75 ||
       analysis.detailRisk >= 0.82 ||
       analysis.detailConfidence < 0.35
+    const labelQuality = labelUnreadable
+      ? ('blocked' as const)
+      : analysis.blurRisk >= 0.45 || analysis.detailRisk >= 0.58
+        ? ('warning' as const)
+        : ('usable' as const)
+    const jewelryQuality = preflight.passed
+      ? ('usable' as const)
+      : reviewableJewelryFront
+        ? ('warning' as const)
+        : ('blocked' as const)
     const quality =
-      declaredRole === 'label_details'
-        ? labelUnreadable
-          ? 'blocked'
-          : analysis.blurRisk >= 0.45 || analysis.detailRisk >= 0.58
-            ? 'warning'
-            : 'usable'
-        : preflight.passed
-          ? 'usable'
-          : reviewableJewelryFront
-            ? 'warning'
-            : 'blocked'
+      declaredRole === 'label_details' ? labelQuality : jewelryQuality
     return {
       visualRole: semantic.role,
       quality,
+      labelQuality,
+      jewelryQuality,
       qualityScore: preflight.score,
       qualityIssues: [
         ...semantic.reasons,
@@ -676,6 +641,8 @@ async function inspectWorkflowPhoto(
     return {
       visualRole: 'uncertain',
       quality: 'unknown',
+      labelQuality: 'unknown',
+      jewelryQuality: 'unknown',
       qualityIssues: ['server_visual_inspection_unavailable'],
       visualRoleSource: 'inspection_failed',
     }

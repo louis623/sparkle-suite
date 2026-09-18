@@ -1,5 +1,24 @@
 # Session Log
 
+## September 18, 2026 - Nic-Nac label-as-hero Dance Floor regression
+
+- Kelly / Sparkly Butterflies live Add Dancer was publishing the label/SKU
+  card as the dancer hero after two-photo intake. Same class as Heather's
+  September 11 failure; the September 13 role-pin contract was not applied
+  to same-turn uploads.
+- Root cause: both photos in one turn inherited one conversation role
+  (often `jewelry_front` after a jewelry ask). Publish then used last
+  accepted photo or a model URL/id, so the label could become public media.
+- Fix restores the September 13 contract: distinct label vs jewelry roles
+  when a visual pin or explicit wording exists; two uncertain photos stay
+  unknown instead of inventing roles from attachment order; labels
+  structurally barred from hero media; invalid model picks fall back to
+  the workflow jewelry-front photo; no conversation-order fallback while a
+  workflow is active.
+- Operator notes: `docs/sparkle-suite/operations/2026-09-18-kelly-dance-floor-label-hero-repair.md`.
+  Existing Kelly cards need an owner-reviewed, fail-closed
+  manifest before any repair apply. Do not mass-rewrite dancers.
+
 ## September 18, 2026 - Rocky SHIP: merge Kelly founder billing PR #6; Suite deploy blocked
 
 - Louis authorized production ship of PR #6 (Rocky SHIP), branch
