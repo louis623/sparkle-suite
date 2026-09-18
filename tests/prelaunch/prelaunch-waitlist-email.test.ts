@@ -8,9 +8,50 @@ vi.mock('@/lib/resend/config', () => ({
   isResendEnabled: () => isResendEnabledMock(),
 }))
 
-import { sendPrelaunchWaitlistWelcomeEmail } from '@/lib/prelaunch/waitlist-email'
+import {
+  PRELAUNCH_WAITLIST_WELCOME_EMAIL_SKIP_REASON,
+  sendPrelaunchEmail,
+  sendPrelaunchWaitlistWelcomeEmail,
+  skipPrelaunchWaitlistWelcomeEmail,
+} from '@/lib/prelaunch/waitlist-email'
 
 describe('sendPrelaunchWaitlistWelcomeEmail', () => {
+  beforeEach(() => {
+    getResendConfigMock.mockReset()
+    isResendEnabledMock.mockReset()
+    vi.stubGlobal('fetch', vi.fn())
+  })
+
+  it('skips signup confirmation because Nic-Nac first-touch owns outreach', async () => {
+    isResendEnabledMock.mockReturnValue(true)
+    getResendConfigMock.mockReturnValue({
+      RESEND_API_KEY: 'rk_test',
+      RESEND_FROM_EMAIL: 'updates@neonrabbit.net',
+    })
+
+    await expect(
+      sendPrelaunchWaitlistWelcomeEmail({
+        email: 'jamie@example.com',
+        name: 'Jamie Hart',
+      }),
+    ).resolves.toEqual({
+      status: 'skipped',
+      reason: PRELAUNCH_WAITLIST_WELCOME_EMAIL_SKIP_REASON,
+    })
+    expect(isResendEnabledMock).not.toHaveBeenCalled()
+    expect(getResendConfigMock).not.toHaveBeenCalled()
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('records a skipped welcome-email result for waitlist signup', () => {
+    expect(skipPrelaunchWaitlistWelcomeEmail()).toEqual({
+      status: 'skipped',
+      reason: PRELAUNCH_WAITLIST_WELCOME_EMAIL_SKIP_REASON,
+    })
+  })
+})
+
+describe('sendPrelaunchEmail', () => {
   beforeEach(() => {
     getResendConfigMock.mockReset()
     isResendEnabledMock.mockReset()
@@ -21,9 +62,12 @@ describe('sendPrelaunchWaitlistWelcomeEmail', () => {
     isResendEnabledMock.mockReturnValueOnce(false)
 
     await expect(
-      sendPrelaunchWaitlistWelcomeEmail({
+      sendPrelaunchEmail({
         email: 'jamie@example.com',
-        name: 'Jamie Hart',
+        content: {
+          subject: 'Next step for your Sparkle Suite consult',
+          text: 'Please choose a consult time.',
+        },
       }),
     ).resolves.toEqual({
       status: 'skipped',
@@ -32,7 +76,7 @@ describe('sendPrelaunchWaitlistWelcomeEmail', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
-  it('sends the first waitlist welcome email through Resend', async () => {
+  it('sends operator-owned prelaunch email through Resend', async () => {
     isResendEnabledMock.mockReturnValueOnce(true)
     getResendConfigMock.mockReturnValueOnce({
       RESEND_API_KEY: 'rk_test',
@@ -43,9 +87,12 @@ describe('sendPrelaunchWaitlistWelcomeEmail', () => {
     )
 
     await expect(
-      sendPrelaunchWaitlistWelcomeEmail({
+      sendPrelaunchEmail({
         email: 'JAMIE@EXAMPLE.COM',
-        name: 'Jamie Hart',
+        content: {
+          subject: 'Next step for your Sparkle Suite consult',
+          text: 'Please choose a consult time.',
+        },
       }),
     ).resolves.toEqual({
       status: 'sent',
@@ -63,17 +110,12 @@ describe('sendPrelaunchWaitlistWelcomeEmail', () => {
       }),
     )
     const [, options] = vi.mocked(fetch).mock.calls[0]
-    expect(JSON.parse(String(options?.body))).toMatchObject({
+    expect(JSON.parse(String(options?.body))).toEqual({
       from: 'updates@neonrabbit.net',
       to: ['jamie@example.com'],
-      subject: "You're in the Sparkle Suite build queue",
+      subject: 'Next step for your Sparkle Suite consult',
+      text: 'Please choose a consult time.',
     })
-    expect(JSON.parse(String(options?.body)).text).toContain(
-      'Thanks for joining the Sparkle Suite build queue.',
-    )
-    expect(JSON.parse(String(options?.body)).text).toContain(
-      'Reply to this email any time if you want to unsubscribe or ask a question.',
-    )
   })
 
   it('returns a failed status when Resend rejects the send', async () => {
@@ -89,9 +131,12 @@ describe('sendPrelaunchWaitlistWelcomeEmail', () => {
     )
 
     await expect(
-      sendPrelaunchWaitlistWelcomeEmail({
+      sendPrelaunchEmail({
         email: 'jamie@example.com',
-        name: 'Jamie Hart',
+        content: {
+          subject: 'Next step for your Sparkle Suite consult',
+          text: 'Please choose a consult time.',
+        },
       }),
     ).resolves.toEqual({
       status: 'failed',

@@ -10,7 +10,7 @@ import {
 } from '@/lib/prelaunch/waitlist'
 import { assertPrelaunchRequestAllowed } from '@/lib/prelaunch/request-guard'
 import {
-  sendPrelaunchWaitlistWelcomeEmail,
+  skipPrelaunchWaitlistWelcomeEmail,
   type PrelaunchWaitlistWelcomeEmailResult,
 } from '@/lib/prelaunch/waitlist-email'
 import { ServiceError } from '@/lib/services/errors'
@@ -70,10 +70,7 @@ export async function POST(request: Request) {
       throw error ?? new Error('WAITLIST_INSERT_RETURNED_NO_ROW')
     }
 
-    const welcomeEmail = await sendPrelaunchWaitlistWelcomeEmail({
-      email: data.email,
-      name: data.name,
-    })
+    const welcomeEmail = skipPrelaunchWaitlistWelcomeEmail()
     await recordWelcomeEmailStatus(data.id, welcomeEmail)
 
     notifyBuildListSignupAfterResponse(

@@ -1,11 +1,27 @@
 import { getResendConfig, isResendEnabled } from '@/lib/resend/config'
 import type { SparkleSuitePrelaunchEmailContent } from '@/lib/prelaunch/email-content'
-import { buildPrelaunchWaitlistWelcomeEmailContent } from '@/lib/prelaunch/email-content'
+
+export const PRELAUNCH_WAITLIST_WELCOME_EMAIL_SKIP_REASON =
+  'nic_nac_first_touch_owns_outreach' as const
+
+export type PrelaunchWaitlistWelcomeEmailSkipReason =
+  | 'resend_not_configured'
+  | typeof PRELAUNCH_WAITLIST_WELCOME_EMAIL_SKIP_REASON
 
 export type PrelaunchWaitlistWelcomeEmailResult =
   | { status: 'sent'; providerId: string }
-  | { status: 'skipped'; reason: 'resend_not_configured' }
+  | { status: 'skipped'; reason: PrelaunchWaitlistWelcomeEmailSkipReason }
   | { status: 'failed'; error: string }
+
+export function skipPrelaunchWaitlistWelcomeEmail(): Extract<
+  PrelaunchWaitlistWelcomeEmailResult,
+  { status: 'skipped' }
+> {
+  return {
+    status: 'skipped',
+    reason: PRELAUNCH_WAITLIST_WELCOME_EMAIL_SKIP_REASON,
+  }
+}
 
 export interface PrelaunchWaitlistWelcomeEmailInput {
   email: string
@@ -85,10 +101,9 @@ export async function sendPrelaunchEmail(input: {
 }
 
 export async function sendPrelaunchWaitlistWelcomeEmail(
-  input: PrelaunchWaitlistWelcomeEmailInput,
+  _input: PrelaunchWaitlistWelcomeEmailInput,
 ): Promise<PrelaunchWaitlistWelcomeEmailResult> {
-  return sendPrelaunchEmail({
-    email: input.email,
-    content: buildPrelaunchWaitlistWelcomeEmailContent(input.name),
-  })
+  // Signup confirmation is owned by Nic-Nac Phase 1 first-touch.
+  // The Suite must not email the lead from the public waitlist path.
+  return skipPrelaunchWaitlistWelcomeEmail()
 }

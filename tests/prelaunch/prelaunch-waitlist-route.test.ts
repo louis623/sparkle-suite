@@ -4,7 +4,6 @@ const insertMock = vi.fn()
 const updateEqMock = vi.fn()
 const updateMock = vi.fn(() => ({ eq: updateEqMock }))
 const fromMock = vi.fn(() => ({ insert: insertMock, update: updateMock }))
-const sendPrelaunchWaitlistWelcomeEmailMock = vi.fn()
 const afterMock = vi.fn()
 
 vi.mock('next/server', async (importOriginal) => {
@@ -21,12 +20,8 @@ vi.mock('@/lib/supabase/admin', () => ({
   }),
 }))
 
-vi.mock('@/lib/prelaunch/waitlist-email', () => ({
-  sendPrelaunchWaitlistWelcomeEmail: (...args: unknown[]) =>
-    sendPrelaunchWaitlistWelcomeEmailMock(...args),
-}))
-
 import { POST } from '@/app/api/prelaunch/waitlist/route'
+import { PRELAUNCH_WAITLIST_WELCOME_EMAIL_SKIP_REASON } from '@/lib/prelaunch/waitlist-email'
 import { resetBuildListWebhookConfigLogForTests } from '@/lib/prelaunch/build-list-webhook'
 import { resetPrelaunchRequestGuardForTests } from '@/lib/prelaunch/request-guard'
 
@@ -69,7 +64,6 @@ describe('POST /api/prelaunch/waitlist', () => {
     insertMock.mockReset()
     updateMock.mockClear()
     updateEqMock.mockReset()
-    sendPrelaunchWaitlistWelcomeEmailMock.mockReset()
     afterMock.mockReset()
     delete process.env.BUILD_LIST_WEBHOOK_URL
     delete process.env.BUILD_LIST_WEBHOOK_KEY
@@ -83,7 +77,9 @@ describe('POST /api/prelaunch/waitlist', () => {
     vi.restoreAllMocks()
   })
 
-  it('stores a qualified prelaunch waitlist signup', async () => {
+  it('stores a qualified prelaunch waitlist signup without sending a welcome email', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
     const singleMock = vi.fn().mockResolvedValueOnce({
       data: {
         id: 'waitlist-1',
@@ -94,10 +90,6 @@ describe('POST /api/prelaunch/waitlist', () => {
     })
     const selectMock = vi.fn(() => ({ single: singleMock }))
     insertMock.mockReturnValueOnce({ select: selectMock })
-    sendPrelaunchWaitlistWelcomeEmailMock.mockResolvedValueOnce({
-      status: 'sent',
-      providerId: 'email-1',
-    })
     updateEqMock.mockResolvedValueOnce({ error: null })
 
     const response = await POST(
@@ -130,111 +122,14 @@ describe('POST /api/prelaunch/waitlist', () => {
       source: 'prelaunch_site',
     })
     expect(selectMock).toHaveBeenCalledWith('id, name, email, created_at')
-    expect(sendPrelaunchWaitlistWelcomeEmailMock).toHaveBeenCalledWith({
-      email: 'jamie@example.com',
-      name: 'Jamie Hart',
-    })
-    expect(updateMock).toHaveBeenCalledWith({
-      welcome_email_status: 'sent',
-      welcome_email_provider_id: 'email-1',
-      welcome_email_error: null,
-      welcome_email_sent_at: expect.any(String),
-    })
-    expect(updateEqMock).toHaveBeenCalledWith('id', 'waitlist-1')
-    expect(response.status).toBe(201)
-    await expect(response.json()).resolves.toEqual({
-      ok: true,
-      welcomeEmail: { status: 'sent' },
-    })
-  })
-
-  it('keeps the waitlist signup when the welcome email fails', async () => {
-    const singleMock = vi.fn().mockResolvedValueOnce({
-      data: {
-        id: 'waitlist-1',
-        name: 'Jamie Hart',
-        email: 'jamie@example.com',
-      },
-      error: null,
-    })
-    insertMock.mockReturnValueOnce({
-      select: vi.fn(() => ({ single: singleMock })),
-    })
-    sendPrelaunchWaitlistWelcomeEmailMock.mockResolvedValueOnce({
-      status: 'failed',
-      error: 'bad request',
-    })
-    updateEqMock.mockResolvedValueOnce({ error: null })
-
-    const response = await POST(
-      new Request('http://localhost/api/prelaunch/waitlist', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Jamie Hart',
-          email: 'jamie@example.com',
-          phone: '303-555-0123',
-          tiktokHandle: '@jamiehart',
-          teamRepName: 'Lindsey',
-          smsConsent: true,
-          emailConsent: true,
-        }),
-      }),
-    )
-
-    expect(updateMock).toHaveBeenCalledWith({
-      welcome_email_status: 'failed',
-      welcome_email_provider_id: null,
-      welcome_email_error: 'bad request',
-      welcome_email_sent_at: null,
-    })
-    expect(response.status).toBe(201)
-    await expect(response.json()).resolves.toEqual({
-      ok: true,
-      welcomeEmail: { status: 'failed' },
-    })
-  })
-
-  it('records a skipped welcome email when resend is not configured', async () => {
-    const singleMock = vi.fn().mockResolvedValueOnce({
-      data: {
-        id: 'waitlist-1',
-        name: 'Jamie Hart',
-        email: 'jamie@example.com',
-      },
-      error: null,
-    })
-    insertMock.mockReturnValueOnce({
-      select: vi.fn(() => ({ single: singleMock })),
-    })
-    sendPrelaunchWaitlistWelcomeEmailMock.mockResolvedValueOnce({
-      status: 'skipped',
-      reason: 'resend_not_configured',
-    })
-    updateEqMock.mockResolvedValueOnce({ error: null })
-
-    const response = await POST(
-      new Request('http://localhost/api/prelaunch/waitlist', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Jamie Hart',
-          email: 'jamie@example.com',
-          phone: '303-555-0123',
-          tiktokHandle: '@jamiehart',
-          teamRepName: 'Lindsey',
-          smsConsent: true,
-          emailConsent: true,
-        }),
-      }),
-    )
-
+    expect(fetchMock).not.toHaveBeenCalled()
     expect(updateMock).toHaveBeenCalledWith({
       welcome_email_status: 'skipped',
       welcome_email_provider_id: null,
-      welcome_email_error: 'resend_not_configured',
+      welcome_email_error: PRELAUNCH_WAITLIST_WELCOME_EMAIL_SKIP_REASON,
       welcome_email_sent_at: null,
     })
+    expect(updateEqMock).toHaveBeenCalledWith('id', 'waitlist-1')
     expect(response.status).toBe(201)
     await expect(response.json()).resolves.toEqual({
       ok: true,
@@ -277,10 +172,6 @@ describe('POST /api/prelaunch/waitlist', () => {
     })
     const selectMock = vi.fn(() => ({ single: singleMock }))
     insertMock.mockReturnValueOnce({ select: selectMock })
-    sendPrelaunchWaitlistWelcomeEmailMock.mockResolvedValueOnce({
-      status: 'skipped',
-      reason: 'resend_not_configured',
-    })
     updateEqMock.mockResolvedValueOnce({ error: null })
 
     const response = await POST(
@@ -324,10 +215,6 @@ describe('POST /api/prelaunch/waitlist', () => {
     })
     const selectMock = vi.fn(() => ({ single: singleMock }))
     insertMock.mockReturnValueOnce({ select: selectMock })
-    sendPrelaunchWaitlistWelcomeEmailMock.mockResolvedValueOnce({
-      status: 'skipped',
-      reason: 'resend_not_configured',
-    })
     updateEqMock.mockResolvedValueOnce({ error: null })
 
     const response = await POST(
@@ -421,10 +308,6 @@ describe('POST /api/prelaunch/waitlist', () => {
       insertMock.mockReturnValueOnce({
         select: vi.fn(() => ({ single: singleMock })),
       })
-      sendPrelaunchWaitlistWelcomeEmailMock.mockResolvedValueOnce({
-        status: 'skipped',
-        reason: 'not configured',
-      })
       updateEqMock.mockResolvedValueOnce({ error: null })
 
       expect((await POST(buildRequest())).status).toBe(201)
@@ -486,10 +369,6 @@ describe('POST /api/prelaunch/waitlist', () => {
       email: 'jamie@example.com',
       created_at: '2026-09-18T20:00:00.000Z',
     })
-    sendPrelaunchWaitlistWelcomeEmailMock.mockResolvedValueOnce({
-      status: 'skipped',
-      reason: 'resend_not_configured',
-    })
     updateEqMock.mockResolvedValueOnce({ error: null })
 
     const response = await POST(
@@ -512,6 +391,12 @@ describe('POST /api/prelaunch/waitlist', () => {
     await expect(response.json()).resolves.toEqual({
       ok: true,
       welcomeEmail: { status: 'skipped' },
+    })
+    expect(updateMock).toHaveBeenCalledWith({
+      welcome_email_status: 'skipped',
+      welcome_email_provider_id: null,
+      welcome_email_error: PRELAUNCH_WAITLIST_WELCOME_EMAIL_SKIP_REASON,
+      welcome_email_sent_at: null,
     })
     expect(fetchMock).not.toHaveBeenCalled()
     expect(afterMock).toHaveBeenCalledTimes(1)
@@ -552,10 +437,6 @@ describe('POST /api/prelaunch/waitlist', () => {
       email: 'jamie@example.com',
       created_at: '2026-09-18T20:01:00.000Z',
     })
-    sendPrelaunchWaitlistWelcomeEmailMock.mockResolvedValueOnce({
-      status: 'sent',
-      providerId: 'email-1',
-    })
     updateEqMock.mockResolvedValueOnce({ error: null })
 
     const response = await POST(
@@ -577,7 +458,7 @@ describe('POST /api/prelaunch/waitlist', () => {
     expect(response.status).toBe(201)
     await expect(response.json()).resolves.toEqual({
       ok: true,
-      welcomeEmail: { status: 'sent' },
+      welcomeEmail: { status: 'skipped' },
     })
 
     await expect(afterMock.mock.calls[0][0]()).resolves.toBeUndefined()
