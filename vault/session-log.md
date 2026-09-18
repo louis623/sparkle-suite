@@ -1,5 +1,12 @@
 # Session Log
 
+## September 18, 2026 - Sam Suite prod deploys; vault closeout is release truth
+
+- Sam released PR #6/#7/#8 to Suite production from the box after cloud-agent
+  merge notes said deploy was blocked (no `VERCEL_TOKEN`).
+- Treat `vault/2026-09-18-sparkle-ships-closeout.md` as release truth for
+  those deploys, waitlist TEST, and Live Lineup 2.0.4. Docs-only; no deploy.
+
 ## September 18, 2026 - Rocky SHIP: merge waitlist MCP PR #8; Suite deploy blocked
 
 - Louis authorized production ship of PR #8 (Rocky SHIP), branch

@@ -1,5 +1,11 @@
 # Project State
 
+## September 18, 2026 - Sam Suite prod deploys of PR #6/#7/#8 (release truth)
+
+Sam shipped PR #6/#7/#8 to Suite production from the box. Cloud-agent notes
+that said "Suite prod not released" for those PRs were written before those
+deploys. Release truth: `vault/2026-09-18-sparkle-ships-closeout.md`.
+
 ## September 18, 2026 - Waitlist MCP PR #8 merged; Suite prod not released
 
 Louis authorized Rocky SHIP of PR #8 onto production branch
