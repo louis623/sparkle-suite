@@ -1,5 +1,19 @@
 # Project State
 
+## September 18, 2026 - Kelly founder billing merged; Suite prod not released
+
+Louis authorized Rocky SHIP of PR #6 onto production branch
+`codex/nic-nac-trade-hardening`. GitHub `louis623/sparkle-suite` production
+tip is now `11314d2f89ccf061305c1b7ab0a12e864fcdd0b0`
+(`fix(billing): harden demo exclusion before founder Checkout`). PR #6 is
+merged (fast-forward; merge SHA equals that tip). Live `pg_constraint` for
+`subscriptions.rep_id` UNIQUE was not queried (no `DATABASE_URL`); the
+index was not applied. Manual Vercel `--prod --skip-domain` did not run:
+this Cloud Agent has no `VERCEL_TOKEN`. Suite aliases were not moved. Do
+not treat Kelly Account → Stripe Checkout as live until a manual Suite
+deploy of `11314d2f` is Ready on www and apex. PR #7 left open. No
+livemode charges.
+
 ## September 17, 2026 - GitHub now mirrors live Pass C
 
 Louis authorized a Git hygiene merge so GitHub matches Suite production.

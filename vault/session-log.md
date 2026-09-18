@@ -1,5 +1,23 @@
 # Session Log
 
+## September 18, 2026 - Rocky SHIP: merge Kelly founder billing PR #6; Suite deploy blocked
+
+- Louis authorized production ship of PR #6 (Rocky SHIP), branch
+  `cursor/kelly-founder-billing-a0be`, tip `11314d2f`.
+- Live `subscriptions.rep_id` UNIQUE was **not** queried: this VM has no
+  `DATABASE_URL` / service role. Schema still defines
+  `rep_id UUID UNIQUE NOT NULL` (`subscriptions_rep_id_key`). The safe
+  `CREATE UNIQUE INDEX IF NOT EXISTS` was **not** applied.
+- GitHub merge API returned 403. Fast-forwarded
+  `codex/nic-nac-trade-hardening` `da12bb47` → `11314d2f` and pushed.
+  GitHub marked PR #6 merged. Merge commit SHA =
+  `11314d2f89ccf061305c1b7ab0a12e864fcdd0b0`.
+- Manual Suite production deploy did not run: no `VERCEL_TOKEN`, Vercel CLI
+  `login_required`. `git.deploymentEnabled` remains false. Live
+  `https://www.yoursparklesuite.com` still the pre-ship deployment (HTTP 200;
+  apex 307 to www; `/api/nic-nac/health` db_reachable).
+- Did **not** touch PR #7 (photo fix). No livemode Stripe charges.
+
 ## September 17, 2026 - Git hygiene: merge PR #5 so GitHub matches prod
 
 - Louis authorized merging Pass C into `codex/nic-nac-trade-hardening`
