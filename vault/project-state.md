@@ -25,8 +25,8 @@ merged (fast-forward; merge SHA equals that tip). Live `pg_constraint` for
 index was not applied. Manual Vercel `--prod --skip-domain` did not run:
 this Cloud Agent has no `VERCEL_TOKEN`. Suite aliases were not moved. Do
 not treat Kelly Account → Stripe Checkout as live until a manual Suite
-deploy of `11314d2f` is Ready on www and apex. PR #7 left open. No
-livemode charges.
+deploy of `11314d2f` (now ancestor of merge `e3f2260b`) is Ready on www
+and apex. PR #7 later merged; Suite still not released. No livemode charges.
 
 ## September 17, 2026 - GitHub now mirrors live Pass C
 
