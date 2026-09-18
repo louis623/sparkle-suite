@@ -212,6 +212,8 @@ export function assignDeclaredPhotoRolesForTurn(args: {
     .map((role, index) => (role ? -1 : index))
     .filter((index) => index >= 0)
 
+  // Fill the other slot only after an explicit or visual pin. Two uncertain
+  // photos must stay unknown — attachment order is not a role.
   if (count >= 2 && unknownIndexes.length === 1) {
     const index = unknownIndexes[0]
     if ((turnHasLabel || sessionHasLabel) && !turnHasJewelry && !sessionHasJewelry) {
@@ -223,11 +225,6 @@ export function assignDeclaredPhotoRolesForTurn(args: {
     ) {
       roles[index] = 'label_details'
     }
-  }
-
-  if (count === 2 && unknownIndexes.length === 2) {
-    roles[0] = sessionHasLabel && !sessionHasJewelry ? 'jewelry_front' : 'label_details'
-    roles[1] = roles[0] === 'label_details' ? 'jewelry_front' : 'label_details'
   }
 
   return roles.map((role) => role ?? 'unknown')

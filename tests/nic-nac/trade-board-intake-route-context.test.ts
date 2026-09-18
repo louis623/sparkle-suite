@@ -251,7 +251,7 @@ describe('Dance Floor intake route context', () => {
     ).toBe('label_details')
   })
 
-  it('assigns label then jewelry when two photos arrive together after a jewelry ask', async () => {
+  it('leaves both same-turn photos unknown after a jewelry ask when visuals are uncertain', async () => {
     const sessionRow = {
       id: 'workflow-1',
       rep_id: 'rep-1',
@@ -345,12 +345,12 @@ describe('Dance Floor intake route context', () => {
     expect(context.sessionAfter?.photos).toEqual([
       expect.objectContaining({
         attachmentIndex: 1,
-        declaredRole: 'label_details',
+        declaredRole: 'unknown',
         imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
       }),
       expect.objectContaining({
         attachmentIndex: 2,
-        declaredRole: 'jewelry_front',
+        declaredRole: 'unknown',
         imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
       }),
     ])
@@ -358,7 +358,7 @@ describe('Dance Floor intake route context', () => {
       1,
       expect.objectContaining({
         attachment_index: 1,
-        declared_role: 'label_details',
+        declared_role: 'unknown',
         image_url: 'data:image/jpeg;base64,TEFCRUw=',
       }),
       { onConflict: 'session_id,conversation_message_id,attachment_index' },
@@ -367,7 +367,7 @@ describe('Dance Floor intake route context', () => {
       2,
       expect.objectContaining({
         attachment_index: 2,
-        declared_role: 'jewelry_front',
+        declared_role: 'unknown',
         image_url: 'data:image/jpeg;base64,SkVXRUxSWQ==',
       }),
       { onConflict: 'session_id,conversation_message_id,attachment_index' },

@@ -22,7 +22,11 @@ for same-turn two-photo intake.
 ## Code contract restored
 
 - Same-turn two-photo intake assigns **label** and **jewelry** as distinct
-  roles. A visual label/packaging photo is pinned as `label_details`.
+  roles when a visual pin or explicit wording exists. Two uncertain photos
+  stay `unknown` (fail closed / ask) instead of inventing roles from
+  attachment order — jewelry-first must not become `label_details`.
+- A visual label/packaging photo is pinned as `label_details`. The other
+  slot may then be filled as jewelry.
 - `label_details` and `visualRole=label_or_packaging` cannot become
   customer-facing media.
 - If the model points at a label (`selectedPhotoId` / raw URL / index), the

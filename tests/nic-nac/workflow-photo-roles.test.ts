@@ -21,7 +21,56 @@ describe('two-photo Add Dancer role assignment', () => {
         existingPhotos: [],
         visualRoles: ['uncertain', 'uncertain'],
       }),
-    ).toEqual(['label_details', 'jewelry_front'])
+    ).toEqual(['unknown', 'unknown'])
+  })
+
+  it('does not invent label/jewelry from attachment order when both visuals are uncertain', () => {
+    const jewelryFirst = assignDeclaredPhotoRolesForTurn({
+      attachmentCount: 2,
+      inheritedRole: 'unknown',
+      latestUserText: '',
+      existingPhotos: [],
+      visualRoles: ['uncertain', 'uncertain'],
+    })
+    expect(jewelryFirst).toEqual(['unknown', 'unknown'])
+    expect(jewelryFirst[0]).not.toBe('label_details')
+
+    const photos = [
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        attachmentIndex: 1,
+        declaredRole: jewelryFirst[0],
+        visualRole: 'uncertain',
+        quality: 'usable',
+        imageUrl: 'jewelry-first',
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        attachmentIndex: 2,
+        declaredRole: jewelryFirst[1],
+        visualRole: 'uncertain',
+        quality: 'usable',
+        imageUrl: 'label-second',
+      },
+    ]
+    expect(selectWorkflowJewelryPhoto(photos, {})).toBeNull()
+
+    const laterPin = [
+      {
+        ...photos[0],
+        declaredRole: 'jewelry_front' as const,
+        visualRole: 'jewelry' as const,
+      },
+      {
+        ...photos[1],
+        declaredRole: 'label_details' as const,
+        visualRole: 'label_or_packaging' as const,
+      },
+    ]
+    expect(selectWorkflowJewelryPhoto(laterPin, {})?.imageUrl).toBe('jewelry-first')
+    expect(selectWorkflowJewelryPhoto(laterPin, {})?.imageUrl).not.toBe(
+      'label-second',
+    )
   })
 
   it('pins a visual label even when it is attached after the jewelry photo', () => {
