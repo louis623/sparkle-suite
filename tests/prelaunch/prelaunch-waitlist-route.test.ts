@@ -260,6 +260,54 @@ describe('POST /api/prelaunch/waitlist', () => {
     expect(response.status).toBe(201)
   })
 
+  it('stores a name-and-email build-queue signup without optional TikTok or team-rep fields', async () => {
+    const singleMock = vi.fn().mockResolvedValueOnce({
+      data: {
+        id: 'waitlist-name-email',
+        name: 'TEST Lead',
+        email: 'test@example.com',
+      },
+      error: null,
+    })
+    const selectMock = vi.fn(() => ({ single: singleMock }))
+    insertMock.mockReturnValueOnce({ select: selectMock })
+    sendPrelaunchWaitlistWelcomeEmailMock.mockResolvedValueOnce({
+      status: 'skipped',
+      reason: 'resend_not_configured',
+    })
+    updateEqMock.mockResolvedValueOnce({ error: null })
+
+    const response = await POST(
+      new Request('http://localhost/api/prelaunch/waitlist', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: 'TEST Lead',
+          email: 'test@example.com',
+          phone: '',
+          tiktokHandle: '',
+          teamRepName: '',
+          smsConsent: false,
+          emailConsent: true,
+        }),
+      }),
+    )
+
+    expect(fromMock).toHaveBeenCalledWith('sparkle_suite_waitlist')
+    expect(insertMock).toHaveBeenCalledWith({
+      name: 'TEST Lead',
+      email: 'test@example.com',
+      phone: null,
+      tiktok_handle: null,
+      team_rep_name: null,
+      setup_pain: null,
+      sms_consent: false,
+      email_consent: true,
+      source: 'prelaunch_site',
+    })
+    expect(response.status).toBe(201)
+  })
+
   it('rejects a bot-trap submission before writing to the waitlist', async () => {
     const response = await POST(
       new Request('http://localhost/api/prelaunch/waitlist', {

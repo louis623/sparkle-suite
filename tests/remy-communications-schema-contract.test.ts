@@ -9,6 +9,10 @@ const replyApprovalService = readFileSync(
   'lib/remy-communications/reply-approvals.ts',
   'utf8',
 )
+const waitlistReadMigration = readFileSync(
+  'supabase/migrations/20260918180000_ss_waitlist_service_role_read.sql',
+  'utf8',
+)
 
 describe('Remy Communications schema contract', () => {
   it('keeps raw request data out of the audit log and gates sends with one-time approvals', () => {
@@ -20,5 +24,14 @@ describe('Remy Communications schema contract', () => {
     expect(migration).toContain("now() + interval '15 minutes'")
     expect(replyApprovalService).toContain('clientRequestId: `remy-approved:${approval.id}`')
     expect(replyApprovalService).not.toContain('randomUUID')
+  })
+
+  it('gives classic waitlist and intake service_role policies so MCP reads cannot false-empty', () => {
+    expect(waitlistReadMigration).toContain('sparkle_suite_waitlist_service_role_only')
+    expect(waitlistReadMigration).toContain('on public.sparkle_suite_waitlist')
+    expect(waitlistReadMigration).toContain('sparkle_suite_intake_submissions_service_role_only')
+    expect(waitlistReadMigration).toContain('to service_role')
+    expect(waitlistReadMigration).toContain('using (true)')
+    expect(waitlistReadMigration).toContain("notify pgrst, 'reload schema'")
   })
 })

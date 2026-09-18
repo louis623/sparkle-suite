@@ -67,18 +67,6 @@ export function validatePrelaunchWaitlistInput(
       'Phone is required if you want launch updates by text.',
     )
   }
-  if (!rawTiktokHandle) {
-    throw errors.INVALID_INPUT(
-      'tiktok handle required',
-      'TikTok handle is required.',
-    )
-  }
-  if (!teamRepName) {
-    throw errors.INVALID_INPUT(
-      'team rep name required',
-      'Team rep name is required.',
-    )
-  }
   if (!input.emailConsent) {
     throw errors.INVALID_INPUT(
       'email consent required',
@@ -90,9 +78,11 @@ export function validatePrelaunchWaitlistInput(
     name,
     email,
     phone,
-    tiktokHandle: rawTiktokHandle.startsWith('@')
-      ? rawTiktokHandle
-      : `@${rawTiktokHandle}`,
+    tiktokHandle: rawTiktokHandle
+      ? rawTiktokHandle.startsWith('@')
+        ? rawTiktokHandle
+        : `@${rawTiktokHandle}`
+      : '',
     teamRepName,
     setupPain: setupPain || undefined,
     smsConsent: input.smsConsent,
@@ -109,8 +99,8 @@ export function buildPrelaunchWaitlistInsert(
     name: validated.name,
     email: validated.email,
     phone: validated.phone || null,
-    tiktok_handle: validated.tiktokHandle,
-    team_rep_name: validated.teamRepName,
+    tiktok_handle: validated.tiktokHandle || null,
+    team_rep_name: validated.teamRepName || null,
     setup_pain: validated.setupPain ?? null,
     sms_consent: validated.smsConsent,
     email_consent: validated.emailConsent,

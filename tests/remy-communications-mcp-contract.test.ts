@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   controlCenterMcpToolNames,
@@ -35,5 +36,13 @@ describe('Sparkle Suite Control Center MCP contract', () => {
     expect(controlCenterMcpToolNames).not.toContain('control_center_deploy')
     expect(controlCenterMcpToolNames).not.toContain('control_center_run_sparkle_lab')
     expect(controlCenterMcpToolNames).not.toContain('control_center_suspend_rep')
+  })
+
+  it('does not wrap a missing waitlist lead as a generic outage', () => {
+    const source = readFileSync('lib/remy-communications/mcp.ts', 'utf8')
+    expect(source).not.toContain("throw new Error('Waitlist lead was not found.')")
+    expect(source).toContain('buildControlCenterWaitlistGetResult')
+    expect(source).toContain('buildControlCenterWaitlistListResult')
+    expect(source).toContain('sparkle_suite_waitlist')
   })
 })

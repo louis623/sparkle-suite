@@ -20,8 +20,11 @@ import {
   sendApprovedRemyReply,
 } from '@/lib/remy-communications/reply-approvals'
 import {
+  buildControlCenterWaitlistGetResult,
+  buildControlCenterWaitlistListResult,
   getControlCenterWaitlistLead,
   listControlCenterWaitlistLeads,
+  normalizeWaitlistStatusFilter,
 } from '@/lib/remy-communications/waitlist'
 import { getControlCenterOperatorHealth } from '@/lib/remy-communications/operator-health'
 import { getControlCenterNicNacUsage } from '@/lib/remy-communications/nic-nac-usage'
@@ -459,25 +462,23 @@ export function createControlCenterMcpServer() {
   server.registerTool(
     'control_center_list_waitlist_leads',
     {
-      description: 'List recent Sparkle Suite landing-page and operator-added waitlist leads. This is read-only and cannot email, delete, or change a lead or its status.',
+      description: 'List current classic Control Center waitlist/build-list leads from sparkle_suite_waitlist, the same table the public yoursparklesuite.com build-queue form writes to. Omit status to return every current lead. This is read-only and cannot email, delete, or change a lead or its status. An empty leads array means the table currently has no matching rows, not that the tool failed.',
       inputSchema: z.object({
-        status: z.string().trim().min(1).max(80).optional(),
-        limit: z.number().int().min(1).max(100).default(25),
+        status: z.string().trim().max(80).optional(),
+        limit: z.number().int().min(1).max(100).optional(),
       }),
     },
     async ({ status, limit }) => runTool(
       'control_center_list_waitlist_leads',
       { status, limit },
       async () => {
+        const statusFilter = normalizeWaitlistStatusFilter(status)
         const leads = await listControlCenterWaitlistLeads(
           createAdminClient(),
-          { status, limit },
+          { status: statusFilter, limit: limit ?? 25 },
         )
         return {
-          result: {
-            leads,
-            notice: 'Read-only lead source of truth. Shop name is null when no linked intake supplied one. Use a human operator for outreach or any status change.',
-          },
+          result: buildControlCenterWaitlistListResult(leads, { status: statusFilter }),
           resourceIds: leads.map((lead) => lead.leadId),
         }
       },
@@ -487,7 +488,7 @@ export function createControlCenterMcpServer() {
   server.registerTool(
     'control_center_get_waitlist_lead',
     {
-      description: 'Get one Sparkle Suite waitlist lead by ID with name, linked shop name when available, contact, signup source, date, and status. This is read-only.',
+      description: 'Get one classic Control Center waitlist/build-list lead by ID from sparkle_suite_waitlist. Returns found:false when that ID is not currently stored; that is not an outage. This is read-only.',
       inputSchema: z.object({ leadId: z.string().uuid() }),
     },
     async ({ leadId }) => runTool(
@@ -498,13 +499,9 @@ export function createControlCenterMcpServer() {
           createAdminClient(),
           leadId,
         )
-        if (!lead) throw new Error('Waitlist lead was not found.')
         return {
-          result: {
-            lead,
-            notice: 'Read-only. No email was sent and no lead state was changed.',
-          },
-          resourceIds: [leadId],
+          result: buildControlCenterWaitlistGetResult(lead, leadId),
+          resourceIds: lead ? [leadId] : [],
         }
       },
     ),

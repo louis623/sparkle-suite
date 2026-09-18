@@ -65,6 +65,20 @@ exists, contact, signup source, signup date, and status. `shopName` is `null`
 when the lead has not supplied one through a linked intake; the MCP does not
 invent it.
 
+List and get read the same classic Control Center table the public build-queue
+form writes: `sparkle_suite_waitlist`. Omit `status` on list to return every
+current lead. An empty `leads` array means that table currently has no matching
+rows, not that the tool failed. Get returns `{ found: false, lead: null }` when
+the ID is gone; that is not “temporarily unavailable.”
+
+Louis/Nic-Nac verification after release: submit a clearly labeled TEST from
+`https://www.yoursparklesuite.com/prelaunch#waitlist` (name + email is enough),
+confirm the row appears in classic Control Center waitlist, then confirm MCP
+`control_center_list_waitlist_leads` includes it and
+`control_center_get_waitlist_lead` returns `found: true` for that id. Do not
+email the lead or change its status. Remove the TEST row from classic Control
+Center when finished.
+
 The health snapshot returns counts only. It does not return private conversation
 bodies, attachments, billing information, customer profiles, error payloads,
 or deployment controls. Hale may surface a finding, but Codex does not begin a

@@ -106,4 +106,29 @@ describe('validatePrelaunchWaitlistInput', () => {
       email_consent: true,
     })
   })
+
+  it('allows a name-and-email build-queue join without optional TikTok or team-rep fields', () => {
+    const insert = buildPrelaunchWaitlistInsert({
+      name: 'TEST Lead',
+      email: 'test@example.com',
+      phone: '',
+      tiktokHandle: '',
+      teamRepName: '',
+      setupPain: '',
+      smsConsent: false,
+      emailConsent: true,
+    })
+
+    expect(insert).toEqual({
+      name: 'TEST Lead',
+      email: 'test@example.com',
+      phone: null,
+      tiktok_handle: null,
+      team_rep_name: null,
+      setup_pain: null,
+      sms_consent: false,
+      email_consent: true,
+      source: 'prelaunch_site',
+    })
+  })
 })

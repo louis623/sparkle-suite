@@ -1005,8 +1005,8 @@ export interface PrelaunchWaitlistInsert {
   name: string
   email: string
   phone: string | null
-  tiktok_handle: string
-  team_rep_name: string
+  tiktok_handle: string | null
+  team_rep_name: string | null
   setup_pain: string | null
   sms_consent: boolean
   email_consent: boolean
