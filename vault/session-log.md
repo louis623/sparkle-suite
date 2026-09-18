@@ -1,5 +1,25 @@
 # Session Log
 
+## September 18, 2026 - Rocky SHIP: merge Nic-Nac label-as-hero PR #7; Suite deploy blocked
+
+- Louis authorized production ship of PR #7 (Rocky SHIP), branch
+  `cursor/nic-nac-label-hero-regression-0934`, tip `3696b8ca`.
+- CI glance: GitHub `mergeable=MERGEABLE`, `mergeStateStatus=CLEAN` (Rocky's
+  earlier `unstable` was stale). Checks: Vercel Preview Comments pass,
+  `Vercel – sparkle-finder-dev` pass. No failing Suite CI.
+- Billing PR #6 was already merged (`11314d2f`, docs tip `00143122`). Zero
+  overlapping application files. Local merge onto current production had one
+  conflict: `vault/session-log.md` only. Kept both September 18 notes.
+- GitHub merge API returned 403. Merged locally and pushed
+  `codex/nic-nac-trade-hardening`. Merge SHA =
+  `e3f2260bbc91b9c67589181f1c8ffd074d372231`. GitHub marked PR #7 merged.
+  Both `3696b8ca` (PR #7) and `11314d2f` (PR #6) are ancestors.
+- Manual Suite production deploy did not run: no `VERCEL_TOKEN`, Vercel CLI
+  `login_required`. `git.deploymentEnabled` remains false. Live
+  `https://www.yoursparklesuite.com` still the pre-ship deployment (HTTP 200;
+  apex 307 to www; `/api/nic-nac/health` db_reachable). Did **not** mass-rewrite
+  Kelly dancers. No livemode Stripe charges.
+
 ## September 18, 2026 - Nic-Nac label-as-hero Dance Floor regression
 
 - Kelly / Sparkly Butterflies live Add Dancer was publishing the label/SKU

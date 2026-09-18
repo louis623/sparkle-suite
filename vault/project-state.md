@@ -1,5 +1,19 @@
 # Project State
 
+## September 18, 2026 - Nic-Nac label-as-hero PR #7 merged; Suite prod not released
+
+Louis authorized Rocky SHIP of PR #7 onto production branch
+`codex/nic-nac-trade-hardening`. GitHub `louis623/sparkle-suite` merge SHA is
+`e3f2260bbc91b9c67589181f1c8ffd074d372231` (`Merge pull request #7`). PR #7
+head `3696b8ca` and already-merged billing PR #6 `11314d2f` are both ancestors.
+The only merge conflict was `vault/session-log.md` (resolved by keeping both
+notes). CI at ship time was CLEAN / MERGEABLE; Finder Vercel checks passed;
+no Suite GitHub Actions failure. Manual Vercel `--prod --skip-domain` did not
+run: this Cloud Agent has no `VERCEL_TOKEN`. Suite aliases were not moved. Do
+not treat Kelly Dance Floor label-as-hero as live until a manual Suite deploy
+of `e3f2260b` (or a later docs tip) is Ready on www and apex. Did not
+mass-rewrite Kelly dancers. No livemode charges.
+
 ## September 18, 2026 - Kelly founder billing merged; Suite prod not released
 
 Louis authorized Rocky SHIP of PR #6 onto production branch
