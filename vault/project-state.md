@@ -1,5 +1,21 @@
 # Project State
 
+## September 18, 2026 - Waitlist MCP PR #8 merged; Suite prod not released
+
+Louis authorized Rocky SHIP of PR #8 onto production branch
+`codex/nic-nac-trade-hardening`. GitHub `louis623/sparkle-suite` merge SHA is
+`59f257f5ba248698915131e4a8cda6c75b9b2b50`
+(`fix(control-center): restore waitlist MCP list and get reads`). Fast-forward
+from `ee095bf8`; GitHub merge API 403, same local merge+push path as #6/#7.
+GitHub marked PR #8 merged. Migration `20260918180000`
+(`service_role` RLS on `sparkle_suite_waitlist` +
+`sparkle_suite_intake_submissions`) was **not** applied: this Cloud Agent has
+no `DATABASE_URL`, no `.env.local`, and no logged-in Supabase CLI. Sam should
+apply it from the box before treating MCP list/get as live. Manual Vercel
+did not run: no `VERCEL_TOKEN`. Suite aliases were not moved. Live
+`https://www.yoursparklesuite.com` still the pre-ship deployment (HTTP 200;
+apex 307 to www). No fake prod leads. No email blasts.
+
 ## September 18, 2026 - Nic-Nac label-as-hero PR #7 merged; Suite prod not released
 
 Louis authorized Rocky SHIP of PR #7 onto production branch

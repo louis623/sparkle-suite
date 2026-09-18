@@ -1,5 +1,25 @@
 # Session Log
 
+## September 18, 2026 - Rocky SHIP: merge waitlist MCP PR #8; Suite deploy blocked
+
+- Louis authorized production ship of PR #8 (Rocky SHIP), branch
+  `cursor/waitlist-mcp-list-get-5f22`, tip `59f257f5`.
+- CI glance: GitHub `mergeable_state=clean`. Checks: Vercel Preview Comments
+  pass, `Vercel – sparkle-finder-dev` success. No failing Suite CI.
+- GitHub merge API returned 403. Fast-forwarded
+  `codex/nic-nac-trade-hardening` `ee095bf8` → `59f257f5` and pushed.
+  GitHub marked PR #8 merged. Merge SHA =
+  `59f257f5ba248698915131e4a8cda6c75b9b2b50`.
+- Migration `20260918180000_ss_waitlist_service_role_read.sql` was **not**
+  applied: no `DATABASE_URL` / service role / logged-in Supabase CLI. Sam
+  should apply from the box (`service_role` policies + grants on
+  `sparkle_suite_waitlist` and `sparkle_suite_intake_submissions`).
+- Manual Suite production deploy did not run: no `VERCEL_TOKEN`.
+  `git.deploymentEnabled` remains false. Live
+  `https://www.yoursparklesuite.com` still the pre-ship deployment (HTTP 200;
+  apex 307 to www; `/api/nic-nac/health` db_reachable).
+- Did **not** create fake prod leads or send waitlist/email blasts.
+
 ## September 18, 2026 - Rocky SHIP: merge Nic-Nac label-as-hero PR #7; Suite deploy blocked
 
 - Louis authorized production ship of PR #7 (Rocky SHIP), branch
