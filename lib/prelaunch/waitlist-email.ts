@@ -101,9 +101,10 @@ export async function sendPrelaunchEmail(input: {
 }
 
 export async function sendPrelaunchWaitlistWelcomeEmail(
-  _input: PrelaunchWaitlistWelcomeEmailInput,
+  input: PrelaunchWaitlistWelcomeEmailInput,
 ): Promise<PrelaunchWaitlistWelcomeEmailResult> {
   // Signup confirmation is owned by Nic-Nac Phase 1 first-touch.
   // The Suite must not email the lead from the public waitlist path.
+  void input
   return skipPrelaunchWaitlistWelcomeEmail()
 }
