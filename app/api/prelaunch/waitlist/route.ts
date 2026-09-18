@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 
 import {
+  buildBuildListSignupWebhookPayload,
+  notifyBuildListSignupAfterResponse,
+} from '@/lib/prelaunch/build-list-webhook'
+import {
   buildPrelaunchWaitlistInsert,
   parsePrelaunchWaitlistInput,
 } from '@/lib/prelaunch/waitlist'
@@ -59,7 +63,7 @@ export async function POST(request: Request) {
     const { data, error } = await admin
       .from('sparkle_suite_waitlist')
       .insert(insert)
-      .select('id, name, email')
+      .select('id, name, email, created_at')
       .single()
 
     if (error || !data?.id) {
@@ -71,6 +75,10 @@ export async function POST(request: Request) {
       name: data.name,
     })
     await recordWelcomeEmailStatus(data.id, welcomeEmail)
+
+    notifyBuildListSignupAfterResponse(
+      buildBuildListSignupWebhookPayload(data),
+    )
 
     return NextResponse.json(
       { ok: true, welcomeEmail: { status: welcomeEmail.status } },

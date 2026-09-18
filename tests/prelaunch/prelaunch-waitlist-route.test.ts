@@ -1,10 +1,19 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const insertMock = vi.fn()
 const updateEqMock = vi.fn()
 const updateMock = vi.fn(() => ({ eq: updateEqMock }))
 const fromMock = vi.fn(() => ({ insert: insertMock, update: updateMock }))
 const sendPrelaunchWaitlistWelcomeEmailMock = vi.fn()
+const afterMock = vi.fn()
+
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>()
+  return {
+    ...actual,
+    after: (...args: unknown[]) => afterMock(...args),
+  }
+})
 
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => ({
@@ -18,16 +27,60 @@ vi.mock('@/lib/prelaunch/waitlist-email', () => ({
 }))
 
 import { POST } from '@/app/api/prelaunch/waitlist/route'
+import { resetBuildListWebhookConfigLogForTests } from '@/lib/prelaunch/build-list-webhook'
 import { resetPrelaunchRequestGuardForTests } from '@/lib/prelaunch/request-guard'
+
+const originalWebhookUrl = process.env.BUILD_LIST_WEBHOOK_URL
+const originalWebhookKey = process.env.BUILD_LIST_WEBHOOK_KEY
+
+function restoreWebhookEnv() {
+  if (originalWebhookUrl === undefined) {
+    delete process.env.BUILD_LIST_WEBHOOK_URL
+  } else {
+    process.env.BUILD_LIST_WEBHOOK_URL = originalWebhookUrl
+  }
+  if (originalWebhookKey === undefined) {
+    delete process.env.BUILD_LIST_WEBHOOK_KEY
+  } else {
+    process.env.BUILD_LIST_WEBHOOK_KEY = originalWebhookKey
+  }
+}
+
+function mockSuccessfulInsert(data: {
+  id: string
+  name: string
+  email: string
+  created_at?: string
+}) {
+  const singleMock = vi.fn().mockResolvedValueOnce({
+    data,
+    error: null,
+  })
+  const selectMock = vi.fn(() => ({ single: singleMock }))
+  insertMock.mockReturnValueOnce({ select: selectMock })
+  return selectMock
+}
 
 describe('POST /api/prelaunch/waitlist', () => {
   beforeEach(() => {
     resetPrelaunchRequestGuardForTests()
+    resetBuildListWebhookConfigLogForTests()
     fromMock.mockClear()
     insertMock.mockReset()
     updateMock.mockClear()
     updateEqMock.mockReset()
     sendPrelaunchWaitlistWelcomeEmailMock.mockReset()
+    afterMock.mockReset()
+    delete process.env.BUILD_LIST_WEBHOOK_URL
+    delete process.env.BUILD_LIST_WEBHOOK_KEY
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    restoreWebhookEnv()
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
   })
 
   it('stores a qualified prelaunch waitlist signup', async () => {
@@ -76,7 +129,7 @@ describe('POST /api/prelaunch/waitlist', () => {
       email_consent: true,
       source: 'prelaunch_site',
     })
-    expect(selectMock).toHaveBeenCalledWith('id, name, email')
+    expect(selectMock).toHaveBeenCalledWith('id, name, email, created_at')
     expect(sendPrelaunchWaitlistWelcomeEmailMock).toHaveBeenCalledWith({
       email: 'jamie@example.com',
       name: 'Jamie Hart',
@@ -415,5 +468,127 @@ describe('POST /api/prelaunch/waitlist', () => {
     await expect(response.json()).resolves.toEqual({
       error: 'Failed to save your waitlist spot right now.',
     })
+    expect(afterMock).not.toHaveBeenCalled()
+  })
+
+  it('schedules a build-list webhook after a successful signup', async () => {
+    process.env.BUILD_LIST_WEBHOOK_URL = 'https://bot.example.test/build-list'
+    process.env.BUILD_LIST_WEBHOOK_KEY = 'test-build-list-key'
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    mockSuccessfulInsert({
+      id: 'waitlist-webhook-1',
+      name: 'Jamie Hart',
+      email: 'jamie@example.com',
+      created_at: '2026-09-18T20:00:00.000Z',
+    })
+    sendPrelaunchWaitlistWelcomeEmailMock.mockResolvedValueOnce({
+      status: 'skipped',
+      reason: 'resend_not_configured',
+    })
+    updateEqMock.mockResolvedValueOnce({ error: null })
+
+    const response = await POST(
+      new Request('http://localhost/api/prelaunch/waitlist', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Jamie Hart',
+          email: 'jamie@example.com',
+          phone: '',
+          tiktokHandle: '',
+          teamRepName: '',
+          smsConsent: false,
+          emailConsent: true,
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(201)
+    await expect(response.json()).resolves.toEqual({
+      ok: true,
+      welcomeEmail: { status: 'skipped' },
+    })
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(afterMock).toHaveBeenCalledTimes(1)
+
+    await afterMock.mock.calls[0][0]()
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://bot.example.test/build-list',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer test-build-list-key',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          event: 'build_list_signup',
+          leadId: 'waitlist-webhook-1',
+          name: 'Jamie Hart',
+          email: 'jamie@example.com',
+          shopName: null,
+          source: 'prelaunch_site',
+          createdAt: '2026-09-18T20:00:00.000Z',
+        }),
+      },
+    )
+  })
+
+  it('keeps the 201 signup response when the build-list webhook fails', async () => {
+    process.env.BUILD_LIST_WEBHOOK_URL = 'https://bot.example.test/build-list'
+    process.env.BUILD_LIST_WEBHOOK_KEY = 'test-build-list-key'
+    const fetchMock = vi.fn().mockRejectedValue(new Error('webhook down'))
+    vi.stubGlobal('fetch', fetchMock)
+    const errorSpy = vi.mocked(console.error)
+
+    mockSuccessfulInsert({
+      id: 'waitlist-webhook-2',
+      name: 'Jamie Hart',
+      email: 'jamie@example.com',
+      created_at: '2026-09-18T20:01:00.000Z',
+    })
+    sendPrelaunchWaitlistWelcomeEmailMock.mockResolvedValueOnce({
+      status: 'sent',
+      providerId: 'email-1',
+    })
+    updateEqMock.mockResolvedValueOnce({ error: null })
+
+    const response = await POST(
+      new Request('http://localhost/api/prelaunch/waitlist', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Jamie Hart',
+          email: 'jamie@example.com',
+          phone: '',
+          tiktokHandle: '',
+          teamRepName: '',
+          smsConsent: false,
+          emailConsent: true,
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(201)
+    await expect(response.json()).resolves.toEqual({
+      ok: true,
+      welcomeEmail: { status: 'sent' },
+    })
+
+    await expect(afterMock.mock.calls[0][0]()).resolves.toBeUndefined()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[prelaunch/waitlist] Build-list webhook failed.',
+    )
+    expect(
+      errorSpy.mock.calls.flat().every((value) => {
+        return typeof value !== 'string' || !value.includes('test-build-list-key')
+      }),
+    ).toBe(true)
   })
 })
