@@ -1,5 +1,21 @@
 # Session Log
 
+## September 18, 2026 - Rocky SHIP: merge waitlist Grok Bot notify PR #9; Suite deploy skipped
+
+- Louis authorized production ship of PR #9 (Rocky SHIP), branch
+  `cursor/build-list-webhook-notify-bfe3`, tip `4f6c8c78`.
+- CI glance: GitHub `mergeable_state=clean` at ship. Check runs were empty
+  / pending on the just-opened PR. No failing Suite CI reported.
+- Local fast-forward
+  `codex/nic-nac-trade-hardening` `5b9f3fe4` → `4f6c8c78` and pushed.
+  GitHub marked PR #9 merged. Merge SHA =
+  `4f6c8c7864c1b35080576e1ff5856eb7e9eb14f4`.
+- Manual Suite production deploy did not run: Louis said do not deploy;
+  Sam deploys from the box with `VERCEL_TOKEN`. Webhook is skipped until
+  both `BUILD_LIST_WEBHOOK_URL` and `BUILD_LIST_WEBHOOK_KEY` are set on
+  the target Vercel env.
+- Did **not** create fake prod leads or send waitlist/email blasts.
+
 ## September 18, 2026 - Sam Suite prod deploys; vault closeout is release truth
 
 - Sam released PR #6/#7/#8 to Suite production from the box after cloud-agent

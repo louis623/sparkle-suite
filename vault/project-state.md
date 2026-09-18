@@ -1,5 +1,19 @@
 # Project State
 
+## September 18, 2026 - Waitlist Grok Bot notify PR #9 merged; Suite prod not released
+
+Louis authorized Rocky SHIP of PR #9 onto production branch
+`codex/nic-nac-trade-hardening`. GitHub `louis623/sparkle-suite` merge SHA is
+`4f6c8c7864c1b35080576e1ff5856eb7e9eb14f4`
+(`feat(prelaunch): notify Grok Bot webhook after waitlist signup`).
+Fast-forward from `5b9f3fe4`; local merge+push like #6/#7/#8 (GitHub merge
+API often 403). GitHub marked PR #9 merged. The 201 waitlist insert now
+schedules a soft-fail `BUILD_LIST_WEBHOOK_URL` notify; missing env or a
+down bot never fails the lead. Manual Vercel did not run: Sam deploys from
+the box with `VERCEL_TOKEN`. Suite aliases were not moved. Do not treat
+Grok Bot signup pings as live until Sam deploys this SHA and sets both
+webhook env vars. No fake prod leads. No email blasts.
+
 ## September 18, 2026 - Sam Suite prod deploys of PR #6/#7/#8 (release truth)
 
 Sam shipped PR #6/#7/#8 to Suite production from the box. Cloud-agent notes
