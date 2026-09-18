@@ -1,5 +1,22 @@
 # Session Log
 
+## September 18, 2026 - Nic-Nac label-as-hero Dance Floor regression
+
+- Kelly / Sparkly Butterflies live Add Dancer was publishing the label/SKU
+  card as the dancer hero after two-photo intake. Same class as Heather's
+  September 11 failure; the September 13 role-pin contract was not applied
+  to same-turn uploads.
+- Root cause: both photos in one turn inherited one conversation role
+  (often `jewelry_front` after a jewelry ask). Publish then used last
+  accepted photo or a model URL/id, so the label could become public media.
+- Fix restores the September 13 contract: distinct label vs jewelry roles,
+  labels structurally barred from hero media, invalid model picks fall back
+  to the workflow jewelry-front photo, no conversation-order fallback while
+  a workflow is active.
+- Operator notes: `docs/sparkle-suite/operations/2026-09-18-kelly-dance-floor-label-hero-repair.md`.
+  No deploy. Existing Kelly cards need an owner-reviewed, fail-closed
+  manifest before any repair apply.
+
 ## September 17, 2026 - Git hygiene: merge PR #5 so GitHub matches prod
 
 - Louis authorized merging Pass C into `codex/nic-nac-trade-hardening`

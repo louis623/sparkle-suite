@@ -3481,6 +3481,97 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     )
   })
+  it('publishes the jewelry-front photo from two-photo intake and ignores a label selectedPhotoId', async () => {
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl:
+        'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-1',
+      designId: 'design-existing',
+      itemNumber: 'NK96080',
+      designName: 'Half Moon Crescent',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    const labelId = '11111111-1111-4111-8111-111111111111'
+    const jewelryId = '22222222-2222-4222-8222-222222222222'
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK96080',
+          designName: 'Half Moon Crescent',
+          collectionName: 'Original Necklace',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: labelId,
+            attachmentIndex: 1,
+            declaredRole: 'label_details',
+            visualRole: 'label_or_packaging',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as label/details source'],
+          },
+          {
+            id: jewelryId,
+            attachmentIndex: 2,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK96080',
+        collectionName: 'Original Necklace',
+        selectedPhotoId: labelId,
+        listingPhotoUrl: 'data:image/jpeg;base64,TEFCRUw=',
+      }),
+    ).resolves.toMatchObject({
+      mode: 'single',
+      listingId: 'listing-1',
+      itemNumber: 'NK96080',
+    })
+
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
+      {
+        repId: 'rep-1',
+        sourceImageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+        filenameStem: 'NK96080-listing-photo',
+        mutationAssetKey: expect.any(String),
+      },
+      { confirmedJewelryFront: true },
+    )
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceImageUrl: 'data:image/jpeg;base64,TEFCRUw=',
+      }),
+      expect.anything(),
+    )
+    expect(addListingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({
+        listingPhotoUrl:
+          'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
+      }),
+    )
+  })
 })
 
 // Sanity: make sure ServiceError import resolves (avoids the test file
