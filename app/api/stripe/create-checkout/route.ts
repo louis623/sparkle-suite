@@ -21,6 +21,7 @@ import {
 } from '@/lib/services/sparkle-suite-referral-rewards'
 import {
   isConvertibleInternalEntitlement,
+  isProtectedInternalDemoAccount,
   isProtectedInternalDemoEmail,
 } from '@/lib/stripe/convertible-internal-entitlement'
 
@@ -47,6 +48,8 @@ type ExistingCheckoutSubscriptionRow = {
 type BillingRepRow = {
   email: string | null
   account_classification: string | null
+  pricing_tier: 'founder' | 'standard' | null
+  founder_sequence: number | null
 }
 
 type SupabaseRpcCapable = {
@@ -250,6 +253,32 @@ export async function POST(request: Request) {
     // Check for existing active subscription (Finding 16)
     const admin = createAdminClient()
     checkoutAdmin = admin
+    const { data: billingRepData, error: billingRepError } = await admin
+      .from('reps')
+      .select('email, account_classification, pricing_tier, founder_sequence')
+      .eq('id', repId)
+      .maybeSingle()
+
+    if (billingRepError) {
+      throw billingRepError
+    }
+
+    const billingRep = billingRepData as BillingRepRow | null
+    if (
+      isProtectedInternalDemoAccount({
+        email: billingRep?.email ?? rep.email,
+        accountClassification: billingRep?.account_classification,
+      })
+    ) {
+      return NextResponse.json(
+        {
+          code: 'INTERNAL_DEMO_CHECKOUT_BLOCKED',
+          error: 'This internal demo account does not use Stripe checkout.',
+        },
+        { status: 403 },
+      )
+    }
+
     const { data: existingData, error: existingError } = await admin
       .from('subscriptions')
       .select(
@@ -267,20 +296,11 @@ export async function POST(request: Request) {
     const existing = existingData as ExistingCheckoutSubscriptionRow | null
     let convertingInternalEntitlement = false
     if (existing) {
-      const { data: billingRepData, error: billingRepError } = await admin
-        .from('reps')
-        .select('email, account_classification')
-        .eq('id', repId)
-        .maybeSingle()
-
-      if (billingRepError) {
-        throw billingRepError
-      }
-
-      const billingRep = billingRepData as BillingRepRow | null
       convertingInternalEntitlement = isConvertibleInternalEntitlement({
         accountClassification: billingRep?.account_classification,
         email: billingRep?.email ?? rep.email,
+        pricingTier: billingRep?.pricing_tier,
+        founderSequence: billingRep?.founder_sequence,
         stripeSubscriptionId: existing.stripe_subscription_id,
         stripeCustomerId: existing.stripe_customer_id,
       })

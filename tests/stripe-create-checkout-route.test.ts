@@ -60,6 +60,8 @@ function createCheckoutAdminMock(
     billingRep?: {
       email?: string | null
       account_classification?: string | null
+      pricing_tier?: 'founder' | 'standard' | null
+      founder_sequence?: number | null
     } | null
   } = {},
 ) {
@@ -1197,6 +1199,8 @@ describe('POST /api/stripe/create-checkout', () => {
         billingRep: {
           email: 'kellyygiselleee@gmail.com',
           account_classification: 'customer',
+          pricing_tier: 'founder',
+          founder_sequence: 2,
         },
         pricingAssignment: {
           pricing_tier: 'founder',
@@ -1310,6 +1314,103 @@ describe('POST /api/stripe/create-checkout', () => {
     await expect(response.json()).resolves.toEqual({
       code: 'INTERNAL_DEMO_CHECKOUT_BLOCKED',
       error: 'This internal demo account does not use Stripe checkout.',
+    })
+    expect(getStripeMock).not.toHaveBeenCalled()
+  })
+
+  it('blocks Stripe checkout for plus-tagged Suite demo emails', async () => {
+    stripeEnabledMock.mockReturnValue(true)
+    getAuthenticatedRepMock.mockResolvedValueOnce({
+      repId: 'rep-sparkle-demo-2',
+      rep: {
+        id: 'rep-sparkle-demo-2',
+        email: 'louis+sparkle-demo-2@neonrabbit.net',
+      },
+    })
+    createAdminClientMock.mockReturnValue(createCheckoutAdminMock())
+
+    const response = await POST(
+      new Request('https://sparkle-suite.example/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ agreementAccepted: true }),
+      }),
+    )
+
+    expect(response.status).toBe(403)
+    await expect(response.json()).resolves.toEqual({
+      code: 'INTERNAL_DEMO_CHECKOUT_BLOCKED',
+      error: 'This internal demo account does not use Stripe checkout.',
+    })
+    expect(getStripeMock).not.toHaveBeenCalled()
+  })
+
+  it('blocks Stripe checkout when the durable account classification is demo', async () => {
+    stripeEnabledMock.mockReturnValue(true)
+    getAuthenticatedRepMock.mockResolvedValueOnce({
+      repId: 'rep-classified-demo',
+      rep: { id: 'rep-classified-demo', email: 'someone@gmail.com' },
+    })
+    createAdminClientMock.mockReturnValue(
+      createCheckoutAdminMock(0, {
+        billingRep: {
+          email: 'someone@gmail.com',
+          account_classification: 'demo',
+        },
+      }),
+    )
+
+    const response = await POST(
+      new Request('https://sparkle-suite.example/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ agreementAccepted: true }),
+      }),
+    )
+
+    expect(response.status).toBe(403)
+    await expect(response.json()).resolves.toEqual({
+      code: 'INTERNAL_DEMO_CHECKOUT_BLOCKED',
+      error: 'This internal demo account does not use Stripe checkout.',
+    })
+    expect(getStripeMock).not.toHaveBeenCalled()
+  })
+
+  it('does not convert a grandfathered customer placeholder subscription onto founder checkout', async () => {
+    stripeEnabledMock.mockReturnValue(true)
+    getAuthenticatedRepMock.mockResolvedValueOnce({
+      repId: 'rep-lindsey',
+      rep: { id: 'rep-lindsey', email: 'lindseychapman1188@gmail.com' },
+    })
+    createAdminClientMock.mockReturnValue(
+      createCheckoutAdminMock(1, {
+        existingSubscription: {
+          id: 'sub-internal-lindsey',
+          status: 'active',
+          stripe_subscription_id: null,
+          stripe_customer_id: null,
+          stripe_livemode: false,
+        },
+        billingRep: {
+          email: 'lindseychapman1188@gmail.com',
+          account_classification: 'customer',
+          pricing_tier: null,
+          founder_sequence: null,
+        },
+      }),
+    )
+
+    const response = await POST(
+      new Request('https://sparkle-suite.example/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ agreementAccepted: true }),
+      }),
+    )
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toEqual({
+      error: 'Active subscription already exists. Use the Customer Portal to change plans.',
     })
     expect(getStripeMock).not.toHaveBeenCalled()
   })

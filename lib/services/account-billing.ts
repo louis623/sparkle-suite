@@ -23,6 +23,7 @@ import {
 } from '@/lib/stripe/sparkle-suite-pricing'
 import {
   isConvertibleInternalEntitlement,
+  isProtectedInternalDemoAccount,
   isRealStripeProviderId,
 } from '@/lib/stripe/convertible-internal-entitlement'
 
@@ -346,20 +347,28 @@ export async function getAccountBillingDashboard(args: {
       isConvertibleInternalEntitlement({
         accountClassification: repBillingPlan.account_classification,
         email: repBillingPlan.email,
+        pricingTier: repBillingPlan.pricing_tier,
+        founderSequence: repBillingPlan.founder_sequence,
         stripeSubscriptionId: subscriptionRow?.stripe_subscription_id,
         stripeCustomerId: subscriptionRow?.stripe_customer_id,
       }),
   )
+  const protectedInternalDemo = isProtectedInternalDemoAccount({
+    email: repBillingPlan.email,
+    accountClassification: repBillingPlan.account_classification,
+  })
   const canManageBilling = Boolean(
     stripeConfigured &&
       isRealStripeProviderId(args.stripeCustomerId) &&
       !convertingInternalEntitlement &&
+      !protectedInternalDemo &&
       (!subscription || subscription.status !== 'cancelled'),
   )
   const canStartSubscription =
-    !subscription ||
-    subscription.status === 'cancelled' ||
-    convertingInternalEntitlement
+    !protectedInternalDemo &&
+    (!subscription ||
+      subscription.status === 'cancelled' ||
+      convertingInternalEntitlement)
   const workspaceAccess = await resolveWorkspaceAccess({
     supabase: args.supabase,
     repId: args.repId,

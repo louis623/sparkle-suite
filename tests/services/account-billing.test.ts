@@ -638,4 +638,57 @@ describe('account billing service', () => {
     expect(result.canStartSubscription).toBe(false)
     expect(result.canManageBilling).toBe(false)
   })
+
+  it('does not offer founder checkout for a grandfathered customer placeholder subscription', async () => {
+    vi.mocked(stripeEnabled).mockReturnValue(true)
+
+    const subscriptionsChain = makeSelectSingle({
+      data: {
+        status: 'active',
+        plan_tier: 'monthly',
+        current_period_end: '2027-01-01T00:00:00Z',
+        cancel_at_period_end: false,
+        cancelled_at: null,
+        stripe_livemode: false,
+        stripe_subscription_id: null,
+        stripe_customer_id: null,
+      },
+      error: null,
+    })
+    const supabase = makeAccountBillingSupabase({
+      subscriptionsChain,
+      email: 'lindseychapman1188@gmail.com',
+      accountClassification: 'customer',
+      pricingTier: null,
+      founderSequence: null,
+    })
+
+    const result = await getAccountBillingDashboard({
+      supabase: supabase as never,
+      repId: 'rep-lindsey',
+      stripeCustomerId: null,
+    })
+
+    expect(result.canStartSubscription).toBe(false)
+    expect(result.canManageBilling).toBe(false)
+  })
+
+  it('hides Stripe checkout for plus-tagged Suite demo emails even without a subscription row', async () => {
+    vi.mocked(stripeEnabled).mockReturnValue(true)
+    const subscriptionsChain = makeSelectSingle({ data: null, error: null })
+    const supabase = makeAccountBillingSupabase({
+      subscriptionsChain,
+      email: 'louis+sparkle-demo-2@neonrabbit.net',
+      accountClassification: 'customer',
+    })
+
+    const result = await getAccountBillingDashboard({
+      supabase: supabase as never,
+      repId: 'rep-sparkle-demo-2',
+      stripeCustomerId: null,
+    })
+
+    expect(result.canStartSubscription).toBe(false)
+    expect(result.canManageBilling).toBe(false)
+  })
 })
