@@ -3464,6 +3464,48 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Due today')
   })
 
+  it('shows founder checkout for an unlocked internal no-Stripe entitlement', () => {
+    const html = renderToStaticMarkup(
+      createElement(AccountBillingCard, {
+        state: {
+          status: 'ready',
+          summary: {
+            ...ACCOUNT_BILLING_READY_STATE.summary,
+            subscription: {
+              status: 'active',
+              planType: 'monthly',
+              currentPeriodEnd: '2026-09-21T23:00:00.000Z',
+              cancelAtPeriodEnd: false,
+              cancelledAt: null,
+              livemode: false,
+            },
+            paymentMethod: null,
+            invoices: [],
+            canStartSubscription: true,
+            canManageBilling: false,
+            pricing: {
+              tier: 'founder',
+              founderSequence: 2,
+              setupFeeCents: 4999,
+              monthlyAmountCents: 4999,
+              founderRateMonths: 12,
+              standardMonthlyAmountCents: 7499,
+            },
+          },
+        },
+        agreementAccepted: true,
+      }),
+    )
+
+    expect(html).toContain('Billing not started')
+    expect(html).toContain('Founding rep #2')
+    expect(html).toContain('$49.99 setup fee + $49.99 first month = $99.98')
+    expect(html).toContain('Your workspace is already unlocked.')
+    expect(html).toContain('You do not need a Stripe merchant login.')
+    expect(html).toContain('Stripe Billing and Payments')
+    expect(html).not.toContain('$39/month grandfathered plan')
+  })
+
   it('renders Brianna\'s grandfathered Stripe link without the standard build-fee checkout', () => {
     const html = renderToStaticMarkup(
       createElement(AccountBillingCard, {

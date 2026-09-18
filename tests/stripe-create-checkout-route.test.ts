@@ -50,6 +50,17 @@ function createCheckoutAdminMock(
     pricingAssignment?: PricingAssignmentRow
     requireRpcThis?: boolean
     workspaceTrial?: { id: string; status: 'pending' | 'active' | 'revoked' } | null
+    existingSubscription?: {
+      id: string
+      status: string
+      stripe_subscription_id?: string | null
+      stripe_customer_id?: string | null
+      stripe_livemode?: boolean | null
+    } | null
+    billingRep?: {
+      email?: string | null
+      account_classification?: string | null
+    } | null
   } = {},
 ) {
   const pricingAssignment =
@@ -91,8 +102,8 @@ function createCheckoutAdminMock(
     from: vi.fn((table: string) => {
       if (table === 'subscriptions') {
         return {
-          select: vi.fn((_: string, options?: { count?: string }) => {
-            if (options?.count === 'exact') {
+          select: vi.fn((_: string, queryOptions?: { count?: string }) => {
+            if (queryOptions?.count === 'exact') {
               return {
                 in: vi.fn().mockResolvedValue({
                   count: paidSubscriptionStarts,
@@ -105,9 +116,11 @@ function createCheckoutAdminMock(
               eq: vi.fn(() => ({
                 in: vi.fn(() => ({
                   limit: vi.fn(() => ({
-                    single: vi.fn().mockResolvedValue({ data: null }),
+                    single: vi.fn().mockResolvedValue({
+                      data: options.existingSubscription ?? null,
+                    }),
                     maybeSingle: vi.fn().mockResolvedValue({
-                      data: null,
+                      data: options.existingSubscription ?? null,
                       error: null,
                     }),
                   })),
@@ -118,12 +131,25 @@ function createCheckoutAdminMock(
         }
       }
 
-      if (table === 'self_serve_setup_sessions' || table === 'reps') {
+      if (table === 'self_serve_setup_sessions') {
         return {
           select: vi.fn(() => ({
             eq: vi.fn(() => ({
               maybeSingle: vi.fn().mockResolvedValue({
                 data: null,
+                error: null,
+              }),
+            })),
+          })),
+        }
+      }
+
+      if (table === 'reps') {
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: options.billingRep ?? null,
                 error: null,
               }),
             })),
@@ -1149,6 +1175,141 @@ describe('POST /api/stripe/create-checkout', () => {
         'Test buyer checkout requires a Stripe test key and cannot run in production.',
       action:
         'Use STRIPE_SECRET_KEY=sk_test_... with SPARKLE_STRIPE_TEST_BUYER_MODE=true in local development.',
+    })
+    expect(getStripeMock).not.toHaveBeenCalled()
+  })
+
+  it('creates founder checkout for a customer converting an internal no-Stripe entitlement', async () => {
+    stripeEnabledMock.mockReturnValue(true)
+    getAuthenticatedRepMock.mockResolvedValueOnce({
+      repId: 'rep-kelly',
+      rep: { id: 'rep-kelly', email: 'kellyygiselleee@gmail.com' },
+    })
+    createAdminClientMock.mockReturnValue(
+      createCheckoutAdminMock(1, {
+        existingSubscription: {
+          id: 'sub-internal-kelly',
+          status: 'active',
+          stripe_subscription_id: null,
+          stripe_customer_id: null,
+          stripe_livemode: false,
+        },
+        billingRep: {
+          email: 'kellyygiselleee@gmail.com',
+          account_classification: 'customer',
+        },
+        pricingAssignment: {
+          pricing_tier: 'founder',
+          founder_sequence: 2,
+        },
+      }),
+    )
+    getSparkleSuitePriceIdsMock.mockReturnValue({
+      buildFee: 'price_1ThAmIQYwdFOcEdvyAlTox0V',
+      founderMonthly: 'price_1ThAmIQYwdFOcEdvWmNm96yG',
+      standardMonthly: 'price_1ThAmJQYwdFOcEdv3HQwDV0V',
+    })
+    getOrCreateStripeCustomerMock.mockResolvedValueOnce('cus_kelly_checkout')
+
+    const createMock = vi.fn().mockResolvedValue({
+      id: 'cs_kelly',
+      url: 'https://checkout.stripe.test/cs_kelly',
+    })
+    getStripeMock.mockReturnValue({
+      checkout: { sessions: { create: createMock } },
+    })
+
+    const response = await POST(
+      new Request('https://sparkle-suite.example/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ agreementAccepted: true }),
+      }),
+    )
+
+    expect(response.status).toBe(200)
+    expect(createMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          { price: 'price_1ThAmIQYwdFOcEdvyAlTox0V', quantity: 1 },
+          { price: 'price_1ThAmIQYwdFOcEdvWmNm96yG', quantity: 1 },
+        ],
+        success_url:
+          'http://localhost:3000/nic-nac?section=account&billing=subscription-success&session_id={CHECKOUT_SESSION_ID}',
+        cancel_url:
+          'http://localhost:3000/nic-nac?section=account&billing=subscription-cancelled',
+        metadata: expect.objectContaining({
+          rep_id: 'rep-kelly',
+          first_run_setup: 'operator_trial_conversion',
+          light_box_required: 'false',
+          pricing_tier: 'founder',
+          founder_sequence: '2',
+          build_fee_charged: 'true',
+          founder_rate_months: '12',
+          build_fee_price_id: 'price_1ThAmIQYwdFOcEdvyAlTox0V',
+          monthly_price_id: 'price_1ThAmIQYwdFOcEdvWmNm96yG',
+        }),
+      }),
+    )
+  })
+
+  it('still blocks a second checkout when a live Stripe subscription already exists', async () => {
+    stripeEnabledMock.mockReturnValue(true)
+    getAuthenticatedRepMock.mockResolvedValueOnce({
+      repId: 'rep-kim',
+      rep: { id: 'rep-kim', email: 'ksgoforth64@gmail.com' },
+    })
+    createAdminClientMock.mockReturnValue(
+      createCheckoutAdminMock(1, {
+        existingSubscription: {
+          id: 'sub-kim',
+          status: 'active',
+          stripe_subscription_id: 'sub_1UBF21QYwdFOcEdvswemOH3e',
+          stripe_customer_id: 'cus_VAxgQbVNwYKenO',
+          stripe_livemode: true,
+        },
+        billingRep: {
+          email: 'ksgoforth64@gmail.com',
+          account_classification: 'customer',
+        },
+      }),
+    )
+
+    const response = await POST(
+      new Request('https://sparkle-suite.example/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ agreementAccepted: true }),
+      }),
+    )
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toEqual({
+      error: 'Active subscription already exists. Use the Customer Portal to change plans.',
+    })
+    expect(getStripeMock).not.toHaveBeenCalled()
+  })
+
+  it('blocks Stripe checkout for the protected Louis demo account', async () => {
+    stripeEnabledMock.mockReturnValue(true)
+    getAuthenticatedRepMock.mockResolvedValueOnce({
+      repId: 'rep-louis-demo',
+      rep: { id: 'rep-louis-demo', email: 'louis@neonrabbit.net' },
+    })
+    createAdminClientMock.mockReturnValue(createCheckoutAdminMock())
+
+    const response = await POST(
+      new Request('https://sparkle-suite.example/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ agreementAccepted: true }),
+      }),
+    )
+
+    expect(response.status).toBe(403)
+    await expect(response.json()).resolves.toEqual({
+      code: 'INTERNAL_DEMO_CHECKOUT_BLOCKED',
+      error: 'This internal demo account does not use Stripe checkout.',
     })
     expect(getStripeMock).not.toHaveBeenCalled()
   })

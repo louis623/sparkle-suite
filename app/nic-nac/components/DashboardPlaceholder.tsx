@@ -11686,11 +11686,19 @@ export function AccountBillingCard({
   const grandfatheredCheckout = summary.grandfatheredCheckout
   const isActiveWorkspaceTrial =
     workspaceAccess?.source === 'trial' && workspaceAccess.hasFullAccess
+  const convertingInternalEntitlement = Boolean(
+    summary.canStartSubscription &&
+      summary.subscription &&
+      summary.subscription.status !== 'cancelled' &&
+      !isActiveWorkspaceTrial,
+  )
   const subscriptionStatus = summary.subscription
     ? summary.subscription.status.replace('_', ' ')
     : 'No active subscription'
   const subscriptionTitle = isActiveWorkspaceTrial
     ? '5-day trial active'
+    : convertingInternalEntitlement
+    ? 'Billing not started'
     : summary.subscription
     ? subscriptionStatus.charAt(0).toUpperCase() + subscriptionStatus.slice(1)
     : 'Not active yet'
@@ -11728,6 +11736,12 @@ export function AccountBillingCard({
         <div className={styles.actionError} role="status">
           Your five-day trial has ended. Your work is saved; start billing to
           reopen the workspace and customer site.
+        </div>
+      ) : convertingInternalEntitlement ? (
+        <div className={styles.helperMessage} role="status">
+          Your workspace is already unlocked. Start Stripe checkout to pay the
+          founder setup fee and first month. You do not need a Stripe merchant
+          login.
         </div>
       ) : null}
 

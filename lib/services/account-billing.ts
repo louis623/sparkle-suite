@@ -21,6 +21,10 @@ import {
   SPARKLE_SUITE_SETUP_FEE_CENTS,
   SPARKLE_SUITE_STANDARD_MONTHLY_CENTS,
 } from '@/lib/stripe/sparkle-suite-pricing'
+import {
+  isConvertibleInternalEntitlement,
+  isRealStripeProviderId,
+} from '@/lib/stripe/convertible-internal-entitlement'
 
 type SubscriptionRow = {
   status: AccountBillingSubscriptionStatus
@@ -29,12 +33,16 @@ type SubscriptionRow = {
   cancel_at_period_end: boolean | null
   cancelled_at: string | null
   stripe_livemode: boolean | null
+  stripe_subscription_id: string | null
+  stripe_customer_id: string | null
 }
 
 type RepBillingPlanRow = {
   referral_code: string | null
   pricing_tier: 'founder' | 'standard' | null
   founder_sequence: number | null
+  email: string | null
+  account_classification: string | null
 }
 
 type RepReferralStatusRow = {
@@ -221,7 +229,7 @@ export async function getAccountBillingDashboard(args: {
   const { data, error } = await args.supabase
     .from('subscriptions')
     .select(
-      'status, plan_tier, current_period_end, cancel_at_period_end, cancelled_at, stripe_livemode',
+      'status, plan_tier, current_period_end, cancel_at_period_end, cancelled_at, stripe_livemode, stripe_subscription_id, stripe_customer_id',
     )
     .eq('rep_id', args.repId)
     .order('created_at', { ascending: false })
@@ -242,7 +250,9 @@ export async function getAccountBillingDashboard(args: {
   const { data: repBillingPlanData, error: repBillingPlanError } =
     await args.supabase
       .from('reps')
-      .select('referral_code, pricing_tier, founder_sequence')
+      .select(
+        'referral_code, pricing_tier, founder_sequence, email, account_classification',
+      )
       .eq('id', args.repId)
       .maybeSingle()
 
@@ -330,12 +340,26 @@ export async function getAccountBillingDashboard(args: {
       }
     : null
 
+  const convertingInternalEntitlement = Boolean(
+    subscription &&
+      subscription.status !== 'cancelled' &&
+      isConvertibleInternalEntitlement({
+        accountClassification: repBillingPlan.account_classification,
+        email: repBillingPlan.email,
+        stripeSubscriptionId: subscriptionRow?.stripe_subscription_id,
+        stripeCustomerId: subscriptionRow?.stripe_customer_id,
+      }),
+  )
   const canManageBilling = Boolean(
     stripeConfigured &&
-      args.stripeCustomerId &&
+      isRealStripeProviderId(args.stripeCustomerId) &&
+      !convertingInternalEntitlement &&
       (!subscription || subscription.status !== 'cancelled'),
   )
-  const canStartSubscription = !subscription || subscription.status === 'cancelled'
+  const canStartSubscription =
+    !subscription ||
+    subscription.status === 'cancelled' ||
+    convertingInternalEntitlement
   const workspaceAccess = await resolveWorkspaceAccess({
     supabase: args.supabase,
     repId: args.repId,

@@ -701,7 +701,7 @@ describe('POST /api/stripe/webhook', () => {
         build_fee_price_id: 'price_build_fee',
         monthly_price_id: 'price_founder_monthly',
       }),
-      { onConflict: 'stripe_subscription_id' },
+      { onConflict: 'rep_id' },
     )
     expect(setupSessionsUpsertMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1671,7 +1671,7 @@ describe('POST /api/stripe/webhook', () => {
         stripe_subscription_id: 'sub_founder_schedule',
         stripe_subscription_schedule_id: 'sched_founder',
       }),
-      { onConflict: 'stripe_subscription_id' },
+      { onConflict: 'rep_id' },
     )
   })
 
@@ -1768,7 +1768,7 @@ describe('POST /api/stripe/webhook', () => {
         stripe_subscription_id: 'sub_operator_trial_conversion',
         status: 'active',
       }),
-      { onConflict: 'stripe_subscription_id' },
+      { onConflict: 'rep_id' },
     )
     expect(workspaceTrialUpdateMock).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -596,7 +596,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
       stripe_event_timestamp: event.created,
       updated_at: new Date().toISOString(),
     }, {
-      onConflict: 'stripe_subscription_id',
+      onConflict: 'rep_id',
     })
 
   if (error) throw error

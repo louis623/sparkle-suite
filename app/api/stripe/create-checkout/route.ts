@@ -19,6 +19,10 @@ import {
   getPendingReferralCodeForRep,
   resolveReferralCodeForCheckout,
 } from '@/lib/services/sparkle-suite-referral-rewards'
+import {
+  isConvertibleInternalEntitlement,
+  isProtectedInternalDemoEmail,
+} from '@/lib/stripe/convertible-internal-entitlement'
 
 const STRIPE_PRICE_SETUP_ACTION =
   'Set STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, NEXT_PUBLIC_APP_URL, STRIPE_PRICE_BUILD_FEE, STRIPE_PRICE_FOUNDER_MONTHLY, and STRIPE_PRICE_STANDARD_MONTHLY before starting checkout.'
@@ -30,6 +34,19 @@ const CHECKOUT_PRICING_ASSIGNMENT_RPC =
 type CheckoutPricingAssignmentRpcResult = {
   pricing_tier?: unknown
   founder_sequence?: unknown
+}
+
+type ExistingCheckoutSubscriptionRow = {
+  id: string
+  status: string
+  stripe_subscription_id: string | null
+  stripe_customer_id: string | null
+  stripe_livemode: boolean | null
+}
+
+type BillingRepRow = {
+  email: string | null
+  account_classification: string | null
 }
 
 type SupabaseRpcCapable = {
@@ -196,7 +213,7 @@ export async function POST(request: Request) {
   let checkoutSessionCreated = false
 
   try {
-    const { repId } = await getAuthenticatedRep()
+    const { repId, rep } = await getAuthenticatedRep()
     checkoutRepId = repId
     const body = await request.json().catch(() => ({}))
     const requestedPlanType =
@@ -220,12 +237,24 @@ export async function POST(request: Request) {
       )
     }
 
+    if (isProtectedInternalDemoEmail(rep.email)) {
+      return NextResponse.json(
+        {
+          code: 'INTERNAL_DEMO_CHECKOUT_BLOCKED',
+          error: 'This internal demo account does not use Stripe checkout.',
+        },
+        { status: 403 },
+      )
+    }
+
     // Check for existing active subscription (Finding 16)
     const admin = createAdminClient()
     checkoutAdmin = admin
-    const { data: existing, error: existingError } = await admin
+    const { data: existingData, error: existingError } = await admin
       .from('subscriptions')
-      .select('id, status')
+      .select(
+        'id, status, stripe_subscription_id, stripe_customer_id, stripe_livemode',
+      )
       .eq('rep_id', repId)
       .in('status', ['active', 'trialing'])
       .limit(1)
@@ -235,11 +264,33 @@ export async function POST(request: Request) {
       throw existingError
     }
 
+    const existing = existingData as ExistingCheckoutSubscriptionRow | null
+    let convertingInternalEntitlement = false
     if (existing) {
-      return NextResponse.json(
-        { error: 'Active subscription already exists. Use the Customer Portal to change plans.' },
-        { status: 409 }
-      )
+      const { data: billingRepData, error: billingRepError } = await admin
+        .from('reps')
+        .select('email, account_classification')
+        .eq('id', repId)
+        .maybeSingle()
+
+      if (billingRepError) {
+        throw billingRepError
+      }
+
+      const billingRep = billingRepData as BillingRepRow | null
+      convertingInternalEntitlement = isConvertibleInternalEntitlement({
+        accountClassification: billingRep?.account_classification,
+        email: billingRep?.email ?? rep.email,
+        stripeSubscriptionId: existing.stripe_subscription_id,
+        stripeCustomerId: existing.stripe_customer_id,
+      })
+
+      if (!convertingInternalEntitlement) {
+        return NextResponse.json(
+          { error: 'Active subscription already exists. Use the Customer Portal to change plans.' },
+          { status: 409 }
+        )
+      }
     }
 
     const { data: workspaceTrial, error: workspaceTrialError } = await admin
@@ -252,7 +303,8 @@ export async function POST(request: Request) {
       throw workspaceTrialError
     }
 
-    const isOperatorTrialConversion = Boolean(workspaceTrial)
+    const isOperatorTrialConversion =
+      Boolean(workspaceTrial) || convertingInternalEntitlement
 
     const testBuyerCheckoutEnabled = isTestBuyerCheckoutEnabled()
     if (testBuyerCheckoutEnabled && !canUseTestBuyerCheckout()) {

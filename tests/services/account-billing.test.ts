@@ -45,6 +45,8 @@ function makeAccountBillingSupabase(args: {
   referralRowsError?: unknown
   pricingTier?: 'founder' | 'standard' | null
   founderSequence?: number | null
+  email?: string | null
+  accountClassification?: 'customer' | 'demo' | null
 }) {
   const referralsChain = makeSelectList({
     data: args.referralRows ?? [],
@@ -62,12 +64,16 @@ function makeAccountBillingSupabase(args: {
             eq: vi.fn(() => ({
               maybeSingle: vi.fn().mockResolvedValue({
                 data:
-                  columns === 'referral_code, pricing_tier, founder_sequence'
+                  columns ===
+                  'referral_code, pricing_tier, founder_sequence, email, account_classification'
                     ? {
                         referral_code:
                           args.repCode === undefined ? 'SS-ABC234' : args.repCode,
                         pricing_tier: args.pricingTier ?? null,
                         founder_sequence: args.founderSequence ?? null,
+                        email: args.email ?? 'rep@example.test',
+                        account_classification:
+                          args.accountClassification ?? 'customer',
                       }
                     : null,
                 error: args.repReferralCodeError ?? null,
@@ -182,6 +188,8 @@ describe('account billing service', () => {
         cancel_at_period_end: true,
         cancelled_at: null,
         stripe_livemode: false,
+        stripe_subscription_id: 'sub_123',
+        stripe_customer_id: 'cus_123',
       },
       error: null,
     })
@@ -388,12 +396,18 @@ describe('account billing service', () => {
         cancel_at_period_end: false,
         cancelled_at: null,
         stripe_livemode: false,
+        stripe_subscription_id: null,
+        stripe_customer_id: null,
       },
       error: null,
     })
     const supabase = makeAccountBillingSupabase({
       subscriptionsChain,
       referralRowsError: { message: 'rep_referrals unavailable' },
+      pricingTier: 'founder',
+      founderSequence: 2,
+      email: 'kellyygiselleee@gmail.com',
+      accountClassification: 'customer',
     })
 
     const result = await getAccountBillingDashboard({
@@ -410,7 +424,10 @@ describe('account billing service', () => {
       earnedCount: 0,
       creditedCount: 0,
     })
-    expect(result.canStartSubscription).toBe(false)
+    expect(result.canStartSubscription).toBe(true)
+    expect(result.canManageBilling).toBe(false)
+    expect(result.pricing?.tier).toBe('founder')
+    expect(result.pricing?.founderSequence).toBe(2)
   })
 
   it('allows billing portal access when a Stripe customer exists before subscription activation', async () => {
@@ -462,6 +479,8 @@ describe('account billing service', () => {
         cancel_at_period_end: false,
         cancelled_at: null,
         stripe_livemode: false,
+        stripe_subscription_id: 'sub_123',
+        stripe_customer_id: 'cus_123',
       },
       error: null,
     })
@@ -505,6 +524,8 @@ describe('account billing service', () => {
         cancel_at_period_end: false,
         cancelled_at: null,
         stripe_livemode: false,
+        stripe_subscription_id: 'sub_123',
+        stripe_customer_id: 'cus_123',
       },
       error: null,
     })
@@ -542,5 +563,79 @@ describe('account billing service', () => {
     })
 
     expect(result.checkoutMode).toBe('test_buyer')
+  })
+
+  it('offers founder checkout for a customer with an internal no-Stripe entitlement', async () => {
+    vi.mocked(stripeEnabled).mockReturnValue(true)
+
+    const subscriptionsChain = makeSelectSingle({
+      data: {
+        status: 'active',
+        plan_tier: 'monthly',
+        current_period_end: '2026-09-21T23:00:00Z',
+        cancel_at_period_end: false,
+        cancelled_at: null,
+        stripe_livemode: false,
+        stripe_subscription_id: null,
+        stripe_customer_id: null,
+      },
+      error: null,
+    })
+    const supabase = makeAccountBillingSupabase({
+      subscriptionsChain,
+      pricingTier: 'founder',
+      founderSequence: 2,
+      email: 'kellyygiselleee@gmail.com',
+      accountClassification: 'customer',
+    })
+
+    const result = await getAccountBillingDashboard({
+      supabase: supabase as never,
+      repId: 'rep-kelly',
+      stripeCustomerId: null,
+    })
+
+    expect(result.canStartSubscription).toBe(true)
+    expect(result.canManageBilling).toBe(false)
+    expect(result.pricing).toEqual({
+      tier: 'founder',
+      founderSequence: 2,
+      setupFeeCents: 4999,
+      monthlyAmountCents: 4999,
+      founderRateMonths: 12,
+      standardMonthlyAmountCents: 7499,
+    })
+  })
+
+  it('does not offer Stripe checkout for the protected Louis demo entitlement', async () => {
+    vi.mocked(stripeEnabled).mockReturnValue(true)
+
+    const subscriptionsChain = makeSelectSingle({
+      data: {
+        status: 'active',
+        plan_tier: 'monthly',
+        current_period_end: '2027-01-01T00:00:00Z',
+        cancel_at_period_end: false,
+        cancelled_at: null,
+        stripe_livemode: false,
+        stripe_subscription_id: 'sub_internal_beta_louis',
+        stripe_customer_id: 'cus_internal_beta_louis',
+      },
+      error: null,
+    })
+    const supabase = makeAccountBillingSupabase({
+      subscriptionsChain,
+      email: 'louis@neonrabbit.net',
+      accountClassification: 'demo',
+    })
+
+    const result = await getAccountBillingDashboard({
+      supabase: supabase as never,
+      repId: 'rep-louis-demo',
+      stripeCustomerId: 'cus_internal_beta_louis',
+    })
+
+    expect(result.canStartSubscription).toBe(false)
+    expect(result.canManageBilling).toBe(false)
   })
 })
