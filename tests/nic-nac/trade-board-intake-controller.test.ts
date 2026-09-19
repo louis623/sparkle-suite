@@ -206,6 +206,12 @@ describe('Dance Floor intake controller', () => {
     expect(promptState.hardRules).toContain(
       'label_details photos cannot satisfy jewelry_front',
     )
+    expect(promptState.hardRules).toContain(
+      'dance-floor-only vs catalog is Nic-Nac discretion, not a forced path',
+    )
+    expect(promptState.hardRules).toContain(
+      'catalog and Finder keep jewelry-facing quality; if the rep says the piece is Bomb Party, a good-quality-looking image is enough — do not invent extra proof hurdles',
+    )
     expect(promptState.photos[0]).toMatchObject({
       declaredRole: 'label_details',
       visualRole: 'label_or_packaging',

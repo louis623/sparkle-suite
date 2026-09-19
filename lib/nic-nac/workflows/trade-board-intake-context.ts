@@ -220,7 +220,7 @@ function latestTurnConfirmsAdditionalPhysicalPiece(args: {
   )
 }
 
-function inferCatalogModeFromTurn(args: {
+export function inferCatalogModeFromTurn(args: {
   currentMode: TradeBoardIntakeSessionState['catalogMode']
   latestUserText: string
   previousAssistantText: string

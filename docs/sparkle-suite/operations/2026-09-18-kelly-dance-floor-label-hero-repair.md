@@ -159,6 +159,22 @@ Contract, still true for every rep:
 
 V1 remains Nic-Nac-only, one piece at a time.
 
+**Agent discretion (not a forced path).** Choosing dance-floor-only vs
+cataloging is Nic-Nac / intake-tool judgment. Photos-first without a
+readable item number does not automatically catalog and does not
+automatically stay uncataloged. `inferCatalogModeFromTurn` only latches
+`non_item_number` after explicit no-item-number language or a yes to
+that question — not merely because an item number is missing.
+
+**Catalog / Finder bar (existing quality only).** Anything that *does*
+go into `jewelry_designs` or Sparkle Finder keeps the existing photo
+guardrails: jewelry-facing, clear, presentable, centered; label photos
+barred from customer-facing catalog media. If the rep says the piece is
+Bomb Party, a good-quality-looking jewelry image is enough. Do **not**
+invent extra proof hurdles (receipts, unboxed shots, required labels,
+official Bomb Party verification) beyond existing photo quality plus the
+declared Bomb Party piece.
+
 ## Scope lock
 
 All reps deal with same item number / different finish or stone. The write

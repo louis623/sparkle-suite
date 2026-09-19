@@ -86,6 +86,12 @@ describe('Nic-Nac routed system prompt', () => {
     expect(prompt).toContain('type the item number')
     expect(prompt).toContain('upload a clear item-info tag or label photo')
     expect(prompt).toContain('say they do not have an item number')
+    expect(prompt).toContain(
+      "Choosing dance-floor-only vs catalog is Nic-Nac's discretion, not a forced path",
+    )
+    expect(prompt).toContain(
+      'If the rep says it is Bomb Party, a good-quality-looking image is enough',
+    )
     expect(prompt).toContain('Collection Type and Size')
     expect(prompt).toContain('Order does not matter')
     expect(prompt).toContain('Use photos and facts in whatever order the rep provides them')

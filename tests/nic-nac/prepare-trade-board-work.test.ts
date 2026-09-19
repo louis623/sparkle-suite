@@ -135,6 +135,10 @@ describe('prepare_trade_board_work', () => {
       catalogDeletionAllowed: false,
     })
     expect(result.guidance).toContain('Do not create or update jewelry_designs')
+    expect(result.guidance).toContain(
+      'Dance-floor-only vs catalog is Nic-Nac discretion, not a forced path',
+    )
+    expect(result.guidance).toContain('do not invent extra proof hurdles')
   })
 
   it('routes a known catalog add to the database-backed fast path with no new photo required', async () => {

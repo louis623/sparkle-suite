@@ -280,6 +280,8 @@ export function buildTradeBoardIntakePromptState(
       'do not ask for unboxed jewelry, plain background, or no packaging for a usable boxed display photo',
       'non-item-number pieces must use controlled jewelry type, collection, and size when applicable',
       'do not create or invent an item number for a non-item-number piece',
+      'dance-floor-only vs catalog is Nic-Nac discretion, not a forced path',
+      'catalog and Finder keep jewelry-facing quality; if the rep says the piece is Bomb Party, a good-quality-looking image is enough — do not invent extra proof hurdles',
     ],
   }
 }

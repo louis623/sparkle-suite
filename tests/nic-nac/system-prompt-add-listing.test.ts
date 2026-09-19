@@ -97,6 +97,15 @@ describe('Nic-Nac system prompt — add listing flow', () => {
     expect(NIC_NAC_SYSTEM_PROMPT).toContain(
       'Use recent add-flow photos, not just the latest message',
     )
+    expect(NIC_NAC_SYSTEM_PROMPT).toContain(
+      "Choosing dance-floor-only (no item number; off the master jewelry database and Sparkle Finder) versus cataloging is Nic-Nac's discretion — not a forced path",
+    )
+    expect(NIC_NAC_SYSTEM_PROMPT).toContain(
+      'If the rep says the piece is Bomb Party, a good-quality-looking jewelry image is enough',
+    )
+    expect(NIC_NAC_SYSTEM_PROMPT).toContain(
+      'Do not invent extra proof hurdles',
+    )
   })
 
   it('treats missing collection as an ask-and-retry recovery path', () => {
