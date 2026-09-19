@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import packageJson from '@/package.json'
 import {
   findForbiddenPublicSourceLanguage,
+  finderAvailabilityExcludesListing,
   publicTradeBoardPayloadHasListing,
   requireNonItemNumberSmokeAsset,
   runNonItemNumberTradeBoardSmoke,
@@ -10,7 +11,7 @@ import {
 describe('Nic-Nac non-item-number Dance Floor smoke script', () => {
   it('is registered as an explicit smoke command', () => {
     expect(packageJson.scripts['smoke:nic-nac:trade-board-non-item-number']).toBe(
-      'tsx scripts/smoke-nic-nac-trade-board-non-item-number.ts',
+      'tsx --conditions=react-server scripts/smoke-nic-nac-trade-board-non-item-number.ts',
     )
   })
 
@@ -45,6 +46,26 @@ describe('Nic-Nac non-item-number Dance Floor smoke script', () => {
         'This non-item number piece should not look like a legacy grab bag.',
       ),
     ).toEqual(['legacy', 'grab bag', 'non-item number'])
+  })
+
+  it('treats Finder catalog filter rows as excluded when listing_source is not catalog', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+    const supabase = {
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              not: vi.fn(() => ({ maybeSingle })),
+            })),
+          })),
+        })),
+      })),
+    }
+
+    await expect(
+      finderAvailabilityExcludesListing(supabase as never, 'listing-uncataloged'),
+    ).resolves.toBe(true)
+    expect(supabase.from).toHaveBeenCalledWith('trade_listings')
   })
 
   it('requires the created listing to appear in the public payload', () => {

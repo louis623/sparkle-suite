@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import fs from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -42,6 +42,7 @@ export const HARD_FAIL_PHRASES = [
   'escalate this to the team',
   'flag this for Louis',
   'preflight stage',
+  'I still need these details before I can save this listing: .',
 ] as const
 
 export const REQUIRED_SMOKE_ASSETS = [
@@ -192,13 +193,20 @@ export function parseTradeBoardIntakeSmokeCases(
 
 export function findHardFailPhrases(text: string): string[] {
   const normalizedText = text.toLocaleLowerCase()
-  return HARD_FAIL_PHRASES.filter((phrase) => {
+  const hits = HARD_FAIL_PHRASES.filter((phrase) => {
     if (normalizedText.includes(phrase.toLocaleLowerCase())) return true
     if (phrase === 'Have Louis add it manually on the backend') {
       return normalizedText.includes('have him add it manually on the backend')
     }
     return false
   })
+  if (
+    emptyMissingDetailsCopy(text) &&
+    !hits.includes('I still need these details before I can save this listing: .')
+  ) {
+    hits.push('I still need these details before I can save this listing: .')
+  }
+  return hits
 }
 
 export function requireTradeBoardSmokeAssets(
@@ -228,6 +236,34 @@ export function requireTradeBoardSmokeAssets(
     fixtureDir,
     paths,
   }
+}
+
+export function sha256Bytes(bytes: Uint8Array | Buffer): string {
+  return createHash('sha256').update(bytes).digest('hex')
+}
+
+export function emptyMissingDetailsCopy(text: string): boolean {
+  return /I still need these details before I can save this listing:\s*\./i.test(
+    text,
+  )
+}
+
+export async function listingPhotoMatchesFixture(
+  listingPhotoUrl: string,
+  fixturePath: string,
+): Promise<boolean> {
+  const [remote, fixture] = await Promise.all([
+    fetch(listingPhotoUrl).then(async (response) => {
+      if (!response.ok) {
+        throw new Error(
+          `listing photo fetch returned ${response.status} for ${listingPhotoUrl}`,
+        )
+      }
+      return Buffer.from(await response.arrayBuffer())
+    }),
+    readFile(fixturePath),
+  ])
+  return sha256Bytes(remote) === sha256Bytes(fixture)
 }
 
 export async function runTradeBoardIntakeSmoke(
@@ -428,6 +464,7 @@ export async function runTradeBoardIntakeSmoke(
       supabase,
       rep.id,
       listingIds,
+      assets.paths,
     )
     if (!listingVerification.ok) {
       return {
@@ -739,6 +776,7 @@ async function verifyCreatedListing(
   supabase: SupabaseClient,
   repId: string,
   listingIds: string[],
+  fixturePaths: Record<RequiredSmokeAsset, string>,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   if (listingIds.length === 0) {
     return { ok: false, message: 'Workflow completed without listing ids.' }
@@ -766,10 +804,33 @@ async function verifyCreatedListing(
       message: 'Created listing was not available before smoke cleanup.',
     }
   }
-  if (!activeListing.listing_photo_url && !activeListing.uses_canonical_photo) {
+  if (!activeListing.listing_photo_url) {
     return {
       ok: false,
-      message: 'Created listing did not have a display photo.',
+      message:
+        'Jewelry-front was uploaded; listing must use a listing photo, not a label/catalog canonical hero.',
+    }
+  }
+  try {
+    if (
+      await listingPhotoMatchesFixture(
+        activeListing.listing_photo_url,
+        fixturePaths['ER13229-label.jpg'],
+      )
+    ) {
+      return {
+        ok: false,
+        message:
+          'Created listing hero is the ER13229 label fixture. Jewelry-front must win.',
+      }
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Could not compare the listing hero to the ER13229 label fixture.',
     }
   }
 

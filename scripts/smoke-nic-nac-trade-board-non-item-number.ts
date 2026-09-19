@@ -311,6 +311,28 @@ export async function runNonItemNumberTradeBoardSmoke(
       }
     }
 
+    if (!(await finderAvailabilityExcludesListing(supabase, listing.id))) {
+      const cleanup = await cleanupListings({
+        supabase,
+        listingIds: createdListingIds,
+        skip: env.SPARKLE_NIC_NAC_SMOKE_KEEP_LISTING === 'true',
+      })
+      return {
+        ok: false,
+        status: 'listing_not_verified',
+        appUrl,
+        fixturePath: asset.fixturePath,
+        conversationId,
+        rep,
+        turns,
+        workflow,
+        listing,
+        cleanup,
+        message:
+          'Non-item-number listing was still visible to the Finder catalog filter.',
+      }
+    }
+
     const publicPayload = await fetchPublicTradeBoardPayload(appUrl, env, rep.id)
     if (!publicTradeBoardPayloadHasListing(publicPayload, listing.id)) {
       const cleanup = await cleanupListings({
@@ -614,6 +636,21 @@ function isExpectedNonItemNumberListing(listing: SmokeListingRow) {
     listing.manual_size === null &&
     Boolean(listing.listing_photo_url)
   )
+}
+
+export async function finderAvailabilityExcludesListing(
+  supabase: SupabaseClient,
+  listingId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('trade_listings')
+    .select('id')
+    .eq('id', listingId)
+    .eq('listing_source', 'catalog')
+    .not('design_id', 'is', null)
+    .maybeSingle()
+  if (error) throw error
+  return data == null
 }
 
 async function fetchPublicTradeBoardPayload(

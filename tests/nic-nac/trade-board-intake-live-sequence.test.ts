@@ -21,5 +21,8 @@ describe('ER13229 Dance Floor live sequence fixture', () => {
     expect(ER13229_LIVE_SEQUENCE.hardFailPhrases).toContain(
       'report this to Louis',
     )
+    expect(ER13229_LIVE_SEQUENCE.hardFailPhrases).toContain(
+      'I still need these details before I can save this listing: .',
+    )
   })
 })

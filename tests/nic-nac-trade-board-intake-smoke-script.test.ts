@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   HARD_FAIL_PHRASES,
   REQUIRED_OBSERVED_TOOLS,
+  emptyMissingDetailsCopy,
   findHardFailPhrases,
   parseTradeBoardIntakeSmokeCases,
   requireTradeBoardSmokeAssets,
+  sha256Bytes,
 } from '@/scripts/smoke-nic-nac-trade-board-intake'
 
 describe('Nic-Nac Dance Floor intake smoke script', () => {
@@ -29,6 +31,9 @@ describe('Nic-Nac Dance Floor intake smoke script', () => {
     expect(HARD_FAIL_PHRASES).toContain('escalate this to the team')
     expect(HARD_FAIL_PHRASES).toContain('flag this for Louis')
     expect(HARD_FAIL_PHRASES).toContain('preflight stage')
+    expect(HARD_FAIL_PHRASES).toContain(
+      'I still need these details before I can save this listing: .',
+    )
   })
 
   it('expects the current Dance Floor resolver and write tools in deployed replays', () => {
@@ -89,6 +94,30 @@ END
       'flag this for Louis',
       'preflight stage',
     ])
+  })
+
+  it('fails the empty missing-details colon from the Kelly Workspace chat', () => {
+    expect(
+      emptyMissingDetailsCopy(
+        'I still need these details before I can save this listing: .',
+      ),
+    ).toBe(true)
+    expect(
+      findHardFailPhrases(
+        'I still need these details before I can save this listing: .',
+      ),
+    ).toContain('I still need these details before I can save this listing: .')
+    expect(
+      emptyMissingDetailsCopy(
+        'I still need these details before I can save this listing: the item number.',
+      ),
+    ).toBe(false)
+  })
+
+  it('keeps jewelry and label fixture hashes distinct so hero checks cannot collapse them', () => {
+    expect(sha256Bytes(Buffer.from('jewelry-front'))).not.toBe(
+      sha256Bytes(Buffer.from('label-details')),
+    )
   })
 
   it('reports missing required ER13229 smoke assets before live calls', () => {

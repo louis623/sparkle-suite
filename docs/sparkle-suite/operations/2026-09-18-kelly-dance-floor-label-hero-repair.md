@@ -5,6 +5,9 @@ not the scope. The variant distinguisher and jewelry-over-label apply to
 **every current and future Dance Floor**. Do **not** ship a Kelly-only data
 patch. Do **not** deploy from this note.
 
+Serious smoke checklist (automated vs live Workspace, ER13229 kit):
+`docs/sparkle-suite/operations/2026-09-19-nic-nac-dancer-intake-smoke-checklist.md`.
+
 ## What Louis’s September 19 screenshot showed
 
 Kelly / Sparkly Butterflies public Dance Floor

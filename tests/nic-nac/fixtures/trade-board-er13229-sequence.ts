@@ -37,5 +37,6 @@ export const ER13229_LIVE_SEQUENCE = {
     'backend',
     'incomplete data on file',
     'report this to Louis',
+    'I still need these details before I can save this listing: .',
   ],
 } as const
