@@ -218,6 +218,8 @@ describe('Amethyst trade page template wiring', () => {
   })
 
   it('keeps same-item-number finish/stone dancers on their own photos', () => {
+    // August 25: exact catalog identity is designId. Amethyst cards must
+    // not collapse Gold vs Rhodium NK88350 onto one item-number hero.
     const gold = mapTradeListingToAmethystTradeBoardListing(
       makeTradeListing({
         id: 'listing-nk88350-gold',

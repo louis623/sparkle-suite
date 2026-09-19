@@ -119,9 +119,10 @@ export function getTradeListingDisplayFields(
 
   const listingPhotoUrl = cleanText(listing.listing_photo_url)
   const canonicalPhotoUrl = cleanText(design.canonical_photo_url)
-  // June 27 / August 23 identity still owns the card: this listing's photo,
-  // else THIS design's canonical (`jewelry_designs.id` = item + material +
-  // stone). Display does not re-resolve by item number or copy another listing.
+  // August 25 exact catalog identity is `designId` (Finder handoff +
+  // `f81eed6a`). Card photo is this listing's jewelry-front, else THIS
+  // design's canonical. Same item number + different finish/stone stays
+  // on its own `jewelry_designs.id`. Display never re-resolves by SKU.
   const photoUrl =
     listingPhotoUrl ??
     (listing.uses_canonical_photo ? canonicalPhotoUrl : null)

@@ -47,7 +47,7 @@ Repo starts March 25, 2026. Open Brain breadcrumbs verified against vault + git.
 | Apr 27–28, 2026 | `10fec939` Task 1.5A, `dd86af2d` Task 1.5B | Service `resolveItemNumber` + `add_listing` implement Gap 22. | Still the write/display spine. |
 | May 5, 2026 | Open Brain Phase 3.8 | Normalize item number; **same-batch dedup by item number**. | Watch: that collapse must not erase finish/stone variants. Reconnected in this PR: collapse/recovery now use official material+stone keys. |
 | June 27, 2026 | `f1e225a9` + `20260627134500_…material_variants.sql` | **First variant-aware uniqueness:** item + material. `resolveItemNumber({ material })`. | Still the matcher. |
-| August 23–25, 2026 | `720cdd74` + `f81eed6a` | Item + material + stone. Increment by `design_id` + photo + notes. | Still the matcher. |
+| August 23–25, 2026 | `720cdd74` + `f81eed6a` + Finder handoff | Item + material + stone. Increment by `design_id` + photo + notes. August 25 product truth: **“Exact catalog identity is `designId`.”** Same item number plus different main stone remains distinct. Listing photos stay separate from that variant’s canonical. | Still the matcher. Dance Floor display joins `listing.design_id`, not item number. |
 | Sep 5, 2026 | Open Brain / vault | ER11309, ER90783 label photos on catalog + Dance Floor. Same class as Kelly: label written as canonical/listing hero. | Same repair class. |
 | Sep 13, 2026 | Open Brain photo/rarity release | Jewelry-facing vs label roles. “Six remaining duplicate hashes are same-item-number **physical duplicates**, not cross-item reuse.” | Same-item same-photo is OK only for identical copies (quantity). Not for finish/stone variants. |
 
@@ -72,12 +72,20 @@ Same item number / different finish or stone = separate listings with their own 
 | Half Moon Crescent Gold NK88350 (`1b30f6bd`) | None | Listing photo is the correct half-moon jewelry. | Must stay untouched. Do not copy this jewelry onto Rhodium. |
 | The Storyteller NK96080 | None | Listing photo is the correct Storyteller jewelry (different hash from the label reused above). | The label that leaked to other SKUs is a **details** photo for this dancer, not its hero. |
 
-**Classification:** not a regression of June/August variant matching. Those
-listings already have the correct separate design ids. This is a **bypass** of
-jewelry-front selection (canonical skip + conversation label reuse) plus
-**bad stored canonicals** that never received a jewelry-front write after
-matching. PhotoRoom `assetId` keyed only as `repId:NK88350-listing-photo` was
-an extra same-SKU cache risk; this PR scopes it with the existing `designId`.
+**Classification:** not a regression of June/August/August-25 `designId`
+matching on Kelly’s cards. Those listings already have the correct separate
+design ids, and Amethyst still joins `listing.design_id` (never re-resolves
+by item number). This is a **bypass** of jewelry-front selection (canonical
+skip + conversation label reuse) plus **bad stored canonicals** that never
+received a jewelry-front write after matching.
+
+A later **item-number-only PhotoRoom leak** did exist on the Jewelry Library
+and trade-board POST routes: they already forwarded `designId` / material /
+stone into `addListing`, but `processRepCustomListingPhotoUrl` still used
+`filenameStem: ${itemNumber}-listing-photo` with no `variantAssetKey`. Same
+SKU + different finish/stone could share an enhancement cache. This PR
+reconnects those routes to `catalogVariantPhotoAssetKey` (`designId`, else
+official `material|stone` keys).
 
 **True label-as-hero selection failure:** yes. Catalog canonical fallback
 skipped a confirmed workflow `jewelry_front`, and mutation identity ignored
@@ -143,9 +151,10 @@ canonical and that canonical was the reused label. Not a frontend cache bug.
   add mutation identity, so a re-upload cannot replay the old photo.
 - New-design conversation fallbacks use only the latest user turn. They must
   not copy another SKU’s photo from earlier in the chat.
-- PhotoRoom / listing enhancement identity reuses the June/August variant
-  (`designId`, or official `material|stone` keys before a design exists).
-  This is cache identity, not a second matcher.
+- PhotoRoom / listing enhancement identity reuses the August 25 `designId`
+  (or official `material|stone` keys before a design exists) on Nic-Nac
+  add-listing, Jewelry Library POST, and trade-board POST. This is cache
+  identity, not a second matcher.
 - PR #7 role rules still apply: labels are details-only; two uncertain
   photos stay unknown.
 
