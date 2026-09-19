@@ -167,8 +167,9 @@ This PR does not patch production rows.
   not copy another SKU’s photo from earlier in the chat.
 - PhotoRoom / listing enhancement identity reuses the August 25 `designId`
   (or official `material|stone` keys before a design exists) on Nic-Nac
-  add-listing, Jewelry Library POST, and trade-board POST. This is cache
-  identity, not a second matcher.
+  add-listing **single and batch**, Jewelry Library POST, and trade-board
+  POST. This is cache identity, not a second matcher. A multi-variant
+  batch never copies one jewelry-front onto another finish or stone.
 - PR #7 role rules still apply: labels are details-only; two uncertain
   photos stay unknown.
 
@@ -192,10 +193,14 @@ canonical. That can affect any future rep who lists those designs with
 canonical fallback. The listing-level repair should also replace the
 design canonical when the reviewer confirms the jewelry-front candidate.
 
-## Verify on Kelly's Dance Floor after this SHA is deployed
+## Verify after this SHA is deployed (Kelly is the repro)
 
-Do this on `https://sparklybutterflies.com/trade` (and the matching Workspace
-Nic-Nac Add Dancer chat). Do not use Louis's personal account.
+The contract is every Dance Floor. Use Kelly / Sparkly Butterflies as the
+known repro, then confirm a second rep’s board if one is available. Do not
+use Louis's personal account.
+
+On `https://sparklybutterflies.com/trade` (and the matching Workspace
+Nic-Nac Add Dancer chat):
 
 1. Start Add Dancer. Upload **two** photos in one turn: label/SKU card first,
    clean jewelry-facing photo second. Finish rarity as standard.
