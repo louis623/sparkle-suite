@@ -205,7 +205,7 @@ export async function uploadPublicSiteMedia(
   const safeName = options.filename
     ? sanitizeFilename(stripKnownExtension(options.filename))
     : 'public-site-media'
-  let buffer = Buffer.from(base64, 'base64')
+  let buffer: Buffer = Buffer.from(base64, 'base64')
   let contentType = mime
   let ext = MIME_EXT[mime.toLowerCase()] ?? 'jpg'
 
