@@ -154,8 +154,42 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     expect(changed.scope?.excludedPartyIds).toEqual(['p1'])
     const publicQueue = await getEffectiveLiveQueueSnapshot(d.db, repA, now + 4000)
     expect(publicQueue?.queue).toEqual(['Reviewer Two'])
+    const foreignClaim = claimPublisher(createLineupState(), publisherId, 0, now, { claimId })
+    if (!foreignClaim.ok) throw Error('fixture')
+    d.rows.live_lineup_states.push({ rep_id: repB, revision: foreignClaim.state.revision, state: foreignClaim.state })
     await expect(configureSourceParties(d.db, 'BBB-0002', 1, ['p1'], [], now + 4000)).rejects.toMatchObject({ code: 'lease_required' })
     await expect(configureSourceParties(d.db, 'MHF-9446', 0, ['p1'], [], now + 4000)).rejects.toMatchObject({ code: 'show_changed' })
+  })
+  it('lets an assigned-code worker reclaim before changing scope without weakening durable-token leases', async () => {
+    const d = database()
+    d.rows.live_queue.push({ rep_id: repA, sync_code: 'MHF-9446', queue: [], last_updated: null })
+    const claimed = claimPublisher(createLineupState(), repA, 0, now, { claimId })
+    if (!claimed.ok) throw Error('fixture')
+    const seededReady = applySourcePacket(claimed.state, {
+      publisherId: repA, epoch: claimed.state.publisher!.epoch, sequence: 0, sourceVersion: '2.0.4', generation: 0,
+      parserState: 'ready', entries: [{ id: 'old:a', name: 'Existing', orderedAt: now }], revealedIds: [],
+    }, now + 1000)
+    if (!seededReady.ok) throw Error('fixture')
+    const started = applyLineupCommand(seededReady.state, {
+      type: 'start-show', confirmed: true, expectedRevision: seededReady.state.revision,
+      partyIds: ['old'], carryEntryIds: ['old:a'],
+    }, now + 2000)
+    if (!started.ok) throw Error('fixture')
+    const expired = { ...started.state, publisher: { ...started.state.publisher!, leaseExpiresAt: new Date(now + 2500).toISOString() } }
+    d.rows.live_lineup_states.push({ rep_id: repA, revision: expired.revision, state: expired })
+
+    const before = structuredClone(d.rows.live_lineup_states)
+    expect(await configureSourceParties(d.db, 'MHF-9446', 1, ['old', '1845752'], [], now + 3000)).toEqual({
+      protocol: 2,
+      generation: 1,
+      scope: {
+        partyIds: ['old'], excludedPartyIds: [], startedAt: new Date(now + 2000).toISOString(), carryEntryIds: ['old:a'],
+      },
+      serverTime: new Date(now + 3000).toISOString(),
+    })
+    expect(d.rows.live_lineup_states).toEqual(before)
+    await expect(configureSourceParties(d.db, token, 1, ['old', '1845752'], [], now + 3000))
+      .rejects.toMatchObject({ code: 'lease_required', status: 409 })
   })
   it('returns only the authenticated show parsing scope, never names, private holds or lease credentials', async () => {
     const d = database()

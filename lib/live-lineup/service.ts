@@ -266,9 +266,15 @@ export async function configureSourceParties(db: SupabaseClient, token: string |
   const publisher = await authenticatePublisher(db, token, now)
   for (let attempt = 0; attempt < 3; attempt++) {
     const state = await readLineupState(db, publisher.rep_id)
-    if (!state?.publisher || state.publisher.id !== publisher.id || Date.parse(state.publisher.leaseExpiresAt) <= now) {
+    if (!state?.publisher || Date.parse(state.publisher.leaseExpiresAt) <= now) {
+      // Assigned-code extension 2.0.4 discovers party scope before its first claim
+      // after a worker restart. Let that setup request remain a read-only no-op so
+      // the next publisher step can acquire the lease; the following poll applies
+      // the scope. Durable credentials must keep the stricter lease-first contract.
+      if (publisher.durableTokenId === null) return sourceDescriptor(state, now)
       throw new LineupServiceError('lease_required', 409)
     }
+    if (state.publisher.id !== publisher.id) throw new LineupServiceError('lease_required', 409)
     if ((state.show?.generation ?? 0) !== generation) throw new LineupServiceError('show_changed', 409)
     let next: LineupState
     if (!state.show) {
