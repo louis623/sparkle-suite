@@ -35,6 +35,49 @@ SHA-256 of Statement canonical and Half Moon Rhodium canonical:
 Same image reused across two different SKUs. The Storyteller’s own listing
 photo is a **different** hash and is already the clean jewelry shot.
 
+## Audit cause split (required product rule)
+
+Louis’s hard rule: the same item number / SKU can still have **multiple
+listings with different photos**. Same jewelry shape can ship as a different
+finish or a different stone. Those are separate listings and must keep their
+own correct front-facing photo. Do **not** “fix” by collapsing every row that
+shares an item number onto one master image.
+
+| Wrong card | Cause class | What happened | What is **not** the cause |
+| --- | --- | --- | --- |
+| Statement Of Sparkle NK57811 | **Cross-SKU conversation reuse** + **label-as-hero write** | New-design / conversation-wide fallback copied the earlier NK96080 Storyteller **label** onto NK57811’s canonical. Display then used that canonical because the listing had no jewelry-front of its own (`uses_canonical_photo`). | Not same-item-number sharing. NK57811 is a different SKU from NK96080. |
+| Half Moon Crescent Rhodium NK88350 (`115404d6`) | **Cross-SKU conversation reuse** + **label-as-hero write** | Same Storyteller label bytes became **this variant’s** canonical. Workflow jewelry, if present, was skipped because “catalog already has a canonical.” | **Not** Gold Half Moon photo reuse. Gold (`1b30f6bd`) already has a different design id and a correct jewelry listing photo. |
+| Half Moon Crescent Gold NK88350 (`1b30f6bd`) | None | Listing photo is the correct half-moon jewelry. | Must stay untouched. Do not copy this jewelry onto Rhodium. |
+| The Storyteller NK96080 | None | Listing photo is the correct Storyteller jewelry (different hash from the label reused above). | The label that leaked to other SKUs is a **details** photo for this dancer, not its hero. |
+
+**Over-aggressive same-item-number image sharing:** not what Kelly’s live
+cards show. Gold and Rhodium NK88350 already have separate `jewelry_designs`
+rows and separate stored files. The write-path risk that *could* mix them is
+PhotoRoom `assetId` keyed only as `repId:NK88350-listing-photo`. This PR
+scopes that identity with the resolved design id (or `material--mainStone`).
+
+**True label-as-hero selection failure:** yes. Catalog canonical fallback
+skipped a confirmed workflow `jewelry_front`, and mutation identity ignored
+`selectedPhotoId` / the jewelry bytes, so a label canonical stuck.
+
+## How variants under the same item number are keyed
+
+| Key | What it identifies | Photo rule |
+| --- | --- | --- |
+| `trade_listings.id` | One dancer row | Display uses **this listing’s** `listing_photo_url` first. |
+| `jewelry_designs.id` | One catalog variant | Canonical belongs to **this** design only. |
+| `item_number` | Shared shape / SKU | **Never** a photo identity. Multiple designs and listings may share it. |
+| `material` / finish | Plating or metal (Rhodium vs Gold) | Passed into `resolveItemNumber`. Different finish → different design. |
+| `main_stone` | Stone / color (Malachite vs Lapis) | Same. Ambiguous same-SKU rows stay unresolved until finish/stone is known. |
+| Dancer photo role | Workflow `declaredRole` + visual role | `jewelry_front` / `jewelry` is the hero **for that listing**. `label_details` / `label_or_packaging` is details-only for that listing. |
+| Quantity increment | `design_id` + `ring_size` + `listing_photo_url` + notes + prefs + rarity | Same item number with a different photo or finish does **not** increment into one card. |
+| PhotoRoom `assetId` | Enhancement cache | `repId:filenameStem:designId` (or `material--mainStone`). Item-number stem alone is not enough. |
+
+This fix **preserves per-listing identity**. Canonical fallback now requires
+`resolvedDesignId` (the matched variant). Workflow jewelry and an explicit
+listing photo still win **for that listing**. Gold NK88350 jewelry is never
+copied onto Rhodium NK88350.
+
 ## Root cause (code, all reps)
 
 PR #7 stopped two-photo intake from inventing roles and barred
@@ -66,13 +109,20 @@ canonical and that canonical was the reused label. Not a frontend cache bug.
 
 ## Code contract (this follow-up)
 
-- A usable workflow jewelry-front photo always wins over a shared catalog
-  canonical. Canonical is last-resort only when no jewelry-front exists.
+- Label-vs-jewelry preference applies **per listing**. Prefer that listing’s
+  clean jewelry shot over that listing’s inventory label.
+- A usable workflow jewelry-front photo always wins over **that matched
+  variant’s** catalog canonical. Canonical fallback is last-resort only when
+  `resolvedDesignId` is known, the catalog row has a canonical, and this
+  listing has no jewelry-front and no listing photo URL.
+- Never reuse one listing’s photo across another listing just because item
+  numbers match if finish, stone, or listing id differs.
 - `selectedPhotoId` and the resolved workflow jewelry source are part of the
   add mutation identity, so a re-upload cannot replay the old photo.
-- New-design and implicit listing-photo conversation fallbacks use only the
-  latest user turn. They must not copy another SKU’s photo from earlier in
-  the chat.
+- New-design conversation fallbacks use only the latest user turn. They must
+  not copy another SKU’s photo from earlier in the chat.
+- PhotoRoom / listing enhancement identity includes the variant key
+  (`designId`, or `material--mainStone` before a design exists).
 - PR #7 role rules still apply: labels are details-only; two uncertain
   photos stay unknown.
 
@@ -114,6 +164,9 @@ Nic-Nac Add Dancer chat). Do not use Louis's personal account.
 5. After an owner-reviewed repair (or a fresh jewelry re-upload on the fixed
    path), confirm **Statement Of Sparkle**, **Half Moon Crescent** (Rhodium
    qty-2 card), and **Be The Light** on the live grid.
+6. Confirm **Gold Half Moon** (`634c7445-…`) still shows its own jewelry, not
+   the Rhodium card’s image and not a shared NK88350 master. Adding another
+   NK88350 finish/stone must keep a new dancer with its own photo.
 
 A root-page HTTP 200 is not enough. The card image URL must be the jewelry
 asset, and Statement / Half Moon Rhodium must no longer share the

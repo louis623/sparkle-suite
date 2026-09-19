@@ -25,7 +25,10 @@ vi.mock('@/lib/services/photo-enhancement-qa', () => ({
 }))
 
 import { ServiceError } from '@/lib/services/errors'
-import { processRepListingPhotoUrl } from '@/lib/services/listing-photo-processing'
+import {
+  listingPhotoEnhancementAssetId,
+  processRepListingPhotoUrl,
+} from '@/lib/services/listing-photo-processing'
 
 type FixtureMode = 'cleanLightBox' | 'dimFlat' | 'offCenter'
 
@@ -140,6 +143,31 @@ function makeImageResponse(bytes: Uint8Array, contentType = 'image/png') {
     },
   })
 }
+
+describe('listingPhotoEnhancementAssetId', () => {
+  it('keeps same-item-number finish variants on separate enhancement identities', () => {
+    expect(
+      listingPhotoEnhancementAssetId({
+        repId: 'rep-1',
+        filenameStem: 'NK88350-listing-photo',
+        variantAssetKey: 'design-nk88350-gold',
+      }),
+    ).toBe('rep-1:NK88350-listing-photo:design-nk88350-gold')
+    expect(
+      listingPhotoEnhancementAssetId({
+        repId: 'rep-1',
+        filenameStem: 'NK88350-listing-photo',
+        variantAssetKey: 'design-nk88350-rhodium',
+      }),
+    ).toBe('rep-1:NK88350-listing-photo:design-nk88350-rhodium')
+    expect(
+      listingPhotoEnhancementAssetId({
+        repId: 'rep-1',
+        filenameStem: 'NK88350-listing-photo',
+      }),
+    ).toBe('rep-1:NK88350-listing-photo')
+  })
+})
 
 describe('processRepListingPhotoUrl', () => {
   beforeEach(() => {
@@ -470,6 +498,69 @@ describe('processRepListingPhotoUrl', () => {
         },
       },
     })
+  })
+
+  it('does not share a Photoroom assetId across finish variants of the same item number', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        makeImageResponse(await makePngBytes(1800, 1800, 'cleanLightBox')),
+      )
+    getPhotoroomConfigMock.mockReturnValue({
+      provider: 'photoroom',
+      apiKey: 'phot_test_123',
+      baseUrl: 'https://image-api.photoroom.test',
+      timeoutMs: 8000,
+    })
+    uploadJewelryPhotoMock.mockResolvedValue(
+      'https://cdn.example.com/listings/rep-1/ring-source.png',
+    )
+    executePhotoEnhancementMock.mockResolvedValue({
+      provider: 'photoroom',
+      output: { bytes: await makePngBytes(1800, 1800, 'cleanLightBox') },
+      response: {
+        statusCode: 200,
+        contentType: 'image/png',
+        contentLength: 24,
+        requestId: 'req-1',
+      },
+    })
+    inspectEnhancedPhotoOutputMock.mockReturnValue({
+      assetId: 'rep-1:NK88350-listing-photo:design-nk88350-rhodium',
+      provider: 'photoroom',
+      decision: 'hold',
+      flaggedChecks: [],
+      reasons: ['hold'],
+    })
+
+    await processRepListingPhotoUrl(
+      {
+        repId: 'rep-1',
+        sourceImageUrl: 'https://images.example.com/rhodium.png',
+        filenameStem: 'NK88350-listing-photo',
+        variantAssetKey: 'design-nk88350-rhodium',
+      },
+      { fetch: fetchMock },
+    )
+
+    expect(executePhotoEnhancementMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: 'rep-1:NK88350-listing-photo:design-nk88350-rhodium',
+      }),
+      expect.anything(),
+    )
+    expect(executePhotoEnhancementMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: 'rep-1:NK88350-listing-photo',
+      }),
+      expect.anything(),
+    )
+    expect(executePhotoEnhancementMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: 'rep-1:NK88350-listing-photo:design-nk88350-gold',
+      }),
+      expect.anything(),
+    )
   })
 
   it('falls back to the original upload when enhancement output is held on the metadata gate', async () => {

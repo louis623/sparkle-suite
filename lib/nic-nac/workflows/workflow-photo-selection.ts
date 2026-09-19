@@ -46,20 +46,37 @@ export function hasUsableWorkflowJewelryPhoto(
 }
 
 /**
- * Shared catalog canonical photos are a last-resort fallback.
+ * Shared catalog canonical photos are a last-resort fallback for ONE matched
+ * catalog variant (design id = item number + finish/material + main stone).
  * A confirmed jewelry-front workflow photo, or an explicit listing photo URL,
- * always wins. This is the path that kept Kelly's Dance Floor on a reused
- * inventory-label canonical after delete/re-upload.
+ * always wins for that listing. Never treat "same item number" as permission
+ * to copy another variant's or listing's photo.
  */
 export function shouldFallBackToCatalogCanonicalPhoto(args: {
   listingPhotoUrl?: string | null
   hasWorkflowJewelryPhoto: boolean
   catalogHasCanonicalPhoto: boolean
+  resolvedDesignId?: string | null
 }): boolean {
+  if (!args.resolvedDesignId?.trim()) return false
   if (!args.catalogHasCanonicalPhoto) return false
   if (args.listingPhotoUrl?.trim()) return false
   if (args.hasWorkflowJewelryPhoto) return false
   return true
+}
+
+/** PhotoRoom / upload identity for one catalog variant. Item number alone is not enough. */
+export function catalogVariantPhotoAssetKey(args: {
+  designId?: string | null
+  material?: string | null
+  mainStone?: string | null
+}): string | undefined {
+  const designId = args.designId?.trim()
+  if (designId) return designId
+  const material = args.material?.trim().toLowerCase().replace(/\s+/g, '-')
+  const mainStone = args.mainStone?.trim().toLowerCase().replace(/\s+/g, '-')
+  const variant = [material, mainStone].filter(Boolean).join('--')
+  return variant || undefined
 }
 
 function pickPreferredCustomerFacingPhoto(

@@ -7,6 +7,7 @@ import {
   isBarredFromCustomerFacingMedia,
 } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import {
+  catalogVariantPhotoAssetKey,
   hasUsableWorkflowJewelryPhoto,
   resolveWorkflowCustomerFacingPhoto,
   selectWorkflowJewelryPhoto,
@@ -170,6 +171,7 @@ describe('customer-facing media selection', () => {
         listingPhotoUrl: undefined,
         hasWorkflowJewelryPhoto: true,
         catalogHasCanonicalPhoto: true,
+        resolvedDesignId: 'design-nk88350-rhodium',
       }),
     ).toBe(false)
     expect(
@@ -177,6 +179,7 @@ describe('customer-facing media selection', () => {
         listingPhotoUrl: undefined,
         hasWorkflowJewelryPhoto: false,
         catalogHasCanonicalPhoto: true,
+        resolvedDesignId: 'design-nk88350-rhodium',
       }),
     ).toBe(true)
     expect(
@@ -184,7 +187,44 @@ describe('customer-facing media selection', () => {
         listingPhotoUrl: 'https://cdn.example.com/listing-jewelry.png',
         hasWorkflowJewelryPhoto: false,
         catalogHasCanonicalPhoto: true,
+        resolvedDesignId: 'design-nk88350-rhodium',
       }),
     ).toBe(false)
+  })
+
+  it('never uses another variant’s canonical just because the item number matches', () => {
+    expect(
+      shouldFallBackToCatalogCanonicalPhoto({
+        listingPhotoUrl: undefined,
+        hasWorkflowJewelryPhoto: false,
+        catalogHasCanonicalPhoto: true,
+        resolvedDesignId: null,
+      }),
+    ).toBe(false)
+    expect(
+      catalogVariantPhotoAssetKey({
+        designId: 'design-nk88350-rhodium',
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+      }),
+    ).toBe('design-nk88350-rhodium')
+    expect(
+      catalogVariantPhotoAssetKey({
+        designId: 'design-nk88350-gold',
+        material: 'Gold Plating',
+        mainStone: 'Lapis Magnesite',
+      }),
+    ).toBe('design-nk88350-gold')
+    expect(
+      catalogVariantPhotoAssetKey({
+        material: 'Gold Plating',
+        mainStone: 'Lapis Magnesite',
+      }),
+    ).not.toBe(
+      catalogVariantPhotoAssetKey({
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+      }),
+    )
   })
 })

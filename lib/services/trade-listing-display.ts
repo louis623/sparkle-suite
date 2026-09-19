@@ -119,9 +119,10 @@ export function getTradeListingDisplayFields(
 
   const listingPhotoUrl = cleanText(listing.listing_photo_url)
   const canonicalPhotoUrl = cleanText(design.canonical_photo_url)
-  // Listing jewelry-front always wins. Canonical is only the shared catalog
-  // fallback when the listing has no processed photo of its own. Add-listing
-  // must not write a label as listing_photo_url or as a new canonical.
+  // Per-listing identity: this row's jewelry-front wins. Canonical is only
+  // THIS design's last-resort fallback (design = item number + finish +
+  // stone). Same item number with a different plating or stone is a different
+  // design and must keep its own photo. Display never copies another listing.
   const photoUrl =
     listingPhotoUrl ??
     (listing.uses_canonical_photo ? canonicalPhotoUrl : null)

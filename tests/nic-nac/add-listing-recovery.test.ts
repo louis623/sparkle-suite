@@ -685,6 +685,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       sourceImageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
       filenameStem: 'ER13229-listing-photo',
       mutationAssetKey: expect.any(String),
+      variantAssetKey: 'design-existing',
     }, { confirmedJewelryFront: true })
     expect(addListingMock).toHaveBeenCalledWith(
       expect.anything(),
@@ -3657,6 +3658,7 @@ describe('add_listing - active workflow readiness guard', () => {
         sourceImageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
         filenameStem: 'NK57811-listing-photo',
         mutationAssetKey: expect.any(String),
+        variantAssetKey: 'design-nk57811',
       },
       { confirmedJewelryFront: true },
     )
@@ -3733,13 +3735,244 @@ describe('add_listing - active workflow readiness guard', () => {
       itemNumber: 'NK88350',
     })
 
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalled()
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
+      {
+        repId: 'rep-1',
+        sourceImageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+        filenameStem: 'NK88350-listing-photo',
+        mutationAssetKey: expect.any(String),
+        variantAssetKey: 'design-nk88350',
+      },
+      { confirmedJewelryFront: true },
+    )
     expect(addListingMock).toHaveBeenCalledWith(
       expect.anything(),
       'rep-1',
       expect.objectContaining({
         listingPhotoUrl:
           'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
+      }),
+    )
+  })
+
+  it('keeps Gold and Rhodium NK88350 listings on their own photos', async () => {
+    const goldJewelryUrl =
+      'https://cdn.example.com/catalog/nk88350-gold-lapis-jewelry.jpg'
+    const rhodiumJewelryBytes = 'data:image/jpeg;base64,UkhPRElVTV9KRVdFTFJZ'
+    resolveItemNumberMock.mockImplementation(
+      (_client: unknown, itemNumber: unknown, options: { material?: string } = {}) => {
+        if (itemNumber !== 'NK88350') return { found: false, itemNumber }
+        if (options.material === 'Gold Plating') {
+          return {
+            found: true,
+            hasCollection: true,
+            design: {
+              id: 'design-nk88350-gold',
+              itemNumber: 'NK88350',
+              designName: 'Half Moon Crescent',
+              material: 'Gold Plating',
+              mainStone: 'Lapis Magnesite',
+              canonicalPhotoUrl: goldJewelryUrl,
+            },
+          }
+        }
+        if (options.material === 'Rhodium Plating') {
+          return {
+            found: true,
+            hasCollection: true,
+            design: {
+              id: 'design-nk88350-rhodium',
+              itemNumber: 'NK88350',
+              designName: 'Half Moon Crescent',
+              material: 'Rhodium Plating',
+              mainStone: 'Malachite Magnesite',
+              canonicalPhotoUrl:
+                'https://cdn.example.com/catalog/nk96080-storyteller-label.jpg',
+            },
+          }
+        }
+        return { found: false, ambiguous: true, itemNumber: 'NK88350' }
+      },
+    )
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl:
+        'https://cdn.example.com/listings/rep-1/nk88350-rhodium-jewelry.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-half-moon-rhodium',
+      designId: 'design-nk88350-rhodium',
+      itemNumber: 'NK88350',
+      designName: 'Half Moon Crescent',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    const rhodiumJewelryId = '22222222-2222-4222-8222-222222222222'
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          collectionName: 'Original Necklace',
+          material: 'Rhodium Plating',
+          mainStone: 'Malachite Magnesite',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: rhodiumJewelryId,
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: rhodiumJewelryBytes,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK88350',
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+        selectedPhotoId: rhodiumJewelryId,
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-half-moon-rhodium',
+      itemNumber: 'NK88350',
+      createdNewDesign: false,
+    })
+
+    expect(resolveItemNumberMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'NK88350',
+      {
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+      },
+    )
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
+      {
+        repId: 'rep-1',
+        sourceImageUrl: rhodiumJewelryBytes,
+        filenameStem: 'NK88350-listing-photo',
+        mutationAssetKey: expect.any(String),
+        variantAssetKey: 'design-nk88350-rhodium',
+      },
+      { confirmedJewelryFront: true },
+    )
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceImageUrl: goldJewelryUrl,
+      }),
+      expect.anything(),
+    )
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        variantAssetKey: 'design-nk88350-gold',
+      }),
+      expect.anything(),
+    )
+    expect(addListingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({
+        itemNumber: 'NK88350',
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+        listingPhotoUrl:
+          'https://cdn.example.com/listings/rep-1/nk88350-rhodium-jewelry.png',
+      }),
+    )
+  })
+
+  it('does not fall back to another same-SKU variant canonical when this variant has no jewelry-front yet', async () => {
+    resolveItemNumberMock.mockImplementation(
+      (_client: unknown, itemNumber: unknown, options: { material?: string } = {}) => {
+        if (itemNumber !== 'NK88350') return { found: false, itemNumber }
+        if (options.material === 'Rhodium Plating') {
+          return {
+            found: true,
+            hasCollection: true,
+            design: {
+              id: 'design-nk88350-rhodium',
+              itemNumber: 'NK88350',
+              designName: 'Half Moon Crescent',
+              material: 'Rhodium Plating',
+              mainStone: 'Malachite Magnesite',
+              canonicalPhotoUrl:
+                'https://cdn.example.com/catalog/nk88350-rhodium-own-canonical.jpg',
+            },
+          }
+        }
+        return {
+          found: true,
+          hasCollection: true,
+          design: {
+            id: 'design-nk88350-gold',
+            itemNumber: 'NK88350',
+            designName: 'Half Moon Crescent',
+            material: 'Gold Plating',
+            mainStone: 'Lapis Magnesite',
+            canonicalPhotoUrl:
+              'https://cdn.example.com/catalog/nk88350-gold-lapis-jewelry.jpg',
+          },
+        }
+      },
+    )
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-half-moon-rhodium',
+      designId: 'design-nk88350-rhodium',
+      itemNumber: 'NK88350',
+      designName: 'Half Moon Crescent',
+      status: 'available',
+      usesCanonicalPhoto: true,
+    })
+
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          collectionName: 'Original Necklace',
+          material: 'Rhodium Plating',
+          mainStone: 'Malachite Magnesite',
+          rarityClassification: 'standard',
+        },
+        photos: [],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK88350',
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-half-moon-rhodium',
+      itemNumber: 'NK88350',
+    })
+
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+    expect(addListingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({
+        itemNumber: 'NK88350',
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+        listingPhotoUrl: undefined,
       }),
     )
   })
