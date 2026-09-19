@@ -1,5 +1,18 @@
 # Project State
 
+## September 19, 2026 - Join team-card photo framing (PR only, not live)
+
+Code on `cursor/team-card-photo-framing-c605` adds lasting QC for public
+Join team circles: EXIF orientation bake on profile upload, Smart Frame
+focus/zoom/straighten (About-portrait pattern), and removal of
+`rotate-left` / `object-left` presentation hacks. Join cache-bust is
+`20260919-team-photo-frame-v1`. Lead framing column is
+`reps.profile_photo_framing` (migration `20260919120000`). Louis asked for
+PR only — do not treat Kelly `/join` photos as fixed until this SHA is
+merged, migrated, and manually released. After release, re-save or Replace
+Kelly, Dara, and Erika in Team Management, then check
+`https://sparklybutterflies.com/join`.
+
 ## September 18, 2026 - Waitlist Grok Bot notify PR #9 merged; Suite prod not released
 
 Louis authorized Rocky SHIP of PR #9 onto production branch

@@ -1,5 +1,19 @@
 # Decision Log
 
+## 2026-09-19 - Join team-card photos use Smart Frame, not CSS crop hacks
+
+Customer-facing Join team circles reuse the About-portrait Smart Frame idea
+(focus X/Y, modest zoom, optional straighten) instead of leftover
+`object-left` / `object-top` / `rotate-left` classes. Public CSS must not
+apply a decorative tilt. Upload processing honors EXIF orientation via
+`sharp().rotate()` and stores an upright JPEG. Member framing persists as an
+`ss-frame:` token on `join_team_members.image_class_name`. Lead framing
+persists on `reps.profile_photo_framing`. Default crop is generous
+head-and-shoulders (`focusY` 38, zoom 1.0, max zoom 1.22) so faces are not
+stamps. Existing crooked assets keep their pixels until a rep/operator
+re-uploads or saves a new frame in Team Management. Cache-bust must include
+`team-photo-frame` after `avatar-clip`.
+
 ## 2026-09-17 - Clip Join team-card photos to the circular avatar disc
 
 Approved Pass C: every Join/team skin using the shared Amethyst runtime

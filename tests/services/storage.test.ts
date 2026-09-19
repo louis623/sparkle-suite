@@ -292,6 +292,67 @@ describe('storage service', () => {
     expect(result).toBe('https://cdn.example.com/recipe.jpg')
   })
 
+  it('normalizes profile uploads to upright JPEGs before storing them', async () => {
+    const { normalizeTeamProfilePhoto } = await import(
+      '@/lib/services/team-profile-photo'
+    )
+    const upright = await (
+      await import('sharp')
+    ).default({
+      create: {
+        width: 32,
+        height: 16,
+        channels: 3,
+        background: { r: 12, g: 80, b: 160 },
+      },
+    })
+      .jpeg()
+      .toBuffer()
+    const sideways = await (
+      await import('sharp')
+    )
+      .default(upright)
+      .withMetadata({ orientation: 6 })
+      .jpeg()
+      .toBuffer()
+
+    const publicSiteBucket = makeStorageBucket()
+    publicSiteBucket.upload.mockResolvedValue({ error: null })
+    publicSiteBucket.getPublicUrl.mockReturnValue({
+      data: { publicUrl: 'https://cdn.example.com/profile.jpg' },
+    })
+
+    createAdminClientMock.mockReturnValue({
+      storage: {
+        from: vi.fn((bucket: string) => {
+          if (bucket === 'public-site-media') {
+            return publicSiteBucket
+          }
+          throw new Error(`Unexpected bucket ${bucket}`)
+        }),
+      },
+    })
+
+    const result = await uploadPublicSiteMedia(
+      'rep-7',
+      `data:image/jpeg;base64,${sideways.toString('base64')}`,
+      {
+        filename: 'IMG_7958.jpg',
+        folder: 'profile',
+      },
+    )
+
+    const uploaded = publicSiteBucket.upload.mock.calls[0]
+    expect(uploaded[0]).toMatch(/^rep-7\/profile\/[0-9a-f-]+-IMG_7958\.jpg$/)
+    expect(uploaded[2]).toEqual({
+      contentType: 'image/jpeg',
+      upsert: false,
+    })
+    const normalized = await normalizeTeamProfilePhoto(sideways)
+    expect(Buffer.compare(uploaded[1] as Buffer, normalized.buffer)).toBe(0)
+    expect(result).toBe('https://cdn.example.com/profile.jpg')
+  })
+
   it('uploads a trade request reveal screenshot to the private temporary bucket', async () => {
     const screenshotBucket = makeStorageBucket()
     screenshotBucket.upload.mockResolvedValue({ error: null })

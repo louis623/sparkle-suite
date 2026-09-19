@@ -678,9 +678,9 @@ describe('Britt With Bling hybrid public site contract', () => {
 
     expect(joinJsx).toContain('const isBrittWithBlingHybrid')
     expect(joinJsx).toContain('bwb-join-page')
-    expect(joinJsx).toContain('member.socialLinks?.facebook')
-    expect(joinJsx).toContain('member.socialLinks?.instagram')
-    expect(joinJsx).toContain('member.socialLinks?.website')
+    expect(joinJsx).toContain('function TeamConnect')
+    expect(joinJsx).toContain('socialLinks?.[slot.key]')
+    expect(joinJsx).toContain('<TeamConnect socialLinks={member.socialLinks} />')
     expect(joinCss).toContain('body.britt-with-bling-join')
     expect(joinCss).toContain('--bwb-gold: var(--hp-primary)')
     expect(joinCss).toContain('--bwb-cyan: var(--hp-accent)')
