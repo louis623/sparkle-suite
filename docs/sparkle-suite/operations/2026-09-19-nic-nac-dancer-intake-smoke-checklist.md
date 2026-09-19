@@ -9,8 +9,8 @@ known repro. The contract is **every current and future Dance Floor**.
 
 ## What this cloud session could smoke
 
-This SHA (`cursor/kelly-dance-floor-label-hero-693a`) was proven with the
-deterministic kit only.
+This SHA (`cursor/kelly-dance-floor-label-hero-693a`, stamp-on-promote
+follow-up) was proven with the deterministic kit only.
 
 | Layer | Ran? | Result |
 | --- | --- | --- |
@@ -73,6 +73,8 @@ npx vitest run \
   tests/sparkle-finder-public-api.test.ts \
   tests/finder-quantity-aware-availability-migration.test.ts
 ```
+
+**Latest gate (stamp-on-promote SHA):** 18 files / **265** tests passed.
 
 ## Checklist (all five locks)
 
@@ -152,7 +154,7 @@ list; a failed save surfaces the real redacted error.
 
 | Proof | Where | This session |
 | --- | --- | --- |
-| Single boxed-display / uncertain photo is assigned `jewelry_front` | `tests/nic-nac/workflow-photo-roles.test.ts` | Automated |
+| Single boxed-display / uncertain photo is assigned `jewelry_front`; sole readiness candidate is stamped so `getWorkflowConfirmedJewelryFrontImageUrl` / `processListingPhotoForAdd` return a URL | `tests/nic-nac/workflow-photo-roles.test.ts`, `tests/nic-nac/add-listing-recovery.test.ts` | Automated |
 | Jewelry ask wins over a visual label on a single-photo turn | same | Automated |
 | Leftover unread label does not block save once jewelry + item number exist | `tests/nic-nac/trade-board-intake-controller.test.ts`, `tests/nic-nac/add-listing-recovery.test.ts` | Automated |
 | `formatWorkflowNotReadyMessage` never interpolates `listing: .` | controller tests | Automated |
