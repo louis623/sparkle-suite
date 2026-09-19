@@ -5,6 +5,7 @@ import {
 } from './appearance-presets'
 import { getPublicRepName, redactPublicRepFullName } from './public-rep-name'
 import type { AmethystTradeBoardListing } from './trade-board-listings'
+import type { TeamPhotoFraming } from './team-photo-framing'
 
 export interface AmethystJoinSocialLink {
   label: string
@@ -26,6 +27,7 @@ export interface AmethystJoinTeamMember {
   imageUrl?: string
   imageAlt?: string
   imageClassName?: string
+  photoFraming?: TeamPhotoFraming
   bio?: string
   isVisible?: boolean
   socialLinks: {
@@ -59,6 +61,8 @@ export interface AmethystJoinTemplateData {
   businessName: string
   /** Join Team lead-card photo. Separate from member card imageUrl values. */
   repImageUrl?: string
+  /** Circular framing for the lead-card photo. */
+  repImageFraming?: TeamPhotoFraming
   teamName: string
   /** The upline or other team this rep belongs to, shown in the public footer. */
   memberTeamName?: string

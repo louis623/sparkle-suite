@@ -6,6 +6,10 @@ import {
   TEAM_SOCIAL_SLOTS,
 } from '../../lib/amethyst/social-mark'
 import { SocialMark } from '../../lib/amethyst/social-mark-icon'
+import {
+  parseTeamPhotoFraming,
+  teamPhotoFramingStyle,
+} from '../../lib/amethyst/team-photo-framing'
 
 const { useState, useEffect, useMemo } = React;
 
@@ -868,6 +872,10 @@ function TeamConnect({ socialLinks }) {
 
 function TeamCard({ member, isLeader }) {
   const avatarLabel = member.imageAlt || member.name || "Team member";
+  const photoFraming = parseTeamPhotoFraming(
+    member.imageClassName,
+    member.photoFraming,
+  );
   return (
     <article className={`jp-team-card ${isLeader ? "is-leader" : ""}`}>
       <div className="jp-team-avatar slot" data-slot={isLeader ? "rep headshot" : "team member headshot"}>
@@ -875,7 +883,8 @@ function TeamCard({ member, isLeader }) {
           <img
             src={member.imageUrl}
             alt={avatarLabel}
-            className={`jp-team-avatar-img ${member.imageClassName || ""}`}
+            className="jp-team-avatar-img"
+            style={teamPhotoFramingStyle(photoFraming)}
           />
         ) : member.initials}
       </div>
@@ -1337,6 +1346,7 @@ function App() {
     initials: (repName[0] || "S").toUpperCase(),
     state: locationLabel || t.repState,
     imageUrl: LEAD_IMAGE_URL || undefined,
+    photoFraming: CONTENT.repImageFraming,
     socialLinks: {
       tiktok: REP_SOCIALS.tiktok,
       website: REP_SOCIALS.website || SHOP_HREF,

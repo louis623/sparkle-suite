@@ -1218,19 +1218,15 @@ body.mile-high-fizz-join .hp-footer-col a:hover {
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-}
-
-.jp-team-avatar-img.object-left,
-.jp-team-avatar-img.object-left.rotate-left {
-  object-position: left center;
-}
-
-.jp-team-avatar-img.object-top {
-  object-position: center top;
-}
-
-.jp-team-avatar-img.rotate-left {
-  transform: rotate(-25deg) scale(1.2);
+  /*
+   * Circular team cards use stored Smart Frame metadata (or generous
+   * head-and-shoulders defaults). Do not apply leftover object-left /
+   * object-top / rotate-left presentation hacks — those shipped off-center
+   * and tilted faces.
+   */
+  object-position: var(--jp-team-photo-focus-x, 50%) var(--jp-team-photo-focus-y, 38%);
+  transform: rotate(var(--jp-team-photo-rotation, 0deg)) scale(var(--jp-team-photo-zoom, 1));
+  transform-origin: var(--jp-team-photo-focus-x, 50%) var(--jp-team-photo-focus-y, 38%);
 }
 
 .jp-team-bio {

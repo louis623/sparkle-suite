@@ -4957,6 +4957,46 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: var(--jp-team-photo-focus-x, 50%) var(--jp-team-photo-focus-y, 38%);
+  transform: rotate(var(--jp-team-photo-rotation, 0deg)) scale(var(--jp-team-photo-zoom, 1));
+  transform-origin: var(--jp-team-photo-focus-x, 50%) var(--jp-team-photo-focus-y, 38%);
+}
+
+.teamPhotoPreviewCircle {
+  border-radius: 50%;
+}
+
+.teamPhotoFrameControls {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--nic-nac-border);
+  border-radius: 12px;
+  color: var(--nic-nac-text-secondary);
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  font-size: 11px;
+}
+
+.teamPhotoFrameControls legend {
+  color: var(--nic-nac-text-primary);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.teamPhotoFrameControls > span {
+  line-height: 1.35;
+}
+
+.teamPhotoFrameControls label {
+  display: grid;
+  gap: 4px;
+  color: var(--nic-nac-text-primary);
+  font-weight: 700;
+}
+
+.teamPhotoFrameControls input {
+  width: 100%;
 }
 
 .teamPhotoActions {

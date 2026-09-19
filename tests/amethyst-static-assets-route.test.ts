@@ -137,8 +137,8 @@ describe('Amethyst static asset route', () => {
 
       expect(html).toContain('src="/amethyst/template-loader.js"')
       if (assetName === 'Join.html') {
-        expect(html).toContain('src="/amethyst/join-runtime.js?v=20260917-team-social-lead-photo-avatar-clip-v1"')
-        expect(html).toContain('href="/amethyst/join.css?v=20260917-team-social-lead-photo-avatar-clip-v1"')
+        expect(html).toContain('src="/amethyst/join-runtime.js?v=20260919-team-photo-frame-v1"')
+        expect(html).toContain('href="/amethyst/join.css?v=20260919-team-photo-frame-v1"')
         expect(html).toContain('href="/amethyst/neon-butterfly.css?v=20260914-team-recruiting-v1"')
         expect(html).not.toContain('tweaks-panel.jsx')
       } else {

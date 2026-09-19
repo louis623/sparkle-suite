@@ -1,5 +1,21 @@
 # Session Log
 
+## September 19, 2026 - Join team-card photo framing QC (PR only)
+
+- Investigated Kelly / Sparkly Butterflies live Join cards (Kelly, Dara,
+  Erika). Stored photos are already square with EXIF orientation=1. Dara is
+  composed left of center; Erika is a tilted selfie in the pixels; Kelly is a
+  wide studio shot that reads tight in the circle. No `imageClassName` hacks
+  on those rows. Legacy `rotate-left` / `object-left` CSS still existed in
+  shared Join CSS and would keep shipping sloppy crops for anyone still
+  tagged.
+- Implemented EXIF-normalize on profile uploads, Smart Frame metadata, circle
+  preview + sliders in Team Management, and public CSS variables. Cache-bust
+  `20260919-team-photo-frame-v1`. Migration
+  `20260919120000_ss_team_photo_framing.sql` adds `reps.profile_photo_framing`.
+- PR only; do not deploy. Existing Kelly/Dara/Erika assets need a Team
+  Management re-save or Replace after merge+release.
+
 ## September 18, 2026 - Rocky SHIP: merge waitlist Grok Bot notify PR #9; Suite deploy skipped
 
 - Louis authorized production ship of PR #9 (Rocky SHIP), branch

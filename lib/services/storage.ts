@@ -11,6 +11,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { randomUUID } from 'crypto'
+import { normalizeTeamProfilePhoto } from '@/lib/services/team-profile-photo'
 
 const PUBLIC_BUCKET = 'jewelry-photos'
 const PUBLIC_SITE_MEDIA_BUCKET = 'public-site-media'
@@ -200,17 +201,26 @@ export async function uploadPublicSiteMedia(
 ): Promise<string> {
   const admin = createAdminClient()
   const { mime, base64 } = parseDataUrl(base64Data)
-  const ext = MIME_EXT[mime.toLowerCase()] ?? 'jpg'
   const folder = options.folder ?? 'recipes'
   const safeName = options.filename
     ? sanitizeFilename(stripKnownExtension(options.filename))
     : 'public-site-media'
+  let buffer = Buffer.from(base64, 'base64')
+  let contentType = mime
+  let ext = MIME_EXT[mime.toLowerCase()] ?? 'jpg'
+
+  if (folder === 'profile') {
+    const normalized = await normalizeTeamProfilePhoto(buffer)
+    buffer = normalized.buffer
+    contentType = normalized.contentType
+    ext = 'jpg'
+  }
+
   const key = `${repId}/${folder}/${randomUUID()}-${safeName}.${ext}`
-  const buffer = Buffer.from(base64, 'base64')
 
   const bucket = admin.storage.from(PUBLIC_SITE_MEDIA_BUCKET)
   const { error } = await bucket.upload(key, buffer, {
-    contentType: mime,
+    contentType,
     upsert: false,
   })
   if (error) throw error

@@ -620,6 +620,16 @@ export interface SiteSettingsDashboardResult {
    * Stored on reps.profile_photo_url. Member cards use join_team_members.photo_url.
    */
   profilePhotoUrl?: string
+  /**
+   * Circular framing for the Join Team lead-card photo.
+   * Stored on reps.profile_photo_framing. Member cards use image_class_name.
+   */
+  profilePhotoFraming?: {
+    focusX?: number
+    focusY?: number
+    zoom?: number
+    rotation?: number
+  }
   /** The rep-owned store destination used by public customer-site Shop actions. */
   shopLink?: string
   /** The rep-owned Bomb Party enrollment destination used by public Join Team actions. */
@@ -658,6 +668,12 @@ export interface UpdateSiteSettingsDashboardInput {
   email?: string
   phone?: string
   profilePhotoUrl?: string
+  profilePhotoFraming?: {
+    focusX?: number
+    focusY?: number
+    zoom?: number
+    rotation?: number
+  }
   shopLink?: string
   recruitingLink?: string
   bannerText?: string

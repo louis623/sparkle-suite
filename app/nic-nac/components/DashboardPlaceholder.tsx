@@ -54,6 +54,15 @@ import {
   findMatchingLeadRosterMember,
   resolveLeadCardPhotoUrl,
 } from '@/lib/amethyst/join-lead-card'
+import {
+  DEFAULT_TEAM_PHOTO_FRAMING,
+  normalizeTeamPhotoFraming,
+  parseTeamPhotoFraming,
+  serializeTeamPhotoFraming,
+  suggestTeamPhotoFramingFromFace,
+  teamPhotoFramingStyle,
+  type TeamPhotoFraming,
+} from '@/lib/amethyst/team-photo-framing'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
 import {
   getAmethystSkinCardsForRep,
@@ -2027,37 +2036,80 @@ type BrowserFaceDetectorConstructor = new (options?: {
   maxDetectedFaces?: number
 }) => BrowserFaceDetector
 
-async function getSmartPortraitFraming(file: File) {
-  const objectUrl = URL.createObjectURL(file)
+async function loadImageForSmartFraming(source: File | string) {
+  const objectUrl = typeof source === 'string' ? source : URL.createObjectURL(source)
+  const shouldRevoke = typeof source !== 'string'
   try {
     const image = await new Promise<HTMLImageElement>((resolve, reject) => {
       const nextImage = new Image()
+      if (typeof source === 'string') nextImage.crossOrigin = 'anonymous'
       nextImage.onload = () => resolve(nextImage)
       nextImage.onerror = () => reject(new Error('Unable to read that photo.'))
       nextImage.src = objectUrl
     })
+    return { image, objectUrl, shouldRevoke }
+  } catch (error) {
+    if (shouldRevoke) URL.revokeObjectURL(objectUrl)
+    throw error
+  }
+}
+
+async function detectPrimaryFace(source: File | string) {
+  const loaded = await loadImageForSmartFraming(source)
+  try {
     const FaceDetector = (window as unknown as {
       FaceDetector?: BrowserFaceDetectorConstructor
     }).FaceDetector
-    if (!FaceDetector) return DEFAULT_PORTRAIT_FRAMING
+    if (!FaceDetector) return null
 
-    const [face] = await new FaceDetector({ fastMode: true, maxDetectedFaces: 1 }).detect(image)
-    if (!face || !image.naturalWidth || !image.naturalHeight) {
-      return DEFAULT_PORTRAIT_FRAMING
+    const [face] = await new FaceDetector({
+      fastMode: true,
+      maxDetectedFaces: 1,
+    }).detect(loaded.image)
+    if (!face || !loaded.image.naturalWidth || !loaded.image.naturalHeight) {
+      return null
     }
 
-    const centerX = ((face.boundingBox.x + face.boundingBox.width / 2) / image.naturalWidth) * 100
-    const centerY = ((face.boundingBox.y + face.boundingBox.height / 2) / image.naturalHeight) * 100
-    const faceWidth = face.boundingBox.width / image.naturalWidth
     return {
-      portraitFocusX: Math.min(82, Math.max(18, Math.round(centerX))),
-      portraitFocusY: Math.min(48, Math.max(14, Math.round(centerY - 7))),
-      portraitZoom: Math.min(1.28, Math.max(1.1, Math.round((1.08 + faceWidth * 0.35) * 100) / 100)),
+      faceCenterX:
+        ((face.boundingBox.x + face.boundingBox.width / 2) /
+          loaded.image.naturalWidth) *
+        100,
+      faceCenterY:
+        ((face.boundingBox.y + face.boundingBox.height / 2) /
+          loaded.image.naturalHeight) *
+        100,
+      faceWidthRatio: face.boundingBox.width / loaded.image.naturalWidth,
+    }
+  } finally {
+    if (loaded.shouldRevoke) URL.revokeObjectURL(loaded.objectUrl)
+  }
+}
+
+async function getSmartPortraitFraming(file: File) {
+  try {
+    const face = await detectPrimaryFace(file)
+    if (!face) return DEFAULT_PORTRAIT_FRAMING
+    return {
+      portraitFocusX: Math.min(82, Math.max(18, Math.round(face.faceCenterX))),
+      portraitFocusY: Math.min(48, Math.max(14, Math.round(face.faceCenterY - 7))),
+      portraitZoom: Math.min(
+        1.28,
+        Math.max(1.1, Math.round((1.08 + face.faceWidthRatio * 0.35) * 100) / 100),
+      ),
     }
   } catch {
     return DEFAULT_PORTRAIT_FRAMING
-  } finally {
-    URL.revokeObjectURL(objectUrl)
+  }
+}
+
+async function getSmartTeamPhotoFraming(source: File | string) {
+  try {
+    const face = await detectPrimaryFace(source)
+    if (!face) return { ...DEFAULT_TEAM_PHOTO_FRAMING }
+    return suggestTeamPhotoFramingFromFace(face)
+  } catch {
+    return { ...DEFAULT_TEAM_PHOTO_FRAMING }
   }
 }
 
@@ -5455,15 +5507,19 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const imageUrl = await requestJoinTeamProfilePhotoUpload(file)
+      const [imageUrl, framing] = await Promise.all([
+        requestJoinTeamProfilePhotoUpload(file),
+        getSmartTeamPhotoFraming(file),
+      ])
       setPublicTeamDraft((current) => ({
         ...current,
         photoUrl: imageUrl,
+        imageClassName: serializeTeamPhotoFraming(framing),
       }))
       setTeamManagementActionState({
         pendingKey: null,
         error: null,
-        helperMessage: 'Photo uploaded. Review the preview, then save the team member card.',
+        helperMessage: 'Photo uploaded. Review the circle preview, then save the team member card.',
       })
     } catch (error) {
       setTeamManagementActionState({
@@ -5477,12 +5533,18 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }
 
-  async function persistLeadCardPhotoUrl(imageUrl: string) {
+  async function persistLeadCardPhotoUrl(
+    imageUrl: string,
+    framing?: TeamPhotoFraming,
+  ) {
     const response = await fetch('/api/nic-nac/site-settings', {
       method: 'POST',
       credentials: 'include',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ profilePhotoUrl: imageUrl }),
+      body: JSON.stringify({
+        profilePhotoUrl: imageUrl,
+        ...(framing ? { profilePhotoFraming: framing } : {}),
+      }),
     })
     const payload = (await response.json().catch(() => null)) as
       | { error?: string; settings?: SiteSettingsDashboardResult }
@@ -5494,7 +5556,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     setSiteSettingsState({ status: 'ready', settings: savedSettings })
     setSiteSettingsDraft((current) =>
       current
-        ? { ...current, profilePhotoUrl: savedSettings.profilePhotoUrl ?? imageUrl }
+        ? {
+            ...current,
+            profilePhotoUrl: savedSettings.profilePhotoUrl ?? imageUrl,
+            profilePhotoFraming:
+              savedSettings.profilePhotoFraming ?? framing ?? current.profilePhotoFraming,
+          }
         : getSiteSettingsDraft(savedSettings, {
             isBrittWithBling: isBrittWithBlingWorkspace,
           }),
@@ -5502,10 +5569,17 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     return savedSettings.profilePhotoUrl ?? imageUrl
   }
 
-  async function persistMemberCardPhotoUrl(member: JoinTeamMember, imageUrl: string) {
+  async function persistMemberCardPhotoUrl(
+    member: JoinTeamMember,
+    imageUrl: string,
+    framing?: TeamPhotoFraming,
+  ) {
     const draft = {
       ...getJoinTeamRosterDraft(member),
       photoUrl: imageUrl,
+      ...(framing
+        ? { imageClassName: serializeTeamPhotoFraming(framing) }
+        : {}),
     }
     const response = await fetch('/api/nic-nac/join-team-roster', {
       method: 'POST',
@@ -5550,8 +5624,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const imageUrl = await requestJoinTeamProfilePhotoUpload(file)
-      await persistLeadCardPhotoUrl(imageUrl)
+      const [imageUrl, framing] = await Promise.all([
+        requestJoinTeamProfilePhotoUpload(file),
+        getSmartTeamPhotoFraming(file),
+      ])
+      await persistLeadCardPhotoUrl(imageUrl, framing)
       const matchingMember = findMatchingLeadRosterMember(
         teamManagementState.publicTeamRoster ?? [],
         {
@@ -5561,7 +5638,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         },
       )
       if (matchingMember) {
-        await persistMemberCardPhotoUrl(matchingMember, imageUrl)
+        await persistMemberCardPhotoUrl(matchingMember, imageUrl, framing)
       }
       setTeamManagementActionState({
         pendingKey: null,
@@ -5580,6 +5657,93 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }
 
+  async function persistLeadCardFraming(framing: TeamPhotoFraming) {
+    const imageUrl =
+      siteSettingsDraft?.profilePhotoUrl ??
+      siteSettingsState.settings?.profilePhotoUrl ??
+      ''
+    if (!imageUrl) {
+      throw new Error('Upload a lead card photo before saving the frame.')
+    }
+
+    await persistLeadCardPhotoUrl(imageUrl, framing)
+    const matchingMember = findMatchingLeadRosterMember(
+      teamManagementState.publicTeamRoster ?? [],
+      {
+        name: siteSettingsDraft?.displayName ?? siteSettingsState.settings?.displayName,
+        business:
+          siteSettingsDraft?.businessName ?? siteSettingsState.settings?.businessName,
+      },
+    )
+    if (matchingMember) {
+      await persistMemberCardPhotoUrl(
+        matchingMember,
+        matchingMember.photoUrl || imageUrl,
+        framing,
+      )
+    }
+  }
+
+  async function handleLeadCardFramingChange(framing: TeamPhotoFraming) {
+    setTeamManagementActionState({
+      pendingKey: 'lead-card:photo-frame',
+      error: null,
+      helperMessage: null,
+    })
+
+    try {
+      await persistLeadCardFraming(framing)
+      setTeamManagementActionState({
+        pendingKey: null,
+        error: null,
+        helperMessage: 'Lead card frame saved. Customers see this crop on Join Team.',
+      })
+    } catch (error) {
+      setTeamManagementActionState({
+        pendingKey: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unable to save that lead card frame right now.',
+        helperMessage: null,
+      })
+    }
+  }
+
+  async function handleSuggestLeadCardFraming() {
+    const imageUrl =
+      siteSettingsDraft?.profilePhotoUrl ??
+      siteSettingsState.settings?.profilePhotoUrl ??
+      ''
+    if (!imageUrl) return
+
+    setTeamManagementActionState({
+      pendingKey: 'lead-card:photo-suggest',
+      error: null,
+      helperMessage: null,
+    })
+
+    try {
+      const framing = await getSmartTeamPhotoFraming(imageUrl)
+      await persistLeadCardFraming(framing)
+      setTeamManagementActionState({
+        pendingKey: null,
+        error: null,
+        helperMessage:
+          'Suggested a face-centered frame. Nudge Smart Frame if you still want more room.',
+      })
+    } catch (error) {
+      setTeamManagementActionState({
+        pendingKey: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unable to suggest a frame for that photo right now.',
+        helperMessage: null,
+      })
+    }
+  }
+
   async function handleMemberCardPhotoUpload(
     member: JoinTeamMember,
     file: File | null,
@@ -5593,8 +5757,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const imageUrl = await requestJoinTeamProfilePhotoUpload(file)
-      const savedMember = await persistMemberCardPhotoUrl(member, imageUrl)
+      const [imageUrl, framing] = await Promise.all([
+        requestJoinTeamProfilePhotoUpload(file),
+        getSmartTeamPhotoFraming(file),
+      ])
+      const savedMember = await persistMemberCardPhotoUrl(member, imageUrl, framing)
       const matchesLead = Boolean(
         findMatchingLeadRosterMember([savedMember], {
           name: siteSettingsDraft?.displayName ?? siteSettingsState.settings?.displayName,
@@ -5603,7 +5770,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         }),
       )
       if (matchesLead) {
-        await persistLeadCardPhotoUrl(imageUrl)
+        await persistLeadCardPhotoUrl(imageUrl, framing)
       }
       setTeamManagementActionState({
         pendingKey: null,
@@ -6348,6 +6515,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
                 siteSettingsDraft?.profilePhotoUrl ??
                 siteSettingsState.settings?.profilePhotoUrl ??
                 '',
+              photoFraming: normalizeTeamPhotoFraming(
+                siteSettingsDraft?.profilePhotoFraming ??
+                  siteSettingsState.settings?.profilePhotoFraming,
+              ),
             }}
             onTeamNameChange={(teamName) => handleSiteSettingsDraftChange({ teamName })}
             onRecruitingLinkChange={(recruitingLink) =>
@@ -6361,6 +6532,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             onPublicTeamDraftChange={handlePublicTeamDraftChange}
             onUploadPublicTeamPhoto={handlePublicTeamPhotoUpload}
             onUploadLeadCardPhoto={handleLeadCardPhotoUpload}
+            onLeadCardFramingChange={handleLeadCardFramingChange}
+            onSuggestLeadCardFraming={handleSuggestLeadCardFraming}
             onUploadMemberCardPhoto={handleMemberCardPhotoUpload}
             onSavePublicTeamMember={handleSavePublicTeamMember}
             onEditPublicTeamMember={handleEditPublicTeamMember}
@@ -10586,6 +10759,8 @@ export function TeamManagementCard({
   onPublicTeamDraftChange,
   onUploadPublicTeamPhoto,
   onUploadLeadCardPhoto,
+  onLeadCardFramingChange,
+  onSuggestLeadCardFraming,
   onUploadMemberCardPhoto,
   onSavePublicTeamMember,
   onEditPublicTeamMember,
@@ -10604,6 +10779,7 @@ export function TeamManagementCard({
     displayName: string
     businessName: string
     photoUrl: string
+    photoFraming?: TeamPhotoFraming
   }
   onTeamNameChange?: (value: string) => void
   onRecruitingLinkChange?: (value: string) => void
@@ -10615,6 +10791,8 @@ export function TeamManagementCard({
   onPublicTeamDraftChange?: (patch: Partial<JoinTeamRosterDraft>) => void
   onUploadPublicTeamPhoto?: (file: File | null) => void
   onUploadLeadCardPhoto?: (file: File | null) => void
+  onLeadCardFramingChange?: (framing: TeamPhotoFraming) => void
+  onSuggestLeadCardFraming?: () => void
   onUploadMemberCardPhoto?: (member: JoinTeamMember, file: File | null) => void
   onSavePublicTeamMember?: () => void
   onEditPublicTeamMember?: (member: JoinTeamMember) => void
@@ -10776,6 +10954,8 @@ export function TeamManagementCard({
           onDraftChange={onPublicTeamDraftChange}
           onUploadPhoto={onUploadPublicTeamPhoto}
           onUploadLeadPhoto={onUploadLeadCardPhoto}
+          onLeadFramingChange={onLeadCardFramingChange}
+          onSuggestLeadFraming={onSuggestLeadCardFraming}
           onUploadMemberPhoto={onUploadMemberCardPhoto}
           onSave={onSavePublicTeamMember}
           onEdit={onEditPublicTeamMember}
@@ -10905,8 +11085,13 @@ function TeamCardPhotoField({
   permissionLabel,
   isUploading,
   showInstructions = false,
+  showFramingControls = false,
   instructionTitle = 'Profile photo process',
+  framing,
   onUpload,
+  onFramingChange,
+  onSuggestFraming,
+  isSuggestingFraming = false,
 }: {
   photoUrl: string
   photoAlt: string
@@ -10914,10 +11099,16 @@ function TeamCardPhotoField({
   permissionLabel: string
   isUploading: boolean
   showInstructions?: boolean
+  showFramingControls?: boolean
   instructionTitle?: string
+  framing?: TeamPhotoFraming
   onUpload?: (file: File | null) => void
+  onFramingChange?: (framing: TeamPhotoFraming) => void
+  onSuggestFraming?: () => void
+  isSuggestingFraming?: boolean
 }) {
   const [photoPermissionConfirmed, setPhotoPermissionConfirmed] = useState(false)
+  const photoFraming = normalizeTeamPhotoFraming(framing)
   const uploadLabel = isUploading
     ? 'Uploading photo...'
     : photoUrl
@@ -10932,19 +11123,27 @@ function TeamCardPhotoField({
           <ol>
             <li>Save or download the photo to your device.</li>
             <li>Confirm you have permission to publish it.</li>
-            <li>Upload it, review the square preview, then keep the card saved.</li>
+            <li>Upload it, review the circle preview, then save the card.</li>
           </ol>
           <span>
             Use JPG, PNG, or WebP up to 3 MB. A TikTok page link is not a
-            photo file.
+            photo file. Sparkle Suite straightens camera orientation on upload
+            and centers the face when the browser can see it.
           </span>
         </div>
       ) : null}
 
       <div className={styles.teamPhotoControls}>
-        <div className={styles.teamPhotoPreview} aria-label="Profile photo preview">
+        <div
+          className={`${styles.teamPhotoPreview} ${styles.teamPhotoPreviewCircle}`}
+          aria-label="Profile photo preview"
+        >
           {photoUrl ? (
-            <img src={photoUrl} alt={photoAlt} />
+            <img
+              src={photoUrl}
+              alt={photoAlt}
+              style={teamPhotoFramingStyle(photoFraming) as CSSProperties}
+            />
           ) : (
             <span>{emptyLabel}</span>
           )}
@@ -10983,6 +11182,97 @@ function TeamCardPhotoField({
           </label>
         </div>
       </div>
+      {showFramingControls && photoUrl ? (
+        <fieldset className={styles.teamPhotoFrameControls}>
+          <legend>Smart Frame</legend>
+          <span>
+            Fine-tune only if the circle still looks off-center, too tight, or
+            tilted. Straighten stays small so the photo stays professional.
+          </span>
+          <label>
+            <span>Zoom</span>
+            <input
+              type="range"
+              min="1"
+              max="1.22"
+              step="0.01"
+              value={photoFraming.zoom}
+              onChange={(event) =>
+                onFramingChange?.(
+                  normalizeTeamPhotoFraming({
+                    ...photoFraming,
+                    zoom: Number(event.target.value),
+                  }),
+                )
+              }
+            />
+          </label>
+          <label>
+            <span>Move subject up or down</span>
+            <input
+              type="range"
+              min="0"
+              max="70"
+              step="1"
+              value={photoFraming.focusY}
+              onChange={(event) =>
+                onFramingChange?.(
+                  normalizeTeamPhotoFraming({
+                    ...photoFraming,
+                    focusY: Number(event.target.value),
+                  }),
+                )
+              }
+            />
+          </label>
+          <label>
+            <span>Move subject left or right</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={photoFraming.focusX}
+              onChange={(event) =>
+                onFramingChange?.(
+                  normalizeTeamPhotoFraming({
+                    ...photoFraming,
+                    focusX: Number(event.target.value),
+                  }),
+                )
+              }
+            />
+          </label>
+          <label>
+            <span>Straighten</span>
+            <input
+              type="range"
+              min="-20"
+              max="20"
+              step="1"
+              value={photoFraming.rotation}
+              onChange={(event) =>
+                onFramingChange?.(
+                  normalizeTeamPhotoFraming({
+                    ...photoFraming,
+                    rotation: Number(event.target.value),
+                  }),
+                )
+              }
+            />
+          </label>
+          {onSuggestFraming ? (
+            <button
+              type="button"
+              className={styles.helperButton}
+              disabled={isSuggestingFraming || isUploading}
+              onClick={onSuggestFraming}
+            >
+              {isSuggestingFraming ? 'Finding the face...' : 'Center the face'}
+            </button>
+          ) : null}
+        </fieldset>
+      ) : null}
     </div>
   )
 }
@@ -10998,6 +11288,8 @@ function PublicTeamRosterPanel({
   onDraftChange,
   onUploadPhoto,
   onUploadLeadPhoto,
+  onLeadFramingChange,
+  onSuggestLeadFraming,
   onUploadMemberPhoto,
   onSave,
   onEdit,
@@ -11020,10 +11312,13 @@ function PublicTeamRosterPanel({
     displayName: string
     businessName: string
     photoUrl: string
+    photoFraming?: TeamPhotoFraming
   }
   onDraftChange?: (patch: Partial<JoinTeamRosterDraft>) => void
   onUploadPhoto?: (file: File | null) => void
   onUploadLeadPhoto?: (file: File | null) => void
+  onLeadFramingChange?: (framing: TeamPhotoFraming) => void
+  onSuggestLeadFraming?: () => void
   onUploadMemberPhoto?: (member: JoinTeamMember, file: File | null) => void
   onSave?: () => void
   onEdit?: (member: JoinTeamMember) => void
@@ -11040,7 +11335,10 @@ function PublicTeamRosterPanel({
   const isPhotoUploading =
     actionState?.pendingKey === 'public-team:photo-upload'
   const isLeadPhotoUploading =
-    actionState?.pendingKey === 'lead-card:photo-upload'
+    actionState?.pendingKey === 'lead-card:photo-upload' ||
+    actionState?.pendingKey === 'lead-card:photo-frame'
+  const isSuggestingLeadFraming =
+    actionState?.pendingKey === 'lead-card:photo-suggest'
   const matchingLeadMember = findMatchingLeadRosterMember(members, {
     name: leadCard?.displayName,
     business: leadCard?.businessName,
@@ -11126,8 +11424,16 @@ function PublicTeamRosterPanel({
           permissionLabel="I have permission to publish this photo on the public Join Team page."
           isUploading={isLeadPhotoUploading}
           showInstructions
+          showFramingControls
           instructionTitle="Lead card photo"
+          framing={parseTeamPhotoFraming(
+            matchingLeadMember?.imageClassName,
+            leadCard?.photoFraming,
+          )}
           onUpload={onUploadLeadPhoto}
+          onFramingChange={onLeadFramingChange}
+          onSuggestFraming={onSuggestLeadFraming}
+          isSuggestingFraming={isSuggestingLeadFraming}
         />
       </div>
 
@@ -11186,8 +11492,15 @@ function PublicTeamRosterPanel({
             permissionLabel="I have permission to publish this team member's photo on the public Join Team page."
             isUploading={isPhotoUploading}
             showInstructions
+            showFramingControls
             instructionTitle="Profile photo process"
+            framing={parseTeamPhotoFraming(draft.imageClassName)}
             onUpload={onUploadPhoto}
+            onFramingChange={(nextFraming) =>
+              onDraftChange?.({
+                imageClassName: serializeTeamPhotoFraming(nextFraming),
+              })
+            }
           />
 
           <div className={styles.teamSocialGrid}>

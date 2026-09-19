@@ -323,6 +323,12 @@ describe('Amethyst preview template data', () => {
     )
 
     expect(join.repImageUrl).toBe('https://cdn.example.com/public-site-media/kelly.jpg')
+    expect(join.repImageFraming).toEqual({
+      focusX: 50,
+      focusY: 38,
+      zoom: 1,
+      rotation: 0,
+    })
     expect(join.teamMembers[0]?.imageUrl).toBe(
       'https://cdn.example.com/public-site-media/kelly.jpg',
     )

@@ -202,6 +202,12 @@ describe('site settings service', () => {
       email: 'louis@example.com',
       phone: '+19045551234',
       profilePhotoUrl: '',
+      profilePhotoFraming: {
+        focusX: 50,
+        focusY: 38,
+        zoom: 1,
+        rotation: 0,
+      },
       shopLink: '',
       recruitingLink: '',
       bannerText: '',

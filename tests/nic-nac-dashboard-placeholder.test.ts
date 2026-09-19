@@ -1390,7 +1390,8 @@ describe('DashboardPlaceholder', () => {
     )
     expect(source).toContain("fetch('/api/nic-nac/join-team-roster/photo'")
     expect(source).toContain('TEAM_PROFILE_PHOTO_MAX_BYTES = 3 * 1024 * 1024')
-    expect(source).toContain('body: JSON.stringify({ profilePhotoUrl: imageUrl })')
+    expect(source).toContain('profilePhotoUrl: imageUrl')
+    expect(source).toContain('profilePhotoFraming: framing')
   })
 
   it('lets a lead and members upload or replace Join Team photos on the shared Team Management path', () => {
@@ -1442,7 +1443,7 @@ describe('DashboardPlaceholder', () => {
         leadCard: {
           displayName: 'Kelly',
           businessName: 'Sparkly Butterflies',
-          photoUrl: '',
+          photoUrl: 'https://cdn.example.com/public-site-media/kelly.jpg',
         },
       }),
     )
@@ -1466,6 +1467,8 @@ describe('DashboardPlaceholder', () => {
     expect(kellyHtml).toContain('Kelly')
     expect(kellyHtml).toContain('Sparkly Butterflies')
     expect(kellyHtml).toContain('Lead card photo')
+    expect(kellyHtml).toContain('Smart Frame')
+    expect(kellyHtml).toContain('Straighten')
     expect(kellyHtml).toContain('Dara')
     expect(kellyHtml).toContain('Erika')
     expect(kellyHtml).toContain('Upload photo')
@@ -1481,6 +1484,8 @@ describe('DashboardPlaceholder', () => {
       'utf8',
     )
     expect(source).toContain('handleLeadCardPhotoUpload')
+    expect(source).toContain('handleLeadCardFramingChange')
+    expect(source).toContain('getSmartTeamPhotoFraming')
     expect(source).toContain('handleMemberCardPhotoUpload')
     expect(source).toContain("fetch('/api/nic-nac/join-team-roster/photo'")
     expect(source).toContain('profilePhotoUrl')

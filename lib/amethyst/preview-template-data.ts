@@ -26,6 +26,10 @@ import {
   joinLeadIdentityMatches,
   resolveJoinCardImageUrl,
 } from './join-lead-card'
+import {
+  normalizeTeamPhotoFraming,
+  parseTeamPhotoFraming,
+} from './team-photo-framing'
 import { resolveAmethystPreviewRep } from './preview-rep'
 import {
   getRequiredSetupState,
@@ -729,6 +733,7 @@ export function mapPreviewSettingsToJoinTemplateData(
     repState: '',
     businessName,
     repImageUrl: leadImageUrl,
+    repImageFraming: normalizeTeamPhotoFraming(settings.profilePhotoFraming),
     teamName,
     memberTeamName: settings.memberTeamName?.trim() || undefined,
     heroTitle: `Join ${teamName}`,
@@ -786,6 +791,7 @@ function mapJoinTeamRosterToTemplateMembers(
     imageUrl: member.photoUrl || undefined,
     imageAlt: member.photoAlt || member.displayName,
     imageClassName: member.imageClassName || undefined,
+    photoFraming: parseTeamPhotoFraming(member.imageClassName),
     bio: member.bio || undefined,
     isVisible: member.isVisible,
     socialLinks: {
