@@ -34,7 +34,6 @@ import {
 import { isExplicitTradeBoardAddRequest } from './trade-board-add-intent'
 import {
   assignDeclaredPhotoRolesForTurn,
-  inferExplicitAttachmentRole,
   inferRoleFromText,
 } from './workflow-photo-roles'
 
@@ -314,13 +313,9 @@ export async function ingestLatestTradeBoardIntakeTurn(
           qualityIssues: [],
         } satisfies InspectedWorkflowPhoto),
     )
-    const userDeclaredJewelry =
-      inferExplicitAttachmentRole(latestUserText, index, fileParts.length) ===
-      'jewelry_front'
     const visualRole =
       declaredRole === 'jewelry_front' &&
-      inspected.visualRole === 'label_or_packaging' &&
-      userDeclaredJewelry
+      inspected.visualRole === 'label_or_packaging'
         ? 'uncertain'
         : inspected.visualRole
     const photo = {

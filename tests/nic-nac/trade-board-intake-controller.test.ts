@@ -5,6 +5,7 @@ import {
   computeTradeBoardAddAttemptReadiness,
   computeTradeBoardIntakeReadiness,
   createEmptyTradeBoardIntakeState,
+  formatWorkflowNotReadyMessage,
   getTradeBoardIntakeToolsRequired,
   transitionTradeBoardIntake,
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
@@ -314,6 +315,96 @@ describe('Dance Floor intake controller', () => {
 
     expect(readiness.ready).toBe(false)
     expect(readiness.missing).toContain('jewelryFrontPhoto')
+  })
+
+  it('lets a boxed-display photo already in the thread satisfy jewelry-front readiness', () => {
+    const state = baseState({
+      known: {
+        itemNumber: 'ER13229',
+        designName: 'The Florence Earrings',
+        collectionName: 'July Birthday',
+      },
+      photos: [
+        {
+          attachmentIndex: 1,
+          declaredRole: 'unknown',
+          visualRole: 'uncertain',
+          roleConfirmed: false,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['boxed display jewelry appears clear enough'],
+        },
+      ],
+    })
+
+    const readiness = computeTradeBoardAddAttemptReadiness(state, {
+      itemNumber: 'ER13229',
+      collectionName: 'July Birthday',
+    })
+
+    expect(readiness.ready).toBe(true)
+    expect(readiness.missing).toEqual([])
+    expect(readiness.blockers).toEqual([])
+  })
+
+  it('does not let a leftover unread label block save when jewelry and item number are already known', () => {
+    const state = baseState({
+      known: {
+        itemNumber: 'ER13229',
+        designName: 'Original Earring',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      photos: [
+        {
+          attachmentIndex: 1,
+          declaredRole: 'label_details',
+          visualRole: 'label_or_packaging',
+          roleConfirmed: true,
+          quality: 'blocked',
+          qualityIssues: [],
+          notes: ['unreadable leftover label'],
+        },
+        {
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'uncertain',
+          roleConfirmed: true,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['boxed blue studs on hex card'],
+        },
+      ],
+    })
+
+    const readiness = computeTradeBoardAddAttemptReadiness(state, {
+      itemNumber: 'ER13229',
+      rarityClassification: 'standard',
+    })
+
+    expect(readiness.ready).toBe(true)
+    expect(readiness.missing).toEqual([])
+    expect(readiness.blockers).toEqual([])
+    expect(formatWorkflowNotReadyMessage(readiness)).not.toMatch(/listing:\s*\./)
+  })
+
+  it('names the missing field instead of shipping an empty missing-details list', () => {
+    const emptyColon = formatWorkflowNotReadyMessage({
+      missing: [],
+      blockers: ['labelPhotoUnreadable'],
+    })
+    expect(emptyColon).toContain('readable item-info label or the item number')
+    expect(emptyColon).not.toMatch(/listing:\s*\./)
+    expect(emptyColon).not.toBe(
+      'I still need these details before I can save this listing: .',
+    )
+
+    const nothingNamed = formatWorkflowNotReadyMessage({
+      missing: [],
+      blockers: [],
+    })
+    expect(nothingNamed).toContain('customer-facing jewelry photo or a readable item number')
+    expect(nothingNamed).not.toMatch(/listing:\s*\./)
   })
 
   it('keeps a human-review workflow terminal and exposes no mutation tools', () => {

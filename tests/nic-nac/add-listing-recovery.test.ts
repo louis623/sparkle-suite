@@ -2396,6 +2396,55 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
 
+  it('saves when jewelry-front is already in the thread even if an earlier label was unreadable', async () => {
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-kelly-studs',
+      designId: 'design-1',
+      itemNumber: 'ER13229',
+      designName: 'The Florence Earrings',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+    const supabaseMock = makeConversationLookupMock([])
+    const tool = makeTool(supabaseMock, {
+      activeTradeBoardWorkflow: activeWorkflow({
+        phase: 'ready_to_add',
+        missing: [],
+        photos: [
+          {
+            attachmentIndex: 1,
+            declaredRole: 'label_details',
+            visualRole: 'label_or_packaging',
+            roleConfirmed: true,
+            quality: 'blocked',
+            qualityIssues: [],
+            notes: ['unreadable leftover label'],
+          },
+          {
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'uncertain',
+            roleConfirmed: true,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['boxed blue studs on hex card'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ER13229',
+        collectionName: 'July Birthday',
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-kelly-studs',
+    })
+    expect(addListingMock).toHaveBeenCalled()
+  })
+
   it('adds a known catalog design with the canonical photo after duplicate confirmation even when the only workflow photo is label/details', async () => {
     resolveItemNumberMock.mockResolvedValueOnce({
       found: true,

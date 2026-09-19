@@ -208,6 +208,41 @@ This PR does not patch production rows.
   batch never copies one jewelry-front onto another finish or stone.
 - PR #7 role rules still apply: labels are details-only; two uncertain
   photos stay unknown.
+- A jewelry or boxed-display photo **already in the workflow** satisfies
+  the customer-facing jewelry-front gate. Selection stays workflow-owned
+  (declared / visual role). The model must not pick media by raw URL or
+  attachment order, and must not ignore a clear jewelry shot already
+  provided. A leftover unread label does not block save once jewelry-front
+  plus item number (or the non-item-number path) are known.
+- Missing-details copy must never ship an empty list after the colon. If a
+  field is missing, name it. If nothing is missing, do not ask.
+- If upload/save fails, surface the real redacted error. Do not tell the
+  rep everything is present and then say Nic-Nac is “having trouble
+  uploading.”
+
+## Kelly Workspace chat (September 19, second screenshot)
+
+Kelly / Sparkly Butterflies Workspace Nic-Nac, all-rep intake path:
+
+1. She uploaded a clear customer-facing jewelry photo (blue studs on a
+   Bomb Party hex card). Nic-Nac still said it needed the customer-facing
+   jewelry photo.
+2. She re-uploaded the same photo and said it was an original earring,
+   not a unicorn or diamond. Nic-Nac replied
+   `I still need these details before I can save this listing: .` —
+   empty list after the colon.
+3. Later, Nic-Nac said it had everything but was having trouble
+   uploading the dancer.
+
+Cause split (shared pipeline, not Kelly-only):
+
+| Symptom | Cause |
+| --- | --- |
+| Jewelry photo ignored | Boxed hex-card shots classify as `uncertain` (or a visual label). Role assignment pinned visual `label_or_packaging` before the inherited jewelry ask, so a clear jewelry shot stayed off `jewelry_front`. The save gate only accepted `declaredRole === 'jewelry_front'`. |
+| Empty colon | `ready` was false because a leftover unread `label_details` photo set `labelPhotoUnreadable`, while `missing` was empty. The message interpolated `missing.join(', ')`. |
+| “I have everything / trouble uploading” | `add_listing` save failures escalated as generic retry copy. The model then invented “trouble uploading” instead of the real storage/DB error. |
+
+Fix is pipeline-level for every rep. No production deploy from this note.
 
 ## Kelly-specific data (one-time repair, not a Kelly-only code hack)
 
@@ -254,6 +289,13 @@ Nic-Nac Add Dancer chat):
 6. Confirm **Gold Half Moon** (`634c7445-…`) still shows its own jewelry, not
    the Rhodium card’s image and not a shared NK88350 master. Adding another
    NK88350 finish/stone must keep a new dancer with its own photo.
+7. Workspace Nic-Nac: upload one clear boxed jewelry photo (hex-card studs
+   are the known repro). Nic-Nac must **not** ask again for the
+   customer-facing jewelry photo if that shot is already in the thread.
+8. If Nic-Nac still needs a field, the reply must name it. Never
+   `I still need these details before I can save this listing: .`
+9. If save/upload fails, the reply must include the real error, not
+   “I have everything but I’m having trouble uploading.”
 
 A root-page HTTP 200 is not enough. The card image URL must be the jewelry
 asset, and Statement / Half Moon Rhodium must no longer share the

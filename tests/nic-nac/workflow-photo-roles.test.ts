@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import {
   assignDeclaredPhotoRolesForTurn,
+  findWorkflowJewelryFrontForReadiness,
   inferExplicitAttachmentRole,
   isAcceptedCustomerFacingWorkflowPhoto,
   isBarredFromCustomerFacingMedia,
+  workflowPhotoSatisfiesJewelryFront,
 } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import {
   catalogVariantPhotoAssetKey,
@@ -98,6 +100,46 @@ describe('two-photo Add Dancer role assignment', () => {
         visualRoles: ['label_or_packaging', 'uncertain'],
       }),
     ).toEqual(['label_details', 'jewelry_front'])
+  })
+
+  it('treats a single boxed-display photo as jewelry-front so a clear shot already in thread counts', () => {
+    expect(
+      assignDeclaredPhotoRolesForTurn({
+        attachmentCount: 1,
+        inheritedRole: 'unknown',
+        latestUserText: 'Original Earrings, standard',
+        existingPhotos: [],
+        visualRoles: ['uncertain'],
+      }),
+    ).toEqual(['jewelry_front'])
+  })
+
+  it('does not let a visual label overwrite a jewelry ask on a single-photo turn', () => {
+    expect(
+      assignDeclaredPhotoRolesForTurn({
+        attachmentCount: 1,
+        inheritedRole: 'jewelry_front',
+        latestUserText: '',
+        existingPhotos: [
+          {
+            declaredRole: 'label_details',
+          },
+        ],
+        visualRoles: ['label_or_packaging'],
+      }),
+    ).toEqual(['jewelry_front'])
+  })
+
+  it('still pins a visual label when the turn was not a jewelry ask', () => {
+    expect(
+      assignDeclaredPhotoRolesForTurn({
+        attachmentCount: 1,
+        inheritedRole: 'unknown',
+        latestUserText: '',
+        existingPhotos: [],
+        visualRoles: ['label_or_packaging'],
+      }),
+    ).toEqual(['label_details'])
   })
 
   it('honors first-is-label second-is-jewelry wording', () => {
@@ -212,6 +254,32 @@ describe('customer-facing media selection', () => {
         resolvedDesignId: 'design-any-rep',
       }),
     ).toBe(false)
+  })
+
+  it('lets a boxed-display photo already in the thread satisfy jewelry-front without picking by order', () => {
+    const boxed = {
+      declaredRole: 'unknown' as const,
+      visualRole: 'uncertain',
+      quality: 'usable',
+      imageUrl: 'boxed-earrings',
+    }
+    const leftoverLabel = {
+      declaredRole: 'label_details' as const,
+      visualRole: 'label_or_packaging',
+      quality: 'blocked',
+      imageUrl: 'unreadable-label',
+    }
+    expect(workflowPhotoSatisfiesJewelryFront(boxed)).toBe(true)
+    expect(workflowPhotoSatisfiesJewelryFront(leftoverLabel)).toBe(false)
+    expect(
+      findWorkflowJewelryFrontForReadiness([leftoverLabel, boxed])?.imageUrl,
+    ).toBe('boxed-earrings')
+    expect(
+      findWorkflowJewelryFrontForReadiness([
+        { ...boxed, imageUrl: 'first-uncertain' },
+        { ...boxed, imageUrl: 'second-uncertain' },
+      ]),
+    ).toBeUndefined()
   })
 
   it('never uses another variant’s canonical just because the item number matches', () => {

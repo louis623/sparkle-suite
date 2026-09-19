@@ -46,6 +46,7 @@ import { NicNacToolError } from '@/lib/nic-nac/errors'
 import { NicNacMutationFailure } from '@/lib/nic-nac/tool-failure-classification'
 import {
   computeTradeBoardAddAttemptReadiness,
+  formatWorkflowNotReadyMessage,
   transitionTradeBoardIntake,
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
@@ -997,8 +998,7 @@ function normalizeToolText(value: string | null | undefined): string | undefined
 }
 
 function formatMissingFieldsForRep(missing: string[]) {
-  if (missing.length === 0) return ''
-  return missing.join(', ')
+  return formatWorkflowNotReadyMessage({ missing, blockers: [] })
 }
 
 async function runNonItemNumberSingle(
@@ -1038,12 +1038,9 @@ async function runNonItemNumberSingle(
       rarityClassification: input.rarityClassification,
     })
     if (!readiness.ready) {
-      const missing = formatMissingFieldsForRep(readiness.missing)
       throw new NicNacToolError({
         code: 'WORKFLOW_NOT_READY',
-        userMessage: readiness.missing.includes('jewelryFrontPhoto')
-          ? 'I still need the customer-facing jewelry photo before I can save this listing.'
-          : `I still need Collection Type and Size details before I can save this listing: ${missing}.`,
+        userMessage: formatWorkflowNotReadyMessage(readiness),
       })
     }
   } else {
@@ -1055,7 +1052,7 @@ async function runNonItemNumberSingle(
     if (missing.length > 0) {
       throw new NicNacToolError({
         code: 'MISSING_NON_ITEM_NUMBER_FIELDS',
-        userMessage: `I still need Collection Type and Size details before I can save this listing: ${formatMissingFieldsForRep(missing)}.`,
+        userMessage: formatMissingFieldsForRep(missing),
       })
     }
   }
@@ -1239,12 +1236,9 @@ async function runSingle(
         // The label/details photo identified the catalog piece; the service
         // will validate and use the shared canonical jewelry photo.
       } else {
-        const missing = readiness.missing.join(', ')
         throw new NicNacToolError({
           code: 'WORKFLOW_NOT_READY',
-          userMessage: needsJewelryPhoto
-            ? 'I still need the customer-facing jewelry photo before I can save this listing.'
-            : `I still need these details before I can save this listing: ${missing}.`,
+          userMessage: formatWorkflowNotReadyMessage(readiness),
         })
       }
     }

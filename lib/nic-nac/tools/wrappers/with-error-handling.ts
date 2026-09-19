@@ -132,6 +132,27 @@ function redactFailureMessage(error: unknown): string {
   return message.replace(/data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+/gi, '[image omitted]').slice(0, 500)
 }
 
+function formatAddListingSaveFailureMessage(
+  error: unknown,
+  classification: { code: string; stage: string },
+): string {
+  const cause = redactFailureMessage(error)
+    .replace(/\s+/g, ' ')
+    .trim()
+  const stageLabel =
+    classification.stage === 'catalog_photo_storage'
+      ? 'photo upload'
+      : classification.stage === 'listing_write'
+        ? 'listing save'
+        : classification.stage === 'database_write'
+          ? 'database save'
+          : 'save'
+  const detail = cause
+    ? ` ${stageLabel} error (${classification.code}): ${cause}`
+    : ` ${stageLabel} error (${classification.code}).`
+  return `The save failed on the Sparkle Suite side.${detail} I kept your details and confirmed photo, so you can retry once without uploading it again.`
+}
+
 async function escalate(
   err: unknown,
   toolName: string,
@@ -265,7 +286,7 @@ async function escalate(
       retryable: true,
       message:
         toolName === 'add_listing'
-          ? 'The save failed on the Sparkle Suite side. I kept your details and confirmed photo, so you can retry once without uploading it again.'
+          ? formatAddListingSaveFailureMessage(err, classification)
           : 'The Dance Floor catalog check failed on the Sparkle Suite side. I kept the intake details, so you can retry once without starting over.',
     }
   }
