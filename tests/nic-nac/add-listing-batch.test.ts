@@ -460,4 +460,67 @@ describe('add_listing — batch mode', () => {
       itemNumber: 'ER76003',
     })
   })
+
+  it('does not collapse same-item-number finish/stone variants into one add', async () => {
+    addListingBatchMock.mockResolvedValueOnce({
+      added: [
+        {
+          listingId: 'listing-gold',
+          designId: 'design-nk88350-gold',
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          status: 'available',
+          usesCanonicalPhoto: false,
+        },
+        {
+          listingId: 'listing-rhodium',
+          designId: 'design-nk88350-rhodium',
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          status: 'available',
+          usesCanonicalPhoto: false,
+        },
+      ],
+      pending: { needCollection: [], needFullInfo: [] },
+    })
+
+    const tool = makeTool()
+    const result = await tool.execute({
+      mode: 'batch',
+      items: [
+        {
+          itemNumber: 'NK88350',
+          material: 'Gold Plating',
+          mainStone: 'Lapis Magnesite',
+        },
+        {
+          itemNumber: 'NK88350',
+          material: 'Rhodium Plating',
+          mainStone: 'Malachite Magnesite',
+        },
+      ],
+    })
+
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(addListingBatchMock).toHaveBeenCalledTimes(1)
+    expect(addListingBatchMock.mock.calls[0][2].items).toEqual([
+      expect.objectContaining({
+        itemNumber: 'NK88350',
+        material: 'Gold Plating',
+        mainStone: 'Lapis Magnesite',
+      }),
+      expect.objectContaining({
+        itemNumber: 'NK88350',
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+      }),
+    ])
+    expect(result).toMatchObject({
+      mode: 'batch',
+      added: [
+        expect.objectContaining({ listingId: 'listing-gold' }),
+        expect.objectContaining({ listingId: 'listing-rhodium' }),
+      ],
+    })
+  })
 })

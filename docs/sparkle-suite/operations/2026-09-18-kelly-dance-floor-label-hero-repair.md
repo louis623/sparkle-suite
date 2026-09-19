@@ -35,16 +35,23 @@ SHA-256 of Statement canonical and Half Moon Rhodium canonical:
 Same image reused across two different SKUs. The Storyteller’s own listing
 photo is a **different** hash and is already the clean jewelry shot.
 
-## Prior Suite rule (June–August 2026) — still the matcher
+## Lineage (April 2026 → now) — reconnect, do not replace
 
-This is **not** a new identity system. Suite already treats same item number +
-different finish/stone as separate dancers with their own photos:
+Repo starts March 25, 2026. Open Brain breadcrumbs verified against vault + git.
 
-| When | Change | What it still does |
-| --- | --- | --- |
-| June 27, 2026 | `f1e225a9` `fix: support Nic-Nac plating variants` (`c6664146` notes). Migration `20260627134500_jewelry_design_item_number_material_variants.sql`. | `resolveItemNumber(itemNumber, { material })`. `prepare_trade_board_work` asks which plating when ambiguous. Add-listing / duplicate checks pass material. |
-| August 23, 2026 | `720cdd74` `fix: support catalog variants by main stone`. Migration `20260823160000_ss_jewelry_design_main_stone_variants.sql`. | Same resolver also takes `designId` + `mainStone`. Unique index is item + material + stone. Jewelry Library carries exact `designId`. |
-| August 23–25, 2026 | `bba85805` / `f81eed6a` quantity grouping. | Increment key is `design_id` + size + `listing_photo_url` + notes, not item number. |
+| When | Source | What it decided | Still true? |
+| --- | --- | --- | --- |
+| Apr 9, 2026 | Open Brain Gap 16 | `jewelry_designs` = one row per unique BP design. Item number is the golden key when present. Collection + type + material are context. `trade_listings` is one dancer row with its own listing photo. | Listing id + listing photo still exist. Item-number-only uniqueness does **not**. |
+| Apr 10–11, 2026 | Open Brain Gap 20 + Gap 22 | Lindsey labels: prefix + 5 digits. Dedup = exact `item_number`. `add_listing`: exact match on `jewelry_designs`; `listing_photo_url` **optional**, else canonical; new designs store `material` + `main_stone` + `piece_photo` as fields (not yet unique keys). | Exact item-number lookup still runs first. Optional listing photo → canonical is the **original** Kelly write path. Material/stone were metadata until June. |
+| Apr 12, 2026 | `acb4dbd1` `006_sparkle_suite_schema.sql` | `jewelry_designs.item_number TEXT UNIQUE NOT NULL`. | Dropped June 27. |
+| Apr 27–28, 2026 | `10fec939` Task 1.5A, `dd86af2d` Task 1.5B | Service `resolveItemNumber` + `add_listing` implement Gap 22. | Still the write/display spine. |
+| May 5, 2026 | Open Brain Phase 3.8 | Normalize item number; **same-batch dedup by item number**. | Watch: that collapse must not erase finish/stone variants. Reconnected in this PR: collapse/recovery now use official material+stone keys. |
+| June 27, 2026 | `f1e225a9` + `20260627134500_…material_variants.sql` | **First variant-aware uniqueness:** item + material. `resolveItemNumber({ material })`. | Still the matcher. |
+| August 23–25, 2026 | `720cdd74` + `f81eed6a` | Item + material + stone. Increment by `design_id` + photo + notes. | Still the matcher. |
+| Sep 5, 2026 | Open Brain / vault | ER11309, ER90783 label photos on catalog + Dance Floor. Same class as Kelly: label written as canonical/listing hero. | Same repair class. |
+| Sep 13, 2026 | Open Brain photo/rarity release | Jewelry-facing vs label roles. “Six remaining duplicate hashes are same-item-number **physical duplicates**, not cross-item reuse.” | Same-item same-photo is OK only for identical copies (quantity). Not for finish/stone variants. |
+
+**First code that made same SKU + different finish/stone separate designs is June 27 (`f1e225a9`), not April.** April keyed new rows *with* material/stone fields and per-listing `listing_photo_url`, but catalog identity was still item-number unique. Do not treat Gap 20 exact-match as permission to collapse variants now.
 
 **Does it still fire on Kelly’s Dance Floor?** Yes.
 
@@ -56,7 +63,7 @@ This PR does **not** invent a parallel matcher. Jewelry-over-label is layered on
 
 ## Audit cause split
 
-Same item number / different finish or stone = separate listings with their own photos is the **existing** June/August rule. Do **not** “fix” by collapsing every row that shares an item number onto one master image.
+Same item number / different finish or stone = separate listings with their own photos is the **June 27 / August 23** rule, layered on April’s listing-id + listing-photo model. Do **not** “fix” by collapsing every row that shares an item number onto one master image. May 5 batch collapse is now variant-keyed so it cannot drop a different plating or stone.
 
 | Wrong card | Cause class | What happened | What is **not** the cause |
 | --- | --- | --- | --- |

@@ -21,6 +21,8 @@ import {
 import { resolveTradeSwapReplacementListing } from '@/lib/services/trade-swaps'
 import {
   createDesign,
+  normalizeJewelryMainStoneKey,
+  normalizeJewelryMaterialKey,
   resolveItemNumber,
   updateCanonicalPhoto,
   updatePhotoPipelineState,
@@ -395,12 +397,30 @@ async function addCatalogListingMutation(
   }
 }
 
+/**
+ * May 5 Phase 3.8 collapsed a same-item-number batch into one add. That
+ * assumed Gap 20/22 uniqueness (`item_number` only). June 27 / August 23
+ * made finish/stone separate designs. Collapse only when the official
+ * variant keys match; do not drop a different plating or stone.
+ */
+function catalogVariantIdentityKey(item: {
+  itemNumber?: string
+  material?: string
+  mainStone?: string
+}) {
+  const itemNumber = item.itemNumber?.trim().toUpperCase() ?? ''
+  const material = normalizeJewelryMaterialKey(item.material) ?? ''
+  const mainStone = normalizeJewelryMainStoneKey(item.mainStone) ?? ''
+  return `${itemNumber}|${material}|${mainStone}`
+}
+
 function batchRepeatsOneItem(input: ToolInput) {
   if (input.mode !== 'batch' || !input.items || input.items.length < 2) return false
   const firstItemNumber = input.items[0]?.itemNumber?.trim().toUpperCase()
   if (!firstItemNumber) return false
+  const firstKey = catalogVariantIdentityKey(input.items[0] ?? {})
   return input.items.every(
-    (item) => item.itemNumber?.trim().toUpperCase() === firstItemNumber,
+    (item) => catalogVariantIdentityKey(item) === firstKey,
   )
 }
 
@@ -2073,14 +2093,21 @@ async function runBatch(
     status: string
   }> = []
   if (result.pending.needFullInfo.length > 0) {
-    const pendingByItem = new Set(
+    const pendingItemNumbers = new Set(
       result.pending.needFullInfo.map((p) => p.itemNumber),
     )
-    const recoveredItemNumbers = new Set<string>()
+    const pendingCandidates = items.filter((item) =>
+      pendingItemNumbers.has(item.itemNumber),
+    )
+    const recoveredVariantKeys = new Set<string>()
     const retryItems: typeof processedItems = []
 
-    for (const itemNumber of pendingByItem) {
-      const candidates = items.filter((item) => item.itemNumber === itemNumber)
+    for (const variantKey of [
+      ...new Set(pendingCandidates.map((item) => catalogVariantIdentityKey(item))),
+    ]) {
+      const candidates = pendingCandidates.filter(
+        (item) => catalogVariantIdentityKey(item) === variantKey,
+      )
       const recoveryItem = candidates.find(
         (item) => item.designName?.trim() && item.collectionName?.trim(),
       )
@@ -2124,7 +2151,7 @@ async function runBatch(
               : (recoveryItem.designName ?? ''),
           status: firstResult.status ?? 'available',
         })
-        recoveredItemNumbers.add(itemNumber)
+        recoveredVariantKeys.add(variantKey)
         retryItems.push(
           ...candidates.slice(1).map((item) => ({
             itemNumber: item.itemNumber,
@@ -2144,6 +2171,20 @@ async function runBatch(
         )
       }
     }
+
+    const recoveredItemNumbers = new Set(
+      [...pendingItemNumbers].filter((itemNumber) => {
+        const variants = pendingCandidates.filter(
+          (item) => item.itemNumber === itemNumber,
+        )
+        return (
+          variants.length > 0 &&
+          variants.every((item) =>
+            recoveredVariantKeys.has(catalogVariantIdentityKey(item)),
+          )
+        )
+      }),
+    )
 
     if (retryItems.length > 0) {
       let retryResult: Awaited<ReturnType<typeof addListingBatch>>
