@@ -1,11 +1,58 @@
 import type { NicNacToolIntent } from '@/lib/nic-nac/tools'
 import { mergeTradeBoardKnownFields } from './trade-board-known-fields'
+import {
+  isAcceptedCustomerFacingWorkflowPhoto,
+  stampSoleReadinessJewelryFrontCandidate,
+} from './workflow-photo-roles'
 import type {
   TradeBoardIntakeNextAction,
   TradeBoardIntakePhase,
   TradeBoardIntakePromptState,
   TradeBoardIntakeSessionState,
 } from './trade-board-intake-types'
+
+const WORKFLOW_FIELD_LABELS: Record<string, string> = {
+  jewelryFrontPhoto: 'the customer-facing jewelry photo',
+  itemNumber: 'the item number',
+  designName: 'the design name',
+  collectionName: 'the collection name',
+  collectionYear: 'the collection year',
+  jewelryType: 'the jewelry type',
+  collectionFamily: 'the collection type',
+  ringSize: 'the ring size',
+  rarityClassification: 'whether this is standard, diamond, or unicorn',
+  labelDetailsPhoto: 'a readable item-info label or the item number',
+  labelPhotoUnreadable: 'a readable item-info label or the item number',
+  jewelryPhotoUnusable: 'a clearer customer-facing jewelry photo',
+}
+
+export function formatWorkflowNotReadyMessage(readiness: {
+  missing: string[]
+  blockers: string[]
+}): string {
+  const jewelryOnly =
+    readiness.missing.includes('jewelryFrontPhoto') &&
+    readiness.missing.every((field) => field === 'jewelryFrontPhoto') &&
+    readiness.blockers.length === 0
+  if (jewelryOnly) {
+    return 'I still need the customer-facing jewelry photo before I can save this listing.'
+  }
+
+  const named = [
+    ...readiness.missing.map(labelWorkflowField),
+    ...readiness.blockers.map(labelWorkflowField),
+  ].filter((label, index, all) => label && all.indexOf(label) === index)
+
+  if (named.length === 0) {
+    return 'I still need one more detail before I can save this listing: the customer-facing jewelry photo or a readable item number.'
+  }
+
+  return `I still need these details before I can save this listing: ${named.join(', ')}.`
+}
+
+function labelWorkflowField(field: string): string {
+  return WORKFLOW_FIELD_LABELS[field] ?? field
+}
 
 export function createEmptyTradeBoardIntakeState(args: {
   id: string
@@ -50,11 +97,7 @@ export function computeTradeBoardIntakeReadiness(
   const labelDetailsPhoto = state.photos.find(
     (photo) => photo.declaredRole === 'label_details',
   )
-  const jewelryFrontPhoto = state.photos.find(
-    (photo) =>
-      photo.declaredRole === 'jewelry_front' &&
-      photo.quality !== 'blocked',
-  )
+  const jewelryFrontPhoto = findPublishableJewelryFront(state.photos)
   const blockedLabel = state.photos.find(
     (photo) =>
       photo.declaredRole === 'label_details' && photo.quality === 'blocked',
@@ -77,8 +120,18 @@ export function computeTradeBoardIntakeReadiness(
   }
   if (!jewelryFrontPhoto) missing.push('jewelryFrontPhoto')
   if (!known.rarityClassification) missing.push('rarityClassification')
-  if (blockedLabel) blockers.push('labelPhotoUnreadable')
-  if (blockedJewelry) blockers.push('jewelryPhotoUnusable')
+  if (
+    blockedLabel &&
+    !hasListingIdentity({
+      catalogMode,
+      itemNumber: known.itemNumber,
+    })
+  ) {
+    blockers.push('labelPhotoUnreadable')
+  }
+  if (blockedJewelry && !jewelryFrontPhoto) {
+    blockers.push('jewelryPhotoUnusable')
+  }
 
   const ready = missing.length === 0 && blockers.length === 0
   return {
@@ -122,11 +175,7 @@ export function computeTradeBoardAddAttemptReadiness(
   const blockers: string[] = []
   const catalogMode = input.catalogMode ?? state.catalogMode ?? 'item_number'
 
-  const jewelryFrontPhoto = state.photos.find(
-    (photo) =>
-      photo.declaredRole === 'jewelry_front' &&
-      photo.quality !== 'blocked',
-  )
+  const jewelryFrontPhoto = findPublishableJewelryFront(state.photos)
   const blockedLabel = state.photos.find(
     (photo) =>
       photo.declaredRole === 'label_details' && photo.quality === 'blocked',
@@ -146,8 +195,18 @@ export function computeTradeBoardAddAttemptReadiness(
   }
   if (!jewelryFrontPhoto) missing.push('jewelryFrontPhoto')
   if (!known.rarityClassification) missing.push('rarityClassification')
-  if (blockedLabel) blockers.push('labelPhotoUnreadable')
-  if (blockedJewelry) blockers.push('jewelryPhotoUnusable')
+  if (
+    blockedLabel &&
+    !hasListingIdentity({
+      catalogMode,
+      itemNumber: known.itemNumber,
+    })
+  ) {
+    blockers.push('labelPhotoUnreadable')
+  }
+  if (blockedJewelry && !jewelryFrontPhoto) {
+    blockers.push('jewelryPhotoUnusable')
+  }
 
   const ready = missing.length === 0 && blockers.length === 0
   return {
@@ -276,10 +335,15 @@ export function buildTradeBoardIntakePromptState(
     hardRules: [
       'label_details photos cannot satisfy jewelry_front',
       'visible jewelry in a label_details photo does not change its declared role',
+      'a jewelry or boxed-display photo already in this workflow satisfies jewelry_front',
       'boxed display jewelry photos are acceptable when centered, close, clear, and website-worthy',
       'do not ask for unboxed jewelry, plain background, or no packaging for a usable boxed display photo',
+      'if a field is missing, name it; never list missing details as an empty list',
+      'if save fails, tell the rep the real error — do not say you have everything but cannot upload',
       'non-item-number pieces must use controlled jewelry type, collection, and size when applicable',
       'do not create or invent an item number for a non-item-number piece',
+      'dance-floor-only vs catalog is Nic-Nac discretion, not a forced path',
+      'catalog and Finder keep jewelry-facing quality; if the rep says the piece is Bomb Party, a good-quality-looking image is enough — do not invent extra proof hurdles',
     ],
   }
 }
@@ -314,6 +378,21 @@ function inferPhase(state: TradeBoardIntakeSessionState): TradeBoardIntakePhase 
 function normalizeOptionalText(value: string | undefined): string | undefined {
   const normalized = value?.trim()
   return normalized ? normalized : undefined
+}
+
+function findPublishableJewelryFront(
+  photos: TradeBoardIntakeSessionState['photos'],
+) {
+  return stampSoleReadinessJewelryFrontCandidate(photos).find(
+    isAcceptedCustomerFacingWorkflowPhoto,
+  )
+}
+
+function hasListingIdentity(args: {
+  catalogMode: TradeBoardIntakeSessionState['catalogMode']
+  itemNumber?: string
+}): boolean {
+  return args.catalogMode === 'non_item_number' || Boolean(args.itemNumber)
 }
 
 function chooseNextAction(args: {

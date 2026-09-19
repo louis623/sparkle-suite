@@ -10,7 +10,7 @@ import {
 describe('Nic-Nac Dance Floor pressure smoke script', () => {
   it('is registered as an explicit smoke command', () => {
     expect(packageJson.scripts['smoke:nic-nac:trade-board-pressure']).toBe(
-      'tsx scripts/smoke-nic-nac-trade-board-pressure.ts',
+      'tsx --conditions=react-server scripts/smoke-nic-nac-trade-board-pressure.ts',
     )
   })
 

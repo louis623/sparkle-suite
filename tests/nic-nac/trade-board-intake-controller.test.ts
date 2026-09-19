@@ -5,9 +5,12 @@ import {
   computeTradeBoardAddAttemptReadiness,
   computeTradeBoardIntakeReadiness,
   createEmptyTradeBoardIntakeState,
+  formatWorkflowNotReadyMessage,
   getTradeBoardIntakeToolsRequired,
   transitionTradeBoardIntake,
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
+
+const BOXED_HEX_CARD_URL = 'data:image/jpeg;base64,Qk9YRUQ='
 
 function baseState(
   overrides: Partial<TradeBoardIntakeSessionState> = {},
@@ -62,6 +65,7 @@ describe('Dance Floor intake controller', () => {
           declaredRole: 'jewelry_front',
           visualRole: 'jewelry',
           roleConfirmed: true,
+          imageUrl: BOXED_HEX_CARD_URL,
           quality: 'usable',
           qualityIssues: [],
           notes: ['customer-facing jewelry photo'],
@@ -159,6 +163,7 @@ describe('Dance Floor intake controller', () => {
           declaredRole: 'jewelry_front',
           visualRole: 'jewelry',
           roleConfirmed: true,
+          imageUrl: BOXED_HEX_CARD_URL,
           quality: 'usable',
           qualityIssues: [],
           notes: ['boxed display jewelry is centered and clear'],
@@ -206,6 +211,12 @@ describe('Dance Floor intake controller', () => {
     expect(promptState.hardRules).toContain(
       'label_details photos cannot satisfy jewelry_front',
     )
+    expect(promptState.hardRules).toContain(
+      'dance-floor-only vs catalog is Nic-Nac discretion, not a forced path',
+    )
+    expect(promptState.hardRules).toContain(
+      'catalog and Finder keep jewelry-facing quality; if the rep says the piece is Bomb Party, a good-quality-looking image is enough — do not invent extra proof hurdles',
+    )
     expect(promptState.photos[0]).toMatchObject({
       declaredRole: 'label_details',
       visualRole: 'label_or_packaging',
@@ -226,6 +237,7 @@ describe('Dance Floor intake controller', () => {
           declaredRole: 'jewelry_front',
           visualRole: 'jewelry',
           roleConfirmed: true,
+          imageUrl: BOXED_HEX_CARD_URL,
           quality: 'usable',
           qualityIssues: [],
           notes: [],
@@ -263,6 +275,7 @@ describe('Dance Floor intake controller', () => {
           declaredRole: 'jewelry_front',
           visualRole: 'jewelry',
           roleConfirmed: true,
+          imageUrl: BOXED_HEX_CARD_URL,
           quality: 'unknown',
           qualityIssues: [],
           notes: ['declared as customer-facing jewelry photo'],
@@ -308,6 +321,138 @@ describe('Dance Floor intake controller', () => {
 
     expect(readiness.ready).toBe(false)
     expect(readiness.missing).toContain('jewelryFrontPhoto')
+  })
+
+  it('lets a boxed-display photo already in the thread satisfy jewelry-front readiness', () => {
+    const state = baseState({
+      known: {
+        itemNumber: 'ER13229',
+        designName: 'The Florence Earrings',
+        collectionName: 'July Birthday',
+      },
+      photos: [
+        {
+          attachmentIndex: 1,
+          declaredRole: 'unknown',
+          visualRole: 'uncertain',
+          roleConfirmed: false,
+          imageUrl: BOXED_HEX_CARD_URL,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['boxed display jewelry appears clear enough'],
+        },
+      ],
+    })
+
+    const readiness = computeTradeBoardAddAttemptReadiness(state, {
+      itemNumber: 'ER13229',
+      collectionName: 'July Birthday',
+    })
+
+    expect(readiness.ready).toBe(true)
+    expect(readiness.missing).toEqual([])
+    expect(readiness.blockers).toEqual([])
+  })
+
+  it('does not invent jewelry-front readiness from two uncertain photos', () => {
+    const state = baseState({
+      known: {
+        itemNumber: 'ER13229',
+        designName: 'The Florence Earrings',
+        collectionName: 'July Birthday',
+      },
+      photos: [
+        {
+          attachmentIndex: 1,
+          declaredRole: 'unknown',
+          visualRole: 'uncertain',
+          roleConfirmed: false,
+          imageUrl: `${BOXED_HEX_CARD_URL}A`,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: [],
+        },
+        {
+          attachmentIndex: 2,
+          declaredRole: 'unknown',
+          visualRole: 'uncertain',
+          roleConfirmed: false,
+          imageUrl: `${BOXED_HEX_CARD_URL}B`,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: [],
+        },
+      ],
+    })
+
+    const readiness = computeTradeBoardAddAttemptReadiness(state, {
+      itemNumber: 'ER13229',
+      collectionName: 'July Birthday',
+    })
+
+    expect(readiness.ready).toBe(false)
+    expect(readiness.missing).toContain('jewelryFrontPhoto')
+  })
+
+  it('does not let a leftover unread label block save when jewelry and item number are already known', () => {
+    const state = baseState({
+      known: {
+        itemNumber: 'ER13229',
+        designName: 'Original Earring',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      photos: [
+        {
+          attachmentIndex: 1,
+          declaredRole: 'label_details',
+          visualRole: 'label_or_packaging',
+          roleConfirmed: true,
+          quality: 'blocked',
+          qualityIssues: [],
+          notes: ['unreadable leftover label'],
+        },
+        {
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'uncertain',
+          roleConfirmed: true,
+          imageUrl: BOXED_HEX_CARD_URL,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['boxed blue studs on hex card'],
+        },
+      ],
+    })
+
+    const readiness = computeTradeBoardAddAttemptReadiness(state, {
+      itemNumber: 'ER13229',
+      rarityClassification: 'standard',
+    })
+
+    expect(readiness.ready).toBe(true)
+    expect(readiness.missing).toEqual([])
+    expect(readiness.blockers).toEqual([])
+    expect(formatWorkflowNotReadyMessage(readiness)).not.toMatch(/listing:\s*\./)
+  })
+
+  it('names the missing field instead of shipping an empty missing-details list', () => {
+    const emptyColon = formatWorkflowNotReadyMessage({
+      missing: [],
+      blockers: ['labelPhotoUnreadable'],
+    })
+    expect(emptyColon).toContain('readable item-info label or the item number')
+    expect(emptyColon).not.toMatch(/listing:\s*\./)
+    expect(emptyColon).not.toBe(
+      'I still need these details before I can save this listing: .',
+    )
+
+    const nothingNamed = formatWorkflowNotReadyMessage({
+      missing: [],
+      blockers: [],
+    })
+    expect(nothingNamed).toContain('customer-facing jewelry photo or a readable item number')
+    expect(nothingNamed).not.toMatch(/listing:\s*\./)
   })
 
   it('keeps a human-review workflow terminal and exposes no mutation tools', () => {

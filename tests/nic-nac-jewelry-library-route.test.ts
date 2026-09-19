@@ -19,6 +19,10 @@ vi.mock('@/lib/supabase/admin', () => ({
 vi.mock('@/lib/services/jewelry-database', () => ({
   searchJewelryDatabase: (...args: unknown[]) =>
     searchJewelryDatabaseMock(...args),
+  normalizeJewelryMaterialKey: (value: string | null | undefined) =>
+    value?.trim().replace(/\s+/g, ' ').toLowerCase() || null,
+  normalizeJewelryMainStoneKey: (value: string | null | undefined) =>
+    value?.trim().replace(/\s+/g, ' ').toLowerCase() || null,
 }))
 
 vi.mock('@/lib/services/trade-board', () => ({
@@ -259,6 +263,108 @@ describe('jewelry library route', () => {
       listingPhotoUrl: 'https://cdn.example.com/rep-1/ring-enhanced.png',
       idempotencyKey: 'jewelry-library-api:library-add-photo-1',
       inputSignature: expect.any(String),
+    })
+  })
+
+  it('keeps same-item-number finish/stone listing photos on their own designId cache key', async () => {
+    getAuthenticatedRepMock.mockResolvedValue({
+      repId: 'rep-1',
+      rep: { id: 'rep-1' },
+    })
+    processRepCustomListingPhotoUrlMock.mockResolvedValue({
+      photoUrl: 'https://cdn.example.com/rep-1/half-moon.png',
+    })
+    addListingMock.mockResolvedValue({
+      listingId: 'listing-1',
+      designId: 'design-nk88350-gold',
+      itemNumber: 'NK88350',
+      designName: 'Half Moon Crescent',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    await POST(
+      new Request('http://localhost/api/nic-nac/jewelry-library', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          designId: 'design-nk88350-gold',
+          itemNumber: 'NK88350',
+          material: 'Gold Plating',
+          mainStone: 'Lapis Magnesite',
+          listingPhotoUrl: 'https://dropbox.example.com/gold.png',
+          mutationKey: 'library-add-gold',
+        }),
+      }),
+    )
+    await POST(
+      new Request('http://localhost/api/nic-nac/jewelry-library', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          designId: 'design-nk88350-rhodium',
+          itemNumber: 'NK88350',
+          material: 'Rhodium Plating',
+          mainStone: 'Malachite Magnesite',
+          listingPhotoUrl: 'https://dropbox.example.com/rhodium.png',
+          mutationKey: 'library-add-rhodium',
+        }),
+      }),
+    )
+
+    expect(processRepCustomListingPhotoUrlMock).toHaveBeenNthCalledWith(1, {
+      repId: 'rep-1',
+      sourceImageUrl: 'https://dropbox.example.com/gold.png',
+      filenameStem: 'NK88350-listing-photo',
+      mutationAssetKey: expect.any(String),
+      variantAssetKey: 'design-nk88350-gold',
+    })
+    expect(processRepCustomListingPhotoUrlMock).toHaveBeenNthCalledWith(2, {
+      repId: 'rep-1',
+      sourceImageUrl: 'https://dropbox.example.com/rhodium.png',
+      filenameStem: 'NK88350-listing-photo',
+      mutationAssetKey: expect.any(String),
+      variantAssetKey: 'design-nk88350-rhodium',
+    })
+  })
+
+  it('scopes PhotoRoom cache by official material|stone keys before a designId exists', async () => {
+    getAuthenticatedRepMock.mockResolvedValueOnce({
+      repId: 'rep-1',
+      rep: { id: 'rep-1' },
+    })
+    processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/rep-1/ruby.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-ruby',
+      designId: 'design-new',
+      itemNumber: 'RG100',
+      designName: 'Aurora Ring',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    await POST(
+      new Request('http://localhost/api/nic-nac/jewelry-library', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          itemNumber: 'RG100',
+          material: 'Silver Finish',
+          mainStone: 'Red Ruby',
+          listingPhotoUrl: 'https://dropbox.example.com/red-ruby.png',
+          mutationKey: 'library-add-red-ruby',
+        }),
+      }),
+    )
+
+    expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledWith({
+      repId: 'rep-1',
+      sourceImageUrl: 'https://dropbox.example.com/red-ruby.png',
+      filenameStem: 'RG100-listing-photo',
+      mutationAssetKey: expect.any(String),
+      variantAssetKey: 'silver finish|red ruby',
     })
   })
 })

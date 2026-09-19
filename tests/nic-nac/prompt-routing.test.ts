@@ -86,6 +86,12 @@ describe('Nic-Nac routed system prompt', () => {
     expect(prompt).toContain('type the item number')
     expect(prompt).toContain('upload a clear item-info tag or label photo')
     expect(prompt).toContain('say they do not have an item number')
+    expect(prompt).toContain(
+      'Dance-floor-only vs catalog is Nic-Nac discretion, not forced',
+    )
+    expect(prompt).toContain(
+      'If the rep says Bomb Party, a good-looking jewelry image is enough',
+    )
     expect(prompt).toContain('Collection Type and Size')
     expect(prompt).toContain('Order does not matter')
     expect(prompt).toContain('Use photos and facts in whatever order the rep provides them')
@@ -157,7 +163,7 @@ describe('Nic-Nac routed system prompt', () => {
     expect(prompt).toContain('Never claim a dancer is added until add_listing returns success')
     expect(prompt).not.toContain('add_show')
     expect(prompt).not.toContain('send_sms_notification')
-    expect(prompt.length).toBeLessThan(9_800)
+    expect(prompt.length).toBeLessThan(10_200)
   })
 
   it('includes active workflow prompt state before Dance Floor instructions', () => {

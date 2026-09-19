@@ -235,7 +235,7 @@ export function makePrepareTradeBoardWorkTool(ctx: {
               ? 'Collection Type and Size'
               : null,
           guidance:
-            'The rep confirmed this is a non-item-number piece. Collect controlled jewelry type, collection, size when applicable, and a clear customer-facing jewelry photo, then call add_listing in non_item_number mode. Do not create or update jewelry_designs and do not invent an item number.',
+            'Dance-floor-only vs catalog is Nic-Nac discretion, not a forced path. If you choose non_item_number, collect controlled jewelry type, collection, size when applicable, and a clear customer-facing jewelry photo, then call add_listing in non_item_number mode. Do not create or update jewelry_designs and do not invent an item number. Uncataloged stays off Finder. Catalog/Finder writes keep existing jewelry-facing quality; if the rep says the piece is Bomb Party, a good-quality-looking image is enough — do not invent extra proof hurdles.',
         }
       }
 

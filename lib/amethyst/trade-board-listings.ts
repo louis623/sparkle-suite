@@ -102,6 +102,10 @@ export const defaultAmethystTradeBoardListings: AmethystTradeBoardListing[] = [
 export function getTradeBoardPhotoSource(
   listing: TradeListingWithDesign,
 ): AmethystTradeBoardListing['photoSource'] {
+  // Every public Dance Floor uses the listing → `design_id` join already
+  // resolved by `getTradeListingDisplayFields`. Same item number with a
+  // different finish or stone keeps that listing's own photo. No per-rep
+  // photo branch.
   const display = getTradeListingDisplayFields(listing)
   if (display.listingPhotoUrl) return 'listing'
   if (display.canonicalPhotoUrl && listing.uses_canonical_photo) {

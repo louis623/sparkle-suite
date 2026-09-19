@@ -217,6 +217,110 @@ describe('Amethyst trade page template wiring', () => {
     ).toBe('unicorn')
   })
 
+  it('keeps same-item-number finish/stone dancers on their own photos', () => {
+    // August 25: exact catalog identity is designId. Amethyst cards must
+    // not collapse Gold vs Rhodium NK88350 onto one item-number hero.
+    const gold = mapTradeListingToAmethystTradeBoardListing(
+      makeTradeListing({
+        id: 'listing-nk88350-gold',
+        listing_photo_url: 'https://cdn.example.com/nk88350-gold-jewelry.jpg',
+        uses_canonical_photo: false,
+        design: {
+          id: 'design-nk88350-gold',
+          item_number: 'NK88350',
+          design_name: 'Half Moon Crescent',
+          material: 'Gold Plating',
+          main_stone: 'Lapis Magnesite',
+          bp_msrp: 132,
+          canonical_photo_url: 'https://cdn.example.com/nk88350-gold-canonical.jpg',
+          type_prefix: 'NK',
+          collection: { id: 'collection-og', name: 'Original Necklace' },
+        },
+      }),
+    )
+    const rhodium = mapTradeListingToAmethystTradeBoardListing(
+      makeTradeListing({
+        id: 'listing-nk88350-rhodium',
+        listing_photo_url: null,
+        uses_canonical_photo: true,
+        design: {
+          id: 'design-nk88350-rhodium',
+          item_number: 'NK88350',
+          design_name: 'Half Moon Crescent',
+          material: 'Rhodium Plating',
+          main_stone: 'Malachite Magnesite',
+          bp_msrp: 132,
+          canonical_photo_url:
+            'https://cdn.example.com/nk88350-rhodium-own-canonical.jpg',
+          type_prefix: 'NK',
+          collection: { id: 'collection-og', name: 'Original Necklace' },
+        },
+      }),
+    )
+
+    expect(gold.id).not.toBe(rhodium.id)
+    expect(gold.material).toBe('Gold Plating')
+    expect(rhodium.material).toBe('Rhodium Plating')
+    expect(gold.stone).toBe('Lapis Magnesite')
+    expect(rhodium.stone).toBe('Malachite Magnesite')
+    expect(gold.photoUrl).toBe('https://cdn.example.com/nk88350-gold-jewelry.jpg')
+    expect(gold.photoSource).toBe('listing')
+    expect(rhodium.photoUrl).toBe(
+      'https://cdn.example.com/nk88350-rhodium-own-canonical.jpg',
+    )
+    expect(rhodium.photoSource).toBe('canonical')
+    expect(gold.photoUrl).not.toBe(rhodium.photoUrl)
+  })
+
+  it('applies the same variant photo contract to every rep Dance Floor', () => {
+    const firstRep = mapTradeListingToAmethystTradeBoardListing(
+      makeTradeListing({
+        id: 'listing-rep-a-gold',
+        rep_id: 'rep-a',
+        listing_photo_url: 'https://cdn.example.com/rep-a-gold.jpg',
+        uses_canonical_photo: false,
+        design: {
+          id: 'design-rep-a-gold',
+          item_number: 'NK88350',
+          design_name: 'Half Moon Crescent',
+          material: 'Gold Plating',
+          main_stone: 'Lapis Magnesite',
+          bp_msrp: 132,
+          canonical_photo_url: 'https://cdn.example.com/rep-a-gold-canonical.jpg',
+          type_prefix: 'NK',
+          collection: { id: 'collection-og', name: 'Original Necklace' },
+        },
+      }),
+    )
+    const secondRep = mapTradeListingToAmethystTradeBoardListing(
+      makeTradeListing({
+        id: 'listing-rep-b-rhodium',
+        rep_id: 'rep-b',
+        listing_photo_url: null,
+        uses_canonical_photo: true,
+        design: {
+          id: 'design-rep-b-rhodium',
+          item_number: 'NK88350',
+          design_name: 'Half Moon Crescent',
+          material: 'Rhodium Plating',
+          main_stone: 'Malachite Magnesite',
+          bp_msrp: 132,
+          canonical_photo_url: 'https://cdn.example.com/rep-b-rhodium-canonical.jpg',
+          type_prefix: 'NK',
+          collection: { id: 'collection-og', name: 'Original Necklace' },
+        },
+      }),
+    )
+
+    expect(firstRep.photoUrl).toBe('https://cdn.example.com/rep-a-gold.jpg')
+    expect(secondRep.photoUrl).toBe(
+      'https://cdn.example.com/rep-b-rhodium-canonical.jpg',
+    )
+    expect(firstRep.photoUrl).not.toBe(secondRep.photoUrl)
+    expect(firstRep.material).toBe('Gold Plating')
+    expect(secondRep.material).toBe('Rhodium Plating')
+  })
+
   it('maps trade listing ring size to the customer-facing board size', () => {
     const mapped = mapTradeListingToAmethystTradeBoardListing(
       makeTradeListing({ ring_size: '8' }),
@@ -309,6 +413,8 @@ describe('Amethyst trade page template wiring', () => {
     expect(mapped.note).toBe(
       'Item-for-item only. Requests must stay within the same collection and the same jewelry type.',
     )
+    expect(mapped.photoSource).toBe('listing')
+    expect(mapped.photoUrl).not.toBeNull()
   })
 
   it('marks canonical and missing photo source without exposing internal labels on the customer card', () => {

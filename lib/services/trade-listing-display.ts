@@ -119,6 +119,11 @@ export function getTradeListingDisplayFields(
 
   const listingPhotoUrl = cleanText(listing.listing_photo_url)
   const canonicalPhotoUrl = cleanText(design.canonical_photo_url)
+  // Shared display contract for every current and future Dance Floor.
+  // August 25 exact catalog identity is `designId`. Card photo is this
+  // listing's jewelry-front, else THIS design's canonical. Same item
+  // number + different finish/stone stays on its own `jewelry_designs.id`.
+  // Display never re-resolves by SKU and never branches on rep.
   const photoUrl =
     listingPhotoUrl ??
     (listing.uses_canonical_photo ? canonicalPhotoUrl : null)

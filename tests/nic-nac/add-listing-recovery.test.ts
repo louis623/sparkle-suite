@@ -81,6 +81,10 @@ vi.mock('@/lib/services/jewelry-database', () => ({
   updateCanonicalPhoto: (...args: unknown[]) => updateCanonicalPhotoMock(...args),
   updatePhotoPipelineState: (...args: unknown[]) =>
     updatePhotoPipelineStateMock(...args),
+  normalizeJewelryMaterialKey: (value: string | null | undefined) =>
+    value?.trim().replace(/\s+/g, ' ').toLowerCase() || null,
+  normalizeJewelryMainStoneKey: (value: string | null | undefined) =>
+    value?.trim().replace(/\s+/g, ' ').toLowerCase() || null,
 }))
 
 vi.mock('@/lib/services/storage', () => ({
@@ -155,7 +159,12 @@ vi.mock('@/lib/nic-nac/workflows/trade-workflow-store', () => ({
     completeTradeWorkflowSessionMock(...args),
 }))
 
-import { makeAddListingTool } from '@/lib/nic-nac/tools/add-listing'
+import {
+  getWorkflowConfirmedJewelryFrontImageUrl,
+  makeAddListingTool,
+  processListingPhotoForAdd,
+} from '@/lib/nic-nac/tools/add-listing'
+import { computeTradeBoardAddAttemptReadiness } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 
 interface AddListingToolDef {
   execute: (input: unknown) => Promise<Record<string, unknown>>
@@ -685,6 +694,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       sourceImageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
       filenameStem: 'ER13229-listing-photo',
       mutationAssetKey: expect.any(String),
+      variantAssetKey: 'design-existing',
     }, { confirmedJewelryFront: true })
     expect(addListingMock).toHaveBeenCalledWith(
       expect.anything(),
@@ -2391,6 +2401,160 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
   })
 
+  it('saves when jewelry-front is already in the thread even if an earlier label was unreadable', async () => {
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-kelly-studs',
+      designId: 'design-1',
+      itemNumber: 'ER13229',
+      designName: 'The Florence Earrings',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+    const supabaseMock = makeConversationLookupMock([])
+    const tool = makeTool(supabaseMock, {
+      activeTradeBoardWorkflow: activeWorkflow({
+        phase: 'ready_to_add',
+        missing: [],
+        photos: [
+          {
+            attachmentIndex: 1,
+            declaredRole: 'label_details',
+            visualRole: 'label_or_packaging',
+            roleConfirmed: true,
+            quality: 'blocked',
+            qualityIssues: [],
+            notes: ['unreadable leftover label'],
+          },
+          {
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'uncertain',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['boxed blue studs on hex card'],
+          },
+        ],
+      }),
+    })
+
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/kelly-studs.png',
+    })
+    resolveItemNumberMock.mockResolvedValueOnce({
+      found: true,
+      hasCollection: true,
+      design: {
+        id: 'design-1',
+        itemNumber: 'ER13229',
+        designName: 'The Florence Earrings',
+      },
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ER13229',
+        collectionName: 'July Birthday',
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-kelly-studs',
+    })
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceImageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
+      }),
+      { confirmedJewelryFront: true },
+    )
+    expect(addListingMock).toHaveBeenCalled()
+  })
+
+  it('stamps a sole boxed/uncertain workflow photo so ready implies a publishable jewelry_front URL', async () => {
+    const boxedUrl = 'data:image/jpeg;base64,Qk9YRUQ='
+    const workflow = activeWorkflow({
+      phase: 'ready_to_add',
+      missing: [],
+      photos: [
+        {
+          attachmentIndex: 1,
+          declaredRole: 'unknown',
+          visualRole: 'uncertain',
+          roleConfirmed: false,
+          imageUrl: boxedUrl,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['boxed display jewelry appears clear enough'],
+        },
+      ],
+    })
+
+    expect(
+      computeTradeBoardAddAttemptReadiness(workflow, {
+        itemNumber: 'ER13229',
+        collectionName: 'July Birthday',
+      }).ready,
+    ).toBe(true)
+    expect(getWorkflowConfirmedJewelryFrontImageUrl(workflow)).toBe(boxedUrl)
+
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/boxed-hex-card.png',
+    })
+
+    await expect(
+      processListingPhotoForAdd({
+        itemNumber: 'ER13229',
+        activeTradeBoardWorkflow: workflow,
+        repId: 'rep-1',
+        supabase: makeConversationLookupMock([]) as never,
+        conversationId: 'conv-1',
+      }),
+    ).resolves.toBe('https://cdn.example.com/listings/rep-1/boxed-hex-card.png')
+
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceImageUrl: boxedUrl,
+      }),
+      { confirmedJewelryFront: true },
+    )
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledTimes(1)
+
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/boxed-hex-card.png',
+    })
+    resolveItemNumberMock.mockResolvedValueOnce({
+      found: true,
+      hasCollection: true,
+      design: {
+        id: 'design-1',
+        itemNumber: 'ER13229',
+        designName: 'The Florence Earrings',
+      },
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-boxed-hex',
+      designId: 'design-1',
+      itemNumber: 'ER13229',
+      designName: 'The Florence Earrings',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: workflow,
+    })
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ER13229',
+        collectionName: 'July Birthday',
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-boxed-hex',
+    })
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledTimes(2)
+  })
+
   it('adds a known catalog design with the canonical photo after duplicate confirmation even when the only workflow photo is label/details', async () => {
     resolveItemNumberMock.mockResolvedValueOnce({
       found: true,
@@ -2676,6 +2840,18 @@ describe('add_listing - active workflow readiness guard', () => {
       status: 'available',
       usesCanonicalPhoto: false,
     })
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/florence-boxed.png',
+    })
+    resolveItemNumberMock.mockResolvedValueOnce({
+      found: true,
+      hasCollection: true,
+      design: {
+        id: 'design-1',
+        itemNumber: 'ER13229',
+        designName: 'The Florence Earrings',
+      },
+    })
     const supabaseMock = makeConversationLookupMock([])
     const tool = makeTool(supabaseMock, {
       activeTradeBoardWorkflow: activeWorkflow({
@@ -2694,6 +2870,7 @@ describe('add_listing - active workflow readiness guard', () => {
             declaredRole: 'jewelry_front',
             visualRole: 'jewelry',
             roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
             quality: 'usable',
             qualityIssues: [],
             notes: ['boxed display jewelry is centered and clear'],
@@ -2900,6 +3077,7 @@ describe('add_listing - active workflow readiness guard', () => {
             declaredRole: 'jewelry_front',
             visualRole: 'jewelry',
             roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
             quality: 'unknown',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
@@ -2990,6 +3168,7 @@ describe('add_listing - active workflow readiness guard', () => {
             declaredRole: 'jewelry_front',
             visualRole: 'jewelry',
             roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
             quality: 'unknown',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
@@ -3180,8 +3359,12 @@ describe('add_listing - active workflow readiness guard', () => {
         repId: 'rep-1',
         sourceImageUrl: 'data:image/jpeg;base64,Tk9OSVRFTV9SSU5H',
         filenameStem: 'non-item-number-piece-listing-photo',
+        mutationAssetKey: expect.any(String),
       },
       { confirmedJewelryFront: true },
+    )
+    expect(processRepListingPhotoUrlMock.mock.calls[0]?.[0]).not.toHaveProperty(
+      'variantAssetKey',
     )
     expect(addNonItemNumberListingMock).toHaveBeenCalledWith(
       expect.anything(),
@@ -3569,6 +3752,409 @@ describe('add_listing - active workflow readiness guard', () => {
       expect.objectContaining({
         listingPhotoUrl:
           'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
+      }),
+    )
+  })
+
+  it('uses the workflow jewelry photo for an existing catalog design even when listingPhotoUrl is omitted', async () => {
+    resolveItemNumberMock.mockResolvedValueOnce({
+      found: true,
+      hasCollection: true,
+      design: {
+        id: 'design-nk57811',
+        itemNumber: 'NK57811',
+        designName: 'A Statement Of Sparkle Exclusive Bringback',
+        canonicalPhotoUrl:
+          'https://cdn.example.com/catalog/nk96080-storyteller-label.jpg',
+      },
+    })
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl:
+        'https://cdn.example.com/listings/rep-1/statement-of-sparkle-jewelry.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-statement',
+      designId: 'design-nk57811',
+      itemNumber: 'NK57811',
+      designName: 'A Statement Of Sparkle Exclusive Bringback',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    const jewelryId = '22222222-2222-4222-8222-222222222222'
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK57811',
+          designName: 'A Statement Of Sparkle Exclusive Bringback',
+          collectionName: 'Original Necklace',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            attachmentIndex: 1,
+            declaredRole: 'label_details',
+            visualRole: 'label_or_packaging',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as label/details source'],
+          },
+          {
+            id: jewelryId,
+            attachmentIndex: 2,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK57811',
+        designName: 'A Statement Of Sparkle Exclusive Bringback',
+        collectionName: 'Original Necklace',
+        selectedPhotoId: jewelryId,
+      }),
+    ).resolves.toMatchObject({
+      mode: 'single',
+      listingId: 'listing-statement',
+      itemNumber: 'NK57811',
+      createdNewDesign: false,
+    })
+
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
+      {
+        repId: 'rep-1',
+        sourceImageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+        filenameStem: 'NK57811-listing-photo',
+        mutationAssetKey: expect.any(String),
+        variantAssetKey: 'design-nk57811',
+      },
+      { confirmedJewelryFront: true },
+    )
+    expect(addListingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({
+        listingPhotoUrl:
+          'https://cdn.example.com/listings/rep-1/statement-of-sparkle-jewelry.png',
+      }),
+    )
+  })
+
+  it('uses the workflow jewelry photo for an item-number-only known catalog add', async () => {
+    resolveItemNumberMock.mockResolvedValue({
+      found: true,
+      hasCollection: true,
+      design: {
+        id: 'design-nk88350',
+        itemNumber: 'NK88350',
+        designName: 'Half Moon Crescent',
+        canonicalPhotoUrl:
+          'https://cdn.example.com/catalog/nk96080-storyteller-label.jpg',
+      },
+    })
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl:
+        'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-half-moon',
+      designId: 'design-nk88350',
+      itemNumber: 'NK88350',
+      designName: 'Half Moon Crescent',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    const jewelryId = '22222222-2222-4222-8222-222222222222'
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          collectionName: 'Original Necklace',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: jewelryId,
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK88350',
+        selectedPhotoId: jewelryId,
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-half-moon',
+      itemNumber: 'NK88350',
+    })
+
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
+      {
+        repId: 'rep-1',
+        sourceImageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+        filenameStem: 'NK88350-listing-photo',
+        mutationAssetKey: expect.any(String),
+        variantAssetKey: 'design-nk88350',
+      },
+      { confirmedJewelryFront: true },
+    )
+    expect(addListingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({
+        listingPhotoUrl:
+          'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
+      }),
+    )
+  })
+
+  it('keeps Gold and Rhodium NK88350 listings on their own photos', async () => {
+    const goldJewelryUrl =
+      'https://cdn.example.com/catalog/nk88350-gold-lapis-jewelry.jpg'
+    const rhodiumJewelryBytes = 'data:image/jpeg;base64,UkhPRElVTV9KRVdFTFJZ'
+    resolveItemNumberMock.mockImplementation(
+      (_client: unknown, itemNumber: unknown, options: { material?: string } = {}) => {
+        if (itemNumber !== 'NK88350') return { found: false, itemNumber }
+        if (options.material === 'Gold Plating') {
+          return {
+            found: true,
+            hasCollection: true,
+            design: {
+              id: 'design-nk88350-gold',
+              itemNumber: 'NK88350',
+              designName: 'Half Moon Crescent',
+              material: 'Gold Plating',
+              mainStone: 'Lapis Magnesite',
+              canonicalPhotoUrl: goldJewelryUrl,
+            },
+          }
+        }
+        if (options.material === 'Rhodium Plating') {
+          return {
+            found: true,
+            hasCollection: true,
+            design: {
+              id: 'design-nk88350-rhodium',
+              itemNumber: 'NK88350',
+              designName: 'Half Moon Crescent',
+              material: 'Rhodium Plating',
+              mainStone: 'Malachite Magnesite',
+              canonicalPhotoUrl:
+                'https://cdn.example.com/catalog/nk96080-storyteller-label.jpg',
+            },
+          }
+        }
+        return { found: false, ambiguous: true, itemNumber: 'NK88350' }
+      },
+    )
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl:
+        'https://cdn.example.com/listings/rep-1/nk88350-rhodium-jewelry.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-half-moon-rhodium',
+      designId: 'design-nk88350-rhodium',
+      itemNumber: 'NK88350',
+      designName: 'Half Moon Crescent',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    const rhodiumJewelryId = '22222222-2222-4222-8222-222222222222'
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          collectionName: 'Original Necklace',
+          material: 'Rhodium Plating',
+          mainStone: 'Malachite Magnesite',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: rhodiumJewelryId,
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: rhodiumJewelryBytes,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK88350',
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+        selectedPhotoId: rhodiumJewelryId,
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-half-moon-rhodium',
+      itemNumber: 'NK88350',
+      createdNewDesign: false,
+    })
+
+    expect(resolveItemNumberMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'NK88350',
+      {
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+      },
+    )
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
+      {
+        repId: 'rep-1',
+        sourceImageUrl: rhodiumJewelryBytes,
+        filenameStem: 'NK88350-listing-photo',
+        mutationAssetKey: expect.any(String),
+        variantAssetKey: 'design-nk88350-rhodium',
+      },
+      { confirmedJewelryFront: true },
+    )
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceImageUrl: goldJewelryUrl,
+      }),
+      expect.anything(),
+    )
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        variantAssetKey: 'design-nk88350-gold',
+      }),
+      expect.anything(),
+    )
+    expect(addListingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({
+        itemNumber: 'NK88350',
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+        listingPhotoUrl:
+          'https://cdn.example.com/listings/rep-1/nk88350-rhodium-jewelry.png',
+      }),
+    )
+  })
+
+  it('does not fall back to another same-SKU variant canonical when this variant has no jewelry-front yet', async () => {
+    resolveItemNumberMock.mockImplementation(
+      (_client: unknown, itemNumber: unknown, options: { material?: string } = {}) => {
+        if (itemNumber !== 'NK88350') return { found: false, itemNumber }
+        if (options.material === 'Rhodium Plating') {
+          return {
+            found: true,
+            hasCollection: true,
+            design: {
+              id: 'design-nk88350-rhodium',
+              itemNumber: 'NK88350',
+              designName: 'Half Moon Crescent',
+              material: 'Rhodium Plating',
+              mainStone: 'Malachite Magnesite',
+              canonicalPhotoUrl:
+                'https://cdn.example.com/catalog/nk88350-rhodium-own-canonical.jpg',
+            },
+          }
+        }
+        return {
+          found: true,
+          hasCollection: true,
+          design: {
+            id: 'design-nk88350-gold',
+            itemNumber: 'NK88350',
+            designName: 'Half Moon Crescent',
+            material: 'Gold Plating',
+            mainStone: 'Lapis Magnesite',
+            canonicalPhotoUrl:
+              'https://cdn.example.com/catalog/nk88350-gold-lapis-jewelry.jpg',
+          },
+        }
+      },
+    )
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-half-moon-rhodium',
+      designId: 'design-nk88350-rhodium',
+      itemNumber: 'NK88350',
+      designName: 'Half Moon Crescent',
+      status: 'available',
+      usesCanonicalPhoto: true,
+    })
+
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          collectionName: 'Original Necklace',
+          material: 'Rhodium Plating',
+          mainStone: 'Malachite Magnesite',
+          rarityClassification: 'standard',
+        },
+        photos: [],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK88350',
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-half-moon-rhodium',
+      itemNumber: 'NK88350',
+    })
+
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+    expect(addListingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({
+        itemNumber: 'NK88350',
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+        listingPhotoUrl: undefined,
       }),
     )
   })

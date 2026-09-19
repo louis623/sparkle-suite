@@ -274,6 +274,59 @@ describe('dance floor route', () => {
     })
   })
 
+  it('forwards exact designId so same-SKU finish/stone photos stay isolated', async () => {
+    getPaidNicNacContextMock.mockResolvedValueOnce({
+      repId: 'rep-1',
+      rep: { id: 'rep-1' },
+      supabase: { marker: 'supabase' },
+    })
+    processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/rep-1/nk88350-gold.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-gold',
+      designId: 'design-nk88350-gold',
+      itemNumber: 'NK88350',
+      designName: 'Half Moon Crescent',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    await POST(
+      new Request('http://localhost/api/nic-nac/trade-board', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          designId: 'design-nk88350-gold',
+          itemNumber: 'NK88350',
+          material: 'Gold Plating',
+          mainStone: 'Lapis Magnesite',
+          listingPhotoUrl: 'https://dropbox.example.com/gold.png',
+          mutationKey: 'quick-add-gold',
+        }),
+      }),
+    )
+
+    expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledWith({
+      repId: 'rep-1',
+      sourceImageUrl: 'https://dropbox.example.com/gold.png',
+      filenameStem: 'NK88350-listing-photo',
+      mutationAssetKey: expect.any(String),
+      variantAssetKey: 'design-nk88350-gold',
+    })
+    expect(addListingMock).toHaveBeenCalledWith({ marker: 'admin' }, 'rep-1', {
+      designId: 'design-nk88350-gold',
+      itemNumber: 'NK88350',
+      material: 'Gold Plating',
+      mainStone: 'Lapis Magnesite',
+      repNotes: undefined,
+      tradePreferences: undefined,
+      listingPhotoUrl: 'https://cdn.example.com/rep-1/nk88350-gold.png',
+      idempotencyKey: 'trade-board-api:quick-add-gold',
+      inputSignature: expect.any(String),
+    })
+  })
+
   it('replays a committed custom-photo add before uploading another asset', async () => {
     getPaidNicNacContextMock.mockResolvedValueOnce({
       repId: 'rep-1',

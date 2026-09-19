@@ -130,6 +130,9 @@ describe('add_listing durable failure escalation', () => {
       code: 'CATALOG_PHOTO_STORAGE_FAILED',
     })
     expect(String(result.message)).toContain('without uploading it again')
+    expect(String(result.message)).toContain('backend storage failed')
+    expect(String(result.message)).toContain('photo upload error')
+    expect(String(result.message)).not.toContain('SECRET')
     expect(mocks.createSupportReport).not.toHaveBeenCalled()
     expect(JSON.stringify(mocks.recordFailure.mock.calls)).not.toContain('SECRET')
     expect(JSON.stringify(mocks.logIncident.mock.calls)).not.toContain('SECRET')

@@ -21,6 +21,8 @@ import {
 import { resolveTradeSwapReplacementListing } from '@/lib/services/trade-swaps'
 import {
   createDesign,
+  normalizeJewelryMainStoneKey,
+  normalizeJewelryMaterialKey,
   resolveItemNumber,
   updateCanonicalPhoto,
   updatePhotoPipelineState,
@@ -44,12 +46,21 @@ import { NicNacToolError } from '@/lib/nic-nac/errors'
 import { NicNacMutationFailure } from '@/lib/nic-nac/tool-failure-classification'
 import {
   computeTradeBoardAddAttemptReadiness,
+  formatWorkflowNotReadyMessage,
   transitionTradeBoardIntake,
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
-import { resolveWorkflowCustomerFacingPhoto } from '@/lib/nic-nac/workflows/workflow-photo-selection'
-import { isAcceptedCustomerFacingWorkflowPhoto } from '@/lib/nic-nac/workflows/workflow-photo-roles'
+import {
+  catalogVariantPhotoAssetKey,
+  hasUsableWorkflowJewelryPhoto,
+  resolveWorkflowCustomerFacingPhoto,
+  shouldFallBackToCatalogCanonicalPhoto,
+} from '@/lib/nic-nac/workflows/workflow-photo-selection'
+import {
+  isAcceptedCustomerFacingWorkflowPhoto,
+  stampSoleReadinessJewelryFrontCandidate,
+} from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import type { ToolContext, ToolDefinition } from './types'
 
 const itemBaseShape = {
@@ -105,6 +116,7 @@ const inputSchema = z.object({
 
 type ToolInput = z.infer<typeof inputSchema>
 
+/** June 27 / August 23 `resolveItemNumber` options. Not a second matcher. */
 function catalogVariantLookup(input: { material?: string; mainStone?: string }) {
   return {
     ...(input.material !== undefined ? { material: input.material } : {}),
@@ -286,11 +298,19 @@ function throwMutationFailure(
   throw new NicNacMutationFailure({ ...args, cause: err })
 }
 
-function addAttemptInputSummary(input: ToolInput) {
-  const hashOptionalSource = (value: string | undefined) =>
+function addAttemptInputSummary(
+  input: ToolInput,
+  workflow?: ToolContext['activeTradeBoardWorkflow'],
+) {
+  const hashOptionalSource = (value: string | undefined | null) =>
     value
       ? createHash('sha256').update(value).digest('hex')
       : null
+  const workflowJewelryUrl = getWorkflowConfirmedJewelryFrontImageUrl(
+    workflow,
+    input.listingPhotoIndex ?? input.piecePhotoIndex,
+    input.selectedPhotoId,
+  )
   return {
     mode: input.mode,
     catalogMode: input.catalogMode ?? 'item_number',
@@ -307,6 +327,8 @@ function addAttemptInputSummary(input: ToolInput) {
     piecePhotoSource: hashOptionalSource(input.piecePhotoUrl),
     listingPhotoIndex: input.listingPhotoIndex ?? null,
     piecePhotoIndex: input.piecePhotoIndex ?? null,
+    selectedPhotoId: input.selectedPhotoId ?? null,
+    workflowJewelrySource: hashOptionalSource(workflowJewelryUrl),
     bpMsrp: input.bpMsrp ?? null,
     searchTags: input.searchTags ?? [],
     specialFeatures: input.specialFeatures?.trim() ?? null,
@@ -321,7 +343,7 @@ function catalogMutationIdentity(input: {
   suffix?: string
 }) {
   const inputSignature = createHash('sha256')
-    .update(JSON.stringify(addAttemptInputSummary(input.toolInput)))
+    .update(JSON.stringify(addAttemptInputSummary(input.toolInput, input.workflow)))
     .digest('hex')
   const scope = input.workflow?.id ?? `run:${input.runId}`
   return {
@@ -337,7 +359,7 @@ async function markActiveTradeBoardWorkflowAdding(input: {
   runId: string
 }) {
   if (input.workflow?.status !== 'active') return
-  const acceptedInputs = addAttemptInputSummary(input.toolInput)
+  const acceptedInputs = addAttemptInputSummary(input.toolInput, input.workflow)
   const inputSignature = createHash('sha256')
     .update(JSON.stringify(acceptedInputs))
     .digest('hex')
@@ -379,12 +401,30 @@ async function addCatalogListingMutation(
   }
 }
 
+/**
+ * May 5 Phase 3.8 collapsed a same-item-number batch into one add. That
+ * assumed Gap 20/22 uniqueness (`item_number` only). June 27 / August 23
+ * made finish/stone separate designs. Collapse only when the official
+ * variant keys match; do not drop a different plating or stone.
+ */
+function catalogVariantIdentityKey(item: {
+  itemNumber?: string
+  material?: string
+  mainStone?: string
+}) {
+  const itemNumber = item.itemNumber?.trim().toUpperCase() ?? ''
+  const material = normalizeJewelryMaterialKey(item.material) ?? ''
+  const mainStone = normalizeJewelryMainStoneKey(item.mainStone) ?? ''
+  return `${itemNumber}|${material}|${mainStone}`
+}
+
 function batchRepeatsOneItem(input: ToolInput) {
   if (input.mode !== 'batch' || !input.items || input.items.length < 2) return false
   const firstItemNumber = input.items[0]?.itemNumber?.trim().toUpperCase()
   if (!firstItemNumber) return false
+  const firstKey = catalogVariantIdentityKey(input.items[0] ?? {})
   return input.items.every(
-    (item) => item.itemNumber?.trim().toUpperCase() === firstItemNumber,
+    (item) => catalogVariantIdentityKey(item) === firstKey,
   )
 }
 
@@ -615,13 +655,23 @@ function workflowConfirmsJewelryFrontPhoto(
   )
 }
 
-function getWorkflowConfirmedJewelryFrontImageUrl(
+function workflowWithPublishableJewelryFront(
+  workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
+): ToolContext['activeTradeBoardWorkflow'] | undefined {
+  if (!workflow || workflow.status !== 'active') return workflow
+  const photos = stampSoleReadinessJewelryFrontCandidate(workflow.photos)
+  if (photos === workflow.photos) return workflow
+  return { ...workflow, photos }
+}
+
+export function getWorkflowConfirmedJewelryFrontImageUrl(
   workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
   photoIndex?: number,
   selectedPhotoId?: string,
 ): string | null {
+  const publishable = workflowWithPublishableJewelryFront(workflow)
   return (
-    resolveWorkflowCustomerFacingPhoto(workflow?.photos, {
+    resolveWorkflowCustomerFacingPhoto(publishable?.photos, {
       selectedPhotoId,
       modelIndex: photoIndex,
     })?.imageUrl ?? null
@@ -631,13 +681,9 @@ function getWorkflowConfirmedJewelryFrontImageUrl(
 function workflowHasUsableJewelryFrontRole(
   workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
 ): boolean {
-  if (workflow?.status !== 'active') return false
-  return workflow.photos.some(
-    (photo) =>
-      photo.declaredRole === 'jewelry_front' &&
-      photo.visualRole !== 'label_or_packaging' &&
-      photo.quality !== 'blocked',
-  )
+  const publishable = workflowWithPublishableJewelryFront(workflow)
+  if (publishable?.status !== 'active') return false
+  return publishable.photos.some(isAcceptedCustomerFacingWorkflowPhoto)
 }
 
 function workflowOwnedListingPhotoUrl(input: {
@@ -656,11 +702,14 @@ function workflowOwnedListingPhotoUrl(input: {
   return matchesAcceptedJewelry ? listingPhotoUrl : undefined
 }
 
-async function processListingPhotoForAdd(input: {
+export async function processListingPhotoForAdd(input: {
   listingPhotoUrl?: string
   listingPhotoIndex?: number
   selectedPhotoId?: string
   itemNumber?: string
+  designId?: string | null
+  material?: string | null
+  mainStone?: string | null
   activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
   repId: string
   supabase: SupabaseClient
@@ -669,24 +718,37 @@ async function processListingPhotoForAdd(input: {
   allowImplicitConversationPhoto?: boolean
   mutationAssetKey?: string
 }): Promise<string | undefined> {
+  const activeTradeBoardWorkflow = workflowWithPublishableJewelryFront(
+    input.activeTradeBoardWorkflow,
+  )
   const itemNumber = input.itemNumber ?? 'listing'
   const photoIndex = input.photoIndex ?? input.listingPhotoIndex
+  const variantAssetKey = catalogVariantPhotoAssetKey({
+    designId: input.designId,
+    material: input.material,
+    mainStone: input.mainStone,
+  })
+  const listingPhotoProcessInput = {
+    repId: input.repId,
+    filenameStem: `${itemNumber}-listing-photo`,
+    mutationAssetKey: input.mutationAssetKey,
+    ...(variantAssetKey ? { variantAssetKey } : {}),
+  }
   const workflowPhotoUrl = getWorkflowConfirmedJewelryFrontImageUrl(
-    input.activeTradeBoardWorkflow,
+    activeTradeBoardWorkflow,
     photoIndex,
     input.selectedPhotoId,
   )
   // In an active workflow the app-owned attachment is authoritative. Raw URLs
-  // emitted by the model may be stale copies from an earlier piece.
+  // emitted by the model may be stale copies from an earlier piece or another
+  // finish/stone of the same item number.
   if (workflowPhotoUrl) {
     try {
       return (
         await processRepListingPhotoUrl(
           {
-            repId: input.repId,
+            ...listingPhotoProcessInput,
             sourceImageUrl: workflowPhotoUrl,
-            filenameStem: `${itemNumber}-listing-photo`,
-            mutationAssetKey: input.mutationAssetKey,
           },
           { confirmedJewelryFront: true },
         )
@@ -697,15 +759,13 @@ async function processListingPhotoForAdd(input: {
   }
   const listingPhotoUrl = workflowOwnedListingPhotoUrl({
     listingPhotoUrl: input.listingPhotoUrl,
-    activeTradeBoardWorkflow: input.activeTradeBoardWorkflow,
+    activeTradeBoardWorkflow,
   })
   if (listingPhotoUrl) {
     try {
       const processInput = {
-        repId: input.repId,
+        ...listingPhotoProcessInput,
         sourceImageUrl: listingPhotoUrl,
-        filenameStem: `${itemNumber}-listing-photo`,
-        mutationAssetKey: input.mutationAssetKey,
       }
       const processed =
         workflowPhotoUrl === listingPhotoUrl
@@ -720,8 +780,8 @@ async function processListingPhotoForAdd(input: {
   }
 
   if (
-    input.activeTradeBoardWorkflow?.status === 'active' &&
-    !workflowHasUsableJewelryFrontRole(input.activeTradeBoardWorkflow)
+    activeTradeBoardWorkflow?.status === 'active' &&
+    !workflowHasUsableJewelryFrontRole(activeTradeBoardWorkflow)
   ) {
     return undefined
   }
@@ -739,13 +799,11 @@ async function processListingPhotoForAdd(input: {
 
   try {
     const processInput = {
-      repId: input.repId,
+      ...listingPhotoProcessInput,
       sourceImageUrl: resolvedListingPhoto.imageDataUrl,
-      filenameStem: `${itemNumber}-listing-photo`,
-      mutationAssetKey: input.mutationAssetKey,
     }
     const isWorkflowConfirmed = workflowConfirmsJewelryFrontPhoto(
-      input.activeTradeBoardWorkflow,
+      activeTradeBoardWorkflow,
       photoIndex,
     )
     const processed = isWorkflowConfirmed
@@ -952,8 +1010,7 @@ function normalizeToolText(value: string | null | undefined): string | undefined
 }
 
 function formatMissingFieldsForRep(missing: string[]) {
-  if (missing.length === 0) return ''
-  return missing.join(', ')
+  return formatWorkflowNotReadyMessage({ missing, blockers: [] })
 }
 
 async function runNonItemNumberSingle(
@@ -966,10 +1023,13 @@ async function runNonItemNumberSingle(
     activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
     activeTradeWorkflow?: ToolContext['activeTradeWorkflow']
     mutationSuffix?: string
+    mutationAssetKey?: string
   },
   admin: SupabaseClient,
 ) {
-  const activeWorkflow = ctx.activeTradeBoardWorkflow
+  const activeWorkflow = workflowWithPublishableJewelryFront(
+    ctx.activeTradeBoardWorkflow,
+  )
   const workflowKnown =
     activeWorkflow?.status === 'active' ? activeWorkflow.known : {}
   const jewelryType = input.jewelryType ?? workflowKnown.jewelryType
@@ -992,12 +1052,9 @@ async function runNonItemNumberSingle(
       rarityClassification: input.rarityClassification,
     })
     if (!readiness.ready) {
-      const missing = formatMissingFieldsForRep(readiness.missing)
       throw new NicNacToolError({
         code: 'WORKFLOW_NOT_READY',
-        userMessage: readiness.missing.includes('jewelryFrontPhoto')
-          ? 'I still need the customer-facing jewelry photo before I can save this listing.'
-          : `I still need Collection Type and Size details before I can save this listing: ${missing}.`,
+        userMessage: formatWorkflowNotReadyMessage(readiness),
       })
     }
   } else {
@@ -1009,7 +1066,7 @@ async function runNonItemNumberSingle(
     if (missing.length > 0) {
       throw new NicNacToolError({
         code: 'MISSING_NON_ITEM_NUMBER_FIELDS',
-        userMessage: `I still need Collection Type and Size details before I can save this listing: ${formatMissingFieldsForRep(missing)}.`,
+        userMessage: formatMissingFieldsForRep(missing),
       })
     }
   }
@@ -1022,6 +1079,9 @@ async function runNonItemNumberSingle(
     })
   }
 
+  // Listing-only row: jewelry-front still wins, but never resolve or
+  // create jewelry_designs. Photo cache uses mutation identity, not a
+  // catalog designId / item number.
   const processedListingPhotoUrl = await processListingPhotoForAdd({
     listingPhotoUrl: input.listingPhotoUrl,
     listingPhotoIndex: input.listingPhotoIndex,
@@ -1033,6 +1093,7 @@ async function runNonItemNumberSingle(
     conversationId: ctx.conversationId,
     photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
     allowImplicitConversationPhoto: true,
+    mutationAssetKey: ctx.mutationAssetKey,
   })
   if (!processedListingPhotoUrl) {
     throw new NicNacToolError({
@@ -1124,7 +1185,9 @@ async function runSingle(
   admin: SupabaseClient,
 ) {
   const { itemNumber, designName, piecePhotoUrl, collectionName } = input
-  const activeWorkflow = ctx.activeTradeBoardWorkflow
+  const activeWorkflow = workflowWithPublishableJewelryFront(
+    ctx.activeTradeBoardWorkflow,
+  )
   const mutationIdentity = catalogMutationIdentity({
     toolInput: input,
     workflow: activeWorkflow,
@@ -1136,7 +1199,11 @@ async function runSingle(
     input.catalogMode === 'non_item_number' ||
     (!itemNumber && activeWorkflow?.catalogMode === 'non_item_number')
   ) {
-    return runNonItemNumberSingle(input, ctx, admin)
+    return runNonItemNumberSingle(
+      input,
+      { ...ctx, mutationAssetKey: mutationIdentity.inputSignature },
+      admin,
+    )
   }
 
   if (!itemNumber) {
@@ -1185,12 +1252,9 @@ async function runSingle(
         // The label/details photo identified the catalog piece; the service
         // will validate and use the shared canonical jewelry photo.
       } else {
-        const missing = readiness.missing.join(', ')
         throw new NicNacToolError({
           code: 'WORKFLOW_NOT_READY',
-          userMessage: needsJewelryPhoto
-            ? 'I still need the customer-facing jewelry photo before I can save this listing.'
-            : `I still need these details before I can save this listing: ${missing}.`,
+          userMessage: formatWorkflowNotReadyMessage(readiness),
         })
       }
     }
@@ -1255,9 +1319,20 @@ async function runSingle(
           runId: ctx.runId,
         })
         const useExistingCatalogCanonicalPhoto =
-          !input.listingPhotoUrl &&
-          existingDesign.hasCollection &&
-          Boolean(existingDesign.design.canonicalPhotoUrl)
+          shouldFallBackToCatalogCanonicalPhoto({
+            listingPhotoUrl: input.listingPhotoUrl,
+            hasWorkflowJewelryPhoto: hasUsableWorkflowJewelryPhoto(
+              activeWorkflow?.photos,
+              {
+                selectedPhotoId: input.selectedPhotoId,
+                modelIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+              },
+            ),
+            catalogHasCanonicalPhoto:
+              existingDesign.hasCollection &&
+              Boolean(existingDesign.design.canonicalPhotoUrl),
+            resolvedDesignId: existingDesign.design.id,
+          })
         const existingListingPhotoUrl = useExistingCatalogCanonicalPhoto
           ? undefined
           : await processListingPhotoForAdd({
@@ -1265,6 +1340,9 @@ async function runSingle(
               listingPhotoIndex: input.listingPhotoIndex,
               selectedPhotoId: input.selectedPhotoId,
               itemNumber,
+              designId: existingDesign.design.id,
+              material: input.material ?? existingDesign.design.material,
+              mainStone: input.mainStone ?? existingDesign.design.mainStone,
               activeTradeBoardWorkflow: activeWorkflow,
               repId: ctx.repId,
               supabase: ctx.supabase,
@@ -1458,6 +1536,7 @@ async function runSingle(
       const resolvedPhoto = await resolvePhotoFromConversation({
         supabase: ctx.supabase,
         conversationId: ctx.conversationId,
+        latestUserMessageOnly: true,
         photoIndex: designSourcePhotoIndex,
       })
       if (!resolvedPhoto) {
@@ -1809,12 +1888,25 @@ async function runSingle(
 
   let result: Awaited<ReturnType<typeof addListing>>
   let processedListingPhotoUrl: string | undefined = newDesignListingPhotoUrl
-  const shouldUseCatalogCanonicalPhoto =
-    !input.listingPhotoUrl &&
-    !designName &&
-    resolvedCatalogDesign?.found &&
-    Boolean(resolvedCatalogDesign.design.canonicalPhotoUrl) &&
-    resolvedCatalogDesign.hasCollection
+  const shouldUseCatalogCanonicalPhoto = shouldFallBackToCatalogCanonicalPhoto({
+    listingPhotoUrl: input.listingPhotoUrl,
+    hasWorkflowJewelryPhoto: hasUsableWorkflowJewelryPhoto(
+      activeWorkflow?.photos,
+      {
+        selectedPhotoId: input.selectedPhotoId,
+        modelIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+      },
+    ),
+    catalogHasCanonicalPhoto: Boolean(
+      !designName &&
+        resolvedCatalogDesign?.found &&
+        resolvedCatalogDesign.hasCollection &&
+        resolvedCatalogDesign.design.canonicalPhotoUrl,
+    ),
+    resolvedDesignId: resolvedCatalogDesign?.found
+      ? resolvedCatalogDesign.design.id
+      : null,
+  })
   if (!createdNewDesign) {
     await markActiveTradeBoardWorkflowAdding({
       workflow: activeWorkflow,
@@ -1830,6 +1922,11 @@ async function runSingle(
         listingPhotoIndex: input.listingPhotoIndex,
         selectedPhotoId: input.selectedPhotoId,
         itemNumber,
+        designId: resolvedCatalogDesign?.found
+          ? resolvedCatalogDesign.design.id
+          : undefined,
+        material: input.material,
+        mainStone: input.mainStone,
         activeTradeBoardWorkflow: activeWorkflow,
         repId: ctx.repId,
         supabase: ctx.supabase,
@@ -1958,6 +2055,7 @@ async function runBatch(
   }
 
   const processedItems: Parameters<typeof addListingBatch>[2]['items'] = []
+  const sameVariantBatch = batchRepeatsOneItem({ mode: 'batch', items })
   for (const [itemIndex, item] of items.entries()) {
     const mutationIdentity = catalogMutationIdentity({
       toolInput: {
@@ -1968,21 +2066,30 @@ async function runBatch(
       runId: ctx.runId,
       suffix: `batch:${itemIndex}`,
     })
-    let listingPhotoUrl: string | undefined
-    if (item.listingPhotoUrl) {
-      try {
-        listingPhotoUrl = (
-          await processRepListingPhotoUrl({
-            repId: ctx.repId,
-            sourceImageUrl: item.listingPhotoUrl,
-            filenameStem: `${item.itemNumber}-listing-photo`,
-            mutationAssetKey: mutationIdentity.inputSignature,
-          })
-        ).photoUrl
-      } catch (err) {
-        explainServiceError(err)
-      }
-    }
+    // Shared pipeline for every rep. Same item number + different finish or
+    // stone must not share one jewelry-front or one PhotoRoom cache key.
+    const shareWorkflowJewelry =
+      sameVariantBatch ||
+      Boolean(item.selectedPhotoId) ||
+      item.listingPhotoIndex !== undefined ||
+      item.piecePhotoIndex !== undefined
+    const listingPhotoUrl = await processListingPhotoForAdd({
+      listingPhotoUrl: item.listingPhotoUrl,
+      listingPhotoIndex: item.listingPhotoIndex,
+      selectedPhotoId: item.selectedPhotoId,
+      itemNumber: item.itemNumber,
+      material: item.material,
+      mainStone: item.mainStone,
+      activeTradeBoardWorkflow: shareWorkflowJewelry
+        ? ctx.activeTradeBoardWorkflow
+        : undefined,
+      repId: ctx.repId,
+      supabase: ctx.supabase,
+      conversationId: ctx.conversationId,
+      photoIndex: item.listingPhotoIndex ?? item.piecePhotoIndex,
+      allowImplicitConversationPhoto: false,
+      mutationAssetKey: mutationIdentity.inputSignature,
+    })
 
     processedItems.push({
       itemNumber: item.itemNumber,
@@ -2015,14 +2122,21 @@ async function runBatch(
     status: string
   }> = []
   if (result.pending.needFullInfo.length > 0) {
-    const pendingByItem = new Set(
+    const pendingItemNumbers = new Set(
       result.pending.needFullInfo.map((p) => p.itemNumber),
     )
-    const recoveredItemNumbers = new Set<string>()
+    const pendingCandidates = items.filter((item) =>
+      pendingItemNumbers.has(item.itemNumber),
+    )
+    const recoveredVariantKeys = new Set<string>()
     const retryItems: typeof processedItems = []
 
-    for (const itemNumber of pendingByItem) {
-      const candidates = items.filter((item) => item.itemNumber === itemNumber)
+    for (const variantKey of [
+      ...new Set(pendingCandidates.map((item) => catalogVariantIdentityKey(item))),
+    ]) {
+      const candidates = pendingCandidates.filter(
+        (item) => catalogVariantIdentityKey(item) === variantKey,
+      )
       const recoveryItem = candidates.find(
         (item) => item.designName?.trim() && item.collectionName?.trim(),
       )
@@ -2066,7 +2180,7 @@ async function runBatch(
               : (recoveryItem.designName ?? ''),
           status: firstResult.status ?? 'available',
         })
-        recoveredItemNumbers.add(itemNumber)
+        recoveredVariantKeys.add(variantKey)
         retryItems.push(
           ...candidates.slice(1).map((item) => ({
             itemNumber: item.itemNumber,
@@ -2086,6 +2200,20 @@ async function runBatch(
         )
       }
     }
+
+    const recoveredItemNumbers = new Set(
+      [...pendingItemNumbers].filter((itemNumber) => {
+        const variants = pendingCandidates.filter(
+          (item) => item.itemNumber === itemNumber,
+        )
+        return (
+          variants.length > 0 &&
+          variants.every((item) =>
+            recoveredVariantKeys.has(catalogVariantIdentityKey(item)),
+          )
+        )
+      }),
+    )
 
     if (retryItems.length > 0) {
       let retryResult: Awaited<ReturnType<typeof addListingBatch>>
@@ -2195,7 +2323,7 @@ export function makeAddListingTool(ctx: {
       "Label, box, and back-of-card photos can provide details; the saved listing/canonical image must show the jewelry clearly. Boxed display photos for earrings, rings, necklaces, and similar pieces count as jewelry-front photos when the jewelry is centered, close, and clear, even with Bomb Party packaging visible. Do not treat label/details photos as bad jewelry photos; a label/details photo is only a label/details photo, and visible jewelry in that label/details photo does not satisfy the jewelry photo requirement. If the only uploaded image is a label/details or back-of-card photo, ask for the first customer-facing jewelry photo. Do not ask for unboxed, no-packaging, or plain-background retakes. Do not ask for retakes without the box/card or on a plain surface. Select the app-owned workflow photo with selectedPhotoId when available; otherwise use listingPhotoIndex or piecePhotoIndex. Never copy or reuse a raw photo URL from another piece. Ask for another photo only when you cannot tell which attached image is the jewelry-front photo. " +
       "If the item isn't in the Sparkle Suite jewelry database, the tool returns needsAction:'create_design'. Use vision to extract designName and readable metadata, and use clear rep-provided fields. Birthday collection names must include the year. For Birthday boxes like 'Birthday Collection March 2026', use collectionName:'March Birthday 2026' and collectionYear:2026 when clear. The handler uploads the photo from chat automatically. " +
       "If the item exists but has no collection assigned, the tool returns needsAction:'provide_collection' (NEEDS_COLLECTION). Ask the rep for the exact collection name, then retry with collectionName. Do not guess it from vision. " +
-      "If an item number is already on the rep's board, treat that as physical inventory, not a catalog duplicate: confirm whether this is an identical additional physical piece. After confirmation, add it to the same dancer and report the updated quantity available; a different material, main stone/color, size, photo, note, or trade preference remains a separate dancer. " +
+      "If an item number is already on the rep's board, treat that as physical inventory, not a catalog duplicate: confirm whether this is an identical additional physical piece. After confirmation, add it to the same dancer and report the updated quantity available; a different material, main stone/color, size, photo, note, or trade preference remains a separate dancer. The same item number can ship as different finish or stone — those are separate listings and must keep their own jewelry-front photo. Never reuse one listing's photo across another listing just because the item numbers match. " +
       "Batch mode sorts results into ready adds plus pending needCollection and needFullInfo buckets.",
     inputSchema,
     execute: async (input) => {

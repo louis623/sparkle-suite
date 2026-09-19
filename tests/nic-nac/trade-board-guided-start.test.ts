@@ -6,7 +6,10 @@ import {
   shouldUseTradeBoardGuidedStart,
   TRADE_BOARD_GUIDED_START_RESPONSE,
 } from '@/lib/nic-nac/workflows/trade-board-guided-start'
-import { hasTradeBoardIntakeSignal } from '@/lib/nic-nac/workflows/trade-board-intake-context'
+import {
+  hasTradeBoardIntakeSignal,
+  inferCatalogModeFromTurn,
+} from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
 
 function workflow(
@@ -114,6 +117,25 @@ describe('Dance Floor deterministic guided start', () => {
         workflow: workflow(),
       }),
     ).toBe(false)
+  })
+
+  it('does not force dance-floor-only just because an item number is missing', () => {
+    expect(
+      inferCatalogModeFromTurn({
+        currentMode: 'item_number',
+        latestUserText: 'Add this dancer from the photos I just sent.',
+        previousAssistantText: '',
+        hasItemNumber: false,
+      }),
+    ).toBe('item_number')
+    expect(
+      inferCatalogModeFromTurn({
+        currentMode: 'item_number',
+        latestUserText: "I don't have an item number.",
+        previousAssistantText: '',
+        hasItemNumber: false,
+      }),
+    ).toBe('non_item_number')
   })
 
   it('keeps the concise guidance reusable without bypassing agent reasoning', () => {

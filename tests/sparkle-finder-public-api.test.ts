@@ -404,6 +404,49 @@ describe('Sparkle Finder public API contract helpers', () => {
     )
   })
 
+  it('never surfaces listing-only non-item-number dancers in Finder availability', () => {
+    const nextShow = {
+      showId: 'show-1',
+      repId: 'rep-1',
+      startsAt: '2026-08-26T00:00:00.000Z',
+      title: 'Reveal',
+      status: 'scheduled' as const,
+    }
+    const listingOnly = {
+      bucket: 'exact' as const,
+      listing_id: 'listing-non-item',
+      rep_id: 'rep-1',
+      design_id: null,
+      net_quantity: 1,
+      listed_at: '2026-08-25T15:00:00.000Z',
+      listing_photo_url: 'https://cdn.example.test/custom-ring.png',
+      uses_canonical_photo: false,
+      item_number: null,
+      design_name: null,
+      material: null,
+      main_stone: null,
+      bp_msrp: null,
+      canonical_photo_url: null,
+      type_prefix: 'RG' as const,
+      search_tags: [],
+      collection_name: 'Birthday',
+      collection_year: 2026,
+      rep_display_name: 'Gracie Smoke',
+      rep_business_name: 'Gracie Test Studio',
+      rep_public_site_slug: 'gracieteststudio',
+      rep_status: 'active',
+      total_lead_count: 1,
+      total_dancer_count: 1,
+    }
+
+    expect(
+      mapFinderAvailabilityRpcRows(
+        [listingOnly],
+        new Map([['rep-1', nextShow]]),
+      ),
+    ).toEqual([])
+  })
+
   it('strictly validates availability bucket identity, totals, and exact design semantics', () => {
     const requestedItem = {
       designId: 'design-1',

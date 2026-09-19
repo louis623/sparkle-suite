@@ -7,6 +7,7 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ServiceError } from '@/lib/services/errors'
 import { processRepCustomListingPhotoUrl } from '@/lib/services/listing-photo-processing'
+import { catalogVariantPhotoAssetKey } from '@/lib/nic-nac/workflows/workflow-photo-selection'
 import {
   addListing,
   getCatalogListingMutationReceipt,
@@ -151,6 +152,8 @@ export async function POST(request: Request) {
     const { repId } = await getPaidNicNacContext()
     const itemNumber =
       typeof body?.itemNumber === 'string' ? body.itemNumber.trim() : ''
+    const designId =
+      typeof body?.designId === 'string' ? body.designId.trim() : undefined
     const mutationKey =
       typeof body?.mutationKey === 'string' ? body.mutationKey.trim() : ''
     if (!mutationKey) {
@@ -159,6 +162,10 @@ export async function POST(request: Request) {
         { status: 400 },
       )
     }
+    const material =
+      typeof body?.material === 'string' ? body.material.trim() : undefined
+    const mainStone =
+      typeof body?.mainStone === 'string' ? body.mainStone.trim() : undefined
     const ringSize =
       typeof body?.ringSize === 'string' ? body.ringSize.trim() : undefined
     const repNotes =
@@ -178,6 +185,9 @@ export async function POST(request: Request) {
           repNotes: repNotes || null,
           tradePreferences: tradePreferences || null,
           listingPhotoSource: listingPhotoUrl || null,
+          ...(designId ? { designId } : {}),
+          ...(material ? { material: material.toLowerCase() } : {}),
+          ...(mainStone ? { mainStone: mainStone.toLowerCase() } : {}),
         }),
       )
       .digest('hex')
@@ -190,6 +200,11 @@ export async function POST(request: Request) {
     if (replay) {
       return NextResponse.json({ ok: true, result: replay })
     }
+    const variantAssetKey = catalogVariantPhotoAssetKey({
+      designId,
+      material,
+      mainStone,
+    })
     const processedListingPhotoUrl = listingPhotoUrl
       ? (
           await processRepCustomListingPhotoUrl({
@@ -197,11 +212,15 @@ export async function POST(request: Request) {
             sourceImageUrl: listingPhotoUrl,
             filenameStem: `${itemNumber || 'listing'}-listing-photo`,
             mutationAssetKey: inputSignature,
+            ...(variantAssetKey ? { variantAssetKey } : {}),
           })
         ).photoUrl
       : undefined
     const result = await addListing(admin, repId, {
+      ...(designId ? { designId } : {}),
       itemNumber,
+      ...(material ? { material } : {}),
+      ...(mainStone ? { mainStone } : {}),
       ringSize,
       repNotes,
       tradePreferences,

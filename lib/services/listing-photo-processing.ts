@@ -17,6 +17,8 @@ export interface ProcessRepListingPhotoUrlInput {
   sourceImageUrl: string
   filenameStem: string
   mutationAssetKey?: string
+  /** June/August variant identity (`designId` or material|stone). Not a second matcher. */
+  variantAssetKey?: string
 }
 
 export interface ProcessRepListingPhotoUrlOptions {
@@ -51,6 +53,15 @@ export interface ProcessRepListingPhotoUrlResult {
     errorMessage?: string
     preflight?: ReturnType<typeof assessJewelryPhotoPreflight>
   }
+}
+
+export function listingPhotoEnhancementAssetId(
+  input: Pick<ProcessRepListingPhotoUrlInput, 'repId' | 'filenameStem' | 'variantAssetKey'>,
+): string {
+  const variant = input.variantAssetKey?.trim()
+  return variant
+    ? `${input.repId}:${input.filenameStem}:${variant}`
+    : `${input.repId}:${input.filenameStem}`
 }
 
 function toDataUrl(contentType: string, bytes: Uint8Array): string {
@@ -214,7 +225,7 @@ export async function processRepListingPhotoUrl(
   try {
     const enhanced = await executePhotoEnhancement(
       {
-        assetId: `${input.repId}:${input.filenameStem}`,
+        assetId: listingPhotoEnhancementAssetId(input),
         sourceImageUrl: baseResult.photoUrl,
         output: {
           format: 'png',
@@ -236,7 +247,7 @@ export async function processRepListingPhotoUrl(
 
     const outputMetadata = await analyzeServerImageQuality(enhanced.output.bytes)
     const outputQa = inspectEnhancedPhotoOutput({
-      assetId: `${input.repId}:${input.filenameStem}`,
+      assetId: listingPhotoEnhancementAssetId(input),
       provider: 'photoroom',
       outputWidth: outputMetadata.width,
       outputHeight: outputMetadata.height,

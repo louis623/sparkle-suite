@@ -680,6 +680,7 @@ export async function purgeExpiredRemovedListings(
 // New functions — service client required (validates repId in body).
 // ============================================================================
 
+/** Listing-only dancer: `design_id` stays null. Never writes jewelry_designs. */
 export async function addNonItemNumberListing(
   supabase: SupabaseClient,
   repId: string,

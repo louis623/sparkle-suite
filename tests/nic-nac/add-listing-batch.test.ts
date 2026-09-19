@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const addListingMock = vi.fn()
 const addListingBatchMock = vi.fn()
 const resolveItemNumberMock = vi.fn()
+const processRepListingPhotoUrlMock = vi.fn()
 const writeTradeActionAuditMock = vi.fn()
 const logIncidentMock = vi.fn()
 const createAdminClientMock = vi.fn(() => ({}))
@@ -17,10 +18,21 @@ vi.mock('@/lib/services/jewelry-database', () => ({
   resolveItemNumber: (...args: unknown[]) => resolveItemNumberMock(...args),
   updateCanonicalPhoto: vi.fn(),
   updatePhotoPipelineState: vi.fn(),
+  normalizeJewelryMaterialKey: (value: string | null | undefined) =>
+    value?.trim().replace(/\s+/g, ' ').toLowerCase() || null,
+  normalizeJewelryMainStoneKey: (value: string | null | undefined) =>
+    value?.trim().replace(/\s+/g, ' ').toLowerCase() || null,
 }))
 
 vi.mock('@/lib/services/storage', () => ({
   uploadJewelryPhoto: vi.fn(),
+}))
+
+vi.mock('@/lib/services/listing-photo-processing', () => ({
+  processRepListingPhotoUrl: (...args: unknown[]) =>
+    processRepListingPhotoUrlMock(...args),
+  processRepCustomListingPhotoUrl: (...args: unknown[]) =>
+    processRepListingPhotoUrlMock(...args),
 }))
 
 vi.mock('@/lib/supabase/admin', () => ({
@@ -118,6 +130,7 @@ beforeEach(() => {
   addListingMock.mockReset()
   addListingBatchMock.mockReset()
   resolveItemNumberMock.mockReset()
+  processRepListingPhotoUrlMock.mockReset()
   createAdminClientMock.mockReset()
   createAdminClientMock.mockReturnValue({})
   writeTradeActionAuditMock.mockReset()
@@ -455,5 +468,143 @@ describe('add_listing — batch mode', () => {
       listingId: 'listing-1',
       itemNumber: 'ER76003',
     })
+  })
+
+  it('does not collapse same-item-number finish/stone variants into one add', async () => {
+    addListingBatchMock.mockResolvedValueOnce({
+      added: [
+        {
+          listingId: 'listing-gold',
+          designId: 'design-nk88350-gold',
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          status: 'available',
+          usesCanonicalPhoto: false,
+        },
+        {
+          listingId: 'listing-rhodium',
+          designId: 'design-nk88350-rhodium',
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          status: 'available',
+          usesCanonicalPhoto: false,
+        },
+      ],
+      pending: { needCollection: [], needFullInfo: [] },
+    })
+
+    const tool = makeTool()
+    const result = await tool.execute({
+      mode: 'batch',
+      items: [
+        {
+          itemNumber: 'NK88350',
+          material: 'Gold Plating',
+          mainStone: 'Lapis Magnesite',
+        },
+        {
+          itemNumber: 'NK88350',
+          material: 'Rhodium Plating',
+          mainStone: 'Malachite Magnesite',
+        },
+      ],
+    })
+
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(addListingBatchMock).toHaveBeenCalledTimes(1)
+    expect(addListingBatchMock.mock.calls[0][2].items).toEqual([
+      expect.objectContaining({
+        itemNumber: 'NK88350',
+        material: 'Gold Plating',
+        mainStone: 'Lapis Magnesite',
+      }),
+      expect.objectContaining({
+        itemNumber: 'NK88350',
+        material: 'Rhodium Plating',
+        mainStone: 'Malachite Magnesite',
+      }),
+    ])
+    expect(result).toMatchObject({
+      mode: 'batch',
+      added: [
+        expect.objectContaining({ listingId: 'listing-gold' }),
+        expect.objectContaining({ listingId: 'listing-rhodium' }),
+      ],
+    })
+  })
+
+  it('isolates same-SKU finish/stone listing photos on the shared pipeline', async () => {
+    processRepListingPhotoUrlMock
+      .mockResolvedValueOnce({ photoUrl: 'https://cdn.example.com/gold-jewelry.png' })
+      .mockResolvedValueOnce({
+        photoUrl: 'https://cdn.example.com/rhodium-jewelry.png',
+      })
+    addListingBatchMock.mockResolvedValueOnce({
+      added: [
+        {
+          listingId: 'listing-gold',
+          designId: 'design-nk88350-gold',
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          status: 'available',
+          usesCanonicalPhoto: false,
+        },
+        {
+          listingId: 'listing-rhodium',
+          designId: 'design-nk88350-rhodium',
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          status: 'available',
+          usesCanonicalPhoto: false,
+        },
+      ],
+      pending: { needCollection: [], needFullInfo: [] },
+    })
+
+    const tool = makeTool()
+    await tool.execute({
+      mode: 'batch',
+      items: [
+        {
+          itemNumber: 'NK88350',
+          material: 'Gold Plating',
+          mainStone: 'Lapis Magnesite',
+          listingPhotoUrl: 'https://dropbox.example.com/gold.png',
+        },
+        {
+          itemNumber: 'NK88350',
+          material: 'Rhodium Plating',
+          mainStone: 'Malachite Magnesite',
+          listingPhotoUrl: 'https://dropbox.example.com/rhodium.png',
+        },
+      ],
+    })
+
+    expect(processRepListingPhotoUrlMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        sourceImageUrl: 'https://dropbox.example.com/gold.png',
+        filenameStem: 'NK88350-listing-photo',
+        variantAssetKey: 'gold plating|lapis magnesite',
+      }),
+    )
+    expect(processRepListingPhotoUrlMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        sourceImageUrl: 'https://dropbox.example.com/rhodium.png',
+        filenameStem: 'NK88350-listing-photo',
+        variantAssetKey: 'rhodium plating|malachite magnesite',
+      }),
+    )
+    expect(addListingBatchMock.mock.calls[0][2].items).toEqual([
+      expect.objectContaining({
+        listingPhotoUrl: 'https://cdn.example.com/gold-jewelry.png',
+        material: 'Gold Plating',
+      }),
+      expect.objectContaining({
+        listingPhotoUrl: 'https://cdn.example.com/rhodium-jewelry.png',
+        material: 'Rhodium Plating',
+      }),
+    ])
   })
 })

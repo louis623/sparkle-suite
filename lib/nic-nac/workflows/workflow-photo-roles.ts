@@ -35,6 +35,115 @@ export function isAcceptedCustomerFacingWorkflowPhoto<
   )
 }
 
+/**
+ * Workflow-owned jewelry-front identity for the save gate.
+ *
+ * A clear jewelry shot already in the thread must satisfy the
+ * customer-facing jewelry photo requirement. Selection is still by
+ * declared / visual role — never by raw URL or attachment order.
+ * Labels stay labels. Two uncertain photos still cannot invent a role.
+ */
+export function workflowPhotoSatisfiesJewelryFront(photo: {
+  declaredRole?: string
+  visualRole?: string
+  quality?: string
+} | null | undefined): boolean {
+  if (!photo) return false
+  if (photo.quality === 'blocked') return false
+  if (photo.declaredRole === 'label_details' || photo.declaredRole === 'other') {
+    return false
+  }
+  if (
+    photo.visualRole === 'label_or_packaging' &&
+    photo.declaredRole !== 'jewelry_front'
+  ) {
+    return false
+  }
+  if (photo.declaredRole === 'jewelry_front') return true
+  if (photo.visualRole === 'jewelry') return true
+  if (photo.visualRole === 'uncertain') return true
+  return false
+}
+
+export function findWorkflowJewelryFrontForReadiness<
+  T extends {
+    declaredRole?: string
+    visualRole?: string
+    quality?: string
+  },
+>(photos: T[] | null | undefined): T | undefined {
+  const allPhotos = photos ?? []
+  const declared = allPhotos.find(
+    (photo) =>
+      photo.declaredRole === 'jewelry_front' && photo.quality !== 'blocked',
+  )
+  if (declared) return declared
+  const candidates = allPhotos.filter(workflowPhotoSatisfiesJewelryFront)
+  if (candidates.length === 1) return candidates[0]
+  return undefined
+}
+
+const JEWELRY_FRONT_DECLARED_NOTE = 'declared as customer-facing jewelry photo'
+
+type StampableWorkflowPhoto = {
+  declaredRole?: string
+  visualRole?: string
+  quality?: string
+  imageUrl?: string
+  roleConfirmed?: boolean
+  notes?: string[]
+}
+
+/**
+ * When a photo is promoted to jewelry_front, remap a visual label/packaging
+ * classification to uncertain so boxed hex-card shots are not barred from
+ * customer-facing publish. Same remap as ingest.
+ */
+export function stampPhotoAsJewelryFront<T extends StampableWorkflowPhoto>(
+  photo: T,
+): T {
+  const notes = [...(photo.notes ?? [])]
+  if (!notes.includes(JEWELRY_FRONT_DECLARED_NOTE)) {
+    notes.push(JEWELRY_FRONT_DECLARED_NOTE)
+  }
+  return {
+    ...photo,
+    declaredRole: 'jewelry_front',
+    visualRole:
+      photo.visualRole === 'label_or_packaging' ? 'uncertain' : photo.visualRole,
+    roleConfirmed: true,
+    notes,
+  }
+}
+
+function jewelryFrontStampAlreadyApplied<T extends StampableWorkflowPhoto>(
+  photo: T,
+): boolean {
+  return (
+    photo.declaredRole === 'jewelry_front' &&
+    photo.visualRole !== 'label_or_packaging' &&
+    photo.roleConfirmed === true
+  )
+}
+
+/**
+ * Stamp-on-promote: if readiness would treat exactly one photo as the
+ * jewelry-front, persist that identity as declared jewelry_front so publish
+ * helpers (isAcceptedCustomerFacingWorkflowPhoto / add_listing) see the same
+ * photo. Two uncertain photos still cannot invent a role.
+ */
+export function stampSoleReadinessJewelryFrontCandidate<
+  T extends StampableWorkflowPhoto,
+>(photos: T[] | null | undefined): T[] {
+  const allPhotos = photos ?? []
+  const candidate = findWorkflowJewelryFrontForReadiness(allPhotos)
+  if (!candidate || jewelryFrontStampAlreadyApplied(candidate)) {
+    return allPhotos
+  }
+  const stamped = stampPhotoAsJewelryFront(candidate)
+  return allPhotos.map((photo) => (photo === candidate ? stamped : photo))
+}
+
 export function inferRoleFromText(text: string): TradeBoardPhotoDeclaredRole {
   const asksForJewelryPhoto =
     /\b(?:need|needs|send|upload|snap|take|provide|use|show|get|got)\b[\s\S]{0,120}\b(?:jewelry|customer-facing|front\s+(?:photo|shot|image)|boxed display|piece photo|listing photo|earrings themselves|just the earrings|actual jewelry)\b/i.test(
@@ -188,16 +297,34 @@ export function assignDeclaredPhotoRolesForTurn(args: {
   for (let index = 0; index < count; index += 1) {
     if (roles[index]) continue
     const visualRole = args.visualRoles[index]
-    if (visualRole === 'label_or_packaging') roles[index] = 'label_details'
-    else if (visualRole === 'jewelry') roles[index] = 'jewelry_front'
+    if (visualRole === 'jewelry') {
+      roles[index] = 'jewelry_front'
+      continue
+    }
+    if (visualRole !== 'label_or_packaging') continue
+    // A single photo after a jewelry ask is the jewelry shot, even when the
+    // visual classifier calls a boxed hex-card display "label/packaging".
+    // Two-photo turns still pin a true visual label as details-only.
+    if (count === 1 && args.inheritedRole === 'jewelry_front') {
+      roles[index] = 'jewelry_front'
+    } else {
+      roles[index] = 'label_details'
+    }
   }
 
   if (count === 1 && !roles[0]) {
-    roles[0] = reconcileDeclaredPhotoRoleWithWorkflow({
-      inferredRole: args.inheritedRole,
-      latestUserText: args.latestUserText,
-      photos: args.existingPhotos,
-    })
+    if (
+      args.visualRoles[0] === 'uncertain' &&
+      args.inheritedRole !== 'label_details'
+    ) {
+      roles[0] = 'jewelry_front'
+    } else {
+      roles[0] = reconcileDeclaredPhotoRoleWithWorkflow({
+        inferredRole: args.inheritedRole,
+        latestUserText: args.latestUserText,
+        photos: args.existingPhotos,
+      })
+    }
   }
 
   const turnHasLabel = roles.some((role) => role === 'label_details')
