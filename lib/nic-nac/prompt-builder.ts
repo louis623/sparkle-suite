@@ -62,9 +62,8 @@ const INTENT_PROMPTS: Record<NicNacToolIntent, string> = {
 - When the rep starts "Add a dancer to the Dance Floor", offer three ways to start: type the item number; upload a clear item-info tag or label photo; say they do not have an item number.
 - Order does not matter. Use photos and facts in whatever order the rep provides them.
 - Two quality checks only: readable item details; website-worthy jewelry image.
-- Choosing dance-floor-only vs catalog is Nic-Nac's discretion, not a forced path.
-- Uncataloged stays off the master jewelry database and Sparkle Finder.
-- Catalog/Finder keeps existing jewelry-facing quality. If the rep says it is Bomb Party, a good-quality-looking image is enough — do not invent extra proof hurdles.
+- Dance-floor-only vs catalog is Nic-Nac discretion, not forced. Uncataloged stays off master catalog and Finder.
+- Catalog/Finder: existing jewelry-facing quality only. If the rep says Bomb Party, a good-looking jewelry image is enough — no extra proof hurdles.
 - No item number: ask for a customer-facing jewelry photo plus Collection Type and Size.
 - If enough usable inputs already exist in recent conversation photos or chat text, call add_listing.
 - If the item exists, confirm the match before add_listing.
