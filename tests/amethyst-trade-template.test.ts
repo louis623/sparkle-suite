@@ -413,6 +413,8 @@ describe('Amethyst trade page template wiring', () => {
     expect(mapped.note).toBe(
       'Item-for-item only. Requests must stay within the same collection and the same jewelry type.',
     )
+    expect(mapped.photoSource).toBe('listing')
+    expect(mapped.photoUrl).not.toBeNull()
   })
 
   it('marks canonical and missing photo source without exposing internal labels on the customer card', () => {

@@ -192,6 +192,17 @@ describe('customer-facing media selection', () => {
     ).toBe(false)
   })
 
+  it('keeps listing-only non-item-number dancers out of catalog canonical fallback', () => {
+    expect(
+      shouldFallBackToCatalogCanonicalPhoto({
+        listingPhotoUrl: undefined,
+        hasWorkflowJewelryPhoto: false,
+        catalogHasCanonicalPhoto: true,
+        resolvedDesignId: null,
+      }),
+    ).toBe(false)
+  })
+
   it('applies jewelry-over-label on the shared pipeline, not a per-rep branch', () => {
     expect(
       shouldFallBackToCatalogCanonicalPhoto({

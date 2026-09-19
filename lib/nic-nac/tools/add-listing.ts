@@ -1011,6 +1011,7 @@ async function runNonItemNumberSingle(
     activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
     activeTradeWorkflow?: ToolContext['activeTradeWorkflow']
     mutationSuffix?: string
+    mutationAssetKey?: string
   },
   admin: SupabaseClient,
 ) {
@@ -1067,6 +1068,9 @@ async function runNonItemNumberSingle(
     })
   }
 
+  // Listing-only row: jewelry-front still wins, but never resolve or
+  // create jewelry_designs. Photo cache uses mutation identity, not a
+  // catalog designId / item number.
   const processedListingPhotoUrl = await processListingPhotoForAdd({
     listingPhotoUrl: input.listingPhotoUrl,
     listingPhotoIndex: input.listingPhotoIndex,
@@ -1078,6 +1082,7 @@ async function runNonItemNumberSingle(
     conversationId: ctx.conversationId,
     photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
     allowImplicitConversationPhoto: true,
+    mutationAssetKey: ctx.mutationAssetKey,
   })
   if (!processedListingPhotoUrl) {
     throw new NicNacToolError({
@@ -1181,7 +1186,11 @@ async function runSingle(
     input.catalogMode === 'non_item_number' ||
     (!itemNumber && activeWorkflow?.catalogMode === 'non_item_number')
   ) {
-    return runNonItemNumberSingle(input, ctx, admin)
+    return runNonItemNumberSingle(
+      input,
+      { ...ctx, mutationAssetKey: mutationIdentity.inputSignature },
+      admin,
+    )
   }
 
   if (!itemNumber) {

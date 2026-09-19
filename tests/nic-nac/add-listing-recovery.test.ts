@@ -3185,8 +3185,12 @@ describe('add_listing - active workflow readiness guard', () => {
         repId: 'rep-1',
         sourceImageUrl: 'data:image/jpeg;base64,Tk9OSVRFTV9SSU5H',
         filenameStem: 'non-item-number-piece-listing-photo',
+        mutationAssetKey: expect.any(String),
       },
       { confirmedJewelryFront: true },
+    )
+    expect(processRepListingPhotoUrlMock.mock.calls[0]?.[0]).not.toHaveProperty(
+      'variantAssetKey',
     )
     expect(addNonItemNumberListingMock).toHaveBeenCalledWith(
       expect.anything(),

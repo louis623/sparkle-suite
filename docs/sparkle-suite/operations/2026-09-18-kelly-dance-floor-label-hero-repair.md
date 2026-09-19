@@ -139,6 +139,26 @@ Display (`getTradeListingDisplayFields`) is listing-photo-first, then
 canonical. It showed the wrong hero because the **stored** listing used
 canonical and that canonical was the reused label. Not a frontend cache bug.
 
+## Non-item-number dancers (existing path — do not invent another)
+
+The no-label / photos-first add-dancer path already exists. Do **not**
+create a second catalog model.
+
+| Flag | Meaning |
+| --- | --- |
+| `catalogMode: 'non_item_number'` | Nic-Nac intake branch |
+| `listing_source = 'non_item_number'` | `trade_listings` row type |
+| `design_id` null | Required by `trade_listings_non_item_number_requires_no_design` |
+| Finder | `listing_source = 'catalog'` + required `design_id` |
+
+Contract, still true for every rep:
+
+1. These listings **show** on that rep’s customer Dance Floor and Workspace board (`getTradeListingDisplayFields` + Amethyst public net RPC, no `listing_source` filter).
+2. They **do not** write `jewelry_designs`. `addNonItemNumberListing` inserts listing-only. Jewelry-over-label / variant matching require a resolved `designId`, so they cannot push these into the master catalog.
+3. They **are not** findable on Sparkle Finder (`list_sparkle_finder_availability_v2` and Suite Finder reads require `listing_source = 'catalog'` and a `design_id`).
+
+V1 remains Nic-Nac-only, one piece at a time.
+
 ## Scope lock
 
 All reps deal with same item number / different finish or stone. The write

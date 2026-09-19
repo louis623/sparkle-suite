@@ -58,6 +58,10 @@ export function hasUsableWorkflowJewelryPhoto(
  * main stone, August 25 `designId`). This helper does not choose a variant.
  * It only allows THAT already-resolved design's canonical when this listing
  * has no jewelry-front of its own.
+ *
+ * Non-item-number dancers (`listing_source = 'non_item_number'`,
+ * `design_id` null) never pass `resolvedDesignId`, so they cannot fall
+ * back into the master catalog.
  */
 export function shouldFallBackToCatalogCanonicalPhoto(args: {
   listingPhotoUrl?: string | null
