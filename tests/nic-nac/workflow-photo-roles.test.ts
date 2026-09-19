@@ -220,11 +220,12 @@ describe('customer-facing media selection', () => {
         material: 'Gold Plating',
         mainStone: 'Lapis Magnesite',
       }),
-    ).not.toBe(
+    ).toBe('gold plating|lapis magnesite')
+    expect(
       catalogVariantPhotoAssetKey({
         material: 'Rhodium Plating',
         mainStone: 'Malachite Magnesite',
       }),
-    )
+    ).toBe('rhodium plating|malachite magnesite')
   })
 })

@@ -110,6 +110,7 @@ const inputSchema = z.object({
 
 type ToolInput = z.infer<typeof inputSchema>
 
+/** June 27 / August 23 `resolveItemNumber` options. Not a second matcher. */
 function catalogVariantLookup(input: { material?: string; mainStone?: string }) {
   return {
     ...(input.material !== undefined ? { material: input.material } : {}),

@@ -35,13 +35,28 @@ SHA-256 of Statement canonical and Half Moon Rhodium canonical:
 Same image reused across two different SKUs. The Storyteller’s own listing
 photo is a **different** hash and is already the clean jewelry shot.
 
-## Audit cause split (required product rule)
+## Prior Suite rule (June–August 2026) — still the matcher
 
-Louis’s hard rule: the same item number / SKU can still have **multiple
-listings with different photos**. Same jewelry shape can ship as a different
-finish or a different stone. Those are separate listings and must keep their
-own correct front-facing photo. Do **not** “fix” by collapsing every row that
-shares an item number onto one master image.
+This is **not** a new identity system. Suite already treats same item number +
+different finish/stone as separate dancers with their own photos:
+
+| When | Change | What it still does |
+| --- | --- | --- |
+| June 27, 2026 | `f1e225a9` `fix: support Nic-Nac plating variants` (`c6664146` notes). Migration `20260627134500_jewelry_design_item_number_material_variants.sql`. | `resolveItemNumber(itemNumber, { material })`. `prepare_trade_board_work` asks which plating when ambiguous. Add-listing / duplicate checks pass material. |
+| August 23, 2026 | `720cdd74` `fix: support catalog variants by main stone`. Migration `20260823160000_ss_jewelry_design_main_stone_variants.sql`. | Same resolver also takes `designId` + `mainStone`. Unique index is item + material + stone. Jewelry Library carries exact `designId`. |
+| August 23–25, 2026 | `bba85805` / `f81eed6a` quantity grouping. | Increment key is `design_id` + size + `listing_photo_url` + notes, not item number. |
+
+**Does it still fire on Kelly’s Dance Floor?** Yes.
+
+- Write: `add_listing` → `resolveItemNumber` with material/stone/`designId` (`lib/services/jewelry-database.ts`, `lib/services/trade-board.ts`, `lib/nic-nac/tools/add-listing.ts`).
+- Customer cards: `GET /api/amethyst/trade-board` → `mapTradeListingToAmethystTradeBoardListing` → `getTradeListingDisplayFields`. Photo is **this listing’s** `listing_photo_url`, else **this listing’s** `design.canonical_photo_url`. Material/stone on the card come from that design. The API does **not** re-resolve by item number or pick a master SKU image.
+- Live proof: Kelly’s Gold NK88350 (`1b30f6bd`) and Rhodium NK88350 (`115404d6`) are already separate `jewelry_designs` rows with separate files. June/August matching worked.
+
+This PR does **not** invent a parallel matcher. Jewelry-over-label is layered on the already-resolved `design.id`. PhotoRoom cache identity reuses that `designId` or the official `normalizeJewelryMaterialKey` / `normalizeJewelryMainStoneKey` strings.
+
+## Audit cause split
+
+Same item number / different finish or stone = separate listings with their own photos is the **existing** June/August rule. Do **not** “fix” by collapsing every row that shares an item number onto one master image.
 
 | Wrong card | Cause class | What happened | What is **not** the cause |
 | --- | --- | --- | --- |
@@ -50,11 +65,12 @@ shares an item number onto one master image.
 | Half Moon Crescent Gold NK88350 (`1b30f6bd`) | None | Listing photo is the correct half-moon jewelry. | Must stay untouched. Do not copy this jewelry onto Rhodium. |
 | The Storyteller NK96080 | None | Listing photo is the correct Storyteller jewelry (different hash from the label reused above). | The label that leaked to other SKUs is a **details** photo for this dancer, not its hero. |
 
-**Over-aggressive same-item-number image sharing:** not what Kelly’s live
-cards show. Gold and Rhodium NK88350 already have separate `jewelry_designs`
-rows and separate stored files. The write-path risk that *could* mix them is
-PhotoRoom `assetId` keyed only as `repId:NK88350-listing-photo`. This PR
-scopes that identity with the resolved design id (or `material--mainStone`).
+**Classification:** not a regression of June/August variant matching. Those
+listings already have the correct separate design ids. This is a **bypass** of
+jewelry-front selection (canonical skip + conversation label reuse) plus
+**bad stored canonicals** that never received a jewelry-front write after
+matching. PhotoRoom `assetId` keyed only as `repId:NK88350-listing-photo` was
+an extra same-SKU cache risk; this PR scopes it with the existing `designId`.
 
 **True label-as-hero selection failure:** yes. Catalog canonical fallback
 skipped a confirmed workflow `jewelry_front`, and mutation identity ignored
@@ -71,11 +87,10 @@ skipped a confirmed workflow `jewelry_front`, and mutation identity ignored
 | `main_stone` | Stone / color (Malachite vs Lapis) | Same. Ambiguous same-SKU rows stay unresolved until finish/stone is known. |
 | Dancer photo role | Workflow `declaredRole` + visual role | `jewelry_front` / `jewelry` is the hero **for that listing**. `label_details` / `label_or_packaging` is details-only for that listing. |
 | Quantity increment | `design_id` + `ring_size` + `listing_photo_url` + notes + prefs + rarity | Same item number with a different photo or finish does **not** increment into one card. |
-| PhotoRoom `assetId` | Enhancement cache | `repId:filenameStem:designId` (or `material--mainStone`). Item-number stem alone is not enough. |
+| PhotoRoom `assetId` | Enhancement cache only | `repId:filenameStem:` plus the already-resolved `designId`, or official `material|stone` keys. Not a second matcher. |
 
-This fix **preserves per-listing identity**. Canonical fallback now requires
-`resolvedDesignId` (the matched variant). Workflow jewelry and an explicit
-listing photo still win **for that listing**. Gold NK88350 jewelry is never
+Jewelry-over-label is layered on that existing identity. Canonical fallback
+requires the June/August `resolvedDesignId`. Gold NK88350 jewelry is never
 copied onto Rhodium NK88350.
 
 ## Root cause (code, all reps)
@@ -121,8 +136,9 @@ canonical and that canonical was the reused label. Not a frontend cache bug.
   add mutation identity, so a re-upload cannot replay the old photo.
 - New-design conversation fallbacks use only the latest user turn. They must
   not copy another SKU’s photo from earlier in the chat.
-- PhotoRoom / listing enhancement identity includes the variant key
-  (`designId`, or `material--mainStone` before a design exists).
+- PhotoRoom / listing enhancement identity reuses the June/August variant
+  (`designId`, or official `material|stone` keys before a design exists).
+  This is cache identity, not a second matcher.
 - PR #7 role rules still apply: labels are details-only; two uncertain
   photos stay unknown.
 

@@ -81,6 +81,10 @@ vi.mock('@/lib/services/jewelry-database', () => ({
   updateCanonicalPhoto: (...args: unknown[]) => updateCanonicalPhotoMock(...args),
   updatePhotoPipelineState: (...args: unknown[]) =>
     updatePhotoPipelineStateMock(...args),
+  normalizeJewelryMaterialKey: (value: string | null | undefined) =>
+    value?.trim().replace(/\s+/g, ' ').toLowerCase() || null,
+  normalizeJewelryMainStoneKey: (value: string | null | undefined) =>
+    value?.trim().replace(/\s+/g, ' ').toLowerCase() || null,
 }))
 
 vi.mock('@/lib/services/storage', () => ({

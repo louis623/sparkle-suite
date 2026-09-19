@@ -1,3 +1,7 @@
+import {
+  normalizeJewelryMainStoneKey,
+  normalizeJewelryMaterialKey,
+} from '@/lib/services/jewelry-database'
 import { isAcceptedCustomerFacingWorkflowPhoto } from './workflow-photo-roles'
 
 export interface WorkflowJewelryPhoto {
@@ -46,11 +50,12 @@ export function hasUsableWorkflowJewelryPhoto(
 }
 
 /**
- * Shared catalog canonical photos are a last-resort fallback for ONE matched
- * catalog variant (design id = item number + finish/material + main stone).
- * A confirmed jewelry-front workflow photo, or an explicit listing photo URL,
- * always wins for that listing. Never treat "same item number" as permission
- * to copy another variant's or listing's photo.
+ * Jewelry-over-label gate on top of the June/August catalog matcher.
+ *
+ * Variant identity is still `resolveItemNumber` / `jewelry_designs.id`
+ * (`f1e225a9` June 27 plating, `720cdd74` August 23 main stone). This helper
+ * does not choose a variant. It only allows THAT already-resolved design's
+ * canonical when this listing has no jewelry-front of its own.
  */
 export function shouldFallBackToCatalogCanonicalPhoto(args: {
   listingPhotoUrl?: string | null
@@ -65,7 +70,12 @@ export function shouldFallBackToCatalogCanonicalPhoto(args: {
   return true
 }
 
-/** PhotoRoom / upload identity for one catalog variant. Item number alone is not enough. */
+/**
+ * PhotoRoom cache identity for a variant already chosen by June/August
+ * matching. Prefer `designId`. If the design does not exist yet, reuse
+ * `normalizeJewelryMaterialKey` / `normalizeJewelryMainStoneKey` — do not
+ * invent a second slugger.
+ */
 export function catalogVariantPhotoAssetKey(args: {
   designId?: string | null
   material?: string | null
@@ -73,9 +83,9 @@ export function catalogVariantPhotoAssetKey(args: {
 }): string | undefined {
   const designId = args.designId?.trim()
   if (designId) return designId
-  const material = args.material?.trim().toLowerCase().replace(/\s+/g, '-')
-  const mainStone = args.mainStone?.trim().toLowerCase().replace(/\s+/g, '-')
-  const variant = [material, mainStone].filter(Boolean).join('--')
+  const material = normalizeJewelryMaterialKey(args.material)
+  const mainStone = normalizeJewelryMainStoneKey(args.mainStone)
+  const variant = [material, mainStone].filter(Boolean).join('|')
   return variant || undefined
 }
 

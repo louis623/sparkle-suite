@@ -119,10 +119,9 @@ export function getTradeListingDisplayFields(
 
   const listingPhotoUrl = cleanText(listing.listing_photo_url)
   const canonicalPhotoUrl = cleanText(design.canonical_photo_url)
-  // Per-listing identity: this row's jewelry-front wins. Canonical is only
-  // THIS design's last-resort fallback (design = item number + finish +
-  // stone). Same item number with a different plating or stone is a different
-  // design and must keep its own photo. Display never copies another listing.
+  // June 27 / August 23 identity still owns the card: this listing's photo,
+  // else THIS design's canonical (`jewelry_designs.id` = item + material +
+  // stone). Display does not re-resolve by item number or copy another listing.
   const photoUrl =
     listingPhotoUrl ??
     (listing.uses_canonical_photo ? canonicalPhotoUrl : null)

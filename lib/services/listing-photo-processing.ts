@@ -17,7 +17,7 @@ export interface ProcessRepListingPhotoUrlInput {
   sourceImageUrl: string
   filenameStem: string
   mutationAssetKey?: string
-  /** Finish/stone or design id. Same item number must not share enhancement identity. */
+  /** June/August variant identity (`designId` or material|stone). Not a second matcher. */
   variantAssetKey?: string
 }
 
