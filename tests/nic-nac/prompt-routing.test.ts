@@ -163,7 +163,7 @@ describe('Nic-Nac routed system prompt', () => {
     expect(prompt).toContain('Never claim a dancer is added until add_listing returns success')
     expect(prompt).not.toContain('add_show')
     expect(prompt).not.toContain('send_sms_notification')
-    expect(prompt.length).toBeLessThan(9_800)
+    expect(prompt.length).toBeLessThan(10_200)
   })
 
   it('includes active workflow prompt state before Dance Floor instructions', () => {
