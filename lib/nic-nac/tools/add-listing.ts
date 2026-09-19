@@ -2036,6 +2036,7 @@ async function runBatch(
   }
 
   const processedItems: Parameters<typeof addListingBatch>[2]['items'] = []
+  const sameVariantBatch = batchRepeatsOneItem({ mode: 'batch', items })
   for (const [itemIndex, item] of items.entries()) {
     const mutationIdentity = catalogMutationIdentity({
       toolInput: {
@@ -2046,21 +2047,30 @@ async function runBatch(
       runId: ctx.runId,
       suffix: `batch:${itemIndex}`,
     })
-    let listingPhotoUrl: string | undefined
-    if (item.listingPhotoUrl) {
-      try {
-        listingPhotoUrl = (
-          await processRepListingPhotoUrl({
-            repId: ctx.repId,
-            sourceImageUrl: item.listingPhotoUrl,
-            filenameStem: `${item.itemNumber}-listing-photo`,
-            mutationAssetKey: mutationIdentity.inputSignature,
-          })
-        ).photoUrl
-      } catch (err) {
-        explainServiceError(err)
-      }
-    }
+    // Shared pipeline for every rep. Same item number + different finish or
+    // stone must not share one jewelry-front or one PhotoRoom cache key.
+    const shareWorkflowJewelry =
+      sameVariantBatch ||
+      Boolean(item.selectedPhotoId) ||
+      item.listingPhotoIndex !== undefined ||
+      item.piecePhotoIndex !== undefined
+    const listingPhotoUrl = await processListingPhotoForAdd({
+      listingPhotoUrl: item.listingPhotoUrl,
+      listingPhotoIndex: item.listingPhotoIndex,
+      selectedPhotoId: item.selectedPhotoId,
+      itemNumber: item.itemNumber,
+      material: item.material,
+      mainStone: item.mainStone,
+      activeTradeBoardWorkflow: shareWorkflowJewelry
+        ? ctx.activeTradeBoardWorkflow
+        : undefined,
+      repId: ctx.repId,
+      supabase: ctx.supabase,
+      conversationId: ctx.conversationId,
+      photoIndex: item.listingPhotoIndex ?? item.piecePhotoIndex,
+      allowImplicitConversationPhoto: false,
+      mutationAssetKey: mutationIdentity.inputSignature,
+    })
 
     processedItems.push({
       itemNumber: item.itemNumber,

@@ -52,10 +52,12 @@ export function hasUsableWorkflowJewelryPhoto(
 /**
  * Jewelry-over-label gate on top of the June/August catalog matcher.
  *
- * Variant identity is still `resolveItemNumber` / `jewelry_designs.id`
- * (`f1e225a9` June 27 plating, `720cdd74` August 23 main stone). This helper
- * does not choose a variant. It only allows THAT already-resolved design's
- * canonical when this listing has no jewelry-front of its own.
+ * Shared pipeline for every current and future Dance Floor. There is no
+ * per-rep branch. Variant identity is still `resolveItemNumber` /
+ * `jewelry_designs.id` (`f1e225a9` June 27 plating, `720cdd74` August 23
+ * main stone, August 25 `designId`). This helper does not choose a variant.
+ * It only allows THAT already-resolved design's canonical when this listing
+ * has no jewelry-front of its own.
  */
 export function shouldFallBackToCatalogCanonicalPhoto(args: {
   listingPhotoUrl?: string | null

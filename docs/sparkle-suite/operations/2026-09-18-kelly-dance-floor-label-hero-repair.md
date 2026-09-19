@@ -1,7 +1,9 @@
 # Kelly Dance Floor label-as-hero repair (September 18–19, 2026)
 
-**Status:** code fix in review. Do **not** apply production data repair until
-Louis reviews a per-listing manifest. Do **not** deploy from this note.
+**Status:** shared pipeline fix in review. Kelly’s screenshot is the **repro**,
+not the scope. The variant distinguisher and jewelry-over-label apply to
+**every current and future Dance Floor**. Do **not** ship a Kelly-only data
+patch. Do **not** deploy from this note.
 
 ## What Louis’s September 19 screenshot showed
 
@@ -136,6 +138,18 @@ A second write-path still won after delete/re-upload:
 Display (`getTradeListingDisplayFields`) is listing-photo-first, then
 canonical. It showed the wrong hero because the **stored** listing used
 canonical and that canonical was the reused label. Not a frontend cache bug.
+
+## Scope lock
+
+All reps deal with same item number / different finish or stone. The write
+path (`add_listing` single + batch, Jewelry Library POST, trade-board POST)
+and the display path (`getTradeListingDisplayFields` → Amethyst + Workspace)
+are shared. There is no `rep_id` gate, no Kelly slug check, and no one-off
+hero rewrite that would leave Heather, Lindsey, or a future rep broken.
+
+Existing wrong canonicals (Kelly Statement / Half Moon Rhodium, Sep 5
+ER11309 / ER90783, any later label-as-hero) stay owner-reviewed later.
+This PR does not patch production rows.
 
 ## Code contract (this follow-up)
 

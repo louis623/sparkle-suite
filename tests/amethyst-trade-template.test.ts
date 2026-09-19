@@ -272,6 +272,55 @@ describe('Amethyst trade page template wiring', () => {
     expect(gold.photoUrl).not.toBe(rhodium.photoUrl)
   })
 
+  it('applies the same variant photo contract to every rep Dance Floor', () => {
+    const firstRep = mapTradeListingToAmethystTradeBoardListing(
+      makeTradeListing({
+        id: 'listing-rep-a-gold',
+        rep_id: 'rep-a',
+        listing_photo_url: 'https://cdn.example.com/rep-a-gold.jpg',
+        uses_canonical_photo: false,
+        design: {
+          id: 'design-rep-a-gold',
+          item_number: 'NK88350',
+          design_name: 'Half Moon Crescent',
+          material: 'Gold Plating',
+          main_stone: 'Lapis Magnesite',
+          bp_msrp: 132,
+          canonical_photo_url: 'https://cdn.example.com/rep-a-gold-canonical.jpg',
+          type_prefix: 'NK',
+          collection: { id: 'collection-og', name: 'Original Necklace' },
+        },
+      }),
+    )
+    const secondRep = mapTradeListingToAmethystTradeBoardListing(
+      makeTradeListing({
+        id: 'listing-rep-b-rhodium',
+        rep_id: 'rep-b',
+        listing_photo_url: null,
+        uses_canonical_photo: true,
+        design: {
+          id: 'design-rep-b-rhodium',
+          item_number: 'NK88350',
+          design_name: 'Half Moon Crescent',
+          material: 'Rhodium Plating',
+          main_stone: 'Malachite Magnesite',
+          bp_msrp: 132,
+          canonical_photo_url: 'https://cdn.example.com/rep-b-rhodium-canonical.jpg',
+          type_prefix: 'NK',
+          collection: { id: 'collection-og', name: 'Original Necklace' },
+        },
+      }),
+    )
+
+    expect(firstRep.photoUrl).toBe('https://cdn.example.com/rep-a-gold.jpg')
+    expect(secondRep.photoUrl).toBe(
+      'https://cdn.example.com/rep-b-rhodium-canonical.jpg',
+    )
+    expect(firstRep.photoUrl).not.toBe(secondRep.photoUrl)
+    expect(firstRep.material).toBe('Gold Plating')
+    expect(secondRep.material).toBe('Rhodium Plating')
+  })
+
   it('maps trade listing ring size to the customer-facing board size', () => {
     const mapped = mapTradeListingToAmethystTradeBoardListing(
       makeTradeListing({ ring_size: '8' }),

@@ -192,6 +192,17 @@ describe('customer-facing media selection', () => {
     ).toBe(false)
   })
 
+  it('applies jewelry-over-label on the shared pipeline, not a per-rep branch', () => {
+    expect(
+      shouldFallBackToCatalogCanonicalPhoto({
+        listingPhotoUrl: undefined,
+        hasWorkflowJewelryPhoto: true,
+        catalogHasCanonicalPhoto: true,
+        resolvedDesignId: 'design-any-rep',
+      }),
+    ).toBe(false)
+  })
+
   it('never uses another variant’s canonical just because the item number matches', () => {
     expect(
       shouldFallBackToCatalogCanonicalPhoto({
