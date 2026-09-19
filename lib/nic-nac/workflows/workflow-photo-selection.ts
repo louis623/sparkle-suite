@@ -38,6 +38,30 @@ export function resolveWorkflowCustomerFacingPhoto(
   return null
 }
 
+export function hasUsableWorkflowJewelryPhoto(
+  photos: WorkflowJewelryPhoto[] | null | undefined,
+  selection: { selectedPhotoId?: string; modelIndex?: number } = {},
+): boolean {
+  return Boolean(resolveWorkflowCustomerFacingPhoto(photos, selection)?.imageUrl)
+}
+
+/**
+ * Shared catalog canonical photos are a last-resort fallback.
+ * A confirmed jewelry-front workflow photo, or an explicit listing photo URL,
+ * always wins. This is the path that kept Kelly's Dance Floor on a reused
+ * inventory-label canonical after delete/re-upload.
+ */
+export function shouldFallBackToCatalogCanonicalPhoto(args: {
+  listingPhotoUrl?: string | null
+  hasWorkflowJewelryPhoto: boolean
+  catalogHasCanonicalPhoto: boolean
+}): boolean {
+  if (!args.catalogHasCanonicalPhoto) return false
+  if (args.listingPhotoUrl?.trim()) return false
+  if (args.hasWorkflowJewelryPhoto) return false
+  return true
+}
+
 function pickPreferredCustomerFacingPhoto(
   accepted: WorkflowJewelryPhoto[],
 ): WorkflowJewelryPhoto | null {

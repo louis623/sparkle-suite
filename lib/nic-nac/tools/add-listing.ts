@@ -48,7 +48,11 @@ import {
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
-import { resolveWorkflowCustomerFacingPhoto } from '@/lib/nic-nac/workflows/workflow-photo-selection'
+import {
+  hasUsableWorkflowJewelryPhoto,
+  resolveWorkflowCustomerFacingPhoto,
+  shouldFallBackToCatalogCanonicalPhoto,
+} from '@/lib/nic-nac/workflows/workflow-photo-selection'
 import { isAcceptedCustomerFacingWorkflowPhoto } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import type { ToolContext, ToolDefinition } from './types'
 
@@ -286,11 +290,19 @@ function throwMutationFailure(
   throw new NicNacMutationFailure({ ...args, cause: err })
 }
 
-function addAttemptInputSummary(input: ToolInput) {
-  const hashOptionalSource = (value: string | undefined) =>
+function addAttemptInputSummary(
+  input: ToolInput,
+  workflow?: ToolContext['activeTradeBoardWorkflow'],
+) {
+  const hashOptionalSource = (value: string | undefined | null) =>
     value
       ? createHash('sha256').update(value).digest('hex')
       : null
+  const workflowJewelryUrl = getWorkflowConfirmedJewelryFrontImageUrl(
+    workflow,
+    input.listingPhotoIndex ?? input.piecePhotoIndex,
+    input.selectedPhotoId,
+  )
   return {
     mode: input.mode,
     catalogMode: input.catalogMode ?? 'item_number',
@@ -307,6 +319,8 @@ function addAttemptInputSummary(input: ToolInput) {
     piecePhotoSource: hashOptionalSource(input.piecePhotoUrl),
     listingPhotoIndex: input.listingPhotoIndex ?? null,
     piecePhotoIndex: input.piecePhotoIndex ?? null,
+    selectedPhotoId: input.selectedPhotoId ?? null,
+    workflowJewelrySource: hashOptionalSource(workflowJewelryUrl),
     bpMsrp: input.bpMsrp ?? null,
     searchTags: input.searchTags ?? [],
     specialFeatures: input.specialFeatures?.trim() ?? null,
@@ -321,7 +335,7 @@ function catalogMutationIdentity(input: {
   suffix?: string
 }) {
   const inputSignature = createHash('sha256')
-    .update(JSON.stringify(addAttemptInputSummary(input.toolInput)))
+    .update(JSON.stringify(addAttemptInputSummary(input.toolInput, input.workflow)))
     .digest('hex')
   const scope = input.workflow?.id ?? `run:${input.runId}`
   return {
@@ -337,7 +351,7 @@ async function markActiveTradeBoardWorkflowAdding(input: {
   runId: string
 }) {
   if (input.workflow?.status !== 'active') return
-  const acceptedInputs = addAttemptInputSummary(input.toolInput)
+  const acceptedInputs = addAttemptInputSummary(input.toolInput, input.workflow)
   const inputSignature = createHash('sha256')
     .update(JSON.stringify(acceptedInputs))
     .digest('hex')
@@ -1255,9 +1269,19 @@ async function runSingle(
           runId: ctx.runId,
         })
         const useExistingCatalogCanonicalPhoto =
-          !input.listingPhotoUrl &&
-          existingDesign.hasCollection &&
-          Boolean(existingDesign.design.canonicalPhotoUrl)
+          shouldFallBackToCatalogCanonicalPhoto({
+            listingPhotoUrl: input.listingPhotoUrl,
+            hasWorkflowJewelryPhoto: hasUsableWorkflowJewelryPhoto(
+              activeWorkflow?.photos,
+              {
+                selectedPhotoId: input.selectedPhotoId,
+                modelIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+              },
+            ),
+            catalogHasCanonicalPhoto:
+              existingDesign.hasCollection &&
+              Boolean(existingDesign.design.canonicalPhotoUrl),
+          })
         const existingListingPhotoUrl = useExistingCatalogCanonicalPhoto
           ? undefined
           : await processListingPhotoForAdd({
@@ -1458,6 +1482,7 @@ async function runSingle(
       const resolvedPhoto = await resolvePhotoFromConversation({
         supabase: ctx.supabase,
         conversationId: ctx.conversationId,
+        latestUserMessageOnly: true,
         photoIndex: designSourcePhotoIndex,
       })
       if (!resolvedPhoto) {
@@ -1809,12 +1834,22 @@ async function runSingle(
 
   let result: Awaited<ReturnType<typeof addListing>>
   let processedListingPhotoUrl: string | undefined = newDesignListingPhotoUrl
-  const shouldUseCatalogCanonicalPhoto =
-    !input.listingPhotoUrl &&
-    !designName &&
-    resolvedCatalogDesign?.found &&
-    Boolean(resolvedCatalogDesign.design.canonicalPhotoUrl) &&
-    resolvedCatalogDesign.hasCollection
+  const shouldUseCatalogCanonicalPhoto = shouldFallBackToCatalogCanonicalPhoto({
+    listingPhotoUrl: input.listingPhotoUrl,
+    hasWorkflowJewelryPhoto: hasUsableWorkflowJewelryPhoto(
+      activeWorkflow?.photos,
+      {
+        selectedPhotoId: input.selectedPhotoId,
+        modelIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+      },
+    ),
+    catalogHasCanonicalPhoto: Boolean(
+      !designName &&
+        resolvedCatalogDesign?.found &&
+        resolvedCatalogDesign.hasCollection &&
+        resolvedCatalogDesign.design.canonicalPhotoUrl,
+    ),
+  })
   if (!createdNewDesign) {
     await markActiveTradeBoardWorkflowAdding({
       workflow: activeWorkflow,

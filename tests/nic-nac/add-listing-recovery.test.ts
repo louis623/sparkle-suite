@@ -3572,6 +3572,177 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     )
   })
+
+  it('uses the workflow jewelry photo for an existing catalog design even when listingPhotoUrl is omitted', async () => {
+    resolveItemNumberMock.mockResolvedValueOnce({
+      found: true,
+      hasCollection: true,
+      design: {
+        id: 'design-nk57811',
+        itemNumber: 'NK57811',
+        designName: 'A Statement Of Sparkle Exclusive Bringback',
+        canonicalPhotoUrl:
+          'https://cdn.example.com/catalog/nk96080-storyteller-label.jpg',
+      },
+    })
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl:
+        'https://cdn.example.com/listings/rep-1/statement-of-sparkle-jewelry.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-statement',
+      designId: 'design-nk57811',
+      itemNumber: 'NK57811',
+      designName: 'A Statement Of Sparkle Exclusive Bringback',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    const jewelryId = '22222222-2222-4222-8222-222222222222'
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK57811',
+          designName: 'A Statement Of Sparkle Exclusive Bringback',
+          collectionName: 'Original Necklace',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            attachmentIndex: 1,
+            declaredRole: 'label_details',
+            visualRole: 'label_or_packaging',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as label/details source'],
+          },
+          {
+            id: jewelryId,
+            attachmentIndex: 2,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK57811',
+        designName: 'A Statement Of Sparkle Exclusive Bringback',
+        collectionName: 'Original Necklace',
+        selectedPhotoId: jewelryId,
+      }),
+    ).resolves.toMatchObject({
+      mode: 'single',
+      listingId: 'listing-statement',
+      itemNumber: 'NK57811',
+      createdNewDesign: false,
+    })
+
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
+      {
+        repId: 'rep-1',
+        sourceImageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+        filenameStem: 'NK57811-listing-photo',
+        mutationAssetKey: expect.any(String),
+      },
+      { confirmedJewelryFront: true },
+    )
+    expect(addListingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({
+        listingPhotoUrl:
+          'https://cdn.example.com/listings/rep-1/statement-of-sparkle-jewelry.png',
+      }),
+    )
+  })
+
+  it('uses the workflow jewelry photo for an item-number-only known catalog add', async () => {
+    resolveItemNumberMock.mockResolvedValue({
+      found: true,
+      hasCollection: true,
+      design: {
+        id: 'design-nk88350',
+        itemNumber: 'NK88350',
+        designName: 'Half Moon Crescent',
+        canonicalPhotoUrl:
+          'https://cdn.example.com/catalog/nk96080-storyteller-label.jpg',
+      },
+    })
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl:
+        'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-half-moon',
+      designId: 'design-nk88350',
+      itemNumber: 'NK88350',
+      designName: 'Half Moon Crescent',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    const jewelryId = '22222222-2222-4222-8222-222222222222'
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK88350',
+          designName: 'Half Moon Crescent',
+          collectionName: 'Original Necklace',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: jewelryId,
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK88350',
+        selectedPhotoId: jewelryId,
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-half-moon',
+      itemNumber: 'NK88350',
+    })
+
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalled()
+    expect(addListingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({
+        listingPhotoUrl:
+          'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
+      }),
+    )
+  })
 })
 
 // Sanity: make sure ServiceError import resolves (avoids the test file

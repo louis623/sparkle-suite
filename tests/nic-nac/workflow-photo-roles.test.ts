@@ -7,8 +7,10 @@ import {
   isBarredFromCustomerFacingMedia,
 } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import {
+  hasUsableWorkflowJewelryPhoto,
   resolveWorkflowCustomerFacingPhoto,
   selectWorkflowJewelryPhoto,
+  shouldFallBackToCatalogCanonicalPhoto,
 } from '@/lib/nic-nac/workflows/workflow-photo-selection'
 
 describe('two-photo Add Dancer role assignment', () => {
@@ -159,5 +161,30 @@ describe('customer-facing media selection', () => {
     expect(
       selectWorkflowJewelryPhoto([jewelry, inheritedLabel], {})?.imageUrl,
     ).toBe('jewelry-photo')
+  })
+
+  it('does not fall back to a shared catalog canonical when a jewelry-front photo exists', () => {
+    expect(hasUsableWorkflowJewelryPhoto([label, jewelry], {})).toBe(true)
+    expect(
+      shouldFallBackToCatalogCanonicalPhoto({
+        listingPhotoUrl: undefined,
+        hasWorkflowJewelryPhoto: true,
+        catalogHasCanonicalPhoto: true,
+      }),
+    ).toBe(false)
+    expect(
+      shouldFallBackToCatalogCanonicalPhoto({
+        listingPhotoUrl: undefined,
+        hasWorkflowJewelryPhoto: false,
+        catalogHasCanonicalPhoto: true,
+      }),
+    ).toBe(true)
+    expect(
+      shouldFallBackToCatalogCanonicalPhoto({
+        listingPhotoUrl: 'https://cdn.example.com/listing-jewelry.png',
+        hasWorkflowJewelryPhoto: false,
+        catalogHasCanonicalPhoto: true,
+      }),
+    ).toBe(false)
   })
 })
