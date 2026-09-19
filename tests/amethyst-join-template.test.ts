@@ -323,6 +323,12 @@ describe('Amethyst join page template data wiring', () => {
       'utf8',
     )
 
+    expect(css).toMatch(/\.jp-team-avatar\s*\{[^}]*width:\s*120px;/)
+    expect(css).toMatch(/\.jp-team-avatar\s*\{[^}]*height:\s*120px;/)
+    expect(css).toMatch(/\.jp-team-card\.is-leader \.jp-team-avatar\s*\{[^}]*width:\s*138px;/)
+    expect(css).toMatch(/\.jp-team-card\.is-leader \.jp-team-avatar\s*\{[^}]*height:\s*138px;/)
+    expect(css).toMatch(/\.jp-team-card\.is-spot \.jp-spot-glyph\s*\{[^}]*width:\s*120px;/)
+    expect(css).toMatch(/\.jp-team-card\.is-spot \.jp-spot-glyph\s*\{[^}]*height:\s*120px;/)
     expect(css).toMatch(/\.jp-team-avatar\s*\{[^}]*border-radius:\s*50%;/)
     expect(css).toMatch(/\.jp-team-avatar\s*\{[^}]*overflow:\s*hidden;/)
     expect(css).toMatch(/\.jp-team-avatar-img\s*\{[^}]*object-fit:\s*cover;/)
@@ -331,7 +337,7 @@ describe('Amethyst join page template data wiring', () => {
     expect(css).toContain('transform: rotate(var(--jp-team-photo-rotation, 0deg)) scale(var(--jp-team-photo-zoom, 1))')
     expect(css).not.toContain('rotate(-25deg)')
     expect(css).not.toContain('object-position: left center')
-    expect(html).toContain('join.css?v=20260919-team-photo-frame-v1')
+    expect(html).toContain('join.css?v=20260919-team-avatar-125')
     expect(html).toContain('join-runtime.js?v=20260919-team-photo-frame-v1')
   })
 
