@@ -2,7 +2,10 @@ import {
   normalizeJewelryMainStoneKey,
   normalizeJewelryMaterialKey,
 } from '@/lib/services/jewelry-database'
-import { isAcceptedCustomerFacingWorkflowPhoto } from './workflow-photo-roles'
+import {
+  isAcceptedCustomerFacingWorkflowPhoto,
+  stampSoleReadinessJewelryFrontCandidate,
+} from './workflow-photo-roles'
 
 export interface WorkflowJewelryPhoto {
   id?: string
@@ -17,7 +20,7 @@ export function selectWorkflowJewelryPhoto(
   photos: WorkflowJewelryPhoto[] | null | undefined,
   selection: { selectedPhotoId?: string; modelIndex?: number },
 ): WorkflowJewelryPhoto | null {
-  const allPhotos = photos ?? []
+  const allPhotos = stampSoleReadinessJewelryFrontCandidate(photos)
   const accepted = allPhotos.filter(isAcceptedCustomerFacingWorkflowPhoto)
   if (selection.selectedPhotoId) {
     return accepted.find((photo) => photo.id === selection.selectedPhotoId) ?? null

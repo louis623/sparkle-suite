@@ -57,7 +57,10 @@ import {
   resolveWorkflowCustomerFacingPhoto,
   shouldFallBackToCatalogCanonicalPhoto,
 } from '@/lib/nic-nac/workflows/workflow-photo-selection'
-import { isAcceptedCustomerFacingWorkflowPhoto } from '@/lib/nic-nac/workflows/workflow-photo-roles'
+import {
+  isAcceptedCustomerFacingWorkflowPhoto,
+  stampSoleReadinessJewelryFrontCandidate,
+} from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import type { ToolContext, ToolDefinition } from './types'
 
 const itemBaseShape = {
@@ -652,13 +655,23 @@ function workflowConfirmsJewelryFrontPhoto(
   )
 }
 
-function getWorkflowConfirmedJewelryFrontImageUrl(
+function workflowWithPublishableJewelryFront(
+  workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
+): ToolContext['activeTradeBoardWorkflow'] | undefined {
+  if (!workflow || workflow.status !== 'active') return workflow
+  const photos = stampSoleReadinessJewelryFrontCandidate(workflow.photos)
+  if (photos === workflow.photos) return workflow
+  return { ...workflow, photos }
+}
+
+export function getWorkflowConfirmedJewelryFrontImageUrl(
   workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
   photoIndex?: number,
   selectedPhotoId?: string,
 ): string | null {
+  const publishable = workflowWithPublishableJewelryFront(workflow)
   return (
-    resolveWorkflowCustomerFacingPhoto(workflow?.photos, {
+    resolveWorkflowCustomerFacingPhoto(publishable?.photos, {
       selectedPhotoId,
       modelIndex: photoIndex,
     })?.imageUrl ?? null
@@ -668,13 +681,9 @@ function getWorkflowConfirmedJewelryFrontImageUrl(
 function workflowHasUsableJewelryFrontRole(
   workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
 ): boolean {
-  if (workflow?.status !== 'active') return false
-  return workflow.photos.some(
-    (photo) =>
-      photo.declaredRole === 'jewelry_front' &&
-      photo.visualRole !== 'label_or_packaging' &&
-      photo.quality !== 'blocked',
-  )
+  const publishable = workflowWithPublishableJewelryFront(workflow)
+  if (publishable?.status !== 'active') return false
+  return publishable.photos.some(isAcceptedCustomerFacingWorkflowPhoto)
 }
 
 function workflowOwnedListingPhotoUrl(input: {
@@ -693,7 +702,7 @@ function workflowOwnedListingPhotoUrl(input: {
   return matchesAcceptedJewelry ? listingPhotoUrl : undefined
 }
 
-async function processListingPhotoForAdd(input: {
+export async function processListingPhotoForAdd(input: {
   listingPhotoUrl?: string
   listingPhotoIndex?: number
   selectedPhotoId?: string
@@ -709,6 +718,9 @@ async function processListingPhotoForAdd(input: {
   allowImplicitConversationPhoto?: boolean
   mutationAssetKey?: string
 }): Promise<string | undefined> {
+  const activeTradeBoardWorkflow = workflowWithPublishableJewelryFront(
+    input.activeTradeBoardWorkflow,
+  )
   const itemNumber = input.itemNumber ?? 'listing'
   const photoIndex = input.photoIndex ?? input.listingPhotoIndex
   const variantAssetKey = catalogVariantPhotoAssetKey({
@@ -723,7 +735,7 @@ async function processListingPhotoForAdd(input: {
     ...(variantAssetKey ? { variantAssetKey } : {}),
   }
   const workflowPhotoUrl = getWorkflowConfirmedJewelryFrontImageUrl(
-    input.activeTradeBoardWorkflow,
+    activeTradeBoardWorkflow,
     photoIndex,
     input.selectedPhotoId,
   )
@@ -747,7 +759,7 @@ async function processListingPhotoForAdd(input: {
   }
   const listingPhotoUrl = workflowOwnedListingPhotoUrl({
     listingPhotoUrl: input.listingPhotoUrl,
-    activeTradeBoardWorkflow: input.activeTradeBoardWorkflow,
+    activeTradeBoardWorkflow,
   })
   if (listingPhotoUrl) {
     try {
@@ -768,8 +780,8 @@ async function processListingPhotoForAdd(input: {
   }
 
   if (
-    input.activeTradeBoardWorkflow?.status === 'active' &&
-    !workflowHasUsableJewelryFrontRole(input.activeTradeBoardWorkflow)
+    activeTradeBoardWorkflow?.status === 'active' &&
+    !workflowHasUsableJewelryFrontRole(activeTradeBoardWorkflow)
   ) {
     return undefined
   }
@@ -791,7 +803,7 @@ async function processListingPhotoForAdd(input: {
       sourceImageUrl: resolvedListingPhoto.imageDataUrl,
     }
     const isWorkflowConfirmed = workflowConfirmsJewelryFrontPhoto(
-      input.activeTradeBoardWorkflow,
+      activeTradeBoardWorkflow,
       photoIndex,
     )
     const processed = isWorkflowConfirmed
@@ -1015,7 +1027,9 @@ async function runNonItemNumberSingle(
   },
   admin: SupabaseClient,
 ) {
-  const activeWorkflow = ctx.activeTradeBoardWorkflow
+  const activeWorkflow = workflowWithPublishableJewelryFront(
+    ctx.activeTradeBoardWorkflow,
+  )
   const workflowKnown =
     activeWorkflow?.status === 'active' ? activeWorkflow.known : {}
   const jewelryType = input.jewelryType ?? workflowKnown.jewelryType
@@ -1171,7 +1185,9 @@ async function runSingle(
   admin: SupabaseClient,
 ) {
   const { itemNumber, designName, piecePhotoUrl, collectionName } = input
-  const activeWorkflow = ctx.activeTradeBoardWorkflow
+  const activeWorkflow = workflowWithPublishableJewelryFront(
+    ctx.activeTradeBoardWorkflow,
+  )
   const mutationIdentity = catalogMutationIdentity({
     toolInput: input,
     workflow: activeWorkflow,

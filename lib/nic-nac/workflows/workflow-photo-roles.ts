@@ -83,6 +83,67 @@ export function findWorkflowJewelryFrontForReadiness<
   return undefined
 }
 
+const JEWELRY_FRONT_DECLARED_NOTE = 'declared as customer-facing jewelry photo'
+
+type StampableWorkflowPhoto = {
+  declaredRole?: string
+  visualRole?: string
+  quality?: string
+  imageUrl?: string
+  roleConfirmed?: boolean
+  notes?: string[]
+}
+
+/**
+ * When a photo is promoted to jewelry_front, remap a visual label/packaging
+ * classification to uncertain so boxed hex-card shots are not barred from
+ * customer-facing publish. Same remap as ingest.
+ */
+export function stampPhotoAsJewelryFront<T extends StampableWorkflowPhoto>(
+  photo: T,
+): T {
+  const notes = [...(photo.notes ?? [])]
+  if (!notes.includes(JEWELRY_FRONT_DECLARED_NOTE)) {
+    notes.push(JEWELRY_FRONT_DECLARED_NOTE)
+  }
+  return {
+    ...photo,
+    declaredRole: 'jewelry_front',
+    visualRole:
+      photo.visualRole === 'label_or_packaging' ? 'uncertain' : photo.visualRole,
+    roleConfirmed: true,
+    notes,
+  }
+}
+
+function jewelryFrontStampAlreadyApplied<T extends StampableWorkflowPhoto>(
+  photo: T,
+): boolean {
+  return (
+    photo.declaredRole === 'jewelry_front' &&
+    photo.visualRole !== 'label_or_packaging' &&
+    photo.roleConfirmed === true
+  )
+}
+
+/**
+ * Stamp-on-promote: if readiness would treat exactly one photo as the
+ * jewelry-front, persist that identity as declared jewelry_front so publish
+ * helpers (isAcceptedCustomerFacingWorkflowPhoto / add_listing) see the same
+ * photo. Two uncertain photos still cannot invent a role.
+ */
+export function stampSoleReadinessJewelryFrontCandidate<
+  T extends StampableWorkflowPhoto,
+>(photos: T[] | null | undefined): T[] {
+  const allPhotos = photos ?? []
+  const candidate = findWorkflowJewelryFrontForReadiness(allPhotos)
+  if (!candidate || jewelryFrontStampAlreadyApplied(candidate)) {
+    return allPhotos
+  }
+  const stamped = stampPhotoAsJewelryFront(candidate)
+  return allPhotos.map((photo) => (photo === candidate ? stamped : photo))
+}
+
 export function inferRoleFromText(text: string): TradeBoardPhotoDeclaredRole {
   const asksForJewelryPhoto =
     /\b(?:need|needs|send|upload|snap|take|provide|use|show|get|got)\b[\s\S]{0,120}\b(?:jewelry|customer-facing|front\s+(?:photo|shot|image)|boxed display|piece photo|listing photo|earrings themselves|just the earrings|actual jewelry)\b/i.test(

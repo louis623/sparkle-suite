@@ -1,6 +1,9 @@
 import type { NicNacToolIntent } from '@/lib/nic-nac/tools'
 import { mergeTradeBoardKnownFields } from './trade-board-known-fields'
-import { findWorkflowJewelryFrontForReadiness } from './workflow-photo-roles'
+import {
+  isAcceptedCustomerFacingWorkflowPhoto,
+  stampSoleReadinessJewelryFrontCandidate,
+} from './workflow-photo-roles'
 import type {
   TradeBoardIntakeNextAction,
   TradeBoardIntakePhase,
@@ -94,7 +97,7 @@ export function computeTradeBoardIntakeReadiness(
   const labelDetailsPhoto = state.photos.find(
     (photo) => photo.declaredRole === 'label_details',
   )
-  const jewelryFrontPhoto = findWorkflowJewelryFrontForReadiness(state.photos)
+  const jewelryFrontPhoto = findPublishableJewelryFront(state.photos)
   const blockedLabel = state.photos.find(
     (photo) =>
       photo.declaredRole === 'label_details' && photo.quality === 'blocked',
@@ -172,7 +175,7 @@ export function computeTradeBoardAddAttemptReadiness(
   const blockers: string[] = []
   const catalogMode = input.catalogMode ?? state.catalogMode ?? 'item_number'
 
-  const jewelryFrontPhoto = findWorkflowJewelryFrontForReadiness(state.photos)
+  const jewelryFrontPhoto = findPublishableJewelryFront(state.photos)
   const blockedLabel = state.photos.find(
     (photo) =>
       photo.declaredRole === 'label_details' && photo.quality === 'blocked',
@@ -375,6 +378,14 @@ function inferPhase(state: TradeBoardIntakeSessionState): TradeBoardIntakePhase 
 function normalizeOptionalText(value: string | undefined): string | undefined {
   const normalized = value?.trim()
   return normalized ? normalized : undefined
+}
+
+function findPublishableJewelryFront(
+  photos: TradeBoardIntakeSessionState['photos'],
+) {
+  return stampSoleReadinessJewelryFrontCandidate(photos).find(
+    isAcceptedCustomerFacingWorkflowPhoto,
+  )
 }
 
 function hasListingIdentity(args: {

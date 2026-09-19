@@ -159,7 +159,12 @@ vi.mock('@/lib/nic-nac/workflows/trade-workflow-store', () => ({
     completeTradeWorkflowSessionMock(...args),
 }))
 
-import { makeAddListingTool } from '@/lib/nic-nac/tools/add-listing'
+import {
+  getWorkflowConfirmedJewelryFrontImageUrl,
+  makeAddListingTool,
+  processListingPhotoForAdd,
+} from '@/lib/nic-nac/tools/add-listing'
+import { computeTradeBoardAddAttemptReadiness } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 
 interface AddListingToolDef {
   execute: (input: unknown) => Promise<Record<string, unknown>>
@@ -2425,12 +2430,26 @@ describe('add_listing - active workflow readiness guard', () => {
             declaredRole: 'jewelry_front',
             visualRole: 'uncertain',
             roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
             quality: 'usable',
             qualityIssues: [],
             notes: ['boxed blue studs on hex card'],
           },
         ],
       }),
+    })
+
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/kelly-studs.png',
+    })
+    resolveItemNumberMock.mockResolvedValueOnce({
+      found: true,
+      hasCollection: true,
+      design: {
+        id: 'design-1',
+        itemNumber: 'ER13229',
+        designName: 'The Florence Earrings',
+      },
     })
 
     await expect(
@@ -2442,7 +2461,98 @@ describe('add_listing - active workflow readiness guard', () => {
     ).resolves.toMatchObject({
       listingId: 'listing-kelly-studs',
     })
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceImageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
+      }),
+      { confirmedJewelryFront: true },
+    )
     expect(addListingMock).toHaveBeenCalled()
+  })
+
+  it('stamps a sole boxed/uncertain workflow photo so ready implies a publishable jewelry_front URL', async () => {
+    const boxedUrl = 'data:image/jpeg;base64,Qk9YRUQ='
+    const workflow = activeWorkflow({
+      phase: 'ready_to_add',
+      missing: [],
+      photos: [
+        {
+          attachmentIndex: 1,
+          declaredRole: 'unknown',
+          visualRole: 'uncertain',
+          roleConfirmed: false,
+          imageUrl: boxedUrl,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['boxed display jewelry appears clear enough'],
+        },
+      ],
+    })
+
+    expect(
+      computeTradeBoardAddAttemptReadiness(workflow, {
+        itemNumber: 'ER13229',
+        collectionName: 'July Birthday',
+      }).ready,
+    ).toBe(true)
+    expect(getWorkflowConfirmedJewelryFrontImageUrl(workflow)).toBe(boxedUrl)
+
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/boxed-hex-card.png',
+    })
+
+    await expect(
+      processListingPhotoForAdd({
+        itemNumber: 'ER13229',
+        activeTradeBoardWorkflow: workflow,
+        repId: 'rep-1',
+        supabase: makeConversationLookupMock([]) as never,
+        conversationId: 'conv-1',
+      }),
+    ).resolves.toBe('https://cdn.example.com/listings/rep-1/boxed-hex-card.png')
+
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceImageUrl: boxedUrl,
+      }),
+      { confirmedJewelryFront: true },
+    )
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledTimes(1)
+
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/boxed-hex-card.png',
+    })
+    resolveItemNumberMock.mockResolvedValueOnce({
+      found: true,
+      hasCollection: true,
+      design: {
+        id: 'design-1',
+        itemNumber: 'ER13229',
+        designName: 'The Florence Earrings',
+      },
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-boxed-hex',
+      designId: 'design-1',
+      itemNumber: 'ER13229',
+      designName: 'The Florence Earrings',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: workflow,
+    })
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ER13229',
+        collectionName: 'July Birthday',
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-boxed-hex',
+    })
+    expect(processRepListingPhotoUrlMock).toHaveBeenCalledTimes(2)
   })
 
   it('adds a known catalog design with the canonical photo after duplicate confirmation even when the only workflow photo is label/details', async () => {
@@ -2730,6 +2840,18 @@ describe('add_listing - active workflow readiness guard', () => {
       status: 'available',
       usesCanonicalPhoto: false,
     })
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/florence-boxed.png',
+    })
+    resolveItemNumberMock.mockResolvedValueOnce({
+      found: true,
+      hasCollection: true,
+      design: {
+        id: 'design-1',
+        itemNumber: 'ER13229',
+        designName: 'The Florence Earrings',
+      },
+    })
     const supabaseMock = makeConversationLookupMock([])
     const tool = makeTool(supabaseMock, {
       activeTradeBoardWorkflow: activeWorkflow({
@@ -2748,6 +2870,7 @@ describe('add_listing - active workflow readiness guard', () => {
             declaredRole: 'jewelry_front',
             visualRole: 'jewelry',
             roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
             quality: 'usable',
             qualityIssues: [],
             notes: ['boxed display jewelry is centered and clear'],
@@ -2954,6 +3077,7 @@ describe('add_listing - active workflow readiness guard', () => {
             declaredRole: 'jewelry_front',
             visualRole: 'jewelry',
             roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
             quality: 'unknown',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
@@ -3044,6 +3168,7 @@ describe('add_listing - active workflow readiness guard', () => {
             declaredRole: 'jewelry_front',
             visualRole: 'jewelry',
             roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
             quality: 'unknown',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],

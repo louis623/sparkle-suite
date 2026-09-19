@@ -6,6 +6,7 @@ import {
   inferExplicitAttachmentRole,
   isAcceptedCustomerFacingWorkflowPhoto,
   isBarredFromCustomerFacingMedia,
+  stampSoleReadinessJewelryFrontCandidate,
   workflowPhotoSatisfiesJewelryFront,
 } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import {
@@ -280,6 +281,80 @@ describe('customer-facing media selection', () => {
         { ...boxed, imageUrl: 'second-uncertain' },
       ]),
     ).toBeUndefined()
+  })
+
+  it('stamps the sole boxed/uncertain readiness candidate to jewelry_front so publish sees the same photo', () => {
+    const boxed = {
+      declaredRole: 'unknown' as const,
+      visualRole: 'uncertain' as const,
+      quality: 'usable',
+      roleConfirmed: false,
+      imageUrl: 'boxed-earrings',
+      notes: [] as string[],
+    }
+    const leftoverLabel = {
+      declaredRole: 'label_details' as const,
+      visualRole: 'label_or_packaging' as const,
+      quality: 'blocked' as const,
+      imageUrl: 'unreadable-label',
+      notes: [] as string[],
+    }
+    const stamped = stampSoleReadinessJewelryFrontCandidate([leftoverLabel, boxed])
+    expect(stamped[0]).toMatchObject({
+      declaredRole: 'label_details',
+      imageUrl: 'unreadable-label',
+    })
+    expect(stamped[1]).toMatchObject({
+      declaredRole: 'jewelry_front',
+      visualRole: 'uncertain',
+      roleConfirmed: true,
+      imageUrl: 'boxed-earrings',
+    })
+    expect(isAcceptedCustomerFacingWorkflowPhoto(stamped[1])).toBe(true)
+    expect(isAcceptedCustomerFacingWorkflowPhoto(boxed)).toBe(false)
+    expect(resolveWorkflowCustomerFacingPhoto([leftoverLabel, boxed])?.imageUrl).toBe(
+      'boxed-earrings',
+    )
+
+    const twoUncertain = stampSoleReadinessJewelryFrontCandidate([
+      { ...boxed, imageUrl: 'first-uncertain' },
+      { ...boxed, imageUrl: 'second-uncertain' },
+    ])
+    expect(twoUncertain.map((photo) => photo.declaredRole)).toEqual([
+      'unknown',
+      'unknown',
+    ])
+    expect(resolveWorkflowCustomerFacingPhoto(twoUncertain)).toBeNull()
+  })
+
+  it('remaps a visual label to uncertain when the sole readiness candidate is stamped jewelry_front', () => {
+    const boxedHexCard = {
+      declaredRole: 'unknown' as const,
+      visualRole: 'uncertain' as const,
+      quality: 'usable' as const,
+      roleConfirmed: false,
+      imageUrl: 'boxed-hex-card',
+      notes: [] as string[],
+    }
+    const inheritedLabelAsFront = {
+      declaredRole: 'jewelry_front' as const,
+      visualRole: 'label_or_packaging' as const,
+      quality: 'usable' as const,
+      roleConfirmed: true,
+      imageUrl: 'boxed-hex-card',
+      notes: [] as string[],
+    }
+    const remapped = stampSoleReadinessJewelryFrontCandidate([inheritedLabelAsFront])
+    expect(remapped[0]).toMatchObject({
+      declaredRole: 'jewelry_front',
+      visualRole: 'uncertain',
+      imageUrl: 'boxed-hex-card',
+    })
+    expect(isAcceptedCustomerFacingWorkflowPhoto(remapped[0])).toBe(true)
+    expect(isAcceptedCustomerFacingWorkflowPhoto(inheritedLabelAsFront)).toBe(
+      false,
+    )
+    expect(isAcceptedCustomerFacingWorkflowPhoto(boxedHexCard)).toBe(false)
   })
 
   it('never uses another variant’s canonical just because the item number matches', () => {

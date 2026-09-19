@@ -10,6 +10,8 @@ import {
   transitionTradeBoardIntake,
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 
+const BOXED_HEX_CARD_URL = 'data:image/jpeg;base64,Qk9YRUQ='
+
 function baseState(
   overrides: Partial<TradeBoardIntakeSessionState> = {},
 ): TradeBoardIntakeSessionState {
@@ -63,6 +65,7 @@ describe('Dance Floor intake controller', () => {
           declaredRole: 'jewelry_front',
           visualRole: 'jewelry',
           roleConfirmed: true,
+          imageUrl: BOXED_HEX_CARD_URL,
           quality: 'usable',
           qualityIssues: [],
           notes: ['customer-facing jewelry photo'],
@@ -160,6 +163,7 @@ describe('Dance Floor intake controller', () => {
           declaredRole: 'jewelry_front',
           visualRole: 'jewelry',
           roleConfirmed: true,
+          imageUrl: BOXED_HEX_CARD_URL,
           quality: 'usable',
           qualityIssues: [],
           notes: ['boxed display jewelry is centered and clear'],
@@ -233,6 +237,7 @@ describe('Dance Floor intake controller', () => {
           declaredRole: 'jewelry_front',
           visualRole: 'jewelry',
           roleConfirmed: true,
+          imageUrl: BOXED_HEX_CARD_URL,
           quality: 'usable',
           qualityIssues: [],
           notes: [],
@@ -270,6 +275,7 @@ describe('Dance Floor intake controller', () => {
           declaredRole: 'jewelry_front',
           visualRole: 'jewelry',
           roleConfirmed: true,
+          imageUrl: BOXED_HEX_CARD_URL,
           quality: 'unknown',
           qualityIssues: [],
           notes: ['declared as customer-facing jewelry photo'],
@@ -330,6 +336,7 @@ describe('Dance Floor intake controller', () => {
           declaredRole: 'unknown',
           visualRole: 'uncertain',
           roleConfirmed: false,
+          imageUrl: BOXED_HEX_CARD_URL,
           quality: 'usable',
           qualityIssues: [],
           notes: ['boxed display jewelry appears clear enough'],
@@ -345,6 +352,46 @@ describe('Dance Floor intake controller', () => {
     expect(readiness.ready).toBe(true)
     expect(readiness.missing).toEqual([])
     expect(readiness.blockers).toEqual([])
+  })
+
+  it('does not invent jewelry-front readiness from two uncertain photos', () => {
+    const state = baseState({
+      known: {
+        itemNumber: 'ER13229',
+        designName: 'The Florence Earrings',
+        collectionName: 'July Birthday',
+      },
+      photos: [
+        {
+          attachmentIndex: 1,
+          declaredRole: 'unknown',
+          visualRole: 'uncertain',
+          roleConfirmed: false,
+          imageUrl: `${BOXED_HEX_CARD_URL}A`,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: [],
+        },
+        {
+          attachmentIndex: 2,
+          declaredRole: 'unknown',
+          visualRole: 'uncertain',
+          roleConfirmed: false,
+          imageUrl: `${BOXED_HEX_CARD_URL}B`,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: [],
+        },
+      ],
+    })
+
+    const readiness = computeTradeBoardAddAttemptReadiness(state, {
+      itemNumber: 'ER13229',
+      collectionName: 'July Birthday',
+    })
+
+    expect(readiness.ready).toBe(false)
+    expect(readiness.missing).toContain('jewelryFrontPhoto')
   })
 
   it('does not let a leftover unread label block save when jewelry and item number are already known', () => {
@@ -370,6 +417,7 @@ describe('Dance Floor intake controller', () => {
           declaredRole: 'jewelry_front',
           visualRole: 'uncertain',
           roleConfirmed: true,
+          imageUrl: BOXED_HEX_CARD_URL,
           quality: 'usable',
           qualityIssues: [],
           notes: ['boxed blue studs on hex card'],

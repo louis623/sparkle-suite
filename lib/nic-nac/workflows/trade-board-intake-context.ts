@@ -35,6 +35,7 @@ import { isExplicitTradeBoardAddRequest } from './trade-board-add-intent'
 import {
   assignDeclaredPhotoRolesForTurn,
   inferRoleFromText,
+  stampSoleReadinessJewelryFrontCandidate,
 } from './workflow-photo-roles'
 
 export { reconcileDeclaredPhotoRoleWithWorkflow } from './workflow-photo-roles'
@@ -385,6 +386,30 @@ export async function ingestLatestTradeBoardIntakeTurn(
         notes: confirmedPhoto.notes,
       })
     }
+  }
+
+  const stampedPhotos = stampSoleReadinessJewelryFrontCandidate(photos)
+  for (let index = 0; index < stampedPhotos.length; index += 1) {
+    const photo = stampedPhotos[index]
+    if (!photo || photo === photos[index]) continue
+    photos[index] = photo
+    await upsertTradeBoardIntakePhoto(supabase, {
+      sessionId: args.session.id,
+      repId: args.session.repId,
+      conversationId: args.session.conversationId,
+      conversationMessageId: photo.conversationMessageId,
+      attachmentIndex: photo.attachmentIndex,
+      declaredRole: photo.declaredRole,
+      visualRole: photo.visualRole,
+      roleConfirmed: photo.roleConfirmed,
+      imageUrl: photo.imageUrl,
+      quality: photo.quality,
+      qualityScore: photo.qualityScore,
+      qualityIssues: photo.qualityIssues,
+      notes: photo.notes,
+      contentSha256: photo.contentSha256,
+      visualRoleSource: photo.visualRoleSource,
+    })
   }
 
   const updated: TradeBoardIntakeSessionState = {
