@@ -1,5 +1,21 @@
 # Session Log
 
+## September 19, 2026 - Rocky SHIP: squash-merge team-card photo framing PR #12
+
+- Louis authorized ship of PR #12 with operator re-save. Draft was marked
+  ready. `mergeable_state=clean`. Checks: Vercel Preview Comments success,
+  `Vercel – sparkle-finder-dev` success. No failing Suite CI.
+- GitHub squash-merge API returned 403 (same as #6–#9). Squash-merged
+  locally onto `codex/nic-nac-trade-hardening` `8d225972` → `6667e3d3`
+  (`fix(join): center and straighten team-card circle photos (#12)`).
+  Full SHA `6667e3d32cceee9ba7b4c47a99fab78111208d2f`.
+- Manual Suite production deploy did **not** run. Sam deploys from the box.
+- Migration `20260919120000_ss_team_photo_framing.sql` was **not** applied.
+  Sam applies it from the box (`reps.profile_photo_framing`).
+- Did **not** mutate live Kelly/Dara/Erika photos. Operator re-save after
+  Sam's migration + deploy: Team Management → Center the face / Replace /
+  Smart Frame, then check `https://sparklybutterflies.com/join`.
+
 ## September 19, 2026 - Join team-card photo framing QC (PR only)
 
 - Investigated Kelly / Sparkly Butterflies live Join cards (Kelly, Dara,

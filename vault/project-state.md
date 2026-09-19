@@ -1,5 +1,17 @@
 # Project State
 
+## September 19, 2026 - Team-card photo framing PR #12 squash-merged; Suite prod not released
+
+Louis authorized Rocky SHIP of PR #12 onto production branch
+`codex/nic-nac-trade-hardening`. GitHub merge API 403; local squash-merge
+SHA is `6667e3d32cceee9ba7b4c47a99fab78111208d2f`
+(`fix(join): center and straighten team-card circle photos (#12)`).
+Parent was `8d225972`. Manual Vercel did not run: Sam deploys from the box.
+Migration `20260919120000` (`reps.profile_photo_framing`) was not applied.
+Do not treat Kelly `/join` circles as fixed until Sam deploys this SHA,
+applies the migration, and an operator re-saves Kelly/Dara/Erika. No live
+photo mutation. No alias moves.
+
 ## September 19, 2026 - Join team-card photo framing (PR only, not live)
 
 Code on `cursor/team-card-photo-framing-c605` adds lasting QC for public
