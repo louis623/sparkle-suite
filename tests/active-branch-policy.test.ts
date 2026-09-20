@@ -130,6 +130,31 @@ describe("Sparkle Suite active branch policy", () => {
     }
   });
 
+  it("accepts explicit manual-release provenance when the Vercel CLI build has no .git checkout", () => {
+    const previous = {
+      vercel: process.env.VERCEL,
+      branch: process.env.SPARKLE_RELEASE_BRANCH,
+      repository: process.env.SPARKLE_RELEASE_REPOSITORY,
+    };
+
+    delete process.env.VERCEL;
+    process.env.SPARKLE_RELEASE_BRANCH = "codex/nic-nac-trade-hardening";
+    process.env.SPARKLE_RELEASE_REPOSITORY = "louis623/sparkle-suite";
+
+    try {
+      expect(currentBranch()).toBe("codex/nic-nac-trade-hardening");
+      expect(currentRepository()).toBe("louis623/sparkle-suite");
+    } finally {
+      if (previous.vercel === undefined) delete process.env.VERCEL;
+      else process.env.VERCEL = previous.vercel;
+      if (previous.branch === undefined) delete process.env.SPARKLE_RELEASE_BRANCH;
+      else process.env.SPARKLE_RELEASE_BRANCH = previous.branch;
+      if (previous.repository === undefined)
+        delete process.env.SPARKLE_RELEASE_REPOSITORY;
+      else process.env.SPARKLE_RELEASE_REPOSITORY = previous.repository;
+    }
+  });
+
   it("rejects conflicting manual and platform provenance", () => {
     const previousBranch = process.env.SPARKLE_RELEASE_BRANCH;
     const previousVercelBranch = process.env.VERCEL_GIT_COMMIT_REF;

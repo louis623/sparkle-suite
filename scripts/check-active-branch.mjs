@@ -126,8 +126,15 @@ export function currentBranch() {
   return gitMetadata().branch;
 }
 
+function hasDeclaredManualReleaseProvenance() {
+  return Boolean(
+    process.env.SPARKLE_RELEASE_BRANCH?.trim() &&
+      process.env.SPARKLE_RELEASE_REPOSITORY?.trim(),
+  );
+}
+
 export function currentRepository() {
-  if (process.env.VERCEL === "1") {
+  if (process.env.VERCEL === "1" || hasDeclaredManualReleaseProvenance()) {
     const owner = process.env.VERCEL_GIT_REPO_OWNER?.trim();
     const repository = process.env.VERCEL_GIT_REPO_SLUG?.trim();
     const declaredReleaseRepository =
@@ -171,7 +178,8 @@ function main() {
     branch,
     remoteRepository,
     worktree,
-    isVercel: process.env.VERCEL === "1",
+    isVercel:
+      process.env.VERCEL === "1" || hasDeclaredManualReleaseProvenance(),
   });
 
   if (errors.length > 0) {
