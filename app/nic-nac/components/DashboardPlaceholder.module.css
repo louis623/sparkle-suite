@@ -4908,6 +4908,60 @@
   padding: 13px;
 }
 
+.teamPersonPicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
+.teamPersonPicker > label { flex: 1 1 240px; min-width: 0; }
+
+.teamSingleEditor {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  padding: clamp(12px, 2vw, 22px);
+  border: 1px solid var(--nic-nac-border);
+  border-radius: 16px;
+  background: var(--nic-nac-surface-primary);
+}
+
+.teamEditorTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--nic-nac-border);
+}
+
+.teamEditorTabs button[aria-pressed='true'] {
+  color: var(--nic-nac-text-primary);
+  border-color: var(--nic-nac-accent);
+  box-shadow: inset 0 -3px var(--nic-nac-accent);
+}
+
+.teamEditorPane,
+.teamEditorFields { display: grid; min-width: 0; gap: 12px; }
+.teamEditorPane[hidden] { display: none; }
+.teamEditorFields { border: 0; margin: 0; padding: 0; }
+
+.teamFrameDetails > summary,
+.teamManagementPanel > summary,
+.teamMessagePreview > summary { cursor: pointer; font-weight: 700; }
+.teamManagementPanel[open] > summary,
+.teamFrameDetails[open] > summary { margin-bottom: 14px; }
+
+.teamSingleEditor .teamPhotoControls {
+  grid-template-columns: minmax(160px, 300px) minmax(0, 1fr);
+}
+
+@media (max-width: 600px) {
+  .teamSingleEditor .teamPhotoControls { grid-template-columns: minmax(0, 1fr); }
+  .teamSingleEditor .teamPhotoPreview { max-width: 320px; margin-inline: auto; }
+  .teamEditorTabs > button { flex: 1 1 auto; }
+}
+
 .teamPhotoInstructions {
   display: grid;
   gap: 6px;

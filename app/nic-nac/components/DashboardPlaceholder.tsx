@@ -1109,6 +1109,15 @@ export function buildJoinTeamRosterSavePayload(
   }
 }
 
+export function applyJoinTeamRosterDraftPatch(
+  current: JoinTeamRosterDraft,
+  patch: Partial<JoinTeamRosterDraft>,
+): JoinTeamRosterDraft {
+  // An explicit cleared ID starts a fresh person; never carry hidden metadata,
+  // a previous photo crop, or sort order into the new card.
+  return { ...(Object.hasOwn(patch, 'id') && !patch.id ? getJoinTeamRosterDraft() : current), ...patch }
+}
+
 export function moveJoinTeamRosterMember<T extends { id: string }>(
   members: T[],
   memberId: string,
@@ -5500,7 +5509,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       error: null,
       helperMessage: null,
     }))
-    setPublicTeamDraft((current) => ({ ...current, ...patch }))
+    setPublicTeamDraft((current) => applyJoinTeamRosterDraftPatch(current, patch))
   }
 
   async function handlePublicTeamPhotoUpload(file: File | null) {
@@ -5789,6 +5798,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   async function handleSaveTeamPhoto(cardKey: string, imageUrl: string, framing = normalizeTeamPhotoFraming()) {
     if (reviewWorkspaceMode) {
       setTeamManagementState((current) => ({ ...current, publicTeamRoster: current.publicTeamRoster?.map((member) => member.id === cardKey ? { ...member, photoUrl: imageUrl, imageClassName: serializeTeamPhotoFraming(framing) } : member) }))
+      setPublicTeamDraft((current) => current.id === cardKey ? { ...current, photoUrl: imageUrl, imageClassName: serializeTeamPhotoFraming(framing) } : current)
       return
     }
     const roster = teamManagementState.publicTeamRoster ?? []
@@ -5857,7 +5867,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           publicTeamRoster: nextRoster.sort((a, b) => a.sortOrder - b.sortOrder),
         }
       })
-      setPublicTeamDraft(getJoinTeamRosterDraft())
+      setPublicTeamDraft(getJoinTeamRosterDraft(savedMember))
       setTeamManagementActionState({
         pendingKey: null,
         error: null,
@@ -5910,13 +5920,16 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       if (!response.ok || !payload?.member) {
         throw new Error(payload?.error || 'Unable to update that public card right now.')
       }
-
+      const savedVisibilityMember = payload.member
       setTeamManagementState((current) => ({
         ...current,
         publicTeamRoster: (current.publicTeamRoster ?? []).map((rosterMember) =>
           rosterMember.id === payload.member?.id ? payload.member : rosterMember,
         ),
       }))
+      setPublicTeamDraft((current) => current.id === savedVisibilityMember.id
+        ? { ...current, isVisible: savedVisibilityMember.isVisible }
+        : current)
       setTeamManagementActionState({
         pendingKey: null,
         error: null,
@@ -5968,6 +5981,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       }
 
       const byId = new Map(roster.map((member) => [member.id, member]))
+      setPublicTeamDraft((current) => current.id && memberIds.includes(current.id)
+        ? { ...current, sortOrder: memberIds.indexOf(current.id) }
+        : current)
       setTeamManagementState((current) => ({
         ...current,
         publicTeamRoster: memberIds
@@ -10931,8 +10947,8 @@ export function TeamManagementCard({
       ) : null}
 
       <div className={styles.teamManagementGrid}>
-        <section className={styles.teamManagementPanel}>
-          <div className={styles.walletSettingsTitle}>Team I manage</div>
+        <details className={styles.teamManagementPanel}>
+          <summary className={styles.walletSettingsTitle}>Team I manage</summary>
           <div className={styles.helperNote}>
             This is your team&apos;s name on the Join Team page and New Rep Onboarding
             links. It does not change the team you belong to.
@@ -10972,7 +10988,7 @@ export function TeamManagementCard({
           >
             {actionState?.pendingKey === 'team-name' ? 'Saving team details...' : 'Save team details'}
           </button>
-        </section>
+        </details>
         <PublicTeamRosterPanel
           reviewMode={reviewMode}
           members={publicTeamRoster}
@@ -11150,18 +11166,20 @@ export function advanceTeamPhotoPolishReview(state: TeamPhotoPolishStatus): Team
     jobs: [{ id: `sample-${attemptsUsed}`, status: 'ready', imageUrl: state.originalUrl }, ...state.jobs] }
 }
 
-function TeamPhotoPolishPanel({ cardKey, photoUrl, photoAlt, onSavePhoto, onOpenHelp, reviewMode = false }: {
+function TeamPhotoPolishPanel({ cardKey, photoUrl, photoAlt, onSavePhoto, onOpenHelp, onBusyChange, reviewMode = false }: {
   cardKey?: string
   photoUrl: string
   photoAlt: string
   onSavePhoto?: (cardKey: string, imageUrl: string, framing?: TeamPhotoFraming) => Promise<void>
   onOpenHelp?: () => void
+  onBusyChange?: (busy: boolean) => void
   reviewMode?: boolean
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [status, setStatus] = useState<TeamPhotoPolishStatus | null>(null)
   const [consent, setConsent] = useState(false)
   const [busy, setBusy] = useState(false)
+  useEffect(() => { onBusyChange?.(busy) }, [busy, onBusyChange])
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [reviewPhotoSelected, setReviewPhotoSelected] = useState(false)
@@ -11339,6 +11357,7 @@ function TeamCardPhotoField({
   onSavePhoto,
   onOpenHelp,
   onRemovePhoto,
+  onEditorStateChange,
 }: {
   reviewMode?: boolean
   photoUrl: string
@@ -11358,6 +11377,7 @@ function TeamCardPhotoField({
   onSavePhoto?: (cardKey: string, imageUrl: string, framing?: TeamPhotoFraming) => Promise<void>
   onOpenHelp?: () => void
   onRemovePhoto?: () => void
+  onEditorStateChange?: (state: { busy: boolean; dirty: boolean }) => void
 }) {
   const [photoPermissionConfirmed, setPhotoPermissionConfirmed] = useState(false)
   const [photoFraming, setPhotoFraming] = useState(() => normalizeTeamPhotoFraming(framing))
@@ -11365,7 +11385,14 @@ function TeamCardPhotoField({
   const [frameNotice, setFrameNotice] = useState<string | null>(null)
   const [savingFrame, setSavingFrame] = useState(false)
   const [removingPhoto, setRemovingPhoto] = useState(false)
+  const [polishBusy, setPolishBusy] = useState(false)
   const savedFrameToken = serializeTeamPhotoFraming(framing)
+  const dirtyFrame = Boolean(cardKey && photoUrl && serializeTeamPhotoFraming(photoFraming) !== savedFrameToken)
+  const photoBusy = isUploading || savingFrame || removingPhoto || polishBusy || isSuggestingFraming
+  useEffect(() => {
+    onEditorStateChange?.({ busy: photoBusy, dirty: dirtyFrame })
+  }, [photoBusy, dirtyFrame, onEditorStateChange])
+  useEffect(() => () => { onEditorStateChange?.({ busy: false, dirty: false }) }, [onEditorStateChange])
   useEffect(() => { setPhotoFraming(parseTeamPhotoFraming(savedFrameToken)) }, [savedFrameToken, photoUrl])
   function changeFraming(next: TeamPhotoFraming) {
     setPhotoFraming(next)
@@ -11406,8 +11433,8 @@ function TeamCardPhotoField({
   return (
     <div className={styles.teamPhotoWorkflow}>
       {showInstructions ? (
-        <div className={styles.teamPhotoInstructions}>
-          <strong>{instructionTitle}</strong>
+        <details className={styles.teamPhotoInstructions}>
+          <summary>{instructionTitle} · Photo requirements</summary>
           <ol>
             <li>Choose a clear, well-lit photo of one person with their full head and shoulders visible.</li>
             <li>Confirm you have permission to publish it.</li>
@@ -11420,10 +11447,10 @@ function TeamCardPhotoField({
             photo quality and framing automatically using AI. Polishing is optional.
             Always review the preview before publishing.
           </span>
-        </div>
+        </details>
       ) : null}
 
-      <div className={styles.teamPhotoControls}>
+      <fieldset className={`${styles.teamEditorFields} ${styles.teamPhotoControls}`} disabled={photoBusy}>
         <div
           className={styles.teamPhotoPreview}
           aria-label="Profile photo preview"
@@ -11477,11 +11504,13 @@ function TeamCardPhotoField({
             onClick={() => void removePhoto()}
           >{removingPhoto ? 'Removing photo…' : 'Remove photo'}</button> : null}
         </div>
-      </div>
+      </fieldset>
       {frameError ? <p className={styles.actionError} role="alert">{frameError}</p> : null}
       {frameNotice ? <p className={styles.helperMessage} role="status">{frameNotice}</p> : null}
       {showFramingControls && photoUrl ? (
-        <fieldset className={styles.teamPhotoFrameControls}>
+        <details className={styles.teamFrameDetails}>
+        <summary>Adjust photo framing{dirtyFrame ? ' · Unsaved changes' : ''}</summary>
+        <fieldset className={styles.teamPhotoFrameControls} disabled={photoBusy}>
           <legend>Smart Frame</legend>
           <span>
             Leave room for hair and shoulders. Adjust the portrait if needed,
@@ -11582,14 +11611,17 @@ function TeamCardPhotoField({
             </button>
           ) : null}
         </fieldset>
+        </details>
       ) : null}
       {reviewMode ? <span className={styles.helperNote}>Sample mode: uploads are disabled. Use the saved sample card to try photo polish.</span> : null}
-      <TeamPhotoPolishPanel key={cardKey ?? 'draft'} cardKey={cardKey} photoUrl={photoUrl} photoAlt={photoAlt} onSavePhoto={onSavePhoto} onOpenHelp={onOpenHelp} reviewMode={reviewMode} />
+      <fieldset className={styles.teamEditorFields} disabled={isUploading || savingFrame || removingPhoto || isSuggestingFraming}>
+        <TeamPhotoPolishPanel key={cardKey ?? 'draft'} cardKey={cardKey} photoUrl={photoUrl} photoAlt={photoAlt} onSavePhoto={onSavePhoto} onOpenHelp={onOpenHelp} onBusyChange={setPolishBusy} reviewMode={reviewMode} />
+      </fieldset>
     </div>
   )
 }
 
-function PublicTeamRosterPanel({
+export function PublicTeamRosterPanel({
   reviewMode = false,
   members,
   participants,
@@ -11667,6 +11699,50 @@ function PublicTeamRosterPanel({
   )
   const leadInitials = (leadCard?.displayName?.trim().charAt(0) || '?').toUpperCase()
   const leadName = leadCard?.displayName?.trim() || 'your lead card'
+  const [selectedKey, setSelectedKey] = useState(() => draft.id
+    ? draft.id === matchingLeadMember?.id ? 'lead' : draft.id
+    : draft.displayName || draft.photoUrl ? 'new' : 'lead')
+  const [editorTab, setEditorTab] = useState<'photo' | 'details' | 'onboarding'>('photo')
+  const [photoState, setPhotoState] = useState({ busy: false, dirty: false })
+  const [pendingSelection, setPendingSelection] = useState<string | null>(null)
+  const selectedMember = selectedKey === 'lead'
+    ? matchingLeadMember
+    : members.find((member) => member.id === selectedKey)
+  const isNew = selectedKey === 'new'
+  const editorBusy = isLoading || Boolean(actionState?.pendingKey) || photoState.busy
+  const detailsDirty = (isNew || draft.id === selectedMember?.id) &&
+    JSON.stringify(buildJoinTeamRosterSavePayload(draft)) !==
+    JSON.stringify(buildJoinTeamRosterSavePayload(getJoinTeamRosterDraft(selectedMember)))
+
+  // A newly saved card keeps its exact server ID selected, never its list position.
+  useEffect(() => {
+    if (selectedKey === 'new' && draft.id) setSelectedKey(draft.id === matchingLeadMember?.id ? 'lead' : draft.id)
+  }, [selectedKey, draft.id, matchingLeadMember?.id])
+  useEffect(() => {
+    if (selectedKey === 'lead' && selectedMember && draft.id !== selectedMember.id) {
+      onEdit?.(selectedMember)
+    }
+    if (selectedKey !== 'lead' && selectedKey !== 'new' && !selectedMember && !isLoading) {
+      setSelectedKey('lead')
+      setEditorTab('photo')
+      onDraftChange?.({ ...getJoinTeamRosterDraft(), id: undefined })
+    }
+  }, [selectedKey, selectedMember, draft.id, isLoading, onEdit, onDraftChange])
+
+  function selectPerson(nextKey: string, discardConfirmed = false) {
+    if (editorBusy || nextKey === selectedKey) return
+    if ((detailsDirty || photoState.dirty) && !discardConfirmed) {
+      setPendingSelection(nextKey)
+      return
+    }
+    setPendingSelection(null)
+    const nextMember = nextKey === 'lead' ? matchingLeadMember : members.find((member) => member.id === nextKey)
+    if (nextMember) onEdit?.(nextMember)
+    else onDraftChange?.({ ...getJoinTeamRosterDraft(), id: undefined })
+    setSelectedKey(nextKey)
+    setEditorTab(nextKey === 'new' ? 'details' : 'photo')
+  }
+  const selectedName = isNew ? 'New team member' : selectedKey === 'lead' ? leadName : selectedMember?.displayName ?? 'Team member'
 
   return (
     <section
@@ -11692,8 +11768,8 @@ function PublicTeamRosterPanel({
 
       {reviewMode ? <div className={styles.helperMessage}>Photo review sample — no AI credits used. Open Polish my photo on the saved sample teammate below. Reload this page to reset all sample changes.</div> : null}
 
-      <div className={styles.teamMessagePreview}>
-        <strong>Before you share the Join Team page</strong>
+      <details className={styles.teamMessagePreview}>
+        <summary>Before you share the Join Team page</summary>
         <ul>
           <li>
             {members.some((member) => member.isVisible)
@@ -11710,18 +11786,48 @@ function PublicTeamRosterPanel({
           </li>
           <li>Open onboarding questions through the Message Center.</li>
         </ul>
-      </div>
+      </details>
 
-      <div className={styles.teamLeadCard}>
+      <div className={styles.teamPersonPicker}>
+        <label className={styles.searchField}>
+          <span className={styles.searchLabel}>Choose a person</span>
+          <select className={styles.searchInput} value={selectedKey} disabled={editorBusy} onChange={(event) => selectPerson(event.target.value)}>
+            <option value="lead">You — Team Lead · {leadName}</option>
+            {members.filter((member) => member.id !== matchingLeadMember?.id).map((member) => (
+              <option key={member.id} value={member.id}>{member.displayName}{member.businessName ? ` · ${member.businessName}` : ''}{member.isVisible ? '' : ' (hidden)'}</option>
+            ))}
+            {isNew ? <option value="new">New team member</option> : null}
+          </select>
+        </label>
+        <button type="button" className={styles.actionButton} disabled={editorBusy || isNew} onClick={() => selectPerson('new')}>+ Add team member</button>
+      </div>
+      {pendingSelection ? <div className={styles.teamMessagePreview} role="alert">
+        <strong>Unsaved changes for {selectedName}</strong>
+        <p>Your changes have not been saved. Keep editing, or discard them to switch people.</p>
+        <div className={styles.workspaceInlineActions}>
+          <button type="button" className={styles.actionButton} onClick={() => setPendingSelection(null)}>Keep editing</button>
+          <button type="button" className={styles.helperButton} disabled={editorBusy} onClick={() => selectPerson(pendingSelection, true)}>Discard and switch</button>
+        </div>
+      </div> : null}
+      <div className={styles.teamSingleEditor}>
+        <div className={styles.workspaceSectionHeader}>
+          <div><strong>{selectedName}</strong><div className={styles.helperNote}>{isNew ? 'Save their details first. Then polish their photo or create a private onboarding link.' : selectedKey === 'lead' ? 'Your Join Team card' : selectedMember?.businessName}</div></div>
+          <span className={styles.rosterTag}>{isNew ? 'New card' : selectedKey === 'lead' ? 'Team Lead' : selectedMember?.isVisible ? 'Visible' : 'Hidden'}</span>
+        </div>
+        <div className={styles.teamEditorTabs} aria-label="Person editor sections">
+          {(['photo', 'details', 'onboarding'] as const).map((tab) => (
+            <button type="button" key={tab} className={styles.helperButton} aria-pressed={editorTab === tab} disabled={editorBusy} onClick={() => setEditorTab(tab)}>
+              {tab === 'photo' ? 'Photo' : tab === 'details' ? 'Details & Links' : 'Private Onboarding'}
+            </button>
+          ))}
+        </div>
+
+      {selectedKey === 'lead' ? <div className={styles.teamEditorPane} hidden={editorTab !== 'photo'}>
         <div className={styles.workspaceSectionHeader}>
           <div>
             <div className={styles.walletSettingsTitle}>Your Join Team card</div>
             <div className={styles.helperNote}>
-              This photo is the one customers see on your lead card. Member
-              cards below keep their own photos. Letter initials show only when
-              no photo is saved. This is not a separate Finder profile picture
-              field — Sparkle Suite stores it as your public profile photo so
-              the Join Team lead card can show it.
+              This is your public profile photo. Each team member keeps their own photo.
             </div>
           </div>
           <span className={styles.rosterTag}>Lead</span>
@@ -11733,11 +11839,12 @@ function PublicTeamRosterPanel({
         </div>
         {matchingLeadMember ? (
           <div className={styles.helperNote}>
-            Your lead card also appears in the team list below. Uploading here
-            updates the photo customers see.
+            Your saved lead roster card uses this same photo.
           </div>
         ) : null}
         <TeamCardPhotoField
+          key="lead"
+          onEditorStateChange={setPhotoState}
           reviewMode={reviewMode}
           photoUrl={leadPhotoUrl}
           photoAlt={`${leadName} Join Team lead card photo`}
@@ -11759,16 +11866,18 @@ function PublicTeamRosterPanel({
           onSuggestFraming={onSuggestLeadFraming}
           isSuggestingFraming={isSuggestingLeadFraming}
         />
-      </div>
+      </div> : null}
 
-      <div className={styles.teamRosterWorkspace}>
-        <div className={styles.teamRosterEditor}>
-          <div className={styles.walletSettingsTitle}>Add team member card</div>
+      {isNew || selectedMember ? <div className={styles.teamEditorPane} hidden={editorTab !== 'details'}>
+        <fieldset className={styles.teamEditorFields} disabled={editorBusy}>
+          <div className={styles.walletSettingsTitle}>{isNew ? 'Add team member card' : 'Details & Links'}</div>
+          {isNew ? <>
           <div className={styles.helperNote}>
             Adding someone new? Save their card first, leave it hidden until
             you are ready to publish, then create their private onboarding link
             from the saved card.
           </div>
+          </> : null}
           <div className={styles.teamInputGrid}>
             <label className={styles.searchField}>
               <span className={styles.searchLabel}>First name</span>
@@ -11808,27 +11917,6 @@ function PublicTeamRosterPanel({
               </span>
             </label>
           </div>
-
-          <TeamCardPhotoField
-            reviewMode={reviewMode}
-            key={draft.id ?? 'new-team-member'}
-            photoUrl={draft.photoUrl}
-            photoAlt="Team member card preview"
-            emptyLabel="No photo selected"
-            permissionLabel="I have permission to publish this team member's photo on the public Join Team page."
-            isUploading={isPhotoUploading}
-            showInstructions
-            showFramingControls
-            instructionTitle="Profile photo process"
-            framing={parseTeamPhotoFraming(draft.imageClassName)}
-            onUpload={onUploadPhoto}
-            onRemovePhoto={() => onDraftChange?.(buildTeamPhotoRemovalPatch())}
-            onFramingChange={(nextFraming) =>
-              onDraftChange?.({
-                imageClassName: serializeTeamPhotoFraming(nextFraming),
-              })
-            }
-          />
 
           <div className={styles.teamSocialGrid}>
             <label className={styles.searchField}>
@@ -11916,16 +12004,38 @@ function PublicTeamRosterPanel({
               ? 'Saving card...'
               : saveLabel}
           </button>
+        </fieldset>
+      </div> : <div className={styles.teamEditorPane} hidden={editorTab !== 'details'}>
+        <p className={styles.helperNote}>Your lead name and social links come from Site Settings.</p>
+        <Link className={styles.helperLink} href="/nic-nac?section=site-settings">Open Site Settings</Link>
+      </div>}
+
+      {isNew ? <>
+        <div className={styles.teamEditorPane} hidden={editorTab !== 'photo'}>
+          <TeamCardPhotoField
+            key="new-team-member"
+            reviewMode={reviewMode}
+            photoUrl={draft.photoUrl}
+            photoAlt={`${draft.displayName || 'New team member'} card preview`}
+            emptyLabel="No photo selected"
+            permissionLabel="I have permission to publish this team member's photo on the public Join Team page."
+            isUploading={isPhotoUploading}
+            showInstructions showFramingControls
+            framing={parseTeamPhotoFraming(draft.imageClassName)}
+            onUpload={onUploadPhoto}
+            onEditorStateChange={setPhotoState}
+            onRemovePhoto={() => onDraftChange?.(buildTeamPhotoRemovalPatch())}
+            onFramingChange={(nextFraming) => onDraftChange?.({ imageClassName: serializeTeamPhotoFraming(nextFraming) })}
+          />
+          <button type="button" className={styles.actionButton} disabled={editorBusy} onClick={onSave}>{actionState?.pendingKey === 'public-team:save' ? 'Saving card...' : saveLabel}</button>
         </div>
+        <div className={styles.teamEditorPane} hidden={editorTab !== 'onboarding'}><p className={styles.helperNote}>Save this team member first to create their private onboarding link.</p></div>
+      </> : null}
+      {selectedKey === 'lead' && !selectedMember ? <div className={styles.teamEditorPane} hidden={editorTab !== 'onboarding'}><p className={styles.helperNote}>Choose a team member to manage their private onboarding. Earlier onboarding links remain available below.</p></div> : null}
 
         <div className={styles.teamRosterList} role="list">
-          {members.length === 0 ? (
-            <div className={styles.emptyState}>
-              Public team cards will appear here before they show on the Join
-              Team page.
-            </div>
-          ) : (
-            members.map((member, index) => {
+          {members.filter((member) => member.id === selectedMember?.id).map((member) => {
+              const index = members.findIndex((item) => item.id === member.id)
               const participant = findParticipantForRosterMember(
                 member,
                 participants,
@@ -11944,15 +12054,9 @@ function PublicTeamRosterPanel({
                 `member-card:photo-upload:${member.id}`
 
               return (
-              <div key={member.id} className={styles.teamRosterCard} role="listitem">
-                <div className={styles.teamRosterAvatar}>
-                  {member.photoUrl ? (
-                    <img src={member.photoUrl} alt={member.photoAlt || member.displayName} style={teamPhotoFramingStyle(parseTeamPhotoFraming(member.imageClassName)) as CSSProperties} />
-                  ) : (
-                    <span>{member.initials || member.displayName.slice(0, 1)}</span>
-                  )}
-                </div>
+              <div key={member.id} role="listitem">
                 <div className={styles.teamRosterCardBody}>
+                  <div className={styles.teamEditorPane} hidden={editorTab !== 'details'}>
                   <div className={styles.workspaceSectionHeader}>
                     <div>
                       <strong>{member.businessName || 'Show name missing'}</strong>
@@ -11976,7 +12080,10 @@ function PublicTeamRosterPanel({
                       <span>No links yet</span>
                     ) : null}
                   </div>
-                  <TeamCardPhotoField
+                  </div>
+                  {selectedKey !== 'lead' ? <div className={styles.teamEditorPane} hidden={editorTab !== 'photo'}><TeamCardPhotoField
+                    key={member.id}
+                    onEditorStateChange={setPhotoState}
                     reviewMode={reviewMode}
                     photoUrl={member.photoUrl}
                     photoAlt={member.photoAlt || member.displayName}
@@ -11991,8 +12098,8 @@ function PublicTeamRosterPanel({
                     framing={parseTeamPhotoFraming(member.imageClassName)}
                     showFramingControls
                     onUpload={(file) => onUploadMemberPhoto?.(member, file)}
-                  />
-                  <div className={styles.teamOnboardingCardPanel}>
+                  /></div> : null}
+                  <div className={styles.teamEditorPane} hidden={editorTab !== 'onboarding'}><div className={styles.teamOnboardingCardPanel}>
                     <div className={styles.workspaceSectionHeader}>
                       <div>
                         <strong>Private onboarding</strong>
@@ -12136,15 +12243,9 @@ function PublicTeamRosterPanel({
                         </div>
                       </>
                     )}
-                  </div>
+                  </div></div>
+                  <fieldset className={styles.teamEditorFields} disabled={editorBusy || detailsDirty || photoState.dirty}>
                   <div className={styles.workspaceInlineActions}>
-                    <button
-                      type="button"
-                      className={styles.helperButton}
-                      onClick={() => onEdit?.(member)}
-                    >
-                      Edit
-                    </button>
                     <button
                       type="button"
                       className={styles.helperButton}
@@ -12194,15 +12295,16 @@ function PublicTeamRosterPanel({
                         onRemove?.(member.id)
                       }}
                     >
-                      Remove
+                      Remove team member
                     </button>
                   </div>
+                  </fieldset>
                 </div>
               </div>
               )
-            })
-          )}
+            })}
         </div>
+        {detailsDirty || photoState.dirty ? <p className={styles.helperNote} role="status">You have unsaved changes. Save your details or framing before hiding, reordering, or removing this card.</p> : null}
       </div>
     </section>
   )

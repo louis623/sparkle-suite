@@ -1,5 +1,16 @@
 # Decision Log
 
+## 2026-09-20 - One team-person editor, no functionality removed
+
+Louis approved one person selector (including Team Lead) plus Add team member,
+both using the same editor with Photo, Details & Links, and Private Onboarding.
+Keep all current controls, exact photo ownership, earlier onboarding links and
+team-wide settings. Adding a person must clear the prior person's ID and hidden
+draft metadata. Warn before discarding unsaved edits; never switch photo targets
+mid-request. This simplifies Workspace only, not the public card design or AI
+allowance. Louis's own smoke test accepted the earlier live photo feature.
+
+
 ## 2026-09-20 - Photo backgrounds follow the rep's skin at generation time
 
 Louis confirmed backgrounds must match the rep's currently selected skin.

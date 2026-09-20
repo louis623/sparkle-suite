@@ -20,6 +20,8 @@ import {
   SiteSettingsCard,
   ShowCalendarCard,
   TeamManagementCard,
+  PublicTeamRosterPanel,
+  applyJoinTeamRosterDraftPatch,
   resolveTeamPhotoPolishSource,
   resolveTeamPhotoSelectionFraming,
   createTeamPhotoPolishReviewState,
@@ -1226,6 +1228,7 @@ describe('DashboardPlaceholder', () => {
           ],
         },
         teamName: 'Moonstone Squad',
+        publicTeamDraft: { ...getJoinTeamRosterDraft(), id: 'member-lindsey' },
         recruitingLink: 'https://bombparty.com/moonstone-squad/packs',
         onCreateParticipant: () => {},
         onRefreshInvite: () => {},
@@ -1402,16 +1405,15 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('State')
     expect(html).toContain('value="Georgia"')
     expect(html).toContain('Shown on this team member&#x27;s customer-facing card.')
-    expect(html).toContain('Colorado')
+    expect(html).toContain('Choose a person')
     expect(html).toContain('Profile photo process')
     expect(html).toContain('Choose a clear, well-lit photo of one person')
     expect(html).toContain('Save this card first to unlock optional photo polish.')
-    expect(html).toContain('Polish my photo')
+    expect(html).toContain('Save this card first to unlock optional photo polish.')
     expect(html).toContain('Show the full photo')
     expect(html).toContain('photo quality and framing automatically using AI')
     expect(html).toContain('I have permission to publish this team member&#x27;s photo')
-    expect(html).toContain('Your Join Team card')
-    expect(html).toContain('Upload photo')
+    expect(html).toContain('New team member')
     expect(html).toContain('Replace photo')
     expect(html).toContain('Remove photo')
     expect(html).not.toContain('Photo URL or saved path (optional fallback)')
@@ -1419,8 +1421,8 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('accept="image/jpeg,image/png,image/webp"')
     expect(html).toContain('Mile High Fizz')
     expect(html).toContain('Lindsey')
-    expect(html).toContain('Private onboarding')
-    expect(html).toContain('Create onboarding link')
+    expect(html).toContain('Private Onboarding')
+    expect(html).toContain('Save this team member first to create their private onboarding link.')
     expect(html).toContain('Private links never appear on the customer-facing site.')
     expect(html).toContain('Visible on Join Team page')
     expect(html).toContain('Preview Join Team page')
@@ -1517,13 +1519,12 @@ describe('DashboardPlaceholder', () => {
     expect(kellyHtml).toContain('Lead card photo')
     expect(kellyHtml).toContain('Smart Frame')
     expect(kellyHtml).toContain('Straighten')
-    expect(kellyHtml).toContain('--jp-team-photo-focus-x:62%')
-    expect(kellyHtml).toContain('--jp-team-photo-focus-y:27%')
-    expect(kellyHtml).toContain('--jp-team-photo-fit:contain')
+    expect(kellyHtml).not.toContain('src="https://cdn.example.com/public-site-media/erika.jpg"')
+    expect(kellyHtml).toContain('Choose a person')
     expect(kellyHtml).not.toContain('circle preview')
     expect(kellyHtml).toContain('Dara')
     expect(kellyHtml).toContain('Erika')
-    expect(kellyHtml).toContain('Upload photo')
+    expect(kellyHtml).toContain('+ Add team member')
     expect(kellyHtml).toContain('Replace photo')
     expect(kellyHtml).not.toContain('Photo URL or saved path')
     expect(heatherHtml).toContain('Your Join Team card')
@@ -1555,6 +1556,55 @@ describe('DashboardPlaceholder', () => {
     expect(source).toContain('Refreshing starts from the original photo')
     expect(source).toContain('remaining attempts.')
     expect(source).not.toContain('Try another polish')
+  })
+
+  it('starts a new person without carrying another card identity, photo, crop or private metadata', () => {
+    const previous = { ...getJoinTeamRosterDraft(), id: 'old-person', displayName: 'Alex', photoUrl: '/alex.jpg', photoAlt: 'Alex', imageClassName: 'ss-frame:62,27,1.00,0', bio: 'Private draft', city: 'Miami', sortOrder: 5 }
+    const fresh = applyJoinTeamRosterDraftPatch(previous, { ...getJoinTeamRosterDraft(), id: undefined })
+    expect(buildJoinTeamRosterSavePayload(fresh)).toEqual(buildJoinTeamRosterSavePayload(getJoinTeamRosterDraft()))
+    expect(applyJoinTeamRosterDraftPatch(previous, { businessName: 'New show' })).toMatchObject({ id: 'old-person', photoUrl: '/alex.jpg', businessName: 'New show' })
+  })
+
+  it('renders only the selected ID photo and preserves every saved-card tool even with duplicate names and reordered cards', () => {
+    const members = ['person-b', 'person-a'].map((id, sortOrder) => ({
+      id, repId: 'rep-test', displayName: 'Alex', businessName: id, state: 'Florida', city: '', initials: 'A',
+      photoUrl: `/${id}.jpg`, photoAlt: `${id} portrait`, imageClassName: 'ss-frame:62,27,1.00,0 ss-fit:contain', bio: '', links: { whatnot: 'https://www.whatnot.com/user/alex' },
+      sortOrder, isVisible: true, createdAt: '', updatedAt: '',
+    }))
+    for (const member of members) {
+      const html = renderToStaticMarkup(createElement(PublicTeamRosterPanel, {
+        members, participants: [], draft: getJoinTeamRosterDraft(member), isLoading: false,
+        joinTeamPreviewHref: '/amethyst/Join.html', onSaveTeamPhoto: async () => {},
+      }))
+      expect(html).toContain(`src="/${member.id}.jpg"`)
+      expect(html).not.toContain(`src="/${members.find((other) => other.id !== member.id)!.id}.jpg"`)
+      expect(html.match(/aria-label="Profile photo preview"/g)).toHaveLength(1)
+      for (const label of ['Details &amp; Links', 'Private Onboarding', 'Save card changes', 'Create onboarding link', 'Remove photo', 'Polish my photo', 'Save framing', 'Move up', 'Move down', 'Remove team member', 'Whatnot']) expect(html).toContain(label)
+      expect(html).toContain('--jp-team-photo-focus-x:62%')
+      expect(html).toContain('--jp-team-photo-focus-y:27%')
+      expect(html).toContain('--jp-team-photo-fit:contain')
+    }
+  })
+
+  it('keeps one lead option and a single lead photo editor when a lead roster card exists', () => {
+    const member = { id: 'lead-roster-id', repId: 'rep', displayName: 'Kelly', businessName: 'Sparkly Butterflies', state: '', city: '', initials: 'K', photoUrl: '/kelly.jpg', photoAlt: 'Kelly', imageClassName: '', bio: '', links: {}, sortOrder: 0, isVisible: true, createdAt: '', updatedAt: '' }
+    const html = renderToStaticMarkup(createElement(PublicTeamRosterPanel, {
+      members: [member], participants: [], draft: getJoinTeamRosterDraft(member), isLoading: false,
+      joinTeamPreviewHref: '/amethyst/Join.html', leadCard: { displayName: 'Kelly', businessName: 'Sparkly Butterflies', photoUrl: '/kelly.jpg' },
+    }))
+    expect(html.match(/aria-label="Profile photo preview"/g)).toHaveLength(1)
+    expect(html).not.toContain('<option value="lead-roster-id"')
+    expect(html).toContain('Your saved lead roster card uses this same photo.')
+  })
+
+  it('guards person switching and keeps tabs mounted so framing and polish previews are not lost', () => {
+    const source = readFileSync(resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'), 'utf8')
+    expect(source).toContain('Keep editing')
+    expect(source).toContain('Discard and switch')
+    expect(source).toContain('if (editorBusy || nextKey === selectedKey) return')
+    expect(source).toContain('detailsDirty || photoState.dirty')
+    expect(source).toContain('hidden={editorTab !==')
+    expect(source).toContain('setPublicTeamDraft(getJoinTeamRosterDraft(savedMember))')
   })
 
   it('requires explicit UI confirmation and sends the confirmed hard-delete contract', () => {

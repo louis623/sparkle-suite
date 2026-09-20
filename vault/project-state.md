@@ -1,5 +1,15 @@
 # Project State
 
+## September 20, 2026 - Approved single-person Team Management editor
+
+Louis smoke-tested and accepted the portrait/polish release, then approved one
+selector and one editor for lead/member/new cards, retaining all existing tools.
+The UI-only follow-up preserves exact photo/member associations and adds an
+inline unsaved-change guard. Focused tests (144) and local desktop/phone sample
+checks passed; exact manual release and live confirmation follow this commit.
+See `vault/2026-09-20-team-editor-consolidation.md` for scope and evidence.
+
+
 ## September 20, 2026 - Team-photo work closed out; Louis review pending
 
 Latest live application: `19eb1004a14d4cb5a7e76b6ac1c800d81a31a21a`, manual

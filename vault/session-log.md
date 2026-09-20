@@ -1,5 +1,16 @@
 # Session Log
 
+## September 20, 2026 - Single-editor Team Management follow-up
+
+Louis confirmed the photo feature works well, requested a simpler Workspace UI,
+and explicitly approved the single-editor option. Consolidated person selection,
+adding/editing, Photo / Details & Links / Private Onboarding; kept all original
+tools and earlier onboarding records. Protected exact member identity, clean
+new drafts and unsaved changes. No paid AI calls or production data changes
+during implementation. 144 focused tests and local desktop/phone checks passed.
+Release/live receipt follows. See `2026-09-20-team-editor-consolidation.md`.
+
+
 ## September 20, 2026 - Final team-photo closeout
 
 Louis requested recording work, decisions and lessons in Open Brain and the
