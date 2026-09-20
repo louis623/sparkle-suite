@@ -1,5 +1,15 @@
 # Session Log
 
+## September 20, 2026 - Final team-photo closeout
+
+Louis requested recording work, decisions and lessons in Open Brain and the
+repository vault, and will smoke test later. Application `19eb1004` is live as
+`dpl_CJBCXXiRjsRx2A5KMacUQccm61XR`, with both Suite aliases verified; current-skin
+label, explanation and consent gate passed live demo checks. One real image was
+generated during the full session; no extra generations for the wording change.
+Final record: `vault/2026-09-20-team-photo-closeout.md`. This closeout is notes-only;
+it does not deploy application changes or change any account/photo records.
+
 ## September 20, 2026 - Authorized live demo test and current-skin wording
 
 Live photo test succeeded after Louis signed into his original demo account and

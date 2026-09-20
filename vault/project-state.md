@@ -1,5 +1,16 @@
 # Project State
 
+## September 20, 2026 - Team-photo work closed out; Louis review pending
+
+Latest live application: `19eb1004a14d4cb5a7e76b6ac1c800d81a31a21a`, manual
+Vercel `dpl_CJBCXXiRjsRx2A5KMacUQccm61XR` (both Suite domains verified).
+The current-skin refresh wording is live and checked in Louis's explicitly
+authorized signed-in demo. One real photo-generation test passed, including
+approval, exact-original restore and public display. The visible Photo Test
+card stays for Louis, who plans to smoke test later. No further work or monitor
+was scheduled. Final decisions, lessons and limitations:
+`vault/2026-09-20-team-photo-closeout.md`.
+
 ## September 20, 2026 - Paid team-photo smoke passed; current-skin refresh wording
 
 The photo draft `f4fc50e5` is live as `dpl_DcD7osUEhLxSdNnCcdc6f61S727g`.
