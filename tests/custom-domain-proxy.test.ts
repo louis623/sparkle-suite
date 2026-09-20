@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getRewrittenUrl, isRewrite } from 'next/experimental/testing/server'
+import { getRedirectUrl, getRewrittenUrl, isRewrite } from 'next/experimental/testing/server'
 import { NextRequest } from 'next/server'
 
 import { proxy } from '@/proxy'
@@ -34,6 +34,20 @@ describe('custom-domain customer site proxy', () => {
       }),
     )
 
+    expect(isRewrite(response)).toBe(false)
+  })
+
+  it('permanently consolidates a customer www host onto its apex domain', () => {
+    const response = proxy(
+      new NextRequest('https://www.brisglowtique.com/join?source=search', {
+        headers: { host: 'www.brisglowtique.com' },
+      }),
+    )
+
+    expect(response.status).toBe(308)
+    expect(getRedirectUrl(response)).toBe(
+      'https://brisglowtique.com/join?source=search',
+    )
     expect(isRewrite(response)).toBe(false)
   })
 

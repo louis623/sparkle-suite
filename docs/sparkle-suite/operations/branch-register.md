@@ -34,6 +34,15 @@ and Vercel release branch remains `codex/nic-nac-trade-hardening`; this entry
 does not create a second production branch, move an alias, change the Vercel
 production branch, or authorize extension work.
 
+## September 20 temporary SEO crawl-refresh branch
+
+Louis approved `codex/seo-crawl-refresh` only in that isolated
+Google-verification worktree. It may implement and test the public sitemap and
+canonical-host repair for the four audited customer sites. It is not a
+production branch: GitHub's default branch, Vercel's production branch, all
+production aliases, and the protected primary workbench remain unchanged until
+the exact reviewed change is merged back to `codex/nic-nac-trade-hardening`.
+
 ## September 15 consolidation evidence
 
 The active branch tip at audit time was `69110afc`. The application code served

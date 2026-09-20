@@ -27,6 +27,15 @@ export function proxy(request: NextRequest) {
     return NextResponse.next({ request: { headers } })
   }
 
+  // Customer domains use the apex hostname as their one public search identity.
+  // Keep existing www links working, but permanently consolidate their crawl
+  // signals and visitors onto that preferred hostname before any page rewrite.
+  if (customerDomain.startsWith('www.')) {
+    const canonicalUrl = request.nextUrl.clone()
+    canonicalUrl.hostname = customerDomain.slice('www.'.length)
+    return NextResponse.redirect(canonicalUrl, 308)
+  }
+
   const publicAssetPath = CUSTOMER_SITE_ROUTES[request.nextUrl.pathname]
   if (!publicAssetPath) return NextResponse.next({ request: { headers } })
 

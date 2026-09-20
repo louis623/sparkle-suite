@@ -88,17 +88,22 @@ const AMETHYST_TEMPLATE_SCRIPT_PAGES: Record<string, AmethystPublicPage> = {
   'Unsubscribe.html': 'homepage',
 }
 
-const BLING_KITCHEN_GOOGLE_SITE_VERIFICATION =
-  'feEZv_CKufx0oSqVev8dMlnlsW_15Huq4MxQ8qflSmo'
+const GOOGLE_SITE_VERIFICATION_BY_HOME_HOST: Record<string, string> = {
+  'theblingkitchen.com': 'feEZv_CKufx0oSqVev8dMlnlsW_15Huq4MxQ8qflSmo',
+  'brittwithbling.com': 'EwFFAo5oMKSJKVrUGtZ0VkA-lSf7TOHCz90dvz7269s',
+  'brisglowtique.com': 'xPwvo7JypLtNV249Kng-6JmVac6hvtMvEVidIDmJmIU',
+  'sparklybutterflies.com': 'ivgAtlhf8_GUt8ES7nXdqvJSZbHi6AGwp3dUdmio9aA',
+}
 
 export function buildGoogleSiteVerificationTag(
   page: AmethystPublicPage,
   origin: string,
 ) {
   const hostname = new URL(origin).hostname.toLowerCase()
-  if (page !== 'homepage' || hostname !== 'theblingkitchen.com') return ''
+  const verificationToken = GOOGLE_SITE_VERIFICATION_BY_HOME_HOST[hostname]
+  if (page !== 'homepage' || !verificationToken) return ''
 
-  return `<meta name="google-site-verification" content="${BLING_KITCHEN_GOOGLE_SITE_VERIFICATION}" />`
+  return `<meta name="google-site-verification" content="${verificationToken}" />`
 }
 
 function getContentType(filePath: string | URL) {

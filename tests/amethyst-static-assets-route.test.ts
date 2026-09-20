@@ -25,6 +25,15 @@ describe('Amethyst static asset route', () => {
   })
 
   it.each([
+    ['https://brittwithbling.com', 'EwFFAo5oMKSJKVrUGtZ0VkA-lSf7TOHCz90dvz7269s'],
+    ['https://brisglowtique.com', 'xPwvo7JypLtNV249Kng-6JmVac6hvtMvEVidIDmJmIU'],
+    ['https://sparklybutterflies.com', 'ivgAtlhf8_GUt8ES7nXdqvJSZbHi6AGwp3dUdmio9aA'],
+  ])('adds the correct homepage-only Google verification tag for %s', (origin, token) => {
+    expect(buildGoogleSiteVerificationTag('homepage', origin)).toContain(token)
+    expect(buildGoogleSiteVerificationTag('trade', origin)).toBe('')
+  })
+
+  it.each([
     ['gnome-garden.css', 'text/css'],
     ['skins/gnome-garden/forest.webp', 'image/webp'],
     ['skins/gnome-garden/forest-mobile.webp', 'image/webp'],

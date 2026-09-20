@@ -8,7 +8,8 @@
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
-    "codex/nic-nac-trade-hardening"
+    "codex/nic-nac-trade-hardening",
+    "codex/seo-crawl-refresh"
   ],
   "productionBranch": "codex/nic-nac-trade-hardening",
   "productionReviewUrl": "https://www.yoursparklesuite.com",
