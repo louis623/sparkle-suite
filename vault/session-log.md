@@ -1,5 +1,15 @@
 # Session Log
 
+## September 20, 2026 - Authorized live demo test and current-skin wording
+
+Live photo test succeeded after Louis signed into his original demo account and
+explicitly authorized testing. A copy of the existing demo portrait was uploaded
+to a new visible Photo Test card at Louis's request. One real polish succeeded;
+approve, exact-source restore, reapprove and public rendering were verified.
+He requested keeping the result visible, then approved clearer current-skin
+refresh wording. No extra paid images or automatic theme-change edits.
+See `vault/2026-09-20-team-photo-live-smoke.md` for evidence and scope.
+
 ## September 20, 2026 - Team portrait implementation and economical draft checks
 
 - Approved large shared-template cards using each skin's semantic colors;

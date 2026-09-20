@@ -11283,6 +11283,7 @@ function TeamPhotoPolishPanel({ cardKey, photoUrl, photoAlt, onSavePhoto, onOpen
       </div> : null}
       <strong>A polished portrait that still looks like you</strong>
       <p className={styles.helperNote}>Optional AI editing improves the background and lighting to suit your site. It is instructed to preserve the person&apos;s features, skin tone, age, hair, and clothing. Results can vary: check their likeness before choosing a photo. A clear original works best; polish cannot reliably fix a blurry or incomplete face.</p>
+      <p className={styles.helperNote}>Each polish uses your current site skin. If you change skins, your saved photo stays the same until you choose to refresh it. Refreshing starts from the original photo and uses one of this card&apos;s remaining attempts.</p>
       <label className={styles.teamPhotoPermission}>
         <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
         <span>I have permission to send this photo for AI editing and will review the person&apos;s likeness before publishing.</span>
@@ -11293,7 +11294,7 @@ function TeamPhotoPolishPanel({ cardKey, photoUrl, photoAlt, onSavePhoto, onOpen
       <button type="button" className={styles.helperButton}
         disabled={!status?.enabled || !consent || busy || hasPendingJob || Boolean(needsSupport) || !status.remainingAttempts}
         onClick={() => void performAction('generate')}>
-        {busy ? 'Working…' : status?.attemptsUsed ? 'Try another polish' : 'Create polished preview'}
+        {busy ? 'Working…' : status?.attemptsUsed ? 'Refresh photo for my current skin' : 'Create polished preview'}
       </button>
       {error ? <p className={styles.actionError} role="alert">{error}</p> : null}
       {notice ? <p className={styles.helperMessage} role="status">{notice}</p> : null}

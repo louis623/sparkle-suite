@@ -1,5 +1,13 @@
 # Decision Log
 
+## 2026-09-20 - Photo backgrounds follow the rep's skin at generation time
+
+Louis confirmed backgrounds must match the rep's currently selected skin.
+Changing skins does not regenerate or replace saved photos: the rep decides
+whether to redo them. Rename the existing retry action to “Refresh photo for my
+current skin” and explain that it uses the original and the same remaining
+attempts. Do not add automatic spending or reset the allowance on skin changes.
+
 ## 2026-09-20 - Large shared-template portraits supersede circular team photos
 
 Louis selected large photo-top cards for every present/future customer-site

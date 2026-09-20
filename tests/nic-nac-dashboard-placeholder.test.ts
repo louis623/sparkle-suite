@@ -1544,6 +1544,19 @@ describe('DashboardPlaceholder', () => {
     expect(source).not.toContain('Photo URL or saved path')
   })
 
+  it('explains current-skin refresh without automatic regeneration or a new allowance', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
+      'utf8',
+    )
+    expect(source).toContain("status?.attemptsUsed ? 'Refresh photo for my current skin' : 'Create polished preview'")
+    expect(source).toContain('Each polish uses your current site skin.')
+    expect(source).toContain('your saved photo stays the same until you choose to refresh it')
+    expect(source).toContain('Refreshing starts from the original photo')
+    expect(source).toContain('remaining attempts.')
+    expect(source).not.toContain('Try another polish')
+  })
+
   it('requires explicit UI confirmation and sends the confirmed hard-delete contract', () => {
     const confirmRemoval = vi.fn<(message: string) => boolean>(() => false)
     expect(

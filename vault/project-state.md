@@ -1,5 +1,21 @@
 # Project State
 
+## September 20, 2026 - Paid team-photo smoke passed; current-skin refresh wording
+
+The photo draft `f4fc50e5` is live as `dpl_DcD7osUEhLxSdNnCcdc6f61S727g`.
+Louis explicitly authorized testing in his signed-in demo Workspace after the
+protected reviewer entrance was unavailable. One real image edit succeeded;
+approve, exact-original restore, reapprove and public display passed. Louis
+asked to keep the visible Photo Test / Photo Polish Preview card and its result.
+Existing lead, Steve, Gracie Bot and Jane photos remain unchanged.
+Details: `vault/2026-09-20-team-photo-live-smoke.md`.
+
+Louis approved the follow-up button label “Refresh photo for my current skin”.
+Each requested generation uses the rep's current skin, while existing photos
+stay unchanged after a skin switch. Refresh starts from the original and counts
+toward the same card allowance. This follow-up changes wording only, with no
+extra paid generation. Its manual release receipt follows in Open Brain.
+
 ## September 20, 2026 - Shared team portraits and optional photo polish
 
 Louis approved larger 8:7 photo panels across the shared customer-site template,
