@@ -88,6 +88,19 @@ const AMETHYST_TEMPLATE_SCRIPT_PAGES: Record<string, AmethystPublicPage> = {
   'Unsubscribe.html': 'homepage',
 }
 
+const BLING_KITCHEN_GOOGLE_SITE_VERIFICATION =
+  'feEZv_CKufx0oSqVev8dMlnlsW_15Huq4MxQ8qflSmo'
+
+export function buildGoogleSiteVerificationTag(
+  page: AmethystPublicPage,
+  origin: string,
+) {
+  const hostname = new URL(origin).hostname.toLowerCase()
+  if (page !== 'homepage' || hostname !== 'theblingkitchen.com') return ''
+
+  return `<meta name="google-site-verification" content="${BLING_KITCHEN_GOOGLE_SITE_VERIFICATION}" />`
+}
+
 function getContentType(filePath: string | URL) {
   const pathname = typeof filePath === 'string' ? filePath : filePath.pathname
   const dotIndex = pathname.lastIndexOf('.')
@@ -313,7 +326,14 @@ function renderMetadataBlock(
     templateData,
     canonicalPathOverride,
   )
-  return `${buildMetadataTagsFromPublicMetadata(metadata).map(renderMetaTag).join('\n')}\n${faviconTag}`
+  const verificationTag = buildGoogleSiteVerificationTag(page, origin)
+  return [
+    buildMetadataTagsFromPublicMetadata(metadata).map(renderMetaTag).join('\n'),
+    verificationTag,
+    faviconTag,
+  ]
+    .filter(Boolean)
+    .join('\n')
 }
 
 function injectAmethystJsonLd(

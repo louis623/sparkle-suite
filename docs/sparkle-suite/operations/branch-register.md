@@ -18,9 +18,21 @@
 - Canonical live review target: `https://www.yoursparklesuite.com`
 
 The machine-readable source is `config/active-branches.json`. The local/build
-guard is `scripts/check-active-branch.mjs`. Only the primary workbench is
-allowlisted on Windows; isolated release work must use the documented manual
-Vercel provenance declarations without weakening the guard.
+guard is `scripts/check-active-branch.mjs`. The primary workbench remains the
+only general-purpose Windows workspace. The isolated worktree below is
+allowlisted only for the approved Google Search verification release; its
+build and push commands must declare the same approved release branch and
+repository, and it must not become a source for unrelated work.
+
+## September 20 isolated Google verification worktree
+
+Louis approved `C:\Users\louis\.codex\worktrees\blingkitchen-google-verification\sparkle-suite-repo`
+as an isolated release workspace for the BlingKitchen Google Search Console
+verification tag. It starts at approved source `49037082` and carries only the
+tenant-scoped verification change plus its regression test. Its intended GitHub
+and Vercel release branch remains `codex/nic-nac-trade-hardening`; this entry
+does not create a second production branch, move an alias, change the Vercel
+production branch, or authorize extension work.
 
 ## September 15 consolidation evidence
 

@@ -7,8 +7,23 @@ vi.mock('@/lib/amethyst/join-page-access', () => ({
 }))
 
 import { GET } from '@/app/amethyst/[...asset]/route'
+import { buildGoogleSiteVerificationTag } from '@/lib/amethyst/public-asset-response'
 
 describe('Amethyst static asset route', () => {
+  it('adds Google verification only to the BlingKitchen custom-domain homepage', () => {
+    expect(
+      buildGoogleSiteVerificationTag('homepage', 'https://theblingkitchen.com'),
+    ).toBe(
+      '<meta name="google-site-verification" content="feEZv_CKufx0oSqVev8dMlnlsW_15Huq4MxQ8qflSmo" />',
+    )
+    expect(
+      buildGoogleSiteVerificationTag('join', 'https://theblingkitchen.com'),
+    ).toBe('')
+    expect(
+      buildGoogleSiteVerificationTag('homepage', 'https://www.yoursparklesuite.com'),
+    ).toBe('')
+  })
+
   it.each([
     ['gnome-garden.css', 'text/css'],
     ['skins/gnome-garden/forest.webp', 'image/webp'],
