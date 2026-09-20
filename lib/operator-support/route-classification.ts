@@ -78,6 +78,13 @@ export const OPERATOR_SUPPORT_PROVIDER_ROUTE_ROOTS = [
 
 export const OPERATOR_SUPPORT_ROUTE_INVENTORY = [
   {
+    file: 'app/api/nic-nac/team-photo-polish/route.ts',
+    path: '/api/nic-nac/team-photo-polish',
+    methods: ['GET', 'POST'],
+    classification: 'rep_only',
+    rationale: 'Photo polish requires rep consent and can incur provider spend; status reads may resume a previously reserved job.',
+  },
+  {
     file: 'app/api/workspace/live-lineup/route.ts',
     path: '/api/workspace/live-lineup',
     methods: ['GET', 'POST'],

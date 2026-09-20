@@ -61,7 +61,7 @@ export interface AmethystJoinTemplateData {
   businessName: string
   /** Join Team lead-card photo. Separate from member card imageUrl values. */
   repImageUrl?: string
-  /** Circular framing for the lead-card photo. */
+  /** Portrait framing for the lead-card photo. */
   repImageFraming?: TeamPhotoFraming
   teamName: string
   /** The upline or other team this rep belongs to, shown in the public footer. */

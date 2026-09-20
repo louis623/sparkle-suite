@@ -313,7 +313,7 @@ describe('Amethyst join page template data wiring', () => {
     expect(jsx).toContain('Proud member of the {CONTENT.memberTeamName} team')
   })
 
-  it('clips lead and member team-card photos to the circular avatar disc', () => {
+  it('uses the shared rectangular portrait panel for lead and member cards', () => {
     const css = readFileSync(
       resolve(process.cwd(), 'public/amethyst/join.css'),
       'utf8',
@@ -323,16 +323,16 @@ describe('Amethyst join page template data wiring', () => {
       'utf8',
     )
 
-    expect(css).toMatch(/\.jp-team-avatar\s*\{[^}]*border-radius:\s*50%;/)
+    expect(css).toMatch(/\.jp-team-avatar\s*\{[^}]*aspect-ratio:\s*8\s*\/\s*7;/)
     expect(css).toMatch(/\.jp-team-avatar\s*\{[^}]*overflow:\s*hidden;/)
-    expect(css).toMatch(/\.jp-team-avatar-img\s*\{[^}]*object-fit:\s*cover;/)
-    expect(css).toMatch(/\.jp-team-avatar-img\s*\{[^}]*border-radius:\s*50%;/)
+    expect(css).toMatch(/\.jp-team-avatar-img\s*\{[^}]*object-fit:\s*var\(--jp-team-photo-fit, cover\);/)
+    expect(css).toMatch(/\.jp-team-avatar-img\s*\{[^}]*border-radius:\s*0;/)
     expect(css).toContain('object-position: var(--jp-team-photo-focus-x, 50%) var(--jp-team-photo-focus-y, 38%)')
     expect(css).toContain('transform: rotate(var(--jp-team-photo-rotation, 0deg)) scale(var(--jp-team-photo-zoom, 1))')
     expect(css).not.toContain('rotate(-25deg)')
     expect(css).not.toContain('object-position: left center')
-    expect(html).toContain('join.css?v=20260919-team-photo-frame-v1')
-    expect(html).toContain('join-runtime.js?v=20260919-team-photo-frame-v1')
+    expect(html).toContain('join.css?v=20260920-team-portraits-v1')
+    expect(html).toContain('join-runtime.js?v=20260920-team-portraits-v1')
   })
 
   it('renders shared SVG social marks on team cards and hides empty or hash hrefs', () => {

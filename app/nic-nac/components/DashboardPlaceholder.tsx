@@ -2019,12 +2019,12 @@ async function requestJoinTeamProfilePhotoUpload(file: File) {
     body: JSON.stringify({ base64Data, filename: file.name }),
   })
   const payload = (await response.json().catch(() => null)) as
-    | { error?: string; imageUrl?: string }
+    | { error?: string; imageUrl?: string; framing?: TeamPhotoFraming; quality?: { status: string; message: string } }
     | null
   if (!response.ok || !payload?.imageUrl) {
     throw new Error(payload?.error || 'Unable to upload that profile photo right now.')
   }
-  return payload.imageUrl
+  return { imageUrl: payload.imageUrl, framing: normalizeTeamPhotoFraming(payload.framing), quality: payload.quality }
 }
 
 type BrowserFaceDetector = {
@@ -3086,10 +3086,16 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     useState<TeamManagementState>(() =>
       reviewWorkspaceMode
         ? {
-            status: 'locked',
-            access: { enabled: false, status: 'not_enabled', source: null },
+            status: 'ready',
+            access: { enabled: true, status: 'manual_beta', source: 'manual_beta' },
             participants: [],
-            publicTeamRoster: [],
+            publicTeamRoster: [{
+              id: 'review-team-member', repId: 'review-rep', displayName: 'Sample teammate',
+              businessName: 'Sample team card', state: 'Florida', city: '', initials: 'S',
+              photoUrl: '/britt-with-bling/team-14-heather.png', photoAlt: 'Sample photo for reviewer controls',
+              imageClassName: '', bio: '', links: {}, sortOrder: 0, isVisible: true,
+              createdAt: '2026-09-20T00:00:00.000Z', updatedAt: '2026-09-20T00:00:00.000Z',
+            }],
           }
         : { status: 'loading' },
     )
@@ -5507,10 +5513,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const [imageUrl, framing] = await Promise.all([
-        requestJoinTeamProfilePhotoUpload(file),
-        getSmartTeamPhotoFraming(file),
-      ])
+      const { imageUrl, framing, quality } = await requestJoinTeamProfilePhotoUpload(file)
       setPublicTeamDraft((current) => ({
         ...current,
         photoUrl: imageUrl,
@@ -5519,7 +5522,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       setTeamManagementActionState({
         pendingKey: null,
         error: null,
-        helperMessage: 'Photo uploaded. Review the circle preview, then save the team member card.',
+        helperMessage: `Photo uploaded. Review the portrait preview, then save the team member card. ${quality?.message ?? ''}`.trim(),
       })
     } catch (error) {
       setTeamManagementActionState({
@@ -5608,7 +5611,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
     setPublicTeamDraft((current) =>
       current.id === savedMember.id
-        ? { ...current, photoUrl: savedMember.photoUrl }
+        ? { ...current, photoUrl: savedMember.photoUrl, imageClassName: savedMember.imageClassName ?? '' }
         : current,
     )
     return savedMember
@@ -5624,10 +5627,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const [imageUrl, framing] = await Promise.all([
-        requestJoinTeamProfilePhotoUpload(file),
-        getSmartTeamPhotoFraming(file),
-      ])
+      const { imageUrl, framing, quality } = await requestJoinTeamProfilePhotoUpload(file)
       await persistLeadCardPhotoUrl(imageUrl, framing)
       const matchingMember = findMatchingLeadRosterMember(
         teamManagementState.publicTeamRoster ?? [],
@@ -5643,7 +5643,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       setTeamManagementActionState({
         pendingKey: null,
         error: null,
-        helperMessage: 'Lead card photo saved. Customers see it on your Join Team lead card.',
+        helperMessage: `Lead card photo saved. Customers see it on your Join Team lead card. ${quality?.message ?? ''}`.trim(),
       })
     } catch (error) {
       setTeamManagementActionState({
@@ -5757,10 +5757,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const [imageUrl, framing] = await Promise.all([
-        requestJoinTeamProfilePhotoUpload(file),
-        getSmartTeamPhotoFraming(file),
-      ])
+      const { imageUrl, framing, quality } = await requestJoinTeamProfilePhotoUpload(file)
       const savedMember = await persistMemberCardPhotoUrl(member, imageUrl, framing)
       const matchesLead = Boolean(
         findMatchingLeadRosterMember([savedMember], {
@@ -5775,7 +5772,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       setTeamManagementActionState({
         pendingKey: null,
         error: null,
-        helperMessage: `${savedMember.displayName}'s photo is on their Join Team card.`,
+        helperMessage: `${savedMember.displayName}'s photo is on their Join Team card. ${quality?.message ?? ''}`.trim(),
       })
     } catch (error) {
       setTeamManagementActionState({
@@ -5786,6 +5783,30 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             : 'Unable to save that team card photo right now.',
         helperMessage: null,
       })
+    }
+  }
+
+  async function handleSaveTeamPhoto(cardKey: string, imageUrl: string, framing = normalizeTeamPhotoFraming()) {
+    if (reviewWorkspaceMode) {
+      setTeamManagementState((current) => ({ ...current, publicTeamRoster: current.publicTeamRoster?.map((member) => member.id === cardKey ? { ...member, photoUrl: imageUrl, imageClassName: serializeTeamPhotoFraming(framing) } : member) }))
+      return
+    }
+    const roster = teamManagementState.publicTeamRoster ?? []
+    const leadIdentity = {
+      name: siteSettingsDraft?.displayName ?? siteSettingsState.settings?.displayName,
+      business: siteSettingsDraft?.businessName ?? siteSettingsState.settings?.businessName,
+    }
+    if (cardKey === 'lead') {
+      await persistLeadCardPhotoUrl(imageUrl, framing)
+      const matchingMember = findMatchingLeadRosterMember(roster, leadIdentity)
+      if (matchingMember) await persistMemberCardPhotoUrl(matchingMember, imageUrl, framing)
+    } else {
+      const member = roster.find((item) => item.id === cardKey)
+      if (!member) throw new Error('Save the team member card before changing its photo.')
+      const saved = await persistMemberCardPhotoUrl(member, imageUrl, framing)
+      if (findMatchingLeadRosterMember([saved], leadIdentity)) {
+        await persistLeadCardPhotoUrl(imageUrl, framing)
+      }
     }
   }
 
@@ -6496,6 +6517,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       return (
         <div className={styles.workspaceSectionStack}>
           <TeamManagementCard
+            reviewMode={reviewWorkspaceMode}
             state={teamManagementState}
             actionState={teamManagementActionState}
             publicTeamDraft={publicTeamDraft}
@@ -6524,22 +6546,24 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             onRecruitingLinkChange={(recruitingLink) =>
               handleSiteSettingsDraftChange({ recruitingLink })
             }
-            onSaveTeamDetails={handleSaveManagedTeamDetails}
-            onCreateParticipant={handleCreateTeamOnboardingParticipant}
-            onRefreshInvite={handleRefreshTeamOnboardingInvite}
+            onSaveTeamDetails={reviewWorkspaceMode ? undefined : handleSaveManagedTeamDetails}
+            onCreateParticipant={reviewWorkspaceMode ? undefined : handleCreateTeamOnboardingParticipant}
+            onRefreshInvite={reviewWorkspaceMode ? undefined : handleRefreshTeamOnboardingInvite}
             onCopyInvite={handleCopyTeamOnboardingInvite}
-            onArchiveParticipant={handleArchiveTeamOnboardingParticipant}
+            onArchiveParticipant={reviewWorkspaceMode ? undefined : handleArchiveTeamOnboardingParticipant}
             onPublicTeamDraftChange={handlePublicTeamDraftChange}
-            onUploadPublicTeamPhoto={handlePublicTeamPhotoUpload}
-            onUploadLeadCardPhoto={handleLeadCardPhotoUpload}
-            onLeadCardFramingChange={handleLeadCardFramingChange}
-            onSuggestLeadCardFraming={handleSuggestLeadCardFraming}
-            onUploadMemberCardPhoto={handleMemberCardPhotoUpload}
-            onSavePublicTeamMember={handleSavePublicTeamMember}
+            onUploadPublicTeamPhoto={reviewWorkspaceMode ? undefined : handlePublicTeamPhotoUpload}
+            onUploadLeadCardPhoto={reviewWorkspaceMode ? undefined : handleLeadCardPhotoUpload}
+            onLeadCardFramingChange={reviewWorkspaceMode ? undefined : handleLeadCardFramingChange}
+            onSuggestLeadCardFraming={reviewWorkspaceMode ? undefined : handleSuggestLeadCardFraming}
+            onUploadMemberCardPhoto={reviewWorkspaceMode ? undefined : handleMemberCardPhotoUpload}
+            onSaveTeamPhoto={handleSaveTeamPhoto}
+            onOpenPhotoHelp={() => openMessageCenter({ view: 'support', composeSupport: true, source: 'team-photo-polish' })}
+            onSavePublicTeamMember={reviewWorkspaceMode ? undefined : handleSavePublicTeamMember}
             onEditPublicTeamMember={handleEditPublicTeamMember}
-            onTogglePublicTeamMember={handleTogglePublicTeamMember}
-            onMovePublicTeamMember={handleMovePublicTeamMember}
-            onRemovePublicTeamMember={handleRemovePublicTeamMember}
+            onTogglePublicTeamMember={reviewWorkspaceMode ? undefined : handleTogglePublicTeamMember}
+            onMovePublicTeamMember={reviewWorkspaceMode ? undefined : handleMovePublicTeamMember}
+            onRemovePublicTeamMember={reviewWorkspaceMode ? undefined : handleRemovePublicTeamMember}
             onOpenMessages={(conversationId) =>
               openMessageCenter({ view: 'team', conversationId })
             }
@@ -10738,6 +10762,7 @@ export function BusinessCalculatorCard() {
 }
 
 export function TeamManagementCard({
+  reviewMode = false,
   state = {
     status: 'locked',
     access: { enabled: false, status: 'not_enabled', source: null },
@@ -10762,6 +10787,8 @@ export function TeamManagementCard({
   onLeadCardFramingChange,
   onSuggestLeadCardFraming,
   onUploadMemberCardPhoto,
+  onSaveTeamPhoto,
+  onOpenPhotoHelp,
   onSavePublicTeamMember,
   onEditPublicTeamMember,
   onTogglePublicTeamMember,
@@ -10769,6 +10796,7 @@ export function TeamManagementCard({
   onRemovePublicTeamMember,
   onOpenMessages,
 }: {
+  reviewMode?: boolean
   state?: TeamManagementState
   actionState?: TeamManagementActionState
   publicTeamDraft?: JoinTeamRosterDraft
@@ -10794,6 +10822,8 @@ export function TeamManagementCard({
   onLeadCardFramingChange?: (framing: TeamPhotoFraming) => void
   onSuggestLeadCardFraming?: () => void
   onUploadMemberCardPhoto?: (member: JoinTeamMember, file: File | null) => void
+  onSaveTeamPhoto?: (cardKey: string, imageUrl: string, framing?: TeamPhotoFraming) => Promise<void>
+  onOpenPhotoHelp?: () => void
   onSavePublicTeamMember?: () => void
   onEditPublicTeamMember?: (member: JoinTeamMember) => void
   onTogglePublicTeamMember?: (member: JoinTeamMember) => void
@@ -10944,6 +10974,7 @@ export function TeamManagementCard({
           </button>
         </section>
         <PublicTeamRosterPanel
+          reviewMode={reviewMode}
           members={publicTeamRoster}
           participants={activeParticipants}
           draft={publicTeamDraft}
@@ -10957,6 +10988,8 @@ export function TeamManagementCard({
           onLeadFramingChange={onLeadCardFramingChange}
           onSuggestLeadFraming={onSuggestLeadCardFraming}
           onUploadMemberPhoto={onUploadMemberCardPhoto}
+          onSaveTeamPhoto={onSaveTeamPhoto}
+          onOpenPhotoHelp={onOpenPhotoHelp}
           onSave={onSavePublicTeamMember}
           onEdit={onEditPublicTeamMember}
           onToggle={onTogglePublicTeamMember}
@@ -11078,7 +11111,216 @@ function findParticipantForRosterMember(
   )
 }
 
+export function resolveTeamPhotoPolishSource(
+  photoUrl: string,
+  jobs: Array<{ approvedImageUrl?: string; originalUrl?: string }> = [],
+) {
+  return jobs.find((job) => job.approvedImageUrl === photoUrl)?.originalUrl || photoUrl
+}
+
+export function buildTeamPhotoRemovalPatch(): Partial<JoinTeamRosterDraft> {
+  return { photoUrl: '', imageClassName: serializeTeamPhotoFraming() }
+}
+
+export function resolveTeamPhotoSelectionFraming(
+  action: 'use' | 'restore',
+  framing?: Partial<TeamPhotoFraming>,
+) {
+  return normalizeTeamPhotoFraming(framing ?? (action === 'restore' ? { fit: 'contain' } : undefined))
+}
+
+type TeamPhotoPolishStatus = {
+  enabled: boolean
+  attemptsUsed: number
+  maxAttempts: number
+  remainingAttempts: number
+  supportRequired?: boolean
+  originalUrl?: string
+  jobs: Array<{ id: string; status: string; imageUrl?: string; error?: string; approvedImageUrl?: string; originalUrl?: string }>
+}
+
+export function createTeamPhotoPolishReviewState(photoUrl: string): TeamPhotoPolishStatus {
+  return { enabled: true, attemptsUsed: 0, maxAttempts: 4, remainingAttempts: 4, originalUrl: photoUrl, jobs: [] }
+}
+
+export function advanceTeamPhotoPolishReview(state: TeamPhotoPolishStatus): TeamPhotoPolishStatus {
+  if (state.remainingAttempts === 0) return state
+  const attemptsUsed = state.attemptsUsed + 1
+  return { ...state, attemptsUsed, remainingAttempts: 4 - attemptsUsed, supportRequired: attemptsUsed === 4,
+    jobs: [{ id: `sample-${attemptsUsed}`, status: 'ready', imageUrl: state.originalUrl }, ...state.jobs] }
+}
+
+function TeamPhotoPolishPanel({ cardKey, photoUrl, photoAlt, onSavePhoto, onOpenHelp, reviewMode = false }: {
+  cardKey?: string
+  photoUrl: string
+  photoAlt: string
+  onSavePhoto?: (cardKey: string, imageUrl: string, framing?: TeamPhotoFraming) => Promise<void>
+  onOpenHelp?: () => void
+  reviewMode?: boolean
+}) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [status, setStatus] = useState<TeamPhotoPolishStatus | null>(null)
+  const [consent, setConsent] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [reviewPhotoSelected, setReviewPhotoSelected] = useState(false)
+  const reviewStatus = useRef(createTeamPhotoPolishReviewState(photoUrl))
+  const requestInFlight = useRef(false)
+  const requestId = useRef<string | null>(null)
+  const mounted = useRef(true)
+
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
+  useEffect(() => { setConsent(false) }, [photoUrl])
+
+  const refreshStatus = useCallback(async (signal?: AbortSignal) => {
+    if (reviewMode) {
+      setStatus(reviewStatus.current)
+      return reviewStatus.current
+    }
+    const response = await fetch(`/api/nic-nac/team-photo-polish?cardKey=${encodeURIComponent(cardKey ?? '')}`, {
+      credentials: 'include', signal,
+    })
+    const payload = await response.json()
+    if (!response.ok) throw new Error(payload.error || 'Photo polish is unavailable right now.')
+    if (mounted.current && !signal?.aborted) setStatus(payload as TeamPhotoPolishStatus)
+    return payload as TeamPhotoPolishStatus
+  }, [cardKey, reviewMode])
+
+  const hasPendingJob = status?.jobs.some((job) => job.status === 'queued' || job.status === 'processing') ?? false
+  const needsSupport = status?.supportRequired || status?.jobs.some((job) => job.status === 'uncertain')
+
+  useEffect(() => {
+    if (!isOpen || !cardKey) return
+    const controller = new AbortController()
+    void refreshStatus(controller.signal).catch((cause) => {
+      if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'Unable to load photo results.')
+    })
+    return () => controller.abort()
+  }, [isOpen, cardKey, refreshStatus])
+
+  useEffect(() => {
+    if (!isOpen || !hasPendingJob) return
+    const controller = new AbortController()
+    let timer: ReturnType<typeof setTimeout>
+    const poll = async () => {
+      try {
+        const next = await refreshStatus(controller.signal)
+        if (!controller.signal.aborted && next.jobs.some((job) => job.status === 'queued' || job.status === 'processing')) {
+          timer = setTimeout(poll, 5000)
+        }
+      } catch (cause) {
+        if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'Unable to check photo progress. Close and reopen this panel to check again.')
+      }
+    }
+    timer = setTimeout(poll, 5000)
+    return () => { controller.abort(); clearTimeout(timer) }
+  }, [isOpen, hasPendingJob, refreshStatus])
+
+  async function performAction(action: 'generate' | 'use' | 'restore', jobId?: string) {
+    if (!cardKey || requestInFlight.current) return
+    requestInFlight.current = true
+    setBusy(true)
+    setError(null)
+    setNotice(null)
+    if (reviewMode) {
+      if (action === 'generate') {
+        reviewStatus.current = advanceTeamPhotoPolishReview(reviewStatus.current)
+        setStatus(reviewStatus.current)
+      } else {
+        setReviewPhotoSelected(action === 'use')
+        setNotice(action === 'restore' ? 'Sample original restored. No live card changed.' : 'Sample photo selected. No live card changed.')
+      }
+      setBusy(false)
+      requestInFlight.current = false
+      return
+    }
+    if (action === 'generate') requestId.current ??= crypto.randomUUID()
+    try {
+      const response = await fetch('/api/nic-nac/team-photo-polish', {
+        method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action, cardKey, ...(action === 'generate'
+          ? { sourceUrl: resolveTeamPhotoPolishSource(photoUrl, status?.jobs), requestId: requestId.current, consent }
+          : { jobId, ...(action === 'restore' ? { currentImageUrl: photoUrl } : {}) }) }),
+      })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload.error || 'Unable to complete that photo request.')
+      if (action === 'generate') {
+        requestId.current = null
+      } else {
+        if (!payload.imageUrl || !onSavePhoto) throw new Error('The photo could not be saved to this card. Please try again.')
+        await onSavePhoto(cardKey, payload.imageUrl, resolveTeamPhotoSelectionFraming(action, payload.framing))
+        if (mounted.current) setNotice(action === 'restore' ? 'Original photo restored to this card.' : 'Approved photo saved to this card.')
+      }
+      await refreshStatus()
+    } catch (cause) {
+      if (mounted.current) setError(cause instanceof Error ? cause.message : 'Unable to complete that photo request.')
+      await refreshStatus().catch(() => undefined)
+    } finally {
+      requestInFlight.current = false
+      if (mounted.current) setBusy(false)
+    }
+  }
+
+  if (!photoUrl) return null
+  if (!cardKey) return <p className={styles.helperNote}>Save this card first to unlock optional photo polish.</p>
+
+  return <div className={styles.teamPhotoPolish}>
+    <button type="button" className={styles.helperButton} aria-expanded={isOpen} onClick={() => setIsOpen((value) => !value)}>
+      {isOpen ? 'Close photo polish' : 'Polish my photo'}
+    </button>
+    {isOpen ? <div className={styles.teamPhotoPolishContent}>
+      {reviewMode ? <div className={styles.teamPhotoInstructions}>
+        <strong>Sample preview — no AI credits used; image unchanged</strong>
+        <span>Try preview, choose, restore, and the four-attempt limit. No photo is sent, no card is published, and no alert is delivered.</span>
+        <button type="button" className={styles.helperButton} onClick={() => {
+          reviewStatus.current = createTeamPhotoPolishReviewState(photoUrl)
+          setStatus(reviewStatus.current); setReviewPhotoSelected(false); setNotice(null); setConsent(false)
+        }}>Reset sample photo review</button>
+      </div> : null}
+      <strong>A polished portrait that still looks like you</strong>
+      <p className={styles.helperNote}>Optional AI editing improves the background and lighting to suit your site. It is instructed to preserve the person&apos;s features, skin tone, age, hair, and clothing. Results can vary: check their likeness before choosing a photo. A clear original works best; polish cannot reliably fix a blurry or incomplete face.</p>
+      <label className={styles.teamPhotoPermission}>
+        <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+        <span>I have permission to send this photo for AI editing and will review the person&apos;s likeness before publishing.</span>
+      </label>
+      {status ? <p className={styles.helperNote}>{status.attemptsUsed} of {status.maxAttempts} attempts used. One first result and up to three retries per card. Uploading again does not reset this allowance.</p> : <p role="status">Loading photo options…</p>}
+      {status?.enabled === false ? <p className={styles.helperNote}>Photo polish is temporarily unavailable. Your original photo still works.</p> : null}
+      {hasPendingJob ? <p role="status">Preparing your photo. This can take a few minutes. You can return to this card later.</p> : null}
+      <button type="button" className={styles.helperButton}
+        disabled={!status?.enabled || !consent || busy || hasPendingJob || Boolean(needsSupport) || !status.remainingAttempts}
+        onClick={() => void performAction('generate')}>
+        {busy ? 'Working…' : status?.attemptsUsed ? 'Try another polish' : 'Create polished preview'}
+      </button>
+      {error ? <p className={styles.actionError} role="alert">{error}</p> : null}
+      {notice ? <p className={styles.helperMessage} role="status">{notice}</p> : null}
+      <div className={styles.teamPhotoComparisons}>
+        <figure>
+          <img src={resolveTeamPhotoPolishSource(photoUrl, status?.jobs)} alt={`Original: ${photoAlt}`} />
+          <figcaption>Original photo</figcaption>
+          {reviewPhotoSelected || resolveTeamPhotoPolishSource(photoUrl, status?.jobs) !== photoUrl ? <button type="button" className={styles.helperButton} disabled={busy} onClick={() => void performAction('restore')}>Use original</button> : null}
+        </figure>
+        {status?.jobs.filter((job) => job.imageUrl).map((job, index) => <figure key={job.id}>
+          <img src={job.imageUrl} alt={`Polished option ${index + 1}: ${photoAlt}`} />
+          <figcaption>Polished option {index + 1} · review before using</figcaption>
+          <button type="button" className={styles.helperButton} disabled={busy} onClick={() => void performAction('use', job.id)}>Use this photo</button>
+        </figure>)}
+      </div>
+      {status?.jobs.filter((job) => job.error).map((job) => <p key={job.id} className={styles.helperNote}>{job.error}</p>)}
+      {needsSupport || status?.remainingAttempts === 0 ? <div className={styles.teamPhotoInstructions}>
+        <strong>Need help with this photo?</strong>
+        <span>Further attempts are paused. You can keep a result or use your original. Choose Need Help to submit a ticket through your Workspace Help Support Center. Include the team member&apos;s name and what needs fixing. You review and send the ticket yourself.</span>
+        {onOpenHelp ? <button type="button" className={styles.helperButton} onClick={onOpenHelp}>Need Help</button> : null}
+      </div> : null}
+    </div> : null}
+  </div>
+}
+
 function TeamCardPhotoField({
+  reviewMode = false,
   photoUrl,
   photoAlt,
   emptyLabel,
@@ -11092,7 +11334,12 @@ function TeamCardPhotoField({
   onFramingChange,
   onSuggestFraming,
   isSuggestingFraming = false,
+  cardKey,
+  onSavePhoto,
+  onOpenHelp,
+  onRemovePhoto,
 }: {
+  reviewMode?: boolean
   photoUrl: string
   photoAlt: string
   emptyLabel: string
@@ -11106,9 +11353,49 @@ function TeamCardPhotoField({
   onFramingChange?: (framing: TeamPhotoFraming) => void
   onSuggestFraming?: () => void
   isSuggestingFraming?: boolean
+  cardKey?: string
+  onSavePhoto?: (cardKey: string, imageUrl: string, framing?: TeamPhotoFraming) => Promise<void>
+  onOpenHelp?: () => void
+  onRemovePhoto?: () => void
 }) {
   const [photoPermissionConfirmed, setPhotoPermissionConfirmed] = useState(false)
-  const photoFraming = normalizeTeamPhotoFraming(framing)
+  const [photoFraming, setPhotoFraming] = useState(() => normalizeTeamPhotoFraming(framing))
+  const [frameError, setFrameError] = useState<string | null>(null)
+  const [frameNotice, setFrameNotice] = useState<string | null>(null)
+  const [savingFrame, setSavingFrame] = useState(false)
+  const [removingPhoto, setRemovingPhoto] = useState(false)
+  const savedFrameToken = serializeTeamPhotoFraming(framing)
+  useEffect(() => { setPhotoFraming(parseTeamPhotoFraming(savedFrameToken)) }, [savedFrameToken, photoUrl])
+  function changeFraming(next: TeamPhotoFraming) {
+    setPhotoFraming(next)
+    setFrameNotice(null)
+    if (!cardKey) onFramingChange?.(next)
+  }
+  async function saveFraming() {
+    if (!cardKey || !onSavePhoto || savingFrame) return
+    setSavingFrame(true)
+    setFrameError(null)
+    try {
+      await onSavePhoto(cardKey, photoUrl, photoFraming)
+      setFrameNotice('Framing saved to your public card.')
+    }
+    catch (cause) { setFrameError(cause instanceof Error ? cause.message : 'Unable to save the photo framing.') }
+    finally { setSavingFrame(false) }
+  }
+  async function removePhoto() {
+    if (removingPhoto || savingFrame || isUploading) return
+    setRemovingPhoto(true)
+    setFrameError(null)
+    setFrameNotice(null)
+    try {
+      if (cardKey && onSavePhoto) await onSavePhoto(cardKey, '', normalizeTeamPhotoFraming())
+      else if (onRemovePhoto) onRemovePhoto()
+      else return
+      setFrameNotice(cardKey ? 'Photo removed from this card. You can upload a better one anytime.' : 'Photo removed from this draft. Save the card to publish this change.')
+    } catch (cause) {
+      setFrameError(cause instanceof Error ? cause.message : 'Unable to remove this photo. Please try again.')
+    } finally { setRemovingPhoto(false) }
+  }
   const uploadLabel = isUploading
     ? 'Uploading photo...'
     : photoUrl
@@ -11121,21 +11408,23 @@ function TeamCardPhotoField({
         <div className={styles.teamPhotoInstructions}>
           <strong>{instructionTitle}</strong>
           <ol>
-            <li>Save or download the photo to your device.</li>
+            <li>Choose a clear, well-lit photo of one person with their full head and shoulders visible.</li>
             <li>Confirm you have permission to publish it.</li>
-            <li>Upload it, review the circle preview, then save the card.</li>
+            <li>Upload it, review the large portrait preview, then save the card.</li>
           </ol>
           <span>
-            Use JPG, PNG, or WebP up to 3 MB. A TikTok page link is not a
-            photo file. Sparkle Suite straightens camera orientation on upload
-            and centers the face when the browser can see it.
+            Use an original JPG, PNG, or WebP up to 3 MB, ideally at least 1000 pixels
+            on the shorter side. Avoid tiny profile screenshots, blur, heavy filters,
+            and group photos. A TikTok page link is not a photo file. We check the
+            photo quality and framing automatically using AI. Polishing is optional.
+            Always review the preview before publishing.
           </span>
         </div>
       ) : null}
 
       <div className={styles.teamPhotoControls}>
         <div
-          className={`${styles.teamPhotoPreview} ${styles.teamPhotoPreviewCircle}`}
+          className={styles.teamPhotoPreview}
           aria-label="Profile photo preview"
         >
           {photoUrl ? (
@@ -11149,6 +11438,7 @@ function TeamCardPhotoField({
           )}
         </div>
         <div className={styles.teamPhotoActions}>
+          {!showInstructions ? <span className={styles.helperNote}>Choose one clear, well-lit head-and-shoulders portrait, ideally 1000 pixels or larger. Avoid blurry or tiny screenshots. We check photo quality and framing automatically using AI; polishing is optional.</span> : null}
           <label className={styles.teamPhotoPermission}>
             <input
               type="checkbox"
@@ -11161,7 +11451,7 @@ function TeamCardPhotoField({
           </label>
           <label
             className={`${styles.helperButton} ${styles.teamPhotoUploadButton} ${
-              !photoPermissionConfirmed || isUploading
+              reviewMode || !photoPermissionConfirmed || isUploading || removingPhoto
                 ? styles.teamPhotoUploadButtonDisabled
                 : ''
             }`}
@@ -11171,7 +11461,7 @@ function TeamCardPhotoField({
               className={styles.visuallyHiddenFileInput}
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              disabled={!photoPermissionConfirmed || isUploading}
+              disabled={reviewMode || !photoPermissionConfirmed || isUploading || removingPhoto}
               onChange={(event) => {
                 const file = event.target.files?.[0] ?? null
                 onUpload?.(file)
@@ -11180,14 +11470,21 @@ function TeamCardPhotoField({
               }}
             />
           </label>
+          {photoUrl && ((cardKey && onSavePhoto) || onRemovePhoto) ? <button
+            type="button" className={styles.helperButton}
+            disabled={removingPhoto || savingFrame || isUploading}
+            onClick={() => void removePhoto()}
+          >{removingPhoto ? 'Removing photo…' : 'Remove photo'}</button> : null}
         </div>
       </div>
+      {frameError ? <p className={styles.actionError} role="alert">{frameError}</p> : null}
+      {frameNotice ? <p className={styles.helperMessage} role="status">{frameNotice}</p> : null}
       {showFramingControls && photoUrl ? (
         <fieldset className={styles.teamPhotoFrameControls}>
           <legend>Smart Frame</legend>
           <span>
-            Fine-tune only if the circle still looks off-center, too tight, or
-            tilted. Straighten stays small so the photo stays professional.
+            Leave room for hair and shoulders. Adjust the portrait if needed,
+            or show the full photo to avoid cutting anything off.
           </span>
           <label>
             <span>Zoom</span>
@@ -11197,8 +11494,9 @@ function TeamCardPhotoField({
               max="1.22"
               step="0.01"
               value={photoFraming.zoom}
+              disabled={photoFraming.fit === 'contain'}
               onChange={(event) =>
-                onFramingChange?.(
+                changeFraming(
                   normalizeTeamPhotoFraming({
                     ...photoFraming,
                     zoom: Number(event.target.value),
@@ -11212,11 +11510,11 @@ function TeamCardPhotoField({
             <input
               type="range"
               min="0"
-              max="70"
+              max="100"
               step="1"
               value={photoFraming.focusY}
               onChange={(event) =>
-                onFramingChange?.(
+                changeFraming(
                   normalizeTeamPhotoFraming({
                     ...photoFraming,
                     focusY: Number(event.target.value),
@@ -11234,7 +11532,7 @@ function TeamCardPhotoField({
               step="1"
               value={photoFraming.focusX}
               onChange={(event) =>
-                onFramingChange?.(
+                changeFraming(
                   normalizeTeamPhotoFraming({
                     ...photoFraming,
                     focusX: Number(event.target.value),
@@ -11251,8 +11549,9 @@ function TeamCardPhotoField({
               max="20"
               step="1"
               value={photoFraming.rotation}
+              disabled={photoFraming.fit === 'contain'}
               onChange={(event) =>
-                onFramingChange?.(
+                changeFraming(
                   normalizeTeamPhotoFraming({
                     ...photoFraming,
                     rotation: Number(event.target.value),
@@ -11261,6 +11560,16 @@ function TeamCardPhotoField({
               }
             />
           </label>
+          <label>
+            <span>Photo fit</span>
+            <select value={photoFraming.fit ?? 'cover'} onChange={(event) => changeFraming(normalizeTeamPhotoFraming({
+              ...photoFraming, fit: event.target.value === 'contain' ? 'contain' : 'cover', zoom: 1, rotation: 0,
+            }))}>
+              <option value="cover">Fill the portrait panel</option>
+              <option value="contain">Show the full photo</option>
+            </select>
+          </label>
+          {cardKey && onSavePhoto ? <button type="button" className={styles.helperButton} disabled={savingFrame || isUploading || removingPhoto} onClick={() => void saveFraming()}>{savingFrame ? 'Saving framing…' : 'Save framing'}</button> : null}
           {onSuggestFraming ? (
             <button
               type="button"
@@ -11273,11 +11582,14 @@ function TeamCardPhotoField({
           ) : null}
         </fieldset>
       ) : null}
+      {reviewMode ? <span className={styles.helperNote}>Sample mode: uploads are disabled. Use the saved sample card to try photo polish.</span> : null}
+      <TeamPhotoPolishPanel key={cardKey ?? 'draft'} cardKey={cardKey} photoUrl={photoUrl} photoAlt={photoAlt} onSavePhoto={onSavePhoto} onOpenHelp={onOpenHelp} reviewMode={reviewMode} />
     </div>
   )
 }
 
 function PublicTeamRosterPanel({
+  reviewMode = false,
   members,
   participants,
   draft,
@@ -11291,6 +11603,8 @@ function PublicTeamRosterPanel({
   onLeadFramingChange,
   onSuggestLeadFraming,
   onUploadMemberPhoto,
+  onSaveTeamPhoto,
+  onOpenPhotoHelp,
   onSave,
   onEdit,
   onToggle,
@@ -11302,6 +11616,7 @@ function PublicTeamRosterPanel({
   onArchiveParticipant,
   onOpenMessages,
 }: {
+  reviewMode?: boolean
   members: JoinTeamMember[]
   participants: TeamOnboardingParticipant[]
   draft: JoinTeamRosterDraft
@@ -11320,6 +11635,8 @@ function PublicTeamRosterPanel({
   onLeadFramingChange?: (framing: TeamPhotoFraming) => void
   onSuggestLeadFraming?: () => void
   onUploadMemberPhoto?: (member: JoinTeamMember, file: File | null) => void
+  onSaveTeamPhoto?: (cardKey: string, imageUrl: string, framing?: TeamPhotoFraming) => Promise<void>
+  onOpenPhotoHelp?: () => void
   onSave?: () => void
   onEdit?: (member: JoinTeamMember) => void
   onToggle?: (member: JoinTeamMember) => void
@@ -11372,6 +11689,8 @@ function PublicTeamRosterPanel({
         </Link>
       </div>
 
+      {reviewMode ? <div className={styles.helperMessage}>Photo review sample — no AI credits used. Open Polish my photo on the saved sample teammate below. Reload this page to reset all sample changes.</div> : null}
+
       <div className={styles.teamMessagePreview}>
         <strong>Before you share the Join Team page</strong>
         <ul>
@@ -11418,6 +11737,7 @@ function PublicTeamRosterPanel({
           </div>
         ) : null}
         <TeamCardPhotoField
+          reviewMode={reviewMode}
           photoUrl={leadPhotoUrl}
           photoAlt={`${leadName} Join Team lead card photo`}
           emptyLabel={leadInitials}
@@ -11426,6 +11746,9 @@ function PublicTeamRosterPanel({
           showInstructions
           showFramingControls
           instructionTitle="Lead card photo"
+          cardKey="lead"
+          onSavePhoto={onSaveTeamPhoto}
+          onOpenHelp={onOpenPhotoHelp}
           framing={parseTeamPhotoFraming(
             matchingLeadMember?.imageClassName,
             leadCard?.photoFraming,
@@ -11486,6 +11809,8 @@ function PublicTeamRosterPanel({
           </div>
 
           <TeamCardPhotoField
+            reviewMode={reviewMode}
+            key={draft.id ?? 'new-team-member'}
             photoUrl={draft.photoUrl}
             photoAlt="Team member card preview"
             emptyLabel="No photo selected"
@@ -11496,6 +11821,7 @@ function PublicTeamRosterPanel({
             instructionTitle="Profile photo process"
             framing={parseTeamPhotoFraming(draft.imageClassName)}
             onUpload={onUploadPhoto}
+            onRemovePhoto={() => onDraftChange?.(buildTeamPhotoRemovalPatch())}
             onFramingChange={(nextFraming) =>
               onDraftChange?.({
                 imageClassName: serializeTeamPhotoFraming(nextFraming),
@@ -11620,7 +11946,7 @@ function PublicTeamRosterPanel({
               <div key={member.id} className={styles.teamRosterCard} role="listitem">
                 <div className={styles.teamRosterAvatar}>
                   {member.photoUrl ? (
-                    <img src={member.photoUrl} alt={member.photoAlt || member.displayName} />
+                    <img src={member.photoUrl} alt={member.photoAlt || member.displayName} style={teamPhotoFramingStyle(parseTeamPhotoFraming(member.imageClassName)) as CSSProperties} />
                   ) : (
                     <span>{member.initials || member.displayName.slice(0, 1)}</span>
                   )}
@@ -11650,6 +11976,7 @@ function PublicTeamRosterPanel({
                     ) : null}
                   </div>
                   <TeamCardPhotoField
+                    reviewMode={reviewMode}
                     photoUrl={member.photoUrl}
                     photoAlt={member.photoAlt || member.displayName}
                     emptyLabel={
@@ -11657,6 +11984,11 @@ function PublicTeamRosterPanel({
                     }
                     permissionLabel="I have permission to publish this photo on the public Join Team page."
                     isUploading={Boolean(isMemberPhotoUploading)}
+                    cardKey={member.id}
+                    onSavePhoto={onSaveTeamPhoto}
+                    onOpenHelp={onOpenPhotoHelp}
+                    framing={parseTeamPhotoFraming(member.imageClassName)}
+                    showFramingControls
                     onUpload={(file) => onUploadMemberPhoto?.(member, file)}
                   />
                   <div className={styles.teamOnboardingCardPanel}>

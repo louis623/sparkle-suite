@@ -621,7 +621,7 @@ export interface SiteSettingsDashboardResult {
    */
   profilePhotoUrl?: string
   /**
-   * Circular framing for the Join Team lead-card photo.
+   * Portrait framing for the Join Team lead-card photo.
    * Stored on reps.profile_photo_framing. Member cards use image_class_name.
    */
   profilePhotoFraming?: {
@@ -629,6 +629,7 @@ export interface SiteSettingsDashboardResult {
     focusY?: number
     zoom?: number
     rotation?: number
+    fit?: 'cover' | 'contain'
   }
   /** The rep-owned store destination used by public customer-site Shop actions. */
   shopLink?: string
@@ -673,6 +674,7 @@ export interface UpdateSiteSettingsDashboardInput {
     focusY?: number
     zoom?: number
     rotation?: number
+    fit?: 'cover' | 'contain'
   }
   shopLink?: string
   recruitingLink?: string

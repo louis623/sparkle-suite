@@ -1,5 +1,27 @@
 # Project State
 
+## September 20, 2026 - Shared team portraits and optional photo polish
+
+Louis approved larger 8:7 photo panels across the shared customer-site template,
+not an Amethyst-only skin. Existing photos must remain on their exact card,
+especially Brittany's. Workspace supports upload/replace/remove, full-photo
+framing, optional consent-based polish, approve and exact-original restore.
+Initial result plus three retries per saved card; last retry flags Guardian.
+Need Help opens the existing Workspace support composer; the rep submits it.
+No automatic support ticket or separate external alert is sent by this feature.
+
+Implementation starts at GitHub tip `176d131a` on the approved branch. Original
+dirty Windows checkout and existing Codespace checkout were preserved; checks
+run in the independent `/workspaces/team-photo-polish` Codespace clone.
+Two additive migrations `20260920000100`/`20260920000200` are applied. All 33
+existing member photo mappings remain unchanged (fingerprint
+`516a98e734276c4a6fb2753225be435a`). See
+`docs/sparkle-suite/team-photo-polish.md` for limits, reviewer path and caveats.
+Release preparation: production build and focused tests passed; sample-browser
+approve/restore/retry cap/Need Help passed without paid AI generations. Manual
+exact-tip deployment and live verification follow this commit; Git push alone
+is not proof of release. Consult Vercel provenance and Open Brain receipt.
+
 ## September 19, 2026 - Team-card photo framing PR #12 squash-merged; Suite prod not released
 
 Louis authorized Rocky SHIP of PR #12 onto production branch

@@ -264,66 +264,72 @@ body.joinpage .hp-saturate {
 
 .jp-team-card {
   background: var(--hp-bg-elevated);
+  color: var(--hp-card-fg, var(--fg));
   border: 1px solid var(--border);
   border-radius: var(--r-xl, 18px);
-  padding: 26px 22px;
+  padding: 0;
+  min-width: 0;
   text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   position: relative;
   overflow: hidden;
   transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease);
 }
 .jp-team-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 20px 40px rgba(72, 13, 223, 0.12);
-  border-color: rgba(72, 13, 223, 0.3);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--hp-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--hp-primary) 48%, transparent);
 }
 .jp-team-card.is-leader {
-  background: linear-gradient(180deg, rgba(72,13,223,0.06), rgba(210,9,227,0.04)), var(--hp-bg-elevated);
-  border-color: rgba(72,13,223,0.3);
+  border-color: color-mix(in srgb, var(--hp-primary) 48%, transparent);
 }
-.jp-team-card.is-leader::before {
-  content: "Team Leader";
+.jp-team-leader-label {
   position: absolute;
   top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 12px;
+  z-index: 1;
   font-family: ui-monospace, monospace;
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--hp-primary);
-  background: rgba(255,255,255,0.7);
+  color: var(--hp-card-fg, var(--fg));
+  background: var(--hp-bg-elevated);
   padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(72,13,223,0.2);
+  border: 1px solid var(--border);
 }
 .jp-team-avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
+  width: 100%;
+  aspect-ratio: 8 / 7;
+  border-radius: 0;
+  position: relative;
   overflow: hidden;
-  background: var(--hp-card-accent);
-  margin: 18px 0 16px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--hp-primary) 18%, var(--hp-bg-elevated)), color-mix(in srgb, var(--hp-accent) 22%, var(--hp-bg-elevated)));
+  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  color: var(--hp-action-fg);
+  color: var(--hp-card-fg, var(--fg));
   font-family: var(--hp-display-font);
   font-weight: 600;
-  font-size: 32px;
+  font-size: clamp(48px, 6vw, 80px);
   letter-spacing: -0.02em;
-  border: 3px solid white;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  border: 0;
   flex-shrink: 0;
 }
-.jp-team-card.is-leader .jp-team-avatar {
-  width: 110px;
-  height: 110px;
-  font-size: 36px;
+.jp-team-body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.jp-team-initials {
+  padding: 20px;
 }
 .jp-team-business {
   font-size: 12px;
@@ -331,10 +337,7 @@ body.joinpage .hp-saturate {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0 0 4px;
-  background: linear-gradient(90deg, var(--hp-primary), var(--hp-accent));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--hp-card-accent, var(--hp-primary));
 }
 .jp-team-name {
   font-family: var(--hp-display-font);
@@ -343,14 +346,14 @@ body.joinpage .hp-saturate {
   line-height: 1.2;
   letter-spacing: -0.01em;
   margin: 0 0 10px;
-  color: var(--fg);
+  color: var(--hp-card-fg, var(--fg));
 }
 .jp-team-location {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   font-size: 13px;
-  color: var(--fg-muted);
+  color: var(--hp-card-muted, var(--fg-muted));
   margin: 0 0 18px;
 }
 .jp-team-connect {
@@ -364,7 +367,7 @@ body.joinpage .hp-saturate {
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--fg-muted);
+  color: var(--hp-card-muted, var(--fg-muted));
   margin: 0 0 10px;
 }
 .jp-team-socials {
@@ -414,25 +417,30 @@ body.joinpage .hp-saturate {
 
 /* "This is Your Spot" CTA card */
 .jp-team-card.is-spot {
-  background:
-    linear-gradient(135deg, rgba(72,13,223,0.08), rgba(210,9,227,0.08)),
-    repeating-linear-gradient(45deg, transparent 0 8px, rgba(72,13,223,0.04) 8px 9px);
-  border: 2px dashed var(--hp-primary);
+  background: var(--hp-bg-elevated);
+  border: 1px solid var(--border);
 }
-.jp-team-card.is-spot .jp-spot-glyph {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  border: 2px dashed var(--hp-primary);
-  margin: 18px 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--hp-primary);
-  font-family: var(--hp-display-font);
-  font-size: 40px;
-  flex-shrink: 0;
-  background: rgba(255,255,255,0.5);
+.jp-team-card .jp-spot-art {
+  color: var(--hp-card-accent, var(--hp-primary));
+  background:
+    radial-gradient(ellipse at 15% 20%, color-mix(in srgb, var(--hp-accent) 45%, transparent), transparent 45%),
+    radial-gradient(ellipse at 90% 85%, color-mix(in srgb, var(--hp-primary) 45%, transparent), transparent 55%),
+    var(--hp-bg-elevated);
+}
+.jp-spot-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  background-image: radial-gradient(circle, currentColor 1px, transparent 2px);
+  background-size: 29px 31px;
+  mask-image: linear-gradient(160deg, black, transparent 55%, black);
+}
+.jp-spot-heart {
+  width: 44%;
+  height: auto;
+  position: relative;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--hp-accent) 60%, transparent));
 }
 .jp-spot-title {
   font-family: var(--hp-display-font);
@@ -440,12 +448,12 @@ body.joinpage .hp-saturate {
   font-size: 20px;
   line-height: 1.25;
   margin: 0 0 8px;
-  color: var(--fg);
+  color: var(--hp-card-fg, var(--fg));
   text-wrap: balance;
 }
 .jp-spot-sub {
   font-size: 13px;
-  color: var(--fg-muted);
+  color: var(--hp-card-muted, var(--fg-muted));
   margin: 0 0 18px;
   line-height: 1.5;
 }
@@ -1213,13 +1221,15 @@ body.mile-high-fizz-join .hp-footer-col a:hover {
 }
 
 .jp-team-avatar-img {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
+  object-fit: var(--jp-team-photo-fit, cover);
+  border-radius: 0;
   /*
-   * Circular team cards use stored Smart Frame metadata (or generous
+   * Rectangular team portraits use stored Smart Frame metadata (or generous
    * head-and-shoulders defaults). Do not apply leftover object-left /
    * object-top / rotate-left presentation hacks — those shipped off-center
    * and tilted faces.
@@ -1230,8 +1240,8 @@ body.mile-high-fizz-join .hp-footer-col a:hover {
 }
 
 .jp-team-bio {
-  margin: 0.75rem 0 0;
-  color: color-mix(in srgb, var(--hp-body) 70%, transparent);
+  margin: 0 0 16px;
+  color: var(--hp-card-muted, var(--fg-muted));
   font-size: 0.85rem;
   line-height: 1.45;
 }

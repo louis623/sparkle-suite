@@ -44,6 +44,7 @@ next-env.d.ts
 .claude/
 
 # leftover artifacts
+public/amethyst/__team-photo-review-*.html
 sparkle-suite-live-queue.zip
 supabase/.temp/
 

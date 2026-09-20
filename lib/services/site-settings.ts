@@ -301,7 +301,7 @@ function buildDashboardResult(args: {
     profilePhotoUrl: normalizeText(args.repProfile.profile_photo_url),
     profilePhotoFraming: normalizeTeamPhotoFraming(
       (args.repProfile.profile_photo_framing ?? undefined) as
-        | { focusX?: number; focusY?: number; zoom?: number; rotation?: number }
+        | { focusX?: number; focusY?: number; zoom?: number; rotation?: number; fit?: 'cover' | 'contain' }
         | undefined,
     ),
     shopLink: normalizeText(args.repProfile.shop_link),

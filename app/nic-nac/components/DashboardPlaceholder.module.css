@@ -4931,14 +4931,14 @@
 
 .teamPhotoControls {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
+  grid-template-columns: minmax(120px, 200px) minmax(0, 1fr);
   gap: 12px;
   align-items: center;
 }
 
 .teamPhotoPreview {
-  width: 88px;
-  aspect-ratio: 1;
+  width: 100%;
+  aspect-ratio: 8 / 7;
   overflow: hidden;
   border-radius: 18px;
   border: 1px solid var(--nic-nac-border);
@@ -4956,14 +4956,61 @@
 .teamPhotoPreview img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: var(--jp-team-photo-fit, cover);
   object-position: var(--jp-team-photo-focus-x, 50%) var(--jp-team-photo-focus-y, 38%);
   transform: rotate(var(--jp-team-photo-rotation, 0deg)) scale(var(--jp-team-photo-zoom, 1));
   transform-origin: var(--jp-team-photo-focus-x, 50%) var(--jp-team-photo-focus-y, 38%);
 }
 
-.teamPhotoPreviewCircle {
-  border-radius: 50%;
+.teamPhotoPolish,
+.teamPhotoPolishContent {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.teamPhotoPolish > button {
+  justify-self: start;
+}
+
+.teamPhotoPolishContent {
+  border-top: 1px solid var(--nic-nac-border);
+  padding-top: 14px;
+  overflow-wrap: anywhere;
+}
+
+.teamPhotoComparisons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 12px;
+}
+
+.teamPhotoComparisons figure {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  font-size: 12px;
+  color: var(--nic-nac-text-secondary);
+}
+
+.teamPhotoComparisons img {
+  width: 100%;
+  aspect-ratio: 8 / 7;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--nic-nac-surface-primary);
+}
+
+@media (max-width: 600px) {
+  .teamPhotoControls {
+    grid-template-columns: 1fr;
+  }
+
+  .teamPhotoPreview {
+    max-width: 260px;
+  }
 }
 
 .teamPhotoFrameControls {
@@ -5102,7 +5149,8 @@
 
 .teamRosterAvatar {
   width: 54px;
-  height: 54px;
+  height: auto;
+  aspect-ratio: 8 / 7;
   overflow: hidden;
   border-radius: 14px;
   background: var(--nic-nac-surface-primary);
@@ -5116,7 +5164,10 @@
 .teamRosterAvatar img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: var(--jp-team-photo-fit, cover);
+  object-position: var(--jp-team-photo-focus-x, 50%) var(--jp-team-photo-focus-y, 38%);
+  transform: rotate(var(--jp-team-photo-rotation, 0deg)) scale(var(--jp-team-photo-zoom, 1));
+  transform-origin: var(--jp-team-photo-focus-x, 50%) var(--jp-team-photo-focus-y, 38%);
 }
 
 .teamRosterCardBody {

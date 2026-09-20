@@ -20,6 +20,11 @@ import {
   SiteSettingsCard,
   ShowCalendarCard,
   TeamManagementCard,
+  resolveTeamPhotoPolishSource,
+  resolveTeamPhotoSelectionFraming,
+  createTeamPhotoPolishReviewState,
+  advanceTeamPhotoPolishReview,
+  buildTeamPhotoRemovalPatch,
   WalletSummaryCard,
   WorkspaceAppHeader,
   WorkspaceAccessNotice,
@@ -182,6 +187,44 @@ describe('workspace request error copy', () => {
     expect(getJewelryLibrarySearchErrorMessage(500)).not.toContain(
       'jewelry library request failed',
     )
+  })
+})
+
+describe('Team photo selection', () => {
+  it('lets the reviewer reach the four-attempt limit and reset using unchanged sample images', () => {
+    const original = '/sample-photo.jpg'
+    let sample = createTeamPhotoPolishReviewState(original)
+    for (let attempt = 0; attempt < 6; attempt += 1) sample = advanceTeamPhotoPolishReview(sample)
+    expect(sample).toMatchObject({ attemptsUsed: 4, remainingAttempts: 0, supportRequired: true })
+    expect(sample.jobs).toHaveLength(4)
+    expect(sample.jobs.every((job) => job.imageUrl === original)).toBe(true)
+    expect(createTeamPhotoPolishReviewState(original)).toMatchObject({ attemptsUsed: 0, remainingAttempts: 4, jobs: [] })
+  })
+
+  it('retries approved polished photos from the original while preferring a newly uploaded source', () => {
+    const original = 'https://cdn.example.com/rep/profile/original.jpg'
+    const approved = 'https://cdn.example.com/rep/profile/polished-job.jpg'
+    const jobs = [
+      { approvedImageUrl: 'https://cdn.example.com/rep/profile/polished-newer.jpg', originalUrl: 'https://cdn.example.com/rep/profile/newer-original.jpg' },
+      { approvedImageUrl: approved, originalUrl: original },
+    ]
+    expect(resolveTeamPhotoPolishSource(approved, jobs)).toBe(original)
+    expect(resolveTeamPhotoPolishSource('https://cdn.example.com/rep/profile/new-upload.jpg', jobs)).toBe('https://cdn.example.com/rep/profile/new-upload.jpg')
+    expect(resolveTeamPhotoPolishSource(original)).toBe(original)
+  })
+
+  it('removes only the draft photo and its old crop while keeping card details', () => {
+    const draft = { displayName: 'Dara', businessName: 'Highland Hearts', photoUrl: '/old.jpg', imageClassName: 'ss-frame:90,10,1.22,12', tiktok: 'https://www.tiktok.com/@dara' }
+    const cleared = { ...draft, ...buildTeamPhotoRemovalPatch() }
+    expect(cleared).toMatchObject({ displayName: 'Dara', businessName: 'Highland Hearts', photoUrl: '', tiktok: 'https://www.tiktok.com/@dara' })
+    expect(cleared.imageClassName).not.toBe(draft.imageClassName)
+    expect(Object.keys(buildTeamPhotoRemovalPatch()).sort()).toEqual(['imageClassName', 'photoUrl'])
+  })
+
+  it('restores the full original unless the server supplies saved framing', () => {
+    expect(resolveTeamPhotoSelectionFraming('restore')).toMatchObject({ fit: 'contain', zoom: 1, rotation: 0 })
+    expect(resolveTeamPhotoSelectionFraming('restore', { focusX: 64, focusY: 20 })).toMatchObject({ focusX: 64, focusY: 20 })
+    expect(resolveTeamPhotoSelectionFraming('use').fit).not.toBe('contain')
   })
 })
 
@@ -1361,11 +1404,16 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Shown on this team member&#x27;s customer-facing card.')
     expect(html).toContain('Colorado')
     expect(html).toContain('Profile photo process')
-    expect(html).toContain('Save or download the photo to your device.')
+    expect(html).toContain('Choose a clear, well-lit photo of one person')
+    expect(html).toContain('Save this card first to unlock optional photo polish.')
+    expect(html).toContain('Polish my photo')
+    expect(html).toContain('Show the full photo')
+    expect(html).toContain('photo quality and framing automatically using AI')
     expect(html).toContain('I have permission to publish this team member&#x27;s photo')
     expect(html).toContain('Your Join Team card')
     expect(html).toContain('Upload photo')
     expect(html).toContain('Replace photo')
+    expect(html).toContain('Remove photo')
     expect(html).not.toContain('Photo URL or saved path (optional fallback)')
     expect(html).not.toContain('Upload profile photo')
     expect(html).toContain('accept="image/jpeg,image/png,image/webp"')
@@ -1430,7 +1478,7 @@ describe('DashboardPlaceholder', () => {
               initials: 'E',
               photoUrl: 'https://cdn.example.com/public-site-media/erika.jpg',
               photoAlt: 'Erika',
-              imageClassName: '',
+              imageClassName: 'ss-frame:62,27,1.00,0 ss-fit:contain',
               bio: '',
               links: {},
               sortOrder: 2,
@@ -1469,6 +1517,10 @@ describe('DashboardPlaceholder', () => {
     expect(kellyHtml).toContain('Lead card photo')
     expect(kellyHtml).toContain('Smart Frame')
     expect(kellyHtml).toContain('Straighten')
+    expect(kellyHtml).toContain('--jp-team-photo-focus-x:62%')
+    expect(kellyHtml).toContain('--jp-team-photo-focus-y:27%')
+    expect(kellyHtml).toContain('--jp-team-photo-fit:contain')
+    expect(kellyHtml).not.toContain('circle preview')
     expect(kellyHtml).toContain('Dara')
     expect(kellyHtml).toContain('Erika')
     expect(kellyHtml).toContain('Upload photo')

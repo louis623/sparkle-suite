@@ -3,6 +3,7 @@ import { AuthError, getPaidNicNacContext } from '@/lib/nic-nac/auth'
 import { ServiceError } from '@/lib/services/errors'
 import { getTeamOnboardingAccess } from '@/lib/services/team-onboarding'
 import { uploadPublicSiteMedia } from '@/lib/services/storage'
+import { analyzeTeamPhoto } from '@/lib/services/team-photo-analysis'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -73,12 +74,18 @@ export async function POST(request: Request) {
     const access = await getTeamOnboardingAccess(supabase, repId)
     if (!access.enabled) return addonRequiredResponse(access)
 
+    let analysis
+    try {
+      analysis = await analyzeTeamPhoto(Buffer.from(base64Data.split(',')[1], 'base64'), { repId })
+    } catch {
+      return NextResponse.json({ error: 'This image could not be opened. Choose an original JPG, PNG, or WebP photo.' }, { status: 400 })
+    }
     const imageUrl = await uploadPublicSiteMedia(repId, base64Data, {
       filename: normalizeText(body?.filename) || undefined,
       folder: 'profile',
     })
 
-    return NextResponse.json({ ok: true, imageUrl })
+    return NextResponse.json({ ok: true, imageUrl, ...analysis })
   } catch (error) {
     if (error instanceof SyntaxError) {
       return NextResponse.json({ error: 'Invalid request payload.' }, { status: 400 })

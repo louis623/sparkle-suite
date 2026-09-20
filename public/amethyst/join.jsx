@@ -871,28 +871,35 @@ function TeamConnect({ socialLinks }) {
 }
 
 function TeamCard({ member, isLeader }) {
+  const [failedImage, setFailedImage] = useState(null);
   const avatarLabel = member.imageAlt || member.name || "Team member";
   const photoFraming = parseTeamPhotoFraming(
     member.imageClassName,
-    member.photoFraming,
+    member.photoFraming || (!member.imageClassName ? { fit: 'contain' } : undefined),
   );
   return (
-    <article className={`jp-team-card ${isLeader ? "is-leader" : ""}`}>
+    <article className={`jp-team-card ${isLeader ? "is-leader" : ""}`} data-team-member-id={member.id || undefined}>
       <div className="jp-team-avatar slot" data-slot={isLeader ? "rep headshot" : "team member headshot"}>
-        {member.imageUrl ? (
+        {member.imageUrl && failedImage !== member.imageUrl ? (
           <img
             src={member.imageUrl}
             alt={avatarLabel}
             className="jp-team-avatar-img"
             style={teamPhotoFramingStyle(photoFraming)}
+            loading="lazy"
+            decoding="async"
+            onError={() => setFailedImage(member.imageUrl)}
           />
-        ) : member.initials}
+        ) : <span className="jp-team-initials" aria-label={avatarLabel}>{member.initials || member.name?.slice(0, 1) || '✦'}</span>}
       </div>
-      <div className="jp-team-business slot" data-slot="business name">{member.business}</div>
-      <div className="jp-team-name slot" data-slot="first name">{member.name}</div>
-      <div className="jp-team-location"><PinIcon /><span className="slot" data-slot="state">{member.state}</span></div>
-      {member.bio ? <p className="jp-team-bio">{member.bio}</p> : null}
-      <TeamConnect socialLinks={member.socialLinks} />
+      {isLeader && <span className="jp-team-leader-label">Team Leader</span>}
+      <div className="jp-team-body">
+        <div className="jp-team-business slot" data-slot="business name">{member.business}</div>
+        <h3 className="jp-team-name slot" data-slot="first name">{member.name}</h3>
+        {member.state ? <div className="jp-team-location"><PinIcon /><span className="slot" data-slot="state">{member.state}</span></div> : null}
+        {member.bio ? <p className="jp-team-bio">{member.bio}</p> : null}
+        <TeamConnect socialLinks={member.socialLinks} />
+      </div>
     </article>
   );
 }
@@ -900,8 +907,11 @@ function TeamCard({ member, isLeader }) {
 function SpotCard({ ctaUrl, ctaText, hasRecruitingLink, repName }) {
   return (
     <article className="jp-team-card is-spot">
-      <div className="jp-spot-glyph">+</div>
-      <div className="jp-team-business" style={{ background: "none", color: "var(--hp-primary)", WebkitTextFillColor: "var(--hp-primary)" }}>Open Spot</div>
+      <div className="jp-team-avatar jp-spot-art" aria-hidden="true">
+        <svg className="jp-spot-heart" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M50 81 18 49C-5 24 25 4 50 30 75 4 105 24 82 49Z" /></svg>
+      </div>
+      <div className="jp-team-body">
+      <div className="jp-team-business">Open Spot</div>
       <h3 className="jp-spot-title">This is Your Spot</h3>
       <p className="jp-spot-sub">Interested in joining? Review the official details and ask the team lead what support is currently available.</p>
       <RecruitingAction
@@ -913,6 +923,7 @@ function SpotCard({ ctaUrl, ctaText, hasRecruitingLink, repName }) {
       >
         {ctaText}
       </RecruitingAction>
+      </div>
     </article>
   );
 }
@@ -933,7 +944,7 @@ function TeamSection({ rep, members, ctaUrl, ctaText, hasRecruitingLink }) {
         </div>
         <div className="jp-team-grid">
           {!leaderAlreadyAppearsInRoster && <TeamCard member={rep} isLeader />}
-          {members.map((member, index) => <TeamCard key={`${member.name}-${index}`} member={member} />)}
+          {members.map((member, index) => <TeamCard key={member.id || `${member.name}-${index}`} member={member} />)}
           <SpotCard ctaUrl={ctaUrl} ctaText={ctaText} hasRecruitingLink={hasRecruitingLink} repName={rep.name} />
         </div>
         {RUNTIME_CONTEXT.targeted && members.length === 0 ? (

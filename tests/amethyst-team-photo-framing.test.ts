@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest'
 
 import {
   DEFAULT_TEAM_PHOTO_FRAMING,
+  frameTeamPhotoFace,
   parseTeamPhotoFraming,
   serializeTeamPhotoFraming,
   suggestTeamPhotoFramingFromFace,
   teamPhotoFramingStyle,
 } from '@/lib/amethyst/team-photo-framing'
 
-describe('Join Team circular photo framing', () => {
+describe('Join Team portrait framing', () => {
   it('defaults to a generous centered head-and-shoulders frame', () => {
     expect(parseTeamPhotoFraming('')).toEqual(DEFAULT_TEAM_PHOTO_FRAMING)
     expect(DEFAULT_TEAM_PHOTO_FRAMING).toEqual({
@@ -73,12 +74,36 @@ describe('Join Team circular photo framing', () => {
     expect(kelly.focusY).toBe(26)
   })
 
-  it('emits CSS variables the public circle crop consumes', () => {
+  it('emits the same framing variables for the public card and workspace preview', () => {
     expect(teamPhotoFramingStyle({ focusX: 36, focusY: 42, zoom: 1.1, rotation: 8 })).toEqual({
       '--jp-team-photo-focus-x': '36%',
       '--jp-team-photo-focus-y': '42%',
       '--jp-team-photo-zoom': '1.1',
       '--jp-team-photo-rotation': '8deg',
+      '--jp-team-photo-fit': 'cover',
     })
+  })
+
+  it('round-trips whole-photo framing without zoom or tilt cropping the source', () => {
+    const token = serializeTeamPhotoFraming({ focusX: 50, focusY: 38, zoom: 1.2, rotation: 8, fit: 'contain' })
+    expect(token).toBe('ss-frame:50,38,1.00,0 ss-fit:contain')
+    expect(parseTeamPhotoFraming(token)).toMatchObject({ fit: 'contain', zoom: 1, rotation: 0 })
+    expect(teamPhotoFramingStyle(parseTeamPhotoFraming(token))['--jp-team-photo-fit']).toBe('contain')
+  })
+
+  it('converts a portrait face location to cover positioning, rather than using its source percentage', () => {
+    const frame = frameTeamPhotoFace({ imageWidth: 800, imageHeight: 1200, face: { x: 0.35, y: 0.32, width: 0.3, height: 0.24 } })
+    // Cover makes this source 12/7 panel-heights. Positioning must put the
+    // source face center (44%) at approximately 43% of the visible panel.
+    const visibleCenter = 0.44 * (12 / 7) + (1 - 12 / 7) * frame.focusY / 100
+    expect(visibleCenter).toBeCloseTo(0.43, 2)
+    expect(frame.fit).not.toBe('contain')
+    expect(frame.zoom).toBe(1)
+  })
+
+  it('preserves the full photo when a safe face crop cannot be determined', () => {
+    expect(frameTeamPhotoFace({ imageWidth: 800, imageHeight: 1200 }).fit).toBe('contain')
+    expect(frameTeamPhotoFace({ imageWidth: 800, imageHeight: 1200, face: { x: 0.1, y: 0.01, width: 0.8, height: 0.85 } }).fit).toBe('contain')
+    expect(frameTeamPhotoFace({ imageWidth: 0, imageHeight: 1200, face: { x: 0.3, y: 0.3, width: 0.3, height: 0.3 } }).fit).toBe('contain')
   })
 })

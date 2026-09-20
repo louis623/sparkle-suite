@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const getPaidNicNacContextMock = vi.fn()
 const getTeamOnboardingAccessMock = vi.fn()
 const uploadPublicSiteMediaMock = vi.fn()
+const analyzeTeamPhotoMock = vi.fn()
+vi.mock('@/lib/services/team-photo-analysis', () => ({ analyzeTeamPhoto: (...args: unknown[]) => analyzeTeamPhotoMock(...args) }))
 
 vi.mock('@/lib/nic-nac/auth', () => ({
   AuthError: class AuthError extends Error {},
@@ -36,6 +38,7 @@ describe('/api/nic-nac/join-team-roster/photo', () => {
     getPaidNicNacContextMock.mockReset()
     getTeamOnboardingAccessMock.mockReset()
     uploadPublicSiteMediaMock.mockReset()
+    analyzeTeamPhotoMock.mockReset().mockResolvedValue({ framing: { focusX: 50, focusY: 50, zoom: 1, rotation: 0, fit: 'contain' }, quality: { status: 'review', message: 'Check preview' }, width: 800, height: 1000 })
   })
 
   it('uploads a validated image for a Team Management rep', async () => {
@@ -69,6 +72,8 @@ describe('/api/nic-nac/join-team-roster/photo', () => {
     await expect(response.json()).resolves.toEqual({
       ok: true,
       imageUrl: 'https://cdn.example.com/profile.jpg',
+      framing: { focusX: 50, focusY: 50, zoom: 1, rotation: 0, fit: 'contain' },
+      quality: { status: 'review', message: 'Check preview' }, width: 800, height: 1000,
     })
   })
 
@@ -79,6 +84,15 @@ describe('/api/nic-nac/join-team-roster/photo', () => {
     await expect(response.json()).resolves.toEqual({
       error: 'Choose a JPG, PNG, or WebP image.',
     })
+    expect(uploadPublicSiteMediaMock).not.toHaveBeenCalled()
+  })
+
+  it('rejects corrupt image bytes without publishing or running image edits', async () => {
+    getPaidNicNacContextMock.mockResolvedValueOnce({ repId: 'rep-brittany', supabase: {} })
+    getTeamOnboardingAccessMock.mockResolvedValueOnce({ enabled: true })
+    analyzeTeamPhotoMock.mockRejectedValueOnce(new Error('invalid image'))
+    const response = await POST(photoRequest('data:image/jpeg;base64,Zm9v'))
+    expect(response.status).toBe(400)
     expect(uploadPublicSiteMediaMock).not.toHaveBeenCalled()
   })
 

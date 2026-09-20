@@ -1,5 +1,21 @@
 # Decision Log
 
+## 2026-09-20 - Large shared-template portraits supersede circular team photos
+
+Louis selected large photo-top cards for every present/future customer-site
+skin. Keep existing people and their exact photo associations. Never silently
+regenerate existing photos or apply AI when a theme changes. Original uploads
+remain usable; optional Polish my photo requires consent and explicit approval.
+Retain the person's appearance in instructions and require rep likeness review;
+do not promise perfect identity preservation. Remove photo clears only that
+card's photo, not the member or retained originals.
+
+Cost rule: first image plus three retries per saved card, with shared daily and
+monthly caps. Re-uploading does not reset attempts. Uncertain provider outcomes
+pause further spending. On the last retry flag Guardian; Need Help opens the
+Workspace's existing support composer for the rep to submit. No automatic
+support ticket or separate Google Chat/email alert from this feature.
+
 ## 2026-09-19 - Join team-card photos use Smart Frame, not CSS crop hacks
 
 Customer-facing Join team circles reuse the About-portrait Smart Frame idea

@@ -1,5 +1,28 @@
 # Session Log
 
+## September 20, 2026 - Team portrait implementation and economical draft checks
+
+- Approved large shared-template cards using each skin's semantic colors;
+  original member IDs, photos and ordering preserved. Brittany identity tests
+  cover duplicate names, reordered members and missing/removed photos.
+- Added lead/member Remove photo, quality/framing feedback, consent-based
+  optional polish, private previews, approval and exact-original restore.
+- Initial generation plus three retries, atomic budgets, no provider retry,
+  timeout lock, Guardian incident; Need Help opens the built-in support form
+  and the rep sends it. No automatic ticket or feature-specific external alert.
+- Applied only the two additive photo migrations. Before/after: 33 member
+  records with identical photo identity fingerprint; no rep photo edits.
+- Production build passed. Focused regression tests include real SQL-function
+  execution with PGlite and mocked providers. Latest support/UI subset: 151
+  passing tests. Broad standalone tsc still includes pre-existing test typing
+  failures; do not claim that command passed.
+- Browser checked desktop and phone cards across skins, sample approve/restore,
+  four-attempt stop and actual support-composer navigation. Zero paid AI calls;
+  provider output likeness has not been empirically verified in this smoke.
+- Prepared from GitHub `176d131a`; manual exact-tip Vercel release and live
+  checks follow this implementation commit. Existing production preserved for
+  provenance: `dpl_7EW99hnHy6Z3yABemD2xgXZZujVR`.
+
 ## September 19, 2026 - Rocky SHIP: squash-merge team-card photo framing PR #12
 
 - Louis authorized ship of PR #12 with operator re-save. Draft was marked
