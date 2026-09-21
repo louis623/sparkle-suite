@@ -1,12 +1,11 @@
-# Live Lineup / Live Queue — Living Status
+# Live Lineup / Live Queue — Living Status (canonical draft)
 
 **Owner:** Live Lineup Watch (study + report; no ship without Louis OK)  
 **Audience:** Louis, Sam, Codex, Rocky, Live Lineup Watch  
-**Last updated:** 2026-09-21  
-**Intended Git home:** `vault/LIVE-LINEUP-STATUS.md` on `louis623/sparkle-suite` tip `codex/nic-nac-trade-hardening` (this path)  
-**Steward:** Live Lineup Watch — must update this file on every material Live Lineup change (and keep the local Watch-computer mirror)  
-**Standing:** Louis / Sam / Rocky / Codex notify Live Lineup Watch after Live Lineup work so STATUS stays current  
-**Companion:** `vault/LIVE-LINEUP-STATUS-SOURCES.md` (every vault path + Open Brain themes used)
+**Last updated:** 2026-09-20 ~10:05pm ET  
+**Draft location:** `/workspace/live-lineup-watch/LIVE-LINEUP-STATUS.md` (this machine first)  
+**Git home:** `vault/LIVE-LINEUP-STATUS.md` on `louis623/sparkle-suite` tip `codex/nic-nac-trade-hardening` via **PR #15** (https://github.com/louis623/sparkle-suite/pull/15) — **still open / not merged as of 2026-09-20 ~10pm ET**; read from PR head until merged. Steward: Live Lineup Watch (Codex is READ-ONLY on this file).  
+**Companion:** `LIVE-LINEUP-STATUS-SOURCES.md` (every vault path + Open Brain themes used)
 
 > Louis’s bar: this is a huge headache. The doc must have a **sound, detailed history** — not a skim. Agents without a living status file will contradict each other.
 
@@ -517,6 +516,27 @@ Same calendar day as 2.0 release, multiple application follow-ups (extension Sto
 
 ---
 
+### F.18 2026-09-20 evening — Codex diagnostic session (no code changes)
+
+**Session type:** Read-only diagnosis of Workspace Live Lineup “shows names but Not connected / reorder locked,” then product planning. **No Live Lineup code, CWS, deploy, or STATUS edits by Codex.**
+
+**How Codex thinks (ops lesson for Watch / Sam / Rocky)**
+1. Starts from **shared tip** and can still **over-trust tip manifest version** (2.0.3) when reps run **Store 2.0.4** — STATUS §C exists specifically to stop that.
+2. First pass framed Workspace symptoms as **legacy `live_queue` display + `canManage: false` / `connection: delayed`** until V2 ready state exists in `live_lineup_states` (Git-tip service path). Useful mechanical detail: the shared LiveLineupCard disables drag/arrows/hold/reveal/save when `canManage` is false — one guard for both “not Connected” and “can’t reorder.”
+3. After Louis corrected to Store **2.0.4**, Codex located release commit **`d1865fa`** on `cursor/live-queue-party-detection-8648` (not on today’s tip ancestry) and reframed as **2.0.4 readiness/partial** → keep last lineup + lock reorder.
+4. After reading living STATUS from **PR #15 head** (not tip), Codex **retracted** soft-fallback as *proven* cause of this Workspace case; STATUS says live evidence required; **lease-order / reconnect** remains a stronger candidate when reconnecting. Correct humility — keep that discipline.
+5. Dirty local Windows checkout is **out of scope** for multi-agent work; Git tip + SHA packages only (Louis reinforced).
+
+**Product deferrals (Louis 2026-09-20) — leave running as-is**
+- **2.0.5** lease-before-configure repair: **parked until full Codex usage reset** + confirmed no-show window + Louis authorization. Do not start now.
+- **Private Workspace customer-context enrichment** (match intake/customer-list birthday **month/day only**, favorite cut/jam/etc. onto authenticated Workspace lineup for a rep-only wow card): **parked until usage reset** with full research/planning first. **Not** a Live Lineup rebuild. Must stay off public lineup / customer site / extension popup. Matching must be high-confidence (stable BP id if permitted) — never guess on first name alone. Birthday has no year (wow factor only).
+- Codex recommended sequence when resumed: stabilize 2.0.5 → identity-match service → enrich Workspace-only response → reviewer prototype → confirm BP field permissions. Live Lineup Watch agrees (see steward opinion in Open Brain / session handoff to Louis).
+
+**STATUS stewardship confirmed in-session**
+- Louis pointed Codex at Watch’s READ-ONLY catch-up prompt.
+- Codex confirmed PR #15 open; read STATUS from PR commit `d2c0274` / branch `cursor/live-lineup-status-vault-929b`.
+- Open Brain already captured deferral (Codex `capture_thought`); Watch mirrors here.
+
 ### F.15 Version ladder (extension) — quick reference
 
 | Ver | Theme | Notes |
@@ -580,18 +600,18 @@ Same calendar day as 2.0 release, multiple application follow-ups (extension Sto
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Extension **2.0.5** (lease before configure) + regression tests | Parked | No-show CWS + Louis OK; closes Sep 19 class permanently |
+| Extension **2.0.5** (lease before configure) + regression tests | Parked until **usage reset** | Confirmed Louis 2026-09-20 evening: no-show + Louis OK when resumed; closes Sep 19 class permanently. Codex suggested Sol High for first pass, Astra only if tangled. |
 | Merge **2.0.4** party-detection line into shared tip | Open / lag | Tip manifest still **2.0.3** as of 2026-09-20; Store already 2.0.4 |
 | Tip merge lag / PR #1 hygiene | Open | Confirm whether `cursor/live-queue-party-detection-8648` merged; update matrix |
 | Consecutive multi-order collapse (three Kellys → one until all reveals) | Banked | Must not repeat Apr 12 shrink-on-reveal failure |
 | On-deck / “their turn” sparkle animation polish | Banked | Discuss before build |
 | Biweekly per-rep usage grid | Blocked | No Control Center Live Lineup usage MCP yet |
-| Intake forms → birthday/favorites on lineup rows | Parked idea | Not greenlit (Open Brain 2026-09-18) |
+| Private Workspace **customer-context** on lineup (birthday month/day, favorites, etc.) | Parked until **usage reset** | Louis 2026-09-20: wow-factor for reps; **not** a rebuild; Workspace-only; high-confidence match; never public/popup. Full research/planning required first. Supersedes thin “intake→lineup” banked idea. |
 | Safari / Bri connection path | Deferred | Chrome on Mac is supported path; Bri was not connected (Sep 15) |
 | Synthetic reviewer identity migration | Blocked | Needed for signed-in Workspace smoke; no personal/customer account bypass |
 | Nic-Nac Live Queue troubleshooting flow | Open (May 18 todo) | Store vs unpacked, version, Party Filter, site access, zombies |
 | Stale vault `open-items` 2.0.3 checklist | Docs debt | Living §C supersedes until vault cleaned |
-| Promote this living status into tip vault | Done 2026-09-21 | Canonical home is `vault/LIVE-LINEUP-STATUS.md` on tip; Watch keeps a local mirror |
+| Promote / merge living STATUS into tip vault | **PR #15 open** | https://github.com/louis623/sparkle-suite/pull/15 — merge when Louis/Sam approve; until then agents read PR head |
 | BP DOM screenshots / frozen attr contracts | Open | Needed for parser risk memos (Sam/Rocky notes) |
 | Control Center permanent reliability task | Historical | `e453d5cc-…` — much of intent delivered by Live Lineup 2; do not auto-pursue leftovers without Louis |
 
@@ -709,8 +729,7 @@ Age > 45s / no heartbeat while quiet? ──yes──► heartbeat / publisher h
 |-----------|--------|
 | 2026-09-20 ~earlier | Thin outline created (sections 1–8 sketch). |
 | 2026-09-20 ~9:45pm | **Full end-all-be-all rewrite:** sections A–K; deep history Apr→Sep 20; build matrix; playbooks; backlog; source-backed SHAs/deploys; plain-English gloss. Study+write only; no CWS/Codex/deploy/package changes; no GitHub push. |
-| 2026-09-20/21 | **First Git landing** of full A–K living status (from Live Lineup Watch deep rebuild) into `vault/LIVE-LINEUP-STATUS.md` on tip. Steward + standing notify rules added in header. |
 
 ---
 
-*End of living status. Prefer dated facts; mark Unknown when unverified; never paste live sync codes; never claim tip equals Store.*
+*End of living status draft. Prefer dated facts; mark Unknown when unverified; never paste live sync codes; never claim tip equals Store.*
