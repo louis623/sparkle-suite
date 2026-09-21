@@ -2,7 +2,7 @@
 
 **Owner:** Live Lineup Watch (study + report; no ship without Louis OK)  
 **Audience:** Louis, Sam, Codex, Rocky, Live Lineup Watch  
-**Last updated:** 2026-09-20 ~10:05pm ET  
+**Last updated:** 2026-09-20 ~10:08pm ET  
 **Draft location:** `/workspace/live-lineup-watch/LIVE-LINEUP-STATUS.md` (this machine first)  
 **Git home:** `vault/LIVE-LINEUP-STATUS.md` on `louis623/sparkle-suite` tip `codex/nic-nac-trade-hardening` via **PR #15** (https://github.com/louis623/sparkle-suite/pull/15) — **still open / not merged as of 2026-09-20 ~10pm ET**; read from PR head until merged. Steward: Live Lineup Watch (Codex is READ-ONLY on this file).  
 **Companion:** `LIVE-LINEUP-STATUS-SOURCES.md` (every vault path + Open Brain themes used)
@@ -600,7 +600,7 @@ Same calendar day as 2.0 release, multiple application follow-ups (extension Sto
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Extension **2.0.5** (lease before configure) + regression tests | Parked until **usage reset** | Confirmed Louis 2026-09-20 evening: no-show + Louis OK when resumed; closes Sep 19 class permanently. Codex suggested Sol High for first pass, Astra only if tangled. |
+| Extension **2.0.5** (lease before configure) + regression tests | Parked until **fresh Codex usage session** | Louis 2026-09-20 ~10:08pm: no plan/research/build until then except **emergency patches**. No-show + Louis OK when resumed. |
 | Merge **2.0.4** party-detection line into shared tip | Open / lag | Tip manifest still **2.0.3** as of 2026-09-20; Store already 2.0.4 |
 | Tip merge lag / PR #1 hygiene | Open | Confirm whether `cursor/live-queue-party-detection-8648` merged; update matrix |
 | Consecutive multi-order collapse (three Kellys → one until all reveals) | Banked | Must not repeat Apr 12 shrink-on-reveal failure |
@@ -730,6 +730,7 @@ Age > 45s / no heartbeat while quiet? ──yes──► heartbeat / publisher h
 | 2026-09-20 ~earlier | Thin outline created (sections 1–8 sketch). |
 | 2026-09-20 ~9:45pm | **Full end-all-be-all rewrite:** sections A–K; deep history Apr→Sep 20; build matrix; playbooks; backlog; source-backed SHAs/deploys; plain-English gloss. Study+write only; no CWS/Codex/deploy/package changes; no GitHub push. |
 | 2026-09-20 ~10:05pm | Codex diagnostic session (no code): Workspace not-connected/reorder locked = fail-safe / `canManage` path; Store 2.0.4 vs tip 2.0.3 reinforced; soft-fallback not proven for this case; **2.0.5** and **Workspace customer-context** deferred until usage reset + research. PR #15 still open. Steward update. |
+| 2026-09-20 ~10:08pm | Louis standing: **no Live Lineup plan/research/build until fresh Codex usage session** — emergency patches only. |
 
 ---
 
