@@ -729,6 +729,7 @@ Age > 45s / no heartbeat while quiet? ──yes──► heartbeat / publisher h
 |-----------|--------|
 | 2026-09-20 ~earlier | Thin outline created (sections 1–8 sketch). |
 | 2026-09-20 ~9:45pm | **Full end-all-be-all rewrite:** sections A–K; deep history Apr→Sep 20; build matrix; playbooks; backlog; source-backed SHAs/deploys; plain-English gloss. Study+write only; no CWS/Codex/deploy/package changes; no GitHub push. |
+| 2026-09-20 ~10:05pm | Codex diagnostic session (no code): Workspace not-connected/reorder locked = fail-safe / `canManage` path; Store 2.0.4 vs tip 2.0.3 reinforced; soft-fallback not proven for this case; **2.0.5** and **Workspace customer-context** deferred until usage reset + research. PR #15 still open. Steward update. |
 
 ---
 
