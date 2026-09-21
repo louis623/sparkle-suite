@@ -1,5 +1,19 @@
 # Session Log
 
+## September 20, 2026 - Final editor release and dual-memory closeout
+
+Released `d5f248d2` as `dpl_AZCM7ZhUWo4ohNMQMyqVegk2ZRkp`; canonical and apex
+Suite domains resolve to that exact release. In Louis's same-session authorized
+demo, saved unchanged Photo Test details, confirmed selection remained, checked
+all five exact photo URLs, existing Jane onboarding controls, blank new-card
+validation and Photo Test's retained 1-of-4 polish history. No new member,
+upload, deletion or paid image was created in this follow-up. Public Join roster
+and landing stability passed; clean Workspace console. Codespace is stopped.
+Louis then requested updating both GitVault and actual Open Brain again for the
+extra editor work. This entry and the detailed receipt complete the repository
+side; the separately verified Open Brain capture records the final notes tip.
+
+
 ## September 20, 2026 - Single-editor Team Management follow-up
 
 Louis confirmed the photo feature works well, requested a simpler Workspace UI,

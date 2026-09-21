@@ -1,5 +1,19 @@
 # Project State
 
+## September 20, 2026 - Single-editor release verified; final logs updated
+
+Live application is `d5f248d25e51165e4d636ca48ada54e35a57d8d6`, manual Vercel
+`dpl_AZCM7ZhUWo4ohNMQMyqVegk2ZRkp`. Both Suite domains were confirmed on that
+exact deployment. Live authorized-demo checks passed: unchanged test-card save
+retains selection, blank-name validation, existing private onboarding controls,
+photo-polish history, and exact photo preservation for all five demo people.
+Public demo Join roster and landing stability checked; Workspace console clean.
+144 focused tests, production build and local desktop/390px phone checks passed.
+No new paid images; Codespace confirmed stopped. Await Louis's feedback.
+This final closeout is documentation only; it does not change the live app.
+See `vault/2026-09-20-team-editor-consolidation.md` for the complete receipt.
+
+
 ## September 20, 2026 - Approved single-person Team Management editor
 
 Louis smoke-tested and accepted the portrait/polish release, then approved one

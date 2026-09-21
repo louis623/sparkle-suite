@@ -1,5 +1,28 @@
 # Team Management single-person editor
 
+## Final release receipt
+
+- Live application SHA: `d5f248d25e51165e4d636ca48ada54e35a57d8d6`.
+- Manual Vercel: `dpl_AZCM7ZhUWo4ohNMQMyqVegk2ZRkp`, READY; canonical
+  `www.yoursparklesuite.com` and apex `yoursparklesuite.com` verified on it.
+- Production build and 144 focused tests passed. Local desktop/390px phone
+  checks passed; no framework overlay or relevant console errors.
+- Live authorized-demo Team Management: unchanged Photo Test details saved and
+  that exact card stayed selected. Empty new-card name produced validation
+  without creating a member. Lead, Photo Test, Steve, Gracie Bot and Jane all
+  retained their exact pre-release photo URLs, including Louis's later edits.
+- Jane's existing private onboarding history, fresh-link, Messages and Archive
+  controls remained available. No onboarding link was created or replaced.
+- Photo Test's existing polish result, original restore, current-skin refresh
+  and 1-of-4 attempt count remained available. No paid generation was requested.
+- Public demo `/amethyst/Join.html?c=ac3e643a-6ccf-4400-8230-662f63a07f3e#team`
+  retained all five people. Production landing remained stable; authenticated
+  Workspace identity was correct, with no checkout/account changes.
+- Existing useful Workspace tab retained. Codespace confirmed Shutdown.
+- Louis requested final GitVault/Open Brain updates after release. This final
+  notes commit does not deploy or alter application code. The live app stays at
+  `d5f248d2`; pull the latest notes tip before future work. Await user feedback.
+
 Louis accepted the live team-photo feature after his own smoke test, then approved
 consolidating Workspace Team Management without losing functionality.
 
