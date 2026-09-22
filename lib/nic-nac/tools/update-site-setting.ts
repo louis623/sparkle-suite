@@ -6,10 +6,8 @@ import {
   normalizeAmethystAppearancePreset,
   normalizeCustomerSiteTemplate,
 } from '@/lib/amethyst/appearance-presets'
-import {
-  isAmethystSkinSelectionAvailableToRep,
-  normalizeAmethystSkinSelection,
-} from '@/lib/amethyst/skin-cards'
+import { normalizeAmethystSkinSelection } from '@/lib/amethyst/skin-cards'
+import { isAmethystSkinSelectionAvailableToRep } from '@/lib/amethyst/skin-access'
 import {
   ABOUT_NARRATIVE_MAX_LENGTH,
   ABOUT_TITLE_MAX_LENGTH,
@@ -142,7 +140,7 @@ export function makeUpdateSiteSettingTool(ctx: {
           normalizeCustomerSiteTemplate(customerSiteTemplate)
       }
       if (appearancePreset !== undefined) {
-        if (!isAmethystSkinSelectionAvailableToRep(appearancePreset, ctx.repId)) {
+        if (!(await isAmethystSkinSelectionAvailableToRep(ctx.supabase, appearancePreset, ctx.repId))) {
           throw new NicNacToolError({
             code: 'SITE_SKIN_NOT_AVAILABLE',
             userMessage:
