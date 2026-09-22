@@ -13,6 +13,24 @@ const TRADE_BOARD_HREF = FOOTER_LINKS.tradeBoard || "/amethyst/Trade.html";
 function applyUnsubscribeAppearance() {
   const preset = window.HOMEPAGE_TWEAK_DEFAULTS?.preset;
 
+  if (preset === "halloween_pumpkin_witch") {
+    document.body.classList.add("bg-halloween-pumpkin-witch", "surface-midnight-glass", "shape-soft", "hpw-utility");
+    const halloweenTokens = {
+      "--hp-primary": "#ff6a00",
+      "--hp-accent": "#f4eee3",
+      "--primary": "#ff6a00",
+      "--accent": "#f4eee3",
+      "--hp-bg": "#090909",
+      "--hp-bg-elevated": "#211914",
+      "--bg-deep": "#050505",
+      "--hp-display-font": '"Playfair Display", Georgia, serif',
+      "--hp-body-font": '"DM Sans", "Inter", system-ui, sans-serif',
+      "--hp-heading-weight": "600",
+    };
+    Object.entries(halloweenTokens).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
+    return;
+  }
+
   if (preset === "neon_butterfly") {
     document.body.classList.add("bg-neon-butterfly", "surface-neon-velvet-glass", "shape-soft", "nb-utility");
     const neonTokens = {

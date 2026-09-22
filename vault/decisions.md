@@ -1,3 +1,11 @@
+## 2026-09-21 - Halloween Pumpkin and Witch is a public, visual-only Amethyst skin
+
+- Decision: expose halloween_pumpkin_witch to every Sparkle Suite rep as public skin HPW-01, using the shared Amethyst renderer across Landing, Join Team, Dance Floor, and Preferences.
+- Decision: keep the generated moon in its original orientation; the open side intentionally preserves room for rep hero copy.
+- Decision: use Halloween atmosphere only (pumpkins, witch, bats, moonlight, and sparkle). Do not generate jewelry imagery for this skin.
+- Decision: motion is intentionally noticeable but bounded and must include a customer-visible pause control, visibility-aware pausing, and prefers-reduced-motion support.
+- Guardrail: this release is visual-only. It does not change Live Lineup, the Chrome extension, auth, billing, inventory, trade behavior, or customer data.
+
 # Decision Log
 
 ## 2026-09-20 - One team-person editor, no functionality removed

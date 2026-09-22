@@ -85,6 +85,7 @@ describe('Amethyst appearance presets', () => {
       'emerald_garden',
       'gnome_garden',
       'neon_butterfly',
+      'halloween_pumpkin_witch',
       'rose_gold',
       'garnet',
       'amber',
@@ -100,6 +101,7 @@ describe('Amethyst appearance presets', () => {
       'Emerald Garden',
       'Gnome Forest',
       'Neon Butterfly',
+      'Halloween Pumpkin and Witch',
       'Rose Gold',
       'Garnet',
       'Amber',
@@ -302,10 +304,14 @@ describe('Amethyst appearance presets', () => {
     ])
 
     for (const [id, preset] of Object.entries(AMETHYST_APPEARANCE_PRESETS)) {
-      expect(['sparkle_rise', 'soft_glow']).toContain(preset.values.heroMotion)
+      expect(['sparkle_rise', 'soft_glow', 'witch_flight']).toContain(preset.values.heroMotion)
       expect(['none', 'subtle', 'glittery']).toContain(preset.values.sparkleLevel)
 
-      if (softGlowSkins.has(id)) {
+      if (id === 'halloween_pumpkin_witch') {
+        expect(preset.values.heroMotion).toBe('witch_flight')
+        expect(preset.values.sparkleLevel).toBe('glittery')
+        expect(preset.values.textureOverlay).toBe('halloween-sparkles')
+      } else if (softGlowSkins.has(id)) {
         expect(preset.values.heroMotion).toBe('soft_glow')
         expect(preset.values.sparkleLevel).toBe('subtle')
         expect(preset.values.textureOverlay).toBe(

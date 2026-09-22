@@ -572,7 +572,7 @@ export interface WalletDashboardResult {
   recentTransactions: WalletTransactionSummary[]
 }
 
-export type HeroAnimationType = 'still' | 'sparkle_rise' | 'soft_glow'
+export type HeroAnimationType = 'still' | 'sparkle_rise' | 'soft_glow' | 'witch_flight'
 export type CustomerSiteTemplate = 'amethyst'
 export type PublicSiteMediaSlotKey =
   | 'showcase'
@@ -604,6 +604,7 @@ export type SiteAppearancePreset =
   | 'emerald_garden'
   | 'gnome_garden'
   | 'neon_butterfly'
+  | 'halloween_pumpkin_witch'
   | 'rose_gold'
   | 'garnet'
   | 'amber'

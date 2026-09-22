@@ -8,7 +8,7 @@ import type { AmethystHomepageEventCard } from './homepage-upcoming-shows'
 
 export const SKIN_PREVIEW_PAGES = ['homepage', 'trade', 'join', 'unsubscribe'] as const
 export type SkinPreviewPage = (typeof SKIN_PREVIEW_PAGES)[number]
-export const SKIN_PREVIEW_SKINS = ['gnome_garden', 'neon_butterfly'] as const
+export const SKIN_PREVIEW_SKINS = ['gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch'] as const
 export type SkinPreviewSkin = (typeof SKIN_PREVIEW_SKINS)[number]
 const FILES: Record<SkinPreviewPage, string> = {
   homepage: 'Homepage.html', trade: 'Trade.html', join: 'Join.html', unsubscribe: 'Unsubscribe.html',
@@ -48,6 +48,11 @@ export const GNOME_PREVIEW_EVENTS: AmethystHomepageEventCard[] = [
 const NEON_PREVIEW_EVENTS: AmethystHomepageEventCard[] = [
   { id: 'sample-neon-night', title: 'Neon Butterfly Night', description: 'Join us for a glowing evening of live jewelry reveals.\nCome for the color, stay for the sparkle.', eventTime: '2099-09-12T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{ code: 'SAMPLE10', desc: 'Sample offer for this preview' }], collections: [{ label: 'OG Collection', href: previewPath('neon_butterfly', 'trade') }], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
   { id: 'sample-afterglow', title: 'The Afterglow Reveal', description: 'A relaxed weekend show with bright surprises, familiar faces, and plenty of sparkle.', eventTime: '2099-09-14T15:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 60, featured: false, codes: [], collections: [], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
+]
+
+const HALLOWEEN_PREVIEW_EVENTS: AmethystHomepageEventCard[] = [
+  { id: 'sample-pumpkin-night', title: 'Pumpkin Moon Reveal Night', description: 'Join us beneath the glittering crescent for a playful Halloween reveal.\\nCostumes are welcome; spooky pressure is not.', eventTime: '2099-10-30T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{ code: 'BOO10', desc: 'Sample offer for this preview' }], collections: [{ label: 'Dance Floor', href: previewPath('halloween_pumpkin_witch', 'trade') }], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
+  { id: 'sample-witching-hour', title: 'The Sparkling Witching Hour', description: 'A cozy Halloween gathering with glowing pumpkins, bright surprises, and plenty of friendly sparkle.', eventTime: '2099-10-31T22:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 60, featured: false, codes: [], collections: [], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
 ]
 
 type PreviewProfile = {
@@ -97,6 +102,21 @@ const PREVIEW_PROFILES = {
     signupSub: 'A friendly heads-up before the next night in the glow.',
     events: NEON_PREVIEW_EVENTS,
   },
+  halloween_pumpkin_witch: {
+    label: 'Halloween Pumpkin and Witch', businessName: 'Moonlit Pumpkin Sparkle', repName: 'Sasha', teamName: 'The Moonlight Circle',
+    ticker: 'A sparkling Halloween is here | Glowing pumpkins & moonlit surprises | Explore the Dance Floor',
+    tagline: 'Bright pumpkins. Moonlit magic. A little mischief in every reveal.',
+    eyebrow: 'Meet us beneath the pumpkin moon.', headline: 'A frightfully fun night to sparkle.',
+    heroSub: 'Glowing jack-o-lanterns, silver moonlight, and a welcoming place to share the Halloween fun.',
+    aboutHeadline: 'There is room around the lantern for everyone.',
+    aboutParagraphs: [
+      'The best part of a reveal is sharing the surprise. This moonlit corner is a place to unwind, laugh, and discover a new favorite together.',
+      'Whether your Halloween style is sweet, spooky, or covered in glitter, you are welcome here. Bring your curiosity and enjoy the glow.',
+      'The sample calendar shows how upcoming live gatherings, collection notes, and helpful details flow through every customer page.',
+    ],
+    signupSub: 'A friendly little warning before the next sparkling witching hour.',
+    events: HALLOWEEN_PREVIEW_EVENTS,
+  },
 } satisfies Record<SkinPreviewSkin, PreviewProfile>
 
 function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_garden') {
@@ -119,7 +139,7 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
   }
   if (page === 'join') {
     return buildAmethystJoinBootstrapScript({
-      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'neon_butterfly' ? 'Find your place in the glow.' : 'Find your place in the garden.',
+      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'neon_butterfly' ? 'Find your place in the glow.' : skin === 'halloween_pumpkin_witch' ? 'Find your place beneath the pumpkin moon.' : 'Find your place in the garden.',
       shopUrl: '#preview-action', bpReferralUrl: '', hasRecruitingLink: false,
       teamMembers: [
         ...(skin === 'neon_butterfly'
@@ -196,7 +216,7 @@ export const SKIN_PREVIEW_GUARDS = `
     if (href.charAt(0) === '#' && href !== '#' && href !== '#preview-action') return;
     event.preventDefault(); event.stopImmediatePropagation();
     var path = href.split('?')[0].split('#')[0];
-    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:gnome_garden|neon_butterfly)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
+    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:gnome_garden|neon_butterfly|halloween_pumpkin_witch)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
     if (page) window.parent.postMessage({ type: 'sparkle-skin-preview-page', page: page }, '*'); else notice();
   }, true);
   function disableUploads() {
@@ -218,7 +238,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
   // Inline only allowlisted repository runtime files. Inline Babel input does not need network XHR.
-  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js']
+  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js']
   for (const name of runtimeNames) {
     const escaped = name.replace('.', '\\.')
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')
@@ -246,7 +266,9 @@ export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreview
   const navigation = SKIN_PREVIEW_PAGES.map((item) => `<a href="${previewPath(skin, item)}"${item === page ? ' aria-current="page"' : ''}>${LABELS[item]}</a>`).join('')
   const chrome = skin === 'neon_butterfly'
     ? { bg: '#160318', fg: '#fff4fa', muted: '#d9bcd4', border: '#ff2acd55', active: '#ff2acd', focus: '#ffc24a' }
-    : { bg: '#173126', fg: '#fff3d6', muted: '#dfd4ba', border: '#f4c45e44', active: '#fff3d6', focus: '#f4c45e' }
+    : skin === 'halloween_pumpkin_witch'
+      ? { bg: '#090909', fg: '#fff7ed', muted: '#d6c8bb', border: '#ff6a0066', active: '#ff6a00', focus: '#f4eee3' }
+      : { bg: '#173126', fg: '#fff3d6', muted: '#dfd4ba', border: '#f4c45e44', active: '#fff3d6', focus: '#f4c45e' }
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${profile.label} · Skin preview</title><style>
   *{box-sizing:border-box}body{margin:0;background:${chrome.bg};color:${chrome.fg};font:14px/1.4 system-ui,sans-serif}header{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;border-bottom:1px solid ${chrome.border}}header strong{font-size:14px}header small{display:block;color:${chrome.muted};font-size:12px}nav{display:flex;gap:5px;flex-wrap:wrap}nav a{color:inherit;text-decoration:none;border-radius:20px;padding:8px 12px}nav a:hover,nav a[aria-current]{background:${chrome.active};color:${chrome.bg}}a:focus-visible{outline:3px solid ${chrome.focus};outline-offset:3px}iframe{display:block;width:100%;height:calc(100dvh - 65px);border:0;background:${chrome.bg}}@media(max-width:600px){header{padding:10px 12px;flex-direction:column;align-items:flex-start;gap:7px}header small{display:inline;margin-left:6px}nav{width:100%;justify-content:space-between}nav a{padding:7px 9px}iframe{height:calc(100dvh - 100px)}}
   html,body{height:100%;overflow:hidden}body{height:100dvh;display:flex;flex-direction:column}header{flex:0 0 auto}iframe{flex:1 1 0;min-height:0;height:auto}

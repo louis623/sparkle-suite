@@ -472,6 +472,15 @@ const PRESETS = {
     textureOverlay: "neon-butterflies", buttonEnergy: "neon-lift", ctaEmphasis: "standard",
     tradeFlair: "butterfly-glow", cursorEffect: "default", tickerSpeed: 1,
   },
+  halloween_pumpkin_witch: {
+    primaryColor: "#ff6a00", accentColor: "#f4eee3", bgTone: "halloweenPumpkinWitch",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular", saturation: 112,
+    heroMotion: "witch_flight", sparkleLevel: "glittery",
+    bgTreatment: "halloween-pumpkin-witch", cardSurface: "midnight-glass",
+    textureOverlay: "halloween-sparkles", buttonEnergy: "pumpkin-glow", ctaEmphasis: "standard",
+    tradeFlair: "moonlit-bats", cursorEffect: "default", tickerSpeed: 1,
+  },
   rose_gold: {
     heroMotion: "sparkle_rise",
     sparkleLevel: "subtle", bgTreatment: "rose-gold-paper", cardSurface: "pearl-rose",
@@ -2538,6 +2547,7 @@ function App() {
     if (t.bgTreatment === "emerald-garden") body.classList.add("bg-emerald-garden");
     if (t.bgTreatment === "gnome-garden") body.classList.add("bg-gnome-garden");
     if (t.bgTreatment === "neon-butterfly") body.classList.add("bg-neon-butterfly");
+  if (t.bgTreatment === "halloween-pumpkin-witch") body.classList.add("bg-halloween-pumpkin-witch");
     if (t.bgTreatment === "rose-gold-paper") body.classList.add("bg-rose-gold-paper");
     if (t.bgTreatment === "garnet-shell") body.classList.add("bg-garnet-shell");
     if (t.bgTreatment === "amber-paper") body.classList.add("bg-amber-paper");
@@ -2552,6 +2562,7 @@ function App() {
     if (t.cardSurface === "spa-ivory") body.classList.add("surface-spa-ivory");
     if (t.cardSurface === "storybook-parchment") body.classList.add("surface-storybook-parchment");
     if (t.cardSurface === "neon-velvet-glass") body.classList.add("surface-neon-velvet-glass");
+  if (t.cardSurface === "midnight-glass") body.classList.add("surface-midnight-glass");
     if (t.cardSurface === "pearl-rose") body.classList.add("surface-pearl-rose");
     if (t.cardSurface === "blush-shell") body.classList.add("surface-blush-shell");
     if (t.cardSurface === "sunlit-pearl") body.classList.add("surface-sunlit-pearl");
@@ -2589,7 +2600,7 @@ function App() {
     if (t.tradeFlair === "citrine-glow") body.classList.add("citrine-glow");
     if (t.tradeFlair === "orchid-gloss") body.classList.add("orchid-gloss");
     if (t.tradeFlair === "pink-spark") body.classList.add("pink-spark");
-    if (["sparkle_rise", "soft_glow", "still"].includes(t.heroMotion)) {
+    if (["sparkle_rise", "soft_glow", "still", "witch_flight"].includes(t.heroMotion)) {
       body.classList.add(`hero-motion-${t.heroMotion.replace("_", "-")}`);
     }
     if (t.cursorEffect === "sparkle") body.classList.add("cursor-sparkle");
@@ -2695,6 +2706,7 @@ function App() {
               { value: "emerald_garden", label: "Emerald Garden" },
               { value: "gnome_garden", label: "Gnome Forest" },
               { value: "neon_butterfly", label: "Neon Butterfly" },
+            { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
               { value: "rose_gold", label: "Rose Gold" },
               { value: "garnet", label: "Garnet" },
               { value: "amber", label: "Amber" },

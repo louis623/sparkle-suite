@@ -85,6 +85,12 @@ const FINDER_THEME_TOKENS: Record<AmethystAppearancePresetId, SparkleFinderAppea
     accent: '#FFC24A', border: 'rgba(255, 84, 215, 0.28)', borderStrong: 'rgba(255, 194, 74, 0.5)',
     panel: '#09010C', panelText: '#FFF5FA', headingFont: 'playfair', bodyFont: 'dmSans',
   },
+  halloween_pumpkin_witch: {
+    background: '#090909', backgroundSoft: '#17110D', surface: '#211914', surfaceSoft: '#2D2118',
+    foreground: '#FFF7ED', foregroundMuted: '#D6C8BB', primary: '#FF6A00', primaryStrong: '#C2410C',
+    accent: '#F4EEE3', border: 'rgba(255, 106, 0, 0.26)', borderStrong: 'rgba(244, 238, 227, 0.55)',
+    panel: '#050505', panelText: '#FFF7ED', headingFont: 'playfair', bodyFont: 'dmSans',
+  },
   rose_gold: {
     background: '#FFF5F6', backgroundSoft: '#FFF0F3', surface: '#FFFFFF', surfaceSoft: '#FFF8F3',
     foreground: '#4A2530', foregroundMuted: '#7B5B63', primary: '#E04F73', primaryStrong: '#B72C52',

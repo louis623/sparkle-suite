@@ -1,3 +1,11 @@
+## September 21, 2026 - Halloween Pumpkin and Witch skin ready for release
+
+- Built entirely in the GitHub Codespace from clean branch tip b90bd064560a2e6444e65859e18f5bbf4078b09d; the intentionally stale Windows checkout was not used or changed.
+- Added public Amethyst skin HPW-01 (halloween_pumpkin_witch) across Landing, Join Team, Dance Floor, and Preferences, with original moon orientation, pumpkin/witch/bat art, deterministic sparkles, bounded witch and bat motion, animation pause, and reduced-motion support.
+- Added the additive appearance-preset database constraint migration required before customers can save the new skin. No Live Lineup, extension, billing, auth, or customer-data workflow was changed.
+- Verification completed in Codespace: focused skin/preset/preview regression suite 48/48, qa:amethyst 97/97 plus link and HTTP checks, npm run build, and git diff --check.
+- Release remains exact-SHA commit/push, database migration, manual Vercel production deployment, and live-domain desktop/mobile verification.
+
 # Project State
 
 ## September 20, 2026 - Single-editor release verified; final logs updated

@@ -5544,6 +5544,12 @@ body.mile-high-fizz .mhf-automation-panel .legal-row {
 }
 
 /* Reduced motion */
+body.surface-midnight-glass {
+  --hp-card-fg: #fff7ed;
+  --hp-card-muted: #d6c8bb;
+  --hp-card-accent: #ff9a3d;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

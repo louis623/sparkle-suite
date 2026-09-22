@@ -18,11 +18,14 @@ describe('skin browsing preview', () => {
     expect(card).toMatch(/<button[^>]*type="button"[^>]*>Choose this customer-site Look<\/button>/)
     expect(html).not.toContain('href="/skin-preview/neon_butterfly/homepage"')
     expect(html).not.toContain('Neon Butterfly')
-    expect(html.match(/Preview this skin/g)).toHaveLength(1)
+    expect(html).toContain('href="/skin-preview/halloween_pumpkin_witch/homepage"')
+    expect(html).toContain('Halloween Pumpkin and Witch')
+    expect(html.match(/Preview this skin/g)).toHaveLength(2)
     expect(onChoose).not.toHaveBeenCalled()
     expect(AMETHYST_SKIN_CARDS.filter(({ previewHref }) => previewHref).map(({ id }) => id)).toEqual([
       'gnome_garden',
       'neon_butterfly',
+      'halloween_pumpkin_witch',
     ])
   })
 

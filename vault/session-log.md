@@ -1,3 +1,12 @@
+## September 21, 2026 - Halloween Pumpkin and Witch skin implementation
+
+- Worked only in GitHub Codespace ominous-space-pancake on codex/nic-nac-trade-hardening from clean tip b90bd064560a2e6444e65859e18f5bbf4078b09d. The local Windows workspace remained untouched.
+- Implemented the customer-facing Halloween Pumpkin and Witch skin across Landing, Join Team, Dance Floor, and Preferences. Louis selected the original moon orientation because its open side preserves hero-copy space.
+- Added original pumpkin, witch, bat, and sparkle art with no jewelry imagery; added lively but bounded witch/bat/sparkle animation plus pause and reduced-motion behavior.
+- Added the public skin registry/card/preview wiring, renderer mappings, semantic surface token, join-runtime rebuild, focused regression tests, and additive Supabase constraint migration.
+- Verification passed: focused suite 48/48, qa:amethyst 97/97 with link and HTTP checks, npm run build, and git diff --check.
+- Remaining release steps: commit and push exact SHA, apply the additive database migration, manually deploy that SHA to Vercel production, and visually smoke both live domains at desktop and mobile sizes.
+
 # Session Log
 
 ## September 20, 2026 - Final editor release and dual-memory closeout
