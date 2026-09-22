@@ -1,3 +1,7 @@
+## September 22, 2026 - Private skin visibility reviewer smoke
+
+- [ ] **Visually verify scoped picker lists with the safe built-in reviewer flow** — database policy, server endpoint, and release are verified. Await Louis's explicit browser authorization; do not use Louis's personal demo account. Confirm one owner sees their private skin, a different rep does not, and an internal reviewer sees all skins.
+
 # Open Items
 
 ## September 8, 2026 - LOC rebuild release gates
