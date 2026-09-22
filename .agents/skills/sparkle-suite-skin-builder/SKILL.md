@@ -74,15 +74,21 @@ For rep-facing copy or Sparkle Suite brand language, also use `sparkle-suite-mas
    - Add CSS/JS branches only for visual tokens and interaction polish.
    - Update public Amethyst page preset maps if the shipped runtime exposes local preset pickers.
 
-### Private custom skins
+### Skin visibility and ownership
 
-When Louis requests a skin for one named rep, treat it as private by default:
+Classify every skin in the maintained skin catalog before it can be released:
 
-- Store an explicit stable rep-ID allowlist on the skin card. Include the named rep and Louis's established `louis@neonrabbit.net` admin/demo workspace so he can safely review and tune the skin without entering the customer's account.
-- Omit the skin entirely from every other rep's Site Settings dropdown and from the generic required-setup Look picker. Do not show a disabled or locked teaser.
-- Enforce the same allowlist in direct Site Settings writes, Nic-Nac writes, required-setup publication, and a database constraint. UI filtering alone is not exclusivity.
-- A private skin may keep a noindex sample-content preview route for design QA, but that preview is not a selectable customer option.
-- Use Louis's requested special dropdown label for allowed workspaces. Never infer a new private owner or expand an allowlist without explicit authorization.
+- **Community:** visible and selectable to every rep. Seasonal and holiday skins are Community by default unless Louis explicitly designates one as private.
+- **Private/custom:** visible and selectable only to its explicitly assigned stable rep ID, Louis's established `louis@neonrabbit.net` demo workspace, and explicitly trusted Nic-Nac/AI demo or reviewer workspaces. Never grant demo access by guessing from an email address or name; use a durable internal demo/reviewer identity or allowlist.
+- Record the classification, stable skin ID, and—for each private/custom skin—the owner and approved review identities in the catalog. Do not infer, expand, or reassign ownership without Louis's explicit authorization.
+
+The same access decision must drive every selectable-skin surface: Site Settings, required setup, Nic-Nac, and future pickers. For an unauthorized rep, a private/custom skin must be absent entirely: no disabled option, locked teaser, preview link, or selectable control. Community skins remain visible normally.
+
+Enforce the same policy in direct Site Settings writes, Nic-Nac writes, required-setup publication, and a database-backed rule. UI filtering alone is not exclusivity. A private skin may keep a noindex sample-content preview route for design QA, but that route is never a selectable customer option.
+
+Before changing this policy or adding a private/custom skin, read current assignments first. Do not automatically change an existing rep's saved skin, public site, show, Live Queue, or other current workflow. If an assignment conflicts with the approved catalog, stop and report it for Louis's decision.
+
+Add focused tests for each private/custom skin: its owner, Louis's demo workspace, and each explicitly trusted reviewer can see and select it; every other rep cannot see or save it; Community skins remain available to all reps.
 
 8. Verify.
    - Run the focused Vitest suite for Amethyst appearance, Site Settings, Nic-Nac customization, and affected templates.
