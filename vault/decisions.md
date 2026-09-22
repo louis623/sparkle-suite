@@ -1,4 +1,13 @@
-## 2026-09-21 - Halloween Pumpkin and Witch is a public, visual-only Amethyst skin
+## 2026-09-21 - Halloween Pumpkin and Witch is a public, visual-only
+
+## 2026-09-21 - Halloween Pumpkin and Witch visual correction
+
+- Keep the original moon orientation; it preserves the hero copy space and was approved by Louis.
+- Keep the original hero artwork. The dark pumpkin was caused by the CSS overlay, so the correction belongs in the skin overlay rather than a regenerated image.
+- Remove bats entirely from runtime, CSS, and appearance metadata; preserve the witch and sparkle animation system.
+- Use Halloween orange for the hero heading and electric purple (`#e3b7ff`), soft purple, or ivory for semantic text that sits on dark brown/charcoal surfaces.
+
+Amethyst skin
 
 - Decision: expose halloween_pumpkin_witch to every Sparkle Suite rep as public skin HPW-01, using the shared Amethyst renderer across Landing, Join Team, Dance Floor, and Preferences.
 - Decision: keep the generated moon in its original orientation; the open side intentionally preserves room for rep hero copy.

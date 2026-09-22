@@ -8,7 +8,9 @@ body.bg-halloween-pumpkin-witch {
   --bg-deep: #050505;
   --hp-card-fg: #fff7ed;
   --hp-card-muted: #d6c8bb;
-  --hp-card-accent: #ff9a3d;
+  --hp-card-accent: #e3b7ff;
+  --hp-electric-purple: #e3b7ff;
+  --hp-soft-purple: #f0ddff;
   --hp-action-fg: #160901;
   background:
     radial-gradient(circle at 78% 12%, rgba(244, 238, 227, 0.11), transparent 26rem),
@@ -76,8 +78,9 @@ body.bg-halloween-pumpkin-witch .bk-home-hero::after {
   inset: 0;
   z-index: 1;
   background:
-    linear-gradient(90deg, rgba(2, 2, 2, 0.96) 0%, rgba(2, 2, 2, 0.78) 30%, rgba(2, 2, 2, 0.18) 58%, rgba(2, 2, 2, 0.08) 100%),
-    linear-gradient(0deg, rgba(2, 2, 2, 0.56), transparent 38%);
+    radial-gradient(circle at 20% 61%, rgba(255, 154, 61, 0.30) 0%, rgba(255, 106, 0, 0.16) 18%, transparent 38%),
+    linear-gradient(90deg, rgba(2, 2, 2, 0.38) 0%, rgba(2, 2, 2, 0.31) 32%, rgba(2, 2, 2, 0.14) 58%, rgba(2, 2, 2, 0.05) 100%),
+    linear-gradient(0deg, rgba(2, 2, 2, 0.48), transparent 38%);
   pointer-events: none;
 }
 
@@ -94,8 +97,8 @@ body.bg-halloween-pumpkin-witch .bk-home-hero > :not(.hpw-decoration) {
 body.bg-halloween-pumpkin-witch .hp-hero h1,
 body.bg-halloween-pumpkin-witch .tp-hero h1,
 body.bg-halloween-pumpkin-witch .jp-hero h1 {
-  color: #fff7ed;
-  text-shadow: 0 3px 28px #000, 0 0 34px rgba(255, 106, 0, 0.32);
+  color: #ff9a3d;
+  text-shadow: 0 3px 28px #000, 0 0 18px rgba(255, 106, 0, 0.86), 0 0 42px rgba(255, 154, 61, 0.46);
 }
 
 body.bg-halloween-pumpkin-witch .hp-hero-sub,
@@ -176,6 +179,67 @@ body.bg-halloween-pumpkin-witch :is(a, button, input, select, textarea):focus-vi
   outline-offset: 3px;
 }
 
+/* High-contrast semantic colors for the charcoal and brown Halloween surfaces. */
+body.bg-halloween-pumpkin-witch .hp-brand-name,
+body.bg-halloween-pumpkin-witch .hp-section-sub,
+body.bg-halloween-pumpkin-witch .hp-event-name,
+body.bg-halloween-pumpkin-witch .hp-event-section-title,
+body.bg-halloween-pumpkin-witch .tp-card-name,
+body.bg-halloween-pumpkin-witch .jp-benefit-title,
+body.bg-halloween-pumpkin-witch .jp-faq-q {
+  color: var(--hp-electric-purple);
+}
+
+body.bg-halloween-pumpkin-witch .hp-ticker-label,
+body.bg-halloween-pumpkin-witch .hp-trade-preview-updated,
+body.bg-halloween-pumpkin-witch .hp-event-code-row .dash,
+body.bg-halloween-pumpkin-witch .hp-event-code-row .desc,
+body.bg-halloween-pumpkin-witch .hp-customer-media-empty,
+body.bg-halloween-pumpkin-witch .tp-card-msrp,
+body.bg-halloween-pumpkin-witch .jp-section-sub,
+body.bg-halloween-pumpkin-witch .jp-benefit-desc,
+body.bg-halloween-pumpkin-witch .jp-faq-answer,
+body.bg-halloween-pumpkin-witch .jp-faq-note {
+  color: var(--hp-soft-purple);
+}
+
+body.bg-halloween-pumpkin-witch .hp-header-link,
+body.bg-halloween-pumpkin-witch .hp-ticker-item,
+body.bg-halloween-pumpkin-witch .hp-trade-preview-head,
+body.bg-halloween-pumpkin-witch .hp-trade-preview-pill,
+body.bg-halloween-pumpkin-witch .hp-trade-preview-pill .meta,
+body.bg-halloween-pumpkin-witch .hp-trade-preview-pill .name,
+body.bg-halloween-pumpkin-witch .hp-event-code-text strong,
+body.bg-halloween-pumpkin-witch .hp-event-add,
+body.bg-halloween-pumpkin-witch .tp-filter-toggle,
+body.bg-halloween-pumpkin-witch .tp-filter-pill:not(.active),
+body.bg-halloween-pumpkin-witch .tp-card-rep strong,
+body.bg-halloween-pumpkin-witch .hp-signup-check,
+body.bg-halloween-pumpkin-witch .hp-unsubscribe-toggle,
+body.bg-halloween-pumpkin-witch .jp-faq-item button {
+  color: #fff7ed;
+}
+
+body.bg-halloween-pumpkin-witch .hp-trade-preview-pill .pos,
+body.bg-halloween-pumpkin-witch .hp-event-pill {
+  color: #160901;
+}
+
+body.bg-halloween-pumpkin-witch .hp-about-body p,
+body.bg-halloween-pumpkin-witch .hp-footer :is(p, a, span) {
+  color: #eadfd4;
+}
+
+body.bg-halloween-pumpkin-witch .hp-footer-tag,
+body.bg-halloween-pumpkin-witch .hp-footer-brand {
+  color: #fff7ed;
+}
+
+body.bg-halloween-pumpkin-witch .hp-signup-preferences,
+body.bg-halloween-pumpkin-witch .hp-signup-preferences :is(strong, span, p, label) {
+  color: #2a1f40;
+}
+
 .hpw-decoration {
   position: absolute;
   inset: 0;
@@ -205,20 +269,6 @@ body.bg-halloween-pumpkin-witch :is(a, button, input, select, textarea):focus-vi
   animation: hpw-witch-hover 4.4s ease-in-out 5.8s infinite;
 }
 
-.hpw-bat {
-  --hpw-bat-size: clamp(70px, 9vw, 138px);
-  position: absolute;
-  left: -18%;
-  width: var(--hpw-bat-size);
-  aspect-ratio: 2 / 1;
-  background: url("/amethyst/skins/halloween-pumpkin-witch/bats.webp") 0 50% / 300% 100% no-repeat;
-  filter: drop-shadow(0 0 10px rgba(244, 238, 227, 0.42));
-  animation: hpw-bat-flight 12s linear infinite, hpw-bat-flap 0.58s ease-in-out infinite alternate;
-}
-
-.hpw-bat--one { top: 18%; animation-delay: 1.1s, 0s; }
-.hpw-bat--two { top: 31%; background-position: 50% 50%; animation-duration: 15s, 0.72s; animation-delay: 4.6s, 0.1s; transform: scale(0.72); }
-.hpw-bat--three { top: 11%; background-position: 100% 50%; animation-duration: 18s, 0.64s; animation-delay: 8.2s, 0.24s; transform: scale(0.58); }
 
 .hpw-sparkle {
   position: absolute;
@@ -283,18 +333,6 @@ body.bg-halloween-pumpkin-witch :is(a, button, input, select, textarea):focus-vi
   50% { transform: translate3d(0, -13px, 0) rotate(1.5deg); }
 }
 
-@keyframes hpw-bat-flight {
-  0% { left: -18%; translate: 0 16px; opacity: 0; }
-  8% { opacity: 0.95; }
-  42% { translate: 48vw -24px; }
-  76% { translate: 92vw 18px; opacity: 0.9; }
-  100% { left: 118%; translate: 0 -12px; opacity: 0; }
-}
-
-@keyframes hpw-bat-flap {
-  from { scale: 1 0.78; }
-  to { scale: 1 1.08; }
-}
 
 @keyframes hpw-sparkle-wink {
   0%, 62%, 100% { opacity: 0.12; transform: scale(0.35) rotate(0deg); }
@@ -325,7 +363,9 @@ body.bg-halloween-pumpkin-witch :is(a, button, input, select, textarea):focus-vi
   body.bg-halloween-pumpkin-witch .hp-hero::after,
   body.bg-halloween-pumpkin-witch .tp-hero::after,
   body.bg-halloween-pumpkin-witch .jp-hero::after {
-    background: linear-gradient(0deg, rgba(2, 2, 2, 0.94) 0%, rgba(2, 2, 2, 0.76) 43%, rgba(2, 2, 2, 0.1) 76%);
+    background:
+      radial-gradient(circle at 50% 32%, rgba(255, 154, 61, 0.34) 0%, rgba(255, 106, 0, 0.15) 20%, transparent 44%),
+      linear-gradient(0deg, rgba(2, 2, 2, 0.92) 0%, rgba(2, 2, 2, 0.68) 42%, rgba(2, 2, 2, 0.06) 76%);
   }
 
   .hpw-witch-flight {
@@ -334,19 +374,16 @@ body.bg-halloween-pumpkin-witch :is(a, button, input, select, textarea):focus-vi
     width: clamp(150px, 48vw, 250px);
   }
 
-  .hpw-bat { --hpw-bat-size: clamp(64px, 22vw, 104px); }
   .hpw-motion-control { right: 10px; bottom: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hpw-witch-flight,
   .hpw-witch,
-  .hpw-bat,
   .hpw-sparkle {
     animation: none !important;
   }
   .hpw-witch-flight { transform: none; opacity: 1; }
-  .hpw-bat { display: none; }
   .hpw-sparkle { opacity: 0.72; transform: scale(0.65); }
   .hpw-motion-control { display: none; }
 }

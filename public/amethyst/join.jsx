@@ -262,7 +262,7 @@ const PRESETS = {
     heroMotion: "witch_flight", sparkleLevel: "glittery",
     bgTreatment: "halloween-pumpkin-witch", cardSurface: "midnight-glass",
     textureOverlay: "halloween-sparkles", buttonEnergy: "pumpkin-glow", ctaEmphasis: "standard",
-    tradeFlair: "moonlit-bats", cursorEffect: "default", tickerSpeed: 1,
+    tradeFlair: "moonlit-sparkles", cursorEffect: "default", tickerSpeed: 1,
   },
   rose_gold: {
     sparkleLevel: "subtle", bgTreatment: "rose-gold-paper", cardSurface: "pearl-rose",

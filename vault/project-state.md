@@ -1,5 +1,14 @@
 ## September 21, 2026 - Halloween Pumpkin and Witch skin ready for release
 
+## September 21, 2026 - Halloween Pumpkin and Witch correction ready for release
+
+- Brightened the jack-o'-lantern by reshaping the desktop and mobile hero overlays while keeping the approved original moon orientation.
+- Removed the animated bats and bat metadata. The flying witch, sparkle field, pause/resume control, visibility pausing, and reduced-motion behavior remain.
+- Changed the hero title to Halloween orange and replaced low-contrast dark-purple text on charcoal and brown surfaces with electric purple, soft purple, or ivory.
+- Validation: focused skin and contrast tests 15/15; Amethyst QA 97/97; local Amethyst link checks 200; production build compiled and type-checked. Commit, push, exact-SHA manual Vercel release, and live-domain verification remain pending.
+
+
+
 - Built entirely in the GitHub Codespace from clean branch tip b90bd064560a2e6444e65859e18f5bbf4078b09d; the intentionally stale Windows checkout was not used or changed.
 - Added public Amethyst skin HPW-01 (halloween_pumpkin_witch) across Landing, Join Team, Dance Floor, and Preferences, with original moon orientation, pumpkin/witch/bat art, deterministic sparkles, bounded witch and bat motion, animation pause, and reduced-motion support.
 - Added the additive appearance-preset database constraint migration required before customers can save the new skin. No Live Lineup, extension, billing, auth, or customer-data workflow was changed.

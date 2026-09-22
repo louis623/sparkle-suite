@@ -49,7 +49,7 @@ describe("Halloween Pumpkin and Witch Amethyst skin", () => {
       cardSurface: "midnight-glass",
       textureOverlay: "halloween-sparkles",
       buttonEnergy: "pumpkin-glow",
-      tradeFlair: "moonlit-bats",
+      tradeFlair: "moonlit-sparkles",
     };
 
     expect(preset.label).toBe("Halloween Pumpkin and Witch");
@@ -124,10 +124,11 @@ describe("Halloween Pumpkin and Witch Amethyst skin", () => {
       const html = read("public", "amethyst", page);
       expect(html).toContain("halloween-pumpkin-witch.css");
       expect(html).toContain("halloween-pumpkin-witch.js");
+      expect(html).toContain("20260921-hpw2");
     },
   );
 
-  it("ships responsive original artwork and bounded accessible motion", async () => {
+  it("ships bright responsive artwork and bounded accessible motion without bats", async () => {
     const css = read("public", "amethyst", "halloween-pumpkin-witch.css");
     const motion = read("public", "amethyst", "halloween-pumpkin-witch.js");
 
@@ -136,12 +137,18 @@ describe("Halloween Pumpkin and Witch Amethyst skin", () => {
     expect(css).toContain("hero-mobile.webp");
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
     expect(css).toContain("animation-play-state: paused");
+    expect(css).toContain("circle at 20% 61%");
+    expect(css).toContain("--hp-electric-purple: #e3b7ff");
+    expect(css).toContain("color: #ff9a3d;");
+    expect(css).not.toContain(".hpw-bat");
+    expect(css).not.toContain("bats.webp");
     expect(motion).toContain("Pause animation");
     expect(motion).toContain("Resume animation");
     expect(motion).toContain("document.hidden");
     expect(motion).toContain("MutationObserver");
     expect(motion).toContain("hpw-witch");
-    expect(motion).toContain("hpw-bat");
+    expect(motion).not.toContain("hpw-bat");
+    expect(motion).not.toContain("bats.webp");
     expect(motion).not.toContain("requestAnimationFrame");
     expect(motion).not.toContain("setInterval");
 
@@ -149,7 +156,6 @@ describe("Halloween Pumpkin and Witch Amethyst skin", () => {
       "hero-desktop.webp": { width: 1672, height: 941, hasAlpha: false },
       "hero-mobile.webp": { width: 1024, height: 1536, hasAlpha: false },
       "witch.webp": { width: 1659, height: 948, hasAlpha: true },
-      "bats.webp": { width: 1774, height: 887, hasAlpha: true },
     };
     for (const [asset, expected] of Object.entries(expectedAssets)) {
       const path = resolve(

@@ -44,12 +44,6 @@
     witchFlight.appendChild(witch);
     scene.appendChild(witchFlight);
 
-    ["one", "two", "three"].forEach(function (name, index) {
-      const bat = document.createElement("span");
-      bat.className = "hpw-bat hpw-bat--" + name;
-      bat.style.setProperty("--hpw-bat-index", String(index));
-      scene.appendChild(bat);
-    });
     makeSparkles().forEach(function (sparkle) { scene.appendChild(sparkle); });
     decoration.appendChild(scene);
 

@@ -1,5 +1,14 @@
 ## September 21, 2026 - Halloween Pumpkin and Witch skin implementation
 
+## 2026-09-21 - Halloween Pumpkin and Witch readability correction
+
+- Worked only in the GitHub Codespace on `codex/nic-nac-trade-hardening`; the local Windows checkout was not accessed.
+- Brightened the pumpkin by reducing the heavy hero overlay, removed bats, changed the hero heading to orange, and introduced high-contrast purple/ivory text overrides across Home, Dance Floor, Join, and Preferences.
+- Updated shared appearance metadata from `moonlit-bats` to `moonlit-sparkles`, rebuilt the Join runtime, and cache-bumped all four Amethyst HTML shells.
+- Verified focused skin/contrast tests (15/15), full Amethyst QA (97/97), local Amethyst links (200), `git diff --check`, and the production build. Release receipt will be reported in the session handoff.
+
+
+
 - Worked only in GitHub Codespace ominous-space-pancake on codex/nic-nac-trade-hardening from clean tip b90bd064560a2e6444e65859e18f5bbf4078b09d. The local Windows workspace remained untouched.
 - Implemented the customer-facing Halloween Pumpkin and Witch skin across Landing, Join Team, Dance Floor, and Preferences. Louis selected the original moon orientation because its open side preserves hero-copy space.
 - Added original pumpkin, witch, bat, and sparkle art with no jewelry imagery; added lively but bounded witch/bat/sparkle animation plus pause and reduced-motion behavior.

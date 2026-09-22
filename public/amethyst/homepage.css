@@ -6805,3 +6805,18 @@ body.champagne-botanical .hp-trade-card {
     box-shadow: none;
   }
 }
+
+
+/* Halloween Pumpkin and Witch semantic contrast contract */
+body.surface-midnight-glass {
+  --hp-card-fg: #fff7ed;
+  --hp-card-muted: #d6c8bb;
+  --hp-card-accent: #ff9a3d;
+  --hp-final-fg: #fff7ed;
+  --hp-final-muted: #e3b7ff;
+  --hp-final-icon-fg: #2a1f40;
+}
+
+body.btn-pumpkin-glow {
+  --hp-action-fg: #2a1f40;
+}

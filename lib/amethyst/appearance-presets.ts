@@ -292,7 +292,7 @@ export const AMETHYST_APPEARANCE_PRESETS: Record<
       textureOverlay: 'halloween-sparkles',
       buttonEnergy: 'pumpkin-glow',
       ctaEmphasis: 'standard',
-      tradeFlair: 'moonlit-bats',
+      tradeFlair: 'moonlit-sparkles',
       cursorEffect: 'default',
       tickerSpeed: 1,
     },
