@@ -44,7 +44,7 @@ tickets or send external messages automatically (Louis's clarified instruction).
 
 Migrations: `20260920000100_team_photo_polish.sql` and
 `20260920000200_team_photo_analysis.sql`. Existing lead framing column from
-`20260919120000_ss_team_photo_framing.sql` is also required.
+`20260919004939_ss_team_photo_framing.sql` is also required.
 
 ## Economical reviewer smoke
 
