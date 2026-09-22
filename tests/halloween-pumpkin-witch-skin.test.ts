@@ -22,7 +22,7 @@ import {
   defaultAmethystJoinTemplateData,
 } from "@/lib/amethyst/join-template-data";
 import {
-  getAmethystSkinCardsForRep,
+  getCommunityAmethystSkinCards,
   getAmethystSkinCard,
   getAmethystSkinDropdownLabel,
   normalizeAmethystSkinSelection,
@@ -94,7 +94,7 @@ describe("Halloween Pumpkin and Witch Amethyst skin", () => {
       "Halloween Pumpkin and Witch (HPW-01)",
     );
     expect(
-      getAmethystSkinCardsForRep("any-rep").some((item) => item.id === id),
+      getCommunityAmethystSkinCards().some((item) => item.id === id),
     ).toBe(true);
   });
 
