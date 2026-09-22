@@ -829,3 +829,8 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
 - [x] Apply the isolated database migration, push the verified application
   commit, manually deploy it, and confirm both Suite domains resolve to the new
   READY deployment without moving customer-owned aliases.
+- [ ] Louis: smoke-test the weekly birthday reporting update when time permits.
+  Live Task List item: `770ebc13-686b-45f6-b6d6-1beeced00a7b`. Verify private
+  month/day Team Management entry and persistence, no birth year, the next
+  Sunday Message Center report with separate customer/team sections and exact
+  record links, and empty-week suppression.

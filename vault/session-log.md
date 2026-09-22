@@ -7689,3 +7689,21 @@ Lessons retained:
   Louis prohibited browser/computer use for this task, and Vercel did not
   expose the production secrets to the isolated local smoke process. Louis
   will perform the light hands-on review.
+- Created live Task List item `770ebc13-686b-45f6-b6d6-1beeced00a7b`, assigned
+  to Louis, so the hands-on production birthday-report smoke is not forgotten.
+- Established the reusable Sparkle ecosystem closeout/startup contract: GitHub
+  is the sole code source of truth; persistent Windows checkouts and historical
+  local folders remain intentionally stale and must not be inspected for
+  diagnosis, implementation, builds, tests, recovery, or release. Each session
+  must verify GitHub first and work only in a Codespace or new disposable clean
+  clone derived from the verified remote SHA. The closeout prompt must carry
+  these rules into the generated next-session prompt without shortening them.
+- The same contract requires connector/API/approved-CLI use before UI control,
+  fresh permission for each browser/computer scope, strict Suite/Finder product
+  boundaries, dual Open Brain/vault memory, live Task List reconciliation, and
+  conditional Grokbot/collaborator state when another actor is actually active.
+- Pre-closeout verification reconfirmed remote tip
+  `a8ceda97c91d322ddbedef0b39e68bf1d7fb981f` as documentation-only and both
+  Suite domains on READY deployment `dpl_Hfg7LVBAV4VEFXtaJGzFVrEeTvq2`.
+  No authenticated browser smoke was performed and no active Grokbot handoff
+  existed in this session.

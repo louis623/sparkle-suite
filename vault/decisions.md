@@ -2975,3 +2975,30 @@ send birthday greetings to customers or team members.
 Reason: The report is an internal relationship reminder for reps. It should be
 timely and useful without collecting unnecessary personal information or
 creating outbound communication risk.
+
+---
+## 2026-09-22 - Every session starts from GitHub, never a persistent local checkout
+
+Decision: GitHub is the sole code source of truth for Sparkle Suite and Sparkle
+Finder. Persistent Windows checkouts and historical local project folders are
+intentionally stale and may remain dirty indefinitely. Unless Louis explicitly
+requests work on a specifically named local checkout, agents must not inspect,
+synchronize, diagnose from, edit, build, test, commit, deploy, restore, or
+recover production from those folders.
+
+Decision: Each new session must query GitHub first, verify the approved repo,
+active branch, and exact remote SHA, then read instructions and product memory
+from that verified revision. Implementation may use a GitHub Codespace or a
+new disposable clean clone of the verified SHA. That clean copy may build,
+test, commit, and push, but it never becomes a competing source of truth and
+must not be used to synchronize the persistent Windows checkout afterward.
+
+Decision: The reusable end-of-session prompt must generate the next-session
+prompt and reproduce this operating contract near its beginning. It must also
+carry current remote/deployed/documentation-only SHAs, deployments, domains,
+open tasks, Louis testing reminders, and active collaborator state. Browser or
+computer permission is scope-specific and never carries into a new session.
+
+Reason: A stale persistent checkout gives incorrect evidence for diagnosis and
+release. Starting from the verified remote revision makes Git provenance,
+production comparison, collaboration, and recovery deterministic.

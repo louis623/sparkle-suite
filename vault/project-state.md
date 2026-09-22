@@ -3968,3 +3968,6 @@ Verification passed:
   left on their prior deployment.
 - Supabase migration `20260922000200_weekly_birthday_reports` is applied and
   recorded on project `bqhzfkgkjyuhlsozpylf`.
+- Louis's hands-on follow-up is tracked in the live Task List as open item
+  `770ebc13-686b-45f6-b6d6-1beeced00a7b`, “Smoke-test the weekly birthday
+  reporting update.”
