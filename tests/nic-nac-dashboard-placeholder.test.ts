@@ -3842,7 +3842,7 @@ describe('DashboardPlaceholder', () => {
 
     expect(source).toContain('Customer-facing site theme')
     expect(source).toContain('WORKSPACE_APPEARANCE_PRESET')
-    expect(source).toContain('getAmethystSkinCardsForRep')
+    expect(source).toContain('useAvailableAmethystSkinCards')
     expect(source).not.toContain('Full skin gallery')
     expect(source).toContain('skin.id')
     expect(source).toContain('normalizeAmethystAppearancePreset')
