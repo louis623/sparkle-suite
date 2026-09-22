@@ -23,10 +23,9 @@ import {
   defaultAmethystJoinTemplateData,
 } from '@/lib/amethyst/join-template-data'
 import {
-  getAmethystSkinCardsForRep,
+  getAmethystSkinCardsForIds,
   getAmethystSkinCard,
   getAmethystSkinDropdownLabel,
-  isAmethystSkinSelectionAvailableToRep,
   normalizeAmethystSkinSelection,
 } from '@/lib/amethyst/skin-cards'
 import { GET as getSkinPreview } from '@/app/skin-preview/[skin]/[page]/route'
@@ -77,21 +76,16 @@ describe('Neon Butterfly Amethyst skin', () => {
     })
   })
 
-  it('shows Neon Butterfly only to Kelly and Louis demo with Kelly\'s special label', () => {
-    const kellyRepId = 'b5404543-b90a-41cf-85f6-4e6d1d576cfa'
-    const louisDemoRepId = 'ac3e643a-6ccf-4400-8230-662f63a07f3e'
-    const kellyCards = getAmethystSkinCardsForRep(kellyRepId)
-    const otherCards = getAmethystSkinCardsForRep('another-rep')
+  it('shows Neon Butterfly only when the account-scoped catalog returns it', () => {
+    const kellyCards = getAmethystSkinCardsForIds(['amethyst', 'neon_butterfly'])
+    const otherCards = getAmethystSkinCardsForIds(['amethyst'])
     const neonCard = kellyCards.find(({ id }) => id === 'neon_butterfly')
 
     expect(neonCard).toBeDefined()
     expect(getAmethystSkinDropdownLabel(neonCard!)).toBe(
-      'Neon Butterfly (NB-01) — Only Kelly has',
+      'Neon Butterfly (NB-01) — Private custom skin',
     )
     expect(otherCards.some(({ id }) => id === 'neon_butterfly')).toBe(false)
-    expect(isAmethystSkinSelectionAvailableToRep('NB-01', kellyRepId)).toBe(true)
-    expect(isAmethystSkinSelectionAvailableToRep('NB-01', louisDemoRepId)).toBe(true)
-    expect(isAmethystSkinSelectionAvailableToRep('Neon Butterfly', 'another-rep')).toBe(false)
   })
 
   it.each(['homepage', 'trade', 'join', 'unsubscribe'] as const)(
