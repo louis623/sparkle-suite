@@ -1,3 +1,10 @@
+## 2026-09-22 - Git-first Sparkle Suite operating contract
+
+- The GitHub tip of `louis623/sparkle-suite` on `codex/nic-nac-trade-hardening` is authoritative. The Windows checkout is intentionally stale and may be dirty; do not inspect, synchronize, build, edit, clean, stash, reset, or otherwise investigate it unless Louis explicitly requests local work.
+- Use a GitHub Codespace or a disposable clean clone from the verified remote tip for implementation and verification. Before product work, verify remote, branch, and exact SHA; never rebuild completed work from memory.
+- Prefer installed MCP connectors and service APIs/CLIs for GitHub, Supabase, Vercel, Open Brain, and the live Control Center Task List. Do not use browser/computer control unless Louis explicitly authorizes it for the stated task. When authorized, do the browser preflight, use a clean/synthetic reviewer route, and never substitute Louis's or a customer account.
+- A Git push is provenance only. A product release requires the exact verified product SHA, approved production migration scope, one manual Vercel production deployment, alias/domain confirmation, and a live-domain workflow smoke. Documentation-only commits stay undeployed.
+
 ## 2026-09-22 - Customer-site skin visibility is catalog-backed
 
 - Every Amethyst skin is explicitly `community` or `private`. Community and holiday skins are available to all reps unless Louis says otherwise.

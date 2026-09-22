@@ -1,3 +1,10 @@
+## September 22, 2026 - Session closeout: Git-first skin visibility release
+
+- GitHub `louis623/sparkle-suite`, branch `codex/nic-nac-trade-hardening`, is the sole source of truth. The intentionally stale/dirty Windows checkout was not inspected, synchronized, built, edited, cleaned, reset, or otherwise used. All source work used a disposable clean clone of the verified remote branch.
+- The deployed application remains product SHA `1e58f7abba32bb0df8a9b75335d88302ab8bf860` on Vercel `dpl_Gm2zQNCfG1kntrwPmkBaWPbd9Hhc`. The current branch tip is documentation-only and is deliberately not deployed.
+- Louis's requested smoke-test reminder is the live Sparkle Suite Control Center Task List item `76d36fc3-6f90-4c94-99b4-fcfe26c42445` (“Smoke test private skin visibility fix”). It is the authoritative task, not this vault note.
+- For future work, use installed connectors and service APIs first. Do not use Louis's browser, signed-in Chrome tabs, computer UI, or any personal/customer account unless Louis explicitly authorizes that exact scope. Browser work must use a clean/synthetic path and complete the prescribed preflight.
+
 ## September 22, 2026 - Private customer-site skin visibility released
 
 - Released catalog-backed private-skin access at Git tip `1e58f7abba32bb0df8a9b75335d88302ab8bf860` and Vercel production deployment `dpl_Gm2zQNCfG1kntrwPmkBaWPbd9Hhc`.

@@ -1,3 +1,10 @@
+## September 22, 2026 - Final closeout: private skin visibility
+
+- Released and verified the catalog-backed private-skin guard at product SHA `1e58f7abba32bb0df8a9b75335d88302ab8bf860`, Vercel `dpl_Gm2zQNCfG1kntrwPmkBaWPbd9Hhc`. Private owners are Brittany/Black Diamond, Lindsey/Alpine Opal, Kim/Gnome Garden, and Kelly/Neon Butterfly. Halloween and other seasonal skins are community skins.
+- Focused tests, production policy queries, and production route/domain checks passed. Protected synthetic reviewer visual sign-in remains intentionally gated; it was not bypassed and no Louis/customer account was used. Louis will smoke test through normal safe access.
+- Created the authoritative live Sparkle Suite Task List reminder `76d36fc3-6f90-4c94-99b4-fcfe26c42445`. Open Brain captures record the release, validation, reviewer limitation, and safe next step.
+- Worked only against the GitHub remote branch through a disposable clean clone. The Windows checkout remains expressly out of scope. Current source tip after this closeout is documentation-only and must not trigger a Vercel deployment.
+
 ## September 22, 2026 - Private customer-site skin visibility released
 
 - Released catalog-backed private-skin access at Git tip `1e58f7abba32bb0df8a9b75335d88302ab8bf860` and Vercel production deployment `dpl_Gm2zQNCfG1kntrwPmkBaWPbd9Hhc`.
