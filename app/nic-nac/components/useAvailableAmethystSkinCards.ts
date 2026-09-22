@@ -6,51 +6,48 @@ import {
   type AmethystSkinCard,
 } from '@/lib/amethyst/skin-cards'
 
-type SkinOptionsState =
-  | { status: 'loading'; cards: AmethystSkinCard[] }
-  | { status: 'ready'; cards: AmethystSkinCard[] }
-  | { status: 'error'; cards: AmethystSkinCard[] }
+type SkinOptionState =
+  | { repId: string | null; status: 'loading'; cards: AmethystSkinCard[] }
+  | { repId: string; status: 'ready'; cards: AmethystSkinCard[] }
+  | { repId: string; status: 'error'; cards: AmethystSkinCard[] }
 
-export function useAvailableAmethystSkinCards(repId?: string | null): SkinOptionsState {
-  const [state, setState] = useState<SkinOptionsState>({
-    status: 'loading',
-    cards: [],
-  })
+const EMPTY_SKIN_OPTIONS: SkinOptionState = {
+  repId: null,
+  status: 'loading',
+  cards: [],
+}
+
+export function useAvailableAmethystSkinCards(repId: string | null | undefined) {
+  const [state, setState] = useState<SkinOptionState>(EMPTY_SKIN_OPTIONS)
 
   useEffect(() => {
-    if (!repId) {
-      setState({ status: 'loading', cards: [] })
-      return
-    }
+    if (!repId) return
 
-    const controller = new AbortController()
-    setState({ status: 'loading', cards: [] })
-
-    void fetch('/api/nic-nac/skin-options', {
-      credentials: 'include',
-      signal: controller.signal,
-    })
+    let cancelled = false
+    void fetch('/api/nic-nac/skin-options')
       .then(async (response) => {
-        if (!response.ok) throw new Error('skin options unavailable')
-        const body = (await response.json()) as { skinIds?: unknown }
-        const skinIds = Array.isArray(body.skinIds)
-          ? body.skinIds.filter((skinId): skinId is string => typeof skinId === 'string')
+        if (!response.ok) throw new Error('Skin options request failed')
+        const payload = (await response.json()) as { skinIds?: unknown }
+        const skinIds = Array.isArray(payload.skinIds)
+          ? payload.skinIds.filter((value): value is string => typeof value === 'string')
           : []
-        if (!controller.signal.aborted) {
+        if (!cancelled) {
           setState({
+            repId,
             status: 'ready',
             cards: getAmethystSkinCardsForIds(skinIds),
           })
         }
       })
       .catch(() => {
-        if (!controller.signal.aborted) {
-          setState({ status: 'error', cards: [] })
-        }
+        if (!cancelled) setState({ repId, status: 'error', cards: [] })
       })
 
-    return () => controller.abort()
+    return () => {
+      cancelled = true
+    }
   }, [repId])
 
-  return state
+  // Never render a previous account's list while another account is loading.
+  return state.repId === repId ? state : EMPTY_SKIN_OPTIONS
 }
