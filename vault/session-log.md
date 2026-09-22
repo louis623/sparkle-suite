@@ -7707,3 +7707,38 @@ Lessons retained:
   Suite domains on READY deployment `dpl_Hfg7LVBAV4VEFXtaJGzFVrEeTvq2`.
   No authenticated browser smoke was performed and no active Grokbot handoff
   existed in this session.
+
+## September 22, 2026 - Brittany/Lindsey reversible skin-switch fix released
+
+- Diagnosed the Readdy-era bespoke layout as being selected by rep identity
+  even when a Community skin was saved. The fix applies Brittany's bespoke
+  layout only with Black Diamond and Lindsey's only with Alpine Opal. Standard
+  Homepage, Join, and Dance Floor layouts render for Community skins, while
+  migrated extras return when the original skin is selected. Account media,
+  TikTok URLs, and roster data were not rewritten. Workspace dropdown labels
+  identify each owner's original custom skin.
+- Worked only in a disposable clean clone of GitHub
+  `louis623/sparkle-suite`/`codex/nic-nac-trade-hardening`; the persistent
+  Windows checkout was not used. Commit
+  `a13f70ae868c1fb4d7c8eb3b72f2e78d59f43d1b` was pushed and matched the
+  verified remote tip. Eight focused test files passed (187 tests), changed
+  TypeScript/tests passed ESLint, `git diff --check` passed, and Vercel's
+  guarded Next.js production build completed successfully.
+- Built unaliased first as READY deployment
+  `dpl_8bQT9vBh7SAC7xJKj58xAG42ewfL`. Before release, Suite www/apex were
+  on `dpl_Hfg7LVBAV4VEFXtaJGzFVrEeTvq2`; Brittany and Lindsey www/apex were
+  on `dpl_Gm2zQNCfG1kntrwPmkBaWPbd9Hhc`. After Louis explicitly approved
+  proceeding, assigned only those six existing hostnames to the new build.
+  Domain names, DNS, ownership, and account settings did not change. Read-only
+  Vercel inspection confirmed all six aliases on the new deployment and
+  unrelated goforthebling.com/sparklybutterflies.com on their prior deployment.
+- Exact live public-route checks passed on brittwithbling.com and
+  milehighfizz.com for Homepage, Join, and Dance Floor. Brittany's saved
+  Halloween preset has no bespoke variant on all three routes and no Rise of
+  Her homepage payload; Lindsey's current Alpine Opal retains its bespoke
+  variant. The Suite www landing page responds normally and apex returns 307
+  to www. The deployment's 30-minute Vercel error-log query returned no logs.
+- No browser or customer account was used. A signed-in visual Workspace picker
+  and switch-away/switch-back check remains unverified; use an approved
+  synthetic reviewer session or Louis's own light smoke, never silently
+  change a real rep's current preset for testing.

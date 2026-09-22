@@ -3971,3 +3971,21 @@ Verification passed:
 - Louis's hands-on follow-up is tracked in the live Task List as open item
   `770ebc13-686b-45f6-b6d6-1beeced00a7b`, “Smoke-test the weekly birthday
   reporting update.”
+
+## September 22, 2026 - Grandfathered skin switching released
+
+- Brittany and Lindsey can select Community skins without their Readdy-era
+  bespoke sections mixing into the standard Sparkle Suite layout. Their
+  original custom skins remain private, clearly owner-labeled in Workspace,
+  and restore the bespoke sections when reselected. Saved account settings,
+  TikTok/media URLs, and roster data were not migrated or rewritten.
+- Code commit `a13f70ae868c1fb4d7c8eb3b72f2e78d59f43d1b` is live as READY
+  Vercel deployment `dpl_8bQT9vBh7SAC7xJKj58xAG42ewfL`. The existing
+  www/apex Suite, Brittany, and Lindsey hostnames point to it; no DNS or domain
+  ownership changed. Other rep hostnames checked stayed on their prior
+  deployment.
+- Live read-only checks found Brittany's selected Halloween data has no bespoke
+  variant on Homepage, Join, or Dance Floor and no Rise of Her homepage section.
+  Lindsey's selected Alpine Opal still has her bespoke variant on all three pages.
+  Authenticated visual switch-away/switch-back remains for Louis or an approved
+  synthetic reviewer session; no customer account was used for testing.
