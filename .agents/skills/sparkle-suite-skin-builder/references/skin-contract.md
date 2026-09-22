@@ -101,9 +101,18 @@ Cards should be suitable for a Help, More Info, or Site Settings browsing surfac
 
 Amethyst also needs a card because it is the default skin.
 
-### Private custom-skin ownership
+### Skin visibility and private custom-skin ownership
 
-A custom skin created for a named rep is private unless Louis explicitly makes it shared. Its registry card must carry an explicit stable rep-ID allowlist containing the named rep and Louis's established admin/demo workspace for safe review. Non-owners must not see the skin in dropdowns, setup pickers, or Nic-Nac suggestions, and all write paths plus the database must reject non-owner assignment. A noindex sample-content preview may remain available for design QA; it does not grant selection access.
+Every card has one explicit catalog visibility: `community` or `private`.
+
+- Community skins are available to every rep by default. Seasonal and holiday skins, including Halloween, are community skins unless Louis explicitly says otherwise.
+- A skin created for a named rep is private unless Louis explicitly makes it shared. Its catalog record identifies its owner.
+- A private skin is visible and selectable only for its owner, Louis's established admin/demo workspace, and a deliberately classified trusted internal demo/reviewer account. Never infer that status from a display name or email pattern; use the durable account classification or explicit catalog permission.
+- Non-owners must not see a private skin in Site Settings, the required-setup picker, Nic-Nac suggestions, or any future browsing surface. Do not show locked cards, teasers, or disabled options.
+- Every selection path must ask the same database-backed availability rule. The user interface prevents ordinary selection; server write paths and a database trigger independently reject an unauthorized direct request.
+- A noindex sample-content preview may remain available for design QA; it never grants selection access.
+
+Before enforcing a visibility change, inspect existing assignments. Do not silently replace a rep's current skin, public site, scheduled show, or Live Queue state. Stop and have Louis review any assignment that conflicts with the new catalog rule.
 
 ## Required Implementation Surface
 
