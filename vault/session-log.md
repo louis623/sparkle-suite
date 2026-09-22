@@ -7661,3 +7661,31 @@ Lessons retained:
 - Verification: focused homepage template tests passed 46/46; `npm run qa:amethyst` passed 97/97; `git diff --check` was clean; the live event descriptions were visually confirmed unobstructed.
 - Product fix committed and pushed as `154e26c1fc944fe0b7ca0fd78cb913dfe9f2ef2d` (`fix: remove event card accent stripe`). It was manually deployed to Vercel production as `dpl_8f9QpJoUUB8RLM6x3Bp2Nxszt5Y1` and verified at `https://www.yoursparklesuite.com/skin-preview/halloween_pumpkin_witch/homepage`; the apex route redirects to `www`.
 - Open Brain was updated with the same confirmed decisions, provenance, and next-session source-of-truth rule.
+
+## September 22, 2026 - Weekly customer and team birthday reports released
+
+- Added one private Message Center birthday report per active rep for each
+  Sunday-through-Saturday week. The automation is scheduled before 6:00 a.m.
+  America/New_York and suppresses the message when both sections are empty.
+- Added month/day-only team-member birthday entry in Team Management and the
+  Nic-Nac team tool. No birth year is stored or displayed; incomplete or
+  impossible dates are rejected, and customer imports containing a year are
+  rejected.
+- Included every valid existing/future customer birthday and team birthday in
+  separate chronological sections, with `Today`, exact-record links, year-end
+  rollover, and February 29 observed on February 28 in non-leap years.
+- Removed birthday content from new monthly customer reports without rewriting
+  historical reports.
+- Verification passed: 32 focused core tests, 73 broader service/route/UI
+  tests, targeted Team/customer UI and public-data privacy tests, changed-file
+  lint, `git diff --check`, and the guarded production build.
+- Applied and recorded migration `20260922000200_weekly_birthday_reports`.
+  Pushed application commit `0c0fb521374e00a7cfeeabc4fade86870fb4bc16`
+  and manually deployed that exact commit as READY deployment
+  `dpl_Hfg7LVBAV4VEFXtaJGzFVrEeTvq2`, assigning only the Suite www/apex
+  domains. CLI smoke confirmed the www route, apex redirect, protected
+  Team Management deep link, and fail-closed birthday cron endpoint.
+- An authenticated visual/synthetic production click-through was not run:
+  Louis prohibited browser/computer use for this task, and Vercel did not
+  expose the production secrets to the isolated local smoke process. Louis
+  will perform the light hands-on review.

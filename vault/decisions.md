@@ -2954,3 +2954,24 @@ Decision: For Sparkle Suite sessions, use `louis623/sparkle-suite` on `codex/nic
 Decision: A Git push records provenance only. Production requires a manual Vercel deployment of the exact verified SHA followed by a live-domain check on `www.yoursparklesuite.com` and confirmation that the apex domain resolves to the same production surface.
 
 Reason: Louis intentionally keeps the local checkout out of date. Treating it as authoritative creates avoidable risk and distracts from the Git-based production workflow.
+
+---
+## 2026-09-22 - Birthday reporting standard for Sparkle Suite and Sparkle Finder
+
+Decision: The shared reporting week is Sunday through Saturday. Weekly reports
+must be available by 6:00 a.m. America/New_York on Sunday. This is an ecosystem
+calendar convention, not authorization to combine Sparkle Suite and Sparkle
+Finder data.
+
+Decision: Birthday data is month and day only, never birth year. Sparkle Suite
+delivers one private Message Center report with separate customer and team
+member sections, and creates no message when the upcoming week is empty.
+
+Decision: Birthday lists are chronological, mark the report date as `Today`,
+link to the exact private record, span December/January correctly, and observe
+February 29 birthdays on February 28 in non-leap years. The system does not
+send birthday greetings to customers or team members.
+
+Reason: The report is an internal relationship reminder for reps. It should be
+timely and useful without collecting unnecessary personal information or
+creating outbound communication risk.

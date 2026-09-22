@@ -3947,3 +3947,24 @@ Verification passed:
   automatic publishing must remain disabled.
 - Application commit `8f144d74` is live on both Suite domains through READY
   deployment `dpl_DeuotbeZEV3xWnUYZA84qbYqGCcG`.
+
+## September 22, 2026 - Weekly birthday reports are live
+
+- Sparkle Suite now creates one private Sunday-through-Saturday birthday
+  report in each active rep's Message Center by 6:00 a.m. America/New_York.
+  Customer and team-member birthdays appear in separate sections; an empty
+  week creates no report.
+- Team Management accepts birthday month and day only. Customer birthday
+  imports now reject values containing a birth year. Existing and future
+  valid month/day customer birthdays participate automatically.
+- Birthday rows are chronological, label the current date as `Today`, link to
+  the exact customer or team-member record, handle a December/January week,
+  and observe February 29 on February 28 in non-leap years.
+- Monthly customer reports no longer include birthdays. Historical monthly
+  report records remain unchanged.
+- Application commit `0c0fb521374e00a7cfeeabc4fade86870fb4bc16` is live on
+  `www.yoursparklesuite.com` and `yoursparklesuite.com` through READY Vercel
+  deployment `dpl_Hfg7LVBAV4VEFXtaJGzFVrEeTvq2`. Customer-owned aliases were
+  left on their prior deployment.
+- Supabase migration `20260922000200_weekly_birthday_reports` is applied and
+  recorded on project `bqhzfkgkjyuhlsozpylf`.

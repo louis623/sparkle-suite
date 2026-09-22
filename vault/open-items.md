@@ -818,3 +818,14 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
   for review with automatic publishing disabled.
 - [ ] After Google approval, obtain separate authorization before manually
   publishing 2.0.3, then run the approved synthetic and Lindsey support smoke.
+
+## Weekly birthday reporting release
+
+- [x] Collect team-member birthday month/day in Team Management without a
+  birth year and keep the value private from public customer-site payloads.
+- [x] Replace monthly birthday content with one Sunday morning Message Center
+  report containing separate customer and team-member sections; suppress an
+  empty week.
+- [x] Apply the isolated database migration, push the verified application
+  commit, manually deploy it, and confirm both Suite domains resolve to the new
+  READY deployment without moving customer-owned aliases.
