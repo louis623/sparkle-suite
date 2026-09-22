@@ -16,7 +16,7 @@ export interface AmethystSkinCard {
   description: string
   aliases?: readonly string[]
   previewHref?: string
-  exclusiveRepIds?: readonly string[]
+  visibility: 'community' | 'private'
   exclusiveLabel?: string
   headingFont: string
   bodyFont: string
@@ -28,6 +28,7 @@ export interface AmethystSkinCard {
 export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   {
     id: 'amethyst',
+    visibility: 'community',
     code: 'AM-01',
     label: 'Amethyst',
     description: 'The default high-sparkle Amethyst look with lavender, hot pink, and glossy cards.',
@@ -43,6 +44,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'sparkle_suite_morganite',
+    visibility: 'community',
     code: 'SS-01',
     label: 'Sparkle Suite/Morganite',
     description:
@@ -59,6 +61,8 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'black_diamond',
+    visibility: 'private',
+    exclusiveLabel: 'Private custom skin',
     code: 'BD-01',
     label: 'Black Diamond',
     description:
@@ -76,6 +80,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'moonstone',
+    visibility: 'community',
     code: 'MS-01',
     label: 'Moonstone',
     description:
@@ -93,6 +98,8 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'alpine_opal',
+    visibility: 'private',
+    exclusiveLabel: 'Private custom skin',
     code: 'AO-01',
     label: 'Alpine Opal',
     description:
@@ -110,6 +117,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'emerald_garden',
+    visibility: 'community',
     code: 'EG-01',
     label: 'Emerald Garden',
     description:
@@ -127,6 +135,8 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'gnome_garden',
+    visibility: 'private',
+    exclusiveLabel: 'Private custom skin',
     code: 'GG-01',
     label: 'Gnome Forest',
     aliases: ['Enchanted Gnome Forest', 'Gnome Garden', 'Enchanted Gnome Garden'],
@@ -149,15 +159,12 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'neon_butterfly',
+    visibility: 'private',
     code: 'NB-01',
     label: 'Neon Butterfly',
     aliases: ['Neon Butterflies', 'Kelly Neon Butterfly'],
     previewHref: '/skin-preview/neon_butterfly/homepage',
-    exclusiveRepIds: [
-      'b5404543-b90a-41cf-85f6-4e6d1d576cfa',
-      'ac3e643a-6ccf-4400-8230-662f63a07f3e',
-    ],
-    exclusiveLabel: 'Only Kelly has',
+    exclusiveLabel: 'Private custom skin',
     description:
       'A glamorous neon lounge with velvet plum depth, glowing butterflies, and warm golden light.',
     headingFont: 'Playfair Display',
@@ -174,6 +181,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'halloween_pumpkin_witch',
+    visibility: 'community',
     code: 'HPW-01',
     label: 'Halloween Pumpkin and Witch',
     aliases: ['Halloween Witch', 'Pumpkin and Witch', 'Sparkling Halloween'],
@@ -193,6 +201,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'rose_gold',
+    visibility: 'community',
     code: 'RG-01',
     label: 'Rose Gold',
     description:
@@ -210,6 +219,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'garnet',
+    visibility: 'community',
     code: 'GN-01',
     label: 'Garnet',
     description:
@@ -227,6 +237,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'amber',
+    visibility: 'community',
     code: 'AB-01',
     label: 'Amber',
     description:
@@ -244,6 +255,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'velvet',
+    visibility: 'community',
     code: 'VE-01',
     label: 'Velvet',
     description:
@@ -261,6 +273,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
   {
     id: 'rose_quartz',
+    visibility: 'community',
     code: 'RQ-01',
     label: 'Rose Quartz',
     description:
@@ -278,29 +291,15 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   },
 ]
 
-export function isAmethystSkinAvailableToRep(
-  skin: Pick<AmethystSkinCard, 'exclusiveRepIds'>,
-  repId: string | null | undefined,
+export function getAmethystSkinCardsForIds(
+  availableSkinIds: readonly string[],
 ) {
-  if (!skin.exclusiveRepIds?.length) return true
-  return typeof repId === 'string' && skin.exclusiveRepIds.includes(repId)
+  const visibleIds = new Set(availableSkinIds)
+  return AMETHYST_SKIN_CARDS.filter((skin) => visibleIds.has(skin.id))
 }
 
-export function getAmethystSkinCardsForRep(
-  repId: string | null | undefined,
-) {
-  return AMETHYST_SKIN_CARDS.filter((skin) =>
-    isAmethystSkinAvailableToRep(skin, repId),
-  )
-}
-
-export function isAmethystSkinSelectionAvailableToRep(
-  value: string | null | undefined,
-  repId: string | null | undefined,
-) {
-  const selectedId = normalizeAmethystSkinSelection(value)
-  const card = AMETHYST_SKIN_CARDS.find((candidate) => candidate.id === selectedId)
-  return !card || isAmethystSkinAvailableToRep(card, repId)
+export function getCommunityAmethystSkinCards() {
+  return AMETHYST_SKIN_CARDS.filter((skin) => skin.visibility === 'community')
 }
 
 export function getAmethystSkinDropdownLabel(skin: AmethystSkinCard) {
