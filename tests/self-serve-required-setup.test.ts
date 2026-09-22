@@ -7,6 +7,7 @@ const fromMock = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => ({
     from: fromMock,
+    rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
   }),
 }))
 
