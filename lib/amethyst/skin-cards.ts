@@ -187,11 +187,11 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     aliases: ['Halloween Witch', 'Pumpkin and Witch', 'Sparkling Halloween'],
     previewHref: '/skin-preview/halloween_pumpkin_witch/homepage',
     description:
-      'A sparkling black-and-orange Halloween night with a glowing jack-o-lantern, silver moon, flying witch, and bats.',
+      'A sparkling black-and-orange Halloween night with a glowing jack-o-lantern, silver moon, and flying witch.',
     headingFont: 'Playfair Display',
     bodyFont: 'DM Sans',
     surfaceNote: 'Midnight glass cards with silver edges and warm pumpkin glow',
-    motionNote: 'Witch fly-in and moon landing, bat flights, starbursts, pause control, and reduced-motion support',
+    motionNote: 'Witch fly-in and moon landing, starbursts, pause control, and reduced-motion support',
     swatches: [
       { label: 'Midnight', value: '#090909' },
       { label: 'Pumpkin', value: '#ff6a00' },
