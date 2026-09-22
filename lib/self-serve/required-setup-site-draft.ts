@@ -3,7 +3,7 @@ import {
   normalizeRequiredSetupDraftState,
 } from './required-setup-draft'
 import { DEFAULT_AMETHYST_APPEARANCE_PRESET } from '@/lib/amethyst/appearance-presets'
-import { isAmethystSkinSelectionAvailableToRep } from '@/lib/amethyst/skin-cards'
+import { isAmethystSkinSelectionAvailableToRep } from '@/lib/amethyst/skin-access'
 import type { RequiredSetupState } from './required-setup'
 import { trustedReviewerSetupIdentity } from '@/lib/reviewer-smoke/identity'
 
@@ -48,7 +48,7 @@ export async function publishRequiredSetupCustomerSiteDraft(
   const draft = buildRequiredSetupCustomerSiteDraft(state)
   if (
     draft.appearancePreset &&
-    !isAmethystSkinSelectionAvailableToRep(draft.appearancePreset, state.repId)
+    !(await isAmethystSkinSelectionAvailableToRep(admin as never, draft.appearancePreset, state.repId))
   ) {
     throw new Error('That customer-facing site theme is not available to this account.')
   }
