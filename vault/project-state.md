@@ -6,7 +6,7 @@
 - Site Settings, required setup, Nic-Nac, server writes, and a database trigger use the same catalog-backed rule. The migration preserved existing assignments and preflight confirmed each private assignment was an owner or permitted reviewer.
 - Code verification: 126 focused tests passed; modified-source lint had zero errors. Production policy queries confirmed owner allow, cross-rep deny, community Halloween availability, Louis demo all-skin access, and trusted reviewer access. Both Suite aliases resolve to the release; the apex redirects to `www`.
 - Production migration provenance was reconciled: the already-live team-photo framing schema migration is tracked as `20260919004939_ss_team_photo_framing.sql`, matching production. The unrelated older waitlist service-role migration remains pending and was not released.
-- Remaining: authenticated, visual reviewer-smoke confirmation of the scoped picker. It requires Louis's separate browser authorization; do not use Louis's account.
+- Reviewer-smoke browser preflight was completed in a clean, unauthenticated in-app tab. The protected `/start` route correctly redirected to public prelaunch without the token; no Louis, customer, or demo account was used. Vercel intentionally exports reviewer-token values only as placeholders, so the signed-in visual picker smoke remains pending the supported token-gated reviewer entry. Do not extract or bypass the token, and do not substitute Louis's account.
 
 ## September 21, 2026 - Halloween Pumpkin and Witch skin ready for release
 

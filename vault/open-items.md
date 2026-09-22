@@ -1,6 +1,6 @@
 ## September 22, 2026 - Private skin visibility reviewer smoke
 
-- [ ] **Visually verify scoped picker lists with the safe built-in reviewer flow** — database policy, server endpoint, and release are verified. Await Louis's explicit browser authorization; do not use Louis's personal demo account. Confirm one owner sees their private skin, a different rep does not, and an internal reviewer sees all skins.
+- [ ] **Visually verify scoped picker lists with the safe built-in reviewer flow** — database policy, server endpoint, and release are verified. Browser authorization and clean-tab preflight completed September 22; `/start` correctly fails closed without the protected token, and Vercel will not export that secret. Resume only through the supported token-gated synthetic reviewer entry. Do not extract/bypass the token or use Louis's personal demo account. Confirm one owner sees their private skin, a different rep does not, and an internal reviewer sees all skins.
 
 # Open Items
 
