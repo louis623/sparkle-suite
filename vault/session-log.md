@@ -1,3 +1,13 @@
+## September 22, 2026 - Private customer-site skin visibility released
+
+- Released catalog-backed private-skin access at Git tip `1e58f7abba32bb0df8a9b75335d88302ab8bf860` and Vercel production deployment `dpl_Gm2zQNCfG1kntrwPmkBaWPbd9Hhc`.
+- Community skins, including Halloween Pumpkin and Witch, remain available to every rep. Black Diamond, Alpine Opal, Gnome Garden, and Neon Butterfly are private to Brittany, Lindsey, Kim, and Kelly respectively.
+- Louis's established demo and deliberately classified, non-directory internal demo/reviewer accounts can view all skins. Do not infer this from an email pattern or display name.
+- Site Settings, required setup, Nic-Nac, server writes, and a database trigger use the same catalog-backed rule. The migration preserved existing assignments and preflight confirmed each private assignment was an owner or permitted reviewer.
+- Code verification: 126 focused tests passed; modified-source lint had zero errors. Production policy queries confirmed owner allow, cross-rep deny, community Halloween availability, Louis demo all-skin access, and trusted reviewer access. Both Suite aliases resolve to the release; the apex redirects to `www`.
+- Production migration provenance was reconciled: the already-live team-photo framing schema migration is tracked as `20260919004939_ss_team_photo_framing.sql`, matching production. The unrelated older waitlist service-role migration remains pending and was not released.
+- Remaining: authenticated, visual reviewer-smoke confirmation of the scoped picker. It requires Louis's separate browser authorization; do not use Louis's account.
+
 ## September 21, 2026 - Halloween Pumpkin and Witch skin implementation
 
 ## 2026-09-21 - Halloween Pumpkin and Witch readability correction
