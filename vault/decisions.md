@@ -1,3 +1,11 @@
+## 2026-09-22 - Customer-site skin visibility is catalog-backed
+
+- Every Amethyst skin is explicitly `community` or `private`. Community and holiday skins are available to all reps unless Louis says otherwise.
+- Private custom skins are invisible and unselectable for non-owners across Site Settings, required setup, Nic-Nac, and any future picker. Never show locked cards, disabled choices, or teasers.
+- The single database policy is the source of truth. UI filtering is a convenience, server write paths enforce it, and the database trigger is the final guard.
+- Louis's established demo and explicitly classified internal demo/reviewer accounts receive all skins. Do not grant that access from a name or email convention.
+- Before a visibility change, audit assignments. Never silently change a current skin, public site, scheduled show, or Live Queue state. Stop for review on a mismatch.
+
 ## 2026-09-21 - Halloween Pumpkin and Witch is a public, visual-only
 
 ## 2026-09-21 - Halloween Pumpkin and Witch visual correction
