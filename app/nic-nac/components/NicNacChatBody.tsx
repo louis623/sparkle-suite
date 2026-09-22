@@ -170,6 +170,7 @@ export function NicNacChatBody({
   conversationId,
   chatMode = 'workspace',
   requiredSetupStep,
+  requiredSetupRepId = null,
   requiredSetupSyncCode = null,
   requiredSetupPreviewHref = '/amethyst/Homepage.html',
   transport,
@@ -182,6 +183,7 @@ export function NicNacChatBody({
   conversationId: string
   chatMode?: NicNacChatMode
   requiredSetupStep?: RequiredSetupStepId | null
+  requiredSetupRepId?: string | null
   requiredSetupSyncCode?: string | null
   requiredSetupPreviewHref?: string
   transport: DefaultChatTransport<UIMessage>
@@ -842,6 +844,7 @@ export function NicNacChatBody({
         ) : null}
         {showLookPicker ? (
           <RequiredSetupLookPicker
+            repId={requiredSetupRepId}
             onChoose={handleLookChoice}
             disabled={isStreaming || hasPendingApproval}
           />
