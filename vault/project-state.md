@@ -97,7 +97,7 @@ Louis authorized Rocky SHIP of PR #12 onto production branch
 SHA is `6667e3d32cceee9ba7b4c47a99fab78111208d2f`
 (`fix(join): center and straighten team-card circle photos (#12)`).
 Parent was `8d225972`. Manual Vercel did not run: Sam deploys from the box.
-Migration `20260919120000` (`reps.profile_photo_framing`) was not applied.
+Migration `20260919004939` (`reps.profile_photo_framing`) was not applied.
 Do not treat Kelly `/join` circles as fixed until Sam deploys this SHA,
 applies the migration, and an operator re-saves Kelly/Dara/Erika. No live
 photo mutation. No alias moves.
@@ -109,7 +109,7 @@ Join team circles: EXIF orientation bake on profile upload, Smart Frame
 focus/zoom/straighten (About-portrait pattern), and removal of
 `rotate-left` / `object-left` presentation hacks. Join cache-bust is
 `20260919-team-photo-frame-v1`. Lead framing column is
-`reps.profile_photo_framing` (migration `20260919120000`). Louis asked for
+`reps.profile_photo_framing` (migration `20260919004939`). Louis asked for
 PR only — do not treat Kelly `/join` photos as fixed until this SHA is
 merged, migrated, and manually released. After release, re-save or Replace
 Kelly, Dara, and Erika in Team Management, then check
