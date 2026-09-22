@@ -7742,3 +7742,37 @@ Lessons retained:
   and switch-away/switch-back check remains unverified; use an approved
   synthetic reviewer session or Louis's own light smoke, never silently
   change a real rep's current preset for testing.
+
+## September 22, 2026 - Support-mode theme menu 403 corrected
+
+- Louis supplied a screenshot of Lindsey's disclosed support-mode Workspace
+  showing “Themes unavailable — refresh and try again.” The operator-support
+  client rewrites Workspace API reads through the guarded support gateway.
+  `/api/nic-nac/skin-options` existed for normal rep sessions but was omitted
+  from the gateway route inventory and dispatch map. Production logs showed
+  two 403 GETs to that support gateway during the failed menu interaction.
+- Added a read-only `site.view` classification and dispatch for skin options;
+  the route still reads only the fixed target rep's database-authorized skin
+  IDs. The unrelated time-zone PATCH, also missing from the inventory, was
+  explicitly classified rep-only, preserving its denial. Regression coverage
+  now exercises the client URL rewrite, route inventory, actual gateway
+  dispatch, and Brittany/Lindsey target-rep catalog calls. The previously
+  failing inventory test now passes. No account or preset was mutated.
+- Verified 73 focused tests across 11 files, changed-file ESLint, and
+  `git diff --check`. Full repository `tsc --noEmit` remains red from unrelated
+  existing test-type errors; no errors were reported for the changed files.
+  The guarded Vercel production build compiled and completed TypeScript.
+- Pushed application SHA `7b3b6b88a4260910558d1b3da8af46e446cd58da`;
+  built it unaliased first as READY
+  `dpl_86DvUWB97RzPooECpdGMbAMCCk4W`. The unaliased landing page responded
+  and unauthenticated skin-options call returned 401. Assigned only the Suite
+  www/apex aliases to the new build; verified Brittany/Lindsey www/apex
+  custom domains stayed on `dpl_8bQT9vBh7SAC7xJKj58xAG42ewfL` and Kim's
+  domain stayed on `dpl_Gm2zQNCfG1kntrwPmkBaWPbd9Hhc`. Live Suite landing
+  responds and apex redirects 307 to www; the unauthenticated skin-options
+  boundary remains closed. A 15-minute error-log query returned no logs.
+- The earlier release missed this because it tested public pages, not the
+  authenticated support-mode picker, and failed to include the route-inventory
+  test. Do not claim a signed-in visual picker smoke until an approved
+  synthetic reviewer session actually performs it. No personal or customer
+  session was used in this correction.

@@ -3989,3 +3989,23 @@ Verification passed:
   Lindsey's selected Alpine Opal still has her bespoke variant on all three pages.
   Authenticated visual switch-away/switch-back remains for Louis or an approved
   synthetic reviewer session; no customer account was used for testing.
+
+## September 22, 2026 - Support-mode theme picker correction
+
+- Louis found “Themes unavailable — refresh and try again” while acting for
+  Lindsey in a disclosed support session. The support client routed the new
+  `/api/nic-nac/skin-options` read through its guarded gateway, but that route
+  was absent from the gateway's allowlist. Two live gateway 403s confirmed the
+  failure. The same support-mode menu would fail for any target rep, including
+  Brittany; ordinary rep sign-in uses the direct endpoint.
+- Commit `7b3b6b88a4260910558d1b3da8af46e446cd58da` allows only the
+  target-scoped GET with `site.view` capability. The unrelated time-zone PATCH
+  was explicitly classified rep-only, preserving its prior denial. No skin,
+  account, media, billing, or domain settings were changed.
+- READY deployment `dpl_86DvUWB97RzPooECpdGMbAMCCk4W` serves only the Suite
+  www/apex addresses. Brittany's and Lindsey's www/apex custom domains remain
+  on the previous working deployment `dpl_8bQT9vBh7SAC7xJKj58xAG42ewfL`.
+  Focused tests (73), lint, guarded production build and TypeScript, live Suite
+  landing/apex redirect, and unauthenticated access boundary passed. A live
+  signed-in visual picker check still requires an approved synthetic reviewer
+  browser session; no personal or customer account was used.
