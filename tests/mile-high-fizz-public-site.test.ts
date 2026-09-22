@@ -9,6 +9,7 @@ import {
   mapPreviewSettingsToTradeTemplateData,
 } from '@/lib/amethyst/preview-template-data'
 import { buildAmethystHomepageBootstrapScript } from '@/lib/amethyst/homepage-template-data'
+import { getAmethystSkinCard, getAmethystSkinDropdownLabel } from '@/lib/amethyst/skin-cards'
 import { REQUIRED_SETUP_STEPS } from '@/lib/self-serve/required-setup'
 import type { createAdminClient } from '@/lib/supabase/admin'
 import type { SiteSettingsDashboardResult } from '@/lib/services/types'
@@ -50,6 +51,35 @@ function viCreateAdminClient() {
 }
 
 describe('Mile High Fizz hybrid public site contract', () => {
+  it('restores the original layout after a community skin is selected', () => {
+    const savedVideo = 'https://www.tiktok.com/@lindze1188/video/7598018448039480607'
+    const settings = {
+      ...mileHighFizzSettings,
+      homepageMediaSlots: [{ key: 'showcase' as const, caption: 'My show', imageUrl: '', videoUrl: savedVideo }],
+    }
+    const halloweenSettings = { ...settings, appearancePreset: 'halloween_pumpkin_witch' as const }
+    const halloweenHome = mapPreviewSettingsToHomepageTemplateData(halloweenSettings, mileHighFizzExtras)
+    const halloweenTrade = mapPreviewSettingsToTradeTemplateData(halloweenSettings, mileHighFizzExtras)
+    const halloweenJoin = mapPreviewSettingsToJoinTemplateData(halloweenSettings, mileHighFizzExtras, [])
+
+    expect(halloweenHome.publicSiteVariant).toBeUndefined()
+    expect(halloweenTrade.publicSiteVariant).toBeUndefined()
+    expect(halloweenJoin.publicSiteVariant).toBeUndefined()
+    expect(halloweenHome.heroVideoUrl).toBeUndefined()
+    expect(halloweenHome.heroHeadline).toBe('Mile High Fizz')
+    expect(halloweenHome.heroSub).toBe(settings.tagline)
+    expect(halloweenHome.showcaseVideoUrl).toBe(savedVideo)
+    expect(buildAmethystHomepageBootstrapScript(halloweenHome, [], halloweenSettings.appearancePreset))
+      .toContain('"preset":"halloween_pumpkin_witch"')
+
+    const restoredHome = mapPreviewSettingsToHomepageTemplateData(settings, mileHighFizzExtras)
+    expect(restoredHome.publicSiteVariant).toBe('mile_high_fizz_hybrid')
+    expect(restoredHome.heroVideoUrl).toBe('/mile-high-fizz/hero.mp4')
+    expect(restoredHome.showcaseVideoUrl).toBe(savedVideo)
+    expect(getAmethystSkinDropdownLabel(getAmethystSkinCard('alpine_opal')))
+      .toContain('Lindsey’s original custom skin')
+  })
+
   it('maps Lindsey to a Mile High Fizz homepage instead of a generic Sparkle shell', () => {
     const homepage = mapPreviewSettingsToHomepageTemplateData(
       mileHighFizzSettings,

@@ -3002,3 +3002,20 @@ computer permission is scope-specific and never carries into a new session.
 Reason: A stale persistent checkout gives incorrect evidence for diagnosis and
 release. Starting from the verified remote revision makes Git provenance,
 production comparison, collaboration, and recovery deterministic.
+
+---
+## 2026-09-22 - Grandfathered custom sites follow the selected skin
+
+Decision: Brittany's Britt with Bling bespoke sections render only when her
+Black Diamond skin is selected; Lindsey's Mile High Fizz bespoke sections render
+only when her Alpine Opal skin is selected. Community skins use the standard
+Sparkle Suite page layouts for these reps. Their saved site settings, TikTok and
+other media URLs, and team roster remain attached to the account, not the skin.
+Selecting the original private skin restores its bespoke sections without
+re-entering that information. Each original skin is named for its owner in the
+Workspace selection menu.
+
+Reason: The Readdy-era bespoke layout was previously forced by rep identity,
+causing it to blend with any newly selected community skin. Making layout
+selection follow the actual skin preserves both reversible customization and
+the standard community-skin contract.

@@ -55,6 +55,7 @@ import {
   applyBrittWithBlingJoin,
   applyBrittWithBlingTrade,
   isBrittWithBlingSettings,
+  normalizeBrittWithBlingTeamMemberAssets,
 } from '@/lib/britt-with-bling/profile'
 import {
   isBlingKitchenSettings,
@@ -538,6 +539,9 @@ export function mapPreviewSettingsToHomepageTemplateData(
   settings: SiteSettingsDashboardResult,
   extras: PreviewRepExtras = {},
 ): AmethystHomepageTemplateData {
+  const selectedSkin = normalizeAmethystAppearancePreset(settings.appearancePreset)
+  const isBrittWithBling = isBrittWithBlingSettings(settings, extras.publicSiteSlug)
+  const isGrandfatheredSite = isBrittWithBling || isMileHighFizzSettings(settings)
   const repName = getPublicRepName(
     firstText(settings.displayName, defaultAmethystHomepageTemplateData.repName),
   )
@@ -563,14 +567,20 @@ export function mapPreviewSettingsToHomepageTemplateData(
   const homepage: AmethystHomepageTemplateData = {
     ...defaultAmethystHomepageTemplateData,
     visibility: resolvePublicSiteVisibility(settings),
+    danceFloorComingSoon: isBrittWithBling,
     repName,
     businessName,
     teamName: resolveTenantTeamName(settings.teamName, businessName),
     memberTeamName: settings.memberTeamName?.trim() || undefined,
     tagline,
-    heroHeadline: firstText(heroHeadlineOverride, defaultAmethystHomepageTemplateData.heroHeadline),
+    heroHeadline: firstText(
+      heroHeadlineOverride,
+      isGrandfatheredSite ? businessName : defaultAmethystHomepageTemplateData.heroHeadline,
+    ),
     heroHeadlineOverride,
-    heroSub: `I'm ${repName} - join me for live reveals, favorite finds, and customer-first sparkle.`,
+    heroSub: isGrandfatheredSite
+      ? tagline
+      : `I'm ${repName} - join me for live reveals, favorite finds, and customer-first sparkle.`,
     heroMotion: settings.heroAnimationType,
     heroEyebrow: 'Live schedule coming soon',
     tickerTopText: buildTicker(
@@ -630,9 +640,9 @@ export function mapPreviewSettingsToHomepageTemplateData(
     },
   }
 
-  const variantHomepage = isMileHighFizzSettings(settings)
+  const variantHomepage = isMileHighFizzSettings(settings) && selectedSkin === 'alpine_opal'
     ? applyMileHighFizzHomepage(homepage)
-    : isBrittWithBlingSettings(settings, extras.publicSiteSlug)
+    : isBrittWithBling && selectedSkin === 'black_diamond'
       ? applyBrittWithBlingHomepage(homepage)
       : isBlingKitchenSettings(settings)
         ? applyBlingKitchenPantryAccess(homepage)
@@ -647,6 +657,8 @@ export function mapPreviewSettingsToTradeTemplateData(
   settings: SiteSettingsDashboardResult,
   extras: PreviewRepExtras = {},
 ): AmethystTradeTemplateData {
+  const selectedSkin = normalizeAmethystAppearancePreset(settings.appearancePreset)
+  const isBrittWithBling = isBrittWithBlingSettings(settings, extras.publicSiteSlug)
   const businessName = firstText(
     settings.businessName,
     defaultAmethystTradeTemplateData.businessName,
@@ -662,6 +674,7 @@ export function mapPreviewSettingsToTradeTemplateData(
   const trade: AmethystTradeTemplateData = {
     ...defaultAmethystTradeTemplateData,
     visibility: resolvePublicSiteVisibility(settings),
+    danceFloorComingSoon: isBrittWithBling,
     repName,
     businessName,
     memberTeamName: settings.memberTeamName?.trim() || undefined,
@@ -680,8 +693,8 @@ export function mapPreviewSettingsToTradeTemplateData(
     },
   }
 
-  if (isMileHighFizzSettings(settings)) return applyMileHighFizzTrade(trade)
-  if (isBrittWithBlingSettings(settings, extras.publicSiteSlug)) {
+  if (isMileHighFizzSettings(settings) && selectedSkin === 'alpine_opal') return applyMileHighFizzTrade(trade)
+  if (isBrittWithBling && selectedSkin === 'black_diamond') {
     return applyBrittWithBlingTrade(trade)
   }
   if (isBlingKitchenSettings(settings)) {
@@ -698,6 +711,8 @@ export function mapPreviewSettingsToJoinTemplateData(
   extras: PreviewRepExtras = {},
   teamMembers?: AmethystJoinTeamMember[],
 ): AmethystJoinTemplateData {
+  const selectedSkin = normalizeAmethystAppearancePreset(settings.appearancePreset)
+  const isBrittWithBling = isBrittWithBlingSettings(settings, extras.publicSiteSlug)
   const repName = getPublicRepName(
     firstText(settings.displayName, defaultAmethystJoinTemplateData.repName),
   )
@@ -728,6 +743,7 @@ export function mapPreviewSettingsToJoinTemplateData(
   const join: AmethystJoinTemplateData = {
     ...defaultAmethystJoinTemplateData,
     visibility: resolvePublicSiteVisibility(settings),
+    danceFloorComingSoon: isBrittWithBling,
     repName,
     repCity: '',
     repState: '',
@@ -761,11 +777,15 @@ export function mapPreviewSettingsToJoinTemplateData(
       preOrders: shopUrl,
       contact: `mailto:${settings.email}`,
     },
-    teamMembers: teamMembers ? resolvedTeamMembers : defaultAmethystJoinTemplateData.teamMembers,
+    teamMembers: teamMembers
+      ? isBrittWithBling
+        ? normalizeBrittWithBlingTeamMemberAssets(resolvedTeamMembers)
+        : resolvedTeamMembers
+      : defaultAmethystJoinTemplateData.teamMembers,
   }
 
-  if (isMileHighFizzSettings(settings)) return applyMileHighFizzJoin(join)
-  if (isBrittWithBlingSettings(settings, extras.publicSiteSlug)) {
+  if (isMileHighFizzSettings(settings) && selectedSkin === 'alpine_opal') return applyMileHighFizzJoin(join)
+  if (isBrittWithBling && selectedSkin === 'black_diamond') {
     return applyBrittWithBlingJoin(join, teamMembers ? resolvedTeamMembers : [])
   }
   if (isBlingKitchenSettings(settings)) {

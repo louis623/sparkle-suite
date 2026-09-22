@@ -62,7 +62,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   {
     id: 'black_diamond',
     visibility: 'private',
-    exclusiveLabel: 'Private custom skin',
+    exclusiveLabel: 'Brittany’s original custom skin',
     code: 'BD-01',
     label: 'Black Diamond',
     description:
@@ -99,7 +99,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   {
     id: 'alpine_opal',
     visibility: 'private',
-    exclusiveLabel: 'Private custom skin',
+    exclusiveLabel: 'Lindsey’s original custom skin',
     code: 'AO-01',
     label: 'Alpine Opal',
     description:

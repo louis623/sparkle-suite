@@ -12,6 +12,7 @@ import {
   buildAmethystHomepageBootstrapScript,
   enrichAmethystHomepageFeatureData,
 } from '@/lib/amethyst/homepage-template-data'
+import { getAmethystSkinCard, getAmethystSkinDropdownLabel } from '@/lib/amethyst/skin-cards'
 import {
   BRITT_WITH_BLING_PROFILE,
   BRITT_WITH_BLING_TEAM_MEMBERS,
@@ -85,6 +86,55 @@ function rosterRow(overrides: Partial<JoinTeamMember> = {}): JoinTeamMember {
 }
 
 describe('Britt With Bling hybrid public site contract', () => {
+  it('keeps the original layout available while community skins use the standard pages', () => {
+    const savedVideo = 'https://www.tiktok.com/@brittwithbling/video/7602795836380073229'
+    const settings = {
+      ...brittWithBlingSettings,
+      homepageMediaSlots: [{ key: 'showcase' as const, caption: 'My show', imageUrl: '', videoUrl: savedVideo }],
+    }
+    const halloweenSettings = { ...settings, appearancePreset: 'halloween_pumpkin_witch' as const }
+    const halloweenHome = mapPreviewSettingsToHomepageTemplateData(halloweenSettings, brittWithBlingExtras)
+    const halloweenTrade = mapPreviewSettingsToTradeTemplateData(halloweenSettings, brittWithBlingExtras)
+    const halloweenJoin = mapPreviewSettingsToJoinTemplateData(halloweenSettings, brittWithBlingExtras, [])
+
+    expect(halloweenHome.publicSiteVariant).toBeUndefined()
+    expect(halloweenTrade.publicSiteVariant).toBeUndefined()
+    expect(halloweenJoin.publicSiteVariant).toBeUndefined()
+    expect(halloweenHome.heroImageUrl).toBeUndefined()
+    expect(halloweenHome.featuredReveal).toBeUndefined()
+    expect(halloweenHome.heroHeadline).toBe('Britt with Bling')
+    expect(halloweenHome.heroSub).toBe(settings.tagline)
+    expect(halloweenHome.showcaseVideoUrl).toBe(savedVideo)
+    expect(halloweenHome.danceFloorComingSoon).toBe(true)
+    expect(halloweenTrade.danceFloorComingSoon).toBe(true)
+    expect(halloweenJoin.danceFloorComingSoon).toBe(true)
+    expect(buildAmethystHomepageBootstrapScript(halloweenHome, [], halloweenSettings.appearancePreset))
+      .toContain('"preset":"halloween_pumpkin_witch"')
+
+    const restoredHome = mapPreviewSettingsToHomepageTemplateData(settings, brittWithBlingExtras)
+    expect(restoredHome.publicSiteVariant).toBe('britt_with_bling_hybrid')
+    expect(restoredHome.heroImageUrl).toBe(BRITT_WITH_BLING_PROFILE.heroImageUrl)
+    expect(restoredHome.featuredReveal?.title).toBe('The Rise of Her')
+    expect(restoredHome.showcaseVideoUrl).toBe(savedVideo)
+    expect(getAmethystSkinDropdownLabel(getAmethystSkinCard('black_diamond')))
+      .toContain('Brittany’s original custom skin')
+  })
+
+  it('keeps migrated team photos when Brittany selects a community skin', () => {
+    const migratedMember = {
+      ...BRITT_WITH_BLING_TEAM_MEMBERS[0],
+      imageUrl: 'https://storage.readdy-site.com/old-team-photo.jpg',
+    }
+    const join = mapPreviewSettingsToJoinTemplateData(
+      { ...brittWithBlingSettings, appearancePreset: 'halloween_pumpkin_witch' },
+      brittWithBlingExtras,
+      [migratedMember],
+    )
+
+    expect(join.publicSiteVariant).toBeUndefined()
+    expect(join.teamMembers[0]?.imageUrl).toBe(BRITT_WITH_BLING_TEAM_MEMBERS[0].imageUrl)
+  })
+
   it('keeps Beverly’s public roster portrait straight like the other team cards', () => {
     const beverly = BRITT_WITH_BLING_TEAM_MEMBERS.find(
       (member) => member.name === 'Beverly' && member.business === 'Bev with Bling',

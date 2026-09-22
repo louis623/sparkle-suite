@@ -134,7 +134,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20260909-lineup-v2')
+    expect(homepage).toContain('homepage.jsx?v=20260922-grandfathered-skin-switch')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -255,7 +255,7 @@ describe('Amethyst homepage template data wiring', () => {
       expect(jsx).not.toContain('Math.max(12, distance / pixelsPerSecond)')
       expect(jsx).toContain('const EMPTY_TRADE_TICKER_ITEM = {')
       expect(jsx).toContain(
-        'const tradeTickerSource = isBrittWithBlingHybrid ? [{ name: "Digital Dance Floor coming soon", isEmpty: true }] : trades.length > 0 ? trades : [EMPTY_TRADE_TICKER_ITEM];',
+        'const tradeTickerSource = isBrittDanceFloorComingSoon ? [{ name: "Digital Dance Floor coming soon", isEmpty: true }] : trades.length > 0 ? trades : [EMPTY_TRADE_TICKER_ITEM];',
       )
       expect(jsx).toContain(
         'const tickerTrades = buildTickerLoopItems(tradeTickerSource, 15);',
@@ -706,8 +706,8 @@ describe('Amethyst homepage template data wiring', () => {
 
     for (const source of [homepage, trade, join]) {
       for (const label of footerLabels) {
-        if (label === 'Dance Floor' && source.includes('isBrittWithBlingHybrid')) {
-          expect(source).toContain('isBrittWithBlingHybrid ? "Dance Floor · Coming soon" : "Dance Floor"')
+        if (label === 'Dance Floor' && source.includes('isBrittDanceFloorComingSoon')) {
+          expect(source).toContain('isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Dance Floor"')
         } else {
           expect(source).toContain(`>${label}</a>`)
         }

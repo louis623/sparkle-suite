@@ -105,6 +105,7 @@ const isKimGoForTheBling = RUNTIME_CONTEXT.targeted && (
 );
 const isMileHighFizzHybrid = CONTENT.publicSiteVariant === "mile_high_fizz_hybrid";
 const isBrittWithBlingHybrid = CONTENT.publicSiteVariant === "britt_with_bling_hybrid";
+const isBrittDanceFloorComingSoon = CONTENT.danceFloorComingSoon === true;
 const isBlingKitchenHybrid = CONTENT.publicSiteVariant === "bling_kitchen_hybrid";
 
 function buildContextSearch() {
@@ -474,7 +475,7 @@ function Header({ businessName }) {
         </div>
         <nav className="hp-header-nav" aria-label="Primary">
           <a {...linkProps(HOME_HREF)} className="hp-header-link">Home</a>
-          <a {...linkProps(TRADE_BOARD_HREF)} className="hp-header-link">{isBrittWithBlingHybrid ? "Dance Floor · Coming soon" : "Dance Floor"}</a>
+          <a {...linkProps(TRADE_BOARD_HREF)} className="hp-header-link">{isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Dance Floor"}</a>
           {PANTRY_HREF ? <a {...linkProps(PANTRY_HREF)} className="hp-header-link">In the Pantry</a> : null}
           <a {...linkProps(JOIN_HREF)} className="hp-header-link" aria-current="page">Join Team</a>
         </nav>
@@ -600,7 +601,7 @@ function Ticker({ topText }) {
     : FALLBACK_TICKER_TRADES;
   const announcementTickerItems = buildTickerLoopItems(items, 6);
   const announcementSegmentLength = announcementTickerItems.length / 2;
-  const tradeTickerSource = isBrittWithBlingHybrid ? [{ name: "Digital Dance Floor coming soon", isEmpty: true }] : trades.length > 0 ? trades : [EMPTY_TRADE_TICKER_ITEM];
+  const tradeTickerSource = isBrittDanceFloorComingSoon ? [{ name: "Digital Dance Floor coming soon", isEmpty: true }] : trades.length > 0 ? trades : [EMPTY_TRADE_TICKER_ITEM];
   const tickerTrades = buildTickerLoopItems(tradeTickerSource, 15);
   const tradeSegmentLength = tickerTrades.length / 2;
   return (
@@ -610,7 +611,7 @@ function Ticker({ topText }) {
         {items.flatMap((item) => item.parts.filter((part) => part.href)).map((part, index) => (
           <a key={`${part.href}-${index}`} {...linkProps(part.href)}>{part.text}</a>
         ))}
-        <a {...linkProps(TRADE_BOARD_HREF)}>{isBrittWithBlingHybrid ? "Digital Dance Floor coming soon" : "Browse current dance floor highlights"}</a>
+        <a {...linkProps(TRADE_BOARD_HREF)}>{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Browse current dance floor highlights"}</a>
       </div>
       <div className="hp-ticker-row">
         <span className="hp-ticker-label">Announcements</span>
@@ -1325,7 +1326,7 @@ function Footer({ businessName }) {
         <div className="hp-footer-col">
           <ul>
             <li><a {...linkProps(FOOTER_LINKS.home || "/amethyst/Homepage.html")}>Home</a></li>
-            <li><a {...linkProps(FOOTER_LINKS.tradeBoard || TRADE_BOARD_HREF)}>{isBrittWithBlingHybrid ? "Dance Floor · Coming soon" : "Dance Floor"}</a></li>
+            <li><a {...linkProps(FOOTER_LINKS.tradeBoard || TRADE_BOARD_HREF)}>{isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Dance Floor"}</a></li>
             {PANTRY_HREF && <li><a {...linkProps(PANTRY_HREF)}>In the Pantry</a></li>}
             <li><a {...linkProps(FOOTER_LINKS.joinTeam || "/amethyst/Join.html")}>Join Team</a></li>
           </ul>

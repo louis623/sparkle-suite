@@ -325,7 +325,7 @@ const BRITT_WITH_BLING_TEAM_MEMBER_ASSET_BY_KEY = new Map(
   ]),
 )
 
-function normalizeBrittWithBlingTeamMemberAssets(
+export function normalizeBrittWithBlingTeamMemberAssets(
   teamMembers: AmethystJoinTeamMember[],
 ): AmethystJoinTeamMember[] {
   return teamMembers.map((member) => {
