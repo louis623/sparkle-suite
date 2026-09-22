@@ -85,6 +85,13 @@ export const OPERATOR_SUPPORT_ROUTE_INVENTORY = [
     rationale: 'Photo polish requires rep consent and can incur provider spend; status reads may resume a previously reserved job.',
   },
   {
+    file: 'app/api/nic-nac/time-zone/route.ts',
+    path: '/api/nic-nac/time-zone',
+    methods: ['PATCH'],
+    classification: 'rep_only',
+    rationale: 'Time-zone changes are outside the approved support gateway; keep the existing deny-by-default behavior.',
+  },
+  {
     file: 'app/api/workspace/live-lineup/route.ts',
     path: '/api/workspace/live-lineup',
     methods: ['GET', 'POST'],
@@ -424,6 +431,14 @@ export const OPERATOR_SUPPORT_ROUTE_INVENTORY = [
     classification: 'support_allowed_write',
     capabilities: ['site.view', 'site.manage'],
     rationale: 'Customer-site settings are an explicitly approved support workflow.',
+  },
+  {
+    file: 'app/api/nic-nac/skin-options/route.ts',
+    path: '/api/nic-nac/skin-options',
+    methods: ['GET'],
+    classification: 'support_allowed_read',
+    capabilities: ['site.view'],
+    rationale: 'Shows only the fixed target rep’s catalog-authorized customer-site themes in support mode.',
   },
   {
     file: 'app/api/nic-nac/support-reports/route.ts',

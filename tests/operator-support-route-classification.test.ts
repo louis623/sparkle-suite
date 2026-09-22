@@ -114,6 +114,7 @@ describe('operator support route classification manifest', () => {
       ['/api/nic-nac/resources', 'support_allowed_read'],
       ['/api/nic-nac/resource-library', 'support_allowed_read'],
       ['/api/nic-nac/site-analytics', 'support_allowed_read'],
+      ['/api/nic-nac/skin-options', 'support_allowed_read'],
       ['/api/nic-nac/send-email', 'support_allowed_write'],
       ['/api/nic-nac', 'support_allowed_write'],
       ['/api/nic-nac/conversation/clear', 'support_allowed_write'],
@@ -125,6 +126,17 @@ describe('operator support route classification manifest', () => {
       const entry = OPERATOR_SUPPORT_ROUTE_INVENTORY.find((item) => item.path === path)
       expect(entry?.classification, path).toBe(expected)
     }
+
+    const skinOptions = OPERATOR_SUPPORT_ROUTE_INVENTORY.find(
+      (item) => item.path === '/api/nic-nac/skin-options',
+    )
+    expect(skinOptions).toMatchObject({
+      methods: ['GET'],
+      capabilities: ['site.view'],
+    })
+    expect(
+      OPERATOR_SUPPORT_ROUTE_INVENTORY.find((item) => item.path === '/api/nic-nac/time-zone'),
+    ).toMatchObject({ methods: ['PATCH'], classification: 'rep_only' })
 
     for (const path of [
       '/api/account/activate-trial',

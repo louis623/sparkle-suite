@@ -25,6 +25,15 @@ describe('operator support client runtime', () => {
     ).toBe(
       '/api/control-center/support-sessions/session-1/gateway?path=%2Fapi%2Fworkspace%2Flive-lineup',
     )
+    expect(
+      buildOperatorSupportGatewayUrl(
+        '/api/nic-nac/skin-options',
+        'session-1',
+        'https://www.yoursparklesuite.com',
+      ),
+    ).toBe(
+      '/api/control-center/support-sessions/session-1/gateway?path=%2Fapi%2Fnic-nac%2Fskin-options',
+    )
   })
 
   it('never rewrites external origins or non-Workspace routes', () => {
