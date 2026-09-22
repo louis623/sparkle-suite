@@ -609,6 +609,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/homepage.css'),
       'utf8',
     )
+    const gnomeCss = readFileSync(resolve(process.cwd(), 'public/amethyst/gnome-garden.css'), 'utf8')
 
     expect(jsx).toContain('function getVisibleEventDescription(event)')
     expect(jsx).toContain('const visibleDescription = getVisibleEventDescription(event);')
@@ -618,9 +619,8 @@ describe('Amethyst homepage template data wiring', () => {
     expect(css).toMatch(
       /\.hp-event-description\s*\{[\s\S]*?color:\s*var\(--hp-card-muted\);/,
     )
-    expect(css).toMatch(
-      /\.hp-event-description::before\s*\{[\s\S]*?background:\s*var\(--hp-card-accent\);/,
-    )
+    expect(css).not.toContain('.hp-event-description::before')
+    expect(gnomeCss).not.toContain('.hp-event-description::before')
   })
 
   it('ships crawl and sharing metadata with the locked homepage export', () => {

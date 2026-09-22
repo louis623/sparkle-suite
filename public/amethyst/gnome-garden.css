@@ -108,8 +108,6 @@ body.bg-gnome-garden :is(.hp-btn-outline, .hp-btn-watch) {
   box-shadow: inset 0 1px 0 #fff3d61a;
 }
 body.bg-gnome-garden .hp-btn-sparkle .spark { display: none; }
-body.bg-gnome-garden .hp-event-description { padding-left: 26px; }
-body.bg-gnome-garden .hp-event-description::before { left: 12px; width: 3px; padding: 0; border: 0; font-size: 0; }
 body.bg-gnome-garden :is(.hp-event-platform.tt, .hp-event-platform.tiktok, .hp-event-platform.custom) { background: #842421; color: #fff3d6; }
 body.bg-gnome-garden :is(#events, #about) {
   background: radial-gradient(ellipse at 0 0, #e1d9b757, transparent 50%), #f5edda;
