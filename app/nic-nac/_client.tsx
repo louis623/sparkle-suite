@@ -924,6 +924,7 @@ export default function NicNacClient({
       conversationId={conversationId!}
       chatMode={isRequiredSetupMode ? 'required_setup' : 'workspace'}
       requiredSetupStep={setupState?.currentStep ?? null}
+      requiredSetupRepId={setupState?.repId ?? null}
       requiredSetupSyncCode={requiredSetupSyncCode}
       requiredSetupPreviewHref={requiredSetupPreviewHref}
       transport={transport!}
