@@ -35,10 +35,16 @@ function makeUpdateChain<T>(response: { data: T | null; error: unknown }) {
   }
 }
 
-function makeCtx(supabase: { from: (table: string) => unknown }) {
+function makeCtx(supabase: {
+  from: (table: string) => unknown
+  rpc?: (name: string, args: Record<string, string>) => unknown
+}) {
   return {
     repId: 'rep-1',
-    supabase: supabase as never,
+    supabase: {
+      rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
+      ...supabase,
+    } as never,
     conversationId: 'conv-1',
     runId: 'run-1',
   }
@@ -136,7 +142,10 @@ describe('site customization tools', () => {
   it('update_site_setting rejects Kelly\'s private skin for another rep', async () => {
     const from = vi.fn()
     const tool = makeUpdateSiteSettingTool(
-      makeCtx({ from }),
+      makeCtx({
+        from,
+        rpc: vi.fn().mockResolvedValue({ data: false, error: null }),
+      }),
     ) as unknown as ToolDef
 
     await expect(tool.execute({ appearancePreset: 'NB-01' })).rejects.toMatchObject({
