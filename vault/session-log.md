@@ -7634,3 +7634,13 @@ Lessons retained:
 - Pushed commit `8f144d74`, deployed it without moving customer hostnames,
   then assigned only the Suite www/apex domains to READY deployment
   `dpl_DeuotbeZEV3xWnUYZA84qbYqGCcG`. Both aliases resolve to that deployment.
+
+
+## September 22, 2026 - Halloween Pumpkin and Witch skin and shared event-card fix shipped
+
+- Worked from the GitHub Codespace on `codex/nic-nac-trade-hardening`; the intentionally stale/dirty Windows checkout was not inspected, synchronized, edited, built, or used as source of truth.
+- Completed the animated customer-facing `Halloween Pumpkin and Witch` skin with an original black, orange, and silver glitter direction: a bright sparkling pumpkin and crescent moon, animated silver witch, no bats, Halloween-orange hero title, and brighter high-contrast purple text where needed.
+- Corrected the shared Amethyst calendar cards by removing the stray purple vertical description accent/oval across all skins, including the Gnome Garden override. The fix changed only `public/amethyst/homepage.css`, `public/amethyst/gnome-garden.css`, and `tests/amethyst-homepage-template.test.ts`.
+- Verification: focused homepage template tests passed 46/46; `npm run qa:amethyst` passed 97/97; `git diff --check` was clean; the live event descriptions were visually confirmed unobstructed.
+- Product fix committed and pushed as `154e26c1fc944fe0b7ca0fd78cb913dfe9f2ef2d` (`fix: remove event card accent stripe`). It was manually deployed to Vercel production as `dpl_8f9QpJoUUB8RLM6x3Bp2Nxszt5Y1` and verified at `https://www.yoursparklesuite.com/skin-preview/halloween_pumpkin_witch/homepage`; the apex route redirects to `www`.
+- Open Brain was updated with the same confirmed decisions, provenance, and next-session source-of-truth rule.

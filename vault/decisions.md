@@ -2930,3 +2930,12 @@ detail is supporting evidence, never the approval surface.
 Reason: The private-key/manual-source design broke the familiar working
 experience and made rep support materially harder. The reliability protections
 belong behind the simple workflow, not in front of the rep.
+
+
+## 2026-09-22 - Sparkle Suite work starts from the verified GitHub tip
+
+Decision: For Sparkle Suite sessions, use `louis623/sparkle-suite` on `codex/nic-nac-trade-hardening` as the source of truth and work from a verified GitHub/Codespaces tip. The intentionally stale or dirty Windows checkout must not be inspected, synchronized, cleaned, stashed, edited, built, or used unless Louis explicitly requests local work.
+
+Decision: A Git push records provenance only. Production requires a manual Vercel deployment of the exact verified SHA followed by a live-domain check on `www.yoursparklesuite.com` and confirmation that the apex domain resolves to the same production surface.
+
+Reason: Louis intentionally keeps the local checkout out of date. Treating it as authoritative creates avoidable risk and distracts from the Git-based production workflow.
