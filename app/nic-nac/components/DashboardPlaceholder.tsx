@@ -64,10 +64,8 @@ import {
   type TeamPhotoFraming,
 } from '@/lib/amethyst/team-photo-framing'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
-import {
-  getAmethystSkinCardsForRep,
-  getAmethystSkinDropdownLabel,
-} from '@/lib/amethyst/skin-cards'
+import { getAmethystSkinDropdownLabel } from '@/lib/amethyst/skin-cards'
+import { useAvailableAmethystSkinCards } from './useAvailableAmethystSkinCards'
 import {
   BRITT_WITH_BLING_ABOUT_PORTRAIT_URL,
   BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
@@ -8987,7 +8985,8 @@ export function SiteSettingsCard({
   }
 
   const hasTickerLinks = /\[[^\]]+\]\([^()\s]+\)/.test(draft?.tickerText ?? '')
-  const appearancePresetOptions = getAmethystSkinCardsForRep(repId).map((skin) => ({
+  const skinOptions = useAvailableAmethystSkinCards(repId)
+  const appearancePresetOptions = skinOptions.cards.map((skin) => ({
     value: skin.id as SiteAppearancePreset,
     label: getAmethystSkinDropdownLabel(skin),
   }))
@@ -9202,18 +9201,29 @@ export function SiteSettingsCard({
             <span className={styles.sortLabel}>Customer-facing site theme</span>
             <select
               className={styles.sortSelect}
-              value={draft.appearancePreset}
+              value={
+                skinOptions.status === 'ready' ? draft.appearancePreset : ''
+              }
+              disabled={skinOptions.status !== 'ready'}
               onChange={(event) =>
                 onDraftChange?.({
                   appearancePreset: event.target.value as SiteAppearancePreset,
                 })
               }
             >
-              {appearancePresetOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {skinOptions.status === 'ready' ? (
+                appearancePresetOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))
+              ) : (
+                <option value="">
+                  {skinOptions.status === 'error'
+                    ? 'Themes unavailable — refresh and try again'
+                    : 'Loading your available themes…'}
                 </option>
-              ))}
+              )}
             </select>
             <span className={styles.siteSettingsPreviewNote}>
               Applies only to your public customer-facing site. Your Sparkle
