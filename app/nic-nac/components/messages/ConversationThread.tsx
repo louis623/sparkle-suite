@@ -189,6 +189,24 @@ function PublicationBody({
             </ul>
           ) : null
         }
+        if (block.type === 'link_list') {
+          return block.links?.length ? (
+            <ul key={key}>
+              {block.links.map((entry) => {
+                const href = getSafeMessageActionUrl(entry.href)
+                return (
+                  <li key={`${key}:${entry.label}:${entry.href}`}>
+                    {href?.startsWith('/') ? (
+                      <a href={href}>{entry.label}</a>
+                    ) : (
+                      entry.label
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          ) : null
+        }
         return block.text ? <p key={key}>{block.text}</p> : null
       })}
     </div>

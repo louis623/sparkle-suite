@@ -41,7 +41,7 @@ describe('workspace monthly reports', () => {
     expect(period.timeZone).toBe('America/New_York')
   })
 
-  it('renders zeros, unavailable metrics, and birthdays explicitly', () => {
+  it('renders zeros and unavailable metrics without birthday content', () => {
     const period = getMonthlyReportPeriod(
       new Date('2026-08-01T13:00:00.000Z'),
       'America/New_York',
@@ -65,7 +65,8 @@ describe('workspace monthly reports', () => {
 
     expect(body).toContain('Customers added: 0')
     expect(body).toContain('Page views: Not tracked for this month')
-    expect(body).toContain('Jamie Smoke — 8/12')
+    expect(body).not.toContain('Jamie Smoke')
+    expect(body).not.toContain('Birthday')
     const blocks = buildMonthlyReportBlocks({
       period,
       metrics: [
@@ -92,16 +93,16 @@ describe('workspace monthly reports', () => {
       label: 'Page views',
       value: 'Not tracked for this month',
     })
-    expect(blocks.some((block) => block.type === 'list')).toBe(true)
+    expect(blocks.some((block) => block.type === 'list')).toBe(false)
   })
 
-  it('uses a clear no-birthdays state', () => {
+  it('does not add an empty-birthdays section', () => {
     const period = getMonthlyReportPeriod(
       new Date('2026-08-01T13:00:00.000Z'),
       'America/New_York',
     )
-    expect(buildMonthlyReportBody({ period, metrics: [], birthdays: [] })).toContain(
-      'No saved customer birthdays this month.',
+    expect(buildMonthlyReportBody({ period, metrics: [], birthdays: [] })).not.toContain(
+      'birthday',
     )
   })
 

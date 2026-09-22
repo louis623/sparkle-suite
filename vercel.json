@@ -17,6 +17,10 @@
       "schedule": "0 18 * * *"
     },
     {
+      "path": "/api/internal/workspace-birthday-reports/process",
+      "schedule": "0 9 * * 0"
+    },
+    {
       "path": "/api/internal/support-followups/process",
       "schedule": "15 18 * * *"
     }

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { WorkspaceMessageBody } from '@/lib/services/workspace-message-permissions'
 
-export const MONTHLY_REPORT_GENERATOR_VERSION = 'workspace-monthly-v1'
+export const MONTHLY_REPORT_GENERATOR_VERSION = 'workspace-monthly-v2'
 export const DEFAULT_WORKSPACE_TIME_ZONE = 'America/New_York'
 
 export type MonthlyMetricStatus = 'tracked' | 'unavailable'
@@ -209,28 +209,6 @@ function countForPeriod(
     .lt(dateColumn, period.periodEnd)
 }
 
-async function listBirthdays(
-  supabase: SupabaseClient,
-  repId: string,
-  birthdayMonth: number,
-): Promise<MonthlyBirthday[]> {
-  const { data, error } = await supabase
-    .from('customer_audience')
-    .select('id, name, birthday_month, birthday_day')
-    .eq('rep_id', repId)
-    .eq('birthday_month', birthdayMonth)
-    .not('birthday_day', 'is', null)
-    .order('birthday_day', { ascending: true })
-
-  if (error) return []
-  return (data ?? []).map((row) => ({
-    audienceId: String(row.id),
-    name: String(row.name),
-    month: Number(row.birthday_month),
-    day: Number(row.birthday_day),
-  }))
-}
-
 export async function collectMonthlyReportData(args: {
   supabase: SupabaseClient
   repId: string
@@ -249,7 +227,6 @@ export async function collectMonthlyReportData(args: {
     recipesAdded,
     supportReports,
     teamParticipants,
-    birthdays,
   ] = await Promise.all([
     safeCount(
       () => countForPeriod(args.supabase, 'customer_audience', args.repId, period),
@@ -287,7 +264,6 @@ export async function collectMonthlyReportData(args: {
       'team_participants_added',
       'Team onboarding participants added',
     ),
-    listBirthdays(args.supabase, args.repId, period.birthdayMonth),
   ])
 
   const [totalCustomers, activeListings, pendingRequests, upcomingShows] =
@@ -352,7 +328,7 @@ export async function collectMonthlyReportData(args: {
       teamParticipants,
       supportReports,
     ],
-    birthdays,
+    birthdays: [] as MonthlyBirthday[],
   }
 }
 
@@ -366,16 +342,9 @@ export function buildMonthlyReportBody(input: {
       ? `• ${metric.label}: ${metric.value ?? 0}`
       : `• ${metric.label}: ${metric.unavailableReason || 'Not tracked for this month'}`,
   )
-  const birthdayLines = input.birthdays.length
-    ? input.birthdays.map((birthday) => `• ${birthday.name} — ${birthday.month}/${birthday.day}`)
-    : ['• No saved customer birthdays this month.']
-
   return [
     `${input.period.previousMonthLabel} at a glance`,
     ...metricLines,
-    '',
-    `Birthdays in ${input.period.currentMonthLabel}`,
-    ...birthdayLines,
   ].join('\n')
 }
 
@@ -394,15 +363,6 @@ export function buildMonthlyReportBlocks(input: {
           ? (metric.value ?? 0)
           : metric.unavailableReason || 'Not tracked for this month',
     })),
-    { type: 'heading', text: `Birthdays in ${input.period.currentMonthLabel}` },
-    {
-      type: 'list',
-      items: input.birthdays.length
-        ? input.birthdays.map(
-            (birthday) => `${birthday.name} — ${birthday.month}/${birthday.day}`,
-          )
-        : ['No saved customer birthdays this month.'],
-    },
     {
       type: 'paragraph',
       text: `Reporting period: ${input.period.periodStart} through ${input.period.periodEnd}`,

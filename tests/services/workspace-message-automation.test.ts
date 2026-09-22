@@ -8,6 +8,9 @@ const publishMessage = vi.fn()
 const collectMonthly = vi.fn()
 const saveSnapshot = vi.fn()
 const attachPublication = vi.fn()
+const collectWeekly = vi.fn()
+const saveWeeklySnapshot = vi.fn()
+const attachWeeklyPublication = vi.fn()
 const getSupportSession = vi.fn()
 const publishSupportEnd = vi.fn()
 const recordSupportCompletion = vi.fn()
@@ -38,6 +41,15 @@ vi.mock('@/lib/services/workspace-monthly-reports', async (importOriginal) => {
     attachMonthlyReportPublication: (...args: unknown[]) => attachPublication(...args),
   }
 })
+vi.mock('@/lib/services/workspace-weekly-birthday-reports', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@/lib/services/workspace-weekly-birthday-reports')>()
+  return {
+    ...original,
+    collectWeeklyBirthdayReportData: (...args: unknown[]) => collectWeekly(...args),
+    saveWeeklyBirthdayReportSnapshot: (...args: unknown[]) => saveWeeklySnapshot(...args),
+    attachWeeklyBirthdayReportPublication: (...args: unknown[]) => attachWeeklyPublication(...args),
+  }
+})
 
 import {
   getTrustedYouTubeUrl,
@@ -54,6 +66,9 @@ describe('workspace message automation', () => {
     collectMonthly.mockReset()
     saveSnapshot.mockReset()
     attachPublication.mockReset()
+    collectWeekly.mockReset()
+    saveWeeklySnapshot.mockReset()
+    attachWeeklyPublication.mockReset()
     getSupportSession.mockReset()
     publishSupportEnd.mockReset()
     recordSupportCompletion.mockReset()
@@ -218,6 +233,73 @@ describe('workspace message automation', () => {
       snapshotId: 'snapshot-1',
       publicationId: 'publication-1',
     })
+  })
+
+  it('publishes one combined weekly birthday report and skips an empty week', async () => {
+    claimEvents.mockResolvedValue([
+      {
+        id: 'event-weekly',
+        eventType: 'weekly_birthday_report_due',
+        idempotencyKey: 'weekly-birthday-report:rep-1:2026-09-20',
+        payload: { repId: 'rep-1', runAt: '2026-09-20T09:00:00.000Z' },
+        attemptCount: 0,
+      },
+    ])
+    collectWeekly.mockResolvedValue({
+      period: {
+        weekStart: '2026-09-20', weekEnd: '2026-09-26', weekLabel: 'September 20–September 26',
+        timeZone: 'America/New_York', reportDate: '2026-09-20', dates: [
+          { year: 2026, month: 9, day: 20 }, { year: 2026, month: 9, day: 21 },
+          { year: 2026, month: 9, day: 22 }, { year: 2026, month: 9, day: 23 },
+          { year: 2026, month: 9, day: 24 }, { year: 2026, month: 9, day: 25 },
+          { year: 2026, month: 9, day: 26 },
+        ],
+      },
+      customerBirthdays: [{
+        recordId: 'customer-1', name: 'Jamie', kind: 'customer', month: 9, day: 20,
+        occurrenceDate: '2026-09-20', occurrenceLabel: 'Sunday, September 20', isToday: true,
+        isLeapDayObserved: false, actionUrl: '/nic-nac?section=customer-list&customer=customer-1',
+      }],
+      teamBirthdays: [{
+        recordId: 'member-1', name: 'Rayna', kind: 'team_member', month: 9, day: 23,
+        occurrenceDate: '2026-09-23', occurrenceLabel: 'Wednesday, September 23', isToday: false,
+        isLeapDayObserved: false, actionUrl: '/nic-nac?section=team-management&teamMember=member-1',
+      }],
+    })
+    saveWeeklySnapshot.mockResolvedValue({ id: 'weekly-snapshot-1' })
+    publishMessage.mockResolvedValue({ id: 'weekly-publication-1' })
+
+    await expect(processWorkspaceMessageAutomation({
+      supabase: { marker: 'admin' } as never,
+      workerId: 'worker-1',
+    })).resolves.toMatchObject({ completed: 1, failed: 0 })
+    expect(publishMessage).toHaveBeenCalledWith(
+      { marker: 'admin' },
+      expect.objectContaining({
+        senderKey: 'birthday_reporter',
+        category: 'birthday_report',
+        idempotencyKey: 'weekly-birthday-report:rep-1:2026-09-20',
+      }),
+    )
+    expect(attachWeeklyPublication).toHaveBeenCalledWith({
+      supabase: { marker: 'admin' },
+      snapshotId: 'weekly-snapshot-1',
+      publicationId: 'weekly-publication-1',
+    })
+
+    publishMessage.mockReset()
+    saveWeeklySnapshot.mockReset()
+    collectWeekly.mockResolvedValue({
+      period: { weekStart: '2026-09-20' },
+      customerBirthdays: [],
+      teamBirthdays: [],
+    })
+    await processWorkspaceMessageAutomation({
+      supabase: { marker: 'admin' } as never,
+      workerId: 'worker-2',
+    })
+    expect(saveWeeklySnapshot).not.toHaveBeenCalled()
+    expect(publishMessage).not.toHaveBeenCalled()
   })
 
   it('publishes a queued resource announcement and links the revision', async () => {

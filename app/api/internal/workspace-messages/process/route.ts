@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import {
   enqueueDueMonthlyReports,
+  enqueueDueWeeklyBirthdayReports,
   processWorkspaceMessageAutomation,
 } from '@/lib/services/workspace-message-automation'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -32,6 +33,10 @@ export async function GET(request: Request) {
   const supportCompletionNoticesQueued =
     await enqueueMissingOperatorSupportCompletionNotices(admin)
   const monthlyEnqueued = await enqueueDueMonthlyReports({ supabase: admin, now })
+  const weeklyBirthdaysEnqueued = await enqueueDueWeeklyBirthdayReports({
+    supabase: admin,
+    now,
+  })
   const workerId = `vercel-workspace-messages-${now.getTime()}`
   const result = await processWorkspaceMessageAutomation({
     supabase: admin,
@@ -42,6 +47,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     ok: true,
     monthlyEnqueued: monthlyEnqueued.length,
+    weeklyBirthdaysEnqueued: weeklyBirthdaysEnqueued.length,
     expiredSupportSessions,
     supportCompletionNoticesQueued,
     result,

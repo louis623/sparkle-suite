@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ServiceError, errors } from '@/lib/services/errors'
+import { formatBirthday, normalizeBirthday } from '@/lib/services/birthdays'
 import type {
   JoinTeamMember,
   JoinTeamMemberLinks,
@@ -8,7 +9,7 @@ import type {
 } from '@/lib/services/types'
 
 const JOIN_TEAM_MEMBER_SELECT =
-  'id, rep_id, display_name, business_name, state, city, initials, photo_url, photo_alt, image_class_name, bio, links, sort_order, is_visible, created_at, updated_at'
+  'id, rep_id, display_name, business_name, state, city, initials, photo_url, photo_alt, image_class_name, bio, birthday_month, birthday_day, links, sort_order, is_visible, created_at, updated_at'
 
 type JoinTeamMemberRow = {
   id: string
@@ -22,6 +23,8 @@ type JoinTeamMemberRow = {
   photo_alt: string | null
   image_class_name: string | null
   bio: string | null
+  birthday_month: number | null
+  birthday_day: number | null
   links: Record<string, string> | null
   sort_order: number | null
   is_visible: boolean | null
@@ -98,6 +101,7 @@ function mapRow(row: JoinTeamMemberRow): JoinTeamMember {
     photoAlt: normalizeText(row.photo_alt),
     imageClassName: normalizeText(row.image_class_name),
     bio: normalizeText(row.bio),
+    birthday: formatBirthday(row.birthday_month, row.birthday_day),
     links: (row.links ?? {}) as JoinTeamMemberLinks,
     sortOrder: row.sort_order ?? 0,
     isVisible: row.is_visible ?? true,
@@ -117,6 +121,9 @@ function buildPatch(repId: string, input: UpsertJoinTeamMemberInput) {
 
   const links = normalizeLinks(input.links)
   const sortOrder = normalizeSortOrder(input.sortOrder)
+  const birthday = Object.hasOwn(input, 'birthday')
+    ? normalizeBirthday(input.birthday)
+    : undefined
 
   return {
     rep_id: repId,
@@ -129,6 +136,12 @@ function buildPatch(repId: string, input: UpsertJoinTeamMemberInput) {
     photo_alt: normalizeText(input.photoAlt),
     image_class_name: normalizeText(input.imageClassName),
     bio: normalizeText(input.bio),
+    ...(birthday !== undefined
+      ? {
+          birthday_month: birthday?.month ?? null,
+          birthday_day: birthday?.day ?? null,
+        }
+      : {}),
     ...(links !== undefined ? { links } : {}),
     ...(sortOrder !== undefined ? { sort_order: sortOrder } : {}),
     ...(input.isVisible !== undefined ? { is_visible: input.isVisible } : {}),

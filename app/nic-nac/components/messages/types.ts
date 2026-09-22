@@ -1,9 +1,10 @@
 export type WorkspaceMessageBodyBlock = {
-  type: 'paragraph' | 'heading' | 'metric' | 'list'
+  type: 'paragraph' | 'heading' | 'metric' | 'list' | 'link_list'
   text?: string
   label?: string
   value?: string | number
   items?: string[]
+  links?: Array<{ label: string; href: string }>
 }
 
 export type WorkspacePublicationSummary = {

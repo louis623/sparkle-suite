@@ -914,6 +914,7 @@ export interface JoinTeamMember {
   photoAlt: string
   imageClassName: string
   bio: string
+  birthday?: string | null
   links: JoinTeamMemberLinks
   sortOrder: number
   isVisible: boolean
@@ -932,6 +933,7 @@ export interface UpsertJoinTeamMemberInput {
   photoAlt?: string
   imageClassName?: string
   bio?: string
+  birthday?: string | null
   links?: JoinTeamMemberLinks
   sortOrder?: number
   isVisible?: boolean

@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const enqueueDue = vi.fn()
+const enqueueWeeklyDue = vi.fn()
 const processAutomation = vi.fn()
 const enqueueSupportCompletion = vi.fn()
 
 vi.mock('@/lib/services/workspace-message-automation', () => ({
   enqueueDueMonthlyReports: (...args: unknown[]) => enqueueDue(...args),
+  enqueueDueWeeklyBirthdayReports: (...args: unknown[]) => enqueueWeeklyDue(...args),
   processWorkspaceMessageAutomation: (...args: unknown[]) => processAutomation(...args),
 }))
 vi.mock('@/lib/supabase/admin', () => ({
@@ -21,6 +23,8 @@ import { GET } from '@/app/api/internal/workspace-messages/process/route'
 describe('workspace message automation route', () => {
   beforeEach(() => {
     enqueueDue.mockReset()
+    enqueueWeeklyDue.mockReset()
+    enqueueWeeklyDue.mockResolvedValue([])
     processAutomation.mockReset()
     enqueueSupportCompletion.mockReset()
     enqueueSupportCompletion.mockResolvedValue(0)

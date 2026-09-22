@@ -540,6 +540,7 @@ describe('Amethyst preview template data', () => {
             photoAlt: '',
             imageClassName: '',
             bio: '',
+            birthday: '09-22',
             links: {},
             sortOrder: 0,
             isVisible: true,
@@ -557,6 +558,8 @@ describe('Amethyst preview template data', () => {
         state: 'Tennessee',
       }),
     ])
+    expect(JSON.stringify(data.join.teamMembers)).not.toContain('09-22')
+    expect(JSON.stringify(data.join.teamMembers)).not.toContain('birthday')
   })
 
   it('keeps Join Team hidden after applying a customer target', async () => {

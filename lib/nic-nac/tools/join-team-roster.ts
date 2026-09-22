@@ -18,6 +18,7 @@ const linksSchema = z.object({
   instagram: z.string().optional(),
   website: z.string().optional(),
   youtube: z.string().optional(),
+  whatnot: z.string().optional(),
 })
 
 const memberSchema = z.object({
@@ -31,6 +32,11 @@ const memberSchema = z.object({
   photoAlt: z.string().optional(),
   imageClassName: z.string().optional(),
   bio: z.string().optional(),
+  birthday: z
+    .string()
+    .regex(/^\d{2}-\d{2}$/, 'Birthday must use MM-DD with no year.')
+    .nullable()
+    .optional(),
   links: linksSchema.optional(),
   sortOrder: z.number().optional(),
   isVisible: z.boolean().optional(),
@@ -84,7 +90,7 @@ export function makeListJoinTeamRosterTool(ctx: {
 }) {
   return tool({
     description:
-      'List the authenticated rep join-team roster cards, including hidden cards, photos, sort order, and social/website links.',
+      'List the authenticated rep join-team roster cards, including private month-and-day birthdays, hidden cards, photos, sort order, and social/website links.',
     inputSchema: z.object({}),
     execute: async () => {
       try {
@@ -109,7 +115,7 @@ export function makeManageJoinTeamRosterTool(ctx: {
 }) {
   return tool({
     description:
-      'Add, update, remove, hide/show, or reorder join-team roster cards for the authenticated rep public Join Team page. Removing a team member requires visible rep approval before it executes. Supported links include TikTok, Facebook/VIP, Instagram, website/globe, and YouTube.',
+      'Add, update, remove, hide/show, or reorder join-team roster cards for the authenticated rep public Join Team page. A birthday is private and must be MM-DD with no year. Removing a team member requires visible rep approval before it executes. Supported links include TikTok, Facebook/VIP, Instagram, website/globe, YouTube, and Whatnot.',
     inputSchema: manageSchema,
     needsApproval: (input) => input.action === 'remove',
     execute: async (input) => {

@@ -8,6 +8,17 @@ import {
 } from '@/lib/services/workspace-message-outbox'
 import { publishWorkspaceMessage } from '@/lib/services/workspace-messages'
 import {
+  attachWeeklyBirthdayReportPublication,
+  buildWeeklyBirthdayReportBlocks,
+  buildWeeklyBirthdayReportSummary,
+  buildWeeklyBirthdayReportTitle,
+  collectWeeklyBirthdayReportData,
+  getWeeklyBirthdayReportPeriod,
+  isWeeklyBirthdayReportDue,
+  saveWeeklyBirthdayReportSnapshot,
+  SPARKLE_ECOSYSTEM_TIME_ZONE,
+} from '@/lib/services/workspace-weekly-birthday-reports'
+import {
   attachMonthlyReportPublication,
   buildMonthlyReportBlocks,
   collectMonthlyReportData,
@@ -95,18 +106,63 @@ async function processMonthlyReport(
   const publication = await publishWorkspaceMessage(supabase, {
     senderKey: 'monthly_reporter',
     title: `${generated.period.previousMonthLabel} business report`,
-    summary: `Your monthly Sparkle Suite activity and ${generated.period.currentMonthLabel} customer birthdays.`,
+    summary: 'Your monthly Sparkle Suite business activity at a glance.',
     body: buildMonthlyReportBlocks(generated),
     category: 'monthly_report',
     priority: 'important',
-    actionLabel: 'Open Customer List',
-    actionUrl: `/nic-nac?section=customer-list&birthdayMonth=${generated.period.birthdayMonth}`,
+    actionLabel: 'Open workspace',
+    actionUrl: '/nic-nac',
     audience: { kind: 'selected', repIds: [repId] },
     idempotencyKey: event.idempotencyKey,
     sourceType: 'monthly_report_snapshot',
     sourceId: String(snapshot.id),
   })
   await attachMonthlyReportPublication({
+    supabase,
+    snapshotId: String(snapshot.id),
+    publicationId: publication.id,
+  })
+  return publication
+}
+
+async function processWeeklyBirthdayReport(
+  supabase: SupabaseClient,
+  event: WorkspaceMessageOutboxEvent,
+) {
+  const repId = requiredString(event.payload, 'repId')
+  const runAt = new Date(requiredString(event.payload, 'runAt'))
+  const generated = await collectWeeklyBirthdayReportData({
+    supabase,
+    repId,
+    now: runAt,
+    timeZone: SPARKLE_ECOSYSTEM_TIME_ZONE,
+  })
+  if (
+    generated.customerBirthdays.length === 0 &&
+    generated.teamBirthdays.length === 0
+  ) {
+    return null
+  }
+  const snapshot = await saveWeeklyBirthdayReportSnapshot({
+    supabase,
+    repId,
+    ...generated,
+  })
+  const publication = await publishWorkspaceMessage(supabase, {
+    senderKey: 'birthday_reporter',
+    title: buildWeeklyBirthdayReportTitle(generated.period),
+    summary: buildWeeklyBirthdayReportSummary(generated),
+    body: buildWeeklyBirthdayReportBlocks(generated),
+    category: 'birthday_report',
+    priority: 'important',
+    actionLabel: 'Open Customer List',
+    actionUrl: '/nic-nac?section=customer-list',
+    audience: { kind: 'selected', repIds: [repId] },
+    idempotencyKey: event.idempotencyKey,
+    sourceType: 'weekly_birthday_report_snapshot',
+    sourceId: String(snapshot.id),
+  })
+  await attachWeeklyBirthdayReportPublication({
     supabase,
     snapshotId: String(snapshot.id),
     publicationId: publication.id,
@@ -220,6 +276,9 @@ async function processEvent(
   if (event.eventType === 'monthly_report_due') {
     return processMonthlyReport(supabase, event)
   }
+  if (event.eventType === 'weekly_birthday_report_due') {
+    return processWeeklyBirthdayReport(supabase, event)
+  }
   if (event.eventType === 'workspace_resource_published') {
     return processResourcePublished(supabase, event)
   }
@@ -260,6 +319,47 @@ export async function enqueueDueMonthlyReports(args: {
       },
     })
     results.push({ repId: String(rep.id), idempotencyKey })
+  }
+  return results
+}
+
+export async function enqueueDueWeeklyBirthdayReports(args: {
+  supabase: SupabaseClient
+  now?: Date
+}) {
+  const now = args.now ?? new Date()
+  if (!isWeeklyBirthdayReportDue(now, SPARKLE_ECOSYSTEM_TIME_ZONE)) return []
+  const period = getWeeklyBirthdayReportPeriod(now, SPARKLE_ECOSYSTEM_TIME_ZONE)
+  const reps: Array<{ id: string }> = []
+  const pageSize = 500
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await args.supabase
+      .from('reps')
+      .select('id')
+      .eq('status', 'active')
+      .order('id', { ascending: true })
+      .range(from, from + pageSize - 1)
+    if (error) throw error
+    const page = (data ?? []) as Array<{ id: string }>
+    reps.push(...page)
+    if (page.length < pageSize) break
+  }
+
+  const results: Array<{ repId: string; idempotencyKey: string }> = []
+  for (const rep of reps) {
+    const repId = String(rep.id)
+    const idempotencyKey = `weekly-birthday-report:${repId}:${period.weekStart}`
+    await enqueueWorkspaceMessageOutboxEvent(args.supabase, {
+      eventType: 'weekly_birthday_report_due',
+      idempotencyKey,
+      payload: {
+        repId,
+        timeZone: SPARKLE_ECOSYSTEM_TIME_ZONE,
+        weekStart: period.weekStart,
+        runAt: now.toISOString(),
+      },
+    })
+    results.push({ repId, idempotencyKey })
   }
   return results
 }

@@ -5,6 +5,7 @@ export const WORKSPACE_MESSAGE_CATEGORIES = [
   'customer_activity',
   'business_update',
   'monthly_report',
+  'birthday_report',
   'platform_update',
   'help_update',
   'blog',
@@ -24,11 +25,12 @@ export type WorkspaceMessagePriority =
   (typeof WORKSPACE_MESSAGE_PRIORITIES)[number]
 export type WorkspaceMessageAudienceKind = 'all_active' | 'selected'
 export type WorkspaceMessageBody = Array<{
-  type: 'paragraph' | 'heading' | 'metric' | 'list'
+  type: 'paragraph' | 'heading' | 'metric' | 'list' | 'link_list'
   text?: string
   label?: string
   value?: string | number
   items?: string[]
+  links?: Array<{ label: string; href: string }>
 }>
 
 export interface WorkspaceMessageSenderRecord {
@@ -166,6 +168,17 @@ function assertSafeText(value: string, field: string, maxLength: number) {
   return trimmed
 }
 
+function normalizeInternalMessageLink(value: unknown, field: string) {
+  const href = assertSafeText(typeof value === 'string' ? value : '', field, 1_000)
+  if (!href.startsWith('/nic-nac') || href.startsWith('//')) {
+    throw messageError(
+      'WORKSPACE_MESSAGE_INVALID_ACTION_URL',
+      `${field} must be an internal Nic-Nac path.`,
+    )
+  }
+  return href
+}
+
 export function normalizeWorkspaceMessageBody(
   value: WorkspaceMessageBody | string,
 ): WorkspaceMessageBody {
@@ -190,7 +203,8 @@ export function normalizeWorkspaceMessageBody(
       block.type !== 'paragraph' &&
       block.type !== 'heading' &&
       block.type !== 'metric' &&
-      block.type !== 'list'
+      block.type !== 'list' &&
+      block.type !== 'link_list'
     ) {
       throw messageError(
         'WORKSPACE_MESSAGE_INVALID_CONTENT',
@@ -234,6 +248,38 @@ export function normalizeWorkspaceMessageBody(
           typeof value === 'string'
             ? assertSafeText(value, `Metric value ${index + 1}`, 500)
             : value,
+      }
+    }
+
+
+    if (block.type === 'link_list') {
+      if (!Array.isArray(block.links) || block.links.length === 0 || block.links.length > 100) {
+        throw messageError(
+          'WORKSPACE_MESSAGE_INVALID_CONTENT',
+          `Link list block ${index + 1} must contain between 1 and 100 links.`,
+        )
+      }
+      return {
+        type: 'link_list' as const,
+        links: block.links.map((link, linkIndex) => {
+          if (!isRecord(link)) {
+            throw messageError(
+              'WORKSPACE_MESSAGE_INVALID_CONTENT',
+              `Link ${linkIndex + 1} in block ${index + 1} is invalid.`,
+            )
+          }
+          return {
+            label: assertSafeText(
+              typeof link.label === 'string' ? link.label : '',
+              `Link label ${linkIndex + 1}`,
+              500,
+            ),
+            href: normalizeInternalMessageLink(
+              link.href,
+              `Link URL ${linkIndex + 1}`,
+            ),
+          }
+        }),
       }
     }
 

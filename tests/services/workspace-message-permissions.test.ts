@@ -75,6 +75,27 @@ describe('workspace message sender and content permissions', () => {
     ).toHaveLength(3)
   })
 
+  it('accepts birthday report link lists only for internal Nic-Nac destinations', () => {
+    expect(
+      normalizeWorkspaceMessageBody([
+        {
+          type: 'link_list',
+          links: [{ label: 'Jamie — Today · Sunday, September 22', href: '/nic-nac?section=customer-list&customer=customer-1' }],
+        },
+      ]),
+    ).toEqual([
+      {
+        type: 'link_list',
+        links: [{ label: 'Jamie — Today · Sunday, September 22', href: '/nic-nac?section=customer-list&customer=customer-1' }],
+      },
+    ])
+    expect(() =>
+      normalizeWorkspaceMessageBody([
+        { type: 'link_list', links: [{ label: 'Unsafe', href: 'https://attacker.example' }] },
+      ]),
+    ).toThrowError(expect.objectContaining({ code: 'WORKSPACE_MESSAGE_INVALID_ACTION_URL' }))
+  })
+
   it.each([
     '<script>alert(1)</script>',
     '<iframe src="https://bad.example"></iframe>',

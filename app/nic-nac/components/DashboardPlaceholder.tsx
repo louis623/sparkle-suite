@@ -393,6 +393,14 @@ export function getInitialWorkspaceSection(search: string): WorkspaceSectionKey 
   return 'home'
 }
 
+export function getWorkspaceDeepLinkTargets(search: string) {
+  const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
+  return {
+    customerId: params.get('customer')?.trim() || null,
+    teamMemberId: params.get('teamMember')?.trim() || null,
+  }
+}
+
 export function hasPaidWorkspaceSubscription(
   summary: AccountBillingDashboardResult | null | undefined,
 ) {
@@ -840,6 +848,8 @@ export type JoinTeamRosterDraft = {
   photoAlt?: string
   imageClassName?: string
   bio?: string
+  birthdayMonth?: string
+  birthdayDay?: string
   sortOrder?: number
   tiktok: string
   facebook: string
@@ -1020,6 +1030,8 @@ const EMPTY_JOIN_TEAM_ROSTER_DRAFT: JoinTeamRosterDraft = {
   displayName: '',
   businessName: '',
   state: '',
+  birthdayMonth: '',
+  birthdayDay: '',
   photoUrl: '',
   tiktok: '',
   facebook: '',
@@ -1050,6 +1062,8 @@ export function getJoinTeamRosterDraft(
     photoAlt: member.photoAlt,
     imageClassName: member.imageClassName,
     bio: member.bio,
+    birthdayMonth: member.birthday?.slice(0, 2) ?? '',
+    birthdayDay: member.birthday?.slice(3, 5) ?? '',
     sortOrder: member.sortOrder,
     tiktok: member.links.tiktok ?? '',
     facebook: member.links.facebook ?? '',
@@ -1101,6 +1115,14 @@ export function buildJoinTeamRosterSavePayload(
       ? { imageClassName: cleanOptionalText(draft.imageClassName) }
       : {}),
     ...('bio' in draft ? { bio: cleanOptionalText(draft.bio) } : {}),
+    ...('birthdayMonth' in draft || 'birthdayDay' in draft
+      ? {
+          birthday:
+            draft.birthdayMonth && draft.birthdayDay
+              ? `${draft.birthdayMonth}-${draft.birthdayDay}`
+              : null,
+        }
+      : {}),
     ...(draft.sortOrder !== undefined ? { sortOrder: draft.sortOrder } : {}),
     links,
     isVisible: draft.isVisible,
@@ -1397,6 +1419,7 @@ const WORKSPACE_APPEARANCE_PRESET: SiteAppearancePreset =
 const SIGNUP_FORM_PATH = '/amethyst/Homepage.html#signup'
 const MESSAGE_TYPE_LABELS: Record<string, string> = {
   monthly_report: 'Monthly report',
+  birthday_report: 'Birthday report',
   newsletter: 'Newsletter',
   announcement: 'Announcement',
   support_request: 'Support request',
@@ -1887,9 +1910,7 @@ function normalizeImportedBirthday(value: string) {
   const trimmed = value.trim()
   if (!trimmed) return ''
   if (/^\d{2}-\d{2}$/.test(trimmed)) return trimmed
-  const isoMatch = /^\d{4}-(\d{2})-(\d{2})$/.exec(trimmed)
-  if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}`
-  const match = /^(\d{1,2})[/-](\d{1,2})(?:[/-]\d{2,4})?$/.exec(trimmed)
+  const match = /^(\d{1,2})[/-](\d{1,2})$/.exec(trimmed)
   if (!match) return trimmed
   return `${match[1].padStart(2, '0')}-${match[2].padStart(2, '0')}`
 }
@@ -1921,7 +1942,7 @@ export async function parseCustomerImportFile(file: File): Promise<CustomerAudie
     addImportedText(contact, 'address', importedText(row, ['address', 'streetaddress', 'addressline1']))
     const birthday = normalizeImportedBirthday(importedText(row, ['birthday', 'birthdate', 'bday']))
     if (birthday && !/^\d{2}-\d{2}$/.test(birthday)) {
-      throw new Error(`Birthday in row ${index + 2} must use MM-DD or M/D/YYYY.`)
+      throw new Error(`Birthday in row ${index + 2} must use MM-DD or M/D with no year.`)
     }
     addImportedText(contact, 'birthday', birthday)
     addImportedText(contact, 'favoriteGemOrStone', importedText(row, ['favoritegem', 'favoritegemorstone', 'gem', 'stone']))
@@ -2825,6 +2846,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     conversationControlsDisabled = false,
     desktopChat,
   } = props
+  const [deepLinkTargets] = useState(() => {
+    if (typeof window === 'undefined') return { customerId: null, teamMemberId: null }
+    return getWorkspaceDeepLinkTargets(window.location.search)
+  })
   const [activeSection, setActiveSection] =
     useState<WorkspaceSectionKey>(() =>
       initialSectionOverride ??
@@ -6531,6 +6556,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       return (
         <div className={styles.workspaceSectionStack}>
           <TeamManagementCard
+            initialMemberId={deepLinkTargets.teamMemberId}
             reviewMode={reviewWorkspaceMode}
             state={teamManagementState}
             actionState={teamManagementActionState}
@@ -6637,6 +6663,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       return (
         <div className={styles.workspaceSectionStack}>
           <CustomerRosterCard
+            key={`customer-roster:${deepLinkTargets.customerId ?? 'none'}:${audienceState.status}`}
+            initialCustomerId={deepLinkTargets.customerId}
             state={audienceState}
             activeFilter={rosterFilter}
             onFilterChange={setRosterFilter}
@@ -8145,6 +8173,7 @@ const MESSAGE_CATEGORY_LABELS: Record<string, string> = {
   customer_activity: 'Customer activity',
   business_update: 'Business update',
   monthly_report: 'Monthly report',
+  birthday_report: 'Birthday report',
   platform_update: 'Platform update',
   help_update: 'Help update',
   blog: 'Blog',
@@ -8167,7 +8196,8 @@ function isResourceMessage(message: WorkspaceMessageSummary) {
 }
 
 function isReportMessage(message: WorkspaceMessageSummary) {
-  return getMessageCategory(message) === 'monthly_report'
+  const category = getMessageCategory(message)
+  return category === 'monthly_report' || category === 'birthday_report'
 }
 
 function isUpdateMessage(message: WorkspaceMessageSummary) {
@@ -8240,6 +8270,20 @@ function MessageBodyContent({
               {block.items.map((item, itemIndex) => (
                 <li key={`${key}:${itemIndex}`}>{item}</li>
               ))}
+            </ul>
+          ) : null
+        }
+        if (block.type === 'link_list') {
+          return block.links && block.links.length > 0 ? (
+            <ul key={key}>
+              {block.links.map((entry) => {
+                const href = getSafeMessageActionUrl(entry.href)
+                return (
+                  <li key={`${key}:${entry.label}:${entry.href}`}>
+                    {href ? <a href={href}>{entry.label}</a> : entry.label}
+                  </li>
+                )
+              })}
             </ul>
           ) : null
         }
@@ -10349,7 +10393,7 @@ function RecipeCardSourceUploader({
         <div>
           <div className={styles.walletSettingsTitle}>Recipe-source photos</div>
           <div className={styles.siteSettingsPreviewNote}>
-            Upload every card or page with ingredients, instructions, or Heather's tip. You can add multiple photos; they are read to format the recipe and are never shown to customers.
+            Upload every card or page with ingredients, instructions, or Heather&apos;s tip. You can add multiple photos; they are read to format the recipe and are never shown to customers.
           </div>
         </div>
         <label className={styles.recipeUploadButton}>
@@ -10788,6 +10832,7 @@ export function BusinessCalculatorCard() {
 }
 
 export function TeamManagementCard({
+  initialMemberId,
   reviewMode = false,
   state = {
     status: 'locked',
@@ -10822,6 +10867,7 @@ export function TeamManagementCard({
   onRemovePublicTeamMember,
   onOpenMessages,
 }: {
+  initialMemberId?: string | null
   reviewMode?: boolean
   state?: TeamManagementState
   actionState?: TeamManagementActionState
@@ -10874,6 +10920,12 @@ export function TeamManagementCard({
   )
   const isLocked = state.status === 'locked' || state.access?.enabled === false
   const isLoading = state.status === 'loading'
+  const initialLinkedMember = initialMemberId
+    ? publicTeamRoster.find((member) => member.id === initialMemberId)
+    : undefined
+  const resolvedPublicTeamDraft = initialLinkedMember && !publicTeamDraft.id
+    ? getJoinTeamRosterDraft(initialLinkedMember)
+    : publicTeamDraft
 
   if (isLocked) {
     return (
@@ -11000,15 +11052,22 @@ export function TeamManagementCard({
           </button>
         </details>
         <PublicTeamRosterPanel
+          initialMemberId={initialMemberId}
           reviewMode={reviewMode}
           members={publicTeamRoster}
           participants={activeParticipants}
-          draft={publicTeamDraft}
+          draft={resolvedPublicTeamDraft}
           actionState={actionState}
           joinTeamPreviewHref={joinTeamPreviewHref}
           isLoading={isLoading}
           leadCard={leadCard}
-          onDraftChange={onPublicTeamDraftChange}
+          onDraftChange={(patch) =>
+            onPublicTeamDraftChange?.(
+              initialLinkedMember && !publicTeamDraft.id
+                ? { ...resolvedPublicTeamDraft, ...patch }
+                : patch,
+            )
+          }
           onUploadPhoto={onUploadPublicTeamPhoto}
           onUploadLeadPhoto={onUploadLeadCardPhoto}
           onLeadFramingChange={onLeadCardFramingChange}
@@ -11632,6 +11691,7 @@ function TeamCardPhotoField({
 }
 
 export function PublicTeamRosterPanel({
+  initialMemberId,
   reviewMode = false,
   members,
   participants,
@@ -11659,6 +11719,7 @@ export function PublicTeamRosterPanel({
   onArchiveParticipant,
   onOpenMessages,
 }: {
+  initialMemberId?: string | null
   reviewMode?: boolean
   members: JoinTeamMember[]
   participants: TeamOnboardingParticipant[]
@@ -11709,10 +11770,17 @@ export function PublicTeamRosterPanel({
   )
   const leadInitials = (leadCard?.displayName?.trim().charAt(0) || '?').toUpperCase()
   const leadName = leadCard?.displayName?.trim() || 'your lead card'
-  const [selectedKey, setSelectedKey] = useState(() => draft.id
-    ? draft.id === matchingLeadMember?.id ? 'lead' : draft.id
-    : draft.displayName || draft.photoUrl ? 'new' : 'lead')
-  const [editorTab, setEditorTab] = useState<'photo' | 'details' | 'onboarding'>('photo')
+  const linkedMember = initialMemberId
+    ? members.find((member) => member.id === initialMemberId)
+    : undefined
+  const [selectedKey, setSelectedKey] = useState(() => linkedMember
+    ? linkedMember.id === matchingLeadMember?.id ? 'lead' : linkedMember.id
+    : draft.id
+      ? draft.id === matchingLeadMember?.id ? 'lead' : draft.id
+      : draft.displayName || draft.photoUrl ? 'new' : 'lead')
+  const [editorTab, setEditorTab] = useState<'photo' | 'details' | 'onboarding'>(
+    linkedMember ? 'details' : 'photo',
+  )
   const [photoState, setPhotoState] = useState({ busy: false, dirty: false })
   const [pendingSelection, setPendingSelection] = useState<string | null>(null)
   const selectedMember = selectedKey === 'lead'
@@ -11720,22 +11788,29 @@ export function PublicTeamRosterPanel({
     : members.find((member) => member.id === selectedKey)
   const isNew = selectedKey === 'new'
   const editorBusy = isLoading || Boolean(actionState?.pendingKey) || photoState.busy
+  const birthdayIncomplete = Boolean(draft.birthdayMonth) !== Boolean(draft.birthdayDay)
   const detailsDirty = (isNew || draft.id === selectedMember?.id) &&
     JSON.stringify(buildJoinTeamRosterSavePayload(draft)) !==
     JSON.stringify(buildJoinTeamRosterSavePayload(getJoinTeamRosterDraft(selectedMember)))
 
   // A newly saved card keeps its exact server ID selected, never its list position.
   useEffect(() => {
-    if (selectedKey === 'new' && draft.id) setSelectedKey(draft.id === matchingLeadMember?.id ? 'lead' : draft.id)
+    if (selectedKey !== 'new' || !draft.id) return
+    const nextKey = draft.id === matchingLeadMember?.id ? 'lead' : draft.id
+    const timer = window.setTimeout(() => setSelectedKey(nextKey), 0)
+    return () => window.clearTimeout(timer)
   }, [selectedKey, draft.id, matchingLeadMember?.id])
   useEffect(() => {
     if (selectedKey === 'lead' && selectedMember && draft.id !== selectedMember.id) {
       onEdit?.(selectedMember)
     }
     if (selectedKey !== 'lead' && selectedKey !== 'new' && !selectedMember && !isLoading) {
-      setSelectedKey('lead')
-      setEditorTab('photo')
-      onDraftChange?.({ ...getJoinTeamRosterDraft(), id: undefined })
+      const timer = window.setTimeout(() => {
+        setSelectedKey('lead')
+        setEditorTab('photo')
+        onDraftChange?.({ ...getJoinTeamRosterDraft(), id: undefined })
+      }, 0)
+      return () => window.clearTimeout(timer)
     }
   }, [selectedKey, selectedMember, draft.id, isLoading, onEdit, onDraftChange])
 
@@ -11926,6 +12001,44 @@ export function PublicTeamRosterPanel({
                 Shown on this team member&apos;s customer-facing card.
               </span>
             </label>
+            <label className={styles.searchField}>
+              <span className={styles.searchLabel}>Birthday month</span>
+              <select
+                className={`${styles.searchInput} ph-no-capture`}
+                value={draft.birthdayMonth ?? ''}
+                onChange={(event) =>
+                  onDraftChange?.({ birthdayMonth: event.target.value })
+                }
+              >
+                <option value="">Month</option>
+                {[
+                  'January', 'February', 'March', 'April', 'May', 'June',
+                  'July', 'August', 'September', 'October', 'November', 'December',
+                ].map((label, index) => (
+                  <option key={label} value={String(index + 1).padStart(2, '0')}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={styles.searchField}>
+              <span className={styles.searchLabel}>Birthday day</span>
+              <select
+                className={`${styles.searchInput} ph-no-capture`}
+                value={draft.birthdayDay ?? ''}
+                onChange={(event) =>
+                  onDraftChange?.({ birthdayDay: event.target.value })
+                }
+              >
+                <option value="">Day</option>
+                {Array.from({ length: 31 }, (_, index) => String(index + 1).padStart(2, '0')).map((day) => (
+                  <option key={day} value={day}>{Number(day)}</option>
+                ))}
+              </select>
+              <span className={styles.helperNote}>
+                Private. Month and day only—never a birth year.
+              </span>
+            </label>
           </div>
 
           <div className={styles.teamSocialGrid}>
@@ -12004,10 +12117,16 @@ export function PublicTeamRosterPanel({
             <span>Visible on Join Team page</span>
           </label>
 
+          {birthdayIncomplete ? (
+            <div className={styles.actionError} role="alert">
+              Choose both a birthday month and day, or leave both blank.
+            </div>
+          ) : null}
+
           <button
             type="button"
             className={styles.actionButton}
-            disabled={actionState?.pendingKey === 'public-team:save' || isLoading}
+            disabled={actionState?.pendingKey === 'public-team:save' || isLoading || birthdayIncomplete}
             onClick={onSave}
           >
             {actionState?.pendingKey === 'public-team:save'
@@ -12037,7 +12156,7 @@ export function PublicTeamRosterPanel({
             onRemovePhoto={() => onDraftChange?.(buildTeamPhotoRemovalPatch())}
             onFramingChange={(nextFraming) => onDraftChange?.({ imageClassName: serializeTeamPhotoFraming(nextFraming) })}
           />
-          <button type="button" className={styles.actionButton} disabled={editorBusy} onClick={onSave}>{actionState?.pendingKey === 'public-team:save' ? 'Saving card...' : saveLabel}</button>
+          <button type="button" className={styles.actionButton} disabled={editorBusy || birthdayIncomplete} onClick={onSave}>{actionState?.pendingKey === 'public-team:save' ? 'Saving card...' : saveLabel}</button>
         </div>
         <div className={styles.teamEditorPane} hidden={editorTab !== 'onboarding'}><p className={styles.helperNote}>Save this team member first to create their private onboarding link.</p></div>
       </> : null}
@@ -13311,6 +13430,7 @@ export function WalletSummaryCard({
 }
 
 export function CustomerRosterCard({
+  initialCustomerId,
   state,
   activeFilter,
   onFilterChange,
@@ -13337,6 +13457,7 @@ export function CustomerRosterCard({
   onImport,
   readOnly = false,
 }: {
+  initialCustomerId?: string | null
   state: AudienceState
   activeFilter: RosterFilter
   onFilterChange: (filter: RosterFilter) => void
@@ -13398,12 +13519,22 @@ export function CustomerRosterCard({
     notes: customer.notes ?? '',
     tags: customer.tags ?? '',
   })
+  const initialCustomer = state.status === 'ready' && initialCustomerId
+    ? (state.customers ?? []).find((item) => item.id === initialCustomerId)
+    : null
   const [editor, setEditor] = useState<{
     audienceId: string | null
     profile: CustomerProfileInput
     pending: boolean
     error: string | null
-  } | null>(null)
+  } | null>(() => initialCustomer
+    ? {
+        audienceId: initialCustomer.id,
+        profile: profileFromCustomer(initialCustomer as CustomerProfile),
+        pending: false,
+        error: null,
+      }
+    : null)
   const [importState, setImportState] = useState<{
     contacts: CustomerAudienceImportInput[]
     pending: boolean

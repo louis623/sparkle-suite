@@ -44,6 +44,7 @@ import {
   getAutoRechargeDraft,
   getAutoRechargeThresholdOptions,
   getInitialWorkspaceSection,
+  getWorkspaceDeepLinkTargets,
   getWorkspaceBackDestination,
   getVisibleWorkspaceSections,
   hasBlingKitchenRecipeWorkspaceAccess,
@@ -1714,6 +1715,7 @@ describe('DashboardPlaceholder', () => {
         photoAlt: 'Lindsey profile',
         imageClassName: 'object-top',
         bio: 'Mountain sparkle energy.',
+        birthday: '09-22',
         links: {
           tiktok: 'https://www.tiktok.com/@milehighfizz',
           facebook: 'https://www.facebook.com/groups/milehighfizz',
@@ -1734,6 +1736,8 @@ describe('DashboardPlaceholder', () => {
       photoAlt: 'Lindsey profile',
       imageClassName: 'object-top',
       bio: 'Mountain sparkle energy.',
+      birthdayMonth: '09',
+      birthdayDay: '22',
       sortOrder: 0,
       tiktok: 'https://www.tiktok.com/@milehighfizz',
       facebook: 'https://www.facebook.com/groups/milehighfizz',
@@ -2722,7 +2726,7 @@ describe('DashboardPlaceholder', () => {
   it('parses CSV contact imports without sending blank columns as profile updates', async () => {
     const contacts = await parseCustomerImportFile(
       new File([
-        'Name,Email,Favorite Material,Birthday,Tags\nJamie Lane,jamie@example.com,Silver,10/12/1990,"VIP, local"',
+        'Name,Email,Favorite Material,Birthday,Tags\nJamie Lane,jamie@example.com,Silver,10/12,"VIP, local"',
       ], 'customers.csv', { type: 'text/csv' }),
     )
 
@@ -2735,6 +2739,25 @@ describe('DashboardPlaceholder', () => {
         tags: ['VIP', 'local'],
       },
     ])
+  })
+
+  it('keeps exact customer and team-member targets from birthday-report links', () => {
+    expect(
+      getWorkspaceDeepLinkTargets('?section=customer-list&customer=customer-1'),
+    ).toEqual({ customerId: 'customer-1', teamMemberId: null })
+    expect(
+      getWorkspaceDeepLinkTargets('?section=team-management&teamMember=member-1'),
+    ).toEqual({ customerId: null, teamMemberId: 'member-1' })
+  })
+
+  it('rejects birth years in imported customer birthdays', async () => {
+    await expect(
+      parseCustomerImportFile(
+        new File(['Name,Birthday\nJamie Lane,10/12/1990'], 'customers.csv', {
+          type: 'text/csv',
+        }),
+      ),
+    ).rejects.toThrow('must use MM-DD or M/D with no year')
   })
 
   it('sorts the roster by dates, names, and saved customer preferences', () => {

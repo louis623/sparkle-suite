@@ -301,7 +301,10 @@ function isSparkleSuiteResource(item: WorkspaceInboxItem) {
 }
 
 function isSparkleSuiteReport(item: WorkspaceInboxItem) {
-  return !isConversationItem(item) && item.category === 'monthly_report'
+  return (
+    !isConversationItem(item) &&
+    (item.category === 'monthly_report' || item.category === 'birthday_report')
+  )
 }
 
 export function filterInboxItems(

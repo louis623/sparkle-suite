@@ -6,6 +6,20 @@ import {
 } from '@/lib/services/join-team-roster'
 
 describe('join team roster service', () => {
+  it('rejects team-member birth years before touching the database', async () => {
+    const supabase = { from: vi.fn() }
+    await expect(
+      upsertJoinTeamMember(supabase as never, 'rep-britt', {
+        displayName: 'Rayna',
+        birthday: '1990-09-22',
+      }),
+    ).rejects.toMatchObject({
+      code: 'INVALID_INPUT',
+      userMessage: 'Birthday must use month and day in MM-DD format. Do not include a year.',
+    })
+    expect(supabase.from).not.toHaveBeenCalled()
+  })
+
   it('rejects unsafe social link schemes before saving public roster cards', async () => {
     const supabase = {
       from: vi.fn(),
