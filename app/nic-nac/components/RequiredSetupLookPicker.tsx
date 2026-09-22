@@ -1,16 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { getAmethystSkinCardsForRep } from '@/lib/amethyst/skin-cards'
+import { useAvailableAmethystSkinCards } from './useAvailableAmethystSkinCards'
 import styles from './RequiredSetupLookPicker.module.css'
 
 export function RequiredSetupLookPicker({
+  repId,
   onChoose,
   disabled = false,
 }: {
+  repId?: string | null
   onChoose: (message: string) => void
   disabled?: boolean
 }) {
+  const skinOptions = useAvailableAmethystSkinCards(repId)
   return (
     <section className={styles.panel} aria-label="Customer-facing site theme">
       <div className={styles.header}>
@@ -21,8 +24,17 @@ export function RequiredSetupLookPicker({
           Sparkle Suite Workspace keeps the standard workspace theme.
         </p>
       </div>
+      {skinOptions.status === 'loading' ? (
+        <p className={styles.styleName} role="status">
+          Loading the themes available to your account…
+        </p>
+      ) : skinOptions.status === 'error' ? (
+        <p className={styles.styleName} role="alert">
+          Your themes are unavailable right now. Refresh and try again.
+        </p>
+      ) : (
       <div className={styles.grid}>
-        {getAmethystSkinCardsForRep(null).map((skin, index) => {
+        {skinOptions.cards.map((skin, index) => {
           const [ground, primary, accent] = skin.swatches
           return (
             <article key={skin.id} className={styles.card}>
@@ -99,6 +111,7 @@ export function RequiredSetupLookPicker({
           )
         })}
       </div>
+      )}
     </section>
   )
 }
