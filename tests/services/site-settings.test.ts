@@ -187,6 +187,7 @@ describe('site settings service', () => {
     })
 
     const supabase = {
+      rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
       from: vi.fn((table: string) => {
         if (table === 'site_settings') return siteSettingsChain.api
         if (table === 'reps') return repsChain.api
@@ -289,6 +290,7 @@ describe('site settings service', () => {
     })
 
     const supabase = {
+      rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
       from: vi.fn((table: string) => {
         if (table === 'site_settings') return siteSettingsChain.api
         if (table === 'reps') return repsChain.api
@@ -408,6 +410,7 @@ describe('site settings service', () => {
       error: null,
     })
     const supabase = {
+      rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
       from: vi.fn((table: string) => {
         if (table === 'reps') return repsChain.api
         throw new Error(`Unexpected table ${table}`)
@@ -427,7 +430,7 @@ describe('site settings service', () => {
   })
 
   it('rejects a recruiting destination outside Bomb Party before writing', async () => {
-    const supabase = { from: vi.fn() }
+    const supabase = { rpc: vi.fn().mockResolvedValue({ data: true, error: null }), from: vi.fn() }
 
     await expect(
       updateSiteSettingsDashboard(supabase as never, 'rep-1', {
@@ -439,7 +442,7 @@ describe('site settings service', () => {
   })
 
   it('rejects unsafe Bomb Party store links before writing the rep profile', async () => {
-    const supabase = { from: vi.fn() }
+    const supabase = { rpc: vi.fn().mockResolvedValue({ data: true, error: null }), from: vi.fn() }
 
     await expect(
       updateSiteSettingsDashboard(supabase as never, 'rep-1', {
@@ -451,7 +454,7 @@ describe('site settings service', () => {
   })
 
   it('rejects Kelly\'s private Neon Butterfly skin for other reps before writing', async () => {
-    const supabase = { from: vi.fn() }
+    const supabase = { rpc: vi.fn().mockResolvedValue({ data: false, error: null }), from: vi.fn() }
 
     await expect(
       updateSiteSettingsDashboard(supabase as never, 'another-rep', {
@@ -463,7 +466,7 @@ describe('site settings service', () => {
   })
 
   it('rejects an About narrative longer than 1,200 characters before writing', async () => {
-    const supabase = { from: vi.fn() }
+    const supabase = { rpc: vi.fn().mockResolvedValue({ data: true, error: null }), from: vi.fn() }
 
     await expect(
       updateSiteSettingsDashboard(supabase as never, 'rep-1', {
@@ -502,6 +505,7 @@ describe('site settings service', () => {
     })
 
     const supabase = {
+      rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
       from: vi.fn((table: string) => {
         if (table === 'site_settings') return siteSettingsChain.api
         if (table === 'reps') return repsChain.api
@@ -558,6 +562,7 @@ describe('site settings service', () => {
     })
 
     const supabase = {
+      rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
       from: vi.fn((table: string) => {
         if (table === 'site_settings') return siteSettingsChain.api
         if (table === 'reps') return repsChain.api
@@ -608,6 +613,7 @@ describe('site settings service', () => {
     })
 
     const supabase = {
+      rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
       from: vi.fn((table: string) => {
         if (table === 'site_settings') return siteSettingsChain.api
         if (table === 'reps') return repsChain.api
@@ -661,6 +667,7 @@ describe('site settings service', () => {
     })
 
     const supabase = {
+      rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
       from: vi.fn((table: string) => {
         if (table === 'site_settings') return siteSettingsChain.api
         if (table === 'reps') return repsChain.api
@@ -714,6 +721,7 @@ describe('site settings service', () => {
     })
 
     const supabase = {
+      rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
       from: vi.fn((table: string) => {
         if (table === 'site_settings') return siteSettingsChain.api
         if (table === 'reps') return repsChain.api
@@ -778,6 +786,7 @@ describe('site settings service', () => {
       })
 
       const supabase = {
+        rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
         from: vi.fn((table: string) => {
           if (table === 'site_settings') return siteSettingsChain.api
           if (table === 'reps') return repsChain.api
