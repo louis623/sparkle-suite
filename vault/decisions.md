@@ -1,3 +1,9 @@
+## 2026-09-23 - Retire redundant waitlist migration; separate direct messaging
+
+- Louis approved archiving the unapplied September 18 waitlist service-role migration after the live waitlist/MCP test and current database privilege audit showed it was unnecessary. Preserve it as historical SQL, keep it out of `supabase/migrations`, and do not falsely mark it applied. Reassess from current database evidence if the service-role model changes.
+- Keep owner-to-rep direct messages one-to-one and separate from broadcasts, Support and Rep Network. Only the interactive Control Center owner session may send; private image attachments are validated and signed, with a cleanup path. Preserve existing team and customer-site settings even though the redundant Workspace header team chip is removed.
+- This release changes the Workspace label/copy affordance for the Live Lineup code only. Do not fold in the later-week Live Lineup extension update without its separate release process.
+
 ## 2026-09-22 - Git-first Sparkle Suite operating contract
 
 - The GitHub tip of `louis623/sparkle-suite` on `codex/nic-nac-trade-hardening` is authoritative. The Windows checkout is intentionally stale and may be dirty; do not inspect, synchronize, build, edit, clean, stash, reset, or otherwise investigate it unless Louis explicitly requests local work.
