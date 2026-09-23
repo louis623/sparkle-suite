@@ -13,6 +13,11 @@ const views: Array<{
     description: 'Rep questions, problems, and ideas',
   },
   {
+    key: 'direct',
+    label: 'Direct messages',
+    description: 'Private conversations with reps',
+  },
+  {
     key: 'broadcasts',
     label: 'Broadcasts',
     description: 'Official Sparkle Suite updates',
@@ -31,8 +36,10 @@ const views: Array<{
 
 export function ControlCenterCommunicationsNav({
   active,
+  ownerAccess = false,
 }: {
   active: ControlCenterCommunicationView
+  ownerAccess?: boolean
 }) {
   return (
     <nav
@@ -40,7 +47,7 @@ export function ControlCenterCommunicationsNav({
       className="border-b border-slate-200 bg-white px-5"
     >
       <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto py-3">
-        {views.map((view) => (
+        {views.filter((view) => ownerAccess || view.key !== 'direct').map((view) => (
           <Link
             aria-current={active === view.key ? 'page' : undefined}
             className={`min-w-48 rounded-lg border px-4 py-3 transition ${

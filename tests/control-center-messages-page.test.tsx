@@ -33,6 +33,10 @@ vi.mock('@/app/control-center/_components/ControlCenterConversationInbox', () =>
     createElement('div', null, `Authenticated support inbox ${initialConversationId ?? ''}`),
 }))
 
+vi.mock('@/app/control-center/_components/OwnerDirectMessages', () => ({
+  OwnerDirectMessages: () => createElement('div', null, 'Owner private direct messages'),
+}))
+
 vi.mock('@/app/control-center/_components/RepNetworkModerationPanel', () => ({
   RepNetworkModerationPanel: () =>
     createElement('div', null, 'Authenticated network safety'),
@@ -46,11 +50,13 @@ describe('ControlCenterMessagesPage', () => {
     redirectMock.mockClear()
     getControlCenterAccessMock.mockResolvedValue({
       operator: { email: 'owner@example.com' },
+      scope: 'owner',
+      method: 'control_center_session',
     })
   })
 
   it('opens Support Inbox by default for an authenticated operator', async () => {
-    const page = await ControlCenterMessagesPage()
+    const page = await ControlCenterMessagesPage({})
     const html = renderToStaticMarkup(page)
 
     expect(getControlCenterAccessMock).toHaveBeenCalledOnce()
@@ -86,12 +92,46 @@ describe('ControlCenterMessagesPage', () => {
     )
   })
 
+  it('shows private direct messages only to the owner', async () => {
+    const ownerPage = await ControlCenterMessagesPage({
+      searchParams: Promise.resolve({ view: 'direct' }),
+    })
+    const ownerHtml = renderToStaticMarkup(ownerPage)
+    expect(ownerHtml).toContain('Owner private direct messages')
+    expect(ownerHtml).toContain('Direct messages')
+
+    getControlCenterAccessMock.mockResolvedValueOnce({
+      operator: { email: 'support@example.com' },
+      scope: 'site_support',
+      method: 'control_center_session',
+    })
+    const supportPage = await ControlCenterMessagesPage({
+      searchParams: Promise.resolve({ view: 'direct' }),
+    })
+    const supportHtml = renderToStaticMarkup(supportPage)
+    expect(supportHtml).toContain('Authenticated support inbox')
+    expect(supportHtml).not.toContain('Owner private direct messages')
+    expect(supportHtml).not.toContain('Direct messages')
+
+    getControlCenterAccessMock.mockResolvedValueOnce({
+      operator: { email: 'owner@example.com' },
+      scope: 'owner',
+      method: 'loc_service',
+    })
+    const agentPage = await ControlCenterMessagesPage({
+      searchParams: Promise.resolve({ view: 'direct' }),
+    })
+    const agentHtml = renderToStaticMarkup(agentPage)
+    expect(agentHtml).toContain('Authenticated support inbox')
+    expect(agentHtml).not.toContain('Owner private direct messages')
+  })
+
   it('preserves the destination when redirecting an unauthenticated visitor', async () => {
     getControlCenterAccessMock.mockRejectedValueOnce(
       new MockAuthError('missing session'),
     )
 
-    await expect(ControlCenterMessagesPage()).rejects.toThrow(
+    await expect(ControlCenterMessagesPage({})).rejects.toThrow(
       'redirect:/control-center/login?redirect=%2Fcontrol-center%2Fmessages',
     )
   })
@@ -101,7 +141,7 @@ describe('ControlCenterMessagesPage', () => {
       new MockOperatorAuthError('not operator'),
     )
 
-    const page = await ControlCenterMessagesPage()
+    const page = await ControlCenterMessagesPage({})
     const html = renderToStaticMarkup(page)
 
     expect(html).toContain('Operator access required')

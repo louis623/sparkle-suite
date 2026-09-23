@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { CommunicationsConsole } from '@/app/control-center/_components/CommunicationsConsole'
 import { ControlCenterCommunicationsNav } from '@/app/control-center/_components/ControlCenterCommunicationsNav'
 import { ControlCenterConversationInbox } from '@/app/control-center/_components/ControlCenterConversationInbox'
+import { OwnerDirectMessages } from '@/app/control-center/_components/OwnerDirectMessages'
 import { RepNetworkModerationPanel } from '@/app/control-center/_components/RepNetworkModerationPanel'
 import { RemyReplyApprovalsPanel } from '@/app/control-center/_components/RemyReplyApprovalsPanel'
 import type { ControlCenterCommunicationView } from '@/app/control-center/_components/control-center-communications'
@@ -17,7 +18,7 @@ export const dynamic = 'force-dynamic'
 
 function communicationView(value: string | string[] | undefined) {
   const requested = Array.isArray(value) ? value[0] : value
-  return (['support', 'broadcasts', 'safety', 'approvals'] as const).includes(
+  return (['support', 'direct', 'broadcasts', 'safety', 'approvals'] as const).includes(
     requested as ControlCenterCommunicationView,
   )
     ? (requested as ControlCenterCommunicationView)
@@ -32,8 +33,9 @@ export default async function ControlCenterMessagesPage({
     conversationId?: string | string[]
   }>
 }) {
+  let access
   try {
-    await getControlCenterAccess()
+    access = await getControlCenterAccess()
   } catch (error) {
     if (error instanceof AuthError) {
       redirect('/control-center/login?redirect=%2Fcontrol-center%2Fmessages')
@@ -57,7 +59,10 @@ export default async function ControlCenterMessagesPage({
   }
 
   const resolvedSearchParams = await searchParams
-  const view = communicationView(resolvedSearchParams?.view)
+  const requestedView = communicationView(resolvedSearchParams?.view)
+  const ownerAccess =
+    access.scope === 'owner' && access.method === 'control_center_session'
+  const view = requestedView === 'direct' && !ownerAccess ? 'support' : requestedView
   const requestedConversationId = resolvedSearchParams?.conversationId
   const initialConversationId = Array.isArray(requestedConversationId)
     ? requestedConversationId[0]
@@ -65,7 +70,8 @@ export default async function ControlCenterMessagesPage({
 
   return (
     <>
-      <ControlCenterCommunicationsNav active={view} />
+      <ControlCenterCommunicationsNav active={view} ownerAccess={ownerAccess} />
+      {view === 'direct' ? <OwnerDirectMessages /> : null}
       {view === 'broadcasts' ? <CommunicationsConsole /> : null}
       {view === 'support' ? (
         <ControlCenterConversationInbox

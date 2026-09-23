@@ -9,6 +9,7 @@ describe('workspace conversation composing feature flags', () => {
     expect(isWorkspaceConversationComposingEnabled('team_onboarding', {})).toBe(true)
     expect(isWorkspaceConversationComposingEnabled('support', {})).toBe(true)
     expect(isWorkspaceConversationComposingEnabled('rep_direct', {})).toBe(true)
+    expect(isWorkspaceConversationComposingEnabled('owner_direct', {})).toBe(true)
   })
 
   it('supports an independent emergency stop for each composing path', () => {
@@ -20,6 +21,9 @@ describe('workspace conversation composing feature flags', () => {
     })).toBe(false)
     expect(isWorkspaceConversationComposingEnabled('rep_direct', {
       SPARKLE_WORKSPACE_REP_NETWORK_MESSAGING_ENABLED: 'false',
+    })).toBe(false)
+    expect(isWorkspaceConversationComposingEnabled('owner_direct', {
+      SPARKLE_WORKSPACE_OWNER_DIRECT_MESSAGING_ENABLED: 'false',
     })).toBe(false)
   })
 
