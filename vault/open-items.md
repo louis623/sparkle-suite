@@ -1,11 +1,12 @@
 ## September 23, 2026 - Archived onboarding reply follow-through
 
 - [x] Louis chose automatic return to the main Inbox on a genuine new inbound reply. No message was lost. Migration `20260923130000` and product commit `2d8ee5c6` are live on Ready Vercel `dpl_G7kW9pvyotVbF8zWeVGCfyNwV2qA`; the one already-unread onboarding reply is in the active Inbox RPC.
-- [ ] Complete a safe signed-in synthetic reviewer/operator visual check before closing the existing live Control Center Task List bug `b83da8cf-c235-4c62-bd6d-d37e84823a41`. It remains in progress; do not substitute a personal or customer account.
+- [x] Louis explicitly authorized his Dudes Fizzfest demo account. On live `www`, the onboarding thread appeared in the main inbox, direct Reply saved a labeled QA message, Needs reply cleared, and search returned the thread. The live Control Center Task List bug `b83da8cf-c235-4c62-bd6d-d37e84823a41` is complete. The Message Center reply-pane layout fix is Ready on `dpl_BrBuCpLgv9wj4ub2oswXk1qF7m4R` at `ebd49c1`.
 
 ## September 23, 2026 - Message Center signed-in acceptance
 
-- [ ] Complete a token-gated synthetic rep reviewer and authorized non-personal owner/operator visual walkthrough on `https://www.yoursparklesuite.com`: Report a bug opens the issue composer; Live Lineup code copies; team-onboarding message replies directly; search/Needs reply/pagination preserve context; owner sends a private image to a synthetic rep and the rep can view/reply. Reset or remove only the synthetic test data afterward. Automated tests, production schema, live route health and anonymous access denial passed; do not use Louis's personal or customer account, extract the protected reviewer token, or call this visual acceptance complete yet. Track any user-facing follow-up in the live Control Center Task List rather than treating this vault item as the task tracker.
+- [x] On `https://www.yoursparklesuite.com`, Louis's explicitly authorized demo account confirmed Report a bug, code copy, onboarding direct reply, Needs reply and search. The live reply-pane layout was corrected and verified; no real rep was emailed.
+- [ ] Complete a signed-in Control Center owner-only image send to an isolated demo/reviewer rep, then verify image receipt/read/reply from that rep. Control Center requires its independent operator sign-in; no operator credentials were available in this session. Do not use customer accounts, extract protected tokens, or claim that owner image exchange has passed. Existing automated tests cover owner/membership authorization, image privacy and signed reads, but cannot replace this UI acceptance.
 
 ## September 22, 2026 - Private skin visibility reviewer smoke
 

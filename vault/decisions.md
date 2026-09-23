@@ -1,3 +1,7 @@
+## 2026-09-23 - Scoped demo-account smoke authorization
+
+- Louis explicitly authorized using his Dudes Fizzfest / `louis@neonrabbit.net` demo account for this Message Center browser review. This is a scoped exception to the normal synthetic-reviewer preference, not standing permission for unrelated future work or for customer accounts. The independent Control Center operator sign-in remains separate; do not extract or reset credentials to reach it.
+
 ## 2026-09-23 - Archived conversations return on a new inbound reply
 
 - Louis chose the recommended behavior: a genuine new inbound message returns an archived conversation to the recipient's main Inbox. Archiving still clears it until another participant replies. Self-sent, system/status, suppressed-unread, and historical pre-archive messages do not reopen it.

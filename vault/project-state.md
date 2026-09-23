@@ -1,3 +1,9 @@
+## September 23, 2026 - Message Center demo acceptance and layout polish
+
+- Louis explicitly authorized using his Dudes Fizzfest demo account for this review. Chrome preflight succeeded; the signed-in live `www` Workspace visually showed Report a bug opening the preselected problem composer, Live Lineup Code with a working Copied confirmation, and the restored Jane New Rep Onboarding thread in the main inbox with a direct Reply action.
+- The browser walkthrough exposed a layout flaw: focusing Reply could scroll the thread header and history out of view. Commit `ebd49c1ecb288f38293b8a8f63a12d0fe24a8db7` gives the desktop inbox a definite bounded height and clips the detail pane's programmatic scroll while keeping mobile auto-height. Three focused suites passed 21 tests, targeted lint and guarded local/remote build/type checks passed. Manual production deployment `dpl_BrBuCpLgv9wj4ub2oswXk1qF7m4R` is Ready at that exact SHA on both Suite domains and all existing aliases.
+- On the live domain, the corrected inbox scrolls independently and keeps the onboarding history and composer together. One clearly labeled QA reply in the no-email demo Jane thread saved and displayed; Needs reply cleared and search found the thread. Live Task List bug `b83da8cf-c235-4c62-bd6d-d37e84823a41` was closed with this evidence. Owner-only image send/rep receipt remains **not visually verified** because Control Center requires a separate operator sign-in; no credential was accessed or changed.
+
 ## September 23, 2026 - Archived reply return released
 
 - Louis approved returning an archived conversation to the main Inbox on a genuine new inbound reply. Product commit `2d8ee5c6edf9f4f5059993ffcd2295fbe764df6b` is Ready on manual Vercel production deployment `dpl_G7kW9pvyotVbF8zWeVGCfyNwV2qA`; both Suite domains and the existing 12 other project aliases resolve to that exact commit. Supabase migration `20260923130000_ss_unarchive_on_inbound_reply.sql` is applied.
