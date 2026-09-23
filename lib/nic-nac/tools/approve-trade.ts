@@ -27,6 +27,10 @@ import type { ToolDefinition } from './types'
 
 const inputSchema = z.object({
   requestId: z.string().uuid(),
+  verifiedOfferedFamily: z.string().min(1),
+  verifiedOfferedType: z.enum(['RG', 'NK', 'ER', 'ST', 'BR']),
+  verificationConfirmed: z.literal(true),
+  finalConfirmation: z.literal(true),
   repNotes: z.string().optional(),
 })
 
@@ -52,10 +56,10 @@ export function makeApproveTradeTool(ctx: {
     description:
       "Approve an incoming trade request against one of the authenticated rep's listings. " +
       'Irreversible: the listing flips to traded, a fulfillment row is created, and the design times_traded counter is incremented. ' +
-      "Requires explicit user approval — the tool emits a Confirm/Cancel approval dialog directly to the rep. Identify the request by requestId. Optionally include repNotes the rep wants attached to the approval.",
+      "Requires explicit rep verification of the offered family and jewelry type, a final confirmation, and the tool's approval dialog. Identify the request by requestId.",
     inputSchema,
     needsApproval: true,
-    execute: async ({ requestId, repNotes }) => {
+    execute: async ({ requestId, verifiedOfferedFamily, verifiedOfferedType, verificationConfirmed, finalConfirmation, repNotes }) => {
       assertTradeWorkflowInputMatches({
         workflow: ctx.activeTradeWorkflow,
         workflowType: 'trade_request_decision',
@@ -66,7 +70,9 @@ export function makeApproveTradeTool(ctx: {
 
       let result: Awaited<ReturnType<typeof approveTrade>>
       try {
-        result = await approveTrade(admin, ctx.repId, requestId, repNotes)
+        result = await approveTrade(admin, ctx.repId, requestId, repNotes, {
+          verifiedOfferedFamily, verifiedOfferedType, verificationConfirmed, finalConfirmation,
+        })
       } catch (err) {
         explainServiceError(err)
       }

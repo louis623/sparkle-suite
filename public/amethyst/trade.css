@@ -270,6 +270,17 @@ body.britt-with-bling-trade .hp-footer {
   max-width: 56ch;
   margin: 0 auto;
 }
+.tp-screenshot-tip {
+  max-width: 56ch;
+  margin: 14px auto 0;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in oklab, var(--hp-primary) 22%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--hp-primary) 6%, var(--hp-bg-elevated));
+  color: var(--fg);
+  font-size: 12px;
+  line-height: 1.5;
+}
 @media (max-width: 640px) {
   .tp-hero {
     padding: 48px 0 32px;
@@ -1413,7 +1424,8 @@ body.bg-quartz-paper .tp-filter-pill.active .count {
   margin-bottom: 6px;
 }
 .tp-sheet-field input,
-.tp-sheet-field textarea {
+.tp-sheet-field textarea,
+.tp-sheet-field select {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--border);
@@ -1426,11 +1438,50 @@ body.bg-quartz-paper .tp-filter-pill.active .count {
 }
 .tp-sheet-field textarea { min-height: 88px; }
 .tp-sheet-field input:focus,
-.tp-sheet-field textarea:focus {
+.tp-sheet-field textarea:focus,
+.tp-sheet-field select:focus {
   outline: 0;
   border-color: var(--hp-primary);
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--hp-primary) 16%, transparent);
 }
+.tp-sheet-match-target,
+.tp-sheet-screening,
+.tp-sheet-mismatch,
+.tp-sheet-receipt {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 13px;
+  background: var(--hp-bg);
+  color: var(--fg);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.tp-sheet-match-target strong,
+.tp-sheet-match-target span {
+  display: block;
+}
+.tp-sheet-match-target strong { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.tp-sheet-screening { margin: 0; }
+.tp-sheet-mismatch { border-color: color-mix(in oklab, #a43b00 38%, var(--border)); }
+.tp-sheet-mismatch p { margin: 4px 0 0; }
+.tp-sheet-alternatives { display: grid; gap: 6px; margin-top: 10px; }
+.tp-sheet-alternatives span { font-size: 11px; font-weight: 650; }
+.tp-sheet-alternatives button,
+.tp-sheet-receipt button,
+.tp-sheet-receipt a {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: var(--hp-bg-elevated);
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.tp-sheet-receipt { display: grid; gap: 8px; text-align: left; margin-bottom: 16px; }
+.tp-sheet-receipt p { margin: 0; }
+.tp-sheet-receipt input { min-width: 0; width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 8px; }
 .tp-sheet-upload {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

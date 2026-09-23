@@ -4,6 +4,7 @@ const getAuthenticatedNicNacContextMock = vi.fn()
 const getPaidNicNacContextMock = vi.fn()
 const getAuthenticatedRepMock = vi.fn()
 const getTradeRequestsMock = vi.fn()
+const getPendingTradeRequestCountMock = vi.fn()
 const approveTradeMock = vi.fn()
 const rejectTradeMock = vi.fn()
 const approveTradeWithRevealedItemCaptureMock = vi.fn()
@@ -27,6 +28,7 @@ vi.mock('@/lib/supabase/admin', () => ({
 
 vi.mock('@/lib/services/trade-requests', () => ({
   getTradeRequests: (...args: unknown[]) => getTradeRequestsMock(...args),
+  getPendingTradeRequestCount: (...args: unknown[]) => getPendingTradeRequestCountMock(...args),
   approveTrade: (...args: unknown[]) => approveTradeMock(...args),
   rejectTrade: (...args: unknown[]) => rejectTradeMock(...args),
 }))
@@ -45,6 +47,7 @@ describe('trade requests route', () => {
     getPaidNicNacContextMock.mockReset()
     getAuthenticatedRepMock.mockReset()
     getTradeRequestsMock.mockReset()
+    getPendingTradeRequestCountMock.mockReset()
     approveTradeMock.mockReset()
     rejectTradeMock.mockReset()
     approveTradeWithRevealedItemCaptureMock.mockReset()
@@ -77,6 +80,10 @@ describe('trade requests route', () => {
           revealedItemNumber: ' rg12345 ',
           revealedRingSize: '8',
           repNotes: 'Approved from dashboard',
+          verifiedOfferedFamily: 'Birthday',
+          verifiedOfferedType: 'RG',
+          verificationConfirmed: true,
+          finalConfirmation: true,
         }),
       }),
     )
@@ -90,6 +97,7 @@ describe('trade requests route', () => {
         revealedItemNumber: 'rg12345',
         revealedRingSize: '8',
         repNotes: 'Approved from dashboard',
+        verification: { verifiedOfferedFamily: 'Birthday', verifiedOfferedType: 'RG', verificationConfirmed: true, finalConfirmation: true },
       },
     )
     expect(response.status).toBe(200)
@@ -118,7 +126,7 @@ describe('trade requests route', () => {
     expect(getTradeRequestsMock).toHaveBeenCalledWith(
       { marker: 'supabase' },
       'rep-1',
-      { statusFilter: 'pending', limit: 12 },
+      { statusFilter: 'pending', limit: 12, offset: 0, requestId: undefined },
     )
     expect(response.status).toBe(200)
   })
@@ -144,6 +152,10 @@ describe('trade requests route', () => {
           action: 'approve',
           requestId: 'request-1',
           repNotes: 'Approved from dashboard',
+          verifiedOfferedFamily: 'OG',
+          verifiedOfferedType: 'ER',
+          verificationConfirmed: true,
+          finalConfirmation: true,
         }),
       }),
     )
@@ -153,6 +165,7 @@ describe('trade requests route', () => {
       'rep-1',
       'request-1',
       'Approved from dashboard',
+      { verifiedOfferedFamily: 'OG', verifiedOfferedType: 'ER', verificationConfirmed: true, finalConfirmation: true },
     )
     expect(approveTradeWithRevealedItemCaptureMock).not.toHaveBeenCalled()
     expect(response.status).toBe(200)
@@ -177,7 +190,7 @@ describe('trade requests route', () => {
         body: JSON.stringify({
           action: 'reject',
           requestId: 'request-2',
-          reason: 'not_interested',
+          reason: 'item_unavailable',
           repNotes: 'Not the right fit',
         }),
       }),
@@ -187,8 +200,9 @@ describe('trade requests route', () => {
       { marker: 'admin' },
       'rep-1',
       'request-2',
-      'not_interested',
+      'item_unavailable',
       'Not the right fit',
+      undefined,
     )
     expect(response.status).toBe(200)
   })

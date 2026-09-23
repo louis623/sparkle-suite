@@ -39,7 +39,6 @@ import {
   buildShowCalendarCells,
   buildHomeNextShowSummary,
   buildCustomerSparkleSiteHref,
-  createTradeRequestDecisionHandlers,
   getAutoRechargeAmountOptions,
   getAutoRechargeDraft,
   getAutoRechargeThresholdOptions,
@@ -2359,8 +2358,8 @@ describe('DashboardPlaceholder', () => {
     expect(source).toContain("activeSection !== 'trade-board'")
     expect(source).toContain("document.addEventListener('visibilitychange'")
     expect(source).toContain("window.addEventListener('focus'")
-    expect(source).toContain('window.setInterval(')
-    expect(source).toContain('refreshIfTradeBoardActive')
+    expect(source).toContain('refreshTradeWorkspaceSettled()')
+    expect(source).toContain('window.setTimeout(refresh, Math.min(60_000, TRADE_WORKSPACE_REFRESH_MS * 2 ** failures))')
   })
 
   it('wires Nic-Nac mutation refresh events into the workspace views', () => {
@@ -2617,39 +2616,15 @@ describe('DashboardPlaceholder', () => {
     )
   })
 
-  it('routes trade-board approve and reject actions through the dashboard decision handler', () => {
+  it('routes trade-board decisions through shared review before the decision API', () => {
     const dashboardSource = readFileSync(
       resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
       'utf8',
     )
-    const handleTradeRequestDecision = vi.fn()
-    const handlers = createTradeRequestDecisionHandlers(handleTradeRequestDecision)
-
     expect(dashboardSource).toContain('/api/nic-nac/trade-swap-cleanup')
-    expect(dashboardSource).toMatch(
-      /const tradeRequestDecisionHandlers = createTradeRequestDecisionHandlers\(\s*handleTradeRequestDecision,\s*\)/,
-    )
-    expect(dashboardSource).toContain(
-      'onApproveRequest={tradeRequestDecisionHandlers.onApproveRequest}',
-    )
-    expect(dashboardSource).toContain(
-      'onRejectRequest={tradeRequestDecisionHandlers.onRejectRequest}',
-    )
-    handlers.onApproveRequest('request-1', {
-      revealedItemNumber: 'RG200',
-      revealedRingSize: '8',
-    })
-    handlers.onRejectRequest('request-2')
-
-    expect(handleTradeRequestDecision).toHaveBeenNthCalledWith(1, 'request-1', 'approve', {
-      revealedItemNumber: 'RG200',
-      revealedRingSize: '8',
-    })
-    expect(handleTradeRequestDecision).toHaveBeenNthCalledWith(
-      2,
-      'request-2',
-      'reject',
-    )
+    expect(dashboardSource).toContain('onReviewRequest={(requestId, action) => void openTradeReview(requestId, action)}')
+    expect(dashboardSource).toContain('<TradeRequestReviewDialog')
+    expect(dashboardSource).toContain('body: JSON.stringify(decision)')
     expect(dashboardSource).toContain(
       'Trade approved. Added the revealed dancer back to your Dance Floor.',
     )

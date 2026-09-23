@@ -288,7 +288,7 @@ export const defaultAmethystHomepageTemplateData: AmethystHomepageTemplateData =
     catalog: 'https://bombparty.com',
     preOrders: 'https://bombparty.com',
     pastShows: '#events',
-    faq: '#',
+    faq: '/faq',
     contact: '#',
     privacy: '#',
     terms: '#',

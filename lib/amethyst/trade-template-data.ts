@@ -164,7 +164,7 @@ export const defaultAmethystTradeTemplateData: AmethystTradeTemplateData = {
     catalog: 'https://bombparty.com',
     preOrders: 'https://bombparty.com',
     pastShows: '/amethyst/Homepage.html#events',
-    faq: '#faq',
+    faq: '/faq',
     contact: '#faq',
     privacy: '#faq',
     terms: '#faq',

@@ -387,6 +387,7 @@ function PantryPage() {
           <a {...linkProps(links.home)}>Home</a>
           <a {...linkProps(links.trade)}>Dance Floor</a>
           <a {...linkProps(links.join)}>Join Team</a>
+          <a {...linkProps(links.faq || "/faq")}>FAQ</a>
           <a {...linkProps(links.contact)}>Contact</a>
         </div>
       </footer>

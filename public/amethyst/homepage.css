@@ -1386,6 +1386,24 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   width: fit-content;
   max-width: 100%;
 }
+.hp-reveal-screenshot-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  width: min(100% - 32px, 1060px);
+  margin: 12px auto;
+  padding: 10px 16px;
+  border: 1px solid color-mix(in oklab, var(--hp-primary) 25%, var(--border));
+  border-radius: 12px;
+  background: var(--hp-bg-elevated);
+  color: var(--fg);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+}
+.hp-reveal-screenshot-tip strong { color: var(--hp-primary); }
 .hp-hero-cta-primary-row {
   display: flex;
   flex-wrap: wrap;

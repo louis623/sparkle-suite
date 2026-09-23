@@ -54,6 +54,7 @@ const AMETHYST_ASSETS = new Set([
   'skins/neon-butterfly/kelly-sign-violet.png',
   'Amethyst Design System.html',
   'components.css',
+  'faq.css',
   'homepage.css',
   'Homepage.html',
   'homepage.jsx',

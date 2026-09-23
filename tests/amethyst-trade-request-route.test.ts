@@ -18,6 +18,7 @@ vi.mock('@/lib/supabase/admin', () => ({
 vi.mock('@/lib/services/trade-requests', () => ({
   TRADE_REQUEST_CUSTOMER_NAME_MAX_LENGTH: 100,
   TRADE_REQUEST_DESCRIPTION_MAX_LENGTH: 1000,
+  TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH: 100,
   submitTradeRequest: (...args: unknown[]) => submitTradeRequestMock(...args),
   attachTradeRequestRevealScreenshot: (...args: unknown[]) =>
     attachTradeRequestRevealScreenshotMock(...args),

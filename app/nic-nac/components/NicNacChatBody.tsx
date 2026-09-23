@@ -20,6 +20,7 @@ import { RequiredSetupPreviewPanel } from './RequiredSetupPreviewPanel'
 import { StreamingBubble } from './StreamingBubble'
 import { ThinkingIndicator } from './ThinkingIndicator'
 import { TradeRequestLiveCard } from './TradeRequestLiveCard'
+import { openTradeRequestReview } from './trade-request-review-events'
 import { compressImage } from '@/lib/nic-nac/image-compress'
 import { orderResolvedAttachments } from '@/lib/nic-nac/client-attachments'
 import { buildConversationStateUrl, readJsonResponse } from '@/lib/nic-nac/client-conversation-routing'
@@ -337,16 +338,12 @@ export function NicNacChatBody({
     stamp: number
     previousLatestUserId: string | null
   } | null>(null)
-  const [pendingTradeDecision, setPendingTradeDecision] =
-    useState<TradeRequestDecision | null>(null)
-  const [resolvedTradeDecisions, setResolvedTradeDecisions] =
-    useState<TradeRequestDecisionById>({})
-  const [tradeDecisionErrors, setTradeDecisionErrors] =
-    useState<TradeRequestDecisionErrorById>({})
+  const pendingTradeDecision: TradeRequestDecision | null = null
+  const resolvedTradeDecisions: TradeRequestDecisionById = {}
+  const tradeDecisionErrors: TradeRequestDecisionErrorById = {}
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const prevStatusRef = useRef<typeof status>(status)
   const announcedWorkspaceRefreshPartsRef = useRef<Set<string>>(new Set())
-  const tradeDecisionInFlightRef = useRef(false)
 
   const isStreaming = status === 'streaming' || status === 'submitted'
   // Actionable only if the LAST assistant message has an approval-requested
@@ -512,64 +509,11 @@ export function NicNacChatBody({
     }
   }, [messages])
 
-  const handleTradeRequestDecision = useCallback(
-    async (action: 'approve' | 'reject', requestId: string) => {
-      if (tradeDecisionInFlightRef.current) return
-      if (resolvedTradeDecisions[requestId]) return
-      tradeDecisionInFlightRef.current = true
-      setPendingTradeDecision({ requestId, action })
-      setTradeDecisionErrors((current) => {
-        if (!current[requestId]) return current
-        const next = { ...current }
-        delete next[requestId]
-        return next
-      })
-      try {
-        const res = await fetch('/api/nic-nac/trade-requests', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action, requestId }),
-        })
-        if (!res.ok) {
-          const body = await readJsonResponse<{ error?: string }>(
-            res,
-            'trade request decision',
-          ).catch(() => null)
-          throw new Error(body?.error ?? 'Trade request decision failed')
-        }
-        setResolvedTradeDecisions((current) => ({
-          ...current,
-          [requestId]: action,
-        }))
-        setTradeDecisionErrors((current) => {
-          if (!current[requestId]) return current
-          const next = { ...current }
-          delete next[requestId]
-          return next
-        })
-        window.dispatchEvent(
-          new CustomEvent(NIC_NAC_WORKSPACE_REFRESH_EVENT, {
-            detail: { topic: 'trade' },
-          }),
-        )
-        await refreshConversationMessages()
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : 'Trade request decision failed'
-        setTradeDecisionErrors((current) => ({
-          ...current,
-          [requestId]: message,
-        }))
-        console.error('Nic-Nac trade request decision failed', error)
-      } finally {
-        setPendingTradeDecision(null)
-        tradeDecisionInFlightRef.current = false
-      }
+  const handleTradeRequestReview = useCallback(
+    (action: 'approve' | 'reject', requestId: string) => {
+      openTradeRequestReview(requestId, action)
     },
-    [refreshConversationMessages, resolvedTradeDecisions],
+    [],
   )
 
   // Push streaming + HITL state up so the parent can disable the New button.
@@ -819,7 +763,7 @@ export function NicNacChatBody({
               isStreamingTail={isStreaming && idx === messages.length - 1}
               isThinking={thinkingFor === m.id}
               onApprove={addToolApprovalResponse}
-              onTradeRequestDecision={handleTradeRequestDecision}
+              onTradeRequestDecision={handleTradeRequestReview}
               pendingTradeDecision={pendingTradeDecision}
               resolvedTradeDecisions={resolvedTradeDecisions}
               tradeDecisionErrors={tradeDecisionErrors}

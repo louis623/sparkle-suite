@@ -49,8 +49,10 @@ describe('Amethyst public site slug links', () => {
 
     expect(data.homepage.footerLinks.home).toBe('/milehighfizz')
     expect(data.homepage.footerLinks.tradeBoard).toBe('/milehighfizz/trade')
+    expect(data.homepage.footerLinks.faq).toBe('/milehighfizz/faq')
     expect(data.trade.footerLinks.home).toBe('/milehighfizz')
     expect(data.trade.footerLinks.tradeBoard).toBe('/milehighfizz/trade')
+    expect(data.trade.footerLinks.faq).toBe('/milehighfizz/faq')
     expect(data.trade.footerLinks.pastShows).toBe('/milehighfizz#events')
     expect(events[0].collections[0].href).toBe(
       '/milehighfizz/trade?collection=Citrine%20Sun%20Series',
@@ -86,18 +88,21 @@ describe('Amethyst public site slug links', () => {
     expect(data.homepage.footerLinks).toMatchObject({
       home: '/',
       tradeBoard: '/trade',
+      faq: '/faq',
       joinTeam: '/join',
       pastShows: '/#events',
     })
     expect(data.trade.footerLinks).toMatchObject({
       home: '/',
       tradeBoard: '/trade',
+      faq: '/faq',
       joinTeam: '/join',
       pastShows: '/#events',
     })
     expect(data.join.footerLinks).toMatchObject({
       home: '/',
       tradeBoard: '/trade',
+      faq: '/faq',
       joinTeam: '/join',
       pastShows: '/#top',
     })
@@ -115,6 +120,7 @@ describe('Amethyst public site slug links', () => {
       trade: '/trade',
       join: '/join',
       pantry: '/in-the-pantry',
+      faq: '/faq',
     })
   })
 })

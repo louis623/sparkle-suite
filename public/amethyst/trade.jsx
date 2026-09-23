@@ -75,6 +75,7 @@ const BOOTSTRAP_LISTINGS = Array.isArray(window.AMETHYST_TRADE_BOARD_LISTINGS)
   ? window.AMETHYST_TRADE_BOARD_LISTINGS
   : [];
 const TRADE_REQUEST_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests");
+const TRADE_SCREEN_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/screen");
 const TRADE_BOARD_ENDPOINT = withCurrentSearch("/api/amethyst/trade-board");
 const TRADE_BOARD_REFRESH_MS = 45_000;
 const BOARD_PAGE_SIZE = 24;
@@ -461,6 +462,7 @@ function normalizeBootstrapPiece(piece, index) {
     : "Jewelry";
   const safeTier = piece.tier === "diamond" || piece.tier === "unicorn" ? piece.tier : "everyday";
   const safeMsrp = typeof piece.msrp === "number" ? piece.msrp : null;
+  const quantity = Number(piece.quantityAvailable ?? 1);
 
   return {
     id: piece.id || `bootstrap-${index + 1}`,
@@ -476,6 +478,7 @@ function normalizeBootstrapPiece(piece, index) {
       ? piece.stone.trim()
       : "Stone pending",
     msrp: safeMsrp,
+    quantityAvailable: Number.isFinite(quantity) ? Math.max(0, quantity) : 0,
     size: typeof piece.size === "string" && piece.size.trim() ? piece.size.trim() : null,
     note: typeof piece.note === "string" && piece.note.trim()
       ? piece.note.trim()
@@ -643,6 +646,9 @@ async function submitTradeRequestRequest(payload) {
         form.append("customerName", payload.customerName);
         form.append("customerDescription", payload.customerDescription);
         form.append("submissionId", payload.submissionId);
+        form.append("offeredFamily", payload.offeredFamily || "");
+        form.append("offeredType", payload.offeredType || "");
+        form.append("manualReviewRequested", String(payload.manualReviewRequested));
         form.append("revealScreenshot", payload.revealScreenshot);
         return {
           method: "POST",
@@ -659,6 +665,9 @@ async function submitTradeRequestRequest(payload) {
           customerName: payload.customerName,
           customerDescription: payload.customerDescription,
           submissionId: payload.submissionId,
+          offeredFamily: payload.offeredFamily,
+          offeredType: payload.offeredType,
+          manualReviewRequested: payload.manualReviewRequested,
         }),
       };
 
@@ -671,6 +680,22 @@ async function submitTradeRequestRequest(payload) {
     throw error;
   }
 
+  return body;
+}
+
+async function screenTradeOfferRequest(payload, signal) {
+  const response = await fetch(TRADE_SCREEN_ENDPOINT, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+    signal,
+  });
+  if (!response.ok) throw new Error("We couldn't check this match right now.");
+  const body = await response.json();
+  if (!["likely_match", "mismatch", "needs_verification"].includes(body?.screening?.status)) {
+    throw new Error("We couldn't check this match right now.");
+  }
   return body;
 }
 
@@ -1097,6 +1122,7 @@ function TradeHero({ tweakRepName, tweakHeroTitle, tweakHeroSub, gnomeGarden }) 
         <p className="tp-hero-sub slot" data-slot="trade hero sub">
           {tweakHeroSub} Browse what <span className="slot" data-slot="rep name">{tweakRepName}</span> has available, then request the closest fit you love.
         </p>
+        <p className="tp-screenshot-tip">Save a screenshot of your reveal before leaving the live show. Upload is optional; crop out personal and order details first.</p>
       </div>
     </section>
   );
@@ -1459,24 +1485,91 @@ function ExpandedCard({ piece, onClose, onWantThis, repName }) {
   );
 }
 
-function RequestSheet({ piece, onClose, onSubmit, success, pending, error, repName }) {
+function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferChange, manualReviewRequired, keepDraftOnAlternative, success, pending, error, repName }) {
   const [name, setName] = useState("");
   const [offering, setOffering] = useState("");
+  const [offeredFamily, setOfferedFamily] = useState("");
+  const [offeredType, setOfferedType] = useState("");
   const [screenshot, setScreenshot] = useState(null);
   const [screenshotError, setScreenshotError] = useState("");
   const [submissionId, setSubmissionId] = useState(() => crypto.randomUUID());
+  const [screeningState, setScreeningState] = useState("idle");
+  const [screening, setScreening] = useState(null);
+  const [alternatives, setAlternatives] = useState([]);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    if (keepDraftOnAlternative) return;
     setName("");
     setOffering("");
+    setOfferedFamily("");
+    setOfferedType("");
     setScreenshot(null);
     setScreenshotError("");
     setSubmissionId(crypto.randomUUID());
-  }, [piece?.id, success]);
+  }, [piece?.id, success, keepDraftOnAlternative]);
+
+  useEffect(() => {
+    if (!piece?.id || success || (!offeredFamily.trim() && !offeredType)) {
+      setScreeningState("idle");
+      setScreening(null);
+      setAlternatives([]);
+      return;
+    }
+    const controller = new AbortController();
+    setScreeningState("checking");
+    setScreening(null);
+    setAlternatives([]);
+    let requestTimeout;
+    const timer = window.setTimeout(() => {
+      requestTimeout = window.setTimeout(() => {
+        controller.abort();
+        setScreeningState("error");
+      }, 6000);
+      screenTradeOfferRequest({
+        listingId: piece.id,
+        offeredFamily: offeredFamily.trim() || null,
+        offeredType: offeredType || null,
+      }, controller.signal)
+        .then((result) => {
+          window.clearTimeout(requestTimeout);
+          setScreening(result.screening);
+          setAlternatives(Array.isArray(result.alternatives) ? result.alternatives : []);
+          setScreeningState("ready");
+        })
+        .catch((requestError) => {
+          window.clearTimeout(requestTimeout);
+          if (requestError?.name !== "AbortError") setScreeningState("error");
+        });
+    }, 300);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(requestTimeout);
+      controller.abort();
+    };
+  }, [piece?.id, offeredFamily, offeredType, success]);
 
   const trimmedName = name.trim();
   const trimmedOffering = offering.trim();
-  const canSubmit = Boolean(trimmedName && trimmedOffering && !screenshotError && !pending);
+  const canSubmit = Boolean(trimmedName && trimmedOffering && !pending && screeningState !== "checking");
+  const isMismatch = screeningState === "ready" && screening?.status === "mismatch";
+  const needsExplicitReviewAction = isMismatch || screeningState === "error" || manualReviewRequired;
+  const receiptUrl = typeof success?.receiptUrl === "string" && success.receiptUrl.startsWith("/trade-request/status/")
+    ? new URL(success.receiptUrl, window.location.origin).href
+    : null;
+  const sendRequest = (manualReviewRequested) => {
+    if (!canSubmit) return;
+    onSubmit({
+      listingId: piece.id,
+      customerName: trimmedName,
+      customerDescription: trimmedOffering,
+      offeredFamily: offeredFamily.trim() || null,
+      offeredType: offeredType || null,
+      manualReviewRequested,
+      submissionId,
+      revealScreenshot: screenshot,
+    });
+  };
 
   if (!piece && !success) return null;
 
@@ -1489,8 +1582,25 @@ function RequestSheet({ piece, onClose, onSubmit, success, pending, error, repNa
           <div className="tp-sheet-success-icon">&#10003;</div>
           <h3 className="tp-sheet-success-title">Request sent.</h3>
           <p className="tp-sheet-success-body">
-            <strong>{repName}</strong> will review your match after the show and follow up directly.
+            <strong>{repName}</strong> will review your request. This is not an approved trade yet.
           </p>
+          {success?.warning && <p className="tp-sheet-error" role="alert">{success.warning}</p>}
+          {receiptUrl && (
+            <div className="tp-sheet-receipt">
+              <strong>Save your private status link</strong>
+              <p>Open this link later to see whether your rep has approved, denied, or cancelled the request. Approval does not mean the item has shipped.</p>
+              <a href={receiptUrl} rel="noreferrer">View request status</a>
+              <button type="button" onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(receiptUrl);
+                  setCopied(true);
+                } catch {
+                  setCopied(false);
+                }
+              }}>{copied ? "Copied" : "Copy private link"}</button>
+              <input type="text" readOnly value={receiptUrl} aria-label="Private status link" onFocus={(event) => event.target.select()} />
+            </div>
+          )}
           <p className="tp-sheet-success-legal">
             This trade is solely between you and <strong>{repName}</strong>, an Independent Bomb Party Representative. The platform does not verify condition, authenticity, or value.
           </p>
@@ -1510,20 +1620,13 @@ function RequestSheet({ piece, onClose, onSubmit, success, pending, error, repNa
           {piece.collection} - {piece.type}{piece.size ? ` - Size ${piece.size}` : ""}
         </div>
         <p className="tp-sheet-helper">
-          Briefly describe the dancer you just revealed for <strong>{repName}</strong>. Include the collection and jewelry type if you know them.
+          Tell <strong>{repName}</strong> what you just revealed. Your dancer should be from the same collection family and jewelry type. Birthday months and years can differ.
         </p>
         <form
           className="tp-sheet-form"
           onSubmit={(event) => {
             event.preventDefault();
-            if (!canSubmit) return;
-            onSubmit({
-              listingId: piece.id,
-              customerName: trimmedName,
-              customerDescription: trimmedOffering,
-              submissionId,
-              revealScreenshot: screenshot,
-            });
+            if (!needsExplicitReviewAction) sendRequest(false);
           }}
         >
           <div className="tp-sheet-field">
@@ -1537,6 +1640,67 @@ function RequestSheet({ piece, onClose, onSubmit, success, pending, error, repNa
               required
             />
           </div>
+          <div className="tp-sheet-match-target">
+            <strong>Requested dancer</strong>
+            <span>{piece.collection} · {piece.type}</span>
+          </div>
+          <div className="tp-sheet-field">
+            <label htmlFor="tp-offered-family">Collection family you revealed</label>
+            <input
+              id="tp-offered-family"
+              type="text"
+              list="tp-collection-families"
+              placeholder="Birthday, OG, or another collection — leave blank if unsure"
+              value={offeredFamily}
+              onChange={(event) => {
+                setOfferedFamily(event.target.value);
+                onOfferChange();
+              }}
+              maxLength={100}
+              disabled={pending}
+            />
+            <datalist id="tp-collection-families">
+              {[...new Set(["Birthday", "OG", "Sterling Club", piece.collection].filter((family) => typeof family === "string" && family.trim()))].map((family) => <option key={family} value={family} />)}
+            </datalist>
+          </div>
+          <div className="tp-sheet-field">
+            <label htmlFor="tp-offered-type">Jewelry type you revealed</label>
+            <select id="tp-offered-type" value={offeredType} onChange={(event) => {
+              setOfferedType(event.target.value);
+              onOfferChange();
+            }} disabled={pending}>
+              <option value="">I'm not sure</option>
+              <option value="RG">Ring</option>
+              <option value="NK">Necklace</option>
+              <option value="ER">Earrings</option>
+              <option value="BR">Bracelet</option>
+              <option value="ST">Stack</option>
+            </select>
+          </div>
+          {screeningState === "checking" && <p className="tp-sheet-screening" role="status">Checking this match…</p>}
+          {screeningState === "ready" && screening?.status === "likely_match" && (
+            <p className="tp-sheet-screening" role="status">Likely match by collection family and jewelry type. Your rep still makes the decision.</p>
+          )}
+          {screeningState === "ready" && screening?.status === "needs_verification" && (
+            <p className="tp-sheet-screening" role="status">More detail is needed. Your rep can verify the collection and jewelry type.</p>
+          )}
+          {isMismatch && (
+            <div className="tp-sheet-mismatch" role="status">
+              <strong>These dancers don't appear to match</strong>
+              <p>{screening.reason || "The collection family or jewelry type differs."} You can choose another available dancer or ask your rep to review this one anyway.</p>
+              {alternatives.length > 0 && (
+                <div className="tp-sheet-alternatives">
+                  <span>Available dancers that may fit your reveal</span>
+                  {alternatives.map((alternative) => (
+                    <button key={alternative.listingId} type="button" onClick={() => onChooseAlternative(alternative)}>
+                      {alternative.designName} · {alternative.collectionName} · {{ RG: "Ring", NK: "Necklace", ER: "Earrings", BR: "Bracelet", ST: "Stack" }[alternative.typePrefix] || "Jewelry"}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {screeningState === "error" && <p className="tp-sheet-screening" role="status">Match guidance is temporarily unavailable. Your rep can review your request.</p>}
           <div className="tp-sheet-field">
             <label>What did you just reveal?</label>
             <textarea
@@ -1548,7 +1712,7 @@ function RequestSheet({ piece, onClose, onSubmit, success, pending, error, repNa
             />
           </div>
           <div className="tp-sheet-field">
-            <label>Screenshot of your reveal (recommended)</label>
+            <label>Screenshot of your reveal (recommended, optional)</label>
             <div className="tp-sheet-upload">
               <input
                 type="file"
@@ -1559,12 +1723,12 @@ function RequestSheet({ piece, onClose, onSubmit, success, pending, error, repNa
                   setScreenshot(null);
                   if (!file) return;
                   if (!TRADE_REQUEST_SCREENSHOT_TYPES.has(file.type)) {
-                    setScreenshotError("Please upload a JPG, PNG, or WebP screenshot.");
+                    setScreenshotError("Screenshot not attached. Choose a JPG, PNG, or WebP image, or send without one.");
                     event.target.value = "";
                     return;
                   }
                   if (file.size > TRADE_REQUEST_SCREENSHOT_MAX_BYTES) {
-                    setScreenshotError("Please upload a screenshot under 8 MB.");
+                    setScreenshotError("Screenshot not attached. Choose an image under 8 MB, or send without one.");
                     event.target.value = "";
                     return;
                   }
@@ -1575,7 +1739,7 @@ function RequestSheet({ piece, onClose, onSubmit, success, pending, error, repNa
               <div>
                 <strong>{screenshot ? screenshot.name : "Add a screenshot"}</strong>
                 <span>
-                  A screenshot helps the rep confirm the dancer quickly. It expires after 48 hours.
+                  A screenshot helps the rep confirm the dancer. Crop out personal and order information before uploading. It expires after 48 hours.
                 </span>
               </div>
             </div>
@@ -1590,9 +1754,15 @@ function RequestSheet({ piece, onClose, onSubmit, success, pending, error, repNa
               {error}
             </div>
           )}
-          <button type="submit" className="tp-sheet-submit" disabled={!canSubmit}>
-            {pending ? "Submitting..." : "Submit trade request"}
-          </button>
+          {needsExplicitReviewAction ? (
+            <button type="button" className="tp-sheet-submit" disabled={!canSubmit} onClick={() => sendRequest(true)}>
+              {pending ? "Submitting..." : "Ask my rep to review anyway"}
+            </button>
+          ) : (
+            <button type="submit" className="tp-sheet-submit" disabled={!canSubmit}>
+              {pending ? "Submitting..." : "Submit trade request"}
+            </button>
+          )}
         </form>
       </div>
     </div>
@@ -1664,7 +1834,7 @@ function Footer({ businessName }) {
         </div>
         <div className="hp-footer-col">
           <ul>
-            <li><span className="hp-footer-coming-soon">FAQ · Coming soon</span></li>
+            <li><a {...linkProps(FOOTER_LINKS.faq || "/faq")}>FAQ</a></li>
           </ul>
         </div>
       </div>
@@ -1687,9 +1857,11 @@ function App() {
   const [t, setTweak] = useTweaks(DEFAULTS);
   const [expanded, setExpanded] = useState(null);
   const [requesting, setRequesting] = useState(null);
+  const [keepDraftOnAlternative, setKeepDraftOnAlternative] = useState(false);
   const [success, setSuccess] = useState(false);
   const [requestPending, setRequestPending] = useState(false);
   const [requestError, setRequestError] = useState("");
+  const [manualReviewRequired, setManualReviewRequired] = useState(false);
   const [submittedListingIds, setSubmittedListingIds] = useState([]);
   const [liveListings, setLiveListings] = useState(BOOTSTRAP_LISTINGS);
   const [filters, setFilters] = useState(getInitialTradeFilters);
@@ -1902,13 +2074,18 @@ function App() {
     setRequestError("");
 
     try {
-      await submitTradeRequestRequest(payload);
-      await refreshTradeBoardListings();
+      const result = await submitTradeRequestRequest(payload);
+      if (typeof result?.receiptUrl !== "string" || !result.receiptUrl.startsWith("/trade-request/status/")) {
+        throw new Error("Your request may have been received, but its private status link is unavailable. Please retry with this form.");
+      }
+      void refreshTradeBoardListings().catch(() => {});
       setSubmittedListingIds((current) =>
         current.includes(payload.listingId) ? current : [...current, payload.listingId],
       );
-      setSuccess(true);
+      setSuccess(result);
+      setManualReviewRequired(false);
     } catch (error) {
+      if (error?.code === "MANUAL_REVIEW_REQUIRED") setManualReviewRequired(true);
       const isUnavailable =
         error?.code === "REQUEST_ALREADY_EXISTS" || error?.code === "LISTING_NOT_FOUND";
       if (isUnavailable) {
@@ -2018,6 +2195,7 @@ function App() {
         onClose={() => setExpanded(null)}
         onWantThis={(piece) => {
           setExpanded(null);
+          setKeepDraftOnAlternative(false);
           setRequesting(piece);
           setSuccess(false);
           setRequestError("");
@@ -2027,17 +2205,40 @@ function App() {
 
       <RequestSheet
         piece={requesting}
+        onChooseAlternative={(alternative) => {
+          const knownPiece = availableSamples.find((candidate) => String(candidate.id) === String(alternative.listingId));
+          const replacement = knownPiece || normalizeBootstrapPiece({
+            id: alternative.listingId,
+            name: alternative.designName,
+            collection: alternative.collectionName,
+            type: { RG: "Ring", NK: "Necklace", ER: "Earrings", BR: "Bracelet", ST: "Stack" }[alternative.typePrefix] || "Jewelry",
+            photoUrl: alternative.photoUrl,
+          }, 0);
+          if (!replacement) return;
+          setKeepDraftOnAlternative(true);
+          setRequesting(replacement);
+          setRequestError("");
+          setManualReviewRequired(false);
+        }}
+        onOfferChange={() => {
+          setManualReviewRequired(false);
+          setRequestError("");
+        }}
         onClose={() => {
           if (requestPending) return;
           setRequesting(null);
+          setKeepDraftOnAlternative(false);
           setSuccess(false);
           setRequestError("");
+          setManualReviewRequired(false);
           setTweak("demoSheet", "closed");
         }}
         onSubmit={handleTradeRequestSubmit}
+        keepDraftOnAlternative={keepDraftOnAlternative}
         success={success}
         pending={requestPending}
         error={requestError}
+        manualReviewRequired={manualReviewRequired}
         repName={repName}
       />
 

@@ -10,6 +10,7 @@ import {
   submitTradeRequest,
   TRADE_REQUEST_CUSTOMER_NAME_MAX_LENGTH,
   TRADE_REQUEST_DESCRIPTION_MAX_LENGTH,
+  TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH,
 } from '@/lib/services/trade-requests'
 import {
   removeTradeRequestRevealScreenshots,
@@ -33,6 +34,9 @@ type TradeRequestPayload = {
   customerName: string
   customerDescription: string
   submissionId?: string
+  offeredFamily: string | null
+  offeredType: 'RG' | 'NK' | 'ER' | 'ST' | 'BR' | null
+  manualReviewRequested: boolean
   revealScreenshot: File | null
 }
 
@@ -81,6 +85,9 @@ async function readPayload(request: Request): Promise<TradeRequestPayload> {
       customerName: readString(form.get('customerName')),
       customerDescription: readString(form.get('customerDescription')),
       submissionId: readString(form.get('submissionId')) || undefined,
+      offeredFamily: readString(form.get('offeredFamily')) || null,
+      offeredType: readOfferedType(form.get('offeredType')),
+      manualReviewRequested: readBoolean(form.get('manualReviewRequested')),
       revealScreenshot: screenshot instanceof File && screenshot.size > 0
         ? screenshot
         : null,
@@ -98,8 +105,21 @@ async function readPayload(request: Request): Promise<TradeRequestPayload> {
     customerName: readString(body?.customerName),
     customerDescription: readString(body?.customerDescription),
     submissionId: readString(body?.submissionId) || undefined,
+    offeredFamily: readString(body?.offeredFamily) || null,
+    offeredType: readOfferedType(body?.offeredType),
+    manualReviewRequested: readBoolean(body?.manualReviewRequested),
     revealScreenshot: null,
   }
+}
+
+function readOfferedType(value: unknown): TradeRequestPayload['offeredType'] {
+  if (value == null || value === '') return null
+  if (value === 'RG' || value === 'NK' || value === 'ER' || value === 'ST' || value === 'BR') return value
+  throw new TradeRequestPayloadError('Select a valid jewelry type.', 400)
+}
+
+function readBoolean(value: unknown): boolean {
+  return value === true || value === 'true'
 }
 
 async function readBoundedRequestBytes(request: Request, maxBytes: number) {
@@ -153,6 +173,9 @@ function validatePayloadBounds(payload: TradeRequestPayload) {
       400,
     )
   }
+  if ((payload.offeredFamily?.length ?? 0) > TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH) {
+    throw new TradeRequestPayloadError('The offered collection family is too long.', 400)
+  }
 }
 
 async function resolveScreenshotRepId(
@@ -203,6 +226,9 @@ export async function POST(request: Request) {
       customerDescription: payload.customerDescription,
       submissionId: payload.submissionId,
       expectedRepId: targetRep?.id,
+      offeredFamily: payload.offeredFamily,
+      offeredType: payload.offeredType,
+      manualReviewRequested: payload.manualReviewRequested,
     })
 
     let screenshotWarning: string | null = null
@@ -268,7 +294,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       screenshotWarning ? { ...result, warning: screenshotWarning } : result,
-      { status: 201 },
+      { status: 201, headers: { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' } },
     )
   } catch (error) {
     if (error instanceof TradeRequestPayloadError) {

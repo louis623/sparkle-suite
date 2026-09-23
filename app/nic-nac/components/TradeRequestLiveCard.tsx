@@ -71,20 +71,20 @@ export function TradeRequestLiveCard({
           type="button"
           disabled={buttonsDisabled}
           aria-busy={pendingAction === 'approve'}
-          aria-label={`Approve trade request from ${request.customerName} for ${requestedItem}`}
+          aria-label={`Review approval for trade request from ${request.customerName} for ${requestedItem}`}
           onClick={() => onDecision('approve', request.requestId)}
         >
-          {pendingAction === 'approve' ? 'Approving...' : 'Approve'}
+          {pendingAction === 'approve' ? 'Opening...' : 'Review to approve'}
         </button>
         <button
           className={`${styles.button} ${styles.deny}`}
           type="button"
           disabled={buttonsDisabled}
           aria-busy={pendingAction === 'reject'}
-          aria-label={`Deny trade request from ${request.customerName} for ${requestedItem}`}
+          aria-label={`Review denial for trade request from ${request.customerName} for ${requestedItem}`}
           onClick={() => onDecision('reject', request.requestId)}
         >
-          {pendingAction === 'reject' ? 'Denying...' : 'Deny'}
+          {pendingAction === 'reject' ? 'Opening...' : 'Review to deny'}
         </button>
       </div>
 

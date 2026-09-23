@@ -9,6 +9,7 @@ import {
 
 class ThenableQuery {
   filters: Array<[string, unknown]> = []
+  ranges: Array<[number, number]> = []
 
   constructor(private readonly result: Record<string, unknown>) {}
 
@@ -29,6 +30,11 @@ class ThenableQuery {
     return this
   }
 
+  range(start: number, end: number) {
+    this.ranges.push([start, end])
+    return this
+  }
+
   then(resolve: (value: Record<string, unknown>) => unknown) {
     return Promise.resolve(this.result).then(resolve)
   }
@@ -37,11 +43,13 @@ class ThenableQuery {
 describe('submitTradeRequest', () => {
   const rpc = vi.fn()
   const maybeSingle = vi.fn()
-  const eq = vi.fn(() => ({ maybeSingle }))
+  const single = vi.fn()
+  const eq = vi.fn(() => ({ maybeSingle, single }))
   const select = vi.fn(() => ({ eq }))
   const from = vi.fn(() => ({ select }))
-  const supabase = { rpc } as unknown as {
+  const supabase = { rpc, from } as unknown as {
     rpc: typeof rpc
+    from: typeof from
   }
   const supabaseWithListingLookup = {
     from,
@@ -54,10 +62,13 @@ describe('submitTradeRequest', () => {
     select.mockClear()
     eq.mockClear()
     maybeSingle.mockReset()
+    single.mockReset()
+    single.mockResolvedValue({ data: { screening_status: 'needs_verification', screening_reason: 'The collection family or jewelry type needs rep verification.' }, error: null })
     from.mockReturnValue({ select })
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-only-receipt-secret')
   })
 
-  it('calls rpc_submit_trade_request and returns the request ids without checkbox acknowledgement', async () => {
+  it('calls v3 and returns a private receipt without checkbox acknowledgement', async () => {
     rpc.mockResolvedValueOnce({
       data: { request_id: 'request-1', listing_id: 'listing-1' },
       error: null,
@@ -69,20 +80,22 @@ describe('submitTradeRequest', () => {
         customerName: 'Jamie',
         customerDescription: 'Birthday ring, size 8',
       }),
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       requestId: 'request-1',
       listingId: 'listing-1',
+      receiptUrl: expect.stringMatching(/^\/trade-request\/status\/[a-f0-9]{64}$/),
     })
 
-    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request', {
+    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v3', expect.objectContaining({
       p_listing_id: 'listing-1',
       p_customer_name: 'Jamie',
       p_customer_description: 'Birthday ring, size 8',
-    })
+      p_receipt_token_hash: expect.stringMatching(/^[a-f0-9]{64}$/),
+    }))
   })
 
-  it('uses the replay-safe v2 RPC when the customer supplies a submission UUID', async () => {
-    rpc.mockResolvedValueOnce({
+  it('returns the same private receipt token on idempotent replay', async () => {
+    rpc.mockResolvedValue({
       data: {
         request_id: 'request-1',
         listing_id: 'listing-1',
@@ -92,24 +105,26 @@ describe('submitTradeRequest', () => {
     })
     const submissionId = '00000000-0000-4000-8000-000000000001'
 
-    await expect(
-      submitTradeRequest(supabase as never, {
+    const input = {
         listingId: 'listing-1',
         customerName: '  Jamie  ',
         customerDescription: '  Birthday ring, size 8  ',
         submissionId,
-      }),
-    ).resolves.toEqual({
+      }
+    const first = await submitTradeRequest(supabase as never, input)
+    const replay = await submitTradeRequest(supabase as never, input)
+    expect(first).toMatchObject({
       requestId: 'request-1',
       listingId: 'listing-1',
       mutationReplayed: true,
     })
-    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v2', {
+    expect(replay.receiptUrl).toBe(first.receiptUrl)
+    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v3', expect.objectContaining({
       p_listing_id: 'listing-1',
       p_customer_name: 'Jamie',
       p_customer_description: 'Birthday ring, size 8',
       p_submission_id: submissionId,
-    })
+    }))
   })
 
   it('rejects oversized customer text and invalid submission identities before RPC', async () => {
@@ -272,12 +287,13 @@ describe('submitTradeRequest', () => {
       ],
       error: null,
     })
+    const requestSelect = vi.fn(() => requestQuery)
     const localFrom = vi.fn((table: string) => {
-      if (table === 'trade_requests') return { select: vi.fn(() => requestQuery) }
+      if (table === 'trade_requests') return { select: requestSelect }
       throw new Error(`unexpected table ${table}`)
     })
 
-    const requests = await getTradeRequests({ from: localFrom } as never, 'rep-1')
+    const requests = await getTradeRequests({ from: localFrom } as never, 'rep-1', { limit: 8, offset: 0 })
 
     expect(requests).toHaveLength(1)
     expect(requests[0].listing.design).toMatchObject({
@@ -288,5 +304,10 @@ describe('submitTradeRequest', () => {
     })
     expect(requests[0].listing.listingSource).toBe('non_item_number')
     expect(requests[0].listing.repFacingNote).toBe('(non-item number piece)')
+    // The owner predicate must reach PostgREST before pagination; filtering
+    // after an 8-row preview can hide this rep behind other reps' requests.
+    expect(requestSelect.mock.calls[0][0]).toContain('trade_listings!inner')
+    expect(requestQuery.filters).toContainEqual(['listing.rep_id', 'rep-1'])
+    expect(requestQuery.ranges).toEqual([[0, 7]])
   })
 })

@@ -58,6 +58,7 @@ export interface AmethystPantryTemplateData {
     trade: string
     join: string
     pantry: string
+    faq: string
     shop: string
     tiktok: string
     facebookVip: string
@@ -126,6 +127,7 @@ export const defaultAmethystPantryTemplateData: AmethystPantryTemplateData = {
     trade: '/amethyst/Trade.html',
     join: '/amethyst/Join.html',
     pantry: '/amethyst/Pantry.html',
+    faq: '/faq',
     shop: BLING_KITCHEN_PROFILE.shopUrl,
     tiktok: BLING_KITCHEN_PROFILE.tiktokUrl,
     facebookVip: BLING_KITCHEN_PROFILE.facebookVipUrl,
@@ -200,6 +202,7 @@ export function applyPublicSiteSlugToPantryTemplateData(
       trade: `/${cleaned}/trade`,
       join: `/${cleaned}/join`,
       pantry: `/${cleaned}/in-the-pantry`,
+      faq: `/${cleaned}/faq`,
     },
   }
 }
@@ -218,6 +221,7 @@ export function applyCustomDomainToPantryTemplateData(
       trade: '/trade',
       join: '/join',
       pantry: '/in-the-pantry',
+      faq: '/faq',
     },
   }
 }

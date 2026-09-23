@@ -120,6 +120,9 @@ import type { WorkspaceSectionTab } from './WorkspaceSectionTabs'
 import { NicNacHomeWorkspaceCard } from './NicNacHomeWorkspaceCard'
 import { LiveLineupCard } from './LiveLineupCard'
 import { TradeBoardWorkspaceCard } from './TradeBoardWorkspaceCard'
+import { TradeRequestAlertCenter } from './TradeRequestAlertCenter'
+import { TradeRequestReviewDialog, type TradeReviewDecision } from './TradeRequestReviewDialog'
+import { TRADE_REQUEST_REVIEW_EVENT } from './trade-request-review-events'
 import { MessageCenter as UnifiedMessageCenter } from './messages/MessageCenter'
 import {
   REVIEW_INBOX_FIXTURES,
@@ -279,23 +282,6 @@ export function buildSiteRecipesFetchUrl() {
 
 export function getJewelryLibrarySearchErrorMessage(_status?: number) {
   return 'Unable to search the jewelry library right now. Try again in a minute, or ask Nic-Nac to help look up the piece.'
-}
-
-export function createTradeRequestDecisionHandlers(
-  handleTradeRequestDecision: (
-    requestId: string,
-    action: 'approve' | 'reject',
-    swap?: { revealedItemNumber?: string; revealedRingSize?: string },
-  ) => void | Promise<void>,
-) {
-  return {
-    onApproveRequest: (
-      requestId: string,
-      swap?: { revealedItemNumber?: string; revealedRingSize?: string },
-    ) => handleTradeRequestDecision(requestId, 'approve', swap),
-    onRejectRequest: (requestId: string) =>
-      handleTradeRequestDecision(requestId, 'reject'),
-  }
 }
 
 export function formatHeaderRepShow(
@@ -648,6 +634,7 @@ type TradeBoardActionState = {
 type TradeRequestsState = {
   status: 'loading' | 'ready' | 'error'
   requests?: TradeRequestWithListing[]
+  pendingCount?: number
 }
 
 type FulfillmentQueueState = {
@@ -960,7 +947,10 @@ type SiteRecipesResponsePayload = {
 }
 type AccountBillingResponsePayload = AccountBillingDashboardResult
 type TradeBoardResponsePayload = BoardResult
-type TradeRequestsResponsePayload = TradeRequestWithListing[]
+type TradeRequestsResponsePayload = {
+  pendingCount: number
+  requests: TradeRequestWithListing[]
+}
 type FulfillmentQueueResponsePayload = FulfillmentQueueItem[]
 type TradeSwapCleanupResponsePayload = TradeSwapCleanupItem[]
 type JewelryLibraryFacetOption = {
@@ -3082,7 +3072,17 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const [tradeRequestsState, setTradeRequestsState] = useState<TradeRequestsState>({
     status: reviewWorkspaceMode ? 'ready' : 'loading',
     requests: reviewWorkspaceMode ? [] : undefined,
+    pendingCount: reviewWorkspaceMode ? 0 : undefined,
   })
+  const [tradeReview, setTradeReview] = useState<{
+    request: TradeRequestWithListing
+    action: 'approve' | 'reject'
+  } | null>(null)
+  const [tradeReviewLoading, setTradeReviewLoading] = useState(false)
+  const [tradeReviewLoadError, setTradeReviewLoadError] = useState<string | null>(null)
+  const [tradeInboxRequests, setTradeInboxRequests] = useState<TradeRequestWithListing[]>([])
+  const [tradeInboxLoaded, setTradeInboxLoaded] = useState(false)
+  const [tradeInboxLoadError, setTradeInboxLoadError] = useState(false)
   const [fulfillmentQueueState, setFulfillmentQueueState] =
     useState<FulfillmentQueueState>({
       status: reviewWorkspaceMode ? 'ready' : 'loading',
@@ -3346,7 +3346,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   }
 
   async function loadTradeRequests(signal?: AbortSignal) {
-    const response = await fetch('/api/nic-nac/trade-requests?status=pending&limit=8', {
+    const response = await fetch('/api/nic-nac/trade-requests?status=pending&limit=8&summary=1', {
       credentials: 'include',
       signal,
     })
@@ -3355,10 +3355,44 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
 
     const payload = (await response.json()) as TradeRequestsResponsePayload
-    setTradeRequestsState({
-      status: 'ready',
-      requests: payload,
-    })
+    if (!Number.isSafeInteger(payload.pendingCount) || payload.pendingCount < 0 || !Array.isArray(payload.requests)) {
+      throw new Error('Invalid trade request summary')
+    }
+    setTradeRequestsState({ status: 'ready', requests: payload.requests, pendingCount: payload.pendingCount })
+    if (
+      activeSection !== 'trade-board' &&
+      payload.pendingCount > payload.requests.length &&
+      (!tradeInboxLoaded ||
+        tradeInboxRequests.length !== payload.pendingCount ||
+        payload.requests.some((request) => !tradeInboxRequests.some((inboxRequest) => inboxRequest.id === request.id)))
+    ) {
+      void loadTradeRequestInbox(signal).catch(() => undefined)
+    }
+  }
+
+  async function loadTradeRequestInbox(signal?: AbortSignal) {
+    try {
+      const all: TradeRequestWithListing[] = []
+      const seen = new Set<string>()
+      for (let offset = 0; ; offset += 50) {
+        const response = await fetch(`/api/nic-nac/trade-requests?status=pending&limit=50&offset=${offset}`, {
+          credentials: 'include', signal,
+        })
+        if (!response.ok) throw new Error(`trade request inbox failed: ${response.status}`)
+        const page = (await response.json()) as TradeRequestWithListing[]
+        if (!Array.isArray(page)) throw new Error('Invalid trade request inbox')
+        if (page.some((request) => seen.has(request.id))) throw new Error('Trade request pagination repeated an item')
+        for (const request of page) seen.add(request.id)
+        all.push(...page)
+        if (page.length < 50) break
+      }
+      setTradeInboxRequests(all)
+      setTradeInboxLoaded(true)
+      setTradeInboxLoadError(false)
+    } catch (error) {
+      if ((error as { name?: string }).name !== 'AbortError') setTradeInboxLoadError(true)
+      throw error
+    }
   }
 
   async function loadFulfillmentQueue(signal?: AbortSignal) {
@@ -3586,7 +3620,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       }),
       loadTradeRequests(signal).catch((error) => {
         if ((error as { name?: string }).name === 'AbortError') return
-        setTradeRequestsState({ status: 'error' })
+        setTradeRequestsState((current) => ({ ...current, status: 'error' }))
       }),
       loadFulfillmentQueue(signal).catch((error) => {
         if ((error as { name?: string }).name === 'AbortError') return
@@ -4649,6 +4683,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     await Promise.all([
       loadTradeBoard(),
       loadTradeRequests(),
+      ...(activeSection === 'trade-board' ? [loadTradeRequestInbox()] : []),
       loadFulfillmentQueue(),
       loadTradeSwapCleanup(),
       loadAnalytics(),
@@ -4661,6 +4696,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     return Promise.allSettled([
       loadTradeBoard(),
       loadTradeRequests(),
+      ...(activeSection === 'trade-board' ? [loadTradeRequestInbox()] : []),
       loadFulfillmentQueue(),
       loadTradeSwapCleanup(),
       loadAnalytics(),
@@ -4727,28 +4763,72 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   useEffect(() => {
     if (activeSection !== 'trade-board') return
     if (reviewWorkspaceMode) return
-
-    const refreshIfTradeBoardActive = () => {
-      if (document.visibilityState === 'hidden') return
-      void refreshTradeWorkspace()
-    }
-    const refreshWhenVisible = () => {
-      if (document.visibilityState === 'visible') {
-        void refreshTradeWorkspace()
+    let stopped = false
+    let loading = false
+    let failures = 0
+    let timer: number | undefined
+    const refresh = async () => {
+      if (document.visibilityState === 'hidden' || loading) return
+      loading = true
+      const results = await refreshTradeWorkspaceSettled()
+      loading = false
+      if (stopped) return
+      if (results[1]?.status === 'rejected') {
+        setTradeRequestsState((current) => ({ ...current, status: 'error' }))
       }
+      failures = results.some((result) => result.status === 'rejected') ? Math.min(failures + 1, 3) : 0
+      timer = window.setTimeout(refresh, Math.min(60_000, TRADE_WORKSPACE_REFRESH_MS * 2 ** failures))
     }
-
-    document.addEventListener('visibilitychange', refreshWhenVisible)
-    window.addEventListener('focus', refreshIfTradeBoardActive)
-    const intervalId = window.setInterval(
-      refreshIfTradeBoardActive,
-      TRADE_WORKSPACE_REFRESH_MS,
-    )
+    const onFocus = () => {
+      if (document.visibilityState !== 'visible') return
+      window.clearTimeout(timer)
+      void refresh()
+    }
+    void refresh()
+    document.addEventListener('visibilitychange', onFocus)
+    window.addEventListener('focus', onFocus)
 
     return () => {
-      document.removeEventListener('visibilitychange', refreshWhenVisible)
-      window.removeEventListener('focus', refreshIfTradeBoardActive)
-      window.clearInterval(intervalId)
+      stopped = true
+      document.removeEventListener('visibilitychange', onFocus)
+      window.removeEventListener('focus', onFocus)
+      window.clearTimeout(timer)
+    }
+  }, [activeSection, reviewWorkspaceMode])
+
+  useEffect(() => {
+    if (reviewWorkspaceMode || activeSection === 'trade-board') return
+    let stopped = false
+    let timer: number | undefined
+    let failures = 0
+    let loading = false
+    const refresh = async () => {
+      if (document.visibilityState === 'hidden' || loading) return
+      loading = true
+      try {
+        await loadTradeRequests()
+        failures = 0
+      } catch {
+        failures = Math.min(failures + 1, 3)
+        setTradeRequestsState((current) => ({ ...current, status: 'error' }))
+      }
+      loading = false
+      if (!stopped) timer = window.setTimeout(refresh, Math.min(60_000, 15_000 * 2 ** failures))
+    }
+    const onFocus = () => {
+      if (document.visibilityState === 'visible') {
+        window.clearTimeout(timer)
+        void refresh()
+      }
+    }
+    timer = window.setTimeout(refresh, 15_000)
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onFocus)
+    return () => {
+      stopped = true
+      window.clearTimeout(timer)
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onFocus)
     }
   }, [activeSection, reviewWorkspaceMode])
 
@@ -5070,35 +5150,22 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }
 
-  async function handleTradeRequestDecision(
-    requestId: string,
-    action: 'approve' | 'reject',
-    swap?: { revealedItemNumber?: string; revealedRingSize?: string },
-  ) {
+  async function handleTradeReviewDecision(decision: TradeReviewDecision) {
+    const { requestId, action } = decision
     setTradeBoardActionState({
       pendingKey: `${action}:${requestId}`,
       error: null,
       helperMessage: null,
     })
     const skippedRevealedItemNumber =
-      action === 'approve' && !swap?.revealedItemNumber?.trim()
+      action === 'approve' && !decision.revealedItemNumber?.trim()
 
     try {
       const response = await fetch('/api/nic-nac/trade-requests', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          requestId,
-          ...(action === 'reject' ? { reason: 'not_interested' } : {}),
-          ...(swap?.revealedItemNumber
-            ? {
-                revealedItemNumber: swap.revealedItemNumber,
-                revealedRingSize: swap.revealedRingSize,
-              }
-            : {}),
-        }),
+        body: JSON.stringify(decision),
       })
       const payload = (await response.json().catch(() => null)) as
         | {
@@ -5112,7 +5179,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         throw new Error(payload?.error || 'Unable to update that request right now.')
       }
 
-      await refreshTradeWorkspace()
+      setTradeReview(null)
+      const refreshResults = await refreshTradeWorkspaceSettled()
+      const refreshFailed = refreshResults.some((result) => result.status === 'rejected')
+      if (refreshResults[1]?.status === 'rejected') {
+        setTradeRequestsState((current) => ({ ...current, status: 'error' }))
+      }
       const replacementStatus = payload?.result?.replacementStatus
       const approveMessage =
         replacementStatus === 'added_to_board'
@@ -5129,8 +5201,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         error: null,
         helperMessage:
           action === 'approve'
-            ? approveMessage
-            : 'Trade request denied.',
+            ? `${approveMessage}${refreshFailed ? ' Some workspace details could not refresh yet.' : ''}`
+            : `Trade request denied.${refreshFailed ? ' Some workspace details could not refresh yet.' : ''}`,
       })
     } catch (error) {
       setTradeBoardActionState({
@@ -5143,6 +5215,39 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       })
     }
   }
+
+  async function openTradeReview(requestId: string, action: 'approve' | 'reject' = 'approve') {
+    setTradeReviewLoadError(null)
+    const cached = [...tradeInboxRequests, ...(tradeRequestsState.requests ?? [])].find((request) => request.id === requestId)
+    if (cached?.status === 'pending') {
+      setTradeReview({ request: cached, action })
+      return
+    }
+    setTradeReviewLoading(true)
+    try {
+      const response = await fetch(`/api/nic-nac/trade-requests?requestId=${encodeURIComponent(requestId)}`, { credentials: 'include' })
+      if (!response.ok) throw new Error('Unable to load this trade request.')
+      const matches = (await response.json()) as TradeRequestWithListing[]
+      if (!Array.isArray(matches) || matches.length !== 1 || matches[0].id !== requestId || matches[0].status !== 'pending') {
+        throw new Error('This request is no longer pending or available to review.')
+      }
+      setTradeReview({ request: matches[0], action })
+    } catch (error) {
+      setTradeReviewLoadError(error instanceof Error ? error.message : 'Unable to load this trade request.')
+    } finally {
+      setTradeReviewLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (reviewWorkspaceMode) return
+    const onReview = (event: Event) => {
+      const detail = (event as CustomEvent<{ requestId?: string; action?: 'approve' | 'reject' }>).detail
+      if (detail?.requestId) void openTradeReview(detail.requestId, detail.action)
+    }
+    window.addEventListener(TRADE_REQUEST_REVIEW_EVENT, onReview)
+    return () => window.removeEventListener(TRADE_REQUEST_REVIEW_EVENT, onReview)
+  }, [reviewWorkspaceMode, tradeInboxRequests, tradeRequestsState.requests])
 
   async function handleAdvanceFulfillment(
     requestId: string,
@@ -6475,10 +6580,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
 
     if (canRenderWorkspaceSections && activeSection === 'trade-board') {
-      const tradeRequestDecisionHandlers = createTradeRequestDecisionHandlers(
-        handleTradeRequestDecision,
-      )
-
       return (
         <TradeBoardWorkspaceCard
           tradeBoardState={tradeBoardState}
@@ -6487,13 +6588,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           quickAddItemNumber={quickAddItemNumber}
           onQuickAddItemNumberChange={setQuickAddItemNumber}
           actionState={tradeBoardActionState}
-          tradeRequestsState={tradeRequestsState}
+          tradeRequestsState={{ ...tradeRequestsState, requests: tradeInboxLoaded ? tradeInboxRequests : tradeRequestsState.requests }}
+          inboxLoadError={tradeInboxLoadError}
           fulfillmentQueueState={fulfillmentQueueState}
           tradeSwapCleanupState={tradeSwapCleanupState}
           onQuickAddListing={handleQuickAddListing}
           onRemoveListing={handleRemoveTradeListing}
-          onApproveRequest={tradeRequestDecisionHandlers.onApproveRequest}
-          onRejectRequest={tradeRequestDecisionHandlers.onRejectRequest}
+          onReviewRequest={(requestId, action) => void openTradeReview(requestId, action)}
           onAdvanceFulfillment={handleAdvanceFulfillment}
           customerBoardHref={customerTradeBoardHref}
           onOpenCustomerBoardPreview={handleOpenTradeBoardPreview}
@@ -6852,7 +6953,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const workspaceBackDestination = getWorkspaceBackDestination(activeSection)
   const isRecipeDetailOpen =
     activeSection === 'recipes' && recipeEditorTab === 'edit'
-  const homeTradeRequestsCount = tradeRequestsState.requests?.length ?? 0
+  const homeTradeRequestsCount = tradeRequestsState.pendingCount
   const homeCleanupCount = tradeSwapCleanupState.items?.length ?? 0
   const homeFulfillmentCount = fulfillmentQueueState.items?.length ?? 0
   const homeNextShowLabel = buildHomeNextShowLabel(
@@ -6867,11 +6968,33 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       data-workspace-skin="concept-one"
       data-customer-site-skin={workspaceSkinPreset}
     >
+      {tradeReview ? <TradeRequestReviewDialog
+        key={tradeReview.request.id}
+        request={tradeReview.request}
+        initialAction={tradeReview.action}
+        pending={tradeBoardActionState.pendingKey !== null}
+        error={tradeBoardActionState.error}
+        onClose={() => setTradeReview(null)}
+        onSubmit={(decision) => void handleTradeReviewDecision(decision)}
+      /> : null}
+      {tradeReviewLoading ? <div role="status">Loading trade request for review…</div> : null}
+      {tradeReviewLoadError ? <div role="alert">{tradeReviewLoadError} <button type="button" onClick={() => setTradeReviewLoadError(null)}>Dismiss</button></div> : null}
+      {!reviewWorkspaceMode ? <TradeRequestAlertCenter
+        requests={tradeInboxLoaded && (tradeRequestsState.pendingCount ?? 0) > (tradeRequestsState.requests?.length ?? 0) && tradeInboxRequests.length === tradeRequestsState.pendingCount ? tradeInboxRequests : tradeRequestsState.requests ?? []}
+        pendingCount={tradeRequestsState.pendingCount}
+        refreshError={tradeRequestsState.status === 'error'}
+        onReview={(requestId, action) => void openTradeReview(requestId, action)}
+        onOpenInbox={() => {
+          setWorkspacePreview({ mode: 'workspace' })
+          setActiveSection('trade-board')
+        }}
+      /> : null}
       {previewUnavailableMessage ? (
         <div className={styles.previewUnavailableNotice}>
           {previewUnavailableMessage}
         </div>
       ) : null}
+      <div className={styles.workspaceViewport}>
       {activeWorkspacePreview ? (
         <section className={styles.previewFocusShell} aria-label={activeWorkspacePreview.title}>
           <div className={styles.previewFocusBar}>
@@ -6976,6 +7099,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           )}
         </WorkspaceShell>
       )}
+      </div>
     </main>
   )
 }
@@ -7242,7 +7366,7 @@ function ConceptHomeWorkspace({
   reviewWorkspaceMode,
 }: {
   chat?: ReactNode | null
-  tradeRequestsCount: number
+  tradeRequestsCount?: number
   cleanupCount: number
   fulfillmentCount: number
   nextShow: HomeNextShowSummary | null
@@ -7310,7 +7434,7 @@ function ConceptHomeWorkspace({
         <ConceptPanel title="Trade Info" icon={<CalendarDays aria-hidden="true" />}>
           <MetricRows
             rows={[
-              ['Trade requests', tradeRequestsCount],
+              ['Trade requests', tradeRequestsCount ?? '—'],
               ['Trade follow-up', cleanupCount],
               ['Fulfillment', fulfillmentCount],
             ]}
@@ -7531,7 +7655,7 @@ function ConceptPanel({
   )
 }
 
-function MetricRows({ rows }: { rows: Array<[string, number]> }) {
+function MetricRows({ rows }: { rows: Array<[string, number | string]> }) {
   return (
     <div className={styles.metricRows}>
       {rows.map(([label, value]) => (

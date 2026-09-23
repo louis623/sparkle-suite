@@ -428,6 +428,7 @@ function applyCustomerTarget(
           home: `/${publicSiteSlug.trim().toLowerCase()}`,
           tradeBoard: `/${publicSiteSlug.trim().toLowerCase()}/trade`,
           joinTeam: `/${publicSiteSlug.trim().toLowerCase()}/join`,
+          faq: `/${publicSiteSlug.trim().toLowerCase()}/faq`,
           pantry: `/${publicSiteSlug.trim().toLowerCase()}/in-the-pantry`,
         }
       : null
@@ -472,6 +473,7 @@ function applyCustomerTarget(
           ? publicSlugLinks?.joinTeam ??
             withCustomerTarget(data.homepage.footerLinks.joinTeam, repId)
           : undefined,
+        faq: publicSlugLinks?.faq ?? (repId ? `/faq?c=${encodeURIComponent(repId.trim())}` : '/faq'),
       },
     },
     trade: {
@@ -492,6 +494,7 @@ function applyCustomerTarget(
           ? publicSlugLinks?.joinTeam ??
             withCustomerTarget(data.trade.footerLinks.joinTeam, repId)
           : undefined,
+        faq: publicSlugLinks?.faq ?? (repId ? `/faq?c=${encodeURIComponent(repId.trim())}` : '/faq'),
       },
     },
     join: {
@@ -530,6 +533,7 @@ function applyCustomerTarget(
         joinTeam:
           publicSlugLinks?.joinTeam ??
           withCustomerTarget(data.join.footerLinks.joinTeam, repId),
+        faq: publicSlugLinks?.faq ?? (repId ? `/faq?c=${encodeURIComponent(repId.trim())}` : '/faq'),
       },
     },
   }

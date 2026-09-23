@@ -8,6 +8,7 @@ describe('custom-domain customer site proxy', () => {
   it.each([
     ['/', '/customer-site/home'],
     ['/trade', '/customer-site/trade'],
+    ['/faq', '/customer-site/faq'],
     ['/join', '/customer-site/join'],
     ['/in-the-pantry', '/customer-site/in-the-pantry'],
   ])('rewrites %s to its customer-site asset on a custom domain', (path, assetPath) => {

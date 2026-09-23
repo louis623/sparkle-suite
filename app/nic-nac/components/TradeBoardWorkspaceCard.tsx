@@ -17,6 +17,7 @@ import {
   hasActiveBoardInventoryBrowse,
 } from '@/lib/nic-nac/board-inventory-view'
 import { buildCustomerTradeBoardHref } from '@/lib/nic-nac/rep-links'
+import { TradeScreenshotLink } from './TradeScreenshotLink'
 import surfaceStyles from './WorkspaceSurface.module.css'
 import styles from './TradeBoardWorkspaceCard.module.css'
 
@@ -37,6 +38,7 @@ type TradeBoardActionState = {
 type TradeRequestsState = {
   status: 'loading' | 'ready' | 'error'
   requests?: TradeRequestWithListing[]
+  pendingCount?: number
 }
 
 type FulfillmentQueueState = {
@@ -58,15 +60,12 @@ export type TradeBoardWorkspaceCardProps = {
   onQuickAddItemNumberChange: (value: string) => void
   actionState: TradeBoardActionState
   tradeRequestsState: TradeRequestsState
+  inboxLoadError?: boolean
   fulfillmentQueueState: FulfillmentQueueState
   tradeSwapCleanupState?: TradeSwapCleanupState
   onQuickAddListing: () => void
   onRemoveListing: (listingId: string) => void
-  onApproveRequest: (
-    requestId: string,
-    swap?: { revealedItemNumber?: string; revealedRingSize?: string },
-  ) => void
-  onRejectRequest: (requestId: string) => void
+  onReviewRequest: (requestId: string, action?: 'approve' | 'reject') => void
   onAdvanceFulfillment: (
     requestId: string,
     nextStatus: 'shipped' | 'completed',
@@ -124,12 +123,12 @@ export function TradeBoardWorkspaceCard({
   onQuickAddItemNumberChange,
   actionState,
   tradeRequestsState,
+  inboxLoadError = false,
   fulfillmentQueueState,
   tradeSwapCleanupState = { status: 'ready', items: [] },
   onQuickAddListing,
   onRemoveListing,
-  onApproveRequest,
-  onRejectRequest,
+  onReviewRequest,
   onAdvanceFulfillment,
   customerBoardHref = buildCustomerTradeBoardHref(),
   onOpenCustomerBoardPreview,
@@ -140,12 +139,6 @@ export function TradeBoardWorkspaceCard({
   const [previewListing, setPreviewListing] = useState<TradeListingWithDesign | null>(
     null,
   )
-  const [swapApprovalDraft, setSwapApprovalDraft] = useState<{
-    requestId: string
-    customerName: string
-  } | null>(null)
-  const [revealedItemNumber, setRevealedItemNumber] = useState('')
-  const [revealedRingSize, setRevealedRingSize] = useState('')
   const [inventoryJewelryType, setInventoryJewelryType] = useState('')
   const [inventoryCollection, setInventoryCollection] = useState('')
   const [inventoryCarouselIndex, setInventoryCarouselIndex] = useState(0)
@@ -176,7 +169,8 @@ export function TradeBoardWorkspaceCard({
   const requests = tradeRequestsState.requests ?? []
   const queueItems = fulfillmentQueueState.items ?? []
   const cleanupItems = tradeSwapCleanupState.items ?? []
-  const tradeWorkCount = requests.length + cleanupItems.length + queueItems.length
+  const pendingCount = tradeRequestsState.pendingCount
+  const tradeWorkCount = (pendingCount ?? requests.length) + cleanupItems.length + queueItems.length
   const tradeStatusReady =
     tradeRequestsState.status === 'ready' &&
     tradeSwapCleanupState.status === 'ready' &&
@@ -185,15 +179,6 @@ export function TradeBoardWorkspaceCard({
     tradeBoardSearchQuery.trim() !== '' ||
     inventoryJewelryType !== '' ||
     inventoryCollection !== ''
-  const normalizedRevealedItemNumber = revealedItemNumber.trim().toUpperCase()
-  const approvingSwap = swapApprovalDraft
-    ? actionState.pendingKey === `approve:${swapApprovalDraft.requestId}`
-    : false
-
-  useEffect(() => {
-    if (inventoryJewelryType === '' && inventoryCollection === '') return
-    setIsFilterDisclosureOpen(true)
-  }, [inventoryJewelryType, inventoryCollection])
 
   useEffect(() => {
     if (!hasMoreListings) return
@@ -223,6 +208,9 @@ export function TradeBoardWorkspaceCard({
             <div className={surfaceStyles.cardSubtitle}>
               Keep today&apos;s swaps, quick adds, and Dance Floor checks moving without
               digging through the whole queue.
+            </div>
+            <div className={surfaceStyles.helperNote}>
+              Live-show tip: ask customers to save a screenshot of their reveal before leaving it. They can crop personal or order details before uploading it with a request.
             </div>
           </div>
           <div className={styles.heroActions}>
@@ -254,102 +242,6 @@ export function TradeBoardWorkspaceCard({
         ) : null}
       </section>
 
-      {swapApprovalDraft ? (
-        <div
-          className={styles.imagePreviewMask}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Approve trade swap for ${swapApprovalDraft.customerName}`}
-          onClick={() => {
-            if (approvingSwap) return
-            setSwapApprovalDraft(null)
-          }}
-        >
-          <div
-            className={styles.imagePreviewDialog}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className={styles.imagePreviewClose}
-              onClick={() => setSwapApprovalDraft(null)}
-              disabled={approvingSwap}
-            >
-              Close
-            </button>
-            <div className={surfaceStyles.walletSettingsTitle}>Approve trade</div>
-            <p className={surfaceStyles.helperNote}>
-              {swapApprovalDraft.customerName} gets the requested dancer. Add it now if you
-              have it, or approve the trade and add the revealed dancer later with
-              Nic-Nac.
-            </p>
-            <label className={surfaceStyles.searchField}>
-              <span className={surfaceStyles.searchLabel}>
-                Revealed item number (optional)
-              </span>
-              <input
-                type="text"
-                className={`${surfaceStyles.searchInput} ph-no-capture`}
-                value={revealedItemNumber}
-                onChange={(event) =>
-                  setRevealedItemNumber(event.target.value.toUpperCase())
-                }
-                placeholder="RG12345"
-                disabled={approvingSwap}
-              />
-            </label>
-            {normalizedRevealedItemNumber.startsWith('RG') ? (
-              <label className={surfaceStyles.searchField}>
-                <span className={surfaceStyles.searchLabel}>Ring size</span>
-                <input
-                  type="text"
-                  className={`${surfaceStyles.searchInput} ph-no-capture`}
-                  value={revealedRingSize}
-                  onChange={(event) => setRevealedRingSize(event.target.value)}
-                  placeholder="8"
-                  disabled={approvingSwap}
-                />
-              </label>
-            ) : null}
-            <div className={surfaceStyles.actionRow}>
-              <button
-                type="button"
-                className={surfaceStyles.helperButton}
-                onClick={() => setSwapApprovalDraft(null)}
-                disabled={approvingSwap}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={surfaceStyles.helperButton}
-                onClick={() => {
-                  onApproveRequest(swapApprovalDraft.requestId)
-                  setSwapApprovalDraft(null)
-                }}
-                disabled={approvingSwap}
-              >
-                Approve without item number
-              </button>
-              <button
-                type="button"
-                className={surfaceStyles.actionButton}
-                disabled={!normalizedRevealedItemNumber || approvingSwap}
-                onClick={() => {
-                  onApproveRequest(swapApprovalDraft.requestId, {
-                    revealedItemNumber: normalizedRevealedItemNumber,
-                    revealedRingSize,
-                  })
-                  setSwapApprovalDraft(null)
-                }}
-              >
-                {approvingSwap ? 'Approving...' : 'Approve trade'}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
       <section className={styles.summaryCard}>
         <div className={styles.sectionHeader}>
           <div>
@@ -359,7 +251,9 @@ export function TradeBoardWorkspaceCard({
                 ? tradeWorkCount > 0
                   ? `${tradeWorkCount} item${tradeWorkCount === 1 ? '' : 's'} need attention. Start with requests, then trade follow-up, then fulfillment.`
                   : 'Everything is caught up. New requests, trade follow-up, and fulfillment work will land here.'
-                : 'Checking requests, trade follow-up, and fulfillment.'}
+                : tradeRequestsState.status === 'error' && pendingCount !== undefined
+                  ? 'Cannot refresh requests right now. Showing the last known pending count.'
+                  : 'Checking requests, trade follow-up, and fulfillment.'}
             </div>
           </div>
         </div>
@@ -370,7 +264,7 @@ export function TradeBoardWorkspaceCard({
             }`}
           >
             <span className={styles.summaryCount}>
-              {tradeRequestsState.status === 'ready' ? requests.length : '...'}
+              {pendingCount ?? (tradeRequestsState.status === 'loading' ? '…' : '—')}
             </span>
             <span className={styles.summaryLabel}>Pending requests</span>
           </div>
@@ -692,7 +586,7 @@ export function TradeBoardWorkspaceCard({
         )}
       </section>
 
-      {tradeRequestsState.status === 'ready' && requests.length > 0 ? (
+      {requests.length > 0 ? (
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
             <div>
@@ -701,8 +595,9 @@ export function TradeBoardWorkspaceCard({
                 Review each request, check the screenshot if there is one, and approve the right swap.
               </div>
             </div>
-            <span className={surfaceStyles.rosterTag}>{`${requests.length} pending`}</span>
+            <span className={surfaceStyles.rosterTag}>{`${pendingCount ?? requests.length} pending`}</span>
           </div>
+          {inboxLoadError ? <p className={surfaceStyles.helperNote} role="status">Could not load the full request inbox. Showing the last available requests; try again shortly.</p> : null}
           <div className={styles.tradeList}>
             {requests.map((request) => {
               const ruleCheckTarget = request.listing.design.collectionName
@@ -723,17 +618,7 @@ export function TradeBoardWorkspaceCard({
                     </div>
                     <div className={surfaceStyles.helperNote}>{request.customerDescription}</div>
                     {request.revealScreenshot ? (
-                      <a
-                        className={styles.tradeScreenshotLink}
-                        href={`/api/nic-nac/trade-requests/${request.id}/reveal-screenshot`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <img
-                          className={styles.tradeScreenshotThumb}
-                          src={`/api/nic-nac/trade-requests/${request.id}/reveal-screenshot`}
-                          alt={`Reveal screenshot from ${request.customerName}`}
-                        />
+                      <TradeScreenshotLink requestId={request.id} customerName={request.customerName} className={styles.tradeScreenshotLink} imageClassName={styles.tradeScreenshotThumb}>
                         <span>
                           <span className={styles.tradeScreenshotTitle}>
                             Reveal screenshot
@@ -742,39 +627,33 @@ export function TradeBoardWorkspaceCard({
                             View customer upload
                           </span>
                         </span>
-                      </a>
+                      </TradeScreenshotLink>
                     ) : null}
-                    <div className={surfaceStyles.helperNote}>
-                      Rule check: compare against {ruleCheckTarget}
-                    </div>
+                    <div className={surfaceStyles.helperNote}>Rule check: compare against {ruleCheckTarget}</div>
+                    {'manualReviewRequested' in request && request.manualReviewRequested && 'screening' in request && request.screening?.status === 'mismatch' ? (
+                      <div className={styles.tradeException}><strong>Rule exception — rep review needed.</strong> {request.screening.reason}</div>
+                    ) : null}
                   </div>
                   <div className={`${surfaceStyles.actionRow} ${styles.tradeActions}`}>
                     <button
                       type="button"
                       className={surfaceStyles.actionButton}
                       disabled={actionState.pendingKey === `approve:${request.id}`}
-                      onClick={() => {
-                        setSwapApprovalDraft({
-                          requestId: request.id,
-                          customerName: request.customerName,
-                        })
-                        setRevealedItemNumber('')
-                        setRevealedRingSize('')
-                      }}
+                      onClick={() => onReviewRequest(request.id, 'approve')}
                     >
                       {actionState.pendingKey === `approve:${request.id}`
                         ? 'Approving...'
-                        : 'Approve'}
+                        : 'Review to approve'}
                     </button>
                     <button
                       type="button"
                       className={surfaceStyles.helperButton}
                       disabled={actionState.pendingKey === `reject:${request.id}`}
-                      onClick={() => onRejectRequest(request.id)}
+                      onClick={() => onReviewRequest(request.id, 'reject')}
                     >
                       {actionState.pendingKey === `reject:${request.id}`
                         ? 'Denying...'
-                        : 'Deny'}
+                        : 'Review to deny'}
                     </button>
                   </div>
                 </div>

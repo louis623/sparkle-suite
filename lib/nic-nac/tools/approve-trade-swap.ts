@@ -18,6 +18,10 @@ import type { ToolDefinition } from './types'
 
 const inputSchema = z.object({
   requestId: z.string().uuid(),
+  verifiedOfferedFamily: z.string().min(1),
+  verifiedOfferedType: z.enum(['RG', 'NK', 'ER', 'ST', 'BR']),
+  verificationConfirmed: z.literal(true),
+  finalConfirmation: z.literal(true),
   revealedItemNumber: z.string().min(1),
   revealedMaterial: z.string().optional(),
   revealedRingSize: z.string().optional(),
@@ -51,6 +55,10 @@ export function makeApproveTradeSwapTool(ctx: {
     needsApproval: true,
     execute: async ({
       requestId,
+      verifiedOfferedFamily,
+      verifiedOfferedType,
+      verificationConfirmed,
+      finalConfirmation,
       revealedItemNumber,
       revealedMaterial,
       revealedRingSize,
@@ -84,6 +92,7 @@ export function makeApproveTradeSwapTool(ctx: {
           revealedMaterial,
           revealedRingSize,
           repNotes,
+          verification: { verifiedOfferedFamily, verifiedOfferedType, verificationConfirmed, finalConfirmation },
         })
       } catch (err) {
         explainServiceError(err)

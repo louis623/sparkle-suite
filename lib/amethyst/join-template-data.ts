@@ -206,7 +206,7 @@ export const defaultAmethystJoinTemplateData: AmethystJoinTemplateData = {
     pastShows: '#top',
     home: '/amethyst/Homepage.html',
     joinTeam: '/amethyst/Join.html',
-    faq: '#faq',
+    faq: '/faq',
     contact: 'mailto:hello@sparklebysasha.example',
     privacy: '#faq',
     terms: '#faq',

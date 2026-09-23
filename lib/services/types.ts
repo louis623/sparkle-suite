@@ -16,7 +16,7 @@ export type JewelryType = 'RG' | 'NK' | 'ER' | 'ST' | 'BR'
 export type JewelryRarityClassification = 'standard' | 'diamond' | 'unicorn'
 export type ListingSource = 'catalog' | 'non_item_number'
 export type RemovalReason = 'sold' | 'keeping' | 'mistake' | 'other'
-export type RejectionReason = 'msrp_mismatch' | 'not_interested' | 'changed_mind' | 'other'
+export type RejectionReason = 'msrp_mismatch' | 'not_interested' | 'changed_mind' | 'collection_mismatch' | 'jewelry_type_mismatch' | 'item_unavailable' | 'other'
 
 // ============================================================================
 // trade-board domain — existing types (preserved shape)
@@ -378,12 +378,17 @@ export interface SubmitTradeRequestInput {
   submissionId?: string
   clickwrapAcknowledged?: boolean
   expectedRepId?: string
+  offeredFamily?: string | null
+  offeredType?: JewelryType | null
+  manualReviewRequested?: boolean
 }
 
 export interface SubmitTradeRequestResult {
   requestId: string
   listingId: string
   mutationReplayed?: boolean
+  receiptUrl?: string
+  screening?: import('./trade-request-matcher').TradeScreening
 }
 
 export interface TradeRequestRevealScreenshot {
@@ -1120,6 +1125,8 @@ export interface PrelaunchIntakeInsert {
 export interface GetTradeRequestsFilters {
   statusFilter?: TradeRequestStatus // default: 'pending'
   limit?: number
+  requestId?: string
+  offset?: number
 }
 
 export interface TradeRequestWithListing {
@@ -1132,6 +1139,11 @@ export interface TradeRequestWithListing {
   repNotes: string | null
   createdAt: string
   updatedAt: string
+  offeredFamily: string | null
+  offeredType: JewelryType | null
+  manualReviewRequested: boolean
+  screening: import('./trade-request-matcher').TradeScreening
+  verificationNeeded: boolean
   listing: {
     id: string
     repId: string
@@ -1176,6 +1188,13 @@ export interface ApproveTradeResult {
   listingId: string
   customerName: string
   quantityAvailable: number
+}
+
+export interface TradeApprovalVerification {
+  verifiedOfferedFamily: string
+  verifiedOfferedType: JewelryType
+  verificationConfirmed: boolean
+  finalConfirmation: boolean
 }
 
 export interface RejectTradeResult {
@@ -1231,6 +1250,7 @@ export interface ApproveTradeSwapInput {
   revealedMaterial?: string
   revealedRingSize?: string
   repNotes?: string
+  verification?: TradeApprovalVerification
 }
 
 export interface ApproveTradeSwapResult {

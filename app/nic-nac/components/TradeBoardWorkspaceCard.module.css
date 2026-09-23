@@ -590,3 +590,4 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+.tradeException{background:#fff0db;border:1px solid #cb7a24;border-radius:8px;padding:8px;margin-top:8px;color:#65340c}

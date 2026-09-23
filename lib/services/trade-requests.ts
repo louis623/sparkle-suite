@@ -15,6 +15,7 @@
 //                        designs_read_all + collections_read_all all permit.
 
 import type { SupabaseClient, PostgrestError } from '@supabase/supabase-js'
+import { createHash, createHmac, randomUUID } from 'node:crypto'
 import {
   type TradeRequestStatus,
   type RejectionReason,
@@ -26,6 +27,7 @@ import {
   type TradeRequestRevealScreenshot,
   type TradeRequestNotificationSummary,
   type ApproveTradeResult,
+  type TradeApprovalVerification,
   type RejectTradeResult,
   type GetTradeHistoryOptions,
   type TradeHistoryItem,
@@ -34,9 +36,11 @@ import {
 } from './types'
 import { ServiceError, errors } from './errors'
 import { getTradeListingDisplayFields } from './trade-listing-display'
+import { normalizeTradeFamily, normalizeTradeType, screenTradeOffer } from './trade-request-matcher'
 
 export const TRADE_REQUEST_CUSTOMER_NAME_MAX_LENGTH = 100
 export const TRADE_REQUEST_DESCRIPTION_MAX_LENGTH = 1000
+export const TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH = 100
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function mapRevealScreenshot(row: {
@@ -76,6 +80,22 @@ function rpcError(err: PostgrestError | null): ServiceError | null {
   if (msg.includes('REQUEST_ALREADY_EXISTS')) return errors.REQUEST_ALREADY_EXISTS()
   if (msg.includes('REQUEST_NOT_FOUND')) return errors.LISTING_NOT_FOUND('request')
   if (msg.includes('REQUEST_NOT_PENDING')) return errors.REQUEST_NOT_PENDING()
+  if (msg.includes('MANUAL_REVIEW_REQUIRED')) {
+    return new ServiceError({ code: 'MANUAL_REVIEW_REQUIRED', message: msg, userMessage: 'These dancers do not appear to match. Choose Ask my rep to review anyway to send this request.', statusCode: 409 })
+  }
+  if (msg.includes('VERIFICATION_REQUIRED') || msg.includes('REQUESTED_ITEM_UNVERIFIED')) {
+    return errors.INVALID_INPUT('verified offered family and type required', 'Confirm the offered collection and jewelry type before approving.')
+  }
+  if (msg.includes('TRADE_FAMILY_MISMATCH')) {
+    return new ServiceError({ code: 'TRADE_FAMILY_MISMATCH', message: msg, userMessage: 'The offered collection does not match this dancer.', statusCode: 409 })
+  }
+  if (msg.includes('TRADE_TYPE_MISMATCH')) {
+    return new ServiceError({ code: 'TRADE_TYPE_MISMATCH', message: msg, userMessage: 'The offered jewelry type does not match this dancer.', statusCode: 409 })
+  }
+  if (msg.includes('DENIAL_REASON_REQUIRED')) {
+    return errors.INVALID_INPUT('denial reason required', 'Choose a denial reason and add a brief explanation for Other.')
+  }
+  if (msg.includes('UNAUTHORIZED_TRADE')) return errors.UNAUTHORIZED('trade request belongs to another rep')
   if (msg.includes('IDEMPOTENCY_CONFLICT')) {
     return errors.INVALID_INPUT(
       'trade request submission identity conflict',
@@ -128,6 +148,10 @@ export async function submitTradeRequest(
       'Please refresh the trade request form and try again.',
     )
   }
+  const offeredFamily = input.offeredFamily?.trim() || null
+  if (offeredFamily && offeredFamily.length > TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH) {
+    throw errors.INVALID_INPUT('offeredFamily too long', 'The collection family is too long.')
+  }
 
   if (input.expectedRepId?.trim()) {
     const { data: listing, error: listingError } = await supabase
@@ -144,15 +168,19 @@ export async function submitTradeRequest(
     }
   }
 
-  const { data, error } = await supabase.rpc(
-    submissionId ? 'rpc_submit_trade_request_v2' : 'rpc_submit_trade_request',
-    {
+  const submissionIdentity = submissionId ?? randomUUID()
+  const token = receiptToken(submissionIdentity)
+  const receiptHash = createHash('sha256').update(token).digest('hex')
+  const { data, error } = await supabase.rpc('rpc_submit_trade_request_v3', {
     p_listing_id: input.listingId,
-      p_customer_name: customerName,
-      p_customer_description: customerDescription,
-      ...(submissionId ? { p_submission_id: submissionId } : {}),
-    },
-  )
+    p_customer_name: customerName,
+    p_customer_description: customerDescription,
+    p_submission_id: submissionIdentity,
+    p_receipt_token_hash: receiptHash,
+    p_offered_family: offeredFamily,
+    p_offered_type: input.offeredType ?? null,
+    p_manual_review_requested: input.manualReviewRequested === true,
+  })
   const mapped = rpcError(error)
   if (mapped) throw mapped
   if (error) throw error
@@ -163,10 +191,52 @@ export async function submitTradeRequest(
     mutation_replayed?: boolean
   } | null
   if (!payload?.request_id) throw errors.LISTING_NOT_FOUND(input.listingId)
+  const receiptUrl = `/trade-request/status/${token}`
+  const { data: screeningRow, error: screeningError } = await supabase
+    .from('trade_requests')
+    .select('screening_status, screening_reason')
+    .eq('id', payload.request_id)
+    .single()
+  if (screeningError) throw screeningError
   return {
     requestId: payload.request_id,
     listingId: payload.listing_id,
     ...(payload.mutation_replayed ? { mutationReplayed: true } : {}),
+    receiptUrl,
+    screening: {
+      status: (screeningRow.screening_status ?? 'needs_verification') as 'likely_match' | 'mismatch' | 'needs_verification',
+      reason: screeningRow.screening_reason ?? null,
+    },
+  }
+}
+
+function receiptToken(submissionId: string): string {
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!secret) throw new Error('receipt signing secret unavailable')
+  return createHmac('sha256', secret).update(`trade-request-receipt:v1:${submissionId}`).digest('hex')
+}
+
+export async function getTradeRequestReceiptStatus(supabase: SupabaseClient, token: string) {
+  if (!/^[a-f0-9]{64}$/.test(token)) return null
+  const hash = createHash('sha256').update(token).digest('hex')
+  const { data, error } = await supabase.from('trade_requests')
+    .select('status, rejection_reason, denial_explanation, updated_at')
+    .eq('receipt_token_hash', hash)
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  const explanations: Record<string, string> = {
+    collection_mismatch: 'The offered piece is from a different collection family.',
+    jewelry_type_mismatch: 'The offered piece is a different jewelry type.',
+    item_unavailable: 'The requested dancer is no longer available.',
+    other: data.denial_explanation ?? 'Your rep could not approve this trade.',
+  }
+  return {
+    status: data.status as TradeRequestStatus,
+    denialExplanation: data.status === 'denied'
+      ? explanations[data.rejection_reason as string] ?? 'Your rep could not approve this trade.'
+      : null,
+    updatedAt: data.updated_at as string,
   }
 }
 
@@ -199,12 +269,14 @@ export async function attachTradeRequestRevealScreenshot(
 
 const REQUEST_LISTING_SELECT = `
   id, status, customer_name, customer_description,
+  offered_family, offered_type, manual_review_requested,
+  screening_status, screening_reason,
   reveal_screenshot_path, reveal_screenshot_content_type,
   reveal_screenshot_size_bytes, reveal_screenshot_uploaded_at,
   reveal_screenshot_expires_at,
   rejection_reason,
   rep_notes, created_at, updated_at,
-  listing:trade_listings(
+  listing:trade_listings!inner(
     id, rep_id, listing_source, listing_photo_url, uses_canonical_photo,
     manual_type_prefix, manual_collection_family, manual_collection_name,
     manual_size, manual_photo_url,
@@ -228,8 +300,11 @@ export async function getTradeRequests(
     .from('trade_requests')
     .select(REQUEST_LISTING_SELECT)
     .eq('status', status)
+    .eq('listing.rep_id', repId)
     .order('created_at', { ascending: false })
-  if (filters.limit) query = query.limit(filters.limit)
+    .order('id', { ascending: false })
+  if (filters.requestId) query = query.eq('id', filters.requestId)
+  if (filters.limit) query = query.range(filters.offset ?? 0, (filters.offset ?? 0) + filters.limit - 1)
 
   const { data, error } = await query
   if (error) throw error
@@ -275,6 +350,11 @@ type RawListing = {
     status: TradeRequestStatus
     customer_name: string
     customer_description: string
+    offered_family: string | null
+    offered_type: TradeRequestWithListing['offeredType']
+    manual_review_requested: boolean
+    screening_status: TradeRequestWithListing['screening']['status'] | null
+    screening_reason: string | null
     reveal_screenshot_path: string | null
     reveal_screenshot_content_type: string | null
     reveal_screenshot_size_bytes: number | null
@@ -342,6 +422,14 @@ type RawListing = {
         repNotes: row.rep_notes,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
+        offeredFamily: row.offered_family,
+        offeredType: row.offered_type,
+        manualReviewRequested: row.manual_review_requested,
+        screening: {
+          status: row.screening_status ?? 'needs_verification',
+          reason: row.screening_reason ?? (row.offered_family ? null : 'The offered piece needs rep verification.'),
+        },
+        verificationNeeded: true,
         listing: {
           id: lst.id,
           repId: lst.rep_id,
@@ -366,6 +454,40 @@ type RawListing = {
     .filter((r): r is TradeRequestWithListing => r !== null)
 
   return rows
+}
+
+export async function getPendingTradeRequestCount(supabase: SupabaseClient, repId: string): Promise<number> {
+  if (!repId) throw errors.UNAUTHORIZED('repId required')
+  const { count, error } = await supabase.from('trade_requests')
+    .select('id, listing:trade_listings!inner(rep_id)', { count: 'exact', head: true })
+    .eq('status', 'pending')
+    .eq('listing.rep_id', repId)
+  if (error) throw error
+  return count ?? 0
+}
+
+export async function screenTradeRequestForListing(
+  supabase: SupabaseClient,
+  listingId: string,
+  offeredFamily: string | null,
+  offeredType: string | null,
+  expectedRepId?: string | null,
+) {
+  const { data, error } = await supabase.from('trade_listings')
+    .select('id, rep_id, status, manual_collection_family, manual_type_prefix, design:jewelry_designs(type_prefix, collection:collections(name))')
+    .eq('id', listingId).maybeSingle()
+  if (error) throw error
+  if (!data || (expectedRepId && data.rep_id !== expectedRepId)) throw errors.LISTING_NOT_FOUND(listingId)
+  const design = Array.isArray(data.design) ? data.design[0] : data.design
+  const collection = design?.collection as { name: string } | Array<{ name: string }> | null | undefined
+  const requestedFamily = data.manual_collection_family ?? (Array.isArray(collection) ? collection[0]?.name : collection?.name) ?? null
+  const requestedType = data.manual_type_prefix ?? design?.type_prefix ?? null
+  return {
+    repId: data.rep_id as string,
+    screening: screenTradeOffer(offeredFamily, offeredType, requestedFamily, requestedType),
+    requestedFamily,
+    requestedType,
+  }
 }
 
 const REQUEST_NOTIFICATION_SELECT = `
@@ -602,15 +724,26 @@ export async function approveTrade(
   supabase: SupabaseClient,
   repId: string,
   requestId: string,
-  repNotes?: string
+  repNotes?: string,
+  verification?: TradeApprovalVerification,
 ): Promise<ApproveTradeResult> {
   if (!repId) throw errors.UNAUTHORIZED('repId required')
   if (!requestId) throw errors.MISSING_ITEM_INPUT()
+  if (!verification?.verificationConfirmed || !verification.finalConfirmation ||
+      !normalizeTradeFamily(verification.verifiedOfferedFamily) ||
+      !normalizeTradeType(verification.verifiedOfferedType)) {
+    throw errors.INVALID_INPUT('rep verification required', 'Confirm the offered collection and jewelry type before approving.')
+  }
 
   await assertRequestOwnedByRep(supabase, repId, requestId)
 
-  const { data, error } = await supabase.rpc('rpc_approve_trade', {
+  const { data, error } = await supabase.rpc('rpc_approve_trade_v2', {
     p_request_id: requestId,
+    p_rep_id: repId,
+    p_verified_family: verification.verifiedOfferedFamily,
+    p_verified_type: verification.verifiedOfferedType,
+    p_verification_confirmed: verification.verificationConfirmed,
+    p_final_confirmation: verification.finalConfirmation,
     p_rep_notes: repNotes ?? null,
   })
   const mapped = rpcError(error)
@@ -641,16 +774,23 @@ export async function rejectTrade(
   repId: string,
   requestId: string,
   reason?: RejectionReason,
-  repNotes?: string
+  repNotes?: string,
+  customerExplanation?: string,
 ): Promise<RejectTradeResult> {
   if (!repId) throw errors.UNAUTHORIZED('repId required')
   if (!requestId) throw errors.MISSING_ITEM_INPUT()
+  if (!reason || !['collection_mismatch', 'jewelry_type_mismatch', 'item_unavailable', 'other'].includes(reason) ||
+      (reason === 'other' && !customerExplanation?.trim()) || (customerExplanation?.length ?? 0) > 240) {
+    throw errors.INVALID_INPUT('denial reason required', 'Choose a denial reason and add a brief explanation for Other.')
+  }
 
   await assertRequestOwnedByRep(supabase, repId, requestId)
 
-  const { data, error } = await supabase.rpc('rpc_reject_trade', {
+  const { data, error } = await supabase.rpc('rpc_reject_trade_v2', {
     p_request_id: requestId,
-    p_reason: reason ?? null,
+    p_rep_id: repId,
+    p_reason: reason,
+    p_customer_explanation: customerExplanation?.trim() ?? null,
     p_rep_notes: repNotes ?? null,
   })
   const mapped = rpcError(error)

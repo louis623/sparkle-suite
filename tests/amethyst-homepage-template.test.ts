@@ -134,7 +134,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20260922-grandfathered-skin-switch')
+    expect(homepage).toContain('homepage.jsx?v=20260923-trade-tip')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -712,7 +712,8 @@ describe('Amethyst homepage template data wiring', () => {
           expect(source).toContain(`>${label}</a>`)
         }
       }
-      expect(source).toContain('FAQ · Coming soon')
+      expect(source).toContain('>FAQ</a>')
+      expect(source).not.toContain('FAQ · Coming soon')
       expect(source).not.toContain('>Contact</a>')
       expect(source).not.toContain('>Shop Now</a>')
       expect(source).not.toContain('Bomb Party Catalog')

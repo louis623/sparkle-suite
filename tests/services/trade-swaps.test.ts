@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { errors } from '@/lib/services/errors'
 
+const verification = {
+  verifiedOfferedFamily: 'Lustre',
+  verifiedOfferedType: 'NK' as const,
+  verificationConfirmed: true,
+  finalConfirmation: true,
+}
+
 const approveTradeMock = vi.fn()
 const addListingMock = vi.fn()
 
@@ -13,10 +20,24 @@ vi.mock('@/lib/services/trade-board', () => ({
 }))
 
 import {
-  approveTradeWithRevealedItemCapture,
+  approveTradeWithRevealedItemCapture as approveTradeWithRevealedItemCaptureService,
   getTradeSwapCleanupQueue,
   resolveTradeSwapReplacementListing,
 } from '@/lib/services/trade-swaps'
+
+function approveTradeWithRevealedItemCapture(
+  client: Parameters<typeof approveTradeWithRevealedItemCaptureService>[0],
+  repId: string,
+  input: Parameters<typeof approveTradeWithRevealedItemCaptureService>[2],
+) {
+  const itemNumber = input.revealedItemNumber.trim().toUpperCase()
+  const catalogVerification = {
+    ...verification,
+    verifiedOfferedFamily: itemNumber === 'NK12032' ? 'Birthday' : 'Lustre',
+    verifiedOfferedType: itemNumber.slice(0, 2) as 'RG' | 'NK' | 'ER',
+  }
+  return approveTradeWithRevealedItemCaptureService(client, repId, { verification: catalogVerification, ...input })
+}
 
 function makeApproveSupabase(
   design: Record<string, unknown> | Array<Record<string, unknown>> | null = null,
@@ -31,15 +52,21 @@ function makeApproveSupabase(
   })
   const insertSelect = vi.fn().mockReturnValue({ single: insertSingle })
   const insert = vi.fn().mockReturnValue({ select: insertSelect })
+  const updateEq = vi.fn().mockResolvedValue({ error: null })
+  const update = vi.fn().mockReturnValue({ eq: updateEq })
+  const rpc = vi.fn().mockResolvedValue({ data: {
+    request_id: 'request-1', fulfillment_id: 'fulfillment-1', listing_id: 'outgoing-listing-1',
+    customer_name: 'Jamie', quantity_available: 0, swap_id: 'swap-1',
+  }, error: null })
   const from = vi.fn((table: string) => {
     if (table === 'jewelry_designs') return { select: designSelect }
-    if (table === 'trade_swaps') return { insert }
+    if (table === 'trade_swaps') return { insert, update }
     throw new Error(`unexpected table ${table}`)
   })
 
   return {
-    client: { from } as never,
-    spies: { from, designEq, designLimit, insert, insertSingle },
+    client: { from, rpc } as never,
+    spies: { from, designEq, designLimit, insert, insertSingle, update, rpc },
   }
 }
 
@@ -116,8 +143,9 @@ function makeResumeApproveSupabase(options: {
     if (table === 'jewelry_designs') return { select: designSelect }
     throw new Error(`unexpected table ${table}`)
   })
+  const rpc = vi.fn().mockResolvedValue({ data: null, error: { message: 'REQUEST_NOT_PENDING' } })
 
-  return { client: { from } as never, spies: { insert } }
+  return { client: { from, rpc } as never, spies: { insert, rpc } }
 }
 
 function makeResolveReplacementSupabase(options: {
@@ -261,7 +289,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
     expect(addListingMock).not.toHaveBeenCalled()
   })
 
-  it('resumes an approved request and replays the stable replacement add before recording the swap', async () => {
+  it('does not make an ambiguous replacement after an approved request lacks a capture row', async () => {
     approveTradeMock.mockRejectedValueOnce(errors.REQUEST_NOT_PENDING())
     addListingMock.mockResolvedValueOnce({
       listingId: 'replacement-listing-1',
@@ -273,21 +301,12 @@ describe('approveTradeWithRevealedItemCapture', () => {
     })
     const { client, spies } = makeResumeApproveSupabase({ swap: null })
 
-    const result = await approveTradeWithRevealedItemCapture(client, 'rep-1', {
+    await expect(approveTradeWithRevealedItemCapture(client, 'rep-1', {
       requestId: 'request-1',
       revealedItemNumber: 'NK12345',
-    })
-
-    expect(addListingMock).toHaveBeenCalledWith(
-      client,
-      'rep-1',
-      expect.objectContaining({
-        idempotencyKey: 'trade-swap-replacement:request-1',
-        inputSignature: expect.any(String),
-      }),
-    )
-    expect(spies.insert).toHaveBeenCalledTimes(1)
-    expect(result.replacementListingId).toBe('replacement-listing-1')
+    })).rejects.toMatchObject({ code: 'REQUEST_NOT_PENDING' })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(spies.insert).not.toHaveBeenCalled()
   })
 
   it('reads back the committed swap when concurrent resumes race the unique request constraint', async () => {
@@ -366,12 +385,9 @@ describe('approveTradeWithRevealedItemCapture', () => {
       revealedItemNumber: ' nk12345 ',
     })
 
-    expect(approveTradeMock).toHaveBeenCalledWith(
-      client,
-      'rep-1',
-      'request-1',
-      undefined,
-    )
+    expect(spies.rpc).toHaveBeenCalledWith('rpc_approve_trade_with_swap_v2', expect.objectContaining({
+      p_request_id: 'request-1', p_revealed_item_number: 'NK12345', p_revealed_design_id: 'design-1',
+    }))
     expect(addListingMock).toHaveBeenCalledWith(client, 'rep-1', expect.objectContaining({
       itemNumber: 'NK12345',
       material: undefined,
@@ -381,15 +397,9 @@ describe('approveTradeWithRevealedItemCapture', () => {
       inputSignature: expect.any(String),
     }))
     expect(spies.designEq).toHaveBeenCalledWith('item_number', 'NK12345')
-    expect(spies.insert.mock.calls[0][0]).toMatchObject({
-      request_id: 'request-1',
-      outgoing_listing_id: 'outgoing-listing-1',
-      revealed_item_number: 'NK12345',
-      revealed_ring_size: null,
-      revealed_design_id: 'design-1',
-      replacement_listing_id: 'replacement-listing-1',
-      replacement_status: 'added_to_board',
-    })
+    expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
+      replacement_listing_id: 'replacement-listing-1', replacement_status: 'added_to_board',
+    }))
     expect(result).toMatchObject({
       swapId: 'swap-1',
       replacementStatus: 'added_to_board',
@@ -426,16 +436,13 @@ describe('approveTradeWithRevealedItemCapture', () => {
     })
 
     expect(addListingMock).not.toHaveBeenCalled()
-    expect(spies.insert.mock.calls[0][0]).toMatchObject({
-      revealed_item_number: 'RG99999',
-      revealed_design_id: 'design-1',
-      replacement_listing_id: null,
-      replacement_status: 'needs_ring_size',
-    })
+    expect(spies.rpc).toHaveBeenCalledWith('rpc_approve_trade_with_swap_v2', expect.objectContaining({
+      p_revealed_item_number: 'RG99999', p_revealed_design_id: 'design-1', p_revealed_ring_size: null,
+    }))
     expect(result.replacementStatus).toBe('needs_ring_size')
   })
 
-  it('saves unresolved item number when catalog does not know the revealed item yet', async () => {
+  it('does not approve when the revealed item number cannot be resolved', async () => {
     approveTradeMock.mockResolvedValueOnce({
       requestId: 'request-1',
       fulfillmentId: 'fulfillment-1',
@@ -444,19 +451,28 @@ describe('approveTradeWithRevealedItemCapture', () => {
     })
     const { client, spies } = makeApproveSupabase(null)
 
-    const result = await approveTradeWithRevealedItemCapture(client, 'rep-1', {
+    await expect(approveTradeWithRevealedItemCapture(client, 'rep-1', {
       requestId: 'request-1',
       revealedItemNumber: 'ER00001',
-    })
+    })).rejects.toMatchObject({ code: 'INVALID_INPUT' })
 
     expect(addListingMock).not.toHaveBeenCalled()
-    expect(spies.insert.mock.calls[0][0]).toMatchObject({
-      revealed_item_number: 'ER00001',
-      revealed_design_id: null,
-      replacement_listing_id: null,
-      replacement_status: 'needs_catalog_details',
+    expect(approveTradeMock).not.toHaveBeenCalled()
+    expect(spies.insert).not.toHaveBeenCalled()
+  })
+
+  it('blocks contradictory verified facts for a known catalog item before approval', async () => {
+    const { client, spies } = makeApproveSupabase({
+      id: 'design-1', item_number: 'RG99999', design_name: 'Moon Ring',
+      material: null, main_stone: null, bp_msrp: 138, canonical_photo_url: null,
+      type_prefix: 'RG', collection_id: 'collection-1', search_tags: [],
+      collection: { name: 'Lustre', collection_year: 2026 },
     })
-    expect(result.replacementStatus).toBe('needs_catalog_details')
+    await expect(approveTradeWithRevealedItemCaptureService(client, 'rep-1', {
+      requestId: 'request-1', revealedItemNumber: 'RG99999',
+      verification: { ...verification, verifiedOfferedFamily: 'OG', verifiedOfferedType: 'RG' },
+    })).rejects.toMatchObject({ code: 'CATALOG_ITEM_MISMATCH' })
+    expect(spies.rpc).not.toHaveBeenCalled()
   })
 
   it('auto-adds a matched ring when ring size is supplied', async () => {
@@ -502,10 +518,8 @@ describe('approveTradeWithRevealedItemCapture', () => {
       idempotencyKey: 'trade-swap-replacement:request-1',
       inputSignature: expect.any(String),
     }))
-    expect(spies.insert.mock.calls[0][0]).toMatchObject({
-      revealed_ring_size: '8',
-      replacement_status: 'added_to_board',
-    })
+    expect(spies.rpc).toHaveBeenCalledWith('rpc_approve_trade_with_swap_v2', expect.objectContaining({ p_revealed_ring_size: '8' }))
+    expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({ replacement_status: 'added_to_board' }))
     expect(result.replacementStatus).toBe('added_to_board')
   })
 
@@ -567,14 +581,12 @@ describe('approveTradeWithRevealedItemCapture', () => {
       idempotencyKey: 'trade-swap-replacement:request-1',
       inputSignature: expect.any(String),
     }))
-    expect(spies.insert.mock.calls[0][0]).toMatchObject({
-      revealed_design_id: 'design-hematite',
-      replacement_status: 'added_to_board',
-    })
+    expect(spies.rpc).toHaveBeenCalledWith('rpc_approve_trade_with_swap_v2', expect.objectContaining({ p_revealed_design_id: 'design-hematite' }))
+    expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({ replacement_status: 'added_to_board' }))
     expect(result.revealedDesignId).toBe('design-hematite')
   })
 
-  it('records cleanup when replacement auto-add hits an expected catalog gap after approval', async () => {
+  it('does not approve a catalog item whose collection is missing', async () => {
     approveTradeMock.mockResolvedValueOnce({
       requestId: 'request-1',
       fulfillmentId: 'fulfillment-1',
@@ -598,19 +610,14 @@ describe('approveTradeWithRevealedItemCapture', () => {
       collection: null,
     })
 
-    const result = await approveTradeWithRevealedItemCapture(client, 'rep-1', {
+    await expect(approveTradeWithRevealedItemCapture(client, 'rep-1', {
       requestId: 'request-1',
       revealedItemNumber: 'NK12345',
-    })
+    })).rejects.toMatchObject({ code: 'VERIFICATION_REQUIRED' })
 
-    expect(spies.insert.mock.calls[0][0]).toMatchObject({
-      request_id: 'request-1',
-      revealed_item_number: 'NK12345',
-      revealed_design_id: 'design-1',
-      replacement_listing_id: null,
-      replacement_status: 'needs_catalog_details',
-    })
-    expect(result.replacementStatus).toBe('needs_catalog_details')
+    expect(spies.rpc).not.toHaveBeenCalled()
+    expect(spies.update).not.toHaveBeenCalled()
+    expect(addListingMock).not.toHaveBeenCalled()
   })
 })
 

@@ -77,7 +77,7 @@ describe('Amethyst static asset route', () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toContain('text/html')
     await expect(response.text()).resolves.toContain(
-      'homepage.jsx?v=20260909-lineup-v2',
+      'homepage.jsx?v=20260923-trade-tip',
     )
   })
 
@@ -161,7 +161,7 @@ describe('Amethyst static asset route', () => {
 
       expect(html).toContain('src="/amethyst/template-loader.js"')
       if (assetName === 'Join.html') {
-        expect(html).toContain('src="/amethyst/join-runtime.js?v=20260920-team-portraits-v1"')
+        expect(html).toContain('src="/amethyst/join-runtime.js?v=20260923-faq"')
         expect(html).toContain('href="/amethyst/join.css?v=20260920-team-portraits-v1"')
         expect(html).toContain('href="/amethyst/neon-butterfly.css?v=20260914-team-recruiting-v1"')
         expect(html).not.toContain('tweaks-panel.jsx')

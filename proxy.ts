@@ -6,6 +6,7 @@ import { isAmethystPlatformHost, normalizeAmethystCustomDomainCandidate } from '
 const CUSTOMER_SITE_ROUTES: Record<string, string> = {
   '/': '/customer-site/home',
   '/trade': '/customer-site/trade',
+  '/faq': '/customer-site/faq',
   '/join': '/customer-site/join',
   '/in-the-pantry': '/customer-site/in-the-pantry',
 }
@@ -56,6 +57,7 @@ export const config = {
   matcher: [
     '/',
     '/trade',
+    '/faq',
     '/join',
     '/in-the-pantry',
     '/onboarding/:path*',

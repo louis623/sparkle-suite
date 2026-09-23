@@ -105,6 +105,10 @@ describe('approve_trade_swap', () => {
       requestId: '11111111-1111-1111-1111-111111111111',
       revealedItemNumber: ' nk12345 ',
       repNotes: 'approved live',
+      verifiedOfferedFamily: 'Birthday',
+      verifiedOfferedType: 'NK',
+      verificationConfirmed: true,
+      finalConfirmation: true,
     })
 
     expect(approveTradeWithRevealedItemCaptureMock).toHaveBeenCalledWith(
@@ -116,6 +120,7 @@ describe('approve_trade_swap', () => {
         revealedMaterial: undefined,
         revealedRingSize: undefined,
         repNotes: 'approved live',
+        verification: { verifiedOfferedFamily: 'Birthday', verifiedOfferedType: 'NK', verificationConfirmed: true, finalConfirmation: true },
       },
     )
     expect(writeTradeActionAuditMock).toHaveBeenCalledWith(

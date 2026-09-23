@@ -28,8 +28,8 @@ import type { ToolDefinition } from './types'
 const inputSchema = z.object({
   requestId: z.string().uuid(),
   reason: z
-    .enum(['msrp_mismatch', 'not_interested', 'changed_mind', 'other'])
-    .optional(),
+    .enum(['collection_mismatch', 'jewelry_type_mismatch', 'item_unavailable', 'other']),
+  customerExplanation: z.string().max(240).optional(),
   repNotes: z.string().optional(),
 })
 
@@ -55,9 +55,9 @@ export function makeRejectTradeTool(ctx: {
     description:
       "Reject an incoming trade request against one of the authenticated rep's listings. " +
       'Reversible: the listing returns to status=available so it can receive new requests. ' +
-      "No approval dialog — rejecting is reversible. Identify the request by requestId. Optionally include reason (msrp_mismatch | not_interested | changed_mind | other) and repNotes the rep wants attached to the rejection.",
+      "No approval dialog — rejecting is reversible. Identify the request by requestId. A customer-safe reason is required; for other, supply customerExplanation. Rep notes stay private.",
     inputSchema,
-    execute: async ({ requestId, reason, repNotes }) => {
+    execute: async ({ requestId, reason, customerExplanation, repNotes }) => {
       assertTradeWorkflowInputMatches({
         workflow: ctx.activeTradeWorkflow,
         workflowType: 'trade_request_decision',
@@ -74,6 +74,7 @@ export function makeRejectTradeTool(ctx: {
           requestId,
           reason as RejectionReason | undefined,
           repNotes,
+          customerExplanation,
         )
       } catch (err) {
         explainServiceError(err)

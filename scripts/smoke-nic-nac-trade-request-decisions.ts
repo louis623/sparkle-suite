@@ -49,6 +49,7 @@ type SeededRequestTarget = {
 
 type SeededDecisionTargets = {
   collectionId: string
+  collectionName: string
   approve: SeededRequestTarget
   reject: SeededRequestTarget
 }
@@ -415,9 +416,10 @@ async function seedTradeRequestTargets(
   repId: string,
   runTag: string,
 ): Promise<SeededDecisionTargets> {
+  const collectionName = `${SMOKE_PREFIX} Collection ${runTag}`
   const { data: collection, error: collectionError } = await supabase
     .from('collections')
-    .insert({ name: `${SMOKE_PREFIX} Collection ${runTag}` })
+    .insert({ name: collectionName })
     .select('id')
     .single()
   if (collectionError) throw collectionError
@@ -501,6 +503,9 @@ async function seedTradeRequestTargets(
         listing_id: target.listingId,
         customer_name: target.customerName,
         customer_description: `Synthetic pending request for ${target.itemNumber}.`,
+        offered_family: collectionName,
+        offered_type: target.itemNumber.slice(0, 2),
+        manual_review_requested: false,
         status: 'pending',
       })),
     )
@@ -516,6 +521,7 @@ async function seedTradeRequestTargets(
 
   return {
     collectionId: collection.id,
+    collectionName,
     approve: { ...targets[0], requestId: approveRequestId },
     reject: { ...targets[1], requestId: rejectRequestId },
   }
@@ -841,7 +847,8 @@ export async function runTradeRequestDecisionSmoke(
       turns,
       text:
         `Approve trade request ${targets.approve.requestId} from ${targets.approve.customerName} for ${targets.approve.itemNumber}. ` +
-        'Do not capture the revealed replacement item right now; I will add the received piece later.',
+        `I personally verified that the offered dancer is a ${targets.collectionName} necklace, matching the requested collection and jewelry type. ` +
+        'I confirm those facts and give my final approval now. Do not capture the revealed replacement item right now; I will add the received piece later.',
     })
 
     messages = await approveTurn({
@@ -882,7 +889,7 @@ export async function runTradeRequestDecisionSmoke(
       turns,
       text:
         `Reject trade request ${targets.reject.requestId} from ${targets.reject.customerName} for ${targets.reject.itemNumber} ` +
-        'because they changed their mind. Add the note: customer changed mind during smoke.',
+        'for another customer-safe reason: the customer changed their mind. Tell them the request was declined because they no longer want the swap. Add the private note: customer changed mind during smoke.',
     })
 
     await verifyRejectState({

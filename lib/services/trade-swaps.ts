@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createHash } from 'node:crypto'
 
 import { addListing } from '@/lib/services/trade-board'
-import { approveTrade } from '@/lib/services/trade-requests'
+import { normalizeTradeFamily, normalizeTradeType, screenTradeOffer } from '@/lib/services/trade-request-matcher'
 import { ServiceError, errors } from '@/lib/services/errors'
 import { resolveItemNumber } from '@/lib/services/jewelry-database'
 import type {
@@ -94,6 +94,11 @@ export async function approveTradeWithRevealedItemCapture(
 ): Promise<ApproveTradeSwapResult> {
   if (!repId) throw errors.UNAUTHORIZED('repId required')
   if (!input.requestId) throw errors.MISSING_ITEM_INPUT()
+  if (!input.verification?.verificationConfirmed || !input.verification.finalConfirmation ||
+      !normalizeTradeFamily(input.verification.verifiedOfferedFamily) ||
+      !normalizeTradeType(input.verification.verifiedOfferedType)) {
+    throw errors.INVALID_INPUT('rep verification required', 'Confirm the offered collection and jewelry type before approving.')
+  }
 
   const revealedItemNumber = normalizeItemNumber(input.revealedItemNumber)
   if (!revealedItemNumber) {
@@ -114,14 +119,66 @@ export async function approveTradeWithRevealedItemCapture(
     repNotes: normalizedRepNotes,
   })
 
-  let approved: ApproveTradeResult
-  try {
-    approved = await approveTrade(
-      supabase,
-      repId,
-      input.requestId,
-      normalizedRepNotes,
+  // Resolve the optional catalog item before the irreversible approval. A
+  // lookup failure must never be returned after the request was approved.
+  const resolvedDesign = await resolveItemNumber(supabase, revealedItemNumber, {
+    material: revealedMaterial,
+  })
+  if (!resolvedDesign.found) {
+    throw errors.INVALID_INPUT(
+      'revealed item number is unresolved or ambiguous',
+      'Confirm the revealed item number and its material before approving.',
     )
+  }
+  const catalogMatch = screenTradeOffer(
+    input.verification.verifiedOfferedFamily,
+    input.verification.verifiedOfferedType,
+    resolvedDesign.design.collectionName,
+    resolvedDesign.design.typePrefix,
+  )
+  if (catalogMatch.status !== 'likely_match') {
+    throw new ServiceError({
+      code: catalogMatch.status === 'needs_verification' ? 'VERIFICATION_REQUIRED' : 'CATALOG_ITEM_MISMATCH',
+      message: catalogMatch.reason ?? 'catalog item requires verification',
+      userMessage: 'The revealed catalog item does not match the verified collection and jewelry type.',
+      statusCode: 409,
+    })
+  }
+
+  let approved: ApproveTradeResult
+  let swapId: string
+  try {
+    const { data, error } = await supabase.rpc('rpc_approve_trade_with_swap_v2', {
+      p_request_id: input.requestId,
+      p_rep_id: repId,
+      p_verified_family: input.verification.verifiedOfferedFamily,
+      p_verified_type: input.verification.verifiedOfferedType,
+      p_verification_confirmed: true,
+      p_final_confirmation: true,
+      p_revealed_item_number: revealedItemNumber,
+      p_revealed_material: revealedMaterial ?? null,
+      p_revealed_ring_size: revealedRingSize ?? null,
+      p_revealed_design_id: resolvedDesign.design.id,
+      p_input_signature: swapInputSignature,
+      p_rep_notes: normalizedRepNotes ?? null,
+    })
+    if (error) {
+      if (error.message?.includes('REQUEST_NOT_PENDING')) throw errors.REQUEST_NOT_PENDING()
+      if (error.message?.includes('TRADE_FAMILY_MISMATCH')) throw new ServiceError({ code: 'TRADE_FAMILY_MISMATCH', message: error.message, userMessage: 'The offered collection does not match this dancer.', statusCode: 409 })
+      if (error.message?.includes('TRADE_TYPE_MISMATCH')) throw new ServiceError({ code: 'TRADE_TYPE_MISMATCH', message: error.message, userMessage: 'The offered jewelry type does not match this dancer.', statusCode: 409 })
+      if (error.message?.includes('UNAUTHORIZED_TRADE')) throw errors.UNAUTHORIZED('trade request belongs to another rep')
+      if (error.message?.includes('VERIFICATION_REQUIRED')) throw errors.INVALID_INPUT('rep verification required', 'Confirm the offered collection and jewelry type before approving.')
+      throw error
+    }
+    if (!data?.swap_id || !data?.fulfillment_id) throw new Error('atomic trade swap approval returned incomplete data')
+    swapId = data.swap_id as string
+    approved = {
+      requestId: data.request_id as string,
+      fulfillmentId: data.fulfillment_id as string,
+      listingId: data.listing_id as string,
+      customerName: data.customer_name as string,
+      quantityAvailable: data.quantity_available as number,
+    }
   } catch (error) {
     if (!(error instanceof ServiceError) || error.code !== 'REQUEST_NOT_PENDING') {
       throw error
@@ -141,12 +198,9 @@ export async function approveTradeWithRevealedItemCapture(
       })
       return resumed.existingSwap.result
     }
-    approved = resumed.approved
+    throw errors.REQUEST_NOT_PENDING()
   }
 
-  const resolvedDesign = await resolveItemNumber(supabase, revealedItemNumber, {
-    material: revealedMaterial,
-  })
   let replacementStatus: TradeSwapReplacementStatus = 'needs_catalog_details'
   let revealedDesignId: string | null = null
   let replacementListingId: string | null = null
@@ -179,49 +233,27 @@ export async function approveTradeWithRevealedItemCapture(
         replacementListingId = replacement.listingId
         replacementStatus = 'added_to_board'
       } catch (err) {
-        if (!expectedReplacementCleanupError(err)) throw err
+        // The approval is already durable. Keep the swap in recoverable cleanup
+        // rather than returning a false failure for a completed approval.
+        console.error('[trade-swaps] replacement listing deferred after approval', err)
         replacementStatus = 'needs_catalog_details'
       }
     }
   }
 
-  const { data: swapRow, error: swapError } = await supabase
-    .from('trade_swaps')
-    .insert({
-      request_id: approved.requestId,
-      outgoing_listing_id: approved.listingId,
-      revealed_item_number: revealedItemNumber,
-      revealed_material: revealedMaterial ?? null,
-      revealed_ring_size: revealedRingSize ?? null,
-      revealed_design_id: revealedDesignId,
-      replacement_listing_id: replacementListingId,
-      replacement_status: replacementStatus,
-      rep_notes: normalizedRepNotes ?? null,
-      input_signature: swapInputSignature,
-    })
-    .select('id, replacement_status')
-    .single()
-  if (swapError) {
-    if (!isUniqueViolation(swapError)) throw swapError
-
-    const resumed = await loadApprovedTradeSwapForResume(
-      supabase,
-      repId,
-      approved.requestId,
-    )
-    if (!resumed.existingSwap) throw swapError
-    assertMatchingTradeSwapRetry(resumed.existingSwap, {
-      inputSignature: swapInputSignature,
-      revealedItemNumber,
-      revealedMaterial: revealedMaterial ?? null,
-      revealedRingSize: revealedRingSize ?? null,
-      repNotes: normalizedRepNotes ?? null,
-    })
-    return resumed.existingSwap.result
+  if (replacementListingId) {
+    const { error: updateError } = await supabase.from('trade_swaps')
+      .update({ replacement_listing_id: replacementListingId, replacement_status: 'added_to_board', updated_at: new Date().toISOString() })
+      .eq('id', swapId)
+    if (updateError) {
+      console.error('[trade-swaps] approved swap replacement link deferred', updateError)
+      replacementListingId = null
+      replacementStatus = 'needs_catalog_details'
+    }
   }
 
   return {
-    swapId: swapRow.id as string,
+    swapId,
     requestId: approved.requestId,
     fulfillmentId: approved.fulfillmentId,
     outgoingListingId: approved.listingId,
@@ -368,23 +400,6 @@ function assertMatchingTradeSwapRetry(
       'approved trade swap retry does not match the recorded revealed item',
     )
   }
-}
-
-function isUniqueViolation(error: unknown) {
-  if (!error || typeof error !== 'object') return false
-  const candidate = error as { code?: unknown; message?: unknown }
-  return (
-    candidate.code === '23505' ||
-    (typeof candidate.message === 'string' &&
-      candidate.message.toLowerCase().includes('duplicate key'))
-  )
-}
-
-function expectedReplacementCleanupError(err: unknown): boolean {
-  return (
-    err instanceof ServiceError &&
-    ['NEEDS_COLLECTION', 'NEEDS_FULL_INFO', 'NEEDS_MATERIAL_VARIANT'].includes(err.code)
-  )
 }
 
 function getSingleRelation<T>(value: T | T[] | null): T | null {

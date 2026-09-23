@@ -1,0 +1,57 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(circle at 15% 10%, #f2e7ff, #faf7ff 44%, #f7f3ef);
+  color: #241b37;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+.card {
+  width: min(100%, 540px);
+  padding: clamp(24px, 5vw, 42px);
+  border: 1px solid #ded2ef;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 20px 64px #2e17431a;
+}
+.eyebrow {
+  margin: 0 0 12px;
+  color: #692cb1;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.card h1 {
+  margin: 0 0 16px;
+  font-size: clamp(26px, 6vw, 36px);
+  line-height: 1.15;
+}
+.card p { line-height: 1.6; }
+.error { color: #a32220; }
+.explanation {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #faf4ef;
+}
+.updated { color: #706681; font-size: 13px; }
+.saveBox {
+  margin-top: 28px;
+  padding: 16px;
+  border: 1px solid #ded2ef;
+  border-radius: 12px;
+  background: #faf7ff;
+}
+.saveBox p { margin: 4px 0 14px; font-size: 13px; }
+.saveBox button {
+  min-height: 42px;
+  padding: 8px 15px;
+  border: 0;
+  border-radius: 9px;
+  background: #692cb1;
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}

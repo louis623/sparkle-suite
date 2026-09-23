@@ -1333,7 +1333,7 @@ function Footer({ businessName }) {
         </div>
         <div className="hp-footer-col">
           <ul>
-            <li><span className="hp-footer-coming-soon">FAQ · Coming soon</span></li>
+            <li><a {...linkProps(FOOTER_LINKS.faq || "/faq")}>FAQ</a></li>
           </ul>
         </div>
       </div>

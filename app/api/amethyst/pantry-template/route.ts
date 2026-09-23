@@ -92,6 +92,10 @@ export async function GET(request: Request) {
       ...baseTemplateData,
       visibility,
       appearancePreset,
+      links: {
+        ...baseTemplateData.links,
+        faq: repId ? `/faq?c=${encodeURIComponent(repId)}` : '/faq',
+      },
     },
     publicSiteSlug,
   )
