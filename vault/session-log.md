@@ -1,3 +1,8 @@
+## September 23, 2026 - Message Center regression pressure test
+
+- Added local, not-yet-released owner-direct service tests for a valid rep's 120-second signed image read and cross-conversation attachment denial. All 11 owner-direct tests pass; eight focused Message Center/UI/migration suites passed 53 tests total, targeted lint and TypeScript check passed. The test-only addition remains unstaged in the disposable GitHub clone and should be bundled with the pending archived-reply product decision rather than causing a test-only production deploy.
+- The two header assertions for Report a bug and Live Lineup code/copy passed. The broader existing dashboard suite has four unrelated failures among 137 cases: a Dance Floor source assertion and a Brittany layout-source assertion are Windows newline-sensitive; two Site Settings/Brittany render assertions expect theme content that is not present in the test's immediate markup. The file under test was unchanged by this pass; do not represent the entire dashboard suite as green. No customer-facing code or production state changed.
+
 ## September 23, 2026 - Owner-direct private image access audit
 
 - Read-only production check confirmed the `workspace-owner-direct` Storage bucket is private, restricts uploads to JPEG/PNG/WebP at 8 MB, and has no broad or owner-direct public object policy; Storage object row-level security is enabled. The owner and rep signed-read endpoints both returned 401 without a session. Service code checks owner authorization or exact rep conversation membership, validates the conversation type, and binds the attachment ID to that conversation before issuing a short-lived URL.
