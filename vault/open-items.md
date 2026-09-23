@@ -1,7 +1,7 @@
 ## September 23, 2026 - Archived onboarding reply follow-through
 
-- [x] Louis chose automatic return to the main Inbox on a genuine new inbound reply. No message was lost. The approved change is implemented locally with one-time unread-reply restoration, but is not released yet.
-- [ ] Apply and verify the exact migration, release the approved branch tip, and complete a safe signed-in visual check before closing the existing live Control Center Task List bug `b83da8cf-c235-4c62-bd6d-d37e84823a41`.
+- [x] Louis chose automatic return to the main Inbox on a genuine new inbound reply. No message was lost. Migration `20260923130000` and product commit `2d8ee5c6` are live on Ready Vercel `dpl_G7kW9pvyotVbF8zWeVGCfyNwV2qA`; the one already-unread onboarding reply is in the active Inbox RPC.
+- [ ] Complete a safe signed-in synthetic reviewer/operator visual check before closing the existing live Control Center Task List bug `b83da8cf-c235-4c62-bd6d-d37e84823a41`. It remains in progress; do not substitute a personal or customer account.
 
 ## September 23, 2026 - Message Center signed-in acceptance
 

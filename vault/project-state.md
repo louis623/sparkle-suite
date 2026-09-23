@@ -1,3 +1,8 @@
+## September 23, 2026 - Archived reply return released
+
+- Louis approved returning an archived conversation to the main Inbox on a genuine new inbound reply. Product commit `2d8ee5c6edf9f4f5059993ffcd2295fbe764df6b` is Ready on manual Vercel production deployment `dpl_G7kW9pvyotVbF8zWeVGCfyNwV2qA`; both Suite domains and the existing 12 other project aliases resolve to that exact commit. Supabase migration `20260923130000_ss_unarchive_on_inbound_reply.sql` is applied.
+- One already-unread onboarding conversation was restored to the active Inbox without changing message contents or unread count. The exact active Inbox RPC returns it as unread. An explicit rollback-only synthetic database smoke passed rep→owner and owner→rep reopening, suppressed/self-sent exclusions, and zero persisted smoke data. Eight focused suites passed 54 tests; the guarded local and remote builds/type checks passed. Anonymous private-message and image routes remain 401; public Suite, health, and representative customer Join routes returned 200. The protected signed-in reviewer/operator visual walkthrough remains outstanding, so the live Task List bug stays in progress.
+
 ## September 23, 2026 - Message Center safety follow-up
 
 - Current product SHA is `34b2418b146a9c94cfc15bc112509aa9bc20f1aa`, Ready on Vercel `dpl_35BwihXyZvX8dyzZZBhx2pqCjL2H`; both Suite domains and the existing project aliases resolve to it. Owner-direct message sends and private-image ticket creation now honor the already-defined operator composing-stop flag; normal behavior is unchanged while the flag is unset. No database migration was needed.
