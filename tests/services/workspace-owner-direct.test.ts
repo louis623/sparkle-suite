@@ -67,6 +67,85 @@ describe('owner direct image and send input', () => {
     expect(ticketInsert).toHaveBeenCalledWith(expect.objectContaining({ rep_id: repId, object_path: ticket.path, byte_size: 1234 }))
   })
 
+  it('moves a staged image into a private message and reads back its attachment', async () => {
+    const uploadId = 'd3f0a66a-3f1f-4a31-a1b4-82fe878fa39a'
+    const conversationId = 'a1975f57-909c-43e0-a156-720391368517'
+    const messageId = '0433a2da-9a82-4cf1-95bf-32bca6f328b1'
+    const stagedPath = `staging/${repId}/${uploadId}.png`
+    const finalPath = `${repId}/${uploadId}.png`
+    const image = await sharp({ create: { width: 120, height: 80, channels: 3, background: '#ff4499' } }).png().toBuffer()
+    const upload = vi.fn().mockResolvedValue({ error: null })
+    const remove = vi.fn().mockResolvedValue({ error: null })
+    const rpc = vi.fn().mockResolvedValue({ data: {
+      out_created: true, out_conversation_id: conversationId, out_message_id: messageId,
+    }, error: null })
+    const admin = {
+      rpc,
+      storage: { from: (bucket: string) => {
+        expect(bucket).toBe('workspace-owner-direct')
+        return {
+          download: async (path: string) => {
+            expect(path).toBe(stagedPath)
+            return { data: new Blob([new Uint8Array(image)], { type: 'image/png' }), error: null }
+          },
+          upload,
+          remove,
+        }
+      } },
+      from: (table: string) => {
+        if (table === 'reps') return {
+          select: (fields: string) => fields === 'id'
+            ? { eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: repId }, error: null }) }) }) }
+            : { eq: () => ({ maybeSingle: async () => ({ data: { id: repId, display_name: 'Taylor', business_name: 'Taylor Gems' }, error: null }) }) },
+        }
+        if (table === 'workspace_conversations') return {
+          select: (fields: string) => fields === 'id'
+            ? { eq: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }) }) }
+            : { eq: () => ({ maybeSingle: async () => ({ data: { id: conversationId, conversation_type: 'owner_direct',
+              state: 'open', subject: 'Message from Sparkle Suite', context_id: repId,
+              last_message_at: '2026-09-23T12:00:00Z', latest_message_preview: 'Hello, rep.',
+              updated_at: '2026-09-23T12:00:00Z' }, error: null }) }) },
+        }
+        if (table === 'workspace_owner_direct_upload_tickets') return {
+          select: () => ({ in: async () => ({ data: [{ id: uploadId, rep_id: repId, operator_rep_id: repId,
+            client_request_id: 'send-with-image', object_path: stagedPath, content_type: 'image/png',
+            byte_size: image.byteLength, created_at: new Date().toISOString(), consumed_at: null }], error: null }) }),
+          update: () => ({ in: async () => ({ error: null }) }),
+        }
+        if (table === 'workspace_conversation_messages') return {
+          select: () => ({ eq: () => ({ order: () => ({ order: async () => ({ data: [{ id: messageId,
+            conversation_id: conversationId, sender_principal_type: 'owner_queue', sender_display_name: 'Sparkle Suite',
+            body: 'Hello, rep.', created_at: '2026-09-23T12:00:00Z' }], error: null }) }) }) }),
+        }
+        if (table === 'workspace_owner_direct_attachments') return {
+          select: () => ({ eq: () => ({ order: async () => ({ data: [{ id: uploadId,
+            conversation_id: conversationId, message_id: messageId, content_type: 'image/png',
+            byte_size: image.byteLength, width: 120, height: 80, attachment_slot: 1, object_path: finalPath }], error: null }) }) }),
+        }
+        if (table === 'workspace_conversation_participants') return {
+          select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: 'owner-queue', unread_count: 0 }, error: null }) }) }) }),
+        }
+        throw new Error(`Unexpected table ${table}`)
+      },
+    }
+
+    const result = await sendOwnerDirectMessage(admin as never, {
+      repId, operatorRepId: repId, body: 'Hello, rep.', clientRequestId: 'send-with-image', uploadIds: [uploadId],
+    })
+
+    expect(upload).toHaveBeenCalledWith(finalPath, expect.any(Buffer), expect.objectContaining({
+      contentType: 'image/png', upsert: false,
+    }))
+    expect(rpc).toHaveBeenCalledWith('send_workspace_owner_direct_message', expect.objectContaining({
+      p_rep_id: repId,
+      p_attachments: [expect.objectContaining({ id: uploadId, objectPath: finalPath, width: 120, height: 80 })],
+    }))
+    expect(remove).toHaveBeenCalledExactlyOnceWith([stagedPath])
+    expect(result).toMatchObject({ created: true, message: { id: messageId, attachments: [{
+      id: uploadId, readHref: `/api/control-center/direct-messages/${conversationId}/attachments/${uploadId}`,
+    }] } })
+  })
+
   it('removes expired staging objects before deleting their ticket records', async () => {
     const events: string[] = []
     const oldId = 'd3f0a66a-3f1f-4a31-a1b4-82fe878fa39a'
