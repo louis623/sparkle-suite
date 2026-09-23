@@ -7871,3 +7871,23 @@ Lessons retained:
 - Updated the two existing live LOC trade tasks as `in_progress` with release
   evidence and the remaining authenticated synthetic-rep click-through. No
   personal account, real customer data mutation, or provider charge was used.
+
+## September 23, 2026 - Trade alert navigation and British voice
+
+- Replaced the browser-only Acknowledge dismissal with previous/next controls
+  and an `N of N` position inside the Nic-Nac trade alert. Browsing does not
+  change request status or the pending count. Approve and Deny open the
+  existing confirmation review; their labels no longer say `Review to`.
+- The opt-in voice alert now prefers an available British English voice whose
+  name suggests a male voice, with an `en-GB` fallback. Browser speech voices
+  vary by device, so the accent and gender cannot be guaranteed. The sound
+  menu labels this choice `British voice`.
+- Application commit `8fe11bcae9bd235179894ca79ccfb6d80c300319` passed
+  focused tests, TypeScript, lint, and a guarded production build. It was
+  pushed and manually deployed as READY Vercel deployment
+  `dpl_E4kfHtrs5cf7a2SF5UuCC4FeYywm`. Both Suite www/apex domains resolve
+  to that deployment. A signed-in live Workspace read showed the real pending
+  request still present, `1 of 1`, disabled arrows, Approve/Deny, and the
+  British voice option. No decision or sound test was performed on Louis's
+  personal session. Multi-request cycling is not yet live-smoked because only
+  one pending request was present.

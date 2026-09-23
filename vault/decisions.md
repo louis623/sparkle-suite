@@ -3077,3 +3077,10 @@ link replacing `coming soon` on the customer subpages.
 Reason: Reps retain business control, customers can recover from a mistaken
 screening result, and the FAQ teaches screenshot and trade rules without
 requiring an AI guess or exposing customer information.
+
+Decision: Nic-Nac trade alerts use previous/next navigation to browse pending
+requests without marking them handled. `Acknowledge` is removed because it
+only hid an alert in one browser while the request remained pending. Approve
+and Deny retain the rep confirmation step. Optional speech favors a British
+English male-sounding browser voice where available, with device-dependent
+fallback rather than a guaranteed voice identity.

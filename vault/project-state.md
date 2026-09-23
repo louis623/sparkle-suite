@@ -4084,3 +4084,17 @@ Verification passed:
   production reviewer token was not available to the isolated agent, and no
   personal or real customer account was used. The two existing live Task List
   trade items remain `in_progress` with that verification gap recorded.
+
+## September 23, 2026 - Current trade alert state
+
+- Approved branch application commit `8fe11bcae9bd235179894ca79ccfb6d80c300319`
+  is live as READY deployment `dpl_E4kfHtrs5cf7a2SF5UuCC4FeYywm` on both
+  Suite www/apex domains. Trade alert cards have previous/next navigation and
+  `N of N`; browsing preserves pending status. Actions are labeled Approve and
+  Deny and still open the review confirmation. Acknowledge is gone.
+- The opt-in voice setting prefers a named British English male-sounding
+  browser voice, falling back to another British English voice or the browser
+  default for `en-GB`. Exact voice availability depends on the device.
+- Live signed-in visual check passed with one real pending request; arrows
+  were disabled at `1 of 1`. Multi-request cycling and the audible accent
+  remain unverified on the live browser.
