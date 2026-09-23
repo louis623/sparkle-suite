@@ -46,8 +46,14 @@ function playChime() {
 function playVoice() {
   try {
     if (!('speechSynthesis' in window)) return
-    const message = new SpeechSynthesisUtterance('Dancer trade requested')
+    const message = new SpeechSynthesisUtterance('I say, a dancer has requested a trade.')
+    message.lang = 'en-GB'
+    message.rate = 0.9
+    message.pitch = 0.9
     message.volume = 0.8
+    const britishVoices = window.speechSynthesis.getVoices().filter((voice) => /^en[-_]GB$/i.test(voice.lang))
+    const preferred = britishVoices.find((voice) => /\b(ryan|george|oliver|daniel|arthur|alfie|brian)\b/i.test(voice.name)) ?? britishVoices[0]
+    if (preferred) message.voice = preferred
     window.speechSynthesis.speak(message)
   } catch { /* Visual alert remains available. */ }
 }
@@ -68,6 +74,7 @@ export function TradeRequestAlertCenter({
   const [audio, setAudio] = useState<'off' | 'chime' | 'voice'>('off')
   const [audioUnlocked, setAudioUnlocked] = useState(false)
   const [ready, setReady] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -94,8 +101,19 @@ export function TradeRequestAlertCenter({
     return () => window.clearTimeout(timer)
   }, [audio, audioUnlocked, ready, requests])
 
-  const active = requests[0]
+  const selectedIndex = requests.findIndex((request) => request.id === selectedId)
+  const activeIndex = selectedIndex < 0 ? 0 : selectedIndex
+  const active = requests[activeIndex]
   const exception = active && 'manualReviewRequested' in active && active.manualReviewRequested && 'screening' in active && active.screening?.status === 'mismatch'
+
+  function moveRequest(direction: -1 | 1) {
+    if (requests.length < 2) return
+    setSelectedId((currentId) => {
+      const currentIndex = requests.findIndex((request) => request.id === currentId)
+      const start = currentIndex < 0 ? 0 : currentIndex
+      return requests[(start + direction + requests.length) % requests.length].id
+    })
+  }
 
   return (
     <div className={styles.wrapper} aria-label="Trade requests">
@@ -114,13 +132,20 @@ export function TradeRequestAlertCenter({
             if (next === 'chime') playChime()
             if (next === 'voice') playVoice()
           }}>
-            <option value="off">Muted</option><option value="chime">Chime</option><option value="voice">Voice</option>
+            <option value="off">Muted</option><option value="chime">Chime</option><option value="voice">British voice</option>
           </select>
         </label>
         <button type="button" className={styles.test} onClick={() => { setAudioUnlocked(true); if (audio === 'voice') playVoice(); else playChime() }} aria-label="Test trade alert sound">Test</button>
       </div>
       {active ? <div className={`${styles.alert} ${exception ? styles.exception : ''}`} role="status" aria-live="polite">
-        <div><span className={styles.brand}>Nic-Nac trade request</span>{exception ? <strong className={styles.exceptionLabel}>Rule exception — rep review needed</strong> : null}</div>
+        <div className={styles.alertHeader}>
+          <div><span className={styles.brand}>Nic-Nac trade request</span>{exception ? <strong className={styles.exceptionLabel}>Rule exception — rep review needed</strong> : null}</div>
+          <div className={styles.navigation} aria-label="Browse trade requests">
+            <button type="button" onClick={() => moveRequest(-1)} disabled={requests.length < 2} aria-label="Previous trade request">‹</button>
+            <span>{activeIndex + 1} of {requests.length}{pendingCount !== undefined && pendingCount > requests.length ? ' shown' : ''}</span>
+            <button type="button" onClick={() => moveRequest(1)} disabled={requests.length < 2} aria-label="Next trade request">›</button>
+          </div>
+        </div>
         <p><strong>{active.customerName}</strong> wants {active.listing.design.designName}{active.listing.design.itemNumber ? ` (${active.listing.design.itemNumber})` : ''}.</p>
         <p><strong>Requested:</strong> {active.listing.design.collectionName ?? 'Collection to verify'} · {active.listing.design.typePrefix}</p>
         <p><strong>Offered:</strong> {active.customerDescription}</p>

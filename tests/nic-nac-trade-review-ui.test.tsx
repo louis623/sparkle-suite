@@ -52,6 +52,21 @@ describe('rep trade review UI', () => {
     expect(html).not.toContain('Acknowledge')
   })
 
+  it('offers request navigation without changing the pending count or decision actions', () => {
+    const next = { ...request, id: 'request-2', customerName: 'Second Customer' }
+    const html = renderToStaticMarkup(createElement(TradeRequestAlertCenter, {
+      requests: [request, next], pendingCount: 2, refreshError: false,
+      onReview: vi.fn(), onOpenInbox: vi.fn(),
+    }))
+    expect(html).toContain('2 trade requests pending')
+    expect(html).toContain('Previous trade request')
+    expect(html).toContain('Next trade request')
+    expect(html).toContain('1 of 2')
+    expect(html).toContain('>Approve</button>')
+    expect(html).toContain('>Deny</button>')
+    expect(html).not.toContain('Acknowledge')
+  })
+
   it('shows the exception label and requires confirmation in the shared dialog', () => {
     const html = renderToStaticMarkup(createElement(TradeRequestReviewDialog, {
       request, onClose: vi.fn(), onSubmit: vi.fn(),
