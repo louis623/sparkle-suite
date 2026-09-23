@@ -1,3 +1,7 @@
+## September 23, 2026 - Louis's release smoke is tracked in the live Task List
+
+- [ ] Authoritative open Control Center Task List item `2baa9931-7787-4594-a838-c2b38d1cd662` asks Louis to check the full header/Message Center release on live `www`, including the owner-session private-image send, isolated demo rep image read/reply, and owner readback. The vault is history, not a second task tracker. See [session closeout](2026-09-23-header-message-center-closeout.md).
+
 ## September 23, 2026 - Owner image acceptance remains
 
 - [x] Added a full mocked staged-image send/readback regression and verified the production owner-direct attachment RPC in a rolled-back transaction. Test-only SHA `d0b604a` is Ready as `dpl_39HqosSyvNtgyW9DcefskNvsSNxx`; no synthetic message or attachment persisted.

@@ -1,3 +1,8 @@
+## September 23, 2026 - Header and Message Center session closeout
+
+- The live Control Center Task List now has Louis-owned open smoke item `2baa9931-7787-4594-a838-c2b38d1cd662` covering the full header/Message Center review and the still-unverified owner-image send/rep receipt/reply. The shipped behavior, decisions, evidence, limitations, and lessons are in [the session closeout](2026-09-23-header-message-center-closeout.md).
+- Live application remains test-only SHA `d0b604a11206c3ad507d9a81774165d33b2971c7` on Ready Vercel `dpl_39HqosSyvNtgyW9DcefskNvsSNxx` at both Suite domains. This historical vault update does not change customer behavior or request a new production deployment.
+
 ## September 23, 2026 - Current Message Center test-only release
 
 - Current live application tip is `d0b604a11206c3ad507d9a81774165d33b2971c7`, Ready on Vercel `dpl_39HqosSyvNtgyW9DcefskNvsSNxx` and verified on both Suite domains. This tip adds only owner-direct image-path regression coverage; customer behavior is unchanged from product SHA `ebd49c1ecb288f38293b8a8f63a12d0fe24a8db7`.

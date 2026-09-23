@@ -1,3 +1,8 @@
+## September 23, 2026 - Louis smoke task and dual-memory closeout
+
+- Created and read back live Sparkle Suite Control Center Task List item `2baa9931-7787-4594-a838-c2b38d1cd662` (open, owner Louis). The notes ask Louis to smoke-test the entire released header/Message Center flow on `https://www.yoursparklesuite.com`, explicitly distinguishing already-verified rep behavior from the missing owner-session private-image send, demo rep image read/reply, and owner readback.
+- Verified the live `www` alias remains Ready Vercel `dpl_39HqosSyvNtgyW9DcefskNvsSNxx` at product/test SHA `d0b604a11206c3ad507d9a81774165d33b2971c7`. Wrote [the full closeout](2026-09-23-header-message-center-closeout.md) for built scope, release provenance, decisions, tests, lessons, and remaining limits. The dirty persistent checkout was not edited or cleaned; the closeout is from the verified GitHub branch in the disposable clone. Two complementary Open Brain captures (release record and decisions/lessons) were saved and found again by search.
+
 ## September 23, 2026 - Private image-path regression and release verification
 
 - Louis confirmed his Dudes Fizzfest / `louis@neonrabbit.net` demo Workspace account may be used for rep-side checks. It does not grant the separate Control Center owner session. The current Chrome inventory still showed `/control-center/login`; no credential or protected token was inspected or changed.

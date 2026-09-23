@@ -1,3 +1,8 @@
+## 2026-09-23 - Louis will smoke-test the released header and Message Center later
+
+- Louis asked for one durable live Control Center Task List item covering everything shipped in this session and specifically the owner-only image exchange that Codex could not visually complete. Item `2baa9931-7787-4594-a838-c2b38d1cd662` is open and owned by Louis. Do not describe the owner image send/rep receipt/reply as accepted until the separate Control Center owner session is used for that test.
+- This is a hands-on acceptance follow-up, not a request to alter the released workflow or relax owner authorization. GitHub remains the source of truth; do not clean or reconcile the dirty persistent local checkout as part of this closeout. See [session closeout](2026-09-23-header-message-center-closeout.md).
+
 ## 2026-09-23 - Scoped demo-account smoke authorization
 
 - Louis explicitly authorized using his Dudes Fizzfest / `louis@neonrabbit.net` demo account for this Message Center browser review. This is a scoped exception to the normal synthetic-reviewer preference, not standing permission for unrelated future work or for customer accounts. The independent Control Center operator sign-in remains separate; do not extract or reset credentials to reach it.
