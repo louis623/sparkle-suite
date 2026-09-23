@@ -3043,3 +3043,25 @@ Reason: The Readdy-era bespoke layout was previously forced by rep identity,
 causing it to blend with any newly selected community skin. Making layout
 selection follow the actual skin preserves both reversible customization and
 the standard community-skin contract.
+
+---
+## 2026-09-23 - Dance Floor trade decisions and universal FAQ
+
+Decision: Nic-Nac may screen a clear same-family or same-jewelry-type mismatch,
+explain it, and suggest available compatible dancers. The customer may still
+choose `Ask my rep to review anyway`; a submitted exception receives the
+normal rep alert with heightened labeling. Nic-Nac never approves a trade.
+Every approval requires the rep to verify the offered collection family and
+jewelry type, confirm a one-for-one match to the requested dancer, and make
+the final decision. Birthday may cross month/year with the same type; OG
+matches OG; MSRP is not an eligibility rule. Screenshot upload is helpful but
+optional. Denial feedback is via a private status link, not new email/SMS.
+
+Decision: Customer-facing FAQ content and layout are universal across rep
+sites, while colors and typography follow each rep's active skin. The page is
+simply `FAQ`, with plain-English collapsible Dance Floor answers and a footer
+link replacing `coming soon` on the customer subpages.
+
+Reason: Reps retain business control, customers can recover from a mistaken
+screening result, and the FAQ teaches screenshot and trade rules without
+requiring an AI guess or exposing customer information.

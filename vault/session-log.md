@@ -7829,3 +7829,32 @@ Lessons retained:
   test. Do not claim a signed-in visual picker smoke until an approved
   synthetic reviewer session actually performs it. No personal or customer
   session was used in this correction.
+
+## September 23, 2026 - Nic-Nac trades and universal FAQ release
+
+- Implemented Louis's reviewed trade flow from a clean disposable clone of
+  GitHub's approved branch, never the stale persistent checkout. Three
+  bounded subagents handled customer flow, rep alerts, and backend; a separate
+  FAQ task implemented the shared customer page. Integrated type-check, lint,
+  and focused tests passed. The broad repository test run passed 4,220 tests
+  but retained unrelated older fixture/Windows failures; changed asset-route
+  expectations were corrected and retested.
+- Pushed application commits `54124fcf32f08e56ef2371ffeb98fae9c4208c34`
+  and corrective dark-skin FAQ commit
+  `e31c45ff93959a2d4cf73df52f364a7238ec1aa9`. Applied and verified the
+  single additive production migration `20260923190000`. Vercel's remote
+  guarded production build passed; the earlier local Windows adapter build
+  compiled/typed successfully but could not package symlinks, an environment
+  limit rather than a source error. The final READY production deployment is
+  `dpl_9mj4urirD7yqakzSP1eEwr3CKA2v`, promoted from the exact app commit.
+- Verified Suite www/apex and the six checked rep apex domains resolve to that
+  deployment. Live FAQ pages are rep-branded, titled `FAQ`, and collapsible;
+  isolated Chrome visual checks passed at desktop and narrow widths after a
+  dark-skin contrast correction. Client-rendered FAQ footer links appeared on
+  Home, Dance Floor, Join, and Pantry. Live read-only trade screening returned
+  likely match for matching facts and mismatch for wrong jewelry type; no
+  request was submitted. Anonymous rep inbox returned 401, an invalid receipt
+  returned private/no-store 404, and the affected-route error query was clear.
+- Updated the two existing live LOC trade tasks as `in_progress` with release
+  evidence and the remaining authenticated synthetic-rep click-through. No
+  personal account, real customer data mutation, or provider charge was used.

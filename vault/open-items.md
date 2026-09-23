@@ -853,3 +853,17 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
   month/day Team Management entry and persistence, no birth year, the next
   Sunday Message Center report with separate customer/team sections and exact
   record links, and empty-week suppression.
+
+## September 23 trade release follow-up
+
+- [ ] Run the approved synthetic authenticated rep smoke on the exact live
+  `www.yoursparklesuite.com` path: reset/reseed a reviewer-only available
+  dancer, submit a matching and flagged manual-review request with and without
+  a screenshot, confirm Home/Dance Floor counts and the Nic-Nac alert (including
+  audio opt-in), verify rep-only approval and denial, and open the private
+  customer receipt. Do not use Louis's personal account, a real rep/customer
+  listing, or a provider charge. The reviewer token was unavailable in this
+  isolated session, so this end-to-end was not claimed.
+- [ ] Louis: do the promised FAQ accuracy and polish smoke when convenient on
+  the live customer domain. The shared page is already deployed and was
+  visually checked at desktop and narrow widths by Codex.

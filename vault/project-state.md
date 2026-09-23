@@ -4042,3 +4042,32 @@ Verification passed:
   landing/apex redirect, and unauthenticated access boundary passed. A live
   signed-in visual picker check still requires an approved synthetic reviewer
   browser session; no personal or customer account was used.
+
+## September 23, 2026 - Dance Floor trade hardening and customer FAQ live
+
+- The current customer-site FAQ is a standalone, collapsible page titled
+  `FAQ`, with shared Dance Floor answers and each rep's active skin. Footer
+  links replaced the old coming-soon placeholder on Home, Dance Floor, Join,
+  and Pantry. Live FAQ routes returned the new page on the Suite domain and
+  Britt with Bling, Mile High Fizz, Bri's Glowtique, GofortheBling,
+  BlingKitchen, and Sparkly Butterflies domains. An isolated-browser visual
+  check caught and corrected low-contrast helper text on dark Halloween skins;
+  desktop and narrow-width recaptures passed.
+- Trade requests now have deterministic same-family/same-type screening,
+  optional screenshots, a customer-requested manual-review path for flagged
+  choices, exact rep-scoped pending counts, a workspace-wide alert with opt-in
+  audio, rep-only verified approval, structured denials, and private status
+  receipts. The original cross-rep preview pagination bug was corrected.
+  Migration `20260923190000_trade_request_verification_receipts.sql` is
+  applied and recorded in production.
+- Application commit `e31c45ff93959a2d4cf73df52f364a7238ec1aa9` is
+  live as READY Vercel deployment `dpl_9mj4urirD7yqakzSP1eEwr3CKA2v`.
+  Both Suite domains and the checked rep domains resolve to this exact
+  deployment. Public matching/wrong-type screening, anonymous rep-inbox
+  denial, invalid private-receipt denial, rendered FAQ footers, and affected
+  route runtime-error check passed. No real trade request was submitted.
+- The authenticated synthetic-rep alert, approval, denial, and customer
+  receipt click-through still requires an approved reviewer session. The
+  production reviewer token was not available to the isolated agent, and no
+  personal or real customer account was used. The two existing live Task List
+  trade items remain `in_progress` with that verification gap recorded.
