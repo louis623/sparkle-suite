@@ -635,7 +635,7 @@ export function TradeBoardWorkspaceCard({
                     >
                       {actionState.pendingKey === `approve:${request.id}`
                         ? 'Approving...'
-                        : 'Review to approve'}
+                        : 'Approve'}
                     </button>
                     <button
                       type="button"
@@ -645,7 +645,7 @@ export function TradeBoardWorkspaceCard({
                     >
                       {actionState.pendingKey === `reject:${request.id}`
                         ? 'Denying...'
-                        : 'Review to deny'}
+                        : 'Deny'}
                     </button>
                   </div>
                 </div>

@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { TradeRequestAlertCenter, nextUnacknowledgedTradeRequestId } from '@/app/nic-nac/components/TradeRequestAlertCenter'
+import { TradeRequestAlertCenter } from '@/app/nic-nac/components/TradeRequestAlertCenter'
 import { TradeRequestReviewDialog } from '@/app/nic-nac/components/TradeRequestReviewDialog'
 import type { TradeRequestWithListing } from '@/lib/services/types'
 
@@ -41,11 +41,15 @@ describe('rep trade review UI', () => {
     expect(html).toContain('showing last known count')
   })
 
-  it('advances to the next unacknowledged pending request immediately', () => {
-    const pending = [{ id: 'first' }, { id: 'second' }, { id: 'third' }]
-    expect(nextUnacknowledgedTradeRequestId(pending, new Set())).toBe('first')
-    expect(nextUnacknowledgedTradeRequestId(pending, new Set(['first']))).toBe('second')
-    expect(nextUnacknowledgedTradeRequestId(pending, new Set(['first', 'second', 'third']))).toBeNull()
+  it('keeps a pending alert visible with only approve and deny review actions', () => {
+    const html = renderToStaticMarkup(createElement(TradeRequestAlertCenter, {
+      requests: [request], pendingCount: 1, refreshError: false,
+      onReview: vi.fn(), onOpenInbox: vi.fn(),
+    }))
+    expect(html).toContain('Test Customer')
+    expect(html).toContain('>Approve</button>')
+    expect(html).toContain('>Deny</button>')
+    expect(html).not.toContain('Acknowledge')
   })
 
   it('shows the exception label and requires confirmation in the shared dialog', () => {
@@ -85,6 +89,7 @@ describe('rep trade review UI', () => {
     expect(alert).toContain('Test trade alert sound')
     expect(alert).toContain("onReview(active.id, 'approve')")
     expect(alert).toContain("onReview(active.id, 'reject')")
+    expect(alert).not.toContain('trade-alert-ack-v1')
     expect(alert).toContain('Customer-reported details:')
     expect(css).toContain('prefers-reduced-motion:reduce')
   })

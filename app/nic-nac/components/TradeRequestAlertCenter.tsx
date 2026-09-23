@@ -1,18 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { TradeRequestWithListing } from '@/lib/services/types'
 import { TradeScreenshotLink } from './TradeScreenshotLink'
 import styles from './TradeRequestAlertCenter.module.css'
 
-const ACK_KEY = 'sparkle:trade-alert-ack-v1'
 const SEEN_KEY = 'sparkle:trade-alert-seen-v1'
 const AUDIO_KEY = 'sparkle:trade-alert-audio-v1'
 const MAX_IDS = 200
-
-export function nextUnacknowledgedTradeRequestId(requests: ReadonlyArray<{ id: string }>, acknowledgedIds: ReadonlySet<string>) {
-  return requests.find((request) => !acknowledgedIds.has(request.id))?.id ?? null
-}
 
 function readIds(key: string): string[] {
   try {
@@ -70,7 +65,6 @@ export function TradeRequestAlertCenter({
   onReview: (requestId: string, action: 'approve' | 'reject') => void
   onOpenInbox: () => void
 }) {
-  const [activeId, setActiveId] = useState<string | null>(null)
   const [audio, setAudio] = useState<'off' | 'chime' | 'voice'>('off')
   const [audioUnlocked, setAudioUnlocked] = useState(false)
   const [ready, setReady] = useState(false)
@@ -89,10 +83,7 @@ export function TradeRequestAlertCenter({
   useEffect(() => {
     if (!ready) return
     const timer = window.setTimeout(() => {
-      const acknowledged = new Set(readIds(ACK_KEY))
       const seen = new Set(readIds(SEEN_KEY))
-      const next = nextUnacknowledgedTradeRequestId(requests, acknowledged)
-      setActiveId((current) => current && requests.some((request) => request.id === current) && !acknowledged.has(current) ? current : next)
       for (const request of requests) {
         if (seen.has(request.id)) continue
         rememberId(SEEN_KEY, request.id)
@@ -103,23 +94,7 @@ export function TradeRequestAlertCenter({
     return () => window.clearTimeout(timer)
   }, [audio, audioUnlocked, ready, requests])
 
-  useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== ACK_KEY) return
-      const acknowledged = new Set(readIds(ACK_KEY))
-      setActiveId(nextUnacknowledgedTradeRequestId(requests, acknowledged))
-    }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
-  }, [requests])
-
-  const acknowledge = useCallback((requestId: string) => {
-    rememberId(ACK_KEY, requestId)
-    const acknowledged = new Set(readIds(ACK_KEY))
-    setActiveId(nextUnacknowledgedTradeRequestId(requests, acknowledged))
-  }, [requests])
-
-  const active = requests.find((request) => request.id === activeId)
+  const active = requests[0]
   const exception = active && 'manualReviewRequested' in active && active.manualReviewRequested && 'screening' in active && active.screening?.status === 'mismatch'
 
   return (
@@ -153,7 +128,7 @@ export function TradeRequestAlertCenter({
         {exception ? <p>{active.screening?.reason}</p> : null}
         <small>Submitted {new Date(active.createdAt).toLocaleString()}</small>
         {active.revealScreenshot ? <TradeScreenshotLink requestId={active.id} customerName={active.customerName}>View screenshot</TradeScreenshotLink> : null}
-        <div className={styles.actions} style={{ flexWrap: 'wrap' }}><button type="button" onClick={() => onReview(active.id, 'approve')}>Review to approve</button><button type="button" onClick={() => onReview(active.id, 'reject')}>Review to deny</button><button type="button" onClick={() => acknowledge(active.id)}>Acknowledge</button></div>
+        <div className={styles.actions} style={{ flexWrap: 'wrap' }}><button type="button" onClick={() => onReview(active.id, 'approve')}>Approve</button><button type="button" onClick={() => onReview(active.id, 'reject')}>Deny</button></div>
       </div> : null}
     </div>
   )

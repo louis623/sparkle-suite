@@ -74,7 +74,7 @@ export function TradeRequestLiveCard({
           aria-label={`Review approval for trade request from ${request.customerName} for ${requestedItem}`}
           onClick={() => onDecision('approve', request.requestId)}
         >
-          {pendingAction === 'approve' ? 'Opening...' : 'Review to approve'}
+          {pendingAction === 'approve' ? 'Opening...' : 'Approve'}
         </button>
         <button
           className={`${styles.button} ${styles.deny}`}
@@ -84,7 +84,7 @@ export function TradeRequestLiveCard({
           aria-label={`Review denial for trade request from ${request.customerName} for ${requestedItem}`}
           onClick={() => onDecision('reject', request.requestId)}
         >
-          {pendingAction === 'reject' ? 'Opening...' : 'Review to deny'}
+          {pendingAction === 'reject' ? 'Opening...' : 'Deny'}
         </button>
       </div>
 
