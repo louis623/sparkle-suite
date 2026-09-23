@@ -1,3 +1,8 @@
+## 2026-09-23 - Shared Dance Floor screenshot-tip presentation
+
+- Treat the screenshot reminder as a final, optional note inside the homepage hero, after all hero actions in every Amethyst homepage variant. Keep the same customer guidance and do not change request or screenshot requirements.
+- Give the Home and Dance Floor reminders a self-contained high-contrast information surface with explicit foreground colors. Tint only the heading with a light mix of the active skin's primary color; do not inherit the surrounding page foreground on a dark card. Keep this shared across all appearance presets rather than adding a Halloween-only override.
+
 ## 2026-09-23 - Louis will smoke-test the released header and Message Center later
 
 - Louis asked for one durable live Control Center Task List item covering everything shipped in this session and specifically the owner-only image exchange that Codex could not visually complete. Item `2baa9931-7787-4594-a838-c2b38d1cd662` is open and owned by Louis. Do not describe the owner image send/rep receipt/reply as accepted until the separate Control Center owner session is used for that test.
