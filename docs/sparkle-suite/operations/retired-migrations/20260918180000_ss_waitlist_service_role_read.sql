@@ -1,3 +1,5 @@
+-- RETIRED 2026-09-23. Historical proposal only; do not execute.
+-- See ../2026-09-23-retired-waitlist-service-role-migration.md.
 -- Classic Control Center waitlist/build-list reads were RLS-on with no policy.
 -- Operator-health tables have explicit service_role policies; this table did not,
 -- so a service-role client without BYPASSRLS returns a false-empty list and a

@@ -1,0 +1,7 @@
+# Retired waitlist service-role migration (September 23, 2026)
+
+`20260918180000_ss_waitlist_service_role_read.sql` was proposed on September 18 in commit `59f257f5ba248698915131e4a8cda6c75b9b2b50`, but was never applied to production. It has been moved out of `supabase/migrations` to `retired-migrations/` as a historical record, not an executable migration. Do not apply it or mark it applied in the Supabase migration ledger.
+
+The later September 18 live release check recorded a successful waitlist POST, table read, and Control Center MCP list/get read without this migration (`vault/2026-09-18-sparkle-ships-closeout.md`). The September 23 read-only production audit found both waitlist and linked intake tables have RLS enabled but not forced; `service_role` has table SELECT/INSERT/UPDATE/DELETE grants and `BYPASSRLS`. No waitlist/intake service-role policy was present. Under those existing privileges, the proposed policy and duplicate grants are unnecessary for the current service-role read path. This retirement does not change a live table, policy, privilege, route, or customer workflow.
+
+If the service-role privilege model changes later, investigate the actual runtime/database state and write a new, narrowly scoped migration rather than reactivating this retired SQL. This decision is separate from the September 23 Message Center migrations and from the planned later-week Live Lineup extension update.
