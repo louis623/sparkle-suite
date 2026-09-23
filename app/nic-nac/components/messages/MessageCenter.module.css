@@ -245,6 +245,7 @@
 .centerLayout {
   display: grid;
   grid-template-columns: minmax(280px, 0.85fr) minmax(390px, 1.45fr);
+  height: clamp(560px, calc(100dvh - 245px), 690px);
   min-height: 560px;
   max-height: min(690px, calc(100vh - 245px));
   overflow: hidden;
@@ -266,7 +267,7 @@
 }
 
 .detailPane {
-  overflow: hidden;
+  overflow: clip;
   background: var(--workspace-surface-primary-solid, #fff);
 }
 
@@ -1313,6 +1314,7 @@
 
   .centerLayout {
     grid-template-columns: 1fr;
+    height: auto;
     max-height: none;
     min-height: 520px;
   }

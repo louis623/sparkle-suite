@@ -415,6 +415,9 @@ describe('unified Workspace Message Center UI', () => {
       'utf8',
     )
     expect(css).toContain('min-height: 44px')
+    expect(css).toMatch(/\.centerLayout\s*\{[^}]*height: clamp\(560px, calc\(100dvh - 245px\), 690px\)/)
+    expect(css).toMatch(/\.detailPane\s*\{[^}]*overflow: clip/)
+    expect(css).toMatch(/@media \(max-width: 920px\)[\s\S]*?\.centerLayout\s*\{[^}]*height: auto/)
     expect(css).toMatch(/@media \(max-width: 920px\)[\s\S]*?\.centerLayoutDetail \.inboxPane[\s\S]*?display: none/)
     expect(css).toMatch(/\.centerLayoutDetail \.detailPane[\s\S]*?display: block/)
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
