@@ -1,3 +1,7 @@
+## 2026-09-23 - Owner-direct emergency stop covers both writes
+
+- The independent owner-direct composing flag must block both a new direct message and creation of a private-image upload ticket. Existing conversation reads remain available. This was verified and released in `34b2418`; no schema change or Live Lineup extension work was included.
+
 ## 2026-09-23 - Retire redundant waitlist migration; separate direct messaging
 
 - Louis approved archiving the unapplied September 18 waitlist service-role migration after the live waitlist/MCP test and current database privilege audit showed it was unnecessary. Preserve it as historical SQL, keep it out of `supabase/migrations`, and do not falsely mark it applied. Reassess from current database evidence if the service-role model changes.

@@ -1,3 +1,8 @@
+## September 23, 2026 - Message Center safety follow-up
+
+- Current product SHA is `34b2418b146a9c94cfc15bc112509aa9bc20f1aa`, Ready on Vercel `dpl_35BwihXyZvX8dyzZZBhx2pqCjL2H`; both Suite domains and the existing project aliases resolve to it. Owner-direct message sends and private-image ticket creation now honor the already-defined operator composing-stop flag; normal behavior is unchanged while the flag is unset. No database migration was needed.
+- A production rollback-only transaction using the designated isolated demo reviewer exercised owner-direct creation, rep reply, participant labels, unread counts, and `Needs reply`. A readback confirmed zero test threads and messages persisted. The exact-tip build/type check, 58 focused Message Center tests, lint, live-domain route checks, and anonymous API denials passed. Signed-in visual rep/owner acceptance is still pending the supported protected reviewer/operator route; no personal or customer account was used.
+
 ## September 23, 2026 - Message Center and header release
 
 - GitHub `louis623/sparkle-suite` on `codex/nic-nac-trade-hardening` is authoritative. The dirty persistent checkout was not used; two disposable clones under the workspace carried the work. Product SHA `3c6d867eb7ae4d69f82db50bb54eb79b23ee4e60` is Ready on Vercel `dpl_9zWbztbCarUMKjYKbVDvHh7mMFYJ`; both Suite domains and the existing project customer-site aliases resolve to it.

@@ -1,3 +1,9 @@
+## September 23, 2026 - Owner-direct safety follow-up and transactional smoke
+
+- Found the owner-direct composing-stop flag was defined but not enforced on send/upload-ticket writes. Added service-layer guards and a test proving both paths stop before touching the database when disabled. Exact SHA `34b2418b146a9c94cfc15bc112509aa9bc20f1aa` passed build/type check, 58 focused tests and lint; manual Vercel `dpl_35BwihXyZvX8dyzZZBhx2pqCjL2H` is Ready on both Suite domains. No new migration.
+- Used only the designated active, non-directory demo reviewer in explicit rollback-only production database transactions. Owner message creation and rep reply succeeded; rep label, owner unread count, and rep `Needs reply` behavior matched expectations when the reply timestamp followed the owner message. Follow-up read confirmed zero test threads/messages remained. This verifies database behavior, not browser sign-in, signed image upload, or the Control Center owner UI.
+- Protected APIs still return 401 anonymously; public Suite and representative customer Join routes return 200. Vercel reported no runtime-error cluster on the affected routes. The existing token-gated signed-in visual walkthrough remains open; no Louis/customer account or signed-in browser was used.
+
 ## September 23, 2026 - Header and Message Center release; old migration retired
 
 - Worked from a verified GitHub remote tip in disposable clean clones, not the intentionally stale/dirty persistent checkout. Released header and rep Message Center changes first at `743d595` / `dpl_H3SwDEzDiRq7ZNQ59XWjdowqMzVq`, then owner-only direct messages/private images at `3c6d867` / `dpl_9zWbztbCarUMKjYKbVDvHh7mMFYJ`.
