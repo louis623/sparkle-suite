@@ -9,6 +9,7 @@ const reconciliation = readFileSync('supabase/migrations/20260826154000_ss_works
 const unreadNullSafety = readFileSync('supabase/migrations/20260826155000_ss_workspace_unread_trigger_null_safety.sql', 'utf8')
 const supportStatusConflict = readFileSync('supabase/migrations/20260826156000_ss_support_status_conflict_target.sql', 'utf8')
 const repNetworkAmbiguity = readFileSync('supabase/migrations/20260826157000_ss_rep_network_output_column_ambiguity.sql', 'utf8')
+const unarchiveOnReply = readFileSync('supabase/migrations/20260923130000_ss_unarchive_on_inbound_reply.sql', 'utf8')
 
 describe('workspace conversation migrations', () => {
   it('creates separate canonical conversation tables with exact principal checks', () => {
@@ -72,6 +73,23 @@ describe('workspace conversation migrations', () => {
     expect(unreadNullSafety).toContain('is not distinct from new.sender_rep_id')
     expect(unreadNullSafety).toContain('is not distinct from new.sender_team_onboarding_participant_id')
     expect(unreadNullSafety).toContain('is not distinct from new.sender_principal_key')
+  })
+
+  it('returns archived recipients to the Inbox only for a genuine unread inbound reply', () => {
+    const trigger = unarchiveOnReply.slice(0, unarchiveOnReply.indexOf('-- Restore only still-unread'))
+    const restoration = unarchiveOnReply.slice(unarchiveOnReply.indexOf('-- Restore only still-unread'))
+    expect(trigger).toContain('archived_at = case')
+    expect(trigger).toContain("new.kind = 'message'")
+    expect(trigger).toContain('new.created_at > participant.archived_at')
+    expect(trigger).toContain("coalesce((new.metadata ->> 'suppressUnread')::boolean, false) = false")
+    expect(trigger).toContain('participant.rep_id is not distinct from new.sender_rep_id')
+    expect(trigger).toContain('participant.team_onboarding_participant_id is not distinct from new.sender_team_onboarding_participant_id')
+    expect(trigger).toContain("new.sender_principal_type in ('rep', 'onboarding_guest', 'support_queue', 'owner_queue')")
+    expect(restoration).toContain('participant.unread_count > 0')
+    expect(restoration).toContain('message.created_at > participant.archived_at')
+    expect(restoration).toContain("message.kind = 'message'")
+    expect(restoration).toContain('participant.rep_id is not distinct from message.sender_rep_id')
+    expect(restoration).not.toMatch(/\bdelete\b|\btruncate\b/i)
   })
 
   it('uses an unambiguous Support status message conflict target', () => {

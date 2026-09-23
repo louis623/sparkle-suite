@@ -201,4 +201,70 @@ describe('owner direct image and send input', () => {
     })).rejects.toMatchObject({ code: 'CONVERSATION_FORBIDDEN' })
     expect(signed).not.toHaveBeenCalled()
   })
+
+  it('signs an image only when an active rep belongs to its owner-direct conversation', async () => {
+    const conversationId = 'a1975f57-909c-43e0-a156-720391368517'
+    const attachmentId = '0433a2da-9a82-4cf1-95bf-32bca6f328b1'
+    const path = `${repId}/${attachmentId}.png`
+    const signed = vi.fn().mockResolvedValue({ data: { signedUrl: 'https://private.example/image' }, error: null })
+    const admin = {
+      from: (table: string) => {
+        if (table === 'workspace_conversation_participants') return {
+          select: () => ({ eq: () => ({ eq: () => ({ eq: () => ({
+            maybeSingle: async () => ({ data: {
+              id: 'participant-1', conversation_id: conversationId, membership_state: 'active', role: 'recipient',
+              workspace_conversations: { conversation_type: 'owner_direct', state: 'open' },
+            }, error: null }),
+          }) }) }) }),
+        }
+        if (table === 'workspace_conversations') return {
+          select: () => ({ eq: () => ({ maybeSingle: async () => ({
+            data: { id: conversationId, conversation_type: 'owner_direct' }, error: null,
+          }) }) }),
+        }
+        if (table === 'workspace_owner_direct_attachments') return {
+          select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({
+            data: { id: attachmentId, object_path: path }, error: null,
+          }) }) }) }),
+        }
+        throw new Error(`Unexpected table ${table}`)
+      },
+      storage: { from: (bucket: string) => {
+        expect(bucket).toBe('workspace-owner-direct')
+        return { createSignedUrl: signed }
+      } },
+    }
+    await expect(createOwnerDirectAttachmentSignedRead(admin as never, {
+      conversationId, attachmentId, repId,
+    })).resolves.toEqual({ attachmentId, url: 'https://private.example/image', expiresIn: 120 })
+    expect(signed).toHaveBeenCalledExactlyOnceWith(path, 120)
+  })
+
+  it('does not sign an image whose attachment belongs to another conversation', async () => {
+    const conversationId = 'a1975f57-909c-43e0-a156-720391368517'
+    const attachmentId = '0433a2da-9a82-4cf1-95bf-32bca6f328b1'
+    const signed = vi.fn()
+    const attachmentConversationFilter = vi.fn().mockReturnValue({
+      maybeSingle: async () => ({ data: null, error: null }),
+    })
+    const admin = {
+      from: (table: string) => {
+        if (table === 'workspace_conversations') return {
+          select: () => ({ eq: () => ({ maybeSingle: async () => ({
+            data: { id: conversationId, conversation_type: 'owner_direct' }, error: null,
+          }) }) }),
+        }
+        if (table === 'workspace_owner_direct_attachments') return {
+          select: () => ({ eq: () => ({ eq: attachmentConversationFilter }) }),
+        }
+        throw new Error(`Unexpected table ${table}`)
+      },
+      storage: { from: () => ({ createSignedUrl: signed }) },
+    }
+    await expect(createOwnerDirectAttachmentSignedRead(admin as never, {
+      conversationId, attachmentId, ownerAuthorized: true,
+    })).rejects.toMatchObject({ code: 'OWNER_DIRECT_ATTACHMENT_NOT_FOUND', statusCode: 404 })
+    expect(attachmentConversationFilter).toHaveBeenCalledExactlyOnceWith('conversation_id', conversationId)
+    expect(signed).not.toHaveBeenCalled()
+  })
 })

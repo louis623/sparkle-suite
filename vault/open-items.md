@@ -1,6 +1,7 @@
-## September 23, 2026 - Archived onboarding reply decision
+## September 23, 2026 - Archived onboarding reply follow-through
 
-- [ ] Louis to choose whether a new inbound reply automatically returns an archived conversation to the normal inbox, or the conversation stays archived with a prominent unread alert. Evidence and follow-up are on the existing live Control Center Task List bug `b83da8cf-c235-4c62-bd6d-d37e84823a41`; no message is lost. Do not alter archive workflow or close the bug before that choice and a safe signed-in visual test.
+- [x] Louis chose automatic return to the main Inbox on a genuine new inbound reply. No message was lost. The approved change is implemented locally with one-time unread-reply restoration, but is not released yet.
+- [ ] Apply and verify the exact migration, release the approved branch tip, and complete a safe signed-in visual check before closing the existing live Control Center Task List bug `b83da8cf-c235-4c62-bd6d-d37e84823a41`.
 
 ## September 23, 2026 - Message Center signed-in acceptance
 

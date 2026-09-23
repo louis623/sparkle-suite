@@ -1,3 +1,8 @@
+## 2026-09-23 - Archived conversations return on a new inbound reply
+
+- Louis chose the recommended behavior: a genuine new inbound message returns an archived conversation to the recipient's main Inbox. Archiving still clears it until another participant replies. Self-sent, system/status, suppressed-unread, and historical pre-archive messages do not reopen it.
+- Restore an already-unread archive only when a genuine inbound message arrived after its archive time. Preserve message bodies, read state, and manually archived conversations with no new unread reply. The September 23 preflight found exactly one matching existing participant.
+
 ## 2026-09-23 - Owner-direct emergency stop covers both writes
 
 - The independent owner-direct composing flag must block both a new direct message and creation of a private-image upload ticket. Existing conversation reads remain available. This was verified and released in `34b2418`; no schema change or Live Lineup extension work was included.
