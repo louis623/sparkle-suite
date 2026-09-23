@@ -332,7 +332,7 @@ describe('Amethyst join page template data wiring', () => {
     expect(css).not.toContain('rotate(-25deg)')
     expect(css).not.toContain('object-position: left center')
     expect(html).toContain('join.css?v=20260920-team-portraits-v1')
-    expect(html).toContain('join-runtime.js?v=20260922-grandfathered-skin-switch')
+    expect(html).toContain('join-runtime.js?v=20260923-faq')
   })
 
   it('renders shared SVG social marks on team cards and hides empty or hash hrefs', () => {

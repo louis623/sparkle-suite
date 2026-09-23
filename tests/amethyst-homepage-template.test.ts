@@ -134,7 +134,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20260923-trade-tip')
+    expect(homepage).toContain('homepage.jsx?v=20260923-trade-tip-contrast')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -1027,6 +1027,49 @@ describe('Amethyst homepage template data wiring', () => {
     expect(standardHero).toContain('In the Pantry')
     expect(css).toMatch(/\.hp-hero-cta-stack\s*\{[\s\S]*?width:\s*fit-content;/)
     expect(css).toMatch(/\.hp-hero-trade-board-cta\s*\{[\s\S]*?width:\s*100%;/)
+  })
+
+  it('places the readable trade tip after hero actions in every homepage layout', () => {
+    const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.jsx'), 'utf8')
+    const css = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.css'), 'utf8')
+    const layouts = [
+      ['function Hero({', '// Ticker (T3 dual)', 'hp-hero-ctas'],
+      ['function MileHighFizzHomepage(', 'function BrittWithBlingHomepage(', 'mhf-hero-ctas'],
+      ['function BrittWithBlingHomepage(', 'function BlingKitchenHomepage(', 'bwb-hero-ctas'],
+      ['function BlingKitchenHomepage(', '// Main App', 'bk-home-hero-ctas'],
+    ] as const
+
+    for (const [start, end, actionClass] of layouts) {
+      const layout = jsx.slice(jsx.indexOf(start), jsx.indexOf(end, jsx.indexOf(start)))
+      expect(layout.indexOf(`className="${actionClass}"`)).toBeGreaterThan(-1)
+      expect(layout.indexOf('<RevealScreenshotTip />')).toBeGreaterThan(
+        layout.indexOf(`className="${actionClass}"`),
+      )
+      expect(layout.indexOf('<RevealScreenshotTip />')).toBeLessThan(layout.indexOf('</section>'))
+      expect(layout.match(/<RevealScreenshotTip \/>/g)).toHaveLength(1)
+    }
+
+    expect(css).toContain('--hp-tip-surface: #1b1720;')
+    expect(css).toContain('--hp-tip-ink: #fffaf3;')
+    expect(css).toContain('--hp-tip-accent: color-mix(in srgb, var(--hp-primary) 28%, #ffffff);')
+    expect(css).toContain('color: var(--hp-tip-ink);')
+    expect(css).toContain('background: var(--hp-tip-surface);')
+
+    const rgb = (hex: string) => [1, 3, 5].map((index) => parseInt(hex.slice(index, index + 2), 16))
+    const luminance = (channels: number[]) => channels
+      .map((value) => value / 255)
+      .map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4)
+      .reduce((total, value, index) => total + value * [0.2126, 0.7152, 0.0722][index], 0)
+    const contrast = (foreground: number[], background: number[]) => {
+      const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a)
+      return (values[0] + 0.05) / (values[1] + 0.05)
+    }
+    const surface = rgb('#1b1720')
+    expect(contrast(rgb('#fffaf3'), surface)).toBeGreaterThan(4.5)
+    for (const preset of Object.values(AMETHYST_APPEARANCE_PRESETS)) {
+      const accent = rgb(preset.values.primaryColor).map((value) => value * 0.28 + 255 * 0.72)
+      expect(contrast(accent, surface), preset.label).toBeGreaterThan(4.5)
+    }
   })
 
   it('keeps the rendered Mile High Fizz hero actions together above the shared Dance Floor action', () => {

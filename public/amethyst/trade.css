@@ -273,12 +273,12 @@ body.britt-with-bling-trade .hp-footer {
 .tp-screenshot-tip {
   max-width: 56ch;
   margin: 14px auto 0;
-  padding: 9px 12px;
-  border: 1px solid color-mix(in oklab, var(--hp-primary) 22%, var(--border));
-  border-radius: 10px;
-  background: color-mix(in oklab, var(--hp-primary) 6%, var(--hp-bg-elevated));
-  color: var(--fg);
-  font-size: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--hp-tip-border);
+  border-radius: 12px;
+  background: var(--hp-tip-surface);
+  color: var(--hp-tip-ink);
+  font-size: 13px;
   line-height: 1.5;
 }
 @media (max-width: 640px) {

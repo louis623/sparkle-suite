@@ -738,6 +738,7 @@ function Hero({ t, isLive, liveShow }) {
               </>
             )}
           </div>
+          <RevealScreenshotTip />
         </div>
       </div>
     </section>
@@ -2250,7 +2251,7 @@ function RevealScreenshotTip() {
   return (
     <aside className="hp-reveal-screenshot-tip" aria-label="Trade screenshot tip">
       <strong>Planning a Dance Floor trade?</strong>
-      <span>Save a screenshot of your reveal before leaving the live show. Crop out personal and order details before sharing it with your rep.</span>
+      <div>Save a screenshot of your reveal before leaving the live show. Crop out personal and order details before sharing it with your rep.</div>
     </aside>
   );
 }
@@ -2263,7 +2264,6 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
   return (
     <div className="mhf-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
-      <RevealScreenshotTip />
 
       <section className="mhf-hero" aria-labelledby="mhf-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
@@ -2292,6 +2292,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
               <a {...linkProps(getTradeBoardHref())} className="mhf-cta mhf-cta-dance-floor">Browse the Dance Floor</a>
             </div>
           </div>
+          <RevealScreenshotTip />
         </div>
       </section>
 
@@ -2388,7 +2389,6 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
   return (
     <div className="bwb-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
-      <RevealScreenshotTip />
 
       <section className="bwb-hero" aria-labelledby="bwb-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
@@ -2415,6 +2415,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
               <a {...linkProps(getTradeBoardHref())} className="bwb-cta bwb-cta-dance-floor">Dance Floor · Coming soon</a>
             </div>
           </div>
+          <RevealScreenshotTip />
         </div>
       </section>
 
@@ -2442,7 +2443,6 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
   return (
     <div className="bk-home-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
-      <RevealScreenshotTip />
 
       <section className="bk-home-hero" aria-labelledby="bk-home-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
@@ -2465,6 +2465,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
               <a {...linkProps(getTradeBoardHref())} className="bk-home-cta-dance-floor"><span className="bk-home-cta-label">Browse the Dance Floor</span></a>
             </div>
           </div>
+          <RevealScreenshotTip />
         </div>
       </section>
 
@@ -2678,7 +2679,6 @@ function App() {
       />
 
       <div className="hp-saturate" id="top">
-      <RevealScreenshotTip />
       {/* Hero */}
       {t.showHero && <Hero t={{ ...t, heroSub: redactPublicRepText(t.heroSub, t.repName) }} isLive={scheduleIsLive} liveShow={activeLiveShow} />}
 

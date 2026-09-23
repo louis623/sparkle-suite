@@ -36,6 +36,11 @@
   --hp-final-muted: rgba(255, 255, 255, 0.88);
   --hp-final-icon-fg: #ffffff;
   --hp-action-fg: #ffffff;
+  /* Self-contained informational surface: contrast stays stable in every skin. */
+  --hp-tip-surface: #1b1720;
+  --hp-tip-ink: #fffaf3;
+  --hp-tip-accent: color-mix(in srgb, var(--hp-primary) 28%, #ffffff);
+  --hp-tip-border: rgba(255, 255, 255, 0.42);
   --hp-media-card-bg: color-mix(in srgb, var(--hp-bg-elevated) 94%, white);
   --hp-media-card-fg: var(--hp-card-fg);
   --hp-media-card-muted: var(--hp-card-muted);
@@ -1391,19 +1396,21 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 4px 10px;
-  width: min(100% - 32px, 1060px);
-  margin: 12px auto;
-  padding: 10px 16px;
-  border: 1px solid color-mix(in oklab, var(--hp-primary) 25%, var(--border));
-  border-radius: 12px;
-  background: var(--hp-bg-elevated);
-  color: var(--fg);
-  font-size: 12px;
-  line-height: 1.45;
+  gap: 4px 8px;
+  width: min(100%, 680px);
+  margin: 28px auto 0;
+  padding: 12px 18px;
+  border: 1px solid var(--hp-tip-border);
+  border-radius: 14px;
+  background: var(--hp-tip-surface);
+  color: var(--hp-tip-ink);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  font-size: 13px;
+  line-height: 1.5;
   text-align: center;
+  text-shadow: none;
 }
-.hp-reveal-screenshot-tip strong { color: var(--hp-primary); }
+.hp-reveal-screenshot-tip strong { color: var(--hp-tip-accent); }
 .hp-hero-cta-primary-row {
   display: flex;
   flex-wrap: wrap;

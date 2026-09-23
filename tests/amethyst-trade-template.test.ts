@@ -757,6 +757,13 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).toContain('type="file"')
   })
 
+  it('keeps the Dance Floor screenshot reminder readable on every skin', () => {
+    const css = readFileSync(resolve(process.cwd(), 'public/amethyst/trade.css'), 'utf8')
+    const tip = css.slice(css.indexOf('.tp-screenshot-tip {'), css.indexOf('\n}', css.indexOf('.tp-screenshot-tip {')))
+    expect(tip).toContain('background: var(--hp-tip-surface);')
+    expect(tip).toContain('color: var(--hp-tip-ink);')
+  })
+
   it('keeps trade request success and error sheets visible after board refreshes', () => {
     const jsx = readFileSync(
       resolve(process.cwd(), 'public/amethyst/trade.jsx'),
