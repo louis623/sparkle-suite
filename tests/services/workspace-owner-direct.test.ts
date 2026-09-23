@@ -9,6 +9,23 @@ const repId = '80a58986-e521-41eb-835d-dfb5793ffddb'
 const base = { repId, body: 'Hello, rep.', clientRequestId: 'send-1', uploadIds: [] as string[] }
 
 describe('owner direct image and send input', () => {
+  it('stops owner sends and upload tickets when composing is disabled', async () => {
+    vi.stubEnv('SPARKLE_WORKSPACE_OWNER_DIRECT_MESSAGING_ENABLED', 'false')
+    try {
+      const admin = { from: vi.fn() }
+      await expect(sendOwnerDirectMessage(admin as never, {
+        ...base, operatorRepId: repId,
+      })).rejects.toMatchObject({ code: 'CONVERSATION_COMPOSING_DISABLED', statusCode: 503 })
+      await expect(createOwnerDirectUploadTicket(admin as never, {
+        repId, operatorRepId: repId, clientRequestId: 'send-1',
+        contentType: 'image/png', byteSize: 1234,
+      })).rejects.toMatchObject({ code: 'CONVERSATION_COMPOSING_DISABLED', statusCode: 503 })
+      expect(admin.from).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+
   it('rejects an empty message, multiple recipients, more than three images, and duplicate tickets', () => {
     expect(() => assertOwnerDirectSendInput({ ...base, body: ' ' })).toThrowError(expect.objectContaining({ code: 'OWNER_DIRECT_BODY_INVALID' }))
     expect(() => assertOwnerDirectSendInput({ ...base, repId: `${repId},${repId}` })).toThrowError(expect.objectContaining({ code: 'OWNER_DIRECT_RECIPIENT_INVALID' }))

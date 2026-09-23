@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import sharp from 'sharp'
 
 import { ServiceError } from '@/lib/services/errors'
+import { assertWorkspaceConversationComposingEnabled } from '@/lib/services/workspace-conversation-feature-flags'
 import { assertRepConversationAction, requireRepConversationMembership } from '@/lib/services/workspace-conversation-permissions'
 
 const BUCKET = 'workspace-owner-direct'
@@ -65,6 +66,7 @@ export async function createOwnerDirectUploadTicket(admin: SupabaseClient, input
     || !Number.isInteger(input.byteSize) || input.byteSize < 1 || input.byteSize > MAX_BYTES) {
     throw failure('OWNER_DIRECT_UPLOAD_INVALID', 'Choose a JPEG, PNG, or WebP image smaller than 8 MB.', 400)
   }
+  assertWorkspaceConversationComposingEnabled('owner_direct')
   const rep = await admin.from('reps').select('id').eq('id', input.repId).eq('status', 'active').maybeSingle()
   if (rep.error || !rep.data) throw failure('OWNER_DIRECT_RECIPIENT_UNAVAILABLE', 'That rep is not available for direct messages.', 404, rep.error)
   const id = randomUUID()
@@ -252,6 +254,7 @@ export async function sendOwnerDirectMessage(admin: SupabaseClient, input: {
   repId: string; operatorRepId: string; body: string; clientRequestId: string; uploadIds: string[]
 }) {
   assertOwnerDirectSendInput(input)
+  assertWorkspaceConversationComposingEnabled('owner_direct')
   const recipient = await admin.from('reps').select('id').eq('id', input.repId).eq('status', 'active').maybeSingle()
   if (recipient.error || !recipient.data) throw failure('OWNER_DIRECT_RECIPIENT_UNAVAILABLE', 'That rep is not available for direct messages.', 404, recipient.error)
   // A retry with the same key must not upload another set of images.
