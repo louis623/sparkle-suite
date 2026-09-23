@@ -1,3 +1,10 @@
+## September 23, 2026 - Private image-path regression and release verification
+
+- Louis confirmed his Dudes Fizzfest / `louis@neonrabbit.net` demo Workspace account may be used for rep-side checks. It does not grant the separate Control Center owner session. The current Chrome inventory still showed `/control-center/login`; no credential or protected token was inspected or changed.
+- Added a staged PNG -> private final object -> owner-direct RPC -> attachment readback service regression. The 3 focused suites passed 16 tests, targeted ESLint passed, and the guarded local Next build and TypeScript check passed. A rollback-only production SQL trial on the isolated active, non-directory demo reviewer created an owner-direct image attachment in the transaction and showed rep unread 1 / owner unread 0; a subsequent query confirmed zero test messages and attachments persisted. This verifies the DB contract, not an actual Storage upload or owner-session browser send.
+- Test-only SHA `d0b604a11206c3ad507d9a81774165d33b2971c7` was pushed and manually released as Ready Vercel `dpl_39HqosSyvNtgyW9DcefskNvsSNxx`. Vercel confirms exact SHA and both Suite domains plus the unchanged 12 other aliases. Live `www`/apex roots, health, and a representative customer Join route returned 200; anonymous owner-direct API returned 401. The previous served deployment was `dpl_BrBuCpLgv9wj4ub2oswXk1qF7m4R`; it remains available as provenance evidence.
+- The remaining acceptance gap is an interactive Control Center owner-session image send to an isolated demo rep, followed by rep image read and reply. Do not report that exchange as passed from automated or rollback-only evidence.
+
 ## September 23, 2026 - Authorized demo-account acceptance and reply-pane correction
 
 - Louis explicitly allowed the Dudes Fizzfest demo account after the token-gated synthetic reviewer entry still redirected to prelaunch. The required Chrome inventory/claim/harmless-read preflight passed. The separate Control Center Messages path requested an operator username/password, so owner image sending was not attempted. No saved credential, cookie, or token was inspected.

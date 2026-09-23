@@ -1,3 +1,8 @@
+## September 23, 2026 - Current Message Center test-only release
+
+- Current live application tip is `d0b604a11206c3ad507d9a81774165d33b2971c7`, Ready on Vercel `dpl_39HqosSyvNtgyW9DcefskNvsSNxx` and verified on both Suite domains. This tip adds only owner-direct image-path regression coverage; customer behavior is unchanged from product SHA `ebd49c1ecb288f38293b8a8f63a12d0fe24a8db7`.
+- The private image service test, rollback-only database attachment/unread trial, build/type check, and public/anonymous live-route checks passed. The real owner-session image send, rep image read and reply are still not browser-verified because Control Center requires its independent sign-in.
+
 ## September 23, 2026 - Message Center demo acceptance and layout polish
 
 - Louis explicitly authorized using his Dudes Fizzfest demo account for this review. Chrome preflight succeeded; the signed-in live `www` Workspace visually showed Report a bug opening the preselected problem composer, Live Lineup Code with a working Copied confirmation, and the restored Jane New Rep Onboarding thread in the main inbox with a direct Reply action.

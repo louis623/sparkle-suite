@@ -1,3 +1,8 @@
+## September 23, 2026 - Owner image acceptance remains
+
+- [x] Added a full mocked staged-image send/readback regression and verified the production owner-direct attachment RPC in a rolled-back transaction. Test-only SHA `d0b604a` is Ready as `dpl_39HqosSyvNtgyW9DcefskNvsSNxx`; no synthetic message or attachment persisted.
+- [ ] Sign into the separate Control Center owner session through the normal UI, send one labeled private image to an isolated demo/reviewer rep, and verify that rep can view and reply on the live `www` domain. Louis's authorized Dudes Fizzfest rep demo account does not itself satisfy owner-session authorization; do not bypass the role boundary.
+
 ## September 23, 2026 - Archived onboarding reply follow-through
 
 - [x] Louis chose automatic return to the main Inbox on a genuine new inbound reply. No message was lost. Migration `20260923130000` and product commit `2d8ee5c6` are live on Ready Vercel `dpl_G7kW9pvyotVbF8zWeVGCfyNwV2qA`; the one already-unread onboarding reply is in the active Inbox RPC.
