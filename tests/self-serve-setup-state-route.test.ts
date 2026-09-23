@@ -66,7 +66,7 @@ describe('/api/self-serve/setup-state', () => {
     getLiveQueueSyncCodeForRepMock.mockResolvedValue('MHF-7342')
     const { GET } = await import('@/app/api/self-serve/setup-state/route')
 
-    const response = await GET()
+    const response = await GET(new Request('https://www.yoursparklesuite.com/api/self-serve/setup-state'))
 
     expect(getRequiredSetupStateMock).toHaveBeenCalledWith('rep-1')
     expect(getLiveQueueSyncCodeForRepMock).toHaveBeenCalledWith(
@@ -103,7 +103,7 @@ describe('/api/self-serve/setup-state', () => {
     })
     const { GET } = await import('@/app/api/self-serve/setup-state/route')
 
-    const response = await GET()
+    const response = await GET(new Request('https://www.yoursparklesuite.com/api/self-serve/setup-state'))
 
     expect(getLiveQueueSyncCodeForRepMock).toHaveBeenCalledWith(admin, 'rep-1')
     expect(ensureLiveQueueSyncCodeForRepMock).toHaveBeenCalledWith(admin, {
@@ -141,7 +141,7 @@ describe('/api/self-serve/setup-state', () => {
     })
     const { GET } = await import('@/app/api/self-serve/setup-state/route')
 
-    const response = await GET()
+    const response = await GET(new Request('https://www.yoursparklesuite.com/api/self-serve/setup-state'))
 
     expect(getLiveQueueSyncCodeForRepMock).toHaveBeenCalledWith(admin, 'target-rep')
     expect(ensureLiveQueueSyncCodeForRepMock).not.toHaveBeenCalled()
@@ -258,7 +258,7 @@ describe('/api/self-serve/setup-state', () => {
     getRequiredSetupStateMock.mockRejectedValue(new Error('database unavailable'))
     const { GET } = await import('@/app/api/self-serve/setup-state/route')
 
-    const response = await GET()
+    const response = await GET(new Request('https://www.yoursparklesuite.com/api/self-serve/setup-state'))
 
     expect(response.status).toBe(500)
     await expect(response.json()).resolves.toEqual({

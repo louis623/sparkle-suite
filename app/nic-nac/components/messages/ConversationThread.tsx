@@ -80,10 +80,12 @@ export function getSafeYouTubeActionUrl(value?: string | null) {
   }
 }
 
-function PrivateSupportScreenshot({
+function PrivateConversationImage({
   attachment,
+  label = 'Support screenshot',
 }: {
   attachment: WorkspaceConversationAttachment
+  label?: string
 }) {
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -91,6 +93,7 @@ function PrivateSupportScreenshot({
 
   useEffect(() => {
     let active = true
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null
     void fetch(attachment.signedReadHref, {
       credentials: 'include',
       cache: 'no-store',
@@ -98,6 +101,7 @@ function PrivateSupportScreenshot({
       .then(async (response) => {
         const payload = (await response.json().catch(() => null)) as {
           url?: unknown
+          expiresIn?: unknown
         } | null
         if (!response.ok || typeof payload?.url !== 'string') {
           throw new Error('Screenshot could not load.')
@@ -109,6 +113,10 @@ function PrivateSupportScreenshot({
         if (active) {
           setSignedUrl(parsed.toString())
           setStatus('ready')
+          const seconds = typeof payload.expiresIn === 'number' && Number.isFinite(payload.expiresIn)
+            ? payload.expiresIn : 300
+          refreshTimer = setTimeout(() => setRetryKey((value) => value + 1),
+            Math.max(15, seconds - 30) * 1000)
         }
       })
       .catch(() => {
@@ -116,6 +124,7 @@ function PrivateSupportScreenshot({
       })
     return () => {
       active = false
+      if (refreshTimer) clearTimeout(refreshTimer)
     }
   }, [attachment.signedReadHref, retryKey])
 
@@ -127,20 +136,20 @@ function PrivateSupportScreenshot({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={signedUrl}
-            alt={`Support screenshot ${attachment.slot}`}
+            alt={`${label} ${attachment.slot}`}
             width={attachment.width || undefined}
             height={attachment.height || undefined}
           />
           <figcaption>
             <a href={signedUrl} target="_blank" rel="noopener noreferrer">
-              Open screenshot full size <ExternalLink aria-hidden="true" />
+              Open image full size <ExternalLink aria-hidden="true" />
             </a>
-            <span>Private link expires after five minutes.</span>
+            <span>Private link expires shortly.</span>
           </figcaption>
         </>
       ) : status === 'error' ? (
         <figcaption>
-          <span>Screenshot could not load.</span>
+          <span>Image could not load.</span>
           <button
             type="button"
             onClick={() => {
@@ -153,7 +162,7 @@ function PrivateSupportScreenshot({
           </button>
         </figcaption>
       ) : (
-        <figcaption aria-live="polite">Loading private screenshot…</figcaption>
+        <figcaption aria-live="polite">Loading private image…</figcaption>
       )}
     </figure>
   )
@@ -220,6 +229,7 @@ export function ConversationThread({
   actionPending,
   actionError,
   draftScope,
+  replyFocusToken,
   headingRef,
   onBack,
   onSendReply,
@@ -236,6 +246,7 @@ export function ConversationThread({
   actionPending: boolean
   actionError: string | null
   draftScope?: string | null
+  replyFocusToken?: number
   headingRef: React.RefObject<HTMLHeadingElement | null>
   onBack: () => void
   onSendReply: (body: string) => Promise<void>
@@ -405,6 +416,14 @@ export function ConversationThread({
                   </time>
                 </div>
                 <p>{message.body}</p>
+                {item.conversationType === 'owner_direct' && message.attachments?.length ? (
+                  <div className={styles.messageImageGrid} aria-label="Private message images">
+                    {message.attachments.map((attachment) => (
+                      <PrivateConversationImage key={attachment.id} attachment={attachment}
+                        label={`Image from ${message.senderDisplayName}`} />
+                    ))}
+                  </div>
+                ) : null}
                 {message.deliveryState === 'failed' ? (
                   <span className={styles.failedLabel}>Not sent</span>
                 ) : null}
@@ -420,7 +439,7 @@ export function ConversationThread({
               </div>
               <div className={styles.privateScreenshotGrid}>
                 {detail.attachments.map((attachment) => (
-                  <PrivateSupportScreenshot
+                  <PrivateConversationImage
                     key={attachment.id}
                     attachment={attachment}
                   />
@@ -444,6 +463,7 @@ export function ConversationThread({
                 conversationId={item.id}
                 recipientName={item.senderDisplayName}
                 draftScope={draftScope}
+                replyFocusToken={replyFocusToken}
                 disabled={actionPending}
                 error={actionError}
                 onSend={onSendReply}

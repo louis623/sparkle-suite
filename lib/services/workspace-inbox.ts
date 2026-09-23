@@ -53,6 +53,7 @@ export async function listRepWorkspaceInbox(
     category?: WorkspaceMessageCategory
     unreadOnly?: boolean
     archived?: boolean
+    search?: string
   } = {},
 ) {
   const limit = Math.min(Math.max(options.limit ?? 25, 1), 100)
@@ -64,7 +65,7 @@ export async function listRepWorkspaceInbox(
     ? Math.min(legacyOffset + limit + 1, 1000)
     : limit + 1
   const keyset = cursor?.kind === 'keyset' ? cursor : null
-  const includePublications = !options.view || options.view === 'all' || options.view === 'sparkle_suite' || options.view === 'archived'
+  const includePublications = options.view !== 'needs_reply' && (!options.view || options.view === 'all' || options.view === 'sparkle_suite' || options.view === 'archived')
   const includeConversations = !options.view || options.view !== 'sparkle_suite'
   const [publicationResult, conversationResult] = await Promise.all([
     includePublications
@@ -78,6 +79,7 @@ export async function listRepWorkspaceInbox(
           equalTimestampMode: keyset
             ? keyset.itemKind === 'conversation' ? 'include_all' : 'same_kind'
             : undefined,
+          search: options.search,
         })
       : Promise.resolve({ messages: [], unreadCount: 0, nextCursor: null }),
     includeConversations
@@ -90,6 +92,8 @@ export async function listRepWorkspaceInbox(
           equalTimestampMode: keyset
             ? keyset.itemKind === 'conversation' ? 'same_kind' : 'exclude_all'
             : undefined,
+          search: options.search,
+          needsReply: options.view === 'needs_reply',
         })
       : Promise.resolve({ messages: [], unreadCount: 0, nextCursor: null }),
   ])

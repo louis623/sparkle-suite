@@ -31,7 +31,7 @@ export default async function ControlCenterMessagesPage({
     view?: string | string[]
     conversationId?: string | string[]
   }>
-} = {}) {
+}) {
   try {
     await getControlCenterAccess()
   } catch (error) {

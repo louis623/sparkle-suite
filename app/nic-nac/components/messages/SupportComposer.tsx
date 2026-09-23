@@ -45,12 +45,14 @@ const EMPTY_DRAFT: SupportDraft = {
 export function SupportComposer({
   source,
   initialType = null,
+  navigationRevision = 0,
   headingRef,
   onCancel,
   onSubmit,
 }: {
   source?: string | null
   initialType?: SupportMessageType | null
+  navigationRevision?: number
   headingRef: React.RefObject<HTMLHeadingElement | null>
   onCancel: () => void
   onSubmit: (draft: SupportDraft) => Promise<void>
@@ -60,6 +62,14 @@ export function SupportComposer({
     type: initialType,
     source: source ?? null,
   }))
+  useEffect(() => {
+    if (!initialType && !source) return
+    setDraft((current) => ({
+      ...current,
+      type: initialType ?? current.type,
+      source: source ?? current.source,
+    }))
+  }, [initialType, navigationRevision, source])
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState('')

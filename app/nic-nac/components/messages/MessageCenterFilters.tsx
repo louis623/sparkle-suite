@@ -3,6 +3,7 @@ import styles from './MessageCenter.module.css'
 
 const PRIMARY_VIEWS: Array<{ key: MessageCenterView; label: string }> = [
   { key: 'all', label: 'All' },
+  { key: 'needs-reply', label: 'Needs reply' },
   { key: 'team', label: 'Team' },
   { key: 'rep-network', label: 'Rep Network' },
   { key: 'support', label: 'Support' },

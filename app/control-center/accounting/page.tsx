@@ -11,7 +11,7 @@ import { AuthError, getControlCenterAccess, OperatorAuthError } from '@/lib/supa
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-export default async function ControlCenterAccountingPage({ searchParams }: { searchParams?: Promise<{ product?: string | string[] }> } = {}) {
+export default async function ControlCenterAccountingPage({ searchParams }: { searchParams?: Promise<{ product?: string | string[] }> }) {
   const product = (await searchParams)?.product === 'finder' ? 'finder' : 'suite'
   try {
     await getControlCenterAccess({ allowAccountingViewer: true })

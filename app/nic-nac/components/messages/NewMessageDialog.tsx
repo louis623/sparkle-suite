@@ -2,7 +2,7 @@
 
 import { Headphones, Network, Send, Users, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import type { RepDirectoryOption } from './types'
+import type { RepDirectoryOption, TeamOnboardingOption } from './types'
 import styles from './MessageCenter.module.css'
 
 type NewMessagePath = 'team' | 'rep' | 'support' | null
@@ -37,16 +37,24 @@ export function NewMessageDialog({
   open,
   repDirectory,
   repDirectoryStatus,
+  teamDirectory,
+  teamDirectoryStatus,
   onClose,
   onOpenTeam,
+  onOpenTeamConversation,
+  onSendTeamFirstMessage,
   onOpenSupport,
   onSendRepRequest,
 }: {
   open: boolean
   repDirectory: RepDirectoryOption[]
   repDirectoryStatus: 'idle' | 'loading' | 'ready' | 'error'
+  teamDirectory: TeamOnboardingOption[]
+  teamDirectoryStatus: 'idle' | 'loading' | 'ready' | 'error'
   onClose: () => void
   onOpenTeam: () => void
+  onOpenTeamConversation: (option: TeamOnboardingOption) => void
+  onSendTeamFirstMessage: (participantId: string, body: string) => Promise<void>
   onOpenSupport: () => void
   onSendRepRequest: (input: {
     recipientRepId: string
@@ -56,6 +64,7 @@ export function NewMessageDialog({
 }) {
   const [path, setPath] = useState<NewMessagePath>(null)
   const [recipientRepId, setRecipientRepId] = useState('')
+  const [teamParticipantId, setTeamParticipantId] = useState('')
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
   const [pending, setPending] = useState(false)
@@ -104,6 +113,7 @@ export function NewMessageDialog({
     if (open) return
     setPath(null)
     setRecipientRepId('')
+    setTeamParticipantId('')
     setSubject('')
     setBody('')
     setError(null)
@@ -134,6 +144,21 @@ export function NewMessageDialog({
   }
 
   const recipient = repDirectory.find((rep) => rep.repId === recipientRepId)
+  const teamRecipient = teamDirectory.find((person) => person.id === teamParticipantId)
+
+  async function sendTeamMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!teamRecipient || teamRecipient.workspaceConversationId || !body.trim()) return
+    setPending(true)
+    setError(null)
+    try {
+      await onSendTeamFirstMessage(teamRecipient.id, body.trim())
+    } catch (sendError) {
+      setError(sendError instanceof Error ? sendError.message : 'Team message could not be sent.')
+    } finally {
+      setPending(false)
+    }
+  }
 
   return (
     <div className={styles.dialogBackdrop} role="presentation" onMouseDown={onClose}>
@@ -148,10 +173,12 @@ export function NewMessageDialog({
         <header className={styles.dialogHeader}>
           <div>
             <h2 id="new-message-title">
-              {path === 'rep' ? 'Message another rep' : 'New message'}
+              {path === 'rep' ? 'Message another rep' : path === 'team' ? 'Message my team' : 'New message'}
             </h2>
             <p>
-              {path === 'rep'
+              {path === 'team'
+                ? 'Choose an active New Rep Onboarding participant. Existing conversations open directly.'
+                : path === 'rep'
                 ? 'Your first note is a message request. The rep chooses whether to accept.'
                 : 'Who would you like to contact?'}
             </p>
@@ -177,7 +204,10 @@ export function NewMessageDialog({
                   type="button"
                   className={styles.messagePath}
                   onClick={() => {
-                    if (option.key === 'team') onOpenTeam()
+                    if (option.key === 'team') {
+                      setPath('team')
+                      onOpenTeam()
+                    }
                     else if (option.key === 'support') onOpenSupport()
                     else setPath('rep')
                   }}
@@ -191,6 +221,62 @@ export function NewMessageDialog({
               )
             })}
           </div>
+        ) : path === 'team' ? (
+          <form className={styles.repRequestForm} onSubmit={sendTeamMessage}>
+            {teamDirectoryStatus === 'loading' ? (
+              <div className={styles.loadingInline}>Finding your onboarding participants…</div>
+            ) : teamDirectoryStatus === 'error' ? (
+              <div className={styles.errorMessage} role="alert">
+                Team participants could not load. Close this window and try again.
+              </div>
+            ) : teamDirectory.length === 0 ? (
+              <div className={styles.emptyState}>
+                <strong>No active onboarding participants</strong>
+                <span>Add an onboarding participant in Team Management to start a conversation.</span>
+              </div>
+            ) : (
+              <>
+                <label>
+                  <span>Choose an onboarding participant</span>
+                  <select value={teamParticipantId} required onChange={(event) => {
+                    setTeamParticipantId(event.target.value)
+                    setBody('')
+                  }}>
+                    <option value="">Select a person</option>
+                    {teamDirectory.map((person) => (
+                      <option key={person.id} value={person.id}>{person.displayName}</option>
+                    ))}
+                  </select>
+                </label>
+                {teamRecipient?.workspaceConversationId ? (
+                  <div className={styles.destinationNotice}>
+                    <strong>Continue with {teamRecipient.displayName}</strong>
+                    <span>Your existing conversation and draft will open.</span>
+                  </div>
+                ) : teamRecipient ? (
+                  <label>
+                    <span>Your first message to {teamRecipient.displayName}</span>
+                    <textarea className="ph-no-capture" value={body} required minLength={2}
+                      maxLength={4000} rows={4} placeholder="Write a message"
+                      onChange={(event) => setBody(event.target.value)} />
+                  </label>
+                ) : null}
+                <div className={styles.dialogFooter}>
+                  <button type="button" className={styles.secondaryButton} onClick={() => setPath(null)}>Back</button>
+                  {teamRecipient?.workspaceConversationId ? (
+                    <button type="button" className={styles.primaryButton}
+                      onClick={() => onOpenTeamConversation(teamRecipient)}>Open conversation</button>
+                  ) : (
+                    <button type="submit" className={styles.primaryButton}
+                      disabled={pending || !teamRecipient || body.trim().length < 2}>
+                      <Send aria-hidden="true" /> {pending ? 'Sending…' : 'Send message'}
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+            {error ? <div className={styles.errorMessage} role="alert">{error}</div> : null}
+          </form>
         ) : path === 'rep' ? (
           <form className={styles.repRequestForm} onSubmit={sendRepRequest}>
             {repDirectoryStatus === 'loading' ? (

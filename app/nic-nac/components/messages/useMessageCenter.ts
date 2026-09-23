@@ -4,12 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   REVIEW_CONVERSATION_DETAILS,
   REVIEW_REP_DIRECTORY,
+  REVIEW_TEAM_CONVERSATION_ID,
 } from './review-fixtures'
 import type {
   ConversationMessage,
   MessageCenterState,
   MessageCenterView,
   RepDirectoryOption,
+  TeamOnboardingOption,
   RepReportInput,
   SparkleSuiteFilter,
   SupportDraft,
@@ -65,7 +67,7 @@ export function normalizeInboxItem(value: unknown): WorkspaceInboxItem | null {
     'conversation_type',
   )
   if (kind === 'conversation' || conversationType) {
-    if (!['team_onboarding', 'support', 'rep_direct'].includes(conversationType ?? '')) {
+    if (!['team_onboarding', 'support', 'rep_direct', 'owner_direct'].includes(conversationType ?? '')) {
       return null
     }
     return {
@@ -131,6 +133,10 @@ export function normalizeInboxItem(value: unknown): WorkspaceInboxItem | null {
         'requestState',
         'request_state',
       ) as WorkspaceConversationSummary['requestState'],
+      needsReply:
+        typeof record.needsReply === 'boolean'
+          ? record.needsReply
+          : record.needs_reply === true,
     }
   }
 
@@ -149,7 +155,8 @@ function normalizeConversationMessage(value: unknown): ConversationMessage | nul
   if (!id || body === null) return null
   const rawSenderType = getString(record, 'senderType', 'sender_type')
   const senderType =
-    rawSenderType === 'support_queue' ? 'support' : rawSenderType || 'system'
+    rawSenderType === 'support_queue' || rawSenderType === 'owner_queue'
+      ? 'support' : rawSenderType || 'system'
   if (!['rep', 'onboarding_guest', 'support', 'system'].includes(senderType)) {
     return null
   }
@@ -174,6 +181,10 @@ function normalizeConversationMessage(value: unknown): ConversationMessage | nul
       'deliveryState',
       'delivery_state',
     ) as ConversationMessage['deliveryState'],
+    attachments: Array.isArray(record.attachments)
+      ? record.attachments.map(normalizeConversationAttachment)
+          .filter((attachment): attachment is WorkspaceConversationAttachment => Boolean(attachment))
+      : [],
   }
 }
 
@@ -184,11 +195,12 @@ function normalizeConversationAttachment(
   const record = value as Record<string, unknown>
   const id = getString(record, 'id')
   const contentType = getString(record, 'contentType', 'content_type')
-  const signedReadHref = getString(record, 'signedReadHref', 'signed_read_href')
+  const signedReadHref = getString(record, 'signedReadHref', 'signed_read_href', 'readHref')
   if (
     !id ||
     !contentType?.startsWith('image/') ||
-    !signedReadHref?.startsWith('/api/nic-nac/conversations/')
+    !(signedReadHref?.startsWith('/api/nic-nac/conversations/') ||
+      signedReadHref?.startsWith('/api/nic-nac/owner-direct/'))
   ) {
     return null
   }
@@ -202,6 +214,7 @@ function normalizeConversationAttachment(
     createdAt:
       getString(record, 'createdAt', 'created_at') || new Date().toISOString(),
     signedReadHref,
+    messageId: getString(record, 'messageId', 'message_id') ?? undefined,
   }
 }
 
@@ -262,7 +275,7 @@ export function normalizeConversationDetail(
 function getInitialView(): MessageCenterView {
   if (typeof window === 'undefined') return 'all'
   const view = new URLSearchParams(window.location.search).get('view')
-  return ['all', 'team', 'rep-network', 'support', 'sparkle-suite', 'archived'].includes(
+  return ['all', 'team', 'rep-network', 'support', 'sparkle-suite', 'archived', 'needs-reply'].includes(
     view ?? '',
   )
     ? (view as MessageCenterView)
@@ -317,6 +330,9 @@ export function filterInboxItems(
       const archived = Boolean(item.archivedAt)
       if (view === 'archived') return archived
       if (archived) return false
+      if (view === 'needs-reply') {
+        return isConversationItem(item) && item.needsReply === true
+      }
       if (view === 'team') {
         return isConversationItem(item) && item.conversationType === 'team_onboarding'
       }
@@ -349,6 +365,7 @@ function updateMessageCenterUrl(input: {
   view: MessageCenterView
   conversationId?: string | null
   composeSupport?: boolean
+  supportType?: SupportMessageType | null
   source?: string | null
 }) {
   if (typeof window === 'undefined') return
@@ -364,6 +381,9 @@ function updateMessageCenterUrl(input: {
   if (input.composeSupport) {
     url.searchParams.set('compose', 'support')
     if (input.source) url.searchParams.set('source', input.source)
+    else url.searchParams.delete('source')
+    if (input.supportType) url.searchParams.set('type', input.supportType)
+    else url.searchParams.delete('type')
   } else {
     url.searchParams.delete('compose')
     url.searchParams.delete('source')
@@ -397,16 +417,24 @@ export function useMessageCenter({
   const [items, setItems] = useState<WorkspaceInboxItem[]>(() =>
     getInboxItems(state.inbox).map(normalizeInboxItem).filter(Boolean) as WorkspaceInboxItem[],
   )
+  const [remoteItems, setRemoteItems] = useState<WorkspaceInboxItem[] | null>(null)
+  const [nextCursor, setNextCursor] = useState<string | null>(state.inbox?.nextCursor ?? null)
+  const [loadingPage, setLoadingPage] = useState(false)
+  const [listError, setListError] = useState<string | null>(null)
+  const [searchInput, setSearchInput] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [view, setViewState] = useState<MessageCenterView>(() =>
     supportOnly ? 'support' : getInitialView(),
   )
   const [sparkleSuiteFilter, setSparkleSuiteFilter] =
     useState<SparkleSuiteFilter>('all')
   const [selectedId, setSelectedId] = useState<string | null>(getInitialConversationId)
-  const initialComposeRef = useRef(getInitialCompose())
+  const [supportCompose, setSupportCompose] = useState(getInitialCompose)
+  const [supportNavigationRevision, setSupportNavigationRevision] = useState(0)
   const [mode, setMode] = useState<'inbox' | 'thread' | 'support'>(() =>
-    initialComposeRef.current ? 'support' : selectedId ? 'thread' : 'inbox',
+    supportCompose ? 'support' : selectedId ? 'thread' : 'inbox',
   )
+  const [replyFocusToken, setReplyFocusToken] = useState(0)
   const [newMessageOpen, setNewMessageOpen] = useState(false)
   const [detail, setDetail] = useState<WorkspaceConversationDetail | null>(null)
   const [detailStatus, setDetailStatus] = useState<
@@ -420,6 +448,13 @@ export function useMessageCenter({
   const [repDirectoryStatus, setRepDirectoryStatus] = useState<
     'idle' | 'loading' | 'ready' | 'error'
   >(reviewMode ? 'ready' : 'idle')
+  const [teamDirectory, setTeamDirectory] = useState<TeamOnboardingOption[]>(reviewMode
+    ? [{ id: 'review-team-participant', displayName: 'Taylor Brooks', status: 'active', workspaceConversationId: REVIEW_TEAM_CONVERSATION_ID }]
+    : [])
+  const [teamDirectoryStatus, setTeamDirectoryStatus] = useState<
+    'idle' | 'loading' | 'ready' | 'error'
+  >(reviewMode ? 'ready' : 'idle')
+  const teamRequestKeysRef = useRef(new Map<string, string>())
   const sendRequestKeysRef = useRef(new Map<string, string>())
   const supportRequestKeysRef = useRef(new Map<string, string>())
   const repRequestKeysRef = useRef(new Map<string, string>())
@@ -428,24 +463,123 @@ export function useMessageCenter({
     const nextItems = getInboxItems(state.inbox)
       .map(normalizeInboxItem)
       .filter((item): item is WorkspaceInboxItem => Boolean(item))
-    setItems(nextItems)
-  }, [state.inbox])
+    setItems((current) => {
+      const freshIds = new Set(nextItems.map((item) => item.id))
+      return [...nextItems, ...current.filter((item) => !freshIds.has(item.id))]
+    })
+    if (view === 'all' && !searchQuery) setNextCursor(state.inbox?.nextCursor ?? null)
+  }, [state.inbox, view, searchQuery])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSearchQuery(searchInput.trim()), 250)
+    return () => window.clearTimeout(timer)
+  }, [searchInput])
+
+  const loadInboxPage = useCallback(async (cursor?: string | null, signal?: AbortSignal) => {
+    if (reviewMode) return
+    setLoadingPage(true)
+    setListError(null)
+    try {
+      const params = new URLSearchParams({ limit: '50' })
+      const apiView = view === 'rep-network' ? 'rep_network'
+        : view === 'sparkle-suite' ? 'sparkle_suite'
+        : view === 'needs-reply' ? 'needs_reply' : view
+      params.set('view', apiView)
+      if (searchQuery.length >= 2) params.set('search', searchQuery)
+      if (cursor) params.set('cursor', cursor)
+      const response = await fetch(`/api/nic-nac/messages?${params}`, {
+        credentials: 'include', signal,
+      })
+      const payload = (await response.json().catch(() => null)) as MessageCenterState['inbox'] | null
+      if (!response.ok || !payload) throw new Error('Messages could not load. Try again.')
+      const page = getInboxItems(payload)
+        .map(normalizeInboxItem)
+        .filter((item): item is WorkspaceInboxItem => Boolean(item))
+      if (signal?.aborted) return
+      if (view === 'all' && searchQuery.length < 2) {
+        setItems((current) => {
+          const incoming = new Map(page.map((item) => [item.id, item]))
+          return [...current.map((item) => incoming.get(item.id) ?? item),
+            ...page.filter((item) => !current.some((existing) => existing.id === item.id))]
+        })
+      } else {
+        setRemoteItems((current) => cursor
+          ? [...(current ?? []), ...page.filter((item) => !(current ?? []).some((existing) => existing.id === item.id))]
+          : page)
+      }
+      setNextCursor(payload.nextCursor ?? null)
+    } catch (error) {
+      if (signal?.aborted) return
+      setListError(error instanceof Error ? error.message : 'Messages could not load.')
+    } finally {
+      if (!signal?.aborted) setLoadingPage(false)
+    }
+  }, [reviewMode, searchQuery, view])
+
+  useEffect(() => {
+    if (reviewMode) return
+    if (view === 'all' && searchQuery.length < 2) {
+      setRemoteItems(null)
+      return
+    }
+    const controller = new AbortController()
+    setRemoteItems([])
+    setNextCursor(null)
+    void loadInboxPage(null, controller.signal)
+    return () => controller.abort()
+  }, [loadInboxPage, reviewMode, searchQuery, view])
+
+  useEffect(() => {
+    function navigateFromHeader() {
+      const compose = getInitialCompose()
+      setNewMessageOpen(false)
+      if (compose) {
+        setSupportCompose(compose)
+        setSupportNavigationRevision((revision) => revision + 1)
+        setViewState('support')
+        setMode('support')
+      } else {
+        setSupportCompose(null)
+        setViewState(getInitialView())
+        setMode(getInitialConversationId() ? 'thread' : 'inbox')
+      }
+      setSelectedId(compose ? null : getInitialConversationId())
+    }
+    window.addEventListener('workspace:message-center-navigate', navigateFromHeader)
+    return () => window.removeEventListener('workspace:message-center-navigate', navigateFromHeader)
+  }, [])
 
   const availableItems = useMemo(
     () =>
       supportOnly
-        ? items.filter(
+        ? (remoteItems ?? items).filter(
             (item) =>
               isConversationItem(item) && item.conversationType === 'support',
           )
-        : items,
-    [items, supportOnly],
+        : remoteItems ?? items,
+    [items, remoteItems, supportOnly],
   )
 
   const selectedItem = useMemo(
-    () => availableItems.find((item) => item.id === selectedId) ?? null,
-    [availableItems, selectedId],
+    () => availableItems.find((item) => item.id === selectedId)
+      ?? items.find((item) => item.id === selectedId) ?? null,
+    [availableItems, items, selectedId],
   )
+
+  useEffect(() => {
+    if (reviewMode || mode !== 'thread' || !selectedId || selectedItem) return
+    let active = true
+    void fetch(`/api/nic-nac/conversations/${selectedId}`, { credentials: 'include' })
+      .then(async (response) => {
+        const payload = (await response.json().catch(() => null)) as Record<string, unknown> | null
+        if (!response.ok || !payload) throw new Error('Conversation could not load.')
+        const normalized = normalizeInboxItem(payload.conversation ?? payload)
+        if (!normalized || !isConversationItem(normalized)) throw new Error('Conversation could not load.')
+        if (active) setItems((current) => [normalized, ...current.filter((item) => item.id !== normalized.id)])
+      })
+      .catch(() => { if (active) setActionError('Conversation could not load. Try opening it from your inbox.') })
+    return () => { active = false }
+  }, [mode, reviewMode, selectedId, selectedItem])
 
   const visibleItems = useMemo(
     () => filterInboxItems(availableItems, view, sparkleSuiteFilter),
@@ -455,6 +589,7 @@ export function useMessageCenter({
   const counts = useMemo(() => {
     const views: MessageCenterView[] = [
       'all',
+      'needs-reply',
       'team',
       'rep-network',
       'support',
@@ -509,15 +644,19 @@ export function useMessageCenter({
 
   const setView = useCallback((nextView: MessageCenterView) => {
     const allowedView = supportOnly ? 'support' : nextView
+    setSearchInput('')
+    setSearchQuery('')
+    setRemoteItems(null)
     setViewState(allowedView)
     setMode('inbox')
     setSelectedId(null)
     updateMessageCenterUrl({ view: allowedView })
   }, [supportOnly])
 
-  const openItem = useCallback((item: WorkspaceInboxItem) => {
+  const openItem = useCallback((item: WorkspaceInboxItem, focusReply = false) => {
     setSelectedId(item.id)
     setMode('thread')
+    if (focusReply) setReplyFocusToken((value) => value + 1)
     if (isConversationItem(item) && item.unreadCount > 0) {
       setItems((current) =>
         current.map((candidate) =>
@@ -526,6 +665,10 @@ export function useMessageCenter({
             : candidate,
         ),
       )
+      setRemoteItems((current) => current?.map((candidate) =>
+        candidate.id === item.id && isConversationItem(candidate)
+          ? { ...candidate, unreadCount: 0, isRead: true }
+          : candidate) ?? null)
       onUpdateConversation?.(item, { unreadCount: 0 })
       if (!reviewMode) {
         void fetch(`/api/nic-nac/conversations/${item.id}/state`, {
@@ -537,6 +680,10 @@ export function useMessageCenter({
       }
     } else if (!isConversationItem(item) && !item.isRead) {
       onUpdatePublication(item, { read: true })
+      setRemoteItems((current) => current?.map((candidate) =>
+        candidate.id === item.id && !isConversationItem(candidate)
+          ? { ...candidate, isRead: true }
+          : candidate) ?? null)
     }
     updateMessageCenterUrl({ view, conversationId: item.id })
   }, [onUpdateConversation, onUpdatePublication, reviewMode, view])
@@ -549,6 +696,7 @@ export function useMessageCenter({
   }, [view])
 
   const openSupportComposer = useCallback((source?: string | null) => {
+    setSupportCompose({ type: null, source: source ?? null })
     setNewMessageOpen(false)
     setMode('support')
     setSelectedId(null)
@@ -618,10 +766,15 @@ export function useMessageCenter({
                   ...item,
                   latestMessagePreview: body,
                   lastMessageAt: message.createdAt,
+                  needsReply: false,
                 }
               : item,
           ),
         )
+        setRemoteItems((current) => current?.map((item) =>
+          item.id === selectedItem.id && isConversationItem(item)
+            ? { ...item, latestMessagePreview: body, lastMessageAt: message.createdAt, needsReply: false }
+            : item) ?? null)
         sendRequestKeysRef.current.delete(requestFingerprint)
       } catch (error) {
         const message =
@@ -900,6 +1053,92 @@ export function useMessageCenter({
       setRepDirectoryStatus('error')
     }
   }, [repDirectoryStatus, reviewMode])
+
+  const loadTeamDirectory = useCallback(async () => {
+    if (reviewMode || teamDirectoryStatus === 'loading') return
+    setTeamDirectoryStatus('loading')
+    try {
+      const response = await fetch('/api/nic-nac/team-onboarding/participants', {
+        credentials: 'include',
+      })
+      const payload = (await response.json().catch(() => null)) as Record<string, unknown> | null
+      if (!response.ok) throw new Error('Team participants could not load.')
+      const options = (Array.isArray(payload?.participants) ? payload.participants : [])
+        .flatMap((value): TeamOnboardingOption[] => {
+          if (!value || typeof value !== 'object') return []
+          const record = value as Record<string, unknown>
+          const id = getString(record, 'id')
+          const displayName = getString(record, 'displayName', 'display_name')
+          const status = getString(record, 'status')
+          if (!id || !displayName || !status || status === 'archived' || record.archivedAt || record.archived_at) return []
+          return [{ id, displayName, status, workspaceConversationId:
+            getString(record, 'workspaceConversationId', 'workspace_conversation_id') }]
+        })
+      setTeamDirectory(options)
+      setTeamDirectoryStatus('ready')
+    } catch {
+      setTeamDirectoryStatus('error')
+    }
+  }, [reviewMode, teamDirectoryStatus])
+
+  const openTeamConversation = useCallback((option: TeamOnboardingOption) => {
+    if (!option.workspaceConversationId) return
+    const existing = [...(remoteItems ?? []), ...items].find((item) =>
+      item.id === option.workspaceConversationId && isConversationItem(item))
+    if (existing) openItem(existing, true)
+    else if (!reviewMode) {
+      void fetch(`/api/nic-nac/conversations/${option.workspaceConversationId}/state`, {
+        method: 'PATCH', credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ read: true }),
+      })
+    }
+    setNewMessageOpen(false)
+    setViewState('team')
+    setSelectedId(option.workspaceConversationId)
+    setMode('thread')
+    setReplyFocusToken((value) => value + 1)
+    updateMessageCenterUrl({ view: 'team', conversationId: option.workspaceConversationId })
+  }, [items, openItem, remoteItems, reviewMode])
+
+  const sendTeamFirstMessage = useCallback(async (participantId: string, body: string) => {
+    const recipient = teamDirectory.find((option) => option.id === participantId)
+    if (!recipient || recipient.workspaceConversationId) {
+      throw new Error('Choose a team member without an existing conversation.')
+    }
+    const fingerprint = `${participantId}:${body}`
+    const requestId = teamRequestKeysRef.current.get(fingerprint) ?? createRequestId()
+    teamRequestKeysRef.current.set(fingerprint, requestId)
+    if (reviewMode) throw new Error('This reviewer conversation already exists.')
+    const response = await fetch(`/api/nic-nac/team-onboarding/participants/${participantId}/messages`, {
+      method: 'POST', credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ body, clientRequestId: requestId }),
+    })
+    const payload = (await response.json().catch(() => null)) as Record<string, unknown> | null
+    if (!response.ok) throw new Error(getString(payload ?? {}, 'error') || 'Team message could not be sent.')
+    const message = payload?.message && typeof payload.message === 'object'
+      ? payload.message as Record<string, unknown> : payload ?? {}
+    const conversationId = getString(message, 'workspaceConversationId', 'conversationId')
+    if (!conversationId) throw new Error('Message saved, but the conversation could not be opened.')
+    const item: WorkspaceConversationSummary = {
+      kind: 'conversation', id: conversationId, conversationId,
+      conversationType: 'team_onboarding', state: 'open',
+      subject: `New Rep Onboarding: ${recipient.displayName}`,
+      senderDisplayName: recipient.displayName, senderSubtitle: 'New Rep Onboarding',
+      latestMessagePreview: body, lastMessageAt: getString(message, 'createdAt') ?? new Date().toISOString(),
+      unreadCount: 0, needsReply: false,
+    }
+    setItems((current) => [item, ...current.filter((existing) => existing.id !== conversationId)])
+    setTeamDirectory((current) => current.map((option) => option.id === participantId
+      ? { ...option, workspaceConversationId: conversationId } : option))
+    setNewMessageOpen(false)
+    setViewState('team')
+    setSelectedId(conversationId)
+    setMode('thread')
+    updateMessageCenterUrl({ view: 'team', conversationId })
+    teamRequestKeysRef.current.delete(fingerprint)
+  }, [reviewMode, teamDirectory])
 
   const openNewMessage = useCallback(() => {
     if (supportOnly) {
@@ -1194,6 +1433,14 @@ export function useMessageCenter({
             ? { mutedAt: patch.muted ? now : null }
             : {}),
         })
+        setRemoteItems((current) => current?.map((item) =>
+          item.id === selectedItem.id
+            ? {
+                ...item,
+                ...(patch.archived !== undefined ? { archivedAt: patch.archived ? now : null } : {}),
+                ...(patch.muted !== undefined ? { mutedAt: patch.muted ? now : null } : {}),
+              }
+            : item) ?? null)
       } finally {
         setPendingKey(null)
       }
@@ -1204,6 +1451,14 @@ export function useMessageCenter({
   return {
     items: availableItems,
     visibleItems,
+    searchInput,
+    setSearchInput,
+    loadingPage,
+    listError,
+    nextCursor,
+    loadMore: () => { if (nextCursor && !loadingPage) void loadInboxPage(nextCursor) },
+    retryList: () => { if (!loadingPage) void loadInboxPage(nextCursor) },
+    replyFocusToken,
     counts,
     view,
     sparkleSuiteFilter,
@@ -1216,8 +1471,11 @@ export function useMessageCenter({
     actionError,
     repDirectory,
     repDirectoryStatus,
-    initialSupportType: initialComposeRef.current?.type ?? null,
-    initialSupportSource: initialComposeRef.current?.source ?? null,
+    teamDirectory,
+    teamDirectoryStatus,
+    initialSupportType: supportCompose?.type ?? null,
+    initialSupportSource: supportCompose?.source ?? null,
+    supportNavigationRevision,
     setView,
     setSparkleSuiteFilter,
     openItem,
@@ -1225,10 +1483,9 @@ export function useMessageCenter({
     openSupportComposer,
     openNewMessage,
     closeNewMessage: () => setNewMessageOpen(false),
-    openTeam: () => {
-      setNewMessageOpen(false)
-      setView('team')
-    },
+    openTeam: () => { void loadTeamDirectory() },
+    openTeamConversation,
+    sendTeamFirstMessage,
     sendReply,
     submitSupport,
     sendRepRequest,

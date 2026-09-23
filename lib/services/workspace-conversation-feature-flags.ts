@@ -6,6 +6,7 @@ const FLAG_BY_TYPE: Record<WorkspaceConversationType, string> = {
   team_onboarding: 'SPARKLE_WORKSPACE_TEAM_CONVERSATIONS_ENABLED',
   support: 'SPARKLE_WORKSPACE_SUPPORT_CONVERSATIONS_ENABLED',
   rep_direct: 'SPARKLE_WORKSPACE_REP_NETWORK_MESSAGING_ENABLED',
+  owner_direct: 'SPARKLE_WORKSPACE_OWNER_DIRECT_MESSAGING_ENABLED',
 }
 
 export function isWorkspaceConversationComposingEnabled(

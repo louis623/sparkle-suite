@@ -72,6 +72,19 @@ describe('receive-only rep Message Center route', () => {
     })
   })
 
+  it('passes bounded person/subject search and Needs reply view through the authenticated inbox service', async () => {
+    getPaidNicNacContextMock.mockResolvedValueOnce({ repId: 'rep-1' })
+    listRepWorkspaceInboxMock.mockResolvedValueOnce({ unreadCount: 0, messages: [], nextCursor: null })
+    const response = await GET(new Request(
+      'http://localhost/api/nic-nac/messages?view=needs_reply&search=Taylor&limit=50',
+    ))
+    expect(response.status).toBe(200)
+    expect(listRepWorkspaceInboxMock).toHaveBeenCalledWith(
+      { marker: 'admin-supabase' }, 'rep-1',
+      expect.objectContaining({ view: 'needs_reply', search: 'Taylor', limit: 50 }),
+    )
+  })
+
   it.each([
     'limit=0',
     'limit=101',
@@ -79,6 +92,8 @@ describe('receive-only rep Message Center route', () => {
     'category=support_request',
     'unread=yes',
     'archived=1',
+    'search=a',
+    `search=${'x'.repeat(81)}`,
   ])('rejects invalid list query %s before authentication', async (query) => {
     const response = await GET(
       new Request(`http://localhost/api/nic-nac/messages?${query}`),

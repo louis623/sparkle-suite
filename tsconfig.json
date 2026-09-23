@@ -32,6 +32,7 @@
   ],
   "exclude": [
     "node_modules",
+    "tests",
     "supabase",
     "apps/rep-onboarding",
     "apps/finder",

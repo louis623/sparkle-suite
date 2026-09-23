@@ -37,6 +37,7 @@ export type WorkspaceConversationType =
   | 'team_onboarding'
   | 'support'
   | 'rep_direct'
+  | 'owner_direct'
 
 export type WorkspaceConversationState =
   | 'pending'
@@ -73,6 +74,7 @@ export type WorkspaceConversationSummary = {
   context?: WorkspaceConversationContext | null
   requestDirection?: 'incoming' | 'outgoing' | null
   requestState?: 'pending' | 'accepted' | 'declined' | 'blocked' | null
+  needsReply?: boolean
 }
 
 export type WorkspaceInboxItem =
@@ -88,6 +90,7 @@ export type ConversationMessage = {
   createdAt: string
   isOwn?: boolean
   deliveryState?: 'sending' | 'sent' | 'failed'
+  attachments?: WorkspaceConversationAttachment[]
 }
 
 export type WorkspaceConversationAttachment = {
@@ -99,6 +102,7 @@ export type WorkspaceConversationAttachment = {
   slot: number
   createdAt: string
   signedReadHref: string
+  messageId?: string
 }
 
 export type WorkspaceConversationDetail = WorkspaceConversationSummary & {
@@ -136,6 +140,7 @@ export type MessageCenterView =
   | 'support'
   | 'sparkle-suite'
   | 'archived'
+  | 'needs-reply'
 
 export type SparkleSuiteFilter = 'all' | 'reports' | 'resources' | 'updates'
 
@@ -157,6 +162,13 @@ export type RepDirectoryOption = {
   displayName: string
   businessName: string
   contextLabel?: string | null
+}
+
+export type TeamOnboardingOption = {
+  id: string
+  displayName: string
+  status: string
+  workspaceConversationId: string | null
 }
 
 export type RepReportReason =

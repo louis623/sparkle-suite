@@ -14,6 +14,7 @@ export function ConversationComposer({
   draftScope,
   disabled = false,
   error,
+  replyFocusToken = 0,
   onSend,
 }: {
   conversationId: string
@@ -21,6 +22,7 @@ export function ConversationComposer({
   draftScope?: string | null
   disabled?: boolean
   error?: string | null
+  replyFocusToken?: number
   onSend: (body: string) => Promise<void>
 }) {
   const storageKey = draftScope
@@ -38,6 +40,10 @@ export function ConversationComposer({
     }
     setDraft(window.sessionStorage.getItem(storageKey) ?? '')
   }, [storageKey])
+
+  useEffect(() => {
+    if (replyFocusToken > 0) textareaRef.current?.focus()
+  }, [replyFocusToken])
 
   function updateDraft(value: string) {
     setDraft(value)

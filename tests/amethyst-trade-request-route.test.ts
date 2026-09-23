@@ -43,10 +43,8 @@ vi.mock('@/lib/amethyst/preview-rep', () => ({
     resolveAmethystPreviewRepMock(...args),
 }))
 
-import {
-  POST,
-  resetTradeRequestRateLimitsForTests,
-} from '@/app/api/amethyst/trade-requests/route'
+import { resetTradeRequestRateLimitsForTests } from '@/lib/amethyst/trade-request-rate-limit'
+import { POST } from '@/app/api/amethyst/trade-requests/route'
 
 describe('POST /api/amethyst/trade-requests', () => {
   beforeEach(() => {

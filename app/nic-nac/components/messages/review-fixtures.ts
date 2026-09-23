@@ -20,6 +20,7 @@ export const REVIEW_INBOX_FIXTURES: WorkspaceInboxItem[] = [
     latestMessagePreview: 'Could you help me choose the best first show date?',
     lastMessageAt: '2026-08-26T13:45:00.000Z',
     unreadCount: 1,
+    needsReply: true,
     context: {
       label: 'New Rep Onboarding',
       value: '3 of 5 steps complete',

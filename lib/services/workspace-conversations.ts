@@ -10,7 +10,7 @@ import {
 import { assertWorkspaceConversationComposingEnabled } from '@/lib/services/workspace-conversation-feature-flags'
 import { operatorConversationSearch } from '@/lib/services/operator-conversation-search'
 
-export type WorkspaceConversationView = 'all' | 'team' | 'rep_network' | 'support' | 'archived'
+export type WorkspaceConversationView = 'all' | 'team' | 'rep_network' | 'support' | 'archived' | 'needs_reply'
 
 export interface WorkspaceConversationSummary {
   kind: 'conversation'
@@ -22,6 +22,7 @@ export interface WorkspaceConversationSummary {
   subject: string
   participantLabels: string[]
   senderDisplayName: string
+  needsReply: boolean
   latestMessagePreview: string
   lastMessageAt: string
   updatedAt: string
@@ -46,6 +47,7 @@ export interface WorkspaceConversationMessage {
   isOwn: boolean
   isModerated: boolean
   metadata: Record<string, unknown>
+  attachments?: WorkspaceConversationAttachment[]
 }
 
 export interface WorkspaceConversationDetail {
@@ -63,6 +65,7 @@ export interface WorkspaceConversationAttachment {
   slot: number
   createdAt: string
   signedReadHref: string
+  messageId?: string
 }
 
 type ConversationRow = {
@@ -101,6 +104,12 @@ type ConversationPageRow = ConversationRow & {
   total_unread: number | string | null
 }
 
+type ConversationPageMetadata = {
+  conversation_id: string
+  participant_name: string
+  needs_reply: boolean
+}
+
 type MessageRow = {
   id: string
   conversation_id: string
@@ -122,6 +131,7 @@ type AttachmentRow = {
   height: number
   attachment_slot: number
   created_at: string
+  message_id?: string
 }
 
 type OperatorParticipantRow = {
@@ -173,6 +183,7 @@ function makeSummary(args: {
   ownParticipant: ParticipantRow
   participants?: ParticipantRow[]
   messages?: MessageRow[]
+  metadata?: ConversationPageMetadata
 }): WorkspaceConversationSummary {
   const rows = args.messages ?? []
   const latest = rows[0]
@@ -203,10 +214,13 @@ function makeSummary(args: {
     type: args.conversation.conversation_type,
     state: args.conversation.state,
     subject: args.conversation.subject,
-    participantLabels: labels.length > 0
+    participantLabels: args.metadata?.participant_name
+      ? [args.metadata.participant_name]
+      : labels.length > 0
       ? labels
       : [args.conversation.latest_message_sender_display_name ?? args.conversation.subject],
-    senderDisplayName: labels[0] ?? args.conversation.latest_message_sender_display_name ?? args.conversation.subject,
+    senderDisplayName: args.metadata?.participant_name ?? labels[0] ?? args.conversation.latest_message_sender_display_name ?? args.conversation.subject,
+    needsReply: args.metadata?.needs_reply ?? false,
     latestMessagePreview: latest ? preview(latest.body) : args.conversation.latest_message_preview,
     lastMessageAt: args.conversation.last_message_at,
     updatedAt: args.conversation.updated_at,
@@ -236,6 +250,8 @@ export async function listRepConversations(
     beforeLastMessageAt?: string
     beforeId?: string
     equalTimestampMode?: 'include_all' | 'same_kind' | 'exclude_all'
+    search?: string
+    needsReply?: boolean
   } = {},
 ) {
   // This RPC joins and filters before limiting. The former two-query shape
@@ -243,17 +259,32 @@ export async function listRepConversations(
   // Team, Support, or Rep Network thread and undercount unread messages.
   const limit = Math.min(Math.max(options.limit ?? 50, 1), 1000)
   const filterType = viewType(options.view)
-  const result = await supabase.rpc('list_workspace_rep_conversation_page', {
-    p_rep_id: repId,
-    p_conversation_type: filterType,
-    p_archived: options.view === 'archived' || Boolean(options.archived),
-    p_limit: limit,
-    p_before_last_message_at: options.beforeLastMessageAt ?? null,
-    p_before_id: options.beforeId ?? null,
-    p_equal_timestamp_mode: options.beforeLastMessageAt
-      ? options.equalTimestampMode ?? 'same_kind'
-      : null,
-  })
+  const search = options.search?.trim()
+  const result = search || options.needsReply
+    ? await supabase.rpc('search_workspace_rep_conversation_page', {
+        p_rep_id: repId,
+        p_conversation_type: filterType,
+        p_archived: options.view === 'archived' || Boolean(options.archived),
+        p_search: search || null,
+        p_needs_reply: Boolean(options.needsReply),
+        p_limit: limit,
+        p_before_last_message_at: options.beforeLastMessageAt ?? null,
+        p_before_id: options.beforeId ?? null,
+        p_equal_timestamp_mode: options.beforeLastMessageAt
+          ? options.equalTimestampMode ?? 'same_kind'
+          : null,
+      })
+    : await supabase.rpc('list_workspace_rep_conversation_page', {
+        p_rep_id: repId,
+        p_conversation_type: filterType,
+        p_archived: options.view === 'archived' || Boolean(options.archived),
+        p_limit: limit,
+        p_before_last_message_at: options.beforeLastMessageAt ?? null,
+        p_before_id: options.beforeId ?? null,
+        p_equal_timestamp_mode: options.beforeLastMessageAt
+          ? options.equalTimestampMode ?? 'same_kind'
+          : null,
+      })
   if (result.error) {
     throw serviceFailure(
       'CONVERSATION_LIST_FAILED',
@@ -263,8 +294,20 @@ export async function listRepConversations(
     )
   }
   const rows = (result.data ?? []) as unknown as ConversationPageRow[]
+  const metadataResult = rows.length
+    ? await supabase.rpc('workspace_rep_conversation_page_metadata', {
+        p_rep_id: repId,
+        p_conversation_ids: rows.map((row) => row.id),
+      })
+    : { data: [], error: null }
+  if (metadataResult.error) {
+    throw serviceFailure('CONVERSATION_METADATA_FAILED', 'failed to load conversation labels', 'Messages could not be loaded right now.', metadataResult.error)
+  }
+  const metadata = new Map(((metadataResult.data ?? []) as ConversationPageMetadata[])
+    .map((row) => [row.conversation_id, row]))
   const summaries = rows.map((row) => makeSummary({
     conversation: row,
+    metadata: metadata.get(row.id),
     ownParticipant: {
       id: row.participant_id,
       conversation_id: row.id,
@@ -320,15 +363,45 @@ export async function getRepConversation(
     )
   }
   const conversation = conversationResult.data as unknown as ConversationRow
+  const ownerAttachmentsResult = conversation.conversation_type === 'owner_direct'
+    ? await supabase.from('workspace_owner_direct_attachments')
+        .select('id, message_id, content_type, byte_size, width, height, attachment_slot, created_at')
+        .eq('conversation_id', conversationId)
+        .order('attachment_slot', { ascending: true })
+    : { data: [], error: null }
+  if (ownerAttachmentsResult.error) {
+    throw serviceFailure('CONVERSATION_ATTACHMENTS_FAILED', 'failed to load private images', 'That conversation could not be loaded right now.', ownerAttachmentsResult.error)
+  }
+  const ownerAttachmentsByMessage = new Map<string, WorkspaceConversationAttachment[]>()
+  for (const attachment of (ownerAttachmentsResult.data ?? []) as AttachmentRow[]) {
+    if (!attachment.message_id) continue
+    const current = ownerAttachmentsByMessage.get(attachment.message_id) ?? []
+    current.push({
+      id: attachment.id, messageId: attachment.message_id,
+      contentType: attachment.content_type, byteSize: attachment.byte_size,
+      width: attachment.width, height: attachment.height,
+      slot: attachment.attachment_slot, createdAt: attachment.created_at,
+      signedReadHref: `/api/nic-nac/owner-direct/${conversationId}/attachments/${attachment.id}`,
+    })
+    ownerAttachmentsByMessage.set(attachment.message_id, current)
+  }
   const participants = (participantsResult.data ?? []) as unknown as ParticipantRow[]
   const rows = (messagesResult.data ?? []) as unknown as MessageRow[]
   const own = participants.find((row) => row.rep_id === repId)
   if (!own) throw new ServiceError({ code: 'CONVERSATION_FORBIDDEN', message: 'membership disappeared', statusCode: 403 })
+  const metadataResult = await supabase.rpc('workspace_rep_conversation_page_metadata', {
+    p_rep_id: repId,
+    p_conversation_ids: [conversationId],
+  })
+  if (metadataResult.error) {
+    throw serviceFailure('CONVERSATION_METADATA_FAILED', 'failed to load conversation participant', 'That conversation could not be loaded right now.', metadataResult.error)
+  }
   const summary = makeSummary({
     conversation,
     ownParticipant: own,
     participants,
     messages: [...rows].reverse(),
+    metadata: ((metadataResult.data ?? []) as ConversationPageMetadata[])[0],
   })
   return {
     conversation: summary,
@@ -342,6 +415,7 @@ export async function getRepConversation(
       isOwn: row.sender_rep_id === repId,
       isModerated: Boolean(row.moderated_at),
       metadata: row.metadata ?? {},
+      attachments: ownerAttachmentsByMessage.get(row.id) ?? [],
     })),
     attachments: ((attachmentsResult.data ?? []) as unknown as AttachmentRow[]).map(
       (attachment) => ({

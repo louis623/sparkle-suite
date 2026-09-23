@@ -118,6 +118,7 @@ export interface ListRepWorkspaceMessageFilters {
   category?: WorkspaceMessageCategory
   unreadOnly?: boolean
   archived?: boolean
+  search?: string
 }
 
 type SenderRow = {
@@ -962,6 +963,9 @@ export async function listRepWorkspaceMessages(
   if (filters.category) {
     assertWorkspaceMessageCategory(filters.category)
     query = query.eq('workspace_message_publications.category', filters.category)
+  }
+  if (filters.search) {
+    query = query.ilike('workspace_message_publications.title', `%${filters.search}%`)
   }
   if (filters.unreadOnly) query = query.is('read_at', null)
   if (filters.beforeDeliveredAt) {

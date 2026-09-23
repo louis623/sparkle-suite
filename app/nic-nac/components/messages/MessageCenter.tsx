@@ -1,6 +1,6 @@
 'use client'
 
-import { Mail, PenLine, RefreshCw } from 'lucide-react'
+import { Mail, PenLine, RefreshCw, Search } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import { ConversationThread } from './ConversationThread'
 import { InboxItem } from './InboxItem'
@@ -53,6 +53,17 @@ export function MessageCenter({
   })
   const threadHeadingRef = useRef<HTMLHeadingElement | null>(null)
   const supportHeadingRef = useRef<HTMLHeadingElement | null>(null)
+  const inboxPaneRef = useRef<HTMLDivElement | null>(null)
+  const lastOpenedIdRef = useRef<string | null>(null)
+
+  function backToInbox() {
+    controller.backToInbox()
+    window.requestAnimationFrame(() => {
+      const buttons = inboxPaneRef.current?.querySelectorAll<HTMLButtonElement>('button[data-message-id]')
+      const target = Array.from(buttons ?? []).find((button) => button.dataset.messageId === lastOpenedIdRef.current)
+      target?.focus()
+    })
+  }
 
   useEffect(() => {
     if (controller.mode === 'thread') threadHeadingRef.current?.focus()
@@ -60,15 +71,14 @@ export function MessageCenter({
   }, [controller.mode, controller.selectedItem?.id])
 
   const unreadCount = useMemo(
-    () =>
-      controller.items.reduce((total, item) => {
+    () => state.inbox?.unreadCount ?? controller.items.reduce((total, item) => {
         if (item.archivedAt) return total
         return (
           total +
           (isConversationItem(item) ? item.unreadCount : item.isRead ? 0 : 1)
         )
       }, 0),
-    [controller.items],
+    [controller.items, state.inbox?.unreadCount],
   )
   const visibleUnread = unreadCount > 99 ? '99+' : String(unreadCount)
 
@@ -109,6 +119,14 @@ export function MessageCenter({
         onSparkleSuiteFilterChange={controller.setSparkleSuiteFilter}
       />
 
+      <label className={styles.inboxSearch}>
+          <Search aria-hidden="true" />
+          <span className={styles.visuallyHidden}>Search people or conversation subjects</span>
+          <input className="ph-no-capture" type="search" value={controller.searchInput}
+            maxLength={80} placeholder="Search people or conversations"
+            onChange={(event) => controller.setSearchInput(event.target.value)} />
+      </label>
+
       {actionState.error || controller.actionError ? (
         <div className={styles.errorMessage} role="alert">
           {controller.actionError || actionState.error}
@@ -141,7 +159,7 @@ export function MessageCenter({
             controller.mode !== 'inbox' ? styles.centerLayoutDetail : ''
           }`}
         >
-          <div className={styles.inboxPane} aria-label="Messages">
+          <div className={styles.inboxPane} ref={inboxPaneRef} aria-label="Messages">
             {controller.visibleItems.length ? (
               <div className={styles.inboxList}>
                 {controller.visibleItems.map((item) => (
@@ -149,10 +167,19 @@ export function MessageCenter({
                     key={`${item.kind ?? 'publication'}:${item.id}`}
                     item={item}
                     selected={controller.selectedItem?.id === item.id}
-                    onOpen={() => controller.openItem(item)}
+                    onOpen={() => {
+                      lastOpenedIdRef.current = item.id
+                      controller.openItem(item)
+                    }}
+                    onReply={() => {
+                      lastOpenedIdRef.current = item.id
+                      controller.openItem(item, true)
+                    }}
                   />
                 ))}
               </div>
+            ) : controller.loadingPage ? (
+              <div className={styles.loadingInline} role="status">Loading messages…</div>
             ) : (
               <div className={styles.emptyState}>
                 <Mail aria-hidden="true" />
@@ -183,6 +210,20 @@ export function MessageCenter({
                 ) : null}
               </div>
             )}
+            {controller.listError ? (
+              <div className={styles.errorMessage} role="alert">
+                {controller.listError}
+                <button type="button" className={styles.textButton} onClick={controller.retryList}>Try again</button>
+              </div>
+            ) : null}
+            {controller.nextCursor ? (
+              <div className={styles.loadMoreRow}>
+                <button type="button" className={styles.secondaryButton}
+                  disabled={controller.loadingPage} onClick={controller.loadMore}>
+                  {controller.loadingPage ? 'Loading…' : 'Load older messages'}
+                </button>
+              </div>
+            ) : null}
           </div>
 
           <div className={styles.detailPane}>
@@ -194,8 +235,9 @@ export function MessageCenter({
                 actionPending={controller.pendingKey !== null}
                 actionError={controller.actionError}
                 draftScope={draftScope}
+                replyFocusToken={controller.replyFocusToken}
                 headingRef={threadHeadingRef}
-                onBack={controller.backToInbox}
+                onBack={backToInbox}
                 onSendReply={controller.sendReply}
                 onRequestDecision={controller.requestDecision}
                 onReport={controller.reportConversation}
@@ -208,8 +250,9 @@ export function MessageCenter({
               <SupportComposer
                 source={controller.initialSupportSource}
                 initialType={controller.initialSupportType}
+                navigationRevision={controller.supportNavigationRevision}
                 headingRef={supportHeadingRef}
-                onCancel={controller.backToInbox}
+                onCancel={backToInbox}
                 onSubmit={controller.submitSupport}
               />
             ) : (
@@ -238,8 +281,12 @@ export function MessageCenter({
           open={controller.newMessageOpen}
           repDirectory={controller.repDirectory}
           repDirectoryStatus={controller.repDirectoryStatus}
+          teamDirectory={controller.teamDirectory}
+          teamDirectoryStatus={controller.teamDirectoryStatus}
           onClose={controller.closeNewMessage}
           onOpenTeam={controller.openTeam}
+          onOpenTeamConversation={controller.openTeamConversation}
+          onSendTeamFirstMessage={controller.sendTeamFirstMessage}
           onOpenSupport={() => controller.openSupportComposer('message_center')}
           onSendRepRequest={controller.sendRepRequest}
         />

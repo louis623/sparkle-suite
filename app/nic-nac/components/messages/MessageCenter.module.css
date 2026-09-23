@@ -163,6 +163,8 @@
 .backButton:focus-visible,
 .iconButton:focus-visible,
 .inboxItem:focus-visible,
+.inboxOpen:focus-visible,
+.inboxReply:focus-visible,
 .messagePath:focus-visible,
 .supportType:focus-within,
 .supportTypeSelected:focus-within,
@@ -276,6 +278,52 @@
 .inboxItem {
   width: 100%;
   min-height: 118px;
+  position: relative;
+  border-bottom: 1px solid var(--workspace-border, rgba(67, 42, 116, 0.13));
+}
+
+.inboxSearch {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 0 12px;
+  border: 1px solid var(--workspace-border-strong, rgba(67, 42, 116, 0.22));
+  border-radius: 12px;
+  background: var(--workspace-surface-primary-solid, #fff);
+}
+
+.inboxSearch:focus-within {
+  outline: 3px solid var(--workspace-border-input-focus, rgba(238, 44, 155, 0.42));
+  outline-offset: 2px;
+}
+
+.inboxSearch svg {
+  width: 18px;
+  height: 18px;
+  color: var(--workspace-text-secondary, #62577d);
+}
+
+.inboxSearch input {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--workspace-text-primary, #171034);
+  font: inherit;
+}
+
+.loadMoreRow {
+  display: flex;
+  justify-content: center;
+  padding: 14px;
+}
+
+.inboxOpen {
+  width: 100%;
+  min-height: 118px;
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr);
   gap: 11px;
@@ -284,8 +332,25 @@
   color: var(--workspace-text-primary, #171034);
   background: transparent;
   border: 0;
-  border-bottom: 1px solid var(--workspace-border, rgba(67, 42, 116, 0.13));
   cursor: pointer;
+}
+
+.inboxReply {
+  min-height: 36px;
+  margin: 0 15px 12px 64px;
+  padding: 0 14px;
+  border: 1px solid var(--workspace-accent, #e2198f);
+  border-radius: 10px;
+  color: var(--workspace-accent, #e2198f);
+  background: var(--workspace-surface-primary-solid, #fff);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 780;
+  cursor: pointer;
+}
+
+.inboxReply:hover {
+  background: var(--workspace-accent-soft, rgba(115, 69, 202, 0.12));
 }
 
 .inboxItem:hover,
@@ -555,6 +620,13 @@
 .messageBubble p {
   margin: 5px 0 0;
   white-space: pre-wrap;
+}
+
+.messageImageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .otherMessage {
@@ -1308,6 +1380,10 @@
   }
 
   .inboxItem {
+    min-height: 112px;
+  }
+
+  .inboxOpen {
     min-height: 112px;
     padding: 13px 11px;
   }

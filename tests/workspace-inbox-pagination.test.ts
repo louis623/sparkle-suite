@@ -138,4 +138,44 @@ describe('workspace inbox composite pagination', () => {
       expect.objectContaining({ equalTimestampMode: 'exclude_all' }),
     )
   })
+
+  it('keeps search and Needs reply scoped to conversations before applying a cursor', async () => {
+    listRepConversationsMock.mockResolvedValueOnce({
+      messages: [
+        { kind: 'conversation', id: 'team-3', lastMessageAt: '2026-09-23T14:00:00Z', needsReply: true },
+        { kind: 'conversation', id: 'team-2', lastMessageAt: '2026-09-23T13:00:00Z', needsReply: true },
+      ],
+      unreadCount: 0, nextCursor: null,
+    })
+    const first = await listRepWorkspaceInbox({} as never, 'rep-1', {
+      view: 'needs_reply', search: 'Taylor', limit: 1,
+    })
+    expect(listRepWorkspaceMessagesMock).not.toHaveBeenCalled()
+    expect(listRepConversationsMock).toHaveBeenCalledWith({}, 'rep-1',
+      expect.objectContaining({ view: 'needs_reply', search: 'Taylor', needsReply: true, limit: 2 }))
+    expect(first.messages.map((item) => item.id)).toEqual(['team-3'])
+    expect(first.nextCursor).toEqual(expect.any(String))
+
+    listRepConversationsMock.mockResolvedValueOnce({ messages: [], unreadCount: 0, nextCursor: null })
+    await listRepWorkspaceInbox({} as never, 'rep-1', {
+      view: 'needs_reply', search: 'Taylor', limit: 1, cursor: first.nextCursor!,
+    })
+    expect(listRepConversationsMock).toHaveBeenLastCalledWith({}, 'rep-1',
+      expect.objectContaining({ beforeLastMessageAt: '2026-09-23T14:00:00Z', beforeId: 'team-3' }))
+  })
+
+  it('includes matching official update titles when searching the All inbox', async () => {
+    listRepWorkspaceMessagesMock.mockResolvedValueOnce({
+      messages: [{ id: 'publication-1', title: 'September report',
+        deliveredAt: '2026-09-23T14:00:00Z', isRead: true }],
+      unreadCount: 0, nextCursor: null,
+    })
+    listRepConversationsMock.mockResolvedValueOnce({ messages: [], unreadCount: 0, nextCursor: null })
+    const result = await listRepWorkspaceInbox({} as never, 'rep-1', {
+      view: 'all', search: 'report', limit: 25,
+    })
+    expect(listRepWorkspaceMessagesMock).toHaveBeenCalledWith({}, 'rep-1',
+      expect.objectContaining({ search: 'report' }))
+    expect(result.messages.map((item) => item.id)).toEqual(['publication-1'])
+  })
 })

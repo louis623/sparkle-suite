@@ -30,9 +30,10 @@ export function getInboxItemPresentation(item: WorkspaceInboxItem) {
   }
 
   const type = {
-    team_onboarding: { label: 'Team', icon: Users },
+    team_onboarding: { label: 'New Rep Onboarding', icon: Users },
     support: { label: 'Sparkle Suite Support', icon: Headphones },
     rep_direct: { label: 'Rep Network', icon: Network },
+    owner_direct: { label: 'Private message from Sparkle Suite', icon: BadgeCheck },
   }[item.conversationType]
 
   return {
@@ -51,10 +52,12 @@ export function InboxItem({
   item,
   selected,
   onOpen,
+  onReply,
 }: {
   item: WorkspaceInboxItem
   selected: boolean
   onOpen: () => void
+  onReply?: () => void
 }) {
   const presentation = getInboxItemPresentation(item)
   const Icon = presentation.icon
@@ -65,16 +68,18 @@ export function InboxItem({
     item.requestState === 'pending' &&
     item.requestDirection === 'incoming'
 
+  const canReplyDirectly = isConversationItem(item) &&
+    item.conversationType === 'team_onboarding' && item.state === 'open' && !item.archivedAt
+
   return (
-    <button
-      type="button"
+    <div
       className={`${styles.inboxItem} ${
         selected ? styles.inboxItemSelected : ''
       } ${presentation.unread ? styles.inboxItemUnread : ''}`}
-      onClick={onOpen}
-      aria-current={selected ? 'true' : undefined}
-      aria-label={`${presentation.unread ? 'Unread' : 'Read'} ${presentation.typeLabel} message: ${presentation.subject}`}
     >
+      <button type="button" className={styles.inboxOpen} onClick={onOpen} data-message-id={item.id}
+        aria-current={selected ? 'true' : undefined}
+        aria-label={`${presentation.unread ? 'Unread' : 'Read'} ${presentation.typeLabel} message from ${presentation.identity}: ${presentation.subject}`}>
       <span className={styles.inboxIcon} aria-hidden="true">
         <Icon />
       </span>
@@ -91,10 +96,20 @@ export function InboxItem({
           {presentation.unread ? (
             <span className={styles.unreadLabel}>Unread</span>
           ) : null}
+          {isConversationItem(item) && item.needsReply ? (
+            <span className={styles.requestLabel}>Needs reply</span>
+          ) : null}
         </span>
         <span className={styles.inboxSubject}>{presentation.subject}</span>
         <span className={styles.inboxPreview}>{presentation.preview}</span>
       </span>
-    </button>
+      </button>
+      {canReplyDirectly ? (
+        <button type="button" className={styles.inboxReply} onClick={onReply ?? onOpen}
+          aria-label={`Reply to ${item.senderDisplayName} about ${item.subject}`}>
+          Reply
+        </button>
+      ) : null}
+    </div>
   )
 }

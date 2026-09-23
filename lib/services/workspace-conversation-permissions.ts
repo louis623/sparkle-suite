@@ -2,7 +2,7 @@ import 'server-only'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ServiceError } from '@/lib/services/errors'
 
-export type WorkspaceConversationType = 'team_onboarding' | 'support' | 'rep_direct'
+export type WorkspaceConversationType = 'team_onboarding' | 'support' | 'rep_direct' | 'owner_direct'
 export type WorkspaceConversationState = 'pending' | 'open' | 'resolved' | 'closed' | 'blocked'
 export type WorkspaceConversationAction = 'read' | 'send' | 'mark_state' | 'decide_request' | 'report'
 

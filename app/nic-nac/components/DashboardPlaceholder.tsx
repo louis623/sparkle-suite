@@ -88,6 +88,7 @@ import { SupportAccessHistoryCard } from './SupportAccessHistoryCard'
 import {
   CalendarDays,
   BookOpen,
+  Bug,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -5447,6 +5448,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       Partial<Pick<WorkspaceConversationSummary, 'archivedAt' | 'mutedAt'>>,
   ) {
     setMessagesState((current) => {
+      const existing = (current.inbox?.messages ?? []).find(
+        (candidate) => isConversationItem(candidate) && candidate.id === message.id,
+      )
+      const before = (existing && isConversationItem(existing) ? existing : message)
+      const after = { ...before, ...patch }
+      const beforeUnread = before.archivedAt ? 0 : before.unreadCount
+      const afterUnread = after.archivedAt ? 0 : after.unreadCount
       const messages = (current.inbox?.messages ?? []).map((currentMessage) =>
         isConversationItem(currentMessage) && currentMessage.id === message.id
           ? { ...currentMessage, ...patch }
@@ -5456,7 +5464,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         ...current,
         inbox: {
           ...(current.inbox ?? { unreadCount: 0 }),
-          unreadCount: getActiveUnreadMessageCount(messages),
+          unreadCount: Math.max(
+            0,
+            (current.inbox?.unreadCount ?? getActiveUnreadMessageCount(current.inbox?.messages ?? []))
+              + afterUnread - beforeUnread,
+          ),
           messages,
         },
       }
@@ -6323,8 +6335,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   )
   const managedTeamName =
     siteSettingsDraft?.teamName ?? siteSettingsState.settings?.teamName ?? ''
-  const memberTeamName =
-    siteSettingsDraft?.memberTeamName ?? siteSettingsState.settings?.memberTeamName ?? ''
   const workspaceSkinPreset = getWorkspaceSkinPreset(
     siteSettingsState.settings,
     siteSettingsDraft,
@@ -6380,6 +6390,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     view?: 'all' | 'team' | 'rep-network' | 'support' | 'sparkle-suite' | 'archived'
     conversationId?: string | null
     composeSupport?: boolean
+    supportType?: 'bug'
     source?: string | null
   } = {}) {
     if (typeof window !== 'undefined') {
@@ -6397,12 +6408,16 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       }
       if (options.composeSupport) {
         url.searchParams.set('compose', 'support')
+        if (options.supportType) url.searchParams.set('type', options.supportType)
+        else url.searchParams.delete('type')
         if (options.source) url.searchParams.set('source', options.source)
       } else {
         url.searchParams.delete('compose')
+        url.searchParams.delete('type')
         url.searchParams.delete('source')
       }
       window.history.replaceState(window.history.state, '', url)
+      window.dispatchEvent(new CustomEvent('workspace:message-center-navigate'))
     }
     setWorkspacePreview({ mode: 'workspace' })
     setPreviewUnavailableMessage(null)
@@ -6412,7 +6427,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     <WorkspaceAppHeader
       repName={headerRepName}
       showName={headerShowName}
-      memberTeamName={memberTeamName}
       publicSiteUrl={customerSparkleSiteUrl}
       publicSiteDisplay={customerSparkleSiteDisplay}
       liveQueueSyncCode={currentLiveQueueSyncCode}
@@ -6421,6 +6435,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       messagesActive={activeSection === 'messages'}
       onOpenPublicSite={handleOpenCustomerSitePreview}
       onOpenMessages={() => openMessageCenter()}
+      onReportBug={() =>
+        openMessageCenter({
+          view: 'support',
+          composeSupport: true,
+          supportType: 'bug',
+          source: 'workspace-header',
+        })
+      }
       onGoHome={() => {
         setWorkspacePreview({ mode: 'workspace' })
         setPreviewUnavailableMessage(null)
@@ -6961,7 +6983,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
 export function WorkspaceAppHeader({
   repName,
   showName,
-  memberTeamName,
   publicSiteUrl,
   publicSiteDisplay,
   liveQueueSyncCode,
@@ -6970,12 +6991,12 @@ export function WorkspaceAppHeader({
   messagesActive,
   onOpenPublicSite,
   onOpenMessages,
+  onReportBug,
   onGoHome,
   operatorSupportMode = false,
 }: {
   repName: string
   showName: string
-  memberTeamName?: string
   publicSiteUrl: string | null
   publicSiteDisplay: string
   liveQueueSyncCode?: string | null
@@ -6984,18 +7005,29 @@ export function WorkspaceAppHeader({
   messagesActive?: boolean
   onOpenPublicSite: () => void
   onOpenMessages: () => void
+  onReportBug: () => void
   onGoHome: () => void
   operatorSupportMode?: boolean
 }) {
   const [logoutBusy, setLogoutBusy] = useState(false)
   const [logoutError, setLogoutError] = useState<string | null>(null)
   const [siteLinkCopied, setSiteLinkCopied] = useState(false)
+  const [queueCodeCopyState, setQueueCodeCopyState] = useState<
+    'idle' | 'copied' | 'failed'
+  >('idle')
+  const queueCode = liveQueueSyncCode?.trim() || ''
 
   useEffect(() => {
     if (!siteLinkCopied) return
     const timeoutId = window.setTimeout(() => setSiteLinkCopied(false), 1800)
     return () => window.clearTimeout(timeoutId)
   }, [siteLinkCopied])
+
+  useEffect(() => {
+    if (queueCodeCopyState === 'idle') return
+    const timeoutId = window.setTimeout(() => setQueueCodeCopyState('idle'), 3000)
+    return () => window.clearTimeout(timeoutId)
+  }, [queueCodeCopyState])
 
   const handleCopyPublicSite = async () => {
     if (!publicSiteUrl) return
@@ -7005,6 +7037,17 @@ export function WorkspaceAppHeader({
       setSiteLinkCopied(true)
     } catch {
       setSiteLinkCopied(false)
+    }
+  }
+
+  const handleCopyQueueCode = async () => {
+    if (!queueCode) return
+
+    try {
+      await navigator.clipboard.writeText(queueCode)
+      setQueueCodeCopyState('copied')
+    } catch {
+      setQueueCodeCopyState('failed')
     }
   }
 
@@ -7072,19 +7115,49 @@ export function WorkspaceAppHeader({
             {siteLinkCopied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
           </button>
         </div>
-        <div className={styles.appHeaderReference}>
-          <span className={styles.appHeaderReferenceLabel}>Live Queue code</span>
+        <div className={`${styles.appHeaderReference} ${styles.appHeaderLineupReference}`}>
+          <span className={styles.appHeaderReferenceLabel}>Live Lineup code</span>
           <strong className={styles.appHeaderQueueCode}>
-            {liveQueueSyncCode?.trim() ||
+            {queueCode ||
               (repName === 'Rep info loading' ? 'Loading' : 'Not set')}
           </strong>
+          <button
+            type="button"
+            className={`${styles.appHeaderCopyButton} ${
+              queueCodeCopyState === 'copied' ? styles.appHeaderCopyButtonCopied : ''
+            }`}
+            onClick={() => void handleCopyQueueCode()}
+            disabled={!queueCode}
+            aria-label={
+              queueCodeCopyState === 'copied'
+                ? 'Live Lineup code copied'
+                : 'Copy Live Lineup code'
+            }
+            title={queueCodeCopyState === 'copied' ? 'Copied' : 'Copy Live Lineup code'}
+          >
+            {queueCodeCopyState === 'copied' ? (
+              <Check aria-hidden="true" />
+            ) : (
+              <Copy aria-hidden="true" />
+            )}
+          </button>
+          <span className={styles.appHeaderCopyStatus} role="status" aria-live="polite">
+            {queueCodeCopyState === 'copied' ? 'Copied!' : ''}
+          </span>
+          {queueCodeCopyState === 'failed' ? (
+            <span className={styles.appHeaderCopyError} role="alert">
+              Copy failed. Select the code to copy it.
+            </span>
+          ) : null}
         </div>
-        {memberTeamName ? (
-          <div className={styles.appHeaderReference}>
-            <span className={styles.appHeaderReferenceLabel}>Team I belong to</span>
-            <strong className={styles.appHeaderQueueCode}>{memberTeamName}</strong>
-          </div>
-        ) : null}
+        <button
+          type="button"
+          className={styles.appHeaderReportBug}
+          onClick={onReportBug}
+        >
+          <Bug aria-hidden="true" />
+          <span>Report a bug</span>
+        </button>
       </div>
       <div className={styles.appHeaderActions}>
         <button

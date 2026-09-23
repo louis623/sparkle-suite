@@ -620,24 +620,58 @@ describe('DashboardPlaceholder', () => {
     })
   })
 
-  it('keeps only the membership team in the workspace header', () => {
+  it('replaces the redundant membership chip with a bug report action', () => {
     const html = renderToStaticMarkup(
       createElement(WorkspaceAppHeader, {
         repName: 'Sasha',
         showName: 'Sparkle by Sasha',
-        memberTeamName: 'North Star Team',
         publicSiteUrl: null,
         publicSiteDisplay: 'Not set',
         unreadMessageCount: 0,
         onOpenPublicSite: () => {},
         onOpenMessages: () => {},
+        onReportBug: () => {},
         onGoHome: () => {},
       }),
     )
 
-    expect(html).toContain('Team I belong to')
-    expect(html).toContain('North Star Team')
+    expect(html).toContain('Report a bug')
+    expect(html).not.toContain('Team I belong to')
     expect(html).not.toContain('Team I manage')
+    expect(
+      readFileSync(
+        resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
+        'utf8',
+      ),
+    ).toContain('<span className={styles.searchLabel}>Team I belong to</span>')
+  })
+
+  it('disables copying a missing lineup code and routes bug reports to the selected support form', () => {
+    const html = renderToStaticMarkup(
+      createElement(WorkspaceAppHeader, {
+        repName: 'Sasha',
+        showName: 'Sparkle by Sasha',
+        publicSiteUrl: null,
+        publicSiteDisplay: 'Not set',
+        liveQueueSyncCode: null,
+        unreadMessageCount: 0,
+        onOpenPublicSite: () => {},
+        onOpenMessages: () => {},
+        onReportBug: () => {},
+        onGoHome: () => {},
+      }),
+    )
+    const source = readFileSync(
+      resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
+      'utf8',
+    )
+
+    expect(html).toContain('Live Lineup code')
+    expect(html).toContain('Not set')
+    expect(html).toMatch(/disabled="" aria-label="Copy Live Lineup code"/)
+    expect(source).toContain("supportType: 'bug'")
+    expect(source).toContain("source: 'workspace-header'")
+    expect(source).toContain("window.dispatchEvent(new CustomEvent('workspace:message-center-navigate'))")
   })
 
   it('keeps help resources out of old first-run checklist framing', () => {
@@ -1839,8 +1873,10 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Public site')
     expect(html).toContain('yoursparklesuite.com/milehighfizz')
     expect(html).toContain('aria-label="Copy public site address"')
-    expect(html).toContain('Live Queue code')
+    expect(html).toContain('Live Lineup code')
     expect(html).toContain('MHF-7342')
+    expect(html).toContain('aria-label="Copy Live Lineup code"')
+    expect(html).toContain('Report a bug')
     expect(html).toContain('aria-label="Open Message Center, 5 unread messages"')
     expect(html).toContain('title="Message Center"')
     expect(html).not.toContain('Secret Rep ID Number')

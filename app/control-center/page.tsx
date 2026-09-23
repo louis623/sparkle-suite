@@ -28,7 +28,7 @@ export default async function SparkleSuiteControlCenterPage({
   searchParams,
 }: {
   searchParams?: Promise<{ product?: string | string[] }>
-} = {}) {
+}) {
   let access
   try {
     access = await getControlCenterAccess({ allowSiteSupport: true })

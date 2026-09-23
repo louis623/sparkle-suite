@@ -22,7 +22,7 @@ import { filterInboxItems } from '@/app/nic-nac/components/messages/useMessageCe
 import type { WorkspacePublicationSummary } from '@/app/nic-nac/components/messages/types'
 
 describe('unified Workspace Message Center UI', () => {
-  it('uses exactly the six friendly primary views and one consistent inbox', () => {
+  it('uses seven friendly primary views and one consistent inbox', () => {
     const html = renderToStaticMarkup(
       createElement(MessageCenter, {
         state: {
@@ -40,9 +40,10 @@ describe('unified Workspace Message Center UI', () => {
       }),
     )
 
-    expect(MESSAGE_CENTER_PRIMARY_VIEW_COUNT).toBe(6)
+    expect(MESSAGE_CENTER_PRIMARY_VIEW_COUNT).toBe(7)
     for (const label of [
       'All',
+      'Needs reply',
       'Team',
       'Rep Network',
       'Support',
@@ -52,7 +53,8 @@ describe('unified Workspace Message Center UI', () => {
       expect(html).toContain(`>${label}<`)
     }
     expect(html).toContain('New message')
-    expect(html).toContain('Unread Team message')
+    expect(html).toContain('Unread New Rep Onboarding message')
+    expect(html).toContain('Reply to Taylor Brooks')
     expect(html).toContain('Message request')
     expect(html).toContain('Official update')
     expect(html).not.toMatch(/publication|delivery|principal|outbox/i)
@@ -69,6 +71,7 @@ describe('unified Workspace Message Center UI', () => {
     expect(filterInboxItems(REVIEW_INBOX_FIXTURES, 'sparkle-suite', 'all')).toHaveLength(2)
     expect(filterInboxItems(REVIEW_INBOX_FIXTURES, 'sparkle-suite', 'resources')).toHaveLength(1)
     expect(filterInboxItems(REVIEW_INBOX_FIXTURES, 'archived', 'all')).toHaveLength(1)
+    expect(filterInboxItems(REVIEW_INBOX_FIXTURES, 'needs-reply', 'all')).toHaveLength(1)
   })
 
   it('renders reply controls for a Team conversation with compact workflow context', () => {
@@ -227,9 +230,38 @@ describe('unified Workspace Message Center UI', () => {
     )
 
     expect(html).toContain('Attached screenshots')
-    expect(html).toContain('Loading private screenshot')
+    expect(html).toContain('Loading private image')
     expect(html).toContain('Visible only to you and Sparkle Suite Support')
     expect(html).not.toContain('workspace-support-attachments')
+  })
+
+  it('keeps an owner image attached to its private message and leaves replies available', () => {
+    const item = {
+      kind: 'conversation' as const, id: 'owner-thread-1', conversationType: 'owner_direct' as const,
+      state: 'open' as const, subject: 'A note from Sparkle Suite',
+      senderDisplayName: 'Sparkle Suite', lastMessageAt: '2026-09-23T12:00:00Z',
+      unreadCount: 1, needsReply: true,
+    }
+    const detail = {
+      ...item, canReply: true, attachments: [], messages: [{
+        id: 'owner-message-1', body: 'Here is the image.', kind: 'message' as const,
+        senderType: 'support' as const, senderDisplayName: 'Sparkle Suite',
+        createdAt: '2026-09-23T12:00:00Z', isOwn: false,
+        attachments: [{ id: 'owner-image-1', messageId: 'owner-message-1',
+          contentType: 'image/png', byteSize: 1234, width: 640, height: 480,
+          slot: 1, createdAt: '2026-09-23T12:00:00Z',
+          signedReadHref: '/api/nic-nac/owner-direct/owner-thread-1/attachments/owner-image-1' }],
+      }],
+    }
+    const html = renderToStaticMarkup(createElement(ConversationThread, {
+      item, detail, detailStatus: 'ready', actionPending: false, actionError: null,
+      headingRef: createRef<HTMLHeadingElement>(), onBack: vi.fn(),
+      onSendReply: vi.fn(), onRequestDecision: vi.fn(), onReport: vi.fn(),
+      onBlock: vi.fn(), onArchive: vi.fn(), onMute: vi.fn(), onRetry: vi.fn(),
+    }))
+    expect(html).toContain('Private message images')
+    expect(html).toContain('Loading private image')
+    expect(html).toContain('Reply to Sparkle Suite')
   })
 
   it('permits only Workspace-relative or approved Sparkle HTTPS links', () => {

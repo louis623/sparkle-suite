@@ -597,6 +597,64 @@
 
 .appHeaderQueueCode {
   letter-spacing: 0.045em;
+  user-select: text;
+}
+
+.appHeaderLineupReference .appHeaderCopyButton {
+  width: 32px;
+  height: 32px;
+  margin: -4px -4px -4px 0;
+}
+
+.appHeaderCopyStatus {
+  grid-column: 1 / -1;
+  color: #087c50;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.appHeaderCopyError {
+  grid-column: 1 / -1;
+  color: #a11e55;
+  font-size: 0.65rem;
+  line-height: 1.25;
+}
+
+.appHeaderReportBug {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 7px 12px;
+  border: 1px solid rgba(226, 25, 143, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 239, 248, 0.88);
+  color: #a71166;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.appHeaderReportBug svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.appHeaderReportBug:hover,
+.appHeaderReportBug:focus-visible {
+  border-color: #d81684;
+  background: #fff0f8;
+  color: #a1075e;
+}
+
+.appHeaderReportBug:focus-visible {
+  outline: 2px solid rgba(216, 22, 132, 0.3);
+  outline-offset: 2px;
 }
 
 .appHeaderCopyButton {
@@ -7031,6 +7089,12 @@
     max-width: min(58vw, 260px);
   }
 
+  .appHeaderLineupReference .appHeaderCopyButton {
+    width: 44px;
+    height: 44px;
+    margin: -9px -9px -9px 0;
+  }
+
   .appProfileCopy {
     display: none;
   }
@@ -7477,6 +7541,28 @@
 
   .calendarPanels {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .appHeaderReferences {
+    flex-wrap: wrap;
+  }
+
+  .appHeaderReferences > .appHeaderReference:first-child {
+    flex: 1 1 100%;
+  }
+
+  .appHeaderLineupReference {
+    flex: 1 1 auto;
+  }
+
+  .appHeaderReferenceValue {
+    max-width: min(70vw, 330px);
+  }
+
+  .appHeaderReportBug {
+    flex: 0 0 auto;
   }
 }
 

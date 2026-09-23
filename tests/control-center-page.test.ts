@@ -231,7 +231,7 @@ describe('SparkleSuiteControlCenterPage', () => {
   })
 
   it('renders the Sparkle Suite Control Center with support and customer database sections', async () => {
-    const page = await SparkleSuiteControlCenterPage()
+    const page = await SparkleSuiteControlCenterPage({})
     const html = renderToStaticMarkup(page)
 
     expect(redirectMock).not.toHaveBeenCalled()
@@ -300,7 +300,7 @@ describe('SparkleSuiteControlCenterPage', () => {
   it('does not substitute the customer-list total when Lane has no current Suite snapshot', async () => {
     loadCurrentAccountingSnapshotMock.mockResolvedValueOnce(null)
 
-    const page = await SparkleSuiteControlCenterPage()
+    const page = await SparkleSuiteControlCenterPage({})
     const html = renderToStaticMarkup(page)
 
     expect(html).toContain('Projected monthly revenue')
@@ -364,7 +364,7 @@ describe('SparkleSuiteControlCenterPage', () => {
       }),
     ])
 
-    const page = await SparkleSuiteControlCenterPage()
+    const page = await SparkleSuiteControlCenterPage({})
     const html = renderToStaticMarkup(page)
 
     expect(html).toContain('href="#customer-database"')
@@ -392,7 +392,7 @@ describe('SparkleSuiteControlCenterPage', () => {
       new MockAuthError('missing session'),
     )
 
-    await expect(SparkleSuiteControlCenterPage()).rejects.toThrow(
+    await expect(SparkleSuiteControlCenterPage({})).rejects.toThrow(
       'redirect:/control-center/login',
     )
 
@@ -405,7 +405,7 @@ describe('SparkleSuiteControlCenterPage', () => {
       new MockOperatorAuthError('not operator'),
     )
 
-    const page = await SparkleSuiteControlCenterPage()
+    const page = await SparkleSuiteControlCenterPage({})
     const html = renderToStaticMarkup(page)
 
     expect(html).toContain('Operator access required')

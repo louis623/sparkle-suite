@@ -61,6 +61,10 @@ export async function GET(request: Request) {
     const unreadOnly = readBoolean(url.searchParams.get('unread'))
     const archived = readBoolean(url.searchParams.get('archived'))
     const cursor = url.searchParams.get('cursor')?.trim() || undefined
+    const search = url.searchParams.get('search')?.trim() || undefined
+    if (search && (search.length < 2 || search.length > 80)) {
+      return NextResponse.json({ error: 'Search must be between 2 and 80 characters.' }, { status: 400 })
+    }
 
     if (limit === null) {
       return NextResponse.json(
@@ -79,8 +83,8 @@ export async function GET(request: Request) {
     }
 
     const viewValue = url.searchParams.get('view')
-    const view = viewValue && ['all', 'team', 'rep_network', 'support', 'sparkle_suite', 'archived'].includes(viewValue)
-      ? viewValue as 'all' | 'team' | 'rep_network' | 'support' | 'sparkle_suite' | 'archived'
+    const view = viewValue && ['all', 'team', 'rep_network', 'support', 'sparkle_suite', 'archived', 'needs_reply'].includes(viewValue)
+      ? viewValue as 'all' | 'team' | 'rep_network' | 'support' | 'sparkle_suite' | 'archived' | 'needs_reply'
       : viewValue ? null : 'all'
     if (view === null) return NextResponse.json({ error: 'view is invalid.' }, { status: 400 })
     const { repId } = await getPaidNicNacContext()
@@ -91,6 +95,7 @@ export async function GET(request: Request) {
       unreadOnly,
       archived,
       view,
+      search,
     })
     return NextResponse.json(result)
   } catch (error) {
