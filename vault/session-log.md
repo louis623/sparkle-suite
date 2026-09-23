@@ -1,3 +1,8 @@
+## September 23, 2026 - Archived onboarding reply discoverability audit
+
+- Read-only production audit of the existing live Control Center Task List bug `b83da8cf-c235-4c62-bd6d-d37e84823a41` found five active onboarding participants, all with valid canonical conversation links and owner/guest memberships. One active thread was absent from the normal owner inbox solely because the owner's conversation participant row was archived on September 19; a new onboarding-guest message arrived September 21. It remains available in the exact Archived inbox RPC with one unread message and `Needs reply`. No message was lost and no customer row or archive state was changed.
+- The existing archive behavior hides new replies from normal inbox/header counts. Louis was asked to choose between automatically returning an archived conversation on new inbound activity and keeping it archived with a prominent unread alert/one-click access. This is a workflow decision; do not silently change archive semantics. The live Task List bug was updated with the evidence and left open pending the decision and safe signed-in smoke.
+
 ## September 23, 2026 - Owner-direct safety follow-up and transactional smoke
 
 - Found the owner-direct composing-stop flag was defined but not enforced on send/upload-ticket writes. Added service-layer guards and a test proving both paths stop before touching the database when disabled. Exact SHA `34b2418b146a9c94cfc15bc112509aa9bc20f1aa` passed build/type check, 58 focused tests and lint; manual Vercel `dpl_35BwihXyZvX8dyzZZBhx2pqCjL2H` is Ready on both Suite domains. No new migration.

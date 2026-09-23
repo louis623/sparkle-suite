@@ -1,3 +1,7 @@
+## September 23, 2026 - Archived onboarding reply decision
+
+- [ ] Louis to choose whether a new inbound reply automatically returns an archived conversation to the normal inbox, or the conversation stays archived with a prominent unread alert. Evidence and follow-up are on the existing live Control Center Task List bug `b83da8cf-c235-4c62-bd6d-d37e84823a41`; no message is lost. Do not alter archive workflow or close the bug before that choice and a safe signed-in visual test.
+
 ## September 23, 2026 - Message Center signed-in acceptance
 
 - [ ] Complete a token-gated synthetic rep reviewer and authorized non-personal owner/operator visual walkthrough on `https://www.yoursparklesuite.com`: Report a bug opens the issue composer; Live Lineup code copies; team-onboarding message replies directly; search/Needs reply/pagination preserve context; owner sends a private image to a synthetic rep and the rep can view/reply. Reset or remove only the synthetic test data afterward. Automated tests, production schema, live route health and anonymous access denial passed; do not use Louis's personal or customer account, extract the protected reviewer token, or call this visual acceptance complete yet. Track any user-facing follow-up in the live Control Center Task List rather than treating this vault item as the task tracker.
