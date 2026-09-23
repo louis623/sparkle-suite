@@ -5,29 +5,16 @@ import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import { ServiceError } from '@/lib/services/errors'
 import {
-  attachTradeRequestRevealScreenshot,
   getTradeRequestNotificationSummary,
   submitTradeRequest,
   TRADE_REQUEST_CUSTOMER_NAME_MAX_LENGTH,
   TRADE_REQUEST_DESCRIPTION_MAX_LENGTH,
   TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH,
 } from '@/lib/services/trade-requests'
-import {
-  removeTradeRequestRevealScreenshots,
-  TRADE_REQUEST_SCREENSHOT_MAX_BYTES,
-  uploadTradeRequestRevealScreenshot,
-} from '@/lib/services/storage'
 import { notifyRepOfTradeRequest } from '@/lib/nic-nac/trade-request-notifications'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
-
-const SUPPORTED_SCREENSHOT_TYPES = new Set([
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-])
 
 type TradeRequestPayload = {
   listingId: string
@@ -37,13 +24,10 @@ type TradeRequestPayload = {
   offeredFamily: string | null
   offeredType: 'RG' | 'NK' | 'ER' | 'ST' | 'BR' | null
   manualReviewRequested: boolean
-  revealScreenshot: File | null
+  uploadId: string | null
 }
 
 const JSON_BODY_MAX_BYTES = 16 * 1024
-const MULTIPART_OVERHEAD_MAX_BYTES = 64 * 1024
-const MULTIPART_BODY_MAX_BYTES =
-  TRADE_REQUEST_SCREENSHOT_MAX_BYTES + MULTIPART_OVERHEAD_MAX_BYTES
 
 class TradeRequestPayloadError extends Error {
   constructor(
@@ -61,38 +45,14 @@ function readString(value: unknown) {
 
 async function readPayload(request: Request): Promise<TradeRequestPayload> {
   const contentType = request.headers.get('content-type')?.toLowerCase() ?? ''
-  const isMultipart = contentType.startsWith('multipart/form-data;')
   const isJson = contentType.split(';', 1)[0]?.trim() === 'application/json'
-  if (!isMultipart && !isJson) {
+  if (!isJson) {
     throw new TradeRequestPayloadError(
-      'Trade requests must use application/json or multipart/form-data.',
+      'Refresh the Dance Floor page before sending a trade request.',
       415,
     )
   }
-  const maxBytes = isMultipart ? MULTIPART_BODY_MAX_BYTES : JSON_BODY_MAX_BYTES
-  const bytes = await readBoundedRequestBytes(request, maxBytes)
-
-  if (isMultipart) {
-    const formRequest = new Request(request.url, {
-      method: 'POST',
-      headers: { 'content-type': request.headers.get('content-type')! },
-      body: bytes,
-    })
-    const form = await formRequest.formData()
-    const screenshot = form.get('revealScreenshot')
-    return {
-      listingId: readString(form.get('listingId')),
-      customerName: readString(form.get('customerName')),
-      customerDescription: readString(form.get('customerDescription')),
-      submissionId: readString(form.get('submissionId')) || undefined,
-      offeredFamily: readString(form.get('offeredFamily')) || null,
-      offeredType: readOfferedType(form.get('offeredType')),
-      manualReviewRequested: readBoolean(form.get('manualReviewRequested')),
-      revealScreenshot: screenshot instanceof File && screenshot.size > 0
-        ? screenshot
-        : null,
-    }
-  }
+  const bytes = await readBoundedRequestBytes(request, JSON_BODY_MAX_BYTES)
 
   let body: Record<string, unknown>
   try {
@@ -108,7 +68,7 @@ async function readPayload(request: Request): Promise<TradeRequestPayload> {
     offeredFamily: readString(body?.offeredFamily) || null,
     offeredType: readOfferedType(body?.offeredType),
     manualReviewRequested: readBoolean(body?.manualReviewRequested),
-    revealScreenshot: null,
+    uploadId: readString(body?.uploadId) || null,
   }
 }
 
@@ -176,19 +136,9 @@ function validatePayloadBounds(payload: TradeRequestPayload) {
   if ((payload.offeredFamily?.length ?? 0) > TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH) {
     throw new TradeRequestPayloadError('The offered collection family is too long.', 400)
   }
-}
-
-async function resolveScreenshotRepId(
-  admin: ReturnType<typeof createAdminClient>,
-  listingId: string,
-) {
-  const { data, error } = await admin
-    .from('trade_listings')
-    .select('rep_id')
-    .eq('id', listingId)
-    .maybeSingle()
-  if (error) throw error
-  return (data as { rep_id?: string } | null)?.rep_id ?? null
+  if (payload.uploadId && payload.uploadId.length > 100) {
+    throw new TradeRequestPayloadError('That photo upload is not valid. Please choose the photo again.', 400)
+  }
 }
 
 export async function POST(request: Request) {
@@ -229,51 +179,8 @@ export async function POST(request: Request) {
       offeredFamily: payload.offeredFamily,
       offeredType: payload.offeredType,
       manualReviewRequested: payload.manualReviewRequested,
+      uploadId: payload.uploadId,
     })
-
-    let screenshotWarning: string | null = null
-    if (payload.revealScreenshot) {
-      let uploadedScreenshotPath: string | null = null
-      try {
-        const screenshotRepId =
-          targetRep?.id ?? (await resolveScreenshotRepId(admin, result.listingId))
-        if (!screenshotRepId) {
-          throw new Error('screenshot rep target not found')
-        }
-        if (!SUPPORTED_SCREENSHOT_TYPES.has(payload.revealScreenshot.type.toLowerCase())) {
-          throw new Error('unsupported screenshot type')
-        }
-
-        const screenshot = await uploadTradeRequestRevealScreenshot(
-          screenshotRepId,
-          result.requestId,
-          await payload.revealScreenshot.arrayBuffer(),
-          {
-            contentType: payload.revealScreenshot.type,
-            filename: payload.revealScreenshot.name,
-          },
-        )
-        uploadedScreenshotPath = screenshot.objectPath
-        await attachTradeRequestRevealScreenshot(admin, result.requestId, screenshot)
-      } catch (screenshotError) {
-        if (uploadedScreenshotPath) {
-          try {
-            await removeTradeRequestRevealScreenshots([uploadedScreenshotPath])
-          } catch (cleanupError) {
-            console.error(
-              '[amethyst/trade-requests] Screenshot orphan cleanup error:',
-              cleanupError,
-            )
-          }
-        }
-        screenshotWarning =
-          'Your trade request was sent, but the screenshot could not be attached.'
-        console.error(
-          '[amethyst/trade-requests] Screenshot upload error:',
-          screenshotError,
-        )
-      }
-    }
 
     if (!result.mutationReplayed) {
       try {
@@ -293,7 +200,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      screenshotWarning ? { ...result, warning: screenshotWarning } : result,
+      result,
       { status: 201, headers: { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' } },
     )
   } catch (error) {

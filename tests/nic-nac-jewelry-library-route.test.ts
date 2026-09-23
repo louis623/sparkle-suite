@@ -92,7 +92,9 @@ describe('jewelry library route', () => {
       },
     )
     expect(response.status).toBe(200)
-    await expect(response.json()).resolves.toEqual({
+    const body = await response.json()
+    expect(body.items[0]).not.toHaveProperty('bpMsrp')
+    expect(body).toEqual({
       items: [
         expect.objectContaining({
           designId: 'design-1',

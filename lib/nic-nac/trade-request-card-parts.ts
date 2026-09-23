@@ -12,7 +12,8 @@ export type TradeRequestCardData = {
     designName: string
     typePrefix: string
     collectionName: string | null
-    bpMsrp: number | null
+    /** Retained only when reading cards created before MSRP retirement. */
+    bpMsrp?: number | null
     repFacingNote?: string | null
   }
   offeredText: string
@@ -50,7 +51,6 @@ export function buildTradeRequestCardPart(
         designName: summary.listing.designName,
         typePrefix: summary.listing.typePrefix,
         collectionName: summary.listing.collectionName,
-        bpMsrp: summary.listing.bpMsrp,
         ...(summary.listing.listingSource === 'non_item_number'
           ? { repFacingNote: '(non-item number piece)' }
           : {}),
@@ -101,7 +101,8 @@ export function isTradeRequestCardPart(
     typeof requestedItem.typePrefix === 'string' &&
     (typeof requestedItem.collectionName === 'string' ||
       requestedItem.collectionName === null) &&
-    (typeof requestedItem.bpMsrp === 'number' ||
+    (requestedItem.bpMsrp === undefined ||
+      typeof requestedItem.bpMsrp === 'number' ||
       requestedItem.bpMsrp === null) &&
     (requestedItem.repFacingNote === undefined ||
       typeof requestedItem.repFacingNote === 'string' ||

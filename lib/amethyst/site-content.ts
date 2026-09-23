@@ -23,7 +23,6 @@ export interface AmethystTradeListing {
   collection: string
   description: string
   tier: AmethystTier
-  msrpLabel: string
   statusLabel: 'Available' | 'Reserved' | 'Traded'
   href?: string
 }
@@ -157,7 +156,6 @@ export const defaultAmethystSiteContent: AmethystSiteContent = {
       collection: 'Velvet Hour',
       description: 'Warm gold tones with a bright center stone and a one-for-one trade request option.',
       tier: 'unicorn',
-      msrpLabel: '$148',
       statusLabel: 'Available',
     },
     {
@@ -167,7 +165,6 @@ export const defaultAmethystSiteContent: AmethystSiteContent = {
       collection: 'Estate Halo',
       description: 'Soft pink sparkle with a stackable silhouette customers ask for again and again.',
       tier: 'diamond',
-      msrpLabel: '$98',
       statusLabel: 'Reserved',
     },
     {
@@ -177,7 +174,6 @@ export const defaultAmethystSiteContent: AmethystSiteContent = {
       collection: 'Moonlit Drop',
       description: 'A classic halo profile with a richer purple center stone and crisp silver finish.',
       tier: 'everyday',
-      msrpLabel: '$118',
       statusLabel: 'Available',
     },
     {
@@ -187,7 +183,6 @@ export const defaultAmethystSiteContent: AmethystSiteContent = {
       collection: 'Holiday Gift Guide',
       description: 'An easy everyday pair with a polished finish that works for gifting and stacking.',
       tier: 'everyday',
-      msrpLabel: '$48',
       statusLabel: 'Traded',
     },
   ],

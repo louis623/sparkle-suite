@@ -2163,20 +2163,6 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   padding-top: 14px;
   border-top: 1px solid var(--border);
 }
-.hp-trade-msrp {
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--fg-muted);
-}
-.hp-trade-msrp strong {
-  color: var(--fg);
-  font-size: 15px;
-  font-weight: 600;
-  margin-left: 6px;
-  letter-spacing: 0;
-  text-transform: none;
-}
 .hp-trade-cta {
   font-size: 12px;
   font-weight: 600;

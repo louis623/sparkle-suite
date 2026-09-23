@@ -2,6 +2,10 @@
 
 Status: implementation authorized by Louis on September 23, 2026, after the voice review. Louis subsequently approved publishing the universal customer FAQ today, with the same content/layout across rep sites and styling from each rep's active skin. The FAQ task owns that bounded implementation; this task owns integration and one combined, verified release. This plan records the agreed behavior; no production change is complete until the release checks below pass.
 
+## September 23 update: screenshot and MSRP decisions
+
+Louis approved a phone-friendly optional reveal image and retirement of MSRP from active trade surfaces. The implemented upload accepts JPEG, PNG, WebP, HEIC, HEIF, and AVIF up to 25 MiB, sends bytes directly to private storage, normalizes the rep image, and keeps the attached image for seven days. The form shows selected file, preview, upload result, and actionable failure state; the customer can remove the image and submit text only. Historical MSRP columns remain readable for compatibility, but new Nic-Nac intake, cards, public Dance Floor cards, sorting, and trade rules do not ask for or show MSRP. Item-for-item, same collection family, same jewelry type, and rep final approval remain the rule. The universal Dance Floor card no longer repeats the independent-rep disclosure below each item; the site footer retains it. Shared skin tokens and Halloween-specific corrections address small text and form contrast. The synthetic live reviewer instructions are in [trade-request-upload-reviewer-smoke.md](../testing/trade-request-upload-reviewer-smoke.md).
+
 ## Bottom line
 
 The current customer form supplies only free text. The current Nic-Nac card always says “needs review,” and both the chat card and Dance Floor can send an approval without a collection/type match. The chat notification is a best-effort insert into the latest conversation; it is not the source of truth. Home's count comes from an eight-request preview that only refreshes while Dance Floor is open. A denial defaults to “not interested,” and the customer has no private way to see the decision. The plan below closes those gaps as one connected flow.
@@ -18,7 +22,7 @@ The current customer form supplies only free text. The current Nic-Nac card alwa
 
 ## Rule definition
 
-- One item for one item, same collection family and same jewelry type. MSRP is reference information, not a matching rule.
+- One item for one item, same collection family and same jewelry type. MSRP is absent from active collection, display, and matching rules; historical values remain compatible.
 - Birthday items may trade across birthday month and year, provided the jewelry type matches. OG matches OG; other families only match their own canonical family. Do not infer a family from visual similarity or MSRP.
 - Normalize names and type aliases against an explicit, versioned catalog mapping. Ambiguous, missing, manual, or legacy values are “needs verification,” never an automatic match. The rep can supply verified facts, but not an unrestricted override of a mismatch.
 - Keep a short audit record of what facts the rep confirmed, the computed rule result, decision, time, and actor. Do not treat customer self-report or an AI-generated sentence as verified evidence.
@@ -28,7 +32,7 @@ The current customer form supplies only free text. The current Nic-Nac card alwa
 ### A. Data and submission
 
 - Add nullable offered-family/type fields and verification/audit fields to trade requests so existing rows and current traffic remain readable during rollout. Add safe denial reason codes and a private receipt token stored as a hash. Keep idempotent submission: replaying the same request returns the same receipt, does not consume another inventory slot, and can repair a missed alert view because alerts read request state directly.
-- Update the public form and bounded API payload together. Validate lengths/allowed values server-side; never trust a screenshot as a structured value. Keep the 48-hour screenshot expiry and protected rep-only image route. Show a visible warning if the screenshot upload fails while the request itself succeeds. Record an exception when the customer explicitly asks the rep to review a screened mismatch; do not treat passive browsing/filtering as a trade request.
+- Update the public form and bounded API payload together. Validate lengths/allowed values server-side; never trust a screenshot as a structured value. Keep the seven-day screenshot expiry and protected rep-only image route. Show a visible upload result and permit a text-only request when attachment fails or is removed. Record an exception when the customer explicitly asks the rep to review a screened mismatch; do not treat passive browsing/filtering as a trade request.
 - Prepare a migration that does not drop old rows or force backfill guesses. Existing pending requests are labeled “verification needed.” Previously approved/denied history remains unchanged.
 
 ### B. One approval boundary

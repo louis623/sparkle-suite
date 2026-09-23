@@ -91,7 +91,6 @@ describe('search_jewelry_database — flattened structured output', () => {
       designName: 'The Celeste Ring',
       material: 'Rhodium',
       mainStone: 'Lab Sapphire',
-      msrp: 128,
       photoUrl: 'https://canonical/celeste.jpg',
       type: 'RG',
       collectionName: 'Lustre',
@@ -106,7 +105,6 @@ describe('search_jewelry_database — flattened structured output', () => {
     expect(results[1]).toMatchObject({
       designId: 'd-2',
       itemNumber: 'NK66139',
-      msrp: null,
       photoUrl: null,
       isOnMyBoard: false,
       activeListingsCount: 0,

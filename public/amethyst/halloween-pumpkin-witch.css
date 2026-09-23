@@ -1,4 +1,7 @@
 body.bg-halloween-pumpkin-witch {
+  --fg: #fff7ed;
+  --fg-muted: #d6c8bb;
+  --border: rgba(244, 238, 227, 0.42);
   --hp-primary: #ff6a00;
   --hp-accent: #f4eee3;
   --primary: #ff6a00;
@@ -9,6 +12,10 @@ body.bg-halloween-pumpkin-witch {
   --hp-card-fg: #fff7ed;
   --hp-card-muted: #d6c8bb;
   --hp-card-accent: #e3b7ff;
+  --hp-form-panel-bg: #211914;
+  --hp-form-panel-fg: #fff7ed;
+  --hp-field-bg: #100d0b;
+  --hp-field-fg: #fff7ed;
   --hp-electric-purple: #e3b7ff;
   --hp-soft-purple: #f0ddff;
   --hp-action-fg: #160901;
@@ -195,7 +202,6 @@ body.bg-halloween-pumpkin-witch .hp-trade-preview-updated,
 body.bg-halloween-pumpkin-witch .hp-event-code-row .dash,
 body.bg-halloween-pumpkin-witch .hp-event-code-row .desc,
 body.bg-halloween-pumpkin-witch .hp-customer-media-empty,
-body.bg-halloween-pumpkin-witch .tp-card-msrp,
 body.bg-halloween-pumpkin-witch .jp-section-sub,
 body.bg-halloween-pumpkin-witch .jp-benefit-desc,
 body.bg-halloween-pumpkin-witch .jp-faq-answer,
@@ -213,7 +219,6 @@ body.bg-halloween-pumpkin-witch .hp-event-code-text strong,
 body.bg-halloween-pumpkin-witch .hp-event-add,
 body.bg-halloween-pumpkin-witch .tp-filter-toggle,
 body.bg-halloween-pumpkin-witch .tp-filter-pill:not(.active),
-body.bg-halloween-pumpkin-witch .tp-card-rep strong,
 body.bg-halloween-pumpkin-witch .hp-signup-check,
 body.bg-halloween-pumpkin-witch .hp-unsubscribe-toggle,
 body.bg-halloween-pumpkin-witch .jp-faq-item button {
@@ -386,4 +391,9 @@ body.bg-halloween-pumpkin-witch .hp-signup-preferences :is(strong, span, p, labe
   .hpw-witch-flight { transform: none; opacity: 1; }
   .hpw-sparkle { opacity: 0.72; transform: scale(0.65); }
   .hpw-motion-control { display: none; }
+}
+
+body.bg-halloween-pumpkin-witch .tp-card-tier.unicorn,
+body.bg-halloween-pumpkin-witch .tp-filter-badge {
+  color: #160901;
 }

@@ -35,9 +35,9 @@ export const GNOME_PREVIEW_LINEUP = {
 
 // Fixture-only data: this module never resolves a rep or reads customer records.
 export const GNOME_PREVIEW_LISTINGS: AmethystTradeBoardListing[] = [
-  { id: 'sample-ring', name: 'Woodland Wishes', collection: 'OG', type: 'Ring', material: 'Rose gold plating', stone: 'Green crystal', msrp: 48, size: '8', note: 'Sample dancer. Same collection and jewelry type for requests.', glyph: 'W', tier: 'everyday', photoUrl: null, photoSource: 'missing', quantityAvailable: 2 },
-  { id: 'sample-earrings', name: 'Lantern Light', collection: 'OG', type: 'Earrings', material: 'Gold plating', stone: 'Champagne crystal', msrp: 52, size: null, note: 'Sample dancer for appearance review.', glyph: 'L', tier: 'everyday', photoUrl: null, photoSource: 'missing', quantityAvailable: 1 },
-  { id: 'sample-necklace', name: 'Moonlit Garden', collection: 'Birthday', type: 'Necklace', material: 'Silver plating', stone: 'Opal shimmer', msrp: 68, size: null, note: 'Sample dancer for appearance review.', glyph: 'M', tier: 'everyday', photoUrl: null, photoSource: 'missing', quantityAvailable: 1 },
+  { id: 'sample-ring', name: 'Woodland Wishes', collection: 'OG', type: 'Ring', material: 'Rose gold plating', stone: 'Green crystal', size: '8', note: 'Sample dancer. Same collection and jewelry type for requests.', glyph: 'W', tier: 'everyday', photoUrl: null, photoSource: 'missing', quantityAvailable: 2 },
+  { id: 'sample-earrings', name: 'Lantern Light', collection: 'OG', type: 'Earrings', material: 'Gold plating', stone: 'Champagne crystal', size: null, note: 'Sample dancer for appearance review.', glyph: 'L', tier: 'everyday', photoUrl: null, photoSource: 'missing', quantityAvailable: 1 },
+  { id: 'sample-necklace', name: 'Moonlit Garden', collection: 'Birthday', type: 'Necklace', material: 'Silver plating', stone: 'Opal shimmer', size: null, note: 'Sample dancer for appearance review.', glyph: 'M', tier: 'everyday', photoUrl: null, photoSource: 'missing', quantityAvailable: 1 },
 ]
 
 export const GNOME_PREVIEW_EVENTS: AmethystHomepageEventCard[] = [

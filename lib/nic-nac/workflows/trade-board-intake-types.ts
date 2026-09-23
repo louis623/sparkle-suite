@@ -75,7 +75,6 @@ export interface TradeBoardIntakeKnownFields {
   collectionYear?: number
   material?: string
   mainStone?: string
-  bpMsrp?: number
   ringSize?: string
   repNotes?: string
   tradePreferences?: string

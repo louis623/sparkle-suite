@@ -65,7 +65,6 @@ export interface BoardResult {
   listings: TradeListingWithDesign[]
   summary: {
     totalPieces: number
-    totalMsrp: number
     typeBreakdown: Record<JewelryType, number>
     pendingRequestCount: number
   }
@@ -101,7 +100,7 @@ export interface GetMyBoardFilters {
   statusFilter?: ListingStatus
   collectionFilter?: string
   typeFilter?: JewelryType
-  sortBy?: 'created_at' | 'listed_at' | 'msrp' | 'design_name' | 'collection'
+  sortBy?: 'created_at' | 'listed_at' | 'design_name' | 'collection'
   sortOrder?: 'asc' | 'desc'
   limit?: number
   offset?: number
@@ -381,6 +380,7 @@ export interface SubmitTradeRequestInput {
   offeredFamily?: string | null
   offeredType?: JewelryType | null
   manualReviewRequested?: boolean
+  uploadId?: string | null
 }
 
 export interface SubmitTradeRequestResult {
@@ -504,8 +504,7 @@ export interface CustomerAudienceProfileInput {
   tags?: string[]
 }
 
-export interface CustomerAudienceContactCreateInput
-  extends CustomerAudienceProfileInput {}
+export type CustomerAudienceContactCreateInput = CustomerAudienceProfileInput
 
 export interface CustomerAudienceContactUpdateInput {
   audienceId: string
@@ -522,7 +521,7 @@ export interface CustomerAudienceContactUpdateInput {
   tags?: string[]
 }
 
-export interface CustomerAudienceImportInput extends CustomerAudienceProfileInput {}
+export type CustomerAudienceImportInput = CustomerAudienceProfileInput
 
 export interface CustomerAudienceImportResult {
   createdCount: number
@@ -1158,7 +1157,6 @@ export interface TradeRequestWithListing {
       collectionName: string | null
       material: string | null
       mainStone: string | null
-      bpMsrp: number | null
       canonicalPhotoUrl: string | null
       typePrefix: JewelryType
     }
@@ -1178,7 +1176,6 @@ export interface TradeRequestNotificationSummary {
     designName: string
     collectionName: string | null
     typePrefix: JewelryType
-    bpMsrp: number | null
   }
 }
 
@@ -1219,7 +1216,6 @@ export interface TradeHistoryItem {
   design: {
     itemNumber: string | null
     designName: string
-    bpMsrp: number | null
     typePrefix: JewelryType
     collectionName: string | null
   }
@@ -1229,7 +1225,6 @@ export interface TradeHistoryResult {
   items: TradeHistoryItem[]
   summary: {
     totalCompleted: number
-    totalMsrpTraded: number
     avgFulfillmentDays: number | null
     repeatCustomers: Array<{ customerName: string; count: number }>
   }
@@ -1403,6 +1398,7 @@ export interface CreateDesignInput {
   piecePhotoUrl: string
   material?: string
   mainStone?: string
+  /** Legacy Finder/catalog compatibility; Nic-Nac no longer collects MSRP. */
   bpMsrp?: number
   collectionName?: string
   collectionYear?: number | null
@@ -1479,7 +1475,6 @@ export interface JewelryCatalogCorrectionPatch {
   collectionYear?: number | null
   material?: string | null
   mainStone?: string | null
-  bpMsrp?: number | null
   specialFeatures?: string | null
   lengthInfo?: string | null
   searchTags?: string[]

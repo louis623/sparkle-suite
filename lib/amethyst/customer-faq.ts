@@ -64,12 +64,8 @@ export const DANCE_FLOOR_FAQ = [
     answer: 'OG dancers pair with OG dancers of the same jewelry type.',
   },
   {
-    question: 'Does MSRP affect the decision?',
-    answer: 'The MSRP shown for a dancer is for reference only. It does not decide which dancers belong together or whether your rep approves your request.',
-  },
-  {
     question: 'Should I save my reveal?',
-    answer: 'We recommend taking a screenshot before leaving the reveal screen, but it is optional. Please crop out personal and order information before sharing it.',
+    answer: 'A photo or screenshot can help your rep identify what you revealed, but it is optional. Please crop out personal and order information before sharing it. Images shared through the Dance Floor expire after seven days.',
   },
   {
     question: 'What if my choice is flagged?',

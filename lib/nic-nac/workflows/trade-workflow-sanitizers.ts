@@ -6,7 +6,6 @@ const SAFE_CORRECTION_FIELDS = new Set([
   'collectionYear',
   'material',
   'mainStone',
-  'bpMsrp',
   'canonicalPhotoUrl',
   'jewelryType',
   'specialFeatures',

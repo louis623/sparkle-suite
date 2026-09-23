@@ -60,7 +60,6 @@ export function makeSearchJewelryDatabaseTool(ctx: { repId: string }) {
           designName: r.designName,
           material: r.material,
           mainStone: r.mainStone,
-          msrp: r.bpMsrp,
           photoUrl: r.canonicalPhotoUrl,
           type: r.typePrefix,
           collectionName: r.collectionName,

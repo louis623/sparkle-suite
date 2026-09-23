@@ -195,13 +195,13 @@ describe('Amethyst trade page template wiring', () => {
       type: 'Ring',
       material: 'Sterling silver',
       stone: 'Diamond accent',
-      msrp: 88,
       tier: 'everyday',
       photoUrl: 'https://cdn.example.com/listing-photo.jpg',
       photoSource: 'listing',
       quantityAvailable: 1,
     })
     expect(mapped.note).toContain('Item-for-item only')
+    expect(mapped).not.toHaveProperty('msrp')
   })
 
   it('uses only explicit rarity classification for Diamond and Unicorn tiers', () => {
@@ -367,14 +367,15 @@ describe('Amethyst trade page template wiring', () => {
     ).toThrow(/invalid/i)
   })
 
-  it('sends one stable browser UUID with JSON and multipart trade-request retries', () => {
+  it('uses one stable browser UUID for the direct image upload and JSON request', () => {
     const jsx = readFileSync(
       resolve(process.cwd(), 'public/amethyst/trade.jsx'),
       'utf8',
     )
 
     expect(jsx).toContain('useState(() => crypto.randomUUID())')
-    expect(jsx).toContain('form.append("submissionId", payload.submissionId)')
+    expect(jsx).toContain('const TRADE_UPLOAD_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/uploads")')
+    expect(jsx).toContain('body: JSON.stringify({ listingId, submissionId, contentType, byteSize: file.size })')
     expect(jsx).toContain('submissionId: payload.submissionId')
     expect(jsx).toContain('submissionId,')
   })
@@ -402,7 +403,6 @@ describe('Amethyst trade page template wiring', () => {
       name: 'July Birthday 2026 Ring - Size 7',
       collection: 'July Birthday 2026',
       type: 'Ring',
-      msrp: null,
       size: '7',
       photoUrl: 'https://cdn.example.com/manual-ring.jpg',
       photoSource: 'listing',
@@ -415,6 +415,7 @@ describe('Amethyst trade page template wiring', () => {
     )
     expect(mapped.photoSource).toBe('listing')
     expect(mapped.photoUrl).not.toBeNull()
+    expect(mapped).not.toHaveProperty('msrp')
   })
 
   it('marks canonical and missing photo source without exposing internal labels on the customer card', () => {
@@ -731,14 +732,17 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).toContain('screenTradeOfferRequest')
     expect(jsx).toContain('Ask my rep to review anyway')
     expect(jsx).toContain('Available dancers that may fit your reveal')
-    expect(jsx).toContain('<label>Screenshot of your reveal (recommended, optional)</label>')
+    expect(jsx).toContain('Photo or screenshot of your reveal (optional)')
     expect(jsx).toContain('Crop out personal and order information before uploading.')
     expect(jsx).toContain('success?.warning')
     expect(jsx).toContain('View request status')
-    expect(jsx).toContain('new FormData()')
-    expect(jsx).toContain('form.append("revealScreenshot", payload.revealScreenshot)')
-    expect(jsx).toContain('form.append("offeredFamily", payload.offeredFamily || "")')
-    expect(jsx).toContain('form.append("manualReviewRequested", String(payload.manualReviewRequested))')
+    expect(jsx).toContain('const uploadBody = new FormData()')
+    expect(jsx).not.toContain('form.append("revealScreenshot"')
+    expect(jsx).toContain('uploadId: payload.uploadId || null')
+    expect(jsx).toContain('offeredFamily: payload.offeredFamily')
+    expect(jsx).toContain('manualReviewRequested: payload.manualReviewRequested')
+    expect(jsx).toContain('Send without a photo')
+    expect(jsx).toContain('Attached and ready to send with your request.')
     expect(jsx).toContain(
       'const TRADE_REQUEST_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests")',
     )
@@ -755,6 +759,15 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).not.toContain('tp-sheet-consent')
     expect(jsx).toContain('setSubmittedListingIds')
     expect(jsx).toContain('type="file"')
+  })
+
+  it('keeps public dancer cards free of price fields and repeated rep disclosures', () => {
+    const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/trade.jsx'), 'utf8')
+    expect(jsx).not.toContain('MSRP')
+    expect(jsx).not.toContain('tp-card-rep')
+    expect(jsx).not.toContain('tp-card-expand-rep')
+    expect(jsx).toContain('View dancer and request trade')
+    expect(jsx).toContain('data-slot="brand separation footer"')
   })
 
   it('keeps the Dance Floor screenshot reminder readable on every skin', () => {

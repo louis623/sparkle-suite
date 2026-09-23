@@ -443,7 +443,6 @@ export async function ingestLatestTradeBoardIntakeTurn(
       collection_year: known.collectionYear ?? null,
       material: known.material ?? null,
       main_stone: known.mainStone ?? null,
-      bp_msrp: known.bpMsrp ?? null,
       ring_size: known.ringSize ?? null,
       rep_notes: known.repNotes ?? null,
       trade_preferences: known.tradePreferences ?? null,

@@ -136,7 +136,11 @@ export async function GET(request: Request) {
       limit: limit ?? undefined,
     })
 
-    return NextResponse.json({ items: results, facets: deriveFacets(results) })
+    const items = results.map(({ bpMsrp: _legacyMsrp, ...item }) => {
+      void _legacyMsrp
+      return item
+    })
+    return NextResponse.json({ items, facets: deriveFacets(results) })
   } catch (error) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })

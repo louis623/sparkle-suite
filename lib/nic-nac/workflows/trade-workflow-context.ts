@@ -504,7 +504,7 @@ function inferWorkflowTypeFromTurn(
   }
   if (
     latestToolIntents.includes('catalog') &&
-    /\b(wrong|incorrect|bad|fix|correct|correction|issue|problem|duplicate|bad\s+photo|photo\s+is\s+wrong|collection\s+is\s+wrong|material\s+is\s+wrong|stone\s+is\s+wrong|msrp|variant)\b/i.test(
+    /\b(wrong|incorrect|bad|fix|correct|correction|issue|problem|duplicate|bad\s+photo|photo\s+is\s+wrong|collection\s+is\s+wrong|material\s+is\s+wrong|stone\s+is\s+wrong|variant)\b/i.test(
       text,
     )
   ) {
@@ -662,7 +662,6 @@ function inferCatalogIssueType(
 ): NonNullable<TradeWorkflowSessionState['knownFields']['catalogIssueType']> | undefined {
   if (/\b(photo|image|picture)\b/i.test(text)) return 'bad_photo'
   if (/\b(collection)\b/i.test(text)) return 'wrong_collection'
-  if (/\b(msrp|price)\b/i.test(text)) return 'wrong_msrp'
   if (/\b(material|plating)\b/i.test(text)) return 'wrong_material'
   if (/\b(stone|gem)\b/i.test(text)) return 'wrong_stone'
   if (/\b(name|called)\b/i.test(text)) return 'wrong_design_name'

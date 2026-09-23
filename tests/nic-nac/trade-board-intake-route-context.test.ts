@@ -709,7 +709,6 @@ describe('Dance Floor intake route context', () => {
       collectionYear: 2026,
       mainStone: 'Lab-Created Ruby',
       material: 'Rhodium Plating',
-      bpMsrp: 160,
       rarityClassification: 'standard',
     })
     expect(context.sessionAfter?.phase).toBe('ready_to_add')
@@ -725,7 +724,6 @@ describe('Dance Floor intake route context', () => {
         collection_year: 2026,
         main_stone: 'Lab-Created Ruby',
         material: 'Rhodium Plating',
-        bp_msrp: 160,
         rarity_classification: 'standard',
         current_phase: 'ready_to_add',
         missing_fields: [],
@@ -980,7 +978,6 @@ describe('Dance Floor intake route context', () => {
       collectionYear: 2026,
       mainStone: 'Lab-Created Ruby',
       material: 'Rhodium Plating',
-      bpMsrp: 160,
       rarityClassification: 'standard',
     })
     expect(context.sessionAfter?.photos).toEqual(

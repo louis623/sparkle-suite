@@ -102,6 +102,13 @@ function rpcError(err: PostgrestError | null): ServiceError | null {
       'This trade request changed while it was being retried. Please refresh and submit it again.',
     )
   }
+  if (msg.includes('TRADE_UPLOAD_')) {
+    return new ServiceError({
+      code: 'TRADE_UPLOAD_NOT_READY', message: msg,
+      userMessage: 'The photo is not attached yet. Try the upload again, or remove it and send a text-only request.',
+      statusCode: 409,
+    })
+  }
   if (msg.includes('INVALID_TRADE_REQUEST')) {
     return errors.INVALID_INPUT(
       'invalid trade request payload',
@@ -148,6 +155,9 @@ export async function submitTradeRequest(
       'Please refresh the trade request form and try again.',
     )
   }
+  if (input.uploadId && (!UUID_PATTERN.test(input.uploadId) || !submissionId)) {
+    throw errors.INVALID_INPUT('uploadId requires submissionId', 'The photo upload is not ready. Choose the photo again.')
+  }
   const offeredFamily = input.offeredFamily?.trim() || null
   if (offeredFamily && offeredFamily.length > TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH) {
     throw errors.INVALID_INPUT('offeredFamily too long', 'The collection family is too long.')
@@ -171,7 +181,7 @@ export async function submitTradeRequest(
   const submissionIdentity = submissionId ?? randomUUID()
   const token = receiptToken(submissionIdentity)
   const receiptHash = createHash('sha256').update(token).digest('hex')
-  const { data, error } = await supabase.rpc('rpc_submit_trade_request_v3', {
+  const { data, error } = await supabase.rpc('rpc_submit_trade_request_v4', {
     p_listing_id: input.listingId,
     p_customer_name: customerName,
     p_customer_description: customerDescription,
@@ -180,6 +190,7 @@ export async function submitTradeRequest(
     p_offered_family: offeredFamily,
     p_offered_type: input.offeredType ?? null,
     p_manual_review_requested: input.manualReviewRequested === true,
+    p_upload_id: input.uploadId ?? null,
   })
   const mapped = rpcError(error)
   if (mapped) throw mapped
@@ -281,7 +292,7 @@ const REQUEST_LISTING_SELECT = `
     manual_type_prefix, manual_collection_family, manual_collection_name,
     manual_size, manual_photo_url,
     design:jewelry_designs(
-      id, item_number, design_name, material, main_stone, bp_msrp,
+      id, item_number, design_name, material, main_stone,
       canonical_photo_url, type_prefix,
       collection:collections(name)
     )
@@ -328,7 +339,6 @@ type RawListing = {
           collection: { name: string } | { name: string }[] | null
           material: string | null
           main_stone: string | null
-          bp_msrp: number | null
           canonical_photo_url: string | null
           type_prefix: TradeRequestWithListing['listing']['design']['typePrefix']
         }
@@ -339,7 +349,6 @@ type RawListing = {
           collection: { name: string } | { name: string }[] | null
           material: string | null
           main_stone: string | null
-          bp_msrp: number | null
           canonical_photo_url: string | null
           type_prefix: TradeRequestWithListing['listing']['design']['typePrefix']
         }>
@@ -406,7 +415,7 @@ type RawListing = {
                 : null,
               material: design.material,
               main_stone: design.main_stone,
-              bp_msrp: design.bp_msrp,
+              bp_msrp: null,
               canonical_photo_url: design.canonical_photo_url,
               type_prefix: design.type_prefix,
             }
@@ -444,7 +453,6 @@ type RawListing = {
             collectionName: display.collectionName,
             material: display.material,
             mainStone: display.mainStone,
-            bpMsrp: display.bpMsrp,
             canonicalPhotoUrl: display.canonicalPhotoUrl,
             typePrefix: display.typePrefix,
           },
@@ -500,7 +508,7 @@ const REQUEST_NOTIFICATION_SELECT = `
     manual_type_prefix, manual_collection_family, manual_collection_name,
     manual_size, manual_photo_url,
     design:jewelry_designs(
-      item_number, design_name, bp_msrp, type_prefix,
+      item_number, design_name, type_prefix,
       collection:collections(name)
     )
   )
@@ -527,7 +535,6 @@ export async function getTradeRequestNotificationSummary(
     material?: string | null
     main_stone?: string | null
     canonical_photo_url?: string | null
-    bp_msrp: number | null
     type_prefix: TradeRequestNotificationSummary['listing']['typePrefix']
     collection: { name: string } | { name: string }[] | null
   }
@@ -590,7 +597,7 @@ export async function getTradeRequestNotificationSummary(
           collection: collection ? { id: '', name: collection.name } : null,
           material: design.material ?? null,
           main_stone: design.main_stone ?? null,
-          bp_msrp: design.bp_msrp,
+          bp_msrp: null,
           canonical_photo_url: design.canonical_photo_url ?? null,
           type_prefix: design.type_prefix,
         }
@@ -610,7 +617,6 @@ export async function getTradeRequestNotificationSummary(
       designName: display.designName,
       collectionName: display.collectionName,
       typePrefix: display.typePrefix,
-      bpMsrp: display.bpMsrp,
     },
   }
 }
@@ -816,7 +822,7 @@ const HISTORY_SELECT = `
     manual_type_prefix, manual_collection_family, manual_collection_name,
     manual_size, manual_photo_url,
     design:jewelry_designs(
-      item_number, design_name, bp_msrp, type_prefix,
+      item_number, design_name, type_prefix,
       collection:collections(name)
     )
   )
@@ -846,7 +852,6 @@ export async function getTradeHistory(
     material?: string | null
     main_stone?: string | null
     canonical_photo_url?: string | null
-    bp_msrp: number | null
     type_prefix: TradeHistoryItem['design']['typePrefix']
     collection: { name: string } | { name: string }[] | null
   }
@@ -914,7 +919,7 @@ export async function getTradeHistory(
             collection: collection ? { id: '', name: collection.name } : null,
             material: design.material ?? null,
             main_stone: design.main_stone ?? null,
-            bp_msrp: design.bp_msrp,
+            bp_msrp: null,
             canonical_photo_url: design.canonical_photo_url ?? null,
             type_prefix: design.type_prefix,
           }
@@ -940,7 +945,6 @@ export async function getTradeHistory(
       design: {
         itemNumber: display.itemNumber,
         designName: display.designName,
-        bpMsrp: display.bpMsrp,
         typePrefix: display.typePrefix,
         collectionName: display.collectionName,
       },
@@ -950,7 +954,6 @@ export async function getTradeHistory(
   // Summary stats — completed-only for averages.
   const completed = items.filter((i) => i.fulfillmentStatus === 'completed')
   const totalCompleted = completed.length
-  const totalMsrpTraded = completed.reduce((sum, i) => sum + Number(i.design.bpMsrp ?? 0), 0)
   const daysList = completed
     .map((i) => i.fulfillmentDays)
     .filter((d): d is number => typeof d === 'number')
@@ -970,7 +973,6 @@ export async function getTradeHistory(
     items,
     summary: {
       totalCompleted,
-      totalMsrpTraded,
       avgFulfillmentDays,
       repeatCustomers,
     },

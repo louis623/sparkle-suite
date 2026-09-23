@@ -9,7 +9,7 @@
 // directly — never elevate to admin for a write that should be RLS-gated.
 //
 // Editable surface (matches lib/services/types.ts:121-127): repNotes,
-// tradePreferences, listingPhotoUrl, useCanonicalPhoto. MSRP, design name,
+// tradePreferences, listingPhotoUrl, useCanonicalPhoto. Design name,
 // material, main stone, item number, and any other catalog/design metadata
 // are NOT editable here — they live on jewelry_designs which is shared
 // catalog data.
@@ -78,7 +78,7 @@ export function makeUpdateListingTool(ctx: {
     description:
       "Patch editable fields on one of the authenticated rep's existing listings. " +
       'Editable surface: repNotes, tradePreferences, listingPhotoUrl, useCanonicalPhoto. ' +
-      'MSRP, design name, material, and other catalog/design metadata are NOT editable — that data is shared across reps. ' +
+      'Design name, material, and other catalog/design metadata are NOT editable — that data is shared across reps. ' +
       'Identify the listing by listingId (use list_my_trade_board first if you need to look it up). ' +
       'Patch-style: only the fields you pass are changed. ' +
       'Setting useCanonicalPhoto:true reverts to the canonical design photo. ' +

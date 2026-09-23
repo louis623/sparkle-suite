@@ -196,7 +196,7 @@ describe('non-item-number trade listings service', () => {
       'manual-listing-1',
     ])
     expect(board.summary.totalPieces).toBe(2)
-    expect(board.summary.totalMsrp).toBe(42)
+    expect(board.summary).not.toHaveProperty('totalMsrp')
     expect(board.summary.typeBreakdown.RG).toBe(2)
   })
 })

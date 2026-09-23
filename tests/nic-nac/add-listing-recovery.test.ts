@@ -373,7 +373,6 @@ describe('add_listing — NEEDS_FULL_INFO recovery payload', () => {
       'listingPhotoIndex',
       'material',
       'mainStone',
-      'bpMsrp',
       'collectionYear',
       'searchTags',
       'specialFeatures',
@@ -1589,7 +1588,6 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
       collectionYear: 2026,
       mainStone: 'Aquamarine Cubic Zirconia',
       material: 'Rhodium Plating',
-      bpMsrp: 138,
       piecePhotoIndex: 1,
     })
 
@@ -1603,10 +1601,10 @@ describe('add_listing — vision-first photo extraction (Task 1.5B closure)', ()
       collectionYear: 2026,
       mainStone: 'Aquamarine Cubic Zirconia',
       material: 'Rhodium Plating',
-      bpMsrp: 138,
       piecePhotoUrl:
         'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/for-keeps.jpg',
     })
+    expect(createDesignMock.mock.calls[0][1]).not.toHaveProperty('bpMsrp')
     expect(result).toMatchObject({
       mode: 'single',
       itemNumber: 'ER13743',

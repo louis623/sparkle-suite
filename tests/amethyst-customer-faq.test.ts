@@ -29,7 +29,7 @@ describe('customer Dance Floor FAQ', () => {
     expect(copy).toContain('same jewelry type')
     expect(copy).toContain('cross months and years')
     expect(copy).toContain('OG dancers pair with OG dancers')
-    expect(copy).toContain('MSRP shown for a dancer is for reference only')
+    expect(copy).not.toMatch(/MSRP|price comparison/i)
     expect(copy).toContain('it is optional')
     expect(copy).toContain('crop out personal and order information')
     expect(copy).toContain('Your rep sees the request')

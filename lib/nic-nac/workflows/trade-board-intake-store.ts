@@ -17,7 +17,6 @@ export type TradeBoardIntakeSessionPatch = {
   collection_year?: number | null
   material?: string | null
   main_stone?: string | null
-  bp_msrp?: number | null
   ring_size?: string | null
   rep_notes?: string | null
   trade_preferences?: string | null
@@ -75,7 +74,6 @@ export function mapTradeBoardIntakeSessionRow(
         : {}),
       ...(row.material ? { material: row.material as string } : {}),
       ...(row.main_stone ? { mainStone: row.main_stone as string } : {}),
-      ...(row.bp_msrp ? { bpMsrp: Number(row.bp_msrp) } : {}),
       ...(row.ring_size ? { ringSize: row.ring_size as string } : {}),
       ...(row.rep_notes ? { repNotes: row.rep_notes as string } : {}),
       ...(row.trade_preferences

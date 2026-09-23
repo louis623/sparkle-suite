@@ -396,7 +396,7 @@ describe('storage service', () => {
       contentType: 'image/jpeg',
       sizeBytes: Buffer.from('screenshot').byteLength,
       uploadedAt: '2026-06-17T12:00:00.000Z',
-      expiresAt: '2026-06-19T12:00:00.000Z',
+      expiresAt: '2026-06-24T12:00:00.000Z',
     })
   })
 
@@ -414,7 +414,7 @@ describe('storage service', () => {
       uploadTradeRequestRevealScreenshot(
         'rep-7',
         'request-9',
-        Buffer.alloc(8 * 1024 * 1024 + 1),
+        Buffer.alloc(25 * 1024 * 1024 + 1),
         { contentType: 'image/png' },
       ),
     ).rejects.toThrow('TRADE_REQUEST_SCREENSHOT_TOO_LARGE')

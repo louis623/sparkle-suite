@@ -5,6 +5,7 @@ import {
   getExpiredTradeRequestRevealScreenshotPaths,
 } from '@/lib/services/trade-requests'
 import { removeTradeRequestRevealScreenshots } from '@/lib/services/storage'
+import { cleanupTradeUploadTickets } from '@/lib/services/trade-request-uploads'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
@@ -47,6 +48,7 @@ export async function GET(request: Request) {
   }
 
   const admin = createAdminClient()
+  const tradeUploadTicketCleanup = await cleanupTradeUploadTickets(admin)
   const result = await processReadyPhotoEnhancementQueue(admin, {
     limit: limit ?? 25,
   })
@@ -67,5 +69,6 @@ export async function GET(request: Request) {
     tradeRequestScreenshotCleanup: {
       removedCount: expiredScreenshotPaths.length,
     },
+    tradeUploadTicketCleanup,
   })
 }

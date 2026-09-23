@@ -23,7 +23,6 @@ export interface TradeListingDisplayFields {
   typeLabel: string
   material: string | null
   mainStone: string | null
-  bpMsrp: number | null
   canonicalPhotoUrl: string | null
   listingPhotoUrl: string | null
   photoUrl: string | null
@@ -88,7 +87,6 @@ export function getTradeListingDisplayFields(
       typeLabel: TRADE_LISTING_TYPE_LABELS[typePrefix],
       material: null,
       mainStone: null,
-      bpMsrp: null,
       canonicalPhotoUrl: null,
       listingPhotoUrl: photoUrl,
       photoUrl,
@@ -108,7 +106,6 @@ export function getTradeListingDisplayFields(
       typeLabel: TRADE_LISTING_TYPE_LABELS.RG,
       material: null,
       mainStone: null,
-      bpMsrp: null,
       canonicalPhotoUrl: null,
       listingPhotoUrl: cleanText(listing.listing_photo_url),
       photoUrl: cleanText(listing.listing_photo_url),
@@ -137,7 +134,6 @@ export function getTradeListingDisplayFields(
     typeLabel: TRADE_LISTING_TYPE_LABELS[design.type_prefix],
     material: design.material,
     mainStone: design.main_stone,
-    bpMsrp: design.bp_msrp,
     canonicalPhotoUrl,
     listingPhotoUrl,
     photoUrl,

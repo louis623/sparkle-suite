@@ -321,7 +321,7 @@ describe('Nic-Nac stream output guard', () => {
         ],
       }),
     ).toBe(
-      'Your Dance Floor has 1 matching dancer with $54 total MSRP.\n' +
+      'Your Dance Floor has 1 matching dancer.\n' +
         '1. The Starlight Earrings (ER12345) — available, quantity 2.',
     )
 
@@ -388,7 +388,7 @@ describe('Nic-Nac stream output guard', () => {
       }),
     ).toBe(
       'I found 1 matching catalog record.\n' +
-        '1. The Starlight Earrings (ER12345) — MSRP $54; not currently on your Dance Floor.',
+        '1. The Starlight Earrings (ER12345); not currently on your Dance Floor.',
     )
 
     expect(

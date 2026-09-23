@@ -80,7 +80,6 @@ const newDesignShape = {
   piecePhotoIndex: z.number().int().min(1).max(10).optional(),
   material: z.string().optional(),
   mainStone: z.string().optional(),
-  bpMsrp: z.number().optional(),
   collectionName: z.string().optional(),
   collectionYear: z.number().int().min(2020).max(2040).optional(),
   searchTags: z.array(z.string()).max(8).optional(),
@@ -329,7 +328,6 @@ function addAttemptInputSummary(
     piecePhotoIndex: input.piecePhotoIndex ?? null,
     selectedPhotoId: input.selectedPhotoId ?? null,
     workflowJewelrySource: hashOptionalSource(workflowJewelryUrl),
-    bpMsrp: input.bpMsrp ?? null,
     searchTags: input.searchTags ?? [],
     specialFeatures: input.specialFeatures?.trim() ?? null,
     lengthInfo: input.lengthInfo?.trim() ?? null,
@@ -1595,7 +1593,6 @@ async function runSingle(
         searchTags: input.searchTags,
         material: input.material,
         mainStone: input.mainStone,
-        bpMsrp: input.bpMsrp,
         specialFeatures: input.specialFeatures,
         lengthInfo: input.lengthInfo,
         createdByRepId: ctx.repId,
@@ -1962,7 +1959,6 @@ async function runSingle(
             'listingPhotoIndex',
             'material',
             'mainStone',
-            'bpMsrp',
             'collectionYear',
             'searchTags',
             'specialFeatures',
@@ -2158,7 +2154,6 @@ async function runBatch(
           piecePhotoIndex: recoveryItem.piecePhotoIndex,
           material: recoveryItem.material,
           mainStone: recoveryItem.mainStone,
-          bpMsrp: recoveryItem.bpMsrp,
           collectionName: recoveryItem.collectionName,
           specialFeatures: recoveryItem.specialFeatures,
           lengthInfo: recoveryItem.lengthInfo,
@@ -2319,7 +2314,7 @@ export function makeAddListingTool(ctx: {
       "For rings (RG item numbers), capture ringSize before saving. Ring size is usually printed on the box instead of the label; if you cannot read it from a box/details photo, ask the rep for the ring size. " +
       "If the resolved item exists in the jewelry database, pass mode:'single' and itemNumber for one piece, or mode:'batch' and items[] for several pieces at once. " +
       "Every dancer requires the rep's explicit answer to: 'Is this piece a diamond or unicorn?' Pass rarityClassification:'standard' for No, 'diamond' for Diamond, or 'unicorn' for Unicorn. Never infer rarity from a name, description, stone, tag, price, or the word diamond. " +
-      "Order does not matter; use photos and facts in whatever order the rep provides them. Only block on unreadable item details or a genuinely unusable jewelry image. Accept clear rep-provided collection, name, stone, material, MSRP, and ring size instead of requiring proof photos. " +
+      "Order does not matter; use photos and facts in whatever order the rep provides them. Only block on unreadable item details or a genuinely unusable jewelry image. Accept clear rep-provided collection, name, stone, material, and ring size instead of requiring proof photos. " +
       "Label, box, and back-of-card photos can provide details; the saved listing/canonical image must show the jewelry clearly. Boxed display photos for earrings, rings, necklaces, and similar pieces count as jewelry-front photos when the jewelry is centered, close, and clear, even with Bomb Party packaging visible. Do not treat label/details photos as bad jewelry photos; a label/details photo is only a label/details photo, and visible jewelry in that label/details photo does not satisfy the jewelry photo requirement. If the only uploaded image is a label/details or back-of-card photo, ask for the first customer-facing jewelry photo. Do not ask for unboxed, no-packaging, or plain-background retakes. Do not ask for retakes without the box/card or on a plain surface. Select the app-owned workflow photo with selectedPhotoId when available; otherwise use listingPhotoIndex or piecePhotoIndex. Never copy or reuse a raw photo URL from another piece. Ask for another photo only when you cannot tell which attached image is the jewelry-front photo. " +
       "If the item isn't in the Sparkle Suite jewelry database, the tool returns needsAction:'create_design'. Use vision to extract designName and readable metadata, and use clear rep-provided fields. Birthday collection names must include the year. For Birthday boxes like 'Birthday Collection March 2026', use collectionName:'March Birthday 2026' and collectionYear:2026 when clear. The handler uploads the photo from chat automatically. " +
       "If the item exists but has no collection assigned, the tool returns needsAction:'provide_collection' (NEEDS_COLLECTION). Ask the rep for the exact collection name, then retry with collectionName. Do not guess it from vision. " +

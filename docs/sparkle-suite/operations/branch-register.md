@@ -19,10 +19,18 @@
 
 The machine-readable source is `config/active-branches.json`. The local/build
 guard is `scripts/check-active-branch.mjs`. The primary workbench remains the
-only general-purpose Windows workspace. The isolated worktree below is
-allowlisted only for the approved Google Search verification release; its
-build and push commands must declare the same approved release branch and
-repository, and it must not become a source for unrelated work.
+general-purpose Windows workspace. The isolated Google verification worktree
+below is limited to its approved scope.
+
+## September 23 isolated trade-request checkout
+
+`C:\Users\louis\sparkle-suite-repo\.codex-worktrees\trade-request-completion`
+is a clean, task-scoped checkout of the active production branch at
+`b3afcf941a790a771767d89c421b7f38ed63bba0`. It exists to implement and
+verify the approved trade-request upload, Dance Floor readability, and MSRP
+retirement plan while preserving unrelated dirty work in the primary checkout.
+It uses the same GitHub repository and active branch; it does not authorize a
+new branch, extension work, or a second production lane.
 
 ## September 20 isolated Google verification worktree
 

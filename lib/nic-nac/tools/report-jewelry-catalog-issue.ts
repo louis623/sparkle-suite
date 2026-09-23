@@ -16,7 +16,6 @@ const inputSchema = z.object({
     'wrong_collection',
     'wrong_collection_year',
     'wrong_design_name',
-    'wrong_msrp',
     'wrong_jewelry_type',
     'wrong_material',
     'wrong_stone',
@@ -33,7 +32,6 @@ const inputSchema = z.object({
       collectionYear: z.number().int().min(2020).max(2040).nullable().optional(),
       material: z.string().nullable().optional(),
       mainStone: z.string().nullable().optional(),
-      bpMsrp: z.number().nullable().optional(),
       specialFeatures: z.string().nullable().optional(),
       lengthInfo: z.string().nullable().optional(),
       searchTags: z.array(z.string()).max(8).optional(),
@@ -71,7 +69,7 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
   build: (ctx: ToolContext) =>
     tool({
       description:
-        'Report and, when the rep provides corrected information, fix inaccurate shared jewelry catalog data. Use for wrong collection, bad photo, wrong MSRP, wrong name, wrong stone/material, duplicates, or other catalog quality issues. Canonical catalog photo replacement must use an approved jewelry-front image; never replace the canonical catalog photo with a label/details or back-of-card photo. Requires explicit user approval because shared catalog corrections affect every rep.',
+        'Report and, when the rep provides corrected information, fix inaccurate shared jewelry catalog data. Use for wrong collection, bad photo, wrong name, wrong stone/material, duplicates, or other catalog quality issues. Canonical catalog photo replacement must use an approved jewelry-front image; never replace the canonical catalog photo with a label/details or back-of-card photo. Requires explicit user approval because shared catalog corrections affect every rep.',
       inputSchema,
       needsApproval: true,
       execute: async (input) => {

@@ -179,15 +179,14 @@ describe('get_trade_requests — flattened structured output', () => {
       itemNumber: 'RG31452',
       designName: 'The Celeste Ring',
       collectionName: 'Birthday',
-      msrp: 128,
       type: 'RG',
     })
+    expect(listing.design).not.toHaveProperty('msrp')
     expect(requests[0].reviewContext).toMatchObject({
       sameCollection: 'Birthday',
       sameJewelryType: 'RG',
-      listingMsrp: 128,
-      msrpIsReferenceOnly: true,
     })
+    expect(requests[0].reviewContext).not.toHaveProperty('listingMsrp')
   })
 
   it('falls back to listingPhotoUrl when uses_canonical_photo is false', async () => {
@@ -644,15 +643,15 @@ describe('get_trade_history — read-only flatten', () => {
       fulfillmentStatus: 'completed',
       fulfillmentDays: 2,
     })
-    // Design object flattened with msrp/type rename to match the model-friendly
+    // Design object flattened with a type rename to match the model-friendly
     // shape the rest of the tools surface.
     expect(items[0].design).toMatchObject({
       itemNumber: 'RG31452',
       designName: 'The Celeste Ring',
-      msrp: 128,
       type: 'RG',
       collectionName: 'Lustre',
     })
+    expect(items[0].design).not.toHaveProperty('msrp')
     expect(items[1]).toMatchObject({
       status: 'denied',
       fulfillmentStatus: null,
@@ -662,11 +661,11 @@ describe('get_trade_history — read-only flatten', () => {
 
     expect(result.summary).toMatchObject({
       totalCompleted: 1,
-      totalMsrpTraded: 128,
       avgFulfillmentDays: 2,
       repeatCustomers: [],
     })
     expect(result.summary).not.toHaveProperty('topDesign')
+    expect(result.summary).not.toHaveProperty('totalMsrpTraded')
   })
 
   it('forwards undefined limit when caller omits it', async () => {
@@ -704,7 +703,6 @@ describe('get_trade_history — read-only flatten', () => {
     expect(result.items).toEqual([])
     expect(result.summary).toMatchObject({
       totalCompleted: 0,
-      totalMsrpTraded: 0,
       avgFulfillmentDays: null,
       repeatCustomers: [],
     })

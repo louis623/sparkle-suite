@@ -141,7 +141,7 @@ const cleanTemplateData = {
     tradeRules: [
       'Item-for-item only.',
       'No pay-the-difference requests.',
-      'No trade credit for lower-priced dancers.',
+      'No trade credit is issued with a Dance Floor trade.',
       'Trades are reviewed by the rep.',
     ],
     faqAnswers: {
@@ -149,7 +149,6 @@ const cleanTemplateData = {
       cashDifference: 'Cash differences are not supported.',
       tradeCredit: 'Trade credit is not supported.',
       matchingRules: 'The rep reviews each request.',
-      msrp: 'MSRP is reference information only.',
       rarePieces: 'Rare pieces appear only if the rep lists them.',
       responseTime: 'The rep follows up after review.',
     },

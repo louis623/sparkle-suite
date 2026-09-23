@@ -332,7 +332,6 @@ function mergeTradeBoardResults(
     listings: [...current.listings, ...next.listings],
     summary: {
       totalPieces: current.summary.totalPieces + next.summary.totalPieces,
-      totalMsrp: current.summary.totalMsrp + next.summary.totalMsrp,
       pendingRequestCount:
         current.summary.pendingRequestCount + next.summary.pendingRequestCount,
       typeBreakdown,
@@ -1420,10 +1419,6 @@ const MESSAGE_TYPE_LABELS: Record<string, string> = {
 function formatCompactDateTime(value: string | null) {
   if (!value) return 'Unknown'
   return value.replace('T', ' ').slice(0, 16)
-}
-
-function formatTradeMoney(value: number | null | undefined) {
-  return typeof value === 'number' ? `$${value.toFixed(2)}` : 'MSRP unavailable'
 }
 
 export type BusinessCalculatorInput = {
@@ -3046,7 +3041,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           listings: [],
           summary: {
             totalPieces: 0,
-            totalMsrp: 0,
             pendingRequestCount: 0,
             typeBreakdown: {
               RG: 0,

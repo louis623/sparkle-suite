@@ -94,7 +94,7 @@ export function publicNicNacHandoffMessage() {
 }
 
 function publicNicNacTradeBoardCorrectionMessage() {
-  return "Customers do not add their own dancers. Dancers are the rep-listed, trade-eligible jewelry already on the Dance Floor. A customer can request to trade for an available dancer when they do not want the item just revealed. The rep has both pieces during the live show, sets the final rules, and approves or declines each request. Customers do not ship or photograph a separate trade item."
+  return "Customers do not add their own dancers. Dancers are the rep-listed, trade-eligible jewelry already on the Dance Floor. A customer can request to trade for an available dancer when they do not want the item just revealed. A reveal photo is optional and helps the rep verify the piece. The rep has both pieces during the live show, sets the final rules, and approves or declines each request. Customers do not ship a separate trade item."
 }
 
 function publicNicNacShippingCorrectionMessage() {
@@ -102,7 +102,7 @@ function publicNicNacShippingCorrectionMessage() {
 }
 
 function publicNicNacValueCorrectionMessage() {
-  return 'MSRP is reference only. Current Dance Floor rules are item-for-item only, same collection, and same jewelry type, with no pay-the-difference and no credit or payout. Sparkle Suite does not guarantee equal value; the rep makes the final approval decision.'
+  return 'Dance Floor does not collect or compare MSRP. Current rules are item-for-item only, same collection, and same jewelry type, with no added payment, credit, or payout. The rep makes the final approval decision.'
 }
 
 export function sanitizePublicNicNacAnswer(message: string) {

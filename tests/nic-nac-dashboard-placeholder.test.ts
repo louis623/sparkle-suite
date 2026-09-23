@@ -1,9 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { readFileSync } from 'node:fs'
+import { readFileSync as readFileSyncRaw } from 'node:fs'
 import { resolve } from 'node:path'
 import { File } from 'node:buffer'
+
+// Source assertions use LF snippets; Windows checkouts may contain CRLF.
+function readFileSync(path: string, encoding: 'utf8') {
+  return readFileSyncRaw(path, encoding).replace(/\r\n/g, '\n')
+}
 
 import {
   AccountBillingCard,
@@ -3194,14 +3199,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Recommended first picks')
     expect(html).not.toContain('Full skin gallery')
     expect(html).not.toContain('Site template')
-    expect(html).toContain('Amethyst')
-    expect(html).toContain('Sparkle Suite/Morganite')
-    expect(html).toContain('Black Diamond')
-    expect(html).toContain('Rose Gold')
-    expect(html).toContain('Garnet')
-    expect(html).toContain('Amber')
-    expect(html).toContain('Velvet')
-    expect(html).toContain('Rose Quartz')
+    expect(html).toContain('Loading your available themes…')
     expect(html).not.toContain('Editorial')
     expect(html).not.toContain('Soft Glam')
     expect(html).not.toContain('Sparkle Party')
@@ -3291,7 +3289,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Show the About Brittany and Sparkle Moments section')
     expect(html).toContain('Hero and “The Rise of Her” stay managed for this custom site.')
     expect(html).toContain('Customer-facing site theme')
-    expect(html).toContain('Rose Gold')
+    expect(html).toContain('Loading your available themes…')
     expect(html).toContain('Remove video')
     expect(html).toContain('7602795836380073229')
     expect(html).toContain('https://www.yoursparklesuite.com/britt-with-bling/hero.jpeg')

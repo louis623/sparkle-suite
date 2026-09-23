@@ -49,7 +49,6 @@ export function makeListMyTradeBoardTool(ctx: { repId: string; supabase: Supabas
         })
         return {
           count: board.summary.totalPieces,
-          totalMsrp: board.summary.totalMsrp,
           typeBreakdown: board.summary.typeBreakdown as Record<JewelryType, number>,
           pendingRequestCount: board.summary.pendingRequestCount,
           listings: board.listings.map((l) => {
@@ -62,7 +61,6 @@ export function makeListMyTradeBoardTool(ctx: { repId: string; supabase: Supabas
               type: display.typePrefix,
               material: display.material,
               mainStone: display.mainStone,
-              msrp: display.bpMsrp,
               collection: display.collectionName,
               ringSize: display.size,
               status: l.status,

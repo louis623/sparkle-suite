@@ -68,7 +68,7 @@ describe('submitTradeRequest', () => {
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-only-receipt-secret')
   })
 
-  it('calls v3 and returns a private receipt without checkbox acknowledgement', async () => {
+  it('calls v4 and returns a private receipt without checkbox acknowledgement', async () => {
     rpc.mockResolvedValueOnce({
       data: { request_id: 'request-1', listing_id: 'listing-1' },
       error: null,
@@ -86,7 +86,7 @@ describe('submitTradeRequest', () => {
       receiptUrl: expect.stringMatching(/^\/trade-request\/status\/[a-f0-9]{64}$/),
     })
 
-    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v3', expect.objectContaining({
+    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v4', expect.objectContaining({
       p_listing_id: 'listing-1',
       p_customer_name: 'Jamie',
       p_customer_description: 'Birthday ring, size 8',
@@ -119,12 +119,41 @@ describe('submitTradeRequest', () => {
       mutationReplayed: true,
     })
     expect(replay.receiptUrl).toBe(first.receiptUrl)
-    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v3', expect.objectContaining({
+    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v4', expect.objectContaining({
       p_listing_id: 'listing-1',
       p_customer_name: 'Jamie',
       p_customer_description: 'Birthday ring, size 8',
       p_submission_id: submissionId,
     }))
+  })
+
+  it('passes the confirmed image ticket through v4 on submit and replay', async () => {
+    rpc.mockResolvedValue({
+      data: { request_id: 'request-1', listing_id: 'listing-1', mutation_replayed: true },
+      error: null,
+    })
+    const input = {
+      listingId: 'listing-1', customerName: 'Jamie', customerDescription: 'OG earrings',
+      submissionId: '00000000-0000-4000-8000-000000000001',
+      uploadId: '00000000-0000-4000-8000-000000000002',
+    }
+    const first = await submitTradeRequest(supabase as never, input)
+    const replay = await submitTradeRequest(supabase as never, input)
+    expect(replay.receiptUrl).toBe(first.receiptUrl)
+    expect(rpc).toHaveBeenCalledTimes(2)
+    expect(rpc).toHaveBeenCalledWith('rpc_submit_trade_request_v4', expect.objectContaining({
+      p_submission_id: input.submissionId,
+      p_upload_id: input.uploadId,
+    }))
+  })
+
+  it('maps a non-ready image ticket to a customer-actionable failure', async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: { message: 'TRADE_UPLOAD_NOT_READY', code: 'P0001' } })
+    await expect(submitTradeRequest(supabase as never, {
+      listingId: 'listing-1', customerName: 'Jamie', customerDescription: 'OG earrings',
+      submissionId: '00000000-0000-4000-8000-000000000001',
+      uploadId: '00000000-0000-4000-8000-000000000002',
+    })).rejects.toMatchObject({ code: 'TRADE_UPLOAD_NOT_READY', statusCode: 409 })
   })
 
   it('rejects oversized customer text and invalid submission identities before RPC', async () => {

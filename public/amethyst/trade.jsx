@@ -75,13 +75,34 @@ const BOOTSTRAP_LISTINGS = Array.isArray(window.AMETHYST_TRADE_BOARD_LISTINGS)
   ? window.AMETHYST_TRADE_BOARD_LISTINGS
   : [];
 const TRADE_REQUEST_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests");
+const TRADE_UPLOAD_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/uploads");
+const TRADE_UPLOAD_CONFIRM_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/uploads/confirm");
 const TRADE_SCREEN_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/screen");
 const TRADE_BOARD_ENDPOINT = withCurrentSearch("/api/amethyst/trade-board");
 const TRADE_BOARD_REFRESH_MS = 45_000;
 const BOARD_PAGE_SIZE = 24;
 const DEFAULT_TRADE_REQUEST_ERROR = "We couldn't submit that request. Please try again.";
-const TRADE_REQUEST_SCREENSHOT_MAX_BYTES = 8 * 1024 * 1024;
-const TRADE_REQUEST_SCREENSHOT_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+const TRADE_REQUEST_SCREENSHOT_MAX_BYTES = 25 * 1024 * 1024;
+const TRADE_REQUEST_SCREENSHOT_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "image/avif"]);
+const SCREENSHOT_EXTENSION_TYPES = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", heif: "image/heif", avif: "image/avif" };
+
+function screenshotContentType(file) {
+  if (!(file instanceof File)) return null;
+  const declared = file.type.toLowerCase() === "image/jpg" ? "image/jpeg" : file.type.toLowerCase();
+  if (TRADE_REQUEST_SCREENSHOT_TYPES.has(declared)) return declared;
+  if (declared && declared !== "application/octet-stream") return null;
+  return SCREENSHOT_EXTENSION_TYPES[file.name.split(".").pop()?.toLowerCase()] || null;
+}
+
+async function readTradeRequestJson(response, fallback) {
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(body?.error || fallback);
+    error.code = body?.code || null;
+    throw error;
+  }
+  return body;
+}
 
 function isExternalHref(href) {
   return /^https?:\/\//.test(href || "");
@@ -428,7 +449,6 @@ function buildSamples(count) {
     const type = TYPES[i % TYPES.length];
     const material = MATERIALS[i % MATERIALS.length];
     const stone = STONES[i % STONES.length];
-    const msrpBase = collection === "Birthday" ? 42 : collection === "OG" ? 39 : 48;
     out.push({
       id: i + 1,
       name: PIECE_NAMES[i % PIECE_NAMES.length] + (i >= PIECE_NAMES.length ? ` ${Math.floor(i / PIECE_NAMES.length) + 1}` : ""),
@@ -437,7 +457,6 @@ function buildSamples(count) {
       type,
       material,
       stone,
-      msrp: msrpBase + ((i * 7) % 18),
       size: type === "Ring" ? ["6", "7", "8", "9"][i % 4] : null,
       note: tier === "diamond"
         ? "Rare Diamond dancer - still item-for-item only."
@@ -461,7 +480,6 @@ function normalizeBootstrapPiece(piece, index) {
     ? piece.type.trim()
     : "Jewelry";
   const safeTier = piece.tier === "diamond" || piece.tier === "unicorn" ? piece.tier : "everyday";
-  const safeMsrp = typeof piece.msrp === "number" ? piece.msrp : null;
   const quantity = Number(piece.quantityAvailable ?? 1);
 
   return {
@@ -477,7 +495,6 @@ function normalizeBootstrapPiece(piece, index) {
     stone: typeof piece.stone === "string" && piece.stone.trim()
       ? piece.stone.trim()
       : "Stone pending",
-    msrp: safeMsrp,
     quantityAvailable: Number.isFinite(quantity) ? Math.max(0, quantity) : 0,
     size: typeof piece.size === "string" && piece.size.trim() ? piece.size.trim() : null,
     note: typeof piece.note === "string" && piece.note.trim()
@@ -597,7 +614,6 @@ function compareTradeBoardText(left, right) {
 function sortTradeBoardListings(listings, sortMode) {
   const sorted = [...listings];
   const rarityRank = { unicorn: 0, diamond: 1, everyday: 2 };
-  const msrpValue = (piece) => (typeof piece.msrp === "number" ? piece.msrp : Number.MAX_SAFE_INTEGER);
 
   if (sortMode === "collection") {
     return sorted.sort((left, right) =>
@@ -622,14 +638,6 @@ function sortTradeBoardListings(listings, sortMode) {
     );
   }
 
-  if (sortMode === "msrp-low") {
-    return sorted.sort((left, right) => msrpValue(left) - msrpValue(right) || compareTradeBoardText(left.name, right.name));
-  }
-
-  if (sortMode === "msrp-high") {
-    return sorted.sort((left, right) => msrpValue(right) - msrpValue(left) || compareTradeBoardText(left.name, right.name));
-  }
-
   if (sortMode === "name") {
     return sorted.sort((left, right) => compareTradeBoardText(left.name, right.name));
   }
@@ -638,49 +646,63 @@ function sortTradeBoardListings(listings, sortMode) {
 }
 
 async function submitTradeRequestRequest(payload) {
-  const hasScreenshot = payload.revealScreenshot instanceof File;
-  const requestOptions = hasScreenshot
-    ? (() => {
-        const form = new FormData();
-        form.append("listingId", payload.listingId);
-        form.append("customerName", payload.customerName);
-        form.append("customerDescription", payload.customerDescription);
-        form.append("submissionId", payload.submissionId);
-        form.append("offeredFamily", payload.offeredFamily || "");
-        form.append("offeredType", payload.offeredType || "");
-        form.append("manualReviewRequested", String(payload.manualReviewRequested));
-        form.append("revealScreenshot", payload.revealScreenshot);
-        return {
-          method: "POST",
-          body: form,
-        };
-      })()
-    : {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          listingId: payload.listingId,
-          customerName: payload.customerName,
-          customerDescription: payload.customerDescription,
-          submissionId: payload.submissionId,
-          offeredFamily: payload.offeredFamily,
-          offeredType: payload.offeredType,
-          manualReviewRequested: payload.manualReviewRequested,
-        }),
-      };
+  const response = await fetch(TRADE_REQUEST_ENDPOINT, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      listingId: payload.listingId,
+      customerName: payload.customerName,
+      customerDescription: payload.customerDescription,
+      submissionId: payload.submissionId,
+      offeredFamily: payload.offeredFamily,
+      offeredType: payload.offeredType,
+      manualReviewRequested: payload.manualReviewRequested,
+      uploadId: payload.uploadId || null,
+    }),
+  });
+  return readTradeRequestJson(response, DEFAULT_TRADE_REQUEST_ERROR);
+}
 
-  const response = await fetch(TRADE_REQUEST_ENDPOINT, requestOptions);
-
-  const body = await response.json().catch(() => null);
-  if (!response.ok) {
-    const error = new Error(body?.error || DEFAULT_TRADE_REQUEST_ERROR);
-    error.code = body?.code || null;
-    throw error;
+async function uploadTradeRequestScreenshot(file, contentType, listingId, submissionId, signal) {
+  const ticketResponse = await fetch(TRADE_UPLOAD_ENDPOINT, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ listingId, submissionId, contentType, byteSize: file.size }),
+    signal,
+  });
+  const ticket = await readTradeRequestJson(ticketResponse, "We couldn't prepare the image upload. Try again.");
+  if (typeof ticket?.uploadId !== "string" || typeof ticket?.uploadUrl !== "string") {
+    throw new Error("We couldn't prepare the image upload. Try again.");
   }
 
-  return body;
+  let uploadResponse;
+  try {
+    const uploadBody = new FormData();
+    uploadBody.append("cacheControl", "3600");
+    uploadBody.append("", file.slice(0, file.size, contentType), file.name);
+    uploadResponse = await fetch(ticket.uploadUrl, {
+      method: "PUT",
+      headers: { "x-upsert": "false" },
+      body: uploadBody,
+      signal,
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") throw error;
+    throw new Error("The image did not upload. Check your connection and try again.");
+  }
+  if (!uploadResponse.ok) {
+    throw new Error("The image did not upload. Check your connection and try again.");
+  }
+
+  const confirmResponse = await fetch(TRADE_UPLOAD_CONFIRM_ENDPOINT, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ uploadId: ticket.uploadId, listingId, submissionId }),
+    signal,
+  });
+  const confirmation = await readTradeRequestJson(confirmResponse, "We couldn't attach the image. Try again.");
+  if (confirmation?.ready !== true) throw new Error("We couldn't attach the image. Try again.");
+  return { uploadId: ticket.uploadId, expiresAt: confirmation.expiresAt || null };
 }
 
 async function screenTradeOfferRequest(payload, signal) {
@@ -1217,8 +1239,6 @@ function Filters({
             <option value="type">Jewelry type</option>
             <option value="rarity">Rare first</option>
             <option value="name">Dancer name</option>
-            <option value="msrp-low">MSRP low to high</option>
-            <option value="msrp-high">MSRP high to low</option>
           </select>
         </label>
       </div>
@@ -1376,7 +1396,7 @@ function Filters({
   );
 }
 
-function TradeCard({ piece, onTap, repName, tierVisible }) {
+function TradeCard({ piece, onTap, tierVisible }) {
   const showTier = piece.tier !== "everyday" || tierVisible === "all";
   const tierLabel = piece.tier === "unicorn" ? "Unicorn" : piece.tier === "diamond" ? "Diamond" : "Everyday";
 
@@ -1400,19 +1420,18 @@ function TradeCard({ piece, onTap, repName, tierVisible }) {
         <h3 className="tp-card-name slot" data-slot="design name">{piece.name}</h3>
         <div className="tp-card-meta">
           <span>{piece.type}{piece.size ? ` - Size ${piece.size}` : ""}</span>
-          <span className="tp-card-msrp">Bomb Party MSRP <strong>{piece.msrp === null ? "TBD" : `$${piece.msrp}`}</strong></span>
         </div>
         <div className="tp-card-quantity">{Math.max(0, Number(piece.quantityAvailable ?? 1))} available</div>
         <div className="tp-card-material">{piece.material} · {piece.stone}</div>
-        <div className="tp-card-rep slot" data-slot="brand separation">
-          Offered by <strong>{repName}</strong>, an Independent Bomb Party Representative.
-        </div>
+        <button type="button" className="tp-card-action" onClick={(event) => { event.stopPropagation(); onTap(piece); }}>
+          View dancer and request trade
+        </button>
       </div>
     </article>
   );
 }
 
-function ExpandedCard({ piece, onClose, onWantThis, repName }) {
+function ExpandedCard({ piece, onClose, onWantThis }) {
   if (!piece) return null;
 
   const tierLabel = piece.tier === "unicorn"
@@ -1460,10 +1479,6 @@ function ExpandedCard({ piece, onClose, onWantThis, repName }) {
               <dd>{piece.stone}</dd>
             </div>
             <div>
-              <dt>Bomb Party MSRP</dt>
-              <dd>{piece.msrp === null ? "TBD" : `$${piece.msrp}`} (reference only)</dd>
-            </div>
-            <div>
               <dt>Available</dt>
               <dd>{Math.max(0, Number(piece.quantityAvailable ?? 1))}</dd>
             </div>
@@ -1472,9 +1487,7 @@ function ExpandedCard({ piece, onClose, onWantThis, repName }) {
             <div className="thumb">BOX</div>
             <div>{piece.note}</div>
           </div>
-          <div className="tp-card-expand-rep slot" data-slot="brand separation">
-            Offered by <strong>{repName}</strong>, an Independent Bomb Party Representative. No money difference and no credit are part of this Dance Floor trade.
-          </div>
+          <p className="tp-card-expand-rule">Trades are one dancer for one dancer, with no added payment or credit. Your rep makes the final decision.</p>
           <button className="tp-card-expand-cta" onClick={() => onWantThis(piece)}>
             Request this trade
             <span>?</span>
@@ -1492,6 +1505,13 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
   const [offeredType, setOfferedType] = useState("");
   const [screenshot, setScreenshot] = useState(null);
   const [screenshotError, setScreenshotError] = useState("");
+  const [uploadState, setUploadState] = useState("idle");
+  const [uploadId, setUploadId] = useState(null);
+  const [uploadReadyFor, setUploadReadyFor] = useState(null);
+  const [uploadAttempt, setUploadAttempt] = useState(0);
+  const [screenshotPreview, setScreenshotPreview] = useState(null);
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const screenshotInput = useRef(null);
   const [submissionId, setSubmissionId] = useState(() => crypto.randomUUID());
   const [screeningState, setScreeningState] = useState("idle");
   const [screening, setScreening] = useState(null);
@@ -1506,8 +1526,63 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
     setOfferedType("");
     setScreenshot(null);
     setScreenshotError("");
+    setUploadId(null);
+    setUploadReadyFor(null);
+    setUploadState("idle");
     setSubmissionId(crypto.randomUUID());
   }, [piece?.id, success, keepDraftOnAlternative]);
+
+  useEffect(() => {
+    if (!screenshot) {
+      setScreenshotPreview(null);
+      return;
+    }
+    const preview = URL.createObjectURL(screenshot);
+    setScreenshotPreview(preview);
+    setPreviewFailed(false);
+    return () => URL.revokeObjectURL(preview);
+  }, [screenshot]);
+
+  useEffect(() => {
+    if (!screenshot || !piece?.id || success) return;
+    const contentType = screenshotContentType(screenshot);
+    if (!contentType) return;
+    const controller = new AbortController();
+    let active = true;
+    setUploadId(null);
+    setUploadReadyFor(null);
+    setUploadState("selected");
+    setScreenshotError("");
+    const start = window.setTimeout(() => {
+      setUploadState("uploading");
+      uploadTradeRequestScreenshot(screenshot, contentType, piece.id, submissionId, controller.signal)
+        .then((result) => {
+          if (!active) return;
+          setUploadId(result.uploadId);
+          setUploadReadyFor({ file: screenshot, listingId: piece.id, submissionId });
+          setUploadState("attached");
+        })
+        .catch((uploadError) => {
+          if (!active || uploadError?.name === "AbortError") return;
+          setUploadState("error");
+          setScreenshotError(uploadError?.message || "The image did not attach. Try again or send without a photo.");
+        });
+    }, 120);
+    return () => {
+      active = false;
+      window.clearTimeout(start);
+      controller.abort();
+    };
+  }, [screenshot, piece?.id, submissionId, uploadAttempt, success]);
+
+  const removeScreenshot = () => {
+    setScreenshot(null);
+    setUploadId(null);
+    setUploadReadyFor(null);
+    setUploadState("idle");
+    setScreenshotError("");
+    if (screenshotInput.current) screenshotInput.current.value = "";
+  };
 
   useEffect(() => {
     if (!piece?.id || success || (!offeredFamily.trim() && !offeredType)) {
@@ -1551,7 +1626,8 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
 
   const trimmedName = name.trim();
   const trimmedOffering = offering.trim();
-  const canSubmit = Boolean(trimmedName && trimmedOffering && !pending && screeningState !== "checking");
+  const screenshotAttached = uploadState === "attached" && uploadId && uploadReadyFor?.file === screenshot && uploadReadyFor?.listingId === piece?.id && uploadReadyFor?.submissionId === submissionId;
+  const canSubmit = Boolean(trimmedName && trimmedOffering && !pending && screeningState !== "checking" && (!screenshot || screenshotAttached));
   const isMismatch = screeningState === "ready" && screening?.status === "mismatch";
   const needsExplicitReviewAction = isMismatch || screeningState === "error" || manualReviewRequired;
   const receiptUrl = typeof success?.receiptUrl === "string" && success.receiptUrl.startsWith("/trade-request/status/")
@@ -1567,7 +1643,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
       offeredType: offeredType || null,
       manualReviewRequested,
       submissionId,
-      revealScreenshot: screenshot,
+      uploadId: screenshotAttached ? uploadId : null,
     });
   };
 
@@ -1588,7 +1664,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
           {receiptUrl && (
             <div className="tp-sheet-receipt">
               <strong>Save your private status link</strong>
-              <p>Open this link later to see whether your rep has approved, denied, or cancelled the request. Approval does not mean the item has shipped.</p>
+              <p>Open this link later to see whether your rep has approved, denied, or cancelled the request. Your rep will explain the next step for your live-show reveal swap.</p>
               <a href={receiptUrl} rel="noreferrer">View request status</a>
               <button type="button" onClick={async () => {
                 try {
@@ -1641,8 +1717,16 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
             />
           </div>
           <div className="tp-sheet-match-target">
-            <strong>Requested dancer</strong>
-            <span>{piece.collection} · {piece.type}</span>
+            <div>
+              <strong>Requested dancer</strong>
+              <span>{piece.name}</span>
+              <small>{piece.collection} · {piece.type}{piece.size ? ` · Size ${piece.size}` : ""}</small>
+            </div>
+            <div>
+              <strong>Your reveal</strong>
+              <span>{offering.trim() || "Describe your reveal below"}</span>
+              <small>{offeredFamily.trim() || "Collection unsure"} · {{ RG: "Ring", NK: "Necklace", ER: "Earrings", BR: "Bracelet", ST: "Stack" }[offeredType] || "Jewelry type unsure"}</small>
+            </div>
           </div>
           <div className="tp-sheet-field">
             <label htmlFor="tp-offered-family">Collection family you revealed</label>
@@ -1712,23 +1796,30 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
             />
           </div>
           <div className="tp-sheet-field">
-            <label>Screenshot of your reveal (recommended, optional)</label>
+            <label htmlFor="tp-reveal-photo">Photo or screenshot of your reveal (optional)</label>
             <div className="tp-sheet-upload">
               <input
+                id="tp-reveal-photo"
+                ref={screenshotInput}
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/avif,.jpg,.jpeg,.png,.webp,.heic,.heif,.avif"
                 onChange={(event) => {
                   const file = event.target.files?.[0] || null;
                   setScreenshotError("");
                   setScreenshot(null);
                   if (!file) return;
-                  if (!TRADE_REQUEST_SCREENSHOT_TYPES.has(file.type)) {
-                    setScreenshotError("Screenshot not attached. Choose a JPG, PNG, or WebP image, or send without one.");
+                  if (!screenshotContentType(file)) {
+                    setScreenshotError("Photo not attached. Choose a JPG, PNG, WebP, HEIC, HEIF, or AVIF image, or send without one.");
                     event.target.value = "";
                     return;
                   }
                   if (file.size > TRADE_REQUEST_SCREENSHOT_MAX_BYTES) {
-                    setScreenshotError("Screenshot not attached. Choose an image under 8 MB, or send without one.");
+                    setScreenshotError("Photo not attached. Choose an image under 25 MB, or send without one.");
+                    event.target.value = "";
+                    return;
+                  }
+                  if (file.size === 0) {
+                    setScreenshotError("That image is empty. Choose another image or send without one.");
                     event.target.value = "";
                     return;
                   }
@@ -1737,12 +1828,38 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
                 disabled={pending}
               />
               <div>
-                <strong>{screenshot ? screenshot.name : "Add a screenshot"}</strong>
+                <strong>{screenshot ? screenshot.name : "Add a photo or screenshot"}</strong>
                 <span>
-                  A screenshot helps the rep confirm the dancer. Crop out personal and order information before uploading. It expires after 48 hours.
+                  A photo helps your rep identify what you revealed. Crop out personal and order information before uploading. Images expire after seven days.
                 </span>
               </div>
             </div>
+            {screenshot && (
+              <div className="tp-sheet-upload-review">
+                {screenshotPreview && !previewFailed ? (
+                  <img src={screenshotPreview} alt="Selected reveal image preview" onError={() => setPreviewFailed(true)} />
+                ) : (
+                  <div className="tp-sheet-upload-fallback" aria-hidden="true">Image</div>
+                )}
+                <div className="tp-sheet-upload-details">
+                  <strong>{screenshot.name}</strong>
+                  <span>{(screenshot.size / (1024 * 1024)).toFixed(1)} MB</span>
+                  <span role="status" aria-live="polite">
+                    {uploadState === "selected" && "Selected. Preparing a secure upload…"}
+                    {uploadState === "uploading" && "Uploading and checking image…"}
+                    {uploadState === "attached" && !screenshotAttached && "Preparing this image for the selected dancer…"}
+                    {screenshotAttached && "Attached and ready to send with your request."}
+                    {uploadState === "error" && "Image was not attached."}
+                  </span>
+                  <div className="tp-sheet-upload-actions">
+                    {uploadState === "error" && <button type="button" onClick={() => setUploadAttempt((attempt) => attempt + 1)} disabled={pending}>Try image again</button>}
+                    <button type="button" onClick={removeScreenshot} disabled={pending}>
+                      {uploadState === "error" ? "Send without a photo" : "Remove photo"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             {screenshotError && (
               <div className="tp-sheet-error" role="alert">
                 {screenshotError}
@@ -1756,11 +1873,11 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
           )}
           {needsExplicitReviewAction ? (
             <button type="button" className="tp-sheet-submit" disabled={!canSubmit} onClick={() => sendRequest(true)}>
-              {pending ? "Submitting..." : "Ask my rep to review anyway"}
+              {pending ? "Sending request..." : screenshot && !screenshotAttached ? "Attach photo to continue" : "Ask my rep to review anyway"}
             </button>
           ) : (
             <button type="submit" className="tp-sheet-submit" disabled={!canSubmit}>
-              {pending ? "Submitting..." : "Submit trade request"}
+              {pending ? "Sending request..." : screenshot && !screenshotAttached ? "Attach photo to continue" : "Send trade request"}
             </button>
           )}
         </form>
@@ -1847,7 +1964,7 @@ function Footer({ businessName }) {
             <a {...linkProps(FOOTER_LINKS.accessibility || "#faq")}>Accessibility</a>
           </span>
         </div>
-        <p>{CONTENT.legalDisclaimer || "Trades are private agreements between the customer and the rep. Bomb Party MSRP is shown for reference only and does not drive trade eligibility."}</p>
+        <p>{CONTENT.legalDisclaimer || "Trades are private agreements between the customer and the rep. Requests are one dancer for one dancer, with no added payment or credit."}</p>
       </div>
     </footer>
   );
@@ -2152,7 +2269,6 @@ function App() {
                             key={piece.id}
                             piece={piece}
                             onTap={(selectedPiece) => setExpanded(selectedPiece)}
-                            repName={repName}
                             tierVisible={t.tierVisibility}
                           />
                         ))}
@@ -2179,7 +2295,7 @@ function App() {
 
             {t.showLegal && (
               <div className="tp-legal slot" data-slot="brand separation footer">
-                {CONTENT.legalDisclaimer || "Trades are private agreements between the customer and the rep. Bomb Party MSRP is shown for reference only and does not drive trade eligibility."}
+                {CONTENT.legalDisclaimer || "Trades are private agreements between the customer and the rep. Requests are one dancer for one dancer, with no added payment or credit."}
               </div>
             )}
 
@@ -2200,7 +2316,6 @@ function App() {
           setSuccess(false);
           setRequestError("");
         }}
-        repName={repName}
       />
 
       <RequestSheet

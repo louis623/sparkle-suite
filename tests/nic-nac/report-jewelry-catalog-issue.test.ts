@@ -142,7 +142,7 @@ describe('report_jewelry_catalog_issue', () => {
     reportJewelryCatalogIssueMock.mockResolvedValueOnce({
       designId: 'design-1',
       itemNumber: 'ER13229',
-      changedFields: ['bpMsrp'],
+      changedFields: ['material'],
       issueLogged: true,
       corrected: true,
     })
@@ -150,9 +150,10 @@ describe('report_jewelry_catalog_issue', () => {
     const tool = makeTool()
     await tool.execute({
       itemNumber: 'ER13229',
-      issueType: 'wrong_msrp',
-      reason: 'The shared catalog MSRP is wrong.',
+      issueType: 'wrong_material',
+      reason: 'The shared catalog material is wrong.',
       correction: {
+        material: 'Silver',
         bpMsrp: 54,
         canonicalPhotoUrl:
           'https://static.example.invalid/sparkle-suite/current-catalog-photo.png',
@@ -162,9 +163,9 @@ describe('report_jewelry_catalog_issue', () => {
     expect(reportJewelryCatalogIssueMock).toHaveBeenCalledWith(
       { __isAdmin: true },
       expect.objectContaining({
-        issueType: 'wrong_msrp',
+        issueType: 'wrong_material',
         correction: {
-          bpMsrp: 54,
+          material: 'Silver',
         },
       }),
     )

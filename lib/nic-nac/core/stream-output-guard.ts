@@ -58,12 +58,6 @@ function compactLabel(value: unknown, fallback: string) {
   return compact ? compact.slice(0, 160) : fallback
 }
 
-function formatMoney(value: unknown) {
-  return typeof value === 'number' && Number.isFinite(value)
-    ? `$${value.toFixed(2).replace(/\.00$/, '')}`
-    : null
-}
-
 function summarizeRows(
   intro: string,
   rows: ToolOutputRecord[],
@@ -84,10 +78,7 @@ function summarizeTradeBoard(record: ToolOutputRecord) {
   const count = readNumber(record, 'count') ?? listings.length
   if (count === 0) return 'Your Dance Floor has no matching dancers right now.'
 
-  const totalMsrp = formatMoney(record.totalMsrp)
-  const intro = `Your Dance Floor has ${count} matching ${count === 1 ? 'dancer' : 'dancers'}${
-    totalMsrp ? ` with ${totalMsrp} total MSRP` : ''
-  }.`
+  const intro = `Your Dance Floor has ${count} matching ${count === 1 ? 'dancer' : 'dancers'}.`
   return summarizeRows(intro, listings, (listing, index) => {
     const name = compactLabel(listing.designName, 'Unnamed dancer')
     const item = compactLabel(listing.itemNumber, 'no item number')
@@ -169,11 +160,10 @@ function summarizeCatalogSearch(record: ToolOutputRecord) {
     (result, index) => {
       const name = compactLabel(result.designName, 'Unnamed design')
       const item = compactLabel(result.itemNumber, 'no item number')
-      const msrp = formatMoney(result.msrp)
       const boardStatus = result.isOnMyBoard === true
         ? 'already on your Dance Floor'
         : 'not currently on your Dance Floor'
-      return `${index + 1}. ${name} (${item})${msrp ? ` — MSRP ${msrp}` : ''}; ${boardStatus}.`
+      return `${index + 1}. ${name} (${item}); ${boardStatus}.`
     },
   )
 }

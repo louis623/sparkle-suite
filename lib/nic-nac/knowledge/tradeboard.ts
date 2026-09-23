@@ -15,7 +15,7 @@ export const NIC_NAC_TRADEBOARD_KNOWLEDGE = {
   eligibilityRules:
     'Current Dance Floor rules are item-for-item only, same collection, and same jewelry type. Birthday dancers can trade across months when they are still Birthday collection and the same jewelry type.',
   valueRules:
-    'MSRP is reference only and does not decide whether a trade is acceptable, equal, or fair. No pay-the-difference flow. No credit or payout for lower-priced pieces.',
+    'Dance Floor does not collect or compare MSRP. Trades are item-for-item, with no added payment, credit, or payout. The rep makes the final approval decision.',
   boundaries:
     'Sparkle Suite does not handle shipping, automate shipping, hold inventory, vendor fulfillment, decide item condition, verify authenticity, settle trade disputes, approve trades for the rep, or guarantee equal value.',
 } as const

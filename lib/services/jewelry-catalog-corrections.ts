@@ -56,7 +56,6 @@ function snapshotDesign(row: DesignRow) {
     collectionYear: collection?.collection_year ?? null,
     material: row.material,
     mainStone: row.main_stone,
-    bpMsrp: row.bp_msrp,
     canonicalPhotoUrl: row.canonical_photo_url,
     specialFeatures: row.special_features,
     lengthInfo: row.length_info,
@@ -276,11 +275,6 @@ export async function reportJewelryCatalogIssue(
   if (correction.mainStone !== undefined && correction.mainStone !== design.main_stone) {
     patch.main_stone = correction.mainStone
     changedFields.push('mainStone')
-  }
-
-  if (correction.bpMsrp !== undefined && correction.bpMsrp !== design.bp_msrp) {
-    patch.bp_msrp = correction.bpMsrp
-    changedFields.push('bpMsrp')
   }
 
   if (

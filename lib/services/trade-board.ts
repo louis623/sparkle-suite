@@ -177,8 +177,6 @@ function sortBoardListings(
     if (sortBy === 'created_at' || sortBy === 'listed_at') {
       comparison =
         getListingTimestamp(a, sortBy) - getListingTimestamp(b, sortBy)
-    } else if (sortBy === 'msrp') {
-      comparison = Number(aDisplay.bpMsrp ?? 0) - Number(bDisplay.bpMsrp ?? 0)
     } else if (sortBy === 'design_name') {
       comparison = compareNullableText(aDisplay.designName, bDisplay.designName)
     } else if (sortBy === 'collection') {
@@ -272,13 +270,6 @@ export async function getMyBoard(
     (sum, listing) => sum + Math.max(0, listing.quantity_available ?? 1),
     0,
   )
-  const totalMsrp = pagedListings.reduce(
-    (sum, l) =>
-      sum +
-      Number(getTradeListingDisplayFields(l).bpMsrp ?? 0) *
-        Math.max(0, l.quantity_available ?? 1),
-    0
-  )
   const typeBreakdown: Record<JewelryType, number> = { RG: 0, NK: 0, ER: 0, ST: 0, BR: 0 }
   for (const l of pagedListings) {
     const typePrefix = getTradeListingDisplayFields(l).typePrefix
@@ -304,7 +295,7 @@ export async function getMyBoard(
 
   return {
     listings: pagedListings,
-    summary: { totalPieces, totalMsrp, typeBreakdown, pendingRequestCount },
+    summary: { totalPieces, typeBreakdown, pendingRequestCount },
   }
 }
 

@@ -55,9 +55,6 @@ export function extractKnownFieldsFromText(
   )?.[1]
   if (material) known.material = normalizeCapitalizedPhrase(material)
 
-  const msrp = normalizedText.match(/\$\s*(\d+(?:\.\d{1,2})?)\s*(?:MSRP)?\b/i)
-  if (msrp?.[1]) known.bpMsrp = Number(msrp[1])
-
   const quantity = normalizedText.match(
     /\b(?:qty|quantity|count)\s*(?:is|:|-)?\s*(\d+)\b/i,
   )
@@ -138,9 +135,6 @@ export function knownFieldsFromCatalogResult(
   }
   if (typeof result.mainStone === 'string' && result.mainStone.trim()) {
     known.mainStone = normalizeCapitalizedPhrase(result.mainStone)
-  }
-  if (typeof result.bpMsrp === 'number') {
-    known.bpMsrp = result.bpMsrp
   }
   return known
 }

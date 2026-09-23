@@ -440,13 +440,13 @@ describe('trade listing recovery service', () => {
     const board = await getMyBoard(
       { from } as never,
       'rep-1',
-      { sortBy: 'msrp', sortOrder: 'desc', limit: 2, offset: 1 },
+      { sortBy: 'design_name', sortOrder: 'desc', limit: 2, offset: 1 },
       { now: fixedNow, recoveryWindowDays: 7 },
     )
 
     expect(board.listings.map((listing) => listing.id)).toEqual([
-      'listing-middle',
       'listing-low',
+      'listing-high',
     ])
     expect(board.summary.totalPieces).toBe(2)
   })

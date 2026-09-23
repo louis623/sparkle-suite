@@ -51,7 +51,6 @@ export interface AmethystTradeTemplateData {
     cashDifference: string
     tradeCredit: string
     matchingRules: string
-    msrp: string
     rarePieces: string
     responseTime: string
   }
@@ -128,24 +127,22 @@ export const defaultAmethystTradeTemplateData: AmethystTradeTemplateData = {
   footerTagline:
     'Live jewelry reveals every Tuesday at 8pm CST. Real pieces, real sparkle.',
   legalDisclaimer:
-    'Sparkle by Sasha is operated by an independent Bomb Party Representative. Bomb Party is a registered trademark of Bomb Party LLC. This dance floor is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by Bomb Party LLC. Trades are private agreements between the customer and the rep. MSRP is shown for reference only and is not the basis for trade matching.',
+    'Sparkle by Sasha is operated by an independent Bomb Party Representative. Bomb Party is a registered trademark of Bomb Party LLC. This dance floor is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by Bomb Party LLC. Trades are private agreements between the customer and the rep. Requests are one dancer for one dancer, with no added payment or credit.',
   tradeRules: [
     'Item-for-item only.',
     'No pay-the-difference requests.',
-    'No trade credit for lower-priced dancers.',
+    'No trade credit is issued with a Dance Floor trade.',
     'Trades must stay within the same collection and the same jewelry type.',
   ],
   faqAnswers: {
     howTradeWorks:
       "When you do not love the item number just revealed for you, you can request a dancer from the Dance Floor. The rep has both dancers during the live show and, if approved, swaps your just-revealed dancer for the requested dancer one-for-one.",
     cashDifference:
-      'No. Customers cannot add money to trade into a more expensive dancer from the Dance Floor.',
+      'No. Dance Floor trades are one dancer for one dancer, without added payment.',
     tradeCredit:
-      'No. If the requested dancer has a lower Bomb Party MSRP, there is still no credit or payout attached to the trade.',
+      'No. A Dance Floor trade does not include credit or a payout.',
     matchingRules:
       'Trades need to stay within the same collection and the same jewelry type. OG trades for OG, Birthday trades for Birthday, and earrings trade for earrings, necklaces for necklaces, pendants for pendants, bracelets for bracelets, and stacks for stacks.',
-    msrp:
-      'Bomb Party MSRP is shown as a reference detail only. It is not the basis for deciding whether a trade is allowed or even.',
     rarePieces:
       'Diamond and unicorn dancers are allowed on the Dance Floor, but they are expected to be rare edge cases rather than the default inventory mix.',
     responseTime:

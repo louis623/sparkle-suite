@@ -17,7 +17,6 @@ export interface AmethystTradeBoardListing {
   type: string
   material: string
   stone: string
-  msrp: number | null
   size: string | null
   note: string
   glyph: string
@@ -40,7 +39,6 @@ export const defaultAmethystTradeBoardListings: AmethystTradeBoardListing[] = [
     type: 'Ring',
     material: 'Sterling silver',
     stone: 'Amethyst crystal',
-    msrp: 88,
     size: '8',
     note: DEFAULT_TRADE_NOTE,
     glyph: 'B',
@@ -56,7 +54,6 @@ export const defaultAmethystTradeBoardListings: AmethystTradeBoardListing[] = [
     type: 'Necklace',
     material: 'Triple-plated gold',
     stone: 'Moonstone accent',
-    msrp: 42,
     size: null,
     note: DEFAULT_TRADE_NOTE,
     glyph: 'V',
@@ -72,7 +69,6 @@ export const defaultAmethystTradeBoardListings: AmethystTradeBoardListing[] = [
     type: 'Earrings',
     material: 'Sterling silver',
     stone: 'Opal shimmer',
-    msrp: 54,
     size: null,
     note: DEFAULT_TRADE_NOTE,
     glyph: 'P',
@@ -88,7 +84,6 @@ export const defaultAmethystTradeBoardListings: AmethystTradeBoardListing[] = [
     type: 'Stack',
     material: 'Mixed alloy plating',
     stone: 'Crystal mix',
-    msrp: 68,
     size: null,
     note: DEFAULT_TRADE_NOTE,
     glyph: 'A',
@@ -142,7 +137,6 @@ export function mapTradeListingToAmethystTradeBoardListing(
     type,
     material,
     stone,
-    msrp: display.bpMsrp,
     size: display.size,
     note,
     glyph: displayName.charAt(0).toUpperCase() || '?',

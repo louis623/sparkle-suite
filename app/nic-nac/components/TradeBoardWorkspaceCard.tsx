@@ -90,11 +90,6 @@ function getBoardInventoryPageSizeSnapshot() {
   return window.matchMedia(BOARD_INVENTORY_MOBILE_QUERY).matches ? 1 : 3
 }
 
-function formatTradeMoney(value: number | null | undefined) {
-  if (typeof value !== 'number' || Number.isNaN(value) || value <= 0) return 'MSRP n/a'
-  return `$${value.toFixed(2)}`
-}
-
 function getTradeListingPhotoUrl(listing: TradeListingWithDesign) {
   return getTradeListingDisplayFields(listing).photoUrl
 }
@@ -493,9 +488,6 @@ export function TradeBoardWorkspaceCard({
                             <div className={styles.tradePieceMetaLine}>
                               {display.typePrefix}
                               {display.collectionName ? ` - ${display.collectionName}` : ''}
-                            </div>
-                            <div className={styles.timelineItem}>
-                              {formatTradeMoney(display.bpMsrp)}
                             </div>
                             <div className={styles.tradePieceQuantity}>
                               {Math.max(0, listing.quantity_available ?? 1)} available

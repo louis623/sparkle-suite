@@ -19,11 +19,6 @@ export function buildTradeRequestNotificationText(
     ? `${summary.listing.collectionName} / ${summary.listing.typePrefix}`
     : summary.listing.typePrefix
 
-  const msrpLine =
-    summary.listing.bpMsrp != null
-      ? `MSRP is reference only here ($${summary.listing.bpMsrp}).`
-      : 'MSRP is reference only here.'
-
   return [
     `New trade request from ${summary.customerName} for ${requestedItem}.`,
     `They offered: ${summary.customerDescription}`,
@@ -31,7 +26,6 @@ export function buildTradeRequestNotificationText(
       ? 'They included a reveal screenshot in the Dance Floor request inbox.'
       : null,
     `Review it against the same-collection + same-type rule first: ${collectionLine}.`,
-    msrpLine,
     'Open your pending trade requests in Nic-Nac when you want to approve or deny it.',
   ].filter(Boolean).join('\n\n')
 }

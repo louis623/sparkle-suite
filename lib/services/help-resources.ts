@@ -320,7 +320,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     summary:
       'Review customer trade requests, reveal screenshots, approvals, and follow-up without losing the thread.',
     body:
-      'Sparkle Suite organizes trade interest, but the rep still controls trade judgment, approvals, shipping, and follow-through. Customers describe the dancer they just revealed and may attach a recommended reveal screenshot. The screenshot appears in the Dance Floor request inbox and on Nic-Nac trade request cards when available, then expires after 48 hours. Sparkle Suite does not guarantee equal value, settle disputes, or approve trades for the rep.',
+      'Sparkle Suite organizes trade interest, but the rep still controls trade judgment, approvals, shipping, and follow-through. Customers describe the dancer they just revealed and may attach a recommended reveal screenshot. The screenshot appears in the Dance Floor request inbox and on Nic-Nac trade request cards when available, then expires after seven days. Sparkle Suite does not guarantee equal value, settle disputes, or approve trades for the rep.',
     goal: 'Move trade requests through a clear decision and fulfillment rhythm.',
     useWhen: 'Use this when a customer requests a trade or a pending trade needs follow-up.',
     beforeYouStart: [

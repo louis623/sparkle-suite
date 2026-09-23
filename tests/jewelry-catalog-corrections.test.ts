@@ -244,7 +244,6 @@ describe('reportJewelryCatalogIssue', () => {
         designName: 'Corrected Ring',
         collectionName: 'March 2026',
         mainStone: 'Ruby',
-        bpMsrp: 49.95,
       },
     })
 
@@ -253,13 +252,11 @@ describe('reportJewelryCatalogIssue', () => {
       'designName',
       'collectionName',
       'mainStone',
-      'bpMsrp',
     ])
     expect(state.designUpdates[0]).toMatchObject({
       design_name: 'Corrected Ring',
       collection_id: 'collection-new',
       main_stone: 'Ruby',
-      bp_msrp: 49.95,
       last_corrected_by_rep_id: 'rep-1',
     })
     expect(state.catalogLogRows).toHaveLength(2)
@@ -275,7 +272,6 @@ describe('reportJewelryCatalogIssue', () => {
       designName: 'Corrected Ring',
       collectionId: 'collection-new',
       mainStone: 'Ruby',
-      bpMsrp: 49.95,
     })
   })
 

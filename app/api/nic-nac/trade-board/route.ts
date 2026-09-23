@@ -62,7 +62,6 @@ function readSortBy(value: string | null) {
   if (
     value === 'created_at' ||
     value === 'listed_at' ||
-    value === 'msrp' ||
     value === 'design_name' ||
     value === 'collection'
   ) {
