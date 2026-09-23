@@ -1,3 +1,8 @@
+## September 23, 2026 - Owner-direct private image access audit
+
+- Read-only production check confirmed the `workspace-owner-direct` Storage bucket is private, restricts uploads to JPEG/PNG/WebP at 8 MB, and has no broad or owner-direct public object policy; Storage object row-level security is enabled. The owner and rep signed-read endpoints both returned 401 without a session. Service code checks owner authorization or exact rep conversation membership, validates the conversation type, and binds the attachment ID to that conversation before issuing a short-lived URL.
+- Production currently has zero owner-direct attachment rows and zero objects in that bucket. This means no existing image can support a real signed-in read test. The protected synthetic reviewer/operator session remains the necessary next step for end-to-end owner image send and rep receipt; no customer content or account was accessed.
+
 ## September 23, 2026 - Archived onboarding reply discoverability audit
 
 - Read-only production audit of the existing live Control Center Task List bug `b83da8cf-c235-4c62-bd6d-d37e84823a41` found five active onboarding participants, all with valid canonical conversation links and owner/guest memberships. One active thread was absent from the normal owner inbox solely because the owner's conversation participant row was archived on September 19; a new onboarding-guest message arrived September 21. It remains available in the exact Archived inbox RPC with one unread message and `Needs reply`. No message was lost and no customer row or archive state was changed.
