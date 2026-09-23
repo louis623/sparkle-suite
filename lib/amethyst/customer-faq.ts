@@ -44,7 +44,7 @@ const FONTS: Record<string, string> = {
   inter: '"Inter", Arial, sans-serif',
 }
 
-const DARK_TONES = new Set(['blackDiamond', 'moonstone', 'gnomeGarden', 'neonButterfly'])
+const DARK_TONES = new Set(['blackDiamond', 'moonstone', 'gnomeGarden', 'neonButterfly', 'halloweenPumpkinWitch'])
 
 export const DANCE_FLOOR_FAQ = [
   {

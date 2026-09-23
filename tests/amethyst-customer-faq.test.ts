@@ -66,6 +66,24 @@ describe('customer Dance Floor FAQ', () => {
     expect(html).not.toContain('href="/bri/faq"')
   })
 
+  it('uses readable helper text on the dark Halloween skin', async () => {
+    loadTemplateData.mockResolvedValueOnce({
+      appearancePreset: 'halloween_pumpkin_witch',
+      homepage: {
+        businessName: 'Britt with Bling',
+        footerLinks: { home: '/', joinTeam: '/join' },
+      },
+    })
+    const response = await renderCustomerFaq(
+      new Request('https://brittwithbling.com/faq'),
+      { repId: 'rep-1', customDomain: true },
+    )
+    const html = await response.text()
+    expect(html).toContain('bg-halloween-pumpkin-witch')
+    expect(html).toContain('faq-dark')
+    expect(html).not.toContain('faq-light')
+  })
+
   it('does not show a generic rep identity if targeted content cannot load', async () => {
     loadTemplateData.mockResolvedValueOnce({
       appearancePreset: 'sparkle_suite_morganite',
