@@ -146,14 +146,22 @@ export function TradeRequestAlertCenter({
             <button type="button" onClick={() => moveRequest(1)} disabled={requests.length < 2} aria-label="Next trade request">›</button>
           </div>
         </div>
-        <p><strong>{active.customerName}</strong> wants {active.listing.design.designName}{active.listing.design.itemNumber ? ` (${active.listing.design.itemNumber})` : ''}.</p>
-        <p><strong>Requested:</strong> {active.listing.design.collectionName ?? 'Collection to verify'} · {active.listing.design.typePrefix}</p>
-        <p><strong>Offered:</strong> {active.customerDescription}</p>
-        <p><strong>Customer-reported details:</strong> {active.offeredFamily ?? 'Collection to verify'} · {active.offeredType ?? 'Type to verify'}</p>
-        {exception ? <p>{active.screening?.reason}</p> : null}
-        <small>Submitted {new Date(active.createdAt).toLocaleString()}</small>
-        {active.revealScreenshot ? <TradeScreenshotLink requestId={active.id} customerName={active.customerName}>View screenshot</TradeScreenshotLink> : null}
-        <div className={styles.actions} style={{ flexWrap: 'wrap' }}><button type="button" onClick={() => onReview(active.id, 'approve')}>Approve</button><button type="button" onClick={() => onReview(active.id, 'reject')}>Deny</button></div>
+        <div className={styles.detailGrid}>
+          <div className={styles.detailColumn}>
+            <p><strong>{active.customerName}</strong> wants {active.listing.design.designName}{active.listing.design.itemNumber ? ` (${active.listing.design.itemNumber})` : ''}.</p>
+            <p><strong>Requested:</strong> {active.listing.design.collectionName ?? 'Collection to verify'} · {active.listing.design.typePrefix}</p>
+          </div>
+          <div className={styles.detailColumn}>
+            <p><strong>Offered:</strong> {active.customerDescription}</p>
+            <p><strong>Customer-reported details:</strong> {active.offeredFamily ?? 'Collection to verify'} · {active.offeredType ?? 'Type to verify'}</p>
+            {exception ? <p>{active.screening?.reason}</p> : null}
+          </div>
+          <div className={`${styles.detailColumn} ${styles.evidenceColumn}`}>
+            <small>Submitted {new Date(active.createdAt).toLocaleString()}</small>
+            {active.revealScreenshot ? <TradeScreenshotLink requestId={active.id} customerName={active.customerName}>View screenshot</TradeScreenshotLink> : null}
+            <div className={styles.actions}><button type="button" onClick={() => onReview(active.id, 'approve')}>Approve</button><button type="button" onClick={() => onReview(active.id, 'reject')}>Deny</button></div>
+          </div>
+        </div>
       </div> : null}
     </div>
   )
