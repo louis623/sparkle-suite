@@ -1,3 +1,9 @@
+## September 23, 2026 - Trade upload, readability, and MSRP retirement live
+
+- Product commit `1e4b8cee262707f5767c924280493efc0e8cf0d1` is Ready production deployment `dpl_29qoZBeZ5WdfPMbH6LL9sKXW5YgK` on both Suite domains. The prior `dpl_AW1GVeN697R8FS4VCWs83kBRrJQt` is preserved. The three trade-upload/atomic-request migrations are applied; production migration dry run is up to date.
+- Optional direct private phone-image uploads accept JPEG/PNG/WebP/HEIC/HEIF/AVIF through 25 MiB, with preview and actionable state, and seven-day normalized rep images. The Halloween and shared Dance Floor text is clearer; per-card rep disclosure and active MSRP display/intake are gone. Historical MSRP data remains readable.
+- Synthetic live JPG and HEIC request/receipt/image-authorization/cleanup paths passed. The Dudes Fizzfest Halloween public form and FAQ were checked in the in-app browser. Authenticated rep alert/audio/decision visual acceptance remains open in the live Task List. See [trade closeout](2026-09-23-trade-upload-closeout.md).
+
 ## September 23, 2026 - Trade screenshot reminder contrast and hero placement live
 
 - Product commit `a36368765e9443e0be1767b903f304a775864ac4` is READY production deployment `dpl_AW1GVeN697R8FS4VCWs83kBRrJQt` on the approved `codex/nic-nac-trade-hardening` branch. Both Suite domains and all 11 checked rep-domain aliases point to that exact deployment. The prior deployment `dpl_9mj4urirD7yqakzSP1eEwr3CKA2v` remains preserved.

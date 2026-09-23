@@ -1,3 +1,10 @@
+## 2026-09-23 - Trade images, MSRP, and Dance Floor presentation
+
+- Customer reveal images are optional. Accept JPEG, PNG, WebP, HEIC, HEIF, and AVIF through 25 MiB by direct private upload; show preview/attachment/failure state, allow text-only submission, and expire normalized rep images after seven days. Preserve the one-item, same-family, same-type rule and rep final decision.
+- Remove MSRP from active customer and rep cards, Nic-Nac intake/output, sorting, and rule logic. Keep historical database values and Finder compatibility; do not drop the column as part of this release.
+- Improve small-text contrast through shared skin tokens and Halloween corrections. Remove the repeated independent-rep disclosure from dancer cards, while retaining the site footer disclosure.
+- Use synthetic reviewer data and the exact live `www` domain for smoke. Keep authenticated rep alert/audio/decision acceptance open until visually exercised; request ingestion and rep-only image authorization do not prove that UI path.
+
 ## 2026-09-23 - Shared Dance Floor screenshot-tip presentation
 
 - Treat the screenshot reminder as a final, optional note inside the homepage hero, after all hero actions in every Amethyst homepage variant. Keep the same customer guidance and do not change request or screenshot requirements.

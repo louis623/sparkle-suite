@@ -1,3 +1,8 @@
+## September 23, 2026 - Trade rep acceptance after upload release
+
+- [x] Customer upload, Halloween/form readability, per-card disclosure cleanup, and active MSRP retirement shipped as `1e4b8cee` / Ready `dpl_29qoZBeZ5WdfPMbH6LL9sKXW5YgK`; synthetic live JPG and HEIC request/receipt/cleanup checks passed. See [trade closeout](2026-09-23-trade-upload-closeout.md).
+- [ ] Complete authenticated synthetic rep visual alert, opt-in audio, approval/denial, and changed customer receipt checks. The authoritative live Task List items are `4231943e-9d9d-4077-8838-ac7961178f27` and `1b339a70-cd4e-44ad-a2c5-ea282bdf48c9`; both remain in progress. Do not substitute this vault checklist for the Task List.
+
 ## September 23, 2026 - Louis's release smoke is tracked in the live Task List
 
 - [ ] Authoritative open Control Center Task List item `2baa9931-7787-4594-a838-c2b38d1cd662` asks Louis to check the full header/Message Center release on live `www`, including the owner-session private-image send, isolated demo rep image read/reply, and owner readback. The vault is history, not a second task tracker. See [session closeout](2026-09-23-header-message-center-closeout.md).

@@ -1,3 +1,9 @@
+## September 23, 2026 - Trade upload and Dance Floor release
+
+- Used a clean allowlisted task checkout from GitHub branch `codex/nic-nac-trade-hardening`; did not alter the dirty primary checkout or Live Lineup extension. Implemented the optional direct private upload, readable all-skin Dance Floor/form, seven-day image expiry, active MSRP retirement, and removal of repetitive card disclosure while preserving the footer and historical MSRP compatibility.
+- The supplied 5.12 MiB JPG was valid; the originally failed screenshot had a different filename, so its exact bytes remain unknown. A pre-existing enum/text COALESCE error in the atomic request RPC was found during the first synthetic smoke and fixed in migration `20260923220000`. Local synthetic browser submission then passed with preview, `Attached and ready`, private pending receipt, and cleanup. Local HEIC and 24.77 MiB PNG paths passed.
+- Pushed clean product SHA `1e4b8cee262707f5767c924280493efc0e8cf0d1`, manually released Ready Vercel `dpl_29qoZBeZ5WdfPMbH6LL9sKXW5YgK`, confirmed both Suite aliases, and ran live synthetic JPG/HEIC full request and cleanup smokes. Live public Halloween Trade/form and FAQ were visually checked; roots, health, Trade, and FAQ returned 200. Existing trade Task List items were updated but remain open for authenticated rep alert/audio/decision UI acceptance. Details: [trade closeout](2026-09-23-trade-upload-closeout.md).
+
 ## September 23, 2026 - Customer trade-tip visual correction
 
 - Louis supplied a live Halloween screenshot showing the homepage trade screenshot tip before the hero and unreadable dark-on-dark text; he requested all-skin readability and placement after the hero buttons. Root cause: the note inherited `--fg` while using a dark skin elevation surface and was rendered between the header and hero.
