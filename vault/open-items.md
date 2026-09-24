@@ -865,7 +865,8 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
   `www.yoursparklesuite.com` path: reset/reseed a reviewer-only available
   dancer, submit a matching and flagged manual-review request with and without
   a screenshot, confirm Home/Dance Floor counts and the Nic-Nac alert (including
-  audio opt-in), verify rep-only approval and denial, and open the private
+  audio opt-in and the below-chat card on laptop/mobile), verify rep-only
+  approval and denial, and open the private
   customer receipt. Do not use Louis's personal account, a real rep/customer
   listing, or a provider charge. The reviewer token was unavailable in this
   isolated session, so this end-to-end was not claimed.

@@ -7918,3 +7918,21 @@ Lessons retained:
   manually deployed as READY `dpl_68Crgs3EqcNQk34Kq84BgrUaYHxc`.
   Suite www/apex domains resolve to it. Read-only inspection of the live
   Workspace after reload showed `Voice` selected; no request was changed.
+
+## September 23, 2026 - Nic-Nac trade alert location and chime
+
+- Louis replaced the prior top-bar alert design: a warm purple request card
+  lives directly below the Nic-Nac chat field at matching width and scrolls
+  within a bounded area when the chat needs room. On mobile it moves into the
+  open Nic-Nac chat overlay. The Home Trade Info count remains; Dance Floor
+  contains the sound control. Voice was retired and saved voice preference
+  becomes chime; the chime is now three stronger notes.
+- Application commit `3c0f0b902665dbcd464a4e9c99dcc3f53ea817ff` passed nine
+  focused UI tests, TypeScript, changed-file lint, and guarded production build.
+  It was pushed and manually deployed as READY
+  `dpl_GXNMdttNo2zsXHHXGTQ8z4xn88XL`; www and apex Suite aliases resolve
+  to it. Read-only live checks on the exact Workspace page found no top alert
+  bar, the unchanged Home Trade Info count, and only Muted/Chime plus Preview
+  chime in Dance Floor on laptop and narrow viewport. The account had zero
+  pending requests, so populated alert appearance and audible level remain
+  unverified live. No request was submitted, approved, or denied.

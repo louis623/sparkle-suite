@@ -3084,3 +3084,11 @@ only hid an alert in one browser while the request remained pending. Approve
 and Deny retain the rep confirmation step. Optional speech favors a British
 English male-sounding browser voice where available, with device-dependent
 fallback rather than a guaranteed voice identity.
+
+Decision (supersedes the speech/location choice above, September 23, 2026):
+Trade request alerts no longer occupy a page-wide bar above Workspace. The
+request card sits below Nic-Nac's chat entry at the same width; a mobile open
+chat hosts it in the overlay. Trade Info keeps the pending count. Dance Floor
+holds an opt-in sound selector with Muted and a stronger chime only. Previously
+saved voice preference maps to chime. This reflects Louis's hands-on preference
+for a cleaner Workspace and a readily audible notification.

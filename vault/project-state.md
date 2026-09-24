@@ -4116,3 +4116,22 @@ Verification passed:
   as READY deployment `dpl_68Crgs3EqcNQk34Kq84BgrUaYHxc` on both Suite
   domains. The trade alert sound menu labels the existing British-preferring
   `voice` setting simply `Voice`. Live reload preserved the selected setting.
+
+## September 23, 2026 - Trade alert moved into Nic-Nac
+
+- Application commit `3c0f0b902665dbcd464a4e9c99dcc3f53ea817ff` is live as
+  READY deployment `dpl_GXNMdttNo2zsXHHXGTQ8z4xn88XL` on both Suite www/apex
+  domains. The old full-width top alert bar and voice option are removed.
+- Pending request cards now use a warm purple Sparkle Suite surface below the
+  Nic-Nac chat entry at the same width, above the bottom navigation. On phones,
+  an open Nic-Nac chat shows the card in its chat overlay. The existing Trade
+  Info count remains in the Home rail. Sound settings are in Dance Floor's
+  Today's trade work panel with Muted, Chime, and Preview chime. Existing voice
+  preferences migrate to chime. The new three-note chime is stronger than the
+  prior single soft tone.
+- Focused tests (9), TypeScript, lint, guarded build, push, exact deployment,
+  and both Suite alias checks passed. Read-only inspection of the exact live
+  Workspace page confirmed the top bar is absent and sound settings appear in
+  Dance Floor on laptop and narrow viewport. Louis's account showed zero
+  pending requests at verification time, so the populated card was not visually
+  checked live; no real request was created or decided.
