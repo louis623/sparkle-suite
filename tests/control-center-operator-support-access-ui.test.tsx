@@ -47,7 +47,7 @@ describe('Control Center transparent operator support access UI', () => {
     )
 
     expect(html).toContain('Nic-Nac')
-    expect(html).toContain('Open Trade Workspace')
+    expect(html).toContain('Open Dance Floor')
     expect(html).toContain('Visit resources')
     expect(html).toContain('>Live Queue code<')
     expect(html).toContain('>Messages<')

@@ -725,7 +725,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('New dancers today')
     expect(html).not.toContain('Trade follow-up')
     expect(html).not.toContain('Fulfillment swaps')
-    expect(html).toContain('Open Trade Workspace')
+    expect(html).toContain('Open Dance Floor')
     expect(html).not.toContain('Active Board')
     expect(html).not.toContain('View board')
     expect(html.match(/Upcoming Show/g)).toHaveLength(1)

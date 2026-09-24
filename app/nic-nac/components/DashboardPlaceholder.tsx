@@ -7432,7 +7432,7 @@ function ConceptHomeWorkspace({
             ]}
           />
           <button type="button" className={styles.panelCtaButton} onClick={onOpenTradeBoard}>
-            Open Trade Workspace
+            Open Dance Floor
           </button>
         </ConceptPanel>
         <div className={styles.railLiveLineup}>
