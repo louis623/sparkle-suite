@@ -7960,3 +7960,10 @@ Lessons retained:
 
 - Louis requested “Dancers on the Floor” for the Dance Floor total. Updated that label in the Dance Floor and Nic-Nac Home summary cards and their assertions, with no count logic change.
 - Focused tests passed (142); local and Vercel builds passed. Pushed `635ddf969d0ea27384f5b26e1f6784f7d45eae2e` and manually released READY `dpl_BhiPngESvyfP7QVKKz4wFShCNjM3`. Vercel inspection showed www and apex Suite aliases on the same deployment. Read-only inspection of Louis’s already-open live Workspace tab confirmed the exact label on both surfaces (7 dancers at review time). No production record was edited.
+
+## September 24, 2026 - Rep Dance Floor grid and three-digit Home counts
+
+- Louis requested the rep Browse dancers area to display the whole Dance Floor by default using customer-style browse tools, then asked to simplify the header and ensure Home counts fit double and triple digits.
+- Replaced the search-required three-card carousel with a paged responsive grid that initially displays up to 24 available dancers. Added customer-style sort and filter chips, keeping rep detail and removal actions. Changed the header to `Dance Floor Management` and removed the Customer view button and copy. Made Home metric badges grow with their numeric text.
+- Focused tests (150), TypeScript, lint (zero errors), guarded local build, and Vercel build passed. A temporary synthetic local QA page showed the grid at laptop and mobile widths, working search, and 123/987/45 metrics at 390px without horizontal overflow. It was removed before commit. Pushed `272b9046400881808f16d66dea122fe00bd0d4a8`; manual READY production deployment `dpl_59rXL3nvtiBBW9XQ2fvFwKP2STBs` serves both Suite domains. The exact www public Dance Floor showed all seven cards and browsing controls; the landing page rendered.
+- Authenticated production rep visual smoke remains open: `/start` redirects to prelaunch without the protected reviewer token, which was unavailable locally. Louis's personal session was left untouched. No production listing or request was mutated.

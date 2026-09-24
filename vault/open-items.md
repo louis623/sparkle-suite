@@ -870,6 +870,7 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
   customer receipt. Do not use Louis's personal account, a real rep/customer
   listing, or a provider charge. The reviewer token was unavailable in this
   isolated session, so this end-to-end was not claimed.
+- [ ] With protected synthetic reviewer access, visually verify the released rep Dance Floor grid, filters, detail and remove controls, and Nic-Nac Home triple-digit badge layout on the exact live www domain at laptop and phone widths. The September 24 local synthetic visual QA passed, but the production reviewer token was unavailable for authenticated smoke.
 - [ ] Louis: do the promised FAQ accuracy and polish smoke when convenient on
   the live customer domain. The shared page is already deployed and was
   visually checked at desktop and narrow widths by Codex.

@@ -4157,3 +4157,9 @@ Verification passed:
 
 - The Dance Floor and Nic-Nac Home dancer-count labels now read “Dancers on the Floor.” Application commit `635ddf969d0ea27384f5b26e1f6784f7d45eae2e` is READY production deployment `dpl_BhiPngESvyfP7QVKKz4wFShCNjM3` on both Suite domains. The prior deployment `dpl_FtXbih6Sfw4LsHWsJEcFr1Ry5xsV` remains available.
 - Two focused suites passed 142 tests and the local and Vercel production builds passed. Read-only live verification on `www.yoursparklesuite.com/nic-nac` showed the exact new label in both cards. No account data or trade request changed.
+
+## September 24, 2026 - Rep Dance Floor browsing and Home count layout
+
+- Application commit `272b9046400881808f16d66dea122fe00bd0d4a8` is live as READY deployment `dpl_59rXL3nvtiBBW9XQ2fvFwKP2STBs` on the Suite www/apex domains. The preceding deployment `dpl_BhiPngESvyfP7QVKKz4wFShCNjM3` remains available.
+- The rep Dance Floor opens with available dancer cards in a responsive grid, plus customer-style search, sort, and filters. Rep-only detail and remove controls remain. The hero is titled `Dance Floor Management` without the separate Customer view button or instructional copy. The Nic-Nac Home count badges expand for three-digit figures.
+- Focused tests (150), TypeScript, lint (zero errors), guarded local production build, and guarded Vercel build passed. Synthetic local visual QA checked the seven-card desktop grid, search, 390px mobile layout, and Home counts of 123/987/45 without horizontal overflow. The temporary QA route was removed before commit. Live public Dance Floor and landing page rendered correctly on the exact www domain. Protected synthetic reviewer access was unavailable without its token, so the authenticated production rep grid was not claimed as browser-verified.

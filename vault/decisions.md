@@ -3099,3 +3099,5 @@ during the rep's local day. A card with multiple physical copies counts as one
 dancer. These exact counts do not depend on how many cards have loaded into the
 page. Home Trade Info displays trade requests and these two dancer figures;
 follow-up and fulfillment counts remain on the Dance Floor page.
+
+Decision (September 24, 2026): The rep Dance Floor uses the customer's browse pattern: visible dancer cards by default, search, sort, and filtering on the page. Rep-only actions remain attached to cards. The top panel is only `Dance Floor Management`; a separate Customer view button and repeated usage instructions are unnecessary when the grid is directly visible. Nic-Nac Home count badges must accommodate at least triple-digit numbers.
