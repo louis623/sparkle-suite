@@ -4098,3 +4098,14 @@ Verification passed:
 - Live signed-in visual check passed with one real pending request; arrows
   were disabled at `1 of 1`. Multi-request cycling and the audible accent
   remain unverified on the live browser.
+
+## September 23, 2026 - Current compact trade alert release
+
+- Approved branch application commit `834f41c11eb5b09fccf110f979bc4fad5a5117bd`
+  is live as READY deployment `dpl_AWb18eqLYjUkmNcYD9gEhp87hU11` on the
+  Suite www/apex domains. The alert card uses three desktop columns for
+  requested item, offered item, and screenshot/actions; it adapts to two
+  columns and then one at smaller widths. No trade behavior changed.
+- The exact live Workspace page was inspected read-only on laptop and phone
+  viewport sizes. The pending request and all controls remained visible. The
+  phone layout had no horizontal overflow; the normal viewport was restored.

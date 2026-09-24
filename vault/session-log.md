@@ -7891,3 +7891,20 @@ Lessons retained:
   British voice option. No decision or sound test was performed on Louis's
   personal session. Multi-request cycling is not yet live-smoked because only
   one pending request was present.
+
+## September 23, 2026 - Compact responsive trade alert
+
+- Louis asked to reduce the tall, left-heavy trade alert card on laptop screens
+  while retaining a useful mobile layout. The existing request facts now use
+  three desktop columns: requested dancer, offered details, and evidence plus
+  actions. The layout uses two columns on narrower screens and one on phones.
+- Application commit `834f41c11eb5b09fccf110f979bc4fad5a5117bd` passed
+  focused UI tests, TypeScript, lint, and the guarded production build. It was
+  pushed and manually deployed as READY Vercel deployment
+  `dpl_AWb18eqLYjUkmNcYD9gEhp87hU11`; Suite www/apex domains resolve to it.
+- On the exact live Workspace page Louis marked, read-only visual QA showed
+  the alert about 200px high at laptop width versus roughly 310px in the
+  supplied screenshot. At a 390px browser viewport (375px document), the
+  three sections stacked in reading order, the action buttons stayed within
+  the 335px content width, and there was no horizontal overflow. The browser
+  viewport was reset. No trade request was decided or modified.
