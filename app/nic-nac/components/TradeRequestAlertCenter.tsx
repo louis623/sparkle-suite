@@ -132,7 +132,7 @@ export function TradeRequestAlertCenter({
             if (next === 'chime') playChime()
             if (next === 'voice') playVoice()
           }}>
-            <option value="off">Muted</option><option value="chime">Chime</option><option value="voice">British voice</option>
+            <option value="off">Muted</option><option value="chime">Chime</option><option value="voice">Voice</option>
           </select>
         </label>
         <button type="button" className={styles.test} onClick={() => { setAudioUnlocked(true); if (audio === 'voice') playVoice(); else playChime() }} aria-label="Test trade alert sound">Test</button>
