@@ -7,6 +7,7 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ServiceError } from '@/lib/services/errors'
 import { processRepCustomListingPhotoUrl } from '@/lib/services/listing-photo-processing'
+import { getDanceFloorDancerCounts } from '@/lib/services/trade-board-stats'
 import { catalogVariantPhotoAssetKey } from '@/lib/nic-nac/workflows/workflow-photo-selection'
 import {
   addListing,
@@ -124,8 +125,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'sortOrder must be asc or desc.' }, { status: 400 })
     }
 
-    const { repId, supabase } = await getPaidNicNacContext()
-    const board = await getMyBoard(supabase, repId, {
+    const { repId, rep, supabase } = await getPaidNicNacContext()
+    const boardPromise = getMyBoard(supabase, repId, {
       statusFilter,
       typeFilter,
       collectionFilter: url.searchParams.get('collection') ?? undefined,
@@ -134,8 +135,17 @@ export async function GET(request: Request) {
       limit: limit ?? undefined,
       offset: offset ?? undefined,
     })
+    const countsPromise = getDanceFloorDancerCounts(supabase, repId, rep.time_zone)
+      .catch((error: unknown) => {
+        console.error('[trade-board] dancer counts unavailable', error)
+        return null
+      })
+    const [board, dancerCounts] = await Promise.all([boardPromise, countsPromise])
 
-    return NextResponse.json(board)
+    return NextResponse.json({
+      ...board,
+      summary: { ...board.summary, ...(dancerCounts ?? {}) },
+    })
   } catch (error) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })

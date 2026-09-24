@@ -334,6 +334,8 @@ function mergeTradeBoardResults(
       totalPieces: current.summary.totalPieces + next.summary.totalPieces,
       pendingRequestCount:
         current.summary.pendingRequestCount + next.summary.pendingRequestCount,
+      availableDancerCount: next.summary.availableDancerCount ?? current.summary.availableDancerCount,
+      newDancersTodayCount: next.summary.newDancersTodayCount ?? current.summary.newDancersTodayCount,
       typeBreakdown,
     },
   }
@@ -3046,6 +3048,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           summary: {
             totalPieces: 0,
             pendingRequestCount: 0,
+            availableDancerCount: 0,
+            newDancersTodayCount: 0,
             typeBreakdown: {
               RG: 0,
               NK: 0,
@@ -6953,8 +6957,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const isRecipeDetailOpen =
     activeSection === 'recipes' && recipeEditorTab === 'edit'
   const homeTradeRequestsCount = tradeRequestsState.pendingCount
-  const homeCleanupCount = tradeSwapCleanupState.items?.length ?? 0
-  const homeFulfillmentCount = fulfillmentQueueState.items?.length ?? 0
+  const homeAvailableDancerCount = tradeBoardState.board?.summary.availableDancerCount
+  const homeNewDancersTodayCount = tradeBoardState.board?.summary.newDancersTodayCount
   const homeNextShowLabel = buildHomeNextShowLabel(
     calendarState.summary?.upcomingEvents ?? [],
   )
@@ -7053,8 +7057,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
               chat={desktopChat}
               onTradeAlertTarget={setHomeTradeAlertTarget}
               tradeRequestsCount={homeTradeRequestsCount}
-              cleanupCount={homeCleanupCount}
-              fulfillmentCount={homeFulfillmentCount}
+              availableDancerCount={homeAvailableDancerCount}
+              newDancersTodayCount={homeNewDancersTodayCount}
               nextShow={homeNextShow}
               siteLive={Boolean(customerSparkleSiteHref)}
               onLaunchAction={(action) => onLaunchNicNacAction?.(action)}
@@ -7350,8 +7354,8 @@ function ConceptHomeWorkspace({
   chat,
   onTradeAlertTarget,
   tradeRequestsCount,
-  cleanupCount,
-  fulfillmentCount,
+  availableDancerCount,
+  newDancersTodayCount,
   nextShow,
   siteLive,
   onLaunchAction,
@@ -7368,8 +7372,8 @@ function ConceptHomeWorkspace({
   chat?: ReactNode | null
   onTradeAlertTarget: (target: HTMLElement | null) => void
   tradeRequestsCount?: number
-  cleanupCount: number
-  fulfillmentCount: number
+  availableDancerCount?: number
+  newDancersTodayCount?: number
   nextShow: HomeNextShowSummary | null
   siteLive: boolean
   onLaunchAction: (action: WorkspaceLaunchAction) => void
@@ -7436,8 +7440,8 @@ function ConceptHomeWorkspace({
           <MetricRows
             rows={[
               ['Trade requests', tradeRequestsCount ?? '—'],
-              ['Trade follow-up', cleanupCount],
-              ['Fulfillment', fulfillmentCount],
+              ['Dancers on Dance Floor', availableDancerCount ?? '—'],
+              ['New dancers today', newDancersTodayCount ?? '—'],
             ]}
           />
           <button type="button" className={styles.panelCtaButton} onClick={onOpenTradeBoard}>

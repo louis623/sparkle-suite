@@ -67,6 +67,10 @@ export interface BoardResult {
     totalPieces: number
     typeBreakdown: Record<JewelryType, number>
     pendingRequestCount: number
+    /** Full rep-scoped count of available Dance Floor cards, independent of pagination. */
+    availableDancerCount?: number
+    /** Available cards created during the rep's current local day. */
+    newDancersTodayCount?: number
   }
 }
 

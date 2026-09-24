@@ -256,6 +256,18 @@ export function TradeBoardWorkspaceCard({
         </div>
         <div ref={onSoundSettingsTarget} className={styles.tradeSoundSlot} />
         <div className={styles.summaryStats} aria-label="Dance Floor work summary">
+          <div className={styles.summaryStat}>
+            <span className={styles.summaryCount}>
+              {boardSummary?.availableDancerCount ?? (tradeBoardState.status === 'loading' ? '…' : '—')}
+            </span>
+            <span className={styles.summaryLabel}>Dancers on Dance Floor</span>
+          </div>
+          <div className={styles.summaryStat}>
+            <span className={styles.summaryCount}>
+              {boardSummary?.newDancersTodayCount ?? (tradeBoardState.status === 'loading' ? '…' : '—')}
+            </span>
+            <span className={styles.summaryLabel}>New dancers today</span>
+          </div>
           <div
             className={`${styles.summaryStat} ${
               requests.length > 0 ? styles.summaryStatActive : ''
@@ -339,7 +351,9 @@ export function TradeBoardWorkspaceCard({
           </div>
           <span className={surfaceStyles.rosterTag}>
             {tradeBoardState.status === 'ready' && boardSummary
-              ? `${boardSummary.totalPieces} live dancer${boardSummary.totalPieces === 1 ? '' : 's'}`
+              ? boardSummary.availableDancerCount === undefined
+                ? 'Dancer count unavailable'
+                : `${boardSummary.availableDancerCount} live dancer${boardSummary.availableDancerCount === 1 ? '' : 's'}`
               : 'Loading Dance Floor'}
           </span>
         </div>

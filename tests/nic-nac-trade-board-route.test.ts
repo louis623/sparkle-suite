@@ -4,6 +4,7 @@ const getAuthenticatedNicNacContextMock = vi.fn()
 const getPaidNicNacContextMock = vi.fn()
 const getAuthenticatedRepMock = vi.fn()
 const getMyBoardMock = vi.fn()
+const getDanceFloorDancerCountsMock = vi.fn()
 const addListingMock = vi.fn()
 const updateListingMock = vi.fn()
 const removeListingMock = vi.fn()
@@ -38,6 +39,10 @@ vi.mock('@/lib/services/trade-board', () => ({
     getCatalogListingMutationReceiptMock(...args),
 }))
 
+vi.mock('@/lib/services/trade-board-stats', () => ({
+  getDanceFloorDancerCounts: (...args: unknown[]) => getDanceFloorDancerCountsMock(...args),
+}))
+
 vi.mock('@/lib/services/listing-photo-processing', () => ({
   processRepCustomListingPhotoUrl: (...args: unknown[]) =>
     processRepCustomListingPhotoUrlMock(...args),
@@ -58,6 +63,11 @@ describe('dance floor route', () => {
     getPaidNicNacContextMock.mockReset()
     getAuthenticatedRepMock.mockReset()
     getMyBoardMock.mockReset()
+    getDanceFloorDancerCountsMock.mockReset()
+    getDanceFloorDancerCountsMock.mockResolvedValue({
+      availableDancerCount: 7,
+      newDancersTodayCount: 2,
+    })
     addListingMock.mockReset()
     updateListingMock.mockReset()
     removeListingMock.mockReset()
@@ -70,7 +80,7 @@ describe('dance floor route', () => {
   it('returns the authenticated rep dance floor summary', async () => {
     getPaidNicNacContextMock.mockResolvedValueOnce({
       repId: 'rep-1',
-      rep: { id: 'rep-1' },
+      rep: { id: 'rep-1', time_zone: 'America/Chicago' },
       supabase: { marker: 'supabase' },
     })
     getMyBoardMock.mockResolvedValueOnce({
@@ -102,7 +112,33 @@ describe('dance floor route', () => {
         offset: 16,
       },
     )
+    expect(getDanceFloorDancerCountsMock).toHaveBeenCalledWith(
+      { marker: 'supabase' }, 'rep-1', 'America/Chicago',
+    )
     expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toMatchObject({
+      summary: { availableDancerCount: 7, newDancersTodayCount: 2 },
+    })
+  })
+
+  it('keeps the Dance Floor available when the optional dancer counts cannot load', async () => {
+    getPaidNicNacContextMock.mockResolvedValueOnce({
+      repId: 'rep-1', rep: { id: 'rep-1', time_zone: 'America/New_York' },
+      supabase: { marker: 'supabase' },
+    })
+    getMyBoardMock.mockResolvedValueOnce({
+      listings: [], summary: { totalPieces: 0, typeBreakdown: {}, pendingRequestCount: 0 },
+    })
+    getDanceFloorDancerCountsMock.mockRejectedValueOnce(new Error('count unavailable'))
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      const response = await GET(new Request('http://localhost/api/nic-nac/trade-board'))
+      expect(response.status).toBe(200)
+      await expect(response.json()).resolves.toMatchObject({ listings: [] })
+      expect(log).toHaveBeenCalledOnce()
+    } finally {
+      log.mockRestore()
+    }
   })
 
   it('rejects malformed numeric paging params instead of partially parsing them', async () => {

@@ -134,9 +134,12 @@
   padding: 6px 10px;
   background: #fff;
   color: #342644;
-  font: inherit;
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
 }
-.soundSettings button { cursor: pointer; font-weight: 800; }
+.soundSettings button { cursor: pointer; }
 .soundSettings button:hover { background: #f8efff; }
 
 @keyframes arrival { 50% { box-shadow: 0 0 0 4px rgba(226, 25, 143, 0.12); } }

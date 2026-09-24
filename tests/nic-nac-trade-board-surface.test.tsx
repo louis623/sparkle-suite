@@ -63,6 +63,8 @@ const TRADE_BOARD_READY_STATE = {
   board: {
     summary: {
       totalPieces: 2,
+      availableDancerCount: 2,
+      newDancersTodayCount: 1,
       totalMsrp: 78,
       typeBreakdown: { RG: 1, NK: 0, ER: 0, ST: 1, BR: 0 },
       pendingRequestCount: 0,
@@ -370,6 +372,9 @@ describe('Nic-Nac dance floor surface reset', () => {
       'Trade follow-up',
       'Fulfillment queue',
     ])
+    expect(html).toContain('Dancers on Dance Floor')
+    expect(html).toContain('New dancers today')
+    expect(html).toContain('2 live dancers')
   })
 
   it('locks the first screen into a mobile container contract instead of desktop spreadsheet grids', () => {
@@ -388,7 +393,7 @@ describe('Nic-Nac dance floor surface reset', () => {
       hasDeclaration(
         tradeBoardCss,
         '.summaryStats',
-        'grid-template-columns: repeat(3, minmax(0, 1fr))',
+        'grid-template-columns: repeat(5, minmax(0, 1fr))',
       ),
     ).toBe(true)
     expect(
