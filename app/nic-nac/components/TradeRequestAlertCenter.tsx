@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { TradeRequestWithListing } from '@/lib/services/types'
 import { TradeScreenshotLink } from './TradeScreenshotLink'
 import styles from './TradeRequestAlertCenter.module.css'
@@ -28,33 +29,23 @@ function playChime() {
     if (!AudioContextClass) return
     const context = new AudioContextClass()
     void context.resume().then(() => {
-      const oscillator = context.createOscillator()
-      const gain = context.createGain()
-      oscillator.type = 'sine'
-      oscillator.frequency.value = 660
-      gain.gain.setValueAtTime(0.0001, context.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.1, context.currentTime + 0.02)
-      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.35)
-      oscillator.connect(gain).connect(context.destination)
-      oscillator.start()
-      oscillator.stop(context.currentTime + 0.36)
-      oscillator.onended = () => void context.close()
+      const start = context.currentTime + 0.01
+      const notes = [784, 988, 1175]
+      notes.forEach((frequency, index) => {
+        const oscillator = context.createOscillator()
+        const gain = context.createGain()
+        const noteStart = start + index * 0.16
+        oscillator.type = 'triangle'
+        oscillator.frequency.value = frequency
+        gain.gain.setValueAtTime(0.0001, noteStart)
+        gain.gain.exponentialRampToValueAtTime(0.18, noteStart + 0.018)
+        gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + 0.4)
+        oscillator.connect(gain).connect(context.destination)
+        oscillator.start(noteStart)
+        oscillator.stop(noteStart + 0.41)
+        if (index === notes.length - 1) oscillator.onended = () => void context.close()
+      })
     }).catch(() => void context.close())
-  } catch { /* Visual alert remains available. */ }
-}
-
-function playVoice() {
-  try {
-    if (!('speechSynthesis' in window)) return
-    const message = new SpeechSynthesisUtterance('I say, a dancer has requested a trade.')
-    message.lang = 'en-GB'
-    message.rate = 0.9
-    message.pitch = 0.9
-    message.volume = 0.8
-    const britishVoices = window.speechSynthesis.getVoices().filter((voice) => /^en[-_]GB$/i.test(voice.lang))
-    const preferred = britishVoices.find((voice) => /\b(ryan|george|oliver|daniel|arthur|alfie|brian)\b/i.test(voice.name)) ?? britishVoices[0]
-    if (preferred) message.voice = preferred
-    window.speechSynthesis.speak(message)
   } catch { /* Visual alert remains available. */ }
 }
 
@@ -63,16 +54,19 @@ export function TradeRequestAlertCenter({
   pendingCount,
   refreshError,
   onReview,
-  onOpenInbox,
+  alertTarget,
+  mobileAlertTarget,
+  soundTarget,
 }: {
   requests: TradeRequestWithListing[]
   pendingCount?: number
   refreshError: boolean
   onReview: (requestId: string, action: 'approve' | 'reject') => void
-  onOpenInbox: () => void
+  alertTarget: HTMLElement | null
+  mobileAlertTarget?: HTMLElement | null
+  soundTarget: HTMLElement | null
 }) {
-  const [audio, setAudio] = useState<'off' | 'chime' | 'voice'>('off')
-  const [audioUnlocked, setAudioUnlocked] = useState(false)
+  const [chimeEnabled, setChimeEnabled] = useState(false)
   const [ready, setReady] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
@@ -80,7 +74,10 @@ export function TradeRequestAlertCenter({
     const timer = window.setTimeout(() => {
       try {
         const saved = window.localStorage.getItem(AUDIO_KEY)
-        if (saved === 'chime' || saved === 'voice') setAudio(saved)
+        if (saved === 'chime' || saved === 'voice') {
+          setChimeEnabled(true)
+          if (saved === 'voice') window.localStorage.setItem(AUDIO_KEY, 'chime')
+        }
       } catch { /* Preferences remain session-only. */ }
       setReady(true)
     }, 0)
@@ -91,20 +88,20 @@ export function TradeRequestAlertCenter({
     if (!ready) return
     const timer = window.setTimeout(() => {
       const seen = new Set(readIds(SEEN_KEY))
+      let hasNewRequest = false
       for (const request of requests) {
         if (seen.has(request.id)) continue
         rememberId(SEEN_KEY, request.id)
-        if (audioUnlocked && audio === 'chime') playChime()
-        if (audioUnlocked && audio === 'voice') playVoice()
+        hasNewRequest = true
       }
+      if (hasNewRequest && chimeEnabled) playChime()
     }, 0)
     return () => window.clearTimeout(timer)
-  }, [audio, audioUnlocked, ready, requests])
+  }, [chimeEnabled, ready, requests])
 
   const selectedIndex = requests.findIndex((request) => request.id === selectedId)
   const activeIndex = selectedIndex < 0 ? 0 : selectedIndex
   const active = requests[activeIndex]
-  const exception = active && 'manualReviewRequested' in active && active.manualReviewRequested && 'screening' in active && active.screening?.status === 'mismatch'
 
   function moveRequest(direction: -1 | 1) {
     if (requests.length < 2) return
@@ -115,37 +112,77 @@ export function TradeRequestAlertCenter({
     })
   }
 
+  const renderAlert = () => active ? (
+    <TradeRequestAlertCard
+      active={active}
+      activeIndex={activeIndex}
+      requestCount={requests.length}
+      pendingCount={pendingCount}
+      refreshError={refreshError}
+      onPrevious={() => moveRequest(-1)}
+      onNext={() => moveRequest(1)}
+      onReview={onReview}
+    />
+  ) : null
+
+  return (
+    <>
+      {alertTarget && !mobileAlertTarget ? createPortal(renderAlert(), alertTarget) : null}
+      {mobileAlertTarget ? createPortal(renderAlert(), mobileAlertTarget) : null}
+      {soundTarget ? createPortal(
+        <TradeAlertSoundControls
+          enabled={chimeEnabled}
+          onChange={(enabled) => {
+            setChimeEnabled(enabled)
+            try { window.localStorage.setItem(AUDIO_KEY, enabled ? 'chime' : 'off') } catch { /* In-memory choice remains. */ }
+            if (enabled) playChime()
+          }}
+          onTest={playChime}
+        />,
+        soundTarget,
+      ) : null}
+    </>
+  )
+}
+
+export function TradeAlertSoundControls({ enabled, onChange, onTest }: {
+  enabled: boolean
+  onChange: (enabled: boolean) => void
+  onTest: () => void
+}) {
+  return <div className={styles.soundSettings}>
+    <label>Trade request sound
+      <select value={enabled ? 'chime' : 'off'} onChange={(event) => onChange(event.target.value === 'chime')}>
+        <option value="off">Muted</option><option value="chime">Chime</option>
+      </select>
+    </label>
+    <button type="button" onClick={onTest}>Preview chime</button>
+  </div>
+}
+
+export function TradeRequestAlertCard({ active, activeIndex, requestCount, pendingCount, refreshError, onPrevious, onNext, onReview }: {
+  active: TradeRequestWithListing
+  activeIndex: number
+  requestCount: number
+  pendingCount?: number
+  refreshError: boolean
+  onPrevious: () => void
+  onNext: () => void
+  onReview: (requestId: string, action: 'approve' | 'reject') => void
+}) {
+  const exception = 'manualReviewRequested' in active && active.manualReviewRequested && 'screening' in active && active.screening?.status === 'mismatch'
   return (
     <div className={styles.wrapper} aria-label="Trade requests">
-      <div className={`${styles.bar} ${pendingCount ? styles.attention : ''}`}>
-        <span className={styles.brand}>Nic-Nac</span>
-        <button type="button" className={styles.count} onClick={onOpenInbox} aria-label={`Open Dance Floor trade requests${pendingCount === undefined ? '' : `, ${pendingCount} pending`}`}>
-          {pendingCount === undefined ? 'Trade requests · count unavailable' : `${pendingCount} trade request${pendingCount === 1 ? '' : 's'} pending`}
-        </button>
-        {refreshError ? <span className={styles.stale} role="status">Can’t refresh right now · showing last known count</span> : null}
-        <label className={styles.audio}>Alert sound
-          <select value={audio} onChange={(event) => {
-            const next = event.target.value as typeof audio
-            setAudio(next)
-            setAudioUnlocked(true)
-            try { window.localStorage.setItem(AUDIO_KEY, next) } catch { /* In-memory choice remains. */ }
-            if (next === 'chime') playChime()
-            if (next === 'voice') playVoice()
-          }}>
-            <option value="off">Muted</option><option value="chime">Chime</option><option value="voice">Voice</option>
-          </select>
-        </label>
-        <button type="button" className={styles.test} onClick={() => { setAudioUnlocked(true); if (audio === 'voice') playVoice(); else playChime() }} aria-label="Test trade alert sound">Test</button>
-      </div>
-      {active ? <div className={`${styles.alert} ${exception ? styles.exception : ''}`} role="status" aria-live="polite">
+      <div className={`${styles.alert} ${exception ? styles.exception : ''}`} role="status" aria-live="polite">
         <div className={styles.alertHeader}>
           <div><span className={styles.brand}>Nic-Nac trade request</span>{exception ? <strong className={styles.exceptionLabel}>Rule exception — rep review needed</strong> : null}</div>
           <div className={styles.navigation} aria-label="Browse trade requests">
-            <button type="button" onClick={() => moveRequest(-1)} disabled={requests.length < 2} aria-label="Previous trade request">‹</button>
-            <span>{activeIndex + 1} of {requests.length}{pendingCount !== undefined && pendingCount > requests.length ? ' shown' : ''}</span>
-            <button type="button" onClick={() => moveRequest(1)} disabled={requests.length < 2} aria-label="Next trade request">›</button>
+            <button type="button" onClick={onPrevious} disabled={requestCount < 2} aria-label="Previous trade request">‹</button>
+            <span>{activeIndex + 1} of {requestCount}{pendingCount !== undefined && pendingCount > requestCount ? ' shown' : ''}</span>
+            <button type="button" onClick={onNext} disabled={requestCount < 2} aria-label="Next trade request">›</button>
           </div>
         </div>
+        {refreshError ? <small className={styles.stale}>Showing last known request; refresh is unavailable.</small> : null}
         <div className={styles.detailGrid}>
           <div className={styles.detailColumn}>
             <p><strong>{active.customerName}</strong> wants {active.listing.design.designName}{active.listing.design.itemNumber ? ` (${active.listing.design.itemNumber})` : ''}.</p>
@@ -162,7 +199,7 @@ export function TradeRequestAlertCenter({
             <div className={styles.actions}><button type="button" onClick={() => onReview(active.id, 'approve')}>Approve</button><button type="button" onClick={() => onReview(active.id, 'reject')}>Deny</button></div>
           </div>
         </div>
-      </div> : null}
+      </div>
     </div>
   )
 }

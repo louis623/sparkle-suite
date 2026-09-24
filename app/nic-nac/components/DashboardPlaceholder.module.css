@@ -1161,6 +1161,20 @@
   margin: 0 auto;
 }
 
+.homeTradeAlertSlot {
+  width: min(700px, 100%);
+  min-width: 0;
+  margin: 0 auto;
+  flex: 0 1 auto;
+}
+
+.homeTradeAlertSlot:not(:empty) {
+  max-height: min(42vh, 310px);
+  margin-top: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .showPreviewRow,
 .helpPreview {
   display: flex;

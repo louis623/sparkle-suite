@@ -78,3 +78,13 @@
   outline: 2px solid var(--nic-nac-focus-ring);
   outline-offset: 2px;
 }
+
+.mobileTradeAlertSlot:empty { display: none; }
+.mobileTradeAlertSlot:not(:empty) {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: min(42dvh, 310px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 10px 10px;
+}

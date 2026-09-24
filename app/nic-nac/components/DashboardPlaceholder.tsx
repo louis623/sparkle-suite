@@ -2774,6 +2774,7 @@ export type DashboardPlaceholderProps = {
   onNewConversation?: () => void
   conversationControlsDisabled?: boolean
   desktopChat?: ReactNode
+  mobileTradeAlertTarget?: HTMLElement | null
 }
 
 export function buildWorkspacePublicSiteLocation({
@@ -2831,7 +2832,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     onNewConversation,
     conversationControlsDisabled = false,
     desktopChat,
+    mobileTradeAlertTarget = null,
   } = props
+  const [homeTradeAlertTarget, setHomeTradeAlertTarget] = useState<HTMLElement | null>(null)
+  const [tradeSoundTarget, setTradeSoundTarget] = useState<HTMLElement | null>(null)
   const [deepLinkTargets] = useState(() => {
     if (typeof window === 'undefined') return { customerId: null, teamMemberId: null }
     return getWorkspaceDeepLinkTargets(window.location.search)
@@ -6597,6 +6601,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           isInventoryBrowseLoading={
             tradeBoardActionState.pendingKey === 'load-more-listings'
           }
+          onSoundSettingsTarget={setTradeSoundTarget}
         />
       )
     }
@@ -6978,10 +6983,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         pendingCount={tradeRequestsState.pendingCount}
         refreshError={tradeRequestsState.status === 'error'}
         onReview={(requestId, action) => void openTradeReview(requestId, action)}
-        onOpenInbox={() => {
-          setWorkspacePreview({ mode: 'workspace' })
-          setActiveSection('trade-board')
-        }}
+        alertTarget={homeTradeAlertTarget}
+        mobileAlertTarget={mobileTradeAlertTarget}
+        soundTarget={tradeSoundTarget}
       /> : null}
       {previewUnavailableMessage ? (
         <div className={styles.previewUnavailableNotice}>
@@ -7047,6 +7051,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           {showConceptHome ? (
             <ConceptHomeWorkspace
               chat={desktopChat}
+              onTradeAlertTarget={setHomeTradeAlertTarget}
               tradeRequestsCount={homeTradeRequestsCount}
               cleanupCount={homeCleanupCount}
               fulfillmentCount={homeFulfillmentCount}
@@ -7343,6 +7348,7 @@ export function WorkspaceAppHeader({
 
 function ConceptHomeWorkspace({
   chat,
+  onTradeAlertTarget,
   tradeRequestsCount,
   cleanupCount,
   fulfillmentCount,
@@ -7360,6 +7366,7 @@ function ConceptHomeWorkspace({
   reviewWorkspaceMode,
 }: {
   chat?: ReactNode | null
+  onTradeAlertTarget: (target: HTMLElement | null) => void
   tradeRequestsCount?: number
   cleanupCount: number
   fulfillmentCount: number
@@ -7481,6 +7488,7 @@ function ConceptHomeWorkspace({
             <div className={styles.embeddedChat}>{chat}</div>
           </>
         ) : null}
+        <div ref={onTradeAlertTarget} className={styles.homeTradeAlertSlot} />
       </div>
 
       <aside className={styles.conceptRail} aria-label="Workspace glance">

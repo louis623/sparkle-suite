@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { TradeRequestAlertCenter } from '@/app/nic-nac/components/TradeRequestAlertCenter'
+import { TradeAlertSoundControls, TradeRequestAlertCard } from '@/app/nic-nac/components/TradeRequestAlertCenter'
 import { TradeRequestReviewDialog } from '@/app/nic-nac/components/TradeRequestReviewDialog'
 import type { TradeRequestWithListing } from '@/lib/services/types'
 
@@ -23,28 +23,27 @@ const request: TradeRequestWithListing = {
 }
 
 describe('rep trade review UI', () => {
-  it('shows the exact pending count even when the preview has only one of nine requests', () => {
-    const html = renderToStaticMarkup(createElement(TradeRequestAlertCenter, {
-      requests: [request], pendingCount: 9, refreshError: false,
-      onReview: vi.fn(), onOpenInbox: vi.fn(),
+  it('identifies a partial alert preview without restoring the top count bar', () => {
+    const html = renderToStaticMarkup(createElement(TradeRequestAlertCard, {
+      active: request, activeIndex: 0, requestCount: 1, pendingCount: 9, refreshError: false,
+      onReview: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(),
     }))
-    expect(html).toContain('9 trade requests pending')
-    expect(html).not.toContain('count unavailable')
+    expect(html).toContain('1 of 1 shown')
+    expect(html).not.toContain('9 trade requests pending')
   })
 
-  it('keeps last known count and marks a failed refresh', () => {
-    const html = renderToStaticMarkup(createElement(TradeRequestAlertCenter, {
-      requests: [request], pendingCount: 9, refreshError: true,
-      onReview: vi.fn(), onOpenInbox: vi.fn(),
+  it('marks a failed refresh in the request card', () => {
+    const html = renderToStaticMarkup(createElement(TradeRequestAlertCard, {
+      active: request, activeIndex: 0, requestCount: 1, pendingCount: 9, refreshError: true,
+      onReview: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(),
     }))
-    expect(html).toContain('9 trade requests pending')
-    expect(html).toContain('showing last known count')
+    expect(html).toContain('Showing last known request')
   })
 
   it('keeps a pending alert visible with only approve and deny review actions', () => {
-    const html = renderToStaticMarkup(createElement(TradeRequestAlertCenter, {
-      requests: [request], pendingCount: 1, refreshError: false,
-      onReview: vi.fn(), onOpenInbox: vi.fn(),
+    const html = renderToStaticMarkup(createElement(TradeRequestAlertCard, {
+      active: request, activeIndex: 0, requestCount: 1, pendingCount: 1, refreshError: false,
+      onReview: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(),
     }))
     expect(html).toContain('Test Customer')
     expect(html).toContain('>Approve</button>')
@@ -53,18 +52,27 @@ describe('rep trade review UI', () => {
   })
 
   it('offers request navigation without changing the pending count or decision actions', () => {
-    const next = { ...request, id: 'request-2', customerName: 'Second Customer' }
-    const html = renderToStaticMarkup(createElement(TradeRequestAlertCenter, {
-      requests: [request, next], pendingCount: 2, refreshError: false,
-      onReview: vi.fn(), onOpenInbox: vi.fn(),
+    const html = renderToStaticMarkup(createElement(TradeRequestAlertCard, {
+      active: request, activeIndex: 0, requestCount: 2, pendingCount: 2, refreshError: false,
+      onReview: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(),
     }))
-    expect(html).toContain('2 trade requests pending')
+    expect(html).not.toContain('2 trade requests pending')
     expect(html).toContain('Previous trade request')
     expect(html).toContain('Next trade request')
     expect(html).toContain('1 of 2')
     expect(html).toContain('>Approve</button>')
     expect(html).toContain('>Deny</button>')
     expect(html).not.toContain('Acknowledge')
+  })
+
+  it('offers only muted and chime settings on the Dance Floor', () => {
+    const html = renderToStaticMarkup(createElement(TradeAlertSoundControls, {
+      enabled: true, onChange: vi.fn(), onTest: vi.fn(),
+    }))
+    expect(html).toContain('Trade request sound')
+    expect(html).toContain('>Chime</option>')
+    expect(html).toContain('Preview chime')
+    expect(html).not.toContain('Voice')
   })
 
   it('shows the exception label and requires confirmation in the shared dialog', () => {
@@ -100,24 +108,25 @@ describe('rep trade review UI', () => {
     expect(dashboard).toContain('tradeRequestsState.pendingCount')
     expect(dashboard).toContain('payload.pendingCount > payload.requests.length')
     expect(dashboard).toContain('loadTradeRequestInbox(signal)')
-    expect(alert).toContain("useState<'off' | 'chime' | 'voice'>('off')")
-    expect(alert).toContain('Test trade alert sound')
+    expect(alert).toContain("saved === 'chime' || saved === 'voice'")
+    expect(alert).not.toContain('speechSynthesis')
+    expect(alert).toContain('Preview chime')
     expect(alert).toContain("onReview(active.id, 'approve')")
     expect(alert).toContain("onReview(active.id, 'reject')")
     expect(alert).not.toContain('trade-alert-ack-v1')
     expect(alert).toContain('Customer-reported details:')
-    expect(css).toContain('prefers-reduced-motion:reduce')
+    expect(css).toContain('prefers-reduced-motion: reduce')
   })
 
-  it('keeps the alert above both workspace and live-site preview modes', () => {
+  it('mounts the request card below the chat and sound controls on the Dance Floor', () => {
     const source = readFileSync(resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'), 'utf8')
-    const alertPosition = source.indexOf('<TradeRequestAlertCenter')
-    const previewPosition = source.indexOf('{activeWorkspacePreview ? (', alertPosition)
-    expect(alertPosition).toBeGreaterThan(source.indexOf('data-customer-site-skin={workspaceSkinPreset}'))
-    expect(previewPosition).toBeGreaterThan(alertPosition)
-    expect(source).toContain("setWorkspacePreview({ mode: 'workspace' })")
-    expect(source).toContain('<div className={styles.workspaceViewport}>')
+    const board = readFileSync(resolve(process.cwd(), 'app/nic-nac/components/TradeBoardWorkspaceCard.tsx'), 'utf8')
+    expect(source).toContain('alertTarget={homeTradeAlertTarget}')
+    expect(source).toContain('mobileAlertTarget={mobileTradeAlertTarget}')
+    expect(source).toContain('soundTarget={tradeSoundTarget}')
+    expect(source.indexOf('<div ref={onTradeAlertTarget}')).toBeGreaterThan(source.indexOf('<div className={styles.embeddedChat}>{chat}</div>'))
+    expect(board).toContain('<div ref={onSoundSettingsTarget}')
     const css = readFileSync(resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.module.css'), 'utf8')
-    expect(css).toContain('.workspaceViewport > :first-child')
+    expect(css).toContain('.homeTradeAlertSlot')
   })
 })

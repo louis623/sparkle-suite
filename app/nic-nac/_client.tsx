@@ -285,6 +285,7 @@ export default function NicNacClient({
   const [resolveAttempt, setResolveAttempt] = useState(0)
   const [isDesktop, setIsDesktop] = useState(getInitialDesktopMatch)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileTradeAlertTarget, setMobileTradeAlertTarget] = useState<HTMLElement | null>(null)
   const [desktopOpen, setDesktopOpen] = useState(true)
   const [pendingLaunchPrompt, setPendingLaunchPrompt] = useState<string | null>(null)
   // Lifted from the chat body so "New conversation" can disable correctly
@@ -1022,6 +1023,7 @@ export default function NicNacClient({
             ? chatContent
             : null
         }
+        mobileTradeAlertTarget={mobileTradeAlertTarget}
       />
       {isDesktop ? (
         desktopOpen || shouldKeepDesktopNicNacOpen ? null : (
@@ -1047,6 +1049,7 @@ export default function NicNacClient({
             newConversationDisabled={newDisabled}
           >
             {chatContent}
+            <div ref={setMobileTradeAlertTarget} className={shellStyles.mobileTradeAlertSlot} />
           </NicNacColumn>
         </NicNacMobileShell>
       )}

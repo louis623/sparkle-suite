@@ -75,6 +75,7 @@ export type TradeBoardWorkspaceCardProps = {
   hasMoreListings?: boolean
   onEnsureInventoryBrowseLoaded?: () => Promise<void>
   isInventoryBrowseLoading?: boolean
+  onSoundSettingsTarget: (target: HTMLElement | null) => void
 }
 
 function subscribeBoardInventoryViewport(callback: () => void) {
@@ -130,6 +131,7 @@ export function TradeBoardWorkspaceCard({
   hasMoreListings = false,
   onEnsureInventoryBrowseLoaded,
   isInventoryBrowseLoading = false,
+  onSoundSettingsTarget,
 }: TradeBoardWorkspaceCardProps) {
   const [previewListing, setPreviewListing] = useState<TradeListingWithDesign | null>(
     null,
@@ -252,6 +254,7 @@ export function TradeBoardWorkspaceCard({
             </div>
           </div>
         </div>
+        <div ref={onSoundSettingsTarget} className={styles.tradeSoundSlot} />
         <div className={styles.summaryStats} aria-label="Dance Floor work summary">
           <div
             className={`${styles.summaryStat} ${
