@@ -7908,3 +7908,13 @@ Lessons retained:
   three sections stacked in reading order, the action buttons stayed within
   the 335px content width, and there was no horizontal overflow. The browser
   viewport was reset. No trade request was decided or modified.
+
+## September 23, 2026 - Voice option label
+
+- At Louis's request, the alert sound dropdown says `Voice` again while the
+  underlying `voice` setting retains its British English voice preference.
+- Application commit `2e794042b037dd6160e69212d33088fcefd57ee1` passed
+  TypeScript, lint, and the guarded production build. It was pushed and
+  manually deployed as READY `dpl_68Crgs3EqcNQk34Kq84BgrUaYHxc`.
+  Suite www/apex domains resolve to it. Read-only inspection of the live
+  Workspace after reload showed `Voice` selected; no request was changed.

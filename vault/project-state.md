@@ -4109,3 +4109,10 @@ Verification passed:
 - The exact live Workspace page was inspected read-only on laptop and phone
   viewport sizes. The pending request and all controls remained visible. The
   phone layout had no horizontal overflow; the normal viewport was restored.
+
+## September 23, 2026 - Current voice label release
+
+- Application commit `2e794042b037dd6160e69212d33088fcefd57ee1` is live
+  as READY deployment `dpl_68Crgs3EqcNQk34Kq84BgrUaYHxc` on both Suite
+  domains. The trade alert sound menu labels the existing British-preferring
+  `voice` setting simply `Voice`. Live reload preserved the selected setting.
