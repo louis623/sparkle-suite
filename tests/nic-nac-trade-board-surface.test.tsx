@@ -372,7 +372,7 @@ describe('Nic-Nac dance floor surface reset', () => {
       'Trade follow-up',
       'Fulfillment queue',
     ])
-    expect(html).toContain('Dancers on Dance Floor')
+    expect(html).toContain('Dancers on the Floor')
     expect(html).toContain('New dancers today')
     expect(html).toContain('2 live dancers')
   })

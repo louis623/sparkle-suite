@@ -7440,7 +7440,7 @@ function ConceptHomeWorkspace({
           <MetricRows
             rows={[
               ['Trade requests', tradeRequestsCount ?? '—'],
-              ['Dancers on Dance Floor', availableDancerCount ?? '—'],
+              ['Dancers on the Floor', availableDancerCount ?? '—'],
               ['New dancers today', newDancersTodayCount ?? '—'],
             ]}
           />

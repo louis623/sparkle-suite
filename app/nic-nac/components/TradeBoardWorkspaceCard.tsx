@@ -260,7 +260,7 @@ export function TradeBoardWorkspaceCard({
             <span className={styles.summaryCount}>
               {boardSummary?.availableDancerCount ?? (tradeBoardState.status === 'loading' ? '…' : '—')}
             </span>
-            <span className={styles.summaryLabel}>Dancers on Dance Floor</span>
+            <span className={styles.summaryLabel}>Dancers on the Floor</span>
           </div>
           <div className={styles.summaryStat}>
             <span className={styles.summaryCount}>

@@ -721,7 +721,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Trade Info')
     expect(html).toContain('aria-label="Trade info at a glance"')
     expect(html).toContain('Trade requests')
-    expect(html).toContain('Dancers on Dance Floor')
+    expect(html).toContain('Dancers on the Floor')
     expect(html).toContain('New dancers today')
     expect(html).not.toContain('Trade follow-up')
     expect(html).not.toContain('Fulfillment swaps')
