@@ -4135,3 +4135,21 @@ Verification passed:
   Dance Floor on laptop and narrow viewport. Louis's account showed zero
   pending requests at verification time, so the populated card was not visually
   checked live; no real request was created or decided.
+
+## September 24, 2026 - Dance Floor sound sizing and dancer counts
+
+- Application commit `365a69fbf10d7f8712b6392351e91383dc0f129c` is live as
+  READY deployment `dpl_FtXbih6Sfw4LsHWsJEcFr1Ry5xsV`. Both Suite www/apex
+  domains and the connected rep aliases resolve to it. The Chime selector and
+  Preview chime button now use matching 12px text and 36px control height.
+- Dance Floor shows five figures: available dancer cards, new available cards
+  created today in the rep's time zone, pending requests, follow-ups, and
+  fulfillment swaps. Nic-Nac Home Trade Info shows pending requests plus the
+  two dancer figures; follow-up and fulfillment counts remain on Dance Floor.
+  Counts use exact rep-scoped database queries, independent of the first-page
+  limit, and the Browse dancers badge agrees with the full card count.
+- Focused tests (158), TypeScript, changed-file lint, and guarded production
+  build passed. Read-only live checks showed 7 dancers and 0 new today in both
+  views; the two sound controls rendered at identical font size/height. A
+  390px viewport displayed two summary columns without horizontal overflow.
+  No listing or request was mutated during verification.

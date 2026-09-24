@@ -3092,3 +3092,10 @@ chat hosts it in the overlay. Trade Info keeps the pending count. Dance Floor
 holds an opt-in sound selector with Muted and a stronger chime only. Previously
 saved voice preference maps to chime. This reflects Louis's hands-on preference
 for a cleaner Workspace and a readily audible notification.
+
+Decision (September 24, 2026): Dance Floor and Nic-Nac Home show the number of
+available dancer cards and the number of currently available cards created
+during the rep's local day. A card with multiple physical copies counts as one
+dancer. These exact counts do not depend on how many cards have loaded into the
+page. Home Trade Info displays trade requests and these two dancer figures;
+follow-up and fulfillment counts remain on the Dance Floor page.

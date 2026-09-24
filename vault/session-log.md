@@ -7936,3 +7936,23 @@ Lessons retained:
   chime in Dance Floor on laptop and narrow viewport. The account had zero
   pending requests, so populated alert appearance and audible level remain
   unverified live. No request was submitted, approved, or denied.
+
+## September 24, 2026 - Sound control polish and Dance Floor counts
+
+- Louis identified the oversized Preview chime button and requested two dancer
+  figures on both Dance Floor and Nic-Nac Home. Matched dropdown/button font
+  size and height; added full available-card and rep-local-day new-card counts.
+  Home Trade Info keeps pending requests and now shows those two figures;
+  follow-up and fulfillment remain only on Dance Floor.
+- Added exact rep-scoped count queries so pagination does not undercount.
+  Today's start/end follow the configured IANA time zone, including daylight
+  saving changes. If counts fail, the Dance Floor still loads and displays an
+  unavailable value. The Browse dancers badge uses the same full-card total.
+- Pushed application commit `365a69fbf10d7f8712b6392351e91383dc0f129c`.
+  Focused tests (158), TypeScript, lint (no errors), and the guarded local and
+  remote builds passed. Manual READY deployment
+  `dpl_FtXbih6Sfw4LsHWsJEcFr1Ry5xsV` serves both Suite domains and
+  configured rep aliases. Read-only inspection of Louis's existing Workspace
+  session showed 7 available dancers, 0 new today, and both sound controls at
+  12px/36px. A 390px viewport used two summary columns with no horizontal
+  overflow; the normal viewport was restored. No production records changed.
