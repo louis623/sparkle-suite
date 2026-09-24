@@ -4153,3 +4153,7 @@ Verification passed:
   views; the two sound controls rendered at identical font size/height. A
   390px viewport displayed two summary columns without horizontal overflow.
   No listing or request was mutated during verification.
+## September 24, 2026 - Dance Floor count wording
+
+- The Dance Floor and Nic-Nac Home dancer-count labels now read “Dancers on the Floor.” Application commit `635ddf969d0ea27384f5b26e1f6784f7d45eae2e` is READY production deployment `dpl_BhiPngESvyfP7QVKKz4wFShCNjM3` on both Suite domains. The prior deployment `dpl_FtXbih6Sfw4LsHWsJEcFr1Ry5xsV` remains available.
+- Two focused suites passed 142 tests and the local and Vercel production builds passed. Read-only live verification on `www.yoursparklesuite.com/nic-nac` showed the exact new label in both cards. No account data or trade request changed.

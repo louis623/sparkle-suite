@@ -7956,3 +7956,7 @@ Lessons retained:
   session showed 7 available dancers, 0 new today, and both sound controls at
   12px/36px. A 390px viewport used two summary columns with no horizontal
   overflow; the normal viewport was restored. No production records changed.
+## September 24, 2026 - Dance Floor label correction
+
+- Louis requested “Dancers on the Floor” for the Dance Floor total. Updated that label in the Dance Floor and Nic-Nac Home summary cards and their assertions, with no count logic change.
+- Focused tests passed (142); local and Vercel builds passed. Pushed `635ddf969d0ea27384f5b26e1f6784f7d45eae2e` and manually released READY `dpl_BhiPngESvyfP7QVKKz4wFShCNjM3`. Vercel inspection showed www and apex Suite aliases on the same deployment. Read-only inspection of Louis’s already-open live Workspace tab confirmed the exact label on both surfaces (7 dancers at review time). No production record was edited.
