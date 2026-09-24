@@ -5,7 +5,6 @@ import { getTradeListingDisplayFields } from '@/lib/services/trade-listing-displ
 import {
   getBoardInventoryOptions,
   getBoardInventoryResults,
-  getCarouselWindow,
   hasActiveBoardInventoryBrowse,
 } from '@/lib/nic-nac/board-inventory-view'
 
@@ -125,7 +124,7 @@ const boardListings = [
 ]
 
 describe('board inventory browsing helpers', () => {
-  it('treats blank search and blank filters as inactive browse state', () => {
+  it('shows all available dancers when no filters are selected', () => {
     expect(
       hasActiveBoardInventoryBrowse({
         search: '   ',
@@ -139,14 +138,17 @@ describe('board inventory browsing helpers', () => {
         search: '',
         jewelryType: '',
         collection: '',
-      }),
-    ).toEqual([])
+      }).map((item) => item.id),
+    ).toEqual(['manual-ring', 'new-ring', 'necklace', 'old-ring'])
   })
 
   it('builds dropdown options from available active board pieces only', () => {
     expect(getBoardInventoryOptions(boardListings)).toEqual({
       jewelryTypes: ['NK', 'RG'],
       collections: ['Birthday', 'Celestial', 'July Birthday 2026'],
+      rarities: [],
+      materials: ['Shown in photo'],
+      sizes: ['7'],
     })
   })
 
@@ -211,27 +213,16 @@ describe('board inventory browsing helpers', () => {
     ).toEqual([])
   })
 
-  it('builds a clamped carousel window with boundary state and a range label', () => {
-    const firstWindow = getCarouselWindow(['a', 'b', 'c', 'd'], 0, 3)
-
-    expect(firstWindow).toEqual({
-      startIndex: 0,
-      endIndex: 3,
-      visibleItems: ['a', 'b', 'c'],
-      canGoPrevious: false,
-      canGoNext: true,
-      rangeLabel: 'Showing 1-3 of 4',
-    })
-
-    const finalWindow = getCarouselWindow(['a', 'b', 'c', 'd'], 8, 3)
-
-    expect(finalWindow).toEqual({
-      startIndex: 1,
-      endIndex: 4,
-      visibleItems: ['b', 'c', 'd'],
-      canGoPrevious: true,
-      canGoNext: false,
-      rangeLabel: 'Showing 2-4 of 4',
-    })
+  it('uses the customer view sort and size controls on the same available set', () => {
+    expect(getBoardInventoryResults(boardListings, {
+      search: '', jewelryType: '', collection: '', size: '7', sortMode: 'name',
+    }).map((item) => item.id)).toEqual(['manual-ring'])
+    expect(getBoardInventoryResults(boardListings, {
+      search: '', jewelryType: '', collection: '', material: 'Shown in photo',
+    }).map((item) => item.id)).toEqual(['manual-ring'])
+    expect(getBoardInventoryResults(boardListings, {
+      search: '', jewelryType: '', collection: '', sortMode: 'name',
+    }).map((item) => item.id)).toEqual(['necklace', 'new-ring', 'manual-ring', 'old-ring'])
   })
+
 })

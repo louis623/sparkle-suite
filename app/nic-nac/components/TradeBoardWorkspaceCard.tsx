@@ -1,8 +1,11 @@
 'use client'
 
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 
-import { getTradeListingDisplayFields } from '@/lib/services/trade-listing-display'
+import {
+  getTradeListingDisplayFields,
+  TRADE_LISTING_TYPE_LABELS,
+} from '@/lib/services/trade-listing-display'
 import type {
   BoardResult,
   FulfillmentQueueItem,
@@ -13,15 +16,14 @@ import type {
 import {
   getBoardInventoryOptions,
   getBoardInventoryResults,
-  getCarouselWindow,
+  getBoardInventoryMaterial,
   hasActiveBoardInventoryBrowse,
 } from '@/lib/nic-nac/board-inventory-view'
-import { buildCustomerTradeBoardHref } from '@/lib/nic-nac/rep-links'
 import { TradeScreenshotLink } from './TradeScreenshotLink'
 import surfaceStyles from './WorkspaceSurface.module.css'
 import styles from './TradeBoardWorkspaceCard.module.css'
 
-const BOARD_INVENTORY_MOBILE_QUERY = '(max-width: 840px)'
+const BOARD_GRID_PAGE_SIZE = 24
 
 type TradeBoardState = {
   status: 'loading' | 'ready' | 'error'
@@ -70,25 +72,10 @@ export type TradeBoardWorkspaceCardProps = {
     requestId: string,
     nextStatus: 'shipped' | 'completed',
   ) => void
-  customerBoardHref?: string
-  onOpenCustomerBoardPreview?: () => void
   hasMoreListings?: boolean
   onEnsureInventoryBrowseLoaded?: () => Promise<void>
   isInventoryBrowseLoading?: boolean
   onSoundSettingsTarget: (target: HTMLElement | null) => void
-}
-
-function subscribeBoardInventoryViewport(callback: () => void) {
-  if (typeof window === 'undefined') return () => {}
-
-  const mediaQuery = window.matchMedia(BOARD_INVENTORY_MOBILE_QUERY)
-  mediaQuery.addEventListener('change', callback)
-  return () => mediaQuery.removeEventListener('change', callback)
-}
-
-function getBoardInventoryPageSizeSnapshot() {
-  if (typeof window === 'undefined') return 3
-  return window.matchMedia(BOARD_INVENTORY_MOBILE_QUERY).matches ? 1 : 3
 }
 
 function getTradeListingPhotoUrl(listing: TradeListingWithDesign) {
@@ -126,8 +113,6 @@ export function TradeBoardWorkspaceCard({
   onRemoveListing,
   onReviewRequest,
   onAdvanceFulfillment,
-  customerBoardHref = buildCustomerTradeBoardHref(),
-  onOpenCustomerBoardPreview,
   hasMoreListings = false,
   onEnsureInventoryBrowseLoaded,
   isInventoryBrowseLoading = false,
@@ -138,7 +123,13 @@ export function TradeBoardWorkspaceCard({
   )
   const [inventoryJewelryType, setInventoryJewelryType] = useState('')
   const [inventoryCollection, setInventoryCollection] = useState('')
-  const [inventoryCarouselIndex, setInventoryCarouselIndex] = useState(0)
+  const [inventoryRarity, setInventoryRarity] = useState('')
+  const [inventoryMaterial, setInventoryMaterial] = useState('')
+  const [inventorySize, setInventorySize] = useState('')
+  const [inventorySortMode, setInventorySortMode] = useState<
+    'newest' | 'collection' | 'type' | 'rarity' | 'name'
+  >('newest')
+  const [inventoryVisibleCount, setInventoryVisibleCount] = useState(BOARD_GRID_PAGE_SIZE)
   const [isFilterDisclosureOpen, setIsFilterDisclosureOpen] = useState(false)
 
   const boardSummary = tradeBoardState.board?.summary
@@ -149,20 +140,15 @@ export function TradeBoardWorkspaceCard({
     search: tradeBoardSearchQuery,
     jewelryType: inventoryJewelryType,
     collection: inventoryCollection,
+    rarity: inventoryRarity,
+    material: inventoryMaterial,
+    size: inventorySize,
+    sortMode: inventorySortMode,
   }
   const hasActiveInventoryBrowse = hasActiveBoardInventoryBrowse(inventoryFilters)
   const inventoryOptions = getBoardInventoryOptions(boardListings)
   const inventoryResults = getBoardInventoryResults(boardListings, inventoryFilters)
-  const inventoryCarouselPageSize = useSyncExternalStore(
-    subscribeBoardInventoryViewport,
-    getBoardInventoryPageSizeSnapshot,
-    () => 3,
-  )
-  const carousel = getCarouselWindow(
-    inventoryResults,
-    inventoryCarouselIndex,
-    inventoryCarouselPageSize,
-  )
+  const visibleInventoryResults = inventoryResults.slice(0, inventoryVisibleCount)
   const requests = tradeRequestsState.requests ?? []
   const queueItems = fulfillmentQueueState.items ?? []
   const cleanupItems = tradeSwapCleanupState.items ?? []
@@ -172,19 +158,13 @@ export function TradeBoardWorkspaceCard({
     tradeRequestsState.status === 'ready' &&
     tradeSwapCleanupState.status === 'ready' &&
     fulfillmentQueueState.status === 'ready'
-  const hasActiveBrowseCriteria =
-    tradeBoardSearchQuery.trim() !== '' ||
-    inventoryJewelryType !== '' ||
-    inventoryCollection !== ''
-
   useEffect(() => {
     if (!hasMoreListings) return
-    if (!hasActiveBrowseCriteria && !isFilterDisclosureOpen) return
+    if (!hasActiveInventoryBrowse) return
     void onEnsureInventoryBrowseLoaded?.()
   }, [
-    hasActiveBrowseCriteria,
+    hasActiveInventoryBrowse,
     hasMoreListings,
-    isFilterDisclosureOpen,
     onEnsureInventoryBrowseLoaded,
   ])
 
@@ -192,7 +172,11 @@ export function TradeBoardWorkspaceCard({
     onTradeBoardSearchQueryChange('')
     setInventoryJewelryType('')
     setInventoryCollection('')
-    setInventoryCarouselIndex(0)
+    setInventoryRarity('')
+    setInventoryMaterial('')
+    setInventorySize('')
+    setInventorySortMode('newest')
+    setInventoryVisibleCount(BOARD_GRID_PAGE_SIZE)
     setIsFilterDisclosureOpen(false)
   }
 
@@ -201,34 +185,7 @@ export function TradeBoardWorkspaceCard({
       <section className={styles.heroCard}>
         <div className={styles.heroHeader}>
           <div>
-            <div className={surfaceStyles.cardTitle}>Dance Floor</div>
-            <div className={surfaceStyles.cardSubtitle}>
-              Keep today&apos;s swaps, quick adds, and Dance Floor checks moving without
-              digging through the whole queue.
-            </div>
-            <div className={surfaceStyles.helperNote}>
-              Live-show tip: ask customers to save a screenshot of their reveal before leaving it. They can crop personal or order details before uploading it with a request.
-            </div>
-          </div>
-          <div className={styles.heroActions}>
-            {onOpenCustomerBoardPreview ? (
-              <button
-                type="button"
-                className={surfaceStyles.helperButton}
-                onClick={onOpenCustomerBoardPreview}
-              >
-                Customer view
-              </button>
-            ) : (
-              <a
-                className={surfaceStyles.helperLink}
-                href={customerBoardHref}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Customer view
-              </a>
-            )}
+            <div className={surfaceStyles.cardTitle}>Dance Floor Management</div>
           </div>
         </div>
         {actionState.error ? (
@@ -346,7 +303,7 @@ export function TradeBoardWorkspaceCard({
           <div>
             <div className={surfaceStyles.walletSettingsTitle}>Browse dancers</div>
             <div className={surfaceStyles.helperNote}>
-              Start with search. Open filters only when you need a tighter match.
+              Browse the same dancers your customers see.
             </div>
           </div>
           <span className={surfaceStyles.rosterTag}>
@@ -359,19 +316,116 @@ export function TradeBoardWorkspaceCard({
         </div>
         {tradeBoardState.status === 'ready' && boardSummary ? (
           <>
-            <label className={surfaceStyles.searchField}>
-              <span className={surfaceStyles.searchLabel}>Search your active dancers</span>
-              <input
-                type="text"
-                className={`${surfaceStyles.searchInput} ph-no-capture`}
-                value={tradeBoardSearchQuery}
-                onChange={(event) => {
-                  setInventoryCarouselIndex(0)
-                  onTradeBoardSearchQueryChange(event.target.value)
-                }}
-                placeholder="Search by item number, design, or collection"
-              />
-            </label>
+            <div className={styles.boardSearchRow}>
+              <label className={surfaceStyles.searchField}>
+                <span className={surfaceStyles.searchLabel}>Search Dance Floor</span>
+                <input
+                  type="search"
+                  className={`${surfaceStyles.searchInput} ph-no-capture`}
+                  value={tradeBoardSearchQuery}
+                  onChange={(event) => {
+                    setInventoryVisibleCount(BOARD_GRID_PAGE_SIZE)
+                    onTradeBoardSearchQueryChange(event.target.value)
+                  }}
+                  placeholder="Search by dancer, collection, size"
+                />
+              </label>
+              <label className={surfaceStyles.searchField}>
+                <span className={surfaceStyles.searchLabel}>Sort dancers</span>
+                <select
+                  className={`${surfaceStyles.selectInput} ${styles.boardInventorySelect}`}
+                  value={inventorySortMode}
+                  onChange={(event) => {
+                    setInventoryVisibleCount(BOARD_GRID_PAGE_SIZE)
+                    setInventorySortMode(event.target.value as typeof inventorySortMode)
+                  }}
+                >
+                  <option value="newest">Newest added</option>
+                  <option value="collection">Collection</option>
+                  <option value="type">Jewelry type</option>
+                  <option value="rarity">Rare first</option>
+                  <option value="name">Dancer name</option>
+                </select>
+              </label>
+            </div>
+            <div className={styles.boardPrimaryFilters} aria-label="Dance Floor filters">
+              <div className={styles.boardFilterChips} aria-label="Filter by jewelry type">
+                <button
+                  type="button"
+                  className={inventoryJewelryType === '' ? styles.boardChipActive : styles.boardChip}
+                  onClick={() => {
+                    setInventoryJewelryType('')
+                    setInventoryVisibleCount(BOARD_GRID_PAGE_SIZE)
+                  }}
+                >
+                  All types
+                </button>
+                {inventoryOptions.jewelryTypes.map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    className={inventoryJewelryType === type ? styles.boardChipActive : styles.boardChip}
+                    onClick={() => {
+                      setInventoryJewelryType(type)
+                      setInventoryVisibleCount(BOARD_GRID_PAGE_SIZE)
+                    }}
+                  >
+                    {TRADE_LISTING_TYPE_LABELS[type as keyof typeof TRADE_LISTING_TYPE_LABELS]}
+                  </button>
+                ))}
+              </div>
+              <div className={styles.boardFilterChips} aria-label="Filter by rarity">
+                <button
+                  type="button"
+                  className={inventoryRarity === '' ? styles.boardChipActive : styles.boardChip}
+                  onClick={() => {
+                    setInventoryRarity('')
+                    setInventoryVisibleCount(BOARD_GRID_PAGE_SIZE)
+                  }}
+                >
+                  All rarity
+                </button>
+                {inventoryOptions.rarities.map((rarity) => (
+                  <button
+                    key={rarity}
+                    type="button"
+                    className={inventoryRarity === rarity ? styles.boardChipActive : styles.boardChip}
+                    onClick={() => {
+                      setInventoryRarity(rarity)
+                      setInventoryVisibleCount(BOARD_GRID_PAGE_SIZE)
+                    }}
+                  >
+                    {rarity === 'unicorn' ? 'Unicorn' : 'Diamond'}
+                  </button>
+                ))}
+              </div>
+              {inventoryOptions.collections.length > 0 ? (
+                <div className={styles.boardFilterChips} aria-label="Filter by collection">
+                  {inventoryOptions.collections.map((collection) => (
+                    <button
+                      key={collection}
+                      type="button"
+                      className={inventoryCollection === collection ? styles.boardChipActive : styles.boardChip}
+                      onClick={() => {
+                        setInventoryCollection(inventoryCollection === collection ? '' : collection)
+                        setInventoryVisibleCount(BOARD_GRID_PAGE_SIZE)
+                      }}
+                    >
+                      {collection}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            {hasActiveInventoryBrowse ? (
+              <button
+                type="button"
+                className={`${surfaceStyles.helperButton} ${styles.boardClearFilters}`}
+                onClick={handleResetInventoryBrowse}
+              >
+                Clear filters
+              </button>
+            ) : null}
             <details
               className={styles.filterDisclosure}
               open={isFilterDisclosureOpen}
@@ -384,103 +438,77 @@ export function TradeBoardWorkspaceCard({
               </summary>
               <div className={styles.filterGrid}>
                 <select
-                  aria-label="Jewelry Type"
-                  value={inventoryJewelryType}
+                  aria-label="Material"
+                  value={inventoryMaterial}
                   className={`${surfaceStyles.selectInput} ${styles.boardInventorySelect}`}
                   disabled={boardListings.length === 0}
                   onChange={(event) => {
-                    setInventoryCarouselIndex(0)
-                    setInventoryJewelryType(event.target.value)
+                    setInventoryVisibleCount(BOARD_GRID_PAGE_SIZE)
+                    setInventoryMaterial(event.target.value)
                   }}
                 >
-                  <option value="">Jewelry Type</option>
-                  {inventoryOptions.jewelryTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
+                  <option value="">All materials</option>
+                  {inventoryOptions.materials.map((material) => (
+                    <option key={material} value={material}>
+                      {material}
                     </option>
                   ))}
                 </select>
                 <select
-                  aria-label="Collection"
-                  value={inventoryCollection}
+                  aria-label="Size"
+                  value={inventorySize}
                   className={`${surfaceStyles.selectInput} ${styles.boardInventorySelect}`}
                   disabled={boardListings.length === 0}
                   onChange={(event) => {
-                    setInventoryCarouselIndex(0)
-                    setInventoryCollection(event.target.value)
+                    setInventoryVisibleCount(BOARD_GRID_PAGE_SIZE)
+                    setInventorySize(event.target.value)
                   }}
                 >
-                  <option value="">Collection</option>
-                  {inventoryOptions.collections.map((collection) => (
-                    <option key={collection} value={collection}>
-                      {collection}
+                  <option value="">All sizes</option>
+                  {inventoryOptions.sizes.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
                     </option>
                   ))}
                 </select>
-                {hasActiveInventoryBrowse ? (
-                  <button
-                    type="button"
-                    className={`${surfaceStyles.helperButton} ${styles.inventoryButton}`}
-                    onClick={handleResetInventoryBrowse}
-                  >
-                    Reset
-                  </button>
-                ) : null}
               </div>
             </details>
-            {hasActiveInventoryBrowse ? (
-              inventoryResults.length > 0 ? (
+            {inventoryResults.length > 0 ? (
                 <div
-                  className={styles.boardInventoryCarousel}
-                  aria-label="Filtered active dancers"
+                  className={styles.boardInventoryGridShell}
+                  aria-label="Dance Floor dancers"
                 >
-                  <div className={styles.boardInventoryCarouselHeader}>
-                    <span className={surfaceStyles.helperNote}>{carousel.rangeLabel}</span>
-                    <div className={styles.boardInventoryArrowGroup}>
-                      <button
-                        type="button"
-                        className={`${surfaceStyles.helperButton} ${styles.inventoryButton}`}
-                        disabled={!carousel.canGoPrevious}
-                        onClick={() =>
-                          setInventoryCarouselIndex(
-                            Math.max(0, carousel.startIndex - inventoryCarouselPageSize),
-                          )
-                        }
-                        aria-label="Previous Dance Floor dancers"
-                      >
-                        Previous
-                      </button>
-                      <button
-                        type="button"
-                        className={`${surfaceStyles.helperButton} ${styles.inventoryButton}`}
-                        disabled={!carousel.canGoNext}
-                        onClick={() =>
-                          setInventoryCarouselIndex(
-                            carousel.startIndex + inventoryCarouselPageSize,
-                          )
-                        }
-                        aria-label="Next Dance Floor dancers"
-                      >
-                        Next
-                      </button>
-                    </div>
+                  <div className={styles.boardInventoryGridHeader}>
+                    <span className={surfaceStyles.helperNote}>
+                      Showing {visibleInventoryResults.length} of {hasActiveInventoryBrowse
+                        ? `${inventoryResults.length}${hasMoreListings ? '+' : ''}`
+                        : boardSummary.availableDancerCount ?? `${inventoryResults.length}${hasMoreListings ? '+' : ''}`} dancers
+                    </span>
                   </div>
                   {isInventoryBrowseLoading ? (
                     <div className={surfaceStyles.helperNote}>Loading Dance Floor dancers...</div>
                   ) : null}
-                  <div className={styles.boardInventoryCarouselGrid}>
-                    {carousel.visibleItems.map((listing) => {
+                  <div className={styles.boardInventoryGrid}>
+                    {visibleInventoryResults.map((listing) => {
                       const photoUrl = getTradeListingPhotoUrl(listing)
                       const display = getTradeListingDisplayFields(listing)
+                      const material = getBoardInventoryMaterial(listing)
+                      const stone = display.mainStone ?? (display.listingSource === 'non_item_number' ? 'Shown in photo' : null)
+                      const rarity = listing.rarity_classification ?? listing.design?.rarity_classification ?? 'standard'
                       return (
-                        <div key={listing.id} className={styles.boardInventoryPieceCard}>
+                        <article key={listing.id} className={styles.boardInventoryPieceCard}>
                           <button
                             type="button"
                             className={styles.boardInventoryMediaButton}
-                            aria-label={`Open image preview for ${display.designName}`}
+                            aria-label={`View ${display.designName}`}
                             onClick={() => setPreviewListing(listing)}
                           >
                             <span className={styles.boardInventoryMedia}>
+                              {rarity !== 'standard' ? (
+                                <span className={styles.boardRarityBadge}>
+                                  {rarity === 'unicorn' ? 'Unicorn' : 'Diamond'}
+                                </span>
+                              ) : null}
                               {photoUrl ? (
                                 <img
                                   className={styles.tradePieceImage}
@@ -496,19 +524,22 @@ export function TradeBoardWorkspaceCard({
                             </span>
                           </button>
                           <div className={styles.boardInventoryPieceBody}>
+                            <div className={styles.boardCardCollection}>{display.collectionName ?? 'Jewelry'}</div>
                             <div className={styles.customerName}>{display.designName}</div>
                             <div className={styles.tradePieceMetaLine}>
-                              {display.itemNumber
-                                ? `${display.itemNumber}${display.material ? ` · ${display.material}` : ''}${display.mainStone ? ` · ${display.mainStone}` : ''}`
-                                : display.repFacingNote}
-                            </div>
-                            <div className={styles.tradePieceMetaLine}>
-                              {display.typePrefix}
-                              {display.collectionName ? ` - ${display.collectionName}` : ''}
+                              {display.typeLabel}{display.size ? ` · Size ${display.size}` : ''}
                             </div>
                             <div className={styles.tradePieceQuantity}>
                               {Math.max(0, listing.quantity_available ?? 1)} available
                             </div>
+                            {material || stone ? (
+                              <div className={styles.tradePieceMetaLine}>
+                                {[material, stone].filter(Boolean).join(' · ')}
+                              </div>
+                            ) : null}
+                            <button type="button" className={styles.boardCardViewButton} onClick={() => setPreviewListing(listing)}>
+                              View dancer
+                            </button>
                           </div>
                           <button
                             type="button"
@@ -520,25 +551,34 @@ export function TradeBoardWorkspaceCard({
                               ? 'Removing...'
                               : 'Remove'}
                           </button>
-                        </div>
+                        </article>
                       )
                     })}
                   </div>
+                  {inventoryVisibleCount < inventoryResults.length || hasMoreListings ? (
+                    <button
+                      type="button"
+                      className={`${surfaceStyles.helperButton} ${styles.boardLoadMore}`}
+                      disabled={isInventoryBrowseLoading}
+                      onClick={async () => {
+                        if (inventoryVisibleCount >= inventoryResults.length && hasMoreListings) {
+                          await onEnsureInventoryBrowseLoaded?.()
+                        }
+                        setInventoryVisibleCount((count) => count + BOARD_GRID_PAGE_SIZE)
+                      }}
+                    >
+                      {isInventoryBrowseLoading ? 'Loading dancers…' : 'Load more'}
+                    </button>
+                  ) : null}
                 </div>
-              ) : (
+            ) : (
                 <div className={surfaceStyles.emptyState}>
                   {isInventoryBrowseLoading
                     ? 'Loading Dance Floor dancers...'
-                    : 'No live dancers match that search. Reset filters or try another keyword.'}
+                    : boardListings.length === 0
+                      ? 'Your Dance Floor is empty. Add a dancer to show it here.'
+                      : 'No dancers match these filters. Clear filters or try another search.'}
                 </div>
-              )
-            ) : (
-              <div
-                className={styles.browseHint}
-                aria-label="Search the Dance Floor or open filters to find a live dancer."
-              >
-                Search by item number, design, or collection to pull up a live dancer fast.
-              </div>
             )}
             {previewListing ? (() => {
               const previewDisplay = getTradeListingDisplayFields(previewListing)
@@ -548,7 +588,7 @@ export function TradeBoardWorkspaceCard({
                   className={styles.imagePreviewMask}
                   role="dialog"
                   aria-modal="true"
-                  aria-label={`${previewDisplay.designName} image preview`}
+                  aria-label={`${previewDisplay.designName} dancer details`}
                   onClick={() => setPreviewListing(null)}
                 >
                   <div
@@ -579,6 +619,17 @@ export function TradeBoardWorkspaceCard({
                     <div className={surfaceStyles.walletSettingsTitle}>
                       {previewDisplay.designName}
                     </div>
+                    <div className={surfaceStyles.helperNote}>
+                      {[previewDisplay.collectionName, previewDisplay.typeLabel, previewDisplay.size ? `Size ${previewDisplay.size}` : null].filter(Boolean).join(' · ')}
+                    </div>
+                    <div className={surfaceStyles.helperNote}>
+                      {Math.max(0, previewListing.quantity_available ?? 1)} available
+                      {getBoardInventoryMaterial(previewListing) ? ` · ${getBoardInventoryMaterial(previewListing)}` : ''}
+                      {previewDisplay.mainStone ? ` · ${previewDisplay.mainStone}` : ''}
+                    </div>
+                    {previewDisplay.itemNumber ? (
+                      <div className={surfaceStyles.helperNote}>Item {previewDisplay.itemNumber}</div>
+                    ) : null}
                     <div className={surfaceStyles.helperNote}>
                       Image source: {getTradeListingPhotoSourceLabel(previewListing)}
                     </div>

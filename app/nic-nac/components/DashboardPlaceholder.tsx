@@ -264,7 +264,7 @@ const SECONDARY_WORKSPACE_SECTIONS = [
 
 const TRADE_WORKSPACE_REFRESH_MS = 15_000
 const MESSAGE_CENTER_REFRESH_MS = 60_000
-const TRADE_BOARD_PAGE_SIZE = 12
+const TRADE_BOARD_PAGE_SIZE = 24
 export function buildTradeBoardFetchUrl(options: { offset?: number } = {}) {
   const params = new URLSearchParams({
     status: 'available',
@@ -6407,21 +6407,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     : currentRepId
       ? `/amethyst/Join.html?c=${encodeURIComponent(currentRepId)}`
       : '/amethyst/Join.html'
-  const customerTradeBoardHref = buildCustomerTradeBoardHref({
-    repId: repIdOverride ?? repProfileState.repId,
-    publicSiteSlug: publicSiteSlugOverride ?? repProfileState.publicSiteSlug,
-  })
   const openWorkspacePreview = (nextPreview: Extract<WorkspacePreviewState, { mode: 'live_site_preview' }>) => {
     setPreviewUnavailableMessage(null)
     setWorkspacePreview(nextPreview)
     setPreviewFrameKey((current) => current + 1)
-  }
-  const handleOpenTradeBoardPreview = () => {
-    openWorkspacePreview({
-      mode: 'live_site_preview',
-      href: customerTradeBoardHref,
-      title: 'Customer Dance Floor Preview',
-    })
   }
   const handleOpenCustomerSitePreview = () => {
     if (!customerSparkleSitePreviewHref) return
@@ -6598,8 +6587,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           onRemoveListing={handleRemoveTradeListing}
           onReviewRequest={(requestId, action) => void openTradeReview(requestId, action)}
           onAdvanceFulfillment={handleAdvanceFulfillment}
-          customerBoardHref={customerTradeBoardHref}
-          onOpenCustomerBoardPreview={handleOpenTradeBoardPreview}
           hasMoreListings={tradeBoardState.hasMoreListings === true}
           onEnsureInventoryBrowseLoaded={handleEnsureInventoryBrowseLoaded}
           isInventoryBrowseLoading={

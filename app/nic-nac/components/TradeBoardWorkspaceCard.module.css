@@ -53,13 +53,6 @@
   gap: 10px;
 }
 
-.heroActions {
-  width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
 .summaryStats {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -111,10 +104,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(64, 41, 36, 0.08);
-  background: rgba(252, 248, 246, 0.9);
-  padding: 10px;
+  border: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .filterSummary {
@@ -151,21 +143,13 @@
 
 .filterGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   align-items: center;
-}
-
-.browseHint {
-  border-radius: 8px;
-  border: 1px dashed rgba(64, 41, 36, 0.14);
-  background: rgba(255, 252, 249, 0.84);
-  color: var(--nic-nac-text-secondary);
-  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.5;
-  padding: 14px;
+  border: 1px solid rgba(64, 41, 36, 0.08);
+  border-radius: 10px;
+  background: rgba(252, 248, 246, 0.9);
+  padding: 10px;
 }
 
 .customerName {
@@ -268,6 +252,54 @@
   min-height: 42px;
 }
 
+.boardSearchRow {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(180px, 1fr);
+  align-items: end;
+  gap: 12px;
+}
+
+.boardPrimaryFilters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 36px;
+}
+
+.boardClearFilters {
+  align-self: flex-start;
+}
+
+.boardFilterChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.boardChip,
+.boardChipActive {
+  border: 1px solid #d8c9e8;
+  border-radius: 999px;
+  background: #fff;
+  color: #453459;
+  font: 800 12px/1.3 var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  padding: 8px 13px;
+  cursor: pointer;
+}
+
+.boardChipActive {
+  border-color: #ad5ad9;
+  background: #f4dcff;
+  color: #321845;
+}
+
+.boardChip:focus-visible,
+.boardChipActive:focus-visible,
+.boardCardViewButton:focus-visible {
+  outline: 2px solid var(--nic-nac-focus-ring);
+  outline-offset: 2px;
+}
+
 .inventoryButton {
   white-space: nowrap;
   background: rgba(255, 255, 255, 0.94);
@@ -286,17 +318,13 @@
   opacity: 0.54;
 }
 
-.boardInventoryRemoveButton {
-  width: 100%;
-}
-
-.boardInventoryCarousel {
+.boardInventoryGridShell {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.boardInventoryCarouselHeader {
+.boardInventoryGridHeader {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -304,29 +332,22 @@
   gap: 8px;
 }
 
-.boardInventoryArrowGroup {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 6px;
-}
-
-.boardInventoryCarouselGrid {
+.boardInventoryGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .boardInventoryPieceCard {
   min-width: 0;
   display: grid;
-  grid-template-rows: auto minmax(96px, 1fr) auto;
-  gap: 10px;
-  border-radius: 8px;
+  grid-template-rows: auto 1fr auto;
+  gap: 0;
+  overflow: hidden;
+  border-radius: 20px;
   border: 1px solid var(--nic-nac-border);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 247, 0.92));
-  padding: 10px;
 }
 
 .boardInventoryMedia,
@@ -337,9 +358,8 @@
 }
 
 .boardInventoryMedia {
+  position: relative;
   overflow: hidden;
-  border-radius: 8px;
-  border: 1px solid var(--nic-nac-border);
   background:
     linear-gradient(135deg, rgba(255, 212, 234, 0.48), rgba(225, 250, 245, 0.62));
 }
@@ -382,10 +402,57 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  padding: 13px;
+}
+
+.boardRarityBadge {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  left: 10px;
+  border-radius: 999px;
+  background: #2f174b;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+  padding: 5px 10px;
+}
+
+.boardCardCollection {
+  color: #64477c;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.boardCardViewButton {
+  margin-top: auto;
+  border: 0;
+  border-radius: 10px;
+  background: #7135b6;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 850;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.boardLoadMore {
+  align-self: center;
 }
 
 .boardInventoryPieceBody .customerName {
   overflow-wrap: anywhere;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.boardInventoryRemoveButton {
+  width: auto;
+  margin: 0 13px 13px;
 }
 
 .tradePieceMetaLine {
@@ -491,8 +558,7 @@
 
 :global(.main[data-workspace-skin='black_diamond']) .tradeScreenshotLink,
 :global(.main[data-workspace-skin='black_diamond']) .filterDisclosure,
-:global(.main[data-workspace-skin='black_diamond']) .filterSummary,
-:global(.main[data-workspace-skin='black_diamond']) .browseHint {
+:global(.main[data-workspace-skin='black_diamond']) .filterSummary {
   background: rgba(0, 217, 255, 0.08);
   border-color: rgba(0, 217, 255, 0.24);
 }
@@ -502,6 +568,16 @@
 :global(.main[data-workspace-skin='black_diamond']) .tradeMeta,
 :global(.main[data-workspace-skin='black_diamond']) .summaryLabel {
   color: #d8cbbd;
+}
+
+:global(.main[data-workspace-skin='black_diamond']) .boardCardCollection {
+  color: #ead4ff;
+}
+
+:global(.main[data-workspace-skin='black_diamond']) .boardChip {
+  border-color: rgba(244, 207, 98, .3);
+  background: #302720;
+  color: #f8efe4;
 }
 
 :global(.main[data-workspace-skin='black_diamond']) .summaryCount,
@@ -533,11 +609,6 @@
     justify-content: space-between;
   }
 
-  .heroActions {
-    width: auto;
-    justify-content: flex-end;
-  }
-
   .tradeRow {
     gap: 12px;
   }
@@ -546,8 +617,15 @@
 @container (max-width: 560px) {
   .quickAddRow,
   .filterGrid,
-  .boardInventoryCarouselGrid {
+  .boardSearchRow,
+  .boardInventoryGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@container (max-width: 1000px) and (min-width: 561px) {
+  .boardInventoryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -588,22 +666,23 @@
     gap: 8px;
   }
 
-  .boardInventoryCarouselGrid {
-    grid-template-columns: 1fr;
+  .boardInventoryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .inventoryButton {
     width: 100%;
   }
 
-  .boardInventoryCarouselHeader {
+  .boardInventoryGridHeader {
     align-items: stretch;
   }
 
-  .boardInventoryArrowGroup {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@container (max-width: 520px) {
+  .boardInventoryGrid {
+    grid-template-columns: 1fr;
   }
 }
 .tradeException{background:#fff0db;border:1px solid #cb7a24;border-radius:8px;padding:8px;margin-top:8px;color:#65340c}

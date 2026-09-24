@@ -106,7 +106,7 @@ import { getHelpResources } from '@/lib/services/help-resources'
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Dance Floor|Today(?:&#x27;|')s trade work|Quick add|Browse dancers|Request inbox|Trade follow-up|Fulfillment queue)</g,
+      />(Dance Floor Management|Today(?:&#x27;|')s trade work|Quick add|Browse dancers|Request inbox|Trade follow-up|Fulfillment queue)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -2393,7 +2393,7 @@ describe('DashboardPlaceholder', () => {
     expect(source).not.toContain("if (activeSection !== 'trade-board') return\n\n    const refreshAfterNicNacMutation")
   })
 
-  it('keeps customer board previews inside the Nic-Nac workspace shell', () => {
+  it('keeps site previews inside the Nic-Nac workspace shell without a separate Dance Floor preview', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
       'utf8',
@@ -2401,7 +2401,7 @@ describe('DashboardPlaceholder', () => {
 
     expect(source).toContain('type WorkspacePreviewState')
     expect(source).not.toContain('handleOpenLiveSitePreview')
-    expect(source).toContain('handleOpenTradeBoardPreview')
+    expect(source).not.toContain('handleOpenTradeBoardPreview')
     expect(source).toContain('workspacePreview.mode === \'live_site_preview\'')
     expect(source).toContain('Live Site Preview')
     expect(source).toContain('Back to workspace')
@@ -2494,7 +2494,7 @@ describe('DashboardPlaceholder', () => {
     expect(css).toContain('min-height: 68vh')
   })
 
-  it('renders board inventory piece cards after active search with a customer preview link', () => {
+  it('renders matching customer-style dancer cards after a search', () => {
     const html = renderToStaticMarkup(
       createElement(TradeBoardWorkspaceCard, {
         tradeBoardState: TRADE_BOARD_READY_STATE,
@@ -2510,27 +2510,25 @@ describe('DashboardPlaceholder', () => {
         onApproveRequest: () => {},
         onRejectRequest: () => {},
         onAdvanceFulfillment: () => {},
-        customerBoardHref: '/amethyst/Trade.html?c=rep-1',
       }),
     )
 
-    expect(html).toContain('Customer view')
-    expect(html).toContain('href="/amethyst/Trade.html?c=rep-1"')
-    expect(html).toContain('target="_blank"')
+    expect(html).toContain('Dance Floor Management')
+    expect(html).not.toContain('Customer view')
     expect(html).toContain('src="https://cdn.example.com/sapphire-halo.jpg"')
-    expect(html).toContain('Open image preview for Sapphire Halo')
+    expect(html).toContain('View Sapphire Halo')
     expect(html).toContain('type="button"')
-    expect(html).toContain('aria-label="Filtered active dancers"')
+    expect(html).toContain('aria-label="Dance Floor dancers"')
     expect(html).toContain('alt="Sapphire Halo"')
     expect(html).toContain('Sapphire Halo')
-    expect(html).toContain('RG100 · Sterling · Sapphire')
-    expect(html).toContain('Showing 1-1 of 1')
+    expect(html).toContain('Sterling · Sapphire')
+    expect(html).toContain('Showing 1 of 1 dancers')
     expect(html).toContain('Remove')
-    expect(html).toContain('Reset')
+    expect(html).toContain('Clear filters')
     expect(html).not.toContain('Rose Quartz Stack')
   })
 
-  it('keeps board inventory quiet by default while still showing browse filters', () => {
+  it('shows the available customer-style grid by default with the same browse controls', () => {
     const html = renderToStaticMarkup(
       createElement(TradeBoardWorkspaceCard, {
         tradeBoardState: TRADE_BOARD_READY_STATE,
@@ -2552,30 +2550,43 @@ describe('DashboardPlaceholder', () => {
     )
 
     expect(getTradeBoardSectionLabels(html)).toEqual([
-      'Dance Floor',
+      'Dance Floor Management',
       "Today's trade work",
       'Quick add',
       'Browse dancers',
     ])
-    expect(html).toContain('Jewelry Type')
+    expect(html).toContain('Jewelry type')
     expect(html).toContain('Collection')
     expect(html).toContain(
       'Everything is caught up. New requests, trade follow-up, and fulfillment work will land here.',
     )
     expect(html).toContain('Know the item number? Add a dancer in one step.')
     expect(html).toContain(
-      'Start with search. Open filters only when you need a tighter match.',
+      'Browse the same dancers your customers see.',
     )
     expect(html).toContain('More filters')
-    expect(html).toContain(
-      'Search by item number, design, or collection to pull up a live dancer fast.',
-    )
+    expect(html).toContain('Search Dance Floor')
+    expect(html).toContain('Sort dancers')
+    expect(html).toContain('All types')
+    expect(html).toContain('All rarity')
+    expect(html).toContain('Sapphire Halo')
+    expect(html).toContain('Rose Quartz Stack')
     expect(html).not.toContain('Default landing section')
     expect(html).not.toContain('Request inbox')
     expect(html).not.toContain('Trade follow-up')
     expect(html).not.toContain('Fulfillment queue')
-    expect(html).not.toContain('Load more')
+    expect(html).toContain('Loading dancers')
     expect(html).not.toContain('Loading board pieces...')
+  })
+
+  it('lets Home metric badges grow for double and triple digit counts', () => {
+    const css = readFileSync(
+      resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.module.css'),
+      'utf8',
+    )
+    expect(css).toMatch(/\.metricRow\s*\{[^}]*grid-template-columns:\s*max-content minmax\(0, 1fr\)/s)
+    expect(css).toMatch(/\.metricRow span\s*\{[^}]*width:\s*max-content/s)
+    expect(css).toMatch(/\.metricRow span\s*\{[^}]*white-space:\s*nowrap/s)
   })
 
   it('renders trade follow-up items in the Dance Floor workspace', () => {
@@ -2655,10 +2666,10 @@ describe('DashboardPlaceholder', () => {
 
   it('builds active dance floor fetch URLs with limit and offset', () => {
     expect(buildTradeBoardFetchUrl()).toBe(
-      '/api/nic-nac/trade-board?status=available&limit=12',
+      '/api/nic-nac/trade-board?status=available&limit=24',
     )
     expect(buildTradeBoardFetchUrl({ offset: 24 })).toBe(
-      '/api/nic-nac/trade-board?status=available&limit=12&offset=24',
+      '/api/nic-nac/trade-board?status=available&limit=24&offset=24',
     )
   })
 

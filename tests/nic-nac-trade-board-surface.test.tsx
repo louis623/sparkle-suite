@@ -52,7 +52,7 @@ function hasNestedDeclaration(
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Dance Floor|Today(?:&#x27;|')s trade work|Quick add|Browse dancers|Request inbox|Trade follow-up|Fulfillment queue)</g,
+      />(Dance Floor Management|Today(?:&#x27;|')s trade work|Quick add|Browse dancers|Request inbox|Trade follow-up|Fulfillment queue)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -157,7 +157,7 @@ describe('Nic-Nac dance floor surface reset', () => {
     )
 
     for (const selector of [
-      '.boardInventoryCarousel',
+      '.boardInventoryGridShell',
       '.boardInventoryPieceCard',
       '.tradeScreenshotLink',
       '.imagePreviewMask',
@@ -364,7 +364,7 @@ describe('Nic-Nac dance floor surface reset', () => {
       }),
     )
     expect(getTradeBoardSectionLabels(html)).toEqual([
-      'Dance Floor',
+      'Dance Floor Management',
       "Today's trade work",
       'Quick add',
       'Browse dancers',
@@ -407,7 +407,7 @@ describe('Nic-Nac dance floor surface reset', () => {
       hasDeclaration(
         tradeBoardCss,
         '.filterGrid',
-        'grid-template-columns: repeat(2, minmax(0, 1fr)) auto',
+        'grid-template-columns: repeat(2, minmax(0, 1fr))',
       ),
     ).toBe(true)
     expect(
@@ -440,8 +440,8 @@ describe('Nic-Nac dance floor surface reset', () => {
     expect(
       hasNestedDeclaration(
         tradeBoardCss,
-        '@media (max-width: 840px)',
-        '.boardInventoryCarouselGrid',
+        '@container (max-width: 520px)',
+        '.boardInventoryGrid',
         'grid-template-columns: 1fr',
       ),
     ).toBe(true)

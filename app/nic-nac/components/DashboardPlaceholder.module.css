@@ -992,14 +992,18 @@
 
 .metricRow {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
   column-gap: 8px;
 }
 
 .metricRow span {
-  width: 28px;
-  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  width: max-content;
+  box-sizing: border-box;
+  padding: 0 6px;
+  white-space: nowrap;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
