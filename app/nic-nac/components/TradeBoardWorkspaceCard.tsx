@@ -8,7 +8,8 @@ import {
 } from '@/lib/services/trade-listing-display'
 import type {
   BoardResult,
-  FulfillmentQueueItem,
+  FulfillmentLogFilter,
+  FulfillmentLogItem,
   TradeListingWithDesign,
   TradeRequestWithListing,
   TradeSwapCleanupItem,
@@ -45,7 +46,11 @@ type TradeRequestsState = {
 
 type FulfillmentQueueState = {
   status: 'loading' | 'ready' | 'error'
-  items?: FulfillmentQueueItem[]
+  items?: FulfillmentLogItem[]
+  total?: number
+  totalOpen?: number
+  page?: number
+  pageSize?: number
 }
 
 type TradeSwapCleanupState = {
@@ -64,13 +69,16 @@ export type TradeBoardWorkspaceCardProps = {
   tradeRequestsState: TradeRequestsState
   inboxLoadError?: boolean
   fulfillmentQueueState: FulfillmentQueueState
+  fulfillmentLogView?: { filter: FulfillmentLogFilter; page: number }
+  onFulfillmentLogViewChange?: (view: { filter: FulfillmentLogFilter; page: number }) => void
   tradeSwapCleanupState?: TradeSwapCleanupState
   onQuickAddListing: () => void
   onRemoveListing: (listingId: string) => void
   onReviewRequest: (requestId: string, action?: 'approve' | 'reject') => void
   onAdvanceFulfillment: (
     requestId: string,
-    nextStatus: 'shipped' | 'completed',
+    nextStatus: 'approved' | 'shipped' | 'completed',
+    shippingNotes?: string,
   ) => void
   hasMoreListings?: boolean
   onEnsureInventoryBrowseLoaded?: () => Promise<void>
@@ -91,10 +99,19 @@ function getTradeListingPhotoSourceLabel(listing: TradeListingWithDesign) {
   return 'no photo yet'
 }
 
-function getNextFulfillmentStatus(status: FulfillmentQueueItem['status']) {
-  if (status === 'approved') return 'shipped'
-  if (status === 'shipped') return 'completed'
-  return null
+export function formatFulfillmentTime(value: string) {
+  const date = new Date(value)
+  return Number.isFinite(date.getTime())
+    ? new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short',
+      }).format(date)
+    : value
 }
 
 export function TradeBoardWorkspaceCard({
@@ -108,6 +125,8 @@ export function TradeBoardWorkspaceCard({
   tradeRequestsState,
   inboxLoadError = false,
   fulfillmentQueueState,
+  fulfillmentLogView = { filter: 'open', page: 1 },
+  onFulfillmentLogViewChange = () => {},
   tradeSwapCleanupState = { status: 'ready', items: [] },
   onQuickAddListing,
   onRemoveListing,
@@ -131,6 +150,7 @@ export function TradeBoardWorkspaceCard({
   >('newest')
   const [inventoryVisibleCount, setInventoryVisibleCount] = useState(BOARD_GRID_PAGE_SIZE)
   const [isFilterDisclosureOpen, setIsFilterDisclosureOpen] = useState(false)
+  const [shippingNoteDrafts, setShippingNoteDrafts] = useState<Record<string, string>>({})
 
   const boardSummary = tradeBoardState.board?.summary
   const boardListings = (visibleListings ?? tradeBoardState.board?.listings ?? []).filter(
@@ -151,9 +171,11 @@ export function TradeBoardWorkspaceCard({
   const visibleInventoryResults = inventoryResults.slice(0, inventoryVisibleCount)
   const requests = tradeRequestsState.requests ?? []
   const queueItems = fulfillmentQueueState.items ?? []
+  const fulfillmentPageSize = fulfillmentQueueState.pageSize ?? 10
+  const openFulfillmentCount = fulfillmentQueueState.totalOpen ?? 0
   const cleanupItems = tradeSwapCleanupState.items ?? []
   const pendingCount = tradeRequestsState.pendingCount
-  const tradeWorkCount = (pendingCount ?? requests.length) + cleanupItems.length + queueItems.length
+  const tradeWorkCount = (pendingCount ?? requests.length) + cleanupItems.length + openFulfillmentCount
   const tradeStatusReady =
     tradeRequestsState.status === 'ready' &&
     tradeSwapCleanupState.status === 'ready' &&
@@ -247,11 +269,11 @@ export function TradeBoardWorkspaceCard({
           </div>
           <div
             className={`${styles.summaryStat} ${
-              queueItems.length > 0 ? styles.summaryStatActive : ''
+              openFulfillmentCount > 0 ? styles.summaryStatActive : ''
             }`}
           >
             <span className={styles.summaryCount}>
-              {fulfillmentQueueState.status === 'ready' ? queueItems.length : '...'}
+              {fulfillmentQueueState.totalOpen ?? '...'}
             </span>
             <span className={styles.summaryLabel}>Fulfillment swaps</span>
           </div>
@@ -296,6 +318,104 @@ export function TradeBoardWorkspaceCard({
             <div className={surfaceStyles.loadingLineShort} />
           </div>
         )}
+      </section>
+
+      <section className={styles.sectionCard} id="trade-fulfillment-log">
+        <div className={styles.sectionHeader}>
+          <div>
+            <div className={surfaceStyles.walletSettingsTitle}>Trade fulfillment log</div>
+            <div className={surfaceStyles.helperNote}>
+              Track approved swaps and mark post-show logistics done. Recent 90 days stay here for reference.
+            </div>
+          </div>
+          <span className={surfaceStyles.rosterTag}>{openFulfillmentCount} open</span>
+        </div>
+        <div className={styles.fulfillmentTabs} role="group" aria-label="Trade fulfillment filter">
+          {(['open', 'done', 'all'] as const).map((filter) => (
+            <button key={filter} type="button"
+              className={fulfillmentLogView.filter === filter ? styles.boardChipActive : styles.boardChip}
+              aria-pressed={fulfillmentLogView.filter === filter}
+              onClick={() => onFulfillmentLogViewChange({ filter, page: 1 })}>
+              {filter === 'open' ? 'Open' : filter === 'done' ? 'Done' : 'All'}
+            </button>
+          ))}
+        </div>
+        {fulfillmentQueueState.status === 'error' ? (
+          <p role="alert" className={surfaceStyles.helperNote}>Could not load the trade log. Try another tab to retry.</p>
+        ) : fulfillmentQueueState.status === 'loading' ? (
+          <div className={surfaceStyles.cardFill}><div className={surfaceStyles.loadingLine} /></div>
+        ) : queueItems.length === 0 ? (
+          <p className={surfaceStyles.helperNote}>
+            {fulfillmentLogView.filter === 'all'
+              ? 'No trades in the last 90 days.'
+              : `No ${fulfillmentLogView.filter} trades in the last 90 days.`}
+          </p>
+        ) : (
+          <div className={styles.tradeList}>
+            {queueItems.map((item) => {
+              const notes = shippingNoteDrafts[item.fulfillmentId] ?? item.shippingNotes
+              const pending = actionState.pendingKey === `fulfillment:${item.requestId}`
+              return <article key={item.fulfillmentId} className={styles.tradeRow}>
+                <div className={styles.fulfillmentRowHeader}>
+                  <div className={styles.tradeIdentity}>
+                    <strong className={styles.customerName}>{item.customerName}</strong>
+                    <span className={styles.customerDate}>
+                      Approved <time dateTime={item.approvedAt}>{formatFulfillmentTime(item.approvedAt)}</time>
+                      {' · '}Updated <time dateTime={item.statusUpdatedAt}>{formatFulfillmentTime(item.statusUpdatedAt)}</time>
+                      {' · '}{item.status}
+                    </span>
+                  </div>
+                  <label className={styles.fulfillmentDoneControl}>
+                    <input type="checkbox" checked={item.status === 'completed'} disabled={pending}
+                      onChange={() => onAdvanceFulfillment(item.requestId,
+                        item.status === 'completed' ? 'approved' : 'completed')} />
+                    <span>{pending ? 'Saving…' : item.status === 'completed' ? 'Done' : 'Mark done'}</span>
+                  </label>
+                </div>
+                <div className={styles.fulfillmentPieces}>
+                  <div><span className={styles.fulfillmentFieldLabel}>Gave</span><span>{item.gave}</span></div>
+                  <div><span className={styles.fulfillmentFieldLabel}>Got / reveal</span><span>{item.got}</span></div>
+                </div>
+                {item.hasRevealScreenshot ? (
+                  <TradeScreenshotLink requestId={item.requestId} customerName={item.customerName}
+                    className={styles.tradeScreenshotLink} imageClassName={styles.tradeScreenshotThumb}>
+                    <span>View protected reveal screenshot</span>
+                  </TradeScreenshotLink>
+                ) : <span className={surfaceStyles.helperNote}>Reveal screenshot unavailable or expired</span>}
+                <div className={styles.fulfillmentNotesRow}>
+                  <label className={surfaceStyles.searchField}>
+                    <span className={surfaceStyles.searchLabel}>Shipping notes</span>
+                    <input type="text" maxLength={300} className={`${surfaceStyles.searchInput} ph-no-capture`}
+                      value={notes} onChange={(event) => setShippingNoteDrafts((drafts) => ({
+                        ...drafts, [item.fulfillmentId]: event.target.value,
+                      }))} placeholder="Tracking, swap details, or pickup" />
+                  </label>
+                  <button type="button" className={surfaceStyles.helperButton}
+                    disabled={pending || notes === item.shippingNotes}
+                    onClick={() => onAdvanceFulfillment(item.requestId, item.status, notes)}>
+                    Save note
+                  </button>
+                </div>
+                <span className={styles.fulfillmentId}>Request {item.requestId} · Trade {item.fulfillmentId}</span>
+              </article>
+            })}
+          </div>
+        )}
+        {(fulfillmentQueueState.total ?? 0) > fulfillmentPageSize ? (
+          <div className={styles.fulfillmentPagination}>
+            <button type="button" className={surfaceStyles.helperButton}
+              disabled={fulfillmentLogView.page <= 1}
+              onClick={() => onFulfillmentLogViewChange({ ...fulfillmentLogView, page: fulfillmentLogView.page - 1 })}>
+              Previous
+            </button>
+            <span>Page {fulfillmentLogView.page} of {Math.ceil((fulfillmentQueueState.total ?? 0) / fulfillmentPageSize)}</span>
+            <button type="button" className={surfaceStyles.helperButton}
+              disabled={fulfillmentLogView.page * fulfillmentPageSize >= (fulfillmentQueueState.total ?? 0)}
+              onClick={() => onFulfillmentLogViewChange({ ...fulfillmentLogView, page: fulfillmentLogView.page + 1 })}>
+              Next
+            </button>
+          </div>
+        ) : null}
       </section>
 
       <section className={styles.sectionCard}>
@@ -754,56 +874,6 @@ export function TradeBoardWorkspaceCard({
         </section>
       ) : null}
 
-      {fulfillmentQueueState.status === 'ready' && queueItems.length > 0 ? (
-        <section className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <div className={surfaceStyles.walletSettingsTitle}>Fulfillment queue</div>
-              <div className={surfaceStyles.helperNote}>
-                Keep approved swaps moving until they are shipped and fully closed out.
-              </div>
-            </div>
-            <span className={surfaceStyles.rosterTag}>{`${queueItems.length} active swaps`}</span>
-          </div>
-          <div className={styles.tradeList}>
-            {queueItems.map((item) => {
-              const nextStatus = getNextFulfillmentStatus(item.status)
-              return (
-                <div key={item.fulfillmentId} className={styles.tradeRow}>
-                  <div className={styles.tradeIdentity}>
-                    <div className={styles.customerName}>{item.customerName}</div>
-                    <div className={styles.customerDate}>
-                      {item.itemNumber ? `${item.itemNumber} - ${item.designName}` : item.designName}
-                    </div>
-                    <div className={surfaceStyles.helperNote}>
-                      {item.daysSinceLastUpdate} day(s) since last update
-                    </div>
-                  </div>
-                  <div className={styles.tradeMeta}>
-                    <span className={styles.statusBadgeWarning}>{item.status}</span>
-                  </div>
-                  <div className={`${surfaceStyles.actionRow} ${styles.tradeActions}`}>
-                    {nextStatus ? (
-                      <button
-                        type="button"
-                        className={surfaceStyles.actionButton}
-                        disabled={actionState.pendingKey === `fulfillment:${item.requestId}`}
-                        onClick={() => onAdvanceFulfillment(item.requestId, nextStatus)}
-                      >
-                        {actionState.pendingKey === `fulfillment:${item.requestId}`
-                          ? 'Saving...'
-                          : nextStatus === 'shipped'
-                            ? 'Mark shipped'
-                            : 'Mark completed'}
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      ) : null}
     </div>
   )
 }

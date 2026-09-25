@@ -162,18 +162,29 @@ describe('reviewer smoke UI wiring', () => {
       },
       fulfillmentQueueState: {
         status: 'ready',
+        total: 1,
+        totalOpen: 1,
+        page: 1,
+        pageSize: 10,
         items: [
           {
             fulfillmentId: 'fulfillment-1',
             requestId: 'request-1',
             customerName: 'Jamie',
-            itemNumber: 'RG100',
-            designName: 'Sapphire Halo',
+            gave: 'RG100 · Sapphire Halo',
+            gaveDesignId: 'design-1',
+            got: 'ER00001',
+            hasRevealScreenshot: false,
+            shippingNotes: '',
+            approvedAt: '2026-09-25T10:00:00Z',
+            statusUpdatedAt: '2026-09-25T10:00:00Z',
+            completedAt: null,
             status: 'approved',
-            daysSinceLastUpdate: 2,
           },
         ],
       },
+      fulfillmentLogView: { filter: 'open', page: 1 },
+      onFulfillmentLogViewChange: () => {},
       tradeSwapCleanupState: {
         status: 'ready',
         items: [
@@ -242,7 +253,9 @@ describe('reviewer smoke UI wiring', () => {
         },
       },
       tradeRequestsState: { status: 'ready', requests: [] },
-      fulfillmentQueueState: { status: 'ready', items: [] },
+      fulfillmentQueueState: { status: 'ready', items: [], total: 0, totalOpen: 0, page: 1, pageSize: 10 },
+      fulfillmentLogView: { filter: 'open', page: 1 },
+      onFulfillmentLogViewChange: () => {},
       tradeSwapCleanupState: { status: 'ready', items: [] },
       tradeBoardSearchQuery: '',
       onTradeBoardSearchQueryChange: () => {},
@@ -420,11 +433,14 @@ describe('reviewer smoke UI wiring', () => {
     expect(tradeBoardWorkspaceCardHtml.indexOf('Browse dancers')).toBeGreaterThan(-1)
     expect(tradeBoardWorkspaceCardHtml.indexOf('Request inbox')).toBeGreaterThan(-1)
     expect(tradeBoardWorkspaceCardHtml.indexOf('Trade follow-up')).toBeGreaterThan(-1)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Fulfillment queue')).toBeGreaterThan(-1)
+    expect(tradeBoardWorkspaceCardHtml.indexOf('Trade fulfillment log')).toBeGreaterThan(-1)
     expect(tradeBoardWorkspaceCardHtml.indexOf('Today&#x27;s trade work')).toBeLessThan(
       tradeBoardWorkspaceCardHtml.indexOf('Quick add'),
     )
     expect(tradeBoardWorkspaceCardHtml.indexOf('Quick add')).toBeLessThan(
+      tradeBoardWorkspaceCardHtml.indexOf('Trade fulfillment log'),
+    )
+    expect(tradeBoardWorkspaceCardHtml.indexOf('Trade fulfillment log')).toBeLessThan(
       tradeBoardWorkspaceCardHtml.indexOf('Browse dancers'),
     )
     expect(tradeBoardWorkspaceCardHtml.indexOf('Browse dancers')).toBeLessThan(
@@ -433,22 +449,16 @@ describe('reviewer smoke UI wiring', () => {
     expect(tradeBoardWorkspaceCardHtml.indexOf('Request inbox')).toBeLessThan(
       tradeBoardWorkspaceCardHtml.indexOf('Trade follow-up'),
     )
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Trade follow-up')).toBeLessThan(
-      tradeBoardWorkspaceCardHtml.indexOf('Fulfillment queue'),
-    )
+    expect(tradeBoardWorkspaceCardHtml).not.toContain('Fulfillment queue')
   })
 
-  it('prompts for received-piece intake after dashboard fulfillment completion', () => {
-    expect(dashboardPlaceholder).toContain(
-      'addToBoard: nextStatus === \'completed\'',
-    )
+  it('keeps fulfillment done separate from adding a dancer to the floor', () => {
+    expect(dashboardPlaceholder).not.toContain("addToBoard: nextStatus === 'completed'")
     expect(dashboardPlaceholder).toContain('Promise.allSettled')
     expect(dashboardPlaceholder).toContain(
       'Fulfillment updated, but part of the workspace did not refresh.',
     )
-    expect(dashboardPlaceholder).toContain(
-      'Add the received dancer to your Dance Floor when you are ready.',
-    )
+    expect(dashboardPlaceholder).toContain('Fulfillment marked done.')
   })
 
   it('keeps summary metrics out of board inventory', () => {
@@ -474,7 +484,7 @@ describe('reviewer smoke UI wiring', () => {
     expect(tradeBoardWorkspaceCardQuietHtml).toContain('Collection')
     expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('Request inbox')
     expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('Trade follow-up')
-    expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('Fulfillment queue')
+    expect(tradeBoardWorkspaceCardQuietHtml).toContain('Trade fulfillment log')
     expect(tradeBoardWorkspaceCardQuietHtml).not.toContain(
       'No pieces on your board yet. Add your first item above.',
     )

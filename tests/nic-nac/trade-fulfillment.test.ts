@@ -262,21 +262,20 @@ describe('update_fulfillment_status', () => {
     })
   })
 
-  it('supports customerName lookup and add-to-board follow-up on completion', async () => {
+  it('supports customerName lookup without requesting a floor-add follow-up', async () => {
     updateFulfillmentStatusMock.mockResolvedValueOnce({
       fulfillmentId: 'ful-2',
       requestId: 'req-2',
       previousStatus: 'shipped',
       status: 'completed',
       completedAt: '2026-05-05T23:00:00Z',
-      shouldPromptAddToBoard: true,
+      shouldPromptAddToBoard: false,
     })
 
     const tool = makeUpdateTool()
     const result = await tool.execute({
       customerName: 'Alice',
       nextStatus: 'completed',
-      addToBoard: true,
     })
 
     expect(updateFulfillmentStatusMock).toHaveBeenCalledWith(
@@ -285,7 +284,6 @@ describe('update_fulfillment_status', () => {
       {
         customerName: 'Alice',
         nextStatus: 'completed',
-        addToBoard: true,
       },
     )
     expect(result).toEqual({
@@ -295,8 +293,8 @@ describe('update_fulfillment_status', () => {
       status: 'completed',
       completedAt: '2026-05-05T23:00:00Z',
       shippingNotesApplied: null,
-      shouldPromptAddToBoard: true,
-      nextSuggestedTool: 'add_listing',
+      shouldPromptAddToBoard: false,
+      nextSuggestedTool: null,
     })
   })
 
@@ -307,7 +305,7 @@ describe('update_fulfillment_status', () => {
       previousStatus: 'shipped',
       status: 'completed',
       completedAt: '2026-05-05T23:00:00Z',
-      shouldPromptAddToBoard: true,
+      shouldPromptAddToBoard: false,
     })
 
     const tool = makeUpdateTool()
@@ -315,7 +313,6 @@ describe('update_fulfillment_status', () => {
       requestId: '11111111-1111-4111-8111-111111111111',
       nextStatus: 'completed',
       shippingNotes: '',
-      addToBoard: true,
     })
 
     expect(updateFulfillmentStatusMock).toHaveBeenCalledWith(
@@ -324,7 +321,27 @@ describe('update_fulfillment_status', () => {
       {
         requestId: '11111111-1111-4111-8111-111111111111',
         nextStatus: 'completed',
-        addToBoard: true,
+      },
+    )
+  })
+
+  it('does not expose addToBoard in the tool description or forward stray input', async () => {
+    updateFulfillmentStatusMock.mockResolvedValueOnce({
+      fulfillmentId: 'ful-2', requestId: 'req-2', previousStatus: 'approved',
+      status: 'completed', completedAt: '2026-09-25T18:00:00Z',
+      shouldPromptAddToBoard: false,
+    })
+    const tool = makeUpdateFulfillmentStatusTool(makeCtx())
+    expect(tool.description).not.toContain('addToBoard')
+    await tool.execute({
+      requestId: '11111111-1111-4111-8111-111111111111',
+      nextStatus: 'completed',
+      addToBoard: true,
+    } as never)
+    expect(updateFulfillmentStatusMock).toHaveBeenCalledWith(
+      expect.anything(), 'rep-1', {
+        requestId: '11111111-1111-4111-8111-111111111111',
+        nextStatus: 'completed',
       },
     )
   })
@@ -508,7 +525,8 @@ describe('fulfillment registry and prompt wiring', () => {
     )
     expect(NIC_NAC_SYSTEM_PROMPT).toContain('get_fulfillment_queue')
     expect(NIC_NAC_SYSTEM_PROMPT).toContain('update_fulfillment_status')
-    expect(NIC_NAC_SYSTEM_PROMPT).toContain('approved → shipped → completed')
-    expect(NIC_NAC_SYSTEM_PROMPT).toContain('Want to add the dancer you got')
+    expect(NIC_NAC_SYSTEM_PROMPT).toContain('Approved or shipped can move directly to completed')
+    expect(NIC_NAC_SYSTEM_PROMPT).toContain('completed can return to approved')
+    expect(NIC_NAC_SYSTEM_PROMPT).toContain('Fulfillment completion does not add a dancer')
   })
 })

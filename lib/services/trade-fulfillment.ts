@@ -11,20 +11,22 @@ import {
   type UpdateFulfillmentInput,
   type UpdateFulfillmentResult,
   type FulfillmentQueueItem,
+  type FulfillmentLogFilter,
+  type FulfillmentLogPage,
   type TradeListingWithDesign,
 } from './types'
 import { errors } from './errors'
 import { getTradeListingDisplayFields } from './trade-listing-display'
 
-const FORWARD: Record<FulfillmentStatus, FulfillmentStatus | null> = {
-  approved: 'shipped',
-  shipped: 'completed',
-  completed: null,
+const TRANSITIONS: Record<FulfillmentStatus, FulfillmentStatus[]> = {
+  approved: ['shipped', 'completed'],
+  shipped: ['completed'],
+  completed: ['approved'],
 }
 
 function isValidTransition(from: FulfillmentStatus, to: FulfillmentStatus): boolean {
   if (from === to) return true
-  return FORWARD[from] === to
+  return TRANSITIONS[from].includes(to)
 }
 
 export async function updateFulfillmentStatus(
@@ -34,6 +36,9 @@ export async function updateFulfillmentStatus(
 ): Promise<UpdateFulfillmentResult> {
   if (!repId) throw errors.UNAUTHORIZED('repId required')
   if (!input.nextStatus) throw errors.MISSING_ITEM_INPUT()
+  if (input.shippingNotes !== undefined && input.shippingNotes.length > 300) {
+    throw errors.INVALID_INPUT('Shipping notes must be 300 characters or fewer')
+  }
 
   // Resolve fulfillment row by requestId or customerName. RLS already scopes to rep.
   let fulfillmentRow: {
@@ -41,13 +46,15 @@ export async function updateFulfillmentStatus(
     request_id: string
     fulfillment_status: FulfillmentStatus
     completed_at: string | null
+    shipping_notes: string | null
   } | null = null
 
   if ('requestId' in input && input.requestId) {
     const { data, error } = await supabase
       .from('trade_fulfillment')
-      .select('id, request_id, fulfillment_status, completed_at')
+      .select('id, request_id, fulfillment_status, completed_at, shipping_notes, request:trade_requests!inner(listing:trade_listings!inner(rep_id))')
       .eq('request_id', input.requestId)
+      .eq('request.listing.rep_id', repId)
       .maybeSingle()
     if (error) throw error
     if (!data) throw errors.FULFILLMENT_NOT_FOUND()
@@ -56,20 +63,23 @@ export async function updateFulfillmentStatus(
       request_id: data.request_id as string,
       fulfillment_status: data.fulfillment_status as FulfillmentStatus,
       completed_at: (data.completed_at as string | null) ?? null,
+      shipping_notes: (data.shipping_notes as string | null) ?? null,
     }
   } else if ('customerName' in input && input.customerName) {
     const { data, error } = await supabase
       .from('trade_fulfillment')
       .select(
-        'id, request_id, fulfillment_status, completed_at, request:trade_requests!inner(customer_name)',
+        'id, request_id, fulfillment_status, completed_at, shipping_notes, request:trade_requests!inner(customer_name, listing:trade_listings!inner(rep_id))',
       )
       .eq('request.customer_name', input.customerName)
+      .eq('request.listing.rep_id', repId)
     if (error) throw error
     const rows = (data ?? []) as Array<{
       id: string
       request_id: string
       fulfillment_status: FulfillmentStatus
       completed_at: string | null
+      shipping_notes: string | null
     }>
     if (rows.length === 0) throw errors.FULFILLMENT_NOT_FOUND()
     if (rows.length > 1) throw errors.AMBIGUOUS_CUSTOMER(input.customerName)
@@ -79,7 +89,8 @@ export async function updateFulfillmentStatus(
   }
 
   const previousStatus = fulfillmentRow.fulfillment_status
-  if (previousStatus === input.nextStatus) {
+  if (previousStatus === input.nextStatus &&
+      (input.shippingNotes === undefined || input.shippingNotes === (fulfillmentRow.shipping_notes ?? ''))) {
     return {
       fulfillmentId: fulfillmentRow.id,
       requestId: fulfillmentRow.request_id,
@@ -96,12 +107,14 @@ export async function updateFulfillmentStatus(
   }
 
   const nowIso = new Date().toISOString()
-  const update: Record<string, unknown> = {
-    fulfillment_status: input.nextStatus,
-    status_updated_at: nowIso,
+  const update: Record<string, unknown> = {}
+  if (previousStatus !== input.nextStatus) {
+    update.fulfillment_status = input.nextStatus
+    update.status_updated_at = nowIso
   }
   if (input.shippingNotes !== undefined) update.shipping_notes = input.shippingNotes
-  if (input.nextStatus === 'completed') update.completed_at = nowIso
+  if (input.nextStatus === 'completed' && previousStatus !== 'completed') update.completed_at = nowIso
+  if (previousStatus === 'completed' && input.nextStatus === 'approved') update.completed_at = null
 
   const { data: updated, error: updErr } = await supabase
     .from('trade_fulfillment')
@@ -246,4 +259,116 @@ export async function getFulfillmentQueue(
   }
 
   return items
+}
+
+const LOG_PAGE_SIZE = 10 as const
+const OPEN_STATUSES: FulfillmentStatus[] = ['approved', 'shipped']
+const LOG_SELECT = `
+  id, request_id, fulfillment_status, shipping_notes, created_at, status_updated_at, completed_at,
+  request:trade_requests!inner(
+    id, customer_name, customer_description, offered_family, offered_type,
+    verified_offered_family, verified_offered_type,
+    reveal_screenshot_path, reveal_screenshot_expires_at,
+    listing:trade_listings!inner(
+      id, rep_id, design_id, listing_source, listing_photo_url, uses_canonical_photo,
+      manual_type_prefix, manual_collection_family, manual_collection_name,
+      manual_size, manual_photo_url, ring_size,
+      design:jewelry_designs(
+        id, item_number, design_name, material, main_stone, bp_msrp,
+        canonical_photo_url, type_prefix, collection:collections(name)
+      )
+    ),
+    swap:trade_swaps(revealed_item_number, revealed_ring_size, revealed_material)
+  )
+`
+const LOG_COUNT_SELECT = 'id, request:trade_requests!inner(listing:trade_listings!inner(rep_id))'
+
+// The log page and pink Open count use this exact scope. RLS remains the
+// authorization boundary; the rep filter also prevents admin-account bleed.
+function scopedLogQuery(
+  supabase: SupabaseClient,
+  repId: string,
+  cutoff: string,
+  select: string,
+  head = false,
+) {
+  return supabase.from('trade_fulfillment')
+    .select(select, { count: 'exact', head })
+    .gte('created_at', cutoff)
+    .eq('request.listing.rep_id', repId)
+}
+
+function one<T>(value: T | T[] | null | undefined): T | null {
+  return Array.isArray(value) ? (value[0] ?? null) : (value ?? null)
+}
+
+export async function getFulfillmentLogPage(
+  supabase: SupabaseClient,
+  repId: string,
+  filter: FulfillmentLogFilter = 'open',
+  page = 1,
+): Promise<FulfillmentLogPage> {
+  if (!repId) throw errors.UNAUTHORIZED('repId required')
+  if (!['open', 'done', 'all'].includes(filter) || !Number.isSafeInteger(page) || page < 1) {
+    throw errors.INVALID_INPUT('Invalid fulfillment log filter or page')
+  }
+  const cutoff = new Date(Date.now() - 90 * 86_400_000).toISOString()
+  let pageQuery = scopedLogQuery(supabase, repId, cutoff, LOG_SELECT)
+  if (filter === 'open') pageQuery = pageQuery.in('fulfillment_status', OPEN_STATUSES)
+  if (filter === 'done') pageQuery = pageQuery.eq('fulfillment_status', 'completed')
+  const [pageResult, openResult] = await Promise.all([
+    pageQuery.order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range((page - 1) * LOG_PAGE_SIZE, page * LOG_PAGE_SIZE - 1),
+    scopedLogQuery(supabase, repId, cutoff, LOG_COUNT_SELECT, true)
+      .in('fulfillment_status', OPEN_STATUSES),
+  ])
+  if (pageResult.error) throw pageResult.error
+  if (openResult.error) throw openResult.error
+
+  type Relation = Record<string, unknown> | Record<string, unknown>[] | null
+  const now = Date.now()
+  const items = ((pageResult.data ?? []) as unknown as Record<string, unknown>[]).flatMap((row) => {
+    const request = one(row.request as Relation)
+    const listing = one(request?.listing as Relation)
+    if (!request || !listing || listing.rep_id !== repId) return []
+    const design = one(listing.design as Relation)
+    const collection = one(design?.collection as Relation)
+    const display = getTradeListingDisplayFields({
+      ...listing,
+      design: design ? { ...design, collection } : null,
+    } as unknown as TradeListingWithDesign)
+    const swap = one(request.swap as Relation)
+    const gotParts = swap
+      ? [swap.revealed_item_number, swap.revealed_material,
+          swap.revealed_ring_size ? `Size ${swap.revealed_ring_size}` : null]
+      : [request.verified_offered_family ?? request.offered_family,
+          request.verified_offered_type ?? request.offered_type,
+          request.customer_description]
+    const expiry = request.reveal_screenshot_expires_at
+    return [{
+      fulfillmentId: String(row.id),
+      requestId: String(request.id),
+      status: row.fulfillment_status as FulfillmentStatus,
+      customerName: String(request.customer_name),
+      gave: [display.itemNumber, display.designName,
+        display.material, display.mainStone, display.size ? `Size ${display.size}` : null]
+        .filter(Boolean).join(' · '),
+      gaveDesignId: (listing.design_id as string | null) ?? null,
+      got: gotParts.filter(Boolean).join(' · ') || 'Reveal details unavailable',
+      hasRevealScreenshot: Boolean(request.reveal_screenshot_path) &&
+        (!expiry || new Date(String(expiry)).getTime() > now),
+      shippingNotes: String(row.shipping_notes ?? ''),
+      approvedAt: String(row.created_at),
+      statusUpdatedAt: String(row.status_updated_at),
+      completedAt: (row.completed_at as string | null) ?? null,
+    }]
+  })
+  return {
+    items,
+    total: pageResult.count ?? 0,
+    totalOpen: openResult.count ?? 0,
+    page,
+    pageSize: LOG_PAGE_SIZE,
+  }
 }

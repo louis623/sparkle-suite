@@ -5,7 +5,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import { TradeBoardWorkspaceCard } from '@/app/nic-nac/components/TradeBoardWorkspaceCard'
+import { TradeBoardWorkspaceCard, formatFulfillmentTime } from '@/app/nic-nac/components/TradeBoardWorkspaceCard'
 
 function escapeForRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -52,7 +52,7 @@ function hasNestedDeclaration(
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Dance Floor Management|Today(?:&#x27;|')s trade work|Quick add|Browse dancers|Request inbox|Trade follow-up|Fulfillment queue)</g,
+      />(Dance Floor Management|Today(?:&#x27;|')s trade work|Quick add|Trade fulfillment log|Browse dancers|Request inbox|Trade follow-up)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -125,6 +125,38 @@ const TRADE_BOARD_READY_STATE = {
 }
 
 describe('Nic-Nac dance floor surface reset', () => {
+  it('shows approval and update times in New York with the correct seasonal zone', () => {
+    expect(formatFulfillmentTime('2026-09-25T10:00:00Z')).toBe('Sep 25, 2026, 6:00 AM EDT')
+    expect(formatFulfillmentTime('2026-01-15T18:00:00Z')).toBe('Jan 15, 2026, 1:00 PM EST')
+  })
+
+  it('uses the response page size and a natural All empty message', () => {
+    function renderLog(filter: 'open' | 'all', total: number, page: number) {
+      return renderToStaticMarkup(createElement(TradeBoardWorkspaceCard, {
+        tradeBoardState: { status: 'loading' },
+        tradeRequestsState: { status: 'ready', requests: [] },
+        fulfillmentQueueState: { status: 'ready', items: [], total, totalOpen: 0, page, pageSize: 5 },
+        fulfillmentLogView: { filter, page },
+        onFulfillmentLogViewChange: () => {},
+        tradeBoardSearchQuery: '',
+        onTradeBoardSearchQueryChange: () => {},
+        quickAddItemNumber: '',
+        onQuickAddItemNumberChange: () => {},
+        actionState: { pendingKey: null, error: null, helperMessage: null },
+        onQuickAddListing: () => {},
+        onRemoveListing: () => {},
+        onReviewRequest: () => {},
+        onAdvanceFulfillment: () => {},
+        onSoundSettingsTarget: () => {},
+      }))
+    }
+    const allEmpty = renderLog('all', 0, 1)
+    expect(allEmpty).toContain('No trades in the last 90 days.')
+    expect(allEmpty).not.toContain('No all trades')
+    const secondPage = renderLog('open', 11, 2)
+    expect(secondPage).toContain('Page 2 of 3')
+    expect(secondPage).toMatch(/<button[^>]*>Next<\/button>/)
+  })
   it('uses shared workspace primitives instead of DashboardPlaceholder shell styles', () => {
     const source = readFileSync(
       resolve(
@@ -328,18 +360,29 @@ describe('Nic-Nac dance floor surface reset', () => {
         },
         fulfillmentQueueState: {
           status: 'ready',
+          total: 1,
+          totalOpen: 1,
+          page: 1,
+          pageSize: 10,
           items: [
             {
               fulfillmentId: 'fulfillment-1',
               requestId: 'request-1',
               status: 'approved',
               customerName: 'Jamie Lane',
-              itemNumber: 'RG100',
-              designName: 'Sapphire Halo',
-              daysSinceLastUpdate: 1,
+              gave: 'RG100 · Sapphire Halo',
+              gaveDesignId: 'design-1',
+              got: 'RG200',
+              hasRevealScreenshot: true,
+              shippingNotes: '',
+              approvedAt: '2026-09-25T10:00:00Z',
+              statusUpdatedAt: '2026-09-25T10:00:00Z',
+              completedAt: null,
             },
           ],
         },
+        fulfillmentLogView: { filter: 'open', page: 1 },
+        onFulfillmentLogViewChange: () => {},
         tradeSwapCleanupState: {
           status: 'ready',
           items: [
@@ -367,14 +410,15 @@ describe('Nic-Nac dance floor surface reset', () => {
       'Dance Floor Management',
       "Today's trade work",
       'Quick add',
+      'Trade fulfillment log',
       'Browse dancers',
       'Request inbox',
       'Trade follow-up',
-      'Fulfillment queue',
     ])
     expect(html).toContain('Dancers on the Floor')
     expect(html).toContain('New dancers today')
     expect(html).toContain('2 live dancers')
+    expect(html).toContain('/api/nic-nac/trade-requests/request-1/reveal-screenshot')
   })
 
   it('locks the first screen into a mobile container contract instead of desktop spreadsheet grids', () => {

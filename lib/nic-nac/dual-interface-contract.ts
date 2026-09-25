@@ -123,6 +123,6 @@ export const DUAL_INTERFACE_CONTRACTS: DualInterfaceContract[] = [
     toolFile: 'lib/nic-nac/tools/update-fulfillment-status.ts',
     serviceFunctions: ['updateFulfillmentStatus'],
     clientMode: 'auth',
-    notes: 'Move authenticated rep fulfillment items forward through service layer.',
+    notes: 'Update authenticated rep fulfillment status through the shared service layer.',
   },
 ]

@@ -106,7 +106,7 @@ import { getHelpResources } from '@/lib/services/help-resources'
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Dance Floor Management|Today(?:&#x27;|')s trade work|Quick add|Browse dancers|Request inbox|Trade follow-up|Fulfillment queue)</g,
+      />(Dance Floor Management|Today(?:&#x27;|')s trade work|Quick add|Trade fulfillment log|Browse dancers|Request inbox|Trade follow-up)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -2553,6 +2553,7 @@ describe('DashboardPlaceholder', () => {
       'Dance Floor Management',
       "Today's trade work",
       'Quick add',
+      'Trade fulfillment log',
       'Browse dancers',
     ])
     expect(html).toContain('Jewelry type')
