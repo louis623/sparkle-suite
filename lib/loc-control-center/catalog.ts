@@ -226,7 +226,7 @@ export const locOperationCatalog: LocOperation[] = [
   read(
     "accounting.snapshot",
     "accounting",
-    "Separate authoritative snapshot and clearly labeled projection; no payment actions.",
+    "Suite liveProjectedRecurringCents is the active Stripe monthly unit-amount sum. Overview uses that first, then snapshot.projectedRecurringCents. projection is a customer-profile check, not the money tile. No payment actions.",
     ["suite", "finder"],
   ),
   read(
