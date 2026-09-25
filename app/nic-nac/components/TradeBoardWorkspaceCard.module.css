@@ -174,72 +174,181 @@
   gap: 8px;
 }
 
-.fulfillmentRowHeader,
-.fulfillmentNotesRow {
+.fulfillmentLogList {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.fulfillmentNotesRow > label {
-  flex: 1 1 220px;
+.fulfillmentLogRow {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 4px 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 249, 246, 0.9));
+  border: 1px solid var(--nic-nac-border);
+}
+
+.fulfillmentThumbLink {
+  position: relative;
+  display: block;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--nic-nac-border);
+}
+
+.fulfillmentThumb,
+.fulfillmentThumbPlaceholder {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: rgba(244, 220, 255, 0.55);
+}
+
+.fulfillmentThumbPlaceholder {
+  border: 1px solid rgba(173, 90, 217, 0.28);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fulfillmentLogBody {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 8px;
+  row-gap: 1px;
+  align-items: baseline;
+}
+
+.fulfillmentLogBody .customerName {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 13px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.fulfillmentGave,
+.fulfillmentGot,
+.fulfillmentNotePreview {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--nic-nac-text-secondary);
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.fulfillmentGave { grid-column: 2; grid-row: 1; }
+.fulfillmentGot { grid-column: 2; grid-row: 2; }
+.fulfillmentNotePreview,
+.fulfillmentNoteEditor { grid-column: 1 / -1; }
+
+.fulfillmentNoteEditor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.fulfillmentNoteInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--nic-nac-border-strong);
+  border-radius: 6px;
+  background: var(--nic-nac-surface-input);
+  color: var(--nic-nac-text-primary);
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 3px 8px;
+}
+
+.fulfillmentNoteInput:focus {
+  outline: 2px solid rgba(238, 44, 155, 0.18);
+  outline-offset: 1px;
+  border-color: var(--nic-nac-border-input-focus);
+}
+
+.fulfillmentNoteSave,
+.fulfillmentNoteButton {
+  border: 0;
+  background: transparent;
+  color: #8a3e86;
+  font: 650 11px/1 var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  padding: 2px 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fulfillmentNoteSave:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.fulfillmentLogActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .fulfillmentDoneControl {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  border: 1px solid rgba(238, 44, 155, 0.35);
-  border-radius: 9px;
-  background: #fff3fa;
+  gap: 4px;
+  margin: 0;
+  border: 0;
+  background: transparent;
   color: var(--nic-nac-text-primary);
-  font-weight: 800;
-  padding: 8px 14px;
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+  padding: 0;
   cursor: pointer;
 }
 
 .fulfillmentDoneControl input {
-  width: 20px;
-  height: 20px;
+  width: 14px;
+  height: 14px;
+  margin: 0;
   accent-color: #cb197b;
 }
 
-.fulfillmentPieces {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
+@container (max-width: 520px) {
+  .fulfillmentLogBody {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
-.fulfillmentPieces > div {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  border: 1px solid var(--nic-nac-border);
-  border-radius: 8px;
-  background: #fff;
-  padding: 9px;
-  overflow-wrap: anywhere;
-}
-
-.fulfillmentFieldLabel {
-  color: var(--nic-nac-text-secondary);
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.fulfillmentId {
-  color: var(--nic-nac-text-secondary);
-  font-size: 10px;
-  overflow-wrap: anywhere;
-}
-
-@container (max-width: 540px) {
-  .fulfillmentPieces { grid-template-columns: 1fr; }
+  .fulfillmentLogBody .customerName,
+  .fulfillmentGave,
+  .fulfillmentGot {
+    grid-column: 1;
+    grid-row: auto;
+  }
 }
 
 .tradeRow {
@@ -616,7 +725,8 @@
 :global(.main[data-workspace-skin='black_diamond']) .timelineItem,
 :global(.main[data-workspace-skin='black_diamond']) .imagePreviewClose,
 :global(.main[data-workspace-skin='black_diamond']) .boardInventoryPieceCard,
-:global(.main[data-workspace-skin='black_diamond']) .tradeRow {
+:global(.main[data-workspace-skin='black_diamond']) .tradeRow,
+:global(.main[data-workspace-skin='black_diamond']) .fulfillmentLogRow {
   background: #211c18;
   border-color: rgba(244, 207, 98, 0.2);
   color: #f8efe4;
@@ -633,6 +743,8 @@
 }
 
 :global(.main[data-workspace-skin='black_diamond']) .tradeScreenshotLink,
+:global(.main[data-workspace-skin='black_diamond']) .fulfillmentThumbPlaceholder,
+:global(.main[data-workspace-skin='black_diamond']) .fulfillmentNoteInput,
 :global(.main[data-workspace-skin='black_diamond']) .filterDisclosure,
 :global(.main[data-workspace-skin='black_diamond']) .filterSummary {
   background: rgba(0, 217, 255, 0.08);
@@ -659,8 +771,14 @@
 :global(.main[data-workspace-skin='black_diamond']) .summaryCount,
 :global(.main[data-workspace-skin='black_diamond']) .tradeScreenshotTitle,
 :global(.main[data-workspace-skin='black_diamond']) .tradePieceFallback,
+:global(.main[data-workspace-skin='black_diamond']) .fulfillmentDoneControl,
 :global(.main[data-workspace-skin='black_diamond']) .filterSummary {
   color: #f8efe4;
+}
+
+:global(.main[data-workspace-skin='black_diamond']) .fulfillmentNoteButton,
+:global(.main[data-workspace-skin='black_diamond']) .fulfillmentNoteSave {
+  color: #ead4ff;
 }
 
 :global(.main[data-workspace-skin='black_diamond']) .inventoryButton {
