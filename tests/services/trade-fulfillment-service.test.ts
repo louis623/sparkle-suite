@@ -209,6 +209,7 @@ describe('trade fulfillment service', () => {
     )
     await getFulfillmentLogPage({ from } as never, 'rep-1', 'done')
     expect(queries[2].filters).toContainEqual(['fulfillment_status', 'completed'])
+    expect(queries[2].filters).not.toContainEqual(['fulfillment_status', ['approved', 'shipped']])
     expect(queries[3].filters).toContainEqual(['fulfillment_status', ['approved', 'shipped']])
     await getFulfillmentLogPage({ from } as never, 'rep-1', 'all')
     expect(queries[4].filters.some(([field]) => field === 'fulfillment_status')).toBe(false)

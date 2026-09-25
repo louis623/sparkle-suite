@@ -130,8 +130,8 @@ describe('Nic-Nac dance floor surface reset', () => {
     expect(formatFulfillmentTime('2026-01-15T18:00:00Z')).toBe('Jan 15, 2026, 1:00 PM EST')
   })
 
-  it('uses the response page size and a natural All empty message', () => {
-    function renderLog(filter: 'open' | 'all', total: number, page: number) {
+  it('uses the response page size and stays quiet when a fulfillment tab is empty', () => {
+    function renderLog(filter: 'open' | 'done' | 'all', total: number, page: number) {
       return renderToStaticMarkup(createElement(TradeBoardWorkspaceCard, {
         tradeBoardState: { status: 'loading' },
         tradeRequestsState: { status: 'ready', requests: [] },
@@ -150,12 +150,79 @@ describe('Nic-Nac dance floor surface reset', () => {
         onSoundSettingsTarget: () => {},
       }))
     }
+    const doneEmpty = renderLog('done', 0, 1)
+    expect(doneEmpty).not.toContain('No done trades')
+    expect(doneEmpty).not.toContain('90 days')
+    expect(doneEmpty).not.toContain('Track approved swaps')
     const allEmpty = renderLog('all', 0, 1)
-    expect(allEmpty).toContain('No trades in the last 90 days.')
+    expect(allEmpty).not.toContain('No trades')
     expect(allEmpty).not.toContain('No all trades')
     const secondPage = renderLog('open', 11, 2)
     expect(secondPage).toContain('Page 2 of 3')
     expect(secondPage).toMatch(/<button[^>]*>Next<\/button>/)
+  })
+
+  it('keeps a completed trade in a compact Done row', () => {
+    const html = renderToStaticMarkup(createElement(TradeBoardWorkspaceCard, {
+      tradeBoardState: { status: 'loading' },
+      tradeRequestsState: { status: 'ready', requests: [] },
+      fulfillmentQueueState: {
+        status: 'ready',
+        total: 1,
+        totalOpen: 0,
+        page: 1,
+        pageSize: 10,
+        items: [{
+          fulfillmentId: 'fulfillment-anne',
+          requestId: 'request-anne',
+          status: 'completed',
+          customerName: 'Anne',
+          gave: 'ER99190 · Follow the Glow · Rhodium Plating · Lab-Created Ruby',
+          gaveDesignId: 'design-anne',
+          got: 'og · ER · OG Earrings',
+          hasRevealScreenshot: true,
+          shippingNotes: 'Pickup after the show',
+          approvedAt: '2026-09-25T20:43:00Z',
+          statusUpdatedAt: '2026-09-25T22:40:00Z',
+          completedAt: '2026-09-25T22:40:00Z',
+        }],
+      },
+      fulfillmentLogView: { filter: 'done', page: 1 },
+      onFulfillmentLogViewChange: () => {},
+      tradeBoardSearchQuery: '',
+      onTradeBoardSearchQueryChange: () => {},
+      quickAddItemNumber: '',
+      onQuickAddItemNumberChange: () => {},
+      actionState: { pendingKey: null, error: null, helperMessage: null },
+      onQuickAddListing: () => {},
+      onRemoveListing: () => {},
+      onReviewRequest: () => {},
+      onAdvanceFulfillment: () => {},
+      onSoundSettingsTarget: () => {},
+    }))
+    const css = readFileSync(
+      resolve(process.cwd(), 'app/nic-nac/components/TradeBoardWorkspaceCard.module.css'),
+      'utf8',
+    )
+
+    expect(html).toContain('Anne')
+    expect(html).toContain('Gave ER99190 · Follow the Glow · Rhodium Plating · Lab-Created Ruby')
+    expect(html).toContain('Got og · ER · OG Earrings')
+    expect(html).toContain('Pickup after the show')
+    expect(html).toContain('/api/nic-nac/trade-requests/request-anne/reveal-screenshot')
+    expect(html).toContain('aria-pressed="true">Done')
+    expect(html).toContain('type="checkbox"')
+    expect(html).toContain('checked=""')
+    expect(html).toContain('>Done</span>')
+    expect(html).not.toContain('Mark done')
+    expect(html).not.toContain('View protected reveal screenshot')
+    expect(html).not.toContain('No done trades')
+    expect(hasDeclaration(css, '.fulfillmentLogRow', 'grid-template-columns: 36px minmax(0, 1fr) auto')).toBe(true)
+    expect(hasDeclaration(css, '.fulfillmentThumbLink', 'width: 36px')).toBe(true)
+    expect(hasDeclaration(css, '.fulfillmentDoneControl', 'font-size: 12px')).toBe(true)
+    expect(hasDeclaration(css, '.fulfillmentDoneControl', 'min-height: 44px')).toBe(false)
+    expect(hasDeclaration(css, '.fulfillmentDoneControl', 'background: #fff3fa')).toBe(false)
+    expect(hasDeclaration(css, '.fulfillmentDoneControl input', 'width: 14px')).toBe(true)
   })
   it('uses shared workspace primitives instead of DashboardPlaceholder shell styles', () => {
     const source = readFileSync(

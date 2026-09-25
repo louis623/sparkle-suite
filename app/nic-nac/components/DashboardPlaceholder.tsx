@@ -26,7 +26,6 @@ import type {
   CustomerAudienceImportInput,
   CustomerAudienceImportResult,
   CustomerAudienceSummary,
-  FulfillmentLogFilter,
   FulfillmentLogItem,
   FulfillmentLogPage,
   HelpResource,
@@ -46,6 +45,11 @@ import type {
   WalletTransactionSummary,
 } from '@/lib/services/types'
 import { SMS_CHARGE_MILS, walletMilsToUsd } from '@/lib/services/wallet-units'
+import {
+  fulfillmentLogViewForRequest,
+  shouldApplyFulfillmentLogPage,
+  type FulfillmentLogView,
+} from '@/lib/nic-nac/fulfillment-log-refresh'
 import { NIC_NAC_WORKSPACE_REFRESH_EVENT } from '@/lib/nic-nac/workspace-refresh-events'
 import { LIVE_QUEUE_CHROME_EXTENSION_URL } from '@/lib/nic-nac/live-queue-extension'
 import {
@@ -3096,10 +3100,15 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       status: reviewWorkspaceMode ? 'ready' : 'loading',
       items: reviewWorkspaceMode ? [] : undefined,
     })
-  const [fulfillmentLogView, setFulfillmentLogView] = useState<{
-    filter: FulfillmentLogFilter
-    page: number
-  }>({ filter: 'open', page: 1 })
+  const [fulfillmentLogView, setFulfillmentLogView] = useState<FulfillmentLogView>({
+    filter: 'open',
+    page: 1,
+  })
+  // The trade-board timer closes over the first loader for this visit.
+  // Reading this ref at request time keeps Done and All from being replaced
+  // by the Open query that was current when the section opened.
+  const fulfillmentLogViewRef = useRef(fulfillmentLogView)
+  fulfillmentLogViewRef.current = fulfillmentLogView
   const fulfillmentLoadSequenceRef = useRef(0)
   const [tradeSwapCleanupState, setTradeSwapCleanupState] =
     useState<TradeSwapCleanupState>({
@@ -3408,7 +3417,9 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }
 
-  async function loadFulfillmentQueue(signal?: AbortSignal, view = fulfillmentLogView) {
+  async function loadFulfillmentQueue(signal?: AbortSignal, explicitView?: FulfillmentLogView) {
+    const view = fulfillmentLogViewForRequest(explicitView, fulfillmentLogViewRef.current)
+    if (explicitView) fulfillmentLogViewRef.current = explicitView
     const sequence = ++fulfillmentLoadSequenceRef.current
     const params = new URLSearchParams({ filter: view.filter, page: String(view.page) })
     const response = await fetch(`/api/nic-nac/fulfillment-queue?${params}`, {
@@ -3420,10 +3431,16 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
 
     const payload = (await response.json()) as FulfillmentQueueResponsePayload
-    if (sequence !== fulfillmentLoadSequenceRef.current) return
+    if (!shouldApplyFulfillmentLogPage({
+      requestSequence: sequence,
+      latestSequence: fulfillmentLoadSequenceRef.current,
+      requestedView: view,
+      latestView: fulfillmentLogViewRef.current,
+    })) return
     const lastPage = Math.max(1, Math.ceil(payload.total / payload.pageSize))
     if (view.page > lastPage) {
       const correctedView = { ...view, page: lastPage }
+      fulfillmentLogViewRef.current = correctedView
       setFulfillmentLogView(correctedView)
       await loadFulfillmentQueue(signal, correctedView)
       return
@@ -6612,6 +6629,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           fulfillmentQueueState={fulfillmentQueueState}
           fulfillmentLogView={fulfillmentLogView}
           onFulfillmentLogViewChange={(view) => {
+            fulfillmentLogViewRef.current = view
             setFulfillmentLogView(view)
             setFulfillmentQueueState((current) => ({ ...current, status: 'loading' }))
             void loadFulfillmentQueue(undefined, view).catch(() =>

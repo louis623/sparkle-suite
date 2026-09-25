@@ -2367,6 +2367,10 @@ describe('DashboardPlaceholder', () => {
     expect(source).toContain("window.addEventListener('focus'")
     expect(source).toContain('refreshTradeWorkspaceSettled()')
     expect(source).toContain('window.setTimeout(refresh, Math.min(60_000, TRADE_WORKSPACE_REFRESH_MS * 2 ** failures))')
+    expect(source).toContain('fulfillmentLogViewRef')
+    expect(source).toContain('fulfillmentLogViewForRequest')
+    expect(source).toContain('shouldApplyFulfillmentLogPage')
+    expect(source).not.toMatch(/\(signal\?: AbortSignal, view = fulfillmentLogView\)/)
   })
 
   it('wires Nic-Nac mutation refresh events into the workspace views', () => {

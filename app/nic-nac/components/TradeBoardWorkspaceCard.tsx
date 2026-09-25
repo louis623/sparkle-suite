@@ -151,6 +151,7 @@ export function TradeBoardWorkspaceCard({
   const [inventoryVisibleCount, setInventoryVisibleCount] = useState(BOARD_GRID_PAGE_SIZE)
   const [isFilterDisclosureOpen, setIsFilterDisclosureOpen] = useState(false)
   const [shippingNoteDrafts, setShippingNoteDrafts] = useState<Record<string, string>>({})
+  const [noteEditorId, setNoteEditorId] = useState<string | null>(null)
 
   const boardSummary = tradeBoardState.board?.summary
   const boardListings = (visibleListings ?? tradeBoardState.board?.listings ?? []).filter(
@@ -322,12 +323,7 @@ export function TradeBoardWorkspaceCard({
 
       <section className={styles.sectionCard} id="trade-fulfillment-log">
         <div className={styles.sectionHeader}>
-          <div>
-            <div className={surfaceStyles.walletSettingsTitle}>Trade fulfillment log</div>
-            <div className={surfaceStyles.helperNote}>
-              Track approved swaps and mark post-show logistics done. Recent 90 days stay here for reference.
-            </div>
-          </div>
+          <div className={surfaceStyles.walletSettingsTitle}>Trade fulfillment log</div>
           <span className={surfaceStyles.rosterTag}>{openFulfillmentCount} open</span>
         </div>
         <div className={styles.fulfillmentTabs} role="group" aria-label="Trade fulfillment filter">
@@ -344,59 +340,55 @@ export function TradeBoardWorkspaceCard({
           <p role="alert" className={surfaceStyles.helperNote}>Could not load the trade log. Try another tab to retry.</p>
         ) : fulfillmentQueueState.status === 'loading' ? (
           <div className={surfaceStyles.cardFill}><div className={surfaceStyles.loadingLine} /></div>
-        ) : queueItems.length === 0 ? (
-          <p className={surfaceStyles.helperNote}>
-            {fulfillmentLogView.filter === 'all'
-              ? 'No trades in the last 90 days.'
-              : `No ${fulfillmentLogView.filter} trades in the last 90 days.`}
-          </p>
         ) : (
-          <div className={styles.tradeList}>
+          <div className={styles.fulfillmentLogList}>
             {queueItems.map((item) => {
               const notes = shippingNoteDrafts[item.fulfillmentId] ?? item.shippingNotes
               const pending = actionState.pendingKey === `fulfillment:${item.requestId}`
-              return <article key={item.fulfillmentId} className={styles.tradeRow}>
-                <div className={styles.fulfillmentRowHeader}>
-                  <div className={styles.tradeIdentity}>
-                    <strong className={styles.customerName}>{item.customerName}</strong>
-                    <span className={styles.customerDate}>
-                      Approved <time dateTime={item.approvedAt}>{formatFulfillmentTime(item.approvedAt)}</time>
-                      {' · '}Updated <time dateTime={item.statusUpdatedAt}>{formatFulfillmentTime(item.statusUpdatedAt)}</time>
-                      {' · '}{item.status}
-                    </span>
-                  </div>
-                  <label className={styles.fulfillmentDoneControl}>
-                    <input type="checkbox" checked={item.status === 'completed'} disabled={pending}
-                      onChange={() => onAdvanceFulfillment(item.requestId,
-                        item.status === 'completed' ? 'approved' : 'completed')} />
-                    <span>{pending ? 'Saving…' : item.status === 'completed' ? 'Done' : 'Mark done'}</span>
-                  </label>
-                </div>
-                <div className={styles.fulfillmentPieces}>
-                  <div><span className={styles.fulfillmentFieldLabel}>Gave</span><span>{item.gave}</span></div>
-                  <div><span className={styles.fulfillmentFieldLabel}>Got / reveal</span><span>{item.got}</span></div>
-                </div>
+              const notesOpen = noteEditorId === item.fulfillmentId
+              const done = item.status === 'completed'
+              return <article key={item.fulfillmentId} className={styles.fulfillmentLogRow}
+                title={`Request ${item.requestId}`}>
                 {item.hasRevealScreenshot ? (
                   <TradeScreenshotLink requestId={item.requestId} customerName={item.customerName}
-                    className={styles.tradeScreenshotLink} imageClassName={styles.tradeScreenshotThumb}>
-                    <span>View protected reveal screenshot</span>
+                    className={styles.fulfillmentThumbLink} imageClassName={styles.fulfillmentThumb}>
+                    <span className={styles.visuallyHidden}>View reveal screenshot</span>
                   </TradeScreenshotLink>
-                ) : <span className={surfaceStyles.helperNote}>Reveal screenshot unavailable or expired</span>}
-                <div className={styles.fulfillmentNotesRow}>
-                  <label className={surfaceStyles.searchField}>
-                    <span className={surfaceStyles.searchLabel}>Shipping notes</span>
-                    <input type="text" maxLength={300} className={`${surfaceStyles.searchInput} ph-no-capture`}
-                      value={notes} onChange={(event) => setShippingNoteDrafts((drafts) => ({
-                        ...drafts, [item.fulfillmentId]: event.target.value,
-                      }))} placeholder="Tracking, swap details, or pickup" />
-                  </label>
-                  <button type="button" className={surfaceStyles.helperButton}
-                    disabled={pending || notes === item.shippingNotes}
-                    onClick={() => onAdvanceFulfillment(item.requestId, item.status, notes)}>
-                    Save note
-                  </button>
+                ) : <span className={styles.fulfillmentThumbPlaceholder} title="No reveal screenshot" />}
+                <div className={styles.fulfillmentLogBody}>
+                  <strong className={styles.customerName}>{item.customerName}</strong>
+                  <span className={styles.fulfillmentGave} title={item.gave}>Gave {item.gave}</span>
+                  <span className={styles.fulfillmentGot} title={item.got}>Got {item.got}</span>
+                  {notesOpen ? (
+                    <div className={styles.fulfillmentNoteEditor}>
+                      <input type="text" maxLength={300} aria-label={`Shipping notes for ${item.customerName}`}
+                        className={`${styles.fulfillmentNoteInput} ph-no-capture`}
+                        value={notes} onChange={(event) => setShippingNoteDrafts((drafts) => ({
+                          ...drafts, [item.fulfillmentId]: event.target.value,
+                        }))} placeholder="Tracking, swap details, or pickup" />
+                      <button type="button" className={styles.fulfillmentNoteSave}
+                        disabled={pending || notes === item.shippingNotes}
+                        onClick={() => onAdvanceFulfillment(item.requestId, item.status, notes)}>
+                        Save
+                      </button>
+                    </div>
+                  ) : item.shippingNotes ? (
+                    <span className={styles.fulfillmentNotePreview} title={item.shippingNotes}>{item.shippingNotes}</span>
+                  ) : null}
                 </div>
-                <span className={styles.fulfillmentId}>Request {item.requestId} · Trade {item.fulfillmentId}</span>
+                <div className={styles.fulfillmentLogActions}>
+                  <button type="button" className={styles.fulfillmentNoteButton}
+                    aria-expanded={notesOpen}
+                    onClick={() => setNoteEditorId(notesOpen ? null : item.fulfillmentId)}>
+                    Note
+                  </button>
+                  <label className={styles.fulfillmentDoneControl}>
+                    <input type="checkbox" checked={done} disabled={pending}
+                      aria-label={done ? `Return ${item.customerName} to open` : `Mark ${item.customerName} done`}
+                      onChange={() => onAdvanceFulfillment(item.requestId, done ? 'approved' : 'completed')} />
+                    <span>{pending ? 'Saving' : 'Done'}</span>
+                  </label>
+                </div>
               </article>
             })}
           </div>
