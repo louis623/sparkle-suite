@@ -32,7 +32,6 @@ const inputSchema = z
     customerName: z.string().trim().min(1).optional(),
     nextStatus: z.enum(['approved', 'shipped', 'completed']),
     shippingNotes: z.string().optional(),
-    addToBoard: z.boolean().optional(),
   })
   .refine((v) => Boolean(v.requestId || v.customerName), {
     message: 'requestId or customerName is required',
@@ -54,13 +53,11 @@ function buildInput(args: {
   customerName?: string
   nextStatus: FulfillmentStatus
   shippingNotes?: string
-  addToBoard?: boolean
 }): UpdateFulfillmentInput {
   const shippingNotes = normalizeOptionalToolText(args.shippingNotes)
   const base = {
     nextStatus: args.nextStatus,
     ...(shippingNotes === undefined ? {} : { shippingNotes }),
-    addToBoard: args.addToBoard,
   }
 
   if (args.requestId) {
@@ -95,15 +92,13 @@ export function makeUpdateFulfillmentStatusTool(ctx: {
       'Use this after get_fulfillment_queue when the rep says a trade has shipped or logistics are done. ' +
       'Approved or shipped can move directly to completed; undo completed by moving to approved. ' +
       'Prefer requestId from the queue; customerName is only for clear one-off cases. ' +
-      'shippingNotes can hold tracking or shipment details. ' +
-      'If the rep already knows they want help adding the received piece to their board after completion, set addToBoard:true so Nic-Nac can follow up cleanly.',
+      'shippingNotes can hold tracking or shipment details.',
     inputSchema,
     execute: async ({
       requestId,
       customerName,
       nextStatus,
       shippingNotes,
-      addToBoard,
     }) => {
       assertTradeWorkflowInputMatches({
         workflow: ctx.activeTradeWorkflow,
@@ -127,7 +122,6 @@ export function makeUpdateFulfillmentStatusTool(ctx: {
         customerName: requestId ?? workflowRequestId ? undefined : customerName,
         nextStatus: nextStatus as FulfillmentStatus,
         shippingNotes,
-        addToBoard,
       })
 
       let result: Awaited<ReturnType<typeof updateFulfillmentStatus>>

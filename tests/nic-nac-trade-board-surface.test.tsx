@@ -5,7 +5,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import { TradeBoardWorkspaceCard } from '@/app/nic-nac/components/TradeBoardWorkspaceCard'
+import { TradeBoardWorkspaceCard, formatFulfillmentTime } from '@/app/nic-nac/components/TradeBoardWorkspaceCard'
 
 function escapeForRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -125,6 +125,38 @@ const TRADE_BOARD_READY_STATE = {
 }
 
 describe('Nic-Nac dance floor surface reset', () => {
+  it('shows approval and update times in New York with the correct seasonal zone', () => {
+    expect(formatFulfillmentTime('2026-09-25T10:00:00Z')).toBe('Sep 25, 2026, 6:00 AM EDT')
+    expect(formatFulfillmentTime('2026-01-15T18:00:00Z')).toBe('Jan 15, 2026, 1:00 PM EST')
+  })
+
+  it('uses the response page size and a natural All empty message', () => {
+    function renderLog(filter: 'open' | 'all', total: number, page: number) {
+      return renderToStaticMarkup(createElement(TradeBoardWorkspaceCard, {
+        tradeBoardState: { status: 'loading' },
+        tradeRequestsState: { status: 'ready', requests: [] },
+        fulfillmentQueueState: { status: 'ready', items: [], total, totalOpen: 0, page, pageSize: 5 },
+        fulfillmentLogView: { filter, page },
+        onFulfillmentLogViewChange: () => {},
+        tradeBoardSearchQuery: '',
+        onTradeBoardSearchQueryChange: () => {},
+        quickAddItemNumber: '',
+        onQuickAddItemNumberChange: () => {},
+        actionState: { pendingKey: null, error: null, helperMessage: null },
+        onQuickAddListing: () => {},
+        onRemoveListing: () => {},
+        onReviewRequest: () => {},
+        onAdvanceFulfillment: () => {},
+        onSoundSettingsTarget: () => {},
+      }))
+    }
+    const allEmpty = renderLog('all', 0, 1)
+    expect(allEmpty).toContain('No trades in the last 90 days.')
+    expect(allEmpty).not.toContain('No all trades')
+    const secondPage = renderLog('open', 11, 2)
+    expect(secondPage).toContain('Page 2 of 3')
+    expect(secondPage).toMatch(/<button[^>]*>Next<\/button>/)
+  })
   it('uses shared workspace primitives instead of DashboardPlaceholder shell styles', () => {
     const source = readFileSync(
       resolve(

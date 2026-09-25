@@ -99,10 +99,18 @@ function getTradeListingPhotoSourceLabel(listing: TradeListingWithDesign) {
   return 'no photo yet'
 }
 
-function formatFulfillmentTime(value: string) {
+export function formatFulfillmentTime(value: string) {
   const date = new Date(value)
   return Number.isFinite(date.getTime())
-    ? `${date.toISOString().slice(0, 16).replace('T', ' ')} UTC`
+    ? new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short',
+      }).format(date)
     : value
 }
 
@@ -163,6 +171,7 @@ export function TradeBoardWorkspaceCard({
   const visibleInventoryResults = inventoryResults.slice(0, inventoryVisibleCount)
   const requests = tradeRequestsState.requests ?? []
   const queueItems = fulfillmentQueueState.items ?? []
+  const fulfillmentPageSize = fulfillmentQueueState.pageSize ?? 10
   const openFulfillmentCount = fulfillmentQueueState.totalOpen ?? 0
   const cleanupItems = tradeSwapCleanupState.items ?? []
   const pendingCount = tradeRequestsState.pendingCount
@@ -336,7 +345,11 @@ export function TradeBoardWorkspaceCard({
         ) : fulfillmentQueueState.status === 'loading' ? (
           <div className={surfaceStyles.cardFill}><div className={surfaceStyles.loadingLine} /></div>
         ) : queueItems.length === 0 ? (
-          <p className={surfaceStyles.helperNote}>No {fulfillmentLogView.filter} trades in the last 90 days.</p>
+          <p className={surfaceStyles.helperNote}>
+            {fulfillmentLogView.filter === 'all'
+              ? 'No trades in the last 90 days.'
+              : `No ${fulfillmentLogView.filter} trades in the last 90 days.`}
+          </p>
         ) : (
           <div className={styles.tradeList}>
             {queueItems.map((item) => {
@@ -388,16 +401,16 @@ export function TradeBoardWorkspaceCard({
             })}
           </div>
         )}
-        {(fulfillmentQueueState.total ?? 0) > (fulfillmentQueueState.pageSize ?? 10) ? (
+        {(fulfillmentQueueState.total ?? 0) > fulfillmentPageSize ? (
           <div className={styles.fulfillmentPagination}>
             <button type="button" className={surfaceStyles.helperButton}
               disabled={fulfillmentLogView.page <= 1}
               onClick={() => onFulfillmentLogViewChange({ ...fulfillmentLogView, page: fulfillmentLogView.page - 1 })}>
               Previous
             </button>
-            <span>Page {fulfillmentLogView.page} of {Math.ceil((fulfillmentQueueState.total ?? 0) / 10)}</span>
+            <span>Page {fulfillmentLogView.page} of {Math.ceil((fulfillmentQueueState.total ?? 0) / fulfillmentPageSize)}</span>
             <button type="button" className={surfaceStyles.helperButton}
-              disabled={fulfillmentLogView.page * 10 >= (fulfillmentQueueState.total ?? 0)}
+              disabled={fulfillmentLogView.page * fulfillmentPageSize >= (fulfillmentQueueState.total ?? 0)}
               onClick={() => onFulfillmentLogViewChange({ ...fulfillmentLogView, page: fulfillmentLogView.page + 1 })}>
               Next
             </button>
