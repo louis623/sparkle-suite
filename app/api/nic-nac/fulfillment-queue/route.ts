@@ -5,7 +5,7 @@ import {
 } from '@/lib/nic-nac/auth'
 import { ServiceError } from '@/lib/services/errors'
 import {
-  getFulfillmentQueue,
+  getFulfillmentLogPage,
   updateFulfillmentStatus,
 } from '@/lib/services/trade-fulfillment'
 
@@ -19,11 +19,17 @@ function serviceErrorResponse(error: ServiceError) {
   )
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const { repId, supabase } = await getPaidNicNacContext()
-    const queue = await getFulfillmentQueue(supabase, repId)
-    return NextResponse.json(queue)
+    const params = new URL(request.url).searchParams
+    const filter = params.get('filter') ?? 'open'
+    const page = Number(params.get('page') ?? '1')
+    if (!['open', 'done', 'all'].includes(filter) || !Number.isSafeInteger(page) || page < 1) {
+      return NextResponse.json({ error: 'Invalid fulfillment filter or page.' }, { status: 400 })
+    }
+    const log = await getFulfillmentLogPage(supabase, repId, filter as 'open' | 'done' | 'all', page)
+    return NextResponse.json(log)
   } catch (error) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
@@ -50,6 +56,11 @@ export async function POST(request: Request) {
         { error: 'nextStatus must be approved, shipped, or completed.' },
         { status: 400 },
       )
+    }
+
+    if (body?.shippingNotes !== undefined &&
+        (typeof body.shippingNotes !== 'string' || body.shippingNotes.length > 300)) {
+      return NextResponse.json({ error: 'Shipping notes must be 300 characters or fewer.' }, { status: 400 })
     }
 
     const identifier =

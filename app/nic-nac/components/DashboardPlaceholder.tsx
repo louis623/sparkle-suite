@@ -26,7 +26,9 @@ import type {
   CustomerAudienceImportInput,
   CustomerAudienceImportResult,
   CustomerAudienceSummary,
-  FulfillmentQueueItem,
+  FulfillmentLogFilter,
+  FulfillmentLogItem,
+  FulfillmentLogPage,
   HelpResource,
   JoinTeamMember,
   UpsertJoinTeamMemberInput,
@@ -640,7 +642,11 @@ type TradeRequestsState = {
 
 type FulfillmentQueueState = {
   status: 'loading' | 'ready' | 'error'
-  items?: FulfillmentQueueItem[]
+  items?: FulfillmentLogItem[]
+  total?: number
+  totalOpen?: number
+  page?: number
+  pageSize?: number
 }
 
 type TradeSwapCleanupState = {
@@ -952,7 +958,7 @@ type TradeRequestsResponsePayload = {
   pendingCount: number
   requests: TradeRequestWithListing[]
 }
-type FulfillmentQueueResponsePayload = FulfillmentQueueItem[]
+type FulfillmentQueueResponsePayload = FulfillmentLogPage
 type TradeSwapCleanupResponsePayload = TradeSwapCleanupItem[]
 type JewelryLibraryFacetOption = {
   value: string
@@ -3090,6 +3096,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       status: reviewWorkspaceMode ? 'ready' : 'loading',
       items: reviewWorkspaceMode ? [] : undefined,
     })
+  const [fulfillmentLogView, setFulfillmentLogView] = useState<{
+    filter: FulfillmentLogFilter
+    page: number
+  }>({ filter: 'open', page: 1 })
+  const fulfillmentLoadSequenceRef = useRef(0)
   const [tradeSwapCleanupState, setTradeSwapCleanupState] =
     useState<TradeSwapCleanupState>({
       status: reviewWorkspaceMode ? 'ready' : 'loading',
@@ -3397,8 +3408,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
   }
 
-  async function loadFulfillmentQueue(signal?: AbortSignal) {
-    const response = await fetch('/api/nic-nac/fulfillment-queue', {
+  async function loadFulfillmentQueue(signal?: AbortSignal, view = fulfillmentLogView) {
+    const sequence = ++fulfillmentLoadSequenceRef.current
+    const params = new URLSearchParams({ filter: view.filter, page: String(view.page) })
+    const response = await fetch(`/api/nic-nac/fulfillment-queue?${params}`, {
       credentials: 'include',
       signal,
     })
@@ -3407,9 +3420,21 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
 
     const payload = (await response.json()) as FulfillmentQueueResponsePayload
+    if (sequence !== fulfillmentLoadSequenceRef.current) return
+    const lastPage = Math.max(1, Math.ceil(payload.total / payload.pageSize))
+    if (view.page > lastPage) {
+      const correctedView = { ...view, page: lastPage }
+      setFulfillmentLogView(correctedView)
+      await loadFulfillmentQueue(signal, correctedView)
+      return
+    }
     setFulfillmentQueueState({
       status: 'ready',
-      items: payload,
+      items: payload.items,
+      total: payload.total,
+      totalOpen: payload.totalOpen,
+      page: payload.page,
+      pageSize: payload.pageSize,
     })
   }
 
@@ -5253,7 +5278,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
 
   async function handleAdvanceFulfillment(
     requestId: string,
-    nextStatus: 'shipped' | 'completed',
+    nextStatus: 'approved' | 'shipped' | 'completed',
+    shippingNotes?: string,
   ) {
     setTradeBoardActionState({
       pendingKey: `fulfillment:${requestId}`,
@@ -5269,7 +5295,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         body: JSON.stringify({
           requestId,
           nextStatus,
-          addToBoard: nextStatus === 'completed',
+          ...(shippingNotes === undefined ? {} : { shippingNotes }),
         }),
       })
       const payload = (await response.json().catch(() => null)) as
@@ -5289,9 +5315,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           ? 'Fulfillment updated, but part of the workspace did not refresh.'
           : null,
         helperMessage:
-          nextStatus === 'shipped'
-            ? 'Fulfillment moved to shipped.'
-            : 'Fulfillment marked completed. Add the received dancer to your Dance Floor when you are ready.',
+          shippingNotes !== undefined
+            ? 'Shipping notes saved.'
+            : nextStatus === 'approved'
+              ? 'Fulfillment moved back to Open.'
+              : 'Fulfillment marked done.',
       })
     } catch (error) {
       setTradeBoardActionState({
@@ -6582,6 +6610,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           tradeRequestsState={{ ...tradeRequestsState, requests: tradeInboxLoaded ? tradeInboxRequests : tradeRequestsState.requests }}
           inboxLoadError={tradeInboxLoadError}
           fulfillmentQueueState={fulfillmentQueueState}
+          fulfillmentLogView={fulfillmentLogView}
+          onFulfillmentLogViewChange={(view) => {
+            setFulfillmentLogView(view)
+            setFulfillmentQueueState((current) => ({ ...current, status: 'loading' }))
+            void loadFulfillmentQueue(undefined, view).catch(() =>
+              setFulfillmentQueueState((current) => ({ ...current, status: 'error' })),
+            )
+          }}
           tradeSwapCleanupState={tradeSwapCleanupState}
           onQuickAddListing={handleQuickAddListing}
           onRemoveListing={handleRemoveTradeListing}

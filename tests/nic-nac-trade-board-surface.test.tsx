@@ -52,7 +52,7 @@ function hasNestedDeclaration(
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Dance Floor Management|Today(?:&#x27;|')s trade work|Quick add|Browse dancers|Request inbox|Trade follow-up|Fulfillment queue)</g,
+      />(Dance Floor Management|Today(?:&#x27;|')s trade work|Quick add|Trade fulfillment log|Browse dancers|Request inbox|Trade follow-up)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -328,18 +328,29 @@ describe('Nic-Nac dance floor surface reset', () => {
         },
         fulfillmentQueueState: {
           status: 'ready',
+          total: 1,
+          totalOpen: 1,
+          page: 1,
+          pageSize: 10,
           items: [
             {
               fulfillmentId: 'fulfillment-1',
               requestId: 'request-1',
               status: 'approved',
               customerName: 'Jamie Lane',
-              itemNumber: 'RG100',
-              designName: 'Sapphire Halo',
-              daysSinceLastUpdate: 1,
+              gave: 'RG100 · Sapphire Halo',
+              gaveDesignId: 'design-1',
+              got: 'RG200',
+              hasRevealScreenshot: true,
+              shippingNotes: '',
+              approvedAt: '2026-09-25T10:00:00Z',
+              statusUpdatedAt: '2026-09-25T10:00:00Z',
+              completedAt: null,
             },
           ],
         },
+        fulfillmentLogView: { filter: 'open', page: 1 },
+        onFulfillmentLogViewChange: () => {},
         tradeSwapCleanupState: {
           status: 'ready',
           items: [
@@ -367,14 +378,15 @@ describe('Nic-Nac dance floor surface reset', () => {
       'Dance Floor Management',
       "Today's trade work",
       'Quick add',
+      'Trade fulfillment log',
       'Browse dancers',
       'Request inbox',
       'Trade follow-up',
-      'Fulfillment queue',
     ])
     expect(html).toContain('Dancers on the Floor')
     expect(html).toContain('New dancers today')
     expect(html).toContain('2 live dancers')
+    expect(html).toContain('/api/nic-nac/trade-requests/request-1/reveal-screenshot')
   })
 
   it('locks the first screen into a mobile container contract instead of desktop spreadsheet grids', () => {

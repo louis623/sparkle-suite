@@ -166,6 +166,82 @@
   gap: 10px;
 }
 
+.fulfillmentTabs,
+.fulfillmentPagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.fulfillmentRowHeader,
+.fulfillmentNotesRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.fulfillmentNotesRow > label {
+  flex: 1 1 220px;
+}
+
+.fulfillmentDoneControl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 1px solid rgba(238, 44, 155, 0.35);
+  border-radius: 9px;
+  background: #fff3fa;
+  color: var(--nic-nac-text-primary);
+  font-weight: 800;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.fulfillmentDoneControl input {
+  width: 20px;
+  height: 20px;
+  accent-color: #cb197b;
+}
+
+.fulfillmentPieces {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fulfillmentPieces > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid var(--nic-nac-border);
+  border-radius: 8px;
+  background: #fff;
+  padding: 9px;
+  overflow-wrap: anywhere;
+}
+
+.fulfillmentFieldLabel {
+  color: var(--nic-nac-text-secondary);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.fulfillmentId {
+  color: var(--nic-nac-text-secondary);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+@container (max-width: 540px) {
+  .fulfillmentPieces { grid-template-columns: 1fr; }
+}
+
 .tradeRow {
   display: flex;
   flex-direction: column;

@@ -1327,6 +1327,31 @@ export interface FulfillmentQueueItem {
   daysSinceLastUpdate: number
 }
 
+export type FulfillmentLogFilter = 'open' | 'done' | 'all'
+
+export interface FulfillmentLogItem {
+  fulfillmentId: string
+  requestId: string
+  status: FulfillmentStatus
+  customerName: string
+  gave: string
+  gaveDesignId: string | null
+  got: string
+  hasRevealScreenshot: boolean
+  shippingNotes: string
+  approvedAt: string
+  statusUpdatedAt: string
+  completedAt: string | null
+}
+
+export interface FulfillmentLogPage {
+  items: FulfillmentLogItem[]
+  total: number
+  totalOpen: number
+  page: number
+  pageSize: 10
+}
+
 // ============================================================================
 // jewelry-database domain
 // ============================================================================

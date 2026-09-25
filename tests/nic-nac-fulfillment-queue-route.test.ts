@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getAuthenticatedNicNacContextMock = vi.fn()
-const getFulfillmentQueueMock = vi.fn()
+const getFulfillmentLogPageMock = vi.fn()
 const updateFulfillmentStatusMock = vi.fn()
 
 vi.mock('@/lib/nic-nac/auth', () => ({
@@ -13,7 +13,7 @@ vi.mock('@/lib/nic-nac/auth', () => ({
 }))
 
 vi.mock('@/lib/services/trade-fulfillment', () => ({
-  getFulfillmentQueue: (...args: unknown[]) => getFulfillmentQueueMock(...args),
+  getFulfillmentLogPage: (...args: unknown[]) => getFulfillmentLogPageMock(...args),
   updateFulfillmentStatus: (...args: unknown[]) =>
     updateFulfillmentStatusMock(...args),
 }))
@@ -23,7 +23,7 @@ import { GET, POST } from '@/app/api/nic-nac/fulfillment-queue/route'
 describe('fulfillment queue route', () => {
   beforeEach(() => {
     getAuthenticatedNicNacContextMock.mockReset()
-    getFulfillmentQueueMock.mockReset()
+    getFulfillmentLogPageMock.mockReset()
     updateFulfillmentStatusMock.mockReset()
   })
 
@@ -33,13 +33,15 @@ describe('fulfillment queue route', () => {
       rep: { id: 'rep-1' },
       supabase: { marker: 'supabase' },
     })
-    getFulfillmentQueueMock.mockResolvedValueOnce([{ fulfillmentId: 'ful-1' }])
+    getFulfillmentLogPageMock.mockResolvedValueOnce({ items: [{ fulfillmentId: 'ful-1' }], total: 1, totalOpen: 1, page: 1, pageSize: 10 })
 
-    const response = await GET()
+    const response = await GET(new Request('http://localhost/api/nic-nac/fulfillment-queue?filter=open&page=1'))
 
-    expect(getFulfillmentQueueMock).toHaveBeenCalledWith(
+    expect(getFulfillmentLogPageMock).toHaveBeenCalledWith(
       { marker: 'supabase' },
       'rep-1',
+      'open',
+      1,
     )
     expect(response.status).toBe(200)
   })

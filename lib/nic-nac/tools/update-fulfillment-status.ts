@@ -1,5 +1,5 @@
 // Tool: update_fulfillment_status — write, NO HITL. Moves a fulfillment item
-// forward through the approved -> shipped -> completed pipeline.
+// through the approved / shipped / completed post-approval states.
 //
 // Auth client: updateFulfillmentStatus is auth-client only; RLS
 // (fulfillment_own_data) scopes the update through request -> listing -> rep_id.
@@ -91,9 +91,9 @@ export function makeUpdateFulfillmentStatusTool(ctx: {
 }) {
   return tool({
     description:
-      'Move one fulfillment item forward through the authenticated rep’s trade pipeline. ' +
-      'Use this after get_fulfillment_queue when the rep says a trade has shipped or is fully done. ' +
-      'Forward-only: approved -> shipped -> completed. ' +
+      'Update one fulfillment item for the authenticated rep. ' +
+      'Use this after get_fulfillment_queue when the rep says a trade has shipped or logistics are done. ' +
+      'Approved or shipped can move directly to completed; undo completed by moving to approved. ' +
       'Prefer requestId from the queue; customerName is only for clear one-off cases. ' +
       'shippingNotes can hold tracking or shipment details. ' +
       'If the rep already knows they want help adding the received piece to their board after completion, set addToBoard:true so Nic-Nac can follow up cleanly.',
