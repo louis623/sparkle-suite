@@ -1317,7 +1317,7 @@ function LiveQueueStrip({ state, onOpen }) {
           <div className="hp-trade-preview-head">
             <span>Live Lineup</span>
           </div>
-          <div className="hp-trade-preview-items" style={{ color: "var(--fg-muted)" }}>
+          <div className="hp-trade-preview-items" style={{ color: "var(--hp-preview-muted, var(--fg-muted))" }}>
             {lineup?.liveQueueSummary || getLiveQueueSummary("Lineup opens when the next scheduled show starts.")}
           </div>
           <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View lineup</button>

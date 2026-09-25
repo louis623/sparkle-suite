@@ -19,6 +19,9 @@ body.bg-halloween-pumpkin-witch {
   --hp-electric-purple: #e3b7ff;
   --hp-soft-purple: #f0ddff;
   --hp-action-fg: #160901;
+  --hp-preview-bg: #211914;
+  --hp-preview-fg: #fff7ed;
+  --hp-preview-muted: #f0ddff;
   background:
     radial-gradient(circle at 78% 12%, rgba(244, 238, 227, 0.11), transparent 26rem),
     radial-gradient(circle at 18% 35%, rgba(255, 106, 0, 0.12), transparent 30rem),
@@ -44,6 +47,15 @@ body.bg-halloween-pumpkin-witch .hp-live-rail {
   background: linear-gradient(90deg, #050505, #2a1206 44%, #050505);
   border-color: rgba(255, 106, 0, 0.38);
   color: #fff7ed;
+}
+
+body.bg-halloween-pumpkin-witch .hp-ticker-row:not(.reverse) .hp-ticker-label {
+  background: linear-gradient(90deg, #211914 0%, #211914 70%, rgba(33, 25, 20, 0) 100%);
+  color: #fff7ed;
+}
+
+body.bg-halloween-pumpkin-witch .hp-trade-preview {
+  border-color: rgba(244, 238, 227, 0.28);
 }
 
 body.bg-halloween-pumpkin-witch .hp-hero,

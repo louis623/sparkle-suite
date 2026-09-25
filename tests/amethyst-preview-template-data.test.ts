@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 import {
   defaultAmethystHomepageTemplateData,
@@ -398,6 +400,15 @@ describe('Amethyst preview template data', () => {
     expect(homepage.joinTeamUrl).toBe('')
     expect(homepage.footerLinks.joinTeam).toBeUndefined()
     expect(trade.footerLinks.joinTeam).toBeUndefined()
+  })
+
+  it('provides the Join Team destination to the Dance Floor when the page is selected', () => {
+    const trade = mapPreviewSettingsToTradeTemplateData(demoSettings, repExtras)
+    const tradePage = readFileSync(resolve(process.cwd(), 'public/amethyst/trade.jsx'), 'utf8')
+
+    expect(trade.footerLinks.joinTeam).toBe('/amethyst/Join.html')
+    expect(tradePage).toContain('{JOIN_TEAM_HREF && <a {...linkProps(JOIN_TEAM_HREF)} className="hp-header-link">Join Team</a>}')
+    expect(tradePage).not.toContain('Join Team coming soon')
   })
 
   it('keeps Join Team hidden until an operator grants early access', () => {

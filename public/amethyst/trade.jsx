@@ -216,29 +216,6 @@ const PANTRY_HREF = CONTENT.pantryPageUrl || "";
 const JOIN_TEAM_HREF = FOOTER_LINKS.joinTeam || "";
 const SHOP_HREF = CONTENT.shopUrl || FOOTER_LINKS.catalog || "#";
 
-function ComingSoonNavItem({ label = "Join Team" }) {
-  return (
-    <span
-      className="hp-header-link hp-header-link-disabled"
-      aria-disabled="true"
-      aria-label={`${label} coming soon`}
-      title={`${label} is coming soon`}
-    >
-      <span>{label}</span>
-      <span className="hp-coming-soon-badge" aria-hidden="true">Soon</span>
-    </span>
-  );
-}
-
-function ComingSoonFooterItem({ label = "Join Team" }) {
-  return (
-    <span className="hp-footer-coming-soon" aria-label={`${label} coming soon`}>
-      {label}
-      <span aria-hidden="true">Soon</span>
-    </span>
-  );
-}
-
 const PRESETS = {
   amethyst: {
     sparkleLevel: "glittery", bgTreatment: "confetti", cardSurface: "holographic",
@@ -790,13 +767,7 @@ function Header({ businessName }) {
           <a {...linkProps(HOME_HREF)} className="hp-header-link">Home</a>
           <a {...linkProps(TRADE_BOARD_HREF)} className="hp-header-link" aria-current="page">{isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Dance Floor"}</a>
           {PANTRY_HREF ? <a {...linkProps(PANTRY_HREF)} className="hp-header-link">In the Pantry</a> : null}
-          {JOIN_TEAM_HREF && (
-            isBrittDanceFloorComingSoon || isBlingKitchenHybrid ? (
-              <a {...linkProps(JOIN_TEAM_HREF)} className="hp-header-link">Join Team</a>
-            ) : (
-              <ComingSoonNavItem />
-            )
-          )}
+          {JOIN_TEAM_HREF && <a {...linkProps(JOIN_TEAM_HREF)} className="hp-header-link">Join Team</a>}
         </nav>
         <a {...linkProps(SHOP_HREF)} className="hp-shop-btn">Shop live</a>
       </div>
@@ -1030,7 +1001,7 @@ function LiveQueueStrip({ live, onOpen }) {
             <span className="live-dot" style={{ background: "var(--fg-muted)" }} />
             <span>Live Lineup</span>
           </div>
-          <div className="hp-trade-preview-items" style={{ color: "var(--fg-muted)" }}>
+          <div className="hp-trade-preview-items" style={{ color: "var(--hp-preview-muted, var(--fg-muted))" }}>
             {lineup?.liveQueueSummary || "Live Lineup is waiting for a recent update."}
           </div>
           <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>

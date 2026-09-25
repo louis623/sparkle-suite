@@ -1680,7 +1680,8 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
 .hp-trade-preview {
   position: relative;
   z-index: 1;
-  background: color-mix(in oklab, #ffffff 92%, transparent);
+  background: var(--hp-preview-bg, color-mix(in oklab, #ffffff 92%, transparent));
+  color: var(--hp-preview-fg, var(--fg));
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
@@ -1702,7 +1703,7 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--fg);
+  color: var(--hp-preview-fg, var(--fg));
   font-weight: 700;
   white-space: nowrap;
 }
@@ -1788,7 +1789,7 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
 .hp-trade-preview-updated {
   grid-area: updated;
   justify-self: end;
-  color: var(--fg-muted);
+  color: var(--hp-preview-muted, var(--fg-muted));
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
