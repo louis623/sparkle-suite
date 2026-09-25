@@ -8,6 +8,7 @@ import {
   loadCurrentAccountingSnapshot,
   loadSparkleSuiteAccountingProjection,
 } from "@/lib/control-center/accounting";
+import { loadLiveSuiteProjectedRecurring } from "@/lib/control-center/load-live-suite-projected-recurring";
 import { getControlCenterOperatorHealth } from "@/lib/remy-communications/operator-health";
 import { getControlCenterNicNacUsage } from "@/lib/remy-communications/nic-nac-usage";
 import {
@@ -218,15 +219,24 @@ export async function readLocOperation(
   if (name === "onboarding.waitlist") {
     return readLocWaitlist(admin, input, pagination(input));
   }
-  if (name === "accounting.snapshot")
-    return {
-      product,
-      snapshot: await loadCurrentAccountingSnapshot(admin, product),
-      projection:
-        product === "suite"
-          ? await loadSparkleSuiteAccountingProjection(admin)
-          : null,
-    };
+  if (name === "accounting.snapshot") {
+    const snapshot = await loadCurrentAccountingSnapshot(admin, product);
+    const projection =
+      product === "suite"
+        ? await loadSparkleSuiteAccountingProjection(admin)
+        : null;
+    // Overview must use liveProjectedRecurringCents first, then
+    // snapshot.projectedRecurringCents. Do not use projection (customer-profile
+    // monthlyAmount) as the money tile.
+    const live =
+      product === "suite"
+        ? await loadLiveSuiteProjectedRecurring()
+        : {
+            liveProjectedRecurringCents: null,
+            liveProjectedRecurringSource: null,
+          };
+    return { product, ...live, snapshot, projection };
+  }
   if (name === "usage.snapshot") {
     const snapshot = await getNicNacCostCapacity(
       admin,
