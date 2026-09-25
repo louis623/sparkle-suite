@@ -1,3 +1,9 @@
+## September 25, 2026 - Live Stripe projected MRR on accounting.snapshot
+
+- Suite `accounting.snapshot` now returns `liveProjectedRecurringCents` and `liveProjectedRecurringSource` from a read-only sum of active monthly Stripe subscription unit amounts. Overview uses that first, then `snapshot.projectedRecurringCents`. The customer-profile projection stays a detail check and is not the money tile.
+- Live smoke on 2026-09-25: 5 active subscriptions = 21698 cents (~$216.98). Stripe failure leaves the live fields null so the Lane snapshot still applies. Finder live fields stay null. Not deployed.
+- Draft PR: https://github.com/louis623/sparkle-suite/pull/16 (`cursor/live-stripe-projected-mrr-eeaf`). Open Brain capture attempted.
+
 ## September 23, 2026 - Trade upload and Dance Floor release
 
 - Used a clean allowlisted task checkout from GitHub branch `codex/nic-nac-trade-hardening`; did not alter the dirty primary checkout or Live Lineup extension. Implemented the optional direct private upload, readable all-skin Dance Floor/form, seven-day image expiry, active MSRP retirement, and removal of repetitive card disclosure while preserving the footer and historical MSRP compatibility.
