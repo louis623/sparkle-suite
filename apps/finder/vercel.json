@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
+  "git": { "deploymentEnabled": { "codex/live-lineup-v52-smoke": false } },
   "buildCommand": "npm run build"
 }

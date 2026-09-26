@@ -1,8 +1,15 @@
 /** Private v2 state. Never serialize publisher identity, order IDs, or undo to a public site. */
 export type ParserState = 'ready' | 'loading' | 'partial' | 'invalid'
 export type LineupConnection = 'connecting' | 'connected' | 'delayed' | 'offline'
-export interface SourceEntry { id: string; name: string; orderedAt: number | null }
-export interface PublisherLease { id: string; claimId: string; epoch: number; leaseExpiresAt: string; lastSequence: number }
+export interface SourceEntry { id: string; name: string; orderedAt: number | null; lastName?: string; identityEligible?: boolean; sourceIdentityVersion?: string }
+export interface PublisherLease { id: string; claimId: string; epoch: number; leaseExpiresAt: string; lastSequence: number; capabilities?: 'lineup-2.0.5' }
+export interface SourceObservation { documentId: string; serial: number; serverTime: string; settled: boolean }
+export interface AcceptedObservation extends SourceObservation { epoch: number; generation: number }
+export interface RevealRestoration {
+  entry: SourceEntry; category: 'order' | 'held'; position: number; previousId: string | null; nextId: string | null
+  checked: AcceptedObservation
+}
+export interface LineupRevealEvent { cursor: number; entryId: string; at: string; groupEntryIds: string[] }
 export interface LineupShow { generation: number; partyIds: string[]; excludedPartyIds: string[]; carryEntryIds: string[]; startedAt: string }
 /** Token-authenticated worker setup only. No customer names or publisher credentials. */
 export interface SourceDescriptor {
@@ -10,6 +17,7 @@ export interface SourceDescriptor {
   generation: number
   scope: { partyIds: string[]; excludedPartyIds: string[]; startedAt: string; carryEntryIds: string[] } | null
   serverTime: string
+  configured?: { applied: true; claimId: string; epoch: number; generation: number; partyIds: string[]; excludedPartyIds: string[] }
 }
 export interface LineupState {
   schemaVersion: 2
@@ -27,11 +35,22 @@ export interface LineupState {
   lastChangedAt: string | null
   parserState: ParserState
   sourceVersion: string | null
+  sourceObservation?: AcceptedObservation | null
+  lastReadyObservation?: AcceptedObservation | null
+  lastReadySourceAt?: string | null
+  bootstrapPending?: boolean
+  retiredDocumentIds?: string[]
+  restorations?: RevealRestoration[]
+  revealEvents?: LineupRevealEvent[]
+  revealEventCursor?: number
+  restorationNotice?: string | null
 }
 export interface SourcePacket {
   /** Unscoped prototype packets are generation zero only; never accepted into a later show. */
   generation?: number
   publisherId: string
+  claimId?: string
+  observation?: SourceObservation
   epoch: number
   sequence: number
   sourceVersion: string
@@ -50,10 +69,11 @@ export type LineupCommand = { expectedRevision: number } & (
   | { type: 'filter-parties'; excludedPartyIds: string[] }
 )
 export type LineupError = 'invalid_payload' | 'invalid_time' | 'revision_conflict' | 'publisher_conflict'
-  | 'lease_expired' | 'stale_sequence' | 'capacity_exceeded' | 'entry_not_found' | 'invalid_move' | 'nothing_to_undo' | 'show_changed' | 'invalid_scope'
+  | 'lease_expired' | 'stale_sequence' | 'stale_observation' | 'source_not_ready' | 'capacity_exceeded' | 'entry_not_found' | 'invalid_move' | 'nothing_to_undo' | 'show_changed' | 'invalid_scope'
 export type LineupResult = { ok: true; state: LineupState } | { ok: false; code: LineupError }
-export interface WorkspaceLineupEntry { id: string; name: string; position: number; held: boolean }
+export interface WorkspaceLineupEntry { id: string; name: string; position: number; held: boolean; lastName?: string; identityEligible?: boolean; sourceIdentityVersion?: string }
 export interface WorkspaceLineupSnapshot {
+  tenantContext?: string
   management?: {generation: number; partyIds: string[]; excludedPartyIds: string[]; candidates: WorkspaceLineupEntry[]}
   revision: number
   connection: LineupConnection
@@ -61,6 +81,12 @@ export interface WorkspaceLineupSnapshot {
   lastChangedAt: string | null
   sourceVersion: string | null
   canManage: boolean
+  authorized?: boolean
+  runtimeWritable?: boolean
+  canRecover?: boolean
+  serverTime?: string
+  freshUntil?: string | null
+  freshForMs?: number
   entries: WorkspaceLineupEntry[]
   heldEntries: WorkspaceLineupEntry[]
   undoAvailable: boolean

@@ -48,6 +48,21 @@ function dbFixture(options: {state?: unknown; stateTenant?: string; revision?: n
 
 describe('sanitized v2 setup readiness reads', () => {
   afterEach(()=>vi.restoreAllMocks())
+  it('keeps upgraded unconfigured/bootstrap observations locked and uses original evidence age after final read',async()=>{
+    const legacy=ready(true)
+    const upgraded:LineupState={...legacy,publisher:{...legacy.publisher!,capabilities:'lineup-2.0.5'},
+      sourceObservation:{documentId:'dddddddd-dddd-4ddd-8ddd-dddddddddddd',serial:0,epoch:1,generation:0,
+        serverTime:new Date(T-10000).toISOString(),settled:true},lastReadySourceAt:new Date(T-10000).toISOString()}
+    expect(await readLineupSetupReadiness(dbFixture({state:upgraded}).db,rep,T)).toMatchObject({ready:false,reason:'awaiting_ready'})
+    const scoped:LineupState={...upgraded,show:{generation:1,partyIds:['p'],excludedPartyIds:[],carryEntryIds:[],startedAt:new Date(T-10000).toISOString()},
+      sourceObservation:{...upgraded.sourceObservation!,generation:1}}
+    expect(await readLineupSetupReadiness(dbFixture({state:{...scoped,bootstrapPending:true}}).db,rep,T)).toMatchObject({ready:false,reason:'awaiting_ready'})
+    expect(await readLineupSetupReadiness(dbFixture({state:scoped}).db,rep,T+34999)).toMatchObject({ready:true})
+    expect(await readLineupSetupReadiness(dbFixture({state:scoped}).db,rep,T+35000)).toMatchObject({ready:false,reason:'stale'})
+    const clock=vi.spyOn(Date,'now').mockReturnValue(T)
+    const f=dbFixture({state:scoped,onFinalRead:()=>clock.mockReturnValue(T+35000)})
+    expect(await readLineupSetupReadiness(f.db,rep)).toMatchObject({ready:false,reason:'stale'})
+  })
   it.each([
     {elapsed:45001,reason:'stale'}, {elapsed:90001,reason:'lease_expired'},
     {elapsed:1,expires:T+1,reason:'publisher_expired'}, {elapsed:-1,reason:'clock_invalid'},

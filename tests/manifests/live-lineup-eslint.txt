@@ -58,3 +58,9 @@ tests/live-lineup-extension-package.test.ts
 tests/live-lineup-extension-app-e2e.test.ts
 tests/reviewer-smoke-config.test.ts
 tests/reviewer-smoke-ui.test.ts
+app/api/workspace/live-lineup/audience/route.ts
+app/nic-nac/components/use-lineup-audience.ts
+lib/live-lineup/audience.ts
+lib/services/customer-audience.ts
+tests/live-lineup-audience-route.test.ts
+tests/live-lineup-audience.test.ts

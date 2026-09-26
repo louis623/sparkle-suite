@@ -9,7 +9,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { LiveLineupShowControls } from '@/app/nic-nac/components/LiveLineupShowControls'
 
 const entries = ['a', 'b', 'c'].map((id, index) => ({ id, name: 'Jessica', position: index + 1, held: false }))
-const snapshot: WorkspaceLineupSnapshot = { revision: 1, connection: 'connected', lastReceivedAt: new Date().toISOString(), lastChangedAt: null, sourceVersion: '2', canManage: true, entries, heldEntries: [], undoAvailable: false, warning: null }
+const snapshot: WorkspaceLineupSnapshot = { revision: 1, connection: 'connected', lastReceivedAt: new Date().toISOString(), lastChangedAt: null, sourceVersion: '2', canManage: true, authorized: true, canRecover: true, entries, heldEntries: [], undoAvailable: false, warning: null }
 
 describe('Workspace lineup client safety', () => {
   it('accepts show previews across heartbeats but never across changed customers or scope', () => {
@@ -18,7 +18,7 @@ describe('Workspace lineup client safety', () => {
     expect(canConfirmShow(before,{...before,revision:2,management:{...before.management,generation:2}})).toBe(false)
     expect(canConfirmShow(before,{...before,revision:2,management:{...before.management,candidates:[...entries,{id:'new',name:'New',position:4,held:false}]}})).toBe(false)
     expect(canConfirmShow(before,{...before,lastChangedAt:new Date().toISOString()})).toBe(false)
-    expect(canConfirmShow(before,{...before,canManage:false})).toBe(false)
+    expect(canConfirmShow(before,{...before,canManage:false,canRecover:false})).toBe(false)
     expect(isWorkspaceLineupSnapshot({...before,management:{...before.management,candidates:[entries[0],entries[0]]}})).toBe(false)
   })
   it('accepts duplicate names with distinct order identities', () => expect(isWorkspaceLineupSnapshot(snapshot)).toBe(true))
@@ -100,22 +100,22 @@ describe('Workspace show party visibility', () => {
       publisher:{id:'device',claimId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',epoch:1,lastSequence:0,leaseExpiresAt:new Date(now+90000).toISOString()} }
   }
   it('only changes a selected party in a managed explicit show and never mutates the snapshot', () => {
-    const before = buildWorkspaceLineupSnapshot(state(), now), copy = structuredClone(before)
+    const before = buildWorkspaceLineupSnapshot(state(),now,true), copy = structuredClone(before)
     expect(partyVisibilityCommand(before,'p1',false)).toEqual({type:'filter-parties',excludedPartyIds:['p1']})
     expect(partyVisibilityCommand(before,'p1',true)).toBeNull()
     expect(partyVisibilityCommand(before,'other-party',false)).toBeNull()
-    expect(partyVisibilityCommand({...before,canManage:false},'p1',false)).toBeNull()
+    expect(partyVisibilityCommand({...before,canManage:false,canRecover:false},'p1',false)).toBeNull()
     expect(partyVisibilityCommand({...before,management:{...before.management!,generation:0}},'p1',false)).toBeNull()
     expect(before).toEqual(copy)
   })
   it('hides and restores duplicate-name orders and private holds through actual model acknowledgments', () => {
     const original = state()
     expect(isLineupState(original)).toBe(true)
-    const before = buildWorkspaceLineupSnapshot(original, now)
+    const before = buildWorkspaceLineupSnapshot(original,now,true)
     const command = partyVisibilityCommand(before,'p1',false)!
     const result = applyLineupCommand(original,{...command,expectedRevision:before.revision},now+1)
     if (!result.ok) throw Error(result.code)
-    const hidden = buildWorkspaceLineupSnapshot(result.state,now+1)
+    const hidden = buildWorkspaceLineupSnapshot(result.state,now+1,true)
     expect(isPartyVisibilityAcknowledgement(before,hidden,command)).toBe(true)
     expect(hidden.entries.map(e=>e.id)).toEqual(['p2:c'])
     expect(hidden.heldEntries).toEqual([])
@@ -126,7 +126,7 @@ describe('Workspace show party visibility', () => {
     const restore = partyVisibilityCommand(hidden,'p1',true)!
     const restored = applyLineupCommand(result.state,{...restore,expectedRevision:hidden.revision},now+2)
     if (!restored.ok) throw Error(restored.code)
-    const shown = buildWorkspaceLineupSnapshot(restored.state,now+2)
+    const shown = buildWorkspaceLineupSnapshot(restored.state,now+2,true)
     expect(isPartyVisibilityAcknowledgement(hidden,shown,restore)).toBe(true)
     expect(shown.entries).toEqual(before.entries)
     expect(shown.heldEntries).toEqual(before.heldEntries)
@@ -138,23 +138,23 @@ describe('Workspace show party visibility', () => {
     const arrived=applySourcePacket(hiddenResult.state,{generation:1,publisherId:'device',epoch:1,sequence:1,sourceVersion:'2',parserState:'ready',
       entries:[{id:'p1:new',name:'New hidden arrival',orderedAt:now+2}],revealedIds:[],revealedEntries:[]},now+2)
     if(!arrived.ok) throw Error(arrived.code)
-    const current=buildWorkspaceLineupSnapshot(arrived.state,now+2)
+    const current=buildWorkspaceLineupSnapshot(arrived.state,now+2,true)
     expect(current.entries.map(e=>e.id)).toEqual(['p2:c'])
     expect(current.management!.candidates.map(e=>e.id)).toContain('p1:new')
     const command=partyVisibilityCommand(current,'p1',true)!
     const restored=applyLineupCommand(arrived.state,{...command,expectedRevision:current.revision},now+3)
     if(!restored.ok) throw Error(restored.code)
-    const next=buildWorkspaceLineupSnapshot(restored.state,now+3)
+    const next=buildWorkspaceLineupSnapshot(restored.state,now+3,true)
     expect(isPartyVisibilityAcknowledgement(current,next,command)).toBe(true)
     expect(next.entries.map(e=>e.id)).toEqual(['p2:c','p1:a','p1:new'])
     expect(next.heldEntries.map(e=>e.id)).toEqual(['p1:b'])
   })
   it('rejects stale toggles, wrong visibility receipts, hidden deletion, and a switched show', () => {
-    const original=state(), before=buildWorkspaceLineupSnapshot(original,now), command=partyVisibilityCommand(before,'p1',false)!
+    const original=state(), before=buildWorkspaceLineupSnapshot(original,now,true), command=partyVisibilityCommand(before,'p1',false)!
     expect(applyLineupCommand(original,{...command,expectedRevision:original.revision-1},now+1)).toEqual({ok:false,code:'revision_conflict'})
     const result=applyLineupCommand(original,{...command,expectedRevision:original.revision},now+1)
     if(!result.ok) throw Error(result.code)
-    const next=buildWorkspaceLineupSnapshot(result.state,now+1)
+    const next=buildWorkspaceLineupSnapshot(result.state,now+1,true)
     expect(canConfirmShow(before,next)).toBe(false)
     expect(isPartyVisibilityAcknowledgement(before,{...before,revision:next.revision},command)).toBe(false)
     expect(isPartyVisibilityAcknowledgement(before,{...next,entries:before.entries},command)).toBe(false)
@@ -162,7 +162,7 @@ describe('Workspace show party visibility', () => {
     expect(isPartyVisibilityAcknowledgement(before,{...next,management:{...next.management!,candidates:[]}},command)).toBe(false)
   })
   it('renders labeled native toggles with private counts, disables them while pending, and omits them before a scoped show', () => {
-    const snapshot=buildWorkspaceLineupSnapshot(state(),now)
+    const snapshot=buildWorkspaceLineupSnapshot(state(),now,true)
     const submit=async()=>true
     const html=renderToStaticMarkup(createElement(LiveLineupShowControls,{snapshot,disabled:false,submit}))
     expect(html).toContain('aria-label="Show party p1 in this lineup"')
@@ -190,10 +190,10 @@ describe('Workspace owner-command acknowledgements', () => {
   }
   function receipt(command: WorkspaceLineupCommand) {
     const current = state()
-    const before = buildWorkspaceLineupSnapshot(current, now)
+    const before = buildWorkspaceLineupSnapshot(current,now,true)
     const result = applyLineupCommand(current, {...command, expectedRevision:current.revision}, now + 1)
     if (!result.ok) throw Error(result.code)
-    return {before, next:buildWorkspaceLineupSnapshot(result.state,now+1)}
+    return {before, next:buildWorkspaceLineupSnapshot(result.state,now+1,true)}
   }
 
   it.each<WorkspaceLineupCommand>([
@@ -210,10 +210,10 @@ describe('Workspace owner-command acknowledgements', () => {
   })
 
   it('rejects an unrelated higher-revision mutation instead of reporting Hold as saved', () => {
-    const before=buildWorkspaceLineupSnapshot(state(),now)
+    const before=buildWorkspaceLineupSnapshot(state(),now,true)
     const unrelated=applyLineupCommand(state(),{type:'move',entryId:'p1:a',beforeEntryId:'p2:c',expectedRevision:8},now+1)
     if(!unrelated.ok)throw Error(unrelated.code)
-    const next=buildWorkspaceLineupSnapshot(unrelated.state,now+1)
+    const next=buildWorkspaceLineupSnapshot(unrelated.state,now+1,true)
     expect(next.revision).toBeGreaterThan(before.revision)
     expect(isLineupCommandAcknowledgement(before,next,{type:'hold',entryId:'p2:c'})).toBe(false)
   })
@@ -223,7 +223,6 @@ describe('Workspace owner-command acknowledgements', () => {
     const {before,next}=receipt(command)
     const rejected: WorkspaceLineupSnapshot[] = [
       {...next,revision:before.revision},
-      {...next,canManage:false},
       {...next,management:undefined},
       {...next,entries:before.entries,heldEntries:before.heldEntries},
       {...next,management:{...next.management!,candidates:before.management!.candidates}},
@@ -234,6 +233,15 @@ describe('Workspace owner-command acknowledgements', () => {
     ]
     for(const candidate of rejected)
       expect(isLineupCommandAcknowledgement(before,candidate,command)).toBe(false)
+  })
+
+  it('accepts a committed locked new show and discarded prior source identity without auto-repeating it', () => {
+    const command: WorkspaceLineupCommand={type:'start-show',partyIds:['p2','p1'],carryEntryIds:['p1:a','p1:b'],confirmed:true}
+    const {before,next}=receipt(command)
+    const identity = (entry: WorkspaceLineupSnapshot['entries'][number]) => ({...entry,lastName:'Private',identityEligible:true,sourceIdentityVersion:'2:document:4'})
+    const identified = {...before,entries:before.entries.map(identity),heldEntries:before.heldEntries.map(identity),management:{...before.management!,candidates:before.management!.candidates.map(identity)}}
+    expect(next.canManage).toBe(false)
+    expect(isLineupCommandAcknowledgement(identified,next,command)).toBe(true)
   })
 
   it('requires the exact new-show generation, sorted scope, carry partition, paused source and cleared undo', () => {

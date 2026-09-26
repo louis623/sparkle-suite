@@ -8,6 +8,9 @@
     "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\trade-request-completion"
   ],
   "policy": "deny-unlisted",
+  "smokeBranches": ["codex/live-lineup-v52-smoke"],
+  "smokeProjectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+  "smokeLocalWorktrees": ["C:\\Users\\louis\\AppData\\Local\\Temp\\sparkle-lineup-v52-20260926"],
   "activeBranches": [
     "codex/nic-nac-trade-hardening",
     "codex/seo-crawl-refresh"

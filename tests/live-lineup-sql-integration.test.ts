@@ -18,6 +18,7 @@ it('runs pairing, source, owner arrangements, visibility, show fencing, archives
     await sql.exec('create role anon; create role authenticated; create role service_role bypassrls; create table reps(id uuid primary key); create table live_queue(rep_id uuid, sync_code text, queue jsonb, last_updated timestamptz); grant select on live_queue to service_role;')
     await sql.query('insert into reps values($1),($2)', [rep, other])
     await sql.exec(readFileSync(new URL('../supabase/migrations/20260910000100_live_lineup_v2.sql', import.meta.url), 'utf8'))
+    await sql.exec(readFileSync(new URL('../supabase/migrations/20260926000100_live_lineup_atomic_observations.sql',import.meta.url),'utf8'))
     await sql.exec('set role service_role')
     // Start the short lease clock after WASM/database startup. Startup latency
     // is not publisher idle time and must not expire the replay fixture.
@@ -67,7 +68,7 @@ it('runs pairing, source, owner arrangements, visibility, show fencing, archives
     expect(staleWrite.error).toBeNull()
     expect(staleWrite.data).toEqual([])
     expect((await sql.query('select * from live_lineup_show_archives where rep_id=$1', [rep])).rows).toHaveLength(1)
-    expect((await getWorkspaceLineup(db, rep, now + 2200)).management?.generation).toBe(1)
+    expect((await getWorkspaceLineup(db, rep, now + 2200, true)).management?.generation).toBe(1)
     await expect(receiveSource(db, issued.token, {...packet, sequence: 2}, now + 3000)).rejects.toMatchObject({code:'show_changed'})
     const freshClaim = await claimSource(db, issued.token, nextNonce, now + 3100, 1)
     expect(freshClaim.epoch).toBeGreaterThan(claim.epoch)

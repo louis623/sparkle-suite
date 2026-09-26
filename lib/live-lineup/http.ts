@@ -18,9 +18,9 @@ export function lineupFailure(error: unknown) {
 }
 export async function workspaceLineupReadContext() {
   const support = getOperatorSupportRequestContext()
-  if (support) return { repId: support.targetRep.id, db: support.supabase }
+  if (support) return { repId: support.targetRep.id, db: support.supabase, authorized: false }
   const context = await getPaidNicNacContext()
-  return { repId: context.repId, db: createAdminClient() }
+  return { repId: context.repId, db: createAdminClient(), authorized: true }
 }
 export async function workspaceLineupContext(request?: Request) {
   if (request) {

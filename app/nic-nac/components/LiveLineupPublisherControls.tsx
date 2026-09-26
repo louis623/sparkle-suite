@@ -7,10 +7,11 @@ import styles from './LiveLineupCard.module.css'
 const ENDPOINT = '/api/workspace/live-lineup'
 
 /** Secrets exist only in this mounted view; never persist them or include them in links. */
-export function LiveLineupPublisherControls({ onChanged, disabled = false, creationDisabled = disabled }: {
+export function LiveLineupPublisherControls({ onChanged, disabled = false, creationDisabled = disabled, recoveryOnly = false }: {
   onChanged: () => void
   disabled?: boolean
   creationDisabled?: boolean
+  recoveryOnly?: boolean
 }) {
   const labelId = useId()
   const [publishers, setPublishers] = useState<LineupPublisher[] | null>(null)
@@ -29,7 +30,7 @@ export function LiveLineupPublisherControls({ onChanged, disabled = false, creat
   }, [])
 
   async function request(method: 'GET' | 'POST' | 'DELETE', publisherId?: string) {
-    if (disabled || (method === 'POST' && creationDisabled) || controllerRef.current) return
+    if (disabled || (method === 'POST' && (creationDisabled || recoveryOnly)) || controllerRef.current) return
     const controller = new AbortController()
     controllerRef.current = controller
     setPending(true)
@@ -97,21 +98,22 @@ export function LiveLineupPublisherControls({ onChanged, disabled = false, creat
     if (event.currentTarget.open) void request('GET')
     else { setIssued(null); setRevokeId(null) }
   }}>
-    <summary>Extension connection setup</summary>
-    <p>Connect only the upgraded Sparkle Suite extension. Creating a key does not change the active source or mark it connected.</p>
-    <div className={styles.pairForm}>
+    <summary>{recoveryOnly ? 'Saved connection recovery' : 'Extension connection setup'}</summary>
+    {recoveryOnly ? <p>Keep using your assigned Live Lineup code in the extension. You can review or revoke an existing saved private connection here.</p>
+      : <p>Connect only the upgraded Sparkle Suite extension. Creating a key does not change the active source or mark it connected.</p>}
+    {!recoveryOnly && <div className={styles.pairForm}>
       <label htmlFor={labelId}>Computer name</label>
       <input id={labelId} value={label} maxLength={80} autoComplete="off" disabled={creationDisabled || pending} onChange={event => setLabel(event.target.value)} />
       <button type="button" disabled={creationDisabled || pending || reviewRequired || !publishers || !label.trim() || !!issued} onClick={() => void request('POST')}>Create private connection key</button>
-    </div>
-    {issued && <div className={styles.privateKey}>
+    </div>}
+    {!recoveryOnly && issued && <div className={styles.privateKey}>
       <label>Private key—shown once<input aria-label="One-time private extension key" type="password" readOnly value={issued.token} autoComplete="off" onFocus={event => event.currentTarget.select()} /></label>
       <div><button type="button" onClick={() => void copyKey()}>Copy key</button> <button type="button" onClick={() => { setIssued(null); setMessage('Private key dismissed. It cannot be retrieved here again.') }}>Dismiss key</button></div>
       <p>Do not share this key or include it in screenshots. Closing this section removes it from this view.</p>
     </div>}
     <p role="status" aria-live="polite">{pending ? 'Updating connections…' : message}</p>
     <button type="button" disabled={disabled || pending} onClick={() => void request('GET')}>Refresh connections</button>
-    {publishers && !publishers.length && <p>No upgraded connections yet.</p>}
+    {publishers && !publishers.length && <p>{recoveryOnly ? 'No saved private connections. Use your assigned Live Lineup code in the extension.' : 'No upgraded connections yet.'}</p>}
     <ul className={styles.publisherList}>{publishers?.map(p => <li key={p.id}>
       <strong>{p.label}</strong>
       <span>{p.revokedAt ? 'Revoked' : Date.parse(p.expiresAt) <= Date.now() ? 'Expired' : p.active ? 'Selected source' : 'Ready to pair'}</span>

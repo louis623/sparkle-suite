@@ -100,7 +100,7 @@ describe('Live Lineup HTTP tenant/auth/CSRF boundaries', () => {
     const response = await workspace.GET()
 
     expect(response.status).toBe(200)
-    expect(mocks.get).toHaveBeenCalledWith(supportDb, 'target-rep')
+    expect(mocks.get).toHaveBeenCalledWith(supportDb, 'target-rep', expect.any(Number), false)
     expect(mocks.auth).not.toHaveBeenCalled()
     expect(mocks.admin).not.toHaveBeenCalled()
     expect((await workspace.POST(request('/api/workspace/live-lineup', { command: { type: 'undo' } }))).status).toBe(403)
@@ -171,7 +171,7 @@ describe('Live Lineup publisher HTTP boundary', () => {
     const claimId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
     const response = await publish.POST(sourceRequest({ action: 'claim', claimId, repId: 'victim' }))
     expect(response.status).toBe(200)
-    expect(mocks.claim).toHaveBeenCalledWith(db, token, claimId, expect.any(Number), 0)
+    expect(mocks.claim).toHaveBeenCalledWith(db, token, claimId, expect.any(Number), 0, undefined)
     expect(JSON.stringify(await response.json())).not.toContain(claimId)
     mocks.claim.mockRejectedValueOnce(new LineupServiceError('invalid_claim_id', 400))
     expect((await publish.POST(sourceRequest({ action: 'claim' }))).status).toBe(400)
@@ -223,6 +223,23 @@ describe('Live Lineup publisher HTTP boundary', () => {
     ))
     expect(rejected.status).toBe(403)
     expect(rejected.headers.get('access-control-allow-origin')).toBeNull()
+  })
+  it('allows the separate Smoke extension only with exact Smoke app, database and environment guards',async()=>{
+    const smokeOrigin='chrome-extension://bpipafleeajdagfimfnfgmhcdendgkfl'
+    const host='https://sparkle-suite-smoke.vercel.app'
+    const smokeRequest=(url:string)=>new Request(`${url}/api/live-lineup/publish`,{method:'POST',headers:{origin:smokeOrigin,
+      'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({action:'describe'})})
+    mocks.describe.mockResolvedValue({protocol:2,generation:0,scope:null,serverTime:new Date().toISOString()})
+    try {
+      vi.stubEnv('SPARKLE_ENVIRONMENT','smoke');vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL','https://pukemqiwlyqmyytxkdmo.supabase.co')
+      const allowed=await publish.POST(smokeRequest(host))
+      expect(allowed.status).toBe(200);expect(allowed.headers.get('access-control-allow-origin')).toBe(smokeOrigin)
+      expect((await publish.POST(smokeRequest(origin))).status).toBe(403)
+      vi.stubEnv('SPARKLE_ENVIRONMENT','production')
+      expect((await publish.POST(smokeRequest(host))).status).toBe(403)
+      vi.stubEnv('SPARKLE_ENVIRONMENT','smoke');vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL','https://other.supabase.co')
+      expect((await publish.POST(smokeRequest(host))).status).toBe(403)
+    } finally {vi.unstubAllEnvs()}
   })
   it('returns useful CORS-protected unauthorized responses for revoked tokens', async () => {
     mocks.claim.mockRejectedValueOnce(new LineupServiceError('unauthorized', 401))

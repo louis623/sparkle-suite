@@ -1286,6 +1286,24 @@ function parseAnnouncementTickerItems(topText) {
   });
 }
 
+function LiveLineupTicker() {
+  const lineup = React.useContext(LiveLineupContext);
+  const entries = (lineup?.liveQueueEntries || []).slice(0, 12);
+  if (lineup?.liveQueuePresentation !== "grouped-v1") return null;
+  return <div className="hp-ticker-row hp-lineup-ticker" data-lineup-surface="ticker">
+    <span className="hp-ticker-label">Live Lineup</span>
+    <span className="hp-ticker-sr" role="status" aria-live="polite" aria-atomic="true" key={lineup?.liveQueueFlare?.cursor || "baseline"}>{lineup?.liveQueueFlare ? "Live Lineup updated after an order reveal." : ""}</span>
+    <div className="hp-ticker-track" data-ticker-pps="32" aria-hidden="true">
+      {entries.length ? [...entries, ...entries].map((entry, index) => <span
+        key={`${entry.token || entry.position}-${index < entries.length ? "original" : "clone"}`}
+        className="hp-ticker-item" data-lineup-token={entry.token} data-lineup-clone={index >= entries.length ? "true" : undefined}
+        data-ticker-segment-start={index === 0 ? "true" : undefined} data-ticker-segment-repeat-start={index === entries.length ? "true" : undefined}>
+        <span className="hp-lineup-sparkle" aria-hidden="true">{"\u2727"}</span><span className="dot" />{entry.position}. {entry.name}{entry.remainingOrders > 1 ? ` · ${entry.remainingOrders} orders` : ""}
+      </span>) : <span className="hp-ticker-item">{lineup.liveQueueSummary}</span>}
+    </div>
+  </div>;
+}
+
 function Ticker({ topText }) {
   const lineup = React.useContext(LiveLineupContext);
   useDynamicTickerMotion();
@@ -1322,6 +1340,7 @@ function Ticker({ topText }) {
         <p>{lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup opens when the show starts.")}</p>
         <a {...linkProps(getTradeBoardHref())}>{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Browse current dance floor highlights"}</a>
       </div>
+      <LiveLineupTicker />
       <div className="hp-ticker-row">
         <span className="hp-ticker-label">Announcements</span>
         <div className="hp-ticker-track" data-ticker-pps={ANNOUNCEMENT_TICKER_SPEED_PPS} aria-hidden="true">
@@ -1369,7 +1388,7 @@ function LiveQueueStrip({ state, onOpen }) {
   const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
   if (state === "offline") {
     return (
-      <section className="hp-trade-preview">
+      <section className="hp-trade-preview" data-lineup-surface="list">
         <div className="hp-trade-preview-inner">
           <div className="hp-trade-preview-head">
             <span>Live Lineup</span>
@@ -1386,7 +1405,7 @@ function LiveQueueStrip({ state, onOpen }) {
 
   if (state === "loading") {
     return (
-      <section className="hp-trade-preview">
+      <section className="hp-trade-preview" data-lineup-surface="list">
         <div className="hp-trade-preview-inner">
           <div className="hp-trade-preview-head">
             <span className="live-dot" />
@@ -1404,7 +1423,7 @@ function LiveQueueStrip({ state, onOpen }) {
 
   if (state === "empty") {
     return (
-      <section className="hp-trade-preview">
+      <section className="hp-trade-preview" data-lineup-surface="list">
         <div className="hp-trade-preview-inner">
           <div className="hp-trade-preview-head">
             <span className="live-dot" />
@@ -1421,7 +1440,7 @@ function LiveQueueStrip({ state, onOpen }) {
   }
 
   return (
-    <section className="hp-trade-preview">
+    <section className="hp-trade-preview" data-lineup-surface="list">
       <div className="hp-trade-preview-inner">
         <div className="hp-trade-preview-head">
           <span className="live-dot" style={state === "delayed" ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
@@ -1429,10 +1448,12 @@ function LiveQueueStrip({ state, onOpen }) {
         </div>
         <div className="hp-trade-preview-items">
           {entries.map((entry) => (
-            <button key={entry.position} type="button" onClick={onOpen} className="hp-trade-preview-pill">
+            <button key={entry.token || entry.position} data-lineup-token={entry.token} type="button" onClick={onOpen} className="hp-trade-preview-pill">
               <span className="pos">{entry.position}</span>
               <span className="meta">
-                <span className="name">{entry.name}</span>
+                <span className="hp-lineup-sparkle" aria-hidden="true">{"\u2727"}</span>
+                  <span className="name">{entry.name}</span>
+                  {entry.remainingOrders > 1 && <span className="hp-lineup-order-count">{entry.remainingOrders} orders</span>}
               </span>
             </button>
           ))}
@@ -1473,12 +1494,14 @@ function LiveQueueModal({ open, onClose, state }) {
         ) : state === "empty" || entries.length === 0 ? (
           <div className="hp-queue-modal-empty">{lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup is ready. Customer names appear here when a live show is connected.")}</div>
         ) : (
-          <div className="hp-queue-modal-list">
+          <div className="hp-queue-modal-list" data-lineup-surface="list">
             {entries.map((entry) => (
-              <div key={entry.position} className={`hp-queue-modal-row ${entry.highlight ? "now" : ""}`}>
+              <div key={entry.token || entry.position} data-lineup-token={entry.token} className={`hp-queue-modal-row ${entry.highlight ? "now" : ""}`}>
                 <span className="pos">{entry.position}</span>
                 <div className="meta">
+                  <span className="hp-lineup-sparkle" aria-hidden="true">{"\u2727"}</span>
                   <span className="name">{entry.name}</span>
+                  {entry.remainingOrders > 1 && <span className="hp-lineup-order-count">{entry.remainingOrders} orders</span>}
                 </div>
               </div>
             ))}
@@ -2554,7 +2577,8 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
 // Main App
 // ============================================================
 function App() {
-  const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? CONTENT : null);
+  const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
+  window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
   useEffect(() => {
     if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
     return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });

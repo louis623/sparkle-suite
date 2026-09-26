@@ -4,7 +4,7 @@ import { liveLineupOwnerMutationsAvailable } from '@/lib/live-lineup/runtime-mod
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export async function GET() {
-  try { const { db, repId } = await workspaceLineupReadContext(); return lineupJson(await getWorkspaceLineup(db, repId)) }
+  try { const { db, repId, authorized } = await workspaceLineupReadContext(); return lineupJson(await getWorkspaceLineup(db, repId, Date.now(), authorized)) }
   catch (error) { return lineupFailure(error) }
 }
 export async function POST(request: Request) {

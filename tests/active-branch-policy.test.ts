@@ -28,8 +28,8 @@ describe("Sparkle Suite active branch policy", () => {
       platform: "win32",
     });
 
-    expect(errors).toContain(
-      'branch "codex/nic-nac-photo-rarity-repair" is not active; allowed: codex/nic-nac-trade-hardening',
+    expect(errors).toContainEqual(
+      expect.stringContaining('branch "codex/nic-nac-photo-rarity-repair" is not active; allowed:'),
     );
     expect(
       errors.some((error) =>
@@ -46,8 +46,8 @@ describe("Sparkle Suite active branch policy", () => {
         worktree: "C:\\Users\\louis\\sparkle-suite-repo",
         platform: "win32",
       }),
-    ).toContain(
-      'branch "main" is not active; allowed: codex/nic-nac-trade-hardening',
+    ).toContainEqual(
+      expect.stringContaining('branch "main" is not active; allowed:'),
     );
   });
 

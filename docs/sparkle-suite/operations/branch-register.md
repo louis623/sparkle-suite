@@ -124,3 +124,8 @@ reconciliation and must not be swept into the active branch merely to make
 5. Never broadly stage the shared workbench. Release only exact reviewed files
    from a clean checkout, then verify the production deployment and aliases did
    not move unexpectedly.
+
+
+## 2026-09-26 — authorized v5.2 Smoke feature branch
+
+Louis authorized `codex/live-lineup-v52-smoke` from verified Suite tip `4a679d751f7519de2396da89b03ba8de1ddfe140` for the application and extension v5.2 build, PR, tests, and Suite Smoke only. The disposable checkout is `C:\Users\louis\AppData\Local\Temp\sparkle-lineup-v52-20260926`. The guard now recognizes this exact separate Smoke lane and requires project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` for its Vercel builds. It does not change the GitHub default, production branch, production project, or production aliases. It grants no CWS or production release.

@@ -1,6 +1,6 @@
 import type { ArchiveRecoveryRequest, LineupArchiveSummary } from '@/lib/live-lineup/archive-recovery'
 import type { WorkspaceLineupEntry, WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
-import { canConfirmShow, isWorkspaceLineupSnapshot } from './live-lineup-client'
+import { canConfirmShow, canRecoverLineup, isWorkspaceLineupSnapshot } from './live-lineup-client'
 
 export type ArchiveDetail = LineupArchiveSummary & { candidates: WorkspaceLineupEntry[] }
 export type ArchivePage = { archives: LineupArchiveSummary[]; nextBeforeGeneration: number | null }
@@ -38,7 +38,7 @@ export function isArchiveDetail(value: unknown, summary: LineupArchiveSummary): 
 }
 export function recoveryIneligibleReason(current: WorkspaceLineupSnapshot, archive: ArchiveDetail, entryId: string): string | null {
   const m = current.management
-  if (!current.canManage || !m || m.generation < 1 || archive.generation >= m.generation) return 'Start a newer scoped show first.'
+  if (!canRecoverLineup(current) || !m || m.generation < 1 || archive.generation >= m.generation) return 'Start a newer scoped show first.'
   if (!entryId.includes(':') || !m.partyIds.includes(entryId.split(':')[0])) return 'Outside the current show’s parties.'
   if (m.candidates.some(entry => entry.id === entryId)) return 'Already in the current lineup or Hold.'
   return null
@@ -53,7 +53,7 @@ export function archiveRecoveryRequest(preview: WorkspaceLineupSnapshot, current
 }
 export function isArchiveRecoveryAcknowledgement(before: WorkspaceLineupSnapshot, next: unknown, archive: ArchiveDetail,
   request: ArchiveRecoveryRequest): next is WorkspaceLineupSnapshot {
-  if (!isWorkspaceLineupSnapshot(next) || !before.management || !next.management || !next.canManage
+  if (!isWorkspaceLineupSnapshot(next) || next.tenantContext !== before.tenantContext || !before.management || !next.management
     || request.expectedRevision !== before.revision || next.revision !== before.revision + 1
     || next.management.generation !== before.management.generation + 1 || next.undoAvailable
     || next.lastReceivedAt !== null || next.sourceVersion !== null || next.connection !== 'offline'
@@ -64,7 +64,7 @@ export function isArchiveRecoveryAcknowledgement(before: WorkspaceLineupSnapshot
   const selected = new Set(request.entryIds)
   const heldCount = before.management.candidates.filter(entry => entry.held).length
   const added = archive.candidates.filter(entry => selected.has(entry.id)).map((entry, i) => ({ ...entry, held: true, position: heldCount + i + 1 }))
-  const candidates = [...before.management.candidates, ...added]
+  const candidates = [...before.management.candidates, ...added].map(entry => ({id:entry.id,name:entry.name,position:entry.position,held:entry.held}))
   const visible = candidates.filter(entry => !before.management!.excludedPartyIds.includes(entry.id.split(':')[0]))
   const project = (held: boolean) => visible.filter(entry => entry.held === held).map((entry, i) => ({...entry, position: i + 1}))
   return same(next.management.candidates, candidates) && same(next.entries, project(false)) && same(next.heldEntries, project(true))

@@ -1,7 +1,7 @@
 import 'server-only'
 import { isDeepStrictEqual } from 'node:util'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { isLineupState, LINEUP_FRESH_MS } from './model'
+import { isLineupState, lineupFreshness, LINEUP_FRESH_MS } from './model'
 import type { LineupState } from './types'
 
 export type LineupSetupReadinessReason = 'ready' | 'invalid_tenant' | 'clock_invalid' | 'schema_unavailable'
@@ -58,6 +58,8 @@ export async function readLineupSetupReadiness(db: SupabaseClient, repId: string
     if (Date.parse(publisher.leaseExpiresAt) <= now) return result('lease_expired', state)
     if (!state.lastReceivedAt || !state.lastReadyAt) return result('awaiting_ready', state)
     if (state.parserState !== 'ready') return result('source_not_ready', state)
+    if (publisher.capabilities === 'lineup-2.0.5' && (!state.show || state.bootstrapPending)) return result('awaiting_ready', state)
+    if (publisher.capabilities === 'lineup-2.0.5' && !lineupFreshness(state, now).fresh) return result('stale', state)
     if (now - Date.parse(state.lastReadyAt) > LINEUP_FRESH_MS) return result('stale', state)
 
     let credentialExpiresAt: string | null = null
@@ -97,6 +99,7 @@ export async function readLineupSetupReadiness(db: SupabaseClient, repId: string
     if (!checkedAt || finalNow < now) return result('clock_invalid', state)
     if (Date.parse(publisher.leaseExpiresAt) <= finalNow) return result('lease_expired', state)
     if (credentialExpiresAt && Date.parse(credentialExpiresAt) <= finalNow) return result('publisher_expired', state)
+    if (publisher.capabilities === 'lineup-2.0.5' && !lineupFreshness(state, finalNow).fresh) return result('stale', state)
     if (finalNow - Date.parse(state.lastReadyAt) > LINEUP_FRESH_MS) return result('stale', state)
     return result('ready', state)
   } catch {

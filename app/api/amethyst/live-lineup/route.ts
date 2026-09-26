@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
-import { buildPublicLiveLineup } from '@/lib/amethyst/public-live-lineup'
+import { buildPublicLiveLineup, requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { getEffectiveLiveQueueSnapshot } from '@/lib/live-lineup/service'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     }
     const snapshot = await getEffectiveLiveQueueSnapshot(admin, rep.id)
     if (!snapshot) return lineupJson({ error: 'temporarily_unavailable' }, 503)
-    return lineupJson(buildPublicLiveLineup(snapshot))
+    return lineupJson(buildPublicLiveLineup(snapshot, requestedLineupPresentation(request)))
   } catch {
     return lineupJson({ error: 'temporarily_unavailable' }, 503)
   }

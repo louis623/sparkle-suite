@@ -125,7 +125,7 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
       parserState: 'ready', entries: [{ id: 'party:order', name: 'Reviewer', orderedAt: now }], revealedIds: [],
     }
     await receiveSource(d.db, 'MHF-9446', assignedCodePacket, now + 1000)
-    expect(await getWorkspaceLineup(d.db, repA, now + 1000)).toMatchObject({
+    expect(await getWorkspaceLineup(d.db, repA, now + 1000, true)).toMatchObject({
       canManage: true,
       entries: [{ id: 'party:order', name: 'Reviewer', position: 1, held: false }],
     })
@@ -152,7 +152,11 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     expect(secondClaim.generation).toBe(1)
     const changed = await configureSourceParties(d.db, 'MHF-9446', 1, ['p1', 'p2'], ['p1'], now + 4000)
     expect(changed.scope?.excludedPartyIds).toEqual(['p1'])
-    const publicQueue = await getEffectiveLiveQueueSnapshot(d.db, repA, now + 4000)
+    // Configuration remains private until a final scoped observation is accepted.
+    expect((await getEffectiveLiveQueueSnapshot(d.db, repA, now + 4000))?.queue).toEqual([])
+    await receiveSource(d.db, 'MHF-9446', {publisherId:repA,epoch:secondClaim.epoch,sequence:0,sourceVersion:'2.0.4',generation:1,
+      parserState:'ready',entries:[{id:'p1:a',name:'Reviewer One',orderedAt:now},{id:'p2:b',name:'Reviewer Two',orderedAt:now+1}],revealedIds:[]},now+4500)
+    const publicQueue = await getEffectiveLiveQueueSnapshot(d.db, repA, now + 4500)
     expect(publicQueue?.queue).toEqual(['Reviewer Two'])
     const foreignClaim = claimPublisher(createLineupState(), publisherId, 0, now, { claimId })
     if (!foreignClaim.ok) throw Error('fixture')
@@ -273,7 +277,7 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     const held = await changeLineup(d.db, repA, { expectedRevision: before.revision, type: 'hold', entryId: 'order-a' }, now + 2000)
     expect(held.entries.map(e => e.id)).toEqual(['order-b'])
     const publicState = await getEffectiveLiveQueueSnapshot(d.db, repA, now + 2000)
-    expect(publicState?.queue).toEqual(['Same Name'])
+    expect(publicState?.queue).toEqual([]) // Generation-zero bootstrap is private until configured.
     expect(JSON.stringify(publicState)).not.toMatch(/order-a|order-b|rep-a|sslp_|undo|held|token_hash/)
     await receiveSource(d.db, token, packet(1), now + 3000)
     expect((await getWorkspaceLineup(d.db, repA, now + 3000)).heldEntries.map(e => e.id)).toEqual(['order-a'])
@@ -367,7 +371,7 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     expect(after).toEqual({ ...before, revision: before.revision + 1, lastReceivedAt: null, sourceVersion: null,
       parserState: 'loading', publisher: { ...before.publisher, lastSequence: -1, leaseExpiresAt: new Date(now + 3000).toISOString() } })
     expect(await getWorkspaceLineup(d.db, repA, now + 3000)).toMatchObject({ connection: 'offline', heldEntries: [{ id: 'order-a' }] })
-    expect(await getEffectiveLiveQueueSnapshot(d.db, repA, now + 3000)).toMatchObject({ sourceReady: false, isFresh: false, queue: ['Same Name'] })
+    expect(await getEffectiveLiveQueueSnapshot(d.db, repA, now + 3000)).toMatchObject({ sourceReady: false, isFresh: false, queue: [] })
     const claimed = await claimSource(d.db, replacement.token, otherClaimId, now + 3001)
     expect(claimed.epoch).toBe(before.publisher.epoch + 1)
     await expect(receiveSource(d.db, token, packet(1), now + 4000)).rejects.toMatchObject({ code: 'unauthorized', status: 401 })
@@ -418,8 +422,9 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     const d = seeded()
     await receiveSource(d.db, token, { ...packet(1), parserState: 'loading', entries: [] }, now + 60_000)
     const result = await getEffectiveLiveQueueSnapshot(d.db, repA, now + 60_000)
-    expect(result).toMatchObject({ sourceReady: false, isFresh: false, ageSeconds: 59, lastUpdated: new Date(now + 1000).toISOString() })
-    expect(result?.queue).toHaveLength(2)
+    expect(result).toMatchObject({ sourceReady: false, isFresh: false, ageSeconds: 59, lastUpdated: null })
+    expect(result?.queue).toHaveLength(0) // Unconfigured bootstrap stays private; ready age still does not advance.
+    expect(d.rows.live_lineup_states[0].state.lastReadyAt).toBe(new Date(now + 1000).toISOString())
   })
   it('never reports saved when an RPC acknowledgement has the wrong tenant/revision/state', async () => {
     const corruptions = [

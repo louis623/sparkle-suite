@@ -455,7 +455,7 @@ describe('Amethyst trade page template wiring', () => {
     )
 
     expect(html).toContain(
-      '<script src="template-loader.js" data-template-src="/api/amethyst/trade-template"></script>',
+      '<script src="template-loader.js?v=20260926-lineup-grouped-v1" data-lineup-presentation="grouped-v1" data-template-src="/api/amethyst/trade-template"></script>',
     )
     expect(html.indexOf('template-loader.js')).toBeLessThan(
       html.indexOf('trade.jsx'),

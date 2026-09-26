@@ -105,7 +105,7 @@ describe('server-ordered public lineup', () => {
       expect(jsx).not.toContain('const previousOverflow = document.body.style.overflow')
       expect(jsx).not.toContain('if (queueOpen) body.classList.add("modal-open")')
       const html = readFileSync(`public/amethyst/${page === 'homepage' ? 'Homepage' : page === 'join' ? 'Join' : 'Trade'}.html`, 'utf8')
-      expect(html).toContain('/amethyst/live-lineup.js?v=20260909-lineup-v2')
+      expect(html).toContain('/amethyst/live-lineup.js?v=20260926-lineup-grouped-v1')
     }
   })
   it('serves the shared runtime through the explicit public-asset allowlist', async () => {

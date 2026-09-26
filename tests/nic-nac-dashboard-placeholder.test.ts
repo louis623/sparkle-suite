@@ -4046,7 +4046,9 @@ describe('DashboardPlaceholder', () => {
 
     expect(html).toContain('Set it up step by step')
     expect(html).not.toContain('Create private connection key')
-    expect(html).not.toContain('Refresh connections')
+    expect(html).toContain('Saved connection recovery')
+    expect(html).toContain('Refresh connections')
+    expect(html).toContain('Keep using your assigned Live Lineup code')
   })
 
   it('formats wallet amounts and estimated texts for display', () => {

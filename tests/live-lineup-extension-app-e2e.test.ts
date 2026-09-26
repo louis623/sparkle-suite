@@ -71,6 +71,7 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     await sql.query('insert into reps values($1)', [rep])
     await sql.query(`insert into live_queue(rep_id, sync_code, queue, last_updated) values($1, 'MHF-9446', '[]'::jsonb, now())`, [rep])
     await sql.exec(readFileSync(new URL('../supabase/migrations/20260910000100_live_lineup_v2.sql', import.meta.url), 'utf8'))
+    await sql.exec(readFileSync(new URL('../supabase/migrations/20260926000100_live_lineup_atomic_observations.sql', import.meta.url), 'utf8'))
     await sql.exec('set role service_role')
     const fixtureClock = Date.now()
     let elapsed = 0
@@ -104,11 +105,13 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
       remove: async (key: string) => { delete record[key] },
     })
     let sourceSnapshot = first
+    let observationSerial = 0
+    const documentId = webcrypto.randomUUID()
     const chrome = {
       runtime: {
         id: 'kmodgfffflplfdlkkhadgimmobplhoih',
         getURL: (path: string) => `${extensionOrigin}/${path}`,
-        getManifest: () => ({ version: '2.0.0' }),
+        getManifest: () => ({ version: '2.0.5' }),
         onMessage: { addListener: (listener: (...args: unknown[]) => unknown) => { workerListeners.message = listener } },
       },
       storage: { local: storageArea(localStorage), session: storageArea(sessionStorage), sync: storageArea({}) },
@@ -116,13 +119,13 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
       tabs: {
         query: async () => [
           { id: 9, active: true, url: 'https://myoffice.bombparty.com/live-party-orders' },
-          { id: 10, active: false, url: 'https://myoffice.bombparty.com/live-party-orders' },
         ],
         sendMessage: async (_id: number, message: { action: string; generation?: number; selection?: { partyIds: string[] } }) => {
-          if (message.action === 'sparkle-v2-inspect') return { protocol: 2, snapshot: sourceSnapshot }
+          const source = {documentId, serial: ++observationSerial, settled: sourceSnapshot.parserState === 'ready'}
+          if (message.action === 'sparkle-v2-inspect') return { protocol: 2, source, snapshot: sourceSnapshot }
           expect(message.action).toBe('sparkle-v2-read')
           expect(message.selection?.partyIds).toEqual(['p1'])
-          return { protocol: 2, generation: message.generation, snapshot: sourceSnapshot }
+          return { protocol: 2, generation: message.generation, source, snapshot: sourceSnapshot }
         },
         onRemoved: { addListener: (listener: (...args: unknown[]) => unknown) => { workerListeners.removed = listener } },
         onUpdated: { addListener: (listener: (...args: unknown[]) => unknown) => { workerListeners.updated = listener } },
@@ -140,6 +143,7 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
       setTimeout,
       clearTimeout,
       fetch: async (_url: string, options: RequestInit) => {
+        elapsed += 600 // Keep real SQL rate limiting while advancing synthetic network time.
         const headers = new Headers(options.headers)
         headers.set('origin', extensionOrigin)
         const sourceBody = JSON.parse(String(options.body)) as { action?: string }
@@ -191,8 +195,7 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     await runWorker('ready')
     expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
 
-    // Multiple eligible tabs use the active Party Orders tab. A normal reload
-    // keeps that choice and reconnects without asking the rep to select it.
+    // A normal reload keeps the explicitly established source tab.
     expect((await runWorker('selected()')).tabId).toBe(9)
     workerListeners.updated!(9, { status: 'loading' })
     await runWorker('serial')
@@ -270,11 +273,14 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
       expect(rendered.liveQueueEntries.map((entry: { name: string }) => entry.name)).toEqual(['Jessica', 'Casey', 'Morgan', 'New customer'])
     }
 
-    // A new show generation is adopted automatically; no source selection is shown.
+    // A new show requires deliberate Off/On adoption, then a new genuine read.
     owner = await json(await workspace.GET())
     owner = await command({ type: 'start-show', confirmed: true, partyIds: ['p1'], carryEntryIds: [] })
     elapsed += 1_000
     sourceSnapshot = { parserState: 'ready', entries: [], revealedIds: [], revealedEntries: [] }
+    expect((await runWorker('exclusive(pull)')).status).toBe('show_changed')
+    await runWorker('exclusive(()=>popupMessage({action:"sparkle-v2-toggle",enabled:false}))')
+    await runWorker('exclusive(()=>popupMessage({action:"sparkle-v2-toggle",enabled:true}))')
     expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
     const empty = await json(await publicRoute.GET(new Request(`${origin}/api/amethyst/live-lineup?publicSiteSlug=synthetic`)))
     expect(empty.liveQueueState).toBe('empty')
@@ -286,6 +292,7 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
     }
     expect((await runWorker('exclusive(pull)')).status).toBe('confirmed')
     const currentPublisher = await runWorker('store.load()') as {
+      claimId: string
       publisherId: string
       epoch: number
       generation: number
@@ -295,9 +302,11 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
       ...sourceSnapshot,
       generation: currentPublisher.generation,
       publisherId: currentPublisher.publisherId,
+      claimId: currentPublisher.claimId,
       epoch: currentPublisher.epoch,
       sequence: Math.max(0, currentPublisher.nextSequence - 2),
-      sourceVersion: '2.0.0',
+      sourceVersion: '2.0.5',
+      observation: {documentId,serial:++observationSerial,serverTime:new Date(Date.now()).toISOString(),settled:true},
     }
     elapsed += 501
     const staleSource = await publish.POST(request('/api/live-lineup/publish', { action: 'snapshot', packet: stalePacket }, {

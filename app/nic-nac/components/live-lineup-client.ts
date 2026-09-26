@@ -50,10 +50,17 @@ export function isWorkspaceLineupSnapshot(value: unknown): value is WorkspaceLin
     if (!m || !Number.isSafeInteger(m.generation) || m.generation < 0 || !parties(m.partyIds) || !parties(m.excludedPartyIds)
       || m.excludedPartyIds.some(id => !m.partyIds.includes(id)) || !Array.isArray(m.candidates) || m.candidates.length > 2000
       || new Set(m.candidates.map(e => e?.id)).size !== m.candidates.length
-      || m.candidates.some(e => !e || typeof e.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/.test(e.id)
+      || m.candidates.some(e => !validEntryIdentity(e) || !e || typeof e.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/.test(e.id)
         || typeof e.name !== 'string' || !e.name.trim() || e.name.length > 100 || typeof e.held !== 'boolean' || !Number.isSafeInteger(e.position) || e.position < 1)) return false
   }
   const timestamp = (x: unknown) => x === null || (typeof x === 'string' && Number.isFinite(Date.parse(x)))
+  if (v.tenantContext !== undefined && (typeof v.tenantContext !== 'string' || !v.tenantContext || v.tenantContext.length > 128)) return false
+  if ((v.runtimeWritable !== undefined && typeof v.runtimeWritable !== 'boolean')
+    || (v.authorized !== undefined && typeof v.authorized !== 'boolean')
+    || (v.canRecover !== undefined && typeof v.canRecover !== 'boolean')
+    || (v.serverTime !== undefined && !timestamp(v.serverTime))
+    || (v.freshUntil !== undefined && !timestamp(v.freshUntil))
+    || (v.freshForMs !== undefined && (!Number.isFinite(v.freshForMs) || v.freshForMs < 0 || v.freshForMs > 45000))) return false
   if (!Number.isSafeInteger(v.revision) || v.revision < 0 ||
       !['connecting', 'connected', 'delayed', 'offline'].includes(v.connection) ||
       !timestamp(v.lastReceivedAt) || !timestamp(v.lastChangedAt) ||
@@ -63,7 +70,7 @@ export function isWorkspaceLineupSnapshot(value: unknown): value is WorkspaceLin
       !Array.isArray(v.entries) || !Array.isArray(v.heldEntries) || v.entries.length + v.heldEntries.length > 2000) return false
   const ids = new Set<string>()
   return [...v.entries, ...v.heldEntries].every((entry) => {
-    if (!entry || typeof entry.id !== 'string' || !entry.id || ids.has(entry.id) ||
+    if (!validEntryIdentity(entry) || !entry || typeof entry.id !== 'string' || !entry.id || ids.has(entry.id) ||
         typeof entry.name !== 'string' || !entry.name.trim() || entry.name.length > 100 ||
         !Number.isSafeInteger(entry.position) || entry.position < 1 || typeof entry.held !== 'boolean') return false
     ids.add(entry.id)
@@ -93,8 +100,10 @@ export function pointerDropAnchor(rows: { id: string; top: number; bottom: numbe
 /** Retry a heartbeat-only conflict, never a changed arrangement or source transition. */
 export function canRebaseDrag(before: WorkspaceLineupSnapshot, next: WorkspaceLineupSnapshot): boolean {
   const same = (a: WorkspaceLineupSnapshot['entries'], b: WorkspaceLineupSnapshot['entries']) => a.length === b.length
-    && a.every((entry, index) => entry.id === b[index].id && entry.name === b[index].name)
-  return before.canManage && next.canManage && next.revision > before.revision
+    && a.every((entry, index) => entry.id === b[index].id && entry.name === b[index].name
+      && entry.lastName === b[index].lastName && entry.sourceIdentityVersion === b[index].sourceIdentityVersion && entry.identityEligible === b[index].identityEligible)
+  return before.tenantContext === next.tenantContext && JSON.stringify(before.management) === JSON.stringify(next.management)
+    && before.canManage && next.canManage && next.revision > before.revision
     && before.sourceVersion === next.sourceVersion && before.lastChangedAt === next.lastChangedAt
     && before.undoAvailable === next.undoAvailable && same(before.entries, next.entries) && same(before.heldEntries, next.heldEntries)
 }
@@ -114,7 +123,7 @@ export function dragScrollDelta(pixelsPerSecond: number, elapsedMs: number): num
 
 /** A preview may survive pure heartbeats, never arrivals or changed names/order/holds/scope. */
 export function canConfirmShow(before: WorkspaceLineupSnapshot, next: WorkspaceLineupSnapshot): boolean {
-  return before.canManage && next.canManage && !!before.management && !!next.management && next.revision >= before.revision
+  return before.tenantContext === next.tenantContext && canRecoverLineup(before) && canRecoverLineup(next) && !!before.management && !!next.management && next.revision >= before.revision
     && before.lastChangedAt === next.lastChangedAt && before.sourceVersion === next.sourceVersion
     && JSON.stringify(before.management) === JSON.stringify(next.management)
 }
@@ -122,7 +131,7 @@ export function canConfirmShow(before: WorkspaceLineupSnapshot, next: WorkspaceL
 /** A visibility toggle is limited to parties already selected for this explicit show. */
 export function partyVisibilityCommand(snapshot: WorkspaceLineupSnapshot, partyId: string, visible: boolean): Extract<WorkspaceLineupCommand, {type: 'filter-parties'}> | null {
   const management = snapshot.management
-  if (!snapshot.canManage || !management || management.generation < 1 || !management.partyIds.includes(partyId)) return null
+  if (!canRecoverLineup(snapshot) || !management || management.generation < 1 || !management.partyIds.includes(partyId)) return null
   const hidden = management.excludedPartyIds.includes(partyId)
   if (visible === !hidden) return null
   const excludedPartyIds = visible ? management.excludedPartyIds.filter(id => id !== partyId)
@@ -135,8 +144,9 @@ export function isPartyVisibilityAcknowledgement(before: WorkspaceLineupSnapshot
   command: Extract<WorkspaceLineupCommand, {type: 'filter-parties'}>): boolean {
   const previous = before.management, current = next.management
   const sameEntries = (a: WorkspaceLineupSnapshot['entries'], b: WorkspaceLineupSnapshot['entries']) => a.length === b.length
-    && a.every((entry, index) => entry.id === b[index].id && entry.name === b[index].name && entry.position === b[index].position && entry.held === b[index].held)
-  if (!before.canManage || !previous || !current || !next.canManage || previous.generation < 1 || current.generation !== previous.generation
+    && a.every((entry, index) => entry.id === b[index].id && entry.name === b[index].name && entry.position === b[index].position && entry.held === b[index].held
+      && entry.lastName === b[index].lastName && entry.identityEligible === b[index].identityEligible && entry.sourceIdentityVersion === b[index].sourceIdentityVersion)
+  if (before.tenantContext !== next.tenantContext || !canRecoverLineup(before) || !previous || !current || previous.generation < 1 || current.generation !== previous.generation
     || next.revision <= before.revision || next.undoAvailable !== before.undoAvailable
     || JSON.stringify(current.partyIds) !== JSON.stringify(previous.partyIds)
     || JSON.stringify([...current.excludedPartyIds].sort()) !== JSON.stringify([...command.excludedPartyIds].sort())
@@ -150,6 +160,8 @@ const sameLineupEntries = (a: WorkspaceLineupSnapshot['entries'], b: WorkspaceLi
   a.length === b.length && a.every((entry, index) => {
     const other = b[index]
     return !!other && entry.id === other.id && entry.name === other.name
+      && entry.lastName === other.lastName && entry.identityEligible === other.identityEligible
+      && entry.sourceIdentityVersion === other.sourceIdentityVersion
       && entry.position === other.position && entry.held === other.held
   })
 
@@ -161,9 +173,9 @@ export function canAcceptWorkspaceRefresh(
   before: WorkspaceLineupSnapshot,
   next: WorkspaceLineupSnapshot,
 ): boolean {
-  if (next.revision < before.revision) return false
+  if (before.tenantContext !== next.tenantContext || next.revision < before.revision) return false
   if (next.revision > before.revision) return true
-  return before.canManage === next.canManage
+  return before.tenantContext === next.tenantContext
     && before.lastReceivedAt === next.lastReceivedAt
     && before.lastChangedAt === next.lastChangedAt
     && before.sourceVersion === next.sourceVersion
@@ -206,7 +218,7 @@ export function isLineupCommandAcknowledgement(
   next: WorkspaceLineupSnapshot,
   command: WorkspaceLineupCommand,
 ): boolean {
-  if (!before.canManage || !next.canManage || !before.management || !next.management
+  if (before.tenantContext !== next.tenantContext || !(command.type === 'start-show' || command.type === 'filter-parties' ? canRecoverLineup(before) : before.canManage) || !before.management || !next.management
     || next.revision <= before.revision) return false
   if (command.type === 'filter-parties') return isPartyVisibilityAcknowledgement(before, next, command)
 
@@ -221,9 +233,11 @@ export function isLineupCommandAcknowledgement(
 
   if (command.type === 'start-show') {
     const carry = new Set(command.carryEntryIds)
+    const carried = (entries: WorkspaceLineupSnapshot['entries']) => entries.filter(entry => carry.has(entry.id))
+      .map(entry => ({id:entry.id,name:entry.name,position:entry.position,held:entry.held}))
     expected = {
-      order: positioned(prior.order.filter(entry => carry.has(entry.id)), false),
-      held: positioned(prior.held.filter(entry => carry.has(entry.id)), true),
+      order: positioned(carried(prior.order), false),
+      held: positioned(carried(prior.held), true),
     }
     generation += 1
     partyIds = [...command.partyIds].sort()
@@ -279,4 +293,29 @@ export function isLineupCommandAcknowledgement(
   if (!sameLineupEntries(next.management.candidates, candidates)) return false
   const visible = visibleArrangement(expected, excludedPartyIds)
   return sameLineupEntries(next.entries, visible.order) && sameLineupEntries(next.heldEntries, visible.held)
+}
+
+/** Recovery is an explicit server capability; source health never grants permission. */
+export function canRecoverLineup(snapshot: WorkspaceLineupSnapshot): boolean {
+  return snapshot.authorized === true && snapshot.runtimeWritable !== false && snapshot.canRecover === true
+}
+
+function validEntryIdentity(entry: WorkspaceLineupSnapshot['entries'][number]): boolean {
+  return !!entry && (entry.lastName === undefined || (typeof entry.lastName === 'string' && entry.lastName.length <= 100
+    && entry.lastName === entry.lastName.trim() && !/[\u0000-\u001f\u007f]/.test(entry.lastName)))
+    && (entry.identityEligible === undefined || typeof entry.identityEligible === 'boolean')
+    && (entry.sourceIdentityVersion === undefined || (typeof entry.sourceIdentityVersion === 'string' && entry.sourceIdentityVersion.length <= 200))
+}
+
+/** A response spends its full round-trip time; receipt never restarts evidence life. */
+export function workspaceFreshnessDeadline(snapshot: WorkspaceLineupSnapshot, requestStarted: number, received: number): number {
+  if (snapshot.connection !== 'connected' || !snapshot.serverTime || !snapshot.freshUntil
+    || !Number.isFinite(requestStarted) || !Number.isFinite(received) || received < requestStarted) return received
+  const budget = Math.min(45000, Date.parse(snapshot.freshUntil) - Date.parse(snapshot.serverTime), snapshot.freshForMs ?? 0)
+  return received + Math.max(0, (Number.isFinite(budget) ? budget : 0) - (received - requestStarted))
+}
+
+export function workspaceWriteEligible(snapshot: WorkspaceLineupSnapshot | null, deadline: number, now: number, suspended: boolean): boolean {
+  return !!snapshot && snapshot.authorized === true && snapshot.runtimeWritable !== false && snapshot.canManage && snapshot.connection === 'connected'
+    && !suspended && Number.isFinite(deadline) && now < deadline
 }
