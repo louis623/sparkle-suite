@@ -11,6 +11,7 @@ tests/live-lineup-archive-recovery.test.ts
 tests/live-lineup-archive-route.test.ts
 tests/live-lineup-delayed-rpc.test.ts
 tests/live-lineup-extension-package.test.ts
+tests/live-lineup-queue-parser.test.ts
 tests/live-lineup-http.test.ts
 tests/live-lineup-compatibility-mode.test.tsx
 tests/live-lineup-lifecycle.test.ts

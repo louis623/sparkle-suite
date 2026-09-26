@@ -1,8 +1,47 @@
-// Sparkle Suite Live Queue v2: read-only, fail-closed Bomb Party parser.
+// Sparkle Suite Live Queue v2: read-only Bomb Party parser.
+// Soft-fallback identities (1.0.1-style cell text) with 2.x per-row skip instead of fail-closed tables.
 (function (root) {
   "use strict";
   const ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,60}$/;
+  const HEADER_ALIASES = Object.freeze({
+    partyid: "PartyID", "party id": "PartyID",
+    orderid: "OrderID", "order id": "OrderID",
+    firstname: "FirstName", "first name": "FirstName",
+    orderdate: "OrderDate", "order date": "OrderDate",
+    isrevealed: "IsRevealed",
+  });
   const unavailable = (parserState, reason) => ({parserState, reason, entries: [], revealedIds: [], revealedEntries: []});
+  function identityText(value) {
+    const text = String(value || "").replace(/\u00a0/g, " ").trim();
+    if (ID.test(text)) return text;
+    for (const part of text.split(/\s+/)) if (ID.test(part)) return part;
+    return "";
+  }
+  function cellIdentity(cell) {
+    if (!cell) return "";
+    const link = typeof cell.querySelector === "function" ? cell.querySelector("a") : null;
+    return identityText((link && link.textContent) || cell.textContent);
+  }
+  function headerKey(cell) {
+    const sortBy = cell.getAttribute("data-sort-by");
+    if (sortBy) return sortBy;
+    const labeled = typeof cell.querySelector === "function"
+      ? cell.querySelector(".header-content span, .header-content")
+      : null;
+    const label = String((labeled && labeled.textContent) || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+    return HEADER_ALIASES[label] || null;
+  }
+  function readIdentity(row, cells, attrName, columnIndex, fallbackIndex) {
+    const fromAttr = identityText(row.getAttribute(attrName));
+    if (fromAttr) return fromAttr;
+    const fromColumn = Number.isInteger(columnIndex) ? cellIdentity(cells[columnIndex]) : "";
+    if (fromColumn) return fromColumn;
+    if (Number.isInteger(fallbackIndex) && fallbackIndex !== columnIndex) {
+      const fromFallback = cellIdentity(cells[fallbackIndex]);
+      if (fromFallback) return fromFallback;
+    }
+    return "";
+  }
   function parseTable(table, selection = null) {
     let parties = null, cutoff = null, carry = new Set();
     if (typeof selection === "string") {
@@ -35,7 +74,7 @@
     if (!head || !body) return unavailable("loading", "table_incomplete");
     const columns = Object.create(null);
     for (const [index, cell] of Array.from(head.querySelectorAll("th")).entries()) {
-      const key = cell.getAttribute("data-sort-by");
+      const key = headerKey(cell);
       if (key && Object.prototype.hasOwnProperty.call(columns, key)) return unavailable("invalid", "duplicate_columns");
       if (key) columns[key] = index;
     }
@@ -45,40 +84,46 @@
     if (rows.length > 50000) return unavailable("invalid", "scan_capacity_exceeded");
     if (!rows.length) return unavailable("partial", "no_visible_orders");
     const entries = [], revealedIds = [], revealedEntries = [], seen = new Set();
+    let identified = 0;
     for (const row of rows) {
-      const orderId = (row.getAttribute("data-orderid") || "").trim();
-      const partyId = (row.getAttribute("data-partyid") || "").trim();
-      if (!ID.test(orderId) || !ID.test(partyId)) return unavailable("invalid", "missing_order_identity");
+      const cells = row.querySelectorAll("td");
+      const orderId = readIdentity(row, cells, "data-orderid", columns.OrderID, 0);
+      const partyId = readIdentity(row, cells, "data-partyid", columns.PartyID);
+      if (!ID.test(orderId) || !ID.test(partyId)) continue;
+      identified += 1;
       if (parties && !parties.has(partyId)) continue;
       const id = partyId + ":" + orderId;
-      if (seen.has(id)) return unavailable("invalid", "duplicate_order_identity");
+      if (seen.has(id)) continue;
       seen.add(id);
-      const cells = row.querySelectorAll("td");
-      const rawDate = cells[columns.OrderDate]?.getAttribute("data-order-utc-ms");
+      const nameCell = cells[columns.FirstName], revealCell = cells[columns.IsRevealed];
+      if (!nameCell || !revealCell) continue;
+      const checks = revealCell.querySelectorAll('input[type="checkbox"]');
+      if (checks.length !== 1 || checks[0].indeterminate || typeof checks[0].checked !== "boolean") continue;
+      const rawDate = Number.isInteger(columns.OrderDate) ? cells[columns.OrderDate]?.getAttribute("data-order-utc-ms") : null;
       let orderedAt = null;
       if (rawDate !== null && rawDate !== undefined && rawDate !== "") {
-        if (!/^[0-9]+$/.test(rawDate)) return unavailable("invalid", "invalid_order_time");
+        if (!/^[0-9]+$/.test(rawDate)) continue;
         orderedAt = Number(rawDate);
-        if (!Number.isSafeInteger(orderedAt) || orderedAt > 8640000000000000) return unavailable("invalid", "invalid_order_time");
+        if (!Number.isSafeInteger(orderedAt) || orderedAt > 8640000000000000) continue;
       }
       if (cutoff !== null && !carry.has(id)) {
-        if (orderedAt === null) return unavailable("partial", "order_time_missing");
+        if (orderedAt === null) continue;
         if (orderedAt < cutoff) continue;
       }
-      const nameCell = cells[columns.FirstName], revealCell = cells[columns.IsRevealed];
-      if (!nameCell || !revealCell) return unavailable("partial", "row_incomplete");
-      const checks = revealCell.querySelectorAll('input[type="checkbox"]');
-      if (checks.length !== 1 || checks[0].indeterminate || typeof checks[0].checked !== "boolean") return unavailable("partial", "reveal_state_missing");
       if (checks[0].checked) {
         revealedIds.push(id); revealedEntries.push({id, orderedAt});
       } else {
         const name = nameCell.textContent.trim();
-        if (!name || name.length > 100 || Array.from(name).some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)) return unavailable("invalid", "invalid_first_name");
+        if (!name || name.length > 100 || Array.from(name).some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)) continue;
         entries.push({id, name, orderedAt});
       }
       if (entries.length > 2000 || revealedIds.length > 10000) return unavailable("invalid", "capacity_exceeded");
     }
-    if (!seen.size) return unavailable("partial", "selected_party_not_visible");
+    if (!seen.size) {
+      if (identified) return unavailable("partial", "selected_party_not_visible");
+      return unavailable("invalid", "missing_order_identity");
+    }
+    if (!entries.length && !revealedIds.length) return unavailable("partial", "row_incomplete");
     entries.sort((a, b) => (a.orderedAt ?? Number.MAX_SAFE_INTEGER) - (b.orderedAt ?? Number.MAX_SAFE_INTEGER) || a.id.localeCompare(b.id));
     return {parserState: "ready", reason: null, entries, revealedIds, revealedEntries};
   }

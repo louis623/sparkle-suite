@@ -7,7 +7,7 @@ function response(body,status=200){const r=new Response(JSON.stringify(body),{st
 
 (async()=>{
   const manifest=JSON.parse(fs.readFileSync('chrome-extension/manifest.json','utf8'));
-  a.equal(manifest.version,'2.0.3');a.deepEqual(manifest.permissions,['storage','alarms']);
+  a.equal(manifest.version,'2.0.4');a.deepEqual(manifest.permissions,['storage','alarms']);
   const popup=fs.readFileSync('chrome-extension/popup.html','utf8'),popupJs=fs.readFileSync('chrome-extension/popup.js','utf8');
   for(const phrase of ['Review / select source','First-time setup','computer name','pairing key','party IDs'])a.equal((popup+popupJs).includes(phrase),false,phrase);
   for(const phrase of ['Connect Live Lineup','Live Queue code','Detected parties'])a.equal(popup.includes(phrase),true,phrase);
@@ -16,7 +16,7 @@ function response(body,status=200){const r=new Response(JSON.stringify(body),{st
   const local={},session={},sync={sync_code:code,enabled:true,excluded_party_ids:['p2']},listeners={},requests=[];
   let descriptor={protocol:2,generation:0,scope:null,serverTime:new Date().toISOString()},sequence=-1;
   const full={parserState:'ready',entries:[{id:'p1:a',name:'Reviewer One',orderedAt:1},{id:'p2:b',name:'Reviewer Two',orderedAt:2}],revealedIds:[],revealedEntries:[]};
-  const chrome={runtime:{id:'test-extension',getURL:p=>'chrome-extension://test-extension/'+p,getManifest:()=>({version:'2.0.3'}),onMessage:event(listeners,'message')},storage:{local:area(local),session:area(session),sync:area(sync)},alarms:{create:async()=>{},onAlarm:event(listeners,'alarm')},tabs:{query:async()=>[{id:10,active:false,url:'https://myoffice.bombparty.com/live-party-orders'},{id:9,active:true,url:'https://myoffice.bombparty.com/live-party-orders'}],sendMessage:async(_id,message)=>message.action==='sparkle-v2-inspect'?{protocol:2,snapshot:full}:{protocol:2,generation:message.generation,snapshot:full},onRemoved:event(listeners,'removed'),onUpdated:event(listeners,'updated'),onActivated:event(listeners,'activated')}};
+  const chrome={runtime:{id:'test-extension',getURL:p=>'chrome-extension://test-extension/'+p,getManifest:()=>({version:'2.0.4'}),onMessage:event(listeners,'message')},storage:{local:area(local),session:area(session),sync:area(sync)},alarms:{create:async()=>{},onAlarm:event(listeners,'alarm')},tabs:{query:async()=>[{id:10,active:false,url:'https://myoffice.bombparty.com/live-party-orders'},{id:9,active:true,url:'https://myoffice.bombparty.com/live-party-orders'}],sendMessage:async(_id,message)=>message.action==='sparkle-v2-inspect'?{protocol:2,snapshot:full}:{protocol:2,generation:message.generation,snapshot:full},onRemoved:event(listeners,'removed'),onUpdated:event(listeners,'updated'),onActivated:event(listeners,'activated')}};
   const fetcher=async(_u,options)=>{const body=JSON.parse(options.body);requests.push(body);const stamp=new Date().toISOString(),lease=new Date(Date.now()+90000).toISOString();if(body.action==='describe')return response(descriptor);if(body.action==='claim')return response({generation:descriptor.generation,publisherId:rep,epoch:descriptor.generation+1,revision:1,acceptedSequence:sequence,serverTime:stamp,leaseExpiresAt:lease});if(body.action==='snapshot'){sequence=body.packet.sequence;return response({ok:true,revision:2,acceptedSequence:sequence,serverTime:stamp,leaseExpiresAt:lease})}if(body.action==='configure'){const ids=[...body.partyIds].sort(),excluded=[...body.excludedPartyIds].sort();descriptor={protocol:2,generation:descriptor.generation||1,scope:{partyIds:ids,excludedPartyIds:excluded,carryEntryIds:['p1:a','p2:b'],startedAt:stamp},serverTime:stamp};return response(descriptor)}throw Error('unexpected '+body.action)};
   const context=vm.createContext({chrome,importScripts:()=>{},SparklePublisherClient:require('../chrome-extension/publisher-client.js'),URL,TextEncoder,TextDecoder,AbortController,crypto,setTimeout:(f,n)=>setTimeout(f,Math.min(n,20)),clearTimeout,fetch:fetcher});
   vm.runInContext(fs.readFileSync('chrome-extension/background.js','utf8'),context);const run=s=>vm.runInContext(s,context);
@@ -42,4 +42,14 @@ function response(body,status=200){const r=new Response(JSON.stringify(body),{st
   const c=vm.createContext({document:{getElementById:()=>table,addEventListener:()=>{},removeEventListener:()=>{}},window:{addEventListener:()=>{}},chrome:{runtime:{id:'own',sendMessage:()=>Promise.resolve(),onMessage:{addListener:f=>handler=f,removeListener:()=>{}}}},SparkleQueueParser:{parseTable:(_t,scope)=>({parserState:'ready',entries:scope?[{id:'p1:a',name:'Reviewer',orderedAt:1}]:full.entries,revealedIds:[],revealedEntries:[]})},MutationObserver:class{observe(){}disconnect(){}},setTimeout:f=>{timers.push(f);return timers.length},clearTimeout:()=>{},setInterval:(f,n)=>{intervals.push([f,n]);return intervals.length},clearInterval:()=>{}});
   vm.runInContext(content,c);let reply;handler({action:'sparkle-v2-inspect'},{id:'own'},x=>reply=x);a.equal(reply.protocol,2);a.equal(reply.snapshot.entries.length,2);handler({action:'sparkle-v2-read',generation:1,selection:descriptor.scope},{id:'own'},x=>reply=x);a.equal(reply.generation,1);a.equal(reply.snapshot.entries.length,1);
   console.log('PASS: read-only content adapter supports automatic inspection and scoped publishing without page writes');
+
+  chrome.tabs.sendMessage=async(_id,message)=>message.action==='sparkle-v2-inspect'
+    ?{protocol:2,snapshot:{parserState:'invalid',reason:'missing_order_identity',entries:[],revealedIds:[],revealedEntries:[]}}
+    :{protocol:2,generation:message.generation,snapshot:{parserState:'invalid',reason:'missing_order_identity',entries:[],revealedIds:[],revealedEntries:[]}};
+  const retained=await run('exclusive(pull)');
+  a.equal(retained.status,'source_not_ready');
+  const afterInvalid=await run('exclusive(status)');
+  a.equal(afterInvalid.parties.length,2);
+  a.deepEqual(afterInvalid.parties.map(p=>p.id),['p1','p2']);
+  console.log('PASS: invalid parse retains last-known detected parties instead of wiping the lineup');
 })().catch(error=>{console.error(error);process.exitCode=1});
