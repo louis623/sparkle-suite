@@ -10,6 +10,24 @@ No secrets. Do not commit credentials, customer lists, or payment data with thes
 
 Add real exports only. Do not invent card files.
 
+## Status (2026-09-26)
+
+These PNGs are the current Canva-printed designs Louis uses today. They are the quality floor: what customers see now.
+
+They are not yet Minuteman press-ready. Amelia/Minuteman specs will likely require bleed, CMYK, DPI, and safe-zone remakes for higher print quality.
+
+When press-ready packs exist, replace `regular/` and `vip/` `current/`. Move these Canva versions to `retired/`, or keep them in `classic/` as the Canva-era reference.
+
+Source: Canva exports, filed 2026-09-26. Attached to the Amelia quote-thread draft for sample QC.
+
+The same six files are in both `current/` and `classic/` (`classic/` is the keeper copy of what Canva prints today):
+
+- Lindsey regular: `lindsey-regular-front-aurora.png`, `lindsey-regular-back-order-qr.png`
+- Lindsey VIP: `lindsey-vip-front-gold-horse.png`, `lindsey-vip-back-facebook-discount.png`
+- Brittany regular: `brittany-regular-front-britt-with-bling.png`, `brittany-regular-back-order-qr.png`
+
+Brittany VIP is unused. `brittany/vip/` stays an empty stub (`.gitkeep` only). Do not invent a Brittany VIP card.
+
 ## Two card types
 
 Each rep can have up to two card types. Not every rep uses both.
@@ -17,8 +35,8 @@ Each rep can have up to two card types. Not every rep uses both.
 ```text
 docs/business-cards/samples/{rep-slug}/
   regular/                 dropped in orders
-    classic/               approved “classic” designs, kept for reference
-    current/               the one press-ready pack used for print and reorders
+    classic/               keepers / reference of what Canva prints today
+    current/               the pack used for print and reorders (Canva baseline until a press-ready remake)
     retired/               previous currents, after that type’s design changes
   vip/                     VIP discount card; optional
     classic/
@@ -30,7 +48,7 @@ docs/business-cards/samples/{rep-slug}/
 
 `vip/` is the VIP discount card. Some reps use it. Some do not. Skip the `vip/` tree for a rep who does not use one. An empty `vip/` stub does not mean that rep has a VIP card on press.
 
-Lindsey and Brittany are stubbed with both types (`lindsey/`, `brittany/`) so the layout is in the repo. Add `regular/` when a future rep’s first real export arrives, and add `vip/` only if that rep uses a VIP discount card.
+Lindsey regular, Lindsey VIP, and Brittany regular have real Canva exports in `current/` and `classic/`. Brittany VIP remains an empty stub. Add `regular/` when a future rep’s first real export arrives, and add `vip/` only if that rep uses a VIP discount card.
 
 ## Reorders
 
