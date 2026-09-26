@@ -54,6 +54,7 @@ describe('Facebook VIP landing hero', () => {
     const hidden = mapPreviewSettingsToHomepageTemplateData(settings)
     expect(hidden.showFacebookVipHeroButton).toBe(false)
     expect(hidden.facebookVipUrl).toBe('https://www.facebook.com/groups/1485026002799524')
+    expect(hidden.socialHeroLinks).toEqual([])
 
     const visible = mapPreviewSettingsToHomepageTemplateData({
       ...settings,
@@ -61,6 +62,13 @@ describe('Facebook VIP landing hero', () => {
     })
     expect(visible.showFacebookVipHeroButton).toBe(true)
     expect(visible.facebookVipUrl).toBe(hidden.facebookVipUrl)
+    expect(visible.socialHeroLinks).toEqual([
+      {
+        key: 'facebook',
+        label: 'Facebook VIP',
+        href: hidden.facebookVipUrl,
+      },
+    ])
 
     const empty = mapPreviewSettingsToHomepageTemplateData({
       ...settings,
@@ -69,6 +77,7 @@ describe('Facebook VIP landing hero', () => {
     })
     expect(empty.showFacebookVipHeroButton).toBe(true)
     expect(empty.facebookVipUrl).toBe('')
+    expect(empty.socialHeroLinks).toEqual([])
   })
 
   it('places the optional button in every landing hero that already has Shop and Watch', () => {
@@ -80,18 +89,23 @@ describe('Facebook VIP landing hero', () => {
       ['function BlingKitchenHomepage(', '// Main App'],
     ] as const
 
-    expect(jsx).toContain('if (CONTENT.showFacebookVipHeroButton !== true) return "";')
-    expect(jsx).toContain('data-hero-cta="facebook-vip"')
-    expect(jsx).toContain('const label = "Facebook VIP";')
+    expect(jsx).toContain('const SOCIAL_HERO_ORDER = ["facebook", "tiktok", "instagram", "whatnot", "youtube"];')
+    expect(jsx).toContain('facebook: "Facebook VIP"')
+    expect(jsx).toContain('data-hero-cta={link.key}')
     expect(jsx).toContain('target: "_blank"')
     expect(jsx).toContain('rel: "noreferrer noopener"')
+    expect(jsx).not.toContain('FacebookVipHeroLink')
 
     for (const [start, end] of layouts) {
       const layout = jsx.slice(jsx.indexOf(start), jsx.indexOf(end))
-      expect(layout).toContain('FacebookVipHeroLink')
+      expect(layout).toContain('SocialHeroLinks')
       expect(layout.indexOf('heroWatchLinks.map((link) =>')).toBeLessThan(
-        layout.indexOf('FacebookVipHeroLink'),
+        layout.indexOf('SocialHeroLinks'),
       )
     }
+
+    expect(readFileSync(resolve(process.cwd(), 'public/amethyst/join.jsx'), 'utf8')).not.toContain('data-hero-cta')
+    expect(readFileSync(resolve(process.cwd(), 'public/amethyst/trade.jsx'), 'utf8')).not.toContain('data-hero-cta')
+    expect(readFileSync(resolve(process.cwd(), 'public/amethyst/pantry.jsx'), 'utf8')).not.toContain('data-hero-cta')
   })
 })
