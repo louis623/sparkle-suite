@@ -48,6 +48,7 @@ import {
   getAutoRechargeDraft,
   getAutoRechargeThresholdOptions,
   getInitialWorkspaceSection,
+  syncWorkspaceSectionSearch,
   getWorkspaceDeepLinkTargets,
   getWorkspaceBackDestination,
   getVisibleWorkspaceSections,
@@ -1020,6 +1021,38 @@ describe('DashboardPlaceholder', () => {
     expect(getInitialWorkspaceSection('?onboarding=self-serve-started')).toBe(
       'home',
     )
+    expect(getInitialWorkspaceSection('')).toBe('home')
+    expect(getInitialWorkspaceSection('?conversationId=nic-nac-thread')).toBe('home')
+  })
+
+  it('keeps a bare Workspace refresh on Nic-Nac and preserves explicit sections', () => {
+    expect(syncWorkspaceSectionSearch('', 'home')).toBe('')
+    expect(
+      syncWorkspaceSectionSearch('?conversationId=nic-nac-thread', 'home'),
+    ).toBe('conversationId=nic-nac-thread')
+    expect(
+      syncWorkspaceSectionSearch(
+        '?section=messages&view=support&compose=support&type=bug&source=workspace-header&conversationId=message-thread',
+        'home',
+        { clearMessageConversation: true },
+      ),
+    ).toBe('')
+    expect(
+      syncWorkspaceSectionSearch(
+        '?section=messages&view=team&conversationId=message-thread',
+        'messages',
+      ),
+    ).toBe('section=messages&view=team&conversationId=message-thread')
+    expect(
+      syncWorkspaceSectionSearch('?section=site-settings', 'site-settings'),
+    ).toBe('section=site-settings')
+    expect(
+      syncWorkspaceSectionSearch(
+        '?section=messages&view=support&conversationId=message-thread&review=token',
+        'site-settings',
+        { clearMessageConversation: true },
+      ),
+    ).toBe('section=site-settings&review=token')
   })
 
   it('keeps the primary dashboard section list streamlined for unlocked workspace reps', () => {

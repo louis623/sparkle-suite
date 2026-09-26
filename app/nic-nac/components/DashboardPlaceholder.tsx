@@ -376,6 +376,8 @@ export function isComingSoonWorkspaceSection(section: WorkspaceSectionKey) {
   return COMING_SOON_WORKSPACE_SECTIONS.has(section)
 }
 
+const WORKSPACE_MESSAGE_QUERY_KEYS = ['view', 'compose', 'type', 'source'] as const
+
 export function getInitialWorkspaceSection(search: string): WorkspaceSectionKey {
   const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
   const requested = params.get('section')?.trim() ?? ''
@@ -385,6 +387,23 @@ export function getInitialWorkspaceSection(search: string): WorkspaceSectionKey 
     return isComingSoonWorkspaceSection(section) ? 'more' : section
   }
   return 'home'
+}
+
+export function syncWorkspaceSectionSearch(
+  search: string,
+  section: WorkspaceSectionKey,
+  options: { clearMessageConversation?: boolean } = {},
+) {
+  const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
+  if (section === 'home') params.delete('section')
+  else params.set('section', section)
+
+  if (section !== 'messages') {
+    for (const key of WORKSPACE_MESSAGE_QUERY_KEYS) params.delete(key)
+    if (options.clearMessageConversation) params.delete('conversationId')
+  }
+
+  return params.toString()
 }
 
 export function getWorkspaceDeepLinkTargets(search: string) {
@@ -2851,6 +2870,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         ? 'home'
         : getInitialWorkspaceSection(window.location.search)),
     )
+  const previousWorkspaceSectionRef = useRef(activeSection)
+  const workspaceSectionUrlReadyRef = useRef(false)
   const [recipeEditorTab, setRecipeEditorTab] =
     useState<RecipeEditorTab>('current')
   const [workspacePreview, setWorkspacePreview] = useState<WorkspacePreviewState>({
@@ -2896,6 +2917,34 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       currentSection === requestedSection ? currentSection : requestedSection,
     )
   }, [initialSectionOverride])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    // The first client render can still be home while a deep link is applied.
+    // Skip that pass so an explicit Message Center or Site Settings URL survives refresh.
+    if (!workspaceSectionUrlReadyRef.current) {
+      workspaceSectionUrlReadyRef.current = true
+      previousWorkspaceSectionRef.current = activeSection
+      return
+    }
+    const previousSection = previousWorkspaceSectionRef.current
+    previousWorkspaceSectionRef.current = activeSection
+    const nextSearch = syncWorkspaceSectionSearch(window.location.search, activeSection, {
+      clearMessageConversation:
+        previousSection === 'messages' && activeSection !== 'messages',
+    })
+    const currentSearch = window.location.search.startsWith('?')
+      ? window.location.search.slice(1)
+      : window.location.search
+    if (nextSearch === currentSearch) return
+    const url = new URL(window.location.href)
+    url.search = nextSearch
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${url.pathname}${url.search}${url.hash}`,
+    )
+  }, [activeSection])
   const [rosterFilter, setRosterFilter] = useState<RosterFilter>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOrder, setSortOrder] = useState<RosterSort>('newest')
