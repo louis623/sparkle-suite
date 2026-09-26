@@ -10,25 +10,36 @@ No secrets. Do not commit credentials, customer lists, or payment data with thes
 
 Add real exports only. Do not invent card files.
 
-## Per-rep layout
+## Two card types
 
-Each rep gets one folder under this directory:
+Each rep can have up to two card types. Not every rep uses both.
 
 ```text
 docs/business-cards/samples/{rep-slug}/
-  classic/   approved “classic” designs, kept for reference
-  current/   the one press-ready pack used for print and reorders
-  retired/   previous currents, after the rep changes design
+  regular/                 dropped in orders
+    classic/               approved “classic” designs, kept for reference
+    current/               the one press-ready pack used for print and reorders
+    retired/               previous currents, after that type’s design changes
+  vip/                     VIP discount card; optional
+    classic/
+    current/
+    retired/
 ```
 
-Lindsey and Brittany are stubbed (`lindsey/`, `brittany/`). Add the same three folders for a future rep when their first real export arrives.
+`regular/` is the card dropped in orders. It may include a thank-you, a discount code, a QR code, or similar order copy.
 
-Reorders use `current/` only. Keep that pack and send it again. A reorder must not trigger a new design.
+`vip/` is the VIP discount card. Some reps use it. Some do not. Skip the `vip/` tree for a rep who does not use one. An empty `vip/` stub does not mean that rep has a VIP card on press.
+
+Lindsey and Brittany are stubbed with both types (`lindsey/`, `brittany/`) so the layout is in the repo. Add `regular/` when a future rep’s first real export arrives, and add `vip/` only if that rep uses a VIP discount card.
+
+## Reorders
+
+Reorders use that type’s `current/` only. Keep that pack and send it again. A reorder must not trigger a new design.
 
 Brittany-class volume (about 1000 cards every couple of months) must never force a redesign. Volume is a reason to reuse `current/`, not a reason to remake the card.
 
-When a rep changes design, move the files in `current/` to `retired/`, then put the new press-ready pack in `current/`. Leave `classic/` in place as the approved reference set.
+When a rep changes one type’s design, move the files in that type’s `current/` to its `retired/`, then put the new press-ready pack in `current/`. Leave `classic/` in place as the approved reference set for that type. Changing `regular/` does not retire `vip/`, and changing `vip/` does not retire `regular/`.
 
 ## Later
 
-QR flyer packs can mirror this layout as `{rep-slug}/current-flyer/` if that becomes necessary. That folder is future-only. Do not create it yet.
+QR flyer packs stay a separate mode. They are not a third card type beside `regular/` and `vip/`. A later layout can mirror classic / current / retired for flyers (previously sketched as `current-flyer/`). Do not create flyer folders yet.
