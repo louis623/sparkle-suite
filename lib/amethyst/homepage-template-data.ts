@@ -151,6 +151,12 @@ export interface AmethystHomepageTemplateData {
     whatnot?: string
   }
   socialLinks: AmethystHomepageSocialLink[]
+  /**
+   * Landing-hero Facebook VIP button. Off unless the rep turns it on.
+   * facebookVipUrl is the Workspace Facebook social link when that link is a real Facebook URL.
+   */
+  showFacebookVipHeroButton?: boolean
+  facebookVipUrl?: string
   footerLinks: {
     home?: string
     tradeBoard: string
@@ -281,6 +287,8 @@ export const defaultAmethystHomepageTemplateData: AmethystHomepageTemplateData =
     { label: 'Instagram', shortLabel: 'IG', href: '#' },
     { label: 'YouTube', shortLabel: 'YT', href: '#' },
   ],
+  showFacebookVipHeroButton: false,
+  facebookVipUrl: '',
   footerLinks: {
     home: '/amethyst/Homepage.html',
     tradeBoard: '/amethyst/Trade.html',

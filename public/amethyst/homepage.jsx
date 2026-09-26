@@ -200,6 +200,34 @@ function isConfiguredWatchLink(href) {
   return typeof href === "string" && href.trim().length > 0 && href !== "#";
 }
 
+function getFacebookVipHeroHref() {
+  if (CONTENT.showFacebookVipHeroButton !== true) return "";
+  const href = String(CONTENT.facebookVipUrl || "").trim();
+  if (!isConfiguredWatchLink(href) || !isExternalHref(href)) return "";
+  try {
+    const host = new URL(href).hostname.replace(/^www\./, "").toLowerCase();
+    const isFacebookHost = host === "facebook.com"
+      || host === "fb.com"
+      || host === "fb.watch"
+      || host.endsWith(".facebook.com")
+      || host.endsWith(".fb.com");
+    return isFacebookHost ? href : "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function FacebookVipHeroLink({ className, labelClassName }) {
+  const href = getFacebookVipHeroHref();
+  if (!href) return null;
+  const label = "Facebook VIP";
+  return (
+    <a {...linkProps(href)} className={className} data-hero-cta="facebook-vip">
+      {labelClassName ? <span className={labelClassName}>{label}</span> : label}
+    </a>
+  );
+}
+
 function getHeroWatchLinks(liveShow, isLive) {
   const links = [];
   const tiktok = CONTENT.streamLinks?.tiktok;
@@ -705,6 +733,7 @@ function Hero({ t, isLive, liveShow }) {
                         {link.label}
                       </a>
                     ))}
+                    <FacebookVipHeroLink className="hp-btn-outline hp-btn-watch" />
                   </div>
                   <a {...linkProps(getTradeBoardHref())} className="hp-btn-primary hp-btn-sparkle hp-hero-trade-board-cta">
                     {isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Browse the dance floor"}
@@ -723,6 +752,7 @@ function Hero({ t, isLive, liveShow }) {
                         {link.label}
                       </a>
                     ))}
+                    <FacebookVipHeroLink className="hp-btn-outline hp-btn-watch" />
                   </div>
                   <a {...linkProps(getTradeBoardHref())} className="hp-btn-primary hp-btn-sparkle hp-hero-trade-board-cta">
                     {isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Browse the dance floor"}
@@ -2288,6 +2318,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
                     {link.label}
                   </a>
                 ))}
+                <FacebookVipHeroLink className="mhf-cta mhf-cta-watch" />
               </div>
               <a {...linkProps(getTradeBoardHref())} className="mhf-cta mhf-cta-dance-floor">Browse the Dance Floor</a>
             </div>
@@ -2411,6 +2442,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
                     {link.label}
                   </a>
                 ))}
+                <FacebookVipHeroLink className="bwb-cta bwb-cta-watch" />
               </div>
               <a {...linkProps(getTradeBoardHref())} className="bwb-cta bwb-cta-dance-floor">Dance Floor · Coming soon</a>
             </div>
@@ -2461,6 +2493,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
                     <span className="bk-home-cta-label">{link.label}</span>
                   </a>
                 ))}
+                <FacebookVipHeroLink labelClassName="bk-home-cta-label" />
               </div>
               <a {...linkProps(getTradeBoardHref())} className="bk-home-cta-dance-floor"><span className="bk-home-cta-label">Browse the Dance Floor</span></a>
             </div>
