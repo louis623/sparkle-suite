@@ -150,9 +150,10 @@ Before release:
 3. Run focused support tests, the standard suite, changed-file lint, the
    production build, and `supabase db push --dry-run`.
 4. Apply only the reviewed operator-support migrations.
-5. Manually deploy the exact verified branch tip to the Sparkle Suite Vercel
-   project.
-6. Confirm both `https://www.yoursparklesuite.com` and
+5. Deploy and verify on Smoke first. A live promote of this tip happens only
+   after Louis says go, or names a hotfix, as one manual deployment. Canonical
+   playbook: Core Memory `skills/sparkle-smoke-ship.md`.
+6. After that promote, confirm both `https://www.yoursparklesuite.com` and
    `https://yoursparklesuite.com` resolve to that exact deployment.
 7. Run the safe reviewer smoke above on the exact live domain.
 8. Confirm ordinary rep sign-in, Workspace navigation, representative customer

@@ -1,5 +1,7 @@
 # Nic-Nac Trade Board State Sync Hardening Implementation Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Fix the ER13229 Trade Board add-listing failure by making workflow truth learn from catalog tool results and current tool inputs, while preserving strict photo-role safety.

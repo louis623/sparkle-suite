@@ -1,5 +1,7 @@
 # Sparkle Finder Silver Auth Rollout Handoff
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 Created: 2026-06-01
 
 > Updated 2026-06-13: The `/shop` and `/affiliate-disclosure` launch guidance in this historical handoff is superseded. Sparkle Finder beta launch should use `/photo-setup` as the plain non-affiliate resource guide, keep `/shop` and `/affiliate-disclosure` removed/404, and follow `docs/deployments/2026-06-15-sparkle-finder-beta-launch-runbook.md`.

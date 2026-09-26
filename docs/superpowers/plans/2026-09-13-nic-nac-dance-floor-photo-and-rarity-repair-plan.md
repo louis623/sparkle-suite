@@ -1,5 +1,7 @@
 # Nic-Nac Dance Floor Photo and Rarity Repair Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 **Status:** completed September 13, 2026 from the isolated
 `codex/nic-nac-photo-rarity-repair` branch. Migration, guarded repair, full
 58-listing re-audit, Suite reviewer smoke, and Suite/Finder release checks are

@@ -121,6 +121,6 @@ reconciliation and must not be swept into the active branch merely to make
    uncommitted files and create a preservation tag or backup.
 4. Branch/worktree deletion remains a separate explicit action. This
    consolidation changes no branch history and deletes nothing.
-5. Never broadly stage the shared workbench. Release only exact reviewed files
-   from a clean checkout, then verify the production deployment and aliases did
-   not move unexpectedly.
+5. Never broadly stage the shared workbench. Ship through the Smoke-first lane
+   (Core Memory `skills/sparkle-smoke-ship.md`). From a clean checkout, verify
+   production aliases did not move unless Louis approved that live promote.

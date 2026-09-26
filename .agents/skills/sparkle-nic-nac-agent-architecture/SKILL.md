@@ -105,9 +105,10 @@ Hard-fail phrases include:
 4. For design/planning, keep work in specs/plans and get Louis approval before implementation.
 5. For implementation, prefer workflow state, controller contracts, and evals over prompt/regex patching.
 6. For verification, include deterministic tests plus real replay/smoke appropriate to the risk.
-7. For deployed review, ensure `www.yoursparklesuite.com` and
-   `yoursparklesuite.com` point at the exact intended production deployment,
-   then verify the affected live path before telling Louis it is ready.
+7. For deployed review, verify on Smoke first. Live `www.yoursparklesuite.com`
+   and `yoursparklesuite.com` checks happen only after Louis approves the
+   batch promote, or names a hotfix. Canonical playbook: Core Memory
+   `skills/sparkle-smoke-ship.md`.
 
 ## When To Use The Reference
 

@@ -117,7 +117,7 @@ Use [assets/rep-welcome-site-template.md](assets/rep-welcome-site-template.md) a
 - Link only the verified official Live Queue Chrome Web Store listing when requested. Never expose the private code or alter the protected extension.
 - When Live Queue is included in a guide, plainly state the verified device path: Google Chrome on a Mac or Windows computer works; an iPhone or iPad cannot run the browser extension. Point the rep to Help & Resources for setup steps.
 - A meeting link is private by default; publish it only with explicit approval. Do not create a Calendar event, invite, or transcription setting merely because the guide has a meeting card.
-- Publish only when the user explicitly authorizes the public page. Build, check desktop and mobile, check console errors, exercise a navigation link, and deploy through the Sites project/version flow. Do not deploy the main Sparkle Suite app for a guide-only change.
+- Publish only when the user explicitly authorizes the public page. Build, check desktop and mobile, check console errors, exercise a navigation link, and deploy through the Sites project/version flow. Do not deploy the main Sparkle Suite app for a guide-only change. Suite app changes that ride along follow the Smoke-first lane: verify on Smoke, then one Louis-approved live promote. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`. Chrome Web Store listing updates stay gated (Smoke-installed validation, then Louis, then one Store release).
 
 ### Welcome email
 

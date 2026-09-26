@@ -153,5 +153,6 @@ Before showing a concept or implementation, check:
 - Does the visual have more craft than a generic card stack?
 - Does the page sell both rep ease and customer experience?
 - Would Louis plausibly say it has the Beacons-level confidence he wanted?
+- If this page ships in the app, verify it on Smoke before any live promote. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.
 
 If any answer is no, keep working before showing it.

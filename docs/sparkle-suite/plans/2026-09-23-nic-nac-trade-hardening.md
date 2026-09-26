@@ -66,15 +66,15 @@ The current customer form supplies only free text. The current Nic-Nac card alwa
 ## Rollout and rollback
 
 1. Confirm the approved GitHub branch, exact HEAD, intended Vercel project, both customer domains, and migration status. Do not use the stale persistent checkout or the user's browser/account.
-2. Run migration first, then deploy the exact tested branch tip once by the approved manual process. Keep old clients compatible during rollout; if the app is rolled back, the additive columns and new enum values can remain without losing customer requests.
-3. Verify www and apex resolve to that deployment. Run the synthetic reviewer request → notification → match/mismatch → decision → customer receipt smoke on the actual www domain. Check errors/latency and count behavior before calling it done. If migration or smoke fails, stop and report; do not silently declare production ready.
+2. Run migration on the Smoke staging database first, then deploy and verify the exact tested branch tip on Smoke. Keep old clients compatible during rollout; if the app is rolled back, the additive columns and new enum values can remain without losing customer requests. One live promote happens only after Louis says go. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.
+3. After that promote, verify www and apex resolve to that deployment. Run the synthetic reviewer request → notification → match/mismatch → decision → customer receipt smoke on the actual www domain. Check errors/latency and count behavior before calling it done. If migration or smoke fails, stop and report; do not silently declare production ready.
 4. After the complete release verifies, update the two existing live Task List items with concise results and record verified decisions/closeout in the repository vault and Open Brain.
 
 ## Universal customer FAQ addition
 
 - Publish one shared FAQ page and one footer link for all customer-facing rep sites, replacing the existing “FAQ coming soon” placeholder. Preserve the same information and page structure while applying each rep's active skin/theme. This is not a separate app or deployment.
 - The FAQ's Dance Floor section explains eligibility, screenshot timing, optional upload, Nic-Nac screening, the customer-requested rep-review exception, and the rep's final approval role in plain language. Do not imply that a confirmed rule mismatch may be approved.
-- Keep FAQ changes scoped to shared customer routing/content/styling and footer-link hunks. Integrate with the trade changes in this clone, then run rendered desktop/mobile and synthetic live-domain checks before Louis's post-release personal smoke test.
+- Keep FAQ changes scoped to shared customer routing/content/styling and footer-link hunks. Integrate with the trade changes in this clone, then run rendered desktop/mobile and Smoke checks before Louis's review. Live-domain checks wait for the approved promote.
 
 ## Decisions and boundaries from Louis's review
 

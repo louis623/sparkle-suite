@@ -47,8 +47,10 @@ Record this task's patch separately from that existing diff. Release only a
 verified source snapshot containing the approved visibility patch and already
 released application source; never deploy the combined working directory.
 Apply only this task's additive migration, not pending Lineup migrations.
-Commit/push the authorized change and manually deploy the verified branch tip
-under the repository's provenance rules. Verify both Suite aliases and the
-affected live paths using safe reviewer data before claiming the switches live.
+Commit/push the authorized change, then deploy and verify on Smoke. One live
+promote of that verified tip happens only after Louis says go, under Core
+Memory `skills/sparkle-smoke-ship.md`. After that promote, verify both Suite
+aliases and the affected live paths using safe reviewer data before claiming
+the switches live.
 If an isolated release cannot satisfy those rules, document the concrete blocker
 and keep the implementation unreleased pending resolution.

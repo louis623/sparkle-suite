@@ -1,5 +1,7 @@
 # Unified Sparkle Suite Communications Implementation Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 **Date:** August 26, 2026
 **Status:** Implemented and production-validated August 26, 2026
 **Primary application:** Sparkle Suite
