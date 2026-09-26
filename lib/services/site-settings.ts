@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { normalizeSocialVisibility, SOCIAL_PLATFORMS } from '@/lib/public-site/social-visibility'
+import { isSocialVisibilityValue, normalizeSocialVisibility } from '@/lib/public-site/social-visibility'
 import { ServiceError, errors } from '@/lib/services/errors'
 import {
   normalizeAmethystAppearancePreset,
@@ -436,8 +436,7 @@ export async function updateSiteSettingsDashboard(
 
   if (input.socialVisibility !== undefined) {
     const value = input.socialVisibility
-    if (!value || typeof value !== 'object' || Array.isArray(value) ||
-      Object.entries(value).some(([key, visible]) => typeof visible !== 'boolean' || !SOCIAL_PLATFORMS.some(platform => platform.key === key))) {
+    if (!isSocialVisibilityValue(value)) {
       throw errors.INVALID_INPUT('Invalid socialVisibility', 'Social visibility must be On or Off for a supported platform.')
     }
     siteSettingsPatch.social_visibility = normalizeSocialVisibility(value)

@@ -1019,6 +1019,12 @@ describe('Amethyst homepage template data wiring', () => {
     expect(standardHero.indexOf('heroWatchLinks.map((link) =>')).toBeLessThan(
       standardHero.indexOf('Browse the dance floor'),
     )
+    expect(standardHero.indexOf('heroWatchLinks.map((link) =>')).toBeLessThan(
+      standardHero.indexOf('<FacebookVipHeroLink className="hp-btn-outline hp-btn-watch" />'),
+    )
+    expect(standardHero.indexOf('<FacebookVipHeroLink className="hp-btn-outline hp-btn-watch" />')).toBeLessThan(
+      standardHero.indexOf('Browse the dance floor'),
+    )
     expect(standardHero).toContain('hp-hero-trade-board-cta')
     expect(standardHero).toContain('isHeatherBlingKitchenSite && CONTENT.pantryPageUrl')
     expect(jsx).toContain('watch it revealed live on <span className="slot" data-slot="rep name">{repName}</span>&apos;s platform')

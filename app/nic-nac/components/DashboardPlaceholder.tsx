@@ -9906,12 +9906,37 @@ export function SiteSettingsCard({
               <span className={styles.searchLabel}>{field.label}</span>
               <input
                 className={styles.searchInput}
+                placeholder={field.key === 'facebook' ? 'VIP group or page' : undefined}
                 value={draft.socialHandles[field.key] ?? ''}
                 onChange={(event) =>
                   onSocialHandleChange?.(field.key, event.target.value)
                 }
               />
               </label>
+              {field.key === 'facebook' ? (
+                <label className={styles.teamVisibilityToggle}>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    aria-label="Show Facebook VIP button in the landing hero"
+                    checked={draft.socialVisibility?.facebookVipHero === true}
+                    onChange={(event) =>
+                      onDraftChange?.({
+                        socialVisibility: {
+                          ...draft.socialVisibility,
+                          facebookVipHero: event.target.checked,
+                        },
+                      })
+                    }
+                  />
+                  <span>Show Facebook VIP button in the landing hero</span>
+                </label>
+              ) : null}
+              {field.key === 'facebook' ? (
+                <span className={styles.siteSettingsPreviewNote}>
+                  Uses the Facebook link above. Off leaves the hero unchanged, and an empty or non-Facebook link stays hidden.
+                </span>
+              ) : null}
               {draft.socialHandles[field.key]?.trim() ? <SocialVisibilitySwitch
                 platform={field.label}
                 checked={draft.socialVisibility?.[field.key] !== false}

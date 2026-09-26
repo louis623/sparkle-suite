@@ -8,6 +8,8 @@ describe('social publication preferences', () => {
     expect(normalizeSocialVisibility(null)).toEqual({})
     expect(buildPublicSiteVisibilityCss({ social: {} })).toBe('')
     expect(normalizeSocialVisibility({ tiktok: false, whatnot: true, youtube: 'false', unknown: false })).toEqual({ tiktok: false, whatnot: true })
+    expect(normalizeSocialVisibility({ facebookVipHero: false })).toEqual({ facebookVipHero: false })
+    expect(normalizeSocialVisibility({ facebookVipHero: true, tiktok: false })).toEqual({ facebookVipHero: true, tiktok: false })
   })
 
   it('passes independent preferences through the shared customer page presentation contract', () => {
@@ -39,5 +41,24 @@ describe('social publication preferences', () => {
       expect(result.socialVisibility).toEqual({ tiktok: visible })
       expect(result.socialHandles).toEqual({ tiktok: '@synthetic' })
     }
+  })
+
+  it('saves the landing-hero Facebook VIP switch inside the existing social visibility settings', async () => {
+    const rep = { display_name: 'Test', business_name: 'Test', email: 'synthetic@example.invalid', social_handles: { facebook: 'https://www.facebook.com/groups/vip' } }
+    const row = { social_visibility: { facebook: true, facebookVipHero: true } }
+    const upsert = vi.fn(() => ({ select: () => ({ single: async () => ({ data: row, error: null }) }) }))
+    const from = vi.fn((table: string) => {
+      if (table === 'site_settings') return { upsert }
+      if (table === 'reps') return { select: () => ({ eq: () => ({ single: async () => ({ data: rep, error: null }) }) }) }
+      throw new Error(`Unexpected table: ${table}`)
+    })
+    const result = await updateSiteSettingsDashboard({ from } as never, 'rep-test', {
+      socialVisibility: { facebook: true, facebookVipHero: true },
+    })
+    expect(upsert).toHaveBeenCalledWith(
+      { rep_id: 'rep-test', social_visibility: { facebook: true, facebookVipHero: true } },
+      { onConflict: 'rep_id' },
+    )
+    expect(result.socialVisibility).toEqual({ facebook: true, facebookVipHero: true })
   })
 })
