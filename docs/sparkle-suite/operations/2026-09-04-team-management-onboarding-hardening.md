@@ -60,5 +60,6 @@ to test this workflow.
 9. Reset reviewer mode so all synthetic participant, conversation, progress,
    message, and card rows are removed in dependency-safe order.
 
-Release only after focused tests, the production build, both live-domain alias
-checks, and this complete synthetic workflow pass.
+Release only after focused tests, the production build, and this complete
+synthetic workflow on Smoke. Live-domain alias checks happen after Louis
+approves one promote. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.

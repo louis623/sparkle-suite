@@ -1,5 +1,7 @@
 # Mile High Fizz Hybrid Site Migration Implementation Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build Lindsey's Mile High Fizz public site inside Sparkle Suite so it looks and reads like Mile High Fizz, while Trade Board, live queue, calendar, announcements, Nic-Nac, site settings, and workspace behavior remain standard Sparkle Suite systems.

@@ -1,5 +1,7 @@
 # Sparkle Finder Separated Auth Boundary Implementation Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Give Sparkle Finder its own customer auth boundary so Google signup and account login never route through Neon Rabbit HQ or another product.

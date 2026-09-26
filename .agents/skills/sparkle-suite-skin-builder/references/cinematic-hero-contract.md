@@ -143,8 +143,9 @@ Before asking Louis to review:
 - Observe the page long enough to see every major independent motion event, and
   exercise Pause/Resume, hidden-page pausing, and reduced-motion behavior.
 - Confirm the expected motif/effect counts and the exact assets loaded.
-- Run focused skin tests, type checking, the production build, and live-domain
-  browser smoke after release.
+- Run focused skin tests, type checking, the production build, and Smoke
+  browser verification before any live promote. Canonical playbook: Core Memory
+  `skills/sparkle-smoke-ship.md`.
 
 ## Neon Butterfly precedent
 

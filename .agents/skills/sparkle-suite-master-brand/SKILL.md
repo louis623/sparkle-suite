@@ -63,7 +63,7 @@ Red flags:
 - republishing rejected public prelaunch design/copy without fresh Louis approval, especially `One easier home for your Bomb Party business.`, the software-led public page, `Tell us where to send launch updates.`, or named success-card copy such as `Thank you, Louis Chapman. We've got you.`
 - polishing, rebranding, rewriting, or visually improving the public site unless Louis explicitly says `go ahead and polish this`
 - using any Sparkle Suite design kit, design skill, social media kit, or visual-generation prompt before auditing whether it came from the approved public site or a rejected version
-- letting Louis think he is testing production when the agent is using local development or a preview deployment
+- letting Louis think he is testing live production when the agent is on local development, a raw preview URL, or Smoke without saying which lane
 
 If any red flag appears, stop, reload the local brand docs, and rewrite from the approved Sparkle Suite brand system.
 
@@ -78,7 +78,7 @@ If any red flag appears, stop, reload the local brand docs, and rewrite from the
 - The locked public `/prelaunch` version is `Sparkle Suite V1 Preview Public Site`, sourced from Vercel deployment `dpl_2yAXz2pKp4QsJ4sQzboqpfXfqyoM`.
 - The locked public hero is `A better customer experience starts with a better rep setup.`
 - Current fixed production deployment after the May 11 incident is `dpl_95Z57PuyJYJvvHabc2bjGCNzpZ8t`.
-- Public site changes need verification against the live domain after deploy.
+- Public site changes are verified on Smoke before any live promote. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`. After Louis says go, confirm the live domain.
 
 ## Output check before sending
 

@@ -67,3 +67,4 @@ Do not show or ship the hero until these are true:
 - The scene is not flattened by grouping properties.
 - The mobile view is intentionally composed, not just squeezed.
 - For Sparkle Suite, the visual uses real product concepts, avoids fake jewelry, uses the approved brand, and keeps Nic-Nac secondary to Sparkle Suite.
+- A shipped Suite hero is verified on Smoke before any live promote. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.

@@ -1,5 +1,7 @@
 # Sparkle Finder Monday Beta Launch Runbook
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 Created: 2026-06-13
 Target beta publish date: 2026-06-15
 

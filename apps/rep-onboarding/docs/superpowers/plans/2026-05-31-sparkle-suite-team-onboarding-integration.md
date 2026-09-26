@@ -1,5 +1,7 @@
 # Sparkle Suite Team Onboarding Integration Implementation Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 > Historical terminology note (September 4, 2026): the product name is **Team Management**. Older “Manage My Team” wording below describes the same feature and is retained only as historical plan context.

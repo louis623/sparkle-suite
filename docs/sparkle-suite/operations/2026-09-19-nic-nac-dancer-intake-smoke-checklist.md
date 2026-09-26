@@ -1,5 +1,7 @@
 # Nic-Nac dancer intake smoke checklist (September 19, 2026)
 
+> **Superseded for shipping (2026-09-26):** Historical checklist. A Louis green is Smoke verification, then one live promote — not `vercel --prod` on merge. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.
+
 **Status:** checklist for PR #11. Do **not** deploy until Louis greens the
 dancer PR separately from team-photo PR #12.
 

@@ -98,6 +98,7 @@ Add focused tests for each private/custom skin: its owner, Louis's demo workspac
      accessibility, and visual-comparison gates in
      `references/cinematic-hero-contract.md`.
    - Run `npm run qa:amethyst` when available and practical.
+   - Verify the skin on Smoke before any live promote. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.
 
 ## Output Rules
 
