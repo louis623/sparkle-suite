@@ -83,7 +83,7 @@ export function LiveLineupArchiveControls({ snapshot, disabled, recover }: { sna
         if (!detail || !preview) return
         const success = await recover(detail, preview, selected)
         clearPreview()
-        if (mounted.current) setMessage(success ? 'Recovered into private Hold. Select the updated show in the extension; review Hold before returning anyone to the public lineup.'
+        if (mounted.current) setMessage(success ? 'Saved. Waiting for the connection to resume. Recovered orders are in private Hold.'
           : 'Recovery not confirmed. The current lineup is being reloaded; reload and review this archive before trying again.')
       }}>Confirm recovery into private Hold</button>
       <button type="button" disabled={disabled || pending} onClick={clearPreview}>Cancel recovery</button>

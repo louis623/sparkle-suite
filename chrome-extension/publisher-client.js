@@ -15,7 +15,9 @@
       if (!e || typeof e.id !== "string" || !ID.test(e.id) || seen.has(e.id) || typeof e.name !== "string" || !e.name.trim()
         || e.name.trim().length > 100 || Array.from(e.name).some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)
         || !(e.orderedAt === null || integer(e.orderedAt) && e.orderedAt <= 8640000000000000)) return null;
-      seen.add(e.id); entries.push({id: e.id, name: e.name.trim(), orderedAt: e.orderedAt});
+      const surname = typeof e.lastName === 'string' ? e.lastName.trim() : '';
+      const lastName = surname && surname.length <= 100 && !/[\u0000-\u001f\u007f]/.test(surname) ? surname : null;
+      seen.add(e.id); entries.push({id: e.id, name: e.name.trim(), orderedAt: e.orderedAt, ...(lastName ? {lastName} : {})});
     }
     for (const id of input.revealedIds) {
       if (typeof id !== "string" || !ID.test(id) || seen.has(id)) return null;
@@ -32,7 +34,14 @@
         revealedEntries.push({id: e.id, orderedAt: e.orderedAt});
       }
     }
-    return {parserState: input.parserState, entries, revealedIds, ...(revealedEntries ? {revealedEntries} : {})};
+    let observation;
+    if (input.observation !== undefined) {
+      const o = input.observation;
+      if (!o || !UUID.test(o.documentId || '') || !integer(o.serial) || !time(o.serverTime) || typeof o.settled !== 'boolean'
+        || input.parserState === 'ready' && !o.settled) return null;
+      observation = {documentId:o.documentId,serial:o.serial,serverTime:o.serverTime,settled:o.settled};
+    }
+    return {parserState: input.parserState, entries, revealedIds, ...(revealedEntries ? {revealedEntries} : {}), ...(observation ? {observation} : {})};
   }
   function validClaim(r, generation = 0) {
     return r && r.generation === generation && integer(generation) && typeof r.publisherId === "string" && UUID.test(r.publisherId) && integer(r.epoch) && r.epoch > 0 && integer(r.revision)
@@ -51,10 +60,11 @@
   // post must use the fixed Suite endpoint, bounded JSON, timeout, and no automatic credential redirects.
   function createPublisherClient({store, post, now = Date.now, randomId = () => crypto.randomUUID(), random = Math.random}) {
     let busy = false;
-    async function sync(input, sourceVersion) {
+    async function sync(input, sourceVersion, {readyHint = false} = {}) {
       if (busy) return {status: "busy"};
-      const snapshot = cleanSnapshot(input);
-      if (!snapshot || typeof sourceVersion !== "string" || !/^[A-Za-z0-9._+-]{1,64}$/.test(sourceVersion)) return {status: "invalid_source"};
+      let snapshot = typeof input === 'function' ? null : cleanSnapshot(input);
+      if (typeof input !== 'function' && !snapshot || typeof sourceVersion !== "string" || !/^[A-Za-z0-9._+-]{1,64}$/.test(sourceVersion)) return {status: "invalid_source"};
+      const upgraded = sourceVersion === '2.0.5';
       busy = true;
       let state;
       try {
@@ -62,7 +72,6 @@
         if (!state || !state.enabled || !CREDENTIAL.test(state.token || "")) return {status: "not_configured"};
         if (state.authFailed) return {status: "needs_connection"};
         if (state.needsSelection || !integer(state.generation)) return {status: "needs_selection"};
-        if (state.generation > 0 && snapshot.parserState === "ready" && snapshot.revealedIds.length && !snapshot.revealedEntries) return {status: "invalid_source"};
         const wait = (state.nextAttemptAt || 0) - now();
         if (wait > 0 && wait <= 60000) return {status: "backoff"};
         const patch = async changes => {
@@ -71,23 +80,41 @@
         };
         if (!UUID.test(state.claimId || "")) await patch({claimId: randomId(), needsClaim: true, epoch: null, publisherId: null, nextSequence: 0});
         if (state.needsClaim || !state.epoch || !state.publisherId) {
-          const receipt = await post(state.token, {action: "claim", claimId: state.claimId, generation: state.generation});
-          if (!validClaim(receipt, state.generation)) throw Object.assign(new Error("invalid_receipt"), {code: "invalid_receipt"});
+          if (!readyHint && state.recoveryRetryAt > now()) return {status:'backoff'};
+          const receipt = await post(state.token, {action: "claim", claimId: state.claimId, generation: state.generation, ...(upgraded ? {capabilities:'lineup-2.0.5'} : {})});
+          if (!validClaim(receipt, state.generation) || upgraded && (receipt.claimId !== state.claimId || receipt.capabilities !== 'lineup-2.0.5')) throw Object.assign(new Error("invalid_receipt"), {code: "invalid_receipt"});
           await patch({publisherId: receipt.publisherId, epoch: receipt.epoch, needsClaim: false,
             nextSequence: Math.max(integer(state.nextSequence) ? state.nextSequence : 0, receipt.acceptedSequence + 1)});
         }
+        // The callable source is read AFTER a successful lease receipt. Claim/network
+        // latency can never turn an earlier table read into a fresh observation.
+        snapshot = typeof input === 'function' ? cleanSnapshot(await input()) : snapshot;
+        const readCompletedAt = now();
+        if (!snapshot || upgraded && !snapshot.observation || state.generation > 0 && snapshot.parserState === 'ready' && snapshot.revealedIds.length && !snapshot.revealedEntries)
+          throw Object.assign(new Error('invalid_source'),{code:'invalid_source'});
         const sequence = state.nextSequence;
         if (!integer(sequence) || !integer(sequence + 1)) throw Object.assign(new Error("sequence_exhausted"), {code: "sequence_exhausted"});
         // Persist BEFORE sending: a worker restart cannot reuse a sequence for different content.
         await patch({nextSequence: sequence + 1});
+        const sentAt = now();
+        if (upgraded && (sentAt < readCompletedAt || sentAt - readCompletedAt > 5000))
+          throw Object.assign(new Error('stale_observation'),{code:'stale_observation'});
         const receipt = await post(state.token, {action: "snapshot", packet: {...snapshot,
-          generation: state.generation, sourceVersion, publisherId: state.publisherId, epoch: state.epoch, sequence}});
+          generation: state.generation, sourceVersion, publisherId: state.publisherId, epoch: state.epoch, sequence,
+          ...(upgraded ? {claimId:state.claimId} : {})}});
         if (!validAck(receipt, sequence)) throw Object.assign(new Error("invalid_receipt"), {code: "invalid_receipt"});
-        await patch({lastAckAt: now(), lastReadyAckAt: snapshot.parserState === "ready" ? now() : state.lastReadyAckAt || null,
-          parserState: snapshot.parserState, lastError: null, failureCount: 0, nextAttemptAt: 0});
+        const receivedAt = now(), transit = receivedAt - sentAt;
+        if (upgraded && (!Number.isFinite(receipt.freshForMs) || receipt.freshForMs < 0 || receipt.freshForMs > 45000))
+          throw Object.assign(new Error('invalid_receipt'),{code:'invalid_receipt'});
+        const remaining = transit < 0 ? 0 : Math.max(0, (upgraded ? receipt.freshForMs : 45000) - transit);
+        const nonReadyClaims = snapshot.parserState === 'ready' ? 0 : (state.nonReadyClaims || 0) + 1;
+        await patch({lastAckAt: receivedAt, lastReadyAckAt: snapshot.parserState === "ready" ? receivedAt - (45000 - remaining) : state.lastReadyAckAt || null,
+          readyDeadline: snapshot.parserState === 'ready' ? receivedAt + remaining : 0,
+          parserState: snapshot.parserState, lastError: null, failureCount: 0, nextAttemptAt: 0, nonReadyClaims,
+          recoveryRetryAt: nonReadyClaims >= 2 ? receivedAt + 120000 : 0});
         return {status: snapshot.parserState === "ready" ? "confirmed" : "source_not_ready", revision: receipt.revision};
       } catch (error) {
-        const allowed = ["unauthorized", "lease_expired", "publisher_conflict", "revision_conflict", "stale_sequence", "rate_limited", "invalid_receipt", "invalid_payload", "sequence_exhausted", "configuration_changed", "show_changed", "invalid_scope"];
+        const allowed = ["unauthorized", "lease_expired", "publisher_conflict", "revision_conflict", "stale_sequence", "rate_limited", "invalid_receipt", "invalid_payload", "invalid_source", "source_not_ready", "stale_observation", "capacity_exceeded", "sequence_exhausted", "configuration_changed", "show_changed", "invalid_scope"];
         const code = allowed.includes(error?.code) ? error.code : "connection_failed";
         if (state && code !== "configuration_changed") {
           const failureCount = Math.min((state.failureCount || 0) + 1, 8);

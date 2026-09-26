@@ -28,8 +28,8 @@ function adapter(sql:PGlite):SupabaseClient {
     then(resolve:(value:unknown)=>unknown,reject?:(error:unknown)=>unknown){return this.run().then(resolve,reject)}
   }
   return {from:(table:string)=>new Query(table),rpc:async(name:string,args:Record<string,unknown>)=>{
-    if(name!=='live_lineup_compare_swap'||Object.keys(args).sort().join(',')!=='p_expected_revision,p_rep_id,p_state,p_token_id')throw Error('Unexpected RPC')
-    try{return {data:normalize((await sql.query('select * from live_lineup_compare_swap($1,$2,$3,$4)',[args.p_rep_id,args.p_expected_revision,JSON.stringify(args.p_state),args.p_token_id])).rows),error:null}}
+    if(name!=='live_lineup_commit'||Object.keys(args).sort().join(',')!=='p_expected_revision,p_guard,p_rep_id,p_state,p_token_id')throw Error('Unexpected RPC')
+    try{return {data:normalize((await sql.query('select * from live_lineup_commit($1,$2,$3,$4,$5)',[args.p_rep_id,args.p_expected_revision,JSON.stringify(args.p_state),args.p_token_id,JSON.stringify(args.p_guard)])).rows),error:null}}
     catch(error){return {data:null,error}}
   }} as unknown as SupabaseClient
 }
@@ -53,6 +53,7 @@ it('recovers through actual services and exact additive SQL, preserving archives
     await sql.exec('create role anon; create role authenticated; create role service_role bypassrls; create table reps(id uuid primary key);')
     await sql.query('insert into reps values($1),($2)',[rep,other])
     await sql.exec(readFileSync(new URL('../supabase/migrations/20260910000100_live_lineup_v2.sql',import.meta.url),'utf8'))
+    await sql.exec(readFileSync(new URL('../supabase/migrations/20260926000100_live_lineup_atomic_observations.sql',import.meta.url),'utf8'))
     // Lease age starts after embedded-database initialization, not before it.
     T=Date.now()-10000
     const current=state(2),archived=state(1)

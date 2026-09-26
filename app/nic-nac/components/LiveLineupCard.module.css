@@ -97,3 +97,9 @@
 .partyVisibilityList label { display: flex; align-items: flex-start; gap: 8px; min-height: 44px; padding: 7px 3px; overflow-wrap: anywhere; cursor: pointer; }
 .partyVisibilityList input[type="checkbox"] { flex: 0 0 auto; width: 1rem; height: 1rem; min-height: 0; padding: 0; margin: 2px 0; }
 .partyVisibilityList small { display: block; margin-top: 3px; color: var(--nic-nac-text-muted, #6c607a); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 4px; padding: 3px 0 3px 34px; min-width: 0; }
+.chips span { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-radius: 20px; padding: 2px 7px; font-size: .67rem; background: #8b64ab12; color: var(--nic-nac-text-muted, #6c607a); unicode-bidi: plaintext; }
+.compact .person { grid-column: 1; grid-row: 1; }
+.compact .actions { grid-column: 2; grid-row: 1; }
+.compact .chips { grid-column: 1 / -1; }

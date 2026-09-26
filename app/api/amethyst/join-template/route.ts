@@ -1,3 +1,4 @@
+import { buildPublicLiveLineup, requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
 
 import { buildAmethystJoinBootstrapScript } from '@/lib/amethyst/join-template-data'
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
 
   return new NextResponse(
     buildAmethystJoinBootstrapScript(
-      customerTemplateData.join,
+      { ...customerTemplateData.join, ...buildPublicLiveLineup(null, requestedLineupPresentation(request)) },
       customerTemplateData.appearancePreset,
       { publicSiteSlug, repId, targeted },
       tradeBoardListings,

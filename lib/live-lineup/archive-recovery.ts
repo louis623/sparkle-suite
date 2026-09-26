@@ -97,10 +97,11 @@ export function buildArchiveRecoveryState(current: LineupState, archive: LineupA
   const next: LineupState = { ...current, revision: current.revision + 1,
     show: { ...current.show, generation: current.show.generation + 1, partyIds: [...current.show.partyIds],
       excludedPartyIds: [...current.show.excludedPartyIds], carryEntryIds },
-    entries: [...current.entries.map(entry => ({...entry})), ...recovered.map(id => ({...available.get(id)!}))],
+    entries: [...current.entries, ...recovered.map(id => available.get(id)!)].map(entry => ({id: entry.id, name: entry.name, orderedAt: entry.orderedAt})),
     order: [...current.order], held: [...current.held, ...recovered], revealedIds: [...current.revealedIds],
     // Old Undo can mention a since-removed identity. Clearing it prevents unexpectedly unholding a recovery.
-    undo: null, lastReceivedAt: null, parserState: 'loading', sourceVersion: null, lastChangedAt: new Date(now).toISOString(),
+    undo: null, sourceObservation: null, lastReadyObservation: null, retiredDocumentIds: [], restorations: [], revealEvents: [], revealEventCursor: 0,
+    lastReceivedAt: null, parserState: 'loading', sourceVersion: null, lastChangedAt: new Date(now).toISOString(),
     publisher: { ...current.publisher, lastSequence: -1, leaseExpiresAt: new Date(now).toISOString() } }
   if (!isLineupState(next)) throw new LineupServiceError('invalid_recovered_lineup')
   return next
@@ -153,12 +154,12 @@ export async function recoverLineupArchive(db: SupabaseClient, repId: string, in
   const archive = await loadArchive(db, repId, request.archiveGeneration)
   const next = buildArchiveRecoveryState(current, archive, request, now)
   // Existing owner CAS archives today's state and commits generation+1 in one transaction.
-  const { data, error } = await db.rpc('live_lineup_compare_swap', {
-    p_rep_id: repId, p_expected_revision: current.revision, p_state: next, p_token_id: null,
+  const { data, error } = await db.rpc('live_lineup_commit', {
+    p_rep_id: repId, p_expected_revision: current.revision, p_state: next, p_token_id: null, p_guard: {kind: 'owner', requireFresh: false},
   })
   if (error) throw new LineupServiceError('lineup_unavailable')
   if (Array.isArray(data) && data.length === 0) throw new LineupServiceError('revision_conflict', 409)
   if (!Array.isArray(data) || data.length !== 1 || data[0]?.rep_id !== repId || storedInteger(data[0]?.revision) !== next.revision
     || !isLineupState(data[0]?.state) || !isDeepStrictEqual(data[0].state, next)) throw new LineupServiceError('invalid_lineup_receipt')
-  return buildWorkspaceLineupSnapshot(next, now)
+  return {...buildWorkspaceLineupSnapshot(next, now, true), runtimeWritable: true, tenantContext: repId}
 }

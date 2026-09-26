@@ -1004,7 +1004,17 @@ export interface ReorderPublicSiteRecipesInput {
   recipeIds: string[]
 }
 
+/** Strictly public, surname-free presentation. Private grouping input never enters this DTO. */
+export interface PublicLineupPresentation {
+  contract: 'grouped-v1'
+  scope: string
+  cursor: number
+  entries: { token: string; name: string; remainingOrders: number }[]
+  events: { cursor: number; ageSeconds: number; target: string | null }[]
+}
+
 export interface LiveQueueSnapshot {
+  presentation?: PublicLineupPresentation
   revision?: number
   sourceReady?: boolean
   serverTime?: string

@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { lstatSync, readFileSync, realpathSync } from 'node:fs'
@@ -196,7 +194,8 @@ function normalizedStringList(value, label) {
   return [...value].sort()
 }
 
-export function verifyPackage({ zip, approvedInventory, reviewedSources, expectedVersion }) {
+export function verifyPackage({ zip, approvedInventory, reviewedSources, expectedVersion, target = 'production' }) {
+  if (!['production', 'smoke'].includes(target)) fail('unknown package target');
   const entries = inspectZip(zip)
   const actual = [...entries.keys()].sort()
   const expected = parseInventory(approvedInventory)
@@ -219,8 +218,15 @@ export function verifyPackage({ zip, approvedInventory, reviewedSources, expecte
   if (JSON.stringify(normalizedStringList(manifest.permissions, 'permissions')) !== JSON.stringify(REQUIRED_PERMISSIONS)) {
     fail('manifest permissions differ from the approved Sparkle Suite permissions')
   }
-  if (JSON.stringify(normalizedStringList(manifest.host_permissions, 'host_permissions')) !== JSON.stringify(REQUIRED_HOST_PERMISSIONS)) {
+  const hosts = target === 'smoke' ? ['https://myoffice.bombparty.com/*', 'https://sparkle-suite-smoke.vercel.app/*'] : REQUIRED_HOST_PERMISSIONS;
+  if (JSON.stringify(normalizedStringList(manifest.host_permissions, 'host_permissions')) !== JSON.stringify(hosts)) {
     fail('manifest host permissions differ from the approved Sparkle Suite hosts')
+  }
+  if (target === 'smoke') {
+    const worker = entries.get('background.js')?.toString('utf8') || '';
+    if (!manifest.name.includes('Smoke') || !manifest.key || !worker.includes('const ENVIRONMENT = "smoke";')
+      || !worker.includes('https://sparkle-suite-smoke.vercel.app/api/live-lineup/publish')
+      || worker.includes('yoursparklesuite.com')) fail('Smoke isolation/label missing');
   }
   const references = collectManifestReferences(manifest)
   const missingReferences = references.filter(name => !entries.has(name))

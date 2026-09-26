@@ -108,7 +108,7 @@ describe('deterministic Live Lineup extension ZIP verifier', () => {
   it('rejects both unexpected files and an incomplete approved inventory', () => {
     expect(() => verify([...files, { name: '.env', body: 'secret' }]))
       .toThrow(/unexpected=.*\.env/)
-    expect(() => verify(files, { inventory: inventory.replace('background.js\n', '') }))
+    expect(() => verify(files, { inventory: inventory.replace(/^background\.js\r?\n/m, '') }))
       .toThrow(/unexpected=.*background\.js/)
   })
 

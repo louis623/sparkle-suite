@@ -6835,3 +6835,12 @@ body.surface-midnight-glass {
 body.btn-pumpkin-glow {
   --hp-action-fg: #2a1f40;
 }
+/* One accepted-reveal target per list and ticker; decorative sparkle stays silent. */
+.hp-lineup-order-count { font-size: .78em; opacity: .78; font-variant-numeric: tabular-nums; white-space: nowrap; }
+[data-lineup-token], [data-lineup-surface] { position: relative; }
+[data-lineup-flare="true"] { animation: hp-lineup-reveal-glow 950ms ease-out both; }
+.hp-lineup-sparkle { display: none; }
+[data-lineup-token][data-lineup-flare="true"] .hp-lineup-sparkle { display: block; position: absolute; inset-inline-end: .3em; top: -.25em; pointer-events: none; font-size: 1.05em; color: currentColor; animation: hp-lineup-reveal-sparkle 950ms ease-out both; }
+@keyframes hp-lineup-reveal-glow { 0%, 100% { box-shadow: none; } 25% { box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 28%, transparent), 0 0 18px color-mix(in srgb, currentColor 22%, transparent); } }
+@keyframes hp-lineup-reveal-sparkle { 0%, 100% { opacity: 0; } 25% { opacity: .9; } 75% { opacity: .2; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { [data-lineup-flare="true"] { animation: none; background-color: color-mix(in srgb, currentColor 12%, transparent); } [data-lineup-token][data-lineup-flare="true"] .hp-lineup-sparkle { display: none; animation: none; } }

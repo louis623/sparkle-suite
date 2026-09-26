@@ -73,6 +73,8 @@ export type AmethystHomepageLiveQueueState =
   | 'delayed'
 
 export interface AmethystHomepageLiveQueueEntry {
+  token?: string
+  remainingOrders?: number
   position: number
   label: string
   name: string
@@ -330,6 +332,7 @@ export function enrichAmethystHomepageFeatureData(
   homepage: AmethystHomepageTemplateData,
   options: {
     liveQueueSnapshot?: LiveQueueSnapshot | null
+    lineupPresentation?: 'legacy' | 'grouped-v1'
     tradeBoardListings?: AmethystTradeBoardListing[]
   } = {},
 ): AmethystHomepageTemplateData {
@@ -343,7 +346,7 @@ export function enrichAmethystHomepageFeatureData(
     tradeBoardTickerItems: tradeBoardListings
       .slice(0, 8)
       .map(formatTradeBoardTickerItem),
-    ...buildPublicLiveLineup(liveQueueSnapshot),
+    ...buildPublicLiveLineup(liveQueueSnapshot, options.lineupPresentation),
   }
 }
 

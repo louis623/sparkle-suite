@@ -68,13 +68,18 @@ export function evaluateBranchPolicy({
   worktree,
   isVercel = false,
   platform = process.platform,
+  projectId = process.env.VERCEL_PROJECT_ID,
 }) {
   const errors = [];
+  const smoke = policy.smokeBranches?.includes(branch) === true;
 
-  if (!policy.activeBranches.includes(branch)) {
+  if (!policy.activeBranches.includes(branch) && !smoke) {
     errors.push(
       `branch "${branch}" is not active; allowed: ${policy.activeBranches.join(", ")}`,
     );
+  }
+  if (smoke && isVercel && projectId !== policy.smokeProjectId) {
+    errors.push('Smoke branch requires the exact Suite Smoke Vercel project; production is forbidden.');
   }
 
   if (remoteRepository !== policy.repository) {
@@ -86,7 +91,7 @@ export function evaluateBranchPolicy({
   if (
     platform === "win32" &&
     !isVercel &&
-    !(policy.activeLocalWorktrees || [policy.primaryLocalWorktree]).some(
+    !(smoke ? policy.smokeLocalWorktrees : (policy.activeLocalWorktrees || [policy.primaryLocalWorktree])).some(
       (allowedWorktree) =>
         normalize(worktree).toLowerCase() ===
         normalize(allowedWorktree).toLowerCase(),

@@ -67,7 +67,16 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${prelaunchDisplay.variable} ${prelaunchSans.variable} ${amethystDisplay.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        {process.env.SPARKLE_ENVIRONMENT === 'smoke'
+          && process.env.NEXT_PUBLIC_APP_URL === 'https://sparkle-suite-smoke.vercel.app'
+          && process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://pukemqiwlyqmyytxkdmo.supabase.co' ? (
+            <aside aria-label="Smoke environment" style={{position:'fixed',bottom:8,left:8,zIndex:2147483647,pointerEvents:'none',background:'#172231',color:'#fff',border:'1px solid #b0d9e5',borderRadius:8,padding:'6px 10px',fontSize:12,fontWeight:700}}>
+              SMOKE · Synthetic data only
+            </aside>
+          ) : null}
+      </body>
     </html>
   );
 }
