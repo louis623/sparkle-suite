@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { PublicSiteVisibility } from './PublicSiteVisibility'
-import { SocialVisibilitySwitch } from './SocialVisibilitySwitch'
+import { SocialHandlesSettings } from './SocialHandlesSettings'
 import dynamic from 'next/dynamic'
 import type {
   ChangeEvent,
@@ -1407,14 +1407,6 @@ function buildSupportReportPayload(details: string) {
     contactOk: true,
   }
 }
-
-const SOCIAL_HANDLE_FIELDS = [
-  { key: 'instagram', label: 'Instagram' },
-  { key: 'facebook', label: 'Facebook' },
-  { key: 'tiktok', label: 'TikTok' },
-  { key: 'youtube', label: 'YouTube' },
-  { key: 'whatnot', label: 'Whatnot' },
-] as const
 
 const WORKSPACE_APPEARANCE_PRESET: SiteAppearancePreset =
   DEFAULT_AMETHYST_APPEARANCE_PRESET
@@ -9899,52 +9891,14 @@ export function SiteSettingsCard({
 
       <div className={styles.siteSettingsSection}>
         <div className={styles.walletSettingsTitle}>Social handles</div>
-        <div className={styles.siteSettingsGrid}>
-          {SOCIAL_HANDLE_FIELDS.map((field) => (
-            <div key={field.key} className={styles.searchField}>
-              <label className={styles.searchField}>
-              <span className={styles.searchLabel}>{field.label}</span>
-              <input
-                className={styles.searchInput}
-                placeholder={field.key === 'facebook' ? 'VIP group or page' : undefined}
-                value={draft.socialHandles[field.key] ?? ''}
-                onChange={(event) =>
-                  onSocialHandleChange?.(field.key, event.target.value)
-                }
-              />
-              </label>
-              {field.key === 'facebook' ? (
-                <label className={styles.teamVisibilityToggle}>
-                  <input
-                    type="checkbox"
-                    role="switch"
-                    aria-label="Show Facebook VIP button in the landing hero"
-                    checked={draft.socialVisibility?.facebookVipHero === true}
-                    onChange={(event) =>
-                      onDraftChange?.({
-                        socialVisibility: {
-                          ...draft.socialVisibility,
-                          facebookVipHero: event.target.checked,
-                        },
-                      })
-                    }
-                  />
-                  <span>Show Facebook VIP button in the landing hero</span>
-                </label>
-              ) : null}
-              {field.key === 'facebook' ? (
-                <span className={styles.siteSettingsPreviewNote}>
-                  Uses the Facebook link above. Off leaves the hero unchanged, and an empty or non-Facebook link stays hidden.
-                </span>
-              ) : null}
-              {draft.socialHandles[field.key]?.trim() ? <SocialVisibilitySwitch
-                platform={field.label}
-                checked={draft.socialVisibility?.[field.key] !== false}
-                onChange={visible => onDraftChange?.({ socialVisibility: { ...draft.socialVisibility, [field.key]: visible } })}
-              /> : null}
-            </div>
-          ))}
-        </div>
+        <SocialHandlesSettings
+          socialHandles={draft.socialHandles}
+          socialVisibility={draft.socialVisibility}
+          onSocialHandleChange={onSocialHandleChange}
+          onSocialVisibilityChange={(socialVisibility) =>
+            onDraftChange?.({ socialVisibility })
+          }
+        />
       </div>
 
       {actionState?.error ? (

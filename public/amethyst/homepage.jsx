@@ -200,32 +200,59 @@ function isConfiguredWatchLink(href) {
   return typeof href === "string" && href.trim().length > 0 && href !== "#";
 }
 
-function getFacebookVipHeroHref() {
-  if (CONTENT.showFacebookVipHeroButton !== true) return "";
-  const href = String(CONTENT.facebookVipUrl || "").trim();
-  if (!isConfiguredWatchLink(href) || !isExternalHref(href)) return "";
+const SOCIAL_HERO_ORDER = ["facebook", "tiktok", "instagram", "whatnot", "youtube"];
+const SOCIAL_HERO_LABELS = {
+  facebook: "Facebook VIP",
+  tiktok: "TikTok",
+  instagram: "Instagram",
+  whatnot: "Whatnot",
+  youtube: "YouTube",
+};
+const SOCIAL_HERO_HOSTS = {
+  facebook: ["facebook.com", "fb.com", "fb.watch"],
+  tiktok: ["tiktok.com"],
+  instagram: ["instagram.com"],
+  whatnot: ["whatnot.com"],
+  youtube: ["youtube.com", "youtu.be"],
+};
+
+function socialHeroHostMatches(key, href) {
+  const domains = SOCIAL_HERO_HOSTS[key];
+  if (!domains) return false;
   try {
     const host = new URL(href).hostname.replace(/^www\./, "").toLowerCase();
-    const isFacebookHost = host === "facebook.com"
-      || host === "fb.com"
-      || host === "fb.watch"
-      || host.endsWith(".facebook.com")
-      || host.endsWith(".fb.com");
-    return isFacebookHost ? href : "";
+    return domains.some((domain) => host === domain || host.endsWith(`.${domain}`));
   } catch (error) {
-    return "";
+    return false;
   }
 }
 
-function FacebookVipHeroLink({ className, labelClassName }) {
-  const href = getFacebookVipHeroHref();
-  if (!href) return null;
-  const label = "Facebook VIP";
-  return (
-    <a {...linkProps(href)} className={className} data-hero-cta="facebook-vip">
-      {labelClassName ? <span className={labelClassName}>{label}</span> : label}
+function getSocialHeroLinks() {
+  const provided = Array.isArray(CONTENT.socialHeroLinks) ? CONTENT.socialHeroLinks : [];
+  const fallback = CONTENT.showFacebookVipHeroButton === true && CONTENT.facebookVipUrl
+    ? [{ key: "facebook", label: "Facebook VIP", href: CONTENT.facebookVipUrl }]
+    : [];
+  const source = provided.length > 0 ? provided : fallback;
+
+  return SOCIAL_HERO_ORDER.flatMap((key) => {
+    const link = source.find((item) => item && item.key === key);
+    if (!link) return [];
+    const href = String(link.href || "").trim();
+    const label = SOCIAL_HERO_LABELS[key];
+    if (!label || !isConfiguredWatchLink(href) || !isExternalHref(href)) return [];
+    if (!socialHeroHostMatches(key, href)) return [];
+    return [{ key, label, href }];
+  });
+}
+
+function SocialHeroLinks({ className, labelClassName }) {
+  const links = getSocialHeroLinks();
+  if (links.length === 0) return null;
+  return links.map((link) => (
+    <a key={link.key} {...linkProps(link.href)} className={className} data-hero-cta={link.key}>
+      {labelClassName ? <span className={labelClassName}>{link.label}</span> : link.label}
     </a>
-  );
+  ));
 }
 
 function getHeroWatchLinks(liveShow, isLive) {
@@ -733,7 +760,7 @@ function Hero({ t, isLive, liveShow }) {
                         {link.label}
                       </a>
                     ))}
-                    <FacebookVipHeroLink className="hp-btn-outline hp-btn-watch" />
+                    <SocialHeroLinks className="hp-btn-outline hp-btn-watch" />
                   </div>
                   <a {...linkProps(getTradeBoardHref())} className="hp-btn-primary hp-btn-sparkle hp-hero-trade-board-cta">
                     {isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Browse the dance floor"}
@@ -752,7 +779,7 @@ function Hero({ t, isLive, liveShow }) {
                         {link.label}
                       </a>
                     ))}
-                    <FacebookVipHeroLink className="hp-btn-outline hp-btn-watch" />
+                    <SocialHeroLinks className="hp-btn-outline hp-btn-watch" />
                   </div>
                   <a {...linkProps(getTradeBoardHref())} className="hp-btn-primary hp-btn-sparkle hp-hero-trade-board-cta">
                     {isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Browse the dance floor"}
@@ -2318,7 +2345,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
                     {link.label}
                   </a>
                 ))}
-                <FacebookVipHeroLink className="mhf-cta mhf-cta-watch" />
+                <SocialHeroLinks className="mhf-cta mhf-cta-watch" />
               </div>
               <a {...linkProps(getTradeBoardHref())} className="mhf-cta mhf-cta-dance-floor">Browse the Dance Floor</a>
             </div>
@@ -2442,7 +2469,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
                     {link.label}
                   </a>
                 ))}
-                <FacebookVipHeroLink className="bwb-cta bwb-cta-watch" />
+                <SocialHeroLinks className="bwb-cta bwb-cta-watch" />
               </div>
               <a {...linkProps(getTradeBoardHref())} className="bwb-cta bwb-cta-dance-floor">Dance Floor · Coming soon</a>
             </div>
@@ -2493,7 +2520,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
                     <span className="bk-home-cta-label">{link.label}</span>
                   </a>
                 ))}
-                <FacebookVipHeroLink labelClassName="bk-home-cta-label" />
+                <SocialHeroLinks labelClassName="bk-home-cta-label" />
               </div>
               <a {...linkProps(getTradeBoardHref())} className="bk-home-cta-dance-floor"><span className="bk-home-cta-label">Browse the Dance Floor</span></a>
             </div>

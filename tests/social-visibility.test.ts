@@ -10,6 +10,9 @@ describe('social publication preferences', () => {
     expect(normalizeSocialVisibility({ tiktok: false, whatnot: true, youtube: 'false', unknown: false })).toEqual({ tiktok: false, whatnot: true })
     expect(normalizeSocialVisibility({ facebookVipHero: false })).toEqual({ facebookVipHero: false })
     expect(normalizeSocialVisibility({ facebookVipHero: true, tiktok: false })).toEqual({ facebookVipHero: true, tiktok: false })
+    expect(normalizeSocialVisibility({ facebookHero: true })).toEqual({ facebookVipHero: true })
+    expect(normalizeSocialVisibility({ facebookVipHero: true, facebookHero: false })).toEqual({ facebookVipHero: true })
+    expect(normalizeSocialVisibility({ instagramHero: true, tiktokHero: false })).toEqual({ instagramHero: true, tiktokHero: false })
   })
 
   it('passes independent preferences through the shared customer page presentation contract', () => {

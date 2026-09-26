@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { resolveFacebookVipUrl } from '@/lib/public-site/facebook-vip-hero'
-import { isFacebookVipHeroEnabled } from '@/lib/public-site/social-visibility'
+import { resolveSocialHeroLinks, resolveSocialPlatformUrl } from '@/lib/public-site/social-hero'
+import { isSocialHeroEnabled } from '@/lib/public-site/social-visibility'
 import { resolvePublicSiteVisibility } from '@/lib/public-site/visibility'
 import {
   getSiteSettingsDashboard,
@@ -609,8 +609,12 @@ export function mapPreviewSettingsToHomepageTemplateData(
       : '',
     streamLinks,
     socialLinks: buildSocialLinks(settings),
-    showFacebookVipHeroButton: isFacebookVipHeroEnabled(settings.socialVisibility),
-    facebookVipUrl: resolveFacebookVipUrl(settings.socialHandles.facebook),
+    showFacebookVipHeroButton: isSocialHeroEnabled(settings.socialVisibility, 'facebook'),
+    facebookVipUrl: resolveSocialPlatformUrl('facebook', settings.socialHandles.facebook),
+    socialHeroLinks: resolveSocialHeroLinks({
+      socialHandles: settings.socialHandles,
+      socialVisibility: settings.socialVisibility,
+    }),
     showcaseVideoCaption: showcaseMedia?.caption?.trim() || '',
     showcaseVideoUrl: showcaseMedia?.videoUrl || '#',
     showcaseVideoVisible: showcaseMedia?.isVisible !== false,
