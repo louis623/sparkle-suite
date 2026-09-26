@@ -527,13 +527,10 @@ export default function NicNacClient({
         localStorage.setItem(STORAGE_KEY, next)
       }
       if (isOperatorSupport) return
-      const nextSearch = putConversationIdInSearch(
-        new URLSearchParams(Array.from(searchParams.entries())).toString(),
-        next,
-      )
-      router.replace(`${workspaceRoutePath}?${nextSearch}`)
+      const nextSearch = putConversationIdInSearch(window.location.search, next)
+      router.replace(nextSearch ? `${workspaceRoutePath}?${nextSearch}` : workspaceRoutePath)
     },
-    [isOperatorSupport, router, searchParams, workspaceRoutePath],
+    [isOperatorSupport, router, workspaceRoutePath],
   )
 
   const rolloverConversation = useCallback(
@@ -651,11 +648,8 @@ export default function NicNacClient({
         const id = resolved ?? newConversationId()
         setConversationId(id)
         if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, id)
-        const nextSearch = putConversationIdInSearch(
-          new URLSearchParams(Array.from(searchParams.entries())).toString(),
-          id,
-        )
-        router.replace(`${workspaceRoutePath}?${nextSearch}`)
+        const nextSearch = putConversationIdInSearch(window.location.search, id)
+        router.replace(nextSearch ? `${workspaceRoutePath}?${nextSearch}` : workspaceRoutePath)
       } catch (err) {
         if (cancelled) return
         if ((err as { name?: string })?.name === 'AbortError') return
