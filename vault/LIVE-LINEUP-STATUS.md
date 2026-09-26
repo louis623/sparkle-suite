@@ -2,9 +2,9 @@
 
 **Owner:** Live Lineup Watch (study + report; no ship without Louis OK)  
 **Audience:** Louis, Sam, Codex, Rocky, Live Lineup Watch  
-**Last updated:** 2026-09-20 ~10:08pm ET  
+**Last updated:** 2026-09-26 ~11:00am ET  
 **Draft location:** `/workspace/live-lineup-watch/LIVE-LINEUP-STATUS.md` (this machine first)  
-**Git home:** `vault/LIVE-LINEUP-STATUS.md` on `louis623/sparkle-suite` tip `codex/nic-nac-trade-hardening` via **PR #15** (https://github.com/louis623/sparkle-suite/pull/15) — **still open / not merged as of 2026-09-20 ~10pm ET**; read from PR head until merged. Steward: Live Lineup Watch (Codex is READ-ONLY on this file).  
+**Git home:** `vault/LIVE-LINEUP-STATUS.md` on `louis623/sparkle-suite` tip `codex/nic-nac-trade-hardening` via **PR #15** (https://github.com/louis623/sparkle-suite/pull/15) — **still open / not merged as of 2026-09-26 ~11am ET**; read from PR head until merged. Steward: Live Lineup Watch (Codex is READ-ONLY on this file).  
 **Companion:** `LIVE-LINEUP-STATUS-SOURCES.md` (every vault path + Open Brain themes used)
 
 > Louis’s bar: this is a huge headache. The doc must have a **sound, detailed history** — not a skim. Agents without a living status file will contradict each other.
@@ -82,7 +82,7 @@ Do **not** touch CWS, extension code, packaging, or live ZIPs from a local binde
 
 ---
 
-## C. Current build matrix (as of 2026-09-20 ET)
+## C. Current build matrix (as of 2026-09-26 ET)
 
 **Uncertainty flags:** `[verified]` = checked against a named source this week; `[ops]` = operator/Open Brain confirmation; `[uncertain]` = not re-verified in this draft pass; `[parked]` = not shipped.
 
@@ -94,7 +94,9 @@ Do **not** touch CWS, extension code, packaging, or live ZIPs from a local binde
 | **Shared tip branch manifest** | Still **`2.0.3`** | `louis623/sparkle-suite` @ `codex/nic-nac-trade-hardening` — `chrome-extension/manifest.json` confirmed via GitHub MCP **2026-09-20** (and local deploy tree). Tip parser historically **fail-closed** on empty identity attrs until 2.0.4 line lands. | `[verified]` |
 | **Tip soft-fallback in SW** | Tip `background.js` has a soft path: if inspect returns no parties but `descriptor.generation > 0` and prior session parties exist, re-adopt prior parties and still `read()` | Present in tip study notes (EXPERT-BRIEF 2026-09-18). **Not the same claim as “tip == Store 2.0.4.”** Store 2.0.4’s headline fix is **queue-parser cell-text fallback**. | `[ops]` |
 | **Temp server fix (Sep 19)** | Premature `configure` without lease for **workspace-code** publishers returns unchanged read-only descriptor so 2.0.4 can reclaim lease | Commit **`49037082c2ac29cacba904b4b2852795e962c23e`**; deploy **`dpl_8w2U1zZTnVJjUyZiG3Cm3T97eDzW`** | `[ops]` Open Brain + incident note |
-| **Permanent extension fix** | **2.0.5 planned** — claim/renew lease + snapshot **before** configure | Not shipped. CWS only in no-show window + Louis OK. | `[parked]` |
+| **Permanent extension fix** | **2.0.5 planned** — claim/renew lease + snapshot **before** configure | Not shipped. CWS only in no-show window + Louis OK. Overnight planning active 2026-09-26; **no build** until HOLD cleared + Louis go. | `[parked]` |
+| **Tip pin (overnight review)** | Shared tip HEAD reviewed by Codex HOLD | `4a679d751f7519de2396da89b03ba8de1ddfe140` on `codex/nic-nac-trade-hardening` (2026-09-26). Manifest still **2.0.3**. Re-pin at build time. | `[verified]` GitHub 2026-09-26 |
+| **Overnight ship gate** | Codex **HOLD-PLAN** on Live Lineup v3 | Addendum: `/workspace/ll-overnight/LIVE-LINEUP-V3-CODEX-HOLD-ADDENDUM-2026-09-26.md`. Reliability-first; surname/public deferred until acceptance sequences answered. Watch stamped 2026-09-26. | `[ops]` |
 | **Emergency 1.0.1 ZIP (retained)** | Pre-2.0 fleet fallback | SHA-256 `05e0e8d4c652dc6391522046d67abba3b1a3ed36ea127ba9511d7aa8b4dc0a0b` | `[verified]` in Sep 15 vault |
 | **Extension 2.0.0 Store ZIP (historical)** | First Live Lineup 2 Store package | SHA-256 `24c28df76ee5caeaa4bc08233213c5c8d0af7004b08d0b95b19274059057c129` | `[verified]` in Sep 15 vault |
 
@@ -537,6 +539,30 @@ Same calendar day as 2.0 release, multiple application follow-ups (extension Sto
 - Codex confirmed PR #15 open; read STATUS from PR commit `d2c0274` / branch `cursor/live-lineup-status-vault-929b`.
 - Open Brain already captured deferral (Codex `capture_thought`); Watch mirrors here.
 
+
+### F.19 2026-09-26 — Overnight planning + Codex HOLD-PLAN (v3; no build)
+
+**Context:** Louis reopened a big overnight Live Lineup update for morning smoke. Watches remain paused. Business Calculator briefly entered the pack then was **cut entirely** (LL-only overnight). Planning docs live under `/workspace/ll-overnight/` (Desktop twins for Louis/Sam).
+
+**What changed in the plan (not in shipped code):**
+- Track A reliability (2.0.5 lease-before-configure, soft-fallback ≥ Store, ready-completeness, recovery state table, `canManage`/Connected contract, multi-tab, restart smokes, evidence sheet) stays the floor.
+- Track B / lastName / public initials / consecutive public collapse / reveal flare were drafted, then Codex **HOLD-PLAN** (stronger interaction evidence) deferred surname + public wow until explicit acceptance sequences exist.
+- BP Parties table has First + Last columns (Louis screenshot); Suite still publishes FirstName into `entries[].name` only. Additive `lastName` was proposed — blocked until transport/server retain it (see below).
+
+**Codex HOLD theme:** A lineup can look reassuring while **order, identity, or freshness** is wrong. Tip reviewed: `4a679d751f7519de2396da89b03ba8de1ddfe140`.
+
+**Watch stamp (2026-09-26 ~11:00am ET) — tip-verified highlights:**
+1. **Freshness vs same-rev refresh:** `canAcceptWorkspaceRefresh` (`live-lineup-client.ts`) at equal revision requires `canManage` (and other fields) unchanged — so a health-only `canManage` flip without a new revision can be **rejected** by the Workspace client while drag may still look enabled. Must define health-only same-rev updates and prove visible lock without a new publisher packet.
+2. **`canManage` tip gap (prior):** `buildWorkspaceLineupSnapshot(..., canManage = true)` default; service often omits third arg when `lastReadyAt` exists; card gates drag on `canManage`. STATUS “Not connected ⇒ lock drag” is product intent, not how tip currently couples.
+3. **lastName stripped today:** tip `cleanSnapshot` (extension `publisher-client.js`) and `parseSourcePacket` (`lib/live-lineup/model.ts`) rebuild entries as `{id, name, orderedAt}` only — a parser “accepting” lastName would not store it. Surname publish needs a full transport→store→private-match→public-strip trace before overnight Track B.
+4. **Other HOLD requireds (plan must answer before build):** lock-all vs recovery circularity; ID-fallback wrong tokens; completeness vs never-ready; sticky reveal / cancel ghosts; public collapse vs per-order drag; public reveal event contract; single public projection pipeline; chip drag geometry; audience uniqueness across pagination; open public page presentation reject; CWS install ≠ publish window (zombie CS). Full table in HOLD addendum.
+
+**Cut order until HOLD cleared:** Track A reliability only. lastName / Track B / public initials-collapse-flare **out of overnight** until sequences in the addendum have explicit answers.
+
+**No build / no CWS / no deploy** from this planning wave until revised plan + Watch stamp (this section) + Louis go.
+
+**Companion files:** `LIVE-LINEUP-OVERNIGHT-PLAN-2026-09-26-v3.md`, `LIVE-LINEUP-TRACK-B-IDENTITY-ADDENDUM-2026-09-26.md`, `LIVE-LINEUP-V3-CODEX-HOLD-ADDENDUM-2026-09-26.md` under `/workspace/ll-overnight/`.
+
 ### F.15 Version ladder (extension) — quick reference
 
 | Ver | Theme | Notes |
@@ -593,6 +619,10 @@ Same calendar day as 2.0 release, multiple application follow-ups (extension Sto
 - **Release from isolated exact-commit clones** when shared workspace is dirty; never bulk-clean unrelated work.
 - **Agents without this living status will contradict each other** — update §C/§F/§K when facts change.
 - **Live Lineup Watch does not ship.** Rocky adversarial-reviews; Buddy = Suite health; Nic-Nac = rep CS; Sam = CoS; Codex builds when Louis says go.
+- **Reassuring lineup ≠ correct order/identity/freshness** (Codex HOLD 2026-09-26). Prove Connected/lock, identity stability, and public projection separately.
+- **Optional entry fields die at cleanSnapshot/parseSourcePacket** unless allowlists are extended end-to-end (lastName HOLD finding).
+- **Same-revision Workspace refresh can reject `canManage` flips** — freshness expiry must visibly lock without waiting for a new publisher revision.
+- **CWS quiet publish ≠ safe install window** when Party Orders is already open (zombie content script risk).
 
 ---
 
@@ -600,13 +630,15 @@ Same calendar day as 2.0 release, multiple application follow-ups (extension Sto
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Extension **2.0.5** (lease before configure) + regression tests | Parked until **fresh Codex usage session** | Louis 2026-09-20 ~10:08pm: no plan/research/build until then except **emergency patches**. No-show + Louis OK when resumed. |
-| Merge **2.0.4** party-detection line into shared tip | Open / lag | Tip manifest still **2.0.3** as of 2026-09-20; Store already 2.0.4 |
+| Extension **2.0.5** (lease before configure) + reliability Track A | **HOLD-PLAN** — overnight candidate | 2026-09-20 freeze superseded for **planning** by Louis 2026-09-26 overnight ask. Codex HOLD (v3 addendum) still blocks **build** until acceptance sequences answered + Louis go. Reliability-first. |
+| Merge **2.0.4** party-detection soft-fallback into shared tip | Open / required for overnight A | Tip manifest still **2.0.3** as of 2026-09-26; Store already 2.0.4 (`961bffd3…`) |
 | Tip merge lag / PR #1 hygiene | Open | Confirm whether `cursor/live-queue-party-detection-8648` merged; update matrix |
-| Consecutive multi-order collapse (three Kellys → one until all reveals) | Banked | Must not repeat Apr 12 shrink-on-reveal failure |
-| On-deck / “their turn” sparkle animation polish | Banked | Discuss before build |
+| lastName publish + Track B wow chips + public initials/collapse/flare | **Deferred from overnight** | Codex HOLD: settle identity/freshness/public projection sequences first. lastName currently stripped by `cleanSnapshot` + `parseSourcePacket`. |
+| Consecutive multi-order collapse (public / Workspace) | Banked / HOLD | Louis wants public consecutive same-person collapse; Codex requires order-vs-group drag decision + projection pipeline. Must not repeat Apr 12 shrink-on-reveal failure. |
+| On-deck / reveal sparkle (list + ticker) | Banked / HOLD | Needs privacy-safe public event contract; never animate on heartbeat-only revision bumps. |
 | Biweekly per-rep usage grid | Blocked | No Control Center Live Lineup usage MCP yet |
-| Private Workspace **customer-context** on lineup (birthday month/day, favorites, etc.) | Parked until **usage reset** | Louis 2026-09-20: wow-factor for reps; **not** a rebuild; Workspace-only; high-confidence match; never public/popup. Full research/planning required first. Supersedes thin “intake→lineup” banked idea. |
+| Private Workspace **customer-context** / wow chips | Deferred with Track B | Exact full-name match; duplicate → hide chips; Workspace-only; never public. Blocked on lastName transport + audience uniqueness pagination. |
+| Business Calculator | Cut from overnight | Louis 2026-09-26: out of same-night pack (later product brief parked separately). |
 | Safari / Bri connection path | Deferred | Chrome on Mac is supported path; Bri was not connected (Sep 15) |
 | Synthetic reviewer identity migration | Blocked | Needed for signed-in Workspace smoke; no personal/customer account bypass |
 | Nic-Nac Live Queue troubleshooting flow | Open (May 18 todo) | Store vs unpacked, version, Party Filter, site access, zombies |
@@ -720,6 +752,7 @@ Age > 45s / no heartbeat while quiet? ──yes──► heartbeat / publisher h
 - `LIVE-LINEUP-STATUS-SOURCES.md` — source inventory for this draft
 - `/workspace/live-lineup-2.0.4/` — known-good ZIP + agent smoke receipt
 - Desktop sticky: `CODEX-SESSION-START-STICKY.txt`
+- Overnight pack (this machine): `/workspace/ll-overnight/LIVE-LINEUP-OVERNIGHT-PLAN-2026-09-26-v3.md`, `LIVE-LINEUP-V3-CODEX-HOLD-ADDENDUM-2026-09-26.md`, Track B identity addendum
 
 ---
 
@@ -731,6 +764,7 @@ Age > 45s / no heartbeat while quiet? ──yes──► heartbeat / publisher h
 | 2026-09-20 ~9:45pm | **Full end-all-be-all rewrite:** sections A–K; deep history Apr→Sep 20; build matrix; playbooks; backlog; source-backed SHAs/deploys; plain-English gloss. Study+write only; no CWS/Codex/deploy/package changes; no GitHub push. |
 | 2026-09-20 ~10:05pm | Codex diagnostic session (no code): Workspace not-connected/reorder locked = fail-safe / `canManage` path; Store 2.0.4 vs tip 2.0.3 reinforced; soft-fallback not proven for this case; **2.0.5** and **Workspace customer-context** deferred until usage reset + research. PR #15 still open. Steward update. |
 | 2026-09-20 ~10:08pm | Louis standing: **no Live Lineup plan/research/build until fresh Codex usage session** — emergency patches only. |
+| 2026-09-26 ~11:00am | Overnight planning wave + Codex **HOLD-PLAN** v3 addendum stamped. Tip pin `4a679d75…`; matrix/backlog updated; **F.19** added. Reliability-first; surname/public deferred; calculator cut. Watch tip-verified: lastName strip + same-rev `canManage` refresh trap. **No build.** PR #15 still open — steward pushing this STATUS update onto PR head. |
 
 ---
 
