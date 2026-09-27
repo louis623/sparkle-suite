@@ -226,7 +226,7 @@ function Footer() {
       </div>
       <div className="hp-footer-bottom">
         <div className="legal-row">
-          <span>© 2026 {BUSINESS_NAME} · Powered by Sparkle Suite</span>
+          <span>© 2026 {BUSINESS_NAME} · <window.SparkleSuiteFooterCredit /></span>
           <span><a {...linkProps(getUnsubscribeHref())}>Unsubscribe</a> · <a {...linkProps(HOME_HREF)}>Home</a></span>
         </div>
       </div>

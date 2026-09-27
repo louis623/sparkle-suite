@@ -1339,7 +1339,7 @@ function Footer({ businessName }) {
       </div>
       <div className="hp-footer-bottom">
         <div className="legal-row">
-          <span>© {year} {businessName} · Powered by Sparkle Suite</span>
+          <span>© {year} {businessName} · <window.SparkleSuiteFooterCredit /></span>
           <span><a {...linkProps(FOOTER_LINKS.privacy || "#faq")}>Privacy</a> · <a {...linkProps(FOOTER_LINKS.terms || "#faq")}>Terms</a> · <a {...linkProps(FOOTER_LINKS.accessibility || "#faq")}>Accessibility</a></span>
         </div>
         <p>

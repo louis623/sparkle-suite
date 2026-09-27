@@ -64,6 +64,7 @@ const AMETHYST_ASSETS = new Set([
   'live-lineup.js',
   'join.jsx',
   'pantry.css',
+  'sparkle-suite-footer-credit.js',
   'Pantry.html',
   'pantry.jsx',
   'README.md',

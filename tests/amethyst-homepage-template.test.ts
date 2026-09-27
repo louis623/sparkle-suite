@@ -134,7 +134,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20260923-trade-tip-contrast')
+    expect(homepage).toContain('homepage.jsx?v=20260927-powered-by')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
