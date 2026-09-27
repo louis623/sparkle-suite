@@ -54,6 +54,7 @@ export function LandingExperience() {
     <div id="top"><MarketingHeader /></div>
     <FounderStrip />
     <section className={styles.hero} id="main-content" aria-labelledby="landing-title">
+      <div className={styles.heroLayout}>
       <div className={styles.heroCopy}>
         <p className={styles.eyebrow}>Now building Sparkle Suite sites</p>
         <h1 id="landing-title">Your brand.<br />Your show.<br /><span>A setup that <em>shines.</em></span></h1>
@@ -64,15 +65,16 @@ export function LandingExperience() {
       <figure className={styles.heroFigure}>
         <div className={styles.heroScene}>
           <div className={styles.heroStage}>
-            <div className={styles.heroWindow}><div className={styles.browserBar} aria-hidden="true"><span /><span /><span /><em>Desktop · Halloween</em></div><Image src="/sparkle-suite/landing/hero-halloween-desktop-v1.webp" alt="Halloween Pumpkin and Witch desktop theme preview of a Sparkle Suite customer site, with a dark night hero and shop actions" width={1440} height={825} sizes="(max-width: 600px) 90vw, (max-width: 1050px) 560px, 44vw" preload /></div>
+            <div className={styles.heroWindow}><div className={styles.browserBar} aria-hidden="true"><em>Desktop · Halloween</em></div><Image src="/sparkle-suite/landing/hero-halloween-desktop-v1.webp" alt="Halloween Pumpkin and Witch desktop theme preview of a Sparkle Suite customer site, with a dark night hero and shop actions" width={1440} height={825} sizes="(max-width: 600px) 92vw, (max-width: 1050px) 760px, 58vw" preload /></div>
             <div className={styles.heroPhone}>
               <div className={styles.phoneLabel}>Mobile · Rose Gold</div>
-              <div className={styles.phoneScreen}><Image src="/sparkle-suite/landing/hero-rose-mobile-v3.webp" alt="Rose Gold mobile theme preview of the same demo customer site, showing phone navigation, the complete hero and shop buttons" width={390} height={1020} sizes="(max-width: 600px) 210px, (max-width: 1050px) 185px, 16vw" /></div>
+              <div className={styles.phoneScreen}><Image src="/sparkle-suite/landing/hero-rose-mobile-v3.webp" alt="Rose Gold mobile theme preview of the same demo customer site, showing phone navigation, the complete hero and shop buttons" width={390} height={1020} sizes="(max-width: 600px) 250px, (max-width: 1050px) 240px, 18vw" /></div>
             </div>
           </div>
         </div>
         <figcaption>Your look. Beautiful on phones, tablets, and desktop.</figcaption>
       </figure>
+      </div>
     </section>
     <section className={styles.siteSection} id="customer-site-proof" aria-labelledby="site-title"><h2 id="site-title">A site that feels like <em>you.</em></h2><p className={styles.sectionSubtitle}>Your colors. Your personality. A polished customer experience on phones, tablets, and desktop.</p><SiteStyleShowcase /></section>
     <section className={styles.toolsSection} id="workspace-proof" aria-label="Your live-show tools"><ShowToolsTour /></section>
