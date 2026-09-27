@@ -4,9 +4,22 @@ import { lineupFailure, lineupJson, readLineupJson } from '@/lib/live-lineup/htt
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 const origins = new Set(['https://myoffice.bombparty.com', 'chrome-extension://kmodgfffflplfdlkkhadgimmobplhoih'])
+const smokePublishOrigin = 'https://sparkle-suite-smoke.vercel.app'
+const smokeSupabaseUrl = 'https://pukemqiwlyqmyytxkdmo.supabase.co'
+function isSmokePublishHost(request: Request) {
+  return process.env.SPARKLE_ENVIRONMENT === 'smoke'
+    && process.env.NEXT_PUBLIC_SUPABASE_URL === smokeSupabaseUrl
+    && new URL(request.url).origin === smokePublishOrigin
+}
+function allowedOrigin(request: Request, origin: string) {
+  const extras = (process.env.LIVE_LINEUP_EXTRA_ORIGINS ?? '').split(',').map(item => item.trim()).filter(Boolean)
+  return origins.has(origin)
+    || extras.includes(origin)
+    || (isSmokePublishHost(request) && origin.startsWith('chrome-extension://'))
+}
 function cors(request: Request, response: Response) {
   const origin = request.headers.get('origin')
-  if (origin && origins.has(origin)) response.headers.set('access-control-allow-origin', origin)
+  if (origin && allowedOrigin(request, origin)) response.headers.set('access-control-allow-origin', origin)
   response.headers.set('vary', 'Origin')
   response.headers.set('access-control-allow-methods', 'POST, OPTIONS')
   response.headers.set('access-control-allow-headers', 'authorization, content-type')
@@ -16,7 +29,7 @@ export async function OPTIONS(request: Request) { return cors(request, new Respo
 export async function POST(request: Request) {
   try {
     const origin = request.headers.get('origin')
-    if (origin && !origins.has(origin)) return cors(request, lineupJson({ error: 'invalid_origin' }, 403))
+    if (origin && !allowedOrigin(request, origin)) return cors(request, lineupJson({ error: 'invalid_origin' }, 403))
     const credential = request.headers.get('authorization')?.match(/^Bearer (sslp_[A-Za-z0-9_-]{43}|[A-Z0-9]{3}-[0-9]{4})$/)?.[1] ?? null
     if (!credential) return cors(request, lineupJson({ error: 'unauthorized' }, 401))
     // Bounded maximum accommodates 2,000 names plus 10,000 dated revelations.
