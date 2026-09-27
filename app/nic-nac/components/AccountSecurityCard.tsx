@@ -3,8 +3,8 @@
 import { type FormEvent, useState } from 'react'
 import {
   getNewPasswordValidationError,
-  PASSWORD_MIN_LENGTH,
-  PASSWORD_REQUIREMENTS,
+  getPasswordMinLength,
+  getPasswordRequirements,
 } from '@/lib/auth/password-policy'
 import { createClient } from '@/lib/supabase/client'
 import styles from './DashboardPlaceholder.module.css'
@@ -77,7 +77,7 @@ export function AccountSecurityCard({
             name="newPassword"
             type="password"
             autoComplete="new-password"
-            minLength={PASSWORD_MIN_LENGTH}
+            minLength={getPasswordMinLength()}
             aria-describedby="account-password-requirements"
             disabled={busy || mutationsDisabled}
             required
@@ -90,14 +90,14 @@ export function AccountSecurityCard({
             name="newPasswordConfirm"
             type="password"
             autoComplete="new-password"
-            minLength={PASSWORD_MIN_LENGTH}
+            minLength={getPasswordMinLength()}
             aria-describedby="account-password-requirements"
             disabled={busy || mutationsDisabled}
             required
           />
         </label>
         <p id="account-password-requirements" className={styles.accountMuted}>
-          {PASSWORD_REQUIREMENTS}
+          {getPasswordRequirements()}
         </p>
 
         {error ? (

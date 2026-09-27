@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import {
-  PASSWORD_MIN_LENGTH,
-  PASSWORD_REQUIREMENTS,
+  getPasswordMinLength,
+  getPasswordRequirements,
 } from '@/lib/auth/password-policy'
 import {
   buildPrelaunchScoutInput,
@@ -1674,7 +1674,7 @@ export function PrelaunchIntakeReviewPageContent({
                     <input
                       autoComplete="new-password"
                       className="mt-1 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm font-normal text-slate-950"
-                      minLength={PASSWORD_MIN_LENGTH}
+                      minLength={getPasswordMinLength()}
                       name="temporaryPassword"
                       placeholder="Required only when creating account"
                       type="password"
@@ -1685,7 +1685,7 @@ export function PrelaunchIntakeReviewPageContent({
                     <input
                       autoComplete="new-password"
                       className="mt-1 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm font-normal text-slate-950"
-                      minLength={PASSWORD_MIN_LENGTH}
+                      minLength={getPasswordMinLength()}
                       name="temporaryPasswordConfirm"
                       placeholder="Enter the same password again"
                       type="password"
@@ -1696,7 +1696,7 @@ export function PrelaunchIntakeReviewPageContent({
                   Account creation uses the customer email on this build and
                   does not send an email. Hand the login details to the rep
                   yourself. The five-day trial starts on their first successful
-                  sign-in, not when you create the account. {PASSWORD_REQUIREMENTS}
+                  sign-in, not when you create the account. {getPasswordRequirements()}
                 </p>
                 <button
                   className="mt-4 inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-100"

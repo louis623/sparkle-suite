@@ -5,8 +5,8 @@ import { type FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   getNewPasswordValidationError,
-  PASSWORD_MIN_LENGTH,
-  PASSWORD_REQUIREMENTS,
+  getPasswordMinLength,
+  getPasswordRequirements,
 } from '@/lib/auth/password-policy'
 import { createClient } from '@/lib/supabase/client'
 
@@ -123,7 +123,7 @@ export default function ResetPasswordClient() {
               name="newPassword"
               type="password"
               autoComplete="new-password"
-              minLength={PASSWORD_MIN_LENGTH}
+              minLength={getPasswordMinLength()}
               aria-describedby="password-requirements"
               required
             />
@@ -134,12 +134,12 @@ export default function ResetPasswordClient() {
               name="newPasswordConfirm"
               type="password"
               autoComplete="new-password"
-              minLength={PASSWORD_MIN_LENGTH}
+              minLength={getPasswordMinLength()}
               aria-describedby="password-requirements"
               required
             />
           </label>
-          <p id="password-requirements">{PASSWORD_REQUIREMENTS}</p>
+          <p id="password-requirements">{getPasswordRequirements()}</p>
           <button type="submit" disabled={busy}>
             {busy ? 'Updating...' : 'Update password'}
           </button>
