@@ -53,8 +53,14 @@ describe('Sparkle Suite portfolio page', () => {
         expect(slide.detail).toContain('Placeholder')
         continue
       }
-      expect(existsSync(join(process.cwd(), 'public', ...slide.src.split('/').filter(Boolean)))).toBe(true)
-      expect(html).toContain(encodeURIComponent(slide.src))
+      for (const image of [slide.desktop, slide.mobile]) {
+        expect(existsSync(join(process.cwd(), 'public', ...image.src.split('/').filter(Boolean)))).toBe(true)
+        expect(html).toContain(encodeURIComponent(image.src))
+      }
+      expect(slide.desktop.width).toBeGreaterThanOrEqual(700)
+      expect(slide.desktop.width).toBeGreaterThan(slide.desktop.height)
+      expect(slide.mobile.width).toBeLessThan(700)
+      expect(slide.mobile.height).toBeGreaterThan(slide.mobile.width)
       expect(slide.alt.length).toBeGreaterThan(20)
     }
 
@@ -93,8 +99,15 @@ describe('Sparkle Suite portfolio page', () => {
     expect(html).not.toContain('Workspace')
     expect(html).not.toContain('backend')
     expect(html).not.toContain('Nic-Nac')
+    expect(source).toContain('media="(min-width: 700px)"')
+    expect(source).toContain('<picture>')
+    expect(source).toContain('prefers-reduced-motion: reduce')
     expect(source).not.toContain('setInterval')
     expect(source).not.toContain('setTimeout')
+    const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
+    expect(css).toContain('@media (max-width: 699px)')
+    expect(css).toContain('.devicePeek')
+    expect(css).toContain('prefers-reduced-motion: reduce')
     expect(metadata.title).toEqual({ absolute: 'Sparkle Suite Portfolio' })
     expect(metadata.alternates?.canonical).toBe('/portfolio')
   })

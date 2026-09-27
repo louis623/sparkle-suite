@@ -212,6 +212,46 @@
   object-position: top center;
   background: #1a100e;
 }
+@media (max-width: 699px) {
+  .devicePeek {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(280px, 86%);
+    margin-inline: auto;
+    padding: 8px 8px 12px;
+    border-radius: 32px;
+    border-color: #1a1020;
+    background: #1a1020;
+  }
+  .devicePeek .browserBar {
+    align-self: stretch;
+    height: 22px;
+    justify-content: center;
+    gap: 0;
+    padding: 0 8px;
+    background: transparent;
+    border-bottom: 0;
+  }
+  .devicePeek .browserBar > span { display: none; }
+  .devicePeek .browserBar em {
+    margin: 0;
+    padding: 0;
+    color: #f6e8ef;
+    font-size: 11px;
+  }
+  .devicePeek img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 390 / 760;
+    margin: 0;
+    object-fit: cover;
+    object-position: top center;
+    border-radius: 24px;
+    background: #120c0a;
+  }
+}
 .phoneFrame {
   display: flex;
   flex-direction: column;

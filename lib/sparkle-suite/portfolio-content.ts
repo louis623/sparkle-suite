@@ -6,6 +6,12 @@ export const sparkleSuiteScheduleBuild = {
   note: 'This opens the build queue. No payment to get in line.',
 } as const
 
+export type PortfolioCaptureImage = {
+  src: string
+  width: number
+  height: number
+}
+
 export type PortfolioSlide =
   | {
       id: string
@@ -14,10 +20,9 @@ export type PortfolioSlide =
       detail: string
       href?: string
       linkLabel?: string
-      src: string
       alt: string
-      width: number
-      height: number
+      desktop: PortfolioCaptureImage
+      mobile: PortfolioCaptureImage
     }
   | {
       id: string
@@ -55,10 +60,17 @@ export const sparkleSuitePortfolioContent = {
           detail: 'Lindsey’s custom Mile High Fizz site.',
           href: 'https://milehighfizz.com/',
           linkLabel: 'milehighfizz.com',
-          src: '/sparkle-suite/portfolio/mile-high-fizz-hero.webp',
           alt: 'Mile High Fizz custom homepage hero, with Lindsey’s pink and blue show name over the live-reveal video.',
-          width: 1440,
-          height: 820,
+          desktop: {
+            src: '/sparkle-suite/portfolio/mile-high-fizz-hero.webp',
+            width: 1440,
+            height: 820,
+          },
+          mobile: {
+            src: '/sparkle-suite/portfolio/mile-high-fizz-mobile.webp',
+            width: 390,
+            height: 844,
+          },
         },
         {
           id: 'britt-with-bling',
@@ -67,10 +79,17 @@ export const sparkleSuitePortfolioContent = {
           detail: 'Brittany’s custom Britt with Bling site.',
           href: 'https://brittwithbling.com/',
           linkLabel: 'brittwithbling.com',
-          src: '/sparkle-suite/portfolio/britt-with-bling-hero.webp',
           alt: 'Britt with Bling custom homepage hero, with the black, gold, and blush show name over Brittany’s portrait.',
-          width: 1440,
-          height: 820,
+          desktop: {
+            src: '/sparkle-suite/portfolio/britt-with-bling-hero.webp',
+            width: 1440,
+            height: 820,
+          },
+          mobile: {
+            src: '/sparkle-suite/portfolio/britt-with-bling-mobile.webp',
+            width: 390,
+            height: 844,
+          },
         },
         {
           id: 'blingkitchen',
@@ -79,10 +98,17 @@ export const sparkleSuitePortfolioContent = {
           detail: 'Heather’s custom BlingKitchen site.',
           href: 'https://theblingkitchen.com/',
           linkLabel: 'theblingkitchen.com',
-          src: '/sparkle-suite/portfolio/blingkitchen-hero.webp',
           alt: 'BlingKitchen custom homepage hero, with Heather’s kitchen photograph and plum shop actions.',
-          width: 1440,
-          height: 820,
+          desktop: {
+            src: '/sparkle-suite/portfolio/blingkitchen-hero.webp',
+            width: 1440,
+            height: 820,
+          },
+          mobile: {
+            src: '/sparkle-suite/portfolio/blingkitchen-mobile.webp',
+            width: 390,
+            height: 844,
+          },
         },
         {
           id: 'go-for-the-bling',
@@ -91,10 +117,17 @@ export const sparkleSuitePortfolioContent = {
           detail: 'Kim’s custom Gnome Forest site.',
           href: 'https://goforthebling.com/',
           linkLabel: 'goforthebling.com',
-          src: '/sparkle-suite/portfolio/go-for-the-bling-hero.webp',
           alt: 'Go for the Bling custom homepage hero on the Gnome Forest theme, with woodland art and Kim’s show name.',
-          width: 1440,
-          height: 820,
+          desktop: {
+            src: '/sparkle-suite/portfolio/go-for-the-bling-hero.webp',
+            width: 1440,
+            height: 820,
+          },
+          mobile: {
+            src: '/sparkle-suite/portfolio/go-for-the-bling-mobile.webp',
+            width: 390,
+            height: 844,
+          },
         },
         {
           id: 'sparkly-butterflies',
@@ -103,10 +136,17 @@ export const sparkleSuitePortfolioContent = {
           detail: 'Kelly’s custom Neon Butterfly site.',
           href: 'https://sparklybutterflies.com/',
           linkLabel: 'sparklybutterflies.com',
-          src: '/sparkle-suite/portfolio/sparkly-butterflies-hero.webp',
           alt: 'Sparkly Butterflies custom homepage hero on the Neon Butterfly theme, with Kelly’s neon studio and glowing signs.',
-          width: 1440,
-          height: 820,
+          desktop: {
+            src: '/sparkle-suite/portfolio/sparkly-butterflies-hero.webp',
+            width: 1440,
+            height: 820,
+          },
+          mobile: {
+            src: '/sparkle-suite/portfolio/sparkly-butterflies-mobile.webp',
+            width: 390,
+            height: 844,
+          },
         },
       ],
     },
@@ -122,30 +162,51 @@ export const sparkleSuitePortfolioContent = {
           kind: 'capture',
           title: 'Emerald Garden',
           detail: 'Soft green light, ivory lettering, and a calm garden night.',
-          src: '/sparkle-suite/landing/hero-emerald-desktop-v3.webp',
-          alt: 'Emerald Garden desktop theme preview of a Sparkle Suite customer site.',
-          width: 1265,
-          height: 961,
+          alt: 'Emerald Garden homepage, with soft green light, ivory lettering, and a calm garden night.',
+          desktop: {
+            src: '/sparkle-suite/portfolio/emerald-garden-desktop.webp',
+            width: 1440,
+            height: 820,
+          },
+          mobile: {
+            src: '/sparkle-suite/portfolio/emerald-garden-mobile.webp',
+            width: 390,
+            height: 844,
+          },
         },
         {
           id: 'amethyst',
           kind: 'capture',
           title: 'Amethyst',
           detail: 'Vibrant violet for a show that feels unmistakably hers.',
-          src: '/sparkle-suite/landing/site-amethyst-v2.webp',
-          alt: 'Amethyst customer-site theme preview with violet light and jewelry.',
-          width: 1265,
-          height: 961,
+          alt: 'Amethyst homepage, with violet light and a jewelry show name.',
+          desktop: {
+            src: '/sparkle-suite/portfolio/amethyst-desktop.webp',
+            width: 1440,
+            height: 820,
+          },
+          mobile: {
+            src: '/sparkle-suite/portfolio/amethyst-mobile.webp',
+            width: 390,
+            height: 844,
+          },
         },
         {
           id: 'rose-gold',
           kind: 'capture',
           title: 'Rose Gold',
-          detail: 'Rose, pearl, and champagne, shown on a phone.',
-          src: '/sparkle-suite/landing/hero-rose-mobile-v3.webp',
-          alt: 'Rose Gold mobile theme preview of a Sparkle Suite customer site.',
-          width: 390,
-          height: 1020,
+          detail: 'Rose, pearl, and champagne for a warm, glowing show.',
+          alt: 'Rose Gold homepage, with rose, pearl, and champagne light.',
+          desktop: {
+            src: '/sparkle-suite/portfolio/rose-gold-desktop.webp',
+            width: 1440,
+            height: 820,
+          },
+          mobile: {
+            src: '/sparkle-suite/portfolio/rose-gold-mobile.webp',
+            width: 390,
+            height: 844,
+          },
         },
       ],
     },
@@ -161,10 +222,17 @@ export const sparkleSuitePortfolioContent = {
           kind: 'capture',
           title: 'Halloween Pumpkin and Witch',
           detail: 'A sparkling black-and-orange night with a jack-o’-lantern, silver moon, and a flying witch.',
-          src: '/sparkle-suite/landing/hero-halloween-desktop-v1.webp',
-          alt: 'Halloween Pumpkin and Witch community theme preview, with a dark night hero and shop actions.',
-          width: 1440,
-          height: 825,
+          alt: 'Halloween Pumpkin and Witch homepage, with a dark night hero, jack-o’-lantern, and shop actions.',
+          desktop: {
+            src: '/sparkle-suite/portfolio/halloween-pumpkin-witch-desktop.webp',
+            width: 1440,
+            height: 820,
+          },
+          mobile: {
+            src: '/sparkle-suite/portfolio/halloween-pumpkin-witch-mobile.webp',
+            width: 390,
+            height: 844,
+          },
         },
         {
           id: 'holiday-placeholder-winter',
