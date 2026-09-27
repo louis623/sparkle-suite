@@ -58,9 +58,30 @@ describe('Sparkle Suite portfolio page', () => {
       expect(slide.alt.length).toBeGreaterThan(20)
     }
 
+    const repSlides = sparkleSuitePortfolioContent.carousels.find((carousel) => carousel.id === 'rep-highlights')?.slides
+    expect(repSlides?.map((slide) => slide.title)).toEqual([
+      'Mile High Fizz',
+      'Britt with Bling',
+      'BlingKitchen',
+      'Go for the Bling',
+      'Sparkly Butterflies',
+    ])
+    expect(repSlides?.map((slide) => slide.kind === 'capture' ? slide.href : '')).toEqual([
+      'https://milehighfizz.com/',
+      'https://brittwithbling.com/',
+      'https://theblingkitchen.com/',
+      'https://goforthebling.com/',
+      'https://sparklybutterflies.com/',
+    ])
+    for (const slide of repSlides ?? []) {
+      expect(`${slide.title} ${slide.detail}`).not.toMatch(/halloween|pumpkin|witch/i)
+      if (slide.kind === 'capture') expect(slide.alt).not.toMatch(/halloween|pumpkin|witch/i)
+    }
     expect(html).toContain('href="https://milehighfizz.com/"')
     expect(html).toContain('href="https://brittwithbling.com/"')
     expect(html).toContain('href="https://theblingkitchen.com/"')
+    expect(html).toContain('href="https://goforthebling.com/"')
+    expect(html).toContain('href="https://sparklybutterflies.com/"')
     expect(html).toContain('Real capture still to come')
     expect(html.match(/Placeholder/g)?.length).toBeGreaterThanOrEqual(2)
   })
