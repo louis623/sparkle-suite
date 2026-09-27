@@ -8,11 +8,24 @@ import { SparkleSuitePublicNicNac } from './sparkle-suite-public-nic-nac'
 import { FounderAvailabilityProvider, FounderOffer, FounderSpotLabel, FounderStrip, IncludedFeatures, ShowToolsTour, SiteStyleShowcase } from './landing-interactions'
 import styles from './landing-experience.module.css'
 
-export function MarketingHeader({ intake = false }: { intake?: boolean }) {
+export function MarketingHeader({ intake = false, current = 'home' }: { intake?: boolean; current?: 'home' | 'portfolio' }) {
+  const onPortfolio = current === 'portfolio'
+  const homeHref = intake || onPortfolio ? '/' : '#top'
   return <header className={styles.header}>
-    <a className={styles.brand} href={intake ? '/' : '#top'} aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></a>
+    <a className={styles.brand} href={homeHref} aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></a>
     <nav className={styles.navigation} aria-label="Explore Sparkle Suite">
-      <a href={`${intake ? '/' : ''}#customer-site-proof`}>Your site</a><a href={`${intake ? '/' : ''}#workspace-proof`}>Show tools</a><a href={`${intake ? '/' : ''}#pricing`}>Founding offer</a>
+      {onPortfolio ? <Link className={styles.pageLink} href="/">Home</Link> : null}
+      {onPortfolio ? <>
+        <a className={styles.sectionLink} href="#rep-highlights">Rep highlights</a>
+        <a className={styles.sectionLink} href="#community-themes">Community themes</a>
+        <a className={styles.sectionLink} href="#holiday-themes">Holiday themes</a>
+      </> : <>
+        <a className={styles.sectionLink} href={`${intake ? '/' : ''}#customer-site-proof`}>Your site</a>
+        <a className={styles.sectionLink} href={`${intake ? '/' : ''}#workspace-proof`}>Show tools</a>
+        <a className={styles.sectionLink} href={`${intake ? '/' : ''}#pricing`}>Founding offer</a>
+      </>}
+      <Link className={styles.pageLink} href="/portfolio" aria-current={onPortfolio ? 'page' : undefined}>Portfolio</Link>
+      <span className={styles.soonLink}>Demo soon</span>
     </nav>
     <nav className={styles.account} aria-label="Account links"><SparkleSuitePublicAccountAction /></nav>
   </header>
@@ -51,7 +64,7 @@ export function LandingExperience() {
       <figure className={styles.heroFigure}>
         <div className={styles.heroScene}>
           <div className={styles.heroStage}>
-            <div className={styles.heroWindow}><div className={styles.browserBar} aria-hidden="true"><span /><span /><span /><em>Desktop · Emerald Garden</em></div><Image src="/sparkle-suite/landing/hero-emerald-desktop-v3.webp" alt="Emerald Garden desktop theme preview of the Sparkle Suite demo customer site, with soft green gradients and ivory lettering" width={1265} height={961} sizes="(max-width: 600px) 90vw, (max-width: 1050px) 560px, 44vw" preload /></div>
+            <div className={styles.heroWindow}><div className={styles.browserBar} aria-hidden="true"><span /><span /><span /><em>Desktop · Halloween</em></div><Image src="/sparkle-suite/landing/hero-halloween-desktop-v1.webp" alt="Halloween Pumpkin and Witch desktop theme preview of a Sparkle Suite customer site, with a dark night hero and shop actions" width={1440} height={825} sizes="(max-width: 600px) 90vw, (max-width: 1050px) 560px, 44vw" preload /></div>
             <div className={styles.heroPhone}>
               <div className={styles.phoneLabel}>Mobile · Rose Gold</div>
               <div className={styles.phoneScreen}><Image src="/sparkle-suite/landing/hero-rose-mobile-v3.webp" alt="Rose Gold mobile theme preview of the same demo customer site, showing phone navigation, the complete hero and shop buttons" width={390} height={1020} sizes="(max-width: 600px) 210px, (max-width: 1050px) 185px, 16vw" /></div>
