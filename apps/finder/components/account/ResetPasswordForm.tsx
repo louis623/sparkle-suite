@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { KeyRound, Loader2 } from "lucide-react";
+import { PASSWORD_MIN_LENGTH, PASSWORD_REQUIREMENTS } from "@/lib/sparkle-finder/password-policy";
 import { safeSparkleFinderNextPath } from "@/lib/sparkle-finder/safe-redirect";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,9 +14,15 @@ const buttonClassName =
 
 type ResetPasswordFormProps = {
   nextPath?: string | null;
+  passwordMinLength?: number;
+  passwordRequirements?: string;
 };
 
-export function ResetPasswordForm({ nextPath = "/" }: ResetPasswordFormProps) {
+export function ResetPasswordForm({
+  nextPath = "/",
+  passwordMinLength = PASSWORD_MIN_LENGTH,
+  passwordRequirements = PASSWORD_REQUIREMENTS,
+}: ResetPasswordFormProps) {
   const safeNextPath = safeSparkleFinderNextPath(nextPath);
   const forgotPasswordHref =
     safeNextPath === "/" ? "/auth/forgot-password" : `/auth/forgot-password?next=${encodeURIComponent(safeNextPath)}`;
@@ -31,6 +38,11 @@ export function ResetPasswordForm({ nextPath = "/" }: ResetPasswordFormProps) {
 
     if (password !== passwordConfirmation) {
       setStatusMessage("Those passwords did not match. Please enter the same password twice.");
+      return;
+    }
+
+    if (password.length < passwordMinLength) {
+      setStatusMessage(passwordRequirements);
       return;
     }
 
@@ -71,15 +83,19 @@ export function ResetPasswordForm({ nextPath = "/" }: ResetPasswordFormProps) {
           <p className="mt-2 text-sm leading-6 text-[var(--sparkle-ink-muted)]">
             Enter your new password twice so Sparkle Finder can make sure there is no typo.
           </p>
+          <p className="mt-2 text-sm leading-6 text-[var(--sparkle-ink-muted)]" id="password-requirements">
+            {passwordRequirements}
+          </p>
         </div>
       </div>
 
       <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
         New password
         <input
+          aria-describedby="password-requirements"
           autoComplete="new-password"
           className={inputClassName}
-          minLength={8}
+          minLength={passwordMinLength}
           name="password"
           onChange={(event) => setPassword(event.target.value)}
           required
@@ -91,9 +107,10 @@ export function ResetPasswordForm({ nextPath = "/" }: ResetPasswordFormProps) {
       <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
         Confirm password
         <input
+          aria-describedby="password-requirements"
           autoComplete="new-password"
           className={inputClassName}
-          minLength={8}
+          minLength={passwordMinLength}
           name="passwordConfirmation"
           onChange={(event) => setPasswordConfirmation(event.target.value)}
           required

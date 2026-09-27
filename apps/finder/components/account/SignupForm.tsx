@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Gem, KeyRound, Loader2, Mail, ShieldCheck } from "lucide-react";
 import { requestMagicLink, signUpWithPassword } from "@/app/auth/sign-up/actions";
 import { getSparkleFinderOAuthRedirectTo } from "@/lib/sparkle-finder/oauth-redirect";
+import { PASSWORD_MIN_LENGTH, PASSWORD_REQUIREMENTS } from "@/lib/sparkle-finder/password-policy";
 import { safeSparkleFinderNextPath } from "@/lib/sparkle-finder/safe-redirect";
 import { createClient } from "@/lib/supabase/client";
 import { usStates } from "@/lib/us-states";
@@ -17,9 +18,16 @@ const buttonClassName =
 type SignupFormProps = {
   nextPath?: string | null;
   notice?: string | null;
+  passwordMinLength?: number;
+  passwordRequirements?: string;
 };
 
-export function SignupForm({ nextPath = "/", notice = null }: SignupFormProps) {
+export function SignupForm({
+  nextPath = "/",
+  notice = null,
+  passwordMinLength = PASSWORD_MIN_LENGTH,
+  passwordRequirements = PASSWORD_REQUIREMENTS,
+}: SignupFormProps) {
   const [authMethod, setAuthMethod] = useState<"password" | "magic-link">("password");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
@@ -180,25 +188,30 @@ export function SignupForm({ nextPath = "/", notice = null }: SignupFormProps) {
       <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
         Password
         <input
+          aria-describedby="signup-password-requirements"
           autoComplete="new-password"
           className={inputClassName}
           disabled={authMethod === "magic-link"}
-          minLength={8}
+          minLength={passwordMinLength}
           name="password"
           onChange={(event) => setPassword(event.target.value)}
           required={authMethod === "password"}
           type="password"
           value={password}
         />
+        <span className="text-xs font-semibold leading-5 text-[var(--sparkle-ink-muted)]" id="signup-password-requirements">
+          {passwordRequirements}
+        </span>
       </label>
 
       <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
         Confirm password
         <input
+          aria-describedby="signup-password-requirements"
           autoComplete="new-password"
           className={inputClassName}
           disabled={authMethod === "magic-link"}
-          minLength={8}
+          minLength={passwordMinLength}
           name="passwordConfirmation"
           onChange={(event) => setPasswordConfirmation(event.target.value)}
           required={authMethod === "password"}
