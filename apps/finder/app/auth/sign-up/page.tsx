@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { SignupForm } from "@/components/account/SignupForm";
 import { SparkleFinderNav } from "@/components/layout/SparkleFinderNav";
 import { getLocalDevAuthState } from "@/lib/sparkle-finder/auth";
+import { getPasswordPolicy, getPasswordRequirements } from "@/lib/sparkle-finder/password-policy";
 import { safeSparkleFinderNextPath } from "@/lib/sparkle-finder/safe-redirect";
 
 type SignUpPageProps = {
@@ -18,6 +19,7 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps = {})
 export function renderSignUpPageContent(searchParams: SignUpSearchParams = {}) {
   const nextPath = safeSparkleFinderNextPath(getSearchParam(searchParams.next) ?? "/account");
   const notice = getSignUpNotice(getSearchParam(searchParams.error));
+  const passwordPolicy = getPasswordPolicy();
   const signInHref = nextPath === "/" ? "/auth/sign-in" : `/auth/sign-in?next=${encodeURIComponent(nextPath)}`;
 
   return (
@@ -58,7 +60,12 @@ export function renderSignUpPageContent(searchParams: SignUpSearchParams = {}) {
             </div>
           </div>
 
-          <SignupForm nextPath={nextPath} notice={notice} />
+          <SignupForm
+            nextPath={nextPath}
+            notice={notice}
+            passwordMinLength={passwordPolicy.minLength}
+            passwordRequirements={passwordPolicy.requirements}
+          />
         </section>
       </main>
     </>
@@ -80,6 +87,10 @@ function getSignUpNotice(error: string | undefined): string | null {
 
   if (error === "password_mismatch") {
     return "Those passwords did not match. Please enter the same password twice before creating your account.";
+  }
+
+  if (error === "weak_password") {
+    return getPasswordRequirements();
   }
 
   if (error === "magic_link_failed") {

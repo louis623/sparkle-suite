@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { ResetPasswordForm } from "@/components/account/ResetPasswordForm";
 import { SparkleFinderNav } from "@/components/layout/SparkleFinderNav";
 import { getLocalDevAuthState } from "@/lib/sparkle-finder/auth";
+import { getPasswordPolicy } from "@/lib/sparkle-finder/password-policy";
 import { safeSparkleFinderNextPath } from "@/lib/sparkle-finder/safe-redirect";
 
 type ResetPasswordPageProps = {
@@ -18,6 +19,7 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
 export function renderResetPasswordPageContent(searchParams: ResetPasswordSearchParams = {}) {
   const nextPath = safeSparkleFinderNextPath(getSearchParam(searchParams.next) ?? "/");
   const signInHref = nextPath === "/" ? "/auth/sign-in" : `/auth/sign-in?next=${encodeURIComponent(nextPath)}`;
+  const passwordPolicy = getPasswordPolicy();
 
   return (
     <>
@@ -32,7 +34,11 @@ export function renderResetPasswordPageContent(searchParams: ResetPasswordSearch
             Back to sign in
           </Link>
 
-          <ResetPasswordForm nextPath={nextPath} />
+          <ResetPasswordForm
+            nextPath={nextPath}
+            passwordMinLength={passwordPolicy.minLength}
+            passwordRequirements={passwordPolicy.requirements}
+          />
         </section>
       </main>
     </>

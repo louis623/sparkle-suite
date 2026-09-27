@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getSparkleFinderSiteOrigin } from "@/lib/sparkle-finder/oauth-redirect";
+import { getNewPasswordValidationError } from "@/lib/sparkle-finder/password-policy";
 import { safeSparkleFinderNextPath } from "@/lib/sparkle-finder/safe-redirect";
 import { createClient } from "@/lib/supabase/server";
 import { normalizeUsStateValue } from "@/lib/us-states";
@@ -28,6 +29,12 @@ export async function signUpWithPassword(formData: FormData) {
 
   if (details.password !== details.passwordConfirmation) {
     redirect(getSignUpRedirect("password_mismatch", details.nextPath));
+  }
+
+  const passwordError = getNewPasswordValidationError(details.password, details.passwordConfirmation);
+
+  if (passwordError) {
+    redirect(getSignUpRedirect("weak_password", details.nextPath));
   }
 
   let signupFailed = false;
