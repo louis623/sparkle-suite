@@ -1,3 +1,5 @@
+import { isSparkleFinderSmokeEnvironment } from "./smoke-environment";
+
 const LIVE_PASSWORD_MIN_LENGTH = 8;
 const SMOKE_PASSWORD_MIN_LENGTH = 6;
 
@@ -19,7 +21,7 @@ export type PasswordPolicy = {
 };
 
 export function isSmokePasswordEnvironment(env: PasswordPolicyEnv = process.env) {
-  return env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT === "smoke" || env.SPARKLE_ENVIRONMENT === "smoke";
+  return isSparkleFinderSmokeEnvironment(env);
 }
 
 export function getPasswordPolicy(env: PasswordPolicyEnv = process.env): PasswordPolicy {

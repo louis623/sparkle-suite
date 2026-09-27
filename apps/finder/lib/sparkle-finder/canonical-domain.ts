@@ -1,10 +1,18 @@
+import {
+  isSparkleFinderSmokeEnvironment,
+  type SparkleFinderEnvironment,
+} from "./smoke-environment";
+
 const sparkleFinderCanonicalHost = "yoursparklefinder.com";
 
 export function getSparkleFinderCanonicalRedirect(
   requestUrl: URL,
   vercelEnvironment: string | undefined = process.env.VERCEL_ENV,
+  env: SparkleFinderEnvironment = process.env,
 ): URL | null {
-  if (vercelEnvironment !== "production") {
+  // Smoke deploys use `vercel --prod`, so VERCEL_ENV is production there too.
+  // Smoke markers skip this rewrite and stay on the Smoke host.
+  if (vercelEnvironment !== "production" || isSparkleFinderSmokeEnvironment(env)) {
     return null;
   }
 
