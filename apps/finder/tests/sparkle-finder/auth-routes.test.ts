@@ -701,6 +701,95 @@ describe("Sparkle Finder signup server actions", () => {
   });
 });
 
+describe("Sparkle Finder sign-in magic link", () => {
+  afterEach(() => {
+    vi.resetModules();
+    vi.doUnmock("next/navigation");
+    vi.doUnmock("../../lib/supabase/server");
+  });
+
+  it("emails a sign-in link without a password", async () => {
+    const signInWithOtp = vi.fn().mockResolvedValue({ error: null });
+    const redirect = vi.fn((path: string) => {
+      throw new Error(`redirect:${path}`);
+    });
+
+    vi.doMock("next/navigation", () => ({ redirect }));
+    vi.doMock("../../lib/supabase/server", () => ({
+      createClient: async () => ({
+        auth: {
+          signInWithOtp,
+        },
+      }),
+    }));
+
+    const formData = new FormData();
+    formData.set("email", "mama@example.com");
+    formData.set("next", "/library");
+
+    const { requestSignInMagicLink } = await import("../../app/auth/sign-in/actions");
+
+    await expect(requestSignInMagicLink(formData)).rejects.toThrow(
+      "redirect:/auth/sign-in?message=check_email&next=%2Flibrary",
+    );
+    expect(signInWithOtp).toHaveBeenCalledWith({
+      email: "mama@example.com",
+      options: {
+        emailRedirectTo: "http://localhost:3000/auth/confirm?next=%2Flibrary",
+        shouldCreateUser: false,
+      },
+    });
+  });
+
+  it("asks for an email before sending a sign-in link", async () => {
+    const signInWithOtp = vi.fn().mockResolvedValue({ error: null });
+    const redirect = vi.fn((path: string) => {
+      throw new Error(`redirect:${path}`);
+    });
+
+    vi.doMock("next/navigation", () => ({ redirect }));
+    vi.doMock("../../lib/supabase/server", () => ({
+      createClient: async () => ({
+        auth: {
+          signInWithOtp,
+        },
+      }),
+    }));
+
+    const { requestSignInMagicLink } = await import("../../app/auth/sign-in/actions");
+
+    await expect(requestSignInMagicLink(new FormData())).rejects.toThrow(
+      "redirect:/auth/sign-in?error=missing_email",
+    );
+    expect(signInWithOtp).not.toHaveBeenCalled();
+  });
+
+  it("returns to sign-in when the magic link email cannot be sent", async () => {
+    const signInWithOtp = vi.fn().mockResolvedValue({ error: new Error("rate limit") });
+    const redirect = vi.fn((path: string) => {
+      throw new Error(`redirect:${path}`);
+    });
+
+    vi.doMock("next/navigation", () => ({ redirect }));
+    vi.doMock("../../lib/supabase/server", () => ({
+      createClient: async () => ({
+        auth: {
+          signInWithOtp,
+        },
+      }),
+    }));
+
+    const formData = new FormData();
+    formData.set("email", "mama@example.com");
+
+    const { requestSignInMagicLink } = await import("../../app/auth/sign-in/actions");
+
+    await expect(requestSignInMagicLink(formData)).rejects.toThrow(
+      "redirect:/auth/sign-in?error=magic_link_failed",
+    );
+  });
+});
+
 describe("Sparkle Finder password recovery server actions", () => {
   afterEach(() => {
     vi.resetModules();

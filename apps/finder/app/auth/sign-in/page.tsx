@@ -117,5 +117,13 @@ function getSignInNotice(message: string | undefined, error: string | undefined)
     return "Google sign-in could not be completed. Please try again.";
   }
 
+  if (error === "missing_email") {
+    return "Enter your email and we will send a sign-in link. No password needed.";
+  }
+
+  if (error === "magic_link_failed") {
+    return "Sparkle Finder could not email a sign-in link. Check the address and try again.";
+  }
+
   return null;
 }

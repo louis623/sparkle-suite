@@ -276,7 +276,7 @@ Dev: TypeScript 5, Tailwind CSS 4, ESLint 9, tsx, dotenv
 
 ## Auth Architecture (Phase 0.3)
 
-- **Provider:** Supabase Auth — email/password only (no social, no magic link yet)
+- **Provider:** Supabase Auth — email/password, Google, and an email magic link on `/login` (the link returns through `/api/auth/callback`)
 - **Self-registration:** Disabled. Louis creates rep accounts via admin API during onboarding.
 - **Auth users:**
   - `louis@neonrabbit.net` — admin (full cross-rep visibility via RLS)
