@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import { getImageProps } from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -26,21 +26,39 @@ function SlideFrame({ slide }: { slide: PortfolioSlide }) {
     )
   }
 
+  const imageOptions = {
+    alt: slide.alt,
+    sizes: '(max-width: 699px) 78vw, 760px',
+  }
+  const {
+    props: { srcSet: desktopSrcSet },
+  } = getImageProps({
+    ...imageOptions,
+    src: slide.desktop.src,
+    width: slide.desktop.width,
+    height: slide.desktop.height,
+  })
+  const {
+    props: { srcSet: mobileSrcSet, ...mobileImage },
+  } = getImageProps({
+    ...imageOptions,
+    src: slide.mobile.src,
+    width: slide.mobile.width,
+    height: slide.mobile.height,
+  })
+
   return (
-    <div className={slide.width < 700 ? styles.phoneFrame : styles.frame}>
+    <div className={`${styles.frame} ${styles.devicePeek}`}>
       <div className={styles.browserBar} aria-hidden="true">
         <span />
         <span />
         <span />
         <em>{slide.title}</em>
       </div>
-      <Image
-        src={slide.src}
-        alt={slide.alt}
-        width={slide.width}
-        height={slide.height}
-        sizes="(max-width: 700px) 84vw, 760px"
-      />
+      <picture>
+        <source media="(min-width: 700px)" srcSet={desktopSrcSet} />
+        <img {...mobileImage} srcSet={mobileSrcSet} />
+      </picture>
     </div>
   )
 }
