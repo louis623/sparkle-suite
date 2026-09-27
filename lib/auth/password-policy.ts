@@ -1,5 +1,5 @@
 const LIVE_PASSWORD_MIN_LENGTH = 12
-const SMOKE_PASSWORD_MIN_LENGTH = 4
+const SMOKE_PASSWORD_MIN_LENGTH = 6
 
 const LIVE_PASSWORD_REQUIREMENTS =
   'Use at least 12 characters, including uppercase, lowercase, a number, and a symbol.'

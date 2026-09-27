@@ -63,12 +63,12 @@ describe('Sparkle Suite password policy', () => {
       NEXT_PUBLIC_SPARKLE_ENVIRONMENT: 'smoke',
     },
   ])('relaxes length and character classes on Smoke only', (env) => {
-    expect(getPasswordMinLength(env)).toBeLessThanOrEqual(4)
+    expect(getPasswordMinLength(env)).toBe(6)
     expect(getPasswordRequirements(env)).toBe(
       'Smoke only — any password you can remember.',
     )
-    expect(getNewPasswordValidationError('pass', 'pass', env)).toBeNull()
-    expect(getNewPasswordValidationError('ab', 'ab', env)).toBe(
+    expect(getNewPasswordValidationError('simple', 'simple', env)).toBeNull()
+    expect(getNewPasswordValidationError('pass', 'pass', env)).toBe(
       'Smoke only — any password you can remember.',
     )
     expect(getNewPasswordValidationError('pass', 'word', env)).toBe(
