@@ -136,7 +136,7 @@ function PortfolioCarousel({
               <SlideFrame slide={item} />
               <div className={styles.cardMeta}>
                 <h3>{item.title}</h3>
-                {item.kind === 'capture' && item.href && item.linkLabel ? (
+                {item.kind === 'capture' && 'href' in item && item.href && 'linkLabel' in item && item.linkLabel ? (
                   <a href={item.href} rel="noopener noreferrer">{item.linkLabel}</a>
                 ) : (
                   <p>{item.detail}</p>
