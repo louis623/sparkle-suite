@@ -21,12 +21,21 @@ import * as readiness from '@/app/api/workspace/live-lineup/readiness/route'
 
 const origin = 'https://www.yoursparklesuite.com'
 const sourceOrigin = 'https://myoffice.bombparty.com'
+const smokePublishOrigin = 'https://sparkle-suite-smoke.vercel.app'
+const smokeSupabaseUrl = 'https://pukemqiwlyqmyytxkdmo.supabase.co'
+const sideloadExtensionOrigin = 'chrome-extension://bpipafleeajdagfimfnfgmhcdendgkfl'
 const token = `sslp_${'a'.repeat(43)}`
 const db = { synthetic: true }
 const request = (path: string, body: unknown, headers: Record<string, string> = {}, method = 'POST') =>
   new Request(`${origin}${path}`, { method, headers: { origin, 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) })
 const sourceRequest = (body: unknown, headers: Record<string, string> = {}) => request('/api/live-lineup/publish', body,
   { origin: sourceOrigin, authorization: `Bearer ${token}`, ...headers })
+const publishOn = (host: string, headerOrigin: string, body: unknown = { action: 'describe' }) =>
+  new Request(`${host}/api/live-lineup/publish`, {
+    method: 'POST',
+    headers: { origin: headerOrigin, 'content-type': 'application/json', authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  })
 
 beforeEach(() => {
   vi.resetAllMocks()
@@ -194,35 +203,116 @@ describe('Live Lineup publisher HTTP boundary', () => {
   it('rejects foreign origins even with a formatted token and never emits wildcard CORS', async () => {
     const response = await publish.POST(sourceRequest({ action: 'claim' }, { origin: 'https://evil.example' }))
     expect(response.status).toBe(403)
+    expect(await response.json()).toEqual({ error: 'invalid_origin' })
     expect(response.headers.get('access-control-allow-origin')).toBeNull()
     expect(mocks.admin).not.toHaveBeenCalled()
     const preflight = await publish.OPTIONS(new Request(`${origin}/api/live-lineup/publish`, { method: 'OPTIONS', headers: { origin: 'https://evil.example' } }))
     expect(preflight.headers.get('access-control-allow-origin')).toBeNull()
   })
-  it('accepts only the Sparkle Suite Web Store extension origin', async () => {
-    const suiteExtensionOrigin = 'chrome-extension://kmodgfffflplfdlkkhadgimmobplhoih'
-    mocks.describe.mockResolvedValue({ protocol: 2, generation: 0, scope: null })
-    const accepted = await publish.POST(sourceRequest(
-      { action: 'describe' },
-      { origin: suiteExtensionOrigin },
-    ))
-    expect(accepted.status).toBe(200)
-    expect(accepted.headers.get('access-control-allow-origin')).toBe(suiteExtensionOrigin)
+  it('accepts only the Sparkle Suite Web Store extension origin on live', async () => {
+    vi.stubEnv('SPARKLE_ENVIRONMENT', 'production')
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', smokeSupabaseUrl)
+    vi.stubEnv('LIVE_LINEUP_EXTRA_ORIGINS', '')
+    try {
+      const suiteExtensionOrigin = 'chrome-extension://kmodgfffflplfdlkkhadgimmobplhoih'
+      mocks.describe.mockResolvedValue({ protocol: 2, generation: 0, scope: null })
+      const accepted = await publish.POST(sourceRequest(
+        { action: 'describe' },
+        { origin: suiteExtensionOrigin },
+      ))
+      expect(accepted.status).toBe(200)
+      expect(accepted.headers.get('access-control-allow-origin')).toBe(suiteExtensionOrigin)
 
-    const preflight = await publish.OPTIONS(new Request(`${origin}/api/live-lineup/publish`, {
-      method: 'OPTIONS',
-      headers: { origin: suiteExtensionOrigin },
-    }))
-    expect(preflight.status).toBe(204)
-    expect(preflight.headers.get('access-control-allow-origin')).toBe(suiteExtensionOrigin)
+      const preflight = await publish.OPTIONS(new Request(`${origin}/api/live-lineup/publish`, {
+        method: 'OPTIONS',
+        headers: { origin: suiteExtensionOrigin },
+      }))
+      expect(preflight.status).toBe(204)
+      expect(preflight.headers.get('access-control-allow-origin')).toBe(suiteExtensionOrigin)
 
-    const unrelatedExtensionOrigin = 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-    const rejected = await publish.POST(sourceRequest(
-      { action: 'describe' },
-      { origin: unrelatedExtensionOrigin },
-    ))
-    expect(rejected.status).toBe(403)
-    expect(rejected.headers.get('access-control-allow-origin')).toBeNull()
+      mocks.admin.mockClear()
+      mocks.describe.mockClear()
+      const unrelatedExtensionOrigin = 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+      const rejected = await publish.POST(publishOn(origin, unrelatedExtensionOrigin))
+      expect(rejected.status).toBe(403)
+      expect(await rejected.json()).toEqual({ error: 'invalid_origin' })
+      expect(rejected.headers.get('access-control-allow-origin')).toBeNull()
+      expect(mocks.admin).not.toHaveBeenCalled()
+      expect(mocks.describe).not.toHaveBeenCalled()
+      const sideloadOnLive = await publish.POST(publishOn(origin, sideloadExtensionOrigin))
+      expect(sideloadOnLive.status).toBe(403)
+      expect(await sideloadOnLive.json()).toEqual({ error: 'invalid_origin' })
+      expect(sideloadOnLive.headers.get('access-control-allow-origin')).toBeNull()
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+  it('allows any chrome-extension origin only when every Smoke publish gate matches', async () => {
+    vi.stubEnv('SPARKLE_ENVIRONMENT', 'smoke')
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', smokeSupabaseUrl)
+    vi.stubEnv('LIVE_LINEUP_EXTRA_ORIGINS', '')
+    try {
+      mocks.describe.mockResolvedValue({ protocol: 2, generation: 0, scope: null })
+      for (const extensionOrigin of [sideloadExtensionOrigin, 'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa']) {
+        const accepted = await publish.POST(publishOn(smokePublishOrigin, extensionOrigin))
+        expect(accepted.status).toBe(200)
+        expect(accepted.headers.get('access-control-allow-origin')).toBe(extensionOrigin)
+        const preflight = await publish.OPTIONS(new Request(`${smokePublishOrigin}/api/live-lineup/publish`, {
+          method: 'OPTIONS',
+          headers: { origin: extensionOrigin },
+        }))
+        expect(preflight.status).toBe(204)
+        expect(preflight.headers.get('access-control-allow-origin')).toBe(extensionOrigin)
+      }
+      const foreign = await publish.POST(publishOn(smokePublishOrigin, 'https://evil.example'))
+      expect(foreign.status).toBe(403)
+      expect(await foreign.json()).toEqual({ error: 'invalid_origin' })
+      expect(foreign.headers.get('access-control-allow-origin')).toBeNull()
+      expect(mocks.describe).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+  it.each([
+    { label: 'environment is not smoke', environment: 'production', supabaseUrl: smokeSupabaseUrl, host: smokePublishOrigin },
+    { label: 'supabase project is not smoke', environment: 'smoke', supabaseUrl: 'https://bqhzfkgkjyuhlsozpylf.supabase.co', host: smokePublishOrigin },
+    { label: 'request host is live', environment: 'smoke', supabaseUrl: smokeSupabaseUrl, host: origin },
+  ])('rejects a non-CWS extension origin when $label', async ({ environment, supabaseUrl, host }) => {
+    vi.stubEnv('SPARKLE_ENVIRONMENT', environment)
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', supabaseUrl)
+    vi.stubEnv('LIVE_LINEUP_EXTRA_ORIGINS', '')
+    try {
+      const rejected = await publish.POST(publishOn(host, sideloadExtensionOrigin))
+      expect(rejected.status).toBe(403)
+      expect(await rejected.json()).toEqual({ error: 'invalid_origin' })
+      expect(rejected.headers.get('access-control-allow-origin')).toBeNull()
+      const preflight = await publish.OPTIONS(new Request(`${host}/api/live-lineup/publish`, {
+        method: 'OPTIONS',
+        headers: { origin: sideloadExtensionOrigin },
+      }))
+      expect(preflight.headers.get('access-control-allow-origin')).toBeNull()
+      expect(mocks.admin).not.toHaveBeenCalled()
+      expect(mocks.describe).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+  it('allows origins listed in LIVE_LINEUP_EXTRA_ORIGINS and still rejects unlisted ones', async () => {
+    vi.stubEnv('SPARKLE_ENVIRONMENT', 'production')
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', '')
+    vi.stubEnv('LIVE_LINEUP_EXTRA_ORIGINS', ' https://preview.example , chrome-extension://bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb ')
+    try {
+      mocks.describe.mockResolvedValue({ protocol: 2, generation: 0, scope: null })
+      const allowed = await publish.POST(publishOn(origin, 'chrome-extension://bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'))
+      expect(allowed.status).toBe(200)
+      expect(allowed.headers.get('access-control-allow-origin')).toBe('chrome-extension://bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+      const rejected = await publish.POST(publishOn(origin, 'chrome-extension://cccccccccccccccccccccccccccccccc'))
+      expect(rejected.status).toBe(403)
+      expect(await rejected.json()).toEqual({ error: 'invalid_origin' })
+      expect(rejected.headers.get('access-control-allow-origin')).toBeNull()
+    } finally {
+      vi.unstubAllEnvs()
+    }
   })
   it('returns useful CORS-protected unauthorized responses for revoked tokens', async () => {
     mocks.claim.mockRejectedValueOnce(new LineupServiceError('unauthorized', 401))
