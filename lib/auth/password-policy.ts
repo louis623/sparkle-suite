@@ -7,7 +7,7 @@ const LIVE_PASSWORD_REQUIREMENTS =
 const SMOKE_PASSWORD_REQUIREMENTS =
   'Smoke only — any password you can remember.'
 
-type PasswordPolicyEnv = {
+interface PasswordPolicyEnv extends NodeJS.ProcessEnv {
   SPARKLE_ENVIRONMENT?: string
   NEXT_PUBLIC_SPARKLE_ENVIRONMENT?: string
 }
