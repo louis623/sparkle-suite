@@ -65,11 +65,7 @@ export function LandingExperience() {
       <figure className={styles.heroFigure}>
         <div className={styles.heroScene}>
           <div className={styles.heroStage}>
-            <div className={styles.heroWindow}><div className={styles.browserBar} aria-hidden="true"><em>Desktop · Halloween</em></div><Image src="/sparkle-suite/landing/hero-halloween-desktop-v1.webp" alt="Halloween Pumpkin and Witch desktop theme preview of a Sparkle Suite customer site, with a dark night hero and shop actions" width={1440} height={825} sizes="(max-width: 600px) 92vw, (max-width: 1050px) 760px, 58vw" preload /></div>
-            <div className={styles.heroPhone}>
-              <div className={styles.phoneLabel}>Mobile · Rose Gold</div>
-              <div className={styles.phoneScreen}><Image src="/sparkle-suite/landing/hero-rose-mobile-v3.webp" alt="Rose Gold mobile theme preview of the same demo customer site, showing phone navigation, the complete hero and shop buttons" width={390} height={1020} sizes="(max-width: 600px) 250px, (max-width: 1050px) 240px, 18vw" /></div>
-            </div>
+            <div className={styles.heroWindow}><div className={styles.browserBar} aria-hidden="true"><em>Desktop · Halloween</em></div><Image src="/sparkle-suite/landing/hero-halloween-desktop-v2.webp" alt="Halloween Pumpkin and Witch desktop theme preview of a Sparkle Suite customer site, with a dark night hero and shop actions" width={2048} height={1084} sizes="(max-width: 1180px) 96vw, 1400px" unoptimized preload /></div>
           </div>
         </div>
         <figcaption>Your look. Beautiful on phones, tablets, and desktop.</figcaption>

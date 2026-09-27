@@ -22,14 +22,10 @@
 
 /* Keep the founder offer visible without a moving ticker or artificial timer. */
 .heroScene{perspective:1200px;perspective-origin:58% 36%;padding:12px 0 28px}
-.heroStage{position:relative;transform-style:preserve-3d;padding:0 16% 220px 0}
-.page .heroWindow{transform:rotateY(-5deg) rotateZ(-1deg);transform-origin:center;box-shadow:0 28px 64px #00000073,0 0 0 1px #ffd6e82e,0 0 46px #c2187838}
-.heroPhone{position:absolute;right:0;top:12px;width:28%;transform:translateZ(48px) rotateY(-4deg) rotateZ(2deg);background:#fffafc;border:1px solid #ffd7e8;border-radius:22px;padding:6px;box-shadow:0 26px 54px #00000070,0 0 0 1px #fff6fb66,0 0 36px #ffb3d647}
-.phoneLabel{font-size:10px;line-height:1.4;text-align:center;color:var(--muted);padding:7px 0 9px;white-space:nowrap}
-.phoneScreen{overflow:hidden;border-radius:15px;background:#f9ecef}.phoneScreen img{display:block;width:100%;height:auto}
-@media(min-width:601px) and (max-width:1050px){.page .hero{grid-template-columns:1fr}.page .heroFigure{max-width:680px;width:100%;margin:auto!important}}
-@media(max-width:600px){.heroScene{padding:0;perspective:none}.heroStage{display:grid;gap:24px;justify-items:center;padding:0;transform-style:flat}.page .heroWindow{width:100%;transform:none}.heroPhone{position:relative;top:auto;right:auto;width:min(210px,75%);transform:none}.phoneLabel{font-size:11px}}
-@media(prefers-reduced-motion:reduce){.page .heroWindow,.heroPhone{transform:none}}
+.heroStage{position:relative;padding:0}
+.page .heroWindow{transform:none;transform-origin:center;box-shadow:0 28px 64px #00000073,0 0 0 1px #ffd6e82e,0 0 46px #c2187838}
+@media(max-width:600px){.heroScene{padding:0;perspective:none}.heroStage{padding:0}.page .heroWindow{width:100%;transform:none}}
+@media(prefers-reduced-motion:reduce){.page .heroWindow{transform:none}}
 
 .page .founderStrip{position:sticky;top:0;z-index:30;display:block;padding:0;background:#fff6fa;border-block:1px solid #b91a7026;box-shadow:0 4px 16px #40292408}
 .founderStripInner{max-width:1240px;margin:auto;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;padding:12px 5%}
@@ -46,8 +42,10 @@
 
 /* Dark hero band: night plum stage under the light founder strip. */
 .page .hero{max-width:none;width:100%;margin:0;display:block;padding:0;min-height:0;gap:0;background:radial-gradient(ellipse at 76% 46%,#c2187847 0,transparent 46%),radial-gradient(ellipse at 8% 100%,#4a243866 0,transparent 42%),linear-gradient(180deg,#2a1822 0%,#1b1218 58%,#24161c 100%);color:#f7eee8;border-bottom:1px solid #f6e7da14}
-.heroLayout{max-width:1520px;margin:auto;display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.36fr);gap:32px;align-items:center;padding:68px 4.2% 56px;min-height:800px}
-.page .hero h1{color:#f7eee8;font-size:clamp(2.85rem,4.5vw,4.35rem)}
+.heroLayout{max-width:1800px;margin:auto;display:grid;grid-template-columns:minmax(300px,340px) minmax(0,1fr);align-items:center;gap:24px;padding:28px 2% 36px;min-height:0}
+.page .hero .heroCopy{max-width:22rem}
+.page .hero .heroFigure{max-width:none;width:100%;margin:0}
+.page .hero h1{color:#f7eee8;font-size:clamp(2.2rem,2.7vw,3.2rem)}
 .page .hero h1 em{color:#ffb3dc}
 .page .hero .eyebrow{color:#ffb7dc}
 .page .hero .heroBody{color:#e4d2cb;max-width:34rem}
@@ -57,12 +55,10 @@
 .page .hero .primaryButton:hover{background:#a11466}
 .page .hero :is(a,button):focus-visible{outline-color:#ffd6ec}
 .page .hero .heroFigure figcaption{color:#e7d5ce}
-.page .hero .heroWindow{background:#120c10;border:1px solid #ffe2ec47;border-radius:20px}
+.page .hero .heroWindow{width:100%;transform:none;background:#120c10;border:1px solid #ffe2ec47;border-radius:20px}
 .page .hero .browserBar{height:32px;justify-content:center;gap:0;padding:0 12px;background:#160e13;border-bottom:1px solid #ffe2ec29}
 .page .hero .browserBar>span{display:none}
 .page .hero .browserBar em{margin:0;padding:0;color:#f4e7e1;font-size:12px;letter-spacing:.04em}
-@media(max-width:1100px){.heroLayout{grid-template-columns:minmax(0,.92fr) minmax(0,1.18fr);gap:24px;padding-top:52px;min-height:700px}}
-@media(max-width:1050px){.heroLayout{grid-template-columns:1fr;min-height:0;padding:48px 24px 40px}.page .hero .heroFigure{max-width:880px;width:100%;margin:auto}}
-@media(min-width:601px) and (max-width:1050px){.page .hero .heroStage{padding-bottom:300px}}
-@media(max-width:600px){.heroLayout{padding:32px 20px 28px;gap:24px;min-height:0}.page .hero h1{font-size:clamp(2.55rem,11vw,3.35rem)}.page .hero .heroPhone{width:min(250px,78%)}}
-@media(prefers-reduced-motion:reduce){.page .hero .heroWindow,.page .hero .heroPhone,.page .hero .primaryButton:hover{transform:none}}
+@media(max-width:1180px){.heroLayout{grid-template-columns:1fr;align-items:start;gap:22px;padding:36px 2.2% 32px}.page .hero .heroCopy{max-width:40rem}.page .hero h1{font-size:clamp(2.6rem,4.6vw,3.6rem)}}
+@media(max-width:600px){.heroLayout{padding:28px 14px 24px;gap:18px}.page .hero h1{font-size:clamp(2.45rem,11vw,3.2rem)}}
+@media(prefers-reduced-motion:reduce){.page .hero .heroWindow,.page .hero .primaryButton:hover{transform:none}}
