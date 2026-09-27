@@ -9,6 +9,7 @@ import type {
   AmethystTier,
   AmethystTradeListing,
 } from '@/lib/amethyst/site-content'
+import { SparkleSuiteFooterCredit } from '@/components/amethyst/sparkle-suite-footer-credit'
 
 const ANNOUNCEMENT_TICKER_SPEED_PPS = 46
 const TRADE_TICKER_SPEED_PPS = 55.2
@@ -415,7 +416,7 @@ export function AmethystSiteShell({
           <div className="mx-auto mt-12 max-w-7xl border-t border-white/10 pt-6 text-[11px] leading-[1.6] text-white/45">
             <div className="mb-4 flex flex-wrap justify-between gap-3">
               <span>
-                © {year} {content.businessName} · Powered by Sparkle Suite
+                © {year} {content.businessName} · <SparkleSuiteFooterCredit />
               </span>
               <span className="flex flex-wrap gap-2">
                 <Link href="/amethyst/unsubscribe">Unsubscribe</Link>

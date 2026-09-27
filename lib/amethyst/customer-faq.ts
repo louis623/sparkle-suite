@@ -1,4 +1,5 @@
 import { getAmethystAppearancePreset } from './appearance-presets'
+import { renderSparkleSuitePoweredByLinkHtml } from './sparkle-suite-footer-credit'
 import { loadAmethystPreviewTemplateData } from './preview-template-data'
 import { resolveSparkleRequestOrigin } from '@/lib/seo/sparkle-crawl'
 
@@ -158,7 +159,7 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
   <link rel="stylesheet" href="/amethyst/gnome-garden.css" />
   <link rel="stylesheet" href="/amethyst/neon-butterfly.css" />
   <link rel="stylesheet" href="/amethyst/halloween-pumpkin-witch.css" />
-  <link rel="stylesheet" href="/amethyst/faq.css" />
+  <link rel="stylesheet" href="/amethyst/faq.css?v=20260927-powered-by" />
 </head>
 <body class="${escapeHtml(bodyClasses)}">
   <a class="faq-skip" href="#main">Skip to questions</a>
@@ -200,7 +201,7 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
     </section>
   </main>
   <footer class="faq-footer">
-    <span>© ${new Date().getFullYear()} ${businessName} · Powered by Sparkle Suite</span>
+    <span>© ${new Date().getFullYear()} ${businessName} · ${renderSparkleSuitePoweredByLinkHtml()}</span>
     <nav aria-label="Footer">
       <a href="${escapeHtml(links.home)}">Home</a>
       <a href="${escapeHtml(links.danceFloor)}">Dance Floor</a>

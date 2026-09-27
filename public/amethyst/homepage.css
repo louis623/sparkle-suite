@@ -3520,6 +3520,15 @@ body.bg-quartz-paper .hp-step-num {
   min-height: 24px;
   color: rgba(255,255,255,0.6);
 }
+.hp-footer-bottom a.ss-powered-by {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.hp-footer-bottom a.ss-powered-by:hover { color: white; }
+.hp-footer-bottom a.ss-powered-by:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
 
 /* ============================================================
    Buttons (homepage variants — built on top of design system)

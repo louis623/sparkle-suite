@@ -51,6 +51,10 @@ describe('customer Dance Floor FAQ', () => {
     expect(html).toContain('href="/bri/faq"')
     expect(html).toContain('href="https://www.yoursparklesuite.com/bri/faq"')
     expect(html).toContain('Bri &amp; Co')
+    expect(html).toContain('href="https://www.yoursparklesuite.com/"')
+    expect(html).toContain('This site&#39;s powered by Sparkle Suite')
+    expect(html).toContain('target="_blank"')
+    expect(html).not.toContain('Powered by Sparkle Suite')
     expect(html).toContain('Skip to questions')
   })
 
