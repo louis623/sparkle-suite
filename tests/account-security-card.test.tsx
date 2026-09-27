@@ -33,6 +33,8 @@ describe('Sparkle Suite Account Security card', () => {
     )
 
     expect(source).toContain('getNewPasswordValidationError(')
+    expect(source).toContain('getPasswordMinLength()')
+    expect(source).toContain('getPasswordRequirements()')
     expect(source).toContain('supabase.auth.updateUser({')
     expect(source).toContain('password: newPassword')
     expect(source).not.toContain('password: newPasswordConfirm')
