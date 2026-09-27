@@ -23,6 +23,19 @@ describe('login Google OAuth source', () => {
     expect(source).toContain('Try a different Google account or contact Louis.')
   })
 
+  it('offers an email magic link through the same auth callback as Google', () => {
+    const source = readFileSync('app/login/_client.tsx', 'utf8')
+
+    expect(source).toContain('signInWithPassword')
+    expect(source).toContain('signInWithOtp')
+    expect(source).toContain('Email me a magic link')
+    expect(source).toContain('emailRedirectTo')
+    expect(source).toContain('/api/auth/callback?next=')
+    expect(source).toContain('shouldCreateUser: false')
+    expect(source).toContain('Check your email.')
+    expect(source).toContain('You do not need a password.')
+  })
+
   it('uses the shared safe relative redirect helper before replacing routes', () => {
     const source = readFileSync('app/login/_client.tsx', 'utf8')
 

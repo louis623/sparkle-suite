@@ -2131,6 +2131,8 @@ describe("Sparkle Finder hub routes", () => {
     expect(markup).toContain("Password");
     expect(markup).toContain("Sign in");
     expect(markup).toContain("Continue with Google");
+    expect(markup).toContain("Email me a magic link");
+    expect(markup).toContain("Forgot password?");
     expect(markup).toContain('href="/auth/sign-up"');
   });
 
@@ -2143,9 +2145,18 @@ describe("Sparkle Finder hub routes", () => {
       renderSignInPageContent({ error: "oauth_exchange_failed" }),
     );
 
+    const missingEmailMarkup = renderToStaticMarkup(renderSignInPageContent({ error: "missing_email" }));
+    const magicLinkFailedMarkup = renderToStaticMarkup(
+      renderSignInPageContent({ error: "magic_link_failed" }),
+    );
+
     expect(checkEmailMarkup).toContain("Check your email for the Sparkle Finder sign-in link.");
     expect(missingCodeMarkup).toContain("Google sign-in did not return a valid authorization code.");
     expect(exchangeFailedMarkup).toContain("Google sign-in could not be completed. Please try again.");
+    expect(missingEmailMarkup).toContain("Enter your email and we will send a sign-in link. No password needed.");
+    expect(magicLinkFailedMarkup).toContain(
+      "Sparkle Finder could not email a sign-in link. Check the address and try again.",
+    );
   });
 
   it("renders a sign-up route with 45-day Silver trial copy", async () => {
