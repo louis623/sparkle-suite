@@ -104,10 +104,12 @@ describe('Sparkle Suite public landing page', () => {
 
   it('leads with distinct real themes and jewelry while explaining mobile support', () => {
     const html = renderLanding()
-    expect(html).toContain('hero-emerald-desktop-v3.webp')
+    expect(html).toContain('hero-halloween-desktop-v1.webp')
     expect(html).toContain('hero-rose-mobile-v3.webp')
-    expect(html).toContain('Desktop · Emerald Garden')
+    expect(html).toContain('Desktop · Halloween')
     expect(html).toContain('Mobile · Rose Gold')
+    expect(html).toContain('href="/portfolio"')
+    expect(html).toContain('Demo soon')
     expect(html).not.toContain('site-black-diamond-v2.webp')
     expect(html).toContain('site-gnome-forest-v2.webp')
     expect(html).toContain('dance-floor-garnet-v2.webp')
@@ -125,6 +127,8 @@ describe('Sparkle Suite public landing page', () => {
 
   it('ships every new capture at its declared dimensions', async () => {
     const sharp = (await import('sharp')).default
+    const halloween = await sharp(publicAssetPath('/sparkle-suite/landing/hero-halloween-desktop-v1.webp')).metadata()
+    expect([halloween.width, halloween.height, halloween.format]).toEqual([1440, 825, 'webp'])
     for (const [name, width, height] of [['hero-emerald-desktop', 1265, 961], ['hero-rose-mobile', 390, 1020]] as const) {
       const metadata = await sharp(publicAssetPath(`/sparkle-suite/landing/${name}-v3.webp`)).metadata()
       expect([metadata.width, metadata.height]).toEqual([width, height])

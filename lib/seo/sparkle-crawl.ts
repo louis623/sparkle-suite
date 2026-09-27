@@ -19,6 +19,16 @@ const SPARKLE_PUBLIC_LAST_MODIFIED = new Date('2026-05-10')
 
 const SPARKLE_PUBLIC_ROUTES: SparklePublicRoute[] = [
   {
+    path: '/',
+    changeFrequency: 'weekly',
+    priority: 1,
+  },
+  {
+    path: '/portfolio',
+    changeFrequency: 'weekly',
+    priority: 0.9,
+  },
+  {
     path: '/prelaunch',
     changeFrequency: 'weekly',
     priority: 1,
