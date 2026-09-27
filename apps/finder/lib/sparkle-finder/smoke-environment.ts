@@ -1,7 +1,7 @@
-export type SparkleFinderEnvironment = {
+export interface SparkleFinderEnvironment extends NodeJS.ProcessEnv {
   SPARKLE_ENVIRONMENT?: string;
   NEXT_PUBLIC_SPARKLE_ENVIRONMENT?: string;
-};
+}
 
 /** True when either Finder Smoke marker is set. Live and preview stay false. */
 export function isSparkleFinderSmokeEnvironment(
