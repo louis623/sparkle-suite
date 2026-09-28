@@ -75,10 +75,19 @@ export function LandingExperience() {
       <figure className={styles.heroFigure}>
         <div className={styles.heroScene}>
           <div className={styles.heroStage}>
-            <div className={styles.heroWindow}><div className={styles.browserBar} aria-hidden="true"><em>Desktop · Halloween</em></div><Image src="/sparkle-suite/landing/hero-halloween-desktop-v2.webp" alt="Halloween Pumpkin and Witch desktop theme preview of a Sparkle Suite customer site, with a dark night hero and shop actions" width={2048} height={1084} sizes="(max-width: 1180px) 96vw, 1400px" unoptimized preload /></div>
+            <div className={styles.heroPair}>
+              <div className={styles.heroWindow}>
+                <div className={styles.browserBar} aria-hidden="true"><em>Halloween · Witch</em></div>
+                <Image src="/sparkle-suite/landing/hero-halloween-witch-desktop-v3.webp" alt="Halloween Pumpkin and Witch desktop theme preview of a Sparkle Suite customer site, with a glittering jack-o'-lantern, silver moon, and flying witch" width={1672} height={941} sizes="(max-width: 760px) 92vw, (max-width: 1180px) 47vw, 720px" unoptimized preload />
+              </div>
+              <div className={styles.heroWindow}>
+                <div className={styles.browserBar} aria-hidden="true"><em>Halloween · Cat</em></div>
+                <Image src="/sparkle-suite/landing/hero-halloween-cat-desktop-v1.webp" alt="Halloween Pumpkin and Cat desktop theme preview of a Sparkle Suite customer site, with a glittering jack-o'-lantern and a black cat on a silver moon" width={1672} height={941} sizes="(max-width: 760px) 92vw, (max-width: 1180px) 47vw, 720px" unoptimized preload />
+              </div>
+            </div>
           </div>
         </div>
-        <figcaption>Your look. Beautiful on phones, tablets, and desktop.</figcaption>
+        <figcaption>Two Halloween looks. Beautiful on phones, tablets, and desktop.</figcaption>
       </figure>
       </div>
     </section>

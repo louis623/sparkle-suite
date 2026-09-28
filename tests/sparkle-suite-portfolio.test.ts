@@ -31,6 +31,10 @@ describe('Sparkle Suite portfolio page', () => {
 
     expect(html).toContain('Shows we’re proud to put on the floor.')
     expect(html).toContain('Halloween · Pumpkin and Witch')
+    expect(html).toContain('Halloween Pumpkin and Cat')
+    expect(html).toContain('hero-halloween-witch-desktop-v3.webp')
+    expect(html).toContain('hero-halloween-cat-desktop-v1.webp')
+    expect(html).not.toContain('hero-halloween-desktop-v1.webp')
     expect(html).toContain('aria-roledescription="carousel"')
     expect(html.match(/aria-roledescription="carousel"/g)).toHaveLength(3)
     expect(html).toContain('Rep highlights')
@@ -85,6 +89,17 @@ describe('Sparkle Suite portfolio page', () => {
     expect(html).toContain('href="https://sparklybutterflies.com/"')
     expect(html).toContain('Real capture still to come')
     expect(html.match(/Placeholder/g)?.length).toBeGreaterThanOrEqual(2)
+    const holiday = sparkleSuitePortfolioContent.carousels.find((carousel) => carousel.id === 'holiday-themes')
+    expect(holiday?.slides.map((slide) => slide.id)).toEqual([
+      'halloween-pumpkin-witch',
+      'halloween-pumpkin-cat',
+      'holiday-placeholder-winter',
+      'holiday-placeholder-celebration',
+    ])
+    const cat = holiday?.slides[1]
+    expect(cat?.kind).toBe('capture')
+    expect(cat && 'detail' in cat ? cat.detail : '').toMatch(/black cat/i)
+    expect(html).toContain('independent tool for reps')
   })
 
   it('mixes the landing palette instead of repeating dark stripes', () => {

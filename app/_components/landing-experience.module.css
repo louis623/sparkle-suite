@@ -58,7 +58,10 @@
 .page .hero .heroWindow{width:100%;transform:none;background:#120c10;border:1px solid #ffe2ec47;border-radius:20px}
 .page .hero .browserBar{height:32px;justify-content:center;gap:0;padding:0 12px;background:#160e13;border-bottom:1px solid #ffe2ec29}
 .page .hero .browserBar>span{display:none}
-.page .hero .browserBar em{margin:0;padding:0;color:#f4e7e1;font-size:12px;letter-spacing:.04em}
+.page .hero .browserBar em{margin:0;padding:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f4e7e1;font-size:12px;letter-spacing:.04em}
+.heroPair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.page .hero .heroPair .heroWindow:nth-child(2){margin-top:28px}
+@media(max-width:760px){.heroPair{grid-template-columns:minmax(0,1fr);gap:14px}.page .hero .heroPair .heroWindow:nth-child(2){margin-top:0}}
 @media(max-width:1180px){.heroLayout{grid-template-columns:1fr;align-items:start;gap:22px;padding:36px 2.2% 32px}.page .hero .heroCopy{max-width:40rem}.page .hero h1{font-size:clamp(2.6rem,4.6vw,3.6rem)}}
 @media(max-width:600px){.heroLayout{padding:28px 14px 24px;gap:18px}.page .hero h1{font-size:clamp(2.45rem,11vw,3.2rem)}}
 @media(prefers-reduced-motion:reduce){.page .hero .heroWindow,.page .hero .primaryButton:hover{transform:none}}
