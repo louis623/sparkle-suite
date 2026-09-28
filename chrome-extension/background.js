@@ -254,7 +254,7 @@ async function popupMessage(message) {
 }
 chrome.runtime.onMessage.addListener((message,sender,respond)=>{
   if (sender.id !== chrome.runtime.id || !message || typeof message !== 'object') return false;
-  if (!sender.tab && sender.url === POPUP) {
+  if (sender.url === POPUP) {
     if (['sparkle-v2-connect','sparkle-v2-toggle','sparkle-v2-filter'].includes(message.action)) invalidatePull();
     exclusive(()=>popupMessage(message)).then(result=>{respond(result);if(result.ok && ['sparkle-v2-connect','sparkle-v2-toggle','sparkle-v2-filter'].includes(message.action)){lastRequest=0;void requestPull().catch(()=>{});}},()=>respond({ok:false,error:'operation_failed'})); return true;
   }

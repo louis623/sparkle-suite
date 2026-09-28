@@ -150,3 +150,11 @@ test('a changed generation is adopted only with a new claim and a fresh read',as
  assert.equal((await w.run('status()')).connected,true);
  assert.deepEqual(w.requests.slice(before).filter(x=>x.action!=='describe').map(x=>x.action),['claim','snapshot']);
 });
+
+test('only the exact extension popup may request status, including when opened in its own tab',async()=>{
+ const w=worker();await w.settle();
+ const response=await new Promise(resolve=>{assert.equal(w.listeners.message({action:'sparkle-v2-status'},{id:'fixture',url:'chrome-extension://fixture/popup.html',tab:{id:9}},resolve),true)});
+ assert.equal(response.connected,true);
+ for(const sender of [{id:'other',url:'chrome-extension://fixture/popup.html'},{id:'fixture',url:'https://myoffice.bombparty.com/live-party-orders',tab:{id:1}},{id:'fixture',url:'chrome-extension://fixture/other.html'}])
+  assert.equal(w.listeners.message({action:'sparkle-v2-status'},sender,()=>{throw Error('Untrusted page received private status')}),false);
+});
