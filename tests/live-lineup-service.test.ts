@@ -109,7 +109,7 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
   it('describes an unstarted source without creating state, a lease, or a heartbeat', async () => {
     const d = database()
     const before = structuredClone(d.rows)
-    expect(await describeSource(d.db, token, now)).toEqual({ protocol: 2, generation: 0, scope: null, serverTime: new Date(now).toISOString() })
+    expect(await describeSource(d.db, token, now)).toEqual({ protocol: 2, orderScope: 'selected-parties', generation: 0, scope: null, serverTime: new Date(now).toISOString() })
     expect(d.rows).toEqual(before)
   })
   it('uses an existing assigned Workspace code for the full v2 claim and snapshot flow without rotating it', async () => {
@@ -117,7 +117,7 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     d.rows.live_queue.push({ rep_id: repA, sync_code: 'MHF-9446', queue: [], last_updated: null })
     const beforeCode = d.rows.live_queue[0].sync_code
     expect(await describeSource(d.db, 'MHF-9446', now)).toEqual({
-      protocol: 2, generation: 0, scope: null, serverTime: new Date(now).toISOString(),
+      protocol: 2, orderScope: 'selected-parties', generation: 0, scope: null, serverTime: new Date(now).toISOString(),
     })
     const claim = await claimSource(d.db, 'MHF-9446', claimId, now, 0)
     const assignedCodePacket = {
@@ -125,7 +125,7 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
       parserState: 'ready', entries: [{ id: 'party:order', name: 'Reviewer', orderedAt: now }], revealedIds: [],
     }
     await receiveSource(d.db, 'MHF-9446', assignedCodePacket, now + 1000)
-    expect(await getWorkspaceLineup(d.db, repA, now + 1000)).toMatchObject({
+    expect(await getWorkspaceLineup(d.db, repA, now + 1000, true)).toMatchObject({
       canManage: true,
       entries: [{ id: 'party:order', name: 'Reviewer', position: 1, held: false }],
     })
@@ -152,7 +152,11 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     expect(secondClaim.generation).toBe(1)
     const changed = await configureSourceParties(d.db, 'MHF-9446', 1, ['p1', 'p2'], ['p1'], now + 4000)
     expect(changed.scope?.excludedPartyIds).toEqual(['p1'])
-    const publicQueue = await getEffectiveLiveQueueSnapshot(d.db, repA, now + 4000)
+    // Configuration remains private until a final scoped observation is accepted.
+    expect((await getEffectiveLiveQueueSnapshot(d.db, repA, now + 4000))?.queue).toEqual([])
+    await receiveSource(d.db, 'MHF-9446', {publisherId:repA,epoch:secondClaim.epoch,sequence:0,sourceVersion:'2.0.4',generation:1,
+      parserState:'ready',entries:[{id:'p1:a',name:'Reviewer One',orderedAt:now},{id:'p2:b',name:'Reviewer Two',orderedAt:now+1}],revealedIds:[]},now+4500)
+    const publicQueue = await getEffectiveLiveQueueSnapshot(d.db, repA, now + 4500)
     expect(publicQueue?.queue).toEqual(['Reviewer Two'])
     const foreignClaim = claimPublisher(createLineupState(), publisherId, 0, now, { claimId })
     if (!foreignClaim.ok) throw Error('fixture')
@@ -181,9 +185,10 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     const before = structuredClone(d.rows.live_lineup_states)
     expect(await configureSourceParties(d.db, 'MHF-9446', 1, ['old', '1845752'], [], now + 3000)).toEqual({
       protocol: 2,
+      orderScope: 'selected-parties',
       generation: 1,
       scope: {
-        partyIds: ['old'], excludedPartyIds: [], startedAt: new Date(now + 2000).toISOString(), carryEntryIds: ['old:a'],
+        partyIds: ['old'], excludedPartyIds: [], startedAt: '1970-01-01T00:00:00.000Z', carryEntryIds: [],
       },
       serverTime: new Date(now + 3000).toISOString(),
     })
@@ -203,7 +208,7 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     d.rows.live_lineup_states.push({ rep_id: '33333333-3333-4333-8333-333333333333', revision: 999, state: { secret: 'other-tenant' } })
     const before = structuredClone(d.rows)
     const result = await describeSource(d.db, token, now + 3000)
-    expect(result).toEqual({ protocol: 2, generation: 1, scope: { partyIds: ['123'], excludedPartyIds: [], startedAt: new Date(now + 2000).toISOString(), carryEntryIds: ['123:a'] }, serverTime: new Date(now + 3000).toISOString() })
+    expect(result).toEqual({ protocol: 2, orderScope: 'selected-parties', generation: 1, scope: { partyIds: ['123'], excludedPartyIds: [], startedAt: '1970-01-01T00:00:00.000Z', carryEntryIds: [] }, serverTime: new Date(now + 3000).toISOString() })
     expect(JSON.stringify(result)).not.toMatch(/PrivateName|other-tenant|rep-a|sslp_|claimId|publisher|held|revision/)
     expect(d.rows).toEqual(before)
   })
@@ -273,7 +278,7 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     const held = await changeLineup(d.db, repA, { expectedRevision: before.revision, type: 'hold', entryId: 'order-a' }, now + 2000)
     expect(held.entries.map(e => e.id)).toEqual(['order-b'])
     const publicState = await getEffectiveLiveQueueSnapshot(d.db, repA, now + 2000)
-    expect(publicState?.queue).toEqual(['Same Name'])
+    expect(publicState?.queue).toEqual([]) // Generation-zero bootstrap is private until configured.
     expect(JSON.stringify(publicState)).not.toMatch(/order-a|order-b|rep-a|sslp_|undo|held|token_hash/)
     await receiveSource(d.db, token, packet(1), now + 3000)
     expect((await getWorkspaceLineup(d.db, repA, now + 3000)).heldEntries.map(e => e.id)).toEqual(['order-a'])
@@ -367,7 +372,7 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     expect(after).toEqual({ ...before, revision: before.revision + 1, lastReceivedAt: null, sourceVersion: null,
       parserState: 'loading', publisher: { ...before.publisher, lastSequence: -1, leaseExpiresAt: new Date(now + 3000).toISOString() } })
     expect(await getWorkspaceLineup(d.db, repA, now + 3000)).toMatchObject({ connection: 'offline', heldEntries: [{ id: 'order-a' }] })
-    expect(await getEffectiveLiveQueueSnapshot(d.db, repA, now + 3000)).toMatchObject({ sourceReady: false, isFresh: false, queue: ['Same Name'] })
+    expect(await getEffectiveLiveQueueSnapshot(d.db, repA, now + 3000)).toMatchObject({ sourceReady: false, isFresh: false, queue: [] })
     const claimed = await claimSource(d.db, replacement.token, otherClaimId, now + 3001)
     expect(claimed.epoch).toBe(before.publisher.epoch + 1)
     await expect(receiveSource(d.db, token, packet(1), now + 4000)).rejects.toMatchObject({ code: 'unauthorized', status: 401 })
@@ -418,8 +423,9 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     const d = seeded()
     await receiveSource(d.db, token, { ...packet(1), parserState: 'loading', entries: [] }, now + 60_000)
     const result = await getEffectiveLiveQueueSnapshot(d.db, repA, now + 60_000)
-    expect(result).toMatchObject({ sourceReady: false, isFresh: false, ageSeconds: 59, lastUpdated: new Date(now + 1000).toISOString() })
-    expect(result?.queue).toHaveLength(2)
+    expect(result).toMatchObject({ sourceReady: false, isFresh: false, ageSeconds: 59, lastUpdated: null })
+    expect(result?.queue).toHaveLength(0) // Unconfigured bootstrap stays private; ready age still does not advance.
+    expect(d.rows.live_lineup_states[0].state.lastReadyAt).toBe(new Date(now + 1000).toISOString())
   })
   it('never reports saved when an RPC acknowledgement has the wrong tenant/revision/state', async () => {
     const corruptions = [

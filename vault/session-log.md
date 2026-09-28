@@ -7979,3 +7979,8 @@ Lessons retained:
 - Louis marked the Home Trade Info button and requested `Open Dance Floor`. Changed only its visible label and updated the two existing assertions; the navigation handler is unchanged.
 - Focused Workspace UI suite passed 138 tests; TypeScript, lint (zero errors), guarded local build, and Vercel build passed. The broader operator-support suite had two failures on pre-existing Live Queue/Tools assertions unrelated to the label.
 - Pushed application commit `b2677a08e9ebe86ba726ce343134ad9745f4138f` and manually deployed READY `dpl_D2Um9eCUBEX7WqAX5yf5gMqY6VY1`. Vercel inspection confirmed www and apex resolve to this deployment. The exact www landing page and public customer Dance Floor rendered. `/start` redirected to prelaunch without a reviewer token; no personal authenticated account was used, so the production button itself remains unverified by live reviewer UI. No production data was changed.
+
+
+## September 28, 2026 — Live Lineup cutoff investigation and authorized repair
+
+Louis rejected any show/calendar prerequisite and authorized fixes, with Smoke verified before live. Proven cause: all 50 visible selected-party orders predated a retained lineup cutoff; parser stayed partial and scopePending hid the reason. Repair is in a clean active-branch Codespace checkout, integrating recovered v5.2 source and preserving current application work. See docs/sparkle-suite/live-lineup-always-on-2026-09-28.md for evidence, recovery fixes, compatibility and test limits. Deployment/package verification is pending; no production/CWS release or real-order test publish has occurred.

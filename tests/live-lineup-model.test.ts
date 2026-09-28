@@ -238,7 +238,7 @@ describe('Live Lineup v2 ordered source / private manual arrangement', () => {
         expect(isLineupState(s)).toBe(true)
         expect(new Set([...s.order, ...s.held]).size).toBe(s.entries.length)
         expect(s.entries.every(e => !s.revealedIds.includes(e.id))).toBe(true)
-      } else expect(['nothing_to_undo', 'revision_conflict']).toContain(result.code)
+      } else expect(['nothing_to_undo', 'revision_conflict', 'source_not_ready', 'lease_expired']).toContain(result.code)
     }
   })
   it('replays only the same active worker claim attempt without resetting sequence, lease or revision', () => {

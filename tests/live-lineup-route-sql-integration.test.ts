@@ -38,6 +38,7 @@ it('preserves manual ordering through real routes/SQL and exposes only safe publ
     await sql.exec('create role anon; create role authenticated; create role service_role bypassrls; create table reps(id uuid primary key); create table live_queue(rep_id uuid,sync_code text,queue jsonb,last_updated timestamptz); grant select on live_queue to service_role;')
     await sql.query('insert into reps values($1),($2)', [rep, other])
     await sql.exec(readFileSync(new URL('../supabase/migrations/20260910000100_live_lineup_v2.sql', import.meta.url), 'utf8'))
+    await sql.exec(readFileSync(new URL('../supabase/migrations/20260926000100_live_lineup_atomic_observations.sql',import.meta.url),'utf8'))
     await sql.exec('set role service_role')
     const fixtureClock=Date.now()
     let elapsed=0
@@ -65,7 +66,8 @@ it('preserves manual ordering through real routes/SQL and exposes only safe publ
     await json(await source({action:'snapshot',packet}))
     expect((await json(await readiness.GET())).ready).toBe(true)
     const initialPublic=await publicRead()
-    expect(initialPublic.liveQueueState).toBe('live')
+    expect(initialPublic.liveQueueState).toBe('offline')
+    expect(initialPublic.liveQueueEntries).toEqual([]) // No generation-zero bootstrap exposure.
     let current=await ownerRead()
     const command=async (value:unknown, expectedRevision=current.revision) => json(await workspace.POST(request('/api/workspace/live-lineup', {expectedRevision,command:value,repId:other})))
     current=await command({type:'hold',entryId:'p1:a'})
@@ -82,7 +84,7 @@ it('preserves manual ordering through real routes/SQL and exposes only safe publ
     expect(current.entries.map((e:{id:string})=>e.id)).toEqual(['p1:c','p1:b','p1:d'])
     expect(current.heldEntries.map((e:{id:string})=>e.id)).toEqual(['p1:a'])
     const arranged=await publicRead()
-    expect(arranged.liveQueueEntries.map((e:{name:string})=>e.name)).toEqual(['Casey','Jessica','New customer'])
+    expect(arranged.liveQueueEntries).toEqual([])
     for(const privateValue of [issued.token,issued.publisher.id,'p1:a','p1:c','heldEntries','candidates']) expect(JSON.stringify(arranged)).not.toContain(privateValue)
     const context: { SparkleLiveLineup?: {merge:(current:unknown,next:unknown)=>unknown} } = {}
     runInNewContext(readFileSync('public/amethyst/live-lineup.js','utf8'),context)

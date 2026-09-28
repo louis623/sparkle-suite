@@ -6729,6 +6729,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (canRenderWorkspaceSections && activeSection === 'live-queue') {
       return (
         <LiveQueueTool
+          readOnly={liveLineupReadOnly}
           liveQueueSyncCode={currentLiveQueueSyncCode}
           customerSiteHref={customerSparkleSiteHref}
           onOpenHelp={() => setActiveSection('help-resources')}
@@ -6906,6 +6907,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
               })
               const payload = await response.json().catch(() => null) as { error?: string } | null
               if (!response.ok) throw new Error(payload?.error || 'Unable to add this customer.')
+              window.dispatchEvent(new CustomEvent(NIC_NAC_WORKSPACE_REFRESH_EVENT, {detail:{topics:['audience']}}))
               await loadAudience()
             }}
             onUpdate={async (audienceId, profile) => {
@@ -6917,6 +6919,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
               })
               const payload = await response.json().catch(() => null) as { error?: string } | null
               if (!response.ok) throw new Error(payload?.error || 'Unable to update this customer.')
+              window.dispatchEvent(new CustomEvent(NIC_NAC_WORKSPACE_REFRESH_EVENT, {detail:{topics:['audience']}}))
               await loadAudience()
             }}
             onImport={async (contacts) => {
@@ -6932,6 +6935,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
               if (!response.ok || !payload?.result) {
                 throw new Error(payload?.error || 'Unable to import this customer list.')
               }
+              window.dispatchEvent(new CustomEvent(NIC_NAC_WORKSPACE_REFRESH_EVENT, {detail:{topics:['audience']}}))
               await loadAudience()
               return payload.result
             }}
@@ -7863,10 +7867,12 @@ const LIVE_QUEUE_PARTY_ORDERS_URL =
   'https://myoffice.bombparty.com/live-party-orders'
 
 export function LiveQueueTool({
+  readOnly = false,
   liveQueueSyncCode,
   customerSiteHref,
   onOpenHelp,
 }: {
+  readOnly?: boolean
   liveQueueSyncCode?: string | null
   customerSiteHref?: string | null
   onOpenHelp?: () => void
@@ -7885,6 +7891,8 @@ export function LiveQueueTool({
   }
   return (
     <div className={styles.workspaceSectionStack}>
+      <LiveLineupCard readOnly={readOnly} />
+      <p className={styles.liveQueueBody}>For a canceled order that still appears, use Hold on that exact order below its name. This removes only that order from the public waiting lineup. Bomb Party orders are unchanged.</p>
       <section className={styles.workspaceIntroCard}>
         <div className={styles.workspaceSectionHeader}>
           <div>
@@ -7913,9 +7921,10 @@ export function LiveQueueTool({
             <span className={styles.liveQueueEyebrow}>What it does</span>
             <p className={styles.liveQueueBody}>
               The Sparkle Suite extension reads your open Bomb Party Party
-              Orders page and sends only the customer first names needed for
-              your lineup. It never places orders, reveals jewelry, refreshes
-              the page, or changes your Bomb Party back office.
+              Orders page and sends the order details needed for your lineup.
+              Public customers see first names or initials; birthday and favorite
+              chips stay private in your Workspace. It never places orders, reveals
+              jewelry, refreshes the page, or changes your Bomb Party back office.
             </p>
             <p className={styles.liveQueueBody}>
               It works in Google Chrome on a MacBook, iMac, Windows laptop, or
@@ -8094,7 +8103,7 @@ export function LiveQueueTool({
             <strong>1. It reads Party Orders</strong>
             <p>
               While Party Orders is open, the extension reads the customer
-              first names and whether each order is already revealed.
+              names and whether each order is already revealed. Full last names never appear on your public lineup.
             </p>
           </div>
           <div>
@@ -8109,8 +8118,8 @@ export function LiveQueueTool({
             <strong>3. It updates your customer site</strong>
             <p>
               The lineup syncs automatically as orders and reveal statuses
-              change. You can reorder, hold, or return customers from the
-              compact Live Lineup card on your Workspace home.
+              change. Move one order at a time from your Workspace home.
+              Use this full Live Lineup tool to Hold a canceled order or return a held order.
             </p>
           </div>
         </div>

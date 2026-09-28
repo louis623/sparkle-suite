@@ -42,10 +42,10 @@ describe('explicit show generations and reversible party visibility', () => {
     expect(applySourcePacket(s, packet({epoch: 1}), T + 102)).toEqual({ok: false, code: 'publisher_conflict'})
     expect(take(applySourcePacket(s, packet(), T + 102)).order).toEqual(['p1:b', 'p2:c'])
   })
-  it('does not reimport pre-show orders still visible in the source table', () => {
+  it('imports visible selected-party orders regardless of retained start time', () => {
     const next = take(applySourcePacket(claim(), packet({entries: [entry('p1:a'), entry('p1:b', T + 101)]}), T + 102))
-    expect(next.order).toEqual(['p1:b'])
-    expect(applySourcePacket(claim(), packet({entries: [{...entry('p1:unknown'), orderedAt: null}]}), T + 102)).toEqual({ok: false, code: 'invalid_scope'})
+    expect(next.order).toEqual(['p1:a', 'p1:b'])
+    expect(take(applySourcePacket(claim(), packet({entries: [{...entry('p1:unknown'), orderedAt: null}]}), T + 102)).order).toEqual(['p1:unknown'])
   })
   it('rejects orders or revelations from a different party without refreshing health', () => {
     const s = claim()
@@ -80,7 +80,7 @@ describe('explicit show generations and reversible party visibility', () => {
     expect(next.entries.map(e => e.id).sort()).toEqual(['p1:b','p2:c'])
     expect(isLineupState(next)).toBe(true)
     const synced = take(applySourcePacket(claim(next), packet({entries: [entry('p1:a'), entry('p1:b'), entry('p2:c'), entry('p1:new',T+101)]}), T + 102))
-    expect(synced.order).toEqual(['p1:b','p1:new'])
+    expect(synced.order).toEqual(['p1:b','p1:a','p1:new'])
     expect(synced.held).toEqual(['p2:c'])
   })
   it('rejects stale, duplicated, or out-of-scope carry choices', () => {
@@ -89,11 +89,11 @@ describe('explicit show generations and reversible party visibility', () => {
     for (const [partyIds, carryEntryIds] of [[['p1'],['p1:missing']],[['p2'],['p1:a']]])
       expect(applyLineupCommand(s,{type:'start-show',confirmed:true,partyIds,carryEntryIds,expectedRevision:s.revision},T+100)).toEqual({ok:false,code:'invalid_scope'})
   })
-  it('uses dated revelations so old source rows do not refill a new show tombstone budget', () => {
+  it('accepts old revealed rows without using a show cutoff', () => {
     const old = Array.from({length:9999},(_,i)=>({id:`p1:old${i}`,orderedAt:T}))
     const all = [...old,{id:'p1:new-revealed',orderedAt:T+101}]
     const s = take(applySourcePacket(claim(),packet({entries:[],revealedIds:all.map(e=>e.id),revealedEntries:all}),T+102))
-    expect(s.revealedIds).toEqual(['p1:new-revealed'])
+    expect(new Set(s.revealedIds)).toEqual(new Set(all.map(e=>e.id)))
     const next = take(applySourcePacket(s,packet({sequence:1,entries:[entry('p1:new-revealed',T+101)]}),T+103))
     expect(next.entries).toEqual([])
   })

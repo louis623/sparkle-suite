@@ -28,8 +28,8 @@ describe('public lineup refresh without reloading or writing', () => {
   it('marks only Brittanys Dance Floor as coming soon across customer pages', () => {
     for (const file of ['homepage.jsx', 'join.jsx', 'trade.jsx']) {
       const page = readFileSync(`public/amethyst/${file}`, 'utf8')
-      expect(page).toContain('isBrittWithBlingHybrid ? [{ name: "Digital Dance Floor coming soon", isEmpty: true }] : trades.length > 0 ? trades : [EMPTY_TRADE_TICKER_ITEM]')
-      expect(page).toContain('isBrittWithBlingHybrid ? "Dance Floor · Coming soon" : "Dance Floor"')
+      expect(page).toContain('isBrittDanceFloorComingSoon ? [{ name: "Digital Dance Floor coming soon", isEmpty: true }] : trades.length > 0 ? trades : [EMPTY_TRADE_TICKER_ITEM]')
+      expect(page).toContain('isBrittDanceFloorComingSoon ? "Dance Floor · Coming soon" : "Dance Floor"')
     }
   })
   it('accepts fresh empty snapshots, rejects malformed and older responses', () => {

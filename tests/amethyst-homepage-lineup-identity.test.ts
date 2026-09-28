@@ -81,7 +81,8 @@ describe('homepage Live Lineup bootstrap identity', () => {
     mocks.snapshot.mockResolvedValue({
       queue: ['Verified customer'],
       status: 'connected',
-      updatedAt: '2026-09-09T20:00:00.000Z',
+      lastUpdated: '2026-09-09T20:00:00.000Z',
+      staleAfterSeconds: 45,
       sourceReady: true,
       isFresh: true,
       ageSeconds: 0,

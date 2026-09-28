@@ -20,8 +20,8 @@ function fixture() {
   const archived = state(1,['p1:old1','p1:old2','p1:current'],['p2:oldheld'])
   const archive: LineupArchive = {generation:1,revision:3,archivedAt:iso,state:archived}
   const summary = {generation:1,revision:3,archivedAt:iso,partyIds:['p1','p2'],waitingCount:3,heldCount:1}
-  const detail: ArchiveDetail = {...summary,candidates:buildWorkspaceLineupSnapshot(archived,T).management!.candidates}
-  const before = buildWorkspaceLineupSnapshot(current,T)
+  const detail: ArchiveDetail = {...summary,candidates:buildWorkspaceLineupSnapshot(archived,T,true).management!.candidates}
+  const before = buildWorkspaceLineupSnapshot(current,T,true)
   return {current,archive,summary,detail,before}
 }
 describe('archive recovery client contracts', () => {
@@ -56,14 +56,14 @@ describe('archive recovery client contracts', () => {
   it('allows heartbeat-only preview updates but blocks changed customers, holds or show scope', () => {
     const {before,detail} = fixture()
     expect(archiveRecoveryRequest(before,{...before,revision:8},detail,['p1:old1'],true)?.expectedRevision).toBe(8)
-    for (const next of [{...before,canManage:false}, {...before,management:{...before.management!,generation:3}},
+    for (const next of [{...before,canManage:false,canRecover:false}, {...before,management:{...before.management!,generation:3}},
       {...before,management:{...before.management!,candidates:[]}}, {...before,lastChangedAt:new Date(T+1).toISOString()}])
       expect(archiveRecoveryRequest(before,next,detail,['p1:old1'],true)).toBeNull()
   })
   it('accepts the actual recovery model receipt with exact ordering and private hidden-party holds', () => {
     const {before,detail,current,archive} = fixture()
     const request = archiveRecoveryRequest(before,before,detail,['p2:oldheld','p1:old2','p1:old1'],true)!
-    const next = buildWorkspaceLineupSnapshot(buildArchiveRecoveryState(current,archive,request,T+100),T+100)
+    const next = buildWorkspaceLineupSnapshot(buildArchiveRecoveryState(current,archive,request,T+100),T+100,true)
     expect(isArchiveRecoveryAcknowledgement(before,next,detail,request)).toBe(true)
     expect(next.entries).toEqual(before.entries)
     expect(next.heldEntries.map(e=>e.id)).toEqual(['p1:held','p1:old1','p1:old2'])

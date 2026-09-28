@@ -907,3 +907,35 @@ export async function getCustomerAudience(
       .slice(0, limit),
   }
 }
+
+
+/** No audience scan or contact serialization: one bounded tenant query owns uniqueness. */
+export async function matchLineupAudience(db: SupabaseClient, repId: string, entries: import('../live-lineup/types').WorkspaceLineupEntry[], signal?: AbortSignal) {
+  if (!repId || entries.length > 2000) throw errors.INVALID_INPUT('invalid match scope')
+  // Database case folding is authoritative; receipts echo each requested raw full name.
+  const key = (text: string) => text
+  const eligible = entries.filter(entry => entry.identityEligible === true && !!entry.lastName?.trim() && !!entry.sourceIdentityVersion)
+  const names = [...new Set(eligible.map(entry => key(entry.name + ' ' + entry.lastName)))]
+  const query = db.rpc('live_lineup_match_audience', {p_rep_id: repId, p_names: names})
+  const { data, error } = await (signal ? query.abortSignal(signal) : query)
+  if (error || !data || typeof data.version !== 'string' || !/^\d{1,19}$/.test(data.version)
+    || !Array.isArray(data.matches) || data.matches.length !== names.length) throw errors.INVALID_INPUT('audience match unavailable')
+  type Row = {key: string; count: number; month: number | null; day: number | null; gem: string | null; material: string | null; cut: string | null; collection: string | null}
+  const byName = new Map<string, Row>()
+  for (const row of data.matches as Row[]) {
+    if (!row || !names.includes(row.key) || byName.has(row.key) || !Number.isSafeInteger(row.count) || row.count < 0) throw errors.INVALID_INPUT('invalid audience match receipt')
+    byName.set(row.key, row)
+  }
+  const harmlessText = (value: unknown) => typeof value === 'string'
+    ? Array.from(value.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/gu, ' ').trim()).slice(0, 80).join('') : ''
+  const matches: import('../live-lineup/audience').LineupAudienceMatch[] = []
+  for (const entry of eligible) {
+    const row = byName.get(key(entry.name + ' ' + entry.lastName))
+    if (!row || row.count !== 1) continue
+    const birthday = Number.isInteger(row.month) && Number.isInteger(row.day) && row.month! >= 1 && row.month! <= 12
+      && row.day! >= 1 && row.day! <= new Date(Date.UTC(2000,row.month!,0)).getUTCDate() ? row.month + '/' + row.day : null
+    const preferences = [row.gem,row.material,row.cut,row.collection].map(harmlessText).filter(Boolean)
+    if (birthday || preferences.length) matches.push({id:entry.id,sourceIdentityVersion:entry.sourceIdentityVersion!,birthday,preferences})
+  }
+  return {audienceVersion: data.version as string, matches}
+}

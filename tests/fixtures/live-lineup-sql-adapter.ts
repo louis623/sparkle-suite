@@ -39,6 +39,7 @@ export function lineupSqlAdapter(sql: PGlite): SupabaseClient {
     rpc: async (name: string, args: Record<string, unknown>) => {
       const contracts: Record<string, string[]> = {
         live_lineup_compare_swap: ['p_rep_id','p_expected_revision','p_state','p_token_id'],
+        live_lineup_commit: ['p_rep_id','p_expected_revision','p_state','p_token_id','p_guard'],
         live_lineup_claim_receipt: ['p_rep_id','p_token_id','p_claim_id'],
         live_lineup_issue_publisher: ['p_rep_id','p_token_id','p_token_hash','p_label'],
         live_lineup_list_publishers: ['p_rep_id'],
@@ -47,7 +48,7 @@ export function lineupSqlAdapter(sql: PGlite): SupabaseClient {
       const keys = contracts[name]
       if (!keys || Object.keys(args).length !== keys.length) throw new Error('Unexpected RPC contract')
       try {
-        const result = await sql.query(`select * from ${identifier(name)}(${keys.map((_, i) => `$${i + 1}`).join(',')})`, keys.map(key => key === 'p_state' ? JSON.stringify(args[key]) : args[key]))
+        const result = await sql.query(`select * from ${identifier(name)}(${keys.map((_, i) => `$${i + 1}`).join(',')})`, keys.map(key => key === 'p_state' || key === 'p_guard' ? JSON.stringify(args[key]) : args[key]))
         return {data: normalize(result.rows), error: null}
       } catch (error) { return {data: null, error} }
     },

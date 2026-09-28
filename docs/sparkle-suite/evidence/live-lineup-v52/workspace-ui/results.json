@@ -1,0 +1,59 @@
+{
+  "origin": "http://127.0.0.1:60133",
+  "environment": "isolated Chromium synthetic component fixture; real components, mocked private API and Supabase realtime; no production",
+  "results": [
+    {
+      "name": "page identity, meaningful content, no runtime errors",
+      "passed": true
+    },
+    {
+      "name": "wow card is per-order drag/keyboard only",
+      "passed": true
+    },
+    {
+      "name": "Connected read-only viewer retains disabled controls",
+      "passed": true
+    },
+    {
+      "name": "full RTT consumes freshness and updates visible health",
+      "passed": true
+    },
+    {
+      "name": "chip content and row geometry frozen from pointer-down through one-order drop",
+      "passed": true
+    },
+    {
+      "name": "hide/resume releases pointer and locks before any refresh response",
+      "passed": true
+    },
+    {
+      "name": "resize cancels measured gesture without writing an old drop target",
+      "passed": true
+    },
+    {
+      "name": "existing full tool exposes exact-order Hold, preserving adjacent same-name order",
+      "passed": true
+    },
+    {
+      "name": "start-show locked semantic receipt reports Saved once without retry",
+      "passed": true
+    },
+    {
+      "name": "archive-recovery locked semantic receipt reports Saved once",
+      "passed": true
+    },
+    {
+      "name": "older mutation receipt cannot unlock after lifecycle resume",
+      "passed": true
+    },
+    {
+      "name": "audience edit invalidates old in-flight enrichment before cache repopulation",
+      "passed": true
+    },
+    {
+      "name": "browser console health",
+      "passed": true,
+      "errors": []
+    }
+  ]
+}

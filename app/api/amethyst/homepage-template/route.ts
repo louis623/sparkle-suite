@@ -1,3 +1,4 @@
+import { requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
 
 import { loadAmethystTradeBoardPreviewListings } from '@/lib/amethyst/trade-board-listings'
@@ -114,6 +115,7 @@ export async function GET(request: Request) {
     buildAmethystHomepageBootstrapScript(
       enrichAmethystHomepageFeatureData(customerTemplateData.homepage, {
         liveQueueSnapshot,
+        lineupPresentation: requestedLineupPresentation(request),
         tradeBoardListings,
       }),
       linkedEvents,

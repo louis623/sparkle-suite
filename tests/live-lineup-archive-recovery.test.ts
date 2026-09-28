@@ -53,7 +53,7 @@ function database() {
     }).then(resolve,reject)}
   }
   const db={from:(table:string)=>new Query(table),rpc:async(name:string,args:Row)=>{
-    expect(name).toBe('live_lineup_compare_swap'); expect(args.p_token_id).toBeNull()
+    expect(name).toBe('live_lineup_commit'); expect(args.p_token_id).toBeNull(); expect(args.p_guard).toEqual({kind:'owner',requireFresh:false})
     const prior=rows.live_lineup_states.find(row=>row.rep_id===args.p_rep_id)
     if(conflict||!prior||prior.revision!==args.p_expected_revision)return {data:[],error:null}
     expect(args.p_state.show.generation).toBe(prior.state.show.generation+1)

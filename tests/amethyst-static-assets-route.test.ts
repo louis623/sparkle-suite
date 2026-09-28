@@ -77,7 +77,7 @@ describe('Amethyst static asset route', () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toContain('text/html')
     await expect(response.text()).resolves.toContain(
-      'homepage.jsx?v=20260927-powered-by',
+      'homepage.jsx?v=20260928-lineup-always-on',
     )
   })
 
@@ -159,9 +159,9 @@ describe('Amethyst static asset route', () => {
       )
       const html = await response.text()
 
-      expect(html).toContain('src="/amethyst/template-loader.js"')
+      expect(html).toContain('src="/amethyst/template-loader.js?v=20260928-lineup-always-on"')
       if (assetName === 'Join.html') {
-        expect(html).toContain('src="/amethyst/join-runtime.js?v=20260927-powered-by"')
+        expect(html).toContain('src="/amethyst/join-runtime.js?v=20260928-lineup-always-on"')
         expect(html).toContain('href="/amethyst/join.css?v=20260920-team-portraits-v1"')
         expect(html).toContain('href="/amethyst/neon-butterfly.css?v=20260914-team-recruiting-v1"')
         expect(html).not.toContain('tweaks-panel.jsx')

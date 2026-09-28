@@ -134,7 +134,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20260928-hpc1')
+    expect(homepage).toContain('homepage.jsx?v=20260928-lineup-always-on')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -443,7 +443,7 @@ describe('Amethyst homepage template data wiring', () => {
     )
 
     expect(html).toContain(
-      '<script src="template-loader.js" data-template-src="/api/amethyst/homepage-template"></script>',
+      '<script src="template-loader.js?v=20260928-lineup-always-on" data-lineup-presentation="grouped-v1" data-template-src="/api/amethyst/homepage-template"></script>',
     )
     expect(html.indexOf('template-loader.js')).toBeLessThan(
       html.indexOf('homepage.jsx'),

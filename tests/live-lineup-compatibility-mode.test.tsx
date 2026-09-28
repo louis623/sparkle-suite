@@ -52,7 +52,7 @@ vi.mock('@/lib/live-lineup/archive-recovery', () => ({
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: mocks.admin }))
 vi.mock('@/lib/amethyst/request-rep-target', () => ({ resolveAmethystRequestTarget: mocks.target }))
 vi.mock('@/lib/amethyst/preview-rep', () => ({ resolveAmethystPreviewRep: mocks.previewRep }))
-vi.mock('@/lib/amethyst/public-live-lineup', () => ({ buildPublicLiveLineup: mocks.publicProjection }))
+vi.mock('@/lib/amethyst/public-live-lineup', () => ({ buildPublicLiveLineup: mocks.publicProjection, requestedLineupPresentation: () => 'legacy' }))
 
 import { getLiveLineupRuntimeMode, LIVE_LINEUP_MODE_ENV } from '@/lib/live-lineup/runtime-mode'
 import * as workspace from '@/app/api/workspace/live-lineup/route'
@@ -177,7 +177,7 @@ describe('Live Lineup server compatibility mode', () => {
     expect((await publish.POST(sourceRequest({ action: 'claim', claimId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', generation: 1 }))).status).toBe(200)
     expect((await publish.POST(sourceRequest({ action: 'snapshot', packet: { sequence: 1 } }))).status).toBe(200)
     expect(mocks.describe).toHaveBeenCalledWith(db, token)
-    expect(mocks.claim).toHaveBeenCalledWith(db, token, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', expect.any(Number), 1)
+    expect(mocks.claim).toHaveBeenCalledWith(db, token, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', expect.any(Number), 1, undefined)
     expect(mocks.receive).toHaveBeenCalledWith(db, token, { sequence: 1 })
 
     const customerResponse = await publicLineup.GET(new Request(`${origin}/api/amethyst/live-lineup?site=rep-one`))
@@ -200,13 +200,15 @@ describe('Live Lineup read-only Workspace UI contract', () => {
     expect(`${page}\n${client}`).not.toContain('NEXT_PUBLIC_SPARKLE_LIVE_LINEUP')
 
     const card = readFileSync(resolve(process.cwd(), 'app/nic-nac/components/LiveLineupCard.tsx'), 'utf8')
-    expect(card).toContain('const disabled = readOnly || baseDisabled')
-    expect(card).toContain("if (readOnly || !current?.canManage")
+    expect(card).toContain('const disabled = viewOnly || baseDisabled')
+    expect(card).toContain('snapshot?.authorized === false || snapshot?.runtimeWritable === false')
     expect(card).toContain("if (readOnly || !current || mutation.current")
-    expect(card).toContain("readOnly ? 'Customers are shown in their current order.'")
+    expect(card).toContain("workspaceWriteEligible(current, freshnessDeadline.current, performance.now(), suspended.current)")
+    expect(card).toContain("if (readOnly || !current || !canRecoverLineup(current) || suspended.current")
+    expect(card).toContain("viewOnly ? 'Customers are shown in their current order.'")
 
     const supportPage = readFileSync(resolve(process.cwd(), 'app/control-center/support/[sessionId]/page.tsx'), 'utf8')
-    expect(supportPage).toContain('<SupportWorkspaceClient\n      liveLineupReadOnly')
+    expect(supportPage).toMatch(/<SupportWorkspaceClient\s+liveLineupReadOnly/)
     expect(supportPage).not.toContain('liveLineupOwnerMutationsAvailable')
   })
 
@@ -255,15 +257,15 @@ describe('Live Lineup read-only Workspace UI contract', () => {
             }
           };
           const button = (scope, text) => [...scope.querySelectorAll('button')].find(node => node.textContent.trim() === text);
-          async function exercise(scope, readOnly) {
+          async function exercise(scope) {
             await waitFor(() => button(scope, 'Hold'));
             if (!button(scope, 'Hold').disabled) throw new Error('Legacy queue mutation unexpectedly enabled');
-            [...scope.querySelectorAll('summary')].find(node => node.textContent.trim() === 'Extension connection setup').click();
+            [...scope.querySelectorAll('summary')].find(node => node.textContent.trim() === 'Saved connection recovery').click();
             await waitFor(() => button(scope, 'Revoke Show laptop'));
             const refresh = button(scope, 'Refresh connections');
             const create = button(scope, 'Create private connection key');
             if (refresh.disabled) throw new Error('Connection refresh blocked by canManage:false');
-            if (create.disabled !== readOnly) throw new Error('Connection creation safety-mode state is wrong');
+            if (create) throw new Error('Assigned-code recovery exposed an unsupported private-key creation flow');
             const readsBefore = calls.filter(call => call === 'GET /api/workspace/live-lineup/publishers').length;
             refresh.click();
             await waitFor(() => calls.filter(call => call === 'GET /api/workspace/live-lineup/publishers').length > readsBefore);
@@ -274,19 +276,15 @@ describe('Live Lineup read-only Workspace UI contract', () => {
             await waitFor(() => button(scope, 'Confirm revoke Show laptop'));
             button(scope, 'Confirm revoke Show laptop').click();
             await waitFor(() => calls.filter(call => call === 'DELETE /api/workspace/live-lineup/publishers').length > deletesBefore);
-            if (!readOnly) {
-              await waitFor(() => !button(scope, 'Create private connection key').disabled);
-              button(scope, 'Create private connection key').click();
-              await waitFor(() => calls.includes('POST /api/workspace/live-lineup/publishers'));
-            }
+            if (calls.includes('POST /api/workspace/live-lineup/publishers')) throw new Error('Recovery issued a new key');
           }
           async function run() {
             const editable = document.getElementById('editable');
             const safety = document.getElementById('safety');
             createRoot(editable).render(<LiveLineupCard />);
             createRoot(safety).render(<LiveLineupCard readOnly />);
-            await exercise(editable, false);
-            await exercise(safety, true);
+            await exercise(editable);
+            await exercise(safety);
             document.body.dataset.result = 'pass';
           }
           run().catch(error => { document.body.dataset.result = 'fail'; document.body.dataset.error = error instanceof Error ? error.message : String(error); });

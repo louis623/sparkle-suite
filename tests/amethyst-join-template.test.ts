@@ -91,7 +91,7 @@ describe('Amethyst join page template data wiring', () => {
     )
 
     expect(html).toContain(
-      '<script src="template-loader.js" data-template-src="/api/amethyst/join-template"></script>',
+      '<script src="template-loader.js?v=20260928-lineup-always-on" data-lineup-presentation="grouped-v1" data-template-src="/api/amethyst/join-template"></script>',
     )
     expect(html.indexOf('template-loader.js')).toBeLessThan(
       html.indexOf('join-runtime.js'),
@@ -332,7 +332,7 @@ describe('Amethyst join page template data wiring', () => {
     expect(css).not.toContain('rotate(-25deg)')
     expect(css).not.toContain('object-position: left center')
     expect(html).toContain('join.css?v=20260920-team-portraits-v1')
-    expect(html).toContain('join-runtime.js?v=20260928-hpc1')
+    expect(html).toContain('join-runtime.js?v=20260928-lineup-always-on')
   })
 
   it('renders shared SVG social marks on team cards and hides empty or hash hrefs', () => {
