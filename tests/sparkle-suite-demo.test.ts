@@ -75,13 +75,18 @@ describe('Sparkle Suite demo page', () => {
     expect(html).toContain('Show tools')
     expect(html).toContain('Tours')
     expect(html).toContain('aria-pressed="true"')
+    expect(html).toContain('Pick a theme. Change it when the night should feel new.')
     expect(html).toContain('The Halloween theme, on a customer site.')
     expect(html).toContain('Trades on the Dance Floor, while the show keeps moving.')
+    expect(html).toContain('One easy place to call home.')
     expect(html).toContain('href="https://www.youtube.com/@SparkleSuite"')
     expect(html).toContain('href="https://www.tiktok.com/@yoursparklesuite.com"')
     expect(html).toContain('aria-label="Sparkle Suite on TikTok"')
     expect(html).toContain('aria-label="Sparkle Suite on YouTube"')
     expect(html).toContain('aria-label="Sparkle Suite channels"')
+    expect(html).toMatch(
+      /data-variant="hero"[\s\S]*?src="https:\/\/www\.tiktok\.com\/embed\/v2\/7684058046800071966"/,
+    )
     expect(html).toContain('src="https://www.tiktok.com/embed/v2/7688536158795615518"')
     expect(html).not.toContain('src="https://www.tiktok.com/@yoursparklesuite.com"')
     expect(html).not.toContain('src="https://www.youtube.com/@SparkleSuite"')
@@ -117,13 +122,21 @@ describe('Sparkle Suite demo page', () => {
     expect(experience).not.toContain('setInterval')
     expect(grid).not.toContain('setInterval')
     expect(sparkleSuiteDemoEmbeds.map((embed) => embed.videoId)).toEqual([
+      '7684058046800071966',
       '7688536158795615518',
       '7688535448070688030',
-      '7684058046800071966',
+      '7685172940542971167',
+      '7685172167474023711',
+      '7682176393391672607',
       '7682175868885683487',
+      '7682175297860406558',
+      '7682174190195084575',
       '7684071936615402782',
       '7656831540432833822',
     ])
+    expect(sparkleSuiteDemoEmbeds.find((embed) => embed.role === 'featured')?.videoId).toBe(
+      '7684058046800071966',
+    )
     expect(sparkleSuitePublicDemoEmbeds).toHaveLength(sparkleSuiteDemoEmbeds.length)
     expect(sparkleSuiteDemoEmbeds.every((embed) => embed.platform === 'tiktok' && embed.privacy === 'public')).toBe(true)
     expect(sparkleSuiteDemoEmbeds.every((embed) => embed.url === `https://www.tiktok.com/@yoursparklesuite.com/video/${embed.videoId}`)).toBe(true)

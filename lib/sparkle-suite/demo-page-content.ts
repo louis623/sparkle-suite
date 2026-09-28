@@ -20,9 +20,13 @@ import {
  * - TikTok https://www.tiktok.com/@yoursparklesuite.com is the official
  *   account (Louis confirmed). Each id below returned a public oEmbed whose
  *   author_url is that account. Profile URLs are icons, not iframe sources.
+ * - Featured reel: Louis picked https://www.tiktok.com/t/ZP8TTK4KU/ on
+ *   2026-09-28. That short link resolves to
+ *   https://www.tiktok.com/@yoursparklesuite.com/video/7684058046800071966.
  * - Left off on purpose: founder-spot countdown captions, the Sparkle Finder
- *   announcement, the Sparkle Sweets discount walk, and the Mile High Fizz
- *   testing live. tiktok.com/@sparklesuite is an unrelated Mary Kay account.
+ *   announcement, the Sparkle Sweets discount walk, the Mile High Fizz
+ *   testing live, and promo clips that talk about automating pain points or
+ *   a founder discount. tiktok.com/@sparklesuite is an unrelated Mary Kay account.
  */
 export const sparkleSuiteYouTubeChannel = {
   label: 'Sparkle Suite on YouTube',
@@ -130,6 +134,17 @@ function tiktok(videoId: string) {
 /** Public clips from the official TikTok. YouTube stays empty until a listed upload exists. */
 export const sparkleSuiteDemoEmbeds = [
   {
+    id: 'pick-your-theme',
+    platform: 'tiktok',
+    title: 'Pick a theme. Change it when the night should feel new.',
+    summary: 'Customer-facing sites with themes you can switch, so the show stays fresh.',
+    tags: ['site-looks'],
+    videoId: '7684058046800071966',
+    url: tiktok('7684058046800071966'),
+    privacy: 'public',
+    role: 'featured',
+  },
+  {
     id: 'halloween-customer-site',
     platform: 'tiktok',
     title: 'The Halloween theme, on a customer site.',
@@ -138,7 +153,7 @@ export const sparkleSuiteDemoEmbeds = [
     videoId: '7688536158795615518',
     url: tiktok('7688536158795615518'),
     privacy: 'public',
-    role: 'featured',
+    role: 'clip',
   },
   {
     id: 'halloween-theme',
@@ -152,13 +167,35 @@ export const sparkleSuiteDemoEmbeds = [
     role: 'clip',
   },
   {
-    id: 'pick-your-theme',
+    id: 'before-the-live',
     platform: 'tiktok',
-    title: 'Pick a theme. Change it when the night should feel new.',
-    summary: 'Customer-facing sites with themes you can switch, so the show stays fresh.',
+    title: 'The experience starts before the live begins.',
+    summary: 'A polished site gives customers a clearer place to land, see what’s coming, and stay connected.',
     tags: ['site-looks'],
-    videoId: '7684058046800071966',
-    url: tiktok('7684058046800071966'),
+    videoId: '7685172940542971167',
+    url: tiktok('7685172940542971167'),
+    privacy: 'public',
+    role: 'clip',
+  },
+  {
+    id: 'details-customers-notice',
+    platform: 'tiktok',
+    title: 'Details customers notice before they say a word.',
+    summary: 'A clearer setup helps every live feel easier to follow from the first hello.',
+    tags: ['site-looks'],
+    videoId: '7685172167474023711',
+    url: tiktok('7685172167474023711'),
+    privacy: 'public',
+    role: 'clip',
+  },
+  {
+    id: 'shopping-link',
+    platform: 'tiktok',
+    title: 'A welcoming place for the shopping link.',
+    summary: 'New customers can find the shop, discover the show, and get to know the business.',
+    tags: ['site-looks'],
+    videoId: '7682176393391672607',
+    url: tiktok('7682176393391672607'),
     privacy: 'public',
     role: 'clip',
   },
@@ -170,6 +207,28 @@ export const sparkleSuiteDemoEmbeds = [
     tags: ['site-looks'],
     videoId: '7682175868885683487',
     url: tiktok('7682175868885683487'),
+    privacy: 'public',
+    role: 'clip',
+  },
+  {
+    id: 'feels-like-the-live',
+    platform: 'tiktok',
+    title: 'A site that feels like the live.',
+    summary: 'Colors and themes that fit the business, with a welcoming customer experience behind the look.',
+    tags: ['site-looks'],
+    videoId: '7682175297860406558',
+    url: tiktok('7682175297860406558'),
+    privacy: 'public',
+    role: 'clip',
+  },
+  {
+    id: 'one-easy-place',
+    platform: 'tiktok',
+    title: 'One easy place to call home.',
+    summary: 'Customers can find the show and reach the shop without digging through old posts for the right link.',
+    tags: ['site-looks'],
+    videoId: '7682174190195084575',
+    url: tiktok('7682174190195084575'),
     privacy: 'public',
     role: 'clip',
   },
