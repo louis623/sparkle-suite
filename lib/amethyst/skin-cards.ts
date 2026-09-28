@@ -202,7 +202,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     headingFont: 'Playfair Display',
     bodyFont: 'DM Sans',
     surfaceNote: 'Midnight glass cards with silver edges and warm pumpkin glow',
-    motionNote: 'Witch fly-in and moon landing, starbursts, pause control, and reduced-motion support',
+    motionNote: 'Witch fly-in, four gentle star twinkles, pause control, and reduced-motion support',
     swatches: [
       { label: 'Midnight', value: '#090909' },
       { label: 'Pumpkin', value: '#ff6a00' },

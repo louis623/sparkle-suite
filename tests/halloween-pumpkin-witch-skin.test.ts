@@ -124,7 +124,7 @@ describe("Halloween Pumpkin and Witch Amethyst skin", () => {
       const html = read("public", "amethyst", page);
       expect(html).toContain("halloween-pumpkin-witch.css");
       expect(html).toContain("halloween-pumpkin-witch.js");
-      expect(html).toContain("20260921-hpw2");
+      expect(html).toContain("20260928-hpw3");
     },
   );
 
@@ -137,7 +137,7 @@ describe("Halloween Pumpkin and Witch Amethyst skin", () => {
     expect(css).toContain("hero-mobile.webp");
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
     expect(css).toContain("animation-play-state: paused");
-    expect(css).toContain("circle at 20% 61%");
+    expect(css).not.toContain("circle at 20% 61%");
     expect(css).toContain("--hp-electric-purple: #e3b7ff");
     expect(css).toContain("color: #ff9a3d;");
     expect(css).not.toContain(".hpw-bat");
@@ -154,7 +154,7 @@ describe("Halloween Pumpkin and Witch Amethyst skin", () => {
 
     const expectedAssets = {
       "hero-desktop.webp": { width: 1672, height: 941, hasAlpha: false },
-      "hero-mobile.webp": { width: 1024, height: 1536, hasAlpha: false },
+      "hero-mobile.webp": { width: 836, height: 471, hasAlpha: false },
       "witch.webp": { width: 1659, height: 948, hasAlpha: true },
     };
     for (const [asset, expected] of Object.entries(expectedAssets)) {
