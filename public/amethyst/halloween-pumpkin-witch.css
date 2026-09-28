@@ -412,6 +412,8 @@ body.bg-halloween-pumpkin-witch .jp-hero-card {
   body.bg-halloween-pumpkin-witch .hp-hero-inner { grid-template-columns: minmax(0, 1fr); }
   body.bg-halloween-pumpkin-witch .hp-hero-sub { width: 88%; font-size: 17px; }
   body.bg-halloween-pumpkin-witch .hp-hero-headline { font-size: clamp(44px, 4vw, 76px); }
+  body.bg-halloween-pumpkin-witch .tp-hero-title { width: 88%; font-size: clamp(40px, 3.3vw, 60px); }
+  body.bg-halloween-pumpkin-witch .tp-hero-sub { width: 82%; font-size: 17px; }
   body.bg-halloween-pumpkin-witch .jp-hero-card { width: 100%; padding: 28px 24px; }
   body.bg-halloween-pumpkin-witch .jp-hero-title { font-size: clamp(40px, 3.2vw, 58px); }
 }
