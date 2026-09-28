@@ -138,7 +138,7 @@ body.bg-halloween-pumpkin-witch .hp-btn-primary,
 body.bg-halloween-pumpkin-witch .tp-btn-primary,
 body.bg-halloween-pumpkin-witch .jp-btn-primary,
 body.bg-halloween-pumpkin-witch button[type="submit"] {
-  background: linear-gradient(135deg, #ff8a1f, #ff5a00 58%, #c2410c);
+  background: linear-gradient(135deg, #ffab58, #ff8a1f 58%, #ef761f);
   border-color: #ffbc7d;
   color: #160901;
   box-shadow: 0 10px 30px rgba(255, 106, 0, 0.32), inset 0 1px rgba(255, 255, 255, 0.42);
@@ -254,8 +254,47 @@ body.bg-halloween-pumpkin-witch .hp-footer-brand {
 
 body.bg-halloween-pumpkin-witch .hp-signup-preferences,
 body.bg-halloween-pumpkin-witch .hp-signup-preferences :is(strong, span, p, label) {
-  color: #2a1f40;
+  color: var(--hp-form-panel-fg);
 }
+
+/* Self-contained action surfaces stay legible over the illustrated scene. */
+body.bg-halloween-pumpkin-witch :is(.hp-btn-outline,.tp-btn-outline,.jp-btn-outline) {
+  background: #140e0b;
+  color: #fff7ed;
+  border: 1px solid #bda28c;
+  min-height: 44px;
+  font-weight: 600;
+  text-shadow: none;
+}
+body.bg-halloween-pumpkin-witch :is(.hp-btn-outline,.tp-btn-outline,.jp-btn-outline):hover {
+  background: #322116;
+  border-color: #ffbc7d;
+  color: #fff7ed;
+}
+body.bg-halloween-pumpkin-witch .hp-event-platform {
+  background: linear-gradient(135deg, #ffab58, #ff8a1f);
+  color: #160901;
+  border: 1px solid #ffbc7d;
+  min-height: 44px;
+  font-weight: 700;
+  text-shadow: none;
+}
+body.bg-halloween-pumpkin-witch .hp-event-platform:hover {
+  background: #ffbc7d;
+  color: #160901;
+}
+body.bg-halloween-pumpkin-witch .hp-event-add {
+  background: #211914;
+  color: #fff7ed;
+  border-color: #bda28c;
+  min-height: 44px;
+}
+body.bg-halloween-pumpkin-witch .hp-event-add:hover { background: #322116; color: #fff7ed; }
+body.bg-halloween-pumpkin-witch :is(.hp-event-copy,.hp-event-collection-pill,.tp-filter-toggle,.tp-filter-pill,.hpw-motion-control) { min-height: 44px; }
+body.bg-halloween-pumpkin-witch .hp-customer-media-header { color: #160901; }
+body.bg-halloween-pumpkin-witch .hp-customer-media-header :is(strong,span) { color: inherit; }
+body.bg-halloween-pumpkin-witch :is(input,textarea)::placeholder { color: #c8b9aa; opacity: 1; }
+body.bg-halloween-pumpkin-witch :is(button:disabled,[aria-disabled="true"]) { opacity: .65; cursor: not-allowed; }
 
 .hpw-decoration {
   position: absolute;
@@ -409,3 +448,5 @@ body.bg-halloween-pumpkin-witch .tp-card-tier.unicorn,
 body.bg-halloween-pumpkin-witch .tp-filter-badge {
   color: #160901;
 }
+
+@media(max-width:600px){body.bg-halloween-pumpkin-witch .tp-hero-inner{width:100%;max-width:100%;margin-inline:0}}

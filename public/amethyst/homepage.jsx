@@ -528,6 +528,27 @@ const PRESETS = {
     textureOverlay: "neon-butterflies", buttonEnergy: "neon-lift", ctaEmphasis: "standard",
     tradeFlair: "butterfly-glow", cursorEffect: "default", tickerSpeed: 1,
   },
+  halloween_pumpkin_cat: {
+    "primaryColor": "#ff923d",
+    "accentColor": "#f4eee3",
+    "bgTone": "halloweenPumpkinCat",
+    "headingFont": "georgia",
+    "bodyFont": "arial",
+    "headingWeight": 600,
+    "shapeRadius": "soft",
+    "density": "regular",
+    "saturation": 100,
+    "heroMotion": "cat_candle",
+    "sparkleLevel": "none",
+    "bgTreatment": "halloween-pumpkin-cat",
+    "cardSurface": "pumpkin-cat-glass",
+    "textureOverlay": "none",
+    "buttonEnergy": "pumpkin-glow",
+    "ctaEmphasis": "standard",
+    "tradeFlair": "moonlit-sparkles",
+    "cursorEffect": "default",
+    "tickerSpeed": 1
+},
   halloween_pumpkin_witch: {
     primaryColor: "#ff6a00", accentColor: "#f4eee3", bgTone: "halloweenPumpkinWitch",
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
@@ -583,6 +604,7 @@ const PRESETS = {
 // Color tone palettes
 // ============================================================
 const TONES = {
+  halloweenPumpkinCat: {bg:"#080706",elevated:"#1b1511",deep:"#050403"},
   lavender: { bg: "#E8DFF5", elevated: "#F2EBFA", deep: "#DCD0EE" },
   warm:     { bg: "#FFF0E8", elevated: "#FFF7F1", deep: "#FFE2D0" },
   cool:     { bg: "#E0EBFF", elevated: "#EEF3FF", deep: "#CFDFFF" },
@@ -604,6 +626,8 @@ const TONES = {
 };
 
 const FONTS = {
+  georgia: 'Georgia, "Times New Roman", serif',
+  arial: 'Arial, sans-serif',
   vend: '"Vend Sans", "Inter", system-ui, sans-serif',
   inter: '"Inter", system-ui, sans-serif',
   serif: '"Fraunces", "Domine", Georgia, serif',
@@ -729,10 +753,11 @@ function Hero({ t, isLive, liveShow }) {
   const heroWatchLinks = getHeroWatchLinks(liveShow, isLive);
 
   return (
-    <section className="hp-hero">
+    <>
+    <section className="hp-hero" data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
       {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
       <div className="hp-hero-media" aria-hidden="true" />
-      <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />
+      {t.preset !== "halloween_pumpkin_cat" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
       <div className="hp-hero-inner">
         <div>
           {isMileHighFizzHybrid && (
@@ -773,6 +798,7 @@ function Hero({ t, isLive, liveShow }) {
                 <div className="hp-hero-cta-stack">
                   <div className="hp-hero-cta-primary-row">
                     <a {...linkProps(getShopHref())} className="hp-btn-outline">Shop Bomb Party</a>
+                    {t.preset === "halloween_pumpkin_cat" && isBrittWithBlingHybrid && joinTeamHref && <a {...linkProps(joinTeamHref)} className="hp-btn-outline">Join the Team</a>}
                     {heroWatchLinks.map((link) => (
                       <a key={link.id} {...linkProps(link.href)} className={`hp-btn-outline hp-btn-watch ${isLive && link.id === "tiktok" ? "is-live" : "is-offline"}`}>
                         {isLive && link.id === "tiktok" && <span className="hp-watch-dot" />}
@@ -795,10 +821,12 @@ function Hero({ t, isLive, liveShow }) {
               </>
             )}
           </div>
-          <RevealScreenshotTip />
+          {t.preset !== "halloween_pumpkin_cat" && <RevealScreenshotTip />}
         </div>
       </div>
     </section>
+    {t.preset === "halloween_pumpkin_cat" && <div className="hpc-reminder"><RevealScreenshotTip /></div>}
+    </>
   );
 }
 
@@ -2322,6 +2350,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
     <div className="mhf-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
+      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="mhf-hero" aria-labelledby="mhf-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         <video className="mhf-hero-video" autoPlay muted loop playsInline poster="">
@@ -2353,6 +2382,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
           <RevealScreenshotTip />
         </div>
       </section>
+      )}
 
       <div className="mhf-below-hero-shell">
         <div className="mhf-automation-panel">
@@ -2448,6 +2478,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
     <div className="bwb-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
+      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="bwb-hero" aria-labelledby="bwb-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         <img className="bwb-hero-image" src={heroImageUrl} alt="" />
@@ -2477,6 +2508,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
           <RevealScreenshotTip />
         </div>
       </section>
+      )}
 
       <div className="bwb-below-hero-shell">
         <BrittWithBlingFeaturedReveal />
@@ -2503,6 +2535,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
     <div className="bk-home-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
+      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="bk-home-hero" aria-labelledby="bk-home-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         {heroImageUrl && <img className="bk-home-hero-image" src={heroImageUrl} alt="" />}
@@ -2528,6 +2561,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
           <RevealScreenshotTip />
         </div>
       </section>
+      )}
 
       <div className="bk-home-below-shell">
         <section className="bk-home-pantry-callout">
@@ -2619,7 +2653,8 @@ function App() {
     if (t.bgTreatment === "emerald-garden") body.classList.add("bg-emerald-garden");
     if (t.bgTreatment === "gnome-garden") body.classList.add("bg-gnome-garden");
     if (t.bgTreatment === "neon-butterfly") body.classList.add("bg-neon-butterfly");
-  if (t.bgTreatment === "halloween-pumpkin-witch") body.classList.add("bg-halloween-pumpkin-witch");
+  if (t.bgTreatment === "halloween-pumpkin-cat") body.classList.add("bg-halloween-pumpkin-cat");
+    if (t.bgTreatment === "halloween-pumpkin-witch") body.classList.add("bg-halloween-pumpkin-witch");
     if (t.bgTreatment === "rose-gold-paper") body.classList.add("bg-rose-gold-paper");
     if (t.bgTreatment === "garnet-shell") body.classList.add("bg-garnet-shell");
     if (t.bgTreatment === "amber-paper") body.classList.add("bg-amber-paper");
@@ -2634,7 +2669,8 @@ function App() {
     if (t.cardSurface === "spa-ivory") body.classList.add("surface-spa-ivory");
     if (t.cardSurface === "storybook-parchment") body.classList.add("surface-storybook-parchment");
     if (t.cardSurface === "neon-velvet-glass") body.classList.add("surface-neon-velvet-glass");
-  if (t.cardSurface === "midnight-glass") body.classList.add("surface-midnight-glass");
+  if (t.cardSurface === "pumpkin-cat-glass") body.classList.add("surface-pumpkin-cat-glass");
+    if (t.cardSurface === "midnight-glass") body.classList.add("surface-midnight-glass");
     if (t.cardSurface === "pearl-rose") body.classList.add("surface-pearl-rose");
     if (t.cardSurface === "blush-shell") body.classList.add("surface-blush-shell");
     if (t.cardSurface === "sunlit-pearl") body.classList.add("surface-sunlit-pearl");
@@ -2779,6 +2815,7 @@ function App() {
               { value: "gnome_garden", label: "Gnome Forest" },
               { value: "neon_butterfly", label: "Neon Butterfly" },
             { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
+              { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
               { value: "garnet", label: "Garnet" },
               { value: "amber", label: "Amber" },

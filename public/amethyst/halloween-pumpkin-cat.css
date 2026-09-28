@@ -1,0 +1,100 @@
+/* Approved Pumpkin & Cat composition. Decorative media never receives input. */
+body.bg-halloween-pumpkin-cat {
+  --fg:#fff7ed; --fg-muted:#d6c8bb; --border:#5e4738;
+  --primary:#ff923d; --accent:#f4eee3; --bg:#080706; --bg-elevated:#1b1511;
+  --hp-primary:#ff923d; --hp-accent:#f4eee3; --hp-bg:#080706; --hp-bg-elevated:#1b1511; --bg-deep:#050403;
+  --hp-display-font:Georgia,'Times New Roman',serif; --hp-body-font:Arial,sans-serif; --hp-heading-weight:600;
+  --hp-card-fg:#fff7ed; --hp-card-muted:#dacbc1; --hp-card-accent:#ffb776;
+  --hp-form-panel-bg:#1b1511; --hp-form-panel-fg:#fff7ed; --hp-field-bg:#100c09; --hp-field-fg:#fff7ed;
+  --hp-action-fg:#200d02; --hp-electric-purple:#ffb776; --hp-soft-purple:#f4e5d4;
+  --hp-preview-bg:#1b1511; --hp-preview-fg:#fff7ed; --hp-preview-muted:#d6c8bb;
+  --hp-tip-surface:#1b1511; --hp-tip-ink:#fff7ed; --hp-tip-accent:#ffb776; --hp-tip-border:#66513f;
+  --hp-media-card-bg:#1b1511; --hp-media-card-fg:#fff7ed; --hp-media-card-muted:#dacbc1;
+  --hp-media-card-header-bg:#ffb776; --hp-media-card-accent-contrast:#200d02;
+  --hp-final-fg:#fff7ed; --hp-final-muted:#dacbc1; --hp-final-icon-fg:#200d02;
+  background:#080706; color:#fff7ed; font-family:Arial,sans-serif;
+}
+body.bg-halloween-pumpkin-cat :is(.hp-header,.tp-header,.jp-header,.hp-sticky-stack){background:#0a0806;color:#fff7ed;border-color:#3a2a20;backdrop-filter:none}
+body.bg-halloween-pumpkin-cat :is(.hp-header-link,.tp-header-link,.jp-header-link){color:#f4e5d4}
+body.bg-halloween-pumpkin-cat .hp-header-link.active{color:#ffab66}
+body.bg-halloween-pumpkin-cat .hp-brand-name{font-family:Georgia,serif;color:#fff0db}
+body.bg-halloween-pumpkin-cat :is(.hp-ticker,.tp-ticker,.jp-ticker){background:#231309;color:#fff3e5;border-color:#50311f}
+body.bg-halloween-pumpkin-cat .hp-ticker-row.reverse{background:#110d0a}
+body.bg-halloween-pumpkin-cat .hp-ticker-row:not(.reverse) .hp-ticker-label{background:#231309;color:#ffba82}
+body.bg-halloween-pumpkin-cat :is(.hp-ticker a,.hp-live-rail a,.hp-trade-preview-link){color:#ffb776}
+body.bg-halloween-pumpkin-cat .hp-hero{display:block;position:relative;isolation:isolate;min-height:56.28vw;overflow:hidden;background:#050403;color:#fff7ed}
+body.bg-halloween-pumpkin-cat .hp-hero::before,body.bg-halloween-pumpkin-cat .hp-hero::after,
+body.bg-halloween-pumpkin-cat :is(.hp-hero-media,.hp-hero-fx-layer){display:none}
+body.bg-halloween-pumpkin-cat .hpc-art{position:absolute;inset:0;z-index:0;pointer-events:none}
+.hpc-art img{display:block;width:100%;height:100%;object-fit:contain;object-position:bottom}
+.hpc-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:bottom;opacity:0;pointer-events:none}
+.hpc-art[data-playing] .hpc-video{opacity:1}
+body.bg-halloween-pumpkin-cat .hp-hero-inner{position:relative;z-index:2;display:block;width:100%;max-width:none;padding:4.4% 0 max(160px,15vw) 11%;text-align:left}
+body.bg-halloween-pumpkin-cat .hp-hero-inner>div{width:42%;max-width:600px}
+body.bg-halloween-pumpkin-cat .hp-hero-headline{font:600 clamp(42px,4.75vw,78px)/1.04 Georgia,'Times New Roman',serif;letter-spacing:-.035em;margin:0 0 20px;padding:0;color:#ffa357;text-shadow:0 2px 20px #000;overflow-wrap:anywhere}
+body.bg-halloween-pumpkin-cat .hp-hero-sub{font-size:clamp(14px,1.15vw,19px);line-height:1.6;color:#e4d9ce;max-width:37ch;margin:0 0 24px;text-wrap:pretty}
+body.bg-halloween-pumpkin-cat .hp-hero-ctas{justify-content:flex-start}
+body.bg-halloween-pumpkin-cat .hp-hero-cta-stack{width:min(100%,410px);gap:12px}
+body.bg-halloween-pumpkin-cat .hp-hero-cta-primary-row{display:flex;flex-wrap:wrap;gap:10px}
+body.bg-halloween-pumpkin-cat :is(.hp-btn-outline,.hp-btn-secondary,.tp-btn-secondary,.jp-btn-secondary,.hp-event-add,.hp-event-platform){background:#120c08;color:#fff3e5;border:1px solid #7a5c44;min-height:44px;padding:11px 17px;font-size:13px;line-height:1.5;justify-content:center;text-shadow:none}
+body.bg-halloween-pumpkin-cat :is(.hp-btn-primary,.tp-btn-primary,.jp-btn-primary,.hp-signup-submit,.hp-unsubscribe-submit){background:linear-gradient(135deg,#ffbc70,#ff892b);color:#200d02;border:1px solid #ffbd7a;min-height:48px;padding:15px 22px;border-radius:999px;font-size:14px;font-weight:700;box-shadow:0 6px 28px #ff741b24;text-shadow:none}
+body.bg-halloween-pumpkin-cat .hp-shop-btn{background:#ff9e4e;color:#1a0b02;border:1px solid #ffc083;box-shadow:none}
+body.bg-halloween-pumpkin-cat .hp-btn-sparkle .spark{display:none}
+body.bg-halloween-pumpkin-cat :is(.hp-btn-outline,.hp-event-add,.hp-event-platform):hover{background:#332316;color:#fff7ed;border-color:#ffb776}
+body.bg-halloween-pumpkin-cat :is(.hp-btn-primary,.tp-btn-primary,.jp-btn-primary):hover{color:#200d02;filter:brightness(1.06);transform:translateY(-2px)}
+body.bg-halloween-pumpkin-cat :is(a,button,input,select,textarea):focus-visible{outline:3px solid #fff7ed;outline-offset:4px}
+.hpc-motion-control{position:absolute;z-index:3;bottom:16px;left:50%;transform:translateX(-50%);background:#100c09e8;color:#ffe3c6;border:1px solid #947452;border-radius:999px;padding:10px 16px;min-height:44px;font:12px/1.5 Arial,sans-serif;cursor:pointer}
+.hpc-motion-control[hidden]{display:none}
+body.bg-halloween-pumpkin-cat .hpc-reminder{padding:24px 24px 0}
+body.bg-halloween-pumpkin-cat .hp-reveal-screenshot-tip{margin:0 auto;width:min(100%,900px);font-size:12px;text-align:center;line-height:1.6;padding:13px 24px;box-shadow:none}
+body.bg-halloween-pumpkin-cat .hp-reveal-screenshot-tip strong{color:#ffb776}
+body.bg-halloween-pumpkin-cat :is(.hp-section-title,.jp-section-title){color:#fff1df;font-family:Georgia,serif}
+body.bg-halloween-pumpkin-cat .hp-section-sub{color:#c8b9aa}
+body.bg-halloween-pumpkin-cat :is(.hp-event-card,.tp-card,.tp-dancer-card,.jp-benefit,.jp-team-card,.hp-signup-card,.hp-unsubscribe-card){background:linear-gradient(140deg,#241a12,#100d0a);border:1px solid #59402b;color:#fff7ed;box-shadow:none}
+body.bg-halloween-pumpkin-cat .hp-event-card{padding:26px;gap:18px;border-radius:20px}
+body.bg-halloween-pumpkin-cat .hp-event-name{color:#ffbe85;font-family:Georgia,serif;font-size:25px}
+body.bg-halloween-pumpkin-cat :is(.hp-event-pill,.tp-filter-badge,.tp-card-tier.unicorn){background:#ffb776;color:#200d02}
+body.bg-halloween-pumpkin-cat :is(.hp-event-meta,.hp-event-description){color:#decebf}
+body.bg-halloween-pumpkin-cat :is(.hp-event-meta-row,.hp-event-meta-icon,.hp-event-copy,.hp-event-section-title){color:#ffb776}
+body.bg-halloween-pumpkin-cat .hp-event-collection-pill{color:#f6d7b9;border:1px solid #725033;background:#332316}
+body.bg-halloween-pumpkin-cat :is(.hp-event-add,.hp-event-platform){background:#332316;color:#fff1df}
+body.bg-halloween-pumpkin-cat :is(input,select,textarea){background:#100c09;color:#fff7ed;border-color:#7a5c44}
+body.bg-halloween-pumpkin-cat :is(input,textarea)::placeholder{color:#c8b9aa;opacity:1}
+body.bg-halloween-pumpkin-cat :is(.hp-signup-preferences,.hp-signup-consent-box){background:var(--hp-form-panel-bg);color:var(--hp-form-panel-fg)}
+body.bg-halloween-pumpkin-cat .hp-signup-preferences :is(strong,span,p,label){color:var(--hp-form-panel-fg)}
+body.bg-halloween-pumpkin-cat :is(.tp-hero,.jp-hero){background:#080706;color:#fff7ed}
+body.bg-halloween-pumpkin-cat :is(.tp-hero h1,.jp-hero h1){color:#ffa357}
+body.bg-halloween-pumpkin-cat :is(.jp-hero-media,.jp-hero-media::before){background:none}
+body.bg-halloween-pumpkin-cat :is(.jp-hero-card,.jp-final-card){background:#1b1511;color:#fff7ed;border:1px solid #59402b;backdrop-filter:none;box-shadow:none}
+body.bg-halloween-pumpkin-cat .jp-section-title{background:none;-webkit-text-fill-color:#fff1df}
+body.bg-halloween-pumpkin-cat :is(.tp-card-action,.tp-filter-toggle,.tp-filter-pill,.hp-event-copy,.hp-event-collection-pill){min-height:44px}
+body.bg-halloween-pumpkin-cat .tp-card-action{background:#332316;color:#fff3e5;border-color:#7a5c44}
+body.bg-halloween-pumpkin-cat :is(.hp-footer,.hp-about-copy,.hp-wibp-card){background:#110d0a;color:#fff7ed}
+body.bg-halloween-pumpkin-cat .hp-footer :is(p,a,span){color:#d9c1ad}
+@media(min-width:1101px) and (max-width:1350px){body.bg-halloween-pumpkin-cat .hp-hero-inner{padding-top:3%}body.bg-halloween-pumpkin-cat .hp-hero-headline{margin-bottom:16px}body.bg-halloween-pumpkin-cat .hp-hero-sub{margin-bottom:20px}}
+@media(min-width:1800px){body.bg-halloween-pumpkin-cat .hp-hero-inner{padding-top:7%}body.bg-halloween-pumpkin-cat .hp-hero-headline{font-size:88px}}
+@media(max-width:1100px){
+ body.bg-halloween-pumpkin-cat .hp-hero{min-height:0}
+ body.bg-halloween-pumpkin-cat .hpc-art{position:relative;display:block;width:min(100%,620px);margin:auto;aspect-ratio:1}
+ body.bg-halloween-pumpkin-cat .hp-hero-inner{padding:18px 28px 40px;text-align:center}
+ body.bg-halloween-pumpkin-cat .hp-hero-inner>div{width:100%;max-width:650px;margin:auto}
+ body.bg-halloween-pumpkin-cat .hp-hero-headline{font-size:clamp(42px,6vw,60px);line-height:1.05;margin-bottom:18px}
+ body.bg-halloween-pumpkin-cat .hp-hero-headline span{display:inline!important}
+ body.bg-halloween-pumpkin-cat .hp-hero-headline span::after{content:' '}
+ body.bg-halloween-pumpkin-cat .hp-hero-sub{font-size:16px;max-width:38ch;margin:0 auto 24px}
+ body.bg-halloween-pumpkin-cat .hp-hero-ctas,body.bg-halloween-pumpkin-cat .hp-hero-cta-primary-row{justify-content:center}
+ .hpc-video,.hpc-motion-control{display:none}
+}
+@media(max-width:600px){
+ body.bg-halloween-pumpkin-cat .hp-hero-inner{padding:16px 24px 32px}
+ body.bg-halloween-pumpkin-cat .hp-hero-headline{font-size:44px;max-width:340px;margin:0 auto 18px}
+ body.bg-halloween-pumpkin-cat .hp-hero-headline span{display:block!important}
+ body.bg-halloween-pumpkin-cat .hp-hero-sub{font-size:14px;line-height:1.65}
+ body.bg-halloween-pumpkin-cat .hp-btn-outline{flex:1 1 auto;font-size:12px;padding:11px 12px}
+ body.bg-halloween-pumpkin-cat .hp-btn-primary{font-size:13px;padding:15px 20px}
+ body.bg-halloween-pumpkin-cat .hpc-reminder{padding:0 18px}
+ body.bg-halloween-pumpkin-cat .hp-reveal-screenshot-tip{font-size:11px;padding:13px 16px;border-radius:14px}
+}
+@media(prefers-reduced-motion:reduce){body.bg-halloween-pumpkin-cat *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+@media(max-width:600px){body.bg-halloween-pumpkin-cat .tp-hero-inner{width:100%;max-width:100%;margin-inline:0}}

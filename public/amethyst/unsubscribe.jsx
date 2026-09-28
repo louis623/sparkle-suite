@@ -13,6 +13,11 @@ const TRADE_BOARD_HREF = FOOTER_LINKS.tradeBoard || "/amethyst/Trade.html";
 function applyUnsubscribeAppearance() {
   const preset = window.HOMEPAGE_TWEAK_DEFAULTS?.preset;
 
+  if (preset === "halloween_pumpkin_cat") {
+    document.body.classList.add("bg-halloween-pumpkin-cat", "shape-soft");
+    return;
+  }
+
   if (preset === "halloween_pumpkin_witch") {
     document.body.classList.add("bg-halloween-pumpkin-witch", "surface-midnight-glass", "shape-soft", "hpw-utility");
     const halloweenTokens = {

@@ -6844,3 +6844,16 @@ body.surface-midnight-glass {
 body.btn-pumpkin-glow {
   --hp-action-fg: #2a1f40;
 }
+
+body.surface-pumpkin-cat-glass {
+  --hp-final-fg: #fff7ed;
+  --hp-final-muted: #dacbc1;
+  --hp-final-icon-fg: #200d02;
+  --hp-card-fg: #fff7ed;
+  --hp-card-muted: #dacbc1;
+  --hp-card-accent: #ffb776;
+  --hp-form-panel-bg: #1b1511;
+  --hp-form-panel-fg: #fff7ed;
+  --hp-field-bg: #100c09;
+  --hp-field-fg: #fff7ed;
+}

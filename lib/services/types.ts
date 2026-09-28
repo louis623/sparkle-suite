@@ -613,6 +613,7 @@ export type SiteAppearancePreset =
   | 'gnome_garden'
   | 'neon_butterfly'
   | 'halloween_pumpkin_witch'
+  | 'halloween_pumpkin_cat'
   | 'rose_gold'
   | 'garnet'
   | 'amber'

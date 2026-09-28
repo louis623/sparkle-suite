@@ -10,6 +10,7 @@ interface CustomerFaqOptions {
 }
 
 const TONES: Record<string, { bg: string; elevated: string }> = {
+  halloweenPumpkinCat: { bg: '#080706', elevated: '#1b1511' },
   lavender: { bg: '#E8DFF5', elevated: '#F2EBFA' },
   suiteBlush: { bg: '#fcf8f6', elevated: '#fffefd' },
   blackDiamond: { bg: '#080808', elevated: '#15110f' },
@@ -26,6 +27,7 @@ const TONES: Record<string, { bg: string; elevated: string }> = {
 }
 
 const FONTS: Record<string, string> = {
+  georgia: 'Georgia, serif', arial: 'Arial, sans-serif',
   italiana: '"Italiana", "Playfair Display", Georgia, serif',
   playfair: '"Playfair Display", Georgia, serif',
   greatVibes: '"Great Vibes", "Playfair Display", cursive',
@@ -45,7 +47,7 @@ const FONTS: Record<string, string> = {
   inter: '"Inter", Arial, sans-serif',
 }
 
-const DARK_TONES = new Set(['blackDiamond', 'moonstone', 'gnomeGarden', 'neonButterfly', 'halloweenPumpkinWitch'])
+const DARK_TONES = new Set(['blackDiamond', 'moonstone', 'gnomeGarden', 'neonButterfly', 'halloweenPumpkinWitch', 'halloweenPumpkinCat'])
 
 export const DANCE_FLOOR_FAQ = [
   {
@@ -159,6 +161,7 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
   <link rel="stylesheet" href="/amethyst/gnome-garden.css" />
   <link rel="stylesheet" href="/amethyst/neon-butterfly.css" />
   <link rel="stylesheet" href="/amethyst/halloween-pumpkin-witch.css" />
+  <link rel="stylesheet" href="/amethyst/halloween-pumpkin-cat.css?v=20260928-hpc1" />
   <link rel="stylesheet" href="/amethyst/faq.css?v=20260927-powered-by" />
 </head>
 <body class="${escapeHtml(bodyClasses)}">

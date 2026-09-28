@@ -134,7 +134,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20260927-powered-by')
+    expect(homepage).toContain('homepage.jsx?v=20260928-hpc1')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -1052,7 +1052,11 @@ describe('Amethyst homepage template data wiring', () => {
         layout.indexOf(`className="${actionClass}"`),
       )
       expect(layout.indexOf('<RevealScreenshotTip />')).toBeLessThan(layout.indexOf('</section>'))
-      expect(layout.match(/<RevealScreenshotTip \/>/g)).toHaveLength(1)
+      expect(layout.match(/<RevealScreenshotTip \/>/g)).toHaveLength(start === 'function Hero({' ? 2 : 1)
+      if (start === 'function Hero({') {
+        expect(layout).toContain('t.preset !== "halloween_pumpkin_cat" && <RevealScreenshotTip />')
+        expect(layout).toContain('t.preset === "halloween_pumpkin_cat" && <div className="hpc-reminder">')
+      }
     }
 
     expect(css).toContain('--hp-tip-surface: #1b1720;')

@@ -180,6 +180,17 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     ],
   },
   {
+    id: 'halloween_pumpkin_cat',
+    visibility: 'community', code: 'HPC-01', label: 'Halloween Pumpkin and Cat',
+    aliases: ['Pumpkin and Cat', 'Halloween Cat', 'Pumpkin & Cat'],
+    previewHref: '/skin-preview/halloween_pumpkin_cat/homepage',
+    description: 'A glittery kitten with a diamond skull charm perched on a glowing, smiling cat-faced pumpkin.',
+    headingFont: 'Georgia', bodyFont: 'Arial',
+    surfaceNote: 'Warm black cards, soft ivory text, and polished pumpkin-orange buttons',
+    motionNote: 'A gentle blink, curious tail swish, and warm candle glow on desktop; a still scene on phones and with reduced motion',
+    swatches: [{label:'Midnight',value:'#080706'},{label:'Pumpkin',value:'#ff923d'},{label:'Ivory',value:'#fff7ed'},{label:'Warm glass',value:'#1b1511'}],
+  },
+  {
     id: 'halloween_pumpkin_witch',
     visibility: 'community',
     code: 'HPW-01',
