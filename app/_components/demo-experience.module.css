@@ -133,6 +133,11 @@
   font-size: 14px;
 }
 
+.channelRow {
+  width: 100%;
+  margin-top: 18px;
+}
+
 .hero :is(a, button):focus-visible,
 .bandInk :is(a, button):focus-visible,
 .close :is(a, button):focus-visible { outline-color: #ffd6ec; }

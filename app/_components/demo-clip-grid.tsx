@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import { DemoEmbedFrame } from '@/app/_components/demo-embed-frame'
+import { MarketingSocialLinks } from '@/app/_components/marketing-social-links'
 import {
   demoClipFilters,
   filterDemoEmbeds,
   sparkleSuitePublicDemoEmbeds,
-  sparkleSuiteTikTokChannel,
-  sparkleSuiteYouTubeChannel,
   sparkleSuiteDemoContent,
   type DemoClipFilter,
 } from '@/lib/sparkle-suite/demo-page-content'
@@ -35,8 +34,7 @@ export function DemoClipGrid() {
         {clips.length === 0 ? (
           <div className={styles.clipEmpty}>
             <p>{sparkleSuiteDemoContent.clips.empty}</p>
-            <a href={sparkleSuiteTikTokChannel.href}>{sparkleSuiteTikTokChannel.label}</a>
-            <a href={sparkleSuiteYouTubeChannel.href}>{sparkleSuiteYouTubeChannel.label}</a>
+            <MarketingSocialLinks />
           </div>
         ) : (
           <ul className={styles.clipGrid}>

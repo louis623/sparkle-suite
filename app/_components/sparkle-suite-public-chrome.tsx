@@ -2,6 +2,7 @@ import {
   sparkleSuitePublicLandingContent,
   sparkleSuitePublicLandingSafety,
 } from '@/lib/sparkle-suite/public-landing-content'
+import { MarketingSocialLinks } from './marketing-social-links'
 import { SparkleSuitePublicAccountAction } from './SparkleSuitePublicAccountAction'
 
 export function SparkleSeal({ className }: { className?: string }) {
@@ -74,11 +75,14 @@ export function SparkleSuitePublicFooter() {
           </div>
           <div>
             <h2>Social</h2>
-            {footer.socialLinks.map((link) => (
-              <a href={link.href} key={link.label}>
-                {link.label}
-              </a>
-            ))}
+            {footer.socialLinks
+              .filter((link) => link.href !== '#' && link.label !== 'TikTok' && link.label !== 'YouTube')
+              .map((link) => (
+                <a href={link.href} key={link.label}>
+                  {link.label}
+                </a>
+              ))}
+            <MarketingSocialLinks tone="night" />
           </div>
         </nav>
         <p>{sparkleSuitePublicLandingSafety.disclaimer}</p>

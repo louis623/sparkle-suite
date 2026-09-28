@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { MarketingFooter, MarketingHeader } from '@/app/_components/landing-experience'
+import { MarketingSocialLinks } from '@/app/_components/marketing-social-links'
 import { DemoClipGrid } from '@/app/_components/demo-clip-grid'
 import { DemoEmbedFrame } from '@/app/_components/demo-embed-frame'
 import {
@@ -10,7 +11,6 @@ import {
   sparkleSuiteDemoCta,
   sparkleSuiteDemoPortfolioLink,
   sparkleSuiteDemoStories,
-  sparkleSuiteYouTubeChannel,
   tourDemoEmbed,
 } from '@/lib/sparkle-suite/demo-page-content'
 import styles from './demo-experience.module.css'
@@ -41,6 +41,7 @@ export function DemoExperience() {
               </Link>
             </div>
             <p className={styles.heroNote}>{sparkleSuiteDemoCta.note}</p>
+            <MarketingSocialLinks className={styles.channelRow} tone="night" />
           </div>
           <div className={styles.stage} id="featured">
             {featured ? (
@@ -56,7 +57,7 @@ export function DemoExperience() {
                 <div className={styles.stageCopy}>
                   <h2>{copy.featured.emptyTitle}</h2>
                   <p>{copy.featured.emptyBody}</p>
-                  <a href={sparkleSuiteYouTubeChannel.href}>{sparkleSuiteYouTubeChannel.label}</a>
+                  <MarketingSocialLinks tone="night" />
                 </div>
               </div>
             )}

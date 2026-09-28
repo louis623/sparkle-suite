@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import { sparkleSuitePublicLandingContent as content, sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
+import { MarketingSocialLinks } from './marketing-social-links'
 import { SparkleSeal } from './sparkle-suite-public-chrome'
 import { SparkleSuitePublicAccountAction } from './SparkleSuitePublicAccountAction'
 import { SparkleSuitePublicNicNac } from './sparkle-suite-public-nic-nac'
@@ -37,9 +38,11 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
 }
 
 export function MarketingFooter() {
+  const textLinks = [...content.footer.links, ...content.footer.socialLinks].filter((link) => link.href !== '#' && link.label !== 'TikTok' && link.label !== 'YouTube')
   return <footer className={styles.footer}>
     <Link className={styles.brand} href="/" aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></Link>
-    <nav aria-label="Footer links">{[...content.footer.links, ...content.footer.socialLinks].filter(link => link.href !== '#').map(link => <a key={link.label} href={link.href}>{link.label}</a>)}</nav>
+    <nav aria-label="Footer links">{textLinks.map((link) => <a key={link.label} href={link.href}>{link.label}</a>)}</nav>
+    <MarketingSocialLinks />
     <p>{sparkleSuitePublicLandingSafety.disclaimer}</p>
   </footer>
 }
