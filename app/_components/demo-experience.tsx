@@ -7,6 +7,7 @@ import { DemoClipGrid } from '@/app/_components/demo-clip-grid'
 import { DemoEmbedFrame } from '@/app/_components/demo-embed-frame'
 import {
   featuredDemoEmbed,
+  gridDemoEmbeds,
   sparkleSuiteDemoContent,
   sparkleSuiteDemoCta,
   sparkleSuiteDemoPortfolioLink,
@@ -17,6 +18,7 @@ import styles from './demo-experience.module.css'
 
 export function DemoExperience() {
   const featured = featuredDemoEmbed()
+  const gridClips = gridDemoEmbeds()
   const tour = tourDemoEmbed()
   const copy = sparkleSuiteDemoContent
 
@@ -95,13 +97,15 @@ export function DemoExperience() {
         </div>
       </section>
 
-      <section className={`${styles.band} ${styles.bandBlush}`} id="clips" aria-labelledby="clips-title" data-band="blush">
-        <div className={styles.bandInner}>
-          <p className={styles.eyebrow}>{copy.clips.eyebrow}</p>
-          <h2 id="clips-title">{copy.clips.heading}</h2>
-          <DemoClipGrid />
-        </div>
-      </section>
+      {gridClips.length > 0 ? (
+        <section className={`${styles.band} ${styles.bandBlush}`} id="clips" aria-labelledby="clips-title" data-band="blush">
+          <div className={styles.bandInner}>
+            <p className={styles.eyebrow}>{copy.clips.eyebrow}</p>
+            <h2 id="clips-title">{copy.clips.heading}</h2>
+            <DemoClipGrid />
+          </div>
+        </section>
+      ) : null}
 
       <section className={`${styles.band} ${styles.bandInk}`} id="portfolio-handoff" aria-labelledby="portfolio-handoff-title" data-band="ink">
         <div className={styles.bandInner}>

@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
+import { gridDemoEmbeds } from '@/lib/sparkle-suite/demo-page-content'
 import { sparkleSuitePublicLandingContent as content, sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 import { MarketingSocialLinks } from './marketing-social-links'
 import { SparkleSeal } from './sparkle-suite-public-chrome'
@@ -24,7 +25,7 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
       </> : onDemo ? <>
         <a className={styles.sectionLink} href="#featured">Featured</a>
         <a className={styles.sectionLink} href="#show-stories">Show stories</a>
-        <a className={styles.sectionLink} href="#clips">Clips</a>
+        {gridDemoEmbeds().length > 0 ? <a className={styles.sectionLink} href="#clips">Clips</a> : null}
       </> : <>
         <a className={styles.sectionLink} href={`${intake ? '/' : ''}#customer-site-proof`}>Your site</a>
         <a className={styles.sectionLink} href={`${intake ? '/' : ''}#workspace-proof`}>Show tools</a>

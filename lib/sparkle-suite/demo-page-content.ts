@@ -5,28 +5,29 @@ import {
 } from '@/lib/sparkle-suite/public-landing-content'
 
 /**
- * Demo page embeds. Ops: this file is the only place to add a clip.
+ * Demo page embeds. This file is the only place to add or swap a clip.
  *
- * Add a public TikTok video from @yoursparklesuite.com, or a listed/public
- * YouTube video from @SparkleSuite. Never paste an unlisted YouTube id.
- * Do not add Workspace, Nic-Nac, or backend factory walkthroughs.
+ * To put a dedicated marketing demo on the page, edit `sparkleSuiteDemoEmbeds`:
+ * - Replace the object with `role: 'featured'` to change the hero reel. Keep one.
+ * - Append an object with `role: 'clip'` to fill the filtered grid.
+ * - Append an object with `role: 'tour'` for the longer walk-through.
+ * The clips band and the Clips nav link appear on their own once a
+ * non-featured embed passes `isPublishableDemoEmbed`.
  *
- * Checked 2026-09-28, after Louis confirmed the YouTube profile
- * https://youtube.com/@sparklesuite:
- * - That short link is channel UCpISEvH3gBaRfC8OoCKH7Qg, the same channel as
- *   the icon URL https://www.youtube.com/@SparkleSuite. /videos, /shorts, and
- *   /streams still open Playlists. No listed upload to embed. Playlist videos
- *   are rep training and blocked.
- * - TikTok https://www.tiktok.com/@yoursparklesuite.com is the official
- *   account (Louis confirmed). Each id below returned a public oEmbed whose
- *   author_url is that account. Profile URLs are icons, not iframe sources.
- * - Featured reel: Louis picked https://www.tiktok.com/t/ZP8TTK4KU/ on
- *   2026-09-28. That short link resolves to
- *   https://www.tiktok.com/@yoursparklesuite.com/video/7684058046800071966.
- * - Left off on purpose: founder-spot countdown captions, the Sparkle Finder
- *   announcement, the Sparkle Sweets discount walk, the Mile High Fizz
- *   testing live, and promo clips that talk about automating pain points or
- *   a founder discount. tiktok.com/@sparklesuite is an unrelated Mary Kay account.
+ * Each object needs: id, platform ('tiktok' | 'youtube'), title, summary,
+ * tags ('site-looks' | 'show-tools' | 'tours'), videoId, url, privacy: 'public',
+ * and role. TikTok urls must be `${sparkleSuiteTikTokChannelUrl}/video/<id>`.
+ * YouTube urls must be a listed `watch?v=` or youtu.be link, never unlisted
+ * and never a playlist. Do not add Workspace, Nic-Nac, or backend factory
+ * walkthroughs. Do not invent a video id.
+ *
+ * Checked 2026-09-28:
+ * - Featured reel is the TikTok Louis picked, https://www.tiktok.com/t/ZP8TTK4KU/,
+ *   which resolves to video 7684058046800071966 on @yoursparklesuite.com.
+ * - YouTube https://youtube.com/@sparklesuite is channel UCpISEvH3gBaRfC8OoCKH7Qg,
+ *   the same channel as the icon URL. No listed upload yet, so no YouTube iframe.
+ * - Icons stay profile links. The grid stays empty until a real landing demo
+ *   is added here. tiktok.com/@sparklesuite is an unrelated Mary Kay account.
  */
 export const sparkleSuiteYouTubeChannel = {
   label: 'Sparkle Suite on YouTube',
@@ -131,7 +132,10 @@ function tiktok(videoId: string) {
   return `${sparkleSuiteTikTokChannelUrl}/video/${videoId}`
 }
 
-/** Public clips from the official TikTok. YouTube stays empty until a listed upload exists. */
+/**
+ * Landing demos on /demo. Louis's featured TikTok is the only embed until
+ * a dedicated marketing demo is added in this array.
+ */
 export const sparkleSuiteDemoEmbeds = [
   {
     id: 'pick-your-theme',
@@ -143,116 +147,6 @@ export const sparkleSuiteDemoEmbeds = [
     url: tiktok('7684058046800071966'),
     privacy: 'public',
     role: 'featured',
-  },
-  {
-    id: 'halloween-customer-site',
-    platform: 'tiktok',
-    title: 'The Halloween theme, on a customer site.',
-    summary: 'A polished live deserves a customer site that feels just as intentional. This one wears the Pumpkin and Witch theme.',
-    tags: ['site-looks'],
-    videoId: '7688536158795615518',
-    url: tiktok('7688536158795615518'),
-    privacy: 'public',
-    role: 'clip',
-  },
-  {
-    id: 'halloween-theme',
-    platform: 'tiktok',
-    title: 'Meet the Pumpkin and Witch theme.',
-    summary: 'Glowing pumpkins, midnight sparkle, and a flying witch for a festive show night.',
-    tags: ['site-looks'],
-    videoId: '7688535448070688030',
-    url: tiktok('7688535448070688030'),
-    privacy: 'public',
-    role: 'clip',
-  },
-  {
-    id: 'before-the-live',
-    platform: 'tiktok',
-    title: 'The experience starts before the live begins.',
-    summary: 'A polished site gives customers a clearer place to land, see what’s coming, and stay connected.',
-    tags: ['site-looks'],
-    videoId: '7685172940542971167',
-    url: tiktok('7685172940542971167'),
-    privacy: 'public',
-    role: 'clip',
-  },
-  {
-    id: 'details-customers-notice',
-    platform: 'tiktok',
-    title: 'Details customers notice before they say a word.',
-    summary: 'A clearer setup helps every live feel easier to follow from the first hello.',
-    tags: ['site-looks'],
-    videoId: '7685172167474023711',
-    url: tiktok('7685172167474023711'),
-    privacy: 'public',
-    role: 'clip',
-  },
-  {
-    id: 'shopping-link',
-    platform: 'tiktok',
-    title: 'A welcoming place for the shopping link.',
-    summary: 'New customers can find the shop, discover the show, and get to know the business.',
-    tags: ['site-looks'],
-    videoId: '7682176393391672607',
-    url: tiktok('7682176393391672607'),
-    privacy: 'public',
-    role: 'clip',
-  },
-  {
-    id: 'shop-from-the-couch',
-    platform: 'tiktok',
-    title: 'A clear next step from the couch.',
-    summary: 'When customers tap through and look for where to shop, the site gives them one polished place.',
-    tags: ['site-looks'],
-    videoId: '7682175868885683487',
-    url: tiktok('7682175868885683487'),
-    privacy: 'public',
-    role: 'clip',
-  },
-  {
-    id: 'feels-like-the-live',
-    platform: 'tiktok',
-    title: 'A site that feels like the live.',
-    summary: 'Colors and themes that fit the business, with a welcoming customer experience behind the look.',
-    tags: ['site-looks'],
-    videoId: '7682175297860406558',
-    url: tiktok('7682175297860406558'),
-    privacy: 'public',
-    role: 'clip',
-  },
-  {
-    id: 'one-easy-place',
-    platform: 'tiktok',
-    title: 'One easy place to call home.',
-    summary: 'Customers can find the show and reach the shop without digging through old posts for the right link.',
-    tags: ['site-looks'],
-    videoId: '7682174190195084575',
-    url: tiktok('7682174190195084575'),
-    privacy: 'public',
-    role: 'clip',
-  },
-  {
-    id: 'show-calendar',
-    platform: 'tiktok',
-    title: 'The next live, where customers can find it.',
-    summary: 'Set the show schedule and leave the calendar where customers already look.',
-    tags: ['show-tools'],
-    videoId: '7684071936615402782',
-    url: tiktok('7684071936615402782'),
-    privacy: 'public',
-    role: 'clip',
-  },
-  {
-    id: 'dance-floor-trades',
-    platform: 'tiktok',
-    title: 'Trades on the Dance Floor, while the show keeps moving.',
-    summary: 'A working Dance Floor so trade requests stay together instead of scattered through the night.',
-    tags: ['show-tools'],
-    videoId: '7656831540432833822',
-    url: tiktok('7656831540432833822'),
-    privacy: 'public',
-    role: 'clip',
   },
 ] as const satisfies readonly DemoEmbed[]
 
@@ -266,6 +160,11 @@ export function filterDemoEmbeds(embeds: readonly DemoEmbed[], filter: DemoClipF
 
 export function featuredDemoEmbed(embeds: readonly DemoEmbed[] = sparkleSuitePublicDemoEmbeds) {
   return embeds.find((embed) => embed.role === 'featured') ?? null
+}
+
+/** Grid and tour clips. The featured reel stays in the hero, not in this list. */
+export function gridDemoEmbeds(embeds: readonly DemoEmbed[] = sparkleSuitePublicDemoEmbeds) {
+  return embeds.filter(isPublishableDemoEmbed).filter((embed) => embed.role !== 'featured')
 }
 
 export function tourDemoEmbed(embeds: readonly DemoEmbed[] = sparkleSuitePublicDemoEmbeds) {
