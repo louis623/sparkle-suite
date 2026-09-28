@@ -15,6 +15,12 @@ function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
+const portfolioBands = {
+  'rep-highlights': { name: 'paper', className: styles.bandPaper },
+  'community-themes': { name: 'blush', className: styles.bandBlush },
+  'holiday-themes': { name: 'ink', className: styles.bandInk },
+} as const
+
 function SlideFrame({ slide }: { slide: PortfolioSlide }) {
   if (slide.kind === 'placeholder') {
     return (
@@ -29,9 +35,6 @@ function SlideFrame({ slide }: { slide: PortfolioSlide }) {
   return (
     <div className={slide.width < 700 ? styles.phoneFrame : styles.frame}>
       <div className={styles.browserBar} aria-hidden="true">
-        <span />
-        <span />
-        <span />
         <em>{slide.title}</em>
       </div>
       <Image
@@ -39,7 +42,7 @@ function SlideFrame({ slide }: { slide: PortfolioSlide }) {
         alt={slide.alt}
         width={slide.width}
         height={slide.height}
-        sizes="(max-width: 700px) 84vw, 760px"
+        sizes="(max-width: 700px) 86vw, 860px"
       />
     </div>
   )
@@ -99,8 +102,15 @@ function PortfolioCarousel({
     scrollToSlide(next)
   }
 
+  const band = portfolioBands[carousel.id]
+
   return (
-    <section className={styles.showcase} id={carousel.id} aria-labelledby={`${carousel.id}-title`}>
+    <section
+      className={`${styles.showcase} ${band.className}`}
+      id={carousel.id}
+      aria-labelledby={`${carousel.id}-title`}
+      data-band={band.name}
+    >
       <div className={styles.showcaseCopy}>
         <p className={styles.eyebrow}>{carousel.eyebrow}</p>
         <h2 id={`${carousel.id}-title`}>{carousel.heading}</h2>

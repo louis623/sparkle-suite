@@ -86,6 +86,29 @@ describe('Sparkle Suite portfolio page', () => {
     expect(html.match(/Placeholder/g)?.length).toBeGreaterThanOrEqual(2)
   })
 
+  it('mixes the landing palette instead of repeating dark stripes', () => {
+    const html = renderPortfolio()
+    const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
+    const heroSource = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.tsx'), 'utf8')
+    const carouselSource = readFileSync(join(process.cwd(), 'app/_components/portfolio-carousels.tsx'), 'utf8')
+    const bands = ['night', 'paper', 'blush', 'ink'].map((band) => html.indexOf(`data-band="${band}"`))
+
+    expect(bands.every((index) => index >= 0)).toBe(true)
+    expect(bands).toEqual([...bands].sort((a, b) => a - b))
+    expect(html).not.toContain('<span></span><span></span><span></span>')
+    expect(heroSource).not.toContain('<span />')
+    expect(carouselSource).not.toContain('<span />')
+    expect(css).toContain('#fcf8f6')
+    expect(css).toContain('#fff6fa')
+    expect(css).toContain('#f3e4ec')
+    expect(css).toContain('#402924')
+    expect(css).toContain('#1b1218')
+    expect(css).toContain('#ee2c9b')
+    expect(css).toContain('#c21878')
+    expect(css).toContain('background: #160e13')
+    expect(css).toContain('overflow-x: clip')
+  })
+
   it('stays on the customer-facing marketing surface', () => {
     const html = renderPortfolio()
     const source = readFileSync(join(process.cwd(), 'app/_components/portfolio-carousels.tsx'), 'utf8')
