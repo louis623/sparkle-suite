@@ -28,6 +28,25 @@ describe('custom-domain customer site proxy', () => {
     expect(response.headers.get('x-sparkle-customer-domain')).toBeNull()
   })
 
+  it('keeps the Suite host /faq page for marketing and preserves rep previews', () => {
+    const marketing = proxy(
+      new NextRequest('https://www.yoursparklesuite.com/faq', {
+        headers: { host: 'www.yoursparklesuite.com' },
+      }),
+    )
+    const preview = proxy(
+      new NextRequest('https://www.yoursparklesuite.com/faq?c=rep-1', {
+        headers: { host: 'www.yoursparklesuite.com' },
+      }),
+    )
+
+    expect(isRewrite(marketing)).toBe(false)
+    expect(isRewrite(preview)).toBe(true)
+    expect(getRewrittenUrl(preview)).toBe(
+      'https://www.yoursparklesuite.com/internal/customer-faq-preview?c=rep-1',
+    )
+  })
+
   it('leaves the Sparkle Suite platform host alone', () => {
     const response = proxy(
       new NextRequest('https://www.yoursparklesuite.com/', {

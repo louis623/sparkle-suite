@@ -62,3 +62,6 @@
 @media(max-width:1180px){.heroLayout{grid-template-columns:1fr;align-items:start;gap:22px;padding:36px 2.2% 32px}.page .hero .heroCopy{max-width:40rem}.page .hero h1{font-size:clamp(2.6rem,4.6vw,3.6rem)}}
 @media(max-width:600px){.heroLayout{padding:28px 14px 24px;gap:18px}.page .hero h1{font-size:clamp(2.45rem,11vw,3.2rem)}}
 @media(prefers-reduced-motion:reduce){.page .hero .heroWindow,.page .hero .primaryButton:hover{transform:none}}
+.moreAnswers{margin-top:8px}
+.moreAnswers a{display:inline-flex;align-items:center;gap:8px;min-height:44px;color:var(--accent);font-size:15px;font-weight:700;text-decoration:none}
+.moreAnswers a:hover{text-decoration:underline;text-underline-offset:4px}

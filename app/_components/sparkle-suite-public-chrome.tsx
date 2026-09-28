@@ -54,7 +54,11 @@ export function SparkleSuitePublicHeader({
   )
 }
 
-export function SparkleSuitePublicFooter() {
+export function SparkleSuitePublicFooter({
+  current,
+}: {
+  current?: 'faq'
+} = {}) {
   const { brand, footer } = sparkleSuitePublicLandingContent
 
   return (
@@ -68,7 +72,11 @@ export function SparkleSuitePublicFooter() {
           <div>
             <h2>Links</h2>
             {footer.links.map((link) => (
-              <a href={link.href} key={link.href}>
+              <a
+                aria-current={current === 'faq' && link.href === '/faq' ? 'page' : undefined}
+                href={link.href}
+                key={link.href}
+              >
                 {link.label}
               </a>
             ))}
