@@ -1,3 +1,4 @@
+import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
 import { sparkleSuitePublicLandingContent } from '@/lib/sparkle-suite/public-landing-content'
 
 export const sparkleSuiteScheduleBuild = {
@@ -18,6 +19,11 @@ export type PortfolioSlide =
       alt: string
       width: number
       height: number
+      video?: {
+        mp4: string
+        width: number
+        height: number
+      }
     }
   | {
       id: string
@@ -161,20 +167,30 @@ export const sparkleSuitePortfolioContent = {
           kind: 'capture',
           title: 'Halloween Pumpkin and Witch',
           detail: 'A sparkling black-and-orange night with a jack-o’-lantern, silver moon, and a flying witch.',
-          src: '/sparkle-suite/landing/hero-halloween-witch-live.webp',
+          src: halloweenHeroMotion.witch.poster,
           alt: 'Halloween Pumpkin and Witch homepage hero, with the live lineup, shop actions, jack-o’-lantern, and flying witch.',
-          width: 1024,
-          height: 513,
+          width: halloweenHeroMotion.witch.posterWidth,
+          height: halloweenHeroMotion.witch.posterHeight,
+          video: {
+            mp4: halloweenHeroMotion.witch.mp4,
+            width: halloweenHeroMotion.witch.width,
+            height: halloweenHeroMotion.witch.height,
+          },
         },
         {
           id: 'halloween-pumpkin-cat',
           kind: 'capture',
           title: 'Halloween Pumpkin and Cat',
           detail: 'A glittering pumpkin night, with a black cat perched on the silver moon.',
-          src: '/sparkle-suite/landing/hero-halloween-cat-live.webp',
+          src: halloweenHeroMotion.cat.poster,
           alt: 'Halloween Pumpkin and Cat homepage hero, with the site header, live lineup, and a black cat beside the jack-o’-lantern.',
-          width: 1280,
-          height: 576,
+          width: halloweenHeroMotion.cat.posterWidth,
+          height: halloweenHeroMotion.cat.posterHeight,
+          video: {
+            mp4: halloweenHeroMotion.cat.mp4,
+            width: halloweenHeroMotion.cat.width,
+            height: halloweenHeroMotion.cat.height,
+          },
         },
         {
           id: 'holiday-placeholder-winter',

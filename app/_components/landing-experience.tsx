@@ -1,9 +1,10 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import { gridDemoEmbeds } from '@/lib/sparkle-suite/demo-page-content'
+import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
 import { sparkleSuitePublicLandingContent as content, sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 import { MarketingSocialLinks } from './marketing-social-links'
+import { ProductPeekVideo } from './product-peek-video'
 import { SparkleSeal } from './sparkle-suite-public-chrome'
 import { SparkleSuitePublicAccountAction } from './SparkleSuitePublicAccountAction'
 import { SparkleSuitePublicNicNac } from './sparkle-suite-public-nic-nac'
@@ -77,12 +78,12 @@ export function LandingExperience() {
           <div className={styles.heroStage}>
             <div className={styles.heroPair}>
               <div className={styles.heroWindow}>
-                <div className={styles.browserBar} aria-hidden="true"><em>Halloween · Witch</em></div>
-                <Image src="/sparkle-suite/landing/hero-halloween-witch-live.webp" alt="Halloween Pumpkin and Witch homepage hero, with the live lineup, shop actions, jack-o'-lantern, and flying witch" width={1024} height={513} sizes="(max-width: 760px) 92vw, (max-width: 1180px) 47vw, 720px" unoptimized preload />
+                <div className={styles.browserBar} aria-hidden="true"><em>{halloweenHeroMotion.witch.label}</em></div>
+                <ProductPeekVideo poster={halloweenHeroMotion.witch.poster} mp4={halloweenHeroMotion.witch.mp4} width={halloweenHeroMotion.witch.width} height={halloweenHeroMotion.witch.height} label={halloweenHeroMotion.witch.label} alt="Halloween Pumpkin and Witch homepage hero, with the live lineup, shop actions, jack-o'-lantern, and flying witch" />
               </div>
               <div className={styles.heroWindow}>
-                <div className={styles.browserBar} aria-hidden="true"><em>Halloween · Cat</em></div>
-                <Image src="/sparkle-suite/landing/hero-halloween-cat-live.webp" alt="Halloween Pumpkin and Cat homepage hero, with the site header, live lineup, shop actions, and a black cat beside the jack-o'-lantern" width={1280} height={576} sizes="(max-width: 760px) 92vw, (max-width: 1180px) 47vw, 720px" unoptimized preload />
+                <div className={styles.browserBar} aria-hidden="true"><em>{halloweenHeroMotion.cat.label}</em></div>
+                <ProductPeekVideo poster={halloweenHeroMotion.cat.poster} mp4={halloweenHeroMotion.cat.mp4} width={halloweenHeroMotion.cat.width} height={halloweenHeroMotion.cat.height} label={halloweenHeroMotion.cat.label} alt="Halloween Pumpkin and Cat homepage hero, with the site header, live lineup, shop actions, and a black cat beside the jack-o'-lantern" />
               </div>
             </div>
           </div>

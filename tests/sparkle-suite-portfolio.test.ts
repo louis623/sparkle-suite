@@ -34,6 +34,12 @@ describe('Sparkle Suite portfolio page', () => {
     expect(html).toContain('Halloween Pumpkin and Cat')
     expect(html).toContain('hero-halloween-witch-live.webp')
     expect(html).toContain('hero-halloween-cat-live.webp')
+    expect(html).toContain('hero-halloween-witch-live.mp4')
+    expect(html).toContain('hero-halloween-cat-live.mp4')
+    expect(html).toContain('muted')
+    expect(html).toContain('playsInline')
+    expect(html).toContain('poster="/sparkle-suite/landing/hero-halloween-witch-live.webp"')
+    expect(html).not.toContain('hero-desktop-motion.mp4')
     expect(html).not.toContain('hero-halloween-witch-desktop-v3.webp')
     expect(html).not.toContain('hero-halloween-cat-desktop-v1.webp')
     expect(html).not.toContain('hero-halloween-desktop-v1.webp')
@@ -61,7 +67,14 @@ describe('Sparkle Suite portfolio page', () => {
         continue
       }
       expect(existsSync(join(process.cwd(), 'public', ...slide.src.split('/').filter(Boolean)))).toBe(true)
-      expect(html).toContain(encodeURIComponent(slide.src))
+      if ('video' in slide && slide.video) {
+        expect(existsSync(join(process.cwd(), 'public', ...slide.video.mp4.split('/').filter(Boolean)))).toBe(true)
+        expect(html).toContain(slide.video.mp4)
+        expect(html).toContain(`poster="${slide.src}"`)
+      } else {
+        expect(html).toContain(encodeURIComponent(slide.src))
+        expect(slide).not.toHaveProperty('video')
+      }
       expect(slide.alt.length).toBeGreaterThan(20)
     }
 
@@ -98,9 +111,15 @@ describe('Sparkle Suite portfolio page', () => {
       'holiday-placeholder-winter',
       'holiday-placeholder-celebration',
     ])
+    const witch = holiday?.slides[0]
     const cat = holiday?.slides[1]
+    expect(witch?.kind).toBe('capture')
     expect(cat?.kind).toBe('capture')
+    expect(witch && 'video' in witch ? witch.video?.mp4 : '').toContain('hero-halloween-witch-live.mp4')
+    expect(cat && 'video' in cat ? cat.video?.mp4 : '').toContain('hero-halloween-cat-live.mp4')
     expect(cat && 'detail' in cat ? cat.detail : '').toMatch(/black cat/i)
+    expect(holiday?.slides[2]).not.toHaveProperty('video')
+    expect(holiday?.slides[3]).not.toHaveProperty('video')
     expect(html).toContain('independent tool for reps')
   })
 
