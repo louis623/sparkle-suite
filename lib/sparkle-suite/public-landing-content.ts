@@ -1,4 +1,5 @@
 export const sparkleSuiteYouTubeChannelUrl = 'https://www.youtube.com/@SparkleSuite' as const
+export const sparkleSuiteTikTokChannelUrl = 'https://www.tiktok.com/@yoursparklesuite.com' as const
 
 export const sparkleSuitePublicLandingSafety = {
   disclaimer:
@@ -118,6 +119,7 @@ export const sparkleSuitePublicLandingContent = {
     socialLinks: [
       { label: 'Sparkle Finder', href: 'https://yoursparklefinder.com' },
       { label: 'YouTube', href: sparkleSuiteYouTubeChannelUrl },
+      { label: 'TikTok', href: sparkleSuiteTikTokChannelUrl },
     ],
   },
 } as const

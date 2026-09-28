@@ -1,26 +1,34 @@
 import {
   sparkleSuitePublicLandingContent,
+  sparkleSuiteTikTokChannelUrl,
   sparkleSuiteYouTubeChannelUrl,
 } from '@/lib/sparkle-suite/public-landing-content'
 
 /**
  * Demo page embeds. Ops: this file is the only place to add a clip.
  *
- * Add a public TikTok video or a listed/public YouTube video only.
- * Never paste an unlisted YouTube id. Those are paying-rep how-tos.
+ * Add a public TikTok video from @yoursparklesuite.com, or a listed/public
+ * YouTube video from @SparkleSuite. Never paste an unlisted YouTube id.
  * Do not add Workspace, Nic-Nac, or backend factory walkthroughs.
  *
  * Checked 2026-09-28:
- * - https://www.youtube.com/@SparkleSuite (channel UCpISEvH3gBaRfC8OoCKH7Qg)
- *   has no public uploads. The channel videos feed and playlist RSS were empty.
- *   Playlist titles that do exist are rep training and are blocked below.
- * - No official Sparkle Suite TikTok was verified. tiktok.com/@sparklesuite
- *   is an unrelated Mary Kay account (VideoFizz). Do not use it.
- *   tiktok.com/@yoursparklesuite did not resolve to a profile.
+ * - YouTube https://www.youtube.com/@SparkleSuite (UCpISEvH3gBaRfC8OoCKH7Qg)
+ *   still has no public uploads. Playlist videos are rep training and blocked.
+ * - TikTok https://www.tiktok.com/@yoursparklesuite.com is the official
+ *   account (Louis confirmed). Each id below returned a public oEmbed whose
+ *   author_url is that account.
+ * - Left off on purpose: founder-spot countdown captions, the Sparkle Finder
+ *   announcement, the Sparkle Sweets discount walk, and the Mile High Fizz
+ *   testing live. tiktok.com/@sparklesuite is an unrelated Mary Kay account.
  */
 export const sparkleSuiteYouTubeChannel = {
   label: 'Sparkle Suite on YouTube',
   href: sparkleSuiteYouTubeChannelUrl,
+} as const
+
+export const sparkleSuiteTikTokChannel = {
+  label: 'Sparkle Suite on TikTok',
+  href: sparkleSuiteTikTokChannelUrl,
 } as const
 
 export const sparkleSuiteDemoCta = {
@@ -99,7 +107,7 @@ export function isPublishableDemoEmbed(embed: DemoEmbed) {
 
   if (embed.platform === 'tiktok') {
     if (!/^\d{15,22}$/.test(embed.videoId)) return false
-    return new RegExp(`^https://www\\.tiktok\\.com/@[\\w.-]+/video/${embed.videoId}(?:[/?#]|$)`).test(embed.url)
+    return embed.url === `${sparkleSuiteTikTokChannelUrl}/video/${embed.videoId}`
   }
 
   return false
@@ -112,8 +120,79 @@ export function demoEmbedSrc(embed: DemoEmbed) {
   return `https://www.tiktok.com/embed/v2/${encodeURIComponent(embed.videoId)}`
 }
 
-/** Public clips. Leave empty until a listed YouTube video or verified public TikTok exists. */
-export const sparkleSuiteDemoEmbeds: readonly DemoEmbed[] = []
+function tiktok(videoId: string) {
+  return `${sparkleSuiteTikTokChannelUrl}/video/${videoId}`
+}
+
+/** Public clips from the official TikTok. YouTube stays empty until a listed upload exists. */
+export const sparkleSuiteDemoEmbeds = [
+  {
+    id: 'halloween-customer-site',
+    platform: 'tiktok',
+    title: 'The Halloween theme, on a customer site.',
+    summary: 'A polished live deserves a customer site that feels just as intentional. This one wears the Pumpkin and Witch theme.',
+    tags: ['site-looks'],
+    videoId: '7688536158795615518',
+    url: tiktok('7688536158795615518'),
+    privacy: 'public',
+    role: 'featured',
+  },
+  {
+    id: 'halloween-theme',
+    platform: 'tiktok',
+    title: 'Meet the Pumpkin and Witch theme.',
+    summary: 'Glowing pumpkins, midnight sparkle, and a flying witch for a festive show night.',
+    tags: ['site-looks'],
+    videoId: '7688535448070688030',
+    url: tiktok('7688535448070688030'),
+    privacy: 'public',
+    role: 'clip',
+  },
+  {
+    id: 'pick-your-theme',
+    platform: 'tiktok',
+    title: 'Pick a theme. Change it when the night should feel new.',
+    summary: 'Customer-facing sites with themes you can switch, so the show stays fresh.',
+    tags: ['site-looks'],
+    videoId: '7684058046800071966',
+    url: tiktok('7684058046800071966'),
+    privacy: 'public',
+    role: 'clip',
+  },
+  {
+    id: 'shop-from-the-couch',
+    platform: 'tiktok',
+    title: 'A clear next step from the couch.',
+    summary: 'When customers tap through and look for where to shop, the site gives them one polished place.',
+    tags: ['site-looks'],
+    videoId: '7682175868885683487',
+    url: tiktok('7682175868885683487'),
+    privacy: 'public',
+    role: 'clip',
+  },
+  {
+    id: 'show-calendar',
+    platform: 'tiktok',
+    title: 'The next live, where customers can find it.',
+    summary: 'Set the show schedule and leave the calendar where customers already look.',
+    tags: ['show-tools'],
+    videoId: '7684071936615402782',
+    url: tiktok('7684071936615402782'),
+    privacy: 'public',
+    role: 'clip',
+  },
+  {
+    id: 'dance-floor-trades',
+    platform: 'tiktok',
+    title: 'Trades on the Dance Floor, while the show keeps moving.',
+    summary: 'A working Dance Floor so trade requests stay together instead of scattered through the night.',
+    tags: ['show-tools'],
+    videoId: '7656831540432833822',
+    url: tiktok('7656831540432833822'),
+    privacy: 'public',
+    role: 'clip',
+  },
+] as const satisfies readonly DemoEmbed[]
 
 export const sparkleSuitePublicDemoEmbeds = sparkleSuiteDemoEmbeds.filter(isPublishableDemoEmbed)
 

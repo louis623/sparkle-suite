@@ -6,6 +6,7 @@ import {
   demoClipFilters,
   filterDemoEmbeds,
   sparkleSuitePublicDemoEmbeds,
+  sparkleSuiteTikTokChannel,
   sparkleSuiteYouTubeChannel,
   sparkleSuiteDemoContent,
   type DemoClipFilter,
@@ -14,7 +15,7 @@ import styles from './demo-experience.module.css'
 
 export function DemoClipGrid() {
   const [filter, setFilter] = useState<DemoClipFilter>('all')
-  const clips = filterDemoEmbeds(sparkleSuitePublicDemoEmbeds, filter)
+  const clips = filterDemoEmbeds(sparkleSuitePublicDemoEmbeds, filter).filter((embed) => embed.role !== 'featured')
 
   return (
     <div>
@@ -34,6 +35,7 @@ export function DemoClipGrid() {
         {clips.length === 0 ? (
           <div className={styles.clipEmpty}>
             <p>{sparkleSuiteDemoContent.clips.empty}</p>
+            <a href={sparkleSuiteTikTokChannel.href}>{sparkleSuiteTikTokChannel.label}</a>
             <a href={sparkleSuiteYouTubeChannel.href}>{sparkleSuiteYouTubeChannel.label}</a>
           </div>
         ) : (

@@ -356,6 +356,9 @@
   max-width: 360px;
   margin-inline: auto;
 }
+.embed[data-variant='hero'] .player[data-platform='tiktok'] {
+  max-width: min(420px, 100%);
+}
 .player iframe {
   position: absolute;
   inset: 0;
