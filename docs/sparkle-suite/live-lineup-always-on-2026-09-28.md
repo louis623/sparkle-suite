@@ -26,8 +26,27 @@ Implementation is in a new clean Codespace checkout on codex/nic-nac-trade-harde
 Smoke and live share implementation. The Smoke packager changes only reviewed identity, endpoint, host permissions, storage environment, and warning text. Smoke project prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ and Supabase pukemqiwlyqmyytxkdmo are verified by the guarded deployment runner. CWS extension kmodgfffflplfdlkkhadgimmobplhoih and Louis's removed installation are not modified by source work.
 
 ## Verification before deployment
-18 extension regressions pass, including the 50-order cutoff fixture, lease-before-read receipt flow, configure no-op rejection, empty source, old-server refusal, diagnostic preservation, tab reopening, receiver healing and generation recovery. Legacy worker migration/filter/toggle checks pass. The real route/SQL/public-runtime integration passes. 148 affected readiness, model, Workspace and public-route checks pass after the final empty-state fix.
+19 extension regressions pass, including the 50-order cutoff fixture, lease-before-read receipt flow, configure no-op rejection, empty source, old-server refusal, diagnostic preservation, tab reopening, receiver healing and generation recovery. Legacy worker migration/filter/toggle checks pass. The real route/SQL/public-runtime integration passes. 148 affected readiness, model, Workspace and public-route checks pass after the final empty-state fix.
 
 The 902-test release inventory exposed five unrelated failures reproduced on an untouched copy of the same base: two stale branch-policy expected strings, one branding text expectation, and two reviewer Trade UI expectations. One optional concurrency test was skipped. Do not describe the whole repository suite as green.
 
-Synthetic deployed-Smoke results, package hash, source SHA and deployment ID will be added after verification. Installation alone will not be reported as Connected. No real orders are used for test publishing; Louis's assigned code is not changed.
+## Deployed Smoke verification completed
+- Application and package source: e3d0b937e760aae315ac38fb9f25d460e49acad1.
+- Smoke alias: https://sparkle-suite-smoke.vercel.app.
+- Deployment: dpl_3SDsfAteuqpgZ48an3vc3BqoVt4q (sparkle-suite-smoke-rn3f5rl24-louis-2849s-projects.vercel.app).
+- Smoke extension: 2.0.6, stable ID bpipafleeajdagfimfnfgmhcdendgkfl.
+- Verified ZIP SHA-256: ddbe0e3399aa551bdd0b45f59272d032b940ae37b49a5774a58fafba699c9d22.
+- Desktop folder: C:\\Users\\louis\\Desktop\\sparkle-suite-live-lineup-smoke-2.0.6-verified.
+- Final deployed run: 10/10 checks, zero HTTP errors, three applied configure acknowledgements.
+- Both popup and actual Workspace visibly showed Connected. Workspace displayed 50 orders and No upcoming shows. The public API returned all 50 synthetic orders.
+- Verified an empty page with no saved show; a retained cutoff with 24+26 older orders; reveal removal; party exclusion/re-inclusion; closing/reopening the source; and server/Workspace freshness expiry.
+- Final full inventory: 896 passed, five unchanged baseline failures, one optional skipped test out of 902. The 19 standalone extension regressions, legacy worker checks, TypeScript, scoped lint, and optimized builds passed.
+
+Credential-masked screenshots and sanitized request/receipt evidence are in evidence/live-lineup-always-on/. They contain only synthetic test data. The test used a new isolated Chromium profile and intercepted its BP-shaped document; it made no real Bomb Party requests. Temporary test-session cookie loss and a generation-zero reset with an existing synthetic archive were corrected in the harness. The final retained-scope fixture preserved historical synthetic archives and seeded an expired lease; actual claims and fresh reads had to earn Connected. Earlier test requests must not be attributed to Louis.
+
+## Installation and live rollout boundary
+The user authorized a Smoke sideload, but the available Chrome connector explicitly rejects claiming chrome://extensions/. Native window control is unavailable. The current bundled runtime was loaded; tab inventory worked; the native-host registry and manifest were valid and extension-host.exe was running. This is a control-surface limitation, not a reason to reinstall Chrome or the Codex control extension. Louis was given the exact verified folder for Load unpacked. Installation is pending his confirmation; no sideload success is claimed.
+
+Louis's actual code was never changed or entered, his real orders were never test-published, and Bomb Party was not refreshed/navigated/modified. His actual connection remains unverified after removal of the old extension.
+
+Production domains, production data, and the CWS extension were not changed. The same implementation is ready for the later live release, with separate reviewed environment identities and endpoints. Promotion still needs the live database/compatibility preflight and live reviewer verification; Smoke results alone are not a production release claim.

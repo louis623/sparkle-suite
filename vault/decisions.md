@@ -3101,3 +3101,8 @@ page. Home Trade Info displays trade requests and these two dancer figures;
 follow-up and fulfillment counts remain on the Dance Floor page.
 
 Decision (September 24, 2026): The rep Dance Floor uses the customer's browse pattern: visible dancer cards by default, search, sort, and filtering on the page. Rep-only actions remain attached to cards. The top panel is only `Dance Floor Management`; a separate Customer view button and repeated usage instructions are unnecessary when the grid is directly visible. Nic-Nac Home count badges must accommodate at least triple-digit numbers.
+
+
+
+## September 28, 2026 — Live Lineup is independent of shows
+Louis explicitly requires Live Lineup to work whenever the enabled, connected extension can read Bomb Party Live Party Orders, including an empty table and no scheduled calendar show. Do not reintroduce a show-start prerequisite, order-date cutoff, or carry-forward requirement. Party choices and reveal state remain relevant; calendar/show timing does not determine order eligibility. Verify fixes on the explicitly authorized Smoke environment before considering a live release. Current Smoke verification and installation boundary: docs/sparkle-suite/live-lineup-always-on-2026-09-28.md.

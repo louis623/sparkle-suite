@@ -1,0 +1,516 @@
+{
+  "environment": "Smoke only; isolated Chromium; intercepted synthetic BP document; no real BP requests",
+  "sourceSha": "e3d0b937e760aae315ac38fb9f25d460e49acad1",
+  "results": [
+    {
+      "name": "identity-guarded reset of Codex synthetic Smoke lineup only",
+      "passed": true
+    },
+    {
+      "name": "empty settled page reaches Connected in extension, Workspace and setup with no saved show",
+      "passed": true
+    },
+    {
+      "name": "seeded retained scope and expired lease matching the failure shape; historical synthetic archives preserved",
+      "passed": true
+    },
+    {
+      "name": "50 older synthetic orders accepted through describe, claim, configure and final scoped receipt",
+      "passed": true,
+      "parties": [
+        24,
+        26
+      ],
+      "publicOrders": 50
+    },
+    {
+      "name": "real Smoke Workspace visibly shows Connected",
+      "passed": true
+    },
+    {
+      "name": "checking a synthetic reveal checkbox removes exactly one order",
+      "passed": true
+    },
+    {
+      "name": "party exclusion and re-inclusion are acknowledged and preserve the remaining orders",
+      "passed": true
+    },
+    {
+      "name": "closing and reopening the source recovers without changing the code",
+      "passed": true
+    },
+    {
+      "name": "server and Workspace stop claiming Connected when source freshness expires",
+      "passed": true
+    },
+    {
+      "name": "no real Bomb Party request, order, customer or production endpoint used",
+      "passed": true
+    }
+  ],
+  "receipts": [
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 0,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 0,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "claim",
+      "status": 200,
+      "error": null,
+      "generation": 0,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": -1,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 0,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 0,
+      "parserState": "ready",
+      "entries": 0,
+      "configured": null,
+      "acceptedSequence": 0,
+      "freshForMs": 44854
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "claim",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": -1,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "ready",
+      "entries": 24,
+      "configured": null,
+      "acceptedSequence": 0,
+      "freshForMs": 44849
+    },
+    {
+      "action": "configure",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": true,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "ready",
+      "entries": 50,
+      "configured": null,
+      "acceptedSequence": 1,
+      "freshForMs": 44851
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "ready",
+      "entries": 50,
+      "configured": null,
+      "acceptedSequence": 2,
+      "freshForMs": 44858
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "ready",
+      "entries": 50,
+      "configured": null,
+      "acceptedSequence": 3,
+      "freshForMs": 44813
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "ready",
+      "entries": 49,
+      "configured": null,
+      "acceptedSequence": 4,
+      "freshForMs": 44857
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "ready",
+      "entries": 49,
+      "configured": null,
+      "acceptedSequence": 5,
+      "freshForMs": 44806
+    },
+    {
+      "action": "configure",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": true,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "ready",
+      "entries": 23,
+      "configured": null,
+      "acceptedSequence": 6,
+      "freshForMs": 44839
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "ready",
+      "entries": 23,
+      "configured": null,
+      "acceptedSequence": 7,
+      "freshForMs": 44858
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "ready",
+      "entries": 23,
+      "configured": null,
+      "acceptedSequence": 8,
+      "freshForMs": 44848
+    },
+    {
+      "action": "configure",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": true,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "ready",
+      "entries": 49,
+      "configured": null,
+      "acceptedSequence": 9,
+      "freshForMs": 44853
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "loading",
+      "entries": 49,
+      "configured": null,
+      "acceptedSequence": 10,
+      "freshForMs": 0
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "describe",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": null,
+      "entries": null,
+      "configured": null,
+      "acceptedSequence": null,
+      "freshForMs": null
+    },
+    {
+      "action": "snapshot",
+      "status": 200,
+      "error": null,
+      "generation": 1,
+      "parserState": "ready",
+      "entries": 49,
+      "configured": null,
+      "acceptedSequence": 11,
+      "freshForMs": 44864
+    }
+  ],
+  "errors": []
+}
