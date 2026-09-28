@@ -40,7 +40,8 @@ describe('Sparkle Suite portfolio page', () => {
     expect(html).toContain('href="/prelaunch#waitlist"')
     expect(html).toContain('href="/"')
     expect(html).toContain('aria-current="page"')
-    expect(html).toContain('Demo soon')
+    expect(html).toContain('href="/demo"')
+    expect(html).not.toContain('Demo soon')
     expect(html).not.toContain('setInterval')
   })
 

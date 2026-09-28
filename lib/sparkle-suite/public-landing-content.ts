@@ -1,3 +1,5 @@
+export const sparkleSuiteYouTubeChannelUrl = 'https://www.youtube.com/@SparkleSuite' as const
+
 export const sparkleSuitePublicLandingSafety = {
   disclaimer:
     'Sparkle Suite is an independent tool for reps. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.',
@@ -115,8 +117,7 @@ export const sparkleSuitePublicLandingContent = {
     ],
     socialLinks: [
       { label: 'Sparkle Finder', href: 'https://yoursparklefinder.com' },
-      { label: 'YouTube', href: '#' },
-      { label: 'TikTok', href: '#' },
+      { label: 'YouTube', href: sparkleSuiteYouTubeChannelUrl },
     ],
   },
 } as const
