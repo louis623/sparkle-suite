@@ -29,7 +29,7 @@ import {
 import { getControlCenterOperatorHealth } from '@/lib/remy-communications/operator-health'
 import { getControlCenterNicNacUsage } from '@/lib/remy-communications/nic-nac-usage'
 import { buildAccountingAgentSummary } from '@/lib/control-center/accounting-agent-api'
-import { loadSparkleSuiteAccountingProjection } from '@/lib/control-center/accounting'
+import { loadCurrentAccountingSnapshot } from '@/lib/control-center/accounting'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 const ACTOR_KEY = 'sparkle-control-center'
@@ -540,18 +540,16 @@ export function createControlCenterMcpServer() {
   server.registerTool(
     'control_center_get_accounting_summary',
     {
-      description: 'Read a versioned, aggregate-only accounting snapshot for Sparkle Suite or Sparkle Finder. It contains no customer identities, credentials, bank details, or financial write action. Projected recurring revenue is separate from actual cash; actuals remain unavailable until their sources are connected.',
+      description: 'Read the latest Lane aggregate monthly accounting snapshot for Sparkle Suite or Sparkle Finder. Projected recurring, counts, actuals, processor balance, and source status come from that snapshot when it exists. A missing snapshot stays not connected and is not filled from stored client-list prices. No customer identities, credentials, bank details, or financial writes. Subscription prices are not cash.',
       inputSchema: z.object({ product: z.enum(['suite', 'finder']) }),
     },
     async ({ product }) => runTool(
       'control_center_get_accounting_summary',
       { product },
       async () => {
-        const suiteProjection = product === 'suite'
-          ? await loadSparkleSuiteAccountingProjection(createAdminClient())
-          : null
+        const snapshot = await loadCurrentAccountingSnapshot(createAdminClient(), product)
         return {
-          result: buildAccountingAgentSummary({ product, suiteProjection }),
+          result: buildAccountingAgentSummary({ product, snapshot }),
         }
       },
     ),
