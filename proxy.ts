@@ -24,6 +24,14 @@ export function proxy(request: NextRequest) {
   }
   const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
   const customerDomain = normalizeAmethystCustomDomainCandidate(host)
+  // /faq on the Suite host is the marketing FAQ. Rep previews stay on /faq?c=
+  // and custom domains keep the customer Dance Floor FAQ.
+  const previewRep = request.nextUrl.searchParams.get('c')?.trim()
+  if (!customerDomain && request.nextUrl.pathname === '/faq' && previewRep) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/internal/customer-faq-preview'
+    return NextResponse.rewrite(url, { request: { headers } })
+  }
   if (!customerDomain || isAmethystPlatformHost(host)) {
     return NextResponse.next({ request: { headers } })
   }

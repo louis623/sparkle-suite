@@ -10,14 +10,15 @@ import { SparkleSuitePublicNicNac } from './sparkle-suite-public-nic-nac'
 import { FounderAvailabilityProvider, FounderOffer, FounderSpotLabel, FounderStrip, IncludedFeatures, ShowToolsTour, SiteStyleShowcase } from './landing-interactions'
 import styles from './landing-experience.module.css'
 
-export function MarketingHeader({ intake = false, current = 'home' }: { intake?: boolean; current?: 'home' | 'portfolio' | 'demo' }) {
+export function MarketingHeader({ intake = false, current = 'home' }: { intake?: boolean; current?: 'home' | 'portfolio' | 'demo' | 'faq' }) {
   const onPortfolio = current === 'portfolio'
   const onDemo = current === 'demo'
-  const homeHref = intake || onPortfolio || onDemo ? '/' : '#top'
+  const onSubpage = onPortfolio || onDemo || current === 'faq'
+  const homeHref = intake || onSubpage ? '/' : '#top'
   return <header className={styles.header}>
     <a className={styles.brand} href={homeHref} aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></a>
     <nav className={styles.navigation} aria-label="Explore Sparkle Suite">
-      {onPortfolio || onDemo ? <Link className={styles.pageLink} href="/">Home</Link> : null}
+      {onSubpage ? <Link className={styles.pageLink} href="/">Home</Link> : null}
       {onPortfolio ? <>
         <a className={styles.sectionLink} href="#rep-highlights">Rep highlights</a>
         <a className={styles.sectionLink} href="#community-themes">Community themes</a>
@@ -26,7 +27,7 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
         <a className={styles.sectionLink} href="#featured">Featured</a>
         <a className={styles.sectionLink} href="#show-stories">Show stories</a>
         {gridDemoEmbeds().length > 0 ? <a className={styles.sectionLink} href="#clips">Clips</a> : null}
-      </> : <>
+      </> : current === 'faq' ? null : <>
         <a className={styles.sectionLink} href={`${intake ? '/' : ''}#customer-site-proof`}>Your site</a>
         <a className={styles.sectionLink} href={`${intake ? '/' : ''}#workspace-proof`}>Show tools</a>
         <a className={styles.sectionLink} href={`${intake ? '/' : ''}#pricing`}>Founding offer</a>
@@ -38,11 +39,11 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
   </header>
 }
 
-export function MarketingFooter() {
+export function MarketingFooter({ current }: { current?: 'home' | 'portfolio' | 'demo' | 'faq' } = {}) {
   const textLinks = [...content.footer.links, ...content.footer.socialLinks].filter((link) => link.label !== 'TikTok' && link.label !== 'YouTube')
   return <footer className={styles.footer}>
     <Link className={styles.brand} href="/" aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></Link>
-    <nav aria-label="Footer links">{textLinks.map((link) => <a key={link.label} href={link.href}>{link.label}</a>)}</nav>
+    <nav aria-label="Footer links">{textLinks.map((link) => <a key={link.label} href={link.href} aria-current={current === 'faq' && link.href === '/faq' ? 'page' : undefined}>{link.label}</a>)}</nav>
     <MarketingSocialLinks />
     <p>{sparkleSuitePublicLandingSafety.disclaimer}</p>
   </footer>
@@ -88,7 +89,7 @@ export function LandingExperience() {
     </section>
     <section className={styles.faqSection} id="questions" aria-labelledby="questions-title">
       <div><h2 id="questions-title">A few things you might be wondering.</h2><div className={`sparkle-landing-v2 ${styles.assistant}`}><SparkleSuitePublicNicNac /></div></div>
-      <div className={styles.questions}>{questions.map(([question, answer]) => <details key={question}><summary>{question}<ChevronDown size={19} aria-hidden="true" /></summary><p>{answer}</p></details>)}</div>
+      <div className={styles.questions}>{questions.map(([question, answer]) => <details key={question}><summary>{question}<ChevronDown size={19} aria-hidden="true" /></summary><p>{answer}</p></details>)}<p className={styles.moreAnswers}><Link href="/faq">More answers <ArrowRight size={16} aria-hidden="true" /></Link></p></div>
     </section>
     <section className={styles.finalCta}><h2>Your next chapter looks good on you.</h2><Link className={styles.primaryButton} href="/prelaunch#waitlist">Join the build queue <ArrowRight size={18} aria-hidden="true" /></Link></section>
     <MarketingFooter />

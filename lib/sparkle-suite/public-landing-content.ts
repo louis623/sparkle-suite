@@ -120,6 +120,7 @@ export const sparkleSuitePublicLandingContent = {
   },
   footer: {
     links: [
+      { label: 'FAQ', href: '/faq' },
       { label: 'Privacy Policy', href: '/privacy-policy' },
       { label: 'Terms and Conditions', href: '/terms-and-conditions' },
     ],
