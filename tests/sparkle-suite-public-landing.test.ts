@@ -104,10 +104,14 @@ describe('Sparkle Suite public landing page', () => {
 
   it('leads with distinct real themes and jewelry while explaining mobile support', () => {
     const html = renderLanding()
-    expect(html).toContain('hero-halloween-desktop-v1.webp')
-    expect(html).toContain('hero-rose-mobile-v3.webp')
+    expect(html).toContain('hero-halloween-desktop-v2.webp')
     expect(html).toContain('Desktop · Halloween')
-    expect(html).toContain('Mobile · Rose Gold')
+    const heroMarkup = html.slice(html.indexOf('id="main-content"'), html.indexOf('id="customer-site-proof"'))
+    expect(heroMarkup).toContain('hero-halloween-desktop-v2.webp')
+    expect(heroMarkup).toContain('Desktop · Halloween')
+    expect(heroMarkup).not.toContain('hero-rose-mobile')
+    expect(heroMarkup).not.toContain('Mobile · Rose Gold')
+    expect(heroMarkup).not.toContain('<span></span><span></span><span></span>')
     expect(html).toContain('href="/portfolio"')
     expect(html).toContain('Demo soon')
     expect(html).not.toContain('site-black-diamond-v2.webp')
@@ -127,8 +131,8 @@ describe('Sparkle Suite public landing page', () => {
 
   it('ships every new capture at its declared dimensions', async () => {
     const sharp = (await import('sharp')).default
-    const halloween = await sharp(publicAssetPath('/sparkle-suite/landing/hero-halloween-desktop-v1.webp')).metadata()
-    expect([halloween.width, halloween.height, halloween.format]).toEqual([1440, 825, 'webp'])
+    const halloween = await sharp(publicAssetPath('/sparkle-suite/landing/hero-halloween-desktop-v2.webp')).metadata()
+    expect([halloween.width, halloween.height, halloween.format]).toEqual([2048, 1084, 'webp'])
     for (const [name, width, height] of [['hero-emerald-desktop', 1265, 961], ['hero-rose-mobile', 390, 1020]] as const) {
       const metadata = await sharp(publicAssetPath(`/sparkle-suite/landing/${name}-v3.webp`)).metadata()
       expect([metadata.width, metadata.height]).toEqual([width, height])
@@ -367,6 +371,10 @@ describe('Sparkle Suite public landing page', () => {
     expect(css).toContain('.page')
     expect(css).toContain('#402924')
     expect(css).toContain('#fcf8f6')
+    expect(css).toContain('#1b1218')
+    expect(css).toContain('.page .hero .browserBar>span{display:none}')
+    expect(css).toContain('.page .hero .primaryButton{background:#c21878')
+    expect(css).not.toContain('#f9e5ed')
     expect(css).toContain('max-width:600px')
     expect(css).toContain('prefers-reduced-motion:reduce')
     expect(css).toContain('animation:none!important')
