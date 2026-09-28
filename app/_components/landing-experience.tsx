@@ -1,40 +1,49 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
+import { gridDemoEmbeds } from '@/lib/sparkle-suite/demo-page-content'
 import { sparkleSuitePublicLandingContent as content, sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
+import { MarketingSocialLinks } from './marketing-social-links'
 import { SparkleSeal } from './sparkle-suite-public-chrome'
 import { SparkleSuitePublicAccountAction } from './SparkleSuitePublicAccountAction'
 import { SparkleSuitePublicNicNac } from './sparkle-suite-public-nic-nac'
 import { FounderAvailabilityProvider, FounderOffer, FounderSpotLabel, FounderStrip, IncludedFeatures, ShowToolsTour, SiteStyleShowcase } from './landing-interactions'
 import styles from './landing-experience.module.css'
 
-export function MarketingHeader({ intake = false, current = 'home' }: { intake?: boolean; current?: 'home' | 'portfolio' }) {
+export function MarketingHeader({ intake = false, current = 'home' }: { intake?: boolean; current?: 'home' | 'portfolio' | 'demo' }) {
   const onPortfolio = current === 'portfolio'
-  const homeHref = intake || onPortfolio ? '/' : '#top'
+  const onDemo = current === 'demo'
+  const homeHref = intake || onPortfolio || onDemo ? '/' : '#top'
   return <header className={styles.header}>
     <a className={styles.brand} href={homeHref} aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></a>
     <nav className={styles.navigation} aria-label="Explore Sparkle Suite">
-      {onPortfolio ? <Link className={styles.pageLink} href="/">Home</Link> : null}
+      {onPortfolio || onDemo ? <Link className={styles.pageLink} href="/">Home</Link> : null}
       {onPortfolio ? <>
         <a className={styles.sectionLink} href="#rep-highlights">Rep highlights</a>
         <a className={styles.sectionLink} href="#community-themes">Community themes</a>
         <a className={styles.sectionLink} href="#holiday-themes">Holiday themes</a>
+      </> : onDemo ? <>
+        <a className={styles.sectionLink} href="#featured">Featured</a>
+        <a className={styles.sectionLink} href="#show-stories">Show stories</a>
+        {gridDemoEmbeds().length > 0 ? <a className={styles.sectionLink} href="#clips">Clips</a> : null}
       </> : <>
         <a className={styles.sectionLink} href={`${intake ? '/' : ''}#customer-site-proof`}>Your site</a>
         <a className={styles.sectionLink} href={`${intake ? '/' : ''}#workspace-proof`}>Show tools</a>
         <a className={styles.sectionLink} href={`${intake ? '/' : ''}#pricing`}>Founding offer</a>
       </>}
       <Link className={styles.pageLink} href="/portfolio" aria-current={onPortfolio ? 'page' : undefined}>Portfolio</Link>
-      <span className={styles.soonLink}>Demo soon</span>
+      <Link className={styles.pageLink} href="/demo" aria-current={onDemo ? 'page' : undefined}>Demo</Link>
     </nav>
     <nav className={styles.account} aria-label="Account links"><SparkleSuitePublicAccountAction /></nav>
   </header>
 }
 
 export function MarketingFooter() {
+  const textLinks = [...content.footer.links, ...content.footer.socialLinks].filter((link) => link.href !== '#' && link.label !== 'TikTok' && link.label !== 'YouTube')
   return <footer className={styles.footer}>
     <Link className={styles.brand} href="/" aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></Link>
-    <nav aria-label="Footer links">{[...content.footer.links, ...content.footer.socialLinks].filter(link => link.href !== '#').map(link => <a key={link.label} href={link.href}>{link.label}</a>)}</nav>
+    <nav aria-label="Footer links">{textLinks.map((link) => <a key={link.label} href={link.href}>{link.label}</a>)}</nav>
+    <MarketingSocialLinks />
     <p>{sparkleSuitePublicLandingSafety.disclaimer}</p>
   </footer>
 }

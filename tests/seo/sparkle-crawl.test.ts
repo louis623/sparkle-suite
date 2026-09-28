@@ -24,6 +24,10 @@ describe('Sparkle Suite crawl helpers', () => {
           priority: 0.9,
         }),
         expect.objectContaining({
+          url: 'https://www.yoursparklesuite.com/demo',
+          priority: 0.9,
+        }),
+        expect.objectContaining({
           url: 'https://www.yoursparklesuite.com/privacy-policy',
         }),
         expect.objectContaining({
