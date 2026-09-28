@@ -1,4 +1,11 @@
+/**
+ * Official YouTube profile for icons and footer social.
+ * Louis confirmed https://youtube.com/@sparklesuite (2026-09-28). That short
+ * link is the same channel as this canonical URL: UCpISEvH3gBaRfC8OoCKH7Qg.
+ * Embeds are individual listed videos, not this profile.
+ */
 export const sparkleSuiteYouTubeChannelUrl = 'https://www.youtube.com/@SparkleSuite' as const
+/** Official TikTok profile for icons and footer social. Not an embed. */
 export const sparkleSuiteTikTokChannelUrl = 'https://www.tiktok.com/@yoursparklesuite.com' as const
 
 export const sparkleSuitePublicLandingSafety = {

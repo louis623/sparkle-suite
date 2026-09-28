@@ -11,12 +11,15 @@ import {
  * YouTube video from @SparkleSuite. Never paste an unlisted YouTube id.
  * Do not add Workspace, Nic-Nac, or backend factory walkthroughs.
  *
- * Checked 2026-09-28:
- * - YouTube https://www.youtube.com/@SparkleSuite (UCpISEvH3gBaRfC8OoCKH7Qg)
- *   still has no public uploads. Playlist videos are rep training and blocked.
+ * Checked 2026-09-28, after Louis confirmed the YouTube profile
+ * https://youtube.com/@sparklesuite:
+ * - That short link is channel UCpISEvH3gBaRfC8OoCKH7Qg, the same channel as
+ *   the icon URL https://www.youtube.com/@SparkleSuite. /videos, /shorts, and
+ *   /streams still open Playlists. No listed upload to embed. Playlist videos
+ *   are rep training and blocked.
  * - TikTok https://www.tiktok.com/@yoursparklesuite.com is the official
  *   account (Louis confirmed). Each id below returned a public oEmbed whose
- *   author_url is that account.
+ *   author_url is that account. Profile URLs are icons, not iframe sources.
  * - Left off on purpose: founder-spot countdown captions, the Sparkle Finder
  *   announcement, the Sparkle Sweets discount walk, and the Mile High Fizz
  *   testing live. tiktok.com/@sparklesuite is an unrelated Mary Kay account.
