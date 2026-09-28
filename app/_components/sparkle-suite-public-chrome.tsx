@@ -76,7 +76,7 @@ export function SparkleSuitePublicFooter() {
           <div>
             <h2>Social</h2>
             {footer.socialLinks
-              .filter((link) => link.href !== '#' && link.label !== 'TikTok' && link.label !== 'YouTube')
+              .filter((link) => link.label !== 'TikTok' && link.label !== 'YouTube')
               .map((link) => (
                 <a href={link.href} key={link.label}>
                   {link.label}

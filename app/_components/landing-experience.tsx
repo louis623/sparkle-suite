@@ -39,7 +39,7 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
 }
 
 export function MarketingFooter() {
-  const textLinks = [...content.footer.links, ...content.footer.socialLinks].filter((link) => link.href !== '#' && link.label !== 'TikTok' && link.label !== 'YouTube')
+  const textLinks = [...content.footer.links, ...content.footer.socialLinks].filter((link) => link.label !== 'TikTok' && link.label !== 'YouTube')
   return <footer className={styles.footer}>
     <Link className={styles.brand} href="/" aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></Link>
     <nav aria-label="Footer links">{textLinks.map((link) => <a key={link.label} href={link.href}>{link.label}</a>)}</nav>
