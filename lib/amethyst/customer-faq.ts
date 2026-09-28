@@ -161,7 +161,7 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
   <link rel="stylesheet" href="/amethyst/gnome-garden.css" />
   <link rel="stylesheet" href="/amethyst/neon-butterfly.css" />
   <link rel="stylesheet" href="/amethyst/halloween-pumpkin-witch.css" />
-  <link rel="stylesheet" href="/amethyst/halloween-pumpkin-cat.css?v=20260928-hpc1" />
+  <link rel="stylesheet" href="/amethyst/halloween-pumpkin-cat.css?v=20260928-hpc2" />
   <link rel="stylesheet" href="/amethyst/faq.css?v=20260927-powered-by" />
 </head>
 <body class="${escapeHtml(bodyClasses)}">

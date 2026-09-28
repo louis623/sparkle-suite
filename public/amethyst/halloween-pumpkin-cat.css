@@ -75,7 +75,12 @@ body.bg-halloween-pumpkin-cat .hp-footer :is(p,a,span){color:#d9c1ad}
 @media(min-width:1800px){body.bg-halloween-pumpkin-cat .hp-hero-inner{padding-top:7%}body.bg-halloween-pumpkin-cat .hp-hero-headline{font-size:88px}}
 @media(max-width:1100px){
  body.bg-halloween-pumpkin-cat .hp-hero{min-height:0}
- body.bg-halloween-pumpkin-cat .hpc-art{position:relative;display:block;width:min(100%,620px);margin:auto;aspect-ratio:1}
+ body.bg-halloween-pumpkin-cat .hpc-art{position:relative;display:block;width:min(100%,720px);margin:auto;aspect-ratio:4/3;overflow:hidden}
+ /* Reframe the same approved scene; poster and video must share the crop. */
+ body.bg-halloween-pumpkin-cat .hpc-poster{position:absolute;inset:0}
+ body.bg-halloween-pumpkin-cat :is(.hpc-art img,.hpc-video){object-fit:cover;object-position:right bottom}
+ body.bg-halloween-pumpkin-cat .hpc-motion-control{position:relative;display:block;bottom:auto;left:auto;transform:none;margin:12px auto 4px}
+ body.bg-halloween-pumpkin-cat .hpc-motion-control[hidden]{display:none}
  body.bg-halloween-pumpkin-cat .hp-hero-inner{padding:18px 28px 40px;text-align:center}
  body.bg-halloween-pumpkin-cat .hp-hero-inner>div{width:100%;max-width:650px;margin:auto}
  body.bg-halloween-pumpkin-cat .hp-hero-headline{font-size:clamp(42px,6vw,60px);line-height:1.05;margin-bottom:18px}
@@ -83,9 +88,9 @@ body.bg-halloween-pumpkin-cat .hp-footer :is(p,a,span){color:#d9c1ad}
  body.bg-halloween-pumpkin-cat .hp-hero-headline span::after{content:' '}
  body.bg-halloween-pumpkin-cat .hp-hero-sub{font-size:16px;max-width:38ch;margin:0 auto 24px}
  body.bg-halloween-pumpkin-cat .hp-hero-ctas,body.bg-halloween-pumpkin-cat .hp-hero-cta-primary-row{justify-content:center}
- .hpc-video,.hpc-motion-control{display:none}
 }
 @media(max-width:600px){
+ body.bg-halloween-pumpkin-cat .hpc-art{aspect-ratio:1}
  body.bg-halloween-pumpkin-cat .hp-hero-inner{padding:16px 24px 32px}
  body.bg-halloween-pumpkin-cat .hp-hero-headline{font-size:44px;max-width:340px;margin:0 auto 18px}
  body.bg-halloween-pumpkin-cat .hp-hero-headline span{display:block!important}

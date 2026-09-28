@@ -14,6 +14,7 @@ class Element extends EventTarget {
   set src(v:string){this.setAttribute('src',v)}
   append(...nodes:Element[]){nodes.forEach(n=>{n.parent=this;this.children.push(n)})}
   prepend(n:Element){n.parent=this;this.children.unshift(n)}
+  after(n:Element){if(this.parent){n.parent=this.parent;this.parent.children.splice(this.parent.children.indexOf(this)+1,0,n)}}
   remove(){if(this.parent)this.parent.children=this.parent.children.filter(x=>x!==this)}
   play=vi.fn(()=>{this.paused=false;return Promise.resolve()})
   pause=vi.fn(()=>{this.paused=true})
@@ -34,27 +35,40 @@ function harness({mobile=false,reduced=false,still=false}={}){
     IntersectionObserver:class{constructor(fn:typeof intersection){intersection=fn}observe(){}disconnect(){}},
     MutationObserver:class{constructor(fn:typeof mutation){mutation=fn}observe(){}},
   })
-  const media=hero.children[0],video=media.children[1],button=hero.children[1]
+  const media=hero.children[0],video=media.children[1],button=hero.children.find(n=>n.tagName==='button')!
   return {hero,body,doc,desktop,motion,media,video,button,intersection,mutation}
 }
 afterEach(()=>vi.useRealTimers())
 describe('Pumpkin and Cat motion lifecycle',()=>{
-  it.each([{mobile:true},{reduced:true},{still:true}])('does not download video for %j',options=>{
+  it.each([{reduced:true},{still:true},{mobile:true,reduced:true},{mobile:true,still:true}])('does not download video for %j',options=>{
     const h=harness(options);expect(h.video.hasAttribute('src')).toBe(false);expect(h.video.play).not.toHaveBeenCalled()
   })
-  it('rests four seconds between cycles and supports pause/resume',()=>{
-    const h=harness();expect(h.video.play).toHaveBeenCalledTimes(1)
+  it.each([false,true])('plays the approved scene, rests between cycles and supports pause/resume (mobile=%s)',mobile=>{
+    const h=harness({mobile});expect(h.video.play).toHaveBeenCalledTimes(1)
+    expect(h.video.getAttribute('src')).toContain('hero-desktop-motion.mp4')
+    expect(h.media.children[0].children.map(n=>n.getAttribute('src'))).toEqual(['/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp'])
+    expect(h.button.hidden).toBe(false)
     h.video.dispatchEvent(new Event('ended'));vi.advanceTimersByTime(3999);expect(h.video.play).toHaveBeenCalledTimes(1)
     vi.advanceTimersByTime(1);expect(h.video.play).toHaveBeenCalledTimes(2)
     h.button.dispatchEvent(new Event('click'));expect(h.video.paused).toBe(true);expect(h.button.textContent).toBe('Play animation')
     h.button.dispatchEvent(new Event('click'));expect(h.video.play).toHaveBeenCalledTimes(3)
   })
-  it('pauses hidden/offscreen, unloads on mobile, and removes listeners on skin changes',()=>{
+  it('pauses hidden/offscreen, keeps playback across sizes, and removes listeners on skin changes',()=>{
     const h=harness();h.doc.hidden=true;h.doc.dispatchEvent(new Event('visibilitychange'));expect(h.video.paused).toBe(true)
     h.doc.hidden=false;h.doc.dispatchEvent(new Event('visibilitychange'));h.intersection([{isIntersecting:false}]);expect(h.video.paused).toBe(true)
-    h.desktop.matches=false;h.desktop.dispatchEvent(new Event('change'));expect(h.video.hasAttribute('src')).toBe(false);expect(h.button.hidden).toBe(true)
+    h.intersection([{isIntersecting:true}]);expect(h.video.paused).toBe(false)
+    h.desktop.matches=false;h.desktop.dispatchEvent(new Event('change'));expect(h.video.hasAttribute('src')).toBe(true);expect(h.button.hidden).toBe(false)
     h.body.className='homepage';h.mutation();expect(h.hero.children).toHaveLength(0)
     const plays=h.video.play.mock.calls.length;h.desktop.matches=true;h.desktop.dispatchEvent(new Event('change'));expect(h.video.play).toHaveBeenCalledTimes(plays)
+  })
+  it('offers a working manual Play button when autoplay is blocked on a phone',async()=>{
+    const h=harness({mobile:true,still:true})
+    h.video.play.mockRejectedValueOnce(Object.assign(new Error('Autoplay blocked'),{name:'NotAllowedError'}))
+    h.button.dispatchEvent(new Event('click'));await Promise.resolve()
+    expect(h.button.textContent).toBe('Play animation');expect(h.button.hidden).toBe(false)
+    expect(h.media.hasAttribute('data-playing')).toBe(false)
+    h.button.dispatchEvent(new Event('click'));await Promise.resolve()
+    expect(h.video.paused).toBe(false);expect(h.button.textContent).toBe('Pause animation')
   })
   it('returns to the poster on failure and when reduced motion is enabled',()=>{
     const h=harness();h.video.dispatchEvent(new Event('playing'));expect(h.media.hasAttribute('data-playing')).toBe(true)

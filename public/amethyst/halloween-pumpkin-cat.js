@@ -1,20 +1,16 @@
 (function pumpkinCatMotion() {
   const ASSETS = '/amethyst/skins/halloween-pumpkin-cat/';
-  const desktop = matchMedia('(min-width:1101px)');
   const reduced = matchMedia('(prefers-reduced-motion:reduce)');
   let active = null;
   function mount(hero) {
     const picture = document.createElement('picture');
     picture.className = 'hpc-art';
     picture.setAttribute('aria-hidden', 'true');
-    const source = document.createElement('source');
-    source.media = '(max-width:1100px)';
-    source.srcset = ASSETS + 'hero-mobile.webp';
     const poster = document.createElement('img');
     poster.src = ASSETS + 'hero-desktop.webp';
     poster.alt = '';
     poster.width = 1672; poster.height = 941;
-    picture.append(source, poster);
+    picture.append(poster);
     const video = document.createElement('video');
     video.className = 'hpc-video';
     video.muted = true; video.playsInline = true; video.preload = 'none';
@@ -28,7 +24,7 @@
     hero.prepend(media);
     const control = document.createElement('button');
     control.type = 'button'; control.className = 'hpc-motion-control';
-    hero.append(control);
+    media.after(control);
     let wanted = !reduced.matches && hero.dataset.catMotion !== 'off';
     let visible = true, failed = false, disposed = false, restTimer = null;
     let resting = false;
@@ -37,12 +33,7 @@
       if (disposed) return;
       control.textContent = wanted ? 'Pause animation' : 'Play animation';
       control.setAttribute('aria-pressed', String(wanted));
-      control.hidden = !desktop.matches || failed;
-      if (!desktop.matches) {
-        pause(); resting = false;
-        if (video.hasAttribute('src')) { video.removeAttribute('src'); video.load(); }
-        media.removeAttribute('data-playing'); return;
-      }
+      control.hidden = failed;
       if (!wanted || document.hidden || !visible || failed) { pause(); return; }
       if (resting) {
         if (!restTimer) restTimer = setTimeout(() => { restTimer = null; resting = false; video.currentTime = 0; update(); }, 4000);
@@ -64,15 +55,13 @@
     });
     control.addEventListener('click', () => { wanted = !wanted; update(); });
     const preferenceChanged = () => { wanted = !reduced.matches && hero.dataset.catMotion !== 'off'; if (!wanted) media.removeAttribute('data-playing'); update(); };
-    desktop.addEventListener('change', update);
     reduced.addEventListener('change', preferenceChanged);
     document.addEventListener('visibilitychange', update);
     const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); }, {threshold:0.05});
-    intersection.observe(hero);
+    intersection.observe(media);
     update();
     return { hero, preferenceChanged, dispose() {
       disposed = true; pause(); intersection.disconnect();
-      desktop.removeEventListener('change', update);
       reduced.removeEventListener('change', preferenceChanged);
       document.removeEventListener('visibilitychange', update);
       video.removeAttribute('src'); video.load(); media.remove(); control.remove();
