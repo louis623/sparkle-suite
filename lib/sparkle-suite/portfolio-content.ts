@@ -33,10 +33,10 @@ export const sparkleSuitePortfolioContent = {
     body:
       'Real customer sites, community looks, and seasonal themes. Sparkle Suite builds the customer side so a live show has a polished place to land.',
     image: {
-      src: '/sparkle-suite/landing/hero-halloween-desktop-v1.webp',
-      alt: 'Halloween Pumpkin and Witch customer-site theme, with a dark night hero, shop actions, and the flying-witch decoration.',
-      width: 1440,
-      height: 825,
+      src: '/sparkle-suite/landing/hero-halloween-witch-live.webp',
+      alt: 'Halloween Pumpkin and Witch homepage hero, with the live lineup, shop actions, jack-o’-lantern, and flying witch.',
+      width: 1024,
+      height: 513,
       label: 'Halloween · Pumpkin and Witch',
     },
   },
@@ -153,7 +153,7 @@ export const sparkleSuitePortfolioContent = {
       id: 'holiday-themes',
       eyebrow: 'Holiday and special occasions',
       heading: 'Nights that deserve their own look.',
-      body: 'Seasonal themes for the shows that mark the calendar. Halloween is on the floor now.',
+      body: 'Seasonal themes for the shows that mark the calendar. Two Halloween looks are ready now.',
       label: 'Holiday and special occasion themes',
       slides: [
         {
@@ -161,10 +161,20 @@ export const sparkleSuitePortfolioContent = {
           kind: 'capture',
           title: 'Halloween Pumpkin and Witch',
           detail: 'A sparkling black-and-orange night with a jack-o’-lantern, silver moon, and a flying witch.',
-          src: '/sparkle-suite/landing/hero-halloween-desktop-v1.webp',
-          alt: 'Halloween Pumpkin and Witch community theme preview, with a dark night hero and shop actions.',
-          width: 1440,
-          height: 825,
+          src: '/sparkle-suite/landing/hero-halloween-witch-live.webp',
+          alt: 'Halloween Pumpkin and Witch homepage hero, with the live lineup, shop actions, jack-o’-lantern, and flying witch.',
+          width: 1024,
+          height: 513,
+        },
+        {
+          id: 'halloween-pumpkin-cat',
+          kind: 'capture',
+          title: 'Halloween Pumpkin and Cat',
+          detail: 'A glittering pumpkin night, with a black cat perched on the silver moon.',
+          src: '/sparkle-suite/landing/hero-halloween-cat-live.webp',
+          alt: 'Halloween Pumpkin and Cat homepage hero, with the site header, live lineup, and a black cat beside the jack-o’-lantern.',
+          width: 1280,
+          height: 576,
         },
         {
           id: 'holiday-placeholder-winter',
