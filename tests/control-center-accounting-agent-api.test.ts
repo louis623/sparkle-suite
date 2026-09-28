@@ -17,7 +17,7 @@ const incompleteClientList = {
   clientBilling: [{ clientName: 'One stored price', plan: 'standard', monthlyAmount: 50 }],
 }
 
-function laneSnapshot(overrides: Partial<AccountingMonthlySnapshot> = {}): AccountingMonthlySnapshot {
+function verifiedSnapshot(overrides: Partial<AccountingMonthlySnapshot> = {}): AccountingMonthlySnapshot {
   return {
     product: 'suite',
     periodStart: '2026-09-01',
@@ -54,11 +54,11 @@ describe('accounting agent API contract', () => {
     expect(matchesAccountingAgentToken(null, 'correct-token')).toBe(false)
   })
 
-  it('returns the Lane snapshot and ignores an incomplete client-list rollup', () => {
+  it('returns Cheese’s verified monthly snapshot and ignores an incomplete client-list rollup', () => {
     const summary = buildAccountingAgentSummary({
       product: 'suite',
       now: new Date('2026-09-28T14:10:00.000Z'),
-      snapshot: laneSnapshot(),
+      snapshot: verifiedSnapshot(),
       suiteProjection: incompleteClientList,
     })
 
@@ -74,7 +74,7 @@ describe('accounting agent API contract', () => {
       },
       access: { mode: 'read_only', customerDetail: 'not_exposed', financialWriteAccess: false },
       ledger: {
-        status: 'lane_monthly_snapshot',
+        status: 'verified_monthly_snapshot',
         recordedAt: '2026-09-28T10:05:00.000Z',
         reason: 'correction',
       },
@@ -85,14 +85,14 @@ describe('accounting agent API contract', () => {
         cancelledClientCount: 1,
         pricedActiveClientCount: null,
         clientsMissingMonthlyAmount: null,
-        source: 'lane_monthly_snapshot',
+        source: 'verified_monthly_snapshot',
       },
       actuals: {
         revenueCollectedCents: 31696,
         expensesCents: 28713,
         netCents: 2983,
         processorAvailableCents: 9682,
-        sourceStatus: 'lane_monthly_snapshot',
+        sourceStatus: 'verified_monthly_snapshot',
       },
       sourceStatus: { stripe: 'connected', bluevine: 'connected', productDb: 'not_connected' },
       lastReconciledAt: '2026-09-28T10:05:00.000Z',
@@ -103,7 +103,7 @@ describe('accounting agent API contract', () => {
     expect(summary.nextIntegrationRequirements).toEqual([])
   })
 
-  it('stays not connected when the Lane snapshot is missing, even if the client list has a partial total', () => {
+  it('stays not connected when Cheese’s monthly snapshot is missing, even if the client list has a partial total', () => {
     const summary = buildAccountingAgentSummary({
       product: 'suite',
       now: new Date('2026-09-03T17:00:00.000Z'),
@@ -121,7 +121,7 @@ describe('accounting agent API contract', () => {
         activeClientCount: null,
         pricedActiveClientCount: null,
         clientsMissingMonthlyAmount: null,
-        source: 'lane_monthly_snapshot_missing',
+        source: 'verified_monthly_snapshot_missing',
       },
       actuals: { revenueCollectedCents: null, processorAvailableCents: null, sourceStatus: 'not_connected' },
       sourceStatus: { productDb: 'not_connected', stripe: 'not_connected', bluevine: 'not_connected' },
@@ -131,10 +131,10 @@ describe('accounting agent API contract', () => {
     expect(JSON.stringify(summary)).not.toContain('One stored price')
   })
 
-  it('uses a Finder Lane snapshot when one exists and does not borrow Suite client-list amounts', () => {
+  it('uses a Finder accounting snapshot when one exists and does not borrow Suite client-list amounts', () => {
     const present = buildAccountingAgentSummary({
       product: 'finder',
-      snapshot: laneSnapshot({ product: 'finder', projectedRecurringCents: 4200, activeClientCount: 2 }),
+      snapshot: verifiedSnapshot({ product: 'finder', projectedRecurringCents: 4200, activeClientCount: 2 }),
       suiteProjection: incompleteClientList,
     })
     const absent = buildAccountingAgentSummary({
@@ -145,9 +145,9 @@ describe('accounting agent API contract', () => {
     expect(present.product).toBe('sparkle_finder')
     expect(present.projected.recurringCents).toBe(4200)
     expect(present.projected.activeClientCount).toBe(2)
-    expect(present.ledger.status).toBe('lane_monthly_snapshot')
+    expect(present.ledger.status).toBe('verified_monthly_snapshot')
     expect(absent.ledger.status).toBe('missing_snapshot')
     expect(absent.projected.recurringCents).toBeNull()
-    expect(absent.projected.source).toBe('lane_monthly_snapshot_missing')
+    expect(absent.projected.source).toBe('verified_monthly_snapshot_missing')
   })
 })

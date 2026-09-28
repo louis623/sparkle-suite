@@ -265,12 +265,12 @@ describe('SparkleSuiteControlCenterPage', () => {
     expect(html).toContain('Accounting')
     expect(html).toContain('Projected monthly revenue')
     expect(html).toContain('$127.99')
-    expect(html).toContain('Lane’s latest reconciled expected recurring revenue')
+    expect(html).toContain('Cheese’s latest reconciled expected recurring revenue')
     expect(html).toContain('Actual revenue collected')
     expect(html).toContain('$99.98')
     expect(html).toContain('Actual expenses paid')
     expect(html).toContain('$18.00')
-    expect(html).toContain('Lane’s latest reconciled monthly total')
+    expect(html).toContain('Cheese’s latest reconciled monthly total')
     expect(html).toContain('Publisher')
     expect(html).toContain('Support Inbox')
     expect(html).toContain('Customer Database')
@@ -297,7 +297,7 @@ describe('SparkleSuiteControlCenterPage', () => {
     expect(html).toContain('Get what you need for their About page')
   })
 
-  it('does not substitute the customer-list total when Lane has no current Suite snapshot', async () => {
+  it('does not substitute the customer-list total when Cheese has no current Suite snapshot', async () => {
     loadCurrentAccountingSnapshotMock.mockResolvedValueOnce(null)
 
     const page = await SparkleSuiteControlCenterPage({})

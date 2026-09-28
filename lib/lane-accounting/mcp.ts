@@ -73,12 +73,14 @@ function bases(amounts: SnapshotInput['money']) {
   ))
 }
 
+// Cheese owns this accounting connector. Tool names, the MCP server name, and
+// recorded_by stay on the live lane_ wire values so existing credentials keep working.
 export function createLaneAccountingMcpServer() {
   const server = new McpServer({ name: 'sparkle-suite-lane-accounting', version: '1.0.0' })
   server.registerTool(
     'lane_append_accounting_monthly_snapshot',
     {
-      description: 'Append one validated, aggregate-only monthly accounting snapshot for Sparkle Suite or Sparkle Finder. It cannot move money, alter providers, edit customers, create invoices, issue refunds, or overwrite/delete any prior snapshot.',
+      description: 'Append one validated, aggregate-only monthly accounting snapshot for Sparkle Suite or Sparkle Finder. Cheese owns this path. It cannot move money, alter providers, edit customers, create invoices, issue refunds, or overwrite/delete any prior snapshot.',
       inputSchema: snapshotInput,
     },
     async (input) => {
@@ -89,6 +91,7 @@ export function createLaneAccountingMcpServer() {
         period_start: input.periodStart,
         period_end_exclusive: input.periodEndExclusive,
         as_of: input.asOf,
+        // Stored actor key remains lane so existing snapshot rows stay valid. Cheese owns this path.
         recorded_by: 'lane',
         reason: input.reason,
         source_status: input.sourceStatus,
@@ -122,7 +125,7 @@ export function createLaneAccountingMcpServer() {
   server.registerTool(
     'lane_get_current_accounting_snapshot',
     {
-      description: 'Read the latest aggregate monthly accounting snapshot currently displayed for one product. This returns no customer, invoice, payment, banking, or provider-object details.',
+      description: 'Read the latest aggregate monthly accounting snapshot currently displayed for one product. Cheese owns this path. This returns no customer, invoice, payment, banking, or provider-object details.',
       inputSchema: z.object({ product: z.enum(['suite', 'finder']) }),
     },
     async ({ product }) => {
@@ -132,7 +135,7 @@ export function createLaneAccountingMcpServer() {
           product,
           snapshot,
           mode: 'read_only_aggregate',
-          notice: 'This is the aggregate snapshot the Control Center uses for the current Eastern calendar month.',
+          notice: 'This is Cheese’s verified monthly snapshot. Control Center uses it for the current Eastern calendar month.',
         }) }],
       }
     },

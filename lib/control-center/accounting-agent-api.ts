@@ -84,19 +84,21 @@ function emptyMoney(source: string, note: string) {
 function snapshotGaps(snapshot: AccountingMonthlySnapshot) {
   const gaps: string[] = []
   if (snapshot.sourceStatus.stripe !== 'connected') {
-    gaps.push('Stripe marked connected on the Lane snapshot before Stripe totals are treated as booked')
+    gaps.push('Stripe marked connected on Cheese’s accounting snapshot before Stripe totals are treated as booked')
   }
   if (snapshot.sourceStatus.bluevine !== 'connected') {
-    gaps.push('Bluevine marked connected on the Lane snapshot before expense and net totals are treated as booked')
+    gaps.push('Bluevine marked connected on Cheese’s accounting snapshot before expense and net totals are treated as booked')
   }
   return gaps
 }
 
 /**
  * Aggregate read for agents and the internal accounting summary.
- * A Lane monthly snapshot is the only money source. The client-list rollup
+ * Cheese’s verified monthly snapshot is the only money source. The client-list rollup
  * (`suiteProjection`) is accepted so callers can prove it does not fill in
  * or override those figures. Stored subscription prices are not cash.
+ * Status strings say verified_monthly_snapshot. They are not the MCP tool names,
+ * which still start with lane_ so the live connector keeps working.
  */
 export function buildAccountingAgentSummary(args: {
   product: AccountingAgentProduct
@@ -108,8 +110,8 @@ export function buildAccountingAgentSummary(args: {
   const now = args.now ?? new Date()
   const period = easternPeriod(now)
   const snapshot = args.snapshot?.product === args.product ? args.snapshot : null
-  const missingNote = 'No Lane monthly snapshot is stored for this Eastern calendar month. Client-list monthly amounts are not used.'
-  const snapshotNote = 'These totals are Lane’s latest aggregate monthly snapshot. Stored subscription prices are not cash and are not used here.'
+  const missingNote = 'No verified monthly snapshot from Cheese is stored for this Eastern calendar month. Client-list monthly amounts are not used.'
+  const snapshotNote = 'These totals are Cheese’s latest verified monthly snapshot. Stored subscription prices are not cash and are not used here.'
   const money = snapshot
     ? {
         projected: {
@@ -120,7 +122,7 @@ export function buildAccountingAgentSummary(args: {
           pricedActiveClientCount: null,
           clientsMissingMonthlyAmount: null,
           projectedExpensesCents: snapshot.projectedExpensesCents,
-          source: 'lane_monthly_snapshot',
+          source: 'verified_monthly_snapshot',
         },
         actuals: {
           revenueCollectedCents: snapshot.actualCollectedCents,
@@ -132,12 +134,12 @@ export function buildAccountingAgentSummary(args: {
           payoutsInTransitCents: snapshot.payoutsInTransitCents,
           expensesCents: snapshot.expensesCents,
           netCents: snapshot.netCents,
-          paymentHistory: 'lane_monthly_snapshot',
-          sourceStatus: 'lane_monthly_snapshot',
+          paymentHistory: 'verified_monthly_snapshot',
+          sourceStatus: 'verified_monthly_snapshot',
           note: snapshotNote,
         },
       }
-    : emptyMoney('lane_monthly_snapshot_missing', missingNote)
+    : emptyMoney('verified_monthly_snapshot_missing', missingNote)
 
   return {
     schemaVersion: 1,
@@ -155,7 +157,7 @@ export function buildAccountingAgentSummary(args: {
       financialWriteAccess: false,
     },
     ledger: {
-      status: snapshot ? 'lane_monthly_snapshot' : 'missing_snapshot',
+      status: snapshot ? 'verified_monthly_snapshot' : 'missing_snapshot',
       recordedAt: snapshot?.recordedAt ?? null,
       reason: snapshot?.reason ?? null,
     },
@@ -167,6 +169,6 @@ export function buildAccountingAgentSummary(args: {
     lastReconciledAt: snapshot?.recordedAt ?? null,
     nextIntegrationRequirements: snapshot
       ? snapshotGaps(snapshot)
-      : ['Lane monthly snapshot for the current Eastern calendar month'],
+      : ['Cheese’s verified monthly snapshot for the current Eastern calendar month'],
   }
 }

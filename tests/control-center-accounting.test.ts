@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { AccountingDashboard } from '@/app/control-center/_components/AccountingDashboard'
 
 describe('Control Center accounting foundations', () => {
-  it('does not treat an incomplete client list as Suite projected revenue when Lane has no snapshot', () => {
+  it('does not treat an incomplete client list as Suite projected revenue when Cheese has no snapshot', () => {
     const html = renderToStaticMarkup(createElement(AccountingDashboard, {
       product: 'suite',
       suiteProjection: {
@@ -33,7 +33,7 @@ describe('Control Center accounting foundations', () => {
     expect(html).toContain('bg-amber-50')
   })
 
-  it('keeps the Lane snapshot total when the client list would under-report', () => {
+  it('keeps Cheese’s snapshot total when the client list would under-report', () => {
     const html = renderToStaticMarkup(createElement(AccountingDashboard, {
       product: 'suite',
       suiteProjection: {
@@ -69,10 +69,10 @@ describe('Control Center accounting foundations', () => {
         netCents: 2983,
       },
     }))
-    expect(html).toContain('Lane’s latest reconciled expected recurring revenue')
+    expect(html).toContain('Cheese’s latest reconciled expected recurring revenue')
     expect(html).toContain('$216.98')
     expect(html).toContain('$316.96')
-    expect(html).toContain('Lane verified')
+    expect(html).toContain('Cheese verified')
     expect(html).not.toContain('From client list')
     expect(html).not.toContain('Missing snapshot')
     expect(html).toContain('That list is not the monthly books.')
@@ -87,7 +87,7 @@ describe('Control Center accounting foundations', () => {
     expect(html).toContain('href="/control-center/accounting"')
   })
 
-  it('shows Lane-supplied projected expenses and reconciliation totals without making a page editor', () => {
+  it('shows Cheese’s projected expenses and reconciliation totals without making a page editor', () => {
     const html = renderToStaticMarkup(createElement(AccountingDashboard, {
       product: 'finder',
       snapshot: {
@@ -115,7 +115,7 @@ describe('Control Center accounting foundations', () => {
       },
     }))
     expect(html).toContain('Projected monthly expenses')
-    expect(html).toContain('Lane’s latest reconciled expected recurring revenue')
+    expect(html).toContain('Cheese’s latest reconciled expected recurring revenue')
     expect(html).toContain('$127.99')
     expect(html).toContain('$0.06')
     expect(html).toContain('$99.98')

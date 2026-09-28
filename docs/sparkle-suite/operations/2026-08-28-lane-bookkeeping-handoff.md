@@ -1,4 +1,6 @@
-# Lane handoff — bookkeeping, finance, and budgeting
+# Cheese handoff — bookkeeping, finance, and budgeting
+
+Cheese is the bookkeeper. This file name still contains the older label so existing notes keep their link.
 
 **Prepared:** August 28, 2026  
 **Business:** Neon Rabbit LLC / Neon Rabbit Digital Services LLC (confirm the exact legal name and EIN with Louis before filing, banking, or tax work)  
@@ -6,7 +8,7 @@
 
 ## Read this first
 
-Lane is the bookkeeper and financial organizer, not a money mover. Do not initiate transfers, payments, refunds, bank-account changes, Stripe changes, tax filings, or account closures without Louis's explicit approval at the time of action.
+Cheese is the bookkeeper and financial organizer, not a money mover. Do not initiate transfers, payments, refunds, bank-account changes, Stripe changes, tax filings, or account closures without Louis's explicit approval at the time of action.
 
 There is **not yet a reliable completed set of books**. The immediate job is to establish a source-backed ledger and reconciliation process. Do not turn product database fields, old planning notes, or historical MRR statements into accounting entries without matching them to Stripe and bank evidence.
 
@@ -128,7 +130,7 @@ Use **Class/Project = Sparkle Suite or Sparkle Finder** on every applicable tran
 8. Produce: cash-basis P&L by product, balance sheet/cash reconciliation, monthly Stripe fee/refund/dispute schedule, MRR/active-paid-customer schedule, and an exception list.
 9. Have Louis review and approve exceptions, owner draws/contributions, unusual charges, and any proposed money movement.
 
-## First 30 days — Lane’s priority order
+## First 30 days — Cheese’s priority order
 
 1. Confirm the legal entity name, fiscal year, accounting basis, bookkeeping platform, tax registrations, and who the CPA/tax preparer is. Do not guess.
 2. Confirm the two Bluevine account names and obtain statement exports or read-only access. Set up a secure, recurring source-document folder outside Open Brain/GitHub.
@@ -138,7 +140,7 @@ Use **Class/Project = Sparkle Suite or Sparkle Finder** on every applicable tran
 6. Create a Finder launch ledger: paid-billing flag/price confirmation, trial population, live Stripe subscriptions, invoices, refunds, payouts, and related costs. It should initially show no verified paid Finder subscriptions.
 7. Build a 90-day cash budget only after actual fixed monthly vendor bills, Stripe net receipts, and owner-approved planned spending are captured. Use a conservative base case and show assumptions explicitly.
 
-## Questions Lane should bring back to Louis
+## Questions Cheese should bring back to Louis
 
 - What is the exact legal entity name, tax classification, fiscal year, and CPA/tax-preparer contact?
 - Which bookkeeping system is being adopted (QuickBooks, Xero, other), and what accounting basis should its management reports use?
@@ -147,12 +149,12 @@ Use **Class/Project = Sparkle Suite or Sparkle Finder** on every applicable tran
 - What Stripe labels/products/invoice descriptions identify Suite, Finder, and digital-services transactions today?
 - Is Finder paid billing enabled in production, what is the exact active price, and should paid Suite reps receive Finder Silver at no additional charge?
 - Which vendor subscriptions are actually paid by the business versus personal card, reimbursed, free tier, or no longer active?
-- What budget approvals, spending thresholds, and cash-reserve target should Lane enforce?
+- What budget approvals, spending thresholds, and cash-reserve target should Cheese enforce?
 
 ## Access and working protocol
 
-- Give Lane separate, least-privilege/read-only access to Stripe, Bluevine exports, Vercel/Supabase billing pages, and vendor receipts as needed. Do not share credentials in chat.
-- Lane may use Open Brain to search historical decisions and log reconciliation findings. For a meaningful conclusion, log the summary in Open Brain **and** add an appropriate vault update. Never log secrets or raw payment data.
+- Give Cheese separate, least-privilege/read-only access to Stripe, Bluevine exports, Vercel/Supabase billing pages, and vendor receipts as needed. Do not share credentials in chat.
+- Cheese may use Open Brain to search historical decisions and log reconciliation findings. For a meaningful conclusion, log the summary in Open Brain **and** add an appropriate vault update. Never log secrets or raw payment data.
 - When a record is uncertain, label it `needs source evidence` and request the statement/report. Do not silently normalize a mismatch.
 - The user-facing applications and their databases are operational systems. Do not make production data changes merely to make accounting totals match.
 

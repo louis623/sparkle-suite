@@ -46,7 +46,7 @@ type StripeSubscription = {
 
 /**
  * Read-only sum of active Suite subscription monthly unit amounts.
- * Stripe errors and incomplete reads return null so LOC can use the Lane snapshot.
+ * Stripe errors and incomplete reads return null so LOC can use Cheese’s verified monthly snapshot.
  */
 export async function loadLiveSuiteProjectedRecurring(): Promise<LiveSuiteProjectedRecurring> {
   if (!isStripeEnabled()) return unavailable;
