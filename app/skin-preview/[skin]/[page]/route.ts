@@ -25,7 +25,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ skin
       'X-Robots-Tag': 'noindex, nofollow',
       'Referrer-Policy': 'no-referrer',
       // srcdoc inherits this policy; its own policy further denies nested frames.
-      'Content-Security-Policy': `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' ${origin} https://fonts.googleapis.com https://api.fontshare.com; font-src ${origin} https://fonts.gstatic.com https://cdn.fontshare.com https://api.fontshare.com data:; img-src ${origin} https: data: blob:; frame-src 'self' about:; connect-src 'none'; form-action 'none'; base-uri ${origin}; frame-ancestors 'self'; object-src 'none'`,
+      'Content-Security-Policy': `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' ${origin} https://fonts.googleapis.com https://api.fontshare.com; font-src ${origin} https://fonts.gstatic.com https://cdn.fontshare.com https://api.fontshare.com data:; img-src ${origin} https: data: blob:; media-src ${origin}/amethyst/skins/halloween-pumpkin-cat/; frame-src 'self' about:; connect-src 'none'; form-action 'none'; base-uri ${origin}; frame-ancestors 'self'; object-src 'none'`,
     },
   })
 }

@@ -6,9 +6,20 @@ import { buildAmethystHomepageTweakDefaults, defaultAmethystHomepageTemplateData
 import { buildAmethystTradeTweakDefaults, defaultAmethystTradeTemplateData } from '@/lib/amethyst/trade-template-data'
 import { buildAmethystJoinTweakDefaults, defaultAmethystJoinTemplateData } from '@/lib/amethyst/join-template-data'
 import { GET } from '@/app/skin-preview/[skin]/[page]/route'
+import { buildSkinPreviewDocument } from '@/lib/amethyst/skin-preview'
 
 const id = 'halloween_pumpkin_cat'
 describe('Pumpkin and Cat community skin', () => {
+  it('allows the local decorative video through both preview policies while keeping submissions and requests blocked', async () => {
+    const origin = 'https://www.yoursparklesuite.com'
+    const response = await GET(new Request(`${origin}/skin-preview/${id}/homepage`), {params:Promise.resolve({skin:id,page:'homepage'})})
+    const doc = await buildSkinPreviewDocument(id, 'homepage', origin)
+    for (const policy of [response.headers.get('Content-Security-Policy'), doc]) {
+      expect(policy).toContain(`media-src ${origin}/amethyst/skins/halloween-pumpkin-cat/;`)
+    }
+    expect(response.headers.get('Content-Security-Policy')).toContain("connect-src 'none'; form-action 'none'")
+    expect(doc).toContain('Sample preview: requests are disabled.')
+  })
   it('recognizes selection by id, code and label and retains matching tokens on every page', () => {
     expect(normalizeAmethystAppearancePreset(id)).toBe(id)
     expect(normalizeAmethystSkinSelection('HPC-01')).toBe(id)

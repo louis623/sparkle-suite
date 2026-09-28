@@ -256,7 +256,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
     const source = inlineScript(await readFile(join(root, name), 'utf8'))
     document = document.replace(pattern, (_match, before, after) => `<script${before}${after}>${source}</script>`)
   }
-  const csp = `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' ${origin} https://fonts.googleapis.com https://api.fontshare.com; font-src ${origin} https://fonts.gstatic.com https://cdn.fontshare.com https://api.fontshare.com data:; img-src ${origin} https: data: blob:; connect-src 'none'; form-action 'none'; frame-src 'none'; base-uri ${origin}; object-src 'none'`
+  const csp = `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' ${origin} https://fonts.googleapis.com https://api.fontshare.com; font-src ${origin} https://fonts.gstatic.com https://cdn.fontshare.com https://api.fontshare.com data:; img-src ${origin} https: data: blob:; media-src ${origin}/amethyst/skins/halloween-pumpkin-cat/; connect-src 'none'; form-action 'none'; frame-src 'none'; base-uri ${origin}; object-src 'none'`
   document = document.replace('<head>', `<head><meta http-equiv="Content-Security-Policy" content="${escapeAttribute(csp)}"><base href="${escapeAttribute(origin)}/amethyst/"><meta name="robots" content="noindex,nofollow">`)
   document = document.replace(/<meta name="robots" content="index,follow" \/>/g, '')
   const profile = PREVIEW_PROFILES[skin]
