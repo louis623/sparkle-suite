@@ -13,8 +13,9 @@ async function configuredDigest() {
   const environmentToken = process.env.LANE_ACCOUNTING_INGEST_TOKEN?.trim()
   if (environmentToken) return tokenDigest(environmentToken)
 
-  // The connector's bootstrap token is stored only as a hash in Supabase. This
-  // lets Lane authenticate without a second hosting-provider secret surface.
+  // Cheese owns this connector. The bootstrap token is stored only as a hash in
+  // Supabase. The table name, row id, and LANE_ACCOUNTING_INGEST_TOKEN stay as
+  // they are so the live credential keeps working.
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null
   const { data, error } = await createAdminClient()
     .from('lane_accounting_mcp_tokens')
@@ -22,14 +23,14 @@ async function configuredDigest() {
     .eq('id', 'lane')
     .eq('revoked', false)
     .maybeSingle()
-  if (error) throw new Error('Could not load Lane MCP credential: ' + error.message)
+  if (error) throw new Error('Could not load Cheese accounting MCP credential: ' + error.message)
   return data?.token_digest ? Buffer.from(data.token_digest, 'hex') : null
 }
 
 export async function laneAccountingSecurityResponse(request: Request) {
   const expected = await configuredDigest()
   if (!expected) {
-    return NextResponse.json({ error: 'Lane accounting connector is not configured.' }, { status: 503 })
+    return NextResponse.json({ error: 'Cheese accounting connector is not configured.' }, { status: 503 })
   }
 
   const origin = request.headers.get('origin')
@@ -45,7 +46,7 @@ export async function laneAccountingSecurityResponse(request: Request) {
   if (!actual.length || actual.length !== expected.length || !timingSafeEqual(actual, expected)) {
     return NextResponse.json({ error: 'unauthorized' }, {
       status: 401,
-      headers: { 'www-authenticate': 'Bearer realm="Sparkle Suite Lane Accounting"' },
+      headers: { 'www-authenticate': 'Bearer realm="Sparkle Suite Cheese Accounting"' },
     })
   }
 

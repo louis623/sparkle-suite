@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { laneAccountingSecurityResponse } from '@/lib/lane-accounting/security'
 
-describe('Lane accounting connector security', () => {
+describe('Cheese accounting connector security', () => {
   const originalSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const originalServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -14,7 +14,7 @@ describe('Lane accounting connector security', () => {
     else process.env.SUPABASE_SERVICE_ROLE_KEY = originalServiceRoleKey
   })
 
-  it('fails closed until the dedicated Lane token is configured', async () => {
+  it('fails closed until the dedicated Cheese token is configured', async () => {
     delete process.env.NEXT_PUBLIC_SUPABASE_URL
     delete process.env.SUPABASE_SERVICE_ROLE_KEY
     expect((await laneAccountingSecurityResponse(

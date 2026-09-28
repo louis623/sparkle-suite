@@ -1,6 +1,6 @@
 # LOC service connection
 
-This is an additive native operator interface to the existing Sparkle services. The original Control Center, customer Workspace, customer authentication, Remy MCP, Lane accounting MCP and workers remain available.
+This is an additive native operator interface to the existing Sparkle services. The original Control Center, customer Workspace, customer authentication, Remy MCP, Cheese accounting MCP, and workers remain available. Cheese’s connector tool names still start with lane_.
 
 ## Wire contract
 

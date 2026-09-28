@@ -602,13 +602,13 @@ export function SupportCommandCenter({
           <Link className={`rounded-lg border p-4 shadow-sm ${projectedMonthlyRevenueCents == null ? 'border-amber-200 bg-amber-50 hover:bg-amber-100' : 'border-emerald-200 bg-white hover:bg-emerald-50'}`} href="/control-center/accounting">
             <p className={`text-xs font-bold uppercase tracking-wide ${projectedMonthlyRevenueCents == null ? 'text-amber-900' : 'text-slate-700'}`}>Projected monthly revenue</p>
             <p className={`mt-2 text-3xl font-semibold ${projectedMonthlyRevenueCents == null ? 'text-amber-950' : 'text-slate-950'}`}>{formatCents(projectedMonthlyRevenueCents)}</p>
-            <p className={`mt-2 text-sm font-medium ${projectedMonthlyRevenueCents == null ? 'text-amber-900' : 'text-slate-600'}`}>{projectedMonthlyRevenueCents == null ? 'Not connected yet' : 'Lane’s latest reconciled expected recurring revenue'}</p>
+            <p className={`mt-2 text-sm font-medium ${projectedMonthlyRevenueCents == null ? 'text-amber-900' : 'text-slate-600'}`}>{projectedMonthlyRevenueCents == null ? 'Not connected yet' : 'Cheese’s latest reconciled expected recurring revenue'}</p>
           </Link>
           {accountingCards.map(({ title, valueCents }) => (
             <Link className={`rounded-lg border p-4 shadow-sm ${valueCents == null ? 'border-amber-200 bg-amber-50 hover:bg-amber-100' : 'border-emerald-200 bg-white hover:bg-emerald-50'}`} href="/control-center/accounting" key={title}>
               <p className={`text-xs font-bold uppercase tracking-wide ${valueCents == null ? 'text-amber-900' : 'text-slate-700'}`}>{title}</p>
               <p className={`mt-2 text-3xl font-semibold ${valueCents == null ? 'text-amber-950' : 'text-slate-950'}`}>{formatCents(valueCents)}</p>
-              <p className={`mt-2 text-sm font-medium ${valueCents == null ? 'text-amber-900' : 'text-slate-600'}`}>{valueCents == null ? 'Not connected yet' : 'Lane’s latest reconciled monthly total'}</p>
+              <p className={`mt-2 text-sm font-medium ${valueCents == null ? 'text-amber-900' : 'text-slate-600'}`}>{valueCents == null ? 'Not connected yet' : 'Cheese’s latest reconciled monthly total'}</p>
             </Link>
           ))}
         </section>

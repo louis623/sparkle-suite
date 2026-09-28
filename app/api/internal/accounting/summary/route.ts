@@ -5,7 +5,7 @@ import {
   matchesAccountingAgentToken,
   parseAccountingAgentProduct,
 } from '@/lib/control-center/accounting-agent-api'
-import { loadSparkleSuiteAccountingProjection } from '@/lib/control-center/accounting'
+import { loadCurrentAccountingSnapshot } from '@/lib/control-center/accounting'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
@@ -30,11 +30,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const suiteProjection =
-      product === 'suite'
-        ? await loadSparkleSuiteAccountingProjection(createAdminClient())
-        : null
-    return noStoreJson(buildAccountingAgentSummary({ product, suiteProjection }))
+    const snapshot = await loadCurrentAccountingSnapshot(createAdminClient(), product)
+    return noStoreJson(buildAccountingAgentSummary({ product, snapshot }))
   } catch (error) {
     console.error('[internal/accounting/summary]', error)
     return noStoreJson({ error: 'accounting summary unavailable' }, 500)

@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { AccountingDashboard } from '@/app/control-center/_components/AccountingDashboard'
 
 describe('Control Center accounting foundations', () => {
-  it('separates Suite projected revenue from unavailable actuals', () => {
+  it('does not treat an incomplete client list as Suite projected revenue when Cheese has no snapshot', () => {
     const html = renderToStaticMarkup(createElement(AccountingDashboard, {
       product: 'suite',
       suiteProjection: {
@@ -20,14 +20,63 @@ describe('Control Center accounting foundations', () => {
     }))
     expect(html).toContain('Sparkle Suite')
     expect(html).toContain('Projected monthly revenue')
-    expect(html).toContain('$98.00')
+    expect(html).toContain('Missing snapshot')
+    expect(html).not.toContain('$98.00')
+    expect(html).not.toContain('From client list')
     expect(html).toContain('Actual revenue collected')
     expect(html).toContain('Actual expenses paid')
     expect(html).toContain('Customer billing and payment history')
+    expect(html).toContain('Profile check only')
     expect(html).toContain('Jane Roberts')
     expect(html).toContain('Expense ledger')
     expect(html).toContain('Not connected')
     expect(html).toContain('bg-amber-50')
+  })
+
+  it('keeps Cheese’s snapshot total when the client list would under-report', () => {
+    const html = renderToStaticMarkup(createElement(AccountingDashboard, {
+      product: 'suite',
+      suiteProjection: {
+        monthlyRevenue: 50,
+        activeClientCount: 6,
+        pastDueClientCount: 0,
+        cancelledClientCount: 0,
+        pricedActiveClientCount: 1,
+        clientsMissingMonthlyAmount: 5,
+        clientBilling: [{ clientName: 'Stored price only', plan: 'standard', monthlyAmount: 50 }],
+      },
+      snapshot: {
+        product: 'suite',
+        periodStart: '2026-09-01',
+        periodEndExclusive: '2026-10-01',
+        asOf: '2026-09-28T10:00:00.000Z',
+        recordedAt: '2026-09-28T10:05:00.000Z',
+        reason: 'correction',
+        sourceStatus: { stripe: 'connected', bluevine: 'connected', productDb: 'not_connected' },
+        activeClientCount: 5,
+        pastDueClientCount: 0,
+        cancelledClientCount: 1,
+        projectedRecurringCents: 21698,
+        projectedExpensesCents: null,
+        actualCollectedCents: 31696,
+        refundsCents: 0,
+        creditsCents: null,
+        disputesCents: 0,
+        pastDueBalanceCents: 0,
+        processorAvailableCents: 9682,
+        payoutsInTransitCents: 0,
+        expensesCents: 28713,
+        netCents: 2983,
+      },
+    }))
+    expect(html).toContain('Cheese’s latest reconciled expected recurring revenue')
+    expect(html).toContain('$216.98')
+    expect(html).toContain('$316.96')
+    expect(html).toContain('Cheese verified')
+    expect(html).not.toContain('From client list')
+    expect(html).not.toContain('Missing snapshot')
+    expect(html).toContain('That list is not the monthly books.')
+    expect(html).toContain('Stored price only')
   })
 
   it('keeps Sparkle Finder accounting independent', () => {
@@ -38,7 +87,7 @@ describe('Control Center accounting foundations', () => {
     expect(html).toContain('href="/control-center/accounting"')
   })
 
-  it('shows Lane-supplied projected expenses and reconciliation totals without making a page editor', () => {
+  it('shows Cheese’s projected expenses and reconciliation totals without making a page editor', () => {
     const html = renderToStaticMarkup(createElement(AccountingDashboard, {
       product: 'finder',
       snapshot: {
@@ -66,7 +115,7 @@ describe('Control Center accounting foundations', () => {
       },
     }))
     expect(html).toContain('Projected monthly expenses')
-    expect(html).toContain('Lane’s latest reconciled expected recurring revenue')
+    expect(html).toContain('Cheese’s latest reconciled expected recurring revenue')
     expect(html).toContain('$127.99')
     expect(html).toContain('$0.06')
     expect(html).toContain('$99.98')

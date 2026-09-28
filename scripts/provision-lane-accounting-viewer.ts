@@ -53,8 +53,8 @@ async function main() {
     const { error } = await admin.from('reps').insert({
       account_classification: 'demo',
       auth_user_id: authUser.id,
-      business_name: 'Lane accounting viewer',
-      display_name: 'Lane',
+      business_name: 'Cheese accounting viewer',
+      display_name: 'Cheese',
       email,
       status: 'active',
       template_id: 'default',

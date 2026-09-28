@@ -84,7 +84,7 @@ describe("live Suite projected recurring cents", () => {
     ).toEqual({ ok: false });
   });
 
-  it("prefers live Stripe cents, then the Lane snapshot, and never the profile projection", () => {
+  it("prefers live Stripe cents, then Cheese’s accounting snapshot, and never the profile projection", () => {
     expect(
       preferOverviewProjectedRecurringCents({
         liveProjectedRecurringCents: 21698,
