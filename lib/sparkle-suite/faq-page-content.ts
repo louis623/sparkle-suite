@@ -344,8 +344,12 @@ export const sparkleSuiteFaqGroups = [
   },
 ] as const satisfies readonly SparkleSuiteFaqGroup[]
 
-export function sparkleSuiteFaqQuestions() {
-  return sparkleSuiteFaqGroups.flatMap((group) => group.questions)
+export function sparkleSuiteFaqQuestions(): SparkleSuiteFaqQuestion[] {
+  // Widen `as const satisfies` tuple so flatMap returns SparkleSuiteFaqQuestion[]
+  // (literal-group flatMap otherwise fails Next.js production typecheck).
+  return (sparkleSuiteFaqGroups as readonly SparkleSuiteFaqGroup[]).flatMap(
+    (group) => group.questions,
+  )
 }
 
 export function sparkleSuiteFaqPlainText(question: SparkleSuiteFaqQuestion) {
