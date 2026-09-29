@@ -1,6 +1,6 @@
 # Live Lineup status copy and signals — September 29, 2026
 
-Presentation-only draft on `cursor/live-lineup-status-copy-0977`. Not deployed. Chrome Web Store was not touched. Extension version stays 2.0.6. The assigned Live Lineup code was not regenerated. Parser, lease, publish, and read behavior were not changed. Smart customer cards were not touched.
+Presentation-only draft: https://github.com/louis623/sparkle-suite/pull/49 (`cursor/live-lineup-status-copy-0977`). Not deployed. Chrome Web Store was not touched. Extension version stays 2.0.6. The assigned Live Lineup code was not regenerated. Parser, lease, publish, and read behavior were not changed. Smart customer cards were not touched.
 
 Approved status phrase, used in both the extension popup and the Workspace Live Lineup card: **Connected + Updating**.
 
