@@ -43,7 +43,7 @@ describe('Nic-Nac workspace shell reset', () => {
     expect(html).toContain('aria-selected="true"')
     expect(html).toContain('role="tabpanel"')
     expect(html).toContain('aria-label="Scrollable live lineup"')
-    expect(html).toContain('Drag customers to change their order.')
+    expect(html).toContain('Grab a customer and drop them into place.')
     expect(html).toContain('Checking connection')
     expect(html).not.toContain('Recover from a private archive')
     expect(html).not.toContain('Extension connection setup')
@@ -104,7 +104,7 @@ describe('Nic-Nac workspace shell reset', () => {
     expect(hasDeclaration(lineupCss, '.card.compact', 'height: 100%')).toBe(true)
     expect(hasDeclaration(lineupCss, '.card.compact', 'max-height: none')).toBe(true)
     expect(hasDeclaration(lineupCss, '.compact .scroll', 'flex: 1 1 auto')).toBe(true)
-    expect(hasDeclaration(lineupCss, '.compact .row', 'grid-template-columns: minmax(0, 1fr) auto')).toBe(true)
+    expect(hasDeclaration(lineupCss, '.compact .row', 'grid-template-columns: minmax(0, 1fr)')).toBe(true)
   })
 
   it('keeps the compact workspace header while removing only the duplicate search', () => {

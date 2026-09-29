@@ -28,7 +28,7 @@
 .hint { margin: 4px 0; font-size: .74rem; line-height: 1.4; color: var(--nic-nac-text-muted, #6c607a); }
 .compact .header { padding: 14px 16px 10px; }
 .compact .scroll { flex: 1 1 auto; padding: 0 12px; }
-.compact .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px; padding-block: 9px; }
+.compact .row { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 2px; padding-block: 5px; }
 .compact .actions { padding-left: 0; flex-wrap: nowrap; }
 .feedback { padding: 8px 14px; flex: 0 0 auto; font-size: .75rem; line-height: 1.4; border-top: 1px solid #8b749b20; border-bottom: 1px solid #8b749b20; background: #8b64ab09; }
 .scroll { min-height: 0; flex: 1 1 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 0 10px; }
@@ -42,10 +42,8 @@
 .dragging .handle { cursor: grabbing; }
 .actions { display: flex; gap: 5px; padding: 3px 0 0 34px; flex-wrap: wrap; }
 .actions button { font-size: .73rem; }
-.actions button:nth-child(-n + 2) { min-width: 32px; }
-.dragging { opacity: .5; }
-.dropTarget { border-top-color: #8550b3; background: #8b64ab12; }
-.endDrop { margin: 6px 0; padding: 15px; border: 1px dashed #8550b3; border-radius: 8px; text-align: center; }
+.dragging { background: #8b64ab0d; border: 1px dashed #a18ab6; border-radius: 10px; }
+.dragging > * { opacity: .2; }
 .held { margin: 16px 0 8px; }
 .held h3 { margin: 0 0 6px; font-size: .8rem; }
 .heldRow { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 2px; }
@@ -84,7 +82,6 @@
 }
 @media (pointer: coarse) {
   .card button { min-height: 44px; }
-  .actions button:nth-child(-n + 2) { min-width: 44px; }
 }
 .carryChoices { max-height: 15rem; overflow: auto; overscroll-behavior: contain; min-width: 0; }
 .carryChoices label { display: flex; gap: .5rem; align-items: flex-start; padding: .4rem 0; overflow-wrap: anywhere; }
@@ -103,3 +100,19 @@
 .compact .person { grid-column: 1; grid-row: 1; }
 .compact .actions { grid-column: 2; grid-row: 1; }
 .compact .chips { grid-column: 1 / -1; }
+
+/* The row remains a stable placeholder; the lifted card follows the pointer. */
+.card .handle { display: flex; width: 100%; min-width: 0; min-height: 44px; gap: 10px; padding: 7px 6px; text-align: left; font-size: inherit; border: 1px solid transparent; border-radius: 10px; flex: 1 1 auto; }
+.card .handle:active { cursor: grabbing; }
+.grip { flex: 0 0 16px; color: #9b8aa9; }
+.handle:hover .grip { color: #7944a1; }
+.position { min-width: 1.3em; font-size: .75rem; text-align: center; }
+.feedback { height: 46px; min-height: 46px; overflow-y: auto; box-sizing: border-box; }
+.dragPreview { position: fixed; top: 0; left: 0; z-index: 2147483000; box-sizing: border-box; pointer-events: none; user-select: none; padding: 12px; border: 1px solid #b998d4; border-radius: 12px; background: #fff; color: #281b3b; box-shadow: 0 16px 38px #29123b35, 0 3px 8px #29123b18; font: 600 14px/1.4 system-ui, sans-serif; will-change: transform; }
+.previewPerson { display: flex; align-items: center; gap: 10px; overflow-wrap: anywhere; }
+.previewCaption { display: block; padding-left: 22px; margin-top: 4px; font-size: 11px; color: #755386; font-weight: 500; }
+.dropMarker { position: fixed; top: 0; left: 0; height: 3px; background: #8850b5; border-radius: 5px; z-index: 2147482999; pointer-events: none; box-shadow: 0 0 0 2px #fff; }
+.dropMarker::before { content: ''; position: absolute; left: -2px; top: -3px; width: 9px; height: 9px; border-radius: 50%; background: #8850b5; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.previewChips { padding-left: 26px; }

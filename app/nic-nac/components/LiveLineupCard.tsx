@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
-import type { PointerEvent } from 'react'
+import type { PointerEvent, KeyboardEvent } from 'react'
+import { createPortal } from 'react-dom'
 import type { WorkspaceLineupEntry, WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
 import { canAcceptWorkspaceRefresh, canRecoverLineup, workspaceFreshnessDeadline, workspaceWriteEligible, canRebaseDrag, dragScrollDelta, edgeScrollSpeed, isLineupCommandAcknowledgement, isWorkspaceLineupSnapshot, moveCommand, pointerDropAnchor } from './live-lineup-client'
 import type { WorkspaceLineupCommand } from './live-lineup-client'
@@ -19,12 +20,17 @@ const CONNECTION_LABELS = { connecting: 'Checking connection', connected: 'Conne
 export function LiveLineupCard({ compact = false, readOnly = false }: { compact?: boolean; readOnly?: boolean }) {
   const headingId = useId()
   const instructionsId = useId()
+  const keyboardInstructionsId = useId()
   const [snapshot, setSnapshot] = useState<WorkspaceLineupSnapshot | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState('')
   const [saving, setSaving] = useState(false)
+  const [pendingMove, setPendingMove] = useState<{entryId: string; beforeEntryId: string | null} | null>(null)
   const [dragging, setDragging] = useState<string | null>(null)
   const [dropBefore, setDropBefore] = useState<string | null>(null)
+  const [dropValid, setDropValid] = useState(false)
+  const dragPreview = useRef<HTMLDivElement>(null)
+  const dropMarker = useRef<HTMLDivElement>(null)
   const snapshotRef = useRef(snapshot)
   const active = useRef(true)
   const mutation = useRef(false)
@@ -32,7 +38,7 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
   const writeController = useRef<AbortController | null>(null)
   const requestGeneration = useRef(0)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const pointerDrag = useRef<{ id: string; pointerId: number; target: HTMLButtonElement; startX: number; startY: number; x: number; y: number; started: boolean; valid: boolean; before: string | null; baseline: WorkspaceLineupSnapshot; width: number; rows: { id: string; top: number; bottom: number }[] } | null>(null)
+  const pointerDrag = useRef<{ id: string; pointerId: number; target: HTMLButtonElement; startX: number; startY: number; x: number; y: number; started: boolean; valid: boolean; before: string | null; baseline: WorkspaceLineupSnapshot; width: number; offsetX: number; offsetY: number; previewWidth: number; previewHeight: number; rows: { id: string; top: number; bottom: number }[] } | null>(null)
   const {matches: audienceMatches, finishGesture} = useLineupAudience(snapshot, pointerDrag)
   const scrollSpeed = useRef(0)
   const animation = useRef<number | null>(null)
@@ -58,6 +64,7 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
     animation.current = null
     setDragging(null)
     setDropBefore(null)
+    setDropValid(false)
     if (drag?.target.hasPointerCapture(drag.pointerId)) drag.target.releasePointerCapture(drag.pointerId)
   }, [finishGesture])
 
@@ -82,6 +89,7 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
     setFresh(isFresh)
     if (isFresh) freshnessTimer.current = window.setTimeout(() => {
       freshnessDeadline.current = 0
+      if (pointerDrag.current?.started) setNotice('Move canceled. Waiting for a fresh Bomb Party update before you can move customers again.')
       stopDrag()
       setFresh(false)
     }, freshnessDeadline.current - now)
@@ -184,7 +192,8 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
     if (!row) return
     // Holding/returning removes the focused button. Restore focus to the moved item
     // without scrolling the entire Workspace, including when it changed lists.
-    row.focus({ preventScroll: true })
+    const focusTarget = row.querySelector<HTMLElement>('[data-lineup-grab]') ?? row
+    focusTarget.focus({ preventScroll: true })
     const box = scroller.getBoundingClientRect()
     const item = row.getBoundingClientRect()
     if (item.top < box.top) scroller.scrollTop += item.top - box.top
@@ -194,13 +203,14 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
   const submit = useCallback(async (command: WorkspaceLineupCommand, dragBaseline?: WorkspaceLineupSnapshot, preview?: WorkspaceLineupSnapshot) => {
     let current = snapshotRef.current
     const recovery = command.type === 'start-show' || command.type === 'filter-parties'
-    if (readOnly || !current || mutation.current || uncertainChange.current || !active.current || document.hidden
+    if (readOnly || !current || mutation.current || pointerDrag.current || uncertainChange.current || !active.current || document.hidden
       || (recovery ? suspended.current || !canRecoverLineup(current) : !workspaceWriteEligible(current, freshnessDeadline.current, performance.now(), suspended.current))) return
     if (preview && !canConfirmShow(preview, current)) { setNotice(command.type === 'filter-parties'
       ? 'The show or its customers changed. Check the current party controls before trying again.'
       : 'The lineup changed. Review it again before confirming.'); return false }
     mutation.current = true
     setSaving(true)
+    if (command.type === 'move') setPendingMove(command)
     setNotice('')
     setError(null)
     ++requestGeneration.current
@@ -211,9 +221,9 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
     const timeout = window.setTimeout(() => controller.abort(), 10000)
     let reload = false
     try {
-      // A long drag can span a heartbeat revision. One verified rebase prevents
-      // routine liveness updates from making dragging unusable during a show.
-      for (let attempt = 0; attempt < 2; attempt++) {
+      // Only retry confirmed revision conflicts with an unchanged lineup. A
+      // second heartbeat can race the first retry; real order changes still stop.
+      for (let attempt = 0; attempt < 3; attempt++) {
       if (document.hidden || suspended.current || (!recovery && !workspaceWriteEligible(current, freshnessDeadline.current, performance.now(), false))) return false
       const requestStarted = performance.now()
       const requestEpoch = lifecycleEpoch.current
@@ -223,7 +233,7 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
       })
       if (response.status === 409) {
         const failure: unknown = await response.json()
-        if (attempt === 0 && dragBaseline && command.type === 'move' && failure && typeof failure === 'object'
+        if (attempt < 2 && dragBaseline && command.type === 'move' && failure && typeof failure === 'object'
           && (failure as { error?: unknown }).error === 'revision_conflict') {
           const latestStarted = performance.now()
           const latestEpoch = lifecycleEpoch.current
@@ -235,7 +245,9 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
           if (!accept(latest, latestStarted, latestEpoch)) throw new Error('Conflict refresh rejected')
           if (latest.revision > current.revision && canRebaseDrag(dragBaseline, latest)) { current = latest; continue }
         }
-        if (active.current) setNotice('The lineup changed elsewhere. Reloading it—please check before moving again.')
+        if (active.current) setNotice(failure && typeof failure === 'object' && (failure as {error?: unknown}).error === 'source_not_ready'
+          ? 'Move not saved. Waiting for a fresh Bomb Party update before you can move customers again.'
+          : 'The lineup changed while you were moving this customer. Refreshed the list—please choose their position again.')
         reload = true
         return
       }
@@ -259,6 +271,7 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
       mutation.current = false
       if (active.current) {
         setSaving(false)
+        setPendingMove(null)
         if (reload) void refresh()
       }
     }
@@ -267,14 +280,18 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
   function startDrag(event: PointerEvent<HTMLButtonElement>, entry: WorkspaceLineupEntry) {
     const baseline = snapshotRef.current
     if (readOnly || !baseline || !canWriteNow() || uncertainChange.current || mutation.current || !event.isPrimary || event.button !== 0) return
-    pointerDrag.current = { id: entry.id, pointerId: event.pointerId, target: event.currentTarget, startX: event.clientX, startY: event.clientY, x: event.clientX, y: event.clientY, started: false, valid: false, before: null, baseline, width: -1, rows: [] }
+    ++requestGeneration.current
+    readController.current?.abort()
+    readController.current = null
+    const box = event.currentTarget.closest<HTMLElement>('[data-lineup-active]')!.getBoundingClientRect()
+    pointerDrag.current = { offsetX: event.clientX - box.left, offsetY: event.clientY - box.top, previewWidth: box.width, previewHeight: box.height, id: entry.id, pointerId: event.pointerId, target: event.currentTarget, startX: event.clientX, startY: event.clientY, x: event.clientX, y: event.clientY, started: false, valid: false, before: null, baseline, width: -1, rows: [] }
     const scroller = scrollRef.current
     if (scroller) {
       const bounds = scroller.getBoundingClientRect()
       pointerDrag.current.width = scroller.clientWidth
       pointerDrag.current.rows = Array.from(scroller.querySelectorAll<HTMLElement>('[data-lineup-active]')).map(row => {
         const box = row.getBoundingClientRect()
-        row.style.height = box.height + 'px'; row.style.overflow = 'hidden'; row.style.boxSizing = 'border-box'
+        row.style.height = box.height + 'px'; row.style.boxSizing = 'border-box'
         return {id:row.dataset.lineupEntry!,top:box.top - bounds.top + scroller.scrollTop,bottom:box.bottom - bounds.top + scroller.scrollTop}
       })
     }
@@ -320,8 +337,15 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
     if (!drag?.started || !scroller) return
     if (!canWriteNow()) { lock(); return }
     const bounds = scroller.getBoundingClientRect()
-    drag.valid = drag.x >= bounds.left && drag.x <= bounds.right && drag.y >= bounds.top && drag.y <= bounds.bottom
+    const listBottom = scroller.querySelector<HTMLOListElement>('[aria-label="Customers waiting"]')?.getBoundingClientRect().bottom ?? bounds.bottom
+    drag.valid = drag.x >= bounds.left && drag.x <= bounds.right && drag.y >= bounds.top && drag.y <= Math.min(bounds.bottom, listBottom + 12)
     scrollSpeed.current = drag.valid ? edgeScrollSpeed(drag.y, bounds.top, bounds.bottom) : 0
+    setDropValid(drag.valid)
+    if (dragPreview.current) {
+      dragPreview.current.style.transform = `translate3d(${drag.x - drag.offsetX}px, ${drag.y - drag.offsetY}px, 0)`
+      dragPreview.current.style.opacity = drag.valid ? '1' : '.6'
+    }
+    if (dropMarker.current) dropMarker.current.hidden = !drag.valid
     if (!drag.valid) { setDropBefore(null); return }
     // Cached content coordinates remain valid while scrolling; only a width
     // change can reflow these frozen rows. Never measure 2,000 rows each frame.
@@ -337,6 +361,13 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
     }
     drag.before = pointerDropAnchor(drag.rows, drag.id, drag.y - bounds.top + scroller.scrollTop)
     setDropBefore(drag.before)
+    const anchor = drag.rows.find(row => row.id === drag.before)
+    const lineY = bounds.top + (anchor?.top ?? drag.rows.at(-1)?.bottom ?? 0) - scroller.scrollTop
+    if (dropMarker.current) {
+      dropMarker.current.style.transform = `translate3d(${bounds.left + 6}px, ${lineY}px, 0)`
+      dropMarker.current.style.width = `${bounds.width - 18}px`
+      dropMarker.current.hidden = lineY < bounds.top || lineY > bounds.bottom
+    }
   }
 
   function moveDrag(event: PointerEvent<HTMLButtonElement>) {
@@ -378,13 +409,36 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
     }
   }
 
+  function keyboardMove(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return
+    event.preventDefault()
+    const baseline = snapshotRef.current
+    if (!baseline || pointerDrag.current || !canWriteNow()) return
+    const command = event.key === 'Home' ? (index > 0 ? {type: 'move' as const, entryId: baseline.entries[index].id, beforeEntryId: baseline.entries[0].id} : null)
+      : event.key === 'End' ? (index < baseline.entries.length - 1 ? {type: 'move' as const, entryId: baseline.entries[index].id, beforeEntryId: null} : null)
+      : moveCommand(baseline.entries, index, event.key === 'ArrowUp' ? -1 : 1)
+    if (command) void submit(command, baseline)
+  }
+
   const publisherChangeDisabled = saving || uncertainChange.current
   const baseDisabled = publisherChangeDisabled || !fresh || !snapshot?.canManage || !snapshot?.authorized
   const viewOnly = readOnly || snapshot?.authorized === false || snapshot?.runtimeWritable === false
   const disabled = viewOnly || baseDisabled
   const recoveryDisabled = readOnly || publisherChangeDisabled || suspended.current || !snapshot || !canRecoverLineup(snapshot)
   const shownConnection = snapshot?.connection === 'connected' && !fresh ? 'delayed' : snapshot?.connection ?? 'connecting'
-  const entries = snapshot?.entries ?? []
+  const entries = [...(snapshot?.entries ?? [])]
+  if (pendingMove) {
+    const index = entries.findIndex(entry => entry.id === pendingMove.entryId)
+    if (index >= 0) {
+      const [entry] = entries.splice(index, 1)
+      const destination = pendingMove.beforeEntryId === null ? entries.length : entries.findIndex(item => item.id === pendingMove.beforeEntryId)
+      entries.splice(destination < 0 ? index : destination, 0, entry)
+    }
+  }
+  const draggedEntry = entries.find(entry => entry.id === dragging)
+  const remainingEntries = entries.filter(entry => entry.id !== dragging)
+  const dropPosition = dropBefore ? remainingEntries.findIndex(entry => entry.id === dropBefore) + 1 : entries.length
+  const drag = pointerDrag.current
   return (
     <section className={`${styles.card} ${compact ? styles.compact : ''}`} aria-labelledby={headingId} aria-busy={saving}>
       <header className={styles.header}>
@@ -394,13 +448,14 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
         <p className={styles.connection} data-connection={error ? 'delayed' : shownConnection}>
           <span aria-hidden="true" />{error ? 'Not connected' : CONNECTION_LABELS[shownConnection]}
         </p>
-        <p id={instructionsId} className={styles.hint}>{viewOnly ? 'Customers are shown in their current order.' : 'Move one order at a time. Drag or use the arrow buttons.'}</p>
+        <p id={instructionsId} className={styles.hint}>{viewOnly ? 'Customers are shown in their current order.' : 'Grab a customer and drop them into place.'}</p>
       </header>
-      {(saving || error || notice || (viewOnly || (snapshot && disabled))) && <div className={styles.feedback} aria-live="polite" aria-atomic="true">
-        {saving ? 'Saving…' : error ? 'We can’t update your lineup right now. We’ll keep trying.' : notice || (viewOnly
+      <p id={keyboardInstructionsId} className={styles.srOnly}>Keyboard: focus a customer, then use Up or Down to move one place, Home for first, or End for last. Press Escape to cancel a drag.</p>
+      <div className={styles.feedback} aria-live="polite" aria-atomic="true">
+        {dragging ? (dropValid ? `Release to place at position ${dropPosition}` : 'Move back into the lineup to drop') : saving ? 'Saving…' : error ? 'We can’t update your lineup right now. We’ll keep trying.' : notice || (viewOnly
           ? 'Lineup changes are temporarily unavailable. Customer updates will continue.'
-          : 'Waiting for a fresh source update. The last received order is preserved.')}
-      </div>}
+          : snapshot && disabled ? 'Waiting for a fresh source update. The last received order is preserved.' : '\u00a0')}
+      </div>
       <div ref={scrollRef} className={styles.scroll} tabIndex={0} role="region" aria-label="Scrollable live lineup" aria-describedby={instructionsId}
         onKeyDown={(event) => { if (event.key === 'Escape') stopDrag() }}>
         {!snapshot && <p className={styles.empty}>{error ? 'Your lineup is unavailable right now. No orders have been changed.' : 'Loading your lineup…'}</p>}
@@ -409,26 +464,27 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
           : shownConnection === 'connected' ? 'No customers are waiting right now.' : 'Once connected, customers will appear here.'}</p>}
         <ol className={styles.list} aria-label="Customers waiting">
           {entries.map((entry, index) => (
-            <li key={entry.id} data-lineup-entry={entry.id} data-lineup-active tabIndex={-1} aria-label={`${entry.name}, position ${index + 1}`} className={`${styles.row} ${dragging === entry.id ? styles.dragging : ''} ${dragging && dropBefore === entry.id ? styles.dropTarget : ''}`}>
-              <div className={styles.person}>
-                <button type="button" className={styles.handle} disabled={disabled} onPointerDown={(event) => startDrag(event, entry)} onPointerMove={moveDrag} onPointerUp={finishDrag} onPointerCancel={stopDrag} onLostPointerCapture={stopDrag}
-                  aria-label={`Drag ${entry.name}, position ${index + 1}; use adjacent buttons to move with keyboard`} title="Drag to reorder">⠿</button>
+            <li key={entry.id} data-lineup-entry={entry.id} data-lineup-active tabIndex={-1} aria-label={`${entry.name}, position ${index + 1}`} className={`${styles.row} ${dragging === entry.id ? styles.dragging : ''}`}>
+              <button type="button" data-lineup-grab className={`${styles.handle} ${styles.person}`} disabled={disabled}
+                onPointerDown={(event) => startDrag(event, entry)} onPointerMove={moveDrag} onPointerUp={finishDrag}
+                onPointerCancel={stopDrag} onLostPointerCapture={stopDrag} onKeyDown={(event) => keyboardMove(event, index)}
+                aria-label={`Move ${entry.name}, position ${index + 1}`} aria-describedby={keyboardInstructionsId} title="Drag to reorder · Arrow keys to move">
+                <svg className={styles.grip} width="16" height="20" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true">
+                  {[5, 10, 15].flatMap(y => [5, 11].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.4" />))}
+                </svg>
                 <span className={styles.position}>{index + 1}</span><strong>{entry.name}</strong>
-              </div>
+              </button>
               {audienceMatches[entry.id] && <div className={styles.chips} aria-label={entry.name + ' private customer details'}>
                 {audienceMatches[entry.id].birthday && <span>🎂 {audienceMatches[entry.id].birthday}</span>}
                 {audienceMatches[entry.id].preferences.map((preference, chipIndex) => <span key={chipIndex}>{preference}</span>)}
               </div>}
-              <div className={styles.actions}>
-                <button type="button" disabled={disabled || index === 0} aria-label={`Move ${entry.name} up from position ${index + 1}`} onClick={() => { const command = moveCommand(entries, index, -1); if (command) void submit(command) }}>↑</button>
-                <button type="button" disabled={disabled || index === entries.length - 1} aria-label={`Move ${entry.name} down from position ${index + 1}`} onClick={() => { const command = moveCommand(entries, index, 1); if (command) void submit(command) }}>↓</button>
-                {!compact && <button type="button" disabled={disabled || index === 0} aria-label={`Reveal ${entry.name} next, position ${index + 1}`} onClick={() => void submit({ type: 'reveal-next', entryId: entry.id })}>Reveal next</button>}
-                {!compact && <button type="button" disabled={disabled} aria-label={`Hold ${entry.name} for later, position ${index + 1}`} onClick={() => void submit({ type: 'hold', entryId: entry.id })}>Hold</button>}
-              </div>
+              {!compact && <div className={styles.actions}>
+                <button type="button" disabled={disabled || index === 0} aria-label={`Reveal ${entry.name} next, position ${index + 1}`} onClick={() => void submit({ type: 'reveal-next', entryId: entry.id })}>Reveal next</button>
+                <button type="button" disabled={disabled} aria-label={`Hold ${entry.name} for later, position ${index + 1}`} onClick={() => void submit({ type: 'hold', entryId: entry.id })}>Hold</button>
+              </div>}
             </li>
           ))}
         </ol>
-        {dragging && <div className={styles.endDrop}>Drop at end of lineup</div>}
         {!compact && !!snapshot?.heldEntries.length && <section className={styles.held} aria-label="Held for later">
           <h3>Held for later <span>{snapshot.heldEntries.length}</span></h3>
           <ul className={styles.list}>{snapshot.heldEntries.map((entry, index) => <li key={entry.id} data-lineup-entry={entry.id} tabIndex={-1} aria-label={`${entry.name}, held for later, position ${index + 1}`} className={styles.heldRow}><strong>{entry.name}</strong><button type="button" disabled={disabled} aria-label={`Return ${entry.name} to lineup, held position ${index + 1}`} onClick={() => void submit({ type: 'return', entryId: entry.id })}>Return</button></li>)}</ul>
@@ -441,6 +497,18 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
         <button type="button" disabled={disabled || !!dragging || !snapshot?.undoAvailable} title="Undo the last reorder, Reveal next, Hold, or Return—not party visibility" onClick={() => void submit({ type: 'undo' })}>Undo order / hold</button>
         <span>Bomb Party orders are unchanged.</span>
       </footer>}
+      {draggedEntry && drag && createPortal(<>
+        <div ref={dragPreview} className={styles.dragPreview} aria-hidden="true" data-lineup-drag-preview
+          style={{width: drag.previewWidth, minHeight: drag.previewHeight, transform: `translate3d(${drag.x - drag.offsetX}px, ${drag.y - drag.offsetY}px, 0)`}}>
+          <div className={styles.previewPerson}><svg className={styles.grip} width="16" height="20" viewBox="0 0 16 20" fill="currentColor" aria-hidden="true">{[5, 10, 15].flatMap(y => [5, 11].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.4" />))}</svg><strong>{draggedEntry.name}</strong></div>
+          {audienceMatches[draggedEntry.id] && <div className={`${styles.chips} ${styles.previewChips}`}>
+            {audienceMatches[draggedEntry.id].birthday && <span>🎂 {audienceMatches[draggedEntry.id].birthday}</span>}
+            {audienceMatches[draggedEntry.id].preferences.map((value, index) => <span key={index}>{value}</span>)}
+          </div>}
+          <span className={styles.previewCaption}>{dropValid ? `Position ${dropPosition}` : 'Outside lineup · release to cancel'}</span>
+        </div>
+        <div ref={dropMarker} className={styles.dropMarker} data-lineup-drop-marker aria-hidden="true" hidden={!dropValid} />
+      </>, document.body)}
     </section>
   )
 }
