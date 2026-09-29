@@ -13,9 +13,9 @@ import { LiveLineupArchiveControls } from './LiveLineupArchiveControls'
 import { LiveLineupPublisherControls } from './LiveLineupPublisherControls'
 import { archiveRecoveryRequest, isArchiveRecoveryAcknowledgement, type ArchiveDetail } from './live-lineup-archive-client'
 import { canConfirmShow } from './live-lineup-client'
+import { workspaceLineupStatus } from '@/lib/live-lineup/status-copy'
 
 const ENDPOINT = '/api/workspace/live-lineup'
-const CONNECTION_LABELS = { connecting: 'Checking connection', connected: 'Connected', delayed: 'Waiting for an update', offline: 'Not connected' }
 
 export function LiveLineupCard({ compact = false, readOnly = false }: { compact?: boolean; readOnly?: boolean }) {
   const headingId = useId()
@@ -425,7 +425,11 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
   const viewOnly = readOnly || snapshot?.authorized === false || snapshot?.runtimeWritable === false
   const disabled = viewOnly || baseDisabled
   const recoveryDisabled = readOnly || publisherChangeDisabled || suspended.current || !snapshot || !canRecoverLineup(snapshot)
-  const shownConnection = snapshot?.connection === 'connected' && !fresh ? 'delayed' : snapshot?.connection ?? 'connecting'
+  const signal = workspaceLineupStatus({
+    connection: snapshot?.connection ?? null,
+    warning: snapshot?.warning ?? null,
+    readError: Boolean(error),
+  })
   const entries = [...(snapshot?.entries ?? [])]
   if (pendingMove) {
     const index = entries.findIndex(entry => entry.id === pendingMove.entryId)
@@ -445,8 +449,8 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
         <div className={styles.titleRow}>
           <h2 id={headingId}>Live Lineup <span>{entries.length}</span></h2>
         </div>
-        <p className={styles.connection} data-connection={error ? 'delayed' : shownConnection}>
-          <span aria-hidden="true" />{error ? 'Not connected' : CONNECTION_LABELS[shownConnection]}
+        <p className={styles.connection} data-connection={signal.tone}>
+          <span aria-hidden="true" />{signal.label}
         </p>
         <p id={instructionsId} className={styles.hint}>{viewOnly ? 'Customers are shown in their current order.' : 'Grab a customer and drop them into place.'}</p>
       </header>
@@ -461,7 +465,7 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
         {!snapshot && <p className={styles.empty}>{error ? 'Your lineup is unavailable right now. No orders have been changed.' : 'Loading your lineup…'}</p>}
         {snapshot && !entries.length && <p className={styles.empty}>{snapshot.management?.candidates.some(entry => !entry.held)
           ? 'Some waiting customers are hidden. Open the Live Lineup tool to show them.'
-          : shownConnection === 'connected' ? 'No customers are waiting right now.' : 'Once connected, customers will appear here.'}</p>}
+          : snapshot.connection === 'connected' ? 'No customers are waiting right now.' : 'Once connected, customers will appear here.'}</p>}
         <ol className={styles.list} aria-label="Customers waiting">
           {entries.map((entry, index) => (
             <li key={entry.id} data-lineup-entry={entry.id} data-lineup-active tabIndex={-1} aria-label={`${entry.name}, position ${index + 1}`} className={`${styles.row} ${dragging === entry.id ? styles.dragging : ''}`}>
