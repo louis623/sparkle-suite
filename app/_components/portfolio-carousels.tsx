@@ -9,6 +9,7 @@ import {
   sparkleSuiteScheduleBuild,
   type PortfolioSlide,
 } from '@/lib/sparkle-suite/portfolio-content'
+import { ProductPeekVideo } from './product-peek-video'
 import styles from './portfolio-experience.module.css'
 
 function prefersReducedMotion() {
@@ -21,7 +22,7 @@ const portfolioBands = {
   'holiday-themes': { name: 'ink', className: styles.bandInk },
 } as const
 
-function SlideFrame({ slide }: { slide: PortfolioSlide }) {
+function SlideFrame({ slide, active }: { slide: PortfolioSlide; active: boolean }) {
   if (slide.kind === 'placeholder') {
     return (
       <div className={styles.placeholder}>
@@ -37,13 +38,25 @@ function SlideFrame({ slide }: { slide: PortfolioSlide }) {
       <div className={styles.browserBar} aria-hidden="true">
         <em>{slide.title}</em>
       </div>
-      <Image
-        src={slide.src}
-        alt={slide.alt}
-        width={slide.width}
-        height={slide.height}
-        sizes="(max-width: 700px) 86vw, 860px"
-      />
+      {slide.video ? (
+        <ProductPeekVideo
+          poster={slide.src}
+          mp4={slide.video.mp4}
+          width={slide.video.width}
+          height={slide.video.height}
+          alt={slide.alt}
+          label={slide.title}
+          active={active}
+        />
+      ) : (
+        <Image
+          src={slide.src}
+          alt={slide.alt}
+          width={slide.width}
+          height={slide.height}
+          sizes="(max-width: 700px) 86vw, 860px"
+        />
+      )}
     </div>
   )
 }
@@ -143,7 +156,7 @@ function PortfolioCarousel({
               data-slide-index={index}
               data-active={index === active}
             >
-              <SlideFrame slide={item} />
+              <SlideFrame slide={item} active={index === active} />
               <div className={styles.cardMeta}>
                 <h3>{item.title}</h3>
                 {item.kind === 'capture' && 'href' in item && item.href && 'linkLabel' in item && item.linkLabel ? (

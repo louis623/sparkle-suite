@@ -106,6 +106,16 @@ describe('Sparkle Suite public landing page', () => {
     const html = renderLanding()
     expect(html).toContain('hero-halloween-witch-live.webp')
     expect(html).toContain('hero-halloween-cat-live.webp')
+    expect(html).toContain('hero-halloween-witch-live.mp4')
+    expect(html).toContain('hero-halloween-cat-live.mp4')
+    expect(html).toContain('muted')
+    expect(html).toContain('playsInline')
+    expect(html).toContain('loop')
+    expect(html).toContain('poster="/sparkle-suite/landing/hero-halloween-witch-live.webp"')
+    expect(html).toContain('poster="/sparkle-suite/landing/hero-halloween-cat-live.webp"')
+    expect(html).toContain('Pause Halloween · Witch animation')
+    expect(html).toContain('Pause Halloween · Cat animation')
+    expect(html).not.toContain('hero-desktop-motion.mp4')
     expect(html).not.toContain('hero-halloween-witch-desktop-v3.webp')
     expect(html).not.toContain('hero-halloween-cat-desktop-v1.webp')
     expect(html).toContain('Halloween · Witch')
@@ -142,15 +152,20 @@ describe('Sparkle Suite public landing page', () => {
     expect(html).toContain('Live queue &amp; Dance Floor')
     expect(html).toContain('Preview 1 of 3')
     const moduleCss = readFileSync(join(process.cwd(), 'app/_components/landing-experience.module.css'), 'utf8')
+    const peekCss = readFileSync(join(process.cwd(), 'app/_components/product-peek-video.module.css'), 'utf8')
     expect(moduleCss).toContain('.page .styleMedia img{object-fit:contain}')
     expect(moduleCss).toContain('.page .styleChoices{flex-wrap:wrap')
+    expect(peekCss).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(peekCss).toContain('.motion')
+    expect(existsSync(publicAssetPath('/sparkle-suite/landing/hero-halloween-witch-live.mp4'))).toBe(true)
+    expect(existsSync(publicAssetPath('/sparkle-suite/landing/hero-halloween-cat-live.mp4'))).toBe(true)
   })
 
   it('ships every new capture at its declared dimensions', async () => {
     const sharp = (await import('sharp')).default
     const peeks = [
-      ['hero-halloween-witch-live', 1024, 513],
-      ['hero-halloween-cat-live', 1280, 576],
+      ['hero-halloween-witch-live', 968, 720],
+      ['hero-halloween-cat-live', 966, 710],
     ] as const
     for (const [name, width, height] of peeks) {
       const halloween = await sharp(publicAssetPath(`/sparkle-suite/landing/${name}.webp`)).metadata()
