@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest'
 import {applyLineupCommand, applySourcePacket, buildWorkspaceLineupSnapshot, claimPublisher, createLineupState,
   isLineupState, LINEUP_MAX_ENTRIES, parseSourcePacket} from '@/lib/live-lineup/model'
+import {canRebaseDrag} from '@/app/nic-nac/components/live-lineup-client'
 import type {LineupResult, LineupState, SourceEntry, SourcePacket} from '@/lib/live-lineup/types'
 
 const T = Date.parse('2026-09-26T12:00:00.000Z')
@@ -151,4 +152,25 @@ describe('v5.2 exact-order reversal and reveal history',()=>{
     expect(s.revealEvents?.reduce((count,event)=>count+event.groupEntryIds.length,0)).toBe(4000)
     expect(new TextEncoder().encode(JSON.stringify(s)).byteLength).toBeLessThan(8_388_608)
   })
+})
+
+// PostgreSQL JSONB puts lastName before orderedAt; source ingestion constructs
+// the same values in a different property order. An unchanged heartbeat is not
+// an arrangement change and must remain eligible for the client's safe retry.
+it('keeps lastChangedAt and drag rebase stable after a JSONB identity round-trip', () => {
+  const before = ready()
+  const fromDb: LineupState = {...before, entries: before.entries.map(e => ({
+    id: e.id, name: e.name, lastName: e.lastName, orderedAt: e.orderedAt,
+    identityEligible: e.identityEligible, sourceIdentityVersion: e.sourceIdentityVersion,
+  }))}
+  expect(fromDb).toEqual(before)
+  expect(JSON.stringify(fromDb.entries)).not.toBe(JSON.stringify(before.entries))
+  const heartbeat = publish(fromDb, T + 5000)
+  expect(heartbeat.entries).toEqual(fromDb.entries)
+  expect(heartbeat.lastChangedAt).toBe(fromDb.lastChangedAt)
+  expect(heartbeat.lastReadyAt).not.toBe(fromDb.lastReadyAt)
+  expect(canRebaseDrag(buildWorkspaceLineupSnapshot(fromDb, T + 5000, true), buildWorkspaceLineupSnapshot(heartbeat, T + 5000, true))).toBe(true)
+  const changed = publish(heartbeat, T + 6000, {entries: [entry('a','Changed','Smith')]})
+  expect(changed.lastChangedAt).not.toBe(heartbeat.lastChangedAt)
+  expect(canRebaseDrag(buildWorkspaceLineupSnapshot(heartbeat, T + 6000, true), buildWorkspaceLineupSnapshot(changed, T + 6000, true))).toBe(false)
 })

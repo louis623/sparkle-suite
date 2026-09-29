@@ -393,7 +393,13 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   // Consumers advance across cursor gaps without inventing missed effects.
   let memberCount = next.revealEvents.reduce((count, event) => count + event.groupEntryIds.length, 0)
   while (memberCount > LINEUP_MAX_EVENT_MEMBERS) memberCount -= next.revealEvents.shift()!.groupEntryIds.length
-  if (JSON.stringify([next.entries, next.order, next.held]) !== JSON.stringify([state.entries, state.order, state.held]))
+  // JSONB may return object keys in a different order than plainEntry builds.
+  // Compare source values, not serialized key order, so heartbeats cannot look
+  // like customer changes and incorrectly prevent a safe drag retry.
+  const entryFields = ['id', 'name', 'orderedAt', 'lastName', 'identityEligible', 'sourceIdentityVersion'] as const
+  const entriesChanged = next.entries.length !== state.entries.length || next.entries.some((entry, index) =>
+    entryFields.some(field => entry[field] !== state.entries[index]?.[field]))
+  if (entriesChanged || JSON.stringify(next.order) !== JSON.stringify(state.order) || JSON.stringify(next.held) !== JSON.stringify(state.held))
     next.lastChangedAt = receivedAt
   if (!stateFits(next) || !isLineupState(next)) return fail('capacity_exceeded')
   return { ok: true, state: next }
