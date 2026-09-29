@@ -490,7 +490,17 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
         </ol>
         {!compact && !!snapshot?.heldEntries.length && <section className={styles.held} aria-label="Held for later">
           <h3>Held for later <span>{snapshot.heldEntries.length}</span></h3>
-          <ul className={styles.list}>{snapshot.heldEntries.map((entry, index) => <li key={entry.id} data-lineup-entry={entry.id} tabIndex={-1} aria-label={`${entry.name}, held for later, position ${index + 1}`} className={styles.heldRow}><strong>{entry.name}</strong><button type="button" disabled={disabled} aria-label={`Return ${entry.name} to lineup, held position ${index + 1}`} onClick={() => void submit({ type: 'return', entryId: entry.id })}>Return</button></li>)}</ul>
+          <ul className={styles.list}>{snapshot.heldEntries.map((entry, index) => <li key={entry.id} data-lineup-entry={entry.id} tabIndex={-1} aria-label={`${entry.name}, held for later, position ${index + 1}`} className={styles.heldRow}>
+            <strong>{entry.name}</strong>
+            <div className={styles.heldActions}>
+              {audienceMatches[entry.id]?.birthday || audienceMatches[entry.id]?.preferences.length ? <div className={styles.chips} aria-label={entry.name + ' private customer details'}>
+                {audienceMatches[entry.id].birthday && <span>🎂 {audienceMatches[entry.id].birthday}</span>}
+                {audienceMatches[entry.id].preferences.map((preference, chipIndex) => <span key={chipIndex}>{preference}</span>)}
+              </div> : null}
+              {!viewOnly && entry.identityEligible && <button type="button" className={styles.customerButton} data-clarify={audienceMatches[entry.id]?.status === 'needs_clarification'} disabled={saving || !!dragging} onClick={()=>setCustomerSelection({entry,generation:snapshot!.management!.generation})}>{audienceMatches[entry.id]?.status === 'needs_clarification' ? 'Which customer?' : audienceMatches[entry.id]?.label || 'Customer card'}</button>}
+              <button type="button" disabled={disabled} aria-label={`Return ${entry.name} to lineup, held position ${index + 1}`} onClick={() => void submit({ type: 'return', entryId: entry.id })}>Return</button>
+            </div>
+          </li>)}</ul>
         </section>}
         {!compact && snapshot && <LiveLineupShowControls snapshot={snapshot} disabled={recoveryDisabled || !!dragging} submit={submit} />}
         {!compact && <LiveLineupPublisherControls recoveryOnly onChanged={refresh} disabled={saving || !!dragging} creationDisabled={viewOnly} />}

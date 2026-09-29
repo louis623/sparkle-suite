@@ -28,7 +28,7 @@ const createContactFields = {
   ...optionalContactFields,
 }
 
-const inputSchema = z.discriminatedUnion('action', [
+export const inputSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('create'), ...createContactFields }),
   z.object({
     action: z.literal('update'),

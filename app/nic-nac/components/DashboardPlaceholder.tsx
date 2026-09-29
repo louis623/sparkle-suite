@@ -2709,6 +2709,7 @@ export function getCustomerTimeline(customer: CustomerAudienceMember) {
 
 function getCustomerProfileDetails(customer: CustomerAudienceMember) {
   return [
+    { label: 'Private label', value: customer.identityLabel },
     { label: 'Birthday', value: customer.birthday },
     { label: 'Favorite collection', value: customer.favoriteCollection },
     { label: 'Favorite gem or stone', value: customer.favoriteGemOrStone },
@@ -6737,6 +6738,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           liveQueueSyncCode={currentLiveQueueSyncCode}
           customerSiteHref={customerSparkleSiteHref}
           onOpenHelp={() => setActiveSection('help-resources')}
+          onAskCustomer={onSendNicNacPrompt}
         />
       )
     }
@@ -7878,11 +7880,13 @@ export function LiveQueueTool({
   liveQueueSyncCode,
   customerSiteHref,
   onOpenHelp,
+  onAskCustomer,
 }: {
   readOnly?: boolean
   liveQueueSyncCode?: string | null
   customerSiteHref?: string | null
   onOpenHelp?: () => void
+  onAskCustomer?: (prompt: string) => void
 }) {
   const code = liveQueueSyncCode?.trim() || ''
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
@@ -7898,7 +7902,7 @@ export function LiveQueueTool({
   }
   return (
     <div className={styles.workspaceSectionStack}>
-      <LiveLineupCard readOnly={readOnly} />
+      <LiveLineupCard readOnly={readOnly} onAskCustomer={onAskCustomer} />
       <p className={styles.liveQueueBody}>For a canceled order that still appears, use Hold on that exact order below its name. This removes only that order from the public waiting lineup. Bomb Party orders are unchanged.</p>
       <section className={styles.workspaceIntroCard}>
         <div className={styles.workspaceSectionHeader}>
@@ -14118,7 +14122,7 @@ export function CustomerRosterCard({
             return (
               <div key={customer.id} className={styles.customerRow} role="listitem">
               <div className={styles.customerIdentity}>
-                <span className={styles.customerName}>{customer.name}</span>
+                <span className={styles.customerName}>{customer.name}{customer.identityLabel ? ` · ${customer.identityLabel}` : ''}</span>
                 <span className={styles.customerDate}>
                   Joined {formatRosterDate(customer.createdAt)}
                 </span>

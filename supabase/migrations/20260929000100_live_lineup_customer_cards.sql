@@ -1,4 +1,5 @@
 -- Additive customer identity foundation. No Finder bridge or messaging side effects.
+-- Workspace service-role calls create minimal cards. Extension publishes do not call this function.
 ALTER TABLE public.customer_audience
  ADD COLUMN IF NOT EXISTS identity_label text,
  ADD COLUMN IF NOT EXISTS profile_version bigint NOT NULL DEFAULT 0;
@@ -8,6 +9,9 @@ ALTER TABLE public.customer_audience ADD CONSTRAINT customer_audience_record_sou
  CHECK(record_source IN ('manual','manual_import','nic_nac','customer_site_signup','live_lineup'));
 
 -- Serialize creation across browser tabs and other card writers; never impose unique names.
+-- The card RPC takes this same lock before reading rows, then inserts new cards.
+-- It does not update an existing customer row, so it does not wait behind a row lock
+-- this trigger already holds. Same-transaction re-acquire is allowed.
 CREATE OR REPLACE FUNCTION public.customer_card_write_lock() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 BEGIN
@@ -28,7 +32,13 @@ CREATE TABLE public.live_lineup_customer_links(
  FOREIGN KEY(audience_id,rep_id) REFERENCES public.customer_audience(id,rep_id) ON DELETE CASCADE
 );
 ALTER TABLE public.live_lineup_customer_links ENABLE ROW LEVEL SECURITY;
-GRANT ALL ON public.live_lineup_customer_links TO service_role;
+REVOKE ALL ON TABLE public.live_lineup_customer_links FROM PUBLIC, anon, authenticated;
+GRANT ALL ON TABLE public.live_lineup_customer_links TO service_role;
+
+CREATE OR REPLACE FUNCTION public.live_lineup_preference_chip(value text) RETURNS text
+LANGUAGE sql IMMUTABLE PARALLEL SAFE SET search_path=public AS $$
+  SELECT NULLIF(left(btrim(regexp_replace(regexp_replace(coalesce(value, ''), '[[:cntrl:]]', ' ', 'g'), '[[:space:]]+', ' ', 'g')), 160), '')
+$$;
 
 CREATE OR REPLACE FUNCTION public.live_lineup_customer_cards(
  p_rep_id uuid,p_generation bigint,p_identities jsonb,p_action text DEFAULT 'read',
@@ -43,11 +53,15 @@ BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended(p_rep_id::text,290926));
  SELECT state INTO s FROM public.live_lineup_states WHERE rep_id=p_rep_id FOR SHARE;
  IF s IS NULL OR coalesce((s#>>'{show,generation}')::bigint,0)<>p_generation THEN RAISE EXCEPTION 'show_changed'; END IF;
- fresh:=coalesce(s->>'parserState'='ready' AND (s->>'lastReadyAt')::timestamptz<=clock_timestamp()
- AND (s->>'lastReceivedAt')::timestamptz<=clock_timestamp()
+ fresh:=coalesce(s->>'parserState'='ready' AND s ? 'publisher'
+ AND (s->>'lastReceivedAt') IS NOT NULL AND (s->>'lastReadyAt') IS NOT NULL
+ AND (s->>'lastReadyAt')::timestamptz<=clock_timestamp()
  AND coalesce(s->>'lastReadySourceAt',s->>'lastReadyAt')::timestamptz>clock_timestamp()-interval '45 seconds'
  AND (s#>>'{publisher,leaseExpiresAt}')::timestamptz>clock_timestamp()
- AND (s#>>'{sourceObservation,settled}')::boolean AND NOT coalesce((s->>'bootstrapPending')::boolean,false),false);
+ AND (NOT (s->'publisher' ? 'capabilities') OR coalesce(s#>>'{publisher,capabilities}','')=''
+  OR (((s->'show') IS NOT NULL AND jsonb_typeof(s->'show')='object') OR jsonb_array_length(coalesce(s->'entries','[]'::jsonb))=0)
+   AND NOT coalesce((s->>'bootstrapPending')::boolean,false)
+   AND coalesce((s#>>'{sourceObservation,settled}')::boolean,false)),false);
  IF p_action IN ('resolve','create') AND NOT fresh THEN RAISE EXCEPTION 'source_not_ready'; END IF;
  IF p_action<>'read' AND (jsonb_array_length(p_identities)<>1 OR p_entry_id IS DISTINCT FROM p_identities->0->>'id') THEN RAISE EXCEPTION 'invalid_payload'; END IF;
  FOR req IN SELECT value FROM jsonb_array_elements(p_identities) LOOP
@@ -66,7 +80,8 @@ BEGIN
     ON CONFLICT(id) DO NOTHING;
    IF FOUND THEN INSERT INTO public.customer_audience_change_log(audience_id,rep_id,actor_kind,action,changes)
     VALUES(p_new_customer_id,p_rep_id,'rep','created',jsonb_build_object('name',full_name,'identity_label',btrim(p_label),'source','live_lineup')); END IF;
-   IF NOT EXISTS(SELECT 1 FROM public.customer_audience WHERE id=p_new_customer_id AND rep_id=p_rep_id AND public.live_lineup_audience_name_key(name)=k)
+   IF NOT EXISTS(SELECT 1 FROM public.customer_audience WHERE id=p_new_customer_id AND rep_id=p_rep_id
+    AND public.live_lineup_audience_name_key(name)=k AND identity_label IS NOT DISTINCT FROM btrim(p_label))
     THEN RAISE EXCEPTION 'invalid_customer'; END IF;
    p_customer_id:=p_new_customer_id;
   ELSIF n=0 AND fresh THEN
@@ -98,8 +113,13 @@ BEGIN
   END IF;
   cards:=cards||jsonb_build_array(jsonb_build_object('id',e->>'id','sourceIdentityVersion',e->>'sourceIdentityVersion',
    'status',CASE WHEN selected IS NOT NULL THEN 'matched' WHEN n>1 THEN 'needs_clarification' ELSE 'unavailable' END,
-   'audienceId',selected,'label',c.identity_label,'birthday',CASE WHEN c.birthday_month IS NOT NULL THEN c.birthday_month::text||'/'||c.birthday_day::text ELSE NULL END,
-   'preferences',to_jsonb(array_remove(ARRAY[c.favorite_gem_or_stone,c.favorite_material,c.favorite_cut,c.favorite_collection],NULL)),
+   'audienceId',selected,'label',CASE WHEN selected IS NOT NULL THEN NULLIF(left(btrim(regexp_replace(coalesce(c.identity_label,''), '[[:cntrl:]]', ' ', 'g')),80),'') ELSE NULL END,
+   'birthday',CASE WHEN selected IS NOT NULL AND c.birthday_month BETWEEN 1 AND 12 AND c.birthday_day BETWEEN 1 AND 31
+    AND c.birthday_day<=(ARRAY[31,29,31,30,31,30,31,31,30,31,30,31])[c.birthday_month]
+    THEN c.birthday_month::text||'/'||c.birthday_day::text ELSE NULL END,
+   'preferences',CASE WHEN selected IS NOT NULL THEN to_jsonb(array_remove(ARRAY[
+     public.live_lineup_preference_chip(c.favorite_gem_or_stone),public.live_lineup_preference_chip(c.favorite_material),
+     public.live_lineup_preference_chip(c.favorite_cut),public.live_lineup_preference_chip(c.favorite_collection)],NULL)) ELSE '[]'::jsonb END,
    'candidates',candidates));
  END LOOP;
  RETURN jsonb_build_object('audienceVersion',coalesce((SELECT version::text FROM public.live_lineup_audience_versions WHERE rep_id=p_rep_id),'0'),'matches',cards);

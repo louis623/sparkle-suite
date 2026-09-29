@@ -1,5 +1,31 @@
 import type { WorkspaceLineupEntry, WorkspaceLineupSnapshot } from './types'
 
+/** Longest stored preference is favorite collection (160). Chips must accept that length. */
+export const LINEUP_PREFERENCE_MAX = 160
+const BIRTHDAY_DAYS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+export function sanitizeLineupPreference(value: unknown): string {
+  if (typeof value !== 'string') return ''
+  return Array.from(value.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/gu, ' ').trim()).slice(0, LINEUP_PREFERENCE_MAX).join('')
+}
+
+export function sanitizeLineupLabel(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const text = Array.from(value.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/gu, ' ').trim()).slice(0, 80).join('')
+  return text || null
+}
+
+/** Month/day without a year. Invalid or impossible dates become empty so one bad row cannot drop every chip. */
+export function sanitizeLineupBirthday(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const match = /^(?:[1-9]|1[0-2])\/(?:[1-9]|[12]\d|3[01])$/.exec(value)
+  if (!match) return null
+  const [monthText, dayText] = value.split('/')
+  const month = Number(monthText)
+  const day = Number(dayText)
+  return day <= BIRTHDAY_DAYS[month - 1] ? `${month}/${day}` : null
+}
+
 export interface LineupAudienceMatch {
   status?: 'matched' | 'needs_clarification' | 'unavailable'
   audienceId?: string | null
@@ -36,7 +62,7 @@ export function isLineupAudienceResult(value: unknown, snapshot: WorkspaceLineup
     if (!entry || seen.has(match.id) || !eligibleAudienceIdentity(entry) || match.sourceIdentityVersion !== entry.sourceIdentityVersion
       || !(match.birthday === null || (typeof match.birthday === 'string' && /^(?:[1-9]|1[0-2])\/(?:[1-9]|[12]\d|3[01])$/.test(match.birthday)))
       || !Array.isArray(match.preferences) || match.preferences.length > 4
-      || match.preferences.some(text => typeof text !== 'string' || !text || text.length > 100 || /[\u0000-\u001f\u007f]/.test(text))) return false
+      || match.preferences.some(text => typeof text !== 'string' || !text || text.length > LINEUP_PREFERENCE_MAX || /[\u0000-\u001f\u007f]/.test(text))) return false
     if (match.status !== undefined && (!['matched','needs_clarification','unavailable'].includes(match.status)
       || (match.status === 'matched' ? typeof match.audienceId !== 'string' : match.audienceId !== null || match.birthday !== null || match.preferences.length !== 0)
       || !(match.label == null || typeof match.label === 'string' && match.label.length <= 80))) return false

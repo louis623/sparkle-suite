@@ -6,6 +6,8 @@ import { loadLineupCustomerCards } from '@/lib/live-lineup/customer-cards'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+// Auto-create runs only when the Workspace asks for enrichment. Extension publishes
+// do not call this route, so a closed Workspace does not mint customer cards.
 export async function POST(request: Request) {
   try {
     const { db, repId } = await workspaceLineupContext(request)

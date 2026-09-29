@@ -55,4 +55,26 @@ describe('smart lineup customer identity',()=>{
  it('never exposes the reconciliation RPC to unprivileged roles',async()=>{
   await db.exec('set role authenticated');await expect(cards()).rejects.toThrow('permission denied')
  })
+ it('keeps long preferences, strips controls, and nulls an impossible birthday without dropping the card',async()=>{
+  const stone='A'.repeat(120), collection='B'.repeat(161)
+  await cards()
+  await db.query("update customer_audience set favorite_gem_or_stone=$1, favorite_material=$2, favorite_cut='   ', favorite_collection=$3, birthday_month=2, birthday_day=null",[stone,'Rose\ngold',collection])
+  const match=(await cards()).matches[0]
+  expect(match.status).toBe('matched')
+  expect(match.birthday).toBeNull()
+  expect(match.preferences).toEqual([stone,'Rose gold',collection.slice(0,160)])
+ })
+ it('does not relabel a separate person when the same new id is retried with another label',async()=>{
+  const newId=crypto.randomUUID()
+  await cards('create',{newId,label:'Local pickup'})
+  await expect(cards('create',{newId,label:'Ohio'})).rejects.toThrow('invalid_customer')
+  expect((await db.query('select identity_label from customer_audience where id=$1',[newId])).rows[0].identity_label).toBe('Local pickup')
+  expect((await cards()).matches[0]).toMatchObject({audienceId:newId,label:'Local pickup'})
+ })
+ it('does not auto-create while a capable publisher is still bootstrapping',async()=>{
+  const now=new Date()
+  await state([e()],{bootstrapPending:true,publisher:{leaseExpiresAt:new Date(+now+60000).toISOString(),capabilities:'lineup-2.0.5'},sourceObservation:{settled:true}})
+  expect((await cards()).matches[0].status).toBe('unavailable')
+  expect((await db.query('select id from customer_audience')).rows).toHaveLength(0)
+ })
 })

@@ -18,6 +18,7 @@ import type {
   GetCustomerAudienceFilters,
 } from './types'
 import { formatBirthday, normalizeBirthday } from './birthdays'
+import { sanitizeLineupPreference } from '@/lib/live-lineup/audience'
 
 function normalizeText(value: string | undefined) {
   const trimmed = value?.trim() ?? ''
@@ -951,15 +952,13 @@ export async function matchLineupAudience(db: SupabaseClient, repId: string, ent
     if (!row || !names.includes(row.key) || byName.has(row.key) || !Number.isSafeInteger(row.count) || row.count < 0) throw errors.INVALID_INPUT('invalid audience match receipt')
     byName.set(row.key, row)
   }
-  const harmlessText = (value: unknown) => typeof value === 'string'
-    ? Array.from(value.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/gu, ' ').trim()).slice(0, 80).join('') : ''
   const matches: import('../live-lineup/audience').LineupAudienceMatch[] = []
   for (const entry of eligible) {
     const row = byName.get(key(entry.name + ' ' + entry.lastName))
     if (!row || row.count !== 1) continue
     const birthday = Number.isInteger(row.month) && Number.isInteger(row.day) && row.month! >= 1 && row.month! <= 12
       && row.day! >= 1 && row.day! <= new Date(Date.UTC(2000,row.month!,0)).getUTCDate() ? row.month + '/' + row.day : null
-    const preferences = [row.gem,row.material,row.cut,row.collection].map(harmlessText).filter(Boolean)
+    const preferences = [row.gem,row.material,row.cut,row.collection].map(sanitizeLineupPreference).filter(Boolean)
     if (birthday || preferences.length) matches.push({id:entry.id,sourceIdentityVersion:entry.sourceIdentityVersion!,birthday,preferences})
   }
   return {audienceVersion: data.version as string, matches}
