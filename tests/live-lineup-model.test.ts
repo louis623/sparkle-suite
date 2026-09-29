@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { applyLineupCommand, applySourcePacket, buildWorkspaceLineupSnapshot, claimPublisher, createLineupState,
-  isLineupState, LINEUP_LEASE_MS, LINEUP_MAX_ENTRIES, parseLineupCommand, parseSourcePacket } from '@/lib/live-lineup/model'
+  canonicalizeLineupTimestamps, canonicalizeTime, healLineupStateTimestamps, isCanonicalTime, isLineupState, LINEUP_LEASE_MS, LINEUP_MAX_ENTRIES, parseLineupCommand, parseSourcePacket } from '@/lib/live-lineup/model'
 import type { LineupResult, LineupState, SourceEntry, SourcePacket } from '@/lib/live-lineup/types'
 
 const T = Date.parse('2026-09-09T12:00:00Z')
@@ -255,5 +255,60 @@ describe('Live Lineup v2 ordered source / private manual arrangement', () => {
   it('rejects missing, malformed or non-random-v4 claim identifiers', () => {
     for (const claimId of [undefined, '', 'same-tab', 'aaaaaaaa-aaaa-1aaa-8aaa-aaaaaaaaaaaa'])
       expect(claimPublisher(createLineupState(), 'device-a', 0, T, { claimId: claimId as string })).toEqual({ ok: false, code: 'invalid_payload' })
+  })
+})
+
+describe('Live Lineup timestamp canonicalize / heal (Workspace harden)', () => {
+  const micros = '2026-09-29T23:15:26.314700Z'
+  const canonical = '2026-09-29T23:15:26.314Z'
+
+  it('isCanonicalTime requires JS toISOString shape (3 ms digits)', () => {
+    expect(isCanonicalTime(canonical)).toBe(true)
+    expect(isCanonicalTime(micros)).toBe(false)
+    expect(isCanonicalTime('2026-09-09')).toBe(false)
+    expect(canonicalizeTime(micros)).toBe(canonical)
+    expect(canonicalizeTime(canonical)).toBe(canonical)
+  })
+
+  it('isLineupState rejects Postgres µs lastChangedAt without coercion (regression)', () => {
+    const s = populated()
+    expect(isLineupState(s)).toBe(true)
+    expect(isLineupState({ ...s, lastChangedAt: micros })).toBe(false)
+  })
+
+  it('healLineupStateTimestamps recovers µs lastChangedAt so publisher read can succeed', () => {
+    const s = populated()
+    const onlyChanged = { ...s, lastChangedAt: micros }
+    expect(isLineupState(onlyChanged)).toBe(false)
+    const healed = healLineupStateTimestamps(onlyChanged)
+    expect(healed).not.toBeNull()
+    expect(healed!.lastChangedAt).toBe(canonical)
+    expect(isLineupState(healed)).toBe(true)
+    expect(canonicalizeLineupTimestamps(onlyChanged)?.lastChangedAt).toBe(canonical)
+  })
+
+  it('heal also canonicalizes lease and receipt micros together', () => {
+    const s = populated()
+    const withMicros = {
+      ...s,
+      lastChangedAt: micros,
+      lastReceivedAt: s.lastReceivedAt!.slice(0, -1) + '000Z',
+      lastReadyAt: s.lastReadyAt!.slice(0, -1) + '000Z',
+      publisher: { ...s.publisher!, leaseExpiresAt: s.publisher!.leaseExpiresAt.slice(0, -1) + '000Z' },
+    }
+    expect(isLineupState(withMicros)).toBe(false)
+    const healed = healLineupStateTimestamps(withMicros)
+    expect(healed).not.toBeNull()
+    expect(healed!.lastChangedAt).toBe(canonical)
+    expect(healed!.lastReceivedAt).toBe(s.lastReceivedAt)
+    expect(healed!.lastReadyAt).toBe(s.lastReadyAt)
+    expect(healed!.publisher!.leaseExpiresAt).toBe(s.publisher!.leaseExpiresAt)
+    expect(isLineupState(healed)).toBe(true)
+  })
+
+  it('heal does not revive unrelated corruption', () => {
+    expect(healLineupStateTimestamps({})).toBeNull()
+    expect(healLineupStateTimestamps({ ...populated(), revision: '2' })).toBeNull()
+    expect(healLineupStateTimestamps({ ...populated(), lastChangedAt: 'yesterday' })).toBeNull()
   })
 })
