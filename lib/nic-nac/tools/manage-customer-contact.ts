@@ -10,6 +10,7 @@ import { NicNacToolError } from '@/lib/nic-nac/errors'
 import type { ToolDefinition } from './types'
 
 const optionalContactFields = {
+  identityLabel: z.string().trim().max(80).optional(),
   email: z.string().trim().email().optional(),
   phone: z.string().trim().min(3).optional(),
   address: z.string().trim().max(500).optional(),
@@ -32,6 +33,7 @@ const inputSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('update'),
     audienceId: z.string().uuid(),
+    expectedVersion: z.number().int().min(0),
     name: z.string().trim().min(1).optional(),
     ...optionalContactFields,
   }),
@@ -57,7 +59,7 @@ export function makeManageCustomerContactTool(ctx: {
   return tool({
     description:
       "Create a contact in the authenticated rep's Customer List or update one identified contact's editable profile fields. " +
-      'Requires explicit approval. Contact creation and profile edits never create or change SMS, email, or marketing consent; those are captured only by the customer-facing signup flow. For updates, call get_customer_audience first if the customer identity is not unambiguous.',
+      'Requires explicit approval. Contact creation and profile edits never create or change SMS, email, or marketing consent; those are captured only by the customer-facing signup flow. Before updating, retrieve the customer using get_customer_audience and pass its profileVersion as expectedVersion. If multiple people match, ask the rep to choose using identityLabel and ID; never pick the first result. Update only supplied fields, preserving other details. identityLabel is a private distinguishing label, not a replacement name. A stale version requires a fresh read and review.',
     inputSchema,
     needsApproval: true,
     execute: async (input) => {

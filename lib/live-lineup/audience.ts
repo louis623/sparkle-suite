@@ -1,6 +1,9 @@
 import type { WorkspaceLineupEntry, WorkspaceLineupSnapshot } from './types'
 
 export interface LineupAudienceMatch {
+  status?: 'matched' | 'needs_clarification' | 'unavailable'
+  audienceId?: string | null
+  label?: string | null
   id: string
   sourceIdentityVersion: string
   birthday: string | null
@@ -14,7 +17,7 @@ export interface LineupAudienceResult {
 }
 export function lineupIdentityContext(snapshot: WorkspaceLineupSnapshot): string {
   return JSON.stringify([snapshot.tenantContext, snapshot.management?.generation,
-    snapshot.entries.map(e => [e.id, e.name, e.lastName, e.identityEligible, e.sourceIdentityVersion])])
+    [...snapshot.entries, ...snapshot.heldEntries].map(e => [e.id, e.name, e.lastName, e.identityEligible, e.sourceIdentityVersion])])
 }
 export function eligibleAudienceIdentity(entry: WorkspaceLineupEntry): boolean {
   return entry.identityEligible === true && !!entry.lastName?.trim() && !!entry.sourceIdentityVersion
@@ -25,8 +28,8 @@ export function isLineupAudienceResult(value: unknown, snapshot: WorkspaceLineup
   const result = value as LineupAudienceResult
   if (result.tenantContext !== snapshot.tenantContext || result.generation !== snapshot.management?.generation
     || typeof result.audienceVersion !== 'string' || !/^\d{1,19}$/.test(result.audienceVersion)
-    || !Array.isArray(result.matches) || result.matches.length > snapshot.entries.length) return false
-  const entries = new Map(snapshot.entries.map(e => [e.id, e]))
+    || !Array.isArray(result.matches) || result.matches.length > snapshot.entries.length + snapshot.heldEntries.length) return false
+  const entries = new Map([...snapshot.entries, ...snapshot.heldEntries].map(e => [e.id, e]))
   const seen = new Set<string>()
   return result.matches.every(match => {
     const entry = entries.get(match?.id)
@@ -34,6 +37,9 @@ export function isLineupAudienceResult(value: unknown, snapshot: WorkspaceLineup
       || !(match.birthday === null || (typeof match.birthday === 'string' && /^(?:[1-9]|1[0-2])\/(?:[1-9]|[12]\d|3[01])$/.test(match.birthday)))
       || !Array.isArray(match.preferences) || match.preferences.length > 4
       || match.preferences.some(text => typeof text !== 'string' || !text || text.length > 100 || /[\u0000-\u001f\u007f]/.test(text))) return false
+    if (match.status !== undefined && (!['matched','needs_clarification','unavailable'].includes(match.status)
+      || (match.status === 'matched' ? typeof match.audienceId !== 'string' : match.audienceId !== null || match.birthday !== null || match.preferences.length !== 0)
+      || !(match.label == null || typeof match.label === 'string' && match.label.length <= 80))) return false
     seen.add(match.id); return true
   })
 }

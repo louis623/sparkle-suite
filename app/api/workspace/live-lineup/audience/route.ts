@@ -2,7 +2,7 @@ import { lineupFailure, lineupJson, readLineupJson, workspaceLineupContext } fro
 import { readLineupState, LineupServiceError } from '@/lib/live-lineup/service'
 import { buildWorkspaceLineupSnapshot } from '@/lib/live-lineup/model'
 import { eligibleAudienceIdentity } from '@/lib/live-lineup/audience'
-import { matchLineupAudience } from '@/lib/services/customer-audience'
+import { loadLineupCustomerCards } from '@/lib/live-lineup/customer-cards'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
@@ -17,17 +17,17 @@ export async function POST(request: Request) {
     if (!state || (state.show?.generation ?? 0) !== body.generation) throw new LineupServiceError('show_changed',409)
     const snapshot = buildWorkspaceLineupSnapshot(state, Date.now(), true)
     const requested = new Map(body.identities.map(e => [e.id,e.sourceIdentityVersion]))
-    const entries = snapshot.entries.filter(e => requested.has(e.id))
+    const entries = [...snapshot.entries, ...snapshot.heldEntries].filter(e => requested.has(e.id))
     if (entries.length !== requested.size || entries.some(e => !eligibleAudienceIdentity(e) || requested.get(e.id) !== e.sourceIdentityVersion))
       throw new LineupServiceError('identity_changed',409)
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 2500)
     try {
-      const result = await matchLineupAudience(db,repId,entries,controller.signal)
+      const result = await loadLineupCustomerCards(db,repId,body.generation as number,entries,{},controller.signal)
       // A show/identity change during the bounded query invalidates its private result.
       const latest = await readLineupState(db, repId)
       if (!latest || (latest.show?.generation ?? 0) !== body.generation
-        || entries.some(entry => !latest.order.includes(entry.id) || !latest.entries.some(current => current.id === entry.id
+        || entries.some(entry => (!latest.order.includes(entry.id) && !latest.held.includes(entry.id)) || !latest.entries.some(current => current.id === entry.id
           && current.identityEligible === true && current.sourceIdentityVersion === entry.sourceIdentityVersion
           && current.name === entry.name && current.lastName === entry.lastName))) throw new LineupServiceError('identity_changed',409)
       return lineupJson({tenantContext:repId,generation:body.generation,...result})

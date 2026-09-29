@@ -36,7 +36,7 @@ export function useLineupAudience(snapshot: WorkspaceLineupSnapshot | null, poin
     ++epoch.current; const requestEpoch = epoch.current
     controller.current?.abort(); commit({})
     if (!captured.snapshot?.tenantContext || !captured.snapshot.management) return
-    const identities = captured.snapshot.entries.filter(eligibleAudienceIdentity).map(e => ({id:e.id,sourceIdentityVersion:e.sourceIdentityVersion}))
+    const identities = [...captured.snapshot.entries, ...captured.snapshot.heldEntries].filter(eligibleAudienceIdentity).map(e => ({id:e.id,sourceIdentityVersion:e.sourceIdentityVersion}))
     if (!identities.length) return
     const request = new AbortController(); controller.current = request
     const timeout = window.setTimeout(() => request.abort(), 3000)

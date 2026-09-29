@@ -8,6 +8,7 @@ import {
   createCustomerAudienceContact,
   formatCustomerAudienceCsv,
   getCustomerAudience,
+  getCustomerAudienceMember,
   importCustomerAudienceContacts,
   unsubscribeCustomerAudienceMember,
   updateCustomerAudienceContact,
@@ -71,6 +72,7 @@ function readTags(value: unknown) {
 
 function readContactProfile(body: Record<string, unknown>) {
   return {
+    identityLabel: readString(body.identityLabel),
     name: readString(body.name),
     email: readString(body.email),
     phone: readString(body.phone),
@@ -87,6 +89,7 @@ function readContactProfile(body: Record<string, unknown>) {
 
 function readContactProfilePatch(body: Record<string, unknown>) {
   const fields = [
+    'identityLabel',
     'name',
     'email',
     'phone',
@@ -136,8 +139,11 @@ export async function GET(request: Request) {
     }
 
     const { repId, supabase } = await getPaidNicNacContext()
+    const customerId = url.searchParams.get('customerId')
+    if (customerId) return NextResponse.json({customer: await getCustomerAudienceMember(supabase, repId, customerId)}, {headers:{'cache-control':'no-store'}})
     const audience = await getCustomerAudience(supabase, repId, {
       channelFilter,
+      query: url.searchParams.get('query') ?? undefined,
       limit: format === 'csv' ? null : limit ?? undefined,
     })
 
@@ -233,7 +239,7 @@ export async function PATCH(request: Request) {
     const customer = await updateCustomerAudienceContact(
       supabase,
       repId,
-      { audienceId, ...readContactProfilePatch(body) },
+      { audienceId, ...readContactProfilePatch(body), ...(typeof body.expectedVersion === 'number' ? {expectedVersion:body.expectedVersion} : {}) },
       { actorKind: 'rep', actorRepId: repId },
     )
 

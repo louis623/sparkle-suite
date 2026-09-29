@@ -1551,6 +1551,9 @@ export function searchRosterCustomers(
   return customers.filter((customer) => {
     const searchableParts = [
       customer.name,
+      customer.identityLabel ?? '',
+      customer.favoriteCollection ?? '',
+      customer.favoriteCut ?? '',
       customer.phone ?? '',
       customer.email ?? '',
     ]
@@ -1884,6 +1887,7 @@ export function getSiteSettingsDraft(
 }
 
 export type CustomerProfileInput = {
+  identityLabel?: string
   name: string
   email: string
   phone: string
@@ -6910,12 +6914,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
               window.dispatchEvent(new CustomEvent(NIC_NAC_WORKSPACE_REFRESH_EVENT, {detail:{topics:['audience']}}))
               await loadAudience()
             }}
-            onUpdate={async (audienceId, profile) => {
+            onUpdate={async (audienceId, profile, expectedVersion) => {
               const response = await fetch('/api/nic-nac/customer-audience', {
                 method: 'PATCH',
                 credentials: 'include',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ audienceId, ...profile }),
+                body: JSON.stringify({ audienceId, ...profile, expectedVersion }),
               })
               const payload = await response.json().catch(() => null) as { error?: string } | null
               if (!response.ok) throw new Error(payload?.error || 'Unable to update this customer.')
@@ -7140,6 +7144,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         >
           {showConceptHome ? (
             <ConceptHomeWorkspace
+          onAskCustomer={onSendNicNacPrompt}
               chat={desktopChat}
               onTradeAlertTarget={setHomeTradeAlertTarget}
               tradeRequestsCount={homeTradeRequestsCount}
@@ -7438,6 +7443,7 @@ export function WorkspaceAppHeader({
 
 function ConceptHomeWorkspace({
   chat,
+  onAskCustomer,
   onTradeAlertTarget,
   tradeRequestsCount,
   availableDancerCount,
@@ -7455,6 +7461,7 @@ function ConceptHomeWorkspace({
   liveLineupReadOnly,
   reviewWorkspaceMode,
 }: {
+  onAskCustomer?: (prompt:string)=>void
   chat?: ReactNode | null
   onTradeAlertTarget: (target: HTMLElement | null) => void
   tradeRequestsCount?: number
@@ -7535,7 +7542,7 @@ function ConceptHomeWorkspace({
           </button>
         </ConceptPanel>
         <div className={styles.railLiveLineup}>
-          <LiveLineupCard compact readOnly={liveLineupReadOnly} />
+          <LiveLineupCard compact readOnly={liveLineupReadOnly} onAskCustomer={onAskCustomer} />
         </div>
       </aside>
 
@@ -13767,6 +13774,7 @@ export function CustomerRosterCard({
   onUpdate?: (
     audienceId: string,
     profile: CustomerProfileInput,
+    expectedVersion?: number,
   ) => Promise<void> | void
   onImport?: (
     contacts: CustomerAudienceImportInput[],
@@ -13774,6 +13782,7 @@ export function CustomerRosterCard({
   readOnly?: boolean
 }) {
   const emptyProfile = (): CustomerProfileInput => ({
+    identityLabel: '',
     name: '',
     email: '',
     phone: '',
@@ -13788,6 +13797,7 @@ export function CustomerRosterCard({
   })
   const profileFromCustomer = (customer: CustomerProfile): CustomerProfileInput => ({
     ...emptyProfile(),
+    identityLabel: customer.identityLabel ?? '',
     name: customer.name ?? '',
     email: customer.email ?? '',
     phone: customer.phone ?? '',
@@ -13805,12 +13815,14 @@ export function CustomerRosterCard({
     : null
   const [editor, setEditor] = useState<{
     audienceId: string | null
+    expectedVersion?: number
     profile: CustomerProfileInput
     pending: boolean
     error: string | null
   } | null>(() => initialCustomer
     ? {
         audienceId: initialCustomer.id,
+        expectedVersion: initialCustomer.profileVersion,
         profile: profileFromCustomer(initialCustomer as CustomerProfile),
         pending: false,
         error: null,
@@ -13829,6 +13841,7 @@ export function CustomerRosterCard({
   const openEdit = (customer: CustomerProfile) =>
     setEditor({
       audienceId: customer.id,
+      expectedVersion: customer.profileVersion,
       profile: profileFromCustomer(customer),
       pending: false,
       error: null,
@@ -13846,7 +13859,7 @@ export function CustomerRosterCard({
     setEditor((current) => current ? { ...current, pending: true, error: null } : current)
     try {
       if (editor.audienceId) {
-        await onUpdate?.(editor.audienceId, editor.profile)
+        await onUpdate?.(editor.audienceId, editor.profile, editor.expectedVersion)
       } else {
         await onCreate?.(editor.profile)
       }
@@ -14288,7 +14301,7 @@ export function CustomerRosterCard({
           </div>
           <div className={styles.customerEditorGrid}>
             {([
-              ['name', 'Name'], ['email', 'Email'], ['phone', 'Phone'], ['address', 'Address'],
+              ['name', 'Name'], ['identityLabel', 'Private distinguishing label'], ['email', 'Email'], ['phone', 'Phone'], ['address', 'Address'],
               ['birthday', 'Birthday'], ['favoriteGemOrStone', 'Favorite gem or stone'],
               ['favoriteMaterial', 'Favorite material'], ['favoriteCut', 'Favorite cut'],
               ['favoriteCollection', 'Favorite collection'], ['tags', 'Tags'],

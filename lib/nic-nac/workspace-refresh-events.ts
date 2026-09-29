@@ -2,7 +2,7 @@ import type { UIMessage } from 'ai'
 
 export const NIC_NAC_WORKSPACE_REFRESH_EVENT = 'nic-nac:workspace-refresh'
 
-export type NicNacWorkspaceRefreshTopic = 'trade' | 'site' | 'calendar'
+export type NicNacWorkspaceRefreshTopic = 'trade' | 'site' | 'calendar' | 'audience'
 
 const TRADE_WRITE_TOOL_TYPES = new Set([
   'tool-add_listing',
@@ -46,6 +46,7 @@ export function getWorkspaceRefreshTopicsFromMessages(
 
   for (const message of messages) {
     for (const part of message.parts ?? []) {
+      if (isCustomerWorkspaceMutationPart(part as ToolPartLike)) topics.add('audience')
       if (isTradeWorkspaceMutationPart(part as ToolPartLike)) {
         topics.add('trade')
       }
@@ -118,4 +119,8 @@ function addListingOutputMutatedBoard(output: unknown) {
     return true
   }
   return Array.isArray(result.added) && result.added.length > 0
+}
+
+export function isCustomerWorkspaceMutationPart(part: ToolPartLike) {
+ return part.type === 'tool-manage_customer_contact' && part.state === 'output-available' && !isToolErrorOutput(part.output) && !!part.output
 }

@@ -39,6 +39,8 @@ function normalizePhoneDigits(value: string | undefined) {
 }
 
 type CustomerAudienceRow = {
+  identity_label?: string | null
+  profile_version?: number
   id: string
   name: string
   rep_id?: string
@@ -64,6 +66,7 @@ type CustomerAudienceRow = {
 }
 
 const CUSTOMER_AUDIENCE_SELECT_COLUMNS = [
+  'identity_label', 'profile_version',
   'id',
   'rep_id',
   'name',
@@ -102,6 +105,7 @@ function getProfileValues(input: CustomerAudienceProfileInput) {
   const birthday = normalizeBirthday(input.birthday)
   return {
     name,
+    identity_label: normalizeText(input.identityLabel ?? undefined),
     phone: normalizeText(input.phone ?? undefined),
     email: normalizeEmail(input.email ?? undefined),
     address: normalizeText(input.address ?? undefined),
@@ -118,6 +122,11 @@ function getProfileValues(input: CustomerAudienceProfileInput) {
 
 function getProfileUpdateValues(input: CustomerAudienceContactUpdateInput) {
   const values: Record<string, unknown> = {}
+  if ('identityLabel' in input) {
+    const label = normalizeText(input.identityLabel ?? undefined)
+    if (label && label.length > 80) throw errors.INVALID_INPUT('label too long', 'Use a label of 80 characters or fewer.')
+    values.identity_label = label
+  }
 
   if ('name' in input) {
     const name = normalizeText(input.name ?? undefined)
@@ -282,6 +291,8 @@ function mapAudienceRow(row: CustomerAudienceRow): CustomerAudienceMember {
   return {
     id: row.id,
     name: row.name,
+    identityLabel: row.identity_label ?? null,
+    profileVersion: row.profile_version ?? 0,
     phone: row.phone,
     email: row.email,
     ...(hasProfileColumns
@@ -546,15 +557,21 @@ export async function updateCustomerAudienceContact(
   }
 
   const profile = getProfileUpdateValues(input)
-  const { data, error } = await supabase
+  let update = supabase
     .from('customer_audience')
     .update(profile)
     .eq('id', input.audienceId.trim())
     .eq('rep_id', repId)
+  if (input.expectedVersion !== undefined) {
+    if (!Number.isSafeInteger(input.expectedVersion) || input.expectedVersion < 0) throw errors.INVALID_INPUT('invalid version')
+    update = update.eq('profile_version', input.expectedVersion)
+  }
+  const { data, error } = await update
     .select(CUSTOMER_AUDIENCE_SELECT_COLUMNS.join(', '))
     .maybeSingle()
 
   if (error) throw error
+  if (!data && input.expectedVersion !== undefined) throw errors.INVALID_INPUT('customer_changed', 'This customer card changed. Reload it before saving your edits.')
   if (!data) return null
 
   const row = data as unknown as CustomerAudienceRow
@@ -904,6 +921,14 @@ export async function getCustomerAudience(
     summary: summarizeAudience(customers),
     customers: customers
       .filter((customer) => matchesChannel(customer, channelFilter))
+      .filter(customer => {
+        const fold = (value: string) => value.normalize('NFKC').toLocaleLowerCase().replace(/\s+/g, ' ').trim()
+        const query = fold(filters.query ?? '')
+        return (!query || fold([customer.id, customer.name, customer.identityLabel, customer.email, customer.phone].filter(Boolean).join(' ')).includes(query))
+          && (!filters.favoriteCollection || fold(customer.favoriteCollection ?? '').includes(fold(filters.favoriteCollection)))
+          && (!filters.favoriteCut || fold(customer.favoriteCut ?? '').includes(fold(filters.favoriteCut)))
+          && (!filters.birthdayMonth || Number(customer.birthday?.split('-')[0]) === filters.birthdayMonth)
+      })
       .slice(0, limit),
   }
 }

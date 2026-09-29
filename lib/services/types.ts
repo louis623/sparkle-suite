@@ -442,12 +442,18 @@ export interface CustomerAudienceUnsubscribeResult {
 export type CustomerAudienceChannel = 'all' | 'sms' | 'email' | 'marketing'
 
 export interface GetCustomerAudienceFilters {
+  query?: string
+  favoriteCollection?: string
+  favoriteCut?: string
+  birthdayMonth?: number
   channelFilter?: CustomerAudienceChannel
   /** `null` is reserved for authenticated full-list exports. */
   limit?: number | null
 }
 
 export interface CustomerAudienceMember {
+  identityLabel?: string | null
+  profileVersion?: number
   id: string
   name: string
   phone: string | null
@@ -494,6 +500,7 @@ export interface CustomerAudienceResult {
  * and unsubscribe flows.
  */
 export interface CustomerAudienceProfileInput {
+  identityLabel?: string | null
   name: string
   email?: string | null
   phone?: string | null
@@ -511,6 +518,8 @@ export interface CustomerAudienceProfileInput {
 export type CustomerAudienceContactCreateInput = CustomerAudienceProfileInput
 
 export interface CustomerAudienceContactUpdateInput {
+  identityLabel?: string | null
+  expectedVersion?: number
   audienceId: string
   name?: string | null
   email?: string | null

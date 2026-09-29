@@ -7,6 +7,7 @@ import type { WorkspaceLineupEntry, WorkspaceLineupSnapshot } from '@/lib/live-l
 import { canAcceptWorkspaceRefresh, canRecoverLineup, workspaceFreshnessDeadline, workspaceWriteEligible, canRebaseDrag, dragScrollDelta, edgeScrollSpeed, isLineupCommandAcknowledgement, isWorkspaceLineupSnapshot, moveCommand, pointerDropAnchor } from './live-lineup-client'
 import type { WorkspaceLineupCommand } from './live-lineup-client'
 import styles from './LiveLineupCard.module.css'
+import { LineupCustomerEditor } from './LineupCustomerEditor'
 import { useLineupAudience } from './use-lineup-audience'
 import { LiveLineupShowControls } from './LiveLineupShowControls'
 import { LiveLineupArchiveControls } from './LiveLineupArchiveControls'
@@ -17,7 +18,8 @@ import { canConfirmShow } from './live-lineup-client'
 const ENDPOINT = '/api/workspace/live-lineup'
 const CONNECTION_LABELS = { connecting: 'Checking connection', connected: 'Connected', delayed: 'Waiting for an update', offline: 'Not connected' }
 
-export function LiveLineupCard({ compact = false, readOnly = false }: { compact?: boolean; readOnly?: boolean }) {
+export function LiveLineupCard({ compact = false, readOnly = false, onAskCustomer }: { compact?: boolean; readOnly?: boolean; onAskCustomer?:(prompt:string)=>void }) {
+  const [customerSelection,setCustomerSelection] = useState<{entry:WorkspaceLineupEntry;generation:number}|null>(null)
   const headingId = useId()
   const instructionsId = useId()
   const keyboardInstructionsId = useId()
@@ -478,6 +480,7 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
                 {audienceMatches[entry.id].birthday && <span>🎂 {audienceMatches[entry.id].birthday}</span>}
                 {audienceMatches[entry.id].preferences.map((preference, chipIndex) => <span key={chipIndex}>{preference}</span>)}
               </div>}
+              {!viewOnly && entry.identityEligible && <button type="button" className={styles.customerButton} data-clarify={audienceMatches[entry.id]?.status === 'needs_clarification'} disabled={saving || !!dragging} onClick={()=>setCustomerSelection({entry,generation:snapshot!.management!.generation})}>{audienceMatches[entry.id]?.status === 'needs_clarification' ? 'Which customer?' : audienceMatches[entry.id]?.label || 'Customer card'}</button>}
               {!compact && <div className={styles.actions}>
                 <button type="button" disabled={disabled || index === 0} aria-label={`Reveal ${entry.name} next, position ${index + 1}`} onClick={() => void submit({ type: 'reveal-next', entryId: entry.id })}>Reveal next</button>
                 <button type="button" disabled={disabled} aria-label={`Hold ${entry.name} for later, position ${index + 1}`} onClick={() => void submit({ type: 'hold', entryId: entry.id })}>Hold</button>
@@ -497,6 +500,7 @@ export function LiveLineupCard({ compact = false, readOnly = false }: { compact?
         <button type="button" disabled={disabled || !!dragging || !snapshot?.undoAvailable} title="Undo the last reorder, Reveal next, Hold, or Return—not party visibility" onClick={() => void submit({ type: 'undo' })}>Undo order / hold</button>
         <span>Bomb Party orders are unchanged.</span>
       </footer>}
+      {customerSelection && <LineupCustomerEditor entry={customerSelection.entry} generation={customerSelection.generation} valid={snapshot?.management?.generation===customerSelection.generation && [...(snapshot?.entries??[]),...(snapshot?.heldEntries??[])].some(e=>e.id===customerSelection.entry.id && e.sourceIdentityVersion===customerSelection.entry.sourceIdentityVersion)} onClose={()=>setCustomerSelection(null)} onAsk={onAskCustomer} />}
       {draggedEntry && drag && createPortal(<>
         <div ref={dragPreview} className={styles.dragPreview} aria-hidden="true" data-lineup-drag-preview
           style={{width: drag.previewWidth, minHeight: drag.previewHeight, transform: `translate3d(${drag.x - drag.offsetX}px, ${drag.y - drag.offsetY}px, 0)`}}>
