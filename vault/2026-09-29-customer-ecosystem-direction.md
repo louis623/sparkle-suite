@@ -1,0 +1,9 @@
+# Customer ecosystem direction — September 29, 2026
+
+Louis approved finishing smart customer cards, Live Lineup and Nic-Nac together on Smoke first. Reuse the existing rep-owned customer_audience UUIDs and structured profile fields. Automatically create a minimal card for a ready, identity-eligible lineup full name when no card matches. Reuse unique normalized first/last-name matches; duplicates suppress personal details until the rep clarifies. Add visible markers, private distinguishing labels, order-specific confirmed matches and quick in-line edits. Nic-Nac must use the same records, retrieve by name/preferences/birthday, and clarify ambiguity before an update. Keep lineup ordering and source refresh behavior intact; no show-calendar dependency. No CWS or Bomb Party changes.
+
+Future ecosystem, recorded but deferred: Finder customers own central collection/preferences profiles which automatically link reliably to customer relationships across Suite reps. Rep customer-facing sites should introduce Finder and Finder should lead customers back to reps. Preserve stable local card IDs, field provenance/audit history and rep-private notes so later shared-profile linking is additive. Name-only uncertainty must not merge global accounts. Separate product auth boundaries remain until that integration is designed. Customers without Finder remain fully supported.
+
+Future email/SMS audience selection uses structured collection/product preferences and birthdays, alongside independent contact-channel consent/opt-out state. Card creation and enrichment never imply messaging consent. No campaigns or messages are authorized by this implementation.
+
+Open Brain capture of this direction succeeded on September 29. Implementation/verification status will be appended at closeout; this is product direction, not a claim of shipped capability.
