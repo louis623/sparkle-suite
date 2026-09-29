@@ -164,8 +164,8 @@ describe('Sparkle Suite public landing page', () => {
   it('ships every new capture at its declared dimensions', async () => {
     const sharp = (await import('sharp')).default
     const peeks = [
-      ['hero-halloween-witch-live', 1024, 513],
-      ['hero-halloween-cat-live', 1280, 576],
+      ['hero-halloween-witch-live', 968, 720],
+      ['hero-halloween-cat-live', 966, 710],
     ] as const
     for (const [name, width, height] of peeks) {
       const halloween = await sharp(publicAssetPath(`/sparkle-suite/landing/${name}.webp`)).metadata()

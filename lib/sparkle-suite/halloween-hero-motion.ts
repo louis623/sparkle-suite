@@ -1,33 +1,31 @@
 /**
  * Real captured Halloween hero motion for Suite marketing peeks.
  *
- * Witch (`halloween_pumpkin_witch`) has no product video. The mp4 is a screen
- * recording of the live Mile High Fizz CSS/DOM hero, cropped to the hero
- * itself (y=87 through the hero, width trimmed at the window edge).
+ * Both files are page-area captures of the full live hero: site header,
+ * announcement / Dance Floor / Live Lineup bars, titles, body copy, every
+ * CTA, complete art, and the on-hero pause control. They are not cropped.
  *
- * Cat (`halloween_pumpkin_cat`) uses the skin-preview screen recording, not the
- * art-only `hero-desktop-motion.mp4`, so the peek stays the whole hero. The
- * sample-content bar is cropped at y=64 and the right window edge is removed.
- *
- * Posters stay the full-hero stills from the dual-skin peek.
+ * Witch is the Mile High Fizz CSS/DOM hover, 968×720 (the still is 967 wide;
+ * the video pads one edge pixel so the width is even). Cat is the product
+ * hero motion, 966×710, including the left headlines.
  */
 export const halloweenHeroMotion = {
   witch: {
     label: 'Halloween · Witch',
     poster: '/sparkle-suite/landing/hero-halloween-witch-live.webp',
-    posterWidth: 1024,
-    posterHeight: 513,
+    posterWidth: 968,
+    posterHeight: 720,
     mp4: '/sparkle-suite/landing/hero-halloween-witch-live.mp4',
-    width: 1264,
-    height: 656,
+    width: 968,
+    height: 720,
   },
   cat: {
     label: 'Halloween · Cat',
     poster: '/sparkle-suite/landing/hero-halloween-cat-live.webp',
-    posterWidth: 1280,
-    posterHeight: 576,
+    posterWidth: 966,
+    posterHeight: 710,
     mp4: '/sparkle-suite/landing/hero-halloween-cat-live.mp4',
-    width: 1010,
-    height: 576,
+    width: 966,
+    height: 710,
   },
 } as const
