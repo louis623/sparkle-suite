@@ -14,6 +14,7 @@ Create visual-only skins for Sparkle Suite customer sites while preserving the A
 Before designing or implementing a skin, read:
 
 - `references/skin-contract.md`
+- `references/higgsfield-animated-skins.md` when creating or updating a skin with Higgsfield character motion; covers approved-art animation, cost/credential handling, resumable requests, mobile parity and release QA
 - `references/cinematic-hero-contract.md` when the skin uses custom hero art,
   supplied visual references, source-specific motifs, or ambient animation
 - `docs/sparkle-suite/brand/00-master-index.md`
