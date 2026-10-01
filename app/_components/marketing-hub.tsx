@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
+import { FinderSneakPeekStub } from '@/app/_components/finder-sneak-peek-stub'
 import { MarketingFooter } from '@/app/_components/landing-experience'
 import { sparkleSuiteMarketingHubContent as hub } from '@/lib/sparkle-suite/marketing-hub-content'
 
@@ -24,6 +25,7 @@ function AccountLink({ href, children }: { href: string; children: string }) {
 }
 
 function PathCard({
+  body,
   comingSoon,
   destinationLabel,
   detail,
@@ -33,8 +35,11 @@ function PathCard({
   signInLabel,
   signUpHref,
   signUpLabel,
+  sneakPeekHref,
+  sneakPeekLabel,
   tone,
 }: {
+  body?: string
   comingSoon?: string
   destinationLabel: string
   detail: string
@@ -44,6 +49,8 @@ function PathCard({
   signInLabel: string
   signUpHref: string
   signUpLabel: string
+  sneakPeekHref?: string
+  sneakPeekLabel?: string
   tone: 'suite' | 'finder'
 }) {
   const className = `${styles.card} ${tone === 'suite' ? styles.suite : styles.finder}`
@@ -52,6 +59,7 @@ function PathCard({
       <span className={styles.cardCopy}>
         <span className={styles.cardBrand}>{product}</span>
         <span className={styles.cardDetail}>{detail}</span>
+        {body ? <span className={styles.cardBody}>{body}</span> : null}
       </span>
       <span className={styles.srOnly}>{destinationLabel}</span>
       <ArrowRight aria-hidden="true" className={styles.trail} size={28} />
@@ -70,7 +78,17 @@ function PathCard({
         </Link>
       )}
       <div className={styles.accountBlock}>
-        {comingSoon ? <p className={styles.comingSoon}>{comingSoon}</p> : null}
+        {comingSoon ? (
+          <p className={styles.comingSoon}>
+            {comingSoon}
+            {sneakPeekLabel ? (
+              <>
+                {' '}
+                <FinderSneakPeekStub href={sneakPeekHref ?? ''} label={sneakPeekLabel} />
+              </>
+            ) : null}
+          </p>
+        ) : null}
         <div className={styles.accountActions}>
           <AccountLink href={signInHref}>{signInLabel}</AccountLink>
           <AccountLink href={signUpHref}>{signUpLabel}</AccountLink>
@@ -110,6 +128,7 @@ export function MarketingHub() {
           </div>
           <div className={styles.paths}>
             <PathCard
+              body={hub.suite.body}
               destinationLabel={hub.suite.destinationLabel}
               detail={hub.suite.detail}
               href={hub.suite.href}
@@ -121,11 +140,14 @@ export function MarketingHub() {
               tone="suite"
             />
             <PathCard
+              body={hub.finder.body}
               destinationLabel={hub.finder.destinationLabel}
               detail={hub.finder.detail}
               href={hub.finder.href}
               product={hub.finder.product}
               comingSoon={hub.finder.comingSoon}
+              sneakPeekHref={hub.finder.sneakPeekHref}
+              sneakPeekLabel={hub.finder.sneakPeekLabel}
               signInHref={hub.finder.signInHref}
               signInLabel={hub.finder.signInLabel}
               signUpHref={hub.finder.signUpHref}

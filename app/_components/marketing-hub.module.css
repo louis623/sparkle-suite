@@ -180,6 +180,12 @@
   line-height: 1.4;
 }
 
+.cardBody {
+  font-size: 0.98rem;
+  font-weight: 450;
+  line-height: 1.45;
+}
+
 .accountBlock {
   position: absolute;
   right: 22px;
@@ -194,6 +200,13 @@
   font-size: 1.02rem;
   font-weight: 650;
   line-height: 1.4;
+}
+
+.sneakPeek {
+  color: var(--finder-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
 }
 
 .accountActions {

@@ -46,8 +46,17 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(readable).not.toContain('Choose your adventure')
     const suiteCard = readable.slice(readable.indexOf('data-path="suite"'), readable.indexOf('data-path="finder"'))
     const finderCard = readable.slice(readable.indexOf('data-path="finder"'), readable.indexOf('suite-continue-title'))
+    const suiteBody =
+      'Sparkle Suite gives reps a polished customer site, standout live-show tools, and built-in support that helps customers feel the difference.'
+    const finderBody = 'Find the pieces you love, and build the collection that you adore.'
     expect(suiteCard.indexOf('Sparkle Suite')).toBeLessThan(suiteCard.indexOf('for the Bomb Party reps'))
+    expect(suiteCard.indexOf('for the Bomb Party reps')).toBeLessThan(suiteCard.indexOf(suiteBody))
+    expect(suiteCard.indexOf(suiteBody)).toBeLessThan(suiteCard.indexOf('>Sign In<'))
+    expect(finderCard).not.toContain(suiteBody)
     expect(finderCard.indexOf('Sparkle Finder')).toBeLessThan(finderCard.indexOf('for the Bomb Party collectors'))
+    expect(finderCard.indexOf('for the Bomb Party collectors')).toBeLessThan(finderCard.indexOf(finderBody))
+    expect(finderCard.indexOf(finderBody)).toBeLessThan(finderCard.indexOf('Coming soon.'))
+    expect(suiteCard).not.toContain(finderBody)
     expect(suiteCard).not.toContain('find & favorite')
     expect(finderCard).not.toContain('for the Bomb Party reps')
     expect(readable.toLowerCase()).not.toContain('selling tonight')
@@ -59,7 +68,16 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(suiteCard).not.toContain('Have an account?')
     expect(suiteCard).toContain('href="/login"')
     expect(suiteCard).toContain('href="/prelaunch#waitlist"')
-    expect(finderCard.indexOf('Coming soon.')).toBeLessThan(finderCard.indexOf('>Sign In<'))
+    expect(finderCard.indexOf('Coming soon.')).toBeLessThan(finderCard.indexOf('>Get a sneak peek</a>'))
+    expect(finderCard.indexOf('>Get a sneak peek</a>')).toBeLessThan(finderCard.indexOf('>Sign In<'))
+    const sneakPeek = finderCard.slice(
+      finderCard.lastIndexOf('<a', finderCard.indexOf('>Get a sneak peek</a>')),
+      finderCard.indexOf('>Get a sneak peek</a>'),
+    )
+    expect(sneakPeek).toContain('href=""')
+    expect(sneakPeek).not.toContain('http')
+    expect(suiteCard).not.toContain('Get a sneak peek')
+    expect(sparkleSuiteMarketingHubContent.finder.sneakPeekHref).toBe('')
     expect(finderCard).toContain('>Sign Up<')
     expect(finderCard).not.toContain("Don't have an account?")
     expect(finderCard).toContain('href="https://yoursparklefinder.com/auth/sign-in"')
@@ -105,6 +123,8 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(css).toContain('justify-content: space-between;')
     expect(css).toContain('.finder .accountLink')
     expect(css).toContain('#9a93a3')
+    expect(css).toContain('.sneakPeek')
+    expect(css).toContain('text-decoration: underline;')
     expect(css).toContain('#1b1218')
     expect(css).toContain('#2a1822')
     expect(css).toContain('#fcf8f6')

@@ -20,6 +20,7 @@ export const sparkleSuiteMarketingHubContent = {
   suite: {
     product: 'Sparkle Suite',
     detail: 'for the Bomb Party reps',
+    body: 'Sparkle Suite gives reps a polished customer site, standout live-show tools, and built-in support that helps customers feel the difference.',
     href: '/',
     destinationLabel: 'Open the Sparkle Suite site',
     signInLabel: 'Sign In',
@@ -30,9 +31,13 @@ export const sparkleSuiteMarketingHubContent = {
   finder: {
     product: 'Sparkle Finder',
     detail: 'for the Bomb Party collectors',
+    body: 'Find the pieces you love, and build the collection that you adore.',
     href: sparkleFinderHomeUrl,
     destinationLabel: 'Open Sparkle Finder',
     comingSoon: 'Coming soon.',
+    /** Destination stays unwired until Louis chooses it. */
+    sneakPeekLabel: 'Get a sneak peek',
+    sneakPeekHref: '',
     signInLabel: 'Sign In',
     signInHref: sparkleFinderSignInUrl,
     signUpLabel: 'Sign Up',
