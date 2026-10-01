@@ -1,0 +1,48 @@
+/* AM-01 keeps the Amethyst template, palette, fonts and customer content.
+   Only its existing homepage hero gets the approved Chasing Unicorns scene. */
+body .hp-hero[data-appearance-preset="amethyst"] {
+  isolation:isolate; min-height:760px; padding:0; color:#fff;
+  background:radial-gradient(ellipse at 65% 65%,#72065c 0%,#22064b 48%,#080c25 100%);
+}
+body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-media {display:none}
+body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-inner {
+  position:relative; z-index:2; width:100%; max-width:1600px; margin-inline:auto;
+  padding:80px 28px 100px; display:grid; grid-template-columns:58% 42%; text-align:center;
+}
+body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-inner>div {width:92%;max-width:620px;justify-self:center;min-width:0}
+body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-headline {
+  font-size:clamp(44px,5vw,68px);line-height:1.08;color:#fff;background:none;
+  -webkit-text-fill-color:#fff;text-shadow:0 2px 15px #130429;
+}
+body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-sub {font-size:clamp(16px,1.5vw,18px);color:#f9edff;text-shadow:0 2px 10px #130429}
+body .hp-hero[data-appearance-preset="amethyst"] .hp-btn-outline {background:#240943d9;color:#fff;border-color:#d5a8f2}
+body .hp-hero[data-appearance-preset="amethyst"] .hp-btn-primary {color:#fff;background:linear-gradient(110deg,#5C0EFF,#b00e93);border-color:#bd78ff}
+body .hp-hero[data-appearance-preset="amethyst"] .au-art {position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+body .hp-hero[data-appearance-preset="amethyst"] .au-art :is(img,video) {
+  display:block;position:absolute;left:0;top:50%;transform:translateY(-50%);width:100%;height:auto;aspect-ratio:1310/704;object-fit:contain;
+}
+body .hp-hero[data-appearance-preset="amethyst"] .au-video {opacity:0}
+body .hp-hero[data-appearance-preset="amethyst"] .au-art[data-video] .au-video {opacity:1}
+body .hp-hero[data-appearance-preset="amethyst"] .au-magic {position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+body .hp-hero[data-appearance-preset="amethyst"] .au-magic svg {width:100%;height:100%;opacity:.26;filter:drop-shadow(0 0 9px #FF1AC2)}
+body .hp-hero[data-appearance-preset="amethyst"] .au-magic path {fill:none;stroke:#e676ff;stroke-width:1.3;animation:au-ribbon 9s ease-in-out infinite alternate;transform-origin:center}
+body .hp-hero[data-appearance-preset="amethyst"] .au-magic path:nth-child(2) {animation-delay:-3s;stroke:#a779ff}
+body .hp-hero[data-appearance-preset="amethyst"] .au-magic path:nth-child(3) {animation-delay:-6s}
+body .hp-hero[data-appearance-preset="amethyst"] .au-magic i {position:absolute;left:var(--x);top:var(--y);width:3px;height:3px;border-radius:50%;background:#f4ceff;box-shadow:0 0 10px 2px #FF1AC2;animation:au-twinkle 4s ease-in-out var(--delay) infinite}
+body .hp-hero[data-appearance-preset="amethyst"][data-unicorn-motion="paused"] .au-magic * {animation-play-state:paused}
+body .hp-hero[data-appearance-preset="amethyst"] .au-controls {position:absolute;z-index:4;bottom:16px;right:20px;display:flex;flex-wrap:wrap;gap:8px}
+body .hp-hero[data-appearance-preset="amethyst"] .au-controls[hidden] {display:none}
+body .hp-hero[data-appearance-preset="amethyst"] .au-controls button {min-height:44px;padding:10px 16px;border:1px solid #d5a8f2;border-radius:999px;color:#fff;background:#200936ed;font:500 12px/1.5 var(--hp-body-font,Inter,sans-serif);cursor:pointer}
+body .hp-hero[data-appearance-preset="amethyst"] :is(button,a):focus-visible {outline:3px solid #f1b9ff;outline-offset:4px}
+@keyframes au-ribbon {to {transform:translateY(-22px) scaleY(1.06);opacity:.5}}
+@keyframes au-twinkle {0%,100% {opacity:.15;transform:scale(.7)}50% {opacity:.85;transform:scale(1.2)}}
+@media(max-width:680px) {
+  body .hp-hero[data-appearance-preset="amethyst"] {min-height:800px;align-items:flex-start}
+  body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-inner {display:block;padding:35px 20px 90px}
+  body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-inner>div {width:100%;max-width:none}
+  body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-headline {width:44%;font-size:clamp(26px,6vw,40px);margin:0 0 clamp(150px,38vw,230px);text-align:left}
+  body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-sub {max-width:540px;margin-inline:auto}
+  body .hp-hero[data-appearance-preset="amethyst"] .au-art :is(img,video) {top:0;transform:none;height:min(66vw,420px);width:100%;object-fit:cover;object-position:100% top}
+  body .hp-hero[data-appearance-preset="amethyst"] .au-controls {right:12px;bottom:14px;left:12px;justify-content:center}
+}
+@media(prefers-reduced-motion:reduce) {body .hp-hero[data-appearance-preset="amethyst"] .au-magic * {animation:none}}

@@ -8,7 +8,7 @@ import type { AmethystHomepageEventCard } from './homepage-upcoming-shows'
 
 export const SKIN_PREVIEW_PAGES = ['homepage', 'trade', 'join', 'unsubscribe'] as const
 export type SkinPreviewPage = (typeof SKIN_PREVIEW_PAGES)[number]
-export const SKIN_PREVIEW_SKINS = ['gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn'] as const
+export const SKIN_PREVIEW_SKINS = ['amethyst', 'gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn'] as const
 export type SkinPreviewSkin = (typeof SKIN_PREVIEW_SKINS)[number]
 const FILES: Record<SkinPreviewPage, string> = {
   homepage: 'Homepage.html', trade: 'Trade.html', join: 'Join.html', unsubscribe: 'Unsubscribe.html',
@@ -72,6 +72,17 @@ type PreviewProfile = {
 }
 
 const PREVIEW_PROFILES = {
+  amethyst: {
+    label: 'Amethyst · Chasing Unicorns', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
+    ticker: 'Live jewelry reveals | A little magic in every surprise | Explore the Dance Floor',
+    tagline: 'A little magic. A beautiful surprise.',
+    eyebrow: '', headline: 'Real jewelry. Live reveals. Pure sparkle.',
+    heroSub: 'Join Sasha for live jewelry reveals, friendly conversation, and your next favorite find.',
+    aboutHeadline: 'Come for a reveal. Stay for the company.',
+    aboutParagraphs: ['Hi, I’m Sasha. I love sharing the surprise of a jewelry reveal with you.', 'Whether you are chasing a rare unicorn or discovering an everyday favorite, you are welcome here.', 'The calendar below shows sample upcoming shows for this appearance preview.'],
+    signupSub: 'Get a friendly heads-up before the next reveal.',
+    events: NEON_PREVIEW_EVENTS.map((event, index) => ({...event, title: index === 0 ? 'Chasing Unicorns Reveal Night' : 'A Little Evening Magic', collections: event.collections.map(collection => ({...collection, href: previewPath('amethyst', 'trade')}))})),
+  },
   gilded_autumn: {
     label: 'The Golden Leaves of Autumn', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
     ticker: 'Live jewelry reveals | Find your next favorite | Explore the Dance Floor',
@@ -159,7 +170,7 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
   }
   if (page === 'join') {
     return buildAmethystJoinBootstrapScript({
-      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'gilded_autumn' ? 'Find your place with Sasha.' : skin === 'neon_butterfly' ? 'Find your place in the glow.' : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat') ? 'Find your place beneath the pumpkin moon.' : 'Find your place in the garden.',
+      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'amethyst' || skin === 'gilded_autumn' ? 'Find your place with Sasha.' : skin === 'neon_butterfly' ? 'Find your place in the glow.' : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat') ? 'Find your place beneath the pumpkin moon.' : 'Find your place in the garden.',
       shopUrl: '#preview-action', bpReferralUrl: '', hasRecruitingLink: false,
       teamMembers: [
         ...(skin === 'neon_butterfly'
@@ -236,7 +247,7 @@ export const SKIN_PREVIEW_GUARDS = `
     if (href.charAt(0) === '#' && href !== '#' && href !== '#preview-action') return;
     event.preventDefault(); event.stopImmediatePropagation();
     var path = href.split('?')[0].split('#')[0];
-    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:gnome_garden|neon_butterfly|halloween_pumpkin_witch|halloween_pumpkin_cat|gilded_autumn)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
+    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:amethyst|gnome_garden|neon_butterfly|halloween_pumpkin_witch|halloween_pumpkin_cat|gilded_autumn)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
     if (page) window.parent.postMessage({ type: 'sparkle-skin-preview-page', page: page }, '*'); else notice();
   }, true);
   function disableUploads() {
@@ -252,8 +263,9 @@ export const SKIN_PREVIEW_GUARDS = `
   }
 })();`
 
-/** Only the two video skins may load self-hosted media in their sample sandbox. */
+/** Video skins may load only their own self-hosted media in the sample sandbox. */
 export function skinPreviewMediaSource(skin: SkinPreviewSkin, origin: string) {
+  if (skin === 'amethyst') return origin + '/amethyst/skins/am01-unicorn/'
   if (skin === 'gilded_autumn') return origin + '/amethyst/skins/gilded-autumn/'
   if (skin === 'halloween_pumpkin_cat') return origin + '/amethyst/skins/halloween-pumpkin-cat/'
   return "'none'"
@@ -265,7 +277,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
   // Inline only allowlisted repository runtime files. Inline Babel input does not need network XHR.
-  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'sparkle-suite-footer-credit.js']
+  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'sparkle-suite-footer-credit.js']
   for (const name of runtimeNames) {
     const escaped = name.replace('.', '\\.')
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')
@@ -300,7 +312,9 @@ export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreview
   const profile = PREVIEW_PROFILES[skin]
   const document = await buildSkinPreviewDocument(skin, page, origin)
   const navigation = SKIN_PREVIEW_PAGES.map((item) => `<a href="${previewPath(skin, item)}"${item === page ? ' aria-current="page"' : ''}>${LABELS[item]}</a>`).join('')
-  const chrome = skin === 'gilded_autumn'
+  const chrome = skin === 'amethyst'
+    ? { bg: '#22064b', fg: '#fff4fa', muted: '#E8DFF5', border: '#FF1AC255', active: '#E8DFF5', focus: '#FF1AC2' }
+    : skin === 'gilded_autumn'
     ? { bg: '#392519', fg: '#fff8ec', muted: '#e3cba9', border: '#b1833866', active: '#fff8ec', focus: '#e3cba9' }
     : skin === 'neon_butterfly'
     ? { bg: '#160318', fg: '#fff4fa', muted: '#d9bcd4', border: '#ff2acd55', active: '#ff2acd', focus: '#ffc24a' }

@@ -776,10 +776,10 @@ function Hero({ t, isLive, liveShow }) {
 
   return (
     <>
-    <section className="hp-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
+    <section className="hp-hero" data-appearance-preset={t.preset} data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
       {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
       <div className="hp-hero-media" aria-hidden="true" />
-      {t.preset !== "halloween_pumpkin_cat" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
+      {t.preset !== "halloween_pumpkin_cat" && t.preset !== "amethyst" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
       <div className="hp-hero-inner">
         <div>
           {isMileHighFizzHybrid && (
