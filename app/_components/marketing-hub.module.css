@@ -135,7 +135,7 @@
   flex: 1;
   flex-direction: column;
   min-height: 168px;
-  padding: 22px 64px 68px 22px;
+  padding: 22px 64px 124px 22px;
   color: inherit;
   text-decoration: none;
 }
@@ -180,18 +180,24 @@
   line-height: 1.4;
 }
 
-.signIn {
+.accountActions {
   position: absolute;
+  right: 22px;
   bottom: 12px;
   left: 22px;
   z-index: 1;
+  display: grid;
+  gap: 0;
+}
+
+.accountLink {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   min-height: 48px;
   color: var(--suite-magenta);
   font-size: 1rem;
   font-weight: 700;
+  line-height: 1.3;
   text-decoration: none;
 }
 
@@ -218,11 +224,10 @@
 
 .trail {
   position: absolute;
-  top: 50%;
+  top: 28px;
   right: 22px;
   width: 32px;
   height: 32px;
-  transform: translateY(-50%);
 }
 
 .continue {
@@ -310,7 +315,7 @@
   }
 
   .cardMain {
-    padding: 28px 28px 72px;
+    padding: 28px 28px 128px;
   }
 
   .trail {

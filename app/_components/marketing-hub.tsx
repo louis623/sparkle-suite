@@ -7,6 +7,22 @@ import { sparkleSuiteMarketingHubContent as hub } from '@/lib/sparkle-suite/mark
 import landingStyles from './landing-experience.module.css'
 import styles from './marketing-hub.module.css'
 
+function AccountLink({ href, children }: { href: string; children: string }) {
+  if (href.startsWith('http')) {
+    return (
+      <a className={styles.accountLink} href={href}>
+        {children}
+      </a>
+    )
+  }
+
+  return (
+    <Link className={styles.accountLink} href={href}>
+      {children}
+    </Link>
+  )
+}
+
 function PathCard({
   destinationLabel,
   detail,
@@ -14,6 +30,8 @@ function PathCard({
   product,
   signInHref,
   signInLabel,
+  signUpHref,
+  signUpLabel,
   tone,
 }: {
   destinationLabel: string
@@ -22,6 +40,8 @@ function PathCard({
   product: string
   signInHref: string
   signInLabel: string
+  signUpHref: string
+  signUpLabel: string
   tone: 'suite' | 'finder'
 }) {
   const className = `${styles.card} ${tone === 'suite' ? styles.suite : styles.finder}`
@@ -33,13 +53,6 @@ function PathCard({
       </span>
       <span className={styles.srOnly}>{destinationLabel}</span>
       <ArrowRight aria-hidden="true" className={styles.trail} size={28} />
-    </>
-  )
-  const signIn = (
-    <>
-      {signInLabel}
-      <span className={styles.srOnly}> to {product}</span>
-      <ArrowRight aria-hidden="true" size={18} />
     </>
   )
 
@@ -54,15 +67,10 @@ function PathCard({
           {main}
         </Link>
       )}
-      {signInHref.startsWith('http') ? (
-        <a className={styles.signIn} href={signInHref}>
-          {signIn}
-        </a>
-      ) : (
-        <Link className={styles.signIn} href={signInHref}>
-          {signIn}
-        </Link>
-      )}
+      <div className={styles.accountActions}>
+        <AccountLink href={signInHref}>{signInLabel}</AccountLink>
+        <AccountLink href={signUpHref}>{signUpLabel}</AccountLink>
+      </div>
     </article>
   )
 }
@@ -103,6 +111,8 @@ export function MarketingHub() {
               product={hub.suite.product}
               signInHref={hub.suite.signInHref}
               signInLabel={hub.suite.signInLabel}
+              signUpHref={hub.suite.signUpHref}
+              signUpLabel={hub.suite.signUpLabel}
               tone="suite"
             />
             <PathCard
@@ -112,6 +122,8 @@ export function MarketingHub() {
               product={hub.finder.product}
               signInHref={hub.finder.signInHref}
               signInLabel={hub.finder.signInLabel}
+              signUpHref={hub.finder.signUpHref}
+              signUpLabel={hub.finder.signUpLabel}
               tone="finder"
             />
           </div>

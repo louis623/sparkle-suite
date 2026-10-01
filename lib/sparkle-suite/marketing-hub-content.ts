@@ -7,6 +7,8 @@ import {
 export const sparkleFinderHomeUrl = 'https://yoursparklefinder.com/' as const
 /** Current Finder app sign-in. */
 export const sparkleFinderSignInUrl = 'https://yoursparklefinder.com/auth/sign-in' as const
+/** Live Finder public landing creates an account with this return path. */
+export const sparkleFinderSignUpUrl = 'https://yoursparklefinder.com/auth/sign-up?next=/' as const
 
 /**
  * Joint front door. Finder deep-drill pages under /finder stay empty for a later pass.
@@ -20,16 +22,20 @@ export const sparkleSuiteMarketingHubContent = {
     detail: 'for the Bomb Party reps',
     href: '/',
     destinationLabel: 'Open the Sparkle Suite site',
-    signInLabel: 'Sign in',
+    signInLabel: 'Have an account? Sign in',
     signInHref: '/login',
+    signUpLabel: "Don't have an account? Sign up",
+    signUpHref: sparkleSuitePublicLandingContent.hero.primaryCta.href,
   },
   finder: {
     product: 'Sparkle Finder',
     detail: 'for the Bomb Party collectors',
     href: sparkleFinderHomeUrl,
     destinationLabel: 'Open Sparkle Finder',
-    signInLabel: 'Sign in',
+    signInLabel: 'Have an account? Sign in',
     signInHref: sparkleFinderSignInUrl,
+    signUpLabel: "Don't have an account? Sign up",
+    signUpHref: sparkleFinderSignUpUrl,
     deepLinks: [] as ReadonlyArray<{ label: string; href: string }>,
   },
   suiteContinue: {
