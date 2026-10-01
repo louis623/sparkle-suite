@@ -4,7 +4,7 @@ import { MarketingHub } from '@/app/_components/marketing-hub'
 import { sparkleSuiteMarketingHubContent } from '@/lib/sparkle-suite/marketing-hub-content'
 
 const description =
-  "You're in, you're in the right place for the bling. Now Pick Your Shine. Sparkle Suite is the site and live-show setup for reps. Sparkle Finder is where shoppers find and favorite pieces from the show."
+  "You're in the right place for the bling. Now Pick Your Shine. Sparkle Suite is the site and live-show setup for reps. Sparkle Finder is where shoppers find and favorite pieces from the show."
 
 export const metadata: Metadata = {
   title: {
