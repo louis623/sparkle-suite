@@ -16,7 +16,7 @@
   margin: 0;
 }
 
-.page :is(h1, h2, .cardBrand, .cardTitle, .wordmark a) {
+.page :is(h1, h2, .cardBrand, .cardTitle) {
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
   font-weight: 500;
 }
@@ -55,71 +55,6 @@
     radial-gradient(ellipse at 50% 0%, #3d2a1c 0%, transparent 48%),
     radial-gradient(ellipse at 100% 80%, #4a322644 0%, transparent 42%),
     linear-gradient(180deg, var(--espresso-raised) 0%, var(--espresso) 72%);
-}
-
-.wordmarkBar {
-  padding: 18px 20px 0;
-}
-
-.wordmark {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  width: 100%;
-  max-width: 980px;
-  margin: 0 auto;
-  align-items: stretch;
-  text-align: center;
-}
-
-.wordmark a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-width: 0;
-  min-height: 48px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  font-size: clamp(0.98rem, 2.5vw, 1.55rem);
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-  text-align: center;
-  text-decoration: none;
-  text-wrap: balance;
-}
-
-.wordmarkSuite {
-  background: linear-gradient(180deg, var(--suite-paper) 0%, var(--suite-blush) 58%, #ffc6e3 100%);
-  color: var(--suite-ink);
-  box-shadow:
-    0 0 0 1px rgba(238, 44, 155, 0.38),
-    0 10px 24px rgba(238, 44, 155, 0.22);
-}
-
-.wordmarkFinder {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 46%),
-    linear-gradient(165deg, #f7f0ff 0%, #e8dff5 68%, #d4c2ee 100%);
-  color: var(--finder-ink);
-  box-shadow:
-    0 0 0 1px rgba(196, 176, 230, 0.9),
-    0 10px 24px rgba(110, 80, 170, 0.22);
-}
-
-.wordmarkRule {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 1;
-  color: #f6eee880;
-  font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
-  font-size: 1rem;
-  font-weight: 450;
-  line-height: 1;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
 }
 
 .hero {
@@ -370,8 +305,7 @@
 }
 
 @media (min-width: 768px) {
-  .paths,
-  .wordmark {
+  .paths {
     grid-template-columns: 1fr 1fr;
     gap: 22px;
     align-items: stretch;

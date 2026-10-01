@@ -96,17 +96,6 @@ export function MarketingHub() {
       </a>
       <div className={styles.stage}>
         <p className={styles.veteranBanner}>{hub.veteranBanner}</p>
-        <header className={styles.wordmarkBar}>
-          <p className={styles.wordmark}>
-            <Link className={styles.wordmarkSuite} href="/">
-              {hub.wordmark[0]}
-            </Link>
-            <span aria-hidden="true" className={styles.wordmarkRule}>/</span>
-            <a className={styles.wordmarkFinder} href={hub.finder.href}>
-              {hub.wordmark[1]}
-            </a>
-          </p>
-        </header>
         <section className={styles.hero} id="main-content" aria-labelledby="hub-title">
           <h1 className={styles.support} id="hub-title">
             {hub.supportLines.map((line) => (

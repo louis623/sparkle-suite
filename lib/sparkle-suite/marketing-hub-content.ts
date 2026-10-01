@@ -14,8 +14,7 @@ export const sparkleFinderSignUpUrl = 'https://yoursparklefinder.com/auth/sign-u
  * Joint front door. Finder deep-drill pages under /finder stay empty for a later pass.
  */
 export const sparkleSuiteMarketingHubContent = {
-  veteranBanner: 'U.S. military veteran-owned company.',
-  wordmark: ['Sparkle Suite', 'Sparkle Finder'] as const,
+  veteranBanner: 'U.S. military veteran-owned and operated.',
   supportLines: ["You're in the right place", 'for the bling.'] as const,
   support: "You're in the right place for the bling.",
   prompt: 'Now Pick Your Shine',
