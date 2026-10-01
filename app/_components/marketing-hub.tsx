@@ -34,8 +34,6 @@ function ProductCard({
   product,
   signInHref,
   signInLabel,
-  signUpHref,
-  signUpLabel,
   sneakPeekHref,
   sneakPeekLabel,
   tone,
@@ -50,8 +48,6 @@ function ProductCard({
   product: string
   signInHref: string
   signInLabel: string
-  signUpHref: string
-  signUpLabel: string
   sneakPeekHref?: string
   sneakPeekLabel?: string
   tone: 'suite' | 'finder'
@@ -76,13 +72,14 @@ function ProductCard({
           ) : null}
         </p>
       ) : null}
-      <a className={styles.learnMore} href={learnMoreHref}>
-        {learnMoreLabel}
-      </a>
-      <div className={styles.authSpacer} />
-      <div className={styles.accountActions}>
-        <AccountLink href={signInHref}>{signInLabel}</AccountLink>
-        <AccountLink href={signUpHref}>{signUpLabel}</AccountLink>
+      <div className={styles.cardFooter}>
+        <a className={styles.learnMore} href={learnMoreHref}>
+          {learnMoreLabel}
+        </a>
+        <div className={styles.authSpacer} />
+        <div className={styles.accountActions}>
+          <AccountLink href={signInHref}>{signInLabel}</AccountLink>
+        </div>
       </div>
     </article>
   )
@@ -123,8 +120,6 @@ export function MarketingHub() {
               product={hub.suite.product}
               signInHref={hub.suite.signInHref}
               signInLabel={hub.suite.signInLabel}
-              signUpHref={hub.suite.signUpHref}
-              signUpLabel={hub.suite.signUpLabel}
               tone="suite"
             />
             <ProductCard
@@ -138,8 +133,6 @@ export function MarketingHub() {
               product={hub.finder.product}
               signInHref={hub.finder.signInHref}
               signInLabel={hub.finder.signInLabel}
-              signUpHref={hub.finder.signUpHref}
-              signUpLabel={hub.finder.signUpLabel}
               sneakPeekHref={hub.finder.sneakPeekHref}
               sneakPeekLabel={hub.finder.sneakPeekLabel}
               tone="finder"
