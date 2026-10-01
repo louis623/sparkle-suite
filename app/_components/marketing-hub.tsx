@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 
 import { FinderSneakPeekStub } from '@/app/_components/finder-sneak-peek-stub'
 import { MarketingFooter } from '@/app/_components/landing-experience'
@@ -24,12 +23,14 @@ function AccountLink({ href, children }: { href: string; children: string }) {
   )
 }
 
-function PathCard({
+function ProductCard({
   body,
   comingSoon,
   destinationLabel,
   detail,
-  href,
+  learnMoreHref,
+  learnMoreLabel,
+  narrative,
   product,
   signInHref,
   signInLabel,
@@ -39,11 +40,13 @@ function PathCard({
   sneakPeekLabel,
   tone,
 }: {
-  body?: string
+  body: string
   comingSoon?: string
   destinationLabel: string
   detail: string
-  href: string
+  learnMoreHref: string
+  learnMoreLabel: string
+  narrative: string
   product: string
   signInHref: string
   signInLabel: string
@@ -53,46 +56,33 @@ function PathCard({
   sneakPeekLabel?: string
   tone: 'suite' | 'finder'
 }) {
-  const className = `${styles.card} ${tone === 'suite' ? styles.suite : styles.finder}`
-  const main = (
-    <>
-      <span className={styles.cardCopy}>
-        <span className={styles.cardBrand}>{product}</span>
-        <span className={styles.cardDetail}>{detail}</span>
-        {body ? <span className={styles.cardBody}>{body}</span> : null}
-      </span>
-      <span className={styles.srOnly}>{destinationLabel}</span>
-      <ArrowRight aria-hidden="true" className={styles.trail} size={28} />
-    </>
-  )
-
   return (
-    <article className={className} data-path={tone}>
-      {href.startsWith('http') ? (
-        <a className={styles.cardMain} href={href}>
-          {main}
-        </a>
-      ) : (
-        <Link className={styles.cardMain} href={href}>
-          {main}
-        </Link>
-      )}
-      <div className={styles.accountBlock}>
-        {comingSoon ? (
-          <p className={styles.comingSoon}>
-            {comingSoon}
-            {sneakPeekLabel ? (
-              <>
-                {' '}
-                <FinderSneakPeekStub href={sneakPeekHref ?? ''} label={sneakPeekLabel} />
-              </>
-            ) : null}
-          </p>
-        ) : null}
-        <div className={styles.accountActions}>
-          <AccountLink href={signInHref}>{signInLabel}</AccountLink>
-          <AccountLink href={signUpHref}>{signUpLabel}</AccountLink>
-        </div>
+    <article className={`${styles.card} ${tone === 'suite' ? styles.suite : styles.finder}`} data-path={tone}>
+      <h2 className={styles.cardBrand}>{product}</h2>
+      <span className={styles.srOnly}>{destinationLabel}</span>
+      <div className={styles.cardCopy}>
+        <p className={styles.cardDetail}>{detail}</p>
+        <p className={styles.cardBody}>{body}</p>
+      </div>
+      <p className={styles.narrative}>{narrative}</p>
+      {comingSoon ? (
+        <p className={styles.comingSoon}>
+          {comingSoon}
+          {sneakPeekLabel ? (
+            <>
+              {' '}
+              <FinderSneakPeekStub href={sneakPeekHref ?? ''} label={sneakPeekLabel} />
+            </>
+          ) : null}
+        </p>
+      ) : null}
+      <a className={styles.learnMore} href={learnMoreHref}>
+        {learnMoreLabel}
+      </a>
+      <div className={styles.authSpacer} />
+      <div className={styles.accountActions}>
+        <AccountLink href={signInHref}>{signInLabel}</AccountLink>
+        <AccountLink href={signUpHref}>{signUpLabel}</AccountLink>
       </div>
     </article>
   )
@@ -127,11 +117,13 @@ export function MarketingHub() {
             <span />
           </div>
           <div className={styles.paths}>
-            <PathCard
+            <ProductCard
               body={hub.suite.body}
               destinationLabel={hub.suite.destinationLabel}
               detail={hub.suite.detail}
-              href={hub.suite.href}
+              learnMoreHref={hub.suite.learnMoreHref}
+              learnMoreLabel={hub.suite.learnMoreLabel}
+              narrative={hub.suite.narrative}
               product={hub.suite.product}
               signInHref={hub.suite.signInHref}
               signInLabel={hub.suite.signInLabel}
@@ -139,52 +131,36 @@ export function MarketingHub() {
               signUpLabel={hub.suite.signUpLabel}
               tone="suite"
             />
-            <PathCard
+            <ProductCard
               body={hub.finder.body}
+              comingSoon={hub.finder.comingSoon}
               destinationLabel={hub.finder.destinationLabel}
               detail={hub.finder.detail}
-              href={hub.finder.href}
+              learnMoreHref={hub.finder.learnMoreHref}
+              learnMoreLabel={hub.finder.learnMoreLabel}
+              narrative={hub.finder.narrative}
               product={hub.finder.product}
-              comingSoon={hub.finder.comingSoon}
-              sneakPeekHref={hub.finder.sneakPeekHref}
-              sneakPeekLabel={hub.finder.sneakPeekLabel}
               signInHref={hub.finder.signInHref}
               signInLabel={hub.finder.signInLabel}
               signUpHref={hub.finder.signUpHref}
               signUpLabel={hub.finder.signUpLabel}
+              sneakPeekHref={hub.finder.sneakPeekHref}
+              sneakPeekLabel={hub.finder.sneakPeekLabel}
               tone="finder"
             />
           </div>
+          <div className={styles.quietExits} id="quiet-exits">
+            <p className={styles.quietNote}>{hub.quietExits.note}</p>
+            <nav className={styles.quietLinks} aria-label="More Sparkle Suite">
+              {hub.quietExits.links.map((link) => (
+                <Link href={link.href} key={link.href}>
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </section>
       </div>
-      <section className={styles.about} id="what-it-is" aria-label="What Sparkle Suite and Sparkle Finder are">
-        <div className={styles.aboutGrid}>
-          <article className={`${styles.aboutCard} ${styles.suite}`}>
-            <h2>{hub.about.suite.product}</h2>
-            <p>{hub.about.suite.body}</p>
-            <a className={styles.learnMore} href={hub.about.suite.ctaHref}>
-              {hub.about.suite.ctaLabel}
-            </a>
-          </article>
-          <article className={`${styles.aboutCard} ${styles.finder}`}>
-            <h2>{hub.about.finder.product}</h2>
-            <p>{hub.about.finder.body}</p>
-            <a className={styles.learnMore} href={hub.about.finder.ctaHref}>
-              {hub.about.finder.ctaLabel}
-            </a>
-          </article>
-        </div>
-        <div className={styles.quietExits}>
-          <p className={styles.quietNote}>{hub.quietExits.note}</p>
-          <nav className={styles.quietLinks} aria-label="More Sparkle Suite">
-            {hub.quietExits.links.map((link) => (
-              <Link href={link.href} key={link.href}>
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      </section>
       <div className={landingStyles.page}>
         <MarketingFooter />
       </div>

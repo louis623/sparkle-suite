@@ -126,19 +126,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 168px;
+  align-items: stretch;
+  min-width: 0;
+  padding: 22px 22px 16px;
   border-radius: 22px;
   text-align: left;
-}
-
-.cardMain {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 168px;
-  padding: 22px 64px 96px 22px;
-  color: inherit;
-  text-decoration: none;
 }
 
 .suite {
@@ -188,16 +180,16 @@
   line-height: 1.5;
 }
 
-.accountBlock {
-  position: absolute;
-  right: 22px;
-  bottom: 12px;
-  left: 22px;
-  z-index: 1;
+.card .narrative {
+  margin-top: 18px;
+  font-size: 1.05rem;
+  font-weight: 450;
+  line-height: 1.55;
+  overflow-wrap: break-word;
 }
 
-.comingSoon {
-  margin: 0 0 2px;
+.card .comingSoon {
+  margin-top: 16px;
   color: var(--finder-ink);
   font-size: 1.02rem;
   font-weight: 650;
@@ -243,10 +235,6 @@
   font-weight: 650;
 }
 
-.finder .cardMain {
-  padding-bottom: 128px;
-}
-
 .srOnly {
   position: absolute;
   width: 1px;
@@ -259,75 +247,24 @@
   border: 0;
 }
 
-.suite .trail {
-  color: var(--suite-magenta);
-}
-
-.finder .trail {
-  color: #fff;
-  filter: drop-shadow(0 1px 1px rgba(42, 31, 64, 0.25));
-}
-
-.trail {
-  position: absolute;
-  top: 28px;
-  right: 22px;
-  width: 32px;
-  height: 32px;
-}
-
-.about {
-  background:
-    radial-gradient(ellipse at 50% 0%, #3d2432 0%, transparent 55%),
-    var(--night);
-  color: #f6eee8;
-  padding: 4px 20px 40px;
-}
-
-.aboutGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  max-width: 980px;
-  margin: 0 auto;
-}
-
-.aboutCard {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 0;
-  padding: 22px 22px 20px;
-  border-radius: 22px;
-  text-align: left;
-}
-
-.aboutCard h2 {
-  font-size: clamp(1.7rem, 4.6vw, 2.15rem);
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-}
-
-.aboutCard p {
-  font-size: 1.05rem;
-  font-weight: 450;
-  line-height: 1.55;
-  overflow-wrap: break-word;
-}
-
 .learnMore {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   align-self: flex-start;
   min-height: 48px;
-  margin-top: auto;
+  margin-top: 18px;
   padding: 12px 22px;
   border-radius: 14px;
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.2;
   text-decoration: none;
+}
+
+.authSpacer {
+  height: 22px;
+  flex: 0 0 22px;
 }
 
 .suite .learnMore {
@@ -376,41 +313,16 @@
     padding-top: 48px;
   }
 
-  .paths {
-    grid-template-columns: 1fr 1fr;
-    gap: 22px;
-    align-items: stretch;
-  }
-
-  .card,
-  .cardMain {
-    min-height: 230px;
-  }
-
-  .cardMain {
-    padding: 28px 28px 88px;
-  }
-
-  .finder .cardMain {
-    padding-bottom: 120px;
-  }
-
-  .trail {
-    display: none;
+  .card {
+    padding: 28px 28px 20px;
   }
 }
 
 @media (min-width: 768px) {
-  .aboutGrid {
+  .paths {
     grid-template-columns: 1fr 1fr;
     gap: 22px;
     align-items: stretch;
-  }
-}
-
-@media (max-width: 420px) {
-  .finder .cardMain {
-    padding-bottom: 164px;
   }
 }
 
