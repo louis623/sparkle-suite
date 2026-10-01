@@ -157,23 +157,29 @@ export function MarketingHub() {
           </div>
         </section>
       </div>
-      <section className={styles.continue} aria-labelledby="suite-continue-title">
-        <div className={styles.continueInner}>
-          <p className={styles.continueEyebrow}>{hub.suiteContinue.eyebrow}</p>
-          <h2 id="suite-continue-title">{hub.suiteContinue.heading}</h2>
-          <p>{hub.suiteContinue.body}</p>
-          <p className={styles.continueNote}>{hub.suiteContinue.note}</p>
-          <nav className={styles.continueLinks} aria-label="Sparkle Suite">
-            {hub.suiteContinue.links.map((link) => (
-              <Link
-                className={link.href === hub.suiteContinue.links[0].href ? styles.continuePrimary : undefined}
-                href={link.href}
-                key={link.href}
-              >
+      <section className={styles.about} id="what-it-is" aria-label="What Sparkle Suite and Sparkle Finder are">
+        <div className={styles.aboutGrid}>
+          <article className={`${styles.aboutCard} ${styles.suite}`}>
+            <h2>{hub.about.suite.product}</h2>
+            <p>{hub.about.suite.body}</p>
+            <a className={styles.learnMore} href={hub.about.suite.ctaHref}>
+              {hub.about.suite.ctaLabel}
+            </a>
+          </article>
+          <article className={`${styles.aboutCard} ${styles.finder}`}>
+            <h2>{hub.about.finder.product}</h2>
+            <p>{hub.about.finder.body}</p>
+            <a className={styles.learnMore} href={hub.about.finder.ctaHref}>
+              {hub.about.finder.ctaLabel}
+            </a>
+          </article>
+        </div>
+        <div className={styles.quietExits}>
+          <p className={styles.quietNote}>{hub.quietExits.note}</p>
+          <nav className={styles.quietLinks} aria-label="More Sparkle Suite">
+            {hub.quietExits.links.map((link) => (
+              <Link href={link.href} key={link.href}>
                 {link.label}
-                {link.href === hub.suiteContinue.links[0].href ? (
-                  <ArrowRight aria-hidden="true" size={16} />
-                ) : null}
               </Link>
             ))}
           </nav>

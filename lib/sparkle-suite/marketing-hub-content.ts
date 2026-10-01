@@ -44,10 +44,21 @@ export const sparkleSuiteMarketingHubContent = {
     signUpHref: sparkleFinderSignUpUrl,
     deepLinks: [] as ReadonlyArray<{ label: string; href: string }>,
   },
-  suiteContinue: {
-    eyebrow: 'Sparkle Suite',
-    heading: 'A polished setup for the reps who sell the show.',
-    body: sparkleSuitePublicLandingContent.hero.body,
+  about: {
+    suite: {
+      product: 'Sparkle Suite',
+      body: 'Sparkle Suite is the workspace for Bomb Party reps. You get a polished customer site, live-show tools for the night itself, and built-in support that helps customers feel the difference. Customers land somewhere that feels like you.',
+      ctaLabel: 'Learn More',
+      ctaHref: 'https://www.yoursparklesuite.com/',
+    },
+    finder: {
+      product: 'Sparkle Finder',
+      body: "Sparkle Finder is for Bomb Party collectors. Find the pieces you love, and build the collection that you adore. It is the shopper's side of the show, close to the pieces that caught your eye.",
+      ctaLabel: 'Learn More',
+      ctaHref: sparkleFinderHomeUrl,
+    },
+  },
+  quietExits: {
     note: 'Join the build queue for your spot in line. No payment to join.',
     links: [
       sparkleSuitePublicLandingContent.hero.primaryCta,

@@ -45,7 +45,7 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(readable).not.toContain('Are you here for the bling?')
     expect(readable).not.toContain('Choose your adventure')
     const suiteCard = readable.slice(readable.indexOf('data-path="suite"'), readable.indexOf('data-path="finder"'))
-    const finderCard = readable.slice(readable.indexOf('data-path="finder"'), readable.indexOf('suite-continue-title'))
+    const finderCard = readable.slice(readable.indexOf('data-path="finder"'), readable.indexOf('id="what-it-is"'))
     const suiteBody =
       'Sparkle Suite gives reps a polished customer site, standout live-show tools, and built-in support that helps customers feel the difference.'
     const finderBody = 'Find the pieces you love, and build the collection that you adore.'
@@ -89,6 +89,25 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(html).toContain('href="https://yoursparklefinder.com/auth/sign-in"')
     expect(html).toContain('Open the Sparkle Suite site')
     expect(html).toContain('Open Sparkle Finder')
+    const about = readable.slice(readable.indexOf('id="what-it-is"'))
+    expect(about.indexOf('Sparkle Suite is the workspace for Bomb Party reps.')).toBeLessThan(
+      about.indexOf("Sparkle Finder is for Bomb Party collectors."),
+    )
+    expect(about).toContain(
+      'You get a polished customer site, live-show tools for the night itself, and built-in support that helps customers feel the difference.',
+    )
+    expect(about).toContain("It is the shopper's side of the show, close to the pieces that caught your eye.")
+    expect(about).not.toContain('See More')
+    const learnMore = [...about.matchAll(/<a\b[^>]*>Learn More<\/a>/g)].map((match) => match[0])
+    expect(learnMore).toHaveLength(2)
+    expect(learnMore[0]).toContain('href="https://www.yoursparklesuite.com/"')
+    expect(learnMore[1]).toContain('href="https://yoursparklefinder.com/"')
+    expect(about).toContain('href="/prelaunch#waitlist"')
+    expect(about).toContain('Join the build queue')
+    expect(about).toContain('No payment to join.')
+    expect(about).toContain('href="/portfolio"')
+    expect(about).toContain('href="/demo"')
+    expect(about).toContain('href="/faq"')
     expect(html).toContain('href="/prelaunch#waitlist"')
     expect(html).toContain('Join the build queue')
     expect(html).toContain('href="/portfolio"')
@@ -120,6 +139,10 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(css).toContain('grid-template-columns: 1fr;')
     expect(css).toContain('@media (min-width: 900px)')
     expect(css).toContain('grid-template-columns: 1fr 1fr;')
+    expect(css).toContain('@media (min-width: 768px)')
+    expect(css).toContain('min-height: 48px;')
+    expect(css).toContain('.suite .learnMore')
+    expect(css).toContain('.finder .learnMore')
     expect(css).toContain('justify-content: space-between;')
     expect(css).toContain('.finder .accountLink')
     expect(css).toContain('#9a93a3')
