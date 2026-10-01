@@ -14,7 +14,6 @@ function PathCard({
   product,
   signInHref,
   signInLabel,
-  title,
   tone,
 }: {
   destinationLabel: string
@@ -23,7 +22,6 @@ function PathCard({
   product: string
   signInHref: string
   signInLabel: string
-  title: string
   tone: 'suite' | 'finder'
 }) {
   const className = `${styles.card} ${tone === 'suite' ? styles.suite : styles.finder}`
@@ -31,7 +29,6 @@ function PathCard({
     <>
       <span className={styles.cardCopy}>
         <span className={styles.cardBrand}>{product}</span>
-        <span className={styles.cardTitle}>{title}</span>
         <span className={styles.cardDetail}>{detail}</span>
       </span>
       <span className={styles.srOnly}>{destinationLabel}</span>
@@ -106,7 +103,6 @@ export function MarketingHub() {
               product={hub.suite.product}
               signInHref={hub.suite.signInHref}
               signInLabel={hub.suite.signInLabel}
-              title={hub.suite.title}
               tone="suite"
             />
             <PathCard
@@ -116,7 +112,6 @@ export function MarketingHub() {
               product={hub.finder.product}
               signInHref={hub.finder.signInHref}
               signInLabel={hub.finder.signInLabel}
-              title={hub.finder.title}
               tone="finder"
             />
           </div>
