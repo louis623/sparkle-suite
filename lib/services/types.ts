@@ -614,6 +614,7 @@ export type SiteAppearancePreset =
   | 'neon_butterfly'
   | 'halloween_pumpkin_witch'
   | 'halloween_pumpkin_cat'
+  | 'gilded_autumn'
   | 'rose_gold'
   | 'garnet'
   | 'amber'

@@ -8,7 +8,7 @@ import type { AmethystHomepageEventCard } from './homepage-upcoming-shows'
 
 export const SKIN_PREVIEW_PAGES = ['homepage', 'trade', 'join', 'unsubscribe'] as const
 export type SkinPreviewPage = (typeof SKIN_PREVIEW_PAGES)[number]
-export const SKIN_PREVIEW_SKINS = ['gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat'] as const
+export const SKIN_PREVIEW_SKINS = ['gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn'] as const
 export type SkinPreviewSkin = (typeof SKIN_PREVIEW_SKINS)[number]
 const FILES: Record<SkinPreviewPage, string> = {
   homepage: 'Homepage.html', trade: 'Trade.html', join: 'Join.html', unsubscribe: 'Unsubscribe.html',
@@ -72,6 +72,17 @@ type PreviewProfile = {
 }
 
 const PREVIEW_PROFILES = {
+  gilded_autumn: {
+    label: 'Gilded Autumn', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
+    ticker: 'Live jewelry reveals | Find your next favorite | Explore the Dance Floor',
+    tagline: 'Good company. Beautiful surprises.',
+    eyebrow: '', headline: 'Real jewelry. Live reveals. Pure sparkle.',
+    heroSub: 'Join Sasha for live jewelry reveals, friendly conversation, and your next favorite find.',
+    aboutHeadline: 'Come for a reveal. Stay for the company.',
+    aboutParagraphs: ['Hi, I’m Sasha. I love sharing the surprise of a jewelry reveal with you.', 'Whether you are shopping for a gift or finding something for yourself, you are welcome here.', 'Browse the sample show calendar below to see how upcoming events appear on this skin.'],
+    signupSub: 'Get a friendly heads-up before the next live reveal.',
+    events: [{ id: 'sample-autumn-evening', title: 'An Autumn Evening of Reveals', description: 'Settle in for jewelry reveals and good company.', eventTime: '2099-10-12T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{code:'SAMPLE10',desc:'Sample offer for this preview'}], collections: [{label:'Dance Floor',href:previewPath('gilded_autumn','trade')}], platforms:[{kind:'tt',label:'Watch on TikTok',href:'#preview-action'},{kind:'fb',label:'Watch on Facebook',href:'#preview-action'}] }],
+  },
   gnome_garden: {
     label: 'Gnome Forest', businessName: 'The Gnome Forest', repName: 'Sasha', teamName: 'The Garden Circle',
     ticker: 'Welcome to the garden | Live reveals & lovely surprises | Explore the Dance Floor',
@@ -148,7 +159,7 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
   }
   if (page === 'join') {
     return buildAmethystJoinBootstrapScript({
-      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'neon_butterfly' ? 'Find your place in the glow.' : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat') ? 'Find your place beneath the pumpkin moon.' : 'Find your place in the garden.',
+      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'gilded_autumn' ? 'Find your place with Sasha.' : skin === 'neon_butterfly' ? 'Find your place in the glow.' : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat') ? 'Find your place beneath the pumpkin moon.' : 'Find your place in the garden.',
       shopUrl: '#preview-action', bpReferralUrl: '', hasRecruitingLink: false,
       teamMembers: [
         ...(skin === 'neon_butterfly'
@@ -225,7 +236,7 @@ export const SKIN_PREVIEW_GUARDS = `
     if (href.charAt(0) === '#' && href !== '#' && href !== '#preview-action') return;
     event.preventDefault(); event.stopImmediatePropagation();
     var path = href.split('?')[0].split('#')[0];
-    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:gnome_garden|neon_butterfly|halloween_pumpkin_witch|halloween_pumpkin_cat)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
+    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:gnome_garden|neon_butterfly|halloween_pumpkin_witch|halloween_pumpkin_cat|gilded_autumn)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
     if (page) window.parent.postMessage({ type: 'sparkle-skin-preview-page', page: page }, '*'); else notice();
   }, true);
   function disableUploads() {
@@ -241,13 +252,20 @@ export const SKIN_PREVIEW_GUARDS = `
   }
 })();`
 
+/** Only the two video skins may load self-hosted media in their sample sandbox. */
+export function skinPreviewMediaSource(skin: SkinPreviewSkin, origin: string) {
+  if (skin === 'gilded_autumn') return origin + '/amethyst/skins/gilded-autumn/'
+  if (skin === 'halloween_pumpkin_cat') return origin + '/amethyst/skins/halloween-pumpkin-cat/'
+  return "'none'"
+}
+
 /** Renders the unchanged customer components with fixture data inside an opaque sandbox. */
 export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string) {
   const root = join(process.cwd(), 'public', 'amethyst')
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
   // Inline only allowlisted repository runtime files. Inline Babel input does not need network XHR.
-  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'sparkle-suite-footer-credit.js']
+  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'sparkle-suite-footer-credit.js']
   for (const name of runtimeNames) {
     const escaped = name.replace('.', '\\.')
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')
@@ -256,7 +274,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
     const source = inlineScript(await readFile(join(root, name), 'utf8'))
     document = document.replace(pattern, (_match, before, after) => `<script${before}${after}>${source}</script>`)
   }
-  const csp = `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' ${origin} https://fonts.googleapis.com https://api.fontshare.com; font-src ${origin} https://fonts.gstatic.com https://cdn.fontshare.com https://api.fontshare.com data:; img-src ${origin} https: data: blob:; media-src ${origin}/amethyst/skins/halloween-pumpkin-cat/; connect-src 'none'; form-action 'none'; frame-src 'none'; base-uri ${origin}; object-src 'none'`
+  const csp = `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' ${origin} https://fonts.googleapis.com https://api.fontshare.com; font-src ${origin} https://fonts.gstatic.com https://cdn.fontshare.com https://api.fontshare.com data:; img-src ${origin} https: data: blob:; media-src ${skinPreviewMediaSource(skin, origin)}; connect-src 'none'; form-action 'none'; frame-src 'none'; base-uri ${origin}; object-src 'none'`
   document = document.replace('<head>', `<head><meta http-equiv="Content-Security-Policy" content="${escapeAttribute(csp)}"><base href="${escapeAttribute(origin)}/amethyst/"><meta name="robots" content="noindex,nofollow">`)
   document = document.replace(/<meta name="robots" content="index,follow" \/>/g, '')
   const profile = PREVIEW_PROFILES[skin]
@@ -273,7 +291,9 @@ export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreview
   const profile = PREVIEW_PROFILES[skin]
   const document = await buildSkinPreviewDocument(skin, page, origin)
   const navigation = SKIN_PREVIEW_PAGES.map((item) => `<a href="${previewPath(skin, item)}"${item === page ? ' aria-current="page"' : ''}>${LABELS[item]}</a>`).join('')
-  const chrome = skin === 'neon_butterfly'
+  const chrome = skin === 'gilded_autumn'
+    ? { bg: '#392519', fg: '#fff8ec', muted: '#e3cba9', border: '#b1833866', active: '#fff8ec', focus: '#e3cba9' }
+    : skin === 'neon_butterfly'
     ? { bg: '#160318', fg: '#fff4fa', muted: '#d9bcd4', border: '#ff2acd55', active: '#ff2acd', focus: '#ffc24a' }
     : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat')
       ? { bg: '#090909', fg: '#fff7ed', muted: '#d6c8bb', border: '#ff6a0066', active: '#ff6a00', focus: '#f4eee3' }

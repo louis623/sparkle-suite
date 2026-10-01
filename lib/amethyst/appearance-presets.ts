@@ -11,6 +11,7 @@ export const AMETHYST_APPEARANCE_PRESET_IDS = [
   'neon_butterfly',
   'halloween_pumpkin_witch',
   'halloween_pumpkin_cat',
+  'gilded_autumn',
   'rose_gold',
   'garnet',
   'amber',
@@ -323,6 +324,32 @@ export const AMETHYST_APPEARANCE_PRESETS: Record<
         "cursorEffect": "default",
         "tickerSpeed": 1
     }
+},
+  gilded_autumn: {
+  "id": "gilded_autumn",
+  "label": "Gilded Autumn",
+  "description": "Sunlit autumn trees, crisp copper leaves, and a fine champagne shimmer.",
+  "values": {
+    "primaryColor": "#91451d",
+    "accentColor": "#b18338",
+    "bgTone": "gildedAutumn",
+    "headingFont": "playfair",
+    "bodyFont": "dmSans",
+    "headingWeight": 500,
+    "shapeRadius": "soft",
+    "density": "regular",
+    "saturation": 100,
+    "heroMotion": "autumn_leaves",
+    "sparkleLevel": "none",
+    "bgTreatment": "gilded-autumn",
+    "cardSurface": "warm-paper",
+    "textureOverlay": "none",
+    "buttonEnergy": "suite-lift",
+    "ctaEmphasis": "standard",
+    "tradeFlair": "champagne-copper",
+    "cursorEffect": "default",
+    "tickerSpeed": 1
+  }
 },
   rose_gold: {
     id: 'rose_gold',

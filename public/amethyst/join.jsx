@@ -256,6 +256,27 @@ const PRESETS = {
     textureOverlay: "neon-butterflies", buttonEnergy: "neon-lift", ctaEmphasis: "standard",
     tradeFlair: "butterfly-glow", cursorEffect: "default", tickerSpeed: 1,
   },
+  gilded_autumn: {
+  "primaryColor": "#91451d",
+  "accentColor": "#b18338",
+  "bgTone": "gildedAutumn",
+  "headingFont": "playfair",
+  "bodyFont": "dmSans",
+  "headingWeight": 500,
+  "shapeRadius": "soft",
+  "density": "regular",
+  "saturation": 100,
+  "heroMotion": "autumn_leaves",
+  "sparkleLevel": "none",
+  "bgTreatment": "gilded-autumn",
+  "cardSurface": "warm-paper",
+  "textureOverlay": "none",
+  "buttonEnergy": "suite-lift",
+  "ctaEmphasis": "standard",
+  "tradeFlair": "champagne-copper",
+  "cursorEffect": "default",
+  "tickerSpeed": 1
+},
   halloween_pumpkin_cat: {
     "primaryColor": "#ff923d",
     "accentColor": "#f4eee3",
@@ -324,6 +345,7 @@ const PRESETS = {
 };
 
 const TONES = {
+  gildedAutumn: {bg:"#fff8ec",elevated:"#fffdf7",deep:"#f0dfc5"},
   halloweenPumpkinCat: {bg:"#080706",elevated:"#1b1511",deep:"#050403"},
   lavender: { bg: "#E8DFF5", elevated: "#F2EBFA", deep: "#DCD0EE" },
   warm: { bg: "#FFF0E8", elevated: "#FFF7F1", deep: "#FFE2D0" },
@@ -1483,6 +1505,7 @@ function App() {
     if (t.bgTreatment === "emerald-garden") body.classList.add("bg-emerald-garden");
     if (t.bgTreatment === "gnome-garden") body.classList.add("bg-gnome-garden");
     if (t.bgTreatment === "neon-butterfly") body.classList.add("bg-neon-butterfly");
+    if (t.bgTreatment === "gilded-autumn") body.classList.add("bg-gilded-autumn");
     if (t.bgTreatment === "halloween-pumpkin-cat") body.classList.add("bg-halloween-pumpkin-cat");
     if (t.bgTreatment === "halloween-pumpkin-witch") body.classList.add("bg-halloween-pumpkin-witch");
     if (t.bgTreatment === "rose-gold-paper") body.classList.add("bg-rose-gold-paper");
@@ -1663,6 +1686,7 @@ function App() {
               { value: "gnome_garden", label: "Gnome Forest" },
               { value: "neon_butterfly", label: "Neon Butterfly" },
               { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
+              { value: "gilded_autumn", label: "Gilded Autumn" },
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
               { value: "garnet", label: "Garnet" },

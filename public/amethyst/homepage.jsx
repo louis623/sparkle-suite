@@ -528,6 +528,27 @@ const PRESETS = {
     textureOverlay: "neon-butterflies", buttonEnergy: "neon-lift", ctaEmphasis: "standard",
     tradeFlair: "butterfly-glow", cursorEffect: "default", tickerSpeed: 1,
   },
+  gilded_autumn: {
+  "primaryColor": "#91451d",
+  "accentColor": "#b18338",
+  "bgTone": "gildedAutumn",
+  "headingFont": "playfair",
+  "bodyFont": "dmSans",
+  "headingWeight": 500,
+  "shapeRadius": "soft",
+  "density": "regular",
+  "saturation": 100,
+  "heroMotion": "autumn_leaves",
+  "sparkleLevel": "none",
+  "bgTreatment": "gilded-autumn",
+  "cardSurface": "warm-paper",
+  "textureOverlay": "none",
+  "buttonEnergy": "suite-lift",
+  "ctaEmphasis": "standard",
+  "tradeFlair": "champagne-copper",
+  "cursorEffect": "default",
+  "tickerSpeed": 1
+},
   halloween_pumpkin_cat: {
     "primaryColor": "#ff923d",
     "accentColor": "#f4eee3",
@@ -604,6 +625,7 @@ const PRESETS = {
 // Color tone palettes
 // ============================================================
 const TONES = {
+  gildedAutumn: {bg:"#fff8ec",elevated:"#fffdf7",deep:"#f0dfc5"},
   halloweenPumpkinCat: {bg:"#080706",elevated:"#1b1511",deep:"#050403"},
   lavender: { bg: "#E8DFF5", elevated: "#F2EBFA", deep: "#DCD0EE" },
   warm:     { bg: "#FFF0E8", elevated: "#FFF7F1", deep: "#FFE2D0" },
@@ -754,7 +776,7 @@ function Hero({ t, isLive, liveShow }) {
 
   return (
     <>
-    <section className="hp-hero" data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
+    <section className="hp-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
       {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
       <div className="hp-hero-media" aria-hidden="true" />
       {t.preset !== "halloween_pumpkin_cat" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
@@ -2374,11 +2396,11 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
-      <section className="mhf-hero" aria-labelledby="mhf-hero-title">
+      <section className="mhf-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="mhf-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-        <video className="mhf-hero-video" autoPlay muted loop playsInline poster="">
+        {t.preset !== "gilded_autumn" && <video className="mhf-hero-video" autoPlay muted loop playsInline poster="">
           <source src={CONTENT.heroVideoUrl || heroVideoUrl} type="video/mp4" />
-        </video>
+        </video>}
         <div className="mhf-hero-shade" aria-hidden="true" />
         <div className="mhf-hero-content">
           <h1 id="mhf-hero-title" className="mhf-hero-title mhf-logo-gradient">
@@ -2502,7 +2524,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
-      <section className="bwb-hero" aria-labelledby="bwb-hero-title">
+      <section className="bwb-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bwb-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         <img className="bwb-hero-image" src={heroImageUrl} alt="" />
         <div className="bwb-hero-shade" aria-hidden="true" />
@@ -2559,7 +2581,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
-      <section className="bk-home-hero" aria-labelledby="bk-home-hero-title">
+      <section className="bk-home-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bk-home-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         {heroImageUrl && <img className="bk-home-hero-image" src={heroImageUrl} alt="" />}
         <div className="bk-home-hero-content">
@@ -2677,7 +2699,8 @@ function App() {
     if (t.bgTreatment === "emerald-garden") body.classList.add("bg-emerald-garden");
     if (t.bgTreatment === "gnome-garden") body.classList.add("bg-gnome-garden");
     if (t.bgTreatment === "neon-butterfly") body.classList.add("bg-neon-butterfly");
-  if (t.bgTreatment === "halloween-pumpkin-cat") body.classList.add("bg-halloween-pumpkin-cat");
+  if (t.bgTreatment === "gilded-autumn") body.classList.add("bg-gilded-autumn");
+    if (t.bgTreatment === "halloween-pumpkin-cat") body.classList.add("bg-halloween-pumpkin-cat");
     if (t.bgTreatment === "halloween-pumpkin-witch") body.classList.add("bg-halloween-pumpkin-witch");
     if (t.bgTreatment === "rose-gold-paper") body.classList.add("bg-rose-gold-paper");
     if (t.bgTreatment === "garnet-shell") body.classList.add("bg-garnet-shell");
@@ -2839,6 +2862,7 @@ function App() {
               { value: "gnome_garden", label: "Gnome Forest" },
               { value: "neon_butterfly", label: "Neon Butterfly" },
             { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
+              { value: "gilded_autumn", label: "Gilded Autumn" },
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
               { value: "garnet", label: "Garnet" },

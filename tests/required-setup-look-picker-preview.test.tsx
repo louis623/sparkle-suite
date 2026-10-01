@@ -22,6 +22,6 @@ describe('skin browsing preview', () => {
       getCommunityAmethystSkinCards()
         .filter(({ previewHref }) => previewHref)
         .map(({ id }) => id),
-    ).toEqual(['halloween_pumpkin_cat', 'halloween_pumpkin_witch'])
+    ).toEqual(['halloween_pumpkin_cat', 'halloween_pumpkin_witch', 'gilded_autumn'])
   })
 })

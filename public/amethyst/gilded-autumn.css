@@ -1,0 +1,274 @@
+/* Gilded Autumn changes the visual layer only. The existing template owns
+   typography, spacing, breakpoints, card geometry and content order. */
+body.bg-gilded-autumn {
+  --fg:#382617; --fg-muted:#715d49; --border:#cdb18b;
+  --primary:#91451d; --accent:#b18338; --bg:#fff8ec; --bg-elevated:#fffdf7; --bg-deep:#f0dfc5;
+  --hp-primary:#91451d; --hp-accent:#b18338; --hp-bg:#fff8ec; --hp-bg-elevated:#fffdf7;
+  --header-bg:#fff9ef; --hp-saturation:1;
+  --hp-card-fg:#382617; --hp-card-muted:#715d49; --hp-card-accent:#87451b;
+  --hp-form-panel-bg:#fff8ec; --hp-form-panel-fg:#382617; --hp-field-bg:#fffdf7; --hp-field-fg:#382617;
+  --hp-action-fg:#fff9ef; --hp-electric-purple:#91451d; --hp-soft-purple:#f0dfc5;
+  --hp-preview-bg:#fffdf7; --hp-preview-fg:#382617; --hp-preview-muted:#715d49;
+  --hp-tip-surface:#352115; --hp-tip-ink:#fff8ec; --hp-tip-accent:#efd3a0; --hp-tip-border:#aa8653;
+  --hp-media-card-bg:#fffdf7; --hp-media-card-fg:#382617; --hp-media-card-muted:#715d49;
+  --hp-media-card-header-bg:linear-gradient(125deg,#713518,#915022); --hp-media-card-footer-bg:#f3e4ca;
+  --hp-media-card-border:#cdb18b; --hp-media-card-accent-contrast:#fff9ef;
+  --hp-media-icon-bg:#fff9ef26; --hp-media-icon-fg:#fff9ef; --hp-media-cta-fg:#fff9ef;
+  --hp-media-cta-bg:linear-gradient(125deg,#713518,#915022);
+  --hp-media-placeholder-bg:#f0dfc5; --hp-media-placeholder-fg:#715d49;
+  --hp-media-card-shadow:0 24px 64px #75411715; --hp-media-card-hover-shadow:0 30px 74px #75411725;
+  --hp-final-fg:#382617; --hp-final-muted:#715d49; --hp-final-icon-fg:#fff9ef;
+  --bk-ink:#382617; --bk-muted:#715d49; --bk-plum:#87451b; --bk-violet:#91451d; --bk-gold:#b18338; --bk-sage:#76582e;
+  --bwb-black:#382617; --bwb-panel:#fffdf7; --bwb-gold:#91451d; --bwb-blush:#efd3a0; --bwb-cyan:#b18338;
+  --mhf-ink:#382617; --mhf-muted:#715d49; --mhf-primary:#91451d; --mhf-purple:#87451b; --mhf-accent:#b18338;
+  background:#fff8ec; color:#382617;
+}
+body.bg-gilded-autumn :is(.hp-header,.tp-header,.jp-header,.hp-sticky-stack) {background:#fff9ef;color:#382617;border-color:#cdb18b}
+body.bg-gilded-autumn :is(.hp-header-link,.tp-header-link,.jp-header-link) {color:#715d49}
+body.bg-gilded-autumn :is(.hp-header-link.active,.hp-brand-name) {color:#87451b}
+body.bg-gilded-autumn .hp-ticker {background:#fff9ef}
+body.bg-gilded-autumn .hp-ticker-label {background:linear-gradient(90deg,#fff9ef 70%,#fff9ef00);color:#715d49}
+body.bg-gilded-autumn .hp-ticker-row.reverse {background:#352115;color:#fff8ec}
+body.bg-gilded-autumn .hp-ticker-row.reverse .hp-ticker-label {background:linear-gradient(90deg,#352115 70%,#35211500);color:#efd3a0}
+body.bg-gilded-autumn :is(.hp-hero,.mhf-hero,.bwb-hero,.bk-home-hero) {isolation:isolate;background:#754017;color:#fff8ec}
+body.bg-gilded-autumn :is(.mhf-hero-content,.bwb-hero-content,.bk-home-hero-content) {position:relative;z-index:2}
+body.bg-gilded-autumn :is(.hp-hero-media,.hp-hero-fx-layer,.mhf-hero-video,.mhf-hero-shade,.bwb-hero-image,.bwb-hero-shade,.bk-home-hero-image) {visibility:hidden}
+body.bg-gilded-autumn .ga-art {position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+body.bg-gilded-autumn .ga-art :is(img,video) {display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center bottom;pointer-events:none}
+body.bg-gilded-autumn .ga-art::after {content:'';position:absolute;inset:0;background:linear-gradient(180deg,#361a0540,#220f0396 65%,#220f0348)}
+body.bg-gilded-autumn .ga-video {opacity:0}
+body.bg-gilded-autumn .ga-art[data-playing] .ga-video {opacity:1}
+body.bg-gilded-autumn :is(.hp-hero-headline,.mhf-hero-title,.bwb-hero-title,.bk-home-hero h1) {color:#fff8e9;background:none;-webkit-text-fill-color:#fff8e9;text-shadow:0 2px 14px #3c180999}
+body.bg-gilded-autumn :is(.hp-hero-sub,.mhf-hero-with,.mhf-hero-line,.mhf-hero-instruction,.bwb-hero-team,.bwb-hero-line,.bwb-hero-instruction,.bk-home-hero-content>p,.bk-home-hero-content>span) {color:#fff8ec;text-shadow:0 1px 8px #3c1809}
+body.bg-gilded-autumn .hp-hero :is(.hp-btn-outline,.hp-btn-secondary) {color:#fff8ec;border-color:#e4c382;background:#321809cc}
+body.bg-gilded-autumn :is(.hp-btn-primary,.tp-btn-primary,.jp-btn-primary,.hp-signup-submit,.hp-unsubscribe-submit) {background:linear-gradient(120deg,#87451b,#713518);color:#fff9ef;border-color:#87451b;box-shadow:0 4px 16px #77420f20}
+body.bg-gilded-autumn :is(.hp-hero .hp-btn-primary,.hp-shop-btn) {background:linear-gradient(120deg,#efd3a0,#c7984b);color:#38220e;border-color:#c7984b;box-shadow:0 4px 16px #77420f20}
+body.bg-gilded-autumn :is(.hp-btn-outline,.hp-btn-secondary,.tp-btn-secondary,.jp-btn-secondary,.hp-event-add) {color:#87451b;border-color:#aa8653;background:#fff9ef}
+body.bg-gilded-autumn :is(.hp-event-platform,.hp-calendar-choice.google,.hp-calendar-choice.outlook,.event-platform-btn) {background:linear-gradient(125deg,#713518,#915022);color:#fff9ef;border-color:#87451b}
+body.bg-gilded-autumn :is(.hp-event-platform,.event-platform-btn) .glyph {background:#fff9ef;color:#87451b}
+body.bg-gilded-autumn :is(.hp-event-platform,.event-platform-btn) .glyph::after {color:#87451b}
+body.bg-gilded-autumn :is(.hp-stream-btn,.hp-watch-option) .glyph {background:linear-gradient(125deg,#b18338,#91451d)}
+body.bg-gilded-autumn :is(.media-badge .pip,.ticker-trade-link .tier-pip) {background:#b18338}
+body.bg-gilded-autumn .ss-tiktok-sound-toggle {background:#352115;color:#fff9ef;border-color:#efd3a0}
+body.bg-gilded-autumn .ss-tiktok-sound-toggle:is(:hover,:focus-visible) {outline-color:#87451b}
+body.bg-gilded-autumn :is(.hp-event-card,.tp-card,.tp-dancer-card,.jp-benefit,.jp-team-card,.hp-signup-card,.hp-unsubscribe-card,.hp-wibp-card) {background:#fffdf7;color:#382617;border-color:#cdb18b}
+body.bg-gilded-autumn :is(.hp-event-name,.hp-section-title,.jp-section-title) {color:#87451b;background:none;-webkit-text-fill-color:#87451b}
+body.bg-gilded-autumn :is(.hp-section-sub,.hp-event-description,.hp-event-meta) {color:#715d49}
+body.bg-gilded-autumn :is(input,select,textarea) {color:#382617;background:#fffdf7;border-color:#aa8653;accent-color:#87451b}
+body.bg-gilded-autumn :is(input,textarea)::placeholder {color:#715d49;opacity:1}
+body.bg-gilded-autumn :is(.hp-signup-preferences,.hp-signup-consent-box) {background:#fff8ec;color:#382617}
+body.bg-gilded-autumn .hp-signup-preferences :is(strong,span,p,label) {color:#382617}
+body.bg-gilded-autumn .jp-hero-media {background:linear-gradient(180deg,#361a0566,#220f0399),url('/amethyst/skins/gilded-autumn/hero-poster.webp') center bottom/cover}
+body.bg-gilded-autumn :is(.jp-hero-card,.jp-final-card) {background:#fff8ec;color:#382617;border-color:#cdb18b}
+body.bg-gilded-autumn :is(.jp-hero-pitch,.jp-hero-localized,.jp-hero-compliance) {color:#715d49}
+body.bg-gilded-autumn :is(.jp-hero-eyebrow,.jp-hero-compliance a) {color:#87451b}
+body.bg-gilded-autumn .jp-hero-promo {color:#715d49;background:#f3e4ca;border-color:#cdb18b}
+body.bg-gilded-autumn .jp-hero-eyebrow::before,body.bg-gilded-autumn .jp-hero-eyebrow::after {background:#aa8653}
+body.bg-gilded-autumn .jp-hero .hp-btn-outline {background:#fffdf7;color:#87451b!important;border-color:#aa8653!important}
+body.bg-gilded-autumn .jp-final-card .jp-final-note a {color:#87451b}
+body.bg-gilded-autumn :is(.hp-footer,.hp-about-copy) {background:#f3e4ca;color:#382617}
+body.bg-gilded-autumn .hp-footer :is(p,a,span) {color:#715d49}
+body.bg-gilded-autumn .hp-footer-brand {color:#87451b}
+body.bg-gilded-autumn :is(.hp-live-dot,.hp-trade-preview-head .live-dot) {background:#a85922;box-shadow:0 0 0 4px #b1833826}
+/* A neutral filter still traps fixed dialogs in the full page's containing
+   block. At this skin's fixed saturation of 1, remove that no-op filter. */
+body.bg-gilded-autumn .hp-saturate {filter:none}
+body.bg-gilded-autumn :is(.hp-calendar-modal-mask,.hp-queue-modal-mask) {background:#35211594}
+body.bg-gilded-autumn :is(.tp-card-expand-mask,.tp-sheet-mask) {background:#35211594}
+body.bg-gilded-autumn :is(.tp-card-expand,.tp-sheet,.tp-filters,.tp-filter-panel) {background:#fffdf7;color:#382617;border-color:#cdb18b}
+body.bg-gilded-autumn .tp-card-tier {color:#713518;background:#fff9ef;border-color:#cdb18b}
+body.bg-gilded-autumn :is(.hp-event-pill,.hp-step-num,.jp-final-btn,.jp-spot-btn,.jp-team-social,.tp-card-expand-cta,.tp-sheet-submit,.tp-filter-pill.active) {background:linear-gradient(120deg,#87451b,#713518);color:#fff9ef}
+body.bg-gilded-autumn :is(.hp-queue-modal-close,.hp-calendar-modal-close):hover {background:#f0dfc5}
+body.bg-gilded-autumn :is(a,button,input,select,textarea):focus-visible {outline:3px solid #91451d;outline-offset:3px;box-shadow:0 0 0 5px #fff9ef}
+body.bg-gilded-autumn .ga-motion-control {position:absolute;z-index:4;bottom:14px;right:16px;min-height:44px;padding:10px 16px;border:1px solid #e4c382;border-radius:999px;background:#352115ed;color:#fff8ec;font:500 12px/1.5 var(--hp-body-font);cursor:pointer}
+body.bg-gilded-autumn .ga-motion-control[hidden] {display:none}
+body.bg-gilded-autumn.btn-suite-lift :is(.hp-btn-primary,.hp-btn-outline,.hp-shop-btn,.tp-card,.tp-card-expand-cta,.jp-team-card,.jp-benefit-card,.jp-spot-btn):hover {box-shadow:0 16px 34px #75411726}
+@media(prefers-reduced-motion:reduce) {body.bg-gilded-autumn * {animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+@media(max-width:640px) {
+  body.bg-gilded-autumn :is(.hp-hero-inner,.tp-hero-inner,.jp-hero-inner) {width:100%;max-width:100%;margin-inline:0}
+  body.bg-gilded-autumn .ga-art :is(img,video) {object-position:30% bottom}
+}
+
+/* Gilded Autumn continuation for existing custom customer layouts.
+   Color, surfaces and focus only: each customer's markup and geometry stay intact. */
+body.bg-gilded-autumn.mile-high-fizz {
+  --mhf-gradient:linear-gradient(120deg,#91451d,#713518);
+}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel :is(.hp-section-eyebrow,.hp-wibp-eyebrow,.hp-signup-eyebrow) {color:#87451b}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel .hp-section-eyebrow::before,
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel .hp-events-head .hp-section-eyebrow::after {background:linear-gradient(90deg,#91451d,#b18338)}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel :is(.hp-section-title,.hp-footer-brand) {background:none;color:#87451b;-webkit-text-fill-color:#87451b}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel :is(.hp-section-sub,.hp-about-body p,.hp-wibp-body,.hp-step-desc,.hp-signup-sub,.hp-footer-tag,.hp-footer-bottom p) {color:#715d49}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel :is(.hp-event-card,.hp-event-card.featured,.hp-wibp-card,.hp-about-copy,.hp-signup-card) {background:#fffdf7;border-color:#cdb18b;box-shadow:0 24px 70px #75411718;color:#382617}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel :is(.hp-event-pill,.hp-step-num) {background:linear-gradient(120deg,#91451d,#713518);color:#fff9ef}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel :is(.hp-event-code-row,.hp-step,.hp-signup-consent-box,.hp-event-collection-pill) {background:#fff8ec;border-color:#cdb18b;color:#382617}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel :is(.hp-event-copy:hover,.hp-event-copy.copied,.hp-event-collection-pill:hover,.hp-event-add:hover) {background:#713518;border-color:#713518;color:#fff9ef}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel :is(.hp-wibp-video,.hp-customer-media-card) {
+  --hp-media-card-header-bg:linear-gradient(125deg,#713518,#915022);
+  --hp-media-card-footer-bg:#f3e4ca; --hp-media-card-accent-contrast:#fff9ef;
+  --hp-media-icon-fg:#fff9ef; --hp-media-cta-fg:#fff9ef;
+  background:#fffdf7;border-color:#cdb18b;box-shadow:0 24px 64px #75411720;
+}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel .hp-about-copy::before,
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel .hp-signup-card::before,
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel .hp-signup-card::after {background:radial-gradient(circle,#b183381f,transparent 70%)}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel .hp-signup-input {border-color:#aa8653}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel .hp-signup-input:focus {border-color:#91451d;box-shadow:0 0 0 4px #b1833826}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel .hp-footer {background:#f3e4ca;color:#382617}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel .hp-footer :is(a,.hp-footer-col a) {color:#715d49}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel .hp-footer :is(a:hover,.hp-footer-col a:hover) {color:#87451b}
+body.bg-gilded-autumn.mile-high-fizz .mhf-automation-panel :is(.hp-footer-bottom,.legal-row) {color:#715d49;border-color:#cdb18b}
+body.bg-gilded-autumn.mile-high-fizz .mhf-hero-ctas .mhf-cta {background:#91451d;color:#fff9ef;border-color:#e4c382;box-shadow:0 12px 28px #35211540}
+body.bg-gilded-autumn.mile-high-fizz .mhf-hero-ctas .mhf-cta:hover {background:#713518;color:#fff9ef}
+
+/* Bling Kitchen has legacy important paint rules; override only their paint. */
+body.bg-gilded-autumn.homepage.bling-kitchen {background:#fff8ec!important;color:#382617;--fg:#382617;--fg-muted:#715d49;--border:#cdb18b;--hp-bg:#fff8ec;--hp-bg-elevated:#fffdf7;--hp-form-panel-bg:#fff8ec;--hp-form-panel-fg:#382617;--hp-field-bg:#fffdf7;--hp-field-fg:#382617}
+body.bg-gilded-autumn.homepage.bling-kitchen :is(.bk-home-guide,.bk-home-pantry-callout,.hp-about-copy,.hp-signup-card) {background:#fffdf7!important;color:#382617!important;border-color:#cdb18b;box-shadow:0 18px 45px #75411718}
+body.bg-gilded-autumn.homepage.bling-kitchen :is(.bk-home-guide-copy h2,.hp-section-title,.hp-signup-title) {color:#87451b!important}
+body.bg-gilded-autumn.homepage.bling-kitchen :is(.bk-home-guide-copy span,.bk-home-guide-step span,.hp-about-body p,.hp-signup-sub,.hp-signup-consent) {color:#715d49!important}
+body.bg-gilded-autumn.homepage.bling-kitchen :is(#about,#wibp,.hp-signup) {background:transparent!important;border-color:#cdb18b}
+body.bg-gilded-autumn.homepage.bling-kitchen .hp-footer {background:#352115!important;color:#fff8ec!important}
+body.bg-gilded-autumn.homepage.bling-kitchen .hp-footer :is(.hp-footer-brand,a,p,span) {color:#fff8ec!important;-webkit-text-fill-color:#fff8ec;background:none}
+body.bg-gilded-autumn.homepage.bling-kitchen .hp-footer a:hover {color:#efd3a0!important}
+body.bg-gilded-autumn.homepage.bling-kitchen :is(.bk-home-shop,.bk-home-pantry-callout a,.bk-home-cta-dance-floor,.bk-home-hero-cta-primary-row>a,.bk-home-hero-cta-primary-row>a[data-hero-cta]) {background:linear-gradient(120deg,#91451d,#713518);color:#fff9ef!important;border-color:#aa8653;box-shadow:0 12px 24px #75411726}
+body.bg-gilded-autumn.homepage.bling-kitchen :is(.bk-home-shop,.bk-home-pantry-callout a,.bk-home-cta-dance-floor,.bk-home-hero-cta-primary-row>a):hover {background:#713518;color:#fff9ef!important}
+body.bg-gilded-autumn.homepage.bling-kitchen .bk-home-hero::after {background:none}
+
+/* Brittany's homepage preserves its original content and action rows. */
+body.bg-gilded-autumn.britt-with-bling .bwb-automation-panel :is(.hp-section-title,.hp-wibp-title,.hp-signup-title,.hp-footer-brand),
+body.bg-gilded-autumn.britt-with-bling .bwb-source-title {background:none;color:#87451b;-webkit-text-fill-color:#87451b}
+body.bg-gilded-autumn.britt-with-bling .bwb-automation-panel :is(.hp-signup-submit,.hp-trade-preview-link,.hp-event-platform.tt,.hp-event-platform.fb),
+body.bg-gilded-autumn.britt-with-bling :is(.bwb-hero-ctas .bwb-cta,.bwb-source-cta,.bwb-tiktok-cta,.bwb-explainer-step>span) {background:linear-gradient(120deg,#91451d,#713518);color:#fff9ef;border-color:#aa8653;box-shadow:0 12px 28px #75411726}
+body.bg-gilded-autumn.britt-with-bling :is(.bwb-hero-ctas .bwb-cta,.bwb-source-cta,.bwb-tiktok-cta):hover {background:#713518;color:#fff9ef}
+body.bg-gilded-autumn.britt-with-bling .bwb-tiktok-head {background:linear-gradient(125deg,#713518,#915022);color:#fff9ef}
+body.bg-gilded-autumn.britt-with-bling .bwb-tiktok-head :is(h3,p) {color:#fff9ef;opacity:1}
+body.bg-gilded-autumn.britt-with-bling :is(.bwb-featured-video,.bwb-tiktok-frame) {background:#352115;color:#fff9ef;box-shadow:0 18px 44px #75411726}
+body.bg-gilded-autumn.britt-with-bling .bwb-video-kicker {color:#efd3a0}
+body.bg-gilded-autumn.britt-with-bling .bwb-featured-reveal::before,
+body.bg-gilded-autumn.britt-with-bling .bwb-featured-reveal::after {background:linear-gradient(90deg,transparent,#b1833870,transparent)}
+
+/* Custom Trade/Join pages have their own legacy header and dark-card rules. */
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join,.bling-kitchen-join) {color:#382617;background:#fff8ec;--bk-ink:#382617;--bk-muted:#715d49;--bk-plum:#87451b;--bk-violet:#91451d;--bk-sage:#76582e}
+body.bg-gilded-autumn :is(.bwb-trade-shell,.bwb-join-shell) {background:#fff8ec}
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join,.bling-kitchen-join) :is(.hp-header,.hp-sticky-stack) {background:#fff9ef;border-color:#cdb18b}
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join,.bling-kitchen-join) :is(.hp-brand-name,.hp-footer-brand,.tp-hero-title,.jp-hero-title,.jp-section-title,.jp-team-business) {background:none;color:#87451b;-webkit-text-fill-color:#87451b}
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join) :is(.hp-brand-sub,.hp-header-link) {color:#715d49}
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join) .hp-header-link:is(:hover,[aria-current]) {color:#87451b}
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join) :is(.hp-ticker,.hp-ticker-row) {background:#fff9ef;border-color:#cdb18b}
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join) .hp-ticker-label {background:#fff9ef;color:#715d49}
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join) .hp-ticker-row.reverse {background:#352115}
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join) .hp-ticker-row.reverse .hp-ticker-label {background:#352115;color:#efd3a0}
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join) .hp-ticker-row:not(.reverse) .hp-ticker-item {color:#87451b}
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join) .hp-ticker-row.reverse :is(.hp-ticker-item,.hp-ticker-trade) {color:#fff8ec}
+body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-filters,.tp-filter-panel,.tp-card,.tp-card-expand,.tp-sheet,.tp-empty,.tp-sheet-success-legal,.tp-legal) {background:#fffdf7;color:#382617;border-color:#cdb18b;box-shadow:0 22px 64px #75411718}
+body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-hero-sub,.tp-filter-results,.tp-board-showing,.tp-card-meta,.tp-card-material,.tp-card-expand-desc,.tp-sheet-helper,.tp-empty-sub) {color:#715d49}
+body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-card-name,.tp-card-expand-name,.tp-sheet-title,.tp-empty-title) {color:#382617}
+body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-filter-link,.tp-filter-toggle,.tp-filter-pill,.tp-filter-chip,.tp-filter-sort,.tp-filter-drop,.tp-board-search input,.tp-board-sort select,.tp-sheet-field input,.tp-sheet-field textarea) {color:#382617;background:#fff8ec;border-color:#aa8653}
+body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-filter-pill.active,.tp-filter-chip.active,.tp-filter-toggle.active,.hp-shop-btn,.hp-header-shop,.tp-load-more,.tp-card-expand-cta,.tp-sheet-submit,.tp-empty-reset) {background:#91451d;color:#fff9ef;border-color:#91451d}
+body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-card-photo,.tp-card-expand-photo) {background:#f0dfc5;border-color:#cdb18b}
+body.bg-gilded-autumn.britt-with-bling-trade :is(.tp-card-tier.diamond,.tp-card-tier.unicorn) {color:#87451b}
+body.bg-gilded-autumn.britt-with-bling-join :is(.jp-hero-card,.jp-team-card,.jp-benefit-card,.jp-faq-note,.jp-faq-item,.jp-final-card) {background:#fffdf7;color:#382617;border-color:#cdb18b;box-shadow:0 22px 64px #75411718}
+body.bg-gilded-autumn.britt-with-bling-join :is(.jp-hero-eyebrow,.jp-hero-compliance,.jp-section-eyebrow) {color:#87451b}
+body.bg-gilded-autumn.britt-with-bling-join :is(.jp-hero-pitch,.jp-hero-localized,.jp-section-sub,.jp-team-location,.jp-benefit-desc,.jp-faq-a-inner,.jp-spot-sub,.jp-team-bio) {color:#715d49}
+body.bg-gilded-autumn.britt-with-bling-join :is(.jp-team-name,.jp-benefit-title,.jp-faq-q,.jp-spot-title) {color:#382617}
+body.bg-gilded-autumn.britt-with-bling-join :is(.jp-hero-promo,.jp-why,.jp-section,.jp-final) {background:#fff8ec;color:#382617;border-color:#cdb18b}
+body.bg-gilded-autumn.britt-with-bling-join :is(.jp-team-avatar,.jp-benefit-icon,.jp-final-icon,.jp-spot-glyph) {background:#f0dfc5;color:#87451b;border-color:#aa8653}
+body.bg-gilded-autumn.britt-with-bling-join :is(.jp-team-social,.jp-hero .hp-btn-primary,.jp-final-btn,.jp-spot-btn,.hp-shop-btn) {background:#91451d;color:#fff9ef;border-color:#91451d;box-shadow:0 12px 28px #75411726}
+body.bg-gilded-autumn.britt-with-bling-join .jp-team-social:hover {background:#713518;color:#fff9ef;border-color:#713518}
+body.bg-gilded-autumn.britt-with-bling-join .jp-team-card::before {background:linear-gradient(90deg,#91451d,#b18338)}
+body.bg-gilded-autumn.britt-with-bling-join .jp-hero-media {background-image:linear-gradient(180deg,#361a0566,#220f0399),url('/amethyst/skins/gilded-autumn/hero-poster.webp')}
+body.bg-gilded-autumn.bling-kitchen-join :is(.jp-hero,.jp-section,.jp-final-card,.hp-footer) {background:#fffdf7;border-color:#cdb18b;box-shadow:0 18px 45px #75411718}
+body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join) .hp-footer {background:#f3e4ca;color:#382617;border-color:#cdb18b}
+body.bg-gilded-autumn.faq-page {--faq-ink:#382617;--faq-muted:#715d49;--faq-line:#cdb18b}
+/* MHF's independent Dance Floor styling. */
+body.bg-gilded-autumn.mile-high-fizz-trade {--mhf-gradient:linear-gradient(120deg,#91451d,#713518);--mhf-ink:#382617;--mhf-muted:#715d49;--mhf-primary:#91451d;--mhf-accent:#b18338;background:#fff8ec;color:#382617}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.mhf-trade-shell,.tp-hero) {background:#fff8ec}
+body.bg-gilded-autumn.mile-high-fizz-trade .mhf-trade-shell::before,
+body.bg-gilded-autumn.mile-high-fizz-trade .mhf-trade-shell::after {background:none}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-header,.hp-sticky-stack,.hp-ticker,.hp-ticker-row) {background:#fff9ef;color:#382617;border-color:#cdb18b;box-shadow:none}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-brand-name,.hp-header-brand,.tp-hero-title) {background:none;color:#87451b;-webkit-text-fill-color:#87451b}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-brand-sub,.hp-header-link) {color:#715d49}
+body.bg-gilded-autumn.mile-high-fizz-trade .hp-header-link:is(:hover,[aria-current]) {color:#87451b}
+body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-label {background:linear-gradient(90deg,#fff9ef 70%,#fff9ef00);color:#715d49}
+body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-row:not(.reverse) :is(.hp-ticker-item,.hp-ticker-trade) {color:#87451b;text-shadow:none}
+body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-row.reverse {background:#352115;color:#fff8ec}
+body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-row.reverse .hp-ticker-label {background:linear-gradient(90deg,#352115 70%,#35211500);color:#efd3a0}
+body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-row.reverse :is(.hp-ticker-item,.hp-ticker-trade) {color:#fff8ec;text-shadow:none}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-ticker-item .dot,.hp-ticker-trade .pip) {background:#b18338}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-live-strip,.hp-trade-preview) {background:#352115;color:#fff8ec;border-color:#aa8653}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-trade-preview-pill,.hp-trade-preview-link) {color:#efd3a0}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-shop-btn,.hp-header-shop,.tp-filter-pill.active,.tp-filter-chip.active,.tp-filter-toggle.active,.tp-load-more,.tp-card-expand-cta,.tp-sheet-submit,.tp-empty-reset) {background:#91451d;color:#fff9ef;border-color:#91451d;box-shadow:0 12px 28px #75411726}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.tp-filter-panel,.tp-filters,.tp-empty,.tp-sheet-upload,.tp-sheet-success-legal,.tp-card,.tp-card.diamond,.tp-card.unicorn,.tp-card-expand,.tp-sheet) {background:#fffdf7;border-color:#cdb18b;color:#382617;box-shadow:0 22px 54px #75411718}
+body.bg-gilded-autumn.mile-high-fizz-trade .tp-card:hover {border-color:#aa8653;box-shadow:0 28px 70px #75411726}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.tp-card-photo,.tp-card-expand-photo,.tp-card-expand-specs,.tp-card-expand-box) {background:#f0dfc5;border-color:#cdb18b}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.tp-card-collection,.tp-card-meta,.tp-card-material,.tp-card-expand-collection,.tp-card-expand-desc,.tp-sheet-helper,.tp-sheet-piece,.tp-empty-sub) {color:#715d49}
+body.bg-gilded-autumn.mile-high-fizz-trade :is(.tp-card-tier,.tp-card-tier.diamond,.tp-card-tier.unicorn) {background:#f0dfc5;color:#713518;border-color:#aa8653;box-shadow:none}
+body.bg-gilded-autumn.mile-high-fizz-trade .tp-sheet-field :is(input,textarea) {background:#fffdf7;border-color:#aa8653;color:#382617}
+body.bg-gilded-autumn.mile-high-fizz-trade .tp-sheet-field :is(input,textarea):focus {border-color:#91451d;box-shadow:0 0 0 4px #b1833826}
+body.bg-gilded-autumn.mile-high-fizz-trade .hp-footer {background:#f3e4ca;color:#382617;border-color:#cdb18b}
+body.bg-gilded-autumn.mile-high-fizz-trade .hp-footer :is(.hp-footer-brand,a,p,span) {background:none;color:#715d49;-webkit-text-fill-color:#715d49}
+
+body.bg-gilded-autumn.bling-kitchen-trade {--bk-ink:#382617;--bk-muted:#715d49;--bk-plum:#87451b;--bk-violet:#91451d;--bk-sage:#76582e;background:#fff8ec;color:#382617}
+body.bg-gilded-autumn.bling-kitchen-trade :is(.tp-hero,.tp-filters,.tp-card,.tp-sheet) {background:#fffdf7;border-color:#cdb18b;box-shadow:0 18px 45px #75411718}
+body.bg-gilded-autumn.bling-kitchen-trade :is(.tp-card-expand-cta,.tp-request-submit),
+body.bg-gilded-autumn.bling-kitchen-join :is(.jp-spot-btn,.jp-final-card a) {background:linear-gradient(120deg,#91451d,#713518);color:#fff9ef}
+body.bg-gilded-autumn:is(.bling-kitchen-trade,.bling-kitchen-join) .hp-footer {background:#352115;color:#fff8ec;border-color:#aa8653}
+body.bg-gilded-autumn:is(.bling-kitchen-trade,.bling-kitchen-join) .hp-footer :is(.hp-footer-brand,a,p,span,.hp-footer-bottom) {background:none;color:#fff8ec;-webkit-text-fill-color:#fff8ec}
+body.bg-gilded-autumn :is(.tp-card-tier.diamond,.tp-card-tier.unicorn) {background:#f0dfc5;color:#713518;border-color:#aa8653;box-shadow:none}
+body.bg-gilded-autumn .tp-card-tier.unicorn .pip {background:#713518;box-shadow:none}
+body.bg-gilded-autumn .tp-card.diamond {border-color:#aa8653;box-shadow:0 0 0 1px #cdb18b inset}
+
+/* Gilded Autumn paint for Mile High Fizz's existing Join layout.
+   Keeps its markup, dimensions, fonts, card shapes and responsive rules. */
+body.bg-gilded-autumn.mile-high-fizz-join {
+  --mhf-ink:#382617; --mhf-muted:#715d49;
+  --mhf-primary:#91451d; --mhf-purple:#87451b; --mhf-accent:#b18338;
+  --mhf-bg:#fff8ec; --mhf-bg-elevated:#fffdf7; --mhf-bg-deep:#f0dfc5;
+  --mhf-gradient:linear-gradient(120deg,#91451d,#713518);
+  --mhf-soft-gradient:linear-gradient(135deg,#fff8ec,#fffdf7 48%,#f0dfc5);
+  background:#fff8ec; color:#382617;
+}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.mhf-join-page,.mhf-join-shell) {background:#fff8ec}
+body.bg-gilded-autumn.mile-high-fizz-join .mhf-join-shell::before {background-image:radial-gradient(circle,#fffdf7 0 1px,transparent 1.7px),radial-gradient(circle,#b1833838 0 1px,transparent 1.8px)}
+body.bg-gilded-autumn.mile-high-fizz-join .mhf-join-content {color:#382617}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.hp-sticky-stack,.hp-header) {background:#fff9ef;color:#382617;border-color:#cdb18b;box-shadow:0 14px 36px #75411718}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.hp-brand-name,.jp-hero-title,.jp-section-title,.jp-team-business,.hp-footer-brand) {background:none;color:#87451b;-webkit-text-fill-color:#87451b}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.hp-brand-sub,.hp-header-link) {color:#715d49}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-header-link:is([aria-current="page"],:hover) {color:#87451b}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-header-link::after {background:#91451d}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-shop-btn {background:#91451d;color:#fff9ef;border-color:#91451d;box-shadow:0 12px 26px #75411726}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.hp-ticker,.hp-ticker-row) {background:#fff9ef;color:#382617;border-color:#cdb18b}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-label {background:linear-gradient(90deg,#fff9ef 70%,#fff9ef00);color:#715d49}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-row:not(.reverse) :is(.hp-ticker-item,.hp-ticker-trade) {color:#87451b;text-shadow:none}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-row.reverse {background:#352115;color:#fff8ec}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-row.reverse .hp-ticker-label {background:linear-gradient(90deg,#352115 70%,#35211500);color:#efd3a0}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-row.reverse :is(.hp-ticker-item,.hp-ticker-trade) {color:#fff8ec;text-shadow:none}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.hp-ticker-item .dot,.hp-ticker-trade .pip) {background:#b18338}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-trade-preview {background:#352115;color:#fff8ec;border-color:#aa8653}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-trade-preview-link {color:#efd3a0}
+body.bg-gilded-autumn.mile-high-fizz-join .jp-hero-media {background:linear-gradient(180deg,#361a0566,#220f0399),url('/amethyst/skins/gilded-autumn/hero-poster.webp') center bottom/cover}
+body.bg-gilded-autumn.mile-high-fizz-join .jp-hero-media::before {background:none}
+body.bg-gilded-autumn.mile-high-fizz-join .jp-hero-card {background:#fffdf7;color:#382617;border-color:#cdb18b;box-shadow:0 24px 70px #75411730}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.jp-hero-eyebrow,.jp-hero-compliance,.jp-section-eyebrow) {color:#87451b}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.jp-hero-pitch,.jp-hero-localized) {color:#715d49}
+body.bg-gilded-autumn.mile-high-fizz-join .jp-hero-promo {background:#f0dfc5;color:#382617;border-color:#aa8653}
+body.bg-gilded-autumn.mile-high-fizz-join .jp-hero-promo .pip {background:#91451d;box-shadow:0 0 16px #b1833859}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.jp-hero .hp-btn-primary,.jp-spot-btn,.jp-final-btn) {background:#91451d;color:#fff9ef;box-shadow:0 12px 28px #75411726;border-color:#91451d}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.hp-shop-btn,.jp-hero .hp-btn-primary,.jp-spot-btn,.jp-final-btn):hover {background:#713518;color:#fff9ef}
+body.bg-gilded-autumn.mile-high-fizz-join .jp-why {background:#f3e4ca}
+body.bg-gilded-autumn.mile-high-fizz-join .jp-section-eyebrow::before,
+body.bg-gilded-autumn.mile-high-fizz-join .jp-section-eyebrow::after {background:linear-gradient(90deg,#91451d,#b18338)}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.jp-team-card,.jp-team-card.is-leader,.jp-team-card.is-spot,.jp-benefit-card,.jp-faq-note,.jp-faq-wrap,.jp-final-card) {background:#fffdf7;color:#382617;border-color:#cdb18b;box-shadow:0 24px 54px #75411718}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.jp-team-card,.jp-benefit-card):hover {border-color:#aa8653;box-shadow:0 28px 70px #75411726}
+body.bg-gilded-autumn.mile-high-fizz-join .jp-team-card.is-leader::before {background:#f0dfc5;color:#713518;border-color:#aa8653}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.jp-team-avatar,.jp-benefit-icon,.jp-final-icon) {background:#91451d;color:#fff9ef;box-shadow:0 14px 30px #75411726}
+body.bg-gilded-autumn.mile-high-fizz-join .jp-spot-glyph {background:#f0dfc5;color:#87451b;border-color:#aa8653}
+body.bg-gilded-autumn.mile-high-fizz-join .jp-faq-item {border-color:#cdb18b}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.jp-faq-q,.jp-team-name,.jp-benefit-title,.jp-spot-title,.jp-final-title) {color:#382617}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.jp-faq-a-inner,.jp-section-sub,.jp-benefit-desc,.jp-team-location,.jp-spot-sub,.jp-final-sub,.jp-final-note) {color:#715d49}
+body.bg-gilded-autumn.mile-high-fizz-join :is(.jp-faq-link a,.jp-faq-note a,.jp-final-note a) {color:#87451b}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-footer {background:#f3e4ca;color:#382617;border-color:#cdb18b}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-footer :is(a,.hp-footer-col a,.hp-footer-tag,.hp-footer-bottom,.hp-footer-bottom p,.legal-row) {color:#715d49;border-color:#cdb18b}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-footer :is(a:hover,.hp-footer-col a:hover) {color:#87451b}
+body.bg-gilded-autumn:is(.mile-high-fizz-trade,.mile-high-fizz-join) .hp-trade-preview {--hp-preview-fg:#fff8ec;--hp-preview-muted:#efd3a0}
+body.bg-gilded-autumn.mile-high-fizz-trade .hp-trade-preview-pill {color:#382617}

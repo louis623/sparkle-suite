@@ -120,7 +120,7 @@ describe('public site slug route', () => {
     )
     expect(html).toContain('src="/amethyst/tweaks-panel.jsx?v=20260725-emerald-garden"')
     expect(html).toContain('src="/amethyst/live-lineup.js?v=20260928-lineup-always-on"')
-    expect(html).toContain('src="/amethyst/homepage.jsx?v=20260928-lineup-always-on"')
+    expect(html).toContain('src="/amethyst/homepage.jsx?v=20260930-ga1"')
     expect(html).toContain(
       '/api/amethyst/homepage-template?c=rep-gracie&amp;publicSiteSlug=graciesparkleparty',
     )

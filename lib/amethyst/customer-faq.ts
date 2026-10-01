@@ -10,6 +10,7 @@ interface CustomerFaqOptions {
 }
 
 const TONES: Record<string, { bg: string; elevated: string }> = {
+  gildedAutumn: { bg: '#fff8ec', elevated: '#fffdf7' },
   halloweenPumpkinCat: { bg: '#080706', elevated: '#1b1511' },
   lavender: { bg: '#E8DFF5', elevated: '#F2EBFA' },
   suiteBlush: { bg: '#fcf8f6', elevated: '#fffefd' },
@@ -161,6 +162,7 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
   <link rel="stylesheet" href="/amethyst/gnome-garden.css" />
   <link rel="stylesheet" href="/amethyst/neon-butterfly.css" />
   <link rel="stylesheet" href="/amethyst/halloween-pumpkin-witch.css" />
+  <link rel="stylesheet" href="/amethyst/gilded-autumn.css?v=20260930-ga1" />
   <link rel="stylesheet" href="/amethyst/halloween-pumpkin-cat.css?v=20260928-hpc2" />
   <link rel="stylesheet" href="/amethyst/faq.css?v=20260927-powered-by" />
 </head>

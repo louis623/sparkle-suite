@@ -211,6 +211,40 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     ],
   },
   {
+  "id": "gilded_autumn",
+  "visibility": "community",
+  "code": "GA-01",
+  "label": "Gilded Autumn",
+  "aliases": [
+    "Autumn",
+    "Fall Leaves"
+  ],
+  "previewHref": "/skin-preview/gilded_autumn/homepage",
+  "description": "Sunlit autumn trees, crisp copper leaves, and a fine champagne shimmer.",
+  "headingFont": "Playfair Display",
+  "bodyFont": "DM Sans",
+  "surfaceNote": "Warm ivory cards, copper buttons, and champagne details",
+  "motionNote": "Falling leaves with fine metallic shimmer on desktop and phones; pause and reduced-motion support",
+  "swatches": [
+    {
+      "label": "Copper",
+      "value": "#91451d"
+    },
+    {
+      "label": "Champagne",
+      "value": "#b18338"
+    },
+    {
+      "label": "Ivory",
+      "value": "#fff8ec"
+    },
+    {
+      "label": "Espresso",
+      "value": "#392519"
+    }
+  ]
+},
+  {
     id: 'rose_gold',
     visibility: 'community',
     code: 'RG-01',

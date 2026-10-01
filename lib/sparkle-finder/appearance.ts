@@ -36,7 +36,7 @@ export type SparkleFinderAppearance = {
   tokens: SparkleFinderAppearanceTokens
 }
 
-const FINDER_THEME_TOKENS: Record<AmethystAppearancePresetId, SparkleFinderAppearanceTokens> = {
+const FINDER_THEME_TOKENS = {
   amethyst: {
     background: '#E8DFF5', backgroundSoft: '#F2EBFA', surface: '#FFFFFF', surfaceSoft: '#F7F0FF',
     foreground: '#2A1F40', foregroundMuted: '#5C576A', primary: '#5C0EFF', primaryStrong: '#480DDF',
@@ -127,9 +127,9 @@ const FINDER_THEME_TOKENS: Record<AmethystAppearancePresetId, SparkleFinderAppea
     accent: '#63146E', border: 'rgba(232, 121, 249, 0.22)', borderStrong: 'rgba(99, 20, 110, 0.38)',
     panel: '#63146E', panelText: '#FFF5FD', headingFont: 'playfair', bodyFont: 'dmSans',
   },
-}
+} satisfies Partial<Record<AmethystAppearancePresetId, SparkleFinderAppearanceTokens>>
 
-export function isSparkleFinderAppearancePreset(value: unknown): value is AmethystAppearancePresetId {
+export function isSparkleFinderAppearancePreset(value: unknown): value is (typeof SPARKLE_FINDER_APPEARANCE_PRESET_IDS)[number] {
   return typeof value === 'string' && (SPARKLE_FINDER_APPEARANCE_PRESET_IDS as readonly string[]).includes(value)
 }
 

@@ -747,6 +747,7 @@ describe('site settings service', () => {
   })
 
   it.each([
+    'gilded_autumn',
     'garnet',
     'amber',
     'moonstone',
