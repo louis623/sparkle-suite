@@ -327,7 +327,7 @@ export const AMETHYST_APPEARANCE_PRESETS: Record<
 },
   gilded_autumn: {
   "id": "gilded_autumn",
-  "label": "Gilded Autumn",
+  "label": "The Golden Leaves of Autumn",
   "description": "Sunlit autumn trees, crisp copper leaves, and a fine champagne shimmer.",
   "values": {
     "primaryColor": "#91451d",

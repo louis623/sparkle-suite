@@ -1472,7 +1472,47 @@ function TradeCard({ piece, onTap, tierVisible }) {
   );
 }
 
+function useTradeDialog(open, onClose, view) {
+  const ref = useRef(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    if (!open || !ref.current) return;
+    const dialog = ref.current;
+    const previous = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusable = () => [...dialog.querySelectorAll('button:not([disabled]), a[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]')]
+      .filter(element => !element.hidden && element.getClientRects().length > 0);
+    (focusable()[0] || dialog).focus();
+    function focusin(event) {
+      if (!dialog.contains(event.target)) (focusable()[0] || dialog).focus();
+    }
+    function keydown(event) {
+      if (event.key === "Escape") { event.preventDefault(); close.current(); return; }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      const first = items[0] || dialog;
+      const last = items[items.length - 1] || dialog;
+      if (!dialog.contains(document.activeElement) || (event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      }
+    }
+    document.addEventListener("keydown", keydown);
+    document.addEventListener("focusin", focusin);
+    return () => {
+      document.removeEventListener("keydown", keydown);
+      document.removeEventListener("focusin", focusin);
+      document.body.style.overflow = overflow;
+      if (previous?.isConnected) previous.focus();
+    };
+  }, [open, view]);
+  return ref;
+}
+
 function ExpandedCard({ piece, onClose, onWantThis }) {
+  const dialogRef = useTradeDialog(Boolean(piece), onClose);
   if (!piece) return null;
 
   const tierLabel = piece.tier === "unicorn"
@@ -1483,8 +1523,8 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
 
   return (
     <div className="tp-card-expand-mask" onClick={onClose}>
-      <div className="tp-card-expand" onClick={(event) => event.stopPropagation()}>
-        <button className="tp-card-close" onClick={onClose} aria-label="Close">&times;</button>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="trade-expanded-title" tabIndex={-1} className="tp-card-expand" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className="tp-card-close" onClick={onClose} aria-label="Close">&times;</button>
         <div className={`tp-card-expand-photo slot ${piece.photoUrl ? "has-photo" : ""}`} data-slot="jewelry photo">
           {piece.photoUrl ? (
             <img className="tp-card-expand-photo-img" src={piece.photoUrl} alt={piece.name} loading="lazy" decoding="async" />
@@ -1498,7 +1538,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
             {tierLabel}
           </span>
           <div className="tp-card-expand-collection">{piece.collection} collection</div>
-          <h2 className="tp-card-expand-name slot" data-slot="design name">{piece.name}</h2>
+          <h2 id="trade-expanded-title" className="tp-card-expand-name slot" data-slot="design name">{piece.name}</h2>
           <p className="tp-card-expand-desc slot" data-slot="description">
             This {piece.type.toLowerCase()} can be requested as an item-for-item trade if the item number just revealed for you stays within the same collection and the same jewelry type.
           </p>
@@ -1529,7 +1569,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
             <div>{piece.note}</div>
           </div>
           <p className="tp-card-expand-rule">Trades are one dancer for one dancer, with no added payment or credit. Your rep makes the final decision.</p>
-          <button className="tp-card-expand-cta" onClick={() => onWantThis(piece)}>
+          <button type="button" className="tp-card-expand-cta" onClick={() => onWantThis(piece)}>
             Request this trade
             <span>?</span>
           </button>
@@ -1540,6 +1580,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
 }
 
 function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferChange, manualReviewRequired, keepDraftOnAlternative, success, pending, error, repName }) {
+  const dialogRef = useTradeDialog(Boolean(piece || success), () => { if (!pending) onClose(); }, success ? "success" : "form");
   const [name, setName] = useState("");
   const [offering, setOffering] = useState("");
   const [offeredFamily, setOfferedFamily] = useState("");
@@ -1693,11 +1734,11 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
   if (success) {
     return (
       <div className="tp-sheet-mask" onClick={pending ? undefined : onClose}>
-        <div className="tp-sheet success" onClick={(event) => event.stopPropagation()}>
-          <button className="tp-sheet-close" onClick={onClose} aria-label="Close" disabled={pending}>&times;</button>
+        <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="trade-request-title" tabIndex={-1} className="tp-sheet success" onClick={(event) => event.stopPropagation()}>
+          <button type="button" className="tp-sheet-close" onClick={onClose} aria-label="Close" disabled={pending}>&times;</button>
           <div className="tp-sheet-handle" />
           <div className="tp-sheet-success-icon">&#10003;</div>
-          <h3 className="tp-sheet-success-title">Request sent.</h3>
+          <h3 id="trade-request-title" className="tp-sheet-success-title">Request sent.</h3>
           <p className="tp-sheet-success-body">
             <strong>{repName}</strong> will review your request. This is not an approved trade yet.
           </p>
@@ -1728,11 +1769,11 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
 
   return (
     <div className="tp-sheet-mask" onClick={pending ? undefined : onClose}>
-      <div className="tp-sheet" onClick={(event) => event.stopPropagation()}>
-        <button className="tp-sheet-close" onClick={onClose} aria-label="Close" disabled={pending}>&times;</button>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="trade-request-title" aria-busy={Boolean(pending)} tabIndex={-1} className="tp-sheet" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className="tp-sheet-close" onClick={onClose} aria-label="Close" disabled={pending}>&times;</button>
         <div className="tp-sheet-handle" />
         <div className="tp-sheet-eyebrow">Trade Request</div>
-        <h3 className="tp-sheet-title">{piece.name}</h3>
+        <h3 id="trade-request-title" className="tp-sheet-title">{piece.name}</h3>
         <div className="tp-sheet-piece">
           {piece.collection} - {piece.type}{piece.size ? ` - Size ${piece.size}` : ""}
         </div>
@@ -1747,8 +1788,9 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
           }}
         >
           <div className="tp-sheet-field">
-            <label>Your name</label>
+            <label htmlFor="tp-customer-name">Your name</label>
             <input
+              id="tp-customer-name"
               type="text"
               placeholder="As shown on your reveal"
               value={name}
@@ -1827,8 +1869,9 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
           )}
           {screeningState === "error" && <p className="tp-sheet-screening" role="status">Match guidance is temporarily unavailable. Your rep can review your request.</p>}
           <div className="tp-sheet-field">
-            <label>What did you just reveal?</label>
+            <label htmlFor="tp-customer-reveal">What did you just reveal?</label>
             <textarea
+              id="tp-customer-reveal"
               placeholder="Example: July Birthday 2026 necklace"
               value={offering}
               onChange={(event) => setOffering(event.target.value)}
@@ -2483,7 +2526,7 @@ function App() {
               { value: "gnome_garden", label: "Gnome Forest" },
               { value: "neon_butterfly", label: "Neon Butterfly" },
               { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
-              { value: "gilded_autumn", label: "Gilded Autumn" },
+              { value: "gilded_autumn", label: "The Golden Leaves of Autumn" },
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
               { value: "garnet", label: "Garnet" },

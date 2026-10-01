@@ -162,7 +162,7 @@ describe('Amethyst static asset route', () => {
       expect(html).toContain('src="/amethyst/template-loader.js?v=20260928-lineup-always-on"')
       if (assetName === 'Join.html') {
         expect(html).toContain('src="/amethyst/join-runtime.js?v=20260930-ga1"')
-        expect(html).toContain('href="/amethyst/join.css?v=20260920-team-portraits-v1"')
+        expect(html).toContain('href="/amethyst/join.css?v=20260930-keyboard-v1"')
         expect(html).toContain('href="/amethyst/neon-butterfly.css?v=20260914-team-recruiting-v1"')
         expect(html).not.toContain('tweaks-panel.jsx')
       } else {

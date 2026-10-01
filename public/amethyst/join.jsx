@@ -1308,11 +1308,11 @@ function Faq({ teamName, repName, locationLabel }) {
         <div className="jp-faq-list">
           {questions.map((item, index) => (
             <div key={index} className={`jp-faq-item ${open === index ? "open" : ""}`}>
-              <div className="jp-faq-q" onClick={() => setOpen(open === index ? -1 : index)}>
+              <button type="button" className="jp-faq-q" aria-expanded={open === index} aria-controls={`join-faq-answer-${index}`} onClick={() => setOpen(open === index ? -1 : index)}>
                 <span>{item.q}</span>
-                <span className="chev">+</span>
-              </div>
-              <div className="jp-faq-a">
+                <span className="chev" aria-hidden="true">+</span>
+              </button>
+              <div id={`join-faq-answer-${index}`} className="jp-faq-a" aria-hidden={open !== index}>
                 <div className="jp-faq-a-inner slot" data-slot={item.aSlot}>{item.a}</div>
               </div>
             </div>
@@ -1686,7 +1686,7 @@ function App() {
               { value: "gnome_garden", label: "Gnome Forest" },
               { value: "neon_butterfly", label: "Neon Butterfly" },
               { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
-              { value: "gilded_autumn", label: "Gilded Autumn" },
+              { value: "gilded_autumn", label: "The Golden Leaves of Autumn" },
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
               { value: "garnet", label: "Garnet" },

@@ -724,8 +724,8 @@ describe('Amethyst trade page template wiring', () => {
     )
 
     expect(jsx).toContain('function RequestSheet')
-    expect(jsx).toContain('<label>Your name</label>')
-    expect(jsx).toContain('<label>What did you just reveal?</label>')
+    expect(jsx).toContain('<label htmlFor="tp-customer-name">Your name</label>')
+    expect(jsx).toContain('<label htmlFor="tp-customer-reveal">What did you just reveal?</label>')
     expect(jsx).toContain('placeholder="Example: July Birthday 2026 necklace"')
     expect(jsx).toContain('Collection family you revealed')
     expect(jsx).toContain('Jewelry type you revealed')
@@ -784,7 +784,7 @@ describe('Amethyst trade page template wiring', () => {
     )
 
     expect(jsx).toContain('setSuccess(true)')
-    expect(jsx).toContain('<h3 className="tp-sheet-success-title">Request sent.</h3>')
+    expect(jsx).toContain('<h3 id="trade-request-title" className="tp-sheet-success-title">Request sent.</h3>')
     expect(jsx).toContain('setRequestError(error?.message || DEFAULT_TRADE_REQUEST_ERROR)')
     expect(jsx).not.toContain('}, [availableSamples, t.demoSheet]);')
     expect(jsx).toContain('}, [t.demoSheet]);')

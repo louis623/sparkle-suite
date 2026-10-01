@@ -1,6 +1,19 @@
-# Gilded Autumn — Community candidate
+# The Golden Leaves of Autumn — Community candidate
 
-Stable ID `gilded_autumn`, card `GA-01`. Morganite remains the default; existing selections and private assignments are unchanged. This skin changes seasonal artwork, color and decorative motion within the existing customer templates. It retains custom MHF/BWB/Bling Kitchen content and actions.
+Stable ID `gilded_autumn`, card `GA-01`. The former name “Gilded Autumn” remains a supported selection alias. Morganite remains the default; existing selections and private assignments are unchanged. This skin changes seasonal artwork, color and decorative motion within the existing customer templates. It retains custom MHF/BWB/Bling Kitchen content and actions.
+
+## Final local readability and interaction audit
+
+Louis approved the original-brightness presentation and chose the display name **The Golden Leaves of Autumn**. Preset, card, preview and template selectors now use that name; `Golden Leaves` and the former name remain selection aliases. No further media generation or spend was needed.
+
+- Audited Home, Dance Floor and Join in generic, Mile High Fizz, Britt with Bling and Bling Kitchen layouts. All twelve phone combinations fit a 360px viewport without horizontal body overflow. Preferences was also checked; its four social icons now wrap within the existing two-column mobile footer, resolving a 15px overflow.
+- Corrected remaining lavender FAQ styling, custom-footer social hover/focus colors, low-contrast custom section text, and the optional signup badge. Solid-background contrast checks passed after correction; moving-image hero text was visually reviewed with text-local shadows, preserving the approved original art brightness.
+- Join FAQ uses keyboard-operable buttons. Calendar and trade dialogs contain focus, close with Escape and restore the opener's focus. Trade dialogs now appear above the sticky header. Request fields have associated labels. Pending-request safeguards remain intact.
+- Browser checks exercised filters, calendar choices, trade details/request forms, FAQ, preferences focus and Pause/Play using sandboxed sample data. No real form submission, upload, notification or provider action occurred. Preferences sample copy now uses the selected profile rather than the Amethyst placeholder.
+- Final production build and TypeScript passed. Builder rename checks: 53 tests; sample preferences branding: 13; adversarial keyboard/template checks: 90 and later 52; final Join/static-asset cache checks: 43. These overlapping runs are not additive. Join runtime was rebuilt, CSS parsed and the local Home/Dance Floor link verifier passed.
+- Evidence is in the separate creative workspace: `final-browser-audit.json` (includes historical pre-fix findings) and `shimmer-v2/final-brightness-audited.png`. Phone verification used desktop browser viewports, not a physical iPhone/Safari device.
+
+**Deployment hold:** Louis reconfirmed that Sam is still working on Heather's skin and will tell us when he finishes. No Smoke/Live deployment or database migration is authorized while that hold remains. After coordination, review the combined source and perform the Smoke catalog selection/save/reload and custom-layout checks before any Live release.
 
 ## Artwork and motion
 

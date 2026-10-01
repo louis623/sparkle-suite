@@ -73,7 +73,7 @@ type PreviewProfile = {
 
 const PREVIEW_PROFILES = {
   gilded_autumn: {
-    label: 'Gilded Autumn', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
+    label: 'The Golden Leaves of Autumn', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
     ticker: 'Live jewelry reveals | Find your next favorite | Explore the Dance Floor',
     tagline: 'Good company. Beautiful surprises.',
     eyebrow: '', headline: 'Real jewelry. Live reveals. Pure sparkle.',
@@ -278,6 +278,15 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   document = document.replace('<head>', `<head><meta http-equiv="Content-Security-Policy" content="${escapeAttribute(csp)}"><base href="${escapeAttribute(origin)}/amethyst/"><meta name="robots" content="noindex,nofollow">`)
   document = document.replace(/<meta name="robots" content="index,follow" \/>/g, '')
   const profile = PREVIEW_PROFILES[skin]
+  if (page === 'unsubscribe') {
+    // The static template retains its generic defaults; only sample documents
+    // receive the selected profile's customer-facing name and preferences copy.
+    document = document.replace(/<title>[^<]*<\/title>/, '<title>Manage updates - ' + escapeAttribute(profile.businessName) + '</title>')
+    document = document.replace(
+      'Stop SMS updates, email updates, or both for the Amethyst preview site.',
+      'Stop SMS updates, email updates, or both from {BUSINESS_NAME}.',
+    )
+  }
   const bootstrap = fixtureBootstrap(page, skin).replaceAll('Sparkle by Sasha', profile.businessName)
   document = document.replace('<div id="root"></div>', `<div id="root"></div><script>${inlineScript(SKIN_PREVIEW_GUARDS)}\n${inlineScript(bootstrap)}</script>`)
   return document.replaceAll('Sparkle by Sasha', profile.businessName)

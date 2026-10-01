@@ -10,13 +10,14 @@ import { buildAmethystJoinTweakDefaults, defaultAmethystJoinTemplateData } from 
 import { GET } from '@/app/skin-preview/[skin]/[page]/route'
 
 const id = 'gilded_autumn'
-describe('Gilded Autumn Community integration', () => {
+describe('The Golden Leaves of Autumn Community integration', () => {
   it('resolves the name and card code while leaving the current default intact', () => {
     expect(normalizeAmethystAppearancePreset(id)).toBe(id)
-    for (const choice of ['GA-01', 'Gilded Autumn', id]) expect(normalizeAmethystSkinSelection(choice)).toBe(id)
+    expect(getAmethystAppearancePreset(id).label).toBe('The Golden Leaves of Autumn')
+    for (const choice of ['GA-01', 'The Golden Leaves of Autumn', 'the golden leaves of autumn', 'Golden Leaves', 'Gilded Autumn', id]) expect(normalizeAmethystSkinSelection(choice)).toBe(id)
     expect(DEFAULT_AMETHYST_APPEARANCE_PRESET).toBe('sparkle_suite_morganite')
     expect(normalizeAmethystAppearancePreset('unknown')).toBe(DEFAULT_AMETHYST_APPEARANCE_PRESET)
-    expect(getCommunityAmethystSkinCards().find(card => card.id === id)).toMatchObject({code:'GA-01',visibility:'community'})
+    expect(getCommunityAmethystSkinCards().find(card => card.id === id)).toMatchObject({code:'GA-01',visibility:'community',label:'The Golden Leaves of Autumn'})
   })
   it('uses identical visual tokens with original actions and content on all three template bootstraps', () => {
     const results = [buildAmethystHomepageTweakDefaults(defaultAmethystHomepageTemplateData,id),buildAmethystTradeTweakDefaults(defaultAmethystTradeTemplateData,id),buildAmethystJoinTweakDefaults(defaultAmethystJoinTemplateData,id)]
@@ -41,6 +42,7 @@ describe('Gilded Autumn Community integration', () => {
     expect(response.headers.get('Content-Security-Policy')).toContain("connect-src 'none'; form-action 'none'")
     const html=await response.text()
     expect(html).toContain('gilded-autumn.css')
+    expect(html).toContain('The Golden Leaves of Autumn')
     expect(html).toContain('Sample content')
     expect(html).toContain('sandbox="allow-scripts"')
     expect(html).not.toContain('allow-same-origin')

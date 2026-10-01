@@ -1714,11 +1714,50 @@ function buildOutlookCalendarHref(event) {
   return `https://outlook.live.com/calendar/0/action/compose?${params.toString()}`;
 }
 
+function useCalendarDialog(open, onClose) {
+  const ref = useRef(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    if (!open || !ref.current) return;
+    const dialog = ref.current;
+    const previous = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusable = () => [...dialog.querySelectorAll('button:not([disabled]), a[href], [tabindex="0"]')].filter(element => !element.hidden);
+    (focusable()[0] || dialog).focus();
+    function focusin(event) {
+      if (!dialog.contains(event.target)) (focusable()[0] || dialog).focus();
+    }
+    function keydown(event) {
+      if (event.key === "Escape") { event.preventDefault(); close.current(); return; }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      const first = items[0] || dialog;
+      const last = items[items.length - 1] || dialog;
+      if (!dialog.contains(document.activeElement) || (event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      }
+    }
+    document.addEventListener("keydown", keydown);
+    document.addEventListener("focusin", focusin);
+    return () => {
+      document.removeEventListener("keydown", keydown);
+      document.removeEventListener("focusin", focusin);
+      document.body.style.overflow = overflow;
+      if (previous?.isConnected) previous.focus();
+    };
+  }, [open]);
+  return ref;
+}
+
 function CalendarChooser({ event, onClose }) {
+  const dialogRef = useCalendarDialog(Boolean(event), onClose);
   if (!event) return null;
   return (
     <div className="hp-calendar-modal-mask" role="presentation" onClick={onClose}>
-      <section className="hp-calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-choice-title" onClick={(click) => click.stopPropagation()}>
+      <section ref={dialogRef} tabIndex={-1} className="hp-calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-choice-title" onClick={(click) => click.stopPropagation()}>
         <div className="hp-calendar-modal-head">
           <div>
             <div className="hp-calendar-modal-eyebrow">Save the date</div>
@@ -2862,7 +2901,7 @@ function App() {
               { value: "gnome_garden", label: "Gnome Forest" },
               { value: "neon_butterfly", label: "Neon Butterfly" },
             { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
-              { value: "gilded_autumn", label: "Gilded Autumn" },
+              { value: "gilded_autumn", label: "The Golden Leaves of Autumn" },
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
               { value: "garnet", label: "Garnet" },

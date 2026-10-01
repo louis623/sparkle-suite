@@ -105,7 +105,7 @@ describe('Amethyst appearance presets', () => {
       'Neon Butterfly',
       'Halloween Pumpkin and Cat',
       'Halloween Pumpkin and Witch',
-      'Gilded Autumn',
+      'The Golden Leaves of Autumn',
       'Rose Gold',
       'Garnet',
       'Amber',

@@ -214,8 +214,10 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   "id": "gilded_autumn",
   "visibility": "community",
   "code": "GA-01",
-  "label": "Gilded Autumn",
+  "label": "The Golden Leaves of Autumn",
   "aliases": [
+    "Gilded Autumn",
+    "Golden Leaves",
     "Autumn",
     "Fall Leaves"
   ],
