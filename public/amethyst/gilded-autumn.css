@@ -35,11 +35,12 @@ body.bg-gilded-autumn :is(.mhf-hero-content,.bwb-hero-content,.bk-home-hero-cont
 body.bg-gilded-autumn :is(.hp-hero-media,.hp-hero-fx-layer,.mhf-hero-video,.mhf-hero-shade,.bwb-hero-image,.bwb-hero-shade,.bk-home-hero-image) {visibility:hidden}
 body.bg-gilded-autumn .ga-art {position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 body.bg-gilded-autumn .ga-art :is(img,video) {display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center bottom;pointer-events:none}
-body.bg-gilded-autumn .ga-art::after {content:'';position:absolute;inset:0;background:linear-gradient(180deg,#361a0540,#220f0396 65%,#220f0348)}
+/* Louis's bright-art contract: no scene overlay; readability stays on the text. */
+body.bg-gilded-autumn .ga-art::after {content:none}
 body.bg-gilded-autumn .ga-video {opacity:0}
 body.bg-gilded-autumn .ga-art[data-playing] .ga-video {opacity:1}
-body.bg-gilded-autumn :is(.hp-hero-headline,.mhf-hero-title,.bwb-hero-title,.bk-home-hero h1) {color:#fff8e9;background:none;-webkit-text-fill-color:#fff8e9;text-shadow:0 2px 14px #3c180999}
-body.bg-gilded-autumn :is(.hp-hero-sub,.mhf-hero-with,.mhf-hero-line,.mhf-hero-instruction,.bwb-hero-team,.bwb-hero-line,.bwb-hero-instruction,.bk-home-hero-content>p,.bk-home-hero-content>span) {color:#fff8ec;text-shadow:0 1px 8px #3c1809}
+body.bg-gilded-autumn :is(.hp-hero-headline,.mhf-hero-title,.bwb-hero-title,.bk-home-hero h1) {color:#fff8e9;background:none;-webkit-text-fill-color:#fff8e9;text-shadow:0 2px 4px #3c1809cc,0 2px 14px #3c180999}
+body.bg-gilded-autumn :is(.hp-hero-sub,.mhf-hero-with,.mhf-hero-line,.mhf-hero-instruction,.bwb-hero-team,.bwb-hero-line,.bwb-hero-instruction,.bk-home-hero-content>p,.bk-home-hero-content>span) {color:#fff8ec;text-shadow:0 1px 3px #3c1809,0 1px 8px #3c1809}
 body.bg-gilded-autumn .hp-hero :is(.hp-btn-outline,.hp-btn-secondary) {color:#fff8ec;border-color:#e4c382;background:#321809cc}
 body.bg-gilded-autumn :is(.hp-btn-primary,.tp-btn-primary,.jp-btn-primary,.hp-signup-submit,.hp-unsubscribe-submit) {background:linear-gradient(120deg,#87451b,#713518);color:#fff9ef;border-color:#87451b;box-shadow:0 4px 16px #77420f20}
 body.bg-gilded-autumn :is(.hp-hero .hp-btn-primary,.hp-shop-btn) {background:linear-gradient(120deg,#efd3a0,#c7984b);color:#38220e;border-color:#c7984b;box-shadow:0 4px 16px #77420f20}
@@ -58,7 +59,8 @@ body.bg-gilded-autumn :is(input,select,textarea) {color:#382617;background:#fffd
 body.bg-gilded-autumn :is(input,textarea)::placeholder {color:#715d49;opacity:1}
 body.bg-gilded-autumn :is(.hp-signup-preferences,.hp-signup-consent-box) {background:#fff8ec;color:#382617}
 body.bg-gilded-autumn .hp-signup-preferences :is(strong,span,p,label) {color:#382617}
-body.bg-gilded-autumn .jp-hero-media {background:linear-gradient(180deg,#361a0566,#220f0399),url('/amethyst/skins/gilded-autumn/hero-poster.webp') center bottom/cover}
+body.bg-gilded-autumn .jp-hero-media {background:url('/amethyst/skins/gilded-autumn/hero-poster.webp') center bottom/cover}
+body.bg-gilded-autumn .jp-hero-media::before {content:none}
 body.bg-gilded-autumn :is(.jp-hero-card,.jp-final-card) {background:#fff8ec;color:#382617;border-color:#cdb18b}
 body.bg-gilded-autumn :is(.jp-hero-pitch,.jp-hero-localized,.jp-hero-compliance) {color:#715d49}
 body.bg-gilded-autumn :is(.jp-hero-eyebrow,.jp-hero-compliance a) {color:#87451b}
@@ -176,7 +178,7 @@ body.bg-gilded-autumn.britt-with-bling-join :is(.jp-team-avatar,.jp-benefit-icon
 body.bg-gilded-autumn.britt-with-bling-join :is(.jp-team-social,.jp-hero .hp-btn-primary,.jp-final-btn,.jp-spot-btn,.hp-shop-btn) {background:#91451d;color:#fff9ef;border-color:#91451d;box-shadow:0 12px 28px #75411726}
 body.bg-gilded-autumn.britt-with-bling-join .jp-team-social:hover {background:#713518;color:#fff9ef;border-color:#713518}
 body.bg-gilded-autumn.britt-with-bling-join .jp-team-card::before {background:linear-gradient(90deg,#91451d,#b18338)}
-body.bg-gilded-autumn.britt-with-bling-join .jp-hero-media {background-image:linear-gradient(180deg,#361a0566,#220f0399),url('/amethyst/skins/gilded-autumn/hero-poster.webp')}
+body.bg-gilded-autumn.britt-with-bling-join .jp-hero-media {background-image:url('/amethyst/skins/gilded-autumn/hero-poster.webp')}
 body.bg-gilded-autumn.bling-kitchen-join :is(.jp-hero,.jp-section,.jp-final-card,.hp-footer) {background:#fffdf7;border-color:#cdb18b;box-shadow:0 18px 45px #75411718}
 body.bg-gilded-autumn:is(.britt-with-bling-trade,.britt-with-bling-join) .hp-footer {background:#f3e4ca;color:#382617;border-color:#cdb18b}
 body.bg-gilded-autumn.faq-page {--faq-ink:#382617;--faq-muted:#715d49;--faq-line:#cdb18b}
@@ -246,7 +248,7 @@ body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-row.reverse :is(.hp-ticker-
 body.bg-gilded-autumn.mile-high-fizz-join :is(.hp-ticker-item .dot,.hp-ticker-trade .pip) {background:#b18338}
 body.bg-gilded-autumn.mile-high-fizz-join .hp-trade-preview {background:#352115;color:#fff8ec;border-color:#aa8653}
 body.bg-gilded-autumn.mile-high-fizz-join .hp-trade-preview-link {color:#efd3a0}
-body.bg-gilded-autumn.mile-high-fizz-join .jp-hero-media {background:linear-gradient(180deg,#361a0566,#220f0399),url('/amethyst/skins/gilded-autumn/hero-poster.webp') center bottom/cover}
+body.bg-gilded-autumn.mile-high-fizz-join .jp-hero-media {background:url('/amethyst/skins/gilded-autumn/hero-poster.webp') center bottom/cover}
 body.bg-gilded-autumn.mile-high-fizz-join .jp-hero-media::before {background:none}
 body.bg-gilded-autumn.mile-high-fizz-join .jp-hero-card {background:#fffdf7;color:#382617;border-color:#cdb18b;box-shadow:0 24px 70px #75411730}
 body.bg-gilded-autumn.mile-high-fizz-join :is(.jp-hero-eyebrow,.jp-hero-compliance,.jp-section-eyebrow) {color:#87451b}
