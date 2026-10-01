@@ -97,6 +97,7 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(css).toContain('grid-template-columns: 1fr;')
     expect(css).toContain('@media (min-width: 900px)')
     expect(css).toContain('grid-template-columns: 1fr 1fr;')
+    expect(css).toContain('justify-content: space-between;')
     expect(css).toContain('#1b1218')
     expect(css).toContain('#2a1822')
     expect(css).toContain('#fcf8f6')
