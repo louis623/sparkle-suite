@@ -13,8 +13,8 @@ export const sparkleFinderSignInUrl = 'https://yoursparklefinder.com/auth/sign-i
  */
 export const sparkleSuiteMarketingHubContent = {
   wordmark: ['Sparkle Suite', 'Sparkle Finder'] as const,
-  headline: 'Are you here for the bling?',
-  prompt: 'Choose your adventure.',
+  support: "You're in, you're in the right place for the bling.",
+  prompt: 'Now Pick Your Shine',
   suite: {
     title: 'Selling tonight?',
     product: 'Sparkle Suite',

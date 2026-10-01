@@ -16,7 +16,7 @@
   margin: 0;
 }
 
-.page :is(h1, h2, .cardTitle, .wordmark) {
+.page :is(h1, h2, .cardBrand, .cardTitle, .wordmark) {
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
   font-weight: 500;
 }
@@ -83,15 +83,15 @@
 }
 
 .hero h1 {
-  max-width: 11em;
+  max-width: 16em;
   margin-inline: auto;
-  font-size: clamp(2.7rem, 8vw, 4.6rem);
-  letter-spacing: -0.04em;
-  line-height: 1.05;
+  font-size: clamp(1.55rem, 3.4vw, 2.25rem);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 }
 
 .prompt {
-  margin-top: 16px;
+  margin-top: 12px;
   color: #f3e4dc;
   font-size: clamp(1.05rem, 2vw, 1.25rem);
   line-height: 1.4;
@@ -163,10 +163,16 @@
   gap: 8px;
 }
 
-.cardTitle {
-  font-size: clamp(1.85rem, 4vw, 2.35rem);
+.cardBrand {
+  font-size: clamp(1.85rem, 3.6vw, 2.4rem);
   letter-spacing: -0.03em;
   line-height: 1.1;
+}
+
+.cardTitle {
+  font-size: clamp(1.25rem, 2.4vw, 1.6rem);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .cardDetail {
@@ -290,10 +296,6 @@
 @media (min-width: 900px) {
   .hero {
     padding-top: 48px;
-  }
-
-  .hero h1 {
-    max-width: none;
   }
 
   .paths {

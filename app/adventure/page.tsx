@@ -4,7 +4,7 @@ import { MarketingHub } from '@/app/_components/marketing-hub'
 import { sparkleSuiteMarketingHubContent } from '@/lib/sparkle-suite/marketing-hub-content'
 
 const description =
-  'Are you here for the bling? Choose your adventure. Sparkle Suite is the site and live-show setup for reps. Sparkle Finder is where shoppers find and favorite pieces from the show.'
+  "You're in, you're in the right place for the bling. Now Pick Your Shine. Sparkle Suite is the site and live-show setup for reps. Sparkle Finder is where shoppers find and favorite pieces from the show."
 
 export const metadata: Metadata = {
   title: {
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 const hubJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  name: sparkleSuiteMarketingHubContent.headline,
+  name: sparkleSuiteMarketingHubContent.support,
   description,
   url: 'https://www.yoursparklesuite.com/adventure',
   isPartOf: {

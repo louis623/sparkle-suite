@@ -30,10 +30,9 @@ function PathCard({
   const main = (
     <>
       <span className={styles.cardCopy}>
+        <span className={styles.cardBrand}>{product}</span>
         <span className={styles.cardTitle}>{title}</span>
-        <span className={styles.cardDetail}>
-          {product} — {detail}
-        </span>
+        <span className={styles.cardDetail}>{detail}</span>
       </span>
       <span className={styles.srOnly}>{destinationLabel}</span>
       <ArrowRight aria-hidden="true" className={styles.trail} size={28} />
@@ -88,7 +87,9 @@ export function MarketingHub() {
           </p>
         </header>
         <section className={styles.hero} id="main-content" aria-labelledby="hub-title">
-          <h1 id="hub-title">{hub.headline}</h1>
+          <h1 className={styles.support} id="hub-title">
+            {hub.support}
+          </h1>
           <p className={styles.prompt}>{hub.prompt}</p>
           <div className={styles.spark} aria-hidden="true">
             <span />
