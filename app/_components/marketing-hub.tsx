@@ -24,6 +24,7 @@ function AccountLink({ href, children }: { href: string; children: string }) {
 }
 
 function PathCard({
+  comingSoon,
   destinationLabel,
   detail,
   href,
@@ -34,6 +35,7 @@ function PathCard({
   signUpLabel,
   tone,
 }: {
+  comingSoon?: string
   destinationLabel: string
   detail: string
   href: string
@@ -67,9 +69,12 @@ function PathCard({
           {main}
         </Link>
       )}
-      <div className={styles.accountActions}>
-        <AccountLink href={signInHref}>{signInLabel}</AccountLink>
-        <AccountLink href={signUpHref}>{signUpLabel}</AccountLink>
+      <div className={styles.accountBlock}>
+        {comingSoon ? <p className={styles.comingSoon}>{comingSoon}</p> : null}
+        <div className={styles.accountActions}>
+          <AccountLink href={signInHref}>{signInLabel}</AccountLink>
+          <AccountLink href={signUpHref}>{signUpLabel}</AccountLink>
+        </div>
       </div>
     </article>
   )
@@ -120,6 +125,7 @@ export function MarketingHub() {
               detail={hub.finder.detail}
               href={hub.finder.href}
               product={hub.finder.product}
+              comingSoon={hub.finder.comingSoon}
               signInHref={hub.finder.signInHref}
               signInLabel={hub.finder.signInLabel}
               signUpHref={hub.finder.signUpHref}

@@ -180,12 +180,23 @@
   line-height: 1.4;
 }
 
-.accountActions {
+.accountBlock {
   position: absolute;
   right: 22px;
   bottom: 12px;
   left: 22px;
   z-index: 1;
+}
+
+.comingSoon {
+  margin: 0 0 2px;
+  color: var(--finder-ink);
+  font-size: 1.02rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.accountActions {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -210,6 +221,15 @@
   margin-left: auto;
   justify-content: flex-end;
   text-align: right;
+}
+
+.finder .accountLink {
+  color: #9a93a3;
+  font-weight: 650;
+}
+
+.finder .cardMain {
+  padding-bottom: 128px;
 }
 
 .srOnly {
@@ -327,6 +347,10 @@
 
   .cardMain {
     padding: 28px 28px 88px;
+  }
+
+  .finder .cardMain {
+    padding-bottom: 120px;
   }
 
   .trail {
