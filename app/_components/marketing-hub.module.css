@@ -4,9 +4,9 @@
   --suite-ink: #402924;
   --suite-magenta: #ee2c9b;
   --finder-ink: #2a1f40;
-  --night: #1b1218;
-  --night-raised: #2a1822;
-  background: var(--night);
+  --espresso: #140e0b;
+  --espresso-raised: #2a1c14;
+  background: var(--espresso);
   color: #f6eee8;
   font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
   overflow-x: clip;
@@ -40,15 +40,25 @@
   top: 10px;
 }
 
+.veteranBanner {
+  padding: 16px 20px 0;
+  color: #e4d2c4;
+  font-size: 0.84rem;
+  font-weight: 550;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .stage {
   background:
-    radial-gradient(ellipse at 50% 0%, #3d2432 0%, transparent 48%),
-    radial-gradient(ellipse at 100% 80%, #4a243844 0%, transparent 42%),
-    linear-gradient(180deg, var(--night-raised) 0%, var(--night) 72%);
+    radial-gradient(ellipse at 50% 0%, #3d2a1c 0%, transparent 48%),
+    radial-gradient(ellipse at 100% 80%, #4a322644 0%, transparent 42%),
+    linear-gradient(180deg, var(--espresso-raised) 0%, var(--espresso) 72%);
 }
 
 .wordmarkBar {
-  padding: 28px 20px 0;
+  padding: 18px 20px 0;
 }
 
 .wordmark {

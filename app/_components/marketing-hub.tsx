@@ -95,6 +95,7 @@ export function MarketingHub() {
         Skip to content
       </a>
       <div className={styles.stage}>
+        <p className={styles.veteranBanner}>{hub.veteranBanner}</p>
         <header className={styles.wordmarkBar}>
           <p className={styles.wordmark}>
             <Link className={styles.wordmarkSuite} href="/">
