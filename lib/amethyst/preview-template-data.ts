@@ -281,12 +281,12 @@ function normalizeSocialUrl(label: string, value: string | undefined) {
   return cleaned
 }
 
-function buildTicker(settings: SiteSettingsDashboardResult, fallback: string) {
+function buildTicker(settings: SiteSettingsDashboardResult) {
   const tickerText = settings.tickerVisible ? settings.tickerText : ''
 
   return clean(tickerText).length > 0 && !hasLegacyPlaceholderText(tickerText)
     ? tickerText
-    : fallback
+    : ''
 }
 
 function buildSocialLinks(settings: SiteSettingsDashboardResult) {
@@ -589,10 +589,7 @@ export function mapPreviewSettingsToHomepageTemplateData(
       : `I'm ${repName} - join me for live reveals, favorite finds, and customer-first sparkle.`,
     heroMotion: settings.heroAnimationType,
     heroEyebrow: 'Live schedule coming soon',
-    tickerTopText: buildTicker(
-      settings,
-      defaultAmethystHomepageTemplateData.tickerTopText,
-    ),
+    tickerTopText: buildTicker(settings),
     aboutHeadline: firstText(
       settings.aboutHeading,
       `Meet ${repName} and the story behind ${businessName}.`,
@@ -690,7 +687,7 @@ export function mapPreviewSettingsToTradeTemplateData(
     repName,
     businessName,
     memberTeamName: settings.memberTeamName?.trim() || undefined,
-    tickerTopText: buildTicker(settings, defaultAmethystTradeTemplateData.tickerTopText),
+    tickerTopText: buildTicker(settings),
     shopUrl,
     footerTagline: firstText(settings.tagline, defaultAmethystTradeTemplateData.footerTagline),
     legalDisclaimer: buildLegalDisclaimer(businessName, 'trade'),
@@ -772,7 +769,7 @@ export function mapPreviewSettingsToJoinTemplateData(
       : `Starter pack details are not connected here yet. Connect with ${repName} for the current official options and next steps.`,
     bpReferralUrl: joinUrl,
     hasRecruitingLink,
-    tickerTopText: buildTicker(settings, defaultAmethystJoinTemplateData.tickerTopText),
+    tickerTopText: buildTicker(settings),
     shopUrl,
     footerTagline: firstText(settings.tagline, defaultAmethystJoinTemplateData.footerTagline),
     legalDisclaimer: buildLegalDisclaimer(businessName, 'join'),

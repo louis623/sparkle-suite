@@ -2,7 +2,7 @@
    Only its existing homepage hero gets the approved Chasing Unicorns scene. */
 body .hp-hero[data-appearance-preset="amethyst"] {
   isolation:isolate; min-height:760px; padding:0; color:#fff;
-  background:radial-gradient(ellipse at 65% 65%,#72065c 0%,#22064b 48%,#080c25 100%);
+  background:#080c25 url("/amethyst/skins/am01-unicorn/opening-poster.webp") center/cover no-repeat;
 }
 body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-media {display:none}
 body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-inner {
@@ -19,7 +19,7 @@ body .hp-hero[data-appearance-preset="amethyst"] .hp-btn-outline {background:#24
 body .hp-hero[data-appearance-preset="amethyst"] .hp-btn-primary {color:#fff;background:linear-gradient(110deg,#5C0EFF,#b00e93);border-color:#bd78ff}
 body .hp-hero[data-appearance-preset="amethyst"] .au-art {position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 body .hp-hero[data-appearance-preset="amethyst"] .au-art :is(img,video) {
-  display:block;position:absolute;left:0;top:50%;transform:translateY(-50%);width:100%;height:auto;aspect-ratio:1310/704;object-fit:contain;
+  display:block;position:absolute;left:0;top:50%;transform:translateY(-50%);width:100%;height:auto;aspect-ratio:1310/704;object-fit:contain;mask-image:linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent);
 }
 body .hp-hero[data-appearance-preset="amethyst"] .au-video {opacity:0}
 body .hp-hero[data-appearance-preset="amethyst"] .au-art[data-video] .au-video {opacity:1}
@@ -36,13 +36,13 @@ body .hp-hero[data-appearance-preset="amethyst"] .au-controls button {min-height
 body .hp-hero[data-appearance-preset="amethyst"] :is(button,a):focus-visible {outline:3px solid #f1b9ff;outline-offset:4px}
 @keyframes au-ribbon {to {transform:translateY(-22px) scaleY(1.06);opacity:.5}}
 @keyframes au-twinkle {0%,100% {opacity:.15;transform:scale(.7)}50% {opacity:.85;transform:scale(1.2)}}
-@media(max-width:680px) {
+@media(max-width:900px) {
   body .hp-hero[data-appearance-preset="amethyst"] {min-height:800px;align-items:flex-start}
   body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-inner {display:block;padding:35px 20px 90px}
   body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-inner>div {width:100%;max-width:none}
-  body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-headline {width:44%;font-size:clamp(26px,6vw,40px);margin:0 0 clamp(150px,38vw,230px);text-align:left}
+  body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-headline {width:44%;font-size:clamp(26px,5.5vw,46px);margin:0 0 clamp(150px,30vw,230px);text-align:left}
   body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-sub {max-width:540px;margin-inline:auto}
-  body .hp-hero[data-appearance-preset="amethyst"] .au-art :is(img,video) {top:0;transform:none;height:min(66vw,420px);width:100%;object-fit:cover;object-position:100% top}
+  body .hp-hero[data-appearance-preset="amethyst"] .au-art :is(img,video) {top:0;transform:none;height:min(66vw,420px);width:100%;object-fit:cover;object-position:100% top;mask-image:linear-gradient(to bottom,#000 86%,transparent)}
   body .hp-hero[data-appearance-preset="amethyst"] .au-controls {right:12px;bottom:14px;left:12px;justify-content:center}
 }
 @media(prefers-reduced-motion:reduce) {body .hp-hero[data-appearance-preset="amethyst"] .au-magic * {animation:none}}

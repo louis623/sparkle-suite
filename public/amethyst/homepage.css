@@ -1163,14 +1163,13 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   color: #ffffff;
 }
 .hp-ticker-label {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  position: relative;
+  flex: 0 0 160px;
+  align-self: stretch;
   z-index: 2;
   display: flex;
   align-items: center;
-  padding: 0 28px 0 18px;
+  padding: 0 14px 0 18px;
   background: linear-gradient(90deg, #ffffff 0%, #ffffff 70%, rgba(255,255,255,0) 100%);
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 10px;
@@ -1184,11 +1183,20 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   color: rgba(255, 255, 255, 0.78);
   background: linear-gradient(90deg, #111111 0%, #111111 70%, rgba(17, 17, 17, 0));
 }
+.hp-ticker-window {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
 .hp-ticker-track {
+  width: max-content;
+  height: 100%;
+  align-items: center;
   display: flex;
   gap: 36px;
   white-space: nowrap;
-  padding-left: 170px;
+  padding-left: 0;
   animation: hp-ticker-scroll var(--hp-ticker-dynamic-duration, var(--hp-ticker-duration, 72s)) linear infinite;
   animation-duration: calc(var(--hp-ticker-dynamic-duration, var(--hp-ticker-duration, 72s)) / var(--ticker-speed, 1));
 }
@@ -1290,23 +1298,23 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   .hp-ticker-row {
     width: 100%;
     max-width: 100vw;
-    display: block;
+    display: flex;
     contain: layout paint;
   }
 
   .hp-ticker-label {
+    flex-basis: 124px;
     min-width: 124px;
-    padding: 0 22px 0 14px;
+    padding: 0 10px 0 14px;
   }
 
   .hp-ticker-track {
-    position: absolute;
-    inset: 0 auto 0 0;
+    position: relative;
     align-items: center;
     width: max-content;
     max-width: none;
     min-width: max-content;
-    padding-left: 132px;
+    padding-left: 0;
     gap: 24px;
   }
 }
@@ -6866,3 +6874,17 @@ body.surface-pumpkin-cat-glass {
 @keyframes hp-lineup-reveal-glow { 0%, 100% { box-shadow: none; } 25% { box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 28%, transparent), 0 0 18px color-mix(in srgb, currentColor 22%, transparent); } }
 @keyframes hp-lineup-reveal-sparkle { 0%, 100% { opacity: 0; } 25% { opacity: .9; } 75% { opacity: .2; transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { [data-lineup-flare="true"] { animation: none; background-color: color-mix(in srgb, currentColor 12%, transparent); } [data-lineup-token][data-lineup-flare="true"] .hp-lineup-sparkle { display: none; animation: none; } }
+
+/* A waiting lineup is one compact status, with the same full-lineup drawer. */
+.hp-trade-preview[data-lineup-empty="true"] .hp-trade-preview-inner {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "head items link" "updated updated updated";
+  gap: 0 14px; padding-block: 4px;
+}
+.hp-trade-preview[data-lineup-empty="true"] .hp-trade-preview-items {font-size:12px;line-height:1.45;overflow:visible;min-width:0}
+.hp-trade-preview[data-lineup-empty="true"] .hp-trade-preview-link {min-height:44px;padding:8px 0;justify-self:end}
+.hp-trade-preview[data-lineup-empty="true"] .hp-trade-preview-updated {padding-bottom:4px}
+@media(max-width:860px) {
+  .hp-trade-preview[data-lineup-empty="true"] .hp-trade-preview-inner {grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"head link" "items link" "updated updated";gap:0 12px}
+  .hp-trade-preview[data-lineup-empty="true"] .hp-trade-preview-head {font-size:9px}
+}

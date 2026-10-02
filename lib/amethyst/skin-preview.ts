@@ -20,6 +20,10 @@ const previewPath = (skin: SkinPreviewSkin, page: SkinPreviewPage) => `/skin-pre
 
 // Explicit sample data only. The opaque preview never contacts the live lineup endpoint.
 export const GNOME_PREVIEW_LINEUP = {
+  liveQueuePresentation: 'grouped-v1' as const,
+  liveQueueScope: null,
+  liveQueueEventCursor: 0,
+  liveQueueEvents: [],
   liveQueueRevision: 0,
   liveQueueSourceReady: true,
   liveQueueServerTime: '2026-09-09T00:00:00.000Z',
@@ -29,7 +33,7 @@ export const GNOME_PREVIEW_LINEUP = {
   liveQueueState: 'live' as const,
   liveQueueSummary: 'Sample lineup for appearance preview. No live show is connected.',
   liveQueueEntries: ['Sample Harper', 'Sample Rowan', 'Sample Sage'].map((name, index) => ({
-    name, position: index + 1, highlight: false, label: 'Sample only',
+    name, position: index + 1, token: `sample-${index + 1}`, remainingOrders: 1, highlight: false, label: 'Sample only',
   })),
 }
 

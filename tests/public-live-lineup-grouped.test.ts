@@ -218,8 +218,8 @@ it('new HTML pins template and runtime together, with privacy-safe counts and de
     expect(jsx).toContain('data-lineup-token={entry.token}')
     expect(jsx).toContain('key={entry.token || entry.position}')
     expect(jsx).toContain('hp-lineup-sparkle" aria-hidden="true"')
-    expect(jsx).toContain('data-lineup-clone={index >= entries.length ? "true" : undefined}')
-    expect(jsx).toContain('hp-ticker-track" data-ticker-pps="32" aria-hidden="true"')
+    expect(jsx).not.toContain('<LiveLineupTicker />')
+    expect(jsx).toContain('data-lineup-surface="list"')
     expect(jsx).not.toMatch(/entry\.lastName|entry\.birthday|entry\.preferences|entry\.groupEntryIds/)
   }
   expect(readFileSync('public/amethyst/homepage.css', 'utf8')).toContain('@media (prefers-reduced-motion: reduce)')
