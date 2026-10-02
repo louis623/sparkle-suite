@@ -18,7 +18,7 @@ body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-headline {
 body .hp-hero[data-appearance-preset="amethyst"] .hp-hero-sub {font-size:clamp(16px,1.5vw,18px);color:#f9edff;text-shadow:0 2px 10px #130429}
 body .hp-hero[data-appearance-preset="amethyst"] .hp-btn-outline {background:#240943d9;color:#fff;border-color:#d5a8f2}
 body .hp-hero[data-appearance-preset="amethyst"] .hp-btn-primary {color:#fff;background:linear-gradient(110deg,#5C0EFF,#b00e93);border-color:#bd78ff}
-body .hp-hero[data-appearance-preset="amethyst"] .au-art {position:absolute;inset:24px 16px 68px;z-index:0;pointer-events:none;overflow:hidden;display:grid;grid-template: minmax(0,1fr) / minmax(0,1fr);place-items:center}
+body .hp-hero[data-appearance-preset="amethyst"] .au-art {position:absolute;inset:24px 16px 68px;z-index:1;pointer-events:none;overflow:hidden;display:grid;grid-template: minmax(0,1fr) / minmax(0,1fr);place-items:center}
 body .hp-hero[data-appearance-preset="amethyst"] .au-art :is(img,video) {
   display:block;position:relative;grid-area:1/1;width:auto;height:auto;max-width:100%;max-height:100%;aspect-ratio:1310/704;object-fit:contain;object-position:center;
   /* Only the empty plate edges and left negative space blend. The horn and hooves stay
@@ -27,12 +27,12 @@ body .hp-hero[data-appearance-preset="amethyst"] .au-art :is(img,video) {
 }
 body .hp-hero[data-appearance-preset="amethyst"] .au-video {opacity:0}
 body .hp-hero[data-appearance-preset="amethyst"] .au-art[data-video] .au-video {opacity:1}
-body .hp-hero[data-appearance-preset="amethyst"] .au-magic {position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-body .hp-hero[data-appearance-preset="amethyst"] .au-magic svg {width:100%;height:100%;opacity:.26;filter:drop-shadow(0 0 9px #FF1AC2)}
+body .hp-hero[data-appearance-preset="amethyst"] .au-magic {position:absolute;inset:0;z-index:auto;pointer-events:none;overflow:hidden}
+body .hp-hero[data-appearance-preset="amethyst"] .au-magic svg {position:relative;z-index:0;width:100%;height:100%;opacity:.26;filter:drop-shadow(0 0 9px #FF1AC2)}
 body .hp-hero[data-appearance-preset="amethyst"] .au-magic path {fill:none;stroke:#e676ff;stroke-width:1.3;animation:au-ribbon 9s ease-in-out infinite alternate;transform-origin:center}
 body .hp-hero[data-appearance-preset="amethyst"] .au-magic path:nth-child(2) {animation-delay:-3s;stroke:#a779ff}
 body .hp-hero[data-appearance-preset="amethyst"] .au-magic path:nth-child(3) {animation-delay:-6s}
-body .hp-hero[data-appearance-preset="amethyst"] .au-magic i {position:absolute;left:var(--x);top:var(--y);width:3px;height:3px;border-radius:50%;background:#f4ceff;box-shadow:0 0 10px 2px #FF1AC2;animation:au-twinkle 4s ease-in-out var(--delay) infinite}
+body .hp-hero[data-appearance-preset="amethyst"] .au-magic i {position:absolute;z-index:1;left:var(--x);top:var(--y);width:3px;height:3px;border-radius:50%;background:#f4ceff;box-shadow:0 0 10px 2px #FF1AC2;animation:au-twinkle 4s ease-in-out var(--delay) infinite}
 body .hp-hero[data-appearance-preset="amethyst"][data-unicorn-motion="paused"] .au-magic * {animation-play-state:paused}
 body .hp-hero[data-appearance-preset="amethyst"] .au-controls {position:absolute;z-index:4;bottom:16px;right:20px;display:flex;flex-wrap:wrap;gap:8px}
 body .hp-hero[data-appearance-preset="amethyst"] .au-controls[hidden] {display:none}
