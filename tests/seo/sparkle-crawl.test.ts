@@ -39,6 +39,9 @@ describe('Sparkle Suite crawl helpers', () => {
         }),
       ]),
     )
+    expect(buildSparkleSitemap().map((entry) => entry.url)).not.toContain(
+      'https://www.yoursparklesuite.com/adventure',
+    )
     expect(buildSparkleRobots()).toEqual(
       expect.objectContaining({
         host: 'https://www.yoursparklesuite.com',
