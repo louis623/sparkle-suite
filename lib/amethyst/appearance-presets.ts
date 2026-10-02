@@ -59,8 +59,8 @@ export const AMETHYST_APPEARANCE_PRESETS: Record<
 > = {
   amethyst: {
     id: 'amethyst',
-    label: 'Amethyst',
-    description: 'The default Sparkle Suite customer-site look.',
+    label: 'Chasing Unicorns (Amethyst)',
+    description: 'The Amethyst palette with a magical full-body unicorn entrance.',
     values: {
       primaryColor: '#5C0EFF',
       accentColor: '#FF1AC2',

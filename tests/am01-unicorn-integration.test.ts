@@ -1,10 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { getAmethystAppearancePreset, DEFAULT_AMETHYST_APPEARANCE_PRESET } from '@/lib/amethyst/appearance-presets'
-import { getCommunityAmethystSkinCards, normalizeAmethystSkinSelection } from '@/lib/amethyst/skin-cards'
+import { getCommunityAmethystSkinCards, getAmethystSkinDropdownLabel, normalizeAmethystSkinSelection } from '@/lib/amethyst/skin-cards'
 import { buildSkinPreviewDocument, renderSkinPreview, skinPreviewMediaSource, type SkinPreviewSkin } from '@/lib/amethyst/skin-preview'
 
 describe('existing AM-01 Chasing Unicorns integration', () => {
+  it('uses the approved public name everywhere while keeping legacy selection names valid', async () => {
+    const card=getCommunityAmethystSkinCards().find(card => card.id === 'amethyst')!
+    expect(card.label).toBe('Chasing Unicorns (Amethyst)')
+    expect(getAmethystSkinDropdownLabel(card)).toBe('Chasing Unicorns (Amethyst) (AM-01)')
+    expect(getAmethystAppearancePreset('amethyst').label).toBe('Chasing Unicorns (Amethyst)')
+    for(const selection of ['Amethyst','Chasing Unicorns','Chasing Unicorns (Amethyst)','AM-01']) expect(normalizeAmethystSkinSelection(selection)).toBe('amethyst')
+    const preview=await renderSkinPreview('amethyst','homepage','https://www.yoursparklesuite.com')
+    expect(preview.includes('Chasing Unicorns (Amethyst)')).toBe(true)
+  })
   it('preserves its saved identity, Community availability, palette, typography and current default', () => {
     expect(normalizeAmethystSkinSelection('AM-01')).toBe('amethyst')
     expect(normalizeAmethystSkinSelection('Chasing Unicorns')).toBe('amethyst')

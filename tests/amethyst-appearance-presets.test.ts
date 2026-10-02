@@ -95,7 +95,7 @@ describe('Amethyst appearance presets', () => {
       'rose_quartz',
     ])
     expect(AMETHYST_SKIN_CARDS.map((skin) => skin.label)).toEqual([
-      'Amethyst',
+      'Chasing Unicorns (Amethyst)',
       'Sparkle Suite/Morganite',
       'Black Diamond',
       'Moonstone',

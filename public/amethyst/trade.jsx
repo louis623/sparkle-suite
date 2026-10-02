@@ -2517,7 +2517,7 @@ function App() {
             value={t.preset}
             onChange={applyPreset}
             options={[
-              { value: "amethyst", label: "Amethyst" },
+              { value: "amethyst", label: "Chasing Unicorns (Amethyst)" },
               { value: "sparkle_suite_morganite", label: "Sparkle Suite/Morganite" },
               { value: "black_diamond", label: "Black Diamond" },
               { value: "moonstone", label: "Moonstone" },

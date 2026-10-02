@@ -73,7 +73,7 @@ type PreviewProfile = {
 
 const PREVIEW_PROFILES = {
   amethyst: {
-    label: 'Amethyst · Chasing Unicorns', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
+    label: 'Chasing Unicorns (Amethyst)', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
     ticker: 'Live jewelry reveals | A little magic in every surprise | Explore the Dance Floor',
     tagline: 'A little magic. A beautiful surprise.',
     eyebrow: '', headline: 'Real jewelry. Live reveals. Pure sparkle.',
