@@ -38,7 +38,7 @@ describe('read-only Gnome Forest skin preview', () => {
   it('prevents submissions and rejects mutations instead of faking success', async () => {
     const listeners: Record<string, (event: unknown) => void> = {}
     const notice = { textContent: '', remove: vi.fn() }
-    const context = { window: {} as Record<string, unknown>, document: { addEventListener: (type: string, listener: (event: unknown) => void) => { listeners[type] = listener }, getElementById: () => notice }, clearTimeout: vi.fn(), setTimeout: vi.fn(), Response }
+    const context = { window: { addEventListener: vi.fn() } as Record<string, unknown>, document: { addEventListener: (type: string, listener: (event: unknown) => void) => { listeners[type] = listener }, getElementById: () => notice }, clearTimeout: vi.fn(), setTimeout: vi.fn(), Response }
     runInNewContext(SKIN_PREVIEW_GUARDS, context)
     const fetch = context.window.fetch as (url: string, options?: { method: string }) => Promise<Response>
     for (const method of ['POST', 'PUT', 'DELETE', 'PATCH']) {
@@ -57,10 +57,11 @@ describe('read-only Gnome Forest skin preview', () => {
   it('routes only known sample page links and blocks provider navigation', () => {
     let click: (event: unknown) => void = () => {}
     const postMessage = vi.fn()
+    const scrollIntoView = vi.fn()
     const notice = { textContent: '', remove: vi.fn() }
     runInNewContext(SKIN_PREVIEW_GUARDS, {
-      window: { parent: { postMessage } },
-      document: { addEventListener: (type: string, handler: typeof click) => { if (type === 'click') click = handler }, getElementById: () => notice },
+      window: { addEventListener: vi.fn(), parent: { postMessage } },
+      document: { addEventListener: (type: string, handler: typeof click) => { if (type === 'click') click = handler }, getElementById: (id: string) => id === 'events' ? { scrollIntoView } : notice },
       setTimeout: vi.fn(), clearTimeout: vi.fn(), Response,
     })
     const eventFor = (href: string) => ({ target: { closest: (selector: string) => selector === 'a' ? { getAttribute: () => href } : null }, preventDefault: vi.fn(), stopImmediatePropagation: vi.fn() })
@@ -72,13 +73,14 @@ describe('read-only Gnome Forest skin preview', () => {
     expect(postMessage).toHaveBeenCalledWith({ type: 'sparkle-skin-preview-page', page: 'trade' }, '*')
     const section = eventFor('#events')
     click(section)
-    expect(section.preventDefault).not.toHaveBeenCalled()
+    expect(section.preventDefault).toHaveBeenCalledOnce()
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' })
   })
 
   it('answers lineup reads locally with labeled fixtures and never raises mutation notices for polling', async () => {
     const notice = { textContent: '', remove: vi.fn() }
     const originalFetch = vi.fn()
-    const context = { window: { fetch: originalFetch } as Record<string, unknown>, document: { addEventListener: vi.fn(), getElementById: () => notice }, clearTimeout: vi.fn(), setTimeout: vi.fn(), Response }
+    const context = { window: { addEventListener: vi.fn(), fetch: originalFetch } as Record<string, unknown>, document: { addEventListener: vi.fn(), getElementById: () => notice }, clearTimeout: vi.fn(), setTimeout: vi.fn(), Response }
     runInNewContext(SKIN_PREVIEW_GUARDS, context)
     const fetch = context.window.fetch as (url: string, options?: { method: string }) => Promise<Response>
     for (let i = 0; i < 3; i++) {
@@ -103,7 +105,7 @@ describe('read-only Gnome Forest skin preview', () => {
     const fileInput = { disabled: false, title: '', setAttribute: vi.fn() }
     const notice = { textContent: '', remove: vi.fn() }
     runInNewContext(SKIN_PREVIEW_GUARDS, {
-      window: {},
+      window: { addEventListener: vi.fn() },
       document: {
         addEventListener: (type: string, handler: typeof click) => { if (type === 'click') click = handler },
         getElementById: () => notice,
@@ -132,4 +134,25 @@ describe('read-only Gnome Forest skin preview', () => {
     expect(data.signupConsent).toContain('The Gnome Forest')
     expect(JSON.stringify(data)).not.toContain('Sparkle by Sasha')
   })
+  it('accepts only the parent calendar jump and waits for the calendar to render', () => {
+    let receive: (event: unknown) => void = () => {}
+    let mutate = () => {}
+    let rendered = false
+    const parent = {}, scrollIntoView = vi.fn()
+    runInNewContext(SKIN_PREVIEW_GUARDS, {
+      window: { parent, addEventListener: (type: string, handler: typeof receive) => { if (type === 'message') receive = handler } },
+      document: { addEventListener: vi.fn(), getElementById: (id: string) => id === 'events' ? rendered ? {scrollIntoView} : null : {}, querySelectorAll: () => [] },
+      MutationObserver: class { constructor(handler: () => void) { mutate = handler } observe() {} },
+      setTimeout: vi.fn(), clearTimeout: vi.fn(), Response,
+    })
+    receive({ source: {}, data: { type: 'sparkle-skin-preview-scroll', fragment: '#events' } })
+    receive({ source: parent, data: { type: 'sparkle-skin-preview-scroll', fragment: '#unapproved' } })
+    expect(scrollIntoView).not.toHaveBeenCalled()
+    receive({ source: parent, data: { type: 'sparkle-skin-preview-scroll', fragment: '#events' } })
+    expect(scrollIntoView).not.toHaveBeenCalled()
+    rendered = true; mutate()
+    expect(scrollIntoView).toHaveBeenCalledOnce()
+    mutate(); expect(scrollIntoView).toHaveBeenCalledOnce()
+  })
+
 })

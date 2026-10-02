@@ -234,6 +234,16 @@ function inlineScript(value: string) { return value.replace(/<\/script/gi, '<\\/
 export const SKIN_PREVIEW_GUARDS = `
 (function () {
   var pages = { 'Homepage.html': 'homepage', 'Trade.html': 'trade', 'Join.html': 'join', 'Unsubscribe.html': 'unsubscribe' };
+  var pendingFragment = null;
+  function scrollToFragment(fragment) {
+    var target = document.getElementById(fragment.slice(1));
+    if (!target) { pendingFragment = fragment; return; }
+    pendingFragment = null;
+    target.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }
+  window.addEventListener('message', function (event) {
+    if (event.source === window.parent && event.data?.type === 'sparkle-skin-preview-scroll' && event.data.fragment === '#events') scrollToFragment('#events');
+  });
   function notice() {
     var node = document.getElementById('skin-preview-notice');
     if (!node) {
@@ -264,7 +274,9 @@ export const SKIN_PREVIEW_GUARDS = `
     if (action) { event.preventDefault(); event.stopImmediatePropagation(); notice(); return; }
     var link = event.target.closest && event.target.closest('a'); if (!link) return;
     var href = link.getAttribute('href') || '';
-    if (href.charAt(0) === '#' && href !== '#' && href !== '#preview-action') return;
+    if (href.charAt(0) === '#' && href !== '#' && href !== '#preview-action') {
+      event.preventDefault(); event.stopImmediatePropagation(); scrollToFragment(href); return;
+    }
     event.preventDefault(); event.stopImmediatePropagation();
     var path = href.split('?')[0].split('#')[0];
     var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:amethyst|gnome_garden|neon_butterfly|halloween_pumpkin_witch|halloween_pumpkin_cat|gilded_autumn)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
@@ -278,7 +290,7 @@ export const SKIN_PREVIEW_GUARDS = `
     });
   }
   if (typeof MutationObserver !== 'undefined') {
-    new MutationObserver(disableUploads).observe(document.getElementById('root'), { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
+    new MutationObserver(function () { disableUploads(); if (pendingFragment) scrollToFragment(pendingFragment); }).observe(document.getElementById('root'), { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
     disableUploads();
   }
 })();`
@@ -348,6 +360,8 @@ export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreview
   *{box-sizing:border-box}body{margin:0;background:${chrome.bg};color:${chrome.fg};font:14px/1.4 system-ui,sans-serif}header{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;border-bottom:1px solid ${chrome.border}}header strong{font-size:14px}header small{display:block;color:${chrome.muted};font-size:12px}nav{display:flex;gap:5px;flex-wrap:wrap}nav a{color:inherit;text-decoration:none;border-radius:20px;padding:8px 12px}nav a:hover,nav a[aria-current]{background:${chrome.active};color:${chrome.bg}}a:focus-visible{outline:3px solid ${chrome.focus};outline-offset:3px}iframe{display:block;width:100%;height:calc(100dvh - 65px);border:0;background:${chrome.bg}}@media(max-width:600px){header{padding:10px 12px;flex-direction:column;align-items:flex-start;gap:7px}header small{display:inline;margin-left:6px}nav{width:100%;justify-content:space-between}nav a{padding:7px 9px}iframe{height:calc(100dvh - 100px)}}
   html,body{height:100%;overflow:hidden}body{height:100dvh;display:flex;flex-direction:column}header{flex:0 0 auto}iframe{flex:1 1 0;min-height:0;height:auto}
   </style></head><body><header><div><strong>Skin preview · Sample content${review ? ' · Lineup review' : ''}</strong><small>${profile.label}</small></div><nav aria-label="Preview pages">${navigation}</nav>${reviewControls}</header><iframe id="skin-preview" title="${LABELS[page]} — sample ${profile.label} site" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escapeAttribute(document)}"></iframe><script>
+  var previewFrame=document.getElementById('skin-preview');
+  previewFrame.addEventListener('load',function(){if(window.location.hash==='#events')previewFrame.contentWindow.postMessage({type:'sparkle-skin-preview-scroll',fragment:'#events'},'*');});
   window.addEventListener('message',function(event){var frame=document.getElementById('skin-preview');if(event.source!==frame.contentWindow||event.data?.type!=='sparkle-skin-preview-page')return;var page=event.data.page;if(['homepage','trade','join','unsubscribe'].includes(page))window.location.assign('/skin-preview/${skin}/'+page+'${reviewQuery}'+(event.data.fragment === '#events' ? '#events' : ''));});
   </script></body></html>`
 }
