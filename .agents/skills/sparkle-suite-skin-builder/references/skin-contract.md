@@ -44,6 +44,37 @@ Skins must not change:
 - SEO metadata or real rep/customer data mapping
 - authorization, provider, payment, SMS, email, SignWell, or calendar behavior
 
+## Locked shared layout — Louis's explicit rule, October 2, 2026
+
+Once a skin is made, its established header, navigation, announcement rows,
+Dance Floor ticker, and Live Lineup are locked. A skin task does not authorize
+changes to their DOM, CSS, spacing, position, visibility or empty-state rules,
+data mapping, polling, drawer, or behavior. Do not make them "better" while
+adding hero art. Keep approved colors and fonts unless Louis requests a change.
+
+Before editing, record the approved source SHA and preserve screenshots of
+the whole header/update stack at desktop, tablet and phone sizes. Keep new
+hero styling and motion inside the existing hero, scoped to its exact skin ID.
+Compare the shared layout against source and screenshots after implementation,
+and inspect other light/dark skins. QA must include current grouped lineup data
+in waiting/empty, populated and delayed states, plus visibility preferences.
+
+If a regression is found, restore the known-good source. Removing an accidentally
+added duplicate restores the original structure; it does not authorize new
+spacing, clipping, fallback, visibility or announcement behavior. Shared product
+changes require Louis's explicit approval for the exact change in a separate
+scope. Do not replace the original design with an interpretation.
+
+`tests/customer-site-layout-lock.test.ts` guards the existing shared stylesheet,
+announcement mapping and Home/Trade/Join header/ticker/lineup render functions.
+`npm run skin:layout-check` enforces the same lock before every build.
+Skin work must pass it without modifying `tests/fixtures/customer-site-layout-lock.json`.
+Only an explicitly authorized shared change may update that baseline, with the
+approval and resulting behavior recorded. A failing guard blocks release;
+do not bypass it or quietly refresh snapshots. Sample preview data must match
+the current production contract, and sample review must never be reported as
+verification of a real account.
+
 ## Custom Hero Art and Motion
 
 When a skin adds a custom illustrated, generated, photographed, or animated

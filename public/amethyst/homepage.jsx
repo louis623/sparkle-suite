@@ -1337,6 +1337,7 @@ function parseAnnouncementTickerItems(topText) {
 }
 
 function Ticker({ topText }) {
+  const lineup = React.useContext(LiveLineupContext);
   useDynamicTickerMotion();
   const items = parseAnnouncementTickerItems(topText);
   const contentTrades = Array.isArray(CONTENT.tradeBoardTickerItems)
@@ -1368,11 +1369,12 @@ function Ticker({ topText }) {
         {items.flatMap((item) => item.parts.filter((part) => part.href)).map((part, index) => (
           <a key={`${part.href}-${index}`} {...linkProps(part.href)}>{part.text}</a>
         ))}
+        <p>{lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup opens when the show starts.")}</p>
         <a {...linkProps(getTradeBoardHref())}>{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Browse current dance floor highlights"}</a>
       </div>
-      {items.length > 0 && <div className="hp-ticker-row">
+      <div className="hp-ticker-row">
         <span className="hp-ticker-label">Announcements</span>
-        <div className="hp-ticker-window"><div className="hp-ticker-track" data-ticker-pps={ANNOUNCEMENT_TICKER_SPEED_PPS} aria-hidden="true">
+        <div className="hp-ticker-track" data-ticker-pps={ANNOUNCEMENT_TICKER_SPEED_PPS} aria-hidden="true">
           {announcementTickerItems.map((item, i) => (
             <span key={i} className="hp-ticker-item" data-ticker-segment-start={i === 0 ? "true" : undefined} data-ticker-segment-repeat-start={i === announcementSegmentLength ? "true" : undefined}>
               <span className="dot" />
@@ -1381,11 +1383,11 @@ function Ticker({ topText }) {
               ) : part.text)}
             </span>
           ))}
-        </div></div>
-      </div>}
+        </div>
+      </div>
       <div className="hp-ticker-row reverse">
         <span className="hp-ticker-label">Dance Floor</span>
-        <div className="hp-ticker-window"><div className="hp-ticker-track" data-ticker-pps={TRADE_TICKER_SPEED_PPS} aria-hidden="true">
+        <div className="hp-ticker-track" data-ticker-pps={TRADE_TICKER_SPEED_PPS} aria-hidden="true">
           {tickerTrades.map((tr, i) => tr.isEmpty ? (
             <span
               key={i}
@@ -1406,7 +1408,7 @@ function Ticker({ topText }) {
               {tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}
             </a>
           ))}
-        </div></div>
+        </div>
       </div>
     </div>
   );
@@ -1415,12 +1417,10 @@ function Ticker({ topText }) {
 function LiveQueueStrip({ state, onOpen }) {
   const lineup = React.useContext(LiveLineupContext);
   const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
-  const compact = entries.length === 0 || ["offline", "loading", "empty"].includes(state);
   if (state === "offline") {
     return (
-      <section className="hp-trade-preview" data-lineup-surface="list" data-lineup-empty={compact ? "true" : undefined}>
+      <section className="hp-trade-preview" data-lineup-surface="list">
         <div className="hp-trade-preview-inner">
-          <span className="hp-ticker-sr" role="status" aria-live="polite" aria-atomic="true" key={lineup?.liveQueueFlare?.cursor || "baseline"}>{lineup?.liveQueueFlare ? "Live Lineup updated after an order reveal." : ""}</span>
           <div className="hp-trade-preview-head">
             <span>Live Lineup</span>
           </div>
@@ -1436,9 +1436,8 @@ function LiveQueueStrip({ state, onOpen }) {
 
   if (state === "loading") {
     return (
-      <section className="hp-trade-preview" data-lineup-surface="list" data-lineup-empty={compact ? "true" : undefined}>
+      <section className="hp-trade-preview" data-lineup-surface="list">
         <div className="hp-trade-preview-inner">
-          <span className="hp-ticker-sr" role="status" aria-live="polite" aria-atomic="true" key={lineup?.liveQueueFlare?.cursor || "baseline"}>{lineup?.liveQueueFlare ? "Live Lineup updated after an order reveal." : ""}</span>
           <div className="hp-trade-preview-head">
             <span className="live-dot" />
             <span>Live Lineup</span>
@@ -1455,9 +1454,8 @@ function LiveQueueStrip({ state, onOpen }) {
 
   if (state === "empty") {
     return (
-      <section className="hp-trade-preview" data-lineup-surface="list" data-lineup-empty={compact ? "true" : undefined}>
+      <section className="hp-trade-preview" data-lineup-surface="list">
         <div className="hp-trade-preview-inner">
-          <span className="hp-ticker-sr" role="status" aria-live="polite" aria-atomic="true" key={lineup?.liveQueueFlare?.cursor || "baseline"}>{lineup?.liveQueueFlare ? "Live Lineup updated after an order reveal." : ""}</span>
           <div className="hp-trade-preview-head">
             <span className="live-dot" />
             <span>Live Lineup</span>
@@ -1473,9 +1471,8 @@ function LiveQueueStrip({ state, onOpen }) {
   }
 
   return (
-    <section className="hp-trade-preview" data-lineup-surface="list" data-lineup-empty={compact ? "true" : undefined}>
+    <section className="hp-trade-preview" data-lineup-surface="list">
       <div className="hp-trade-preview-inner">
-          <span className="hp-ticker-sr" role="status" aria-live="polite" aria-atomic="true" key={lineup?.liveQueueFlare?.cursor || "baseline"}>{lineup?.liveQueueFlare ? "Live Lineup updated after an order reveal." : ""}</span>
         <div className="hp-trade-preview-head">
           <span className="live-dot" style={state === "delayed" ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
           <span>Live Lineup</span>

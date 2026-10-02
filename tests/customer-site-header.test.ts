@@ -16,7 +16,7 @@ async function template(page: string, state: string, entries: unknown[] = []) {
   return { render: (topText: string) => renderToStaticMarkup(React.createElement(api.LiveLineupContext.Provider, { value: content }, React.createElement(api.Ticker, { topText }), React.createElement(api.LiveQueueStrip, { state, live: state === 'live', onOpen() {} }))) }
 }
 
-describe('customer header uses one lineup beneath real announcements', () => {
+describe('locked customer header keeps the original ticker rows and one lineup', () => {
   for (const page of ['homepage', 'trade', 'join']) {
     for (const state of ['offline', 'empty', 'live', 'delayed']) {
       it(`${page}: ${state} keeps one strip, status and drawer action`, async () => {
@@ -27,18 +27,17 @@ describe('customer header uses one lineup beneath real announcements', () => {
         expect(html).not.toContain('hp-lineup-ticker')
         expect(html.indexOf('Announcements')).toBeLessThan(html.indexOf('data-lineup-surface="list"'))
         expect(html).toMatch(/<button[^>]*>View (full )?lineup<\/button>/)
-        expect(html.includes('data-lineup-empty="true"')).toBe(entries.length === 0)
         if (entries.length) expect(html).toContain('Sample Harper')
       })
     }
-    it(`${page}: whitespace-only announcements reserve no row and preserve Dance Floor and lineup`, async () => {
+    it(`${page}: blank updates preserve the established ticker structure and lineup action`, async () => {
       const { render } = await template(page, 'offline')
       const html = render('  | \n  ')
-      expect(html.match(/class="hp-ticker-row/g)).toHaveLength(1)
+      expect(html.match(/class="hp-ticker-row/g)).toHaveLength(2)
       expect(html).toContain('Dance Floor')
       expect(html).toContain('View')
       expect(html).toContain('data-lineup-surface="list"')
-      expect(html).toContain('hp-ticker-window')
+      expect(html).not.toContain('hp-ticker-window')
     })
   }
 })

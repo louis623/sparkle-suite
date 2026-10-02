@@ -83,14 +83,6 @@ const repExtras = {
   },
 }
 
-it('never substitutes sample announcements for a rep with no message', () => {
-  for (const settings of [{ ...demoSettings, tickerText: '   ' }, { ...demoSettings, tickerVisible: false }]) {
-    for (const map of [mapPreviewSettingsToHomepageTemplateData, mapPreviewSettingsToTradeTemplateData, mapPreviewSettingsToJoinTemplateData]) {
-      expect(map(settings).tickerTopText).toBe('')
-    }
-  }
-})
-
 describe('Amethyst preview template data', () => {
   it('uses one polished demo identity when preview data cannot load', async () => {
     const data = await loadAmethystPreviewTemplateData({

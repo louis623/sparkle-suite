@@ -1,0 +1,59 @@
+{
+  "approvedSource": "b260c3ab5d418f10322f5d2a4fac28d0f587238c",
+  "restoration": "Louis requested original shared layout on 2026-10-02: remove only the duplicate ticker added by 65a9386. Original header functions and shared CSS match the earlier source; preserve the existing lower strip and announcement mapping.",
+  "locks": [
+    {
+      "path": "public/amethyst/homepage.css",
+      "sha256": "f4264fbb32006f9315df180d809dde89c115c21daa08e32c073a6a1bc9f8a163"
+    },
+    {
+      "path": "lib/amethyst/preview-template-data.ts",
+      "sha256": "b910f68e0011ad77799d807e6478fefafdbdae4542fa78bb2a281afc31d570ee"
+    },
+    {
+      "path": "public/amethyst/homepage.jsx",
+      "function": "SparkleSuiteHeaderStack",
+      "sha256": "5a12c4e3f7e2bcdcbd47f50b06201979fa81a630fdcab637947df4edb8156171"
+    },
+    {
+      "path": "public/amethyst/homepage.jsx",
+      "function": "Ticker",
+      "sha256": "810d42470f03f7afd1b911a8e73114cc1ca268a71bca4c202a11d7cf19e8b46d"
+    },
+    {
+      "path": "public/amethyst/homepage.jsx",
+      "function": "LiveQueueStrip",
+      "sha256": "4c483beabf8e49ec5f872a3231a8f20e3b9688f01488090935d7afe1a468ac69"
+    },
+    {
+      "path": "public/amethyst/trade.jsx",
+      "function": "Header",
+      "sha256": "d95e0d318f470d2c24d973c370254f615ed7ed6d551eb48df51dbb78406cc4da"
+    },
+    {
+      "path": "public/amethyst/trade.jsx",
+      "function": "Ticker",
+      "sha256": "1d56034bd02bb8bc9141bc863bc1fd6d00ee92909b26ab9c6a67a25b79a0b967"
+    },
+    {
+      "path": "public/amethyst/trade.jsx",
+      "function": "LiveQueueStrip",
+      "sha256": "6ef87fed9f6706cfd58e6b9c5364ab1932a3c8b6f7a55162bcc6016f745b09e9"
+    },
+    {
+      "path": "public/amethyst/join.jsx",
+      "function": "Header",
+      "sha256": "1ddb1396362eba9c90eefd67a09f0492ea36a5b5cb83455dc1d845dcdd01049e"
+    },
+    {
+      "path": "public/amethyst/join.jsx",
+      "function": "Ticker",
+      "sha256": "4600ad03cac1951fbeca555c3983146bc2d7b83d1452fd62c9edd591ebf06f0c"
+    },
+    {
+      "path": "public/amethyst/join.jsx",
+      "function": "LiveQueueStrip",
+      "sha256": "4555d2f3224850e51e8044d2437df09f33a8444220ef72e7b8ecf452fdb91f3c"
+    }
+  ]
+}

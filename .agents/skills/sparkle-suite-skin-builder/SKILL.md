@@ -33,6 +33,9 @@ For rep-facing copy or Sparkle Suite brand language, also use `sparkle-suite-mas
    - `customerSiteTemplate` stays `amethyst`.
    - The skin is represented by `appearancePreset`.
    - Do not move, remove, rename, or fork Homepage, Trade Board, Join, signup, Nic-Nac panel, SEO metadata, or data slots.
+   - Lock the existing header, navigation, announcements, Dance Floor ticker and Live Lineup before editing. Skin approval gives no permission to change their layout, spacing, markup, visibility rules or behavior.
+   - Record the approved Git baseline and compare against it. Restore a regression from source; never redesign the affected area from memory. Do not bundle shared layout optimizations or announcement/lineup changes into a skin release.
+   - Follow the hard layout lock in `references/skin-contract.md`. Existing shared files and locked render functions are covered by `npm run skin:layout-check` (mandatory in `prebuild`) and `tests/customer-site-layout-lock.test.ts`; a skin must pass these guards without updating their baseline.
 
 2. Name the skin.
    - Use a stable database/code ID with lowercase snake_case.
@@ -92,6 +95,9 @@ Before changing this policy or adding a private/custom skin, read current assign
 Add focused tests for each private/custom skin: its owner, Louis's demo workspace, and each explicitly trusted reviewer can see and select it; every other rep cannot see or save it; Community skins remain available to all reps.
 
 8. Verify.
+   - Run `npm exec vitest run tests/customer-site-layout-lock.test.ts tests/customer-site-header.test.ts` before review and release. A lock failure blocks a skin release; do not refresh the baseline to make it pass. Only Louis's explicit authorization for the exact shared layout change permits a separate baseline update.
+   - Compare before/after screenshots at desktop, tablet and phone widths, including the entire header and update stack. Check at least one other light and dark skin. Use the current lineup contract and cover waiting/empty, populated and delayed states; a populated appearance fixture alone is insufficient.
+   - Confirm differences outside the approved skin/hero area are zero. Preserve real customer copy and actions inside the original slots. State any missing real-account verification honestly; do not substitute a sample fixture and claim the actual account was tested.
    - Run the focused Vitest suite for Amethyst appearance, Site Settings, Nic-Nac customization, and affected templates.
    - Run `npx tsc --noEmit --pretty false`.
    - Browser-smoke Homepage, Trade, and Join if rendering logic changed.
