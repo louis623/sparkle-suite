@@ -5,6 +5,7 @@ import {
   getWorkspaceRefreshPartKey,
   getWorkspaceRefreshTopicsFromMessages,
   isCalendarWorkspaceMutationPart,
+  isCustomerWorkspaceMutationPart,
   isSiteWorkspaceMutationPart,
   isTradeWorkspaceMutationPart,
 } from '@/lib/nic-nac/workspace-refresh-events'
@@ -137,6 +138,24 @@ describe('Nic-Nac workspace refresh events', () => {
 
     expect(isSiteWorkspaceMutationPart(messages[0].parts[0] as never)).toBe(true)
     expect(getWorkspaceRefreshTopicsFromMessages(messages)).toEqual(['site'])
+  })
+
+  it('requests an audience refresh after Nic-Nac updates a customer card', () => {
+    const messages = [
+      assistantWithToolPart({
+        type: 'tool-manage_customer_contact',
+        state: 'output-available',
+        output: { action: 'updated', customer: { id: 'aud-1' } },
+      }),
+    ]
+
+    expect(isCustomerWorkspaceMutationPart(messages[0].parts[0] as never)).toBe(true)
+    expect(getWorkspaceRefreshTopicsFromMessages(messages)).toEqual(['audience'])
+    expect(isCustomerWorkspaceMutationPart({
+      type: 'tool-manage_customer_contact',
+      state: 'output-available',
+      output: { code: 'CUSTOMER_NOT_FOUND' },
+    })).toBe(false)
   })
 
   it('requests a calendar workspace refresh after add_show writes a show', () => {

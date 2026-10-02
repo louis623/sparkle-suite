@@ -92,7 +92,7 @@ describe('Nic-Nac workspace shell reset', () => {
       dashboardSource.indexOf('function ConceptPanel'),
     )
     expect(homeSource).toContain('className={styles.railLiveLineup}')
-    expect(homeSource).toContain('<LiveLineupCard compact readOnly={liveLineupReadOnly} />')
+    expect(homeSource).toContain('<LiveLineupCard compact readOnly={liveLineupReadOnly} onAskCustomer={onAskCustomer} />')
     expect(homeSource.indexOf('className={styles.railLiveLineup}')).toBeLessThan(homeSource.indexOf('className={styles.conceptCenter}'))
     expect(hasDeclaration(dashboardCss, '.railLiveLineup', 'flex: 1 1 460px')).toBe(true)
     expect(hasDeclaration(dashboardCss, '.railLiveLineup', 'min-height: 460px')).toBe(true)

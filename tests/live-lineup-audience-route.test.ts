@@ -11,17 +11,40 @@ const entry={id:'p1:a',name:'Jane',lastName:'Smith',orderedAt:now,identityEligib
 const state=()=>({...createLineupState(),revision:3,show:{generation:1,partyIds:['p1'],excludedPartyIds:[],carryEntryIds:[],startedAt:iso},
   entries:[entry],order:[entry.id],held:[],lastReceivedAt:iso,lastReadyAt:iso,lastChangedAt:iso,parserState:'ready' as const,sourceVersion:'2.0.5'})
 const body={generation:1,identities:[{id:entry.id,sourceIdentityVersion:entry.sourceIdentityVersion}]}
+const audienceId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const request=(input:unknown=body)=>new Request('http://localhost/api/workspace/live-lineup/audience',{method:'POST',headers:{origin:'http://localhost','Content-Type':'application/json'},body:JSON.stringify(input)})
-function query(count=1){return {abortSignal:()=>Promise.resolve({data:{version:'3',matches:[{key:'Jane Smith',count,month:2,day:29,gem:'Amethyst',material:null,cut:null,collection:null}]},error:null})}}
-beforeEach(()=>{vi.resetAllMocks();mocks.context.mockResolvedValue({repId:rep,db:{rpc:mocks.rpc}});mocks.state.mockImplementation(async()=>state());mocks.rpc.mockReturnValue(query())})
+function receipt(match: Record<string, unknown>) {
+  return {abortSignal:()=>Promise.resolve({data:{audienceVersion:'3',matches:[match]},error:null})}
+}
+const matched = {id:entry.id,sourceIdentityVersion:entry.sourceIdentityVersion,status:'matched',audienceId,label:null,birthday:'2/29',preferences:['Amethyst'],candidates:[]}
+beforeEach(()=>{vi.resetAllMocks();mocks.context.mockResolvedValue({repId:rep,db:{rpc:mocks.rpc}});mocks.state.mockImplementation(async()=>state());mocks.rpc.mockReturnValue(receipt(matched))})
 describe('private Workspace audience endpoint',()=>{
  it('uses the authenticated tenant and stored identities, returning only minimal private chips',async()=>{
   const response=await POST(request({...body,repId:'attacker-selected',name:'Other Name'}));expect(response.status).toBe(200)
-  const result=await response.json();expect(result).toEqual({tenantContext:rep,generation:1,audienceVersion:'3',matches:[{id:entry.id,sourceIdentityVersion:entry.sourceIdentityVersion,birthday:'2/29',preferences:['Amethyst']}]})
-  expect(mocks.rpc).toHaveBeenCalledWith('live_lineup_match_audience',{p_rep_id:rep,p_names:['Jane Smith']})
+  const result=await response.json();expect(result).toEqual({tenantContext:rep,generation:1,audienceVersion:'3',matches:[{...matched,candidates:[]}]})
+  expect(mocks.rpc).toHaveBeenCalledWith('live_lineup_customer_cards',{p_rep_id:rep,p_generation:1,p_identities:[{id:entry.id,sourceIdentityVersion:entry.sourceIdentityVersion}],p_action:'read',p_entry_id:null,p_customer_id:null,p_new_customer_id:null,p_label:null})
   expect(JSON.stringify(result)).not.toMatch(/Smith|email|phone|address|notes/)
  })
- it('suppresses duplicates independently of their profile fields',async()=>{mocks.rpc.mockReturnValue(query(2));expect((await (await POST(request())).json()).matches).toEqual([])})
+ it('suppresses duplicates independently of their profile fields',async()=>{
+  mocks.rpc.mockReturnValue(receipt({...matched,status:'needs_clarification',audienceId,label:'Secret',birthday:'2/29',preferences:['Amethyst'],candidates:[{id:audienceId,name:'Jane Smith',label:'Secret',createdAt:iso}]}))
+  expect((await (await POST(request())).json()).matches).toEqual([{id:entry.id,sourceIdentityVersion:entry.sourceIdentityVersion,status:'needs_clarification',audienceId:null,label:null,birthday:null,preferences:[],candidates:[]}])
+ })
+ it('keeps valid long preferences and drops control characters or impossible dates',async()=>{
+  const collection='L'.repeat(160)
+  mocks.rpc.mockReturnValue(receipt({...matched,birthday:'2/31',preferences:[collection,'Rose\u0007 gold','C'.repeat(161)]}))
+  const result=await (await POST(request())).json()
+  expect(result.matches[0].birthday).toBeNull()
+  expect(result.matches[0].preferences).toEqual([collection,'Rose gold','C'.repeat(160)])
+ })
+ it('enriches a held order with the same stored identity contract',async()=>{
+  const held={id:'p1:b',name:'Ada',lastName:'Lovelace',orderedAt:now,identityEligible:true,sourceIdentityVersion:'1:doc:2'}
+  mocks.state.mockResolvedValue({...state(),entries:[entry,held],order:[entry.id],held:[held.id]})
+  const heldMatch={id:held.id,sourceIdentityVersion:held.sourceIdentityVersion,status:'matched',audienceId,label:null,birthday:null,preferences:[],candidates:[]}
+  mocks.rpc.mockReturnValue({abortSignal:()=>Promise.resolve({data:{audienceVersion:'4',matches:[matched,heldMatch]},error:null})})
+  const response=await POST(request({generation:1,identities:[{id:entry.id,sourceIdentityVersion:entry.sourceIdentityVersion},{id:held.id,sourceIdentityVersion:held.sourceIdentityVersion}]}))
+  expect(response.status).toBe(200)
+  expect(mocks.rpc).toHaveBeenCalledWith('live_lineup_customer_cards',expect.objectContaining({p_rep_id:rep,p_identities:[{id:entry.id,sourceIdentityVersion:entry.sourceIdentityVersion},{id:held.id,sourceIdentityVersion:held.sourceIdentityVersion}]}))
+ })
  it('rejects old shows, missing surnames and forged source identity without querying contacts',async()=>{
   expect((await POST(request({...body,generation:2}))).status).toBe(409)
   expect((await POST(request({...body,identities:[{id:entry.id,sourceIdentityVersion:'old'}]}))).status).toBe(409)
