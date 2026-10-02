@@ -2721,6 +2721,47 @@
   padding: 14px;
 }
 
+.coffeeWithLouis {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(238, 44, 155, 0.16);
+  background: rgba(255, 246, 250, 0.72);
+  padding: 14px;
+}
+
+.coffeeWithLouisCopy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.coffeeWithLouisWhen {
+  margin: 0;
+  color: var(--nic-nac-text-primary);
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.coffeeWithLouisMeet {
+  composes: helperLink from './WorkspaceSurface.module.css';
+  flex: 0 0 auto;
+}
+
+.coffeeWithLouisUrl {
+  color: var(--nic-nac-accent, #d81b87);
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
 .playbookIntro,
 .playbookGroupHeader {
   display: flex;
@@ -6716,6 +6757,7 @@
 .main[data-workspace-skin='black_diamond'] .calendarGrid,
 .main[data-workspace-skin='black_diamond'] .customerSiteLooks,
 .main[data-workspace-skin='black_diamond'] .customerSiteLooksBody,
+.main[data-workspace-skin='black_diamond'] .coffeeWithLouis,
 .main[data-workspace-skin='black_diamond'] .playbookIntro,
 .main[data-workspace-skin='black_diamond'] .playbookGroup,
 .main[data-workspace-skin='black_diamond'] .featureIndex,
@@ -7446,8 +7488,13 @@
 
   .playbookIntro,
   .playbookGroupHeader,
+  .coffeeWithLouis,
   .supportPath {
     flex-direction: column;
+  }
+
+  .coffeeWithLouisMeet {
+    width: 100%;
   }
 
   .featureIndexGrid {

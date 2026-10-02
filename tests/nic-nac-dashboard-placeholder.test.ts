@@ -961,6 +961,38 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Customer Site Looks')
     expect(html).not.toContain('Full skin gallery')
     expect(html).not.toContain('Classic Sparkle')
+    expect(html).not.toContain('Coffee with Louis')
+    expect(html).not.toContain('meet.google.com/rzy-rqsd-qvo')
+  })
+
+  it('shows the next Coffee with Louis session on Help & Resources when Smoke is on', () => {
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-10-08T23:59:00.000Z'))
+
+    try {
+      const html = renderToStaticMarkup(
+        createElement(HelpResourcesCard, {
+          state: { status: 'ready', resources: getHelpResources() },
+          hasPaidWorkspace: true,
+          initialTab: 'learn',
+          learningContent: createElement('div', null, 'Video tiles'),
+        }),
+      )
+
+      expect(html).toContain('Coffee with Louis')
+      expect(html).toContain('Thursday, Oct 8, 2026 · 8 PM ET')
+      expect(html).toContain('Every 14 days · Thursdays, 8–9 PM ET.')
+      expect(html).toContain('href="https://meet.google.com/rzy-rqsd-qvo"')
+      expect(html).toContain('>https://meet.google.com/rzy-rqsd-qvo<')
+      expect(html).toContain('Join Google Meet')
+      expect(html).toContain('target="_blank"')
+      expect(html).toContain('Video tiles')
+      expect(html.indexOf('Coffee with Louis')).toBeLessThan(html.indexOf('Video tiles'))
+    } finally {
+      vi.useRealTimers()
+      vi.unstubAllEnvs()
+    }
   })
 
   it('places learning resources and help behind one accessible tab switcher', () => {

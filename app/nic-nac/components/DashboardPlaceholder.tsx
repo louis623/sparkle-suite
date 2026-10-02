@@ -121,6 +121,10 @@ import {
 import { SparkleSeal } from '@/app/prelaunch/_components/PrelaunchVisuals'
 import type { WorkspaceLaunchAction } from '@/lib/nic-nac/workspace-launch-actions'
 import type { WorkspaceResource } from '@/lib/services/workspace-resources'
+import {
+  getNextCoffeeWithLouisSession,
+  isCoffeeWithLouisVisible,
+} from '@/lib/help/coffee-with-louis'
 import { WorkspaceShell } from './WorkspaceShell'
 import type { WorkspaceSectionTab } from './WorkspaceSectionTabs'
 import { NicNacHomeWorkspaceCard } from './NicNacHomeWorkspaceCard'
@@ -8855,6 +8859,11 @@ export function HelpResourcesCard({
   const workflowGroups = getWorkflowResourcesByGroup(state.resources)
   const featureReferences = getResourcesByType(state.resources, 'feature_reference')
     .filter((resource) => resource.group === 'Feature Index')
+  const coffeeSession = isCoffeeWithLouisVisible({
+    NEXT_PUBLIC_SPARKLE_ENVIRONMENT: process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT,
+  })
+    ? getNextCoffeeWithLouisSession()
+    : null
 
   return (
     <div className={styles.workspacePanel}>
@@ -8870,6 +8879,31 @@ export function HelpResourcesCard({
           </div>
         </div>
       </div>
+      {coffeeSession ? (
+        <div className={styles.coffeeWithLouis} role="region" aria-label="Coffee with Louis">
+          <div className={styles.coffeeWithLouisCopy}>
+            <div className={styles.walletSettingsTitle}>Coffee with Louis</div>
+            <p className={styles.coffeeWithLouisWhen}>{coffeeSession.label}</p>
+            <p className={styles.helperNote}>{coffeeSession.cadence}</p>
+            <a
+              className={styles.coffeeWithLouisUrl}
+              href={coffeeSession.meetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {coffeeSession.meetUrl}
+            </a>
+          </div>
+          <a
+            className={styles.coffeeWithLouisMeet}
+            href={coffeeSession.meetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Join Google Meet
+          </a>
+        </div>
+      ) : null}
       {hasLearningContent ? (
         <div className={styles.resourceHubTabs} role="tablist" aria-label="Resources">
           <button
