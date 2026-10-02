@@ -39,6 +39,11 @@ const SPARKLE_PUBLIC_ROUTES: SparklePublicRoute[] = [
     priority: 0.8,
   },
   {
+    path: '/adventure',
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  },
+  {
     path: '/prelaunch',
     changeFrequency: 'weekly',
     priority: 1,
