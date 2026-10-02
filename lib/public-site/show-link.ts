@@ -24,6 +24,11 @@ export const RESERVED_PUBLIC_SITE_SLUGS = new Set([
   'controlcenter',
   'control-center',
   'onboarding',
+  'learn',
+  'demo',
+  'faq',
+  'portfolio',
+  'adventure',
 ])
 
 export type PublicSiteSlugValidation =

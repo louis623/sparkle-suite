@@ -24,6 +24,10 @@ describe('public site show link rules', () => {
       ok: false,
       reason: 'reserved',
     })
+    expect(validatePublicSiteSlug('learn')).toEqual({
+      ok: false,
+      reason: 'reserved',
+    })
     expect(validatePublicSiteSlug('gracie-sparkle')).toEqual({
       ok: false,
       reason: 'format',

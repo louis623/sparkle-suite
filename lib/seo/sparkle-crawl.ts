@@ -24,6 +24,11 @@ const SPARKLE_PUBLIC_ROUTES: SparklePublicRoute[] = [
     priority: 1,
   },
   {
+    path: '/learn',
+    changeFrequency: 'weekly',
+    priority: 0.95,
+  },
+  {
     path: '/portfolio',
     changeFrequency: 'weekly',
     priority: 0.9,
