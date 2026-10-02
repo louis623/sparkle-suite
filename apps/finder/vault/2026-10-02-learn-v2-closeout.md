@@ -1,0 +1,5 @@
+# 2026-10-02 — Finder `/learn` v2 (Smoke)
+
+- Rebuilt the public collector page to the penciled Amethyst section map. Small Wart seal (violet F, optical center), pink wordmark only, real product peeks, three outcomes, three features, honest Silver.
+- Soft “Coming soon” stays. No signup URL. No live `yoursparklefinder.com` change.
+- Branch keeps the Smoke magic-link landing fix so a Smoke deploy does not drop sign-in.
