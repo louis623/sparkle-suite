@@ -2,9 +2,10 @@ import { createElement } from 'react'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { metadata } from '@/app/adventure/page'
+import HomePage, { generateMetadata } from '@/app/page'
 import { MarketingHub } from '@/app/_components/marketing-hub'
 import { sparkleSuiteMarketingHubContent } from '@/lib/sparkle-suite/marketing-hub-content'
 import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
@@ -15,12 +16,16 @@ function renderHub() {
 }
 
 describe('Sparkle Suite and Finder adventure hub', () => {
-  it('keeps the existing Suite home and adds the hub on /adventure', () => {
+  it('keeps the live Suite home and serves the hub at / on Smoke', () => {
     const home = readFileSync(join(process.cwd(), 'app/page.tsx'), 'utf8')
     const adventure = readFileSync(join(process.cwd(), 'app/adventure/page.tsx'), 'utf8')
+    const learn = readFileSync(join(process.cwd(), 'app/learn/page.tsx'), 'utf8')
 
     expect(home).toContain('<SparkleSuitePublicLanding />')
-    expect(home).not.toContain('MarketingHub')
+    expect(home).toContain('isSuiteSmokeHomeHub()')
+    expect(home).toContain('<MarketingHub />')
+    expect(learn).toContain('<SparkleSuitePublicLanding />')
+    expect(learn).not.toContain('MarketingHub')
     expect(adventure).toContain('<MarketingHub />')
     expect(adventure).not.toContain("redirect('/prelaunch')")
     expect(metadata.alternates?.canonical).toBe('/adventure')
@@ -68,7 +73,8 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(suiteCard.indexOf('Sparkle Suite is the workspace for Bomb Party reps.')).toBeLessThan(
       suiteCard.indexOf('>Learn More</a>'),
     )
-    expect(suiteCard.indexOf('>Learn More</a>')).toBeLessThan(suiteCard.indexOf('>Sign In<'))
+    expect(suiteCard.indexOf('>Learn More</a>')).toBeLessThan(suiteCard.indexOf('href="/login"'))
+    expect(suiteCard.indexOf('href="/login"')).toBeLessThan(suiteCard.indexOf('>Sign In<'))
     expect(suiteCard).toContain(
       'You get a polished customer site, live-show tools for the night itself, and built-in support that helps customers feel the difference.',
     )
@@ -94,7 +100,10 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(suiteCard).toContain('href="/prelaunch#waitlist"')
     expect(finderCard.indexOf('Coming soon.')).toBeLessThan(finderCard.indexOf('>Get a sneak peek</a>'))
     expect(finderCard.indexOf('>Get a sneak peek</a>')).toBeLessThan(finderCard.indexOf('>Learn More</a>'))
-    expect(finderCard.indexOf('>Learn More</a>')).toBeLessThan(finderCard.indexOf('>Sign In<'))
+    expect(finderCard).not.toContain('>Sign In<')
+    expect(finderCard).not.toContain('>Sign Up<')
+    expect(finderCard).not.toContain('/auth/sign-in')
+    expect(finderCard).not.toContain('/auth/sign-up')
     const sneakPeek = finderCard.slice(
       finderCard.lastIndexOf('<a', finderCard.indexOf('>Get a sneak peek</a>')),
       finderCard.indexOf('>Get a sneak peek</a>'),
@@ -103,15 +112,14 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(sneakPeek).not.toContain('http')
     expect(suiteCard).not.toContain('Get a sneak peek')
     expect(sparkleSuiteMarketingHubContent.finder.sneakPeekHref).toBe('')
-    expect(finderCard).toContain('>Sign Up<')
     expect(finderCard).not.toContain("Don't have an account?")
-    expect(finderCard).toContain('href="https://yoursparklefinder.com/auth/sign-in"')
-    expect(finderCard).toContain('href="https://yoursparklefinder.com/auth/sign-up?next=/"')
+    expect(sparkleSuiteMarketingHubContent.finder.signInHref).toBe('')
+    expect(sparkleSuiteMarketingHubContent.finder.signUpHref).toBe('')
     expect(readable).not.toContain('Have an account?')
     expect(readable).not.toContain("Don't have an account?")
     expect(html).toContain('href="/login"')
     expect(html).toContain('href="https://yoursparklefinder.com/"')
-    expect(html).toContain('href="https://yoursparklefinder.com/auth/sign-in"')
+    expect(html).not.toContain('yoursparklefinder.com/auth/')
     expect(html).toContain('Open the Sparkle Suite site')
     expect(html).toContain('Open Sparkle Finder')
     const suiteLearnMore = suiteCard.slice(
@@ -124,7 +132,7 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     )
     expect(readable).not.toContain('See More')
     expect(readable.match(/>Learn More<\/a>/g)).toHaveLength(2)
-    expect(suiteLearnMore).toContain('href="https://www.yoursparklesuite.com/"')
+    expect(suiteLearnMore).toContain('href="/learn"')
     expect(finderLearnMore).toContain('href="https://yoursparklefinder.com/"')
     const quiet = readable.slice(readable.indexOf('id="quiet-exits"'))
     expect(quiet).not.toContain('Sparkle Suite is the workspace')
@@ -144,6 +152,34 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(html).toContain('href="https://www.tiktok.com/@yoursparklesuite.com"')
     expect(html).not.toContain('href="/finder')
     expect(sparkleSuiteMarketingHubContent.finder.deepLinks).toEqual([])
+  })
+
+  it('serves the two-card hub at / on Smoke and the marketing landing otherwise', () => {
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'production')
+    vi.stubEnv('SPARKLE_ENVIRONMENT', 'production')
+    const production = renderToStaticMarkup(createElement(HomePage))
+    expect(production).toContain('Your brand.')
+    expect(production).toContain('Now building Sparkle Suite sites.')
+    expect(production).not.toContain('Now Pick Your Shine')
+    expect(generateMetadata().title).toEqual({ absolute: 'Sparkle Suite' })
+
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+    vi.stubEnv('SPARKLE_ENVIRONMENT', 'production')
+    const smoke = renderToStaticMarkup(createElement(HomePage)).replaceAll('&#x27;', "'")
+    const suiteCard = smoke.slice(smoke.indexOf('data-path="suite"'), smoke.indexOf('data-path="finder"'))
+    const finderCard = smoke.slice(smoke.indexOf('data-path="finder"'))
+    expect(smoke).toContain('Now Pick Your Shine')
+    expect(smoke).not.toContain('Your brand.')
+    expect(smoke).not.toContain('Now building Sparkle Suite sites.')
+    expect(suiteCard).toContain('href="/login"')
+    expect(suiteCard).toContain('>Sign In<')
+    expect(suiteCard).toContain('href="/learn"')
+    expect(suiteCard).not.toContain('cardModal')
+    expect(finderCard).toContain('Coming soon.')
+    expect(finderCard).not.toContain('/auth/sign-up')
+    expect(finderCard).not.toContain('/auth/sign-in')
+    expect(generateMetadata().title).toEqual({ absolute: 'Sparkle Suite and Sparkle Finder' })
+    vi.unstubAllEnvs()
   })
 
   it('stays clear of Neon Rabbit, Amethyst, store badges, and Facebook', () => {
