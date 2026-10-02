@@ -37,7 +37,7 @@ export const sparkleSuiteMarketingHubContent = {
     smokeSignIn: {
       title: 'Sign in to Sparkle Suite',
       googleNotice:
-        'Smoke preview. Google sign-in is not fully wired here. It opens Google only and will not land in your Workspace.',
+        'Smoke preview. Google sign-in is not fully wired here. It opens Google only and will not land in your Workspace. Google may say this preview is not connected.',
       googleLabel: 'Google sign-in',
       googleUrl: 'https://accounts.google.com/o/oauth2/v2/auth?prompt=select_account',
       passwordNotice: 'Email and password sign-in is not part of this preview.',

@@ -95,6 +95,7 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(suiteCard).not.toContain('type="password"')
     expect(suiteCard).toContain('Smoke preview. Google sign-in is not fully wired here.')
     expect(suiteCard).toContain('will not land in your Workspace.')
+    expect(suiteCard).toContain('Google may say this preview is not connected.')
     expect(suiteCard).toContain('>Google sign-in<')
     expect(suiteCard).toContain(
       'data-smoke-google-url="https://accounts.google.com/o/oauth2/v2/auth?prompt=select_account"',

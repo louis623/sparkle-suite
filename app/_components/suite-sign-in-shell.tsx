@@ -26,6 +26,7 @@ export function SuiteSignInShell() {
   useEffect(() => {
     if (!open) return
 
+    const signInButton = buttonRef.current
     closeRef.current?.focus()
 
     function onKeyDown(event: KeyboardEvent) {
@@ -37,7 +38,7 @@ export function SuiteSignInShell() {
     document.addEventListener('keydown', onKeyDown)
     return () => {
       document.removeEventListener('keydown', onKeyDown)
-      buttonRef.current?.focus()
+      signInButton?.focus()
     }
   }, [open])
 
