@@ -1,6 +1,5 @@
 import Link from 'next/link'
 
-import { FinderSneakPeekStub } from '@/app/_components/finder-sneak-peek-stub'
 import { MarketingFooter } from '@/app/_components/landing-experience'
 import { sparkleSuiteMarketingHubContent as hub } from '@/lib/sparkle-suite/marketing-hub-content'
 
@@ -34,44 +33,22 @@ function ProductCard({
   product,
   signInHref,
   signInLabel,
-  sneakPeekHref,
-  sneakPeekLabel,
   tone,
 }: {
   body: string
   comingSoon?: string
   destinationLabel: string
   detail: string
-  learnMoreHref: string
-  learnMoreLabel: string
+  learnMoreHref?: string
+  learnMoreLabel?: string
   narrative: string
   product: string
-  signInHref: string
-  signInLabel: string
-  sneakPeekHref?: string
-  sneakPeekLabel?: string
+  signInHref?: string
+  signInLabel?: string
   tone: 'suite' | 'finder'
 }) {
-  return (
-    <article className={`${styles.card} ${tone === 'suite' ? styles.suite : styles.finder}`} data-path={tone}>
-      <h2 className={styles.cardBrand}>{product}</h2>
-      <span className={styles.srOnly}>{destinationLabel}</span>
-      <div className={styles.cardCopy}>
-        <p className={styles.cardDetail}>{detail}</p>
-        <p className={styles.cardBody}>{body}</p>
-      </div>
-      <p className={styles.narrative}>{narrative}</p>
-      {comingSoon ? (
-        <p className={styles.comingSoon}>
-          {comingSoon}
-          {sneakPeekLabel ? (
-            <>
-              {' '}
-              <FinderSneakPeekStub href={sneakPeekHref ?? ''} label={sneakPeekLabel} />
-            </>
-          ) : null}
-        </p>
-      ) : null}
+  const footer =
+    learnMoreHref && learnMoreLabel && signInHref && signInLabel ? (
       <div className={styles.cardFooter}>
         <a className={styles.learnMore} href={learnMoreHref}>
           {learnMoreLabel}
@@ -81,6 +58,19 @@ function ProductCard({
           <AccountLink href={signInHref}>{signInLabel}</AccountLink>
         </div>
       </div>
+    ) : null
+
+  return (
+    <article className={`${styles.card} ${tone === 'suite' ? styles.suite : styles.finder}`} data-path={tone}>
+      <h2 className={styles.cardBrand}>{product}</h2>
+      <span className={styles.srOnly}>{destinationLabel}</span>
+      <div className={styles.cardCopy}>
+        <p className={styles.cardDetail}>{detail}</p>
+        <p className={styles.cardBody}>{body}</p>
+      </div>
+      <p className={styles.narrative}>{narrative}</p>
+      {comingSoon ? <p className={styles.comingSoon}>{comingSoon}</p> : null}
+      {footer}
     </article>
   )
 }
@@ -127,14 +117,8 @@ export function MarketingHub() {
               comingSoon={hub.finder.comingSoon}
               destinationLabel={hub.finder.destinationLabel}
               detail={hub.finder.detail}
-              learnMoreHref={hub.finder.learnMoreHref}
-              learnMoreLabel={hub.finder.learnMoreLabel}
               narrative={hub.finder.narrative}
               product={hub.finder.product}
-              signInHref={hub.finder.signInHref}
-              signInLabel={hub.finder.signInLabel}
-              sneakPeekHref={hub.finder.sneakPeekHref}
-              sneakPeekLabel={hub.finder.sneakPeekLabel}
               tone="finder"
             />
           </div>

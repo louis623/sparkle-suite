@@ -42,9 +42,6 @@ export const sparkleSuiteMarketingHubContent = {
     narrative:
       "Sparkle Finder is for Bomb Party collectors. Find the pieces you love, and build the collection that you adore. It is the shopper's side of the show, close to the pieces that caught your eye.",
     comingSoon: 'Coming soon.',
-    /** Destination stays unwired until Louis chooses it. */
-    sneakPeekLabel: 'Get a sneak peek',
-    sneakPeekHref: '',
     learnMoreLabel: 'Learn More',
     learnMoreHref: sparkleFinderHomeUrl,
     signInLabel: 'Sign In',
