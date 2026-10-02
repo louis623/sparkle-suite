@@ -8019,7 +8019,7 @@ export function LiveQueueTool({
           <li>
             <span className={styles.liveQueueStepNumber}>5</span>
             <div>
-              <strong>Confirm the green Connected light</strong>
+              <strong>Confirm the green Connected + Updating light</strong>
               <p>
                 Leave Party Orders open while you are live. The extension finds
                 your parties automatically. Uncheck any party you do not want
@@ -8048,7 +8048,7 @@ export function LiveQueueTool({
           <li>The official extension is installed and pinned in Chrome.</li>
           <li>The extension is connected with the assigned Live Queue code shown in this Workspace.</li>
           <li>Bomb Party Party Orders is open in the same Chrome profile.</li>
-          <li>The extension shows a green Connected light and the expected parties.</li>
+          <li>The extension shows a green Connected + Updating light and the expected parties.</li>
           <li>
             Your customer site shows the first unrevealed customer, or a clear
             empty state when nobody is waiting.

@@ -44,7 +44,7 @@ describe('Nic-Nac workspace shell reset', () => {
     expect(html).toContain('role="tabpanel"')
     expect(html).toContain('aria-label="Scrollable live lineup"')
     expect(html).toContain('Grab a customer and drop them into place.')
-    expect(html).toContain('Checking connection')
+    expect(html).toContain('Connecting')
     expect(html).not.toContain('Recover from a private archive')
     expect(html).not.toContain('Extension connection setup')
     expect(html).not.toContain('Last received')
