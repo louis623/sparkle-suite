@@ -49,13 +49,9 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain('data-finder-brand="amethyst"');
     expect(markup).toContain('x="30.144"');
     expect(markup).toContain("var(--finder-violet-f)");
-    expect(markup).toContain("%2Flearn%2Fpeeks%2Fcosmic-navigator.webp");
-    expect(markup).toContain("%2Flearn%2Fpeeks%2Fnorthstar.webp");
     expect(markup).toContain('href="#soon"');
     expect(markup).toContain('href="#silver"');
-    expect(markup).toContain("%2Flearn%2Fpeeks%2Frep-path.webp");
-    expect(markup).toContain("%2Flearn%2Fpeeks%2Fshows.webp");
-    expect(markup).toContain("%2Flearn%2Fpeeks%2Fsave.webp");
+    expect(markup).not.toMatch(/<img|webp|\/learn\/peeks|background-image|url\(/i);
     expect(markup).not.toContain("heroSeal");
     expect(markup).toContain("Coming soon");
     expect(markup).not.toMatch(/create-an-account/i);
@@ -65,7 +61,7 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toMatch(/href="\/auth|href="\/create/i);
 
     const hrefs = [...markup.matchAll(/(?<![a-zA-Z])href="([^"]+)"/g)].map((match) => match[1]);
-    const navigationHrefs = hrefs.filter((href) => !href.startsWith("/learn/peeks/"));
+    const navigationHrefs = hrefs;
     expect(navigationHrefs.length).toBeGreaterThan(0);
     expect(navigationHrefs.every((href) => allowedHrefs.has(href))).toBe(true);
     expect(findSparkleFinderCopyViolations(finderLearnVisibleCopy())).toEqual([]);
@@ -73,11 +69,14 @@ describe("Sparkle Finder /learn", () => {
 
   it("keeps the route free of auth and signup wiring", () => {
     const pageSource = readFileSync(new URL("../../app/learn/page.tsx", import.meta.url), "utf8");
+    const learnSource = readFileSync(new URL("../../components/learn/FinderLearnPage.tsx", import.meta.url), "utf8");
+    const contentSource = readFileSync(new URL("../../lib/sparkle-finder/learn-page-content.ts", import.meta.url), "utf8");
     const styles = readFileSync(new URL("../../components/learn/finder-learn.module.css", import.meta.url), "utf8");
     const seal = readFileSync(new URL("../../brand-assets/amethyst/01-amethyst-seal.svg", import.meta.url), "utf8");
 
     expect(pageSource).not.toContain("getCurrentSparkleFinderAccount");
     expect(pageSource).not.toContain("create-an-account");
+    expect(`${learnSource}\n${contentSource}\n${styles}`).not.toMatch(/next\/image|<img|webp|\/learn\/peeks|background-image|url\(/i);
     expect(styles).toContain("--finder-deep: #1a0b2e");
     expect(styles).toContain("--finder-amethyst: #5b2a8f");
     expect(styles).toContain("--finder-violet-f: #5c0eff");

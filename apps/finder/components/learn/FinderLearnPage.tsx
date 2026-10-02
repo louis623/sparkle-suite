@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { FinderSeal } from "@/components/learn/FinderSeal";
 import { finderLearnContent } from "@/lib/sparkle-finder/learn-page-content";
 import styles from "./finder-learn.module.css";
@@ -49,28 +48,13 @@ export function FinderLearnPage() {
               <p className={styles.note}>{content.hero.note}</p>
               <p className={styles.lede}>{content.hero.body}</p>
             </div>
-            <figure className={styles.heroFigure}>
-              <div className={styles.gallery}>
-                <p className={styles.peekLabel}>{content.hero.peek.label}</p>
-                <div className={styles.galleryGrid}>
-                  {content.hero.gallery.map((piece) => (
-                    <figure className={styles.shot} key={piece.src}>
-                      <Image
-                        alt={piece.alt}
-                        className={styles.shotImage}
-                        height={piece.height}
-                        priority={piece.src.endsWith("cosmic-navigator.webp")}
-                        sizes="(min-width: 960px) 720px, 100vw"
-                        src={piece.src}
-                        width={piece.width}
-                      />
-                      <figcaption>{piece.name}</figcaption>
-                    </figure>
-                  ))}
-                </div>
-              </div>
-              <figcaption>{content.hero.peek.caption}</figcaption>
-            </figure>
+            <aside className={styles.servicePanel} aria-label="Sparkle Finder services">
+              <ol>
+                {content.hero.services.map((service) => (
+                  <li key={service}>{service}</li>
+                ))}
+              </ol>
+            </aside>
           </div>
         </section>
 
@@ -105,13 +89,9 @@ export function FinderLearnPage() {
                     <h3>{feature.title}</h3>
                     <p>{feature.body}</p>
                   </div>
-                  <ProductPeek
-                    alt={feature.peek.alt}
-                    height={feature.peek.height}
-                    label={feature.peek.label}
-                    src={feature.peek.src}
-                    width={feature.peek.width}
-                  />
+                  <p className={styles.mark} aria-hidden="true">
+                    {feature.mark}
+                  </p>
                 </article>
               ))}
             </div>
@@ -233,23 +213,3 @@ function ArrowIcon() {
   );
 }
 
-function ProductPeek({
-  alt,
-  height,
-  label,
-  src,
-  width,
-}: {
-  alt: string;
-  height: number;
-  label: string;
-  src: string;
-  width: number;
-}) {
-  return (
-    <div className={styles.peek}>
-      <p className={styles.peekLabel}>{label}</p>
-      <Image alt={alt} className={styles.peekImage} height={height} sizes="(min-width: 960px) 720px, 100vw" src={src} width={width} />
-    </div>
-  );
-}
