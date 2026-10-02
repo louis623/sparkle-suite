@@ -141,9 +141,9 @@ Always compare against the original source and the Sparkle Suite route:
 - Check text fit, mobile stacking, and no Black Diamond/default styling leaks.
 - Verify media loads, especially videos.
 
-For deployed Sparkle Suite checks, use `sparkle-suite-production-smoke`.
-Reviewer/demo data runs inside the live `yoursparklesuite.com` surface. Verify
-the affected live path and exact production deployment before handoff.
+For deployed Sparkle Suite checks, use `sparkle-suite-production-smoke` on
+Smoke. Live `yoursparklesuite.com` checks happen after Louis approves the
+batch promote. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.
 
 ## Common Failure Modes
 
@@ -176,7 +176,10 @@ Before committing or deploying:
 2. Run affected Amethyst template tests or `npm run qa:amethyst`.
 3. Run `npm run build`.
 4. Browser-smoke local or preview desktop and mobile for each touched public route.
-5. Deploy the exact active-branch tip to Vercel production and confirm
-   `www.yoursparklesuite.com` plus `yoursparklesuite.com` resolve to it.
-6. Screenshot the affected live public routes.
-7. Report commit, production deployment id, live URL, and what was visually verified.
+5. Deploy and verify the affected public routes on Smoke. Stack related
+   updates there until Louis approves one live promote.
+6. After that promote, confirm `www.yoursparklesuite.com` plus
+   `yoursparklesuite.com` resolve to the batch tip and screenshot the
+   affected live public routes.
+7. Report commit, Smoke URL, live deployment id when promoted, and what was
+   visually verified. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.

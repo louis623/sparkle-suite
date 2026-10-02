@@ -58,5 +58,6 @@ Repo-level operating manual for Claude Code. Loaded automatically at session sta
 
 ### Deployment
 
-- Push-to-main auto-deploys via Vercel. No feature flags, no dev branches.
-- Vercel project is linked. `vercel` CLI available if needed.
+- **Smoke-first ship lane (locked 2026-09-26):** Suite and Finder changes deploy and verify on Smoke, small updates stack there, then one Louis-approved live promote. Same-day live hotfix only with Louis’s explicit say-so. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.
+- A merge or push does not auto-deploy production. Do not run `vercel --prod` as the default closeout.
+- Vercel project is linked. Use the `vercel` CLI for the Smoke deploy and, after Louis says go, the one live promote.

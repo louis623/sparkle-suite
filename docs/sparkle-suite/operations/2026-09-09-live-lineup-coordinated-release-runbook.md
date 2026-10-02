@@ -1,5 +1,7 @@
 # Live Lineup coordinated release and rollback runbook
 
+> **Superseded for shipping (2026-09-26):** The application deploy in section 3B is the one Louis-approved live promote, and only after Smoke verification. Do not run it on merge. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`. Store publish in section 3C stays gated.
+
 Status: **prepared only; not authorized or executed**
 Owner gate: Louis must approve each release phase and confirm that no live show is running.
 
@@ -153,7 +155,7 @@ If the database step fails, stop. Leave any successfully applied additive object
 
 ### 3B. Application — exact manual deployment
 
-1. Deploy the clean exact combined SHA once to Vercel production; automatic Git deployment creation remains disabled.
+1. After Smoke verification and Louis’s go, deploy the clean exact combined SHA once to Vercel production. Automatic Git deployment creation remains disabled. This is the one live promote, not a per-merge deploy.
 2. Record deployment ID, immutable deployment URL, Git SHA, build result, and creation time.
 3. Verify the intended deployment owns both production aliases. Do not move an alias until the deployment is Ready and provenance matches.
 4. Before publishing the extension, verify:

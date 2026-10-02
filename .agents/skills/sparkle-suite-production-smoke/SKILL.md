@@ -1,34 +1,42 @@
 ---
 name: sparkle-suite-production-smoke
-description: "Use whenever working on Sparkle Suite releases, Vercel production deploys, live-domain checks, logged-in workspace checks, required setup checks, Help & Resources checks, Nic-Nac UI checks, or smoke testing where a clean browser would hit sign-in. Guides Codex to verify the exact yoursparklesuite.com production deployment with safe reviewer-smoke sessions instead of Louis's personal account."
+description: "Use whenever working on Sparkle Suite or Finder releases, Smoke verification, logged-in workspace checks, required setup checks, Help & Resources checks, Nic-Nac UI checks, or smoke testing where a clean browser would hit sign-in. Default lane is Smoke (production twin, staging Supabase, demo accounts). Live yoursparklesuite.com checks happen only after Louis approves a batch promote or names a same-day hotfix. Use reviewer-smoke or demo sessions instead of Louis's personal account."
 ---
 
-# Sparkle Suite Production Smoke
+# Sparkle Suite Smoke Verification
 
 ## Purpose
 
-Verify the real Sparkle Suite production deployment and logged-in UI without
-relying on Louis's personal account, cookies, saved passwords, or manual help.
-Sparkle Suite has one live review surface. "Demo" refers to safe reviewer data
-or reviewer mode on the live site; it is not a separate environment or domain.
+Verify Suite, and Finder when that app changed, on the Smoke lane before reps
+see the change. Smoke is the production twin: separate staging Supabase
+(schema clone, no live rep data) and demo accounts. Live is the promote
+target after Louis says go.
 
-## Production Review Target
+This skill is the Smoke verification lane. It does not mean live is the only
+surface, and it does not authorize `vercel --prod` after a merge. Canonical
+ship order: Core Memory `skills/sparkle-smoke-ship.md`.
 
-- Canonical live URL: `https://www.yoursparklesuite.com`
-- Apex URL: `https://yoursparklesuite.com`
-- All approved work flows to this single live surface.
-- Both domains must resolve to the exact intended Vercel production deployment.
+## Review Targets
+
+- **Smoke (default):** agent verification and Louis demo-smoke. Exact Smoke
+  URLs and demo logins are in the status file Codex writes
+  (`SPARKLE-SUITE-SMOKE-BUILD-STATUS-*.md`). Never invent them. Never put
+  passwords in git.
+- **Live (after Louis says go):** `https://www.yoursparklesuite.com` and apex
+  `https://yoursparklesuite.com`. Check these only after Louis approves the
+  batch promote, or names a same-day hotfix. Both domains must then resolve
+  to that exact deployment.
 - Raw Vercel deployment URLs and `sparkle-suite-demo.vercel.app` are
   provenance evidence only, not Louis-facing review targets.
-- Do not report a release complete until the affected live-domain path is
-  verified after the deployment settles.
+- Do not report a live release complete until the affected live-domain path
+  is verified after that approved promote settles.
 
 ## Chrome Flow
 
 When logged-in UI matters, use the Chrome plugin if available or explicitly enabled by Louis.
 
-1. Open `https://www.yoursparklesuite.com/start`.
-2. Prefer the built-in `Reviewer smoke mode` controls.
+1. Open the Smoke review URL from the status file. Open live `/start` only after an approved promote or a named hotfix.
+2. Prefer built-in `Reviewer smoke mode` controls, or the named Smoke demo account.
 3. Use `Open setup preview` for required setup, Help & Resources from setup, final setup, and Nic-Nac setup checks.
 4. Use the dashboard/workspace reviewer path when checking the post-setup Sparkle Suite Workspace.
 5. Do not use Louis's personal account.
@@ -68,9 +76,10 @@ For logged-in smoke verification, check the relevant real UI state, not just sou
 - Required setup: Nic-Nac setup screen loads and Help & Resources is available from setup.
 - Help & Resources: workflow sections are scannable/collapsible, with clear expand indicators.
 - Workspace: Nic-Nac is integrated as expected for the section under review.
-- Production aliases: `www.yoursparklesuite.com` and `yoursparklesuite.com`
-  serve the exact intended production deployment.
-- Production custom domain: after a production restore or alias change, verify
+- Smoke: the affected workflow on the Smoke URL from the status file, with a demo or reviewer-smoke session.
+- Live aliases, only after the approved promote: `www.yoursparklesuite.com` and `yoursparklesuite.com`
+  serve the exact intended deployment.
+- Live custom domain: after a live restore or alias change, verify
   `https://www.yoursparklesuite.com` does not refresh away from the landing
   page, then verify the relevant post-auth destination. Root HTML or a brief
   landing-page flash is not sufficient.
@@ -79,8 +88,9 @@ For logged-in smoke verification, check the relevant real UI state, not just sou
 
 In final updates, state:
 
-- the exact live-domain paths verified
-- the production deployment id/commit provenance
+- which lane was verified (Smoke, or live after Louis said go)
+- the exact paths verified
+- the deployment id/commit provenance
 - whether Chrome reviewer-smoke was used
 - what account/session type was used, without exposing or storing secrets
 - any parts not visually verified because authentication or reviewer-smoke was unavailable

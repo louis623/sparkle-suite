@@ -1,5 +1,7 @@
 # Sparkle Suite Message Center and Resource Library Implementation Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 **Status:** Proposed for implementation approval
 
 **Date:** August 17, 2026

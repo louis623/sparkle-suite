@@ -1,5 +1,7 @@
 # Sparkle Suite Prerequisites For Finder Dance Floor Compatibility
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 **Date:** August 25, 2026  
 **Status:** Completed by live Suite compatibility release `f3de6c15`; Finder Releases 1-4 are implemented and verified<br>
 **Suite repository:** `C:\Users\louis\sparkle-suite-repo`  

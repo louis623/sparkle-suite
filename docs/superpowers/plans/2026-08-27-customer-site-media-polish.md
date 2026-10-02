@@ -1,5 +1,7 @@
 # Customer-Site Media Polish Implementation Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 > **Status:** Design and implementation plan only. No application code or production UI is changed by this document.
 
 **Goal:** Give every Sparkle Suite customer-facing homepage a more polished, energetic media presentation across its five rep-configurable media areas, then carry a restrained version of the improved icon and flare language into other suitable homepage elements.

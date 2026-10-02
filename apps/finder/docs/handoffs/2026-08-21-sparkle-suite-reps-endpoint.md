@@ -1,5 +1,7 @@
 # Sparkle Suite → Sparkle Finder Public Reps Endpoint Handoff
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 Date: 2026-08-21  
 Finder consumer: `https://yoursparklefinder.com/reps`  
 Required Suite route: `GET /api/public/finder/reps`

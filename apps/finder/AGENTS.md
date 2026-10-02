@@ -32,4 +32,5 @@ Use repo-local skills from:
 3. Keep durable project memory in `vault/` and durable plans, handoffs, decisions, and research in `docs/`.
 4. Do not copy temp files, screenshots, logs, build output, smoke artifacts, `.tmp`, or `outputs` into durable memory.
 5. Standing auth rule: each customer-facing product must have its own auth boundary by default. Do not share or repoint Sparkle Finder customer auth through Neon Rabbit HQ, Sparkle Suite, or another product unless Louis explicitly approves that architecture for the specific product. Shared product data APIs are acceptable; shared login redirects, OAuth fallback URLs, Site URLs, Google OAuth branding, and customer auth user pools require explicit review.
+6. **Smoke-first ship lane (locked 2026-09-26):** deploy and verify Finder on Smoke, stack small updates there, then one Louis-approved live promote. A merge or push is not `vercel --prod`. Same-day live hotfix only with Louis’s explicit say-so. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.
 

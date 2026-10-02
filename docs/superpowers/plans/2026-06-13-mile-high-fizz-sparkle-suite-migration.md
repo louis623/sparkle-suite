@@ -1,5 +1,7 @@
 # Mile High Fizz Sparkle Suite Migration Implementation Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Rebuild Mile High Fizz as a branded Sparkle Suite tenant/workspace and customer-facing site at `milehighfizz.com`, preserving Lindsey's brand and real operational data while using the standard Sparkle Suite workspace, calendar, live queue, Trade Board, support, reminders, and customer-audience systems.

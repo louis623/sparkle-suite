@@ -1,5 +1,7 @@
 # Mobile App Preview Alignment Implementation Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Realign the signed-in Sparkle Finder web app with the July 3 A/B/C mobile app preview: A opens the app, B is the collection layer, and C is the guided find flow, while preserving all existing Sparkle Finder functionality.

@@ -1,5 +1,7 @@
 # Amethyst Targeted Site Data Scrub Implementation Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task. Use `superpowers:subagent-driven-development` only if a task can be isolated cleanly without overlapping file edits. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ensure every targeted Sparkle Suite customer site renders only rep/Nic-Nac/database-backed data or honest empty states, with demo/sample content limited to untargeted design previews.

@@ -1,5 +1,7 @@
 # Nic-Nac Terra migration — September 2, 2026
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 ## Approved scope
 
 Louis approved a same-day Suite human-default migration to `gpt-5.6-terra`,

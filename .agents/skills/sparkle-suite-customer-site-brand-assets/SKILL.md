@@ -31,5 +31,5 @@ Create customer-site assets as a two-layer system:
 1. Add focused tests for the stable mark and at least two skin palettes.
 2. Run the relevant focused tests and the production build.
 3. Render `/icon` and `/opengraph-image` locally with the custom `Host` header; visually inspect the generated images before release.
-4. Commit, push, deploy the exact allowlisted branch tip, confirm both Sparkle Suite production aliases, and verify the affected custom-domain paths live.
-5. Use `sparkle-suite-production-smoke` for release checks. Do not use Louis's personal account for any state-changing smoke test. Record the known reviewer-token limitation instead of bypassing it.
+4. Commit and push, then deploy and verify on Smoke. Confirm both live Sparkle Suite aliases and the affected custom-domain paths only after Louis approves the batch promote.
+5. Use `sparkle-suite-production-smoke` on Smoke. Do not use Louis's personal account for any state-changing smoke test. Record the known reviewer-token limitation instead of bypassing it. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.

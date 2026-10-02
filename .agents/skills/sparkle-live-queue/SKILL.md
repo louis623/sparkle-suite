@@ -172,26 +172,27 @@ Edge Function live-queue-sync: POST with x-sync-key header. Body: { sync_code, q
 5. Use MutationObserver on document.body for table discovery
 6. Verify Three Absolute Rules after build
 7. Test on Lindsey's BP dashboard (Louis has access)
-8. Codex adversarial review before deploying
+8. Codex adversarial review, then Smoke-installed validation before any Store release. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.
 
 ---
 
 ## Standing Rules
 
-Main branch only. Regenerate CODEBASE_SNAPSHOT.md at end of every session. Commit and push.
+Main branch only. Regenerate CODEBASE_SNAPSHOT.md at end of every session. Commit and push. A push is not a Store publish and not a live Suite promote.
 
 ## Chrome Web Store Release Checklist
 
-Repo-complete is not Web-Store-complete. Any rep-facing change under `/chrome-extension/` MUST complete this release loop before the work is considered done:
+Repo-complete is not Web-Store-complete. Chrome Web Store publish stays gated. Package and review are fine; auto-publish stays off until Louis says go. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.
 
 1. Bump `chrome-extension/manifest.json` version.
 2. Package a new zip from `/chrome-extension/`.
 3. Verify the zip contains every changed extension file, including helper scripts such as `queue-filter.js`.
 4. Run the Live Queue tests and the three content-script safety scans above.
-5. Upload the package to the existing Chrome Web Store item, not a new listing.
-6. Submit the draft for review.
-7. Record the submitted version and review status in Open Brain / NR HQ.
-8. After approval, verify from a real Web Store-installed copy, not only the repo or an unpacked build.
-9. Keep an emergency unpacked-install zip ready for live-show incidents while Chrome Web Store review is pending.
+5. Validate the unpacked or sideloaded build on Smoke (Smoke URLs once they exist). Do not upload to the Store from a merge.
+6. Wait for Louis to approve that one Store release. Same-day Store publish only when he explicitly says so.
+7. Upload the package to the existing Chrome Web Store item, not a new listing. Submit that one release.
+8. Record the submitted version and review status in Open Brain / NR HQ.
+9. After approval, verify from a real Web Store-installed copy, not only the repo or an unpacked build.
+10. Keep an emergency unpacked-install zip ready for live-show incidents while Chrome Web Store review is pending.
 
 Lesson source: May 18, 2026 Brittany Party Filter incident. The repo had Party Filter support from May 11, but the Web Store package still served the pre-filter `1.0.0` build until the `1.0.1` update was submitted.

@@ -12,6 +12,8 @@ repository.
 - Production branch: `codex/nic-nac-trade-hardening`
 - Production domain: `https://yoursparklefinder.com`
 
+**Smoke-first ship lane (locked 2026-09-26):** deploy and verify Finder on Smoke (staging Supabase, demo accounts), stack small updates there, then one Louis-approved live promote. Do not treat a merge as `vercel --prod`. Canonical playbook: Core Memory `skills/sparkle-smoke-ship.md`.
+
 Run Finder build, test, and deployment commands from this directory. Commit and
 push from the shared repository root. Sparkle Finder remains independently
 deployed with its own authentication, Supabase project, environment variables,

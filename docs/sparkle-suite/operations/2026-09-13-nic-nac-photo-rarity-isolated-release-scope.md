@@ -1,5 +1,7 @@
 # Nic-Nac Photo/Rarity Isolated Release Scope
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 **Status:** implemented, migrated, repaired, released, and verified from the
 isolated branch. The protected Live Lineup/Kelly work remained excluded.
 

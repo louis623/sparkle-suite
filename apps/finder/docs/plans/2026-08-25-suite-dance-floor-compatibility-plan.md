@@ -1,5 +1,7 @@
 # Sparkle Suite Dance Floor Compatibility Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 **Date:** August 25, 2026  
 **Status:** Complete; Releases 1-4 are implemented, deployed, and verified<br>
 **Finder baseline:** `codex-sparkle-finder-v1` at `7ba4802d47db7ad40825215b2c577ba468cb0188`  

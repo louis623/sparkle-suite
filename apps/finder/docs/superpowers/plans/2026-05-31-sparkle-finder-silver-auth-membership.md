@@ -1,5 +1,7 @@
 # Sparkle Finder Silver Auth Membership Implementation Plan
 
+> **Superseded for shipping (2026-09-26):** Historical. Do not deploy from this note. Live promote follows Core Memory `skills/sparkle-smoke-ship.md` (Smoke verify, Louis says go, one live promote).
+
 > Superseded on 2026-06-13 for shop/affiliate verification steps. Current Sparkle Finder beta launch should verify `/photo-setup`, and `/shop` plus `/affiliate-disclosure` should remain removed/404.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
