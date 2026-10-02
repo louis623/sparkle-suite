@@ -4,7 +4,7 @@
   "locks": [
     {
       "path": "public/amethyst/homepage.css",
-      "sha256": "f4264fbb32006f9315df180d809dde89c115c21daa08e32c073a6a1bc9f8a163"
+      "sha256": "d0146fc10ab3b752634511349eb924c56170176be3567a40d80ac8f88fc518ce"
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
@@ -23,7 +23,7 @@
     {
       "path": "public/amethyst/homepage.jsx",
       "function": "LiveQueueStrip",
-      "sha256": "4c483beabf8e49ec5f872a3231a8f20e3b9688f01488090935d7afe1a468ac69"
+      "sha256": "73642fa84312731ab9da46e3da1e64a5692eb26bba782b4c4cd992268fafa3dd"
     },
     {
       "path": "public/amethyst/trade.jsx",
@@ -38,7 +38,7 @@
     {
       "path": "public/amethyst/trade.jsx",
       "function": "LiveQueueStrip",
-      "sha256": "6ef87fed9f6706cfd58e6b9c5364ab1932a3c8b6f7a55162bcc6016f745b09e9"
+      "sha256": "df8e2039e01847d8c44e797084e2b8e8d1abdc998c1a7e40e63d19977cfa5dce"
     },
     {
       "path": "public/amethyst/join.jsx",
@@ -53,7 +53,13 @@
     {
       "path": "public/amethyst/join.jsx",
       "function": "LiveQueueStrip",
-      "sha256": "4555d2f3224850e51e8044d2437df09f33a8444220ef72e7b8ecf452fdb91f3c"
+      "sha256": "dbf764dd35b944b0966e52bb8fd40d76dd9bcbb50f222e1cfc593367f31aacaa"
     }
-  ]
+  ],
+  "approvedSharedChange": {
+    "date": "2026-10-02",
+    "base": "777a38bda5b2f9ec1f52894bfe34a69026ff6962",
+    "approval": "Louis selected compact calendar row option 1 and asked for implementation. Only empty lineup presentation, delayed text, and calendar scrolling are authorized; queue sync and unrelated shared layout stay locked.",
+    "plan": "docs/plans/2026-10-02-compact-public-lineup.md"
+  }
 }

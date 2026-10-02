@@ -453,7 +453,7 @@ function LiveLineupUpdatedAt({ lineup }) {
       dateTime={new Date(updatedAt).toISOString()}
       title={new Date(updatedAt).toLocaleString()}
     >
-      Updated {new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
     </time>
   );
 }
@@ -1417,55 +1417,10 @@ function Ticker({ topText }) {
 function LiveQueueStrip({ state, onOpen }) {
   const lineup = React.useContext(LiveLineupContext);
   const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
-  if (state === "offline") {
-    return (
-      <section className="hp-trade-preview" data-lineup-surface="list">
-        <div className="hp-trade-preview-inner">
-          <div className="hp-trade-preview-head">
-            <span>Live Lineup</span>
-          </div>
-          <div className="hp-trade-preview-items" style={{ color: "var(--hp-preview-muted, var(--fg-muted))" }}>
-            {lineup?.liveQueueSummary || getLiveQueueSummary("Lineup opens when the next scheduled show starts.")}
-          </div>
-          <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View lineup</button>
-          <LiveLineupUpdatedAt lineup={lineup} />
-        </div>
-      </section>
-    );
-  }
-
-  if (state === "loading") {
-    return (
-      <section className="hp-trade-preview" data-lineup-surface="list">
-        <div className="hp-trade-preview-inner">
-          <div className="hp-trade-preview-head">
-            <span className="live-dot" />
-            <span>Live Lineup</span>
-          </div>
-          <div className="hp-trade-preview-items">
-            Loading lineup...
-          </div>
-          <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
-          <LiveLineupUpdatedAt lineup={lineup} />
-        </div>
-      </section>
-    );
-  }
-
-  if (state === "empty") {
-    return (
-      <section className="hp-trade-preview" data-lineup-surface="list">
-        <div className="hp-trade-preview-inner">
-          <div className="hp-trade-preview-head">
-            <span className="live-dot" />
-            <span>Live Lineup</span>
-          </div>
-          <div className="hp-trade-preview-items">
-            {lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup is ready. Customer names appear here when a live show is connected.")}
-          </div>
-          <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
-          <LiveLineupUpdatedAt lineup={lineup} />
-        </div>
+  if (entries.length === 0) {
+    return window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref) || (
+      <section className="hp-trade-preview hp-lineup-idle" data-lineup-surface="calendar" aria-label="Upcoming shows">
+        <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt">Check back for upcoming shows</span></div>
       </section>
     );
   }

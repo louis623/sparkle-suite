@@ -1,3 +1,4 @@
+import { buildLineupCalendar } from '@/lib/amethyst/lineup-calendar'
 import { requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
 
@@ -113,11 +114,14 @@ export async function GET(request: Request) {
 
   return new NextResponse(
     buildAmethystHomepageBootstrapScript(
-      enrichAmethystHomepageFeatureData(customerTemplateData.homepage, {
-        liveQueueSnapshot,
-        lineupPresentation: requestedLineupPresentation(request),
-        tradeBoardListings,
-      }),
+      {
+        ...enrichAmethystHomepageFeatureData(customerTemplateData.homepage, {
+          liveQueueSnapshot,
+          lineupPresentation: requestedLineupPresentation(request),
+          tradeBoardListings,
+        }),
+        ...buildLineupCalendar(customerTemplateData.homepage, linkedEvents),
+      },
       linkedEvents,
       customerTemplateData.appearancePreset,
       { publicSiteSlug, repId, targeted },

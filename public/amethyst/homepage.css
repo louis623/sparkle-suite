@@ -6866,3 +6866,17 @@ body.surface-pumpkin-cat-glass {
 @keyframes hp-lineup-reveal-glow { 0%, 100% { box-shadow: none; } 25% { box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 28%, transparent), 0 0 18px color-mix(in srgb, currentColor 22%, transparent); } }
 @keyframes hp-lineup-reveal-sparkle { 0%, 100% { opacity: 0; } 25% { opacity: .9; } 75% { opacity: .2; transform: translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { [data-lineup-flare="true"] { animation: none; background-color: color-mix(in srgb, currentColor 12%, transparent); } [data-lineup-token][data-lineup-flare="true"] .hp-lineup-sparkle { display: none; animation: none; } }
+
+/* Empty lineup: one useful row, shared across all current and future skins. */
+.hp-lineup-idle-inner { max-width:1280px; margin:0 auto; padding:0 24px; }
+.hp-lineup-idle-prompt {
+  display:flex; align-items:center; gap:10px; min-height:48px;
+  padding:10px 0; box-sizing:border-box; width:fit-content; max-width:100%;
+  font-size:13px; line-height:1.5; font-weight:600;
+  color:var(--hp-preview-fg, var(--fg)); text-decoration:none; overflow-wrap:anywhere;
+}
+.hp-lineup-idle-prompt svg { flex:none; opacity:.8; }
+a.hp-lineup-idle-prompt:hover { text-decoration:underline; text-underline-offset:3px; }
+a.hp-lineup-idle-prompt:focus-visible { outline:2px solid currentColor; outline-offset:2px; border-radius:4px; }
+@media (max-width:640px) { .hp-lineup-idle-inner { padding:0 16px; } }
+#events { scroll-margin-top:180px; }

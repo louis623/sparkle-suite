@@ -12,7 +12,7 @@ import { AMETHYST_APPEARANCE_PRESETS } from '@/lib/amethyst/appearance-presets'
 
 describe('Amethyst homepage template data wiring', () => {
 
-  it('shows the last lineup update at the far right without customer-facing delay copy', () => {
+  it('shows a discreet updating label alongside the retained lineup timestamp', () => {
     const publicLineupSources = [
       'public/amethyst/homepage.jsx',
       'public/amethyst/trade.jsx',
@@ -30,7 +30,8 @@ describe('Amethyst homepage template data wiring', () => {
     for (const source of publicLineupSources) {
       expect(source).not.toContain('Update delayed')
       expect(source).toContain('className="hp-trade-preview-updated"')
-      expect(source).toContain('Updated {new Date(updatedAt)')
+      expect(source).toContain('Updating · Last update ')
+      expect(source).toContain('new Date(updatedAt).toLocaleTimeString')
       expect(source).toMatch(
         /className="hp-trade-preview-items"[\s\S]*?className="hp-trade-preview-link"[\s\S]*?<LiveLineupUpdatedAt lineup=\{lineup\} \/>/,
       )
@@ -134,7 +135,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20261002-layout-restored')
+    expect(homepage).toContain('homepage.jsx?v=20261002-compact-lineup')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),

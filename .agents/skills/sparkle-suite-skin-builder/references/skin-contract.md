@@ -75,6 +75,14 @@ do not bypass it or quietly refresh snapshots. Sample preview data must match
 the current production contract, and sample review must never be reported as
 verification of a real account.
 
+## Public lineup availability — approved shared change, October 2, 2026
+
+Louis approved the compact calendar-row option as a separate shared product change. Every community/private/custom skin and future skin inherits it on Home, Trade, and Join. When no usable public entries exist, render one compact calendar row and no lineup drawer action, heading, connection paragraph, or update timestamp. Link to the tenant-correct Upcoming Shows section only when it is available; otherwise use non-linked "Check back for upcoming shows". Keep saved lineup visibility preferences.
+
+When entries exist, preserve the customer pills and drawer action regardless of scheduled show, showtime, or source connection health. Retain names through the existing delayed-data window with truthful updating/last-update text. Calendar availability must never gate queues. Preserve extension, synchronization, privacy projection, ordering, grouping, retention and account data.
+
+Use the shared runtime renderer and skin surface tokens; do not override or fork this behavior per skin. Test empty/populated/delayed states at phone/tablet/desktop sizes. The four explicitly approved layout locks were updated for this change; all other shared layout locks remain in force. See docs/plans/2026-10-02-compact-public-lineup.md. Smoke reviewer state selectors require both Smoke environment markers and must be ignored in production.
+
 ## Custom Hero Art and Motion
 
 When a skin adds a custom illustrated, generated, photographed, or animated

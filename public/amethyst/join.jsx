@@ -711,7 +711,7 @@ function LiveLineupUpdatedAt({ lineup }) {
       dateTime={new Date(updatedAt).toISOString()}
       title={new Date(updatedAt).toLocaleString()}
     >
-      Updated {new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
     </time>
   );
 }
@@ -736,19 +736,9 @@ function LiveQueueStrip({ onOpen }) {
   const lineupState = lineup?.liveQueueState;
   const current = lineupState === "live" || lineupState === "empty";
   if (entries.length === 0) {
-    return (
-      <section className="hp-trade-preview" data-lineup-surface="list">
-        <div className="hp-trade-preview-inner">
-          <div className="hp-trade-preview-head">
-            <span className="live-dot" style={!current ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
-            <span>Live Lineup</span>
-          </div>
-          <div className="hp-trade-preview-items">
-            {lineup?.liveQueueSummary || "Live Lineup is waiting for a recent update."}
-          </div>
-          <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
-          <LiveLineupUpdatedAt lineup={lineup} />
-        </div>
+    return window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref) || (
+      <section className="hp-trade-preview hp-lineup-idle" data-lineup-surface="calendar" aria-label="Upcoming shows">
+        <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt">Check back for upcoming shows</span></div>
       </section>
     );
   }

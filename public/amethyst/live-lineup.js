@@ -201,5 +201,19 @@
     }, [open]);
     return ref;
   }
-  root.SparkleLiveLineup = { merge, unavailable, afterTransit, revealUpdate, initialState: value => grouped(value) ? unavailable(value) : value, start, useDialog, useRevealFlare };
+  // Shared by every skin and customer-page variant. Calendar never gates names.
+  function renderEmpty(React, calendarHref) {
+    const href = typeof calendarHref === 'string' && (calendarHref === '#events' || calendarHref.startsWith('/')) &&
+      !calendarHref.startsWith('//') && !/[\\\s]/u.test(calendarHref) ? calendarHref : null;
+    const h = React.createElement;
+    const icon = h('svg', {width:18, height:18, viewBox:'0 0 24 24', fill:'none', stroke:'currentColor', strokeWidth:1.7, 'aria-hidden':true},
+      h('rect', {x:3, y:5, width:18, height:16, rx:2}),
+      h('path', {d:'M16 3v4M8 3v4M3 11h18'}));
+    return h('section', {className:'hp-trade-preview hp-lineup-idle', 'data-lineup-surface':'calendar', 'aria-label':'Upcoming shows'},
+      h('div', {className:'hp-lineup-idle-inner'},
+        h(href ? 'a' : 'span', {className:'hp-lineup-idle-prompt', ...(href ? {href} : {})}, icon,
+          h('span', null, href ? 'Check the calendar for the next show' : 'Check back for upcoming shows'),
+          href ? h('span', {'aria-hidden':true}, '→') : null)));
+  }
+  root.SparkleLiveLineup = { renderEmpty, merge, unavailable, afterTransit, revealUpdate, initialState: value => grouped(value) ? unavailable(value) : value, start, useDialog, useRevealFlare };
 })(typeof window === 'undefined' ? globalThis : window);

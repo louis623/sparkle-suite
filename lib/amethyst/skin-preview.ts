@@ -1,3 +1,4 @@
+import { buildLineupCalendar } from './lineup-calendar'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { buildAmethystHomepageBootstrapScript, defaultAmethystHomepageTemplateData } from './homepage-template-data'
@@ -154,7 +155,20 @@ const PREVIEW_PROFILES = {
   },
 } satisfies Record<SkinPreviewSkin, PreviewProfile>
 
-function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_garden') {
+export type LineupReviewState = 'empty' | 'queued' | 'delayed' | 'no-calendar'
+export function resolveLineupReviewState(url: string, env: Record<string, string | undefined> = process.env): LineupReviewState | null {
+  if (env.SPARKLE_ENVIRONMENT !== 'smoke' || env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT !== 'smoke') return null
+  const state = new URL(url).searchParams.get('lineupReview')
+  return ['empty', 'queued', 'delayed', 'no-calendar'].includes(state || '') ? state as LineupReviewState : null
+}
+
+function reviewLineup(state: LineupReviewState | null) {
+  if (!state || state === 'queued') return GNOME_PREVIEW_LINEUP
+  if (state === 'delayed') return { ...GNOME_PREVIEW_LINEUP, liveQueueState: 'delayed' as const, liveQueueAgeSeconds: 90, liveQueueSourceReady: false, liveQueueEvents: [], liveQueueSummary: 'Showing the last received sample lineup while checking for updates.' }
+  return { ...GNOME_PREVIEW_LINEUP, liveQueueState: 'empty' as const, liveQueueEntries: [], liveQueueOrderCount: 0, liveQueueGroupCount: 0, liveQueueCurrent: null, liveQueueOnDeck: null, liveQueueEvents: [], liveQueueSummary: 'No sample orders waiting.' }
+}
+
+function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_garden', review: LineupReviewState | null = null) {
   const profile = PREVIEW_PROFILES[skin]
   const footerLinks = {
     ...defaultAmethystHomepageTemplateData.footerLinks,
@@ -162,12 +176,14 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
     unsubscribe: previewPath(skin, 'unsubscribe'), catalog: '#preview-action', preOrders: '#preview-action',
   }
   const common = {
-    ...GNOME_PREVIEW_LINEUP,
+    ...reviewLineup(review),
+    ...buildLineupCalendar({ ...defaultAmethystHomepageTemplateData, footerLinks }, review === 'no-calendar' ? [] : profile.events),
     businessName: profile.businessName, repName: profile.repName, footerLinks,
     tickerTopText: profile.ticker,
     footerTagline: profile.tagline,
     tradeBoardTickerItems: GNOME_PREVIEW_LISTINGS.map(({ name, type, collection }) => ({ name, type, collection })),
   }
+  if (page === 'homepage' && common.liveQueueCalendarHref) common.liveQueueCalendarHref = '#events'
   const context = { targeted: true } as const
   if (page === 'trade') {
     return buildAmethystTradeBootstrapScript({ ...defaultAmethystTradeTemplateData, ...common, shopUrl: '#preview-action' }, GNOME_PREVIEW_LISTINGS, skin, context)
@@ -252,7 +268,7 @@ export const SKIN_PREVIEW_GUARDS = `
     event.preventDefault(); event.stopImmediatePropagation();
     var path = href.split('?')[0].split('#')[0];
     var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:amethyst|gnome_garden|neon_butterfly|halloween_pumpkin_witch|halloween_pumpkin_cat|gilded_autumn)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
-    if (page) window.parent.postMessage({ type: 'sparkle-skin-preview-page', page: page }, '*'); else notice();
+    if (page) window.parent.postMessage({ type: 'sparkle-skin-preview-page', page: page, ...(href.endsWith('#events') ? { fragment: '#events' } : {}) }, '*'); else notice();
   }, true);
   function disableUploads() {
     document.querySelectorAll('input[type="file"]').forEach(function (input) {
@@ -276,7 +292,7 @@ export function skinPreviewMediaSource(skin: SkinPreviewSkin, origin: string) {
 }
 
 /** Renders the unchanged customer components with fixture data inside an opaque sandbox. */
-export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string) {
+export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string, review: LineupReviewState | null = null) {
   const root = join(process.cwd(), 'public', 'amethyst')
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
@@ -303,8 +319,9 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
       'Stop SMS updates, email updates, or both from {BUSINESS_NAME}.',
     )
   }
-  const bootstrap = fixtureBootstrap(page, skin).replaceAll('Sparkle by Sasha', profile.businessName)
-  document = document.replace('<div id="root"></div>', `<div id="root"></div><script>${inlineScript(SKIN_PREVIEW_GUARDS)}\n${inlineScript(bootstrap)}</script>`)
+  const bootstrap = fixtureBootstrap(page, skin, review).replaceAll('Sparkle by Sasha', profile.businessName)
+  const reviewGuards = SKIN_PREVIEW_GUARDS.replace('var sample = '+JSON.stringify(GNOME_PREVIEW_LINEUP)+';', 'var sample = '+JSON.stringify(reviewLineup(review))+';')
+  document = document.replace('<div id="root"></div>', `<div id="root"></div><script>${inlineScript(reviewGuards)}\n${inlineScript(bootstrap)}</script>`)
   return document.replaceAll('Sparkle by Sasha', profile.businessName)
 }
 
@@ -312,10 +329,12 @@ export async function buildGnomeSkinPreviewDocument(page: SkinPreviewPage, origi
   return buildSkinPreviewDocument('gnome_garden', page, origin)
 }
 
-export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string) {
+export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string, review: LineupReviewState | null = null) {
   const profile = PREVIEW_PROFILES[skin]
-  const document = await buildSkinPreviewDocument(skin, page, origin)
-  const navigation = SKIN_PREVIEW_PAGES.map((item) => `<a href="${previewPath(skin, item)}"${item === page ? ' aria-current="page"' : ''}>${LABELS[item]}</a>`).join('')
+  const document = await buildSkinPreviewDocument(skin, page, origin, review)
+  const reviewQuery = review ? '?lineupReview='+review : ''
+  const reviewControls = review ? '<nav aria-label="Lineup review states">'+(['empty','queued','delayed','no-calendar'] as const).map(state => '<a href="'+previewPath(skin,page)+'?lineupReview='+state+'"'+(state === review ? ' aria-current="page"' : '')+'>'+({empty:'Empty',queued:'Names waiting',delayed:'Delayed', 'no-calendar':'No calendar'}[state])+'</a>').join('')+'</nav>' : ''
+  const navigation = SKIN_PREVIEW_PAGES.map((item) => `<a href="${previewPath(skin, item)}${reviewQuery}"${item === page ? ' aria-current="page"' : ''}>${LABELS[item]}</a>`).join('')
   const chrome = skin === 'amethyst'
     ? { bg: '#22064b', fg: '#fff4fa', muted: '#E8DFF5', border: '#FF1AC255', active: '#E8DFF5', focus: '#FF1AC2' }
     : skin === 'gilded_autumn'
@@ -328,8 +347,8 @@ export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreview
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${profile.label} · Skin preview</title><style>
   *{box-sizing:border-box}body{margin:0;background:${chrome.bg};color:${chrome.fg};font:14px/1.4 system-ui,sans-serif}header{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;border-bottom:1px solid ${chrome.border}}header strong{font-size:14px}header small{display:block;color:${chrome.muted};font-size:12px}nav{display:flex;gap:5px;flex-wrap:wrap}nav a{color:inherit;text-decoration:none;border-radius:20px;padding:8px 12px}nav a:hover,nav a[aria-current]{background:${chrome.active};color:${chrome.bg}}a:focus-visible{outline:3px solid ${chrome.focus};outline-offset:3px}iframe{display:block;width:100%;height:calc(100dvh - 65px);border:0;background:${chrome.bg}}@media(max-width:600px){header{padding:10px 12px;flex-direction:column;align-items:flex-start;gap:7px}header small{display:inline;margin-left:6px}nav{width:100%;justify-content:space-between}nav a{padding:7px 9px}iframe{height:calc(100dvh - 100px)}}
   html,body{height:100%;overflow:hidden}body{height:100dvh;display:flex;flex-direction:column}header{flex:0 0 auto}iframe{flex:1 1 0;min-height:0;height:auto}
-  </style></head><body><header><div><strong>Skin preview · Sample content</strong><small>${profile.label}</small></div><nav aria-label="Preview pages">${navigation}</nav></header><iframe id="skin-preview" title="${LABELS[page]} — sample ${profile.label} site" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escapeAttribute(document)}"></iframe><script>
-  window.addEventListener('message',function(event){var frame=document.getElementById('skin-preview');if(event.source!==frame.contentWindow||event.data?.type!=='sparkle-skin-preview-page')return;var page=event.data.page;if(['homepage','trade','join','unsubscribe'].includes(page))window.location.assign('/skin-preview/${skin}/'+page);});
+  </style></head><body><header><div><strong>Skin preview · Sample content${review ? ' · Lineup review' : ''}</strong><small>${profile.label}</small></div><nav aria-label="Preview pages">${navigation}</nav>${reviewControls}</header><iframe id="skin-preview" title="${LABELS[page]} — sample ${profile.label} site" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escapeAttribute(document)}"></iframe><script>
+  window.addEventListener('message',function(event){var frame=document.getElementById('skin-preview');if(event.source!==frame.contentWindow||event.data?.type!=='sparkle-skin-preview-page')return;var page=event.data.page;if(['homepage','trade','join','unsubscribe'].includes(page))window.location.assign('/skin-preview/${skin}/'+page+'${reviewQuery}'+(event.data.fragment === '#events' ? '#events' : ''));});
   </script></body></html>`
 }
 

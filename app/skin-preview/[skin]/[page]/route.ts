@@ -1,5 +1,6 @@
 import {
   renderSkinPreview,
+  resolveLineupReviewState,
   skinPreviewMediaSource,
   SKIN_PREVIEW_PAGES,
   SKIN_PREVIEW_SKINS,
@@ -19,7 +20,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ skin
     return new Response('Not found', { status: 404 })
   }
   const origin = new URL(request.url).origin
-  return new Response(await renderSkinPreview(skin as SkinPreviewSkin, page as SkinPreviewPage, origin), {
+  return new Response(await renderSkinPreview(skin as SkinPreviewSkin, page as SkinPreviewPage, origin, resolveLineupReviewState(request.url)), {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-store',
