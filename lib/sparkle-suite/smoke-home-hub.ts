@@ -1,4 +1,4 @@
-type SmokeHomeEnv = {
+interface SmokeHomeEnv extends NodeJS.ProcessEnv {
   SPARKLE_ENVIRONMENT?: string
   NEXT_PUBLIC_SPARKLE_ENVIRONMENT?: string
 }
