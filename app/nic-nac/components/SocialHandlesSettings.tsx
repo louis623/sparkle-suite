@@ -57,38 +57,38 @@ export function SocialHandlesSettings({
               />
             </label>
             {hasUrl ? (
-              <div className={styles.toggles}>
-                <PlacementSwitch
-                  label="Show on site"
-                  ariaLabel={`Show ${platform.label} on site`}
-                  checked={placement.showOnSite}
-                  onChange={(checked) =>
-                    onSocialVisibilityChange?.({
-                      ...socialVisibility,
-                      [platform.key]: checked,
-                    })
-                  }
-                />
-                <PlacementSwitch
-                  label="Show in hero"
-                  ariaLabel={`Show ${platform.label} in hero`}
-                  checked={placement.showInHero}
-                  onChange={(checked) =>
-                    onSocialVisibilityChange?.({
-                      ...socialVisibility,
-                      [socialHeroFlagKey(platform.key)]: checked,
-                    })
-                  }
-                />
+              <div className={styles.placement}>
+                <div className={styles.toggles}>
+                  <PlacementSwitch
+                    label="Show on site"
+                    ariaLabel={`Show ${platform.label} on site`}
+                    checked={placement.showOnSite}
+                    onChange={(checked) =>
+                      onSocialVisibilityChange?.({
+                        ...socialVisibility,
+                        [platform.key]: checked,
+                      })
+                    }
+                  />
+                  <PlacementSwitch
+                    label="Show in hero"
+                    ariaLabel={`Show ${platform.label} in hero`}
+                    checked={placement.showInHero}
+                    onChange={(checked) =>
+                      onSocialVisibilityChange?.({
+                        ...socialVisibility,
+                        [socialHeroFlagKey(platform.key)]: checked,
+                      })
+                    }
+                  />
+                </div>
+                <p className={`${surface.siteSettingsPreviewNote} ${styles.outcome}`}>
+                  {placement.summary}
+                </p>
               </div>
             ) : (
-              <p className={surface.siteSettingsPreviewNote}>{hint}</p>
+              <p className={`${surface.siteSettingsPreviewNote} ${styles.hint}`}>{hint}</p>
             )}
-            {hasUrl ? (
-              <p className={`${surface.siteSettingsPreviewNote} ${styles.outcome}`}>
-                {placement.summary}
-              </p>
-            ) : null}
           </section>
         )
       })}
