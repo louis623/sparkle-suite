@@ -101,6 +101,7 @@ Add focused tests for each private/custom skin: its owner, Louis's demo workspac
    - Run the focused Vitest suite for Amethyst appearance, Site Settings, Nic-Nac customization, and affected templates.
    - Run `npx tsc --noEmit --pretty false`.
    - Browser-smoke Homepage, Trade, and Join if rendering logic changed.
+   - For animated characters, follow the character-framing release gate in the cinematic contract: full motion, wide/ultrawide and narrow-phone extremes, zoom geometry, visible extremities and truthful audio fallback.
    - For a cinematic hero, complete the asset, responsive, motion,
      accessibility, and visual-comparison gates in
      `references/cinematic-hero-contract.md`.

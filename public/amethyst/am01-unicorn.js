@@ -8,7 +8,8 @@
     const poster = document.createElement('img');
     poster.src = assets + 'hero-poster.webp'; poster.alt = ''; poster.width = 1310; poster.height = 704;
     const video = document.createElement('video');
-    video.className = 'au-video'; video.muted = true; video.playsInline = true; video.loop = false;
+    video.className = 'au-video'; video.width = 1310; video.height = 704;
+    video.muted = false; video.playsInline = true; video.loop = false;
     video.volume = 0.85; video.preload = 'none'; video.tabIndex = -1;
     video.poster = assets + 'opening-poster.webp'; video.setAttribute('aria-hidden', 'true');
     media.append(poster, video); hero.prepend(media);
@@ -24,14 +25,15 @@
     controls.append(motion, sound); hero.append(controls);
     let wanted = !reduced.matches && hero.dataset.heroMotion !== 'off';
     let visible = false, disposed = false, failed = false, pending = false, finished = false;
+    let soundEnabled = true, audioBlocked = false, playAttempt = 0;
     let showFinalPoster = !wanted;
     const canPlay = () => !disposed && wanted && visible && !document.hidden && !failed && !finished;
-    function update() {
+    function update(forcePlay = false) {
       if (disposed) return;
       motion.textContent = finished ? 'Play again' : wanted ? 'Pause animation' : 'Play animation';
       motion.setAttribute('aria-pressed', String(wanted && !finished));
-      sound.textContent = video.muted ? 'Sound off' : 'Mute sound';
-      sound.setAttribute('aria-label', video.muted ? 'Play with sound' : 'Mute sound');
+      sound.textContent = audioBlocked && soundEnabled ? 'Enable sound' : video.muted ? 'Sound off' : 'Mute sound';
+      sound.setAttribute('aria-label', audioBlocked && soundEnabled ? 'Enable sound' : video.muted ? 'Play with sound' : 'Mute sound');
       sound.setAttribute('aria-pressed', String(!video.muted));
       controls.hidden = failed;
       poster.src = assets + (showFinalPoster || failed ? 'hero-poster.webp' : 'opening-poster.webp');
@@ -39,15 +41,23 @@
       hero.setAttribute('data-unicorn-motion', canPlay() ? 'playing' : 'paused');
       if (!canPlay()) { video.pause(); return; }
       if (!video.hasAttribute('src')) video.src = assets + 'hero-motion.mp4';
-      if (pending || !video.paused) return;
+      if ((pending || !video.paused) && forcePlay !== true) return;
       pending = true;
+      const attempt = ++playAttempt;
+      const attemptedMuted = video.muted;
       video.play().then(() => {
+        if (disposed || attempt !== playAttempt) { if (!canPlay()) video.pause(); return; }
         pending = false;
         if (!canPlay()) video.pause();
       }).catch(error => {
+        if (disposed || attempt !== playAttempt) return;
         pending = false;
-        if (disposed) return;
-        if (error.name !== 'AbortError') { wanted = false; showFinalPoster = true; }
+        if (error.name === 'NotAllowedError' && !attemptedMuted) {
+          // Audible autoplay may be blocked. Keep the scene moving and offer
+          // a truthful gesture control without changing the visitor's intent.
+          audioBlocked = soundEnabled;
+          video.muted = true;
+        } else if (error.name !== 'AbortError') { wanted = false; showFinalPoster = true; }
         update();
       });
     }
@@ -59,16 +69,18 @@
       if (finished) { video.currentTime = 0; finished = false; wanted = true; }
       else wanted = !wanted;
       if (wanted) showFinalPoster = false;
-      update();
+      if (wanted && audioBlocked && soundEnabled) { audioBlocked = false; video.muted = false; }
+      update(true);
     });
     sound.addEventListener('click', () => {
-      video.muted = !video.muted;
-      if (!video.muted) {
+      soundEnabled = audioBlocked ? true : !soundEnabled;
+      audioBlocked = false; video.muted = !soundEnabled;
+      if (soundEnabled) {
         // An explicit gesture starts the quiet fade from the entrance, including
         // when the silent animation has already reached its final held pose.
         video.currentTime = 0; finished = false; wanted = true; showFinalPoster = false;
       }
-      update();
+      update(true);
     });
     const preferenceChanged = () => {
       wanted = !reduced.matches && hero.dataset.heroMotion !== 'off';

@@ -156,3 +156,14 @@ wing motion, restrained shelf-light/lamp/sparkle choreography, a center-curtain
 copy safe lane, and asset-level tests that prevent black export bars from
 returning. Preserve the method, not the Neon Butterfly palette, when applying
 these lessons to another skin.
+
+### Character framing is a release gate
+
+Louis's October 2, 2026 rule: inspect the finished motion for visual quality, not only whether it runs. Preserve the complete approved character after its entrance: horn/ears, mane, tail and hooves must remain visible through head turns, bows and stomps. A passing overflow check or final-pose screenshot alone is insufficient.
+
+- Bound foreground video by both stage width and height. Width-only natural-height scaling can clip a character on wide screens. Background plates may cover; foreground character media needs a deliberate fit and safe frame.
+- Inspect every major motion event and the final hold. Check source-frame contact sheets and the rendered scene. Do not put opacity masks over extremities; blend the background separately.
+- Verify 320/390-pixel phones, portrait and landscape tablets, breakpoint edges, normal desktop, 1920/2560-pixel wide desktop, and ultrawide. Check 80/125/150/200-percent browser zoom where available; otherwise test the corresponding CSS viewport width AND height and identify it as effective zoom geometry rather than native zoom.
+- Measure the actual rendered video content rectangle, accounting for object-fit and object-position. Check character bounds, content/control separation, readable margins, horizontal overflow, and the complete scene after scrolling. A character outside the incoming edge during its designed entrance is expected; cropping the settled pose or later actions is a defect.
+- Test audible-autoplay success AND browser-policy rejection. Default sound behavior follows Louis's current instruction; an audible NotAllowedError must not freeze the animation. Retain a truthful Enable sound gesture when required, immediate mute, and explicit mute through pause/replay. Never promise audible autoplay on a browser that requires interaction.
+- Capture and inspect proof at the actual deployment and user-reported viewport before declaring the batch complete. Keep all changes scoped to the approved hero; shared layout locks remain mandatory.

@@ -46,10 +46,11 @@ describe('AM-01 visitor motion and sound controls', () => {
   it('does not mount or download unicorn media for another skin', () => {
     expect(harness({selected:false}).hero.children).toHaveLength(0)
   })
-  it('loads only in view, starts muted, plays once, holds and replays only on request', async () => {
+  it('loads only in view, starts with sound, plays once, holds and replays only on request', async () => {
     const h=harness();expect(h.video.hasAttribute('src')).toBe(false)
     h.visible(true);await settle();h.video.dispatchEvent(new Event('playing'))
-    expect(h.video).toMatchObject({muted:true,playsInline:true,loop:false,preload:'none'})
+    expect(h.video).toMatchObject({muted:false,playsInline:true,loop:false,preload:'none'})
+    expect(h.sound.getAttribute('aria-label')).toBe('Mute sound')
     expect(h.art.hasAttribute('data-video')).toBe(true)
     h.video.currentTime=10;h.video.dispatchEvent(new Event('ended'))
     expect(h.video.paused).toBe(true);expect(h.motion.textContent).toBe('Play again')
@@ -60,9 +61,13 @@ describe('AM-01 visitor motion and sound controls', () => {
     h.motion.dispatchEvent(new Event('click'));await settle()
     expect(h.video.currentTime).toBe(0);expect(h.video.paused).toBe(false)
   })
-  it('requires a gesture for sound, restarts its fade, and mutes without stopping animation', async () => {
+  it('mutes immediately, preserves mute through replay and re-enables sound with its fade', async () => {
     const h=harness();h.visible(true);await settle();h.video.currentTime=8
-    expect(h.sound.getAttribute('aria-label')).toBe('Play with sound')
+    expect(h.sound.getAttribute('aria-label')).toBe('Mute sound')
+    h.sound.dispatchEvent(new Event('click'));await settle()
+    expect(h.video).toMatchObject({muted:true,paused:false,currentTime:8})
+    h.video.dispatchEvent(new Event('ended'));h.motion.dispatchEvent(new Event('click'));await settle()
+    expect(h.video).toMatchObject({muted:true,paused:false,currentTime:0})
     h.sound.dispatchEvent(new Event('click'));await settle()
     expect(h.video).toMatchObject({muted:false,currentTime:0,paused:false})
     h.sound.dispatchEvent(new Event('click'))
@@ -86,15 +91,61 @@ describe('AM-01 visitor motion and sound controls', () => {
     expect(h.video.play).toHaveBeenCalledTimes(plays)
     expect(h.motion.textContent).toBe('Play animation')
   })
-  it('handles blocked autoplay with manual play and returns to a final poster on failure', async () => {
+  it('falls back to muted autoplay on audible policy rejection and enables sound on a gesture', async () => {
     const h=harness();h.video.play.mockRejectedValueOnce(Object.assign(new Error('Blocked'),{name:'NotAllowedError'}))
-    h.visible(true);await settle();expect(h.motion.textContent).toBe('Play animation')
-    h.visible(false);h.visible(true);expect(h.video.play).toHaveBeenCalledTimes(1)
-    h.motion.dispatchEvent(new Event('click'));await settle();h.video.dispatchEvent(new Event('playing'))
+    h.visible(true);await settle()
+    expect(h.video.play).toHaveBeenCalledTimes(2)
+    expect(h.video).toMatchObject({muted:true,paused:false})
+    expect(h.motion.textContent).toBe('Pause animation')
+    expect(h.sound.getAttribute('aria-label')).toBe('Enable sound')
+    h.sound.dispatchEvent(new Event('click'));await settle();h.video.dispatchEvent(new Event('playing'))
+    expect(h.video).toMatchObject({muted:false,currentTime:0,paused:false})
+    expect(h.sound.getAttribute('aria-label')).toBe('Mute sound')
     h.video.dispatchEvent(new Event('error'))
     expect(h.video.paused).toBe(true);expect(h.controls.hidden).toBe(true)
     expect(h.art.hasAttribute('data-video')).toBe(false)
     expect(h.poster.getAttribute('src')).toContain('hero-poster.webp')
+  })
+  it('retains manual play without a retry loop if both autoplay attempts are rejected', async () => {
+    const h=harness(),blocked=Object.assign(new Error('Blocked'),{name:'NotAllowedError'})
+    h.video.play.mockRejectedValueOnce(blocked).mockRejectedValueOnce(blocked)
+    h.visible(true);await settle();await settle()
+    expect(h.video.play).toHaveBeenCalledTimes(2)
+    expect(h.motion.textContent).toBe('Play animation')
+    h.visible(false);h.visible(true);await settle()
+    expect(h.video.play).toHaveBeenCalledTimes(2)
+    h.motion.dispatchEvent(new Event('click'));await settle()
+    expect(h.video.paused).toBe(false)
+  })
+  it('keeps the gesture play when an earlier pending muted fallback rejects late', async () => {
+    const h=harness();let reject!:(error:Error)=>void
+    const blocked=Object.assign(new Error('Blocked'),{name:'NotAllowedError'})
+    h.video.play.mockRejectedValueOnce(blocked).mockImplementationOnce(()=>new Promise<void>((_resolve,fail)=>{reject=fail}))
+    h.visible(true);await settle()
+    expect(h.sound.textContent).toBe('Enable sound')
+    h.sound.dispatchEvent(new Event('click'));await settle()
+    expect(h.video.play).toHaveBeenCalledTimes(3)
+    reject(blocked);await settle()
+    expect(h.video).toMatchObject({muted:false,paused:false})
+    expect(h.motion.textContent).toBe('Pause animation')
+    expect(h.sound.textContent).toBe('Mute sound')
+  })
+  it.each(['pause','hidden','offscreen','dispose','mute'] as const)('does not override visitor intent after a late audible rejection: %s', async action => {
+    const h=harness();let reject!:(error:Error)=>void
+    h.video.play.mockImplementationOnce(()=>new Promise<void>((_resolve,fail)=>{reject=fail}))
+    h.visible(true)
+    if(action==='pause')h.motion.dispatchEvent(new Event('click'))
+    if(action==='hidden'){h.doc.hidden=true;h.doc.dispatchEvent(new Event('visibilitychange'))}
+    if(action==='offscreen')h.visible(false)
+    if(action==='dispose')h.switchSkin()
+    if(action==='mute')h.sound.dispatchEvent(new Event('click'))
+    reject(Object.assign(new Error('Blocked'),{name:'NotAllowedError'}));await settle();await settle()
+    if(action==='mute') {
+      expect(h.video.muted).toBe(true);expect(h.sound.textContent).toBe('Sound off')
+      expect(h.video.play).toHaveBeenCalledTimes(2)
+    } else {
+      expect(h.video.play).toHaveBeenCalledTimes(1);expect(h.video.paused).toBe(true)
+    }
   })
   it.each(['pause','hidden','offscreen','dispose'] as const)('stops a late play completion after %s', async action => {
     const h=harness();let resolve!:()=>void
