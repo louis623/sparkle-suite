@@ -38,24 +38,37 @@ export function FinderLearnPage() {
               <h1 id="learn-title">
                 {content.hero.headlineLead} <em>{content.hero.headlineAccent}</em>
               </h1>
-              <p className={styles.lede}>{content.hero.body}</p>
               <p className={styles.tagline}>{content.tagline}</p>
               <div className={styles.heroActions}>
-                <p className={styles.comingSoon}>{content.comingSoon}</p>
+                <ComingSoonLink href="#soon" />
                 <a className={styles.textLink} href={content.hero.explore.href}>
                   {content.hero.explore.label}
+                  <ArrowIcon />
                 </a>
               </div>
               <p className={styles.note}>{content.hero.note}</p>
+              <p className={styles.lede}>{content.hero.body}</p>
             </div>
             <figure className={styles.heroFigure}>
-              <ProductPeek
-                alt={content.hero.peek.alt}
-                height={content.hero.peek.height}
-                label={content.hero.peek.label}
-                src={content.hero.peek.src}
-                width={content.hero.peek.width}
-              />
+              <div className={styles.gallery}>
+                <p className={styles.peekLabel}>{content.hero.peek.label}</p>
+                <div className={styles.galleryGrid}>
+                  {content.hero.gallery.map((piece) => (
+                    <figure className={styles.shot} key={piece.src}>
+                      <Image
+                        alt={piece.alt}
+                        className={styles.shotImage}
+                        height={piece.height}
+                        priority={piece.src.endsWith("cosmic-navigator.webp")}
+                        sizes="(min-width: 960px) 720px, 100vw"
+                        src={piece.src}
+                        width={piece.width}
+                      />
+                      <figcaption>{piece.name}</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </div>
               <figcaption>{content.hero.peek.caption}</figcaption>
             </figure>
           </div>
@@ -140,6 +153,7 @@ export function FinderLearnPage() {
                 <li key={fact}>{fact}</li>
               ))}
             </ul>
+            <ComingSoonLink href="#soon" />
           </aside>
         </section>
 
@@ -158,7 +172,7 @@ export function FinderLearnPage() {
 
         <section className={styles.cta} id={content.cta.id} aria-labelledby="cta-title">
           <h2 id="cta-title">{content.cta.heading}</h2>
-          <p className={styles.comingSoon}>{content.comingSoon}</p>
+          <ComingSoonLink href="#silver" />
           <p>{content.cta.body}</p>
         </section>
       </main>
@@ -199,6 +213,23 @@ export function FinderLearnPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function ComingSoonLink({ href }: { href: string }) {
+  return (
+    <a className={styles.primaryButton} href={href}>
+      {finderLearnContent.comingSoon}
+      <ArrowIcon />
+    </a>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 16 16" width="16">
+      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" />
+    </svg>
   );
 }
 

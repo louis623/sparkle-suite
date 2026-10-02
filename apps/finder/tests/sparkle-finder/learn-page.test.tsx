@@ -14,6 +14,7 @@ const allowedHrefs = new Set([
   "#discover",
   "#how",
   "#silver",
+  "#soon",
   "/privacy-policy",
   "/terms-and-conditions",
   "https://www.yoursparklesuite.com",
@@ -48,7 +49,10 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain('data-finder-brand="amethyst"');
     expect(markup).toContain('x="30.144"');
     expect(markup).toContain("var(--finder-violet-f)");
-    expect(markup).toContain("%2Flearn%2Fpeeks%2Flibrary.webp");
+    expect(markup).toContain("%2Flearn%2Fpeeks%2Fcosmic-navigator.webp");
+    expect(markup).toContain("%2Flearn%2Fpeeks%2Fnorthstar.webp");
+    expect(markup).toContain('href="#soon"');
+    expect(markup).toContain('href="#silver"');
     expect(markup).toContain("%2Flearn%2Fpeeks%2Frep-path.webp");
     expect(markup).toContain("%2Flearn%2Fpeeks%2Fshows.webp");
     expect(markup).toContain("%2Flearn%2Fpeeks%2Fsave.webp");
