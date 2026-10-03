@@ -7,7 +7,7 @@ const INTERVAL_DAYS = 14
 const DAY_MS = 24 * 60 * 60 * 1000
 
 export const COFFEE_WITH_LOUIS_TIME_ZONE = TIME_ZONE
-export const COFFEE_WITH_LOUIS_MEET_URL = 'https://meet.google.com/rzy-rqsd-qvo'
+export const COFFEE_WITH_LOUIS_MEET_URL = 'https://meet.google.com/ydu-jgut-drf'
 export const COFFEE_WITH_LOUIS_CADENCE = 'Every 14 days · Thursdays, 8–9 PM ET.'
 
 export type CoffeeWithLouisSession = {

@@ -57,6 +57,9 @@ describe('Coffee with Louis next session', () => {
 
     expect(session.label).toBe(FIRST_SESSION)
     expect(session.cadence).toBe(COFFEE_WITH_LOUIS_CADENCE)
+    expect(COFFEE_WITH_LOUIS_MEET_URL).toBe(
+      'https://meet.google.com/ydu-jgut-drf',
+    )
     expect(session.meetUrl).toBe(COFFEE_WITH_LOUIS_MEET_URL)
   })
 
