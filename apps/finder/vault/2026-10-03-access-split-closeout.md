@@ -5,4 +5,4 @@
 - Free accounts cannot save a collection. Nic-Nac stays behind Silver. The public line is: Nic-Nac is your collection curator and jewelry finder assistant.
 - Repo migration `apps/finder/supabase/migrations/20261003193000_sparkle_finder_free_access_split.sql` is not applied. `POST /api/finder/launch-notify` still inserts into the live Finder table.
 - Finder vitest: 67 files, 834 passed. No deploy.
-- Draft PR #68 is `cursor/finder-access-split-be9e` rebased onto `fcfe46e2251687c7dfe49cdf4b77160a7d9009d3` (`cursor/finder-learn-trial-cards-3dbd`). The two `/learn` sentence deletions stay. No deploy.
+- Draft PR #68 is `cursor/finder-access-split-be9e` rebased onto `a2954a8958a626da55711638daa5933ec157477e` (`cursor/finder-learn-trial-cards-3dbd`). The `/learn` include lines and the two sentence deletions stay. No deploy.
