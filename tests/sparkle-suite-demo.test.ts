@@ -79,23 +79,24 @@ describe('Sparkle Suite demo page', () => {
     expect(html).toContain('The next live, already on the calendar.')
     expect(html).not.toContain('href="#clips"')
     expect(html).not.toContain('id="clips"')
-    expect(html).toContain('Pick a theme. Change it when the night should feel new.')
+    expect(html).toContain('New Sparkle Suite looks: Witch, Black Cat, Golden Leaves, Unicorns')
+    expect(html).toContain('Witch, Black Cat, Golden Leaves, Unicorns.')
+    expect(html).not.toContain('Pick a theme. Change it when the night should feel new.')
     expect(html).toContain('href="https://www.youtube.com/@SparkleSuite"')
     expect(html).toContain('href="https://www.tiktok.com/@yoursparklesuite.com"')
     expect(html).toContain('aria-label="Sparkle Suite on TikTok"')
     expect(html).toContain('aria-label="Sparkle Suite on YouTube"')
     expect(html).toContain('aria-label="Sparkle Suite channels"')
     expect(html).toMatch(
-      /data-variant="hero"[\s\S]*?src="https:\/\/www\.tiktok\.com\/embed\/v2\/7684058046800071966"/,
+      /data-variant="hero"[\s\S]*?src="https:\/\/www\.youtube-nocookie\.com\/embed\/62gaZBz8zF4\?rel=0"/,
     )
-    expect(html.match(/tiktok\.com\/embed\/v2\/\d+/g)).toEqual([
-      'tiktok.com/embed/v2/7684058046800071966',
-    ])
+    expect(html).not.toContain('tiktok.com/embed')
+    expect(html).not.toContain('7684058046800071966')
     expect(html).not.toContain('src="https://www.tiktok.com/@yoursparklesuite.com"')
     expect(html).not.toContain('src="https://www.youtube.com/@SparkleSuite"')
     expect(html).toContain(sparkleSuitePublicLandingSafety.disclaimer)
     expect(html).toContain('<iframe')
-    expect(html).not.toContain('youtube-nocookie.com')
+    expect(html).toContain('youtube-nocookie.com/embed/62gaZBz8zF4')
     expect(html).not.toContain('https://www.tiktok.com/@sparklesuite/video')
     expect(html).not.toContain('<span></span><span></span><span></span>')
     expect(html).not.toContain('Workspace')
@@ -144,14 +145,14 @@ describe('Sparkle Suite demo page', () => {
     expect(css).toContain('prefers-reduced-motion')
     expect(experience).not.toContain('setInterval')
     expect(grid).not.toContain('setInterval')
-    expect(sparkleSuiteDemoEmbeds.map((embed) => embed.videoId)).toEqual(['7684058046800071966'])
+    expect(sparkleSuiteDemoEmbeds.map((embed) => embed.videoId)).toEqual(['62gaZBz8zF4'])
     expect(sparkleSuiteDemoEmbeds.find((embed) => embed.role === 'featured')?.videoId).toBe(
-      '7684058046800071966',
+      '62gaZBz8zF4',
     )
     expect(gridDemoEmbeds()).toEqual([])
     expect(sparkleSuitePublicDemoEmbeds).toHaveLength(sparkleSuiteDemoEmbeds.length)
-    expect(sparkleSuiteDemoEmbeds.every((embed) => embed.platform === 'tiktok' && embed.privacy === 'public')).toBe(true)
-    expect(sparkleSuiteDemoEmbeds.every((embed) => embed.url === `https://www.tiktok.com/@yoursparklesuite.com/video/${embed.videoId}`)).toBe(true)
+    expect(sparkleSuiteDemoEmbeds.every((embed) => embed.platform === 'youtube' && embed.privacy === 'public')).toBe(true)
+    expect(sparkleSuiteDemoEmbeds.every((embed) => embed.url === `https://www.youtube.com/watch?v=${embed.videoId}`)).toBe(true)
     expect(sparkleSuiteDemoEmbeds.filter((embed) => embed.role === 'featured')).toHaveLength(1)
     expect(metadata.title).toEqual({ absolute: 'Sparkle Suite Demo' })
     expect(metadata.alternates?.canonical).toBe('/demo')
