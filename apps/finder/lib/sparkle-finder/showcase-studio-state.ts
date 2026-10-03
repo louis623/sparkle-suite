@@ -185,7 +185,7 @@ export async function persistShowcaseStudioSubmissionForAccount(
   input: ShowcaseStudioSubmissionInput,
   options: ShowcaseStudioSubmissionOptions = {},
 ): Promise<ShowcaseStudioSubmissionResult> {
-  if (!canSaveSilverState(accountState)) {
+  if (accountState.status !== "authenticated") {
     return { ok: false, reason: "silver_required" };
   }
 
@@ -1047,12 +1047,6 @@ function readStringArray(value: unknown): string[] {
         return text ? [text] : [];
       })
     : [];
-}
-
-function canSaveSilverState(
-  accountState: CurrentSparkleFinderAccountState,
-): accountState is CurrentSparkleFinderAccountState & { status: "authenticated" } {
-  return accountState.status === "authenticated" && accountState.membership?.hasSilverAccess === true;
 }
 
 function cleanText(value: string | undefined, maxLength: number): string {

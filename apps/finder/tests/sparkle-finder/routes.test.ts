@@ -827,9 +827,11 @@ describe("Sparkle Finder hub routes", () => {
     expect(freeMarkup).toContain("Next show");
     expect(freeMarkup).toContain("Dance Floor");
     expect(freeMarkup).toContain("Visit Rep Site");
-    expect(freeMarkup).toContain("Silver unlocks rep notes");
-    expect(freeMarkup).not.toContain("Rep notes");
+    expect(freeMarkup).toContain("Rep notes");
+    expect(freeMarkup).toContain("Nic-Nac is your collection curator and jewelry finder assistant.");
+    expect(freeMarkup).toContain("Silver is required to use Nic-Nac.");
     expect(freeMarkup).not.toContain("Ask Nic-Nac");
+    expect(freeMarkup).not.toContain("Silver unlocks rep notes");
 
     expect(silverMarkup).toContain("Favorite Reps");
     expect(silverMarkup).toContain("Next show");
@@ -1914,6 +1916,7 @@ describe("Sparkle Finder hub routes", () => {
     expect(markup).toContain("Sparkle Mama&#x27;s Sparkle Showcase");
     expect(markup).toContain("Nic-Nac Collection Curator");
     expect(markup).toContain('id="showcase-studio"');
+    expect(markup).toContain("Nic-Nac is your collection curator and jewelry finder assistant.");
     expect(markup).toContain("Tell Nic-Nac what you want to add, find, or update");
     expect(markup).toContain("Add a piece I own");
     expect(markup).toContain("I am looking for a piece");
@@ -2104,9 +2107,14 @@ describe("Sparkle Finder hub routes", () => {
 
     const markup = renderToStaticMarkup(renderSilverPageContent(accountState));
 
-    expect(markup).toContain("Silver access needed");
-    expect(markup).toContain("Silver access is needed to save Sparkle Showcase updates.");
+    expect(markup).toContain("Free account");
+    expect(markup).toContain("Saving a collection and Nic-Nac need Silver.");
+    expect(markup).toContain("Nic-Nac is your collection curator and jewelry finder assistant.");
+    expect(markup).toContain("Silver is required to save a collection.");
+    expect(markup).not.toContain("Silver access needed");
     expect(markup).not.toContain("Your account can save Sparkle Showcase updates.");
+    expect(markup).not.toContain("limited helper");
+    expect(markup).not.toContain("unlimited chat");
   });
 
   it("keeps hub route copy inside Sparkle Finder guardrails", () => {

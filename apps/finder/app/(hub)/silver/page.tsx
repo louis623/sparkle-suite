@@ -44,6 +44,7 @@ import {
   sparkleFinderAuthCookieName,
 } from "@/lib/sparkle-finder/auth";
 import { getCurrentSparkleFinderAccount } from "@/lib/sparkle-finder/account-service";
+import { finderNicNacPublicLine } from "@/lib/sparkle-finder/access-split";
 import { getSparkleFinderAccountEntitlements } from "@/lib/sparkle-finder/entitlements";
 import { createClient } from "@/lib/supabase/server";
 import type { SparkleFinderAccountState } from "@/lib/sparkle-finder/auth";
@@ -111,6 +112,8 @@ export function renderSilverPageContent(
 ) {
   const entitlements = getSparkleFinderAccountEntitlements(accountState);
   const isLocalPreview = accountState.isLocalPreview === true;
+  const canSaveCollection = entitlements.canUseSilverCollectionActions;
+  const canUseNicNac = entitlements.canUseNicNacFindRequests;
 
   if (accountState.status !== "authenticated") {
     return <SilverUpgradePrompt accountState={accountState} />;
@@ -146,9 +149,9 @@ export function renderSilverPageContent(
           <p className="mt-3 max-w-3xl text-base leading-7 text-[var(--sparkle-ink-muted)]">
             {isLocalPreview
               ? "Stage owned pieces, pieces you are looking for, rare reveals, and profile details against Sparkle Finder's fixture-backed preview."
-              : entitlements.canUseSilverProfileActions
+              : canSaveCollection
                 ? "Build, track, highlight, and share the pieces you own or hope to find, then use dancer leads when a wanted piece appears."
-                : "View your signed-in profile and saved library state. Silver access unlocks Sparkle Showcase saves."}
+                : "Look through the library, the rep list, show times, and Dance Floors, and keep your profile. Saving a collection and Nic-Nac need Silver."}
           </p>
           <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-[var(--sparkle-ink-muted)]">
             Sparkle Showcase is for discovery, tracking, highlighting, and sharing with rep-first find paths.
@@ -159,18 +162,14 @@ export function renderSilverPageContent(
             <Crown aria-hidden="true" className="size-7 text-[var(--sparkle-plum)]" strokeWidth={1.5} />
             <div>
               <p className="text-sm font-bold text-[var(--sparkle-plum-deep)]">
-                {isLocalPreview
-                  ? "Local fixture mode"
-                  : entitlements.canUseSilverProfileActions
-                    ? "Silver access active"
-                    : "Silver access needed"}
+                {isLocalPreview ? "Local fixture mode" : canSaveCollection ? "Silver is active" : "Free account"}
               </p>
               <p className="text-sm leading-5 text-[var(--sparkle-ink-muted)]">
                 {isLocalPreview
                   ? "Preview-only state, ready for later actions."
-                  : entitlements.canUseSilverProfileActions
-                    ? "Your account can save Sparkle Showcase updates."
-                    : "Silver access is needed to save Sparkle Showcase updates."}
+                  : canSaveCollection
+                    ? `You can save a collection. ${finderNicNacPublicLine}`
+                    : `Saving a collection and Nic-Nac need Silver. ${finderNicNacPublicLine}`}
               </p>
             </div>
           </div>
@@ -205,6 +204,7 @@ export function renderSilverPageContent(
           saveAction={isLocalPreview ? undefined : saveSilverProfileAction}
         />
         <FinderNicNacWorkspace
+          canUseNicNac={canUseNicNac}
           collectionItems={collectionItems}
           displayName={customer.displayName}
           libraryItems={libraryItems}
@@ -227,7 +227,8 @@ export function renderSilverPageContent(
 
       <ShowcaseOwnerPanel
         assignPieceAction={isLocalPreview ? undefined : assignShowcasePieceAction}
-        canSave={entitlements.canUseSilverCollectionActions}
+        canSave={entitlements.canUseSilverProfileActions}
+        canSavePieces={canSaveCollection}
         collectionItems={collectionItems}
         data={persistedShowcaseOwnerData ?? createEmptyShowcaseOwnerData()}
         deleteCollectionAction={isLocalPreview ? undefined : deleteShowcaseCollectionAction}

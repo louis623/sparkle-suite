@@ -413,7 +413,7 @@ export const sparkleFinderFavoriteReps = [
     repDisplayName: "Danielle Redner",
     repSiteUrl: "https://sparklesuite.example/reps/maya",
     repBoardUrl: "https://sparklesuite.example/reps/maya/board/starlit-crown",
-    notes: "Free users should not see this private note.",
+    notes: "Saturday show reminder.",
     notifyNextShow: true,
     createdAt: "2026-06-17T12:20:00.000Z",
     updatedAt: "2026-06-17T12:20:00.000Z",

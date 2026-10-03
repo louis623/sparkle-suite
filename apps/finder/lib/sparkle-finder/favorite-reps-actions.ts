@@ -1,10 +1,7 @@
-export const FREE_FAVORITE_REP_LIMIT = 5;
 export const FAVORITE_REP_NOTE_MAX_LENGTH = 500;
 
 export function canFavoriteRep(input: {
   userId: string | null;
-  currentFavoriteCount: number;
-  hasSilverAccess: boolean;
   isAlreadyFavorited?: boolean;
 }): { allowed: boolean; alreadyFavorited?: true; reason?: "sign_in_required" | "free_limit_reached" } {
   if (!input.userId) {
@@ -15,19 +12,14 @@ export function canFavoriteRep(input: {
     return { allowed: true, alreadyFavorited: true };
   }
 
-  if (!input.hasSilverAccess && input.currentFavoriteCount >= FREE_FAVORITE_REP_LIMIT) {
-    return { allowed: false, reason: "free_limit_reached" };
-  }
-
   return { allowed: true };
 }
 
 export function canEditFavoriteRepNotes(input: {
   userId: string | null;
-  hasSilverAccess: boolean;
   favoriteOwnerUserId: string;
 }): boolean {
-  return Boolean(input.userId && input.hasSilverAccess && input.userId === input.favoriteOwnerUserId);
+  return Boolean(input.userId && input.userId === input.favoriteOwnerUserId);
 }
 
 export function normalizeFavoriteRepNote(value: unknown): string {

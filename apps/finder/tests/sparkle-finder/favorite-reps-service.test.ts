@@ -32,7 +32,7 @@ describe("Favorite reps service", () => {
     );
   });
 
-  it("keeps free favorite reps compact", () => {
+  it("shows free favorite rep notes", () => {
     const cards = getFavoriteRepCardsForUser({
       userId: "customer-free-marlena",
       hasSilverAccess: false,
@@ -41,8 +41,8 @@ describe("Favorite reps service", () => {
     expect(cards).toHaveLength(1);
     expect(cards[0]).toMatchObject({
       repId: "rep-maya",
-      notes: "",
-      notifyNextShow: false,
+      notes: "Saturday show reminder.",
+      notifyNextShow: true,
       isSilverEnhanced: false,
     });
   });
@@ -157,7 +157,7 @@ describe("Favorite reps service", () => {
     expect(client.readTables).toEqual(["sparkle_finder_favorite_reps", "sparkle_finder_favorite_rep_details"]);
   });
 
-  it("does not query or expose Silver favorite details for Free accounts", async () => {
+  it("loads favorite notes for Free accounts", async () => {
     const client = createFavoriteReadClient({
       favorites: [
         {
@@ -174,7 +174,7 @@ describe("Favorite reps service", () => {
       details: [
         {
           favorite_rep_id: "persisted-favorite-kelli",
-          notes: "Private Silver note.",
+          notes: "Saturday show reminder.",
           notify_next_show: true,
           user_id: "user-123",
         },
@@ -188,11 +188,11 @@ describe("Favorite reps service", () => {
     });
 
     expect(cards?.[0]).toMatchObject({
-      notes: "",
-      notifyNextShow: false,
+      notes: "Saturday show reminder.",
+      notifyNextShow: true,
       isSilverEnhanced: false,
     });
-    expect(client.readTables).toEqual(["sparkle_finder_favorite_reps"]);
+    expect(client.readTables).toEqual(["sparkle_finder_favorite_reps", "sparkle_finder_favorite_rep_details"]);
   });
 
   it("distinguishes empty persisted reads from failed persisted reads", async () => {

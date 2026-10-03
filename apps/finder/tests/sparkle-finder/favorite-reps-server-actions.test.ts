@@ -89,7 +89,7 @@ describe("Favorite reps persistence", () => {
     ]);
   });
 
-  it("denies favorite rep notes for Free accounts", async () => {
+  it("saves favorite rep notes for Free accounts", async () => {
     const client = createFavoriteRepClient({
       favorites: [favoriteRow({ id: "favorite-owned", user_id: "user-123", rep_id: "rep-kelli" })],
     });
@@ -99,8 +99,17 @@ describe("Favorite reps persistence", () => {
       notes: "Private note.",
     });
 
-    expect(result).toEqual({ ok: false, reason: "silver_required" });
-    expect(client.operations).toEqual([]);
+    expect(result).toEqual({ ok: true });
+    expect(client.operations).toEqual([
+      expect.objectContaining({
+        type: "upsert",
+        table: "sparkle_finder_favorite_rep_details",
+        values: expect.objectContaining({
+          notes: "Private note.",
+          user_id: "user-123",
+        }),
+      }),
+    ]);
   });
 
   it("returns a friendly unavailable result when favorite persistence fails", async () => {
@@ -139,7 +148,7 @@ describe("Favorite reps persistence", () => {
     ]);
   });
 
-  it("enforces the Free cap while allowing an idempotent existing favorite", async () => {
+  it("lets a Free account save another favorite without a Silver cap", async () => {
     const clientAtCap = createFavoriteRepClient({
       favorites: Array.from({ length: 5 }, (_, index) =>
         favoriteRow({ id: `favorite-${index}`, user_id: "user-123", rep_id: `rep-${index}` }),
@@ -153,8 +162,14 @@ describe("Favorite reps persistence", () => {
         repSiteUrl: "",
         repBoardUrl: "",
       }),
-    ).resolves.toEqual({ ok: false, reason: "free_limit_reached" });
-    expect(clientAtCap.operations).toEqual([]);
+    ).resolves.toEqual({ ok: true });
+    expect(clientAtCap.operations).toEqual([
+      expect.objectContaining({
+        type: "upsert",
+        table: "sparkle_finder_favorite_reps",
+        values: expect.objectContaining({ rep_id: "rep-new" }),
+      }),
+    ]);
 
     const clientAlreadyFavorited = createFavoriteRepClient({
       favorites: Array.from({ length: 5 }, (_, index) =>

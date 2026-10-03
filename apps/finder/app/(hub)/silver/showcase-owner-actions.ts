@@ -139,7 +139,7 @@ export async function deleteShowcaseCollectionAction(
   }
 
   revalidateShowcasePaths();
-  return { status: "saved", message: "Showcase Collection removed. Every piece stayed in your Bling Vault." };
+  return { status: "saved", message: "Showcase Collection removed. Every piece stayed in your collection." };
 }
 
 export async function assignShowcasePieceAction(
@@ -210,11 +210,7 @@ async function getVerifiedOwner() {
       createSupabaseClient: async () => supabase,
     });
 
-    if (
-      accountState.status !== "authenticated" ||
-      accountState.customer.id !== data.user.id ||
-      accountState.membership?.hasSilverAccess !== true
-    ) {
+    if (accountState.status !== "authenticated" || accountState.customer.id !== data.user.id) {
       return { ok: false as const, state: deniedState() };
     }
 
@@ -225,7 +221,7 @@ async function getVerifiedOwner() {
 }
 
 function deniedState(): SilverSaveActionState {
-  return { status: "denied", message: "Silver access is required to manage a Sparkle Showcase." };
+  return { status: "denied", message: "Sign in to manage your Showcase." };
 }
 
 function normalizeHandle(value: FormDataEntryValue | null): string {

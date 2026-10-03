@@ -21,6 +21,7 @@ type OwnerAction = (previousState: SilverSaveActionState, formData: FormData) =>
 
 type ShowcaseOwnerPanelProps = {
   canSave: boolean;
+  canSavePieces?: boolean;
   collectionItems: ManagedCollectionItem[];
   data: ShowcaseOwnerData;
   isLocalPreview: boolean;
@@ -35,6 +36,7 @@ const initialState: SilverSaveActionState = { status: "idle", message: "Showcase
 
 export function ShowcaseOwnerPanel({
   canSave,
+  canSavePieces,
   collectionItems,
   data,
   isLocalPreview,
@@ -51,6 +53,7 @@ export function ShowcaseOwnerPanel({
   const [assignmentState, assignmentFormAction, assignmentPending] = useActionState(assignPieceAction ?? disabledAction, initialState);
   const [handleDraft, setHandleDraft] = useState(data.handle);
   const disabled = !canSave || isLocalPreview;
+  const piecesDisabled = !(canSavePieces ?? canSave) || isLocalPreview;
   const publicUrl = data.handle ? `/showcase/${data.handle}` : "";
   const handlePreview = normalizeHandlePreview(handleDraft) || "your-name";
 
@@ -130,7 +133,7 @@ export function ShowcaseOwnerPanel({
       {data.collections.length > 0 ? (
         <div className="grid gap-3">
           <p className="text-sm leading-6 text-[var(--sparkle-ink-muted)]">
-            Removing a Showcase Collection never removes its jewelry from your Bling Vault.
+            Removing a Showcase Collection never removes its jewelry from your collection.
           </p>
           <div className="grid gap-3 md:grid-cols-2">
             {data.collections.map((collection) => (
@@ -156,6 +159,9 @@ export function ShowcaseOwnerPanel({
         <div>
           <p className="font-bold text-[var(--sparkle-plum-deep)]">Piece stories and visibility</p>
           <p className="mt-1 text-sm leading-5 text-[var(--sparkle-ink-muted)]">Open only the piece you want to edit. Private notes are never included in the public Showcase.</p>
+          {piecesDisabled && !disabled ? (
+            <p className="mt-2 text-sm font-semibold text-[var(--sparkle-ink-muted)]">Silver is required to save a collection.</p>
+          ) : null}
         </div>
         {collectionItems.length === 0 ? (
           <p className="rounded-[var(--sparkle-radius-sm)] border border-[var(--sparkle-border)] bg-[var(--sparkle-paper)] p-5 text-sm text-[var(--sparkle-ink-muted)]">Add an owned piece or Wishlist item first, then return here to shape its Showcase story.</p>
@@ -167,6 +173,7 @@ export function ShowcaseOwnerPanel({
               collections={data.collections}
               disabled={disabled}
               item={item}
+              piecesDisabled={piecesDisabled}
               key={item.id}
               pieceAction={pieceFormAction}
               piecePending={piecePending}
@@ -237,7 +244,7 @@ function DeleteCollectionControl({
     >
       <p className="font-bold text-[var(--sparkle-plum-deep)]" id={confirmationTitleId}>Remove “{collection.title}”?</p>
       <p className="text-sm leading-6 text-[var(--sparkle-ink-muted)]" id={confirmationDescriptionId}>
-        This removes only the Showcase Collection. Every piece stays safely in your Bling Vault.
+        This removes only the Showcase Collection. Every piece stays safely in your collection.
       </p>
       <div className="flex flex-wrap gap-2">
         <form action={action}>
@@ -275,6 +282,7 @@ function PieceEditorDetails({
   pieceAction,
   piecePending,
   pieceState,
+  piecesDisabled,
 }: {
   assignmentAction: (formData: FormData) => void;
   assignmentPending: boolean;
@@ -284,6 +292,7 @@ function PieceEditorDetails({
   pieceAction: (formData: FormData) => void;
   piecePending: boolean;
   pieceState: SilverSaveActionState;
+  piecesDisabled: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const contentId = useId();
@@ -308,7 +317,7 @@ function PieceEditorDetails({
         </span>
       </summary>
       <div className="grid gap-4 border-t border-[var(--sparkle-border)] p-4 lg:grid-cols-2" id={contentId}>
-        <PieceStoryForm action={pieceAction} disabled={disabled} item={item} pending={piecePending} state={pieceState} />
+        <PieceStoryForm action={pieceAction} disabled={piecesDisabled} item={item} pending={piecePending} state={pieceState} />
         <CollectionMembership
           action={assignmentAction}
           collections={collections}
@@ -588,7 +597,7 @@ function ActionStatus({ state }: { state: SilverSaveActionState }) {
 }
 
 async function disabledAction(): Promise<SilverSaveActionState> {
-  return { status: "denied", message: "Sign in with Silver access to save Showcase updates." };
+  return { status: "denied", message: "Sign in to save Showcase updates." };
 }
 
 function normalizeHandlePreview(value: string): string {

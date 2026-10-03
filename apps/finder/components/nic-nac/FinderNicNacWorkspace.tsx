@@ -5,10 +5,12 @@ import { useMemo, useState, type FormEvent } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { NicNacMark } from "@/components/nic-nac/NicNacMark";
+import { finderNicNacPublicLine, finderNicNacSilverMessage } from "@/lib/sparkle-finder/access-split";
 import type { ManagedCollectionItem } from "@/components/silver/CollectionManager";
 import type { JewelryItem, SilverProfile } from "@/lib/sparkle-finder/types";
 
 type FinderNicNacWorkspaceProps = {
+  canUseNicNac: boolean;
   collectionItems: ManagedCollectionItem[];
   displayName: string;
   libraryItems: JewelryItem[];
@@ -58,12 +60,32 @@ const quickPrompts = [
   },
 ];
 
-export function FinderNicNacWorkspace({
+export function FinderNicNacWorkspace({ canUseNicNac, ...props }: FinderNicNacWorkspaceProps) {
+  if (!canUseNicNac) {
+    return (
+      <section
+        className="overflow-hidden rounded-[var(--sparkle-radius-sm)] border border-[rgba(238,44,155,0.22)] bg-[linear-gradient(135deg,#fffefd_0%,#fff4f8_52%,#fff8ef_100%)] p-5 shadow-[var(--sparkle-shadow-sm)]"
+        data-smoke="finder-nic-nac-curator"
+        id="nic-nac-curator"
+      >
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--sparkle-coral)]">Nic-Nac</p>
+        <h2 className="mt-2 font-[family-name:var(--font-playfair)] text-3xl font-semibold leading-tight text-[var(--sparkle-plum-deep)]">
+          {finderNicNacPublicLine}
+        </h2>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--sparkle-ink-muted)]">{finderNicNacSilverMessage}</p>
+      </section>
+    );
+  }
+
+  return <FinderNicNacCurator {...props} />;
+}
+
+function FinderNicNacCurator({
   collectionItems,
   displayName,
   libraryItems,
   profile,
-}: FinderNicNacWorkspaceProps) {
+}: Omit<FinderNicNacWorkspaceProps, "canUseNicNac">) {
   const transport = useMemo(
     () =>
       new DefaultChatTransport<UIMessage>({
@@ -115,8 +137,8 @@ export function FinderNicNacWorkspace({
             </div>
           </div>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--sparkle-ink-muted)]">
-            Tell Nic-Nac what you want to add, find, or update. I can search the library, remember your favorite reps,
-            track what you collect, prep missing-piece review, and keep your Showcase tidy.
+            {finderNicNacPublicLine} Tell Nic-Nac what you want to add, find, or update. I can search the library,
+            remember your favorite reps, track what you collect, prep missing-piece review, and keep your Showcase tidy.
           </p>
 
           <form

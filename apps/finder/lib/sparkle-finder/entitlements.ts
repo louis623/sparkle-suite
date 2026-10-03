@@ -15,7 +15,7 @@ export function getSparkleFinderEntitlements(customer: CustomerAccount): Sparkle
   return {
     tier: customer.tier,
     canBrowseLibrary: true,
-    canUseSilverProfileActions: hasSilverAccess,
+    canUseSilverProfileActions: true,
     canUseSilverCollectionActions: hasSilverAccess,
     canUseNicNacFindRequests: hasSilverAccess,
   };
@@ -46,7 +46,7 @@ export function getSparkleFinderAccountEntitlements(
   return {
     tier: accountState.tier,
     canBrowseLibrary: true,
-    canUseSilverProfileActions: membership.hasSilverAccess === true,
+    canUseSilverProfileActions: true,
     canUseSilverCollectionActions: membership.hasSilverAccess === true,
     canUseNicNacFindRequests: membership.hasSilverAccess === true,
   };

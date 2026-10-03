@@ -3,6 +3,7 @@
 import { useActionState, useMemo, useState } from "react";
 import { BookmarkPlus, CheckCircle2, Gem, LoaderCircle, PackageCheck, Search, Sparkles } from "lucide-react";
 import { FindThisForMe } from "@/components/nic-nac/FindThisForMe";
+import { finderCollectionSaveSilverMessage } from "@/lib/sparkle-finder/access-split";
 import { addJewelryItemToCustomerCollection } from "@/lib/sparkle-finder/customer-state";
 import type { SilverSaveActionState } from "@/app/(hub)/silver/actions";
 import type { ManagedCollectionItem } from "@/components/silver/CollectionManager";
@@ -34,7 +35,9 @@ export function SimpleSilverShowcase({
   saveAction,
 }: SimpleSilverShowcaseProps) {
   const [items, setItems] = useState(collectionItems);
-  const [localStatusMessage, setLocalStatusMessage] = useState("Wishlist and collection ready.");
+  const [localStatusMessage, setLocalStatusMessage] = useState(
+    canSaveSilverActions ? "Wishlist and collection ready." : finderCollectionSaveSilverMessage,
+  );
   const [actionState, formAction, isPending] = useActionState(saveAction ?? disabledCollectionAction, initialState);
   const statusMessage = isLocalPreview ? localStatusMessage : actionState.message;
   const savedIds = useMemo(() => new Set(items.map((item) => item.jewelryItemId)), [items]);
@@ -50,7 +53,7 @@ export function SimpleSilverShowcase({
     });
 
     if (!result.ok) {
-      setLocalStatusMessage("Silver preview is required to save collection updates.");
+      setLocalStatusMessage(finderCollectionSaveSilverMessage);
       return;
     }
 
@@ -381,6 +384,6 @@ function findJewelryItem(jewelryItemId: string, libraryItems: JewelryItem[]): Je
 async function disabledCollectionAction(): Promise<SilverSaveActionState> {
   return {
     status: "denied",
-    message: "Silver access is required to save collection updates.",
+    message: finderCollectionSaveSilverMessage,
   };
 }

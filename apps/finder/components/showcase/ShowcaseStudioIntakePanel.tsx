@@ -272,7 +272,7 @@ export function ShowcaseStudioIntakePanel({
 
       <div className={`mx-5 mb-5 rounded-[var(--sparkle-radius-sm)] border px-4 py-3 text-sm font-semibold leading-6 sm:mx-6 sm:mb-6 ${statusTone}`} aria-live="polite" role="status">
         {isLocalPreview && !submitAction
-          ? "Local preview shows the complete Studio form. Saving requires a signed-in Silver account."
+          ? "Local preview shows the complete Studio form. Saving requires a signed-in account."
           : visibleState.message}
       </div>
 

@@ -92,7 +92,7 @@ export async function saveSilverProfileAction(
   if (!result.ok) {
     return {
       status: result.reason === "silver_required" ? "denied" : "error",
-      message: result.reason === "silver_required" ? "Silver access is required to save profile updates." : "Profile could not be saved.",
+      message: result.reason === "silver_required" ? "Sign in to save your profile." : "Profile could not be saved.",
     };
   }
 
@@ -147,7 +147,7 @@ export async function saveSilverCollectionItemAction(
     return {
       status: result.reason === "silver_required" ? "denied" : "error",
       message:
-        result.reason === "silver_required" ? "Silver access is required to save collection updates." : "Collection could not be saved.",
+        result.reason === "silver_required" ? "Silver is required to save a collection." : "Collection could not be saved.",
     };
   }
 
@@ -212,7 +212,7 @@ export async function saveShowcasePieceAction(
     return {
       status: result.reason === "silver_required" ? "denied" : "error",
       message:
-        result.reason === "silver_required" ? "Silver access is required to save Sparkle Showcase updates." : "Sparkle Showcase piece could not be saved.",
+        result.reason === "silver_required" ? "Silver is required to save a collection." : "Sparkle Showcase piece could not be saved.",
     };
   }
 
@@ -866,7 +866,7 @@ async function fileToDataUrl(file: File): Promise<string> {
 
 function getShowcaseStudioFailureMessage(reason: ShowcaseStudioSubmissionFailureReason): string {
   if (reason === "silver_required") {
-    return "Silver access is required to submit Showcase Studio requests.";
+    return "Sign in to use Showcase Studio.";
   }
 
   if (reason === "original_label_required") {

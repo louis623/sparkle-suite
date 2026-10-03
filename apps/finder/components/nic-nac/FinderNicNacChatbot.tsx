@@ -203,7 +203,7 @@ function NicNacLeadCard({ lead }: { lead: FinderNicNacLead }) {
 
 function buildTypedResponse(status: FinderNicNacChatbotProps["status"], leadCount: number, emptyState?: string) {
   if (status === "upgrade") {
-    return "I can help with Finder hunts once Silver is open for this account. Start with the Silver preview, then ask me for saved-piece and next-show leads.";
+    return "Nic-Nac is your collection curator and jewelry finder assistant. Silver is required to use Nic-Nac.";
   }
 
   if (status === "empty") {

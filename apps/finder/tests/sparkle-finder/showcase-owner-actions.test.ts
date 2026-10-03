@@ -134,7 +134,7 @@ describe("Showcase owner server actions", () => {
 
     await expect(deleteShowcaseCollectionAction(idleState, formData)).resolves.toEqual({
       status: "saved",
-      message: "Showcase Collection removed. Every piece stayed in your Bling Vault.",
+      message: "Showcase Collection removed. Every piece stayed in your collection.",
     });
     expect(client.deleteFilters).toEqual([
       ["id", collectionId],
