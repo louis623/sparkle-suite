@@ -54,8 +54,8 @@ export const finderLearnContent = {
       includes: [
         "Look through BP rep listings",
         "Follow your favorite reps",
+        "Window shop their virtual dance floors",
         "See when their next show times and dates are",
-        "Peruse their virtual dance floors",
       ],
     },
   },

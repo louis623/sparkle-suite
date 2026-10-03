@@ -68,13 +68,14 @@ describe("Sparkle Finder /learn", () => {
     const freeLines = [
       "Look through BP rep listings",
       "Follow your favorite reps",
+      "Window shop their virtual dance floors",
       "See when their next show times and dates are",
-      "Peruse their virtual dance floors",
     ];
     const freeLineAt = freeLines.map((line) => markup.indexOf(line));
     expect(freeLineAt.every((index) => index > freeCardAt)).toBe(true);
     expect(freeLineAt.every((index, position) => position === 0 || index > freeLineAt[position - 1])).toBe(true);
     expect(markup).not.toContain("Favorite your favorite reps");
+    expect(markup).not.toContain("Peruse their virtual dance floors");
     expect(markup).not.toContain("Looking through the jewelry library");
     expect(markup).not.toContain("The rep list");
     expect(markup).not.toContain("BP Rep listing");
@@ -184,8 +185,9 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain("Look through BP rep listings");
     expect(markup).toContain("Follow your favorite reps");
     expect(markup).not.toContain("Favorite your favorite reps");
+    expect(markup).toContain("Window shop their virtual dance floors");
     expect(markup).toContain("See when their next show times and dates are");
-    expect(markup).toContain("Peruse their virtual dance floors");
+    expect(markup).not.toContain("Peruse their virtual dance floors");
     expect(markup).not.toContain("BP Rep listing");
     expect(markup).not.toContain('href="#silver"');
     expect(markup).not.toMatch(/vault/i);
