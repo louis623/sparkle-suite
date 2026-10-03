@@ -234,7 +234,10 @@
   min-height: 3.15rem;
   margin: 0;
   padding: 0.85rem 1.35rem;
+  border: 0;
   border-radius: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
   background: var(--finder-wordmark);
   box-shadow: 0 0 0 1px rgba(255, 214, 232, 0.35), 0 14px 32px rgba(238, 44, 155, 0.28);
   color: #fff6fb;

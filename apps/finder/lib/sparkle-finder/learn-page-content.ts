@@ -6,6 +6,7 @@ export const finderLearnContent = {
   byline: "by Sparkle Suite",
   tagline: "Find it, favorite it, show it off.",
   comingSoon: "Get notified when we launch",
+  createAccount: "Create an account",
   nav: [
     { href: "#how", label: "How it works" },
     { href: "#silver", label: "Silver" },

@@ -2,8 +2,10 @@ import { FinderSeal } from "@/components/learn/FinderSeal";
 import { finderLearnContent } from "@/lib/sparkle-finder/learn-page-content";
 import styles from "./finder-learn.module.css";
 
-export function FinderLearnPage() {
+export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" | "live" } = {}) {
   const content = finderLearnContent;
+  const live = variant === "live";
+  const actionLabel = live ? content.createAccount : content.comingSoon;
 
   return (
     <div className={styles.page} data-finder-brand="amethyst" id="top">
@@ -30,7 +32,7 @@ export function FinderLearnPage() {
       </header>
 
       <main id="main-content">
-        <section className={styles.hero} aria-labelledby="learn-title" data-smoke="finder-learn">
+        <section className={styles.hero} aria-labelledby="learn-title" data-smoke={live ? "finder-learn-live" : "finder-learn"}>
           <div className={styles.heroLayout}>
             <div className={styles.heroCopy}>
               <p className={styles.eyebrow}>{content.hero.eyebrow}</p>
@@ -39,7 +41,7 @@ export function FinderLearnPage() {
               </h1>
               <p className={styles.tagline}>{content.tagline}</p>
               <div className={styles.heroActions}>
-                <ComingSoonLink href="#silver" />
+                <LaunchAction href={live ? undefined : "#silver"} label={actionLabel} />
               </div>
               <p className={styles.lede}>{content.hero.body}</p>
             </div>
@@ -68,7 +70,7 @@ export function FinderLearnPage() {
             </p>
             <p>{content.silver.body}</p>
             <p className={styles.offerNote}>{content.silver.offerNote}</p>
-            <ComingSoonLink href={`#${content.pillars.id}`} />
+            <LaunchAction href={live ? undefined : `#${content.pillars.id}`} label={actionLabel} />
           </div>
         </section>
       </main>
@@ -112,10 +114,19 @@ export function FinderLearnPage() {
   );
 }
 
-function ComingSoonLink({ href }: { href: string }) {
+function LaunchAction({ href, label }: { href?: string; label: string }) {
+  if (!href) {
+    return (
+      <button className={styles.primaryButton} type="button">
+        {label}
+        <ArrowIcon />
+      </button>
+    );
+  }
+
   return (
     <a className={styles.primaryButton} href={href}>
-      {finderLearnContent.comingSoon}
+      {label}
       <ArrowIcon />
     </a>
   );

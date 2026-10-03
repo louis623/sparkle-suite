@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import LearnLivePage from "../../app/learn-live/page";
 import LearnPage from "../../app/learn/page";
 import { FinderLearnPage } from "../../components/learn/FinderLearnPage";
 import { findSparkleFinderCopyViolations } from "../../lib/sparkle-finder/copy-guardrails";
@@ -71,6 +72,8 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toMatch(/<img|webp|\/learn\/peeks|background-image|url\(/i);
     expect(markup).not.toContain("heroSeal");
     expect(markup.match(/Get notified when we launch/g)).toHaveLength(2);
+    expect(markup).not.toContain("Create an account");
+    expect(markup).not.toContain("<button");
     expect(markup).not.toContain("Coming soon");
     expect(markup).not.toMatch(/<form|mailto:/i);
     expect(markup).not.toMatch(/create-an-account/i);
@@ -106,5 +109,30 @@ describe("Sparkle Finder /learn", () => {
     expect(seal).toContain('x="30.144"');
     expect(seal).not.toMatch(/#ee2c9b/i);
     expect(renderToStaticMarkup(createElement(LearnPage))).toContain('data-smoke="finder-learn"');
+  });
+
+  it("renders the Smoke live twin with a non-submitting Create an account label", () => {
+    const markup = renderToStaticMarkup(createElement(LearnLivePage));
+    const pageSource = readFileSync(new URL("../../app/learn-live/page.tsx", import.meta.url), "utf8");
+
+    expect(markup).toContain('data-smoke="finder-learn-live"');
+    expect(markup).toContain("Find the pieces you");
+    expect(markup).toContain(finderLearnContent.tagline);
+    expect(markup).toContain("collector side of Sparkle Suite");
+    expect(markup).toContain(">Search<");
+    expect(markup).toContain(">Save<");
+    expect(markup).toContain(">Go to the show<");
+    expect(markup).toContain(">Show it off<");
+    expect(markup).toContain("$6");
+    expect(markup).toContain("Privacy Policy");
+    expect(markup.match(/Create an account/g)).toHaveLength(2);
+    expect(markup).not.toContain("Get notified when we launch");
+    expect(markup).not.toContain("Coming soon");
+    expect(markup.match(/<button\b[^>]*type="button"/g)).toHaveLength(2);
+    expect(markup).not.toMatch(/<button[^>]*href=/);
+    expect(markup).not.toMatch(/<form|mailto:|create-an-account|href="\/auth|href="\/create/i);
+    expect(pageSource).not.toContain("getCurrentSparkleFinderAccount");
+    expect(pageSource).not.toContain("create-an-account");
+    expect(findSparkleFinderCopyViolations(finderLearnVisibleCopy())).toEqual([]);
   });
 });
