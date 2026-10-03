@@ -1424,6 +1424,45 @@
   font: inherit;
 }
 
+.coffeeReminderRow,
+.youtubeHelpRow {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(67, 42, 116, 0.12);
+}
+
+.coffeeReminder {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.coffeeReminderIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f1eafd;
+  color: #7345ca;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.coffeeReminderIcon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.coffeeReminder p {
+  margin: 0;
+  color: #6f6389;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .youtubeHelpCard {
   display: grid;
   gap: 10px;
@@ -2719,6 +2758,47 @@
   border: 1px solid var(--nic-nac-border);
   background: rgba(255, 255, 255, 0.72);
   padding: 14px;
+}
+
+.coffeeWithLouis {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(238, 44, 155, 0.16);
+  background: rgba(255, 246, 250, 0.72);
+  padding: 14px;
+}
+
+.coffeeWithLouisCopy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.coffeeWithLouisWhen {
+  margin: 0;
+  color: var(--nic-nac-text-primary);
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.coffeeWithLouisMeet {
+  composes: helperLink from './WorkspaceSurface.module.css';
+  flex: 0 0 auto;
+}
+
+.coffeeWithLouisUrl {
+  color: var(--nic-nac-accent, #d81b87);
+  font-family: var(--font-prelaunch-sans), 'DM Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .playbookIntro,
@@ -6716,6 +6796,7 @@
 .main[data-workspace-skin='black_diamond'] .calendarGrid,
 .main[data-workspace-skin='black_diamond'] .customerSiteLooks,
 .main[data-workspace-skin='black_diamond'] .customerSiteLooksBody,
+.main[data-workspace-skin='black_diamond'] .coffeeWithLouis,
 .main[data-workspace-skin='black_diamond'] .playbookIntro,
 .main[data-workspace-skin='black_diamond'] .playbookGroup,
 .main[data-workspace-skin='black_diamond'] .featureIndex,
@@ -7179,7 +7260,7 @@
     order: 2;
   }
 
-  .conceptRail:last-child .conceptPanel:nth-child(4) {
+  .conceptRail:last-child .youtubeGlancePanel {
     display: block;
     order: 3;
   }
@@ -7446,8 +7527,13 @@
 
   .playbookIntro,
   .playbookGroupHeader,
+  .coffeeWithLouis,
   .supportPath {
     flex-direction: column;
+  }
+
+  .coffeeWithLouisMeet {
+    width: 100%;
   }
 
   .featureIndexGrid {

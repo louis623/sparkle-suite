@@ -94,6 +94,7 @@ import { SupportAccessHistoryCard } from './SupportAccessHistoryCard'
 import {
   CalendarDays,
   BookOpen,
+  Coffee,
   Bug,
   Check,
   ChevronDown,
@@ -121,6 +122,10 @@ import {
 import { SparkleSeal } from '@/app/prelaunch/_components/PrelaunchVisuals'
 import type { WorkspaceLaunchAction } from '@/lib/nic-nac/workspace-launch-actions'
 import type { WorkspaceResource } from '@/lib/services/workspace-resources'
+import {
+  formatCoffeeWithLouisReminderDate,
+  getNextCoffeeWithLouisSession,
+} from '@/lib/help/coffee-with-louis'
 import { WorkspaceShell } from './WorkspaceShell'
 import type { WorkspaceSectionTab } from './WorkspaceSectionTabs'
 import { NicNacHomeWorkspaceCard } from './NicNacHomeWorkspaceCard'
@@ -7510,6 +7515,7 @@ function ConceptHomeWorkspace({
     latestYouTubeResource?.videoUrl ?? null,
   )
   const latestYouTubeHref = getLatestYouTubeResourceHref(latestYouTubeResource)
+  const coffeeReminder = getNextCoffeeWithLouisSession()
 
   return (
     <section className={styles.conceptHome} aria-label="Nic-Nac first workspace">
@@ -7644,51 +7650,79 @@ function ConceptHomeWorkspace({
             </span>
           </button>
         </ConceptPanel>
-        <ConceptPanel title="Need help?" action="Visit resources" onAction={onOpenHelp}>
+        <ConceptPanel
+          title="Help & Resources"
+          action="Visit resources"
+          onAction={onOpenHelp}
+          className={styles.youtubeGlancePanel}
+        >
           <button type="button" className={styles.helpPreview} onClick={onOpenHelp}>
             <BookOpen aria-hidden="true" />
             Guides, playbooks, and quick answers
           </button>
-        </ConceptPanel>
-        <ConceptPanel title="More help on YouTube">
-          <a
-            className={styles.youtubeHelpCard}
-            href={latestYouTubeHref}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={
-              latestYouTubeResource?.title
-                ? `Watch ${latestYouTubeResource.title} on YouTube`
-                : 'Visit the Sparkle Suite YouTube channel'
-            }
-          >
-            <span className={styles.youtubeHelpThumbnail}>
-              {latestYouTubeThumbnail ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={latestYouTubeThumbnail}
-                  alt={latestYouTubeResource?.title
-                    ? `Thumbnail for ${latestYouTubeResource.title}`
-                    : 'Latest Sparkle Suite video'}
-                />
-              ) : (
-                <span className={styles.youtubeHelpFallback} aria-hidden="true" />
-              )}
-              <span className={styles.youtubeHelpPlay} aria-hidden="true">
-                <PlayCircle />
+          <div className={styles.coffeeReminderRow}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.panelTitle}>Coffee with Louis</span>
+                </div>
+                <button type="button" className={styles.panelAction} onClick={onOpenHelp}>
+                  Get the meeting link
+                </button>
+              </div>
+              <div className={styles.coffeeReminder}>
+                <span className={styles.coffeeReminderIcon} aria-hidden="true">
+                  <Coffee />
+                </span>
+                <p>
+                  Next session · {formatCoffeeWithLouisReminderDate(coffeeReminder.startsAt)} · 8–9 PM ET
+                </p>
+              </div>
+            </div>
+          <div className={styles.youtubeHelpRow}>
+            <div className={styles.panelHeader}>
+              <div>
+                <span className={styles.panelTitle}>More help on YouTube</span>
+              </div>
+            </div>
+            <a
+              className={styles.youtubeHelpCard}
+              href={latestYouTubeHref}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={
+                latestYouTubeResource?.title
+                  ? `Watch ${latestYouTubeResource.title} on YouTube`
+                  : 'Visit the Sparkle Suite YouTube channel'
+              }
+            >
+              <span className={styles.youtubeHelpThumbnail}>
+                {latestYouTubeThumbnail ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={latestYouTubeThumbnail}
+                    alt={latestYouTubeResource?.title
+                      ? `Thumbnail for ${latestYouTubeResource.title}`
+                      : 'Latest Sparkle Suite video'}
+                  />
+                ) : (
+                  <span className={styles.youtubeHelpFallback} aria-hidden="true" />
+                )}
+                <span className={styles.youtubeHelpPlay} aria-hidden="true">
+                  <PlayCircle />
+                </span>
               </span>
-            </span>
-            <span className={styles.youtubeHelpCopy}>
-              <strong>Get tips, demos, and step-by-step how-tos.</strong>
-              {latestYouTubeResource?.title ? (
-                <small>Latest: {latestYouTubeResource.title}</small>
-              ) : null}
-              <span>
-                {latestYouTubeResource ? 'Watch this video' : 'Visit YouTube channel'}
-                <ExternalLink aria-hidden="true" />
+              <span className={styles.youtubeHelpCopy}>
+                <strong>Get tips, demos, and step-by-step how-tos.</strong>
+                {latestYouTubeResource?.title ? (
+                  <small>Latest: {latestYouTubeResource.title}</small>
+                ) : null}
+                <span>
+                  {latestYouTubeResource ? 'Watch this video' : 'Visit YouTube channel'}
+                  <ExternalLink aria-hidden="true" />
+                </span>
               </span>
-            </span>
-          </a>
+            </a>
+          </div>
         </ConceptPanel>
         <ConceptPanel title="Recent conversations" className={styles.mobileRecentPanel}>
           <div className={styles.recentConversationList}>
@@ -8855,6 +8889,7 @@ export function HelpResourcesCard({
   const workflowGroups = getWorkflowResourcesByGroup(state.resources)
   const featureReferences = getResourcesByType(state.resources, 'feature_reference')
     .filter((resource) => resource.group === 'Feature Index')
+  const coffeeSession = getNextCoffeeWithLouisSession()
 
   return (
     <div className={styles.workspacePanel}>
@@ -8870,6 +8905,29 @@ export function HelpResourcesCard({
           </div>
         </div>
       </div>
+      <div className={styles.coffeeWithLouis} role="region" aria-label="Coffee with Louis">
+          <div className={styles.coffeeWithLouisCopy}>
+            <div className={styles.walletSettingsTitle}>Coffee with Louis</div>
+            <p className={styles.coffeeWithLouisWhen}>{coffeeSession.label}</p>
+            <p className={styles.helperNote}>{coffeeSession.cadence}</p>
+            <a
+              className={styles.coffeeWithLouisUrl}
+              href={coffeeSession.meetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {coffeeSession.meetUrl}
+            </a>
+          </div>
+          <a
+            className={styles.coffeeWithLouisMeet}
+            href={coffeeSession.meetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Join Google Meet
+          </a>
+        </div>
       {hasLearningContent ? (
         <div className={styles.resourceHubTabs} role="tablist" aria-label="Resources">
           <button
