@@ -1,3 +1,6 @@
+export const sparkleProductFooterDisclaimer =
+  "Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.";
+
 export const finderLearnContent = {
   seoTitle: "Sparkle Finder",
   seoDescription:
@@ -7,10 +10,7 @@ export const finderLearnContent = {
   tagline: "Find it, favorite it, show it off.",
   comingSoon: "Get notified when we launch",
   createAccount: "Create an account",
-  nav: [
-    { href: "#how", label: "How it works" },
-    { href: "#silver", label: "Silver" },
-  ],
+  nav: [{ href: "#how", label: "How it works" }],
   hero: {
     eyebrow: "For Bomb Party collectors",
     headlineLead: "Find the pieces you",
@@ -38,13 +38,29 @@ export const finderLearnContent = {
       },
     ],
   },
-  silver: {
+  offers: {
     id: "silver",
-    eyebrow: "Silver",
-    body: "30-day Silver trial. No card at signup. No automatic charge. On day 30, Silver drops to Free and Finder pings you.",
-    price: "$6",
-    period: "a month",
-    offerNote: "Only if you choose it. This page does not take payment.",
+    silver: {
+      highlight: "30 days of Silver is free.",
+      noCard: "No card is needed to sign up.",
+      price: "Silver is $6 per month, about the cost of a pumpkin spice latte.",
+      charge: "No automatic charge. On day 30, Silver drops to Free unless you choose to pay $6 a month.",
+      includesLabel: "Silver includes",
+      includes: [
+        "Save the pieces you love to your collection",
+        "Nic-Nac is your collection curator and jewelry finder assistant",
+      ],
+    },
+    free: {
+      title: "Free",
+      includesLabel: "Free includes",
+      includes: [
+        "Look through BP rep listings",
+        "Follow your favorite reps",
+        "Window shop their virtual dance floors",
+        "See when their next show times and dates are",
+      ],
+    },
   },
   footer: {
     links: [
@@ -56,8 +72,7 @@ export const finderLearnContent = {
       { href: "https://www.youtube.com/@yoursparklesuite", label: "YouTube" },
       { href: "https://www.tiktok.com/@yoursparklesuite", label: "TikTok" },
     ],
-    disclaimer:
-      "Sparkle Finder is a discovery hub by Sparkle Suite. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party. Sparkle Finder is powered by Neon Rabbit Digital Services.",
+    disclaimer: sparkleProductFooterDisclaimer,
     developerHref: "https://neonrabbit.net",
     developerLabel: "neonrabbit.net",
   },

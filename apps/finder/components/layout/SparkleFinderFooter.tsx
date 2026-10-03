@@ -1,3 +1,5 @@
+import { sparkleProductFooterDisclaimer } from "@/lib/sparkle-finder/learn-page-content";
+
 const footerLinkGroups = [
   {
     title: "Links",
@@ -62,8 +64,7 @@ export function SparkleFinderFooter() {
           ))}
         </nav>
         <p>
-          Sparkle Finder is a discovery hub by Sparkle Suite. We are not affiliated with, endorsed by, sponsored by, or
-          officially connected to Bomb Party. Sparkle Finder is powered by Neon Rabbit Digital Services. Visit{" "}
+          {sparkleProductFooterDisclaimer} Visit{" "}
           <a href="https://neonrabbit.net" rel="noopener noreferrer" target="_blank">
             neonrabbit.net
           </a>

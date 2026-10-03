@@ -63,16 +63,36 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
           </div>
         </section>
 
-        <section className={styles.silver} id={content.silver.id} aria-labelledby="silver-title">
-          <div className={styles.offer}>
-            <h2 id="silver-title">{content.silver.eyebrow}</h2>
-            <p className={styles.price}>
-              <strong>{content.silver.price}</strong>
-              <span>{content.silver.period}</span>
-            </p>
-            <p>{content.silver.body}</p>
-            <p className={styles.offerNote}>{content.silver.offerNote}</p>
-            {live ? <InertAccountButton label={actionLabel} /> : <FinderLaunchNotify.FinderLearnNotifyButton />}
+        <section className={styles.silver} id={content.offers.id} aria-label="Silver and Free">
+          <div className={styles.offerStack}>
+            <article className={`${styles.offer} ${styles.offerSilver}`} aria-labelledby="silver-title">
+              <h2 className={styles.trialHighlight} id="silver-title">
+                {content.offers.silver.highlight}
+              </h2>
+              <p>{content.offers.silver.noCard}</p>
+              <p>{content.offers.silver.price}</p>
+              <p>{content.offers.silver.charge}</p>
+              <div className={styles.includes}>
+                <h3>{content.offers.silver.includesLabel}</h3>
+                <ul>
+                  {content.offers.silver.includes.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              {live ? <InertAccountButton label={actionLabel} /> : <FinderLaunchNotify.FinderLearnNotifyButton />}
+            </article>
+            <article className={`${styles.offer} ${styles.offerFree}`} aria-labelledby="free-title">
+              <h2 id="free-title">{content.offers.free.title}</h2>
+              <div className={styles.includes}>
+                <h3>{content.offers.free.includesLabel}</h3>
+                <ul>
+                  {content.offers.free.includes.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </article>
           </div>
         </section>
       </main>

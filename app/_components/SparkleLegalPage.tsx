@@ -2,6 +2,7 @@ import {
   legalFooterLinks,
   type LegalDocument,
 } from '@/lib/prelaunch/legal-content'
+import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 
 function getPlainEnglishSummary(document: LegalDocument) {
   if (document.pageTitle === 'Privacy Policy') {
@@ -145,20 +146,23 @@ export function SparkleLegalPage({
             </div>
           </article>
 
-          <footer className="mt-8 flex flex-col gap-3 text-sm text-[var(--prelaunch-muted)] sm:flex-row sm:items-center sm:justify-between">
-            <span>Sparkle Suite</span>
-            <nav className="flex flex-wrap gap-4" aria-label="Legal pages">
-              {legalFooterLinks.map((link) => (
-                <a
-                  className={footerLinkClass}
-                  href={withReturnTo(link.href, legalReturnTo)}
-                  key={link.href}
-                  aria-label={link.label}
-                >
-                  {link.label}
-                </a>
-              ))}
-            </nav>
+          <footer className="mt-8 flex flex-col gap-3 text-sm text-[var(--prelaunch-muted)]">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span>Sparkle Suite</span>
+              <nav className="flex flex-wrap gap-4" aria-label="Legal pages">
+                {legalFooterLinks.map((link) => (
+                  <a
+                    className={footerLinkClass}
+                    href={withReturnTo(link.href, legalReturnTo)}
+                    key={link.href}
+                    aria-label={link.label}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+            <p>{sparkleSuitePublicLandingSafety.disclaimer}</p>
           </footer>
         </div>
       </section>

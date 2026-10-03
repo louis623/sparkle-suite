@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { LegalDocument } from "@/lib/sparkle-finder/legal-content";
 import { sparkleFinderLegalFooterLinks } from "@/lib/sparkle-finder/legal-content";
+import { sparkleProductFooterDisclaimer } from "@/lib/sparkle-finder/learn-page-content";
 
 type SparkleFinderLegalPageProps = {
   document: LegalDocument;
@@ -78,6 +79,7 @@ export function SparkleFinderLegalPage({ document }: SparkleFinderLegalPageProps
 
         <footer className="sparkle-finder-legal-footer">
           <span>Sparkle Finder</span>
+          <p>{sparkleProductFooterDisclaimer}</p>
           <nav aria-label="Legal pages">
             {sparkleFinderLegalFooterLinks.map((link) => (
               <Link className="sparkle-finder-legal-link" href={link.href} key={link.href}>

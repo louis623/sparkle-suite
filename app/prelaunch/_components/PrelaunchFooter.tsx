@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { prelaunchContent } from '@/lib/prelaunch/content'
+import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 import { SparkleSeal } from './PrelaunchVisuals'
 
 export function PrelaunchFooter() {
@@ -32,6 +33,7 @@ export function PrelaunchFooter() {
           <div className="ss-foot__copy">
             <div>Copyright 2026 Sparkle Suite</div>
             <div>{prelaunchContent.footerTagline}</div>
+            <div>{sparkleSuitePublicLandingSafety.disclaimer}</div>
           </div>
         </div>
       </footer>

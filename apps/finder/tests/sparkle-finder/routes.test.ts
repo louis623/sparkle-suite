@@ -187,7 +187,12 @@ describe("Sparkle Finder hub routes", () => {
       expect(markup).not.toContain(">YouTube<");
       expect(markup).not.toContain(">Social<");
       expect(markup).toContain('href="https://neonrabbit.net"');
-      expect(markup).toContain("Sparkle Finder is powered by Neon Rabbit Digital Services.");
+      expect(markup).toContain(
+        "Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.",
+      );
+      expect(markup).not.toContain("Sparkle Finder is a discovery hub");
+      expect(markup).not.toContain("independent tool for reps");
+      expect(markup).not.toMatch(/powered by Neon Rabbit/i);
     }
   });
 

@@ -11,6 +11,7 @@ import {
   supplyGroups,
   supplyOptions,
 } from '../onboarding-content'
+import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 
 type ProgressStatus = 'not_started' | 'done' | 'needs_help'
 
@@ -689,6 +690,7 @@ export function OnboardingExperience({ token }: { token: string | null }) {
 
       <footer>
         <span>Built for {businessName}. You are not alone in this.</span>
+        <p>{sparkleSuitePublicLandingSafety.disclaimer}</p>
         <a href="#top">Back to top ↑</a>
       </footer>
     </main>
