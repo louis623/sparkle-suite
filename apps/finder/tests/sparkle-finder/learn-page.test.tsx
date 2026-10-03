@@ -82,6 +82,9 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain(">Show times<");
     expect(markup).not.toContain("Dance Floors");
     expect(markup).not.toMatch(/vault/i);
+    expect(markup).toContain("officially connected to Bomb Party.");
+    expect(markup).toContain('href="https://neonrabbit.net"');
+    expect(markup).not.toMatch(/powered by Neon Rabbit/i);
     const freeCard = markup.slice(freeCardAt);
     expect(freeCard).not.toMatch(/save a collection|saving a collection/i);
     expect(markup.match(/Hunt through the jewelry database/g)).toHaveLength(1);
@@ -191,6 +194,9 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain("BP Rep listing");
     expect(markup).not.toContain('href="#silver"');
     expect(markup).not.toMatch(/vault/i);
+    expect(markup).toContain("officially connected to Bomb Party.");
+    expect(markup).toContain('href="https://neonrabbit.net"');
+    expect(markup).not.toMatch(/powered by Neon Rabbit/i);
     expect(markup).toContain("Privacy Policy");
     expect(markup.match(/Create an account/g)).toHaveLength(2);
     expect(markup).not.toContain("Get notified when we launch");

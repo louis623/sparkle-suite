@@ -234,7 +234,6 @@ export default function App() {
         <nav aria-label="Partner links">
           <span>{teamLabel}</span>
           <a href="https://www.yoursparklesuite.com/prelaunch" target="_blank" rel="noreferrer">Sparkle Suite coming soon</a>
-          <a href="https://neonrabbit.net/" target="_blank" rel="noreferrer">Powered by Neon Rabbit</a>
         </nav>
       </footer>
     </main>

@@ -70,7 +70,7 @@ export const finderLearnContent = {
       { href: "https://www.tiktok.com/@yoursparklesuite", label: "TikTok" },
     ],
     disclaimer:
-      "Sparkle Finder is a discovery hub by Sparkle Suite. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party. Sparkle Finder is powered by Neon Rabbit Digital Services.",
+      "Sparkle Finder is a discovery hub by Sparkle Suite. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.",
     developerHref: "https://neonrabbit.net",
     developerLabel: "neonrabbit.net",
   },

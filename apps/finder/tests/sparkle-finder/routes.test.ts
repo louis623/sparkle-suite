@@ -187,7 +187,8 @@ describe("Sparkle Finder hub routes", () => {
       expect(markup).not.toContain(">YouTube<");
       expect(markup).not.toContain(">Social<");
       expect(markup).toContain('href="https://neonrabbit.net"');
-      expect(markup).toContain("Sparkle Finder is powered by Neon Rabbit Digital Services.");
+      expect(markup).toContain("officially connected to Bomb Party.");
+      expect(markup).not.toMatch(/powered by Neon Rabbit/i);
     }
   });
 
