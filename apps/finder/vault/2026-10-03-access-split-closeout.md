@@ -4,5 +4,5 @@
 - Signed-in Free accounts can use the library, the rep list, show times, Dance Floors, a profile, Showcase setup, Showcase Studio, favorite reps, and favorite-rep notes.
 - Free accounts cannot save a collection. Nic-Nac stays behind Silver. The public line is: Nic-Nac is your collection curator and jewelry finder assistant.
 - Repo migration `apps/finder/supabase/migrations/20261003193000_sparkle_finder_free_access_split.sql` is not applied. `POST /api/finder/launch-notify` still inserts into the live Finder table.
-- Finder vitest: 67 files, 833 passed. No deploy.
-- Draft PR #68 is `cursor/finder-access-split-be9e` against `cursor/finder-live-launch-notify-811e`.
+- Finder vitest: 67 files, 834 passed. No deploy.
+- Draft PR #68 is `cursor/finder-access-split-be9e` rebased onto `fcfe46e2251687c7dfe49cdf4b77160a7d9009d3` (`cursor/finder-learn-trial-cards-3dbd`). The two `/learn` sentence deletions stay. No deploy.
