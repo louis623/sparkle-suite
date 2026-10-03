@@ -7655,7 +7655,12 @@ function ConceptHomeWorkspace({
             </span>
           </button>
         </ConceptPanel>
-        <ConceptPanel title="Need help?" action="Visit resources" onAction={onOpenHelp}>
+        <ConceptPanel
+          title="Need help?"
+          action="Visit resources"
+          onAction={onOpenHelp}
+          className={styles.youtubeGlancePanel}
+        >
           <button type="button" className={styles.helpPreview} onClick={onOpenHelp}>
             <BookOpen aria-hidden="true" />
             Guides, playbooks, and quick answers
@@ -7680,46 +7685,51 @@ function ConceptHomeWorkspace({
               </div>
             </div>
           ) : null}
-        </ConceptPanel>
-        <ConceptPanel title="More help on YouTube" className={styles.youtubeGlancePanel}>
-          <a
-            className={styles.youtubeHelpCard}
-            href={latestYouTubeHref}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={
-              latestYouTubeResource?.title
-                ? `Watch ${latestYouTubeResource.title} on YouTube`
-                : 'Visit the Sparkle Suite YouTube channel'
-            }
-          >
-            <span className={styles.youtubeHelpThumbnail}>
-              {latestYouTubeThumbnail ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={latestYouTubeThumbnail}
-                  alt={latestYouTubeResource?.title
-                    ? `Thumbnail for ${latestYouTubeResource.title}`
-                    : 'Latest Sparkle Suite video'}
-                />
-              ) : (
-                <span className={styles.youtubeHelpFallback} aria-hidden="true" />
-              )}
-              <span className={styles.youtubeHelpPlay} aria-hidden="true">
-                <PlayCircle />
+          <div className={styles.youtubeHelpRow}>
+            <div className={styles.panelHeader}>
+              <div>
+                <span className={styles.panelTitle}>More help on YouTube</span>
+              </div>
+            </div>
+            <a
+              className={styles.youtubeHelpCard}
+              href={latestYouTubeHref}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={
+                latestYouTubeResource?.title
+                  ? `Watch ${latestYouTubeResource.title} on YouTube`
+                  : 'Visit the Sparkle Suite YouTube channel'
+              }
+            >
+              <span className={styles.youtubeHelpThumbnail}>
+                {latestYouTubeThumbnail ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={latestYouTubeThumbnail}
+                    alt={latestYouTubeResource?.title
+                      ? `Thumbnail for ${latestYouTubeResource.title}`
+                      : 'Latest Sparkle Suite video'}
+                  />
+                ) : (
+                  <span className={styles.youtubeHelpFallback} aria-hidden="true" />
+                )}
+                <span className={styles.youtubeHelpPlay} aria-hidden="true">
+                  <PlayCircle />
+                </span>
               </span>
-            </span>
-            <span className={styles.youtubeHelpCopy}>
-              <strong>Get tips, demos, and step-by-step how-tos.</strong>
-              {latestYouTubeResource?.title ? (
-                <small>Latest: {latestYouTubeResource.title}</small>
-              ) : null}
-              <span>
-                {latestYouTubeResource ? 'Watch this video' : 'Visit YouTube channel'}
-                <ExternalLink aria-hidden="true" />
+              <span className={styles.youtubeHelpCopy}>
+                <strong>Get tips, demos, and step-by-step how-tos.</strong>
+                {latestYouTubeResource?.title ? (
+                  <small>Latest: {latestYouTubeResource.title}</small>
+                ) : null}
+                <span>
+                  {latestYouTubeResource ? 'Watch this video' : 'Visit YouTube channel'}
+                  <ExternalLink aria-hidden="true" />
+                </span>
               </span>
-            </span>
-          </a>
+            </a>
+          </div>
         </ConceptPanel>
         <ConceptPanel title="Recent conversations" className={styles.mobileRecentPanel}>
           <div className={styles.recentConversationList}>
