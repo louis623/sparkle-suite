@@ -31,7 +31,6 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain(finderLearnContent.tagline);
     expect(markup).toContain("collector side of Sparkle Suite");
     expect(markup).toContain("Jewelry library");
-    expect(markup).toContain("Sparkle Suite reps");
     expect(markup).toContain("Dance Floor");
     expect(markup).toContain("Bling Vault");
     expect(markup).toContain("Hero Piece");
@@ -43,7 +42,10 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain("No card at signup");
     expect(markup).toContain("does not charge you automatically");
     expect(markup).toContain("drops to Free");
-    expect(markup).toContain("Sparkle Suite reps only");
+    expect(markup).toContain("Sparkle Suite rep");
+    expect(markup).not.toContain("Fine print");
+    expect(markup).not.toContain("How a jewelry profile is used.");
+    expect(markup).not.toContain("Nobody else receives them.");
     expect(markup).toContain(">F<");
     expect(markup).not.toContain(">S<");
     expect(markup).toContain('data-finder-brand="amethyst"');

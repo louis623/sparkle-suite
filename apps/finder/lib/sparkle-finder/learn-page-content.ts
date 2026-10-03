@@ -105,17 +105,6 @@ export const finderLearnContent = {
       "Finder pings you so you can choose",
     ],
   },
-  profile: {
-    id: "profile",
-    eyebrow: "Fine print",
-    heading: "How a jewelry profile is used.",
-    body: "If you share jewelry preferences with Finder, they are used in three ways.",
-    uses: [
-      "Shared with Sparkle Suite reps only, so they can use them. Nobody else receives them.",
-      "Kept for your own Finder profile and collection.",
-      "Used by Finder to point you toward pieces you might like.",
-    ],
-  },
   cta: {
     id: "soon",
     heading: "Find it, favorite it, show it off.",

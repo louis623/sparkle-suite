@@ -72,7 +72,6 @@
 .discoverInner,
 .how,
 .silver,
-.profile,
 .cta,
 .footerInner {
   width: min(90rem, 100%);
@@ -342,8 +341,7 @@
 }
 
 .why,
-.how,
-.profile {
+.how {
   padding: 3.25rem 1.15rem;
 }
 
@@ -375,7 +373,6 @@
 
 .sectionIntro p:last-child,
 .silverCopy > p,
-.profileCopy > p,
 .featureCopy > p {
   margin-top: 0.9rem;
   color: var(--finder-muted);
@@ -562,46 +559,6 @@
   font-size: 0.98rem;
 }
 
-.profile {
-  display: grid;
-  gap: 1.5rem;
-  padding-top: 0.5rem;
-}
-
-.profile ol {
-  display: grid;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: profile;
-}
-
-.profile li {
-  position: relative;
-  padding: 1rem 0 1rem 3.1rem;
-  border-bottom: 1px solid var(--finder-line);
-  counter-increment: profile;
-  font-size: 1.02rem;
-  line-height: 1.55;
-}
-
-.profile li::before {
-  content: counter(profile);
-  position: absolute;
-  left: 0;
-  top: 0.85rem;
-  display: grid;
-  width: 2rem;
-  height: 2rem;
-  place-items: center;
-  border-radius: 999px;
-  background: #efe8f8;
-  color: var(--finder-amethyst);
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
 .cta {
   display: grid;
   justify-items: center;
@@ -662,12 +619,6 @@
     width: auto;
     min-width: 11.5rem;
   }
-
-  .profile {
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-    gap: 3rem;
-    align-items: start;
-  }
 }
 
 @media (min-width: 960px) {
@@ -717,8 +668,7 @@
   }
 
   .why,
-  .how,
-  .profile {
+  .how {
     padding: 5.75rem 4.8%;
   }
 

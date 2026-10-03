@@ -137,19 +137,6 @@ export function FinderLearnPage() {
           </aside>
         </section>
 
-        <section className={styles.profile} id={content.profile.id} aria-labelledby="profile-title">
-          <div className={styles.profileCopy}>
-            <p className={styles.eyebrow}>{content.profile.eyebrow}</p>
-            <h2 id="profile-title">{content.profile.heading}</h2>
-            <p>{content.profile.body}</p>
-          </div>
-          <ol>
-            {content.profile.uses.map((use) => (
-              <li key={use}>{use}</li>
-            ))}
-          </ol>
-        </section>
-
         <section className={styles.cta} id={content.cta.id} aria-labelledby="cta-title">
           <h2 id="cta-title">{content.cta.heading}</h2>
           <ComingSoonLink href="#silver" />
