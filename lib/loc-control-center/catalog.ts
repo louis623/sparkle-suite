@@ -284,6 +284,13 @@ export const locOperationCatalog: LocOperation[] = [
     page,
   ),
   read(
+    "finder.launchNotify.list",
+    "launch",
+    "Live Finder launch-notify signups from public.sparkle_finder_launch_notify.",
+    ["finder"],
+    page,
+  ),
+  read(
     "lab.snapshot",
     "lab",
     "Sparkle Lab findings, artifacts and run history.",
