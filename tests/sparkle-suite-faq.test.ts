@@ -56,7 +56,7 @@ describe('Sparkle Suite marketing FAQ', () => {
     expect(html.match(/<details /g)).toHaveLength(16)
     expect(explore).toContain('>Home<')
     expect(explore).toContain('>Portfolio<')
-    expect(explore).toContain('>Demo<')
+    expect(explore).toContain('>Demos<')
     expect(explore).not.toContain('href="/faq"')
     expect(explore).not.toContain('>FAQ<')
     expect(explore).not.toContain('#customer-site-proof')

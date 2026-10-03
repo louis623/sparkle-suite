@@ -28,13 +28,13 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
         <a className={styles.sectionLink} href="#featured">Featured</a>
         <a className={styles.sectionLink} href="#show-stories">Show stories</a>
         {gridDemoEmbeds().length > 0 ? <a className={styles.sectionLink} href="#clips">Clips</a> : null}
-      </> : current === 'faq' ? null : <>
-        <a className={styles.sectionLink} href={`${intake ? '/' : ''}#customer-site-proof`}>Your site</a>
-        <a className={styles.sectionLink} href={`${intake ? '/' : ''}#workspace-proof`}>Show tools</a>
-        <a className={styles.sectionLink} href={`${intake ? '/' : ''}#pricing`}>Founding offer</a>
-      </>}
+      </> : intake ? <>
+        <a className={styles.sectionLink} href="/#customer-site-proof">Your site</a>
+        <a className={styles.sectionLink} href="/#workspace-proof">Show tools</a>
+        <a className={styles.sectionLink} href="/#pricing">Founding offer</a>
+      </> : null}
       <Link className={styles.pageLink} href="/portfolio" aria-current={onPortfolio ? 'page' : undefined}>Portfolio</Link>
-      <Link className={styles.pageLink} href="/demo" aria-current={onDemo ? 'page' : undefined}>Demo</Link>
+      <Link className={styles.pageLink} href="/demo" aria-current={onDemo ? 'page' : undefined}>Demos</Link>
     </nav>
     <nav className={styles.account} aria-label="Account links"><SparkleSuitePublicAccountAction /></nav>
   </header>
