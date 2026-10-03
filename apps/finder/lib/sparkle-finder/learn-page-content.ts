@@ -44,7 +44,7 @@ export const finderLearnContent = {
       charge:
         "No automatic charge. On day 30, Silver drops to Free unless you choose to pay $6 a month. If you do not pay, you stay Free and nothing is charged.",
       includesLabel: "Silver includes",
-      includes: ["Saving a collection", "Nic-Nac, a limited helper, not unlimited chat"],
+      includes: ["Saving a collection", "Nic-Nac, your collection curator and jewelry finder assistant"],
     },
     free: {
       title: "Free",

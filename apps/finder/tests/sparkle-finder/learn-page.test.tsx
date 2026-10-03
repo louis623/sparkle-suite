@@ -53,8 +53,8 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain("unless you choose to pay $6 a month");
     expect(markup).toContain("you stay Free and nothing is charged");
     expect(markup).toContain("Saving a collection");
-    expect(markup).toContain("Nic-Nac, a limited helper, not unlimited chat");
-    expect(markup).not.toMatch(/unlimited ai/i);
+    expect(markup).toContain("Nic-Nac, your collection curator and jewelry finder assistant");
+    expect(markup).not.toMatch(/limited helper|unlimited chat|unlimited chatbot|unlimited ai/i);
     expect(markup).toContain("A Free profile has fewer tools than Silver.");
     expect(markup).toContain("A profile exists on Free.");
     expect(markup).toContain("Looking through the jewelry library");
@@ -155,6 +155,8 @@ describe("Sparkle Finder /learn", () => {
     expect(markup.indexOf("30 days of Silver is free.")).toBeLessThan(
       markup.indexOf("Silver is $6 per month, about the cost of a pumpkin spice latte."),
     );
+    expect(markup).toContain("Nic-Nac, your collection curator and jewelry finder assistant");
+    expect(markup).not.toMatch(/limited helper|unlimited chat|unlimited chatbot|unlimited ai/i);
     expect(markup).toContain('id="free-title"');
     expect(markup).not.toContain('href="#silver"');
     expect(markup).not.toMatch(/vault/i);
