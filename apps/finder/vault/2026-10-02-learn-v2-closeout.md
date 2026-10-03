@@ -7,3 +7,4 @@
 - Louis asked the jewelry photos off `/learn`. Product images are gone. Service panels are type and color only. No live promote.
 - Jewelry-preference fine print moved from `/learn` to the Privacy Policy section “How A Jewelry Profile Is Used.” Terms only points there. No live promote.
 - How it works is four unnumbered cards: Search, Save, Go to the show, Show it off. The old “Browse, save, then visit the Suite rep.” line is gone. No live promote.
+- Simpler `/learn`: hero stays, four deep color title panels replace the old service tiles, one sentence under each, mid-page writeups removed, small $6 Silver closer kept. No live promote.

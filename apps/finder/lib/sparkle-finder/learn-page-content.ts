@@ -7,8 +7,6 @@ export const finderLearnContent = {
   tagline: "Find it, favorite it, show it off.",
   comingSoon: "Coming soon",
   nav: [
-    { href: "#why", label: "Why it helps" },
-    { href: "#discover", label: "What you can do" },
     { href: "#how", label: "How it works" },
     { href: "#silver", label: "Silver" },
   ],
@@ -18,60 +16,11 @@ export const finderLearnContent = {
     headlineAccent: "love.",
     body: "Sparkle Finder is the collector side of Sparkle Suite. Look through the jewelry library, see which Suite reps carry a piece, and keep the ones that matter to you.",
     note: "An account is required. This page does not open one yet.",
-    explore: { href: "#why", label: "See why it helps" },
-    services: ["Jewelry library", "Live shows", "Bling Vault"],
+    explore: { href: "#how", label: "See why it helps" },
   },
-  why: {
-    id: "why",
-    eyebrow: "Why it helps",
-    heading: "Stop hunting alone.",
-    body: "Lives end. Facebook threads move on. Sparkle Finder is one place to discover the pieces you love, instead of starting the hunt over every time.",
-    points: [
-      {
-        title: "One place to discover",
-        body: "Start in the jewelry library instead of piecing the search together across lives and posts.",
-      },
-      {
-        title: "See who has it",
-        body: "When a Sparkle Suite rep carries a piece, you can visit their site from Finder.",
-      },
-      {
-        title: "Keep what matters",
-        body: "Save favorites, build your own collection, and show it off only if you want to.",
-      },
-    ],
-  },
-  discover: {
-    id: "discover",
-    eyebrow: "What you can do",
-    heading: "Look, save, and go see the rep.",
-    body: "Sparkle Finder is not a jewelry marketplace. You find a piece here, then visit the Sparkle Suite rep who carries it.",
-    aside: "With Silver, Showcase Studio lets you add pieces you own, and Nic-Nac helps with the hunt.",
-    features: [
-      {
-        title: "From the library to the rep",
-        kicker: "In Finder today",
-        body: "Open a piece and see which Sparkle Suite rep carries it, then visit their site. Finder does not invent stock.",
-        mark: "Jewelry library",
-      },
-      {
-        title: "Live shows and the Dance Floor",
-        kicker: "In Finder today",
-        body: "Catch live shows and see Dance Floor quantity leads. Sparkle Suite keeps those counts.",
-        mark: "Live shows",
-      },
-      {
-        title: "A vault, and a Showcase if you want one",
-        kicker: "In Finder today",
-        body: "Save a piece from the library. Keep what you own in your Bling Vault, choose one Hero Piece, and turn on Showcase only when you decide to show it off.",
-        mark: "Vault",
-      },
-    ],
-  },
-  how: {
+  pillars: {
     id: "how",
-    heading: "How it works",
-    steps: [
+    items: [
       {
         title: "Search",
         body: "Hunt through the jewelry database for pieces you already own and pieces you want to collect.",
@@ -93,25 +42,10 @@ export const finderLearnContent = {
   silver: {
     id: "silver",
     eyebrow: "Silver",
-    heading: "Free to start. Silver if you want it.",
-    body: "Free includes a 30-day Silver trial. No card at signup. Finder does not charge you automatically. On day 30, Silver drops to Free and Finder pings you.",
-    offerLabel: "Silver, if you keep it",
+    body: "30-day Silver trial. No card at signup. No automatic charge. On day 30, Silver drops to Free and Finder pings you.",
     price: "$6",
     period: "a month",
     offerNote: "Only if you choose it. This page does not take payment.",
-    facts: [
-      "Account required, including Free",
-      "30-day Silver trial",
-      "No card at signup",
-      "No automatic charge",
-      "Day 30 returns you to Free",
-      "Finder pings you so you can choose",
-    ],
-  },
-  cta: {
-    id: "soon",
-    heading: "Find it, favorite it, show it off.",
-    body: "Sparkle Finder accounts are not open from this page yet.",
   },
   footer: {
     links: [

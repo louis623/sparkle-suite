@@ -10,11 +10,8 @@ import { finderLearnContent, finderLearnVisibleCopy } from "../../lib/sparkle-fi
 const allowedHrefs = new Set([
   "#top",
   "#main-content",
-  "#why",
-  "#discover",
   "#how",
   "#silver",
-  "#soon",
   "/privacy-policy",
   "/terms-and-conditions",
   "https://www.yoursparklesuite.com",
@@ -30,23 +27,31 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain("Find the pieces you");
     expect(markup).toContain(finderLearnContent.tagline);
     expect(markup).toContain("collector side of Sparkle Suite");
-    expect(markup).toContain("Jewelry library");
+    expect(markup).toContain("This page does not open one yet.");
     expect(markup).toContain("Dance Floor");
-    expect(markup).toContain("Bling Vault");
-    expect(markup).toContain("Hero Piece");
-    expect(markup).toContain("Showcase Studio");
-    expect(markup).toContain("Nic-Nac");
-    expect(markup).toContain("not a jewelry marketplace");
     expect(markup).toContain("$6");
+    expect(markup).toContain("a month");
     expect(markup).toContain("30-day Silver trial");
     expect(markup).toContain("No card at signup");
-    expect(markup).toContain("does not charge you automatically");
+    expect(markup).toContain("No automatic charge");
     expect(markup).toContain("drops to Free");
-    expect(markup).toContain("Sparkle Suite rep");
-    expect(markup).toContain("Hunt through the jewelry database");
-    expect(markup).toContain("When you find it, save it.");
-    expect(markup).toContain("Go to the show");
-    expect(markup).toContain("Brag about the bling.");
+    expect(markup).toContain("Finder pings you");
+    expect(markup.match(/Hunt through the jewelry database/g)).toHaveLength(1);
+    expect(markup.match(/When you find it, save it\./g)).toHaveLength(1);
+    expect(markup.match(/See when that rep(?:'|&#x27;)s next show is/g)).toHaveLength(1);
+    expect(markup.match(/Brag about the bling\./g)).toHaveLength(1);
+    expect(markup).toContain(">Search<");
+    expect(markup).toContain(">Save<");
+    expect(markup).toContain(">Go to the show<");
+    expect(markup).toContain(">Show it off<");
+    expect(markup).not.toContain("In Finder today");
+    expect(markup).not.toContain("Jewelry library");
+    expect(markup).not.toContain("Bling Vault");
+    expect(markup).not.toContain("Live shows");
+    expect(markup).not.toContain("Hero Piece");
+    expect(markup).not.toContain("Showcase Studio");
+    expect(markup).not.toContain("Nic-Nac");
+    expect(markup).not.toContain("marketplace");
     expect(markup).not.toContain("Browse, save, then visit the Suite rep.");
     expect(markup).not.toMatch(/>0[1-4]</);
     expect(markup).not.toContain("Fine print");
@@ -57,8 +62,10 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain('data-finder-brand="amethyst"');
     expect(markup).toContain('x="30.144"');
     expect(markup).toContain("var(--finder-violet-f)");
-    expect(markup).toContain('href="#soon"');
+    expect(markup).toContain('href="#how"');
     expect(markup).toContain('href="#silver"');
+    expect(markup).not.toContain('href="#soon"');
+    expect(markup).not.toContain('href="#why"');
     expect(markup).not.toMatch(/<img|webp|\/learn\/peeks|background-image|url\(/i);
     expect(markup).not.toContain("heroSeal");
     expect(markup).toContain("Coming soon");
