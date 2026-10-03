@@ -67,13 +67,14 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain("A profile exists on Free.");
     const freeLines = [
       "Look through BP rep listings",
-      "Favorite your favorite reps",
+      "Follow your favorite reps",
       "See when their next show times and dates are",
       "Peruse their virtual dance floors",
     ];
     const freeLineAt = freeLines.map((line) => markup.indexOf(line));
     expect(freeLineAt.every((index) => index > freeCardAt)).toBe(true);
     expect(freeLineAt.every((index, position) => position === 0 || index > freeLineAt[position - 1])).toBe(true);
+    expect(markup).not.toContain("Favorite your favorite reps");
     expect(markup).not.toContain("Looking through the jewelry library");
     expect(markup).not.toContain("The rep list");
     expect(markup).not.toContain("BP Rep listing");
@@ -181,7 +182,8 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toMatch(/limited helper|unlimited chat|unlimited chatbot|unlimited ai/i);
     expect(markup).toContain('id="free-title"');
     expect(markup).toContain("Look through BP rep listings");
-    expect(markup).toContain("Favorite your favorite reps");
+    expect(markup).toContain("Follow your favorite reps");
+    expect(markup).not.toContain("Favorite your favorite reps");
     expect(markup).toContain("See when their next show times and dates are");
     expect(markup).toContain("Peruse their virtual dance floors");
     expect(markup).not.toContain("BP Rep listing");

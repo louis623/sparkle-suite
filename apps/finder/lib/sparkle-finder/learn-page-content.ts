@@ -53,7 +53,7 @@ export const finderLearnContent = {
       includesLabel: "Free includes",
       includes: [
         "Look through BP rep listings",
-        "Favorite your favorite reps",
+        "Follow your favorite reps",
         "See when their next show times and dates are",
         "Peruse their virtual dance floors",
       ],
