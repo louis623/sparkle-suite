@@ -125,7 +125,6 @@ import type { WorkspaceResource } from '@/lib/services/workspace-resources'
 import {
   formatCoffeeWithLouisReminderDate,
   getNextCoffeeWithLouisSession,
-  isCoffeeWithLouisVisible,
 } from '@/lib/help/coffee-with-louis'
 import { WorkspaceShell } from './WorkspaceShell'
 import type { WorkspaceSectionTab } from './WorkspaceSectionTabs'
@@ -7516,11 +7515,7 @@ function ConceptHomeWorkspace({
     latestYouTubeResource?.videoUrl ?? null,
   )
   const latestYouTubeHref = getLatestYouTubeResourceHref(latestYouTubeResource)
-  const coffeeReminder = isCoffeeWithLouisVisible({
-    NEXT_PUBLIC_SPARKLE_ENVIRONMENT: process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT,
-  })
-    ? getNextCoffeeWithLouisSession()
-    : null
+  const coffeeReminder = getNextCoffeeWithLouisSession()
 
   return (
     <section className={styles.conceptHome} aria-label="Nic-Nac first workspace">
@@ -7665,8 +7660,7 @@ function ConceptHomeWorkspace({
             <BookOpen aria-hidden="true" />
             Guides, playbooks, and quick answers
           </button>
-          {coffeeReminder ? (
-            <div className={styles.coffeeReminderRow}>
+          <div className={styles.coffeeReminderRow}>
               <div className={styles.panelHeader}>
                 <div>
                   <span className={styles.panelTitle}>Coffee with Louis</span>
@@ -7684,7 +7678,6 @@ function ConceptHomeWorkspace({
                 </p>
               </div>
             </div>
-          ) : null}
           <div className={styles.youtubeHelpRow}>
             <div className={styles.panelHeader}>
               <div>
@@ -8896,11 +8889,7 @@ export function HelpResourcesCard({
   const workflowGroups = getWorkflowResourcesByGroup(state.resources)
   const featureReferences = getResourcesByType(state.resources, 'feature_reference')
     .filter((resource) => resource.group === 'Feature Index')
-  const coffeeSession = isCoffeeWithLouisVisible({
-    NEXT_PUBLIC_SPARKLE_ENVIRONMENT: process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT,
-  })
-    ? getNextCoffeeWithLouisSession()
-    : null
+  const coffeeSession = getNextCoffeeWithLouisSession()
 
   return (
     <div className={styles.workspacePanel}>
@@ -8916,8 +8905,7 @@ export function HelpResourcesCard({
           </div>
         </div>
       </div>
-      {coffeeSession ? (
-        <div className={styles.coffeeWithLouis} role="region" aria-label="Coffee with Louis">
+      <div className={styles.coffeeWithLouis} role="region" aria-label="Coffee with Louis">
           <div className={styles.coffeeWithLouisCopy}>
             <div className={styles.walletSettingsTitle}>Coffee with Louis</div>
             <p className={styles.coffeeWithLouisWhen}>{coffeeSession.label}</p>
@@ -8940,7 +8928,6 @@ export function HelpResourcesCard({
             Join Google Meet
           </a>
         </div>
-      ) : null}
       {hasLearningContent ? (
         <div className={styles.resourceHubTabs} role="tablist" aria-label="Resources">
           <button

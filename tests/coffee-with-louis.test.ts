@@ -6,7 +6,6 @@ import {
   formatCoffeeWithLouisReminderDate,
   getCoffeeWithLouisSessionStart,
   getNextCoffeeWithLouisSession,
-  isCoffeeWithLouisVisible,
 } from '@/lib/help/coffee-with-louis'
 
 const FIRST_SESSION = 'Thursday, Oct 8, 2026 · 8 PM ET'
@@ -122,22 +121,5 @@ describe('Coffee with Louis next session', () => {
         new Date('2026-11-06T01:00:00.000Z'),
       ).startsAt.toISOString(),
     ).toBe(getCoffeeWithLouisSessionStart(3).toISOString())
-  })
-})
-
-describe('Coffee with Louis smoke gate', () => {
-  it('stays hidden unless the public Smoke marker is exactly smoke', () => {
-    expect(isCoffeeWithLouisVisible({})).toBe(false)
-    expect(
-      isCoffeeWithLouisVisible({
-        NEXT_PUBLIC_SPARKLE_ENVIRONMENT: 'production',
-      }),
-    ).toBe(false)
-    expect(
-      isCoffeeWithLouisVisible({ NEXT_PUBLIC_SPARKLE_ENVIRONMENT: 'Smoke' }),
-    ).toBe(false)
-    expect(
-      isCoffeeWithLouisVisible({ NEXT_PUBLIC_SPARKLE_ENVIRONMENT: 'smoke' }),
-    ).toBe(true)
   })
 })

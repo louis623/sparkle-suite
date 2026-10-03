@@ -736,8 +736,11 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Site setup in progress')
     expect(html).not.toContain('Sparkle with us.')
     expect(html).toContain('Need help?')
-    expect(html).not.toContain('Coffee with Louis')
-    expect(html).not.toContain('Next session ·')
+    expect(html).toContain('Coffee with Louis')
+    expect(html).toContain('Next session ·')
+    expect(html).toContain('>Help &amp; Resources<')
+    expect(html).not.toContain('Join Google Meet')
+    expect(html).not.toContain('meet.google.com')
     expect(html).toContain('More help on YouTube')
     expect(html.match(/More help on YouTube/g)).toHaveLength(1)
     expect(html).toContain('Get tips, demos, and step-by-step how-tos.')
@@ -970,13 +973,10 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Customer Site Looks')
     expect(html).not.toContain('Full skin gallery')
     expect(html).not.toContain('Classic Sparkle')
-    expect(html).not.toContain('Coffee with Louis')
-    expect(html).not.toContain('meet.google.com/ydu-jgut-drf')
     expect(html).not.toContain('meet.google.com/rzy-rqsd-qvo')
   })
 
-  it('shows the next Coffee with Louis session on Help & Resources when Smoke is on', () => {
-    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+  it('shows the next Coffee with Louis session on Help & Resources', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-10-08T23:59:00.000Z'))
 
@@ -1006,8 +1006,7 @@ describe('DashboardPlaceholder', () => {
     }
   })
 
-  it('shows a Smoke-only Coffee with Louis reminder on the overview', () => {
-    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+  it('shows the Coffee with Louis reminder on the overview', () => {
     vi.useFakeTimers()
 
     try {

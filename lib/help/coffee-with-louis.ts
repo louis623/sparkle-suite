@@ -18,21 +18,6 @@ export type CoffeeWithLouisSession = {
   meetUrl: string
 }
 
-type CoffeeVisibilityEnv = {
-  NEXT_PUBLIC_SPARKLE_ENVIRONMENT?: string
-}
-
-/**
- * Smoke builds set NEXT_PUBLIC_SPARKLE_ENVIRONMENT=smoke. Production leaves it
- * unset, so the same tip can ship without showing Coffee with Louis on the
- * live customer domains.
- */
-export function isCoffeeWithLouisVisible(
-  env: CoffeeVisibilityEnv | NodeJS.ProcessEnv = process.env,
-) {
-  return env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT === 'smoke'
-}
-
 function timeZoneOffsetMs(instant: Date, timeZone: string) {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone,
