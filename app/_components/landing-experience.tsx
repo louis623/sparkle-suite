@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import { gridDemoEmbeds } from '@/lib/sparkle-suite/demo-page-content'
 import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
+import { sparkleFinderMarketingHref } from '@/lib/sparkle-suite/marketing-destinations'
 import { sparkleSuitePublicLandingContent as content, sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 import { MarketingSocialLinks } from './marketing-social-links'
 import { ProductPeekVideo } from './product-peek-video'
@@ -40,11 +41,15 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
   </header>
 }
 
+function marketingFooterHref(link: { label: string; href: string }) {
+  return link.label === 'Sparkle Finder' ? sparkleFinderMarketingHref() : link.href
+}
+
 export function MarketingFooter({ current }: { current?: 'home' | 'portfolio' | 'demo' | 'faq' } = {}) {
   const textLinks = [...content.footer.links, ...content.footer.socialLinks].filter((link) => link.label !== 'TikTok' && link.label !== 'YouTube')
   return <footer className={styles.footer}>
     <Link className={styles.brand} href="/" aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></Link>
-    <nav aria-label="Footer links">{textLinks.map((link) => <a key={link.label} href={link.href} aria-current={current === 'faq' && link.href === '/faq' ? 'page' : undefined}>{link.label}</a>)}</nav>
+    <nav aria-label="Footer links">{textLinks.map((link) => <a key={link.label} href={marketingFooterHref(link)} aria-current={current === 'faq' && link.href === '/faq' ? 'page' : undefined}>{link.label}</a>)}</nav>
     <MarketingSocialLinks />
     <p>{sparkleSuitePublicLandingSafety.disclaimer}</p>
   </footer>
