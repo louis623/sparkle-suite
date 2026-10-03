@@ -98,6 +98,8 @@ export function SiteStyleShowcase() {
           <iframe
             title="Chasing Unicorns homepage, the full customer site with the unicorn scene playing in the hero"
             src="/marketing/chasing-unicorns"
+            width={1200}
+            height={1260}
             sandbox="allow-scripts"
             referrerPolicy="no-referrer"
             tabIndex={-1}
