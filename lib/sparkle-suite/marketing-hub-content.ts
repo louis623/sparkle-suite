@@ -29,7 +29,26 @@ export const sparkleSuiteMarketingHubContent = {
     learnMoreLabel: 'Learn More',
     learnMoreHref: 'https://www.yoursparklesuite.com/',
     signInLabel: 'Sign In',
-    signInHref: '/login',
+    /**
+     * Smoke shell only. The Suite card must not link to /login, NextAuth, or Workspace.
+     * Google opens this URL with no client id and no redirect back to Sparkle Suite.
+     * Forgot password stays a labeled demo until Suite sends resetPasswordForEmail.
+     */
+    smokeSignIn: {
+      title: 'Sign in to Sparkle Suite',
+      googleNotice:
+        'Smoke preview. Google sign-in is not fully wired here. It opens Google only and will not land in your Workspace. Google may say this preview is not connected.',
+      googleLabel: 'Google sign-in',
+      googleUrl: 'https://accounts.google.com/o/oauth2/v2/auth?prompt=select_account',
+      passwordNotice: 'Email and password sign-in is not part of this preview.',
+      forgotLabel: 'Forgot password',
+      forgotDemo: 'Demo — not a live password reset.',
+      forgotResult:
+        'Nothing was emailed. A real reset has to come from Sparkle Suite later. This preview does not send email or change a password.',
+      popupBlocked:
+        'Pop-up blocked. Open Google in a new tab. This still does not sign you into Sparkle Suite.',
+      closeLabel: 'Close',
+    },
     signUpLabel: 'Sign Up',
     signUpHref: sparkleSuitePublicLandingContent.hero.primaryCta.href,
   },
