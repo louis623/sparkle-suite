@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getSparkleFinderSiteOrigin } from "@/lib/sparkle-finder/oauth-redirect";
+import { getSparkleFinderMagicLinkRedirectTo } from "@/lib/sparkle-finder/oauth-redirect";
 import { safeSparkleFinderNextPath } from "@/lib/sparkle-finder/safe-redirect";
 import { createClient } from "@/lib/supabase/server";
 
@@ -40,9 +40,7 @@ export async function requestSignInMagicLink(formData: FormData) {
 }
 
 function getEmailRedirectTo(nextPath: string) {
-  const origin = getSparkleFinderSiteOrigin();
-
-  return `${origin}/auth/confirm?next=${encodeURIComponent(nextPath)}`;
+  return getSparkleFinderMagicLinkRedirectTo(nextPath);
 }
 
 function getSignInErrorRedirect(error: string, nextPath: string): string {
