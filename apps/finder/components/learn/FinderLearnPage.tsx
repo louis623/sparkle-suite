@@ -1,6 +1,7 @@
 import * as FinderLaunchNotify from "@/components/learn/FinderLaunchNotify";
 import { FinderSeal } from "@/components/learn/FinderSeal";
 import { finderLearnContent } from "@/lib/sparkle-finder/learn-page-content";
+import { sparkleSuiteMarketingHref } from "@/lib/sparkle-finder/marketing-destinations";
 import styles from "./finder-learn.module.css";
 
 export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" | "live" } = {}) {
@@ -86,16 +87,19 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
             </span>
           </a>
           <nav aria-label="Footer">
-            {content.footer.links.map((link) => (
-              <a
-                href={link.href}
-                key={link.href}
-                rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                target={link.href.startsWith("http") ? "_blank" : undefined}
-              >
-                {link.label}
-              </a>
-            ))}
+            {content.footer.links.map((link) => {
+              const href = link.label === "Sparkle Suite" ? sparkleSuiteMarketingHref() : link.href;
+              return (
+                <a
+                  href={href}
+                  key={link.label}
+                  rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+                  target={href.startsWith("http") ? "_blank" : undefined}
+                >
+                  {link.label}
+                </a>
+              );
+            })}
             {content.footer.socials.map((link) => (
               <a href={link.href} key={link.href} rel="noopener noreferrer" target="_blank">
                 {link.label}

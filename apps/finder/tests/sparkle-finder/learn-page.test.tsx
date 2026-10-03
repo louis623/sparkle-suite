@@ -1,12 +1,16 @@
 import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import LearnLivePage from "../../app/learn-live/page";
 import LearnPage from "../../app/learn/page";
 import { FinderLearnPage } from "../../components/learn/FinderLearnPage";
 import { findSparkleFinderCopyViolations } from "../../lib/sparkle-finder/copy-guardrails";
 import { finderLearnContent, finderLearnVisibleCopy } from "../../lib/sparkle-finder/learn-page-content";
+import { sparkleSuiteMarketingHref } from "../../lib/sparkle-finder/marketing-destinations";
+
+const liveSuiteHref = "https://www.yoursparklesuite.com";
+const smokeSuiteHref = "https://sparkle-suite-smoke.vercel.app/";
 
 const allowedHrefs = new Set([
   "#top",
@@ -15,11 +19,15 @@ const allowedHrefs = new Set([
   "#silver",
   "/privacy-policy",
   "/terms-and-conditions",
-  "https://www.yoursparklesuite.com",
+  liveSuiteHref,
   "https://www.youtube.com/@yoursparklesuite",
   "https://www.tiktok.com/@yoursparklesuite",
   "https://neonrabbit.net",
 ]);
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("Sparkle Finder /learn", () => {
   it("renders a public collector page with the locked membership and real features", () => {
@@ -86,6 +94,8 @@ describe("Sparkle Finder /learn", () => {
     const navigationHrefs = hrefs;
     expect(navigationHrefs.length).toBeGreaterThan(0);
     expect(navigationHrefs.every((href) => allowedHrefs.has(href))).toBe(true);
+    expect(markup).toContain(`href="${liveSuiteHref}"`);
+    expect(markup).not.toContain(smokeSuiteHref);
     expect(findSparkleFinderCopyViolations(finderLearnVisibleCopy())).toEqual([]);
   });
 
@@ -134,5 +144,29 @@ describe("Sparkle Finder /learn", () => {
     expect(pageSource).not.toContain("getCurrentSparkleFinderAccount");
     expect(pageSource).not.toContain("create-an-account");
     expect(findSparkleFinderCopyViolations(finderLearnVisibleCopy())).toEqual([]);
+    expect(markup).toContain(`href="${liveSuiteHref}"`);
+  });
+
+  it("points the Suite footer link at Suite Smoke only when a Smoke marker is set", () => {
+    expect(sparkleSuiteMarketingHref({})).toBe(liveSuiteHref);
+    expect(sparkleSuiteMarketingHref({
+      SPARKLE_ENVIRONMENT: "production",
+      NEXT_PUBLIC_SPARKLE_ENVIRONMENT: "production",
+    })).toBe(liveSuiteHref);
+    expect(finderLearnContent.footer.links.find((link) => link.label === "Sparkle Suite")?.href).toBe(liveSuiteHref);
+
+    for (const marker of ["SPARKLE_ENVIRONMENT", "NEXT_PUBLIC_SPARKLE_ENVIRONMENT"] as const) {
+      vi.stubEnv("SPARKLE_ENVIRONMENT", "");
+      vi.stubEnv("NEXT_PUBLIC_SPARKLE_ENVIRONMENT", "");
+      vi.stubEnv(marker, "smoke");
+
+      for (const page of [FinderLearnPage, LearnLivePage]) {
+        const markup = renderToStaticMarkup(createElement(page));
+        expect(markup).toContain(">Sparkle Suite<");
+        expect(markup).toContain(`href="${smokeSuiteHref}"`);
+        expect(markup).not.toContain(`href="${liveSuiteHref}"`);
+        expect(markup).toContain('href="https://www.youtube.com/@yoursparklesuite"');
+      }
+    }
   });
 });
