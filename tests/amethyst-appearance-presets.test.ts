@@ -106,7 +106,7 @@ describe('Amethyst appearance presets', () => {
       'Halloween Pumpkin and Cat',
       'Halloween Pumpkin and Witch',
       'The Golden Leaves of Autumn',
-      'Rose Gold',
+      'Rose Champagne',
       'Garnet',
       'Amber',
       'Velvet',
@@ -153,22 +153,22 @@ describe('Amethyst appearance presets', () => {
 
     expect(homepage).toMatchObject({
       preset: 'rose_gold',
-      primaryColor: '#e04f73',
-      accentColor: '#f5c66d',
+      primaryColor: '#a04e5d',
+      accentColor: '#d29b82',
       bgTone: 'roseGold',
       bgTreatment: 'rose-gold-paper',
     })
     expect(trade).toMatchObject({
       preset: 'rose_gold',
-      primaryColor: '#e04f73',
-      accentColor: '#f5c66d',
+      primaryColor: '#a04e5d',
+      accentColor: '#d29b82',
       bgTone: 'roseGold',
       bgTreatment: 'rose-gold-paper',
     })
     expect(join).toMatchObject({
       preset: 'rose_gold',
-      primaryColor: '#e04f73',
-      accentColor: '#f5c66d',
+      primaryColor: '#a04e5d',
+      accentColor: '#d29b82',
       bgTone: 'roseGold',
       bgTreatment: 'rose-gold-paper',
     })
@@ -465,7 +465,7 @@ describe('Amethyst appearance presets', () => {
     )
   })
 
-  it('adds Rose Gold as a visual-only Amethyst skin with a browsing card', () => {
+  it('updates RG-01 as the Rose Champagne visual-only Amethyst theme', () => {
     const preset = getAmethystAppearancePreset('rose_gold')
     const homepage = applyAmethystAppearancePreset(
       buildAmethystHomepageTweakDefaults(defaultAmethystHomepageTemplateData),
@@ -482,8 +482,8 @@ describe('Amethyst appearance presets', () => {
     const card = getAmethystSkinCard('rose_gold')
     const expectedTokens = {
       preset: 'rose_gold',
-      primaryColor: '#e04f73',
-      accentColor: '#f5c66d',
+      primaryColor: '#a04e5d',
+      accentColor: '#d29b82',
       bgTone: 'roseGold',
       headingFont: 'playfair',
       bgTreatment: 'rose-gold-paper',
@@ -493,7 +493,7 @@ describe('Amethyst appearance presets', () => {
     }
 
     expect(normalizeAmethystAppearancePreset('rose_gold')).toBe('rose_gold')
-    expect(preset.label).toBe('Rose Gold')
+    expect(preset.label).toBe('Rose Champagne')
     expect(homepage).toMatchObject(expectedTokens)
     expect(trade).toMatchObject(expectedTokens)
     expect(join).toMatchObject(expectedTokens)
@@ -504,12 +504,12 @@ describe('Amethyst appearance presets', () => {
     expect(card).toMatchObject({
       id: 'rose_gold',
       code: 'RG-01',
-      label: 'Rose Gold',
+      label: 'Rose Champagne',
       headingFont: 'Playfair Display',
       bodyFont: 'DM Sans',
     })
     expect(card.swatches.map((swatch) => swatch.value)).toEqual(
-      expect.arrayContaining(['#fff5f6', '#e04f73', '#f9a8d4', '#f5c66d']),
+      expect.arrayContaining(['#fff7f5', '#a04e5d', '#d29b82', '#723745']),
     )
     expect(normalizeAmethystSkinSelection('RG-01')).toBe('rose_gold')
     expect(normalizeAmethystSkinSelection('Rose Gold')).toBe('rose_gold')

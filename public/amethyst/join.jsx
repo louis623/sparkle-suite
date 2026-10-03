@@ -311,7 +311,7 @@ const PRESETS = {
     sparkleLevel: "subtle", bgTreatment: "rose-gold-paper", cardSurface: "pearl-rose",
     textureOverlay: "none", buttonEnergy: "rose-gold-lift", ctaEmphasis: "standard",
     tradeFlair: "champagne-rose", cursorEffect: "default", saturation: 108,
-    bgTone: "roseGold", primaryColor: "#e04f73", accentColor: "#f5c66d",
+    bgTone: "roseGold", primaryColor: "#a04e5d", accentColor: "#d29b82",
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
   },
   garnet: {
@@ -1659,7 +1659,7 @@ function App() {
               { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
               { value: "gilded_autumn", label: "The Golden Leaves of Autumn" },
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
-              { value: "rose_gold", label: "Rose Gold" },
+              { value: "rose_gold", label: "Rose Champagne" },
               { value: "garnet", label: "Garnet" },
               { value: "amber", label: "Amber" },
               { value: "velvet", label: "Velvet" },

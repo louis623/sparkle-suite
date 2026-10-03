@@ -135,7 +135,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20261002-trade-hero-tip')
+    expect(homepage).toContain('homepage.jsx?v=20261003-rg01-v1')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -1296,7 +1296,7 @@ describe('Amethyst homepage template data wiring', () => {
     expect(css).toMatch(/\.hp-queue-modal-row \.name\s*\{[\s\S]*?color:\s*#2b1b1f;/)
   })
 
-  it('ships the Rose Gold skin in the local homepage preset picker', () => {
+  it('ships the Rose Champagne theme under the existing Rose Gold preset id', () => {
     const jsx = readFileSync(
       resolve(process.cwd(), 'public/amethyst/homepage.jsx'),
       'utf8',
@@ -1307,7 +1307,7 @@ describe('Amethyst homepage template data wiring', () => {
     )
 
     expect(jsx).toContain('rose_gold')
-    expect(jsx).toContain('Rose Gold')
+    expect(jsx).toContain('Rose Champagne')
     expect(html).toContain('DM+Sans')
     expect(html).toContain('Playfair+Display')
   })

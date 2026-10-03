@@ -6,6 +6,7 @@ import { transformSync } from 'esbuild'
 import { buildSkinPreviewDocument } from '@/lib/amethyst/skin-preview'
 
 const profiles = [
+  ['rose_gold', 'Sparkle by Sasha'],
   ['gilded_autumn', 'Sparkle by Sasha'],
   ['gnome_garden', 'The Gnome Forest'],
   ['neon_butterfly', "Kelly's Sparkle Lounge"],

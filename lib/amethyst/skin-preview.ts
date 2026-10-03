@@ -9,7 +9,7 @@ import type { AmethystHomepageEventCard } from './homepage-upcoming-shows'
 
 export const SKIN_PREVIEW_PAGES = ['homepage', 'trade', 'join', 'unsubscribe'] as const
 export type SkinPreviewPage = (typeof SKIN_PREVIEW_PAGES)[number]
-export const SKIN_PREVIEW_SKINS = ['amethyst', 'gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn'] as const
+export const SKIN_PREVIEW_SKINS = ['amethyst', 'gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn', 'rose_gold'] as const
 export type SkinPreviewSkin = (typeof SKIN_PREVIEW_SKINS)[number]
 const FILES: Record<SkinPreviewPage, string> = {
   homepage: 'Homepage.html', trade: 'Trade.html', join: 'Join.html', unsubscribe: 'Unsubscribe.html',
@@ -77,6 +77,20 @@ type PreviewProfile = {
 }
 
 const PREVIEW_PROFILES = {
+  rose_gold: {
+    label: 'Rose Champagne', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
+    ticker: 'Live jewelry reveals | A little sparkle, a lovely surprise | Explore the Dance Floor',
+    tagline: 'Good company. Beautiful surprises.',
+    eyebrow: '', headline: 'Real jewelry. Live reveals. Pure sparkle.',
+    heroSub: 'Join Sasha for live jewelry reveals, friendly conversation, and your next favorite find.',
+    aboutHeadline: 'Come for a reveal. Stay for the company.',
+    aboutParagraphs: ['Hi, I’m Sasha. I love sharing the surprise of a jewelry reveal with you.', 'Whether you are discovering your first piece or chasing your next favorite, you are welcome here.', 'Check the sample show calendar and come join the fun.'],
+    signupSub: 'Get a friendly heads-up before the next live reveal.',
+    events: [
+      { id: 'sample-rose-evening', title: 'Rose Gold Reveal Night', description: 'A little sparkle, good company, and beautiful jewelry surprises. Join Sasha for an evening of live reveals.', eventTime: '2099-10-12T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{ code: 'SAMPLE10', desc: 'Sample offer for this appearance preview' }], collections: [{ label: 'OG Collection', href: previewPath('rose_gold', 'trade') }], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
+      { id: 'sample-rose-weekend', title: 'Saturday Sparkle & Sip', description: 'Bring your favorite drink and settle in for a relaxed weekend reveal.', eventTime: '2099-10-14T17:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 60, featured: false, codes: [], collections: [{ label: 'Birthday Collection', href: previewPath('rose_gold', 'trade') }], platforms: [{ kind: 'fb', label: 'Watch on Facebook', href: '#preview-action' }] },
+    ],
+  },
   amethyst: {
     label: 'Chasing Unicorns (Amethyst)', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
     ticker: 'Live jewelry reveals | A little magic in every surprise | Explore the Dance Floor',
@@ -190,7 +204,7 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
   }
   if (page === 'join') {
     return buildAmethystJoinBootstrapScript({
-      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'amethyst' || skin === 'gilded_autumn' ? 'Find your place with Sasha.' : skin === 'neon_butterfly' ? 'Find your place in the glow.' : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat') ? 'Find your place beneath the pumpkin moon.' : 'Find your place in the garden.',
+      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'amethyst' || skin === 'gilded_autumn' || skin === 'rose_gold' ? 'Find your place with Sasha.' : skin === 'neon_butterfly' ? 'Find your place in the glow.' : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat') ? 'Find your place beneath the pumpkin moon.' : 'Find your place in the garden.',
       shopUrl: '#preview-action', bpReferralUrl: '', hasRecruitingLink: false,
       teamMembers: [
         ...(skin === 'neon_butterfly'
@@ -200,7 +214,7 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
               { name: 'Jules', business: 'Bright Wing Sparkle', state: 'Virginia', initials: 'J', socialLinks: {} },
             ]
           : [
-              { name: 'Sasha', business: 'The Gnome Forest', state: 'Virginia', initials: 'S', socialLinks: {} },
+              { name: 'Sasha', business: skin === 'rose_gold' ? profile.businessName : 'The Gnome Forest', state: 'Virginia', initials: 'S', socialLinks: {} },
               { name: 'Alex', business: 'Moonlit Sparkle', state: 'North Carolina', initials: 'A', socialLinks: {} },
               { name: 'Jamie', business: 'Little Lantern Reveals', state: 'Georgia', initials: 'J', socialLinks: {} },
             ]),
@@ -279,7 +293,7 @@ export const SKIN_PREVIEW_GUARDS = `
     }
     event.preventDefault(); event.stopImmediatePropagation();
     var path = href.split('?')[0].split('#')[0];
-    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:amethyst|gnome_garden|neon_butterfly|halloween_pumpkin_witch|halloween_pumpkin_cat|gilded_autumn)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
+    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:amethyst|gnome_garden|neon_butterfly|halloween_pumpkin_witch|halloween_pumpkin_cat|gilded_autumn|rose_gold)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
     if (page) window.parent.postMessage({ type: 'sparkle-skin-preview-page', page: page, ...(href.endsWith('#events') ? { fragment: '#events' } : {}) }, '*'); else notice();
   }, true);
   function disableUploads() {
@@ -297,6 +311,7 @@ export const SKIN_PREVIEW_GUARDS = `
 
 /** Video skins may load only their own self-hosted media in the sample sandbox. */
 export function skinPreviewMediaSource(skin: SkinPreviewSkin, origin: string) {
+  if (skin === 'rose_gold') return origin + '/amethyst/skins/rose-champagne/'
   if (skin === 'amethyst') return origin + '/amethyst/skins/am01-unicorn/'
   if (skin === 'gilded_autumn') return origin + '/amethyst/skins/gilded-autumn/'
   if (skin === 'halloween_pumpkin_cat') return origin + '/amethyst/skins/halloween-pumpkin-cat/'
@@ -309,7 +324,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
   // Inline only allowlisted repository runtime files. Inline Babel input does not need network XHR.
-  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'sparkle-suite-footer-credit.js']
+  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'rose-champagne.js', 'sparkle-suite-footer-credit.js']
   for (const name of runtimeNames) {
     const escaped = name.replace('.', '\\.')
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')
@@ -344,11 +359,14 @@ export async function buildGnomeSkinPreviewDocument(page: SkinPreviewPage, origi
 export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string, review: LineupReviewState | null = null) {
   const profile = PREVIEW_PROFILES[skin]
   const document = await buildSkinPreviewDocument(skin, page, origin, review)
+  const previewKind = skin === 'rose_gold' ? 'Theme' : 'Skin'
   const reviewQuery = review ? '?lineupReview='+review : ''
   const reviewControls = review ? '<nav aria-label="Lineup review states">'+(['empty','queued','delayed','no-calendar'] as const).map(state => '<a href="'+previewPath(skin,page)+'?lineupReview='+state+'"'+(state === review ? ' aria-current="page"' : '')+'>'+({empty:'Empty',queued:'Names waiting',delayed:'Delayed', 'no-calendar':'No calendar'}[state])+'</a>').join('')+'</nav>' : ''
   const navigation = SKIN_PREVIEW_PAGES.map((item) => `<a href="${previewPath(skin, item)}${reviewQuery}"${item === page ? ' aria-current="page"' : ''}>${LABELS[item]}</a>`).join('')
   const chrome = skin === 'amethyst'
     ? { bg: '#22064b', fg: '#fff4fa', muted: '#E8DFF5', border: '#FF1AC255', active: '#E8DFF5', focus: '#FF1AC2' }
+    : skin === 'rose_gold'
+    ? { bg: '#fff7f5', fg: '#45252e', muted: '#765760', border: '#e8c8c0', active: '#723745', focus: '#a04e5d' }
     : skin === 'gilded_autumn'
     ? { bg: '#392519', fg: '#fff8ec', muted: '#e3cba9', border: '#b1833866', active: '#fff8ec', focus: '#e3cba9' }
     : skin === 'neon_butterfly'
@@ -356,10 +374,10 @@ export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreview
     : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat')
       ? { bg: '#090909', fg: '#fff7ed', muted: '#d6c8bb', border: '#ff6a0066', active: '#ff6a00', focus: '#f4eee3' }
       : { bg: '#173126', fg: '#fff3d6', muted: '#dfd4ba', border: '#f4c45e44', active: '#fff3d6', focus: '#f4c45e' }
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${profile.label} · Skin preview</title><style>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${profile.label} · ${previewKind} preview</title><style>
   *{box-sizing:border-box}body{margin:0;background:${chrome.bg};color:${chrome.fg};font:14px/1.4 system-ui,sans-serif}header{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;border-bottom:1px solid ${chrome.border}}header strong{font-size:14px}header small{display:block;color:${chrome.muted};font-size:12px}nav{display:flex;gap:5px;flex-wrap:wrap}nav a{color:inherit;text-decoration:none;border-radius:20px;padding:8px 12px}nav a:hover,nav a[aria-current]{background:${chrome.active};color:${chrome.bg}}a:focus-visible{outline:3px solid ${chrome.focus};outline-offset:3px}iframe{display:block;width:100%;height:calc(100dvh - 65px);border:0;background:${chrome.bg}}@media(max-width:600px){header{padding:10px 12px;flex-direction:column;align-items:flex-start;gap:7px}header small{display:inline;margin-left:6px}nav{width:100%;justify-content:space-between}nav a{padding:7px 9px}iframe{height:calc(100dvh - 100px)}}
   html,body{height:100%;overflow:hidden}body{height:100dvh;display:flex;flex-direction:column}header{flex:0 0 auto}iframe{flex:1 1 0;min-height:0;height:auto}
-  </style></head><body><header><div><strong>Skin preview · Sample content${review ? ' · Lineup review' : ''}</strong><small>${profile.label}</small></div><nav aria-label="Preview pages">${navigation}</nav>${reviewControls}</header><iframe id="skin-preview" title="${LABELS[page]} — sample ${profile.label} site" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escapeAttribute(document)}"></iframe><script>
+  </style></head><body><header><div><strong>${previewKind} preview · Sample content${review ? ' · Lineup review' : ''}</strong><small>${profile.label}</small></div><nav aria-label="Preview pages">${navigation}</nav>${reviewControls}</header><iframe id="skin-preview" title="${LABELS[page]} — sample ${profile.label} site" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escapeAttribute(document)}"></iframe><script>
   var previewFrame=document.getElementById('skin-preview');
   previewFrame.addEventListener('load',function(){if(window.location.hash==='#events')previewFrame.contentWindow.postMessage({type:'sparkle-skin-preview-scroll',fragment:'#events'},'*');});
   window.addEventListener('message',function(event){var frame=document.getElementById('skin-preview');if(event.source!==frame.contentWindow||event.data?.type!=='sparkle-skin-preview-page')return;var page=event.data.page;if(['homepage','trade','join','unsubscribe'].includes(page))window.location.assign('/skin-preview/${skin}/'+page+'${reviewQuery}'+(event.data.fragment === '#events' ? '#events' : ''));});

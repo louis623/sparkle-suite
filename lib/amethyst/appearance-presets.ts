@@ -353,12 +353,12 @@ export const AMETHYST_APPEARANCE_PRESETS: Record<
 },
   rose_gold: {
     id: 'rose_gold',
-    label: 'Rose Gold',
+    label: 'Rose Champagne',
     description:
-      'Rose, pearl, and champagne jewelry polish with soft coastal-card warmth.',
+      'Rose-copper shimmer and champagne bokeh above warm pearl cards.',
     values: {
-      primaryColor: '#e04f73',
-      accentColor: '#f5c66d',
+      primaryColor: '#a04e5d',
+      accentColor: '#d29b82',
       bgTone: 'roseGold',
       headingFont: 'playfair',
       bodyFont: 'dmSans',
