@@ -7,10 +7,7 @@ export const finderLearnContent = {
   tagline: "Find it, favorite it, show it off.",
   comingSoon: "Get notified when we launch",
   createAccount: "Create an account",
-  nav: [
-    { href: "#how", label: "How it works" },
-    { href: "#silver", label: "Silver" },
-  ],
+  nav: [{ href: "#how", label: "How it works" }],
   hero: {
     eyebrow: "For Bomb Party collectors",
     headlineLead: "Find the pieces you",
@@ -38,13 +35,23 @@ export const finderLearnContent = {
       },
     ],
   },
-  silver: {
+  offers: {
     id: "silver",
-    eyebrow: "Silver",
-    body: "30-day Silver trial. No card at signup. No automatic charge. On day 30, Silver drops to Free and Finder pings you.",
-    price: "$6",
-    period: "a month",
-    offerNote: "Only if you choose it. This page does not take payment.",
+    silver: {
+      highlight: "30 days of Silver is free.",
+      noCard: "No card is needed to sign up.",
+      price: "Silver is $6 per month, about the cost of a pumpkin spice latte.",
+      charge:
+        "No automatic charge. On day 30, Silver drops to Free unless you choose to pay $6 a month. If you do not pay, you stay Free and nothing is charged.",
+      includesLabel: "Silver includes",
+      includes: ["Saving a collection", "Nic-Nac, a limited helper, not unlimited chat"],
+    },
+    free: {
+      title: "Free",
+      body: "A Free profile has fewer tools than Silver. A profile exists on Free.",
+      includesLabel: "Free includes",
+      includes: ["Looking through the jewelry library", "The rep list", "Show times", "Dance Floors"],
+    },
   },
   footer: {
     links: [

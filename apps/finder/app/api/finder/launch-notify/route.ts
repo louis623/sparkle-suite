@@ -3,7 +3,7 @@ import {
   finderLaunchNotifyTable,
   parseFinderLaunchNotifyBody,
 } from "@/lib/sparkle-finder/launch-notify";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
+import { createLiveFinderLaunchNotifyClient } from "@/lib/sparkle-finder/launch-notify-live";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error }, { status: 400, headers: noStore });
   }
 
-  const supabase = createSupabaseServiceRoleClient();
+  const supabase = createLiveFinderLaunchNotifyClient();
   if (!supabase) {
     return NextResponse.json({ error: "service_role_not_configured" }, { status: 503, headers: noStore });
   }

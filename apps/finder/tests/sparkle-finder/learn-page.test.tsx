@@ -16,7 +16,6 @@ const allowedHrefs = new Set([
   "#top",
   "#main-content",
   "#how",
-  "#silver",
   "/privacy-policy",
   "/terms-and-conditions",
   liveSuiteHref,
@@ -40,13 +39,31 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain("An account is required.");
     expect(markup).not.toContain("See why it helps");
     expect(markup).toContain("Dance Floor");
-    expect(markup).toContain("$6");
-    expect(markup).toContain("a month");
-    expect(markup).toContain("30-day Silver trial");
-    expect(markup).toContain("No card at signup");
-    expect(markup).toContain("No automatic charge");
-    expect(markup).toContain("drops to Free");
-    expect(markup).toContain("Finder pings you");
+    const trialAt = markup.indexOf("30 days of Silver is free.");
+    const priceAt = markup.indexOf("Silver is $6 per month, about the cost of a pumpkin spice latte.");
+    const chargeAt = markup.indexOf("No automatic charge.");
+    const silverIncludesAt = markup.indexOf("Silver includes");
+    const freeCardAt = markup.indexOf('id="free-title"');
+    expect(trialAt).toBeGreaterThan(-1);
+    expect(priceAt).toBeGreaterThan(trialAt);
+    expect(chargeAt).toBeGreaterThan(priceAt);
+    expect(silverIncludesAt).toBeGreaterThan(chargeAt);
+    expect(freeCardAt).toBeGreaterThan(silverIncludesAt);
+    expect(markup).toContain("No card is needed to sign up.");
+    expect(markup).toContain("unless you choose to pay $6 a month");
+    expect(markup).toContain("you stay Free and nothing is charged");
+    expect(markup).toContain("Saving a collection");
+    expect(markup).toContain("Nic-Nac, a limited helper, not unlimited chat");
+    expect(markup).not.toMatch(/unlimited ai/i);
+    expect(markup).toContain("A Free profile has fewer tools than Silver.");
+    expect(markup).toContain("A profile exists on Free.");
+    expect(markup).toContain("Looking through the jewelry library");
+    expect(markup).toContain("The rep list");
+    expect(markup).toContain("Show times");
+    expect(markup).toContain("Dance Floors");
+    expect(markup).not.toMatch(/vault/i);
+    const freeCard = markup.slice(freeCardAt);
+    expect(freeCard).not.toMatch(/save a collection|saving a collection/i);
     expect(markup.match(/Hunt through the jewelry database/g)).toHaveLength(1);
     expect(markup.match(/When you find it, save it\./g)).toHaveLength(1);
     expect(markup.match(/See when that rep(?:'|&#x27;)s next show is/g)).toHaveLength(1);
@@ -57,11 +74,10 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain(">Show it off<");
     expect(markup).not.toContain("In Finder today");
     expect(markup).not.toContain("Jewelry library");
-    expect(markup).not.toContain("Bling Vault");
     expect(markup).not.toContain("Live shows");
     expect(markup).not.toContain("Hero Piece");
     expect(markup).not.toContain("Showcase Studio");
-    expect(markup).not.toContain("Nic-Nac");
+    expect(markup).toContain("Nic-Nac");
     expect(markup).not.toContain("marketplace");
     expect(markup).not.toContain("Browse, save, then visit the Suite rep.");
     expect(markup).not.toMatch(/>0[1-4]</);
@@ -74,7 +90,9 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain('x="30.144"');
     expect(markup).toContain("var(--finder-violet-f)");
     expect(markup).toContain('href="#how"');
-    expect(markup).toContain('href="#silver"');
+    expect(markup).toContain(">How it works<");
+    expect(markup).not.toContain('href="#silver"');
+    expect(markup).not.toContain(">Silver</a>");
     expect(markup).not.toContain('href="#soon"');
     expect(markup).not.toContain('href="#why"');
     expect(markup).not.toMatch(/<img|webp|\/learn\/peeks|background-image|url\(/i);
@@ -133,7 +151,13 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain(">Save<");
     expect(markup).toContain(">Go to the show<");
     expect(markup).toContain(">Show it off<");
-    expect(markup).toContain("$6");
+    expect(markup).toContain("30 days of Silver is free.");
+    expect(markup.indexOf("30 days of Silver is free.")).toBeLessThan(
+      markup.indexOf("Silver is $6 per month, about the cost of a pumpkin spice latte."),
+    );
+    expect(markup).toContain('id="free-title"');
+    expect(markup).not.toContain('href="#silver"');
+    expect(markup).not.toMatch(/vault/i);
     expect(markup).toContain("Privacy Policy");
     expect(markup.match(/Create an account/g)).toHaveLength(2);
     expect(markup).not.toContain("Get notified when we launch");
