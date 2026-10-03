@@ -28,7 +28,7 @@ type CoffeeVisibilityEnv = {
  * live customer domains.
  */
 export function isCoffeeWithLouisVisible(
-  env: CoffeeVisibilityEnv = process.env,
+  env: CoffeeVisibilityEnv | NodeJS.ProcessEnv = process.env,
 ) {
   return env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT === 'smoke'
 }
