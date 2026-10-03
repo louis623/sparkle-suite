@@ -10,3 +10,4 @@
 - Simpler `/learn`: hero stays, four deep color title panels replace the old service tiles, one sentence under each, mid-page writeups removed, small $6 Silver closer kept. No live promote.
 - `/learn` copy: removed “See why it helps” and the account-required note. Button label is “Get notified when we launch” and still does not submit. No live promote.
 - Smoke twin `/learn-live` is the same page with “Create an account” on a non-submitting button. No signup route. No live promote.
+- Rebased onto `68bd8ca965477f1c05a4ca2e3c9d715e5efc199e` so `/api/finder/launch-notify` stays. `/learn` buttons open the notify form and POST that route. `/learn-live` still does nothing. No live promote.

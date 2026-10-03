@@ -72,8 +72,8 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toMatch(/<img|webp|\/learn\/peeks|background-image|url\(/i);
     expect(markup).not.toContain("heroSeal");
     expect(markup.match(/Get notified when we launch/g)).toHaveLength(2);
+    expect(markup.match(/<button\b[^>]*type="button"/g)).toHaveLength(2);
     expect(markup).not.toContain("Create an account");
-    expect(markup).not.toContain("<button");
     expect(markup).not.toContain("Coming soon");
     expect(markup).not.toMatch(/<form|mailto:/i);
     expect(markup).not.toMatch(/create-an-account/i);

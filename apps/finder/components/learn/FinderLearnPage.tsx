@@ -1,3 +1,4 @@
+import * as FinderLaunchNotify from "@/components/learn/FinderLaunchNotify";
 import { FinderSeal } from "@/components/learn/FinderSeal";
 import { finderLearnContent } from "@/lib/sparkle-finder/learn-page-content";
 import styles from "./finder-learn.module.css";
@@ -41,7 +42,7 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
               </h1>
               <p className={styles.tagline}>{content.tagline}</p>
               <div className={styles.heroActions}>
-                <LaunchAction href={live ? undefined : "#silver"} label={actionLabel} />
+                {live ? <InertAccountButton label={actionLabel} /> : <FinderLaunchNotify.FinderLearnNotifyButton />}
               </div>
               <p className={styles.lede}>{content.hero.body}</p>
             </div>
@@ -70,7 +71,7 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
             </p>
             <p>{content.silver.body}</p>
             <p className={styles.offerNote}>{content.silver.offerNote}</p>
-            <LaunchAction href={live ? undefined : `#${content.pillars.id}`} label={actionLabel} />
+            {live ? <InertAccountButton label={actionLabel} /> : <FinderLaunchNotify.FinderLearnNotifyButton />}
           </div>
         </section>
       </main>
@@ -114,21 +115,12 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
   );
 }
 
-function LaunchAction({ href, label }: { href?: string; label: string }) {
-  if (!href) {
-    return (
-      <button className={styles.primaryButton} type="button">
-        {label}
-        <ArrowIcon />
-      </button>
-    );
-  }
-
+function InertAccountButton({ label }: { label: string }) {
   return (
-    <a className={styles.primaryButton} href={href}>
+    <button className={styles.primaryButton} type="button">
       {label}
       <ArrowIcon />
-    </a>
+    </button>
   );
 }
 
