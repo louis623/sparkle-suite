@@ -136,6 +136,11 @@ describe('Sparkle Suite public landing page', () => {
     const explore = header.match(/aria-label="Explore Sparkle Suite">([\s\S]*?)<\/nav>/)?.[1] ?? ''
     const exploreLabels = [...explore.matchAll(/>([^<]+)</g)].map((match) => match[1])
     expect(exploreLabels).toEqual(['Portfolio', 'Demos'])
+    const moduleCss = readFileSync(join(process.cwd(), 'app/_components/landing-experience.module.css'), 'utf8')
+    const headerRule = moduleCss.match(/\.header\{[^}]+\}/)?.[0] ?? ''
+    expect(headerRule).toContain('justify-content:flex-start')
+    expect(headerRule).not.toContain('justify-content:space-between')
+    expect(moduleCss).toContain('.account{margin-left:auto')
     expect(header).not.toContain('Your site')
     expect(header).not.toContain('Show tools')
     expect(header).not.toContain('Founding offer')
@@ -162,7 +167,6 @@ describe('Sparkle Suite public landing page', () => {
     expect(html).not.toContain('/landing/live-queue.webp')
     expect(html).toContain('Live queue &amp; Dance Floor')
     expect(html).toContain('Preview 1 of 3')
-    const moduleCss = readFileSync(join(process.cwd(), 'app/_components/landing-experience.module.css'), 'utf8')
     const peekCss = readFileSync(join(process.cwd(), 'app/_components/product-peek-video.module.css'), 'utf8')
     expect(moduleCss).toContain('.page .styleMedia img{object-fit:contain}')
     expect(moduleCss).toContain('.page .styleChoices{flex-wrap:wrap')
