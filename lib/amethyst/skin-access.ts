@@ -36,7 +36,7 @@ export async function getAvailableAmethystSkinIdsForRep(
     throw new Error('Unable to load the customer-site themes available to this account.')
   }
 
-  return normalizeAvailableSkinIds(data)
+  return getAmethystSkinCardsForIds(normalizeAvailableSkinIds(data)).map(({ id }) => id)
 }
 
 export async function getAvailableAmethystSkinCardsForRep(

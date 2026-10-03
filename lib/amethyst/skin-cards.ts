@@ -17,6 +17,8 @@ export interface AmethystSkinCard {
   aliases?: readonly string[]
   previewHref?: string
   visibility: 'community' | 'private'
+  /** False hides a retired look from Suite pickers while preserving saved sites. */
+  selectable?: boolean
   exclusiveLabel?: string
   headingFont: string
   bodyFont: string
@@ -323,6 +325,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   {
     id: 'rose_quartz',
     visibility: 'community',
+    selectable: false,
     code: 'RQ-01',
     label: 'Rose Quartz',
     description:
@@ -344,11 +347,15 @@ export function getAmethystSkinCardsForIds(
   availableSkinIds: readonly string[],
 ) {
   const visibleIds = new Set(availableSkinIds)
-  return AMETHYST_SKIN_CARDS.filter((skin) => visibleIds.has(skin.id))
+  return AMETHYST_SKIN_CARDS.filter(
+    (skin) => skin.selectable !== false && visibleIds.has(skin.id),
+  )
 }
 
 export function getCommunityAmethystSkinCards() {
-  return AMETHYST_SKIN_CARDS.filter((skin) => skin.visibility === 'community')
+  return AMETHYST_SKIN_CARDS.filter(
+    (skin) => skin.selectable !== false && skin.visibility === 'community',
+  )
 }
 
 export function getAmethystSkinDropdownLabel(skin: AmethystSkinCard) {
