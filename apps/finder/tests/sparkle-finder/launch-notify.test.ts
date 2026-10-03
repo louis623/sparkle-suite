@@ -1,25 +1,53 @@
 import { readFileSync } from "node:fs";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   finderLaunchNotifySource,
   finderLaunchNotifyTable,
   parseFinderLaunchNotifyBody,
   type FinderLaunchNotifyRow,
 } from "../../lib/sparkle-finder/launch-notify";
+import {
+  liveFinderLaunchNotifyHost,
+  liveFinderLaunchNotifyProjectRef,
+  resolveLiveFinderLaunchNotifyTarget,
+} from "../../lib/sparkle-finder/launch-notify-live";
 
 const createClientMock = vi.fn();
 
-vi.mock("@/lib/supabase/service-role", () => ({
-  createSupabaseServiceRoleClient: () => createClientMock(),
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: (...args: unknown[]) => createClientMock(...args),
 }));
 
 import { POST } from "../../app/api/finder/launch-notify/route";
 
 const routeSource = readFileSync("app/api/finder/launch-notify/route.ts", "utf8");
+const liveClientSource = readFileSync("lib/sparkle-finder/launch-notify-live.ts", "utf8");
 const migrationSource = readFileSync(
   "supabase/migrations/20261003124500_sparkle_finder_launch_notify.sql",
   "utf8",
 );
+
+const liveFinderHost = "pzksocboqauqjdtsgpdp.supabase.co";
+const liveFinderRef = "pzksocboqauqjdtsgpdp";
+const liveFinderUrl = `https://${liveFinderHost}`;
+const smokeFinderHost = "awdwtxcqkqrzgdikrwab.supabase.co";
+const smokeFinderUrl = `https://${smokeFinderHost}`;
+
+function serviceRoleJwt(ref: string, role = "service_role") {
+  const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({ iss: "supabase", ref, role })).toString("base64url");
+  return `${header}.${payload}.signature`;
+}
+
+const liveServiceRoleKey = serviceRoleJwt(liveFinderRef);
+const smokeServiceRoleKey = serviceRoleJwt("awdwtxcqkqrzgdikrwab");
+
+function stubLaunchNotifyEnv(url: string, serviceRoleKey: string) {
+  vi.stubEnv("SPARKLE_FINDER_SUPABASE_URL", url);
+  vi.stubEnv("SPARKLE_FINDER_SERVICE_ROLE_KEY", serviceRoleKey);
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", smokeFinderUrl);
+  vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", smokeServiceRoleKey);
+}
 
 const validBody = {
   first_name: "  Ada ",
@@ -162,12 +190,52 @@ describe("parseFinderLaunchNotifyBody", () => {
   });
 });
 
+describe("live Finder launch-notify target", () => {
+  it("accepts only the live project url and service-role ref", () => {
+    expect(resolveLiveFinderLaunchNotifyTarget({
+      SPARKLE_FINDER_SUPABASE_URL: `${liveFinderUrl}/`,
+      SPARKLE_FINDER_SERVICE_ROLE_KEY: liveServiceRoleKey,
+      NEXT_PUBLIC_SUPABASE_URL: smokeFinderUrl,
+      SUPABASE_SERVICE_ROLE_KEY: smokeServiceRoleKey,
+    })).toEqual({
+      url: liveFinderUrl,
+      serviceRoleKey: liveServiceRoleKey,
+    });
+
+    expect(resolveLiveFinderLaunchNotifyTarget({
+      SPARKLE_FINDER_SUPABASE_URL: smokeFinderUrl,
+      SPARKLE_FINDER_SERVICE_ROLE_KEY: liveServiceRoleKey,
+    })).toBeNull();
+    expect(resolveLiveFinderLaunchNotifyTarget({
+      SPARKLE_FINDER_SUPABASE_URL: liveFinderUrl,
+      SPARKLE_FINDER_SERVICE_ROLE_KEY: smokeServiceRoleKey,
+    })).toBeNull();
+    expect(resolveLiveFinderLaunchNotifyTarget({
+      SPARKLE_FINDER_SUPABASE_URL: liveFinderUrl,
+      SPARKLE_FINDER_SERVICE_ROLE_KEY: serviceRoleJwt(liveFinderRef, "anon"),
+    })).toBeNull();
+    expect(resolveLiveFinderLaunchNotifyTarget({
+      NEXT_PUBLIC_SUPABASE_URL: liveFinderUrl,
+      SUPABASE_SERVICE_ROLE_KEY: liveServiceRoleKey,
+    })).toBeNull();
+    expect(resolveLiveFinderLaunchNotifyTarget({
+      SPARKLE_FINDER_SUPABASE_URL: "http://pzksocboqauqjdtsgpdp.supabase.co",
+      SPARKLE_FINDER_SERVICE_ROLE_KEY: liveServiceRoleKey,
+    })).toBeNull();
+  });
+});
+
 describe("POST /api/finder/launch-notify", () => {
   beforeEach(() => {
     createClientMock.mockReset();
+    stubLaunchNotifyEnv(liveFinderUrl, liveServiceRoleKey);
   });
 
-  it("inserts exactly one row and returns only ok", async () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("inserts the same row into the live Finder project and returns only ok", async () => {
     const insert = vi.fn().mockResolvedValue({
       data: [{ id: "secret-row", email: "ada@example.com" }],
       error: null,
@@ -182,17 +250,59 @@ describe("POST /api/finder/launch-notify", () => {
     expect(response.headers.get("cache-control")).toContain("no-store");
     expect(payload).toEqual({ ok: true });
     expect(Object.keys(payload)).toEqual(["ok"]);
+    expect(createClientMock).toHaveBeenCalledTimes(1);
+    expect(createClientMock).toHaveBeenCalledWith(liveFinderUrl, liveServiceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    expect(createClientMock.mock.calls[0][0]).not.toContain(smokeFinderHost);
+    expect(createClientMock.mock.calls[0][1]).not.toBe(smokeServiceRoleKey);
     expect(from).toHaveBeenCalledTimes(1);
     expect(from).toHaveBeenCalledWith(finderLaunchNotifyTable);
     expect(insert).toHaveBeenCalledTimes(1);
     const row = insert.mock.calls[0][0] as FinderLaunchNotifyRow;
     expect(Array.isArray(row)).toBe(false);
-    expect(row.source).toBe(finderLaunchNotifySource);
-    expect(row.email).toBe("ada@example.com");
+    expect(row).toEqual({
+      first_name: "Ada",
+      last_name: "Lovelace",
+      email: "ada@example.com",
+      phone: "(555) 123-4567",
+      notify_email: true,
+      notify_sms: true,
+      address: "1 Sparkle Lane",
+      birthday_month: 10,
+      birthday_day: 31,
+      favorite_gem_or_stone: "Moonstone",
+      favorite_material: "Sterling",
+      favorite_cut: "Round",
+      favorite_collection: "Classic",
+      notes: "Launch list",
+      tags: ["collector", "silver"],
+      marketing_consent: true,
+      source: finderLaunchNotifySource,
+    });
     expect(row).not.toHaveProperty("id");
     expect(row).not.toHaveProperty("rep_id");
+    expect(row).not.toHaveProperty("customer_audience");
     expect(JSON.stringify(payload)).not.toContain("secret-row");
     expect(JSON.stringify(payload)).not.toContain("ada@example.com");
+  });
+
+  it("refuses a Smoke Finder url or key and does not insert", async () => {
+    const cases = [
+      [smokeFinderUrl, liveServiceRoleKey],
+      [liveFinderUrl, smokeServiceRoleKey],
+      ["", liveServiceRoleKey],
+      [liveFinderUrl, ""],
+    ] as const;
+
+    for (const [url, serviceRoleKey] of cases) {
+      createClientMock.mockClear();
+      stubLaunchNotifyEnv(url, serviceRoleKey);
+      const response = await POST(request(validBody));
+      expect(response.status).toBe(503);
+      expect(await response.json()).toEqual({ error: "service_role_not_configured" });
+      expect(createClientMock).not.toHaveBeenCalled();
+    }
   });
 
   it("returns a short validation code and does not insert", async () => {
@@ -206,13 +316,15 @@ describe("POST /api/finder/launch-notify", () => {
     const response = await POST(request("{", true));
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_json" });
+    expect(createClientMock).not.toHaveBeenCalled();
   });
 
-  it("fails closed when the service role client is not configured", async () => {
-    createClientMock.mockReturnValue(null);
+  it("fails closed when the live Finder target is not configured", async () => {
+    stubLaunchNotifyEnv("", "");
     const response = await POST(request(validBody));
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "service_role_not_configured" });
+    expect(createClientMock).not.toHaveBeenCalled();
   });
 
   it("hides database errors", async () => {
@@ -229,12 +341,25 @@ describe("POST /api/finder/launch-notify", () => {
     expect(JSON.stringify(payload)).not.toContain("ada@example.com");
   });
 
-  it("stays a service-role insert with no welcome email or audience write", () => {
-    expect(routeSource).toContain("createSupabaseServiceRoleClient");
+  it("stays a live-project insert with no smoke client, welcome email, or audience write", () => {
+    expect(routeSource).toContain("createLiveFinderLaunchNotifyClient");
+    expect(routeSource).not.toContain("createSupabaseServiceRoleClient");
+    expect(routeSource).not.toContain("NEXT_PUBLIC_SUPABASE_URL");
+    expect(routeSource).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
     expect(routeSource).toContain(".from(finderLaunchNotifyTable).insert(parsed.row)");
     expect(routeSource).not.toContain("customer_audience");
     expect(routeSource).not.toContain("rep_id");
     expect(routeSource).not.toMatch(/welcome|resend|sendEmail|nodemailer/i);
+    expect(liveClientSource).toContain("SPARKLE_FINDER_SUPABASE_URL");
+    expect(liveClientSource).toContain("SPARKLE_FINDER_SERVICE_ROLE_KEY");
+    expect(liveClientSource).toContain(liveFinderHost);
+    expect(liveClientSource).toContain(liveFinderRef);
+    expect(liveFinderLaunchNotifyHost).toBe(liveFinderHost);
+    expect(liveFinderLaunchNotifyProjectRef).toBe(liveFinderRef);
+    expect(liveClientSource).not.toContain("NEXT_PUBLIC_SUPABASE_URL");
+    expect(liveClientSource).not.toMatch(/(?<![A-Z_])SUPABASE_SERVICE_ROLE_KEY/);
+    expect(liveClientSource).not.toContain("createSupabaseServiceRoleClient");
+    expect(liveClientSource).not.toContain(smokeFinderHost);
   });
 });
 
