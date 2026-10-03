@@ -84,7 +84,6 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
             </article>
             <article className={`${styles.offer} ${styles.offerFree}`} aria-labelledby="free-title">
               <h2 id="free-title">{content.offers.free.title}</h2>
-              <p>{content.offers.free.body}</p>
               <div className={styles.includes}>
                 <h3>{content.offers.free.includesLabel}</h3>
                 <ul>

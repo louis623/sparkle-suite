@@ -41,14 +41,12 @@ export const finderLearnContent = {
       highlight: "30 days of Silver is free.",
       noCard: "No card is needed to sign up.",
       price: "Silver is $6 per month, about the cost of a pumpkin spice latte.",
-      charge:
-        "No automatic charge. On day 30, Silver drops to Free unless you choose to pay $6 a month. If you do not pay, you stay Free and nothing is charged.",
+      charge: "No automatic charge. On day 30, Silver drops to Free unless you choose to pay $6 a month.",
       includesLabel: "Silver includes",
       includes: ["Saving a collection", "Nic-Nac, your collection curator and jewelry finder assistant"],
     },
     free: {
       title: "Free",
-      body: "A Free profile has fewer tools than Silver. A profile exists on Free.",
       includesLabel: "Free includes",
       includes: ["Looking through the jewelry library", "The rep list", "Show times", "Dance Floors"],
     },
