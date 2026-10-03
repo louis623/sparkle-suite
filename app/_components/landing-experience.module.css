@@ -72,8 +72,8 @@
 .unicornWindow{background:#120c10;border:1px solid #ffe2ec47;border-radius:20px;box-shadow:0 28px 64px #00000073,0 0 0 1px #ffd6e82e;overflow:hidden}
 .unicornWindow>.browserBar{height:32px;display:flex;align-items:center;justify-content:center;gap:0;padding:0 12px;background:#160e13;border-bottom:1px solid #ffe2ec29}
 .unicornWindow>.browserBar em{margin:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f4e7e1;font-size:12px;font-style:normal;letter-spacing:.04em}
-.unicornStage{container-type:inline-size;aspect-ratio:1200/980;position:relative;overflow:hidden;background:#080c25}
-.unicornStage iframe{position:absolute;top:0;left:0;width:1200px;height:980px;border:0;transform:scale(calc(100cqw / 1200));transform-origin:top left;pointer-events:none}
+.unicornStage{container-type:inline-size;aspect-ratio:1200/1260;position:relative;overflow:hidden;background:#080c25}
+.unicornStage iframe{position:absolute;top:0;left:0;width:1200px;height:1260px;border:0;transform:scale(calc(100cqw / 1200));transform-origin:top left;pointer-events:none}
 .unicornFigure figcaption{margin-top:22px;font-size:14px;color:var(--ink)}
 .unicornFigure figcaption span{display:block;color:var(--muted);margin-top:5px}
 @media(max-width:600px){.unicornFigure{margin-top:22px!important}}

@@ -32,6 +32,6 @@ describe('Chasing Unicorns marketing homepage', () => {
     expect(response.headers.get('Content-Security-Policy')).toContain('media-src https://sparkle-suite-smoke.vercel.app/amethyst/skins/am01-unicorn/')
     expect(response.headers.get('Content-Security-Policy')).toContain("frame-ancestors 'self'")
     expect(await response.text()).toContain('hero-motion.mp4')
-    expect(CHASING_UNICORNS_PREVIEW).toEqual({ width: 1200, height: 980 })
+    expect(CHASING_UNICORNS_PREVIEW).toEqual({ width: 1200, height: 1260 })
   })
 })

@@ -1,7 +1,7 @@
 import { buildSkinPreviewDocument } from '@/lib/amethyst/skin-preview'
 
 /** Desktop viewport for the marketing card. Tall enough for the header, ticker, and the full hero, including the art margins. */
-export const CHASING_UNICORNS_PREVIEW = { width: 1200, height: 980 } as const
+export const CHASING_UNICORNS_PREVIEW = { width: 1200, height: 1260 } as const
 
 /**
  * Marketing-only motion. The product player in am01-unicorn.js stays once-and-stop
