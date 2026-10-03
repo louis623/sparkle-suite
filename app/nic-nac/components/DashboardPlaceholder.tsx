@@ -7660,23 +7660,27 @@ function ConceptHomeWorkspace({
             <BookOpen aria-hidden="true" />
             Guides, playbooks, and quick answers
           </button>
-        </ConceptPanel>
-        {coffeeReminder ? (
-          <ConceptPanel
-            title="Coffee with Louis"
-            action="Help & Resources"
-            onAction={onOpenHelp}
-          >
-            <div className={styles.coffeeReminder}>
-              <span className={styles.coffeeReminderIcon} aria-hidden="true">
-                <Coffee />
-              </span>
-              <p>
-                Next session · {formatCoffeeWithLouisReminderDate(coffeeReminder.startsAt)} · 8–9 PM ET
-              </p>
+          {coffeeReminder ? (
+            <div className={styles.coffeeReminderRow}>
+              <div className={styles.panelHeader}>
+                <div>
+                  <span className={styles.panelTitle}>Coffee with Louis</span>
+                </div>
+                <button type="button" className={styles.panelAction} onClick={onOpenHelp}>
+                  Help & Resources
+                </button>
+              </div>
+              <div className={styles.coffeeReminder}>
+                <span className={styles.coffeeReminderIcon} aria-hidden="true">
+                  <Coffee />
+                </span>
+                <p>
+                  Next session · {formatCoffeeWithLouisReminderDate(coffeeReminder.startsAt)} · 8–9 PM ET
+                </p>
+              </div>
             </div>
-          </ConceptPanel>
-        ) : null}
+          ) : null}
+        </ConceptPanel>
         <ConceptPanel title="More help on YouTube" className={styles.youtubeGlancePanel}>
           <a
             className={styles.youtubeHelpCard}

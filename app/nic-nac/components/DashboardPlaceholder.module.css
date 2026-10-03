@@ -1424,6 +1424,12 @@
   font: inherit;
 }
 
+.coffeeReminderRow {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(67, 42, 116, 0.12);
+}
+
 .coffeeReminder {
   display: flex;
   align-items: center;

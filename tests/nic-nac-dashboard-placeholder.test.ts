@@ -1011,10 +1011,14 @@ describe('DashboardPlaceholder', () => {
       expect(beforeSession).toContain('Next session · Thursday, Oct 8 · 8–9 PM ET')
       expect(beforeSession).toContain('>Help &amp; Resources<')
       expect(beforeSession).toContain('Need help?')
-      expect(beforeSession.indexOf('Need help?')).toBeLessThan(beforeSession.indexOf('Coffee with Louis'))
-      expect(beforeSession.indexOf('Coffee with Louis')).toBeLessThan(
-        beforeSession.indexOf('More help on YouTube'),
-      )
+      expect(beforeSession).toContain('Visit resources')
+      expect(beforeSession).toContain('Guides, playbooks, and quick answers')
+      const helpAt = beforeSession.indexOf('Need help?')
+      const coffeeAt = beforeSession.indexOf('Coffee with Louis')
+      const youtubeAt = beforeSession.indexOf('More help on YouTube')
+      expect(helpAt).toBeLessThan(coffeeAt)
+      expect(coffeeAt).toBeLessThan(youtubeAt)
+      expect(beforeSession.slice(helpAt, coffeeAt)).not.toContain('conceptPanel')
       expect(beforeSession).not.toContain('Join Google Meet')
       expect(beforeSession).not.toContain('meet.google.com')
       expect(beforeSession).not.toContain('Every 14 days')
