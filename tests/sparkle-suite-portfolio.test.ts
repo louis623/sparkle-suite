@@ -120,7 +120,10 @@ describe('Sparkle Suite portfolio page', () => {
     expect(cat && 'detail' in cat ? cat.detail : '').toMatch(/black cat/i)
     expect(holiday?.slides[2]).not.toHaveProperty('video')
     expect(holiday?.slides[3]).not.toHaveProperty('video')
-    expect(html).toContain('independent tool for reps')
+    expect(html).toContain(
+      'Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.',
+    )
+    expect(html).not.toContain('independent tool for reps')
   })
 
   it('mixes the landing palette instead of repeating dark stripes', () => {

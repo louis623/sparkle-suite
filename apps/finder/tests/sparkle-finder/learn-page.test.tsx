@@ -82,7 +82,11 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain(">Show times<");
     expect(markup).not.toContain("Dance Floors");
     expect(markup).not.toMatch(/vault/i);
-    expect(markup).toContain("officially connected to Bomb Party.");
+    expect(markup).toContain(
+      "Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.",
+    );
+    expect(markup).not.toContain("Sparkle Finder is a discovery hub");
+    expect(markup).not.toContain("independent tool for reps");
     expect(markup).toContain('href="https://neonrabbit.net"');
     expect(markup).not.toMatch(/powered by Neon Rabbit/i);
     const freeCard = markup.slice(freeCardAt);
@@ -194,7 +198,11 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain("BP Rep listing");
     expect(markup).not.toContain('href="#silver"');
     expect(markup).not.toMatch(/vault/i);
-    expect(markup).toContain("officially connected to Bomb Party.");
+    expect(markup).toContain(
+      "Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.",
+    );
+    expect(markup).not.toContain("Sparkle Finder is a discovery hub");
+    expect(markup).not.toContain("independent tool for reps");
     expect(markup).toContain('href="https://neonrabbit.net"');
     expect(markup).not.toMatch(/powered by Neon Rabbit/i);
     expect(markup).toContain("Privacy Policy");

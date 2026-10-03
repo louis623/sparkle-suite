@@ -424,7 +424,10 @@ describe('Sparkle Suite public landing page', () => {
 
   it('keeps the independent-brand disclaimer visible alongside the rep audience', () => {
     expect(renderLanding()).toContain(sparkleSuitePublicLandingSafety.disclaimer)
-    expect(sparkleSuitePublicLandingSafety.disclaimer).toContain('not affiliated with')
+    expect(sparkleSuitePublicLandingSafety.disclaimer).toBe(
+      'Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.',
+    )
+    expect(sparkleSuitePublicLandingSafety.disclaimer).not.toContain('for reps')
     expect(metadata.title).toEqual({ absolute: 'Sparkle Suite' })
   })
 

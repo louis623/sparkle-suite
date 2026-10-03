@@ -1,3 +1,6 @@
+export const sparkleProductFooterDisclaimer =
+  "Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.";
+
 export const finderLearnContent = {
   seoTitle: "Sparkle Finder",
   seoDescription:
@@ -69,8 +72,7 @@ export const finderLearnContent = {
       { href: "https://www.youtube.com/@yoursparklesuite", label: "YouTube" },
       { href: "https://www.tiktok.com/@yoursparklesuite", label: "TikTok" },
     ],
-    disclaimer:
-      "Sparkle Finder is a discovery hub by Sparkle Suite. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.",
+    disclaimer: sparkleProductFooterDisclaimer,
     developerHref: "https://neonrabbit.net",
     developerLabel: "neonrabbit.net",
   },
