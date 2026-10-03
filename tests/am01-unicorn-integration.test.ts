@@ -27,7 +27,7 @@ describe('existing AM-01 Chasing Unicorns integration', () => {
     expect(source).toContain('data-slot="hero headline"')
     expect(source).toContain('data-slot="hero sub"')
     expect(source).toContain('Browse the dance floor')
-    expect(source).toContain('<RevealScreenshotTip />')
+    expect(source).not.toContain('Planning a Dance Floor trade?')
     const runtime=readFileSync('public/amethyst/am01-unicorn.js','utf8')
     expect(runtime).toContain('.hp-hero[data-appearance-preset="amethyst"]')
     expect(runtime).not.toContain('setInterval')

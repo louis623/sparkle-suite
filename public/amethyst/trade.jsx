@@ -1156,7 +1156,10 @@ function TradeHero({ tweakRepName, tweakHeroTitle, tweakHeroSub, gnomeGarden }) 
         <p className="tp-hero-sub slot" data-slot="trade hero sub">
           {tweakHeroSub} Browse what <span className="slot" data-slot="rep name">{tweakRepName}</span> has available, then request the closest fit you love.
         </p>
-        <p className="tp-screenshot-tip">Save a screenshot of your reveal before leaving the live show. Upload is optional; crop out personal and order details first.</p>
+        <aside className="tp-screenshot-tip" aria-label="Trade screenshot tip">
+          <strong>Planning a Dance Floor trade?</strong>
+          <div>Save a screenshot of your reveal before leaving the live show. Crop out personal and order details before sharing it with your rep.</div>
+        </aside>
       </div>
     </section>
   );

@@ -135,7 +135,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20261002-compact-lineup')
+    expect(homepage).toContain('homepage.jsx?v=20261002-trade-hero-tip')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -1036,7 +1036,7 @@ describe('Amethyst homepage template data wiring', () => {
     expect(css).toMatch(/\.hp-hero-trade-board-cta\s*\{[\s\S]*?width:\s*100%;/)
   })
 
-  it('places the readable trade tip after hero actions in every homepage layout', () => {
+  it('keeps the trade reminder only in the Dance Floor hero across homepage layouts', () => {
     const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.jsx'), 'utf8')
     const css = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.css'), 'utf8')
     const layouts = [
@@ -1049,16 +1049,14 @@ describe('Amethyst homepage template data wiring', () => {
     for (const [start, end, actionClass] of layouts) {
       const layout = jsx.slice(jsx.indexOf(start), jsx.indexOf(end, jsx.indexOf(start)))
       expect(layout.indexOf(`className="${actionClass}"`)).toBeGreaterThan(-1)
-      expect(layout.indexOf('<RevealScreenshotTip />')).toBeGreaterThan(
-        layout.indexOf(`className="${actionClass}"`),
-      )
-      expect(layout.indexOf('<RevealScreenshotTip />')).toBeLessThan(layout.indexOf('</section>'))
-      expect(layout.match(/<RevealScreenshotTip \/>/g)).toHaveLength(start === 'function Hero({' ? 2 : 1)
-      if (start === 'function Hero({') {
-        expect(layout).toContain('t.preset !== "halloween_pumpkin_cat" && <RevealScreenshotTip />')
-        expect(layout).toContain('t.preset === "halloween_pumpkin_cat" && <div className="hpc-reminder">')
-      }
+      expect(layout).not.toContain('RevealScreenshotTip')
+      expect(layout).not.toContain('hpc-reminder')
     }
+
+    const trade = readFileSync(resolve(process.cwd(), 'public/amethyst/trade.jsx'), 'utf8')
+    const tradeHero = trade.slice(trade.indexOf('function TradeHero('), trade.indexOf('function Filters('))
+    expect(tradeHero).toContain('Planning a Dance Floor trade?')
+    expect(tradeHero).toContain('Crop out personal and order details before sharing it with your rep.')
 
     expect(css).toContain('--hp-tip-surface: #1b1720;')
     expect(css).toContain('--hp-tip-ink: #fffaf3;')

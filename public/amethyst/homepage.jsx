@@ -843,11 +843,9 @@ function Hero({ t, isLive, liveShow }) {
               </>
             )}
           </div>
-          {t.preset !== "halloween_pumpkin_cat" && <RevealScreenshotTip />}
         </div>
       </div>
     </section>
-    {t.preset === "halloween_pumpkin_cat" && <div className="hpc-reminder"><RevealScreenshotTip /></div>}
     </>
   );
 }
@@ -2351,16 +2349,6 @@ function SparkleSuiteHeaderStack({ t, scheduleIsLive, effectiveLrqState, onOpenQ
   );
 }
 
-function RevealScreenshotTip() {
-  if (isBrittDanceFloorComingSoon) return null;
-  return (
-    <aside className="hp-reveal-screenshot-tip" aria-label="Trade screenshot tip">
-      <strong>Planning a Dance Floor trade?</strong>
-      <div>Save a screenshot of your reveal before leaving the live show. Crop out personal and order details before sharing it with your rep.</div>
-    </aside>
-  );
-}
-
 function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queueState, onOpenQueue }) {
   const joinTeamHref = CONTENT.footerLinks?.joinTeam || "#";
   const heroVideoUrl = CONTENT.heroVideoUrl || "/mile-high-fizz/hero.mp4";
@@ -2399,7 +2387,6 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
               <a {...linkProps(getTradeBoardHref())} className="mhf-cta mhf-cta-dance-floor">Browse the Dance Floor</a>
             </div>
           </div>
-          <RevealScreenshotTip />
         </div>
       </section>
       )}
@@ -2525,7 +2512,6 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
               <a {...linkProps(getTradeBoardHref())} className="bwb-cta bwb-cta-dance-floor">Dance Floor · Coming soon</a>
             </div>
           </div>
-          <RevealScreenshotTip />
         </div>
       </section>
       )}
@@ -2578,7 +2564,6 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
               <a {...linkProps(getTradeBoardHref())} className="bk-home-cta-dance-floor"><span className="bk-home-cta-label">Browse the Dance Floor</span></a>
             </div>
           </div>
-          <RevealScreenshotTip />
         </div>
       </section>
       )}
