@@ -43,12 +43,20 @@ export const finderLearnContent = {
       price: "Silver is $6 per month, about the cost of a pumpkin spice latte.",
       charge: "No automatic charge. On day 30, Silver drops to Free unless you choose to pay $6 a month.",
       includesLabel: "Silver includes",
-      includes: ["Saving a collection", "Nic-Nac, your collection curator and jewelry finder assistant"],
+      includes: [
+        "Save the pieces you love to your collection",
+        "Nic-Nac is your collection curator and jewelry finder assistant",
+      ],
     },
     free: {
       title: "Free",
       includesLabel: "Free includes",
-      includes: ["Looking through the jewelry library", "The rep list", "Show times", "Dance Floors"],
+      includes: [
+        "Look through BP rep listings",
+        "Favorite your favorite reps",
+        "See when their next show times and dates are",
+        "Peruse their virtual dance floors",
+      ],
     },
   },
   footer: {

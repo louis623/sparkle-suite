@@ -52,15 +52,33 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain("No card is needed to sign up.");
     expect(markup).toContain("unless you choose to pay $6 a month");
     expect(markup).not.toContain("If you do not pay, you stay Free and nothing is charged.");
-    expect(markup).toContain("Saving a collection");
-    expect(markup).toContain("Nic-Nac, your collection curator and jewelry finder assistant");
+    const silverLines = [
+      "Save the pieces you love to your collection",
+      "Nic-Nac is your collection curator and jewelry finder assistant",
+    ];
+    const silverLineAt = silverLines.map((line) => markup.indexOf(line));
+    expect(silverLineAt[0]).toBeGreaterThan(silverIncludesAt);
+    expect(silverLineAt[1]).toBeGreaterThan(silverLineAt[0]);
+    expect(silverLineAt[1]).toBeLessThan(freeCardAt);
+    expect(markup).not.toContain("Saving a collection");
+    expect(markup).not.toContain("Nic-Nac, your collection curator");
     expect(markup).not.toMatch(/limited helper|unlimited chat|unlimited chatbot|unlimited ai/i);
     expect(markup).not.toContain("A Free profile has fewer tools than Silver.");
     expect(markup).not.toContain("A profile exists on Free.");
-    expect(markup).toContain("Looking through the jewelry library");
-    expect(markup).toContain("The rep list");
-    expect(markup).toContain("Show times");
-    expect(markup).toContain("Dance Floors");
+    const freeLines = [
+      "Look through BP rep listings",
+      "Favorite your favorite reps",
+      "See when their next show times and dates are",
+      "Peruse their virtual dance floors",
+    ];
+    const freeLineAt = freeLines.map((line) => markup.indexOf(line));
+    expect(freeLineAt.every((index) => index > freeCardAt)).toBe(true);
+    expect(freeLineAt.every((index, position) => position === 0 || index > freeLineAt[position - 1])).toBe(true);
+    expect(markup).not.toContain("Looking through the jewelry library");
+    expect(markup).not.toContain("The rep list");
+    expect(markup).not.toContain("BP Rep listing");
+    expect(markup).not.toContain(">Show times<");
+    expect(markup).not.toContain("Dance Floors");
     expect(markup).not.toMatch(/vault/i);
     const freeCard = markup.slice(freeCardAt);
     expect(freeCard).not.toMatch(/save a collection|saving a collection/i);
@@ -155,12 +173,18 @@ describe("Sparkle Finder /learn", () => {
     expect(markup.indexOf("30 days of Silver is free.")).toBeLessThan(
       markup.indexOf("Silver is $6 per month, about the cost of a pumpkin spice latte."),
     );
-    expect(markup).toContain("Nic-Nac, your collection curator and jewelry finder assistant");
+    expect(markup).toContain("Save the pieces you love to your collection");
+    expect(markup).toContain("Nic-Nac is your collection curator and jewelry finder assistant");
     expect(markup).not.toContain("If you do not pay, you stay Free and nothing is charged.");
     expect(markup).not.toContain("A Free profile has fewer tools than Silver.");
     expect(markup).not.toContain("A profile exists on Free.");
     expect(markup).not.toMatch(/limited helper|unlimited chat|unlimited chatbot|unlimited ai/i);
     expect(markup).toContain('id="free-title"');
+    expect(markup).toContain("Look through BP rep listings");
+    expect(markup).toContain("Favorite your favorite reps");
+    expect(markup).toContain("See when their next show times and dates are");
+    expect(markup).toContain("Peruse their virtual dance floors");
+    expect(markup).not.toContain("BP Rep listing");
     expect(markup).not.toContain('href="#silver"');
     expect(markup).not.toMatch(/vault/i);
     expect(markup).toContain("Privacy Policy");
