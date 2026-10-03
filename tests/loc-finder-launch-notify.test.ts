@@ -154,9 +154,10 @@ describe("finder.launchNotify.list", () => {
       () => client as never,
     );
     expect(calls[0]).toBe("from:sparkle_finder_launch_notify");
+    expect(calls.some((call) => call.startsWith("select:first_name,") && call.endsWith(",id"))).toBe(true);
     expect(calls.some((call) => call.startsWith("or:") && call.includes("email.imatch."))).toBe(true);
     expect(launchNotifySearch("john.doe.popup.test@neonrabbit.net")).toContain(
-      String.raw`email.imatch."john\.doe\.popup\.test@neonrabbit\.net"`,
+      'email.imatch."john\\\\.doe\\\\.popup\\\\.test@neonrabbit\\\\.net"',
     );
     expect(result.nextOffset).toBe(1);
     expect(result.items).toEqual([

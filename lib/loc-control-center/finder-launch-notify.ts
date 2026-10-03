@@ -27,6 +27,9 @@ export const finderLaunchNotifyListFields = [
   "created_at",
 ] as const;
 
+const launchNotifySelect =
+  "first_name,last_name,email,phone,notify_email,notify_sms,address,birthday_month,birthday_day,favorite_gem_or_stone,favorite_material,favorite_cut,favorite_collection,notes,tags,marketing_consent,source,created_at,id";
+
 const searchFields = [
   "first_name",
   "last_name",
@@ -107,9 +110,7 @@ export async function readFinderLaunchNotifyList(
 ) {
   const target = resolveLiveFinderDatabase(env);
   const client = createFinderClient(target.url, target.serviceRoleKey);
-  let query = client.from(launchNotifyTable).select(
-    `${finderLaunchNotifyListFields.join(",")},id`,
-  );
+  let query = client.from(launchNotifyTable).select(launchNotifySelect);
   const search = launchNotifySearch(input.query);
   if (search) query = query.or(search);
   const { data, error } = await query
