@@ -7651,7 +7651,7 @@ function ConceptHomeWorkspace({
           </button>
         </ConceptPanel>
         <ConceptPanel
-          title="Need help?"
+          title="Help & Resources"
           action="Visit resources"
           onAction={onOpenHelp}
           className={styles.youtubeGlancePanel}
@@ -7666,7 +7666,7 @@ function ConceptHomeWorkspace({
                   <span className={styles.panelTitle}>Coffee with Louis</span>
                 </div>
                 <button type="button" className={styles.panelAction} onClick={onOpenHelp}>
-                  Help & Resources
+                  Get the meeting link
                 </button>
               </div>
               <div className={styles.coffeeReminder}>
