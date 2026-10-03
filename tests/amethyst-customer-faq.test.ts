@@ -109,6 +109,10 @@ describe('customer Dance Floor FAQ', () => {
     expect(html).toContain('Bri &amp; Co')
     expect(html).toContain('href="https://www.yoursparklesuite.com/"')
     expect(html).toContain('This site&#39;s powered by Sparkle Suite')
+    expect(html).toContain(
+      'Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.',
+    )
+    expect(html).not.toContain('independent tool for reps')
     expect(html).toContain('target="_blank"')
     expect(html).not.toContain('Powered by Sparkle Suite')
     expect(html).toContain('Skip to questions')

@@ -1,3 +1,4 @@
+import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 import { renderSparkleSuitePoweredByLinkHtml } from './sparkle-suite-footer-credit'
 import { loadAmethystPreviewTemplateData } from './preview-template-data'
 import { resolveSparkleRequestOrigin } from '@/lib/seo/sparkle-crawl'
@@ -363,7 +364,7 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
       <a aria-label="Sparkle Suite on TikTok" href="https://www.tiktok.com/@yoursparklesuite.com" target="_blank" rel="noopener noreferrer">${tiktokIcon}<span>TikTok</span></a>
       <a aria-label="Sparkle Suite on YouTube" href="https://www.youtube.com/@SparkleSuite" target="_blank" rel="noopener noreferrer">${youtubeIcon}<span>YouTube</span></a>
     </nav>
-    <p class="faq-footer-disclaimer">© ${year} Sparkle Suite · ${renderSparkleSuitePoweredByLinkHtml()} · Sparkle Suite is an independent tool for reps. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.</p>
+    <p class="faq-footer-disclaimer">© ${year} Sparkle Suite · ${renderSparkleSuitePoweredByLinkHtml()} · ${sparkleSuitePublicLandingSafety.disclaimer}</p>
   </footer>
 </body>
 </html>`
