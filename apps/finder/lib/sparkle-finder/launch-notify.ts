@@ -14,7 +14,7 @@ const phoneMinDigits = 7;
 const phoneMaxDigits = 15;
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneCharacterPattern = /^\+?[0-9][0-9\s().-]*$/;
+const phoneCharacterPattern = /^[0-9+().\s-]+$/;
 
 export const finderLaunchNotifyErrorCodes = [
   "invalid_json",

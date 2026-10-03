@@ -231,7 +231,7 @@ describe("POST /api/finder/launch-notify", () => {
 
   it("stays a service-role insert with no welcome email or audience write", () => {
     expect(routeSource).toContain("createSupabaseServiceRoleClient");
-    expect(routeSource).toContain(finderLaunchNotifyTable);
+    expect(routeSource).toContain(".from(finderLaunchNotifyTable).insert(parsed.row)");
     expect(routeSource).not.toContain("customer_audience");
     expect(routeSource).not.toContain("rep_id");
     expect(routeSource).not.toMatch(/welcome|resend|sendEmail|nodemailer/i);
