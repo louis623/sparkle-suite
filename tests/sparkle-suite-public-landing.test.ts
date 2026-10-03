@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import { metadata } from '@/app/page'
+import { sparkleSuiteProductionHomeMetadata as metadata } from '@/app/page'
 import { SparkleSuitePublicLanding } from '@/app/_components/sparkle-suite-public-landing'
 import {
   sparkleSuitePublicLandingContent,

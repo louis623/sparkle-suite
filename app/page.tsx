@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
 
+import { MarketingHub } from '@/app/_components/marketing-hub'
 import { SparkleSuitePublicLanding } from '@/app/_components/sparkle-suite-public-landing'
+import { sparkleSuiteMarketingHubContent } from '@/lib/sparkle-suite/marketing-hub-content'
 import { sparkleSuitePublicLandingContent } from '@/lib/sparkle-suite/public-landing-content'
+import { isSuiteSmokeHomeHub } from '@/lib/sparkle-suite/smoke-home-hub'
 
-export const metadata: Metadata = {
+export const sparkleSuiteProductionHomeMetadata: Metadata = {
   title: {
     absolute: 'Sparkle Suite',
   },
@@ -52,7 +55,7 @@ const sparkleSuiteJsonLd = {
       '@id': 'https://www.yoursparklesuite.com/#website',
       name: 'Sparkle Suite',
       url: 'https://www.yoursparklesuite.com/',
-      description: metadata.description,
+      description: sparkleSuiteProductionHomeMetadata.description,
       inLanguage: 'en-US',
     },
     {
@@ -86,7 +89,67 @@ const sparkleSuiteJsonLd = {
   ],
 }
 
+const smokeHubDescription =
+  "You're in the right place for the bling. Now Pick Your Shine. Sparkle Suite is the site and live-show setup for reps. Sparkle Finder is where shoppers find and favorite pieces from the show."
+
+const smokeHubMetadata: Metadata = {
+  title: {
+    absolute: 'Sparkle Suite and Sparkle Finder',
+  },
+  description: smokeHubDescription,
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    title: 'Sparkle Suite and Sparkle Finder',
+    description: smokeHubDescription,
+    url: '/',
+    siteName: 'Sparkle Suite',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sparkle Suite and Sparkle Finder',
+    description: smokeHubDescription,
+  },
+}
+
+const smokeHubJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: sparkleSuiteMarketingHubContent.support,
+  description: smokeHubDescription,
+  url: 'https://www.yoursparklesuite.com/',
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'Sparkle Suite',
+    url: 'https://www.yoursparklesuite.com/',
+  },
+}
+
+export function generateMetadata(): Metadata {
+  return isSuiteSmokeHomeHub() ? smokeHubMetadata : sparkleSuiteProductionHomeMetadata
+}
+
 export default function HomePage() {
+  if (isSuiteSmokeHomeHub()) {
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(smokeHubJsonLd).replace(/</g, '\\u003c'),
+          }}
+        />
+        <MarketingHub />
+      </>
+    )
+  }
+
   return (
     <>
       <script

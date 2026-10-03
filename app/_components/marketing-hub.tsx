@@ -80,10 +80,12 @@ function ProductCard({
         {learnMoreLabel}
       </a>
       <div className={styles.authSpacer} />
-      <div className={styles.accountActions}>
-        <AccountLink href={signInHref}>{signInLabel}</AccountLink>
-        <AccountLink href={signUpHref}>{signUpLabel}</AccountLink>
-      </div>
+      {signInHref || signUpHref ? (
+        <div className={styles.accountActions}>
+          {signInHref ? <AccountLink href={signInHref}>{signInLabel}</AccountLink> : null}
+          {signUpHref ? <AccountLink href={signUpHref}>{signUpLabel}</AccountLink> : null}
+        </div>
+      ) : null}
     </article>
   )
 }

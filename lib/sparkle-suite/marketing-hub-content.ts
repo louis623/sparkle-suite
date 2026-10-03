@@ -5,10 +5,6 @@ import {
 
 /** Finder marketing root. This hub does not redirect the Finder domain. */
 export const sparkleFinderHomeUrl = 'https://yoursparklefinder.com/' as const
-/** Current Finder app sign-in. */
-export const sparkleFinderSignInUrl = 'https://yoursparklefinder.com/auth/sign-in' as const
-/** Live Finder public landing creates an account with this return path. */
-export const sparkleFinderSignUpUrl = 'https://yoursparklefinder.com/auth/sign-up?next=/' as const
 
 /**
  * Joint front door. Finder deep-drill pages under /finder stay empty for a later pass.
@@ -27,7 +23,7 @@ export const sparkleSuiteMarketingHubContent = {
     narrative:
       'Sparkle Suite is the workspace for Bomb Party reps. You get a polished customer site, live-show tools for the night itself, and built-in support that helps customers feel the difference. Customers land somewhere that feels like you.',
     learnMoreLabel: 'Learn More',
-    learnMoreHref: 'https://www.yoursparklesuite.com/',
+    learnMoreHref: '/learn',
     signInLabel: 'Sign In',
     signInHref: '/login',
     signUpLabel: 'Sign Up',
@@ -47,10 +43,14 @@ export const sparkleSuiteMarketingHubContent = {
     sneakPeekHref: '',
     learnMoreLabel: 'Learn More',
     learnMoreHref: sparkleFinderHomeUrl,
+    /**
+     * Finder signup is not public. yoursparklefinder.com/auth/* currently
+     * redirects to the Suite homepage, so this card has no signup URL.
+     */
     signInLabel: 'Sign In',
-    signInHref: sparkleFinderSignInUrl,
+    signInHref: '',
     signUpLabel: 'Sign Up',
-    signUpHref: sparkleFinderSignUpUrl,
+    signUpHref: '',
     deepLinks: [] as ReadonlyArray<{ label: string; href: string }>,
   },
   quietExits: {
