@@ -101,18 +101,16 @@ export function FinderLearnPage() {
 
         <section className={styles.how} id={content.how.id} aria-labelledby="how-title">
           <div className={styles.sectionIntro}>
-            <p className={styles.eyebrow}>{content.how.eyebrow}</p>
             <h2 id="how-title">{content.how.heading}</h2>
           </div>
-          <ol className={styles.steps}>
-            {content.how.steps.map((step, index) => (
+          <ul className={styles.steps}>
+            {content.how.steps.map((step) => (
               <li key={step.title}>
-                <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
               </li>
             ))}
-          </ol>
+          </ul>
         </section>
 
         <section className={styles.silver} id={content.silver.id} aria-labelledby="silver-title">

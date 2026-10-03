@@ -43,6 +43,12 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain("does not charge you automatically");
     expect(markup).toContain("drops to Free");
     expect(markup).toContain("Sparkle Suite rep");
+    expect(markup).toContain("Hunt through the jewelry database");
+    expect(markup).toContain("When you find it, save it.");
+    expect(markup).toContain("Go to the show");
+    expect(markup).toContain("Brag about the bling.");
+    expect(markup).not.toContain("Browse, save, then visit the Suite rep.");
+    expect(markup).not.toMatch(/>0[1-4]</);
     expect(markup).not.toContain("Fine print");
     expect(markup).not.toContain("How a jewelry profile is used.");
     expect(markup).not.toContain("Nobody else receives them.");

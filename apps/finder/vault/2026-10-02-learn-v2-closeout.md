@@ -6,3 +6,4 @@
 - Polish pass: slimmer phone header so the headline and Coming soon sit in the first 390px screen, sharp catalog photos in the hero frame, dark outcome band and card sections, display-size $6, finished Coming soon buttons with no signup URL. Smoke deploy still waits on Denver.
 - Louis asked the jewelry photos off `/learn`. Product images are gone. Service panels are type and color only. No live promote.
 - Jewelry-preference fine print moved from `/learn` to the Privacy Policy section “How A Jewelry Profile Is Used.” Terms only points there. No live promote.
+- How it works is four unnumbered cards: Search, Save, Go to the show, Show it off. The old “Browse, save, then visit the Suite rep.” line is gone. No live promote.

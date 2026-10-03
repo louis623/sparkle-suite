@@ -466,19 +466,12 @@
 }
 
 .steps {
-  max-width: 72rem;
+  max-width: 64rem;
   margin-inline: auto;
 }
 
-.steps span {
-  display: block;
-  margin-bottom: 0.7rem;
-  color: var(--finder-amethyst);
-  font-family: var(--font-playfair), Georgia, serif;
-  font-size: clamp(2.4rem, 4vw, 3rem);
-  font-weight: 500;
-  letter-spacing: -0.04em;
-  line-height: 1;
+.steps li {
+  padding: 1.55rem 1.45rem 1.65rem;
 }
 
 .silver {
@@ -602,10 +595,14 @@
 }
 
 @media (min-width: 720px) {
-  .outcomes,
-  .steps {
+  .outcomes {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.5rem 2rem;
+  }
+
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.35rem 1.5rem;
   }
 
   .heroActions {
