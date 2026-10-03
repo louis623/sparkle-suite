@@ -8,3 +8,4 @@
 - Jewelry-preference fine print moved from `/learn` to the Privacy Policy section “How A Jewelry Profile Is Used.” Terms only points there. No live promote.
 - How it works is four unnumbered cards: Search, Save, Go to the show, Show it off. The old “Browse, save, then visit the Suite rep.” line is gone. No live promote.
 - Simpler `/learn`: hero stays, four deep color title panels replace the old service tiles, one sentence under each, mid-page writeups removed, small $6 Silver closer kept. No live promote.
+- `/learn` copy: removed “See why it helps” and the account-required note. Button label is “Get notified when we launch” and still does not submit. No live promote.

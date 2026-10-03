@@ -40,12 +40,7 @@ export function FinderLearnPage() {
               <p className={styles.tagline}>{content.tagline}</p>
               <div className={styles.heroActions}>
                 <ComingSoonLink href="#silver" />
-                <a className={styles.textLink} href={content.hero.explore.href}>
-                  {content.hero.explore.label}
-                  <ArrowIcon />
-                </a>
               </div>
-              <p className={styles.note}>{content.hero.note}</p>
               <p className={styles.lede}>{content.hero.body}</p>
             </div>
           </div>

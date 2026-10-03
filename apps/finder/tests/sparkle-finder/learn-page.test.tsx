@@ -27,7 +27,9 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain("Find the pieces you");
     expect(markup).toContain(finderLearnContent.tagline);
     expect(markup).toContain("collector side of Sparkle Suite");
-    expect(markup).toContain("This page does not open one yet.");
+    expect(markup).not.toContain("This page does not open one yet.");
+    expect(markup).not.toContain("An account is required.");
+    expect(markup).not.toContain("See why it helps");
     expect(markup).toContain("Dance Floor");
     expect(markup).toContain("$6");
     expect(markup).toContain("a month");
@@ -68,7 +70,9 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain('href="#why"');
     expect(markup).not.toMatch(/<img|webp|\/learn\/peeks|background-image|url\(/i);
     expect(markup).not.toContain("heroSeal");
-    expect(markup).toContain("Coming soon");
+    expect(markup.match(/Get notified when we launch/g)).toHaveLength(2);
+    expect(markup).not.toContain("Coming soon");
+    expect(markup).not.toMatch(/<form|mailto:/i);
     expect(markup).not.toMatch(/create-an-account/i);
     expect(markup).not.toMatch(/Sparkle Finder reps/i);
     expect(markup).not.toMatch(/\$4\.99|\$5\b|45-day/i);

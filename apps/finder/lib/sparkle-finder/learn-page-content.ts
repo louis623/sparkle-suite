@@ -5,7 +5,7 @@ export const finderLearnContent = {
   brand: "Sparkle Finder",
   byline: "by Sparkle Suite",
   tagline: "Find it, favorite it, show it off.",
-  comingSoon: "Coming soon",
+  comingSoon: "Get notified when we launch",
   nav: [
     { href: "#how", label: "How it works" },
     { href: "#silver", label: "Silver" },
@@ -15,8 +15,6 @@ export const finderLearnContent = {
     headlineLead: "Find the pieces you",
     headlineAccent: "love.",
     body: "Sparkle Finder is the collector side of Sparkle Suite. Look through the jewelry library, see which Suite reps carry a piece, and keep the ones that matter to you.",
-    note: "An account is required. This page does not open one yet.",
-    explore: { href: "#how", label: "See why it helps" },
   },
   pillars: {
     id: "how",
