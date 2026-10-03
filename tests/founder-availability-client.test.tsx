@@ -46,6 +46,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup?.()
   vi.useRealTimers()
+  vi.unstubAllEnvs()
   vi.unstubAllGlobals()
 })
 
@@ -88,6 +89,16 @@ describe('founder availability client refresh policy (hook boundary)', () => {
     fetchMock.mockRejectedValueOnce(new Error('offline'))
     await vi.advanceTimersByTimeAsync(60_000)
     expect(hooks.setAvailability).toHaveBeenLastCalledWith(unavailable)
+  })
+
+  it('keeps the Smoke page on the last live count when a refresh cannot be reached', async () => {
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+    start()
+    await settle()
+    fetchMock.mockRejectedValueOnce(new Error('offline'))
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(hooks.setAvailability).toHaveBeenLastCalledWith(snapshot)
+    expect(hooks.setAvailability).not.toHaveBeenCalledWith(unavailable)
   })
 
   it('suppresses even a plausible count on a non-success response', async () => {

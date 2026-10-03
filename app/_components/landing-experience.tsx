@@ -8,6 +8,7 @@ import { ProductPeekVideo } from './product-peek-video'
 import { SparkleSeal } from './sparkle-suite-public-chrome'
 import { SparkleSuitePublicAccountAction } from './SparkleSuitePublicAccountAction'
 import { SparkleSuitePublicNicNac } from './sparkle-suite-public-nic-nac'
+import type { FounderAvailability } from '@/lib/sparkle-suite/founder-availability'
 import { FounderAvailabilityProvider, FounderOffer, FounderSpotLabel, FounderStrip, IncludedFeatures, ShowToolsTour, SiteStyleShowcase } from './landing-interactions'
 import styles from './landing-experience.module.css'
 
@@ -59,8 +60,8 @@ const questions = [
   ['Is Sparkle Suite part of Bomb Party?', sparkleSuitePublicLandingSafety.disclaimer],
 ] as const
 
-export function LandingExperience() {
-  return <FounderAvailabilityProvider><main className={styles.page}>
+export function LandingExperience({ initialAvailability }: { initialAvailability?: FounderAvailability } = {}) {
+  return <FounderAvailabilityProvider initialAvailability={initialAvailability}><main className={styles.page}>
     <a className={styles.skipLink} href="#main-content">Skip to content</a>
     <div id="top"><MarketingHeader /></div>
     <FounderStrip />

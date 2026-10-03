@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
 import { SparkleSuitePublicLanding } from '@/app/_components/sparkle-suite-public-landing'
+import { readLandingFounderAvailability } from '@/lib/sparkle-suite/live-founder-availability'
 import { sparkleSuitePublicLandingContent } from '@/lib/sparkle-suite/public-landing-content'
 
 export const metadata: Metadata = {
@@ -86,7 +87,8 @@ const sparkleSuiteLearnJsonLd = {
   ],
 }
 
-export default function LearnPage() {
+export default async function LearnPage() {
+  const initialAvailability = await readLandingFounderAvailability()
   return (
     <>
       <script
@@ -95,7 +97,7 @@ export default function LearnPage() {
           __html: JSON.stringify(sparkleSuiteLearnJsonLd).replace(/</g, '\\u003c'),
         }}
       />
-      <SparkleSuitePublicLanding />
+      <SparkleSuitePublicLanding initialAvailability={initialAvailability} />
     </>
   )
 }

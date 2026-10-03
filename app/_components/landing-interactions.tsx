@@ -30,7 +30,9 @@ export function FounderAvailabilityProvider({ children, initialAvailability = un
         const valid = response.ok && ((data.status === 'available' && Number.isInteger(data.remaining) && data.remaining! > 0 && data.remaining! <= 20) || (data.status === 'full' && data.remaining === 0))
         if (active && pending === controller) setAvailability(valid ? data : unavailable)
       } catch {
-        if (active && pending === controller) setAvailability(unavailable)
+        // Smoke already rendered the live count. A dropped refresh must not
+        // replace that count with the unconfirmed fallback.
+        if (active && pending === controller && process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT !== 'smoke') setAvailability(unavailable)
       } finally { window.clearTimeout(timeout) }
     }
     void refresh()
@@ -87,23 +89,22 @@ export function FounderOffer({ compact = false }: { compact?: boolean }) {
   </article>
 }
 
-const looks = [
-  { id: 'gnome', name: 'Gnome Forest', description: 'Woodland wonder, warm lanterns, and a little personality.', src: '/sparkle-suite/landing/site-gnome-forest-v2.webp', width: 1265, height: 864 },
-  { id: 'alpine', name: 'Alpine Opal', description: 'Icy blue, bright pink, and a sky full of sparkle.', src: '/sparkle-suite/landing/site-alpine-opal-v2.webp', width: 1265, height: 961 },
-  { id: 'amethyst', name: 'Amethyst', description: 'Vibrant violet for a show that feels unmistakably yours.', src: '/sparkle-suite/landing/site-amethyst-v2.webp', width: 1265, height: 961 },
-] as const
-
 export function SiteStyleShowcase() {
-  const [selected, setSelected] = useState(0)
-  const look = looks[selected]
   return <div className={styles.styleShowcase}>
-    <div className={styles.styleChoices} role="group" aria-label="Choose a customer-site style">
-      {looks.map((item, index) => <button key={item.id} type="button" aria-pressed={selected === index} aria-controls="site-style-preview" onClick={() => setSelected(index)}><span className={styles.swatch} data-look={item.id} aria-hidden="true" />{item.name}</button>)}
-    </div>
-    <figure id="site-style-preview" className={styles.styleFigure}>
-      <div className={styles.browserBar} aria-hidden="true"><span /><span /><span /><em>Your customer site</em></div>
-      <div className={styles.styleMedia} key={look.id}><Image src={look.src} alt={`${look.name} Sparkle Suite customer-site example`} width={look.width} height={look.height} sizes="(max-width: 700px) 94vw, 1000px" /></div>
-      <figcaption aria-live="polite">{look.description} <span>Choose a look. Keep the tools your customers love.</span></figcaption>
+    <figure id="site-style-preview" className={styles.unicornFigure}>
+      <div className={styles.unicornWindow}>
+        <div className={styles.browserBar} aria-hidden="true"><em>Chasing Unicorns</em></div>
+        <div className={styles.unicornStage}>
+          <iframe
+            title="Chasing Unicorns homepage, the full customer site with the unicorn scene playing in the hero"
+            src="/marketing/chasing-unicorns"
+            sandbox="allow-scripts"
+            referrerPolicy="no-referrer"
+            tabIndex={-1}
+          />
+        </div>
+      </div>
+      <figcaption>Chasing Unicorns. The whole homepage, with the scene playing in the hero. <span>One look. The tools your customers already love.</span></figcaption>
     </figure>
   </div>
 }

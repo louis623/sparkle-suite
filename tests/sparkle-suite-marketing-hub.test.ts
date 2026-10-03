@@ -19,7 +19,7 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     const home = readFileSync(join(process.cwd(), 'app/page.tsx'), 'utf8')
     const adventure = readFileSync(join(process.cwd(), 'app/adventure/page.tsx'), 'utf8')
 
-    expect(home).toContain('<SparkleSuitePublicLanding />')
+    expect(home).toContain('<SparkleSuitePublicLanding')
     expect(home).not.toContain('MarketingHub')
     expect(adventure).toContain('<MarketingHub />')
     expect(adventure).not.toContain("redirect('/prelaunch')")
