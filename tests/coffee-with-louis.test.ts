@@ -3,6 +3,7 @@ import {
   COFFEE_WITH_LOUIS_CADENCE,
   COFFEE_WITH_LOUIS_MEET_URL,
   formatCoffeeWithLouisLabel,
+  formatCoffeeWithLouisReminderDate,
   getCoffeeWithLouisSessionStart,
   getNextCoffeeWithLouisSession,
   isCoffeeWithLouisVisible,
@@ -39,6 +40,9 @@ describe('Coffee with Louis next session', () => {
     expect(formatCoffeeWithLouisLabel(getCoffeeWithLouisSessionStart(0))).toBe(
       FIRST_SESSION,
     )
+    expect(formatCoffeeWithLouisReminderDate(getCoffeeWithLouisSessionStart(0))).toBe(
+      'Thursday, Oct 8',
+    )
   })
 
   it('keeps 8 PM Eastern after the November daylight-saving change', () => {
@@ -48,6 +52,11 @@ describe('Coffee with Louis next session', () => {
     expect(formatCoffeeWithLouisLabel(getCoffeeWithLouisSessionStart(2))).toBe(
       THIRD_SESSION,
     )
+    expect(
+      formatCoffeeWithLouisReminderDate(
+        getNextCoffeeWithLouisSession(new Date('2026-10-09T00:00:00.000Z')).startsAt,
+      ),
+    ).toBe('Thursday, Oct 22')
   })
 
   it('shows the first session before it starts', () => {

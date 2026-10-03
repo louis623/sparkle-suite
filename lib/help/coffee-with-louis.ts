@@ -128,6 +128,19 @@ export function formatCoffeeWithLouisLabel(startsAt: Date) {
   return `${value('weekday')}, ${value('month')} ${value('day')}, ${value('year')} · ${clock} ET`
 }
 
+export function formatCoffeeWithLouisReminderDate(startsAt: Date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: TIME_ZONE,
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  }).formatToParts(startsAt)
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+
+  return `${value('weekday')}, ${value('month')} ${value('day')}`
+}
+
 function sessionView(index: number): CoffeeWithLouisSession {
   const startsAt = getCoffeeWithLouisSessionStart(index)
   return {

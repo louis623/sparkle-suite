@@ -736,6 +736,8 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Site setup in progress')
     expect(html).not.toContain('Sparkle with us.')
     expect(html).toContain('Need help?')
+    expect(html).not.toContain('Coffee with Louis')
+    expect(html).not.toContain('Next session ·')
     expect(html).toContain('More help on YouTube')
     expect(html).toContain('Get tips, demos, and step-by-step how-tos.')
     expect(html).toContain('Visit YouTube channel')
@@ -991,6 +993,37 @@ describe('DashboardPlaceholder', () => {
       expect(html).toContain('target="_blank"')
       expect(html).toContain('Video tiles')
       expect(html.indexOf('Coffee with Louis')).toBeLessThan(html.indexOf('Video tiles'))
+    } finally {
+      vi.useRealTimers()
+      vi.unstubAllEnvs()
+    }
+  })
+
+  it('shows a Smoke-only Coffee with Louis reminder on the overview', () => {
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+    vi.useFakeTimers()
+
+    try {
+      vi.setSystemTime(new Date('2026-10-08T23:59:00.000Z'))
+      const beforeSession = renderToStaticMarkup(createElement(DashboardPlaceholder))
+
+      expect(beforeSession).toContain('Coffee with Louis')
+      expect(beforeSession).toContain('Next session · Thursday, Oct 8 · 8–9 PM ET')
+      expect(beforeSession).toContain('>Help &amp; Resources<')
+      expect(beforeSession).toContain('Need help?')
+      expect(beforeSession.indexOf('Need help?')).toBeLessThan(beforeSession.indexOf('Coffee with Louis'))
+      expect(beforeSession.indexOf('Coffee with Louis')).toBeLessThan(
+        beforeSession.indexOf('More help on YouTube'),
+      )
+      expect(beforeSession).not.toContain('Join Google Meet')
+      expect(beforeSession).not.toContain('meet.google.com')
+      expect(beforeSession).not.toContain('Every 14 days')
+
+      vi.setSystemTime(new Date('2026-10-09T00:00:00.000Z'))
+      const duringSession = renderToStaticMarkup(createElement(DashboardPlaceholder))
+
+      expect(duringSession).toContain('Next session · Thursday, Oct 22 · 8–9 PM ET')
+      expect(duringSession).not.toContain('Next session · Thursday, Oct 8 · 8–9 PM ET')
     } finally {
       vi.useRealTimers()
       vi.unstubAllEnvs()

@@ -94,6 +94,7 @@ import { SupportAccessHistoryCard } from './SupportAccessHistoryCard'
 import {
   CalendarDays,
   BookOpen,
+  Coffee,
   Bug,
   Check,
   ChevronDown,
@@ -122,6 +123,7 @@ import { SparkleSeal } from '@/app/prelaunch/_components/PrelaunchVisuals'
 import type { WorkspaceLaunchAction } from '@/lib/nic-nac/workspace-launch-actions'
 import type { WorkspaceResource } from '@/lib/services/workspace-resources'
 import {
+  formatCoffeeWithLouisReminderDate,
   getNextCoffeeWithLouisSession,
   isCoffeeWithLouisVisible,
 } from '@/lib/help/coffee-with-louis'
@@ -7514,6 +7516,11 @@ function ConceptHomeWorkspace({
     latestYouTubeResource?.videoUrl ?? null,
   )
   const latestYouTubeHref = getLatestYouTubeResourceHref(latestYouTubeResource)
+  const coffeeReminder = isCoffeeWithLouisVisible({
+    NEXT_PUBLIC_SPARKLE_ENVIRONMENT: process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT,
+  })
+    ? getNextCoffeeWithLouisSession()
+    : null
 
   return (
     <section className={styles.conceptHome} aria-label="Nic-Nac first workspace">
@@ -7654,7 +7661,23 @@ function ConceptHomeWorkspace({
             Guides, playbooks, and quick answers
           </button>
         </ConceptPanel>
-        <ConceptPanel title="More help on YouTube">
+        {coffeeReminder ? (
+          <ConceptPanel
+            title="Coffee with Louis"
+            action="Help & Resources"
+            onAction={onOpenHelp}
+          >
+            <div className={styles.coffeeReminder}>
+              <span className={styles.coffeeReminderIcon} aria-hidden="true">
+                <Coffee />
+              </span>
+              <p>
+                Next session · {formatCoffeeWithLouisReminderDate(coffeeReminder.startsAt)} · 8–9 PM ET
+              </p>
+            </div>
+          </ConceptPanel>
+        ) : null}
+        <ConceptPanel title="More help on YouTube" className={styles.youtubeGlancePanel}>
           <a
             className={styles.youtubeHelpCard}
             href={latestYouTubeHref}
