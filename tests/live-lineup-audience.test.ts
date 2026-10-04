@@ -3,7 +3,7 @@ import { PGlite } from '@electric-sql/pglite'
 import { readFileSync } from 'node:fs'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { matchLineupAudience } from '@/lib/services/customer-audience'
-import { isLineupAudienceResult, isCurrentLineupAudienceResult, lineupIdentityContext } from '@/lib/live-lineup/audience'
+import { isLineupAudienceResult, isCurrentLineupAudienceResult, lineupIdentityContext, sanitizeLineupPreference, LINEUP_PREFERENCE_MAX } from '@/lib/live-lineup/audience'
 import { canAcceptWorkspaceRefresh, workspaceFreshnessDeadline, workspaceWriteEligible } from '@/app/nic-nac/components/live-lineup-client'
 import type { WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
 
@@ -43,6 +43,11 @@ describe('Workspace evidence budget and private match fences', () => {
       {...result,matches:[{...match,sourceIdentityVersion:'old'}]},{...result,matches:[{...match,id:'other'}]},
       {...result,matches:[{...match,preferences:['bad\nline']}] }]) expect(isLineupAudienceResult(bad,snapshot)).toBe(false)
     expect(isLineupAudienceResult(result,{...snapshot,entries:[{...entry,lastName:undefined}]})).toBe(false)
+    const long = 'A'.repeat(LINEUP_PREFERENCE_MAX)
+    expect(sanitizeLineupPreference('Rose\u0007 gold')).toBe('Rose gold')
+    expect(sanitizeLineupPreference('C'.repeat(161))).toHaveLength(160)
+    expect(isLineupAudienceResult({...result,matches:[{...match,preferences:[long]}]},snapshot)).toBe(true)
+    expect(isLineupAudienceResult({...result,matches:[{...match,preferences:['C'.repeat(161)]}]},snapshot)).toBe(false)
     expect(lineupIdentityContext(snapshot)).not.toBe(lineupIdentityContext({...snapshot,tenantContext:other}))
   })
 })
