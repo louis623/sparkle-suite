@@ -753,16 +753,25 @@ body.bg-moonstone-charcoal .tp-filter-pill.active {
 
 body.bg-alpine-opal .tp-filter-pill.active {
   background: linear-gradient(90deg, var(--hp-primary), color-mix(in srgb, var(--hp-primary) 58%, var(--hp-accent)), var(--hp-accent));
-  color: #ffffff;
+  color: var(--hp-action-fg);
   border-color: transparent;
 }
 
 body.bg-suite-paper .tp-filter-pill.active,
-body.bg-moonstone-charcoal .tp-filter-pill.active,
+body.bg-moonstone-charcoal .tp-filter-pill.active {
+  color: #080808;
+}
+
+/* Follow the skin's action foreground so RG-04 can inherit RG-01's
+ * decoration without inheriting its dark text on a darker rose fill. */
 body.bg-rose-gold-paper .tp-filter-pill.active,
 body.bg-amber-paper .tp-filter-pill.active,
 body.bg-quartz-paper .tp-filter-pill.active {
-  color: #080808;
+  color: var(--hp-action-fg);
+}
+
+body.bg-neon-butterfly .tp-filter-pill.active {
+  color: var(--hp-final-icon-fg);
 }
 
 body.bg-black-velvet .tp-filter-pill.active .count,
