@@ -2180,10 +2180,15 @@ describe("Sparkle Finder hub routes", () => {
     );
   });
 
-  it("renders a sign-up route with 45-day Silver trial copy", async () => {
+  it("renders a sign-up route that starts 30 days of Silver after the form", async () => {
     const markup = renderToStaticMarkup(renderSignUpPageContent());
 
-    expect(markup).toContain("45-day Silver trial");
+    expect(markup).toContain("Finish this form to start 30 days of Silver");
+    expect(markup).toContain("No card.");
+    expect(markup).toContain("$6 per month");
+    expect(markup).not.toContain("45-day");
+    expect(markup).not.toContain("$4.99");
+    expect(markup).not.toContain("vault");
   });
 
   it("renders sign-up choices for password or magic link", async () => {
@@ -2200,9 +2205,7 @@ describe("Sparkle Finder hub routes", () => {
     const markup = renderToStaticMarkup(renderSignUpPageContent());
 
     expect(markup).toContain("Continue with Google");
-    expect(markup).toContain(
-      "After Google sign-up, Sparkle Finder may ask for the remaining account details needed for your Silver trial.",
-    );
+    expect(markup).toContain("Google sign-up does not start Silver. Finish this form to start the 30-day trial.");
   });
 
   it("renders sign-up phone and privacy copy", async () => {

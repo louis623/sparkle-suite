@@ -39,8 +39,8 @@ export function renderSignInPageContent(searchParams: SignInSearchParams = {}) {
               Sign in to open Sparkle Finder
             </h1>
             <p className="max-w-2xl text-base leading-7 text-[var(--sparkle-ink-muted)]">
-              Use your Sparkle Finder account to browse jewelry, find dancers, build your Bling Vault and Sparkle
-              Showcase, and get personalized help from Nic-Nac. New accounts start with a 45-day Silver trial.
+              Use your Sparkle Finder account to browse jewelry, find dancers, keep a collection and Sparkle
+              Showcase, and get personalized help from Nic-Nac. The 30-day Silver trial starts when the intake form is finished.
             </p>
             {notice ? (
               <p className="rounded-[var(--sparkle-radius-sm)] border border-[var(--sparkle-border)] bg-[var(--sparkle-paper)] p-3 text-sm font-semibold leading-6 text-[var(--sparkle-plum-deep)] shadow-[var(--sparkle-shadow-sm)]">
