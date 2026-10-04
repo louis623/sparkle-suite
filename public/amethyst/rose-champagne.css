@@ -199,3 +199,48 @@ body.bg-rose-gold-paper .hp-footer .hp-footer-social:hover {
 }
 body.bg-rose-gold-paper .hp-footer :is(.hp-footer-col a, .hp-footer-bottom a):hover { color: var(--hp-card-accent); }
 body.bg-rose-gold-paper .hp-footer a:focus-visible { outline-color: var(--hp-card-accent); }
+
+/* Platform labels and glyphs inherit the theme rather than provider colors. */
+body.bg-rose-gold-paper :is(.hp-event-platform, .event-platform-btn, .hp-calendar-choice.google, .hp-calendar-choice.outlook) {
+  background: linear-gradient(105deg, #723745, #a04e5d);
+  color: #fff9f2;
+  border-color: #723745;
+}
+body.bg-rose-gold-paper :is(.hp-event-platform, .event-platform-btn) .glyph {
+  background: #fff9f2;
+  color: #723745;
+}
+body.bg-rose-gold-paper .hp-event-platform .glyph::after { color: #723745; }
+body.bg-rose-gold-paper :is(.hp-stream-btn, .hp-watch-option, .stream-option) .glyph {
+  background: #723745;
+  color: #fff9f2;
+}
+body.bg-rose-gold-paper :is(.hp-stream-btn, .hp-watch-option) { color: #fff9f2; }
+body.bg-rose-gold-paper .jp-team-social {
+  background: #fffdfb;
+  color: #723745;
+  border-color: #e8c8c0;
+}
+body.bg-rose-gold-paper .jp-team-social:hover {
+  background: #723745;
+  color: #fff9f2;
+  border-color: #723745;
+}
+body.bg-rose-gold-paper :is(.hp-event-platform, .event-platform-btn, .jp-team-social):focus-visible {
+  outline-color: #a04e5d;
+}
+
+/* Keep existing icon bubbles distinct from their own surrounding surfaces. */
+body.bg-rose-gold-paper .hp-customer-media-empty-icon {
+  background: #fff9f2;
+  color: #723745;
+  border-color: #d29b82;
+}
+body.bg-rose-gold-paper :is(.jp-benefit-icon, .jp-final-icon, .tp-sheet-success-icon) {
+  background: #723745;
+  color: #fff9f2;
+  border-color: #d29b82;
+}
+body.bg-rose-gold-paper .tp-empty-glyph { color: #723745; opacity: 1; }
+body.bg-rose-gold-paper .hp-calendar-modal-close { background: #fffdfb; color: #45252e; }
+body.bg-rose-gold-paper .hp-calendar-modal-close:hover { background: #f5e4dd; }

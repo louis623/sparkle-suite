@@ -1,5 +1,23 @@
 # RG-01 Rose Champagne — Smoke review
 
+Louis approved the hero animation on October 3. The subsequent icon polish
+keeps that animation, poster and runtime unchanged. RG-01 social platform
+labels/glyphs, team social circles and Google/Outlook calendar choices use the
+theme's wine, rose and cream palette. Existing media/benefit/success bubbles
+have stronger contrast. No icon box, spacing, typography or layout changes.
+
+The opaque sample-preview iframe blocked the Homepage's external SVG sprite.
+For RG-01 Homepage previews only, trusted repository glyph paths are copied
+into the existing SVG boxes before display. The iframe still uses
+`sandbox="allow-scripts"`; its CSP, disabled uploads/forms and blocked network
+writes retain their existing protections. Other themes and actual customer
+runtime source are unchanged. To review, inspect the three reveal-step icons,
+media header/empty-state circles, Facebook/TikTok event links, Add to calendar
+choices, Join benefit/final icons and footer socials. Calendar review requires
+opening and closing its choices only; do not follow provider links or submit
+forms. Refresh restores the sample state. No Higgsfield request or spend is
+needed for this polish.
+
 Rose Champagne replaces the appearance of RG-01 while keeping the saved
 `rose_gold` identity, Community policy, and existing Amethyst layout. Header,
 navigation, announcement rows, tickers, Live Lineup, typography metrics, section

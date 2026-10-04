@@ -303,9 +303,26 @@ export const SKIN_PREVIEW_GUARDS = `
       input.title = 'Sample preview — uploads are disabled';
     });
   }
+  function inlineMediaIcons() {
+    // An opaque sandbox cannot use the external same-origin SVG sprite. Clone
+    // repository-owned glyph paths into each existing SVG, preserving its box.
+    if (!document.getElementById('rgc-preview-media-symbols')) return;
+    document.querySelectorAll('svg use').forEach(function (use) {
+      var name = use.getAttribute('data-preview-icon');
+      if (!name) return;
+      var symbol = document.getElementById('rgc-preview-icon-' + name);
+      if (!symbol) return;
+      var glyph = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      ['fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin'].forEach(function (name) {
+        if (symbol.hasAttribute(name)) glyph.setAttribute(name, symbol.getAttribute(name));
+      });
+      Array.from(symbol.childNodes).forEach(function (node) { glyph.appendChild(node.cloneNode(true)); });
+      use.replaceWith(glyph);
+    });
+  }
   if (typeof MutationObserver !== 'undefined') {
-    new MutationObserver(function () { disableUploads(); if (pendingFragment) scrollToFragment(pendingFragment); }).observe(document.getElementById('root'), { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
-    disableUploads();
+    new MutationObserver(function () { disableUploads(); inlineMediaIcons(); if (pendingFragment) scrollToFragment(pendingFragment); }).observe(document.getElementById('root'), { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
+    disableUploads(); inlineMediaIcons();
   }
 })();`
 
@@ -330,7 +347,13 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')
     if (!pattern.test(document)) continue
     pattern.lastIndex = 0
-    const source = inlineScript(await readFile(join(root, name), 'utf8'))
+    let source = await readFile(join(root, name), 'utf8')
+    if (skin === 'rose_gold' && page === 'homepage' && name === 'homepage.jsx') {
+      // Avoid even an initial blocked external-sprite request before the
+      // preview observer fills this placeholder with the real glyph paths.
+      source = source.replace('<use href={`/amethyst/media-icons.svg#${name}`} />', '<use data-preview-icon={name} />')
+    }
+    source = inlineScript(source)
     document = document.replace(pattern, (_match, before, after) => `<script${before}${after}>${source}</script>`)
   }
   const csp = `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' ${origin} https://fonts.googleapis.com https://api.fontshare.com; font-src ${origin} https://fonts.gstatic.com https://cdn.fontshare.com https://api.fontshare.com data:; img-src ${origin} https: data: blob:; media-src ${skinPreviewMediaSource(skin, origin)}; connect-src 'none'; form-action 'none'; frame-src 'none'; base-uri ${origin}; object-src 'none'`
@@ -348,7 +371,13 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   }
   const bootstrap = fixtureBootstrap(page, skin, review).replaceAll('Sparkle by Sasha', profile.businessName)
   const reviewGuards = SKIN_PREVIEW_GUARDS.replace('var sample = '+JSON.stringify(GNOME_PREVIEW_LINEUP)+';', 'var sample = '+JSON.stringify(reviewLineup(review))+';')
-  document = document.replace('<div id="root"></div>', `<div id="root"></div><script>${inlineScript(reviewGuards)}\n${inlineScript(bootstrap)}</script>`)
+  let mediaSymbols = ''
+  if (skin === 'rose_gold' && page === 'homepage') {
+    mediaSymbols = (await readFile(join(root, 'media-icons.svg'), 'utf8'))
+      .replace('<svg xmlns="http://www.w3.org/2000/svg">', '<svg id="rgc-preview-media-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="0" height="0" style="position:absolute;overflow:hidden;pointer-events:none">')
+      .replace(/\bid="([a-z][a-z0-9-]*)"/g, (_match, id: string) => id === 'rgc-preview-media-symbols' ? _match : `id="rgc-preview-icon-${id}"`)
+  }
+  document = document.replace('<div id="root"></div>', `<div id="root"></div>${mediaSymbols}<script>${inlineScript(reviewGuards)}\n${inlineScript(bootstrap)}</script>`)
   return document.replaceAll('Sparkle by Sasha', profile.businessName)
 }
 

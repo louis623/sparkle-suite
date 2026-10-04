@@ -2,6 +2,24 @@ import { describe, expect, it } from 'vitest'
 import { buildSkinPreviewDocument, renderSkinPreview, SKIN_PREVIEW_SKINS, skinPreviewMediaSource, resolveLineupReviewState } from '@/lib/amethyst/skin-preview'
 
 describe('Rose Champagne sample theme review', () => {
+  it('supplies the real media glyphs inside the opaque RG-01 preview without relaxing isolation', async () => {
+    const doc = await buildSkinPreviewDocument('rose_gold', 'homepage', 'https://sparkle-suite-smoke.vercel.app')
+    expect(doc.includes('<svg id="rgc-preview-media-symbols"')).toBe(true)
+    for (const name of ['video', 'camera', 'shopping-bag', 'gift', 'sparkles', 'facebook', 'tiktok', 'youtube', 'instagram']) {
+      expect(doc.includes(`id="rgc-preview-icon-${name}"`)).toBe(true)
+    }
+    expect(doc).toContain('stroke="currentColor"')
+    expect(doc.includes('<use data-preview-icon={name} />')).toBe(true)
+    expect(doc.includes('<use href={`/amethyst/media-icons.svg#${name}`} />')).toBe(false)
+    expect(doc).toContain("connect-src 'none'")
+    const outer = await renderSkinPreview('rose_gold', 'homepage', 'https://sparkle-suite-smoke.vercel.app')
+    expect(outer).not.toContain('allow-same-origin')
+  })
+  it('does not add RG-01 icon definitions to other themes or unrelated customer pages', async () => {
+    for (const [skin, page] of [['amethyst', 'homepage'], ['gnome_garden', 'homepage'], ['rose_gold', 'trade'], ['rose_gold', 'join'], ['rose_gold', 'unsubscribe']] as const) {
+      expect(await buildSkinPreviewDocument(skin, page, 'https://sparkle-suite-smoke.vercel.app')).not.toContain('<svg id="rgc-preview-media-symbols"')
+    }
+  })
   it('allows RG-01 and only its own hosted video inside the opaque sandbox', async () => {
     const origin = 'https://sparkle-suite-smoke.vercel.app'
     expect(SKIN_PREVIEW_SKINS).toContain('rose_gold')
