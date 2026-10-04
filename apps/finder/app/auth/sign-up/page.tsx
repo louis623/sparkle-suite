@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
 import { SignupForm } from "@/components/account/SignupForm";
-import { SparkleFinderNav } from "@/components/layout/SparkleFinderNav";
-import { getLocalDevAuthState } from "@/lib/sparkle-finder/auth";
+import { FinderSeal } from "@/components/learn/FinderSeal";
+import styles from "@/components/learn/finder-learn.module.css";
+import { sparkleProductFooterDisclaimer } from "@/lib/sparkle-finder/learn-page-content";
 import { getPasswordPolicy, getPasswordRequirements } from "@/lib/sparkle-finder/password-policy";
 import { safeSparkleFinderNextPath } from "@/lib/sparkle-finder/safe-redirect";
 
@@ -23,52 +23,50 @@ export function renderSignUpPageContent(searchParams: SignUpSearchParams = {}) {
   const signInHref = nextPath === "/" ? "/auth/sign-in" : `/auth/sign-in?next=${encodeURIComponent(nextPath)}`;
 
   return (
-    <>
-      <SparkleFinderNav accountState={getLocalDevAuthState("anonymous")} variant="public" />
-      <main className="min-h-screen bg-[var(--sparkle-warm-bg)] px-5 py-10 sm:px-8">
-        <section className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-          <div className="grid gap-5">
-            <p className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--sparkle-coral)]">
-              Sparkle Finder account
-            </p>
-            <h1 className="font-[family-name:var(--font-playfair)] text-4xl font-semibold leading-tight text-[var(--sparkle-plum-deep)]">
-              Start your 45-day Silver trial
-            </h1>
-            <p className="max-w-2xl text-base leading-7 text-[var(--sparkle-ink-muted)]">
-              Create one Sparkle Finder account to browse jewelry, find dancers, and build your Bling Vault and
-              Sparkle Showcase. Your first 45 days include Silver access. After that, continue Silver for $4.99/month
-              or keep browsing on Free.
-            </p>
-            <div className="grid gap-3 rounded-[var(--sparkle-radius-sm)] border border-[var(--sparkle-border)] bg-[var(--sparkle-paper)] p-5 shadow-[var(--sparkle-shadow-sm)]">
-              <div className="flex items-start gap-3">
-                <Sparkles aria-hidden="true" className="mt-1 size-5 text-[var(--sparkle-coral)]" />
-                <div>
-                  <h2 className="text-lg font-bold text-[var(--sparkle-plum-deep)]">What Silver includes</h2>
-                  <p className="mt-1 text-sm leading-6 text-[var(--sparkle-ink-muted)]">
-                    Your Bling Vault and Sparkle Showcase, personalized help from Nic-Nac, and an easier way to follow
-                    the pieces you care about.
-                  </p>
-                </div>
-              </div>
-              <Link
-                className="inline-flex w-fit items-center gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)] underline-offset-4 hover:underline"
-                href={signInHref}
-              >
-                Already have an account?
-                <ArrowRight aria-hidden="true" className="size-4" />
-              </Link>
-            </div>
-          </div>
-
-          <SignupForm
-            nextPath={nextPath}
-            notice={notice}
-            passwordMinLength={passwordPolicy.minLength}
-            passwordRequirements={passwordPolicy.requirements}
-          />
-        </section>
+    <div className={styles.page} data-finder-brand="amethyst" data-smoke="finder-intake-signup">
+      <header className={styles.header}>
+        <div className={styles.headerInner}>
+          <a className={styles.brand} href="/learn" aria-label="Sparkle Finder by Sparkle Suite">
+            <FinderSeal className={styles.seal} />
+            <span className={styles.wordmarkBlock}>
+              <span className={styles.wordmark}>Sparkle Finder</span>
+              <span className={styles.byline}>by Sparkle Suite</span>
+            </span>
+          </a>
+        </div>
+      </header>
+      <main className="mx-auto grid w-full max-w-3xl gap-6 px-5 py-10" id="main-content">
+        <div className="grid gap-3">
+          <p className={styles.eyebrow}>For Bomb Party collectors</p>
+          <h1>Finish this form to start 30 days of Silver</h1>
+          <p>
+            No card. Silver starts when this form is finished, not when the account row is created. On day 30, Silver
+            becomes Free and a $6 per month reminder goes out. Nothing is charged.
+          </p>
+          <p>Silver is saving a collection, and Nic-Nac is your collection curator and jewelry finder assistant.</p>
+          <Link className="text-sm font-bold underline-offset-4 hover:underline" href={signInHref}>
+            Already have an account?
+          </Link>
+        </div>
+        <SignupForm
+          nextPath={nextPath}
+          notice={notice}
+          passwordMinLength={passwordPolicy.minLength}
+          passwordRequirements={passwordPolicy.requirements}
+        />
       </main>
-    </>
+      <footer className={styles.footer}>
+        <div className={styles.footerInner}>
+          <p>
+            {sparkleProductFooterDisclaimer} Visit{" "}
+            <a href="https://neonrabbit.net" rel="noopener noreferrer" target="_blank">
+              neonrabbit.net
+            </a>
+            .
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 }
 
@@ -79,6 +77,10 @@ function getSearchParam(value: string | string[] | undefined): string | undefine
 function getSignUpNotice(error: string | undefined): string | null {
   if (error === "missing_required_fields") {
     return "Please complete the required account details before creating your Sparkle Finder account.";
+  }
+
+  if (error === "invalid_birthday") {
+    return "Enter a birthday month and day. No year is stored.";
   }
 
   if (error === "signup_failed") {

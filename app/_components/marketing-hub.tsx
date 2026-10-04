@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 import { FinderSneakPeekStub } from '@/app/_components/finder-sneak-peek-stub'
 import { MarketingFooter } from '@/app/_components/landing-experience'
-import { sparkleSuiteMarketingHubContent as hub } from '@/lib/sparkle-suite/marketing-hub-content'
+import { sparkleFinderSignUpHref, sparkleSuiteMarketingHubContent as hub } from '@/lib/sparkle-suite/marketing-hub-content'
 
 import landingStyles from './landing-experience.module.css'
 import styles from './marketing-hub.module.css'
@@ -138,7 +138,7 @@ export function MarketingHub() {
               product={hub.finder.product}
               signInHref={hub.finder.signInHref}
               signInLabel={hub.finder.signInLabel}
-              signUpHref={hub.finder.signUpHref}
+              signUpHref={sparkleFinderSignUpHref()}
               signUpLabel={hub.finder.signUpLabel}
               sneakPeekHref={hub.finder.sneakPeekHref}
               sneakPeekLabel={hub.finder.sneakPeekLabel}

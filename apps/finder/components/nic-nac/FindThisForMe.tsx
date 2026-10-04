@@ -1,4 +1,5 @@
 import { FinderNicNacChatbot } from "@/components/nic-nac/FinderNicNacChatbot";
+import { finderNicNacPublicLine, finderNicNacSilverMessage } from "@/lib/sparkle-finder/access-split";
 import { findNicNacMatchesForItem } from "@/lib/sparkle-finder/nic-nac";
 import { getSparkleFinderAccountEntitlements } from "@/lib/sparkle-finder/entitlements";
 import { getLocalRepBoardHref, getLocalRepHref } from "@/lib/sparkle-finder/route-hrefs";
@@ -70,7 +71,7 @@ function NicNacUpgradePrompt({ compact }: { compact: boolean }) {
       quickBubbles={[
         {
           label: "Check saved pieces",
-          response: "Silver lets me check saved collection and pieces you are looking for against bounded Finder leads.",
+          response: `${finderNicNacPublicLine} ${finderNicNacSilverMessage}`,
         },
         {
           label: "Match dancer leads",

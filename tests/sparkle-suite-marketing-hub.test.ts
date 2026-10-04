@@ -2,11 +2,11 @@ import { createElement } from 'react'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { metadata } from '@/app/adventure/page'
 import { MarketingHub } from '@/app/_components/marketing-hub'
-import { sparkleSuiteMarketingHubContent } from '@/lib/sparkle-suite/marketing-hub-content'
+import { sparkleFinderSignUpHref, sparkleSuiteMarketingHubContent } from '@/lib/sparkle-suite/marketing-hub-content'
 import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 import { buildSparkleSitemap } from '@/lib/seo/sparkle-crawl'
 
@@ -192,5 +192,22 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(css).toContain('var(--font-prelaunch-display)')
     expect(css).toContain('var(--font-prelaunch-sans)')
     expect(css).toContain('prefers-reduced-motion: reduce')
+  })
+
+  it('sends Finder Smoke sign-up through the Suite dual funnel', () => {
+    expect(sparkleFinderSignUpHref({ SPARKLE_ENVIRONMENT: 'production' })).toBe(
+      'https://yoursparklefinder.com/auth/sign-up?next=/',
+    )
+
+    vi.stubEnv('SPARKLE_ENVIRONMENT', 'smoke')
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+
+    try {
+      const html = renderHub()
+      expect(html).toContain('href="https://sparkle-finder-smoke.vercel.app/auth/sign-up?next=/"')
+      expect(html).not.toContain('href="https://yoursparklefinder.com/auth/sign-up?next=/"')
+    } finally {
+      vi.unstubAllEnvs()
+    }
   })
 })

@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { BookmarkPlus, Gem, LoaderCircle, Plus, Search, ShieldCheck, Star, StickyNote } from "lucide-react";
+import { finderCollectionSaveSilverMessage } from "@/lib/sparkle-finder/access-split";
 import { addJewelryItemToCustomerCollection } from "@/lib/sparkle-finder/customer-state";
 import type { SparkleFinderAccountState } from "@/lib/sparkle-finder/auth";
 import type { CollectionItem, JewelryItem } from "@/lib/sparkle-finder/types";
@@ -41,7 +42,7 @@ export function CollectionManager({
 }: CollectionManagerProps) {
   const [items, setItems] = useState(collectionItems);
   const [localStatusMessage, setLocalStatusMessage] = useState(
-    canSaveSilverActions ? "Local collection preview ready." : "Silver preview is required to save collection updates.",
+    canSaveSilverActions ? "Local collection preview ready." : finderCollectionSaveSilverMessage,
   );
   const [actionState, formAction, isPending] = useActionState(saveAction ?? disabledCollectionAction, realAccountInitialState);
   const statusMessage = isLocalPreview ? localStatusMessage : actionState.message;
@@ -56,7 +57,7 @@ export function CollectionManager({
     });
 
     if (!result.ok) {
-      setLocalStatusMessage("Silver preview is required to save collection updates.");
+      setLocalStatusMessage(finderCollectionSaveSilverMessage);
       return;
     }
 
@@ -299,6 +300,6 @@ function getDefaultCollectionNote(state: CollectionItem["state"], isLocalPreview
 async function disabledCollectionAction(): Promise<SilverSaveActionState> {
   return {
     status: "denied",
-    message: "Silver access is required to save collection updates.",
+    message: finderCollectionSaveSilverMessage,
   };
 }

@@ -131,9 +131,7 @@ export async function getPersistedFavoriteRepCardsForUser(input: {
       return null;
     }
 
-    const detailMap = input.hasSilverAccess
-      ? await getFavoriteRepDetailMap(input.supabase, input.userId)
-      : new Map<string, Pick<FavoriteRep, "notes" | "notifyNextShow">>();
+    const detailMap = await getFavoriteRepDetailMap(input.supabase, input.userId);
 
     if (!detailMap) {
       return null;
@@ -198,8 +196,8 @@ function mapFavoriteRepCard(favorite: FavoriteRep, hasSilverAccess: boolean): Fa
     repDisplayName: rep?.displayName ?? favorite.repDisplayName,
     repSiteUrl: rep?.siteUrl ?? favorite.repSiteUrl,
     repBoardUrl: favorite.repBoardUrl ?? firstBoardUrl,
-    notes: hasSilverAccess ? favorite.notes : "",
-    notifyNextShow: hasSilverAccess ? favorite.notifyNextShow : false,
+    notes: favorite.notes,
+    notifyNextShow: favorite.notifyNextShow,
     nextShowAt: nextShow?.startsAt ?? null,
     nextShowTitle: nextShow?.title ?? null,
     boardItemCount: boardListings.length,

@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { CalendarDays, NotebookPen, Search, Sparkles, UsersRound } from "lucide-react";
+import { CalendarDays, Search, UsersRound } from "lucide-react";
 import { FavoriteRepHeartButton } from "@/components/favorites/FavoriteRepHeartButton";
 import { FavoriteRepNotesForm } from "@/components/favorites/FavoriteRepNotesForm";
 import { FinderLink } from "@/components/navigation/FinderLink";
+import { finderNicNacPublicLine, finderNicNacSilverMessage } from "@/lib/sparkle-finder/access-split";
 import { getLocalRepBoardHref, getLocalRepHref } from "@/lib/sparkle-finder/route-hrefs";
 import type { FavoriteRepCard } from "@/lib/sparkle-finder/social-types";
 
@@ -77,16 +78,9 @@ export function FavoriteRepsPanel({ cards, isSilver }: FavoriteRepsPanelProps) {
                     </span>
                   </div>
                 </div>
-                {isSilver ? (
-                  <div className="w-full min-w-0 lg:w-80">
-                    <FavoriteRepNotesForm notes={card.notes} repId={card.repId} />
-                  </div>
-                ) : (
-                  <div className="inline-flex max-w-sm items-start gap-2 rounded-[var(--sparkle-radius-sm)] border border-[var(--sparkle-border)] bg-[var(--sparkle-blush-bg)] p-3 text-sm font-semibold leading-6 text-[var(--sparkle-ink-muted)]">
-                    <NotebookPen aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[var(--sparkle-coral)]" />
-                    Silver unlocks rep notes and next-show reminders.
-                  </div>
-                )}
+                <div className="w-full min-w-0 lg:w-80">
+                  <FavoriteRepNotesForm notes={card.notes} repId={card.repId} />
+                </div>
               </div>
             </article>
           ))}
@@ -116,19 +110,17 @@ export function FavoriteRepsPanel({ cards, isSilver }: FavoriteRepsPanelProps) {
         </div>
       )}
 
+      <p className="max-w-xl text-sm leading-6 text-[var(--sparkle-ink-muted)]">{finderNicNacPublicLine}</p>
       {isSilver ? (
         <Link
           className="inline-flex min-h-11 w-fit items-center gap-2 rounded-[var(--sparkle-radius-sm)] bg-[var(--sparkle-plum)] px-4 text-sm font-bold text-white"
-          href="/silver#showcase-studio"
+          href="/silver#nic-nac-curator"
         >
           <Search aria-hidden="true" className="size-4" />
           Ask Nic-Nac
         </Link>
       ) : (
-        <div className="inline-flex w-fit items-center gap-2 rounded-[var(--sparkle-radius-sm)] border border-[var(--sparkle-border)] bg-white px-3 py-2 text-sm font-bold text-[var(--sparkle-ink-muted)]">
-          <Sparkles aria-hidden="true" className="size-4 text-[var(--sparkle-coral)]" />
-          Upgrade cue for notes/reminders
-        </div>
+        <p className="text-sm font-semibold text-[var(--sparkle-ink-muted)]">{finderNicNacSilverMessage}</p>
       )}
     </section>
   );

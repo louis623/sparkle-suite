@@ -2,6 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  completeCollectorIntake,
+  parseCollectorIntake,
+  updateCollectorIntake,
+} from "@/lib/sparkle-finder/collector-intake";
+import {
+  persistCollectorIntakeEdit,
+  persistCompletedCollectorIntake,
+  readCollectorIntake,
+} from "@/lib/sparkle-finder/collector-intake-store";
 import { claimSparkleSuiteRepForFinderUser } from "@/lib/sparkle-finder/rep-claim";
 import type { SparkleFinderRepClaimClient } from "@/lib/sparkle-finder/rep-claim";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
@@ -42,6 +52,36 @@ export async function updateCommunicationPreferences(formData: FormData) {
 
   revalidatePath("/account");
   redirect("/account?message=preferences_saved");
+}
+
+export async function updateCollectorIntakeAnswers(formData: FormData) {
+  const supabase = await getVerifiedAccountClient();
+  const intake = parseCollectorIntake(formData);
+  intake.email = cleanText(supabase.user.email, 254) || intake.email;
+  intake.state = normalizeUsStateValue(intake.state);
+  const writer = supabase.client as unknown as Parameters<typeof readCollectorIntake>[0];
+  const existing = await readCollectorIntake(writer, supabase.user.id);
+  const editedAt = new Date();
+  const updated = existing
+    ? updateCollectorIntake({ record: existing, intake, editedAt })
+    : completeCollectorIntake({ userId: supabase.user.id, intake, completedAt: editedAt });
+
+  if (!updated.ok) {
+    redirect(updated.reason === "invalid_birthday" ? "/account?error=invalid_birthday" : "/account?error=missing_intake");
+  }
+
+  try {
+    if (existing) {
+      await persistCollectorIntakeEdit(writer, updated.record);
+    } else if ("membership" in updated) {
+      await persistCompletedCollectorIntake(writer, updated.record, updated.membership);
+    }
+  } catch {
+    redirect("/account?error=intake_update_failed");
+  }
+
+  revalidatePath("/account");
+  redirect("/account?message=intake_saved");
 }
 
 export async function updateAccountProfile(formData: FormData) {

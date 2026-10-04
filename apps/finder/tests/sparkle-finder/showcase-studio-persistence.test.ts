@@ -236,11 +236,11 @@ describe("Showcase Studio staged persistence", () => {
     expect(client.submissions.get(submissionId)?.user_id).toBe("other-owner");
   });
 
-  it("requires Silver before touching persistence", async () => {
+  it("lets a Free account submit Showcase Studio", async () => {
     const client = new FakeStudioClient();
     await expect(persistShowcaseStudioSubmissionForAccount(client, currentAccountState("free"), studioInput()))
-      .resolves.toEqual({ ok: false, reason: "silver_required" });
-    expect(client.operations).toEqual([]);
+      .resolves.toMatchObject({ ok: true, status: "submitted", submissionId });
+    expect(client.operations.length).toBeGreaterThan(0);
   });
 });
 

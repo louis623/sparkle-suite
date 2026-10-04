@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   FAVORITE_REP_NOTE_MAX_LENGTH,
-  FREE_FAVORITE_REP_LIMIT,
   canEditFavoriteRepNotes,
   canFavoriteRep,
   normalizeFavoriteRepNote,
@@ -13,51 +12,40 @@ describe("Favorite reps actions", () => {
     expect(
       canFavoriteRep({
         userId: "customer-free-marlena",
-        currentFavoriteCount: 0,
-        hasSilverAccess: false,
       }),
     ).toEqual({ allowed: true });
   });
 
-  it("limits free users to a small favorite rep count if a cap is configured", () => {
+  it("lets a signed-in Free account favorite another rep without a Silver cap", () => {
     expect(
       canFavoriteRep({
         userId: "customer-free-marlena",
-        currentFavoriteCount: FREE_FAVORITE_REP_LIMIT,
-        hasSilverAccess: false,
       }),
-    ).toEqual({ allowed: false, reason: "free_limit_reached" });
+    ).toEqual({ allowed: true });
   });
 
-  it("allows idempotent favorite requests for existing favorites at the free cap", () => {
+  it("allows idempotent favorite requests for an existing favorite", () => {
     expect(
       canFavoriteRep({
         userId: "customer-free-marlena",
-        currentFavoriteCount: FREE_FAVORITE_REP_LIMIT,
-        hasSilverAccess: false,
         isAlreadyFavorited: true,
       }),
     ).toEqual({ allowed: true, alreadyFavorited: true });
   });
 
-  it("allows Silver users to save rep notes", () => {
+  it("allows the favorite owner to save rep notes without Silver", () => {
     expect(
       canEditFavoriteRepNotes({
         userId: "customer-silver-sparkle-mama",
-        hasSilverAccess: true,
         favoriteOwnerUserId: "customer-silver-sparkle-mama",
       }),
     ).toBe(true);
-  });
-
-  it("prevents free users from saving Silver rep notes", () => {
     expect(
       canEditFavoriteRepNotes({
         userId: "customer-free-marlena",
-        hasSilverAccess: false,
         favoriteOwnerUserId: "customer-free-marlena",
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("trims notes to 500 characters", () => {

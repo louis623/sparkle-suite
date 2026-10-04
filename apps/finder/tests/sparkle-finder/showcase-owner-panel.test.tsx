@@ -83,7 +83,7 @@ describe("Showcase owner workflow", () => {
     expect(markup).toContain("casey-finds");
     expect(markup).toContain("Included");
     expect(markup).toContain("Not included");
-    expect(markup).toContain("never removes its jewelry from your Bling Vault");
+    expect(markup).toContain("never removes its jewelry from your collection");
     expect(markup).toContain('aria-expanded="false"');
     expect(markup).toContain("Edit piece details");
     expect(markup).toContain("Catalog image");
@@ -158,13 +158,13 @@ describe("Showcase owner workflow", () => {
 
     expect(source).toContain("supabase.auth.getUser()");
     expect(source).toContain("accountState.customer.id !== data.user.id");
-    expect(source).toContain("accountState.membership?.hasSilverAccess !== true");
+    expect(source).not.toContain("accountState.membership?.hasSilverAccess !== true");
     expect(source).toContain('.eq("user_id", verified.userId)');
     expect(source).toContain('.select("showcase_handle")');
     expect(source).toContain("revalidateShowcasePaths(previousHandle, handle)");
     expect(source).toContain('.select("id")');
     expect(source).toContain('readField(deleted.data, "id") !== collectionId');
-    expect(source).toContain("Every piece stayed in your Bling Vault");
+    expect(source).toContain("Every piece stayed in your collection");
     expect(source).not.toContain('formData.get("userId")');
     expect(source).not.toContain('formData.get("customerId")');
   });
@@ -178,7 +178,7 @@ describe("Showcase owner workflow", () => {
     expect(source).toContain("Remove “{collection.title}”?");
     expect(source).toContain("Yes, remove collection");
     expect(source).toContain("Keep collection");
-    expect(source).toContain("Every piece stays safely in your Bling Vault");
+    expect(source).toContain("Every piece stays safely in your collection");
     expect(source).toContain('role="alertdialog"');
     expect(source).toContain("confirmButtonRef.current?.focus()");
     expect(source).toContain("triggerRef.current?.focus()");

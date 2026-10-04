@@ -89,7 +89,7 @@ export function updateSilverProfilePreview(
   profile: SilverProfile,
   input: SilverProfileUpdateInput,
 ): SilverProfileUpdateResult {
-  if (!canSaveSilverState(accountState)) {
+  if (!canSaveSignedInState(accountState)) {
     return {
       ok: false,
       reason: "silver_required",
@@ -115,7 +115,7 @@ export async function persistSilverProfileForAccount(
   accountState: CurrentSparkleFinderAccountState,
   input: SilverProfileUpdateInput,
 ): Promise<PersistedCustomerStateResult> {
-  if (!canSaveSilverState(accountState)) {
+  if (!canSaveSignedInState(accountState)) {
     return { ok: false, reason: "silver_required" };
   }
 
@@ -193,7 +193,7 @@ export async function persistCollectionItemForAccount(
   accountState: CurrentSparkleFinderAccountState,
   input: CollectionItemUpsertInput,
 ): Promise<PersistedCustomerStateResult> {
-  if (!canSaveSilverState(accountState)) {
+  if (!canSaveCollection(accountState)) {
     return { ok: false, reason: "silver_required" };
   }
 
@@ -232,7 +232,7 @@ export async function persistShowcasePieceForAccount(
   accountState: CurrentSparkleFinderAccountState,
   input: ShowcasePieceUpdateInput,
 ): Promise<PersistedCustomerStateResult> {
-  if (!canSaveSilverState(accountState)) {
+  if (!canSaveCollection(accountState)) {
     return { ok: false, reason: "silver_required" };
   }
 
@@ -263,7 +263,7 @@ export function addJewelryItemToCustomerCollection(
   collectionItems: CollectionItem[],
   input: CollectionItemUpsertInput,
 ): CollectionItemUpsertResult {
-  if (!canSaveSilverState(accountState)) {
+  if (!canSaveCollection(accountState)) {
     return {
       ok: false,
       reason: "silver_required",
@@ -292,10 +292,16 @@ export function addJewelryItemToCustomerCollection(
   };
 }
 
-function canSaveSilverState(
+function canSaveSignedInState(
   accountState: SparkleFinderAccountState | CurrentSparkleFinderAccountState,
 ): accountState is (SparkleFinderAccountState | CurrentSparkleFinderAccountState) & { status: "authenticated" } {
-  if (accountState.status !== "authenticated") {
+  return accountState.status === "authenticated";
+}
+
+function canSaveCollection(
+  accountState: SparkleFinderAccountState | CurrentSparkleFinderAccountState,
+): accountState is (SparkleFinderAccountState | CurrentSparkleFinderAccountState) & { status: "authenticated" } {
+  if (!canSaveSignedInState(accountState)) {
     return false;
   }
 

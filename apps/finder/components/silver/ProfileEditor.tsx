@@ -74,7 +74,7 @@ export function ProfileEditor({
   const [selectedProfilePhoto, setSelectedProfilePhoto] = useState<{ name: string; url: string } | null>(null);
   const [profilePhotoMessage, setProfilePhotoMessage] = useState("JPG, PNG, or WebP.");
   const [localStatusMessage, setLocalStatusMessage] = useState(
-    canSaveSilverActions ? "Make your changes, then save your profile." : "Silver preview is required to save profile updates.",
+    canSaveSilverActions ? "Make your changes, then save your profile." : "Sign in to save your profile.",
   );
   const [actionState, formAction, isPending] = useActionState(handleProfileFormAction, realAccountInitialState);
   const statusMessage = getProfileStatusMessage({ actionState, isLocalPreview, isPending, localStatusMessage });
@@ -87,7 +87,7 @@ export function ProfileEditor({
       ...currentDraft,
       [field]: value,
     }));
-    setLocalStatusMessage(canSaveSilverActions ? "Unsaved profile changes." : "Silver preview is required to save profile updates.");
+    setLocalStatusMessage(canSaveSilverActions ? "Unsaved profile changes." : "Sign in to save your profile.");
   }
 
   async function handleProfileFormAction(
@@ -156,7 +156,7 @@ export function ProfileEditor({
     });
 
     if (!result.ok) {
-      setLocalStatusMessage("Silver preview is required to save profile updates.");
+      setLocalStatusMessage("Sign in to save your profile.");
       return;
     }
 
@@ -494,7 +494,7 @@ function getStatusClassName(tone: "idle" | "saving" | "saved" | "error"): string
 async function disabledProfileAction(): Promise<SilverSaveActionState> {
   return {
     status: "denied",
-    message: "Silver access is required to save profile updates.",
+    message: "Sign in to save your profile.",
   };
 }
 

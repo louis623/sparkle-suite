@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Gem, KeyRound, Loader2, Mail, ShieldCheck } from "lucide-react";
 import { requestMagicLink, signUpWithPassword } from "@/app/auth/sign-up/actions";
+import { finderIntakeFinePrint } from "@/lib/sparkle-finder/collector-intake";
 import { getSparkleFinderOAuthRedirectTo } from "@/lib/sparkle-finder/oauth-redirect";
 import { PASSWORD_MIN_LENGTH, PASSWORD_REQUIREMENTS } from "@/lib/sparkle-finder/password-policy";
 import { safeSparkleFinderNextPath } from "@/lib/sparkle-finder/safe-redirect";
@@ -70,7 +71,7 @@ export function SignupForm({
         <div>
           <h2 className="text-lg font-bold text-[var(--sparkle-plum-deep)]">Create your Silver trial</h2>
           <p className="mt-1 text-sm leading-6 text-[var(--sparkle-ink-muted)]">
-            Start with a 45-day Silver trial, then keep browsing for free if you do not continue Silver.
+            Your 30-day Silver trial starts when you finish this form. No card. On day 30, Silver becomes Free unless you pay $6 a month.
           </p>
         </div>
       </div>
@@ -89,7 +90,7 @@ export function SignupForm({
           {isGoogleStarting ? "Opening Google..." : "Continue with Google"}
         </button>
         <p className="text-sm leading-6 text-[var(--sparkle-ink-muted)]">
-          After Google sign-up, Sparkle Finder may ask for the remaining account details needed for your Silver trial.
+          Google sign-up does not start Silver. Finish this form to start the 30-day trial.
         </p>
         {googleError ? <p className="text-sm font-semibold text-[var(--sparkle-plum-deep)]">{googleError}</p> : null}
       </div>
@@ -100,17 +101,16 @@ export function SignupForm({
         </p>
       ) : null}
 
-      <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
-        Display name
-        <input
-          autoComplete="name"
-          className={inputClassName}
-          maxLength={80}
-          name="displayName"
-          placeholder="Sparkle Mama"
-          required
-        />
-      </label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
+          First name
+          <input autoComplete="given-name" className={inputClassName} maxLength={80} name="firstName" required />
+        </label>
+        <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
+          Last name
+          <input autoComplete="family-name" className={inputClassName} maxLength={80} name="lastName" required />
+        </label>
+      </div>
 
       <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
         Email
@@ -151,6 +151,60 @@ export function SignupForm({
             </option>
           ))}
         </select>
+      </label>
+
+      <fieldset className="grid gap-3 rounded-[var(--sparkle-radius-sm)] border border-[var(--sparkle-border)] p-3">
+        <legend className="px-1 text-sm font-bold text-[var(--sparkle-plum-deep)]">Birthday</legend>
+        <p className="text-xs font-semibold leading-5 text-[var(--sparkle-ink-muted)]">Month and day only. No year.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
+            Month
+            <select className={inputClassName} defaultValue="" name="birthdayMonth" required>
+              <option value="" disabled>
+                Month
+              </option>
+              {birthdayMonths.map((month) => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
+            Day
+            <select className={inputClassName} defaultValue="" name="birthdayDay" required>
+              <option value="" disabled>
+                Day
+              </option>
+              {birthdayDays.map((day) => (
+                <option key={day} value={day}>
+                  {day}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </fieldset>
+
+      <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
+        Favorite stone
+        <input className={inputClassName} maxLength={80} name="favoriteStone" required />
+      </label>
+      <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
+        Cut
+        <input className={inputClassName} maxLength={80} name="cut" required />
+      </label>
+      <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
+        Finish
+        <input className={inputClassName} maxLength={80} name="finish" required />
+      </label>
+      <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
+        Ring size
+        <input className={inputClassName} maxLength={20} name="ringSize" required />
+      </label>
+      <label className="grid gap-2 text-sm font-bold text-[var(--sparkle-plum-deep)]">
+        Other jewelry notes
+        <textarea className={inputClassName} maxLength={500} name="jewelryNotes" rows={3} />
       </label>
 
       <fieldset className="grid gap-3 rounded-[var(--sparkle-radius-sm)] border border-[var(--sparkle-border)] p-3">
@@ -228,6 +282,10 @@ export function SignupForm({
       <fieldset className="grid gap-3 rounded-[var(--sparkle-radius-sm)] border border-[var(--sparkle-border)] p-3">
         <legend className="px-1 text-sm font-bold text-[var(--sparkle-plum-deep)]">Privacy and updates</legend>
         <label className="flex items-start gap-3 text-sm leading-6 text-[var(--sparkle-ink-muted)]">
+          <input className="mt-1" name="userAgreement" required type="checkbox" value="yes" />
+          <span>I agree to the Sparkle Finder user agreement.</span>
+        </label>
+        <label className="flex items-start gap-3 text-sm leading-6 text-[var(--sparkle-ink-muted)]">
           <input className="mt-1" name="privacyAcknowledged" required type="checkbox" value="yes" />
           <span>
             I acknowledge the{" "}
@@ -246,6 +304,7 @@ export function SignupForm({
           <input className="mt-1" name="promotionalSms" type="checkbox" value="yes" />
           <span>Text me optional promotional messages. Consent is optional.</span>
         </label>
+        <p className="text-xs font-semibold leading-5 text-[var(--sparkle-ink-muted)]">{finderIntakeFinePrint}</p>
       </fieldset>
 
       <SignupSubmitButton authMethod={authMethod} passwordsDoNotMatch={passwordsDoNotMatch} />
@@ -257,6 +316,23 @@ export function SignupForm({
     </form>
   );
 }
+
+const birthdayMonths = [
+  { value: "1", label: "January" },
+  { value: "2", label: "February" },
+  { value: "3", label: "March" },
+  { value: "4", label: "April" },
+  { value: "5", label: "May" },
+  { value: "6", label: "June" },
+  { value: "7", label: "July" },
+  { value: "8", label: "August" },
+  { value: "9", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
+];
+
+const birthdayDays = Array.from({ length: 31 }, (_, index) => String(index + 1));
 
 function SignupSubmitButton({
   authMethod,

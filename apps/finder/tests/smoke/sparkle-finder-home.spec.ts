@@ -209,8 +209,8 @@ test.describe("Sparkle Finder homepage smoke", () => {
   test("signup shows Silver trial and phone privacy defaults", async ({ page }) => {
     await page.goto(`${baseUrl}/auth/sign-up`, { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("heading", { name: "Start your 45-day Silver trial" })).toBeVisible();
-    await expect(page.getByText("Start with a 45-day Silver trial")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Finish this form to start 30 days of Silver" })).toBeVisible();
+    await expect(page.getByText("No card.")).toBeVisible();
     await expect(page.getByText("Marketing texts are optional.")).toBeVisible();
     await expect(page.getByText("Not sold.")).toBeVisible();
     await expect(page.getByText("I acknowledge the Sparkle Finder privacy terms")).toBeVisible();

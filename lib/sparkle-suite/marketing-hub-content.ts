@@ -9,6 +9,14 @@ export const sparkleFinderHomeUrl = 'https://yoursparklefinder.com/' as const
 export const sparkleFinderSignInUrl = 'https://yoursparklefinder.com/auth/sign-in' as const
 /** Live Finder public landing creates an account with this return path. */
 export const sparkleFinderSignUpUrl = 'https://yoursparklefinder.com/auth/sign-up?next=/' as const
+/** Finder Smoke sign-up used by the Suite dual funnel when Smoke markers are set. */
+export const sparkleFinderSmokeSignUpUrl = 'https://sparkle-finder-smoke.vercel.app/auth/sign-up?next=/' as const
+
+export function sparkleFinderSignUpHref(env: NodeJS.ProcessEnv = process.env) {
+  const smoke = env.SPARKLE_ENVIRONMENT === 'smoke' || env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT === 'smoke'
+
+  return smoke ? sparkleFinderSmokeSignUpUrl : sparkleFinderSignUpUrl
+}
 
 /**
  * Joint front door. Finder deep-drill pages under /finder stay empty for a later pass.

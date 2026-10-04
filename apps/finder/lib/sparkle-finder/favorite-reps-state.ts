@@ -73,16 +73,8 @@ export async function persistFavoriteRepForAccount(
     return { ok: false, reason: "favorite_unavailable" };
   }
 
-  const favoriteRows = await fetchFavoriteRepRows(supabase, userId);
-
-  if (favoriteRows.error) {
-    return { ok: false, reason: "favorite_unavailable" };
-  }
-
   const favoritePermission = canFavoriteRep({
     userId,
-    currentFavoriteCount: favoriteRows.rows.length,
-    hasSilverAccess: hasSilverAccess(accountState),
     isAlreadyFavorited: Boolean(existingFavorite.row),
   });
 
@@ -143,10 +135,6 @@ export async function persistFavoriteRepNotesForAccount(
     return { ok: false, reason: "sign_in_required" };
   }
 
-  if (!hasSilverAccess(accountState)) {
-    return { ok: false, reason: "silver_required" };
-  }
-
   const repId = normalizeRepId(input.repId);
 
   if (!repId) {
@@ -189,25 +177,6 @@ async function findFavoriteRepRow(
   };
 }
 
-async function fetchFavoriteRepRows(
-  supabase: SupabaseFavoriteRepsClient,
-  userId: string,
-): Promise<{ rows: FavoriteRepRow[]; error: unknown }> {
-  try {
-    const result = (await supabase
-      .from("sparkle_finder_favorite_reps")
-      .select("id,user_id,rep_id")
-      .eq("user_id", userId)) as unknown as { data: unknown; error: unknown };
-
-    return {
-      rows: Array.isArray(result.data) ? (result.data as FavoriteRepRow[]) : [],
-      error: result.error,
-    };
-  } catch (error) {
-    return { rows: [], error };
-  }
-}
-
 async function safeMaybeSingle(builder: SupabaseFilterBuilder): Promise<{ data: unknown; error: unknown }> {
   if (!builder.maybeSingle) {
     return { data: null, error: null };
@@ -218,10 +187,6 @@ async function safeMaybeSingle(builder: SupabaseFilterBuilder): Promise<{ data: 
   } catch (error) {
     return { data: null, error };
   }
-}
-
-function hasSilverAccess(accountState: CurrentSparkleFinderAccountState): boolean {
-  return accountState.status === "authenticated" && (accountState.membership?.hasSilverAccess ?? accountState.tier === "silver");
 }
 
 function cleanText(value: string, maxLength: number): string {

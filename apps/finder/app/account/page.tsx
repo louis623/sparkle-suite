@@ -2,11 +2,15 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { LogIn, LogOut } from "lucide-react";
 import { AccountPreferences } from "@/components/account/AccountPreferences";
+import { CollectorIntakeEditor } from "@/components/account/CollectorIntakeEditor";
 import { RepBadge } from "@/components/account/RepBadge";
 import { RepClaimPanel } from "@/components/account/RepClaimPanel";
 import { SilverStatusPanel } from "@/components/account/SilverStatusPanel";
 import { SparkleFinderNav } from "@/components/layout/SparkleFinderNav";
 import { getAccountCompletionState } from "@/lib/sparkle-finder/account-completion";
+import { readCollectorIntake } from "@/lib/sparkle-finder/collector-intake-store";
+import type { CollectorIntakeRecord } from "@/lib/sparkle-finder/collector-intake";
+import { createClient } from "@/lib/supabase/server";
 import {
   getCurrentSparkleFinderAccount,
   type CurrentSparkleFinderAccountState,
@@ -31,15 +35,33 @@ export default async function AccountPage({ searchParams }: AccountPageProps = {
   const authMode = parseSparkleFinderAuthMode(cookieStore.get(sparkleFinderAuthCookieName)?.value);
   const accountState = await getCurrentSparkleFinderAccount({ localPreviewAuthMode: authMode });
 
+  const intake =
+    accountState.status === "authenticated" && accountState.customer
+      ? await loadCollectorIntake(accountState.customer.id)
+      : null;
+
   return (
     <>
       <SparkleFinderNav accountState={accountState} />
-      {renderAccountPageContent(accountState, undefined, getAccountNotice(resolvedSearchParams))}
+      {renderAccountPageContent(accountState, undefined, getAccountNotice(resolvedSearchParams), intake)}
     </>
   );
 }
 
-export function renderAccountPageContent(accountState: CurrentSparkleFinderAccountState, now?: Date, notice?: AccountNotice | null) {
+async function loadCollectorIntake(userId: string): Promise<CollectorIntakeRecord | null> {
+  try {
+    return await readCollectorIntake(await createClient() as unknown as Parameters<typeof readCollectorIntake>[0], userId);
+  } catch {
+    return null;
+  }
+}
+
+export function renderAccountPageContent(
+  accountState: CurrentSparkleFinderAccountState,
+  now?: Date,
+  notice?: AccountNotice | null,
+  intake?: CollectorIntakeRecord | null,
+) {
   if (accountState.status !== "authenticated") {
     return (
       <main className="min-h-screen bg-[var(--sparkle-shell)] px-5 py-8 sm:px-8 lg:px-10">
@@ -106,6 +128,7 @@ export function renderAccountPageContent(accountState: CurrentSparkleFinderAccou
         <RepClaimPanel accountState={accountState} />
         <SilverStatusPanel accountState={accountState} now={now} />
         <AccountPreferences accountState={accountState} />
+        <CollectorIntakeEditor accountState={accountState} intake={intake ?? null} />
       </div>
     </main>
   );
@@ -128,6 +151,14 @@ function AccountNoticePanel({ notice }: { notice: AccountNotice }) {
 function getAccountNotice(searchParams: AccountSearchParams | undefined): AccountNotice | null {
   const message = firstParamValue(searchParams?.message);
   const error = firstParamValue(searchParams?.error);
+
+  if (message === "intake_saved") {
+    return {
+      tone: "success",
+      title: "Jewelry profile saved",
+      body: "Your Finder answers were saved on your profile. A Suite rep sees this same record.",
+    };
+  }
 
   if (message === "profile_saved") {
     return {
@@ -222,6 +253,30 @@ function getAccountNotice(searchParams: AccountSearchParams | undefined): Accoun
       tone: "error",
       title: "Rep badge was not linked",
       body: "Sparkle Finder could not save that verified rep link. Please try again.",
+    };
+  }
+
+  if (error === "invalid_birthday") {
+    return {
+      tone: "error",
+      title: "Birthday needs a month and day",
+      body: "Enter a birthday month and day. No year is stored.",
+    };
+  }
+
+  if (error === "missing_intake") {
+    return {
+      tone: "error",
+      title: "Jewelry profile needs the required answers",
+      body: "Add your name, contact details, birthday month and day, stone, cut, finish, ring size, and both agreements.",
+    };
+  }
+
+  if (error === "intake_update_failed") {
+    return {
+      tone: "error",
+      title: "Jewelry profile was not saved",
+      body: "Sparkle Finder could not save those answers. Please try again.",
     };
   }
 

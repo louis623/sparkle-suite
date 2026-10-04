@@ -541,10 +541,7 @@ describe("Sparkle Finder signup server actions", () => {
     }));
 
     const formData = new FormData();
-    formData.set("displayName", "Sparkle Mama");
-    formData.set("email", "mama@example.com");
-    formData.set("phone", "555-123-4567");
-    formData.set("state", "CA");
+    addLockedIntake(formData);
     formData.set("password", "sparkle-password");
     formData.set("passwordConfirmation", "sparkle-password");
     formData.set("privacyAcknowledged", "yes");
@@ -557,14 +554,27 @@ describe("Sparkle Finder signup server actions", () => {
       password: "sparkle-password",
       options: {
         emailRedirectTo: "http://localhost:3000/auth/confirm?next=%2Faccount",
-        data: {
+        data: expect.objectContaining({
           display_name: "Sparkle Mama",
           phone: "555-123-4567",
           state: "CA",
           privacy_acknowledged: true,
           promotional_email_opt_in: false,
           promotional_sms_opt_in: false,
-        },
+          collector_intake_completed_at: expect.any(String),
+          collector_intake: {
+            first_name: "Sparkle",
+            last_name: "Mama",
+            birthday_month: 6,
+            birthday_day: 15,
+            favorite_stone: "Opal",
+            cut: "Round",
+            finish: "Rhodium",
+            ring_size: "7",
+            jewelry_notes: "Stacking bands",
+            user_agreement_accepted: true,
+          },
+        }),
       },
     });
   });
@@ -587,10 +597,7 @@ describe("Sparkle Finder signup server actions", () => {
     }));
 
     const formData = new FormData();
-    formData.set("displayName", "Sparkle Mama");
-    formData.set("email", "mama@example.com");
-    formData.set("phone", "555-123-4567");
-    formData.set("state", "CA");
+    addLockedIntake(formData);
     formData.set("password", "sparkle-password");
     formData.set("passwordConfirmation", "sparkle-password");
     formData.set("privacyAcknowledged", "yes");
@@ -623,10 +630,7 @@ describe("Sparkle Finder signup server actions", () => {
     }));
 
     const formData = new FormData();
-    formData.set("displayName", "Sparkle Mama");
-    formData.set("email", "mama@example.com");
-    formData.set("phone", "555-123-4567");
-    formData.set("state", "CA");
+    addLockedIntake(formData);
     formData.set("privacyAcknowledged", "yes");
 
     const { requestMagicLink } = await import("../../app/auth/sign-up/actions");
@@ -636,14 +640,27 @@ describe("Sparkle Finder signup server actions", () => {
       email: "mama@example.com",
       options: {
         emailRedirectTo: "http://localhost:3000/auth/confirm?next=%2Fsilver%3Ffrom%3Dsignup",
-        data: {
+        data: expect.objectContaining({
           display_name: "Sparkle Mama",
           phone: "555-123-4567",
           state: "CA",
           privacy_acknowledged: true,
           promotional_email_opt_in: false,
           promotional_sms_opt_in: false,
-        },
+          collector_intake_completed_at: expect.any(String),
+          collector_intake: {
+            first_name: "Sparkle",
+            last_name: "Mama",
+            birthday_month: 6,
+            birthday_day: 15,
+            favorite_stone: "Opal",
+            cut: "Round",
+            finish: "Rhodium",
+            ring_size: "7",
+            jewelry_notes: "Stacking bands",
+            user_agreement_accepted: true,
+          },
+        }),
       },
     });
   });
@@ -664,10 +681,7 @@ describe("Sparkle Finder signup server actions", () => {
     }));
 
     const formData = new FormData();
-    formData.set("displayName", "Sparkle Mama");
-    formData.set("email", "mama@example.com");
-    formData.set("phone", "555-123-4567");
-    formData.set("state", "CA");
+    addLockedIntake(formData);
     formData.set("password", "sparkle-password");
     formData.set("passwordConfirmation", "sparkle-password");
     formData.set("privacyAcknowledged", "yes");
@@ -699,10 +713,7 @@ describe("Sparkle Finder signup server actions", () => {
     }));
 
     const formData = new FormData();
-    formData.set("displayName", "Sparkle Mama");
-    formData.set("email", "mama@example.com");
-    formData.set("phone", "555-123-4567");
-    formData.set("state", "CA");
+    addLockedIntake(formData);
     formData.set("password", "sparkle-password");
     formData.set("passwordConfirmation", "sparkle-password");
     formData.set("privacyAcknowledged", "yes");
@@ -731,10 +742,7 @@ describe("Sparkle Finder signup server actions", () => {
     }));
 
     const formData = new FormData();
-    formData.set("displayName", "Sparkle Mama");
-    formData.set("email", "mama@example.com");
-    formData.set("phone", "555-123-4567");
-    formData.set("state", "CA");
+    addLockedIntake(formData);
     formData.set("password", "sparkle-password");
     formData.set("passwordConfirmation", "sparkle-passwrod");
     formData.set("privacyAcknowledged", "yes");
@@ -764,10 +772,7 @@ describe("Sparkle Finder signup server actions", () => {
     }));
 
     const formData = new FormData();
-    formData.set("displayName", "Sparkle Mama");
-    formData.set("email", "mama@example.com");
-    formData.set("phone", "555-123-4567");
-    formData.set("state", "CA");
+    addLockedIntake(formData);
     formData.set("privacyAcknowledged", "yes");
     formData.set("next", "/library");
 
@@ -1630,6 +1635,23 @@ function paidSilverAccountState(): CurrentSparkleFinderAccountState {
       isTrialExpired: false,
     },
   };
+}
+
+function addLockedIntake(formData: FormData) {
+  formData.set("firstName", "Sparkle");
+  formData.set("lastName", "Mama");
+  formData.set("email", "mama@example.com");
+  formData.set("phone", "555-123-4567");
+  formData.set("state", "CA");
+  formData.set("birthdayMonth", "6");
+  formData.set("birthdayDay", "15");
+  formData.set("favoriteStone", "Opal");
+  formData.set("cut", "Round");
+  formData.set("finish", "Rhodium");
+  formData.set("ringSize", "7");
+  formData.set("jewelryNotes", "Stacking bands");
+  formData.set("userAgreement", "yes");
+  formData.set("privacyAcknowledged", "yes");
 }
 
 function repIncludedSilverAccountState(): CurrentSparkleFinderAccountState {

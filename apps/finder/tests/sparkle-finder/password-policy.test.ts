@@ -128,12 +128,21 @@ describe("Sparkle Finder password policy", () => {
 
 function signupForm(password: string) {
   const formData = new FormData();
-  formData.set("displayName", "Sparkle Mama");
+  formData.set("firstName", "Sparkle");
+  formData.set("lastName", "Mama");
   formData.set("email", "mama@example.com");
   formData.set("phone", "555-123-4567");
   formData.set("state", "CA");
+  formData.set("birthdayMonth", "6");
+  formData.set("birthdayDay", "15");
+  formData.set("favoriteStone", "Opal");
+  formData.set("cut", "Round");
+  formData.set("finish", "Rhodium");
+  formData.set("ringSize", "7");
+  formData.set("jewelryNotes", "Stacking bands");
   formData.set("password", password);
   formData.set("passwordConfirmation", password);
+  formData.set("userAgreement", "yes");
   formData.set("privacyAcknowledged", "yes");
   return formData;
 }

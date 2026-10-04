@@ -1,3 +1,4 @@
+import { applyStoredSilverTrialSettlement } from "@/lib/sparkle-finder/collector-intake-store";
 import { isSupabaseConfigured as defaultIsSupabaseConfigured } from "@/lib/supabase/client";
 import { createClient as defaultCreateSupabaseClient } from "@/lib/supabase/server";
 import {
@@ -158,11 +159,16 @@ export async function getCurrentSparkleFinderAccount({
     fetchMaybeSingle<SparkleFinderMembershipRow>(supabase, "sparkle_finder_memberships", user.id),
     fetchMaybeSingle<SparkleFinderConsentRow>(supabase, "sparkle_finder_communication_consents", user.id),
   ]);
+  const storedMembership = await applyStoredSilverTrialSettlement(
+    supabase as unknown as Parameters<typeof applyStoredSilverTrialSettlement>[0],
+    user.id,
+    membership,
+  );
 
   return mapSparkleFinderAccountRows({
     user,
     profile,
-    membership,
+    membership: storedMembership,
     consent,
   });
 }

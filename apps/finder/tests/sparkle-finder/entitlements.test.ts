@@ -59,7 +59,7 @@ describe("Sparkle Finder entitlements", () => {
     });
   });
 
-  it("represents Free local-dev customers with browse access only", () => {
+  it("represents Free local-dev customers with profile access and no collection or Nic-Nac access", () => {
     const accountState = getLocalDevAuthState("free");
     const entitlements = getSparkleFinderAccountEntitlements(accountState);
 
@@ -73,7 +73,7 @@ describe("Sparkle Finder entitlements", () => {
     expect(entitlements).toMatchObject({
       tier: "free",
       canBrowseLibrary: true,
-      canUseSilverProfileActions: false,
+      canUseSilverProfileActions: true,
       canUseSilverCollectionActions: false,
       canUseNicNacFindRequests: false,
     });
@@ -117,17 +117,17 @@ describe("Sparkle Finder entitlements", () => {
     });
   });
 
-  it("keeps Silver-only profile and collection actions unavailable for Free users", () => {
+  it("lets Free users keep a profile while collection saves and Nic-Nac stay Silver", () => {
     const entitlements = getSparkleFinderEntitlements(freeCustomer);
 
     expect(entitlements).toMatchObject({
       tier: "free",
       canBrowseLibrary: true,
-      canUseSilverProfileActions: false,
+      canUseSilverProfileActions: true,
       canUseSilverCollectionActions: false,
       canUseNicNacFindRequests: false,
     });
-    expect(canUseSilverProfileActions(freeCustomer)).toBe(false);
+    expect(canUseSilverProfileActions(freeCustomer)).toBe(true);
     expect(canUseSilverCollectionActions(freeCustomer)).toBe(false);
     expect(canUseNicNacFindRequests(freeCustomer)).toBe(false);
   });
@@ -147,7 +147,7 @@ describe("Sparkle Finder entitlements", () => {
     expect(canUseNicNacFindRequests(silverCustomer)).toBe(true);
   });
 
-  it("denies Free local-dev profile and collection state saves", () => {
+  it("lets Free local-dev accounts save a profile and blocks collection saves", () => {
     const freeAccount = getLocalDevAuthState("free");
     const profile: SilverProfile = {
       customerId: "customer-free-marlena",
@@ -171,9 +171,13 @@ describe("Sparkle Finder entitlements", () => {
     });
 
     expect(profileResult).toMatchObject({
-      ok: false,
-      reason: "silver_required",
-      profile,
+      ok: true,
+      profile: {
+        customerId: "customer-free-marlena",
+        bio: "Collects soft pink rings.",
+        tiktokHandle: "@free_preview",
+        visibility: "sparkle_finder",
+      },
     });
     expect(collectionResult).toMatchObject({
       ok: false,
@@ -785,12 +789,12 @@ describe("Sparkle Finder entitlements", () => {
     expect(result).toEqual({ ok: false, reason: "save_failed" });
   });
 
-  it("denies persisted Silver profile and collection writes for Free accounts", async () => {
+  it("lets Free accounts persist a profile and still blocks collection writes", async () => {
     const accountState = currentAccountState("free");
     const client = createFakePersistenceClient({});
 
     const profileResult = await persistSilverProfileForAccount(client, accountState, {
-      bio: "Should not save.",
+      bio: "Free profile.",
       tiktokHandle: "@free_user",
       visibility: "sparkle_finder",
     });
@@ -801,9 +805,10 @@ describe("Sparkle Finder entitlements", () => {
       isHighlighted: true,
     });
 
-    expect(profileResult).toEqual({ ok: false, reason: "silver_required" });
+    expect(profileResult).toEqual({ ok: true });
     expect(collectionResult).toEqual({ ok: false, reason: "silver_required" });
-    expect(client.operations).toEqual([]);
+    expect(client.operations.some((operation) => operation.table === "sparkle_finder_profiles")).toBe(true);
+    expect(client.operations.some((operation) => operation.table === "sparkle_finder_collection_items")).toBe(false);
   });
 
   it("rejects unknown jewelry item ids in the Silver collection server action before persistence", async () => {
