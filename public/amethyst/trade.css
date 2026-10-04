@@ -576,9 +576,8 @@ body.britt-with-bling-trade .hp-footer {
 
 /* ---------- Filter pill bar ---------- */
 .tp-filters {
-  position: sticky;
-  top: 144px;
-  z-index: 5;
+  /* Keep search above the inventory without covering dancers while browsing. */
+  position: static;
   background: color-mix(in oklab, var(--hp-bg) 92%, transparent);
   backdrop-filter: blur(8px);
   border: 1px solid var(--border);
@@ -587,12 +586,6 @@ body.britt-with-bling-trade .hp-footer {
   padding: 14px 0;
   margin-bottom: 24px;
   overflow: hidden;
-}
-@media (max-width: 900px) {
-  .tp-filters {
-    top: var(--hp-mobile-sticky-filters-top);
-    z-index: 60;
-  }
 }
 .tp-filters-topline {
   display: flex;
@@ -1192,9 +1185,6 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
   .tp-card-expand { grid-template-columns: 1fr; }
   .tp-filter-grid { grid-template-columns: 1fr; }
   .tp-filters {
-    position: sticky;
-    top: 0;
-    z-index: 76;
     box-shadow: 0 12px 28px rgba(14, 8, 32, 0.08);
   }
   .tp-mobile-filter-cue {

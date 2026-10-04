@@ -56,13 +56,15 @@ describe('Amethyst trade page template wiring', () => {
     expect(source).not.toContain('options.limit ?? 18')
   })
 
-  it('keeps desktop Dance Floor controls sticky while mobile controls scroll with the page', () => {
+  it('lets Dance Floor search scroll with the page at every screen size', () => {
     const css = readFileSync(
       resolve(process.cwd(), 'public/amethyst/trade.css'),
       'utf8',
     )
 
-    expect(css).toMatch(/\.tp-filters\s*\{[\s\S]*?position:\s*sticky;/)
+    const filterRules = [...css.matchAll(/\.tp-filters\s*\{([^}]*)\}/g)].map((match) => match[1])
+    expect(filterRules.some((rule) => /position:\s*static;/.test(rule))).toBe(true)
+    expect(filterRules.some((rule) => /position:\s*(sticky|fixed);/.test(rule))).toBe(false)
     expect(css).toMatch(/@media\s+\(max-width:\s*900px\)[\s\S]*?\.tp-drawer,[\s\S]*?\.tp-filters\s*\{[\s\S]*?position:\s*static;/)
     expect(css).toMatch(/@media\s+\(pointer:\s*coarse\)[\s\S]*?\.tp-filter-pill[\s\S]*?min-height:\s*44px;/)
     expect(css).toMatch(/@media\s+\(pointer:\s*coarse\)[\s\S]*?\.tp-card-close[\s\S]*?min-width:\s*44px;/)
