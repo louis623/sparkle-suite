@@ -2,9 +2,26 @@ import Link from "next/link";
 
 type SparkleFinderLogoProps = {
   className?: string;
+  lockup?: boolean;
 };
 
-export function SparkleFinderLogo({ className = "" }: SparkleFinderLogoProps) {
+export function SparkleFinderLogo({ className = "", lockup = false }: SparkleFinderLogoProps) {
+  if (lockup) {
+    return (
+      <Link
+        aria-label="Sparkle Finder by Sparkle Suite home"
+        className={`sparkle-finder-logo ${className}`.trim()}
+        href="/"
+      >
+        <img
+          alt=""
+          className="sparkle-finder-logo__lockup"
+          src="/brand/sparkle-finder-logo-transparent.png"
+        />
+      </Link>
+    );
+  }
+
   return (
     <Link
       aria-label="Sparkle Finder by Sparkle Suite home"

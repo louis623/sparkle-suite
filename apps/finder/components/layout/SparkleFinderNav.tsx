@@ -28,9 +28,9 @@ export function SparkleFinderNav({ accountState = getLocalDevAuthState(), varian
       : "mx-auto flex min-h-[4.65rem] w-full max-w-[112rem] items-center justify-center gap-4 px-5 py-3 sm:px-8 lg:min-h-[5.05rem] lg:justify-between lg:gap-6 lg:px-10 lg:py-0";
 
   return (
-    <header className="sparkle-finder-nav-shell" data-smoke="nav">
+    <header className={variant === "public" ? "sparkle-finder-nav-shell sparkle-finder-nav-shell--public" : "sparkle-finder-nav-shell"} data-smoke="nav">
       <div className={innerClassName}>
-        <SparkleFinderLogo />
+        <SparkleFinderLogo lockup={variant === "public"} />
         {variant === "public" ? (
           <nav aria-label="Sparkle Finder public navigation">
             <Link aria-label="Sign In" className="sparkle-finder-nav-link px-3" href="/auth/sign-in">

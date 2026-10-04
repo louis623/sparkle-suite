@@ -17,7 +17,7 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
   const onSubpage = onPortfolio || onDemo || current === 'faq'
   const homeHref = intake || onSubpage ? '/' : '#top'
   return <header className={styles.header}>
-    <a className={styles.brand} href={homeHref} aria-label="Sparkle Suite workspace"><img alt="" className={styles.logo} src="/email-signatures/sparkle-suite-logo.png" /></a>
+    <a className={styles.brand} href={homeHref} aria-label="Sparkle Suite workspace"><img alt="" className={styles.logo} src="/brand/sparkle-suite-logo-transparent.png" /></a>
     <nav className={styles.navigation} aria-label="Explore Sparkle Suite">
       {onSubpage ? <Link className={styles.pageLink} href="/">Home</Link> : null}
       {onPortfolio ? <>
@@ -43,7 +43,7 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
 export function MarketingFooter({ current }: { current?: 'home' | 'portfolio' | 'demo' | 'faq' } = {}) {
   const textLinks = [...content.footer.links, ...content.footer.socialLinks].filter((link) => link.label !== 'TikTok' && link.label !== 'YouTube')
   return <footer className={styles.footer}>
-    <Link className={styles.brand} href="/" aria-label="Sparkle Suite workspace"><img alt="" className={styles.logo} src="/email-signatures/sparkle-suite-logo.png" /></Link>
+    <Link className={styles.brand} href="/" aria-label="Sparkle Suite workspace"><img alt="" className={styles.logo} src="/brand/sparkle-suite-logo-transparent.png" /></Link>
     <nav aria-label="Footer links">{textLinks.map((link) => <a key={link.label} href={link.href} aria-current={current === 'faq' && link.href === '/faq' ? 'page' : undefined}>{link.label}</a>)}</nav>
     <MarketingSocialLinks />
     <p>{sparkleSuitePublicLandingSafety.disclaimer}</p>
@@ -76,19 +76,13 @@ export function LandingExperience({ initialAvailability }: { initialAvailability
       <figure className={styles.heroFigure}>
         <div className={styles.heroScene}>
           <div className={styles.heroStage}>
-            <div className={styles.heroPair}>
-              <div className={styles.heroWindow}>
-                <div className={styles.browserBar} aria-hidden="true"><em>{halloweenHeroMotion.witch.label}</em></div>
-                <ProductPeekVideo poster={halloweenHeroMotion.witch.poster} mp4={halloweenHeroMotion.witch.mp4} width={halloweenHeroMotion.witch.width} height={halloweenHeroMotion.witch.height} label={halloweenHeroMotion.witch.label} alt="Halloween Pumpkin and Witch homepage hero, with the live lineup, shop actions, jack-o'-lantern, and flying witch" />
-              </div>
-              <div className={styles.heroWindow}>
-                <div className={styles.browserBar} aria-hidden="true"><em>{halloweenHeroMotion.cat.label}</em></div>
-                <ProductPeekVideo poster={halloweenHeroMotion.cat.poster} mp4={halloweenHeroMotion.cat.mp4} width={halloweenHeroMotion.cat.width} height={halloweenHeroMotion.cat.height} label={halloweenHeroMotion.cat.label} alt="Halloween Pumpkin and Cat homepage hero, with the site header, live lineup, shop actions, and a black cat beside the jack-o'-lantern" />
-              </div>
+            <div className={styles.heroWindow}>
+              <div className={styles.browserBar} aria-hidden="true"><em>{halloweenHeroMotion.cat.label}</em></div>
+              <ProductPeekVideo poster={halloweenHeroMotion.cat.poster} mp4={halloweenHeroMotion.cat.mp4} width={halloweenHeroMotion.cat.width} height={halloweenHeroMotion.cat.height} label={halloweenHeroMotion.cat.label} alt="Halloween Cat homepage hero, with the site header, live lineup, shop actions, and a black cat beside the jack-o'-lantern" />
             </div>
           </div>
         </div>
-        <figcaption>Two Halloween looks. Beautiful on phones, tablets, and desktop.</figcaption>
+        <figcaption>A Halloween look. Beautiful on phones, tablets, and desktop.</figcaption>
       </figure>
       </div>
     </section>

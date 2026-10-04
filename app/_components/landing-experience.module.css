@@ -55,7 +55,7 @@
 .page .hero .primaryButton:hover{background:#a11466}
 .page .hero :is(a,button):focus-visible{outline-color:#ffd6ec}
 .page .hero .heroFigure figcaption{color:#e7d5ce}
-.page .hero .heroWindow{width:100%;transform:none;background:#120c10;border:1px solid #ffe2ec47;border-radius:20px}
+.page .hero .heroWindow{width:100%;max-width:720px;transform:none;background:#120c10;border:1px solid #ffe2ec47;border-radius:20px}
 .page .hero .browserBar{height:32px;justify-content:center;gap:0;padding:0 12px;background:#160e13;border-bottom:1px solid #ffe2ec29}
 .page .hero .browserBar>span{display:none}
 .page .hero .browserBar em{margin:0;padding:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f4e7e1;font-size:12px;letter-spacing:.04em}

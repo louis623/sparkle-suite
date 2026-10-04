@@ -41,7 +41,7 @@ export function SparkleSuitePublicHeader({
     <header className="sl2-header">
       <div className="sl2-header__inner">
         <a aria-label="Sparkle Suite workspace" className="sl2-brand" href={homeHref}>
-          <img alt="" className="sl2-brand__logo" src="/email-signatures/sparkle-suite-logo.png" />
+          <img alt="" className="sl2-brand__logo" src="/brand/sparkle-suite-logo-transparent.png" />
         </a>
         <nav className="sl2-header__actions" aria-label="Account links">
           <SparkleSuitePublicAccountAction />
@@ -62,7 +62,7 @@ export function SparkleSuitePublicFooter({
     <footer className="sl2-footer">
       <div className="sl2-footer__inner">
         <div className="sl2-footer__brand">
-          <img alt="Sparkle Suite workspace" className="sl2-brand__logo" src="/email-signatures/sparkle-suite-logo.png" />
+          <img alt="Sparkle Suite workspace" className="sl2-brand__logo" src="/brand/sparkle-suite-logo-transparent.png" />
         </div>
         <nav className="sl2-footer__nav" aria-label="Footer links">
           <div>
