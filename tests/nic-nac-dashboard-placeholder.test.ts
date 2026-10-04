@@ -2454,7 +2454,7 @@ describe('DashboardPlaceholder', () => {
     expect(css).not.toContain('.nicNacHeroMark')
   })
 
-  it('uses a compact two-line Sparkle Suite workspace brand in the app header', () => {
+  it('uses the official Sparkle Suite Workspace logo in the app header', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
       'utf8',
@@ -2464,13 +2464,13 @@ describe('DashboardPlaceholder', () => {
       'utf8',
     )
 
-    expect(source).toContain('styles.appBrandText')
-    expect(source).toContain('styles.appBrandName')
-    expect(source).toContain('styles.appBrandSubtitle')
-    expect(source).toContain('Workspace')
+    expect(source).toContain('styles.appBrandLogoFrame')
+    expect(source).toContain('src="/email-signatures/sparkle-suite-logo.png"')
+    expect(source).toContain('alt="Sparkle Suite Workspace"')
+    expect(source).not.toContain('<SparkleSeal')
     expect(source).not.toContain('styles.appSearch')
-    expect(css).toContain('.appBrandSeal')
-    expect(css).toContain('.appBrandSubtitle')
+    expect(css).toContain('.appBrandLogoFrame')
+    expect(css).toContain('.appBrandLogo')
   })
 
   it('wires idle refresh hooks for the trade workspace', () => {

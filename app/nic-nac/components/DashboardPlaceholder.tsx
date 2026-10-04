@@ -119,7 +119,6 @@ import {
   Wrench,
   X,
 } from 'lucide-react'
-import { SparkleSeal } from '@/app/prelaunch/_components/PrelaunchVisuals'
 import type { WorkspaceLaunchAction } from '@/lib/nic-nac/workspace-launch-actions'
 import type { WorkspaceResource } from '@/lib/services/workspace-resources'
 import {
@@ -7298,10 +7297,15 @@ export function WorkspaceAppHeader({
         onClick={onGoHome}
         aria-label="Go to Nic-Nac home"
       >
-        <SparkleSeal className={styles.appBrandSeal} />
-        <span className={styles.appBrandText}>
-          <span className={styles.appBrandName}>Sparkle Suite</span>
-          <span className={styles.appBrandSubtitle}>Workspace</span>
+        <span className={styles.appBrandLogoFrame}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className={styles.appBrandLogo}
+            src="/email-signatures/sparkle-suite-logo.png"
+            alt="Sparkle Suite Workspace"
+            width={1100}
+            height={280}
+          />
         </span>
       </button>
       <div className={styles.appHeaderReferences} aria-label="Workspace quick reference">

@@ -430,37 +430,23 @@
   outline-offset: 2px;
 }
 
-.appBrandSeal {
-  width: 38px;
-  height: 38px;
-  color: #e2198f;
+.appBrandLogoFrame {
+  position: relative;
+  width: 190px;
+  height: 54px;
+  overflow: hidden;
   flex: 0 0 auto;
 }
 
-.appBrandSeal text {
-  transform: translateX(-1.5px);
-}
-
-.appBrandText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.appBrandName {
-  color: #171034;
-  font-size: 1rem;
-  font-weight: 850;
-  line-height: 1;
-}
-
-.appBrandSubtitle {
-  color: #6f6389;
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1;
+.appBrandLogo {
+  /* Frame the transparent padding; keep the official artwork unaltered. */
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 280px;
+  max-width: none;
+  height: auto;
+  transform: translateY(-50%);
 }
 
 .appHeaderActions {
@@ -7167,9 +7153,13 @@
     font-size: 0.95rem;
   }
 
-  .appBrandSeal {
-    width: 34px;
-    height: 34px;
+  .appBrandLogoFrame {
+    width: 174px;
+    height: 48px;
+  }
+
+  .appBrandLogo {
+    width: 250px;
   }
 
   .appHeaderActions {
