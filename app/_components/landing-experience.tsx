@@ -5,7 +5,6 @@ import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
 import { sparkleSuitePublicLandingContent as content, sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 import { MarketingSocialLinks } from './marketing-social-links'
 import { ProductPeekVideo } from './product-peek-video'
-import { SparkleSeal } from './sparkle-suite-public-chrome'
 import { SparkleSuitePublicAccountAction } from './SparkleSuitePublicAccountAction'
 import { SparkleSuitePublicNicNac } from './sparkle-suite-public-nic-nac'
 import type { FounderAvailability } from '@/lib/sparkle-suite/founder-availability'
@@ -18,7 +17,7 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
   const onSubpage = onPortfolio || onDemo || current === 'faq'
   const homeHref = intake || onSubpage ? '/' : '#top'
   return <header className={styles.header}>
-    <a className={styles.brand} href={homeHref} aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></a>
+    <a className={styles.brand} href={homeHref} aria-label="Sparkle Suite workspace"><img alt="" className={styles.logo} src="/email-signatures/sparkle-suite-logo.png" /></a>
     <nav className={styles.navigation} aria-label="Explore Sparkle Suite">
       {onSubpage ? <Link className={styles.pageLink} href="/">Home</Link> : null}
       {onPortfolio ? <>
@@ -44,7 +43,7 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
 export function MarketingFooter({ current }: { current?: 'home' | 'portfolio' | 'demo' | 'faq' } = {}) {
   const textLinks = [...content.footer.links, ...content.footer.socialLinks].filter((link) => link.label !== 'TikTok' && link.label !== 'YouTube')
   return <footer className={styles.footer}>
-    <Link className={styles.brand} href="/" aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></Link>
+    <Link className={styles.brand} href="/" aria-label="Sparkle Suite workspace"><img alt="" className={styles.logo} src="/email-signatures/sparkle-suite-logo.png" /></Link>
     <nav aria-label="Footer links">{textLinks.map((link) => <a key={link.label} href={link.href} aria-current={current === 'faq' && link.href === '/faq' ? 'page' : undefined}>{link.label}</a>)}</nav>
     <MarketingSocialLinks />
     <p>{sparkleSuitePublicLandingSafety.disclaimer}</p>
