@@ -13,6 +13,18 @@ const TRADE_BOARD_HREF = FOOTER_LINKS.tradeBoard || "/amethyst/Trade.html";
 function applyUnsubscribeAppearance() {
   const preset = window.HOMEPAGE_TWEAK_DEFAULTS?.preset;
 
+  if (preset === "midnight_rose") {
+    document.body.classList.add("bg-midnight-rose", "surface-midnight-rose", "shape-soft");
+    const midnightTokens = {
+      "--hp-primary": "#efb5a3", "--hp-accent": "#d29b82", "--primary": "#efb5a3", "--accent": "#d29b82",
+      "--hp-bg": "#180e16", "--hp-bg-elevated": "#271920", "--bg-deep": "#100910",
+      "--hp-display-font": '"Playfair Display", Georgia, serif',
+      "--hp-body-font": '"DM Sans", "Inter", system-ui, sans-serif', "--hp-heading-weight": "600",
+    };
+    Object.entries(midnightTokens).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
+    return;
+  }
+
   if (preset === "rose_gold") {
     document.body.classList.add("bg-rose-gold-paper", "surface-pearl-rose", "shape-soft");
     const roseTokens = {

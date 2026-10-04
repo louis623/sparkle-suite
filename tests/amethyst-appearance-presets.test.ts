@@ -89,6 +89,7 @@ describe('Amethyst appearance presets', () => {
       'halloween_pumpkin_cat',
       'gilded_autumn',
       'rose_gold',
+      'midnight_rose',
       'garnet',
       'amber',
       'velvet',
@@ -107,6 +108,7 @@ describe('Amethyst appearance presets', () => {
       'Halloween Pumpkin and Witch',
       'The Golden Leaves of Autumn',
       'Rose Champagne',
+      'Midnight Rose',
       'Garnet',
       'Amber',
       'Velvet',
@@ -422,9 +424,14 @@ describe('Amethyst appearance presets', () => {
     )
 
     for (const surface of cardSurfaces) {
-      const className =
-        surface === 'holographic' ? 'fx-holographic' : `surface-${surface}`
-      expect(homepageCss).toMatch(
+      // New collection themes keep palette tokens in their scoped stylesheet.
+      const surfaceCss = surface === 'midnight-rose'
+        ? readFileSync(resolve(process.cwd(), 'public/amethyst/midnight-rose.css'), 'utf8')
+        : homepageCss
+      const className = surface === 'midnight-rose'
+        ? 'bg-midnight-rose'
+        : surface === 'holographic' ? 'fx-holographic' : `surface-${surface}`
+      expect(surfaceCss).toMatch(
         new RegExp(
           `body\\.${className.replaceAll('-', '\\-')}\\s*\\{[\\s\\S]*?--hp-card-fg:[\\s\\S]*?--hp-card-muted:[\\s\\S]*?--hp-card-accent:`,
         ),

@@ -616,6 +616,7 @@ export type SiteAppearancePreset =
   | 'halloween_pumpkin_cat'
   | 'gilded_autumn'
   | 'rose_gold'
+  | 'midnight_rose'
   | 'garnet'
   | 'amber'
   | 'velvet'

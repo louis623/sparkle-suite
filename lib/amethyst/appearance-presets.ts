@@ -13,6 +13,7 @@ export const AMETHYST_APPEARANCE_PRESET_IDS = [
   'halloween_pumpkin_cat',
   'gilded_autumn',
   'rose_gold',
+  'midnight_rose',
   'garnet',
   'amber',
   'velvet',
@@ -376,6 +377,20 @@ export const AMETHYST_APPEARANCE_PRESETS: Record<
       tradeFlair: 'champagne-rose',
       cursorEffect: 'default',
       tickerSpeed: 1,
+    },
+  },
+  midnight_rose: {
+    id: 'midnight_rose',
+    label: 'Midnight Rose',
+    description: 'Deep aubergine, copper-blush light and dramatic rose-metal shimmer.',
+    values: {
+      primaryColor: '#efb5a3', accentColor: '#d29b82', bgTone: 'midnightRose',
+      headingFont: 'playfair', bodyFont: 'dmSans', headingWeight: 600,
+      shapeRadius: 'soft', density: 'regular', saturation: 100,
+      heroMotion: 'sparkle_rise', sparkleLevel: 'subtle',
+      bgTreatment: 'midnight-rose', cardSurface: 'midnight-rose',
+      textureOverlay: 'none', buttonEnergy: 'midnight-rose-lift', ctaEmphasis: 'standard',
+      tradeFlair: 'copper-midnight', cursorEffect: 'default', tickerSpeed: 1,
     },
   },
   garnet: {

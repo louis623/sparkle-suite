@@ -1,0 +1,305 @@
+/* RG-02 Midnight Rose: palette and decorative hero only. Shared Amethyst
+ * fonts, spacing, header, tickers and Live Lineup geometry stay untouched. */
+html:has(body.bg-midnight-rose) {
+  background: #180e16;
+  --bg: #180e16;
+  --bg-elevated: #271920;
+}
+body.bg-midnight-rose {
+  color-scheme: dark;
+  --fg: #fff0e8;
+  --fg-muted: #dbc0bb;
+  --border: #66424b;
+  --hp-bg: #180e16;
+  --hp-bg-elevated: #271920;
+  --bg-deep: #100910;
+  --hp-preview-bg: #271920;
+  --hp-preview-fg: #fff0e8;
+  --hp-preview-muted: #dbc0bb;
+  --hp-preview-border: #66424b;
+  --hp-card-fg: #fff0e8;
+  --hp-card-muted: #dbc0bb;
+  --hp-card-accent: #efb5a3;
+  --hp-form-panel-bg: #271920;
+  --hp-form-panel-fg: #fff0e8;
+  --hp-field-bg: #271920;
+  --hp-field-fg: #fff0e8;
+  --hp-final-fg: #fff0e8;
+  --hp-final-muted: #dbc0bb;
+  --hp-final-icon-fg: #321820;
+  --hp-action-fg: #321820;
+  --hp-media-card-bg: #271920;
+  --hp-media-card-fg: #fff0e8;
+  --hp-media-card-muted: #dbc0bb;
+  --hp-media-card-border: #66424b;
+  --hp-media-card-header-bg: linear-gradient(135deg, #efb5a3, #efb5a3);
+  --hp-media-card-footer-bg: #30202a;
+  --hp-media-card-shadow: 0 24px 64px #0000003b;
+  --hp-media-card-hover-shadow: 0 30px 74px #00000050;
+  --hp-media-card-accent-contrast: #321820;
+  --hp-media-icon-fg: #321820;
+  --hp-media-cta-fg: #321820;
+  background: #180e16;
+  color: #fff0e8;
+}
+
+body.bg-midnight-rose .hp-header {
+  background: #271920;
+  border-color: #66424b;
+}
+body.bg-midnight-rose :is(.hp-brand-name, .hp-header-link) { color: #fff0e8; }
+body.bg-midnight-rose .hp-brand-sub { color: #dbc0bb; }
+body.bg-midnight-rose .hp-header-link[aria-current="page"] { color: #efb5a3; }
+
+body.bg-midnight-rose :is(.hp-ticker, .hp-ticker-row) {
+  background: #25151f;
+  color: #fff0e8;
+  border-color: #66424b;
+}
+body.bg-midnight-rose .hp-ticker-row.reverse { background: #30202a; }
+body.bg-midnight-rose :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #fff0e8; }
+body.bg-midnight-rose .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #fff0e8; }
+body.bg-midnight-rose .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #efb5a3; }
+body.bg-midnight-rose .hp-ticker-row .hp-ticker-label {
+  background: linear-gradient(90deg, #25151f 0%, #25151f 70%, transparent 100%);
+  color: #fff0e8;
+}
+body.bg-midnight-rose .hp-ticker-row.reverse .hp-ticker-label {
+  background: linear-gradient(90deg, #30202a 0%, #30202a 70%, transparent 100%);
+  color: #fff0e8;
+}
+body.bg-midnight-rose :is(.hp-trade-preview, .hp-lrq-strip, .hp-lrq, .hp-lineup-calendar-row) {
+  background: #271920;
+  color: #fff0e8;
+  border-color: #66424b;
+}
+body.bg-midnight-rose :is(.hp-lineup-idle-prompt, .hp-trade-preview-head, .hp-trade-preview-link, .hp-trade-preview-pill) { color: #fff0e8; }
+body.bg-midnight-rose :is(.hp-trade-preview-updated, .hp-trade-preview-pill .label) { color: #dbc0bb; }
+
+body.bg-midnight-rose :is(.hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .tp-card-expand-cta, .tp-sheet-submit, .jp-spot-btn, .jp-final-btn) {
+  background: #efb5a3;
+  color: #321820;
+  border-color: #66424b;
+  box-shadow: 0 9px 24px #0000003b;
+}
+
+/* The original full-bleed hero and original HTML copy/actions stay in place. */
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] .hp-hero-media,
+body.bg-midnight-rose .jp-hero-media {
+  background: linear-gradient(90deg, rgba(20, 8, 15, .08), rgba(20, 8, 15, 0)),
+    url('/amethyst/skins/midnight-rose/hero-poster.webp') center center / cover no-repeat;
+  background-blend-mode: normal;
+}
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] .hp-hero-headline {
+  color: #ffece2;
+  -webkit-text-fill-color: #ffece2;
+  background: none;
+  text-shadow: 0 2px 14px #10091088;
+}
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] .hp-hero-sub {
+  color: #f9ded5;
+  text-shadow: 0 1px 6px #10091099;
+}
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] :is(.hp-btn-outline, .hp-btn-watch) {
+  color: #ffece2;
+  border-color: #efb5a399;
+  background: #321820a6;
+  backdrop-filter: blur(8px);
+}
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] .hp-hero-fx-layer { display: none; }
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] .mdr-media {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] :is(.mdr-poster, .mdr-video) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  pointer-events: none;
+}
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] .mdr-video { opacity: 0; }
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] .mdr-media[data-mdr-has-frame="true"] .mdr-video { opacity: 1; }
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] .mdr-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(20, 8, 15, .08), rgba(20, 8, 15, 0));
+  pointer-events: none;
+}
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] .mdr-toggle {
+  position: absolute;
+  inset-inline-end: 16px;
+  bottom: 16px;
+  z-index: 4;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #efb5a399;
+  border-radius: 999px;
+  background: #271920ee;
+  color: #ffece2;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+body.bg-midnight-rose .hp-hero[data-appearance-preset="midnight_rose"] .mdr-toggle:focus-visible {
+  outline: 2px solid #ffece2;
+  outline-offset: 3px;
+}
+
+/* Surface tokens serve Home, Trade, Join and their existing forms uniformly. */
+body.bg-midnight-rose :is(#events, #wibp, #about, .hp-signup, .hp-footer) {
+  background: #180e16;
+  color: #fff0e8;
+  border-color: #66424b;
+}
+body.bg-midnight-rose.surface-midnight-rose :is(.hp-event-card, .hp-wibp-card, .hp-trade-card, .hp-signup-card, .tp-lrq-rail, .tp-filters, .tp-card, .tp-card-expand, .tp-sheet, .jp-hero-card, .jp-team-card, .jp-benefit-card, .jp-faq-item, .jp-final-card) {
+  background: #271920;
+  color: var(--hp-card-fg);
+  border-color: #66424b;
+  box-shadow: 0 15px 38px #00000035;
+}
+body.bg-midnight-rose :is(.hp-section-title, .hp-event-title, .hp-about-headline, .hp-signup-title, .tp-hero-title, .jp-hero-title, .jp-section-title) {
+  color: #fff0e8;
+  -webkit-text-fill-color: #fff0e8;
+  background: none;
+}
+body.bg-midnight-rose :is(.hp-section-sub, .hp-event-desc, .hp-event-meta, .hp-about-text, .hp-footer-tagline, .tp-hero-sub, .jp-hero-pitch, .jp-hero-localized, .jp-hero-compliance, .jp-section-sub) { color: #dbc0bb; }
+body.bg-midnight-rose .jp-hero-eyebrow { color: #efb5a3; }
+body.bg-midnight-rose .jp-hero-eyebrow::before,
+body.bg-midnight-rose .jp-hero-eyebrow::after { background: #66424b; }
+body.bg-midnight-rose .jp-hero-compliance a { color: #efb5a3; }
+body.bg-midnight-rose :is(.hp-event-tag, .hp-event-badge, .jp-hero-promo) {
+  background: #51303b;
+  color: #efb5a3;
+  border-color: #66424b;
+}
+body.bg-midnight-rose .hp-event-pill { background: #efb5a3; color: #321820; }
+body.bg-midnight-rose .hp-event-pill .pip { background: #321820; }
+body.bg-midnight-rose .hp-step-num { background: #efb5a3; color: #271920; }
+body.bg-midnight-rose .tp-filter-chip { background: #180e16; color: #fff0e8; border-color: #66424b; }
+body.bg-midnight-rose .tp-filter-chip.active { background: #efb5a3; color: #321820; border-color: #efb5a3; }
+body.bg-midnight-rose .hp-footer :is(.hp-footer-brand, .hp-footer-team, .hp-footer-col a) { color: var(--hp-card-fg); }
+body.bg-midnight-rose .hp-footer :is(.hp-footer-tag, .hp-footer-coming-soon, .hp-footer-bottom, .hp-footer-bottom a) { color: var(--hp-card-muted); }
+body.bg-midnight-rose .hp-footer .hp-footer-bottom { border-color: var(--border); }
+body.bg-midnight-rose .hp-footer .hp-footer-coming-soon span {
+  background: #51303b;
+  color: var(--hp-card-muted);
+  border-color: var(--border);
+}
+body.bg-midnight-rose .hp-footer .hp-footer-social {
+  background: #271920;
+  color: var(--hp-card-fg);
+  border-color: var(--border);
+}
+body.bg-midnight-rose .hp-footer .hp-footer-social:hover {
+  background: #51303b;
+  color: var(--hp-card-fg);
+  border-color: var(--hp-card-accent);
+}
+body.bg-midnight-rose .hp-footer :is(.hp-footer-col a, .hp-footer-bottom a):hover { color: var(--hp-card-accent); }
+body.bg-midnight-rose .hp-footer a:focus-visible { outline-color: var(--hp-card-accent); }
+
+/* Platform labels and glyphs inherit the theme rather than provider colors. */
+body.bg-midnight-rose :is(.hp-event-platform, .event-platform-btn, .hp-calendar-choice.google, .hp-calendar-choice.outlook) {
+  background: linear-gradient(105deg, #efb5a3, #efb5a3);
+  color: #321820;
+  border-color: #efb5a3;
+}
+body.bg-midnight-rose :is(.hp-event-platform, .event-platform-btn) .glyph {
+  background: #321820;
+  color: #efb5a3;
+}
+body.bg-midnight-rose .hp-event-platform .glyph::after { color: #efb5a3; }
+body.bg-midnight-rose :is(.hp-stream-btn, .hp-watch-option, .stream-option) .glyph {
+  background: #efb5a3;
+  color: #321820;
+}
+body.bg-midnight-rose :is(.hp-stream-btn, .hp-watch-option) {
+  background: #271920;
+  color: #fff0e8;
+  border-color: #66424b;
+}
+body.bg-midnight-rose :is(.hp-stream-btn, .hp-watch-option):hover { background: #51303b; color: #fff0e8; }
+body.bg-midnight-rose :is(.hp-stream-btn, .hp-watch-option) .handle { color: #dbc0bb; }
+body.bg-midnight-rose .jp-team-social {
+  background: #271920;
+  color: #efb5a3;
+  border-color: #66424b;
+}
+body.bg-midnight-rose .jp-team-social:hover {
+  background: #efb5a3;
+  color: #321820;
+  border-color: #efb5a3;
+}
+body.bg-midnight-rose :is(.hp-event-platform, .event-platform-btn, .jp-team-social):focus-visible {
+  outline-color: #efb5a3;
+}
+
+/* Keep existing icon bubbles distinct from their own surrounding surfaces. */
+body.bg-midnight-rose .hp-customer-media-empty-icon {
+  background: #321820;
+  color: #efb5a3;
+  border-color: #d29b82;
+}
+body.bg-midnight-rose :is(.jp-benefit-icon, .jp-final-icon, .tp-sheet-success-icon) {
+  background: #efb5a3;
+  color: #321820;
+  border-color: #d29b82;
+}
+body.bg-midnight-rose .tp-empty-glyph { color: #efb5a3; opacity: 1; }
+body.bg-midnight-rose .hp-calendar-modal-close { background: #271920; color: #fff0e8; }
+body.bg-midnight-rose .hp-calendar-modal-close:hover { background: #51303b; }
+
+/* Selective champagne/copper accents on existing reveal and lineup circles. */
+body.bg-midnight-rose :is(.hp-step-num, .jp-benefit-icon, .hp-trade-preview-pill .pos, .hp-queue-modal-row .pos) {
+  background: linear-gradient(135deg, #d79585, #efb5a3 48%, #c47d74);
+  color: #321820;
+  border-color: #b7786b;
+  box-shadow: inset 0 0 0 1px #efb5a388;
+}
+
+/* Existing dialog, lineup and form states keep their original dimensions. */
+body.bg-midnight-rose :is(.hp-calendar-modal, .hp-queue-modal, .hp-queue-modal-row) {
+  background: #271920;
+  color: #fff0e8;
+  border-color: #66424b;
+}
+body.bg-midnight-rose .hp-queue-modal-row.now { background: #51303b; }
+body.bg-midnight-rose .hp-queue-modal-row .name { color: #fff0e8; }
+body.bg-midnight-rose .hp-queue-modal-row .label { color: #dbc0bb; }
+body.bg-midnight-rose .hp-queue-modal-close { background: #271920; color: #fff0e8; }
+body.bg-midnight-rose .hp-queue-modal-close:hover { background: #51303b; }
+body.bg-midnight-rose :is(.hp-event-copy:hover, .hp-event-copy.copied, .hp-event-collection-pill:hover) { color: #321820; }
+body.bg-midnight-rose :is(.hp-lrq-item:not(.on-deck) .pos, .tp-lrq-row.now .pos, .tp-filter-badge, .tp-load-more, .tp-card-tier.unicorn) {
+  background: #efb5a3;
+  color: #321820;
+}
+body.bg-midnight-rose .tp-card-tier.unicorn .pip { background: #321820; }
+body.bg-midnight-rose :is(.tp-empty-reset, .tp-card-close) {
+  background: #271920;
+  color: #efb5a3;
+  border-color: #66424b;
+}
+body.bg-midnight-rose .tp-sheet-receipt input {
+  background: #271920;
+  color: #fff0e8;
+  border-color: #66424b;
+}
+body.bg-midnight-rose :is(.hp-signup-input, .tp-board-search input, .tp-sheet-field input, .tp-sheet-field textarea)::placeholder {
+  color: #dbc0bb;
+  opacity: 1;
+}
+body.bg-midnight-rose .hp-signup-status.success { color: #cce6ce; }
+body.bg-midnight-rose .hp-signup-status.error { color: #ffb7ad; }
+body.bg-midnight-rose .tp-sheet-error {
+  background: #38212a;
+  color: #ffb7ad;
+  border-color: #a76b6c;
+}

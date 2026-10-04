@@ -47,7 +47,7 @@ describe('RG-01 Rose Champagne theme compatibility', () => {
     expect(render('gnome_garden').classes).toContain('bg-gnome-garden')
     expect(render('halloween_pumpkin_cat').classes).toContain('bg-halloween-pumpkin-cat')
     expect(render('sparkle_suite_morganite').classes).toEqual([])
-    expect(readFileSync('public/amethyst/Unsubscribe.html', 'utf8')).toContain('unsubscribe.jsx?v=20261003-rg01-v1')
+    expect(readFileSync('public/amethyst/Unsubscribe.html', 'utf8')).toContain('unsubscribe.jsx?v=20261003-rg02-v1')
   })
 
   it('keeps saved Rose Gold selections and Community availability under the new display name', () => {

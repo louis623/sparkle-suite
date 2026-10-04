@@ -24,20 +24,24 @@ describe('customer-site skin contrast contract', () => {
   const homepageCss = readCustomerSiteCss('homepage.css')
   const joinCss = readCustomerSiteCss('join.css')
   const tradeCss = readCustomerSiteCss('trade.css')
+  const midnightCss = readCustomerSiteCss('midnight-rose.css')
   const presets = Object.values(AMETHYST_APPEARANCE_PRESETS)
 
   it('gives every selectable skin a semantic foreground contract for its card surface', () => {
     expect(presets.map(({ id }) => id)).toEqual([...AMETHYST_APPEARANCE_PRESET_IDS])
 
     for (const preset of presets) {
-      const selector = `body.${cardSurfaceClass(preset.values.cardSurface)}`
+      const selector = preset.id === 'midnight_rose'
+        ? 'body.bg-midnight-rose'
+        : `body.${cardSurfaceClass(preset.values.cardSurface)}`
+      const css = preset.id === 'midnight_rose' ? midnightCss : homepageCss
 
-      expect(homepageCss).toMatch(cssRule(selector, '--hp-card-fg'))
-      expect(homepageCss).toMatch(cssRule(selector, '--hp-card-muted'))
-      expect(homepageCss).toMatch(cssRule(selector, '--hp-card-accent'))
-      expect(homepageCss).toMatch(cssRule(selector, '--hp-final-fg'))
-      expect(homepageCss).toMatch(cssRule(selector, '--hp-final-muted'))
-      expect(homepageCss).toMatch(cssRule(selector, '--hp-final-icon-fg'))
+      expect(css).toMatch(cssRule(selector, '--hp-card-fg'))
+      expect(css).toMatch(cssRule(selector, '--hp-card-muted'))
+      expect(css).toMatch(cssRule(selector, '--hp-card-accent'))
+      expect(css).toMatch(cssRule(selector, '--hp-final-fg'))
+      expect(css).toMatch(cssRule(selector, '--hp-final-muted'))
+      expect(css).toMatch(cssRule(selector, '--hp-final-icon-fg'))
     }
   })
 
@@ -60,8 +64,8 @@ describe('customer-site skin contrast contract', () => {
 
   it('uses a skin-aware foreground token for all customer action controls and active Trade filters', () => {
     for (const preset of presets) {
-      const selector = `body.btn-${preset.values.buttonEnergy}`
-      expect(homepageCss).toMatch(cssRule(selector, '--hp-action-fg'))
+      const selector = preset.id === 'midnight_rose' ? 'body.bg-midnight-rose' : `body.btn-${preset.values.buttonEnergy}`
+      expect(preset.id === 'midnight_rose' ? midnightCss : homepageCss).toMatch(cssRule(selector, '--hp-action-fg'))
     }
 
     for (const [selector, css] of [

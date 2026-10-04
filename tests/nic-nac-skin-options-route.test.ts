@@ -20,7 +20,7 @@ describe('customer-site skin options route', () => {
     ['lindsey-rep', 'alpine_opal'],
   ])('requests the catalog for %s rather than the support operator', async (repId, privateSkin) => {
     const rpc = vi.fn().mockResolvedValue({
-      data: [{ skin_id: 'halloween_pumpkin_witch' }, { skin_id: privateSkin }],
+      data: [{ skin_id: 'halloween_pumpkin_witch' }, { skin_id: privateSkin }, { skin_id: 'midnight_rose' }],
       error: null,
     })
     mocks.getAuthenticatedNicNacContext.mockResolvedValue({
@@ -32,7 +32,7 @@ describe('customer-site skin options route', () => {
 
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({
-      skinIds: ['halloween_pumpkin_witch', privateSkin],
+      skinIds: [privateSkin, 'halloween_pumpkin_witch', 'midnight_rose'],
     })
     expect(rpc).toHaveBeenCalledWith('list_available_amethyst_skin_ids', {
       p_rep_id: repId,

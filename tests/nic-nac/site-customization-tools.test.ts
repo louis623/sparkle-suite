@@ -336,6 +336,8 @@ describe('site customization tools', () => {
   })
 
   it.each([
+    ['RG-02', 'midnight_rose'],
+    ['Midnight Rose', 'midnight_rose'],
     ['GA-01', 'gilded_autumn'],
     ['Gilded Autumn', 'gilded_autumn'],
     ['The Golden Leaves of Autumn', 'gilded_autumn'],
