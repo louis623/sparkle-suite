@@ -1,3 +1,4 @@
+import { sparkleFinderMarketingHref } from '@/lib/sparkle-suite/marketing-destinations'
 import {
   sparkleSuitePublicLandingContent,
   sparkleSuitePublicLandingSafety,
@@ -86,7 +87,10 @@ export function SparkleSuitePublicFooter({
             {footer.socialLinks
               .filter((link) => link.label !== 'TikTok' && link.label !== 'YouTube')
               .map((link) => (
-                <a href={link.href} key={link.label}>
+                <a
+                  href={link.label === 'Sparkle Finder' ? sparkleFinderMarketingHref() : link.href}
+                  key={link.label}
+                >
                   {link.label}
                 </a>
               ))}
