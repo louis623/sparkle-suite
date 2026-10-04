@@ -78,3 +78,4 @@
 .unicornFigure figcaption{margin-top:22px;font-size:14px;color:var(--ink)}
 .unicornFigure figcaption span{display:block;color:var(--muted);margin-top:5px}
 @media(max-width:600px){.unicornFigure{margin-top:22px!important}}
+.page .toolImage.fillFrame img{object-fit:cover;object-position:center}

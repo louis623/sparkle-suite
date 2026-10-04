@@ -112,9 +112,9 @@ export function SiteStyleShowcase() {
 }
 
 const tools = [
-  { label: 'Dance Floor', title: 'Trade pieces, not endless messages.', body: 'Give customers a clear place to browse available pieces and send a trade request. Keep the details together on your side.', src: '/sparkle-suite/landing/dance-floor-garnet-v2.webp', alt: 'Garnet-themed demo Dance Floor showing three complete jewelry cards with real earring photos and search controls', width: 1002, height: 728 },
-  { label: 'Live calendar', title: 'Your next live, easy to find.', body: 'Put upcoming shows, featured collections, and show details where customers can find them before you go live.', src: '/sparkle-suite/landing/calendar-emerald-garden-v2.webp', alt: 'Emerald Garden demo calendar card with the show date, example discounts, a featured collection and add-to-calendar controls', width: 429, height: 469 },
-  { label: 'Nic-Nac', title: 'A helping hand behind the scenes.', body: 'Get built-in support for your site, show calendar, and Dance Floor while you stay focused on your customers.', src: '/sparkle-suite/landing/nic-nac-workspace-proof.webp', alt: 'Real Nic-Nac workspace helping prepare a jewelry listing', width: 1440, height: 701 },
+  { label: 'Dance Floor', title: 'Trade pieces, not endless messages.', body: 'Give customers a clear place to browse available pieces and send a trade request. Keep the details together on your side.', src: '/sparkle-suite/landing/dance-floor-sparkly-butterflies.webp', alt: 'Sparkly Butterflies Dance Floor with four complete jewelry cards, each showing the photo, name, and trade button', width: 1102, height: 688 },
+  { label: 'Live calendar', title: 'Your next live, easy to find.', body: 'Put upcoming shows, featured collections, and show details where customers can find them before you go live.', src: '/sparkle-suite/landing/calendar-upcoming-reveals.webp', alt: 'Upcoming shows with a featured Sunday October 4 reveal and Friday Morning Fizz Jam, each card complete through its buttons', width: 932, height: 710 },
+  { label: 'Nic-Nac', title: 'A helping hand behind the scenes.', body: 'Get built-in support for your site, show calendar, and Dance Floor while you stay focused on your customers.', src: '/sparkle-suite/landing/nic-nac-add-show-chat.webp', alt: 'Nic-Nac chat about adding a TikTok show, with the October birthday code 23 and the NEWBIE code', width: 776, height: 736 },
 ] as const
 
 export function ShowToolsTour() {
@@ -146,7 +146,7 @@ export function ShowToolsTour() {
       <span className={styles.tourNote}>Product previews. No live customer activity.</span>
     </div>
     <figure id="show-tool-preview" className={styles.toolFigure}>
-      <div className={styles.toolImage} key={selected}><Image src={tool.src} alt={tool.alt} width={tool.width} height={tool.height} sizes="(max-width: 900px) 92vw, 720px" /></div>
+      <div className={`${styles.toolImage} ${styles.fillFrame}`} key={selected} style={{ aspectRatio: `${tool.width} / ${tool.height}` }}><Image src={tool.src} alt={tool.alt} width={tool.width} height={tool.height} sizes="(max-width: 900px) 92vw, 720px" /></div>
       <figcaption>{tool.label} <span aria-hidden="true">·</span> Inside Sparkle Suite</figcaption>
       <div className={styles.tourProgress} aria-label={`Preview ${selected + 1} of ${tools.length}`}>{tools.map((item, i) => <span key={item.label} data-current={selected === i} />)}</div>
     </figure>

@@ -178,7 +178,13 @@ describe('Sparkle Suite public landing page', () => {
     expect(html).not.toContain('Alpine Opal')
     expect(html).not.toContain('Dudes Fizzfest')
     expect(html).toContain('Chasing Unicorns')
-    expect(html).toContain('dance-floor-garnet-v2.webp')
+    expect(html).toContain('dance-floor-sparkly-butterflies.webp')
+    // Only the selected preview is rendered initially; the other two load on selection.
+    const toolsSource = readFileSync(join(process.cwd(), 'app/_components/landing-interactions.tsx'), 'utf8')
+    expect(toolsSource).toContain('calendar-upcoming-reveals.webp')
+    expect(toolsSource).toContain('nic-nac-add-show-chat.webp')
+    expect(html).not.toContain('dance-floor-garnet-v2.webp')
+    expect(html).not.toContain('calendar-emerald-garden-v2.webp')
     expect(html).toContain('phones, tablets, and desktop')
     expect(html).not.toContain('/landing/live-queue.webp')
     expect(html).toContain('Live queue &amp; Dance Floor')
@@ -200,6 +206,9 @@ describe('Sparkle Suite public landing page', () => {
     const peeks = [
       ['hero-halloween-witch-live', 968, 720],
       ['hero-halloween-cat-live', 966, 710],
+      ['dance-floor-sparkly-butterflies', 1102, 688],
+      ['calendar-upcoming-reveals', 932, 710],
+      ['nic-nac-add-show-chat', 776, 736],
     ] as const
     for (const [name, width, height] of peeks) {
       const halloween = await sharp(publicAssetPath(`/sparkle-suite/landing/${name}.webp`)).metadata()
@@ -278,8 +287,8 @@ describe('Sparkle Suite public landing page', () => {
     )
     expect(valueAnswer.kind).toBe('answer')
     expect(valueAnswer.message).toContain('item-for-item only')
-    expect(valueAnswer.message).toContain('No pay-the-difference')
-    expect(valueAnswer.message).toContain('MSRP is reference only')
+    expect(valueAnswer.message).toContain('no added payment, credit, or payout')
+    expect(valueAnswer.message).toContain('does not collect or compare MSRP')
     expect(shippingAnswer.kind).toBe('answer')
     expect(shippingAnswer.message).toContain('does not handle shipping')
   })
