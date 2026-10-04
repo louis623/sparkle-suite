@@ -37,14 +37,11 @@ export function SparkleSuitePublicHeader({
 }: {
   homeHref?: string
 }) {
-  const { brand } = sparkleSuitePublicLandingContent
-
   return (
     <header className="sl2-header">
       <div className="sl2-header__inner">
-        <a aria-label="Sparkle Suite home" className="sl2-brand" href={homeHref}>
-          <SparkleSeal className="sl2-brand__seal" />
-          <span>{brand}</span>
+        <a aria-label="Sparkle Suite workspace" className="sl2-brand" href={homeHref}>
+          <img alt="" className="sl2-brand__logo" src="/email-signatures/sparkle-suite-logo.png" />
         </a>
         <nav className="sl2-header__actions" aria-label="Account links">
           <SparkleSuitePublicAccountAction />
@@ -59,14 +56,13 @@ export function SparkleSuitePublicFooter({
 }: {
   current?: 'faq'
 } = {}) {
-  const { brand, footer } = sparkleSuitePublicLandingContent
+  const { footer } = sparkleSuitePublicLandingContent
 
   return (
     <footer className="sl2-footer">
       <div className="sl2-footer__inner">
         <div className="sl2-footer__brand">
-          <SparkleSeal className="sl2-footer__seal" />
-          <span>{brand}</span>
+          <img alt="Sparkle Suite workspace" className="sl2-brand__logo" src="/email-signatures/sparkle-suite-logo.png" />
         </div>
         <nav className="sl2-footer__nav" aria-label="Footer links">
           <div>

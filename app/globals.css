@@ -772,7 +772,7 @@ html[data-control-center-theme="dark"] .control-center-surface .text-fuchsia-700
 .prelaunch-shell .ss-summary__copy p,
 .prelaunch-shell .ss-audience__copy p,
 .prelaunch-shell .ss-audience__item p {
-  color: rgba(246, 231, 218, 0.78);
+  color: #5c5670;
   font-size: 16px;
   line-height: 1.7;
   margin-top: 22px;
@@ -982,7 +982,7 @@ html[data-control-center-theme="dark"] .control-center-surface .text-fuchsia-700
 }
 
 .prelaunch-shell .ss-pricing-build p {
-  color: rgba(246, 231, 218, 0.78);
+  color: #5c5670;
 }
 
 .prelaunch-shell .ss-pricing-card h3 {
@@ -4301,9 +4301,9 @@ html[data-control-center-theme="dark"] .control-center-surface .text-fuchsia-700
 }
 
 .sparkle-landing-v2 .sl2-header {
-  background: linear-gradient(145deg, #402924 0%, #36221d 100%);
-  border-bottom: 1px solid rgba(246, 231, 218, 0.14);
-  color: #f6e7da;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(36, 28, 51, 0.08);
+  color: #241c33;
   display: block;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
@@ -4342,6 +4342,12 @@ html[data-control-center-theme="dark"] .control-center-surface .text-fuchsia-700
   white-space: nowrap;
 }
 
+.sparkle-landing-v2 .sl2-brand__logo {
+  display: block;
+  height: 56px;
+  width: auto;
+}
+
 .sparkle-landing-v2 .sl2-brand__seal,
 .sparkle-landing-v2 .sl2-footer__seal {
   color: #ee2c9b;
@@ -4361,7 +4367,7 @@ html[data-control-center-theme="dark"] .control-center-surface .text-fuchsia-700
 }
 
 .sparkle-landing-v2 .sl2-header__actions span {
-  color: rgba(246, 231, 218, 0.62);
+  color: #5c5670;
   display: none;
   font-size: 12px;
   font-weight: 700;
@@ -4369,7 +4375,7 @@ html[data-control-center-theme="dark"] .control-center-surface .text-fuchsia-700
 }
 
 .sparkle-landing-v2 .sl2-header__actions a {
-  color: rgba(246, 231, 218, 0.78);
+  color: #5c5670;
   font-size: 13px;
   font-weight: 900;
   text-decoration: none;
@@ -4380,7 +4386,7 @@ html[data-control-center-theme="dark"] .control-center-surface .text-fuchsia-700
   appearance: none;
   background: transparent;
   border: 0;
-  color: rgba(246, 231, 218, 0.78);
+  color: #5c5670;
   cursor: pointer;
   font-family: var(--font-prelaunch-body), "DM Sans", system-ui, sans-serif;
   font-size: 13px;
@@ -5175,9 +5181,9 @@ html[data-control-center-theme="dark"] .control-center-surface .text-fuchsia-700
 }
 
 .sparkle-landing-v2 .sl2-footer {
-  background: linear-gradient(145deg, #402924 0%, #36221d 100%);
-  border-top: 1px solid rgba(246, 231, 218, 0.14);
-  color: rgba(246, 231, 218, 0.78);
+  background: #ffffff;
+  border-top: 1px solid rgba(36, 28, 51, 0.08);
+  color: #5c5670;
   margin-left: calc(50% - 50vw);
   margin-top: clamp(2.25rem, 7vw, 4.75rem);
   margin-right: calc(50% - 50vw);
@@ -5196,7 +5202,7 @@ html[data-control-center-theme="dark"] .control-center-surface .text-fuchsia-700
 
 .sparkle-landing-v2 .sl2-footer__brand {
   align-items: center;
-  color: #f6e7da;
+  color: #241c33;
   display: inline-flex;
   gap: 10px;
 }
@@ -5219,7 +5225,7 @@ html[data-control-center-theme="dark"] .control-center-surface .text-fuchsia-700
 }
 
 .sparkle-landing-v2 .sl2-footer h2 {
-  color: rgba(246, 231, 218, 0.52);
+  color: #5c5670;
   font-family: var(--font-prelaunch-body), "DM Sans", system-ui, sans-serif;
   font-size: 11px;
   font-weight: 900;
@@ -5228,15 +5234,15 @@ html[data-control-center-theme="dark"] .control-center-surface .text-fuchsia-700
 }
 
 .sparkle-landing-v2 .sl2-footer a {
-  color: #f6e7da;
+  color: #241c33;
   font-size: 14px;
   font-weight: 800;
   text-decoration: none;
 }
 
 .sparkle-landing-v2 .sl2-footer p {
-  border-top: 1px solid rgba(246, 231, 218, 0.12);
-  color: rgba(246, 231, 218, 0.72);
+  border-top: 1px solid rgba(36, 28, 51, 0.08);
+  color: #5c5670;
   font-size: 12px;
   grid-column: 1 / -1;
   justify-self: start;

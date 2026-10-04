@@ -79,3 +79,5 @@
 .unicornFigure figcaption span{display:block;color:var(--muted);margin-top:5px}
 @media(max-width:600px){.unicornFigure{margin-top:22px!important}}
 .page .toolImage.fillFrame img{object-fit:cover;object-position:center}
+.logo{height:64px;width:auto;display:block}
+@media(max-width:600px){.logo{height:48px}}
