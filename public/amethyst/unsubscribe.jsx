@@ -37,8 +37,8 @@ function applyUnsubscribeAppearance() {
     return;
   }
 
-  if (preset === "rose_gold") {
-    document.body.classList.add("bg-rose-gold-paper", "surface-pearl-rose", "shape-soft");
+  if (preset === "rose_champagne") {
+    document.body.classList.add("bg-rose-gold-paper", "bg-rose-champagne", "surface-pearl-rose", "shape-soft");
     const roseTokens = {
       "--hp-primary": "#a04e5d", "--hp-accent": "#d29b82", "--primary": "#a04e5d", "--accent": "#d29b82",
       "--hp-bg": "#fff7f5", "--hp-bg-elevated": "#fffdfb", "--bg-deep": "#f9ede7",

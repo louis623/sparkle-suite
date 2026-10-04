@@ -339,6 +339,8 @@ describe('site customization tools', () => {
     ['RG-02', 'midnight_rose'],
     ['RG-03', 'pearl_rose'],
     ['Pearl Rose', 'pearl_rose'],
+    ['RG-04', 'rose_champagne'],
+    ['Rose Champagne', 'rose_champagne'],
     ['Midnight Rose', 'midnight_rose'],
     ['GA-01', 'gilded_autumn'],
     ['Gilded Autumn', 'gilded_autumn'],

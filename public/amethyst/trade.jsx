@@ -332,7 +332,7 @@ const PRESETS = {
     sparkleLevel: "subtle", bgTreatment: "rose-gold-paper", cardSurface: "pearl-rose",
     textureOverlay: "none", buttonEnergy: "rose-gold-lift", ctaEmphasis: "standard",
     tradeFlair: "champagne-rose", cursorEffect: "default", saturation: 108,
-    bgTone: "roseGold", primaryColor: "#a04e5d", accentColor: "#d29b82",
+    bgTone: "roseGold", primaryColor: "#e04f73", accentColor: "#f5c66d",
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
   },
   midnight_rose: {
@@ -352,6 +352,13 @@ const PRESETS = {
     bgTone: "pearlRose", primaryColor: "#954354", accentColor: "#d29b82",
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
     shapeRadius: "soft", density: "regular",
+  },
+  rose_champagne: {
+    sparkleLevel: "subtle", bgTreatment: "rose-champagne", cardSurface: "pearl-rose",
+    textureOverlay: "none", buttonEnergy: "rose-gold-lift", ctaEmphasis: "standard",
+    tradeFlair: "champagne-rose", cursorEffect: "default", saturation: 108,
+    bgTone: "roseGold", primaryColor: "#a04e5d", accentColor: "#d29b82",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
   },
   garnet: {
     sparkleLevel: "subtle", bgTreatment: "garnet-shell", cardSurface: "blush-shell",
@@ -2165,6 +2172,7 @@ function App() {
     if (t.bgTreatment === "halloween-pumpkin-cat") body.classList.add("bg-halloween-pumpkin-cat");
     if (t.bgTreatment === "halloween-pumpkin-witch") body.classList.add("bg-halloween-pumpkin-witch");
     if (t.bgTreatment === "rose-gold-paper") body.classList.add("bg-rose-gold-paper");
+    if (t.bgTreatment === "rose-champagne") body.classList.add("bg-rose-gold-paper", "bg-rose-champagne");
     if (t.bgTreatment === "midnight-rose") body.classList.add("bg-midnight-rose");
     if (t.bgTreatment === "pearl-rose") body.classList.add("bg-pearl-rose");
     if (t.bgTreatment === "garnet-shell") body.classList.add("bg-garnet-shell");
@@ -2528,9 +2536,10 @@ function App() {
               { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
               { value: "gilded_autumn", label: "The Golden Leaves of Autumn" },
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
-              { value: "rose_gold", label: "Rose Champagne" },
+              { value: "rose_gold", label: "Rose Gold" },
               { value: "midnight_rose", label: "Midnight Rose" },
               { value: "pearl_rose", label: "Pearl Rose" },
+              { value: "rose_champagne", label: "Rose Champagne" },
               { value: "garnet", label: "Garnet" },
               { value: "amber", label: "Amber" },
               { value: "velvet", label: "Velvet" },

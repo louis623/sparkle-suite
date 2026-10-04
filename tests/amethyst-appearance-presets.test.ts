@@ -91,6 +91,7 @@ describe('Amethyst appearance presets', () => {
       'rose_gold',
       'midnight_rose',
       'pearl_rose',
+      'rose_champagne',
       'garnet',
       'amber',
       'velvet',
@@ -108,9 +109,10 @@ describe('Amethyst appearance presets', () => {
       'Halloween Pumpkin and Cat',
       'Halloween Pumpkin and Witch',
       'The Golden Leaves of Autumn',
-      'Rose Champagne',
+      'Rose Gold',
       'Midnight Rose',
       'Pearl Rose',
+      'Rose Champagne',
       'Garnet',
       'Amber',
       'Velvet',
@@ -157,22 +159,22 @@ describe('Amethyst appearance presets', () => {
 
     expect(homepage).toMatchObject({
       preset: 'rose_gold',
-      primaryColor: '#a04e5d',
-      accentColor: '#d29b82',
+      primaryColor: '#e04f73',
+      accentColor: '#f5c66d',
       bgTone: 'roseGold',
       bgTreatment: 'rose-gold-paper',
     })
     expect(trade).toMatchObject({
       preset: 'rose_gold',
-      primaryColor: '#a04e5d',
-      accentColor: '#d29b82',
+      primaryColor: '#e04f73',
+      accentColor: '#f5c66d',
       bgTone: 'roseGold',
       bgTreatment: 'rose-gold-paper',
     })
     expect(join).toMatchObject({
       preset: 'rose_gold',
-      primaryColor: '#a04e5d',
-      accentColor: '#d29b82',
+      primaryColor: '#e04f73',
+      accentColor: '#f5c66d',
       bgTone: 'roseGold',
       bgTreatment: 'rose-gold-paper',
     })
@@ -478,8 +480,8 @@ describe('Amethyst appearance presets', () => {
     )
   })
 
-  it('updates RG-01 as the Rose Champagne visual-only Amethyst theme', () => {
-    const preset = getAmethystAppearancePreset('rose_gold')
+  it('updates RG-04 as the Rose Champagne visual-only Amethyst theme', () => {
+    const preset = getAmethystAppearancePreset('rose_champagne')
     const homepage = applyAmethystAppearancePreset(
       buildAmethystHomepageTweakDefaults(defaultAmethystHomepageTemplateData),
       preset.id,
@@ -492,20 +494,20 @@ describe('Amethyst appearance presets', () => {
       buildAmethystJoinTweakDefaults(defaultAmethystJoinTemplateData),
       preset.id,
     )
-    const card = getAmethystSkinCard('rose_gold')
+    const card = getAmethystSkinCard('rose_champagne')
     const expectedTokens = {
-      preset: 'rose_gold',
+      preset: 'rose_champagne',
       primaryColor: '#a04e5d',
       accentColor: '#d29b82',
       bgTone: 'roseGold',
       headingFont: 'playfair',
-      bgTreatment: 'rose-gold-paper',
+      bgTreatment: 'rose-champagne',
       cardSurface: 'pearl-rose',
       buttonEnergy: 'rose-gold-lift',
       tradeFlair: 'champagne-rose',
     }
 
-    expect(normalizeAmethystAppearancePreset('rose_gold')).toBe('rose_gold')
+    expect(normalizeAmethystAppearancePreset('rose_champagne')).toBe('rose_champagne')
     expect(preset.label).toBe('Rose Champagne')
     expect(homepage).toMatchObject(expectedTokens)
     expect(trade).toMatchObject(expectedTokens)
@@ -515,8 +517,8 @@ describe('Amethyst appearance presets', () => {
       '/amethyst/Trade.html',
     )
     expect(card).toMatchObject({
-      id: 'rose_gold',
-      code: 'RG-01',
+      id: 'rose_champagne',
+      code: 'RG-04',
       label: 'Rose Champagne',
       headingFont: 'Playfair Display',
       bodyFont: 'DM Sans',
@@ -524,8 +526,8 @@ describe('Amethyst appearance presets', () => {
     expect(card.swatches.map((swatch) => swatch.value)).toEqual(
       expect.arrayContaining(['#fff7f5', '#a04e5d', '#d29b82', '#723745']),
     )
-    expect(normalizeAmethystSkinSelection('RG-01')).toBe('rose_gold')
-    expect(normalizeAmethystSkinSelection('Rose Gold')).toBe('rose_gold')
+    expect(normalizeAmethystSkinSelection('RG-04')).toBe('rose_champagne')
+    expect(normalizeAmethystSkinSelection('Rose Champagne')).toBe('rose_champagne')
   })
 
   it('adds Moonstone as a visual-only Amethyst skin with a browsing card', () => {

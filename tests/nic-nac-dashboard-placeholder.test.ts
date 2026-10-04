@@ -735,11 +735,25 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Public Site')
     expect(html).toContain('Site setup in progress')
     expect(html).not.toContain('Sparkle with us.')
-    expect(html).toContain('Need help?')
+    expect(html).toContain('>Help &amp; Resources<')
+    expect(html).toContain('Visit resources')
+    expect(html).toContain('Get the meeting link')
+    expect(html).not.toContain('Need help?')
+    expect(html).toContain('Coffee with Louis')
+    expect(html).toContain('Next session ·')
+    expect(html).not.toContain('Join Google Meet')
+    expect(html).not.toContain('meet.google.com')
     expect(html).toContain('More help on YouTube')
+    expect(html.match(/More help on YouTube/g)).toHaveLength(1)
     expect(html).toContain('Get tips, demos, and step-by-step how-tos.')
     expect(html).toContain('Visit YouTube channel')
     expect(html).toContain('https://www.youtube.com/@SparkleSuite')
+    expect(html).toContain('target="_blank"')
+    expect(source).not.toContain('title="More help on YouTube"')
+    const defaultHelpAt = html.indexOf('Help &amp; Resources')
+    const defaultYoutubeAt = html.indexOf('More help on YouTube')
+    expect(defaultHelpAt).toBeLessThan(defaultYoutubeAt)
+    expect(html.slice(defaultHelpAt, defaultYoutubeAt)).not.toContain('conceptPanel')
     expect(html).not.toContain('Trade history')
     expect(html).toContain('Nic-Nac')
     expect(html).toContain('Dance Floor')
@@ -961,6 +975,77 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Customer Site Looks')
     expect(html).not.toContain('Full skin gallery')
     expect(html).not.toContain('Classic Sparkle')
+    expect(html).not.toContain('meet.google.com/rzy-rqsd-qvo')
+  })
+
+  it('shows the next Coffee with Louis session on Help & Resources', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-10-08T23:59:00.000Z'))
+
+    try {
+      const html = renderToStaticMarkup(
+        createElement(HelpResourcesCard, {
+          state: { status: 'ready', resources: getHelpResources() },
+          hasPaidWorkspace: true,
+          initialTab: 'learn',
+          learningContent: createElement('div', null, 'Video tiles'),
+        }),
+      )
+
+      expect(html).toContain('Coffee with Louis')
+      expect(html).toContain('Thursday, Oct 8, 2026 · 8 PM ET')
+      expect(html).toContain('Every 14 days · Thursdays, 8–9 PM ET.')
+      expect(html).toContain('href="https://meet.google.com/ydu-jgut-drf"')
+      expect(html).toContain('>https://meet.google.com/ydu-jgut-drf<')
+      expect(html).not.toContain('meet.google.com/rzy-rqsd-qvo')
+      expect(html).toContain('Join Google Meet')
+      expect(html).toContain('target="_blank"')
+      expect(html).toContain('Video tiles')
+      expect(html.indexOf('Coffee with Louis')).toBeLessThan(html.indexOf('Video tiles'))
+    } finally {
+      vi.useRealTimers()
+      vi.unstubAllEnvs()
+    }
+  })
+
+  it('shows the Coffee with Louis reminder on the overview', () => {
+    vi.useFakeTimers()
+
+    try {
+      vi.setSystemTime(new Date('2026-10-08T23:59:00.000Z'))
+      const beforeSession = renderToStaticMarkup(createElement(DashboardPlaceholder))
+
+      expect(beforeSession).toContain('Coffee with Louis')
+      expect(beforeSession).toContain('Next session · Thursday, Oct 8 · 8–9 PM ET')
+      expect(beforeSession).toContain('>Help &amp; Resources<')
+      expect(beforeSession).toContain('>Get the meeting link<')
+      expect(beforeSession).not.toContain('Need help?')
+      expect(beforeSession).toContain('Visit resources')
+      expect(beforeSession).toContain('Guides, playbooks, and quick answers')
+      const helpAt = beforeSession.indexOf('Help &amp; Resources')
+      const coffeeAt = beforeSession.indexOf('Coffee with Louis')
+      const youtubeAt = beforeSession.indexOf('More help on YouTube')
+      expect(helpAt).toBeLessThan(coffeeAt)
+      expect(coffeeAt).toBeLessThan(youtubeAt)
+      expect(beforeSession.slice(helpAt, youtubeAt)).not.toContain('conceptPanel')
+      expect(beforeSession.match(/More help on YouTube/g)).toHaveLength(1)
+      expect(beforeSession).toContain('Get tips, demos, and step-by-step how-tos.')
+      expect(beforeSession).toContain('Visit YouTube channel')
+      expect(beforeSession).toContain('href="https://www.youtube.com/@SparkleSuite"')
+      expect(beforeSession).toContain('target="_blank"')
+      expect(beforeSession).not.toContain('Join Google Meet')
+      expect(beforeSession).not.toContain('meet.google.com')
+      expect(beforeSession).not.toContain('Every 14 days')
+
+      vi.setSystemTime(new Date('2026-10-09T00:00:00.000Z'))
+      const duringSession = renderToStaticMarkup(createElement(DashboardPlaceholder))
+
+      expect(duringSession).toContain('Next session · Thursday, Oct 22 · 8–9 PM ET')
+      expect(duringSession).not.toContain('Next session · Thursday, Oct 8 · 8–9 PM ET')
+    } finally {
+      vi.useRealTimers()
+      vi.unstubAllEnvs()
+    }
   })
 
   it('places learning resources and help behind one accessible tab switcher', () => {

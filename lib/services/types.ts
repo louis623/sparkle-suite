@@ -618,6 +618,7 @@ export type SiteAppearancePreset =
   | 'rose_gold'
   | 'midnight_rose'
   | 'pearl_rose'
+  | 'rose_champagne'
   | 'garnet'
   | 'amber'
   | 'velvet'

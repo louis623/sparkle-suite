@@ -135,7 +135,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20261004-rg03-v1')
+    expect(homepage).toContain('homepage.jsx?v=20261004-rg04-v1')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -1296,7 +1296,7 @@ describe('Amethyst homepage template data wiring', () => {
     expect(css).toMatch(/\.hp-queue-modal-row \.name\s*\{[\s\S]*?color:\s*#2b1b1f;/)
   })
 
-  it('ships the Rose Champagne theme under the existing Rose Gold preset id', () => {
+  it('ships distinct Rose Gold and Rose Champagne presets', () => {
     const jsx = readFileSync(
       resolve(process.cwd(), 'public/amethyst/homepage.jsx'),
       'utf8',
@@ -1307,7 +1307,8 @@ describe('Amethyst homepage template data wiring', () => {
     )
 
     expect(jsx).toContain('rose_gold')
-    expect(jsx).toContain('Rose Champagne')
+    expect(jsx).toContain('{ value: "rose_gold", label: "Rose Gold" }')
+    expect(jsx).toContain('{ value: "rose_champagne", label: "Rose Champagne" }')
     expect(html).toContain('DM+Sans')
     expect(html).toContain('Playfair+Display')
   })

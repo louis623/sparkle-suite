@@ -36,6 +36,7 @@ const SHARE_BACKGROUNDS: Partial<Record<AmethystAppearancePresetId, string>> = {
   emerald_garden: '#123c35',
   gnome_garden: '#173a28',
   rose_gold: '#54202f',
+  rose_champagne: '#54202f',
   midnight_rose: '#180e16',
   pearl_rose: '#5a2e39',
   garnet: '#4a1218',

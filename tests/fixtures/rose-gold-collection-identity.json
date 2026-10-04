@@ -1,0 +1,20 @@
+{
+  "originalBaseline": "2e20ab4459ef3ff5b694bb63246ac349fb68adc3",
+  "approvedChampagneBaseline": "d4eacfb34170ff71b911ea6a2fcc0bedb5060927",
+  "originalBlocks": {
+    "lib/amethyst/appearance-presets.ts": "08f536962804585b45166e1f081813bb07a6836f4b9b73e52133aa3431b1748f",
+    "public/amethyst/homepage.jsx": "80aeb0640cad5f32f62033c571f010588be430dd5f25775144cc93c9efe5559a",
+    "public/amethyst/trade.jsx": "449eb625afccbe71ae00575faa792db80c87bafd886f391a3184dc8dbae6a95c",
+    "public/amethyst/join.jsx": "449eb625afccbe71ae00575faa792db80c87bafd886f391a3184dc8dbae6a95c",
+    "lib/amethyst/skin-cards.ts": "e025cbb176ccf89440d13b63bb7dda89f0308720b1d66f5a8ae88a3c1e2616eb"
+  },
+  "champagneIdentityOnly": {
+    "public/amethyst/rose-champagne.css": "09b3d7ee18c4ef3dbc3f49c0f8bb68d5f8a9ad634e60fa87f6b4b04e569cd375",
+    "public/amethyst/rose-champagne.js": "55f87937ecdc9321de6b7a9be8476b0124b2f29e1831e64f4a76336e50041d93"
+  },
+  "media": {
+    "public/amethyst/skins/rose-champagne/hero-loop.mp4": "8962a14e25315dc3d03507c7731b71c48150e0c8853023935f5f97cebd770420",
+    "public/amethyst/skins/rose-champagne/hero-poster.webp": "2422ae1146cd57f5c65a64d2259b7a14cdc6a475c48d67864612b4cde2ddea4f"
+  },
+  "sharedStylesheet": "d0146fc10ab3b752634511349eb924c56170176be3567a40d80ac8f88fc518ce"
+}

@@ -9,6 +9,7 @@ const profiles = [
   ['midnight_rose', 'Sparkle by Sasha'],
   ['pearl_rose', 'Sparkle by Sasha'],
   ['rose_gold', 'Sparkle by Sasha'],
+  ['rose_champagne', 'Sparkle by Sasha'],
   ['gilded_autumn', 'Sparkle by Sasha'],
   ['gnome_garden', 'The Gnome Forest'],
   ['neon_butterfly', "Kelly's Sparkle Lounge"],

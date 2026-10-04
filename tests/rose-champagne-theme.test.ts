@@ -17,8 +17,8 @@ const contrast = (first: string, second: string) => {
   return (values[0] + .05) / (values[1] + .05)
 }
 
-describe('RG-01 Rose Champagne theme compatibility', () => {
-  it('applies the RG-01 palette to customer preferences without altering other theme branches', () => {
+describe('RG-04 Rose Champagne theme compatibility', () => {
+  it('applies the RG-04 palette to customer preferences without altering other theme branches', () => {
     const source = readFileSync('public/amethyst/unsubscribe.jsx', 'utf8')
     const start = source.indexOf('function applyUnsubscribeAppearance()')
     const end = source.indexOf('applyUnsubscribeAppearance();')
@@ -35,8 +35,8 @@ describe('RG-01 Rose Champagne theme compatibility', () => {
       })
       return { classes: [...classes], tokens }
     }
-    expect(render('rose_gold')).toMatchObject({
-      classes: ['bg-rose-gold-paper', 'surface-pearl-rose', 'shape-soft'],
+    expect(render('rose_champagne')).toMatchObject({
+      classes: ['bg-rose-gold-paper', 'bg-rose-champagne', 'surface-pearl-rose', 'shape-soft'],
       tokens: {
         '--hp-primary': '#a04e5d', '--hp-accent': '#d29b82',
         '--hp-display-font': '"Playfair Display", Georgia, serif',
@@ -47,35 +47,35 @@ describe('RG-01 Rose Champagne theme compatibility', () => {
     expect(render('gnome_garden').classes).toContain('bg-gnome-garden')
     expect(render('halloween_pumpkin_cat').classes).toContain('bg-halloween-pumpkin-cat')
     expect(render('sparkle_suite_morganite').classes).toEqual([])
-    expect(readFileSync('public/amethyst/Unsubscribe.html', 'utf8')).toContain('unsubscribe.jsx?v=20261004-rg03-v1')
+    expect(readFileSync('public/amethyst/Unsubscribe.html', 'utf8')).toContain('unsubscribe.jsx?v=20261004-rg04-v1')
   })
 
-  it('keeps saved Rose Gold selections and Community availability under the new display name', () => {
-    for (const selection of ['rose_gold', 'RG-01', 'Rose Gold', 'Rose Champagne']) {
-      expect(normalizeAmethystSkinSelection(selection)).toBe('rose_gold')
+  it('registers Rose Champagne as a separate Community selection', () => {
+    for (const selection of ['rose_champagne', 'RG-04', 'Rose Champagne']) {
+      expect(normalizeAmethystSkinSelection(selection)).toBe('rose_champagne')
     }
-    expect(getCommunityAmethystSkinCards().find(card => card.id === 'rose_gold')).toMatchObject({
-      code: 'RG-01', label: 'Rose Champagne', visibility: 'community', aliases: ['Rose Gold'],
+    expect(getCommunityAmethystSkinCards().find(card => card.id === 'rose_champagne')).toMatchObject({
+      code: 'RG-04', label: 'Rose Champagne', visibility: 'community',
     })
   })
 
   it('applies the approved palette on all pages without changing fonts, geometry or ticker speed', () => {
     const expected = {
-      preset: 'rose_gold', primaryColor: '#a04e5d', accentColor: '#d29b82',
+      preset: 'rose_champagne', primaryColor: '#a04e5d', accentColor: '#d29b82',
       headingFont: 'playfair', bodyFont: 'dmSans', headingWeight: 600,
       shapeRadius: 'soft', density: 'regular', saturation: 108,
       heroMotion: 'sparkle_rise', tickerSpeed: 1,
     }
-    expect(buildAmethystHomepageTweakDefaults(defaultAmethystHomepageTemplateData, 'rose_gold')).toMatchObject(expected)
-    expect(buildAmethystTradeTweakDefaults(defaultAmethystTradeTemplateData, 'rose_gold')).toMatchObject(expected)
-    expect(buildAmethystJoinTweakDefaults(defaultAmethystJoinTemplateData, 'rose_gold')).toMatchObject(expected)
-    expect(getAmethystAppearancePreset('rose_gold').label).toBe('Rose Champagne')
+    expect(buildAmethystHomepageTweakDefaults(defaultAmethystHomepageTemplateData, 'rose_champagne')).toMatchObject(expected)
+    expect(buildAmethystTradeTweakDefaults(defaultAmethystTradeTemplateData, 'rose_champagne')).toMatchObject(expected)
+    expect(buildAmethystJoinTweakDefaults(defaultAmethystJoinTemplateData, 'rose_champagne')).toMatchObject(expected)
+    expect(getAmethystAppearancePreset('rose_champagne').label).toBe('Rose Champagne')
     for (const page of ['homepage', 'trade', 'join']) {
       const source = readFileSync(`public/amethyst/${page}.jsx`, 'utf8')
-      const preset = source.match(/rose_gold:\s*\{([\s\S]*?)\n  \}/)?.[1]
+      const preset = source.match(/rose_champagne:\s*\{([\s\S]*?)\n  \}/)?.[1]
       expect(preset).toContain('primaryColor: "#a04e5d"')
       expect(preset).toContain('accentColor: "#d29b82"')
-      expect(source).toContain('{ value: "rose_gold", label: "Rose Champagne" }')
+      expect(source).toContain('{ value: "rose_champagne", label: "Rose Champagne" }')
     }
   })
 
@@ -88,7 +88,7 @@ describe('RG-01 Rose Champagne theme compatibility', () => {
     const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
     expect(rules.length).toBeGreaterThan(5)
     for (const [, selector, declarations] of rules) {
-      expect(selector).toContain('body.bg-rose-gold-paper')
+      expect(selector).toContain('body.bg-rose-champagne')
       if (/hp-header|hp-ticker|hp-lrq|hp-lineup/.test(selector)) {
         expect(declarations).not.toMatch(/(?:^|;)\s*(?:position|display|margin|padding|gap|height|width|font|line-height|animation|transform|overflow)[\w-]*\s*:/)
       }

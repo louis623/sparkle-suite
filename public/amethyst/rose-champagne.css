@@ -1,6 +1,6 @@
-/* RG-01 Rose Champagne: palette and decorative hero only. Shared Amethyst
+/* RG-04 Rose Champagne: palette and decorative hero only. Shared Amethyst
  * fonts, spacing, header, tickers and Live Lineup geometry stay untouched. */
-body.bg-rose-gold-paper {
+body.bg-rose-champagne {
   --fg: #45252e;
   --fg-muted: #765760;
   --border: #e8c8c0;
@@ -37,40 +37,40 @@ body.bg-rose-gold-paper {
   color: #45252e;
 }
 
-body.bg-rose-gold-paper .hp-header {
+body.bg-rose-champagne .hp-header {
   background: #fffdfb;
   border-color: #e8c8c0;
 }
-body.bg-rose-gold-paper :is(.hp-brand-name, .hp-header-link) { color: #45252e; }
-body.bg-rose-gold-paper .hp-brand-sub { color: #765760; }
-body.bg-rose-gold-paper .hp-header-link[aria-current="page"] { color: #a04e5d; }
+body.bg-rose-champagne :is(.hp-brand-name, .hp-header-link) { color: #45252e; }
+body.bg-rose-champagne .hp-brand-sub { color: #765760; }
+body.bg-rose-champagne .hp-header-link[aria-current="page"] { color: #a04e5d; }
 
-body.bg-rose-gold-paper :is(.hp-ticker, .hp-ticker-row) {
+body.bg-rose-champagne :is(.hp-ticker, .hp-ticker-row) {
   background: #f1dfd8;
   color: #45252e;
   border-color: #e8c8c0;
 }
-body.bg-rose-gold-paper .hp-ticker-row.reverse { background: #f9ede7; }
-body.bg-rose-gold-paper :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #45252e; }
-body.bg-rose-gold-paper .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #45252e; }
-body.bg-rose-gold-paper .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #a04e5d; }
-body.bg-rose-gold-paper .hp-ticker-row .hp-ticker-label {
+body.bg-rose-champagne .hp-ticker-row.reverse { background: #f9ede7; }
+body.bg-rose-champagne :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #45252e; }
+body.bg-rose-champagne .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #45252e; }
+body.bg-rose-champagne .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #a04e5d; }
+body.bg-rose-champagne .hp-ticker-row .hp-ticker-label {
   background: linear-gradient(90deg, #f1dfd8 0%, #f1dfd8 70%, transparent 100%);
   color: #45252e;
 }
-body.bg-rose-gold-paper .hp-ticker-row.reverse .hp-ticker-label {
+body.bg-rose-champagne .hp-ticker-row.reverse .hp-ticker-label {
   background: linear-gradient(90deg, #f9ede7 0%, #f9ede7 70%, transparent 100%);
   color: #45252e;
 }
-body.bg-rose-gold-paper :is(.hp-trade-preview, .hp-lrq-strip, .hp-lrq, .hp-lineup-calendar-row) {
+body.bg-rose-champagne :is(.hp-trade-preview, .hp-lrq-strip, .hp-lrq, .hp-lineup-calendar-row) {
   background: #fffdfb;
   color: #45252e;
   border-color: #e8c8c0;
 }
-body.bg-rose-gold-paper :is(.hp-lineup-idle-prompt, .hp-trade-preview-head, .hp-trade-preview-link, .hp-trade-preview-pill) { color: #45252e; }
-body.bg-rose-gold-paper :is(.hp-trade-preview-updated, .hp-trade-preview-pill .label) { color: #765760; }
+body.bg-rose-champagne :is(.hp-lineup-idle-prompt, .hp-trade-preview-head, .hp-trade-preview-link, .hp-trade-preview-pill) { color: #45252e; }
+body.bg-rose-champagne :is(.hp-trade-preview-updated, .hp-trade-preview-pill .label) { color: #765760; }
 
-body.bg-rose-gold-paper :is(.hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .tp-card-expand-cta, .tp-sheet-submit, .jp-spot-btn, .jp-final-btn) {
+body.bg-rose-champagne :is(.hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .tp-card-expand-cta, .tp-sheet-submit, .jp-spot-btn, .jp-final-btn) {
   background: #723745;
   color: #fff9f2;
   border-color: #e8c8c0;
@@ -78,38 +78,38 @@ body.bg-rose-gold-paper :is(.hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .t
 }
 
 /* The original full-bleed hero and original HTML copy/actions stay in place. */
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .hp-hero-media,
-body.bg-rose-gold-paper .jp-hero-media {
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] .hp-hero-media,
+body.bg-rose-champagne .jp-hero-media {
   background: radial-gradient(ellipse 62% 70% at 50% 48%, rgba(71, 28, 39, .45), rgba(71, 28, 39, .33) 48%, transparent 100%),
     linear-gradient(90deg, rgba(71, 28, 39, .18), rgba(71, 28, 39, .04)),
     url('/amethyst/skins/rose-champagne/hero-poster.webp') center center / cover no-repeat;
   background-blend-mode: normal;
 }
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .hp-hero-headline {
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] .hp-hero-headline {
   color: #fffaf4;
   -webkit-text-fill-color: #fffaf4;
   background: none;
   text-shadow: 0 2px 14px #52213288;
 }
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .hp-hero-sub {
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] .hp-hero-sub {
   color: #fff1e8;
   text-shadow: 0 1px 6px #52213299;
 }
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] :is(.hp-btn-outline, .hp-btn-watch) {
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] :is(.hp-btn-outline, .hp-btn-watch) {
   color: #fffaf4;
   border-color: #ffe7d8aa;
   background: #42212e66;
   backdrop-filter: blur(8px);
 }
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .hp-hero-fx-layer { display: none; }
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .rgc-media {
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] .hp-hero-fx-layer { display: none; }
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] .rgc-media {
   position: absolute;
   inset: 0;
   z-index: 1;
   overflow: hidden;
   pointer-events: none;
 }
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] :is(.rgc-poster, .rgc-video) {
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] :is(.rgc-poster, .rgc-video) {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -118,9 +118,9 @@ body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] :is(.rgc-po
   object-position: center center;
   pointer-events: none;
 }
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .rgc-video { opacity: 0; }
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .rgc-media[data-rgc-has-frame="true"] .rgc-video { opacity: 1; }
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .rgc-media::after {
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] .rgc-video { opacity: 0; }
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] .rgc-media[data-rgc-has-frame="true"] .rgc-video { opacity: 1; }
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] .rgc-media::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -128,7 +128,7 @@ body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .rgc-media:
     linear-gradient(90deg, rgba(71, 28, 39, .18), rgba(71, 28, 39, .04));
   pointer-events: none;
 }
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .rgc-toggle {
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] .rgc-toggle {
   position: absolute;
   inset-inline-end: 16px;
   bottom: 16px;
@@ -144,109 +144,109 @@ body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .rgc-toggle
   font-size: 12px;
   cursor: pointer;
 }
-body.bg-rose-gold-paper .hp-hero[data-appearance-preset="rose_gold"] .rgc-toggle:focus-visible {
+body.bg-rose-champagne .hp-hero[data-appearance-preset="rose_champagne"] .rgc-toggle:focus-visible {
   outline: 2px solid #fffaf4;
   outline-offset: 3px;
 }
 
 /* Surface tokens serve Home, Trade, Join and their existing forms uniformly. */
-body.bg-rose-gold-paper :is(#events, #wibp, #about, .hp-signup, .hp-footer) {
+body.bg-rose-champagne :is(#events, #wibp, #about, .hp-signup, .hp-footer) {
   background: #fff7f5;
   color: #45252e;
   border-color: #e8c8c0;
 }
-body.bg-rose-gold-paper.surface-pearl-rose :is(.hp-event-card, .hp-wibp-card, .hp-trade-card, .hp-signup-card, .tp-lrq-rail, .tp-filters, .tp-card, .tp-card-expand, .tp-sheet, .jp-hero-card, .jp-team-card, .jp-benefit-card, .jp-faq-item, .jp-final-card) {
+body.bg-rose-champagne.surface-pearl-rose :is(.hp-event-card, .hp-wibp-card, .hp-trade-card, .hp-signup-card, .tp-lrq-rail, .tp-filters, .tp-card, .tp-card-expand, .tp-sheet, .jp-hero-card, .jp-team-card, .jp-benefit-card, .jp-faq-item, .jp-final-card) {
   background: #fffdfb;
   color: var(--hp-card-fg);
   border-color: #e8c8c0;
   box-shadow: 0 15px 38px #5c2b3310;
 }
-body.bg-rose-gold-paper :is(.hp-section-title, .hp-event-title, .hp-about-headline, .hp-signup-title, .tp-hero-title, .jp-hero-title, .jp-section-title) {
+body.bg-rose-champagne :is(.hp-section-title, .hp-event-title, .hp-about-headline, .hp-signup-title, .tp-hero-title, .jp-hero-title, .jp-section-title) {
   color: #45252e;
   -webkit-text-fill-color: #45252e;
   background: none;
 }
-body.bg-rose-gold-paper :is(.hp-section-sub, .hp-event-desc, .hp-event-meta, .hp-about-text, .hp-footer-tagline, .tp-hero-sub, .jp-hero-pitch, .jp-hero-localized, .jp-hero-compliance, .jp-section-sub) { color: #765760; }
-body.bg-rose-gold-paper .jp-hero-eyebrow { color: #a04e5d; }
-body.bg-rose-gold-paper .jp-hero-eyebrow::before,
-body.bg-rose-gold-paper .jp-hero-eyebrow::after { background: #e8c8c0; }
-body.bg-rose-gold-paper .jp-hero-compliance a { color: #a04e5d; }
-body.bg-rose-gold-paper :is(.hp-event-tag, .hp-event-badge, .jp-hero-promo) {
+body.bg-rose-champagne :is(.hp-section-sub, .hp-event-desc, .hp-event-meta, .hp-about-text, .hp-footer-tagline, .tp-hero-sub, .jp-hero-pitch, .jp-hero-localized, .jp-hero-compliance, .jp-section-sub) { color: #765760; }
+body.bg-rose-champagne .jp-hero-eyebrow { color: #a04e5d; }
+body.bg-rose-champagne .jp-hero-eyebrow::before,
+body.bg-rose-champagne .jp-hero-eyebrow::after { background: #e8c8c0; }
+body.bg-rose-champagne .jp-hero-compliance a { color: #a04e5d; }
+body.bg-rose-champagne :is(.hp-event-tag, .hp-event-badge, .jp-hero-promo) {
   background: #f5e4dd;
   color: #a04e5d;
   border-color: #e8c8c0;
 }
-body.bg-rose-gold-paper .hp-step-num { background: #a04e5d; color: #fffdfb; }
-body.bg-rose-gold-paper .tp-filter-chip { background: #fff7f5; color: #45252e; border-color: #e8c8c0; }
-body.bg-rose-gold-paper .tp-filter-chip.active { background: #723745; color: #fff9f2; border-color: #723745; }
-body.bg-rose-gold-paper .hp-footer :is(.hp-footer-brand, .hp-footer-team, .hp-footer-col a) { color: var(--hp-card-fg); }
-body.bg-rose-gold-paper .hp-footer :is(.hp-footer-tag, .hp-footer-coming-soon, .hp-footer-bottom, .hp-footer-bottom a) { color: var(--hp-card-muted); }
-body.bg-rose-gold-paper .hp-footer .hp-footer-bottom { border-color: var(--border); }
-body.bg-rose-gold-paper .hp-footer .hp-footer-coming-soon span {
+body.bg-rose-champagne .hp-step-num { background: #a04e5d; color: #fffdfb; }
+body.bg-rose-champagne .tp-filter-chip { background: #fff7f5; color: #45252e; border-color: #e8c8c0; }
+body.bg-rose-champagne .tp-filter-chip.active { background: #723745; color: #fff9f2; border-color: #723745; }
+body.bg-rose-champagne .hp-footer :is(.hp-footer-brand, .hp-footer-team, .hp-footer-col a) { color: var(--hp-card-fg); }
+body.bg-rose-champagne .hp-footer :is(.hp-footer-tag, .hp-footer-coming-soon, .hp-footer-bottom, .hp-footer-bottom a) { color: var(--hp-card-muted); }
+body.bg-rose-champagne .hp-footer .hp-footer-bottom { border-color: var(--border); }
+body.bg-rose-champagne .hp-footer .hp-footer-coming-soon span {
   background: #f5e4dd;
   color: var(--hp-card-muted);
   border-color: var(--border);
 }
-body.bg-rose-gold-paper .hp-footer .hp-footer-social {
+body.bg-rose-champagne .hp-footer .hp-footer-social {
   background: #fffdfb;
   color: var(--hp-card-fg);
   border-color: var(--border);
 }
-body.bg-rose-gold-paper .hp-footer .hp-footer-social:hover {
+body.bg-rose-champagne .hp-footer .hp-footer-social:hover {
   background: #f5e4dd;
   color: var(--hp-card-fg);
   border-color: var(--hp-card-accent);
 }
-body.bg-rose-gold-paper .hp-footer :is(.hp-footer-col a, .hp-footer-bottom a):hover { color: var(--hp-card-accent); }
-body.bg-rose-gold-paper .hp-footer a:focus-visible { outline-color: var(--hp-card-accent); }
+body.bg-rose-champagne .hp-footer :is(.hp-footer-col a, .hp-footer-bottom a):hover { color: var(--hp-card-accent); }
+body.bg-rose-champagne .hp-footer a:focus-visible { outline-color: var(--hp-card-accent); }
 
 /* Platform labels and glyphs inherit the theme rather than provider colors. */
-body.bg-rose-gold-paper :is(.hp-event-platform, .event-platform-btn, .hp-calendar-choice.google, .hp-calendar-choice.outlook) {
+body.bg-rose-champagne :is(.hp-event-platform, .event-platform-btn, .hp-calendar-choice.google, .hp-calendar-choice.outlook) {
   background: linear-gradient(105deg, #723745, #a04e5d);
   color: #fff9f2;
   border-color: #723745;
 }
-body.bg-rose-gold-paper :is(.hp-event-platform, .event-platform-btn) .glyph {
+body.bg-rose-champagne :is(.hp-event-platform, .event-platform-btn) .glyph {
   background: #fff9f2;
   color: #723745;
 }
-body.bg-rose-gold-paper .hp-event-platform .glyph::after { color: #723745; }
-body.bg-rose-gold-paper :is(.hp-stream-btn, .hp-watch-option, .stream-option) .glyph {
+body.bg-rose-champagne .hp-event-platform .glyph::after { color: #723745; }
+body.bg-rose-champagne :is(.hp-stream-btn, .hp-watch-option, .stream-option) .glyph {
   background: #723745;
   color: #fff9f2;
 }
-body.bg-rose-gold-paper :is(.hp-stream-btn, .hp-watch-option) { color: #fff9f2; }
-body.bg-rose-gold-paper .jp-team-social {
+body.bg-rose-champagne :is(.hp-stream-btn, .hp-watch-option) { color: #fff9f2; }
+body.bg-rose-champagne .jp-team-social {
   background: #fffdfb;
   color: #723745;
   border-color: #e8c8c0;
 }
-body.bg-rose-gold-paper .jp-team-social:hover {
+body.bg-rose-champagne .jp-team-social:hover {
   background: #723745;
   color: #fff9f2;
   border-color: #723745;
 }
-body.bg-rose-gold-paper :is(.hp-event-platform, .event-platform-btn, .jp-team-social):focus-visible {
+body.bg-rose-champagne :is(.hp-event-platform, .event-platform-btn, .jp-team-social):focus-visible {
   outline-color: #a04e5d;
 }
 
 /* Keep existing icon bubbles distinct from their own surrounding surfaces. */
-body.bg-rose-gold-paper .hp-customer-media-empty-icon {
+body.bg-rose-champagne .hp-customer-media-empty-icon {
   background: #fff9f2;
   color: #723745;
   border-color: #d29b82;
 }
-body.bg-rose-gold-paper :is(.jp-benefit-icon, .jp-final-icon, .tp-sheet-success-icon) {
+body.bg-rose-champagne :is(.jp-benefit-icon, .jp-final-icon, .tp-sheet-success-icon) {
   background: #723745;
   color: #fff9f2;
   border-color: #d29b82;
 }
-body.bg-rose-gold-paper .tp-empty-glyph { color: #723745; opacity: 1; }
-body.bg-rose-gold-paper .hp-calendar-modal-close { background: #fffdfb; color: #45252e; }
-body.bg-rose-gold-paper .hp-calendar-modal-close:hover { background: #f5e4dd; }
+body.bg-rose-champagne .tp-empty-glyph { color: #723745; opacity: 1; }
+body.bg-rose-champagne .hp-calendar-modal-close { background: #fffdfb; color: #45252e; }
+body.bg-rose-champagne .hp-calendar-modal-close:hover { background: #f5e4dd; }
 
 /* Selective champagne/copper accents on existing reveal and lineup circles. */
-body.bg-rose-gold-paper :is(.hp-step-num, .jp-benefit-icon, .hp-trade-preview-pill .pos, .hp-queue-modal-row .pos) {
+body.bg-rose-champagne :is(.hp-step-num, .jp-benefit-icon, .hp-trade-preview-pill .pos, .hp-queue-modal-row .pos) {
   background: linear-gradient(135deg, #b57955, #f0d69b 48%, #bf8560);
   color: #30171d;
   border-color: #a36a47;

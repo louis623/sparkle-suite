@@ -657,7 +657,7 @@ describe('Amethyst trade page template wiring', () => {
     expect(html).toContain('Playfair+Display')
   })
 
-  it('ships Rose Champagne with its stable Rose Gold id in the local trade theme picker', () => {
+  it('ships distinct Rose Gold and Rose Champagne ids in the local trade theme picker', () => {
     const jsx = readFileSync(
       resolve(process.cwd(), 'public/amethyst/trade.jsx'),
       'utf8',
@@ -668,7 +668,8 @@ describe('Amethyst trade page template wiring', () => {
     )
 
     expect(jsx).toContain('rose_gold')
-    expect(jsx).toContain('Rose Champagne')
+    expect(jsx).toContain('{ value: "rose_gold", label: "Rose Gold" }')
+    expect(jsx).toContain('{ value: "rose_champagne", label: "Rose Champagne" }')
     expect(html).toContain('DM+Sans')
     expect(html).toContain('Playfair+Display')
   })

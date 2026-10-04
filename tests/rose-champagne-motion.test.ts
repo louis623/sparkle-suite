@@ -24,9 +24,9 @@ class Element extends EventTarget {
   load = vi.fn()
 }
 
-function harness({ mobile = false, reduced = false, still = false, otherTheme = false } = {}) {
-  const hero = new Element('section'); hero.dataset.heroMotion = still ? 'off' : 'on'; hero.dataset.appearancePreset = 'rose_gold'
-  const body = new Element('body'); body.className = otherTheme ? 'bg-amethyst' : 'bg-rose-gold-paper'
+function harness({ mobile = false, reduced = false, still = false, otherTheme = false, originalRoseGold = false } = {}) {
+  const hero = new Element('section'); hero.dataset.heroMotion = still ? 'off' : 'on'; hero.dataset.appearancePreset = originalRoseGold ? 'rose_gold' : 'rose_champagne'
+  const body = new Element('body'); body.className = originalRoseGold ? 'bg-rose-gold-paper' : otherTheme ? 'bg-amethyst' : 'bg-rose-champagne'
   const doc = Object.assign(new EventTarget(), { body, hidden: false, readyState: 'complete', querySelector: () => hero, createElement: (tag: string) => new Element(tag) })
   const motion = Object.assign(new EventTarget(), { matches: reduced })
   const queries: string[] = []
@@ -52,6 +52,8 @@ function harness({ mobile = false, reduced = false, still = false, otherTheme = 
 const settle = async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve() }
 
 describe('Rose Champagne motion lifecycle', () => {
+  it('does not mount or request Champagne media for the restored original RG-01', () => { const h = harness({ originalRoseGold: true }); h.visible(true); expect(h.hero.children).toHaveLength(0) })
+
   it('does not mount or load on another theme', () => { const h = harness({ otherTheme: true }); expect(h.hero.children).toHaveLength(0) })
 
   it.each([false, true])('defers identical inline media until visible on phone and desktop (mobile=%s)', async mobile => {

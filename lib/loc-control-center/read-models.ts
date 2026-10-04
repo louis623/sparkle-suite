@@ -45,6 +45,7 @@ import type {
 import { listOperatorSupportSessions } from "@/lib/operator-support/session-service";
 import { mapOperatorSupportSessionSummary } from "@/lib/operator-support/http";
 import { readFinderReviewEvidence } from "./finder-evidence";
+import { readFinderLaunchNotifyList } from "./finder-launch-notify";
 import { listRemyReplyApprovals } from '@/lib/remy-communications/reply-approvals'
 
 type Input = Record<string, unknown>;
@@ -107,6 +108,8 @@ export async function readLocOperation(
       tooMany: candidates.length > 50,
     };
   }
+  if (name === "finder.launchNotify.list")
+    return readFinderLaunchNotifyList(input, pagination(input));
   if (name === "support.reports") {
     const { limit, offset } = pagination(input);
     const reports = await listOperatorSupportReports(admin, {
