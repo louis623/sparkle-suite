@@ -1,0 +1,307 @@
+/* RG-03 Pearl Rose: palette and decorative hero only. Shared Amethyst
+ * fonts, spacing, header, tickers and Live Lineup geometry stay untouched. */
+html:has(body.bg-pearl-rose) {
+  background: #faf5ef;
+  --bg: #faf5ef;
+  --bg-elevated: #fffefa;
+}
+body.bg-pearl-rose {
+  color-scheme: light;
+  --fg: #4d2931;
+  --fg-muted: #785963;
+  --border: #dcc4b7;
+  --hp-bg: #faf5ef;
+  --hp-bg-elevated: #fffefa;
+  --bg-deep: #f2e5dc;
+  --hp-preview-bg: #fffefa;
+  --hp-preview-fg: #4d2931;
+  --hp-preview-muted: #785963;
+  --hp-preview-border: #dcc4b7;
+  --hp-card-fg: #4d2931;
+  --hp-card-muted: #785963;
+  --hp-card-accent: #954354;
+  --hp-form-panel-bg: #fffefa;
+  --hp-form-panel-fg: #4d2931;
+  --hp-field-bg: #fffefa;
+  --hp-field-fg: #4d2931;
+  --hp-final-fg: #4d2931;
+  --hp-final-muted: #785963;
+  --hp-final-icon-fg: #fff9f2;
+  --hp-action-fg: #fff9f2;
+  --hp-media-card-bg: #fffefa;
+  --hp-media-card-fg: #4d2931;
+  --hp-media-card-muted: #785963;
+  --hp-media-card-border: #dcc4b7;
+  --hp-media-card-header-bg: linear-gradient(135deg, #813f50, #954354);
+  --hp-media-card-footer-bg: #f9ede7;
+  --hp-media-card-shadow: 0 24px 64px #7f344524;
+  --hp-media-card-hover-shadow: 0 30px 74px #7f344534;
+  --hp-media-card-accent-contrast: #fff9f2;
+  --hp-media-icon-fg: #fff9f2;
+  --hp-media-cta-fg: #fff9f2;
+  background: #faf5ef;
+  color: #4d2931;
+}
+
+body.bg-pearl-rose .hp-header {
+  background: #fffefa;
+  border-color: #dcc4b7;
+}
+body.bg-pearl-rose :is(.hp-brand-name, .hp-header-link) { color: #4d2931; }
+body.bg-pearl-rose .hp-brand-sub { color: #785963; }
+body.bg-pearl-rose .hp-header-link[aria-current="page"] { color: #954354; }
+
+body.bg-pearl-rose :is(.hp-ticker, .hp-ticker-row) {
+  background: #f1dfd8;
+  color: #4d2931;
+  border-color: #dcc4b7;
+}
+body.bg-pearl-rose .hp-ticker-row.reverse { background: #f9ede7; }
+body.bg-pearl-rose :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-ticker-empty) { color: #4d2931; }
+body.bg-pearl-rose .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #4d2931; }
+body.bg-pearl-rose .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #954354; }
+body.bg-pearl-rose .hp-ticker-row .hp-ticker-label {
+  background: linear-gradient(90deg, #f1dfd8 0%, #f1dfd8 70%, transparent 100%);
+  color: #4d2931;
+}
+body.bg-pearl-rose .hp-ticker-row.reverse .hp-ticker-label {
+  background: linear-gradient(90deg, #f9ede7 0%, #f9ede7 70%, transparent 100%);
+  color: #4d2931;
+}
+body.bg-pearl-rose :is(.hp-trade-preview, .hp-lrq-strip, .hp-lrq, .hp-lineup-calendar-row) {
+  background: #fffefa;
+  color: #4d2931;
+  border-color: #dcc4b7;
+}
+body.bg-pearl-rose :is(.hp-lineup-idle-prompt, .hp-trade-preview-head, .hp-trade-preview-link, .hp-trade-preview-pill) { color: #4d2931; }
+body.bg-pearl-rose :is(.hp-trade-preview-updated, .hp-trade-preview-pill .label) { color: #785963; }
+
+body.bg-pearl-rose :is(.hp-shop-btn, .hp-btn-primary, .hp-signup-submit, .tp-card-expand-cta, .tp-sheet-submit, .jp-spot-btn, .jp-final-btn) {
+  background: #813f50;
+  color: #fff9f2;
+  border-color: #dcc4b7;
+  box-shadow: 0 9px 24px #7f344524;
+}
+
+/* The original full-bleed hero and original HTML copy/actions stay in place. */
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] .hp-hero-media,
+body.bg-pearl-rose .jp-hero-media {
+  background: url('/amethyst/skins/pearl-rose/hero-poster.webp') center center / cover no-repeat;
+  background-blend-mode: normal;
+}
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] .hp-hero-headline {
+  color: #5a2e39;
+  -webkit-text-fill-color: #5a2e39;
+  background: none;
+  text-shadow: none;
+}
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] .hp-hero-sub {
+  color: #684751;
+  text-shadow: none;
+}
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] :is(.hp-btn-outline, .hp-btn-watch) {
+  color: #5a2e39;
+  border-color: #8c536466;
+  background: #fffaf3c9;
+  backdrop-filter: blur(8px);
+}
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] .hp-hero-fx-layer { display: none; }
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] .prl-media {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] :is(.prl-poster, .prl-video) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  pointer-events: none;
+}
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] .prl-video { opacity: 0; }
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] .prl-media[data-prl-has-frame="true"] .prl-video { opacity: 1; }
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] .prl-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: none;
+  pointer-events: none;
+}
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] .prl-toggle {
+  position: absolute;
+  inset-inline-end: 16px;
+  bottom: 16px;
+  z-index: 4;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #8c536466;
+  border-radius: 999px;
+  background: #fffefaee;
+  color: #5a2e39;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+body.bg-pearl-rose .hp-hero[data-appearance-preset="pearl_rose"] .prl-toggle:focus-visible {
+  outline: 2px solid #5a2e39;
+  outline-offset: 3px;
+}
+
+/* Surface tokens serve Home, Trade, Join and their existing forms uniformly. */
+body.bg-pearl-rose :is(#events, #wibp, #about, .hp-signup, .hp-footer) {
+  background: #faf5ef;
+  color: #4d2931;
+  border-color: #dcc4b7;
+}
+body.bg-pearl-rose.surface-pearl-rose-paper :is(.hp-event-card, .hp-wibp-card, .hp-trade-card, .hp-signup-card, .tp-lrq-rail, .tp-filters, .tp-card, .tp-card-expand, .tp-sheet, .jp-hero-card, .jp-team-card, .jp-benefit-card, .jp-faq-item, .jp-final-card) {
+  background: #fffefa;
+  color: var(--hp-card-fg);
+  border-color: #dcc4b7;
+  box-shadow: 0 15px 38px #5c2b3310;
+}
+body.bg-pearl-rose :is(.hp-section-title, .hp-event-title, .hp-about-headline, .hp-signup-title, .tp-hero-title, .jp-hero-title, .jp-section-title) {
+  color: #4d2931;
+  -webkit-text-fill-color: #4d2931;
+  background: none;
+}
+body.bg-pearl-rose :is(.hp-section-sub, .hp-event-desc, .hp-event-meta, .hp-about-text, .hp-footer-tagline, .tp-hero-sub, .jp-hero-pitch, .jp-hero-localized, .jp-hero-compliance, .jp-section-sub) { color: #785963; }
+body.bg-pearl-rose .jp-hero-eyebrow { color: #954354; }
+body.bg-pearl-rose .jp-hero-eyebrow::before,
+body.bg-pearl-rose .jp-hero-eyebrow::after { background: #dcc4b7; }
+body.bg-pearl-rose .jp-hero-compliance a { color: #954354; }
+body.bg-pearl-rose :is(.hp-event-tag, .hp-event-badge, .jp-hero-promo) {
+  background: #f5e4dd;
+  color: #954354;
+  border-color: #dcc4b7;
+}
+body.bg-pearl-rose .hp-event-pill { background: #954354; color: #fff9f2; }
+body.bg-pearl-rose .hp-event-pill .pip { background: #fff9f2; }
+body.bg-pearl-rose .hp-step-num { background: #954354; color: #fffefa; }
+body.bg-pearl-rose .tp-filter-chip { background: #faf5ef; color: #4d2931; border-color: #dcc4b7; }
+body.bg-pearl-rose .tp-filter-chip.active { background: #954354; color: #fff9f2; border-color: #954354; }
+body.bg-pearl-rose .hp-footer :is(.hp-footer-brand, .hp-footer-team, .hp-footer-col a) { color: var(--hp-card-fg); }
+body.bg-pearl-rose .hp-footer :is(.hp-footer-tag, .hp-footer-coming-soon, .hp-footer-bottom, .hp-footer-bottom a) { color: var(--hp-card-muted); }
+body.bg-pearl-rose .hp-footer .hp-footer-bottom { border-color: var(--border); }
+body.bg-pearl-rose .hp-footer .hp-footer-coming-soon span {
+  background: #f5e4dd;
+  color: var(--hp-card-muted);
+  border-color: var(--border);
+}
+body.bg-pearl-rose .hp-footer .hp-footer-social {
+  background: #fffefa;
+  color: var(--hp-card-fg);
+  border-color: var(--border);
+}
+body.bg-pearl-rose .hp-footer .hp-footer-social:hover {
+  background: #f5e4dd;
+  color: var(--hp-card-fg);
+  border-color: var(--hp-card-accent);
+}
+body.bg-pearl-rose .hp-footer :is(.hp-footer-col a, .hp-footer-bottom a):hover { color: var(--hp-card-accent); }
+body.bg-pearl-rose .hp-footer a:focus-visible { outline-color: var(--hp-card-accent); }
+
+/* Platform labels and glyphs inherit the theme rather than provider colors. */
+body.bg-pearl-rose :is(.hp-event-platform, .event-platform-btn, .hp-calendar-choice.google, .hp-calendar-choice.outlook) {
+  background: linear-gradient(105deg, #813f50, #954354);
+  color: #fff9f2;
+  border-color: #954354;
+}
+body.bg-pearl-rose :is(.hp-event-platform, .event-platform-btn) .glyph {
+  background: #fff9f2;
+  color: #954354;
+}
+body.bg-pearl-rose .hp-event-platform .glyph::after { color: #954354; }
+body.bg-pearl-rose :is(.hp-stream-btn, .hp-watch-option, .stream-option) .glyph {
+  background: #954354;
+  color: #fff9f2;
+}
+body.bg-pearl-rose :is(.hp-stream-btn, .hp-watch-option) {
+  background: #fffefa;
+  color: #4d2931;
+  border-color: #dcc4b7;
+}
+body.bg-pearl-rose :is(.hp-stream-btn, .hp-watch-option):hover { background: #f5e4dd; color: #4d2931; }
+body.bg-pearl-rose :is(.hp-stream-btn, .hp-watch-option) .handle { color: #785963; }
+body.bg-pearl-rose .jp-team-social {
+  background: #fffefa;
+  color: #954354;
+  border-color: #dcc4b7;
+}
+body.bg-pearl-rose .jp-team-social:hover {
+  background: #954354;
+  color: #fff9f2;
+  border-color: #954354;
+}
+body.bg-pearl-rose :is(.hp-event-platform, .event-platform-btn, .jp-team-social):focus-visible {
+  outline-color: #954354;
+}
+
+/* Keep existing icon bubbles distinct from their own surrounding surfaces. */
+body.bg-pearl-rose .hp-customer-media-empty-icon {
+  background: #813f50;
+  color: #fff9f2;
+  border-color: #d29b82;
+}
+body.bg-pearl-rose :is(.jp-benefit-icon, .jp-final-icon, .tp-sheet-success-icon) {
+  background: #954354;
+  color: #fff9f2;
+  border-color: #d29b82;
+}
+body.bg-pearl-rose .tp-empty-glyph { color: #954354; opacity: 1; }
+body.bg-pearl-rose .hp-calendar-modal-close { background: #fffefa; color: #4d2931; }
+body.bg-pearl-rose .hp-calendar-modal-close:hover { background: #f5e4dd; }
+
+/* Selective champagne/copper accents on existing reveal and lineup circles. */
+body.bg-pearl-rose :is(.hp-step-num, .jp-benefit-icon, .hp-trade-preview-pill .pos, .hp-queue-modal-row .pos) {
+  background: linear-gradient(135deg, #dfac98, #f3c8ad 48%, #d89b88);
+  color: #4d2931;
+  border-color: #b7786b;
+  box-shadow: inset 0 0 0 1px #95435488;
+}
+body.bg-pearl-rose .hp-unsubscribe-toggle:not(:has(input:checked)) .hp-toggle-control {
+  background: #785963;
+}
+
+/* Existing dialog, lineup and form states keep their original dimensions. */
+body.bg-pearl-rose :is(.hp-calendar-modal, .hp-queue-modal, .hp-queue-modal-row) {
+  background: #fffefa;
+  color: #4d2931;
+  border-color: #dcc4b7;
+}
+body.bg-pearl-rose .hp-queue-modal-row.now { background: #f5e4dd; }
+body.bg-pearl-rose .hp-queue-modal-row .name { color: #4d2931; }
+body.bg-pearl-rose .hp-queue-modal-row .label { color: #785963; }
+body.bg-pearl-rose .hp-queue-modal-close { background: #fffefa; color: #4d2931; }
+body.bg-pearl-rose .hp-queue-modal-close:hover { background: #f5e4dd; }
+body.bg-pearl-rose :is(.hp-event-copy:hover, .hp-event-copy.copied, .hp-event-collection-pill:hover) { color: #fff9f2; }
+body.bg-pearl-rose :is(.hp-lrq-item:not(.on-deck) .pos, .tp-lrq-row.now .pos, .tp-filter-badge, .tp-load-more, .tp-card-tier.unicorn) {
+  background: #954354;
+  color: #fff9f2;
+}
+body.bg-pearl-rose .tp-card-tier.unicorn .pip { background: #fff9f2; }
+body.bg-pearl-rose :is(.tp-empty-reset, .tp-card-close) {
+  background: #fffefa;
+  color: #954354;
+  border-color: #dcc4b7;
+}
+body.bg-pearl-rose .tp-sheet-receipt input {
+  background: #fffefa;
+  color: #4d2931;
+  border-color: #dcc4b7;
+}
+body.bg-pearl-rose :is(.hp-signup-input, .tp-board-search input, .tp-sheet-field input, .tp-sheet-field textarea)::placeholder {
+  color: #785963;
+  opacity: 1;
+}
+body.bg-pearl-rose .hp-signup-status.success { color: #13653d; }
+body.bg-pearl-rose .hp-signup-status.error { color: #9c1c3d; }
+body.bg-pearl-rose .tp-sheet-error {
+  background: #fff1ef;
+  color: #9c1c3d;
+  border-color: #b7837b;
+}

@@ -90,6 +90,7 @@ describe('Amethyst appearance presets', () => {
       'gilded_autumn',
       'rose_gold',
       'midnight_rose',
+      'pearl_rose',
       'garnet',
       'amber',
       'velvet',
@@ -109,6 +110,7 @@ describe('Amethyst appearance presets', () => {
       'The Golden Leaves of Autumn',
       'Rose Champagne',
       'Midnight Rose',
+      'Pearl Rose',
       'Garnet',
       'Amber',
       'Velvet',
@@ -425,10 +427,14 @@ describe('Amethyst appearance presets', () => {
 
     for (const surface of cardSurfaces) {
       // New collection themes keep palette tokens in their scoped stylesheet.
-      const surfaceCss = surface === 'midnight-rose'
+      const surfaceCss = surface === 'pearl-rose-paper'
+        ? readFileSync(resolve(process.cwd(), 'public/amethyst/pearl-rose.css'), 'utf8')
+        : surface === 'midnight-rose'
         ? readFileSync(resolve(process.cwd(), 'public/amethyst/midnight-rose.css'), 'utf8')
         : homepageCss
-      const className = surface === 'midnight-rose'
+      const className = surface === 'pearl-rose-paper'
+        ? 'bg-pearl-rose'
+        : surface === 'midnight-rose'
         ? 'bg-midnight-rose'
         : surface === 'holographic' ? 'fx-holographic' : `surface-${surface}`
       expect(surfaceCss).toMatch(

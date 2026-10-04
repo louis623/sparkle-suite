@@ -25,16 +25,19 @@ describe('customer-site skin contrast contract', () => {
   const joinCss = readCustomerSiteCss('join.css')
   const tradeCss = readCustomerSiteCss('trade.css')
   const midnightCss = readCustomerSiteCss('midnight-rose.css')
+  const pearlCss = readCustomerSiteCss('pearl-rose.css')
   const presets = Object.values(AMETHYST_APPEARANCE_PRESETS)
 
   it('gives every selectable skin a semantic foreground contract for its card surface', () => {
     expect(presets.map(({ id }) => id)).toEqual([...AMETHYST_APPEARANCE_PRESET_IDS])
 
     for (const preset of presets) {
-      const selector = preset.id === 'midnight_rose'
+      const selector = preset.id === 'pearl_rose'
+        ? 'body.bg-pearl-rose'
+        : preset.id === 'midnight_rose'
         ? 'body.bg-midnight-rose'
         : `body.${cardSurfaceClass(preset.values.cardSurface)}`
-      const css = preset.id === 'midnight_rose' ? midnightCss : homepageCss
+      const css = preset.id === 'pearl_rose' ? pearlCss : preset.id === 'midnight_rose' ? midnightCss : homepageCss
 
       expect(css).toMatch(cssRule(selector, '--hp-card-fg'))
       expect(css).toMatch(cssRule(selector, '--hp-card-muted'))
@@ -64,8 +67,8 @@ describe('customer-site skin contrast contract', () => {
 
   it('uses a skin-aware foreground token for all customer action controls and active Trade filters', () => {
     for (const preset of presets) {
-      const selector = preset.id === 'midnight_rose' ? 'body.bg-midnight-rose' : `body.btn-${preset.values.buttonEnergy}`
-      expect(preset.id === 'midnight_rose' ? midnightCss : homepageCss).toMatch(cssRule(selector, '--hp-action-fg'))
+      const selector = preset.id === 'pearl_rose' ? 'body.bg-pearl-rose' : preset.id === 'midnight_rose' ? 'body.bg-midnight-rose' : `body.btn-${preset.values.buttonEnergy}`
+      expect(preset.id === 'pearl_rose' ? pearlCss : preset.id === 'midnight_rose' ? midnightCss : homepageCss).toMatch(cssRule(selector, '--hp-action-fg'))
     }
 
     for (const [selector, css] of [

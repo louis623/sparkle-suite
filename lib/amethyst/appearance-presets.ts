@@ -14,6 +14,7 @@ export const AMETHYST_APPEARANCE_PRESET_IDS = [
   'gilded_autumn',
   'rose_gold',
   'midnight_rose',
+  'pearl_rose',
   'garnet',
   'amber',
   'velvet',
@@ -391,6 +392,20 @@ export const AMETHYST_APPEARANCE_PRESETS: Record<
       bgTreatment: 'midnight-rose', cardSurface: 'midnight-rose',
       textureOverlay: 'none', buttonEnergy: 'midnight-rose-lift', ctaEmphasis: 'standard',
       tradeFlair: 'copper-midnight', cursorEffect: 'default', tickerSpeed: 1,
+    },
+  },
+  pearl_rose: {
+    id: 'pearl_rose',
+    label: 'Pearl Rose',
+    description: 'Airy pearl light, copper detailing and refined burgundy typography.',
+    values: {
+      primaryColor: '#954354', accentColor: '#d29b82', bgTone: 'pearlRose',
+      headingFont: 'playfair', bodyFont: 'dmSans', headingWeight: 600,
+      shapeRadius: 'soft', density: 'regular', saturation: 100,
+      heroMotion: 'sparkle_rise', sparkleLevel: 'subtle',
+      bgTreatment: 'pearl-rose', cardSurface: 'pearl-rose-paper',
+      textureOverlay: 'none', buttonEnergy: 'pearl-rose-lift', ctaEmphasis: 'standard',
+      tradeFlair: 'copper-pearl', cursorEffect: 'default', tickerSpeed: 1,
     },
   },
   garnet: {

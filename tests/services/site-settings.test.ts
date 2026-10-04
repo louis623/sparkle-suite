@@ -748,6 +748,7 @@ describe('site settings service', () => {
 
   it.each([
     'midnight_rose',
+    'pearl_rose',
     'gilded_autumn',
     'garnet',
     'amber',

@@ -7,6 +7,7 @@ import { buildSkinPreviewDocument } from '@/lib/amethyst/skin-preview'
 
 const profiles = [
   ['midnight_rose', 'Sparkle by Sasha'],
+  ['pearl_rose', 'Sparkle by Sasha'],
   ['rose_gold', 'Sparkle by Sasha'],
   ['gilded_autumn', 'Sparkle by Sasha'],
   ['gnome_garden', 'The Gnome Forest'],
