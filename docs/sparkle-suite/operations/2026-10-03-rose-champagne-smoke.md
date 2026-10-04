@@ -1,5 +1,14 @@
 # RG-01 Rose Champagne — Smoke review
 
+Louis preferred the original palette over the Champagne & Copper color study.
+Only its decorative gold gradient is adopted: the three Homepage reveal-step
+icons, Join benefit icons and Live Lineup number circles (including the existing
+drawer counters). Their dark rose glyphs/numerals retain readable contrast.
+All other icon groups, social/calendar controls, page surfaces and the approved
+hero stay in the first version's styling. This is a color-only RG-01 override;
+sizes, spacing, shapes, content, lineup state behavior and other themes remain
+unchanged. The broader local color study is not part of the release.
+
 Louis approved the hero animation on October 3. The subsequent icon polish
 keeps that animation, poster and runtime unchanged. RG-01 social platform
 labels/glyphs, team social circles and Google/Outlook calendar choices use the
