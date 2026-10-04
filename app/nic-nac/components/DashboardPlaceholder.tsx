@@ -7628,6 +7628,7 @@ function ConceptHomeWorkspace({
         </ConceptPanel>
         <ConceptPanel
           title="Public Site"
+          className={styles.publicSitePanel}
           action={siteLive ? 'Open site' : undefined}
           onAction={siteLive ? onOpenPublicSite : undefined}
         >
@@ -7724,7 +7725,7 @@ function ConceptHomeWorkspace({
             </a>
           </div>
         </ConceptPanel>
-        <ConceptPanel title="Recent conversations" className={styles.mobileRecentPanel}>
+        <ConceptPanel title="Recent conversations" className={styles.recentConversationsPanel}>
           <div className={styles.recentConversationList}>
             <button type="button" onClick={() => onLaunchAction('check_board')}>
               <span>N</span>
