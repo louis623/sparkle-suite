@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import { metadata } from '@/app/page'
+import { metadata } from '@/app/learn/page'
 import { SparkleSuitePublicLanding } from '@/app/_components/sparkle-suite-public-landing'
 import {
   sparkleSuitePublicLandingContent,
@@ -490,8 +490,9 @@ describe('Sparkle Suite public landing page', () => {
     expect(pageSource).not.toContain('createServerSupabaseClient')
     expect(pageSource).not.toContain('supabase.auth.getUser()')
     expect(pageSource).not.toContain("redirect('/nic-nac')")
-    expect(pageSource).toContain('<SparkleSuitePublicLanding')
-    expect(pageSource).toContain('readLandingFounderAvailability')
+    expect(pageSource).toContain('<MarketingHub />')
+    expect(pageSource).not.toContain('<SparkleSuitePublicLanding')
+    expect(pageSource).not.toContain('/adventure')
     expect(pageSource).not.toContain('remaining: 18')
     const learnSource = readFileSync(join(process.cwd(), 'app', 'learn', 'page.tsx'), 'utf8')
     expect(learnSource).toContain('readLandingFounderAvailability')
@@ -512,6 +513,6 @@ describe('Sparkle Suite public landing page', () => {
     expect(metadata.description).toContain('website and live-show tools for Bomb Party reps')
     expect(metadata.description).toContain('Now building Sparkle Suite sites')
     expect(metadata.description).toContain('join the build queue')
-    expect(metadata.alternates?.canonical).toBe('/')
+    expect(metadata.alternates?.canonical).toBe('/learn')
   })
 })
