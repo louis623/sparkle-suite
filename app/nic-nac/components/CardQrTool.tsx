@@ -223,7 +223,7 @@ export function CardQrTool({
         <h3 id="card-qr-builder" className={styles.title}>QR code builder</h3>
         <p className={styles.body}>
           This code always points at your current Suite customer site. Flyer and
-          cards reuse this same QR.
+          cards reuse this same QR. you could copy paste it or download it.
         </p>
         <p className={styles.url}>{destinationUrl || 'Site address loading'}</p>
         <div className={styles.layout}>

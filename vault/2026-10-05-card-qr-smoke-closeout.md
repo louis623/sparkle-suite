@@ -1,5 +1,9 @@
 # 2026-10-05 — Cards & QR Smoke v1
 
+## Follow-up: QR reuse sentence
+
+- QR code builder helper now ends with `you could copy paste it or download it.` Hub tile title, body, Open tool, Ready badge, and spacing are unchanged.
+
 ## Follow-up: hub copy
 
 - Business Tools ready tile title is `QR codes, QR flyers, business cards`. Body: `Build your site QR. Download a free QR code flyer, or order printed cards that match your site.` Button: `Open tool`. Ready badge stays. The Tools list and the tool page use the same title.

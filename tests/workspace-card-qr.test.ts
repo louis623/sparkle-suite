@@ -235,6 +235,9 @@ describe('Cards & QR smoke locks', () => {
       }),
     )
     expect(html).toContain('QR code builder')
+    expect(html).toContain(
+      'This code always points at your current Suite customer site. Flyer and cards reuse this same QR. you could copy paste it or download it.',
+    )
     expect(html).toContain('QR flyer')
     expect(html).toContain('Business cards')
     expect(html).toContain('https://sparkle-suite-smoke.vercel.app/fizzfest')
