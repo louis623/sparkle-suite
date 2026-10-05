@@ -21,19 +21,32 @@ export const finderLearnContent = {
     items: [
       {
         title: "Search",
-        body: "Hunt through the jewelry database for pieces you already own and pieces you want to collect.",
+        image: "/learn/pillars/search.png",
+        bullets: ["Hunt the jewelry library", "Pieces you already own", "Pieces you want to collect"],
       },
       {
         title: "Save",
-        body: "When you find it, save it. If you own it, it's your virtual collection. If you don't, put it on your wish list, or see if a rep has it on their Dance Floor.",
+        image: "/learn/pillars/save.png",
+        bullets: [
+          "Save what you find",
+          "Own it → your collection",
+          "Don't own it → wish list",
+          "See if a rep has it on their Dance Floor",
+        ],
       },
       {
         title: "Go to the show",
-        body: "See when that rep's next show is, go, and look at their website. Finder can tell you when a rep has a piece you're looking for.",
+        image: "/learn/pillars/go-to-the-show.png",
+        bullets: [
+          "See that rep's next show",
+          "Go / check their website",
+          "Know when a rep has a piece you're looking for",
+        ],
       },
       {
         title: "Show it off",
-        body: "Curate your collection and share it with friends and family. Brag about the bling.",
+        image: "/learn/pillars/show-it-off.png",
+        bullets: ["Curate your collection", "Share with friends and family", "Brag about the bling"],
       },
     ],
   },

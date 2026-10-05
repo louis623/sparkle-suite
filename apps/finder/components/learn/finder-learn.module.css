@@ -292,70 +292,50 @@
 
 .pillarGrid {
   display: grid;
-  gap: 2.35rem;
+  gap: 1.15rem;
 }
 
 .pillar {
-  display: grid;
-  align-content: start;
-  gap: 0.95rem;
-  min-width: 0;
-}
-
-.pillarPanel {
-  position: relative;
-  isolation: isolate;
   display: flex;
-  align-items: flex-end;
-  min-height: 13.5rem;
-  padding: 0.85rem;
+  flex-direction: column;
+  min-width: 0;
   overflow: hidden;
-  border-radius: 1.2rem;
-  background-color: var(--pillar-color);
-  background-image: var(--pillar-art);
-  background-repeat: no-repeat;
-  background-position: right center;
-  background-size: 158% auto;
-  color: var(--finder-header-text);
+  border: 1px solid rgba(91, 42, 143, 0.14);
+  border-radius: 1.5rem;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(61, 24, 112, 0.08);
+  padding-bottom: 1.35rem;
 }
 
-.pillar:nth-child(1) .pillarPanel {
-  --pillar-color: #1a0b2e;
-  --pillar-art: url("/learn/pillars/search.png");
+.pillarArt {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff6ee;
 }
 
-.pillar:nth-child(2) .pillarPanel {
-  --pillar-color: #3d1870;
-  --pillar-art: url("/learn/pillars/save.png");
+.pillar h2 {
+  margin: 0.85rem 1.25rem 0.2rem;
+  color: var(--finder-deep);
+  font-size: clamp(1.85rem, 2.6vw, 2.3rem);
+  line-height: 1.08;
+  text-align: center;
 }
 
-.pillar:nth-child(3) .pillarPanel {
-  --pillar-color: #5b2a8f;
-  --pillar-art: url("/learn/pillars/go-to-the-show.png");
-}
-
-.pillar:nth-child(4) .pillarPanel {
-  --pillar-color: #241048;
-  --pillar-art: url("/learn/pillars/show-it-off.png");
-}
-
-.pillarPanel h2 {
-  position: relative;
-  z-index: 1;
-  width: fit-content;
-  max-width: 100%;
-  margin: 0;
-  padding: 0.22rem 0.7rem 0.28rem;
-  border-radius: 0.75rem;
-  background: var(--pillar-color);
-  color: inherit;
-  font-size: clamp(2.15rem, 3vw, 3.15rem);
-  line-height: 0.96;
-}
-
-.pillar p {
-  max-width: 38rem;
+.pillar ul {
+  margin: 0.35rem 1.4rem 0;
+  padding-left: 1.15rem;
   color: var(--finder-muted);
+}
+
+.pillar li {
+  margin-top: 0.35rem;
+  font-size: 1.02rem;
+  line-height: 1.45;
+}
+
+.pillar li::marker {
+  color: var(--finder-amethyst);
 }
 
 .silver {
@@ -471,11 +451,7 @@
 @media (min-width: 720px) {
   .pillarGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2.25rem 1.5rem;
-  }
-
-  .pillarPanel {
-    min-height: 17.5rem;
+    gap: 1.25rem;
   }
 
   .heroActions {

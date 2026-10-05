@@ -44,10 +44,13 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
           <div className={styles.pillarGrid}>
             {content.pillars.items.map((pillar) => (
               <article className={styles.pillar} key={pillar.title}>
-                <div className={styles.pillarPanel}>
-                  <h2>{pillar.title}</h2>
-                </div>
-                <p>{pillar.body}</p>
+                <img className={styles.pillarArt} src={pillar.image} alt="" />
+                <h2>{pillar.title}</h2>
+                <ul>
+                  {pillar.bullets.map((bullet) => (
+                    <li key={bullet}>{bullet}</li>
+                  ))}
+                </ul>
               </article>
             ))}
           </div>

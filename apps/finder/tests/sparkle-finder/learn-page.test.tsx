@@ -22,6 +22,10 @@ const allowedHrefs = new Set([
   "https://www.tiktok.com/@yoursparklesuite.com",
   "/brand/sparkle-finder-logo-transparent.png",
   "/brand/sparkle-suite-logo-transparent.png",
+  "/learn/pillars/search.png",
+  "/learn/pillars/save.png",
+  "/learn/pillars/go-to-the-show.png",
+  "/learn/pillars/show-it-off.png",
 ]);
 
 afterEach(() => {
@@ -95,10 +99,22 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain("M14.2 3.1c.5 2.6 2 4.4 4.5 4.7");
     const freeCard = markup.slice(freeCardAt);
     expect(freeCard).not.toMatch(/save a collection|saving a collection/i);
-    expect(markup.match(/Hunt through the jewelry database/g)).toHaveLength(1);
-    expect(markup.match(/When you find it, save it\./g)).toHaveLength(1);
-    expect(markup.match(/See when that rep(?:'|&#x27;)s next show is/g)).toHaveLength(1);
-    expect(markup.match(/Brag about the bling\./g)).toHaveLength(1);
+    expect(markup.match(/Hunt the jewelry library/g)).toHaveLength(1);
+    expect(markup.match(/Pieces you already own/g)).toHaveLength(1);
+    expect(markup.match(/Pieces you want to collect/g)).toHaveLength(1);
+    expect(markup.match(/Save what you find/g)).toHaveLength(1);
+    expect(markup.match(/Own it → your collection/g)).toHaveLength(1);
+    expect(markup.match(/Don(?:'|&#x27;)t own it → wish list/g)).toHaveLength(1);
+    expect(markup.match(/See if a rep has it on their Dance Floor/g)).toHaveLength(1);
+    expect(markup.match(/See that rep(?:'|&#x27;)s next show/g)).toHaveLength(1);
+    expect(markup.match(/Go \/ check their website/g)).toHaveLength(1);
+    expect(markup.match(/Know when a rep has a piece you(?:'|&#x27;)re looking for/g)).toHaveLength(1);
+    expect(markup.match(/Curate your collection/g)).toHaveLength(1);
+    expect(markup.match(/Share with friends and family/g)).toHaveLength(1);
+    expect(markup.match(/Brag about the bling/g)).toHaveLength(1);
+    expect(markup).not.toContain("Hunt through the jewelry database");
+    expect(markup).not.toContain("When you find it, save it.");
+    expect(markup).not.toMatch(/vault/i);
     expect(markup).toContain(">Search<");
     expect(markup).toContain(">Save<");
     expect(markup).toContain(">Go to the show<");
@@ -126,7 +142,12 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain(">Silver</a>");
     expect(markup).not.toContain('href="#soon"');
     expect(markup).not.toContain('href="#why"');
-    expect(markup.match(/<img\b/g)).toHaveLength(3);
+    expect(markup.match(/<img\b/g)).toHaveLength(7);
+    expect(markup).toContain('src="/learn/pillars/search.png"');
+    expect(markup).toContain('src="/learn/pillars/save.png"');
+    expect(markup).toContain('src="/learn/pillars/go-to-the-show.png"');
+    expect(markup).toContain('src="/learn/pillars/show-it-off.png"');
+    expect(markup).toContain("<ul>");
     expect(markup.match(/src="\/brand\/sparkle-finder-logo-transparent.png"/g)).toHaveLength(2);
     expect(markup.match(/src="\/brand\/sparkle-suite-logo-transparent.png"/g)).toHaveLength(1);
     expect(markup).toContain('aria-label="Sparkle Suite"');
@@ -168,22 +189,18 @@ describe("Sparkle Finder /learn", () => {
     expect(pageSource).not.toContain("getCurrentSparkleFinderAccount");
     expect(pageSource).not.toContain("create-an-account");
     expect(`${learnSource}\n${contentSource}`).not.toMatch(/next\/image|webp|\/learn\/peeks|background-image|url\(/i);
-    expect(styles).not.toMatch(/next\/image|webp|\/learn\/peeks/i);
-    expect(styles).toContain("background-image: var(--pillar-art);");
-    expect(styles).toContain("background-size: 158% auto;");
-    expect(styles).toContain("background-position: right center;");
-    expect(styles).toContain("font-size: clamp(2.15rem, 3vw, 3.15rem);");
-    expect(styles).toContain("width: fit-content;");
-    expect(styles).toContain("max-width: 100%;");
-    expect(styles).toContain("border-radius: 0.75rem;");
+    expect(styles).not.toMatch(/next\/image|webp|\/learn\/peeks|background-image|pillarPanel/i);
+    expect(styles).toContain(".pillarArt {");
+    expect(styles).toContain("grid-template-columns: repeat(2, minmax(0, 1fr));");
+    expect(contentSource).toContain('image: "/learn/pillars/search.png"');
+    expect(contentSource).toContain('image: "/learn/pillars/save.png"');
+    expect(contentSource).toContain('image: "/learn/pillars/go-to-the-show.png"');
+    expect(contentSource).toContain('image: "/learn/pillars/show-it-off.png"');
+    expect(contentSource).toContain("bullets:");
     expect(styles).not.toContain("max-width: 6.5ch;");
     expect(styles).not.toContain("max-width: 11ch;");
     expect(styles).not.toContain("background-position: left bottom;");
     expect(styles).not.toContain("background-position: 70% center;");
-    expect(styles).toContain('--pillar-color: #1a0b2e;\n  --pillar-art: url("/learn/pillars/search.png");');
-    expect(styles).toContain('--pillar-color: #3d1870;\n  --pillar-art: url("/learn/pillars/save.png");');
-    expect(styles).toContain('--pillar-color: #5b2a8f;\n  --pillar-art: url("/learn/pillars/go-to-the-show.png");');
-    expect(styles).toContain('--pillar-color: #241048;\n  --pillar-art: url("/learn/pillars/show-it-off.png");');
     expect(learnSource).toContain('src={finderLearnLockupSrc}');
     expect(learnSource).toContain('"/brand/sparkle-finder-logo-transparent.png"');
     expect(learnSource).not.toMatch(/sparkle-finder-seal|email-signatures|sparkle-finder-logo\.png|FinderSeal/);
