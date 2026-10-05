@@ -56,8 +56,11 @@ export function CardQrTool({
   const [templateId, setTemplateId] = useState<CardQrTemplateId>(DEFAULT_CARD_QR_DESIGN.templateId)
   const [quantity, setQuantity] = useState<CardQrPackQuantity>(500)
   const [status, setStatus] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [orderMessage, setOrderMessage] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
+  const [qrBlob, setQrBlob] = useState<Blob | null>(null)
+  const [qrObjectUrl, setQrObjectUrl] = useState<string | null>(null)
   const destinationUrl = useMemo(
     () => resolveCardQrDestination(siteHref, origin),
     [origin, siteHref],
@@ -78,6 +81,42 @@ export function CardQrTool({
   })
 
   useEffect(() => {
+    if (!destinationUrl) return
+    const controller = new AbortController()
+    let objectUrl: string | null = null
+    setQrBlob(null)
+    setQrObjectUrl(null)
+    void fetch(`/api/workspace/card-qr/qr?skin=${encodeURIComponent(appearancePreset)}`, {
+      credentials: 'same-origin',
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(await readError(response))
+        const blob = await response.blob()
+        if (!blob.type.startsWith('image/')) throw new Error('QR did not come back as an image.')
+        const png = blob.type === 'image/png'
+          ? blob
+          : new Blob([await blob.arrayBuffer()], { type: 'image/png' })
+        const nextUrl = URL.createObjectURL(png)
+        if (controller.signal.aborted) {
+          URL.revokeObjectURL(nextUrl)
+          return
+        }
+        objectUrl = nextUrl
+        setQrBlob(png)
+        setQrObjectUrl(nextUrl)
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return
+        setStatus(error instanceof Error ? error.message : 'Could not load the QR.')
+      })
+    return () => {
+      controller.abort()
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [appearancePreset, destinationUrl])
+
+  useEffect(() => {
     setOrigin(window.location.origin)
     const params = new URLSearchParams(window.location.search)
     if (params.get('cardOrder') === 'cancelled') {
@@ -96,6 +135,27 @@ export function CardQrTool({
         })
     }
   }, [])
+
+  function downloadQr() {
+    if (!qrBlob) return
+    setNotice(null)
+    downloadBlob(qrBlob, 'sparkle-site-qr.png')
+  }
+
+  async function copyQr() {
+    if (!qrBlob) return
+    setStatus(null)
+    setNotice(null)
+    try {
+      if (!navigator.clipboard?.write) throw new Error('Clipboard image copy is not available.')
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': qrBlob }),
+      ])
+      setNotice('Copied')
+    } catch {
+      setStatus('Could not copy the QR.')
+    }
+  }
 
   async function download(path: string, filename: string, key: string) {
     setBusy(key)
@@ -155,32 +215,41 @@ export function CardQrTool({
       </section>
 
       {orderMessage ? <div className={styles.banner}>{orderMessage}</div> : null}
+      {notice ? <div className={styles.banner}>{notice}</div> : null}
       {status ? <div className={`${styles.banner} ${styles.warning}`}>{status}</div> : null}
 
-      <section className={styles.section} aria-labelledby="card-qr-builder">
-        <h3 id="card-qr-builder" className={styles.title}>QR code builder</h3>
+      <section className={styles.section} aria-labelledby="card-qr-code">
+        <h3 id="card-qr-code" className={styles.title}>QR code</h3>
         <p className={styles.body}>
-          This code always points at your current Suite customer site. Flyer and
-          cards reuse this same QR. you could copy paste it or download it.
+          Your customer site already has an address. This QR points at it, and
+          the flyer and cards use the same code.
         </p>
-        <p className={styles.url}>{destinationUrl || 'Site address loading'}</p>
-        <div className={styles.layout}>
-          <div>
-            <div className={styles.actions}>
-              {destinationUrl ? (
-                <a className={styles.button} href="/api/workspace/card-qr/qr" download="sparkle-site-qr.png">
-                  Download QR
-                </a>
-              ) : null}
+        <div className={styles.qrLayout}>
+          <div className={styles.qrCopy}>
+            <p className={`${styles.url} ${styles.qrUrl}`}>{destinationUrl || 'Site address loading'}</p>
+            <div className={`${styles.actions} ${styles.qrActions}`}>
+              <button
+                type="button"
+                className={`${styles.button} ${styles.buttonPrimary}`}
+                disabled={!qrBlob}
+                onClick={downloadQr}
+              >
+                Download QR
+              </button>
+              <button type="button" className={styles.button} disabled={!qrBlob} onClick={copyQr}>
+                Copy QR
+              </button>
             </div>
           </div>
           <div className={styles.qrFrame}>
-            {destinationUrl ? (
-              // The QR image is generated for this signed-in rep. Next image optimization does not apply.
+            {qrObjectUrl ? (
+              // The PNG is fetched with the signed-in session, then shown from a local object URL.
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={`/api/workspace/card-qr/qr?skin=${encodeURIComponent(appearancePreset)}`} alt="QR code for your Suite customer site" />
+              <img src={qrObjectUrl} alt="QR code for your Suite customer site" />
             ) : (
-              <p className={styles.body}>QR appears when the site address is ready.</p>
+              <p className={styles.body}>
+                {destinationUrl ? 'Loading QR…' : 'QR appears when the site address is ready.'}
+              </p>
             )}
           </div>
         </div>
@@ -224,9 +293,9 @@ export function CardQrTool({
           </div>
           <div className={styles.flyerFrame} style={previewStyle} aria-label={`${palette.name} flyer preview`}>
             {lines.map((line) => <strong key={line}>{line}</strong>)}
-            {destinationUrl ? (
+            {qrObjectUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img className={styles.flyerQr} src="/api/workspace/card-qr/qr" alt="" />
+              <img className={styles.flyerQr} src={qrObjectUrl} alt="" />
             ) : null}
           </div>
         </div>
@@ -265,9 +334,9 @@ export function CardQrTool({
             <div>
               {lines.slice(0, 3).map((line) => <strong key={line}>{line}</strong>)}
             </div>
-            {destinationUrl ? (
+            {qrObjectUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img className={styles.cardQr} src="/api/workspace/card-qr/qr" alt="" />
+              <img className={styles.cardQr} src={qrObjectUrl} alt="" />
             ) : null}
             <span className={styles.cardMeta}>Front matches {palette.name}. Back stays uncoated.</span>
           </div>

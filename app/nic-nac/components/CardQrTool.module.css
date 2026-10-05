@@ -54,8 +54,31 @@
   padding: 12px;
   border-radius: 12px;
   background: var(--workspace-surface-dashboard, #f8f5ff);
-  word-break: break-all;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   font-weight: 700;
+}
+
+.qrLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.qrCopy {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.qrUrl {
+  max-width: 100%;
+  margin-top: 0;
+}
+
+.qrActions {
+  align-items: center;
 }
 
 .actions,
@@ -111,13 +134,19 @@
 .qrFrame {
   display: grid;
   place-items: center;
-  padding: 12px;
-  background: var(--workspace-surface-dashboard, #f8f5ff);
+  min-height: 220px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--nic-nac-border, rgba(67, 42, 116, 0.12));
+  box-shadow: 0 12px 28px rgba(64, 41, 36, 0.06);
 }
 
 .qrFrame img {
-  width: min(100%, 220px);
+  width: min(100%, 280px);
+  aspect-ratio: 1;
   height: auto;
+  object-fit: contain;
+  background: #fff;
 }
 
 .flyerFrame {
@@ -220,11 +249,34 @@
     flex-direction: column;
   }
 
+  .qrLayout {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .qrActions {
+    flex-direction: row;
+  }
+
   .button,
   .choice,
   .field,
   .price {
     width: 100%;
+  }
+
+  .qrActions .button {
+    width: auto;
+    flex: 1 1 140px;
+  }
+
+  .qrFrame {
+    min-height: 0;
+    padding: 14px;
+  }
+
+  .qrFrame img {
+    width: min(100%, 240px);
   }
 
   .flyerFrame {

@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server'
 import { getPaidNicNacContext, AuthError } from '@/lib/nic-nac/auth'
 import { ServiceError } from '@/lib/services/errors'
 import { getSiteSettingsDashboard } from '@/lib/services/site-settings'
-import { resolveCheckoutReturnOrigin } from '@/lib/stripe/return-origin'
 import { isCardQrSmokeRuntime } from '@/lib/workspace/card-qr/access'
 import {
   buildCardQrDestinationForRep,
   isReadyCardQrDestination,
+  resolveCardQrRequestOrigin,
 } from '@/lib/workspace/card-qr/destination'
 
 export function cardQrErrorResponse(error: unknown) {
@@ -36,7 +36,7 @@ export async function loadCardQrContext(request: Request) {
   }
 
   const context = await getPaidNicNacContext()
-  const origin = resolveCheckoutReturnOrigin(request)
+  const origin = resolveCardQrRequestOrigin(request)
   const destinationUrl = buildCardQrDestinationForRep(
     {
       customDomain: context.rep.custom_domain,
@@ -50,7 +50,7 @@ export async function loadCardQrContext(request: Request) {
     throw new ServiceError({
       code: 'CARD_QR_DESTINATION_MISSING',
       message: 'Rep has no customer site URL',
-      userMessage: 'Finish the customer site address before saving a QR.',
+      userMessage: 'Finish the customer site address before this QR can be made.',
       statusCode: 409,
     })
   }

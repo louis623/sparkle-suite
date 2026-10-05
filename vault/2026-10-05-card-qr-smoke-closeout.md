@@ -1,5 +1,9 @@
 # 2026-10-05 — Cards & QR Smoke v1
 
+## Follow-up: QR image without Stripe
+
+- Authenticated GET `/api/workspace/card-qr/qr` was a 500 because `loadCardQrContext` called `resolveCheckoutReturnOrigin` → `getAppUrl()` → `getStripeConfig()`, and Smoke has no Stripe secrets. The origin now comes from the request host or `NEXT_PUBLIC_APP_URL`. The section is titled QR code, with Download QR and Copy QR. The preview is a session fetch turned into an object URL.
+
 ## Follow-up: no save, no field toggles, no copy button
 
 - The tool page no longer shows Save to profile, Copy site address, or the Name / Email / QR / Discount / Social toggles. The site URL stays on the page. Download QR, the three templates, the free flyer, and card checkout stay. Flyer and card lines use the account name, email, and social, with discount off and the QR always on. The client does not call profile save.

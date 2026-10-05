@@ -17,7 +17,7 @@ Playtest account: `louis@neonrabbit.net` (Dude’s Fizzfest). Not `lewis@`.
 ## Click-through
 
 1. Sign in on Smoke and open Workspace → Tools → QR codes, QR flyers, business cards. Business Tools shows the same name, with **Open tool**.
-2. QR code builder shows the current Fizzfest site address and a download for the QR. There is no Save button and no Copy site address button.
+2. The QR code section shows the current Fizzfest site address, a real QR image, **Download QR**, and **Copy QR**. There is no Save button, no Copy site address button, and no field toggles. The QR works even when Smoke has no Stripe secrets.
 3. QR flyer: switch Match my site / Halloween / Classic ivory, then download the portrait PNG (1080×1920). Name, email, and social come from the account. There are no field toggles and no discount line.
 4. Business cards: confirm **500 cards / $100** and **1,000 cards / $120**, Ground-only shipping, and the “up to about 2 weeks” note. Pay with Stripe test mode. The return screen says the order was received and restates the two-week expectation.
 5. Download the press file stub and confirm it is labeled a stub (trim 3.5×2, 0.125 bleed, 0.125 safe, 14pt C1S UV front / uncoated back).

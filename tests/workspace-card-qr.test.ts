@@ -20,6 +20,7 @@ import { DEFAULT_CARD_QR_DESIGN } from '@/lib/workspace/card-qr/design'
 import {
   buildCardQrDestinationForRep,
   isReadyCardQrDestination,
+  resolveCardQrRequestOrigin,
 } from '@/lib/workspace/card-qr/destination'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
 import {
@@ -82,6 +83,28 @@ describe('Cards & QR smoke locks', () => {
     expect(html).toContain('Business Calculator')
     expect(html.match(/Coming Soon/g) ?? []).toHaveLength(1)
     expect(html).not.toContain('Business Cards')
+  })
+
+  it('resolves the QR origin from the request host without Stripe secrets', () => {
+    const contextSource = readFileSync(
+      resolve('lib/workspace/card-qr/context.ts'),
+      'utf8',
+    )
+    expect(contextSource).not.toContain('getAppUrl')
+    expect(contextSource).not.toContain('getStripeConfig')
+    expect(contextSource).not.toContain('resolveCheckoutReturnOrigin')
+    expect(
+      resolveCardQrRequestOrigin(
+        new Request('https://sparkle-suite-smoke.vercel.app/api/workspace/card-qr/qr'),
+        {} as NodeJS.ProcessEnv,
+      ),
+    ).toBe('https://sparkle-suite-smoke.vercel.app')
+    expect(
+      resolveCardQrRequestOrigin(
+        new Request('http://169.254.1.1/api/workspace/card-qr/qr'),
+        { NEXT_PUBLIC_APP_URL: 'https://sparkle-suite-smoke.vercel.app' } as NodeJS.ProcessEnv,
+      ),
+    ).toBe('https://sparkle-suite-smoke.vercel.app')
   })
 
   it('returns 404 outside Smoke', async () => {
@@ -234,12 +257,22 @@ describe('Cards & QR smoke locks', () => {
         socialHandles: { tiktok: '@fizzfest' },
       }),
     )
-    expect(html).toContain('QR code builder')
-    expect(html).toContain(
-      'This code always points at your current Suite customer site. Flyer and cards reuse this same QR. you could copy paste it or download it.',
-    )
+    expect(html).toContain('>QR code<')
+    expect(html).not.toContain('QR code builder')
+    expect(html).toContain('Your customer site already has an address. This QR points at it, and the flyer and cards use the same code.')
+    expect(html).toContain('qrLayout')
     expect(html).toContain('https://sparkle-suite-smoke.vercel.app/fizzfest')
     expect(html).toContain('Download QR')
+    expect(html).toContain('Copy QR')
+    const toolSource = readFileSync(
+      resolve('app/nic-nac/components/CardQrTool.tsx'),
+      'utf8',
+    )
+    expect(toolSource).toContain('new ClipboardItem')
+    expect(toolSource).toContain("credentials: 'same-origin'")
+    expect(toolSource).toContain('URL.createObjectURL')
+    expect(html).not.toContain('Save to profile')
+    expect(html).not.toContain('Copy site address')
     expect(html).toContain('Match my site')
     expect(html).toContain('Halloween')
     expect(html).toContain('Classic ivory')
