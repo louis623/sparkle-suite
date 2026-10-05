@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { LogIn, Sparkles } from "lucide-react";
-import { SparkleFinderFooter } from "@/components/layout/SparkleFinderFooter";
 import { SparkleFinderNav } from "@/components/layout/SparkleFinderNav";
+import { sparkleSuiteMarketingHref } from "@/lib/sparkle-finder/marketing-destinations";
 import type { CurrentSparkleFinderAccountState } from "@/lib/sparkle-finder/account-service";
+import { SparkleMarketingFooter } from "../../../../packages/sparkle-marketing-footer/SparkleMarketingFooter";
 
 type PublicLandingPageProps = {
   accountState: CurrentSparkleFinderAccountState;
@@ -47,7 +48,7 @@ export function PublicLandingPage({ accountState }: PublicLandingPageProps) {
           </div>
         </section>
       </main>
-      <SparkleFinderFooter />
+      <SparkleMarketingFooter finderHref="/learn" suiteHref={sparkleSuiteMarketingHref()} />
     </>
   );
 }

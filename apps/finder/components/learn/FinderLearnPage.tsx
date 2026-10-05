@@ -1,10 +1,10 @@
 import * as FinderLaunchNotify from "@/components/learn/FinderLaunchNotify";
 import { finderLearnContent } from "@/lib/sparkle-finder/learn-page-content";
 import { sparkleSuiteMarketingHref } from "@/lib/sparkle-finder/marketing-destinations";
+import { SparkleMarketingFooter } from "../../../../packages/sparkle-marketing-footer/SparkleMarketingFooter";
 import styles from "./finder-learn.module.css";
 
 const finderLearnLockupSrc = "/brand/sparkle-finder-logo-transparent.png";
-const suiteLearnLockupSrc = "/brand/sparkle-suite-logo-transparent.png";
 
 export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" | "live" } = {}) {
   const content = finderLearnContent;
@@ -92,65 +92,8 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
         </section>
       </main>
 
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerBrand}>
-            <a
-              aria-label="Sparkle Suite"
-              className={styles.suiteLockup}
-              href={sparkleSuiteMarketingHref()}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <img alt="" className={styles.logo} src={suiteLearnLockupSrc} />
-            </a>
-            <FinderLearnLockup className={styles.finderLockup} />
-          </div>
-          <nav aria-label="Footer">
-            {content.footer.links.map((link) => (
-              <a href={link.href} key={link.label}>
-                {link.label}
-              </a>
-            ))}
-          </nav>
-          <nav aria-label="Sparkle Suite channels" className={styles.socials}>
-            {(["TikTok", "YouTube"] as const).map((label) => {
-              const link = content.footer.socials.find((item) => item.label === label);
-              if (!link) return null;
-              return (
-                <a
-                  aria-label={`Sparkle Suite on ${link.label}`}
-                  href={link.href}
-                  key={link.href}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  {label === "TikTok" ? <TikTokIcon /> : <YouTubeIcon />}
-                  <span>{link.label}</span>
-                </a>
-              );
-            })}
-          </nav>
-          <p>{content.footer.disclaimer}</p>
-        </div>
-      </footer>
+      <SparkleMarketingFooter finderHref="#top" suiteHref={sparkleSuiteMarketingHref()} />
     </div>
-  );
-}
-
-function TikTokIcon() {
-  return (
-    <svg aria-hidden="true" fill="currentColor" height="18" viewBox="0 0 24 24" width="18">
-      <path d="M14.2 3.1c.5 2.6 2 4.4 4.5 4.7v2.8a7.7 7.7 0 0 1-4.4-1.4v6.6a5.8 5.8 0 1 1-5.8-5.8c.3 0 .6 0 .9.1v2.9a3 3 0 1 0 2.1 2.8V3.1h2.7Z" />
-    </svg>
-  );
-}
-
-function YouTubeIcon() {
-  return (
-    <svg aria-hidden="true" fill="currentColor" height="18" viewBox="0 0 24 24" width="18">
-      <path d="M23 12.2s0-3.2-.4-4.6a3 3 0 0 0-2.1-2.1C18.9 5 12 5 12 5s-6.9 0-8.5.5a3 3 0 0 0-2.1 2.1C1 9 1 12.2 1 12.2s0 3.2.4 4.6a3 3 0 0 0 2.1 2.1C5.1 19.4 12 19.4 12 19.4s6.9 0 8.5-.5a3 3 0 0 0 2.1-2.1c.4-1.4.4-4.6.4-4.6ZM9.8 15.5V8.9l6.2 3.3-6.2 3.3Z" />
-    </svg>
   );
 }
 
