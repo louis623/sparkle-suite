@@ -35,10 +35,9 @@ export async function POST(request: Request) {
         businessName: context.settings.businessName,
         email: context.settings.email,
         socialHandles: context.settings.socialHandles,
-        design,
       }),
       destinationUrl: context.destinationUrl,
-      showQr: design.fields.qr,
+      showQr: true,
     })
     return new NextResponse(new Uint8Array(png), {
       headers: {

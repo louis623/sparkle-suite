@@ -14,24 +14,12 @@ import {
   CARD_QR_TEMPLATES,
   DEFAULT_CARD_QR_DESIGN,
   buildCardQrCopyLines,
-  parseCardQrDesign,
-  type CardQrDesign,
-  type CardQrFields,
+  type CardQrTemplateId,
 } from '@/lib/workspace/card-qr/design'
 import { resolveCardQrDestination } from '@/lib/workspace/card-qr/destination'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
 import { CARD_QR_ENTRY_TITLE } from '@/lib/workspace/card-qr/access'
 import styles from './CardQrTool.module.css'
-
-const LOCAL_DESIGN_KEY = 'sparkle-suite:smoke-card-qr-design'
-
-const FIELD_OPTIONS: Array<{ key: keyof CardQrFields; label: string }> = [
-  { key: 'name', label: 'Name' },
-  { key: 'email', label: 'Email' },
-  { key: 'qr', label: 'QR' },
-  { key: 'discount', label: 'Discount' },
-  { key: 'social', label: 'Social' },
-]
 
 async function readError(response: Response) {
   const body = await response.json().catch(() => null)
@@ -65,7 +53,7 @@ export function CardQrTool({
   socialHandles: Record<string, string>
 }) {
   const [origin, setOrigin] = useState<string | null>(null)
-  const [design, setDesign] = useState<CardQrDesign>(DEFAULT_CARD_QR_DESIGN)
+  const [templateId, setTemplateId] = useState<CardQrTemplateId>(DEFAULT_CARD_QR_DESIGN.templateId)
   const [quantity, setQuantity] = useState<CardQrPackQuantity>(500)
   const [status, setStatus] = useState<string | null>(null)
   const [orderMessage, setOrderMessage] = useState<string | null>(null)
@@ -74,8 +62,12 @@ export function CardQrTool({
     () => resolveCardQrDestination(siteHref, origin),
     [origin, siteHref],
   )
+  const design = useMemo(
+    () => ({ ...DEFAULT_CARD_QR_DESIGN, templateId }),
+    [templateId],
+  )
   const palette = resolveCardQrPalette({
-    templateId: design.templateId,
+    templateId,
     appearancePreset,
   })
   const lines = buildCardQrCopyLines({
@@ -83,19 +75,10 @@ export function CardQrTool({
     businessName,
     email,
     socialHandles,
-    design,
   })
 
   useEffect(() => {
     setOrigin(window.location.origin)
-    const saved = window.localStorage.getItem(LOCAL_DESIGN_KEY)
-    if (saved) {
-      try {
-        setDesign(parseCardQrDesign(JSON.parse(saved)))
-      } catch {
-        setDesign(DEFAULT_CARD_QR_DESIGN)
-      }
-    }
     const params = new URLSearchParams(window.location.search)
     if (params.get('cardOrder') === 'cancelled') {
       setStatus('Checkout cancelled. No card order was placed.')
@@ -113,51 +96,6 @@ export function CardQrTool({
         })
     }
   }, [])
-
-  useEffect(() => {
-    if (!destinationUrl) return
-    void fetch('/api/workspace/card-qr')
-      .then(async (response) => {
-        if (!response.ok) return
-        const body = await response.json()
-        if (body.profile?.design) setDesign(parseCardQrDesign(body.profile.design))
-      })
-      .catch(() => undefined)
-  }, [appearancePreset, destinationUrl])
-
-  function updateDesign(next: CardQrDesign) {
-    setDesign(next)
-    window.localStorage.setItem(LOCAL_DESIGN_KEY, JSON.stringify(next))
-  }
-
-  async function saveProfile() {
-    setBusy('save')
-    setStatus(null)
-    try {
-      const response = await fetch('/api/workspace/card-qr', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ design }),
-      })
-      if (!response.ok) throw new Error(await readError(response))
-      const body = await response.json()
-      setStatus(body.notice || 'Saved to your profile.')
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Could not save the QR.')
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  async function copyUrl() {
-    if (!destinationUrl) return
-    try {
-      await navigator.clipboard.writeText(destinationUrl)
-      setStatus('Site address copied.')
-    } catch {
-      setStatus('Could not copy the site address.')
-    }
-  }
 
   async function download(path: string, filename: string, key: string) {
     setBusy(key)
@@ -229,12 +167,6 @@ export function CardQrTool({
         <div className={styles.layout}>
           <div>
             <div className={styles.actions}>
-              <button type="button" className={`${styles.button} ${styles.buttonPrimary}`} onClick={saveProfile} disabled={!destinationUrl || busy === 'save'}>
-                {busy === 'save' ? 'Saving…' : 'Save to profile'}
-              </button>
-              <button type="button" className={styles.button} onClick={copyUrl} disabled={!destinationUrl}>
-                Copy site address
-              </button>
               {destinationUrl ? (
                 <a className={styles.button} href="/api/workspace/card-qr/qr" download="sparkle-site-qr.png">
                   Download QR
@@ -260,7 +192,19 @@ export function CardQrTool({
           Free digital download. Portrait 9:16 (1080×1920) for TikTok and other
           social posts. No Stripe charge.
         </p>
-        <DesignControls design={design} onDesignChange={updateDesign} />
+        <div className={styles.choiceRow} role="group" aria-label="Template">
+          {CARD_QR_TEMPLATES.map((template) => (
+            <button
+              key={template.id}
+              type="button"
+              className={styles.choice}
+              aria-pressed={templateId === template.id}
+              onClick={() => setTemplateId(template.id)}
+            >
+              {template.label}
+            </button>
+          ))}
+        </div>
         <div className={styles.layout}>
           <div>
             <div className={styles.actions}>
@@ -280,7 +224,7 @@ export function CardQrTool({
           </div>
           <div className={styles.flyerFrame} style={previewStyle} aria-label={`${palette.name} flyer preview`}>
             {lines.map((line) => <strong key={line}>{line}</strong>)}
-            {design.fields.qr && destinationUrl ? (
+            {destinationUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img className={styles.flyerQr} src="/api/workspace/card-qr/qr" alt="" />
             ) : null}
@@ -321,7 +265,7 @@ export function CardQrTool({
             <div>
               {lines.slice(0, 3).map((line) => <strong key={line}>{line}</strong>)}
             </div>
-            {design.fields.qr && destinationUrl ? (
+            {destinationUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img className={styles.cardQr} src="/api/workspace/card-qr/qr" alt="" />
             ) : null}
@@ -353,59 +297,6 @@ export function CardQrTool({
           </div>
         </div>
       </section>
-    </div>
-  )
-}
-
-function DesignControls({
-  design,
-  onDesignChange,
-}: {
-  design: CardQrDesign
-  onDesignChange: (design: CardQrDesign) => void
-}) {
-  return (
-    <div>
-      <div className={styles.choiceRow} role="group" aria-label="Template">
-        {CARD_QR_TEMPLATES.map((template) => (
-          <button
-            key={template.id}
-            type="button"
-            className={styles.choice}
-            aria-pressed={design.templateId === template.id}
-            onClick={() => onDesignChange({ ...design, templateId: template.id })}
-          >
-            {template.label}
-          </button>
-        ))}
-      </div>
-      <div className={styles.fieldRow} role="group" aria-label="Fields">
-        {FIELD_OPTIONS.map((field) => (
-          <button
-            key={field.key}
-            type="button"
-            className={styles.field}
-            aria-pressed={design.fields[field.key]}
-            onClick={() =>
-              onDesignChange({
-                ...design,
-                fields: { ...design.fields, [field.key]: !design.fields[field.key] },
-              })
-            }
-          >
-            {field.label}
-          </button>
-        ))}
-      </div>
-      {design.fields.discount ? (
-        <input
-          className={styles.discountInput}
-          aria-label="Discount code"
-          value={design.discountCode}
-          maxLength={40}
-          onChange={(event) => onDesignChange({ ...design, discountCode: event.target.value })}
-        />
-      ) : null}
     </div>
   )
 }

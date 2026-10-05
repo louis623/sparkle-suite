@@ -1,5 +1,9 @@
 # 2026-10-05 — Cards & QR Smoke v1
 
+## Follow-up: no save, no field toggles, no copy button
+
+- The tool page no longer shows Save to profile, Copy site address, or the Name / Email / QR / Discount / Social toggles. The site URL stays on the page. Download QR, the three templates, the free flyer, and card checkout stay. Flyer and card lines use the account name, email, and social, with discount off and the QR always on. The client does not call profile save.
+
 ## Follow-up: QR reuse sentence
 
 - QR code builder helper now ends with `you could copy paste it or download it.` Hub tile title, body, Open tool, Ready badge, and spacing are unchanged.

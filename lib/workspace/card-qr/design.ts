@@ -108,27 +108,20 @@ export interface CardQrCopyInput {
   businessName?: string | null
   email?: string | null
   socialHandles?: Record<string, string | null | undefined> | null
-  design: CardQrDesign
 }
 
+/** Account lines for the flyer and card. Discount stays off. QR is always drawn separately. */
 export function buildCardQrCopyLines(input: CardQrCopyInput) {
   const lines: string[] = []
   const name = input.displayName?.trim() || ''
   const business = input.businessName?.trim() || ''
-  if (input.design.fields.name) {
-    if (business) lines.push(business)
-    if (name && name.localeCompare(business, undefined, { sensitivity: 'base' }) !== 0) {
-      lines.push(name)
-    }
+  if (business) lines.push(business)
+  if (name && name.localeCompare(business, undefined, { sensitivity: 'base' }) !== 0) {
+    lines.push(name)
   }
   const email = input.email?.trim() || ''
-  if (input.design.fields.email && email) lines.push(email)
-  if (input.design.fields.discount && input.design.discountCode) {
-    lines.push(`Discount ${input.design.discountCode}`)
-  }
-  if (input.design.fields.social) {
-    const social = formatCardQrSocialLine(input.socialHandles)
-    if (social) lines.push(social)
-  }
+  if (email) lines.push(email)
+  const social = formatCardQrSocialLine(input.socialHandles)
+  if (social) lines.push(social)
   return lines
 }
