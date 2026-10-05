@@ -22,31 +22,36 @@ export const finderLearnContent = {
       {
         title: "Search",
         image: "/learn/pillars/search.png",
-        bullets: ["Hunt the jewelry library", "Pieces you already own", "Pieces you want to collect"],
+        bullets: [
+          "Browse our Jewelry library built by our BP reps.",
+          "Look for the pieces you own, or want to collect",
+        ],
       },
       {
         title: "Save",
         image: "/learn/pillars/save.png",
         bullets: [
-          "Save what you find",
-          "Own it → your collection",
-          "Don't own it → wish list",
-          "See if a rep has it on their Dance Floor",
+          "Already own a piece in the library? Save it to your virtual collection too.",
+          "Find a piece you want, and save it to your wish list so you get notified when it is on a Dance Floor of a BP rep.",
         ],
       },
       {
         title: "Go to the show",
         image: "/learn/pillars/go-to-the-show.png",
         bullets: [
-          "See that rep's next show",
-          "Go / check their website",
-          "Know when a rep has a piece you're looking for",
+          "Find out when the next show is for the rep that has the piece you want.",
+          "Save your favorite reps and have access to browse their dance floors at any time.",
+          "Always be in the know where and when the next show will be.",
         ],
       },
       {
         title: "Show it off",
         image: "/learn/pillars/show-it-off.png",
-        bullets: ["Curate your collection", "Share with friends and family", "Brag about the bling"],
+        bullets: [
+          "Curate your virtual collection that matches your real pieces.",
+          "Share with friends and family",
+          "Brag about the bling",
+        ],
       },
     ],
   },
