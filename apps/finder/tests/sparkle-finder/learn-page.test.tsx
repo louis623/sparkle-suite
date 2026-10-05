@@ -75,7 +75,7 @@ describe("Sparkle Finder /learn", () => {
       "Window shop their virtual dance floors",
       "See when their next show times and dates are",
     ];
-    const freeLineAt = freeLines.map((line) => markup.indexOf(line));
+    const freeLineAt = freeLines.map((line) => markup.indexOf(line, freeCardAt));
     expect(freeLineAt.every((index) => index > freeCardAt)).toBe(true);
     expect(freeLineAt.every((index, position) => position === 0 || index > freeLineAt[position - 1])).toBe(true);
     expect(markup).not.toContain("Favorite your favorite reps");
@@ -84,7 +84,7 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain("The rep list");
     expect(markup).not.toContain("BP Rep listing");
     expect(markup).not.toContain(">Show times<");
-    expect(markup).not.toContain("Dance Floors");
+    expect(markup).toContain("Follow your favorite reps and browse their Dance Floors anytime.");
     expect(markup).not.toMatch(/vault/i);
     expect(markup).toContain(
       "Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.",
@@ -99,13 +99,13 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).toContain("M14.2 3.1c.5 2.6 2 4.4 4.5 4.7");
     const freeCard = markup.slice(freeCardAt);
     expect(freeCard).not.toMatch(/save a collection|saving a collection/i);
-    expect(markup.match(/Browse our Jewelry library built by our BP reps\./g)).toHaveLength(1);
-    expect(markup.match(/Look for the pieces you own, or want to collect/g)).toHaveLength(1);
-    expect(markup.match(/Already own a piece in the library\? Save it to your virtual collection too\./g)).toHaveLength(1);
-    expect(markup.match(/Find a piece you want, and save it to your wish list so you get notified when it is on a Dance Floor of a BP rep\./g)).toHaveLength(1);
-    expect(markup.match(/Find out when the next show is for the rep that has the piece you want\./g)).toHaveLength(1);
-    expect(markup.match(/Save your favorite reps and have access to browse their dance floors at any time\./g)).toHaveLength(1);
-    expect(markup.match(/Always be in the know where and when the next show will be\./g)).toHaveLength(1);
+    expect(markup.match(/Browse our jewelry library built from our BP reps(?:'|&#x27;) revealed dancers\./g)).toHaveLength(1);
+    expect(markup.match(/Look for pieces you already own, or pieces you want to collect\./g)).toHaveLength(1);
+    expect(markup.match(/Already own a piece\? Save it to your virtual collection\./g)).toHaveLength(1);
+    expect(markup.match(/Want it\? Save it to your wish list and get notified when a BP rep has it on their Dance Floor\./g)).toHaveLength(1);
+    expect(markup.match(/See the next show for the rep who has the piece you want\./g)).toHaveLength(1);
+    expect(markup.match(/Follow your favorite reps and browse their Dance Floors anytime\./g)).toHaveLength(1);
+    expect(markup.match(/Always know where and when the next show is\./g)).toHaveLength(1);
     expect(markup.match(/Curate your virtual collection that matches your real pieces\./g)).toHaveLength(1);
     expect(markup.match(/Share with friends and family/g)).toHaveLength(1);
     expect(markup.match(/Brag about the bling/g)).toHaveLength(1);

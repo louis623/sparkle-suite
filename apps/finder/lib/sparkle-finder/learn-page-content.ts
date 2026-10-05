@@ -23,25 +23,25 @@ export const finderLearnContent = {
         title: "Search",
         image: "/learn/pillars/search.png",
         bullets: [
-          "Browse our Jewelry library built by our BP reps.",
-          "Look for the pieces you own, or want to collect",
+          "Browse our jewelry library built from our BP reps' revealed dancers.",
+          "Look for pieces you already own, or pieces you want to collect.",
         ],
       },
       {
         title: "Save",
         image: "/learn/pillars/save.png",
         bullets: [
-          "Already own a piece in the library? Save it to your virtual collection too.",
-          "Find a piece you want, and save it to your wish list so you get notified when it is on a Dance Floor of a BP rep.",
+          "Already own a piece? Save it to your virtual collection.",
+          "Want it? Save it to your wish list and get notified when a BP rep has it on their Dance Floor.",
         ],
       },
       {
         title: "Go to the show",
         image: "/learn/pillars/go-to-the-show.png",
         bullets: [
-          "Find out when the next show is for the rep that has the piece you want.",
-          "Save your favorite reps and have access to browse their dance floors at any time.",
-          "Always be in the know where and when the next show will be.",
+          "See the next show for the rep who has the piece you want.",
+          "Follow your favorite reps and browse their Dance Floors anytime.",
+          "Always know where and when the next show is.",
         ],
       },
       {
