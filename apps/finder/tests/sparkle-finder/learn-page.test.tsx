@@ -163,7 +163,16 @@ describe("Sparkle Finder /learn", () => {
 
     expect(pageSource).not.toContain("getCurrentSparkleFinderAccount");
     expect(pageSource).not.toContain("create-an-account");
-    expect(`${learnSource}\n${contentSource}\n${styles}`).not.toMatch(/next\/image|webp|\/learn\/peeks|background-image|url\(/i);
+    expect(`${learnSource}\n${contentSource}`).not.toMatch(/next\/image|webp|\/learn\/peeks|background-image|url\(/i);
+    expect(styles).not.toMatch(/next\/image|webp|\/learn\/peeks/i);
+    expect(styles).toContain("background-image: var(--pillar-art);");
+    expect(styles).toContain("background-size: cover;");
+    expect(styles).toContain("background-position: right center;");
+    expect(styles).toContain("background-position: 70% center;");
+    expect(styles).toContain('--pillar-color: #1a0b2e;\n  --pillar-art: url("/learn/pillars/search.png");');
+    expect(styles).toContain('--pillar-color: #3d1870;\n  --pillar-art: url("/learn/pillars/save.png");');
+    expect(styles).toContain('--pillar-color: #5b2a8f;\n  --pillar-art: url("/learn/pillars/go-to-the-show.png");');
+    expect(styles).toContain('--pillar-color: #241048;\n  --pillar-art: url("/learn/pillars/show-it-off.png");');
     expect(learnSource).toContain('src={finderLearnLockupSrc}');
     expect(learnSource).toContain('"/brand/sparkle-finder-logo-transparent.png"');
     expect(learnSource).not.toMatch(/sparkle-finder-seal|email-signatures|sparkle-finder-logo\.png|FinderSeal/);

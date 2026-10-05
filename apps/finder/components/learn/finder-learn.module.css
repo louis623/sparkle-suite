@@ -274,24 +274,32 @@
   padding: 1.4rem 1.35rem 1.25rem;
   overflow: hidden;
   border-radius: 1.2rem;
-  background: var(--pillar-color);
+  background-color: var(--pillar-color);
+  background-image: var(--pillar-art);
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: cover;
   color: var(--finder-header-text);
 }
 
 .pillar:nth-child(1) .pillarPanel {
-  --pillar-color: var(--finder-deep);
+  --pillar-color: #1a0b2e;
+  --pillar-art: url("/learn/pillars/search.png");
 }
 
 .pillar:nth-child(2) .pillarPanel {
   --pillar-color: #3d1870;
+  --pillar-art: url("/learn/pillars/save.png");
 }
 
 .pillar:nth-child(3) .pillarPanel {
-  --pillar-color: var(--finder-amethyst);
+  --pillar-color: #5b2a8f;
+  --pillar-art: url("/learn/pillars/go-to-the-show.png");
 }
 
 .pillar:nth-child(4) .pillarPanel {
   --pillar-color: #241048;
+  --pillar-art: url("/learn/pillars/show-it-off.png");
 }
 
 .pillarPanel h2 {
@@ -458,6 +466,10 @@
 
   .footer nav {
     gap: 18px;
+  }
+
+  .pillarPanel {
+    background-position: 70% center;
   }
 }
 
