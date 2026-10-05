@@ -168,7 +168,7 @@ describe("Sparkle Finder /learn", () => {
     expect(learnSource).toContain('"/brand/sparkle-finder-logo-transparent.png"');
     expect(learnSource).not.toMatch(/sparkle-finder-seal|email-signatures|sparkle-finder-logo\.png|FinderSeal/);
     expect(styles).toContain(".header {\n  background: #fff;");
-    expect(styles).toContain(".footer {\n  background: #fcf8f6;");
+    expect(styles).toContain(".footer {\n  background: #fff;");
     expect(styles).toContain("justify-content: space-between;");
     expect(styles).toContain("color: #775d57;");
     expect(styles).toContain("gap: 26px;");
