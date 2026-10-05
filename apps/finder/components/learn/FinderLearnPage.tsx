@@ -1,8 +1,10 @@
 import * as FinderLaunchNotify from "@/components/learn/FinderLaunchNotify";
-import { FinderSeal } from "@/components/learn/FinderSeal";
 import { finderLearnContent } from "@/lib/sparkle-finder/learn-page-content";
 import { sparkleSuiteMarketingHref } from "@/lib/sparkle-finder/marketing-destinations";
+import { SparkleMarketingFooter } from "@/components/marketing/SparkleMarketingFooter";
 import styles from "./finder-learn.module.css";
+
+const finderLearnLockupSrc = "/brand/sparkle-finder-logo-transparent.png";
 
 export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" | "live" } = {}) {
   const content = finderLearnContent;
@@ -16,20 +18,8 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
       </a>
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <a className={styles.brand} href="#top" aria-label="Sparkle Finder by Sparkle Suite">
-            <FinderSeal className={styles.seal} />
-            <span className={styles.wordmarkBlock}>
-              <span className={styles.wordmark}>{content.brand}</span>
-              <span className={styles.byline}>{content.byline}</span>
-            </span>
-          </a>
-          <nav className={styles.nav} aria-label="On this page">
-            {content.nav.map((item) => (
-              <a href={item.href} key={item.href}>
-                {item.label}
-              </a>
-            ))}
-          </nav>
+          <FinderLearnLockup />
+          <div className={styles.navRoom} />
         </div>
       </header>
 
@@ -53,11 +43,16 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
         <section className={styles.pillars} id={content.pillars.id} aria-label="How it works">
           <div className={styles.pillarGrid}>
             {content.pillars.items.map((pillar) => (
-              <article className={styles.pillar} key={pillar.title}>
-                <div className={styles.pillarPanel}>
+              <article className={styles.pillar} data-pillar={pillar.title} key={pillar.title}>
+                <img className={styles.pillarArt} src={pillar.image} alt="" />
+                <div className={styles.pillarCopy}>
                   <h2>{pillar.title}</h2>
+                  <ul>
+                    {pillar.bullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
                 </div>
-                <p>{pillar.body}</p>
               </article>
             ))}
           </div>
@@ -97,45 +92,16 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
         </section>
       </main>
 
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <a className={styles.brand} href="#top" aria-label="Sparkle Finder by Sparkle Suite">
-            <FinderSeal className={styles.seal} />
-            <span className={styles.wordmarkBlock}>
-              <span className={styles.wordmark}>{content.brand}</span>
-              <span className={styles.byline}>{content.byline}</span>
-            </span>
-          </a>
-          <nav aria-label="Footer">
-            {content.footer.links.map((link) => {
-              const href = link.label === "Sparkle Suite" ? sparkleSuiteMarketingHref() : link.href;
-              return (
-                <a
-                  href={href}
-                  key={link.label}
-                  rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
-                  target={href.startsWith("http") ? "_blank" : undefined}
-                >
-                  {link.label}
-                </a>
-              );
-            })}
-            {content.footer.socials.map((link) => (
-              <a href={link.href} key={link.href} rel="noopener noreferrer" target="_blank">
-                {link.label}
-              </a>
-            ))}
-          </nav>
-          <p>
-            {content.footer.disclaimer} Visit{" "}
-            <a href={content.footer.developerHref} rel="noopener noreferrer" target="_blank">
-              {content.footer.developerLabel}
-            </a>
-            .
-          </p>
-        </div>
-      </footer>
+      <SparkleMarketingFooter finderHref="#top" suiteHref={sparkleSuiteMarketingHref()} />
     </div>
+  );
+}
+
+function FinderLearnLockup({ className }: { className?: string } = {}) {
+  return (
+    <a className={[styles.brand, className].filter(Boolean).join(" ")} href="#top" aria-label="Sparkle Finder by Sparkle Suite">
+      <img alt="" className={styles.logo} src={finderLearnLockupSrc} />
+    </a>
   );
 }
 

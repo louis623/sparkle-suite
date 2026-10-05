@@ -7,6 +7,8 @@
 export const sparkleSuiteYouTubeChannelUrl = 'https://www.youtube.com/@SparkleSuite' as const
 /** Official TikTok profile for icons and footer social. Not an embed. */
 export const sparkleSuiteTikTokChannelUrl = 'https://www.tiktok.com/@yoursparklesuite.com' as const
+/** Live yoursparklefinder.com currently redirects away. Public landing footers open Finder Smoke /learn. */
+export const sparkleFinderSmokeLearnHref = 'https://sparkle-finder-smoke.vercel.app/learn' as const
 
 export const sparkleSuitePublicLandingSafety = {
   disclaimer:

@@ -10,7 +10,6 @@ export const finderLearnContent = {
   tagline: "Find it, favorite it, show it off.",
   comingSoon: "Get notified when we launch",
   createAccount: "Create an account",
-  nav: [{ href: "#how", label: "How it works" }],
   hero: {
     eyebrow: "For Bomb Party collectors",
     headlineLead: "Find the pieces you",
@@ -22,19 +21,36 @@ export const finderLearnContent = {
     items: [
       {
         title: "Search",
-        body: "Hunt through the jewelry database for pieces you already own and pieces you want to collect.",
+        image: "/learn/pillars/search.png",
+        bullets: [
+          "Browse our jewelry library built from our BP reps' revealed dancers.",
+          "Look for pieces you already own, or pieces you want to collect.",
+        ],
       },
       {
         title: "Save",
-        body: "When you find it, save it. If you own it, it's your virtual collection. If you don't, put it on your wish list, or see if a rep has it on their Dance Floor.",
+        image: "/learn/pillars/save.png",
+        bullets: [
+          "Already own a piece? Save it to your virtual collection.",
+          "Want it? Save it to your wish list and get notified when a BP rep has it on their Dance Floor.",
+        ],
       },
       {
         title: "Go to the show",
-        body: "See when that rep's next show is, go, and look at their website. Finder can tell you when a rep has a piece you're looking for.",
+        image: "/learn/pillars/go-to-the-show.png",
+        bullets: [
+          "See the next show for the rep who has the piece you want.",
+          "Follow your favorite reps and browse their Dance Floors anytime.",
+          "Always know where and when the next show is.",
+        ],
       },
       {
         title: "Show it off",
-        body: "Curate your collection and share it with friends and family. Brag about the bling.",
+        image: "/learn/pillars/show-it-off.png",
+        bullets: [
+          "Curate a virtual collection that matches the pieces you own.",
+          "Share with friends and family, and browse their collections too.",
+        ],
       },
     ],
   },
@@ -66,15 +82,12 @@ export const finderLearnContent = {
     links: [
       { href: "/privacy-policy", label: "Privacy Policy" },
       { href: "/terms-and-conditions", label: "Terms and Conditions" },
-      { href: "https://www.yoursparklesuite.com", label: "Sparkle Suite" },
     ],
     socials: [
-      { href: "https://www.youtube.com/@yoursparklesuite", label: "YouTube" },
-      { href: "https://www.tiktok.com/@yoursparklesuite", label: "TikTok" },
+      { href: "https://www.youtube.com/@SparkleSuite", label: "YouTube" },
+      { href: "https://www.tiktok.com/@yoursparklesuite.com", label: "TikTok" },
     ],
     disclaimer: sparkleProductFooterDisclaimer,
-    developerHref: "https://neonrabbit.net",
-    developerLabel: "neonrabbit.net",
   },
 } as const;
 

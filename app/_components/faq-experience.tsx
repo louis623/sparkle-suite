@@ -90,7 +90,7 @@ export function FaqExperience() {
         </Link>
         <p>{sparkleSuiteFaqCta.note}</p>
       </section>
-      <MarketingFooter current="faq" />
+      <MarketingFooter />
     </main>
   )
 }

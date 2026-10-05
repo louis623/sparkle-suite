@@ -15,13 +15,17 @@ const smokeSuiteHref = "https://sparkle-suite-smoke.vercel.app/";
 const allowedHrefs = new Set([
   "#top",
   "#main-content",
-  "#how",
   "/privacy-policy",
   "/terms-and-conditions",
   liveSuiteHref,
-  "https://www.youtube.com/@yoursparklesuite",
-  "https://www.tiktok.com/@yoursparklesuite",
-  "https://neonrabbit.net",
+  "https://www.youtube.com/@SparkleSuite",
+  "https://www.tiktok.com/@yoursparklesuite.com",
+  "/brand/sparkle-finder-logo-transparent.png",
+  "/brand/sparkle-suite-logo-transparent.png",
+  "/learn/pillars/search.png",
+  "/learn/pillars/save.png",
+  "/learn/pillars/go-to-the-show.png",
+  "/learn/pillars/show-it-off.png",
 ]);
 
 afterEach(() => {
@@ -71,7 +75,7 @@ describe("Sparkle Finder /learn", () => {
       "Window shop their virtual dance floors",
       "See when their next show times and dates are",
     ];
-    const freeLineAt = freeLines.map((line) => markup.indexOf(line));
+    const freeLineAt = freeLines.map((line) => markup.indexOf(line, freeCardAt));
     expect(freeLineAt.every((index) => index > freeCardAt)).toBe(true);
     expect(freeLineAt.every((index, position) => position === 0 || index > freeLineAt[position - 1])).toBe(true);
     expect(markup).not.toContain("Favorite your favorite reps");
@@ -80,27 +84,43 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain("The rep list");
     expect(markup).not.toContain("BP Rep listing");
     expect(markup).not.toContain(">Show times<");
-    expect(markup).not.toContain("Dance Floors");
+    expect(markup).toContain("Follow your favorite reps and browse their Dance Floors anytime.");
     expect(markup).not.toMatch(/vault/i);
     expect(markup).toContain(
       "Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.",
     );
     expect(markup).not.toContain("Sparkle Finder is a discovery hub");
     expect(markup).not.toContain("independent tool for reps");
-    expect(markup).toContain('href="https://neonrabbit.net"');
+    expect(markup).not.toContain("neonrabbit.net");
     expect(markup).not.toMatch(/powered by Neon Rabbit/i);
+    expect(markup).toContain('aria-label="Sparkle Suite on YouTube"');
+    expect(markup).toContain('aria-label="Sparkle Suite on TikTok"');
+    expect(markup).toContain("M23 12.2s0-3.2-.4-4.6");
+    expect(markup).toContain("M14.2 3.1c.5 2.6 2 4.4 4.5 4.7");
     const freeCard = markup.slice(freeCardAt);
     expect(freeCard).not.toMatch(/save a collection|saving a collection/i);
-    expect(markup.match(/Hunt through the jewelry database/g)).toHaveLength(1);
-    expect(markup.match(/When you find it, save it\./g)).toHaveLength(1);
-    expect(markup.match(/See when that rep(?:'|&#x27;)s next show is/g)).toHaveLength(1);
-    expect(markup.match(/Brag about the bling\./g)).toHaveLength(1);
+    expect(markup.match(/Browse our jewelry library built from our BP reps(?:'|&#x27;) revealed dancers\./g)).toHaveLength(1);
+    expect(markup.match(/Look for pieces you already own, or pieces you want to collect\./g)).toHaveLength(1);
+    expect(markup.match(/Already own a piece\? Save it to your virtual collection\./g)).toHaveLength(1);
+    expect(markup.match(/Want it\? Save it to your wish list and get notified when a BP rep has it on their Dance Floor\./g)).toHaveLength(1);
+    expect(markup.match(/See the next show for the rep who has the piece you want\./g)).toHaveLength(1);
+    expect(markup.match(/Follow your favorite reps and browse their Dance Floors anytime\./g)).toHaveLength(1);
+    expect(markup.match(/Always know where and when the next show is\./g)).toHaveLength(1);
+    expect(markup.match(/Curate a virtual collection that matches the pieces you own\./g)).toHaveLength(1);
+    expect(markup.match(/Share with friends and family, and browse their collections too\./g)).toHaveLength(1);
+    expect(markup).not.toContain("Brag about the bling");
+    expect(markup).not.toContain("Curate your virtual collection that matches your real pieces.");
+    expect(markup).not.toContain("Hunt the jewelry library");
+    expect(markup).not.toContain("Own it → your collection");
+    expect(markup).not.toContain("Hunt through the jewelry database");
+    expect(markup).not.toContain("When you find it, save it.");
+    expect(markup).not.toMatch(/vault/i);
     expect(markup).toContain(">Search<");
     expect(markup).toContain(">Save<");
     expect(markup).toContain(">Go to the show<");
     expect(markup).toContain(">Show it off<");
     expect(markup).not.toContain("In Finder today");
-    expect(markup).not.toContain("Jewelry library");
+    expect(markup).not.toContain(">Jewelry library<");
     expect(markup).not.toContain("Live shows");
     expect(markup).not.toContain("Hero Piece");
     expect(markup).not.toContain("Showcase Studio");
@@ -111,18 +131,33 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain("Fine print");
     expect(markup).not.toContain("How a jewelry profile is used.");
     expect(markup).not.toContain("Nobody else receives them.");
-    expect(markup).toContain(">F<");
+    expect(markup).not.toContain(">F<");
     expect(markup).not.toContain(">S<");
     expect(markup).toContain('data-finder-brand="amethyst"');
-    expect(markup).toContain('x="30.144"');
-    expect(markup).toContain("var(--finder-violet-f)");
-    expect(markup).toContain('href="#how"');
-    expect(markup).toContain(">How it works<");
+    expect(markup).not.toContain('x="30.144"');
+    expect(markup).not.toContain('href="#how"');
+    expect(markup).not.toContain(">How it works<");
+    expect(markup).toContain('aria-label="How it works"');
     expect(markup).not.toContain('href="#silver"');
     expect(markup).not.toContain(">Silver</a>");
     expect(markup).not.toContain('href="#soon"');
     expect(markup).not.toContain('href="#why"');
-    expect(markup).not.toMatch(/<img|webp|\/learn\/peeks|background-image|url\(/i);
+    expect(markup.match(/<img\b/g)).toHaveLength(7);
+    expect(markup).toContain('src="/learn/pillars/search.png"');
+    expect(markup).toContain('src="/learn/pillars/save.png"');
+    expect(markup).toContain('src="/learn/pillars/go-to-the-show.png"');
+    expect(markup).toContain('src="/learn/pillars/show-it-off.png"');
+    expect(markup).toContain("<ul>");
+    expect(markup.match(/src="\/brand\/sparkle-finder-logo-transparent.png"/g)).toHaveLength(2);
+    expect(markup.match(/src="\/brand\/sparkle-suite-logo-transparent.png"/g)).toHaveLength(1);
+    expect(markup).toContain('aria-label="Sparkle Suite"');
+    expect(markup).not.toContain(">Sparkle Suite<");
+    expect(markup).not.toMatch(/webp|\/learn\/peeks|background-image|url\(|sparkle-finder-seal|email-signatures|sparkle-finder-logo\.png|filter:/i);
+    expect(markup).not.toMatch(/>Sign In<|>Sign Up<|sneak peek/i);
+    const header = markup.slice(markup.indexOf("<header"), markup.indexOf("</header>"));
+    expect(header).not.toContain("<nav");
+    expect([...header.matchAll(/href="([^"]+)"/g)].map((match) => match[1])).toEqual(["#top"]);
+    expect(header).toContain('src="/brand/sparkle-finder-logo-transparent.png"');
     expect(markup).not.toContain("heroSeal");
     expect(markup.match(/Get notified when we launch/g)).toHaveLength(2);
     expect(markup.match(/<button\b[^>]*type="button"/g)).toHaveLength(2);
@@ -149,21 +184,66 @@ describe("Sparkle Finder /learn", () => {
     const learnSource = readFileSync(new URL("../../components/learn/FinderLearnPage.tsx", import.meta.url), "utf8");
     const contentSource = readFileSync(new URL("../../lib/sparkle-finder/learn-page-content.ts", import.meta.url), "utf8");
     const styles = readFileSync(new URL("../../components/learn/finder-learn.module.css", import.meta.url), "utf8");
+    const footerStyles = readFileSync(new URL("../../components/marketing/sparkle-marketing-footer.module.css", import.meta.url), "utf8");
     const seal = readFileSync(new URL("../../brand-assets/amethyst/01-amethyst-seal.svg", import.meta.url), "utf8");
 
     expect(pageSource).not.toContain("getCurrentSparkleFinderAccount");
     expect(pageSource).not.toContain("create-an-account");
-    expect(`${learnSource}\n${contentSource}\n${styles}`).not.toMatch(/next\/image|<img|webp|\/learn\/peeks|background-image|url\(/i);
-    expect(styles).toContain("--finder-deep: #1a0b2e");
+    expect(`${learnSource}\n${contentSource}`).not.toMatch(/next\/image|webp|\/learn\/peeks|background-image|url\(/i);
+    expect(styles).not.toMatch(/next\/image|webp|\/learn\/peeks|background-image|pillarPanel/i);
+    expect(styles).toContain(".pillarArt {");
+    expect(styles).toContain(".pillarArt {\n  display: block;\n  width: 100%;\n  height: auto;\n  background: #fff;");
+    expect(styles).toContain(".pillarCopy {\n  flex: 1 1 auto;\n  color: #fff;");
+    expect(styles).toContain('.pillar[data-pillar="Search"] .pillarCopy {\n  background: var(--finder-deep);');
+    expect(styles).toContain('.pillar[data-pillar="Save"] .pillarCopy {\n  background: var(--finder-violet-f);');
+    expect(styles).toContain('.pillar[data-pillar="Go to the show"] .pillarCopy {\n  background: var(--finder-plum);');
+    expect(styles).toContain('.pillar[data-pillar="Show it off"] .pillarCopy {\n  background: var(--finder-magenta);');
+    expect(styles).toContain('content: "✦";');
+    expect(styles).not.toContain(".pillarCopy {\n  background: var(--finder-amethyst);\n  color: #fff;");
+    expect(styles).toContain("grid-template-columns: repeat(2, minmax(0, 1fr));");
+    expect(contentSource).toContain('image: "/learn/pillars/search.png"');
+    expect(contentSource).toContain('image: "/learn/pillars/save.png"');
+    expect(contentSource).toContain('image: "/learn/pillars/go-to-the-show.png"');
+    expect(contentSource).toContain('image: "/learn/pillars/show-it-off.png"');
+    expect(contentSource).toContain("bullets:");
+    expect(styles).not.toContain("max-width: 6.5ch;");
+    expect(styles).not.toContain("max-width: 11ch;");
+    expect(styles).not.toContain("background-position: left bottom;");
+    expect(styles).not.toContain("background-position: 70% center;");
+    expect(learnSource).toContain('src={finderLearnLockupSrc}');
+    expect(learnSource).toContain('"/brand/sparkle-finder-logo-transparent.png"');
+    expect(learnSource).not.toMatch(/sparkle-finder-seal|email-signatures|sparkle-finder-logo\.png|FinderSeal/);
+    expect(styles).toContain(".header {\n  background: #fff;");
+    expect(styles).not.toMatch(/\.header\s*\{[^}]*gradient/i);
+    expect(learnSource).toContain("SparkleMarketingFooter");
+    expect(footerStyles).toContain(".footer {\n  width: 100%;\n  background: #fff;");
+    expect(footerStyles).toContain("color: #775d57;");
+    expect(footerStyles).toContain("gap: 26px;");
+    expect(footerStyles).not.toContain("#fcf8f6");
+    expect(styles).not.toContain("font-size: 14px;");
+    expect(styles).toContain("--finder-magenta: #c21878");
+    expect(styles).not.toContain("gap: 10px;");
+    expect(styles).not.toContain("#35155f");
+    expect(styles).toContain(".logo {\n  display: block;\n  height: 64px;");
+    expect(styles).toContain("--finder-deep: #1a1230");
     expect(styles).toContain("--finder-amethyst: #5b2a8f");
     expect(styles).toContain("--finder-violet-f: #5c0eff");
+    expect(styles).toContain("--finder-plum: #480ddf");
+    expect(styles).toContain("--finder-magenta: #c21878");
+    expect(styles).toContain("--finder-wordmark: #ee2c9b");
     expect(styles).toContain("--finder-seal-fill: #ffffff");
     expect(styles).toContain("--finder-seal-stroke: #c4a8ef");
-    expect(styles).toContain("--finder-wordmark: #ee2c9b");
     expect(styles).not.toMatch(/@keyframes|animation:|unicorn/i);
     expect(seal).toContain('x="30.144"');
     expect(seal).not.toMatch(/#ee2c9b/i);
-    expect(renderToStaticMarkup(createElement(LearnPage))).toContain('data-smoke="finder-learn"');
+    const rendered = renderToStaticMarkup(createElement(LearnPage));
+    expect(rendered).toContain('data-smoke="finder-learn"');
+    expect(rendered).toContain('data-pillar="Search"');
+    expect(rendered).toContain('data-pillar="Save"');
+    expect(rendered).toContain('data-pillar="Go to the show"');
+    expect(rendered).toContain('data-pillar="Show it off"');
+    expect(rendered).toContain("<ul>");
+    expect(rendered).toContain("<li>");
   });
 
   it("renders the Smoke live twin with a non-submitting Create an account label", () => {
@@ -203,7 +283,7 @@ describe("Sparkle Finder /learn", () => {
     );
     expect(markup).not.toContain("Sparkle Finder is a discovery hub");
     expect(markup).not.toContain("independent tool for reps");
-    expect(markup).toContain('href="https://neonrabbit.net"');
+    expect(markup).not.toContain("neonrabbit.net");
     expect(markup).not.toMatch(/powered by Neon Rabbit/i);
     expect(markup).toContain("Privacy Policy");
     expect(markup.match(/Create an account/g)).toHaveLength(2);
@@ -224,7 +304,7 @@ describe("Sparkle Finder /learn", () => {
       SPARKLE_ENVIRONMENT: "production",
       NEXT_PUBLIC_SPARKLE_ENVIRONMENT: "production",
     })).toBe(liveSuiteHref);
-    expect(finderLearnContent.footer.links.find((link) => link.label === "Sparkle Suite")?.href).toBe(liveSuiteHref);
+    expect(finderLearnContent.footer.links.some((link) => link.label === "Sparkle Suite")).toBe(false);
 
     for (const marker of ["SPARKLE_ENVIRONMENT", "NEXT_PUBLIC_SPARKLE_ENVIRONMENT"] as const) {
       vi.stubEnv("SPARKLE_ENVIRONMENT", "");
@@ -233,10 +313,13 @@ describe("Sparkle Finder /learn", () => {
 
       for (const page of [FinderLearnPage, LearnLivePage]) {
         const markup = renderToStaticMarkup(createElement(page));
-        expect(markup).toContain(">Sparkle Suite<");
+        expect(markup).toContain('aria-label="Sparkle Suite"');
+        expect(markup).toContain('src="/brand/sparkle-suite-logo-transparent.png"');
+        expect(markup).not.toContain(">Sparkle Suite<");
         expect(markup).toContain(`href="${smokeSuiteHref}"`);
         expect(markup).not.toContain(`href="${liveSuiteHref}"`);
-        expect(markup).toContain('href="https://www.youtube.com/@yoursparklesuite"');
+        expect(markup).toContain('href="https://www.youtube.com/@SparkleSuite"');
+        expect(markup).toContain('href="https://www.tiktok.com/@yoursparklesuite.com"');
       }
     }
   });
