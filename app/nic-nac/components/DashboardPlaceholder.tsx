@@ -6744,7 +6744,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     if (canRenderWorkspaceSections && activeSection === 'business-tools') {
       return (
         <BusinessToolsCard
-          hideBusinessCardsPlaceholder={isCardQrToolEnabled()}
+          onOpenCardQr={() => setActiveSection(CARD_QR_WORKSPACE_SECTION)}
         />
       )
     }
@@ -10961,11 +10961,12 @@ const WISPR_FLOW_INVITE_URL = 'https://wisprflow.ai/r?LOUIS20696'
 const BUSINESS_TOOL_PLACEHOLDERS = ['Business Calculator', 'Business Cards'] as const
 
 export function BusinessToolsCard({
-  hideBusinessCardsPlaceholder = false,
+  onOpenCardQr,
 }: {
-  hideBusinessCardsPlaceholder?: boolean
+  onOpenCardQr?: () => void
 } = {}) {
-  const businessToolPlaceholders = hideBusinessCardsPlaceholder
+  const cardQrEnabled = isCardQrToolEnabled()
+  const businessToolPlaceholders = cardQrEnabled
     ? BUSINESS_TOOL_PLACEHOLDERS.filter((toolTitle) => toolTitle !== 'Business Cards')
     : BUSINESS_TOOL_PLACEHOLDERS
   return (
@@ -11028,6 +11029,27 @@ export function BusinessToolsCard({
       </section>
 
       <div className={styles.businessToolsGrid}>
+        {cardQrEnabled ? (
+          <section className={styles.businessToolCard}>
+            <div className={styles.workspaceSectionHeader}>
+              <div>
+                <div className={styles.walletSettingsTitle}>Cards & QR</div>
+                <p className={styles.businessToolBody}>
+                  Build your site QR, download a free portrait flyer, or order
+                  printed cards that match your site.
+                </p>
+              </div>
+              <span className={styles.rosterTag}>Ready</span>
+            </div>
+            <button
+              type="button"
+              className={styles.helperButton}
+              onClick={onOpenCardQr}
+            >
+              Open Cards & QR
+            </button>
+          </section>
+        ) : null}
         {businessToolPlaceholders.map((toolTitle) => (
           <section key={toolTitle} className={styles.businessToolCard}>
             <div className={styles.workspaceSectionHeader}>

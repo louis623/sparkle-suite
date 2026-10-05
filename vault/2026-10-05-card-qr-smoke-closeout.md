@@ -1,5 +1,11 @@
 # 2026-10-05 — Cards & QR Smoke v1
 
+## Follow-up: Smoke hub unlock
+
+- `isCardQrToolEnabled` now reads `process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT` directly so Next can inline it. The earlier `process.env` parameter stayed false in the browser, so Business Cards stayed Coming Soon on Smoke `6189be69`.
+- Business Tools, when that marker is smoke, shows a ready Cards & QR tile that opens the same tool. Business Calculator stays Coming Soon. Live still sees both placeholders.
+
+
 - Branch `cursor/smoke-card-qr-flyer-1376`. Smoke only. No live deploy and no live database migration.
 - Workspace → Tools → Cards & QR appears only when `NEXT_PUBLIC_SPARKLE_ENVIRONMENT=smoke`. Live Tools stay as they are.
 - One tool, three sections: profile QR for the current site address, free 1080×1920 flyer PNG, and business cards at $100 / 500 and $120 / 1,000 with Stripe test Checkout.

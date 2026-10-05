@@ -1,9 +1,12 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import sharp from 'sharp'
 import { CardQrTool } from '@/app/nic-nac/components/CardQrTool'
 import {
+  BusinessToolsCard,
   getInitialWorkspaceSection,
   resolveWorkspaceSectionForAccess,
 } from '@/app/nic-nac/components/DashboardPlaceholder'
@@ -49,6 +52,34 @@ describe('Cards & QR smoke locks', () => {
     vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
     expect(getInitialWorkspaceSection('?section=card-qr')).toBe('card-qr')
     expect(resolveWorkspaceSectionForAccess('card-qr', true)).toBe('card-qr')
+  })
+
+  it('reads the public Smoke marker in a form Next can inline', () => {
+    const source = readFileSync(
+      resolve('lib/workspace/card-qr/access.ts'),
+      'utf8',
+    )
+    const start = source.indexOf('export function isCardQrToolEnabled')
+    const body = source.slice(start, source.indexOf('export function', start + 1))
+    expect(body).toContain(
+      "return process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT === 'smoke'",
+    )
+    expect(body).not.toMatch(/function isCardQrToolEnabled\s*\([^)]+\)/)
+    expect(body).not.toMatch(/[^.]env\.NEXT_PUBLIC_SPARKLE_ENVIRONMENT/)
+    expect(source).toContain('isSuiteSmokeEnvironment(env)')
+  })
+
+  it('replaces the Business Cards placeholder with a ready Cards & QR entry on Smoke', () => {
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+    const html = renderToStaticMarkup(
+      createElement(BusinessToolsCard, { onOpenCardQr: () => undefined }),
+    )
+    expect(html).toContain('Cards &amp; QR')
+    expect(html).toContain('Open Cards &amp; QR')
+    expect(html).toContain('Ready')
+    expect(html).toContain('Business Calculator')
+    expect(html.match(/Coming Soon/g) ?? []).toHaveLength(1)
+    expect(html).not.toContain('Business Cards')
   })
 
   it('returns 404 outside Smoke', async () => {
