@@ -1,7 +1,7 @@
 import * as FinderLaunchNotify from "@/components/learn/FinderLaunchNotify";
 import { finderLearnContent } from "@/lib/sparkle-finder/learn-page-content";
 import { sparkleSuiteMarketingHref } from "@/lib/sparkle-finder/marketing-destinations";
-import { SparkleMarketingFooter } from "../../../../packages/sparkle-marketing-footer/SparkleMarketingFooter";
+import { SparkleMarketingFooter } from "@/components/marketing/SparkleMarketingFooter";
 import styles from "./finder-learn.module.css";
 
 const finderLearnLockupSrc = "/brand/sparkle-finder-logo-transparent.png";

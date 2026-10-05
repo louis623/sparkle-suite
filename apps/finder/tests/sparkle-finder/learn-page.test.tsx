@@ -184,7 +184,7 @@ describe("Sparkle Finder /learn", () => {
     const learnSource = readFileSync(new URL("../../components/learn/FinderLearnPage.tsx", import.meta.url), "utf8");
     const contentSource = readFileSync(new URL("../../lib/sparkle-finder/learn-page-content.ts", import.meta.url), "utf8");
     const styles = readFileSync(new URL("../../components/learn/finder-learn.module.css", import.meta.url), "utf8");
-    const footerStyles = readFileSync(new URL("../../../../packages/sparkle-marketing-footer/sparkle-marketing-footer.module.css", import.meta.url), "utf8");
+    const footerStyles = readFileSync(new URL("../../components/marketing/sparkle-marketing-footer.module.css", import.meta.url), "utf8");
     const seal = readFileSync(new URL("../../brand-assets/amethyst/01-amethyst-seal.svg", import.meta.url), "utf8");
 
     expect(pageSource).not.toContain("getCurrentSparkleFinderAccount");

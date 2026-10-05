@@ -1,3 +1,5 @@
+// Lives in apps/finder so Finder Smoke can compile it when the Vercel root is apps/finder.
+// Suite imports this same file.
 import styles from "./sparkle-marketing-footer.module.css";
 
 export const sparkleMarketingYouTubeUrl = "https://www.youtube.com/@SparkleSuite";

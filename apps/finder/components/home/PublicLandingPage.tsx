@@ -3,7 +3,7 @@ import { LogIn, Sparkles } from "lucide-react";
 import { SparkleFinderNav } from "@/components/layout/SparkleFinderNav";
 import { sparkleSuiteMarketingHref } from "@/lib/sparkle-finder/marketing-destinations";
 import type { CurrentSparkleFinderAccountState } from "@/lib/sparkle-finder/account-service";
-import { SparkleMarketingFooter } from "../../../../packages/sparkle-marketing-footer/SparkleMarketingFooter";
+import { SparkleMarketingFooter } from "@/components/marketing/SparkleMarketingFooter";
 
 type PublicLandingPageProps = {
   accountState: CurrentSparkleFinderAccountState;
