@@ -10,7 +10,6 @@ export const finderLearnContent = {
   tagline: "Find it, favorite it, show it off.",
   comingSoon: "Get notified when we launch",
   createAccount: "Create an account",
-  nav: [{ href: "#how", label: "How it works" }],
   hero: {
     eyebrow: "For Bomb Party collectors",
     headlineLead: "Find the pieces you",

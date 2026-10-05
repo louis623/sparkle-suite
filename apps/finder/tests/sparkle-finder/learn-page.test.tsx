@@ -15,13 +15,13 @@ const smokeSuiteHref = "https://sparkle-suite-smoke.vercel.app/";
 const allowedHrefs = new Set([
   "#top",
   "#main-content",
-  "#how",
   "/privacy-policy",
   "/terms-and-conditions",
   liveSuiteHref,
   "https://www.youtube.com/@yoursparklesuite",
   "https://www.tiktok.com/@yoursparklesuite",
   "https://neonrabbit.net",
+  "/brand/sparkle-finder-logo-transparent.png",
 ]);
 
 afterEach(() => {
@@ -111,18 +111,25 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain("Fine print");
     expect(markup).not.toContain("How a jewelry profile is used.");
     expect(markup).not.toContain("Nobody else receives them.");
-    expect(markup).toContain(">F<");
+    expect(markup).not.toContain(">F<");
     expect(markup).not.toContain(">S<");
     expect(markup).toContain('data-finder-brand="amethyst"');
-    expect(markup).toContain('x="30.144"');
-    expect(markup).toContain("var(--finder-violet-f)");
-    expect(markup).toContain('href="#how"');
-    expect(markup).toContain(">How it works<");
+    expect(markup).not.toContain('x="30.144"');
+    expect(markup).not.toContain('href="#how"');
+    expect(markup).not.toContain(">How it works<");
+    expect(markup).toContain('aria-label="How it works"');
     expect(markup).not.toContain('href="#silver"');
     expect(markup).not.toContain(">Silver</a>");
     expect(markup).not.toContain('href="#soon"');
     expect(markup).not.toContain('href="#why"');
-    expect(markup).not.toMatch(/<img|webp|\/learn\/peeks|background-image|url\(/i);
+    expect(markup.match(/<img\b/g)).toHaveLength(2);
+    expect(markup.match(/src="\/brand\/sparkle-finder-logo-transparent.png"/g)).toHaveLength(2);
+    expect(markup).not.toMatch(/webp|\/learn\/peeks|background-image|url\(|sparkle-finder-seal|email-signatures|sparkle-finder-logo\.png|filter:/i);
+    expect(markup).not.toMatch(/>Sign In<|>Sign Up<|sneak peek/i);
+    const header = markup.slice(markup.indexOf("<header"), markup.indexOf("</header>"));
+    expect(header).not.toContain("<nav");
+    expect([...header.matchAll(/href="([^"]+)"/g)].map((match) => match[1])).toEqual(["#top"]);
+    expect(header).toContain('src="/brand/sparkle-finder-logo-transparent.png"');
     expect(markup).not.toContain("heroSeal");
     expect(markup.match(/Get notified when we launch/g)).toHaveLength(2);
     expect(markup.match(/<button\b[^>]*type="button"/g)).toHaveLength(2);
@@ -153,7 +160,13 @@ describe("Sparkle Finder /learn", () => {
 
     expect(pageSource).not.toContain("getCurrentSparkleFinderAccount");
     expect(pageSource).not.toContain("create-an-account");
-    expect(`${learnSource}\n${contentSource}\n${styles}`).not.toMatch(/next\/image|<img|webp|\/learn\/peeks|background-image|url\(/i);
+    expect(`${learnSource}\n${contentSource}\n${styles}`).not.toMatch(/next\/image|webp|\/learn\/peeks|background-image|url\(/i);
+    expect(learnSource).toContain('src={finderLearnLockupSrc}');
+    expect(learnSource).toContain('"/brand/sparkle-finder-logo-transparent.png"');
+    expect(learnSource).not.toMatch(/sparkle-finder-seal|email-signatures|sparkle-finder-logo\.png|FinderSeal/);
+    expect(styles).toContain(".header,\n.footer {\n  background: #fff;");
+    expect(styles).not.toContain("#35155f");
+    expect(styles).toContain(".logo {\n  display: block;\n  height: 64px;");
     expect(styles).toContain("--finder-deep: #1a0b2e");
     expect(styles).toContain("--finder-amethyst: #5b2a8f");
     expect(styles).toContain("--finder-violet-f: #5c0eff");
