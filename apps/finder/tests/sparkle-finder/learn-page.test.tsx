@@ -191,6 +191,8 @@ describe("Sparkle Finder /learn", () => {
     expect(`${learnSource}\n${contentSource}`).not.toMatch(/next\/image|webp|\/learn\/peeks|background-image|url\(/i);
     expect(styles).not.toMatch(/next\/image|webp|\/learn\/peeks|background-image|pillarPanel/i);
     expect(styles).toContain(".pillarArt {");
+    expect(styles).toContain(".pillarArt {\n  display: block;\n  width: 100%;\n  height: auto;\n  background: #fff;");
+    expect(styles).toContain(".pillarCopy {\n  background: var(--finder-amethyst);\n  color: #fff;");
     expect(styles).toContain("grid-template-columns: repeat(2, minmax(0, 1fr));");
     expect(contentSource).toContain('image: "/learn/pillars/search.png"');
     expect(contentSource).toContain('image: "/learn/pillars/save.png"');
