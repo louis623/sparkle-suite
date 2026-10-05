@@ -199,6 +199,7 @@ describe("Sparkle Finder hub routes", () => {
 
     expect(homeMarkup).toContain('data-layout="mobile-first-app"');
     expect(homeMarkup).not.toContain('class="sparkle-finder-site-footer"');
+    expect(homeMarkup).not.toContain("/brand/sparkle-finder-logo-transparent.png");
     expect(homeMarkup).not.toContain("Footer links");
     expect(hubMarkup).not.toContain('class="sparkle-finder-site-footer"');
     expect(hubMarkup).not.toContain("Footer links");
@@ -315,6 +316,10 @@ describe("Sparkle Finder hub routes", () => {
     expect(markup).toContain("Create account");
     expect(markup).toContain("Sign in");
     expect(markup).toContain("Sparkle Finder public navigation");
+    expect(markup).toContain('src="/brand/sparkle-finder-logo-transparent.png"');
+    expect(markup).toContain('alt="Sparkle Finder by Sparkle Suite"');
+    expect(markup).toContain("sparkle-finder-nav-shell--public");
+    expect(markup).not.toContain("sparkle-finder-site-footer__seal");
     expect(markup).toContain('data-smoke="coming-soon-copy"');
     expect(markup).toContain('href="/auth/sign-up?next=/"');
     expect(markup).toContain('href="/auth/sign-in"');

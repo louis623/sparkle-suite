@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import { metadata } from '@/app/adventure/page'
+import { metadata } from '@/app/page'
 import { MarketingHub } from '@/app/_components/marketing-hub'
 import { sparkleSuiteMarketingHubContent } from '@/lib/sparkle-suite/marketing-hub-content'
 import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
@@ -15,22 +15,23 @@ function renderHub() {
 }
 
 describe('Sparkle Suite and Finder adventure hub', () => {
-  it('keeps the existing Suite home and adds the hub on /adventure', () => {
+  it('serves the combo at the site root and does not keep /adventure', () => {
     const home = readFileSync(join(process.cwd(), 'app/page.tsx'), 'utf8')
-    const adventure = readFileSync(join(process.cwd(), 'app/adventure/page.tsx'), 'utf8')
+    const suiteFunnel = readFileSync(join(process.cwd(), 'app/learn/page.tsx'), 'utf8')
 
-    expect(home).toContain('<SparkleSuitePublicLanding')
-    expect(home).not.toContain('MarketingHub')
-    expect(adventure).toContain('<MarketingHub />')
-    expect(adventure).not.toContain("redirect('/prelaunch')")
-    expect(metadata.alternates?.canonical).toBe('/adventure')
+    expect(home).toContain('<MarketingHub />')
+    expect(home).not.toContain('<SparkleSuitePublicLanding')
+    expect(home).not.toContain("redirect('/prelaunch')")
+    expect(home).not.toContain('/adventure')
+    expect(suiteFunnel).toContain('<SparkleSuitePublicLanding')
+    expect(metadata.alternates?.canonical).toBe('/')
     expect(metadata.title).toEqual({ absolute: 'Sparkle Suite and Sparkle Finder' })
     expect(metadata.description).toContain("You're in the right place for the bling.")
     expect(metadata.description).not.toContain("You're in, you're in the right place for the bling.")
     expect(metadata.description).toContain('Now Pick Your Shine')
-    expect(buildSparkleSitemap().map((entry) => entry.url)).toContain(
-      'https://www.yoursparklesuite.com/adventure',
-    )
+    const sitemap = buildSparkleSitemap().map((entry) => entry.url)
+    expect(sitemap).toContain('https://www.yoursparklesuite.com/')
+    expect(sitemap).not.toContain('https://www.yoursparklesuite.com/adventure')
   })
 
   it('uses the locked path copy and sends each product to its own front door', () => {
@@ -77,7 +78,7 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(finderCard.indexOf('for the Bomb Party collectors')).toBeLessThan(finderCard.indexOf(finderBody))
     expect(finderCard.indexOf(finderBody)).toBeLessThan(finderCard.indexOf('Sparkle Finder is for Bomb Party collectors.'))
     expect(finderCard.indexOf('Sparkle Finder is for Bomb Party collectors.')).toBeLessThan(
-      finderCard.indexOf('Coming soon.'),
+      finderCard.indexOf('>Learn More</a>'),
     )
     expect(finderCard).toContain("It is the shopper's side of the show, close to the pieces that caught your eye.")
     expect(suiteCard).not.toContain(finderBody)
@@ -92,26 +93,20 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     expect(suiteCard).not.toContain('Have an account?')
     expect(suiteCard).toContain('href="/login"')
     expect(suiteCard).toContain('href="/prelaunch#waitlist"')
-    expect(finderCard.indexOf('Coming soon.')).toBeLessThan(finderCard.indexOf('>Get a sneak peek</a>'))
-    expect(finderCard.indexOf('>Get a sneak peek</a>')).toBeLessThan(finderCard.indexOf('>Learn More</a>'))
-    expect(finderCard.indexOf('>Learn More</a>')).toBeLessThan(finderCard.indexOf('>Sign In<'))
-    const sneakPeek = finderCard.slice(
-      finderCard.lastIndexOf('<a', finderCard.indexOf('>Get a sneak peek</a>')),
-      finderCard.indexOf('>Get a sneak peek</a>'),
-    )
-    expect(sneakPeek).toContain('href=""')
-    expect(sneakPeek).not.toContain('http')
+    expect(finderCard).not.toContain('Coming soon.')
+    expect(finderCard).not.toContain('Get a sneak peek')
+    expect(finderCard).not.toContain('>Sign In<')
+    expect(finderCard).not.toContain('>Sign Up<')
+    expect(finderCard).not.toContain('yoursparklefinder.com')
+    expect(finderCard.match(/>Learn More<\/a>/g)).toHaveLength(1)
     expect(suiteCard).not.toContain('Get a sneak peek')
-    expect(sparkleSuiteMarketingHubContent.finder.sneakPeekHref).toBe('')
-    expect(finderCard).toContain('>Sign Up<')
     expect(finderCard).not.toContain("Don't have an account?")
-    expect(finderCard).toContain('href="https://yoursparklefinder.com/auth/sign-in"')
-    expect(finderCard).toContain('href="https://yoursparklefinder.com/auth/sign-up?next=/"')
     expect(readable).not.toContain('Have an account?')
     expect(readable).not.toContain("Don't have an account?")
     expect(html).toContain('href="/login"')
-    expect(html).toContain('href="https://yoursparklefinder.com/"')
-    expect(html).toContain('href="https://yoursparklefinder.com/auth/sign-in"')
+    expect(html).not.toContain('href="https://yoursparklefinder.com/"')
+    expect(html).not.toContain('href="https://yoursparklefinder.com/auth/sign-in"')
+    expect(html).not.toContain('href="https://yoursparklefinder.com/auth/sign-up?next=/"')
     expect(html).toContain('Open the Sparkle Suite site')
     expect(html).toContain('Open Sparkle Finder')
     const suiteLearnMore = suiteCard.slice(
@@ -124,8 +119,8 @@ describe('Sparkle Suite and Finder adventure hub', () => {
     )
     expect(readable).not.toContain('See More')
     expect(readable.match(/>Learn More<\/a>/g)).toHaveLength(2)
-    expect(suiteLearnMore).toContain('href="https://www.yoursparklesuite.com/"')
-    expect(finderLearnMore).toContain('href="https://yoursparklefinder.com/"')
+    expect(suiteLearnMore).toContain('href="https://www.yoursparklesuite.com/learn"')
+    expect(finderLearnMore).toContain('href="https://sparkle-finder-smoke.vercel.app/learn"')
     const quiet = readable.slice(readable.indexOf('id="quiet-exits"'))
     expect(quiet).not.toContain('Sparkle Suite is the workspace')
     expect(quiet).toContain('href="/prelaunch#waitlist"')

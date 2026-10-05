@@ -3,12 +3,8 @@ import {
   sparkleSuitePublicLandingSafety,
 } from '@/lib/sparkle-suite/public-landing-content'
 
-/** Finder marketing root. This hub does not redirect the Finder domain. */
-export const sparkleFinderHomeUrl = 'https://yoursparklefinder.com/' as const
-/** Current Finder app sign-in. */
-export const sparkleFinderSignInUrl = 'https://yoursparklefinder.com/auth/sign-in' as const
-/** Live Finder public landing creates an account with this return path. */
-export const sparkleFinderSignUpUrl = 'https://yoursparklefinder.com/auth/sign-up?next=/' as const
+/** Finder smoke funnel. yoursparklefinder.com forwards to Suite, so the front door does not use it. */
+export const sparkleFinderLearnMoreUrl = 'https://sparkle-finder-smoke.vercel.app/learn' as const
 
 /**
  * Joint front door. Finder deep-drill pages under /finder stay empty for a later pass.
@@ -22,12 +18,12 @@ export const sparkleSuiteMarketingHubContent = {
     product: 'Sparkle Suite',
     detail: 'for the Bomb Party reps',
     body: 'Sparkle Suite gives reps a polished customer site, standout live-show tools, and built-in support that helps customers feel the difference.',
-    href: '/',
+    href: '/learn',
     destinationLabel: 'Open the Sparkle Suite site',
     narrative:
       'Sparkle Suite is the workspace for Bomb Party reps. You get a polished customer site, live-show tools for the night itself, and built-in support that helps customers feel the difference. Customers land somewhere that feels like you.',
     learnMoreLabel: 'Learn More',
-    learnMoreHref: 'https://www.yoursparklesuite.com/',
+    learnMoreHref: 'https://www.yoursparklesuite.com/learn',
     signInLabel: 'Sign In',
     signInHref: '/login',
     signUpLabel: 'Sign Up',
@@ -37,20 +33,12 @@ export const sparkleSuiteMarketingHubContent = {
     product: 'Sparkle Finder',
     detail: 'for the Bomb Party collectors',
     body: 'Find the pieces you love, and build the collection that you adore.',
-    href: sparkleFinderHomeUrl,
+    href: sparkleFinderLearnMoreUrl,
     destinationLabel: 'Open Sparkle Finder',
     narrative:
       "Sparkle Finder is for Bomb Party collectors. Find the pieces you love, and build the collection that you adore. It is the shopper's side of the show, close to the pieces that caught your eye.",
-    comingSoon: 'Coming soon.',
-    /** Destination stays unwired until Louis chooses it. */
-    sneakPeekLabel: 'Get a sneak peek',
-    sneakPeekHref: '',
     learnMoreLabel: 'Learn More',
-    learnMoreHref: sparkleFinderHomeUrl,
-    signInLabel: 'Sign In',
-    signInHref: sparkleFinderSignInUrl,
-    signUpLabel: 'Sign Up',
-    signUpHref: sparkleFinderSignUpUrl,
+    learnMoreHref: sparkleFinderLearnMoreUrl,
     deepLinks: [] as ReadonlyArray<{ label: string; href: string }>,
   },
   quietExits: {

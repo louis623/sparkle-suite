@@ -25,10 +25,13 @@ export function SparkleFinderFooter() {
     <footer className="sparkle-finder-site-footer">
       <div className="sparkle-finder-site-footer__inner">
         <div className="sparkle-finder-site-footer__brand-stack">
-          <div className="sparkle-finder-site-footer__brand">
-            <SparkleFinderFooterSeal />
-            <span>Sparkle Finder</span>
-          </div>
+          <a className="sparkle-finder-site-footer__brand" href="/">
+            <img
+              alt="Sparkle Finder by Sparkle Suite"
+              className="sparkle-finder-logo__lockup"
+              src="/brand/sparkle-finder-logo-transparent.png"
+            />
+          </a>
           <nav className="sparkle-finder-site-footer__socials" aria-label="Sparkle Finder social links">
             {footerSocialLinks.map((link) => (
               <a
@@ -96,22 +99,3 @@ function SparkleFinderSocialIcon({ platform }: { platform: string }) {
   );
 }
 
-function SparkleFinderFooterSeal() {
-  return (
-    <svg aria-hidden="true" className="sparkle-finder-site-footer__seal" viewBox="0 0 64 64">
-      <circle cx="32" cy="32" fill="#ffffff" r="30" stroke="currentColor" strokeWidth="0.75" />
-      <text
-        fill="currentColor"
-        fontFamily="'Playfair Display', Georgia, serif"
-        fontSize="28"
-        fontStyle="italic"
-        fontWeight="500"
-        textAnchor="middle"
-        x="32"
-        y="42"
-      >
-        SF
-      </text>
-    </svg>
-  );
-}
