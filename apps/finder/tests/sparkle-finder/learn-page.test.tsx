@@ -89,6 +89,10 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain("independent tool for reps");
     expect(markup).toContain('href="https://neonrabbit.net"');
     expect(markup).not.toMatch(/powered by Neon Rabbit/i);
+    expect(markup).toContain('aria-label="Sparkle Suite on YouTube"');
+    expect(markup).toContain('aria-label="Sparkle Suite on TikTok"');
+    expect(markup).toContain("M23 12.2s0-3.2-.4-4.6");
+    expect(markup).toContain("M14.2 3.1c.5 2.6 2 4.4 4.5 4.7");
     const freeCard = markup.slice(freeCardAt);
     expect(freeCard).not.toMatch(/save a collection|saving a collection/i);
     expect(markup.match(/Hunt through the jewelry database/g)).toHaveLength(1);
