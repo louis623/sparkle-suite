@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import { gridDemoEmbeds } from '@/lib/sparkle-suite/demo-page-content'
 import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
-import { sparkleSuitePublicLandingContent as content, sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
+import { sparkleFinderSmokeLearnHref, sparkleSuitePublicLandingContent as content, sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 import { MarketingSocialLinks } from './marketing-social-links'
 import { ProductPeekVideo } from './product-peek-video'
 import { SparkleSeal } from './sparkle-suite-public-chrome'
@@ -41,9 +41,12 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
 }
 
 export function MarketingFooter({ current }: { current?: 'home' | 'portfolio' | 'demo' | 'faq' } = {}) {
-  const textLinks = [...content.footer.links, ...content.footer.socialLinks].filter((link) => link.label !== 'TikTok' && link.label !== 'YouTube')
+  const textLinks = [...content.footer.links, ...content.footer.socialLinks].filter((link) => link.label !== 'TikTok' && link.label !== 'YouTube' && link.label !== 'Sparkle Finder')
   return <footer className={styles.footer}>
-    <Link className={styles.brand} href="/" aria-label="Sparkle Suite home"><SparkleSeal className={styles.seal} /><span>Sparkle Suite</span></Link>
+    <div className={styles.footerBrands}>
+      <a className={styles.finderLockup} href={sparkleFinderSmokeLearnHref} aria-label="Sparkle Finder" rel="noopener noreferrer" target="_blank"><img alt="" className={styles.footerLogo} src="/brand/sparkle-finder-logo-transparent.png" /></a>
+      <Link className={styles.suiteLockup} href="/" aria-label="Sparkle Suite home"><img alt="" className={styles.footerLogo} src="/brand/sparkle-suite-logo-transparent.png" /></Link>
+    </div>
     <nav aria-label="Footer links">{textLinks.map((link) => <a key={link.label} href={link.href} aria-current={current === 'faq' && link.href === '/faq' ? 'page' : undefined}>{link.label}</a>)}</nav>
     <MarketingSocialLinks />
     <p>{sparkleSuitePublicLandingSafety.disclaimer}</p>

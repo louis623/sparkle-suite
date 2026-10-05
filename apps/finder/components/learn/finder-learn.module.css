@@ -97,6 +97,43 @@
   text-decoration: none;
 }
 
+.footerBrand {
+  --logo-h: 64px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.footerBrand a {
+  display: block;
+  height: var(--logo-h);
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.footerBrand .logo {
+  height: var(--logo-h);
+  width: calc(var(--logo-h) * 1100 / 280);
+  max-width: none;
+}
+
+.suiteLockup {
+  width: calc(var(--logo-h) * 673 / 280);
+}
+
+.suiteLockup .logo {
+  margin-left: calc(var(--logo-h) * -39 / 280);
+}
+
+.finderLockup {
+  width: calc(var(--logo-h) * 728 / 280);
+}
+
+.finderLockup .logo {
+  margin-left: calc(var(--logo-h) * -38 / 280);
+}
+
 .logo {
   display: block;
   height: 64px;
@@ -457,6 +494,10 @@
 
   .logo {
     height: 48px;
+  }
+
+  .footerBrand {
+    --logo-h: 48px;
   }
 
   .footerInner {

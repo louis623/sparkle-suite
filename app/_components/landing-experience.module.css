@@ -68,3 +68,11 @@
 .moreAnswers{margin-top:8px}
 .moreAnswers a{display:inline-flex;align-items:center;gap:8px;min-height:44px;color:var(--accent);font-size:15px;font-weight:700;text-decoration:none}
 .moreAnswers a:hover{text-decoration:underline;text-underline-offset:4px}
+.footerBrands{--logo-h:64px;display:inline-flex;align-items:center;gap:8px;flex-shrink:0}
+.footerBrands a{display:block;height:var(--logo-h);overflow:hidden;text-decoration:none}
+.footerLogo{display:block;height:var(--logo-h);width:calc(var(--logo-h) * 1100 / 280);max-width:none}
+.suiteLockup{width:calc(var(--logo-h) * 673 / 280)}
+.suiteLockup .footerLogo{margin-left:calc(var(--logo-h) * -39 / 280)}
+.finderLockup{width:calc(var(--logo-h) * 728 / 280)}
+.finderLockup .footerLogo{margin-left:calc(var(--logo-h) * -38 / 280)}
+@media(max-width:600px){.footerBrands{--logo-h:48px}}

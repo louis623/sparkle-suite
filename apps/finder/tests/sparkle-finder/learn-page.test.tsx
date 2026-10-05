@@ -21,6 +21,7 @@ const allowedHrefs = new Set([
   "https://www.youtube.com/@SparkleSuite",
   "https://www.tiktok.com/@yoursparklesuite.com",
   "/brand/sparkle-finder-logo-transparent.png",
+  "/brand/sparkle-suite-logo-transparent.png",
 ]);
 
 afterEach(() => {
@@ -125,8 +126,11 @@ describe("Sparkle Finder /learn", () => {
     expect(markup).not.toContain(">Silver</a>");
     expect(markup).not.toContain('href="#soon"');
     expect(markup).not.toContain('href="#why"');
-    expect(markup.match(/<img\b/g)).toHaveLength(2);
+    expect(markup.match(/<img\b/g)).toHaveLength(3);
     expect(markup.match(/src="\/brand\/sparkle-finder-logo-transparent.png"/g)).toHaveLength(2);
+    expect(markup.match(/src="\/brand\/sparkle-suite-logo-transparent.png"/g)).toHaveLength(1);
+    expect(markup).toContain('aria-label="Sparkle Suite"');
+    expect(markup).not.toContain(">Sparkle Suite<");
     expect(markup).not.toMatch(/webp|\/learn\/peeks|background-image|url\(|sparkle-finder-seal|email-signatures|sparkle-finder-logo\.png|filter:/i);
     expect(markup).not.toMatch(/>Sign In<|>Sign Up<|sneak peek/i);
     const header = markup.slice(markup.indexOf("<header"), markup.indexOf("</header>"));
@@ -256,7 +260,7 @@ describe("Sparkle Finder /learn", () => {
       SPARKLE_ENVIRONMENT: "production",
       NEXT_PUBLIC_SPARKLE_ENVIRONMENT: "production",
     })).toBe(liveSuiteHref);
-    expect(finderLearnContent.footer.links.find((link) => link.label === "Sparkle Suite")?.href).toBe(liveSuiteHref);
+    expect(finderLearnContent.footer.links.some((link) => link.label === "Sparkle Suite")).toBe(false);
 
     for (const marker of ["SPARKLE_ENVIRONMENT", "NEXT_PUBLIC_SPARKLE_ENVIRONMENT"] as const) {
       vi.stubEnv("SPARKLE_ENVIRONMENT", "");
@@ -265,7 +269,9 @@ describe("Sparkle Finder /learn", () => {
 
       for (const page of [FinderLearnPage, LearnLivePage]) {
         const markup = renderToStaticMarkup(createElement(page));
-        expect(markup).toContain(">Sparkle Suite<");
+        expect(markup).toContain('aria-label="Sparkle Suite"');
+        expect(markup).toContain('src="/brand/sparkle-suite-logo-transparent.png"');
+        expect(markup).not.toContain(">Sparkle Suite<");
         expect(markup).toContain(`href="${smokeSuiteHref}"`);
         expect(markup).not.toContain(`href="${liveSuiteHref}"`);
         expect(markup).toContain('href="https://www.youtube.com/@SparkleSuite"');

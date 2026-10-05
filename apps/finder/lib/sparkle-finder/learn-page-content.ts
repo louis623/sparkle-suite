@@ -65,7 +65,6 @@ export const finderLearnContent = {
     links: [
       { href: "/privacy-policy", label: "Privacy Policy" },
       { href: "/terms-and-conditions", label: "Terms and Conditions" },
-      { href: "https://www.yoursparklesuite.com", label: "Sparkle Suite" },
     ],
     socials: [
       { href: "https://www.youtube.com/@SparkleSuite", label: "YouTube" },

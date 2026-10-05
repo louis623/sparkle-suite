@@ -4,6 +4,7 @@ import { sparkleSuiteMarketingHref } from "@/lib/sparkle-finder/marketing-destin
 import styles from "./finder-learn.module.css";
 
 const finderLearnLockupSrc = "/brand/sparkle-finder-logo-transparent.png";
+const suiteLearnLockupSrc = "/brand/sparkle-suite-logo-transparent.png";
 
 export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" | "live" } = {}) {
   const content = finderLearnContent;
@@ -88,21 +89,24 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
 
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
-          <FinderLearnLockup />
+          <div className={styles.footerBrand}>
+            <a
+              aria-label="Sparkle Suite"
+              className={styles.suiteLockup}
+              href={sparkleSuiteMarketingHref()}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <img alt="" className={styles.logo} src={suiteLearnLockupSrc} />
+            </a>
+            <FinderLearnLockup className={styles.finderLockup} />
+          </div>
           <nav aria-label="Footer">
-            {content.footer.links.map((link) => {
-              const href = link.label === "Sparkle Suite" ? sparkleSuiteMarketingHref() : link.href;
-              return (
-                <a
-                  href={href}
-                  key={link.label}
-                  rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
-                  target={href.startsWith("http") ? "_blank" : undefined}
-                >
-                  {link.label}
-                </a>
-              );
-            })}
+            {content.footer.links.map((link) => (
+              <a href={link.href} key={link.label}>
+                {link.label}
+              </a>
+            ))}
           </nav>
           <nav aria-label="Sparkle Suite channels" className={styles.socials}>
             {(["TikTok", "YouTube"] as const).map((label) => {
@@ -145,9 +149,9 @@ function YouTubeIcon() {
   );
 }
 
-function FinderLearnLockup() {
+function FinderLearnLockup({ className }: { className?: string } = {}) {
   return (
-    <a className={styles.brand} href="#top" aria-label="Sparkle Finder by Sparkle Suite">
+    <a className={[styles.brand, className].filter(Boolean).join(" ")} href="#top" aria-label="Sparkle Finder by Sparkle Suite">
       <img alt="" className={styles.logo} src={finderLearnLockupSrc} />
     </a>
   );
