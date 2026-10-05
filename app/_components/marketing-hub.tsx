@@ -48,14 +48,19 @@ function ProductCard({
   learnMoreLabel: string
   narrative: string
   product: string
-  signInHref: string
-  signInLabel: string
-  signUpHref: string
-  signUpLabel: string
+  signInHref?: string
+  signInLabel?: string
+  signUpHref?: string
+  signUpLabel?: string
   sneakPeekHref?: string
   sneakPeekLabel?: string
   tone: 'suite' | 'finder'
 }) {
+  const accountActions =
+    signInHref && signInLabel && signUpHref && signUpLabel
+      ? { signInHref, signInLabel, signUpHref, signUpLabel }
+      : null
+
   return (
     <article className={`${styles.card} ${tone === 'suite' ? styles.suite : styles.finder}`} data-path={tone}>
       <h2 className={styles.cardBrand}>{product}</h2>
@@ -79,11 +84,15 @@ function ProductCard({
       <a className={styles.learnMore} href={learnMoreHref}>
         {learnMoreLabel}
       </a>
-      <div className={styles.authSpacer} />
-      <div className={styles.accountActions}>
-        <AccountLink href={signInHref}>{signInLabel}</AccountLink>
-        <AccountLink href={signUpHref}>{signUpLabel}</AccountLink>
-      </div>
+      {accountActions ? (
+        <>
+          <div className={styles.authSpacer} />
+          <div className={styles.accountActions}>
+            <AccountLink href={accountActions.signInHref}>{accountActions.signInLabel}</AccountLink>
+            <AccountLink href={accountActions.signUpHref}>{accountActions.signUpLabel}</AccountLink>
+          </div>
+        </>
+      ) : null}
     </article>
   )
 }
@@ -129,19 +138,12 @@ export function MarketingHub() {
             />
             <ProductCard
               body={hub.finder.body}
-              comingSoon={hub.finder.comingSoon}
               destinationLabel={hub.finder.destinationLabel}
               detail={hub.finder.detail}
               learnMoreHref={hub.finder.learnMoreHref}
               learnMoreLabel={hub.finder.learnMoreLabel}
               narrative={hub.finder.narrative}
               product={hub.finder.product}
-              signInHref={hub.finder.signInHref}
-              signInLabel={hub.finder.signInLabel}
-              signUpHref={hub.finder.signUpHref}
-              signUpLabel={hub.finder.signUpLabel}
-              sneakPeekHref={hub.finder.sneakPeekHref}
-              sneakPeekLabel={hub.finder.sneakPeekLabel}
               tone="finder"
             />
           </div>
