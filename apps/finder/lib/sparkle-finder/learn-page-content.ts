@@ -68,12 +68,10 @@ export const finderLearnContent = {
       { href: "https://www.yoursparklesuite.com", label: "Sparkle Suite" },
     ],
     socials: [
-      { href: "https://www.youtube.com/@yoursparklesuite", label: "YouTube" },
-      { href: "https://www.tiktok.com/@yoursparklesuite", label: "TikTok" },
+      { href: "https://www.youtube.com/@SparkleSuite", label: "YouTube" },
+      { href: "https://www.tiktok.com/@yoursparklesuite.com", label: "TikTok" },
     ],
     disclaimer: sparkleProductFooterDisclaimer,
-    developerHref: "https://neonrabbit.net",
-    developerLabel: "neonrabbit.net",
   },
 } as const;
 

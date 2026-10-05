@@ -18,9 +18,8 @@ const allowedHrefs = new Set([
   "/privacy-policy",
   "/terms-and-conditions",
   liveSuiteHref,
-  "https://www.youtube.com/@yoursparklesuite",
-  "https://www.tiktok.com/@yoursparklesuite",
-  "https://neonrabbit.net",
+  "https://www.youtube.com/@SparkleSuite",
+  "https://www.tiktok.com/@yoursparklesuite.com",
   "/brand/sparkle-finder-logo-transparent.png",
 ]);
 
@@ -87,7 +86,7 @@ describe("Sparkle Finder /learn", () => {
     );
     expect(markup).not.toContain("Sparkle Finder is a discovery hub");
     expect(markup).not.toContain("independent tool for reps");
-    expect(markup).toContain('href="https://neonrabbit.net"');
+    expect(markup).not.toContain("neonrabbit.net");
     expect(markup).not.toMatch(/powered by Neon Rabbit/i);
     expect(markup).toContain('aria-label="Sparkle Suite on YouTube"');
     expect(markup).toContain('aria-label="Sparkle Suite on TikTok"');
@@ -168,7 +167,14 @@ describe("Sparkle Finder /learn", () => {
     expect(learnSource).toContain('src={finderLearnLockupSrc}');
     expect(learnSource).toContain('"/brand/sparkle-finder-logo-transparent.png"');
     expect(learnSource).not.toMatch(/sparkle-finder-seal|email-signatures|sparkle-finder-logo\.png|FinderSeal/);
-    expect(styles).toContain(".header,\n.footer {\n  background: #fff;");
+    expect(styles).toContain(".header {\n  background: #fff;");
+    expect(styles).toContain(".footer {\n  background: #fcf8f6;");
+    expect(styles).toContain("justify-content: space-between;");
+    expect(styles).toContain("color: #775d57;");
+    expect(styles).toContain("gap: 26px;");
+    expect(styles).not.toContain("font-size: 14px;");
+    expect(styles).not.toContain("#c21878");
+    expect(styles).not.toContain("gap: 10px;");
     expect(styles).not.toContain("#35155f");
     expect(styles).toContain(".logo {\n  display: block;\n  height: 64px;");
     expect(styles).toContain("--finder-deep: #1a0b2e");
@@ -220,7 +226,7 @@ describe("Sparkle Finder /learn", () => {
     );
     expect(markup).not.toContain("Sparkle Finder is a discovery hub");
     expect(markup).not.toContain("independent tool for reps");
-    expect(markup).toContain('href="https://neonrabbit.net"');
+    expect(markup).not.toContain("neonrabbit.net");
     expect(markup).not.toMatch(/powered by Neon Rabbit/i);
     expect(markup).toContain("Privacy Policy");
     expect(markup.match(/Create an account/g)).toHaveLength(2);
@@ -253,7 +259,8 @@ describe("Sparkle Finder /learn", () => {
         expect(markup).toContain(">Sparkle Suite<");
         expect(markup).toContain(`href="${smokeSuiteHref}"`);
         expect(markup).not.toContain(`href="${liveSuiteHref}"`);
-        expect(markup).toContain('href="https://www.youtube.com/@yoursparklesuite"');
+        expect(markup).toContain('href="https://www.youtube.com/@SparkleSuite"');
+        expect(markup).toContain('href="https://www.tiktok.com/@yoursparklesuite.com"');
       }
     }
   });

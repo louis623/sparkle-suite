@@ -60,14 +60,15 @@
   top: 0.75rem;
 }
 
-.header,
-.footer {
+.header {
   background: #fff;
   color: var(--finder-ink);
+  border-bottom: 1px solid var(--finder-line);
 }
 
-.header {
-  border-bottom: 1px solid var(--finder-line);
+.footer {
+  background: #fcf8f6;
+  color: #402924;
 }
 
 .headerInner,
@@ -117,7 +118,7 @@
 }
 
 .footer nav a {
-  color: var(--finder-muted);
+  color: #775d57;
   font-size: 13px;
   font-weight: 400;
   letter-spacing: 0;
@@ -130,12 +131,6 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-left: auto;
-}
-
-.footer .socials {
-  gap: 10px;
 }
 
 .footer .socials a {
@@ -148,24 +143,13 @@
   border: 1px solid rgba(64, 41, 36, 0.18);
   border-radius: 999px;
   background: #fff;
-  color: #402924;
   font-family: var(--font-dm-sans), "DM Sans", sans-serif;
-  font-size: 14px;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: 0;
-  text-decoration: none;
 }
 
-.footer a:hover {
+.footer nav a:hover {
   text-decoration: underline;
-  text-underline-offset: 0.28em;
-}
-
-.footer .socials a:hover {
-  border-color: #ee2c9b;
-  color: #c21878;
-  text-decoration: none;
 }
 
 .footer .socials a:focus-visible {
@@ -419,7 +403,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 24px;
   padding: 34px 5%;
 }
@@ -428,17 +412,10 @@
   width: 100%;
   margin: 4px 0 0;
   padding-top: 24px;
-  border-top: 1px solid var(--finder-line);
-  color: var(--finder-muted);
+  border-top: 1px solid rgba(64, 41, 36, 0.15);
+  color: #775d57;
   font-size: 12px;
-  line-height: 1.6;
-}
-
-.footer p a {
-  color: inherit;
-  font-size: inherit;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+  line-height: 1.65;
 }
 
 @media (min-width: 720px) {
@@ -482,9 +459,11 @@
   .footer nav {
     gap: 18px;
   }
+}
 
-  .footer .socials {
-    gap: 10px;
+@media (max-width: 850px) {
+  .footerInner {
+    align-items: flex-start;
   }
 }
 
@@ -504,8 +483,7 @@
   }
 
   .pillars,
-  .silver,
-  .footerInner {
+  .silver {
     padding-inline: 4.8%;
   }
 

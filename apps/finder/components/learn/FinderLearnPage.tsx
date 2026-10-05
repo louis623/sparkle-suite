@@ -122,13 +122,7 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
               );
             })}
           </nav>
-          <p>
-            {content.footer.disclaimer} Visit{" "}
-            <a href={content.footer.developerHref} rel="noopener noreferrer" target="_blank">
-              {content.footer.developerLabel}
-            </a>
-            .
-          </p>
+          <p>{content.footer.disclaimer}</p>
         </div>
       </footer>
     </div>
