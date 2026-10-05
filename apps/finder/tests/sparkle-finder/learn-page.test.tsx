@@ -171,8 +171,11 @@ describe("Sparkle Finder /learn", () => {
     expect(styles).not.toMatch(/next\/image|webp|\/learn\/peeks/i);
     expect(styles).toContain("background-image: var(--pillar-art);");
     expect(styles).toContain("background-size: cover;");
-    expect(styles).toContain("background-position: right center;");
-    expect(styles).toContain("background-position: 70% center;");
+    expect(styles).toContain("background-position: left bottom;");
+    expect(styles).toContain("font-size: clamp(2.15rem, 3vw, 3.15rem);");
+    expect(styles).toContain("max-width: 6.5ch;");
+    expect(styles).not.toContain("background-position: right center;");
+    expect(styles).not.toContain("background-position: 70% center;");
     expect(styles).toContain('--pillar-color: #1a0b2e;\n  --pillar-art: url("/learn/pillars/search.png");');
     expect(styles).toContain('--pillar-color: #3d1870;\n  --pillar-art: url("/learn/pillars/save.png");');
     expect(styles).toContain('--pillar-color: #5b2a8f;\n  --pillar-art: url("/learn/pillars/go-to-the-show.png");');
