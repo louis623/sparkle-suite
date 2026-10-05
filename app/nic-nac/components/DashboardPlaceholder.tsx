@@ -150,6 +150,9 @@ import { isConversationItem } from './messages/types'
 import styles from './DashboardPlaceholder.module.css'
 import { CardQrTool } from './CardQrTool'
 import {
+  CARD_QR_ENTRY_ACTION,
+  CARD_QR_ENTRY_TITLE,
+  CARD_QR_HUB_BODY,
   CARD_QR_WORKSPACE_SECTION,
   isCardQrToolEnabled,
   isWorkspaceSectionVisible,
@@ -212,8 +215,8 @@ const WORKSPACE_SECTIONS = [
 const SECONDARY_WORKSPACE_SECTIONS = [
   {
     key: CARD_QR_WORKSPACE_SECTION,
-    label: 'Cards & QR',
-    shortLabel: 'Cards',
+    label: CARD_QR_ENTRY_TITLE,
+    shortLabel: CARD_QR_ENTRY_TITLE,
     icon: QrCode,
   },
   {
@@ -11033,20 +11036,17 @@ export function BusinessToolsCard({
           <section className={styles.businessToolCard}>
             <div className={styles.workspaceSectionHeader}>
               <div>
-                <div className={styles.walletSettingsTitle}>Cards & QR</div>
-                <p className={styles.businessToolBody}>
-                  Build your site QR, download a free portrait flyer, or order
-                  printed cards that match your site.
-                </p>
+                <div className={styles.walletSettingsTitle}>{CARD_QR_ENTRY_TITLE}</div>
+                <p className={styles.businessToolBody}>{CARD_QR_HUB_BODY}</p>
               </div>
               <span className={styles.rosterTag}>Ready</span>
             </div>
             <button
               type="button"
-              className={styles.helperButton}
+              className={`${styles.helperButton} ${styles.businessToolReadyAction}`}
               onClick={onOpenCardQr}
             >
-              Open Cards & QR
+              {CARD_QR_ENTRY_ACTION}
             </button>
           </section>
         ) : null}

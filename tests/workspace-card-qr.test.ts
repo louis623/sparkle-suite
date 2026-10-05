@@ -74,8 +74,10 @@ describe('Cards & QR smoke locks', () => {
     const html = renderToStaticMarkup(
       createElement(BusinessToolsCard, { onOpenCardQr: () => undefined }),
     )
-    expect(html).toContain('Cards &amp; QR')
-    expect(html).toContain('Open Cards &amp; QR')
+    expect(html).toContain('QR codes, QR flyers, business cards')
+    expect(html).toContain('Build your site QR. Download a free QR code flyer, or order printed cards that match your site.')
+    expect(html).toContain('Open tool')
+    expect(html).toContain('businessToolReadyAction')
     expect(html).toContain('Ready')
     expect(html).toContain('Business Calculator')
     expect(html.match(/Coming Soon/g) ?? []).toHaveLength(1)

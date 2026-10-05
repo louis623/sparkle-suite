@@ -1,5 +1,9 @@
 # 2026-10-05 — Cards & QR Smoke v1
 
+## Follow-up: hub copy
+
+- Business Tools ready tile title is `QR codes, QR flyers, business cards`. Body: `Build your site QR. Download a free QR code flyer, or order printed cards that match your site.` Button: `Open tool`. Ready badge stays. The Tools list and the tool page use the same title.
+
 ## Follow-up: Smoke hub unlock
 
 - `isCardQrToolEnabled` now reads `process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT` directly so Next can inline it. The earlier `process.env` parameter stayed false in the browser, so Business Cards stayed Coming Soon on Smoke `6189be69`.

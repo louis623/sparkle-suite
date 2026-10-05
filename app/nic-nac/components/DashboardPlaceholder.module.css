@@ -3665,6 +3665,10 @@
   padding: 14px;
 }
 
+.businessToolReadyAction {
+  margin-top: 16px;
+}
+
 .wisprFlowPanel {
   min-width: 0;
   border: 1px solid rgba(238, 44, 155, 0.18);

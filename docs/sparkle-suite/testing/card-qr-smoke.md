@@ -4,7 +4,7 @@ Smoke only. Do not deploy this to `https://www.yoursparklesuite.com`.
 
 ## Where it lives
 
-Workspace → Tools → **Cards & QR**, on the Suite Smoke app (`https://sparkle-suite-smoke.vercel.app`) after this branch is deployed there. The tool stays hidden when `NEXT_PUBLIC_SPARKLE_ENVIRONMENT` is not `smoke`.
+Workspace → Tools → **QR codes, QR flyers, business cards**, on the Suite Smoke app (`https://sparkle-suite-smoke.vercel.app`) after this branch is deployed there. The same tool opens from Business Tools with the button **Open tool**. It stays hidden when `NEXT_PUBLIC_SPARKLE_ENVIRONMENT` is not `smoke`.
 
 Playtest account: `louis@neonrabbit.net` (Dude’s Fizzfest). Not `lewis@`.
 
@@ -16,7 +16,7 @@ Playtest account: `louis@neonrabbit.net` (Dude’s Fizzfest). Not `lewis@`.
 
 ## Click-through
 
-1. Sign in on Smoke and open Workspace → Tools → Cards & QR.
+1. Sign in on Smoke and open Workspace → Tools → QR codes, QR flyers, business cards. Business Tools shows the same name, with **Open tool**.
 2. QR code builder shows the current Fizzfest site address. Save to profile, copy the address, and download the QR.
 3. QR flyer: switch Match my site / Halloween / Classic ivory, toggle name, email, QR, discount, and social, then download the portrait PNG (1080×1920).
 4. Business cards: confirm **500 cards / $100** and **1,000 cards / $120**, Ground-only shipping, and the “up to about 2 weeks” note. Pay with Stripe test mode. The return screen says the order was received and restates the two-week expectation.

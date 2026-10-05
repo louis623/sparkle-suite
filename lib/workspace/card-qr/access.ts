@@ -2,6 +2,13 @@ import { isSuiteSmokeEnvironment } from '@/lib/sparkle-suite/live-founder-availa
 
 export const CARD_QR_WORKSPACE_SECTION = 'card-qr' as const
 
+export const CARD_QR_ENTRY_TITLE = 'QR codes, QR flyers, business cards'
+
+export const CARD_QR_ENTRY_ACTION = 'Open tool'
+
+export const CARD_QR_HUB_BODY =
+  'Build your site QR. Download a free QR code flyer, or order printed cards that match your site.'
+
 /**
  * Client gate. Next inlines only a direct `process.env.NEXT_PUBLIC_*` read.
  * Do not pass `process.env` into this function — that stays false in the browser.

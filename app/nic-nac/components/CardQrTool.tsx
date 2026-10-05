@@ -20,6 +20,7 @@ import {
 } from '@/lib/workspace/card-qr/design'
 import { resolveCardQrDestination } from '@/lib/workspace/card-qr/destination'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
+import { CARD_QR_ENTRY_TITLE } from '@/lib/workspace/card-qr/access'
 import styles from './CardQrTool.module.css'
 
 const LOCAL_DESIGN_KEY = 'sparkle-suite:smoke-card-qr-design'
@@ -205,7 +206,7 @@ export function CardQrTool({
       <section className={styles.section}>
         <div className={styles.header}>
           <div>
-            <h2 className={styles.title}>Cards & QR</h2>
+            <h2 className={styles.title}>{CARD_QR_ENTRY_TITLE}</h2>
             <p className={styles.subtitle}>
               One QR for your current Suite site. The flyer is a free portrait
               download. Printed cards are paid before anyone prints them.
