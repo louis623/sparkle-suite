@@ -1,0 +1,233 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.section {
+  min-width: 0;
+  border: 1px solid var(--nic-nac-border, rgba(67, 42, 116, 0.13));
+  border-radius: 18px;
+  background: var(--workspace-surface-primary-solid, #fff);
+  padding: 16px;
+  color: var(--nic-nac-text-primary, #171034);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--workspace-purple-soft, #f1eafd);
+  color: var(--workspace-purple, #7345ca);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.subtitle,
+.body,
+.notice,
+.spec {
+  margin: 8px 0 0;
+  color: var(--nic-nac-text-secondary, #62577d);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.url {
+  margin: 12px 0 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--workspace-surface-dashboard, #f8f5ff);
+  word-break: break-all;
+  font-weight: 700;
+}
+
+.actions,
+.choiceRow,
+.fieldRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.button,
+.choice,
+.field {
+  min-height: 40px;
+  border: 1px solid var(--nic-nac-border, rgba(67, 42, 116, 0.18));
+  border-radius: 12px;
+  background: #fff;
+  color: inherit;
+  padding: 8px 12px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.buttonPrimary {
+  background: var(--workspace-accent, #e2198f);
+  border-color: transparent;
+  color: #fff;
+}
+
+.choice[aria-pressed='true'],
+.field[aria-pressed='true'] {
+  border-color: var(--workspace-accent, #e2198f);
+  background: var(--workspace-nav-active, #fff0f8);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 16px;
+  align-items: start;
+  margin-top: 14px;
+}
+
+.qrFrame,
+.flyerFrame,
+.cardFace {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.qrFrame {
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: var(--workspace-surface-dashboard, #f8f5ff);
+}
+
+.qrFrame img {
+  width: min(100%, 220px);
+  height: auto;
+}
+
+.flyerFrame {
+  width: min(100%, 220px);
+  aspect-ratio: 9 / 16;
+  margin-inline: auto;
+  padding: 18px 14px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.flyerFrame strong,
+.cardFace strong {
+  font-family: Georgia, serif;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.flyerQr,
+.cardQr {
+  width: 72px;
+  height: 72px;
+  margin: 8px auto 0;
+  object-fit: contain;
+}
+
+.cardFace {
+  aspect-ratio: 3.5 / 2;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cardMeta {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.discountInput {
+  width: min(100%, 280px);
+  min-height: 40px;
+  margin-top: 8px;
+  border: 1px solid var(--nic-nac-border, rgba(67, 42, 116, 0.18));
+  border-radius: 12px;
+  padding: 8px 12px;
+  font: inherit;
+}
+
+.prices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.price {
+  text-align: left;
+  border-radius: 16px;
+  border: 1px solid var(--nic-nac-border, rgba(67, 42, 116, 0.18));
+  background: #fff;
+  padding: 14px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.price[aria-pressed='true'] {
+  border-color: var(--workspace-accent, #e2198f);
+  background: var(--workspace-nav-active, #fff0f8);
+}
+
+.price strong {
+  display: block;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.banner {
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #f3fff6;
+  color: #14532d;
+  font-weight: 700;
+}
+
+.warning {
+  background: #fff7ed;
+  color: #7c2d12;
+}
+
+@media (max-width: 720px) {
+  .header,
+  .layout,
+  .prices,
+  .actions {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .button,
+  .choice,
+  .field,
+  .price {
+    width: 100%;
+  }
+
+  .flyerFrame {
+    width: min(100%, 180px);
+  }
+}
