@@ -43,7 +43,7 @@ export function FinderLearnPage({ variant = "preview" }: { variant?: "preview" |
         <section className={styles.pillars} id={content.pillars.id} aria-label="How it works">
           <div className={styles.pillarGrid}>
             {content.pillars.items.map((pillar) => (
-              <article className={styles.pillar} key={pillar.title}>
+              <article className={styles.pillar} data-pillar={pillar.title} key={pillar.title}>
                 <img className={styles.pillarArt} src={pillar.image} alt="" />
                 <div className={styles.pillarCopy}>
                   <h2>{pillar.title}</h2>

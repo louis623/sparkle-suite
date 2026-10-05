@@ -314,13 +314,29 @@
 }
 
 .pillarCopy {
-  background: var(--finder-amethyst);
+  flex: 1 1 auto;
   color: #fff;
   padding: 1.15rem 1.35rem 1.45rem;
 }
 
+.pillar[data-pillar="Search"] .pillarCopy {
+  background: var(--finder-deep);
+}
+
+.pillar[data-pillar="Save"] .pillarCopy {
+  background: #3d1870;
+}
+
+.pillar[data-pillar="Go to the show"] .pillarCopy {
+  background: var(--finder-amethyst);
+}
+
+.pillar[data-pillar="Show it off"] .pillarCopy {
+  background: #241048;
+}
+
 .pillar h2 {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.95rem;
   color: #fff;
   font-size: clamp(1.85rem, 2.6vw, 2.3rem);
   line-height: 1.08;
@@ -328,19 +344,32 @@
 }
 
 .pillar ul {
-  margin: 0.15rem 0 0;
-  padding-left: 1.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   color: #fff;
 }
 
 .pillar li {
-  margin-top: 0.4rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
   font-size: 1.02rem;
   line-height: 1.45;
 }
 
-.pillar li::marker {
-  color: #fff;
+.pillar li:first-child {
+  margin-top: 0;
+}
+
+.pillar li::before {
+  content: "✦";
+  flex: none;
+  margin-top: 0.28rem;
+  color: var(--finder-wordmark);
+  font-size: 0.72rem;
+  line-height: 1;
 }
 
 .silver {

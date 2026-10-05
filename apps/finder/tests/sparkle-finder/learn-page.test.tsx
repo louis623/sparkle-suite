@@ -192,7 +192,13 @@ describe("Sparkle Finder /learn", () => {
     expect(styles).not.toMatch(/next\/image|webp|\/learn\/peeks|background-image|pillarPanel/i);
     expect(styles).toContain(".pillarArt {");
     expect(styles).toContain(".pillarArt {\n  display: block;\n  width: 100%;\n  height: auto;\n  background: #fff;");
-    expect(styles).toContain(".pillarCopy {\n  background: var(--finder-amethyst);\n  color: #fff;");
+    expect(styles).toContain(".pillarCopy {\n  flex: 1 1 auto;\n  color: #fff;");
+    expect(styles).toContain('.pillar[data-pillar="Search"] .pillarCopy {\n  background: var(--finder-deep);');
+    expect(styles).toContain('.pillar[data-pillar="Save"] .pillarCopy {\n  background: #3d1870;');
+    expect(styles).toContain('.pillar[data-pillar="Go to the show"] .pillarCopy {\n  background: var(--finder-amethyst);');
+    expect(styles).toContain('.pillar[data-pillar="Show it off"] .pillarCopy {\n  background: #241048;');
+    expect(styles).toContain('content: "✦";');
+    expect(styles).not.toContain(".pillarCopy {\n  background: var(--finder-amethyst);\n  color: #fff;");
     expect(styles).toContain("grid-template-columns: repeat(2, minmax(0, 1fr));");
     expect(contentSource).toContain('image: "/learn/pillars/search.png"');
     expect(contentSource).toContain('image: "/learn/pillars/save.png"');
@@ -225,7 +231,14 @@ describe("Sparkle Finder /learn", () => {
     expect(styles).not.toMatch(/@keyframes|animation:|unicorn/i);
     expect(seal).toContain('x="30.144"');
     expect(seal).not.toMatch(/#ee2c9b/i);
-    expect(renderToStaticMarkup(createElement(LearnPage))).toContain('data-smoke="finder-learn"');
+    const rendered = renderToStaticMarkup(createElement(LearnPage));
+    expect(rendered).toContain('data-smoke="finder-learn"');
+    expect(rendered).toContain('data-pillar="Search"');
+    expect(rendered).toContain('data-pillar="Save"');
+    expect(rendered).toContain('data-pillar="Go to the show"');
+    expect(rendered).toContain('data-pillar="Show it off"');
+    expect(rendered).toContain("<ul>");
+    expect(rendered).toContain("<li>");
   });
 
   it("renders the Smoke live twin with a non-submitting Create an account label", () => {
