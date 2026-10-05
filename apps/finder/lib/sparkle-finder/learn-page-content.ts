@@ -48,9 +48,8 @@ export const finderLearnContent = {
         title: "Show it off",
         image: "/learn/pillars/show-it-off.png",
         bullets: [
-          "Curate your virtual collection that matches your real pieces.",
-          "Share with friends and family",
-          "Brag about the bling",
+          "Curate a virtual collection that matches the pieces you own.",
+          "Share with friends and family, and browse their collections too.",
         ],
       },
     ],

@@ -106,9 +106,10 @@ describe("Sparkle Finder /learn", () => {
     expect(markup.match(/See the next show for the rep who has the piece you want\./g)).toHaveLength(1);
     expect(markup.match(/Follow your favorite reps and browse their Dance Floors anytime\./g)).toHaveLength(1);
     expect(markup.match(/Always know where and when the next show is\./g)).toHaveLength(1);
-    expect(markup.match(/Curate your virtual collection that matches your real pieces\./g)).toHaveLength(1);
-    expect(markup.match(/Share with friends and family/g)).toHaveLength(1);
-    expect(markup.match(/Brag about the bling/g)).toHaveLength(1);
+    expect(markup.match(/Curate a virtual collection that matches the pieces you own\./g)).toHaveLength(1);
+    expect(markup.match(/Share with friends and family, and browse their collections too\./g)).toHaveLength(1);
+    expect(markup).not.toContain("Brag about the bling");
+    expect(markup).not.toContain("Curate your virtual collection that matches your real pieces.");
     expect(markup).not.toContain("Hunt the jewelry library");
     expect(markup).not.toContain("Own it → your collection");
     expect(markup).not.toContain("Hunt through the jewelry database");
