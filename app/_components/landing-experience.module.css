@@ -81,3 +81,8 @@
 .page .toolImage.fillFrame img{object-fit:cover;object-position:center}
 .logo{height:64px;width:auto;display:block}
 @media(max-width:600px){.logo{height:48px}}
+
+/* Section-1 header: allow navigation/account content to wrap before clipping. */
+.header{max-width:1360px;min-height:96px;gap:24px;padding:18px 40px;flex-wrap:wrap;background:#fff}
+.header .brand{min-width:0;flex:0 1 270px}.header .logo{width:100%;height:auto;max-width:270px}.header .navigation{margin-left:auto;gap:24px}.header .account{margin-left:0;flex-wrap:wrap;justify-content:flex-end;gap:12px}.header .account a{white-space:nowrap}.header .account>span{display:none}
+@media(max-width:760px){.header{padding:14px 20px;gap:8px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto}.header .brand{width:190px;max-width:100%}.header .navigation{grid-row:2;grid-column:1/-1;width:100%;justify-content:center;margin:0;gap:32px}.header .navigation a{font-size:13px;padding:9px 0;min-height:36px}.header .account{grid-row:1;grid-column:2;flex-direction:column;gap:0;max-width:116px}.header .account a,.header .account button{font-size:12px;max-width:116px;white-space:normal;text-align:right}.header .account a{padding:6px 0}.header .account button{padding:6px 10px}.header .sectionLink{display:none}}

@@ -1,14 +1,14 @@
 import Link from 'next/link'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import { gridDemoEmbeds } from '@/lib/sparkle-suite/demo-page-content'
-import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
 import { sparkleSuitePublicLandingContent as content, sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 import { MarketingSocialLinks } from './marketing-social-links'
-import { ProductPeekVideo } from './product-peek-video'
+import { LandingHero } from './landing-hero'
+import type { LandingDemo } from '@/lib/sparkle-suite/landing-demo-model'
 import { SparkleSuitePublicAccountAction } from './SparkleSuitePublicAccountAction'
 import { SparkleSuitePublicNicNac } from './sparkle-suite-public-nic-nac'
 import type { FounderAvailability } from '@/lib/sparkle-suite/founder-availability'
-import { FounderAvailabilityProvider, FounderOffer, FounderSpotLabel, FounderStrip, IncludedFeatures, ShowToolsTour, SiteStyleShowcase } from './landing-interactions'
+import { FounderAvailabilityProvider, FounderOffer, FounderSpotLabel, IncludedFeatures, ShowToolsTour, SiteStyleShowcase } from './landing-interactions'
 import styles from './landing-experience.module.css'
 
 export function MarketingHeader({ intake = false, current = 'home' }: { intake?: boolean; current?: 'home' | 'portfolio' | 'demo' | 'faq' }) {
@@ -17,7 +17,7 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
   const onSubpage = onPortfolio || onDemo || current === 'faq'
   const homeHref = intake || onSubpage ? '/' : '#top'
   return <header className={styles.header}>
-    <a className={styles.brand} href={homeHref} aria-label="Sparkle Suite workspace"><img alt="" className={styles.logo} src="/email-signatures/sparkle-suite-logo.png" /></a>
+    <a className={styles.brand} href={homeHref} aria-label="Sparkle Suite workspace"><img alt="" className={styles.logo} src="/brand/sparkle-suite-logo-transparent.png" width="1100" height="280" /></a>
     <nav className={styles.navigation} aria-label="Explore Sparkle Suite">
       {onSubpage ? <Link className={styles.pageLink} href="/">Home</Link> : null}
       {onPortfolio ? <>
@@ -34,7 +34,8 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
         <a className={styles.sectionLink} href="/#pricing">Founding offer</a>
       </> : null}
       <Link className={styles.pageLink} href="/portfolio" aria-current={onPortfolio ? 'page' : undefined}>Portfolio</Link>
-      <Link className={styles.pageLink} href="/demo" aria-current={onDemo ? 'page' : undefined}>Demos</Link>
+      <a className={styles.pageLink} href={onSubpage || intake ? "/#pricing" : "#pricing"}>Pricing</a>
+      <Link className={styles.pageLink} href="/faq">FAQ</Link>
     </nav>
     <nav className={styles.account} aria-label="Account links"><SparkleSuitePublicAccountAction /></nav>
   </header>
@@ -59,39 +60,11 @@ const questions = [
   ['Is Sparkle Suite part of Bomb Party?', sparkleSuitePublicLandingSafety.disclaimer],
 ] as const
 
-export function LandingExperience({ initialAvailability }: { initialAvailability?: FounderAvailability } = {}) {
+export function LandingExperience({ initialAvailability, demo = null }: { initialAvailability?: FounderAvailability; demo?: LandingDemo | null } = {}) {
   return <FounderAvailabilityProvider initialAvailability={initialAvailability}><main className={styles.page}>
     <a className={styles.skipLink} href="#main-content">Skip to content</a>
     <div id="top"><MarketingHeader /></div>
-    <FounderStrip />
-    <section className={styles.hero} id="main-content" aria-labelledby="landing-title">
-      <div className={styles.heroLayout}>
-      <div className={styles.heroCopy}>
-        <p className={styles.eyebrow}>Now building Sparkle Suite sites</p>
-        <h1 id="landing-title">Your brand.<br />Your show.<br /><span>A setup that <em>shines.</em></span></h1>
-        <p className={styles.heroBody}>A polished website and live-show tools for Bomb Party reps. Give customers one place to find your show, follow the line, and keep the sparkle going.</p>
-        <div className={styles.heroActions}><Link className={styles.primaryButton} href="/prelaunch#waitlist">Join the build queue <ArrowRight size={18} aria-hidden="true" /></Link><a className={styles.textLink} href="#customer-site-proof">Explore your possibilities <ArrowRight size={16} aria-hidden="true" /></a></div>
-        <p className={styles.heroNote}>Sign up for your spot in line. No payment to join.</p>
-      </div>
-      <figure className={styles.heroFigure}>
-        <div className={styles.heroScene}>
-          <div className={styles.heroStage}>
-            <div className={styles.heroPair}>
-              <div className={styles.heroWindow}>
-                <div className={styles.browserBar} aria-hidden="true"><em>{halloweenHeroMotion.witch.label}</em></div>
-                <ProductPeekVideo poster={halloweenHeroMotion.witch.poster} mp4={halloweenHeroMotion.witch.mp4} width={halloweenHeroMotion.witch.width} height={halloweenHeroMotion.witch.height} label={halloweenHeroMotion.witch.label} alt="Halloween Pumpkin and Witch homepage hero, with the live lineup, shop actions, jack-o'-lantern, and flying witch" />
-              </div>
-              <div className={styles.heroWindow}>
-                <div className={styles.browserBar} aria-hidden="true"><em>{halloweenHeroMotion.cat.label}</em></div>
-                <ProductPeekVideo poster={halloweenHeroMotion.cat.poster} mp4={halloweenHeroMotion.cat.mp4} width={halloweenHeroMotion.cat.width} height={halloweenHeroMotion.cat.height} label={halloweenHeroMotion.cat.label} alt="Halloween Pumpkin and Cat homepage hero, with the site header, live lineup, shop actions, and a black cat beside the jack-o'-lantern" />
-              </div>
-            </div>
-          </div>
-        </div>
-        <figcaption>Two Halloween looks. Beautiful on phones, tablets, and desktop.</figcaption>
-      </figure>
-      </div>
-    </section>
+    <LandingHero demo={demo} />
     <section className={styles.siteSection} id="customer-site-proof" aria-labelledby="site-title"><h2 id="site-title">A site that feels like <em>you.</em></h2><p className={styles.sectionSubtitle}>Your colors. Your personality. A polished customer experience on phones, tablets, and desktop.</p><SiteStyleShowcase /></section>
     <section className={styles.toolsSection} id="workspace-proof" aria-label="Your live-show tools"><ShowToolsTour /></section>
     <section className={styles.pricingSection} id="pricing" aria-labelledby="pricing-title">

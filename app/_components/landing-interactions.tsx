@@ -96,6 +96,7 @@ export function SiteStyleShowcase() {
         <div className={styles.browserBar} aria-hidden="true"><em>Chasing Unicorns</em></div>
         <div className={styles.unicornStage}>
           <iframe
+            loading="lazy"
             title="Chasing Unicorns homepage, the full customer site with the unicorn scene playing in the hero"
             src="/marketing/chasing-unicorns"
             width={1200}
