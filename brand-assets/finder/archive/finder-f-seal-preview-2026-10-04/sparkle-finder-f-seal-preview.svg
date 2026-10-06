@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Sparkle Finder F seal preview">
+  <circle cx="32" cy="32" r="30" fill="#ffffff" stroke="#ee2c9b" stroke-width="0.75" />
+  <text
+    x="31.344"
+    y="42"
+    fill="#ee2c9b"
+    font-family="'Playfair Display', Georgia, serif"
+    font-size="32"
+    font-style="italic"
+    font-weight="500"
+    text-anchor="middle"
+  >F</text>
+</svg>
