@@ -18,6 +18,17 @@ export const size = {
 
 export const contentType = 'image/png'
 
+let marketingBodyFont: Promise<ArrayBuffer> | null = null
+function loadMarketingBodyFont() {
+  marketingBodyFont ??= fetch('https://fonts.gstatic.com/s/dmsans/v17/rP2tp2ywxg089UriI5-g4vlH9VoD8CmcqZG40F9JadbnoEwAopxhTg.ttf', { signal: AbortSignal.timeout(5000) })
+    .then(response => {
+      if (!response.ok) throw new Error('Unable to load the marketing body font')
+      return response.arrayBuffer()
+    })
+    .catch(error => { marketingBodyFont = null; throw error })
+  return marketingBodyFont
+}
+
 export default async function Image() {
   const brand = await getCustomerSiteBrandAssetContext(await headers())
   const fonts = await getCustomerSiteBrandImageFonts(brand)
@@ -198,13 +209,14 @@ export default async function Image() {
     )
   }
 
-  const [logo, preview] = await Promise.all([
+  const [logo, preview, bodyFont] = await Promise.all([
     loadCustomerSiteBrandImageDataUri('/brand/sparkle-suite-logo-transparent.png'),
     loadCustomerSiteBrandImageDataUri('/marketing/demo-social-preview.jpg'),
+    loadMarketingBodyFont(),
   ])
   return new ImageResponse(
     (
-      <div style={{ display: 'flex', width: '100%', height: '100%', background: '#34252f', color: '#f6e7da', padding: 48, gap: 44 }}>
+      <div style={{ display: 'flex', width: '100%', height: '100%', background: '#34252f', color: '#f6e7da', padding: 48, gap: 44, fontFamily: 'DM Sans' }}>
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: 510 }}>
           <div style={{ display: 'flex', background: 'white', borderRadius: 12, padding: '12px 20px', width: 330 }}>
             <img src={logo} alt="Sparkle Suite" width={290} height={74} />
@@ -221,6 +233,6 @@ export default async function Image() {
         </div>
       </div>
     ),
-    { ...size, fonts },
+    { ...size, fonts: [...fonts, { name: 'DM Sans', data: bodyFont, style: 'normal', weight: 400 }] },
   )
 }
