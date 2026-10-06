@@ -56,7 +56,7 @@ export async function landingPreviewDocument(demo: LandingDemo, theme: AmethystA
   const ready = `<script>(function(){
     var sent=false;
     function ready(){
-      document.querySelectorAll('video').forEach(function(v){v.muted=true;v.defaultMuted=true;});
+      document.querySelectorAll('video').forEach(function(v){v.muted=true;v.defaultMuted=true;v.preload='auto';});
       if(sent||!document.querySelector('.hp-hero'))return;
       sent=true;
       Promise.resolve(document.fonts&&document.fonts.ready).then(function(){
@@ -68,7 +68,7 @@ export async function landingPreviewDocument(demo: LandingDemo, theme: AmethystA
       if(event.source!==parent||event.data?.type!=='sparkle-marketing-motion')return;
       var paused=event.data.paused===true||matchMedia('(prefers-reduced-motion:reduce)').matches;
       document.documentElement.toggleAttribute('data-marketing-paused',paused);
-      document.querySelectorAll('video').forEach(function(v){v.muted=true;if(paused)v.pause();else v.play().catch(function(){});});
+      document.querySelectorAll('video').forEach(function(v){v.muted=true;if(paused)v.pause();else if(v.getAttribute('src')){if(v.readyState===0){v.preload='auto';v.load();}v.play().catch(function(){});}});
     });
     new MutationObserver(ready).observe(document.getElementById('root'),{childList:true,subtree:true});ready();
   })();</script>`
