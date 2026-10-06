@@ -6,7 +6,6 @@ import { MarketingSocialLinks } from './marketing-social-links'
 import { LandingHero } from './landing-hero'
 import type { LandingDemo } from '@/lib/sparkle-suite/landing-demo-model'
 import { SparkleSuitePublicAccountAction } from './SparkleSuitePublicAccountAction'
-import { SparkleSuitePublicNicNac } from './sparkle-suite-public-nic-nac'
 import type { FounderAvailability } from '@/lib/sparkle-suite/founder-availability'
 import { FounderAvailabilityProvider, FounderOffer, FounderSpotLabel, IncludedFeatures, ShowToolsTour, SiteStyleShowcase } from './landing-interactions'
 import styles from './landing-experience.module.css'
@@ -71,7 +70,7 @@ export function LandingExperience({ initialAvailability, demo = null }: { initia
       <div className={styles.pricingCopy}><h2 id="pricing-title">Get in at the start.</h2><FounderSpotLabel large /><p>Give your business a home that looks like you—and a setup that makes showtime easier.</p><IncludedFeatures /><p className={styles.finePrint}>Customer email and SMS updates are coming soon.</p></div><FounderOffer />
     </section>
     <section className={styles.faqSection} id="questions" aria-labelledby="questions-title">
-      <div><h2 id="questions-title">A few things you might be wondering.</h2><div className={`sparkle-landing-v2 ${styles.assistant}`}><SparkleSuitePublicNicNac /></div></div>
+      <div><h2 id="questions-title">A few things you might be wondering.</h2></div>
       <div className={styles.questions}>{questions.map(([question, answer]) => <details key={question}><summary>{question}<ChevronDown size={19} aria-hidden="true" /></summary><p>{answer}</p></details>)}<p className={styles.moreAnswers}><Link href="/faq">More answers <ArrowRight size={16} aria-hidden="true" /></Link></p></div>
     </section>
     <section className={styles.finalCta}><h2>Your next chapter looks good on you.</h2><Link className={styles.primaryButton} href="/prelaunch#waitlist">Join the build queue <ArrowRight size={18} aria-hidden="true" /></Link></section>

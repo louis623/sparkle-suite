@@ -124,7 +124,6 @@ export function SiteStyleShowcase() {
 const tools = [
   { label: 'Dance Floor', title: 'Trade pieces, not endless messages.', body: 'Give customers a clear place to browse available pieces and send a trade request. Keep the details together on your side.', src: '/sparkle-suite/landing/dance-floor-sparkly-butterflies.webp', alt: 'Sparkly Butterflies Dance Floor with four complete jewelry cards, each showing the photo, name, and trade button', width: 1102, height: 688 },
   { label: 'Live calendar', title: 'Your next live, easy to find.', body: 'Put upcoming shows, featured collections, and show details where customers can find them before you go live.', src: '/sparkle-suite/landing/calendar-upcoming-reveals.webp', alt: 'Upcoming shows with a featured Sunday October 4 reveal and Friday Morning Fizz Jam, each card complete through its buttons', width: 932, height: 710 },
-  { label: 'Nic-Nac', title: 'A helping hand behind the scenes.', body: 'Get built-in support for your site, show calendar, and Dance Floor while you stay focused on your customers.', src: '/sparkle-suite/landing/nic-nac-add-show-chat.webp', alt: 'Nic-Nac chat about adding a TikTok show, with the October birthday code 23 and the NEWBIE code', width: 776, height: 736 },
 ] as const
 
 export function ShowToolsTour() {

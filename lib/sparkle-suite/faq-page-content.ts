@@ -49,8 +49,8 @@ export const sparkleSuiteFaqContent = {
     headlineEmphasis: 'the full story.',
     body:
       'Deeper answers on pricing, what is included, domains, show tools, and independence. Sparkle Suite is an independent tool for Bomb Party reps.',
-    askLabel: 'Ask Nic-Nac',
-    askHref: '#ask-nic-nac',
+    askLabel: 'Read the answers',
+    askHref: '#answers',
   },
   nicNac: {
     eyebrow: 'Still deciding',

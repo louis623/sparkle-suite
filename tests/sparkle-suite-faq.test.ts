@@ -42,7 +42,7 @@ describe('Sparkle Suite marketing FAQ', () => {
     ])
   })
 
-  it('renders grouped answers, footer FAQ, and no primary-nav FAQ', () => {
+  it('renders grouped answers and the approved header FAQ link', () => {
     const html = renderFaq()
     const header = renderToStaticMarkup(createElement(MarketingHeader, { current: 'faq' }))
     const footer = renderToStaticMarkup(createElement(MarketingFooter, { current: 'faq' }))
@@ -52,13 +52,13 @@ describe('Sparkle Suite marketing FAQ', () => {
     const explore = header.match(/aria-label="Explore Sparkle Suite">([\s\S]*?)<\/nav>/)?.[1] ?? ''
     const bands = [...html.matchAll(/data-band="([^"]+)"/g)].map((match) => match[1])
 
-    expect(bands).toEqual(['night', 'paper', 'paper', 'blush', 'ink', 'night'])
+    expect(bands).toEqual(['night', 'paper', 'paper', 'ink', 'night'])
     expect(html.match(/<details /g)).toHaveLength(16)
     expect(explore).toContain('>Home<')
     expect(explore).toContain('>Portfolio<')
-    expect(explore).toContain('>Demos<')
-    expect(explore).not.toContain('href="/faq"')
-    expect(explore).not.toContain('>FAQ<')
+    expect(explore).toContain('>Pricing<')
+    expect(explore).toContain('href="/faq"')
+    expect(explore).toContain('>FAQ<')
     expect(explore).not.toContain('#customer-site-proof')
     expect(footer).toContain('href="/faq"')
     expect(footer).toContain('>FAQ<')
@@ -72,7 +72,7 @@ describe('Sparkle Suite marketing FAQ', () => {
     expect(html).toContain('href="/prelaunch#waitlist"')
     expect(html).toContain('href="/portfolio"')
     expect(html).toContain('href="/demo"')
-    expect(html).toContain('Ask Nic-Nac')
+    expect(html).not.toContain('Ask Nic-Nac')
     expect(html).toContain('You still follow the guidelines your company gives you.')
     expect(html.match(new RegExp(sparkleSuitePublicLandingSafety.disclaimer, 'g'))?.length).toBeGreaterThanOrEqual(2)
     expect(landing).toContain('More answers')

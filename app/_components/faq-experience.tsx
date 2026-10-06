@@ -3,7 +3,6 @@ import { ArrowRight } from 'lucide-react'
 
 import { FaqAccordion } from '@/app/_components/faq-accordion'
 import { MarketingFooter, MarketingHeader } from '@/app/_components/landing-experience'
-import { SparkleSuitePublicNicNac } from '@/app/_components/sparkle-suite-public-nic-nac'
 import {
   buildSparkleSuiteFaqJsonLd,
   sparkleSuiteFaqContent,
@@ -52,19 +51,8 @@ export function FaqExperience() {
         </nav>
       </div>
 
-      <section className={styles.answers} aria-label="Sparkle Suite answers" data-band="paper">
+      <section className={styles.answers} id="answers" aria-label="Sparkle Suite answers" data-band="paper">
         <FaqAccordion />
-      </section>
-
-      <section className={styles.nicNac} id="ask-nic-nac" aria-labelledby="ask-nic-nac-title" data-band="blush">
-        <div className={styles.bandInner}>
-          <p className={styles.eyebrow}>{copy.nicNac.eyebrow}</p>
-          <h2 id="ask-nic-nac-title">{copy.nicNac.heading}</h2>
-          <p className={styles.bandBody}>{copy.nicNac.body}</p>
-          <div className={`sparkle-landing-v2 ${styles.assistant}`}>
-            <SparkleSuitePublicNicNac />
-          </div>
-        </div>
       </section>
 
       <section className={styles.proof} aria-labelledby="faq-proof-title" data-band="ink">
