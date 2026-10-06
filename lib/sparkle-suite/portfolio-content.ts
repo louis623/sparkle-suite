@@ -114,6 +114,18 @@ export const sparkleSuitePortfolioContent = {
           width: 1440,
           height: 820,
         },
+        {
+          id: 'bris-glowtique',
+          kind: 'capture',
+          title: 'Bri’s Glowtique',
+          detail: 'A community theme made personal for Bri’s Glowtique.',
+          href: 'https://brisglowtique.com/',
+          linkLabel: 'brisglowtique.com',
+          src: '/marketing/bris-glowtique-site-preview.webp',
+          alt: 'Bri’s Glowtique website, from the top of its header through the complete Rose Gold hero.',
+          width: 960,
+          height: 782,
+        },
       ],
     },
     {

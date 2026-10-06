@@ -54,7 +54,7 @@ export function LandingExperience({ initialAvailability, demo = null }: { initia
         <div className={styles.siteGallery}>{sites.map(site => <figure key={site.id}>
           <div className={styles.siteWindow}>
             <div className={styles.browserBar}><span aria-hidden="true">● ● ●</span>{site.linkLabel}</div>
-            {portfolioMotion[site.id] ? <ProductPeekVideo {...portfolioMotion[site.id]} alt={`Recorded animated hero from ${site.title}`} label={site.title} /> : <Image src={site.src} alt={site.alt} width={site.width} height={site.height} sizes="(max-width: 760px) 90vw, 31vw" />}
+            {portfolioMotion[site.id] ? <ProductPeekVideo {...portfolioMotion[site.id]} alt={`Recorded website header and complete hero from ${site.title}`} label={site.title} /> : <Image src={site.src} alt={site.alt} width={site.width} height={site.height} sizes="(max-width: 760px) 90vw, 31vw" />}
           </div>
           <figcaption><a href={site.href} target="_blank" rel="noopener noreferrer">Visit {site.linkLabel} <span aria-hidden="true">↗</span></a></figcaption>
         </figure>)}</div>
