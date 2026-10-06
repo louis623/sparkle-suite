@@ -200,7 +200,7 @@ export default async function Image() {
 
   const [logo, preview] = await Promise.all([
     loadCustomerSiteBrandImageDataUri('/brand/sparkle-suite-logo-transparent.png'),
-    loadCustomerSiteBrandImageDataUri('/marketing/demo-poster.webp'),
+    loadCustomerSiteBrandImageDataUri('/marketing/demo-social-preview.jpg'),
   ])
   return new ImageResponse(
     (
