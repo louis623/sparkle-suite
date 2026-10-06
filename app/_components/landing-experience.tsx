@@ -75,7 +75,7 @@ export function LandingExperience({ initialAvailability, demo = null }: { initia
     <section className={styles.watchSection} id="watch" aria-labelledby="watch-title"><div className={styles.container}>
       <h2 id="watch-title">See it in <em>action.</em></h2>
       <div className={styles.watchLayout}>
-        <a href={sparkleMarketingTikTokUrl + '/video/7684058046800071966'} target="_blank" rel="noopener noreferrer" className={styles.watchPoster} aria-label="Watch the featured Sparkle Suite demo on TikTok">
+        <a href={sparkleMarketingTikTokUrl + '/video/7684058046800071966'} target="_blank" rel="noopener noreferrer" className={styles.watchPoster} aria-label="Watch the featured TikTok demo (opens in a new tab)">
           <Image src="/sparkle-suite/landing/hero-halloween-witch-live.webp" alt="A Halloween customer-site theme featured in Sparkle Suite demonstrations" width={968} height={720} sizes="(max-width: 760px) 90vw, 60vw" />
           <span className={styles.play}><Play size={28} fill="currentColor" aria-hidden="true" /></span>
           <span className={styles.watchCaption}>Watch the featured TikTok demo <ArrowUpRight size={17} aria-hidden="true" /></span>
