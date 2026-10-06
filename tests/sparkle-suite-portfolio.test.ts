@@ -11,11 +11,11 @@ import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 const renderPortfolio = () => renderToStaticMarkup(createElement(PortfolioExperience))
 
 describe('Sparkle Suite real-site portfolio', () => {
-  it('renders all five real sites as directly accessible previews', () => {
+  it('renders all six real sites as directly accessible previews', () => {
     const html = renderPortfolio()
     const sites = sparkleSuitePortfolioContent.carousels[0].slides
-    expect(sites).toHaveLength(5)
-    expect(html.match(/<article /g)).toHaveLength(5)
+    expect(sites).toHaveLength(6)
+    expect(html.match(/<article /g)).toHaveLength(6)
     for (const site of sites) {
       expect(html).toContain(site.title)
       expect(html).toContain(`href="${site.href}"`)

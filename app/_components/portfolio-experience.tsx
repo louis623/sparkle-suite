@@ -26,7 +26,7 @@ export function PortfolioExperience() {
             <article className={styles.site} key={site.id} aria-labelledby={`${site.id}-title`}>
               <div className={styles.capture}>
                 <div className={styles.browserBar} aria-hidden="true">{site.linkLabel}</div>
-                {portfolioMotion[site.id] ? <ProductPeekVideo {...portfolioMotion[site.id]} alt={`Recorded animated hero from ${site.title}`} label={site.title} /> : <Image src={site.src} alt={site.alt} width={site.width} height={site.height}
+                {portfolioMotion[site.id] ? <ProductPeekVideo {...portfolioMotion[site.id]} alt={`Recorded website header and complete hero from ${site.title}`} label={site.title} /> : <Image src={site.src} alt={site.alt} width={site.width} height={site.height}
                   sizes="(max-width: 700px) calc(100vw - 40px), (max-width: 1240px) 65vw, 780px" preload={index === 0} />}
               </div>
               <div className={styles.siteCopy}>

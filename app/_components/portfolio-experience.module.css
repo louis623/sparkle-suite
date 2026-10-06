@@ -20,7 +20,7 @@
 .site:nth-child(even) .siteCopy { grid-column: 1; grid-row: 1; }
 .capture { display: block; min-width: 0; border: 1px solid rgba(64, 41, 36, .2); padding: 4px; border-radius: 10px; background: white; box-shadow: 0 12px 30px rgba(54, 34, 29, .07); text-decoration: none; }
 .browserBar { border-radius: 6px 6px 0 0; background: var(--suite-plum); color: var(--suite-paper); padding: 7px 12px; font-size: 11px; letter-spacing: .03em; }
-.capture img { width: 100%; height: auto; display: block; border-radius: 0 0 6px 6px; }
+.capture > img { width: 100%; height: auto; display: block; border-radius: 0 0 6px 6px; }
 .siteCopy { min-width: 0; }
 .siteCopy h2 { font-size: clamp(30px, 3vw, 42px); line-height: 1.16; }
 .siteCopy p { margin-top: 8px; font-size: 17px; overflow-wrap: anywhere; }
