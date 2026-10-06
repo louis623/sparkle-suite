@@ -46,7 +46,7 @@ const demonstrations = [
 ] as const
 
 export function LandingExperience({ initialAvailability, demo = null }: { initialAvailability?: FounderAvailability; demo?: LandingDemo | null }) {
-  const sites = sparkleSuitePortfolioContent.carousels[0].slides.filter(site => ['sparkly-butterflies','go-for-the-bling','blingkitchen'].includes(site.id))
+  const sites = sparkleSuitePortfolioContent.carousels[0].slides.filter(site => ['mile-high-fizz','go-for-the-bling','sparkly-butterflies'].includes(site.id))
   return <FounderAvailabilityProvider initialAvailability={initialAvailability}><main className={`suite-marketing ${styles.page}`}>
     <a className={styles.skipLink} href="#main-content">Skip to content</a>
     <div id="top"><MarketingHeader /></div>

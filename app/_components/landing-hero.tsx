@@ -125,15 +125,15 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
           {selectedLabel ? <span className={styles.themeName}>{selectedLabel}</span> : null}
         </div>
         <p className={styles.status} role="status">{state === 'error' ? 'The preview is taking a little longer. You can try again.' : state === 'ready' ? 'Read-only preview. Nothing is submitted or changed.' : '\u00a0'}</p>
-        {demo && demo.themes.length > 0 ? <details className={styles.picker}>
-          <summary>Try a community theme</summary>
-          <div className={styles.choices} role="group" aria-label="Community themes">
+        {demo && demo.themes.length > 0 ? <div className={styles.picker}>
+          <p id="theme-picker-label" className={styles.pickerLabel}>Try one of our Sparkle Suite themes</p>
+          <div className={styles.choices} role="group" aria-labelledby="theme-picker-label">
             {demo.themes.map(theme => <button key={theme.id} type="button" aria-pressed={selected === theme.id}
               onClick={() => explore(theme.id)} style={{ '--swatch': 'linear-gradient(120deg,' + theme.colors.join(',') + ')' } as CSSProperties}>
               <span className={styles.swatch} aria-hidden="true" /><span>{theme.label}</span>
             </button>)}
           </div>
-        </details> : null}
+        </div> : null}
         {demo && selected !== demo.theme ? <button className={styles.reset} type="button" onClick={() => explore(demo.theme)}>Back to the demo’s current look</button> : null}
       </div>
       <div className={styles.conversion}>

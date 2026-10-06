@@ -70,7 +70,7 @@ describe('Sparkle Suite public landing page', () => {
 
   it('uses real-site proof and the approved founder story without personal rep labels', () => {
     const html = renderLanding()
-    for (const domain of ['sparklybutterflies.com', 'goforthebling.com', 'theblingkitchen.com']) expect(html).toContain(domain)
+    for (const domain of ['sparklybutterflies.com', 'goforthebling.com', 'milehighfizz.com']) expect(html).toContain(domain)
     expect(html).toContain('href="/portfolio"')
     expect(html).toContain('Louis, founder of Sparkle Suite')
     expect(html).toContain('My sister became a Bomb Party rep and asked me to help with her website.')
