@@ -1,5 +1,5 @@
 // Duplicated for the two Smoke roots. Suite Vercel ignores apps/finder, and Finder Smoke only receives apps/finder.
-// Keep app/_components/sparkle-marketing-footer and apps/finder/components/marketing copies identical.
+// Shared approved structure; Suite's social styling was separately approved on October 6, 2026.
 import styles from "./sparkle-marketing-footer.module.css";
 
 export const sparkleMarketingYouTubeUrl = "https://www.youtube.com/@SparkleSuite";
@@ -43,9 +43,9 @@ export function SparkleMarketingFooter({ suiteHref, finderHref }: SparkleMarketi
         </nav>
         <nav aria-label="Sparkle Suite channels" className={styles.socials}>
           {socials.map((link) => (
-            <a aria-label={`Sparkle Suite on ${link.label}`} href={link.href} key={link.href} rel="noopener noreferrer" target="_blank">
-              {link.label === "TikTok" ? <TikTokIcon /> : <YouTubeIcon />}
+            <a className={link.label === "TikTok" ? styles.tikTok : styles.youTube} aria-label={`Sparkle Suite on ${link.label}`} href={link.href} key={link.href} rel="noopener noreferrer" target="_blank">
               <span>{link.label}</span>
+              {link.label === "TikTok" ? <TikTokIcon /> : <YouTubeIcon />}
             </a>
           ))}
         </nav>

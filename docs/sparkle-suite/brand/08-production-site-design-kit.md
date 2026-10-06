@@ -50,6 +50,7 @@ Shared marketing tokens are scoped to `.suite-marketing`. Future email and Works
 - Do not rebuild the header logo as an S-seal SVG or use the old brown email-signature bar. There is no approved white/knockout logo. Keep the existing generated `app/icon.tsx` favicon.
 - Shared footer is locked to the approved extraction from Finder PR #74, branch `cursor/finder-learn-white-chrome-61e3` near `61a2efa`, and reference `standing/assets/2026-10-05-approved-marketing-footer.png` in Core Memory.
 - Footer: white; Suite and Finder logos on the left; Privacy and Terms centered; TikTok/YouTube pills on the right; existing independence disclaimer beneath. Preserve its logo treatment. FAQ belongs in navigation or page content, not a footer redesign.
+- Owner-approved October 6 refinement: Suite marketing footer channel pills match the Watch buttons: equal size, trailing channel icons, TikTok black with cyan/red accents and YouTube red with white text. Keep the remaining footer structure, logos, legal links, and disclaimer unchanged. Channel brand colors are confined to the social buttons.
 
 ## Approved hero and preview
 
