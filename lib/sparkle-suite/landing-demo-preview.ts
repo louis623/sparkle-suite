@@ -37,7 +37,7 @@ export async function landingPreviewDocument(demo: LandingDemo, theme: AmethystA
   const folder = mediaFolders[theme]
   const assets = folder ? (await readdir(join(process.cwd(), 'public', 'amethyst', 'skins', folder)))
     .filter(name => /^[a-z0-9-]+\.(?:mp4|webm|webp|png|svg)$/.test(name)).map(name => '/amethyst/skins/' + folder + '/' + name) : []
-  document = document.replace(/media-src [^;]+;/, 'media-src blob:;')
+  document = document.replace(/media-src [^;]+;/, 'media-src data:;')
   document = document.replace('</head>', '<script id="marketing-preview-assets" type="application/json">' + JSON.stringify(assets) + '</script></head>')
   // Use customer rendering (no invented sample lineup), without starting polling.
   document = document.replace("return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });", 'return;')

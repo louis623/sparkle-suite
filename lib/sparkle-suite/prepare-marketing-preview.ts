@@ -9,7 +9,7 @@ export async function prepareMarketingPreview(url: string, signal: AbortSignal) 
   const assets: unknown = match ? JSON.parse(match[1]) : []
   if (!Array.isArray(assets) || assets.length > 12 || assets.some(value => typeof value !== 'string' || !/^\/amethyst\/skins\/[a-z0-9-]+\/[a-z0-9-]+\.(?:mp4|webm|webp|png|svg)$/.test(value))) throw new Error('Invalid preview assets')
   const blobs: Record<string,string> = {}
-  const dispose = () => Object.values(blobs).forEach(value => URL.revokeObjectURL(value))
+  const dispose = () => Object.keys(blobs).forEach(key => delete blobs[key])
   try {
     // Wait for every job to settle before cleanup, including failed/aborted loads.
     const results = await Promise.allSettled(assets.map(async asset => {
@@ -17,7 +17,10 @@ export async function prepareMarketingPreview(url: string, signal: AbortSignal) 
       if (!media.ok) throw new Error('Preview media unavailable')
       const blob = await media.blob()
       if (signal.aborted) throw new Error('Preview canceled')
-      blobs[asset] = URL.createObjectURL(blob)
+      const bytes = new Uint8Array(await blob.arrayBuffer())
+      let binary = ''
+      for (let offset = 0; offset < bytes.length; offset += 32768) binary += String.fromCharCode(...bytes.subarray(offset, offset + 32768))
+      blobs[asset] = 'data:' + (blob.type || 'application/octet-stream') + ';base64,' + btoa(binary)
     }))
     if (signal.aborted || results.some(result => result.status === 'rejected')) throw new Error('Preview media unavailable')
     // CSS uses literal paths. Customer JS also composes paths at runtime, so map

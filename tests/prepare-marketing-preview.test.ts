@@ -10,15 +10,13 @@ describe('opaque marketing preview assets', () => {
       expect(fetcher).toHaveBeenCalledTimes(1);fetcher.mockRestore()
     }
   })
-  it('maps repository media to blobs and revokes them on disposal', async () => {
+  it('embeds only repository media so opaque frames need no session cookie', async () => {
     const asset='/amethyst/skins/rose-champagne/hero-loop.mp4'
     const fetcher=vi.spyOn(globalThis,'fetch').mockResolvedValueOnce(new Response(documentWith([asset]))).mockResolvedValueOnce(new Response('sample'))
-    vi.spyOn(URL,'createObjectURL').mockReturnValue('blob:sample')
-    const revoke=vi.spyOn(URL,'revokeObjectURL').mockImplementation(()=>{})
     const result=await prepareMarketingPreview('/preview',new AbortController().signal)
     expect(fetcher).toHaveBeenLastCalledWith(asset,expect.objectContaining({credentials:'same-origin'}))
-    expect(result.html).toContain('blob:sample');expect(result.html).toContain('HTMLMediaElement.prototype')
-    result.dispose();expect(revoke).toHaveBeenCalledWith('blob:sample')
+    expect(result.html).toContain('data:text/plain;charset=utf-8;base64,c2FtcGxl');expect(result.html).toContain('HTMLMediaElement.prototype')
+    result.dispose()
   })
   it('keeps a rejected media load from producing a partially ready frame', async () => {
     vi.spyOn(globalThis,'fetch').mockResolvedValueOnce(new Response(documentWith(['/amethyst/skins/pearl-rose/hero-loop.mp4']))).mockResolvedValueOnce(new Response('',{status:403}))
