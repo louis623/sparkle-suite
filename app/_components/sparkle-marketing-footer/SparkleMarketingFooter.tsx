@@ -19,10 +19,9 @@ const socials = [
 
 export type SparkleMarketingFooterProps = {
   suiteHref: string;
-  finderHref: string;
 };
 
-export function SparkleMarketingFooter({ suiteHref, finderHref }: SparkleMarketingFooterProps) {
+export function SparkleMarketingFooter({ suiteHref }: SparkleMarketingFooterProps) {
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
@@ -30,9 +29,12 @@ export function SparkleMarketingFooter({ suiteHref, finderHref }: SparkleMarketi
           <a className={styles.suite} href={suiteHref} aria-label="Sparkle Suite" {...externalLinkProps(suiteHref)}>
             <img alt="" src="/brand/sparkle-suite-logo-transparent.png" />
           </a>
-          <a className={styles.finder} href={finderHref} aria-label="Sparkle Finder" {...externalLinkProps(finderHref)}>
-            <img alt="" src="/brand/sparkle-finder-logo-transparent.png" />
-          </a>
+          <div className={styles.finder}>
+            <div className={styles.finderMark}>
+              <img alt="Sparkle Finder" src="/brand/sparkle-finder-logo-transparent.png" />
+            </div>
+            <span className={styles.comingSoon}>Coming soon</span>
+          </div>
         </div>
         <nav aria-label="Footer" className={styles.legal}>
           {legalLinks.map((link) => (

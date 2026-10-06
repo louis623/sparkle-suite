@@ -32,7 +32,7 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
 
 export function MarketingFooter(_props: { current?: 'home' | 'portfolio' | 'demo' | 'faq' | 'tools' } = {}) {
   void _props
-  return <SparkleMarketingFooter suiteHref="/" finderHref="https://yoursparklefinder.com" />
+  return <SparkleMarketingFooter suiteHref="/" />
 }
 
 const questions = [
