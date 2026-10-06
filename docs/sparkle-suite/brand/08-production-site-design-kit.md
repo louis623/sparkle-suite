@@ -83,7 +83,7 @@ Home scroll: plum hero → light real-site gallery → espresso demonstrations �
 
 - Current feature names: **Dance Floor**, **Live Lineup**, **event calendar**, **Team Management**, **New Rep Onboarding**, **themes**, **Nic-Nac rep assistant**.
 - Email and SMS updates are **coming soon**. Do not imply they are available or invent a release date.
-- No public Nic-Nac use on marketing routes: no mounted launcher, anonymous chat API, or FAQ handoff form. Promote his supported capabilities in a dedicated supporting-tool card; the assistant is for paying reps.
+- No public Nic-Nac on marketing routes: no mounted launcher, anonymous chat API, or FAQ handoff form. One factual included-feature line is fine; the assistant is for paying reps.
 - Founder: **$49.99/month for 12 paid months**, then **$74.99/month**, plus **$49.99 one-time setup**. First month + setup is **$99.98**. Standard first month + setup is **$124.98**.
 - Founder cap: 20. A confirmed live counter may say **X founder spots remaining**; never **X of 20**. On unknown availability show founder price without invented count/urgency. Confirmed zero shows standard price. Founder pricing must render server-side on first load.
 - Joining the queue does **not** reserve founder pricing. It applies only after a meeting where Louis and the rep agree to move forward, while spots last.

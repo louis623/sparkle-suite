@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { ArrowRight, Check, ChevronDown, Gem, MessageCircle, Users, WandSparkles } from 'lucide-react'
+import { ArrowRight, ChevronDown } from 'lucide-react'
 import { LineupDemonstration } from './lineup-demonstration'
 import { ProductPeekVideo } from './product-peek-video'
 import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
@@ -93,13 +93,11 @@ export function LandingExperience({ initialAvailability, demo = null }: { initia
         </div>
         <figure><Image src="/marketing/new-rep-onboarding-preview.webp" alt="Actual New Rep Onboarding guide showing six starting steps for a sample rep" width={1080} height={1027} sizes="(max-width:760px) 90vw, 60vw" /><figcaption>New rep’s private guide · sample data</figcaption></figure>
       </div>
-      <div className={styles.teamIncluded}><span className={styles.includedMark}><Check size={22} aria-hidden="true" /></span><div><h3>Part of your Suite.</h3><p>Team Management and New Rep Onboarding are included with an active Sparkle Suite workspace.</p></div></div>
-      <div className={styles.extrasHeading}><p className={styles.teamEyebrow}>For the work around your show</p><h3>More in your <em>Sparkle Suite.</em></h3></div>
+      <p className={styles.teamIncluded}>Team Management and New Rep Onboarding are included with an active Sparkle Suite workspace.</p>
       <dl className={styles.workspaceExtras} aria-label="More in your workspace">
-        <div className={styles.nicNacCard}><dt><span className={styles.extraIcon}><WandSparkles size={24} aria-hidden="true" /></span>Nic-Nac</dt><dd>Your rep assistant can help you add pieces to your Dance Floor, schedule shows, and update your site’s announcement.<span className={styles.cardNote}>Included in your paid workspace.</span></dd></div>
-        <div><dt><span className={styles.extraIcon}><Gem size={24} aria-hidden="true" /></span>Jewelry Library</dt><dd>Look up pieces by collection, type, material, and stone.</dd></div>
-        <div><dt><span className={styles.extraIcon}><Users size={24} aria-hidden="true" /></span>Customer List</dt><dd>Keep the details your customers choose to share in one place.</dd></div>
-        <div><dt><span className={styles.extraIcon}><MessageCircle size={24} aria-hidden="true" /></span>Message Center</dt><dd>Open onboarding questions and keep the conversation with each new rep together.</dd></div>
+        <div><dt>Jewelry Library</dt><dd>Look up pieces by collection, type, material, and stone.</dd></div>
+        <div><dt>Customer List</dt><dd>Keep the details your customers choose to share in one place.</dd></div>
+        <div><dt>Message Center</dt><dd>Open onboarding questions and keep the conversation with each new rep together.</dd></div>
       </dl>
     </div></section>
     <section className={styles.founderSection} aria-labelledby="founder-title"><div className={styles.founderLayout}>

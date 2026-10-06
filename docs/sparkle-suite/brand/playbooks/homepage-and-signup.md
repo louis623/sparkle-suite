@@ -31,7 +31,7 @@ The demo account's saved theme drives the default, including seasonal, custom, o
 ## Copy rules
 
 - Use “themes,” Dance Floor, Live Lineup, and event calendar.
-- Give Nic-Nac a supporting-tool card with specific verified capabilities; no public assistant trial or handoff form. Retain the existing large product spotlights.
+- One factual Nic-Nac rep-assistant line is okay; no public assistant trial or handoff form.
 - Customer email/SMS updates are coming soon.
 - No Bomb Party in the headline, no new affiliation discussion, no invented proof.
 - Real demos belong in Watch. Use the approved `@yoursparklesuite.com` TikTok and `@SparkleSuite` YouTube channels.
