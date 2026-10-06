@@ -49,8 +49,8 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
   <section className={styles.hero} id="main-content" aria-labelledby="landing-title">
     <div className={styles.layout}>
       <div className={styles.intro}>
-        <h1 id="landing-title">Your Bomb Party show.<br /><em>Your own website.</em></h1>
-        <p>Give shoppers one place to explore your Dance Floor, check your Live Lineup, and see what’s coming up.</p>
+        <h1 id="landing-title">Your brand.<br />Your show.<br /><span>A setup that <em>shines.</em></span></h1>
+        <p>A polished website for your live-selling business. Give shoppers one place to find your next show, follow your Live Lineup, and explore your Dance Floor.</p>
       </div>
       <div className={styles.preview}>
         <figure className={styles.window}>

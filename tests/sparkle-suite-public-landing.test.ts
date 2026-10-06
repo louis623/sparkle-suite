@@ -43,8 +43,8 @@ describe('Sparkle Suite public landing page', () => {
       expect(index).toBeGreaterThan(previous)
       previous = index
     }
-    expect(html).toContain('Your Bomb Party show.')
-    expect(html).toContain('Your own website.')
+    expect(html).toContain('Your brand.')
+    expect(html).toContain('Your show.')
     expect(html).toContain('href="/prelaunch#waitlist"')
     expect(html).toContain('Join the build queue')
     expect(html).not.toContain('href="/start"')
@@ -113,7 +113,7 @@ describe('Sparkle Suite public landing page', () => {
   it('shows a neutral poster and a working queue path when the demo is unavailable', () => {
     const html=renderLanding()
     const hero=html.slice(html.indexOf('id="main-content"'),html.indexOf('id="customer-site-proof"'))
-    expect(hero).toContain('Your Bomb Party show.')
+    expect(hero).toContain('A setup that <em>shines.</em>')
     expect(hero).toContain('/marketing/demo-poster.webp')
     expect(hero).not.toContain('Rose Gold')
     expect(hero).not.toContain('<iframe')
