@@ -21,7 +21,7 @@
 ## Show tools
 
 - Heading direction: **Your live-show tools.**
-- Individual large rows for Dance Floor, Live Lineup, and event calendar, using real captures.
+- Individual large rows for Dance Floor and event calendar; an interactive sample of the actual Live Lineup strip and Full lineup. Follow with substantial Team Management and New Rep Onboarding rows showing both lead controls and the six-step private guide.
 - Espresso section with cream text and soft-pink italic emphasis.
 - Email/SMS remain coming soon. Nic-Nac is a factual paid-rep inclusion, not a public demonstration.
 

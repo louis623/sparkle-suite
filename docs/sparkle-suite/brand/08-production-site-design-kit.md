@@ -67,7 +67,7 @@ Primary CTA: **Join the build queue**. Hero is product before price; show the pr
 
 The hero previews the existing Dude's Fizzfest demo account. Its saved theme drives the default, including seasonal, retired, or custom themes. The public page is read-only and must never change that account. Resolve its configurable slug, default `dudesfizzfest`; never hardcode a rep ID across environments. The picker contains catalog-confirmed community themes only, excluding retired Rose Quartz and custom themes. Say **themes**, never skins, in visible copy, labels, and alt text.
 
-Use a responsive, fast poster first. Load the interactive preview on visitor action, with no initial third-party frame. If the demo lookup fails, show a neutral poster without claiming a theme; do not substitute another theme. No autoplay or carousel. Keep independent Smoke and Live configuration.
+Use a responsive, fast poster first. Enhance the visible hero after the poster paints and the page settles; keep the initial server render frame-free. If the demo lookup fails, show a neutral poster without claiming a theme; do not substitute another theme. No automatic theme rotation or carousel. Preserve real animation with visible-only muted playback and pause controls; retain the poster for reduced motion and data saver until the visitor chooses play. Keep independent Smoke and Live configuration.
 
 ## Approved page family
 
@@ -81,7 +81,7 @@ Home scroll: plum hero → light real-site gallery → espresso demonstrations �
 
 ## Copy and offer facts
 
-- Current feature names: **Dance Floor**, **Live Lineup**, **event calendar**, **themes**, **Nic-Nac rep assistant**.
+- Current feature names: **Dance Floor**, **Live Lineup**, **event calendar**, **Team Management**, **New Rep Onboarding**, **themes**, **Nic-Nac rep assistant**.
 - Email and SMS updates are **coming soon**. Do not imply they are available or invent a release date.
 - No public Nic-Nac on marketing routes: no mounted launcher, anonymous chat API, or FAQ handoff form. One factual included-feature line is fine; the assistant is for paying reps.
 - Founder: **$49.99/month for 12 paid months**, then **$74.99/month**, plus **$49.99 one-time setup**. First month + setup is **$99.98**. Standard first month + setup is **$124.98**.
@@ -111,3 +111,10 @@ Use `standing/assets/louis-headshot-2026-10-05.png` from Core Memory. Its teal b
 Match the approved composition at desktop and actual 390px content width, with no overflow. Preserve product-before-price order, working CTAs, readable contrast, keyboard controls, and complete disclosures. Defer nonessential media and interactive frames; use responsive WebP/AVIF where appropriate and explicit dimensions. Verify reduced motion and slow/mobile loading, especially the TikTok in-app browser; do not claim physical-device checks that were not performed.
 
 This is the reference for bringing consistency to later email and Workspace work. Updating this document does not authorize redesigning those products, migrating their CSS, or publishing to Live. Preserve the current requested scope and use the user's actual approval instead of a magic phrase.
+
+
+## Complete product coverage and motion — owner correction, October 6
+
+Team Management and New Rep Onboarding are included with every active workspace; see lib/services/team-onboarding.ts and docs/sparkle-suite/operations/2026-09-04-team-management-onboarding-hardening.md. Give both substantial, distinct coverage: public team cards/photos/links and private invitations; then the new rep’s six-step guide, saved progress, supplies, official resources and questions returning to the lead’s Message Center. A private invitation never publishes a public card. Use real component captures with labelled synthetic data. Nic-Nac remains inaccessible on marketing routes.
+
+Show the actual Live Lineup strip in customer-site context and its click-to-open Full lineup view. Preserve real theme animation and recorded hero motion with pause controls, offscreen/background suspension, poster fallback, and reduced-motion/data-saver handling. Do not alter customer-site runtimes, queue or extension code to make marketing previews.

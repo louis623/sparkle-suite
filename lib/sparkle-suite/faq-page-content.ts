@@ -88,11 +88,19 @@ export const sparkleSuiteFaqGroups = [
     ],
   },
   {
-    id: 'show-tools', label: 'Show tools', title: 'Show tools',
+    id: 'show-tools', label: 'Show & team tools', title: 'Show and team tools',
     questions: [
       {
         id: 'included-tools', question: 'What comes with Sparkle Suite?',
-        paragraphs: [['Your customer website, themed looks, Dance Floor, Live Lineup, and event calendar. Nic-Nac is the included assistant for paying reps.'], ['Email and SMS updates are coming soon.']],
+        paragraphs: [['Your customer website, themed looks, Dance Floor, Live Lineup, event calendar, Team Management, and New Rep Onboarding. Nic-Nac is the included assistant for paying reps.'], ['Email and SMS updates are coming soon.']],
+      },
+      {
+        id: 'team-management', question: 'How does Team Management help me support new reps?',
+        paragraphs: [['Manage team photos, show names, and social links, and choose which cards appear on your public Join Team page. From each saved member card, create a private onboarding link and follow their progress. Questions come back to your Message Center.'], ['Team Management and New Rep Onboarding are included with every active Sparkle Suite workspace. Creating a private onboarding link does not publish the team member’s public card.']],
+      },
+      {
+        id: 'new-rep-onboarding', question: 'What does a new rep receive in their onboarding link?',
+        paragraphs: [['A personal welcome from your team and six guided steps: connecting with their lead, training access, payout setup, first-live setup, shipping, and customer follow-up. The guide includes practical instructions, supply lists, official resources, and saved completion progress.'], ['They can keep their private link and send questions to their team lead. You can open the conversation from your workspace and replace or archive the link when needed.']],
       },
       {
         id: 'dance-floor', question: 'What are Dance Floor and Live Lineup?',

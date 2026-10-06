@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { communityLandingThemes, exactLandingTheme, permittedLandingTheme, type LandingDemo } from '@/lib/sparkle-suite/landing-demo-model'
 import { landingDemoSlug, loadLandingDemo } from '@/lib/sparkle-suite/landing-demo'
 import { landingPreviewDocument } from '@/lib/sparkle-suite/landing-demo-preview'
+import { GET as lineupPreview } from '@/app/api/public/landing-lineup-preview/route'
 import { POST as chat } from '@/app/api/public/nic-nac/route'
 import { POST as handoff } from '@/app/api/public/nic-nac/handoff/route'
 vi.mock('next/cache', () => ({ unstable_cache: (fn: unknown) => fn }))
@@ -64,5 +65,26 @@ describe('public landing theme boundary', () => {
   it('retires both anonymous assistant paths without parsing user data', async () => {
     expect((await chat()).status).toBe(410)
     expect((await handoff()).status).toBe(410)
+  })
+  it('keeps real theme motion while providing scoped pause and reduced-motion controls', async () => {
+    const html = await landingPreviewDocument(demo, 'neon_butterfly', 'https://smoke.example')
+    expect(html).not.toContain("heroMotion:'still'")
+    expect(html).toContain('@media(prefers-reduced-motion:reduce)')
+    expect(html).toContain('sparkle-marketing-motion')
+    expect(html).toContain('event.source!==parent')
+    expect(html).toContain('v.muted=true')
+    expect(html).not.toContain("return window.SparkleLiveLineup.start({ url:")
+  })
+  it('shows an isolated sample lineup without a demo-account lookup', async () => {
+    const response = await lineupPreview(new Request('https://smoke.example/api/public/landing-lineup-preview'))
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-security-policy')).toContain("connect-src 'none'")
+    expect(response.headers.get('content-security-policy')).toContain("form-action 'none'")
+    const html = await response.text()
+    expect(html).toContain('Your show · Sample preview')
+    expect(html).toContain('Sample Harper')
+    expect(html).toContain('View full lineup')
+    expect(html).toContain('showNicNac:false,showSignup:false')
+    expect(html).not.toContain("return window.SparkleLiveLineup.start({ url:")
   })
 })

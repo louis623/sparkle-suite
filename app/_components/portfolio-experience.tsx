@@ -1,4 +1,6 @@
 import Image from 'next/image'
+import { ProductPeekVideo } from './product-peek-video'
+import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { MarketingFooter, MarketingHeader } from '@/app/_components/landing-experience'
 import { QueueLink } from '@/app/_components/queue-link'
@@ -22,11 +24,11 @@ export function PortfolioExperience() {
         <div className={styles.container}>
           {sites.map((site, index) => (
             <article className={styles.site} key={site.id} aria-labelledby={`${site.id}-title`}>
-              <a className={styles.capture} href={site.href} target="_blank" rel="noopener noreferrer" aria-label={`Visit ${site.title} (opens in a new tab)`}>
+              <div className={styles.capture}>
                 <div className={styles.browserBar} aria-hidden="true">{site.linkLabel}</div>
-                <Image src={site.src} alt={site.alt} width={site.width} height={site.height}
-                  sizes="(max-width: 700px) calc(100vw - 40px), (max-width: 1240px) 65vw, 780px" preload={index === 0} />
-              </a>
+                {portfolioMotion[site.id] ? <ProductPeekVideo {...portfolioMotion[site.id]} alt={`Recorded animated hero from ${site.title}`} label={site.title} /> : <Image src={site.src} alt={site.alt} width={site.width} height={site.height}
+                  sizes="(max-width: 700px) calc(100vw - 40px), (max-width: 1240px) 65vw, 780px" preload={index === 0} />}
+              </div>
               <div className={styles.siteCopy}>
                 <h2 id={`${site.id}-title`}>{site.title}</h2>
                 <p>{site.linkLabel}</p>

@@ -64,22 +64,26 @@ describe('Sparkle Suite public landing page', () => {
     expect(hero).toContain('Interactive preview temporarily unavailable.')
     expect(hero).toContain('Join the build queue')
     expect(html).not.toContain('<iframe')
-    expect(html).not.toContain('<video')
+    expect(html).not.toMatch(/<video[^>]+src=/)
+    expect(html).not.toContain('<source src=')
   })
 
   it('uses real-site proof and the approved founder story without personal rep labels', () => {
     const html = renderLanding()
-    for (const domain of ['milehighfizz.com', 'goforthebling.com', 'theblingkitchen.com']) expect(html).toContain(domain)
+    for (const domain of ['sparklybutterflies.com', 'goforthebling.com', 'theblingkitchen.com']) expect(html).toContain(domain)
     expect(html).toContain('href="/portfolio"')
     expect(html).toContain('Louis, founder of Sparkle Suite')
     expect(html).toContain('My sister became a Bomb Party rep and asked me to help with her website.')
     expect(html).toContain('small, veteran-owned business')
     expect(html).not.toMatch(/Lindsey|Brittany|Heather|Kelly|louis@|346954|Chapman/)
     expect(html).not.toContain('aria-roledescription="carousel"')
-    for (const src of ['/marketing/louis-headshot.webp', '/sparkle-suite/landing/dance-floor-sparkly-butterflies.webp', '/sparkle-suite/landing/demo-live-lineup-v1.png', '/sparkle-suite/landing/calendar-upcoming-reveals.webp']) {
+    for (const src of ['/marketing/louis-headshot.webp', '/sparkle-suite/landing/dance-floor-sparkly-butterflies.webp', '/sparkle-suite/landing/calendar-upcoming-reveals.webp', '/marketing/team-management-preview.webp', '/marketing/new-rep-onboarding-preview.webp']) {
       expect(existsSync(publicAssetPath(src))).toBe(true)
       expect(html).toContain(encodeURIComponent(src))
     }
+    expect(html).toContain('/marketing/live-lineup-preview.webp')
+    expect(html).toContain('Try the Live Lineup')
+    expect(html).toContain('Team Management and New Rep Onboarding are included')
   })
 
   it('sends Watch traffic to the correct featured clip and channels', () => {

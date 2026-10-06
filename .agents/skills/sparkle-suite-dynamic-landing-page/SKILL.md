@@ -33,7 +33,7 @@ Older dynamic-landing briefs and May prelaunch locks are historical inspiration/
 
 Home: poster-first demo → real-site gallery → espresso product rows → approved Louis founder block → Watch → pricing → short FAQ → plum close → locked footer. Preserve the slim all-real-sites Portfolio and standalone readable FAQ. Route `/learn` to `/` and `/demo` to `/#watch` with 301s; no Suite/Finder chooser.
 
-Hero default always follows the official demo account's saved theme, even seasonal, custom, or retired. Read only; never mutate it. Resolve a configurable slug rather than hardcoding a cross-environment rep ID. Community picker uses confirmed catalog rows, never private themes or retired Rose Quartz. Neutral poster on lookup failure with no substituted theme claim. No autoplay or carousel.
+Hero default always follows the official demo account's saved theme, even seasonal, custom, or retired. Read only; never mutate it. Resolve a configurable slug rather than hardcoding a cross-environment rep ID. Community picker uses confirmed catalog rows, never private themes or retired Rose Quartz. Neutral poster on lookup failure with no substituted theme claim. No automatic theme rotation or carousel. Preserve real animation with visible-only muted playback and pause controls; retain the poster for reduced motion and data saver until the visitor chooses play.
 
 ## Workflow
 

@@ -30,7 +30,7 @@ Read `08-production-site-design-kit.md`, `01-master-brand-spec.md`, `02-messagin
 ## Rendering and scope
 
 - Real desktop and 390px checks, readable contrast, keyboard access, no horizontal clipping.
-- Poster-first preview, explicit interaction, no autoplay/carousel, reduced-motion support.
+- Poster-first preview, explicit interaction, no automatic theme rotation/carousel; visible-only motion with pause controls, reduced-motion support.
 - The demo's saved theme is the default; picker shows catalog-confirmed community themes only.
 - Describe the actual review target accurately. Smoke approval is not Live approval.
 - Do not let historical May deployment IDs or a special approval phrase override the current authorized request.

@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { metadata } from '@/app/portfolio/page'
 import { PortfolioExperience } from '@/app/_components/portfolio-experience'
 import { sparkleSuitePortfolioContent } from '@/lib/sparkle-suite/portfolio-content'
+import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 
 const renderPortfolio = () => renderToStaticMarkup(createElement(PortfolioExperience))
 
@@ -19,14 +20,14 @@ describe('Sparkle Suite real-site portfolio', () => {
       expect(html).toContain(site.title)
       expect(html).toContain(`href="${site.href}"`)
       expect(html).toContain(site.linkLabel)
-      expect(html).toContain(encodeURIComponent(site.src))
+      expect(html).toContain(portfolioMotion[site.id]?.poster || encodeURIComponent(site.src))
       expect(existsSync(join(process.cwd(), 'public', site.src))).toBe(true)
     }
   })
 
   it('uses show names only and does not substitute a theme gallery for real-site proof', () => {
     const html = renderPortfolio()
-    expect(html).not.toMatch(/Lindsey|Brittany|Heather|Kim’s|Kelly|Placeholder|aria-roledescription="carousel"|<video/)
+    expect(html).not.toMatch(/Lindsey|Brittany|Heather|Kim’s|Kelly|Placeholder|aria-roledescription="carousel"|<video[^>]+src=/)
     expect(html).not.toContain('Community themes')
     expect(html).not.toContain('Halloween Pumpkin')
     expect(html).not.toContain('Schedule your build now')
@@ -38,7 +39,7 @@ describe('Sparkle Suite real-site portfolio', () => {
 
   it('keeps external visits explicit and portfolio metadata specific to real sites', () => {
     const html = renderPortfolio()
-    expect(html.match(/target="_blank"/g)?.length).toBeGreaterThanOrEqual(10)
+    expect(html.match(/target="_blank"/g)?.length).toBeGreaterThanOrEqual(5)
     expect(html).toContain('opens in a new tab')
     expect(metadata.title).toEqual({ absolute: 'Sparkle Suite Portfolio' })
     expect(metadata.alternates?.canonical).toBe('/portfolio')

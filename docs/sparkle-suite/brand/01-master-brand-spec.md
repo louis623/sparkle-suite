@@ -23,6 +23,7 @@ Do not put Bomb Party in the headline or turn affiliation/permission into a mark
 - Dance Floor
 - Live Lineup
 - Event calendar
+- Team Management and New Rep Onboarding (included with active workspaces)
 - Themes (never skins in user-facing labels or alt text)
 - Nic-Nac rep assistant, for paying reps; no public marketing chat or handoff form
 - Email updates and SMS updates: coming soon, with no invented date

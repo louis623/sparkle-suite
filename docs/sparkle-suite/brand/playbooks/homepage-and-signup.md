@@ -18,7 +18,7 @@ Exact subhead:
 
 ## Story and page family
 
-Home: hero → real-site gallery → large Dance Floor, Live Lineup, and event calendar demonstrations → approved Louis founder story → Watch → pricing → short FAQ → closing CTA → locked footer.
+Home: hero → real-site gallery → large Dance Floor, Live Lineup, and event calendar demonstrations → Team Management and New Rep Onboarding → approved Louis founder story → Watch → pricing → short FAQ → closing CTA → locked footer.
 
 Keep a slim Portfolio with all real rep sites, named by show/domain only. FAQ provides public answers without Nic-Nac. `/learn` redirects to `/`; `/demo` redirects to `/#watch`. No Suite/Finder chooser.
 
@@ -26,7 +26,7 @@ Use the color roles, spacing, and subpage composition in 08. Do not flatten the 
 
 ## Hero behavior
 
-The demo account's saved theme drives the default, including seasonal, custom, or retired themes. Preview is read-only. A separate community-only picker uses catalog-confirmed rows and never advertises private or retired themes. Use a fast responsive poster first, with an interactive frame only on explicit action. If lookup fails, show a neutral poster without a theme claim. No autoplay or carousel.
+The demo account's saved theme drives the default, including seasonal, custom, or retired themes. Preview is read-only. A separate community-only picker uses catalog-confirmed rows and never advertises private or retired themes. Use a fast responsive poster first, then enhance the visible hero after the page settles. Retain manual play for reduced motion and data saver. If lookup fails, show a neutral poster without a theme claim. No automatic theme rotation or carousel. Preserve real animation with visible-only muted playback and pause controls; retain the poster for reduced motion and data saver until the visitor chooses play.
 
 ## Copy rules
 

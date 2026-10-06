@@ -11,7 +11,47 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
   const [attempt, setAttempt] = useState(0)
   const [state, setState] = useState<'poster' | 'loading' | 'ready' | 'error'>('poster')
   const frame = useRef<HTMLIFrameElement>(null)
+  const preview = useRef<HTMLDivElement>(null)
+  const autoStarted = useRef(false)
+  const visiblePreview = useRef(false)
+  const pausedPreview = useRef(false)
+  const [paused, setPaused] = useState(false)
   const selectedLabel = selected === demo?.theme ? demo.themeLabel : demo?.themes.find(theme => theme.id === selected)?.label
+
+  // Paint the small poster first. Only enhance the visible hero after the page settles.
+  useEffect(() => {
+    if (!demo || !preview.current) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
+    let visible = false
+    let settled = false
+    function start() {
+      if (!visible || !settled || autoStarted.current || reduce.matches || connection?.saveData) return
+      autoStarted.current = true
+      setState('loading')
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      visiblePreview.current = visible
+      start()
+      frame.current?.contentWindow?.postMessage({type:'sparkle-marketing-motion', paused:!visible || pausedPreview.current || reduce.matches || document.hidden}, '*')
+    }, { threshold: .2 })
+    observer.observe(preview.current)
+    const timer = window.setTimeout(() => { settled = true; start() }, 2500)
+    return () => { observer.disconnect(); window.clearTimeout(timer) }
+  }, [demo])
+
+  useEffect(() => {
+    pausedPreview.current = paused
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const sync = () => frame.current?.contentWindow?.postMessage({
+      type:'sparkle-marketing-motion', paused:paused || !visiblePreview.current || document.hidden || reduce.matches,
+    }, '*')
+    sync()
+    document.addEventListener('visibilitychange', sync)
+    reduce.addEventListener('change', sync)
+    return () => { document.removeEventListener('visibilitychange', sync); reduce.removeEventListener('change', sync) }
+  }, [paused, state])
 
   useEffect(() => {
     if (state !== 'loading') return
@@ -26,6 +66,8 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
   }, [state, selected, attempt])
 
   function explore(theme = selected) {
+    autoStarted.current = true
+    setPaused(false)
     setSelected(theme)
     setAttempt(value => value + 1)
     setState('loading')
@@ -41,7 +83,7 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
         <h1 id="landing-title">Your brand.<br />Your show.<br /><span>A setup that <em>shines.</em></span></h1>
         <p>A polished website for your live-selling business. Give shoppers one place to find your next show, follow your Live Lineup, and explore your Dance Floor.</p>
       </div>
-      <div className={styles.preview}>
+      <div className={styles.preview} ref={preview}>
         <figure className={styles.window}>
           <figcaption className={styles.bar}><span aria-hidden="true" className={styles.dots}>● ● ●</span><span>{demo?.businessName || 'Website preview'}</span><span className={styles.readOnly}>Preview</span></figcaption>
           <div className={styles.stage}>
@@ -62,8 +104,8 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
           </div>
         </figure>
         <div className={styles.previewActions}>
-          {demo ? <button type="button" className={styles.explore} onClick={() => explore()} disabled={state === 'loading'}>
-            {state === 'loading' ? 'Opening preview…' : state === 'ready' ? 'Restart preview' : state === 'error' ? 'Try preview again' : 'Explore this site'}
+          {demo ? <button type="button" className={styles.explore} onClick={() => state === 'ready' ? setPaused(value => !value) : explore()} disabled={state === 'loading'}>
+            {state === 'loading' ? 'Opening preview…' : state === 'ready' ? paused ? 'Play animation' : 'Pause animation' : state === 'error' ? 'Try preview again' : 'Play this preview'}
             <span aria-hidden="true">↗</span>
           </button> : <span>Interactive preview temporarily unavailable.</span>}
           {selectedLabel ? <span className={styles.themeName}>{selectedLabel}</span> : null}
