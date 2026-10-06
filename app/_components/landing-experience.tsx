@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { ArrowRight, ChevronDown } from 'lucide-react'
-import { LineupDemonstration } from './lineup-demonstration'
+import { ToolsOverview } from './tools-overview'
 import { ProductPeekVideo } from './product-peek-video'
 import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
 import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
@@ -14,12 +14,13 @@ import type { LandingDemo } from '@/lib/sparkle-suite/landing-demo-model'
 import { sparkleSuitePortfolioContent } from '@/lib/sparkle-suite/portfolio-content'
 import styles from './landing-experience.module.css'
 
-export function MarketingHeader({ intake = false, current = 'home' }: { intake?: boolean; current?: 'home' | 'portfolio' | 'demo' | 'faq' }) {
+export function MarketingHeader({ intake = false, current = 'home' }: { intake?: boolean; current?: 'home' | 'portfolio' | 'demo' | 'faq' | 'tools' }) {
   const subpage = current !== 'home' || intake
   return <header className={styles.header}>
     <QueueLink href="/" className={styles.brand} aria-label="Sparkle Suite home"><Image alt="" className={styles.logo} src="/brand/sparkle-suite-logo-transparent.png" width={1100} height={280} unoptimized /></QueueLink>
     <nav className={styles.navigation} aria-label="Explore Sparkle Suite">
       {subpage ? <QueueLink href="/" className={styles.pageLink}>Home</QueueLink> : null}
+      <QueueLink href="/tools" className={styles.pageLink} aria-current={current === 'tools' ? 'page' : undefined}>Tools</QueueLink>
       <QueueLink href="/portfolio" className={styles.pageLink} aria-current={current === 'portfolio' ? 'page' : undefined}>Portfolio</QueueLink>
       <QueueLink href={subpage ? '/#pricing' : '#pricing'} className={styles.pageLink}>Pricing</QueueLink>
       <QueueLink href="/faq" className={styles.pageLink} aria-current={current === 'faq' ? 'page' : undefined}>FAQ</QueueLink>
@@ -29,7 +30,7 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
   </header>
 }
 
-export function MarketingFooter(_props: { current?: 'home' | 'portfolio' | 'demo' | 'faq' } = {}) {
+export function MarketingFooter(_props: { current?: 'home' | 'portfolio' | 'demo' | 'faq' | 'tools' } = {}) {
   void _props
   return <SparkleMarketingFooter suiteHref="/" finderHref="https://yoursparklefinder.com" />
 }
@@ -38,12 +39,6 @@ const questions = [
   ['What happens after I join the queue?', 'I’ll email you to book a quick 30-minute call. Your build starts once your first month and setup fee are paid. No payment when you join the queue.'],
   ['Does joining reserve founder pricing?', 'No. Founder pricing is available to reps who move forward after our call, while spots last.'],
   ['Can I keep my domain?', 'Tell us what you already have. We’ll review the right way to connect your domain and plan your site together. Joining the queue does not move your website or email.'],
-] as const
-
-const demonstrations = [
-  { label:'Dance Floor', title:<>A place to browse<br />and <em>explore.</em></>, text:'Give shoppers a place to browse your Dance Floor.', src:'/sparkle-suite/landing/dance-floor-sparkly-butterflies.webp', width:1102, height:688, alt:'Dance Floor showing jewelry listings and search filters' },
-  { label:'Live Lineup', title:<>Who’s in line?<br />It’s right <em>there.</em></>, text:'Your Live Lineup sits at the top of your site, alongside your announcement and Dance Floor tickers. Shoppers can tap a name or open the full lineup without leaving the page.', src:'', width:760, height:520, alt:'' },
-  { label:'Event calendar', title:<>Give your next show<br />a place to <em>live.</em></>, text:'Keep your upcoming shows in one place.', src:'/sparkle-suite/landing/calendar-upcoming-reveals.webp', width:932, height:710, alt:'Event calendar showing upcoming live shows' },
 ] as const
 
 export function LandingExperience({ initialAvailability, demo = null }: { initialAvailability?: FounderAvailability; demo?: LandingDemo | null }) {
@@ -66,40 +61,7 @@ export function LandingExperience({ initialAvailability, demo = null }: { initia
         <QueueLink href="/portfolio" className={styles.outlineButton}>Explore the portfolio <ArrowRight size={18} aria-hidden="true" /></QueueLink>
       </div>
     </section>
-    <section className={styles.toolsSection} id="workspace-proof" aria-labelledby="tools-title"><div className={styles.container}>
-      <h2 id="tools-title">Your live-show <em>tools.</em></h2>
-      <div className={styles.toolRows}>{demonstrations.map(tool => <div className={styles.toolRow} key={tool.label}>
-        <div><p className={styles.eyebrow}>{tool.label}</p><h3>{tool.title}</h3><p className={styles.toolBody}>{tool.text}</p></div>
-        {tool.label === 'Live Lineup' ? <LineupDemonstration /> : <figure><Image src={tool.src} alt={tool.alt} width={tool.width} height={tool.height} sizes="(max-width: 760px) 90vw, 60vw" /></figure>}
-      </div>)}</div>
-    </div></section>
-    <section className={styles.teamSection} id="team-tools" aria-labelledby="team-title"><div className={styles.container}>
-      <p className={styles.teamEyebrow}>Team Management + New Rep Onboarding</p>
-      <h2 id="team-title">A strong start for<br />the people on <em>your team.</em></h2>
-      <p className={styles.teamIntro}>Your website is only part of it. Sparkle Suite also gives you a place to manage your team and a private guide you can send to each new rep.</p>
-      <div className={styles.teamRow}>
-        <div><p className={styles.teamEyebrow}>For the team lead</p><h3>Keep your team<br />close at hand.</h3>
-          <p>Manage each person’s photo, show name, and social links. Choose which cards appear on your public Join Team page, and keep new members hidden until you’re ready.</p>
-          <p>From their saved card, create a private onboarding link, see their progress, and open their questions in your Message Center.</p>
-          <p className={styles.teamNote}>Sending an onboarding link does not publish their team card.</p>
-        </div>
-        <figure><Image src="/marketing/team-management-preview.webp" alt="Actual Team Management private onboarding panel with sample teammate, progress and link controls" width={1024} height={950} sizes="(max-width:760px) 90vw, 60vw" /><figcaption>Team lead’s workspace · sample data</figcaption></figure>
-      </div>
-      <div className={styles.teamRow}>
-        <div><p className={styles.teamEyebrow}>For the new rep</p><h3>Send a guide.<br />Give them a <em>starting point.</em></h3>
-          <p>They open a personal welcome from your team, then work through six guided steps—from training access and payout setup to their first live, shipping, and customer follow-up.</p>
-          <ul><li>Practical instructions and a saved completion checklist.</li><li>Supply lists for live setup, packing, and organization.</li><li>Official resources and a place to ask their team lead.</li></ul>
-          <p>They keep the same private link. You can follow their progress and reply to their questions from your workspace.</p>
-        </div>
-        <figure><Image src="/marketing/new-rep-onboarding-preview.webp" alt="Actual New Rep Onboarding guide showing six starting steps for a sample rep" width={1080} height={1027} sizes="(max-width:760px) 90vw, 60vw" /><figcaption>New rep’s private guide · sample data</figcaption></figure>
-      </div>
-      <p className={styles.teamIncluded}>Team Management and New Rep Onboarding are included with an active Sparkle Suite workspace.</p>
-      <dl className={styles.workspaceExtras} aria-label="More in your workspace">
-        <div><dt>Jewelry Library</dt><dd>Look up pieces by collection, type, material, and stone.</dd></div>
-        <div><dt>Customer List</dt><dd>Keep the details your customers choose to share in one place.</dd></div>
-        <div><dt>Message Center</dt><dd>Open onboarding questions and keep the conversation with each new rep together.</dd></div>
-      </dl>
-    </div></section>
+    <ToolsOverview />
     <section className={styles.founderSection} aria-labelledby="founder-title"><div className={styles.founderLayout}>
       <Image className={styles.founderPhoto} src="/marketing/louis-headshot.webp" alt="Louis, founder of Sparkle Suite" width={520} height={710} sizes="(max-width: 760px) 70vw, 340px" />
       <div><h2 id="founder-title">Hi, I’m <em>Louis.</em></h2><p>My sister became a Bomb Party rep and asked me to help with her website. I saw how many reps needed the same thing, so I built Sparkle Suite and started my own small, veteran-owned business. It’s been a lot of fun, and I’ve met so many great people along the way.</p></div>

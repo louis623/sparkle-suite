@@ -8,7 +8,7 @@ Nic-Nac is the included Sparkle Suite assistant for paying reps. It supports the
 
 - No public Nic-Nac launcher mounted on marketing pages.
 - No anonymous public chat API or FAQ form forwarding to Nic-Nac.
-- One factual included-feature line is acceptable, such as “Nic-Nac rep assistant.”
+- Owner-approved October 6 tools-page structure: Nic-Nac gets substantial coverage on `/tools#nic-nac`, with specific supported examples (Dance Floor listings, show scheduling, site announcements) and a real workspace capture. No public assistant use. Home's four tool cards do not include Nic-Nac; the included-feature line may remain.
 - FAQs provide public product answers. They are readable content, not an assistant entry point.
 - Do not imply visitors can try Nic-Nac for free or gain access by joining the build queue.
 

@@ -71,7 +71,9 @@ Use a responsive, fast poster first. Enhance the visible hero after the poster p
 
 ## Approved page family
 
-Home scroll: plum hero → light real-site gallery → espresso demonstrations → founder → Watch → pricing → short FAQ → plum closing CTA → locked white footer.
+Home scroll: plum hero → light real-site gallery → four tool cards → founder → espresso Watch → pricing → short FAQ → plum closing CTA → locked white footer.
+
+Owner-approved tools hierarchy (October 6): Home shows exactly four cards, in order: Dance Floor, Live Lineup, Live Show Calendar, Team Management. Each has an icon, short description, two benefits, and an Explore link to its `/tools#section`. Beneath: “There’s more inside your Suite.” and “Explore the tools that help you manage your business, support your team, and prepare for your next live.” with “Explore all tools”. Use two columns on desktop, one on phones. Move deep demonstrations to `/tools`, which has sticky section navigation on desktop and a “Jump to a tool” menu on mobile. Team Management contains New Rep Onboarding; Nic-Nac has a substantial section there. Jewelry Library, Customer List, Message Center, and Resources & Help are supporting workspace essentials, not inflated into major Home tools. Preserve real captures and the isolated Live Lineup sample. The two approved generated mockups establish visual direction, with the owner's final four-card selection taking precedence over their example inventory.
 
 - Portfolio: short plum title band; all available real rep sites as large alternating rows; plum CTA; same footer. Labels and alt text use show name/domain only, never the rep's personal name.
 - FAQ: short plum opening; warm-white topic navigation and native readable accordions; espresso links to Portfolio/Watch; plum CTA; same footer. No public assistant or question form posting to Nic-Nac.
@@ -83,7 +85,7 @@ Home scroll: plum hero → light real-site gallery → espresso demonstrations �
 
 - Current feature names: **Dance Floor**, **Live Lineup**, **event calendar**, **Team Management**, **New Rep Onboarding**, **themes**, **Nic-Nac rep assistant**.
 - Email and SMS updates are **coming soon**. Do not imply they are available or invent a release date.
-- No public Nic-Nac on marketing routes: no mounted launcher, anonymous chat API, or FAQ handoff form. One factual included-feature line is fine; the assistant is for paying reps.
+- No public Nic-Nac use on marketing routes: no mounted launcher, anonymous chat API, or FAQ handoff form. Explain verified capabilities on the tools page; the assistant is for paying reps.
 - Founder: **$49.99/month for 12 paid months**, then **$74.99/month**, plus **$49.99 one-time setup**. First month + setup is **$99.98**. Standard first month + setup is **$124.98**.
 - Founder cap: 20. A confirmed live counter may say **X founder spots remaining**; never **X of 20**. On unknown availability show founder price without invented count/urgency. Confirmed zero shows standard price. Founder pricing must render server-side on first load.
 - Joining the queue does **not** reserve founder pricing. It applies only after a meeting where Louis and the rep agree to move forward, while spots last.

@@ -20,10 +20,10 @@
 
 ## Show tools
 
-- Heading direction: **Your live-show tools.**
-- Individual large rows for Dance Floor and event calendar; an interactive sample of the actual Live Lineup strip and Full lineup. Follow with substantial Team Management and New Rep Onboarding rows showing both lead controls and the six-step private guide.
-- Espresso section with cream text and soft-pink italic emphasis.
-- Email/SMS remain coming soon. Nic-Nac is a factual paid-rep inclusion, not a public demonstration.
+- Heading: **More than a website.** Two-column Home grid, stacking on mobile, with exactly four cards in order: Dance Floor, Live Lineup, Live Show Calendar, Team Management. Icon, short description, two benefits, and a descriptive Explore link per card.
+- Below: **There’s more inside your Suite.** Explain broader business/team/show support and link **Explore all tools** to `/tools`.
+- Move deep captures and the isolated Live Lineup sample to `/tools`. Sticky desktop section navigation; mobile “Jump to a tool”. Preserve full Team Management and New Rep Onboarding coverage together. Nic-Nac has his own factual section with real workspace proof; supporting tools are grouped under Workspace essentials.
+- Email/SMS remain coming soon. No public Nic-Nac use.
 
 ## Founder
 

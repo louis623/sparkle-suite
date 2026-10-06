@@ -18,7 +18,7 @@ Exact subhead:
 
 ## Story and page family
 
-Home: hero → real-site gallery → large Dance Floor, Live Lineup, and event calendar demonstrations → Team Management and New Rep Onboarding → approved Louis founder story → Watch → pricing → short FAQ → closing CTA → locked footer.
+Home: hero → real-site gallery → four tool cards (Dance Floor, Live Lineup, Live Show Calendar, Team Management) and Explore all tools → approved Louis founder story → Watch → pricing → short FAQ → closing CTA → locked footer. Deep demonstrations move to `/tools`, with anchored navigation. New Rep Onboarding belongs under Team Management, Nic-Nac has a dedicated section, and supporting tools are grouped as workspace essentials.
 
 Keep a slim Portfolio with all real rep sites, named by show/domain only. FAQ provides public answers without Nic-Nac. `/learn` redirects to `/`; `/demo` redirects to `/#watch`. No Suite/Finder chooser.
 
@@ -31,7 +31,7 @@ The demo account's saved theme drives the default, including seasonal, custom, o
 ## Copy rules
 
 - Use “themes,” Dance Floor, Live Lineup, and event calendar.
-- One factual Nic-Nac rep-assistant line is okay; no public assistant trial or handoff form.
+- Nic-Nac has substantial factual coverage on `/tools`, with no public assistant trial or handoff form. Keep him out of the four Home tool cards.
 - Customer email/SMS updates are coming soon.
 - No Bomb Party in the headline, no new affiliation discussion, no invented proof.
 - Real demos belong in Watch. Use the approved `@yoursparklesuite.com` TikTok and `@SparkleSuite` YouTube channels.

@@ -34,6 +34,11 @@ const SPARKLE_PUBLIC_ROUTES: SparklePublicRoute[] = [
     priority: 0.9,
   },
   {
+    path: '/tools',
+    changeFrequency: 'weekly',
+    priority: 0.9,
+  },
+  {
     path: '/demo',
     changeFrequency: 'weekly',
     priority: 0.9,

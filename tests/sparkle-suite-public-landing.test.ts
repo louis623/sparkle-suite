@@ -77,13 +77,12 @@ describe('Sparkle Suite public landing page', () => {
     expect(html).toContain('small, veteran-owned business')
     expect(html).not.toMatch(/Lindsey|Brittany|Heather|Kelly|louis@|346954|Chapman/)
     expect(html).not.toContain('aria-roledescription="carousel"')
-    for (const src of ['/marketing/louis-headshot.webp', '/sparkle-suite/landing/dance-floor-sparkly-butterflies.webp', '/sparkle-suite/landing/calendar-upcoming-reveals.webp', '/marketing/team-management-preview.webp', '/marketing/new-rep-onboarding-preview.webp']) {
+    for (const src of ['/marketing/louis-headshot.webp']) {
       expect(existsSync(publicAssetPath(src))).toBe(true)
       expect(html).toContain(encodeURIComponent(src))
     }
-    expect(html).toContain('/marketing/live-lineup-preview.webp')
-    expect(html).toContain('Try the Live Lineup')
-    expect(html).toContain('Team Management and New Rep Onboarding are included')
+    expect(html).not.toContain('Try the Live Lineup')
+    expect(html).toContain('Explore all tools')
   })
 
   it('sends Watch traffic to the correct channels', () => {
