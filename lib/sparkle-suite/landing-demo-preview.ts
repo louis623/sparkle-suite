@@ -28,6 +28,7 @@ export async function landingPreviewDocument(demo: LandingDemo, theme: AmethystA
     html{scrollbar-width:none}body{overflow-x:hidden}
     .hp-nicnac,.hp-signup,.tweaks-toggle,.tweaks-panel{display:none!important}
     *,*::before,*::after{animation:none!important;transition:none!important}
+    @media(max-width:600px){.hp-hero{min-height:0!important;padding-top:36px!important;padding-bottom:36px!important}.hp-hero h1{font-size:44px!important;line-height:1.08!important}}
   </style></head>`)
   // The sandbox has no same-origin, forms, popups, downloads or top navigation.
   // Signal readiness only after the actual customer component has rendered.
