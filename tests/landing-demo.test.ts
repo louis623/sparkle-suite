@@ -21,6 +21,8 @@ describe('public landing theme boundary', () => {
       {skin_id:'sparkle_suite_morganite',visibility:'community'},
       {skin_id:'halloween_pumpkin_witch',visibility:'community'},
       {skin_id:'amethyst',visibility:'community'},
+      {skin_id:'moonstone',visibility:'community'},
+      {skin_id:'velvet',visibility:'community'},
       {skin_id:'neon_butterfly',visibility:'community'},
       {skin_id:'rose_quartz',visibility:'community'},
       {skin_id:'garnet',visibility:'private'},

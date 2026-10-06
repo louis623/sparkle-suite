@@ -35,7 +35,7 @@ export async function loadLandingDemo(slug: string, admin = createAdminClient())
 
 const cachedDemo = unstable_cache(
   async (slug: string, environment: string) => { void environment; return loadLandingDemo(slug) },
-  ['landing-demo-v2'], { revalidate: 30 },
+  ['landing-demo-v3'], { revalidate: 30 },
 )
 export async function readLandingDemo(): Promise<LandingDemo | null> {
   const slug = landingDemoSlug()

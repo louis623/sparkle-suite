@@ -20,14 +20,16 @@ export function exactLandingTheme(value: unknown): AmethystAppearancePresetId | 
     ? normalizeAmethystAppearancePreset(value) : null
 }
 
-// Marketing picker curation only; these remain valid saved demo/rep themes.
-const OMITTED_LANDING_CHOICES = new Set<AmethystAppearancePresetId>([
-  'sparkle_suite_morganite', 'halloween_pumpkin_witch', 'rose_gold',
+// Keep the owner-approved picker identical across Smoke and Live catalogs.
+// This does not constrain the saved demo theme or rep theme inventory.
+const LANDING_CHOICES = new Set<AmethystAppearancePresetId>([
+  'amethyst', 'halloween_pumpkin_cat', 'gilded_autumn',
+  'midnight_rose', 'pearl_rose', 'rose_champagne',
 ])
 
 export function communityLandingThemes(rows: { skin_id: string; visibility: string }[]): LandingTheme[] {
   const community = new Set(rows.filter(row => row.visibility === 'community').map(row => row.skin_id))
-  return AMETHYST_SKIN_CARDS.filter(card => community.has(card.id) && card.visibility === 'community' && card.selectable !== false && !OMITTED_LANDING_CHOICES.has(card.id))
+  return AMETHYST_SKIN_CARDS.filter(card => community.has(card.id) && card.visibility === 'community' && card.selectable !== false && LANDING_CHOICES.has(card.id))
     .map(card => ({ id: card.id, label: card.label, colors: card.swatches.slice(0, 3).map(swatch => swatch.value) }))
 }
 
