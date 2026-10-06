@@ -17,6 +17,7 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
   const visiblePreview = useRef(false)
   const pausedPreview = useRef(false)
   const [paused, setPaused] = useState(false)
+  const [pickerExpanded, setPickerExpanded] = useState(false)
   const [previewHtml, setPreviewHtml] = useState<string | null>(null)
   const active = state === 'loading' || state === 'ready'
   const selectedLabel = selected === demo?.theme ? demo.themeLabel : demo?.themes.find(theme => theme.id === selected)?.label
@@ -126,8 +127,12 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
         </div>
         {state === 'error' ? <p className={styles.status} role="status">The preview is taking a little longer. You can try again.</p> : null}
         {demo && demo.themes.length > 0 ? <div className={styles.picker}>
-          <p id="theme-picker-label" className={styles.pickerLabel}>Try one of our Sparkle Suite themes</p>
-          <div className={styles.choices} role="group" aria-labelledby="theme-picker-label">
+          <p className={styles.pickerLabel}>Try one of our Sparkle Suite themes</p>
+          <button className={styles.pickerToggle} type="button" aria-expanded={pickerExpanded} aria-controls="hero-theme-choices" onClick={() => setPickerExpanded(value => !value)}>
+            <span>Try one of our Sparkle Suite themes</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6" /></svg>
+          </button>
+          <div id="hero-theme-choices" className={`${styles.choices} ${pickerExpanded ? styles.choicesExpanded : ''}`} role="group" aria-label="Try one of our Sparkle Suite themes">
             {demo.themes.map(theme => <button key={theme.id} type="button" aria-pressed={selected === theme.id}
               onClick={() => explore(theme.id)} style={{ '--swatch': 'linear-gradient(120deg,' + theme.colors.join(',') + ')' } as CSSProperties}>
               <span className={styles.swatch} aria-hidden="true" /><span>{theme.label}</span>

@@ -68,6 +68,8 @@ Primary CTA: **Join the build queue**. Hero is product before price; show the pr
 
 The hero previews the existing Dude's Fizzfest demo account. Its saved theme drives the default, including seasonal, retired, or custom themes. The public page is read-only and must never change that account. Resolve its configurable slug, default `dudesfizzfest`; never hardcode a rep ID across environments. The picker contains catalog-confirmed community themes only, excluding retired Rose Quartz and custom themes. Say **themes**, never skins, in visible copy, labels, and alt text.
 
+Theme choices use equal-size tiles in a regular grid. At 760px and below, the “Try one of our Sparkle Suite themes” control opens a collapsed-by-default picker. Desktop choices stay expanded without a disclosure arrow (owner refinement, October 6).
+
 Use a responsive, fast poster first. Enhance the visible hero after the poster paints and the page settles; keep the initial server render frame-free. If the demo lookup fails, show a neutral poster without claiming a theme; do not substitute another theme. No automatic theme rotation or carousel. Preserve real animation with visible-only muted playback and pause controls; retain the poster for reduced motion and data saver until the visitor chooses play. Keep independent Smoke and Live configuration.
 
 ## Approved page family

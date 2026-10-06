@@ -73,5 +73,5 @@ export function FounderOffer({compact=false}:{compact?:boolean}) {
 }
 
 export function IncludedFeatures() {
-  return <ul className={styles.included} aria-label="Included in Sparkle Suite">{['Your website and themes','Dance Floor','Live Lineup','Event calendar','Team Management','New Rep Onboarding','Nic-Nac rep assistant'].map(item=><li key={item}><Check size={18} aria-hidden="true" />{item}</li>)}</ul>
+  return <ul className={styles.included} aria-label="Included in Sparkle Suite">{['Your website and themes','Dance Floor','Live Lineup','Live Show Calendar','Team Management','New Rep Onboarding','Nic-Nac rep assistant'].map(item=><li key={item}><Check size={18} aria-hidden="true" />{item}</li>)}</ul>
 }
