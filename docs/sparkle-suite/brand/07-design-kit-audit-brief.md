@@ -1,4 +1,6 @@
-# Sparkle Suite Design Kit Audit Brief
+# Historical: May 2026 Design Kit Audit Brief
+
+> **Historical record — superseded October 6, 2026.** This file preserves the May 2026 incident/audit context. Its deployment IDs, version lock, copy requirements, and special approval phrase are not current instructions. Louis explicitly approved the Warm plum / concept 2 full marketing mockups and authorized Smoke implementation. Use [08 — Approved brand system](08-production-site-design-kit.md) and the latest owner request. Do not restore a deployment or block already-authorized work based on this historical text. Live publication and email/Workspace changes remain separately scoped.
 
 ## Purpose
 
@@ -64,4 +66,3 @@ Produce a short report with:
 - what needs Louis review before any new social media or brand assets are generated
 
 Do not generate new social media assets during the audit unless Louis explicitly asks for them after the audit.
-

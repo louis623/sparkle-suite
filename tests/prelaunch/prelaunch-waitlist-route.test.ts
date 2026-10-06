@@ -161,6 +161,29 @@ describe('POST /api/prelaunch/waitlist', () => {
     })
   })
 
+  it('persists validated campaign attribution on a synthetic signup without sending email or making provider calls', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    mockSuccessfulInsert({ id: 'synthetic-attribution', name: 'TEST Queue', email: 'queue@example.com' })
+    updateEqMock.mockResolvedValueOnce({ error: null })
+    const response = await POST(new Request('http://localhost/api/prelaunch/waitlist', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        name: 'TEST Queue', email: 'queue@example.com', emailConsent: true,
+        attribution: { src: 'TikTok', campaign: 'October_DMs', clickId: 'drop-me' },
+        source: 'operator_manual',
+      }),
+    }))
+    expect(response.status).toBe(201)
+    expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({
+      source: 'prelaunch_site?src=tiktok&campaign=october_dms',
+      email: 'queue@example.com',
+    }))
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(afterMock).not.toHaveBeenCalled()
+  })
+
   it('stores an email-only waitlist signup without SMS consent', async () => {
     const singleMock = vi.fn().mockResolvedValueOnce({
       data: {

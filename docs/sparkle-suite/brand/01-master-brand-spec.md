@@ -1,100 +1,42 @@
 # Sparkle Suite Master Brand Spec
 
-This document is the master source of truth, but it is not meant to stand alone.
+**Updated October 6, 2026.** Read [08 — Approved brand system](08-production-site-design-kit.md) for the canonical visual roles, current copy, offer facts, and implementation boundary. This spec and the messaging/assistant guidance support that source; historical prelaunch documents do not override it.
 
-`02-messaging-pillars.md` and `03-nic-nac-positioning.md` are required companion docs for applying this brand correctly.
+## Position
 
-## Brand core
+Sparkle Suite is a standalone rep-facing brand. It gives a live-selling business a polished customer website and useful show tools. The story is the rep's brand, the customer's experience, and a show that is easy to follow.
 
-- Tone: warm, polished, plain-English, rep-centered, approachable, premium without being stiff
-- Visual identity: soft, polished, feminine without being sugary, premium without fake-luxury spectacle
-- Core promise: Sparkle Suite helps reps stand out, create a better customer experience, run smoother live shows, and reduce behind-the-scenes patchwork
+Use warm, polished, plain-English copy. Be confident and concrete without stiff luxury language, MLM hype, generic software jargon, agency framing, or invented results. The product should feel thoughtful and distinctive rather than a generic stack of cards.
 
-## Approved brand position
+## Approved headline and explanation
 
-Sparkle Suite is a standalone master brand for reps.
+> Your brand.
+> Your show.
+> A setup that *shines*.
 
-It should read like a real, useful, polished system built for reps who want a better setup and a stronger customer-facing experience.
+> A polished website for your live-selling business. Give shoppers one place to find your next show, follow your Live Lineup, and explore your Dance Floor.
 
-It is not:
+Do not put Bomb Party in the headline or turn affiliation/permission into a marketing objection. Keep the existing disclaimer in the locked footer. Preserve Louis's approved founder story from 08.
 
-- a Neon Rabbit agency sub-brand
-- a generic SaaS product
-- an MLM hype page
-- a luxury concept brand built around fake visual spectacle
+## Current feature names and availability
 
-## Approved public hook
+- Dance Floor
+- Live Lineup
+- Event calendar
+- Themes (never skins in user-facing labels or alt text)
+- Nic-Nac rep assistant, for paying reps; no public marketing chat or handoff form
+- Email updates and SMS updates: coming soon, with no invented date
 
-`A better customer experience starts with a better rep setup.`
+Keep features distinct and explain them through real customer-facing examples. Reveal tools and undefined features are not primary acquisition claims. Real site captures are proof; there are no testimonials to publish.
 
-## Current approved prelaunch page direction
+## Conversion contract
 
-The current public prelaunch page at `/prelaunch` is locked to:
+The CTA is **Join the build queue**. No payment when joining. Louis emails to book a quick 30-minute call; the build starts after first month and setup are paid. Joining does not reserve founder pricing.
 
-`Sparkle Suite V1 Preview Public Site`
+Founder pricing is $49.99/month for 12 paid months, then $74.99/month, plus $49.99 setup; first month and setup total $99.98. It applies after Louis and the rep agree to move forward on their call, while spots last. The cap is 20. Show only the live confirmed remaining count, using “X founder spots remaining.” Unknown availability must not flash the standard rate or invent urgency. Full details and first-render rules are in 08.
 
-The source deployment is `dpl_2yAXz2pKp4QsJ4sQzboqpfXfqyoM`, created on
-May 10, 2026 at 11:19 AM Eastern and promoted back to production on
-May 11, 2026.
+## Visual identity and change scope
 
-Required public hero:
+Warm plum anchors the page; espresso frames demonstrations; light paper and blush give the content space. Pink marks primary actions. Use Playfair Display / DM Sans and the approved PNG logo lockup. Preserve the approved shared white footer.
 
-- `Sparkle Suite - Coming Soon`
-- `A better customer experience starts with a better rep setup.`
-- `Sparkle Suite gives reps a more polished website, standout live show tools, and built-in support that helps customers feel the difference.`
-
-Required public waitlist direction:
-
-- `Be first in line when Sparkle Suite opens.`
-- `Thank you, friend. We've got you.`
-
-Do not bring back these rejected public prelaunch treatments without Louis explicitly approving a new design review:
-
-- `One easier home for your Bomb Party business.`
-- `A polished website and rep-friendly tools designed to help you look professional, stay organized, and feel less overwhelmed online.`
-- `Sparkle Suite is software for independent Bomb Party reps and live jewelry sellers`
-- `Tell us where to send launch updates.`
-- named success-card copy such as `Thank you, Louis Chapman. We've got you.`
-
-Do not polish, rebrand, rewrite, or visually improve the public site unless Louis explicitly says: `go ahead and polish this`.
-
-The official visual rulebook for this public direction lives in `08-production-site-design-kit.md`.
-
-## Approved feature claims
-
-- Trade board
-- Live queue
-- Live event calendar
-- Email updates
-- SMS updates
-- Nic-Nac
-
-These should be treated as distinct product stories when possible, especially `Live event calendar`, `Email updates`, and `SMS updates`.
-
-## Restricted claims
-
-Reveal tools should not be used as a primary public feature claim right now.
-
-If reveal-related behavior is discussed later, it should be described specifically and truthfully.
-
-## Audience
-
-This brand system is for rep-facing communication to:
-
-- reps discovering Sparkle Suite for the first time
-- waitlist leads
-- potential future rep customers
-- reps learning how Sparkle Suite works
-- reps already in the Sparkle Suite orbit who need education and updates
-
-## Channel intent
-
-This master brand should stay consistent across:
-
-- the Sparkle Suite homepage after prelaunch
-- waitlist and future signup pages
-- TikTok and YouTube Shorts
-- the Sparkle Suite email newsletter
-- email and SMS tone more broadly
-- Nic-Nac positioning
-- rep acquisition materials
+Louis approved the Warm plum / concept 2 full marketing mockups on October 6, 2026. Implement and review within the authorized Smoke scope. Do not treat this as permission to publish Live or overhaul existing email/Workspace products. Future work should use the same documented brand roles with its own explicit scope.

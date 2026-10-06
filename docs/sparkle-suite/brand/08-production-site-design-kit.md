@@ -1,234 +1,113 @@
-# Sparkle Suite Production Site Design Kit
+# Sparkle Suite Approved Brand System
 
-This is the official Sparkle Suite design kit for public brand work.
+**Current owner-approved direction: October 6, 2026 — Warm plum / concept 2.**
 
-It is based on the current production site:
+This is the canonical visual and marketing-copy reference for Sparkle Suite. Louis approved the warm-plum hero concept, then the complete Home scroll and Portfolio/FAQ mockups, and authorized implementation. The filename is retained for existing links; **approval of this system does not mean it has been released to Live**. Implementation and review are Smoke-only until separately authorized.
 
-- URL: `https://www.yoursparklesuite.com/prelaunch`
-- Official version: `Sparkle Suite V1 Preview Public Site`
-- Original approved deployment: `dpl_2yAXz2pKp4QsJ4sQzboqpfXfqyoM`
-- Current fixed production deployment: `dpl_95Z57PuyJYJvvHabc2bjGCNzpZ8t`
+This direction supersedes the May 2026 prelaunch lock, old deployment references, inherited CSS colors, and older channel examples wherever they conflict. Files `05`, `06`, and `07` are historical evidence, not a release target or a current design mandate. Use the latest explicit owner instructions when they refine this document; no special approval phrase is required.
 
-If a design file, social asset, visual prompt, or site update does not match this production direction, do not use it.
+## What makes the design Sparkle Suite
 
-## Use this for
+Warm plum establishes the brand. Espresso frames product demonstrations. Blush and warm-white sections create breathing room. Bright pink is the action color, not a full-page wash. Playfair Display headlines, occasional italic soft-pink emphasis, real product captures, and generous spacing complete the system.
 
-- public-facing Sparkle Suite design decisions
-- social media visuals
-- flyer and QR assets
-- site updates that preserve the approved public direction
-- visual prompts for future asset generation
+The result should feel polished, distinctive, warm, and useful. Avoid generic card grids, dark neon effects, artificial luxury, oversized empty sections, and a sequence of near-identical white panels. A Finder or rep-theme palette must never take over Suite page chrome.
 
-## Hard rule
+## Color roles
 
-Do not polish, rebrand, rewrite, redesign, or visually improve the public site unless Louis explicitly says:
+| Role | Token / value | Use |
+| --- | --- | --- |
+| Warm plum | `--suite-plum: #34252f` | Hero, short subpage openings, closing CTA bands |
+| Espresso | `--suite-espresso: #36221d` | Product demonstration and proof sections |
+| Warm paper | `--suite-paper: #fff6fa` | Light reading and portfolio surfaces; light text on plum |
+| Blush | `--suite-blush: #fbf5f2` | Alternating lighter sections |
+| Cream | `--suite-cream: #f6e7da` | Text on espresso |
+| Accent pink | `--suite-pink: #ee2c9b` | Small accents, focus indication, brand mark |
+| Soft pink | `--suite-soft-pink: #ffd4ea` | Italic emphasis and secondary accents on dark sections |
+| Ink | `--suite-ink: #402924` | Main text on light surfaces |
+| Muted ink | `--suite-muted: #775d57` | Secondary text on light surfaces |
+| Supporting ink | `#a48882` | Decorative/subordinate use only when contrast permits |
+| Supporting backgrounds | `#fcf8f6`, `#f6ede8`, white | Subtle light surfaces and locked white footer |
+| Primary action | `#ff4cae` → `#d81b87` | Pink gradient buttons with `#fff6fb` text |
 
-`go ahead and polish this`
+Warm plum is an intentional approved addition to the earlier incomplete kit; it is not Finder violet. Do not reuse the retired button colors `#b91a70` or `#c21878`. Do not replace espresso with near-black `#1b1218`. Check actual text contrast at the chosen size; a token's presence in this table is not a guarantee for every foreground/background combination.
 
-This file is for matching the current production brand, not inventing a new one.
+Shared marketing tokens are scoped to `.suite-marketing`. Future email and Workspace work should adopt the documented roles through a separately scoped change, not global overrides to unrelated pages. Email rendering may require inline styles; the color and typography roles remain the same.
 
-## Brand feel
+## Typography and spacing
 
-- warm
-- polished
-- plain-English
-- soft
-- feminine without being sugary
-- premium without fake luxury
-- simple rather than flashy
+- Display: **Playfair Display**, using `var(--font-prelaunch-display)` in the site. Body, labels, buttons: **DM Sans**, using `var(--font-prelaunch-sans)`.
+- Use sentence case. Italic emphasis belongs inside the serif headline, not in every sentence or button.
+- Desktop hero: approximately 60–76px; subpage hero 48–64px; section headings 40–56px. On a 390px screen, use roughly 38–44px hero type and 30–38px section headings, adjusting line breaks to fit real copy.
+- Body: 16–19px, around 1.6–1.75 line height. Keep explanatory prose near 55–70 characters wide.
+- Spacing scale: 8, 12, 16, 24, 32, 48, 64, 80, 96px. Most desktop sections need 64–96px vertical space, mobile 40–56px. Use 20px mobile side gutters; avoid clipping as a substitute for correct widths.
+- Give each section one clear focal point. Prefer large real captures and alternating rows over a repeated three-card pattern.
+- Buttons and controls need at least 44px touch targets, readable focus states, and text that survives zoom. Border radius is restrained for screenshots and fully rounded for action pills.
 
-The site should feel calm, confident, and cared for.
+## Logo and locked footer
 
-It should not feel:
+- Header lockup: `public/brand/sparkle-suite-logo-transparent.png`, approved on PR #76. It contains the italic S seal, Sparkle Suite wordmark, and gray workspace byline.
+- Opaque plate when genuinely needed: `public/brand/sparkle-suite-logo.png`.
+- Do not rebuild the header logo as an S-seal SVG or use the old brown email-signature bar. There is no approved white/knockout logo. Keep the existing generated `app/icon.tsx` favicon.
+- Shared footer is locked to the approved extraction from Finder PR #74, branch `cursor/finder-learn-white-chrome-61e3` near `61a2efa`, and reference `standing/assets/2026-10-05-approved-marketing-footer.png` in Core Memory.
+- Footer: white; Suite and Finder logos on the left; Privacy and Terms centered; TikTok/YouTube pills on the right; existing independence disclaimer beneath. Preserve its logo treatment. FAQ belongs in navigation or page content, not a footer redesign.
 
-- neon tech
-- generic SaaS
-- dark luxury
-- loud influencer glam
-- AI spectacle
+## Approved hero and preview
 
-## Typography
+Exact headline, with the final word in italic:
 
-- Heading/display font: `Playfair Display`
-- Body/UI font: `DM Sans`
-- Do not switch to the older imported kit fonts like Vend Sans, Bitter, Archivo, Boska, Sharpie, Ranade, Switzer, Melodrama, or Nunito for public brand work.
+> Your brand.
+> Your show.
+> A setup that *shines*.
 
-### Type usage
+Exact explanation:
 
-- Big headlines use `Playfair Display`
-- The italic emphasis inside headlines also stays in `Playfair Display`
-- Body copy, labels, buttons, and form copy use `DM Sans`
-- The `S` seal/mark uses the same serif direction as the display font
+> A polished website for your live-selling business. Give shoppers one place to find your next show, follow your Live Lineup, and explore your Dance Floor.
 
-## Color system
+Primary CTA: **Join the build queue**. Hero is product before price; show the price in the pricing section after the visitor sees what the product is.
 
-Use the production site palette as the source of truth.
+The hero previews the existing Dude's Fizzfest demo account. Its saved theme drives the default, including seasonal, retired, or custom themes. The public page is read-only and must never change that account. Resolve its configurable slug, default `dudesfizzfest`; never hardcode a rep ID across environments. The picker contains catalog-confirmed community themes only, excluding retired Rose Quartz and custom themes. Say **themes**, never skins, in visible copy, labels, and alt text.
 
-### Core colors
+Use a responsive, fast poster first. Load the interactive preview on visitor action, with no initial third-party frame. If the demo lookup fails, show a neutral poster without claiming a theme; do not substitute another theme. No autoplay or carousel. Keep independent Smoke and Live configuration.
 
-- Background: `#fbf5f2`
-- Prelaunch background: `#fcf8f6`
-- Deep prelaunch background: `#f6ede8`
-- White/paper: `#ffffff`
-- Warm paper: `#fff6fa`
-- Accent pink: `#ee2c9b`
-- Accent soft pink: `#ffd4ea`
-- Main ink: `#402924`
-- Secondary ink: `#775d57`
-- Tertiary ink: `#a48882`
-- Dark panel: `#36221d`
-- Dark panel text: `#f6e7da`
+## Approved page family
 
-### Supporting lines and borders
+Home scroll: plum hero → light real-site gallery → espresso demonstrations → founder → Watch → pricing → short FAQ → plum closing CTA → locked white footer.
 
-- Hairline border: `rgba(64, 41, 36, 0.12)`
-- Stronger hairline: `rgba(64, 41, 36, 0.2)`
-- Accent line: `rgba(238, 44, 155, 0.34)`
-- Strong accent line: `rgba(238, 44, 155, 0.56)`
+- Portfolio: short plum title band; all available real rep sites as large alternating rows; plum CTA; same footer. Labels and alt text use show name/domain only, never the rep's personal name.
+- FAQ: short plum opening; warm-white topic navigation and native readable accordions; espresso links to Portfolio/Watch; plum CTA; same footer. No public assistant or question form posting to Nic-Nac.
+- Build queue: matching header, plum introduction, warm-white form and clear offer context, same footer. Explain the next step before collecting details.
+- Legal pages: restrained branded opening, readable light text area, same footer; retain legal content unless explicitly authorized to change it.
+- `/learn` redirects 301 to `/`; `/demo` redirects 301 to `/#watch`. No Suite/Finder chooser.
 
-### Button treatment
+## Copy and offer facts
 
-- Primary button background: gradient from `#ff4cae` to `#d81b87`
-- Primary button text: `#fff6fb`
-- Ghost button background: soft translucent white
-- Ghost button text: main ink
+- Current feature names: **Dance Floor**, **Live Lineup**, **event calendar**, **themes**, **Nic-Nac rep assistant**.
+- Email and SMS updates are **coming soon**. Do not imply they are available or invent a release date.
+- No public Nic-Nac on marketing routes: no mounted launcher, anonymous chat API, or FAQ handoff form. One factual included-feature line is fine; the assistant is for paying reps.
+- Founder: **$49.99/month for 12 paid months**, then **$74.99/month**, plus **$49.99 one-time setup**. First month + setup is **$99.98**. Standard first month + setup is **$124.98**.
+- Founder cap: 20. A confirmed live counter may say **X founder spots remaining**; never **X of 20**. On unknown availability show founder price without invented count/urgency. Confirmed zero shows standard price. Founder pricing must render server-side on first load.
+- Joining the queue does **not** reserve founder pricing. It applies only after a meeting where Louis and the rep agree to move forward, while spots last.
+- Near CTA and pricing: **Join the build queue and I'll email you to book a quick 30-minute call. Your build starts once your first month and setup fee are paid.**
+- Supporting reassurance: **No payment when you join the queue.** No payment mechanics beyond that sequence are implied by the marketing design.
+- There are no testimonials. Never fabricate quotes, reviews, counts, conversion claims, customer activity, or sales outcomes.
+- Do not use Bomb Party in the headline. Do not introduce permission or affiliation discussion; retain the approved footer disclaimer. The approved founder story below contains a factual audience reference.
 
-Do not replace this with purple-only kit buttons, black buttons, or loud neon gradients.
+Founder block: real Louis photo and name, with this approved story:
 
-## Shape and spacing
+> My sister became a Bomb Party rep and asked me to help with her website. I saw how many reps needed the same thing, so I built Sparkle Suite and started my own small, veteran-owned business. It's been a lot of fun, and I've met so many great people along the way.
 
-- Border radius is soft and rounded
-- Large cards/panels: around `20px` to `30px`
-- Pills: fully rounded
-- Spacing is generous and breathable
-- Cards feel light, not crowded
+Use `standing/assets/louis-headshot-2026-10-05.png` from Core Memory. Its teal background may be softened or removed to fit; never alter Louis's likeness.
 
-## Surface treatment
+## Channels, social previews, and tracking
 
-- Main page uses soft blush and warm-white gradients
-- Cards use white or near-white surfaces with light transparency
-- Borders are thin and refined
-- Shadows are present but restrained
-- Dark sections use the warm dark panel color, not pure black
+- YouTube: `https://www.youtube.com/@SparkleSuite`.
+- TikTok: `https://www.tiktok.com/@yoursparklesuite.com`; featured demo `/video/7684058046800071966`. Never use `tiktok.com/@sparklesuite`.
+- Watch uses real demos and channel links. Seasonal clips belong in Watch; the hero still follows the owner's saved demo theme.
+- OG/social cards explain Sparkle Suite with a themed site image and value headline, **no price**.
+- Preserve `?src=tiktok`, `?src=email`, and extensible campaign labels through marketing navigation into queue signups. Use free/built-in tooling and minimal data. Louis pastes links; setup and reporting are handled by Suite/Codex.
 
-## Brand mark
+## Verification and future reuse
 
-- Use the simple Sparkle Suite `S` seal
-- Keep it elegant and light
-- Do not turn it into a heavy crest, badge, or glitter emblem
+Match the approved composition at desktop and actual 390px content width, with no overflow. Preserve product-before-price order, working CTAs, readable contrast, keyboard controls, and complete disclosures. Defer nonessential media and interactive frames; use responsive WebP/AVIF where appropriate and explicit dimensions. Verify reduced motion and slow/mobile loading, especially the TikTok in-app browser; do not claim physical-device checks that were not performed.
 
-## Copy anchors that matter visually
-
-These lines are part of the current production identity and should anchor public visual work:
-
-- `Sparkle Suite - Coming Soon`
-- `A better customer experience starts with a better rep setup.`
-- `Sparkle Suite gives reps a more polished website, standout live show tools, and built-in support that helps customers feel the difference.`
-- `Join the Waitlist`
-- `What Is Sparkle Suite?`
-- `Inside the suite`
-- `V1 preview`
-- `Why it stands out`
-- `The edge customers can actually feel.`
-- `Be first in line when Sparkle Suite opens.`
-- `Thank you, friend. We've got you.`
-- `We're building this carefully.`
-
-## Approved feature list
-
-When visuals need product proof, stay inside this set:
-
-- Trade board
-- Live queue
-- Live event calendar
-- Email updates
-- SMS updates
-- Nic-Nac
-
-Keep Email updates and SMS updates separate.
-
-## Section feel
-
-### Hero
-
-- soft, open, high-trust
-- big serif headline
-- plain-English subhead
-- one strong pink primary CTA
-- one quiet secondary CTA
-
-### Inside-the-suite cards
-
-- white cards
-- thin accent border
-- small icon circle
-- simple number tag
-- practical copy
-
-### Why-it-stands-out panel
-
-- warm dark background
-- soft light text
-- stronger contrast
-- still elegant, not dramatic
-
-### Feature grid
-
-- clean white cards
-- simple product-story framing
-- no gimmicky device mockups unless they match the production tone
-
-### Waitlist section
-
-- warm, trustworthy, low-friction
-- plain form labels
-- simple promise
-- no hype pressure
-
-## Social media translation rules
-
-When turning this brand into social visuals:
-
-- keep the same serif/sans pairing
-- keep the same blush, warm-white, pink, and plum palette
-- use simple cards, pills, chips, and soft gradients
-- keep layouts easy to read in one glance
-- make it feel like the public site, not a separate campaign brand
-
-For TikTok, Reels, flyers, or QR assets:
-
-- lead with one approved promise or feature
-- keep backgrounds soft and light
-- use one or two cards max
-- keep the waitlist CTA plain
-- do not add flashy visual effects just to make it feel more social
-
-## What to avoid
-
-- any visual system based on the retired imported design kits
-- purple-first Amethyst styling as the Sparkle Suite public brand
-- dark neon glow cards
-- fake-luxury gold overload
-- too many gradients
-- heavy shadows
-- generic startup illustrations
-- Canva-looking filler graphics
-- making Nic-Nac the whole story
-
-## Banned public copy/design anchors
-
-Do not use these as the base for public-facing visuals:
-
-- `One easier home for your Bomb Party business.`
-- `A polished website and rep-friendly tools designed to help you look professional, stay organized, and feel less overwhelmed online.`
-- `Sparkle Suite is software for independent Bomb Party reps and live jewelry sellers`
-- `Tell us where to send launch updates.`
-- named success-card copy such as `Thank you, Louis Chapman. We've got you.`
-
-## Practical rule
-
-If you are making a Sparkle Suite public-facing asset and you are unsure what to do:
-
-1. Match the current production `/prelaunch` page.
-2. Use this file with `05-public-site-version-lock.md`.
-3. Keep it simple.
+This is the reference for bringing consistency to later email and Workspace work. Updating this document does not authorize redesigning those products, migrating their CSS, or publishing to Live. Preserve the current requested scope and use the user's actual approval instead of a magic phrase.

@@ -1,23 +1,17 @@
 # Nic-Nac Positioning
 
-## What Nic-Nac is
+**Current October 6, 2026.** Read `08-production-site-design-kit.md` and `01-master-brand-spec.md` for current brand and scope rules.
 
-- the built-in Sparkle Suite assistant for reps
-- practical behind-the-scenes rep support
-- a helper for live show flow and Sparkle Suite operations
+Nic-Nac is the included Sparkle Suite assistant for paying reps. It supports their work behind the scenes; Sparkle Suite's website and show tools remain the main product story.
 
-## What Nic-Nac is not
+## Marketing boundary
 
-- not a generic chatbot
-- AI theater
-- the main product story ahead of the core rep-facing value
+- No public Nic-Nac launcher mounted on marketing pages.
+- No anonymous public chat API or FAQ form forwarding to Nic-Nac.
+- One factual included-feature line is acceptable, such as “Nic-Nac rep assistant.”
+- FAQs provide public product answers. They are readable content, not an assistant entry point.
+- Do not imply visitors can try Nic-Nac for free or gain access by joining the build queue.
 
-## Working summary
+## Rep-facing tone
 
-Nic-Nac is the built-in Sparkle Suite assistant that helps reps stay organized, run smoother live shows, and create a better customer experience.
-
-## Narrative guardrails
-
-- Lead with usefulness.
-- Keep Nic-Nac grounded in real rep workflows.
-- Do not let Nic-Nac overshadow the trade board or the core customer-facing promise.
+Describe specific supported help in plain English, without generic chatbot language or AI spectacle. Do not overclaim access, actions, features, or outcomes. Existing private rep workflows remain separate from marketing changes.

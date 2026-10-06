@@ -28,7 +28,7 @@ export async function readLiveFounderAvailability(fetchImpl: typeof fetch = fetc
   try {
     const response = await fetchImpl(LIVE_FOUNDER_AVAILABILITY_URL, {
       cache: 'no-store',
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(1500),
     })
     if (!response.ok) return unavailableFounderAvailability()
     return parseLiveFounderAvailability(await response.json()) ?? unavailableFounderAvailability()
@@ -37,10 +37,11 @@ export async function readLiveFounderAvailability(fetchImpl: typeof fetch = fetc
   }
 }
 
-/** Undefined outside Suite Smoke, so production rendering does not call live. */
-export async function readLandingFounderAvailability(fetchImpl: typeof fetch = fetch): Promise<FounderAvailability | undefined> {
-  if (!isSuiteSmokeEnvironment()) return undefined
+/** Server-render the correct offer in each environment without calling Stripe. */
+export async function readLandingFounderAvailability(fetchImpl: typeof fetch = fetch): Promise<FounderAvailability> {
   const { connection } = await import('next/server')
   await connection()
-  return readLiveFounderAvailability(fetchImpl)
+  if (isSuiteSmokeEnvironment()) return readLiveFounderAvailability(fetchImpl)
+  const { getFounderAvailability } = await import('./founder-availability-service')
+  return getFounderAvailability()
 }

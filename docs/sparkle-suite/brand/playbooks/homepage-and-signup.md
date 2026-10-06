@@ -1,101 +1,53 @@
-# Homepage and Signup Playbook
+# Homepage and Build-Queue Playbook
 
-Read this with `01-master-brand-spec.md`, `02-messaging-pillars.md`, and `03-nic-nac-positioning.md`.
+**Current October 6, 2026.** Read `../08-production-site-design-kit.md` first. Louis approved Warm plum / concept 2, the full Home scroll, and Portfolio/FAQ mockups for Smoke implementation. This replaces the May prelaunch layout/copy lock; no special approval phrase is required beyond the user's actual authorization.
 
-## Use this for
+## Page job
 
-- homepage copy
-- waitlist pages
-- future signup pages
+Show what a rep can do with Sparkle Suite before asking them to evaluate a price. Pair a useful, real customer-site preview with clear copy, then lead through proof and the build-queue next step.
 
-## Channel job
+Exact headline:
 
-- help reps quickly understand what Sparkle Suite is
-- show why the setup creates a better customer experience
-- convert interest into waitlist or signup action with calm confidence
+> Your brand.
+> Your show.
+> A setup that *shines*.
 
-## Must emphasize
+Exact subhead:
 
-- better customer experience
-- better rep setup
-- approved feature claims only
-- polished, plain-English conversion
+> A polished website for your live-selling business. Give shoppers one place to find your next show, follow your Live Lineup, and explore your Dance Floor.
 
-## Messaging priorities
+## Story and page family
 
-- For the current prelaunch page, use the locked `Sparkle Suite V1 Preview Public Site` direction.
-- The current public hero is `A better customer experience starts with a better rep setup.`
-- The current public body is `Sparkle Suite gives reps a more polished website, standout live show tools, and built-in support that helps customers feel the difference.`
-- Keep the page centered on rep advantage, smoother live shows, and less patchwork.
-- Treat Sparkle Suite as a standalone rep brand, not a Neon Rabbit agency offering.
-- Name approved features truthfully and distinctly when the page needs product proof.
-- Do not polish, rebrand, rewrite, or visually improve the public site unless Louis explicitly says: `go ahead and polish this`.
+Home: hero → real-site gallery → large Dance Floor, Live Lineup, and event calendar demonstrations → approved Louis founder story → Watch → pricing → short FAQ → closing CTA → locked footer.
 
-## Headline rules
+Keep a slim Portfolio with all real rep sites, named by show/domain only. FAQ provides public answers without Nic-Nac. `/learn` redirects to `/`; `/demo` redirects to `/#watch`. No Suite/Finder chooser.
 
-- Keep the headline plain-English, polished, and easy to understand in one quick read.
-- Lead with rep advantage, better customer experience, or better rep setup instead of vague productivity language.
-- Keep Sparkle Suite as the primary brand focus.
-- Do not overclaim undefined features or promise a finished product experience that does not exist yet.
+Use the color roles, spacing, and subpage composition in 08. Do not flatten the design into repeated cards, use Finder violet for chrome, or return to an all-light page. Preserve the approved PNG logo and white footer.
 
-## Subheadline rules
+## Hero behavior
 
-- Use the subheadline to clarify who Sparkle Suite is for and why the setup matters.
-- Reinforce smoother live shows, customer experience, or less patchwork in practical language.
-- Keep the tone warm and confident without drifting into hype.
-- Let the subheadline support the headline, not compete with it.
+The demo account's saved theme drives the default, including seasonal, custom, or retired themes. Preview is read-only. A separate community-only picker uses catalog-confirmed rows and never advertises private or retired themes. Use a fast responsive poster first, with an interactive frame only on explicit action. If lookup fails, show a neutral poster without a theme claim. No autoplay or carousel.
 
-## Feature section rules
+## Copy rules
 
-- Use only approved feature claims.
-- Keep Trade board, Live queue, Live event calendar, Email updates, SMS updates, and Nic-Nac distinct when possible.
-- Explain why each feature matters to reps and customers instead of listing features without context.
-- Avoid vague all-in-one-tool phrasing that blurs the product story.
+- Use “themes,” Dance Floor, Live Lineup, and event calendar.
+- One factual Nic-Nac rep-assistant line is okay; no public assistant trial or handoff form.
+- Customer email/SMS updates are coming soon.
+- No Bomb Party in the headline, no new affiliation discussion, no invented proof.
+- Real demos belong in Watch. Use the approved `@yoursparklesuite.com` TikTok and `@SparkleSuite` YouTube channels.
 
-## CTA rules
+## Queue and pricing
 
-- Keep CTA language direct, calm, and easy to trust.
-- Match the CTA to the current page state: waitlist, learn more, or future signup.
-- Make the next step obvious without sounding pushy or desperate.
-- Keep CTA copy aligned with Sparkle Suite's polished, rep-centered tone.
+Use **Join the build queue** everywhere. Adjacent promise:
 
-## Signup trust rules
+> Join the build queue and I'll email you to book a quick 30-minute call. Your build starts once your first month and setup fee are paid.
 
-- Reduce friction with clear expectations about what happens after signup or waitlist join.
-- Use honest wording that signals a real, useful system is being built.
-- Avoid inflated claims, fake urgency, or confusing feature bundles.
-- Preserve trust through plain-English form context and clear follow-up posture.
+> No payment when you join the queue.
 
-## Login-link posture
+The form and success message must match. Joining does not reserve founder pricing. Founder offer is $49.99/month for 12 paid months, then $74.99/month, plus $49.99 setup. First payment total is $99.98. Founder pricing is available after the call when both agree to proceed, while spots last. Display the live confirmed remaining count only; never “X of 20.” Unknown availability keeps founder pricing without invented scarcity; confirmed zero shows standard pricing. Render the initial offer on the server.
 
-- Keep the public experience prelaunch-first until the dashboard and auth flow are polished enough for real rep traffic.
-- If a login link appears, treat it as a secondary utility action rather than the main hero conversion path.
-- Do not let login-heavy framing replace the homepage's rep acquisition and product education role.
-- Increase public login prominence only when the Sparkle Suite dashboard experience is ready to support it cleanly.
+Preserve source/campaign attribution from outreach through navigation and signup, with minimal data and free tooling. Keep the sign-in utility secondary. Retain consent defaults and legal disclosures when restyling the form.
 
-## Structure guidance
+## Acceptance
 
-- Hero: lead with the customer-experience promise and a calm, polished CTA.
-- Supporting copy: explain what Sparkle Suite helps reps do without drifting into generic productivity language.
-- Feature section: keep Trade board, Live queue, Live event calendar, Email updates, SMS updates, and Nic-Nac clear and separate when possible.
-- Trust section: reduce friction with clarity, honest posture, and a sense that something real is being built.
-
-## Signup rules
-
-- Keep forms and CTA copy direct, warm, and low-friction.
-- Make the next step clear: waitlist now, fuller signup later as the product matures.
-- Preserve trust by avoiding inflated promises, vague feature bundles, or luxury-brand theatrics.
-- If login is mentioned at all, frame it as a later-stage public action once the dashboard experience is polished enough for real traffic.
-
-## Avoid
-
-- generic SaaS hero copy
-- agency tone
-- any third-party brand-led hero framing that pulls focus from Sparkle Suite as the master brand
-- undefined feature claims
-- hype that sounds more advanced than the real product story
-- the rejected public prelaunch copy/design: `One easier home for your Bomb Party business.`
-- the rejected public prelaunch subheadline: `A polished website and rep-friendly tools designed to help you look professional, stay organized, and feel less overwhelmed online.`
-- the rejected public prelaunch software-led copy: `Sparkle Suite is software for independent Bomb Party reps and live jewelry sellers`
-- the rejected public prelaunch form prompt: `Tell us where to send launch updates.`
-- named success-card copy such as `Thank you, Louis Chapman. We've got you.`
+Verify real content at desktop and 390px, product before price, usable slow-load poster, accessible controls, correct channel links, and working queue path. State what was actually tested. Smoke review is not permission to deploy Live. Email and Workspace adoption are future, separately scoped work.

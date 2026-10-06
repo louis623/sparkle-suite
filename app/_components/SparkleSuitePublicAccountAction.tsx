@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 type AuthState = 'checking' | 'signed_in' | 'signed_out'
@@ -10,13 +11,14 @@ export function SparkleSuitePublicAccountAction() {
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return
     const supabase = createClient()
     let cancelled = false
 
     supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return
       setAuthState(data.session ? 'signed_in' : 'signed_out')
-    })
+    }).catch(() => { if (!cancelled) setAuthState('signed_out') })
 
     const {
       data: { subscription },
@@ -38,15 +40,15 @@ export function SparkleSuitePublicAccountAction() {
   }
 
   if (authState === 'checking') {
-    return <span>Sparkle Suite account</span>
+    return <Link href="/login">Sign in here.</Link>
   }
 
   if (authState === 'signed_in') {
     return (
       <>
-        <a className="sl2-header__workspace-link" href="/nic-nac">
+        <Link className="sl2-header__workspace-link" href="/nic-nac">
           Open workspace
-        </a>
+        </Link>
         <button
           className="sl2-header__account-button"
           disabled={busy}
@@ -62,7 +64,7 @@ export function SparkleSuitePublicAccountAction() {
   return (
     <>
       <span>Already have Sparkle Suite?</span>
-      <a href="/login">Sign in here.</a>
+      <Link href="/login">Sign in here.</Link>
     </>
   )
 }

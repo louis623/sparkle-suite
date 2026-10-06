@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./suite-marketing.css";
 
 :root {
   --background: #fbf5f2;

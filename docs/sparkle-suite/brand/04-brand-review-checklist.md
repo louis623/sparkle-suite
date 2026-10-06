@@ -1,44 +1,37 @@
 # Sparkle Suite Brand Review Checklist
 
-Use this as the last pass before publishing any Sparkle Suite rep-facing content.
+Read `08-production-site-design-kit.md`, `01-master-brand-spec.md`, `02-messaging-pillars.md`, and `03-nic-nac-positioning.md`. Current owner instructions and the October 6, 2026 approved system supersede historical prelaunch examples.
 
-Read this with `01-master-brand-spec.md`, `02-messaging-pillars.md`, and `03-nic-nac-positioning.md`.
+## Identity
 
-## Brand fit
+- Warm plum establishes the brand, espresso frames proof, light sections give breathing room, and pink identifies actions.
+- Playfair Display headlines and DM Sans body; restrained italic emphasis.
+- Approved PNG header lockup; locked white footer from approved reference; no improvised white logo or old brown signature bar.
+- No Finder violet/Amethyst page chrome or off-brand deep-pink buttons.
 
-- Does this sound like Sparkle Suite?
-- Does this feel polished, warm, simple, and premium?
-- Is this written in plain English for reps?
-- Does it feel like a real, useful system for reps instead of a generic SaaS product or agency page?
+## Copy and product facts
 
-## Promise and message check
+- Plain-English rep and customer benefit, with no generic software or agency framing.
+- Approved hero retained unless Louis asks to change it; no Bomb Party headline.
+- Current names: Dance Floor, Live Lineup, event calendar, themes, Nic-Nac rep assistant.
+- Email and SMS updates labeled coming soon, with no invented date.
+- No public assistant, anonymous chat, or FAQ handoff form.
+- Real site labels use show name or domain, not personal rep names.
+- No fabricated testimonials, activity, business results, or urgency.
 
-- Does this support at least one core promise: standing out, better customer experience, smoother live shows, or less patchwork?
-- Is the rep advantage clear without sounding hypey or overly technical?
-- If customer experience is mentioned, does it feel concrete instead of vague?
+## Conversion and trust
 
-## Feature claim check
+- Product before price; one primary action, “Join the build queue.”
+- Queue/call/payment promise matches the form and confirmation; no payment on signup and no founder reservation.
+- Founder price renders first on the server; remaining count comes from a confirmed live counter, never “X of 20.”
+- Terms and both price phases are legible, not hidden in fine print.
+- Correct TikTok/YouTube links and price-free social card.
 
-- Are only approved features being claimed?
-- If features are named, are they kept truthful and distinct: Trade board, Live queue, Live event calendar, Email updates, SMS updates, and Nic-Nac?
-- Are we overclaiming anything?
-- Are reveal tools being avoided as a primary public feature claim?
+## Rendering and scope
 
-## Nic-Nac check
-
-- Does Nic-Nac feel useful instead of gimmicky?
-- Is Nic-Nac positioned as built-in rep support rather than a generic chatbot or AI theater?
-- Does Nic-Nac support the main product story instead of overshadowing it?
-
-## Channel check
-
-- For homepage or signup copy, does the message build trust and keep the conversion path clear?
-- For short-form video, does the hook land fast enough for TikTok or YouTube Shorts?
-- For the newsletter, does it work under one newsletter brand that serves both lead nurture and rep education?
-- If this is email or SMS, are channel-specific compliance rules being respected?
-
-## Drift scan
-
-- Does this drift into generic SaaS, agency tone, hype, or AI slop?
-- Does any line sound like a prompt, brainstorm note, or fake product spectacle?
-- Would a rep immediately understand why this matters to the live-show setup and customer experience?
+- Real desktop and 390px checks, readable contrast, keyboard access, no horizontal clipping.
+- Poster-first preview, explicit interaction, no autoplay/carousel, reduced-motion support.
+- The demo's saved theme is the default; picker shows catalog-confirmed community themes only.
+- Describe the actual review target accurately. Smoke approval is not Live approval.
+- Do not let historical May deployment IDs or a special approval phrase override the current authorized request.
+- Preserve channel-specific consent and delivery guidance; separately scope future email/Workspace adoption.

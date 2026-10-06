@@ -1,26 +1,15 @@
 'use client'
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { QueueLink } from './queue-link'
 import type { CSSProperties } from 'react'
 import type { LandingDemo } from '@/lib/sparkle-suite/landing-demo-model'
 import styles from './landing-hero.module.css'
-
-const subscribeToLocation = () => () => {}
-function queueLink() {
-  const params = new URLSearchParams(window.location.search)
-  const source = params.get('src')
-  if (!source || !/^[a-z0-9_-]{1,40}$/.test(source)) return '/prelaunch#waitlist'
-  const forwarded = new URLSearchParams({src:source})
-  const campaign = params.get('campaign')
-  if (campaign && /^[a-zA-Z0-9_-]{1,80}$/.test(campaign)) forwarded.set('campaign',campaign)
-  return '/prelaunch?' + forwarded + '#waitlist'
-}
 
 export function LandingHero({ demo }: { demo: LandingDemo | null }) {
   const [selected, setSelected] = useState(demo?.theme || '')
   const [attempt, setAttempt] = useState(0)
   const [state, setState] = useState<'poster' | 'loading' | 'ready' | 'error'>('poster')
-  const queueHref = useSyncExternalStore(subscribeToLocation, queueLink, () => '/prelaunch#waitlist')
   const frame = useRef<HTMLIFrameElement>(null)
   const selectedLabel = selected === demo?.theme ? demo.themeLabel : demo?.themes.find(theme => theme.id === selected)?.label
 
@@ -92,7 +81,7 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
         {demo && selected !== demo.theme ? <button className={styles.reset} type="button" onClick={() => explore(demo.theme)}>Back to the demo’s current look</button> : null}
       </div>
       <div className={styles.conversion}>
-        <a className={styles.cta} href={queueHref}>Join the build queue <span aria-hidden="true">→</span></a>
+        <QueueLink className={styles.cta}>Join the build queue <span aria-hidden="true">→</span></QueueLink>
         <p className={styles.noPayment}>No payment when you join the queue</p>
         <p className={styles.promise}>Join the build queue and I’ll email you to book a quick 30-minute call. Your build starts once your first month and setup fee are paid.</p>
       </div>
