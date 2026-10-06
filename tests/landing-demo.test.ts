@@ -15,13 +15,16 @@ describe('public landing theme boundary', () => {
     expect(exactLandingTheme('rose_quartz')).toBe('rose_quartz')
     expect(exactLandingTheme('neon_butterfly')).toBe('neon_butterfly')
   })
-  it('intersects community catalog rows with selectable community definitions', () => {
+  it('intersects community catalog rows with selectable community definitions and marketing curation', () => {
     expect(communityLandingThemes([
       {skin_id:'rose_gold',visibility:'community'},
+      {skin_id:'sparkle_suite_morganite',visibility:'community'},
+      {skin_id:'halloween_pumpkin_witch',visibility:'community'},
+      {skin_id:'amethyst',visibility:'community'},
       {skin_id:'neon_butterfly',visibility:'community'},
       {skin_id:'rose_quartz',visibility:'community'},
       {skin_id:'garnet',visibility:'private'},
-    ]).map(theme => theme.id)).toEqual(['rose_gold'])
+    ]).map(theme => theme.id)).toEqual(['amethyst'])
     expect(communityLandingThemes([])).toEqual([])
   })
   it('allows the saved private default but not arbitrary private choices', () => {

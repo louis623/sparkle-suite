@@ -70,6 +70,8 @@ The hero previews the existing Dude's Fizzfest demo account. Its saved theme dri
 
 Theme choices use equal-size tiles in a regular grid. At 760px and below, the “Try one of our Sparkle Suite themes” control opens a collapsed-by-default picker. Desktop choices stay expanded without a disclosure arrow (owner refinement, October 6).
 
+The marketing picker omits Sparkle Suite/Morganite, Halloween Pumpkin and Witch, and Rose Gold (owner refinement, October 6). This is presentation curation only: do not retire these themes in the catalog or override the demo account's saved default.
+
 Use a responsive, fast poster first. Enhance the visible hero after the poster paints and the page settles; keep the initial server render frame-free. If the demo lookup fails, show a neutral poster without claiming a theme; do not substitute another theme. No automatic theme rotation or carousel. Preserve real animation with visible-only muted playback and pause controls; retain the poster for reduced motion and data saver until the visitor chooses play. Keep independent Smoke and Live configuration.
 
 ## Approved page family
