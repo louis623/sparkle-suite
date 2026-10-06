@@ -5,6 +5,7 @@ import { QueueLink } from './queue-link'
 import type { CSSProperties } from 'react'
 import type { LandingDemo } from '@/lib/sparkle-suite/landing-demo-model'
 import styles from './landing-hero.module.css'
+import { prepareMarketingPreview } from '@/lib/sparkle-suite/prepare-marketing-preview'
 
 export function LandingHero({ demo }: { demo: LandingDemo | null }) {
   const [selected, setSelected] = useState(demo?.theme || '')
@@ -16,6 +17,8 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
   const visiblePreview = useRef(false)
   const pausedPreview = useRef(false)
   const [paused, setPaused] = useState(false)
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null)
+  const active = state === 'loading' || state === 'ready'
   const selectedLabel = selected === demo?.theme ? demo.themeLabel : demo?.themes.find(theme => theme.id === selected)?.label
 
   // Paint the small poster first. Only enhance the visible hero after the page settles.
@@ -31,15 +34,25 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
       setState('loading')
     }
     const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting
+      visible = entry.isIntersecting && entry.intersectionRatio >= .5
       visiblePreview.current = visible
       start()
       frame.current?.contentWindow?.postMessage({type:'sparkle-marketing-motion', paused:!visible || pausedPreview.current || reduce.matches || document.hidden}, '*')
-    }, { threshold: .2 })
+    }, { threshold: .5 })
     observer.observe(preview.current)
     const timer = window.setTimeout(() => { settled = true; start() }, 2500)
     return () => { observer.disconnect(); window.clearTimeout(timer) }
   }, [demo])
+
+  useEffect(() => {
+    if (!active) return
+    const controller = new AbortController()
+    let dispose: (() => void) | undefined
+    prepareMarketingPreview('/api/public/landing-demo/preview?theme=' + encodeURIComponent(selected), controller.signal)
+      .then(result => { if (controller.signal.aborted) {result.dispose();return}; dispose = result.dispose; setPreviewHtml(result.html) })
+      .catch(() => { if (!controller.signal.aborted) setState('error') })
+    return () => {controller.abort();dispose?.()}
+  }, [active, selected, attempt])
 
   useEffect(() => {
     pausedPreview.current = paused
@@ -67,6 +80,7 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
 
   function explore(theme = selected) {
     autoStarted.current = true
+    setPreviewHtml(null)
     setPaused(false)
     setSelected(theme)
     setAttempt(value => value + 1)
@@ -93,10 +107,10 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
                 alt={demo ? 'Customer website preview in the ' + selectedLabel + ' theme' : 'Sparkle Suite customer website preview'}
                 width="1200" height="850" fetchPriority="high" decoding="async" />
             </picture>
-            {state === 'loading' || state === 'ready' ? <iframe
+            {active && previewHtml ? <iframe
               key={selected + '-' + attempt} ref={frame}
               title={'Explore the ' + selectedLabel + ' website preview'}
-              src={'/api/public/landing-demo/preview?theme=' + encodeURIComponent(selected)}
+              srcDoc={previewHtml}
               sandbox="allow-scripts" referrerPolicy="no-referrer"
               className={state === 'ready' ? styles.ready : styles.loading}
               aria-hidden={state !== 'ready'} tabIndex={state === 'ready' ? 0 : -1}

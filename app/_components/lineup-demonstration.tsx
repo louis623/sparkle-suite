@@ -1,11 +1,22 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import styles from './lineup-demonstration.module.css'
+import { prepareMarketingPreview } from '@/lib/sparkle-suite/prepare-marketing-preview'
 export function LineupDemonstration() {
   const [opened, setOpened] = useState(false)
   const [ready, setReady] = useState(false)
   const [failed, setFailed] = useState(false)
   const frame = useRef<HTMLIFrameElement>(null)
+  const [html, setHtml] = useState<string | null>(null)
+  useEffect(() => {
+    if (!opened) return
+    const controller = new AbortController()
+    let dispose: (() => void) | undefined
+    prepareMarketingPreview('/api/public/landing-lineup-preview', controller.signal)
+      .then(result => {if (controller.signal.aborted) {result.dispose();return};dispose=result.dispose;setHtml(result.html)})
+      .catch(() => {if (!controller.signal.aborted) {setOpened(false);setFailed(true)}})
+    return () => {controller.abort();dispose?.()}
+  }, [opened])
   useEffect(() => {
     if (!opened) return
     const timer = window.setTimeout(() => { setOpened(false); setFailed(true) }, 15000)
@@ -21,7 +32,7 @@ export function LineupDemonstration() {
     <div className={styles.stage}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/marketing/live-lineup-preview.webp" alt="Customer site with announcement ticker, Dance Floor ticker and Live Lineup. Select View full lineup to see the complete list." width={760} height={460} loading="lazy" />
-      {opened ? <iframe ref={frame} src="/api/public/landing-lineup-preview" title="Try the sample Live Lineup"
+      {opened && html ? <iframe ref={frame} srcDoc={html} title="Try the sample Live Lineup"
         sandbox="allow-scripts" referrerPolicy="no-referrer" className={ready ? styles.ready : styles.loading}
         tabIndex={ready ? 0 : -1} aria-hidden={!ready} /> : null}
       {!ready ? <button type="button" className={styles.start} disabled={opened} onClick={() => {setOpened(true);setFailed(false)}}>
