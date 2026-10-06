@@ -1,7 +1,5 @@
-import {
-  legalFooterLinks,
-  type LegalDocument,
-} from '@/lib/prelaunch/legal-content'
+import { legalFooterLinks, type LegalDocument } from '@/lib/prelaunch/legal-content'
+import { MarketingHeader, MarketingFooter } from './landing-experience'
 
 function getPlainEnglishSummary(document: LegalDocument) {
   if (document.pageTitle === 'Privacy Policy') {
@@ -34,7 +32,8 @@ export function SparkleLegalPage({
   const legalReturnTo = backLabel === 'Back to checkout' ? backHref : undefined
 
   return (
-    <main className="prelaunch-page">
+    <main className="suite-marketing suite-legal">
+      <MarketingHeader intake />
       <section className="prelaunch-section">
         <div className="prelaunch-shell sparkle-legal-shell">
           <div className="mb-8 pt-8">
@@ -139,29 +138,27 @@ export function SparkleLegalPage({
             </div>
 
             <div className="mt-10 border-t border-[var(--prelaunch-border)] pt-6">
+              <nav className="mb-4 flex flex-wrap gap-4" aria-label="Legal documents">
+                {legalFooterLinks.map((link) => (
+                  <a
+                    className={footerLinkClass}
+                    href={withReturnTo(link.href, legalReturnTo)}
+                    key={link.href}
+                    aria-label={link.label}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </nav>
               <a className={returnLinkClass} href={backHref} aria-label={backLabel}>
                 {backLabel}
               </a>
             </div>
           </article>
 
-          <footer className="mt-8 flex flex-col gap-3 text-sm text-[var(--prelaunch-muted)] sm:flex-row sm:items-center sm:justify-between">
-            <span>Sparkle Suite</span>
-            <nav className="flex flex-wrap gap-4" aria-label="Legal pages">
-              {legalFooterLinks.map((link) => (
-                <a
-                  className={footerLinkClass}
-                  href={withReturnTo(link.href, legalReturnTo)}
-                  key={link.href}
-                  aria-label={link.label}
-                >
-                  {link.label}
-                </a>
-              ))}
-            </nav>
-          </footer>
         </div>
       </section>
+      <MarketingFooter />
     </main>
   )
 }

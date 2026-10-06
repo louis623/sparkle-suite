@@ -1,4 +1,6 @@
-# Sparkle Suite Public Site Version Lock
+# Historical: May 2026 Public Site Version Lock
+
+> **Historical record — superseded October 6, 2026.** This file preserves the May 2026 incident/audit context. Its deployment IDs, version lock, copy requirements, and special approval phrase are not current instructions. Louis explicitly approved the Warm plum / concept 2 full marketing mockups and authorized Smoke implementation. Use [08 — Approved brand system](08-production-site-design-kit.md) and the latest owner request. Do not restore a deployment or block already-authorized work based on this historical text. Live publication and email/Workspace changes remain separately scoped.
 
 ## Official live version
 

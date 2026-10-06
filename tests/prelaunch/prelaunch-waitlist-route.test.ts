@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createServer } from 'node:http'
 
 const insertMock = vi.fn()
 const updateEqMock = vi.fn()
@@ -57,6 +58,38 @@ function mockSuccessfulInsert(data: {
 }
 
 describe('POST /api/prelaunch/waitlist', () => {
+  it('delivers a synthetic signup notification over real loopback HTTP without external providers', async () => {
+    const received: { authorization?: string; body: unknown }[] = []
+    const receiver = createServer(async (request, response) => {
+      const chunks = []
+      for await (const chunk of request) chunks.push(Buffer.from(chunk))
+      received.push({ authorization: request.headers.authorization, body: JSON.parse(Buffer.concat(chunks).toString()) })
+      response.writeHead(200).end('ok')
+    })
+    await new Promise<void>(resolve => receiver.listen(0, '127.0.0.1', resolve))
+    try {
+      const address = receiver.address()
+      if (!address || typeof address === 'string') throw new Error('Loopback receiver unavailable')
+      process.env.BUILD_LIST_WEBHOOK_URL = `http://127.0.0.1:${address.port}/build-list`
+      process.env.BUILD_LIST_WEBHOOK_KEY = 'synthetic-local-only-key'
+      mockSuccessfulInsert({ id: 'synthetic-release', name: 'TEST ONLY Release QA', email: 'release@example.com', created_at: '2026-10-06T18:00:00.000Z' })
+      updateEqMock.mockResolvedValueOnce({ error: null })
+      const result = await POST(new Request('http://localhost/api/prelaunch/waitlist', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: 'TEST ONLY Release QA', email: 'release@example.com', emailConsent: true, attribution: { src: 'release_qa', campaign: '2026_10_06' } }),
+      }))
+      expect(result.status).toBe(201)
+      expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({ source: 'prelaunch_site?src=release_qa&campaign=2026_10_06' }))
+      expect(afterMock).toHaveBeenCalledTimes(1)
+      await afterMock.mock.calls[0][0]()
+      expect(received).toEqual([{
+        authorization: 'Bearer synthetic-local-only-key',
+        body: { event: 'build_list_signup', leadId: 'synthetic-release', name: 'TEST ONLY Release QA', email: 'release@example.com', shopName: null, source: 'prelaunch_site', createdAt: '2026-10-06T18:00:00.000Z' },
+      }])
+    } finally {
+      await new Promise<void>((resolve, reject) => receiver.close(error => error ? reject(error) : resolve()))
+    }
+  })
   beforeEach(() => {
     resetPrelaunchRequestGuardForTests()
     resetBuildListWebhookConfigLogForTests()
@@ -159,6 +192,29 @@ describe('POST /api/prelaunch/waitlist', () => {
       code: 'INVALID_INPUT',
       error: 'Please agree to get launch updates by email.',
     })
+  })
+
+  it('persists validated campaign attribution on a synthetic signup without sending email or making provider calls', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    mockSuccessfulInsert({ id: 'synthetic-attribution', name: 'TEST Queue', email: 'queue@example.com' })
+    updateEqMock.mockResolvedValueOnce({ error: null })
+    const response = await POST(new Request('http://localhost/api/prelaunch/waitlist', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        name: 'TEST Queue', email: 'queue@example.com', emailConsent: true,
+        attribution: { src: 'TikTok', campaign: 'October_DMs', clickId: 'drop-me' },
+        source: 'operator_manual',
+      }),
+    }))
+    expect(response.status).toBe(201)
+    expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({
+      source: 'prelaunch_site?src=tiktok&campaign=october_dms',
+      email: 'queue@example.com',
+    }))
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(afterMock).not.toHaveBeenCalled()
   })
 
   it('stores an email-only waitlist signup without SMS consent', async () => {

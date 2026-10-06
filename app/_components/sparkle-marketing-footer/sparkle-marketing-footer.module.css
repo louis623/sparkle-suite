@@ -1,0 +1,167 @@
+.footer {
+  width: 100%;
+  background: #fff;
+  color: #402924;
+  font-family: var(--font-prelaunch-sans), var(--font-dm-sans), "DM Sans", sans-serif;
+}
+
+.inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  width: min(90rem, 100%);
+  margin-inline: auto;
+  padding: 34px 5%;
+}
+
+.brands {
+  --logo-h: 64px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+}
+
+.brands a {
+  display: block;
+  height: var(--logo-h);
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.brands img {
+  display: block;
+  height: var(--logo-h);
+  width: calc(var(--logo-h) * 1100 / 280);
+  max-width: none;
+}
+
+.suite {
+  width: calc(var(--logo-h) * 673 / 280);
+}
+
+.suite img {
+  margin-left: calc(var(--logo-h) * -39 / 280);
+}
+
+.finder {
+  width: calc(var(--logo-h) * 728 / 280);
+}
+
+.finder img {
+  margin-left: calc(var(--logo-h) * -38 / 280);
+}
+
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  justify-self: center;
+}
+
+.legal a {
+  color: #775d57;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.3;
+  text-decoration: none;
+}
+
+.legal a:hover {
+  text-decoration: underline;
+}
+
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  justify-self: end;
+}
+
+.socials a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 136px;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  transition: filter .15s;
+}
+
+.socials a:hover {
+  filter: brightness(1.12);
+}
+
+.socials a.tikTok {
+  background: #080808;
+  border-color: #ffffff40;
+  box-shadow: -2px 2px 0 #25f4ee, 2px -2px 0 #fe2c55;
+}
+
+.tikTok svg {
+  filter: drop-shadow(-1px -1px 0 #25f4ee) drop-shadow(1px 1px 0 #fe2c55);
+}
+
+.socials a.youTube {
+  background: #e6002e;
+  border-color: #ffffff30;
+}
+
+.socials svg {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+}
+
+.footer a:focus-visible {
+  outline: 3px solid #ee2c9b;
+  outline-offset: 3px;
+}
+
+.inner > p {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 4px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(64, 41, 36, 0.15);
+  color: #775d57;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+@media (max-width: 850px) {
+  .inner {
+    grid-template-columns: 1fr;
+    justify-items: start;
+    padding: 28px 22px;
+  }
+
+  .legal,
+  .socials {
+    justify-self: start;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .brands {
+    --logo-h: 48px;
+  }
+
+  .legal {
+    gap: 18px;
+  }
+}
