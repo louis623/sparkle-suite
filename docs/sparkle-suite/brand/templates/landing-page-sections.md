@@ -23,7 +23,7 @@
 - Heading direction: **Your live-show tools.**
 - Individual large rows for Dance Floor and event calendar; an interactive sample of the actual Live Lineup strip and Full lineup. Follow with substantial Team Management and New Rep Onboarding rows showing both lead controls and the six-step private guide.
 - Espresso section with cream text and soft-pink italic emphasis.
-- Email/SMS remain coming soon. Nic-Nac is a factual paid-rep inclusion, not a public demonstration.
+- Email/SMS remain coming soon. Follow the existing spotlights with “More in your Sparkle Suite”: cards for Nic-Nac, Jewelry Library, Customer List, and Message Center. Explain Nic-Nac's verified help without providing public assistant access.
 
 ## Founder
 
@@ -31,7 +31,7 @@
 
 ## Watch
 
-**See it in action.** Featured TikTok demonstration, with **Watch on TikTok** and **Watch on YouTube** channel links. No automatic video embeds. Use only the approved accounts in 08.
+**See it in action.** Existing theme recording, with equal-size branded **Watch on TikTok** and **Watch on YouTube** channel buttons and trailing icons. No separate featured-clip button or automatic third-party video embeds. Use only the approved accounts in 08.
 
 ## Pricing
 

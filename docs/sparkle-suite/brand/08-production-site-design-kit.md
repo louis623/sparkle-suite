@@ -83,7 +83,7 @@ Home scroll: plum hero → light real-site gallery → espresso demonstrations �
 
 - Current feature names: **Dance Floor**, **Live Lineup**, **event calendar**, **Team Management**, **New Rep Onboarding**, **themes**, **Nic-Nac rep assistant**.
 - Email and SMS updates are **coming soon**. Do not imply they are available or invent a release date.
-- No public Nic-Nac on marketing routes: no mounted launcher, anonymous chat API, or FAQ handoff form. One factual included-feature line is fine; the assistant is for paying reps.
+- No public Nic-Nac use on marketing routes: no mounted launcher, anonymous chat API, or FAQ handoff form. Promote his supported capabilities in a dedicated supporting-tool card; the assistant is for paying reps.
 - Founder: **$49.99/month for 12 paid months**, then **$74.99/month**, plus **$49.99 one-time setup**. First month + setup is **$99.98**. Standard first month + setup is **$124.98**.
 - Founder cap: 20. A confirmed live counter may say **X founder spots remaining**; never **X of 20**. On unknown availability show founder price without invented count/urgency. Confirmed zero shows standard price. Founder pricing must render server-side on first load.
 - Joining the queue does **not** reserve founder pricing. It applies only after a meeting where Louis and the rep agree to move forward, while spots last.
@@ -102,7 +102,7 @@ Use `standing/assets/louis-headshot-2026-10-05.png` from Core Memory. Its teal b
 
 - YouTube: `https://www.youtube.com/@SparkleSuite`.
 - TikTok: `https://www.tiktok.com/@yoursparklesuite.com`; featured demo `/video/7684058046800071966`. Never use `tiktok.com/@sparklesuite`.
-- Watch uses real demos and channel links. Seasonal clips belong in Watch; the hero still follows the owner's saved demo theme.
+- Watch uses real demos and two equal-size channel links with icons after the labels: TikTok black with its cyan/pink accents, YouTube red with white. These platform-brand colors are specific to channel buttons, not Suite chrome. No separate featured-clip button. The hero follows the owner's saved demo theme.
 - OG/social cards explain Sparkle Suite with a themed site image and value headline, **no price**.
 - Preserve `?src=tiktok`, `?src=email`, and extensible campaign labels through marketing navigation into queue signups. Use free/built-in tooling and minimal data. Louis pastes links; setup and reporting are handled by Suite/Codex.
 

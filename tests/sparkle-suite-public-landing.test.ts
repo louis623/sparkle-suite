@@ -86,9 +86,9 @@ describe('Sparkle Suite public landing page', () => {
     expect(html).toContain('Team Management and New Rep Onboarding are included')
   })
 
-  it('sends Watch traffic to the correct featured clip and channels', () => {
+  it('sends Watch traffic to the correct channels', () => {
     const html = renderLanding()
-    expect(html).toContain('href="https://www.tiktok.com/@yoursparklesuite.com/video/7684058046800071966"')
+    expect(html).not.toContain('Watch the featured TikTok demo')
     expect(html).toContain('href="https://www.tiktok.com/@yoursparklesuite.com"')
     expect(html).toContain('href="https://www.youtube.com/@SparkleSuite"')
     expect(html).not.toContain('tiktok.com/@sparklesuite')

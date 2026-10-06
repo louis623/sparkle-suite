@@ -124,7 +124,7 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
           </button> : <span>Interactive preview temporarily unavailable.</span>}
           {selectedLabel ? <span className={styles.themeName}>{selectedLabel}</span> : null}
         </div>
-        <p className={styles.status} role="status">{state === 'error' ? 'The preview is taking a little longer. You can try again.' : state === 'ready' ? 'Read-only preview. Nothing is submitted or changed.' : '\u00a0'}</p>
+        {state === 'error' ? <p className={styles.status} role="status">The preview is taking a little longer. You can try again.</p> : null}
         {demo && demo.themes.length > 0 ? <div className={styles.picker}>
           <p id="theme-picker-label" className={styles.pickerLabel}>Try one of our Sparkle Suite themes</p>
           <div className={styles.choices} role="group" aria-labelledby="theme-picker-label">

@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { ArrowRight, ArrowUpRight, ChevronDown } from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, Gem, MessageCircle, Users, WandSparkles } from 'lucide-react'
 import { LineupDemonstration } from './lineup-demonstration'
 import { ProductPeekVideo } from './product-peek-video'
 import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
@@ -25,6 +25,7 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
       <QueueLink href="/faq" className={styles.pageLink} aria-current={current === 'faq' ? 'page' : undefined}>FAQ</QueueLink>
     </nav>
     <nav className={styles.account} aria-label="Account links"><SparkleSuitePublicAccountAction /></nav>
+    <QueueLink className={`${styles.primaryButton} ${styles.headerCta}`}>Join the build queue <ArrowRight size={16} aria-hidden="true" /></QueueLink>
   </header>
 }
 
@@ -92,11 +93,13 @@ export function LandingExperience({ initialAvailability, demo = null }: { initia
         </div>
         <figure><Image src="/marketing/new-rep-onboarding-preview.webp" alt="Actual New Rep Onboarding guide showing six starting steps for a sample rep" width={1080} height={1027} sizes="(max-width:760px) 90vw, 60vw" /><figcaption>New rep’s private guide · sample data</figcaption></figure>
       </div>
-      <p className={styles.teamIncluded}>Team Management and New Rep Onboarding are included with an active Sparkle Suite workspace.</p>
+      <div className={styles.teamIncluded}><span className={styles.includedMark}><Check size={22} aria-hidden="true" /></span><div><h3>Part of your Suite.</h3><p>Team Management and New Rep Onboarding are included with an active Sparkle Suite workspace.</p></div></div>
+      <div className={styles.extrasHeading}><p className={styles.teamEyebrow}>For the work around your show</p><h3>More in your <em>Sparkle Suite.</em></h3></div>
       <dl className={styles.workspaceExtras} aria-label="More in your workspace">
-        <div><dt>Jewelry Library</dt><dd>Look up pieces by collection, type, material, and stone.</dd></div>
-        <div><dt>Customer List</dt><dd>Keep the details your customers choose to share in one place.</dd></div>
-        <div><dt>Message Center</dt><dd>Open onboarding questions and keep the conversation with each new rep together.</dd></div>
+        <div className={styles.nicNacCard}><dt><span className={styles.extraIcon}><WandSparkles size={24} aria-hidden="true" /></span>Nic-Nac</dt><dd>Your rep assistant can help you add pieces to your Dance Floor, schedule shows, and update your site’s announcement.<span className={styles.cardNote}>Included in your paid workspace.</span></dd></div>
+        <div><dt><span className={styles.extraIcon}><Gem size={24} aria-hidden="true" /></span>Jewelry Library</dt><dd>Look up pieces by collection, type, material, and stone.</dd></div>
+        <div><dt><span className={styles.extraIcon}><Users size={24} aria-hidden="true" /></span>Customer List</dt><dd>Keep the details your customers choose to share in one place.</dd></div>
+        <div><dt><span className={styles.extraIcon}><MessageCircle size={24} aria-hidden="true" /></span>Message Center</dt><dd>Open onboarding questions and keep the conversation with each new rep together.</dd></div>
       </dl>
     </div></section>
     <section className={styles.founderSection} aria-labelledby="founder-title"><div className={styles.founderLayout}>
@@ -110,7 +113,12 @@ export function LandingExperience({ initialAvailability, demo = null }: { initia
           <ProductPeekVideo {...halloweenHeroMotion.witch} alt="Real recording of the animated Halloween Pumpkin and Witch customer-site hero" />
           <span className={styles.watchCaption}>A real theme, in motion.</span>
         </div>
-        <div className={styles.watchLinks}><h3>Watch Sparkle Suite demos.</h3><p className={styles.toolBody}>See the themes move, then watch how the tools work in a full demonstration.</p><a href={sparkleMarketingTikTokUrl + '/video/7684058046800071966'} target="_blank" rel="noopener noreferrer" className={styles.outlineButton}>Watch the featured TikTok demo <ArrowUpRight size={18} aria-hidden="true" /></a><a href={sparkleMarketingTikTokUrl} target="_blank" rel="noopener noreferrer" className={styles.outlineButton}>Watch on TikTok <ArrowUpRight size={18} aria-hidden="true" /></a><a href={sparkleMarketingYouTubeUrl} target="_blank" rel="noopener noreferrer" className={styles.outlineButton}>Watch on YouTube <ArrowUpRight size={18} aria-hidden="true" /></a></div>
+        <div className={styles.watchLinks}>
+          <h3>Watch Sparkle Suite demos.</h3>
+          <p className={styles.toolBody}>See the themes move, then watch how the tools work in a full demonstration.</p>
+          <a href={sparkleMarketingTikTokUrl} target="_blank" rel="noopener noreferrer" className={`${styles.socialButton} ${styles.tikTokButton}`}>Watch on TikTok <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" width="26" height="26"><path d="M14.2 3.1c.5 2.6 2 4.4 4.5 4.7v2.8a7.7 7.7 0 0 1-4.4-1.4v6.6a5.8 5.8 0 1 1-5.8-5.8c.3 0 .6 0 .9.1v2.9a3 3 0 1 0 2.1 2.8V3.1h2.7Z" /></svg></a>
+          <a href={sparkleMarketingYouTubeUrl} target="_blank" rel="noopener noreferrer" className={`${styles.socialButton} ${styles.youTubeButton}`}>Watch on YouTube <svg aria-hidden="true" fill="currentColor" viewBox="0 0 24 24" width="26" height="26"><path d="M23 12.2s0-3.2-.4-4.6a3 3 0 0 0-2.1-2.1C18.9 5 12 5 12 5s-6.9 0-8.5.5a3 3 0 0 0-2.1 2.1C1 9 1 12.2 1 12.2s0 3.2.4 4.6a3 3 0 0 0 2.1 2.1C5.1 19.4 12 19.4 12 19.4s6.9 0 8.5-.5a3 3 0 0 0 2.1-2.1c.4-1.4.4-4.6.4-4.6ZM9.8 15.5V8.9l6.2 3.3-6.2 3.3Z" /></svg></a>
+        </div>
       </div>
     </div></section>
     <section className={styles.pricingSection} id="pricing" aria-labelledby="pricing-title"><div className={styles.container}>
