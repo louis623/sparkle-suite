@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { ArrowRight, Check, Pause, Play, Sparkles } from 'lucide-react'
 import type { FounderAvailability } from '@/lib/sparkle-suite/founder-availability'
 import styles from './landing-experience.module.css'
@@ -90,12 +90,21 @@ export function FounderOffer({ compact = false }: { compact?: boolean }) {
 }
 
 export function SiteStyleShowcase() {
+  const stage = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) { setVisible(true); observer.disconnect() }
+    })
+    if (stage.current) observer.observe(stage.current)
+    return () => observer.disconnect()
+  }, [])
   return <div className={styles.styleShowcase}>
     <figure id="site-style-preview" className={styles.unicornFigure}>
       <div className={styles.unicornWindow}>
         <div className={styles.browserBar} aria-hidden="true"><em>Chasing Unicorns</em></div>
-        <div className={styles.unicornStage}>
-          <iframe
+        <div className={styles.unicornStage} ref={stage}>
+          {visible ? <iframe
             loading="lazy"
             title="Chasing Unicorns homepage, the full customer site with the unicorn scene playing in the hero"
             src="/marketing/chasing-unicorns"
@@ -104,7 +113,7 @@ export function SiteStyleShowcase() {
             sandbox="allow-scripts"
             referrerPolicy="no-referrer"
             tabIndex={-1}
-          />
+          /> : <Image src="/marketing/demo-themes/amethyst.webp" alt="Chasing Unicorns customer website preview" width={1200} height={850} style={{width:'100%',height:'auto'}} />}
         </div>
       </div>
       <figcaption>Chasing Unicorns. The whole homepage, with the scene playing in the hero. <span>One look. The tools your customers already love.</span></figcaption>
