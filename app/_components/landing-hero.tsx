@@ -42,7 +42,11 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
     setState('loading')
   }
 
-  return <section className={styles.hero} id="main-content" aria-labelledby="landing-title">
+  const poster = demo ? '/marketing/demo-themes/' + selected : '/marketing/demo-poster'
+  return <>
+  <link rel="preload" as="image" href={poster + '-mobile.webp'} media="(max-width: 760px)" fetchPriority="high" />
+  <link rel="preload" as="image" href={poster + '.webp'} media="(min-width: 761px)" fetchPriority="high" />
+  <section className={styles.hero} id="main-content" aria-labelledby="landing-title">
     <div className={styles.layout}>
       <div className={styles.intro}>
         <h1 id="landing-title">Your Bomb Party show.<br /><em>Your own website.</em></h1>
@@ -93,5 +97,5 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
         <p className={styles.promise}>Join the build queue and I’ll email you to book a quick 30-minute call. Your build starts once your first month and setup fee are paid.</p>
       </div>
     </div>
-  </section>
+  </section></>
 }

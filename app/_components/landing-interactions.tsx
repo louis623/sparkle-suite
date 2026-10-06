@@ -113,7 +113,7 @@ export function SiteStyleShowcase() {
             sandbox="allow-scripts"
             referrerPolicy="no-referrer"
             tabIndex={-1}
-          /> : <Image src="/marketing/demo-themes/amethyst.webp" alt="Chasing Unicorns customer website preview" width={1200} height={850} style={{width:'100%',height:'auto'}} />}
+          /> : <Image src="/marketing/demo-themes/amethyst.webp" alt="Chasing Unicorns customer website preview" width={1200} height={850} sizes="(max-width: 760px) 100vw, 1000px" style={{width:'100%',height:'auto'}} />}
         </div>
       </div>
       <figcaption>Chasing Unicorns. The whole homepage, with the scene playing in the hero. <span>One look. The tools your customers already love.</span></figcaption>
@@ -157,7 +157,7 @@ export function ShowToolsTour() {
     <figure id="show-tool-preview" className={styles.toolFigure}>
       <div className={`${styles.toolImage} ${styles.fillFrame}`} key={selected} style={{ aspectRatio: `${tool.width} / ${tool.height}` }}><Image src={tool.src} alt={tool.alt} width={tool.width} height={tool.height} sizes="(max-width: 900px) 92vw, 720px" /></div>
       <figcaption>{tool.label} <span aria-hidden="true">·</span> Inside Sparkle Suite</figcaption>
-      <div className={styles.tourProgress} aria-label={`Preview ${selected + 1} of ${tools.length}`}>{tools.map((item, i) => <span key={item.label} data-current={selected === i} />)}</div>
+      <div className={styles.tourProgress} role="img" aria-label={`Preview ${selected + 1} of ${tools.length}`}>{tools.map((item, i) => <span key={item.label} data-current={selected === i} />)}</div>
     </figure>
   </div>
 }
