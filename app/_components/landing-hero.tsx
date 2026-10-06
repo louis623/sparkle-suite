@@ -1,28 +1,28 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { CSSProperties } from 'react'
 import type { LandingDemo } from '@/lib/sparkle-suite/landing-demo-model'
 import styles from './landing-hero.module.css'
+
+const subscribeToLocation = () => () => {}
+function queueLink() {
+  const params = new URLSearchParams(window.location.search)
+  const source = params.get('src')
+  if (!source || !/^[a-z0-9_-]{1,40}$/.test(source)) return '/prelaunch#waitlist'
+  const forwarded = new URLSearchParams({src:source})
+  const campaign = params.get('campaign')
+  if (campaign && /^[a-zA-Z0-9_-]{1,80}$/.test(campaign)) forwarded.set('campaign',campaign)
+  return '/prelaunch?' + forwarded + '#waitlist'
+}
 
 export function LandingHero({ demo }: { demo: LandingDemo | null }) {
   const [selected, setSelected] = useState(demo?.theme || '')
   const [attempt, setAttempt] = useState(0)
   const [state, setState] = useState<'poster' | 'loading' | 'ready' | 'error'>('poster')
-  const [queueHref, setQueueHref] = useState('/prelaunch#waitlist')
+  const queueHref = useSyncExternalStore(subscribeToLocation, queueLink, () => '/prelaunch#waitlist')
   const frame = useRef<HTMLIFrameElement>(null)
   const selectedLabel = selected === demo?.theme ? demo.themeLabel : demo?.themes.find(theme => theme.id === selected)?.label
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const source = params.get('src')
-    if (source && /^[a-z0-9_-]{1,40}$/.test(source)) {
-      const forwarded = new URLSearchParams({ src: source })
-      const campaign = params.get('campaign')
-      if (campaign && /^[a-zA-Z0-9_-]{1,80}$/.test(campaign)) forwarded.set('campaign', campaign)
-      setQueueHref('/prelaunch?' + forwarded + '#waitlist')
-    }
-  }, [])
 
   useEffect(() => {
     if (state !== 'loading') return
@@ -52,7 +52,7 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
         <figure className={styles.window}>
           <figcaption className={styles.bar}><span aria-hidden="true" className={styles.dots}>● ● ●</span><span>{demo?.businessName || 'Website preview'}</span><span className={styles.readOnly}>Preview</span></figcaption>
           <div className={styles.stage}>
-            <picture aria-hidden={state === 'ready'}>
+            <picture>
               <source media="(max-width: 760px)" srcSet={demo ? '/marketing/demo-themes/' + selected + '-mobile.webp' : '/marketing/demo-poster-mobile.webp'} />
               <img src={demo ? '/marketing/demo-themes/' + selected + '.webp' : '/marketing/demo-poster.webp'}
                 alt={demo ? 'Customer website preview in the ' + selectedLabel + ' theme' : 'Sparkle Suite customer website preview'}

@@ -29,9 +29,9 @@ export function MarketingHeader({ intake = false, current = 'home' }: { intake?:
         <a className={styles.sectionLink} href="#show-stories">Show stories</a>
         {gridDemoEmbeds().length > 0 ? <a className={styles.sectionLink} href="#clips">Clips</a> : null}
       </> : intake ? <>
-        <a className={styles.sectionLink} href="/#customer-site-proof">Your site</a>
-        <a className={styles.sectionLink} href="/#workspace-proof">Show tools</a>
-        <a className={styles.sectionLink} href="/#pricing">Founding offer</a>
+        <Link className={styles.sectionLink} href="/#customer-site-proof">Your site</Link>
+        <Link className={styles.sectionLink} href="/#workspace-proof">Show tools</Link>
+        <Link className={styles.sectionLink} href="/#pricing">Founding offer</Link>
       </> : null}
       <Link className={styles.pageLink} href="/portfolio" aria-current={onPortfolio ? 'page' : undefined}>Portfolio</Link>
       <a className={styles.pageLink} href={onSubpage || intake ? "/#pricing" : "#pricing"}>Pricing</a>
