@@ -1,7 +1,20 @@
+import { safeSparkleFinderNextPath } from "./safe-redirect";
+
 export function getSparkleFinderOAuthRedirectTo(nextPath: string, browserOrigin?: string): string {
   const origin = getSparkleFinderSiteOrigin(browserOrigin);
 
   return `${origin}/api/auth/callback?next=${encodeURIComponent(nextPath)}`;
+}
+
+/**
+ * Magic-link and email confirmation return URL.
+ * Prefer the host the visitor is actually on so Smoke links stay on Smoke
+ * even when a configured site URL points somewhere else.
+ */
+export function getSparkleFinderMagicLinkRedirectTo(nextPath: string, browserOrigin?: string): string {
+  const origin = getSparkleFinderOriginFromValue(browserOrigin) ?? getSparkleFinderSiteOrigin(browserOrigin);
+
+  return `${origin}/auth/confirm?next=${encodeURIComponent(safeSparkleFinderNextPath(nextPath))}`;
 }
 
 export function getSparkleFinderSiteOrigin(fallbackOrigin = "http://localhost:3000"): string {
