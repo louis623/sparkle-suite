@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { whySeriousBpRepArticle } from './article-content/why-serious-bp-rep'
 
 const ORIGIN = 'https://www.yoursparklesuite.com'
 
@@ -12,15 +13,14 @@ export type SuiteArticle = {
   status: 'draft' | 'published'
   title: string
   description: string
-  author: { name: string; type: 'Person' | 'Organization'; url?: string }
+  author?: { name: string; type: 'Person' | 'Organization'; url?: string }
   publishedAt?: string
   updatedAt?: string
   body: readonly ArticleBlock[]
 }
 
 // Add approved articles here. Draft content must never be imported by a client component.
-// No example post: the first owner-supplied article is pending.
-export const suiteArticles: readonly SuiteArticle[] = []
+export const suiteArticles: readonly SuiteArticle[] = [whySeriousBpRepArticle]
 
 function validDate(value: string | undefined) {
   if (!value || !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-]\d{2}:\d{2})$/.test(value) || !Number.isFinite(Date.parse(value))) return false
@@ -35,12 +35,13 @@ export function publishedArticles(articles: readonly SuiteArticle[] = suiteArtic
   return articles.filter((article) =>
     article.status === 'published' &&
     /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(article.slug) && counts.get(article.slug) === 1 &&
-    article.title.trim() && article.description.trim() && article.author.name.trim() &&
-    validDate(article.publishedAt) && Date.parse(article.publishedAt!) <= now &&
-    (!article.updatedAt || (validDate(article.updatedAt) && Date.parse(article.updatedAt) >= Date.parse(article.publishedAt!) && Date.parse(article.updatedAt) <= now)) &&
+    article.title.trim() && article.description.trim() && (!article.author || article.author.name.trim()) &&
+    (article.publishedAt === undefined || (validDate(article.publishedAt) && Date.parse(article.publishedAt) <= now)) &&
+    (article.updatedAt === undefined || (validDate(article.updatedAt) && Date.parse(article.updatedAt) <= now &&
+      (!article.publishedAt || Date.parse(article.updatedAt) >= Date.parse(article.publishedAt)))) &&
     article.body.length > 0 && article.body.some((block) => block.type === 'paragraph' && block.text.trim()) &&
     article.body.every((block) => block.type === 'list' ? block.items.length > 0 && block.items.every((item) => item.trim()) : block.text.trim()),
-  ).sort((a, b) => Date.parse(b.publishedAt!) - Date.parse(a.publishedAt!))
+  ).sort((a, b) => (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0))
 }
 
 export function findPublishedArticle(slug: string) {
@@ -65,7 +66,7 @@ export function articleMetadata(article: SuiteArticle): Metadata {
     openGraph: {
       type: 'article', url, siteName: 'Sparkle Suite', title: article.title,
       description: article.description, publishedTime: article.publishedAt,
-      modifiedTime: article.updatedAt, authors: [article.author.name],
+      modifiedTime: article.updatedAt, authors: article.author ? [article.author.name] : undefined,
     },
     twitter: { card: 'summary', title: article.title, description: article.description },
   }
@@ -76,9 +77,9 @@ export function articleJsonLd(article: SuiteArticle) {
     '@context': 'https://schema.org', '@type': 'BlogPosting',
     headline: article.title, description: article.description,
     url: articleUrl(article), mainEntityOfPage: articleUrl(article),
-    datePublished: article.publishedAt,
+    ...(article.publishedAt ? { datePublished: article.publishedAt } : {}),
     ...(article.updatedAt ? { dateModified: article.updatedAt } : {}),
-    author: { '@type': article.author.type, name: article.author.name, ...(article.author.url ? { url: article.author.url } : {}) },
+    ...(article.author ? { author: { '@type': article.author.type, name: article.author.name, ...(article.author.url ? { url: article.author.url } : {}) } } : {}),
     publisher: { '@type': 'Organization', name: 'Sparkle Suite', url: ORIGIN },
   }
 }
@@ -86,6 +87,7 @@ export function articleJsonLd(article: SuiteArticle) {
 export function articleSitemapEntries(origin: string, articles: readonly SuiteArticle[] = suiteArticles) {
   if (new URL(origin).origin !== ORIGIN) return []
   return publishedArticles(articles).map((article) => ({
-    url: articleUrl(article), lastModified: new Date(article.updatedAt ?? article.publishedAt!),
+    url: articleUrl(article),
+    ...(article.updatedAt || article.publishedAt ? { lastModified: new Date((article.updatedAt ?? article.publishedAt)!) } : {}),
   }))
 }

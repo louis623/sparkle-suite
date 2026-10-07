@@ -15,7 +15,7 @@ export function FaqArticles() {
               <article>
                 <h3><Link href={`/faq/articles/${article.slug}`}>{article.title}</Link></h3>
                 <p>{article.description}</p>
-                <time dateTime={article.publishedAt}>{articleDate(article.publishedAt!)}</time>
+                {article.publishedAt && <time dateTime={article.publishedAt}>{articleDate(article.publishedAt)}</time>}
               </article>
             </li>
           ))}

@@ -44,7 +44,7 @@ describe('FAQ article publication boundary', () => {
   it.each([
     { status: 'draft' }, { title: ' ' }, { description: '' }, { author: { name: '', type: 'Person' } },
     { body: [] }, { body: [{ type: 'heading', text: 'Only a heading' }] },
-    { publishedAt: undefined }, { publishedAt: '2026-01-01' }, { publishedAt: 'invalid' },
+    { publishedAt: '' }, { publishedAt: '2026-01-01' }, { publishedAt: 'invalid' },
     { publishedAt: '2026-02-30T12:00:00Z' }, { publishedAt: '2026-01-01T24:00:00Z' },
     { publishedAt: '2099-01-01T00:00:00Z' }, { updatedAt: '2099-01-01T00:00:00Z' },
     { updatedAt: '2020-01-01T00:00:00Z' }, { slug: '../draft' },
