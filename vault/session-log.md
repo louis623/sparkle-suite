@@ -1,3 +1,7 @@
+## September 29, 2026 - Live Lineup status copy and signals
+
+- Draft PR https://github.com/louis623/sparkle-suite/pull/49 on `cursor/live-lineup-status-copy-0977`. Popup and Workspace Live Lineup now share Connecting, Connected + Updating, Reconnecting, Needs attention, and Off. Green stays on a healthy heartbeat and a routine source refresh. Red is Needs attention. Parser, lease, publish, read, customer cards, the 2.0.6 package version, and the Chrome Web Store item were not changed. Not deployed. Details: [status copy closeout](2026-09-29-live-lineup-status-copy-closeout.md).
+
 ## September 25, 2026 - Live Stripe projected MRR on accounting.snapshot
 
 - Suite `accounting.snapshot` now returns `liveProjectedRecurringCents` and `liveProjectedRecurringSource` from a read-only sum of active monthly Stripe subscription unit amounts. Overview uses that first, then `snapshot.projectedRecurringCents`. The customer-profile projection stays a detail check and is not the money tile.

@@ -4104,7 +4104,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('MHF-9446')
     expect(html).not.toContain('Create private connection key')
     expect(html).toContain('Copy code')
-    expect(html).toContain('Confirm the green Connected light')
+    expect(html).toContain('Confirm the green Connected + Updating light')
     expect(html).toContain('finds your parties automatically')
     expect(html).not.toContain('Review / select source')
     expect(html).not.toContain('Save code')
