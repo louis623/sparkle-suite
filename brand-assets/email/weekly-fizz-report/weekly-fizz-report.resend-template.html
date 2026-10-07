@@ -13,7 +13,11 @@
     Resend shell. Proposal only. Do not publish or send without Louis's OK.
     From: Sparkle Suite <notifications@yoursparklesuite.com>
     Triple-mustache variables (unescaped):
-      PREHEADER, ISSUE_DATE, WEEK_NOTE, ITEMS_HTML, CTA_LABEL, CTA_URL, RESEND_UNSUBSCRIBE_URL
+      PREHEADER, ISSUE_DATE, WEEK_NOTE, ITEMS_HTML,
+      LATEST_TITLE, LATEST_SUMMARY, LATEST_THUMB_URL, LATEST_WATCH_URL,
+      CTA_LABEL, CTA_URL, RESEND_UNSUBSCRIBE_URL
+    The espresso band is one featured blog, video, or social post. Watch uses LATEST_WATCH_URL.
+    CTA_LABEL and CTA_URL are the optional soft-pink follow-up link.
     Pass plain text for every variable except ITEMS_HTML.
     ITEMS_HTML is up to five item blocks. Leave it empty on a slow week.
     Oct 6 warm-plum rhythm: blush page, plum header, warm-paper reading, espresso action, white legal strip.
@@ -37,6 +41,7 @@
     @media screen and (max-width: 600px) {
       .email-card { width: 100% !important; }
       .pad { padding-left: 20px !important; padding-right: 20px !important; }
+      .thumb { width: 100% !important; height: auto !important; }
     }
   </style>
 </head>
@@ -81,22 +86,34 @@
           </tr>
           <tr>
             <td class="pad" bgcolor="#36221d" style="background:#36221d;padding:32px;">
-              <p style="margin:0 0 20px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#f6e7da;">Until the next report.</p>
+              <p style="margin:0 0 8px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:13px;line-height:18px;font-weight:700;color:#ffd4ea;">Latest from Sparkle Suite</p>
+              <p style="margin:0 0 8px;font-family:'Playfair Display',Georgia,'Times New Roman',serif;font-size:26px;line-height:32px;font-weight:600;color:#f6e7da;">{{{LATEST_TITLE}}}</p>
+              <p style="margin:0 0 16px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#f6e7da;">{{{LATEST_SUMMARY}}}</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;">
+                <tr>
+                  <td bgcolor="#fff6fa" style="background:#fff6fa;">
+                    <a href="{{{LATEST_WATCH_URL}}}" style="text-decoration:none;">
+                      <img class="thumb" src="{{{LATEST_THUMB_URL}}}" width="536" height="302" alt="{{{LATEST_TITLE}}}" style="display:block;width:100%;max-width:536px;height:auto;border:0;outline:none;text-decoration:none;background:#fff6fa;">
+                    </a>
+                  </td>
+                </tr>
+              </table>
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="center" bgcolor="#ee2c9b" style="background-color:#ee2c9b;background-image:linear-gradient(90deg,#ff4cae 0%,#d81b87 100%);border-radius:999px;">
                     <!--[if mso]>
-                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:office" href="{{{CTA_URL}}}" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="50%" stroke="f" fillcolor="#ee2c9b">
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:office" href="{{{LATEST_WATCH_URL}}}" style="height:48px;v-text-anchor:middle;width:140px;" arcsize="50%" stroke="f" fillcolor="#ee2c9b">
                       <w:anchorlock/>
-                      <center style="color:#fff6fb;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;">{{{CTA_LABEL}}}</center>
+                      <center style="color:#fff6fb;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;">Watch</center>
                     </v:roundrect>
                     <![endif]-->
                     <!--[if !mso]><!-->
-                    <a href="{{{CTA_URL}}}" style="display:inline-block;padding:14px 28px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:20px;font-weight:700;color:#fff6fb;text-decoration:none;border-radius:999px;background-color:#ee2c9b;background-image:linear-gradient(90deg,#ff4cae 0%,#d81b87 100%);">{{{CTA_LABEL}}}</a>
+                    <a href="{{{LATEST_WATCH_URL}}}" style="display:inline-block;padding:14px 28px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:20px;font-weight:700;color:#fff6fb;text-decoration:none;border-radius:999px;background-color:#ee2c9b;background-image:linear-gradient(90deg,#ff4cae 0%,#d81b87 100%);">Watch</a>
                     <!--<![endif]-->
                   </td>
                 </tr>
               </table>
+              <p style="margin:16px 0 0;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;"><a href="{{{CTA_URL}}}" style="color:#ffd4ea;text-decoration:underline;">{{{CTA_LABEL}}}</a></p>
             </td>
           </tr>
           <tr>
