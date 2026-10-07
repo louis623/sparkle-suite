@@ -28,7 +28,7 @@ export const sparkleFinderLegalFooterLinks = [
 
 const developer = "Neon Rabbit Digital Services, Jacksonville, FL";
 const contact = "louis@neonrabbit.net";
-const lastUpdated = "June 22, 2026";
+const lastUpdated = "October 3, 2026";
 
 export const sparkleFinderPrivacyPolicyDocument: LegalDocument = {
   pageTitle: "Privacy Policy",
@@ -90,6 +90,17 @@ export const sparkleFinderPrivacyPolicyDocument: LegalDocument = {
         "send account, security, trial, billing, or service notices",
         "send optional promotional messages only when you choose to opt in",
         "protect against misuse, spam, fraud, unauthorized access, and policy violations",
+      ],
+    },
+    {
+      title: "How A Jewelry Profile Is Used",
+      paragraphs: [
+        "If you share jewelry preferences with Finder, they are used in three ways.",
+      ],
+      bullets: [
+        "Shared with Sparkle Suite reps only, so they can use them. Nobody else receives them.",
+        "Kept for your own Finder profile and collection.",
+        "Used by Finder to point you toward pieces you might like.",
       ],
     },
     {
@@ -272,7 +283,10 @@ export const sparkleFinderTermsAndConditionsDocument: LegalDocument = {
     },
     {
       title: "Privacy",
-      paragraphs: ["Your use of Sparkle Finder is also governed by the Sparkle Finder Privacy Policy."],
+      paragraphs: [
+        "Your use of Sparkle Finder is also governed by the Sparkle Finder Privacy Policy.",
+        "How jewelry preferences you share with Finder are used is explained in the Privacy Policy under How A Jewelry Profile Is Used.",
+      ],
       links: [{ href: "/privacy-policy", label: "/privacy-policy" }],
     },
     {
