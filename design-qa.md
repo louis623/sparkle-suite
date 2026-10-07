@@ -1,91 +1,44 @@
-# Nic-Nac First Workspace Design QA
+# Tools overview and detail page design QA
 
-## Source
+Result: passed (local visual and interaction review, 2026-10-06).
 
-- Accepted concept: `C:\Users\louis\AppData\Local\Temp\codex-clipboard-58a13e17-9828-4abf-a6fe-e0b0bdf11a77.png`
-- Mobile comparison: `C:\Users\louis\sparkle-suite-repo\artifacts\nic-nac-design-qa-mobile-comparison.png`
-- Desktop comparison: `C:\Users\louis\sparkle-suite-repo\artifacts\nic-nac-design-qa-desktop-comparison.png`
-- Mobile render: `C:\Users\louis\sparkle-suite-repo\artifacts\nic-nac-redesign-mobile-final6.png`
-- Desktop render: `C:\Users\louis\sparkle-suite-repo\artifacts\nic-nac-redesign-desktop-final6.png`
+## Approved sources and owner refinements
 
-## Viewports
+- Home concept: `C:/Users/louis/.codex/generated_images/01a10df3-2121-7673-8f71-c58c6d0e5ab4/exec-a3c5e766-eff0-43c0-9efa-c94613abb635.png`
+- Tools concept: `C:/Users/louis/.codex/generated_images/01a10df3-2121-7673-8f71-c58c6d0e5ab4/exec-ae400ff2-267f-4529-bf7e-19961f09d791.png`
+- Owner refinement supersedes example cards: Dance Floor, Live Lineup, Live Show Calendar, Team Management, in that order. Nic-Nac belongs on the tools page. New Rep Onboarding remains within Team Management.
 
-- Mobile: `390x844`
-- Desktop/tablet: `1440x1024`
-- URL: `http://127.0.0.1:3021/nic-nac?conversationId=visual-smoke-redesign`
-- Session mode: local production build with reviewer-smoke preview flags.
+## Captures and comparison
 
-## Comparison Ledger
+Artifacts directory: `C:/Users/louis/.codex/visualizations/2026/10/05/01a10df3-2121-7673-8f71-c58c6d0e5ab4/`
 
-- Shell and palette: passed. The old espresso/public-site wrapper is gone; the working surface uses the amethyst/lavender Concept 1 shell.
-- Mobile hierarchy: passed. Header, Nic-Nac hero, three quick actions, Today card, Public Site preview, Recent conversations cue, bottom nav, and floating N are all present in the first viewport.
-- Desktop hierarchy: passed. Header/search/profile, left rail, center Nic-Nac hero and embedded chat, right glance rail, and bottom app nav match the approved Concept 1 structure.
-- Asset treatment: passed. The Trade Board, Active Board, and Public Site thumbnails now use local visual assets cropped from the accepted concept instead of CSS placeholder drawings.
-- Navigation: passed. Primary nav is reduced to Home/Nic-Nac, Trade Board, Calendar, Jewelry Library, and More. The mobile floating N no longer covers More.
-- Launch actions: passed by focused tests. Add a piece, Check my board, and Add a show are wired to launch Nic-Nac prompts.
-- Reviewer data: intentional deviation. The concept shows populated example data (`125`, `2`, `3`, example chat bubbles); the reviewer-safe local account renders zeros and smoke identity because it avoids live customer/provider side effects.
-- Chat transcript density: intentional deviation. Desktop uses the existing real Nic-Nac chat body and safe seed message rather than hard-coded sample bubbles.
+- `tools-home-local-desktop.jpg` (1440px desktop, four-card region)
+- `tools-home-local-mobile.jpg` (390px mobile)
+- `tools-page-local-desktop.jpg` (1440px desktop, Team Management)
+- `tools-page-local-mobile.jpg` (390px mobile, Nic-Nac and sticky jump menu)
 
-## Verification
+Sources and implementation captures were inspected together, comparing the corresponding card and detail regions rather than mismatched full-page heights. This is fidelity to the approved direction and owner refinements, not a pixel-identical reproduction of generated text or mock UI.
 
-- `npm exec vitest run tests/nic-nac-workspace-shell.test.tsx tests/nic-nac-dashboard-placeholder.test.ts tests/reviewer-smoke-ui.test.ts`: passed, 111 tests.
-- `npm run build`: passed with Next.js 16.2.1.
-- Playwright screenshots: passed for mobile and desktop after production build.
+## Five fidelity surfaces
 
-## Final Result
+1. Layout: two-column Home cards become one column on phones; desktop detail sidebar becomes a compact mobile jump menu. Longer proof lives on `/tools`.
+2. Typography: existing Playfair Display and DM Sans; italic pink headline emphasis and clear description/benefit hierarchy.
+3. Palette: existing Suite paper, blush, pink, warm plum, and espresso tokens; ink text on outlined card links improves legibility.
+4. Assets: approved logo and real existing Dance Floor, calendar, team lead, onboarding, and Nic-Nac captures; original interactive sample Lineup retained. No invented product screenshots.
+5. Detail: soft-pink icon badges and benefit checks, consistent card radius/padding, descriptive Explore links, generous proof spacing, shared header/footer and queue promise.
 
-passed
+## Interaction review
 
----
+- Home Team Management card opens `/tools?src=tiktok#team-management`; outreach source reaches queue CTA.
+- Mobile menu opens, navigates to Nic-Nac, and closes. Fixed inherited anchor offset so section labels clear the sticky menu (88px).
+- Header fits at 390px; no horizontal overflow on Home or tools page.
+- No public assistant input or launcher. Nic-Nac proof is an image.
 
-# Customer-Site Media Polish Design QA
+## Deliberate deviations
 
-## Source and implementation evidence
+- Retained both team-lead and onboarding captures and full supported details, honoring the request not to skimp on onboarding.
+- Supporting capabilities are grouped under Workspace essentials instead of promoted into the four main cards.
+- Nic-Nac's former dark Home card is replaced by the owner's chosen calendar card; the dark treatment moves to his tools section.
+- Local hero uses its existing unavailable-data fallback; live demo integration is verified on Smoke where its environment exists.
 
-- Source visual truth: `C:\Users\louis\AppData\Local\Temp\codex-clipboard-1fca0482-cf91-4ef6-8a6a-5a7b21915398.png`
-- Final desktop implementation: `C:\Users\louis\AppData\Local\Temp\sparkle-media-polish-desktop-final.png`
-- Final mobile implementation: `C:\Users\louis\AppData\Local\Temp\sparkle-media-polish-mobile-final.png`
-- Mobile About implementation: `C:\Users\louis\AppData\Local\Temp\sparkle-media-polish-about-mobile.png`
-- Britt with Bling implementation: `C:\Users\louis\AppData\Local\Temp\sparkle-media-polish-britt-media.png`
-- Bling Kitchen implementation: `C:\Users\louis\AppData\Local\Temp\sparkle-media-polish-bling-kitchen.png`
-
-## Normalization and state
-
-- Source pixels: `978 × 690`.
-- Focused desktop implementation pixels and CSS viewport: `978 × 690`, device scale factor `1`.
-- Mobile CSS viewport: `390 × 844`; captured browser content width `375px` after browser scrollbar allocation.
-- Comparison state: Lindsey / Mile High Fizz Alpine Opal public homepage with the configured TikTok showcase loaded, muted, and visible.
-- Full-view evidence: reference and final implementation were opened together in one comparison input at their original pixel dimensions.
-- Focused evidence: showcase header, provider icon, embedded player, reveal-step icons, and footer CTA were readable at the normalized desktop size, so a separate crop was not needed.
-
-## Fidelity review
-
-- Fonts and typography: passed. The implementation intentionally retains Mile High Fizz's established display/body fonts while matching the reference hierarchy of eyebrow, explanatory headline, compact media title, and supporting handle.
-- Spacing and layout rhythm: passed. The two-column explainer/media balance, rounded cap, framed player, footer action, and card elevation match the reference direction without replacing the existing site structure.
-- Colors and visual tokens: passed. Alpine Opal supplies its pink-violet-blue energy; Black Diamond and Bling Kitchen retain their own skin-specific palettes through shared semantic media tokens.
-- Image and icon quality: passed. The configured source video remains the player content. New UI glyphs come from a same-origin Lucide/customer-social icon sprite; no placeholder glyphs or emoji substitute for the visible icons.
-- Copy and content: passed. Existing rep copy and configured captions remain authoritative. Shared card labels add presentation only and do not rewrite saved account values.
-- Responsiveness and accessibility: passed. Desktop and mobile have no horizontal overflow, empty cards have no anchors, focus styles and 44px actions are present, and reduced-motion suppresses card movement.
-
-## Comparison history
-
-1. Initial P2: empty short-video slots used full `9 / 16` height and visually overpowered the About section. Fixed by giving only empty showcase/short viewports a quiet `4 / 3` presentation while populated videos keep provider-appropriate proportions.
-2. Initial P2: the first showcase card was too tall for the normalized reference viewport, leaving its footer CTA below the fold. Fixed by using the reference-like `5 / 7` showcase viewport and a `340px` desktop cap. Post-fix evidence shows the complete top cap, player, and bottom CTA together.
-3. Initial P2: the shared card used a generic video icon for every provider. Fixed by adding TikTok, YouTube, Instagram, and Facebook marks to the same-origin icon sprite and selecting the detected provider in both header and CTA.
-4. Final-review P2: white header and CTA text fell below AA contrast over the brightest Alpine Opal, Mile High Fizz, warm-paper, and Bling Kitchen gradient stops. Fixed by retaining the same pink-violet-blue/plum character with darker stops; the weakest reviewed stop now measures `6.04:1` against white before the small-label opacity treatment.
-5. Final-review P2: TikTok and YouTube parsing could infer a provider from a deceptive non-provider URL path or query. Fixed by requiring exact provider domains or their subdomains before assigning playback, provider branding, or an outbound CTA.
-
-## Browser verification
-
-- Exactly five cards and five distinct data slots rendered on Mile High Fizz, Britt with Bling, and Bling Kitchen.
-- Britt's legacy TikTok `/embed/<id>` showcase resolved as `tiktok` and played inline.
-- Mobile and desktop checks found no horizontal overflow.
-- Empty cards rendered zero active media CTAs.
-- Browser console error scans were clean on all inspected local routes.
-
-## Follow-up polish
-
-- No remaining P0, P1, or P2 findings.
-- P3: future caption fields for each About short could replace the neutral `Sparkle moment 1–3` labels without changing this card contract.
-
-final result: passed
+No unresolved visual blockers in the changed sections. Release verification is recorded separately in the PR and Core Memory.

@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('next/server', () => ({ connection: vi.fn(async () => {}) }))
+vi.mock('@/lib/sparkle-suite/founder-availability-service', () => ({ getFounderAvailability: vi.fn() }))
 
 import { connection } from 'next/server'
+import { getFounderAvailability } from '@/lib/sparkle-suite/founder-availability-service'
 import {
   LIVE_FOUNDER_AVAILABILITY_URL,
   isSuiteSmokeEnvironment,
@@ -52,19 +54,35 @@ describe('live founder availability', () => {
     await expect(readLiveFounderAvailability(denied as unknown as typeof fetch)).resolves.toEqual(unavailable)
   })
 
-  it('skips the live read unless this process is Suite Smoke', async () => {
+  it('server-reads its own environment aggregate outside Smoke without an HTTP or Stripe request', async () => {
     const fetchImpl = vi.fn()
+    vi.mocked(getFounderAvailability).mockResolvedValue({ status: 'available', remaining: 17, checkedAt })
     vi.stubEnv('SPARKLE_ENVIRONMENT', 'production')
     vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'production')
     expect(isSuiteSmokeEnvironment()).toBe(false)
-    await expect(readLandingFounderAvailability(fetchImpl as unknown as typeof fetch)).resolves.toBeUndefined()
+    await expect(readLandingFounderAvailability(fetchImpl as unknown as typeof fetch)).resolves.toEqual({ status: 'available', remaining: 17, checkedAt })
     expect(fetchImpl).not.toHaveBeenCalled()
-    expect(connection).not.toHaveBeenCalled()
+    expect(getFounderAvailability).toHaveBeenCalledOnce()
+    expect(connection).toHaveBeenCalledOnce()
+  })
 
+  it('server-reads only the public Live aggregate on Smoke, without accessing Smoke allocation rows', async () => {
+    const fetchImpl = vi.fn()
     vi.stubEnv('SPARKLE_ENVIRONMENT', 'smoke')
     vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
     fetchImpl.mockResolvedValue({ ok: true, json: async () => ({ status: 'available', remaining: 18, checkedAt }) })
     await expect(readLandingFounderAvailability(fetchImpl as unknown as typeof fetch)).resolves.toEqual({ status: 'available', remaining: 18, checkedAt })
     expect(connection).toHaveBeenCalledOnce()
+    expect(getFounderAvailability).not.toHaveBeenCalled()
+    expect(fetchImpl).toHaveBeenCalledWith(LIVE_FOUNDER_AVAILABILITY_URL, { cache: 'no-store', signal: expect.any(AbortSignal) })
+  })
+
+  it('passes through unconfirmed own-environment data for the founder-price fallback', async () => {
+    vi.stubEnv('SPARKLE_ENVIRONMENT', 'production')
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'production')
+    vi.mocked(getFounderAvailability).mockResolvedValue(unavailable as Awaited<ReturnType<typeof getFounderAvailability>>)
+    const fetchImpl = vi.fn()
+    await expect(readLandingFounderAvailability(fetchImpl as unknown as typeof fetch)).resolves.toEqual(unavailable)
+    expect(fetchImpl).not.toHaveBeenCalled()
   })
 })

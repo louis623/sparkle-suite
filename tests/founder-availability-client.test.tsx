@@ -24,7 +24,7 @@ async function settle() {
 }
 
 function start() {
-  FounderAvailabilityProvider({ children: null })
+  FounderAvailabilityProvider({ children: null, initialAvailability: { ...snapshot, status: 'available' } })
   cleanup = hooks.effect?.()
 }
 
@@ -51,9 +51,14 @@ afterEach(() => {
 })
 
 describe('founder availability client refresh policy (hook boundary)', () => {
-  it('only reads the anonymous no-store endpoint; does not start checkout or reserve a slot', async () => {
+  it('uses the server snapshot first and waits 60 seconds before reading the anonymous endpoint', async () => {
     start()
     await settle()
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(hooks.setAvailability).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(59_999)
+    expect(fetchMock).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(1)
     expect(fetchMock).toHaveBeenCalledWith('/api/public/founder-availability', { cache: 'no-store', signal: expect.any(AbortSignal) })
     expect(hooks.setAvailability).toHaveBeenLastCalledWith(snapshot)
     expect(fetchMock).toHaveBeenCalledTimes(1)
@@ -65,7 +70,7 @@ describe('founder availability client refresh policy (hook boundary)', () => {
   ])('accepts the last-slot and sold-out contracts: $status', async body => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => body })
     start()
-    await settle()
+    await vi.advanceTimersByTimeAsync(60_000)
     expect(hooks.setAvailability).toHaveBeenLastCalledWith(body)
   })
 
@@ -79,7 +84,7 @@ describe('founder availability client refresh policy (hook boundary)', () => {
   ])('suppresses invalid scarcity payloads: %j', async body => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => body })
     start()
-    await settle()
+    await vi.advanceTimersByTimeAsync(60_000)
     expect(hooks.setAvailability).toHaveBeenLastCalledWith(unavailable)
   })
 
@@ -91,20 +96,19 @@ describe('founder availability client refresh policy (hook boundary)', () => {
     expect(hooks.setAvailability).toHaveBeenLastCalledWith(unavailable)
   })
 
-  it('keeps the Smoke page on the last live count when a refresh cannot be reached', async () => {
+  it('also hides stale scarcity on Smoke when a refresh cannot be reached', async () => {
     vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
     start()
     await settle()
     fetchMock.mockRejectedValueOnce(new Error('offline'))
     await vi.advanceTimersByTimeAsync(60_000)
-    expect(hooks.setAvailability).toHaveBeenLastCalledWith(snapshot)
-    expect(hooks.setAvailability).not.toHaveBeenCalledWith(unavailable)
+    expect(hooks.setAvailability).toHaveBeenLastCalledWith(unavailable)
   })
 
   it('suppresses even a plausible count on a non-success response', async () => {
     fetchMock.mockResolvedValue({ ok: false, json: async () => snapshot })
     start()
-    await settle()
+    await vi.advanceTimersByTimeAsync(60_000)
     expect(hooks.setAvailability).toHaveBeenLastCalledWith(unavailable)
   })
 

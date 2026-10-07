@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { articleSitemapEntries } from '@/lib/sparkle-suite/articles'
 
 export const SPARKLE_PUBLIC_ORIGIN = 'https://www.yoursparklesuite.com'
 
@@ -30,6 +31,11 @@ const SPARKLE_PUBLIC_ROUTES: SparklePublicRoute[] = [
   },
   {
     path: '/portfolio',
+    changeFrequency: 'weekly',
+    priority: 0.9,
+  },
+  {
+    path: '/tools',
     changeFrequency: 'weekly',
     priority: 0.9,
   },
@@ -158,12 +164,12 @@ export function buildSparkleSitemap(
 ): MetadataRoute.Sitemap {
   const normalizedOrigin = normalizeSparkleOrigin(origin)
 
-  return SPARKLE_PUBLIC_ROUTES.map((route) => ({
+  return [...SPARKLE_PUBLIC_ROUTES.map((route) => ({
     url: `${normalizedOrigin}${route.path}`,
     lastModified: SPARKLE_PUBLIC_LAST_MODIFIED,
     changeFrequency: route.changeFrequency,
     priority: route.priority,
-  }))
+  })), ...articleSitemapEntries(normalizedOrigin)]
 }
 
 export function buildSparkleRobots(

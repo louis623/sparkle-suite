@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   currentBranch,
@@ -28,9 +28,7 @@ describe("Sparkle Suite active branch policy", () => {
       platform: "win32",
     });
 
-    expect(errors).toContain(
-      'branch "codex/nic-nac-photo-rarity-repair" is not active; allowed: codex/nic-nac-trade-hardening',
-    );
+    expect(errors.some((error) => error.startsWith('branch "codex/nic-nac-photo-rarity-repair" is not active;'))).toBe(true);
     expect(
       errors.some((error) =>
         error.includes("is not an active Sparkle Suite workbench"),
@@ -39,16 +37,53 @@ describe("Sparkle Suite active branch policy", () => {
   });
 
   it("fails closed on legacy or unknown branches", () => {
-    expect(
-      evaluateBranchPolicy({
+    const errors = evaluateBranchPolicy({
         branch: "main",
         remoteRepository: "louis623/sparkle-suite",
         worktree: "C:\\Users\\louis\\sparkle-suite-repo",
         platform: "win32",
-      }),
-    ).toContain(
-      'branch "main" is not active; allowed: codex/nic-nac-trade-hardening',
-    );
+      });
+    expect(errors.some((error) => error.startsWith('branch "main" is not active;'))).toBe(true);
+  });
+
+  it("accepts the FAQ branch only on the approved Smoke preview target", () => {
+    const input = {
+      branch: "codex/faq-articles",
+      remoteRepository: "louis623/sparkle-suite",
+      worktree: "/vercel/path0",
+      isVercel: true,
+      deploymentProjectId: "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      deploymentEnvironment: "preview",
+    };
+    expect(evaluateBranchPolicy(input)).toEqual([]);
+    for (const override of [
+      { deploymentEnvironment: "production" },
+      { deploymentProjectId: "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3" },
+      { deploymentProjectId: undefined },
+      { deploymentEnvironment: undefined },
+    ]) {
+      expect(evaluateBranchPolicy({ ...input, ...override })).toContain(
+        'branch "codex/faq-articles" is limited to prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ / preview',
+      );
+    }
+  });
+
+  it("uses actual FAQ platform provenance over inherited Smoke release settings only for its preview", () => {
+    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("VERCEL_GIT_COMMIT_REF", "codex/faq-articles");
+    vi.stubEnv("SPARKLE_RELEASE_BRANCH", "codex/nic-nac-trade-hardening");
+    vi.stubEnv("VERCEL_PROJECT_ID", "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    try {
+      expect(currentBranch()).toBe("codex/faq-articles");
+      vi.stubEnv("VERCEL_ENV", "production");
+      expect(() => currentBranch()).toThrow("does not match platform branch");
+      vi.stubEnv("VERCEL_ENV", "preview");
+      vi.stubEnv("VERCEL_PROJECT_ID", "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3");
+      expect(() => currentBranch()).toThrow("does not match platform branch");
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it("fails closed on the wrong repository or a secondary worktree", () => {

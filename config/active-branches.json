@@ -5,13 +5,22 @@
   "activeLocalWorktrees": [
     "C:\\Users\\louis\\sparkle-suite-repo",
     "C:\\Users\\louis\\.codex\\worktrees\\blingkitchen-google-verification\\sparkle-suite-repo",
-    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\trade-request-completion"
+    "C:\\Users\\louis\\sparkle-suite-repo\\.codex-worktrees\\trade-request-completion",
+    "C:\\Users\\louis\\.codex\\visualizations\\2026\\10\\05\\01a10df3-2121-7673-8f71-c58c6d0e5ab4\\section1-workspace"
   ],
   "policy": "deny-unlisted",
   "activeBranches": [
     "codex/nic-nac-trade-hardening",
-    "codex/seo-crawl-refresh"
+    "codex/seo-crawl-refresh",
+    "codex/smoke-landing-hero",
+    "codex/faq-articles"
   ],
+  "previewBranches": {
+    "codex/faq-articles": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    }
+  },
   "productionBranch": "codex/nic-nac-trade-hardening",
   "productionReviewUrl": "https://www.yoursparklesuite.com",
   "productionDomains": [

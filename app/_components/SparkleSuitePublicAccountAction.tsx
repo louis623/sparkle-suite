@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 
 type AuthState = 'checking' | 'signed_in' | 'signed_out'
 
@@ -10,43 +10,69 @@ export function SparkleSuitePublicAccountAction() {
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    const supabase = createClient()
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return
     let cancelled = false
+    let unsubscribe: (() => void) | undefined
+    let idle: number | undefined
+    let timer: number | undefined
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (cancelled) return
-      setAuthState(data.session ? 'signed_in' : 'signed_out')
-    })
+    async function initializeAccount() {
+      try {
+        const { createClient } = await import('@/lib/supabase/client')
+        if (cancelled) return
+        const supabase = createClient()
+        supabase.auth.getSession().then(({ data }) => {
+          if (!cancelled) setAuthState(data.session ? 'signed_in' : 'signed_out')
+        }).catch(() => { if (!cancelled) setAuthState('signed_out') })
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setAuthState(session ? 'signed_in' : 'signed_out')
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (!cancelled) setAuthState(session ? 'signed_in' : 'signed_out')
+        })
+        unsubscribe = () => subscription.unsubscribe()
+      } catch {
+        if (!cancelled) setAuthState('signed_out')
+      }
+    }
+
+    // Public copy and the sign-in link work before the account SDK is needed.
+    const frame = window.requestAnimationFrame(() => {
+      if (typeof window.requestIdleCallback === 'function') {
+        idle = window.requestIdleCallback(() => void initializeAccount(), { timeout: 2000 })
+      } else {
+        timer = window.setTimeout(() => void initializeAccount(), 200)
+      }
     })
 
     return () => {
       cancelled = true
-      subscription.unsubscribe()
+      window.cancelAnimationFrame(frame)
+      if (idle !== undefined) window.cancelIdleCallback(idle)
+      if (timer !== undefined) window.clearTimeout(timer)
+      unsubscribe?.()
     }
   }, [])
 
   async function handleLogout() {
     setBusy(true)
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    window.location.assign('/')
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      await createClient().auth.signOut()
+      window.location.assign('/')
+    } catch {
+      setBusy(false)
+    }
   }
 
   if (authState === 'checking') {
-    return <span>Sparkle Suite account</span>
+    return <Link href="/login" prefetch={false}>Sign in here.</Link>
   }
 
   if (authState === 'signed_in') {
     return (
       <>
-        <a className="sl2-header__workspace-link" href="/nic-nac">
+        <Link className="sl2-header__workspace-link" href="/nic-nac" prefetch={false}>
           Open workspace
-        </a>
+        </Link>
         <button
           className="sl2-header__account-button"
           disabled={busy}
@@ -62,7 +88,7 @@ export function SparkleSuitePublicAccountAction() {
   return (
     <>
       <span>Already have Sparkle Suite?</span>
-      <a href="/login">Sign in here.</a>
+      <Link href="/login" prefetch={false}>Sign in here.</Link>
     </>
   )
 }

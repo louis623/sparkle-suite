@@ -1035,6 +1035,7 @@ export interface LiveQueueSnapshot {
 }
 
 export interface PrelaunchWaitlistInput {
+  attribution?: { src?: string; campaign?: string }
   name: string
   email: string
   phone: string
@@ -1054,7 +1055,7 @@ export interface PrelaunchWaitlistInsert {
   setup_pain: string | null
   sms_consent: boolean
   email_consent: boolean
-  source: 'prelaunch_site'
+  source: string
 }
 
 export type PrelaunchWaitlistWelcomeEmailStatus =

@@ -380,7 +380,7 @@ export function skinPreviewMediaSource(skin: SkinPreviewSkin, origin: string) {
 }
 
 /** Renders the unchanged customer components with fixture data inside an opaque sandbox. */
-export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string, review: LineupReviewState | null = null) {
+export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string, review: LineupReviewState | null = null, bootstrapOverride?: string) {
   const root = join(process.cwd(), 'public', 'amethyst')
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
@@ -413,7 +413,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
       'Stop SMS updates, email updates, or both from {BUSINESS_NAME}.',
     )
   }
-  const bootstrap = fixtureBootstrap(page, skin, review).replaceAll('Sparkle by Sasha', profile.businessName)
+  const bootstrap = bootstrapOverride ?? fixtureBootstrap(page, skin, review).replaceAll('Sparkle by Sasha', profile.businessName)
   const reviewGuards = SKIN_PREVIEW_GUARDS.replace('var sample = '+JSON.stringify(GNOME_PREVIEW_LINEUP)+';', 'var sample = '+JSON.stringify(reviewLineup(review))+';')
   let mediaSymbols = ''
   if ((skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'pearl_rose' || skin === 'rose_champagne') && page === 'homepage') {

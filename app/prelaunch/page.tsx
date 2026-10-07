@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 
 import { MarketingHeader, MarketingFooter } from '../_components/landing-experience'
-import { FounderAvailabilityProvider, FounderOffer, FounderSpotLabel, IncludedFeatures } from '../_components/landing-interactions'
+import { FounderAvailabilityProvider, FounderOffer, IncludedFeatures } from '../_components/landing-interactions'
+import { readLandingFounderAvailability } from '@/lib/sparkle-suite/live-founder-availability'
 import styles from '../_components/landing-experience.module.css'
 import { PrelaunchWaitlistForm } from './_components/PrelaunchWaitlistForm'
 import { prelaunchContent } from '@/lib/prelaunch/content'
@@ -98,9 +99,10 @@ const prelaunchJsonLd = {
   ],
 }
 
-export default function PrelaunchPage() {
+export default async function PrelaunchPage() {
+  const initialAvailability = await readLandingFounderAvailability()
   return (
-    <FounderAvailabilityProvider><main className={`prelaunch-shell ${styles.page}`}>
+    <FounderAvailabilityProvider initialAvailability={initialAvailability}><main className={`suite-marketing prelaunch-shell ${styles.page}`}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -110,13 +112,12 @@ export default function PrelaunchPage() {
       <a className={styles.skipLink} href="#waitlist">Skip to signup</a>
       <MarketingHeader intake />
       <section className={styles.intakeIntro}>
-        <p className={styles.eyebrow}>Now building Sparkle Suite sites</p>
-        <h1>Your spot in line starts here.</h1>
-        <p>Tell us a little about your business. We’ll follow up about your site and the next steps. No payment to join.</p>
-        <FounderSpotLabel />
+        <h1>Let’s talk about your site.</h1>
+        <p>Join the build queue and I’ll email you to book a quick 30-minute call. Your build starts once your first month and setup fee are paid.</p>
+        <p><strong>No payment when you join the queue.</strong></p>
       </section>
       <div className={styles.intakeLayout}>
-        <div className={styles.intakeForm}><PrelaunchWaitlistForm /></div>
+        <div className={styles.intakeForm}><PrelaunchWaitlistForm /><p className={styles.finePrint}>We keep the source and campaign label from the link you followed with your signup.</p></div>
         <aside className={styles.intakeAside}><h2>A more polished place for your business.</h2><p>Your brand, your customers, and the tools that help showtime run more smoothly.</p><IncludedFeatures /><FounderOffer compact /></aside>
       </div>
       <MarketingFooter />

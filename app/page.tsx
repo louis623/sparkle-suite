@@ -1,3 +1,4 @@
+import { readLandingDemo } from '@/lib/sparkle-suite/landing-demo'
 import type { Metadata } from 'next'
 
 import { SparkleSuitePublicLanding } from '@/app/_components/sparkle-suite-public-landing'
@@ -88,7 +89,7 @@ const sparkleSuiteJsonLd = {
 }
 
 export default async function HomePage() {
-  const initialAvailability = await readLandingFounderAvailability()
+  const [initialAvailability, demo] = await Promise.all([readLandingFounderAvailability(), readLandingDemo()])
   return (
     <>
       <script
@@ -97,7 +98,7 @@ export default async function HomePage() {
           __html: JSON.stringify(sparkleSuiteJsonLd).replace(/</g, '\\u003c'),
         }}
       />
-      <SparkleSuitePublicLanding initialAvailability={initialAvailability} />
+      <SparkleSuitePublicLanding initialAvailability={initialAvailability} demo={demo} />
     </>
   )
 }

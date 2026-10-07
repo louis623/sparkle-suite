@@ -24,6 +24,9 @@ export function proxy(request: NextRequest) {
   }
   const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
   const customerDomain = normalizeAmethystCustomDomainCandidate(host)
+  if (customerDomain && (request.nextUrl.pathname === '/faq/articles' || request.nextUrl.pathname.startsWith('/faq/articles/'))) {
+    return new NextResponse('Not found', { status: 404, headers: { 'X-Robots-Tag': 'noindex', 'Content-Type': 'text/plain; charset=utf-8' } })
+  }
   // /faq on the Suite host is the marketing FAQ. Rep previews stay on /faq?c=
   // and custom domains keep the customer Dance Floor FAQ.
   const previewRep = request.nextUrl.searchParams.get('c')?.trim()
@@ -66,6 +69,7 @@ export const config = {
     '/',
     '/trade',
     '/faq',
+    '/faq/articles/:path*',
     '/join',
     '/in-the-pantry',
     '/onboarding/:path*',
