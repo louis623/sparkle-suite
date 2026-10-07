@@ -12,8 +12,15 @@
   "activeBranches": [
     "codex/nic-nac-trade-hardening",
     "codex/seo-crawl-refresh",
-    "codex/smoke-landing-hero"
+    "codex/smoke-landing-hero",
+    "codex/faq-articles"
   ],
+  "previewBranches": {
+    "codex/faq-articles": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    }
+  },
   "productionBranch": "codex/nic-nac-trade-hardening",
   "productionReviewUrl": "https://www.yoursparklesuite.com",
   "productionDomains": [
