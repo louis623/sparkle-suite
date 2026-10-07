@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react'
 import { FaqAccordion } from '@/app/_components/faq-accordion'
+import { FaqArticles } from '@/app/_components/faq-articles'
 import { MarketingFooter, MarketingHeader } from '@/app/_components/landing-experience'
 import { QueueLink } from '@/app/_components/queue-link'
 import { buildSparkleSuiteFaqJsonLd, sparkleSuiteFaqContent, sparkleSuiteFaqCta, sparkleSuiteFaqDemoLink, sparkleSuiteFaqGroups, sparkleSuiteFaqPortfolioLink } from '@/lib/sparkle-suite/faq-page-content'
@@ -25,6 +26,7 @@ export function FaqExperience() {
         </nav>
         <FaqAccordion />
       </section>
+      <FaqArticles />
       <section className={styles.proof} aria-labelledby="faq-proof-title">
         <div className={styles.container}>
           <h2 id="faq-proof-title">See the sites. Watch the <em>demos.</em></h2>

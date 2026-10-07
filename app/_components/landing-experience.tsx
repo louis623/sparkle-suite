@@ -14,7 +14,7 @@ import type { LandingDemo } from '@/lib/sparkle-suite/landing-demo-model'
 import { sparkleSuitePortfolioContent } from '@/lib/sparkle-suite/portfolio-content'
 import styles from './landing-experience.module.css'
 
-export function MarketingHeader({ intake = false, current = 'home' }: { intake?: boolean; current?: 'home' | 'portfolio' | 'demo' | 'faq' | 'tools' }) {
+export function MarketingHeader({ intake = false, current = 'home' }: { intake?: boolean; current?: 'home' | 'portfolio' | 'demo' | 'faq' | 'tools' | 'article' }) {
   const subpage = current !== 'home' || intake
   return <header className={styles.header}>
     <QueueLink href="/" className={styles.brand} aria-label="Sparkle Suite home"><Image alt="" className={styles.logo} src="/brand/sparkle-suite-logo-transparent.png" width={1100} height={280} unoptimized /></QueueLink>

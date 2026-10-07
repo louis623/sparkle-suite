@@ -113,6 +113,10 @@ reconciliation and must not be swept into the active branch merely to make
 
 ## Branch lifecycle
 
+### October 7 FAQ article draft preview
+
+Louis authorized pushing `codex/faq-articles` and opening draft PR #81 for review, with no merge or Live release. The branch is allowlisted for this task. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`; production and other projects fail closed. Within that verified target, actual platform branch provenance takes precedence over Smoke's inherited manual-release branch setting. All other provenance mismatch checks remain enforced. GitHub's default branch, Vercel production branch, Live/rep domains, and the existing Smoke alias are unchanged. This is a review exception, not a production branch-status change.
+
 1. New work and releases start from `codex/nic-nac-trade-hardening` only.
 2. A branch-status change requires Louis's explicit approval and a coordinated
    update of this register, `config/active-branches.json`, GitHub's default
