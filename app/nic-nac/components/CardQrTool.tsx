@@ -200,8 +200,8 @@ export function CardQrTool({
   }
 
   return (
-    <div className={styles.stack} data-smoke-tool="card-qr">
-      <section className={styles.section}>
+    <div className={`${styles.stack} suite-marketing`} data-smoke-tool="card-qr">
+      <section className={`${styles.section} ${styles.opening}`}>
         <div className={styles.header}>
           <div>
             <h2 className={styles.title}>{CARD_QR_ENTRY_TITLE}</h2>
@@ -218,7 +218,7 @@ export function CardQrTool({
       {notice ? <div className={styles.banner}>{notice}</div> : null}
       {status ? <div className={`${styles.banner} ${styles.warning}`}>{status}</div> : null}
 
-      <section className={styles.section} aria-labelledby="card-qr-code">
+      <section className={`${styles.section} ${styles.qrBand}`} aria-labelledby="card-qr-code">
         <h3 id="card-qr-code" className={styles.title}>QR code</h3>
         <p className={styles.body}>
           Your customer site already has an address. This QR points at it, and
@@ -255,7 +255,7 @@ export function CardQrTool({
         </div>
       </section>
 
-      <section className={styles.section} aria-labelledby="card-qr-flyer">
+      <section className={`${styles.section} ${styles.flyerBand}`} aria-labelledby="card-qr-flyer">
         <h3 id="card-qr-flyer" className={styles.title}>QR flyer</h3>
         <p className={styles.body}>
           Free digital download. Portrait 9:16 (1080×1920) for TikTok and other
@@ -301,16 +301,10 @@ export function CardQrTool({
         </div>
       </section>
 
-      <section className={styles.section} aria-labelledby="card-qr-cards">
+      <section className={`${styles.section} ${styles.cardBand}`} aria-labelledby="card-qr-cards">
         <h3 id="card-qr-cards" className={styles.title}>Business cards</h3>
         <p className={styles.body}>
           Same QR and the same theme. Stripe checkout is required before fulfillment.
-        </p>
-        <p className={styles.spec}>{CARD_QR_PRICE_COPY} {CARD_QR_SHIPPING_COPY}</p>
-        <p className={styles.spec}>{CARD_QR_TURNAROUND_COPY}</p>
-        <p className={styles.spec}>{CARD_QR_REGION_COPY}</p>
-        <p className={styles.spec}>
-          Print spec: {CARD_QR_PRINT_SPEC.trim} trim, {CARD_QR_PRINT_SPEC.bleed} bleed, {CARD_QR_PRINT_SPEC.safe} safe, {CARD_QR_PRINT_SPEC.stock}.
         </p>
         <div className={styles.prices}>
           {([500, 1000] as const).map((packQuantity) => {
@@ -364,6 +358,14 @@ export function CardQrTool({
               stays a manual ops step in this version.
             </p>
           </div>
+        </div>
+        <div className={styles.finePrint}>
+          <p className={styles.spec}>{CARD_QR_PRICE_COPY} {CARD_QR_SHIPPING_COPY}</p>
+          <p className={styles.spec}>{CARD_QR_TURNAROUND_COPY}</p>
+          <p className={styles.spec}>{CARD_QR_REGION_COPY}</p>
+          <p className={styles.spec}>
+            Print spec: {CARD_QR_PRINT_SPEC.trim} trim, {CARD_QR_PRINT_SPEC.bleed} bleed, {CARD_QR_PRINT_SPEC.safe} safe, {CARD_QR_PRINT_SPEC.stock}.
+          </p>
         </div>
       </section>
     </div>
