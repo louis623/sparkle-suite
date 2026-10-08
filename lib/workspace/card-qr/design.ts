@@ -8,28 +8,6 @@ export const CARD_QR_TEMPLATE_IDS = [
 
 export type CardQrTemplateId = (typeof CARD_QR_TEMPLATE_IDS)[number]
 
-export const CARD_QR_TEMPLATES: Array<{
-  id: CardQrTemplateId
-  label: string
-  description: string
-}> = [
-  {
-    id: 'match-site',
-    label: 'Match my site',
-    description: 'Uses the colors from your current customer-site theme.',
-  },
-  {
-    id: 'halloween',
-    label: 'Halloween',
-    description: 'Seasonal pumpkin night look. Your QR stays the same.',
-  },
-  {
-    id: 'classic-ivory',
-    label: 'Classic ivory',
-    description: 'A quiet ivory card that still uses your saved QR.',
-  },
-]
-
 export interface CardQrFields {
   name: boolean
   email: boolean
@@ -65,6 +43,11 @@ export function cleanDiscountCode(value: unknown) {
   return value.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 40)
 }
 
+/**
+ * Old saved templateId values still parse, including halloween and classic-ivory.
+ * The flyer ignores them and follows the current site theme. No migration:
+ * the template_id column stays.
+ */
 export function parseCardQrDesign(value: unknown): CardQrDesign {
   const record = isRecord(value) ? value : {}
   const templateId = CARD_QR_TEMPLATE_IDS.includes(record.templateId as CardQrTemplateId)

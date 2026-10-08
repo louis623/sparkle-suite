@@ -208,12 +208,27 @@ describe('Cards & QR smoke locks', () => {
       appearancePreset: 'black_diamond',
     })
     expect(morganite.background).not.toBe(diamond.background)
+    expect(morganite.qrDark).toBe('#111111')
+    expect(morganite.qrLight).toBe('#FFFFFF')
+    expect(diamond.qrDark).toBe('#111111')
+    expect(diamond.qrLight).toBe('#FFFFFF')
     expect(
       resolveCardQrPalette({
         templateId: 'halloween',
         appearancePreset: 'sparkle_suite_morganite',
       }).name,
-    ).toBe('Halloween')
+    ).toBe('Sparkle Suite/Morganite')
+    expect(
+      resolveCardQrPalette({
+        templateId: 'classic-ivory',
+        appearancePreset: 'halloween_pumpkin_cat',
+      }).background,
+    ).toBe(
+      resolveCardQrPalette({
+        templateId: 'match-site',
+        appearancePreset: 'halloween_pumpkin_cat',
+      }).background,
+    )
   })
 
   it('renders a portrait flyer and a labeled press stub', async () => {
@@ -226,6 +241,8 @@ describe('Cards & QR smoke locks', () => {
     const flyer = await renderCardQrFlyerPng({
       palette,
       lines: ["Dude's Fizzfest", 'Louis'],
+      businessName: "Dude's Fizzfest",
+      appearancePreset: 'sparkle_suite_morganite',
       destinationUrl: 'https://sparkle-suite-smoke.vercel.app/fizzfest',
       showQr: true,
     })
@@ -273,9 +290,11 @@ describe('Cards & QR smoke locks', () => {
     expect(toolSource).toContain('URL.createObjectURL')
     expect(html).not.toContain('Save to profile')
     expect(html).not.toContain('Copy site address')
-    expect(html).toContain('Match my site')
-    expect(html).toContain('Halloween')
-    expect(html).toContain('Classic ivory')
+    expect(html).not.toContain('Match my site')
+    expect(html).not.toContain('Classic ivory')
+    expect(html).not.toContain('>Halloween<')
+    expect(toolSource).not.toContain('design, appearancePreset')
+    expect(toolSource).not.toContain('quantity, design, appearancePreset')
     expect(html).toContain('Dude&#x27;s Fizzfest')
     expect(html).toContain('louis@neonrabbit.net')
     expect(html).toContain('TikTok @fizzfest')

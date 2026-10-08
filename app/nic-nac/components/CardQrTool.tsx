@@ -11,10 +11,8 @@ import {
   type CardQrPackQuantity,
 } from '@/lib/workspace/card-qr/pricing'
 import {
-  CARD_QR_TEMPLATES,
   DEFAULT_CARD_QR_DESIGN,
   buildCardQrCopyLines,
-  type CardQrTemplateId,
 } from '@/lib/workspace/card-qr/design'
 import { resolveCardQrDestination } from '@/lib/workspace/card-qr/destination'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
@@ -53,7 +51,6 @@ export function CardQrTool({
   socialHandles: Record<string, string>
 }) {
   const [origin, setOrigin] = useState<string | null>(null)
-  const [templateId, setTemplateId] = useState<CardQrTemplateId>(DEFAULT_CARD_QR_DESIGN.templateId)
   const [quantity, setQuantity] = useState<CardQrPackQuantity>(500)
   const [status, setStatus] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -65,12 +62,9 @@ export function CardQrTool({
     () => resolveCardQrDestination(siteHref, origin),
     [origin, siteHref],
   )
-  const design = useMemo(
-    () => ({ ...DEFAULT_CARD_QR_DESIGN, templateId }),
-    [templateId],
-  )
+  const design = DEFAULT_CARD_QR_DESIGN
   const palette = resolveCardQrPalette({
-    templateId,
+    templateId: design.templateId,
     appearancePreset,
   })
   const lines = buildCardQrCopyLines({
@@ -164,7 +158,7 @@ export function CardQrTool({
       const response = await fetch(path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ design, appearancePreset }),
+        body: JSON.stringify({ design }),
       })
       if (!response.ok) throw new Error(await readError(response))
       downloadBlob(await response.blob(), filename)
@@ -182,7 +176,7 @@ export function CardQrTool({
       const response = await fetch('/api/workspace/card-qr/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantity, design, appearancePreset }),
+        body: JSON.stringify({ quantity, design }),
       })
       if (!response.ok) throw new Error(await readError(response))
       const body = await response.json()
@@ -261,19 +255,6 @@ export function CardQrTool({
           Free digital download. Portrait 9:16 (1080×1920) for TikTok and other
           social posts. No Stripe charge.
         </p>
-        <div className={styles.choiceRow} role="group" aria-label="Template">
-          {CARD_QR_TEMPLATES.map((template) => (
-            <button
-              key={template.id}
-              type="button"
-              className={styles.choice}
-              aria-pressed={templateId === template.id}
-              onClick={() => setTemplateId(template.id)}
-            >
-              {template.label}
-            </button>
-          ))}
-        </div>
         <div className={styles.layout}>
           <div>
             <div className={styles.actions}>

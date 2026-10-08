@@ -56,11 +56,35 @@ export async function loadCardQrContext(request: Request) {
   }
 
   const settings = await getSiteSettingsDashboard(context.supabase, context.repId)
+  // The dashboard normalizes an unknown theme to Morganite. The flyer must
+  // see the saved id itself and refuse it instead of that fallback.
+  const savedTheme = await context.supabase
+    .from('site_settings')
+    .select('appearance_preset')
+    .eq('rep_id', context.repId)
+    .maybeSingle()
+  if (savedTheme.error) {
+    throw new ServiceError({
+      code: 'CARD_QR_THEME_LOOKUP_FAILED',
+      message: 'failed to read the saved site theme',
+      userMessage: "Couldn't read this site's theme.",
+      statusCode: 500,
+      cause: savedTheme.error,
+    })
+  }
+  const savedAppearancePreset = savedTheme.data?.appearance_preset
+  const appearancePreset =
+    typeof savedAppearancePreset === 'string' && savedAppearancePreset.trim()
+      ? savedAppearancePreset
+      : settings.appearancePreset
 
   return {
     ...context,
     origin,
     destinationUrl,
-    settings,
+    settings: {
+      ...settings,
+      appearancePreset,
+    },
   }
 }

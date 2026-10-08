@@ -52,32 +52,9 @@ export function resolveCardQrPalette(input: {
   templateId: CardQrTemplateId
   appearancePreset?: string | null
 }): CardQrPalette {
-  if (input.templateId === 'halloween') {
-    return {
-      name: 'Halloween',
-      background: '#1a0b16',
-      ink: '#fff6ea',
-      muted: '#f0c9a0',
-      accent: '#ff6a00',
-      panel: '#2a1420',
-      qrDark: '#1a0b16',
-      qrLight: '#fff6ea',
-    }
-  }
-
-  if (input.templateId === 'classic-ivory') {
-    return {
-      name: 'Classic ivory',
-      background: '#f7f1e6',
-      ink: '#2c2118',
-      muted: '#6d5c4e',
-      accent: '#8c3a55',
-      panel: '#fffaf3',
-      qrDark: '#2c2118',
-      qrLight: '#fffaf3',
-    }
-  }
-
+  // Saved template ids (including halloween and classic-ivory) are ignored.
+  // The flyer always follows the current site theme. QR modules stay
+  // near-black on white, including on dark themes.
   const id = presetId(input.appearancePreset)
   const preset = AMETHYST_APPEARANCE_PRESETS[id]
   const surface = MATCH_SITE_SURFACES[id]
@@ -85,7 +62,7 @@ export function resolveCardQrPalette(input: {
     name: preset.label,
     ...surface,
     accent: preset.values.primaryColor,
-    qrDark: surface.ink,
-    qrLight: surface.panel,
+    qrDark: '#111111',
+    qrLight: '#FFFFFF',
   }
 }

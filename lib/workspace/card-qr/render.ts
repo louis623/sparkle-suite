@@ -1,5 +1,16 @@
+import { Resvg, type ResvgRenderOptions } from '@resvg/resvg-js'
 import QRCode from 'qrcode'
 import sharp from 'sharp'
+import type { AmethystAppearancePresetId } from '@/lib/amethyst/appearance-presets'
+import {
+  FLYER_FALLBACK_FONT,
+  FLYER_FONT_FACES,
+  FLYER_THEME_FONTS,
+  flyerFontFile,
+  flyerFontFilesForTheme,
+  type FlyerFontFamily,
+} from '@/lib/workspace/card-qr/flyer-fonts'
+import { retainCoveredGlyphs } from '@/lib/workspace/card-qr/glyphs'
 import type { CardQrPalette } from '@/lib/workspace/card-qr/palette'
 import { CARD_QR_PRINT_SPEC } from '@/lib/workspace/card-qr/pricing'
 
@@ -7,6 +18,11 @@ export const CARD_QR_FLYER_WIDTH = 1080
 export const CARD_QR_FLYER_HEIGHT = 1920
 export const CARD_QR_FLYER_SAFE_TOP = 280
 export const CARD_QR_FLYER_SAFE_BOTTOM = 360
+export const CARD_QR_DARK = '#111111'
+export const CARD_QR_LIGHT = '#FFFFFF'
+export const CARD_QR_ERROR_CORRECTION = 'H' as const
+export const CARD_QR_MARGIN = 4
+export const CARD_QR_FLYER_QR_SIZE = 560
 
 function escapeXml(value: string) {
   return value
@@ -16,17 +32,91 @@ function escapeXml(value: string) {
     .replace(/"/g, '&quot;')
 }
 
-export async function renderCardQrPng(url: string, palette: Pick<CardQrPalette, 'qrDark' | 'qrLight'>) {
+/** Text is drawn from bundled files. System fonts are never loaded. */
+export function flyerTextRenderOptions(fontFiles: string[]): ResvgRenderOptions {
+  return {
+    font: {
+      fontFiles,
+      loadSystemFonts: false,
+      defaultFontFamily: FLYER_FONT_FACES[FLYER_FALLBACK_FONT].family,
+      serifFamily: FLYER_FONT_FACES[FLYER_FALLBACK_FONT].family,
+      sansSerifFamily: FLYER_FONT_FACES[FLYER_FALLBACK_FONT].family,
+    },
+    fitTo: {
+      mode: 'width',
+      value: CARD_QR_FLYER_WIDTH,
+    },
+    textRendering: 1,
+    shapeRendering: 2,
+  }
+}
+
+export async function renderCardQrPng(
+  url: string,
+  _palette?: Pick<CardQrPalette, 'qrDark' | 'qrLight'> | null,
+  width = 640,
+) {
   return QRCode.toBuffer(url, {
     type: 'png',
-    width: 640,
-    margin: 1,
-    errorCorrectionLevel: 'M',
+    width,
+    margin: CARD_QR_MARGIN,
+    errorCorrectionLevel: CARD_QR_ERROR_CORRECTION,
     color: {
-      dark: palette.qrDark,
-      light: palette.qrLight,
+      dark: CARD_QR_DARK,
+      light: CARD_QR_LIGHT,
     },
   })
+}
+
+export function flyerQrPlacement(lineCount: number, showQr = true) {
+  const size = showQr ? CARD_QR_FLYER_QR_SIZE : 0
+  const textBlockHeight = lineCount * 64
+  const contentHeight = textBlockHeight + (showQr ? size + 48 : 0)
+  const safeTop = CARD_QR_FLYER_SAFE_TOP
+  const safeBottom = CARD_QR_FLYER_HEIGHT - CARD_QR_FLYER_SAFE_BOTTOM
+  const safeHeight = safeBottom - safeTop
+  const contentTop = safeTop + Math.max(0, Math.round((safeHeight - contentHeight) / 2))
+  const top = contentTop + textBlockHeight + (lineCount ? 36 : 0)
+  return {
+    contentTop,
+    size,
+    left: Math.round((CARD_QR_FLYER_WIDTH - size) / 2),
+    top: Math.round(top),
+  }
+}
+
+function coveredLine(text: string, family: FlyerFontFamily) {
+  return retainCoveredGlyphs(
+    text,
+    flyerFontFile(family),
+    flyerFontFile(FLYER_FALLBACK_FONT),
+  )
+}
+
+function lineFamily(
+  line: string,
+  index: number,
+  lines: string[],
+  businessName: string | undefined,
+  heading: FlyerFontFamily,
+  body: FlyerFontFamily,
+) {
+  const business = businessName?.trim() ?? ''
+  if (business && line === business && index === lines.indexOf(business)) {
+    return heading
+  }
+  return body
+}
+
+function svgText(input: {
+  value: string
+  y: number
+  family: FlyerFontFamily
+  size: number
+  fill: string
+}) {
+  const familyName = FLYER_FONT_FACES[input.family].family
+  return `<text x="540" y="${input.y}" text-anchor="middle" font-family="${escapeXml(familyName)}" font-weight="400" font-size="${input.size}" fill="${input.fill}">${escapeXml(input.value)}</text>`
 }
 
 export async function renderCardQrFlyerPng(input: {
@@ -34,45 +124,75 @@ export async function renderCardQrFlyerPng(input: {
   lines: string[]
   destinationUrl: string
   showQr: boolean
+  appearancePreset: AmethystAppearancePresetId
+  businessName?: string | null
 }) {
-  const qrSize = input.showQr ? 560 : 0
-  const textBlockHeight = input.lines.length * 64
-  const contentHeight = textBlockHeight + (input.showQr ? qrSize + 48 : 0)
-  const safeTop = CARD_QR_FLYER_SAFE_TOP
-  const safeBottom = CARD_QR_FLYER_HEIGHT - CARD_QR_FLYER_SAFE_BOTTOM
-  const safeHeight = safeBottom - safeTop
-  const contentTop = safeTop + Math.max(0, Math.round((safeHeight - contentHeight) / 2))
+  const themeFonts = FLYER_THEME_FONTS[input.appearancePreset]
+  const body = themeFonts.body
+  const placement = flyerQrPlacement(input.lines.length, input.showQr)
+  const contentTop = placement.contentTop
 
   const text = input.lines
     .map((line, index) => {
+      const family = lineFamily(
+        line,
+        index,
+        input.lines,
+        input.businessName ?? undefined,
+        themeFonts.heading,
+        body,
+      )
       const y = contentTop + 56 + index * 64
-      return `<text x="540" y="${y}" text-anchor="middle" font-family="Georgia, serif" font-size="42" fill="${input.palette.ink}">${escapeXml(line)}</text>`
+      return svgText({
+        value: coveredLine(line, family),
+        y,
+        family,
+        size: 42,
+        fill: input.palette.ink,
+      })
     })
     .join('')
 
-  const qrTop = contentTop + textBlockHeight + (input.lines.length ? 36 : 0)
+  const whitePad = input.showQr
+    ? `<rect x="${placement.left}" y="${placement.top}" width="${placement.size}" height="${placement.size}" fill="${CARD_QR_LIGHT}"/>`
+    : ''
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${CARD_QR_FLYER_WIDTH}" height="${CARD_QR_FLYER_HEIGHT}" viewBox="0 0 ${CARD_QR_FLYER_WIDTH} ${CARD_QR_FLYER_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
   <rect width="100%" height="100%" fill="${input.palette.background}"/>
   <rect x="0" y="0" width="1080" height="28" fill="${input.palette.accent}"/>
-  <text x="540" y="210" text-anchor="middle" font-family="Georgia, serif" font-size="28" fill="${input.palette.muted}">Sparkle Suite</text>
+  ${svgText({
+    value: coveredLine('Sparkle Suite', body),
+    y: 210,
+    family: body,
+    size: 28,
+    fill: input.palette.muted,
+  })}
   ${text}
-  <text x="540" y="1760" text-anchor="middle" font-family="sans-serif" font-size="24" fill="${input.palette.muted}">Scan to visit</text>
+  ${whitePad}
+  ${svgText({
+    value: coveredLine('Scan to visit', body),
+    y: 1760,
+    family: body,
+    size: 24,
+    fill: input.palette.muted,
+  })}
 </svg>`
 
-  const base = sharp(Buffer.from(svg)).png()
+  const fontFiles = flyerFontFilesForTheme(input.appearancePreset)
+  const png = Buffer.from(
+    new Resvg(svg, flyerTextRenderOptions(fontFiles)).render().asPng(),
+  )
   if (!input.showQr) {
-    return base.toBuffer()
+    return png
   }
 
-  const qr = await renderCardQrPng(input.destinationUrl, input.palette)
-  const resized = await sharp(qr).resize(qrSize, qrSize).png().toBuffer()
-  return sharp(Buffer.from(svg))
+  const qr = await renderCardQrPng(input.destinationUrl, null, placement.size)
+  return sharp(png)
     .composite([
       {
-        input: resized,
-        left: Math.round((CARD_QR_FLYER_WIDTH - qrSize) / 2),
-        top: Math.round(qrTop),
+        input: qr,
+        left: placement.left,
+        top: placement.top,
       },
     ])
     .png()
