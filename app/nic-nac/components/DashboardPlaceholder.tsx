@@ -6760,6 +6760,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       return (
         <CardQrTool
           repId={currentRepId}
+          customDomain={normalizeAmethystCustomDomainCandidate(repProfileState.customDomain)}
           siteHref={customerSparkleSiteHref}
           displayName={
             siteSettingsDraft?.displayName ??

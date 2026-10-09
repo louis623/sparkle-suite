@@ -92,8 +92,9 @@ describe('card copy', () => {
     expect(bizcardName('Louis Chapman')).toBe('Louis Chapman')
     expect(bizcardSocialHandle({ facebook: 'https://facebook.com/groups/123', instagram: 'https://instagram.com/dudesfizzfest/' })).toBe('@dudesfizzfest')
     expect(bizcardSocialHandle({ tiktok: '@fizz.queen' })).toBe('@fizz.queen')
-    expect(bizcardWebsite('www.DudesFizzfest.com', 'https://x.vercel.app/dude')).toBe('dudesfizzfest.com')
-    expect(bizcardWebsite(null, 'https://x.vercel.app/dude/')).toBe('x.vercel.app/dude')
+    expect(bizcardWebsite('www.DudesFizzfest.com')).toBe('dudesfizzfest.com')
+    expect(bizcardWebsite(null)).toBe('')
+    expect(bizcardWebsite('')).toBe('')
   })
 })
 
@@ -118,6 +119,12 @@ describe('card render', () => {
       expect(await decodeFlyerQr(small)).toBe(URL)
     }
   }, 60_000)
+
+  it('hides the website row without a custom domain even when the toggle is on', async () => {
+    const none = await renderBizcardBack({ key: 'amethyst', qrUrl: URL, qrIcon: 'none', fields: ALL, ...REP, website: '' })
+    const off = await renderBizcardBack({ key: 'amethyst', qrUrl: URL, qrIcon: 'none', fields: { ...ALL, website: false }, ...REP })
+    expect(none.png.equals(off.png)).toBe(true)
+  }, 30_000)
 
   it('drops the text line when no number was entered', async () => {
     const withNumber = await renderBizcardBack({ key: 'amethyst', qrUrl: URL, qrIcon: 'none', fields: ALL, ...REP })

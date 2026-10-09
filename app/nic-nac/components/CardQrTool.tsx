@@ -65,6 +65,7 @@ export function CardQrTool({
   appearancePreset,
   socialHandles,
   repId,
+  customDomain,
 }: {
   siteHref: string | null
   displayName: string
@@ -73,7 +74,9 @@ export function CardQrTool({
   appearancePreset: string
   socialHandles: Record<string, string>
   repId?: string | null
+  customDomain?: string | null
 }) {
+  const hasCustomDomain = Boolean(customDomain?.trim())
   const [origin, setOrigin] = useState<string | null>(null)
   const [quantity, setQuantity] = useState<CardQrPackQuantity>(500)
   const [status, setStatus] = useState<string | null>(null)
@@ -105,7 +108,7 @@ export function CardQrTool({
     () => (origin && repId ? buildCardQrShortUrl(origin, repId) : null),
     [origin, repId],
   )
-  const cardKey = JSON.stringify({ fields: design.fields, qrIcon, textLinkNumber, appearancePreset, displayName, businessName, email, socialHandles })
+  const cardKey = JSON.stringify({ hasCustomDomain, fields: design.fields, qrIcon, textLinkNumber, appearancePreset, displayName, businessName, email, socialHandles })
 
   useEffect(() => {
     if (!destinationUrl) return
@@ -589,13 +592,16 @@ export function CardQrTool({
               type="button"
               className={styles.choice}
               aria-pressed={design.fields[field]}
-              disabled={field === 'textLink' && !textLinkNumber}
+              disabled={(field === 'textLink' && !textLinkNumber) || (field === 'website' && !hasCustomDomain)}
               onClick={() => toggleField(field)}
             >
               {label}
             </button>
           ))}
         </div>
+        {!hasCustomDomain ? (
+          <p className={styles.spec}>Website shows on the card once your site has its own domain.</p>
+        ) : null}
         {design.fields.textLink && !textLinkNumber ? (
           <p className={styles.spec}>Add your text-to-link number above to put it on the card.</p>
         ) : null}

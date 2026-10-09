@@ -21,11 +21,10 @@ export function bizcardSocialHandle(handles: Record<string, string | null | unde
   return ''
 }
 
-/** Custom domain if the rep has one, else the Suite address without https://. */
-export function bizcardWebsite(customDomain: string | null | undefined, destinationUrl: string) {
+/** Custom domain only (Louis, Oct 8): no custom domain means no website line. */
+export function bizcardWebsite(customDomain: string | null | undefined) {
   const host = normalizeAmethystCustomDomainCandidate(customDomain)
-  if (host) return host.replace(/^www\./i, '').toLowerCase()
-  return destinationUrl.replace(/^https?:\/\//i, '').replace(/\/+$/, '')
+  return host ? host.replace(/^www\./i, '').toLowerCase() : ''
 }
 
 /**

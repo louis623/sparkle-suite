@@ -79,7 +79,7 @@ export async function POST(request: Request) {
           fields: design.fields,
           name: bizcardName(context.settings.displayName, fullName),
           email: context.settings.email,
-          website: bizcardWebsite(context.customDomain, context.destinationUrl),
+          website: bizcardWebsite(context.customDomain),
           textLinkNumber: design.textLinkNumber,
           social: bizcardSocialHandle(context.settings.socialHandles),
         })
