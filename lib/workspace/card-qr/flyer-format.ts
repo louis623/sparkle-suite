@@ -2,8 +2,8 @@ export const CARD_QR_FLYER_FORMATS = ['png', 'jpg'] as const
 
 export type CardQrFlyerFormat = (typeof CARD_QR_FLYER_FORMATS)[number]
 
-/** PNG is the default file. JPG is the other choice. */
-export const DEFAULT_CARD_QR_FLYER_FORMAT: CardQrFlyerFormat = 'png'
+/** JPG is the default file. PNG is full quality. Plan section 3. */
+export const DEFAULT_CARD_QR_FLYER_FORMAT: CardQrFlyerFormat = 'jpg'
 
 export const CARD_QR_FLYER_JPG_QUALITY = 94
 

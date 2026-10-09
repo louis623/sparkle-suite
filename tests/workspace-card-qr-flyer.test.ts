@@ -31,6 +31,19 @@ import {
   flyerFontFile,
 } from '@/lib/workspace/card-qr/flyer-fonts'
 import { retainCoveredGlyphs } from '@/lib/workspace/card-qr/glyphs'
+import {
+  CARD_QR_FLYER_BEING_BUILT_MESSAGE,
+  CARD_QR_SHARED_FLYER_THEMES,
+  buildCardQrFlyerCopy,
+} from '@/lib/workspace/card-qr/flyer-copy'
+import {
+  FLYER_CONTENT_BOTTOM,
+  FLYER_MARGIN_LEFT,
+  FLYER_MARGIN_RIGHT,
+  FLYER_SAFE_BOTTOM,
+  FLYER_SAFE_TOP,
+  FLYER_TEXT_MAX_WIDTH,
+} from '@/lib/workspace/card-qr/flyer-layout'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
 import {
   CARD_QR_DARK,
@@ -39,8 +52,8 @@ import {
   CARD_QR_FLYER_WIDTH,
   CARD_QR_LIGHT,
   CARD_QR_MARGIN,
-  flyerQrPlacement,
   flyerTextRenderOptions,
+  renderCardQrFlyerParts,
   renderCardQrFlyerPng,
   renderCardQrPng,
 } from '@/lib/workspace/card-qr/render'
@@ -177,53 +190,178 @@ describe('flyer fonts', () => {
   })
 })
 
+function dudeCopy(overrides?: { tagline?: string; website?: string | null; showTitle?: string }) {
+  return {
+    showTitle: overrides?.showTitle ?? "Dude's Fizzfest",
+    tagline: overrides?.tagline ?? 'Come for the fizz. Stay for the sparkle.',
+    firstName: 'Louis',
+    website: overrides?.website === undefined ? null : overrides.website,
+  }
+}
+
+async function expectInkInsideSafeZones(flyer: Buffer, background: Buffer) {
+  const full = await sharp(flyer).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+  const back = await sharp(background).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+  const width = full.info.width
+  const height = full.info.height
+  const channels = full.info.channels
+  const offenders: string[] = []
+  const differs = (x: number, y: number) => {
+    const index = (y * width + x) * channels
+    return (
+      Math.abs((full.data[index] ?? 0) - (back.data[index] ?? 0)) > 12 ||
+      Math.abs((full.data[index + 1] ?? 0) - (back.data[index + 1] ?? 0)) > 12 ||
+      Math.abs((full.data[index + 2] ?? 0) - (back.data[index + 2] ?? 0)) > 12
+    )
+  }
+  const note = (where: string, x: number, y: number) => {
+    if (offenders.length < 6) offenders.push(`${where} ${x},${y}`)
+  }
+  for (let y = 0; y < FLYER_SAFE_TOP; y += 2) {
+    for (let x = 0; x < width; x += 4) {
+      if (differs(x, y)) note('top', x, y)
+    }
+  }
+  const bottomStart = height - FLYER_SAFE_BOTTOM
+  for (let y = bottomStart; y < height; y += 2) {
+    for (let x = 0; x < width; x += 4) {
+      if (differs(x, y)) note('bottom', x, y)
+    }
+  }
+  for (let y = FLYER_SAFE_TOP; y < bottomStart; y += 4) {
+    for (let x = 0; x < FLYER_MARGIN_LEFT; x += 3) {
+      if (differs(x, y)) note('left', x, y)
+    }
+    for (let x = FLYER_MARGIN_RIGHT; x < width; x += 3) {
+      if (differs(x, y)) note('right', x, y)
+    }
+  }
+  expect(offenders).toEqual([])
+}
+
 describe('flyer render', () => {
-  it.each(['halloween_pumpkin_cat', 'sparkle_suite_morganite'] as const)(
-    'renders a 1080×1920 %s flyer whose QR decodes exactly',
+  it.each(CARD_QR_SHARED_FLYER_THEMES)(
+    'renders %s inside the safe zones and the QR decodes',
     async (theme) => {
-      const lines = ["Dude's Fizzfest", 'Louis', 'cafés & more']
-      const flyer = await renderCardQrFlyerPng({
+      const copy = dudeCopy()
+      const parts = await renderCardQrFlyerParts({
         palette: resolveCardQrPalette({
           templateId: 'match-site',
           appearancePreset: theme,
         }),
-        lines,
-        businessName: "Dude's Fizzfest",
+        ...copy,
         appearancePreset: theme,
         destinationUrl: URL,
         showQr: true,
       })
-      const meta = await sharp(flyer).metadata()
+      const meta = await sharp(parts.flyer).metadata()
       expect(meta.width).toBe(CARD_QR_FLYER_WIDTH)
       expect(meta.height).toBe(CARD_QR_FLYER_HEIGHT)
       expect(meta.format).toBe('png')
-      await expect(assertFlyerQrDecodes(flyer, URL)).resolves.toBeUndefined()
+      await expect(assertFlyerQrDecodes(parts.flyer, URL)).resolves.toBeUndefined()
+      expect(parts.layout.contentTop).toBeGreaterThanOrEqual(FLYER_SAFE_TOP)
+      expect(parts.layout.contentBottom).toBeLessThanOrEqual(FLYER_CONTENT_BOTTOM)
+      expect(parts.layout.showTitle?.lines.join(' ')).toBe(copy.showTitle)
+      expect(parts.layout.tagline?.lines.join(' ')).toBe(copy.tagline)
+      expect(parts.layout.website).toBeNull()
+      expect(parts.layout.signOff?.lines.join(' ')).toBe('Shop with Louis anytime')
+      const words = [
+        ...(parts.layout.showTitle?.lines ?? []),
+        ...(parts.layout.tagline?.lines ?? []),
+        ...(parts.layout.instructions.lines ?? []),
+        ...(parts.layout.signOff?.lines ?? []),
+      ].join(' ')
+      expect(words).not.toContain('Sparkle Suite')
+      expect(words).not.toContain('@')
+      expect(words.toLowerCase()).not.toContain('louis@')
+      await expectInkInsideSafeZones(parts.flyer, parts.background)
 
-      const { data, info } = await sharp(flyer).raw().toBuffer({ resolveWithObject: true })
-      const place = flyerQrPlacement(lines.length, true)
-      const inside = pixel(data, info, place.left + 2, place.top + 2)
-      const outside = pixel(data, info, place.left - 4, place.top + 20)
+      const { data, info } = await sharp(parts.flyer).raw().toBuffer({ resolveWithObject: true })
+      const inside = pixel(data, info, parts.layout.qr.x + 8, parts.layout.qr.y + 8)
+      const frame = pixel(data, info, parts.layout.qr.x - 4, parts.layout.qr.y + 24)
       expect(inside).toEqual([255, 255, 255])
-      expect(outside).not.toEqual([255, 255, 255])
-
-      let ink = 0
-      for (let y = 180; y < 520; y += 3) {
-        for (let x = 180; x < 900; x += 3) {
-          const [red, green, blue] = pixel(data, info, x, y)
-          const background = pixel(data, info, 8, 80)
-          if (
-            Math.abs(red - background[0]) +
-              Math.abs(green - background[1]) +
-              Math.abs(blue - background[2]) >
-            90
-          ) {
-            ink += 1
-          }
-        }
-      }
-      expect(ink).toBeGreaterThan(40)
+      expect(frame).not.toEqual([255, 255, 255])
     },
   )
+
+  it('shrinks a long show title instead of cutting it off', async () => {
+    const showTitle = "Dude's Extraordinary Midnight Sparkle Fizzfest Society"
+    expect(showTitle.length).toBeGreaterThan(40)
+    const parts = await renderCardQrFlyerParts({
+      palette: resolveCardQrPalette({
+        templateId: 'match-site',
+        appearancePreset: 'sparkle_suite_morganite',
+      }),
+      ...dudeCopy({ showTitle, tagline: 'A very long tagline that still has to wrap inside the side margins of the portrait flyer.' }),
+      appearancePreset: 'sparkle_suite_morganite',
+      destinationUrl: URL,
+      showQr: true,
+    })
+    const drawn = parts.layout.showTitle?.lines.join(' ') ?? ''
+    expect(drawn).toBe(showTitle)
+    expect(parts.layout.showTitle?.lines.length).toBeGreaterThan(1)
+    expect(parts.layout.showTitle?.size).toBeLessThanOrEqual(104)
+    expect(parts.layout.contentBottom).toBeLessThanOrEqual(FLYER_CONTENT_BOTTOM)
+    expect(FLYER_TEXT_MAX_WIDTH).toBeLessThan(FLYER_MARGIN_RIGHT - FLYER_MARGIN_LEFT)
+    await expectInkInsideSafeZones(parts.flyer, parts.background)
+    await expect(assertFlyerQrDecodes(parts.flyer, URL)).resolves.toBeUndefined()
+  })
+
+  it('closes the tagline and website slots when they are absent, and prints a custom domain', async () => {
+    const open = await renderCardQrFlyerParts({
+      palette: resolveCardQrPalette({
+        templateId: 'match-site',
+        appearancePreset: 'moonstone',
+      }),
+      ...dudeCopy({ tagline: '' }),
+      appearancePreset: 'moonstone',
+      destinationUrl: URL,
+      showQr: true,
+    })
+    const withDomain = await renderCardQrFlyerParts({
+      palette: resolveCardQrPalette({
+        templateId: 'match-site',
+        appearancePreset: 'moonstone',
+      }),
+      ...dudeCopy({ website: 'DUDESFIZZFEST.COM' }),
+      appearancePreset: 'moonstone',
+      destinationUrl: 'https://dudesfizzfest.com',
+      showQr: true,
+    })
+    expect(open.layout.tagline).toBeNull()
+    expect(open.layout.website).toBeNull()
+    expect(withDomain.layout.website?.lines.join(' ')).toBe('DUDESFIZZFEST.COM')
+    expect(withDomain.layout.pill.y).toBeGreaterThan(open.layout.pill.y)
+    await expect(assertFlyerQrDecodes(withDomain.flyer, 'https://dudesfizzfest.com')).resolves.toBeUndefined()
+    await expectInkInsideSafeZones(open.flyer, open.background)
+    await expectInkInsideSafeZones(withDomain.flyer, withDomain.background)
+  })
+
+  it('builds flyer copy from the show title and tagline, not email or the ticker', () => {
+    const copy = buildCardQrFlyerCopy({
+      businessName: "Dude's Fizzfest",
+      displayName: 'Louis Rivera',
+      tagline: 'Come for the fizz.',
+      customDomain: 'www.dudesfizzfest.com',
+    })
+    expect(copy).toEqual({
+      showTitle: "Dude's Fizzfest",
+      tagline: 'Come for the fizz.',
+      firstName: 'Louis',
+      website: 'DUDESFIZZFEST.COM',
+    })
+    expect(
+      buildCardQrFlyerCopy({
+        businessName: "Dude's Fizzfest",
+        displayName: 'Louis',
+        tagline: '',
+        customDomain: 'sparkle-suite-smoke.vercel.app',
+      }).website,
+    ).toBeNull()
+    expect(CARD_QR_SHARED_FLYER_THEMES).toHaveLength(14)
+    expect(CARD_QR_SHARED_FLYER_THEMES).not.toContain('neon_butterfly')
+    expect(CARD_QR_SHARED_FLYER_THEMES).not.toContain('rose_quartz')
+  })
 })
 
 describe('flyer file formats', () => {
@@ -233,8 +371,9 @@ describe('flyer file formats', () => {
         templateId: 'match-site',
         appearancePreset: 'sparkle_suite_morganite',
       }),
-      lines: ["Dude's Fizzfest", 'Louis'],
-      businessName: "Dude's Fizzfest",
+      showTitle: "Dude's Fizzfest",
+      tagline: 'Come for the fizz. Stay for the sparkle.',
+      firstName: 'Louis',
       appearancePreset: 'sparkle_suite_morganite',
       destinationUrl: URL,
       showQr: true,
@@ -251,8 +390,9 @@ describe('flyer file formats', () => {
   })
 
   it('uses one cache key so the download is the preview bytes', () => {
-    expect(DEFAULT_CARD_QR_FLYER_FORMAT).toBe('png')
-    expect(parseCardQrFlyerFormat(undefined)).toBe('png')
+    expect(DEFAULT_CARD_QR_FLYER_FORMAT).toBe('jpg')
+    expect(parseCardQrFlyerFormat(undefined)).toBe('jpg')
+    expect(parseCardQrFlyerFormat('png')).toBe('png')
     expect(parseCardQrFlyerFormat('jpeg')).toBe('jpg')
     expect(parseCardQrFlyerFormat('gif')).toBeNull()
     const key = flyerPreviewCacheKey('png', URL)
@@ -279,14 +419,35 @@ describe('flyer route', () => {
       }),
     )
     expect(response.status).toBe(200)
-    expect(response.headers.get('Content-Type')).toContain('image/png')
-    const png = Buffer.from(await response.arrayBuffer())
-    expect(response.headers.get('X-Card-Qr-Flyer-Sha256')).toBe(flyerBytesSha256(png))
-    const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true })
+    expect(response.headers.get('Content-Type')).toContain('image/jpeg')
+    const jpg = Buffer.from(await response.arrayBuffer())
+    expect(response.headers.get('X-Card-Qr-Flyer-Sha256')).toBe(flyerBytesSha256(jpg))
+    const { data, info } = await sharp(jpg).raw().toBuffer({ resolveWithObject: true })
     const background = pixel(data, info, 8, 80)
-    expect(background[0]).toBeLessThan(40)
-    await expect(assertFlyerQrDecodes(png, URL)).resolves.toBeUndefined()
+    expect(background[0]).toBeLessThan(50)
+    await expect(assertFlyerQrDecodes(jpg, URL)).resolves.toBeUndefined()
   })
+
+  it.each(['neon_butterfly', 'gnome_garden', 'alpine_opal', 'black_diamond'] as const)(
+    'returns the being-built state for %s and no flyer file',
+    async (theme) => {
+      mocks.loadCardQrContext.mockResolvedValue(context(theme))
+      const response = await postFlyer(
+        new Request('https://sparkle-suite-smoke.vercel.app/api/workspace/card-qr/flyer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ format: 'png' }),
+        }),
+      )
+      expect(response.status).toBe(200)
+      expect(response.headers.get('Content-Type')).toContain('application/json')
+      await expect(response.json()).resolves.toEqual({
+        code: 'CARD_QR_FLYER_BEING_BUILT',
+        status: 'being_built',
+        message: CARD_QR_FLYER_BEING_BUILT_MESSAGE,
+      })
+    },
+  )
 
   it('rejects an unknown saved theme', async () => {
     mocks.loadCardQrContext.mockResolvedValue(context('not-a-theme'))

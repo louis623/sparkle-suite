@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server'
-import { buildCardQrCopyLines } from '@/lib/workspace/card-qr/design'
+import {
+  buildCardQrFlyerCopy,
+  CARD_QR_FLYER_BEING_BUILT,
+  isCustomFlyerTheme,
+} from '@/lib/workspace/card-qr/flyer-copy'
 import { FlyerQrDecodeError } from '@/lib/workspace/card-qr/flyer-decode'
 import {
   flyerBytesSha256,
@@ -59,19 +63,27 @@ export async function POST(request: Request) {
         { status: 409 },
       )
     }
+    if (isCustomFlyerTheme(appearancePreset)) {
+      return NextResponse.json(CARD_QR_FLYER_BEING_BUILT, {
+        headers: { 'Cache-Control': 'no-store' },
+      })
+    }
+    const copy = buildCardQrFlyerCopy({
+      businessName: context.settings.businessName,
+      displayName: context.settings.displayName,
+      tagline: context.settings.tagline,
+      customDomain: context.customDomain,
+    })
     const palette = resolveCardQrPalette({
       templateId: 'match-site',
       appearancePreset,
     })
     const png = await renderCardQrFlyerPng({
       palette,
-      lines: buildCardQrCopyLines({
-        displayName: context.settings.displayName,
-        businessName: context.settings.businessName,
-        email: context.settings.email,
-        socialHandles: context.settings.socialHandles,
-      }),
-      businessName: context.settings.businessName,
+      showTitle: copy.showTitle,
+      tagline: copy.tagline,
+      firstName: copy.firstName,
+      website: copy.website,
       appearancePreset,
       destinationUrl: context.destinationUrl,
       showQr: true,

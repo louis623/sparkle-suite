@@ -82,6 +82,7 @@ export async function loadCardQrContext(request: Request) {
     ...context,
     origin,
     destinationUrl,
+    customDomain: context.rep.custom_domain,
     settings: {
       ...settings,
       appearancePreset,

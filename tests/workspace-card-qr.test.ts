@@ -240,8 +240,10 @@ describe('Cards & QR smoke locks', () => {
     expect(qr.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a')
     const flyer = await renderCardQrFlyerPng({
       palette,
-      lines: ["Dude's Fizzfest", 'Louis'],
-      businessName: "Dude's Fizzfest",
+      showTitle: "Dude's Fizzfest",
+      tagline: 'Come for the fizz. Stay for the sparkle.',
+      firstName: 'Louis',
+      website: null,
       appearancePreset: 'sparkle_suite_morganite',
       destinationUrl: 'https://sparkle-suite-smoke.vercel.app/fizzfest',
       showQr: true,
@@ -295,10 +297,11 @@ describe('Cards & QR smoke locks', () => {
     expect(html).not.toContain('>Halloween<')
     expect(html).toContain('>PNG<')
     expect(html).toContain('>JPG<')
-    expect(html).toMatch(/aria-pressed="true"[^>]*>PNG</)
-    expect(html).toMatch(/aria-pressed="false"[^>]*>JPG</)
+    expect(html).toMatch(/aria-pressed="true"[^>]*>JPG</)
+    expect(html).toMatch(/aria-pressed="false"[^>]*>PNG</)
     expect(html).toContain('Making your flyer…')
-    expect(html).toContain('Download PNG')
+    expect(html).toContain('Download JPG')
+    expect(toolSource).toContain('CARD_QR_FLYER_BEING_BUILT_MESSAGE')
     expect(html).toContain('The preview is the file you download.')
     expect(html).not.toContain('Download portrait PNG')
     expect(toolSource).toContain('flyerDownloadBytes')

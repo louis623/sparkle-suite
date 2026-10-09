@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs'
 import { parse as parseFont } from 'opentype.js'
 
 interface LoadedFont {
-  charToGlyph(char: string): { index: number }
+  unitsPerEm: number
+  charToGlyph(char: string): { index: number; advanceWidth: number }
 }
 
 const fontCache = new Map<string, LoadedFont>()
@@ -41,4 +42,31 @@ export function retainCoveredGlyphs(
     }
   }
   return covered
+}
+
+function glyphWidth(font: LoadedFont, char: string, fontSize: number) {
+  const glyph = font.charToGlyph(char)
+  const units = font.unitsPerEm || 1000
+  const advance = glyph.advanceWidth > 0 ? glyph.advanceWidth : units * 0.5
+  // Slightly wider than the raw advance so wrapping stays inside the side margins
+  // when the drawer's kerning does not match this sum.
+  return (advance * fontSize) / units * 1.06
+}
+
+/** Width of text the flyer will actually draw, in CSS pixels at fontSize. */
+export function measureTextWidth(
+  text: string,
+  primaryFile: string,
+  fallbackFile: string,
+  fontSize: number,
+) {
+  const primary = loadFont(primaryFile)
+  const fallback = primaryFile === fallbackFile ? primary : loadFont(fallbackFile)
+  const covered = retainCoveredGlyphs(text, primaryFile, fallbackFile)
+  let width = 0
+  for (const char of covered) {
+    const font = fontCovers(primary, char) ? primary : fallback
+    width += glyphWidth(font, char, fontSize)
+  }
+  return width
 }

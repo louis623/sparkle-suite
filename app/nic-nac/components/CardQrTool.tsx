@@ -15,6 +15,7 @@ import {
   buildCardQrCopyLines,
 } from '@/lib/workspace/card-qr/design'
 import { resolveCardQrDestination } from '@/lib/workspace/card-qr/destination'
+import { CARD_QR_FLYER_BEING_BUILT_MESSAGE } from '@/lib/workspace/card-qr/flyer-copy'
 import {
   DEFAULT_CARD_QR_FLYER_FORMAT,
   flyerDownloadBytes,
@@ -68,6 +69,7 @@ export function CardQrTool({
   const [flyerCache, setFlyerCache] = useState<{ key: string; bytes: Blob; url: string } | null>(null)
   const [flyerLoading, setFlyerLoading] = useState(false)
   const [flyerError, setFlyerError] = useState<string | null>(null)
+  const [flyerPending, setFlyerPending] = useState(false)
   const destinationUrl = useMemo(
     () => resolveCardQrDestination(siteHref, origin),
     [origin, siteHref],
@@ -127,6 +129,7 @@ export function CardQrTool({
     const key = flyerPreviewCacheKey(flyerFormat, destinationUrl)
     setFlyerLoading(true)
     setFlyerError(null)
+    setFlyerPending(false)
     setFlyerCache(null)
     void fetch('/api/workspace/card-qr/flyer', {
       method: 'POST',
@@ -137,6 +140,15 @@ export function CardQrTool({
     })
       .then(async (response) => {
         if (!response.ok) throw new Error(await readError(response))
+        const contentType = response.headers.get('content-type') ?? ''
+        if (contentType.includes('application/json')) {
+          const body = await response.json()
+          if (body?.status === 'being_built') {
+            setFlyerPending(true)
+            return
+          }
+          throw new Error(body?.error || body?.message || 'Could not make the flyer.')
+        }
         const blob = await response.blob()
         const mime = flyerFormat === 'jpg' ? 'image/jpeg' : 'image/png'
         const file = blob.type === mime ? blob : new Blob([await blob.arrayBuffer()], { type: mime })
@@ -319,12 +331,13 @@ export function CardQrTool({
           social posts. No Stripe charge. The preview is the file you download.
         </p>
         <div className={styles.formatRow} role="group" aria-label="Flyer file type">
-          {(['png', 'jpg'] as const).map((format) => (
+          {(['jpg', 'png'] as const).map((format) => (
             <button
               key={format}
               type="button"
               className={styles.choice}
               aria-pressed={flyerFormat === format}
+              disabled={flyerPending}
               onClick={() => setFlyerFormat(format)}
             >
               {format === 'png' ? 'PNG' : 'JPG'}
@@ -337,21 +350,28 @@ export function CardQrTool({
               <button
                 type="button"
                 className={`${styles.button} ${styles.buttonPrimary}`}
-                disabled={!destinationUrl || flyerLoading || !flyerCache}
+                disabled={!destinationUrl || flyerLoading || flyerPending || !flyerCache}
                 onClick={downloadFlyer}
               >
-                {flyerLoading ? 'Making flyer…' : `Download ${flyerFormat === 'jpg' ? 'JPG' : 'PNG'}`}
+                {flyerPending
+                  ? 'Flyer in progress'
+                  : flyerLoading
+                    ? 'Making flyer…'
+                    : `Download ${flyerFormat === 'jpg' ? 'JPG' : 'PNG'}`}
               </button>
             </div>
             <p className={styles.spec}>
-              PNG is full quality. JPG is best for texting and posting from a phone.
-              The name and QR stay in the middle so story buttons do not cover them.
-              Changing your site theme makes a new matching flyer. The QR stays the same.
+              JPG is the default, and the best file for texting and posting from a phone.
+              PNG is full quality. The name and QR stay in the middle so story buttons
+              do not cover them. Changing your site theme makes a new matching flyer.
+              The QR stays the same.
             </p>
             {flyerError ? <p className={styles.flyerError} role="alert">{flyerError}</p> : null}
           </div>
           <div className={styles.flyerFrame} aria-label="QR flyer preview">
-            {flyerCache ? (
+            {flyerPending ? (
+              <p className={styles.body} role="status">{CARD_QR_FLYER_BEING_BUILT_MESSAGE}</p>
+            ) : flyerCache ? (
               // The image is the server file for the selected type. Download uses these same bytes.
               // eslint-disable-next-line @next/next/no-img-element
               <img src={flyerCache.url} alt="QR flyer preview" />
