@@ -17,14 +17,38 @@ export interface CardQrFields {
   social: boolean
 }
 
-export const CARD_QR_ICONS = ['none', 'diamond', 'unicorn'] as const
+export const CARD_QR_ICONS = [
+  'none',
+  'diamond-solid',
+  'diamond-two-tone',
+  'unicorn-line',
+  'unicorn-two-tone',
+  'heart',
+  'smiley',
+  'gem-ring',
+  'crown',
+  'butterfly',
+] as const
 
 export type CardQrIcon = (typeof CARD_QR_ICONS)[number]
 
 export const CARD_QR_ICON_LABELS: Record<CardQrIcon, string> = {
   none: 'None',
-  diamond: 'Diamond',
-  unicorn: 'Unicorn',
+  'diamond-solid': 'Diamond',
+  'diamond-two-tone': 'Shaded diamond',
+  'unicorn-line': 'Unicorn',
+  'unicorn-two-tone': 'Shaded unicorn',
+  heart: 'Heart',
+  smiley: 'Smiley',
+  'gem-ring': 'Ring',
+  crown: 'Crown',
+  butterfly: 'Butterfly',
+}
+
+/** Saved before the 2026-10-09 icon refresh. */
+const LEGACY_CARD_QR_ICONS: Record<string, CardQrIcon> = {
+  diamond: 'diamond-solid',
+  unicorn: 'unicorn-two-tone',
 }
 
 export interface CardQrDesign {
@@ -48,6 +72,7 @@ export const DEFAULT_CARD_QR_DESIGN: CardQrDesign = {
 }
 
 export function parseCardQrIcon(value: unknown): CardQrIcon | null {
+  if (typeof value === 'string' && value in LEGACY_CARD_QR_ICONS) return LEGACY_CARD_QR_ICONS[value]
   return CARD_QR_ICONS.includes(value as CardQrIcon) ? (value as CardQrIcon) : null
 }
 
@@ -58,8 +83,8 @@ export function cardQrIconFromRequest(value: unknown): CardQrIcon {
   if (!icon) {
     throw new ServiceError({
       code: 'CARD_QR_ICON_INVALID',
-      message: 'QR icon must be none, diamond, or unicorn.',
-      userMessage: 'Choose None, Diamond, or Unicorn.',
+      message: `QR icon must be one of: ${CARD_QR_ICONS.join(', ')}.`,
+      userMessage: 'Choose a center mark from the list.',
       statusCode: 400,
     })
   }

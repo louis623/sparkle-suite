@@ -565,7 +565,7 @@ describe('flyer file formats', () => {
     expect(parseCardQrFlyerFormat('gif')).toBeNull()
     const key = flyerPreviewCacheKey('png', URL)
     expect(key).toBe(`png:none:${URL}`)
-    expect(flyerPreviewCacheKey('png', URL, 'diamond')).toBe(`png:diamond:${URL}`)
+    expect(flyerPreviewCacheKey('png', URL, 'diamond-solid')).toBe(`png:diamond-solid:${URL}`)
     expect(flyerPreviewCacheKey('jpg', URL)).not.toBe(key)
     const bytes = new Uint8Array([1, 2, 3])
     const cached = { key, bytes }
@@ -722,7 +722,7 @@ describe('QR image', () => {
       QR_URL,
       { qrDark: '#5b1e3b', qrLight: '#111111' },
       640,
-      'unicorn',
+      'unicorn-two-tone',
     )
     expect(spy).toHaveBeenCalledWith(
       QR_URL,
@@ -730,7 +730,7 @@ describe('QR image', () => {
     )
     spy.mockRestore()
     expect(cardQrErrorCorrection('none')).toBe('M')
-    expect(cardQrErrorCorrection('diamond')).toBe('H')
+    expect(cardQrErrorCorrection('diamond-solid')).toBe('H')
     expect(CARD_QR_MARGIN).toBe(4)
     expect(CARD_QR_LIGHT).toBe('#FFFFFF')
     expect(inspectCardQr(QR_URL, 'none')).toMatchObject({
@@ -738,13 +738,13 @@ describe('QR image', () => {
       modules: 33,
       errorCorrectionLevel: 'M',
     })
-    expect(inspectCardQr(QR_URL, 'diamond')).toMatchObject({
+    expect(inspectCardQr(QR_URL, 'diamond-solid')).toMatchObject({
       version: 6,
       modules: 41,
       errorCorrectionLevel: 'H',
     })
     expect(inspectCardQr('https://www.yoursparklesuite.com/q/abc123', 'none').version).toBe(3)
-    expect(inspectCardQr('https://www.yoursparklesuite.com/q/abc123', 'unicorn').version).toBe(5)
+    expect(inspectCardQr('https://www.yoursparklesuite.com/q/abc123', 'unicorn-line').version).toBe(5)
 
     const { data, info } = await sharp(png).ensureAlpha().raw().toBuffer({
       resolveWithObject: true,

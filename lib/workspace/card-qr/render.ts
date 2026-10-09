@@ -49,9 +49,11 @@ import { qrModuleColor } from '@/lib/workspace/card-qr/flyer-contrast'
 import type { CardQrPalette } from '@/lib/workspace/card-qr/palette'
 import { CARD_QR_PRINT_SPEC } from '@/lib/workspace/card-qr/pricing'
 import {
+  CARD_QR_ICON_CLEARANCE,
+  CARD_QR_ICON_MAX_VERSION,
   cardQrBadgeHitsFinders,
+  cardQrBadgeMarkup,
   cardQrBadgeModules,
-  cardQrIconMarkup,
 } from '@/lib/workspace/card-qr/qr-icon'
 
 export {
@@ -73,12 +75,12 @@ export function cardQrErrorCorrection(icon: CardQrIcon = 'none'): 'M' | 'H' {
 }
 
 export function inspectCardQr(url: string, icon: CardQrIcon = 'none') {
-  const errorCorrectionLevel = cardQrErrorCorrection(icon)
-  const symbol = QRCode.create(url, { errorCorrectionLevel })
+  const { symbol, errorCorrectionLevel, icon: drawnIcon } = cardQrSymbol(url, icon)
   return {
     version: symbol.version,
     modules: symbol.modules.size,
     errorCorrectionLevel,
+    icon: drawnIcon,
   }
 }
 
@@ -109,47 +111,51 @@ export function flyerTextRenderOptions(fontFiles: string[]): ResvgRenderOptions 
   }
 }
 
-function cardQrSvg(input: {
-  url: string
-  icon: CardQrIcon
-  dark: string
-  width: number
-}) {
-  const errorCorrectionLevel = cardQrErrorCorrection(input.icon)
-  const symbol = QRCode.create(input.url, { errorCorrectionLevel })
+/** The badge is dropped when the code would get too dense to carry it. */
+export function cardQrSymbol(url: string, icon: CardQrIcon = 'none') {
+  if (icon !== 'none') {
+    const symbol = QRCode.create(url, { errorCorrectionLevel: 'H' })
+    if (symbol.version <= CARD_QR_ICON_MAX_VERSION) {
+      return { symbol, icon, errorCorrectionLevel: 'H' as const }
+    }
+  }
+  const symbol = QRCode.create(url, { errorCorrectionLevel: 'M' })
+  return { symbol, icon: 'none' as CardQrIcon, errorCorrectionLevel: 'M' as const }
+}
+
+export function cardQrSvg(input: { url: string; icon: CardQrIcon; dark: string; width: number }) {
+  const { symbol, icon } = cardQrSymbol(input.url, input.icon)
   const modules = symbol.modules.size
   const cells = modules + CARD_QR_MARGIN * 2
-  const modulePx = Math.max(2, Math.ceil(input.width / cells))
-  const rects: string[] = []
+  const c = cells / 2
+  const badge = icon === 'none' ? 0 : cardQrBadgeModules(modules)
+  if (badge > 0 && cardQrBadgeHitsFinders(modules, badge)) {
+    throw new Error(`QR center mark overlaps a finder pattern at ${modules} modules.`)
+  }
+  const clear = badge / 2 + CARD_QR_ICON_CLEARANCE
+  const path: string[] = []
   for (let row = 0; row < modules; row += 1) {
     for (let col = 0; col < modules; col += 1) {
       if (!symbol.modules.get(row, col)) continue
-      const x = (col + CARD_QR_MARGIN) * modulePx
-      const y = (row + CARD_QR_MARGIN) * modulePx
-      rects.push(`<rect x="${x}" y="${y}" width="${modulePx}" height="${modulePx}"/>`)
+      const x = col + CARD_QR_MARGIN
+      const y = row + CARD_QR_MARGIN
+      if (badge > 0) {
+        // Leave out whole modules that touch the badge area.
+        const nx = Math.max(x, Math.min(c, x + 1))
+        const ny = Math.max(y, Math.min(c, y + 1))
+        if ((nx - c) ** 2 + (ny - c) ** 2 < clear ** 2) continue
+      }
+      path.push(`M${x} ${y}h1v1h-1z`)
     }
   }
-  const badgeModules = input.icon === 'none' ? 0 : cardQrBadgeModules(modules)
-  if (badgeModules > 0 && cardQrBadgeHitsFinders(modules, badgeModules)) {
-    throw new Error(`QR center mark overlaps a finder pattern at ${modules} modules.`)
-  }
-  const badgePx = badgeModules * modulePx
-  const origin = CARD_QR_MARGIN * modulePx
-  const codeSize = modules * modulePx
-  const center = origin + codeSize / 2
-  const iconScale = (badgePx * 0.78) / 24
-  const mark =
-    input.icon === 'none'
-      ? ''
-      : `<rect x="${center - badgePx / 2}" y="${center - badgePx / 2}" width="${badgePx}" height="${badgePx}" rx="${badgePx * 0.22}" fill="${CARD_QR_LIGHT}"/>
-         <g transform="translate(${center} ${center}) scale(${iconScale}) translate(-12 -12)">${cardQrIconMarkup(input.icon, input.dark)}</g>`
-  const size = modulePx * cells
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <rect width="${size}" height="${size}" fill="${CARD_QR_LIGHT}"/>
-    <g fill="${input.dark}" shape-rendering="crispEdges">${rects.join('')}</g>
+  const mark = badge > 0 ? cardQrBadgeMarkup(icon, input.dark, c, badge) : ''
+  const size = input.width
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${cells} ${cells}">
+    <rect width="${cells}" height="${cells}" fill="${CARD_QR_LIGHT}"/>
+    <path fill="${input.dark}" shape-rendering="crispEdges" d="${path.join('')}"/>
     ${mark}
   </svg>`
-  return { svg, size }
+  return { svg, size, icon, modules, version: symbol.version }
 }
 
 export async function renderCardQrPng(
@@ -158,15 +164,14 @@ export async function renderCardQrPng(
   width = 640,
   icon: CardQrIcon = 'none',
 ) {
+  // Vector drawn at the final pixel size. No nearest-neighbour upscale.
   const drawn = cardQrSvg({
     url,
     icon,
     dark: qrModuleColor(palette?.qrDark, CARD_QR_DARK),
     width,
   })
-  const png = await sharp(Buffer.from(drawn.svg)).png().toBuffer()
-  if (drawn.size === width) return png
-  return sharp(png).resize(width, width, { fit: 'fill', kernel: 'nearest' }).png().toBuffer()
+  return sharp(Buffer.from(drawn.svg), { density: 72 }).png().toBuffer()
 }
 
 export interface CardQrFlyerRenderInput {

@@ -87,7 +87,7 @@ describe('card QR short codes', () => {
   it('keeps the center badge off the finder patterns', () => {
     for (const modules of [21, 25, 29, 33, 37, 41]) {
       const badge = cardQrBadgeModules(modules)
-      expect(badge / modules).toBeLessThanOrEqual(0.2)
+      expect(badge / modules).toBeCloseTo(0.2, 6)
       expect(cardQrBadgeHitsFinders(modules, badge)).toBe(false)
     }
   })
@@ -161,7 +161,10 @@ describe('center mark profile storage', () => {
       }),
     ).toBe(true)
     expect(parseCardQrDesign({ templateId: 'match-site' }).qrIcon).toBe('none')
-    expect(parseCardQrDesign({ qrIcon: 'diamond' }).qrIcon).toBe('diamond')
+    expect(parseCardQrDesign({ qrIcon: 'diamond' }).qrIcon).toBe('diamond-solid')
+    expect(parseCardQrDesign({ qrIcon: 'unicorn' }).qrIcon).toBe('unicorn-two-tone')
+    expect(parseCardQrDesign({ qrIcon: 'butterfly' }).qrIcon).toBe('butterfly')
+    expect(parseCardQrDesign({ qrIcon: 'sparkle' }).qrIcon).toBe('none')
     expect(DEFAULT_CARD_QR_DESIGN.qrIcon).toBe('none')
 
     const missingColumn = {
@@ -195,7 +198,7 @@ describe('center mark profile storage', () => {
       repId: REP_ID,
       destinationUrl: `${ORIGIN}/fizzfest`,
       appearancePreset: 'sparkle_suite_morganite',
-      design: { ...DEFAULT_CARD_QR_DESIGN, qrIcon: 'unicorn' },
+      design: { ...DEFAULT_CARD_QR_DESIGN, qrIcon: 'unicorn-two-tone' },
     })
     expect(saved.iconStored).toBe(false)
     expect(saved.profile?.design.qrIcon).toBe('none')

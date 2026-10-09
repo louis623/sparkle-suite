@@ -282,6 +282,10 @@ describe('Cards & QR smoke locks', () => {
     expect(html).toContain('>None<')
     expect(html).toContain('>Diamond<')
     expect(html).toContain('>Unicorn<')
+    for (const label of ['Shaded diamond', 'Shaded unicorn', 'Heart', 'Smiley', 'Ring', 'Crown', 'Butterfly']) {
+      expect(html).toContain(`>${label}<`)
+    }
+    expect(html).not.toContain('>Sparkle<')
     expect(html).toMatch(/aria-pressed="true"[^>]*>None</)
     expect(html).toContain('qrLayout')
     expect(html).toContain('https://sparkle-suite-smoke.vercel.app/fizzfest')
