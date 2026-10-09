@@ -19,7 +19,7 @@ import {
   loadCardQrContext,
 } from '@/lib/workspace/card-qr/context'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
-import { renderCardQrFlyerPng } from '@/lib/workspace/card-qr/render'
+import { renderCardQrFlyerParts } from '@/lib/workspace/card-qr/render'
 import { ServiceError } from '@/lib/services/errors'
 
 export const runtime = 'nodejs'
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       templateId: 'match-site',
       appearancePreset,
     })
-    const png = await renderCardQrFlyerPng({
+    const parts = await renderCardQrFlyerParts({
       palette,
       showTitle: copy.showTitle,
       tagline: copy.tagline,
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
     })
     let files: { png: Buffer; jpg: Buffer }
     try {
-      files = await renderCheckedFlyerFiles(png, context.destinationUrl)
+      files = await renderCheckedFlyerFiles(parts.flyer, context.destinationUrl, parts.layout.qr)
     } catch (error) {
       console.error('CARD_QR_FLYER_DECODE_FAILED', {
         theme: appearancePreset,

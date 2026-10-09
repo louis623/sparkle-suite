@@ -32,6 +32,7 @@ import {
 } from '@/lib/workspace/card-qr/flyer-fonts'
 import { retainCoveredGlyphs } from '@/lib/workspace/card-qr/glyphs'
 import {
+  CARD_QR_CUSTOM_FLYER_THEMES,
   CARD_QR_FLYER_BEING_BUILT_MESSAGE,
   CARD_QR_SHARED_FLYER_THEMES,
   buildCardQrFlyerCopy,
@@ -49,9 +50,10 @@ import {
   FLYER_THEME_RECORDS,
   assertFlyerThemeRecordsComplete,
   flyerPlateAbsolute,
+  flyerThemeRecord,
 } from '@/lib/workspace/card-qr/flyer-themes'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
-import { resolveFlyerPaint } from '@/lib/workspace/card-qr/render'
+import { FLYER_PANEL_OPACITY, resolveFlyerPaint } from '@/lib/workspace/card-qr/render'
 import {
   CARD_QR_DARK,
   CARD_QR_ERROR_CORRECTION,
@@ -259,25 +261,31 @@ async function expectInkInsideSafeZones(flyer: Buffer, background: Buffer) {
 }
 
 describe('flyer theme designs', () => {
-  it('has one record for every theme, and art themes have a plate file', () => {
+  it('has one record for every theme, and every shared theme has a plate file', () => {
     expect(() => assertFlyerThemeRecordsComplete()).not.toThrow()
     expect(FLYER_THEME_RECORDS.map((record) => record.theme).sort()).toEqual(
       [...AMETHYST_APPEARANCE_PRESET_IDS].sort(),
     )
-    const art = FLYER_THEME_RECORDS.filter((record) => record.status === 'art')
-    expect(art.length).toBeGreaterThanOrEqual(7)
-    for (const record of art) {
-      const plate = flyerPlateAbsolute(record.theme)
-      expect(plate).toBeTruthy()
-      expect(existsSync(plate as string)).toBe(true)
+    expect(CARD_QR_SHARED_FLYER_THEMES).toHaveLength(14)
+    for (const theme of CARD_QR_SHARED_FLYER_THEMES) {
+      const plate = flyerPlateAbsolute(theme)
+      expect(plate, theme).toBeTruthy()
+      expect(existsSync(plate as string), theme).toBe(true)
+      expect(flyerThemeRecord(theme).plate, theme).toBeTruthy()
     }
-    expect(FLYER_THEME_RECORDS.filter((record) => record.status === 'simple').length).toBeGreaterThanOrEqual(7)
+    for (const theme of CARD_QR_CUSTOM_FLYER_THEMES) {
+      expect(flyerThemeRecord(theme).plate, theme).toBeUndefined()
+      expect(flyerThemeRecord(theme).status, theme).toBe('custom')
+    }
   })
 
-  it('keeps shared-theme text at WCAG AA against the panel and the scan pill', () => {
+  it('keeps shared-theme text at WCAG AA against an opaque panel and the scan pill', () => {
     for (const theme of CARD_QR_SHARED_FLYER_THEMES) {
       const palette = resolveCardQrPalette({ templateId: 'match-site', appearancePreset: theme })
       const paint = resolveFlyerPaint({ palette, appearancePreset: theme })
+      expect(paint.panelOpacity, theme).toBe(FLYER_PANEL_OPACITY)
+      expect(paint.panelOpacity, theme).toBeGreaterThanOrEqual(0.94)
+      expect(paint.panelOpacity, theme).toBeLessThanOrEqual(0.97)
       expect(contrastRatio(paint.title, paint.contrastPanel), theme).toBeGreaterThanOrEqual(4.5)
       expect(contrastRatio(paint.body, paint.contrastPanel), theme).toBeGreaterThanOrEqual(4.5)
       expect(contrastRatio(paint.muted, paint.contrastPanel), theme).toBeGreaterThanOrEqual(4.5)
@@ -305,7 +313,7 @@ describe('flyer render', () => {
       expect(meta.width).toBe(CARD_QR_FLYER_WIDTH)
       expect(meta.height).toBe(CARD_QR_FLYER_HEIGHT)
       expect(meta.format).toBe('png')
-      await expect(assertFlyerQrDecodes(parts.flyer, URL)).resolves.toBeUndefined()
+      await expect(assertFlyerQrDecodes(parts.flyer, URL, parts.layout.qr)).resolves.toBeUndefined()
       expect(parts.layout.contentTop).toBeGreaterThanOrEqual(FLYER_SAFE_TOP)
       expect(parts.layout.contentBottom).toBeLessThanOrEqual(FLYER_CONTENT_BOTTOM)
       expect(parts.layout.contentBottom - parts.layout.contentTop).toBeGreaterThanOrEqual(1100)
@@ -331,7 +339,7 @@ describe('flyer render', () => {
 
       const { data, info } = await sharp(parts.flyer).raw().toBuffer({ resolveWithObject: true })
       const inside = pixel(data, info, parts.layout.qr.x + 8, parts.layout.qr.y + 8)
-      const frame = pixel(data, info, parts.layout.qr.x - 4, parts.layout.qr.y + 24)
+      const frame = pixel(data, info, parts.layout.qrFrame.x + 3, parts.layout.qrFrame.y + 36)
       expect(inside).toEqual([255, 255, 255])
       expect(frame).not.toEqual([255, 255, 255])
       const panel = parts.layout.panel
@@ -364,12 +372,71 @@ describe('flyer render', () => {
     const drawn = parts.layout.showTitle?.lines.join(' ') ?? ''
     expect(drawn).toBe(showTitle)
     expect(parts.layout.showTitle?.lines.length).toBeGreaterThan(1)
+    expect(parts.layout.tagline?.lines.join(' ')).toBe(
+      'A very long tagline that still has to wrap inside the side margins of the portrait flyer.',
+    )
+    expect(parts.layout.tagline?.top).toBeGreaterThan(
+      (parts.layout.showTitle?.top ?? 0) + (parts.layout.showTitle?.lineHeight ?? 0),
+    )
     expect(parts.layout.showTitle?.size).toBeLessThanOrEqual(150)
     expect(parts.layout.contentBottom).toBeLessThanOrEqual(FLYER_CONTENT_BOTTOM)
     expect(FLYER_TEXT_MAX_WIDTH).toBeLessThan(FLYER_MARGIN_RIGHT - FLYER_MARGIN_LEFT)
     await expectInkInsideSafeZones(parts.flyer, parts.background)
-    await expect(assertFlyerQrDecodes(parts.flyer, URL)).resolves.toBeUndefined()
+    await expect(assertFlyerQrDecodes(parts.flyer, URL, parts.layout.qr)).resolves.toBeUndefined()
   })
+
+  it(
+    'decodes PNG and JPG for every shared theme with a tagline, without one, and with a wrapping title',
+    async () => {
+      const cases = [
+        {
+          name: 'tagline',
+          showTitle: "Dude's Fizzfest",
+          tagline: 'Come for the fizz. Stay for the sparkle.',
+        },
+        {
+          name: 'empty tagline',
+          showTitle: "Dude's Fizzfest",
+          tagline: '',
+        },
+        {
+          name: 'wrapping title',
+          showTitle: "Dude's Extraordinary Midnight Sparkle Fizzfest Society",
+          tagline: 'Bath bombs with a little bling',
+        },
+      ] as const
+      for (const theme of CARD_QR_SHARED_FLYER_THEMES) {
+        for (const sample of cases) {
+          const parts = await renderCardQrFlyerParts({
+            palette: resolveCardQrPalette({
+              templateId: 'match-site',
+              appearancePreset: theme,
+            }),
+            showTitle: sample.showTitle,
+            tagline: sample.tagline,
+            firstName: 'Louis',
+            appearancePreset: theme,
+            destinationUrl: URL,
+            showQr: true,
+          })
+          if (sample.name === 'wrapping title') {
+            expect(parts.layout.showTitle?.lines.length, theme).toBeGreaterThan(1)
+            expect(parts.layout.tagline?.lines.join(' '), theme).toBe(sample.tagline)
+            expect(parts.layout.tagline?.top, theme).toBeGreaterThan(
+              (parts.layout.showTitle?.top ?? 0) + (parts.layout.showTitle?.lineHeight ?? 0),
+            )
+          }
+          if (sample.name === 'empty tagline') {
+            expect(parts.layout.tagline, theme).toBeNull()
+          }
+          const files = await renderCheckedFlyerFiles(parts.flyer, URL, parts.layout.qr)
+          expect(files.png.byteLength).toBeGreaterThan(1000)
+          expect(files.jpg.byteLength).toBeGreaterThan(1000)
+        }
+      }
+    },
+    300_000,
+  )
 
   it('closes the tagline and website slots when they are absent, and prints a custom domain', async () => {
     const open = await renderCardQrFlyerParts({

@@ -10,7 +10,7 @@ import {
   type CardQrFlyerFormat,
 } from '@/lib/workspace/card-qr/flyer-format'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
-import { renderCardQrFlyerPng } from '@/lib/workspace/card-qr/render'
+import { renderCardQrFlyerParts } from '@/lib/workspace/card-qr/render'
 
 const DUDE = {
   showTitle: "Dude's Fizzfest",
@@ -59,7 +59,7 @@ async function renderDude(input: {
   destinationUrl: string
   website: string | null
 }) {
-  const png = await renderCardQrFlyerPng({
+  const parts = await renderCardQrFlyerParts({
     palette: resolveCardQrPalette({
       templateId: 'match-site',
       appearancePreset: input.theme,
@@ -72,7 +72,7 @@ async function renderDude(input: {
     firstName: DUDE.firstName,
     website: input.website,
   })
-  return renderCheckedFlyerFiles(png, input.destinationUrl)
+  return renderCheckedFlyerFiles(parts.flyer, input.destinationUrl, parts.layout.qr)
 }
 
 async function writeOne() {
@@ -84,7 +84,7 @@ async function writeOne() {
   const format = requireFormat(optionalArg('format'))
   const tagline = optionalArg('tagline') ?? ''
   const website = optionalArg('website') ?? null
-  const png = await renderCardQrFlyerPng({
+  const parts = await renderCardQrFlyerParts({
     palette: resolveCardQrPalette({
       templateId: 'match-site',
       appearancePreset: theme,
@@ -97,7 +97,7 @@ async function writeOne() {
     firstName: name.split(/\s+/)[0] ?? '',
     website: website ? website.replace(/^www\./i, '').toUpperCase() : null,
   })
-  const files = await renderCheckedFlyerFiles(png, url)
+  const files = await renderCheckedFlyerFiles(parts.flyer, url, parts.layout.qr)
   const bytes = format === 'jpg' ? files.jpg : files.png
   writeFileSync(out, bytes)
   console.log(`Wrote ${out} (${format})`)

@@ -9,7 +9,7 @@ export type FlyerDesignStatus = 'art' | 'simple' | 'custom' | 'retired'
 export interface FlyerThemeRecord {
   theme: AmethystAppearancePresetId
   status: FlyerDesignStatus
-  /** Repo-relative 1080×1920 plate. Art themes only. */
+  /** Repo-relative 1080×1920 wraparound plate. Shared themes only. */
   plate?: string
   /** Repo-relative source art the plate was rebuilt from. */
   source?: string
@@ -24,13 +24,13 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
     status: 'art',
     source: skin('am01-unicorn', 'hero-poster.webp'),
     plate: skin('am01-unicorn', 'flyer/plate.webp'),
-    note: 'Unicorn poster recomposed top and bottom around a quiet center.',
+    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/unicorn.',
   },
   {
     theme: 'sparkle_suite_morganite',
     status: 'simple',
     plate: skin('morganite', 'flyer/plate.webp'),
-    note: 'Generated blush, plum, and hot-pink light. No scene art yet.',
+    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/morganite.',
   },
   {
     theme: 'black_diamond',
@@ -41,7 +41,7 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
     theme: 'moonstone',
     status: 'simple',
     plate: skin('moonstone', 'flyer/plate.webp'),
-    note: 'Generated charcoal, violet, and silver light. No scene art yet.',
+    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/moonstone.',
   },
   {
     theme: 'alpine_opal',
@@ -52,7 +52,7 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
     theme: 'emerald_garden',
     status: 'simple',
     plate: skin('emerald-garden', 'flyer/plate.webp'),
-    note: 'Generated gardenia, emerald, and champagne light. No scene art yet.',
+    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/emerald-garden.',
   },
   {
     theme: 'gnome_garden',
@@ -69,66 +69,66 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
     status: 'art',
     source: skin('halloween-pumpkin-witch', 'hero-desktop.webp'),
     plate: skin('halloween-pumpkin-witch', 'flyer/plate.webp'),
-    note: 'Witch scene recomposed around the QR window.',
+    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/pumpkin-witch.',
   },
   {
     theme: 'halloween_pumpkin_cat',
     status: 'art',
     source: skin('halloween-pumpkin-cat', 'hero-mobile.webp'),
     plate: skin('halloween-pumpkin-cat', 'flyer/plate.webp'),
-    note: 'Cat and pumpkin recomposed above and below the QR window.',
+    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/pumpkin-cat.',
   },
   {
     theme: 'gilded_autumn',
     status: 'art',
     source: skin('gilded-autumn', 'hero-poster.webp'),
     plate: skin('gilded-autumn', 'flyer/plate.webp'),
-    note: 'Autumn poster recomposed around the QR window.',
+    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/gilded-autumn.',
   },
   {
     theme: 'rose_gold',
     status: 'simple',
     plate: skin('rose-gold', 'flyer/plate.webp'),
-    note: 'Generated pearl, rose, and champagne light. No scene art yet.',
+    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/rose-gold.',
   },
   {
     theme: 'midnight_rose',
     status: 'art',
     source: skin('midnight-rose', 'hero-poster.webp'),
     plate: skin('midnight-rose', 'flyer/plate.webp'),
-    note: 'Midnight rose poster recomposed around the QR window.',
+    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/midnight-rose.',
   },
   {
     theme: 'pearl_rose',
     status: 'art',
     source: skin('pearl-rose', 'hero-poster.webp'),
     plate: skin('pearl-rose', 'flyer/plate.webp'),
-    note: 'Pearl rose poster recomposed around the QR window.',
+    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/pearl-rose.',
   },
   {
     theme: 'rose_champagne',
     status: 'art',
     source: skin('rose-champagne', 'hero-poster.webp'),
     plate: skin('rose-champagne', 'flyer/plate.webp'),
-    note: 'Rose champagne poster recomposed around the QR window.',
+    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/rose-champagne.',
   },
   {
     theme: 'garnet',
     status: 'simple',
     plate: skin('garnet', 'flyer/plate.webp'),
-    note: 'Generated blush shell and deep red light. No scene art yet.',
+    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/garnet.',
   },
   {
     theme: 'amber',
     status: 'simple',
     plate: skin('amber', 'flyer/plate.webp'),
-    note: 'Generated sunlit peach and amber light. No scene art yet.',
+    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/amber.',
   },
   {
     theme: 'velvet',
     status: 'simple',
     plate: skin('velvet', 'flyer/plate.webp'),
-    note: 'Generated orchid and deep violet light. No scene art yet.',
+    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/velvet.',
   },
   {
     theme: 'rose_quartz',

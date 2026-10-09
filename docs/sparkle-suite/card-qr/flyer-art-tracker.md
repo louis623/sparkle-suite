@@ -4,41 +4,36 @@ Status of the 1080×1920 background behind the fixed QR flyer layout. Plates hav
 
 Louis has not approved these plates. Nothing here is live.
 
-## Art plates
+## Shared themes
 
-Rebuilt from hero art already in the repo. Stored at `public/amethyst/skins/<folder>/flyer/plate.webp`. Each plate is a full-height scene: a soft-focus copy fills the middle, the sharp art stays on the top, bottom, and sides, and a theme-colored glow sits behind the QR.
+All 14 shared themes have a wraparound plate at `public/amethyst/skins/<folder>/flyer/plate.webp`. The art runs up the sides of the QR as well as across the top and bottom. Title and steps panels sit on top of the plate. They are nearly opaque so the type stays readable, and the plate stays visible around them.
 
-| Theme | Source | Plate |
-| --- | --- | --- |
-| Chasing Unicorns (`amethyst`) | `public/amethyst/skins/am01-unicorn/hero-poster.webp` | `public/amethyst/skins/am01-unicorn/flyer/plate.webp` |
-| Pumpkin & Cat | `public/amethyst/skins/halloween-pumpkin-cat/hero-mobile.webp` | `public/amethyst/skins/halloween-pumpkin-cat/flyer/plate.webp` |
-| Pumpkin & Witch | `public/amethyst/skins/halloween-pumpkin-witch/hero-desktop.webp` plus `witch.webp` and `bats.webp` | `public/amethyst/skins/halloween-pumpkin-witch/flyer/plate.webp` |
-| Gilded Autumn | `public/amethyst/skins/gilded-autumn/hero-poster.webp` | `public/amethyst/skins/gilded-autumn/flyer/plate.webp` |
-| Midnight Rose | `public/amethyst/skins/midnight-rose/hero-poster.webp` | `public/amethyst/skins/midnight-rose/flyer/plate.webp` |
-| Pearl & Rose | `public/amethyst/skins/pearl-rose/hero-poster.webp` | `public/amethyst/skins/pearl-rose/flyer/plate.webp` |
-| Rose Champagne | `public/amethyst/skins/rose-champagne/hero-poster.webp` | `public/amethyst/skins/rose-champagne/flyer/plate.webp` |
+The 7 themes that used to be drawn as flat color (Morganite, Moonstone, Emerald Garden, Rose Gold, Garnet, Amber, Velvet) now use generated jeweled crest, garland, and floor plates. The pieces and the compositors are in `scripts/card-qr/plate-sources/` (`compose.py`, `compose_pc.py`, and a folder per theme). The other 7 shared themes use wraparound plates from the same sources folder.
 
-Rebuild with `npx tsx scripts/card-qr/build-flyer-plates.ts`.
+| Theme | Plate |
+| --- | --- |
+| Chasing Unicorns (`amethyst`) | `public/amethyst/skins/am01-unicorn/flyer/plate.webp` |
+| Sparkle Suite / Morganite | `public/amethyst/skins/morganite/flyer/plate.webp` |
+| Moonstone | `public/amethyst/skins/moonstone/flyer/plate.webp` |
+| Emerald Garden | `public/amethyst/skins/emerald-garden/flyer/plate.webp` |
+| Pumpkin & Witch | `public/amethyst/skins/halloween-pumpkin-witch/flyer/plate.webp` |
+| Pumpkin & Cat | `public/amethyst/skins/halloween-pumpkin-cat/flyer/plate.webp` |
+| Gilded Autumn | `public/amethyst/skins/gilded-autumn/flyer/plate.webp` |
+| Rose Gold | `public/amethyst/skins/rose-gold/flyer/plate.webp` |
+| Midnight Rose | `public/amethyst/skins/midnight-rose/flyer/plate.webp` |
+| Pearl & Rose | `public/amethyst/skins/pearl-rose/flyer/plate.webp` |
+| Rose Champagne | `public/amethyst/skins/rose-champagne/flyer/plate.webp` |
+| Garnet | `public/amethyst/skins/garnet/flyer/plate.webp` |
+| Amber | `public/amethyst/skins/amber/flyer/plate.webp` |
+| Velvet | `public/amethyst/skins/velvet/flyer/plate.webp` |
 
-## Generated backgrounds
-
-No scene art yet. The flyer draws a full-bleed background from that theme's colors: a layered gradient, soft light orbs, bokeh, and sparkle. There is no image file.
-
-- Sparkle Suite / Morganite
-- Moonstone
-- Emerald Garden
-- Rose Gold
-- Garnet
-- Amber
-- Velvet
-
-Rose Quartz is retired. If a saved preset still asks for it, it gets the same kind of generated background.
+Rose Quartz is retired. If a saved preset still asks for it, the flyer draws a generated background. It has no plate.
 
 ## Hand-made, not generated
 
-These reps keep a custom theme. The generator does not ship a plate for them.
+These reps keep a custom theme. The generator does not ship a plate for them. Their flyers stay hand-made.
 
-- Neon Butterfly (Kelly)
-- Gnome Garden (Kim)
-- Alpine Opal (Lindsey)
-- Black Diamond (Brittany)
+- Black Diamond (`black_diamond`, Brittany)
+- Alpine Opal (`alpine_opal`, Lindsey)
+- Gnome Garden (`gnome_garden`, Kim)
+- Neon Butterfly (`neon_butterfly`, Kelly)

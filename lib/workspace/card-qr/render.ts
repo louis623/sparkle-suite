@@ -180,15 +180,27 @@ export interface FlyerPaint {
   radius: number
 }
 
+/** High enough that plate art does not tint the type. Art stays outside the panels. */
+export const FLYER_PANEL_OPACITY = 0.96
+
+function themePanelFill(palette: CardQrPalette, kind: ReturnType<typeof flyerPanelKind>) {
+  const dark = relativeLuminance(palette.background) < 0.4
+  if (dark) {
+    const deep = mixHex(palette.panel, '#09070c', 0.4)
+    return mixHex(deep, palette.background, 0.2)
+  }
+  const cream = kind === 'parchment' ? '#fff3e2' : '#fffdfb'
+  return mixHex(cream, palette.accent, kind === 'parchment' ? 0.1 : 0.07)
+}
+
 export function resolveFlyerPaint(input: {
   palette: CardQrPalette
   appearancePreset: AmethystAppearancePresetId
 }): FlyerPaint {
   const preset = AMETHYST_APPEARANCE_PRESETS[input.appearancePreset]
   const kind = flyerPanelKind(input.appearancePreset)
-  const panelFill =
-    kind === 'parchment' ? mixHex(input.palette.panel, '#f4e4c8', 0.42) : input.palette.panel
-  const panelOpacity = kind === 'glass' ? 0.76 : kind === 'parchment' ? 0.84 : 0.8
+  const panelFill = themePanelFill(input.palette, kind)
+  const panelOpacity = FLYER_PANEL_OPACITY
   const contrastPanel = panelContrastBackground(panelFill, input.palette.background, panelOpacity)
   const primary = preset.values.primaryColor
   const accent = preset.values.accentColor
@@ -480,9 +492,10 @@ function foregroundSvg(input: {
     .join('')
   const qrMarkup = input.showQr
     ? `<rect x="${qrFrame.x - glow}" y="${qrFrame.y - glow}" width="${qrFrame.width + glow * 2}" height="${qrFrame.height + glow * 2}" rx="40" fill="${paint.glow}" fill-opacity="0.42"/>
-       <rect x="${qrFrame.x}" y="${qrFrame.y}" width="${qrFrame.width}" height="${qrFrame.height}" rx="30" fill="${paint.frame}"/>
-       <rect x="${qrFrame.x + 8}" y="${qrFrame.y + 8}" width="${qrFrame.width - 16}" height="${qrFrame.height - 16}" rx="24" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.55"/>
-       <rect x="${qr.x}" y="${qr.y}" width="${qr.width}" height="${qr.height}" rx="8" fill="${CARD_QR_LIGHT}"/>
+       <rect x="${qrFrame.x}" y="${qrFrame.y}" width="${qrFrame.width}" height="${qrFrame.height}" rx="30" fill="${paint.panelFill}" fill-opacity="${paint.panelOpacity}"/>
+       <rect x="${qrFrame.x}" y="${qrFrame.y}" width="${qrFrame.width}" height="${qrFrame.height}" rx="30" fill="none" stroke="${paint.frame}" stroke-width="7"/>
+       <rect x="${qrFrame.x + 8}" y="${qrFrame.y + 8}" width="${qrFrame.width - 16}" height="${qrFrame.height - 16}" rx="24" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.7"/>
+       <rect x="${qr.x}" y="${qr.y}" width="${qr.width}" height="${qr.height}" rx="8" fill="${CARD_QR_LIGHT}" fill-opacity="1"/>
        ${corners}`
     : ''
   return `<?xml version="1.0" encoding="UTF-8"?>
