@@ -45,15 +45,20 @@ import {
   FLYER_SAFE_TOP,
   FLYER_TEXT_MAX_WIDTH,
 } from '@/lib/workspace/card-qr/flyer-layout'
-import { contrastRatio } from '@/lib/workspace/card-qr/flyer-contrast'
+import { contrastRatio, hexToRgb } from '@/lib/workspace/card-qr/flyer-contrast'
 import {
   FLYER_THEME_RECORDS,
   assertFlyerThemeRecordsComplete,
+  flyerPanelStyle,
   flyerPlateAbsolute,
   flyerThemeRecord,
 } from '@/lib/workspace/card-qr/flyer-themes'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
-import { FLYER_PANEL_OPACITY, resolveFlyerPaint } from '@/lib/workspace/card-qr/render'
+import {
+  FLYER_FROSTED_PANEL_OPACITY,
+  FLYER_PANEL_OPACITY,
+  resolveFlyerPaint,
+} from '@/lib/workspace/card-qr/render'
 import {
   CARD_QR_DARK,
   CARD_QR_ERROR_CORRECTION,
@@ -279,14 +284,25 @@ describe('flyer theme designs', () => {
     }
   })
 
-  it('keeps shared-theme text at WCAG AA against an opaque panel and the scan pill', () => {
+  it('keeps shared-theme text at WCAG AA against the panel and the scan pill', () => {
+    const frosted = new Set(['amethyst', 'gilded_autumn'])
     for (const theme of CARD_QR_SHARED_FLYER_THEMES) {
       const palette = resolveCardQrPalette({ templateId: 'match-site', appearancePreset: theme })
       const paint = resolveFlyerPaint({ palette, appearancePreset: theme })
-      expect(paint.panelOpacity, theme).toBe(FLYER_PANEL_OPACITY)
-      expect(paint.panelOpacity, theme).toBeGreaterThanOrEqual(0.94)
-      expect(paint.panelOpacity, theme).toBeLessThanOrEqual(0.97)
-      expect(contrastRatio(paint.title, paint.contrastPanel), theme).toBeGreaterThanOrEqual(4.5)
+      const isFrosted = frosted.has(theme)
+      expect(flyerPanelStyle(theme), theme).toBe(isFrosted ? 'frosted' : 'solid')
+      expect(paint.panelStyle, theme).toBe(isFrosted ? 'frosted' : 'solid')
+      if (isFrosted) {
+        expect(paint.panelOpacity, theme).toBe(FLYER_FROSTED_PANEL_OPACITY)
+        expect(paint.panelOpacity, theme).toBeGreaterThanOrEqual(0.8)
+        expect(paint.panelOpacity, theme).toBeLessThanOrEqual(0.84)
+      } else {
+        expect(paint.panelOpacity, theme).toBe(FLYER_PANEL_OPACITY)
+        expect(paint.panelOpacity, theme).toBeGreaterThanOrEqual(0.94)
+        expect(paint.panelOpacity, theme).toBeLessThanOrEqual(0.97)
+      }
+      const titleFloor = isFrosted ? 3 : 4.5
+      expect(contrastRatio(paint.title, paint.contrastPanel), theme).toBeGreaterThanOrEqual(titleFloor)
       expect(contrastRatio(paint.body, paint.contrastPanel), theme).toBeGreaterThanOrEqual(4.5)
       expect(contrastRatio(paint.muted, paint.contrastPanel), theme).toBeGreaterThanOrEqual(4.5)
       expect(contrastRatio(paint.pillInk, paint.pillFill), theme).toBeGreaterThanOrEqual(4.5)
@@ -345,13 +361,29 @@ describe('flyer render', () => {
       const panel = parts.layout.panel
       const title = parts.layout.showTitle
       if (panel && title) {
-        const panelPixel = pixel(data, info, panel.x + 24, panel.y + 18)
+        const panelPixel = pixel(data, info, Math.round(panel.x + panel.width / 2), panel.y + 22)
         const titleY = title.top + Math.round(title.size * 0.42)
         let best = 1
         for (let x = 200; x < 880; x += 2) {
           best = Math.max(best, rgbContrast(pixel(data, info, x, titleY), panelPixel))
         }
         expect(best).toBeGreaterThanOrEqual(3)
+        const lower = parts.layout.lowerPanel
+        const lowerPixel = pixel(data, info, Math.round(lower.x + lower.width / 2), lower.y + 20)
+        const ink = (hex: string) => {
+          const color = hexToRgb(hex)
+          return [color.r, color.g, color.b]
+        }
+        expect(rgbContrast(ink(parts.paint.title), panelPixel), theme).toBeGreaterThanOrEqual(3)
+        expect(rgbContrast(ink(parts.paint.body), panelPixel), theme).toBeGreaterThanOrEqual(4.5)
+        expect(rgbContrast(ink(parts.paint.body), lowerPixel), theme).toBeGreaterThanOrEqual(4.5)
+        expect(rgbContrast(ink(parts.paint.muted), lowerPixel), theme).toBeGreaterThanOrEqual(4.5)
+      }
+      if (flyerPanelStyle(theme) === 'frosted') {
+        expect(parts.paint.panelOpacity, theme).toBeGreaterThanOrEqual(0.8)
+        expect(parts.paint.panelOpacity, theme).toBeLessThanOrEqual(0.96)
+        const quiet = pixel(data, info, parts.layout.qr.x - 10, parts.layout.qr.y + 40)
+        expect(quiet, theme).toEqual([255, 255, 255])
       }
     },
   )

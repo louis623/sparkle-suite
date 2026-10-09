@@ -2,13 +2,30 @@
 
 Status of the 1080×1920 background behind the fixed QR flyer layout. Plates have no words. The generator draws the show name, tagline, scan pill, QR, instructions, and sign-off on top.
 
-Louis has not approved these plates. Nothing here is live.
+Louis reviewed every shared theme on 2026-10-09 and picked one plate each. Those plates are the files below. Notes and the compositors from that review are in `scripts/card-qr/plate-sources/hero-review-2026-10-09/`. Nothing here is live.
 
-## Shared themes
+## Louis's picks
 
-All 14 shared themes have a wraparound plate at `public/amethyst/skins/<folder>/flyer/plate.webp`. The art runs up the sides of the QR as well as across the top and bottom. Title and steps panels sit on top of the plate. They are nearly opaque so the type stays readable, and the plate stays visible around them.
+Title and steps panels are solid (96% opaque) except Amethyst and Gilded Autumn, which use frosted panels at about 82% so the plate shows through. The QR card stays fully opaque. On the frosted themes the QR frame and quiet zone are solid white.
 
-The 7 themes that used to be drawn as flat color (Morganite, Moonstone, Emerald Garden, Rose Gold, Garnet, Amber, Velvet) now use generated jeweled crest, garland, and floor plates. The pieces and the compositors are in `scripts/card-qr/plate-sources/` (`compose.py`, `compose_pc.py`, and a folder per theme). The other 7 shared themes use wraparound plates from the same sources folder.
+| Theme | Pick | Panels |
+| --- | --- | --- |
+| Pumpkin & Cat | Centered hero (hero v1) | Solid |
+| Pumpkin & Witch | Witch only (hero v2) | Solid |
+| Chasing Unicorns (`amethyst`) | Unicorn poster | Frosted |
+| Gilded Autumn | v1 plate | Frosted |
+| Midnight Rose | v2 hero. The hero has no roses. | Solid |
+| Pearl & Rose | v2 hero | Solid |
+| Rose Champagne | v2 hero | Solid |
+| Sparkle Suite / Morganite | v1 blush paper and sparkle. Placeholder. Louis: this theme is going to be redone or scrapped. | Solid |
+| Moonstone | v1 night-sky paper and sparkle | Solid |
+| Emerald Garden | v1 mint paper and sparkle | Solid |
+| Rose Gold | v1 theme-color paper and sparkle | Solid |
+| Garnet | v1 theme-color paper and sparkle | Solid |
+| Amber | v1 theme-color paper and sparkle | Solid |
+| Velvet | v1 theme-color paper and sparkle | Solid |
+
+Louis: all non-art themes go with option 1 (plain theme-color paper plus sparkle).
 
 | Theme | Plate |
 | --- | --- |

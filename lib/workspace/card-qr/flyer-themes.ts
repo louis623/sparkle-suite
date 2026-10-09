@@ -6,6 +6,9 @@ import {
 
 export type FlyerDesignStatus = 'art' | 'simple' | 'custom' | 'retired'
 
+/** Frosted panels let the plate show through. Solid panels stay nearly opaque. */
+export type FlyerPanelStyle = 'frosted' | 'solid'
+
 export interface FlyerThemeRecord {
   theme: AmethystAppearancePresetId
   status: FlyerDesignStatus
@@ -13,6 +16,8 @@ export interface FlyerThemeRecord {
   plate?: string
   /** Repo-relative source art the plate was rebuilt from. */
   source?: string
+  /** Defaults to solid. Frosted is only for themes Louis picked that way. */
+  panelStyle?: FlyerPanelStyle
   note: string
 }
 
@@ -24,13 +29,14 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
     status: 'art',
     source: skin('am01-unicorn', 'hero-poster.webp'),
     plate: skin('am01-unicorn', 'flyer/plate.webp'),
-    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/unicorn.',
+    panelStyle: 'frosted',
+    note: 'Louis pick 2026-10-09: unicorn poster plate. Frosted title and steps panels. QR card stays solid white.',
   },
   {
     theme: 'sparkle_suite_morganite',
     status: 'simple',
     plate: skin('morganite', 'flyer/plate.webp'),
-    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/morganite.',
+    note: 'Louis pick 2026-10-09: v1 blush paper and sparkle. Placeholder; Morganite is going to be redone or scrapped. Solid panels.',
   },
   {
     theme: 'black_diamond',
@@ -41,7 +47,7 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
     theme: 'moonstone',
     status: 'simple',
     plate: skin('moonstone', 'flyer/plate.webp'),
-    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/moonstone.',
+    note: 'Louis pick 2026-10-09: v1 night-sky paper and sparkle. Solid panels. Non-art themes use option 1.',
   },
   {
     theme: 'alpine_opal',
@@ -52,7 +58,7 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
     theme: 'emerald_garden',
     status: 'simple',
     plate: skin('emerald-garden', 'flyer/plate.webp'),
-    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/emerald-garden.',
+    note: 'Louis pick 2026-10-09: v1 mint paper and sparkle. Solid panels. Non-art themes use option 1.',
   },
   {
     theme: 'gnome_garden',
@@ -69,66 +75,67 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
     status: 'art',
     source: skin('halloween-pumpkin-witch', 'hero-desktop.webp'),
     plate: skin('halloween-pumpkin-witch', 'flyer/plate.webp'),
-    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/pumpkin-witch.',
+    note: 'Louis pick 2026-10-09: hero v2, witch only. Solid panels.',
   },
   {
     theme: 'halloween_pumpkin_cat',
     status: 'art',
     source: skin('halloween-pumpkin-cat', 'hero-mobile.webp'),
     plate: skin('halloween-pumpkin-cat', 'flyer/plate.webp'),
-    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/pumpkin-cat.',
+    note: 'Louis pick 2026-10-09: hero v1, centered. Solid panels.',
   },
   {
     theme: 'gilded_autumn',
     status: 'art',
     source: skin('gilded-autumn', 'hero-poster.webp'),
     plate: skin('gilded-autumn', 'flyer/plate.webp'),
-    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/gilded-autumn.',
+    panelStyle: 'frosted',
+    note: 'Louis pick 2026-10-09: v1 plate with frosted title and steps panels. QR card stays solid white.',
   },
   {
     theme: 'rose_gold',
     status: 'simple',
     plate: skin('rose-gold', 'flyer/plate.webp'),
-    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/rose-gold.',
+    note: 'Louis pick 2026-10-09: v1 theme-color paper and sparkle. Solid panels. Non-art themes use option 1.',
   },
   {
     theme: 'midnight_rose',
     status: 'art',
     source: skin('midnight-rose', 'hero-poster.webp'),
     plate: skin('midnight-rose', 'flyer/plate.webp'),
-    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/midnight-rose.',
+    note: 'Louis pick 2026-10-09: v2 hero with solid panels. The hero has no roses.',
   },
   {
     theme: 'pearl_rose',
     status: 'art',
     source: skin('pearl-rose', 'hero-poster.webp'),
     plate: skin('pearl-rose', 'flyer/plate.webp'),
-    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/pearl-rose.',
+    note: 'Louis pick 2026-10-09: v2 hero with solid panels.',
   },
   {
     theme: 'rose_champagne',
     status: 'art',
     source: skin('rose-champagne', 'hero-poster.webp'),
     plate: skin('rose-champagne', 'flyer/plate.webp'),
-    note: 'Wraparound plate. Pieces live in scripts/card-qr/plate-sources/rose-champagne.',
+    note: 'Louis pick 2026-10-09: v2 hero with solid panels.',
   },
   {
     theme: 'garnet',
     status: 'simple',
     plate: skin('garnet', 'flyer/plate.webp'),
-    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/garnet.',
+    note: 'Louis pick 2026-10-09: v1 theme-color paper and sparkle. Solid panels. Non-art themes use option 1.',
   },
   {
     theme: 'amber',
     status: 'simple',
     plate: skin('amber', 'flyer/plate.webp'),
-    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/amber.',
+    note: 'Louis pick 2026-10-09: v1 theme-color paper and sparkle. Solid panels. Non-art themes use option 1.',
   },
   {
     theme: 'velvet',
     status: 'simple',
     plate: skin('velvet', 'flyer/plate.webp'),
-    note: 'Jeweled crest, garland, and floor. Sources in scripts/card-qr/plate-sources/velvet.',
+    note: 'Louis pick 2026-10-09: v1 theme-color paper and sparkle. Solid panels. Non-art themes use option 1.',
   },
   {
     theme: 'rose_quartz',
@@ -143,6 +150,10 @@ export function flyerThemeRecord(theme: AmethystAppearancePresetId) {
   const record = recordsByTheme.get(theme)
   if (!record) throw new Error(`Missing flyer design record for ${theme}.`)
   return record
+}
+
+export function flyerPanelStyle(theme: AmethystAppearancePresetId): FlyerPanelStyle {
+  return flyerThemeRecord(theme).panelStyle ?? 'solid'
 }
 
 export function flyerPlateAbsolute(theme: AmethystAppearancePresetId) {

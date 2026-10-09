@@ -31,13 +31,19 @@ import {
 } from '@/lib/workspace/card-qr/flyer-layout'
 import {
   contrastRatio,
+  hexToRgb,
   mixHex,
   panelContrastBackground,
   readableColor,
   readableOn,
   relativeLuminance,
+  rgbToHex,
 } from '@/lib/workspace/card-qr/flyer-contrast'
-import { flyerPlateAbsolute } from '@/lib/workspace/card-qr/flyer-themes'
+import {
+  flyerPanelStyle,
+  flyerPlateAbsolute,
+  type FlyerPanelStyle,
+} from '@/lib/workspace/card-qr/flyer-themes'
 import type { CardQrPalette } from '@/lib/workspace/card-qr/palette'
 import { CARD_QR_PRINT_SPEC } from '@/lib/workspace/card-qr/pricing'
 
@@ -114,6 +120,7 @@ export interface CardQrFlyerRenderParts {
   background: Buffer
   flyer: Buffer
   layout: FlyerLayout
+  paint: FlyerPaint
 }
 
 function covered(text: string, family: FlyerFontFamily) {
@@ -166,6 +173,7 @@ function svgBlock(
 }
 
 export interface FlyerPaint {
+  panelStyle: FlyerPanelStyle
   panelFill: string
   panelOpacity: number
   contrastPanel: string
@@ -180,8 +188,11 @@ export interface FlyerPaint {
   radius: number
 }
 
-/** High enough that plate art does not tint the type. Art stays outside the panels. */
+/** High enough that plate art does not tint the type on solid panels. */
 export const FLYER_PANEL_OPACITY = 0.96
+/** Louis's frosted look for Amethyst and Gilded Autumn. Raised only if contrast fails. */
+export const FLYER_FROSTED_PANEL_OPACITY = 0.82
+const FROST_OPACITY_STEPS = [0.82, 0.84, 0.88, 0.92, 0.96] as const
 
 function themePanelFill(palette: CardQrPalette, kind: ReturnType<typeof flyerPanelKind>) {
   const dark = relativeLuminance(palette.background) < 0.4
@@ -199,8 +210,9 @@ export function resolveFlyerPaint(input: {
 }): FlyerPaint {
   const preset = AMETHYST_APPEARANCE_PRESETS[input.appearancePreset]
   const kind = flyerPanelKind(input.appearancePreset)
+  const panelStyle = flyerPanelStyle(input.appearancePreset)
   const panelFill = themePanelFill(input.palette, kind)
-  const panelOpacity = FLYER_PANEL_OPACITY
+  const panelOpacity = panelStyle === 'frosted' ? FLYER_FROSTED_PANEL_OPACITY : FLYER_PANEL_OPACITY
   const contrastPanel = panelContrastBackground(panelFill, input.palette.background, panelOpacity)
   const primary = preset.values.primaryColor
   const accent = preset.values.accentColor
@@ -216,6 +228,7 @@ export function resolveFlyerPaint(input: {
   }
   const title = readableColor(input.palette.ink, contrastPanel, 4.5)
   return {
+    panelStyle,
     panelFill,
     panelOpacity,
     contrastPanel,
@@ -440,9 +453,10 @@ function foregroundSvg(input: {
   appearancePreset: AmethystAppearancePresetId
   layout: FlyerLayout
   showQr: boolean
+  paint?: FlyerPaint
 }) {
   const fonts = FLYER_THEME_FONTS[input.appearancePreset]
-  const paint = resolveFlyerPaint(input)
+  const paint = input.paint ?? resolveFlyerPaint(input)
   const { pill, qr, qrFrame, panel, lowerPanel } = input.layout
   const pillTextY = pill.y + (pill.height - input.layout.pillSize) / 2
   const titleGap = panel ? pill.y - (panel.y + panel.height) : 0
@@ -490,9 +504,11 @@ function foregroundSvg(input: {
         `<g transform="translate(${x},${y}) rotate(45)"><rect x="-5" y="-5" width="10" height="10" fill="${paint.glow}"/></g>`,
     )
     .join('')
+  const qrFrameFill = paint.panelStyle === 'frosted' ? '#FFFFFF' : paint.panelFill
+  const qrFrameOpacity = paint.panelStyle === 'frosted' ? 1 : paint.panelOpacity
   const qrMarkup = input.showQr
     ? `<rect x="${qrFrame.x - glow}" y="${qrFrame.y - glow}" width="${qrFrame.width + glow * 2}" height="${qrFrame.height + glow * 2}" rx="40" fill="${paint.glow}" fill-opacity="0.42"/>
-       <rect x="${qrFrame.x}" y="${qrFrame.y}" width="${qrFrame.width}" height="${qrFrame.height}" rx="30" fill="${paint.panelFill}" fill-opacity="${paint.panelOpacity}"/>
+       <rect x="${qrFrame.x}" y="${qrFrame.y}" width="${qrFrame.width}" height="${qrFrame.height}" rx="30" fill="${qrFrameFill}" fill-opacity="${qrFrameOpacity}"/>
        <rect x="${qrFrame.x}" y="${qrFrame.y}" width="${qrFrame.width}" height="${qrFrame.height}" rx="30" fill="none" stroke="${paint.frame}" stroke-width="7"/>
        <rect x="${qrFrame.x + 8}" y="${qrFrame.y + 8}" width="${qrFrame.width - 16}" height="${qrFrame.height - 16}" rx="24" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.7"/>
        <rect x="${qr.x}" y="${qr.y}" width="${qr.width}" height="${qr.height}" rx="8" fill="${CARD_QR_LIGHT}" fill-opacity="1"/>
@@ -515,6 +531,104 @@ function foregroundSvg(input: {
 
 function renderSvgPng(svg: string, fontFiles: string[]) {
   return Buffer.from(new Resvg(svg, flyerTextRenderOptions(fontFiles)).render().asPng())
+}
+
+function compositeOverPlate(plate: number[], fill: string, opacity: number) {
+  const panel = hexToRgb(fill)
+  const blend = (channel: number, ink: number) => channel * (1 - opacity) + ink * opacity
+  return rgbToHex(
+    blend(plate[0] ?? 0, panel.r),
+    blend(plate[1] ?? 0, panel.g),
+    blend(plate[2] ?? 0, panel.b),
+  )
+}
+
+/** Soften the plate under frosted panels so the art reads as glass, not a busy texture. */
+async function frostPanelRegions(background: Buffer, boxes: FlyerBox[]) {
+  const overlays: sharp.OverlayOptions[] = []
+  for (const box of boxes) {
+    const left = Math.max(0, Math.round(box.x))
+    const top = Math.max(0, Math.round(box.y))
+    const width = Math.max(1, Math.round(box.width))
+    const height = Math.max(1, Math.round(box.height))
+    const blurred = await sharp(background)
+      .extract({ left, top, width, height })
+      .blur(12)
+      .png()
+      .toBuffer()
+    overlays.push({ input: blurred, left, top })
+  }
+  if (overlays.length === 0) return background
+  return sharp(background).composite(overlays).png().toBuffer()
+}
+
+async function samplePanelPlate(background: Buffer, box: FlyerBox) {
+  const inset = 28
+  const left = Math.max(0, Math.round(box.x + inset))
+  const top = Math.max(0, Math.round(box.y + inset))
+  const width = Math.max(1, Math.round(box.width - inset * 2))
+  const height = Math.max(1, Math.round(box.height - inset * 2))
+  const { data, info } = await sharp(background)
+    .extract({ left, top, width, height })
+    .raw()
+    .toBuffer({ resolveWithObject: true })
+  const samples: number[][] = []
+  const stepX = Math.max(1, Math.floor(width / 8))
+  const stepY = Math.max(1, Math.floor(height / 4))
+  for (let y = 0; y < height; y += stepY) {
+    for (let x = 0; x < width; x += stepX) {
+      const index = (y * info.width + x) * info.channels
+      samples.push([data[index] ?? 0, data[index + 1] ?? 0, data[index + 2] ?? 0])
+    }
+  }
+  return samples
+}
+
+function frostClears(paint: FlyerPaint, samples: number[][], opacity: number) {
+  return samples.every((sample) => {
+    const background = compositeOverPlate(sample, paint.panelFill, opacity)
+    return (
+      contrastRatio(paint.title, background) >= 3 &&
+      contrastRatio(paint.body, background) >= 4.5 &&
+      contrastRatio(paint.muted, background) >= 4.5
+    )
+  })
+}
+
+/**
+ * Start at 82% so the plate shows through. If title or body fails on the
+ * rendered plate pixels, step the panel up until both clear.
+ */
+function tuneFrostedPaint(paint: FlyerPaint, samples: number[][]): FlyerPaint {
+  if (samples.length === 0) {
+    return { ...paint, panelOpacity: FLYER_FROSTED_PANEL_OPACITY }
+  }
+  for (const opacity of FROST_OPACITY_STEPS) {
+    const backgrounds = samples.map((sample) => compositeOverPlate(sample, paint.panelFill, opacity))
+    let title = paint.title
+    let body = paint.body
+    let muted = paint.muted
+    for (const background of backgrounds) {
+      title = readableColor(title, background, 3)
+      body = readableColor(body, background, 4.5)
+      muted = readableColor(muted, background, 4.5)
+    }
+    const tuned: FlyerPaint = {
+      ...paint,
+      panelOpacity: opacity,
+      title,
+      body,
+      muted,
+      contrastPanel: backgrounds[0] ?? paint.contrastPanel,
+      shadow: relativeLuminance(title) > 0.5 ? '#000000' : '#ffffff',
+    }
+    if (frostClears(tuned, samples, opacity)) return tuned
+  }
+  return {
+    ...paint,
+    panelOpacity: FLYER_PANEL_OPACITY,
+    shadow: relativeLuminance(paint.title) > 0.5 ? '#000000' : '#ffffff',
+  }
 }
 
 export async function renderCardQrFlyerParts(
@@ -563,12 +677,24 @@ export async function renderCardQrFlyerParts(
           .png()
           .toBuffer()
       : painted
+  let scene = background
+  let paint = resolveFlyerPaint({
+    palette: input.palette,
+    appearancePreset: input.appearancePreset,
+  })
+  if (paint.panelStyle === 'frosted') {
+    const boxes = [layout.panel, layout.lowerPanel].filter((box): box is FlyerBox => box != null)
+    scene = await frostPanelRegions(scene, boxes)
+    const samples = (await Promise.all(boxes.map((box) => samplePanelPlate(scene, box)))).flat()
+    paint = tuneFrostedPaint(paint, samples)
+  }
   const foreground = renderSvgPng(
     foregroundSvg({
       palette: input.palette,
       appearancePreset: input.appearancePreset,
       layout,
       showQr: input.showQr,
+      paint,
     }),
     fontFiles,
   )
@@ -583,8 +709,8 @@ export async function renderCardQrFlyerParts(
       .toBuffer()
     layers.push({ input: qr, left: layout.qr.x, top: layout.qr.y })
   }
-  const flyer = await sharp(background).composite(layers).png().toBuffer()
-  return { background, flyer, layout }
+  const flyer = await sharp(scene).composite(layers).png().toBuffer()
+  return { background: scene, flyer, layout, paint }
 }
 
 export async function renderCardQrFlyerPng(input: CardQrFlyerRenderInput) {
