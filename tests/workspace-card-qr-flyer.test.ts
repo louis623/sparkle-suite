@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import QRCode from 'qrcode'
@@ -44,7 +44,14 @@ import {
   FLYER_SAFE_TOP,
   FLYER_TEXT_MAX_WIDTH,
 } from '@/lib/workspace/card-qr/flyer-layout'
+import { contrastRatio } from '@/lib/workspace/card-qr/flyer-contrast'
+import {
+  FLYER_THEME_RECORDS,
+  assertFlyerThemeRecordsComplete,
+  flyerPlateAbsolute,
+} from '@/lib/workspace/card-qr/flyer-themes'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
+import { resolveFlyerPaint } from '@/lib/workspace/card-qr/render'
 import {
   CARD_QR_DARK,
   CARD_QR_ERROR_CORRECTION,
@@ -104,6 +111,18 @@ function context(appearancePreset: string) {
 function pixel(data: Buffer, info: sharp.OutputInfo, x: number, y: number) {
   const index = (y * info.width + x) * info.channels
   return [data[index] ?? 0, data[index + 1] ?? 0, data[index + 2] ?? 0]
+}
+
+function rgbContrast(foreground: number[], background: number[]) {
+  const channel = (value: number) => {
+    const scaled = value / 255
+    return scaled <= 0.03928 ? scaled / 12.92 : ((scaled + 0.055) / 1.055) ** 2.4
+  }
+  const lum = (rgb: number[]) =>
+    0.2126 * channel(rgb[0] ?? 0) + 0.7152 * channel(rgb[1] ?? 0) + 0.0722 * channel(rgb[2] ?? 0)
+  const lighter = Math.max(lum(foreground), lum(background))
+  const darker = Math.min(lum(foreground), lum(background))
+  return (lighter + 0.05) / (darker + 0.05)
 }
 
 beforeEach(() => {
@@ -239,6 +258,34 @@ async function expectInkInsideSafeZones(flyer: Buffer, background: Buffer) {
   expect(offenders).toEqual([])
 }
 
+describe('flyer theme designs', () => {
+  it('has one record for every theme, and art themes have a plate file', () => {
+    expect(() => assertFlyerThemeRecordsComplete()).not.toThrow()
+    expect(FLYER_THEME_RECORDS.map((record) => record.theme).sort()).toEqual(
+      [...AMETHYST_APPEARANCE_PRESET_IDS].sort(),
+    )
+    const art = FLYER_THEME_RECORDS.filter((record) => record.status === 'art')
+    expect(art.length).toBeGreaterThanOrEqual(7)
+    for (const record of art) {
+      const plate = flyerPlateAbsolute(record.theme)
+      expect(plate).toBeTruthy()
+      expect(existsSync(plate as string)).toBe(true)
+    }
+    expect(FLYER_THEME_RECORDS.filter((record) => record.status === 'simple').length).toBeGreaterThanOrEqual(7)
+  })
+
+  it('keeps shared-theme text at WCAG AA against the panel and the scan pill', () => {
+    for (const theme of CARD_QR_SHARED_FLYER_THEMES) {
+      const palette = resolveCardQrPalette({ templateId: 'match-site', appearancePreset: theme })
+      const paint = resolveFlyerPaint({ palette, appearancePreset: theme })
+      expect(contrastRatio(paint.title, paint.contrastPanel), theme).toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(paint.body, paint.contrastPanel), theme).toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(paint.muted, paint.contrastPanel), theme).toBeGreaterThanOrEqual(4.5)
+      expect(contrastRatio(paint.pillInk, paint.pillFill), theme).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+})
+
 describe('flyer render', () => {
   it.each(CARD_QR_SHARED_FLYER_THEMES)(
     'renders %s inside the safe zones and the QR decodes',
@@ -261,6 +308,11 @@ describe('flyer render', () => {
       await expect(assertFlyerQrDecodes(parts.flyer, URL)).resolves.toBeUndefined()
       expect(parts.layout.contentTop).toBeGreaterThanOrEqual(FLYER_SAFE_TOP)
       expect(parts.layout.contentBottom).toBeLessThanOrEqual(FLYER_CONTENT_BOTTOM)
+      expect(parts.layout.contentBottom - parts.layout.contentTop).toBeGreaterThanOrEqual(1100)
+      expect(parts.layout.qr.width).toBeGreaterThanOrEqual(620)
+      expect(parts.layout.showTitle?.size).toBeGreaterThanOrEqual(100)
+      expect(parts.layout.instructions.size).toBeGreaterThanOrEqual(34)
+      expect(parts.layout.pillSize).toBeGreaterThanOrEqual(32)
       expect(parts.layout.showTitle?.lines.join(' ')).toBe(copy.showTitle)
       expect(parts.layout.tagline?.lines.join(' ')).toBe(copy.tagline)
       expect(parts.layout.website).toBeNull()
@@ -281,6 +333,17 @@ describe('flyer render', () => {
       const frame = pixel(data, info, parts.layout.qr.x - 4, parts.layout.qr.y + 24)
       expect(inside).toEqual([255, 255, 255])
       expect(frame).not.toEqual([255, 255, 255])
+      const panel = parts.layout.panel
+      const title = parts.layout.showTitle
+      if (panel && title) {
+        const panelPixel = pixel(data, info, panel.x + 24, panel.y + 18)
+        const titleY = title.top + Math.round(title.size * 0.42)
+        let best = 1
+        for (let x = 200; x < 880; x += 2) {
+          best = Math.max(best, rgbContrast(pixel(data, info, x, titleY), panelPixel))
+        }
+        expect(best).toBeGreaterThanOrEqual(3)
+      }
     },
   )
 
@@ -300,7 +363,7 @@ describe('flyer render', () => {
     const drawn = parts.layout.showTitle?.lines.join(' ') ?? ''
     expect(drawn).toBe(showTitle)
     expect(parts.layout.showTitle?.lines.length).toBeGreaterThan(1)
-    expect(parts.layout.showTitle?.size).toBeLessThanOrEqual(104)
+    expect(parts.layout.showTitle?.size).toBeLessThanOrEqual(150)
     expect(parts.layout.contentBottom).toBeLessThanOrEqual(FLYER_CONTENT_BOTTOM)
     expect(FLYER_TEXT_MAX_WIDTH).toBeLessThan(FLYER_MARGIN_RIGHT - FLYER_MARGIN_LEFT)
     await expectInkInsideSafeZones(parts.flyer, parts.background)
@@ -331,7 +394,10 @@ describe('flyer render', () => {
     expect(open.layout.tagline).toBeNull()
     expect(open.layout.website).toBeNull()
     expect(withDomain.layout.website?.lines.join(' ')).toBe('DUDESFIZZFEST.COM')
-    expect(withDomain.layout.pill.y).toBeGreaterThan(open.layout.pill.y)
+    expect(withDomain.layout.website?.size).toBeGreaterThanOrEqual(36)
+    expect(withDomain.layout.contentBottom - withDomain.layout.contentTop).toBeGreaterThan(
+      open.layout.contentBottom - open.layout.contentTop,
+    )
     await expect(assertFlyerQrDecodes(withDomain.flyer, 'https://dudesfizzfest.com')).resolves.toBeUndefined()
     await expectInkInsideSafeZones(open.flyer, open.background)
     await expectInkInsideSafeZones(withDomain.flyer, withDomain.background)
