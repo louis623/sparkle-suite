@@ -18,8 +18,10 @@ import {
   cardQrErrorResponse,
   loadCardQrContext,
 } from '@/lib/workspace/card-qr/context'
+import { cardQrIconFromRequest } from '@/lib/workspace/card-qr/design'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
 import { renderCardQrFlyerParts } from '@/lib/workspace/card-qr/render'
+import { requireCardQrShortUrl } from '@/lib/workspace/card-qr/short-link'
 import { ServiceError } from '@/lib/services/errors'
 
 export const runtime = 'nodejs'
@@ -31,7 +33,7 @@ const DECODE_FAILED = {
 } as const
 
 function readFlyerFormat(body: unknown, request: Request): CardQrFlyerFormat {
-  const record = body && typeof body === 'object' ? (body as { format?: unknown }) : {}
+  const record = body && typeof body === 'object' ? (body as { format?: unknown; icon?: unknown }) : {}
   const queryFormat = new URL(request.url).searchParams.get('format')
   const raw = record.format !== undefined ? record.format : queryFormat
   const format = parseCardQrFlyerFormat(raw)
@@ -53,6 +55,9 @@ export async function POST(request: Request) {
       throw new SyntaxError('Invalid request payload.')
     })
     const format = readFlyerFormat(body, request)
+    const icon = cardQrIconFromRequest(
+      body && typeof body === 'object' ? (body as { icon?: unknown }).icon : null,
+    )
     const appearancePreset = context.settings.appearancePreset
     if (!isKnownFlyerTheme(appearancePreset)) {
       return NextResponse.json(
@@ -78,6 +83,7 @@ export async function POST(request: Request) {
       templateId: 'match-site',
       appearancePreset,
     })
+    const qrUrl = requireCardQrShortUrl(context.origin, context.repId)
     const parts = await renderCardQrFlyerParts({
       palette,
       showTitle: copy.showTitle,
@@ -85,18 +91,20 @@ export async function POST(request: Request) {
       firstName: copy.firstName,
       website: copy.website,
       appearancePreset,
-      destinationUrl: context.destinationUrl,
+      destinationUrl: qrUrl,
+      qrIcon: icon,
       showQr: true,
     })
     let files: { png: Buffer; jpg: Buffer }
     try {
-      files = await renderCheckedFlyerFiles(parts.flyer, context.destinationUrl, parts.layout.qr)
+      files = await renderCheckedFlyerFiles(parts.flyer, qrUrl, parts.layout.qr)
     } catch (error) {
       console.error('CARD_QR_FLYER_DECODE_FAILED', {
         theme: appearancePreset,
         repId: context.repId,
         format,
-        expected: context.destinationUrl,
+        icon,
+        expected: qrUrl,
         decoded: error instanceof FlyerQrDecodeError ? error.decoded : null,
       })
       return NextResponse.json(DECODE_FAILED, { status: 422 })

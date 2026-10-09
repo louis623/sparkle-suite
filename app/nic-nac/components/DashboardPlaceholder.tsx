@@ -6759,6 +6759,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     ) {
       return (
         <CardQrTool
+          repId={currentRepId}
           siteHref={customerSparkleSiteHref}
           displayName={
             siteSettingsDraft?.displayName ??

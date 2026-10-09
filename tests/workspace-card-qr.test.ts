@@ -208,9 +208,9 @@ describe('Cards & QR smoke locks', () => {
       appearancePreset: 'black_diamond',
     })
     expect(morganite.background).not.toBe(diamond.background)
-    expect(morganite.qrDark).toBe('#111111')
+    expect(morganite.qrDark).toBe('#5b1e3b')
     expect(morganite.qrLight).toBe('#FFFFFF')
-    expect(diamond.qrDark).toBe('#111111')
+    expect(diamond.qrDark).toBe('#1a1408')
     expect(diamond.qrLight).toBe('#FFFFFF')
     expect(
       resolveCardQrPalette({
@@ -278,7 +278,11 @@ describe('Cards & QR smoke locks', () => {
     )
     expect(html).toContain('>QR code<')
     expect(html).not.toContain('QR code builder')
-    expect(html).toContain('Your customer site already has an address. This QR points at it, and the flyer and cards use the same code.')
+    expect(html).toContain('Your customer site already has an address. This QR is a short link to it, colored for your site. The flyer and cards use the same code.')
+    expect(html).toContain('>None<')
+    expect(html).toContain('>Diamond<')
+    expect(html).toContain('>Unicorn<')
+    expect(html).toMatch(/aria-pressed="true"[^>]*>None</)
     expect(html).toContain('qrLayout')
     expect(html).toContain('https://sparkle-suite-smoke.vercel.app/fizzfest')
     expect(html).toContain('Download QR')

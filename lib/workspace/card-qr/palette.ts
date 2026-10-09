@@ -4,6 +4,7 @@ import {
   type AmethystAppearancePresetId,
 } from '@/lib/amethyst/appearance-presets'
 import type { CardQrTemplateId } from '@/lib/workspace/card-qr/design'
+import { qrModuleColor } from '@/lib/workspace/card-qr/flyer-contrast'
 
 export interface CardQrPalette {
   name: string
@@ -41,6 +42,32 @@ const MATCH_SITE_SURFACES: Record<
   rose_quartz: { background: '#fdf4ff', ink: '#3a1848', muted: '#7a5a88', panel: '#ffffff' },
 }
 
+/**
+ * Dark brand color for QR modules. Light primaries are not used as-is.
+ * qrModuleColor darkens anything that is under 7:1 on white.
+ */
+const CARD_QR_THEME_DARK: Record<AmethystAppearancePresetId, string> = {
+  amethyst: '#3d0cb0',
+  sparkle_suite_morganite: '#5b1e3b',
+  black_diamond: '#1a1408',
+  moonstone: '#2a2150',
+  alpine_opal: '#3a1848',
+  emerald_garden: '#064e3b',
+  gnome_garden: '#3a2018',
+  neon_butterfly: '#3a0a28',
+  halloween_pumpkin_witch: '#6b2e0a',
+  halloween_pumpkin_cat: '#6b2e0a',
+  gilded_autumn: '#3a2410',
+  rose_gold: '#5a2434',
+  midnight_rose: '#4a1c28',
+  pearl_rose: '#5a2434',
+  rose_champagne: '#5a2430',
+  garnet: '#6b1218',
+  amber: '#7a3410',
+  velvet: '#4a1868',
+  rose_quartz: '#5a1848',
+}
+
 function presetId(value: string | null | undefined): AmethystAppearancePresetId {
   if (value && value in AMETHYST_APPEARANCE_PRESETS) {
     return value as AmethystAppearancePresetId
@@ -53,8 +80,8 @@ export function resolveCardQrPalette(input: {
   appearancePreset?: string | null
 }): CardQrPalette {
   // Saved template ids (including halloween and classic-ivory) are ignored.
-  // The flyer always follows the current site theme. QR modules stay
-  // near-black on white, including on dark themes.
+  // The flyer and the QR follow the current site theme. Modules are a dark
+  // theme color on a white quiet zone, at least 7:1 against white.
   const id = presetId(input.appearancePreset)
   const preset = AMETHYST_APPEARANCE_PRESETS[id]
   const surface = MATCH_SITE_SURFACES[id]
@@ -62,7 +89,7 @@ export function resolveCardQrPalette(input: {
     name: preset.label,
     ...surface,
     accent: preset.values.primaryColor,
-    qrDark: '#111111',
+    qrDark: qrModuleColor(CARD_QR_THEME_DARK[id]),
     qrLight: '#FFFFFF',
   }
 }

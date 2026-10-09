@@ -1,4 +1,5 @@
 import { SOCIAL_HERO_LABELS, SOCIAL_HERO_ORDER } from '@/lib/public-site/social-hero'
+import { ServiceError } from '@/lib/services/errors'
 
 export const CARD_QR_TEMPLATE_IDS = [
   'match-site',
@@ -16,10 +17,21 @@ export interface CardQrFields {
   social: boolean
 }
 
+export const CARD_QR_ICONS = ['none', 'diamond', 'unicorn'] as const
+
+export type CardQrIcon = (typeof CARD_QR_ICONS)[number]
+
+export const CARD_QR_ICON_LABELS: Record<CardQrIcon, string> = {
+  none: 'None',
+  diamond: 'Diamond',
+  unicorn: 'Unicorn',
+}
+
 export interface CardQrDesign {
   templateId: CardQrTemplateId
   fields: CardQrFields
   discountCode: string
+  qrIcon: CardQrIcon
 }
 
 export const DEFAULT_CARD_QR_DESIGN: CardQrDesign = {
@@ -32,6 +44,26 @@ export const DEFAULT_CARD_QR_DESIGN: CardQrDesign = {
     social: true,
   },
   discountCode: '',
+  qrIcon: 'none',
+}
+
+export function parseCardQrIcon(value: unknown): CardQrIcon | null {
+  return CARD_QR_ICONS.includes(value as CardQrIcon) ? (value as CardQrIcon) : null
+}
+
+/** Absent means None. A present unknown value is a bad request. */
+export function cardQrIconFromRequest(value: unknown): CardQrIcon {
+  if (value == null || value === '') return 'none'
+  const icon = parseCardQrIcon(value)
+  if (!icon) {
+    throw new ServiceError({
+      code: 'CARD_QR_ICON_INVALID',
+      message: 'QR icon must be none, diamond, or unicorn.',
+      userMessage: 'Choose None, Diamond, or Unicorn.',
+      statusCode: 400,
+    })
+  }
+  return icon
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -67,6 +99,7 @@ export function parseCardQrDesign(value: unknown): CardQrDesign {
       social: readFlag('social', DEFAULT_CARD_QR_DESIGN.fields.social),
     },
     discountCode: cleanDiscountCode(record.discountCode),
+    qrIcon: parseCardQrIcon(record.qrIcon) ?? DEFAULT_CARD_QR_DESIGN.qrIcon,
   }
 }
 

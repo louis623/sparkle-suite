@@ -300,6 +300,13 @@
   margin-top: 20px;
 }
 
+.iconRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
 .flyerFrame {
   width: 100%;
   max-width: 100%;

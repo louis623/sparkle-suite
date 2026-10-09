@@ -9,6 +9,7 @@ import {
   buildCardQrPressStubLines,
   buildCardQrPressStubPdf,
 } from '@/lib/workspace/card-qr/render'
+import { buildCardQrShortUrl } from '@/lib/workspace/card-qr/short-link'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -30,8 +31,8 @@ export async function POST(request: Request) {
     })
     const pdf = buildCardQrPressStubPdf(
       buildCardQrPressStubLines({
-        destinationUrl: context.destinationUrl,
-        templateName: palette.name,
+        destinationUrl: buildCardQrShortUrl(context.origin, context.repId) ?? context.destinationUrl,
+        templateName: `${palette.name} / ${design.qrIcon}`,
       }),
     )
     return new NextResponse(new Uint8Array(pdf), {

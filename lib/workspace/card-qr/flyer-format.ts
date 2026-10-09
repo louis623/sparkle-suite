@@ -1,3 +1,5 @@
+import type { CardQrIcon } from '@/lib/workspace/card-qr/design'
+
 export const CARD_QR_FLYER_FORMATS = ['png', 'jpg'] as const
 
 export type CardQrFlyerFormat = (typeof CARD_QR_FLYER_FORMATS)[number]
@@ -15,8 +17,12 @@ export function parseCardQrFlyerFormat(value: unknown): CardQrFlyerFormat | null
 }
 
 /** One key for the preview and the download of that same file. */
-export function flyerPreviewCacheKey(format: CardQrFlyerFormat, destinationUrl: string) {
-  return `${format}:${destinationUrl}`
+export function flyerPreviewCacheKey(
+  format: CardQrFlyerFormat,
+  destinationUrl: string,
+  icon: CardQrIcon = 'none',
+) {
+  return `${format}:${icon}:${destinationUrl}`
 }
 
 export function flyerDownloadBytes<T>(

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   CARD_QR_PACKS,
   CARD_QR_PRICE_COPY,
@@ -11,10 +11,15 @@ import {
   type CardQrPackQuantity,
 } from '@/lib/workspace/card-qr/pricing'
 import {
+  CARD_QR_ICONS,
+  CARD_QR_ICON_LABELS,
   DEFAULT_CARD_QR_DESIGN,
   buildCardQrCopyLines,
+  parseCardQrIcon,
+  type CardQrIcon,
 } from '@/lib/workspace/card-qr/design'
 import { resolveCardQrDestination } from '@/lib/workspace/card-qr/destination'
+import { buildCardQrShortUrl } from '@/lib/workspace/card-qr/short-link'
 import { CARD_QR_FLYER_BEING_BUILT_MESSAGE } from '@/lib/workspace/card-qr/flyer-copy'
 import {
   DEFAULT_CARD_QR_FLYER_FORMAT,
@@ -49,6 +54,7 @@ export function CardQrTool({
   email,
   appearancePreset,
   socialHandles,
+  repId,
 }: {
   siteHref: string | null
   displayName: string
@@ -56,6 +62,7 @@ export function CardQrTool({
   email: string
   appearancePreset: string
   socialHandles: Record<string, string>
+  repId?: string | null
 }) {
   const [origin, setOrigin] = useState<string | null>(null)
   const [quantity, setQuantity] = useState<CardQrPackQuantity>(500)
@@ -70,11 +77,17 @@ export function CardQrTool({
   const [flyerLoading, setFlyerLoading] = useState(false)
   const [flyerError, setFlyerError] = useState<string | null>(null)
   const [flyerPending, setFlyerPending] = useState(false)
+  const [qrIcon, setQrIcon] = useState<CardQrIcon>('none')
+  const iconTouched = useRef(false)
   const destinationUrl = useMemo(
     () => resolveCardQrDestination(siteHref, origin),
     [origin, siteHref],
   )
-  const design = DEFAULT_CARD_QR_DESIGN
+  const qrUrl = useMemo(
+    () => (origin && repId ? buildCardQrShortUrl(origin, repId) : null),
+    [origin, repId],
+  )
+  const design = { ...DEFAULT_CARD_QR_DESIGN, qrIcon }
   const palette = resolveCardQrPalette({
     templateId: design.templateId,
     appearancePreset,
@@ -92,7 +105,9 @@ export function CardQrTool({
     let objectUrl: string | null = null
     setQrBlob(null)
     setQrObjectUrl(null)
-    void fetch(`/api/workspace/card-qr/qr?skin=${encodeURIComponent(appearancePreset)}`, {
+    void fetch(
+      `/api/workspace/card-qr/qr?skin=${encodeURIComponent(appearancePreset)}&icon=${encodeURIComponent(qrIcon)}`,
+      {
       credentials: 'same-origin',
       signal: controller.signal,
     })
@@ -120,13 +135,13 @@ export function CardQrTool({
       controller.abort()
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [appearancePreset, destinationUrl])
+  }, [appearancePreset, destinationUrl, qrIcon])
 
   useEffect(() => {
     if (!destinationUrl) return
     const controller = new AbortController()
     let objectUrl: string | null = null
-    const key = flyerPreviewCacheKey(flyerFormat, destinationUrl)
+    const key = flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon)
     setFlyerLoading(true)
     setFlyerError(null)
     setFlyerPending(false)
@@ -135,7 +150,7 @@ export function CardQrTool({
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ format: flyerFormat }),
+      body: JSON.stringify({ format: flyerFormat, icon: qrIcon }),
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -171,7 +186,22 @@ export function CardQrTool({
       controller.abort()
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [destinationUrl, flyerFormat])
+  }, [appearancePreset, destinationUrl, flyerFormat, qrIcon])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    void fetch('/api/workspace/card-qr', { credentials: 'same-origin', signal: controller.signal })
+      .then(async (response) => (response.ok ? response.json() : null))
+      .then((body) => {
+        if (controller.signal.aborted || iconTouched.current) return
+        const saved = parseCardQrIcon(body?.profile?.design?.qrIcon)
+        if (saved) setQrIcon(saved)
+      })
+      .catch(() => {
+        // A missing profile table leaves the center mark on None.
+      })
+    return () => controller.abort()
+  }, [])
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -214,11 +244,33 @@ export function CardQrTool({
     }
   }
 
+  function chooseIcon(icon: CardQrIcon) {
+    iconTouched.current = true
+    setQrIcon(icon)
+    setNotice(null)
+    void fetch('/api/workspace/card-qr', {
+      method: 'PUT',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ design: { ...DEFAULT_CARD_QR_DESIGN, qrIcon: icon } }),
+    })
+      .then(async (response) => {
+        if (!response.ok) return
+        const body = await response.json()
+        if (body.iconStored === false) {
+          setNotice('Center mark is on this QR. It is not saved on the profile yet.')
+        }
+      })
+      .catch(() => {
+        // The preview still uses the choice. The next visit falls back to None.
+      })
+  }
+
   function downloadFlyer() {
     if (!destinationUrl) return
     const bytes = flyerDownloadBytes(
       flyerCache,
-      flyerPreviewCacheKey(flyerFormat, destinationUrl),
+      flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon),
     )
     if (!bytes) return
     setFlyerError(null)
@@ -290,12 +342,26 @@ export function CardQrTool({
       <section className={`${styles.section} ${styles.qrBand}`} aria-labelledby="card-qr-code">
         <h3 id="card-qr-code" className={styles.title}>QR code</h3>
         <p className={styles.body}>
-          Your customer site already has an address. This QR points at it, and
-          the flyer and cards use the same code.
+          Your customer site already has an address. This QR is a short link to
+          it, colored for your site. The flyer and cards use the same code.
         </p>
+        <div className={styles.iconRow} role="group" aria-label="Center mark">
+          {CARD_QR_ICONS.map((icon) => (
+            <button
+              key={icon}
+              type="button"
+              className={styles.choice}
+              aria-pressed={qrIcon === icon}
+              onClick={() => chooseIcon(icon)}
+            >
+              {CARD_QR_ICON_LABELS[icon]}
+            </button>
+          ))}
+        </div>
         <div className={styles.qrLayout}>
           <div className={styles.qrCopy}>
             <p className={`${styles.url} ${styles.qrUrl}`}>{destinationUrl || 'Site address loading'}</p>
+            {qrUrl ? <p className={styles.spec}>Short link {qrUrl}</p> : null}
             <div className={`${styles.actions} ${styles.qrActions}`}>
               <button
                 type="button"
@@ -363,8 +429,7 @@ export function CardQrTool({
             <p className={styles.spec}>
               JPG is the default, and the best file for texting and posting from a phone.
               PNG is full quality. The name and QR stay in the middle so story buttons
-              do not cover them. Changing your site theme makes a new matching flyer.
-              The QR stays the same.
+              do not cover them.               Changing your site theme makes a new matching flyer and recolors the QR.
             </p>
             {flyerError ? <p className={styles.flyerError} role="alert">{flyerError}</p> : null}
           </div>

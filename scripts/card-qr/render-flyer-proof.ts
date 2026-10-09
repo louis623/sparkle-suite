@@ -11,15 +11,16 @@ import {
 } from '@/lib/workspace/card-qr/flyer-format'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
 import { renderCardQrFlyerParts } from '@/lib/workspace/card-qr/render'
+import { buildCardQrShortUrl } from '@/lib/workspace/card-qr/short-link'
 
 const DUDE = {
   showTitle: "Dude's Fizzfest",
   tagline: 'Come for the fizz. Stay for the sparkle.',
   firstName: 'Louis',
-  suiteUrl: 'https://sparkle-suite-smoke.vercel.app/fizzfest',
-  customDomain: 'dudesfizzfest.com',
-  customUrl: 'https://dudesfizzfest.com',
+  repId: 'a1b2c3d4-e5f6-4789-8012-3456789abcde',
 }
+
+const DUDE_QR_URL = buildCardQrShortUrl('https://sparkle-suite-smoke.vercel.app', DUDE.repId) as string
 
 function optionalArg(name: string) {
   const index = process.argv.indexOf(`--${name}`)
@@ -111,7 +112,7 @@ async function writeAll(directory: string) {
       const withDomain = variant === 'custom-domain'
       const files = await renderDude({
         theme,
-        destinationUrl: withDomain ? DUDE.customUrl : DUDE.suiteUrl,
+        destinationUrl: DUDE_QR_URL,
         website: withDomain ? 'DUDESFIZZFEST.COM' : null,
       })
       const pngName = `${theme}-${variant}.png`

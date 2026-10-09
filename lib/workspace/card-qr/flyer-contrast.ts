@@ -41,6 +41,32 @@ export function contrastRatio(foreground: string, background: string) {
   return (lighter + 0.05) / (darker + 0.05)
 }
 
+/** Darken a theme color until it clears this ratio on white. QR modules need 7:1. */
+export const CARD_QR_MIN_MODULE_CONTRAST = 7
+
+/**
+ * QR dark-module color. A theme color that already clears 7:1 on white is kept.
+ * A lighter color is mixed toward black only until it passes.
+ */
+export function qrModuleColor(preferred: string | null | undefined, fallback = '#111111') {
+  const start = preferred && /^#[0-9a-f]{6}$/i.test(preferred) ? preferred.toLowerCase() : fallback
+  if (contrastRatio(start, '#ffffff') >= CARD_QR_MIN_MODULE_CONTRAST) return start
+  let low = 0
+  let high = 1
+  let best = '#000000'
+  for (let step = 0; step < 16; step += 1) {
+    const amount = (low + high) / 2
+    const mixed = mixHex(start, '#000000', amount)
+    if (contrastRatio(mixed, '#ffffff') >= CARD_QR_MIN_MODULE_CONTRAST) {
+      best = mixed
+      high = amount
+    } else {
+      low = amount
+    }
+  }
+  return best
+}
+
 export function readableColor(preferred: string, background: string, minimum: number) {
   if (contrastRatio(preferred, background) >= minimum) return preferred
   const target = relativeLuminance(background) > 0.4 ? '#14120f' : '#ffffff'

@@ -78,6 +78,7 @@ export async function PUT(request: Request) {
         persistence: saved.persistence,
       }),
       design,
+      iconStored: saved.iconStored,
       notice:
         saved.persistence === 'database'
           ? 'Saved to your profile.'

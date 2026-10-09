@@ -44,8 +44,15 @@ import {
   flyerPlateAbsolute,
   type FlyerPanelStyle,
 } from '@/lib/workspace/card-qr/flyer-themes'
+import type { CardQrIcon } from '@/lib/workspace/card-qr/design'
+import { qrModuleColor } from '@/lib/workspace/card-qr/flyer-contrast'
 import type { CardQrPalette } from '@/lib/workspace/card-qr/palette'
 import { CARD_QR_PRINT_SPEC } from '@/lib/workspace/card-qr/pricing'
+import {
+  cardQrBadgeHitsFinders,
+  cardQrBadgeModules,
+  cardQrIconMarkup,
+} from '@/lib/workspace/card-qr/qr-icon'
 
 export {
   CARD_QR_FLYER_HEIGHT,
@@ -58,8 +65,22 @@ export const CARD_QR_FLYER_SAFE_TOP = FLYER_SAFE_TOP
 export const CARD_QR_FLYER_SAFE_BOTTOM = FLYER_SAFE_BOTTOM
 export const CARD_QR_DARK = '#111111'
 export const CARD_QR_LIGHT = '#FFFFFF'
-export const CARD_QR_ERROR_CORRECTION = 'H' as const
 export const CARD_QR_MARGIN = 4
+
+/** Plain codes use M. A center icon covers modules, so those codes use H. */
+export function cardQrErrorCorrection(icon: CardQrIcon = 'none'): 'M' | 'H' {
+  return icon === 'none' ? 'M' : 'H'
+}
+
+export function inspectCardQr(url: string, icon: CardQrIcon = 'none') {
+  const errorCorrectionLevel = cardQrErrorCorrection(icon)
+  const symbol = QRCode.create(url, { errorCorrectionLevel })
+  return {
+    version: symbol.version,
+    modules: symbol.modules.size,
+    errorCorrectionLevel,
+  }
+}
 
 function escapeXml(value: string) {
   return value
@@ -88,21 +109,64 @@ export function flyerTextRenderOptions(fontFiles: string[]): ResvgRenderOptions 
   }
 }
 
+function cardQrSvg(input: {
+  url: string
+  icon: CardQrIcon
+  dark: string
+  width: number
+}) {
+  const errorCorrectionLevel = cardQrErrorCorrection(input.icon)
+  const symbol = QRCode.create(input.url, { errorCorrectionLevel })
+  const modules = symbol.modules.size
+  const cells = modules + CARD_QR_MARGIN * 2
+  const modulePx = Math.max(2, Math.ceil(input.width / cells))
+  const rects: string[] = []
+  for (let row = 0; row < modules; row += 1) {
+    for (let col = 0; col < modules; col += 1) {
+      if (!symbol.modules.get(row, col)) continue
+      const x = (col + CARD_QR_MARGIN) * modulePx
+      const y = (row + CARD_QR_MARGIN) * modulePx
+      rects.push(`<rect x="${x}" y="${y}" width="${modulePx}" height="${modulePx}"/>`)
+    }
+  }
+  const badgeModules = input.icon === 'none' ? 0 : cardQrBadgeModules(modules)
+  if (badgeModules > 0 && cardQrBadgeHitsFinders(modules, badgeModules)) {
+    throw new Error(`QR center mark overlaps a finder pattern at ${modules} modules.`)
+  }
+  const badgePx = badgeModules * modulePx
+  const origin = CARD_QR_MARGIN * modulePx
+  const codeSize = modules * modulePx
+  const center = origin + codeSize / 2
+  const iconScale = (badgePx * 0.78) / 24
+  const mark =
+    input.icon === 'none'
+      ? ''
+      : `<rect x="${center - badgePx / 2}" y="${center - badgePx / 2}" width="${badgePx}" height="${badgePx}" rx="${badgePx * 0.22}" fill="${CARD_QR_LIGHT}"/>
+         <g transform="translate(${center} ${center}) scale(${iconScale}) translate(-12 -12)">${cardQrIconMarkup(input.icon, input.dark)}</g>`
+  const size = modulePx * cells
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <rect width="${size}" height="${size}" fill="${CARD_QR_LIGHT}"/>
+    <g fill="${input.dark}" shape-rendering="crispEdges">${rects.join('')}</g>
+    ${mark}
+  </svg>`
+  return { svg, size }
+}
+
 export async function renderCardQrPng(
   url: string,
-  _palette?: Pick<CardQrPalette, 'qrDark' | 'qrLight'> | null,
+  palette?: Pick<CardQrPalette, 'qrDark' | 'qrLight'> | null,
   width = 640,
+  icon: CardQrIcon = 'none',
 ) {
-  return QRCode.toBuffer(url, {
-    type: 'png',
+  const drawn = cardQrSvg({
+    url,
+    icon,
+    dark: qrModuleColor(palette?.qrDark, CARD_QR_DARK),
     width,
-    margin: CARD_QR_MARGIN,
-    errorCorrectionLevel: CARD_QR_ERROR_CORRECTION,
-    color: {
-      dark: CARD_QR_DARK,
-      light: CARD_QR_LIGHT,
-    },
   })
+  const png = await sharp(Buffer.from(drawn.svg)).png().toBuffer()
+  if (drawn.size === width) return png
+  return sharp(png).resize(width, width, { fit: 'fill', kernel: 'nearest' }).png().toBuffer()
 }
 
 export interface CardQrFlyerRenderInput {
@@ -114,6 +178,7 @@ export interface CardQrFlyerRenderInput {
   tagline?: string | null
   firstName?: string | null
   website?: string | null
+  qrIcon?: CardQrIcon
 }
 
 export interface CardQrFlyerRenderParts {
@@ -700,7 +765,9 @@ export async function renderCardQrFlyerParts(
   )
   const layers: sharp.OverlayOptions[] = [{ input: foreground, left: 0, top: 0 }]
   if (input.showQr) {
-    const qr = await sharp(await renderCardQrPng(input.destinationUrl, null, layout.qr.width))
+    const qr = await sharp(
+      await renderCardQrPng(input.destinationUrl, input.palette, layout.qr.width, input.qrIcon ?? 'none'),
+    )
       .resize(layout.qr.width, layout.qr.height, {
         fit: 'contain',
         background: CARD_QR_LIGHT,

@@ -6,7 +6,9 @@ import sharp from 'sharp'
 import { POST as postFlyer } from '@/app/api/workspace/card-qr/flyer/route'
 import { GET as getQr } from '@/app/api/workspace/card-qr/qr/route'
 import { AMETHYST_APPEARANCE_PRESET_IDS } from '@/lib/amethyst/appearance-presets'
-import { parseCardQrDesign } from '@/lib/workspace/card-qr/design'
+import { CARD_QR_ICONS, parseCardQrDesign } from '@/lib/workspace/card-qr/design'
+import { contrastRatio, hexToRgb } from '@/lib/workspace/card-qr/flyer-contrast'
+import { buildCardQrShortUrl } from '@/lib/workspace/card-qr/short-link'
 import {
   FlyerQrDecodeError,
   assertFlyerQrDecodes,
@@ -45,7 +47,6 @@ import {
   FLYER_SAFE_TOP,
   FLYER_TEXT_MAX_WIDTH,
 } from '@/lib/workspace/card-qr/flyer-layout'
-import { contrastRatio, hexToRgb } from '@/lib/workspace/card-qr/flyer-contrast'
 import {
   FLYER_THEME_RECORDS,
   assertFlyerThemeRecordsComplete,
@@ -60,19 +61,21 @@ import {
   resolveFlyerPaint,
 } from '@/lib/workspace/card-qr/render'
 import {
-  CARD_QR_DARK,
-  CARD_QR_ERROR_CORRECTION,
   CARD_QR_FLYER_HEIGHT,
   CARD_QR_FLYER_WIDTH,
   CARD_QR_LIGHT,
   CARD_QR_MARGIN,
+  cardQrErrorCorrection,
   flyerTextRenderOptions,
+  inspectCardQr,
   renderCardQrFlyerParts,
   renderCardQrFlyerPng,
   renderCardQrPng,
 } from '@/lib/workspace/card-qr/render'
-
 const URL = 'https://sparkle-suite-smoke.vercel.app/fizzfest'
+const ORIGIN = 'https://sparkle-suite-smoke.vercel.app'
+const REP_ID = 'a1b2c3d4-e5f6-4789-8012-3456789abcde'
+const QR_URL = buildCardQrShortUrl(ORIGIN, REP_ID) as string
 
 const mocks = vi.hoisted(() => ({
   loadCardQrContext: vi.fn(),
@@ -103,7 +106,8 @@ vi.mock('@/lib/workspace/card-qr/flyer-decode', async (importOriginal) => {
 
 function context(appearancePreset: string) {
   return {
-    repId: 'rep-1',
+    repId: REP_ID,
+    origin: ORIGIN,
     destinationUrl: URL,
     settings: {
       appearancePreset,
@@ -211,8 +215,7 @@ describe('flyer fonts', () => {
     expect(source).toContain('flyerTextRenderOptions')
     expect(source).not.toContain('Georgia')
     expect(source).not.toContain('sans-serif')
-    expect(source).not.toContain('palette.qrDark')
-    expect(source).not.toContain('palette.qrLight')
+    expect(source).toContain('qrModuleColor')
   })
 })
 
@@ -322,14 +325,14 @@ describe('flyer render', () => {
         }),
         ...copy,
         appearancePreset: theme,
-        destinationUrl: URL,
+        destinationUrl: QR_URL,
         showQr: true,
       })
       const meta = await sharp(parts.flyer).metadata()
       expect(meta.width).toBe(CARD_QR_FLYER_WIDTH)
       expect(meta.height).toBe(CARD_QR_FLYER_HEIGHT)
       expect(meta.format).toBe('png')
-      await expect(assertFlyerQrDecodes(parts.flyer, URL, parts.layout.qr)).resolves.toBeUndefined()
+      await expect(assertFlyerQrDecodes(parts.flyer, QR_URL, parts.layout.qr)).resolves.toBeUndefined()
       expect(parts.layout.contentTop).toBeGreaterThanOrEqual(FLYER_SAFE_TOP)
       expect(parts.layout.contentBottom).toBeLessThanOrEqual(FLYER_CONTENT_BOTTOM)
       expect(parts.layout.contentBottom - parts.layout.contentTop).toBeGreaterThanOrEqual(1100)
@@ -398,7 +401,7 @@ describe('flyer render', () => {
       }),
       ...dudeCopy({ showTitle, tagline: 'A very long tagline that still has to wrap inside the side margins of the portrait flyer.' }),
       appearancePreset: 'sparkle_suite_morganite',
-      destinationUrl: URL,
+      destinationUrl: QR_URL,
       showQr: true,
     })
     const drawn = parts.layout.showTitle?.lines.join(' ') ?? ''
@@ -414,7 +417,7 @@ describe('flyer render', () => {
     expect(parts.layout.contentBottom).toBeLessThanOrEqual(FLYER_CONTENT_BOTTOM)
     expect(FLYER_TEXT_MAX_WIDTH).toBeLessThan(FLYER_MARGIN_RIGHT - FLYER_MARGIN_LEFT)
     await expectInkInsideSafeZones(parts.flyer, parts.background)
-    await expect(assertFlyerQrDecodes(parts.flyer, URL, parts.layout.qr)).resolves.toBeUndefined()
+    await expect(assertFlyerQrDecodes(parts.flyer, QR_URL, parts.layout.qr)).resolves.toBeUndefined()
   })
 
   it(
@@ -448,7 +451,7 @@ describe('flyer render', () => {
             tagline: sample.tagline,
             firstName: 'Louis',
             appearancePreset: theme,
-            destinationUrl: URL,
+            destinationUrl: QR_URL,
             showQr: true,
           })
           if (sample.name === 'wrapping title') {
@@ -461,7 +464,7 @@ describe('flyer render', () => {
           if (sample.name === 'empty tagline') {
             expect(parts.layout.tagline, theme).toBeNull()
           }
-          const files = await renderCheckedFlyerFiles(parts.flyer, URL, parts.layout.qr)
+          const files = await renderCheckedFlyerFiles(parts.flyer, QR_URL, parts.layout.qr)
           expect(files.png.byteLength).toBeGreaterThan(1000)
           expect(files.jpg.byteLength).toBeGreaterThan(1000)
         }
@@ -478,7 +481,7 @@ describe('flyer render', () => {
       }),
       ...dudeCopy({ tagline: '' }),
       appearancePreset: 'moonstone',
-      destinationUrl: URL,
+      destinationUrl: QR_URL,
       showQr: true,
     })
     const withDomain = await renderCardQrFlyerParts({
@@ -488,7 +491,7 @@ describe('flyer render', () => {
       }),
       ...dudeCopy({ website: 'DUDESFIZZFEST.COM' }),
       appearancePreset: 'moonstone',
-      destinationUrl: 'https://dudesfizzfest.com',
+      destinationUrl: QR_URL,
       showQr: true,
     })
     expect(open.layout.tagline).toBeNull()
@@ -497,7 +500,7 @@ describe('flyer render', () => {
     expect(withDomain.layout.website?.size).toBeGreaterThanOrEqual(36)
     expect(withDomain.layout.website?.top).toBeGreaterThan(withDomain.layout.instructions.top)
     expect(withDomain.layout.contentBottom).toBeLessThanOrEqual(FLYER_CONTENT_BOTTOM)
-    await expect(assertFlyerQrDecodes(withDomain.flyer, 'https://dudesfizzfest.com')).resolves.toBeUndefined()
+    await expect(assertFlyerQrDecodes(withDomain.flyer, QR_URL, withDomain.layout.qr)).resolves.toBeUndefined()
     await expectInkInsideSafeZones(open.flyer, open.background)
     await expectInkInsideSafeZones(withDomain.flyer, withDomain.background)
   })
@@ -540,10 +543,10 @@ describe('flyer file formats', () => {
       tagline: 'Come for the fizz. Stay for the sparkle.',
       firstName: 'Louis',
       appearancePreset: 'sparkle_suite_morganite',
-      destinationUrl: URL,
+      destinationUrl: QR_URL,
       showQr: true,
     })
-    const files = await renderCheckedFlyerFiles(png, URL)
+    const files = await renderCheckedFlyerFiles(png, QR_URL)
     expect(files.png.equals(png)).toBe(true)
     const again = await encodeCardQrFlyerJpeg(png)
     expect(again.equals(files.jpg)).toBe(true)
@@ -551,7 +554,7 @@ describe('flyer file formats', () => {
     expect(CARD_QR_FLYER_JPG_QUALITY).toBe(94)
     const meta = await sharp(files.jpg).metadata()
     expect(meta.format).toBe('jpeg')
-    await expect(assertFlyerQrDecodes(files.jpg, URL)).resolves.toBeUndefined()
+    await expect(assertFlyerQrDecodes(files.jpg, QR_URL)).resolves.toBeUndefined()
   })
 
   it('uses one cache key so the download is the preview bytes', () => {
@@ -561,7 +564,8 @@ describe('flyer file formats', () => {
     expect(parseCardQrFlyerFormat('jpeg')).toBe('jpg')
     expect(parseCardQrFlyerFormat('gif')).toBeNull()
     const key = flyerPreviewCacheKey('png', URL)
-    expect(flyerPreviewCacheKey('png', URL)).toBe(key)
+    expect(key).toBe(`png:none:${URL}`)
+    expect(flyerPreviewCacheKey('png', URL, 'diamond')).toBe(`png:diamond:${URL}`)
     expect(flyerPreviewCacheKey('jpg', URL)).not.toBe(key)
     const bytes = new Uint8Array([1, 2, 3])
     const cached = { key, bytes }
@@ -590,7 +594,7 @@ describe('flyer route', () => {
     const { data, info } = await sharp(jpg).raw().toBuffer({ resolveWithObject: true })
     const background = pixel(data, info, 8, 80)
     expect(background[0]).toBeLessThan(50)
-    await expect(assertFlyerQrDecodes(jpg, URL)).resolves.toBeUndefined()
+    await expect(assertFlyerQrDecodes(jpg, QR_URL)).resolves.toBeUndefined()
   })
 
   it.each(['neon_butterfly', 'gnome_garden', 'alpine_opal', 'black_diamond'] as const)(
@@ -652,8 +656,8 @@ describe('flyer route', () => {
       'CARD_QR_FLYER_DECODE_FAILED',
       expect.objectContaining({
         theme: 'sparkle_suite_morganite',
-        repId: 'rep-1',
-        expected: URL,
+        repId: REP_ID,
+        expected: QR_URL,
         decoded: 'https://wrong.example',
       }),
     )
@@ -677,7 +681,7 @@ describe('flyer route', () => {
     expect(meta.format).toBe('jpeg')
     expect(meta.width).toBe(CARD_QR_FLYER_WIDTH)
     expect(meta.height).toBe(CARD_QR_FLYER_HEIGHT)
-    await expect(assertFlyerQrDecodes(jpg, URL)).resolves.toBeUndefined()
+    await expect(assertFlyerQrDecodes(jpg, QR_URL)).resolves.toBeUndefined()
   })
 
   it('rejects an unknown format', async () => {
@@ -704,46 +708,123 @@ describe('flyer route', () => {
 })
 
 describe('QR image', () => {
-  it('returns dark-on-white modules at level H with a wide quiet zone', async () => {
-    const spy = vi.spyOn(QRCode, 'toBuffer')
-    const png = await renderCardQrPng(URL, {
+  it('uses level M without an icon and level H with one, on a white quiet zone', async () => {
+    const spy = vi.spyOn(QRCode, 'create')
+    const png = await renderCardQrPng(QR_URL, {
       qrDark: '#ffffff',
       qrLight: '#111111',
     })
     expect(spy).toHaveBeenCalledWith(
-      URL,
-      expect.objectContaining({
-        errorCorrectionLevel: CARD_QR_ERROR_CORRECTION,
-        margin: CARD_QR_MARGIN,
-        color: { dark: CARD_QR_DARK, light: CARD_QR_LIGHT },
-      }),
+      QR_URL,
+      expect.objectContaining({ errorCorrectionLevel: 'M' }),
+    )
+    const withIcon = await renderCardQrPng(
+      QR_URL,
+      { qrDark: '#5b1e3b', qrLight: '#111111' },
+      640,
+      'unicorn',
+    )
+    expect(spy).toHaveBeenCalledWith(
+      QR_URL,
+      expect.objectContaining({ errorCorrectionLevel: 'H' }),
     )
     spy.mockRestore()
+    expect(cardQrErrorCorrection('none')).toBe('M')
+    expect(cardQrErrorCorrection('diamond')).toBe('H')
+    expect(CARD_QR_MARGIN).toBe(4)
+    expect(CARD_QR_LIGHT).toBe('#FFFFFF')
+    expect(inspectCardQr(QR_URL, 'none')).toMatchObject({
+      version: 4,
+      modules: 33,
+      errorCorrectionLevel: 'M',
+    })
+    expect(inspectCardQr(QR_URL, 'diamond')).toMatchObject({
+      version: 6,
+      modules: 41,
+      errorCorrectionLevel: 'H',
+    })
+    expect(inspectCardQr('https://www.yoursparklesuite.com/q/abc123', 'none').version).toBe(3)
+    expect(inspectCardQr('https://www.yoursparklesuite.com/q/abc123', 'unicorn').version).toBe(5)
+
     const { data, info } = await sharp(png).ensureAlpha().raw().toBuffer({
       resolveWithObject: true,
     })
     expect(pixel(data, info, 0, 0)).toEqual([255, 255, 255])
-    let dark = false
+    let darkest = 255
     for (let index = 0; index < data.length; index += info.channels) {
-      if ((data[index] ?? 255) < 40) {
-        dark = true
-        break
-      }
+      darkest = Math.min(darkest, data[index] ?? 255)
     }
-    expect(dark).toBe(true)
-    await expect(assertFlyerQrDecodes(png, URL)).resolves.toBeUndefined()
+    expect(darkest).toBeLessThan(90)
+    await expect(assertFlyerQrDecodes(png, QR_URL)).resolves.toBeUndefined()
+    await expect(assertFlyerQrDecodes(withIcon, QR_URL)).resolves.toBeUndefined()
 
     mocks.loadCardQrContext.mockResolvedValue(context('halloween_pumpkin_cat'))
     const response = await getQr(
       new Request(
-        'https://sparkle-suite-smoke.vercel.app/api/workspace/card-qr/qr?skin=sparkle_suite_morganite',
+        'https://sparkle-suite-smoke.vercel.app/api/workspace/card-qr/qr?skin=sparkle_suite_morganite&icon=diamond',
       ),
     )
     expect(response.status).toBe(200)
     expect(response.headers.get('Content-Type')).toContain('image/png')
     const routePng = Buffer.from(await response.arrayBuffer())
-    const routeImage = await sharp(routePng).raw().toBuffer({ resolveWithObject: true })
+    const routeImage = await sharp(routePng).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
     expect(pixel(routeImage.data, routeImage.info, 0, 0)).toEqual([255, 255, 255])
-    await expect(assertFlyerQrDecodes(routePng, URL)).resolves.toBeUndefined()
+    await expect(assertFlyerQrDecodes(routePng, QR_URL)).resolves.toBeUndefined()
   })
+})
+
+function scaleQrWindow(
+  window: { x: number; y: number; width: number; height: number },
+  scale: number,
+) {
+  return {
+    x: window.x * scale,
+    y: window.y * scale,
+    width: window.width * scale,
+    height: window.height * scale,
+  }
+}
+
+describe('short-link QR on every shared theme', () => {
+  it(
+    'decodes PNG and JPG for every theme and center mark, including a 30% JPEG resave',
+    async () => {
+      expect(QR_URL).toBe(`${ORIGIN}/q/${QR_URL.split('/').pop()}`)
+      expect(QR_URL.split('/').pop()).toHaveLength(6)
+      for (const theme of CARD_QR_SHARED_FLYER_THEMES) {
+        const palette = resolveCardQrPalette({
+          templateId: 'match-site',
+          appearancePreset: theme,
+        })
+        expect(contrastRatio(palette.qrDark, '#ffffff'), theme).toBeGreaterThanOrEqual(7)
+        for (const icon of CARD_QR_ICONS) {
+          const parts = await renderCardQrFlyerParts({
+            palette,
+            showTitle: "Dude's Fizzfest",
+            tagline: 'Come for the fizz. Stay for the sparkle.',
+            firstName: 'Louis',
+            appearancePreset: theme,
+            destinationUrl: QR_URL,
+            qrIcon: icon,
+            showQr: true,
+          })
+          const files = await renderCheckedFlyerFiles(parts.flyer, QR_URL, parts.layout.qr)
+          for (const [label, file] of [
+            ['png', files.png],
+            ['jpg', files.jpg],
+          ] as const) {
+            const abused = await sharp(file)
+              .resize(Math.round(CARD_QR_FLYER_WIDTH * 0.3))
+              .jpeg({ quality: 60 })
+              .toBuffer()
+            await expect(
+              assertFlyerQrDecodes(abused, QR_URL, scaleQrWindow(parts.layout.qr, 0.3)),
+              `${theme} ${icon} ${label}`,
+            ).resolves.toBeUndefined()
+          }
+        }
+      }
+    },
+    600_000,
+  )
 })

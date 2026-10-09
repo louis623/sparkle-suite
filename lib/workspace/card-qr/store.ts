@@ -25,10 +25,25 @@ interface ProfileRow {
   show_social: boolean
   appearance_preset: string | null
   updated_at: string | null
+  qr_icon?: string | null
+}
+
+const PROFILE_COLUMNS =
+  'destination_url, template_id, show_name, show_email, show_qr, show_discount, discount_code, show_social, appearance_preset, updated_at'
+
+export function isMissingQrIconColumn(error: { code?: string; message?: string } | null) {
+  if (!error) return false
+  const message = error.message ?? ''
+  if (!/qr_icon/i.test(message)) return false
+  return (
+    error.code === '42703' ||
+    error.code === 'PGRST204' ||
+    /column|schema cache/i.test(message)
+  )
 }
 
 function isMissingRelation(error: { code?: string; message?: string } | null) {
-  if (!error) return false
+  if (!error || isMissingQrIconColumn(error)) return false
   return (
     error.code === '42P01' ||
     error.code === 'PGRST205' ||
@@ -50,6 +65,7 @@ function rowToProfile(row: ProfileRow): CardQrProfileRecord {
         discount: row.show_discount,
         social: row.show_social,
       },
+      qrIcon: row.qr_icon,
     }),
     updatedAt: row.updated_at,
     persistence: 'database',
@@ -60,13 +76,19 @@ export async function readCardQrProfile(
   supabase: SupabaseClient,
   repId: string,
 ): Promise<{ profile: CardQrProfileRecord | null; persistence: 'database' | 'unavailable' }> {
-  const { data, error } = await supabase
+  const first = await supabase
     .from('rep_card_qr_profiles')
-    .select(
-      'destination_url, template_id, show_name, show_email, show_qr, show_discount, discount_code, show_social, appearance_preset, updated_at',
-    )
+    .select(`${PROFILE_COLUMNS}, qr_icon`)
     .eq('rep_id', repId)
     .maybeSingle()
+  const loaded = isMissingQrIconColumn(first.error)
+    ? await supabase
+        .from('rep_card_qr_profiles')
+        .select(PROFILE_COLUMNS)
+        .eq('rep_id', repId)
+        .maybeSingle()
+    : first
+  const { data, error } = loaded
 
   if (isMissingRelation(error)) return { profile: null, persistence: 'unavailable' }
   if (error) {
@@ -91,32 +113,37 @@ export async function saveCardQrProfile(
     appearancePreset: string
     design: CardQrDesign
   },
-): Promise<{ profile: CardQrProfileRecord | null; persistence: 'database' | 'unavailable' }> {
-  const { data, error } = await supabase
+): Promise<{
+  profile: CardQrProfileRecord | null
+  persistence: 'database' | 'unavailable'
+  iconStored: boolean
+}> {
+  const baseRow = {
+    rep_id: input.repId,
+    destination_url: input.destinationUrl,
+    template_id: input.design.templateId,
+    show_name: input.design.fields.name,
+    show_email: input.design.fields.email,
+    show_qr: input.design.fields.qr,
+    show_discount: input.design.fields.discount,
+    discount_code: input.design.discountCode,
+    show_social: input.design.fields.social,
+    appearance_preset: input.appearancePreset,
+    updated_at: new Date().toISOString(),
+  }
+  const withIcon = await supabase
     .from('rep_card_qr_profiles')
-    .upsert(
-      {
-        rep_id: input.repId,
-        destination_url: input.destinationUrl,
-        template_id: input.design.templateId,
-        show_name: input.design.fields.name,
-        show_email: input.design.fields.email,
-        show_qr: input.design.fields.qr,
-        show_discount: input.design.fields.discount,
-        discount_code: input.design.discountCode,
-        show_social: input.design.fields.social,
-        appearance_preset: input.appearancePreset,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'rep_id' },
-    )
-    .select(
-      'destination_url, template_id, show_name, show_email, show_qr, show_discount, discount_code, show_social, appearance_preset, updated_at',
-    )
+    .upsert({ ...baseRow, qr_icon: input.design.qrIcon }, { onConflict: 'rep_id' })
+    .select(`${PROFILE_COLUMNS}, qr_icon`)
     .single()
+  const iconStored = !isMissingQrIconColumn(withIcon.error)
+  const saved = iconStored
+    ? withIcon
+    : await supabase.from('rep_card_qr_profiles').upsert(baseRow, { onConflict: 'rep_id' }).select(PROFILE_COLUMNS).single()
+  const { data, error } = saved
 
   if (isMissingRelation(error)) {
-    return { profile: null, persistence: 'unavailable' }
+    return { profile: null, persistence: 'unavailable', iconStored: false }
   }
   if (error || !data) {
     throw new ServiceError({
@@ -126,7 +153,11 @@ export async function saveCardQrProfile(
       statusCode: 500,
     })
   }
-  return { profile: rowToProfile(data as ProfileRow), persistence: 'database' }
+  return {
+    profile: rowToProfile(data as ProfileRow),
+    persistence: 'database',
+    iconStored,
+  }
 }
 
 export async function recordPaidCardQrOrder(
