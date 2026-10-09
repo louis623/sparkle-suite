@@ -6,7 +6,7 @@ Louis has not approved these plates. Nothing here is live.
 
 ## Art plates
 
-Rebuilt from hero art already in the repo. Stored at `public/amethyst/skins/<folder>/flyer/plate.webp`. The scene runs above and below a quieter center where the QR card sits.
+Rebuilt from hero art already in the repo. Stored at `public/amethyst/skins/<folder>/flyer/plate.webp`. Each plate is a full-height scene: a soft-focus copy fills the middle, the sharp art stays on the top, bottom, and sides, and a theme-colored glow sits behind the QR.
 
 | Theme | Source | Plate |
 | --- | --- | --- |

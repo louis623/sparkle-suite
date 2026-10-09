@@ -24,6 +24,7 @@ import {
   FLYER_SCAN_LABEL,
   flyerPanelKind,
   layoutCardQrFlyer,
+  type FlyerBox,
   type FlyerLayout,
   type FlyerTextBlock,
   type FlyerTextRole,
@@ -129,13 +130,18 @@ function svgText(input: {
   opacity?: number
   stroke?: string
   strokeWidth?: number
+  strokeOpacity?: number
+  letterSpacing?: number
+  x?: number
 }) {
   const familyName = FLYER_FONT_FACES[input.family].family
   const opacity = input.opacity == null ? '' : ` fill-opacity="${input.opacity}"`
   const stroke = input.stroke
-    ? ` stroke="${input.stroke}" stroke-width="${input.strokeWidth ?? 6}" stroke-linejoin="round"`
+    ? ` stroke="${input.stroke}" stroke-width="${input.strokeWidth ?? 6}" stroke-linejoin="round" stroke-opacity="${input.strokeOpacity ?? 1}"`
     : ''
-  return `<text x="540" y="${input.y}" text-anchor="middle" dominant-baseline="hanging" font-family="${escapeXml(familyName)}" font-weight="${input.weight}" font-size="${input.size}" fill="${input.fill}"${opacity}${stroke}>${escapeXml(input.value)}</text>`
+  const spacing = input.letterSpacing == null ? '' : ` letter-spacing="${input.letterSpacing}"`
+  const x = input.x ?? 540
+  return `<text x="${x}" y="${input.y}" text-anchor="middle" dominant-baseline="hanging" font-family="${escapeXml(familyName)}" font-weight="${input.weight}" font-size="${input.size}" fill="${input.fill}"${opacity}${stroke}${spacing}>${escapeXml(input.value)}</text>`
 }
 
 function svgBlock(
@@ -182,7 +188,7 @@ export function resolveFlyerPaint(input: {
   const kind = flyerPanelKind(input.appearancePreset)
   const panelFill =
     kind === 'parchment' ? mixHex(input.palette.panel, '#f4e4c8', 0.42) : input.palette.panel
-  const panelOpacity = kind === 'glass' ? 0.9 : 0.94
+  const panelOpacity = kind === 'glass' ? 0.76 : kind === 'parchment' ? 0.84 : 0.8
   const contrastPanel = panelContrastBackground(panelFill, input.palette.background, panelOpacity)
   const primary = preset.values.primaryColor
   const accent = preset.values.accentColor
@@ -222,7 +228,20 @@ function themeRand(theme: string) {
   }
 }
 
-function backgroundSvg(input: {
+function canvasSvg(body: string) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="${CARD_QR_FLYER_WIDTH}" height="${CARD_QR_FLYER_HEIGHT}" viewBox="0 0 ${CARD_QR_FLYER_WIDTH} ${CARD_QR_FLYER_HEIGHT}" xmlns="http://www.w3.org/2000/svg">${body}</svg>`
+}
+
+function starPoint(x: number, y: number, size: number, color: string, opacity: number, spin = 0) {
+  const long = size
+  const short = Math.max(0.6, size * 0.16)
+  return `<g transform="translate(${x},${y}) rotate(${spin})" fill="${color}" fill-opacity="${opacity.toFixed(2)}">
+    <polygon points="0,${-long} ${short},${-short} ${long},0 ${short},${short} 0,${long} ${-short},${short} ${-long},0 ${-short},${-short}"/>
+  </g>`
+}
+
+async function renderThemeBackground(input: {
   palette: CardQrPalette
   appearancePreset: AmethystAppearancePresetId
   layout: FlyerLayout
@@ -232,77 +251,91 @@ function backgroundSvg(input: {
   const accent = preset.values.accentColor
   const ground = input.palette.background
   const dark = relativeLuminance(ground) < 0.4
-  const deep = dark ? mixHex(ground, '#050308', 0.55) : mixHex(primary, ground, 0.62)
-  const lift = dark ? mixHex(ground, primary, 0.48) : mixHex(ground, '#ffffff', 0.55)
-  const mid = mixHex(ground, accent, dark ? 0.28 : 0.16)
+  const deep = dark ? mixHex(ground, '#050308', 0.62) : mixHex(primary, ground, 0.58)
+  const lift = dark ? mixHex(ground, primary, 0.42) : mixHex(ground, '#ffffff', 0.62)
+  const mid = mixHex(ground, accent, dark ? 0.34 : 0.2)
+  const silk = mixHex(lift, '#ffffff', dark ? 0.18 : 0.35)
   const glowY = input.layout.qr.y + input.layout.qr.height / 2
   const rand = themeRand(input.appearancePreset)
-  const bokeh: string[] = []
-  for (let index = 0; index < 14; index += 1) {
+  const groundSvg = canvasSvg(`
+    <defs>
+      <linearGradient id="ground" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="${lift}"/>
+        <stop offset="0.38" stop-color="${ground}"/>
+        <stop offset="0.7" stop-color="${mid}"/>
+        <stop offset="1" stop-color="${deep}"/>
+      </linearGradient>
+      <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+        <stop offset="0.42" stop-color="${silk}" stop-opacity="${dark ? 0.16 : 0.28}"/>
+        <stop offset="0.58" stop-color="#ffffff" stop-opacity="${dark ? 0.1 : 0.2}"/>
+        <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#ground)"/>
+    <polygon points="0,180 1080,0 1080,520 0,860" fill="url(#sheen)"/>
+    <polygon points="80,0 420,0 160,1920 0,1920" fill="${mixHex(primary, '#ffffff', 0.4)}" fill-opacity="0.05"/>
+    <polygon points="700,0 1080,240 1080,1920 520,1920" fill="${accent}" fill-opacity="0.05"/>
+  `)
+  const orbs = (count: number, minR: number, maxR: number, opacity: number) => {
+    const shapes: string[] = []
+    for (let index = 0; index < count; index += 1) {
+      const x = Math.round(rand() * CARD_QR_FLYER_WIDTH)
+      const y = Math.round(rand() * CARD_QR_FLYER_HEIGHT)
+      const radius = Math.round(minR + rand() * (maxR - minR))
+      const color = index % 3 === 0 ? '#ffffff' : index % 3 === 1 ? accent : primary
+      shapes.push(
+        `<circle cx="${x}" cy="${y}" r="${radius}" fill="${color}" fill-opacity="${(opacity * (0.65 + rand() * 0.5)).toFixed(2)}"/>`,
+      )
+    }
+    return canvasSvg(shapes.join(''))
+  }
+  const rays = canvasSvg(`
+    <g opacity="${dark ? 0.55 : 0.4}">
+      <polygon points="540,${glowY - 80} 470,0 610,0" fill="${mixHex(accent, '#ffffff', 0.45)}" fill-opacity="0.35"/>
+      <polygon points="180,${glowY} 0,220 0,520" fill="${primary}" fill-opacity="0.28"/>
+      <polygon points="900,${glowY + 40} 1080,1480 1080,1760" fill="${accent}" fill-opacity="0.3"/>
+    </g>
+  `)
+  const glitter: string[] = []
+  for (let index = 0; index < 220; index += 1) {
     const x = Math.round(rand() * CARD_QR_FLYER_WIDTH)
     const y = Math.round(rand() * CARD_QR_FLYER_HEIGHT)
-    const radius = Math.round(48 + rand() * 130)
-    const opacity = (dark ? 0.16 : 0.11) + rand() * 0.1
-    const color = index % 3 === 0 ? accent : index % 3 === 1 ? primary : lift
-    bokeh.push(
-      `<circle cx="${x}" cy="${y}" r="${radius}" fill="${color}" fill-opacity="${opacity.toFixed(2)}"/>`,
-    )
+    const dust = rand()
+    if (dust < 0.72) {
+      glitter.push(
+        `<circle cx="${x}" cy="${y}" r="${(0.4 + rand() * 1.5).toFixed(2)}" fill="#ffffff" fill-opacity="${(0.25 + rand() * 0.7).toFixed(2)}"/>`,
+      )
+    } else {
+      const size = dust < 0.9 ? 3 + rand() * 5 : 8 + rand() * 10
+      const color = index % 4 === 0 ? accent : '#ffffff'
+      glitter.push(starPoint(x, y, size, color, 0.35 + rand() * 0.55, Math.round(rand() * 40)))
+    }
   }
-  const stars: string[] = []
-  for (let index = 0; index < 36; index += 1) {
-    const x = Math.round(28 + rand() * (CARD_QR_FLYER_WIDTH - 56))
-    const y = Math.round(24 + rand() * (CARD_QR_FLYER_HEIGHT - 48))
-    const size = 2.5 + (index % 4) * 1.3
-    const opacity = (0.28 + (index % 5) * 0.08).toFixed(2)
-    const color = index % 4 === 0 ? '#ffffff' : index % 2 === 0 ? accent : primary
-    stars.push(
-      `<g transform="translate(${x},${y}) rotate(45)"><rect x="${-size}" y="${-size}" width="${size * 2}" height="${size * 2}" fill="${color}" fill-opacity="${opacity}"/></g>`,
-    )
-  }
-  const dust: string[] = []
-  for (let index = 0; index < 80; index += 1) {
-    const x = Math.round(rand() * CARD_QR_FLYER_WIDTH)
-    const y = Math.round(rand() * CARD_QR_FLYER_HEIGHT)
-    dust.push(
-      `<circle cx="${x}" cy="${y}" r="${(0.7 + rand() * 1.3).toFixed(1)}" fill="#ffffff" fill-opacity="${(0.12 + rand() * 0.38).toFixed(2)}"/>`,
-    )
-  }
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="${CARD_QR_FLYER_WIDTH}" height="${CARD_QR_FLYER_HEIGHT}" viewBox="0 0 ${CARD_QR_FLYER_WIDTH} ${CARD_QR_FLYER_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="flyerGround" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="${lift}"/>
-      <stop offset="0.42" stop-color="${ground}"/>
-      <stop offset="0.72" stop-color="${mid}"/>
-      <stop offset="1" stop-color="${deep}"/>
-    </linearGradient>
-    <radialGradient id="orbLeft" cx="160" cy="220" r="460" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="${primary}" stop-opacity="${dark ? 0.55 : 0.34}"/>
-      <stop offset="1" stop-color="${primary}" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="orbRight" cx="940" cy="1680" r="520" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="${accent}" stop-opacity="${dark ? 0.5 : 0.32}"/>
-      <stop offset="1" stop-color="${accent}" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="qrGlow" cx="${CARD_QR_FLYER_WIDTH / 2}" cy="${glowY}" r="460" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="${accent}" stop-opacity="0.5"/>
-      <stop offset="0.55" stop-color="${primary}" stop-opacity="0.16"/>
-      <stop offset="1" stop-color="${primary}" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="vignette" cx="540" cy="960" r="980" gradientUnits="userSpaceOnUse">
-      <stop offset="0.62" stop-color="#000000" stop-opacity="0"/>
-      <stop offset="1" stop-color="#000000" stop-opacity="${dark ? 0.45 : 0.18}"/>
-    </radialGradient>
-  </defs>
-  <rect width="100%" height="100%" fill="url(#flyerGround)"/>
-  <rect width="100%" height="100%" fill="url(#orbLeft)"/>
-  <rect width="100%" height="100%" fill="url(#orbRight)"/>
-  ${bokeh.join('')}
-  <ellipse cx="${CARD_QR_FLYER_WIDTH / 2}" cy="${glowY}" rx="390" ry="340" fill="url(#qrGlow)"/>
-  ${stars.join('')}
-  ${dust.join('')}
-  <rect width="100%" height="100%" fill="url(#vignette)"/>
-</svg>`
+  const qrGlow = canvasSvg(`
+    <defs>
+      <radialGradient id="bloom" cx="540" cy="${glowY}" r="420" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="${mixHex(accent, '#ffffff', 0.35)}" stop-opacity="0.85"/>
+        <stop offset="0.45" stop-color="${primary}" stop-opacity="0.4"/>
+        <stop offset="1" stop-color="${primary}" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="540" cy="${glowY}" rx="430" ry="390" fill="url(#bloom)"/>
+  `)
+  const blurLayer = async (svg: string, sigma: number) =>
+    sharp(renderSvgPng(svg, [])).blur(sigma).png().toBuffer()
+  const base = renderSvgPng(groundSvg, [])
+  return sharp(base)
+    .composite([
+      { input: await blurLayer(orbs(9, 90, 220, dark ? 0.55 : 0.42), 26), left: 0, top: 0 },
+      { input: await blurLayer(orbs(16, 28, 70, dark ? 0.5 : 0.38), 10), left: 0, top: 0 },
+      { input: await blurLayer(orbs(22, 8, 22, 0.45), 3), left: 0, top: 0 },
+      { input: await blurLayer(rays, 12), left: 0, top: 0 },
+      { input: renderSvgPng(qrGlow, []), left: 0, top: 0, blend: 'screen' },
+      { input: renderSvgPng(canvasSvg(glitter.join('')), []), left: 0, top: 0 },
+    ])
+    .png()
+    .toBuffer()
 }
 
 function centerScrimSvg(layout: FlyerLayout) {
@@ -320,11 +353,29 @@ function centerScrimSvg(layout: FlyerLayout) {
 </svg>`
 }
 
+function cornerFlourishes(box: FlyerBox, color: string) {
+  const inset = 18
+  const points = [
+    [box.x + inset, box.y + inset],
+    [box.x + box.width - inset, box.y + inset],
+    [box.x + inset, box.y + box.height - inset],
+    [box.x + box.width - inset, box.y + box.height - inset],
+  ]
+  return points
+    .map(
+      ([x, y]) =>
+        `<g transform="translate(${x},${y}) rotate(45)"><rect x="-5" y="-5" width="10" height="10" fill="${color}" fill-opacity="0.9"/></g>`,
+    )
+    .join('')
+}
+
 function panelMarkup(box: FlyerLayout['panel'], paint: FlyerPaint) {
   if (!box) return ''
-  const inner = 10
-  return `<rect x="${box.x}" y="${box.y}" width="${box.width}" height="${box.height}" rx="${paint.radius}" fill="${paint.panelFill}" fill-opacity="${paint.panelOpacity}" stroke="${paint.frame}" stroke-width="2.5"/>
-    <rect x="${box.x + inner}" y="${box.y + inner}" width="${box.width - inner * 2}" height="${box.height - inner * 2}" rx="${Math.max(10, paint.radius - 8)}" fill="none" stroke="#ffffff" stroke-width="1.4" stroke-opacity="0.34"/>`
+  const metal = mixHex(paint.frame, '#ffffff', 0.42)
+  return `<rect x="${box.x}" y="${box.y}" width="${box.width}" height="${box.height}" rx="${paint.radius}" fill="${paint.panelFill}" fill-opacity="${paint.panelOpacity}" stroke="${metal}" stroke-width="2.4"/>
+    <rect x="${box.x + 6}" y="${box.y + 6}" width="${box.width - 12}" height="${box.height - 12}" rx="${Math.max(12, paint.radius - 6)}" fill="none" stroke="${paint.frame}" stroke-width="1.3" stroke-opacity="0.9"/>
+    <rect x="${box.x + 12}" y="${box.y + 12}" width="${box.width - 24}" height="${box.height - 24}" rx="${Math.max(8, paint.radius - 10)}" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.38"/>
+    ${cornerFlourishes(box, metal)}`
 }
 
 function dividerMarkup(y: number, color: string) {
@@ -356,7 +407,8 @@ function titleMarkup(block: FlyerTextBlock | null, family: FlyerFontFamily, pain
           fill: 'none',
           weight: 700,
           stroke: paint.glow,
-          strokeWidth: Math.max(6, Math.round(block.size * 0.045)),
+          strokeWidth: Math.max(10, Math.round(block.size * 0.07)),
+          strokeOpacity: 0.28,
         }),
         svgText({
           value: line,
@@ -391,7 +443,30 @@ function foregroundSvg(input: {
       ? dividerMarkup(Math.round(qrFrame.y + qrFrame.height + lowerGap / 2), paint.frame)
       : '',
   ].join('')
-  const glow = 12
+  const glow = 18
+  const pillShine = mixHex(paint.pillFill, '#ffffff', 0.55)
+  const pillDeep = mixHex(paint.pillFill, '#14080c', 0.28)
+  const sparkleY = pill.y + pill.height / 2
+  const pillMarkup = `<defs>
+      <linearGradient id="pillFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${pillShine}"/>
+        <stop offset="0.42" stop-color="${paint.pillFill}"/>
+        <stop offset="1" stop-color="${pillDeep}"/>
+      </linearGradient>
+    </defs>
+    <rect x="${pill.x}" y="${pill.y}" width="${pill.width}" height="${pill.height}" rx="39" fill="url(#pillFill)"/>
+    <ellipse cx="${pill.x + pill.width / 2}" cy="${pill.y + 16}" rx="${pill.width * 0.36}" ry="10" fill="#ffffff" fill-opacity="0.28"/>
+    ${starPoint(pill.x + 28, sparkleY, 7, paint.pillInk, 0.95)}
+    ${starPoint(pill.x + pill.width - 28, sparkleY, 7, paint.pillInk, 0.95)}
+    ${svgText({
+      value: FLYER_SCAN_LABEL,
+      y: pillTextY,
+      family: fonts.body,
+      size: input.layout.pillSize,
+      fill: paint.pillInk,
+      weight: 700,
+      letterSpacing: 2.6,
+    })}`
   const corners = [
     [qrFrame.x + 14, qrFrame.y + 14],
     [qrFrame.x + qrFrame.width - 14, qrFrame.y + 14],
@@ -417,15 +492,7 @@ function foregroundSvg(input: {
   ${dividers}
   ${titleMarkup(input.layout.showTitle, fonts.heading, paint)}
   ${svgBlock(input.layout.tagline, fonts.body, paint.body, 500)}
-  <rect x="${pill.x}" y="${pill.y}" width="${pill.width}" height="${pill.height}" rx="36" fill="${paint.pillFill}"/>
-  ${svgText({
-    value: FLYER_SCAN_LABEL,
-    y: pillTextY,
-    family: fonts.body,
-    size: input.layout.pillSize,
-    fill: paint.pillInk,
-    weight: 700,
-  })}
+  ${pillMarkup}
   ${qrMarkup}
   ${svgBlock(input.layout.instructions, fonts.body, paint.body, 500)}
   ${svgBlock(input.layout.website, fonts.body, paint.title, 700)}
@@ -464,14 +531,11 @@ export async function renderCardQrFlyerParts(
   })
   const fontFiles = flyerFontFilesForTheme(input.appearancePreset)
   const platePath = flyerPlateAbsolute(input.appearancePreset)
-  const painted = renderSvgPng(
-    backgroundSvg({
-      palette: input.palette,
-      appearancePreset: input.appearancePreset,
-      layout,
-    }),
-    fontFiles,
-  )
+  const painted = await renderThemeBackground({
+    palette: input.palette,
+    appearancePreset: input.appearancePreset,
+    layout,
+  })
   const background =
     platePath && existsSync(platePath)
       ? await sharp(readFileSync(platePath))

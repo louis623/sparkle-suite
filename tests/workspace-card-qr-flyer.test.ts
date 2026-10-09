@@ -309,8 +309,9 @@ describe('flyer render', () => {
       expect(parts.layout.contentTop).toBeGreaterThanOrEqual(FLYER_SAFE_TOP)
       expect(parts.layout.contentBottom).toBeLessThanOrEqual(FLYER_CONTENT_BOTTOM)
       expect(parts.layout.contentBottom - parts.layout.contentTop).toBeGreaterThanOrEqual(1100)
-      expect(parts.layout.qr.width).toBeGreaterThanOrEqual(620)
-      expect(parts.layout.showTitle?.size).toBeGreaterThanOrEqual(100)
+      expect(parts.layout.qr.width).toBeGreaterThanOrEqual(560)
+      expect(parts.layout.qr.width).toBeLessThanOrEqual(600)
+      expect(parts.layout.showTitle?.size).toBeGreaterThanOrEqual(110)
       expect(parts.layout.instructions.size).toBeGreaterThanOrEqual(34)
       expect(parts.layout.pillSize).toBeGreaterThanOrEqual(32)
       expect(parts.layout.showTitle?.lines.join(' ')).toBe(copy.showTitle)
@@ -395,9 +396,8 @@ describe('flyer render', () => {
     expect(open.layout.website).toBeNull()
     expect(withDomain.layout.website?.lines.join(' ')).toBe('DUDESFIZZFEST.COM')
     expect(withDomain.layout.website?.size).toBeGreaterThanOrEqual(36)
-    expect(withDomain.layout.contentBottom - withDomain.layout.contentTop).toBeGreaterThan(
-      open.layout.contentBottom - open.layout.contentTop,
-    )
+    expect(withDomain.layout.website?.top).toBeGreaterThan(withDomain.layout.instructions.top)
+    expect(withDomain.layout.contentBottom).toBeLessThanOrEqual(FLYER_CONTENT_BOTTOM)
     await expect(assertFlyerQrDecodes(withDomain.flyer, 'https://dudesfizzfest.com')).resolves.toBeUndefined()
     await expectInkInsideSafeZones(open.flyer, open.background)
     await expectInkInsideSafeZones(withDomain.flyer, withDomain.background)

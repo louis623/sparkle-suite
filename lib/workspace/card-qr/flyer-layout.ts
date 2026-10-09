@@ -5,8 +5,8 @@ import {
 
 export const CARD_QR_FLYER_WIDTH = 1080
 export const CARD_QR_FLYER_HEIGHT = 1920
-/** Preferred QR pad. The layout may step down to 620, then 560, so the stack still fits. */
-export const CARD_QR_FLYER_QR_SIZE = 660
+/** Preferred QR pad. The layout stays between 560 and 600 so the art and title keep the page. */
+export const CARD_QR_FLYER_QR_SIZE = 580
 export const FLYER_SAFE_TOP = 250
 export const FLYER_SAFE_BOTTOM = 385
 export const FLYER_CONTENT_BOTTOM = CARD_QR_FLYER_HEIGHT - FLYER_SAFE_BOTTOM
@@ -135,17 +135,15 @@ export function layoutCardQrFlyer(input: {
 }): FlyerLayout {
   const room = FLYER_CONTENT_BOTTOM - FLYER_SAFE_TOP - 16
   const attempts: Array<{ titleMax: number; qr: number; gap: number }> = []
-  for (const titleMax of [150, 136, 124, 112, 100]) {
-    for (const qr of [700, 680, 660, 640, 620]) {
-      for (const gap of [20, 12]) {
+  for (const titleMax of [156, 144, 132, 122, 112]) {
+    for (const qr of [600, 580, 560]) {
+      for (const gap of [26, 16]) {
         attempts.push({ titleMax, qr, gap })
       }
     }
   }
-  for (const titleMax of [92, 80, 68]) {
-    for (const qr of [600, 560]) {
-      attempts.push({ titleMax, qr, gap: 10 })
-    }
+  for (const titleMax of [100, 88, 76]) {
+    attempts.push({ titleMax, qr: 560, gap: 12 })
   }
 
   let chosen: FlyerLayout | null = null
@@ -253,14 +251,14 @@ function placeFlyer(
   if (panel) y = panel.y + panel.height
 
   y += attempt.gap
-  const pillSize = 34
+  const pillSize = 36
   const pillTextWidth = measure(FLYER_SCAN_LABEL, 'body', pillSize)
-  const pillWidth = Math.min(maxWidth, Math.ceil(pillTextWidth + 96))
+  const pillWidth = Math.min(maxWidth, Math.ceil(pillTextWidth * 1.16 + 132))
   const pill: FlyerBox = {
     x: Math.round((CARD_QR_FLYER_WIDTH - pillWidth) / 2),
     y,
     width: pillWidth,
-    height: 72,
+    height: 78,
   }
   y += pill.height + attempt.gap
 
