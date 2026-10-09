@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
       './lib/workspace/card-qr/fonts/**/*',
       './public/amethyst/skins/**/flyer/plate.webp',
     ],
+    '/api/workspace/card-qr/card': [
+      './lib/workspace/card-qr/fonts/card/**/*',
+      './lib/workspace/card-qr/card-plates/**/*',
+    ],
   },
   async redirects() {
     return [

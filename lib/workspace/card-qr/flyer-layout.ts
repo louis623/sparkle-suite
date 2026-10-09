@@ -53,6 +53,8 @@ export interface FlyerLayout {
   lowerPanel: FlyerBox
   instructions: FlyerTextBlock
   website: FlyerTextBlock | null
+  /** Rep-entered text-to-link line, e.g. "Text (555) 201-4410 for the shop link". */
+  textLink: FlyerTextBlock | null
   signOff: FlyerTextBlock | null
   contentTop: number
   contentBottom: number
@@ -131,6 +133,7 @@ export function layoutCardQrFlyer(input: {
   tagline: string
   firstName: string
   website: string | null
+  textLink?: string | null
   measure: FlyerMeasure
 }): FlyerLayout {
   const room = FLYER_CONTENT_BOTTOM - FLYER_SAFE_TOP - 16
@@ -180,6 +183,7 @@ function shiftLayout(layout: FlyerLayout, dy: number): FlyerLayout {
     lowerPanel: shiftBox(layout.lowerPanel, dy) as FlyerBox,
     instructions: shiftBlock(layout.instructions, dy) as FlyerTextBlock,
     website: shiftBlock(layout.website, dy),
+    textLink: shiftBlock(layout.textLink, dy),
     signOff: shiftBlock(layout.signOff, dy),
     contentTop: layout.contentTop + dy,
     contentBottom: layout.contentBottom + dy,
@@ -192,6 +196,7 @@ function placeFlyer(
     tagline: string
     firstName: string
     website: string | null
+    textLink?: string | null
     measure: FlyerMeasure
   },
   attempt: { titleMax: number; gap: number; qr: number },
@@ -310,10 +315,28 @@ function placeFlyer(
     y += blockHeight(website)
   }
 
+  let textLink: FlyerTextBlock | null = null
+  if (input.textLink?.trim()) {
+    y += website ? 8 : 16
+    const textFit = fitBlock(
+      input.textLink.trim(),
+      'body',
+      { maxSize: 34, minSize: 28, maxLines: 2, maxWidth },
+      measure,
+    )
+    textLink = {
+      lines: textFit.lines,
+      size: textFit.size,
+      top: y,
+      lineHeight: Math.round(textFit.size * 1.2),
+    }
+    y += blockHeight(textLink)
+  }
+
   let signOff: FlyerTextBlock | null = null
   const firstName = input.firstName.trim()
   if (firstName) {
-    y += website ? 8 : 14
+    y += website || textLink ? 8 : 14
     const signFit = fitBlock(
       `Shop with ${firstName} anytime`,
       'body',
@@ -349,6 +372,7 @@ function placeFlyer(
     lowerPanel,
     instructions,
     website,
+    textLink,
     signOff,
     contentTop,
     contentBottom: lowerPanel.y + lowerPanel.height,

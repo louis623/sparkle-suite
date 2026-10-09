@@ -69,3 +69,9 @@ export function buildCardQrFlyerCopy(input: {
     website: flyerWebsiteLabel(input.customDomain),
   }
 }
+
+/** Flyer line for the rep-entered text-to-link number. Empty when none was entered. */
+export function flyerTextLinkLine(number: string | null | undefined) {
+  const n = number?.trim() ?? ''
+  return n ? `Text ${n} for the shop link` : ''
+}

@@ -79,6 +79,7 @@ export async function PUT(request: Request) {
       }),
       design,
       iconStored: saved.iconStored,
+      cardStored: saved.cardStored,
       notice:
         saved.persistence === 'database'
           ? 'Saved to your profile.'

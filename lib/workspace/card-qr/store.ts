@@ -26,6 +26,19 @@ interface ProfileRow {
   appearance_preset: string | null
   updated_at: string | null
   qr_icon?: string | null
+  show_website?: boolean | null
+  show_text_link?: boolean | null
+  text_link_number?: string | null
+}
+
+const CARD_COLUMNS = 'qr_icon, show_website, show_text_link, text_link_number'
+
+/** The 2026-10-09 business card columns are missing (migration not applied yet). */
+export function isMissingCardColumn(error: { code?: string; message?: string } | null) {
+  if (!error) return false
+  const message = error.message ?? ''
+  if (!/show_website|show_text_link|text_link_number/i.test(message)) return false
+  return error.code === '42703' || error.code === 'PGRST204' || /column|schema cache/i.test(message)
 }
 
 const PROFILE_COLUMNS =
@@ -43,7 +56,7 @@ export function isMissingQrIconColumn(error: { code?: string; message?: string }
 }
 
 function isMissingRelation(error: { code?: string; message?: string } | null) {
-  if (!error || isMissingQrIconColumn(error)) return false
+  if (!error || isMissingQrIconColumn(error) || isMissingCardColumn(error)) return false
   return (
     error.code === '42P01' ||
     error.code === 'PGRST205' ||
@@ -64,8 +77,11 @@ function rowToProfile(row: ProfileRow): CardQrProfileRecord {
         qr: row.show_qr,
         discount: row.show_discount,
         social: row.show_social,
+        website: row.show_website ?? undefined,
+        textLink: row.show_text_link ?? undefined,
       },
       qrIcon: row.qr_icon,
+      textLinkNumber: row.text_link_number ?? '',
     }),
     updatedAt: row.updated_at,
     persistence: 'database',
@@ -76,11 +92,18 @@ export async function readCardQrProfile(
   supabase: SupabaseClient,
   repId: string,
 ): Promise<{ profile: CardQrProfileRecord | null; persistence: 'database' | 'unavailable' }> {
-  const first = await supabase
+  const full = await supabase
     .from('rep_card_qr_profiles')
-    .select(`${PROFILE_COLUMNS}, qr_icon`)
+    .select(`${PROFILE_COLUMNS}, ${CARD_COLUMNS}`)
     .eq('rep_id', repId)
     .maybeSingle()
+  const first = isMissingCardColumn(full.error)
+    ? await supabase
+        .from('rep_card_qr_profiles')
+        .select(`${PROFILE_COLUMNS}, qr_icon`)
+        .eq('rep_id', repId)
+        .maybeSingle()
+    : full
   const loaded = isMissingQrIconColumn(first.error)
     ? await supabase
         .from('rep_card_qr_profiles')
@@ -117,6 +140,7 @@ export async function saveCardQrProfile(
   profile: CardQrProfileRecord | null
   persistence: 'database' | 'unavailable'
   iconStored: boolean
+  cardStored: boolean
 }> {
   const baseRow = {
     rep_id: input.repId,
@@ -131,11 +155,28 @@ export async function saveCardQrProfile(
     appearance_preset: input.appearancePreset,
     updated_at: new Date().toISOString(),
   }
-  const withIcon = await supabase
+  const withCard = await supabase
     .from('rep_card_qr_profiles')
-    .upsert({ ...baseRow, qr_icon: input.design.qrIcon }, { onConflict: 'rep_id' })
-    .select(`${PROFILE_COLUMNS}, qr_icon`)
+    .upsert(
+      {
+        ...baseRow,
+        qr_icon: input.design.qrIcon,
+        show_website: input.design.fields.website,
+        show_text_link: input.design.fields.textLink,
+        text_link_number: input.design.textLinkNumber || null,
+      },
+      { onConflict: 'rep_id' },
+    )
+    .select(`${PROFILE_COLUMNS}, ${CARD_COLUMNS}`)
     .single()
+  const cardStored = !isMissingCardColumn(withCard.error)
+  const withIcon = cardStored
+    ? withCard
+    : await supabase
+        .from('rep_card_qr_profiles')
+        .upsert({ ...baseRow, qr_icon: input.design.qrIcon }, { onConflict: 'rep_id' })
+        .select(`${PROFILE_COLUMNS}, qr_icon`)
+        .single()
   const iconStored = !isMissingQrIconColumn(withIcon.error)
   const saved = iconStored
     ? withIcon
@@ -143,7 +184,7 @@ export async function saveCardQrProfile(
   const { data, error } = saved
 
   if (isMissingRelation(error)) {
-    return { profile: null, persistence: 'unavailable', iconStored: false }
+    return { profile: null, persistence: 'unavailable', iconStored: false, cardStored: false }
   }
   if (error || !data) {
     throw new ServiceError({
@@ -157,6 +198,7 @@ export async function saveCardQrProfile(
     profile: rowToProfile(data as ProfileRow),
     persistence: 'database',
     iconStored,
+    cardStored: cardStored && iconStored,
   }
 }
 

@@ -15,6 +15,10 @@ export interface CardQrFields {
   qr: boolean
   discount: boolean
   social: boolean
+  /** Business card back: website line. */
+  website: boolean
+  /** Business card back + flyer: the rep's text-to-link number. */
+  textLink: boolean
 }
 
 export const CARD_QR_ICONS = [
@@ -56,6 +60,8 @@ export interface CardQrDesign {
   fields: CardQrFields
   discountCode: string
   qrIcon: CardQrIcon
+  /** Entered by the rep. Never filled from the account phone. Empty = no text line. */
+  textLinkNumber: string
 }
 
 export const DEFAULT_CARD_QR_DESIGN: CardQrDesign = {
@@ -66,9 +72,12 @@ export const DEFAULT_CARD_QR_DESIGN: CardQrDesign = {
     qr: true,
     discount: false,
     social: true,
+    website: true,
+    textLink: true,
   },
   discountCode: '',
   qrIcon: 'none',
+  textLinkNumber: '',
 }
 
 export function parseCardQrIcon(value: unknown): CardQrIcon | null {
@@ -100,6 +109,29 @@ export function cleanDiscountCode(value: unknown) {
   return value.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 40)
 }
 
+export const CARD_QR_TEXT_LINK_MAX = 24
+
+/**
+ * The number customers text to get the shop link. Digits and phone punctuation only.
+ * Ten US digits (or 1 + ten) are shown as (555) 201-4410.
+ */
+export function cleanTextLinkNumber(value: unknown) {
+  if (typeof value !== 'string') return ''
+  const raw = value.replace(/[^0-9+().\- ]/g, '').replace(/\s+/g, ' ').trim().slice(0, CARD_QR_TEXT_LINK_MAX)
+  const digits = raw.replace(/\D/g, '')
+  if (!digits) return ''
+  const us = digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits
+  if (us.length === 10 && !raw.startsWith('+')) {
+    return `(${us.slice(0, 3)}) ${us.slice(3, 6)}-${us.slice(6)}`
+  }
+  return raw
+}
+
+/** Card and flyer wording for the text line. */
+export function textLinkLabel(number: string) {
+  return number ? `Text ${number}` : ''
+}
+
 /**
  * Old saved templateId values still parse, including halloween and classic-ivory.
  * The flyer ignores them and follows the current site theme. No migration:
@@ -122,9 +154,12 @@ export function parseCardQrDesign(value: unknown): CardQrDesign {
       qr: readFlag('qr', DEFAULT_CARD_QR_DESIGN.fields.qr),
       discount: readFlag('discount', DEFAULT_CARD_QR_DESIGN.fields.discount),
       social: readFlag('social', DEFAULT_CARD_QR_DESIGN.fields.social),
+      website: readFlag('website', DEFAULT_CARD_QR_DESIGN.fields.website),
+      textLink: readFlag('textLink', DEFAULT_CARD_QR_DESIGN.fields.textLink),
     },
     discountCode: cleanDiscountCode(record.discountCode),
     qrIcon: parseCardQrIcon(record.qrIcon) ?? DEFAULT_CARD_QR_DESIGN.qrIcon,
+    textLinkNumber: cleanTextLinkNumber(record.textLinkNumber),
   }
 }
 

@@ -14,8 +14,10 @@ import {
   CARD_QR_ICONS,
   CARD_QR_ICON_LABELS,
   DEFAULT_CARD_QR_DESIGN,
-  buildCardQrCopyLines,
-  parseCardQrIcon,
+  cleanTextLinkNumber,
+  parseCardQrDesign,
+  type CardQrDesign,
+  type CardQrFields,
   type CardQrIcon,
 } from '@/lib/workspace/card-qr/design'
 import { resolveCardQrDestination } from '@/lib/workspace/card-qr/destination'
@@ -27,9 +29,17 @@ import {
   flyerPreviewCacheKey,
   type CardQrFlyerFormat,
 } from '@/lib/workspace/card-qr/flyer-format'
-import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
 import { CARD_QR_ENTRY_TITLE } from '@/lib/workspace/card-qr/access'
 import styles from './CardQrTool.module.css'
+
+const CARD_BACK_TOGGLES: Array<[keyof CardQrFields, string]> = [
+  ['name', 'Name'],
+  ['email', 'Email'],
+  ['website', 'Website'],
+  ['textLink', 'Text-to-link'],
+  ['social', 'Social handle'],
+  ['discount', 'Discount code line'],
+]
 
 async function readError(response: Response) {
   const body = await response.json().catch(() => null)
@@ -77,8 +87,16 @@ export function CardQrTool({
   const [flyerLoading, setFlyerLoading] = useState(false)
   const [flyerError, setFlyerError] = useState<string | null>(null)
   const [flyerPending, setFlyerPending] = useState(false)
-  const [qrIcon, setQrIcon] = useState<CardQrIcon>('none')
-  const iconTouched = useRef(false)
+  const [design, setDesign] = useState<CardQrDesign>(DEFAULT_CARD_QR_DESIGN)
+  const [textLinkDraft, setTextLinkDraft] = useState('')
+  const [cardFront, setCardFront] = useState<{ key: string; bytes: Blob; url: string } | null>(null)
+  const [cardBack, setCardBack] = useState<{ key: string; bytes: Blob; url: string } | null>(null)
+  const [cardLoading, setCardLoading] = useState(false)
+  const [cardError, setCardError] = useState<string | null>(null)
+  const [cardPending, setCardPending] = useState<string | null>(null)
+  const qrIcon = design.qrIcon
+  const textLinkNumber = design.textLinkNumber
+  const designTouched = useRef(false)
   const destinationUrl = useMemo(
     () => resolveCardQrDestination(siteHref, origin),
     [origin, siteHref],
@@ -87,17 +105,7 @@ export function CardQrTool({
     () => (origin && repId ? buildCardQrShortUrl(origin, repId) : null),
     [origin, repId],
   )
-  const design = { ...DEFAULT_CARD_QR_DESIGN, qrIcon }
-  const palette = resolveCardQrPalette({
-    templateId: design.templateId,
-    appearancePreset,
-  })
-  const lines = buildCardQrCopyLines({
-    displayName,
-    businessName,
-    email,
-    socialHandles,
-  })
+  const cardKey = JSON.stringify({ fields: design.fields, qrIcon, textLinkNumber, appearancePreset, displayName, businessName, email, socialHandles })
 
   useEffect(() => {
     if (!destinationUrl) return
@@ -141,7 +149,7 @@ export function CardQrTool({
     if (!destinationUrl) return
     const controller = new AbortController()
     let objectUrl: string | null = null
-    const key = flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon)
+    const key = flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon, textLinkNumber)
     setFlyerLoading(true)
     setFlyerError(null)
     setFlyerPending(false)
@@ -150,7 +158,7 @@ export function CardQrTool({
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ format: flyerFormat, icon: qrIcon }),
+      body: JSON.stringify({ format: flyerFormat, icon: qrIcon, textLinkNumber }),
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -186,16 +194,77 @@ export function CardQrTool({
       controller.abort()
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [appearancePreset, destinationUrl, flyerFormat, qrIcon])
+  }, [appearancePreset, destinationUrl, flyerFormat, qrIcon, textLinkNumber])
+
+  useEffect(() => {
+    if (!destinationUrl) return
+    const controller = new AbortController()
+    const urls: string[] = []
+    setCardLoading(true)
+    setCardError(null)
+    setCardPending(null)
+    const timer = window.setTimeout(() => {
+      type Side = { pending: string } | { key: string; bytes: Blob; url: string }
+      const fetchSide = async (output: 'front' | 'back'): Promise<Side> => {
+        const response = await fetch('/api/workspace/card-qr/card', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ output, design }),
+          signal: controller.signal,
+        })
+        if (!response.ok) throw new Error(await readError(response))
+        if ((response.headers.get('content-type') ?? '').includes('application/json')) {
+          const body = await response.json()
+          if (body?.status === 'being_built') return { pending: String(body.message) }
+          throw new Error(body?.error || 'Could not make the card.')
+        }
+        const blob = await response.blob()
+        const file = blob.type === 'image/png' ? blob : new Blob([await blob.arrayBuffer()], { type: 'image/png' })
+        const url = URL.createObjectURL(file)
+        urls.push(url)
+        return { key: cardKey, bytes: file, url }
+      }
+      void Promise.all([fetchSide('front'), fetchSide('back')])
+        .then(([front, back]) => {
+          if (controller.signal.aborted) return
+          if ('pending' in front || 'pending' in back) {
+            setCardPending('pending' in front ? front.pending : 'pending' in back ? back.pending : null)
+            setCardFront(null)
+            setCardBack(null)
+            return
+          }
+          setCardFront(front)
+          setCardBack(back)
+        })
+        .catch((error: unknown) => {
+          if (controller.signal.aborted) return
+          setCardError(error instanceof Error ? error.message : 'Could not make the card.')
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setCardLoading(false)
+        })
+    }, 350)
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+      for (const url of urls) URL.revokeObjectURL(url)
+    }
+    // cardKey covers every input of the card files.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardKey, destinationUrl])
 
   useEffect(() => {
     const controller = new AbortController()
     void fetch('/api/workspace/card-qr', { credentials: 'same-origin', signal: controller.signal })
       .then(async (response) => (response.ok ? response.json() : null))
       .then((body) => {
-        if (controller.signal.aborted || iconTouched.current) return
-        const saved = parseCardQrIcon(body?.profile?.design?.qrIcon)
-        if (saved) setQrIcon(saved)
+        if (controller.signal.aborted || designTouched.current) return
+        if (body?.profile?.design) {
+          const saved = parseCardQrDesign(body.profile.design)
+          setDesign(saved)
+          setTextLinkDraft(saved.textLinkNumber)
+        }
       })
       .catch(() => {
         // A missing profile table leaves the center mark on None.
@@ -244,56 +313,79 @@ export function CardQrTool({
     }
   }
 
-  function chooseIcon(icon: CardQrIcon) {
-    iconTouched.current = true
-    setQrIcon(icon)
+  function saveDesign(next: CardQrDesign) {
+    designTouched.current = true
+    setDesign(next)
     setNotice(null)
     void fetch('/api/workspace/card-qr', {
       method: 'PUT',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ design: { ...DEFAULT_CARD_QR_DESIGN, qrIcon: icon } }),
+      body: JSON.stringify({ design: next }),
     })
       .then(async (response) => {
         if (!response.ok) return
         const body = await response.json()
-        if (body.iconStored === false) {
-          setNotice('Center mark is on this QR. It is not saved on the profile yet.')
+        if (body.iconStored === false || body.cardStored === false) {
+          setNotice('Your choices are on the preview. They are not saved on the profile yet.')
         }
       })
       .catch(() => {
-        // The preview still uses the choice. The next visit falls back to None.
+        // The preview still uses the choice.
       })
+  }
+
+  function chooseIcon(icon: CardQrIcon) {
+    saveDesign({ ...design, qrIcon: icon })
+  }
+
+  function toggleField(field: keyof CardQrFields) {
+    saveDesign({ ...design, fields: { ...design.fields, [field]: !design.fields[field] } })
+  }
+
+  function commitTextLink() {
+    const cleaned = cleanTextLinkNumber(textLinkDraft)
+    setTextLinkDraft(cleaned)
+    if (cleaned !== design.textLinkNumber) saveDesign({ ...design, textLinkNumber: cleaned })
+  }
+
+  function downloadCardPng(side: 'front' | 'back') {
+    const file = side === 'front' ? cardFront : cardBack
+    if (!file || file.key !== cardKey) return
+    downloadBlob(file.bytes, `sparkle-business-card-${side}.png`)
+  }
+
+  async function downloadCardPdf() {
+    setBusy('card-pdf')
+    setCardError(null)
+    try {
+      const response = await fetch('/api/workspace/card-qr/card', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ output: 'pdf', design }),
+      })
+      if (!response.ok) throw new Error(await readError(response))
+      const blob = await response.blob()
+      if (blob.type !== 'application/pdf') throw new Error('The print file did not come back as a PDF.')
+      downloadBlob(blob, 'sparkle-business-card-print.pdf')
+    } catch (error) {
+      setCardError(error instanceof Error ? error.message : 'Could not make the print PDF.')
+    } finally {
+      setBusy(null)
+    }
   }
 
   function downloadFlyer() {
     if (!destinationUrl) return
     const bytes = flyerDownloadBytes(
       flyerCache,
-      flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon),
+      flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon, textLinkNumber),
     )
     if (!bytes) return
     setFlyerError(null)
     const extension = flyerFormat === 'jpg' ? 'jpg' : 'png'
     downloadBlob(bytes, `sparkle-qr-flyer.${extension}`)
-  }
-
-  async function download(path: string, filename: string, key: string) {
-    setBusy(key)
-    setStatus(null)
-    try {
-      const response = await fetch(path, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ design }),
-      })
-      if (!response.ok) throw new Error(await readError(response))
-      downloadBlob(await response.blob(), filename)
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Download failed.')
-    } finally {
-      setBusy(null)
-    }
   }
 
   async function startCheckout() {
@@ -313,11 +405,6 @@ export function CardQrTool({
       setStatus(error instanceof Error ? error.message : 'Checkout could not start.')
       setBusy(null)
     }
-  }
-
-  const previewStyle = {
-    background: palette.background,
-    color: palette.ink,
   }
 
   return (
@@ -358,6 +445,26 @@ export function CardQrTool({
             </button>
           ))}
         </div>
+        <label className={styles.textLinkField}>
+          <span className={styles.textLinkLabel}>Text-to-link number (optional)</span>
+          <input
+            type="tel"
+            inputMode="tel"
+            className={styles.textLinkInput}
+            placeholder="(555) 201-4410"
+            maxLength={24}
+            value={textLinkDraft}
+            onChange={(event) => setTextLinkDraft(event.target.value)}
+            onBlur={commitTextLink}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') commitTextLink()
+            }}
+          />
+          <span className={styles.spec}>
+            The number customers text to get your shop link. It goes on your flyer and
+            the back of your card. Leave it empty if you don&apos;t use one.
+          </span>
+        </label>
         <div className={styles.qrLayout}>
           <div className={styles.qrCopy}>
             <p className={`${styles.url} ${styles.qrUrl}`}>{destinationUrl || 'Site address loading'}</p>
@@ -475,34 +582,90 @@ export function CardQrTool({
             )
           })}
         </div>
+        <div className={styles.iconRow} role="group" aria-label="Back of card details">
+          {CARD_BACK_TOGGLES.map(([field, label]) => (
+            <button
+              key={field}
+              type="button"
+              className={styles.choice}
+              aria-pressed={design.fields[field]}
+              disabled={field === 'textLink' && !textLinkNumber}
+              onClick={() => toggleField(field)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {design.fields.textLink && !textLinkNumber ? (
+          <p className={styles.spec}>Add your text-to-link number above to put it on the card.</p>
+        ) : null}
+        {design.fields.discount ? (
+          <p className={styles.spec}>The discount code is a blank line so you can write a code in by hand.</p>
+        ) : null}
+        <div className={styles.cardPreview} aria-label="Business card preview" aria-busy={cardLoading}>
+          {cardPending ? (
+            <p className={styles.body} role="status">{cardPending}</p>
+          ) : cardFront && cardBack ? (
+            <>
+              <figure className={styles.cardSide}>
+                {/* The PNG is the server file. Download uses these same bytes. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={cardFront.url} alt="Business card front" />
+                <figcaption className={styles.spec}>Front</figcaption>
+              </figure>
+              <figure className={styles.cardSide}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={cardBack.url} alt="Business card back" />
+                <figcaption className={styles.spec}>Back</figcaption>
+              </figure>
+            </>
+          ) : (
+            <p className={styles.body}>
+              {cardError ?? (destinationUrl ? 'Making your card…' : 'The card appears when the site address is ready.')}
+            </p>
+          )}
+        </div>
+        {cardError && cardFront ? <p className={styles.flyerError} role="alert">{cardError}</p> : null}
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={`${styles.button} ${styles.buttonPrimary}`}
+            disabled={!cardFront || !cardBack || cardLoading || busy === 'card-pdf' || Boolean(cardPending)}
+            onClick={downloadCardPdf}
+          >
+            {busy === 'card-pdf' ? 'Making print PDF…' : 'Download print PDF'}
+          </button>
+          <button
+            type="button"
+            className={styles.button}
+            disabled={!cardFront || cardLoading || Boolean(cardPending)}
+            onClick={() => downloadCardPng('front')}
+          >
+            Front PNG
+          </button>
+          <button
+            type="button"
+            className={styles.button}
+            disabled={!cardBack || cardLoading || Boolean(cardPending)}
+            onClick={() => downloadCardPng('back')}
+          >
+            Back PNG
+          </button>
+        </div>
+        <p className={styles.spec}>
+          The preview is the print file: 3.5 × 2 in with 0.125 in bleed at 300 dpi. The PDF
+          has both sides in CMYK with crop marks. Your card follows your site theme and fonts.
+        </p>
         <div className={styles.layout}>
-          <div className={styles.cardFace} style={previewStyle} aria-label={`${palette.name} card preview`}>
-            <div>
-              {lines.slice(0, 3).map((line) => <strong key={line}>{line}</strong>)}
-            </div>
-            {qrObjectUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img className={styles.cardQr} src={qrObjectUrl} alt="" />
-            ) : null}
-            <span className={styles.cardMeta}>Front matches {palette.name}. Back stays uncoated.</span>
-          </div>
           <div>
             <div className={styles.actions}>
               <button
                 type="button"
                 className={`${styles.button} ${styles.buttonPrimary}`}
-                disabled={!destinationUrl || busy === 'checkout'}
+                disabled={!destinationUrl || busy === 'checkout' || Boolean(cardPending)}
                 onClick={startCheckout}
               >
                 {busy === 'checkout' ? 'Opening checkout…' : `Checkout ${CARD_QR_PACKS[quantity].priceLabel}`}
-              </button>
-              <button
-                type="button"
-                className={styles.button}
-                disabled={!destinationUrl || busy === 'press'}
-                onClick={() => download('/api/workspace/card-qr/press-stub', 'sparkle-business-card-press-stub.pdf', 'press')}
-              >
-                Download press file stub
               </button>
             </div>
             <p className={styles.spec}>

@@ -183,6 +183,8 @@ export interface CardQrFlyerRenderInput {
   tagline?: string | null
   firstName?: string | null
   website?: string | null
+  /** Full flyer line for the rep's text-to-link number, or empty. */
+  textLink?: string | null
   qrIcon?: CardQrIcon
 }
 
@@ -595,6 +597,7 @@ function foregroundSvg(input: {
   ${qrMarkup}
   ${svgBlock(input.layout.instructions, fonts.body, paint.body, 500)}
   ${svgBlock(input.layout.website, fonts.body, paint.title, 700)}
+  ${svgBlock(input.layout.textLink, fonts.body, paint.title, 600)}
   ${svgBlock(input.layout.signOff, fonts.body, paint.muted, 500)}
 </svg>`
 }
@@ -712,6 +715,7 @@ export async function renderCardQrFlyerParts(
   const tagline = prepare(input.tagline ?? '', 'body')
   const firstName = prepare(input.firstName ?? '', 'body')
   const website = input.website ? prepare(input.website, 'body') : null
+  const textLink = input.textLink ? prepare(input.textLink, 'body') : null
   const measure = (text: string, role: FlyerTextRole, size: number) =>
     measureTextWidth(
       text,
@@ -724,6 +728,7 @@ export async function renderCardQrFlyerParts(
     tagline,
     firstName,
     website,
+    textLink,
     measure,
   })
   const fontFiles = flyerFontFilesForTheme(input.appearancePreset)

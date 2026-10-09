@@ -21,8 +21,11 @@ export function flyerPreviewCacheKey(
   format: CardQrFlyerFormat,
   destinationUrl: string,
   icon: CardQrIcon = 'none',
+  textLinkNumber = '',
 ) {
-  return `${format}:${icon}:${destinationUrl}`
+  return textLinkNumber
+    ? `${format}:${icon}:text=${textLinkNumber}:${destinationUrl}`
+    : `${format}:${icon}:${destinationUrl}`
 }
 
 export function flyerDownloadBytes<T>(

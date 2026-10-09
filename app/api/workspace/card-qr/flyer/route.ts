@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import {
   buildCardQrFlyerCopy,
   CARD_QR_FLYER_BEING_BUILT,
+  flyerTextLinkLine,
   isCustomFlyerTheme,
 } from '@/lib/workspace/card-qr/flyer-copy'
 import { FlyerQrDecodeError } from '@/lib/workspace/card-qr/flyer-decode'
@@ -18,7 +19,7 @@ import {
   cardQrErrorResponse,
   loadCardQrContext,
 } from '@/lib/workspace/card-qr/context'
-import { cardQrIconFromRequest } from '@/lib/workspace/card-qr/design'
+import { cardQrIconFromRequest, cleanTextLinkNumber } from '@/lib/workspace/card-qr/design'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
 import { renderCardQrFlyerParts } from '@/lib/workspace/card-qr/render'
 import { requireCardQrShortUrl } from '@/lib/workspace/card-qr/short-link'
@@ -90,6 +91,12 @@ export async function POST(request: Request) {
       tagline: copy.tagline,
       firstName: copy.firstName,
       website: copy.website,
+      // Typed by the rep in Cards & QR. The account phone is never used here.
+      textLink: flyerTextLinkLine(
+        cleanTextLinkNumber(
+          body && typeof body === 'object' ? (body as { textLinkNumber?: unknown }).textLinkNumber : null,
+        ),
+      ),
       appearancePreset,
       destinationUrl: qrUrl,
       qrIcon: icon,
