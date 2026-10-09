@@ -18,7 +18,7 @@ Playtest account: `louis@neonrabbit.net` (Dude’s Fizzfest). Not `lewis@`.
 
 1. Sign in on Smoke and open Workspace → Tools → QR codes, QR flyers, business cards. Business Tools shows the same name, with **Open tool**.
 2. The QR code section shows the current Fizzfest site address, a real QR image, **Download QR**, and **Copy QR**. There is no Save button, no Copy site address button, and no field toggles. The QR works even when Smoke has no Stripe secrets.
-3. QR flyer: there are no style buttons (no Match my site, Halloween, or Classic ivory). The flyer follows the site's current theme. Download the portrait PNG (1080×1920). The server checks that the QR scans to the current site address before the file is returned. If that check fails, there is no download and the page says it couldn't make a flyer that scans right. Name, email, and social come from the account. There are no field toggles and no discount line.
+3. QR flyer: there are no style buttons (no Match my site, Halloween, or Classic ivory). The flyer follows the site's current theme. The preview is the server's file, scaled to the width of the section on a phone. Choose **PNG** (the default, full quality) or **JPG** (for texting and posting). Download uses that same preview file. The server checks that the QR scans to the current site address before the file is returned, for both PNG and JPG. If that check fails, there is no download and the page says it couldn't make a flyer that scans right. Name, email, and social come from the account. There are no field toggles and no discount line.
 4. Business cards: confirm **500 cards / $100** and **1,000 cards / $120**, Ground-only shipping, and the “up to about 2 weeks” note. Pay with Stripe test mode. The return screen says the order was received and restates the two-week expectation.
 5. Download the press file stub and confirm it is labeled a stub (trim 3.5×2, 0.125 bleed, 0.125 safe, 14pt C1S UV front / uncoated back).
 
@@ -28,6 +28,6 @@ Playtest account: `louis@neonrabbit.net` (Dude’s Fizzfest). Not `lewis@`.
 | --- | --- |
 | Smoke tool, three sections, theme-matched preview | Live Workspace (hidden) |
 | QR built from the current Suite site address | Profile save UI (the table can stay unused) |
-| Portrait PNG flyer | Amelia / Minuteman email, UPS sharing, and press-ready CMYK PDF |
+| Portrait flyer preview that is the downloaded PNG or JPG | Amelia / Minuteman email, UPS sharing, and press-ready CMYK PDF |
 | Stripe test Checkout at the locked prices | Hawaii / Alaska shipping |
 | Paid-order expectation copy | Kim / Kelly art library |

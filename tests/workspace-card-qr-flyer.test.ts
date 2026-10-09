@@ -12,6 +12,18 @@ import {
   assertFlyerQrDecodes,
 } from '@/lib/workspace/card-qr/flyer-decode'
 import {
+  encodeCardQrFlyerJpeg,
+  flyerBytesSha256,
+  renderCheckedFlyerFiles,
+} from '@/lib/workspace/card-qr/flyer-encode'
+import {
+  CARD_QR_FLYER_JPG_QUALITY,
+  DEFAULT_CARD_QR_FLYER_FORMAT,
+  flyerDownloadBytes,
+  flyerPreviewCacheKey,
+  parseCardQrFlyerFormat,
+} from '@/lib/workspace/card-qr/flyer-format'
+import {
   FLYER_FONT_FACES,
   FLYER_FONT_ROOT,
   FLYER_FONT_SUBSTITUTES,
@@ -214,6 +226,45 @@ describe('flyer render', () => {
   )
 })
 
+describe('flyer file formats', () => {
+  it('encodes JPG from one PNG and both files decode to the same URL', async () => {
+    const png = await renderCardQrFlyerPng({
+      palette: resolveCardQrPalette({
+        templateId: 'match-site',
+        appearancePreset: 'sparkle_suite_morganite',
+      }),
+      lines: ["Dude's Fizzfest", 'Louis'],
+      businessName: "Dude's Fizzfest",
+      appearancePreset: 'sparkle_suite_morganite',
+      destinationUrl: URL,
+      showQr: true,
+    })
+    const files = await renderCheckedFlyerFiles(png, URL)
+    expect(files.png.equals(png)).toBe(true)
+    const again = await encodeCardQrFlyerJpeg(png)
+    expect(again.equals(files.jpg)).toBe(true)
+    expect(flyerBytesSha256(files.jpg)).toBe(flyerBytesSha256(again))
+    expect(CARD_QR_FLYER_JPG_QUALITY).toBe(94)
+    const meta = await sharp(files.jpg).metadata()
+    expect(meta.format).toBe('jpeg')
+    await expect(assertFlyerQrDecodes(files.jpg, URL)).resolves.toBeUndefined()
+  })
+
+  it('uses one cache key so the download is the preview bytes', () => {
+    expect(DEFAULT_CARD_QR_FLYER_FORMAT).toBe('png')
+    expect(parseCardQrFlyerFormat(undefined)).toBe('png')
+    expect(parseCardQrFlyerFormat('jpeg')).toBe('jpg')
+    expect(parseCardQrFlyerFormat('gif')).toBeNull()
+    const key = flyerPreviewCacheKey('png', URL)
+    expect(flyerPreviewCacheKey('png', URL)).toBe(key)
+    expect(flyerPreviewCacheKey('jpg', URL)).not.toBe(key)
+    const bytes = new Uint8Array([1, 2, 3])
+    const cached = { key, bytes }
+    expect(flyerDownloadBytes(cached, key)).toBe(bytes)
+    expect(flyerDownloadBytes(cached, flyerPreviewCacheKey('jpg', URL))).toBeNull()
+  })
+})
+
 describe('flyer route', () => {
   it('ignores body.appearancePreset and uses the saved theme', async () => {
     mocks.loadCardQrContext.mockResolvedValue(context('halloween_pumpkin_cat'))
@@ -228,7 +279,9 @@ describe('flyer route', () => {
       }),
     )
     expect(response.status).toBe(200)
+    expect(response.headers.get('Content-Type')).toContain('image/png')
     const png = Buffer.from(await response.arrayBuffer())
+    expect(response.headers.get('X-Card-Qr-Flyer-Sha256')).toBe(flyerBytesSha256(png))
     const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true })
     const background = pixel(data, info, 8, 80)
     expect(background[0]).toBeLessThan(40)
@@ -279,6 +332,41 @@ describe('flyer route', () => {
       }),
     )
     errorSpy.mockRestore()
+  })
+
+  it('returns a JPG from the same PNG pixels when format is jpg', async () => {
+    mocks.loadCardQrContext.mockResolvedValue(context('sparkle_suite_morganite'))
+    const response = await postFlyer(
+      new Request('https://sparkle-suite-smoke.vercel.app/api/workspace/card-qr/flyer?format=jpg', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ format: 'jpeg' }),
+      }),
+    )
+    expect(response.status).toBe(200)
+    expect(response.headers.get('Content-Type')).toContain('image/jpeg')
+    const jpg = Buffer.from(await response.arrayBuffer())
+    expect(response.headers.get('X-Card-Qr-Flyer-Sha256')).toBe(flyerBytesSha256(jpg))
+    const meta = await sharp(jpg).metadata()
+    expect(meta.format).toBe('jpeg')
+    expect(meta.width).toBe(CARD_QR_FLYER_WIDTH)
+    expect(meta.height).toBe(CARD_QR_FLYER_HEIGHT)
+    await expect(assertFlyerQrDecodes(jpg, URL)).resolves.toBeUndefined()
+  })
+
+  it('rejects an unknown format', async () => {
+    mocks.loadCardQrContext.mockResolvedValue(context('sparkle_suite_morganite'))
+    const response = await postFlyer(
+      new Request('https://sparkle-suite-smoke.vercel.app/api/workspace/card-qr/flyer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ format: 'gif' }),
+      }),
+    )
+    expect(response.status).toBe(400)
+    await expect(response.json()).resolves.toMatchObject({
+      code: 'CARD_QR_FLYER_FORMAT_INVALID',
+    })
   })
 
   it('still accepts a saved halloween template id and ignores it', () => {

@@ -15,6 +15,12 @@ import {
   buildCardQrCopyLines,
 } from '@/lib/workspace/card-qr/design'
 import { resolveCardQrDestination } from '@/lib/workspace/card-qr/destination'
+import {
+  DEFAULT_CARD_QR_FLYER_FORMAT,
+  flyerDownloadBytes,
+  flyerPreviewCacheKey,
+  type CardQrFlyerFormat,
+} from '@/lib/workspace/card-qr/flyer-format'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
 import { CARD_QR_ENTRY_TITLE } from '@/lib/workspace/card-qr/access'
 import styles from './CardQrTool.module.css'
@@ -58,6 +64,10 @@ export function CardQrTool({
   const [busy, setBusy] = useState<string | null>(null)
   const [qrBlob, setQrBlob] = useState<Blob | null>(null)
   const [qrObjectUrl, setQrObjectUrl] = useState<string | null>(null)
+  const [flyerFormat, setFlyerFormat] = useState<CardQrFlyerFormat>(DEFAULT_CARD_QR_FLYER_FORMAT)
+  const [flyerCache, setFlyerCache] = useState<{ key: string; bytes: Blob; url: string } | null>(null)
+  const [flyerLoading, setFlyerLoading] = useState(false)
+  const [flyerError, setFlyerError] = useState<string | null>(null)
   const destinationUrl = useMemo(
     () => resolveCardQrDestination(siteHref, origin),
     [origin, siteHref],
@@ -111,6 +121,47 @@ export function CardQrTool({
   }, [appearancePreset, destinationUrl])
 
   useEffect(() => {
+    if (!destinationUrl) return
+    const controller = new AbortController()
+    let objectUrl: string | null = null
+    const key = flyerPreviewCacheKey(flyerFormat, destinationUrl)
+    setFlyerLoading(true)
+    setFlyerError(null)
+    setFlyerCache(null)
+    void fetch('/api/workspace/card-qr/flyer', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ format: flyerFormat }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(await readError(response))
+        const blob = await response.blob()
+        const mime = flyerFormat === 'jpg' ? 'image/jpeg' : 'image/png'
+        const file = blob.type === mime ? blob : new Blob([await blob.arrayBuffer()], { type: mime })
+        const url = URL.createObjectURL(file)
+        if (controller.signal.aborted) {
+          URL.revokeObjectURL(url)
+          return
+        }
+        objectUrl = url
+        setFlyerCache({ key, bytes: file, url })
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return
+        setFlyerError(error instanceof Error ? error.message : 'Could not make the flyer.')
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setFlyerLoading(false)
+      })
+    return () => {
+      controller.abort()
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [destinationUrl, flyerFormat])
+
+  useEffect(() => {
     setOrigin(window.location.origin)
     const params = new URLSearchParams(window.location.search)
     if (params.get('cardOrder') === 'cancelled') {
@@ -149,6 +200,18 @@ export function CardQrTool({
     } catch {
       setStatus('Could not copy the QR.')
     }
+  }
+
+  function downloadFlyer() {
+    if (!destinationUrl) return
+    const bytes = flyerDownloadBytes(
+      flyerCache,
+      flyerPreviewCacheKey(flyerFormat, destinationUrl),
+    )
+    if (!bytes) return
+    setFlyerError(null)
+    const extension = flyerFormat === 'jpg' ? 'jpg' : 'png'
+    downloadBlob(bytes, `sparkle-qr-flyer.${extension}`)
   }
 
   async function download(path: string, filename: string, key: string) {
@@ -253,31 +316,54 @@ export function CardQrTool({
         <h3 id="card-qr-flyer" className={styles.title}>QR flyer</h3>
         <p className={styles.body}>
           Free digital download. Portrait 9:16 (1080×1920) for TikTok and other
-          social posts. No Stripe charge.
+          social posts. No Stripe charge. The preview is the file you download.
         </p>
+        <div className={styles.formatRow} role="group" aria-label="Flyer file type">
+          {(['png', 'jpg'] as const).map((format) => (
+            <button
+              key={format}
+              type="button"
+              className={styles.choice}
+              aria-pressed={flyerFormat === format}
+              onClick={() => setFlyerFormat(format)}
+            >
+              {format === 'png' ? 'PNG' : 'JPG'}
+            </button>
+          ))}
+        </div>
         <div className={styles.layout}>
           <div>
             <div className={styles.actions}>
               <button
                 type="button"
                 className={`${styles.button} ${styles.buttonPrimary}`}
-                disabled={!destinationUrl || busy === 'flyer'}
-                onClick={() => download('/api/workspace/card-qr/flyer', 'sparkle-qr-flyer.png', 'flyer')}
+                disabled={!destinationUrl || flyerLoading || !flyerCache}
+                onClick={downloadFlyer}
               >
-                {busy === 'flyer' ? 'Making flyer…' : 'Download portrait PNG'}
+                {flyerLoading ? 'Making flyer…' : `Download ${flyerFormat === 'jpg' ? 'JPG' : 'PNG'}`}
               </button>
             </div>
             <p className={styles.spec}>
+              PNG is full quality. JPG is best for texting and posting from a phone.
               The name and QR stay in the middle so story buttons do not cover them.
               Changing your site theme makes a new matching flyer. The QR stays the same.
             </p>
+            {flyerError ? <p className={styles.flyerError} role="alert">{flyerError}</p> : null}
           </div>
-          <div className={styles.flyerFrame} style={previewStyle} aria-label={`${palette.name} flyer preview`}>
-            {lines.map((line) => <strong key={line}>{line}</strong>)}
-            {qrObjectUrl ? (
+          <div className={styles.flyerFrame} aria-label="QR flyer preview">
+            {flyerCache ? (
+              // The image is the server file for the selected type. Download uses these same bytes.
               // eslint-disable-next-line @next/next/no-img-element
-              <img className={styles.flyerQr} src={qrObjectUrl} alt="" />
-            ) : null}
+              <img src={flyerCache.url} alt="QR flyer preview" />
+            ) : (
+              <p className={styles.body}>
+                {flyerError
+                  ? flyerError
+                  : destinationUrl
+                    ? 'Making your flyer…'
+                    : 'The flyer appears when the site address is ready.'}
+              </p>
+            )}
           </div>
         </div>
       </section>

@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server'
 import { buildCardQrCopyLines } from '@/lib/workspace/card-qr/design'
+import { FlyerQrDecodeError } from '@/lib/workspace/card-qr/flyer-decode'
 import {
-  FlyerQrDecodeError,
-  assertFlyerQrDecodes,
-} from '@/lib/workspace/card-qr/flyer-decode'
+  flyerBytesSha256,
+  renderCheckedFlyerFiles,
+} from '@/lib/workspace/card-qr/flyer-encode'
+import {
+  parseCardQrFlyerFormat,
+  type CardQrFlyerFormat,
+} from '@/lib/workspace/card-qr/flyer-format'
 import { isKnownFlyerTheme } from '@/lib/workspace/card-qr/flyer-fonts'
 import {
   cardQrErrorResponse,
@@ -11,6 +16,7 @@ import {
 } from '@/lib/workspace/card-qr/context'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
 import { renderCardQrFlyerPng } from '@/lib/workspace/card-qr/render'
+import { ServiceError } from '@/lib/services/errors'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -20,12 +26,29 @@ const DECODE_FAILED = {
   error: "We couldn't make a flyer that scans right. We've been notified.",
 } as const
 
+function readFlyerFormat(body: unknown, request: Request): CardQrFlyerFormat {
+  const record = body && typeof body === 'object' ? (body as { format?: unknown }) : {}
+  const queryFormat = new URL(request.url).searchParams.get('format')
+  const raw = record.format !== undefined ? record.format : queryFormat
+  const format = parseCardQrFlyerFormat(raw)
+  if (!format) {
+    throw new ServiceError({
+      code: 'CARD_QR_FLYER_FORMAT_INVALID',
+      message: 'Flyer format must be png or jpg.',
+      userMessage: 'Choose JPG or PNG.',
+      statusCode: 400,
+    })
+  }
+  return format
+}
+
 export async function POST(request: Request) {
   try {
     const context = await loadCardQrContext(request)
-    await request.json().catch(() => {
+    const body = await request.json().catch(() => {
       throw new SyntaxError('Invalid request payload.')
     })
+    const format = readFlyerFormat(body, request)
     const appearancePreset = context.settings.appearancePreset
     if (!isKnownFlyerTheme(appearancePreset)) {
       return NextResponse.json(
@@ -53,22 +76,27 @@ export async function POST(request: Request) {
       destinationUrl: context.destinationUrl,
       showQr: true,
     })
+    let files: { png: Buffer; jpg: Buffer }
     try {
-      await assertFlyerQrDecodes(png, context.destinationUrl)
+      files = await renderCheckedFlyerFiles(png, context.destinationUrl)
     } catch (error) {
       console.error('CARD_QR_FLYER_DECODE_FAILED', {
         theme: appearancePreset,
         repId: context.repId,
+        format,
         expected: context.destinationUrl,
         decoded: error instanceof FlyerQrDecodeError ? error.decoded : null,
       })
       return NextResponse.json(DECODE_FAILED, { status: 422 })
     }
-    return new NextResponse(new Uint8Array(png), {
+    const file = format === 'jpg' ? files.jpg : files.png
+    const extension = format === 'jpg' ? 'jpg' : 'png'
+    return new NextResponse(new Uint8Array(file), {
       headers: {
-        'Content-Type': 'image/png',
-        'Content-Disposition': 'attachment; filename="sparkle-qr-flyer.png"',
+        'Content-Type': format === 'jpg' ? 'image/jpeg' : 'image/png',
+        'Content-Disposition': `attachment; filename="sparkle-qr-flyer.${extension}"`,
         'Cache-Control': 'no-store',
+        'X-Card-Qr-Flyer-Sha256': flyerBytesSha256(file),
       },
     })
   } catch (error) {
