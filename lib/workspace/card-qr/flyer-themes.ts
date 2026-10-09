@@ -29,6 +29,7 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
   {
     theme: 'sparkle_suite_morganite',
     status: 'simple',
+    plate: skin('morganite', 'flyer/plate.webp'),
     note: 'Generated blush, plum, and hot-pink light. No scene art yet.',
   },
   {
@@ -39,6 +40,7 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
   {
     theme: 'moonstone',
     status: 'simple',
+    plate: skin('moonstone', 'flyer/plate.webp'),
     note: 'Generated charcoal, violet, and silver light. No scene art yet.',
   },
   {
@@ -49,6 +51,7 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
   {
     theme: 'emerald_garden',
     status: 'simple',
+    plate: skin('emerald-garden', 'flyer/plate.webp'),
     note: 'Generated gardenia, emerald, and champagne light. No scene art yet.',
   },
   {
@@ -85,6 +88,7 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
   {
     theme: 'rose_gold',
     status: 'simple',
+    plate: skin('rose-gold', 'flyer/plate.webp'),
     note: 'Generated pearl, rose, and champagne light. No scene art yet.',
   },
   {
@@ -111,16 +115,19 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
   {
     theme: 'garnet',
     status: 'simple',
+    plate: skin('garnet', 'flyer/plate.webp'),
     note: 'Generated blush shell and deep red light. No scene art yet.',
   },
   {
     theme: 'amber',
     status: 'simple',
+    plate: skin('amber', 'flyer/plate.webp'),
     note: 'Generated sunlit peach and amber light. No scene art yet.',
   },
   {
     theme: 'velvet',
     status: 'simple',
+    plate: skin('velvet', 'flyer/plate.webp'),
     note: 'Generated orchid and deep violet light. No scene art yet.',
   },
   {
