@@ -159,3 +159,26 @@
 @media (min-width: 861px) and (max-height: 640px) {
   .bkf-hero { --bkf-pad: 24px; --bkf-stack: 222px; }
 }
+
+/* Purple tile wall behind the hero (Louis, Oct 10 2026): real art-C tile photo, tile only, plum scrim keeps copy AA-readable. */
+.bkf-hero,
+.bkf-hero[class] {
+  background-color: #2a1340;
+  background-image:
+    linear-gradient(90deg, rgba(36, 15, 56, 0.86) 0%, rgba(36, 15, 56, 0.72) 38%, rgba(36, 15, 56, 0.38) 70%, rgba(36, 15, 56, 0.3) 100%),
+    linear-gradient(180deg, rgba(36, 15, 56, 0.25), rgba(36, 15, 56, 0) 30%, rgba(36, 15, 56, 0) 70%, rgba(36, 15, 56, 0.45)),
+    url("/amethyst/bling-kitchen/tile-wall.webp");
+  background-size: auto, auto, cover;
+  background-position: center, center, right top;
+  background-repeat: no-repeat;
+}
+@media (max-width: 860px) {
+  .bkf-hero,
+  .bkf-hero[class] {
+    background-image:
+      linear-gradient(180deg, rgba(36, 15, 56, 0.35) 0%, rgba(36, 15, 56, 0.45) 40%, rgba(36, 15, 56, 0.82) 62%, rgba(36, 15, 56, 0.86) 100%),
+      url("/amethyst/bling-kitchen/tile-wall-mobile.webp");
+    background-size: auto, cover;
+    background-position: center, center top;
+  }
+}
