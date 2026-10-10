@@ -1138,13 +1138,14 @@ describe('Amethyst homepage template data wiring', () => {
   it('renders the Louis-approved framed kitchen hero for BlingKitchen outside seasonal skins', () => {
     const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.jsx'), 'utf8')
     const css = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.css'), 'utf8')
+    const framedCss = readFileSync(resolve(process.cwd(), 'public/amethyst/bling-kitchen/framed-hero.css'), 'utf8')
     const route = readFileSync(resolve(process.cwd(), 'app/api/amethyst/homepage-template/route.ts'), 'utf8')
     const blingKitchen = jsx.slice(jsx.indexOf('function BlingKitchenHomepage('), jsx.indexOf('// ============================================================\n// Main App'))
     expect(blingKitchen).toContain('useFramedKitchenHero ? (')
     expect(blingKitchen).toMatch(/halloween\|gnome/)
     expect(blingKitchen).toContain('className="bkf-card"')
     expect(blingKitchen).not.toContain('Nurse, Nonna')
-    expect(css).toMatch(/\.bkf-card\s*\{[\s\S]*?border:\s*3px solid #c9a15a;/)
+    expect(framedCss).toMatch(/\.bkf-card\s*\{[\s\S]*?border:\s*3px solid #c9a15a;/)
     expect(route).toContain("process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT !== 'smoke'")
   })
 
