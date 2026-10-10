@@ -1,6 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['@resvg/resvg-js'],
+  outputFileTracingIncludes: {
+    '/api/workspace/card-qr/flyer': [
+      './lib/workspace/card-qr/fonts/**/*',
+      './public/amethyst/skins/**/flyer/plate.webp',
+    ],
+    '/api/workspace/card-qr/card': [
+      './lib/workspace/card-qr/fonts/card/**/*',
+      './lib/workspace/card-qr/card-plates/**/*',
+    ],
+  },
   async redirects() {
     return [
       { source: '/learn', destination: '/', statusCode: 301 },

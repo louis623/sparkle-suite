@@ -1,0 +1,203 @@
+import { SOCIAL_HERO_LABELS, SOCIAL_HERO_ORDER } from '@/lib/public-site/social-hero'
+import { ServiceError } from '@/lib/services/errors'
+
+export const CARD_QR_TEMPLATE_IDS = [
+  'match-site',
+  'halloween',
+  'classic-ivory',
+] as const
+
+export type CardQrTemplateId = (typeof CARD_QR_TEMPLATE_IDS)[number]
+
+export interface CardQrFields {
+  name: boolean
+  email: boolean
+  qr: boolean
+  discount: boolean
+  social: boolean
+  /** Business card back: website line. */
+  website: boolean
+  /** Business card back + flyer: the rep's text-to-link number. */
+  textLink: boolean
+}
+
+export const CARD_QR_ICONS = [
+  'none',
+  'diamond-solid',
+  'diamond-two-tone',
+  'unicorn-line',
+  'unicorn-two-tone',
+  'heart',
+  'smiley',
+  'gem-ring',
+  'crown',
+  'butterfly',
+] as const
+
+export type CardQrIcon = (typeof CARD_QR_ICONS)[number]
+
+export const CARD_QR_ICON_LABELS: Record<CardQrIcon, string> = {
+  none: 'None',
+  'diamond-solid': 'Diamond',
+  'diamond-two-tone': 'Shaded diamond',
+  'unicorn-line': 'Unicorn',
+  'unicorn-two-tone': 'Shaded unicorn',
+  heart: 'Heart',
+  smiley: 'Smiley',
+  'gem-ring': 'Ring',
+  crown: 'Crown',
+  butterfly: 'Butterfly',
+}
+
+/** Saved before the 2026-10-09 icon refresh. */
+const LEGACY_CARD_QR_ICONS: Record<string, CardQrIcon> = {
+  diamond: 'diamond-solid',
+  unicorn: 'unicorn-two-tone',
+}
+
+export interface CardQrDesign {
+  templateId: CardQrTemplateId
+  fields: CardQrFields
+  discountCode: string
+  qrIcon: CardQrIcon
+  /** Entered by the rep. Never filled from the account phone. Empty = no text line. */
+  textLinkNumber: string
+}
+
+export const DEFAULT_CARD_QR_DESIGN: CardQrDesign = {
+  templateId: 'match-site',
+  fields: {
+    name: true,
+    email: true,
+    qr: true,
+    discount: false,
+    social: true,
+    website: true,
+    textLink: true,
+  },
+  discountCode: '',
+  qrIcon: 'none',
+  textLinkNumber: '',
+}
+
+export function parseCardQrIcon(value: unknown): CardQrIcon | null {
+  if (typeof value === 'string' && value in LEGACY_CARD_QR_ICONS) return LEGACY_CARD_QR_ICONS[value]
+  return CARD_QR_ICONS.includes(value as CardQrIcon) ? (value as CardQrIcon) : null
+}
+
+/** Absent means None. A present unknown value is a bad request. */
+export function cardQrIconFromRequest(value: unknown): CardQrIcon {
+  if (value == null || value === '') return 'none'
+  const icon = parseCardQrIcon(value)
+  if (!icon) {
+    throw new ServiceError({
+      code: 'CARD_QR_ICON_INVALID',
+      message: `QR icon must be one of: ${CARD_QR_ICONS.join(', ')}.`,
+      userMessage: 'Choose a center mark from the list.',
+      statusCode: 400,
+    })
+  }
+  return icon
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+export function cleanDiscountCode(value: unknown) {
+  if (typeof value !== 'string') return ''
+  return value.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 40)
+}
+
+export const CARD_QR_TEXT_LINK_MAX = 24
+
+/**
+ * The number customers text to get the shop link. Digits and phone punctuation only.
+ * Ten US digits (or 1 + ten) are shown as (555) 201-4410.
+ */
+export function cleanTextLinkNumber(value: unknown) {
+  if (typeof value !== 'string') return ''
+  const raw = value.replace(/[^0-9+().\- ]/g, '').replace(/\s+/g, ' ').trim().slice(0, CARD_QR_TEXT_LINK_MAX)
+  const digits = raw.replace(/\D/g, '')
+  if (!digits) return ''
+  const us = digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits
+  if (us.length === 10 && !raw.startsWith('+')) {
+    return `(${us.slice(0, 3)}) ${us.slice(3, 6)}-${us.slice(6)}`
+  }
+  return raw
+}
+
+/** Card and flyer wording for the text line. */
+export function textLinkLabel(number: string) {
+  return number ? `Text ${number}` : ''
+}
+
+/**
+ * Old saved templateId values still parse, including halloween and classic-ivory.
+ * The flyer ignores them and follows the current site theme. No migration:
+ * the template_id column stays.
+ */
+export function parseCardQrDesign(value: unknown): CardQrDesign {
+  const record = isRecord(value) ? value : {}
+  const templateId = CARD_QR_TEMPLATE_IDS.includes(record.templateId as CardQrTemplateId)
+    ? (record.templateId as CardQrTemplateId)
+    : DEFAULT_CARD_QR_DESIGN.templateId
+  const fields = isRecord(record.fields) ? record.fields : {}
+  const readFlag = (key: keyof CardQrFields, fallback: boolean) =>
+    typeof fields[key] === 'boolean' ? fields[key] : fallback
+
+  return {
+    templateId,
+    fields: {
+      name: readFlag('name', DEFAULT_CARD_QR_DESIGN.fields.name),
+      email: readFlag('email', DEFAULT_CARD_QR_DESIGN.fields.email),
+      qr: readFlag('qr', DEFAULT_CARD_QR_DESIGN.fields.qr),
+      discount: readFlag('discount', DEFAULT_CARD_QR_DESIGN.fields.discount),
+      social: readFlag('social', DEFAULT_CARD_QR_DESIGN.fields.social),
+      website: readFlag('website', DEFAULT_CARD_QR_DESIGN.fields.website),
+      textLink: readFlag('textLink', DEFAULT_CARD_QR_DESIGN.fields.textLink),
+    },
+    discountCode: cleanDiscountCode(record.discountCode),
+    qrIcon: parseCardQrIcon(record.qrIcon) ?? DEFAULT_CARD_QR_DESIGN.qrIcon,
+    textLinkNumber: cleanTextLinkNumber(record.textLinkNumber),
+  }
+}
+
+export function formatCardQrSocialLine(
+  socialHandles: Record<string, string | null | undefined> | null | undefined,
+) {
+  const handles = socialHandles ?? {}
+  const parts = SOCIAL_HERO_ORDER.flatMap((platform) => {
+    const raw = handles[platform]?.trim()
+    if (!raw) return []
+    const handle = raw
+      .replace(/^https?:\/\/(www\.)?/i, '')
+      .replace(/\/$/, '')
+    const short = handle.length > 42 ? `${handle.slice(0, 39)}…` : handle
+    return [`${SOCIAL_HERO_LABELS[platform]} ${short.startsWith('@') || short.includes('/') ? short : `@${short}`}`]
+  })
+  return parts.slice(0, 3).join(' · ')
+}
+
+export interface CardQrCopyInput {
+  displayName?: string | null
+  businessName?: string | null
+  email?: string | null
+  socialHandles?: Record<string, string | null | undefined> | null
+}
+
+/** Account lines for the flyer and card. Discount stays off. QR is always drawn separately. */
+export function buildCardQrCopyLines(input: CardQrCopyInput) {
+  const lines: string[] = []
+  const name = input.displayName?.trim() || ''
+  const business = input.businessName?.trim() || ''
+  if (business) lines.push(business)
+  if (name && name.localeCompare(business, undefined, { sensitivity: 'base' }) !== 0) {
+    lines.push(name)
+  }
+  const email = input.email?.trim() || ''
+  if (email) lines.push(email)
+  const social = formatCardQrSocialLine(input.socialHandles)
+  if (social) lines.push(social)
+  return lines
+}
