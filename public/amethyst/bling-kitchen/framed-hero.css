@@ -122,3 +122,24 @@
   .bkf-links a { font-size: 13px; }
   .bkf-hero .bkf-live { margin-top: 18px; }
 }
+
+/* Desktop: keep the whole framed card visible below the sticky header stack at page load. */
+@media (min-width: 861px) {
+  .bkf-hero { --bkf-stack: 232px; --bkf-pad: 40px; }
+  .bkf-hero-inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 0;
+    padding-top: var(--bkf-pad);
+    padding-bottom: var(--bkf-pad);
+  }
+  .bkf-card {
+    width: min(768px, calc((100svh - var(--bkf-stack) - 2 * var(--bkf-pad)) * 4 / 3), 58vw);
+    min-width: 400px;
+    justify-self: end;
+  }
+}
+@media (min-width: 861px) and (max-width: 1180px) {
+  .bkf-hero { background: radial-gradient(ellipse at 72% 45%, #5a2788, #2a1340 70%); }
+  .bkf-card { width: min(768px, calc((100svh - var(--bkf-stack) - 2 * var(--bkf-pad)) * 4 / 3), 50vw); min-width: 360px; }
+  .bkf-hero h1 { font-size: clamp(46px, 5.4vw, 60px); }
+}
