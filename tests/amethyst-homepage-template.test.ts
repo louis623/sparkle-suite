@@ -135,7 +135,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20261004-rg04-v1')
+    expect(homepage).toContain('homepage.jsx?v=20261010-bk-framed-hero')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -1117,7 +1117,7 @@ describe('Amethyst homepage template data wiring', () => {
     const blingKitchenHero = jsx.slice(
       jsx.indexOf('function BlingKitchenHomepage('),
       jsx.indexOf('// ============================================================\n// Main App'),
-    )
+    ).split('className="bk-home-hero"').slice(1).join('className="bk-home-hero"')
 
     expect(brittHero).toContain('className="bwb-hero-cta-stack"')
     expect(brittHero).toContain('className="bwb-hero-cta-primary-row"')
@@ -1133,6 +1133,19 @@ describe('Amethyst homepage template data wiring', () => {
     )
     expect(css).toMatch(/\.bwb-cta-dance-floor\s*\{[\s\S]*?width:\s*100%;/)
     expect(css).toMatch(/\.bk-home-cta-dance-floor\s*\{[\s\S]*?width:\s*100%;/)
+  })
+
+  it('renders the Louis-approved framed kitchen hero for BlingKitchen outside seasonal skins', () => {
+    const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.jsx'), 'utf8')
+    const css = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.css'), 'utf8')
+    const route = readFileSync(resolve(process.cwd(), 'app/api/amethyst/homepage-template/route.ts'), 'utf8')
+    const blingKitchen = jsx.slice(jsx.indexOf('function BlingKitchenHomepage('), jsx.indexOf('// ============================================================\n// Main App'))
+    expect(blingKitchen).toContain('useFramedKitchenHero ? (')
+    expect(blingKitchen).toMatch(/halloween\|gnome/)
+    expect(blingKitchen).toContain('className="bkf-card"')
+    expect(blingKitchen).not.toContain('Nurse, Nonna')
+    expect(css).toMatch(/\.bkf-card\s*\{[\s\S]*?border:\s*3px solid #c9a15a;/)
+    expect(route).toContain("process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT !== 'smoke'")
   })
 
   it('uses the live-show header grid with brand, centered nav, and primary shop CTA', () => {

@@ -2564,12 +2564,40 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
   const pantryHref = CONTENT.pantryPageUrl || "#";
   const heroImageUrl = CONTENT.heroImageUrl || "";
   const heroWatchLinks = getHeroWatchLinks(liveShow, isLive);
+  const tiktokLink = heroWatchLinks.find((link) => link.id === "tiktok") || { href: "https://www.tiktok.com/@blingkitchen" };
+  // Louis-approved framed kitchen hero (option C). Seasonal / art skins keep their own hero.
+  const useFramedKitchenHero = Boolean(heroImageUrl) && !/halloween|gnome|neon|gilded|unicorn|am01|rose|pearl|witch/i.test(String(t.preset || ""));
 
   return (
     <div className="bk-home-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
-      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
+      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : useFramedKitchenHero ? (
+      <section className="bkf-hero" aria-labelledby="bkf-hero-title">
+        <div className="bkf-hero-inner">
+          <div className="bkf-hero-copy">
+            <p className="bkf-eyebrow">{CONTENT.heroEyebrow || "With Heather"}</p>
+            <h1 id="bkf-hero-title">{CONTENT.heroHeadline || businessName}</h1>
+            <p className="bkf-tagline">{CONTENT.tagline || "Serving Sparkle from the Heart of the Home"}</p>
+            <p className="bkf-sub">Live jewelry reveals from my Ohio kitchen.</p>
+            <div className="bkf-ctas">
+              <a {...linkProps(getShopHref())} className="bkf-btn bkf-btn-primary">Shop Bomb Party</a>
+              {tiktokLink && <a {...linkProps(tiktokLink.href)} className={"bkf-btn bkf-btn-secondary" + (isLive ? " is-live" : "")}>{isLive ? "Watch Live on TikTok" : "Watch on TikTok"}</a>}
+            </div>
+            <div className="bkf-links">
+              <a {...linkProps(getTradeBoardHref())}>Browse the Dance Floor →</a>
+              <a {...linkProps(pantryHref)}>In the Pantry →</a>
+            </div>
+            <p className="bkf-live"><i aria-hidden="true"></i>Live M / W / F · 7 PM EST</p>
+          </div>
+          {heroImageUrl && (
+            <div className="bkf-card">
+              <img src={heroImageUrl} alt="Heather in her kitchen with Bomb Party jewelry on display" />
+            </div>
+          )}
+        </div>
+      </section>
+      ) : (
       <section className="bk-home-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bk-home-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         {heroImageUrl && <img className="bk-home-hero-image" src={heroImageUrl} alt="" />}
