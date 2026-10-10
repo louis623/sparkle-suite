@@ -101,11 +101,17 @@ export async function POST(request: Request) {
       }
     }
     if (output === 'pdf' && front && back) {
-      const pdf = await buildBizcardPrintPdf({ front: front.png, back: back.png, label: 'Sparkle Suite business card' })
+      if (back.overflow) {
+        return NextResponse.json(
+          { code: 'CARD_QR_CARD_TOO_FULL', error: back.warnings[back.warnings.length - 1], warnings: back.warnings },
+          { status: 422 },
+        )
+      }
+      const pdf = await buildBizcardPrintPdf({ front: front.png, back: back.png })
       return new NextResponse(new Uint8Array(pdf), {
         headers: {
           'Content-Type': 'application/pdf',
-          'Content-Disposition': 'attachment; filename="sparkle-business-card-print.pdf"',
+          'Content-Disposition': `attachment; filename="sparkle-business-card-${key}-p1-front-p2-back.pdf"`,
           'Cache-Control': 'no-store',
         },
       })
@@ -114,7 +120,9 @@ export async function POST(request: Request) {
     return new NextResponse(new Uint8Array(png), {
       headers: {
         'Content-Type': 'image/png',
-        'Content-Disposition': `attachment; filename="sparkle-business-card-${output}.png"`,
+        'Content-Disposition': `attachment; filename="sparkle-business-card-${key}-${output}.png"`,
+        // Rep-facing notes (URI-encoded JSON list) when details were wrapped or left off.
+        ...(back && back.warnings.length ? { 'X-Card-Qr-Card-Warnings': encodeURIComponent(JSON.stringify(back.warnings)) } : {}),
         'Cache-Control': 'no-store',
       },
     })

@@ -97,6 +97,7 @@ export function CardQrTool({
   const [cardLoading, setCardLoading] = useState(false)
   const [cardError, setCardError] = useState<string | null>(null)
   const [cardPending, setCardPending] = useState<string | null>(null)
+  const [cardWarnings, setCardWarnings] = useState<string[]>([])
   const qrIcon = design.qrIcon
   const textLinkNumber = design.textLinkNumber
   const designTouched = useRef(false)
@@ -221,6 +222,12 @@ export function CardQrTool({
           const body = await response.json()
           if (body?.status === 'being_built') return { pending: String(body.message) }
           throw new Error(body?.error || 'Could not make the card.')
+        }
+        if (output === 'back') {
+          const raw = response.headers.get('x-card-qr-card-warnings')
+          let list: string[] = []
+          try { list = raw ? (JSON.parse(decodeURIComponent(raw)) as string[]) : [] } catch { list = [] }
+          if (!controller.signal.aborted) setCardWarnings(list)
         }
         const blob = await response.blob()
         const file = blob.type === 'image/png' ? blob : new Blob([await blob.arrayBuffer()], { type: 'image/png' })
@@ -631,6 +638,7 @@ export function CardQrTool({
             </p>
           )}
         </div>
+        {cardWarnings.map((w) => <p key={w} className={styles.flyerError} role="status">{w}</p>)}
         {cardError && cardFront ? <p className={styles.flyerError} role="alert">{cardError}</p> : null}
         <div className={styles.actions}>
           <button

@@ -38,6 +38,7 @@ const REP = {
   social: '@dudesfizzfest',
 }
 
+const text0 = (b: Buffer) => b.toString('latin1')
 function inside(box: { x: number; y: number; x2: number; y2: number }) {
   return box.x >= BIZCARD_SAFE_BOX.x0 - 1 && box.x2 <= BIZCARD_SAFE_BOX.x1 + 1 && box.y >= BIZCARD_SAFE_BOX.y0 - 1 && box.y2 <= BIZCARD_SAFE_BOX.y1 + 1
 }
@@ -137,7 +138,8 @@ describe('card render', () => {
   it('builds a two-page CMYK print PDF with trim and bleed boxes', async () => {
     const front = await renderBizcardFront({ key: 'gilded-autumn', showTitle: "Dude's Fizzfest", firstName: 'Louis' })
     const back = await renderBizcardBack({ key: 'gilded-autumn', qrUrl: URL, qrIcon: 'none', fields: ALL, ...REP })
-    const pdf = await buildBizcardPrintPdf({ front: front.png, back: back.png, label: 'test' })
+    const pdf = await buildBizcardPrintPdf({ front: front.png, back: back.png })
+    expect(text0(pdf)).not.toMatch(/\/Font|BT /)
     const text = pdf.toString('latin1')
     expect(text.startsWith('%PDF-1.4')).toBe(true)
     expect(text).toContain('/Count 2')
@@ -170,4 +172,35 @@ describe('flyer text-to-link line', () => {
     expect(parts.layout.textLink!.top).toBeGreaterThan(parts.layout.website!.top)
     await expect(renderCheckedFlyerFiles(parts.flyer, URL, parts.layout.qr)).resolves.toBeTruthy()
   }, 60_000)
+})
+
+describe('preflight (Minuteman specs)', () => {
+  const LONG = {
+    name: 'Alexandria Montgomery-Whitfield',
+    email: 'alexandria.montgomerywhitfield@gmail.com',
+    website: 'sparkleandshinefizzqueens.com',
+    textLinkNumber: '(555) 201-4410',
+    social: '@sparkleandshinefizzqueens',
+  }
+  it.each(['amethyst', 'emerald-garden', 'custom-kim'] as const)('%s keeps long details at 8 pt or wraps/drops them with a warning', async (key) => {
+    const back = await renderBizcardBack({ key, qrUrl: URL, qrIcon: 'heart', fields: ALL, ...LONG })
+    expect(back.overflow).toBe(false)
+    expect(back.info.total).toBeLessThanOrEqual(back.info.avail)
+    const t = back.layout.tile
+    expect(await decodeFlyerQr(back.png, { x: t.x, y: t.y, width: t.size, height: t.size })).toBe(URL)
+  }, 30_000)
+
+  it('maps near-black to rich black and caps other ink at 300%', async () => {
+    const { toPressCmyk } = await import('@/lib/workspace/card-qr/bizcard-render')
+    const png = await sharp({ create: { width: 3, height: 1, channels: 3, background: '#080808' } })
+      .composite([{ input: { create: { width: 1, height: 1, channels: 3, background: '#2a1218' } }, left: 1, top: 0 },
+        { input: { create: { width: 1, height: 1, channels: 3, background: '#ffffff' } }, left: 2, top: 0 }])
+      .png().toBuffer()
+    const c = await toPressCmyk(png)
+    expect([...c.data.subarray(0, 4)]).toEqual([255, 255, 255, 255])
+    const mid = [...c.data.subarray(4, 8)]
+    expect(mid.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(765)
+    expect(mid.reduce((a, b) => a + b, 0)).toBeGreaterThan(400)
+    expect([...c.data.subarray(8, 12)].reduce((a, b) => a + b, 0)).toBeLessThan(10)
+  })
 })

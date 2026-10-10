@@ -61,7 +61,7 @@ export const BIZCARD_THEMES: Record<BizcardKey, BizcardTheme> = {
     back: '#4a1838', name: '#ffb8dc', ink: '#ffffff', sub: '#f3cfe2', rule: '#74385e', title: '#3a1630', script: '#d81b8a' }),
   'pumpkin-witch': t({ key: 'pumpkin-witch', qrTheme: 'halloween_pumpkin_witch', align: 'left', tw: 0.44, shadow: false,
     back: '#1c0e08', name: '#ff8a3d', ink: '#fff4e8', sub: '#f0c9a0', rule: '#5e3218', title: '#fff4e8', script: '#ff8a3d' }),
-  'gilded-autumn': t({ key: 'gilded-autumn', qrTheme: 'gilded_autumn', align: 'center', panel: '#fff6ea', frost: [0.42, 9], cmaxh: 300, hmax: 120, shadow: false,
+  'gilded-autumn': t({ key: 'gilded-autumn', qrTheme: 'gilded_autumn', align: 'center', panel: '#fffbf5', frost: [0.5, 9], cmaxh: 300, hmax: 120, shadow: false,
     back: '#3a2410', name: '#f2b766', ink: '#fff6ea', sub: '#e8cfa8', rule: '#6a4826', title: '#3a2410', script: '#6a2c0e' }),
   'pearl-rose': t({ key: 'pearl-rose', qrTheme: 'pearl_rose', align: 'top', shadow: false,
     back: '#3a2430', name: '#f3b9c4', ink: '#fff8f6', sub: '#ecd3d9', rule: '#654552', title: '#3a2430', script: '#954354' }),

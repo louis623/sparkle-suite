@@ -2,6 +2,7 @@
 /// <reference path="./opentype-js.d.ts" />
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+import { deflateSync } from 'node:zlib'
 import { Resvg } from '@resvg/resvg-js'
 import { parse as parseFont } from 'opentype.js'
 import sharp from 'sharp'
@@ -423,7 +424,29 @@ export function bizcardQrDark(key: BizcardKey) {
   return qrModuleColor(palette.qrDark, CARD_QR_DARK)
 }
 
+/** Rep-facing notes when details had to be wrapped, dropped, or left off to stay at 8 pt. */
+export type BizcardWarning = string
+
+/**
+ * Never below 34 px (8.2 pt, Minuteman's 8 pt floor). Long email/website wrap to two
+ * lines; if the stack still overflows, the social line is dropped; anything that
+ * cannot fit at 8 pt is left off with a warning.
+ */
 export async function renderBizcardBack(input: BizcardBackInput) {
+  const first = await renderBackAttempt(input, false)
+  if (!first.overflow || !(input.fields.social && input.social)) return finishBack(first)
+  const second = await renderBackAttempt(input, true)
+  second.warnings.unshift('Your social handle was left off the card so everything else stays readable.')
+  return finishBack(second)
+}
+
+function finishBack(r: Awaited<ReturnType<typeof renderBackAttempt>>) {
+  if (r.overflow) r.warnings.push('Some details are too long for the card. Turn one off so the rest stay readable.')
+  return { png: r.png, layout: r.layout, info: r.info, warnings: r.warnings, overflow: r.overflow }
+}
+
+async function renderBackAttempt(input: BizcardBackInput, dropSocial: boolean) {
+  const warnings: BizcardWarning[] = []
   const c = BIZCARD_THEMES[input.key]
   const k = input.key
   const BODY = (s: number, w: 'body' | 'body600' | 'body700' = 'body') => face(k, w, s)
@@ -434,7 +457,7 @@ export async function renderBizcardBack(input: BizcardBackInput) {
     email: input.fields.email && Boolean(input.email),
     web: input.fields.website && Boolean(input.website),
     phone: Boolean(textLine),
-    social: input.fields.social && Boolean(input.social),
+    social: input.fields.social && Boolean(input.social) && !dropSocial,
     code: input.fields.discount,
   }
   const n = [fields.email, fields.web, fields.phone, fields.social, fields.code].filter(Boolean).length
@@ -468,9 +491,26 @@ export async function renderBizcardBack(input: BizcardBackInput) {
   const items: Item[] = []
   if (fields.name) {
     let nf = HEAD(ns)
-    // Very long names: keep shrinking under the approved floor rather than overflow.
-    while (tw(nf, input.name) > CW && nf.size > 30) nf = HEAD(nf.size - 1)
-    items.push({ kind: 'row', h: Math.floor(ns * 0.98), draw: (yy) => { out += `<path d="${capPath(nf, input.name, X0, yy + 2)}" fill="${c.name}"/>` } })
+    while (tw(nf, input.name) > CW && nf.size > MINPX) nf = HEAD(nf.size - 1)
+    let nameLines = [input.name]
+    if (tw(nf, input.name) > CW) {
+      // Two lines by words at the largest size that fits; never under 8 pt.
+      nameLines = []
+      for (let s2 = ns; s2 >= MINPX && !nameLines.length; s2 -= 1) {
+        const l = balancedLines(input.name, HEAD(s2), CW, 2)
+        if (l) { nameLines = l; nf = HEAD(s2) }
+      }
+    }
+    if (!nameLines.length) {
+      warnings.push('Your name is too long for the card at a readable size, so it was left off.')
+    } else {
+      const nlh = Math.floor(nf.size * 1.1)
+      items.push({
+        kind: 'row',
+        h: Math.floor(ns * 0.98) + nlh * (nameLines.length - 1),
+        draw: (yy) => nameLines.forEach((l, i) => { out += `<path d="${capPath(nf, l, X0, yy + 2 + i * nlh)}" fill="${c.name}"/>` }),
+      })
+    }
     const rf = BODY(n > 3 ? MINPX : 37)
     const rl = wrap(BIZCARD_ROLE, rf, CW)
     const rlh = Math.floor(rf.size * 1.22)
@@ -490,24 +530,70 @@ export async function renderBizcardBack(input: BizcardBackInput) {
   const fitf = (txt: string, avail: number) => {
     let s = body
     while (s > MINPX && ic + icg + tw(BODY(s), txt) > avail) s -= 1
-    // Past the 8 pt floor only to stay inside the safe area.
-    while (s > 24 && ic + icg + tw(BODY(s), txt) > avail) s -= 1
     return BODY(s)
   }
-  if (fields.email) items.push({ kind: 'row', h: rowh, draw: (yy) => line(yy, 'mail', input.email, X0, fitf(input.email, CW)) })
-  if (fields.web) items.push({ kind: 'row', h: rowh, draw: (yy) => line(yy, 'globe', input.website, X0, fitf(input.website, CW)) })
+  const fits = (txt: string, f: Face) => ic + icg + tw(f, txt) <= CW
+  /** One line at body..34 px, else two lines split after . @ - _ / (email, website). */
+  const wrapRow = (txt: string): { f: Face; lines: string[] } | null => {
+    const one = fitf(txt, CW)
+    if (fits(txt, one)) return { f: one, lines: [txt] }
+    for (let s2 = body; s2 >= MINPX; s2 -= 1) {
+      const f = BODY(s2)
+      let best: { m: number; lines: string[] } | null = null
+      for (let i = 1; i < txt.length; i += 1) {
+        // Break before @ or after . - _ /
+        if (!(txt[i] === '@' || '.-_/'.includes(txt[i - 1]))) continue
+        const a = txt.slice(0, i)
+        const b = txt.slice(i)
+        if (fits(a, f) && fits(b, f)) {
+          const m = Math.max(tw(f, a), tw(f, b))
+          if (!best || m < best.m) best = { m, lines: [a, b] }
+        }
+      }
+      if (best) return { f, lines: best.lines }
+    }
+    return null
+  }
+  const addWrapped = (txt: string, ico: string, label: string) => {
+    const w = wrapRow(txt)
+    if (!w) {
+      warnings.push(`Your ${label} is too long for the card at a readable size, so it was left off.`)
+      return
+    }
+    const lh = Math.floor(w.f.size * 1.18)
+    items.push({
+      kind: 'row',
+      h: rowh + lh * (w.lines.length - 1),
+      draw: (yy) => {
+        line(yy, ico, w.lines[0], X0, w.f)
+        for (let i = 1; i < w.lines.length; i += 1) {
+          out += `<path d="${capPath(w.f, w.lines[i], X0 + ic + icg, yy + i * lh + Math.floor((rowh - Math.floor(w.f.size * 0.72)) / 2))}" fill="${c.ink}"/>`
+        }
+      },
+    })
+  }
+  const addSingle = (txt: string, ico: string, label: string) => {
+    const f = fitf(txt, CW)
+    if (!fits(txt, f)) {
+      warnings.push(`Your ${label} is too long for the card at a readable size, so it was left off.`)
+      return
+    }
+    items.push({ kind: 'row', h: rowh, draw: (yy) => line(yy, ico, txt, X0, f) })
+  }
+  if (fields.email) addWrapped(input.email, 'mail', 'email')
+  if (fields.web) addWrapped(input.website, 'globe', 'website')
   if (fields.phone && fields.social) {
     const w1 = ic + icg + tw(bf, textLine)
     const w2 = ic + icg + tw(bf, input.social)
     if (w1 + w2 + 24 <= CW) {
       items.push({ kind: 'row', h: rowh, draw: (yy) => { line(yy, 'msg', textLine); line(yy, 'at', input.social, X0 + CW - w2 - 4) } })
     } else {
-      items.push({ kind: 'row', h: rowh, draw: (yy) => line(yy, 'msg', textLine, X0, fitf(textLine, CW)) })
-      items.push({ kind: 'row', h: rowh, draw: (yy) => line(yy, 'at', input.social, X0, fitf(input.social, CW)) })
+      addSingle(textLine, 'msg', 'text-to-link number')
+      addSingle(input.social, 'at', 'social handle')
     }
   } else {
-    if (fields.phone) items.push({ kind: 'row', h: rowh, draw: (yy) => line(yy, 'msg', textLine, X0, fitf(textLine, CW)) })
-    if (fields.social) items.push({ kind: 'row', h: rowh, draw: (yy) => line(yy, 'at', input.social, X0, fitf(input.social, CW)) })
+    if (fields.phone) addSingle(textLine, 'msg', 'text-to-link number')
+    if (fields.social) addSingle(input.social, 'at', 'social handle')
   }
   const CODEH = 78
   if (fields.code) {
@@ -555,16 +641,17 @@ export async function renderBizcardBack(input: BizcardBackInput) {
     y += item.h
     prev = item.kind
   }
+  const overflow = total > avail
   const png = await sharp(renderSvg(svgDoc(out))).removeAlpha().png().toBuffer()
   const layout: BizcardBackLayout = { tile: { x: tx, y: ty, size: tile } }
-  return { png, layout, info: { total, avail: SY1 - SY0, gap, nameSize: ns, body, tile } }
+  return { png, layout, overflow, warnings, info: { total, avail: SY1 - SY0, gap, nameSize: ns, body, tile } }
 }
 
 // ---------- print PDF ----------
 /** 0.25 in slug around the bleed for crop marks. */
 const SLUG = 75
 
-function pdfPage(jpeg: Buffer, label: string, imgName: string) {
+function pdfPage(imgName: string) {
   const pw = ((W + 2 * SLUG) * 72) / BIZCARD_DPI
   const ph = ((H + 2 * SLUG) * 72) / BIZCARD_DPI
   const pt = (px: number) => (px * 72) / BIZCARD_DPI
@@ -586,7 +673,6 @@ function pdfPage(jpeg: Buffer, label: string, imgName: string) {
     marks.push(`0 ${Y(y).toFixed(2)} m ${(s - gapPt).toFixed(2)} ${Y(y).toFixed(2)} l S`)
     marks.push(`${(pw - s + gapPt).toFixed(2)} ${Y(y).toFixed(2)} m ${pw.toFixed(2)} ${Y(y).toFixed(2)} l S`)
   }
-  const safeLabel = label.replace(/[()\\]/g, '')
   const content = [
     'q',
     `${iw.toFixed(3)} 0 0 ${ih.toFixed(3)} ${s.toFixed(3)} ${s.toFixed(3)} cm`,
@@ -594,7 +680,6 @@ function pdfPage(jpeg: Buffer, label: string, imgName: string) {
     'Q',
     '0 0 0 1 K 0.25 w',
     ...marks,
-    `BT /F1 4.3 Tf 0 0 0 1 k ${(s + pt(60)).toFixed(2)} ${(s / 2 - 2).toFixed(2)} Td (${safeLabel}) Tj ET`,
   ].join('\n')
   return {
     pw, ph, content,
@@ -603,32 +688,64 @@ function pdfPage(jpeg: Buffer, label: string, imgName: string) {
   }
 }
 
-/** Two-page CMYK print PDF: front, back. Trim/Bleed boxes plus crop marks. */
-export async function buildBizcardPrintPdf(input: { front: Buffer; back: Buffer; label: string }) {
-  const toCmyk = (png: Buffer) => sharp(png).toColourspace('cmyk').jpeg({ quality: 95, chromaSubsampling: '4:4:4' }).toBuffer()
-  const jpegs = [await toCmyk(input.front), await toCmyk(input.back)]
-  const pages = [
-    pdfPage(jpegs[0], `${input.label} FRONT  3.5x2 in trim, 0.125 in bleed, 300 dpi CMYK`, 'Im0'),
-    pdfPage(jpegs[1], `${input.label} BACK  3.5x2 in trim, 0.125 in bleed, 300 dpi CMYK`, 'Im1'),
-  ]
+/** Source pixels this dark print as rich black (Minuteman: 100/100/100/100). */
+export const BIZCARD_RICH_BLACK_MAX_RGB = 24
+/** Total ink cap for everything else, in percent. */
+export const BIZCARD_TAC_LIMIT = 300
+
+/**
+ * sRGB -> CMYK for press. Near-black becomes 100/100/100/100; every other pixel is
+ * held to 300% total ink by pulling C, M and Y down evenly (K is kept for detail).
+ */
+export async function toPressCmyk(png: Buffer) {
+  const rgb = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true })
+  const cmyk = await sharp(png).removeAlpha().toColourspace('cmyk').raw().toBuffer({ resolveWithObject: true })
+  const src = rgb.data
+  const d = Buffer.from(cmyk.data)
+  const cap = (BIZCARD_TAC_LIMIT / 100) * 255
+  for (let i = 0, j = 0; i < src.length; i += 3, j += 4) {
+    if (src[i] <= BIZCARD_RICH_BLACK_MAX_RGB && src[i + 1] <= BIZCARD_RICH_BLACK_MAX_RGB && src[i + 2] <= BIZCARD_RICH_BLACK_MAX_RGB) {
+      d[j] = 255; d[j + 1] = 255; d[j + 2] = 255; d[j + 3] = 255
+      continue
+    }
+    const total = d[j] + d[j + 1] + d[j + 2] + d[j + 3]
+    if (total > cap) {
+      const cmy = d[j] + d[j + 1] + d[j + 2]
+      const f = Math.max(0, (cap - d[j + 3]) / cmy)
+      d[j] = Math.floor(d[j] * f); d[j + 1] = Math.floor(d[j + 1] * f); d[j + 2] = Math.floor(d[j + 2] * f)
+    }
+  }
+  return { data: d, width: cmyk.info.width, height: cmyk.info.height }
+}
+
+/** Lossless DeviceCMYK plate (Flate), so rich black and the ink cap land exactly as computed. */
+async function pressPlate(png: Buffer) {
+  const c = await toPressCmyk(png)
+  return deflateSync(c.data, { level: 9 })
+}
+
+/** Two-page CMYK print PDF: front, back. Trim/Bleed boxes plus crop marks; no text in the file. */
+export async function buildBizcardPrintPdf(input: { front: Buffer; back: Buffer }) {
+  const jpegs = [await pressPlate(input.front), await pressPlate(input.back)]
+  const pages = [pdfPage('Im0'), pdfPage('Im1')]
   const objects: Buffer[] = []
   const add = (b: Buffer | string) => { objects.push(typeof b === 'string' ? Buffer.from(b, 'latin1') : b); return objects.length }
   // 1 catalog, 2 pages, 3 font, then per page: image, content, page
   add('<< /Type /Catalog /Pages 2 0 R >>')
   add('') // placeholder for pages
-  add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>')
+  add('<< /Producer (Sparkle Suite) >>') // object 3 kept so numbering stays stable
   const kids: number[] = []
   pages.forEach((p, i) => {
     const jpg = jpegs[i]
-    // libvips writes Adobe CMYK JPEGs inverted; Decode flips them back.
+    // Raw ink values (0 = none, 255 = 100%), deflated.
     const img = add(Buffer.concat([
-      Buffer.from(`<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceCMYK /BitsPerComponent 8 /Filter /DCTDecode /Decode [1 0 1 0 1 0 1 0] /Length ${jpg.length} >>\nstream\n`, 'latin1'),
+      Buffer.from(`<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceCMYK /BitsPerComponent 8 /Filter /FlateDecode /Length ${jpg.length} >>\nstream\n`, 'latin1'),
       jpg,
       Buffer.from('\nendstream', 'latin1'),
     ]))
     const content = add(`<< /Length ${Buffer.byteLength(p.content, 'latin1')} >>\nstream\n${p.content}\nendstream`)
     const box = (a: number[]) => `[${a.map((v) => v.toFixed(3)).join(' ')}]`
-    kids.push(add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${p.pw.toFixed(3)} ${p.ph.toFixed(3)}] /BleedBox ${box(p.bleed)} /TrimBox ${box(p.trim)} /Resources << /XObject << /Im${i} ${img} 0 R >> /Font << /F1 3 0 R >> >> /Contents ${content} 0 R >>`))
+    kids.push(add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${p.pw.toFixed(3)} ${p.ph.toFixed(3)}] /BleedBox ${box(p.bleed)} /TrimBox ${box(p.trim)} /Resources << /XObject << /Im${i} ${img} 0 R >> >> /Contents ${content} 0 R >>`))
   })
   objects[1] = Buffer.from(`<< /Type /Pages /Kids [${kids.map((k) => `${k} 0 R`).join(' ')}] /Count ${kids.length} >>`, 'latin1')
   const chunks: Buffer[] = [Buffer.from('%PDF-1.4\n%\xe2\xe3\xcf\xd3\n', 'latin1')]
