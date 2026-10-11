@@ -24,7 +24,7 @@ import {
   resolveBizcard,
   type BizcardKey,
 } from '@/lib/workspace/card-qr/bizcard-themes'
-import { bizcardName, bizcardSocialHandle, bizcardWebsite } from '@/lib/workspace/card-qr/bizcard-copy'
+import { bizcardName, bizcardSocial, bizcardSocialHandle, bizcardWebsite } from '@/lib/workspace/card-qr/bizcard-copy'
 import { CARD_QR_SHARED_FLYER_THEMES, flyerTextLinkLine } from '@/lib/workspace/card-qr/flyer-copy'
 
 const URL = 'https://sparkle-suite-smoke.vercel.app/q/1aWLyw'
@@ -93,6 +93,13 @@ describe('card copy', () => {
     expect(bizcardName('Louis Chapman')).toBe('Louis Chapman')
     expect(bizcardSocialHandle({ facebook: 'https://facebook.com/groups/123', instagram: 'https://instagram.com/dudesfizzfest/' })).toBe('@dudesfizzfest')
     expect(bizcardSocialHandle({ tiktok: '@fizz.queen' })).toBe('@fizz.queen')
+    expect(bizcardSocialHandle({ tiktok: '@@fizz.queen' })).toBe('@fizz.queen')
+    const both = { instagram: 'https://instagram.com/ig.me/', tiktok: 'https://www.tiktok.com/@tt.me' }
+    expect(bizcardSocial(both, 'tiktok')).toEqual({ handle: '@tt.me', platform: 'tiktok' })
+    expect(bizcardSocial(both, 'instagram')).toEqual({ handle: '@ig.me', platform: 'instagram' })
+    // Chosen platform empty: fall back, and the mark follows the handle shown.
+    expect(bizcardSocial({ instagram: '@ig.me' }, 'youtube')).toEqual({ handle: '@ig.me', platform: 'instagram' })
+    expect(bizcardSocial({}, 'tiktok')).toEqual({ handle: '', platform: '' })
     expect(bizcardWebsite('www.DudesFizzfest.com')).toBe('dudesfizzfest.com')
     expect(bizcardWebsite(null)).toBe('')
     expect(bizcardWebsite('')).toBe('')
@@ -126,6 +133,19 @@ describe('card render', () => {
     const off = await renderBizcardBack({ key: 'amethyst', qrUrl: URL, qrIcon: 'none', fields: { ...ALL, website: false }, ...REP })
     expect(none.png.equals(off.png)).toBe(true)
   }, 30_000)
+
+  it('draws the chosen platform mark instead of the generic @ icon', async () => {
+    const base = { key: 'amethyst' as const, qrUrl: URL, qrIcon: 'none' as const, fields: ALL, ...REP }
+    const at = await renderBizcardBack(base)
+    const pngs = [at.png]
+    for (const socialPlatform of ['tiktok', 'instagram', 'facebook', 'youtube']) {
+      const r = await renderBizcardBack({ ...base, socialPlatform })
+      expect(pngs.some((p) => p.equals(r.png))).toBe(false)
+      pngs.push(r.png)
+    }
+    const unknown = await renderBizcardBack({ ...base, socialPlatform: 'myspace' })
+    expect(unknown.png.equals(at.png)).toBe(true)
+  }, 60_000)
 
   it('drops the text line when no number was entered', async () => {
     const withNumber = await renderBizcardBack({ key: 'amethyst', qrUrl: URL, qrIcon: 'none', fields: ALL, ...REP })

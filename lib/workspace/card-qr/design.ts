@@ -55,6 +55,19 @@ const LEGACY_CARD_QR_ICONS: Record<string, CardQrIcon> = {
   unicorn: 'unicorn-two-tone',
 }
 
+/** Platforms the card back can show a brand mark for (Louis, Oct 11). */
+export const CARD_QR_SOCIAL_PLATFORMS = ['tiktok', 'instagram', 'facebook', 'youtube'] as const
+export type CardQrSocialPlatform = (typeof CARD_QR_SOCIAL_PLATFORMS)[number]
+export const CARD_QR_SOCIAL_PLATFORM_LABELS: Record<CardQrSocialPlatform, string> = {
+  tiktok: 'TikTok',
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+  youtube: 'YouTube',
+}
+export function parseCardQrSocialPlatform(value: unknown): CardQrSocialPlatform | null {
+  return CARD_QR_SOCIAL_PLATFORMS.includes(value as CardQrSocialPlatform) ? (value as CardQrSocialPlatform) : null
+}
+
 export interface CardQrDesign {
   templateId: CardQrTemplateId
   fields: CardQrFields
@@ -62,6 +75,8 @@ export interface CardQrDesign {
   qrIcon: CardQrIcon
   /** Entered by the rep. Never filled from the account phone. Empty = no text line. */
   textLinkNumber: string
+  /** Which handle (and brand mark) the card back shows. */
+  socialPlatform: CardQrSocialPlatform
 }
 
 export const DEFAULT_CARD_QR_DESIGN: CardQrDesign = {
@@ -78,6 +93,7 @@ export const DEFAULT_CARD_QR_DESIGN: CardQrDesign = {
   discountCode: '',
   qrIcon: 'none',
   textLinkNumber: '',
+  socialPlatform: 'tiktok',
 }
 
 export function parseCardQrIcon(value: unknown): CardQrIcon | null {
@@ -160,6 +176,7 @@ export function parseCardQrDesign(value: unknown): CardQrDesign {
     discountCode: cleanDiscountCode(record.discountCode),
     qrIcon: parseCardQrIcon(record.qrIcon) ?? DEFAULT_CARD_QR_DESIGN.qrIcon,
     textLinkNumber: cleanTextLinkNumber(record.textLinkNumber),
+    socialPlatform: parseCardQrSocialPlatform(record.socialPlatform) ?? DEFAULT_CARD_QR_DESIGN.socialPlatform,
   }
 }
 

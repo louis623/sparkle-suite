@@ -29,15 +29,16 @@ interface ProfileRow {
   show_website?: boolean | null
   show_text_link?: boolean | null
   text_link_number?: string | null
+  social_platform?: string | null
 }
 
-const CARD_COLUMNS = 'qr_icon, show_website, show_text_link, text_link_number'
+const CARD_COLUMNS = 'qr_icon, show_website, show_text_link, text_link_number, social_platform'
 
 /** The 2026-10-09 business card columns are missing (migration not applied yet). */
 export function isMissingCardColumn(error: { code?: string; message?: string } | null) {
   if (!error) return false
   const message = error.message ?? ''
-  if (!/show_website|show_text_link|text_link_number/i.test(message)) return false
+  if (!/show_website|show_text_link|text_link_number|social_platform/i.test(message)) return false
   return error.code === '42703' || error.code === 'PGRST204' || /column|schema cache/i.test(message)
 }
 
@@ -82,6 +83,7 @@ function rowToProfile(row: ProfileRow): CardQrProfileRecord {
       },
       qrIcon: row.qr_icon,
       textLinkNumber: row.text_link_number ?? '',
+      socialPlatform: row.social_platform ?? undefined,
     }),
     updatedAt: row.updated_at,
     persistence: 'database',
@@ -164,6 +166,7 @@ export async function saveCardQrProfile(
         show_website: input.design.fields.website,
         show_text_link: input.design.fields.textLink,
         text_link_number: input.design.textLinkNumber || null,
+        social_platform: input.design.socialPlatform,
       },
       { onConflict: 'rep_id' },
     )

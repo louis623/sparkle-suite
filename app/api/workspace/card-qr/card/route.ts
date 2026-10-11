@@ -13,7 +13,7 @@ import {
 import {
   bizcardFrontCopy,
   bizcardName,
-  bizcardSocialHandle,
+  bizcardSocial,
   bizcardWebsite,
 } from '@/lib/workspace/card-qr/bizcard-copy'
 import {
@@ -70,6 +70,7 @@ export async function POST(request: Request) {
     const front = output === 'back'
       ? null
       : await renderBizcardFront({ key, ...bizcardFrontCopy({ ...context.settings, fullName }) })
+    const social = bizcardSocial(context.settings.socialHandles, design.socialPlatform)
     const back = output === 'front'
       ? null
       : await renderBizcardBack({
@@ -81,7 +82,8 @@ export async function POST(request: Request) {
           email: context.settings.email,
           website: bizcardWebsite(context.customDomain),
           textLinkNumber: design.textLinkNumber,
-          social: bizcardSocialHandle(context.settings.socialHandles),
+          social: social.handle,
+          socialPlatform: social.platform,
         })
     if (back) {
       const t = back.layout.tile

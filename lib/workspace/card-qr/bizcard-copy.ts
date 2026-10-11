@@ -4,8 +4,21 @@ import { flyerFirstName } from '@/lib/workspace/card-qr/flyer-copy'
 
 /** One handle for the card. Instagram, then TikTok, then the rest. Links become @handle. */
 export function bizcardSocialHandle(handles: Record<string, string | null | undefined> | null | undefined) {
+  return bizcardSocial(handles).handle
+}
+
+/**
+ * The handle plus the platform it came from. The rep's chosen platform goes first;
+ * if that one is empty we fall back, and the mark follows the handle actually shown
+ * so the icon never mislabels it. One leading @ only.
+ */
+export function bizcardSocial(
+  handles: Record<string, string | null | undefined> | null | undefined,
+  preferred?: string,
+): { handle: string; platform: string } {
   const all = handles ?? {}
-  const order = ['instagram', 'tiktok', ...SOCIAL_HERO_ORDER.filter((p) => p !== 'instagram' && p !== 'tiktok')]
+  const base = ['instagram', 'tiktok', ...SOCIAL_HERO_ORDER.filter((p) => p !== 'instagram' && p !== 'tiktok')]
+  const order = preferred ? [preferred, ...base.filter((p) => p !== preferred)] : base
   for (const platform of order) {
     const raw = all[platform]?.trim()
     if (!raw) continue
@@ -15,10 +28,10 @@ export function bizcardSocialHandle(handles: Record<string, string | null | unde
       .replace(/\/+$/, '')
       .split('/')
       .pop()
-      ?.replace(/^@/, '')
-    if (seg && /^[A-Za-z0-9._]{1,30}$/.test(seg) && !/\.(com|net|org)$/i.test(seg)) return `@${seg}`
+      ?.replace(/^@+/, '')
+    if (seg && /^[A-Za-z0-9._]{1,30}$/.test(seg) && !/\.(com|net|org)$/i.test(seg)) return { handle: `@${seg}`, platform }
   }
-  return ''
+  return { handle: '', platform: '' }
 }
 
 /** Custom domain only (Louis, Oct 8): no custom domain means no website line. */

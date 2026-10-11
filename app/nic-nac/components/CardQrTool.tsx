@@ -13,6 +13,9 @@ import {
 import {
   CARD_QR_ICONS,
   CARD_QR_ICON_LABELS,
+  CARD_QR_SOCIAL_PLATFORMS,
+  CARD_QR_SOCIAL_PLATFORM_LABELS,
+  parseCardQrSocialPlatform,
   DEFAULT_CARD_QR_DESIGN,
   cleanTextLinkNumber,
   parseCardQrDesign,
@@ -109,7 +112,7 @@ export function CardQrTool({
     () => (origin && repId ? buildCardQrShortUrl(origin, repId) : null),
     [origin, repId],
   )
-  const cardKey = JSON.stringify({ hasCustomDomain, fields: design.fields, qrIcon, textLinkNumber, appearancePreset, displayName, businessName, email, socialHandles })
+  const cardKey = JSON.stringify({ hasCustomDomain, fields: design.fields, qrIcon, textLinkNumber, socialPlatform: design.socialPlatform, appearancePreset, displayName, businessName, email, socialHandles })
 
   useEffect(() => {
     if (!destinationUrl) return
@@ -606,6 +609,28 @@ export function CardQrTool({
             </button>
           ))}
         </div>
+        {design.fields.social ? (
+          <label className={styles.textLinkField}>
+            <span className={styles.textLinkLabel}>Social platform</span>
+            <select
+              className={styles.textLinkInput}
+              value={design.socialPlatform}
+              onChange={(event) => {
+                const next = parseCardQrSocialPlatform(event.target.value)
+                if (next && next !== design.socialPlatform) saveDesign({ ...design, socialPlatform: next })
+              }}
+            >
+              {CARD_QR_SOCIAL_PLATFORMS.map((platform) => (
+                <option key={platform} value={platform}>{CARD_QR_SOCIAL_PLATFORM_LABELS[platform]}</option>
+              ))}
+            </select>
+            <span className={styles.spec}>
+              {socialHandles && !String(socialHandles[design.socialPlatform] ?? '').trim()
+                ? `Add your ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} link in Site settings to show it. Until then the card uses another handle you have, with that app's icon.`
+                : `Your ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} handle shows on the back with the ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} icon.`}
+            </span>
+          </label>
+        ) : null}
         {!hasCustomDomain ? (
           <p className={styles.spec}>Website shows on the card once your site has its own domain.</p>
         ) : null}
