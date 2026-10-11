@@ -333,7 +333,15 @@ describe('Cards & QR smoke locks', () => {
     expect(html).toContain('Making your card…')
     expect(html).toContain('Download print PDF')
     expect(toolSource).toContain('/api/workspace/card-qr/card')
-    expect(toolSource).not.toMatch(/\.phone\b|phone:/)
+    // The text-to-link number is never copied from the account phone. The only phone the tool
+    // reads is the optional phone the rep types into her own shipping address (Oct 11).
+    expect(toolSource.replace(/shipAddress!?\.phone/g, '')).not.toMatch(/\.phone\b|phone:/)
+    expect(toolSource).not.toMatch(/setTextLinkDraft\([^)]*phone/i)
+    expect(html).toContain('Shipping address')
+    expect(html).toContain('Approve your proof')
+    expect(html).toContain('I scanned the QR code with my phone and it opened my site.')
+    expect(html).toMatch(/To order, save your shipping address, confirm your card details and confirm you scanned the QR\./)
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Checkout/)
     expect(html).toContain('QR flyer')
     expect(html).toContain('Business cards')
     expect(html).toContain('https://sparkle-suite-smoke.vercel.app/fizzfest')

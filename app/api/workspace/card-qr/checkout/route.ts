@@ -1,3 +1,7 @@
+import { readCardQrProofApproval, isCompleteCardQrShipAddress } from '@/lib/workspace/card-qr/ship-address'
+import { readCardQrShipAddress } from '@/lib/workspace/card-qr/ship-address-store'
+import { renderCardQrCardFiles } from '@/lib/workspace/card-qr/card-files'
+import { recordPendingCardQrOrder, storeCardQrProofFiles } from '@/lib/workspace/card-qr/proof-snapshot'
 import { readCardQrDesignTheme } from '@/lib/workspace/card-qr/design-theme'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
@@ -36,7 +40,7 @@ export async function POST(request: Request) {
       })
     }
     const record = body && typeof body === 'object'
-      ? (body as { design?: unknown; appearancePreset?: unknown; theme?: unknown })
+      ? (body as { design?: unknown; appearancePreset?: unknown; theme?: unknown; approval?: unknown })
       : {}
     const design = parseCardQrDesign(record.design)
     const override = readCardQrDesignTheme(record.theme, context.settings.appearancePreset)
@@ -44,6 +48,38 @@ export async function POST(request: Request) {
       typeof record.appearancePreset === 'string'
         ? record.appearancePreset
         : context.settings.appearancePreset)
+    // Gate (Louis, Oct 11): a saved US address and both proof approvals, checked on the server.
+    const approval = readCardQrProofApproval(record.approval)
+    if (!approval.detailsConfirmed || !approval.qrScanned) {
+      throw new ServiceError({
+        code: 'CARD_QR_PROOF_NOT_APPROVED',
+        message: 'Checkout needs both proof approvals.',
+        userMessage: 'Check both proof boxes before ordering.',
+        statusCode: 409,
+      })
+    }
+    const saved = await readCardQrShipAddress(context.supabase, context.repId)
+    if (!saved.address || !isCompleteCardQrShipAddress(saved.address)) {
+      throw new ServiceError({
+        code: 'CARD_QR_ADDRESS_REQUIRED',
+        message: 'Checkout needs a saved shipping address.',
+        userMessage: 'Save your shipping address before ordering.',
+        statusCode: 409,
+      })
+    }
+    // Snapshot exactly what was approved, with the same renderer as the preview and PDF.
+    const files = await renderCardQrCardFiles(context, design, record.theme, 'pdf')
+    if (files.status !== 'ok' || !files.pdf || !files.front || !files.back) {
+      throw new ServiceError({
+        code: 'CARD_QR_PROOF_RENDER_FAILED',
+        message: `Proof render returned ${files.status}.`,
+        userMessage:
+          files.status === 'too_full' ? files.warnings[files.warnings.length - 1] ?? 'Your card is too full to print.' : 'We could not make your print proof. Nothing was charged.',
+        statusCode: 422,
+      })
+    }
+    const approvedAt = new Date().toISOString()
+    const proof = await storeCardQrProofFiles(context.repId, { pdf: files.pdf, front: files.front, back: files.back })
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
       apiVersion: '2026-03-25.dahlia',
       typescript: true,
@@ -67,6 +103,18 @@ export async function POST(request: Request) {
         statusCode: 403,
       })
     }
+    await recordPendingCardQrOrder({
+      repId: context.repId,
+      quantity,
+      checkoutSessionId: session.id,
+      destinationUrl: context.destinationUrl,
+      design,
+      designTheme: override ?? 'site',
+      address: saved.address,
+      approval,
+      approvedAt,
+      proof,
+    })
     return NextResponse.json({ url: session.url })
   } catch (error) {
     return cardQrErrorResponse(error)

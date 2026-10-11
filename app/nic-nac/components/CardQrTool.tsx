@@ -40,6 +40,14 @@ import {
   type CardQrDesignThemeOption,
 } from '@/lib/workspace/card-qr/design-theme'
 import type { BizcardKey } from '@/lib/workspace/card-qr/bizcard-themes'
+import {
+  EMPTY_CARD_QR_SHIP_ADDRESS,
+  cardQrOrderBlockers,
+  cardQrShipAddressSummary,
+  validateCardQrShipAddress,
+  type CardQrShipAddress,
+  type CardQrShipAddressErrors,
+} from '@/lib/workspace/card-qr/ship-address'
 import styles from './CardQrTool.module.css'
 
 const CARD_BACK_TOGGLES: Array<[keyof CardQrFields, string]> = [
@@ -184,6 +192,13 @@ export function CardQrTool({
   const [designTheme, setDesignTheme] = useState<string>(CARD_QR_DESIGN_THEME_SITE)
   const [siteCardKey, setSiteCardKey] = useState<BizcardKey | null>(null)
   const [themeOpen, setThemeOpen] = useState(false)
+  const [shipAddress, setShipAddress] = useState<CardQrShipAddress | null>(null)
+  const [addressDraft, setAddressDraft] = useState<CardQrShipAddress>(EMPTY_CARD_QR_SHIP_ADDRESS)
+  const [addressEditing, setAddressEditing] = useState(false)
+  const [addressErrors, setAddressErrors] = useState<CardQrShipAddressErrors>({})
+  const [addressMessage, setAddressMessage] = useState<string | null>(null)
+  const [detailsConfirmedAt, setDetailsConfirmedAt] = useState<string | null>(null)
+  const [qrScannedAt, setQrScannedAt] = useState<string | null>(null)
   const qrIcon = design.qrIcon
   const textLinkNumber = design.textLinkNumber
   /** The flyer only carries the number when its own checkbox is on. */
@@ -381,6 +396,26 @@ export function CardQrTool({
   }, [])
 
   useEffect(() => {
+    const controller = new AbortController()
+    void fetch('/api/workspace/card-qr/address', { credentials: 'same-origin', signal: controller.signal })
+      .then(async (response) => (response.ok ? response.json() : null))
+      .then((body) => {
+        if (controller.signal.aborted) return
+        if (body?.address) {
+          setShipAddress(body.address as CardQrShipAddress)
+          setAddressDraft(body.address as CardQrShipAddress)
+        }
+      })
+      .catch(() => {})
+    return () => controller.abort()
+  }, [])
+
+  // A changed card is a new proof: the rep re-approves what will print.
+  useEffect(() => {
+    setDetailsConfirmedAt(null)
+  }, [cardKey])
+
+  useEffect(() => {
     setOrigin(window.location.origin)
     const params = new URLSearchParams(window.location.search)
     if (params.get('cardOrder') === 'cancelled') {
@@ -496,6 +531,36 @@ export function CardQrTool({
     downloadBlob(bytes, `sparkle-qr-flyer.${extension}`)
   }
 
+  async function saveAddress() {
+    const checked = validateCardQrShipAddress(addressDraft)
+    setAddressErrors(checked.errors)
+    setAddressMessage(null)
+    if (Object.keys(checked.errors).length) return
+    setBusy('address')
+    try {
+      const response = await fetch('/api/workspace/card-qr/address', {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: checked.address }),
+      })
+      const body = await response.json().catch(() => null)
+      if (!response.ok) {
+        if (body?.fields) setAddressErrors(body.fields as CardQrShipAddressErrors)
+        throw new Error(body?.error || 'Could not save your address.')
+      }
+      const saved = (body?.address ?? checked.address) as CardQrShipAddress
+      setShipAddress(saved)
+      setAddressDraft(saved)
+      setAddressEditing(false)
+      setAddressMessage('Saved to your profile.')
+    } catch (error) {
+      setAddressMessage(error instanceof Error ? error.message : 'Could not save your address.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
   async function startCheckout() {
     setBusy('checkout')
     setStatus(null)
@@ -503,7 +568,12 @@ export function CardQrTool({
       const response = await fetch('/api/workspace/card-qr/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantity, design, theme: designTheme }),
+        body: JSON.stringify({
+          quantity,
+          design,
+          theme: designTheme,
+          approval: { detailsConfirmed: Boolean(detailsConfirmedAt), qrScanned: Boolean(qrScannedAt), detailsConfirmedAt, qrScannedAt },
+        }),
       })
       if (!response.ok) throw new Error(await readError(response))
       const body = await response.json()
@@ -516,6 +586,24 @@ export function CardQrTool({
   }
 
   const savedNumber = textLinkNumber
+  const orderBlockers = cardQrOrderBlockers({ addressSaved: Boolean(shipAddress), detailsConfirmed: Boolean(detailsConfirmedAt), qrScanned: Boolean(qrScannedAt) })
+  const showAddressForm = !shipAddress || addressEditing
+  const addressField = (key: keyof CardQrShipAddress, label: string, opts: { auto: string; optional?: boolean; wide?: boolean; max?: number; mode?: 'tel' | 'numeric' | 'text'; upper?: boolean; placeholder?: string }) => (
+    <label className={`${styles.field} ${opts.wide ? styles.addrWide : ''}`}>
+      <span className={styles.fieldLabel}>{label}{opts.optional ? <span className={styles.fieldOptional}> (optional)</span> : null}</span>
+      <input
+        className={styles.input}
+        autoComplete={opts.auto}
+        inputMode={opts.mode}
+        maxLength={opts.max ?? 100}
+        placeholder={opts.placeholder}
+        aria-invalid={Boolean(addressErrors[key]) || undefined}
+        value={addressDraft[key]}
+        onChange={(event) => setAddressDraft((d) => ({ ...d, [key]: opts.upper ? event.target.value.toUpperCase() : event.target.value }))}
+      />
+      {addressErrors[key] ? <span className={styles.fieldError}>{addressErrors[key]}</span> : null}
+    </label>
+  )
   const draftClean = cleanTextLinkNumber(textLinkDraft)
   const numberDirty = draftClean !== savedNumber
 
@@ -689,12 +777,19 @@ export function CardQrTool({
                   // The PNG is fetched with the signed-in session, then shown from a local object URL.
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={qrObjectUrl} alt="QR code for your Suite customer site" />
+
                 ) : (
                   <p className={styles.hint}>
                     {destinationUrl ? 'Loading QR…' : 'QR appears when the site address is ready.'}
                   </p>
                 )}
               </div>
+              {qrObjectUrl ? (
+                <p className={styles.scanNote}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.9"/><path d="M10 18.5h4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"/></svg>
+                  <span><strong>Scan this now</strong> with your phone camera. It should open your site.</span>
+                </p>
+              ) : null}
             </div>
           </div>
         </section>
@@ -893,6 +988,90 @@ export function CardQrTool({
             has both sides in CMYK with crop marks. Your card follows your site theme and fonts.
           </p>
 
+          <div className={styles.subPanel} aria-labelledby="card-qr-ship-label">
+            <div className={styles.subHead}>
+              <p className={styles.subTitle} id="card-qr-ship-label">Shipping address</p>
+              <p className={styles.hint}>Save it once. You only need to edit it if you move. US addresses only.</p>
+            </div>
+            {showAddressForm ? (
+              <form
+                className={styles.addrGrid}
+                noValidate
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  void saveAddress()
+                }}
+              >
+                {addressField('name', 'Name', { auto: 'name', wide: true, max: 80 })}
+                {addressField('street1', 'Street address', { auto: 'address-line1', wide: true })}
+                {addressField('street2', 'Apt, suite, unit', { auto: 'address-line2', wide: true, optional: true })}
+                {addressField('city', 'City', { auto: 'address-level2', max: 60 })}
+                <div className={styles.addrPair}>
+                  {addressField('state', 'State', { auto: 'address-level1', max: 2, upper: true, placeholder: 'TX' })}
+                  {addressField('zip', 'ZIP', { auto: 'postal-code', max: 10, mode: 'numeric', placeholder: '78701' })}
+                </div>
+                {addressField('phone', 'Phone', { auto: 'tel', optional: true, max: 24, mode: 'tel' })}
+                <div className={`${styles.actions} ${styles.addrWide}`}>
+                  <button type="submit" className={`${styles.button} ${styles.buttonPrimary}`} disabled={busy === 'address'}>
+                    {busy === 'address' ? 'Saving…' : 'Save address'}
+                  </button>
+                  {shipAddress ? (
+                    <button
+                      type="button"
+                      className={styles.button}
+                      onClick={() => {
+                        setAddressDraft(shipAddress)
+                        setAddressErrors({})
+                        setAddressEditing(false)
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  ) : null}
+                </div>
+              </form>
+            ) : (
+              <div className={styles.shipSummary}>
+                <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.shipIcon}><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><circle cx="7" cy="17.5" r="1.7" fill="currentColor"/><circle cx="17.5" cy="17.5" r="1.7" fill="currentColor"/></svg>
+                <p className={styles.shipText}>
+                  <strong>Ship to:</strong> {cardQrShipAddressSummary(shipAddress!)}
+                  {shipAddress!.phone ? <span className={styles.shipPhone}> · {shipAddress!.phone}</span> : null}
+                </p>
+                <button type="button" className={styles.button} onClick={() => { setAddressEditing(true); setAddressMessage(null) }}>
+                  Edit
+                </button>
+              </div>
+            )}
+            {addressMessage ? <p className={styles.hint} role="status">{addressMessage}</p> : null}
+          </div>
+
+          <div className={styles.subPanel} aria-labelledby="card-qr-proof-label">
+            <div className={styles.subHead}>
+              <p className={styles.subTitle} id="card-qr-proof-label">Approve your proof</p>
+              <p className={styles.hint}>The cards print exactly like the preview above. We save this proof with your order.</p>
+            </div>
+            <div className={styles.proofChecks}>
+              <label className={styles.check}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(detailsConfirmedAt)}
+                  onChange={(event) => setDetailsConfirmedAt(event.target.checked ? new Date().toISOString() : null)}
+                />
+                <span className={styles.checkBox} aria-hidden="true" />
+                <span className={styles.checkText}>I&apos;ve checked my name, spelling, phone number and details, and want these printed exactly as shown.</span>
+              </label>
+              <label className={styles.check}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(qrScannedAt)}
+                  onChange={(event) => setQrScannedAt(event.target.checked ? new Date().toISOString() : null)}
+                />
+                <span className={styles.checkBox} aria-hidden="true" />
+                <span className={styles.checkText}>I scanned the QR code with my phone and it opened my site.</span>
+              </label>
+            </div>
+          </div>
+
           <div className={styles.order}>
             <div>
               <p className={styles.fieldLabel} id="card-qr-pack-label">Order printed cards</p>
@@ -919,11 +1098,20 @@ export function CardQrTool({
               <button
                 type="button"
                 className={`${styles.button} ${styles.buttonPrimary}`}
-                disabled={!destinationUrl || busy === 'checkout' || Boolean(cardPending)}
+                disabled={!destinationUrl || busy === 'checkout' || Boolean(cardPending) || orderBlockers.length > 0}
+                aria-describedby="card-qr-order-hint"
                 onClick={startCheckout}
               >
                 {busy === 'checkout' ? 'Opening checkout…' : `Checkout ${CARD_QR_PACKS[quantity].priceLabel}`}
               </button>
+              {orderBlockers.length ? (
+                <p className={styles.lockHint} id="card-qr-order-hint" role="status">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="1.9"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" strokeWidth="1.9"/></svg>
+                  To order, {orderBlockers.join(', ').replace(/, ([^,]*)$/, ' and $1')}.
+                </p>
+              ) : (
+                <p className={styles.readyHint} id="card-qr-order-hint" role="status">Ready to order. Your approved proof is saved with the order.</p>
+              )}
               <p className={styles.hint}>
                 After payment, Smoke shows the order-received note. Minuteman fulfillment
                 stays a manual ops step in this version.
