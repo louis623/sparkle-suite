@@ -17,8 +17,10 @@ export interface CardQrFields {
   social: boolean
   /** Business card back: website line. */
   website: boolean
-  /** Business card back + flyer: the rep's text-to-link number. */
+  /** Business card back: the rep's text-to-link number (checkbox in the card section). */
   textLink: boolean
+  /** QR flyer: the rep's text-to-link number (checkbox in the flyer section). */
+  flyerTextLink: boolean
 }
 
 export const CARD_QR_ICONS = [
@@ -88,7 +90,8 @@ export const DEFAULT_CARD_QR_DESIGN: CardQrDesign = {
     discount: false,
     social: true,
     website: true,
-    textLink: true,
+    textLink: false,
+    flyerTextLink: false,
   },
   discountCode: '',
   qrIcon: 'none',
@@ -172,6 +175,7 @@ export function parseCardQrDesign(value: unknown): CardQrDesign {
       social: readFlag('social', DEFAULT_CARD_QR_DESIGN.fields.social),
       website: readFlag('website', DEFAULT_CARD_QR_DESIGN.fields.website),
       textLink: readFlag('textLink', DEFAULT_CARD_QR_DESIGN.fields.textLink),
+      flyerTextLink: readFlag('flyerTextLink', DEFAULT_CARD_QR_DESIGN.fields.flyerTextLink),
     },
     discountCode: cleanDiscountCode(record.discountCode),
     qrIcon: parseCardQrIcon(record.qrIcon) ?? DEFAULT_CARD_QR_DESIGN.qrIcon,

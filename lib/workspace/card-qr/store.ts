@@ -30,15 +30,16 @@ interface ProfileRow {
   show_text_link?: boolean | null
   text_link_number?: string | null
   social_platform?: string | null
+  show_flyer_text_link?: boolean | null
 }
 
-const CARD_COLUMNS = 'qr_icon, show_website, show_text_link, text_link_number, social_platform'
+const CARD_COLUMNS = 'qr_icon, show_website, show_text_link, text_link_number, social_platform, show_flyer_text_link'
 
 /** The 2026-10-09 business card columns are missing (migration not applied yet). */
 export function isMissingCardColumn(error: { code?: string; message?: string } | null) {
   if (!error) return false
   const message = error.message ?? ''
-  if (!/show_website|show_text_link|text_link_number|social_platform/i.test(message)) return false
+  if (!/show_website|show_text_link|text_link_number|social_platform|show_flyer_text_link/i.test(message)) return false
   return error.code === '42703' || error.code === 'PGRST204' || /column|schema cache/i.test(message)
 }
 
@@ -80,6 +81,7 @@ function rowToProfile(row: ProfileRow): CardQrProfileRecord {
         social: row.show_social,
         website: row.show_website ?? undefined,
         textLink: row.show_text_link ?? undefined,
+        flyerTextLink: row.show_flyer_text_link ?? undefined,
       },
       qrIcon: row.qr_icon,
       textLinkNumber: row.text_link_number ?? '',
@@ -165,6 +167,7 @@ export async function saveCardQrProfile(
         qr_icon: input.design.qrIcon,
         show_website: input.design.fields.website,
         show_text_link: input.design.fields.textLink,
+        show_flyer_text_link: input.design.fields.flyerTextLink,
         text_link_number: input.design.textLinkNumber || null,
         social_platform: input.design.socialPlatform,
       },

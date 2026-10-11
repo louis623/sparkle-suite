@@ -76,7 +76,7 @@ describe('text-to-link number', () => {
     expect(cleanTextLinkNumber('call me <b>')).toBe('')
     expect(cleanTextLinkNumber(42)).toBe('')
     expect(parseCardQrDesign({ textLinkNumber: '5552014410' }).textLinkNumber).toBe('(555) 201-4410')
-    expect(parseCardQrDesign({}).fields).toMatchObject({ website: true, textLink: true, discount: false })
+    expect(parseCardQrDesign({}).fields).toMatchObject({ website: true, textLink: false, flyerTextLink: false, discount: false })
     // Never filled from the account phone.
     for (const file of ['app/api/workspace/card-qr/card/route.ts', 'app/api/workspace/card-qr/flyer/route.ts']) {
       expect(readFileSync(path.join(process.cwd(), file), 'utf8')).not.toMatch(/\.phone\b/)

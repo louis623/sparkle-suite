@@ -33,13 +33,14 @@ import {
   type CardQrFlyerFormat,
 } from '@/lib/workspace/card-qr/flyer-format'
 import { CARD_QR_ENTRY_TITLE } from '@/lib/workspace/card-qr/access'
+import { cardQrIconArt } from '@/lib/workspace/card-qr/qr-icon'
+import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
 import styles from './CardQrTool.module.css'
 
 const CARD_BACK_TOGGLES: Array<[keyof CardQrFields, string]> = [
   ['name', 'Name'],
   ['email', 'Email'],
   ['website', 'Website'],
-  ['textLink', 'Text-to-link'],
   ['social', 'Social handle'],
   ['discount', 'Discount code line'],
 ]
@@ -58,6 +59,46 @@ function downloadBlob(blob: Blob, filename: string) {
   link.click()
   link.remove()
   URL.revokeObjectURL(url)
+}
+
+/** The real center-mark artwork (same vectors as the QR badge), drawn in the site's QR color. */
+function IconMark({ icon, dark }: { icon: CardQrIcon; dark: string }) {
+  const art = cardQrIconArt(icon, dark)
+  if (!art) {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.markSvg}>
+        <circle cx="12" cy="12" r="8.5" fill="none" stroke={dark} strokeWidth="1.6" strokeDasharray="2.6 2.4" />
+      </svg>
+    )
+  }
+  return <svg viewBox={art.viewBox} aria-hidden="true" className={styles.markSvg} dangerouslySetInnerHTML={{ __html: art.inner }} />
+}
+
+function StepHeader({ n, id, title, lede }: { n: number; id: string; title: string; lede: string }) {
+  return (
+    <header className={styles.stepHead}>
+      <span className={styles.stepNum} aria-hidden="true">{n}</span>
+      <div>
+        <h3 id={id} className={styles.stepTitle}><span className={styles.srOnly}>Step {n}: </span>{title}</h3>
+        <p className={styles.stepLede}>{lede}</p>
+      </div>
+    </header>
+  )
+}
+
+function TextLinkCheck({ checked, disabled, onChange, where }: { checked: boolean; disabled: boolean; onChange: () => void; where: string }) {
+  return (
+    <div className={styles.checkWrap}>
+      <label className={styles.check} data-disabled={disabled || undefined}>
+        <input type="checkbox" checked={checked && !disabled} disabled={disabled} onChange={onChange} />
+        <span className={styles.checkBox} aria-hidden="true" />
+        <span className={styles.checkText}>Add text-to-link number</span>
+      </label>
+      <p className={styles.hint}>
+        {disabled ? 'Save a number in step 1 to turn this on.' : `Shows your number ${where}.`}
+      </p>
+    </div>
+  )
 }
 
 export function CardQrTool({
@@ -103,6 +144,12 @@ export function CardQrTool({
   const [cardWarnings, setCardWarnings] = useState<string[]>([])
   const qrIcon = design.qrIcon
   const textLinkNumber = design.textLinkNumber
+  /** The flyer only carries the number when its own checkbox is on. */
+  const flyerTextLinkNumber = design.fields.flyerTextLink ? textLinkNumber : ''
+  const qrDark = useMemo(
+    () => resolveCardQrPalette({ templateId: 'match-site', appearancePreset }).qrDark,
+    [appearancePreset],
+  )
   const designTouched = useRef(false)
   const destinationUrl = useMemo(
     () => resolveCardQrDestination(siteHref, origin),
@@ -156,7 +203,7 @@ export function CardQrTool({
     if (!destinationUrl) return
     const controller = new AbortController()
     let objectUrl: string | null = null
-    const key = flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon, textLinkNumber)
+    const key = flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon, flyerTextLinkNumber)
     setFlyerLoading(true)
     setFlyerError(null)
     setFlyerPending(false)
@@ -165,7 +212,7 @@ export function CardQrTool({
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ format: flyerFormat, icon: qrIcon, textLinkNumber }),
+      body: JSON.stringify({ format: flyerFormat, icon: qrIcon, textLinkNumber: flyerTextLinkNumber }),
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -201,7 +248,7 @@ export function CardQrTool({
       controller.abort()
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [appearancePreset, destinationUrl, flyerFormat, qrIcon, textLinkNumber])
+  }, [appearancePreset, destinationUrl, flyerFormat, qrIcon, flyerTextLinkNumber])
 
   useEffect(() => {
     if (!destinationUrl) return
@@ -393,7 +440,7 @@ export function CardQrTool({
     if (!destinationUrl) return
     const bytes = flyerDownloadBytes(
       flyerCache,
-      flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon, textLinkNumber),
+      flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon, flyerTextLinkNumber),
     )
     if (!bytes) return
     setFlyerError(null)
@@ -420,284 +467,357 @@ export function CardQrTool({
     }
   }
 
+  const savedNumber = textLinkNumber
+  const draftClean = cleanTextLinkNumber(textLinkDraft)
+  const numberDirty = draftClean !== savedNumber
+
   return (
     <div className={`${styles.stack} suite-marketing`} data-smoke-tool="card-qr">
-      <section className={`${styles.section} ${styles.opening}`}>
-        <div className={styles.header}>
+      <header className={styles.opening}>
+        <div className={styles.openingInner}>
           <div>
-            <h2 className={styles.title}>{CARD_QR_ENTRY_TITLE}</h2>
-            <p className={styles.subtitle}>
+            <p className={styles.kicker}>Workspace tool</p>
+            <h2 className={styles.pageTitle}>{CARD_QR_ENTRY_TITLE}</h2>
+            <p className={styles.pageLede}>
               One QR for your current Suite site. The flyer is a free portrait
               download. Printed cards are paid before anyone prints them.
             </p>
           </div>
           <span className={styles.eyebrow}>Smoke only</span>
         </div>
-      </section>
+        <ol className={styles.stepNav} aria-label="Steps">
+          <li><a href="#card-qr-text">1 · Text-to-link</a></li>
+          <li><a href="#card-qr-code">2 · QR code</a></li>
+          <li><a href="#card-qr-flyer">3 · QR flyer</a></li>
+          <li><a href="#card-qr-cards">4 · Business cards</a></li>
+        </ol>
+      </header>
 
       {orderMessage ? <div className={styles.banner}>{orderMessage}</div> : null}
       {notice ? <div className={styles.banner}>{notice}</div> : null}
       {status ? <div className={`${styles.banner} ${styles.warning}`}>{status}</div> : null}
 
-      <section className={`${styles.section} ${styles.qrBand}`} aria-labelledby="card-qr-code">
-        <h3 id="card-qr-code" className={styles.title}>QR code</h3>
-        <p className={styles.body}>
-          Your customer site already has an address. This QR is a short link to
-          it, colored for your site. The flyer and cards use the same code.
-        </p>
-        <div className={styles.qrLayout}>
-          <div className={`${styles.iconRow} ${styles.qrChips}`} role="group" aria-label="Center mark">
-            {CARD_QR_ICONS.map((icon) => (
-              <button
-                key={icon}
-                type="button"
-                className={styles.choice}
-                aria-pressed={qrIcon === icon}
-                onClick={() => chooseIcon(icon)}
-              >
-                {CARD_QR_ICON_LABELS[icon]}
-              </button>
-            ))}
+      <div className={styles.steps}>
+        <section className={styles.step} aria-labelledby="card-qr-text">
+          <StepHeader
+            n={1}
+            id="card-qr-text"
+            title="Text-to-link number"
+            lede="Optional. The number customers text to get your shop link. Save it once here, then choose in steps 3 and 4 whether it goes on your flyer and your card."
+          />
+          <div className={styles.numberRow}>
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>Your text-to-link number</span>
+              <input
+                type="tel"
+                inputMode="tel"
+                className={styles.input}
+                placeholder="(555) 201-4410"
+                maxLength={24}
+                value={textLinkDraft}
+                onChange={(event) => setTextLinkDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') commitTextLink()
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className={numberDirty || !savedNumber ? `${styles.button} ${styles.buttonPrimary}` : `${styles.button} ${styles.savedButton}`}
+              disabled={!numberDirty}
+              onClick={commitTextLink}
+            >
+              {numberDirty ? (draftClean ? 'Save number' : 'Remove number') : savedNumber ? 'Saved' : 'Save number'}
+            </button>
           </div>
-          <div className={styles.qrFrame}>
-            {qrObjectUrl ? (
-              // The PNG is fetched with the signed-in session, then shown from a local object URL.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={qrObjectUrl} alt="QR code for your Suite customer site" />
-            ) : (
-              <p className={styles.body}>
-                {destinationUrl ? 'Loading QR…' : 'QR appears when the site address is ready.'}
+          <p className={styles.hint} role="status">
+            {savedNumber && !numberDirty
+              ? `Saved: ${savedNumber}. It is never copied from your account phone.`
+              : 'Leave it empty if you don\u2019t use one. It is never copied from your account phone.'}
+          </p>
+        </section>
+
+        <section className={styles.step} aria-labelledby="card-qr-code">
+          <StepHeader
+            n={2}
+            id="card-qr-code"
+            title="QR code"
+            lede="A short link to your customer site, colored for your theme. The flyer and cards use this same code."
+          />
+          <div className={`${styles.split} ${styles.qrSplit}`}>
+            <div className={`${styles.controls} ${styles.qrControls}`}>
+              <div>
+                <p className={styles.fieldLabel} id="card-qr-mark-label">Center mark</p>
+                <div className={styles.marks} role="radiogroup" aria-labelledby="card-qr-mark-label">
+                  {CARD_QR_ICONS.map((icon) => (
+                    <button
+                      key={icon}
+                      type="button"
+                      role="radio"
+                      className={styles.mark}
+                      aria-checked={qrIcon === icon}
+                      aria-label={CARD_QR_ICON_LABELS[icon]}
+                      title={CARD_QR_ICON_LABELS[icon]}
+                      onClick={() => chooseIcon(icon)}
+                    >
+                      <IconMark icon={icon} dark={qrDark} />
+                    </button>
+                  ))}
+                </div>
+                <p className={styles.hint}>Selected: {CARD_QR_ICON_LABELS[qrIcon]}</p>
+              </div>
+              <div className={styles.linkBox}>
+                <p className={styles.fieldLabel}>Goes to</p>
+                <p className={styles.url}>{destinationUrl || 'Site address loading'}</p>
+                {qrUrl ? <p className={styles.hint}>Short link {qrUrl}</p> : null}
+              </div>
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  className={`${styles.button} ${styles.buttonPrimary}`}
+                  disabled={!qrBlob}
+                  onClick={downloadQr}
+                >
+                  Download QR
+                </button>
+                <button type="button" className={styles.button} disabled={!qrBlob} onClick={copyQr}>
+                  Copy QR
+                </button>
+              </div>
+            </div>
+            <div className={styles.stage}>
+              <div className={styles.qrFrame}>
+                {qrObjectUrl ? (
+                  // The PNG is fetched with the signed-in session, then shown from a local object URL.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={qrObjectUrl} alt="QR code for your Suite customer site" />
+                ) : (
+                  <p className={styles.hint}>
+                    {destinationUrl ? 'Loading QR…' : 'QR appears when the site address is ready.'}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.step} aria-labelledby="card-qr-flyer">
+          <StepHeader
+            n={3}
+            id="card-qr-flyer"
+            title="QR flyer"
+            lede="Free digital download. Portrait 9:16 (1080×1920) for TikTok and other social posts. No Stripe charge. The preview is the file you download."
+          />
+          <div className={styles.split}>
+            <div className={styles.controls}>
+              <TextLinkCheck
+                checked={design.fields.flyerTextLink}
+                disabled={!savedNumber}
+                onChange={() => toggleField('flyerTextLink')}
+                where="under the steps on your flyer"
+              />
+              <div>
+                <p className={styles.fieldLabel} id="card-qr-format-label">File type</p>
+                <div className={styles.segment} role="radiogroup" aria-labelledby="card-qr-format-label">
+                  {(['jpg', 'png'] as const).map((format) => (
+                    <button
+                      key={format}
+                      type="button"
+                      role="radio"
+                      aria-checked={flyerFormat === format}
+                      disabled={flyerPending}
+                      onClick={() => setFlyerFormat(format)}
+                    >
+                      {format === 'png' ? 'PNG' : 'JPG'}
+                    </button>
+                  ))}
+                </div>
+                <p className={styles.hint}>
+                  JPG is best for texting and posting from a phone. PNG is full quality.
+                </p>
+              </div>
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  className={`${styles.button} ${styles.buttonPrimary}`}
+                  disabled={!destinationUrl || flyerLoading || flyerPending || !flyerCache}
+                  onClick={downloadFlyer}
+                >
+                  {flyerPending
+                    ? 'Flyer in progress'
+                    : flyerLoading
+                      ? 'Making flyer…'
+                      : `Download ${flyerFormat === 'jpg' ? 'JPG' : 'PNG'}`}
+                </button>
+              </div>
+              <p className={styles.hint}>
+                The name and QR stay in the middle so story buttons don&apos;t cover them.
+                Changing your site theme makes a new matching flyer and recolors the QR.
               </p>
-            )}
+              {flyerError ? <p className={styles.error} role="alert">{flyerError}</p> : null}
+            </div>
+            <div className={styles.stage}>
+              <div className={styles.flyerFrame} aria-label="QR flyer preview">
+                {flyerPending ? (
+                  <p className={styles.hint} role="status">{CARD_QR_FLYER_BEING_BUILT_MESSAGE}</p>
+                ) : flyerCache ? (
+                  // The image is the server file for the selected type. Download uses these same bytes.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={flyerCache.url} alt="QR flyer preview" />
+                ) : (
+                  <p className={styles.hint}>
+                    {flyerError
+                      ? flyerError
+                      : destinationUrl
+                        ? 'Making your flyer…'
+                        : 'The flyer appears when the site address is ready.'}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
-          <label className={`${styles.textLinkField} ${styles.qrField}`}>
-            <span className={styles.textLinkLabel}>Text-to-link number (optional)</span>
-            <input
-              type="tel"
-              inputMode="tel"
-              className={styles.textLinkInput}
-              placeholder="(555) 201-4410"
-              maxLength={24}
-              value={textLinkDraft}
-              onChange={(event) => setTextLinkDraft(event.target.value)}
-              onBlur={commitTextLink}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') commitTextLink()
-              }}
+        </section>
+
+        <section className={styles.step} aria-labelledby="card-qr-cards">
+          <StepHeader
+            n={4}
+            id="card-qr-cards"
+            title="Business cards"
+            lede="Same QR and the same theme, printed two-sided. Stripe checkout is required before anything prints."
+          />
+          <div className={styles.cardControls}>
+            <TextLinkCheck
+              checked={design.fields.textLink}
+              disabled={!savedNumber}
+              onChange={() => toggleField('textLink')}
+              where="as a Text line on the back of your card"
             />
-            <span className={styles.spec}>
-              The number customers text to get your shop link. It goes on your flyer and
-              the back of your card. Leave it empty if you don&apos;t use one.
-            </span>
-          </label>
-          <div className={styles.qrCopy}>
-            <p className={`${styles.url} ${styles.qrUrl}`}>{destinationUrl || 'Site address loading'}</p>
-            {qrUrl ? <p className={styles.spec}>Short link {qrUrl}</p> : null}
-            <div className={`${styles.actions} ${styles.qrActions}`}>
-              <button
-                type="button"
-                className={`${styles.button} ${styles.buttonPrimary}`}
-                disabled={!qrBlob}
-                onClick={downloadQr}
-              >
-                Download QR
-              </button>
-              <button type="button" className={styles.button} disabled={!qrBlob} onClick={copyQr}>
-                Copy QR
-              </button>
+            <div>
+              <p className={styles.fieldLabel} id="card-qr-back-label">Back of card</p>
+              <div className={styles.toggles} role="group" aria-labelledby="card-qr-back-label">
+                {CARD_BACK_TOGGLES.map(([field, label]) => (
+                  <button
+                    key={field}
+                    type="button"
+                    className={styles.toggle}
+                    aria-pressed={design.fields[field]}
+                    disabled={field === 'website' && !hasCustomDomain}
+                    onClick={() => toggleField(field)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {!hasCustomDomain ? (
+                <p className={styles.hint}>Website shows on the card once your site has its own domain.</p>
+              ) : null}
+              {design.fields.discount ? (
+                <p className={styles.hint}>The discount code is a blank line so you can write a code in by hand.</p>
+              ) : null}
+              {design.fields.social ? (
+                <label className={`${styles.field} ${styles.socialField}`}>
+                  <span className={styles.fieldLabel}>Social platform</span>
+                  <select
+                    className={styles.input}
+                    value={design.socialPlatform}
+                    onChange={(event) => {
+                      const next = parseCardQrSocialPlatform(event.target.value)
+                      if (next && next !== design.socialPlatform) saveDesign({ ...design, socialPlatform: next })
+                    }}
+                  >
+                    {CARD_QR_SOCIAL_PLATFORMS.map((platform) => (
+                      <option key={platform} value={platform}>{CARD_QR_SOCIAL_PLATFORM_LABELS[platform]}</option>
+                    ))}
+                  </select>
+                  <span className={styles.hint}>
+                    {socialHandles && !String(socialHandles[design.socialPlatform] ?? '').trim()
+                      ? `Add your ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} link in Site settings to show it. Until then the card uses another handle you have, with that app's icon.`
+                      : `Your ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} handle shows on the back with the ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} icon.`}
+                  </span>
+                </label>
+              ) : null}
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className={`${styles.section} ${styles.flyerBand}`} aria-labelledby="card-qr-flyer">
-        <h3 id="card-qr-flyer" className={styles.title}>QR flyer</h3>
-        <p className={styles.body}>
-          Free digital download. Portrait 9:16 (1080×1920) for TikTok and other
-          social posts. No Stripe charge. The preview is the file you download.
-        </p>
-        <div className={styles.formatRow} role="group" aria-label="Flyer file type">
-          {(['jpg', 'png'] as const).map((format) => (
-            <button
-              key={format}
-              type="button"
-              className={styles.choice}
-              aria-pressed={flyerFormat === format}
-              disabled={flyerPending}
-              onClick={() => setFlyerFormat(format)}
-            >
-              {format === 'png' ? 'PNG' : 'JPG'}
-            </button>
-          ))}
-        </div>
-        <div className={styles.layout}>
-          <div>
-            <div className={styles.actions}>
-              <button
-                type="button"
-                className={`${styles.button} ${styles.buttonPrimary}`}
-                disabled={!destinationUrl || flyerLoading || flyerPending || !flyerCache}
-                onClick={downloadFlyer}
-              >
-                {flyerPending
-                  ? 'Flyer in progress'
-                  : flyerLoading
-                    ? 'Making flyer…'
-                    : `Download ${flyerFormat === 'jpg' ? 'JPG' : 'PNG'}`}
-              </button>
-            </div>
-            <p className={styles.spec}>
-              JPG is the default, and the best file for texting and posting from a phone.
-              PNG is full quality. The name and QR stay in the middle so story buttons
-              do not cover them.               Changing your site theme makes a new matching flyer and recolors the QR.
-            </p>
-            {flyerError ? <p className={styles.flyerError} role="alert">{flyerError}</p> : null}
-          </div>
-          <div className={styles.flyerFrame} aria-label="QR flyer preview">
-            {flyerPending ? (
-              <p className={styles.body} role="status">{CARD_QR_FLYER_BEING_BUILT_MESSAGE}</p>
-            ) : flyerCache ? (
-              // The image is the server file for the selected type. Download uses these same bytes.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={flyerCache.url} alt="QR flyer preview" />
+          <div className={styles.cardStage} aria-label="Business card preview" aria-busy={cardLoading}>
+            {cardPending ? (
+              <p className={styles.hint} role="status">{cardPending}</p>
+            ) : cardFront && cardBack ? (
+              <>
+                <figure className={styles.cardSide}>
+                  {/* The PNG is the server file. Download uses these same bytes. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={cardFront.url} alt="Business card front" />
+                  <figcaption>Front</figcaption>
+                </figure>
+                <figure className={styles.cardSide}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={cardBack.url} alt="Business card back" />
+                  <figcaption>Back</figcaption>
+                </figure>
+              </>
             ) : (
-              <p className={styles.body}>
-                {flyerError
-                  ? flyerError
-                  : destinationUrl
-                    ? 'Making your flyer…'
-                    : 'The flyer appears when the site address is ready.'}
+              <p className={styles.hint}>
+                {cardError ?? (destinationUrl ? 'Making your card…' : 'The card appears when the site address is ready.')}
               </p>
             )}
           </div>
-        </div>
-      </section>
-
-      <section className={`${styles.section} ${styles.cardBand}`} aria-labelledby="card-qr-cards">
-        <h3 id="card-qr-cards" className={styles.title}>Business cards</h3>
-        <p className={styles.body}>
-          Same QR and the same theme. Stripe checkout is required before fulfillment.
-        </p>
-        <div className={styles.prices}>
-          {([500, 1000] as const).map((packQuantity) => {
-            const pack = CARD_QR_PACKS[packQuantity]
-            return (
-              <button
-                key={pack.quantity}
-                type="button"
-                className={styles.price}
-                aria-pressed={quantity === pack.quantity}
-                onClick={() => setQuantity(pack.quantity)}
-              >
-                <span>{pack.label}</span>
-                <strong>{pack.priceLabel}</strong>
-              </button>
-            )
-          })}
-        </div>
-        <div className={styles.iconRow} role="group" aria-label="Back of card details">
-          {CARD_BACK_TOGGLES.map(([field, label]) => (
+          {cardWarnings.map((w) => <p key={w} className={styles.error} role="status">{w}</p>)}
+          {cardError && cardFront ? <p className={styles.error} role="alert">{cardError}</p> : null}
+          <div className={styles.actions}>
             <button
-              key={field}
               type="button"
-              className={styles.choice}
-              aria-pressed={design.fields[field]}
-              disabled={(field === 'textLink' && !textLinkNumber) || (field === 'website' && !hasCustomDomain)}
-              onClick={() => toggleField(field)}
+              className={styles.button}
+              disabled={!cardFront || !cardBack || cardLoading || busy === 'card-pdf' || Boolean(cardPending)}
+              onClick={downloadCardPdf}
             >
-              {label}
+              {busy === 'card-pdf' ? 'Making print PDF…' : 'Download print PDF'}
             </button>
-          ))}
-        </div>
-        {design.fields.social ? (
-          <label className={styles.textLinkField}>
-            <span className={styles.textLinkLabel}>Social platform</span>
-            <select
-              className={styles.textLinkInput}
-              value={design.socialPlatform}
-              onChange={(event) => {
-                const next = parseCardQrSocialPlatform(event.target.value)
-                if (next && next !== design.socialPlatform) saveDesign({ ...design, socialPlatform: next })
-              }}
+            <button
+              type="button"
+              className={styles.button}
+              disabled={!cardFront || cardLoading || Boolean(cardPending)}
+              onClick={() => downloadCardPng('front')}
             >
-              {CARD_QR_SOCIAL_PLATFORMS.map((platform) => (
-                <option key={platform} value={platform}>{CARD_QR_SOCIAL_PLATFORM_LABELS[platform]}</option>
-              ))}
-            </select>
-            <span className={styles.spec}>
-              {socialHandles && !String(socialHandles[design.socialPlatform] ?? '').trim()
-                ? `Add your ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} link in Site settings to show it. Until then the card uses another handle you have, with that app's icon.`
-                : `Your ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} handle shows on the back with the ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} icon.`}
-            </span>
-          </label>
-        ) : null}
-        {!hasCustomDomain ? (
-          <p className={styles.spec}>Website shows on the card once your site has its own domain.</p>
-        ) : null}
-        {design.fields.textLink && !textLinkNumber ? (
-          <p className={styles.spec}>Add your text-to-link number above to put it on the card.</p>
-        ) : null}
-        {design.fields.discount ? (
-          <p className={styles.spec}>The discount code is a blank line so you can write a code in by hand.</p>
-        ) : null}
-        <div className={styles.cardPreview} aria-label="Business card preview" aria-busy={cardLoading}>
-          {cardPending ? (
-            <p className={styles.body} role="status">{cardPending}</p>
-          ) : cardFront && cardBack ? (
-            <>
-              <figure className={styles.cardSide}>
-                {/* The PNG is the server file. Download uses these same bytes. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={cardFront.url} alt="Business card front" />
-                <figcaption className={styles.spec}>Front</figcaption>
-              </figure>
-              <figure className={styles.cardSide}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={cardBack.url} alt="Business card back" />
-                <figcaption className={styles.spec}>Back</figcaption>
-              </figure>
-            </>
-          ) : (
-            <p className={styles.body}>
-              {cardError ?? (destinationUrl ? 'Making your card…' : 'The card appears when the site address is ready.')}
-            </p>
-          )}
-        </div>
-        {cardWarnings.map((w) => <p key={w} className={styles.flyerError} role="status">{w}</p>)}
-        {cardError && cardFront ? <p className={styles.flyerError} role="alert">{cardError}</p> : null}
-        <div className={styles.actions}>
-          <button
-            type="button"
-            className={`${styles.button} ${styles.buttonPrimary}`}
-            disabled={!cardFront || !cardBack || cardLoading || busy === 'card-pdf' || Boolean(cardPending)}
-            onClick={downloadCardPdf}
-          >
-            {busy === 'card-pdf' ? 'Making print PDF…' : 'Download print PDF'}
-          </button>
-          <button
-            type="button"
-            className={styles.button}
-            disabled={!cardFront || cardLoading || Boolean(cardPending)}
-            onClick={() => downloadCardPng('front')}
-          >
-            Front PNG
-          </button>
-          <button
-            type="button"
-            className={styles.button}
-            disabled={!cardBack || cardLoading || Boolean(cardPending)}
-            onClick={() => downloadCardPng('back')}
-          >
-            Back PNG
-          </button>
-        </div>
-        <p className={styles.spec}>
-          The preview is the print file: 3.5 × 2 in with 0.125 in bleed at 300 dpi. The PDF
-          has both sides in CMYK with crop marks. Your card follows your site theme and fonts.
-        </p>
-        <div className={styles.layout}>
-          <div>
-            <div className={styles.actions}>
+              Front PNG
+            </button>
+            <button
+              type="button"
+              className={styles.button}
+              disabled={!cardBack || cardLoading || Boolean(cardPending)}
+              onClick={() => downloadCardPng('back')}
+            >
+              Back PNG
+            </button>
+          </div>
+          <p className={styles.hint}>
+            The preview is the print file: 3.5 × 2 in with 0.125 in bleed at 300 dpi. The PDF
+            has both sides in CMYK with crop marks. Your card follows your site theme and fonts.
+          </p>
+
+          <div className={styles.order}>
+            <div>
+              <p className={styles.fieldLabel} id="card-qr-pack-label">Order printed cards</p>
+              <div className={styles.prices} role="radiogroup" aria-labelledby="card-qr-pack-label">
+                {([500, 1000] as const).map((packQuantity) => {
+                  const pack = CARD_QR_PACKS[packQuantity]
+                  return (
+                    <button
+                      key={pack.quantity}
+                      type="button"
+                      role="radio"
+                      className={styles.price}
+                      aria-checked={quantity === pack.quantity}
+                      onClick={() => setQuantity(pack.quantity)}
+                    >
+                      <span>{pack.label}</span>
+                      <strong>{pack.priceLabel}</strong>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <div className={styles.orderAction}>
               <button
                 type="button"
                 className={`${styles.button} ${styles.buttonPrimary}`}
@@ -706,22 +826,22 @@ export function CardQrTool({
               >
                 {busy === 'checkout' ? 'Opening checkout…' : `Checkout ${CARD_QR_PACKS[quantity].priceLabel}`}
               </button>
+              <p className={styles.hint}>
+                After payment, Smoke shows the order-received note. Minuteman fulfillment
+                stays a manual ops step in this version.
+              </p>
             </div>
-            <p className={styles.spec}>
-              After payment, Smoke shows the order-received note. Minuteman fulfillment
-              stays a manual ops step in this version.
+          </div>
+          <div className={styles.finePrint}>
+            <p>{CARD_QR_PRICE_COPY} {CARD_QR_SHIPPING_COPY}</p>
+            <p>{CARD_QR_TURNAROUND_COPY}</p>
+            <p>{CARD_QR_REGION_COPY}</p>
+            <p>
+              Print spec: {CARD_QR_PRINT_SPEC.trim} trim, {CARD_QR_PRINT_SPEC.bleed} bleed, {CARD_QR_PRINT_SPEC.safe} safe, {CARD_QR_PRINT_SPEC.stock}.
             </p>
           </div>
-        </div>
-        <div className={styles.finePrint}>
-          <p className={styles.spec}>{CARD_QR_PRICE_COPY} {CARD_QR_SHIPPING_COPY}</p>
-          <p className={styles.spec}>{CARD_QR_TURNAROUND_COPY}</p>
-          <p className={styles.spec}>{CARD_QR_REGION_COPY}</p>
-          <p className={styles.spec}>
-            Print spec: {CARD_QR_PRINT_SPEC.trim} trim, {CARD_QR_PRINT_SPEC.bleed} bleed, {CARD_QR_PRINT_SPEC.safe} safe, {CARD_QR_PRINT_SPEC.stock}.
-          </p>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   )
 }

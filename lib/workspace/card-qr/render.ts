@@ -212,6 +212,8 @@ function svgText(input: {
   strokeOpacity?: number
   letterSpacing?: number
   x?: number
+  /** Left-aligned at this x instead of centered. */
+  anchorStartX?: number
 }) {
   const familyName = FLYER_FONT_FACES[input.family].family
   const opacity = input.opacity == null ? '' : ` fill-opacity="${input.opacity}"`
@@ -219,8 +221,9 @@ function svgText(input: {
     ? ` stroke="${input.stroke}" stroke-width="${input.strokeWidth ?? 6}" stroke-linejoin="round" stroke-opacity="${input.strokeOpacity ?? 1}"`
     : ''
   const spacing = input.letterSpacing == null ? '' : ` letter-spacing="${input.letterSpacing}"`
-  const x = input.x ?? 540
-  return `<text x="${x}" y="${input.y}" text-anchor="middle" dominant-baseline="hanging" font-family="${escapeXml(familyName)}" font-weight="${input.weight}" font-size="${input.size}" fill="${input.fill}"${opacity}${stroke}${spacing}>${escapeXml(input.value)}</text>`
+  const x = input.anchorStartX ?? input.x ?? 540
+  const anchor = input.anchorStartX == null ? 'middle' : 'start'
+  return `<text x="${x}" y="${input.y}" text-anchor="${anchor}" dominant-baseline="hanging" font-family="${escapeXml(familyName)}" font-weight="${input.weight}" font-size="${input.size}" fill="${input.fill}"${opacity}${stroke}${spacing}>${escapeXml(input.value)}</text>`
 }
 
 function svgBlock(
@@ -239,9 +242,16 @@ function svgBlock(
         size: block.size,
         fill,
         weight,
+        x: block.xs?.[index],
+        anchorStartX: index === 0 && block.icon ? block.icon.textX : undefined,
       }),
     )
-    .join('')
+    .join('') + (block.icon ? textBubbleIcon(block.icon, fill) : '')
+}
+
+/** Lucide "message-circle" (ISC), stroked in the line color: marks the text-to-link line. */
+function textBubbleIcon(icon: { x: number; y: number; size: number }, color: string) {
+  return `<svg x="${icon.x}" y="${icon.y}" width="${icon.size}" height="${icon.size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>`
 }
 
 export interface FlyerPaint {

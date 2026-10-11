@@ -38,6 +38,10 @@ export interface FlyerTextBlock {
   size: number
   top: number
   lineHeight: number
+  /** Center x per line (defaults to the flyer center). Used to make room for an inline icon. */
+  xs?: number[]
+  /** Inline leading icon (text bubble) left of the first line, top-left corner + size. */
+  icon?: { x: number; y: number; size: number; textX: number }
 }
 
 export type FlyerPanelKind = 'glass' | 'parchment' | 'paper'
@@ -120,7 +124,7 @@ function blockHeight(block: { lines: string[]; lineHeight: number }) {
 
 function shiftBlock(block: FlyerTextBlock | null, dy: number) {
   if (!block) return null
-  return { ...block, top: block.top + dy }
+  return { ...block, top: block.top + dy, icon: block.icon ? { ...block.icon, y: block.icon.y + dy } : undefined }
 }
 
 function shiftBox(box: FlyerBox | null, dy: number) {
@@ -318,17 +322,24 @@ function placeFlyer(
   let textLink: FlyerTextBlock | null = null
   if (input.textLink?.trim()) {
     y += website ? 8 : 16
+    // Leave room for the text-bubble icon in front of the first line.
     const textFit = fitBlock(
       input.textLink.trim(),
       'body',
-      { maxSize: 34, minSize: 28, maxLines: 2, maxWidth },
+      { maxSize: 34, minSize: 28, maxLines: 2, maxWidth: maxWidth - 52 },
       measure,
     )
+    const iconSize = Math.round(textFit.size * 1.05)
+    const iconGap = Math.round(textFit.size * 0.32)
+    const firstWidth = measure(textFit.lines[0] ?? '', 'body', textFit.size)
+    const rowWidth = iconSize + iconGap + firstWidth
+    const rowLeft = CARD_QR_FLYER_WIDTH / 2 - rowWidth / 2
     textLink = {
       lines: textFit.lines,
       size: textFit.size,
       top: y,
       lineHeight: Math.round(textFit.size * 1.2),
+      icon: { x: Math.round(rowLeft), y: Math.round(y + (textFit.size - iconSize) / 2), size: iconSize, textX: Math.round(rowLeft + iconSize + iconGap) },
     }
     y += blockHeight(textLink)
   }

@@ -278,16 +278,17 @@ describe('Cards & QR smoke locks', () => {
     )
     expect(html).toContain('>QR code<')
     expect(html).not.toContain('QR code builder')
-    expect(html).toContain('Your customer site already has an address. This QR is a short link to it, colored for your site. The flyer and cards use the same code.')
-    expect(html).toContain('>None<')
-    expect(html).toContain('>Diamond<')
-    expect(html).toContain('>Unicorn<')
-    for (const label of ['Shaded diamond', 'Shaded unicorn', 'Heart', 'Smiley', 'Ring', 'Crown', 'Butterfly']) {
-      expect(html).toContain(`>${label}<`)
+    expect(html).toContain('A short link to your customer site, colored for your theme. The flyer and cards use this same code.')
+    // 2026-10-11 (Louis): center marks show the real artwork, labeled for screen readers and tooltips.
+    for (const label of ['None', 'Diamond', 'Unicorn', 'Shaded diamond', 'Shaded unicorn', 'Heart', 'Smiley', 'Ring', 'Crown', 'Butterfly']) {
+      expect(html).toContain(`aria-label="${label}" title="${label}"`)
     }
-    expect(html).not.toContain('>Sparkle<')
-    expect(html).toMatch(/aria-pressed="true"[^>]*>None</)
-    expect(html).toContain('qrLayout')
+    expect(html).not.toContain('"Sparkle"')
+    expect(html).toMatch(/aria-checked="true" aria-label="None"/)
+    expect((html.match(/class="[^"]*markSvg/g) ?? []).length).toBe(10)
+    for (const step of ['Text-to-link number', 'QR code', 'QR flyer', 'Business cards']) expect(html).toContain(step)
+    expect(html.indexOf('card-qr-text')).toBeLessThan(html.indexOf('card-qr-code'))
+    expect((html.match(/Add text-to-link number/g) ?? []).length).toBe(2)
     expect(html).toContain('https://sparkle-suite-smoke.vercel.app/fizzfest')
     expect(html).toContain('Download QR')
     expect(html).toContain('Copy QR')
@@ -305,8 +306,8 @@ describe('Cards & QR smoke locks', () => {
     expect(html).not.toContain('>Halloween<')
     expect(html).toContain('>PNG<')
     expect(html).toContain('>JPG<')
-    expect(html).toMatch(/aria-pressed="true"[^>]*>JPG</)
-    expect(html).toMatch(/aria-pressed="false"[^>]*>PNG</)
+    expect(html).toMatch(/aria-checked="true"[^>]*>JPG</)
+    expect(html).toMatch(/aria-checked="false"[^>]*>PNG</)
     expect(html).toContain('Making your flyer…')
     expect(html).toContain('Download JPG')
     expect(toolSource).toContain('CARD_QR_FLYER_BEING_BUILT_MESSAGE')
@@ -321,11 +322,12 @@ describe('Cards & QR smoke locks', () => {
     expect(html).not.toContain('Save to profile')
     expect(html).not.toContain('Copy site address')
     expect(html).not.toContain('Site address copied')
-    expect(html).toContain('aria-label="Back of card details"')
-    for (const label of ['>Name<', '>Email<', '>Website<', '>Text-to-link<', '>Social handle<', '>Discount code line<']) {
+    expect(html).toContain('Back of card')
+    expect(html).not.toContain('>Text-to-link<')
+    for (const label of ['>Name<', '>Email<', '>Website<', '>Social handle<', '>Discount code line<']) {
       expect(html).toContain(label)
     }
-    expect(html).toContain('Text-to-link number (optional)')
+    expect(html).toContain('Your text-to-link number')
     expect(html).toContain('Making your card…')
     expect(html).toContain('Download print PDF')
     expect(toolSource).toContain('/api/workspace/card-qr/card')
