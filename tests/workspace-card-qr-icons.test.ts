@@ -14,14 +14,14 @@ async function decode(png: Buffer) {
 }
 
 describe('QR center marks', () => {
-  it('offers None, the nine original marks and the 22 Oct 11 marks', () => {
+  it('offers None, the nine original marks and the 23 Oct 11 marks', () => {
     expect(CARD_QR_ICONS.slice(0, 10)).toEqual([
       'none', 'diamond-solid', 'diamond-two-tone', 'unicorn-line', 'unicorn-two-tone',
       'heart', 'smiley', 'gem-ring', 'crown', 'butterfly',
     ])
-    expect(CARD_QR_ICONS).toHaveLength(32)
+    expect(CARD_QR_ICONS).toHaveLength(33)
     expect(CARD_QR_ICONS.slice(10)).toEqual(Object.keys(CARD_QR_ICON_ART_V3))
-    expect(Object.keys(CARD_QR_ICON_LABELS)).toHaveLength(32)
+    expect(Object.keys(CARD_QR_ICON_LABELS)).toHaveLength(33)
   })
 
   it('puts every icon in exactly one picker group', () => {

@@ -56,6 +56,7 @@ export const CARD_QR_ICONS = [
   'wreath',
   'candy-cane',
   'santa-hat',
+  'cowgirl-boot',
 ] as const
 
 export type CardQrIcon = (typeof CARD_QR_ICONS)[number]
@@ -93,12 +94,13 @@ export const CARD_QR_ICON_LABELS: Record<CardQrIcon, string> = {
   'wreath': "Wreath",
   'candy-cane': "Candy cane",
   'santa-hat': "Santa hat",
+  'cowgirl-boot': "Cowgirl boot",
 }
 
 /** Picker groups (Louis, Oct 11). Every icon appears in exactly one group. */
 export const CARD_QR_ICON_GROUPS: ReadonlyArray<{ id: string; label: string; icons: readonly CardQrIcon[] }> = [
   { id: 'everyday', label: 'Everyday', icons: ['none', 'diamond-solid', 'diamond-two-tone', 'unicorn-line', 'unicorn-two-tone', 'heart', 'smiley', 'gem-ring', 'crown', 'butterfly', 'heart-sparkle', 'gift', 'peace', 'cross', 'bath-bomb', 'ladybug', 'rose', 'daisy', 'tulips'] },
-  { id: 'beach-western', label: 'Beach and Western', icons: ['palm', 'cowboy-hat', 'cowboy-hat-side'] },
+  { id: 'beach-western', label: 'Beach and Western', icons: ['palm', 'cowboy-hat', 'cowboy-hat-side', 'cowgirl-boot'] },
   { id: 'halloween', label: 'Halloween', icons: ['bat', 'skull', 'jack-o-lantern', 'jack-o-lantern-spooky'] },
   { id: 'christmas', label: 'Christmas', icons: ['xmas-tree', 'xmas-tree-ornaments', 'snowflake', 'wreath', 'candy-cane', 'santa-hat'] },
 ]

@@ -11,6 +11,7 @@ Recolored to the site theme only; shapes are unchanged unless noted.
 | jack-o-lantern | Material Design Icons, pumpkin-carved | Apache-2.0, (c) Pictogrammers |
 | jack-o-lantern-spooky | MingCute, pumpkin-lantern-fill | Apache-2.0, (c) MingCute Design |
 | palm | Temaki, tree-palm | CC0-1.0 |
+| cowgirl-boot | Original: potrace of a reference image that Sparkle Suite generated in-house (no outside artwork), cutouts thickened | Owned, no third-party license |
 | cross, bath-bomb, ladybug, rose, daisy, tulips, bat, skull, xmas-tree, xmas-tree-ornaments, snowflake, wreath, candy-cane, santa-hat | Original drawings for Sparkle Suite | Owned |
 
 Apache-2.0 text: https://www.apache.org/licenses/LICENSE-2.0 . MIT text: see THIRD_PARTY_NOTICES in qr-icon.ts.

@@ -285,7 +285,7 @@ describe('Cards & QR smoke locks', () => {
     }
     expect(html).not.toContain('"Sparkle"')
     expect(html).toMatch(/aria-checked="true" aria-label="None"/)
-    expect((html.match(/class="[^"]*markSvg/g) ?? []).length).toBe(32)
+    expect((html.match(/class="[^"]*markSvg/g) ?? []).length).toBe(33)
     for (const group of ['Everyday', 'Beach and Western', 'Halloween', 'Christmas']) expect(html).toContain(`>${group}</p>`)
     for (const step of ['Text-to-link number', 'QR code', 'QR flyer', 'Business cards']) expect(html).toContain(step)
     expect(html.indexOf('card-qr-text')).toBeLessThan(html.indexOf('card-qr-code'))
