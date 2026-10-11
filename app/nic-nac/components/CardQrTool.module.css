@@ -1008,54 +1008,6 @@
   line-height: 1;
 }
 
-.nextStep {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: fit-content;
-  max-width: 100%;
-  margin: 22px 0 0 auto;
-  padding: 8px 14px 8px 12px;
-  border: 1px solid var(--suite-line);
-  border-radius: 999px;
-  background: var(--suite-paper);
-  color: var(--suite-ink);
-  font-size: 0.86rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.nextStep:hover {
-  border-color: rgba(238, 44, 155, 0.5);
-  box-shadow: 0 8px 18px -14px rgba(238, 44, 155, 0.7);
-}
-
-.nextLabel {
-  color: var(--suite-muted);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.nextStep svg {
-  flex: none;
-  width: 16px;
-  height: 16px;
-  color: var(--suite-pink);
-  animation: nextNudge 2.4s ease-in-out infinite;
-}
-
-@keyframes nextNudge {
-  0%, 70%, 100% { transform: translateY(0); }
-  80% { transform: translateY(3px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .nextStep svg { animation: none; }
-}
-
 /* ---------- compact theme step ---------- */
 .themeCurrent {
   display: flex;
@@ -1127,8 +1079,20 @@
     justify-content: center;
   }
 
-  .nextStep {
-    margin: 18px auto 0;
-    font-size: 0.8rem;
-  }
+}
+
+.optionalPill {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 10px;
+  border: 1px solid rgba(238, 44, 155, 0.35);
+  border-radius: 999px;
+  background: var(--suite-soft-pink);
+  color: #a3166a;
+  font-family: var(--font-prelaunch-sans), system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
 }

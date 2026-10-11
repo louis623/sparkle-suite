@@ -81,25 +81,11 @@ function IconMark({ icon, dark }: { icon: CardQrIcon; dark: string }) {
 
 const STEPS = [
   { n: 1, id: 'card-qr-theme', short: 'Theme', title: 'Pick your theme' },
-  { n: 2, id: 'card-qr-text', short: 'Text-to-link number', title: 'Enter your text-to-link phone number' },
+  { n: 2, id: 'card-qr-text', short: 'Text-to-link (optional)', title: 'Enter your text-to-link phone number' },
   { n: 3, id: 'card-qr-code', short: 'QR code', title: 'QR code' },
   { n: 4, id: 'card-qr-flyer', short: 'QR flyer', title: 'QR flyer' },
   { n: 5, id: 'card-qr-cards', short: 'Business cards', title: 'Business cards' },
 ] as const
-
-/** Bottom-of-card cue so it is obvious there is more below. */
-function NextStep({ n }: { n: number }) {
-  const step = STEPS.find((s) => s.n === n)
-  if (!step) return null
-  return (
-    <a className={styles.nextStep} href={`#${step.id}`}>
-      <span className={styles.nextLabel}>Next</span>
-      <span className={styles.navNum}>{step.n}</span>
-      <span>{step.title}</span>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-    </a>
-  )
-}
 
 function ThemeTile({ option, selected, onPick, wide }: { option: CardQrDesignThemeOption; selected: boolean; onPick: () => void; wide?: boolean }) {
   return (
@@ -126,12 +112,12 @@ function ThemeTile({ option, selected, onPick, wide }: { option: CardQrDesignThe
   )
 }
 
-function StepHeader({ n, id, title, lede }: { n: number; id: string; title: string; lede: string }) {
+function StepHeader({ n, id, title, lede, optional }: { n: number; id: string; title: string; lede: string; optional?: boolean }) {
   return (
     <header className={styles.stepHead}>
       <span className={styles.stepNum} aria-hidden="true">{n}</span>
       <div>
-        <h3 id={id} className={styles.stepTitle}><span className={styles.srOnly}>Step {n}: </span>{title}</h3>
+        <h3 id={id} className={styles.stepTitle}><span className={styles.srOnly}>Step {n}: </span>{title}{optional ? <span className={styles.optionalPill}>Optional</span> : null}</h3>
         <p className={styles.stepLede}>{lede}</p>
       </div>
     </header>
@@ -542,8 +528,8 @@ export function CardQrTool({
             <h2 className={styles.pageTitle}>{CARD_QR_ENTRY_TITLE}</h2>
             <p className={styles.pageLede}>
               Five quick steps, top to bottom: pick your theme, add your
-              text-to-link phone number, get your QR code, download your free
-              QR flyer, then order business cards (paid before anyone prints them).
+              text-to-link phone number (optional), get your QR code, download your
+              free QR flyer, then order business cards (paid before anyone prints them).
             </p>
           </div>
           <span className={styles.eyebrow}>Smoke only</span>
@@ -600,7 +586,6 @@ export function CardQrTool({
               ? 'Using your site design.'
               : `Previewing ${activeTheme.label}. Your live site is unchanged.`}
           </p>
-          <NextStep n={2} />
         </section>
 
         <section className={styles.step} aria-labelledby="card-qr-text">
@@ -608,7 +593,8 @@ export function CardQrTool({
             n={2}
             id="card-qr-text"
             title="Enter your text-to-link phone number"
-            lede="Optional. The number customers text to get your shop link. Save it once here, then choose in steps 4 and 5 whether it goes on your flyer and your card."
+            optional
+            lede="If you have a text-to-link number and want it on your QR flyer or business card, add it here. Otherwise, skip this step."
           />
           <div className={styles.numberRow}>
             <label className={styles.field}>
@@ -640,7 +626,6 @@ export function CardQrTool({
               ? `Saved: ${savedNumber}. It is never copied from your account phone.`
               : 'Leave it empty if you don\u2019t use one. It is never copied from your account phone.'}
           </p>
-          <NextStep n={3} />
         </section>
 
         <section className={styles.step} aria-labelledby="card-qr-code">
@@ -712,7 +697,6 @@ export function CardQrTool({
               </div>
             </div>
           </div>
-          <NextStep n={4} />
         </section>
 
         <section className={styles.step} aria-labelledby="card-qr-flyer">
@@ -790,7 +774,6 @@ export function CardQrTool({
               </div>
             </div>
           </div>
-          <NextStep n={5} />
         </section>
 
         <section className={styles.step} aria-labelledby="card-qr-cards">
