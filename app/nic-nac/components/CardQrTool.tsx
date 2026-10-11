@@ -79,13 +79,36 @@ function IconMark({ icon, dark }: { icon: CardQrIcon; dark: string }) {
   return <svg viewBox={art.viewBox} aria-hidden="true" className={styles.markSvg} dangerouslySetInnerHTML={{ __html: art.inner }} />
 }
 
-function ThemeTile({ option, selected, onPick }: { option: CardQrDesignThemeOption; selected: boolean; onPick: () => void }) {
+const STEPS = [
+  { n: 1, id: 'card-qr-theme', short: 'Theme', title: 'Pick your theme' },
+  { n: 2, id: 'card-qr-text', short: 'Text-to-link number', title: 'Enter your text-to-link phone number' },
+  { n: 3, id: 'card-qr-code', short: 'QR code', title: 'QR code' },
+  { n: 4, id: 'card-qr-flyer', short: 'QR flyer', title: 'QR flyer' },
+  { n: 5, id: 'card-qr-cards', short: 'Business cards', title: 'Business cards' },
+] as const
+
+/** Bottom-of-card cue so it is obvious there is more below. */
+function NextStep({ n }: { n: number }) {
+  const step = STEPS.find((s) => s.n === n)
+  if (!step) return null
+  return (
+    <a className={styles.nextStep} href={`#${step.id}`}>
+      <span className={styles.nextLabel}>Next</span>
+      <span className={styles.navNum}>{step.n}</span>
+      <span>{step.title}</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    </a>
+  )
+}
+
+function ThemeTile({ option, selected, onPick, wide }: { option: CardQrDesignThemeOption; selected: boolean; onPick: () => void; wide?: boolean }) {
   return (
     <button
       type="button"
-      role="radio"
-      aria-checked={selected}
-      className={styles.themeTile}
+      role={wide ? undefined : 'radio'}
+      aria-checked={wide ? undefined : selected}
+      aria-label={wide ? `Current theme: ${option.label}. Change theme` : undefined}
+      className={wide ? `${styles.themeTile} ${styles.themeTileWide}` : styles.themeTile}
       title={option.label}
       onClick={onPick}
     >
@@ -124,7 +147,7 @@ function TextLinkCheck({ checked, disabled, onChange, where }: { checked: boolea
         <span className={styles.checkText}>Add text-to-link number</span>
       </label>
       <p className={styles.hint}>
-        {disabled ? 'Save a number in step 1 to turn this on.' : `Shows your number ${where}.`}
+        {disabled ? 'Save a number in step 2 to turn this on.' : `Shows your number ${where}.`}
       </p>
     </div>
   )
@@ -174,6 +197,7 @@ export function CardQrTool({
   /** Design theme picker: per visit only (never saved, never changes the live site). */
   const [designTheme, setDesignTheme] = useState<string>(CARD_QR_DESIGN_THEME_SITE)
   const [siteCardKey, setSiteCardKey] = useState<BizcardKey | null>(null)
+  const [themeOpen, setThemeOpen] = useState(false)
   const qrIcon = design.qrIcon
   const textLinkNumber = design.textLinkNumber
   /** The flyer only carries the number when its own checkbox is on. */
@@ -517,17 +541,17 @@ export function CardQrTool({
             <p className={styles.kicker}>Workspace tool</p>
             <h2 className={styles.pageTitle}>{CARD_QR_ENTRY_TITLE}</h2>
             <p className={styles.pageLede}>
-              One QR for your current Suite site. The flyer is a free portrait
-              download. Printed cards are paid before anyone prints them.
+              Five quick steps, top to bottom: pick your theme, add your
+              text-to-link phone number, get your QR code, download your free
+              QR flyer, then order business cards (paid before anyone prints them).
             </p>
           </div>
           <span className={styles.eyebrow}>Smoke only</span>
         </div>
         <ol className={styles.stepNav} aria-label="Steps">
-          <li><a href="#card-qr-text">1 · Text-to-link</a></li>
-          <li><a href="#card-qr-code">2 · QR code</a></li>
-          <li><a href="#card-qr-flyer">3 · QR flyer</a></li>
-          <li><a href="#card-qr-cards">4 · Business cards</a></li>
+          {STEPS.map((step) => (
+            <li key={step.id}><a href={`#${step.id}`}><span className={styles.navNum}>{step.n}</span>{step.short}</a></li>
+          ))}
         </ol>
       </header>
 
@@ -536,41 +560,55 @@ export function CardQrTool({
       {status ? <div className={`${styles.banner} ${styles.warning}`}>{status}</div> : null}
 
       <div className={styles.steps}>
-        <section className={`${styles.step} ${styles.themeStep}`} aria-labelledby="card-qr-theme">
-          <header className={styles.stepHead}>
-            <span className={`${styles.stepNum} ${styles.themeNum}`} aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.8-.5-1.2 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="11.5" r="1.2" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8" r="1.2" fill="currentColor"/></svg>
-            </span>
-            <div>
-              <h3 id="card-qr-theme" className={styles.stepTitle}>Design theme</h3>
-              <p className={styles.stepLede}>
-                Try your QR, flyer and cards in another look. This only changes what you make here. Your live site keeps its theme, and this resets to your site theme next visit.
-              </p>
-            </div>
-          </header>
-          <div className={styles.themeRail} role="radiogroup" aria-labelledby="card-qr-theme">
-            {themeOptions.map((option) => (
-              <ThemeTile
-                key={option.id}
-                option={option}
-                selected={option.id === activeTheme.id}
-                onPick={() => setDesignTheme(option.id)}
-              />
-            ))}
+        <section className={styles.step} aria-labelledby="card-qr-theme">
+          <StepHeader
+            n={1}
+            id="card-qr-theme"
+            title="Pick your theme"
+            lede="Starts on your site theme. Try another look for your QR, flyer and cards; your live site never changes, and this resets next visit."
+          />
+          <div className={styles.themeCurrent}>
+            <ThemeTile option={activeTheme} selected={false} wide onPick={() => setThemeOpen((open) => !open)} />
+            <button
+              type="button"
+              className={`${styles.button} ${styles.themeToggle}`}
+              aria-expanded={themeOpen}
+              aria-controls="card-qr-theme-grid"
+              onClick={() => setThemeOpen((open) => !open)}
+            >
+              {themeOpen ? 'Done' : 'Change theme'}
+              <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.chev} data-open={themeOpen || undefined}><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
           </div>
+          {themeOpen ? (
+            <div id="card-qr-theme-grid" className={styles.themeRail} role="radiogroup" aria-labelledby="card-qr-theme">
+              {themeOptions.map((option) => (
+                <ThemeTile
+                  key={option.id}
+                  option={option}
+                  selected={option.id === activeTheme.id}
+                  onPick={() => {
+                    setDesignTheme(option.id)
+                    setThemeOpen(false)
+                  }}
+                />
+              ))}
+            </div>
+          ) : null}
           <p className={styles.hint} role="status">
             {activeTheme.isSite
-              ? `Using your site design${activeTheme.label === 'Your custom design' ? '' : `: ${activeTheme.label}`}.`
+              ? 'Using your site design.'
               : `Previewing ${activeTheme.label}. Your live site is unchanged.`}
           </p>
+          <NextStep n={2} />
         </section>
 
         <section className={styles.step} aria-labelledby="card-qr-text">
           <StepHeader
-            n={1}
+            n={2}
             id="card-qr-text"
-            title="Text-to-link number"
-            lede="Optional. The number customers text to get your shop link. Save it once here, then choose in steps 3 and 4 whether it goes on your flyer and your card."
+            title="Enter your text-to-link phone number"
+            lede="Optional. The number customers text to get your shop link. Save it once here, then choose in steps 4 and 5 whether it goes on your flyer and your card."
           />
           <div className={styles.numberRow}>
             <label className={styles.field}>
@@ -602,11 +640,12 @@ export function CardQrTool({
               ? `Saved: ${savedNumber}. It is never copied from your account phone.`
               : 'Leave it empty if you don\u2019t use one. It is never copied from your account phone.'}
           </p>
+          <NextStep n={3} />
         </section>
 
         <section className={styles.step} aria-labelledby="card-qr-code">
           <StepHeader
-            n={2}
+            n={3}
             id="card-qr-code"
             title="QR code"
             lede="A short link to your customer site, colored for your theme. The flyer and cards use this same code."
@@ -673,11 +712,12 @@ export function CardQrTool({
               </div>
             </div>
           </div>
+          <NextStep n={4} />
         </section>
 
         <section className={styles.step} aria-labelledby="card-qr-flyer">
           <StepHeader
-            n={3}
+            n={4}
             id="card-qr-flyer"
             title="QR flyer"
             lede="Free digital download. Portrait 9:16 (1080×1920) for TikTok and other social posts. No Stripe charge. The preview is the file you download."
@@ -750,11 +790,12 @@ export function CardQrTool({
               </div>
             </div>
           </div>
+          <NextStep n={5} />
         </section>
 
         <section className={styles.step} aria-labelledby="card-qr-cards">
           <StepHeader
-            n={4}
+            n={5}
             id="card-qr-cards"
             title="Business cards"
             lede="Same QR and the same theme, printed two-sided. Stripe checkout is required before anything prints."

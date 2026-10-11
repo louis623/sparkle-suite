@@ -287,7 +287,7 @@ describe('Cards & QR smoke locks', () => {
     expect(html).toMatch(/aria-checked="true" aria-label="None"/)
     expect((html.match(/class="[^"]*markSvg/g) ?? []).length).toBe(33)
     for (const group of ['Everyday', 'Beach and Western', 'Halloween', 'Christmas']) expect(html).toContain(`>${group}</p>`)
-    for (const step of ['Text-to-link number', 'QR code', 'QR flyer', 'Business cards']) expect(html).toContain(step)
+    for (const step of ['Enter your text-to-link phone number', 'Pick your theme', 'QR code', 'QR flyer', 'Business cards']) expect(html).toContain(step)
     expect(html.indexOf('card-qr-text')).toBeLessThan(html.indexOf('card-qr-code'))
     expect((html.match(/Add text-to-link number/g) ?? []).length).toBe(2)
     expect(html).toContain('https://sparkle-suite-smoke.vercel.app/fizzfest')
