@@ -42,6 +42,8 @@ export interface FlyerTextBlock {
   xs?: number[]
   /** Inline leading icon (text bubble) left of the first line, top-left corner + size. */
   icon?: { x: number; y: number; size: number; textX: number }
+  /** Draw phone numbers in this block bold (Louis, Oct 11). */
+  boldNumber?: boolean
 }
 
 export type FlyerPanelKind = 'glass' | 'parchment' | 'paper'
@@ -339,6 +341,7 @@ function placeFlyer(
       size: textFit.size,
       top: y,
       lineHeight: Math.round(textFit.size * 1.2),
+      boldNumber: true,
       icon: { x: Math.round(rowLeft), y: Math.round(y + (textFit.size - iconSize) / 2), size: iconSize, textX: Math.round(rowLeft + iconSize + iconGap) },
     }
     y += blockHeight(textLink)

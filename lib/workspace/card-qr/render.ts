@@ -199,6 +199,20 @@ function covered(text: string, family: FlyerFontFamily) {
   return retainCoveredGlyphs(text, flyerFontFile(family), flyerFontFile(FLYER_FALLBACK_FONT))
 }
 
+/** Phone-number runs (e.g. "(555) 201-4410", "+44 20 7946 0958") in bold, the rest unchanged. */
+export const FLYER_PHONE_PATTERN = /\+?\(?\d[\d().\- ]{5,}\d/g
+function boldNumbers(value: string, family: string) {
+  const bold = escapeXml(`${family} Bold`)
+  let out = ''
+  let last = 0
+  for (const m of value.matchAll(FLYER_PHONE_PATTERN)) {
+    const i = m.index ?? 0
+    out += escapeXml(value.slice(last, i)) + `<tspan font-family="${bold}">${escapeXml(m[0])}</tspan>`
+    last = i + m[0].length
+  }
+  return out + escapeXml(value.slice(last))
+}
+
 function svgText(input: {
   value: string
   y: number
@@ -214,6 +228,8 @@ function svgText(input: {
   x?: number
   /** Left-aligned at this x instead of centered. */
   anchorStartX?: number
+  /** Wrap phone numbers in a bold tspan. */
+  boldNumber?: boolean
 }) {
   const familyName = FLYER_FONT_FACES[input.family].family
   const opacity = input.opacity == null ? '' : ` fill-opacity="${input.opacity}"`
@@ -223,7 +239,7 @@ function svgText(input: {
   const spacing = input.letterSpacing == null ? '' : ` letter-spacing="${input.letterSpacing}"`
   const x = input.anchorStartX ?? input.x ?? 540
   const anchor = input.anchorStartX == null ? 'middle' : 'start'
-  return `<text x="${x}" y="${input.y}" text-anchor="${anchor}" dominant-baseline="hanging" font-family="${escapeXml(familyName)}" font-weight="${input.weight}" font-size="${input.size}" fill="${input.fill}"${opacity}${stroke}${spacing}>${escapeXml(input.value)}</text>`
+  return `<text x="${x}" y="${input.y}" text-anchor="${anchor}" dominant-baseline="hanging" font-family="${escapeXml(familyName)}" font-weight="${input.weight}" font-size="${input.size}" fill="${input.fill}"${opacity}${stroke}${spacing}>${input.boldNumber ? boldNumbers(input.value, familyName) : escapeXml(input.value)}</text>`
 }
 
 function svgBlock(
@@ -244,6 +260,7 @@ function svgBlock(
         weight,
         x: block.xs?.[index],
         anchorStartX: index === 0 && block.icon ? block.icon.textX : undefined,
+        boldNumber: block.boldNumber,
       }),
     )
     .join('') + (block.icon ? textBubbleIcon(block.icon, fill) : '')

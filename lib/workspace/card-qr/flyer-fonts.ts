@@ -178,12 +178,25 @@ export function flyerFontFile(family: FlyerFontFamily) {
   return fullPath
 }
 
+/** Static bold cut of a family (fonts/<dir>/bold), if bundled. See fonts/bold-README.md. */
+export function flyerBoldFontFile(family: FlyerFontFamily) {
+  const directory = path.join(FLYER_FONT_ROOT, FLYER_FONT_FACES[family].directory, 'bold')
+  try {
+    const file = readdirSync(directory).find((name) => /\.(ttf|otf)$/i.test(name))
+    return file ? path.join(directory, file) : null
+  } catch {
+    return null
+  }
+}
+
 export function flyerFontFilesForTheme(theme: AmethystAppearancePresetId) {
   const fonts = FLYER_THEME_FONTS[theme]
+  const bold = flyerBoldFontFile(fonts.body)
   return [
     ...new Set([
       flyerFontFile(fonts.heading),
       flyerFontFile(fonts.body),
+      ...(bold ? [bold] : []),
       flyerFontFile(FLYER_FALLBACK_FONT),
     ]),
   ]
