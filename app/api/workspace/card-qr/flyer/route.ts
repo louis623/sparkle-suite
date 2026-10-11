@@ -21,6 +21,7 @@ import {
 } from '@/lib/workspace/card-qr/context'
 import { cardQrIconFromRequest, cleanTextLinkNumber } from '@/lib/workspace/card-qr/design'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
+import { readCardQrDesignTheme } from '@/lib/workspace/card-qr/design-theme'
 import { renderCardQrFlyerParts } from '@/lib/workspace/card-qr/render'
 import { requireCardQrShortUrl } from '@/lib/workspace/card-qr/short-link'
 import { ServiceError } from '@/lib/services/errors'
@@ -59,7 +60,12 @@ export async function POST(request: Request) {
     const icon = cardQrIconFromRequest(
       body && typeof body === 'object' ? (body as { icon?: unknown }).icon : null,
     )
-    const appearancePreset = context.settings.appearancePreset
+    const override = readCardQrDesignTheme(
+      body && typeof body === 'object' ? (body as { theme?: unknown }).theme : null,
+      context.settings.appearancePreset,
+    )
+    // Design theme picker: render-only override. The live site's saved theme is never changed.
+    const appearancePreset = override ?? context.settings.appearancePreset
     if (!isKnownFlyerTheme(appearancePreset)) {
       return NextResponse.json(
         {

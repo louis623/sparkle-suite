@@ -34,7 +34,12 @@ import {
 } from '@/lib/workspace/card-qr/flyer-format'
 import { CARD_QR_ENTRY_TITLE } from '@/lib/workspace/card-qr/access'
 import { cardQrIconArt } from '@/lib/workspace/card-qr/qr-icon'
-import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
+import {
+  CARD_QR_DESIGN_THEME_SITE,
+  cardQrDesignThemeOptions,
+  type CardQrDesignThemeOption,
+} from '@/lib/workspace/card-qr/design-theme'
+import type { BizcardKey } from '@/lib/workspace/card-qr/bizcard-themes'
 import styles from './CardQrTool.module.css'
 
 const CARD_BACK_TOGGLES: Array<[keyof CardQrFields, string]> = [
@@ -72,6 +77,30 @@ function IconMark({ icon, dark }: { icon: CardQrIcon; dark: string }) {
     )
   }
   return <svg viewBox={art.viewBox} aria-hidden="true" className={styles.markSvg} dangerouslySetInnerHTML={{ __html: art.inner }} />
+}
+
+function ThemeTile({ option, selected, onPick }: { option: CardQrDesignThemeOption; selected: boolean; onPick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      className={styles.themeTile}
+      title={option.label}
+      onClick={onPick}
+    >
+      <span className={styles.themeThumb} style={{ background: option.dots[0] ?? '#eee' }}>
+        {option.thumb ? <img src={option.thumb} alt="" loading="lazy" decoding="async" /> : null}
+        {option.isSite ? <span className={styles.themeBadge}>Your site</span> : null}
+      </span>
+      <span className={styles.themeMeta}>
+        <span className={styles.themeName}>{option.label}</span>
+        <span className={styles.themeDots} aria-hidden="true">
+          {option.dots.map((dot, i) => <span key={i} style={{ background: dot }} />)}
+        </span>
+      </span>
+    </button>
+  )
 }
 
 function StepHeader({ n, id, title, lede }: { n: number; id: string; title: string; lede: string }) {
@@ -142,24 +171,31 @@ export function CardQrTool({
   const [cardError, setCardError] = useState<string | null>(null)
   const [cardPending, setCardPending] = useState<string | null>(null)
   const [cardWarnings, setCardWarnings] = useState<string[]>([])
+  /** Design theme picker: per visit only (never saved, never changes the live site). */
+  const [designTheme, setDesignTheme] = useState<string>(CARD_QR_DESIGN_THEME_SITE)
+  const [siteCardKey, setSiteCardKey] = useState<BizcardKey | null>(null)
   const qrIcon = design.qrIcon
   const textLinkNumber = design.textLinkNumber
   /** The flyer only carries the number when its own checkbox is on. */
   const flyerTextLinkNumber = design.fields.flyerTextLink ? textLinkNumber : ''
-  const qrDark = useMemo(
-    () => resolveCardQrPalette({ templateId: 'match-site', appearancePreset }).qrDark,
-    [appearancePreset],
+  const themeOptions = useMemo(
+    () => cardQrDesignThemeOptions(appearancePreset, siteCardKey),
+    [appearancePreset, siteCardKey],
   )
+  const activeTheme = themeOptions.find((option) => option.id === designTheme) ?? themeOptions[0]
+  const qrDark = activeTheme.qrDark
   const designTouched = useRef(false)
   const destinationUrl = useMemo(
     () => resolveCardQrDestination(siteHref, origin),
     [origin, siteHref],
   )
+  /** Flyer cache key carries the theme so a download never hands back another theme's file. */
+  const flyerKeyUrl = destinationUrl ? `${destinationUrl}#theme=${designTheme}` : ''
   const qrUrl = useMemo(
     () => (origin && repId ? buildCardQrShortUrl(origin, repId) : null),
     [origin, repId],
   )
-  const cardKey = JSON.stringify({ hasCustomDomain, fields: design.fields, qrIcon, textLinkNumber, socialPlatform: design.socialPlatform, appearancePreset, displayName, businessName, email, socialHandles })
+  const cardKey = JSON.stringify({ hasCustomDomain, fields: design.fields, qrIcon, textLinkNumber, socialPlatform: design.socialPlatform, appearancePreset, designTheme, displayName, businessName, email, socialHandles })
 
   useEffect(() => {
     if (!destinationUrl) return
@@ -168,7 +204,7 @@ export function CardQrTool({
     setQrBlob(null)
     setQrObjectUrl(null)
     void fetch(
-      `/api/workspace/card-qr/qr?skin=${encodeURIComponent(appearancePreset)}&icon=${encodeURIComponent(qrIcon)}`,
+      `/api/workspace/card-qr/qr?theme=${encodeURIComponent(designTheme)}&icon=${encodeURIComponent(qrIcon)}`,
       {
       credentials: 'same-origin',
       signal: controller.signal,
@@ -197,13 +233,13 @@ export function CardQrTool({
       controller.abort()
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [appearancePreset, destinationUrl, qrIcon])
+  }, [designTheme, destinationUrl, qrIcon])
 
   useEffect(() => {
     if (!destinationUrl) return
     const controller = new AbortController()
     let objectUrl: string | null = null
-    const key = flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon, flyerTextLinkNumber)
+    const key = flyerPreviewCacheKey(flyerFormat, flyerKeyUrl, qrIcon, flyerTextLinkNumber)
     setFlyerLoading(true)
     setFlyerError(null)
     setFlyerPending(false)
@@ -212,7 +248,7 @@ export function CardQrTool({
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ format: flyerFormat, icon: qrIcon, textLinkNumber: flyerTextLinkNumber }),
+      body: JSON.stringify({ format: flyerFormat, icon: qrIcon, textLinkNumber: flyerTextLinkNumber, theme: designTheme }),
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -248,7 +284,7 @@ export function CardQrTool({
       controller.abort()
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [appearancePreset, destinationUrl, flyerFormat, qrIcon, flyerTextLinkNumber])
+  }, [designTheme, destinationUrl, flyerKeyUrl, flyerFormat, qrIcon, flyerTextLinkNumber])
 
   useEffect(() => {
     if (!destinationUrl) return
@@ -264,7 +300,7 @@ export function CardQrTool({
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ output, design }),
+          body: JSON.stringify({ output, design, theme: designTheme }),
           signal: controller.signal,
         })
         if (!response.ok) throw new Error(await readError(response))
@@ -319,7 +355,9 @@ export function CardQrTool({
     void fetch('/api/workspace/card-qr', { credentials: 'same-origin', signal: controller.signal })
       .then(async (response) => (response.ok ? response.json() : null))
       .then((body) => {
-        if (controller.signal.aborted || designTouched.current) return
+        if (controller.signal.aborted) return
+        if (typeof body?.siteCardKey === 'string') setSiteCardKey(body.siteCardKey as BizcardKey)
+        if (designTouched.current) return
         if (body?.profile?.design) {
           const saved = parseCardQrDesign(body.profile.design)
           setDesign(saved)
@@ -423,7 +461,7 @@ export function CardQrTool({
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ output: 'pdf', design }),
+        body: JSON.stringify({ output: 'pdf', design, theme: designTheme }),
       })
       if (!response.ok) throw new Error(await readError(response))
       const blob = await response.blob()
@@ -440,7 +478,7 @@ export function CardQrTool({
     if (!destinationUrl) return
     const bytes = flyerDownloadBytes(
       flyerCache,
-      flyerPreviewCacheKey(flyerFormat, destinationUrl, qrIcon, flyerTextLinkNumber),
+      flyerPreviewCacheKey(flyerFormat, flyerKeyUrl, qrIcon, flyerTextLinkNumber),
     )
     if (!bytes) return
     setFlyerError(null)
@@ -455,7 +493,7 @@ export function CardQrTool({
       const response = await fetch('/api/workspace/card-qr/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantity, design }),
+        body: JSON.stringify({ quantity, design, theme: designTheme }),
       })
       if (!response.ok) throw new Error(await readError(response))
       const body = await response.json()
@@ -498,6 +536,35 @@ export function CardQrTool({
       {status ? <div className={`${styles.banner} ${styles.warning}`}>{status}</div> : null}
 
       <div className={styles.steps}>
+        <section className={`${styles.step} ${styles.themeStep}`} aria-labelledby="card-qr-theme">
+          <header className={styles.stepHead}>
+            <span className={`${styles.stepNum} ${styles.themeNum}`} aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.8-.5-1.2 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="11.5" r="1.2" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8" r="1.2" fill="currentColor"/></svg>
+            </span>
+            <div>
+              <h3 id="card-qr-theme" className={styles.stepTitle}>Design theme</h3>
+              <p className={styles.stepLede}>
+                Try your QR, flyer and cards in another look. This only changes what you make here. Your live site keeps its theme, and this resets to your site theme next visit.
+              </p>
+            </div>
+          </header>
+          <div className={styles.themeRail} role="radiogroup" aria-labelledby="card-qr-theme">
+            {themeOptions.map((option) => (
+              <ThemeTile
+                key={option.id}
+                option={option}
+                selected={option.id === activeTheme.id}
+                onPick={() => setDesignTheme(option.id)}
+              />
+            ))}
+          </div>
+          <p className={styles.hint} role="status">
+            {activeTheme.isSite
+              ? `Using your site design${activeTheme.label === 'Your custom design' ? '' : `: ${activeTheme.label}`}.`
+              : `Previewing ${activeTheme.label}. Your live site is unchanged.`}
+          </p>
+        </section>
+
         <section className={styles.step} aria-labelledby="card-qr-text">
           <StepHeader
             n={1}

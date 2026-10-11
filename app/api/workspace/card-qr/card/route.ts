@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { ServiceError } from '@/lib/services/errors'
+import { readCardQrDesignTheme } from '@/lib/workspace/card-qr/design-theme'
 import {
   cardQrErrorResponse,
   loadCardQrContext,
@@ -44,14 +45,18 @@ export async function POST(request: Request) {
     const context = await loadCardQrContext(request)
     const body = (await request.json().catch(() => {
       throw new SyntaxError('Invalid request payload.')
-    })) as { output?: unknown; design?: unknown } | null
+    })) as { output?: unknown; design?: unknown; theme?: unknown } | null
     const output = readOutput(body?.output)
     const design = parseCardQrDesign(body?.design)
-    const resolved = resolveBizcard({
-      appearancePreset: context.settings.appearancePreset,
-      publicSiteSlug: context.rep.public_site_slug,
-      customDomain: context.customDomain,
-    })
+    const override = readCardQrDesignTheme(body?.theme, context.settings.appearancePreset)
+    // A picked shared theme uses that theme's card art, even for custom-site reps. Render only.
+    const resolved = override
+      ? resolveBizcard({ appearancePreset: override })
+      : resolveBizcard({
+          appearancePreset: context.settings.appearancePreset,
+          publicSiteSlug: context.rep.public_site_slug,
+          customDomain: context.customDomain,
+        })
     if (resolved.status === 'being_built') {
       return NextResponse.json(
         { code: 'CARD_QR_CARD_BEING_BUILT', status: 'being_built', message: BIZCARD_BEING_BUILT_MESSAGE },

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { parseCardQrDesign } from '@/lib/workspace/card-qr/design'
+import { resolveBizcard } from '@/lib/workspace/card-qr/bizcard-themes'
 import {
   cardQrErrorResponse,
   loadCardQrContext,
@@ -23,6 +24,7 @@ function profilePayload(input: {
   }
   profile: Awaited<ReturnType<typeof readCardQrProfile>>['profile']
   persistence: 'database' | 'unavailable'
+  siteCardKey?: string | null
 }) {
   return {
     destinationUrl: input.destinationUrl,
@@ -33,7 +35,17 @@ function profilePayload(input: {
     socialHandles: input.settings.socialHandles,
     profile: input.profile,
     persistence: input.persistence,
+    siteCardKey: input.siteCardKey ?? null,
   }
+}
+
+function siteCardKey(context: Awaited<ReturnType<typeof loadCardQrContext>>) {
+  const resolved = resolveBizcard({
+    appearancePreset: context.settings.appearancePreset,
+    publicSiteSlug: context.rep.public_site_slug,
+    customDomain: context.customDomain,
+  })
+  return resolved.status === 'ready' ? resolved.key : null
 }
 
 export async function GET(request: Request) {
@@ -46,6 +58,7 @@ export async function GET(request: Request) {
         settings: context.settings,
         profile: loaded.profile,
         persistence: loaded.persistence,
+        siteCardKey: siteCardKey(context),
       }),
     )
   } catch (error) {

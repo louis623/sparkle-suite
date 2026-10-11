@@ -5,6 +5,7 @@ import {
   loadCardQrContext,
 } from '@/lib/workspace/card-qr/context'
 import { resolveCardQrPalette } from '@/lib/workspace/card-qr/palette'
+import { readCardQrDesignTheme } from '@/lib/workspace/card-qr/design-theme'
 import { renderCardQrPng } from '@/lib/workspace/card-qr/render'
 import { requireCardQrShortUrl } from '@/lib/workspace/card-qr/short-link'
 
@@ -15,7 +16,7 @@ export async function GET(request: Request) {
   try {
     const context = await loadCardQrContext(request)
     const params = new URL(request.url).searchParams
-    const skin = params.get('skin')
+    const skin = readCardQrDesignTheme(params.get('theme') ?? params.get('skin'), context.settings.appearancePreset)
     const icon = cardQrIconFromRequest(params.get('icon'))
     const palette = resolveCardQrPalette({
       templateId: 'match-site',

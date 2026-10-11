@@ -1,3 +1,4 @@
+import { readCardQrDesignTheme } from '@/lib/workspace/card-qr/design-theme'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { parseCardQrDesign } from '@/lib/workspace/card-qr/design'
@@ -35,13 +36,14 @@ export async function POST(request: Request) {
       })
     }
     const record = body && typeof body === 'object'
-      ? (body as { design?: unknown; appearancePreset?: unknown })
+      ? (body as { design?: unknown; appearancePreset?: unknown; theme?: unknown })
       : {}
     const design = parseCardQrDesign(record.design)
-    const appearancePreset =
+    const override = readCardQrDesignTheme(record.theme, context.settings.appearancePreset)
+    const appearancePreset = override ?? (
       typeof record.appearancePreset === 'string'
         ? record.appearancePreset
-        : context.settings.appearancePreset
+        : context.settings.appearancePreset)
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
       apiVersion: '2026-03-25.dahlia',
       typescript: true,
