@@ -165,8 +165,8 @@
 .bkf-hero[class] {
   background-color: #2a1340;
   background-image:
-    linear-gradient(90deg, rgba(36, 15, 56, 0.86) 0%, rgba(36, 15, 56, 0.72) 38%, rgba(36, 15, 56, 0.38) 70%, rgba(36, 15, 56, 0.3) 100%),
-    linear-gradient(180deg, rgba(36, 15, 56, 0.25), rgba(36, 15, 56, 0) 30%, rgba(36, 15, 56, 0) 70%, rgba(36, 15, 56, 0.45)),
+    linear-gradient(90deg, rgba(36, 15, 56, 0.8) 0%, rgba(36, 15, 56, 0.6) 34%, rgba(36, 15, 56, 0.18) 62%, rgba(36, 15, 56, 0.08) 100%),
+    linear-gradient(180deg, rgba(36, 15, 56, 0.2), rgba(36, 15, 56, 0) 25%, rgba(36, 15, 56, 0) 75%, rgba(36, 15, 56, 0.35)),
     url("/amethyst/bling-kitchen/tile-wall.webp");
   background-size: auto, auto, cover;
   background-position: center, center, right top;
@@ -176,9 +176,10 @@
   .bkf-hero,
   .bkf-hero[class] {
     background-image:
-      linear-gradient(180deg, rgba(36, 15, 56, 0.35) 0%, rgba(36, 15, 56, 0.45) 40%, rgba(36, 15, 56, 0.82) 62%, rgba(36, 15, 56, 0.86) 100%),
-      url("/amethyst/bling-kitchen/tile-wall-mobile.webp");
+      linear-gradient(180deg, rgba(36, 15, 56, 0.25) 0%, rgba(36, 15, 56, 0.3) 45%, rgba(36, 15, 56, 0.62) 62%, rgba(36, 15, 56, 0.7) 100%),
+      url("/amethyst/bling-kitchen/tile-wall.webp");
     background-size: auto, cover;
-    background-position: center, center top;
+    background-position: center, center;
+    background-repeat: no-repeat;
   }
 }
