@@ -2,7 +2,8 @@ import jsQR from 'jsqr'
 import sharp from 'sharp'
 import { describe, expect, it } from 'vitest'
 
-import { CARD_QR_ICONS, CARD_QR_ICON_LABELS } from '@/lib/workspace/card-qr/design'
+import { CARD_QR_ICONS, CARD_QR_ICON_GROUPS, CARD_QR_ICON_LABELS } from '@/lib/workspace/card-qr/design'
+import { CARD_QR_ICON_ART_V3 } from '@/lib/workspace/card-qr/qr-icon-art-v3'
 import { cardQrSvg, inspectCardQr, renderCardQrPng } from '@/lib/workspace/card-qr/render'
 
 const URL = 'https://www.yoursparklesuite.com/q/abc123'
@@ -13,12 +14,20 @@ async function decode(png: Buffer) {
 }
 
 describe('QR center marks', () => {
-  it('offers None plus the nine approved marks', () => {
-    expect(CARD_QR_ICONS).toEqual([
+  it('offers None, the nine original marks and the 22 Oct 11 marks', () => {
+    expect(CARD_QR_ICONS.slice(0, 10)).toEqual([
       'none', 'diamond-solid', 'diamond-two-tone', 'unicorn-line', 'unicorn-two-tone',
       'heart', 'smiley', 'gem-ring', 'crown', 'butterfly',
     ])
-    expect(Object.keys(CARD_QR_ICON_LABELS)).toHaveLength(10)
+    expect(CARD_QR_ICONS).toHaveLength(32)
+    expect(CARD_QR_ICONS.slice(10)).toEqual(Object.keys(CARD_QR_ICON_ART_V3))
+    expect(Object.keys(CARD_QR_ICON_LABELS)).toHaveLength(32)
+  })
+
+  it('puts every icon in exactly one picker group', () => {
+    const grouped = CARD_QR_ICON_GROUPS.flatMap((g) => g.icons)
+    expect([...grouped].sort()).toEqual([...CARD_QR_ICONS].sort())
+    expect(CARD_QR_ICON_GROUPS.map((g) => g.label)).toEqual(['Everyday', 'Beach and Western', 'Halloween', 'Christmas'])
   })
 
   it.each(CARD_QR_ICONS.filter((icon) => icon !== 'none'))('%s draws a ringed badge and still scans', async (icon) => {

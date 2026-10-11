@@ -285,7 +285,8 @@ describe('Cards & QR smoke locks', () => {
     }
     expect(html).not.toContain('"Sparkle"')
     expect(html).toMatch(/aria-checked="true" aria-label="None"/)
-    expect((html.match(/class="[^"]*markSvg/g) ?? []).length).toBe(10)
+    expect((html.match(/class="[^"]*markSvg/g) ?? []).length).toBe(32)
+    for (const group of ['Everyday', 'Beach and Western', 'Halloween', 'Christmas']) expect(html).toContain(`>${group}</p>`)
     for (const step of ['Text-to-link number', 'QR code', 'QR flyer', 'Business cards']) expect(html).toContain(step)
     expect(html.indexOf('card-qr-text')).toBeLessThan(html.indexOf('card-qr-code'))
     expect((html.match(/Add text-to-link number/g) ?? []).length).toBe(2)
@@ -303,7 +304,8 @@ describe('Cards & QR smoke locks', () => {
     expect(html).not.toContain('Copy site address')
     expect(html).not.toContain('Match my site')
     expect(html).not.toContain('Classic ivory')
-    expect(html).not.toContain('>Halloween<')
+    // 'Halloween' is now only an icon group label, never a flyer template choice.
+    expect(html).not.toMatch(/<button[^>]*>Halloween</)
     expect(html).toContain('>PNG<')
     expect(html).toContain('>JPG<')
     expect(html).toMatch(/aria-checked="true"[^>]*>JPG</)

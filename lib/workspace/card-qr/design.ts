@@ -34,6 +34,28 @@ export const CARD_QR_ICONS = [
   'gem-ring',
   'crown',
   'butterfly',
+  'heart-sparkle',
+  'gift',
+  'peace',
+  'cross',
+  'bath-bomb',
+  'ladybug',
+  'rose',
+  'daisy',
+  'tulips',
+  'palm',
+  'cowboy-hat',
+  'cowboy-hat-side',
+  'bat',
+  'skull',
+  'jack-o-lantern',
+  'jack-o-lantern-spooky',
+  'xmas-tree',
+  'xmas-tree-ornaments',
+  'snowflake',
+  'wreath',
+  'candy-cane',
+  'santa-hat',
 ] as const
 
 export type CardQrIcon = (typeof CARD_QR_ICONS)[number]
@@ -49,7 +71,37 @@ export const CARD_QR_ICON_LABELS: Record<CardQrIcon, string> = {
   'gem-ring': 'Ring',
   crown: 'Crown',
   butterfly: 'Butterfly',
+  'heart-sparkle': "Sparkling heart",
+  'gift': "Gift",
+  'peace': "Peace sign",
+  'cross': "Cross",
+  'bath-bomb': "Bath bomb",
+  'ladybug': "Ladybug",
+  'rose': "Rose",
+  'daisy': "Daisy",
+  'tulips': "Tulips",
+  'palm': "Palm tree",
+  'cowboy-hat': "Cowboy hat",
+  'cowboy-hat-side': "Cowboy hat (side)",
+  'bat': "Bat",
+  'skull': "Skull",
+  'jack-o-lantern': "Jack-o-lantern",
+  'jack-o-lantern-spooky': "Spooky jack-o-lantern",
+  'xmas-tree': "Christmas tree",
+  'xmas-tree-ornaments': "Ornament tree",
+  'snowflake': "Snowflake",
+  'wreath': "Wreath",
+  'candy-cane': "Candy cane",
+  'santa-hat': "Santa hat",
 }
+
+/** Picker groups (Louis, Oct 11). Every icon appears in exactly one group. */
+export const CARD_QR_ICON_GROUPS: ReadonlyArray<{ id: string; label: string; icons: readonly CardQrIcon[] }> = [
+  { id: 'everyday', label: 'Everyday', icons: ['none', 'diamond-solid', 'diamond-two-tone', 'unicorn-line', 'unicorn-two-tone', 'heart', 'smiley', 'gem-ring', 'crown', 'butterfly', 'heart-sparkle', 'gift', 'peace', 'cross', 'bath-bomb', 'ladybug', 'rose', 'daisy', 'tulips'] },
+  { id: 'beach-western', label: 'Beach and Western', icons: ['palm', 'cowboy-hat', 'cowboy-hat-side'] },
+  { id: 'halloween', label: 'Halloween', icons: ['bat', 'skull', 'jack-o-lantern', 'jack-o-lantern-spooky'] },
+  { id: 'christmas', label: 'Christmas', icons: ['xmas-tree', 'xmas-tree-ornaments', 'snowflake', 'wreath', 'candy-cane', 'santa-hat'] },
+]
 
 /** Saved before the 2026-10-09 icon refresh. */
 const LEGACY_CARD_QR_ICONS: Record<string, CardQrIcon> = {

@@ -1,5 +1,6 @@
 import type { CardQrIcon } from '@/lib/workspace/card-qr/design'
 import { CARD_QR_ICON_ART } from '@/lib/workspace/card-qr/qr-icon-art'
+import { CARD_QR_ICON_ART_V3, type CardQrIconV3 } from '@/lib/workspace/card-qr/qr-icon-art-v3'
 
 /**
  * Badge diameter as a fraction of the module grid (the code, not the quiet zone).
@@ -28,7 +29,12 @@ export const CARD_QR_ICON_MAX_VERSION = 6
 export const THIRD_PARTY_NOTICES = [
   'Microsoft Fluent Emoji (MIT) - unicorn marks',
   'Microsoft Fluent UI System Icons (MIT) - heart',
-  'Phosphor Icons (MIT) - smiley, crown, butterfly',
+  'Phosphor Icons (MIT) - smiley, crown, butterfly, gift, peace, cowboy hat',
+  'Microsoft Fluent Emoji High Contrast (MIT) - sparkling heart',
+  'Material Design Icons (Apache-2.0) - jack-o-lantern',
+  'MingCute (Apache-2.0) - spooky jack-o-lantern',
+  'Line Awesome (Apache-2.0) - cowboy hat (side)',
+  'Temaki (CC0-1.0) - palm tree',
 ] as const
 
 export function cardQrBadgeModules(modules: number) {
@@ -85,7 +91,7 @@ function fromArt(key: keyof typeof CARD_QR_ICON_ART, dark: string) {
 }
 
 /** Icon box as a fraction of the badge diameter. */
-const ICON_SCALE: Record<Exclude<CardQrIcon, 'none'>, number> = {
+const ICON_SCALE: Record<Exclude<CardQrIcon, 'none' | CardQrIconV3>, number> = {
   'diamond-solid': 0.64,
   'diamond-two-tone': 0.66,
   'unicorn-line': 0.64,
@@ -100,7 +106,11 @@ const ICON_SCALE: Record<Exclude<CardQrIcon, 'none'>, number> = {
 /** Vector art for a center mark, in its own viewBox. Diamond and ring are original drawings. */
 export function cardQrIconArt(icon: CardQrIcon, dark: string) {
   if (icon === 'none') return null
-  const scale = ICON_SCALE[icon]
+  if (icon in CARD_QR_ICON_ART_V3) {
+    const art = CARD_QR_ICON_ART_V3[icon as CardQrIconV3]
+    return { viewBox: art.vb, inner: art.inner.replaceAll('__DARK__', dark), scale: art.scale as number }
+  }
+  const scale = ICON_SCALE[icon as Exclude<CardQrIcon, 'none' | CardQrIconV3>]
   switch (icon) {
     case 'diamond-solid':
       return { viewBox: '0 0 24 24', inner: diamondSolid(dark, 1.05), scale }
@@ -109,7 +119,7 @@ export function cardQrIconArt(icon: CardQrIcon, dark: string) {
     case 'gem-ring':
       return { viewBox: '0 0 24 24', inner: gemRing(dark), scale }
     default:
-      return { ...fromArt(icon, dark), scale }
+      return { ...fromArt(icon as keyof typeof CARD_QR_ICON_ART, dark), scale }
   }
 }
 

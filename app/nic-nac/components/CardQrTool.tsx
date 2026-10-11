@@ -11,7 +11,7 @@ import {
   type CardQrPackQuantity,
 } from '@/lib/workspace/card-qr/pricing'
 import {
-  CARD_QR_ICONS,
+  CARD_QR_ICON_GROUPS,
   CARD_QR_ICON_LABELS,
   CARD_QR_SOCIAL_PLATFORMS,
   CARD_QR_SOCIAL_PLATFORM_LABELS,
@@ -548,20 +548,27 @@ export function CardQrTool({
             <div className={`${styles.controls} ${styles.qrControls}`}>
               <div>
                 <p className={styles.fieldLabel} id="card-qr-mark-label">Center mark</p>
-                <div className={styles.marks} role="radiogroup" aria-labelledby="card-qr-mark-label">
-                  {CARD_QR_ICONS.map((icon) => (
-                    <button
-                      key={icon}
-                      type="button"
-                      role="radio"
-                      className={styles.mark}
-                      aria-checked={qrIcon === icon}
-                      aria-label={CARD_QR_ICON_LABELS[icon]}
-                      title={CARD_QR_ICON_LABELS[icon]}
-                      onClick={() => chooseIcon(icon)}
-                    >
-                      <IconMark icon={icon} dark={qrDark} />
-                    </button>
+                <div className={styles.markPanel} role="radiogroup" aria-labelledby="card-qr-mark-label">
+                  {CARD_QR_ICON_GROUPS.map((group) => (
+                    <div key={group.id} className={styles.markGroup} role="group" aria-labelledby={`card-qr-mark-${group.id}`}>
+                      <p className={styles.markGroupLabel} id={`card-qr-mark-${group.id}`}>{group.label}</p>
+                      <div className={styles.marks}>
+                        {group.icons.map((icon) => (
+                          <button
+                            key={icon}
+                            type="button"
+                            role="radio"
+                            className={styles.mark}
+                            aria-checked={qrIcon === icon}
+                            aria-label={CARD_QR_ICON_LABELS[icon]}
+                            title={CARD_QR_ICON_LABELS[icon]}
+                            onClick={() => chooseIcon(icon)}
+                          >
+                            <IconMark icon={icon} dark={qrDark} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
                 <p className={styles.hint}>Selected: {CARD_QR_ICON_LABELS[qrIcon]}</p>

@@ -791,13 +791,16 @@ describe('short-link QR on every shared theme', () => {
     async () => {
       expect(QR_URL).toBe(`${ORIGIN}/q/${QR_URL.split('/').pop()}`)
       expect(QR_URL.split('/').pop()).toHaveLength(6)
-      for (const theme of CARD_QR_SHARED_FLYER_THEMES) {
+      // Original 10 marks on every theme; each Oct 11 mark on two themes (every mark is also
+      // decoded on its own in workspace-card-qr-icons.test.ts). Keeps this under the timeout.
+      for (const [ti, theme] of CARD_QR_SHARED_FLYER_THEMES.entries()) {
+        const icons = [...CARD_QR_ICONS.slice(0, 10), ...CARD_QR_ICONS.slice(10).filter((_, k) => k % 7 === ti % 7)]
         const palette = resolveCardQrPalette({
           templateId: 'match-site',
           appearancePreset: theme,
         })
         expect(contrastRatio(palette.qrDark, '#ffffff'), theme).toBeGreaterThanOrEqual(7)
-        for (const icon of CARD_QR_ICONS) {
+        for (const icon of icons) {
           const parts = await renderCardQrFlyerParts({
             palette,
             showTitle: "Dude's Fizzfest",
