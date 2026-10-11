@@ -445,40 +445,51 @@ export function CardQrTool({
           Your customer site already has an address. This QR is a short link to
           it, colored for your site. The flyer and cards use the same code.
         </p>
-        <div className={styles.iconRow} role="group" aria-label="Center mark">
-          {CARD_QR_ICONS.map((icon) => (
-            <button
-              key={icon}
-              type="button"
-              className={styles.choice}
-              aria-pressed={qrIcon === icon}
-              onClick={() => chooseIcon(icon)}
-            >
-              {CARD_QR_ICON_LABELS[icon]}
-            </button>
-          ))}
-        </div>
-        <label className={styles.textLinkField}>
-          <span className={styles.textLinkLabel}>Text-to-link number (optional)</span>
-          <input
-            type="tel"
-            inputMode="tel"
-            className={styles.textLinkInput}
-            placeholder="(555) 201-4410"
-            maxLength={24}
-            value={textLinkDraft}
-            onChange={(event) => setTextLinkDraft(event.target.value)}
-            onBlur={commitTextLink}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') commitTextLink()
-            }}
-          />
-          <span className={styles.spec}>
-            The number customers text to get your shop link. It goes on your flyer and
-            the back of your card. Leave it empty if you don&apos;t use one.
-          </span>
-        </label>
         <div className={styles.qrLayout}>
+          <div className={`${styles.iconRow} ${styles.qrChips}`} role="group" aria-label="Center mark">
+            {CARD_QR_ICONS.map((icon) => (
+              <button
+                key={icon}
+                type="button"
+                className={styles.choice}
+                aria-pressed={qrIcon === icon}
+                onClick={() => chooseIcon(icon)}
+              >
+                {CARD_QR_ICON_LABELS[icon]}
+              </button>
+            ))}
+          </div>
+          <div className={styles.qrFrame}>
+            {qrObjectUrl ? (
+              // The PNG is fetched with the signed-in session, then shown from a local object URL.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={qrObjectUrl} alt="QR code for your Suite customer site" />
+            ) : (
+              <p className={styles.body}>
+                {destinationUrl ? 'Loading QR…' : 'QR appears when the site address is ready.'}
+              </p>
+            )}
+          </div>
+          <label className={`${styles.textLinkField} ${styles.qrField}`}>
+            <span className={styles.textLinkLabel}>Text-to-link number (optional)</span>
+            <input
+              type="tel"
+              inputMode="tel"
+              className={styles.textLinkInput}
+              placeholder="(555) 201-4410"
+              maxLength={24}
+              value={textLinkDraft}
+              onChange={(event) => setTextLinkDraft(event.target.value)}
+              onBlur={commitTextLink}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') commitTextLink()
+              }}
+            />
+            <span className={styles.spec}>
+              The number customers text to get your shop link. It goes on your flyer and
+              the back of your card. Leave it empty if you don&apos;t use one.
+            </span>
+          </label>
           <div className={styles.qrCopy}>
             <p className={`${styles.url} ${styles.qrUrl}`}>{destinationUrl || 'Site address loading'}</p>
             {qrUrl ? <p className={styles.spec}>Short link {qrUrl}</p> : null}
@@ -495,17 +506,6 @@ export function CardQrTool({
                 Copy QR
               </button>
             </div>
-          </div>
-          <div className={styles.qrFrame}>
-            {qrObjectUrl ? (
-              // The PNG is fetched with the signed-in session, then shown from a local object URL.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={qrObjectUrl} alt="QR code for your Suite customer site" />
-            ) : (
-              <p className={styles.body}>
-                {destinationUrl ? 'Loading QR…' : 'QR appears when the site address is ready.'}
-              </p>
-            )}
           </div>
         </div>
       </section>

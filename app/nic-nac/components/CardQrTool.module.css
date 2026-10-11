@@ -616,3 +616,99 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* QR code band, compact (Louis, Oct 11): chips, preview, text-to-link, links.
+   Mobile stacks in DOM order (preview right after the chips); desktop is two
+   columns with the preview top-aligned on the right. Not sticky. */
+.qrBand {
+  padding-top: 28px;
+  padding-bottom: 32px;
+}
+
+.qrLayout {
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.qrLayout > .qrFrame {
+  order: 0;
+  justify-self: center;
+  width: min(100%, 300px);
+}
+
+.qrChips,
+.qrField {
+  margin-top: 0;
+}
+
+.qrField {
+  max-width: none;
+  gap: 6px;
+}
+
+.qrField .spec,
+.qrCopy .spec {
+  margin-top: 0;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.qrCopy {
+  gap: 10px;
+  max-width: none;
+}
+
+.qrChips {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
+}
+
+.qrChips .choice {
+  min-height: 40px;
+  padding: 6px 10px;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.qrCopy .url {
+  padding: 10px 14px;
+  font-size: 15px;
+}
+
+@media (min-width: 800px) {
+  .qrBand {
+    padding-top: 40px;
+    padding-bottom: 44px;
+  }
+
+  .qrLayout {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    grid-template-areas:
+      "chips frame"
+      "field frame"
+      "copy  frame";
+    grid-template-rows: auto auto 1fr;
+    column-gap: 40px;
+    row-gap: 18px;
+    align-items: start;
+    margin-top: 20px;
+  }
+
+  .qrChips {
+    grid-area: chips;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .qrField { grid-area: field; }
+  .qrCopy { grid-area: copy; }
+
+  .qrLayout > .qrFrame {
+    grid-area: frame;
+    align-self: start;
+    justify-self: stretch;
+    width: auto;
+  }
+
+  .qrField .textLinkInput {
+    max-width: 22rem;
+  }
+}
