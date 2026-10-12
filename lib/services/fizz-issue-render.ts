@@ -52,7 +52,7 @@ function text(value: unknown, field: string, min: number, max: number) {
 
 const P_INK = "font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#402924;"
 const P_MUTED = "font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#775d57;"
-export const FIZZ_ITEM_SUMMARY_MAX = 1_500
+export const FIZZ_ITEM_SUMMARY_MAX = 2_000
 const LEAD_LABEL_MAX = 40
 
 function escapeWithBreaks(value: string) {

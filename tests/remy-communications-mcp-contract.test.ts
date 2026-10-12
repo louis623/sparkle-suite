@@ -50,17 +50,17 @@ describe('Sparkle Suite Control Center MCP contract', () => {
     expect(controlCenterMcpToolNames).not.toContain('control_center_suspend_rep')
   })
 
-  it('accepts a 1500-character fizz item summary and rejects 1501', () => {
+  it('accepts a 2000-character fizz item summary and rejects 2001', () => {
     const item = {
       headline: 'Cards are live',
-      summary: 'a'.repeat(1500),
+      summary: 'a'.repeat(2000),
       whatItMeans: 'You can print from Suite.',
       sourceUrl: 'https://www.yoursparklesuite.com/cards',
     }
     expect(fizzIssueItemSchema.safeParse(item).success).toBe(true)
-    expect(fizzIssueItemSchema.safeParse({ ...item, summary: ` ${'a'.repeat(1500)} ` }).success).toBe(true)
-    expect(fizzIssueItemSchema.safeParse({ ...item, summary: 'a'.repeat(1501) }).success).toBe(false)
-    expect(fizzIssueItemSchema.safeParse({ ...item, summary: 'a'.repeat(1200) }).success).toBe(true)
+    expect(fizzIssueItemSchema.safeParse({ ...item, summary: ` ${'a'.repeat(2000)} ` }).success).toBe(true)
+    expect(fizzIssueItemSchema.safeParse({ ...item, summary: 'a'.repeat(2001) }).success).toBe(false)
+    expect(fizzIssueItemSchema.safeParse({ ...item, summary: 'a'.repeat(1500) }).success).toBe(true)
   })
 
   it('does not wrap a missing waitlist lead as a generic outage', () => {

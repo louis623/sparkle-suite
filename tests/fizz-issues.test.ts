@@ -190,21 +190,21 @@ describe('fizz server render', () => {
     ).toThrow(/plain text/)
   })
 
-  it('accepts a 1500-character item summary and rejects 1501', () => {
-    expect(FIZZ_ITEM_SUMMARY_MAX).toBe(1500)
+  it('accepts a 2000-character item summary and rejects 2001', () => {
+    expect(FIZZ_ITEM_SUMMARY_MAX).toBe(2000)
     const summary = `S${'a'.repeat(FIZZ_ITEM_SUMMARY_MAX - 1)}`
     const normalized = normalizeFizzContent({
       ...content,
       items: [{ ...content.items[0], summary: `  ${summary}  ` }],
     })
     expect(normalized.items[0].summary).toBe(summary)
-    expect(normalized.items[0].summary).toHaveLength(1500)
+    expect(normalized.items[0].summary).toHaveLength(2000)
     expect(() =>
       normalizeFizzContent({
         ...content,
         items: [{ ...content.items[0], summary: `${summary}b` }],
       }),
-    ).toThrow(/Item 1 summary must be 3 to 1500 characters/)
+    ).toThrow(/Item 1 summary must be 3 to 2000 characters/)
   })
 
   it('rejects raw HTML and missing house style', async () => {
