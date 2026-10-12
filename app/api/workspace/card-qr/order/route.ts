@@ -12,6 +12,7 @@ import {
 import { CARD_QR_FULFILLMENT_COPY } from '@/lib/workspace/card-qr/pricing'
 import { recordPaidCardQrOrder } from '@/lib/workspace/card-qr/store'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { fulfillPaidCardQrSession } from '@/lib/workspace/card-qr/order-fulfillment'
 import { ServiceError } from '@/lib/services/errors'
 
 export const runtime = 'nodejs'
@@ -37,6 +38,28 @@ export async function GET(request: Request) {
     })
     const session = await stripe.checkout.sessions.retrieve(sessionId)
     const order = readPaidCardQrOrder(session, context.repId)
+    if (session.metadata?.order_id) {
+      // Success-page fallback: same once-only guard as the webhook. Whoever marks it paid first
+      // sends the emails; the other sees already_paid.
+      const result = await fulfillPaidCardQrSession(session, 'success_page')
+      if (result.status !== 'paid' && result.status !== 'already_paid') {
+        throw new ServiceError({
+          code: 'CARD_QR_ORDER_NOT_PAID',
+          message: `Fulfillment ${result.status}: ${'reason' in result ? result.reason : ''}`,
+          userMessage: 'That checkout is not a paid business-card order for this workspace.',
+          statusCode: 409,
+        })
+      }
+      return NextResponse.json({
+        ok: true,
+        orderNumber: result.orderNumber,
+        quantity: result.quantity,
+        amountCents: result.amountCents,
+        persistence: 'database',
+        message: `${CARD_QR_FULFILLMENT_COPY} Order ${result.orderNumber}.`,
+      })
+    }
+    // Sessions created before order numbers existed.
     let persistence: 'database' | 'unavailable' = 'unavailable'
     try {
       const saved = await recordPaidCardQrOrder(createAdminClient(), {

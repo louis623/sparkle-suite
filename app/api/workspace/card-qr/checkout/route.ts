@@ -1,7 +1,7 @@
 import { readCardQrProofApproval, isCompleteCardQrShipAddress } from '@/lib/workspace/card-qr/ship-address'
 import { readCardQrShipAddress } from '@/lib/workspace/card-qr/ship-address-store'
 import { renderCardQrCardFiles } from '@/lib/workspace/card-qr/card-files'
-import { recordPendingCardQrOrder, storeCardQrProofFiles } from '@/lib/workspace/card-qr/proof-snapshot'
+import { attachCardQrCheckoutSession, createPendingCardQrOrder, markCardQrCheckoutFailed, storeCardQrProofFiles } from '@/lib/workspace/card-qr/proof-snapshot'
 import { readCardQrDesignTheme } from '@/lib/workspace/card-qr/design-theme'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
@@ -80,33 +80,9 @@ export async function POST(request: Request) {
     }
     const approvedAt = new Date().toISOString()
     const proof = await storeCardQrProofFiles(context.repId, { pdf: files.pdf, front: files.front, back: files.back })
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-      apiVersion: '2026-03-25.dahlia',
-      typescript: true,
-    })
-    const session = await stripe.checkout.sessions.create(
-      buildCardQrCheckoutParams({
-        repId: context.repId,
-        email: context.rep.email,
-        quantity,
-        destinationUrl: context.destinationUrl,
-        origin: context.origin,
-        design,
-        appearancePreset,
-      }),
-    )
-    if (session.livemode || !session.url) {
-      throw new ServiceError({
-        code: 'CARD_QR_LIVE_STRIPE_BLOCKED',
-        message: 'Refused a live or incomplete business-card Checkout session.',
-        userMessage: 'Business card checkout stays on Smoke test mode.',
-        statusCode: 403,
-      })
-    }
-    await recordPendingCardQrOrder({
+    const order = await createPendingCardQrOrder({
       repId: context.repId,
       quantity,
-      checkoutSessionId: session.id,
       destinationUrl: context.destinationUrl,
       design,
       designTheme: override ?? 'site',
@@ -115,6 +91,39 @@ export async function POST(request: Request) {
       approvedAt,
       proof,
     })
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+      apiVersion: '2026-03-25.dahlia',
+      typescript: true,
+    })
+    let session: Stripe.Checkout.Session
+    try {
+      session = await stripe.checkout.sessions.create(
+        buildCardQrCheckoutParams({
+          repId: context.repId,
+          email: context.rep.email,
+          quantity,
+          destinationUrl: context.destinationUrl,
+          origin: context.origin,
+          design,
+          appearancePreset,
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+        }),
+      )
+    } catch (error) {
+      await markCardQrCheckoutFailed(order.id)
+      throw error
+    }
+    if (session.livemode || !session.url) {
+      await markCardQrCheckoutFailed(order.id)
+      throw new ServiceError({
+        code: 'CARD_QR_LIVE_STRIPE_BLOCKED',
+        message: 'Refused a live or incomplete business-card Checkout session.',
+        userMessage: 'Business card checkout stays on Smoke test mode.',
+        statusCode: 403,
+      })
+    }
+    await attachCardQrCheckoutSession(order.id, session.id)
     return NextResponse.json({ url: session.url })
   } catch (error) {
     return cardQrErrorResponse(error)

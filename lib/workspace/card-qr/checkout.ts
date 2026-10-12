@@ -47,9 +47,13 @@ export function buildCardQrCheckoutMetadata(input: {
   destinationUrl: string
   design: CardQrDesign
   appearancePreset?: string | null
+  orderId?: string | null
+  orderNumber?: string | null
 }) {
   const pack = getCardQrPack(input.quantity)
   return {
+    ...(input.orderId ? { order_id: input.orderId } : {}),
+    ...(input.orderNumber ? { order_number: input.orderNumber } : {}),
     sparkle_product: CARD_QR_STRIPE_PRODUCT,
     environment: 'smoke',
     rep_id: input.repId,
@@ -70,6 +74,8 @@ export function buildCardQrCheckoutParams(input: {
   origin: string
   design: CardQrDesign
   appearancePreset?: string | null
+  orderId?: string | null
+  orderNumber?: string | null
 }) {
   const pack = getCardQrPack(input.quantity)
   const origin = input.origin.replace(/\/$/, '')
@@ -86,8 +92,9 @@ export function buildCardQrCheckoutParams(input: {
           unit_amount: pack.amountCents,
           product_data: {
             name: `Sparkle Suite business cards · ${pack.label}`,
-            description:
-              'All-in Smoke price: print, tax, and UPS Ground. No air or rush.',
+            description: input.orderNumber
+              ? `Order ${input.orderNumber}. All-in Smoke price: print, tax, and UPS Ground. No air or rush.`
+              : 'All-in Smoke price: print, tax, and UPS Ground. No air or rush.',
           },
         },
       },
@@ -95,6 +102,14 @@ export function buildCardQrCheckoutParams(input: {
     success_url: `${origin}/nic-nac?section=card-qr&cardOrder=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/nic-nac?section=card-qr&cardOrder=cancelled`,
     metadata: buildCardQrCheckoutMetadata(input),
+    ...(input.orderNumber
+      ? {
+          payment_intent_data: {
+            description: `Sparkle Suite business cards ${input.orderNumber}`,
+            metadata: { sparkle_product: CARD_QR_STRIPE_PRODUCT, order_number: input.orderNumber, rep_id: input.repId },
+          },
+        }
+      : {}),
   }
 }
 

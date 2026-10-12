@@ -47,6 +47,8 @@ const mocks = vi.hoisted(() => ({
   sessionsCreate: vi.fn(),
   store: vi.fn(),
   record: vi.fn(),
+  attach: vi.fn(),
+  failed: vi.fn(),
   render: vi.fn(),
 }))
 vi.mock('@/lib/workspace/card-qr/context', async (orig) => ({
@@ -65,7 +67,7 @@ vi.mock('@/lib/workspace/card-qr/ship-address-store', () => ({
   readCardQrShipAddress: vi.fn(async () => ({ address: mocks.address, updatedAt: null, persistence: 'database' })),
 }))
 vi.mock('@/lib/workspace/card-qr/card-files', () => ({ renderCardQrCardFiles: mocks.render }))
-vi.mock('@/lib/workspace/card-qr/proof-snapshot', () => ({ storeCardQrProofFiles: mocks.store, recordPendingCardQrOrder: mocks.record }))
+vi.mock('@/lib/workspace/card-qr/proof-snapshot', () => ({ storeCardQrProofFiles: mocks.store, createPendingCardQrOrder: mocks.record, attachCardQrCheckoutSession: mocks.attach, markCardQrCheckoutFailed: mocks.failed }))
 vi.mock('stripe', () => ({ default: class { checkout = { sessions: { create: mocks.sessionsCreate } } } }))
 
 async function post(body: unknown) {
@@ -80,7 +82,9 @@ describe('checkout gate (server)', () => {
     mocks.address = validateCardQrShipAddress(GOOD).address
     mocks.sessionsCreate.mockReset().mockResolvedValue({ id: 'cs_test_1', url: 'https://checkout.stripe.com/x', livemode: false })
     mocks.store.mockReset().mockResolvedValue({ paths: { pdf: 'a/proof.pdf', front: 'a/front.png', back: 'a/back.png' }, sha256: 'abc' })
-    mocks.record.mockReset().mockResolvedValue(undefined)
+    mocks.record.mockReset().mockResolvedValue({ id: 'order-1', orderNumber: 'SS-CARD-000123' })
+    mocks.attach.mockReset().mockResolvedValue(undefined)
+    mocks.failed.mockReset().mockResolvedValue(undefined)
     mocks.render.mockReset().mockResolvedValue({ status: 'ok', key: 'amethyst', pdf: Buffer.from('%PDF'), front: Buffer.from('f'), back: Buffer.from('b'), warnings: [] })
   })
 
@@ -104,14 +108,22 @@ describe('checkout gate (server)', () => {
     expect(res.status).toBe(200)
     expect(mocks.render).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'halloween_pumpkin_cat', 'pdf')
     expect(mocks.store.mock.invocationCallOrder[0]).toBeLessThan(mocks.sessionsCreate.mock.invocationCallOrder[0])
+    expect(mocks.record.mock.invocationCallOrder[0]).toBeLessThan(mocks.sessionsCreate.mock.invocationCallOrder[0])
+    expect(mocks.sessionsCreate.mock.calls[0][0].metadata).toMatchObject({ order_id: 'order-1', order_number: 'SS-CARD-000123' })
+    expect(mocks.attach).toHaveBeenCalledWith('order-1', 'cs_test_1')
     expect(mocks.record).toHaveBeenCalledWith(expect.objectContaining({
-      checkoutSessionId: 'cs_test_1',
       quantity: 1000,
       designTheme: 'halloween_pumpkin_cat',
       address: expect.objectContaining({ zip: '78701-1234' }),
       approval: expect.objectContaining({ detailsConfirmedAt: '2026-10-11T22:00:00.000Z' }),
       proof: expect.objectContaining({ sha256: 'abc' }),
     }))
+  })
+
+  it('marks the pending order failed when Stripe errors', async () => {
+    mocks.sessionsCreate.mockRejectedValue(new Error('stripe down'))
+    await expect(post({ quantity: 500, approval: APPROVED })).rejects.toThrow('stripe down')
+    expect(mocks.failed).toHaveBeenCalledWith('order-1')
   })
 
   it('does not charge when the proof cannot be rendered', async () => {

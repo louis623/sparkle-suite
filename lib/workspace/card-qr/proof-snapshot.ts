@@ -25,11 +25,13 @@ export async function storeCardQrProofFiles(repId: string, files: { pdf: Buffer;
   return { paths, sha256: createHash('sha256').update(files.pdf).digest('hex') }
 }
 
-/** Pending order row carrying the approved snapshot. Paid status is set later by the order route. */
-export async function recordPendingCardQrOrder(input: {
+/**
+ * Pending order row carrying the approved snapshot, created BEFORE the Stripe session so the
+ * human order number can go into the session. Paid status is set once by fulfillment.
+ */
+export async function createPendingCardQrOrder(input: {
   repId: string
   quantity: CardQrPackQuantity
-  checkoutSessionId: string
   destinationUrl: string
   design: CardQrDesign
   designTheme: string
@@ -39,27 +41,46 @@ export async function recordPendingCardQrOrder(input: {
   proof: { paths: { pdf: string; front: string; back: string }; sha256: string }
 }) {
   const pack = getCardQrPack(input.quantity)
-  const { error } = await createAdminClient().from('rep_card_print_orders').insert({
-    rep_id: input.repId,
-    quantity: pack.quantity,
-    amount_cents: pack.amountCents,
-    currency: 'usd',
-    stripe_checkout_session_id: input.checkoutSessionId,
-    status: 'pending',
-    livemode: false,
-    destination_url: input.destinationUrl,
-    design_snapshot: input.design,
-    design_theme: input.designTheme,
-    ship_address: input.address,
-    proof_pdf_path: input.proof.paths.pdf,
-    proof_front_path: input.proof.paths.front,
-    proof_back_path: input.proof.paths.back,
-    proof_pdf_sha256: input.proof.sha256,
-    details_confirmed_at: input.approval.detailsConfirmedAt ?? input.approvedAt,
-    qr_scan_confirmed_at: input.approval.qrScannedAt ?? input.approvedAt,
-    proof_approved_at: input.approvedAt,
-  })
+  const { data, error } = await createAdminClient()
+    .from('rep_card_print_orders')
+    .insert({
+      rep_id: input.repId,
+      quantity: pack.quantity,
+      amount_cents: pack.amountCents,
+      currency: 'usd',
+      status: 'pending',
+      livemode: false,
+      destination_url: input.destinationUrl,
+      design_snapshot: input.design,
+      design_theme: input.designTheme,
+      ship_address: input.address,
+      proof_pdf_path: input.proof.paths.pdf,
+      proof_front_path: input.proof.paths.front,
+      proof_back_path: input.proof.paths.back,
+      proof_pdf_sha256: input.proof.sha256,
+      details_confirmed_at: input.approval.detailsConfirmedAt ?? input.approvedAt,
+      qr_scan_confirmed_at: input.approval.qrScannedAt ?? input.approvedAt,
+      proof_approved_at: input.approvedAt,
+    })
+    .select('id, order_number')
+    .single()
+  if (error || !data) {
+    throw new ServiceError({ code: 'CARD_QR_PENDING_ORDER_FAILED', message: error?.message ?? 'no row', userMessage: 'Could not save your order. Nothing was charged.', statusCode: 500 })
+  }
+  return { id: data.id as string, orderNumber: data.order_number as string }
+}
+
+export async function attachCardQrCheckoutSession(orderId: string, sessionId: string) {
+  const { error } = await createAdminClient()
+    .from('rep_card_print_orders')
+    .update({ stripe_checkout_session_id: sessionId })
+    .eq('id', orderId)
+    .eq('status', 'pending')
   if (error) {
     throw new ServiceError({ code: 'CARD_QR_PENDING_ORDER_FAILED', message: error.message, userMessage: 'Could not save your order. Nothing was charged.', statusCode: 500 })
   }
+}
+
+export async function markCardQrCheckoutFailed(orderId: string) {
+  await createAdminClient().from('rep_card_print_orders').update({ status: 'checkout_failed' }).eq('id', orderId).eq('status', 'pending')
 }
