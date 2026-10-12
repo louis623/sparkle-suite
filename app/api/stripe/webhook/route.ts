@@ -4,6 +4,9 @@ import { getStripe } from '@/lib/stripe/client'
 import { getSparkleSuitePriceIds, getStripeConfig } from '@/lib/stripe/config'
 import { stripeCentsToWalletMils } from '@/lib/services/wallet-units'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { CARD_QR_STRIPE_PRODUCT } from '@/lib/workspace/card-qr/checkout'
+import { fulfillPaidCardQrSession } from '@/lib/workspace/card-qr/order-fulfillment'
+import { cardQrStripeRuntime } from '@/lib/workspace/card-qr/access'
 import { upsertPrelaunchLaunchGate } from '@/lib/prelaunch/launch-gates'
 import {
   createRequiredSetupCheckoutFulfillment,
@@ -498,6 +501,17 @@ async function handlePrelaunchPaymentGateCheckout(
 
 async function handleCheckoutCompleted(event: Stripe.Event) {
   const session = event.data.object as Stripe.Checkout.Session
+
+  // Business cards (Smoke, test mode only). Refusals are logged, not thrown, so Stripe does not retry them.
+  if (session.metadata?.sparkle_product === CARD_QR_STRIPE_PRODUCT) {
+    if (event.livemode && !cardQrStripeRuntime().allowLive) {
+      logStripeEvent('error', event, { phase: 'card_qr_order', refused: true, reason: 'livemode_event' })
+      return
+    }
+    const result = await fulfillPaidCardQrSession(session, 'webhook')
+    logStripeEvent(result.status === 'refused' ? 'error' : 'info', event, { phase: 'card_qr_order', session_id: session.id, ...result })
+    return
+  }
 
   // Wallet loads are mode='payment', so they must be handled BEFORE the subscription-only early return.
   if (session.metadata?.wallet_load === 'true') {

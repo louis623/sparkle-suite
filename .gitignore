@@ -67,3 +67,7 @@ tests/nic-nac/attack-5-results/
 
 # Thumper benchmark result dumps (ephemeral until summarized)
 spike/benchmark-results-*.json
+
+# Python bytecode
+__pycache__/
+*.pyc

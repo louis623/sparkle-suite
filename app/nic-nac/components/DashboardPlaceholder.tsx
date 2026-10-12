@@ -110,6 +110,7 @@ import {
   Mail,
   MessagesSquare,
   PlayCircle,
+  QrCode,
   RadioTower,
   Search,
   Settings2,
@@ -147,6 +148,15 @@ import type {
 } from './messages/types'
 import { isConversationItem } from './messages/types'
 import styles from './DashboardPlaceholder.module.css'
+import { CardQrTool } from './CardQrTool'
+import {
+  CARD_QR_ENTRY_ACTION,
+  CARD_QR_ENTRY_TITLE,
+  CARD_QR_HUB_BODY,
+  CARD_QR_WORKSPACE_SECTION,
+  isCardQrToolEnabled,
+  isWorkspaceSectionVisible,
+} from '@/lib/workspace/card-qr/access'
 
 export const MessagesCenterCard = UnifiedMessageCenter
 
@@ -203,6 +213,12 @@ const WORKSPACE_SECTIONS = [
 ] as const satisfies readonly WorkspaceSectionTab<string>[]
 
 const SECONDARY_WORKSPACE_SECTIONS = [
+  {
+    key: CARD_QR_WORKSPACE_SECTION,
+    label: CARD_QR_ENTRY_TITLE,
+    shortLabel: CARD_QR_ENTRY_TITLE,
+    icon: QrCode,
+  },
   {
     key: 'jewelry-library',
     label: 'Jewelry Library',
@@ -386,6 +402,7 @@ export function getInitialWorkspaceSection(search: string): WorkspaceSectionKey 
   const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
   const requested = params.get('section')?.trim() ?? ''
   if (requested === 'business-calculator') return 'business-tools'
+  if (requested === CARD_QR_WORKSPACE_SECTION && !isCardQrToolEnabled()) return 'more'
   if (WORKSPACE_SECTION_KEYS.has(requested)) {
     const section = requested as WorkspaceSectionKey
     return isComingSoonWorkspaceSection(section) ? 'more' : section
@@ -454,6 +471,7 @@ export function resolveWorkspaceSectionForAccess(
   hasRecipeWorkspaceAccess = true,
 ): WorkspaceSectionKey {
   if (isComingSoonWorkspaceSection(section)) return 'more'
+  if (section === CARD_QR_WORKSPACE_SECTION && !isCardQrToolEnabled()) return 'more'
   if (section === 'recipes' && !hasRecipeWorkspaceAccess) return 'more'
   return section
 }
@@ -6727,7 +6745,52 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     }
 
     if (canRenderWorkspaceSections && activeSection === 'business-tools') {
-      return <BusinessToolsCard />
+      return (
+        <BusinessToolsCard
+          onOpenCardQr={() => setActiveSection(CARD_QR_WORKSPACE_SECTION)}
+        />
+      )
+    }
+
+    if (
+      canRenderWorkspaceSections &&
+      activeSection === CARD_QR_WORKSPACE_SECTION &&
+      isCardQrToolEnabled()
+    ) {
+      return (
+        <CardQrTool
+          repId={currentRepId}
+          customDomain={normalizeAmethystCustomDomainCandidate(repProfileState.customDomain)}
+          siteHref={customerSparkleSiteHref}
+          displayName={
+            siteSettingsDraft?.displayName ??
+            siteSettingsState.settings?.displayName ??
+            repProfileState.displayName ??
+            ''
+          }
+          businessName={
+            siteSettingsDraft?.businessName ??
+            siteSettingsState.settings?.businessName ??
+            repProfileState.businessName ??
+            ''
+          }
+          email={
+            siteSettingsDraft?.email ??
+            siteSettingsState.settings?.email ??
+            ''
+          }
+          appearancePreset={
+            siteSettingsDraft?.appearancePreset ??
+            siteSettingsState.settings?.appearancePreset ??
+            'sparkle_suite_morganite'
+          }
+          socialHandles={
+            siteSettingsDraft?.socialHandles ??
+            siteSettingsState.settings?.socialHandles ??
+            {}
+          }
+        />
+      )
     }
 
     if (canRenderWorkspaceSections && activeSection === 'live-queue') {
@@ -6750,7 +6813,10 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         <MoreWorkspaceCard
           sections={SECONDARY_WORKSPACE_SECTIONS.filter(
             (section) =>
-              section.key !== 'recipes' || hasRecipeWorkspaceAccess,
+              (section.key !== 'recipes' || hasRecipeWorkspaceAccess) &&
+              isWorkspaceSectionVisible({
+                smokeOnly: section.key === CARD_QR_WORKSPACE_SECTION,
+              }),
           )}
           onSectionChange={(section) => {
             const nextSection = resolveWorkspaceSectionForAccess(
@@ -10899,7 +10965,15 @@ const WISPR_FLOW_INVITE_URL = 'https://wisprflow.ai/r?LOUIS20696'
 
 const BUSINESS_TOOL_PLACEHOLDERS = ['Business Calculator', 'Business Cards'] as const
 
-export function BusinessToolsCard() {
+export function BusinessToolsCard({
+  onOpenCardQr,
+}: {
+  onOpenCardQr?: () => void
+} = {}) {
+  const cardQrEnabled = isCardQrToolEnabled()
+  const businessToolPlaceholders = cardQrEnabled
+    ? BUSINESS_TOOL_PLACEHOLDERS.filter((toolTitle) => toolTitle !== 'Business Cards')
+    : BUSINESS_TOOL_PLACEHOLDERS
   return (
     <div className={styles.workspaceSectionStack}>
       <div className={styles.workspaceIntroCard}>
@@ -10960,7 +11034,25 @@ export function BusinessToolsCard() {
       </section>
 
       <div className={styles.businessToolsGrid}>
-        {BUSINESS_TOOL_PLACEHOLDERS.map((toolTitle) => (
+        {cardQrEnabled ? (
+          <section className={styles.businessToolCard}>
+            <div className={styles.workspaceSectionHeader}>
+              <div>
+                <div className={styles.walletSettingsTitle}>{CARD_QR_ENTRY_TITLE}</div>
+                <p className={styles.businessToolBody}>{CARD_QR_HUB_BODY}</p>
+              </div>
+              <span className={styles.rosterTag}>Ready</span>
+            </div>
+            <button
+              type="button"
+              className={`${styles.helperButton} ${styles.businessToolReadyAction}`}
+              onClick={onOpenCardQr}
+            >
+              {CARD_QR_ENTRY_ACTION}
+            </button>
+          </section>
+        ) : null}
+        {businessToolPlaceholders.map((toolTitle) => (
           <section key={toolTitle} className={styles.businessToolCard}>
             <div className={styles.workspaceSectionHeader}>
               <div>

@@ -1,0 +1,58 @@
+{
+ "custom_kim": {
+  "url": "https://www.yoursparklesuite.com/q/0VH8rT",
+  "palette": {
+   "name": "Gnome Forest",
+   "background": "#f8f3ea",
+   "ink": "#3a2018",
+   "muted": "#6d5346",
+   "panel": "#fffaf3",
+   "accent": "#842421",
+   "qrDark": "#3a2018",
+   "qrLight": "#FFFFFF"
+  },
+  "icon": "none"
+ },
+ "custom_kelly": {
+  "url": "https://www.yoursparklesuite.com/q/3JnFul",
+  "palette": {
+   "name": "Neon Butterfly",
+   "background": "#140018",
+   "ink": "#ffe6f7",
+   "muted": "#e7b6d4",
+   "panel": "#2a0a2e",
+   "accent": "#ff2acd",
+   "qrDark": "#3a0a28",
+   "qrLight": "#FFFFFF"
+  },
+  "icon": "butterfly"
+ },
+ "custom_lindsey": {
+  "url": "https://www.yoursparklesuite.com/q/4XkrT3",
+  "palette": {
+   "name": "Alpine Opal",
+   "background": "#f3fbff",
+   "ink": "#1d2340",
+   "muted": "#4d5d78",
+   "panel": "#ffffff",
+   "accent": "#ec4899",
+   "qrDark": "#3a1848",
+   "qrLight": "#FFFFFF"
+  },
+  "icon": "none"
+ },
+ "custom_brittany": {
+  "url": "https://www.yoursparklesuite.com/q/1FBtYb",
+  "palette": {
+   "name": "Black Diamond",
+   "background": "#111111",
+   "ink": "#f8f1dc",
+   "muted": "#d9cba8",
+   "panel": "#1c1c1c",
+   "accent": "#d4af37",
+   "qrDark": "#1a1408",
+   "qrLight": "#FFFFFF"
+  },
+  "icon": "none"
+ }
+}
