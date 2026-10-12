@@ -68,6 +68,28 @@ describe("Sparkle Suite active branch policy", () => {
     }
   });
 
+  it("accepts the Suite-list review branch only on the Smoke production target", () => {
+    const input = {
+      branch: "cursor/suite-list-fizz-approve-105c",
+      remoteRepository: "louis623/sparkle-suite",
+      worktree: "/vercel/path0",
+      isVercel: true,
+      deploymentProjectId: "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      deploymentEnvironment: "production",
+    };
+    expect(evaluateBranchPolicy(input)).toEqual([]);
+    for (const override of [
+      { deploymentEnvironment: "preview" },
+      { deploymentProjectId: "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3" },
+      { deploymentProjectId: undefined },
+      { deploymentEnvironment: undefined },
+    ]) {
+      expect(evaluateBranchPolicy({ ...input, ...override })).toContain(
+        'branch "cursor/suite-list-fizz-approve-105c" is limited to prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ / production',
+      );
+    }
+  });
+
   it("uses actual FAQ platform provenance over inherited Smoke release settings only for its preview", () => {
     vi.stubEnv("VERCEL", "1");
     vi.stubEnv("VERCEL_GIT_COMMIT_REF", "codex/faq-articles");

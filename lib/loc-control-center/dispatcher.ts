@@ -13,6 +13,13 @@ import { readLocOperation } from "./read-models";
 import { runExistingLocRoute } from "./legacy-routes";
 import { runLocSupportOperation } from "./support";
 import {saveLocSetupProfile} from './setup-profile'
+import { ServiceError } from '@/lib/services/errors'
+import { approveFizzIssue, getFizzIssue, stageFizzIssue } from '@/lib/services/fizz-issues'
+import {
+  publicationNoticeContent,
+  renderSuiteOfficialNoticeHtml,
+  resourceNoticeContent,
+} from '@/lib/services/suite-official-notice'
 
 import { locJobDelegationSchema, verifyLocJobDelegation } from './job-delegation'
 
@@ -138,6 +145,44 @@ function enabled(name: string, effect: string) {
         .includes(name)
     : effect === "read";
 }
+async function locService<T>(work: () => Promise<T>) {
+  try {
+    return await work();
+  } catch (error) {
+    if (error instanceof ServiceError) {
+      throw new LocBridgeError(error.statusCode, error.userMessage);
+    }
+    throw error;
+  }
+}
+async function previewLocSuiteEmail(input: Record<string, unknown>) {
+  const resourceType = typeof input.resourceType === "string" ? input.resourceType : "";
+  const content = resourceType
+    ? resourceNoticeContent({
+        resourceType,
+        title: String(input.title ?? ""),
+        summary: typeof input.summary === "string" ? input.summary : "",
+        body: typeof input.body === "string" ? input.body : "",
+        thumbnailUrl: typeof input.thumbnailUrl === "string" ? input.thumbnailUrl : null,
+        videoUrl: typeof input.videoUrl === "string" ? input.videoUrl : null,
+        actionUrl: typeof input.actionUrl === "string" ? input.actionUrl : null,
+      })
+    : publicationNoticeContent({
+        title: String(input.title ?? ""),
+        summary: typeof input.summary === "string" ? input.summary : null,
+        body: String(input.body ?? ""),
+        actionUrl: typeof input.actionUrl === "string" ? input.actionUrl : null,
+      });
+  const rendered = renderSuiteOfficialNoticeHtml(content);
+  return {
+    html: rendered.html,
+    subject: content.headline,
+    variables: rendered.variables,
+    thumbnailUrl: content.thumbnailUrl,
+    ctaLabel: content.ctaLabel,
+    ctaUrl: content.ctaUrl,
+  };
+}
 function receipt(row: Record<string, unknown>) {
   const stale =
     row.status === "running" &&
@@ -246,12 +291,18 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
       );
     }
     if (operation.effect === "read") {
-      const result = await runWithLocOperator(context, () =>
-        operation.name.startsWith("support.session.") ||
-        operation.name.startsWith("support.workspace.")
+      const result = await runWithLocOperator(context, () => {
+        if (operation.name === "communications.emailPreview") {
+          return previewLocSuiteEmail(body.input);
+        }
+        if (operation.name === "fizz.issue.get") {
+          return locService(() => getFizzIssue(createAdminClient(), String(body.input.issueId ?? "")));
+        }
+        return operation.name.startsWith("support.session.") ||
+          operation.name.startsWith("support.workspace.")
           ? runLocSupportOperation(operation.name, body.input)
-          : readLocOperation(operation.name, body.input),
-      );
+          : readLocOperation(operation.name, body.input);
+      });
       return Response.json(
         { ok: true, result, observedAt: new Date().toISOString() },
         { headers: { "cache-control": "no-store" } },
@@ -324,7 +375,31 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
         operation.name === "tasks.update"
           ? updateTask(body.input)
           : operation.name === 'onboarding.setup-profile'?saveLocSetupProfile(body.input)
-          : operation.name.startsWith("support.session.") ||
+          : operation.name === "fizz.issue.stage"
+            ? locService(() => stageFizzIssue(createAdminClient(), {
+                issueId: String(body.input.issueId ?? ""),
+                subject: String(body.input.subject ?? ""),
+                preheader: String(body.input.preheader ?? ""),
+                emailHtml: String(body.input.emailHtml ?? ""),
+                workspaceTitle: String(body.input.workspaceTitle ?? ""),
+                workspaceSummary: String(body.input.workspaceSummary ?? ""),
+                workspaceBody: String(body.input.workspaceBody ?? ""),
+                actionUrl: typeof body.input.actionUrl === "string" ? body.input.actionUrl : null,
+                stagedBy: context.operator.rep.email,
+              }))
+            : operation.name === "fizz.issue.approve"
+              ? locService(() => {
+                  const mode = body.input.mode;
+                  if (mode !== "test" && mode !== "live") {
+                    throw new LocBridgeError(400, "Mode must be test or live.");
+                  }
+                  return approveFizzIssue({
+                    supabase: createAdminClient(),
+                    issueId: String(body.input.issueId ?? ""),
+                    mode,
+                  });
+                })
+              : operation.name.startsWith("support.session.") ||
               operation.name.startsWith("support.workspace.")
             ? runLocSupportOperation(operation.name, body.input, operationId)
             : runExistingLocRoute(operation.name, body.input),
@@ -352,7 +427,7 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
       const certain =
         error instanceof LocPreconditionError ||
         error instanceof z.ZodError ||
-          (['tasks.update','onboarding.setup-profile','onboarding.waitlist.update','onboarding.waitlist.delete'].includes(operation.name) &&
+          (['tasks.update','onboarding.setup-profile','onboarding.waitlist.update','onboarding.waitlist.delete','fizz.issue.stage','fizz.issue.approve'].includes(operation.name) &&
           error instanceof LocBridgeError &&
           error.status < 500);
       // Existing handlers can return an error after committing one of several

@@ -113,6 +113,10 @@ reconciliation and must not be swept into the active branch merely to make
 
 ## Branch lifecycle
 
+### October 12 Suite list and Fizz approve review
+
+Louis approved a Smoke-only branch for Suite-list email, Fizz approve-once, and owner-scoped broadcast tools. `cursor/suite-list-fizz-approve-105c` is allowlisted for this review. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `production` on that Smoke project. Live project deploys fail closed. GitHub's default branch, Vercel's Live production branch, and the Live domains stay unchanged.
+
 ### October 7 FAQ article draft preview
 
 Louis authorized pushing `codex/faq-articles` and opening draft PR #81 for review, with no merge or Live release. The branch is allowlisted for this task. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`; production and other projects fail closed. Within that verified target, actual platform branch provenance takes precedence over Smoke's inherited manual-release branch setting. All other provenance mismatch checks remain enforced. GitHub's default branch, Vercel production branch, Live/rep domains, and the existing Smoke alias are unchanged. This is a review exception, not a production branch-status change.

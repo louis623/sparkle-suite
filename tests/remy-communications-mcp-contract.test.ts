@@ -23,12 +23,23 @@ describe('Sparkle Suite Control Center MCP contract', () => {
       'control_center_get_operator_health',
       'control_center_get_nic_nac_usage',
       'control_center_get_accounting_summary',
+      'communications_preview_broadcast',
+      'communications_publish_broadcast',
+      'fizz_issue_stage',
+      'fizz_issue_get',
+      'fizz_issue_approve',
     ])
     expect(remyMcpToolNames).toBe(controlCenterMcpToolNames)
   })
 
   it('does not expose blocked writes or private conversation access', () => {
-    expect(controlCenterMcpToolNames).not.toContain('communications_publish_broadcast')
+    const source = readFileSync('lib/remy-communications/mcp.ts', 'utf8')
+    const route = readFileSync('app/api/remy/mcp/route.ts', 'utf8')
+    expect(controlCenterMcpToolNames).toContain('communications_publish_broadcast')
+    expect(controlCenterMcpToolNames).toContain('communications_preview_broadcast')
+    expect(source).toContain('assertOwnerScopedControlCenterMcp()')
+    expect(source).toContain('agentName')
+    expect(route).toContain('runWithOwnerScopedControlCenterMcp')
     expect(controlCenterMcpToolNames).not.toContain('communications_moderate_network')
     expect(controlCenterMcpToolNames).not.toContain('communications_change_support_status')
     expect(controlCenterMcpToolNames).not.toContain('control_center_update_waitlist_lead')
