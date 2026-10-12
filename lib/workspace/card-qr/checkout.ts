@@ -5,11 +5,14 @@ import {
   type CardQrPackQuantity,
 } from '@/lib/workspace/card-qr/pricing'
 import type { CardQrDesign } from '@/lib/workspace/card-qr/design'
+import { cardQrStripeRuntime } from '@/lib/workspace/card-qr/access'
 
 export const CARD_QR_STRIPE_PRODUCT = 'workspace_business_cards'
 
-export function assertCardQrStripeTestKey(secretKey: string | undefined) {
+/** Test keys always; live keys only on Live with CARD_QR_STRIPE_LIVE=true. Returns whether the key is live. */
+export function assertCardQrStripeTestKey(secretKey: string | undefined, env: NodeJS.ProcessEnv = process.env): boolean {
   const key = secretKey?.trim() ?? ''
+  if (key.startsWith('sk_live_') && cardQrStripeRuntime(env).allowLive) return true
   if (key.startsWith('sk_live_')) {
     throw new ServiceError({
       code: 'CARD_QR_LIVE_STRIPE_BLOCKED',
@@ -27,6 +30,7 @@ export function assertCardQrStripeTestKey(secretKey: string | undefined) {
       statusCode: 503,
     })
   }
+  return false
 }
 
 export interface CardQrCheckoutSessionShape {
@@ -55,7 +59,7 @@ export function buildCardQrCheckoutMetadata(input: {
     ...(input.orderId ? { order_id: input.orderId } : {}),
     ...(input.orderNumber ? { order_number: input.orderNumber } : {}),
     sparkle_product: CARD_QR_STRIPE_PRODUCT,
-    environment: 'smoke',
+    environment: cardQrStripeRuntime().environment,
     rep_id: input.repId,
     quantity: String(pack.quantity),
     amount_cents: String(pack.amountCents),
@@ -132,11 +136,11 @@ export function readPaidCardQrOrder(
   const quantity = Number(metadata.quantity)
   if (
     metadata.sparkle_product !== CARD_QR_STRIPE_PRODUCT ||
-    metadata.environment !== 'smoke' ||
+    metadata.environment !== cardQrStripeRuntime().environment ||
     metadata.rep_id !== repId ||
     session.client_reference_id !== repId ||
     session.mode !== 'payment' ||
-    session.livemode !== false ||
+    (session.livemode !== false && !(session.livemode === true && cardQrStripeRuntime().allowLive)) ||
     session.payment_status !== 'paid' ||
     !isCardQrPackQuantity(quantity)
   ) {

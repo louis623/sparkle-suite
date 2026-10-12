@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getPaidNicNacContext, AuthError } from '@/lib/nic-nac/auth'
 import { ServiceError } from '@/lib/services/errors'
 import { getSiteSettingsDashboard } from '@/lib/services/site-settings'
-import { isCardQrSmokeRuntime } from '@/lib/workspace/card-qr/access'
+import { isCardQrServerEnabled } from '@/lib/workspace/card-qr/access'
 import {
   buildCardQrDestinationForRep,
   isReadyCardQrDestination,
@@ -26,11 +26,11 @@ export function cardQrErrorResponse(error: unknown) {
 }
 
 export async function loadCardQrContext(request: Request) {
-  if (!isCardQrSmokeRuntime()) {
+  if (!isCardQrServerEnabled()) {
     throw new ServiceError({
       code: 'CARD_QR_SMOKE_ONLY',
       message: 'Cards & QR is smoke-only',
-      userMessage: 'Cards & QR is available on Smoke only.',
+      userMessage: 'Cards & QR is not available yet.',
       statusCode: 404,
     })
   }

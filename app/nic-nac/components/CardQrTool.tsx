@@ -620,7 +620,7 @@ export function CardQrTool({
               free QR flyer, then order business cards (paid before anyone prints them).
             </p>
           </div>
-          <span className={styles.eyebrow}>Smoke only</span>
+          {process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT === 'smoke' ? <span className={styles.eyebrow}>Smoke only</span> : null}
         </div>
         <ol className={styles.stepNav} aria-label="Steps">
           {STEPS.map((step) => (
@@ -1113,8 +1113,7 @@ export function CardQrTool({
                 <p className={styles.readyHint} id="card-qr-order-hint" role="status">Ready to order. Your approved proof is saved with the order.</p>
               )}
               <p className={styles.hint}>
-                After payment, Smoke shows the order-received note. Minuteman fulfillment
-                stays a manual ops step in this version.
+                After payment you get an order number by email. Cards ship in about 14 business days.
               </p>
             </div>
           </div>

@@ -45,7 +45,7 @@ export const CARD_QR_PRINT_SPEC = {
 } as const
 
 export const CARD_QR_FULFILLMENT_COPY =
-  'Order received. Sparkle Suite will place the print job by hand for this Smoke version. Expect the cards in up to about 2 weeks (about 14 business days).'
+  'Order received. Watch your email for your order number. Expect your cards in about 14 business days.'
 
 export function isCardQrPackQuantity(value: unknown): value is CardQrPackQuantity {
   return value === 500 || value === 1000

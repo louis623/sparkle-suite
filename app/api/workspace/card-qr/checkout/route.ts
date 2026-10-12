@@ -23,7 +23,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: Request) {
   try {
     const context = await loadCardQrContext(request)
-    assertCardQrStripeTestKey(process.env.STRIPE_SECRET_KEY)
+    const liveKey = assertCardQrStripeTestKey(process.env.STRIPE_SECRET_KEY)
     const body = await request.json().catch(() => {
       throw new SyntaxError('Invalid request payload.')
     })
@@ -90,6 +90,7 @@ export async function POST(request: Request) {
       approval,
       approvedAt,
       proof,
+      livemode: liveKey,
     })
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
       apiVersion: '2026-03-25.dahlia',
@@ -114,7 +115,7 @@ export async function POST(request: Request) {
       await markCardQrCheckoutFailed(order.id)
       throw error
     }
-    if (session.livemode || !session.url) {
+    if (session.livemode !== liveKey || !session.url) {
       await markCardQrCheckoutFailed(order.id)
       throw new ServiceError({
         code: 'CARD_QR_LIVE_STRIPE_BLOCKED',

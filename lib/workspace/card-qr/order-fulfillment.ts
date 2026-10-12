@@ -1,17 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { AMETHYST_SKIN_CARDS } from '@/lib/amethyst/skin-cards'
+import { cardQrStripeRuntime } from '@/lib/workspace/card-qr/access'
 import { CARD_QR_STRIPE_PRODUCT, type CardQrCheckoutSessionShape } from '@/lib/workspace/card-qr/checkout'
 import { getCardQrPack, isCardQrPackQuantity } from '@/lib/workspace/card-qr/pricing'
 import { CARD_QR_PROOF_BUCKET } from '@/lib/workspace/card-qr/proof-snapshot'
-import type { CardQrShipAddress } from '@/lib/workspace/card-qr/ship-address'
 import {
-  cardQrFulfillmentEmail,
+  cardQrApprovalEmail,
   cardQrRepConfirmationEmail,
   sendCardQrEmailViaResend,
   type CardQrEmailSender,
-  type CardQrOrderEmailFacts,
 } from '@/lib/workspace/card-qr/order-emails'
+import { cardQrApproveUrl, cardQrApproverEmail, loadCardQrOrderFacts } from '@/lib/workspace/card-qr/printer-approval'
 
 export type CardQrPaidVia = 'webhook' | 'success_page'
 
@@ -32,16 +31,13 @@ export type CardQrFulfillmentResult =
 interface Deps {
   db?: SupabaseClient
   send?: CardQrEmailSender
-  fulfillmentTo?: string | null
+  approverTo?: string | null
+  approveUrl?: string | null
 }
 
 const ORDER_COLUMNS =
   'id, order_number, rep_id, status, quantity, amount_cents, stripe_checkout_session_id, ship_address, design_theme, proof_pdf_path'
 
-function themeLabel(theme: string | null) {
-  if (!theme || theme === 'site') return "Rep's site theme"
-  return AMETHYST_SKIN_CARDS.find((c) => c.id === theme)?.label ?? theme
-}
 
 /**
  * The one place a business-card order becomes paid. Used by the Stripe webhook and the
@@ -55,7 +51,9 @@ export async function fulfillPaidCardQrSession(
 ): Promise<CardQrFulfillmentResult> {
   const md = session.metadata ?? {}
   if (md.sparkle_product !== CARD_QR_STRIPE_PRODUCT) return { status: 'not_card_order' }
-  if (session.livemode !== false || md.environment !== 'smoke') return { status: 'refused', reason: 'livemode_or_not_smoke' }
+  const runtime = cardQrStripeRuntime()
+  if (md.environment !== runtime.environment) return { status: 'refused', reason: 'wrong_environment' }
+  if (session.livemode !== false && !(session.livemode === true && runtime.allowLive)) return { status: 'refused', reason: 'livemode_not_allowed' }
   if (session.mode !== 'payment') return { status: 'refused', reason: 'not_payment_mode' }
   if (session.payment_status !== 'paid') return { status: 'ignored', reason: 'not_paid' }
   const repId = md.rep_id ?? ''
@@ -98,7 +96,7 @@ export async function fulfillPaidCardQrSession(
       amount_cents: pack.amountCents,
       currency: 'usd',
       quantity,
-      livemode: false,
+      livemode: session.livemode === true,
       stripe_checkout_session_id: session.id,
       stripe_payment_intent_id: paymentIntentId,
     },
@@ -106,36 +104,30 @@ export async function fulfillPaidCardQrSession(
   )
   if (ledgerError) console.error('CARD_QR_LEDGER_FAILED', { orderNumber: order.order_number, error: ledgerError.message })
 
-  const { data: rep } = await db.from('reps').select('display_name, email').eq('id', repId).maybeSingle()
-  const facts: CardQrOrderEmailFacts = {
-    ...base,
-    repName: (rep?.display_name as string | undefined)?.trim() || 'Sparkle Suite rep',
-    repEmail: (rep?.email as string | undefined) ?? '',
-    address: order.ship_address as CardQrShipAddress,
-    theme: themeLabel(order.design_theme as string | null),
-  }
+  const loaded = await loadCardQrOrderFacts(db, orderId)
+  if (!loaded) throw new Error('CARD_QR_ORDER_VANISHED')
+  const facts = loaded.facts
   const send = deps.send ?? sendCardQrEmailViaResend
-  const fulfillmentTo = (deps.fulfillmentTo !== undefined ? deps.fulfillmentTo : process.env.CARD_QR_FULFILLMENT_EMAIL)?.trim() || null
+  // Never the printer: the packet goes to the approver (Louis) with a signed approve link.
+  const approverTo = deps.approverTo !== undefined ? deps.approverTo : cardQrApproverEmail()
+  const approveUrl = deps.approveUrl !== undefined ? deps.approveUrl : cardQrApproveUrl(orderId)
 
   let fulfillmentEmail: 'sent' | 'failed' | 'not_configured' = 'not_configured'
-  if (fulfillmentTo) {
+  if (approverTo) {
     try {
       const { data: pdf, error: pdfError } = await db.storage.from(CARD_QR_PROOF_BUCKET).download(order.proof_pdf_path as string)
       if (pdfError || !pdf) throw new Error(`proof download failed: ${pdfError?.message ?? 'empty'}`)
-      const mail = cardQrFulfillmentEmail(facts)
       await send({
-        to: fulfillmentTo,
-        ...mail,
+        to: approverTo,
+        ...cardQrApprovalEmail(facts, approveUrl, { test: session.livemode !== true }),
         attachments: [{ filename: `${order.order_number}-proof.pdf`, content: Buffer.from(await pdf.arrayBuffer()) }],
       })
-      await db.from('rep_card_print_orders').update({ fulfillment_email_to: fulfillmentTo, fulfillment_email_sent_at: new Date().toISOString(), fulfillment_email_error: null }).eq('id', orderId)
+      await db.from('rep_card_print_orders').update({ fulfillment_email_to: approverTo, fulfillment_email_sent_at: new Date().toISOString(), fulfillment_email_error: approveUrl ? null : 'approve link not configured' }).eq('id', orderId)
       fulfillmentEmail = 'sent'
     } catch (e) {
       fulfillmentEmail = 'failed'
-      await db.from('rep_card_print_orders').update({ fulfillment_email_to: fulfillmentTo, fulfillment_email_error: String(e instanceof Error ? e.message : e).slice(0, 500) }).eq('id', orderId)
+      await db.from('rep_card_print_orders').update({ fulfillment_email_to: approverTo, fulfillment_email_error: String(e instanceof Error ? e.message : e).slice(0, 500) }).eq('id', orderId)
     }
-  } else {
-    await db.from('rep_card_print_orders').update({ fulfillment_email_error: 'CARD_QR_FULFILLMENT_EMAIL not set' }).eq('id', orderId)
   }
 
   let repEmail: 'sent' | 'failed' = 'failed'

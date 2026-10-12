@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { fulfillPaidCardQrSession } from '@/lib/workspace/card-qr/order-fulfillment'
+import { approveCardQrOrderForPrinter, signCardQrApproval, verifyCardQrApproval } from '@/lib/workspace/card-qr/printer-approval'
 import { buildCardQrCheckoutParams } from '@/lib/workspace/card-qr/checkout'
 import { DEFAULT_CARD_QR_DESIGN } from '@/lib/workspace/card-qr/design'
 
@@ -11,7 +12,7 @@ const ORDER = '11111111-1111-1111-1111-111111111111'
 function fakeDb() {
   const tables: Record<string, Array<Record<string, unknown>>> = {
     rep_card_print_orders: [{
-      id: ORDER, order_number: 'SS-CARD-000123', rep_id: REP, status: 'pending', quantity: 500, amount_cents: 10000,
+      id: ORDER, order_number: 'SS-CARD-000123', rep_id: REP, status: 'pending', livemode: false, quantity: 500, amount_cents: 10000,
       stripe_checkout_session_id: 'cs_test_1', design_theme: 'halloween_pumpkin_cat', proof_pdf_path: `${REP}/x/proof.pdf`,
       ship_address: { name: 'Louis Chapman', street1: '100 Congress Ave', street2: '', city: 'Austin', state: 'TX', zip: '78701', phone: '' },
     }],
@@ -22,7 +23,7 @@ function fakeDb() {
     const filters: Array<[string, unknown]> = []
     let patch: Record<string, unknown> | null = null
     let wantRows = false
-    const rows = () => tables[table].filter((r) => filters.every(([k, v]) => r[k] === v))
+    const rows = () => tables[table].filter((r) => filters.every(([k, v]) => (v === null ? r[k] == null : r[k] === v)))
     const run = () => {
       const hit = rows()
       if (patch) hit.forEach((r) => Object.assign(r, patch))
@@ -31,6 +32,7 @@ function fakeDb() {
     const q: Record<string, unknown> = {
       select: () => { wantRows = true; return q },
       eq: (k: string, v: unknown) => { filters.push([k, v]); return q },
+      is: (k: string, v: unknown) => { filters.push([k, v]); return q },
       update: (p: Record<string, unknown>) => { patch = p; return q },
       maybeSingle: async () => ({ data: run()[0] ?? null, error: null }),
       upsert: async (row: Record<string, unknown>) => {
@@ -72,7 +74,7 @@ describe('business card fulfillment (once-only)', () => {
 
   it('marks paid, writes the ledger and sends both emails on the first event', async () => {
     const { db, tables } = fakeDb()
-    const r = await fulfillPaidCardQrSession(paidSession(), 'webhook', { db, send, fulfillmentTo: 'louis@neonrabbit.net' })
+    const r = await fulfillPaidCardQrSession(paidSession(), 'webhook', { db, send, approverTo: 'louis@neonrabbit.net', approveUrl: 'https://x.test/approve?token=t' })
     expect(r).toMatchObject({ status: 'paid', orderNumber: 'SS-CARD-000123', fulfillmentEmail: 'sent', repEmail: 'sent' })
     const order = tables.rep_card_print_orders[0]
     expect(order).toMatchObject({ status: 'paid', paid_via: 'webhook', stripe_payment_intent_id: 'pi_test_1', fulfillment_email_to: 'louis@neonrabbit.net' })
@@ -83,6 +85,8 @@ describe('business card fulfillment (once-only)', () => {
     expect(send).toHaveBeenCalledTimes(2)
     const [print, rep] = send.mock.calls.map((c) => c[0])
     expect(print.to).toBe('louis@neonrabbit.net')
+    expect(print.subject).toBe('[TEST] APPROVAL NEEDED: SS-CARD-000123 for Amelia')
+    expect(print.text).toContain('https://x.test/approve?token=t')
     expect(print.text).toMatch(/SS-CARD-000123[\s\S]*Louis Chapman <louis@example.com>[\s\S]*500 cards[\s\S]*\$100\.00[\s\S]*Halloween Pumpkin and Cat[\s\S]*100 Congress Ave[\s\S]*Austin, TX 78701/)
     expect(print.attachments[0].filename).toBe('SS-CARD-000123-proof.pdf')
     expect(rep.to).toBe('louis@example.com')
@@ -91,9 +95,9 @@ describe('business card fulfillment (once-only)', () => {
 
   it('a resent webhook, or the success page after the webhook, does not resend emails', async () => {
     const { db, tables } = fakeDb()
-    await fulfillPaidCardQrSession(paidSession(), 'webhook', { db, send, fulfillmentTo: 'louis@neonrabbit.net' })
-    const again = await fulfillPaidCardQrSession(paidSession(), 'webhook', { db, send, fulfillmentTo: 'louis@neonrabbit.net' })
-    const page = await fulfillPaidCardQrSession(paidSession(), 'success_page', { db, send, fulfillmentTo: 'louis@neonrabbit.net' })
+    await fulfillPaidCardQrSession(paidSession(), 'webhook', { db, send, approverTo: 'louis@neonrabbit.net', approveUrl: 'https://x.test/approve?token=t' })
+    const again = await fulfillPaidCardQrSession(paidSession(), 'webhook', { db, send, approverTo: 'louis@neonrabbit.net', approveUrl: 'https://x.test/approve?token=t' })
+    const page = await fulfillPaidCardQrSession(paidSession(), 'success_page', { db, send, approverTo: 'louis@neonrabbit.net', approveUrl: 'https://x.test/approve?token=t' })
     expect(again.status).toBe('already_paid')
     expect(page.status).toBe('already_paid')
     expect(send).toHaveBeenCalledTimes(2)
@@ -126,10 +130,117 @@ describe('business card fulfillment (once-only)', () => {
     expect(send).not.toHaveBeenCalled()
   })
 
-  it('still marks paid when no fulfillment address is set, and records why no email went', async () => {
+  it('never emails the printer on payment', async () => {
     const { db, tables } = fakeDb()
-    const r = await fulfillPaidCardQrSession(paidSession(), 'webhook', { db, send, fulfillmentTo: null })
-    expect(r).toMatchObject({ status: 'paid', fulfillmentEmail: 'not_configured', repEmail: 'sent' })
-    expect(tables.rep_card_print_orders[0].fulfillment_email_error).toMatch(/CARD_QR_FULFILLMENT_EMAIL/)
+    await fulfillPaidCardQrSession(paidSession(), 'webhook', { db, send, approverTo: 'louis@neonrabbit.net', approveUrl: null })
+    expect(send.mock.calls.map((c) => c[0].to)).toEqual(['louis@neonrabbit.net', 'louis@example.com'])
+    expect(tables.rep_card_print_orders[0].printer_email_sent_at).toBeUndefined()
+  })
+})
+
+describe('printer approval', () => {
+  const SECRET = 'x'.repeat(40)
+  let send: ReturnType<typeof vi.fn>
+  beforeEach(() => { send = vi.fn(async () => ({ id: 'em_printer' })) })
+
+  it('signed tokens verify, and tampered or expired ones do not', () => {
+    const t = signCardQrApproval({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, SECRET)!
+    expect(verifyCardQrApproval(t, SECRET)).toEqual({ ok: true, orderId: ORDER, approver: 'louis@neonrabbit.net' })
+    expect(verifyCardQrApproval(t + 'x', SECRET)).toMatchObject({ ok: false, reason: 'bad_token' })
+    expect(verifyCardQrApproval(t, 'y'.repeat(40))).toMatchObject({ ok: false, reason: 'bad_token' })
+    expect(verifyCardQrApproval(t, SECRET, new Date(Date.now() + 31 * 86400e3))).toMatchObject({ ok: false, reason: 'expired' })
+    expect(signCardQrApproval({ orderId: ORDER, approver: 'a' }, undefined)).toBeNull()
+    expect(verifyCardQrApproval(t, undefined)).toMatchObject({ ok: false, reason: 'not_configured' })
+  })
+
+  it('refuses unpaid orders', async () => {
+    const { db } = fakeDb()
+    expect((await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db, send, printerTo: 'printer@example.com' })).status).toBe('not_paid')
+    expect(send).not.toHaveBeenCalled()
+  })
+
+  it('records the approval and sends to the printer exactly once', async () => {
+    const { db, tables } = fakeDb()
+    tables.rep_card_print_orders[0].status = 'paid'
+    const first = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net', meta: { via: 'signed_link' } }, { db, send, printerTo: 'printer@example.com' })
+    const second = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'someone@else.com' }, { db, send, printerTo: 'printer@example.com' })
+    expect(first).toMatchObject({ status: 'approved', approvedBy: 'louis@neonrabbit.net', printer: 'sent', printerTo: 'printer@example.com' })
+    expect(second).toMatchObject({ status: 'already_approved', approvedBy: 'louis@neonrabbit.net', printer: 'already_sent' })
+    expect(send).toHaveBeenCalledTimes(1)
+    const mail = send.mock.calls[0][0]
+    expect(mail.to).toBe('printer@example.com')
+    expect(mail.subject).toContain('SS-CARD-000123')
+    expect(mail.attachments[0].filename).toBe('SS-CARD-000123-proof.pdf')
+    const row = tables.rep_card_print_orders[0]
+    expect(row).toMatchObject({ printer_approved_by: 'louis@neonrabbit.net', printer_email_id: 'em_printer' })
+    expect(row.printer_approved_at).toBeTruthy()
+    expect(row.printer_email_sent_at).toBeTruthy()
+  })
+
+  it('with no printer address: approves, sends nothing, and sends once later when it is set', async () => {
+    const fake = fakeDb()
+    fake.tables.rep_card_print_orders[0].status = 'paid'
+    const a = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db: fake.db, send, printerTo: null })
+    expect(a).toMatchObject({ status: 'approved', printer: 'not_configured' })
+    expect(send).not.toHaveBeenCalled()
+    const b = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db: fake.db, send, printerTo: 'printer@example.com' })
+    const c = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db: fake.db, send, printerTo: 'printer@example.com' })
+    expect(b).toMatchObject({ status: 'already_approved', printer: 'sent' })
+    expect(c.status === 'already_approved' && c.printer).toBe('already_sent')
+    expect(send).toHaveBeenCalledTimes(1)
+  })
+
+  it('a failed printer send can be retried and then sends once', async () => {
+    const fake = fakeDb()
+    fake.tables.rep_card_print_orders[0].status = 'paid'
+    send.mockRejectedValueOnce(new Error('resend down'))
+    const a = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db: fake.db, send, printerTo: 'printer@example.com' })
+    expect(a).toMatchObject({ printer: 'failed' })
+    expect(fake.tables.rep_card_print_orders[0].printer_email_claimed_at).toBeNull()
+    const b = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db: fake.db, send, printerTo: 'printer@example.com' })
+    expect(b).toMatchObject({ printer: 'sent' })
+    expect(send).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('live flag (CARD_QR_STRIPE_LIVE)', () => {
+  const smoke = { SPARKLE_ENVIRONMENT: 'smoke', NEXT_PUBLIC_SPARKLE_ENVIRONMENT: 'smoke' } as unknown as NodeJS.ProcessEnv
+  const live = {} as NodeJS.ProcessEnv
+
+  it('Smoke stays test-only even with the flag', async () => {
+    const { cardQrStripeRuntime } = await import('@/lib/workspace/card-qr/access')
+    const { assertCardQrStripeTestKey } = await import('@/lib/workspace/card-qr/checkout')
+    expect(cardQrStripeRuntime({ ...smoke, CARD_QR_STRIPE_LIVE: 'true' } as NodeJS.ProcessEnv)).toEqual({ environment: 'smoke', allowLive: false })
+    expect(() => assertCardQrStripeTestKey('sk_live_x', { ...smoke, CARD_QR_STRIPE_LIVE: 'true' } as NodeJS.ProcessEnv)).toThrow()
+  })
+
+  it('Live allows live keys only with CARD_QR_STRIPE_LIVE=true', async () => {
+    const { cardQrStripeRuntime } = await import('@/lib/workspace/card-qr/access')
+    const { assertCardQrStripeTestKey } = await import('@/lib/workspace/card-qr/checkout')
+    expect(cardQrStripeRuntime(live)).toEqual({ environment: 'live', allowLive: false })
+    expect(() => assertCardQrStripeTestKey('sk_live_x', live)).toThrow()
+    expect(assertCardQrStripeTestKey('sk_live_x', { CARD_QR_STRIPE_LIVE: 'true' } as unknown as NodeJS.ProcessEnv)).toBe(true)
+    expect(assertCardQrStripeTestKey('sk_test_x', { CARD_QR_STRIPE_LIVE: 'true' } as unknown as NodeJS.ProcessEnv)).toBe(false)
+    expect(cardQrStripeRuntime({ CARD_QR_STRIPE_LIVE: 'yes' } as unknown as NodeJS.ProcessEnv).allowLive).toBe(false)
+  })
+
+  it('fulfillment accepts a live session only on Live with the flag', async () => {
+    vi.stubEnv('SPARKLE_ENVIRONMENT', '')
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', '')
+    vi.stubEnv('CARD_QR_STRIPE_LIVE', 'true')
+    try {
+      const { db, tables } = fakeDb()
+      const s = paidSession({ livemode: true }, { environment: 'live' })
+      const send = vi.fn(async () => ({ id: 'e' }))
+      const r = await fulfillPaidCardQrSession(s, 'webhook', { db, send, approverTo: 'louis@neonrabbit.net', approveUrl: null })
+      expect(r.status).toBe('paid')
+      expect(tables.card_order_ledger[0].livemode).toBe(true)
+      expect(send.mock.calls[0][0].subject).toBe('APPROVAL NEEDED: SS-CARD-000123 for Amelia')
+      vi.stubEnv('CARD_QR_STRIPE_LIVE', '')
+      const again = fakeDb()
+      expect((await fulfillPaidCardQrSession(s, 'webhook', { db: again.db, send })).status).toBe('refused')
+    } finally {
+      vi.unstubAllEnvs()
+    }
   })
 })

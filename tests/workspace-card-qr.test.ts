@@ -3,6 +3,10 @@ import { resolve } from 'node:path'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+
+// These suites exercise the Smoke runtime (test-only Stripe, 'Smoke only' badge).
+process.env.SPARKLE_ENVIRONMENT = 'smoke'
+process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT = 'smoke'
 import sharp from 'sharp'
 import { CardQrTool } from '@/app/nic-nac/components/CardQrTool'
 import {

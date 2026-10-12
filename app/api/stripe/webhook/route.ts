@@ -6,6 +6,7 @@ import { stripeCentsToWalletMils } from '@/lib/services/wallet-units'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CARD_QR_STRIPE_PRODUCT } from '@/lib/workspace/card-qr/checkout'
 import { fulfillPaidCardQrSession } from '@/lib/workspace/card-qr/order-fulfillment'
+import { cardQrStripeRuntime } from '@/lib/workspace/card-qr/access'
 import { upsertPrelaunchLaunchGate } from '@/lib/prelaunch/launch-gates'
 import {
   createRequiredSetupCheckoutFulfillment,
@@ -503,7 +504,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
   // Business cards (Smoke, test mode only). Refusals are logged, not thrown, so Stripe does not retry them.
   if (session.metadata?.sparkle_product === CARD_QR_STRIPE_PRODUCT) {
-    if (event.livemode) {
+    if (event.livemode && !cardQrStripeRuntime().allowLive) {
       logStripeEvent('error', event, { phase: 'card_qr_order', refused: true, reason: 'livemode_event' })
       return
     }

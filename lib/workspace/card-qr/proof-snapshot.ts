@@ -39,6 +39,7 @@ export async function createPendingCardQrOrder(input: {
   approval: CardQrProofApproval
   approvedAt: string
   proof: { paths: { pdf: string; front: string; back: string }; sha256: string }
+  livemode?: boolean
 }) {
   const pack = getCardQrPack(input.quantity)
   const { data, error } = await createAdminClient()
@@ -49,7 +50,7 @@ export async function createPendingCardQrOrder(input: {
       amount_cents: pack.amountCents,
       currency: 'usd',
       status: 'pending',
-      livemode: false,
+      livemode: input.livemode === true,
       destination_url: input.destinationUrl,
       design_snapshot: input.design,
       design_theme: input.designTheme,

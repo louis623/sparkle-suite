@@ -17,12 +17,8 @@ function shipToLines(a: CardQrShipAddress) {
   return [a.name, a.street1, a.street2, `${a.city}, ${a.state} ${a.zip}`, a.phone ? `Phone: ${a.phone}` : ''].filter(Boolean)
 }
 
-/** Print-shop email (Smoke: goes to CARD_QR_FULFILLMENT_EMAIL, currently Louis, not Amelia). */
-export function cardQrFulfillmentEmail(f: CardQrOrderEmailFacts) {
-  const subject = `[Smoke test] Business card order ${f.orderNumber}: ${f.quantity} cards for ${f.repName}`
-  const text = [
-    `New business card order (Smoke, Stripe test mode).`,
-    '',
+function printerPacketLines(f: CardQrOrderEmailFacts) {
+  return [
     `Order: ${f.orderNumber}`,
     `Rep: ${f.repName} <${f.repEmail}>`,
     `Quantity: ${f.quantity} cards`,
@@ -33,7 +29,29 @@ export function cardQrFulfillmentEmail(f: CardQrOrderEmailFacts) {
     ...shipToLines(f.address),
     '',
     'The approved proof PDF is attached (page 1 front, page 2 back, CMYK with crop marks). Print it exactly as attached.',
+  ]
+}
+
+/** To Louis, never the printer. The printer only gets the packet after he approves. */
+export function cardQrApprovalEmail(f: CardQrOrderEmailFacts, approveUrl: string | null, opts: { test: boolean }) {
+  const subject = `${opts.test ? '[TEST] ' : ''}APPROVAL NEEDED: ${f.orderNumber} for Amelia`
+  const text = [
+    `A business card order is paid${opts.test ? ' (Stripe test mode)' : ''}. Nothing has been sent to the printer yet.`,
+    '',
+    approveUrl
+      ? `Check the attached proof, then approve to send this packet to the printer:\n${approveUrl}`
+      : 'The approve link is not configured (CARD_QR_APPROVAL_SECRET missing). Do not forward this to the printer by hand without checking.',
+    '',
+    '---- Printer packet ----',
+    ...printerPacketLines(f),
   ].join('\n')
+  return { subject, text }
+}
+
+/** Printer packet, sent only after approval. */
+export function cardQrPrinterEmail(f: CardQrOrderEmailFacts, opts: { test: boolean }) {
+  const subject = `${opts.test ? '[TEST] ' : ''}Sparkle Suite business card order ${f.orderNumber}: ${f.quantity} cards`
+  const text = ['Hi Amelia,', '', 'New business card order from Sparkle Suite. Details and the print-ready proof are below and attached.', '', ...printerPacketLines(f), '', 'Thank you!', 'Louis Chapman, Sparkle Suite'].join('\n')
   return { subject, text }
 }
 
