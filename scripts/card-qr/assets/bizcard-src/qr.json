@@ -1,0 +1,187 @@
+{
+ "url": "https://sparkle-suite-smoke.vercel.app/q/1aWLyw",
+ "themes": {
+  "halloween_pumpkin_cat": {
+   "palette": {
+    "name": "Halloween Pumpkin and Cat",
+    "background": "#1a0d08",
+    "ink": "#fff4e8",
+    "muted": "#f0c9a0",
+    "panel": "#2a160f",
+    "accent": "#ff923d",
+    "qrDark": "#6b2e0a",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "none"
+  },
+  "amethyst": {
+   "palette": {
+    "name": "Chasing Unicorns (Amethyst)",
+    "background": "#f4edff",
+    "ink": "#24124a",
+    "muted": "#5c4d78",
+    "panel": "#ffffff",
+    "accent": "#5C0EFF",
+    "qrDark": "#3d0cb0",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "unicorn-two-tone"
+  },
+  "midnight_rose": {
+   "palette": {
+    "name": "Midnight Rose",
+    "background": "#2a1218",
+    "ink": "#fff1ea",
+    "muted": "#e7c2b6",
+    "panel": "#3b1c24",
+    "accent": "#efb5a3",
+    "qrDark": "#4a1c28",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "heart"
+  },
+  "sparkle_suite_morganite": {
+   "palette": {
+    "name": "Sparkle Suite/Morganite",
+    "background": "#fff4f8",
+    "ink": "#3a1630",
+    "muted": "#7a5368",
+    "panel": "#ffffff",
+    "accent": "#ee2c9b",
+    "qrDark": "#5b1e3b",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "diamond-two-tone"
+  },
+  "halloween_pumpkin_witch": {
+   "palette": {
+    "name": "Halloween Pumpkin and Witch",
+    "background": "#1a0d08",
+    "ink": "#fff4e8",
+    "muted": "#f0c9a0",
+    "panel": "#2a160f",
+    "accent": "#ff6a00",
+    "qrDark": "#6b2e0a",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "none"
+  },
+  "gilded_autumn": {
+   "palette": {
+    "name": "The Golden Leaves of Autumn",
+    "background": "#fff6ea",
+    "ink": "#3a2410",
+    "muted": "#7a5a32",
+    "panel": "#fffaf3",
+    "accent": "#91451d",
+    "qrDark": "#3a2410",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "none"
+  },
+  "pearl_rose": {
+   "palette": {
+    "name": "Pearl Rose",
+    "background": "#fff8f6",
+    "ink": "#3a2430",
+    "muted": "#7a5d68",
+    "panel": "#ffffff",
+    "accent": "#954354",
+    "qrDark": "#5a2434",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "gem-ring"
+  },
+  "rose_champagne": {
+   "palette": {
+    "name": "Rose Champagne",
+    "background": "#fff7f4",
+    "ink": "#3a2430",
+    "muted": "#7a5d68",
+    "panel": "#ffffff",
+    "accent": "#a04e5d",
+    "qrDark": "#5a2430",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "heart"
+  },
+  "moonstone": {
+   "palette": {
+    "name": "Moonstone",
+    "background": "#1c1630",
+    "ink": "#f4f0ff",
+    "muted": "#c9bddf",
+    "panel": "#2a2344",
+    "accent": "#7c3aed",
+    "qrDark": "#2a2150",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "diamond-solid"
+  },
+  "emerald_garden": {
+   "palette": {
+    "name": "Emerald Garden",
+    "background": "#f3fbf6",
+    "ink": "#123028",
+    "muted": "#3f6556",
+    "panel": "#ffffff",
+    "accent": "#059669",
+    "qrDark": "#064e3b",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "butterfly"
+  },
+  "rose_gold": {
+   "palette": {
+    "name": "Rose Gold",
+    "background": "#fff5f6",
+    "ink": "#3a1824",
+    "muted": "#7a5360",
+    "panel": "#ffffff",
+    "accent": "#e04f73",
+    "qrDark": "#5a2434",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "heart"
+  },
+  "garnet": {
+   "palette": {
+    "name": "Garnet",
+    "background": "#fff5f5",
+    "ink": "#3a1014",
+    "muted": "#7a4548",
+    "panel": "#ffffff",
+    "accent": "#B91C1C",
+    "qrDark": "#6b1218",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "diamond-two-tone"
+  },
+  "amber": {
+   "palette": {
+    "name": "Amber",
+    "background": "#fff8f1",
+    "ink": "#3a220c",
+    "muted": "#7a5a32",
+    "panel": "#ffffff",
+    "accent": "#F97316",
+    "qrDark": "#7a3410",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "smiley"
+  },
+  "velvet": {
+   "palette": {
+    "name": "Velvet",
+    "background": "#1a1024",
+    "ink": "#f7efff",
+    "muted": "#d2c0ea",
+    "panel": "#2a1b3a",
+    "accent": "#9333EA",
+    "qrDark": "#4a1868",
+    "qrLight": "#FFFFFF"
+   },
+   "icon": "crown"
+  }
+ }
+}

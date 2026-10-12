@@ -111,6 +111,7 @@ describe('business card fulfillment (once-only)', () => {
     const [print, rep] = send.mock.calls.map((c) => c[0])
     expect(print.to).toBe('louis@neonrabbit.net')
     expect(print.subject).toBe('[TEST] APPROVAL NEEDED: SS-CARD-000123 for Amelia')
+    expect(print.idempotencyKey).toBe(`approver-${ORDER}`)
     expect(print.text).toContain('https://x.test/approve?token=t')
     expect(print.text).toMatch(/SS-CARD-000123[\s\S]*Louis Chapman <louis@example.com>[\s\S]*500 cards[\s\S]*\$100\.00[\s\S]*Halloween Pumpkin and Cat[\s\S]*100 Congress Ave[\s\S]*Austin, TX 78701/)
     expect(print.attachments[0].filename).toBe('SS-CARD-000123-proof.pdf')
@@ -195,6 +196,7 @@ describe('printer approval', () => {
     expect(send).toHaveBeenCalledTimes(1)
     const mail = send.mock.calls[0][0]
     expect(mail.to).toBe('printer@example.com')
+    expect(mail.idempotencyKey).toBe(`printer-${ORDER}`)
     expect(mail.subject).toContain('SS-CARD-000123')
     expect(mail.attachments[0].filename).toBe('SS-CARD-000123-proof.pdf')
     const row = tables.rep_card_print_orders[0]

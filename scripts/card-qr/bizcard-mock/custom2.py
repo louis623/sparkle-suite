@@ -1,10 +1,10 @@
 import card
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from card import W,H,FD,SX0,SX1,SY0,SY1
-PAC='/usr/share/fonts/truetype/sand-box/google/Pacifico/Pacifico-Regular.ttf'
+PAC=card.ASSETS+'fonts/google/Pacifico/Pacifico-Regular.ttf'
 DMF=FD+'dm-sans/DMSans[opsz,wght].ttf'
 PFD=FD+'playfair-display/PlayfairDisplay[wght].ttf'; PFI=FD+'playfair-display/PlayfairDisplay-Italic-VariableFont_wght.ttf'
-REPO='/tmp/suite-smoke-pr75/public/'
+REPO=card.REPO_ROOT+'/public/'
 def vf(p,s,w=None,opsz=None):
     f=ImageFont.truetype(p,int(s))
     if w:
@@ -36,7 +36,7 @@ def text_on(im,x,y,txt,f,fill,shadow=170,glow=None):
     else: im.paste(Image.new('RGB',(W,H),fill),(0,0),m)
 def own_front(t,show,first):
     if t=='custom-lindsey':
-        im=card.cover(Image.open(card.OUT+'src/mhf-f0.5.png').convert('RGB'),W,H)
+        im=card.cover(Image.open(card.SRC+'mhf-f0.5.png').convert('RGB'),W,H)
         tf=lambda s: ImageFont.truetype(PAC,s); stops=[(0,(0xf4,0x72,0xd0)),(.52,(0xbd,0x7c,0xff)),(1,(0x60,0xa5,0xfa))]
         wf=vf(DMF,46,900,40); wtxt='WITH '+first.upper(); wcol='#ffffff'; wglow=None; lhk=1.25; start=118; scr=(12,4,28)
     else:

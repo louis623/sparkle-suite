@@ -11,10 +11,19 @@ function hasCronSecret(request: Request) {
   return Boolean(secret) && request.headers.get('authorization') === `Bearer ${secret}`
 }
 
+export function isNineAmNewYork(now = new Date()) {
+  const hour = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', hourCycle: 'h23' }).format(now)
+  return Number(hour) === 9
+}
+
 /** Daily cron (Vercel): retry unsent approval emails, alert Louis about any left. */
 export async function GET(request: Request) {
   if (!process.env.CRON_SECRET?.trim()) return NextResponse.json({ error: 'cron secret is not configured.' }, { status: 503 })
   if (!hasCronSecret(request)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  // Vercel crons are UTC-only, so two schedules (13:00 and 14:00 UTC) fire; only the one that is
+  // 9 AM in New York runs. ?force=1 runs regardless (manual use).
+  const force = new URL(request.url).searchParams.get('force') === '1'
+  if (!force && !isNineAmNewYork()) return NextResponse.json({ ok: true, skipped: 'not 9 AM ET' })
   return NextResponse.json({ ok: true, ...(await runCardQrApproverEmailCheck()) })
 }
 

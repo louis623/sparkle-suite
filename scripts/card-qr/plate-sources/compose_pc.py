@@ -11,13 +11,13 @@ def screen(dst,src,pos):
     x,y=pos; box=(max(x,0),max(y,0),min(x+src.width,W),min(y+src.height,H))
     s=src.crop((box[0]-x,box[1]-y,box[2]-x,box[3]-y))
     dst.paste(ImageChops.lighter(dst.crop(box),s),box[:2])
-cat=Image.open('pc-cat-band.jpg').convert('RGB').crop((230,20,1050,560))  # 820x540, eyes ~y 300 in src -> 280 in crop
+cat=Image.open(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)),'pumpkin-cat','pc-cat-band.jpg')).convert('RGB').crop((230,20,1050,560))  # 820x540, eyes ~y 300 in src -> 280 in crop
 cw=760; cat=cat.resize((cw,int(540*cw/820)),Image.LANCZOS)  # eyes at ~260 scaled -> want ~150
 screen(canvas,cat,((W-cw)//2,-110))
-band=Image.open('pc-vine-garland.jpg').convert('RGB').crop((0,265,1280,445))
+band=Image.open(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)),'pumpkin-cat','pc-vine-garland.jpg')).convert('RGB').crop((0,265,1280,445))
 L=band.rotate(90,expand=True).resize((211,1500),Image.LANCZOS); R=band.rotate(-90,expand=True).resize((211,1500),Image.LANCZOS)
 screen(canvas,L,(-20,240)); screen(canvas,R,(W-191,240))
-floor=Image.open('pc-floor-band.jpg').convert('RGB').resize((1080,608),Image.LANCZOS)
+floor=Image.open(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)),'pumpkin-cat','pc-floor-band.jpg')).convert('RGB').resize((1080,608),Image.LANCZOS)
 screen(canvas,floor,(0,H-608))
 dr=ImageDraw.Draw(canvas); random.seed(3)
 for _ in range(260):

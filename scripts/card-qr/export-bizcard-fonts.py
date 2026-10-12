@@ -45,5 +45,5 @@ for t in card.ORDER+['custom-kim','custom-kelly','custom-lindsey','custom-britta
 # custom2 own fronts
 M['custom-lindsey']['ownTitle']=inst(custom2.PAC,{}); M['custom-lindsey']['ownWith']=inst(custom2.DMF,{'opsz':40,'wght':900})
 M['custom-brittany']['ownTitle']=inst(custom2.PFD,{'wght':900}); M['custom-brittany']['ownWith']=inst(custom2.PFI,{'wght':500})
-json.dump(M,open('/workspace/bizcard-port/fontmap.json','w'),indent=1)
+json.dump(M,open(os.environ.get('FONTMAP_OUT','/tmp/bizcard-fontmap.json'),'w'),indent=1)
 print(len(made)); print(json.dumps(M,indent=0)[:3000])

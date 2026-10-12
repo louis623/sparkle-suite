@@ -7,7 +7,7 @@ All of it has been applied on Smoke (`pukemqiwlyqmyytxkdmo`), and the final migr
 
 - Merge PR #75 only after Louis OKs this file.
 - Take a Live database backup (Supabase dashboard -> Database -> Backups) or note the PITR timestamp.
-- Run every file **once, in this order**, in the Live SQL editor (or `supabase db push` against Live). Each runs as one statement batch; stop at the first error.
+- Run every file **once, in this order**, pasted into the Live Supabase SQL editor. Do **not** use `supabase db push` or any other bulk route against Live. Each file runs as one batch; stop at the first error.
 
 ## 1. Migrations, in order
 
@@ -35,23 +35,24 @@ Each should return the value shown.
 ```sql
 -- a) No livemode=false rules left (expect 0 rows)
 select conname from pg_constraint
-where conname in ('rep_card_print_orders_livemode_check', 'card_order_ledger_livemode_check');
+where conname in ('rep_card_print_orders_livemode_check', 'card_order_ledger_livemode_check')
+  and connamespace = 'public'::regnamespace;
 
 -- b) Tables exist with RLS on (expect 4 rows, all true)
 select relname, relrowsecurity from pg_class
-where relname in ('rep_card_qr_profiles', 'rep_card_print_orders', 'rep_card_ship_addresses', 'card_order_ledger')
+where relnamespace = 'public'::regnamespace and relname in ('rep_card_qr_profiles', 'rep_card_print_orders', 'rep_card_ship_addresses', 'card_order_ledger')
 order by relname;
 
 -- c) Ledger is not readable by reps (expect 0 rows)
 select grantee, privilege_type from information_schema.role_table_grants
-where table_name = 'card_order_ledger' and grantee in ('anon', 'authenticated');
+where table_schema = 'public' and table_name = 'card_order_ledger' and grantee in ('anon', 'authenticated');
 
 -- d) Proof bucket is private (expect one row: card-qr-proofs | false)
 select id, public from storage.buckets where id = 'card-qr-proofs';
 
--- e) Order number default (expect it to start with ('SS-CARD-')
+-- e) Order number default (expect it to start with 'SS-CARD-')
 select column_default from information_schema.columns
-where table_name = 'rep_card_print_orders' and column_name = 'order_number';
+where table_schema = 'public' and table_name = 'rep_card_print_orders' and column_name = 'order_number';
 
 -- f) Claim function exists, service role only (expect: true, false, false)
 select has_function_privilege('service_role', 'public.card_qr_claim_email(uuid,text)', 'execute') as service_role,
@@ -59,11 +60,12 @@ select has_function_privilege('service_role', 'public.card_qr_claim_email(uuid,t
        has_function_privilege('anon', 'public.card_qr_claim_email(uuid,text)', 'execute') as anon;
 
 -- g) All 33 center marks allowed (expect a CHECK listing 'cowgirl-boot')
-select pg_get_constraintdef(oid) from pg_constraint where conname = 'rep_card_qr_profiles_qr_icon_check';
+select pg_get_constraintdef(oid) from pg_constraint
+where conname = 'rep_card_qr_profiles_qr_icon_check' and connamespace = 'public'::regnamespace;
 
 -- h) New columns present (expect 13)
 select count(*) from information_schema.columns
-where table_name = 'rep_card_print_orders' and column_name in (
+where table_schema = 'public' and table_name = 'rep_card_print_orders' and column_name in (
   'order_number', 'paid_via', 'fulfillment_email_sent_at', 'rep_email_sent_at', 'printer_approved_at',
   'printer_approved_by', 'printer_email_sent_at', 'approver_email_status', 'approver_email_claimed_at',
   'approver_email_attempts', 'printer_email_status', 'printer_email_claimed_at', 'proof_pdf_path');

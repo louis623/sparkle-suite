@@ -14,6 +14,11 @@ function page(title: string, body: string, status = 200) {
   )
 }
 
+function sentPage(orderNumber: string, sentAt: string) {
+  const day = new Date(sentAt).toLocaleDateString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: 'short', day: 'numeric' })
+  return page(`${orderNumber} already sent`, `<p>Already sent to the printer on ${esc(day)}. This link is finished.</p>`, 410)
+}
+
 const BAD: Record<string, string> = {
   not_configured: 'Approvals are not configured on this server.',
   bad_token: 'This approve link is not valid.',
@@ -28,11 +33,10 @@ export async function GET(request: Request) {
   const loaded = await loadCardQrOrderFacts(createAdminClient(), v.orderId)
   if (!loaded) return page('Order not found', '<p>No order matches this link.</p>', 404)
   const { order, facts } = loaded
+  // After the printer send the link is finished: no rep details, just the date.
+  if (order.printer_email_sent_at) return sentPage(facts.orderNumber, order.printer_email_sent_at as string)
   const a = facts.address
   const details = `<dl><dt>Order</dt><dd>${esc(facts.orderNumber)}</dd><dt>Rep</dt><dd>${esc(facts.repName)}</dd><dt>Cards</dt><dd>${facts.quantity}</dd><dt>Ship to</dt><dd>${esc([a.name, a.street1, a.street2, `${a.city}, ${a.state} ${a.zip}`].filter(Boolean).join(', '))}</dd></dl>`
-  if (order.printer_email_sent_at) {
-    return page(`${facts.orderNumber} already sent`, `${details}<p>Approved by ${esc(String(order.printer_approved_by))} and sent to the printer. Nothing else to do.</p>`)
-  }
   return page(
     `Approve ${facts.orderNumber} for the printer?`,
     `${details}<p>${order.printer_approved_at ? `Already approved by ${esc(String(order.printer_approved_by))}. Click to send now if the printer email is configured.` : 'Approving sends this packet and the proof PDF to the printer, once.'}</p>
@@ -45,6 +49,8 @@ export async function POST(request: Request) {
   const token = (form?.get('token') as string | null) ?? new URL(request.url).searchParams.get('token')
   const v = verifyCardQrApproval(token)
   if (!v.ok) return page('Link not valid', `<p>${esc(BAD[v.reason])}</p>`, 400)
+  const current = await loadCardQrOrderFacts(createAdminClient(), v.orderId)
+  if (current?.order.printer_email_sent_at) return sentPage(current.facts.orderNumber, current.order.printer_email_sent_at as string)
   const result = await approveCardQrOrderForPrinter({
     orderId: v.orderId,
     approver: v.approver,

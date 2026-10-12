@@ -6,7 +6,9 @@ import { CARD_QR_PROOF_BUCKET } from '@/lib/workspace/card-qr/proof-snapshot'
 import type { CardQrShipAddress } from '@/lib/workspace/card-qr/ship-address'
 import {
   cardQrApprovalEmail,
+  cardQrApproverIdempotencyKey,
   cardQrPrinterEmail,
+  cardQrPrinterIdempotencyKey,
   isConfirmedSendFailure,
   sendCardQrEmailViaResend,
   type CardQrEmailSender,
@@ -132,6 +134,7 @@ export async function approveCardQrOrderForPrinter(
     const send = deps.send ?? sendCardQrEmailViaResend
     const sent = await send({
       to: printerTo,
+      idempotencyKey: cardQrPrinterIdempotencyKey(input.orderId),
       ...cardQrPrinterEmail(facts, { test: order.livemode !== true }),
       attachments: [{ filename: `${facts.orderNumber}-proof.pdf`, content: Buffer.from(await pdf.arrayBuffer()) }],
     })
@@ -180,6 +183,7 @@ export async function sendCardQrApproverEmail(
     const send = deps.send ?? sendCardQrEmailViaResend
     await send({
       to: approverTo,
+      idempotencyKey: cardQrApproverIdempotencyKey(orderId),
       ...cardQrApprovalEmail(facts, approveUrl, { test: order.livemode !== true }),
       attachments: [{ filename: `${facts.orderNumber}-proof.pdf`, content: Buffer.from(await pdf.arrayBuffer()) }],
     })

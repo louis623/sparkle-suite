@@ -1,6 +1,6 @@
 from PIL import Image, ImageCms, ImageDraw, ImageFont
 import numpy as np, sys
-srgb=ImageCms.createProfile('sRGB'); cmyk=ImageCms.getOpenProfile('/usr/share/color/icc/ghostscript/default_cmyk.icc')
+srgb=ImageCms.createProfile('sRGB'); cmyk=ImageCms.getOpenProfile(__import__('os').environ.get('CMYK_ICC','/usr/share/color/icc/ghostscript/default_cmyk.icc'))  # ghostscript package
 X=ImageCms.buildTransform(srgb,cmyk,'RGB','CMYK',renderingIntent=0)
 SL=75  # 0.25in slug
 def page(png,label):
@@ -11,7 +11,7 @@ def page(png,label):
         d.line([(x,0),(x,SL-12)],fill=k,width=1); d.line([(x,P.height-SL+12),(x,P.height)],fill=k,width=1)
     for y in (t0,ty1):
         d.line([(0,y),(SL-12,y)],fill=k,width=1); d.line([(P.width-SL+12,y),(P.width,y)],fill=k,width=1)
-    d.text((SL+60,P.height-SL+30),label,fill=k,font=ImageFont.truetype('/usr/share/fonts/truetype/sand-box/google/Poppins/Poppins-Regular.ttf',18))
+    d.text((SL+60,P.height-SL+30),label,fill=k,font=ImageFont.truetype(__import__('card').PF+'Regular.ttf',18))
     a=np.asarray(im).astype(int).sum(2)/255*100
     print(png,'max ink %.0f%%'%a.max(),'mean %.0f%%'%a.mean())
     return P

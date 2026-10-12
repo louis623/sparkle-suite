@@ -79,6 +79,8 @@ export type CardQrEmailSender = (input: {
   subject: string
   text: string
   attachments?: Array<{ filename: string; content: Buffer }>
+  /** Resend Idempotency-Key: the same key within 24h returns the first send instead of sending again. */
+  idempotencyKey?: string
 }) => Promise<{ id: string }>
 
 /**
@@ -97,6 +99,9 @@ export function isConfirmedSendFailure(e: unknown) {
   return !(e instanceof CardQrSendError) || e.confirmed
 }
 
+export const cardQrApproverIdempotencyKey = (orderId: string) => `approver-${orderId}`
+export const cardQrPrinterIdempotencyKey = (orderId: string) => `printer-${orderId}`
+
 /** Plain Resend send with optional attachments. */
 export const sendCardQrEmailViaResend: CardQrEmailSender = async (input) => {
   if (!isResendEnabled()) throw new CardQrSendError('RESEND_NOT_CONFIGURED', true)
@@ -106,7 +111,11 @@ export const sendCardQrEmailViaResend: CardQrEmailSender = async (input) => {
   try {
     response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${config.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: {
+        Authorization: `Bearer ${config.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+        ...(input.idempotencyKey ? { 'Idempotency-Key': input.idempotencyKey } : {}),
+      },
       body: JSON.stringify({
         from: config.RESEND_FROM_EMAIL,
         to: [input.to],

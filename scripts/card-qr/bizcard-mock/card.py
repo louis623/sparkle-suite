@@ -1,22 +1,29 @@
+import os as _os
+_HERE=_os.path.dirname(_os.path.abspath(__file__))
+REPO_ROOT=_os.path.abspath(_os.path.join(_HERE,'..','..','..'))
+ASSETS=_os.path.join(_HERE,'..','assets')+'/'
 import json, math
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
-SK='/tmp/suite-smoke-pr75/public/amethyst/skins/'
-MP='/workspace/qr-flyer-plan/plates/morganite/'
-PF='/usr/share/fonts/truetype/sand-box/google/Poppins/Poppins-'
-GV='/tmp/suite-smoke-pr75/lib/workspace/card-qr/fonts/great-vibes/GreatVibes-Regular.ttf'
-OUT='/workspace/bizcard-mock/'
+SK=REPO_ROOT+'/public/amethyst/skins/'
+MP=_os.path.join(_HERE,'..','plate-sources','morganite')+'/'
+PF=ASSETS+'fonts/google/Poppins/Poppins-'
+GV=REPO_ROOT+'/lib/workspace/card-qr/fonts/great-vibes/GreatVibes-Regular.ttf'
+OUT=_os.environ.get('BIZCARD_OUT','/tmp/bizcard-mock/'); _os.makedirs(OUT,exist_ok=True)
+SRC=ASSETS+'bizcard-src/'
 W,H=1125,675; TRIM=37.5; SAFE=TRIM+45
 SX0,SY0,SX1,SY1=int(SAFE)+1,int(SAFE)+1,W-int(SAFE)-1,H-int(SAFE)-1
 MINPX=34  # 8pt @300dpi
-FD='/tmp/suite-smoke-pr75/lib/workspace/card-qr/fonts/'
+FD=REPO_ROOT+'/lib/workspace/card-qr/fonts/'
 # site theme fonts (public/amethyst/homepage.jsx FONTS + lib/amethyst/appearance-presets.ts)
 FONTSET={
- 'pumpkin-cat':dict(head=(FD+'gelasio/Gelasio[wght].ttf',[600]),script=(OUT+'src/fonts/Gelasio-Italic.ttf',[500]),body=(FD+'arimo/Arimo[wght].ttf',None)),
+ 'pumpkin-cat':dict(head=(FD+'gelasio/Gelasio[wght].ttf',[600]),script=(ASSETS+'fonts/google/Gelasio/Gelasio-Italic.ttf',[500]),body=(FD+'arimo/Arimo[wght].ttf',None)),
  'amethyst':dict(head=(FD+'italiana/Italiana-Regular.ttf',None),script=(FD+'italiana/Italiana-Regular.ttf',None),body=(FD+'inter/Inter[opsz,wght].ttf','inter')),
  'midnight-rose':dict(head=(FD+'playfair-display/PlayfairDisplay[wght].ttf',[600]),script=(FD+'playfair-display/PlayfairDisplay-Italic-VariableFont_wght.ttf',[500]),body=(FD+'dm-sans/DMSans[opsz,wght].ttf','dm')),
  'morganite':dict(head=(FD+'playfair-display/PlayfairDisplay[wght].ttf',[500]),script=(FD+'playfair-display/PlayfairDisplay-Italic-VariableFont_wght.ttf',[500]),body=(FD+'dm-sans/DMSans[opsz,wght].ttf','dm')),
 }
-_G='/usr/share/fonts/truetype/sand-box/google/'; _FS=OUT+'src/fonts/fs/'
+_G=ASSETS+'fonts/google/'
+# Fontshare (Boska, Switzer, Melodrama): ITF Free Font License, not redistributed in the repo.
+_FS=_os.environ.get('FONTSHARE_DIR','/workspace/bizcard-mock/src/fonts/fs/')
 def _pf(w): return dict(head=(FD+'playfair-display/PlayfairDisplay[wght].ttf',[w]),script=(FD+'playfair-display/PlayfairDisplay-Italic-VariableFont_wght.ttf',[500]),body=(FD+'dm-sans/DMSans[opsz,wght].ttf','dm'))
 for _t,_w in [('pumpkin-witch',600),('gilded-autumn',500),('pearl-rose',600),('rose-champagne',600),('moonstone',600),('rose-gold',600)]: FONTSET[_t]=_pf(_w)
 FONTSET['emerald-garden']=dict(head=(GV,'none'),script=(GV,'none'),body=({400:_G+'Lato/Lato-Regular.ttf',500:_G+'Lato/Lato-Regular.ttf',600:_G+'Lato/Lato-Bold.ttf',700:_G+'Lato/Lato-Bold.ttf'},400))
@@ -46,9 +53,9 @@ def _mk(kind,s,wt=None):
 def HEAD(s): return _mk('head',s)
 def SCRIPT(s): return _mk('script',s)
 def BODY(s,wt=None): return _mk('body',s,wt)
-Q=json.load(open(OUT+'src/qr.json'))
+Q=json.load(open(SRC+'qr.json'))
 def F(w,s): return ImageFont.truetype(PF+w+'.ttf',int(s))
-DMF='/tmp/suite-smoke-pr75/lib/workspace/card-qr/fonts/dm-sans/DMSans[opsz,wght].ttf'
+DMF=REPO_ROOT+'/lib/workspace/card-qr/fonts/dm-sans/DMSans[opsz,wght].ttf'
 
 def hexrgb(h): h=h.lstrip('#'); return tuple(int(h[i:i+2],16) for i in (0,2,4))
 THEMES={
@@ -217,7 +224,7 @@ def front(t,show=None):
     return im,boxes
 
 def paste_icon(im,name,col,x,y,size):
-    ic=Image.open(OUT+f'src/icons/{name}-{col.lstrip("#")}.png').resize((size,size),Image.LANCZOS)
+    ic=Image.open(SRC+f'icons/{name}-{col.lstrip("#")}.png').resize((size,size),Image.LANCZOS)
     im.paste(ic,(int(x),int(y)),ic)
 
 def back(t,fields,qrlabel=False):
@@ -229,7 +236,7 @@ def back(t,fields,qrlabel=False):
     lw=max(tile,tw(REP['qrlabel'],labf) if qrlabel else 0); tx=SX0+(lw-tile)//2; ty=(H-(tile+18+capH))//2
     m=Image.new('L',(tile,tile),0); ImageDraw.Draw(m).rounded_rectangle((0,0,tile-1,tile-1),28,fill=255)
     im.paste(Image.new('RGB',(tile,tile),'white'),(tx,ty),m)
-    qr=Image.open(OUT+f"src/qr-{c.get('qrkey',c['key'])}.png").convert('RGB'); qs=tile-10
+    qr=Image.open(SRC+f"qr-{c.get('qrkey',c['key'])}.png").convert('RGB'); qs=tile-10
     im.paste(qr.resize((qs,qs),Image.LANCZOS),(tx+5,ty+5))
     y=ty+tile+18; hb=capf.getbbox('H')
     for l in ['SCAN HERE','TO ORDER']:

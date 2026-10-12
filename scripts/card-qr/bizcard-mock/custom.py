@@ -1,7 +1,7 @@
 import card, random, json
 from PIL import Image, ImageDraw, ImageFilter
 from card import W,H,SK,FD
-CQ=json.load(open(card.OUT+'src/qr-custom.json'))
+CQ=json.load(open(card.SRC+'qr-custom.json'))
 PF=dict(head=(FD+'playfair-display/PlayfairDisplay[wght].ttf',[600]),script=(FD+'playfair-display/PlayfairDisplay-Italic-VariableFont_wght.ttf',[500]),body=(FD+'dm-sans/DMSans[opsz,wght].ttf','dm'))
 def glow(c,x,y,r,col,a):
     m=Image.new('L',(W,H),0); ImageDraw.Draw(m).ellipse((x-r,y-r,x+r,y+r),fill=a); c.paste(Image.new('RGB',(W,H),col),(0,0),m.filter(ImageFilter.GaussianBlur(r*0.6)))

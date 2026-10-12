@@ -832,7 +832,7 @@ export function buildCardQrPressStubPdf(lines: string[]) {
     'BT',
     '/F1 16 Tf',
     '48 740 Td',
-    `(${escapePdfText('Sparkle Suite business card press file — Smoke stub')}) Tj`,
+    `(${escapePdfText('Sparkle Suite business card press file')}) Tj`,
     '/F1 11 Tf',
     ...lines.flatMap((line) => ['0 -18 Td', `(${escapePdfText(line)}) Tj`]),
     'ET',
