@@ -204,7 +204,9 @@ describe('fizz approve-once', () => {
   it('test mode emails only the owner and posts only to that rep', async () => {
     vi.stubEnv('RESEND_API_KEY', 're_test_key')
     vi.stubEnv('RESEND_FROM_EMAIL', 'notifications@yoursparklesuite.com')
-    vi.stubEnv('SPARKLE_ENVIRONMENT', 'live')
+    vi.stubEnv('SPARKLE_ENVIRONMENT', 'production')
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'production')
+    vi.stubEnv('SPARKLE_FIZZ_TEST_SEND', '')
     const urls: string[] = []
     const fetchImpl = vi.fn(async (url: string | URL, init?: RequestInit) => {
       urls.push(String(url))

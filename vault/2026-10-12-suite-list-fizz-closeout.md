@@ -7,5 +7,6 @@
 - Smoke update (Oct 12): migration applied on Smoke and `SPARKLE_FIZZ_TEST_SEND=1` set. Fizz mode `test` ran for 2026-W53 (raw HTML, before the server render) and 2026-W52 (server-rendered Weekly Fizz template, Resend id `01a13074-4ade-7b43-8ced-fe0c0c85d1cb`, owner only; Workspace post `4393d9eb-0827-40e8-ae2d-bfc3ccf7034f`). A repeat approve replayed with no new send. No Suite-list broadcast was sent.
 - `fizz_issue_stage` now takes structured `content`; the server renders `brand-assets/email/weekly-fizz-report/weekly-fizz-report.resend-template.html` and rejects raw HTML. Smoke deploy `dpl_2HUTTusx51EnS9TD1zHcFYppxDiZ`.
 - `agentName` allowlist is now suite, bunny, fizz.
+- Live Fizz mode `test` emails only `louis@neonrabbit.net` and does not require `SPARKLE_FIZZ_TEST_SEND`. Smoke still requires that flag.
 - Resend template `suite-official-notice` was republished with optional `THUMBNAIL_HTML`. That publish did not send email.
 - Next action: Live migration on `bqhzfkgkjyuhlsozpylf`, Live deploy, then one owner-only Fizz `test` on Live before any live issue.

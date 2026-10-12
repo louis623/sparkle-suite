@@ -387,6 +387,8 @@ export async function deliverSingleOwnerEmail(args: {
   html: string
   fetchImpl?: FetchImpl
 }) {
+  // Fizz mode "test" is one email to the owner/approver. Live sends it with
+  // SPARKLE_FIZZ_TEST_SEND unset. Only Smoke requires that flag.
   if (isSmokeEnvironment() && process.env.SPARKLE_FIZZ_TEST_SEND !== '1') {
     return {
       ok: false as const,

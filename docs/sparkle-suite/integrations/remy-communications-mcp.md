@@ -134,6 +134,8 @@ owner token.
 `emailSuiteList` defaults off. When it is true, publish sends one Suite-list
 Resend broadcast after the Workspace post. Publish is idempotent for the same
 agent and `idempotencyKey`. Fizz test mode emails only `louis@neonrabbit.net`
-and posts only to that owner rep. Fizz live mode uses the Suite list and all
+and posts only to that owner rep. On Live that owner-only test does not
+require `SPARKLE_FIZZ_TEST_SEND`. Smoke still requires `SPARKLE_FIZZ_TEST_SEND=1`
+before the same owner-only send. Fizz live mode uses the Suite list and all
 active reps. One channel failing does not skip the other. Live Fizz approval
 and Suite-list broadcasts stay off on Smoke.

@@ -112,26 +112,34 @@ describe('suite official notices', () => {
     expect(claim).not.toHaveBeenCalled()
   })
 
-  it('sends the owner test email only to louis@neonrabbit.net', async () => {
-    vi.stubEnv('RESEND_API_KEY', 're_test_key')
-    vi.stubEnv('RESEND_FROM_EMAIL', 'notifications@yoursparklesuite.com')
-    vi.stubEnv('SPARKLE_ENVIRONMENT', 'live')
-    const fetchImpl = vi.fn(async (url: string | URL, init?: RequestInit) => {
-      const body = JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>
-      expect(String(url)).toBe('https://api.resend.com/emails')
-      expect(body.to).toEqual([SUITE_OWNER_EMAIL])
-      expect(body).not.toHaveProperty('segment_id')
-      expect(body).not.toHaveProperty('bcc')
-      return resendOk('em_1')
-    })
-    const sent = await deliverSingleOwnerEmail({
-      idempotencyKey: 'fizz-2026-W42-test-email',
-      subject: 'Fizz test',
-      html: '<p>Hello from Fizz weekly issue.</p>',
-      fetchImpl,
-    })
-    expect(sent).toEqual({ ok: true, id: 'em_1' })
-  })
+  it.each(['live', 'production', ''])(
+    'sends the owner test email on Live (%s) without SPARKLE_FIZZ_TEST_SEND',
+    async (environment) => {
+      vi.stubEnv('RESEND_API_KEY', 're_test_key')
+      vi.stubEnv('RESEND_FROM_EMAIL', 'notifications@yoursparklesuite.com')
+      vi.stubEnv('SPARKLE_ENVIRONMENT', environment)
+      vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', environment)
+      vi.stubEnv('SPARKLE_FIZZ_TEST_SEND', '')
+      const fetchImpl = vi.fn(async (url: string | URL, init?: RequestInit) => {
+        const body = JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>
+        expect(String(url)).toBe('https://api.resend.com/emails')
+        expect(body.to).toEqual([SUITE_OWNER_EMAIL])
+        expect(body.to).toHaveLength(1)
+        expect(body).not.toHaveProperty('segment_id')
+        expect(body).not.toHaveProperty('bcc')
+        expect(body).not.toHaveProperty('cc')
+        return resendOk('em_1')
+      })
+      const sent = await deliverSingleOwnerEmail({
+        idempotencyKey: 'fizz-2026-W42-test-email',
+        subject: 'Fizz test',
+        html: '<p>Hello from Fizz weekly issue.</p>',
+        fetchImpl,
+      })
+      expect(sent).toEqual({ ok: true, id: 'em_1' })
+      expect(fetchImpl).toHaveBeenCalledTimes(1)
+    },
+  )
 
   it('refuses the owner test email on Smoke unless the test send flag is set', async () => {
     vi.stubEnv('SPARKLE_ENVIRONMENT', 'smoke')
