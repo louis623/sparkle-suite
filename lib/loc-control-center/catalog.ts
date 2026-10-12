@@ -500,7 +500,7 @@ export const locOperationCatalog: LocOperation[] = [
       issueId: { type: "string", pattern: "^[0-9]{4}-W[0-9]{2}$" },
       subject: { ...string, maxLength: 160 },
       preheader: string,
-      emailHtml: { ...string, maxLength: 100000 },
+      content: { type: "object", description: "Structured Weekly Fizz content: issueDate, weekNote (opens with Good morning), items[{headline,summary,whatItMeans,sourceLabel,sourceUrl}] (max 5), latest{kind blog|video,title,summary,url,thumbnailUrl}, optional cta{label,url}. Raw HTML is rejected; the server renders the template." },
       workspaceTitle: { ...string, maxLength: 160 },
       workspaceSummary: { type: "string", maxLength: 500 },
       workspaceBody: { ...string, maxLength: 20000 },
@@ -537,7 +537,7 @@ const requiredByName: Record<string, string[]> = {
   "moderation.suspension": ["repId", "suspended"],
   "support.reply": ["conversationId", "body", "clientRequestId"],
   "communications.emailPreview": ["title", "body"],
-  "fizz.issue.stage": ["issueId", "subject", "preheader", "emailHtml", "workspaceTitle", "workspaceSummary", "workspaceBody"],
+  "fizz.issue.stage": ["issueId", "subject", "preheader", "content", "workspaceTitle", "workspaceSummary", "workspaceBody"],
   "fizz.issue.get": ["issueId"],
   "fizz.issue.approve": ["issueId", "mode"],
 };

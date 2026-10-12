@@ -127,7 +127,7 @@ owner token.
 | --- | --- |
 | `communications_preview_broadcast` | `agentName`, `title`, `body`, `category`, `audience` (`{kind:"all_active"}` or `{kind:"selected", repIds}`), optional `actionUrl`, optional `emailSuiteList` |
 | `communications_publish_broadcast` | the preview arguments plus required `idempotencyKey` |
-| `fizz_issue_stage` | `agentName`, `issueId` such as `2026-W42`, `subject`, `preheader`, `emailHtml`, `workspaceTitle`, `workspaceSummary`, `workspaceBody`, optional `actionUrl` |
+| `fizz_issue_stage` | `agentName`, `issueId` such as `2026-W42`, `subject`, `preheader`, `content` (structured: `issueDate`, `weekNote` opening with Good morning, up to 5 `items`, `latest` blog/video, optional `cta`; server renders `brand-assets/email/weekly-fizz-report/weekly-fizz-report.resend-template.html`, raw HTML rejected), `workspaceTitle`, `workspaceSummary`, `workspaceBody`, optional `actionUrl` |
 | `fizz_issue_get` | `agentName`, `issueId` |
 | `fizz_issue_approve` | `agentName`, `issueId`, `mode` `"test"` or `"live"` |
 

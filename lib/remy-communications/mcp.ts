@@ -652,13 +652,31 @@ export function createControlCenterMcpServer() {
   server.registerTool(
     'fizz_issue_stage',
     {
-      description: 'Owner-token only. Stage one Fizz issue for a later approve-once send. Does not email or post. Pass agentName suite or bunny.',
+      description: 'Owner-token only. Stage one Fizz issue for a later approve-once send from structured content (server renders the Weekly Fizz template; raw HTML rejected). Does not email or post. Pass agentName suite or bunny.',
       inputSchema: z.object({
         agentName: broadcastAgentName,
         issueId: fizzIssueId,
         subject: z.string().trim().min(3).max(160),
         preheader: z.string().trim().min(1).max(180),
-        emailHtml: z.string().trim().min(20).max(100_000),
+        content: z.object({
+          issueDate: z.string().trim().min(3).max(60),
+          weekNote: z.string().trim().min(20).max(2_000).describe('Opens with "Good morning", then the rundown. Plain text; blank lines split paragraphs.'),
+          items: z.array(z.object({
+            headline: z.string().trim().min(3).max(160),
+            summary: z.string().trim().min(3).max(1_200),
+            whatItMeans: z.string().trim().min(3).max(800),
+            sourceLabel: z.string().trim().min(2).max(80).optional(),
+            sourceUrl: z.string().trim().max(2_000),
+          }).strict()).max(5),
+          latest: z.object({
+            kind: z.enum(['blog', 'video']),
+            title: z.string().trim().min(3).max(160),
+            summary: z.string().trim().min(3).max(600),
+            url: z.string().trim().max(2_000),
+            thumbnailUrl: z.string().trim().max(2_000).optional(),
+          }).strict(),
+          cta: z.object({ label: z.string().trim().min(2).max(60), url: z.string().trim().max(2_000) }).strict().optional(),
+        }).strict().describe('Structured issue. The server renders the Weekly Fizz template; raw HTML is rejected.'),
         workspaceTitle: z.string().trim().min(3).max(160),
         workspaceSummary: z.string().trim().min(1).max(500),
         workspaceBody: z.string().trim().min(3).max(20_000),

@@ -14,14 +14,40 @@ import {
   SUITE_OWNER_EMAIL,
   assertFizzEmailHtml,
 } from '@/lib/services/suite-official-notice'
+import {
+  FIZZ_UNSUBSCRIBE_VAR,
+  normalizeFizzContent,
+  renderFizzIssueHtml,
+} from '@/lib/services/fizz-issue-render'
 import type { publishWorkspaceMessage } from '@/lib/services/workspace-messages'
+
+const content = {
+  issueDate: 'Monday, December 21, 2026',
+  weekNote: 'Good morning! Here is your Weekly Fizz Report.\n\nThis week: one Suite update.',
+  items: [
+    {
+      headline: 'Cards & QR is live',
+      summary: 'Order business cards and QR flyers from Suite.',
+      whatItMeans: 'You can print cards & flyers without leaving Suite.',
+      sourceLabel: 'Open Cards & QR',
+      sourceUrl: 'https://www.yoursparklesuite.com/cards',
+    },
+  ],
+  latest: {
+    kind: 'video' as const,
+    title: 'How to set up your QR flyer',
+    summary: 'A short walkthrough.',
+    url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  },
+}
+const renderedHtml = renderFizzIssueHtml(normalizeFizzContent(content), 'This week in Suite')
 
 const OWNER_REP = '00000000-0000-4000-8000-000000000111'
 const issue = {
   issue_id: '2026-W42',
   subject: 'Fizz week 42',
   preheader: 'This week in Suite',
-  email_html: '<p>Hello from the weekly Fizz issue.</p>',
+  email_html: renderedHtml,
   workspace_title: 'Fizz week 42',
   workspace_summary: 'This week in Suite',
   workspace_body: 'The workspace copy for week 42.',
@@ -84,6 +110,56 @@ afterEach(() => {
   vi.unstubAllEnvs()
 })
 
+describe('fizz server render', () => {
+  it('renders the Weekly Fizz template with the espresso Latest band and unsubscribe', () => {
+    expect(renderedHtml).toContain('The Weekly <em')
+    expect(renderedHtml).toContain('Latest from Sparkle Suite')
+    expect(renderedHtml).toContain('#36221d')
+    expect(renderedHtml).toContain(FIZZ_UNSUBSCRIBE_VAR)
+    expect(renderedHtml).toContain('Good morning! Here is your Weekly Fizz Report.')
+    expect(renderedHtml).toContain('cards &amp; flyers')
+    expect(renderedHtml).toContain('https://i.ytimg.com/vi/dQw4w9WgXcQ/')
+    expect(renderedHtml).toContain('>Watch</a>')
+    expect(renderedHtml).not.toMatch(/\{\{\{(?!RESEND_UNSUBSCRIBE_URL)[A-Z_]+\}\}\}/)
+    expect(renderedHtml).not.toContain('Resend shell')
+    expect(renderedHtml).not.toContain('{{{CTA_URL}}}')
+  })
+
+  it('labels a blog Read and keeps the band on a slow week', () => {
+    const html = renderFizzIssueHtml(
+      normalizeFizzContent({
+        ...content,
+        items: [],
+        latest: { kind: 'blog', title: 'Blog post', summary: 'Read it.', url: 'https://www.yoursparklesuite.com/blog/x', thumbnailUrl: 'https://www.yoursparklesuite.com/x.png' },
+      }),
+      'Slow week',
+    )
+    expect(html).toContain('>Read</a>')
+    expect(html).toContain('Latest from Sparkle Suite')
+  })
+
+  it('rejects raw HTML and missing house style', async () => {
+    expect(() => normalizeFizzContent({ ...content, emailHtml: '<p>x</p>' })).toThrow(/Raw email HTML/)
+    expect(() => normalizeFizzContent({ ...content, weekNote: '<p>Good morning friends and reps</p>' })).toThrow(/plain text/)
+    expect(() => normalizeFizzContent({ ...content, weekNote: 'Hello there, this is the weekly note.' })).toThrow(/Good morning/)
+    expect(() => normalizeFizzContent({ ...content, latest: undefined })).toThrow(/Latest/)
+    expect(() => normalizeFizzContent({ ...content, items: Array(6).fill(content.items[0]) })).toThrow(/five/)
+    await expect(
+      stageFizzIssue({} as never, {
+        issueId: '2026-W42',
+        subject: issue.subject,
+        preheader: issue.preheader,
+        emailHtml: '<p>raw</p>',
+        content,
+        workspaceTitle: issue.workspace_title,
+        workspaceSummary: issue.workspace_summary,
+        workspaceBody: issue.workspace_body,
+        stagedBy: 'suite',
+      } as never),
+    ).rejects.toThrow(/Raw email HTML/)
+  })
+})
+
 describe('fizz approve-once', () => {
   it('rejects unsafe issue ids and active email HTML', () => {
     expect(() => assertFizzIssueId('2026-W54')).toThrow(ServiceError)
@@ -116,7 +192,7 @@ describe('fizz approve-once', () => {
         issueId: '2026-W42',
         subject: issue.subject,
         preheader: issue.preheader,
-        emailHtml: issue.email_html,
+        content,
         workspaceTitle: issue.workspace_title,
         workspaceSummary: issue.workspace_summary,
         workspaceBody: issue.workspace_body,

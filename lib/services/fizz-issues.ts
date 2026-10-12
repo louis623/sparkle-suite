@@ -12,10 +12,18 @@ import {
   SUITE_LIST_TOPIC_ID,
   SUITE_OWNER_EMAIL,
   assertFizzEmailHtml,
+  publicAppOrigin,
   assertHttpsUrl,
   deliverSingleOwnerEmail,
   isSmokeEnvironment,
 } from '@/lib/services/suite-official-notice'
+import {
+  assertRenderedFizzHtml,
+  normalizeFizzContent,
+  ownerTestHtml,
+  renderFizzIssueHtml,
+  type FizzIssueContent,
+} from '@/lib/services/fizz-issue-render'
 import { publishWorkspaceMessage } from '@/lib/services/workspace-messages'
 
 const ISSUE_ID = /^[0-9]{4}-W(?:0[1-9]|[1-4][0-9]|5[0-3])$/
@@ -26,7 +34,8 @@ export type FizzStageInput = {
   issueId: string
   subject: string
   preheader: string
-  emailHtml: string
+  /** Structured issue content. Raw HTML is rejected; the server renders the Weekly Fizz template. */
+  content: FizzIssueContent | Record<string, unknown>
   workspaceTitle: string
   workspaceSummary: string
   workspaceBody: string
@@ -148,7 +157,10 @@ export async function stageFizzIssue(supabase: SupabaseClient, input: FizzStageI
   const workspaceTitle = input.workspaceTitle.trim()
   const workspaceSummary = input.workspaceSummary.trim()
   const workspaceBody = input.workspaceBody.trim()
-  const emailHtml = assertFizzEmailHtml(input.emailHtml)
+  if ('emailHtml' in (input as Record<string, unknown>)) {
+    throw fizzError('FIZZ_ISSUE_RAW_HTML_REJECTED', 'Raw email HTML is not accepted. Send structured content; the server renders the Weekly Fizz template.')
+  }
+  const content = normalizeFizzContent(input.content)
   if (subject.length < 3 || subject.length > 160) {
     throw fizzError('FIZZ_ISSUE_INVALID_CONTENT', 'Subject must be 3 to 160 characters.')
   }
@@ -164,6 +176,7 @@ export async function stageFizzIssue(supabase: SupabaseClient, input: FizzStageI
   if (workspaceBody.length < 3 || workspaceBody.length > 20_000) {
     throw fizzError('FIZZ_ISSUE_INVALID_CONTENT', 'Workspace body must be 3 to 20000 characters.')
   }
+  const emailHtml = assertFizzEmailHtml(renderFizzIssueHtml(content, preheader))
   const actionUrl = input.actionUrl?.trim() ? assertHttpsUrl(input.actionUrl, 'Action link') : null
   const sent = await supabase
     .from('fizz_issue_results')
@@ -274,6 +287,7 @@ export async function approveFizzIssue(args: {
   const loaded = await getFizzIssue(args.supabase, issueId)
   if (!loaded.issue) throw fizzError('FIZZ_ISSUE_NOT_FOUND', 'Stage this issue before approving it.', 404)
   const issue = loaded.issue
+  assertRenderedFizzHtml(issue.emailHtml)
   const ledger = args.ledger ?? createSupabaseNoticeLedger(args.supabase, 'fizz_issue_results')
   const fetchImpl = args.fetchImpl ?? fetch
   const publish = args.publish ?? publishWorkspaceMessage
@@ -290,7 +304,7 @@ export async function approveFizzIssue(args: {
           const sent = await deliverSingleOwnerEmail({
             idempotencyKey: emailKey,
             subject: issue.subject,
-            html: issue.emailHtml,
+            html: ownerTestHtml(issue.emailHtml, `${publicAppOrigin()}/?unsubscribe-preview=fizz-test`),
             fetchImpl,
           })
           if (!sent.ok) throw new Error(sent.error)
