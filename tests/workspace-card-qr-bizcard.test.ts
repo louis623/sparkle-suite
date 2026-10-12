@@ -24,7 +24,7 @@ import {
   resolveBizcard,
   type BizcardKey,
 } from '@/lib/workspace/card-qr/bizcard-themes'
-import { bizcardName, bizcardSocial, bizcardSocialHandle, bizcardWebsite } from '@/lib/workspace/card-qr/bizcard-copy'
+import { bizcardName, bizcardSocial, bizcardSocialHandle, bizcardSocialHint, bizcardWebsite } from '@/lib/workspace/card-qr/bizcard-copy'
 import { CARD_QR_SHARED_FLYER_THEMES, flyerTextLinkLine } from '@/lib/workspace/card-qr/flyer-copy'
 
 const URL = 'https://sparkle-suite-smoke.vercel.app/q/1aWLyw'
@@ -100,6 +100,23 @@ describe('card copy', () => {
     // Chosen platform empty: fall back, and the mark follows the handle shown.
     expect(bizcardSocial({ instagram: '@ig.me' }, 'youtube')).toEqual({ handle: '@ig.me', platform: 'instagram' })
     expect(bizcardSocial({}, 'tiktok')).toEqual({ handle: '', platform: '' })
+    const louis = {
+      tiktok: 'https://www.tiktok.com/@yoursparklesuite.com?is_from_webapp=1',
+      facebook: 'https://www.facebook.com/profile.php',
+    }
+    expect(bizcardSocial(louis)).toEqual({ handle: '@yoursparklesuite.com', platform: 'tiktok' })
+    expect(bizcardSocial(louis, 'facebook')).toEqual({ handle: '@yoursparklesuite.com', platform: 'tiktok' })
+    expect(bizcardSocial({ facebook: 'https://www.facebook.com/profile.php?id=1' })).toEqual({ handle: '', platform: '' })
+    expect(bizcardSocial({ youtube: '@fizz.tv' }, 'youtube')).toEqual({ handle: '@fizz.tv', platform: 'youtube' })
+    expect(bizcardSocialHint(louis, 'facebook')).toBe(
+      "Add your Facebook link in Site settings to show it. Until then the card uses your TikTok handle, with that app's icon.",
+    )
+    expect(bizcardSocialHint(louis, 'tiktok')).toBe(
+      'Your TikTok handle shows on the back with the TikTok icon.',
+    )
+    expect(bizcardSocialHint({ facebook: 'https://facebook.com/profile.php' }, 'facebook')).toBe(
+      'Add your Facebook link in Site settings to show it on the card.',
+    )
     expect(bizcardWebsite('www.DudesFizzfest.com')).toBe('dudesfizzfest.com')
     expect(bizcardWebsite(null)).toBe('')
     expect(bizcardWebsite('')).toBe('')

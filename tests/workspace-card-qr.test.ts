@@ -10,9 +10,10 @@ process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT = 'smoke'
 import sharp from 'sharp'
 import { CardQrTool } from '@/app/nic-nac/components/CardQrTool'
 import {
-  BusinessToolsCard,
   getInitialWorkspaceSection,
+  getWorkspaceToolSections,
   resolveWorkspaceSectionForAccess,
+  ToolsHub,
 } from '@/app/nic-nac/components/DashboardPlaceholder'
 import { GET as getCardQr } from '@/app/api/workspace/card-qr/route'
 import {
@@ -74,19 +75,28 @@ describe('Cards & QR smoke locks', () => {
     expect(source).toContain('isSuiteSmokeEnvironment(env)')
   })
 
-  it('replaces the Business Cards placeholder with a ready Cards & QR entry on Smoke', () => {
+  it('keeps Cards & QR on the tools list and drops the Business Cards placeholder', () => {
     vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
+    const tools = getWorkspaceToolSections({
+      includeRecipes: true,
+      includeCardQr: true,
+    })
+    expect(tools.map((section) => section.label)).toContain(
+      'QR codes, QR flyers, business cards',
+    )
     const html = renderToStaticMarkup(
-      createElement(BusinessToolsCard, { onOpenCardQr: () => undefined }),
+      createElement(ToolsHub, {
+        tools,
+        activeKey: 'card-qr',
+        onSelect: () => undefined,
+      }),
     )
     expect(html).toContain('QR codes, QR flyers, business cards')
-    expect(html).toContain('Build your site QR. Download a free QR code flyer, or order printed cards that match your site.')
-    expect(html).toContain('Open tool')
-    expect(html).toContain('businessToolReadyAction')
-    expect(html).toContain('Ready')
+    expect(html).toContain('aria-current="page"')
     expect(html).toContain('Business Calculator')
-    expect(html.match(/Coming Soon/g) ?? []).toHaveLength(1)
+    expect(html).toContain('Coming Soon')
     expect(html).not.toContain('Business Cards')
+    expect(html).not.toContain('Business Tools')
   })
 
   it('resolves the QR origin from the request host without Stripe secrets', () => {

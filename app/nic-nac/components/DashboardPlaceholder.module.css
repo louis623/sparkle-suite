@@ -7803,3 +7803,244 @@
     gap: 4px;
   }
 }
+
+/* Tools hub shell. Colors and type are the October 2026 landing kit
+   (--suite-* and --font-prelaunch-*). Tool interiors are unchanged. */
+.toolsHub {
+  display: grid;
+  grid-template-columns: minmax(232px, 280px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  min-width: 0;
+  font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
+  color: var(--suite-ink);
+}
+
+.toolsHubNav {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: calc(100dvh - 148px);
+  overflow: auto;
+  padding: 22px 14px 14px;
+  border-radius: 22px;
+  background: var(--suite-plum-surface);
+  color: var(--suite-cream);
+  box-shadow: 0 16px 40px rgba(52, 37, 47, 0.16);
+}
+
+.toolsHubHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.toolsHubKicker {
+  margin: 0;
+  color: var(--suite-soft-pink);
+  font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.toolsHubTitle,
+.toolsHubWelcomeTitle,
+.toolsHubSoonTitle {
+  margin: 0;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.toolsHubTitle {
+  color: var(--suite-cream);
+}
+
+.toolsHubLede,
+.toolsHubWelcomeBody,
+.toolsHubSoonBody {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.toolsHubLede {
+  color: rgba(246, 231, 218, 0.82);
+}
+
+.toolsHubList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toolsHubButton,
+.toolsHubButtonActive {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: var(--suite-cream);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.toolsHubButton:hover {
+  background: rgba(246, 231, 218, 0.08);
+}
+
+.toolsHubButtonActive {
+  background: var(--suite-white);
+  color: var(--suite-plum);
+  box-shadow: 0 8px 22px rgba(52, 37, 47, 0.18);
+}
+
+.toolsHubButton:focus-visible,
+.toolsHubButtonActive:focus-visible,
+.toolsHubBack:focus-visible {
+  outline: 3px solid var(--suite-pink);
+  outline-offset: 3px;
+}
+
+.toolsHubIcon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--suite-soft-pink);
+  stroke-width: 2;
+}
+
+.toolsHubButtonActive .toolsHubIcon {
+  color: var(--suite-pink);
+}
+
+.toolsHubButtonCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.toolsHubButtonLabel {
+  min-width: 0;
+}
+
+.toolsHubSoonMark {
+  color: var(--suite-soft-pink);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.toolsHubButtonActive .toolsHubSoonMark {
+  color: var(--suite-pink);
+}
+
+.toolsHubPane {
+  min-width: 0;
+}
+
+.toolsHubWelcome,
+.toolsHubSoon {
+  min-height: 280px;
+  padding: 36px 28px;
+  border-radius: 22px;
+}
+
+.toolsHubWelcome {
+  background: var(--suite-plum-surface);
+  color: var(--suite-cream);
+  box-shadow: 0 16px 40px rgba(52, 37, 47, 0.16);
+}
+
+.toolsHubWelcomeTitle {
+  margin-top: 10px;
+  color: var(--suite-cream);
+}
+
+.toolsHubWelcomeBody {
+  max-width: 36rem;
+  margin-top: 12px;
+  color: rgba(246, 231, 218, 0.82);
+}
+
+.toolsHubSoon {
+  border: 1px solid var(--suite-line);
+  background: var(--suite-white);
+  color: var(--suite-ink);
+  box-shadow: 0 1px 0 rgba(64, 41, 36, 0.04), 0 14px 36px rgba(64, 41, 36, 0.06);
+}
+
+.toolsHubSoonTitle {
+  margin-top: 10px;
+  color: var(--suite-ink);
+}
+
+.toolsHubSoonBody {
+  max-width: 36rem;
+  margin-top: 12px;
+  color: var(--suite-muted);
+}
+
+.toolsHubBack {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin: 0 0 12px;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid var(--suite-line);
+  border-radius: 999px;
+  background: var(--suite-white);
+  color: var(--suite-plum);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.toolsHubBack svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 840px) {
+  .toolsHub {
+    display: block;
+  }
+
+  .toolsHubNav {
+    position: static;
+    max-height: none;
+  }
+
+  .toolsHub[data-tool-open='false'] .toolsHubPane {
+    display: none;
+  }
+
+  .toolsHub[data-tool-open='true'] .toolsHubNav {
+    display: none;
+  }
+
+  .toolsHubBack {
+    display: inline-flex;
+  }
+}

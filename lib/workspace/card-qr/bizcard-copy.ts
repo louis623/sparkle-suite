@@ -1,5 +1,6 @@
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
 import { SOCIAL_HERO_ORDER } from '@/lib/public-site/social-hero'
+import { CARD_QR_SOCIAL_PLATFORM_LABELS } from '@/lib/workspace/card-qr/design'
 import { flyerFirstName } from '@/lib/workspace/card-qr/flyer-copy'
 
 /** One handle for the card. Instagram, then TikTok, then the rest. Links become @handle. */
@@ -22,16 +23,41 @@ export function bizcardSocial(
   for (const platform of order) {
     const raw = all[platform]?.trim()
     if (!raw) continue
-    const seg = raw
-      .replace(/^https?:\/\/(www\.|m\.)?/i, '')
-      .replace(/[?#].*$/, '')
-      .replace(/\/+$/, '')
-      .split('/')
-      .pop()
-      ?.replace(/^@+/, '')
-    if (seg && /^[A-Za-z0-9._]{1,30}$/.test(seg) && !/\.(com|net|org)$/i.test(seg)) return { handle: `@${seg}`, platform }
+    const path = raw.replace(/^https?:\/\/(www\.|m\.)?/i, '').replace(/[?#].*$/, '').replace(/\/+$/, '')
+    const isUrl = /^[a-z0-9-]+(\.[a-z0-9-]+)+\//i.test(path)
+    const segs = path.split('/')
+    const at = segs.find((s) => s.startsWith('@'))
+    const seg = (at ?? segs[segs.length - 1])?.replace(/^@+/, '')
+    if (!seg || !/^[A-Za-z0-9._]{1,30}$/.test(seg)) continue
+    if (/^(profile\.php|watch|channel|groups|pages|people)$/i.test(seg)) continue
+    if (!at && !isUrl && /\.(com|net|org)$/i.test(seg)) continue
+    return { handle: `@${seg}`, platform }
   }
   return { handle: '', platform: '' }
+}
+
+function socialPlatformLabel(platform: string) {
+  if (platform in CARD_QR_SOCIAL_PLATFORM_LABELS) {
+    return CARD_QR_SOCIAL_PLATFORM_LABELS[platform as keyof typeof CARD_QR_SOCIAL_PLATFORM_LABELS]
+  }
+  if (platform === 'whatnot') return 'Whatnot'
+  return platform ? platform.charAt(0).toUpperCase() + platform.slice(1) : ''
+}
+
+/** Hint under the card's social picker. Names the platform the card will actually print. */
+export function bizcardSocialHint(
+  handles: Record<string, string | null | undefined> | null | undefined,
+  preferred: string,
+) {
+  const chosen = socialPlatformLabel(preferred)
+  const shown = bizcardSocial(handles, preferred)
+  if (!shown.handle || shown.platform === preferred) {
+    return shown.handle
+      ? `Your ${chosen} handle shows on the back with the ${chosen} icon.`
+      : `Add your ${chosen} link in Site settings to show it on the card.`
+  }
+  const used = socialPlatformLabel(shown.platform)
+  return `Add your ${chosen} link in Site settings to show it. Until then the card uses your ${used} handle, with that app's icon.`
 }
 
 /** Custom domain only (Louis, Oct 8): no custom domain means no website line. */

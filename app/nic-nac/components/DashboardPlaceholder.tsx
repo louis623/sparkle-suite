@@ -92,6 +92,7 @@ import { getRepGivenName } from '@/lib/nic-nac/core/rep-personalization'
 import { AccountSecurityCard } from './AccountSecurityCard'
 import { SupportAccessHistoryCard } from './SupportAccessHistoryCard'
 import {
+  Calculator,
   CalendarDays,
   BookOpen,
   Coffee,
@@ -108,6 +109,7 @@ import {
   Images,
   LogOut,
   Mail,
+  Mic,
   MessagesSquare,
   PlayCircle,
   QrCode,
@@ -150,19 +152,12 @@ import { isConversationItem } from './messages/types'
 import styles from './DashboardPlaceholder.module.css'
 import { CardQrTool } from './CardQrTool'
 import {
-  CARD_QR_ENTRY_ACTION,
   CARD_QR_ENTRY_TITLE,
-  CARD_QR_HUB_BODY,
   CARD_QR_WORKSPACE_SECTION,
   isCardQrToolEnabled,
-  isWorkspaceSectionVisible,
 } from '@/lib/workspace/card-qr/access'
 
 export const MessagesCenterCard = UnifiedMessageCenter
-
-const CollectionIntakeTool = dynamic(() =>
-  import('./CollectionIntakeTool').then((module) => module.CollectionIntakeTool),
-)
 
 const WorkspaceResourceLibrary = dynamic(() =>
   import('./WorkspaceResourceLibrary').then((module) => module.default),
@@ -214,10 +209,36 @@ const WORKSPACE_SECTIONS = [
 
 const SECONDARY_WORKSPACE_SECTIONS = [
   {
-    key: CARD_QR_WORKSPACE_SECTION,
-    label: CARD_QR_ENTRY_TITLE,
-    shortLabel: CARD_QR_ENTRY_TITLE,
-    icon: QrCode,
+    key: 'account',
+    label: 'Account',
+    shortLabel: 'Account',
+    icon: WalletCards,
+  },
+  {
+    key: 'collection-intake',
+    label: 'Bulk Collection Intake',
+    shortLabel: 'Bulk Intake',
+    icon: Images,
+    comingSoon: true,
+  },
+  {
+    key: 'business-calculator',
+    label: 'Business Calculator',
+    shortLabel: 'Calculator',
+    icon: Calculator,
+    comingSoon: true,
+  },
+  {
+    key: 'customer-list',
+    label: 'Customer List',
+    shortLabel: 'Customers',
+    icon: Users,
+  },
+  {
+    key: 'site-settings',
+    label: 'Customer-facing site setup',
+    shortLabel: 'Site setup',
+    icon: Settings2,
   },
   {
     key: 'jewelry-library',
@@ -232,47 +253,16 @@ const SECONDARY_WORKSPACE_SECTIONS = [
     icon: RadioTower,
   },
   {
-    key: 'business-tools',
-    label: 'Business Tools',
-    shortLabel: 'Tools',
-    icon: Wrench,
-  },
-  {
-    key: 'collection-intake',
-    label: 'Bulk Collection Intake',
-    shortLabel: 'Bulk Intake',
-    icon: Images,
-    comingSoon: true,
-  },
-  {
-    key: 'team-management',
-    label: 'Team Management',
-    shortLabel: 'Team',
-    icon: Users,
-  },
-  {
-    key: 'customer-list',
-    label: 'Customer List',
-    shortLabel: 'Customers',
-    icon: Users,
-  },
-  {
     key: 'messages',
     label: 'Message Center',
     shortLabel: 'Messages',
     icon: MessagesSquare,
   },
   {
-    key: 'resources',
-    label: 'Resources & Help',
-    shortLabel: 'Resources',
-    icon: BookOpen,
-  },
-  {
-    key: 'site-settings',
-    label: 'Customer-facing site setup',
-    shortLabel: 'Site setup',
-    icon: Settings2,
+    key: CARD_QR_WORKSPACE_SECTION,
+    label: CARD_QR_ENTRY_TITLE,
+    shortLabel: CARD_QR_ENTRY_TITLE,
+    icon: QrCode,
   },
   {
     key: 'recipes',
@@ -281,10 +271,22 @@ const SECONDARY_WORKSPACE_SECTIONS = [
     icon: Sparkles,
   },
   {
-    key: 'account',
-    label: 'Account',
-    shortLabel: 'Account',
-    icon: WalletCards,
+    key: 'resources',
+    label: 'Resources & Help',
+    shortLabel: 'Resources',
+    icon: BookOpen,
+  },
+  {
+    key: 'team-management',
+    label: 'Team Management',
+    shortLabel: 'Team',
+    icon: Users,
+  },
+  {
+    key: 'wispr-flow',
+    label: 'Wispr Flow',
+    shortLabel: 'Wispr',
+    icon: Mic,
   },
 ] as const satisfies readonly WorkspaceSectionTab<string>[]
 
@@ -401,11 +403,10 @@ const WORKSPACE_MESSAGE_QUERY_KEYS = ['view', 'compose', 'type', 'source'] as co
 export function getInitialWorkspaceSection(search: string): WorkspaceSectionKey {
   const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
   const requested = params.get('section')?.trim() ?? ''
-  if (requested === 'business-calculator') return 'business-tools'
+  if (requested === 'business-tools') return 'more'
   if (requested === CARD_QR_WORKSPACE_SECTION && !isCardQrToolEnabled()) return 'more'
   if (WORKSPACE_SECTION_KEYS.has(requested)) {
-    const section = requested as WorkspaceSectionKey
-    return isComingSoonWorkspaceSection(section) ? 'more' : section
+    return requested as WorkspaceSectionKey
   }
   return 'home'
 }
@@ -466,11 +467,11 @@ export function getVisibleWorkspaceSections(
 }
 
 export function resolveWorkspaceSectionForAccess(
-  section: WorkspaceSectionKey,
+  section: WorkspaceSectionKey | 'business-tools',
   _hasPaidWorkspace: boolean,
   hasRecipeWorkspaceAccess = true,
 ): WorkspaceSectionKey {
-  if (isComingSoonWorkspaceSection(section)) return 'more'
+  if (section === 'business-tools') return 'more'
   if (section === CARD_QR_WORKSPACE_SECTION && !isCardQrToolEnabled()) return 'more'
   if (section === 'recipes' && !hasRecipeWorkspaceAccess) return 'more'
   return section
@@ -511,16 +512,34 @@ function getWorkspaceSectionLabel(section: WorkspaceSectionKey) {
   )
 }
 
+export function isWorkspaceToolSection(section: string) {
+  return (
+    section === 'help-resources' ||
+    SECONDARY_WORKSPACE_SECTIONS.some((workspaceSection) => workspaceSection.key === section)
+  )
+}
+
+export function getWorkspaceToolSections(options: {
+  includeRecipes?: boolean
+  includeCardQr?: boolean
+} = {}) {
+  const includeRecipes = options.includeRecipes ?? true
+  const includeCardQr = options.includeCardQr ?? isCardQrToolEnabled()
+  return SECONDARY_WORKSPACE_SECTIONS.filter((section) => {
+    if (section.key === 'recipes') return includeRecipes
+    if (section.key === CARD_QR_WORKSPACE_SECTION) return includeCardQr
+    return true
+  })
+    .slice()
+    .sort((a, b) => a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }))
+}
+
 export function getWorkspaceBackDestination(
   section: WorkspaceSectionKey,
 ): { section: WorkspaceSectionKey; label: string } | null {
   if (section === 'home') return null
 
-  const isToolSection =
-    section === 'help-resources' ||
-    SECONDARY_WORKSPACE_SECTIONS.some(
-      (workspaceSection) => workspaceSection.key === section,
-    )
+  const isToolSection = section === 'help-resources' || isWorkspaceToolSection(section)
 
   return isToolSection
     ? { section: 'more', label: 'Tools' }
@@ -2894,6 +2913,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     )
   const previousWorkspaceSectionRef = useRef(activeSection)
   const workspaceSectionUrlReadyRef = useRef(false)
+  const workspaceHistoryNavRef = useRef<'idle' | 'pop'>('idle')
   const [recipeEditorTab, setRecipeEditorTab] =
     useState<RecipeEditorTab>('current')
   const [workspacePreview, setWorkspacePreview] = useState<WorkspacePreviewState>({
@@ -2941,16 +2961,23 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   }, [initialSectionOverride])
 
   useEffect(() => {
+    if (initialSectionOverride) return
     if (typeof window === 'undefined') return
-    // The first client render can still be home while a deep link is applied.
-    // Skip that pass so an explicit Message Center or Site Settings URL survives refresh.
-    if (!workspaceSectionUrlReadyRef.current) {
-      workspaceSectionUrlReadyRef.current = true
-      previousWorkspaceSectionRef.current = activeSection
-      return
+    const onPopState = () => {
+      const requestedSection = getInitialWorkspaceSection(window.location.search)
+      setActiveSection((currentSection) => {
+        if (currentSection === requestedSection) return currentSection
+        workspaceHistoryNavRef.current = 'pop'
+        return requestedSection
+      })
     }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [initialSectionOverride])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || initialSectionOverride) return
     const previousSection = previousWorkspaceSectionRef.current
-    previousWorkspaceSectionRef.current = activeSection
     const nextSearch = syncWorkspaceSectionSearch(window.location.search, activeSection, {
       clearMessageConversation:
         previousSection === 'messages' && activeSection !== 'messages',
@@ -2958,15 +2985,35 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     const currentSearch = window.location.search.startsWith('?')
       ? window.location.search.slice(1)
       : window.location.search
-    if (nextSearch === currentSearch) return
-    const url = new URL(window.location.href)
-    url.search = nextSearch
-    window.history.replaceState(
-      window.history.state,
-      '',
-      `${url.pathname}${url.search}${url.hash}`,
-    )
-  }, [activeSection])
+    const writeHistory = (method: 'pushState' | 'replaceState') => {
+      if (nextSearch === currentSearch) return
+      const url = new URL(window.location.href)
+      url.search = nextSearch
+      window.history[method](
+        window.history.state,
+        '',
+        `${url.pathname}${url.search}${url.hash}`,
+      )
+    }
+    // The first client render can still be home while a deep link is applied.
+    // Skip that pass so an explicit Message Center or Site Settings URL survives refresh.
+    if (!workspaceSectionUrlReadyRef.current) {
+      workspaceSectionUrlReadyRef.current = true
+      previousWorkspaceSectionRef.current = activeSection
+      if (activeSection === getInitialWorkspaceSection(window.location.search)) {
+        writeHistory('replaceState')
+      }
+      return
+    }
+    if (workspaceHistoryNavRef.current === 'pop') {
+      workspaceHistoryNavRef.current = 'idle'
+      previousWorkspaceSectionRef.current = activeSection
+      return
+    }
+    previousWorkspaceSectionRef.current = activeSection
+    const rawSection = new URLSearchParams(currentSearch).get('section')
+    writeHistory(rawSection === 'business-tools' ? 'replaceState' : 'pushState')
+  }, [activeSection, initialSectionOverride])
   const [rosterFilter, setRosterFilter] = useState<RosterFilter>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOrder, setSortOrder] = useState<RosterSort>('newest')
@@ -6744,12 +6791,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       )
     }
 
-    if (canRenderWorkspaceSections && activeSection === 'business-tools') {
-      return (
-        <BusinessToolsCard
-          onOpenCardQr={() => setActiveSection(CARD_QR_WORKSPACE_SECTION)}
-        />
-      )
+    if (canRenderWorkspaceSections && isComingSoonWorkspaceSection(activeSection)) {
+      return <ToolsComingSoonPanel title={getWorkspaceSectionLabel(activeSection)} />
+    }
+
+    if (canRenderWorkspaceSections && activeSection === 'wispr-flow') {
+      return <WisprFlowCard />
     }
 
     if (
@@ -6804,31 +6851,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       )
     }
 
-    if (canRenderWorkspaceSections && activeSection === 'collection-intake') {
-      return <CollectionIntakeTool />
-    }
-
     if (canRenderWorkspaceSections && activeSection === 'more') {
-      return (
-        <MoreWorkspaceCard
-          sections={SECONDARY_WORKSPACE_SECTIONS.filter(
-            (section) =>
-              (section.key !== 'recipes' || hasRecipeWorkspaceAccess) &&
-              isWorkspaceSectionVisible({
-                smokeOnly: section.key === CARD_QR_WORKSPACE_SECTION,
-              }),
-          )}
-          onSectionChange={(section) => {
-            const nextSection = resolveWorkspaceSectionForAccess(
-              section,
-              hasWorkspaceAccess,
-              hasRecipeWorkspaceAccess,
-            )
-            if (nextSection === 'recipes') setRecipeEditorTab('current')
-            setActiveSection(nextSection)
-          }}
-        />
-      )
+      return null
     }
 
     if (canRenderWorkspaceSections && activeSection === 'team-management') {
@@ -7112,6 +7136,29 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   const workspaceBackDestination = getWorkspaceBackDestination(activeSection)
   const isRecipeDetailOpen =
     activeSection === 'recipes' && recipeEditorTab === 'edit'
+  const workspaceTools = getWorkspaceToolSections({
+    includeRecipes: hasRecipeWorkspaceAccess,
+  })
+  const showToolsHub =
+    canRenderWorkspaceSections &&
+    (activeSection === 'more' || isWorkspaceToolSection(activeSection))
+  const showPageBack =
+    Boolean(workspaceBackDestination) &&
+    (!showToolsHub || workspaceBackDestination?.section !== 'more' || isRecipeDetailOpen)
+  const openWorkspaceTool = (section: WorkspaceSectionKey | 'more') => {
+    const nextSection =
+      section === 'more'
+        ? 'more'
+        : resolveWorkspaceSectionForAccess(
+            section,
+            hasWorkspaceAccess,
+            hasRecipeWorkspaceAccess,
+          )
+    if (nextSection === 'recipes') setRecipeEditorTab('current')
+    setWorkspacePreview({ mode: 'workspace' })
+    setPreviewUnavailableMessage(null)
+    setActiveSection(nextSection)
+  }
   const homeTradeRequestsCount = tradeRequestsState.pendingCount
   const homeAvailableDancerCount = tradeBoardState.board?.summary.availableDancerCount
   const homeNewDancersTodayCount = tradeBoardState.board?.summary.newDancersTodayCount
@@ -7230,7 +7277,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             />
           ) : (
             <div className={styles.workspaceSectionPage}>
-              {workspaceBackDestination ? (
+              {showPageBack && workspaceBackDestination ? (
                 <button
                   type="button"
                   className={styles.workspaceBackButton}
@@ -7253,7 +7300,17 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
                   </span>
                 </button>
               ) : null}
-              {renderedSection}
+              {showToolsHub ? (
+                <ToolsHub
+                  tools={workspaceTools}
+                  activeKey={activeSection === 'help-resources' ? 'resources' : activeSection}
+                  onSelect={openWorkspaceTool}
+                >
+                  {renderedSection}
+                </ToolsHub>
+              ) : (
+                renderedSection
+              )}
             </div>
           )}
         </WorkspaceShell>
@@ -7923,48 +7980,93 @@ export function WorkspaceAccessNotice({
   )
 }
 
-function MoreWorkspaceCard({
-  sections,
-  onSectionChange,
-}: {
-  sections: readonly (typeof SECONDARY_WORKSPACE_SECTIONS)[number][]
-  onSectionChange: (section: WorkspaceSectionKey) => void
-}) {
+function ToolsHubWelcome() {
   return (
-    <section className={styles.workspaceIntroCard}>
-      <div className={styles.sectionHeadingRow}>
-        <div>
-          <h2 className={styles.cardTitle}>Tools</h2>
-          <p className={styles.cardSubtitle}>
-            Open the Jewelry Library, Bulk Collection Intake, business helpers,
-            settings, and other workspace tools when you need them.
-          </p>
-        </div>
-      </div>
-      <div className={styles.moreToolGrid}>
-        {sections.map((section) => {
-          const Icon = section.icon
-          const disabled = 'comingSoon' in section && section.comingSoon === true
-          return (
-            <button
-              key={section.key}
-              type="button"
-              className={styles.moreToolButton}
-              disabled={disabled}
-              onClick={() => onSectionChange(section.key)}
-            >
-              <Icon className={styles.moreToolIcon} aria-hidden="true" />
-              <span className={styles.moreToolCopy}>
-                <span className={styles.moreToolLabel}>{section.label}</span>
-                <span className={styles.moreToolHint}>
-                  {disabled ? 'Coming soon' : 'Open tool'}
-                </span>
-              </span>
-            </button>
-          )
-        })}
-      </div>
+    <section className={styles.toolsHubWelcome} aria-label="Choose a tool">
+      <p className={styles.toolsHubKicker}>Workspace</p>
+      <h2 className={styles.toolsHubWelcomeTitle}>Choose a tool</h2>
+      <p className={styles.toolsHubWelcomeBody}>
+        Pick a tool from the list. It opens on this side of the screen.
+      </p>
     </section>
+  )
+}
+
+export function ToolsComingSoonPanel({ title }: { title: string }) {
+  return (
+    <section className={styles.toolsHubSoon} aria-label={`${title} coming soon`}>
+      <p className={styles.toolsHubKicker}>Coming Soon</p>
+      <h2 className={styles.toolsHubSoonTitle}>{title}</h2>
+      <p className={styles.toolsHubSoonBody}>
+        This tool is on the way. The others in the list are ready to open.
+      </p>
+    </section>
+  )
+}
+
+export function ToolsHub({
+  tools,
+  activeKey,
+  onSelect,
+  children,
+}: {
+  tools: readonly (typeof SECONDARY_WORKSPACE_SECTIONS)[number][]
+  activeKey: string
+  onSelect: (section: WorkspaceSectionKey | 'more') => void
+  children?: ReactNode
+}) {
+  const toolOpen = activeKey !== 'more'
+  return (
+    <div className={styles.toolsHub} data-tool-open={toolOpen ? 'true' : 'false'}>
+      <nav className={styles.toolsHubNav} aria-label="Tools">
+        <header className={styles.toolsHubHeader}>
+          <p className={styles.toolsHubKicker}>Workspace</p>
+          <h2 className={styles.toolsHubTitle}>Tools</h2>
+          <p className={styles.toolsHubLede}>
+            Every workspace tool, in one list.
+          </p>
+        </header>
+        <div className={styles.toolsHubList} role="list">
+          {tools.map((section) => {
+            const Icon = section.icon
+            const selected = section.key === activeKey
+            const comingSoon = 'comingSoon' in section && section.comingSoon === true
+            return (
+              <button
+                key={section.key}
+                type="button"
+                role="listitem"
+                className={selected ? styles.toolsHubButtonActive : styles.toolsHubButton}
+                aria-current={selected ? 'page' : undefined}
+                onClick={() => onSelect(section.key)}
+              >
+                <Icon className={styles.toolsHubIcon} aria-hidden="true" />
+                <span className={styles.toolsHubButtonCopy}>
+                  <span className={styles.toolsHubButtonLabel}>{section.label}</span>
+                  {comingSoon ? (
+                    <span className={styles.toolsHubSoonMark}>Coming Soon</span>
+                  ) : null}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </nav>
+      <div className={styles.toolsHubPane}>
+        {toolOpen ? (
+          <button
+            type="button"
+            className={styles.toolsHubBack}
+            onClick={() => onSelect('more')}
+            aria-label="Back to Tools"
+          >
+            <ChevronLeft aria-hidden="true" />
+            <span>Tools</span>
+          </button>
+        ) : null}
+        {toolOpen ? children : <ToolsHubWelcome />}
+      </div>
+    </div>
   )
 }
 
@@ -10963,32 +11065,9 @@ type BusinessCalculatorTab = 'monthly' | 'single-show'
 
 const WISPR_FLOW_INVITE_URL = 'https://wisprflow.ai/r?LOUIS20696'
 
-const BUSINESS_TOOL_PLACEHOLDERS = ['Business Calculator', 'Business Cards'] as const
-
-export function BusinessToolsCard({
-  onOpenCardQr,
-}: {
-  onOpenCardQr?: () => void
-} = {}) {
-  const cardQrEnabled = isCardQrToolEnabled()
-  const businessToolPlaceholders = cardQrEnabled
-    ? BUSINESS_TOOL_PLACEHOLDERS.filter((toolTitle) => toolTitle !== 'Business Cards')
-    : BUSINESS_TOOL_PLACEHOLDERS
+export function WisprFlowCard() {
   return (
     <div className={styles.workspaceSectionStack}>
-      <div className={styles.workspaceIntroCard}>
-        <div className={styles.workspaceSectionHeader}>
-          <div>
-            <div className={styles.cardTitle}>Business Tools</div>
-            <div className={styles.cardSubtitle}>
-              Practical add-ons for reps, gathered in one workspace tab as each
-              tool becomes ready.
-            </div>
-          </div>
-          <span className={styles.rosterTag}>Tool hub</span>
-        </div>
-      </div>
-
       <section className={styles.wisprFlowPanel}>
         <div className={styles.workspaceSectionHeader}>
           <div>
@@ -11032,37 +11111,6 @@ export function BusinessToolsCard({
           <span className={styles.wisprFlowInviteUrl}>{WISPR_FLOW_INVITE_URL}</span>
         </div>
       </section>
-
-      <div className={styles.businessToolsGrid}>
-        {cardQrEnabled ? (
-          <section className={styles.businessToolCard}>
-            <div className={styles.workspaceSectionHeader}>
-              <div>
-                <div className={styles.walletSettingsTitle}>{CARD_QR_ENTRY_TITLE}</div>
-                <p className={styles.businessToolBody}>{CARD_QR_HUB_BODY}</p>
-              </div>
-              <span className={styles.rosterTag}>Ready</span>
-            </div>
-            <button
-              type="button"
-              className={`${styles.helperButton} ${styles.businessToolReadyAction}`}
-              onClick={onOpenCardQr}
-            >
-              {CARD_QR_ENTRY_ACTION}
-            </button>
-          </section>
-        ) : null}
-        {businessToolPlaceholders.map((toolTitle) => (
-          <section key={toolTitle} className={styles.businessToolCard}>
-            <div className={styles.workspaceSectionHeader}>
-              <div>
-                <div className={styles.walletSettingsTitle}>{toolTitle}</div>
-                <p className={styles.businessToolBody}>Coming Soon</p>
-              </div>
-            </div>
-          </section>
-        ))}
-      </div>
     </div>
   )
 }

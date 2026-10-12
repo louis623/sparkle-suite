@@ -13,7 +13,6 @@ function readFileSync(path: string, encoding: 'utf8') {
 import {
   AccountBillingCard,
   BusinessCalculatorCard,
-  BusinessToolsCard,
   DashboardPlaceholder,
   HelpResourcesCard,
   JewelryLibraryCard,
@@ -34,6 +33,9 @@ import {
   buildTeamPhotoRemovalPatch,
   WalletSummaryCard,
   WorkspaceAppHeader,
+  ToolsComingSoonPanel,
+  ToolsHub,
+  WisprFlowCard,
   WorkspaceAccessNotice,
   buildWorkspacePublicSiteLocation,
   buildJoinTeamRosterSavePayload,
@@ -54,6 +56,7 @@ import {
   getVisibleWorkspaceSections,
   hasBlingKitchenRecipeWorkspaceAccess,
   hasPaidWorkspaceSubscription,
+  getWorkspaceToolSections,
   isComingSoonWorkspaceSection,
   resolveWorkspaceSectionForAccess,
   shouldShowWorkspaceLoadingSkeleton,
@@ -1091,14 +1094,15 @@ describe('DashboardPlaceholder', () => {
     expect(getInitialWorkspaceSection('?section=jewelry-library')).toBe('jewelry-library')
     expect(getInitialWorkspaceSection('?section=live-queue')).toBe('live-queue')
     expect(getInitialWorkspaceSection('?section=recipes')).toBe('recipes')
-    expect(getInitialWorkspaceSection('?section=business-tools')).toBe(
-      'business-tools',
-    )
+    expect(getInitialWorkspaceSection('?section=business-tools')).toBe('more')
     expect(getInitialWorkspaceSection('?section=business-calculator')).toBe(
-      'business-tools',
+      'business-calculator',
     )
+    expect(getInitialWorkspaceSection('?section=wispr-flow')).toBe('wispr-flow')
     expect(getInitialWorkspaceSection('?section=team-management')).toBe('team-management')
-    expect(getInitialWorkspaceSection('?section=collection-intake')).toBe('more')
+    expect(getInitialWorkspaceSection('?section=collection-intake')).toBe(
+      'collection-intake',
+    )
     expect(getInitialWorkspaceSection('?section=customer-list')).toBe('customer-list')
     expect(getInitialWorkspaceSection('?section=messages')).toBe('messages')
     expect(getInitialWorkspaceSection('?section=resources')).toBe('resources')
@@ -1166,7 +1170,7 @@ describe('DashboardPlaceholder', () => {
     expect(getVisibleWorkspaceSections(false, true).map((section) => section.key)).not.toContain('recipes')
     expect(resolveWorkspaceSectionForAccess('trade-board', false)).toBe('trade-board')
     expect(resolveWorkspaceSectionForAccess('help-resources', false)).toBe('help-resources')
-    expect(isComingSoonWorkspaceSection('business-tools')).toBe(false)
+    expect(isComingSoonWorkspaceSection('business-calculator')).toBe(true)
     expect(isComingSoonWorkspaceSection('team-management')).toBe(false)
     expect(isComingSoonWorkspaceSection('collection-intake')).toBe(true)
     expect(isComingSoonWorkspaceSection('customer-list')).toBe(false)
@@ -1180,13 +1184,16 @@ describe('DashboardPlaceholder', () => {
     expect(resolveWorkspaceSectionForAccess('recipes', true, true)).toBe(
       'recipes',
     )
-    expect(resolveWorkspaceSectionForAccess('business-tools', true)).toBe(
-      'business-tools',
+    expect(resolveWorkspaceSectionForAccess('business-tools', true)).toBe('more')
+    expect(resolveWorkspaceSectionForAccess('business-calculator', true)).toBe(
+      'business-calculator',
     )
     expect(resolveWorkspaceSectionForAccess('team-management', true)).toBe(
       'team-management',
     )
-    expect(resolveWorkspaceSectionForAccess('collection-intake', true)).toBe('more')
+    expect(resolveWorkspaceSectionForAccess('collection-intake', true)).toBe(
+      'collection-intake',
+    )
     expect(resolveWorkspaceSectionForAccess('customer-list', true)).toBe('customer-list')
     expect(resolveWorkspaceSectionForAccess('resources', true)).toBe('resources')
   })
@@ -2556,6 +2563,14 @@ describe('DashboardPlaceholder', () => {
       label: 'Tools',
     })
     expect(getWorkspaceBackDestination('live-queue')).toEqual({
+      section: 'more',
+      label: 'Tools',
+    })
+    expect(getWorkspaceBackDestination('wispr-flow')).toEqual({
+      section: 'more',
+      label: 'Tools',
+    })
+    expect(getWorkspaceBackDestination('business-calculator')).toEqual({
       section: 'more',
       label: 'Tools',
     })
@@ -4066,20 +4081,65 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Sales needed per show')
   })
 
-  it('renders business tools with Wispr Flow guidance and coming-soon placeholders', () => {
-    const html = renderToStaticMarkup(createElement(BusinessToolsCard))
+  it('keeps Wispr Flow as its own tool and shows Coming Soon in the tools pane', () => {
+    const labels = getWorkspaceToolSections({
+      includeRecipes: true,
+      includeCardQr: true,
+    }).map((section) => section.label)
+    expect(labels).toEqual([
+      'Account',
+      'Bulk Collection Intake',
+      'Business Calculator',
+      'Customer List',
+      'Customer-facing site setup',
+      'Jewelry Library',
+      'Live Lineup',
+      'Message Center',
+      'QR codes, QR flyers, business cards',
+      'Recipes',
+      'Resources & Help',
+      'Team Management',
+      'Wispr Flow',
+    ])
+    expect(labels).not.toContain('Business Tools')
+    expect(labels).not.toContain('Business Cards')
 
-    expect(html).toContain('Business Tools')
-    expect(html).toContain('Business Calculator')
-    expect(html).toContain('Wispr Flow')
-    expect(html).toContain('Business Cards')
-    expect(html.match(/Coming Soon/g) ?? []).toHaveLength(2)
-    expect(html).toContain('https://wisprflow.ai/r?LOUIS20696')
-    expect(html).toContain('Talk to Nic-Nac without typing during a live show')
-    expect(html).toContain('Open Louis&#x27;s Wispr Flow invite')
-    expect(html).not.toContain('Monthly Planner')
-    expect(html).not.toContain('Average show sales')
-    expect(html).not.toContain('BP dashboard number import')
+    const wispr = renderToStaticMarkup(createElement(WisprFlowCard))
+    expect(wispr).toContain('Wispr Flow')
+    expect(wispr).toContain('https://wisprflow.ai/r?LOUIS20696')
+    expect(wispr).toContain('Talk to Nic-Nac without typing during a live show')
+    expect(wispr).toContain('Open Louis&#x27;s Wispr Flow invite')
+    expect(wispr).not.toContain('Business Tools')
+    expect(wispr).not.toContain('Business Cards')
+    expect(wispr).not.toContain('Monthly Planner')
+    expect(wispr).not.toContain('Average show sales')
+
+    const soon = renderToStaticMarkup(
+      createElement(ToolsComingSoonPanel, { title: 'Business Calculator' }),
+    )
+    expect(soon).toContain('Coming Soon')
+    expect(soon).toContain('Business Calculator')
+    expect(soon).not.toContain('Average show sales')
+
+    const hub = renderToStaticMarkup(
+      createElement(
+        ToolsHub,
+        {
+          tools: getWorkspaceToolSections({
+            includeRecipes: false,
+            includeCardQr: false,
+          }),
+          activeKey: 'wispr-flow',
+          onSelect: () => undefined,
+        },
+        createElement('div', null, 'Wispr body'),
+      ),
+    )
+    expect(hub).toContain('aria-current="page"')
+    expect(hub).toContain('Wispr body')
+    expect(hub).toContain('>Tools<')
+    expect(hub).not.toContain('Business Tools')
+    expect(hub).not.toContain('>Recipes<')
   })
 
   it('renders a plain-English Live Lineup 2.0 setup and verification guide', () => {

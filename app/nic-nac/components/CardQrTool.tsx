@@ -33,6 +33,7 @@ import {
   type CardQrFlyerFormat,
 } from '@/lib/workspace/card-qr/flyer-format'
 import { CARD_QR_ENTRY_TITLE } from '@/lib/workspace/card-qr/access'
+import { bizcardSocialHint } from '@/lib/workspace/card-qr/bizcard-copy'
 import { cardQrIconArt } from '@/lib/workspace/card-qr/qr-icon'
 import {
   CARD_QR_DESIGN_THEME_SITE,
@@ -923,9 +924,7 @@ export function CardQrTool({
                     ))}
                   </select>
                   <span className={styles.hint}>
-                    {socialHandles && !String(socialHandles[design.socialPlatform] ?? '').trim()
-                      ? `Add your ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} link in Site settings to show it. Until then the card uses another handle you have, with that app's icon.`
-                      : `Your ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} handle shows on the back with the ${CARD_QR_SOCIAL_PLATFORM_LABELS[design.socialPlatform]} icon.`}
+                    {bizcardSocialHint(socialHandles, design.socialPlatform)}
                   </span>
                 </label>
               ) : null}
