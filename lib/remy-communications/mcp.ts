@@ -33,6 +33,7 @@ import { loadCurrentAccountingSnapshot } from '@/lib/control-center/accounting'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { publishAgentBroadcast, previewAgentBroadcast } from '@/lib/services/agent-broadcasts'
 import { approveFizzIssue, getFizzIssue, stageFizzIssue } from '@/lib/services/fizz-issues'
+import { FIZZ_ITEM_SUMMARY_MAX } from '@/lib/services/fizz-issue-render'
 import { ServiceError } from '@/lib/services/errors'
 import {
   assertOwnerScopedControlCenterMcp,
@@ -41,6 +42,14 @@ import {
 
 const ACTOR_KEY = 'sparkle-control-center'
 const MAX_CALLS_PER_MINUTE = 60
+
+export const fizzIssueItemSchema = z.object({
+  headline: z.string().trim().min(3).max(160),
+  summary: z.string().trim().min(3).max(FIZZ_ITEM_SUMMARY_MAX),
+  whatItMeans: z.string().trim().min(3).max(800),
+  sourceLabel: z.string().trim().min(2).max(80).optional(),
+  sourceUrl: z.string().trim().max(2_000),
+}).strict()
 
 const toolNames = [
   'communications_get_inbox_summary',
@@ -661,13 +670,7 @@ export function createControlCenterMcpServer() {
         content: z.object({
           issueDate: z.string().trim().min(3).max(60),
           weekNote: z.string().trim().min(20).max(2_000).describe('Opens with "Good morning", then the rundown. Plain text; blank lines split paragraphs.'),
-          items: z.array(z.object({
-            headline: z.string().trim().min(3).max(160),
-            summary: z.string().trim().min(3).max(1_200),
-            whatItMeans: z.string().trim().min(3).max(800),
-            sourceLabel: z.string().trim().min(2).max(80).optional(),
-            sourceUrl: z.string().trim().max(2_000),
-          }).strict()).max(5),
+          items: z.array(fizzIssueItemSchema).max(5),
           latest: z.object({
             kind: z.enum(['blog', 'video']),
             title: z.string().trim().min(3).max(160),
