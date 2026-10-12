@@ -57,6 +57,8 @@ export async function POST(request: Request) {
     already_sent: 'It was already sent to the printer earlier. Nothing was sent again.',
     not_configured: 'Approved and recorded. The printer email address is not set yet, so nothing was sent. Open this link again after it is set to send it.',
     failed: 'Approved, but the printer email failed. Open this link again to retry.',
+    in_progress: 'A send to the printer is already in progress. Check again in 15 minutes before retrying.',
+    unknown: 'Approved. We could not confirm whether the printer email went out. Do not resend by hand; open this link again after 15 minutes and it will retry only if needed.',
   }[result.printer]
   return page(`${result.orderNumber} ${result.status === 'approved' ? 'approved' : 'was already approved'}`, `<p>Approved by ${esc(result.approvedBy)} at ${esc(result.approvedAt)}.</p><p>${printer}</p>`)
 }

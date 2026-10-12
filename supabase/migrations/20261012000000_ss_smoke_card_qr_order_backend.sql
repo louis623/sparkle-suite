@@ -1,5 +1,5 @@
--- Smoke-only: business card order backend (2026-10-11). Test mode only.
--- Applied to Smoke (pukemqiwlyqmyytxkdmo) only. Not for Live.
+-- Cards & QR: business card order backend (2026-10-11).
+-- Applied to Smoke. Live: apply in the order in docs/card-qr/LIVE-APPLY.md.
 
 -- Human order numbers: SS-CARD-000123.
 CREATE SEQUENCE IF NOT EXISTS public.rep_card_order_number_seq START 100;

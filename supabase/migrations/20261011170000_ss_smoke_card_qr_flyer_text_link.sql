@@ -1,5 +1,5 @@
--- Smoke-only: text-to-link opt-ins (Louis, 2026-10-11).
--- Applied to Smoke (pukemqiwlyqmyytxkdmo) only. Not for Live.
+-- Cards & QR: text-to-link opt-ins (Louis, 2026-10-11).
+-- Applied to Smoke. Live: apply in the order in docs/card-qr/LIVE-APPLY.md.
 -- The number is entered once; the rep checks "Add text-to-link number" separately
 -- in the flyer section (show_flyer_text_link) and the card section (show_text_link).
 

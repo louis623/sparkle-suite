@@ -1,5 +1,5 @@
--- Smoke-only: Louis-approved QR center marks (2026-10-09).
--- Applied to Smoke (pukemqiwlyqmyytxkdmo) only. Not for Live.
+-- Cards & QR: Louis-approved QR center marks (2026-10-09).
+-- Applied to Smoke. Live: apply in the order in docs/card-qr/LIVE-APPLY.md.
 -- Old values map to the new marks: diamond -> diamond-solid, unicorn -> unicorn-two-tone.
 
 ALTER TABLE public.rep_card_qr_profiles

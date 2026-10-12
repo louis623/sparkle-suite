@@ -1,6 +1,5 @@
--- Smoke-only Cards & QR profile and print-order ledger.
--- Apply on the Suite Smoke database (pukemqiwlyqmyytxkdmo) when playtesting.
--- Do not apply on live until Louis green-lights the live tool.
+-- Cards & QR: profile and print-order ledger (2026-10-05).
+-- Live: apply in the order in docs/card-qr/LIVE-APPLY.md. The livemode=false rule below is dropped by 20261012020000_ss_card_qr_live.sql.
 
 CREATE TABLE IF NOT EXISTS public.rep_card_qr_profiles (
   rep_id uuid PRIMARY KEY REFERENCES public.reps(id) ON DELETE CASCADE,
@@ -57,12 +56,14 @@ GRANT SELECT, INSERT, UPDATE ON public.rep_card_qr_profiles TO service_role;
 GRANT SELECT, INSERT, UPDATE ON public.rep_card_print_orders TO service_role;
 
 DROP POLICY IF EXISTS rep_card_qr_profiles_own ON public.rep_card_qr_profiles;
+DROP POLICY IF EXISTS rep_card_qr_profiles_own ON public.rep_card_qr_profiles;
 CREATE POLICY rep_card_qr_profiles_own ON public.rep_card_qr_profiles
   FOR ALL
   TO authenticated
   USING (rep_id = (SELECT id FROM public.reps WHERE auth_user_id = auth.uid()))
   WITH CHECK (rep_id = (SELECT id FROM public.reps WHERE auth_user_id = auth.uid()));
 
+DROP POLICY IF EXISTS rep_card_print_orders_own_read ON public.rep_card_print_orders;
 DROP POLICY IF EXISTS rep_card_print_orders_own_read ON public.rep_card_print_orders;
 CREATE POLICY rep_card_print_orders_own_read ON public.rep_card_print_orders
   FOR SELECT

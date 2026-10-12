@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { fulfillPaidCardQrSession } from '@/lib/workspace/card-qr/order-fulfillment'
-import { approveCardQrOrderForPrinter, signCardQrApproval, verifyCardQrApproval } from '@/lib/workspace/card-qr/printer-approval'
+import { approveCardQrOrderForPrinter, sendCardQrApproverEmail, signCardQrApproval, verifyCardQrApproval } from '@/lib/workspace/card-qr/printer-approval'
+import { runCardQrApproverEmailCheck } from '@/lib/workspace/card-qr/approver-email-check'
+import { CardQrSendError } from '@/lib/workspace/card-qr/order-emails'
 import { buildCardQrCheckoutParams } from '@/lib/workspace/card-qr/checkout'
 import { DEFAULT_CARD_QR_DESIGN } from '@/lib/workspace/card-qr/design'
 
@@ -23,7 +25,12 @@ function fakeDb() {
     const filters: Array<[string, unknown]> = []
     let patch: Record<string, unknown> | null = null
     let wantRows = false
-    const rows = () => tables[table].filter((r) => filters.every(([k, v]) => (v === null ? r[k] == null : r[k] === v)))
+    const inFilters: Array<[string, unknown[]]> = []
+    const ltFilters: Array<[string, string]> = []
+    const rows = () => tables[table].filter((r) =>
+      filters.every(([k, v]) => (v === null ? r[k] == null : r[k] === v)) &&
+      inFilters.every(([k, v]) => v.includes(r[k])) &&
+      ltFilters.every(([k, v]) => typeof r[k] === 'string' && (r[k] as string) < v))
     const run = () => {
       const hit = rows()
       if (patch) hit.forEach((r) => Object.assign(r, patch))
@@ -33,21 +40,39 @@ function fakeDb() {
       select: () => { wantRows = true; return q },
       eq: (k: string, v: unknown) => { filters.push([k, v]); return q },
       is: (k: string, v: unknown) => { filters.push([k, v]); return q },
+      in: (k: string, v: unknown[]) => { inFilters.push([k, v]); return q },
+      lt: (k: string, v: string) => { ltFilters.push([k, v]); return q },
+      order: () => q,
+      limit: () => q,
       update: (p: Record<string, unknown>) => { patch = p; return q },
       maybeSingle: async () => ({ data: run()[0] ?? null, error: null }),
       upsert: async (row: Record<string, unknown>) => {
         if (!tables[table].some((r) => r.order_id === row.order_id)) tables[table].push(row)
         return { error: null }
       },
-      then: (resolve: (v: unknown) => void) => { const hit = run(); resolve({ data: wantRows ? hit.map((r) => ({ id: r.id })) : null, error: null }) },
+      then: (resolve: (v: unknown) => void) => { const hit = run(); resolve({ data: wantRows ? (patch ? hit.map((r) => ({ id: r.id })) : hit) : null, error: null }) },
     }
     return q
   }
+  // Same rules as public.card_qr_claim_email (migration 20261012020000).
+  const clock = { now: Date.now() }
+  const rpc = async (_fn: string, args: { p_order_id: string; p_kind: 'approver' | 'printer' }) => {
+    const r = tables.rep_card_print_orders.find((o) => o.id === args.p_order_id)
+    const k = args.p_kind
+    const stale = (at: unknown) => typeof at === 'string' && Date.parse(at) < clock.now - 15 * 60e3
+    const status = r?.[`${k}_email_status`]
+    const ok = Boolean(r) && ['paid', 'received'].includes(r!.status as string) &&
+      (k === 'approver' ? r!.fulfillment_email_sent_at == null : r!.printer_approved_at != null && r!.printer_email_sent_at == null) &&
+      (status == null || status === 'failed' || (status === 'claimed' && stale(r![`${k}_email_claimed_at`])))
+    if (ok) Object.assign(r!, { [`${k}_email_status`]: 'claimed', [`${k}_email_claimed_at`]: new Date(clock.now).toISOString() })
+    return { data: ok, error: null }
+  }
   const db = {
+    rpc,
     from: query,
     storage: { from: () => ({ download: async () => ({ data: new Blob(['%PDF-proof']), error: null }) }) },
   } as unknown as SupabaseClient
-  return { db, tables }
+  return { db, tables, clock }
 }
 
 function paidSession(over: Record<string, unknown> = {}, md: Record<string, string> = {}) {
@@ -148,7 +173,8 @@ describe('printer approval', () => {
     expect(verifyCardQrApproval(t, SECRET)).toEqual({ ok: true, orderId: ORDER, approver: 'louis@neonrabbit.net' })
     expect(verifyCardQrApproval(t + 'x', SECRET)).toMatchObject({ ok: false, reason: 'bad_token' })
     expect(verifyCardQrApproval(t, 'y'.repeat(40))).toMatchObject({ ok: false, reason: 'bad_token' })
-    expect(verifyCardQrApproval(t, SECRET, new Date(Date.now() + 31 * 86400e3))).toMatchObject({ ok: false, reason: 'expired' })
+    expect(verifyCardQrApproval(t, SECRET, new Date(Date.now() + 8 * 86400e3))).toMatchObject({ ok: false, reason: 'expired' })
+    expect(verifyCardQrApproval(t, SECRET, new Date(Date.now() + 6 * 86400e3)).ok).toBe(true)
     expect(signCardQrApproval({ orderId: ORDER, approver: 'a' }, undefined)).toBeNull()
     expect(verifyCardQrApproval(t, undefined)).toMatchObject({ ok: false, reason: 'not_configured' })
   })
@@ -187,6 +213,7 @@ describe('printer approval', () => {
     const c = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db: fake.db, send, printerTo: 'printer@example.com' })
     expect(b).toMatchObject({ status: 'already_approved', printer: 'sent' })
     expect(c.status === 'already_approved' && c.printer).toBe('already_sent')
+    expect(fake.tables.rep_card_print_orders[0].printer_email_status).toBe('sent')
     expect(send).toHaveBeenCalledTimes(1)
   })
 
@@ -196,7 +223,7 @@ describe('printer approval', () => {
     send.mockRejectedValueOnce(new Error('resend down'))
     const a = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db: fake.db, send, printerTo: 'printer@example.com' })
     expect(a).toMatchObject({ printer: 'failed' })
-    expect(fake.tables.rep_card_print_orders[0].printer_email_claimed_at).toBeNull()
+    expect(fake.tables.rep_card_print_orders[0].printer_email_status).toBe('failed')
     const b = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db: fake.db, send, printerTo: 'printer@example.com' })
     expect(b).toMatchObject({ printer: 'sent' })
     expect(send).toHaveBeenCalledTimes(2)
@@ -230,6 +257,7 @@ describe('live flag (CARD_QR_STRIPE_LIVE)', () => {
     vi.stubEnv('CARD_QR_STRIPE_LIVE', 'true')
     try {
       const { db, tables } = fakeDb()
+      tables.rep_card_print_orders[0].livemode = true
       const s = paidSession({ livemode: true }, { environment: 'live' })
       const send = vi.fn(async () => ({ id: 'e' }))
       const r = await fulfillPaidCardQrSession(s, 'webhook', { db, send, approverTo: 'louis@neonrabbit.net', approveUrl: null })
@@ -238,9 +266,82 @@ describe('live flag (CARD_QR_STRIPE_LIVE)', () => {
       expect(send.mock.calls[0][0].subject).toBe('APPROVAL NEEDED: SS-CARD-000123 for Amelia')
       vi.stubEnv('CARD_QR_STRIPE_LIVE', '')
       const again = fakeDb()
+      again.tables.rep_card_print_orders[0].livemode = true
       expect((await fulfillPaidCardQrSession(s, 'webhook', { db: again.db, send })).status).toBe('refused')
     } finally {
       vi.unstubAllEnvs()
     }
+  })
+})
+
+describe('send claims, resend and daily check', () => {
+  const ok = () => vi.fn(async () => ({ id: 'em' }))
+
+  it('refuses a session whose livemode differs from the order', async () => {
+    const { db } = fakeDb()
+    vi.stubEnv('CARD_QR_STRIPE_LIVE', 'true')
+    try {
+      const r = await fulfillPaidCardQrSession(paidSession({ livemode: true }), 'webhook', { db, send: ok() })
+      expect(r).toEqual({ status: 'refused', reason: 'order_livemode_mismatch' })
+    } finally { vi.unstubAllEnvs() }
+  })
+
+  it('approver email: a confirmed failure is retryable, the resend sends once', async () => {
+    const { db, tables } = fakeDb()
+    const send = vi.fn(async (m: { to: string }) => { if (m.to === 'louis@neonrabbit.net') throw new CardQrSendError('422 bad', true); return { id: 'r' } })
+    const r = await fulfillPaidCardQrSession(paidSession(), 'webhook', { db, send, approverTo: 'louis@neonrabbit.net', approveUrl: null })
+    expect(r).toMatchObject({ status: 'paid', fulfillmentEmail: 'failed', repEmail: 'sent' })
+    expect(tables.rep_card_print_orders[0]).toMatchObject({ approver_email_status: 'failed', fulfillment_email_error: '422 bad' })
+    const good = ok()
+    expect(await sendCardQrApproverEmail(ORDER, { db, send: good, approverTo: 'louis@neonrabbit.net', approveUrl: null })).toBe('sent')
+    expect(await sendCardQrApproverEmail(ORDER, { db, send: good, approverTo: 'louis@neonrabbit.net', approveUrl: null })).toBe('skipped')
+    expect(good).toHaveBeenCalledTimes(1)
+    expect(good.mock.calls[0][0].subject).toContain('APPROVAL NEEDED')
+  })
+
+  it('unknown outcome keeps the claim; only a stale claim (>15 min) is retried', async () => {
+    const { db, tables, clock } = fakeDb()
+    tables.rep_card_print_orders[0].status = 'paid'
+    const flaky = vi.fn(async () => { throw new CardQrSendError('timeout', false) })
+    expect(await sendCardQrApproverEmail(ORDER, { db, send: flaky, approverTo: 'l@x.co', approveUrl: null })).toBe('unknown')
+    expect(tables.rep_card_print_orders[0].approver_email_status).toBe('claimed')
+    const good = ok()
+    expect(await sendCardQrApproverEmail(ORDER, { db, send: good, approverTo: 'l@x.co', approveUrl: null })).toBe('skipped')
+    clock.now += 16 * 60e3
+    expect(await sendCardQrApproverEmail(ORDER, { db, send: good, approverTo: 'l@x.co', approveUrl: null })).toBe('sent')
+    expect(good).toHaveBeenCalledTimes(1)
+  })
+
+  it('printer: unknown outcome is not released; stale claim can retry', async () => {
+    const { db, tables, clock } = fakeDb()
+    tables.rep_card_print_orders[0].status = 'paid'
+    const flaky = vi.fn(async () => { throw new CardQrSendError('timeout', false) })
+    const a = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db, send: flaky, printerTo: 'p@x.co' })
+    expect(a).toMatchObject({ printer: 'unknown' })
+    const good = ok()
+    const b = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db, send: good, printerTo: 'p@x.co' })
+    expect(b).toMatchObject({ printer: 'in_progress' })
+    clock.now += 16 * 60e3
+    const c = await approveCardQrOrderForPrinter({ orderId: ORDER, approver: 'louis@neonrabbit.net' }, { db, send: good, printerTo: 'p@x.co' })
+    expect(c).toMatchObject({ printer: 'sent' })
+    expect(good).toHaveBeenCalledTimes(1)
+  })
+
+  it('daily check retries unsent approval emails and alerts Louis about the rest', async () => {
+    const { db, tables } = fakeDb()
+    Object.assign(tables.rep_card_print_orders[0], { status: 'paid', paid_at: '2026-10-10T00:00:00.000Z', approver_email_attempts: 1, approver_email_status: 'failed' })
+    const send = vi.fn(async (m: { subject: string }) => { if (m.subject.includes('APPROVAL NEEDED')) throw new CardQrSendError('down', true); return { id: 'a' } })
+    const r = await runCardQrApproverEmailCheck({ db, send, approverTo: 'louis@neonrabbit.net', now: new Date('2026-10-11T00:00:00Z') })
+    expect(r).toMatchObject({ checked: 1, stillUnsent: 1, alert: 'sent' })
+    const alert = send.mock.calls.at(-1)![0] as { to: string; subject: string; text: string }
+    expect(alert.to).toBe('louis@neonrabbit.net')
+    expect(alert.subject).toMatch(/1 paid business card order missing/)
+    expect(alert.text).toContain('SS-CARD-000123')
+
+    const ok2 = vi.fn(async () => ({ id: 'b' }))
+    const r2 = await runCardQrApproverEmailCheck({ db, send: ok2, approverTo: 'louis@neonrabbit.net', now: new Date('2026-10-11T00:00:00Z') })
+    expect(r2).toMatchObject({ checked: 1, stillUnsent: 0, alert: 'none' })
+    const r3 = await runCardQrApproverEmailCheck({ db, send: ok2, now: new Date('2026-10-11T00:00:00Z') })
+    expect(r3).toMatchObject({ checked: 0, alert: 'none' })
   })
 })

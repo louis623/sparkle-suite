@@ -5,7 +5,9 @@ import { AMETHYST_SKIN_CARDS } from '@/lib/amethyst/skin-cards'
 import { CARD_QR_PROOF_BUCKET } from '@/lib/workspace/card-qr/proof-snapshot'
 import type { CardQrShipAddress } from '@/lib/workspace/card-qr/ship-address'
 import {
+  cardQrApprovalEmail,
   cardQrPrinterEmail,
+  isConfirmedSendFailure,
   sendCardQrEmailViaResend,
   type CardQrEmailSender,
   type CardQrOrderEmailFacts,
@@ -13,7 +15,7 @@ import {
 
 /** Default approver. Never the printer. */
 export const CARD_QR_DEFAULT_APPROVER = 'louis@neonrabbit.net'
-const LINK_DAYS = 30
+const LINK_DAYS = 7
 
 export function cardQrApproverEmail(env: NodeJS.ProcessEnv = process.env) {
   return env.CARD_QR_APPROVER_EMAIL?.trim() || CARD_QR_DEFAULT_APPROVER
@@ -58,7 +60,7 @@ export function cardQrThemeLabel(theme: string | null) {
 }
 
 const COLUMNS =
-  'id, order_number, rep_id, status, livemode, quantity, amount_cents, ship_address, design_theme, proof_pdf_path, printer_approved_at, printer_approved_by, printer_email_sent_at, printer_email_to'
+  'id, order_number, rep_id, status, livemode, quantity, amount_cents, ship_address, design_theme, proof_pdf_path, printer_approved_at, printer_approved_by, printer_email_sent_at, printer_email_to, fulfillment_email_sent_at'
 
 export async function loadCardQrOrderFacts(db: SupabaseClient, orderId: string) {
   const { data: order, error } = await db.from('rep_card_print_orders').select(COLUMNS).eq('id', orderId).maybeSingle()
@@ -85,7 +87,7 @@ export type CardQrPrinterApprovalResult =
       orderNumber: string
       approvedBy: string
       approvedAt: string
-      printer: 'sent' | 'already_sent' | 'not_configured' | 'failed'
+      printer: 'sent' | 'already_sent' | 'in_progress' | 'not_configured' | 'failed' | 'unknown'
       printerTo: string | null
     }
 
@@ -120,13 +122,9 @@ export async function approveCardQrOrderForPrinter(
   if (order.printer_email_sent_at) return { ...base, printer: 'already_sent', printerTo: (order.printer_email_to as string) ?? null }
   if (!printerTo) return { ...base, printer: 'not_configured', printerTo: null }
 
-  const { data: claim } = await db
-    .from('rep_card_print_orders')
-    .update({ printer_email_claimed_at: now, printer_email_to: printerTo })
-    .eq('id', input.orderId)
-    .is('printer_email_claimed_at', null)
-    .select('id')
-  if (!claim || claim.length === 0) return { ...base, printer: 'already_sent', printerTo }
+  const claimed = await claimCardQrEmail(db, input.orderId, 'printer')
+  if (!claimed) return { ...base, printer: 'in_progress', printerTo }
+  await db.from('rep_card_print_orders').update({ printer_email_to: printerTo }).eq('id', input.orderId)
 
   try {
     const { data: pdf, error: pdfError } = await db.storage.from(CARD_QR_PROOF_BUCKET).download(order.proof_pdf_path as string)
@@ -137,11 +135,68 @@ export async function approveCardQrOrderForPrinter(
       ...cardQrPrinterEmail(facts, { test: order.livemode !== true }),
       attachments: [{ filename: `${facts.orderNumber}-proof.pdf`, content: Buffer.from(await pdf.arrayBuffer()) }],
     })
-    await db.from('rep_card_print_orders').update({ printer_email_sent_at: new Date().toISOString(), printer_email_id: sent.id, printer_email_error: null }).eq('id', input.orderId)
+    await db.from('rep_card_print_orders').update({ printer_email_status: 'sent', printer_email_sent_at: new Date().toISOString(), printer_email_id: sent.id, printer_email_error: null }).eq('id', input.orderId)
     return { ...base, printer: 'sent', printerTo }
   } catch (e) {
-    // Release the claim so a later click can retry; nothing was delivered.
-    await db.from('rep_card_print_orders').update({ printer_email_claimed_at: null, printer_email_error: String(e instanceof Error ? e.message : e).slice(0, 500) }).eq('id', input.orderId)
-    return { ...base, printer: 'failed', printerTo }
+    const message = String(e instanceof Error ? e.message : e).slice(0, 500)
+    if (isConfirmedSendFailure(e)) {
+      // Confirmed nothing went out: release for retry.
+      await db.from('rep_card_print_orders').update({ printer_email_status: 'failed', printer_email_error: message }).eq('id', input.orderId)
+      return { ...base, printer: 'failed', printerTo }
+    }
+    // Unknown outcome: keep the claim; it becomes retryable after 15 minutes.
+    await db.from('rep_card_print_orders').update({ printer_email_error: `unknown outcome: ${message}` }).eq('id', input.orderId)
+    return { ...base, printer: 'unknown', printerTo }
+  }
+}
+
+export async function claimCardQrEmail(db: SupabaseClient, orderId: string, kind: 'approver' | 'printer') {
+  const { data, error } = await db.rpc('card_qr_claim_email', { p_order_id: orderId, p_kind: kind })
+  if (error) throw new Error(`CARD_QR_CLAIM_FAILED: ${error.message}`)
+  return data === true
+}
+
+export type CardQrApproverEmailResult = 'sent' | 'skipped' | 'failed' | 'unknown' | 'not_found'
+
+/**
+ * The APPROVAL NEEDED email to Louis (never the printer). Safe to call repeatedly: the claim
+ * makes sure it is sent at most once per success. Used on payment, by the admin resend route
+ * and by the daily check.
+ */
+export async function sendCardQrApproverEmail(
+  orderId: string,
+  deps: { db?: SupabaseClient; send?: CardQrEmailSender; approverTo?: string | null; approveUrl?: string | null } = {},
+): Promise<CardQrApproverEmailResult> {
+  const db = deps.db ?? createAdminClient()
+  if (!(await claimCardQrEmail(db, orderId, 'approver'))) return 'skipped'
+  const loaded = await loadCardQrOrderFacts(db, orderId)
+  if (!loaded) return 'not_found'
+  const { order, facts } = loaded
+  const approverTo = (deps.approverTo !== undefined ? deps.approverTo : cardQrApproverEmail()) || CARD_QR_DEFAULT_APPROVER
+  const approveUrl = deps.approveUrl !== undefined ? deps.approveUrl : cardQrApproveUrl(orderId)
+  try {
+    const { data: pdf, error: pdfError } = await db.storage.from(CARD_QR_PROOF_BUCKET).download(order.proof_pdf_path as string)
+    if (pdfError || !pdf) throw new Error(`proof download failed: ${pdfError?.message ?? 'empty'}`)
+    const send = deps.send ?? sendCardQrEmailViaResend
+    await send({
+      to: approverTo,
+      ...cardQrApprovalEmail(facts, approveUrl, { test: order.livemode !== true }),
+      attachments: [{ filename: `${facts.orderNumber}-proof.pdf`, content: Buffer.from(await pdf.arrayBuffer()) }],
+    })
+    await db.from('rep_card_print_orders').update({
+      approver_email_status: 'sent',
+      fulfillment_email_to: approverTo,
+      fulfillment_email_sent_at: new Date().toISOString(),
+      fulfillment_email_error: approveUrl ? null : 'approve link not configured',
+    }).eq('id', orderId)
+    return 'sent'
+  } catch (e) {
+    const message = String(e instanceof Error ? e.message : e).slice(0, 500)
+    if (isConfirmedSendFailure(e)) {
+      await db.from('rep_card_print_orders').update({ approver_email_status: 'failed', fulfillment_email_to: approverTo, fulfillment_email_error: message }).eq('id', orderId)
+      return 'failed'
+    }
+    await db.from('rep_card_print_orders').update({ fulfillment_email_to: approverTo, fulfillment_email_error: `unknown outcome: ${message}` }).eq('id', orderId)
+    return 'unknown'
   }
 }

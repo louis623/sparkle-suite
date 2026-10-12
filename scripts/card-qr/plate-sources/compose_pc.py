@@ -1,3 +1,5 @@
+import os as _os
+REPO=_os.path.abspath(_os.path.join(_os.path.dirname(__file__), '..','..','..'))  # repo root
 from PIL import Image, ImageChops, ImageDraw
 import numpy as np, random, sys
 W,H=1080,1920
@@ -22,4 +24,4 @@ for _ in range(260):
     x=random.randint(0,W);y=random.randint(0,H);r=random.choice([1,1,1,2,2,3])
     dr.ellipse((x-r,y-r,x+r,y+r),fill=random.choice([(255,170,60),(255,210,120),(255,140,40)]))
 canvas.save('pumpkin-cat-plate-composite.jpg',quality=93)
-canvas.save('/tmp/suite-smoke-pr75/public/amethyst/skins/halloween-pumpkin-cat/flyer/plate.webp',quality=92)
+canvas.save(REPO+'/public/amethyst/skins/halloween-pumpkin-cat/flyer/plate.webp',quality=92)

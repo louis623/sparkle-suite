@@ -1,5 +1,5 @@
--- Smoke-only: Louis-approved QR center marks, set 3b (2026-10-11): adds cowgirl-boot (33rd mark).
--- Applied to Smoke (pukemqiwlyqmyytxkdmo) only. Not for Live.
+-- Cards & QR: Louis-approved QR center marks, set 3b (2026-10-11): adds cowgirl-boot (33rd mark).
+-- Applied to Smoke. Live: apply in the order in docs/card-qr/LIVE-APPLY.md.
 
 ALTER TABLE public.rep_card_qr_profiles
   DROP CONSTRAINT IF EXISTS rep_card_qr_profiles_qr_icon_check;

@@ -1,7 +1,7 @@
 /**
  * QR center marks added Oct 11, 2026 (cowgirl-boot added later the same day) (Louis-approved set, Smoke).
  * __DARK__ is replaced with the theme QR color at render time.
- * Generated from the box prototype /workspace/qricon-v3 (marks*.mts). Do not hand-edit paths.
+ * Generated from scripts/card-qr/qricon-v3 (marks*.mts; box original /workspace/qricon-v3). Do not hand-edit paths.
  * Sources and licenses per mark are in `source`; see glyphs/LICENSE-qr-marks-v3.md.
  */
 export const CARD_QR_ICON_ART_V3 = {

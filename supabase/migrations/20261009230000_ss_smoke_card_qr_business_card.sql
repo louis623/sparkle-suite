@@ -1,5 +1,5 @@
--- Smoke-only: business card back options + rep-entered text-to-link number (2026-10-09).
--- Applied to Smoke (pukemqiwlyqmyytxkdmo) only. Not for Live.
+-- Cards & QR: business card back options + rep-entered text-to-link number (2026-10-09).
+-- Applied to Smoke. Live: apply in the order in docs/card-qr/LIVE-APPLY.md.
 -- text_link_number is typed by the rep; the app never copies the account phone into it.
 
 ALTER TABLE public.rep_card_qr_profiles

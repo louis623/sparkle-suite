@@ -120,7 +120,7 @@ export async function POST(request: Request) {
       throw new ServiceError({
         code: 'CARD_QR_LIVE_STRIPE_BLOCKED',
         message: 'Refused a live or incomplete business-card Checkout session.',
-        userMessage: 'Business card checkout stays on Smoke test mode.',
+        userMessage: 'Business card checkout is not available right now.',
         statusCode: 403,
       })
     }

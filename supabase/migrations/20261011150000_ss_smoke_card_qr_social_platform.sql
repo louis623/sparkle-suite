@@ -1,5 +1,5 @@
--- Smoke-only: business card back social platform mark (Louis, 2026-10-11).
--- Applied to Smoke (pukemqiwlyqmyytxkdmo) only. Not for Live.
+-- Cards & QR: business card back social platform mark (Louis, 2026-10-11).
+-- Applied to Smoke. Live: apply in the order in docs/card-qr/LIVE-APPLY.md.
 -- The chosen platform picks which handle shows and its brand mark replaces the generic @ icon.
 
 ALTER TABLE public.rep_card_qr_profiles

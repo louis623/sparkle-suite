@@ -1,6 +1,5 @@
--- Smoke-only center mark for Cards & QR.
--- NOT APPLIED. Louis has not asked for this column on Smoke or live.
--- The app treats a missing qr_icon column as "none" so Smoke keeps working.
+-- Cards & QR: QR center mark column (2026-10-09). Applied to Smoke.
+-- Live: apply in the order in docs/card-qr/LIVE-APPLY.md.
 
 ALTER TABLE public.rep_card_qr_profiles
   ADD COLUMN IF NOT EXISTS qr_icon text NOT NULL DEFAULT 'none';

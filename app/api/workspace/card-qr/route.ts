@@ -96,7 +96,7 @@ export async function PUT(request: Request) {
       notice:
         saved.persistence === 'database'
           ? 'Saved to your profile.'
-          : 'Saved in this browser. The Smoke profile table is not on this database yet.',
+          : 'Saved in this browser. Your profile could not be saved to your account yet.',
     })
   } catch (error) {
     return cardQrErrorResponse(error)

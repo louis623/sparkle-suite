@@ -1,10 +1,12 @@
 # Box-only build step: static font instances for the card renderer from the approved mock FONTSET.
+import os as _os
+REPO=_os.path.abspath(_os.path.join(_os.path.dirname(__file__), '..','..'))  # repo root
 import sys, json, os, shutil
-sys.path.insert(0,'/workspace/bizcard-mock')
+sys.path.insert(0,os.path.join(os.path.dirname(os.path.abspath(__file__)),'bizcard-mock'))
 import card, custom, custom2
 from fontTools.ttLib import TTFont
 from fontTools.varLib import instancer
-OUT='/tmp/suite-smoke-pr75/lib/workspace/card-qr/fonts/card/'; os.makedirs(OUT,exist_ok=True)
+OUT=REPO+'/lib/workspace/card-qr/fonts/card/'; os.makedirs(OUT,exist_ok=True)
 made={}
 def inst(path,axes):
     base=os.path.basename(path).split('.')[0].replace('[','').replace(']','').replace(',','-')

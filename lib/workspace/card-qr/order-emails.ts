@@ -81,25 +81,47 @@ export type CardQrEmailSender = (input: {
   attachments?: Array<{ filename: string; content: Buffer }>
 }) => Promise<{ id: string }>
 
-/** Plain Resend send with optional attachments. Throws when Resend is not configured. */
+/**
+ * confirmed=true: we know nothing was delivered (Resend said no, or we never called it), so the
+ * claim can be released for a retry. confirmed=false: outcome unknown (network/timeout), so the
+ * claim stays until it goes stale (15 min) to avoid a double send.
+ */
+export class CardQrSendError extends Error {
+  constructor(message: string, readonly confirmed: boolean) {
+    super(message)
+    this.name = 'CardQrSendError'
+  }
+}
+
+export function isConfirmedSendFailure(e: unknown) {
+  return !(e instanceof CardQrSendError) || e.confirmed
+}
+
+/** Plain Resend send with optional attachments. */
 export const sendCardQrEmailViaResend: CardQrEmailSender = async (input) => {
-  if (!isResendEnabled()) throw new Error('RESEND_NOT_CONFIGURED')
+  if (!isResendEnabled()) throw new CardQrSendError('RESEND_NOT_CONFIGURED', true)
   const config = getResendConfig()
-  if (!config) throw new Error('RESEND_NOT_CONFIGURED')
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${config.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: config.RESEND_FROM_EMAIL,
-      to: [input.to],
-      subject: input.subject,
-      text: input.text,
-      ...(input.attachments?.length
-        ? { attachments: input.attachments.map((a) => ({ filename: a.filename, content: a.content.toString('base64') })) }
-        : {}),
-    }),
-  })
+  if (!config) throw new CardQrSendError('RESEND_NOT_CONFIGURED', true)
+  let response: Response
+  try {
+    response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${config.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: config.RESEND_FROM_EMAIL,
+        to: [input.to],
+        subject: input.subject,
+        text: input.text,
+        ...(input.attachments?.length
+          ? { attachments: input.attachments.map((a) => ({ filename: a.filename, content: a.content.toString('base64') })) }
+          : {}),
+      }),
+    })
+  } catch (e) {
+    throw new CardQrSendError(`Resend unreachable: ${e instanceof Error ? e.message : String(e)}`, false)
+  }
   const payload = (await response.json().catch(() => null)) as { id?: string; message?: string } | null
-  if (!response.ok || !payload?.id) throw new Error(payload?.message ?? `Resend ${response.status}`)
+  if (!response.ok) throw new CardQrSendError(payload?.message ?? `Resend ${response.status}`, response.status < 500)
+  if (!payload?.id) throw new CardQrSendError('Resend returned no id', false)
   return { id: payload.id }
 }

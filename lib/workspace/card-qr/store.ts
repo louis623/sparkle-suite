@@ -4,7 +4,6 @@ import {
   parseCardQrDesign,
   type CardQrDesign,
 } from '@/lib/workspace/card-qr/design'
-import { CARD_QR_FULFILLMENT_COPY, type CardQrPackQuantity } from '@/lib/workspace/card-qr/pricing'
 
 export interface CardQrProfileRecord {
   destinationUrl: string
@@ -208,44 +207,3 @@ export async function saveCardQrProfile(
   }
 }
 
-export async function recordPaidCardQrOrder(
-  supabase: SupabaseClient,
-  input: {
-    repId: string
-    quantity: CardQrPackQuantity
-    amountCents: number
-    checkoutSessionId: string
-    paymentIntentId: string | null
-    destinationUrl: string
-    design: CardQrDesign
-  },
-) {
-  const { error } = await supabase.from('rep_card_print_orders').upsert(
-    {
-      rep_id: input.repId,
-      quantity: input.quantity,
-      amount_cents: input.amountCents,
-      currency: 'usd',
-      stripe_checkout_session_id: input.checkoutSessionId,
-      stripe_payment_intent_id: input.paymentIntentId,
-      status: 'paid',
-      livemode: false,
-      destination_url: input.destinationUrl,
-      design_snapshot: input.design,
-      fulfillment_note: CARD_QR_FULFILLMENT_COPY,
-      paid_at: new Date().toISOString(),
-    },
-    { onConflict: 'stripe_checkout_session_id' },
-  )
-
-  if (isMissingRelation(error)) return { persistence: 'unavailable' as const }
-  if (error) {
-    throw new ServiceError({
-      code: 'CARD_QR_ORDER_SAVE_FAILED',
-      message: error.message,
-      userMessage: 'Payment was received, but the Smoke order record could not be saved.',
-      statusCode: 500,
-    })
-  }
-  return { persistence: 'database' as const }
-}

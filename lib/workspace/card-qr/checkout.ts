@@ -17,16 +17,16 @@ export function assertCardQrStripeTestKey(secretKey: string | undefined, env: No
     throw new ServiceError({
       code: 'CARD_QR_LIVE_STRIPE_BLOCKED',
       message: 'Business card checkout refused a live Stripe secret.',
-      userMessage: 'Business card checkout stays on Smoke test mode.',
+      userMessage: 'Business card checkout is not available right now.',
       statusCode: 403,
     })
   }
   if (!key.startsWith('sk_test_')) {
     throw new ServiceError({
       code: 'CARD_QR_STRIPE_TEST_REQUIRED',
-      message: 'Smoke business-card checkout requires a Stripe test secret.',
+      message: 'Business-card checkout requires a Stripe test secret unless CARD_QR_STRIPE_LIVE=true on Live.',
       userMessage:
-        'Smoke test checkout is not configured yet. Your QR and the free flyer still work.',
+        'Card checkout is not set up yet. Your QR and the free flyer still work.',
       statusCode: 503,
     })
   }
@@ -97,8 +97,8 @@ export function buildCardQrCheckoutParams(input: {
           product_data: {
             name: `Sparkle Suite business cards · ${pack.label}`,
             description: input.orderNumber
-              ? `Order ${input.orderNumber}. All-in Smoke price: print, tax, and UPS Ground. No air or rush.`
-              : 'All-in Smoke price: print, tax, and UPS Ground. No air or rush.',
+              ? `Order ${input.orderNumber}. All-in price: print, tax, and UPS Ground shipping.`
+              : 'All-in price: print, tax, and UPS Ground shipping.',
           },
         },
       },
@@ -146,7 +146,7 @@ export function readPaidCardQrOrder(
   ) {
     throw new ServiceError({
       code: 'CARD_QR_ORDER_NOT_PAID',
-      message: 'Checkout session is not a paid Smoke business-card order for this rep.',
+      message: 'Checkout session is not a paid business-card order for this rep in this environment.',
       userMessage: 'That checkout is not a paid business-card order for this workspace.',
       statusCode: 409,
     })

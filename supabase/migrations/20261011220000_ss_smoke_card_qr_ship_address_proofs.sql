@@ -1,5 +1,5 @@
--- Smoke-only: saved card shipping address + approved proof snapshots on pending orders (2026-10-11).
--- Applied to Smoke (pukemqiwlyqmyytxkdmo) only. Not for Live.
+-- Cards & QR: saved card shipping address + approved proof snapshots on pending orders (2026-10-11).
+-- Applied to Smoke. Live: apply in the order in docs/card-qr/LIVE-APPLY.md.
 
 CREATE TABLE IF NOT EXISTS public.rep_card_ship_addresses (
   rep_id uuid PRIMARY KEY REFERENCES public.reps(id) ON DELETE CASCADE,
@@ -22,6 +22,7 @@ REVOKE ALL ON public.rep_card_ship_addresses FROM anon;
 GRANT SELECT, INSERT, UPDATE ON public.rep_card_ship_addresses TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.rep_card_ship_addresses TO service_role;
 
+DROP POLICY IF EXISTS rep_card_ship_addresses_own ON public.rep_card_ship_addresses;
 DROP POLICY IF EXISTS rep_card_ship_addresses_own ON public.rep_card_ship_addresses;
 CREATE POLICY rep_card_ship_addresses_own ON public.rep_card_ship_addresses
   FOR ALL

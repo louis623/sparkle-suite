@@ -1,7 +1,7 @@
 import type { AmethystAppearancePresetId } from '@/lib/amethyst/appearance-presets'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
 
-/** Louis-approved 2026-10-09 business card looks. Ported from /workspace/bizcard-mock. */
+/** Louis-approved 2026-10-09 business card looks. Ported from scripts/card-qr/bizcard-mock (box original /workspace/bizcard-mock). */
 export type BizcardKey =
   | 'pumpkin-cat'
   | 'pumpkin-witch'

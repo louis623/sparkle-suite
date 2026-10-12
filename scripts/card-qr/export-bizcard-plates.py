@@ -1,5 +1,5 @@
 # Box-only build step: regenerates lib/workspace/card-qr/card-plates from the approved mock (/workspace/bizcard-mock/card.py).
-import sys; sys.path.insert(0,'/workspace/bizcard-mock')
+import os, sys; sys.path.insert(0,os.path.join(os.path.dirname(os.path.abspath(__file__)),'bizcard-mock'))
 import card, custom, custom2
 from card import *
 from PIL import Image, ImageDraw, ImageFilter

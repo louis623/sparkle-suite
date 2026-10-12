@@ -3,14 +3,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { cardQrStripeRuntime } from '@/lib/workspace/card-qr/access'
 import { CARD_QR_STRIPE_PRODUCT, type CardQrCheckoutSessionShape } from '@/lib/workspace/card-qr/checkout'
 import { getCardQrPack, isCardQrPackQuantity } from '@/lib/workspace/card-qr/pricing'
-import { CARD_QR_PROOF_BUCKET } from '@/lib/workspace/card-qr/proof-snapshot'
 import {
-  cardQrApprovalEmail,
   cardQrRepConfirmationEmail,
   sendCardQrEmailViaResend,
   type CardQrEmailSender,
 } from '@/lib/workspace/card-qr/order-emails'
-import { cardQrApproveUrl, cardQrApproverEmail, loadCardQrOrderFacts } from '@/lib/workspace/card-qr/printer-approval'
+import { loadCardQrOrderFacts, sendCardQrApproverEmail } from '@/lib/workspace/card-qr/printer-approval'
 
 export type CardQrPaidVia = 'webhook' | 'success_page'
 
@@ -24,7 +22,7 @@ export type CardQrFulfillmentResult =
       orderNumber: string
       quantity: number
       amountCents: number
-      fulfillmentEmail: 'sent' | 'failed' | 'not_configured'
+      fulfillmentEmail: 'sent' | 'failed'
       repEmail: 'sent' | 'failed'
     }
 
@@ -36,7 +34,7 @@ interface Deps {
 }
 
 const ORDER_COLUMNS =
-  'id, order_number, rep_id, status, quantity, amount_cents, stripe_checkout_session_id, ship_address, design_theme, proof_pdf_path'
+  'id, order_number, rep_id, status, livemode, quantity, amount_cents, stripe_checkout_session_id, ship_address, design_theme, proof_pdf_path'
 
 
 /**
@@ -73,6 +71,7 @@ export async function fulfillPaidCardQrSession(
   if (md.order_number && order.order_number !== md.order_number) return { status: 'refused', reason: 'order_number_mismatch' }
   if (order.stripe_checkout_session_id && order.stripe_checkout_session_id !== session.id) return { status: 'refused', reason: 'session_mismatch' }
   if (order.quantity !== quantity || order.amount_cents !== pack.amountCents) return { status: 'refused', reason: 'order_amount_mismatch' }
+  if (Boolean(order.livemode) !== (session.livemode === true)) return { status: 'refused', reason: 'order_livemode_mismatch' }
 
   const paymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id ?? null
   const paidAt = new Date().toISOString()
@@ -109,26 +108,8 @@ export async function fulfillPaidCardQrSession(
   const facts = loaded.facts
   const send = deps.send ?? sendCardQrEmailViaResend
   // Never the printer: the packet goes to the approver (Louis) with a signed approve link.
-  const approverTo = deps.approverTo !== undefined ? deps.approverTo : cardQrApproverEmail()
-  const approveUrl = deps.approveUrl !== undefined ? deps.approveUrl : cardQrApproveUrl(orderId)
-
-  let fulfillmentEmail: 'sent' | 'failed' | 'not_configured' = 'not_configured'
-  if (approverTo) {
-    try {
-      const { data: pdf, error: pdfError } = await db.storage.from(CARD_QR_PROOF_BUCKET).download(order.proof_pdf_path as string)
-      if (pdfError || !pdf) throw new Error(`proof download failed: ${pdfError?.message ?? 'empty'}`)
-      await send({
-        to: approverTo,
-        ...cardQrApprovalEmail(facts, approveUrl, { test: session.livemode !== true }),
-        attachments: [{ filename: `${order.order_number}-proof.pdf`, content: Buffer.from(await pdf.arrayBuffer()) }],
-      })
-      await db.from('rep_card_print_orders').update({ fulfillment_email_to: approverTo, fulfillment_email_sent_at: new Date().toISOString(), fulfillment_email_error: approveUrl ? null : 'approve link not configured' }).eq('id', orderId)
-      fulfillmentEmail = 'sent'
-    } catch (e) {
-      fulfillmentEmail = 'failed'
-      await db.from('rep_card_print_orders').update({ fulfillment_email_to: approverTo, fulfillment_email_error: String(e instanceof Error ? e.message : e).slice(0, 500) }).eq('id', orderId)
-    }
-  }
+  const approver = await sendCardQrApproverEmail(orderId, { db, send, approverTo: deps.approverTo, approveUrl: deps.approveUrl })
+  const fulfillmentEmail: 'sent' | 'failed' = approver === 'sent' ? 'sent' : 'failed'
 
   let repEmail: 'sent' | 'failed' = 'failed'
   try {

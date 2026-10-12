@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { parseCardQrDesign } from '@/lib/workspace/card-qr/design'
 import {
   assertCardQrStripeTestKey,
   readPaidCardQrOrder,
@@ -10,8 +9,6 @@ import {
   loadCardQrContext,
 } from '@/lib/workspace/card-qr/context'
 import { CARD_QR_FULFILLMENT_COPY } from '@/lib/workspace/card-qr/pricing'
-import { recordPaidCardQrOrder } from '@/lib/workspace/card-qr/store'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { fulfillPaidCardQrSession } from '@/lib/workspace/card-qr/order-fulfillment'
 import { ServiceError } from '@/lib/services/errors'
 
@@ -37,61 +34,33 @@ export async function GET(request: Request) {
       typescript: true,
     })
     const session = await stripe.checkout.sessions.retrieve(sessionId)
-    const order = readPaidCardQrOrder(session, context.repId)
-    if (session.metadata?.order_id) {
-      // Success-page fallback: same once-only guard as the webhook. Whoever marks it paid first
-      // sends the emails; the other sees already_paid.
-      const result = await fulfillPaidCardQrSession(session, 'success_page')
-      if (result.status !== 'paid' && result.status !== 'already_paid') {
-        throw new ServiceError({
-          code: 'CARD_QR_ORDER_NOT_PAID',
-          message: `Fulfillment ${result.status}: ${'reason' in result ? result.reason : ''}`,
-          userMessage: 'That checkout is not a paid business-card order for this workspace.',
-          statusCode: 409,
-        })
-      }
-      return NextResponse.json({
-        ok: true,
-        orderNumber: result.orderNumber,
-        quantity: result.quantity,
-        amountCents: result.amountCents,
-        persistence: 'database',
-        message: `${CARD_QR_FULFILLMENT_COPY} Order ${result.orderNumber}.`,
+    readPaidCardQrOrder(session, context.repId)
+    if (!session.metadata?.order_id) {
+      throw new ServiceError({
+        code: 'CARD_QR_ORDER_LEGACY_SESSION',
+        message: 'Checkout session has no order_id (created before order numbers).',
+        userMessage: 'We could not match this checkout to an order. Please contact support with your receipt.',
+        statusCode: 409,
       })
     }
-    // Sessions created before order numbers existed.
-    let persistence: 'database' | 'unavailable' = 'unavailable'
-    try {
-      const saved = await recordPaidCardQrOrder(createAdminClient(), {
-        repId: context.repId,
-        quantity: order.quantity,
-        amountCents: order.amountCents,
-        checkoutSessionId: order.checkoutSessionId || sessionId,
-        paymentIntentId: order.paymentIntentId,
-        destinationUrl: order.destinationUrl || context.destinationUrl,
-        design: parseCardQrDesign(
-          (() => {
-            try {
-              return order.designJson
-                ? JSON.parse(order.designJson)
-                : { templateId: order.templateId }
-            } catch {
-              return { templateId: order.templateId }
-            }
-          })(),
-        ),
+    // Success-page fallback: same once-only guard as the webhook. Whoever marks it paid first
+    // sends the emails; the other sees already_paid.
+    const result = await fulfillPaidCardQrSession(session, 'success_page')
+    if (result.status !== 'paid' && result.status !== 'already_paid') {
+      throw new ServiceError({
+        code: 'CARD_QR_ORDER_NOT_PAID',
+        message: `Fulfillment ${result.status}: ${'reason' in result ? result.reason : ''}`,
+        userMessage: 'That checkout is not a paid business-card order for this workspace.',
+        statusCode: 409,
       })
-      persistence = saved.persistence
-    } catch {
-      persistence = 'unavailable'
     }
-
     return NextResponse.json({
       ok: true,
-      quantity: order.quantity,
-      amountCents: order.amountCents,
-      persistence,
-      message: CARD_QR_FULFILLMENT_COPY,
+      orderNumber: result.orderNumber,
+      quantity: result.quantity,
+      amountCents: result.amountCents,
+      persistence: 'database',
+      message: `${CARD_QR_FULFILLMENT_COPY} Order ${result.orderNumber}.`,
     })
   } catch (error) {
     return cardQrErrorResponse(error)

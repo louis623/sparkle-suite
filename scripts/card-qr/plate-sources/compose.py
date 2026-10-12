@@ -1,3 +1,5 @@
+import os as _os
+REPO=_os.path.abspath(_os.path.join(_os.path.dirname(__file__), '..','..','..'))  # repo root
 """Compose 1080x1920 flyer plates from black-background pieces (lighten blend).
 usage: python3 compose.py <dir> <skin> glow=R,G,B base=R,G,B topw=760 topy=-110 topcrop=x0,y0,x1,y1 gar=y0,y1 dust=R,G,B"""
 from PIL import Image, ImageChops, ImageDraw
@@ -44,5 +46,5 @@ for _ in range(240):
     x=random.randint(0,W);y=random.randint(0,H);r=random.choice([1,1,1,2,2,3]);k=random.uniform(.55,1)
     dr.ellipse((x-r,y-r,x+r,y+r),fill=tuple(int(c*k) for c in dc))
 canvas.save(f'{d}/plate.jpg',quality=93)
-out=f'/tmp/suite-smoke-pr75/public/amethyst/skins/{skin}/flyer/plate.webp'
+out=f'{REPO}/public/amethyst/skins/{skin}/flyer/plate.webp'
 os.makedirs(os.path.dirname(out),exist_ok=True); canvas.save(out,quality=92); print('ok',tc,(y0,y1),gw)
