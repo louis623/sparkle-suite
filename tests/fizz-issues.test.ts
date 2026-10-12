@@ -15,6 +15,7 @@ import {
   assertFizzEmailHtml,
 } from '@/lib/services/suite-official-notice'
 import {
+  FIZZ_ITEM_SUMMARY_MAX,
   FIZZ_UNSUBSCRIBE_VAR,
   normalizeFizzContent,
   renderFizzIssueHtml,
@@ -117,6 +118,8 @@ describe('fizz server render', () => {
     expect(renderedHtml).toContain('#36221d')
     expect(renderedHtml).toContain(FIZZ_UNSUBSCRIBE_VAR)
     expect(renderedHtml).toContain('Good morning! Here is your Weekly Fizz Report.')
+    expect(renderedHtml).toContain('This week: one Suite update.')
+    expect(renderedHtml).not.toContain('<strong>This week:</strong>')
     expect(renderedHtml).toContain('cards &amp; flyers')
     expect(renderedHtml).toContain('https://i.ytimg.com/vi/dQw4w9WgXcQ/')
     expect(renderedHtml).toContain('>Watch</a>')
@@ -136,6 +139,72 @@ describe('fizz server render', () => {
     )
     expect(html).toContain('>Read</a>')
     expect(html).toContain('Latest from Sparkle Suite')
+  })
+
+  it('renders item summary and what-it-means as paragraphs with bold lead labels', () => {
+    const ink = "margin:0 0 12px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#402924;"
+    const muted = "margin:0 0 12px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#775d57;"
+    const label = 'L'.repeat(40)
+    const html = renderFizzIssueHtml(
+      normalizeFizzContent({
+        ...content,
+        items: [
+          {
+            ...content.items[0],
+            summary: [
+              `What changed: Cards now print from Suite.\nStill one paragraph.`,
+              `Why it matters: You stay in one place.`,
+              `${label}: kept`,
+              `${'A'.repeat(41)}: still plain`,
+              'https://example.com/notes: leave this plain',
+              'See www.example.com/help: also plain',
+              "Q&A: Tom & Jerry <3. Don't skip it.",
+              'Intro line\nWhat changed: not a lead label',
+            ].join('\n\n'),
+            whatItMeans: 'Do this: Print before the show.\nBring the flyer.\n \nSkip this: A second tab.',
+          },
+        ],
+      }),
+      'This week in Suite',
+    )
+
+    expect(html).toContain(`<p style="${ink}"><strong>What changed:</strong> Cards now print from Suite.<br>Still one paragraph.</p>`)
+    expect(html).toContain(`<p style="${ink}"><strong>Why it matters:</strong> You stay in one place.</p>`)
+    expect(html).toContain(`<p style="${ink}"><strong>${label}:</strong> kept</p>`)
+    expect(html).toContain(`<p style="${ink}">${'A'.repeat(41)}: still plain</p>`)
+    expect(html).not.toContain(`<strong>${'A'.repeat(41)}:</strong>`)
+    expect(html).toContain('<p style="' + ink + '">https://example.com/notes: leave this plain</p>')
+    expect(html).not.toContain('<strong>https:</strong>')
+    expect(html).toContain('See www.example.com/help: also plain')
+    expect(html).not.toContain('<strong>See www.example.com/help:</strong>')
+    expect(html).toContain("<p style=\"" + ink + "\"><strong>Q&amp;A:</strong> Tom &amp; Jerry &lt;3. Don&#39;t skip it.</p>")
+    expect(html).toContain(`<p style="${ink}">Intro line<br>What changed: not a lead label</p>`)
+    expect(html).toContain(`<p style="${muted}"><strong>Do this:</strong> Print before the show.<br>Bring the flyer.</p>`)
+    expect(html).toContain(`<p style="${muted}"><strong>Skip this:</strong> A second tab.</p>`)
+    expect(html).not.toContain('<strong>This week:</strong>')
+    expect(() =>
+      normalizeFizzContent({
+        ...content,
+        items: [{ ...content.items[0], summary: 'What changed: <b>nope</b> is raw HTML' }],
+      }),
+    ).toThrow(/plain text/)
+  })
+
+  it('accepts a 2000-character item summary and rejects 2001', () => {
+    expect(FIZZ_ITEM_SUMMARY_MAX).toBe(2000)
+    const summary = `S${'a'.repeat(FIZZ_ITEM_SUMMARY_MAX - 1)}`
+    const normalized = normalizeFizzContent({
+      ...content,
+      items: [{ ...content.items[0], summary: `  ${summary}  ` }],
+    })
+    expect(normalized.items[0].summary).toBe(summary)
+    expect(normalized.items[0].summary).toHaveLength(2000)
+    expect(() =>
+      normalizeFizzContent({
+        ...content,
+        items: [{ ...content.items[0], summary: `${summary}b` }],
+      }),
+    ).toThrow(/Item 1 summary must be 3 to 2000 characters/)
   })
 
   it('rejects raw HTML and missing house style', async () => {

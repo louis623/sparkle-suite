@@ -51,14 +51,39 @@ function text(value: unknown, field: string, min: number, max: number) {
 }
 
 const P_INK = "font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#402924;"
+const P_MUTED = "font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#775d57;"
+export const FIZZ_ITEM_SUMMARY_MAX = 2_000
+const LEAD_LABEL_MAX = 40
+
+function escapeWithBreaks(value: string) {
+  return escapeNoticeHtml(value).replace(/\n/g, '<br>')
+}
+
+function emphasizeLeadLabel(paragraph: string) {
+  if (/^(?:https?:\/\/|www\.)/i.test(paragraph)) return escapeWithBreaks(paragraph)
+  const lineEnd = paragraph.indexOf('\n')
+  const firstLine = lineEnd === -1 ? paragraph : paragraph.slice(0, lineEnd)
+  const colon = firstLine.indexOf(':')
+  if (colon <= 0 || paragraph.startsWith('//', colon + 1)) return escapeWithBreaks(paragraph)
+  const label = firstLine.slice(0, colon).trim()
+  if (label.length < 1 || label.length > LEAD_LABEL_MAX) return escapeWithBreaks(paragraph)
+  if (/https?:\/\/|www\./i.test(label)) return escapeWithBreaks(paragraph)
+  return `<strong>${escapeNoticeHtml(label)}:</strong>${escapeWithBreaks(paragraph.slice(colon + 1))}`
+}
 
 function paragraphs(value: string) {
   return value
     .split(/\n\s*\n/)
-    .map((para, index, all) => {
-      const margin = index === all.length - 1 ? '0 0 16px' : '0 0 16px'
-      return `<p style="margin:${margin};${P_INK}">${escapeNoticeHtml(para.trim()).replace(/\n/g, '<br>')}</p>`
-    })
+    .map((para) => `<p style="margin:0 0 16px;${P_INK}">${escapeWithBreaks(para.trim())}</p>`)
+    .join('\n')
+}
+
+function itemParagraphs(value: string, style: string) {
+  return value
+    .split(/\n\s*\n/)
+    .map((para) => para.trim())
+    .filter((para) => para.length > 0)
+    .map((para) => `    <p style="margin:0 0 12px;${style}">${emphasizeLeadLabel(para)}</p>`)
     .join('\n')
 }
 
@@ -68,9 +93,9 @@ function itemHtml(item: FizzIssueItem, index: number, count: number) {
   const block = `<tr>
   <td class="pad" bgcolor="#fff6fa" style="background:#fff6fa;padding:${top}px 32px ${bottom}px;">
     <p style="margin:0 0 8px;font-family:'Playfair Display',Georgia,'Times New Roman',serif;font-size:22px;line-height:28px;font-weight:600;color:#402924;">${escapeNoticeHtml(item.headline)}</p>
-    <p style="margin:0 0 12px;${P_INK}">${escapeNoticeHtml(item.summary)}</p>
+${itemParagraphs(item.summary, P_INK)}
     <p style="margin:0 0 4px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;font-weight:700;color:#402924;">What this means for you</p>
-    <p style="margin:0 0 12px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#775d57;">${escapeNoticeHtml(item.whatItMeans)}</p>
+${itemParagraphs(item.whatItMeans, P_MUTED)}
     <a href="${escapeNoticeHtml(item.sourceUrl)}" style="font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;font-weight:600;color:#ee2c9b;text-decoration:underline;">${escapeNoticeHtml(item.sourceLabel)}</a>
   </td>
 </tr>`
@@ -98,7 +123,7 @@ export function normalizeFizzContent(raw: unknown): FizzIssueContent {
     const n = `Item ${index + 1}`
     return {
       headline: text(item.headline, `${n} headline`, 3, 160),
-      summary: text(item.summary, `${n} summary`, 3, 1_200),
+      summary: text(item.summary, `${n} summary`, 3, FIZZ_ITEM_SUMMARY_MAX),
       whatItMeans: text(item.whatItMeans, `${n} what-this-means`, 3, 800),
       sourceLabel: text(item.sourceLabel ?? 'Source', `${n} source label`, 2, 80),
       sourceUrl: assertHttpsUrl(String(item.sourceUrl ?? ''), `${n} source link`),
