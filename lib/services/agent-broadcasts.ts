@@ -17,7 +17,7 @@ import {
   type SuiteListDelivery,
 } from '@/lib/services/suite-official-notice'
 
-export const BROADCAST_AGENT_NAMES = ['suite', 'bunny'] as const
+export const BROADCAST_AGENT_NAMES = ['suite', 'bunny', 'fizz'] as const
 export type BroadcastAgentName = (typeof BROADCAST_AGENT_NAMES)[number]
 
 const OWNER_CATEGORIES = [
@@ -47,10 +47,10 @@ function broadcastError(code: string, message: string, statusCode = 400) {
 }
 
 export function assertBroadcastAgentName(agentName: string): BroadcastAgentName {
-  if (agentName !== 'suite' && agentName !== 'bunny') {
-    throw broadcastError('BROADCAST_AGENT_UNKNOWN', 'agentName must be suite or bunny.')
+  if (!(BROADCAST_AGENT_NAMES as readonly string[]).includes(agentName)) {
+    throw broadcastError('BROADCAST_AGENT_UNKNOWN', 'agentName must be suite, bunny, or fizz.')
   }
-  return agentName
+  return agentName as BroadcastAgentName
 }
 
 export function agentBroadcastIdempotencyKey(agentName: BroadcastAgentName, idempotencyKey: string) {

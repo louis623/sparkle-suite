@@ -118,7 +118,7 @@ a second bearer token, or a second connector.
 | Smoke URL | `https://sparkle-suite-smoke.vercel.app/api/remy/mcp` |
 | Header | `Authorization: Bearer` the existing `SPARKLE_CONTROL_CENTER_MCP_BEARER_TOKEN` (`REMY_MCP_BEARER_TOKEN` still works as the fallback name) |
 
-Bunny passes `agentName: "bunny"`. Suite passes `agentName: "suite"`. Every
+Bunny passes `agentName: "bunny"`. Suite passes `agentName: "suite"`. Fizz passes `agentName: "fizz"`. Every
 preview, publish, stage, get, and approve call writes that name on the audit
 row. The tools refuse to run unless that request was authenticated with the
 owner token.

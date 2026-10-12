@@ -576,7 +576,7 @@ export function createControlCenterMcpServer() {
     ),
   )
 
-  const broadcastAgentName = z.enum(['suite', 'bunny'])
+  const broadcastAgentName = z.enum(['suite', 'bunny', 'fizz'])
   const broadcastCategory = z.enum([
     'announcement',
     'business_update',

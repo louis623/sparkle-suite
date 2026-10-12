@@ -4,6 +4,8 @@
 - Smoke deploy `dpl_7U1GFQcZjVcXpz6o99qKUHcyjj7t` on project `sparkle-suite-smoke` (`prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`). Alias `https://sparkle-suite-smoke.vercel.app` points at that deployment. Live aliases stayed on `dpl_BJJXsbpCJNmwHim34hyWFeyTeuxG`.
 - Migration `20261012183000_ss_suite_list_notices_and_fizz_issues.sql` is in the branch and was not applied. The connected database was not the smoke project, and no smoke database password was available.
 - Owner MCP tools: `communications_preview_broadcast`, `communications_publish_broadcast`, `fizz_issue_stage`, `fizz_issue_get`, `fizz_issue_approve`. Bunny uses the same MCP URL and bearer token with `agentName: "bunny"`.
-- Fizz test mode was not run. Smoke does not have `SPARKLE_FIZZ_TEST_SEND=1`, and the new tables are not on the smoke database. No Suite-list broadcast was sent.
+- Smoke update (Oct 12): migration applied on Smoke and `SPARKLE_FIZZ_TEST_SEND=1` set. Fizz mode `test` ran for 2026-W53 (raw HTML, before the server render) and 2026-W52 (server-rendered Weekly Fizz template, Resend id `01a13074-4ade-7b43-8ced-fe0c0c85d1cb`, owner only; Workspace post `4393d9eb-0827-40e8-ae2d-bfc3ccf7034f`). A repeat approve replayed with no new send. No Suite-list broadcast was sent.
+- `fizz_issue_stage` now takes structured `content`; the server renders `brand-assets/email/weekly-fizz-report/weekly-fizz-report.resend-template.html` and rejects raw HTML. Smoke deploy `dpl_2HUTTusx51EnS9TD1zHcFYppxDiZ`.
+- `agentName` allowlist is now suite, bunny, fizz.
 - Resend template `suite-official-notice` was republished with optional `THUMBNAIL_HTML`. That publish did not send email.
-- Next action: apply the migration to smoke ref `pukemqiwlyqmyytxkdmo` only, then run Fizz mode `test` for one owner email and one owner Workspace post.
+- Next action: Live migration on `bqhzfkgkjyuhlsozpylf`, Live deploy, then one owner-only Fizz `test` on Live before any live issue.
