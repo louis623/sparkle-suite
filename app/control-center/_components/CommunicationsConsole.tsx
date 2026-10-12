@@ -182,6 +182,8 @@ export function CommunicationsConsole() {
   const [preview, setPreview] = useState<Preview | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
+  const [emailSuiteList, setEmailSuiteList] = useState(false)
+  const [emailPreviewHtml, setEmailPreviewHtml] = useState<string | null>(null)
   const publishPreviewRef = useRef<HTMLElement>(null)
 
   const loadSnapshot = useCallback(async () => {
@@ -308,6 +310,35 @@ export function CommunicationsConsole() {
     }
   }
 
+  async function previewSuiteEmail() {
+    const formError = validateForm()
+    if (formError) {
+      setError(formError)
+      return
+    }
+    setBusy('preview')
+    setError(null)
+    try {
+      const response = await fetch('/api/control-center/messages', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          operation: 'email_preview',
+          title,
+          summary: summary || undefined,
+          body,
+          actionUrl: actionUrl || undefined,
+        }),
+      })
+      const result = await readJson(response)
+      setEmailPreviewHtml(typeof result.html === 'string' ? result.html : null)
+    } catch (previewError) {
+      setError(previewError instanceof Error ? previewError.message : 'Email preview failed.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
   async function preparePreview() {
     const formError = validateForm()
     if (formError) {
@@ -345,15 +376,27 @@ export function CommunicationsConsole() {
         audienceToken: preview.audienceToken,
         expectedRecipientCount: preview.recipientCount,
         confirmed: preview.recipientCount <= 1 || confirmed,
+        emailSuiteList,
       })
       const sentCount =
         typeof result.recipientCount === 'number'
           ? result.recipientCount
           : preview.recipientCount
+      const suiteStatus =
+        result.suiteListEmail &&
+        typeof result.suiteListEmail === 'object' &&
+        !Array.isArray(result.suiteListEmail) &&
+        typeof (result.suiteListEmail as { status?: unknown }).status === 'string'
+          ? (result.suiteListEmail as { status: string }).status
+          : null
       setNotice(
         `Published successfully to ${sentCount} ${
           sentCount === 1 ? 'rep' : 'reps'
-        }.`,
+        }.${
+          emailSuiteList
+            ? ` Suite list email: ${suiteStatus ?? 'not sent'}.`
+            : ''
+        }`,
       )
       setPreview(null)
       setConfirming(false)
@@ -368,6 +411,8 @@ export function CommunicationsConsole() {
       setPriority('normal')
       setAudienceKind('all_active')
       setSelectedRepIds([])
+      setEmailSuiteList(false)
+      setEmailPreviewHtml(null)
       setRecipientSearch('')
       await loadSnapshot()
     } catch (publishError) {
@@ -645,6 +690,37 @@ export function CommunicationsConsole() {
                 ) : null}
               </fieldset>
 
+              <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-800">
+                <input
+                  checked={emailSuiteList}
+                  className="mt-1"
+                  onChange={(event) => setEmailSuiteList(event.target.checked)}
+                  type="checkbox"
+                />
+                <span>
+                  <strong>Also email the Suite list.</strong> Off unless you check this. Publishing then sends one Resend broadcast to the Suite list. It does not email each selected rep separately.
+                </span>
+              </label>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
+                  disabled={busy !== null}
+                  onClick={() => void previewSuiteEmail()}
+                  type="button"
+                >
+                  Preview Suite email
+                </button>
+                <p className="text-xs text-slate-500">The preview is the exact official-notice HTML. Nothing is sent.</p>
+              </div>
+              {emailPreviewHtml ? (
+                <iframe
+                  className="h-80 w-full rounded-xl border border-slate-200 bg-white"
+                  sandbox=""
+                  srcDoc={emailPreviewHtml}
+                  title="Suite email preview"
+                />
+              ) : null}
+
               <div className="flex flex-wrap gap-3 border-t border-slate-100 pt-5">
                 <button
                   className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold hover:bg-slate-50 disabled:opacity-50"
@@ -739,7 +815,11 @@ export function CommunicationsConsole() {
                     ? `Confirm and publish to ${preview.recipientCount} reps`
                     : 'Publish now'}
               </button>
-              <p className="text-xs text-slate-500">Standalone in-app delivery only. No email or SMS is sent.</p>
+              <p className="text-xs text-slate-500">
+                {emailSuiteList
+                  ? 'This also emails the Suite list once. No SMS is sent.'
+                  : 'Standalone in-app delivery only. No email or SMS is sent.'}
+              </p>
             </div>
           </section>
         ) : null}

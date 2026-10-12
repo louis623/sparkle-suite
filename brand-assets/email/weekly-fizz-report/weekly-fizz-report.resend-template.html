@@ -15,8 +15,8 @@
     Triple-mustache variables (unescaped):
       PREHEADER, ISSUE_DATE, WEEK_NOTE, ITEMS_HTML,
       LATEST_TITLE, LATEST_SUMMARY, LATEST_THUMB_URL, LATEST_WATCH_URL,
-      CTA_LABEL, CTA_URL, RESEND_UNSUBSCRIBE_URL
-    The espresso band is one featured blog, video, or social post. Watch uses LATEST_WATCH_URL.
+      LATEST_BUTTON_LABEL, CTA_LABEL, CTA_URL, RESEND_UNSUBSCRIBE_URL
+    The espresso band is one featured blog, video, or social post. The button (Watch for video, Read for blog) uses LATEST_WATCH_URL.
     CTA_LABEL and CTA_URL are the optional soft-pink follow-up link.
     Pass plain text for every variable except ITEMS_HTML.
     ITEMS_HTML is up to five item blocks. Leave it empty on a slow week.
@@ -104,11 +104,11 @@
                     <!--[if mso]>
                     <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:office" href="{{{LATEST_WATCH_URL}}}" style="height:48px;v-text-anchor:middle;width:140px;" arcsize="50%" stroke="f" fillcolor="#ee2c9b">
                       <w:anchorlock/>
-                      <center style="color:#fff6fb;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;">Watch</center>
+                      <center style="color:#fff6fb;font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;">{{{LATEST_BUTTON_LABEL}}}</center>
                     </v:roundrect>
                     <![endif]-->
                     <!--[if !mso]><!-->
-                    <a href="{{{LATEST_WATCH_URL}}}" style="display:inline-block;padding:14px 28px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:20px;font-weight:700;color:#fff6fb;text-decoration:none;border-radius:999px;background-color:#ee2c9b;background-image:linear-gradient(90deg,#ff4cae 0%,#d81b87 100%);">Watch</a>
+                    <a href="{{{LATEST_WATCH_URL}}}" style="display:inline-block;padding:14px 28px;font-family:'DM Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:20px;font-weight:700;color:#fff6fb;text-decoration:none;border-radius:999px;background-color:#ee2c9b;background-image:linear-gradient(90deg,#ff4cae 0%,#d81b87 100%);">{{{LATEST_BUTTON_LABEL}}}</a>
                     <!--<![endif]-->
                   </td>
                 </tr>

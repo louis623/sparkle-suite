@@ -32,6 +32,8 @@ export function ResourcePublisher({ initialResources }: { initialResources: Reso
   const [summary, setSummary] = useState('')
   const [body, setBody] = useState('')
   const [videoUrl, setVideoUrl] = useState('')
+  const [emailSuiteList, setEmailSuiteList] = useState(false)
+  const [emailPreviewHtml, setEmailPreviewHtml] = useState<string | null>(null)
 
   async function refresh() {
     const response = await fetch('/api/control-center/resources', { credentials: 'include' })
@@ -65,6 +67,8 @@ export function ResourcePublisher({ initialResources }: { initialResources: Reso
           thumbnailUrl: null,
           isFeatured: false,
           announce: true,
+          emailSuiteList,
+          operation: 'publish',
         }),
       })
       const payload = (await response.json().catch(() => null)) as { error?: string } | null
@@ -74,7 +78,11 @@ export function ResourcePublisher({ initialResources }: { initialResources: Reso
       setSummary('')
       setBody('')
       setVideoUrl('')
-      setMessage('Published to the Resource Library and notified reps in Message Center.')
+      setMessage(
+        emailSuiteList
+          ? 'Published to the Resource Library. The Suite list email result is recorded with that publication.'
+          : 'Published to the Resource Library and notified reps in Message Center.',
+      )
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : 'Unable to publish resource.',
@@ -109,6 +117,43 @@ export function ResourcePublisher({ initialResources }: { initialResources: Reso
             <label className="grid gap-1 text-sm font-medium">Short summary <span className="font-normal text-slate-500">(optional)</span><textarea className="min-h-20 rounded-lg border border-slate-300 px-3 py-2" value={summary} onChange={(event) => setSummary(event.target.value)} /></label>
             {type === 'blog' ? <label className="grid gap-1 text-sm font-medium">Blog content <span className="font-normal text-slate-500">(optional)</span><textarea className="min-h-44 rounded-lg border border-slate-300 px-3 py-2" value={body} onChange={(event) => setBody(event.target.value)} /></label> : null}
             {type === 'video' ? <label className="grid gap-1 text-sm font-medium">YouTube URL <span className="font-normal text-slate-500">(optional)</span><input type="url" className="rounded-lg border border-slate-300 px-3 py-2" value={videoUrl} onChange={(event) => setVideoUrl(event.target.value)} /></label> : null}
+            <label className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+              <input checked={emailSuiteList} className="mt-1" onChange={(event) => setEmailSuiteList(event.target.checked)} type="checkbox" />
+              <span><strong>Also email the Suite list.</strong> Off unless checked. Videos use Watch and blogs use Read when a link is available.</span>
+            </label>
+            <button
+              className="justify-self-start rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold"
+              disabled={pending}
+              onClick={(event) => {
+                event.preventDefault()
+                void (async () => {
+                  setError(null)
+                  const response = await fetch('/api/control-center/resources', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({
+                      operation: 'email_preview',
+                      resourceType: type,
+                      title,
+                      summary,
+                      body: type === 'blog' ? body : '',
+                      videoUrl: type === 'video' ? videoUrl || null : null,
+                    }),
+                  })
+                  const payload = (await response.json().catch(() => null)) as { html?: string; error?: string } | null
+                  if (!response.ok) {
+                    setError(payload?.error || 'Email preview failed.')
+                    return
+                  }
+                  setEmailPreviewHtml(payload?.html ?? null)
+                })()
+              }}
+              type="button"
+            >
+              Preview Suite email
+            </button>
+            {emailPreviewHtml ? <iframe className="h-80 w-full rounded-lg border border-slate-200" sandbox="" srcDoc={emailPreviewHtml} title="Suite email preview" /> : null}
             {error ? <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800" role="alert">{error}</p> : null}
             {message ? <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{message}</p> : null}
             <button disabled={pending} className="rounded-lg bg-violet-700 px-4 py-3 font-semibold text-white disabled:opacity-60" type="submit">{pending ? 'Publishing…' : 'Publish and notify reps'}</button>

@@ -30,10 +30,13 @@ one-time approved Support reply:
 4. Only a current approval can be claimed once to send that immutable reply as
    Sparkle Suite Support.
 
-The server cannot send unapproved Support replies, publish or modify
-broadcasts, change report or lead status, mutate rep profiles, deploy, change
-DNS or production configuration, access attachments, or read unreported Rep
-Network conversations.
+The server cannot send unapproved Support replies, change report or lead
+status, mutate rep profiles, deploy, change DNS or production configuration,
+access attachments, or read unreported Rep Network conversations.
+
+Workspace broadcasts and Fizz approve-once are separate owner-token tools.
+They run only after the request presents the Control Center bearer token.
+They do not replace the one-time Support reply approval.
 
 ## Tools
 
@@ -103,3 +106,36 @@ used as its authentication path.
 
 No connector save, Support send, deployment, DNS change, or production mutation
 is required to build and verify the source contract.
+
+## Bunny and Suite use one connector
+
+Suite and Bunny call the same Control Center MCP. Do not create a second URL,
+a second bearer token, or a second connector.
+
+| | |
+| --- | --- |
+| Live URL | `https://www.yoursparklesuite.com/api/remy/mcp` |
+| Smoke URL | `https://sparkle-suite-smoke.vercel.app/api/remy/mcp` |
+| Header | `Authorization: Bearer` the existing `SPARKLE_CONTROL_CENTER_MCP_BEARER_TOKEN` (`REMY_MCP_BEARER_TOKEN` still works as the fallback name) |
+
+Bunny passes `agentName: "bunny"`. Suite passes `agentName: "suite"`. Fizz passes `agentName: "fizz"`. Every
+preview, publish, stage, get, and approve call writes that name on the audit
+row. The tools refuse to run unless that request was authenticated with the
+owner token.
+
+| Tool | Arguments |
+| --- | --- |
+| `communications_preview_broadcast` | `agentName`, `title`, `body`, `category`, `audience` (`{kind:"all_active"}` or `{kind:"selected", repIds}`), optional `actionUrl`, optional `emailSuiteList` |
+| `communications_publish_broadcast` | the preview arguments plus required `idempotencyKey` |
+| `fizz_issue_stage` | `agentName`, `issueId` such as `2026-W42`, `subject`, `preheader`, `content` (structured: `issueDate`, `weekNote` opening with Good morning, up to 5 `items`, `latest` blog/video, optional `cta`; server renders `brand-assets/email/weekly-fizz-report/weekly-fizz-report.resend-template.html`, raw HTML rejected), `workspaceTitle`, `workspaceSummary`, `workspaceBody`, optional `actionUrl` |
+| `fizz_issue_get` | `agentName`, `issueId` |
+| `fizz_issue_approve` | `agentName`, `issueId`, `mode` `"test"` or `"live"` |
+
+`emailSuiteList` defaults off. When it is true, publish sends one Suite-list
+Resend broadcast after the Workspace post. Publish is idempotent for the same
+agent and `idempotencyKey`. Fizz test mode emails only `louis@neonrabbit.net`
+and posts only to that owner rep. On Live that owner-only test does not
+require `SPARKLE_FIZZ_TEST_SEND`. Smoke still requires `SPARKLE_FIZZ_TEST_SEND=1`
+before the same owner-only send. Fizz live mode uses the Suite list and all
+active reps. One channel failing does not skip the other. Live Fizz approval
+and Suite-list broadcasts stay off on Smoke.

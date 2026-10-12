@@ -15,6 +15,12 @@ import {
   listWorkspaceMessagePublications,
   publishWorkspaceMessage,
 } from '@/lib/services/workspace-messages'
+import {
+  deliverSuiteListNotice,
+  publicationNoticeContent,
+  renderSuiteOfficialNoticeHtml,
+  resourceNoticeContent,
+} from '@/lib/services/suite-official-notice'
 import { createAdminClient } from '@/lib/supabase/admin'
 import {
   AuthError,
@@ -60,7 +66,19 @@ const contentSchema = z.object({
   audience: audienceSchema,
 })
 
+const emailPreviewSchema = z.object({
+  operation: z.literal('email_preview'),
+  title: z.string().trim().min(1).max(160),
+  summary: z.string().trim().max(500).optional(),
+  body: z.string().trim().max(20_000).optional().default(''),
+  actionUrl: z.string().trim().max(2_000).optional(),
+  resourceType: z.enum(['help', 'faq', 'blog', 'video']).optional(),
+  thumbnailUrl: z.string().trim().max(2048).optional().nullable(),
+  videoUrl: z.string().trim().max(2048).optional().nullable(),
+})
+
 const requestSchema = z.discriminatedUnion('operation', [
+  emailPreviewSchema,
   contentSchema.extend({ operation: z.literal('preview') }),
   contentSchema.extend({ operation: z.literal('save_draft') }),
   contentSchema.extend({
@@ -68,6 +86,7 @@ const requestSchema = z.discriminatedUnion('operation', [
     audienceToken: z.string().trim().min(16).max(128),
     expectedRecipientCount: z.number().int().min(1).max(10_000),
     confirmed: z.boolean(),
+    emailSuiteList: z.boolean().optional().default(false),
   }),
 ])
 
@@ -269,6 +288,34 @@ export async function POST(request: Request) {
   try {
     await getControlCenterAccess()
     const input = requestSchema.parse(await request.json())
+    if (input.operation === 'email_preview') {
+      const content = input.resourceType
+        ? resourceNoticeContent({
+            resourceType: input.resourceType,
+            title: input.title,
+            summary: input.summary,
+            body: input.body,
+            thumbnailUrl: input.thumbnailUrl,
+            videoUrl: input.videoUrl,
+            actionUrl: input.actionUrl,
+          })
+        : publicationNoticeContent({
+            title: input.title,
+            summary: input.summary,
+            body: input.body || input.summary || input.title,
+            actionUrl: input.actionUrl,
+          })
+      const rendered = renderSuiteOfficialNoticeHtml(content)
+      return NextResponse.json({
+        ok: true,
+        html: rendered.html,
+        subject: content.headline,
+        variables: rendered.variables,
+        thumbnailUrl: content.thumbnailUrl,
+        ctaLabel: content.ctaLabel,
+        ctaUrl: content.ctaUrl,
+      })
+    }
     const admin = createAdminClient()
     const validated = validateContent(input)
     const audiencePreview = await previewWorkspaceMessageAudience(
@@ -344,10 +391,25 @@ export async function POST(request: Request) {
       expectedRecipientCount: input.expectedRecipientCount,
       expectedRecipientIds: audiencePreview.members.map((member) => member.repId),
     })
+    const suiteListEmail = input.emailSuiteList
+      ? await deliverSuiteListNotice({
+          supabase: admin,
+          idempotencyKey: `suite-list:publication:${publication.id}`,
+          sourceKind: 'workspace_publication',
+          sourceId: publication.id,
+          content: publicationNoticeContent({
+            title: validated.text.title,
+            summary: validated.text.summary,
+            body: validated.body.map((block) => block.text ?? '').filter(Boolean).join('\n\n'),
+            actionUrl: validated.actionUrl,
+          }),
+        })
+      : null
     return NextResponse.json({
       ok: true,
       publication,
       recipientCount: audiencePreview.count,
+      suiteListEmail,
     })
   } catch (error) {
     const response = requestErrorResponse(error)
