@@ -21,13 +21,14 @@ import {
  * and never a playlist. Do not add Workspace, Nic-Nac, or backend factory
  * walkthroughs. Do not invent a video id.
  *
- * Checked 2026-09-28:
- * - Featured reel is the TikTok Louis picked, https://www.tiktok.com/t/ZP8TTK4KU/,
- *   which resolves to video 7684058046800071966 on @yoursparklesuite.com.
- * - YouTube https://youtube.com/@sparklesuite is channel UCpISEvH3gBaRfC8OoCKH7Qg,
- *   the same channel as the icon URL. No listed upload yet, so no YouTube iframe.
- * - Icons stay profile links. The grid stays empty until a real landing demo
- *   is added here. tiktok.com/@sparklesuite is an unrelated Mary Kay account.
+ * Checked 2026-10-02:
+ * - Featured reel is the public YouTube Louis picked,
+ *   https://www.youtube.com/watch?v=62gaZBz8zF4
+ *   ("New Sparkle Suite looks: Witch, Black Cat, Golden Leaves, Unicorns").
+ * - YouTube https://youtube.com/@sparklesuite stays the channel link.
+ * - TikTok stays the channel link for @yoursparklesuite.com. The grid stays
+ *   empty until another public clip is added here. tiktok.com/@sparklesuite
+ *   is an unrelated Mary Kay account.
  */
 export const sparkleSuiteYouTubeChannel = {
   label: 'Sparkle Suite on YouTube',
@@ -128,23 +129,19 @@ export function demoEmbedSrc(embed: DemoEmbed) {
   return `https://www.tiktok.com/embed/v2/${encodeURIComponent(embed.videoId)}`
 }
 
-function tiktok(videoId: string) {
-  return `${sparkleSuiteTikTokChannelUrl}/video/${videoId}`
-}
-
 /**
- * Landing demos on /demo. Louis's featured TikTok is the only embed until
- * a dedicated marketing demo is added in this array.
+ * Landing demos on /demo. The featured reel is the public YouTube
+ * "New Sparkle Suite looks: Witch, Black Cat, Golden Leaves, Unicorns".
  */
 export const sparkleSuiteDemoEmbeds = [
   {
-    id: 'pick-your-theme',
-    platform: 'tiktok',
-    title: 'Pick a theme. Change it when the night should feel new.',
-    summary: 'Customer-facing sites with themes you can switch, so the show stays fresh.',
+    id: 'new-sparkle-suite-looks',
+    platform: 'youtube',
+    title: 'New Sparkle Suite looks: Witch, Black Cat, Golden Leaves, Unicorns',
+    summary: 'Witch, Black Cat, Golden Leaves, Unicorns.',
     tags: ['site-looks'],
-    videoId: '7684058046800071966',
-    url: tiktok('7684058046800071966'),
+    videoId: '62gaZBz8zF4',
+    url: 'https://www.youtube.com/watch?v=62gaZBz8zF4',
     privacy: 'public',
     role: 'featured',
   },
