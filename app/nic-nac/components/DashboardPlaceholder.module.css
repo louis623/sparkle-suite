@@ -8033,7 +8033,8 @@
   }
 
   .toolsHub[data-tool-open='false'] .toolsHubPane {
-    display: none;
+    display: block;
+    margin-top: 16px;
   }
 
   .toolsHub[data-tool-open='true'] .toolsHubNav {

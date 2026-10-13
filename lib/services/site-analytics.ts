@@ -39,6 +39,9 @@ export type SiteAnalyticsCaptureResult =
       reason: 'disabled' | 'adapter_missing'
     }
 
+export const REACHABLE_CUSTOMER_FILTER =
+  'and(sms_consent.eq.true,sms_opted_out_at.is.null,stop_keyword_received_at.is.null),and(email_consent.eq.true,email_opted_out_at.is.null)'
+
 const SITE_ANALYTICS_PRIVACY = {
   disablesIpCapture: true,
   masksSensitiveInputs: true,
@@ -179,9 +182,7 @@ async function getOperationalSnapshot(
         .from('customer_audience')
         .select('id', { head: true, count: 'exact' })
         .eq('rep_id', repId)
-        .or(
-          'and(sms_consent.eq.true,sms_opted_out_at.is.null,stop_keyword_received_at.is.null),and(email_consent.eq.true,email_opted_out_at.is.null)',
-        )
+        .or(REACHABLE_CUSTOMER_FILTER)
         .then(({ count, error }) => {
           if (error) throw error
           return count ?? 0

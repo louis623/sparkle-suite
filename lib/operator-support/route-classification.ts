@@ -353,6 +353,14 @@ export const OPERATOR_SUPPORT_ROUTE_INVENTORY = [
     rationale: 'Ordinary Message Center reads and actions are approved with target scope and audit.',
   },
   {
+    file: 'app/api/nic-nac/rep-dashboard/route.ts',
+    path: '/api/nic-nac/rep-dashboard',
+    methods: ['GET'],
+    classification: 'support_allowed_read',
+    capabilities: ['workspace.view'],
+    rationale: 'Reads the target rep dashboard for troubleshooting. It does not change workspace data.',
+  },
+  {
     file: 'app/api/nic-nac/resource-library/route.ts',
     path: '/api/nic-nac/resource-library',
     methods: ['GET'],

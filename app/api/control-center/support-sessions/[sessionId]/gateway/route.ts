@@ -22,6 +22,7 @@ import * as messages from '@/app/api/nic-nac/messages/route'
 import * as nicNac from '@/app/api/nic-nac/route'
 import * as nicNacConversationState from '@/app/api/nic-nac/conversation-state/route'
 import * as nicNacConversationClear from '@/app/api/nic-nac/conversation/clear/route'
+import * as repDashboard from '@/app/api/nic-nac/rep-dashboard/route'
 import * as resources from '@/app/api/nic-nac/resources/route'
 import * as resourceLibrary from '@/app/api/nic-nac/resource-library/route'
 import * as sendEmail from '@/app/api/nic-nac/send-email/route'
@@ -86,6 +87,7 @@ const STATIC_ROUTE_MODULES = new Map<string, RouteModule>([
   ['/api/nic-nac/join-team-roster/photo', joinTeamRosterPhoto as unknown as RouteModule],
   ['/api/nic-nac/messages', messages as unknown as RouteModule],
   ['/api/nic-nac/resources', resources as unknown as RouteModule],
+  ['/api/nic-nac/rep-dashboard', repDashboard as unknown as RouteModule],
   ['/api/nic-nac/resource-library', resourceLibrary as unknown as RouteModule],
   ['/api/nic-nac/send-email', sendEmail as unknown as RouteModule],
   ['/api/nic-nac/site-analytics', siteAnalytics as unknown as RouteModule],
