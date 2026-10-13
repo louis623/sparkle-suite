@@ -89,6 +89,9 @@ describe('GET /api/nic-nac/customer-audience', () => {
       'rep-1',
       {
         channelFilter: 'sms',
+        query: undefined,
+        liveActivity: undefined,
+        liveActivitySince: null,
         limit: 5,
       },
     )
@@ -214,7 +217,13 @@ describe('GET /api/nic-nac/customer-audience', () => {
     expect(getCustomerAudienceMock).toHaveBeenCalledWith(
       { marker: 'supabase' },
       'rep-1',
-      { channelFilter: undefined, limit: null },
+      {
+        channelFilter: undefined,
+        query: undefined,
+        liveActivity: undefined,
+        liveActivitySince: null,
+        limit: null,
+      },
     )
     expect(formatCustomerAudienceCsvMock).toHaveBeenCalledWith(customers)
     expect(response.status).toBe(200)
@@ -338,5 +347,32 @@ describe('GET /api/nic-nac/customer-audience', () => {
       { actorKind: 'rep', actorRepId: 'rep-1' },
     )
     expect(response.status).toBe(200)
+  })
+  it('passes LIVE order tile filters through and rejects unknown values', async () => {
+    getAuthenticatedNicNacContextMock.mockResolvedValue({
+      repId: 'rep-1',
+      rep: { id: 'rep-1' },
+      supabase: { marker: 'supabase' },
+    })
+    getCustomerAudienceMock.mockResolvedValueOnce({ summary: {}, customers: [] })
+    const ok = await GET(
+      new Request('http://localhost/api/nic-nac/customer-audience?liveActivity=gone_quiet&since=2026-07-15T00:00:00Z&query=Jane'),
+    )
+    expect(ok.status).toBe(200)
+    expect(getCustomerAudienceMock).toHaveBeenLastCalledWith(
+      { marker: 'supabase' },
+      'rep-1',
+      expect.objectContaining({
+        query: 'Jane',
+        liveActivity: 'gone_quiet',
+        liveActivitySince: '2026-07-15T00:00:00Z',
+      }),
+    )
+    const calls = getCustomerAudienceMock.mock.calls.length
+    const bad = await GET(
+      new Request('http://localhost/api/nic-nac/customer-audience?liveActivity=everyone'),
+    )
+    expect(bad.status).toBe(400)
+    expect(getCustomerAudienceMock.mock.calls.length).toBe(calls)
   })
 })
