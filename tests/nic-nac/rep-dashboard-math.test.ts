@@ -174,12 +174,18 @@ describe('rep dashboard presentation', () => {
     expect(html).not.toContain('Show streak')
     expect(html).not.toContain('askNicNac')
     expect(html).not.toContain('ringPlaceholder')
-    expect(html).toContain('Site visitors')
+    expect(html).toContain('Your site visitors')
+    expect(html).toContain('Your Dance Floor')
+    expect(html).toContain('Darker states sent you more visitors.')
+    expect(html).toContain('Light = few visits. Dark = most visits.')
+    expect(html).toContain('October 13, 2026')
     expect(html).not.toContain('Site visits — coming soon')
-    expect(html.indexOf('Next show')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
+    expect(html).not.toContain('hidden=""')
+    expect(html.indexOf('Next show')).toBeLessThan(html.indexOf('Birthdays'))
+    expect(html.indexOf('Birthdays')).toBeLessThan(html.indexOf('Platform mix'))
+    expect(html.indexOf('Platform mix')).toBeLessThan(html.indexOf('Last month at a glance'))
+    expect(html.indexOf('Last month at a glance')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
     expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('data-testid="dance-floor-insights"'))
-    expect(html.indexOf('data-testid="dance-floor-insights"')).toBeLessThan(html.indexOf('Platform mix'))
-    expect(html).toContain('hidden=""')
     expect(html).not.toContain('Choose a tool')
     expect(html).not.toContain('data-pulse="true"')
   })
@@ -254,7 +260,7 @@ describe('rep dashboard presentation', () => {
     expect(html).not.toContain('<small>Open Live Lineup</small>')
   })
 
-  it('puts visitors and Dance Floor insights ahead of the rest of the dashboard', () => {
+  it('keeps every v1 card, then site visitors, then Dance Floor insights', () => {
     const now = new Date('2026-10-13T16:00:00.000Z')
     const data = createEmptyRepDashboard(now, TIME_ZONE)
     const day = 24 * 60 * 60 * 1000
@@ -291,10 +297,22 @@ describe('rep dashboard presentation', () => {
       },
     ]
     data.danceFloorInsights = buildDanceFloorInsights(listings, now)
+    const viewedAt = now.toISOString()
     data.siteVisits = summarizeSiteVisits({
       now,
       timeZone: TIME_ZONE,
-      rows: [{ viewed_at: now.toISOString(), src: 'qr', us_state: 'NY' }],
+      rows: [
+        { viewed_at: viewedAt, src: 'qr', us_state: 'NY' },
+        { viewed_at: viewedAt, src: null, us_state: 'NY' },
+        { viewed_at: viewedAt, src: null, us_state: 'NY' },
+        { viewed_at: viewedAt, src: null, us_state: 'NY' },
+        { viewed_at: viewedAt, src: null, us_state: 'NY' },
+        { viewed_at: viewedAt, src: null, us_state: 'CA' },
+        { viewed_at: viewedAt, src: null, us_state: 'TX' },
+        { viewed_at: viewedAt, src: null, us_state: 'FL' },
+        { viewed_at: viewedAt, src: null, us_state: 'IL' },
+        { viewed_at: viewedAt, src: null, us_state: 'WA' },
+      ],
     })
     const html = renderToStaticMarkup(
       createElement(RepDashboard, {
@@ -315,9 +333,30 @@ describe('rep dashboard presentation', () => {
     expect(html).not.toContain('Removed · "other"')
     expect(html).toContain('QR visits')
     expect(html).toContain('Where they are')
-    expect(html.indexOf('aria-label="Next show"')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
+    expect(html).toContain('Top 5 states')
+    expect(html).toContain('Darker states sent you more visitors.')
+    expect(html).toContain('Light = few visits. Dark = most visits.')
+    expect(html).toContain('1\u20132 visits')
+    expect(html).toContain('5 visits')
+    expect(html).toContain('New York, 5 visits')
+    expect(html).toContain('Hover or tap a state to see its name and visit count.')
+    expect(html).toContain('Dance Floor totals')
+    expect(html).toContain('Feature them in your next live')
+    const topStates = html.slice(html.indexOf('data-testid="top-states"'), html.indexOf('</ol>', html.indexOf('data-testid="top-states"')))
+    expect(topStates).toContain('New York')
+    expect(topStates).toContain('California')
+    expect(topStates).toContain('Texas')
+    expect(topStates).not.toContain('Washington')
+    expect(html).not.toContain('hidden=""')
+    expect(html).not.toContain('Site visits — coming soon')
+    expect(html.indexOf('aria-label="Next show"')).toBeLessThan(html.indexOf('Birthdays'))
+    expect(html.indexOf('Birthdays')).toBeLessThan(html.indexOf('Platform mix'))
+    expect(html.indexOf('Platform mix')).toBeLessThan(html.indexOf('Last month at a glance'))
+    expect(html.indexOf('Last month at a glance')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
     expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('Sitting on the floor'))
-    expect(html.indexOf('Sitting on the floor')).toBeLessThan(html.indexOf('Birthdays'))
+    expect(html.indexOf('Customers')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
+    expect(html.indexOf('Pending trades')).toBeLessThan(html.indexOf('Unread messages'))
+    expect(html.indexOf('Unread messages')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
   })
 
   it('counts team onboarding participants by owner, not rep_id', () => {

@@ -154,13 +154,21 @@ export function DanceFloorInsightsPanel({
 }) {
   if (insights.empty) {
     return (
-      <article className={styles.card} data-testid="dance-floor-insights">
-        <h3 className={styles.cardTitle}>Your Dance Floor</h3>
-        <p className={styles.muted}>No pieces yet. Add a listing and this will show what is sitting, what sold, and where the floor is heavy.</p>
-        <button type="button" className={styles.textAction} onClick={onOpenDanceFloor}>
-          Add your first piece
-        </button>
-      </article>
+      <section className={styles.boardSection} data-testid="dance-floor-insights" aria-labelledby="dance-floor-title">
+        <header>
+          <h3 id="dance-floor-title" className={styles.boardSectionTitle}>Your Dance Floor</h3>
+          <p className={styles.why}>
+            What is still listed, what already left, and which pieces have been waiting. Use it to decide what to feature in your next live.
+          </p>
+        </header>
+        <article className={styles.card}>
+          <h3 className={styles.pieceTitle}>No pieces yet</h3>
+          <p className={styles.muted}>Add a listing and this will show what is sitting, what sold, and where the floor is heavy.</p>
+          <button type="button" className={styles.textAction} onClick={onOpenDanceFloor}>
+            Add your first piece
+          </button>
+        </article>
+      </section>
     )
   }
 
@@ -170,18 +178,31 @@ export function DanceFloorInsightsPanel({
   )
 
   return (
-    <div data-testid="dance-floor-insights">
-      <div className={styles.insightKpis} aria-label="Dance Floor totals">
-        <div><strong>{formatCount(insights.onFloor)}</strong><span>on the floor</span></div>
-        <div><strong>{formatCount(insights.sold)}</strong><span>sold</span></div>
-        <div><strong>{formatCount(insights.sitting45)}</strong><span>sitting 45d+</span></div>
-      </div>
+    <section className={styles.boardSection} data-testid="dance-floor-insights" aria-labelledby="dance-floor-title">
+      <header>
+        <h3 id="dance-floor-title" className={styles.boardSectionTitle}>Your Dance Floor</h3>
+        <p className={styles.why}>
+          What is still listed, what already left, and which pieces have been waiting. Use it to decide what to feature in your next live.
+        </p>
+      </header>
+      <article className={styles.card}>
+        <h3 className={styles.pieceTitle}>Dance Floor totals</h3>
+        <p className={styles.why}>
+          On the floor means a shopper can still request it. Sold means it left in a sale. Sitting 45 days or more is a piece to feature in your next live or swap out.
+        </p>
+        <div className={styles.insightKpis} aria-label="Dance Floor totals">
+          <div><strong>{formatCount(insights.onFloor)}</strong><span>on the floor</span></div>
+          <div><strong>{formatCount(insights.sold)}</strong><span>sold</span></div>
+          <div><strong>{formatCount(insights.sitting45)}</strong><span>sitting 45d+</span></div>
+        </div>
+      </article>
       <div className={styles.insightGrid}>
         <article className={styles.card}>
           <div className={styles.statTop}>
             <h3 className={styles.cardTitle}>Sitting on the floor</h3>
             <span className={styles.tag}>oldest 7</span>
           </div>
+          <p className={styles.why}>These pieces are still listed, oldest first. Feature them in your next live, or take them off the floor.</p>
           {insights.sitting.length > 0 ? (
             <ul className={styles.sittingList}>
               {insights.sitting.map((row) => (
@@ -218,6 +239,7 @@ export function DanceFloorInsightsPanel({
             <h3 className={styles.cardTitle}>Floor mix</h3>
             <span className={styles.tag}>{formatCount(insights.mix.total)} pieces</span>
           </div>
+          <p className={styles.why}>If almost everything is one jewelry type, add the others so shoppers see variety.</p>
           <p className={styles.sublab}>By jewelry type</p>
           <div className={styles.typeStack}>
             {insights.mix.types.map((type, index) => (
@@ -254,6 +276,7 @@ export function DanceFloorInsightsPanel({
               {insights.movers.saleCount === 1 ? '1 sale' : `${formatCount(insights.movers.saleCount)} sales`}
             </span>
           </div>
+          <p className={styles.why}>Restock the fast side and stop reordering the slow side. Early data is only a hint until you have more sales.</p>
           {insights.movers.medians.length > 0 ? (
             <div className={styles.chips}>
               {insights.movers.medians.map((median) => (
@@ -303,6 +326,7 @@ export function DanceFloorInsightsPanel({
             <h3 className={styles.cardTitle}>Days on floor by type</h3>
             <span className={styles.tag}>every piece</span>
           </div>
+          <p className={styles.why}>A type piled on the right is slow. Sold dots far to the left sell quickly.</p>
           <DaysStrip insights={insights} />
           <p className={styles.legend}>
             <span><i className={styles.swatchListed} />still listed</span>
@@ -318,6 +342,7 @@ export function DanceFloorInsightsPanel({
             <h3 className={styles.cardTitle}>Outcomes</h3>
             {insights.outcomes.needsCleanup ? <span className={styles.tagWarn}>needs cleanup</span> : <span className={styles.tag}>clear reasons</span>}
           </div>
+          <p className={styles.why}>This is what happened to pieces you listed. &quot;Other&quot; stays vague until you pick sold, keeping, or traded.</p>
           <OutcomesRing insights={insights} />
           {insights.outcomes.needsCleanup ? (
             <p className={styles.note}>
@@ -327,6 +352,6 @@ export function DanceFloorInsightsPanel({
           <p className={styles.learn}><strong>What you learn:</strong> how much of what you list actually leaves your floor, and how.</p>
         </article>
       </div>
-    </div>
+    </section>
   )
 }

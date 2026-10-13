@@ -533,6 +533,10 @@
 }
 
 @container repdash (min-width: 640px) {
+  .hero {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+
   .secondary,
   .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -597,59 +601,38 @@
   }
 }
 
-.section {
+.boardSection {
   display: flex;
   flex-direction: column;
   gap: 14px;
   min-width: 0;
 }
 
-.sectionToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 2px;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.sectionTitle {
-  display: block;
+.boardSectionTitle,
+.pieceTitle {
+  margin: 0;
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
-  font-size: clamp(26px, 3vw, 34px);
   font-weight: 500;
   letter-spacing: -0.03em;
-  line-height: 1.1;
+  line-height: 1.08;
 }
 
-.sectionToggle .muted {
-  display: block;
-  max-width: 640px;
+.boardSectionTitle {
+  font-size: clamp(28px, 3vw, 36px);
 }
 
-.sectionChevron {
-  width: 10px;
-  height: 10px;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(45deg);
-  transition: transform 0.2s ease;
+.pieceTitle,
+.statCard .pieceTitle,
+.card .pieceTitle {
+  font-size: clamp(22px, 2.6vw, 28px);
+  font-weight: 500;
 }
 
-.sectionChevron[data-open="true"] {
-  transform: rotate(225deg);
-}
-
-.sectionBody {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 0;
+.why {
+  margin: 0;
+  color: rgba(23, 16, 52, 0.72);
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .visitGrid,
@@ -711,31 +694,95 @@
   border-radius: 2px;
 }
 
+.mapLayout {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
 .stateMap {
   width: 100%;
   height: auto;
 }
 
-.stateCode {
-  fill: #171034;
+.stateShape {
+  cursor: pointer;
+}
+
+.stateShape:focus {
+  outline: 2px solid #171034;
+  outline-offset: 2px;
+}
+
+.stateCode,
+.stateCodeOnDark {
   font-size: 8px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.stateCode { fill: #171034; }
+.stateCodeOnDark { fill: #f8efe4; }
+
+.mapReadout {
+  margin: 0;
+  min-height: 1.4em;
   font-weight: 700;
 }
 
-.stateList {
+.mapLegend {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+}
+
+.mapScale {
+  margin: 0;
+  color: rgba(23, 16, 52, 0.72);
+  font-size: 13px;
+}
+
+.mapSwatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.stateList li {
+.mapSwatches li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.mapSwatches i {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(23, 16, 52, 0.16);
+  border-radius: 4px;
+}
+
+.topStates {
+  margin: 0;
+  padding: 0 0 0 1.25rem;
+}
+
+.topStates li {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  padding: 6px 0;
   font-size: 14px;
+}
+
+.mapListTitle {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .note {
@@ -1048,6 +1095,12 @@
 .outcomeLegend strong { margin-left: auto; }
 
 .insightWide { grid-column: 1 / -1; }
+
+@container repdash (min-width: 720px) {
+  .mapLayout {
+    grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.7fr);
+  }
+}
 
 @container repdash (min-width: 860px) {
   .visitGrid,

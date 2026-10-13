@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { DanceFloorInsightsPanel } from '@/app/nic-nac/components/DanceFloorInsights'
 import { SiteVisitsPanel } from '@/app/nic-nac/components/SiteVisitsPanel'
 import {
@@ -11,17 +11,6 @@ import {
   type ShowCountdown,
 } from '@/lib/services/rep-dashboard-math'
 import styles from './RepDashboard.module.css'
-
-const SECTION_STORAGE_KEY = 'sparkle-rep-dashboard-sections'
-
-type SectionKey = 'now' | 'visitors' | 'danceFloor' | 'more'
-
-const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
-  now: true,
-  visitors: true,
-  danceFloor: true,
-  more: false,
-}
 
 type DashboardDestination =
   | 'trade-board'
@@ -142,77 +131,6 @@ function Sparkline({ values, labels }: { values: number[]; labels: string[] }) {
   )
 }
 
-function useDashboardSections() {
-  const [open, setOpen] = useState(DEFAULT_SECTIONS)
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(SECTION_STORAGE_KEY)
-      if (!raw) return
-      const parsed = JSON.parse(raw) as Partial<Record<SectionKey, boolean>>
-      setOpen({
-        now: typeof parsed.now === 'boolean' ? parsed.now : DEFAULT_SECTIONS.now,
-        visitors: typeof parsed.visitors === 'boolean' ? parsed.visitors : DEFAULT_SECTIONS.visitors,
-        danceFloor: typeof parsed.danceFloor === 'boolean' ? parsed.danceFloor : DEFAULT_SECTIONS.danceFloor,
-        more: typeof parsed.more === 'boolean' ? parsed.more : DEFAULT_SECTIONS.more,
-      })
-    } catch {
-      setOpen(DEFAULT_SECTIONS)
-    }
-  }, [])
-
-  function toggle(key: SectionKey) {
-    setOpen((current) => {
-      const next = { ...current, [key]: !current[key] }
-      try {
-        window.localStorage.setItem(SECTION_STORAGE_KEY, JSON.stringify(next))
-      } catch {
-        // Private browsing can block storage. The section still toggles for this visit.
-      }
-      return next
-    })
-  }
-
-  return { open, toggle }
-}
-
-function DashboardSection({
-  title,
-  description,
-  sectionKey,
-  open,
-  onToggle,
-  children,
-  testId,
-}: {
-  title: string
-  description?: string
-  sectionKey: SectionKey
-  open: boolean
-  onToggle: (key: SectionKey) => void
-  children: ReactNode
-  testId: string
-}) {
-  return (
-    <section className={styles.section} data-testid={testId}>
-      <button
-        type="button"
-        className={styles.sectionToggle}
-        aria-expanded={open}
-        onClick={() => onToggle(sectionKey)}
-      >
-        <span>
-          <span className={styles.sectionTitle}>{title}</span>
-          {description ? <span className={styles.muted}>{description}</span> : null}
-        </span>
-        <span className={styles.sectionChevron} data-open={open ? 'true' : 'false'} aria-hidden="true" />
-      </button>
-      <div className={styles.sectionBody} hidden={!open}>
-        {children}
-      </div>
-    </section>
-  )
-}
-
 function DirectionMark({ direction }: { direction: GlanceDirection }) {
   if (direction === 'none') return <span className={styles.directionNone}>–</span>
   const label = direction === 'up' ? 'Up from last snapshot' : direction === 'down' ? 'Down from last snapshot' : 'Same as last snapshot'
@@ -244,7 +162,6 @@ export function RepDashboard({
   const [payload, setPayload] = useState<RepDashboardPayload | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const [clock, setClock] = useState(() => now ?? new Date())
-  const sections = useDashboardSections()
   const reviewDashboard = useMemo(
     () => (reviewMode ? createEmptyRepDashboard(now) : null),
     [reviewMode, now],
@@ -339,14 +256,6 @@ export function RepDashboard({
         </p>
       ) : null}
 
-      <DashboardSection
-        title="Right now"
-        description="Your next show, unread messages, and the numbers that change what you do today."
-        sectionKey="now"
-        open={sections.open.now}
-        onToggle={sections.toggle}
-        testId="dashboard-section-now"
-      >
       <div className={styles.hero}>
         <article className={styles.showCard} aria-label="Next show">
           <div className={styles.showCopy}>
@@ -375,6 +284,32 @@ export function RepDashboard({
             ) : null}
           </div>
           {countdown ? <CountdownRing countdown={countdown} /> : null}
+        </article>
+
+        <article className={styles.card}>
+          <p className={styles.kicker}>Coming up</p>
+          <h3 className={styles.cardTitle}>Birthdays</h3>
+          {visibleBirthdays.length > 0 ? (
+            <ul className={styles.birthdayList}>
+              {visibleBirthdays.map((birthday) => (
+                <li key={`${birthday.initials}-${birthday.month}-${birthday.day}-${birthday.daysUntil}`}>
+                  <span className={styles.avatar} aria-hidden="true">{birthday.initials}</span>
+                  <span>
+                    <strong>{birthday.initials}</strong>
+                    <small>
+                      {birthday.isToday ? 'Today' : birthday.dateLabel}
+                      {birthday.observedLeapDay ? ' · Feb 29 birthday' : ''}
+                    </small>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.muted}>No birthdays in the next 30 days. You are clear to plan shows.</p>
+          )}
+          {hiddenBirthdays > 0 ? (
+            <p className={styles.muted}>{hiddenBirthdays} more in the next 30 days.</p>
+          ) : null}
         </article>
       </div>
 
@@ -450,66 +385,6 @@ export function RepDashboard({
           </button>
         </article>
       </div>
-      </DashboardSection>
-
-      <DashboardSection
-        title="Site visitors"
-        description="Visits, the busy hour, QR scans, and a map of US states."
-        sectionKey="visitors"
-        open={sections.open.visitors}
-        onToggle={sections.toggle}
-        testId="dashboard-section-visitors"
-      >
-        <SiteVisitsPanel visits={view.siteVisits} />
-      </DashboardSection>
-
-      <DashboardSection
-        title="Dance Floor"
-        description="What's sitting, what's moving, and where the floor is heavy."
-        sectionKey="danceFloor"
-        open={sections.open.danceFloor}
-        onToggle={sections.toggle}
-        testId="dashboard-section-dance-floor"
-      >
-        <DanceFloorInsightsPanel
-          insights={view.danceFloorInsights}
-          onOpenDanceFloor={() => onOpenSection('trade-board')}
-        />
-      </DashboardSection>
-
-      <DashboardSection
-        title="More"
-        description="Birthdays, platforms, and last month."
-        sectionKey="more"
-        open={sections.open.more}
-        onToggle={sections.toggle}
-        testId="dashboard-section-more"
-      >
-      <article className={styles.card}>
-        <p className={styles.kicker}>Coming up</p>
-        <h3 className={styles.cardTitle}>Birthdays</h3>
-        {visibleBirthdays.length > 0 ? (
-          <ul className={styles.birthdayList}>
-            {visibleBirthdays.map((birthday) => (
-              <li key={`${birthday.initials}-${birthday.month}-${birthday.day}-${birthday.daysUntil}`}>
-                <span className={styles.avatar} aria-hidden="true">{birthday.initials}</span>
-                <span>
-                  <strong>{birthday.initials}</strong>
-                  <small>
-                    {birthday.isToday ? 'Today' : birthday.dateLabel}
-                    {birthday.observedLeapDay ? ' · Feb 29 birthday' : ''}
-                  </small>
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className={styles.muted}>No birthdays in the next 30 days. You are clear to plan shows.</p>
-        )}
-        {hiddenBirthdays > 0 ? (
-          <p className={styles.muted}>{hiddenBirthdays} more in the next 30 days.</p>
-        ) : null}
-      </article>
 
       <div className={styles.secondary}>
         <article className={styles.card}>
@@ -586,7 +461,12 @@ export function RepDashboard({
           ) : null}
         </div>
       ) : null}
-      </DashboardSection>
+
+      <SiteVisitsPanel visits={view.siteVisits} />
+      <DanceFloorInsightsPanel
+        insights={view.danceFloorInsights}
+        onOpenDanceFloor={() => onOpenSection('trade-board')}
+      />
     </section>
   )
 }
