@@ -36,7 +36,6 @@ import type {
   PublicSiteMediaSlot,
   PublicSiteMediaSlotKey,
   SiteSettingsDashboardResult,
-  SiteAnalyticsDashboardResult,
   SiteAppearancePreset,
   TradeListingWithDesign,
   TradeRequestWithListing,
@@ -45,6 +44,7 @@ import type {
   WalletTransactionSummary,
 } from '@/lib/services/types'
 import { SMS_CHARGE_MILS, walletMilsToUsd } from '@/lib/services/wallet-units'
+import { RepDashboard } from './RepDashboard'
 import {
   fulfillmentLogViewForRequest,
   shouldApplyFulfillmentLogPage,
@@ -924,11 +924,6 @@ type ResourcesState = {
   resources?: HelpResource[]
 }
 
-type AnalyticsState = {
-  status: 'loading' | 'ready' | 'error'
-  analytics?: SiteAnalyticsDashboardResult
-}
-
 export type WalletAutoRechargeDraft = {
   enabled: boolean
   thresholdCents: number
@@ -1066,7 +1061,6 @@ type JoinTeamRosterResponsePayload = {
   error?: string
 }
 type ResourcesResponsePayload = HelpResource[]
-type AnalyticsResponsePayload = SiteAnalyticsDashboardResult
 
 const JEWELRY_LIBRARY_DEFAULT_LIMIT = 24
 const EMPTY_JEWELRY_LIBRARY_FACETS: JewelryLibraryFacets = {
@@ -3277,34 +3271,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     status: reviewWorkspaceMode ? 'ready' : 'loading',
     resources: reviewWorkspaceMode ? [] : undefined,
   })
-  const [analyticsState, setAnalyticsState] = useState<AnalyticsState>({
-    status: reviewWorkspaceMode ? 'ready' : 'loading',
-    analytics: reviewWorkspaceMode
-      ? {
-          configured: false,
-          privacy: {
-            disablesIpCapture: true,
-            masksSensitiveInputs: true,
-            identifiesAfterLoginOnly: true,
-          },
-          overview: {
-            pageViews30d: null,
-            uniqueVisitors30d: null,
-            topTrafficSource: null,
-            topDeviceType: null,
-          },
-          topPages: [],
-          trafficSources: [],
-          deviceMix: [],
-          operationalSnapshot: {
-            activeListings: 0,
-            pendingRequests: 0,
-            upcomingShows: 0,
-            reachableCustomers: 0,
-          },
-        }
-      : undefined,
-  })
   const [tradeBoardSearchQuery, setTradeBoardSearchQuery] = useState('')
   const [quickAddItemNumber, setQuickAddItemNumber] = useState('')
   const [librarySearchQuery, setLibrarySearchQuery] = useState('')
@@ -3693,22 +3659,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
   }
 
-  async function loadAnalytics(signal?: AbortSignal) {
-    const response = await fetch('/api/nic-nac/site-analytics', {
-      credentials: 'include',
-      signal,
-    })
-    if (!response.ok) {
-      throw new Error(`analytics request failed: ${response.status}`)
-    }
-
-    const payload = (await response.json()) as AnalyticsResponsePayload
-    setAnalyticsState({
-      status: 'ready',
-      analytics: payload,
-    })
-  }
-
   async function loadJewelryLibrary(filters: JewelryLibraryFilters, signal?: AbortSignal) {
     setJewelryLibraryState({
       status: 'loading',
@@ -3796,10 +3746,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           participants: current.participants,
           publicTeamRoster: current.publicTeamRoster,
         }))
-      }),
-      loadAnalytics(signal).catch((error) => {
-        if ((error as { name?: string }).name === 'AbortError') return
-        setAnalyticsState({ status: 'error' })
       }),
     ])
   }
@@ -4840,7 +4786,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       ...(activeSection === 'trade-board' ? [loadTradeRequestInbox()] : []),
       loadFulfillmentQueue(),
       loadTradeSwapCleanup(),
-      loadAnalytics(),
     ])
   }
 
@@ -4853,7 +4798,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       ...(activeSection === 'trade-board' ? [loadTradeRequestInbox()] : []),
       loadFulfillmentQueue(),
       loadTradeSwapCleanup(),
-      loadAnalytics(),
     ])
   }
 
@@ -7107,22 +7051,17 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           accountBillingState.summary ? (
             <ReferralProgramCard referral={accountBillingState.summary.referral} />
           ) : null}
-          {canRenderWorkspaceSections ? (
-            <>
-              {CUSTOMER_MESSAGING_LAUNCHED ? (
-                <WalletSummaryCard
-                  state={walletState}
-                  actionState={walletActionState}
-                  autoRechargeDraft={autoRechargeDraft}
-                  onAutoRechargeDraftChange={handleAutoRechargeDraftChange}
-                  onSaveAutoRechargeSettings={handleSaveAutoRechargeSettings}
-                  onLoadWallet={handleWalletLoad}
-                  statusMessage={walletActionState.helperMessage}
-                  mutationsDisabled={operatorSupportMode}
-                />
-              ) : null}
-              <SiteAnalyticsCard state={analyticsState} />
-            </>
+          {canRenderWorkspaceSections && CUSTOMER_MESSAGING_LAUNCHED ? (
+            <WalletSummaryCard
+              state={walletState}
+              actionState={walletActionState}
+              autoRechargeDraft={autoRechargeDraft}
+              onAutoRechargeDraftChange={handleAutoRechargeDraftChange}
+              onSaveAutoRechargeSettings={handleSaveAutoRechargeSettings}
+              onLoadWallet={handleWalletLoad}
+              statusMessage={walletActionState.helperMessage}
+              mutationsDisabled={operatorSupportMode}
+            />
           ) : null}
           <SupportAccessHistoryCard />
         </div>
@@ -7305,6 +7244,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
                   tools={workspaceTools}
                   activeKey={activeSection === 'help-resources' ? 'resources' : activeSection}
                   onSelect={openWorkspaceTool}
+                  reviewMode={reviewWorkspaceMode}
                 >
                   {renderedSection}
                 </ToolsHub>
@@ -7980,18 +7920,6 @@ export function WorkspaceAccessNotice({
   )
 }
 
-function ToolsHubWelcome() {
-  return (
-    <section className={styles.toolsHubWelcome} aria-label="Choose a tool">
-      <p className={styles.toolsHubKicker}>Workspace</p>
-      <h2 className={styles.toolsHubWelcomeTitle}>Choose a tool</h2>
-      <p className={styles.toolsHubWelcomeBody}>
-        Pick a tool from the list. It opens on this side of the screen.
-      </p>
-    </section>
-  )
-}
-
 export function ToolsComingSoonPanel({ title }: { title: string }) {
   return (
     <section className={styles.toolsHubSoon} aria-label={`${title} coming soon`}>
@@ -8008,11 +7936,13 @@ export function ToolsHub({
   tools,
   activeKey,
   onSelect,
+  reviewMode = false,
   children,
 }: {
   tools: readonly (typeof SECONDARY_WORKSPACE_SECTIONS)[number][]
   activeKey: string
   onSelect: (section: WorkspaceSectionKey | 'more') => void
+  reviewMode?: boolean
   children?: ReactNode
 }) {
   const toolOpen = activeKey !== 'more'
@@ -8064,7 +7994,9 @@ export function ToolsHub({
             <span>Tools</span>
           </button>
         ) : null}
-        {toolOpen ? children : <ToolsHubWelcome />}
+        {toolOpen ? children : (
+          <RepDashboard onOpenSection={onSelect} reviewMode={reviewMode} />
+        )}
       </div>
     </div>
   )
@@ -9358,87 +9290,6 @@ export function HelpResourcesCard({
           )}
         </>
       )}
-    </div>
-  )
-}
-
-function SiteAnalyticsCard({ state }: { state: AnalyticsState }) {
-  if (state.status === 'error') {
-    return (
-      <div className={styles.workspacePanel}>
-        <div className={styles.emptyState}>
-          Site analytics are temporarily unavailable.
-        </div>
-      </div>
-    )
-  }
-
-  if (state.status !== 'ready' || !state.analytics) {
-    return (
-      <div className={styles.workspacePanel}>
-        <div className={styles.cardFill}>
-          <div className={styles.loadingLine} />
-          <div className={styles.loadingLineShort} />
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className={styles.workspacePanel}>
-      <div className={styles.workspaceSectionHeader}>
-        <div>
-          <div className={styles.cardTitle}>Site analytics</div>
-          <div className={styles.cardSubtitle}>
-            PostHog-ready traffic slot plus a local operating snapshot.
-          </div>
-        </div>
-        <span className={styles.rosterTag}>
-          {state.analytics.configured ? 'PostHog configured' : 'Awaiting PostHog keys'}
-        </span>
-      </div>
-      {!state.analytics.configured ? (
-        <div className={styles.helperNote}>
-          Traffic charts will light up after PostHog keys are present in the environment. Privacy is already locked to no early identity linking and masked sensitive inputs.
-        </div>
-      ) : null}
-      <div className={styles.metricGrid}>
-        <div className={styles.metricBlock}>
-              <span className={styles.metricLabel}>Active dancers</span>
-          <span className={styles.metricValue}>
-            {state.analytics.operationalSnapshot.activeListings}
-          </span>
-        </div>
-        <div className={styles.metricBlock}>
-          <span className={styles.metricLabel}>Pending requests</span>
-          <span className={styles.metricValue}>
-            {state.analytics.operationalSnapshot.pendingRequests}
-          </span>
-        </div>
-        <div className={styles.metricBlock}>
-          <span className={styles.metricLabel}>Upcoming shows</span>
-          <span className={styles.metricValue}>
-            {state.analytics.operationalSnapshot.upcomingShows}
-          </span>
-        </div>
-        <div className={styles.metricBlock}>
-          <span className={styles.metricLabel}>Reachable customers</span>
-          <span className={styles.metricValue}>
-            {state.analytics.operationalSnapshot.reachableCustomers}
-          </span>
-        </div>
-      </div>
-      <div className={styles.timelineList}>
-        <span className={styles.timelineItem}>
-          Disable IP capture: {state.analytics.privacy.disablesIpCapture ? 'Yes' : 'No'}
-        </span>
-        <span className={styles.timelineItem}>
-          Mask sensitive inputs: {state.analytics.privacy.masksSensitiveInputs ? 'Yes' : 'No'}
-        </span>
-        <span className={styles.timelineItem}>
-          Identify after login only: {state.analytics.privacy.identifiesAfterLoginOnly ? 'Yes' : 'No'}
-        </span>
-      </div>
     </div>
   )
 }

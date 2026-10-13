@@ -49,7 +49,7 @@ describe('Control Center transparent operator support access UI', () => {
     expect(html).toContain('Nic-Nac')
     expect(html).toContain('Open Dance Floor')
     expect(html).toContain('Visit resources')
-    expect(html).toContain('>Live Queue code<')
+    expect(html).toContain('>Live Lineup code<')
     expect(html).toContain('>Messages<')
     expect(html).toContain('>Log out<')
     expect(html).toContain('Sign-in changes are disabled during support access.')
@@ -120,8 +120,9 @@ describe('Control Center transparent operator support access UI', () => {
     expect(accountSection.indexOf('<SupportAccessHistoryCard />')).toBeGreaterThan(
       accountSection.indexOf('<AccountSecurityCard mutationsDisabled={operatorSupportMode} />'),
     )
+    expect(accountSection).not.toContain('SiteAnalyticsCard')
     expect(accountSection.indexOf('<SupportAccessHistoryCard />')).toBeGreaterThan(
-      accountSection.indexOf('<SiteAnalyticsCard state={analyticsState} />'),
+      accountSection.indexOf('CUSTOMER_MESSAGING_LAUNCHED'),
     )
   })
 
@@ -137,7 +138,7 @@ describe('Control Center transparent operator support access UI', () => {
 
     expect(html).toContain('Message Center')
     expect(html).toContain('Resources &amp; Help')
-    expect(html).toContain('Live Queue')
+    expect(html).toContain('Live Lineup')
     expect(html).toContain('Account')
     expect(html).toContain('Customer List')
   })

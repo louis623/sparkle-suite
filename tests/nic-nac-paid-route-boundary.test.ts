@@ -16,6 +16,7 @@ const paidNicNacRoutes = [
   'app/api/nic-nac/jewelry-library/route.ts',
   'app/api/nic-nac/join-team-roster/photo/route.ts',
   'app/api/nic-nac/messages/route.ts',
+  'app/api/nic-nac/rep-dashboard/route.ts',
   'app/api/nic-nac/send-email/route.ts',
   'app/api/nic-nac/site-analytics/route.ts',
   'app/api/nic-nac/site-recipes/draft/route.ts',
