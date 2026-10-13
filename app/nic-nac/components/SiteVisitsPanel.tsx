@@ -244,18 +244,21 @@ export function SiteVisitsPanel({
 }) {
   const publicSiteHref = siteHref?.trim() || null
   return (
-    <section className={styles.boardSection} data-testid="site-visitors" aria-labelledby="site-visitors-title">
-      <header className={styles.sectionHead}>
-        <h3 id="site-visitors-title" className={styles.boardSectionTitle}>Your site visitors</h3>
+    <section className={styles.subjectCard} data-testid="site-visitors" aria-labelledby="site-visitors-title">
+      <header className={styles.customerTop}>
+        <div>
+          <p className={styles.kicker}>Website</p>
+          <h3 id="site-visitors-title" className={styles.cardTitle}>Your site visitors</h3>
+          <p className={styles.customerExplainer}>
+            Page views on your public site over the last 28 days. Tracking started {TRACKING_STARTED}. QR codes printed before that still open your site and count as regular visits.
+          </p>
+        </div>
         {publicSiteHref ? (
           <a className={styles.headerSiteLink} href={publicSiteHref} target="_blank" rel="noreferrer noopener">
             <ClickCue kind="site" />
             <span className={styles.srOnly}> Opens in a new tab.</span>
           </a>
         ) : null}
-        <p className={styles.why}>
-          Page views on your public site over the last 28 days. Tracking started {TRACKING_STARTED}. QR codes printed before that still open your site and count as regular visits.
-        </p>
       </header>
       {visits.status === 'unavailable' ? (
         <article className={styles.card}>

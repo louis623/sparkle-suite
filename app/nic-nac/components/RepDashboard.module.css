@@ -694,14 +694,30 @@ a.birthdayLink:focus-visible {
   }
 }
 
-.customerCard {
+.customerCard,
+.subjectCard {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
   padding: 22px;
   border: 1px solid rgba(23, 16, 52, 0.08);
   border-radius: 18px;
   background: #fffdfb;
+}
+
+.subjectStack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.subjectPair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
 }
 
 .customerTop {
@@ -841,6 +857,11 @@ a.birthdayLink:focus-visible {
     grid-template-columns: 1fr 1fr;
   }
 
+  .customerCard,
+  .subjectCard {
+    padding: 16px;
+  }
+
   .customerTiles .customerTile:last-child {
     grid-column: span 2;
   }
@@ -862,6 +883,7 @@ a.birthdayLink:focus-visible {
   .card.cardLink,
   .statCard.cardLink,
   .conditionalCard.cardLink,
+  .subjectCard.cardLink,
   .customerTile {
     transition: transform 160ms ease, box-shadow 160ms ease;
   }
@@ -878,6 +900,8 @@ a.birthdayLink:focus-visible {
   .statCard.cardLink:focus-visible,
   .conditionalCard.cardLink:hover,
   .conditionalCard.cardLink:focus-visible,
+  .subjectCard.cardLink:hover,
+  .subjectCard.cardLink:focus-visible,
   .customerTile:hover,
   .customerTile:focus-visible {
     transform: translateY(-2px);
@@ -907,6 +931,7 @@ a.birthdayLink:focus-visible {
   .card.cardLink,
   .statCard.cardLink,
   .conditionalCard.cardLink,
+  .subjectCard.cardLink,
   .customerTile {
     animation: none;
     transition: none;
@@ -971,6 +996,7 @@ a.birthdayLink:focus-visible {
 .insightGrid {
   display: grid;
   gap: 14px;
+  min-width: 0;
 }
 
 .visitSpark {
@@ -1428,9 +1454,20 @@ a.birthdayLink:focus-visible {
 
 .insightWide { grid-column: 1 / -1; }
 
+@container repdash (max-width: 560px) {
+  .showCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 @container repdash (min-width: 720px) {
   .mapLayout {
     grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.7fr);
+  }
+
+  .subjectPair {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   }
 }
 

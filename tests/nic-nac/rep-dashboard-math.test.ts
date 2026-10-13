@@ -275,26 +275,45 @@ describe('rep dashboard presentation', () => {
     expect(html).toContain('October 13, 2026')
     expect(html).not.toContain('Site visits — coming soon')
     expect(html).not.toContain('hidden=""')
-    expect(html.indexOf('Next show')).toBeLessThan(html.indexOf('Birthdays'))
-    expect(html.indexOf('Birthdays')).toBeLessThan(html.indexOf('Platform mix'))
-    expect(html.indexOf('Platform mix')).toBeLessThan(html.indexOf('Last month at a glance'))
-    expect(html.indexOf('Last month at a glance')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
-    expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('data-testid="dance-floor-insights"'))
+    expect(html.indexOf('Next show')).toBeLessThan(html.indexOf('Platform mix'))
+    expect(html.indexOf('Platform mix')).toBeLessThan(html.indexOf('Birthdays'))
+    expect(html.indexOf('Birthdays')).toBeLessThan(html.indexOf('Your customers'))
+    expect(html.indexOf('data-testid="dance-floor-insights"')).toBeLessThan(html.indexOf('Unread messages'))
+    expect(html.indexOf('Unread messages')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
+    expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('Last month at a glance'))
+    const showsCard = html.slice(
+      html.indexOf('data-testid="shows-card"'),
+      html.indexOf('data-testid="birthdays-card"'),
+    )
+    const danceFloorCard = html.slice(
+      html.indexOf('data-testid="dance-floor-insights"'),
+      html.indexOf('data-testid="messages-card"'),
+    )
+    const messagesCard = html.slice(
+      html.indexOf('data-testid="messages-card"'),
+      html.indexOf('data-testid="site-visitors"'),
+    )
+    expect(showsCard).toContain('data-testid="next-show"')
+    expect(showsCard).toContain('data-testid="platform-mix"')
+    expect(showsCard).toContain('Your shows')
+    expect(danceFloorCard).toContain('data-testid="dance-floor-card"')
+    expect(danceFloorCard).toContain('data-testid="pending-trades"')
+    expect(danceFloorCard).toContain('Your Dance Floor')
+    expect(danceFloorCard).toContain('No pieces yet')
+    expect(messagesCard).toContain('data-testid="unread-messages"')
+    expect(messagesCard).toContain('Open Message Center')
     expect(html).not.toContain('Choose a tool')
     expect(html).not.toContain('data-pulse="true"')
     expect(html).not.toContain('Open site ›')
     expect(html).not.toContain('See details ›')
-    const monthCard = html.slice(
-      html.indexOf('data-testid="month-at-a-glance"'),
-      html.indexOf('data-testid="site-visitors"'),
-    )
+    const monthCard = html.slice(html.indexOf('data-testid="month-at-a-glance"'))
     const heatmap = html.slice(
       html.indexOf('data-testid="visit-heatmap"'),
       html.indexOf('data-testid="qr-visits"'),
     )
     const visitMap = html.slice(
       html.indexOf('data-testid="visit-map"'),
-      html.indexOf('data-testid="dance-floor-insights"'),
+      html.indexOf('data-testid="month-at-a-glance"'),
     )
     const siteVisits = html.slice(
       html.indexOf('data-testid="site-visits"'),
@@ -511,12 +530,18 @@ describe('rep dashboard presentation', () => {
 
     expect(teamRow).toContain('>0<')
     expect(teamRow).not.toContain('—')
-    expect(html).toContain('Open Live Lineup')
+    const showsCard = html.slice(
+      html.indexOf('data-testid="shows-card"'),
+      html.indexOf('data-testid="birthdays-card"'),
+    )
+    expect(showsCard).toContain('Open Live Lineup')
+    expect(showsCard).toContain('Live Lineup shows')
+    expect(showsCard).toContain('>4<')
     expect(html).toContain('textAction')
     expect(html).not.toContain('<small>Open Live Lineup</small>')
   })
 
-  it('keeps every v1 card, then site visitors, then Dance Floor insights', () => {
+  it('groups stats under subject cards, with shows first and last month after site visitors', () => {
     const now = new Date('2026-10-13T16:00:00.000Z')
     const data = createEmptyRepDashboard(now, TIME_ZONE)
     const day = 24 * 60 * 60 * 1000
@@ -605,11 +630,31 @@ describe('rep dashboard presentation', () => {
     expect(topStates).not.toContain('Washington')
     expect(html).not.toContain('hidden=""')
     expect(html).not.toContain('Site visits — coming soon')
-    expect(html.indexOf('data-testid="next-show"')).toBeLessThan(html.indexOf('Birthdays'))
-    expect(html.indexOf('Birthdays')).toBeLessThan(html.indexOf('Platform mix'))
-    expect(html.indexOf('Platform mix')).toBeLessThan(html.indexOf('Last month at a glance'))
-    expect(html.indexOf('Last month at a glance')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
-    expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('Sitting on the floor'))
+    const danceFloorCard = html.slice(
+      html.indexOf('data-testid="dance-floor-insights"'),
+      html.indexOf('data-testid="messages-card"'),
+    )
+    const visitorsCard = html.slice(
+      html.indexOf('data-testid="site-visitors"'),
+      html.indexOf('data-testid="month-at-a-glance"'),
+    )
+    expect(danceFloorCard).toContain('Active listings')
+    expect(danceFloorCard).toContain('Pending trades')
+    expect(danceFloorCard).toContain('Sitting on the floor')
+    expect(danceFloorCard).toContain('Floor mix')
+    expect(danceFloorCard).toContain('Fast movers vs sitters')
+    expect(danceFloorCard).toContain('Days on floor by type')
+    expect(danceFloorCard).toContain('Outcomes')
+    expect(visitorsCard).toContain('data-testid="site-visits"')
+    expect(visitorsCard).toContain('data-testid="visit-heatmap"')
+    expect(visitorsCard).toContain('data-testid="qr-visits"')
+    expect(visitorsCard).toContain('data-testid="visit-map"')
+    expect(visitorsCard).toContain('Top 5 states')
+    expect(html.indexOf('data-testid="next-show"')).toBeLessThan(html.indexOf('Platform mix'))
+    expect(html.indexOf('Platform mix')).toBeLessThan(html.indexOf('Birthdays'))
+    expect(html.indexOf('Birthdays')).toBeLessThan(html.indexOf('Last month at a glance'))
+    expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('Last month at a glance'))
+    expect(html.indexOf('Sitting on the floor')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
     expect(html.indexOf('Customers')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
     expect(html.indexOf('Pending trades')).toBeLessThan(html.indexOf('Unread messages'))
     expect(html.indexOf('Unread messages')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))

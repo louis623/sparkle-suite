@@ -180,19 +180,11 @@ export function DanceFloorInsightsPanel({
 }) {
   if (insights.empty) {
     return (
-      <section className={styles.boardSection} data-testid="dance-floor-insights" aria-labelledby="dance-floor-title">
-        <header>
-          <h3 id="dance-floor-title" className={styles.boardSectionTitle}>Your Dance Floor</h3>
-          <p className={styles.why}>
-            What is still listed, what already left, and which pieces have been waiting. Use it to decide what to feature in your next live.
-          </p>
-        </header>
-        <FloorCard onOpen={onOpenDanceFloor}>
-          <h3 className={styles.pieceTitle}>No pieces yet</h3>
-          <p className={styles.muted}>Add a listing and this will show what is sitting, what sold, and where the floor is heavy.</p>
-          <span className={styles.textAction}>Add your first piece</span>
-        </FloorCard>
-      </section>
+      <FloorCard onOpen={onOpenDanceFloor}>
+        <h3 className={styles.pieceTitle}>No pieces yet</h3>
+        <p className={styles.muted}>Add a listing and this will show what is sitting, what sold, and where the floor is heavy.</p>
+        <span className={styles.textAction}>Add your first piece</span>
+      </FloorCard>
     )
   }
 
@@ -202,13 +194,7 @@ export function DanceFloorInsightsPanel({
   )
 
   return (
-    <section className={styles.boardSection} data-testid="dance-floor-insights" aria-labelledby="dance-floor-title">
-      <header>
-        <h3 id="dance-floor-title" className={styles.boardSectionTitle}>Your Dance Floor</h3>
-        <p className={styles.why}>
-          What is still listed, what already left, and which pieces have been waiting. Use it to decide what to feature in your next live.
-        </p>
-      </header>
+    <>
       <FloorCard onOpen={onOpenDanceFloor}>
         <h3 className={styles.pieceTitle}>Dance Floor totals</h3>
         <p className={styles.why}>
@@ -376,6 +362,6 @@ export function DanceFloorInsightsPanel({
           <p className={styles.learn}><strong>What you learn:</strong> how much of what you list actually leaves your floor, and how.</p>
         </FloorCard>
       </div>
-    </section>
+    </>
   )
 }
