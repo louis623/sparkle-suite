@@ -57,6 +57,7 @@ import {
   hasBlingKitchenRecipeWorkspaceAccess,
   hasPaidWorkspaceSubscription,
   getWorkspaceToolSections,
+  isWorkspaceToolSection,
   isComingSoonWorkspaceSection,
   resolveWorkspaceSectionForAccess,
   shouldShowWorkspaceLoadingSkeleton,
@@ -1174,7 +1175,9 @@ describe('DashboardPlaceholder', () => {
     expect(resolveWorkspaceSectionForAccess('help-resources', false)).toBe('help-resources')
     expect(isComingSoonWorkspaceSection('business-calculator')).toBe(true)
     expect(isComingSoonWorkspaceSection('team-management')).toBe(false)
-    expect(isComingSoonWorkspaceSection('collection-intake')).toBe(true)
+    expect(isComingSoonWorkspaceSection('collection-intake')).toBe(false)
+    expect(isWorkspaceToolSection('collection-intake')).toBe(false)
+    expect(getWorkspaceToolSections().map((section) => section.key)).not.toContain('collection-intake')
     expect(isComingSoonWorkspaceSection('customer-list')).toBe(false)
     expect(isComingSoonWorkspaceSection('messages')).toBe(false)
     expect(isComingSoonWorkspaceSection('resources')).toBe(false)
@@ -2557,8 +2560,8 @@ describe('DashboardPlaceholder', () => {
       label: 'Nic-Nac',
     })
     expect(getWorkspaceBackDestination('collection-intake')).toEqual({
-      section: 'more',
-      label: 'Tools',
+      section: 'trade-board',
+      label: 'Dance Floor',
     })
     expect(getWorkspaceBackDestination('jewelry-library')).toEqual({
       section: 'more',
@@ -4169,7 +4172,6 @@ describe('DashboardPlaceholder', () => {
     }).map((section) => section.label)
     expect(labels).toEqual([
       'Account',
-      'Bulk Collection Intake',
       'Business Calculator',
       'Customer List',
       'Customer-facing site setup',

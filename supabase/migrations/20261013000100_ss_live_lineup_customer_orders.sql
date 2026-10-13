@@ -1,4 +1,4 @@
--- Smoke only. Apply this on the Smoke database. Do not apply it to Live.
+-- Lineup purchase rows. Additive. On Live, apply after 20260926000200 and 20260929000100.
 -- One row per Bomb Party order for a rep, written when a lineup customer is matched
 -- or created, and again when a show is archived. Repeating a write does not duplicate the row.
 -- Revealed orders whose names are no longer in the archived state cannot be reconstructed.
@@ -60,8 +60,6 @@ CREATE TABLE public.live_lineup_customer_orders (
   FOREIGN KEY (audience_id, rep_id) REFERENCES public.customer_audience(id, rep_id) ON DELETE CASCADE
 );
 
-COMMENT ON TABLE public.live_lineup_customer_orders IS
-  'Private lineup purchase rows. order_id is the Bomb Party order id and is unique per rep. party_id is stored beside it. Smoke apply only.';
 
 CREATE INDEX live_lineup_customer_orders_rep_ordered
   ON public.live_lineup_customer_orders (rep_id, ordered_at);
@@ -212,7 +210,13 @@ END $$;
 CREATE OR REPLACE FUNCTION public.live_lineup_record_archived_customer_orders() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 BEGIN
-  PERFORM public.live_lineup_record_orders_from_state(NEW.rep_id, NEW.state);
+  -- Order tracking must never block ending or archiving a show.
+  BEGIN
+    PERFORM public.live_lineup_record_orders_from_state(NEW.rep_id, NEW.state);
+  EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'live_lineup_record_archived_customer_orders skipped for rep % generation %: % (%)',
+      NEW.rep_id, NEW.generation, SQLERRM, SQLSTATE;
+  END;
   RETURN NEW;
 END $$;
 
