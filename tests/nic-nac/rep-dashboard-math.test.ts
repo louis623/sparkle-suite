@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -214,6 +215,8 @@ describe('rep dashboard presentation', () => {
       .replace(/<[^>]+>/g, '')
 
     expect(html).toContain('Your dashboard')
+    expect(html).toContain('Last month at a glance')
+    expect(html).not.toContain('This month at a glance')
     expect(html).toContain('Add your first customer')
     expect(html).toContain('No show on the books')
     expect(html).toContain('Host a show and this lights up')
@@ -251,5 +254,53 @@ describe('rep dashboard presentation', () => {
     expect(html).toContain('Friday Live')
     expect(html).toContain('3')
     expect(html).toContain('Open Dance Floor')
+  })
+
+  it('shows a zero for team onboarding and a purple Live Lineup link', () => {
+    const now = new Date('2026-10-12T15:00:00.000Z')
+    const data = createEmptyRepDashboard(now, TIME_ZONE)
+    data.monthAtAGlance = {
+      periodLabel: 'September 2026',
+      comparedToLabel: 'August 2026',
+      rows: [
+        {
+          key: 'team_participants_added',
+          label: 'Team onboarding participants added',
+          value: 0,
+          previous: 0,
+          direction: 'flat',
+        },
+      ],
+    }
+    data.liveLineup = { count: 4 }
+    const html = renderToStaticMarkup(
+      createElement(RepDashboard, {
+        onOpenSection: () => undefined,
+        data,
+        now,
+      }),
+    )
+    const teamRow = html.slice(
+      html.indexOf('Team onboarding participants added'),
+      html.indexOf('</li>', html.indexOf('Team onboarding participants added')),
+    )
+
+    expect(teamRow).toContain('>0<')
+    expect(teamRow).not.toContain('—')
+    expect(html).toContain('Open Live Lineup')
+    expect(html).toContain('textAction')
+    expect(html).not.toContain('<small>Open Live Lineup</small>')
+  })
+
+  it('counts team onboarding participants by owner, not rep_id', () => {
+    const source = readFileSync(
+      new URL('../../lib/services/workspace-monthly-reports.ts', import.meta.url),
+      'utf8',
+    )
+    const start = source.indexOf("from('team_onboarding_participants')")
+    const count = source.slice(start, start + 420)
+
+    expect(count).toContain(".eq('owner_rep_id', args.repId)")
+    expect(count).not.toContain("eq('rep_id'")
   })
 })

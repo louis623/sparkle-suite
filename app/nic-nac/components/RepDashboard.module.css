@@ -85,6 +85,11 @@
   gap: 14px;
 }
 
+.conditional {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .card,
 .statCard,
 .showCard,
@@ -425,8 +430,7 @@
   display: block;
 }
 
-.birthdayList small,
-.conditionalCard small {
+.birthdayList small {
   color: rgba(23, 16, 52, 0.62);
   font-size: 12px;
 }
@@ -523,6 +527,7 @@
 
 .conditionalCard {
   display: flex;
+  flex: 1 1 220px;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
@@ -606,8 +611,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .stats,
-  .conditional {
+  .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -625,9 +629,13 @@
   .stats {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+}
 
-  .conditional {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+@media (max-width: 840px) {
+  .dashboard {
+    /* Clear the fixed pink Nic-Nac button at the bottom-right. */
+    padding-right: calc(56px + env(safe-area-inset-right));
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
   }
 }
 

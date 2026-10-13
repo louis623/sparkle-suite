@@ -260,7 +260,13 @@ export async function collectMonthlyReportData(args: {
       'Support reports filed',
     ),
     safeCount(
-      () => countForPeriod(args.supabase, 'team_onboarding_participants', args.repId, period),
+      () =>
+        args.supabase
+          .from('team_onboarding_participants')
+          .select('id', { head: true, count: 'exact' })
+          .eq('owner_rep_id', args.repId)
+          .gte('created_at', period.periodStart)
+          .lt('created_at', period.periodEnd),
       'team_participants_added',
       'Team onboarding participants added',
     ),

@@ -467,7 +467,7 @@ export function RepDashboard({
         </article>
 
         <article className={`${styles.card} ${styles.glance}`}>
-          <p className={styles.kicker}>This month at a glance</p>
+          <p className={styles.kicker}>Last month at a glance</p>
           <h3 className={styles.cardTitle}>
             {view.monthAtAGlance.periodLabel || 'Monthly snapshot'}
           </h3>
@@ -498,21 +498,21 @@ export function RepDashboard({
             <button type="button" className={styles.conditionalCard} onClick={() => onOpenSection('team-management')}>
               <span>Team</span>
               <strong>{formatCount(view.team.count)}</strong>
-              <small>Open Team Management</small>
+              <span className={styles.textAction}>Open Team Management</span>
             </button>
           ) : null}
           {view.recipes && view.recipes.count > 0 ? (
             <button type="button" className={styles.conditionalCard} onClick={() => onOpenSection('recipes')}>
               <span>Recipes</span>
               <strong>{formatCount(view.recipes.count)}</strong>
-              <small>Open Bling Kitchen</small>
+              <span className={styles.textAction}>Open Bling Kitchen</span>
             </button>
           ) : null}
           {view.liveLineup && view.liveLineup.count > 0 ? (
             <button type="button" className={styles.conditionalCard} onClick={() => onOpenSection('live-queue')}>
               <span>Live Lineup shows</span>
               <strong>{formatCount(view.liveLineup.count)}</strong>
-              <small>Open Live Lineup</small>
+              <span className={styles.textAction}>Open Live Lineup</span>
             </button>
           ) : null}
         </div>
