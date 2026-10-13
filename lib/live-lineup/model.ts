@@ -23,9 +23,96 @@ export function createLineupState(): LineupState {
 }
 
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value)
-const canonicalTime = (value: unknown): value is string => typeof value === 'string' && Number.isFinite(Date.parse(value))
-  && validTime(Date.parse(value)) && new Date(value).toISOString() === value
+
+/** JS Date.toISOString() shape: exactly 3 millisecond digits, UTC Z. Postgres µs (6 digits) fails this. */
+export function canonicalizeTime(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const parsed = Date.parse(value)
+  if (!Number.isFinite(parsed) || !validTime(parsed)) return null
+  return new Date(parsed).toISOString()
+}
+
+/** True only when value already matches canonicalizeTime (publisher/Workspace gate). */
+export const isCanonicalTime = (value: unknown): value is string => canonicalizeTime(value) === value
+const canonicalTime = isCanonicalTime
 const nullableTime = (value: unknown) => value === null || canonicalTime(value)
+
+function canonicalizeObservation(value: unknown): Record<string, unknown> | null {
+  if (!record(value)) return null
+  const serverTime = canonicalizeTime(value.serverTime)
+  if (serverTime === null) return null
+  return { ...value, serverTime }
+}
+
+/**
+ * Shared serialize helper: rewrite every isLineupState time field to JS toISOString().
+ * Returns null when a present time field is unparseable (not a safe heal).
+ * Used on every write path and as heal-on-read for Postgres µs / non-canonical skew.
+ */
+export function canonicalizeLineupTimestamps(input: unknown): LineupState | null {
+  if (!record(input)) return null
+  const next: Record<string, unknown> = { ...input }
+
+  for (const key of ['lastReceivedAt', 'lastReadyAt', 'lastChangedAt', 'lastReadySourceAt'] as const) {
+    if (!(key in next) || next[key] === null || next[key] === undefined) continue
+    const canonical = canonicalizeTime(next[key])
+    if (canonical === null) return null
+    next[key] = canonical
+  }
+
+  if (next.show !== null && next.show !== undefined) {
+    if (!record(next.show)) return null
+    const startedAt = canonicalizeTime(next.show.startedAt)
+    if (startedAt === null) return null
+    next.show = { ...next.show, startedAt }
+  }
+
+  if (next.publisher !== null && next.publisher !== undefined) {
+    if (!record(next.publisher)) return null
+    const leaseExpiresAt = canonicalizeTime(next.publisher.leaseExpiresAt)
+    if (leaseExpiresAt === null) return null
+    next.publisher = { ...next.publisher, leaseExpiresAt }
+  }
+
+  for (const key of ['sourceObservation', 'lastReadyObservation'] as const) {
+    if (!(key in next) || next[key] === null || next[key] === undefined) continue
+    const observation = canonicalizeObservation(next[key])
+    if (observation === null) return null
+    next[key] = observation
+  }
+
+  if (next.restorations !== undefined) {
+    if (!Array.isArray(next.restorations)) return null
+    const restorations: unknown[] = []
+    for (const item of next.restorations) {
+      if (!record(item) || !record(item.checked)) return null
+      const checked = canonicalizeObservation(item.checked)
+      if (checked === null) return null
+      restorations.push({ ...item, checked })
+    }
+    next.restorations = restorations
+  }
+
+  if (next.revealEvents !== undefined) {
+    if (!Array.isArray(next.revealEvents)) return null
+    const revealEvents: unknown[] = []
+    for (const event of next.revealEvents) {
+      if (!record(event)) return null
+      const at = canonicalizeTime(event.at)
+      if (at === null) return null
+      revealEvents.push({ ...event, at })
+    }
+    next.revealEvents = revealEvents
+  }
+
+  return isLineupState(next) ? next : null
+}
+
+/** Heal known-safe timestamp skew only: non-canonical but parseable ISO → toISOString(); else null. */
+export function healLineupStateTimestamps(input: unknown): LineupState | null {
+  if (isLineupState(input)) return input
+  return canonicalizeLineupTimestamps(input)
+}
 const clockRegressed = (state: LineupState, now: number) => [state.lastReceivedAt, state.lastReadyAt, state.lastChangedAt]
   .some(timestamp => timestamp !== null && Date.parse(timestamp) > now)
 function validIds(value: unknown, maximum: number): value is string[] {

@@ -6,7 +6,7 @@ import type { LiveQueueSnapshot } from '@/lib/services/types'
 import { buildLiveQueueSnapshot } from '@/lib/services/live-queue'
 import { projectPublicLineup } from '@/lib/amethyst/public-live-lineup'
 import { liveLineupOwnerMutationsAvailable } from './runtime-mode'
-import { applyLineupCommand, applySourcePacket, buildWorkspaceLineupSnapshot, claimPublisher, createLineupState, isClaimId, isLineupState, lineupFreshness, parseLineupCommand } from './model'
+import { applyLineupCommand, applySourcePacket, buildWorkspaceLineupSnapshot, canonicalizeLineupTimestamps, claimPublisher, createLineupState, healLineupStateTimestamps, isClaimId, isLineupState, lineupFreshness, parseLineupCommand } from './model'
 import type { LineupState, SourceDescriptor, WorkspaceLineupSnapshot } from './types'
 
 export class LineupServiceError extends Error {
@@ -20,8 +20,12 @@ export async function readLineupState(db: SupabaseClient, repId: string): Promis
   if (missingSchema(error)) return null // Additive rollout: legacy stays read-only until schema/client migration.
   if (error) throw new LineupServiceError('lineup_unavailable')
   if (!data) return null
-  if (data.rep_id !== repId || !isLineupState(data.state) || Number(data.revision) !== data.state.revision) throw new LineupServiceError('invalid_stored_lineup')
-  return data.state
+  if (data.rep_id !== repId) throw new LineupServiceError('invalid_stored_lineup')
+  // Heal-on-read: Postgres/service-role µs ISO (…314700Z) must not brick the publisher with invalid_stored_lineup.
+  // Only known-safe timestamp skew is normalized; other corruption still fails closed.
+  const state = isLineupState(data.state) ? data.state : healLineupStateTimestamps(data.state)
+  if (!state || Number(data.revision) !== state.revision) throw new LineupServiceError('invalid_stored_lineup')
+  return state
 }
 
 async function legacySnapshot(db: SupabaseClient, repId: string, now: number): Promise<LiveQueueSnapshot | null> {
@@ -79,7 +83,11 @@ export async function getEffectiveLiveQueueSnapshot(db: SupabaseClient, repId: s
 
 type CommitGuard = {kind: 'claim' | 'configure' | 'source' | 'owner'; claimId?: string; epoch?: number; generation?: number; requireFresh?: boolean; observationTime?: string}
 async function saveState(db: SupabaseClient, repId: string, expectedRevision: number, state: LineupState, tokenId?: string, guard?: CommitGuard) {
-  if (!isLineupState(state)) throw new LineupServiceError('capacity_exceeded', 409)
+  // Canonicalize on every write (Workspace owner mutations, publisher claim/source, service-role via this path)
+  // so lastChangedAt / lease / observation times always match JS toISOString() (3 ms digits).
+  const canonical = canonicalizeLineupTimestamps(state)
+  if (!canonical) throw new LineupServiceError('capacity_exceeded', 409)
+  state = canonical
   const { data, error } = await db.rpc('live_lineup_commit', {
     p_rep_id: repId, p_expected_revision: expectedRevision, p_state: state, p_token_id: tokenId ?? null,
     p_guard: guard ?? {kind: 'owner'},

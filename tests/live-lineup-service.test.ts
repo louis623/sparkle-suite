@@ -485,3 +485,51 @@ describe('Live Lineup service — scoped source and Workspace integration', () =
     expect((await claimSource(d.db, token, otherClaimId, now + 100_000)).epoch).toBe(2)
   })
 })
+
+describe('Live Lineup Workspace timestamp harden (service)', () => {
+  const micros = '2026-09-29T23:15:26.314700Z'
+  const canonical = '2026-09-29T23:15:26.314Z'
+
+  it('readLineupState heals µs lastChangedAt instead of invalid_stored_lineup', async () => {
+    const d = seeded()
+    const row = d.rows.live_lineup_states[0]
+    row.state = { ...row.state, lastChangedAt: micros }
+    expect(row.state.lastChangedAt).toBe(micros)
+    const state = await readLineupState(d.db, repA)
+    expect(state).not.toBeNull()
+    expect(state!.lastChangedAt).toBe(canonical)
+    // DB row remains poisoned until a write; heal is on-read only
+    expect(d.rows.live_lineup_states[0].state.lastChangedAt).toBe(micros)
+  })
+
+  it('describeSource stays reachable when stored lastChangedAt has Postgres micros', async () => {
+    const d = seeded()
+    d.rows.live_lineup_states[0].state = { ...d.rows.live_lineup_states[0].state, lastChangedAt: micros }
+    const result = await describeSource(d.db, token, now + 3000)
+    expect(result.protocol).toBe(2)
+    expect(result.serverTime).toBe(new Date(now + 3000).toISOString())
+  })
+
+  it('Workspace changeLineup write path stores 3-digit ms lastChangedAt', async () => {
+    const d = seeded()
+    // Poison with µs on the fixture's own lastChangedAt (same instant, 6 fractional digits)
+    const prior = d.rows.live_lineup_states[0].state.lastChangedAt as string
+    const poisonedChangedAt = prior.slice(0, -1) + '000Z'
+    d.rows.live_lineup_states[0].state = { ...d.rows.live_lineup_states[0].state, lastChangedAt: poisonedChangedAt }
+    expect(poisonedChangedAt).toMatch(/\.\d{6}Z$/)
+    const before = await getWorkspaceLineup(d.db, repA, now + 2000, true)
+    const held = await changeLineup(d.db, repA, { expectedRevision: before.revision, type: 'hold', entryId: 'order-a' }, now + 2000)
+    expect(held.entries.map(e => e.id)).toEqual(['order-b'])
+    const stored = d.rows.live_lineup_states[0].state
+    expect(stored.lastChangedAt).toBe(new Date(now + 2000).toISOString())
+    expect(stored.lastChangedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/)
+    expect(stored.lastChangedAt).not.toMatch(/\.\d{6}Z$/)
+    expect(await readLineupState(d.db, repA)).toMatchObject({ lastChangedAt: stored.lastChangedAt })
+  })
+
+  it('still fails closed on non-timestamp corruption', async () => {
+    const bad = database()
+    bad.rows.live_lineup_states.push({ rep_id: repA, revision: 1, state: {} })
+    await expect(readLineupState(bad.db, repA)).rejects.toMatchObject({ code: 'invalid_stored_lineup' })
+  })
+})
