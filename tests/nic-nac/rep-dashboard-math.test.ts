@@ -263,7 +263,8 @@ describe('rep dashboard presentation', () => {
     expect(showCard).not.toContain('<button')
     expect(showCard).not.toContain('Open calendar')
     expect(html).toContain('Birthdays')
-    expect(html).toContain('Platform mix')
+    expect(html).not.toContain('Platform mix')
+    expect(html).not.toContain('Live Lineup shows')
     expect(html).not.toContain('Add a show')
     expect(html).not.toContain('Show streak')
     expect(html).not.toContain('askNicNac')
@@ -275,15 +276,15 @@ describe('rep dashboard presentation', () => {
     expect(html).toContain('October 13, 2026')
     expect(html).not.toContain('Site visits — coming soon')
     expect(html).not.toContain('hidden=""')
-    expect(html.indexOf('Next show')).toBeLessThan(html.indexOf('Platform mix'))
-    expect(html.indexOf('Platform mix')).toBeLessThan(html.indexOf('Birthdays'))
-    expect(html.indexOf('Birthdays')).toBeLessThan(html.indexOf('Your customers'))
+    expect(html.indexOf('Next show')).toBeLessThan(html.indexOf('Your customers'))
+    expect(html.indexOf('Your customers')).toBeLessThan(html.indexOf('Birthdays'))
+    expect(html.indexOf('data-testid="customers-card"')).toBeLessThan(html.indexOf('data-testid="birthdays-card"'))
     expect(html.indexOf('data-testid="dance-floor-insights"')).toBeLessThan(html.indexOf('Unread messages'))
     expect(html.indexOf('Unread messages')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
     expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('Last month at a glance'))
     const showsCard = html.slice(
       html.indexOf('data-testid="shows-card"'),
-      html.indexOf('data-testid="birthdays-card"'),
+      html.indexOf('data-testid="customers-card"'),
     )
     const danceFloorCard = html.slice(
       html.indexOf('data-testid="dance-floor-insights"'),
@@ -294,7 +295,8 @@ describe('rep dashboard presentation', () => {
       html.indexOf('data-testid="site-visitors"'),
     )
     expect(showsCard).toContain('data-testid="next-show"')
-    expect(showsCard).toContain('data-testid="platform-mix"')
+    expect(showsCard).not.toContain('Platform mix')
+    expect(showsCard).not.toContain('Live Lineup shows')
     expect(showsCard).toContain('Your shows')
     expect(danceFloorCard).toContain('data-testid="dance-floor-card"')
     expect(danceFloorCard).toContain('data-testid="pending-trades"')
@@ -366,7 +368,7 @@ describe('rep dashboard presentation', () => {
     )
     const customersCard = html.slice(
       html.indexOf('data-testid="customers-card"'),
-      html.indexOf('data-testid="dance-floor-card"'),
+      html.indexOf('data-testid="dance-floor-insights"'),
     )
 
     expect(html).toContain('data-pulse="true"')
@@ -434,7 +436,7 @@ describe('rep dashboard presentation', () => {
         now,
       }),
     )
-    const birthdaysCard = html.slice(html.indexOf('Birthdays'), html.indexOf('data-testid="customers-card"'))
+    const birthdaysCard = html.slice(html.indexOf('Birthdays'), html.indexOf('data-testid="dance-floor-insights"'))
 
     expect(birthdaysCard).toContain('Jane Doe')
     expect(birthdaysCard).toContain('Oct 12')
@@ -487,7 +489,7 @@ describe('rep dashboard presentation', () => {
         now,
       }),
     )
-    const birthdaysCard = html.slice(html.indexOf('Birthdays'), html.indexOf('data-testid="customers-card"'))
+    const birthdaysCard = html.slice(html.indexOf('Birthdays'), html.indexOf('data-testid="dance-floor-insights"'))
     const showCard = html.slice(html.indexOf('data-testid="next-show"'), html.indexOf('Birthdays'))
 
     expect(birthdaysCard).toContain('Leap Day')
@@ -499,7 +501,7 @@ describe('rep dashboard presentation', () => {
     expect(showCard).not.toContain('>Now<')
   })
 
-  it('shows a zero for team onboarding and a purple Live Lineup link', () => {
+  it('shows a zero for team onboarding participants added', () => {
     const now = new Date('2026-10-12T15:00:00.000Z')
     const data = createEmptyRepDashboard(now, TIME_ZONE)
     data.monthAtAGlance = {
@@ -515,7 +517,6 @@ describe('rep dashboard presentation', () => {
         },
       ],
     }
-    data.liveLineup = { count: 4 }
     const html = renderToStaticMarkup(
       createElement(RepDashboard, {
         onOpenSection: () => undefined,
@@ -530,15 +531,9 @@ describe('rep dashboard presentation', () => {
 
     expect(teamRow).toContain('>0<')
     expect(teamRow).not.toContain('—')
-    const showsCard = html.slice(
-      html.indexOf('data-testid="shows-card"'),
-      html.indexOf('data-testid="birthdays-card"'),
-    )
-    expect(showsCard).toContain('Open Live Lineup')
-    expect(showsCard).toContain('Live Lineup shows')
-    expect(showsCard).toContain('>4<')
+    expect(html).not.toContain('Live Lineup shows')
+    expect(html).not.toContain('Open Live Lineup')
     expect(html).toContain('textAction')
-    expect(html).not.toContain('<small>Open Live Lineup</small>')
   })
 
   it('groups stats under subject cards, with shows first and last month after site visitors', () => {
@@ -650,9 +645,11 @@ describe('rep dashboard presentation', () => {
     expect(visitorsCard).toContain('data-testid="qr-visits"')
     expect(visitorsCard).toContain('data-testid="visit-map"')
     expect(visitorsCard).toContain('Top 5 states')
-    expect(html.indexOf('data-testid="next-show"')).toBeLessThan(html.indexOf('Platform mix'))
-    expect(html.indexOf('Platform mix')).toBeLessThan(html.indexOf('Birthdays'))
+    expect(html.indexOf('data-testid="next-show"')).toBeLessThan(html.indexOf('Your customers'))
+    expect(html.indexOf('Your customers')).toBeLessThan(html.indexOf('Birthdays'))
     expect(html.indexOf('Birthdays')).toBeLessThan(html.indexOf('Last month at a glance'))
+    expect(html).not.toContain('Platform mix')
+    expect(html).not.toContain('Live Lineup shows')
     expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('Last month at a glance'))
     expect(html.indexOf('Sitting on the floor')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
     expect(html.indexOf('Customers')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
@@ -700,7 +697,7 @@ describe('rep dashboard presentation', () => {
     )
     const customersCard = html.slice(
       html.indexOf('data-testid="customers-card"'),
-      html.indexOf('data-testid="dance-floor-card"'),
+      html.indexOf('data-testid="dance-floor-insights"'),
     )
 
     expect(customersCard).toContain('Not available yet')

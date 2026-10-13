@@ -15,12 +15,10 @@ import {
   createEmptyRepDashboard,
   formatPlatformLabel,
   formatSnapshotMonthLabel,
-  isPastShowStatus,
   listUpcomingBirthdays,
   monthStartLabel,
   recentMonthBuckets,
   resolveTimeZone,
-  summarizePlatformMix,
   type GlanceMetric,
   type RepDashboardPayload,
 } from '@/lib/services/rep-dashboard-math'
@@ -134,7 +132,6 @@ export async function getRepDashboard(args: {
   const timeZone = resolveTimeZone(args.timeZone)
   const nowIso = now.toISOString()
   const months = recentMonthBuckets(now, timeZone)
-  const platformStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString()
   const recipesEnabled = hasBlingKitchenRecipeAccess(args.repId, args.publicSiteSlug)
   let partial = false
 
@@ -150,7 +147,6 @@ export async function getRepDashboard(args: {
     listingMonthly,
     pendingTrades,
     birthdayRows,
-    platformRows,
   ] = await Promise.all([
     args.supabase
       .from('calendar_events')
@@ -251,16 +247,6 @@ export async function getRepDashboard(args: {
         .order('id', { ascending: true })
         .range(from, to),
     ),
-    listPages<{ platform: string | null; status: string }>((from, to) =>
-      args.supabase
-        .from('calendar_events')
-        .select('platform, status')
-        .eq('rep_id', args.repId)
-        .gte('event_time', platformStart)
-        .lte('event_time', nowIso)
-        .order('event_time', { ascending: true })
-        .range(from, to),
-    ),
   ])
 
   if (nextShowResult.error) throw nextShowResult.error
@@ -353,17 +339,6 @@ export async function getRepDashboard(args: {
     return count > 0 ? { count } : null
   }, null)
   if (recipes.failed) partial = true
-
-  const liveLineup = await optionalValue(async () => {
-    const count = await exactCount(
-      args.supabase
-        .from('live_lineup_show_archives')
-        .select('rep_id', { head: true, count: 'exact' })
-        .eq('rep_id', args.repId),
-    )
-    return count > 0 ? { count } : null
-  }, null)
-  if (liveLineup.failed) partial = true
 
   const danceFloorInsights = await optionalValue(async () => {
     const [listingRows, requestRows] = await Promise.all([
@@ -461,16 +436,10 @@ export async function getRepDashboard(args: {
       now,
       timeZone,
     }),
-    platformMix: summarizePlatformMix(
-      platformRows
-        .filter((row) => isPastShowStatus(row.status))
-        .map((row) => row.platform),
-    ),
     monthAtAGlance: glance.value,
     unreadMessages: unread.value,
     team: team.value,
     recipes: recipes.value,
-    liveLineup: liveLineup.value,
     danceFloorInsights: danceFloorInsights.value,
     siteVisits,
   }

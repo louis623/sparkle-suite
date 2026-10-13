@@ -341,142 +341,49 @@ export function RepDashboard({
             <p className={styles.kicker}>Shows</p>
             <h3 className={styles.cardTitle}>Your shows</h3>
             <p className={styles.customerExplainer}>
-              The next one on your calendar, the platforms you have been live on, and Live Lineup when you have shows there.
+              The next one on your calendar.
             </p>
           </div>
           <ClickCue />
         </DashboardLink>
-        <div className={styles.subjectStack}>
-          <DashboardLink
-            className={styles.showCard}
-            href={workspaceSectionHref('show-calendar')}
-            onOpen={() => onOpenSection('show-calendar')}
-            testId="next-show"
-          >
-            <div className={styles.showCopy}>
-              <div className={styles.cueRow}>
-                <p className={styles.kickerLight}>Next show</p>
-                <ClickCue />
-              </div>
-              {view.nextShow && countdown ? (
-                <>
-                  <h3 className={styles.showTitle}>{view.nextShow.title}</h3>
-                  <p className={styles.showMeta}>
-                    <span className={styles.platform}>{view.nextShow.platform}</span>
-                    <span>{formatShowTime(view.nextShow.eventTime, view.nextShow.timeZone)}</span>
-                  </p>
-                  <p className={styles.countdownDetail}>
-                    {showInDays ? <span>{showInDays}</span> : null}
-                    <span>{countdownDetail(countdown)}</span>
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h3 className={styles.showTitle}>No show on the books</h3>
-                  <p className={styles.showEmpty}>
-                    Ask Nic-Nac to put your next show on the calendar.
-                  </p>
-                </>
-              )}
-              {view.nextShow ? (
-                <span className={styles.actionLight}>Open calendar</span>
-              ) : null}
+        <DashboardLink
+          className={styles.showCard}
+          href={workspaceSectionHref('show-calendar')}
+          onOpen={() => onOpenSection('show-calendar')}
+          testId="next-show"
+        >
+          <div className={styles.showCopy}>
+            <div className={styles.cueRow}>
+              <p className={styles.kickerLight}>Next show</p>
+              <ClickCue />
             </div>
-            {countdown ? <CountdownRing countdown={countdown} /> : null}
-          </DashboardLink>
-          <div className={styles.subjectPair}>
-            <DashboardLink
-              className={styles.card}
-              href={workspaceSectionHref('show-calendar')}
-              onOpen={() => onOpenSection('show-calendar')}
-              testId="platform-mix"
-            >
-              <div className={styles.cueRow}>
-                <div>
-                  <p className={styles.kicker}>Last 90 days</p>
-                  <h3 className={styles.cardTitle}>Platform mix</h3>
-                </div>
-                <ClickCue />
-              </div>
-              {view.platformMix.length > 0 ? (
-                <ul className={styles.mixList}>
-                  {view.platformMix.map((slice) => {
-                    const max = view.platformMix[0]?.count || 1
-                    return (
-                      <li key={slice.platform}>
-                        <span>{slice.platform}</span>
-                        <span className={styles.barTrack} aria-hidden="true">
-                          <span className={styles.barFill} style={{ width: `${Math.max(8, (slice.count / max) * 100)}%` }} />
-                        </span>
-                        <strong>{formatCount(slice.count)}</strong>
-                      </li>
-                    )
-                  })}
-                </ul>
-              ) : (
-                <p className={styles.muted}>Shows from the last 90 days will fill this in.</p>
-              )}
-            </DashboardLink>
-            {view.liveLineup && view.liveLineup.count > 0 ? (
-              <DashboardLink
-                className={styles.statCard}
-                href={workspaceSectionHref('live-queue')}
-                onOpen={() => onOpenSection('live-queue')}
-                testId="live-lineup"
-              >
-                <div className={styles.statTop}>
-                  <h3>Live Lineup shows</h3>
-                  <ClickCue />
-                </div>
-                <p className={styles.statValue}>{formatCount(view.liveLineup.count)}</p>
-                <span className={styles.textAction}>Open Live Lineup</span>
-              </DashboardLink>
+            {view.nextShow && countdown ? (
+              <>
+                <h3 className={styles.showTitle}>{view.nextShow.title}</h3>
+                <p className={styles.showMeta}>
+                  <span className={styles.platform}>{view.nextShow.platform}</span>
+                  <span>{formatShowTime(view.nextShow.eventTime, view.nextShow.timeZone)}</span>
+                </p>
+                <p className={styles.countdownDetail}>
+                  {showInDays ? <span>{showInDays}</span> : null}
+                  <span>{countdownDetail(countdown)}</span>
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className={styles.showTitle}>No show on the books</h3>
+                <p className={styles.showEmpty}>
+                  Ask Nic-Nac to put your next show on the calendar.
+                </p>
+              </>
+            )}
+            {view.nextShow ? (
+              <span className={styles.actionLight}>Open calendar</span>
             ) : null}
           </div>
-        </div>
-      </section>
-
-      {visibleBirthdays.length > 0 ? (
-        <article className={styles.subjectCard} data-testid="birthdays-card">
-          <DashboardLink
-            className={styles.customerTop}
-            href={customerListHref()}
-            onOpen={() => onOpenSection('customer-list')}
-          >
-            <div>
-              <p className={styles.kicker}>Coming up</p>
-              <h3 className={styles.cardTitle}>Birthdays</h3>
-            </div>
-            <ClickCue />
-          </DashboardLink>
-          <ul className={styles.birthdayList}>
-            {visibleBirthdays.map((birthday, index) => (
-              <li key={`${birthday.customerId ?? birthday.name}-${birthday.month}-${birthday.day}-${index}`}>
-                <BirthdayRow birthday={birthday} />
-              </li>
-            ))}
-          </ul>
-          {hiddenBirthdays > 0 ? (
-            <p className={styles.muted}>{hiddenBirthdays} more in the next 30 days.</p>
-          ) : null}
-        </article>
-      ) : (
-        <DashboardLink
-          className={styles.subjectCard}
-          href={customerListHref()}
-          onOpen={() => onOpenSection('customer-list')}
-          testId="birthdays-card"
-        >
-          <div className={styles.customerTop}>
-            <div>
-              <p className={styles.kicker}>Coming up</p>
-              <h3 className={styles.cardTitle}>Birthdays</h3>
-            </div>
-            <ClickCue />
-          </div>
-          <p className={styles.muted}>No birthdays in the next 30 days. You are clear to plan shows.</p>
+          {countdown ? <CountdownRing countdown={countdown} /> : null}
         </DashboardLink>
-      )}
+      </section>
 
       <section className={styles.customerCard} data-testid="customers-card" aria-label="Your customers">
         <DashboardLink
@@ -558,6 +465,42 @@ export function RepDashboard({
               detail="Ordered during a LIVE show before, but not in the last 90 days. This count is from LIVE shows only."
             />
           </div>
+        </div>
+        <div className={styles.customerGroup} data-testid="birthdays-card">
+          {visibleBirthdays.length > 0 ? (
+            <>
+              <DashboardLink
+                className={styles.cueRow}
+                href={customerListHref()}
+                onOpen={() => onOpenSection('customer-list')}
+              >
+                <p className={styles.groupLabel}>Birthdays</p>
+                <ClickCue />
+              </DashboardLink>
+              <ul className={styles.birthdayList}>
+                {visibleBirthdays.map((birthday, index) => (
+                  <li key={`${birthday.customerId ?? birthday.name}-${birthday.month}-${birthday.day}-${index}`}>
+                    <BirthdayRow birthday={birthday} />
+                  </li>
+                ))}
+              </ul>
+              {hiddenBirthdays > 0 ? (
+                <p className={styles.muted}>{hiddenBirthdays} more in the next 30 days.</p>
+              ) : null}
+            </>
+          ) : (
+            <DashboardLink
+              className={styles.birthdayEmpty}
+              href={customerListHref()}
+              onOpen={() => onOpenSection('customer-list')}
+            >
+              <div className={styles.cueRow}>
+                <p className={styles.groupLabel}>Birthdays</p>
+                <ClickCue />
+              </div>
+              <p className={styles.muted}>No birthdays in the next 30 days. You are clear to plan shows.</p>
+            </DashboardLink>
+          )}
         </div>
       </section>
 

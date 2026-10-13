@@ -442,7 +442,6 @@
 }
 
 .birthdayList,
-.mixList,
 .glanceList {
   display: grid;
   gap: 10px;
@@ -509,7 +508,6 @@ a.birthdayLink:focus-visible {
   font-weight: 700;
 }
 
-.mixList li,
 .glanceList li {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -528,25 +526,12 @@ a.birthdayLink:focus-visible {
   align-items: center;
 }
 
-.mixList li {
-  grid-template-columns: 88px minmax(0, 1fr) auto;
+.birthdayEmpty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.barTrack {
-  height: 8px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--dash-lilac);
-}
-
-.barFill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--dash-violet), var(--dash-magenta));
-}
-
-.mixList strong,
 .glanceList strong {
   font-family: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
   font-size: 14px;
