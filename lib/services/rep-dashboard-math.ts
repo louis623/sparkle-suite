@@ -77,6 +77,11 @@ export type RepDashboardPayload = {
     monthly: number[]
     monthLabels: string[]
     addedThisMonth: number
+    ableToEmail: number
+    ableToText: number
+    missingContact: number
+    monthStartLabel: string
+    monthStartIso: string
   }
   danceFloor: {
     activeListings: number
@@ -424,6 +429,54 @@ export function summarizePlatformMix(platforms: Array<string | null | undefined>
     .sort((left, right) => right.count - left.count || left.platform.localeCompare(right.platform))
 }
 
+export function sharePercent(count: number, total: number) {
+  if (!Number.isFinite(count) || !Number.isFinite(total) || total <= 0) return null
+  return Math.round((count / total) * 100)
+}
+
+export function monthStartLabel(now = new Date(), timeZone?: string | null) {
+  const today = zonedCalendarDay(now, timeZone)
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'UTC',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(Date.UTC(today.year, today.month - 1, 1, 12)))
+}
+
+export function workspaceSectionHref(section: string) {
+  return `/nic-nac?section=${encodeURIComponent(section)}`
+}
+
+export function customerListHref(filter?: string | null, since?: string | null) {
+  const params = new URLSearchParams()
+  params.set('section', 'customer-list')
+  if (filter && filter !== 'all') params.set('filter', filter)
+  if (since) params.set('since', since)
+  return `/nic-nac?${params.toString()}`
+}
+
+const GLANCE_SECTION: Record<string, string> = {
+  customers_added: 'customer-list',
+  total_customers: 'customer-list',
+  trade_listings_added: 'trade-board',
+  active_trade_listings: 'trade-board',
+  pending_trade_requests: 'trade-board',
+  shows_scheduled: 'show-calendar',
+  upcoming_shows: 'show-calendar',
+  recipes_added: 'recipes',
+  team_participants_added: 'team-management',
+  support_reports: 'messages',
+}
+
+export function glanceRowSection(key: string) {
+  return GLANCE_SECTION[key] ?? null
+}
+
+export function glanceRowHref(key: string) {
+  const section = glanceRowSection(key)
+  return section ? workspaceSectionHref(section) : null
+}
+
 export function formatSnapshotMonthLabel(reportMonth: string) {
   const match = /^(\d{4})-(\d{2})/.exec(reportMonth)
   if (!match) return null
@@ -454,6 +507,11 @@ export function createEmptyRepDashboard(
       monthly: months.map(() => 0),
       monthLabels: months.map((month) => month.label),
       addedThisMonth: 0,
+      ableToEmail: 0,
+      ableToText: 0,
+      missingContact: 0,
+      monthStartLabel: monthStartLabel(now, zone),
+      monthStartIso: months[months.length - 1]?.startIso ?? now.toISOString(),
     },
     danceFloor: {
       activeListings: 0,

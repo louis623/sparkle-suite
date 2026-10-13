@@ -156,6 +156,47 @@
   align-items: baseline;
 }
 
+.cardLink {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cardLink:focus-visible,
+.customerTop:focus-visible,
+.customerTile:focus-visible,
+.inlineLink:focus-visible,
+.glanceLink:focus-visible {
+  outline: 2px solid var(--dash-magenta-hot);
+  outline-offset: 3px;
+}
+
+.inlineLink,
+.glanceLink,
+.customerTop,
+.seeAll {
+  color: inherit;
+  text-decoration: none;
+}
+
+.inlineLink:hover,
+.glanceLink:hover {
+  text-decoration: underline;
+}
+
 .showMeta {
   display: flex;
   flex-wrap: wrap;
@@ -419,6 +460,17 @@ a.birthdayLink:focus-visible {
   align-items: center;
 }
 
+.glanceList li:has(.glanceLink) {
+  display: block;
+}
+
+.glanceLink {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px 10px;
+  align-items: center;
+}
+
 .mixList li {
   grid-template-columns: 88px minmax(0, 1fr) auto;
 }
@@ -581,7 +633,161 @@ a.birthdayLink:focus-visible {
 
 @container repdash (min-width: 980px) {
   .stats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.customerCard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 22px;
+  border: 1px solid rgba(23, 16, 52, 0.08);
+  border-radius: 18px;
+  background: #fffdfb;
+}
+
+.customerTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.customerTotal {
+  margin: 4px 0;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: clamp(46px, 6vw, 56px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.customerExplainer {
+  margin: 0;
+  color: rgba(23, 16, 52, 0.62);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.seeAll {
+  color: var(--dash-violet-deep);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.customerGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupLabel {
+  margin: 0;
+  color: rgba(23, 16, 52, 0.5);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.customerTiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.customerTile {
+  position: relative;
+  display: block;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--dash-lilac);
+  color: inherit;
+  text-decoration: none;
+}
+
+.customerTile:hover,
+.customerTile:focus-visible {
+  outline: 2px solid var(--dash-magenta-hot);
+}
+
+.customerTileWarn {
+  background: #fdeaf4;
+}
+
+.customerTileCream {
+  background: var(--dash-cream);
+}
+
+.customerTile strong {
+  display: block;
+  font-family: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.tileShare {
+  margin-left: 6px;
+  color: var(--dash-violet-deep);
+  font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.tileName {
+  display: block;
+  margin: 2px 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.customerTile small {
+  display: block;
+  padding-right: 14px;
+  color: rgba(23, 16, 52, 0.66);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.chevron {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: rgba(23, 16, 52, 0.35);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.sectionHead .why {
+  flex: 1 1 100%;
+}
+
+@media (max-width: 700px) {
+  .customerTiles {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .customerTiles .customerTile:last-child {
+    grid-column: span 2;
+  }
+
+  .customerTotal {
+    font-size: 46px;
   }
 }
 

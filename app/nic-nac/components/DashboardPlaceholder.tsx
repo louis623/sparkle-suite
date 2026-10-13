@@ -45,6 +45,7 @@ import type {
 } from '@/lib/services/types'
 import { SMS_CHARGE_MILS, walletMilsToUsd } from '@/lib/services/wallet-units'
 import { RepDashboard } from './RepDashboard'
+import { zonedCalendarDay, zonedMidnightToUtc } from '@/lib/services/rep-dashboard-math'
 import {
   fulfillmentLogViewForRequest,
   shouldApplyFulfillmentLogPage,
@@ -595,6 +596,31 @@ export type RosterFilter =
   | 'sms_reachable'
   | 'email_reachable'
   | 'opted_out'
+  | 'missing_contact'
+  | 'new_this_month'
+
+const ROSTER_FILTERS = new Set<RosterFilter>([
+  'all',
+  'sms_reachable',
+  'email_reachable',
+  'opted_out',
+  'missing_contact',
+  'new_this_month',
+])
+
+export function readRosterFilter(search: string): RosterFilter {
+  const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
+  const requested = params.get('filter')?.trim() ?? ''
+  if (ROSTER_FILTERS.has(requested as RosterFilter)) return requested as RosterFilter
+  return 'all'
+}
+
+export function readRosterSince(search: string) {
+  const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
+  const since = params.get('since')?.trim() ?? ''
+  if (!since || Number.isNaN(Date.parse(since))) return null
+  return since
+}
 
 export type RosterSort =
   | 'newest'
@@ -1387,6 +1413,8 @@ const FILTER_OPTIONS: Array<{ value: RosterFilter; label: string }> = [
   { value: 'sms_reachable', label: 'SMS opted in' },
   { value: 'email_reachable', label: 'Email reachable' },
   { value: 'opted_out', label: 'Opted out' },
+  { value: 'missing_contact', label: 'Missing contact info' },
+  { value: 'new_this_month', label: 'New this month' },
 ]
 
 const SORT_OPTIONS: Array<{ value: RosterSort; label: string }> = [
@@ -1552,9 +1580,22 @@ function roundPercent(value: number) {
   return Math.round(value * 100) / 100
 }
 
+function contactBlank(value: string | null | undefined) {
+  return !value?.trim()
+}
+
+function startOfThisMonthIso(now: Date) {
+  const day = zonedCalendarDay(now, 'America/New_York')
+  return zonedMidnightToUtc(
+    { year: day.year, month: day.month, day: 1 },
+    'America/New_York',
+  ).toISOString()
+}
+
 export function filterRosterCustomers(
   customers: CustomerAudienceMember[],
   activeFilter: RosterFilter,
+  options: { since?: string | null; now?: Date } = {},
 ) {
   if (activeFilter === 'sms_reachable') {
     return customers.filter((customer) => customer.canReceiveSms)
@@ -1571,6 +1612,22 @@ export function filterRosterCustomers(
         customer.stopKeywordReceivedAt !== null ||
         customer.emailOptedOutAt !== null,
     )
+  }
+
+  if (activeFilter === 'missing_contact') {
+    return customers.filter(
+      (customer) => contactBlank(customer.email) && contactBlank(customer.phone),
+    )
+  }
+
+  if (activeFilter === 'new_this_month') {
+    const since = options.since ?? startOfThisMonthIso(options.now ?? new Date())
+    const start = Date.parse(since)
+    if (!Number.isFinite(start)) return customers
+    return customers.filter((customer) => {
+      const created = Date.parse(customer.createdAt)
+      return Number.isFinite(created) && created >= start
+    })
   }
 
   return customers
@@ -3009,6 +3066,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     writeHistory(rawSection === 'business-tools' ? 'replaceState' : 'pushState')
   }, [activeSection, initialSectionOverride])
   const [rosterFilter, setRosterFilter] = useState<RosterFilter>('all')
+  const [rosterSince, setRosterSince] = useState<string | null>(null)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    setRosterFilter(readRosterFilter(window.location.search))
+    setRosterSince(readRosterSince(window.location.search))
+  }, [])
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOrder, setSortOrder] = useState<RosterSort>('newest')
   const [actionState, setActionState] = useState<AudienceActionState>({
@@ -3300,7 +3363,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   }
 
   async function loadAudience(signal?: AbortSignal) {
-    const response = await fetch('/api/nic-nac/customer-audience?limit=25', {
+    const search = typeof window === 'undefined' ? '' : window.location.search
+    const filter = readRosterFilter(search)
+    const channel =
+      filter === 'email_reachable' ? 'email' : filter === 'sms_reachable' ? 'sms' : null
+    const limit = filter === 'all' ? 25 : 100
+    const params = new URLSearchParams({ limit: String(limit) })
+    if (channel) params.set('channel', channel)
+    const response = await fetch(`/api/nic-nac/customer-audience?${params.toString()}`, {
       credentials: 'include',
       signal,
     })
@@ -6914,6 +6984,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             initialCustomerId={deepLinkTargets.customerId}
             state={audienceState}
             activeFilter={rosterFilter}
+            rosterSince={rosterSince}
             onFilterChange={setRosterFilter}
             searchQuery={searchQuery}
             onSearchQueryChange={setSearchQuery}
@@ -7245,6 +7316,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
                   activeKey={activeSection === 'help-resources' ? 'resources' : activeSection}
                   onSelect={openWorkspaceTool}
                   reviewMode={reviewWorkspaceMode}
+                  publicSiteHref={customerSparkleSiteHref}
                 >
                   {renderedSection}
                 </ToolsHub>
@@ -7937,12 +8009,14 @@ export function ToolsHub({
   activeKey,
   onSelect,
   reviewMode = false,
+  publicSiteHref = null,
   children,
 }: {
   tools: readonly (typeof SECONDARY_WORKSPACE_SECTIONS)[number][]
   activeKey: string
   onSelect: (section: WorkspaceSectionKey | 'more') => void
   reviewMode?: boolean
+  publicSiteHref?: string | null
   children?: ReactNode
 }) {
   const toolOpen = activeKey !== 'more'
@@ -7995,7 +8069,11 @@ export function ToolsHub({
           </button>
         ) : null}
         {toolOpen ? children : (
-          <RepDashboard onOpenSection={onSelect} reviewMode={reviewMode} />
+          <RepDashboard
+            onOpenSection={onSelect}
+            reviewMode={reviewMode}
+            publicSiteHref={publicSiteHref}
+          />
         )}
       </div>
     </div>
@@ -13768,6 +13846,7 @@ export function CustomerRosterCard({
   initialCustomerId,
   state,
   activeFilter,
+  rosterSince = null,
   onFilterChange,
   customersOverride,
   searchQuery = '',
@@ -13795,6 +13874,7 @@ export function CustomerRosterCard({
   initialCustomerId?: string | null
   state: AudienceState
   activeFilter: RosterFilter
+  rosterSince?: string | null
   onFilterChange: (filter: RosterFilter) => void
   customersOverride?: CustomerAudienceMember[]
   searchQuery?: string
@@ -14009,7 +14089,7 @@ export function CustomerRosterCard({
 
   const filteredCustomers = sortRosterCustomers(
     searchRosterCustomers(
-      customersOverride ?? filterRosterCustomers(state.customers ?? [], activeFilter),
+      customersOverride ?? filterRosterCustomers(state.customers ?? [], activeFilter, { since: rosterSince }),
       searchQuery,
     ),
     sortOrder,

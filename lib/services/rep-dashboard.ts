@@ -17,6 +17,7 @@ import {
   formatSnapshotMonthLabel,
   isPastShowStatus,
   listUpcomingBirthdays,
+  monthStartLabel,
   recentMonthBuckets,
   resolveTimeZone,
   summarizePlatformMix,
@@ -28,6 +29,9 @@ import {
   summarizeSiteVisits,
   type PublicSiteVisitRow,
 } from '@/lib/services/site-visit-summary'
+
+export const MISSING_CONTACT_FILTER =
+  'and(or(email.is.null,email.eq.),or(phone.is.null,phone.eq.))'
 
 const BLING_KITCHEN_RECIPE_REP_IDS = new Set([
   '9a971c05-3631-443e-bcb8-4e9a26e15885',
@@ -137,6 +141,9 @@ export async function getRepDashboard(args: {
     nextShowResult,
     customerTotal,
     reachableCustomers,
+    ableToEmail,
+    ableToText,
+    missingContact,
     customerMonthly,
     activeListings,
     listingMonthly,
@@ -165,6 +172,34 @@ export async function getRepDashboard(args: {
         .select('id', { head: true, count: 'exact' })
         .eq('rep_id', args.repId)
         .or(REACHABLE_CUSTOMER_FILTER),
+    ),
+    exactCount(
+      args.supabase
+        .from('customer_audience')
+        .select('id', { head: true, count: 'exact' })
+        .eq('rep_id', args.repId)
+        .not('email', 'is', null)
+        .neq('email', '')
+        .eq('email_consent', true)
+        .is('email_opted_out_at', null),
+    ),
+    exactCount(
+      args.supabase
+        .from('customer_audience')
+        .select('id', { head: true, count: 'exact' })
+        .eq('rep_id', args.repId)
+        .not('phone', 'is', null)
+        .neq('phone', '')
+        .eq('sms_consent', true)
+        .is('sms_opted_out_at', null)
+        .is('stop_keyword_received_at', null),
+    ),
+    exactCount(
+      args.supabase
+        .from('customer_audience')
+        .select('id', { head: true, count: 'exact' })
+        .eq('rep_id', args.repId)
+        .or(MISSING_CONTACT_FILTER),
     ),
     Promise.all(
       months.map((month) =>
@@ -399,6 +434,11 @@ export async function getRepDashboard(args: {
       monthly: customerMonthly,
       monthLabels: months.map((month) => month.label),
       addedThisMonth: customerMonthly[customerMonthly.length - 1] ?? 0,
+      ableToEmail,
+      ableToText,
+      missingContact,
+      monthStartLabel: monthStartLabel(now, timeZone),
+      monthStartIso: months[months.length - 1]?.startIso ?? now.toISOString(),
     },
     danceFloor: {
       activeListings,

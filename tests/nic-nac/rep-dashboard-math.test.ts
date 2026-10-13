@@ -11,11 +11,15 @@ import {
   birthdayTimingLabel,
   compareGlanceMetrics,
   createEmptyRepDashboard,
+  customerListHref,
   customerRecordHref,
   fullCustomerName,
   getShowCountdown,
+  glanceRowHref,
   initialsFromDisplayName,
   listUpcomingBirthdays,
+  monthStartLabel,
+  sharePercent,
   showInDaysLabel,
 } from '@/lib/services/rep-dashboard-math'
 
@@ -140,6 +144,16 @@ describe('rep dashboard birthday window', () => {
     expect(showInDaysLabel(0)).toBeNull()
     expect(showInDaysLabel(1)).toBe('in 1 day')
     expect(showInDaysLabel(3)).toBe('in 3 days')
+    expect(sharePercent(212, 248)).toBe(85)
+    expect(sharePercent(0, 0)).toBeNull()
+    expect(monthStartLabel(new Date('2026-10-12T15:00:00.000Z'), TIME_ZONE)).toBe('October 1')
+    expect(customerListHref()).toBe('/nic-nac?section=customer-list')
+    expect(customerListHref('email_reachable')).toBe('/nic-nac?section=customer-list&filter=email_reachable')
+    expect(customerListHref('new_this_month', '2026-10-01T04:00:00.000Z')).toBe(
+      '/nic-nac?section=customer-list&filter=new_this_month&since=2026-10-01T04%3A00%3A00.000Z',
+    )
+    expect(glanceRowHref('shows_scheduled')).toBe('/nic-nac?section=show-calendar')
+    expect(glanceRowHref('unknown')).toBeNull()
   })
 })
 
@@ -210,15 +224,33 @@ describe('rep dashboard presentation', () => {
         now,
       }),
     )
+    const nextShowAt = html.indexOf('data-testid="next-show"')
     const showCard = html.slice(
-      html.indexOf('aria-label="Next show"'),
-      html.indexOf('</article>', html.indexOf('aria-label="Next show"')),
+      html.lastIndexOf('<a ', nextShowAt),
+      html.indexOf('data-testid="birthdays-card"'),
     )
 
     expect(html).toContain('Your dashboard')
     expect(html).toContain('Last month at a glance')
     expect(html).not.toContain('This month at a glance')
-    expect(html).toContain('Add your first customer')
+    expect(html).toContain('Your customers')
+    expect(html).toContain('See all customers')
+    expect(html).toContain('Able to receive email')
+    expect(html).toContain('Able to receive texts')
+    expect(html).toContain('Missing contact info')
+    expect(html).toContain('New this month')
+    expect(html).toContain('How you can reach them')
+    expect(html).toContain('How active they are')
+    expect(html).toContain('Customers added since October 1.')
+    expect(html).not.toContain('Can email')
+    expect(html).not.toContain('Can text')
+    expect(html).not.toContain('Bought in last 90 days')
+    expect(html).not.toContain('Gone quiet')
+    expect(html).toContain('href="/nic-nac?section=customer-list"')
+    expect(html).toContain('href="/nic-nac?section=show-calendar"')
+    expect(html).toContain('href="/nic-nac?section=trade-board"')
+    expect(html).toContain('href="/nic-nac?section=messages"')
+    expect(showCard).toContain('href="/nic-nac?section=show-calendar"')
     expect(showCard).toContain('No show on the books')
     expect(showCard).toContain('Ask Nic-Nac to put your next show on the calendar.')
     expect(showCard).not.toContain('<button')
@@ -255,6 +287,11 @@ describe('rep dashboard presentation', () => {
     const now = new Date('2026-10-12T15:00:00.000Z')
     const data = createEmptyRepDashboard(now, TIME_ZONE)
     data.pendingTrades.count = 2
+    data.customers.total = 248
+    data.customers.ableToEmail = 212
+    data.customers.ableToText = 164
+    data.customers.missingContact = 19
+    data.customers.addedThisMonth = 14
     data.nextShow = {
       title: 'Friday Live',
       platform: 'TikTok',
@@ -266,10 +303,30 @@ describe('rep dashboard presentation', () => {
         onOpenSection: () => undefined,
         data,
         now,
+        publicSiteHref: 'https://www.yoursparklesuite.com/lindsey',
       }),
+    )
+    const customersCard = html.slice(
+      html.indexOf('data-testid="customers-card"'),
+      html.indexOf('data-testid="dance-floor-card"'),
     )
 
     expect(html).toContain('data-pulse="true"')
+    expect(customersCard).toContain('248')
+    expect(customersCard).toContain('212')
+    expect(customersCard).toContain('85%')
+    expect(customersCard).toContain('164')
+    expect(customersCard).toContain('66%')
+    expect(customersCard).toContain('+14')
+    expect(customersCard).toContain('filter=email_reachable')
+    expect(customersCard).toContain('filter=sms_reachable')
+    expect(customersCard).toContain('filter=missing_contact')
+    expect(customersCard).toContain('filter=new_this_month')
+    expect(customersCard).not.toContain('Bought in last 90 days')
+    expect(customersCard).not.toContain('Gone quiet')
+    expect(html).toContain('Open your site')
+    expect(html).toContain('href="https://www.yoursparklesuite.com/lindsey"')
+    expect(html).toContain('href="/nic-nac?section=card-qr"')
     expect(html).toContain('Friday Live')
     expect(html).toContain('in 3 days')
     expect(html).toContain('3d 2h 30m')
@@ -304,7 +361,7 @@ describe('rep dashboard presentation', () => {
         now,
       }),
     )
-    const birthdaysCard = html.slice(html.indexOf('Birthdays'), html.indexOf('<h3>Customers</h3>'))
+    const birthdaysCard = html.slice(html.indexOf('Birthdays'), html.indexOf('data-testid="customers-card"'))
 
     expect(birthdaysCard).toContain('Jane Doe')
     expect(birthdaysCard).toContain('Oct 12')
@@ -351,8 +408,8 @@ describe('rep dashboard presentation', () => {
         now,
       }),
     )
-    const birthdaysCard = html.slice(html.indexOf('Birthdays'), html.indexOf('<h3>Customers</h3>'))
-    const showCard = html.slice(html.indexOf('aria-label="Next show"'), html.indexOf('Birthdays'))
+    const birthdaysCard = html.slice(html.indexOf('Birthdays'), html.indexOf('data-testid="customers-card"'))
+    const showCard = html.slice(html.indexOf('data-testid="next-show"'), html.indexOf('Birthdays'))
 
     expect(birthdaysCard).toContain('Leap Day')
     expect(birthdaysCard).toContain('Feb 28')
@@ -488,7 +545,7 @@ describe('rep dashboard presentation', () => {
     expect(topStates).not.toContain('Washington')
     expect(html).not.toContain('hidden=""')
     expect(html).not.toContain('Site visits — coming soon')
-    expect(html.indexOf('aria-label="Next show"')).toBeLessThan(html.indexOf('Birthdays'))
+    expect(html.indexOf('data-testid="next-show"')).toBeLessThan(html.indexOf('Birthdays'))
     expect(html.indexOf('Birthdays')).toBeLessThan(html.indexOf('Platform mix'))
     expect(html.indexOf('Platform mix')).toBeLessThan(html.indexOf('Last month at a glance'))
     expect(html.indexOf('Last month at a glance')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
@@ -502,6 +559,14 @@ describe('rep dashboard presentation', () => {
     const source = readFileSync(new URL('../../lib/services/rep-dashboard.ts', import.meta.url), 'utf8')
     expect(source).toContain(".select('id, name, birthday_month, birthday_day')")
     expect(source).toContain('id: row.id')
+    expect(source).toContain(".not('email', 'is', null)")
+    expect(source).toContain(".eq('email_consent', true)")
+    expect(source).toContain(".is('email_opted_out_at', null)")
+    expect(source).toContain(".not('phone', 'is', null)")
+    expect(source).toContain(".eq('sms_consent', true)")
+    expect(source).toContain(".is('sms_opted_out_at', null)")
+    expect(source).toContain(".is('stop_keyword_received_at', null)")
+    expect(source).toContain('MISSING_CONTACT_FILTER')
   })
 
   it('counts team onboarding participants by owner, not rep_id', () => {

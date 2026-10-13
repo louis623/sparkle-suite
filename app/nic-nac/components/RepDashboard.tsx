@@ -2,12 +2,17 @@
 
 import { useEffect, useId, useMemo, useState } from 'react'
 import { DanceFloorInsightsPanel } from '@/app/nic-nac/components/DanceFloorInsights'
+import { DashboardLink } from '@/app/nic-nac/components/DashboardLink'
 import { SiteVisitsPanel } from '@/app/nic-nac/components/SiteVisitsPanel'
 import {
   birthdayTimingLabel,
   createEmptyRepDashboard,
+  customerListHref,
   getShowCountdown,
+  glanceRowSection,
+  sharePercent,
   showInDaysLabel,
+  workspaceSectionHref,
   type GlanceDirection,
   type RepDashboardPayload,
   type ShowCountdown,
@@ -62,6 +67,47 @@ function countdownDetail(countdown: ShowCountdown) {
 
 function formatCount(value: number) {
   return value.toLocaleString('en-US')
+}
+
+function isDashboardDestination(section: string): section is DashboardDestination {
+  return (
+    section === 'trade-board' ||
+    section === 'show-calendar' ||
+    section === 'customer-list' ||
+    section === 'messages' ||
+    section === 'team-management' ||
+    section === 'recipes' ||
+    section === 'live-queue'
+  )
+}
+
+function CustomerTile({
+  href,
+  tone,
+  value,
+  share,
+  name,
+  detail,
+}: {
+  href: string
+  tone?: 'warn' | 'cream'
+  value: string
+  share?: number | null
+  name: string
+  detail: string
+}) {
+  const toneClass = tone === 'warn' ? styles.customerTileWarn : tone === 'cream' ? styles.customerTileCream : ''
+  return (
+    <a className={[styles.customerTile, toneClass].filter(Boolean).join(' ')} href={href}>
+      <span className={styles.chevron} aria-hidden="true">›</span>
+      <strong>
+        {value}
+        {share != null ? <span className={styles.tileShare}>{share}%</span> : null}
+      </strong>
+      <span className={styles.tileName}>{name}</span>
+      <small>{detail}</small>
+    </a>
+  )
 }
 
 function BirthdayRow({ birthday }: { birthday: UpcomingBirthday }) {
@@ -177,11 +223,13 @@ export function RepDashboard({
   reviewMode = false,
   data,
   now,
+  publicSiteHref = null,
 }: {
   onOpenSection: (section: DashboardDestination) => void
   reviewMode?: boolean
   data?: RepDashboardPayload
   now?: Date
+  publicSiteHref?: string | null
 }) {
   const [status, setStatus] = useState<LoadStatus>(data || reviewMode ? 'ready' : 'loading')
   const [payload, setPayload] = useState<RepDashboardPayload | null>(null)
@@ -283,7 +331,12 @@ export function RepDashboard({
       ) : null}
 
       <div className={styles.hero}>
-        <article className={styles.showCard} aria-label="Next show">
+        <DashboardLink
+          className={styles.showCard}
+          href={workspaceSectionHref('show-calendar')}
+          onOpen={() => onOpenSection('show-calendar')}
+          testId="next-show"
+        >
           <div className={styles.showCopy}>
             <p className={styles.kickerLight}>Next show</p>
             {view.nextShow && countdown ? (
@@ -307,18 +360,24 @@ export function RepDashboard({
               </>
             )}
             {view.nextShow ? (
-              <button type="button" className={styles.actionLight} onClick={() => onOpenSection('show-calendar')}>
-                Open calendar
-              </button>
+              <span className={styles.actionLight}>Open calendar</span>
             ) : null}
           </div>
           {countdown ? <CountdownRing countdown={countdown} /> : null}
-        </article>
+        </DashboardLink>
 
-        <article className={styles.card}>
-          <p className={styles.kicker}>Coming up</p>
-          <h3 className={styles.cardTitle}>Birthdays</h3>
-          {visibleBirthdays.length > 0 ? (
+        {visibleBirthdays.length > 0 ? (
+          <article className={styles.card} data-testid="birthdays-card">
+            <p className={styles.kicker}>Coming up</p>
+            <h3 className={styles.cardTitle}>
+              <DashboardLink
+                className={styles.inlineLink}
+                href={customerListHref()}
+                onOpen={() => onOpenSection('customer-list')}
+              >
+                Birthdays
+              </DashboardLink>
+            </h3>
             <ul className={styles.birthdayList}>
               {visibleBirthdays.map((birthday, index) => (
                 <li key={`${birthday.customerId ?? birthday.name}-${birthday.month}-${birthday.day}-${index}`}>
@@ -326,38 +385,87 @@ export function RepDashboard({
                 </li>
               ))}
             </ul>
-          ) : (
+            {hiddenBirthdays > 0 ? (
+              <p className={styles.muted}>{hiddenBirthdays} more in the next 30 days.</p>
+            ) : null}
+          </article>
+        ) : (
+          <DashboardLink
+            className={styles.card}
+            href={customerListHref()}
+            onOpen={() => onOpenSection('customer-list')}
+            testId="birthdays-card"
+          >
+            <p className={styles.kicker}>Coming up</p>
+            <h3 className={styles.cardTitle}>Birthdays</h3>
             <p className={styles.muted}>No birthdays in the next 30 days. You are clear to plan shows.</p>
-          )}
-          {hiddenBirthdays > 0 ? (
-            <p className={styles.muted}>{hiddenBirthdays} more in the next 30 days.</p>
-          ) : null}
-        </article>
+          </DashboardLink>
+        )}
       </div>
 
-      <div className={styles.stats}>
-        <article className={styles.statCard}>
-          <div className={styles.statTop}>
-            <h3>Customers</h3>
-            {view.customers.addedThisMonth > 0 ? (
-              <span className={styles.pill}>+{formatCount(view.customers.addedThisMonth)} this month</span>
-            ) : null}
+      <section className={styles.customerCard} data-testid="customers-card" aria-label="Your customers">
+        <DashboardLink
+          className={styles.customerTop}
+          href={customerListHref()}
+          onOpen={() => onOpenSection('customer-list')}
+        >
+          <div>
+            <p className={styles.kicker}>Customers</p>
+            <h3 className={styles.cardTitle}>Your customers</h3>
+            <p className={styles.customerTotal}>{formatCount(view.customers.total)}</p>
+            <p className={styles.customerExplainer}>
+              Everyone on your customer list, from shows, your site, and Nic-Nac.
+            </p>
           </div>
-          <p className={styles.statValue}>{formatCount(view.customers.total)}</p>
-          <p className={styles.muted}>{formatCount(view.customers.reachable)} reachable</p>
-          <Sparkline values={view.customers.monthly} labels={view.customers.monthLabels} />
-          {view.customers.total === 0 ? (
-            <button type="button" className={styles.textAction} onClick={() => onOpenSection('customer-list')}>
-              Add your first customer
-            </button>
-          ) : (
-            <button type="button" className={styles.textAction} onClick={() => onOpenSection('customer-list')}>
-              Open customer list
-            </button>
-          )}
-        </article>
+          <span className={styles.seeAll}>See all customers ›</span>
+        </DashboardLink>
+        <div className={styles.customerGroup}>
+          <p className={styles.groupLabel}>How you can reach them</p>
+          <div className={styles.customerTiles}>
+            <CustomerTile
+              href={customerListHref('email_reachable')}
+              value={formatCount(view.customers.ableToEmail)}
+              share={sharePercent(view.customers.ableToEmail, view.customers.total)}
+              name="Able to receive email"
+              detail="Have an email address and haven't unsubscribed."
+            />
+            <CustomerTile
+              href={customerListHref('sms_reachable')}
+              value={formatCount(view.customers.ableToText)}
+              share={sharePercent(view.customers.ableToText, view.customers.total)}
+              name="Able to receive texts"
+              detail="Have a phone number and said yes to texts."
+            />
+            <CustomerTile
+              href={customerListHref('missing_contact')}
+              tone="warn"
+              value={formatCount(view.customers.missingContact)}
+              name="Missing contact info"
+              detail="No email or phone yet. Ask them at your next show."
+            />
+          </div>
+        </div>
+        <div className={styles.customerGroup}>
+          <p className={styles.groupLabel}>How active they are</p>
+          <div className={styles.customerTiles}>
+            <CustomerTile
+              href={customerListHref('new_this_month', view.customers.monthStartIso)}
+              tone="cream"
+              value={`+${formatCount(view.customers.addedThisMonth)}`}
+              name="New this month"
+              detail={`Customers added since ${view.customers.monthStartLabel}.`}
+            />
+          </div>
+        </div>
+      </section>
 
-        <article className={styles.statCard}>
+      <div className={styles.stats}>
+        <DashboardLink
+          className={styles.statCard}
+          href={workspaceSectionHref('trade-board')}
+          onOpen={() => onOpenSection('trade-board')}
+          testId="dance-floor-card"
+        >
           <div className={styles.statTop}>
             <h3>Dance Floor</h3>
             {view.danceFloor.addedThisMonth > 0 ? (
@@ -367,12 +475,17 @@ export function RepDashboard({
           <p className={styles.statValue}>{formatCount(view.danceFloor.activeListings)}</p>
           <p className={styles.muted}>Active listings</p>
           <Sparkline values={view.danceFloor.monthly} labels={view.danceFloor.monthLabels} />
-          <button type="button" className={styles.textAction} onClick={() => onOpenSection('trade-board')}>
+          <span className={styles.textAction}>
             {view.danceFloor.activeListings === 0 ? 'Add your first piece' : 'Open Dance Floor'}
-          </button>
-        </article>
+          </span>
+        </DashboardLink>
 
-        <article className={styles.statCard} data-testid="pending-trades">
+        <DashboardLink
+          className={styles.statCard}
+          href={workspaceSectionHref('trade-board')}
+          onOpen={() => onOpenSection('trade-board')}
+          testId="pending-trades"
+        >
           <div className={styles.statTop}>
             <h3>Pending trades</h3>
             {view.pendingTrades.count > 0 ? <span className={styles.pulse} data-pulse="true" aria-label="Waiting on you" /> : null}
@@ -381,12 +494,15 @@ export function RepDashboard({
           <p className={styles.muted}>
             {view.pendingTrades.count > 0 ? 'Waiting on your Dance Floor.' : 'You are all caught up.'}
           </p>
-          <button type="button" className={styles.textAction} onClick={() => onOpenSection('trade-board')}>
-            Open Dance Floor
-          </button>
-        </article>
+          <span className={styles.textAction}>Open Dance Floor</span>
+        </DashboardLink>
 
-        <article className={styles.statCard}>
+        <DashboardLink
+          className={styles.statCard}
+          href={workspaceSectionHref('messages')}
+          onOpen={() => onOpenSection('messages')}
+          testId="unread-messages"
+        >
           <div className={styles.statTop}>
             <h3>Unread messages</h3>
           </div>
@@ -402,14 +518,17 @@ export function RepDashboard({
           ) : (
             <p className={styles.muted}>Messages couldn&apos;t load just now.</p>
           )}
-          <button type="button" className={styles.textAction} onClick={() => onOpenSection('messages')}>
-            Open Message Center
-          </button>
-        </article>
+          <span className={styles.textAction}>Open Message Center</span>
+        </DashboardLink>
       </div>
 
       <div className={styles.secondary}>
-        <article className={styles.card}>
+        <DashboardLink
+          className={styles.card}
+          href={workspaceSectionHref('show-calendar')}
+          onOpen={() => onOpenSection('show-calendar')}
+          testId="platform-mix"
+        >
           <p className={styles.kicker}>Last 90 days</p>
           <h3 className={styles.cardTitle}>Platform mix</h3>
           {view.platformMix.length > 0 ? (
@@ -430,9 +549,9 @@ export function RepDashboard({
           ) : (
             <p className={styles.muted}>Shows from the last 90 days will fill this in.</p>
           )}
-        </article>
+        </DashboardLink>
 
-        <article className={styles.card}>
+        <article className={styles.card} data-testid="month-at-a-glance">
           <p className={styles.kicker}>Last month at a glance</p>
           <h3 className={styles.cardTitle}>
             {view.monthAtAGlance.periodLabel || 'Monthly snapshot'}
@@ -444,13 +563,29 @@ export function RepDashboard({
           </p>
           {view.monthAtAGlance.rows.length > 0 ? (
             <ul className={styles.glanceList}>
-              {view.monthAtAGlance.rows.map((row) => (
-                <li key={row.key}>
-                  <span>{row.label}</span>
-                  <strong>{row.value === null ? '—' : formatCount(row.value)}</strong>
-                  <DirectionMark direction={row.direction} />
-                </li>
-              ))}
+              {view.monthAtAGlance.rows.map((row) => {
+                const section = glanceRowSection(row.key)
+                const body = (
+                  <>
+                    <span>{row.label}</span>
+                    <strong>{row.value === null ? '—' : formatCount(row.value)}</strong>
+                    <DirectionMark direction={row.direction} />
+                  </>
+                )
+                return (
+                  <li key={row.key}>
+                    {section && isDashboardDestination(section) ? (
+                      <DashboardLink
+                        className={styles.glanceLink}
+                        href={workspaceSectionHref(section)}
+                        onOpen={() => onOpenSection(section)}
+                      >
+                        {body}
+                      </DashboardLink>
+                    ) : body}
+                  </li>
+                )
+              })}
             </ul>
           ) : (
             <p className={styles.muted}>Your monthly snapshot will land here.</p>
@@ -461,30 +596,42 @@ export function RepDashboard({
       {view.team || view.recipes || view.liveLineup ? (
         <div className={styles.conditional}>
           {view.team && view.team.count > 0 ? (
-            <button type="button" className={styles.conditionalCard} onClick={() => onOpenSection('team-management')}>
+            <DashboardLink
+              className={styles.conditionalCard}
+              href={workspaceSectionHref('team-management')}
+              onOpen={() => onOpenSection('team-management')}
+            >
               <span>Team</span>
               <strong>{formatCount(view.team.count)}</strong>
               <span className={styles.textAction}>Open Team Management</span>
-            </button>
+            </DashboardLink>
           ) : null}
           {view.recipes && view.recipes.count > 0 ? (
-            <button type="button" className={styles.conditionalCard} onClick={() => onOpenSection('recipes')}>
+            <DashboardLink
+              className={styles.conditionalCard}
+              href={workspaceSectionHref('recipes')}
+              onOpen={() => onOpenSection('recipes')}
+            >
               <span>Recipes</span>
               <strong>{formatCount(view.recipes.count)}</strong>
               <span className={styles.textAction}>Open Bling Kitchen</span>
-            </button>
+            </DashboardLink>
           ) : null}
           {view.liveLineup && view.liveLineup.count > 0 ? (
-            <button type="button" className={styles.conditionalCard} onClick={() => onOpenSection('live-queue')}>
+            <DashboardLink
+              className={styles.conditionalCard}
+              href={workspaceSectionHref('live-queue')}
+              onOpen={() => onOpenSection('live-queue')}
+            >
               <span>Live Lineup shows</span>
               <strong>{formatCount(view.liveLineup.count)}</strong>
               <span className={styles.textAction}>Open Live Lineup</span>
-            </button>
+            </DashboardLink>
           ) : null}
         </div>
       ) : null}
 
-      <SiteVisitsPanel visits={view.siteVisits} />
+      <SiteVisitsPanel visits={view.siteVisits} siteHref={publicSiteHref} />
       <DanceFloorInsightsPanel
         insights={view.danceFloorInsights}
         onOpenDanceFloor={() => onOpenSection('trade-board')}

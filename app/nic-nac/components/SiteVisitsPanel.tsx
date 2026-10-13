@@ -1,9 +1,36 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { SiteVisitSummary } from '@/lib/services/site-visit-summary'
 import { US_STATE_HEX, US_STATE_NAMES } from '@/lib/services/site-visit-summary'
+import { workspaceSectionHref } from '@/lib/services/rep-dashboard-math'
+import { DashboardLink } from './DashboardLink'
 import styles from './RepDashboard.module.css'
+
+function VisitShell({
+  href,
+  className,
+  external = false,
+  children,
+}: {
+  href?: string | null
+  className: string
+  external?: boolean
+  children: ReactNode
+}) {
+  if (!href) return <article className={className}>{children}</article>
+  return (
+    <DashboardLink
+      className={className}
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noreferrer noopener' : undefined}
+    >
+      {children}
+      {external ? <span className={styles.srOnly}>Opens in a new tab.</span> : null}
+    </DashboardLink>
+  )
+}
 
 const TRACKING_STARTED = 'October 13, 2026'
 
@@ -202,11 +229,24 @@ function StateMap({ states }: { states: SiteVisitSummary['states'] }) {
   )
 }
 
-export function SiteVisitsPanel({ visits }: { visits: SiteVisitSummary }) {
+export function SiteVisitsPanel({
+  visits,
+  siteHref = null,
+}: {
+  visits: SiteVisitSummary
+  siteHref?: string | null
+}) {
+  const publicSiteHref = siteHref?.trim() || null
   return (
     <section className={styles.boardSection} data-testid="site-visitors" aria-labelledby="site-visitors-title">
-      <header>
+      <header className={styles.sectionHead}>
         <h3 id="site-visitors-title" className={styles.boardSectionTitle}>Your site visitors</h3>
+        {publicSiteHref ? (
+          <a className={styles.seeAll} href={publicSiteHref} target="_blank" rel="noreferrer noopener">
+            Open your site ›
+            <span className={styles.srOnly}> Opens in a new tab.</span>
+          </a>
+        ) : null}
         <p className={styles.why}>
           Page views on your public site over the last 28 days. Tracking started {TRACKING_STARTED}. QR codes printed before that still open your site and count as regular visits.
         </p>
@@ -219,13 +259,13 @@ export function SiteVisitsPanel({ visits }: { visits: SiteVisitSummary }) {
           </p>
         </article>
       ) : (
-        <VisitCards visits={visits} />
+        <VisitCards visits={visits} siteHref={publicSiteHref} />
       )}
     </section>
   )
 }
 
-function VisitCards({ visits }: { visits: SiteVisitSummary }) {
+function VisitCards({ visits, siteHref }: { visits: SiteVisitSummary; siteHref: string | null }) {
   const heatMax = Math.max(...visits.heatmap.flat(), 0)
   const busiest = visits.busiest
     ? `${visits.busiest.day} at ${hourLabel(visits.busiest.hour)}`
@@ -233,7 +273,7 @@ function VisitCards({ visits }: { visits: SiteVisitSummary }) {
 
   return (
     <div className={styles.visitGrid}>
-      <article className={styles.statCard}>
+      <VisitShell className={styles.statCard} href={siteHref} external>
         <div className={styles.statTop}>
           <h3 className={styles.pieceTitle}>Visits</h3>
           <span className={styles.pill}>{visits.periodLabel}</span>
@@ -246,9 +286,9 @@ function VisitCards({ visits }: { visits: SiteVisitSummary }) {
             : 'Each open of your public site counts once.'}
         </p>
         <VisitSparkline values={visits.daily} labels={visits.dayLabels} />
-      </article>
+      </VisitShell>
 
-      <article className={styles.card}>
+      <article className={styles.card} data-testid="visit-heatmap">
         <h3 className={styles.pieceTitle}>Busiest hour</h3>
         <p className={styles.why}>
           The day and hour people already show up, in your time zone. Darker squares are busier hours, so you can schedule a live when visitors are looking.
@@ -280,16 +320,16 @@ function VisitCards({ visits }: { visits: SiteVisitSummary }) {
         </div>
       </article>
 
-      <article className={styles.statCard}>
+      <VisitShell className={styles.statCard} href={workspaceSectionHref('card-qr')}>
         <h3 className={styles.pieceTitle}>QR visits</h3>
         <p className={styles.why}>
           Scans from Cards &amp; QR codes made after tracking started. Codes you already printed still open your site and count as regular visits, not QR scans.
         </p>
         <p className={styles.statValue}>{formatCount(visits.qrVisits)}</p>
         <p className={styles.muted}>{shareLabel(visits.qrShare)}</p>
-      </article>
+      </VisitShell>
 
-      <article className={styles.card}>
+      <article className={styles.card} data-testid="visit-map">
         <h3 className={styles.pieceTitle}>Where they are</h3>
         <StateMap states={visits.states} />
       </article>
