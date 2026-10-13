@@ -589,7 +589,7 @@ async function renderBackAttempt(input: BizcardBackInput, dropSocial: boolean) {
     if (fits(txt, one)) return { f: one, lines: [txt] }
     for (let s2 = body; s2 >= MINPX; s2 -= 1) {
       const f = BODY(s2)
-      let best: { m: number; lines: string[] } | null = null
+      let best = null as { m: number; lines: string[] } | null
       const consider = (a: string, b: string) => {
         if (!a || !b || !fits(a, f) || !fits(b, f)) return
         const m = Math.max(tw(f, a), tw(f, b))
