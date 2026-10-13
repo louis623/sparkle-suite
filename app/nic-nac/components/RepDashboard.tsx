@@ -88,6 +88,7 @@ function CustomerTile({
   share,
   name,
   detail,
+  pending = false,
 }: {
   href: string
   tone?: 'warn' | 'cream'
@@ -95,12 +96,13 @@ function CustomerTile({
   share?: number | null
   name: string
   detail: string
+  pending?: boolean
 }) {
   const toneClass = tone === 'warn' ? styles.customerTileWarn : tone === 'cream' ? styles.customerTileCream : ''
   return (
     <a className={[styles.customerTile, toneClass].filter(Boolean).join(' ')} href={href}>
       <span className={styles.chevron} aria-hidden="true">›</span>
-      <strong>
+      <strong className={pending ? styles.tilePending : undefined}>
         {value}
         {share != null ? <span className={styles.tileShare}>{share}%</span> : null}
       </strong>
@@ -454,6 +456,33 @@ export function RepDashboard({
               value={`+${formatCount(view.customers.addedThisMonth)}`}
               name="New this month"
               detail={`Customers added since ${view.customers.monthStartLabel}.`}
+            />
+            <CustomerTile
+              href={customerListHref(
+                'ordered_during_live_90',
+                view.customers.liveOrderActivity.windowStartIso,
+              )}
+              tone="cream"
+              pending={!view.customers.liveOrderActivity.available}
+              value={
+                view.customers.liveOrderActivity.available
+                  ? formatCount(view.customers.liveOrderActivity.orderedDuringLiveLast90Days ?? 0)
+                  : 'Not available yet'
+              }
+              name="Ordered during a LIVE in the last 90 days"
+              detail="Orders during your LIVE shows in the last 90 days. This count is from LIVE shows only."
+            />
+            <CustomerTile
+              href={customerListHref('gone_quiet', view.customers.liveOrderActivity.windowStartIso)}
+              tone="warn"
+              pending={!view.customers.liveOrderActivity.available}
+              value={
+                view.customers.liveOrderActivity.available
+                  ? formatCount(view.customers.liveOrderActivity.goneQuiet ?? 0)
+                  : 'Not available yet'
+              }
+              name="Gone quiet"
+              detail="Ordered during a LIVE show before, but not in the last 90 days. This count is from LIVE shows only."
             />
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { emptyDanceFloorInsights, type DanceFloorInsights } from '@/lib/services/dance-floor-insights'
+import { liveOrderWindowStartIso } from '@/lib/services/live-lineup-customer-orders'
 import { emptySiteVisitSummary, type SiteVisitSummary } from '@/lib/services/site-visit-summary'
 
 export const BIRTHDAY_WINDOW_DAYS = 30
@@ -82,6 +83,12 @@ export type RepDashboardPayload = {
     missingContact: number
     monthStartLabel: string
     monthStartIso: string
+    liveOrderActivity: {
+      available: boolean
+      orderedDuringLiveLast90Days: number | null
+      goneQuiet: number | null
+      windowStartIso: string | null
+    }
   }
   danceFloor: {
     activeListings: number
@@ -512,6 +519,12 @@ export function createEmptyRepDashboard(
       missingContact: 0,
       monthStartLabel: monthStartLabel(now, zone),
       monthStartIso: months[months.length - 1]?.startIso ?? now.toISOString(),
+      liveOrderActivity: {
+        available: true,
+        orderedDuringLiveLast90Days: 0,
+        goneQuiet: 0,
+        windowStartIso: liveOrderWindowStartIso(now),
+      },
     },
     danceFloor: {
       activeListings: 0,

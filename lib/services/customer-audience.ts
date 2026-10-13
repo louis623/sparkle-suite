@@ -19,6 +19,11 @@ import type {
 } from './types'
 import { formatBirthday, normalizeBirthday } from './birthdays'
 import { sanitizeLineupPreference } from '@/lib/live-lineup/audience'
+import {
+  classifyLiveOrderLastSeen,
+  isMissingLiveOrderColumn,
+  resolveLiveOrderWindowStart,
+} from '@/lib/services/live-lineup-customer-orders'
 
 function normalizeText(value: string | undefined) {
   const trimmed = value?.trim() ?? ''
@@ -64,6 +69,7 @@ type CustomerAudienceRow = {
   email_opted_out_at: string | null
   stop_keyword_received_at: string | null
   created_at: string
+  last_seen_in_lineup_at?: string | null
 }
 
 const CUSTOMER_AUDIENCE_SELECT_COLUMNS = [
@@ -318,6 +324,9 @@ function mapAudienceRow(row: CustomerAudienceRow): CustomerAudienceMember {
     smsOptedOutAt,
     emailOptedOutAt,
     stopKeywordReceivedAt,
+    ...(row.last_seen_in_lineup_at !== undefined
+      ? { lastSeenInLineupAt: row.last_seen_in_lineup_at }
+      : {}),
   }
 }
 
@@ -377,6 +386,7 @@ async function listCustomerAudienceRows(supabase: SupabaseClient) {
 async function listCustomerAudienceRowsForRep(
   supabase: SupabaseClient,
   repId: string,
+  columns: readonly string[] = CUSTOMER_AUDIENCE_SELECT_COLUMNS,
 ) {
   const pageSize = 1000
   const rows: CustomerAudienceRow[] = []
@@ -384,7 +394,7 @@ async function listCustomerAudienceRowsForRep(
   for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await supabase
       .from('customer_audience')
-      .select(CUSTOMER_AUDIENCE_SELECT_COLUMNS.join(', '))
+      .select(columns.join(', '))
       .eq('rep_id', repId)
       .order('created_at', { ascending: false })
       .range(offset, offset + pageSize - 1)
@@ -909,17 +919,32 @@ export async function getCustomerAudience(
     throw errors.UNAUTHORIZED('repId required')
   }
 
-  const customers = (await listCustomerAudienceRowsForRep(supabase, repId)).map(
-    mapAudienceRow,
-  )
+  const columns = filters.liveActivity
+    ? [...CUSTOMER_AUDIENCE_SELECT_COLUMNS, 'last_seen_in_lineup_at']
+    : CUSTOMER_AUDIENCE_SELECT_COLUMNS
+  let audienceRows: CustomerAudienceRow[]
+  try {
+    audienceRows = await listCustomerAudienceRowsForRep(supabase, repId, columns)
+  } catch (error) {
+    if (!filters.liveActivity || !isMissingLiveOrderColumn(error)) throw error
+    const customers = (await listCustomerAudienceRowsForRep(supabase, repId)).map(mapAudienceRow)
+    return {
+      summary: summarizeAudience(customers),
+      customers: [],
+      liveActivityAvailable: false,
+    }
+  }
+  const customers = audienceRows.map(mapAudienceRow)
   const channelFilter = filters.channelFilter ?? 'all'
   const limit =
     filters.limit === null
       ? Number.POSITIVE_INFINITY
       : clampLimit(filters.limit)
+  const windowStart = resolveLiveOrderWindowStart(filters.liveActivitySince)
 
   return {
     summary: summarizeAudience(customers),
+    ...(filters.liveActivity ? { liveActivityAvailable: true as const } : {}),
     customers: customers
       .filter((customer) => matchesChannel(customer, channelFilter))
       .filter(customer => {
@@ -930,6 +955,10 @@ export async function getCustomerAudience(
           && (!filters.favoriteCut || fold(customer.favoriteCut ?? '').includes(fold(filters.favoriteCut)))
           && (!filters.birthdayMonth || Number(customer.birthday?.split('-')[0]) === filters.birthdayMonth)
       })
+      .filter((customer) =>
+        !filters.liveActivity ||
+        classifyLiveOrderLastSeen(customer.lastSeenInLineupAt, windowStart) === filters.liveActivity,
+      )
       .slice(0, limit),
   }
 }

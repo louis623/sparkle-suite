@@ -242,10 +242,16 @@ describe('rep dashboard presentation', () => {
     expect(html).toContain('How you can reach them')
     expect(html).toContain('How active they are')
     expect(html).toContain('Customers added since October 1.')
+    expect(html).toContain('Ordered during a LIVE in the last 90 days')
+    expect(html).toContain('Gone quiet')
+    expect(html).toContain('This count is from LIVE shows only.')
+    expect(html).toContain('Ordered during a LIVE show before, but not in the last 90 days.')
+    expect(html).toContain('filter=ordered_during_live_90')
+    expect(html).toContain('filter=gone_quiet')
     expect(html).not.toContain('Can email')
     expect(html).not.toContain('Can text')
     expect(html).not.toContain('Bought in last 90 days')
-    expect(html).not.toContain('Gone quiet')
+    expect(html).not.toContain('Not available yet')
     expect(html).toContain('href="/nic-nac?section=customer-list"')
     expect(html).toContain('href="/nic-nac?section=show-calendar"')
     expect(html).toContain('href="/nic-nac?section=trade-board"')
@@ -292,6 +298,12 @@ describe('rep dashboard presentation', () => {
     data.customers.ableToText = 164
     data.customers.missingContact = 19
     data.customers.addedThisMonth = 14
+    data.customers.liveOrderActivity = {
+      available: true,
+      orderedDuringLiveLast90Days: 97,
+      goneQuiet: 61,
+      windowStartIso: '2026-07-14T15:00:00.000Z',
+    }
     data.nextShow = {
       title: 'Friday Live',
       platform: 'TikTok',
@@ -322,8 +334,17 @@ describe('rep dashboard presentation', () => {
     expect(customersCard).toContain('filter=sms_reachable')
     expect(customersCard).toContain('filter=missing_contact')
     expect(customersCard).toContain('filter=new_this_month')
+    expect(customersCard).toContain('97')
+    expect(customersCard).toContain('61')
+    expect(customersCard).toContain('Ordered during a LIVE in the last 90 days')
+    expect(customersCard).toContain('Gone quiet')
+    expect(customersCard).toContain('This count is from LIVE shows only.')
+    expect(customersCard).toContain('filter=ordered_during_live_90')
+    expect(customersCard).toContain('filter=gone_quiet')
+    expect(customersCard).toContain('since=2026-07-14T15')
     expect(customersCard).not.toContain('Bought in last 90 days')
-    expect(customersCard).not.toContain('Gone quiet')
+    expect(customersCard).not.toContain('Not available yet')
+    expect(customersCard).not.toContain('Dana M.')
     expect(html).toContain('Open your site')
     expect(html).toContain('href="https://www.yoursparklesuite.com/lindsey"')
     expect(html).toContain('href="/nic-nac?section=card-qr"')
@@ -567,6 +588,47 @@ describe('rep dashboard presentation', () => {
     expect(source).toContain(".is('sms_opted_out_at', null)")
     expect(source).toContain(".is('stop_keyword_received_at', null)")
     expect(source).toContain('MISSING_CONTACT_FILTER')
+    expect(source).toContain('readRepLiveOrderActivity')
+  })
+
+  it('shows Not available yet for LIVE order tiles without hiding the rest of the dashboard', () => {
+    const now = new Date('2026-10-12T15:00:00.000Z')
+    const data = createEmptyRepDashboard(now, TIME_ZONE)
+    data.customers.total = 248
+    data.customers.liveOrderActivity = {
+      available: false,
+      orderedDuringLiveLast90Days: null,
+      goneQuiet: null,
+      windowStartIso: null,
+    }
+    data.nextShow = {
+      title: 'Friday Live',
+      platform: 'TikTok',
+      eventTime: '2026-10-15T17:30:00.000Z',
+      timeZone: TIME_ZONE,
+    }
+    const html = renderToStaticMarkup(
+      createElement(RepDashboard, {
+        onOpenSection: () => undefined,
+        data,
+        now,
+      }),
+    )
+    const customersCard = html.slice(
+      html.indexOf('data-testid="customers-card"'),
+      html.indexOf('data-testid="dance-floor-card"'),
+    )
+
+    expect(customersCard).toContain('Not available yet')
+    expect(customersCard.match(/Not available yet/g)).toHaveLength(2)
+    expect(customersCard).toContain('Ordered during a LIVE in the last 90 days')
+    expect(customersCard).toContain('Gone quiet')
+    expect(customersCard).toContain('This count is from LIVE shows only.')
+    expect(customersCard).toContain('href="/nic-nac?section=customer-list&amp;filter=ordered_during_live_90"')
+    expect(customersCard).toContain('href="/nic-nac?section=customer-list&amp;filter=gone_quiet"')
+    expect(html).toContain('Friday Live')
+    expect(html).toContain('Your site visitors')
+    expect(html).toContain('Dance Floor')
   })
 
   it('counts team onboarding participants by owner, not rep_id', () => {

@@ -29,6 +29,7 @@ import {
   summarizeSiteVisits,
   type PublicSiteVisitRow,
 } from '@/lib/services/site-visit-summary'
+import { readRepLiveOrderActivity } from '@/lib/services/live-lineup-customer-orders'
 
 export const MISSING_CONTACT_FILTER =
   'and(or(email.is.null,email.eq.),or(phone.is.null,phone.eq.))'
@@ -399,6 +400,8 @@ export async function getRepDashboard(args: {
   }, emptyDanceFloorInsights())
   if (danceFloorInsights.failed) partial = true
 
+  const liveOrderActivity = await readRepLiveOrderActivity(args.supabase, args.repId, now)
+
   let siteVisits = emptySiteVisitSummary(now, timeZone, 'unavailable')
   try {
     const periodStart = new Date(now.getTime() - 32 * 24 * 60 * 60 * 1000).toISOString()
@@ -439,6 +442,7 @@ export async function getRepDashboard(args: {
       missingContact,
       monthStartLabel: monthStartLabel(now, timeZone),
       monthStartIso: months[months.length - 1]?.startIso ?? now.toISOString(),
+      liveOrderActivity,
     },
     danceFloor: {
       activeListings,

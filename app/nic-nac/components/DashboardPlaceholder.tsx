@@ -47,6 +47,10 @@ import { SMS_CHARGE_MILS, walletMilsToUsd } from '@/lib/services/wallet-units'
 import { RepDashboard } from './RepDashboard'
 import { zonedCalendarDay, zonedMidnightToUtc } from '@/lib/services/rep-dashboard-math'
 import {
+  classifyLiveOrderLastSeen,
+  resolveLiveOrderWindowStart,
+} from '@/lib/services/live-lineup-customer-orders'
+import {
   fulfillmentLogViewForRequest,
   shouldApplyFulfillmentLogPage,
   type FulfillmentLogView,
@@ -598,6 +602,8 @@ export type RosterFilter =
   | 'opted_out'
   | 'missing_contact'
   | 'new_this_month'
+  | 'ordered_during_live_90'
+  | 'gone_quiet'
 
 const ROSTER_FILTERS = new Set<RosterFilter>([
   'all',
@@ -606,6 +612,8 @@ const ROSTER_FILTERS = new Set<RosterFilter>([
   'opted_out',
   'missing_contact',
   'new_this_month',
+  'ordered_during_live_90',
+  'gone_quiet',
 ])
 
 export function readRosterFilter(search: string): RosterFilter {
@@ -636,6 +644,7 @@ type AudienceState = {
   status: 'loading' | 'ready' | 'error'
   summary?: CustomerAudienceSummary
   customers?: CustomerAudienceMember[]
+  liveActivityAvailable?: boolean
 }
 
 type AudienceActionState = {
@@ -1009,6 +1018,7 @@ type RecipeEditorTab = 'current' | 'upload' | 'edit'
 type AudienceResponsePayload = {
   summary: CustomerAudienceSummary
   customers: CustomerAudienceMember[]
+  liveActivityAvailable?: boolean
 }
 
 type CalendarResponsePayload = {
@@ -1415,6 +1425,8 @@ const FILTER_OPTIONS: Array<{ value: RosterFilter; label: string }> = [
   { value: 'opted_out', label: 'Opted out' },
   { value: 'missing_contact', label: 'Missing contact info' },
   { value: 'new_this_month', label: 'New this month' },
+  { value: 'ordered_during_live_90', label: 'Ordered during a LIVE in the last 90 days' },
+  { value: 'gone_quiet', label: 'Gone quiet' },
 ]
 
 const SORT_OPTIONS: Array<{ value: RosterSort; label: string }> = [
@@ -1628,6 +1640,13 @@ export function filterRosterCustomers(
       const created = Date.parse(customer.createdAt)
       return Number.isFinite(created) && created >= start
     })
+  }
+
+  if (activeFilter === 'ordered_during_live_90' || activeFilter === 'gone_quiet') {
+    const windowStart = resolveLiveOrderWindowStart(options.since, options.now ?? new Date())
+    return customers.filter(
+      (customer) => classifyLiveOrderLastSeen(customer.lastSeenInLineupAt, windowStart) === activeFilter,
+    )
   }
 
   return customers
@@ -3375,6 +3394,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     const limit = filter === 'all' ? 25 : 100
     const params = new URLSearchParams({ limit: String(limit) })
     if (channel) params.set('channel', channel)
+    if (filter === 'ordered_during_live_90' || filter === 'gone_quiet') {
+      params.set('liveActivity', filter)
+      const since = readRosterSince(search)
+      if (since) params.set('since', since)
+    }
     const response = await fetch(`/api/nic-nac/customer-audience?${params.toString()}`, {
       credentials: 'include',
       signal,
@@ -3388,6 +3412,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       status: 'ready',
       summary: payload.summary,
       customers: payload.customers,
+      liveActivityAvailable: payload.liveActivityAvailable,
     })
   }
 
@@ -6991,7 +7016,33 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             state={audienceState}
             activeFilter={rosterFilter}
             rosterSince={rosterSince}
-            onFilterChange={setRosterFilter}
+            onFilterChange={(next) => {
+              setRosterFilter(next)
+              if (typeof window === 'undefined') return
+              const params = new URLSearchParams(window.location.search)
+              if (next === 'all') params.delete('filter')
+              else params.set('filter', next)
+              if (
+                next !== 'new_this_month' &&
+                next !== 'ordered_during_live_90' &&
+                next !== 'gone_quiet'
+              ) {
+                params.delete('since')
+              }
+              const search = params.toString()
+              window.history.replaceState(
+                window.history.state,
+                '',
+                `${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`,
+              )
+              setRosterSince(readRosterSince(search))
+              const live =
+                next === 'ordered_during_live_90' ||
+                next === 'gone_quiet' ||
+                rosterFilter === 'ordered_during_live_90' ||
+                rosterFilter === 'gone_quiet'
+              if (live) void loadAudience()
+            }}
             searchQuery={searchQuery}
             onSearchQueryChange={setSearchQuery}
             sortOrder={sortOrder}
@@ -14241,7 +14292,12 @@ export function CustomerRosterCard({
           <div className={styles.helperMessage}>{actionState.helperMessage}</div>
         ) : null}
         {filteredCustomers.length === 0 ? (
-          <div className={styles.emptyState}>No customers match this filter yet.</div>
+          <div className={styles.emptyState}>
+            {(activeFilter === 'ordered_during_live_90' || activeFilter === 'gone_quiet') &&
+            state.liveActivityAvailable === false
+              ? 'Not available yet. Orders during your LIVE shows will show here after tracking is on.'
+              : 'No customers match this filter yet.'}
+          </div>
         ) : (
           filteredCustomers.map((customer) => {
             const statuses = getCustomerChannelStatuses(customer)

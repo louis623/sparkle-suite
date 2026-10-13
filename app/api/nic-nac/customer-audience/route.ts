@@ -141,9 +141,22 @@ export async function GET(request: Request) {
     const { repId, supabase } = await getPaidNicNacContext()
     const customerId = url.searchParams.get('customerId')
     if (customerId) return NextResponse.json({customer: await getCustomerAudienceMember(supabase, repId, customerId)}, {headers:{'cache-control':'no-store'}})
+    const liveActivityParam = url.searchParams.get('liveActivity')
+    const liveActivity =
+      liveActivityParam === 'ordered_during_live_90' || liveActivityParam === 'gone_quiet'
+        ? liveActivityParam
+        : null
+    if (liveActivityParam && !liveActivity) {
+      return NextResponse.json(
+        { error: 'liveActivity must be ordered_during_live_90 or gone_quiet.' },
+        { status: 400 },
+      )
+    }
     const audience = await getCustomerAudience(supabase, repId, {
       channelFilter,
       query: url.searchParams.get('query') ?? undefined,
+      liveActivity: liveActivity ?? undefined,
+      liveActivitySince: url.searchParams.get('since'),
       limit: format === 'csv' ? null : limit ?? undefined,
     })
 

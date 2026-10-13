@@ -1,9 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import {
+  classifyLiveOrderLastSeen,
   countCustomersGoneQuiet,
   countCustomersOrderedDuringLiveInLast90Days,
   getLiveLineupCustomerActivity,
+  isMissingLiveOrderColumn,
+  liveOrderWindowStart,
+  readRepLiveOrderActivity,
 } from '@/lib/services/live-lineup-customer-orders'
 
 const repId = '11111111-1111-4111-8111-111111111111'
@@ -50,5 +54,50 @@ describe('live lineup customer activity', () => {
     await expect(getLiveLineupCustomerActivity(client(null, { message: 'missing' }) as never, repId, asOf)).rejects.toEqual({
       message: 'missing',
     })
+  })
+
+  it('keeps both counts when the activity call succeeds', async () => {
+    const supabase = client({
+      orderedDuringLiveLast90Days: 97,
+      goneQuiet: 61,
+      windowDays: 90,
+    })
+
+    await expect(readRepLiveOrderActivity(supabase as never, repId, asOf)).resolves.toEqual({
+      available: true,
+      orderedDuringLiveLast90Days: 97,
+      goneQuiet: 61,
+      windowStartIso: '2026-07-15T00:00:00.000Z',
+    })
+    expect(supabase.rpc).toHaveBeenCalledTimes(2)
+  })
+
+  it('reports LIVE order counts as not available yet when the query fails', async () => {
+    const supabase = client(null, {
+      message: 'Could not find the function public.live_lineup_customer_activity in the schema cache',
+      code: 'PGRST202',
+    })
+
+    await expect(readRepLiveOrderActivity(supabase as never, repId, asOf)).resolves.toEqual({
+      available: false,
+      orderedDuringLiveLast90Days: null,
+      goneQuiet: null,
+      windowStartIso: null,
+    })
+  })
+
+  it('classifies the latest LIVE order time', () => {
+    const windowStart = liveOrderWindowStart(asOf)
+    expect(classifyLiveOrderLastSeen('2026-08-01T00:00:00.000Z', windowStart)).toBe('ordered_during_live_90')
+    expect(classifyLiveOrderLastSeen('2026-07-15T00:00:00.000Z', windowStart)).toBe('ordered_during_live_90')
+    expect(classifyLiveOrderLastSeen(asOf.toISOString(), windowStart)).toBe('ordered_during_live_90')
+    expect(classifyLiveOrderLastSeen('2026-06-01T00:00:00.000Z', windowStart)).toBe('gone_quiet')
+    expect(classifyLiveOrderLastSeen('2026-10-14T00:00:00.000Z', windowStart)).toBeNull()
+    expect(classifyLiveOrderLastSeen(null, windowStart)).toBeNull()
+    expect(isMissingLiveOrderColumn({
+      code: 'PGRST204',
+      message: "Could not find the 'last_seen_in_lineup_at' column of 'customer_audience' in the schema cache",
+    })).toBe(true)
+    expect(isMissingLiveOrderColumn({ message: 'permission denied' })).toBe(false)
   })
 })

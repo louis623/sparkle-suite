@@ -2917,7 +2917,44 @@ describe('DashboardPlaceholder', () => {
       filterRosterCustomers(people, 'new_this_month', { since: '2026-10-01T04:00:00.000Z' }).map((customer) => customer.id),
     ).toEqual(['text', 'blank'])
     expect(readRosterFilter('?section=customer-list&filter=missing_contact')).toBe('missing_contact')
+    expect(readRosterFilter('?filter=ordered_during_live_90')).toBe('ordered_during_live_90')
+    expect(readRosterFilter('?filter=gone_quiet')).toBe('gone_quiet')
     expect(readRosterFilter('?filter=nope')).toBe('all')
+    const livePeople = [
+      {
+        ...READY_STATE.customers[0],
+        id: 'recent',
+        name: 'Dana Miller',
+        lastSeenInLineupAt: '2026-09-01T12:00:00.000Z',
+      },
+      {
+        ...READY_STATE.customers[0],
+        id: 'quiet',
+        name: 'Cara Hughes',
+        lastSeenInLineupAt: '2026-05-01T12:00:00.000Z',
+      },
+      {
+        ...READY_STATE.customers[0],
+        id: 'never',
+        name: 'Sam Rivers',
+        lastSeenInLineupAt: null,
+      },
+    ]
+    expect(
+      filterRosterCustomers(livePeople, 'ordered_during_live_90', { since: '2026-07-15T00:00:00.000Z' }).map(
+        (customer) => customer.name,
+      ),
+    ).toEqual(['Dana Miller'])
+    expect(
+      filterRosterCustomers(livePeople, 'gone_quiet', { since: '2026-07-15T00:00:00.000Z' }).map(
+        (customer) => customer.name,
+      ),
+    ).toEqual(['Cara Hughes'])
+    expect(
+      filterRosterCustomers(livePeople, 'ordered_during_live_90', { since: '2026-07-15T00:00:00.000Z' }).some(
+        (customer) => customer.name.includes('Dana M.'),
+      ),
+    ).toBe(false)
     expect(readRosterSince('?since=2026-10-01T04:00:00.000Z')).toBe('2026-10-01T04:00:00.000Z')
     expect(readRosterSince('?since=not-a-date')).toBeNull()
   })
