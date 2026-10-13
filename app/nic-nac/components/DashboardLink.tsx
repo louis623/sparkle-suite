@@ -3,6 +3,11 @@
 import type { MouseEvent, ReactNode } from 'react'
 import styles from './RepDashboard.module.css'
 
+export function ClickCue({ kind = 'manage' }: { kind?: 'manage' | 'details' | 'site' }) {
+  const label = kind === 'site' ? 'Open site ›' : kind === 'details' ? 'See details ›' : 'Manage ›'
+  return <span className={styles.clickCue}>{label}</span>
+}
+
 export function DashboardLink({
   href,
   className,

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import type { DanceFloorInsights, DanceFloorPointKind } from '@/lib/services/dance-floor-insights'
 import { workspaceSectionHref } from '@/lib/services/rep-dashboard-math'
-import { DashboardLink } from './DashboardLink'
+import { ClickCue, DashboardLink } from './DashboardLink'
 import styles from './RepDashboard.module.css'
 
 function FloorCard({
@@ -19,6 +19,9 @@ function FloorCard({
       href={workspaceSectionHref('trade-board')}
       onOpen={onOpen}
     >
+      <div className={styles.cueEnd}>
+        <ClickCue />
+      </div>
       {children}
     </DashboardLink>
   )

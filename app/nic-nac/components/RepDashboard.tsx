@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useState } from 'react'
 import { DanceFloorInsightsPanel } from '@/app/nic-nac/components/DanceFloorInsights'
-import { DashboardLink } from '@/app/nic-nac/components/DashboardLink'
+import { ClickCue, DashboardLink } from '@/app/nic-nac/components/DashboardLink'
 import { SiteVisitsPanel } from '@/app/nic-nac/components/SiteVisitsPanel'
 import {
   birthdayTimingLabel,
@@ -101,11 +101,13 @@ function CustomerTile({
   const toneClass = tone === 'warn' ? styles.customerTileWarn : tone === 'cream' ? styles.customerTileCream : ''
   return (
     <a className={[styles.customerTile, toneClass].filter(Boolean).join(' ')} href={href}>
-      <span className={styles.chevron} aria-hidden="true">›</span>
-      <strong className={pending ? styles.tilePending : undefined}>
-        {value}
-        {share != null ? <span className={styles.tileShare}>{share}%</span> : null}
-      </strong>
+      <span className={styles.tileHead}>
+        <strong className={pending ? styles.tilePending : undefined}>
+          {value}
+          {share != null ? <span className={styles.tileShare}>{share}%</span> : null}
+        </strong>
+        <ClickCue />
+      </span>
       <span className={styles.tileName}>{name}</span>
       <small>{detail}</small>
     </a>
@@ -130,6 +132,7 @@ function BirthdayRow({ birthday }: { birthday: UpcomingBirthday }) {
   return (
     <a className={styles.birthdayLink} href={birthday.recordHref}>
       {content}
+      <ClickCue />
     </a>
   )
 }
@@ -340,7 +343,10 @@ export function RepDashboard({
           testId="next-show"
         >
           <div className={styles.showCopy}>
-            <p className={styles.kickerLight}>Next show</p>
+            <div className={styles.cueRow}>
+              <p className={styles.kickerLight}>Next show</p>
+              <ClickCue />
+            </div>
             {view.nextShow && countdown ? (
               <>
                 <h3 className={styles.showTitle}>{view.nextShow.title}</h3>
@@ -370,16 +376,17 @@ export function RepDashboard({
 
         {visibleBirthdays.length > 0 ? (
           <article className={styles.card} data-testid="birthdays-card">
-            <p className={styles.kicker}>Coming up</p>
-            <h3 className={styles.cardTitle}>
-              <DashboardLink
-                className={styles.inlineLink}
-                href={customerListHref()}
-                onOpen={() => onOpenSection('customer-list')}
-              >
-                Birthdays
-              </DashboardLink>
-            </h3>
+            <DashboardLink
+              className={styles.cueRow}
+              href={customerListHref()}
+              onOpen={() => onOpenSection('customer-list')}
+            >
+              <div>
+                <p className={styles.kicker}>Coming up</p>
+                <h3 className={styles.cardTitle}>Birthdays</h3>
+              </div>
+              <ClickCue />
+            </DashboardLink>
             <ul className={styles.birthdayList}>
               {visibleBirthdays.map((birthday, index) => (
                 <li key={`${birthday.customerId ?? birthday.name}-${birthday.month}-${birthday.day}-${index}`}>
@@ -398,8 +405,13 @@ export function RepDashboard({
             onOpen={() => onOpenSection('customer-list')}
             testId="birthdays-card"
           >
-            <p className={styles.kicker}>Coming up</p>
-            <h3 className={styles.cardTitle}>Birthdays</h3>
+            <div className={styles.cueRow}>
+              <div>
+                <p className={styles.kicker}>Coming up</p>
+                <h3 className={styles.cardTitle}>Birthdays</h3>
+              </div>
+              <ClickCue />
+            </div>
             <p className={styles.muted}>No birthdays in the next 30 days. You are clear to plan shows.</p>
           </DashboardLink>
         )}
@@ -419,7 +431,7 @@ export function RepDashboard({
               Everyone on your customer list, from shows, your site, and Nic-Nac.
             </p>
           </div>
-          <span className={styles.seeAll}>See all customers ›</span>
+          <ClickCue />
         </DashboardLink>
         <div className={styles.customerGroup}>
           <p className={styles.groupLabel}>How you can reach them</p>
@@ -497,9 +509,12 @@ export function RepDashboard({
         >
           <div className={styles.statTop}>
             <h3>Dance Floor</h3>
-            {view.danceFloor.addedThisMonth > 0 ? (
-              <span className={styles.pill}>+{formatCount(view.danceFloor.addedThisMonth)} this month</span>
-            ) : null}
+            <span className={styles.cueCluster}>
+              {view.danceFloor.addedThisMonth > 0 ? (
+                <span className={styles.pill}>+{formatCount(view.danceFloor.addedThisMonth)} this month</span>
+              ) : null}
+              <ClickCue />
+            </span>
           </div>
           <p className={styles.statValue}>{formatCount(view.danceFloor.activeListings)}</p>
           <p className={styles.muted}>Active listings</p>
@@ -517,7 +532,10 @@ export function RepDashboard({
         >
           <div className={styles.statTop}>
             <h3>Pending trades</h3>
-            {view.pendingTrades.count > 0 ? <span className={styles.pulse} data-pulse="true" aria-label="Waiting on you" /> : null}
+            <span className={styles.cueCluster}>
+              {view.pendingTrades.count > 0 ? <span className={styles.pulse} data-pulse="true" aria-label="Waiting on you" /> : null}
+              <ClickCue />
+            </span>
           </div>
           <p className={styles.statValue}>{formatCount(view.pendingTrades.count)}</p>
           <p className={styles.muted}>
@@ -534,6 +552,7 @@ export function RepDashboard({
         >
           <div className={styles.statTop}>
             <h3>Unread messages</h3>
+            <ClickCue />
           </div>
           {view.unreadMessages ? (
             <>
@@ -558,8 +577,13 @@ export function RepDashboard({
           onOpen={() => onOpenSection('show-calendar')}
           testId="platform-mix"
         >
-          <p className={styles.kicker}>Last 90 days</p>
-          <h3 className={styles.cardTitle}>Platform mix</h3>
+          <div className={styles.cueRow}>
+            <div>
+              <p className={styles.kicker}>Last 90 days</p>
+              <h3 className={styles.cardTitle}>Platform mix</h3>
+            </div>
+            <ClickCue />
+          </div>
           {view.platformMix.length > 0 ? (
             <ul className={styles.mixList}>
               {view.platformMix.map((slice) => {
@@ -610,6 +634,7 @@ export function RepDashboard({
                         onOpen={() => onOpenSection(section)}
                       >
                         {body}
+                        <ClickCue />
                       </DashboardLink>
                     ) : body}
                   </li>
@@ -630,7 +655,7 @@ export function RepDashboard({
               href={workspaceSectionHref('team-management')}
               onOpen={() => onOpenSection('team-management')}
             >
-              <span>Team</span>
+              <span className={styles.cueRow}><span>Team</span><ClickCue /></span>
               <strong>{formatCount(view.team.count)}</strong>
               <span className={styles.textAction}>Open Team Management</span>
             </DashboardLink>
@@ -641,7 +666,7 @@ export function RepDashboard({
               href={workspaceSectionHref('recipes')}
               onOpen={() => onOpenSection('recipes')}
             >
-              <span>Recipes</span>
+              <span className={styles.cueRow}><span>Recipes</span><ClickCue /></span>
               <strong>{formatCount(view.recipes.count)}</strong>
               <span className={styles.textAction}>Open Bling Kitchen</span>
             </DashboardLink>
@@ -652,7 +677,7 @@ export function RepDashboard({
               href={workspaceSectionHref('live-queue')}
               onOpen={() => onOpenSection('live-queue')}
             >
-              <span>Live Lineup shows</span>
+              <span className={styles.cueRow}><span>Live Lineup shows</span><ClickCue /></span>
               <strong>{formatCount(view.liveLineup.count)}</strong>
               <span className={styles.textAction}>Open Live Lineup</span>
             </DashboardLink>

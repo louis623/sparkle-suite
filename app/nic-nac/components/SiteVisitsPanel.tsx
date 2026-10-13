@@ -4,30 +4,36 @@ import { useState, type ReactNode } from 'react'
 import type { SiteVisitSummary } from '@/lib/services/site-visit-summary'
 import { US_STATE_HEX, US_STATE_NAMES } from '@/lib/services/site-visit-summary'
 import { workspaceSectionHref } from '@/lib/services/rep-dashboard-math'
-import { DashboardLink } from './DashboardLink'
+import { ClickCue, DashboardLink } from './DashboardLink'
 import styles from './RepDashboard.module.css'
 
 function VisitShell({
   href,
   className,
   external = false,
+  testId,
   children,
 }: {
   href?: string | null
   className: string
   external?: boolean
+  testId?: string
   children: ReactNode
 }) {
-  if (!href) return <article className={className}>{children}</article>
+  if (!href) return <article className={className} data-testid={testId}>{children}</article>
   return (
     <DashboardLink
       className={className}
       href={href}
+      testId={testId}
       target={external ? '_blank' : undefined}
       rel={external ? 'noreferrer noopener' : undefined}
     >
+      <div className={styles.cueEnd}>
+        <ClickCue kind={external ? 'site' : 'manage'} />
+        {external ? <span className={styles.srOnly}>Opens in a new tab.</span> : null}
+      </div>
       {children}
-      {external ? <span className={styles.srOnly}>Opens in a new tab.</span> : null}
     </DashboardLink>
   )
 }
@@ -242,8 +248,8 @@ export function SiteVisitsPanel({
       <header className={styles.sectionHead}>
         <h3 id="site-visitors-title" className={styles.boardSectionTitle}>Your site visitors</h3>
         {publicSiteHref ? (
-          <a className={styles.seeAll} href={publicSiteHref} target="_blank" rel="noreferrer noopener">
-            Open your site ›
+          <a className={styles.headerSiteLink} href={publicSiteHref} target="_blank" rel="noreferrer noopener">
+            <ClickCue kind="site" />
             <span className={styles.srOnly}> Opens in a new tab.</span>
           </a>
         ) : null}
@@ -273,7 +279,7 @@ function VisitCards({ visits, siteHref }: { visits: SiteVisitSummary; siteHref: 
 
   return (
     <div className={styles.visitGrid}>
-      <VisitShell className={styles.statCard} href={siteHref} external>
+      <VisitShell className={styles.statCard} href={siteHref} external testId="site-visits">
         <div className={styles.statTop}>
           <h3 className={styles.pieceTitle}>Visits</h3>
           <span className={styles.pill}>{visits.periodLabel}</span>
@@ -320,7 +326,7 @@ function VisitCards({ visits, siteHref }: { visits: SiteVisitSummary; siteHref: 
         </div>
       </article>
 
-      <VisitShell className={styles.statCard} href={workspaceSectionHref('card-qr')}>
+      <VisitShell className={styles.statCard} href={workspaceSectionHref('card-qr')} testId="qr-visits">
         <h3 className={styles.pieceTitle}>QR visits</h3>
         <p className={styles.why}>
           Scans from Cards &amp; QR codes made after tracking started. Codes you already printed still open your site and count as regular visits, not QR scans.

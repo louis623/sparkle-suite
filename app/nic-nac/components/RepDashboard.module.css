@@ -163,6 +163,63 @@
   cursor: pointer;
 }
 
+.clickCue {
+  flex: 0 0 auto;
+  color: var(--dash-magenta);
+  font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.showCard .clickCue {
+  color: var(--dash-magenta-hot);
+}
+
+.cueRow,
+.cueCluster,
+.cueEnd,
+.tileHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 12px;
+  min-width: 0;
+}
+
+.cueCluster,
+.cueEnd {
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.cueRow {
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.cueRow .clickCue,
+.birthdayLink .clickCue {
+  margin-left: auto;
+}
+
+.headerSiteLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.tileHead {
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.tileHead .clickCue {
+  margin-left: auto;
+}
+
 .srOnly {
   position: absolute;
   width: 1px;
@@ -186,8 +243,7 @@
 
 .inlineLink,
 .glanceLink,
-.customerTop,
-.seeAll {
+.customerTop {
   color: inherit;
   text-decoration: none;
 }
@@ -216,6 +272,7 @@
 .cardHeading,
 .statTop {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
@@ -466,7 +523,7 @@ a.birthdayLink:focus-visible {
 
 .glanceLink {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   gap: 8px 10px;
   align-items: center;
 }
@@ -671,12 +728,6 @@ a.birthdayLink:focus-visible {
   line-height: 1.45;
 }
 
-.seeAll {
-  color: var(--dash-violet-deep);
-  font-size: 13px;
-  font-weight: 700;
-}
-
 .customerGroup {
   display: flex;
   flex-direction: column;
@@ -725,6 +776,7 @@ a.birthdayLink:focus-visible {
 
 .customerTile strong {
   display: block;
+  min-width: 0;
   font-family: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
   font-size: 26px;
   font-weight: 500;
@@ -758,19 +810,9 @@ a.birthdayLink:focus-visible {
 
 .customerTile small {
   display: block;
-  padding-right: 14px;
   color: rgba(23, 16, 52, 0.66);
   font-size: 12px;
   line-height: 1.35;
-}
-
-.chevron {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  color: rgba(23, 16, 52, 0.35);
-  font-size: 18px;
-  line-height: 1;
 }
 
 .sectionHead {
@@ -786,6 +828,15 @@ a.birthdayLink:focus-visible {
 }
 
 @media (max-width: 700px) {
+  .glanceLink {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .glanceLink .clickCue {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+
   .customerTiles {
     grid-template-columns: 1fr 1fr;
   }
@@ -807,6 +858,32 @@ a.birthdayLink:focus-visible {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .showCard.cardLink,
+  .card.cardLink,
+  .statCard.cardLink,
+  .conditionalCard.cardLink,
+  .customerTile {
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .showCard.cardLink:hover,
+  .showCard.cardLink:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 46px rgba(23, 16, 52, 0.28);
+  }
+
+  .card.cardLink:hover,
+  .card.cardLink:focus-visible,
+  .statCard.cardLink:hover,
+  .statCard.cardLink:focus-visible,
+  .conditionalCard.cardLink:hover,
+  .conditionalCard.cardLink:focus-visible,
+  .customerTile:hover,
+  .customerTile:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(23, 16, 52, 0.1);
+  }
+
   .ringValue {
     transition: stroke-dashoffset 0.45s ease;
   }
@@ -825,7 +902,12 @@ a.birthdayLink:focus-visible {
   .ringValue,
   .pulse,
   .skeleton,
-  .skeletonShort {
+  .skeletonShort,
+  .showCard.cardLink,
+  .card.cardLink,
+  .statCard.cardLink,
+  .conditionalCard.cardLink,
+  .customerTile {
     animation: none;
     transition: none;
   }

@@ -234,7 +234,8 @@ describe('rep dashboard presentation', () => {
     expect(html).toContain('Last month at a glance')
     expect(html).not.toContain('This month at a glance')
     expect(html).toContain('Your customers')
-    expect(html).toContain('See all customers')
+    expect(html).toContain('Manage ›')
+    expect(html).not.toContain('See all customers')
     expect(html).toContain('Able to receive email')
     expect(html).toContain('Able to receive texts')
     expect(html).toContain('Missing contact info')
@@ -281,6 +282,32 @@ describe('rep dashboard presentation', () => {
     expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('data-testid="dance-floor-insights"'))
     expect(html).not.toContain('Choose a tool')
     expect(html).not.toContain('data-pulse="true"')
+    expect(html).not.toContain('Open site ›')
+    expect(html).not.toContain('See details ›')
+    const monthCard = html.slice(
+      html.indexOf('data-testid="month-at-a-glance"'),
+      html.indexOf('data-testid="site-visitors"'),
+    )
+    const heatmap = html.slice(
+      html.indexOf('data-testid="visit-heatmap"'),
+      html.indexOf('data-testid="qr-visits"'),
+    )
+    const visitMap = html.slice(
+      html.indexOf('data-testid="visit-map"'),
+      html.indexOf('data-testid="dance-floor-insights"'),
+    )
+    const siteVisits = html.slice(
+      html.indexOf('data-testid="site-visits"'),
+      html.indexOf('data-testid="visit-heatmap"'),
+    )
+    expect(monthCard).not.toContain('Manage ›')
+    expect(heatmap).not.toContain('Manage ›')
+    expect(heatmap).not.toContain('Open site ›')
+    expect(visitMap).not.toContain('Manage ›')
+    expect(visitMap).not.toContain('Open site ›')
+    expect(siteVisits).not.toContain('Open site ›')
+    expect(siteVisits).not.toContain('Manage ›')
+    expect(html.slice(html.indexOf('data-testid="qr-visits"'), html.indexOf('data-testid="visit-map"'))).toContain('Manage ›')
   })
 
   it('uses the same reachable-customer filter as site analytics', () => {
@@ -345,7 +372,13 @@ describe('rep dashboard presentation', () => {
     expect(customersCard).not.toContain('Bought in last 90 days')
     expect(customersCard).not.toContain('Not available yet')
     expect(customersCard).not.toContain('Dana M.')
-    expect(html).toContain('Open your site')
+    expect(html).toContain('Open site ›')
+    const siteVisits = html.slice(
+      html.indexOf('data-testid="site-visits"'),
+      html.indexOf('data-testid="visit-heatmap"'),
+    )
+    expect(siteVisits).toContain('Open site ›')
+    expect(siteVisits).not.toContain('Manage ›')
     expect(html).toContain('href="https://www.yoursparklesuite.com/lindsey"')
     expect(html).toContain('href="/nic-nac?section=card-qr"')
     expect(html).toContain('Friday Live')
@@ -395,6 +428,12 @@ describe('rep dashboard presentation', () => {
     expect(birthdaysCard).toContain('href="/nic-nac?section=customer-list&amp;customer=cust-jane"')
     expect(birthdaysCard).toContain('href="/nic-nac?section=customer-list&amp;customer=cust-dana"')
     expect(birthdaysCard).toContain('Sam Rivers')
+    const unlinkedBirthday = birthdaysCard.slice(
+      birthdaysCard.indexOf('Sam Rivers'),
+      birthdaysCard.indexOf('Seventh Person'),
+    )
+    expect(unlinkedBirthday).not.toContain('Manage ›')
+    expect(birthdaysCard.slice(birthdaysCard.indexOf('Jane Doe'), birthdaysCard.indexOf('Dana Miller'))).toContain('Manage ›')
     expect(birthdaysCard).toContain('Seventh Person')
     expect(birthdaysCard).not.toContain('Ninth Person')
     expect(birthdaysCard).not.toContain('Tenth Person')
