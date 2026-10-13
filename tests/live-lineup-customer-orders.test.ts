@@ -87,6 +87,25 @@ beforeEach(async () => {
 afterEach(async () => { await db.close() })
 
 describe('lineup purchase tracking', () => {
+  it('never blocks a show archive when order tracking fails', async () => {
+    await db.exec(`create or replace function public.live_lineup_record_orders_from_state(p_rep_id uuid, p_state jsonb)
+      returns integer language plpgsql as $f$ begin raise exception 'simulated order tracking failure'; end $f$;`)
+    await db.query(
+      'insert into live_lineup_show_archives(rep_id, generation, revision, state) values($1,$2,1,$3)',
+      [rep, 77, { entries: [] }],
+    )
+    const archived = await db.query<{ n: number }>(
+      'select count(*)::int as n from live_lineup_show_archives where rep_id=$1 and generation=77', [rep])
+    expect(archived.rows[0].n).toBe(1)
+    expect(await orders()).toHaveLength(0)
+  })
+
+  it('ships no Smoke-only wording in the orders migration', () => {
+    const sql = readFileSync(new URL('../supabase/migrations/20261013000100_ss_live_lineup_customer_orders.sql', import.meta.url), 'utf8')
+    expect(sql).not.toMatch(/smoke/i)
+    expect(sql).toMatch(/EXCEPTION WHEN OTHERS THEN\s+RAISE WARNING/)
+  })
+
   it('writes one idempotent order per unique-name match and keeps last seen without bumping the card version', async () => {
     await state([entry('p:a', 'Jane', 'Smith', early), entry('p:b', 'Jane', 'Smith', later)])
     const first = await cards('read', {}, [identity('p:a'), identity('p:b')])

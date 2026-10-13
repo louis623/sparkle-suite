@@ -102,10 +102,6 @@ export type RepDashboardPayload = {
     count: number
   }
   birthdays: UpcomingBirthday[]
-  platformMix: Array<{
-    platform: string
-    count: number
-  }>
   monthAtAGlance: {
     periodLabel: string
     comparedToLabel: string | null
@@ -117,7 +113,6 @@ export type RepDashboardPayload = {
   } | null
   team: { count: number } | null
   recipes: { count: number } | null
-  liveLineup: { count: number } | null
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -205,10 +200,6 @@ export function zonedMidnightToUtc(day: CalendarDay, timeZone?: string | null) {
   }
 
   return new Date(guess)
-}
-
-export function isPastShowStatus(status: string | null | undefined) {
-  return status === 'scheduled' || status === 'live' || status === 'completed'
 }
 
 const CONTACT_SHAPED_NAME = /\d[\d\s().-]{6,}\d/
@@ -425,17 +416,6 @@ export function formatPlatformLabel(platform: string | null | undefined) {
   return known[trimmed.toLowerCase()] ?? trimmed
 }
 
-export function summarizePlatformMix(platforms: Array<string | null | undefined>) {
-  const counts = new Map<string, number>()
-  for (const platform of platforms) {
-    const label = formatPlatformLabel(platform)
-    counts.set(label, (counts.get(label) ?? 0) + 1)
-  }
-  return [...counts.entries()]
-    .map(([platform, count]) => ({ platform, count }))
-    .sort((left, right) => right.count - left.count || left.platform.localeCompare(right.platform))
-}
-
 export function sharePercent(count: number, total: number) {
   if (!Number.isFinite(count) || !Number.isFinite(total) || total <= 0) return null
   return Math.round((count / total) * 100)
@@ -536,7 +516,6 @@ export function createEmptyRepDashboard(
     siteVisits: emptySiteVisitSummary(now, zone),
     pendingTrades: { count: 0 },
     birthdays: [],
-    platformMix: [],
     monthAtAGlance: {
       periodLabel: '',
       comparedToLabel: null,
@@ -545,6 +524,5 @@ export function createEmptyRepDashboard(
     unreadMessages: { count: 0, latestTitle: null },
     team: null,
     recipes: null,
-    liveLineup: null,
   }
 }

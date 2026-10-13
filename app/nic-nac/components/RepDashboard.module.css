@@ -442,7 +442,6 @@
 }
 
 .birthdayList,
-.mixList,
 .glanceList {
   display: grid;
   gap: 10px;
@@ -509,7 +508,6 @@ a.birthdayLink:focus-visible {
   font-weight: 700;
 }
 
-.mixList li,
 .glanceList li {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -528,25 +526,12 @@ a.birthdayLink:focus-visible {
   align-items: center;
 }
 
-.mixList li {
-  grid-template-columns: 88px minmax(0, 1fr) auto;
+.birthdayEmpty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.barTrack {
-  height: 8px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--dash-lilac);
-}
-
-.barFill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--dash-violet), var(--dash-magenta));
-}
-
-.mixList strong,
 .glanceList strong {
   font-family: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
   font-size: 14px;
@@ -694,14 +679,30 @@ a.birthdayLink:focus-visible {
   }
 }
 
-.customerCard {
+.customerCard,
+.subjectCard {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
   padding: 22px;
   border: 1px solid rgba(23, 16, 52, 0.08);
   border-radius: 18px;
   background: #fffdfb;
+}
+
+.subjectStack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.subjectPair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
 }
 
 .customerTop {
@@ -841,6 +842,11 @@ a.birthdayLink:focus-visible {
     grid-template-columns: 1fr 1fr;
   }
 
+  .customerCard,
+  .subjectCard {
+    padding: 16px;
+  }
+
   .customerTiles .customerTile:last-child {
     grid-column: span 2;
   }
@@ -862,6 +868,7 @@ a.birthdayLink:focus-visible {
   .card.cardLink,
   .statCard.cardLink,
   .conditionalCard.cardLink,
+  .subjectCard.cardLink,
   .customerTile {
     transition: transform 160ms ease, box-shadow 160ms ease;
   }
@@ -878,6 +885,8 @@ a.birthdayLink:focus-visible {
   .statCard.cardLink:focus-visible,
   .conditionalCard.cardLink:hover,
   .conditionalCard.cardLink:focus-visible,
+  .subjectCard.cardLink:hover,
+  .subjectCard.cardLink:focus-visible,
   .customerTile:hover,
   .customerTile:focus-visible {
     transform: translateY(-2px);
@@ -907,6 +916,7 @@ a.birthdayLink:focus-visible {
   .card.cardLink,
   .statCard.cardLink,
   .conditionalCard.cardLink,
+  .subjectCard.cardLink,
   .customerTile {
     animation: none;
     transition: none;
@@ -971,6 +981,7 @@ a.birthdayLink:focus-visible {
 .insightGrid {
   display: grid;
   gap: 14px;
+  min-width: 0;
 }
 
 .visitSpark {
@@ -1428,9 +1439,20 @@ a.birthdayLink:focus-visible {
 
 .insightWide { grid-column: 1 / -1; }
 
+@container repdash (max-width: 560px) {
+  .showCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 @container repdash (min-width: 720px) {
   .mapLayout {
     grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.7fr);
+  }
+
+  .subjectPair {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   }
 }
 

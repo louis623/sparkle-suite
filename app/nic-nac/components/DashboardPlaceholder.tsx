@@ -164,6 +164,13 @@ import {
 
 export const MessagesCenterCard = UnifiedMessageCenter
 
+const CollectionIntakeTool = dynamic(() =>
+  import('./CollectionIntakeTool').then((module) => module.CollectionIntakeTool),
+)
+
+// Bulk Collection Intake lives on the Dance Floor page, not in the Tools list.
+export const DANCE_FLOOR_SUBPAGE_SECTIONS = new Set<string>(['collection-intake'])
+
 const WorkspaceResourceLibrary = dynamic(() =>
   import('./WorkspaceResourceLibrary').then((module) => module.default),
 )
@@ -224,7 +231,6 @@ const SECONDARY_WORKSPACE_SECTIONS = [
     label: 'Bulk Collection Intake',
     shortLabel: 'Bulk Intake',
     icon: Images,
-    comingSoon: true,
   },
   {
     key: 'business-calculator',
@@ -520,7 +526,8 @@ function getWorkspaceSectionLabel(section: WorkspaceSectionKey) {
 export function isWorkspaceToolSection(section: string) {
   return (
     section === 'help-resources' ||
-    SECONDARY_WORKSPACE_SECTIONS.some((workspaceSection) => workspaceSection.key === section)
+    (!DANCE_FLOOR_SUBPAGE_SECTIONS.has(section) &&
+      SECONDARY_WORKSPACE_SECTIONS.some((workspaceSection) => workspaceSection.key === section))
   )
 }
 
@@ -531,6 +538,7 @@ export function getWorkspaceToolSections(options: {
   const includeRecipes = options.includeRecipes ?? true
   const includeCardQr = options.includeCardQr ?? isCardQrToolEnabled()
   return SECONDARY_WORKSPACE_SECTIONS.filter((section) => {
+    if (DANCE_FLOOR_SUBPAGE_SECTIONS.has(section.key)) return false
     if (section.key === 'recipes') return includeRecipes
     if (section.key === CARD_QR_WORKSPACE_SECTION) return includeCardQr
     return true
@@ -543,6 +551,9 @@ export function getWorkspaceBackDestination(
   section: WorkspaceSectionKey,
 ): { section: WorkspaceSectionKey; label: string } | null {
   if (section === 'home') return null
+  if (DANCE_FLOOR_SUBPAGE_SECTIONS.has(section)) {
+    return { section: 'trade-board', label: 'Dance Floor' }
+  }
 
   const isToolSection = section === 'help-resources' || isWorkspaceToolSection(section)
 
@@ -6769,8 +6780,25 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       )
     }
 
+    if (canRenderWorkspaceSections && activeSection === 'collection-intake') {
+      return <CollectionIntakeTool />
+    }
+
     if (canRenderWorkspaceSections && activeSection === 'trade-board') {
       return (
+        <div className={styles.workspaceSectionStack}>
+        <section className={styles.card} aria-labelledby="dance-floor-bulk-intake-title">
+          <span className={styles.liveQueueEyebrow}>Dance Floor</span>
+          <h2 id="dance-floor-bulk-intake-title">Bulk Collection Intake</h2>
+          <p>Add a whole folder of jewelry photos to your Dance Floor at once, then review each piece before it goes up.</p>
+          <button
+            type="button"
+            className={styles.panelCtaButton}
+            onClick={() => setActiveSection('collection-intake')}
+          >
+            Open Bulk Collection Intake ›
+          </button>
+        </section>
         <TradeBoardWorkspaceCard
           tradeBoardState={tradeBoardState}
           tradeBoardSearchQuery={tradeBoardSearchQuery}
@@ -6802,6 +6830,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           }
           onSoundSettingsTarget={setTradeSoundTarget}
         />
+        </div>
       )
     }
 
