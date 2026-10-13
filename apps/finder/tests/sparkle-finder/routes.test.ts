@@ -213,11 +213,12 @@ describe("Sparkle Finder hub routes", () => {
     expect(sparkleFinderPrivacyPolicyDocument.pageTitle).toBe("Privacy Policy");
     expect(sparkleFinderPrivacyPolicyDocument.seoTitle).toContain("Sparkle Finder Privacy Policy");
     expect(sparkleFinderPrivacyPolicyDocument.description).toContain("Sparkle Finder customer accounts");
-    expect(sparkleFinderPrivacyPolicyDocument.lastUpdated).toBe("June 22, 2026");
+    expect(sparkleFinderPrivacyPolicyDocument.lastUpdated).toBe("October 3, 2026");
     expect(sparkleFinderPrivacyPolicyDocument.sections.map((section) => section.title)).toEqual([
       "What This Policy Covers",
       "Information Sparkle Finder Collects",
       "How Sparkle Finder Uses Information",
+      "How A Jewelry Profile Is Used",
       "Nic-Nac, Memory, And AI-Assisted Features",
       "Sparkle Suite Data And Rep Links",
       "Sparkle Showcase Sharing And Moderation",
@@ -234,7 +235,7 @@ describe("Sparkle Finder hub routes", () => {
     expect(sparkleFinderTermsAndConditionsDocument.pageTitle).toBe("Terms and Conditions");
     expect(sparkleFinderTermsAndConditionsDocument.seoTitle).toContain("Sparkle Finder Terms");
     expect(sparkleFinderTermsAndConditionsDocument.description).toContain("Sparkle Finder customer discovery hub");
-    expect(sparkleFinderTermsAndConditionsDocument.lastUpdated).toBe("June 22, 2026");
+    expect(sparkleFinderTermsAndConditionsDocument.lastUpdated).toBe("October 3, 2026");
     expect(sparkleFinderTermsAndConditionsDocument.sections.map((section) => section.title)).toEqual([
       "Agreement To These Terms",
       "About Sparkle Finder",
@@ -276,6 +277,11 @@ describe("Sparkle Finder hub routes", () => {
     expect(privacyMarkup).toContain("follower counts");
     expect(privacyMarkup).toContain("public sharing links");
     expect(privacyMarkup).toContain("blocking, reporting, and moderation review");
+    expect(privacyMarkup).toContain("How A Jewelry Profile Is Used");
+    expect(privacyMarkup).toContain("If you share jewelry preferences with Finder, they are used in three ways.");
+    expect(privacyMarkup).toContain("Shared with Sparkle Suite reps only, so they can use them. Nobody else receives them.");
+    expect(privacyMarkup).toContain("Kept for your own Finder profile and collection.");
+    expect(privacyMarkup).toContain("Used by Finder to point you toward pieces you might like.");
     expect(privacyMarkup).toContain("We do not sell personal information.");
     expect(privacyMarkup).not.toContain("Affiliate And Shop Information");
     expect(privacyMarkup).not.toContain("comments");
@@ -303,6 +309,8 @@ describe("Sparkle Finder hub routes", () => {
       "not owned by, operated by, endorsed by, sponsored by, or officially affiliated with Bomb Party",
     );
     expect(termsMarkup).toContain('href="/privacy-policy"');
+    expect(termsMarkup).toContain("How A Jewelry Profile Is Used");
+    expect(termsMarkup).not.toContain("Nobody else receives them.");
     expect(findSparkleFinderCopyViolations(`${privacyMarkup} ${termsMarkup}`)).toEqual([]);
   });
 

@@ -12,18 +12,19 @@ export function SparkleFinderLogo({ className = "" }: SparkleFinderLogoProps) {
       href="/"
     >
       <svg aria-hidden="true" className="sparkle-finder-seal" viewBox="0 0 64 64">
-        <circle cx="32" cy="32" fill="#ffffff" r="30" stroke="currentColor" strokeWidth="0.75" />
+        <circle cx="32" cy="32" fill="#ffffff" r="30" stroke="#c4a8ef" strokeWidth="0.9" />
         <text
-          fill="currentColor"
-          fontFamily="'Playfair Display', Georgia, serif"
+          dominantBaseline="central"
+          fill="#5C0EFF"
+          fontFamily="var(--font-playfair), Georgia, serif"
           fontSize="32"
           fontStyle="italic"
           fontWeight="500"
           textAnchor="middle"
-          x="30"
-          y="45"
+          x="30.144"
+          y="32.384"
         >
-          S
+          F
         </text>
       </svg>
       <span className="sparkle-finder-logo__wordmark">
