@@ -18,7 +18,7 @@
 .brands {
   --logo-h: 64px;
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   justify-self: start;
 }
@@ -47,20 +47,6 @@
 
 .finder {
   width: calc(var(--logo-h) * 728 / 280);
-}
-
-.finderMark {
-  height: var(--logo-h);
-  overflow: hidden;
-}
-
-.comingSoon {
-  display: block;
-  margin-top: 4px;
-  color: #775d57;
-  font-size: 12px;
-  line-height: 1.4;
-  text-align: center;
 }
 
 .finder img {
