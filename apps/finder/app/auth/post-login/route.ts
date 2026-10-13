@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getCurrentSparkleFinderAccount } from "@/lib/sparkle-finder/account-service";
-import { safeSparkleFinderNextPath } from "@/lib/sparkle-finder/safe-redirect";
+import { sparkleFinderAuthenticatedEntryPath } from "@/lib/sparkle-finder/auth-entry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
-  const nextPath = safeSparkleFinderNextPath(requestUrl.searchParams.get("next"));
+  const nextPath = sparkleFinderAuthenticatedEntryPath(requestUrl.searchParams.get("next"));
   const accountState = await getCurrentSparkleFinderAccount();
 
   if (accountState.status !== "authenticated") {
