@@ -147,6 +147,102 @@ describe('card render', () => {
     expect(unknown.png.equals(at.png)).toBe(true)
   }, 60_000)
 
+  it.each(KEYS)('%s stacks every info field on its own line, including a short TikTok', async (key) => {
+    const back = await renderBizcardBack({
+      key,
+      qrUrl: URL,
+      qrIcon: 'none',
+      fields: ALL,
+      ...REP,
+      social: '@louis',
+      socialPlatform: 'tiktok',
+    })
+    const ids = back.layout.fields.map((field) => field.id)
+    expect(ids).toEqual(['name', 'role', 'email', 'website', 'text', 'social', 'discount'])
+    const left = back.layout.fields[0].x
+    for (const field of back.layout.fields) {
+      expect(field.x, field.id).toBe(left)
+      expect(inside(field), `${key} ${field.id} ${JSON.stringify(field)}`).toBe(true)
+    }
+    for (let i = 1; i < back.layout.fields.length; i += 1) {
+      expect(back.layout.fields[i].y).toBeGreaterThan(back.layout.fields[i - 1].y)
+    }
+    const text = back.layout.fields.find((field) => field.id === 'text')!
+    const social = back.layout.fields.find((field) => field.id === 'social')!
+    expect(social.y).toBeGreaterThanOrEqual(text.y2)
+    expect(back.overflow).toBe(false)
+    expect(back.warnings).toEqual([])
+    const tile = back.layout.tile
+    expect(tile.x).toBeGreaterThanOrEqual(BIZCARD_SAFE_BOX.x0)
+    expect(tile.y).toBeGreaterThanOrEqual(BIZCARD_SAFE_BOX.y0)
+    expect(tile.x + tile.size).toBeLessThanOrEqual(BIZCARD_SAFE_BOX.x1)
+    expect(tile.y + tile.size + 18 + 84).toBeLessThanOrEqual(BIZCARD_SAFE_BOX.y1 + 1)
+  }, 30_000)
+
+  it('omits empty fields and still stacks the ones that remain', async () => {
+    const back = await renderBizcardBack({
+      key: 'custom-brittany',
+      qrUrl: URL,
+      qrIcon: 'none',
+      fields: { name: true, email: false, website: true, textLink: true, social: true, discount: false },
+      ...REP,
+      email: '',
+      website: '',
+      social: '@fizz',
+      socialPlatform: 'tiktok',
+    })
+    expect(back.layout.fields.map((field) => field.id)).toEqual(['name', 'role', 'text', 'social'])
+    const [text, social] = back.layout.fields.filter((field) => field.id === 'text' || field.id === 'social')
+    expect(social.x).toBe(text.x)
+    expect(social.y).toBeGreaterThanOrEqual(text.y2)
+    for (const field of back.layout.fields) expect(inside(field)).toBe(true)
+    expect(back.warnings).toEqual([])
+  }, 30_000)
+
+  it('wraps a long TikTok handle onto a second line of its own row', async () => {
+    const social = `@${'a'.repeat(29)}`
+    const back = await renderBizcardBack({
+      key: 'amethyst',
+      qrUrl: URL,
+      qrIcon: 'none',
+      fields: { name: true, email: true, website: false, textLink: true, social: true, discount: false },
+      ...REP,
+      website: '',
+      social,
+      socialPlatform: 'tiktok',
+    })
+    const text = back.layout.fields.find((field) => field.id === 'text')!
+    const handle = back.layout.fields.find((field) => field.id === 'social')!
+    expect(handle.x).toBe(text.x)
+    expect(handle.y).toBeGreaterThanOrEqual(text.y2)
+    expect(handle.y2 - handle.y).toBeGreaterThan(40)
+    expect(inside(handle)).toBe(true)
+    expect(back.overflow).toBe(false)
+    expect(back.warnings).toEqual([])
+  }, 30_000)
+
+  it('keeps a full long profile, including a wrapped TikTok, inside the safe area', async () => {
+    const back = await renderBizcardBack({
+      key: 'emerald-garden',
+      qrUrl: URL,
+      qrIcon: 'heart',
+      fields: ALL,
+      name: 'Alexandria Montgomery-Whitfield',
+      email: 'alexandria.montgomerywhitfield@gmail.com',
+      website: 'sparkleandshinefizzqueens.com',
+      textLinkNumber: '(555) 201-4410',
+      social: `@${'a'.repeat(29)}`,
+      socialPlatform: 'tiktok',
+    })
+    expect(back.overflow).toBe(false)
+    expect(back.warnings).toEqual([])
+    const text = back.layout.fields.find((field) => field.id === 'text')!
+    const social = back.layout.fields.find((field) => field.id === 'social')!
+    expect(social.x).toBe(text.x)
+    expect(social.y).toBeGreaterThanOrEqual(text.y2)
+    for (const field of back.layout.fields) expect(inside(field), field.id).toBe(true)
+  }, 30_000)
+
   it('drops the text line when no number was entered', async () => {
     const withNumber = await renderBizcardBack({ key: 'amethyst', qrUrl: URL, qrIcon: 'none', fields: ALL, ...REP })
     const without = await renderBizcardBack({ key: 'amethyst', qrUrl: URL, qrIcon: 'none', fields: ALL, ...REP, textLinkNumber: '' })
