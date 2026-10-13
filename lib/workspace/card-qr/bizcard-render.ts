@@ -434,8 +434,22 @@ function icon(name: string, color: string, x: number, y: number, size: number) {
   return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" color="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[name].replace('currentColor', color)}</svg>`
 }
 
-/** QR tile placement on the back, for decode checks. */
-export interface BizcardBackLayout { tile: { x: number; y: number; size: number } }
+export type BizcardFieldId = 'name' | 'role' | 'email' | 'website' | 'text' | 'social' | 'discount'
+
+/** One contact or info block. x is the shared left edge; y increases down the card. */
+export interface BizcardFieldBox {
+  id: BizcardFieldId
+  x: number
+  y: number
+  x2: number
+  y2: number
+}
+
+/** QR tile placement on the back, for decode checks, plus each info block. */
+export interface BizcardBackLayout {
+  tile: { x: number; y: number; size: number }
+  fields: BizcardFieldBox[]
+}
 
 export function bizcardQrDark(key: BizcardKey) {
   const palette = resolveCardQrPalette({ templateId: 'match-site', appearancePreset: BIZCARD_THEMES[key].qrTheme })
@@ -446,9 +460,10 @@ export function bizcardQrDark(key: BizcardKey) {
 export type BizcardWarning = string
 
 /**
- * Never below 34 px (8.2 pt, Minuteman's 8 pt floor). Long email/website wrap to two
- * lines; if the stack still overflows, the social line is dropped; anything that
- * cannot fit at 8 pt is left off with a warning.
+ * Never below 34 px (8.2 pt, Minuteman's 8 pt floor). Each info field is its own
+ * row. Long email, website, and social values wrap to two lines; if the stack still
+ * overflows, the social block is dropped; anything that cannot fit at 8 pt is left
+ * off with a warning.
  */
 export async function renderBizcardBack(input: BizcardBackInput) {
   const first = await renderBackAttempt(input, false)
@@ -505,8 +520,16 @@ async function renderBackAttempt(input: BizcardBackInput, dropSocial: boolean) {
   const body = n <= 3 ? 38 : 34
   const ic = Math.floor(body * 0.9)
   const icg = Math.floor(body * 0.32)
-  type Item = { kind: 'row' | 'rule' | 'code'; h: number; draw?: (y: number) => void }
+  type Item = {
+    kind: 'row' | 'rule' | 'code'
+    h: number
+    draw?: (y: number) => void
+    bounds?: (y: number) => BizcardFieldBox
+  }
   const items: Item[] = []
+  const block = (id: BizcardFieldId, h: number, x2: number) => (yy: number): BizcardFieldBox => ({
+    id, x: X0, y: yy - 1, x2, y2: yy + h,
+  })
   if (fields.name) {
     let nf = HEAD(ns)
     while (tw(nf, input.name) > CW && nf.size > MINPX) nf = HEAD(nf.size - 1)
@@ -523,18 +546,23 @@ async function renderBackAttempt(input: BizcardBackInput, dropSocial: boolean) {
       warnings.push('Your name is too long for the card at a readable size, so it was left off.')
     } else {
       const nlh = Math.floor(nf.size * 1.1)
+      const h = Math.floor(ns * 0.98) + nlh * (nameLines.length - 1)
+      const x2 = X0 + Math.max(...nameLines.map((l) => tw(nf, l)))
       items.push({
         kind: 'row',
-        h: Math.floor(ns * 0.98) + nlh * (nameLines.length - 1),
+        h,
+        bounds: block('name', h, x2),
         draw: (yy) => nameLines.forEach((l, i) => { out += `<path d="${capPath(nf, l, X0, yy + 2 + i * nlh)}" fill="${c.name}"/>` }),
       })
     }
     const rf = BODY(n > 3 ? MINPX : 37)
     const rl = wrap(BIZCARD_ROLE, rf, CW)
     const rlh = Math.floor(rf.size * 1.22)
+    const rh = rlh * (rl.length - 1) + Math.floor(rf.size * 0.9)
     items.push({
       kind: 'row',
-      h: rlh * (rl.length - 1) + Math.floor(rf.size * 0.9),
+      h: rh,
+      bounds: block('role', rh, X0 + Math.max(...rl.map((l) => tw(rf, l)))),
       draw: (yy) => rl.forEach((l, i) => { out += `<path d="${capPath(rf, l, X0, yy + i * rlh + 4)}" fill="${c.sub}"/>` }),
     })
     items.push({ kind: 'rule', h: 0 })
@@ -552,37 +580,48 @@ async function renderBackAttempt(input: BizcardBackInput, dropSocial: boolean) {
     return BODY(s)
   }
   const fits = (txt: string, f: Face) => ic + icg + tw(f, txt) <= CW
-  /** One line at body..34 px, else two lines split after . @ - _ / (email, website). */
-  const wrapRow = (txt: string): { f: Face; lines: string[] } | null => {
+  /**
+   * One line at body..34 px, else two lines. Email and website break before @ or
+   * after . - _ /. A social handle with no break character splits near the middle.
+   */
+  const wrapRow = (txt: string, midpoint = false): { f: Face; lines: string[] } | null => {
     const one = fitf(txt, CW)
     if (fits(txt, one)) return { f: one, lines: [txt] }
     for (let s2 = body; s2 >= MINPX; s2 -= 1) {
       const f = BODY(s2)
-      let best: { m: number; lines: string[] } | null = null
+      let best = null as { m: number; lines: string[] } | null
+      const consider = (a: string, b: string) => {
+        if (!a || !b || !fits(a, f) || !fits(b, f)) return
+        const m = Math.max(tw(f, a), tw(f, b))
+        if (!best || m < best.m) best = { m, lines: [a, b] }
+      }
       for (let i = 1; i < txt.length; i += 1) {
         // Break before @ or after . - _ /
         if (!(txt[i] === '@' || '.-_/'.includes(txt[i - 1]))) continue
-        const a = txt.slice(0, i)
-        const b = txt.slice(i)
-        if (fits(a, f) && fits(b, f)) {
-          const m = Math.max(tw(f, a), tw(f, b))
-          if (!best || m < best.m) best = { m, lines: [a, b] }
-        }
+        consider(txt.slice(0, i), txt.slice(i))
+      }
+      if (!best && midpoint) {
+        const start = Math.max(2, Math.floor(txt.length * 0.4))
+        const end = Math.min(txt.length - 2, Math.ceil(txt.length * 0.6))
+        for (let i = start; i <= end; i += 1) consider(txt.slice(0, i), txt.slice(i))
       }
       if (best) return { f, lines: best.lines }
     }
     return null
   }
-  const addWrapped = (txt: string, ico: string, label: string) => {
-    const w = wrapRow(txt)
+  const addWrapped = (id: BizcardFieldId, txt: string, ico: string, label: string, midpoint = false) => {
+    const w = wrapRow(txt, midpoint)
     if (!w) {
       warnings.push(`Your ${label} is too long for the card at a readable size, so it was left off.`)
       return
     }
     const lh = Math.floor(w.f.size * 1.18)
+    const h = rowh + lh * (w.lines.length - 1)
+    const x2 = X0 + ic + icg + Math.max(...w.lines.map((l) => tw(w.f, l)))
     items.push({
       kind: 'row',
-      h: rowh + lh * (w.lines.length - 1),
+      h,
+      bounds: block(id, h, x2),
       draw: (yy) => {
         line(yy, ico, w.lines[0], X0, w.f)
         for (let i = 1; i < w.lines.length; i += 1) {
@@ -591,34 +630,16 @@ async function renderBackAttempt(input: BizcardBackInput, dropSocial: boolean) {
       },
     })
   }
-  const addSingle = (txt: string, ico: string, label: string) => {
-    const f = fitf(txt, CW)
-    if (!fits(txt, f)) {
-      warnings.push(`Your ${label} is too long for the card at a readable size, so it was left off.`)
-      return
-    }
-    items.push({ kind: 'row', h: rowh, draw: (yy) => line(yy, ico, txt, X0, f) })
-  }
-  if (fields.email) addWrapped(input.email, 'mail', 'email')
-  if (fields.web) addWrapped(input.website, 'globe', 'website')
-  if (fields.phone && fields.social) {
-    const w1 = ic + icg + tw(bf, textLine)
-    const w2 = ic + icg + tw(bf, input.social)
-    if (w1 + w2 + 24 <= CW) {
-      items.push({ kind: 'row', h: rowh, draw: (yy) => { line(yy, 'msg', textLine); line(yy, socialIco, input.social, X0 + CW - w2 - 4) } })
-    } else {
-      addSingle(textLine, 'msg', 'text-to-link number')
-      addSingle(input.social, socialIco, 'social handle')
-    }
-  } else {
-    if (fields.phone) addSingle(textLine, 'msg', 'text-to-link number')
-    if (fields.social) addSingle(input.social, socialIco, 'social handle')
-  }
+  if (fields.email) addWrapped('email', input.email, 'mail', 'email')
+  if (fields.web) addWrapped('website', input.website, 'globe', 'website')
+  if (fields.phone) addWrapped('text', textLine, 'msg', 'text-to-link number')
+  if (fields.social) addWrapped('social', input.social, socialIco, 'social handle', true)
   const CODEH = 78
   if (fields.code) {
     items.push({
       kind: 'code',
       h: CODEH,
+      bounds: block('discount', CODEH, SX1 - 4),
       draw: (yy) => {
         const lf = BODY(body)
         const lab = 'Discount code'
@@ -647,6 +668,7 @@ async function renderBackAttempt(input: BizcardBackInput, dropSocial: boolean) {
   if (gap === 9) gap = 10
   y = Math.floor((H - total) / 2)
   let prev: Item['kind'] | null = null
+  const placed: BizcardFieldBox[] = []
   for (const item of items) {
     if (item.kind === 'rule') {
       y += ruleSp
@@ -656,13 +678,14 @@ async function renderBackAttempt(input: BizcardBackInput, dropSocial: boolean) {
       continue
     }
     if (prev && prev !== 'rule') y += gap + (item.kind === 'code' ? EXTRA : 0)
+    if (item.bounds) placed.push(item.bounds(y))
     item.draw?.(y)
     y += item.h
     prev = item.kind
   }
   const overflow = total > avail
   const png = await sharp(renderSvg(svgDoc(out))).removeAlpha().png().toBuffer()
-  const layout: BizcardBackLayout = { tile: { x: tx, y: ty, size: tile } }
+  const layout: BizcardBackLayout = { tile: { x: tx, y: ty, size: tile }, fields: placed }
   return { png, layout, overflow, warnings, info: { total, avail: SY1 - SY0, gap, nameSize: ns, body, tile } }
 }
 
