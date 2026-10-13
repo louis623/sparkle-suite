@@ -23,8 +23,9 @@
 .card button:disabled { opacity: .4; cursor: default; }
 .connection { display: flex; align-items: center; gap: 7px; font-weight: 750; margin: 9px 0 4px; }
 .connection > span { width: 7px; height: 7px; border-radius: 50%; background: #83778e; }
-.connection[data-connection='connected'] > span { background: #178159; }
-.connection[data-connection='delayed'] > span { background: #b77709; }
+.connection[data-connection='updating'] > span { background: #178159; }
+.connection[data-connection='reconnecting'] > span { background: #b77709; }
+.connection[data-connection='attention'] > span { background: #c53855; }
 .hint { margin: 4px 0; font-size: .74rem; line-height: 1.4; color: var(--nic-nac-text-muted, #6c607a); }
 .compact .header { padding: 14px 16px 10px; }
 .compact .scroll { flex: 1 1 auto; padding: 0 12px; }
