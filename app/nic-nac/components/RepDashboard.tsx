@@ -147,13 +147,11 @@ function DirectionMark({ direction }: { direction: GlanceDirection }) {
 
 export function RepDashboard({
   onOpenSection,
-  onAskNicNac,
   reviewMode = false,
   data,
   now,
 }: {
   onOpenSection: (section: DashboardDestination) => void
-  onAskNicNac?: () => void
   reviewMode?: boolean
   data?: RepDashboardPayload
   now?: Date
@@ -203,6 +201,7 @@ export function RepDashboard({
       <section className={styles.dashboard} aria-busy="true" aria-label="Your dashboard">
         <p className={styles.loadingText}>Loading your dashboard</p>
         <div className={styles.hero}>
+          <div className={styles.skeleton} />
           <div className={styles.skeleton} />
         </div>
         <div className={styles.stats}>
@@ -271,16 +270,9 @@ export function RepDashboard({
             ) : (
               <>
                 <h3 className={styles.showTitle}>No show on the books</h3>
-                <div className={styles.showEmpty}>
-                  {onAskNicNac ? (
-                    <button type="button" className={styles.askNicNac} onClick={onAskNicNac}>
-                      Ask Nic-Nac
-                    </button>
-                  ) : (
-                    'Ask Nic-Nac'
-                  )}{' '}
-                  to put your next show on the calendar.
-                </div>
+                <p className={styles.showEmpty}>
+                  Ask Nic-Nac to put your next show on the calendar.
+                </p>
               </>
             )}
             {view.nextShow ? (
@@ -289,7 +281,33 @@ export function RepDashboard({
               </button>
             ) : null}
           </div>
-          {countdown ? <CountdownRing countdown={countdown} /> : <div className={styles.ringPlaceholder} aria-hidden="true" />}
+          {countdown ? <CountdownRing countdown={countdown} /> : null}
+        </article>
+
+        <article className={styles.card}>
+          <p className={styles.kicker}>Coming up</p>
+          <h3 className={styles.cardTitle}>Birthdays</h3>
+          {visibleBirthdays.length > 0 ? (
+            <ul className={styles.birthdayList}>
+              {visibleBirthdays.map((birthday) => (
+                <li key={`${birthday.initials}-${birthday.month}-${birthday.day}-${birthday.daysUntil}`}>
+                  <span className={styles.avatar} aria-hidden="true">{birthday.initials}</span>
+                  <span>
+                    <strong>{birthday.initials}</strong>
+                    <small>
+                      {birthday.isToday ? 'Today' : birthday.dateLabel}
+                      {birthday.observedLeapDay ? ' · Feb 29 birthday' : ''}
+                    </small>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.muted}>No birthdays in the next 30 days. You are clear to plan shows.</p>
+          )}
+          {hiddenBirthdays > 0 ? (
+            <p className={styles.muted}>{hiddenBirthdays} more in the next 30 days.</p>
+          ) : null}
         </article>
       </div>
 
@@ -368,32 +386,6 @@ export function RepDashboard({
 
       <div className={styles.secondary}>
         <article className={styles.card}>
-          <p className={styles.kicker}>Coming up</p>
-          <h3 className={styles.cardTitle}>Birthdays</h3>
-          {visibleBirthdays.length > 0 ? (
-            <ul className={styles.birthdayList}>
-              {visibleBirthdays.map((birthday) => (
-                <li key={`${birthday.initials}-${birthday.month}-${birthday.day}-${birthday.daysUntil}`}>
-                  <span className={styles.avatar} aria-hidden="true">{birthday.initials}</span>
-                  <span>
-                    <strong>{birthday.initials}</strong>
-                    <small>
-                      {birthday.isToday ? 'Today' : birthday.dateLabel}
-                      {birthday.observedLeapDay ? ' · Feb 29 birthday' : ''}
-                    </small>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.muted}>No birthdays in the next 30 days. You are clear to plan shows.</p>
-          )}
-          {hiddenBirthdays > 0 ? (
-            <p className={styles.muted}>{hiddenBirthdays} more in the next 30 days.</p>
-          ) : null}
-        </article>
-
-        <article className={styles.card}>
           <p className={styles.kicker}>Last 90 days</p>
           <h3 className={styles.cardTitle}>Platform mix</h3>
           {view.platformMix.length > 0 ? (
@@ -416,7 +408,7 @@ export function RepDashboard({
           )}
         </article>
 
-        <article className={`${styles.card} ${styles.glance}`}>
+        <article className={styles.card}>
           <p className={styles.kicker}>Last month at a glance</p>
           <h3 className={styles.cardTitle}>
             {view.monthAtAGlance.periodLabel || 'Monthly snapshot'}

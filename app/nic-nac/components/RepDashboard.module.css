@@ -6,6 +6,7 @@
   --dash-magenta-hot: #ff4cae;
   --dash-violet: #7345ca;
   --dash-violet-deep: #6f2bd0;
+  container: repdash / inline-size;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -131,6 +132,7 @@
 
 .showCopy {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
@@ -245,24 +247,6 @@
   color: var(--dash-amethyst);
 }
 
-.askNicNac {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--dash-cream);
-  font: inherit;
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-
-.askNicNac:focus-visible {
-  outline: 3px solid var(--dash-magenta-hot);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
-
 .textAction {
   align-self: flex-start;
   margin-top: auto;
@@ -334,14 +318,6 @@
   margin-top: 2px;
   color: rgba(248, 239, 228, 0.78);
   font-size: 12px;
-}
-
-.ringPlaceholder {
-  width: 132px;
-  height: 132px;
-  flex: 0 0 auto;
-  border: 8px solid rgba(248, 239, 228, 0.18);
-  border-radius: 999px;
 }
 
 .sparkline {
@@ -556,26 +532,18 @@
   min-height: 140px;
 }
 
-@media (min-width: 841px) {
-  .secondary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@container repdash (min-width: 640px) {
+  .hero {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   }
 
+  .secondary,
   .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .glance {
-    grid-column: 1 / -1;
-  }
-
-  .glanceList {
-    grid-template-columns: 1fr 1fr;
-    column-gap: 28px;
-  }
 }
 
-@media (min-width: 1180px) {
+@container repdash (min-width: 980px) {
   .stats {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -583,9 +551,8 @@
 
 @media (max-width: 840px) {
   .dashboard {
-    /* Clear the fixed pink Nic-Nac button at the bottom-right. */
-    padding-right: calc(56px + env(safe-area-inset-right));
-    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    /* The pink Nic-Nac button sits at the bottom-right. Bottom space keeps the last card out from under it without a gap down the right edge. */
+    padding-bottom: calc(148px + env(safe-area-inset-bottom));
   }
 }
 

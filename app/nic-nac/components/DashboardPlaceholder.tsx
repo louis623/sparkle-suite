@@ -7245,11 +7245,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
                   activeKey={activeSection === 'help-resources' ? 'resources' : activeSection}
                   onSelect={openWorkspaceTool}
                   reviewMode={reviewWorkspaceMode}
-                  onAskNicNac={
-                    onLaunchNicNacAction
-                      ? () => onLaunchNicNacAction('add_calendar_show')
-                      : undefined
-                  }
                 >
                   {renderedSection}
                 </ToolsHub>
@@ -7942,14 +7937,12 @@ export function ToolsHub({
   activeKey,
   onSelect,
   reviewMode = false,
-  onAskNicNac,
   children,
 }: {
   tools: readonly (typeof SECONDARY_WORKSPACE_SECTIONS)[number][]
   activeKey: string
   onSelect: (section: WorkspaceSectionKey | 'more') => void
   reviewMode?: boolean
-  onAskNicNac?: () => void
   children?: ReactNode
 }) {
   const toolOpen = activeKey !== 'more'
@@ -8002,7 +7995,7 @@ export function ToolsHub({
           </button>
         ) : null}
         {toolOpen ? children : (
-          <RepDashboard onOpenSection={onSelect} onAskNicNac={onAskNicNac} reviewMode={reviewMode} />
+          <RepDashboard onOpenSection={onSelect} reviewMode={reviewMode} />
         )}
       </div>
     </div>

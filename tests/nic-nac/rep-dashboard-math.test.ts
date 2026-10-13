@@ -160,14 +160,25 @@ describe('rep dashboard presentation', () => {
       )
       .replace(/<[^>]+>/g, '')
 
+    const showCard = html.slice(
+      html.indexOf('aria-label="Next show"'),
+      html.indexOf('</article>', html.indexOf('aria-label="Next show"')),
+    )
+
     expect(html).toContain('Your dashboard')
     expect(html).toContain('Last month at a glance')
     expect(html).not.toContain('This month at a glance')
     expect(html).toContain('Add your first customer')
-    expect(html).toContain('No show on the books')
-    expect(html).toContain('Ask Nic-Nac to put your next show on the calendar.')
+    expect(showCard).toContain('No show on the books')
+    expect(showCard).toContain('Ask Nic-Nac to put your next show on the calendar.')
+    expect(showCard).not.toContain('<button')
+    expect(showCard).not.toContain('Open calendar')
+    expect(html).toContain('Birthdays')
+    expect(html).toContain('Platform mix')
     expect(html).not.toContain('Add a show')
     expect(html).not.toContain('Show streak')
+    expect(html).not.toContain('askNicNac')
+    expect(html).not.toContain('ringPlaceholder')
     expect(html).toContain('Site visits — coming soon')
     expect(visits).not.toMatch(/\d/)
     expect(html).not.toContain('Choose a tool')
@@ -205,23 +216,7 @@ describe('rep dashboard presentation', () => {
     expect(html).toContain('Open calendar')
     expect(html).not.toContain('Add a show')
     expect(html).not.toContain('Show streak')
-  })
-
-  it('opens Nic-Nac from the empty next-show state when the chat hook is available', () => {
-    const now = new Date('2026-10-12T15:00:00.000Z')
-    const html = renderToStaticMarkup(
-      createElement(RepDashboard, {
-        onOpenSection: () => undefined,
-        onAskNicNac: () => undefined,
-        data: createEmptyRepDashboard(now, TIME_ZONE),
-        now,
-      }),
-    )
-
-    expect(html).toContain('Ask Nic-Nac')
-    expect(html).toContain('askNicNac')
-    expect(html).not.toContain('Add a show')
-    expect(html).not.toContain('Open calendar')
+    expect(html).not.toContain('No show on the books')
   })
 
   it('shows a zero for team onboarding and a purple Live Lineup link', () => {
