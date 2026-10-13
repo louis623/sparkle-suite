@@ -210,6 +210,95 @@
   text-decoration: none;
 }
 
+button.accountLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.cardModal {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  padding: 14px;
+  border-radius: inherit;
+  background: rgba(20, 14, 11, 0.28);
+}
+
+.cardModal[hidden] {
+  display: none !important;
+}
+
+.cardModalPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  margin: auto;
+  max-height: 100%;
+  overflow: auto;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--suite-paper);
+  color: var(--suite-ink);
+  box-shadow: 0 12px 32px rgba(64, 41, 36, 0.18);
+  text-align: left;
+}
+
+.cardModalTitle {
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.smokeNotice,
+.demoNotice,
+.forgotResult,
+.cardModalPanel a {
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.demoNotice {
+  font-weight: 700;
+}
+
+.googleButton,
+.forgotButton,
+.closeButton {
+  min-height: 48px;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.googleButton {
+  border: 0;
+  background: var(--suite-magenta);
+  color: #fff;
+}
+
+.forgotButton,
+.closeButton {
+  border: 1px solid rgba(64, 41, 36, 0.28);
+  background: transparent;
+  color: var(--suite-ink);
+}
+
+.cardModalPanel a {
+  color: var(--suite-ink);
+  font-weight: 700;
+}
+
 .accountActions .accountLink:last-child {
   margin-left: auto;
   justify-content: flex-end;
