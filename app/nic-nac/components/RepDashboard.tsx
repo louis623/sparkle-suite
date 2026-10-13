@@ -145,55 +145,15 @@ function DirectionMark({ direction }: { direction: GlanceDirection }) {
   )
 }
 
-function StreakHeatmap({ streak }: { streak: RepDashboardPayload['streak'] }) {
-  const summary =
-    streak.showsInWindow === 0
-      ? 'No shows in the last 16 weeks.'
-      : `${streak.showsInWindow} past ${streak.showsInWindow === 1 ? 'show' : 'shows'} across 16 weeks. Current streak: ${streak.streakWeeks} ${streak.streakWeeks === 1 ? 'week' : 'weeks'}.`
-  return (
-    <div className={styles.heatmapBlock}>
-      <div className={styles.heatmapScroll}>
-        <div className={styles.heatmap} role="img" aria-label={summary}>
-          <div className={styles.weekdayLabels} aria-hidden="true">
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((label, index) => (
-              <span key={`${label}-${index}`}>{label}</span>
-            ))}
-          </div>
-          <div className={styles.heatmapWeeks}>
-            {streak.weeks.map((week) => (
-              <div key={week.weekStart} className={styles.heatmapWeek}>
-                {week.days.map((day) => (
-                  <span
-                    key={day.date}
-                    className={styles.heatCell}
-                    data-level={day.level}
-                    title={`${day.date}: ${day.count} ${day.count === 1 ? 'show' : 'shows'}`}
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      <div className={styles.heatmapLegend} aria-hidden="true">
-        <span>Less</span>
-        <span className={styles.heatCell} data-level="0" />
-        <span className={styles.heatCell} data-level="1" />
-        <span className={styles.heatCell} data-level="2" />
-        <span className={styles.heatCell} data-level="3" />
-        <span>More</span>
-      </div>
-    </div>
-  )
-}
-
 export function RepDashboard({
   onOpenSection,
+  onAskNicNac,
   reviewMode = false,
   data,
   now,
 }: {
   onOpenSection: (section: DashboardDestination) => void
+  onAskNicNac?: () => void
   reviewMode?: boolean
   data?: RepDashboardPayload
   now?: Date
@@ -243,7 +203,6 @@ export function RepDashboard({
       <section className={styles.dashboard} aria-busy="true" aria-label="Your dashboard">
         <p className={styles.loadingText}>Loading your dashboard</p>
         <div className={styles.hero}>
-          <div className={styles.skeleton} />
           <div className={styles.skeleton} />
         </div>
         <div className={styles.stats}>
@@ -312,34 +271,25 @@ export function RepDashboard({
             ) : (
               <>
                 <h3 className={styles.showTitle}>No show on the books</h3>
-                <p className={styles.showEmpty}>Your next show will land here once it is on the calendar.</p>
+                <div className={styles.showEmpty}>
+                  {onAskNicNac ? (
+                    <button type="button" className={styles.askNicNac} onClick={onAskNicNac}>
+                      Ask Nic-Nac
+                    </button>
+                  ) : (
+                    'Ask Nic-Nac'
+                  )}{' '}
+                  to put your next show on the calendar.
+                </div>
               </>
             )}
-            <button type="button" className={styles.actionLight} onClick={() => onOpenSection('show-calendar')}>
-              {view.nextShow ? 'Open calendar' : 'Add a show'}
-            </button>
+            {view.nextShow ? (
+              <button type="button" className={styles.actionLight} onClick={() => onOpenSection('show-calendar')}>
+                Open calendar
+              </button>
+            ) : null}
           </div>
           {countdown ? <CountdownRing countdown={countdown} /> : <div className={styles.ringPlaceholder} aria-hidden="true" />}
-        </article>
-
-        <article className={styles.card} aria-label="Show streak">
-          <div className={styles.cardHeading}>
-            <div>
-              <p className={styles.kicker}>Show streak</p>
-              <h3 className={styles.cardTitle}>Last 16 weeks</h3>
-            </div>
-            <span className={styles.streakBadge}>
-              {view.streak.streakWeeks > 0
-                ? `${view.streak.streakWeeks}-week streak`
-                : 'Start a streak'}
-            </span>
-          </div>
-          <StreakHeatmap streak={view.streak} />
-          <p className={styles.muted}>
-            {view.streak.showsInWindow > 0
-              ? 'Each square is a day. A week counts when it has a past show.'
-              : 'Host a show and this lights up. Your streak starts with the first one.'}
-          </p>
         </article>
       </div>
 

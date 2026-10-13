@@ -5,7 +5,6 @@ import {
   type MonthlyMetric,
 } from '@/lib/services/workspace-monthly-reports'
 import {
-  buildShowStreak,
   compareGlanceMetrics,
   createEmptyRepDashboard,
   formatPlatformLabel,
@@ -15,11 +14,6 @@ import {
   recentMonthBuckets,
   resolveTimeZone,
   summarizePlatformMix,
-  zonedMidnightToUtc,
-  startOfSundayWeek,
-  zonedCalendarDay,
-  addCalendarDays,
-  SHOW_STREAK_WEEK_COUNT,
   type GlanceMetric,
   type RepDashboardPayload,
 } from '@/lib/services/rep-dashboard-math'
@@ -28,7 +22,6 @@ const BLING_KITCHEN_RECIPE_REP_IDS = new Set([
   '9a971c05-3631-443e-bcb8-4e9a26e15885',
 ])
 const BLING_KITCHEN_RECIPE_SLUGS = new Set(['blingkitchen', 'bling-kitchen'])
-const PAST_SHOW_STATUSES = ['scheduled', 'live', 'completed']
 
 type BirthdayRow = {
   name: string | null
@@ -116,18 +109,12 @@ export async function getRepDashboard(args: {
   const timeZone = resolveTimeZone(args.timeZone)
   const nowIso = now.toISOString()
   const months = recentMonthBuckets(now, timeZone)
-  const today = zonedCalendarDay(now, timeZone)
-  const streakStart = zonedMidnightToUtc(
-    addCalendarDays(startOfSundayWeek(today), -7 * (SHOW_STREAK_WEEK_COUNT - 1)),
-    timeZone,
-  ).toISOString()
   const platformStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString()
   const recipesEnabled = hasBlingKitchenRecipeAccess(args.repId, args.publicSiteSlug)
   let partial = false
 
   const [
     nextShowResult,
-    streakEvents,
     customerTotal,
     reachableCustomers,
     customerMonthly,
@@ -146,17 +133,6 @@ export async function getRepDashboard(args: {
       .order('event_time', { ascending: true })
       .limit(1)
       .maybeSingle(),
-    listPages<{ event_time: string; status: string }>((from, to) =>
-      args.supabase
-        .from('calendar_events')
-        .select('event_time, status')
-        .eq('rep_id', args.repId)
-        .in('status', PAST_SHOW_STATUSES)
-        .gte('event_time', streakStart)
-        .lte('event_time', nowIso)
-        .order('event_time', { ascending: true })
-        .range(from, to),
-    ),
     exactCount(
       args.supabase
         .from('customer_audience')
@@ -333,14 +309,6 @@ export async function getRepDashboard(args: {
   }, null)
   if (liveLineup.failed) partial = true
 
-  const streak = buildShowStreak({
-    eventTimes: streakEvents
-      .filter((event) => isPastShowStatus(event.status))
-      .map((event) => event.event_time),
-    now,
-    timeZone,
-  })
-
   return {
     generatedAt: now.toISOString(),
     timeZone,
@@ -353,7 +321,6 @@ export async function getRepDashboard(args: {
           timeZone: nextShowRow.time_zone?.trim() || timeZone,
         }
       : null,
-    streak,
     customers: {
       total: customerTotal,
       reachable: reachableCustomers,

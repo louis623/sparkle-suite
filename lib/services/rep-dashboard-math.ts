@@ -1,4 +1,3 @@
-export const SHOW_STREAK_WEEK_COUNT = 16
 export const BIRTHDAY_WINDOW_DAYS = 30
 export const COUNTDOWN_RING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 export const DASHBOARD_MONTH_COUNT = 6
@@ -8,24 +7,6 @@ export type CalendarDay = {
   year: number
   month: number
   day: number
-}
-
-export type HeatmapDay = {
-  date: string
-  count: number
-  level: 0 | 1 | 2 | 3
-}
-
-export type ShowStreakWeek = {
-  weekStart: string
-  days: HeatmapDay[]
-}
-
-export type ShowStreak = {
-  weeks: ShowStreakWeek[]
-  activeDates: string[]
-  streakWeeks: number
-  showsInWindow: number
 }
 
 export type UpcomingBirthday = {
@@ -84,7 +65,6 @@ export type RepDashboardPayload = {
   timeZone: string
   partial: boolean
   nextShow: RepDashboardNextShow | null
-  streak: ShowStreak
   customers: {
     total: number
     reachable: number
@@ -149,24 +129,6 @@ export function zonedCalendarDay(date: Date, timeZone?: string | null): Calendar
   }
 }
 
-export function addCalendarDays(day: CalendarDay, amount: number): CalendarDay {
-  const date = new Date(Date.UTC(day.year, day.month - 1, day.day + amount, 12))
-  return {
-    year: date.getUTCFullYear(),
-    month: date.getUTCMonth() + 1,
-    day: date.getUTCDate(),
-  }
-}
-
-export function calendarDayKey(day: CalendarDay) {
-  return `${day.year}-${String(day.month).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`
-}
-
-export function startOfSundayWeek(day: CalendarDay) {
-  const weekday = new Date(Date.UTC(day.year, day.month - 1, day.day, 12)).getUTCDay()
-  return addCalendarDays(day, -weekday)
-}
-
 function daysInMonth(year: number, month: number) {
   return new Date(Date.UTC(year, month, 0)).getUTCDate()
 }
@@ -224,13 +186,6 @@ export function zonedMidnightToUtc(day: CalendarDay, timeZone?: string | null) {
   }
 
   return new Date(guess)
-}
-
-export function heatmapLevel(count: number): 0 | 1 | 2 | 3 {
-  if (count <= 0) return 0
-  if (count === 1) return 1
-  if (count === 2) return 2
-  return 3
 }
 
 export function isPastShowStatus(status: string | null | undefined) {
@@ -309,68 +264,6 @@ export function listUpcomingBirthdays(args: {
       left.dateLabel.localeCompare(right.dateLabel) ||
       left.initials.localeCompare(right.initials),
   )
-}
-
-export function buildShowStreak(args: {
-  eventTimes: Array<string | Date>
-  now?: Date
-  timeZone?: string | null
-  weekCount?: number
-}): ShowStreak {
-  const now = args.now ?? new Date()
-  const timeZone = resolveTimeZone(args.timeZone)
-  const weekCount = args.weekCount ?? SHOW_STREAK_WEEK_COUNT
-  const today = zonedCalendarDay(now, timeZone)
-  const currentWeekStart = startOfSundayWeek(today)
-  const firstWeekStart = addCalendarDays(currentWeekStart, -7 * (weekCount - 1))
-  const windowStartKey = calendarDayKey(firstWeekStart)
-  const todayKey = calendarDayKey(today)
-  const counts = new Map<string, number>()
-
-  for (const eventTime of args.eventTimes) {
-    const parsed = eventTime instanceof Date ? eventTime : new Date(eventTime)
-    const timestamp = parsed.getTime()
-    if (!Number.isFinite(timestamp) || timestamp > now.getTime()) continue
-    const day = zonedCalendarDay(parsed, timeZone)
-    const key = calendarDayKey(day)
-    if (key < windowStartKey || key > todayKey) continue
-    counts.set(key, (counts.get(key) ?? 0) + 1)
-  }
-
-  const weeks: ShowStreakWeek[] = []
-  for (let weekIndex = 0; weekIndex < weekCount; weekIndex += 1) {
-    const weekStart = addCalendarDays(firstWeekStart, weekIndex * 7)
-    const days = Array.from({ length: 7 }, (_, dayIndex) => {
-      const day = addCalendarDays(weekStart, dayIndex)
-      const date = calendarDayKey(day)
-      const count = counts.get(date) ?? 0
-      return { date, count, level: heatmapLevel(count) }
-    })
-    weeks.push({ weekStart: calendarDayKey(weekStart), days })
-  }
-
-  let streakWeeks = 0
-  for (let index = weeks.length - 1; index >= 0; index -= 1) {
-    const shows = weeks[index].days.reduce((total, day) => total + day.count, 0)
-    const isCurrentWeek = index === weeks.length - 1
-    if (shows > 0) {
-      streakWeeks += 1
-      continue
-    }
-    if (isCurrentWeek) continue
-    break
-  }
-
-  const activeDates = weeks.flatMap((week) =>
-    week.days.filter((day) => day.count > 0).map((day) => day.date),
-  )
-
-  return {
-    weeks,
-    activeDates,
-    streakWeeks,
-    showsInWindow: activeDates.reduce((total, date) => total + (counts.get(date) ?? 0), 0),
-  }
 }
 
 export function getShowCountdown(eventTime: string | Date, now: Date = new Date()): ShowCountdown {
@@ -513,7 +406,6 @@ export function createEmptyRepDashboard(
     timeZone: zone,
     partial: false,
     nextShow: null,
-    streak: buildShowStreak({ eventTimes: [], now, timeZone: zone }),
     customers: {
       total: 0,
       reachable: 0,

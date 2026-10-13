@@ -6,7 +6,6 @@ import { RepDashboard } from '@/app/nic-nac/components/RepDashboard'
 import { REACHABLE_CUSTOMER_FILTER } from '@/lib/services/site-analytics'
 import {
   BIRTHDAY_WINDOW_DAYS,
-  buildShowStreak,
   compareGlanceMetrics,
   createEmptyRepDashboard,
   getShowCountdown,
@@ -15,59 +14,6 @@ import {
 } from '@/lib/services/rep-dashboard-math'
 
 const TIME_ZONE = 'America/New_York'
-
-describe('rep dashboard streak math', () => {
-  const now = new Date('2026-10-12T16:00:00.000Z')
-
-  it('counts consecutive weeks and keeps the current empty week from breaking a streak', () => {
-    const streak = buildShowStreak({
-      eventTimes: [
-        '2026-10-05T16:00:00.000Z',
-        '2026-09-28T16:00:00.000Z',
-        '2026-09-21T16:00:00.000Z',
-        '2026-10-20T16:00:00.000Z',
-        '2026-06-01T16:00:00.000Z',
-      ],
-      now,
-      timeZone: TIME_ZONE,
-    })
-
-    expect(streak.weeks).toHaveLength(16)
-    expect(streak.weeks[0].days).toHaveLength(7)
-    expect(streak.streakWeeks).toBe(3)
-    expect(streak.activeDates).toEqual(['2026-09-21', '2026-09-28', '2026-10-05'])
-    expect(streak.showsInWindow).toBe(3)
-    expect(streak.activeDates).not.toContain('2026-10-20')
-    expect(streak.activeDates).not.toContain('2026-06-01')
-  })
-
-  it('includes the current week when it already has a past show and stops at a gap', () => {
-    const streak = buildShowStreak({
-      eventTimes: [
-        '2026-10-12T15:00:00.000Z',
-        '2026-10-05T16:00:00.000Z',
-        '2026-09-14T16:00:00.000Z',
-      ],
-      now,
-      timeZone: TIME_ZONE,
-    })
-
-    expect(streak.streakWeeks).toBe(2)
-    expect(streak.activeDates).toContain('2026-10-12')
-    expect(streak.weeks.at(-1)?.days.find((day) => day.date === '2026-10-12')?.level).toBe(1)
-  })
-
-  it('places a late-night UTC event on the local calendar day', () => {
-    const streak = buildShowStreak({
-      eventTimes: ['2026-10-12T03:00:00.000Z'],
-      now,
-      timeZone: TIME_ZONE,
-    })
-
-    expect(streak.activeDates).toEqual(['2026-10-11'])
-    expect(streak.streakWeeks).toBe(1)
-  })
-})
 
 describe('rep dashboard birthday window', () => {
   it('keeps birthdays inside the next 30 days and returns initials only', () => {
@@ -219,7 +165,9 @@ describe('rep dashboard presentation', () => {
     expect(html).not.toContain('This month at a glance')
     expect(html).toContain('Add your first customer')
     expect(html).toContain('No show on the books')
-    expect(html).toContain('Host a show and this lights up')
+    expect(html).toContain('Ask Nic-Nac to put your next show on the calendar.')
+    expect(html).not.toContain('Add a show')
+    expect(html).not.toContain('Show streak')
     expect(html).toContain('Site visits — coming soon')
     expect(visits).not.toMatch(/\d/)
     expect(html).not.toContain('Choose a tool')
@@ -254,6 +202,26 @@ describe('rep dashboard presentation', () => {
     expect(html).toContain('Friday Live')
     expect(html).toContain('3')
     expect(html).toContain('Open Dance Floor')
+    expect(html).toContain('Open calendar')
+    expect(html).not.toContain('Add a show')
+    expect(html).not.toContain('Show streak')
+  })
+
+  it('opens Nic-Nac from the empty next-show state when the chat hook is available', () => {
+    const now = new Date('2026-10-12T15:00:00.000Z')
+    const html = renderToStaticMarkup(
+      createElement(RepDashboard, {
+        onOpenSection: () => undefined,
+        onAskNicNac: () => undefined,
+        data: createEmptyRepDashboard(now, TIME_ZONE),
+        now,
+      }),
+    )
+
+    expect(html).toContain('Ask Nic-Nac')
+    expect(html).toContain('askNicNac')
+    expect(html).not.toContain('Add a show')
+    expect(html).not.toContain('Open calendar')
   })
 
   it('shows a zero for team onboarding and a purple Live Lineup link', () => {
