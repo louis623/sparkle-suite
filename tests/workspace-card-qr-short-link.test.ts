@@ -16,6 +16,8 @@ import {
 import {
   buildCardQrShortUrl,
   cardQrShortCode,
+  requireCardQrShortUrl,
+  withCardQrVisitSource,
   cardQrUuidPrefixBounds,
   cardQrUuidPrefixFromCode,
   resolveCardQrShortLinkTarget,
@@ -52,6 +54,8 @@ describe('card QR short codes', () => {
     expect('b1b2c3d4-e5f6-4789-8012-3456789abcde' <= bounds.to).toBe(false)
     expect(buildCardQrShortUrl(ORIGIN, REP_ID)).toBe(`${ORIGIN}/q/${code}`)
     expect(buildCardQrShortUrl(ORIGIN, 'rep-1')).toBeNull()
+    expect(withCardQrVisitSource(`${ORIGIN}/q/${code}`)).toBe(`${ORIGIN}/q/${code}?src=qr`)
+    expect(requireCardQrShortUrl(ORIGIN, REP_ID)).toBe(`${ORIGIN}/q/${code}?src=qr`)
   })
 
   it('redirects one match and 404s unknown or colliding codes', () => {
@@ -121,6 +125,13 @@ describe('short link route', () => {
     expect(found.headers.get('location')).toBe(`${ORIGIN}/fizzfest`)
     expect(mocks.lookup).toHaveBeenCalledWith('a1b2c3d4')
 
+    const tracked = await getShortLink(
+      new Request(`${ORIGIN}/q/${code}?src=qr`),
+      { params: Promise.resolve({ code }) },
+    )
+    expect(tracked.status).toBe(302)
+    expect(tracked.headers.get('location')).toBe(`${ORIGIN}/fizzfest?src=qr`)
+
     mocks.lookup.mockResolvedValue([])
     const missing = await getShortLink(
       new Request(`${ORIGIN}/q/${code}`),
@@ -135,7 +146,7 @@ describe('short link route', () => {
       { params: Promise.resolve({ code: 'nope' }) },
     )
     expect(garbage.status).toBe(404)
-    expect(mocks.lookup).toHaveBeenCalledTimes(2)
+    expect(mocks.lookup).toHaveBeenCalledTimes(3)
   })
 
   it('returns a friendly unavailable page when lookup fails', async () => {

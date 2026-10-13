@@ -41,6 +41,19 @@ function shortLinkPage(input: { title: string; message: string; status: number }
   })
 }
 
+const FORWARDED_VISIT_PARAMS = ['src', 'utm_source', 'utm_medium', 'utm_campaign'] as const
+
+function forwardVisitParams(location: string, request: Request) {
+  const incoming = new URL(request.url)
+  const destination = new URL(location)
+  for (const key of FORWARDED_VISIT_PARAMS) {
+    const value = incoming.searchParams.get(key)?.trim() ?? ''
+    if (!value || value.length > 80 || destination.searchParams.has(key)) continue
+    destination.searchParams.set(key, value)
+  }
+  return destination.toString()
+}
+
 function unknownCodePage() {
   return shortLinkPage({
     status: 404,
@@ -61,7 +74,10 @@ export async function GET(request: Request, context: { params: Promise<{ code: s
     const rows = await lookupCardQrShortLinkReps(prefix)
     const target = resolveCardQrShortLinkTarget(code, rows, resolveCardQrRequestOrigin(request))
     if (target.status === 404) return unknownCodePage()
-    const response = NextResponse.redirect(target.location, 302)
+    const location = FORWARDED_VISIT_PARAMS.some((key) => new URL(request.url).searchParams.has(key))
+      ? forwardVisitParams(target.location, request)
+      : target.location
+    const response = NextResponse.redirect(location, 302)
     response.headers.set('Cache-Control', 'no-store')
     response.headers.set('X-Robots-Tag', 'noindex, nofollow')
     return response

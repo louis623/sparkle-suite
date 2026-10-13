@@ -1,3 +1,6 @@
+import { emptyDanceFloorInsights, type DanceFloorInsights } from '@/lib/services/dance-floor-insights'
+import { emptySiteVisitSummary, type SiteVisitSummary } from '@/lib/services/site-visit-summary'
+
 export const BIRTHDAY_WINDOW_DAYS = 30
 export const COUNTDOWN_RING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 export const DASHBOARD_MONTH_COUNT = 6
@@ -78,6 +81,8 @@ export type RepDashboardPayload = {
     monthLabels: string[]
     addedThisMonth: number
   }
+  danceFloorInsights: DanceFloorInsights
+  siteVisits: SiteVisitSummary
   pendingTrades: {
     count: number
   }
@@ -98,7 +103,6 @@ export type RepDashboardPayload = {
   team: { count: number } | null
   recipes: { count: number } | null
   liveLineup: { count: number } | null
-  siteVisits: { status: 'coming_soon' }
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -419,6 +423,8 @@ export function createEmptyRepDashboard(
       monthLabels: months.map((month) => month.label),
       addedThisMonth: 0,
     },
+    danceFloorInsights: emptyDanceFloorInsights(),
+    siteVisits: emptySiteVisitSummary(now, zone),
     pendingTrades: { count: 0 },
     birthdays: [],
     platformMix: [],
@@ -431,6 +437,5 @@ export function createEmptyRepDashboard(
     team: null,
     recipes: null,
     liveLineup: null,
-    siteVisits: { status: 'coming_soon' },
   }
 }

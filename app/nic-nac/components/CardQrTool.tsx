@@ -24,7 +24,7 @@ import {
   type CardQrIcon,
 } from '@/lib/workspace/card-qr/design'
 import { resolveCardQrDestination } from '@/lib/workspace/card-qr/destination'
-import { buildCardQrShortUrl } from '@/lib/workspace/card-qr/short-link'
+import { buildCardQrShortUrl, withCardQrVisitSource } from '@/lib/workspace/card-qr/short-link'
 import { CARD_QR_FLYER_BEING_BUILT_MESSAGE } from '@/lib/workspace/card-qr/flyer-copy'
 import {
   DEFAULT_CARD_QR_FLYER_FORMAT,
@@ -217,10 +217,10 @@ export function CardQrTool({
   )
   /** Flyer cache key carries the theme so a download never hands back another theme's file. */
   const flyerKeyUrl = destinationUrl ? `${destinationUrl}#theme=${designTheme}` : ''
-  const qrUrl = useMemo(
-    () => (origin && repId ? buildCardQrShortUrl(origin, repId) : null),
-    [origin, repId],
-  )
+  const qrUrl = useMemo(() => {
+    const bare = origin && repId ? buildCardQrShortUrl(origin, repId) : null
+    return bare ? withCardQrVisitSource(bare) : null
+  }, [origin, repId])
   const cardKey = JSON.stringify({ hasCustomDomain, fields: design.fields, qrIcon, textLinkNumber, socialPlatform: design.socialPlatform, appearancePreset, designTheme, displayName, businessName, email, socialHandles })
 
   useEffect(() => {

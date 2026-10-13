@@ -3,6 +3,8 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { RepDashboard } from '@/app/nic-nac/components/RepDashboard'
+import { buildDanceFloorInsights, type DanceFloorInsightInput } from '@/lib/services/dance-floor-insights'
+import { summarizeSiteVisits } from '@/lib/services/site-visit-summary'
 import { REACHABLE_CUSTOMER_FILTER } from '@/lib/services/site-analytics'
 import {
   BIRTHDAY_WINDOW_DAYS,
@@ -153,13 +155,6 @@ describe('rep dashboard presentation', () => {
         now,
       }),
     )
-    const visits = html
-      .slice(
-        html.indexOf('data-testid="site-visits-coming-soon"'),
-        html.indexOf('</article>', html.indexOf('data-testid="site-visits-coming-soon"')),
-      )
-      .replace(/<[^>]+>/g, '')
-
     const showCard = html.slice(
       html.indexOf('aria-label="Next show"'),
       html.indexOf('</article>', html.indexOf('aria-label="Next show"')),
@@ -179,8 +174,12 @@ describe('rep dashboard presentation', () => {
     expect(html).not.toContain('Show streak')
     expect(html).not.toContain('askNicNac')
     expect(html).not.toContain('ringPlaceholder')
-    expect(html).toContain('Site visits — coming soon')
-    expect(visits).not.toMatch(/\d/)
+    expect(html).toContain('Site visitors')
+    expect(html).not.toContain('Site visits — coming soon')
+    expect(html.indexOf('Next show')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
+    expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('data-testid="dance-floor-insights"'))
+    expect(html.indexOf('data-testid="dance-floor-insights"')).toBeLessThan(html.indexOf('Platform mix'))
+    expect(html).toContain('hidden=""')
     expect(html).not.toContain('Choose a tool')
     expect(html).not.toContain('data-pulse="true"')
   })
@@ -253,6 +252,72 @@ describe('rep dashboard presentation', () => {
     expect(html).toContain('Open Live Lineup')
     expect(html).toContain('textAction')
     expect(html).not.toContain('<small>Open Live Lineup</small>')
+  })
+
+  it('puts visitors and Dance Floor insights ahead of the rest of the dashboard', () => {
+    const now = new Date('2026-10-13T16:00:00.000Z')
+    const data = createEmptyRepDashboard(now, TIME_ZONE)
+    const day = 24 * 60 * 60 * 1000
+    const listings: DanceFloorInsightInput[] = [
+      {
+        id: 'sitter',
+        name: 'Unapologetically Luxe',
+        itemNumber: 'ER49274',
+        typePrefix: 'ER',
+        collectionName: 'OG',
+        price: 120,
+        status: 'available',
+        removalReason: null,
+        listedAt: new Date(now.getTime() - 50 * day).toISOString(),
+        createdAt: new Date(now.getTime() - 50 * day).toISOString(),
+        updatedAt: new Date(now.getTime() - 50 * day).toISOString(),
+        deletedAt: null,
+        requestCount: 0,
+      },
+      {
+        id: 'sold',
+        name: 'The Sugar Kiss Earrings',
+        itemNumber: 'ER99962',
+        typePrefix: 'ER',
+        collectionName: 'Original',
+        price: 132,
+        status: 'removed',
+        removalReason: 'sold',
+        listedAt: new Date(now.getTime() - 18 * day).toISOString(),
+        createdAt: new Date(now.getTime() - 18 * day).toISOString(),
+        updatedAt: now.toISOString(),
+        deletedAt: now.toISOString(),
+        requestCount: 1,
+      },
+    ]
+    data.danceFloorInsights = buildDanceFloorInsights(listings, now)
+    data.siteVisits = summarizeSiteVisits({
+      now,
+      timeZone: TIME_ZONE,
+      rows: [{ viewed_at: now.toISOString(), src: 'qr', us_state: 'NY' }],
+    })
+    const html = renderToStaticMarkup(
+      createElement(RepDashboard, {
+        onOpenSection: () => undefined,
+        data,
+        now,
+      }),
+    )
+
+    expect(html).toContain('Sitting on the floor')
+    expect(html).toContain('Unapologetically Luxe')
+    expect(html).toContain('Original (OG)')
+    expect(html).toContain('Fast movers vs sitters')
+    expect(html).toContain('early data')
+    expect(html).toContain('The Sugar Kiss Earrings')
+    expect(html).toContain('Days on floor by type')
+    expect(html).toContain('Sold')
+    expect(html).not.toContain('Removed · "other"')
+    expect(html).toContain('QR visits')
+    expect(html).toContain('Where they are')
+    expect(html.indexOf('aria-label="Next show"')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
+    expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('Sitting on the floor'))
+    expect(html.indexOf('Sitting on the floor')).toBeLessThan(html.indexOf('Birthdays'))
   })
 
   it('counts team onboarding participants by owner, not rep_id', () => {
