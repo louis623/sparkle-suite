@@ -35,6 +35,7 @@ const BLING_KITCHEN_RECIPE_REP_IDS = new Set([
 const BLING_KITCHEN_RECIPE_SLUGS = new Set(['blingkitchen', 'bling-kitchen'])
 
 type BirthdayRow = {
+  id: string | null
   name: string | null
   birthday_month: number | null
   birthday_day: number | null
@@ -207,7 +208,7 @@ export async function getRepDashboard(args: {
     listPages<BirthdayRow>((from, to) =>
       args.supabase
         .from('customer_audience')
-        .select('name, birthday_month, birthday_day')
+        .select('id, name, birthday_month, birthday_day')
         .eq('rep_id', args.repId)
         .not('birthday_month', 'is', null)
         .not('birthday_day', 'is', null)
@@ -408,6 +409,7 @@ export async function getRepDashboard(args: {
     pendingTrades: { count: pendingTrades },
     birthdays: listUpcomingBirthdays({
       people: birthdayRows.map((row) => ({
+        id: row.id,
         name: row.name,
         month: row.birthday_month,
         day: row.birthday_day,

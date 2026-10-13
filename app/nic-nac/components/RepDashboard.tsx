@@ -4,11 +4,14 @@ import { useEffect, useId, useMemo, useState } from 'react'
 import { DanceFloorInsightsPanel } from '@/app/nic-nac/components/DanceFloorInsights'
 import { SiteVisitsPanel } from '@/app/nic-nac/components/SiteVisitsPanel'
 import {
+  birthdayTimingLabel,
   createEmptyRepDashboard,
   getShowCountdown,
+  showInDaysLabel,
   type GlanceDirection,
   type RepDashboardPayload,
   type ShowCountdown,
+  type UpcomingBirthday,
 } from '@/lib/services/rep-dashboard-math'
 import styles from './RepDashboard.module.css'
 
@@ -59,6 +62,28 @@ function countdownDetail(countdown: ShowCountdown) {
 
 function formatCount(value: number) {
   return value.toLocaleString('en-US')
+}
+
+function BirthdayRow({ birthday }: { birthday: UpcomingBirthday }) {
+  const content = (
+    <span className={styles.birthdayCopy}>
+      <strong>{birthday.name}</strong>
+      <small>
+        {birthday.dateLabel}
+        {' · '}
+        {birthdayTimingLabel(birthday.daysUntil)}
+        {birthday.observedLeapDay ? ' · Feb 29 birthday' : ''}
+      </small>
+    </span>
+  )
+  if (!birthday.recordHref) {
+    return <span className={styles.birthdayLink}>{content}</span>
+  }
+  return (
+    <a className={styles.birthdayLink} href={birthday.recordHref}>
+      {content}
+    </a>
+  )
 }
 
 function CountdownRing({ countdown }: { countdown: ShowCountdown }) {
@@ -240,6 +265,7 @@ export function RepDashboard({
   const countdown = view.nextShow
     ? getShowCountdown(view.nextShow.eventTime, now ?? clock)
     : null
+  const showInDays = countdown ? showInDaysLabel(countdown.days) : null
   const visibleBirthdays = view.birthdays.slice(0, 6)
   const hiddenBirthdays = view.birthdays.length - visibleBirthdays.length
 
@@ -267,7 +293,10 @@ export function RepDashboard({
                   <span className={styles.platform}>{view.nextShow.platform}</span>
                   <span>{formatShowTime(view.nextShow.eventTime, view.nextShow.timeZone)}</span>
                 </p>
-                <p className={styles.countdownDetail}>{countdownDetail(countdown)}</p>
+                <p className={styles.countdownDetail}>
+                  {showInDays ? <span>{showInDays}</span> : null}
+                  <span>{countdownDetail(countdown)}</span>
+                </p>
               </>
             ) : (
               <>
@@ -291,16 +320,9 @@ export function RepDashboard({
           <h3 className={styles.cardTitle}>Birthdays</h3>
           {visibleBirthdays.length > 0 ? (
             <ul className={styles.birthdayList}>
-              {visibleBirthdays.map((birthday) => (
-                <li key={`${birthday.initials}-${birthday.month}-${birthday.day}-${birthday.daysUntil}`}>
-                  <span className={styles.avatar} aria-hidden="true">{birthday.initials}</span>
-                  <span>
-                    <strong>{birthday.initials}</strong>
-                    <small>
-                      {birthday.isToday ? 'Today' : birthday.dateLabel}
-                      {birthday.observedLeapDay ? ' · Feb 29 birthday' : ''}
-                    </small>
-                  </span>
+              {visibleBirthdays.map((birthday, index) => (
+                <li key={`${birthday.customerId ?? birthday.name}-${birthday.month}-${birthday.day}-${index}`}>
+                  <BirthdayRow birthday={birthday} />
                 </li>
               ))}
             </ul>

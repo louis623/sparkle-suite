@@ -13,7 +13,10 @@ export type CalendarDay = {
 }
 
 export type UpcomingBirthday = {
+  customerId: string | null
+  name: string
   initials: string
+  recordHref: string | null
   month: number
   day: number
   dateLabel: string
@@ -196,9 +199,11 @@ export function isPastShowStatus(status: string | null | undefined) {
   return status === 'scheduled' || status === 'live' || status === 'completed'
 }
 
+const CONTACT_SHAPED_NAME = /\d[\d\s().-]{6,}\d/
+
 export function initialsFromDisplayName(name: string) {
   const trimmed = name.trim()
-  if (!trimmed || trimmed.includes('@') || /\d[\d\s().-]{6,}\d/.test(trimmed)) return '?'
+  if (!trimmed || trimmed.includes('@') || CONTACT_SHAPED_NAME.test(trimmed)) return '?'
   const words = trimmed
     .split(/\s+/)
     .map((word) => word.replace(/[^A-Za-z]/g, ''))
@@ -206,6 +211,28 @@ export function initialsFromDisplayName(name: string) {
   if (words.length === 0) return '?'
   if (words.length === 1) return words[0].slice(0, 1).toUpperCase()
   return `${words[0].slice(0, 1)}${words[words.length - 1].slice(0, 1)}`.toUpperCase()
+}
+
+export function fullCustomerName(name: string) {
+  const trimmed = name.trim().replace(/\s+/g, ' ')
+  if (!trimmed || trimmed.includes('@') || CONTACT_SHAPED_NAME.test(trimmed)) return ''
+  return trimmed
+}
+
+export function customerRecordHref(customerId: string | null | undefined) {
+  const id = customerId?.trim() ?? ''
+  if (!id) return null
+  return `/nic-nac?section=customer-list&customer=${encodeURIComponent(id)}`
+}
+
+export function birthdayTimingLabel(daysUntil: number) {
+  if (daysUntil <= 0) return 'Today'
+  return `in ${daysUntil} ${daysUntil === 1 ? 'day' : 'days'}`
+}
+
+export function showInDaysLabel(days: number) {
+  if (!Number.isFinite(days) || days <= 0) return null
+  return `in ${days} ${days === 1 ? 'day' : 'days'}`
 }
 
 function shortDateLabel(day: CalendarDay) {
@@ -227,7 +254,12 @@ function birthdayOccurrence(year: number, month: number, day: number) {
 }
 
 export function listUpcomingBirthdays(args: {
-  people: Array<{ name?: string | null; month: number | null; day: number | null }>
+  people: Array<{
+    id?: string | null
+    name?: string | null
+    month: number | null
+    day: number | null
+  }>
   now?: Date
   timeZone?: string | null
   windowDays?: number
@@ -251,8 +283,13 @@ export function listUpcomingBirthdays(args: {
     })
     const next = candidates[0]
     if (!next) continue
+    const customerId = person.id?.trim() || null
+    const name = fullCustomerName(person.name ?? '')
     birthdays.push({
+      customerId,
+      name: name || '?',
       initials: initialsFromDisplayName(person.name ?? ''),
+      recordHref: customerRecordHref(customerId),
       month,
       day,
       dateLabel: shortDateLabel(next.occurrence.day),
@@ -266,6 +303,7 @@ export function listUpcomingBirthdays(args: {
     (left, right) =>
       left.daysUntil - right.daysUntil ||
       left.dateLabel.localeCompare(right.dateLabel) ||
+      left.name.localeCompare(right.name) ||
       left.initials.localeCompare(right.initials),
   )
 }

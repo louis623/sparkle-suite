@@ -8,37 +8,70 @@ import { summarizeSiteVisits } from '@/lib/services/site-visit-summary'
 import { REACHABLE_CUSTOMER_FILTER } from '@/lib/services/site-analytics'
 import {
   BIRTHDAY_WINDOW_DAYS,
+  birthdayTimingLabel,
   compareGlanceMetrics,
   createEmptyRepDashboard,
+  customerRecordHref,
+  fullCustomerName,
   getShowCountdown,
   initialsFromDisplayName,
   listUpcomingBirthdays,
+  showInDaysLabel,
 } from '@/lib/services/rep-dashboard-math'
 
 const TIME_ZONE = 'America/New_York'
 
 describe('rep dashboard birthday window', () => {
-  it('keeps birthdays inside the next 30 days and returns initials only', () => {
+  it('keeps birthdays inside the next 30 days and returns full names', () => {
     const birthdays = listUpcomingBirthdays({
       people: [
-        { name: 'Jane Doe', month: 10, day: 12 },
-        { name: 'Ava Stone', month: 11, day: 11 },
+        { id: 'cust-jane', name: 'Jane Doe', month: 10, day: 12 },
+        { id: 'cust-ava', name: 'Ava Stone', month: 11, day: 11 },
         { name: 'Late Guest', month: 11, day: 12 },
-        { name: 'jane@example.com', month: 10, day: 18 },
-        { name: '555-010-1212', month: 10, day: 19 },
+        { id: 'cust-email', name: 'jane@example.com', month: 10, day: 18 },
+        { id: 'cust-phone', name: '555-010-1212', month: 10, day: 19 },
+        { id: 'cust-dana', name: 'Dana Miller', month: 10, day: 18 },
       ],
       now: new Date('2026-10-12T15:00:00.000Z'),
       timeZone: TIME_ZONE,
       windowDays: BIRTHDAY_WINDOW_DAYS,
     })
 
-    expect(birthdays.map((birthday) => birthday.initials)).toEqual(['JD', '?', '?', 'AS'])
-    expect(birthdays.map((birthday) => birthday.daysUntil)).toEqual([0, 6, 7, 30])
-    expect(birthdays[0]).toMatchObject({ isToday: true, dateLabel: 'Oct 12' })
-    expect(JSON.stringify(birthdays)).not.toContain('Jane')
-    expect(JSON.stringify(birthdays)).not.toContain('example.com')
-    expect(JSON.stringify(birthdays)).not.toContain('555')
-    expect(birthdays.every((birthday) => !('name' in birthday))).toBe(true)
+    expect(birthdays.map((birthday) => birthday.name)).toEqual([
+      'Jane Doe',
+      '?',
+      'Dana Miller',
+      '?',
+      'Ava Stone',
+    ])
+    expect(birthdays.map((birthday) => birthday.initials)).toEqual(['JD', '?', 'DM', '?', 'AS'])
+    expect(birthdays.map((birthday) => birthday.daysUntil)).toEqual([0, 6, 6, 7, 30])
+    expect(birthdays.map((birthday) => birthdayTimingLabel(birthday.daysUntil))).toEqual([
+      'Today',
+      'in 6 days',
+      'in 6 days',
+      'in 7 days',
+      'in 30 days',
+    ])
+    expect(birthdays[0]).toMatchObject({
+      isToday: true,
+      dateLabel: 'Oct 12',
+      customerId: 'cust-jane',
+      recordHref: '/nic-nac?section=customer-list&customer=cust-jane',
+    })
+    expect(birthdays[2]).toMatchObject({
+      name: 'Dana Miller',
+      dateLabel: 'Oct 18',
+      customerId: 'cust-dana',
+      recordHref: '/nic-nac?section=customer-list&customer=cust-dana',
+    })
+    expect(birthdays.find((birthday) => birthday.name === 'Late Guest')).toBeUndefined()
+    const serialized = JSON.stringify(birthdays)
+    expect(serialized).toContain('Jane Doe')
+    expect(serialized).toContain('Dana Miller')
+    expect(serialized).not.toContain('Dana M.')
+    expect(serialized).not.toContain('example.com')
+    expect(serialized).not.toContain('555')
   })
 
   it('wraps year end and observes February 29 on February 28 in a non-leap year', () => {
@@ -50,9 +83,10 @@ describe('rep dashboard birthday window', () => {
       now: new Date('2026-12-20T17:00:00.000Z'),
       timeZone: TIME_ZONE,
     })
-    expect(wrapped.map((birthday) => [birthday.initials, birthday.dateLabel, birthday.daysUntil])).toEqual([
-      ['S', 'Jan 10', 21],
+    expect(wrapped.map((birthday) => [birthday.name, birthday.initials, birthday.dateLabel, birthday.daysUntil])).toEqual([
+      ['Sam', 'S', 'Jan 10', 21],
     ])
+    expect(wrapped[0]?.recordHref).toBeNull()
 
     const observed = listUpcomingBirthdays({
       people: [{ name: 'Leap', month: 2, day: 29 }],
@@ -85,6 +119,27 @@ describe('rep dashboard birthday window', () => {
     expect(initialsFromDisplayName('Mary Jane Watson')).toBe('MW')
     expect(initialsFromDisplayName('Madonna')).toBe('M')
     expect(initialsFromDisplayName('')).toBe('?')
+  })
+
+  it('keeps the full first and last name and links only when a customer id exists', () => {
+    expect(fullCustomerName('  Dana   Miller ')).toBe('Dana Miller')
+    expect(fullCustomerName('Mary Jane Watson')).toBe('Mary Jane Watson')
+    expect(fullCustomerName('Dana Miller')).not.toBe('Dana M.')
+    expect(fullCustomerName('Cara Hughes')).not.toBe('CH')
+    expect(fullCustomerName('jane@example.com')).toBe('')
+    expect(fullCustomerName('555-010-1212')).toBe('')
+    expect(customerRecordHref('cust-1')).toBe('/nic-nac?section=customer-list&customer=cust-1')
+    expect(customerRecordHref(' id/with space ')).toBe(
+      '/nic-nac?section=customer-list&customer=id%2Fwith%20space',
+    )
+    expect(customerRecordHref('  ')).toBeNull()
+    expect(customerRecordHref(null)).toBeNull()
+    expect(birthdayTimingLabel(0)).toBe('Today')
+    expect(birthdayTimingLabel(1)).toBe('in 1 day')
+    expect(birthdayTimingLabel(6)).toBe('in 6 days')
+    expect(showInDaysLabel(0)).toBeNull()
+    expect(showInDaysLabel(1)).toBe('in 1 day')
+    expect(showInDaysLabel(3)).toBe('in 3 days')
   })
 })
 
@@ -216,12 +271,96 @@ describe('rep dashboard presentation', () => {
 
     expect(html).toContain('data-pulse="true"')
     expect(html).toContain('Friday Live')
-    expect(html).toContain('3')
+    expect(html).toContain('in 3 days')
+    expect(html).toContain('3d 2h 30m')
     expect(html).toContain('Open Dance Floor')
     expect(html).toContain('Open calendar')
     expect(html).not.toContain('Add a show')
     expect(html).not.toContain('Show streak')
     expect(html).not.toContain('No show on the books')
+  })
+
+  it('shows full birthday names, dates, timing, and customer record links', () => {
+    const now = new Date('2026-10-12T15:00:00.000Z')
+    const data = createEmptyRepDashboard(now, TIME_ZONE)
+    data.birthdays = listUpcomingBirthdays({
+      people: [
+        { id: 'cust-jane', name: 'Jane Doe', month: 10, day: 12 },
+        { id: 'cust-dana', name: 'Dana Miller', month: 10, day: 18 },
+        { id: 'cust-cara', name: 'Cara Hughes', month: 10, day: 13 },
+        { name: 'Sam Rivers', month: 10, day: 20 },
+        { id: 'cust-7', name: 'Seventh Person', month: 10, day: 21 },
+        { id: 'cust-8', name: 'Eighth Person', month: 10, day: 22 },
+        { id: 'cust-9', name: 'Ninth Person', month: 10, day: 23 },
+        { id: 'cust-10', name: 'Tenth Person', month: 10, day: 24 },
+      ],
+      now,
+      timeZone: TIME_ZONE,
+    })
+    const html = renderToStaticMarkup(
+      createElement(RepDashboard, {
+        onOpenSection: () => undefined,
+        data,
+        now,
+      }),
+    )
+    const birthdaysCard = html.slice(html.indexOf('Birthdays'), html.indexOf('<h3>Customers</h3>'))
+
+    expect(birthdaysCard).toContain('Jane Doe')
+    expect(birthdaysCard).toContain('Oct 12')
+    expect(birthdaysCard).toContain('Today')
+    expect(birthdaysCard).toContain('Dana Miller')
+    expect(birthdaysCard).toContain('Oct 18')
+    expect(birthdaysCard).toContain('in 6 days')
+    expect(birthdaysCard).toContain('Cara Hughes')
+    expect(birthdaysCard).toContain('in 1 day')
+    expect(birthdaysCard).toContain('href="/nic-nac?section=customer-list&amp;customer=cust-jane"')
+    expect(birthdaysCard).toContain('href="/nic-nac?section=customer-list&amp;customer=cust-dana"')
+    expect(birthdaysCard).toContain('Sam Rivers')
+    expect(birthdaysCard).toContain('Seventh Person')
+    expect(birthdaysCard).not.toContain('Ninth Person')
+    expect(birthdaysCard).not.toContain('Tenth Person')
+    expect(birthdaysCard).not.toContain('href="/nic-nac?section=customer-list&amp;customer="')
+    expect(birthdaysCard.match(/<a /g)).toHaveLength(5)
+    expect(birthdaysCard).not.toContain('>JD<')
+    expect(birthdaysCard).not.toContain('>CH<')
+    expect(birthdaysCard).not.toContain('>DM<')
+    expect(birthdaysCard).not.toContain('Dana M.')
+    expect(birthdaysCard).toContain('2 more in the next 30 days.')
+    expect(birthdaysCard.match(/<li/g)).toHaveLength(6)
+  })
+
+  it('keeps the leap-day note and the hour countdown beside the new wording', () => {
+    const now = new Date('2027-02-28T17:00:00.000Z')
+    const data = createEmptyRepDashboard(now, TIME_ZONE)
+    data.birthdays = listUpcomingBirthdays({
+      people: [{ id: 'cust-leap', name: 'Leap Day', month: 2, day: 29 }],
+      now,
+      timeZone: TIME_ZONE,
+    })
+    data.nextShow = {
+      title: 'Tonight Live',
+      platform: 'Whatnot',
+      eventTime: '2027-02-28T20:30:00.000Z',
+      timeZone: TIME_ZONE,
+    }
+    const html = renderToStaticMarkup(
+      createElement(RepDashboard, {
+        onOpenSection: () => undefined,
+        data,
+        now,
+      }),
+    )
+    const birthdaysCard = html.slice(html.indexOf('Birthdays'), html.indexOf('<h3>Customers</h3>'))
+    const showCard = html.slice(html.indexOf('aria-label="Next show"'), html.indexOf('Birthdays'))
+
+    expect(birthdaysCard).toContain('Leap Day')
+    expect(birthdaysCard).toContain('Feb 28')
+    expect(birthdaysCard).toContain('Today')
+    expect(birthdaysCard).toContain('Feb 29 birthday')
+    expect(showCard).toContain('3h 30m')
+    expect(showCard).not.toContain('in 0 days')
+    expect(showCard).not.toContain('>Now<')
   })
 
   it('shows a zero for team onboarding and a purple Live Lineup link', () => {
@@ -357,6 +496,12 @@ describe('rep dashboard presentation', () => {
     expect(html.indexOf('Customers')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
     expect(html.indexOf('Pending trades')).toBeLessThan(html.indexOf('Unread messages'))
     expect(html.indexOf('Unread messages')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
+  })
+
+  it('selects the customer id with each birthday row', () => {
+    const source = readFileSync(new URL('../../lib/services/rep-dashboard.ts', import.meta.url), 'utf8')
+    expect(source).toContain(".select('id, name, birthday_month, birthday_day')")
+    expect(source).toContain('id: row.id')
   })
 
   it('counts team onboarding participants by owner, not rep_id', () => {
