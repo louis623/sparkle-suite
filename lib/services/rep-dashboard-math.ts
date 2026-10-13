@@ -1,3 +1,7 @@
+import { emptyDanceFloorInsights, type DanceFloorInsights } from '@/lib/services/dance-floor-insights'
+import { liveOrderWindowStartIso } from '@/lib/services/live-lineup-customer-orders'
+import { emptySiteVisitSummary, type SiteVisitSummary } from '@/lib/services/site-visit-summary'
+
 export const BIRTHDAY_WINDOW_DAYS = 30
 export const COUNTDOWN_RING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 export const DASHBOARD_MONTH_COUNT = 6
@@ -10,7 +14,10 @@ export type CalendarDay = {
 }
 
 export type UpcomingBirthday = {
+  customerId: string | null
+  name: string
   initials: string
+  recordHref: string | null
   month: number
   day: number
   dateLabel: string
@@ -71,6 +78,17 @@ export type RepDashboardPayload = {
     monthly: number[]
     monthLabels: string[]
     addedThisMonth: number
+    ableToEmail: number
+    ableToText: number
+    missingContact: number
+    monthStartLabel: string
+    monthStartIso: string
+    liveOrderActivity: {
+      available: boolean
+      orderedDuringLiveLast90Days: number | null
+      goneQuiet: number | null
+      windowStartIso: string | null
+    }
   }
   danceFloor: {
     activeListings: number
@@ -78,6 +96,8 @@ export type RepDashboardPayload = {
     monthLabels: string[]
     addedThisMonth: number
   }
+  danceFloorInsights: DanceFloorInsights
+  siteVisits: SiteVisitSummary
   pendingTrades: {
     count: number
   }
@@ -98,7 +118,6 @@ export type RepDashboardPayload = {
   team: { count: number } | null
   recipes: { count: number } | null
   liveLineup: { count: number } | null
-  siteVisits: { status: 'coming_soon' }
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -192,9 +211,11 @@ export function isPastShowStatus(status: string | null | undefined) {
   return status === 'scheduled' || status === 'live' || status === 'completed'
 }
 
+const CONTACT_SHAPED_NAME = /\d[\d\s().-]{6,}\d/
+
 export function initialsFromDisplayName(name: string) {
   const trimmed = name.trim()
-  if (!trimmed || trimmed.includes('@') || /\d[\d\s().-]{6,}\d/.test(trimmed)) return '?'
+  if (!trimmed || trimmed.includes('@') || CONTACT_SHAPED_NAME.test(trimmed)) return '?'
   const words = trimmed
     .split(/\s+/)
     .map((word) => word.replace(/[^A-Za-z]/g, ''))
@@ -202,6 +223,28 @@ export function initialsFromDisplayName(name: string) {
   if (words.length === 0) return '?'
   if (words.length === 1) return words[0].slice(0, 1).toUpperCase()
   return `${words[0].slice(0, 1)}${words[words.length - 1].slice(0, 1)}`.toUpperCase()
+}
+
+export function fullCustomerName(name: string) {
+  const trimmed = name.trim().replace(/\s+/g, ' ')
+  if (!trimmed || trimmed.includes('@') || CONTACT_SHAPED_NAME.test(trimmed)) return ''
+  return trimmed
+}
+
+export function customerRecordHref(customerId: string | null | undefined) {
+  const id = customerId?.trim() ?? ''
+  if (!id) return null
+  return `/nic-nac?section=customer-list&customer=${encodeURIComponent(id)}`
+}
+
+export function birthdayTimingLabel(daysUntil: number) {
+  if (daysUntil <= 0) return 'Today'
+  return `in ${daysUntil} ${daysUntil === 1 ? 'day' : 'days'}`
+}
+
+export function showInDaysLabel(days: number) {
+  if (!Number.isFinite(days) || days <= 0) return null
+  return `in ${days} ${days === 1 ? 'day' : 'days'}`
 }
 
 function shortDateLabel(day: CalendarDay) {
@@ -223,7 +266,12 @@ function birthdayOccurrence(year: number, month: number, day: number) {
 }
 
 export function listUpcomingBirthdays(args: {
-  people: Array<{ name?: string | null; month: number | null; day: number | null }>
+  people: Array<{
+    id?: string | null
+    name?: string | null
+    month: number | null
+    day: number | null
+  }>
   now?: Date
   timeZone?: string | null
   windowDays?: number
@@ -247,8 +295,13 @@ export function listUpcomingBirthdays(args: {
     })
     const next = candidates[0]
     if (!next) continue
+    const customerId = person.id?.trim() || null
+    const name = fullCustomerName(person.name ?? '')
     birthdays.push({
+      customerId,
+      name: name || '?',
       initials: initialsFromDisplayName(person.name ?? ''),
+      recordHref: customerRecordHref(customerId),
       month,
       day,
       dateLabel: shortDateLabel(next.occurrence.day),
@@ -262,6 +315,7 @@ export function listUpcomingBirthdays(args: {
     (left, right) =>
       left.daysUntil - right.daysUntil ||
       left.dateLabel.localeCompare(right.dateLabel) ||
+      left.name.localeCompare(right.name) ||
       left.initials.localeCompare(right.initials),
   )
 }
@@ -382,6 +436,54 @@ export function summarizePlatformMix(platforms: Array<string | null | undefined>
     .sort((left, right) => right.count - left.count || left.platform.localeCompare(right.platform))
 }
 
+export function sharePercent(count: number, total: number) {
+  if (!Number.isFinite(count) || !Number.isFinite(total) || total <= 0) return null
+  return Math.round((count / total) * 100)
+}
+
+export function monthStartLabel(now = new Date(), timeZone?: string | null) {
+  const today = zonedCalendarDay(now, timeZone)
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'UTC',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(Date.UTC(today.year, today.month - 1, 1, 12)))
+}
+
+export function workspaceSectionHref(section: string) {
+  return `/nic-nac?section=${encodeURIComponent(section)}`
+}
+
+export function customerListHref(filter?: string | null, since?: string | null) {
+  const params = new URLSearchParams()
+  params.set('section', 'customer-list')
+  if (filter && filter !== 'all') params.set('filter', filter)
+  if (since) params.set('since', since)
+  return `/nic-nac?${params.toString()}`
+}
+
+const GLANCE_SECTION: Record<string, string> = {
+  customers_added: 'customer-list',
+  total_customers: 'customer-list',
+  trade_listings_added: 'trade-board',
+  active_trade_listings: 'trade-board',
+  pending_trade_requests: 'trade-board',
+  shows_scheduled: 'show-calendar',
+  upcoming_shows: 'show-calendar',
+  recipes_added: 'recipes',
+  team_participants_added: 'team-management',
+  support_reports: 'messages',
+}
+
+export function glanceRowSection(key: string) {
+  return GLANCE_SECTION[key] ?? null
+}
+
+export function glanceRowHref(key: string) {
+  const section = glanceRowSection(key)
+  return section ? workspaceSectionHref(section) : null
+}
+
 export function formatSnapshotMonthLabel(reportMonth: string) {
   const match = /^(\d{4})-(\d{2})/.exec(reportMonth)
   if (!match) return null
@@ -412,6 +514,17 @@ export function createEmptyRepDashboard(
       monthly: months.map(() => 0),
       monthLabels: months.map((month) => month.label),
       addedThisMonth: 0,
+      ableToEmail: 0,
+      ableToText: 0,
+      missingContact: 0,
+      monthStartLabel: monthStartLabel(now, zone),
+      monthStartIso: months[months.length - 1]?.startIso ?? now.toISOString(),
+      liveOrderActivity: {
+        available: true,
+        orderedDuringLiveLast90Days: 0,
+        goneQuiet: 0,
+        windowStartIso: liveOrderWindowStartIso(now),
+      },
     },
     danceFloor: {
       activeListings: 0,
@@ -419,6 +532,8 @@ export function createEmptyRepDashboard(
       monthLabels: months.map((month) => month.label),
       addedThisMonth: 0,
     },
+    danceFloorInsights: emptyDanceFloorInsights(),
+    siteVisits: emptySiteVisitSummary(now, zone),
     pendingTrades: { count: 0 },
     birthdays: [],
     platformMix: [],
@@ -431,6 +546,5 @@ export function createEmptyRepDashboard(
     team: null,
     recipes: null,
     liveLineup: null,
-    siteVisits: { status: 'coming_soon' },
   }
 }

@@ -38,6 +38,7 @@ import { shouldStartNicNacRollover, type NicNacConversationRunHealth } from '@/l
 import {
   getWorkspaceRefreshPartKey,
   isCalendarWorkspaceMutationPart,
+  isCustomerWorkspaceMutationPart,
   isSiteWorkspaceMutationPart,
   isTradeWorkspaceMutationPart,
   NIC_NAC_WORKSPACE_REFRESH_EVENT,
@@ -484,19 +485,21 @@ export function NicNacChatBody({
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    const topicsToRefresh = new Set<'trade' | 'site' | 'calendar'>()
+    const topicsToRefresh = new Set<'trade' | 'site' | 'calendar' | 'audience'>()
     for (const message of messages) {
       for (const [index, part] of (message.parts ?? []).entries()) {
         const shouldRefreshTrade = isTradeWorkspaceMutationPart(part as never)
         const shouldRefreshSite = isSiteWorkspaceMutationPart(part as never)
         const shouldRefreshCalendar = isCalendarWorkspaceMutationPart(part as never)
-        if (!shouldRefreshTrade && !shouldRefreshSite && !shouldRefreshCalendar) continue
+        const shouldRefreshCustomer = isCustomerWorkspaceMutationPart(part as never)
+        if (!shouldRefreshTrade && !shouldRefreshSite && !shouldRefreshCalendar && !shouldRefreshCustomer) continue
         const key = getWorkspaceRefreshPartKey(message, part, index)
         if (announcedWorkspaceRefreshPartsRef.current.has(key)) continue
         announcedWorkspaceRefreshPartsRef.current.add(key)
         if (shouldRefreshTrade) topicsToRefresh.add('trade')
         if (shouldRefreshSite) topicsToRefresh.add('site')
         if (shouldRefreshCalendar) topicsToRefresh.add('calendar')
+        if (shouldRefreshCustomer) topicsToRefresh.add('audience')
       }
     }
 

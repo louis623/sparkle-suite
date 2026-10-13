@@ -78,6 +78,13 @@ export function buildCardQrShortUrl(origin: string, repId: string | null | undef
   return `${base}/q/${code}`
 }
 
+/** Newly generated Cards & QR codes carry src=qr. Already printed codes stay bare. */
+export function withCardQrVisitSource(url: string) {
+  const parsed = new URL(url)
+  if (!parsed.searchParams.has('src')) parsed.searchParams.set('src', 'qr')
+  return parsed.toString()
+}
+
 export function requireCardQrShortUrl(origin: string, repId: string | null | undefined) {
   const url = buildCardQrShortUrl(origin, repId)
   if (!url) {
@@ -88,7 +95,7 @@ export function requireCardQrShortUrl(origin: string, repId: string | null | und
       statusCode: 409,
     })
   }
-  return url
+  return withCardQrVisitSource(url)
 }
 
 /**

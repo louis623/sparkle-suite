@@ -45,6 +45,11 @@ import type {
 } from '@/lib/services/types'
 import { SMS_CHARGE_MILS, walletMilsToUsd } from '@/lib/services/wallet-units'
 import { RepDashboard } from './RepDashboard'
+import { zonedCalendarDay, zonedMidnightToUtc } from '@/lib/services/rep-dashboard-math'
+import {
+  classifyLiveOrderLastSeen,
+  resolveLiveOrderWindowStart,
+} from '@/lib/services/live-lineup-customer-orders'
 import {
   fulfillmentLogViewForRequest,
   shouldApplyFulfillmentLogPage,
@@ -595,6 +600,35 @@ export type RosterFilter =
   | 'sms_reachable'
   | 'email_reachable'
   | 'opted_out'
+  | 'missing_contact'
+  | 'new_this_month'
+  | 'ordered_during_live_90'
+  | 'gone_quiet'
+
+const ROSTER_FILTERS = new Set<RosterFilter>([
+  'all',
+  'sms_reachable',
+  'email_reachable',
+  'opted_out',
+  'missing_contact',
+  'new_this_month',
+  'ordered_during_live_90',
+  'gone_quiet',
+])
+
+export function readRosterFilter(search: string): RosterFilter {
+  const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
+  const requested = params.get('filter')?.trim() ?? ''
+  if (ROSTER_FILTERS.has(requested as RosterFilter)) return requested as RosterFilter
+  return 'all'
+}
+
+export function readRosterSince(search: string) {
+  const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
+  const since = params.get('since')?.trim() ?? ''
+  if (!since || Number.isNaN(Date.parse(since))) return null
+  return since
+}
 
 export type RosterSort =
   | 'newest'
@@ -610,6 +644,7 @@ type AudienceState = {
   status: 'loading' | 'ready' | 'error'
   summary?: CustomerAudienceSummary
   customers?: CustomerAudienceMember[]
+  liveActivityAvailable?: boolean
 }
 
 type AudienceActionState = {
@@ -983,6 +1018,7 @@ type RecipeEditorTab = 'current' | 'upload' | 'edit'
 type AudienceResponsePayload = {
   summary: CustomerAudienceSummary
   customers: CustomerAudienceMember[]
+  liveActivityAvailable?: boolean
 }
 
 type CalendarResponsePayload = {
@@ -1387,6 +1423,10 @@ const FILTER_OPTIONS: Array<{ value: RosterFilter; label: string }> = [
   { value: 'sms_reachable', label: 'SMS opted in' },
   { value: 'email_reachable', label: 'Email reachable' },
   { value: 'opted_out', label: 'Opted out' },
+  { value: 'missing_contact', label: 'Missing contact info' },
+  { value: 'new_this_month', label: 'New this month' },
+  { value: 'ordered_during_live_90', label: 'Ordered during a LIVE in the last 90 days' },
+  { value: 'gone_quiet', label: 'Gone quiet' },
 ]
 
 const SORT_OPTIONS: Array<{ value: RosterSort; label: string }> = [
@@ -1552,9 +1592,22 @@ function roundPercent(value: number) {
   return Math.round(value * 100) / 100
 }
 
+function contactBlank(value: string | null | undefined) {
+  return !value?.trim()
+}
+
+function startOfThisMonthIso(now: Date) {
+  const day = zonedCalendarDay(now, 'America/New_York')
+  return zonedMidnightToUtc(
+    { year: day.year, month: day.month, day: 1 },
+    'America/New_York',
+  ).toISOString()
+}
+
 export function filterRosterCustomers(
   customers: CustomerAudienceMember[],
   activeFilter: RosterFilter,
+  options: { since?: string | null; now?: Date } = {},
 ) {
   if (activeFilter === 'sms_reachable') {
     return customers.filter((customer) => customer.canReceiveSms)
@@ -1573,6 +1626,29 @@ export function filterRosterCustomers(
     )
   }
 
+  if (activeFilter === 'missing_contact') {
+    return customers.filter(
+      (customer) => contactBlank(customer.email) && contactBlank(customer.phone),
+    )
+  }
+
+  if (activeFilter === 'new_this_month') {
+    const since = options.since ?? startOfThisMonthIso(options.now ?? new Date())
+    const start = Date.parse(since)
+    if (!Number.isFinite(start)) return customers
+    return customers.filter((customer) => {
+      const created = Date.parse(customer.createdAt)
+      return Number.isFinite(created) && created >= start
+    })
+  }
+
+  if (activeFilter === 'ordered_during_live_90' || activeFilter === 'gone_quiet') {
+    const windowStart = resolveLiveOrderWindowStart(options.since, options.now ?? new Date())
+    return customers.filter(
+      (customer) => classifyLiveOrderLastSeen(customer.lastSeenInLineupAt, windowStart) === activeFilter,
+    )
+  }
+
   return customers
 }
 
@@ -1586,6 +1662,9 @@ export function searchRosterCustomers(
   return customers.filter((customer) => {
     const searchableParts = [
       customer.name,
+      customer.identityLabel ?? '',
+      customer.favoriteCollection ?? '',
+      customer.favoriteCut ?? '',
       customer.phone ?? '',
       customer.email ?? '',
     ]
@@ -1919,6 +1998,7 @@ export function getSiteSettingsDraft(
 }
 
 export type CustomerProfileInput = {
+  identityLabel?: string
   name: string
   email: string
   phone: string
@@ -2740,6 +2820,7 @@ export function getCustomerTimeline(customer: CustomerAudienceMember) {
 
 function getCustomerProfileDetails(customer: CustomerAudienceMember) {
   return [
+    { label: 'Private label', value: customer.identityLabel },
     { label: 'Birthday', value: customer.birthday },
     { label: 'Favorite collection', value: customer.favoriteCollection },
     { label: 'Favorite gem or stone', value: customer.favoriteGemOrStone },
@@ -3009,6 +3090,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     writeHistory(rawSection === 'business-tools' ? 'replaceState' : 'pushState')
   }, [activeSection, initialSectionOverride])
   const [rosterFilter, setRosterFilter] = useState<RosterFilter>('all')
+  const [rosterSince, setRosterSince] = useState<string | null>(null)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    setRosterFilter(readRosterFilter(window.location.search))
+    setRosterSince(readRosterSince(window.location.search))
+  }, [])
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOrder, setSortOrder] = useState<RosterSort>('newest')
   const [actionState, setActionState] = useState<AudienceActionState>({
@@ -3300,7 +3387,19 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
   }
 
   async function loadAudience(signal?: AbortSignal) {
-    const response = await fetch('/api/nic-nac/customer-audience?limit=25', {
+    const search = typeof window === 'undefined' ? '' : window.location.search
+    const filter = readRosterFilter(search)
+    const channel =
+      filter === 'email_reachable' ? 'email' : filter === 'sms_reachable' ? 'sms' : null
+    const limit = filter === 'all' ? 25 : 100
+    const params = new URLSearchParams({ limit: String(limit) })
+    if (channel) params.set('channel', channel)
+    if (filter === 'ordered_during_live_90' || filter === 'gone_quiet') {
+      params.set('liveActivity', filter)
+      const since = readRosterSince(search)
+      if (since) params.set('since', since)
+    }
+    const response = await fetch(`/api/nic-nac/customer-audience?${params.toString()}`, {
       credentials: 'include',
       signal,
     })
@@ -3313,6 +3412,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       status: 'ready',
       summary: payload.summary,
       customers: payload.customers,
+      liveActivityAvailable: payload.liveActivityAvailable,
     })
   }
 
@@ -6791,6 +6891,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           liveQueueSyncCode={currentLiveQueueSyncCode}
           customerSiteHref={customerSparkleSiteHref}
           onOpenHelp={() => setActiveSection('help-resources')}
+          onAskCustomer={onSendNicNacPrompt}
         />
       )
     }
@@ -6914,7 +7015,34 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             initialCustomerId={deepLinkTargets.customerId}
             state={audienceState}
             activeFilter={rosterFilter}
-            onFilterChange={setRosterFilter}
+            rosterSince={rosterSince}
+            onFilterChange={(next) => {
+              setRosterFilter(next)
+              if (typeof window === 'undefined') return
+              const params = new URLSearchParams(window.location.search)
+              if (next === 'all') params.delete('filter')
+              else params.set('filter', next)
+              if (
+                next !== 'new_this_month' &&
+                next !== 'ordered_during_live_90' &&
+                next !== 'gone_quiet'
+              ) {
+                params.delete('since')
+              }
+              const search = params.toString()
+              window.history.replaceState(
+                window.history.state,
+                '',
+                `${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`,
+              )
+              setRosterSince(readRosterSince(search))
+              const live =
+                next === 'ordered_during_live_90' ||
+                next === 'gone_quiet' ||
+                rosterFilter === 'ordered_during_live_90' ||
+                rosterFilter === 'gone_quiet'
+              if (live) void loadAudience()
+            }}
             searchQuery={searchQuery}
             onSearchQueryChange={setSearchQuery}
             sortOrder={sortOrder}
@@ -6948,12 +7076,12 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
               window.dispatchEvent(new CustomEvent(NIC_NAC_WORKSPACE_REFRESH_EVENT, {detail:{topics:['audience']}}))
               await loadAudience()
             }}
-            onUpdate={async (audienceId, profile) => {
+            onUpdate={async (audienceId, profile, expectedVersion) => {
               const response = await fetch('/api/nic-nac/customer-audience', {
                 method: 'PATCH',
                 credentials: 'include',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ audienceId, ...profile }),
+                body: JSON.stringify({ audienceId, ...profile, expectedVersion }),
               })
               const payload = await response.json().catch(() => null) as { error?: string } | null
               if (!response.ok) throw new Error(payload?.error || 'Unable to update this customer.')
@@ -7196,6 +7324,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         >
           {showConceptHome ? (
             <ConceptHomeWorkspace
+          onAskCustomer={onSendNicNacPrompt}
               chat={desktopChat}
               onTradeAlertTarget={setHomeTradeAlertTarget}
               tradeRequestsCount={homeTradeRequestsCount}
@@ -7245,6 +7374,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
                   activeKey={activeSection === 'help-resources' ? 'resources' : activeSection}
                   onSelect={openWorkspaceTool}
                   reviewMode={reviewWorkspaceMode}
+                  publicSiteHref={customerSparkleSiteHref}
                 >
                   {renderedSection}
                 </ToolsHub>
@@ -7510,6 +7640,7 @@ export function WorkspaceAppHeader({
 
 function ConceptHomeWorkspace({
   chat,
+  onAskCustomer,
   onTradeAlertTarget,
   tradeRequestsCount,
   availableDancerCount,
@@ -7527,6 +7658,7 @@ function ConceptHomeWorkspace({
   liveLineupReadOnly,
   reviewWorkspaceMode,
 }: {
+  onAskCustomer?: (prompt:string)=>void
   chat?: ReactNode | null
   onTradeAlertTarget: (target: HTMLElement | null) => void
   tradeRequestsCount?: number
@@ -7608,7 +7740,7 @@ function ConceptHomeWorkspace({
           </button>
         </ConceptPanel>
         <div className={styles.railLiveLineup}>
-          <LiveLineupCard compact readOnly={liveLineupReadOnly} />
+          <LiveLineupCard compact readOnly={liveLineupReadOnly} onAskCustomer={onAskCustomer} />
         </div>
       </aside>
 
@@ -7937,12 +8069,14 @@ export function ToolsHub({
   activeKey,
   onSelect,
   reviewMode = false,
+  publicSiteHref = null,
   children,
 }: {
   tools: readonly (typeof SECONDARY_WORKSPACE_SECTIONS)[number][]
   activeKey: string
   onSelect: (section: WorkspaceSectionKey | 'more') => void
   reviewMode?: boolean
+  publicSiteHref?: string | null
   children?: ReactNode
 }) {
   const toolOpen = activeKey !== 'more'
@@ -7995,7 +8129,11 @@ export function ToolsHub({
           </button>
         ) : null}
         {toolOpen ? children : (
-          <RepDashboard onOpenSection={onSelect} reviewMode={reviewMode} />
+          <RepDashboard
+            onOpenSection={onSelect}
+            reviewMode={reviewMode}
+            publicSiteHref={publicSiteHref}
+          />
         )}
       </div>
     </div>
@@ -8010,11 +8148,13 @@ export function LiveQueueTool({
   liveQueueSyncCode,
   customerSiteHref,
   onOpenHelp,
+  onAskCustomer,
 }: {
   readOnly?: boolean
   liveQueueSyncCode?: string | null
   customerSiteHref?: string | null
   onOpenHelp?: () => void
+  onAskCustomer?: (prompt: string) => void
 }) {
   const code = liveQueueSyncCode?.trim() || ''
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
@@ -8030,7 +8170,7 @@ export function LiveQueueTool({
   }
   return (
     <div className={styles.workspaceSectionStack}>
-      <LiveLineupCard readOnly={readOnly} />
+      <LiveLineupCard readOnly={readOnly} onAskCustomer={onAskCustomer} />
       <p className={styles.liveQueueBody}>For a canceled order that still appears, use Hold on that exact order below its name. This removes only that order from the public waiting lineup. Bomb Party orders are unchanged.</p>
       <section className={styles.workspaceIntroCard}>
         <div className={styles.workspaceSectionHeader}>
@@ -13768,6 +13908,7 @@ export function CustomerRosterCard({
   initialCustomerId,
   state,
   activeFilter,
+  rosterSince = null,
   onFilterChange,
   customersOverride,
   searchQuery = '',
@@ -13795,6 +13936,7 @@ export function CustomerRosterCard({
   initialCustomerId?: string | null
   state: AudienceState
   activeFilter: RosterFilter
+  rosterSince?: string | null
   onFilterChange: (filter: RosterFilter) => void
   customersOverride?: CustomerAudienceMember[]
   searchQuery?: string
@@ -13821,6 +13963,7 @@ export function CustomerRosterCard({
   onUpdate?: (
     audienceId: string,
     profile: CustomerProfileInput,
+    expectedVersion?: number,
   ) => Promise<void> | void
   onImport?: (
     contacts: CustomerAudienceImportInput[],
@@ -13828,6 +13971,7 @@ export function CustomerRosterCard({
   readOnly?: boolean
 }) {
   const emptyProfile = (): CustomerProfileInput => ({
+    identityLabel: '',
     name: '',
     email: '',
     phone: '',
@@ -13842,6 +13986,7 @@ export function CustomerRosterCard({
   })
   const profileFromCustomer = (customer: CustomerProfile): CustomerProfileInput => ({
     ...emptyProfile(),
+    identityLabel: customer.identityLabel ?? '',
     name: customer.name ?? '',
     email: customer.email ?? '',
     phone: customer.phone ?? '',
@@ -13859,12 +14004,14 @@ export function CustomerRosterCard({
     : null
   const [editor, setEditor] = useState<{
     audienceId: string | null
+    expectedVersion?: number
     profile: CustomerProfileInput
     pending: boolean
     error: string | null
   } | null>(() => initialCustomer
     ? {
         audienceId: initialCustomer.id,
+        expectedVersion: initialCustomer.profileVersion,
         profile: profileFromCustomer(initialCustomer as CustomerProfile),
         pending: false,
         error: null,
@@ -13883,6 +14030,7 @@ export function CustomerRosterCard({
   const openEdit = (customer: CustomerProfile) =>
     setEditor({
       audienceId: customer.id,
+      expectedVersion: customer.profileVersion,
       profile: profileFromCustomer(customer),
       pending: false,
       error: null,
@@ -13900,7 +14048,7 @@ export function CustomerRosterCard({
     setEditor((current) => current ? { ...current, pending: true, error: null } : current)
     try {
       if (editor.audienceId) {
-        await onUpdate?.(editor.audienceId, editor.profile)
+        await onUpdate?.(editor.audienceId, editor.profile, editor.expectedVersion)
       } else {
         await onCreate?.(editor.profile)
       }
@@ -14009,7 +14157,7 @@ export function CustomerRosterCard({
 
   const filteredCustomers = sortRosterCustomers(
     searchRosterCustomers(
-      customersOverride ?? filterRosterCustomers(state.customers ?? [], activeFilter),
+      customersOverride ?? filterRosterCustomers(state.customers ?? [], activeFilter, { since: rosterSince }),
       searchQuery,
     ),
     sortOrder,
@@ -14144,7 +14292,12 @@ export function CustomerRosterCard({
           <div className={styles.helperMessage}>{actionState.helperMessage}</div>
         ) : null}
         {filteredCustomers.length === 0 ? (
-          <div className={styles.emptyState}>No customers match this filter yet.</div>
+          <div className={styles.emptyState}>
+            {(activeFilter === 'ordered_during_live_90' || activeFilter === 'gone_quiet') &&
+            state.liveActivityAvailable === false
+              ? 'Not available yet. Orders during your LIVE shows will show here after tracking is on.'
+              : 'No customers match this filter yet.'}
+          </div>
         ) : (
           filteredCustomers.map((customer) => {
             const statuses = getCustomerChannelStatuses(customer)
@@ -14159,7 +14312,7 @@ export function CustomerRosterCard({
             return (
               <div key={customer.id} className={styles.customerRow} role="listitem">
               <div className={styles.customerIdentity}>
-                <span className={styles.customerName}>{customer.name}</span>
+                <span className={styles.customerName}>{customer.name}{customer.identityLabel ? ` · ${customer.identityLabel}` : ''}</span>
                 <span className={styles.customerDate}>
                   Joined {formatRosterDate(customer.createdAt)}
                 </span>
@@ -14342,7 +14495,7 @@ export function CustomerRosterCard({
           </div>
           <div className={styles.customerEditorGrid}>
             {([
-              ['name', 'Name'], ['email', 'Email'], ['phone', 'Phone'], ['address', 'Address'],
+              ['name', 'Name'], ['identityLabel', 'Private distinguishing label'], ['email', 'Email'], ['phone', 'Phone'], ['address', 'Address'],
               ['birthday', 'Birthday'], ['favoriteGemOrStone', 'Favorite gem or stone'],
               ['favoriteMaterial', 'Favorite material'], ['favoriteCut', 'Favorite cut'],
               ['favoriteCollection', 'Favorite collection'], ['tags', 'Tags'],

@@ -8,7 +8,7 @@ import { GET as getQr } from '@/app/api/workspace/card-qr/qr/route'
 import { AMETHYST_APPEARANCE_PRESET_IDS } from '@/lib/amethyst/appearance-presets'
 import { CARD_QR_ICONS, parseCardQrDesign } from '@/lib/workspace/card-qr/design'
 import { contrastRatio, hexToRgb } from '@/lib/workspace/card-qr/flyer-contrast'
-import { buildCardQrShortUrl } from '@/lib/workspace/card-qr/short-link'
+import { buildCardQrShortUrl, withCardQrVisitSource } from '@/lib/workspace/card-qr/short-link'
 import {
   FlyerQrDecodeError,
   assertFlyerQrDecodes,
@@ -769,7 +769,7 @@ describe('QR image', () => {
     const routePng = Buffer.from(await response.arrayBuffer())
     const routeImage = await sharp(routePng).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
     expect(pixel(routeImage.data, routeImage.info, 0, 0)).toEqual([255, 255, 255])
-    await expect(assertFlyerQrDecodes(routePng, QR_URL)).resolves.toBeUndefined()
+    await expect(assertFlyerQrDecodes(routePng, withCardQrVisitSource(QR_URL))).resolves.toBeUndefined()
   })
 })
 

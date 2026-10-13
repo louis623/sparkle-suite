@@ -88,6 +88,72 @@ function mapStripeStatus(s: string): string {
   return 'active'
 }
 
+type SupabaseErrorFields = {
+  message: string
+  code: string | null
+  details: string | null
+  hint: string | null
+}
+
+function readSupabaseError(error: unknown): SupabaseErrorFields {
+  if (typeof error === 'object' && error !== null) {
+    const record = error as Record<string, unknown>
+    const message = typeof record.message === 'string'
+      ? record.message
+      : error instanceof Error
+        ? error.message
+        : 'Unknown error'
+    return {
+      message,
+      code: typeof record.code === 'string' ? record.code : null,
+      details: typeof record.details === 'string' ? record.details : null,
+      hint: typeof record.hint === 'string' ? record.hint : null,
+    }
+  }
+
+  return {
+    message: error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : 'Unknown error',
+    code: null,
+    details: null,
+    hint: null,
+  }
+}
+
+function isMissingSubscriptionRow(error: {
+  code?: string
+  details?: string | null
+}): boolean {
+  if (error.code !== 'PGRST116') return false
+  const details = error.details ?? ''
+  return details.length === 0 || details.includes('0 rows')
+}
+
+/** Monthly USD amount from the subscription item price. Stripe amounts are cents. */
+function getSubscriptionMonthlyAmount(subscription: Stripe.Subscription): number | null {
+  const item = subscription.items.data[0]
+  const price = item?.price
+  if (!price) return null
+
+  const unitAmount = price.unit_amount
+  if (typeof unitAmount !== 'number') return null
+
+  const quantity = item.quantity ?? 1
+  const amountCents = unitAmount * quantity
+  const interval = price.recurring?.interval
+  const count = price.recurring?.interval_count || 1
+  let monthlyCents = amountCents
+  if (interval === 'month') monthlyCents = amountCents / count
+  else if (interval === 'year') monthlyCents = amountCents / (12 * count)
+  else if (interval === 'week') monthlyCents = (amountCents * 52) / (12 * count)
+  else if (interval === 'day') monthlyCents = (amountCents * 365) / (12 * count)
+
+  return Math.round(monthlyCents) / 100
+}
+
 function parsePositiveIntMetadata(
   value: string | undefined,
 ): number | null {
@@ -706,14 +772,38 @@ async function handleSubscriptionUpdated(event: Stripe.Event) {
   const subscription = event.data.object as Stripe.Subscription
   const admin = createAdminClient()
 
-  // Race condition protection: only overwrite if this event is newer (Finding 4)
-  const { data: existing } = await admin
+  // Race condition protection: only overwrite if this event is newer (Finding 4).
+  // Update the checkout-created row. An upsert insert omits NOT NULL rep_id and plan_tier.
+  const { data: existing, error: lookupError } = await admin
     .from('subscriptions')
     .select('stripe_event_timestamp')
     .eq('stripe_subscription_id', subscription.id)
     .single()
 
-  if (existing?.stripe_event_timestamp && existing.stripe_event_timestamp >= event.created) {
+  if (lookupError) {
+    if (isMissingSubscriptionRow(lookupError)) {
+      logStripeEvent('warn', event, {
+        phase: 'subscription_updated',
+        skipped: true,
+        reason: 'missing_subscription_row',
+        subscription_id: subscription.id,
+      })
+      return
+    }
+    throw lookupError
+  }
+
+  if (!existing) {
+    logStripeEvent('warn', event, {
+      phase: 'subscription_updated',
+      skipped: true,
+      reason: 'missing_subscription_row',
+      subscription_id: subscription.id,
+    })
+    return
+  }
+
+  if (existing.stripe_event_timestamp && existing.stripe_event_timestamp >= event.created) {
     logStripeEvent('info', event, {
       phase: 'subscription_updated',
       skipped: true,
@@ -723,15 +813,16 @@ async function handleSubscriptionUpdated(event: Stripe.Event) {
   }
 
   const period = getSubscriptionPeriod(subscription)
+  const monthlyAmount = getSubscriptionMonthlyAmount(subscription)
 
-  const { error } = await admin
+  const { error, count } = await admin
     .from('subscriptions')
-    .upsert({
-      stripe_subscription_id: subscription.id,
+    .update({
       stripe_customer_id: typeof subscription.customer === 'string'
         ? subscription.customer
         : subscription.customer.id,
       status: mapStripeStatus(subscription.status),
+      ...(monthlyAmount == null ? {} : { monthly_amount: monthlyAmount }),
       current_period_start: new Date(period.start * 1000).toISOString(),
       current_period_end: new Date(period.end * 1000).toISOString(),
       cancel_at_period_end: subscription.cancel_at_period_end,
@@ -741,11 +832,20 @@ async function handleSubscriptionUpdated(event: Stripe.Event) {
       stripe_livemode: event.livemode,
       stripe_event_timestamp: event.created,
       updated_at: new Date().toISOString(),
-    }, {
-      onConflict: 'stripe_subscription_id',
-    })
+    }, { count: 'exact' })
+    .eq('stripe_subscription_id', subscription.id)
 
   if (error) throw error
+
+  if (count === 0) {
+    logStripeEvent('warn', event, {
+      phase: 'subscription_updated',
+      skipped: true,
+      reason: 'missing_subscription_row',
+      subscription_id: subscription.id,
+    })
+    return
+  }
 
   logStripeEvent('info', event, {
     phase: 'subscription_updated',
@@ -888,11 +988,16 @@ export async function POST(request: Request) {
     await markStripeEventProcessed(event.id, event.type)
     return NextResponse.json({ received: true })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    await markStripeEventFailed(event.id, event.type, message)
+    const handlerError = readSupabaseError(error)
+    await markStripeEventFailed(event.id, event.type, handlerError.message)
     logStripeEvent('error', event, {
       phase: 'handler_error',
-      error: message,
+      error: {
+        message: handlerError.message,
+        code: handlerError.code,
+        details: handlerError.details,
+        hint: handlerError.hint,
+      },
     })
     return NextResponse.json({ error: 'Processing failed' }, { status: 500 })
   }

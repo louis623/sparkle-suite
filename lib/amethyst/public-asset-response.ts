@@ -19,6 +19,7 @@ import { resolveAmethystRequestRepId } from '@/lib/amethyst/request-rep-target'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import { canServeTargetedAmethystJoinPage } from '@/lib/amethyst/join-page-access'
 import { getPublicRepName } from '@/lib/amethyst/public-rep-name'
+import { injectPublicSiteVisitBeacon } from '@/lib/services/site-visit-summary'
 
 interface RenderAmethystPublicAssetResponseOptions {
   repIdOverride?: string | null
@@ -439,14 +440,20 @@ function rewriteAmethystPublicHtml(
     `${metadataBlock}\n`,
   )
 
-  return injectAmethystJsonLd(
-    rewriteAmethystStaticAssetUrls(
-      rewriteTemplateScriptTarget(rewritten, page, requestUrl, options),
+  return injectPublicSiteVisitBeacon(
+    injectAmethystJsonLd(
+      rewriteAmethystStaticAssetUrls(
+        rewriteTemplateScriptTarget(rewritten, page, requestUrl, options),
+      ),
+      page,
+      origin,
+      templateData,
+      options.canonicalPathOverride,
     ),
-    page,
-    origin,
-    templateData,
-    options.canonicalPathOverride,
+    {
+      repId: options.repIdOverride,
+      slug: options.publicSiteSlugOverride,
+    },
   )
 }
 

@@ -1,4 +1,5 @@
 import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
+import { injectPublicSiteVisitBeacon } from '@/lib/services/site-visit-summary'
 import { renderSparkleSuitePoweredByLinkHtml } from './sparkle-suite-footer-credit'
 import { loadAmethystPreviewTemplateData } from './preview-template-data'
 import { resolveSparkleRequestOrigin } from '@/lib/seo/sparkle-crawl'
@@ -369,7 +370,12 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
 </body>
 </html>`
 
-  return new Response(html, {
+  return new Response(
+    injectPublicSiteVisitBeacon(html, {
+      repId: options.repId,
+      slug: options.publicSiteSlug,
+    }),
+    {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-store',

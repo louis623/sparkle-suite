@@ -8,6 +8,7 @@ import {
   createCustomerAudienceContact,
   formatCustomerAudienceCsv,
   getCustomerAudience,
+  getCustomerAudienceMember,
   importCustomerAudienceContacts,
   unsubscribeCustomerAudienceMember,
   updateCustomerAudienceContact,
@@ -71,6 +72,7 @@ function readTags(value: unknown) {
 
 function readContactProfile(body: Record<string, unknown>) {
   return {
+    identityLabel: readString(body.identityLabel),
     name: readString(body.name),
     email: readString(body.email),
     phone: readString(body.phone),
@@ -87,6 +89,7 @@ function readContactProfile(body: Record<string, unknown>) {
 
 function readContactProfilePatch(body: Record<string, unknown>) {
   const fields = [
+    'identityLabel',
     'name',
     'email',
     'phone',
@@ -136,8 +139,24 @@ export async function GET(request: Request) {
     }
 
     const { repId, supabase } = await getPaidNicNacContext()
+    const customerId = url.searchParams.get('customerId')
+    if (customerId) return NextResponse.json({customer: await getCustomerAudienceMember(supabase, repId, customerId)}, {headers:{'cache-control':'no-store'}})
+    const liveActivityParam = url.searchParams.get('liveActivity')
+    const liveActivity =
+      liveActivityParam === 'ordered_during_live_90' || liveActivityParam === 'gone_quiet'
+        ? liveActivityParam
+        : null
+    if (liveActivityParam && !liveActivity) {
+      return NextResponse.json(
+        { error: 'liveActivity must be ordered_during_live_90 or gone_quiet.' },
+        { status: 400 },
+      )
+    }
     const audience = await getCustomerAudience(supabase, repId, {
       channelFilter,
+      query: url.searchParams.get('query') ?? undefined,
+      liveActivity: liveActivity ?? undefined,
+      liveActivitySince: url.searchParams.get('since'),
       limit: format === 'csv' ? null : limit ?? undefined,
     })
 
@@ -233,7 +252,7 @@ export async function PATCH(request: Request) {
     const customer = await updateCustomerAudienceContact(
       supabase,
       repId,
-      { audienceId, ...readContactProfilePatch(body) },
+      { audienceId, ...readContactProfilePatch(body), ...(typeof body.expectedVersion === 'number' ? {expectedVersion:body.expectedVersion} : {}) },
       { actorKind: 'rep', actorRepId: repId },
     )
 

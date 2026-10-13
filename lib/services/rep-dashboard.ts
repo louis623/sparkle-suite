@@ -5,18 +5,34 @@ import {
   type MonthlyMetric,
 } from '@/lib/services/workspace-monthly-reports'
 import {
+  buildDanceFloorInsights,
+  emptyDanceFloorInsights,
+  toDanceFloorInsightInput,
+  type DanceFloorInsightRow,
+} from '@/lib/services/dance-floor-insights'
+import {
   compareGlanceMetrics,
   createEmptyRepDashboard,
   formatPlatformLabel,
   formatSnapshotMonthLabel,
   isPastShowStatus,
   listUpcomingBirthdays,
+  monthStartLabel,
   recentMonthBuckets,
   resolveTimeZone,
   summarizePlatformMix,
   type GlanceMetric,
   type RepDashboardPayload,
 } from '@/lib/services/rep-dashboard-math'
+import {
+  emptySiteVisitSummary,
+  summarizeSiteVisits,
+  type PublicSiteVisitRow,
+} from '@/lib/services/site-visit-summary'
+import { readRepLiveOrderActivity } from '@/lib/services/live-lineup-customer-orders'
+
+export const MISSING_CONTACT_FILTER =
+  'and(or(email.is.null,email.eq.),or(phone.is.null,phone.eq.))'
 
 const BLING_KITCHEN_RECIPE_REP_IDS = new Set([
   '9a971c05-3631-443e-bcb8-4e9a26e15885',
@@ -24,6 +40,7 @@ const BLING_KITCHEN_RECIPE_REP_IDS = new Set([
 const BLING_KITCHEN_RECIPE_SLUGS = new Set(['blingkitchen', 'bling-kitchen'])
 
 type BirthdayRow = {
+  id: string | null
   name: string | null
   birthday_month: number | null
   birthday_day: number | null
@@ -60,6 +77,14 @@ async function listPages<T>(
     if (page.length < pageSize) break
   }
   return rows
+}
+
+function isMissingRelation(error: unknown, relation: string) {
+  const record = error as { code?: string; message?: string } | null
+  const code = record?.code ?? ''
+  const message = record?.message ?? (error instanceof Error ? error.message : '')
+  if (code === '42P01' || code === 'PGRST205') return message.toLowerCase().includes(relation)
+  return message.toLowerCase().includes(relation) && /does not exist|schema cache|could not find/i.test(message)
 }
 
 async function optionalValue<T>(work: () => Promise<T>, fallback: T) {
@@ -117,6 +142,9 @@ export async function getRepDashboard(args: {
     nextShowResult,
     customerTotal,
     reachableCustomers,
+    ableToEmail,
+    ableToText,
+    missingContact,
     customerMonthly,
     activeListings,
     listingMonthly,
@@ -145,6 +173,34 @@ export async function getRepDashboard(args: {
         .select('id', { head: true, count: 'exact' })
         .eq('rep_id', args.repId)
         .or(REACHABLE_CUSTOMER_FILTER),
+    ),
+    exactCount(
+      args.supabase
+        .from('customer_audience')
+        .select('id', { head: true, count: 'exact' })
+        .eq('rep_id', args.repId)
+        .not('email', 'is', null)
+        .neq('email', '')
+        .eq('email_consent', true)
+        .is('email_opted_out_at', null),
+    ),
+    exactCount(
+      args.supabase
+        .from('customer_audience')
+        .select('id', { head: true, count: 'exact' })
+        .eq('rep_id', args.repId)
+        .not('phone', 'is', null)
+        .neq('phone', '')
+        .eq('sms_consent', true)
+        .is('sms_opted_out_at', null)
+        .is('stop_keyword_received_at', null),
+    ),
+    exactCount(
+      args.supabase
+        .from('customer_audience')
+        .select('id', { head: true, count: 'exact' })
+        .eq('rep_id', args.repId)
+        .or(MISSING_CONTACT_FILTER),
     ),
     Promise.all(
       months.map((month) =>
@@ -188,7 +244,7 @@ export async function getRepDashboard(args: {
     listPages<BirthdayRow>((from, to) =>
       args.supabase
         .from('customer_audience')
-        .select('name, birthday_month, birthday_day')
+        .select('id, name, birthday_month, birthday_day')
         .eq('rep_id', args.repId)
         .not('birthday_month', 'is', null)
         .not('birthday_day', 'is', null)
@@ -309,6 +365,60 @@ export async function getRepDashboard(args: {
   }, null)
   if (liveLineup.failed) partial = true
 
+  const danceFloorInsights = await optionalValue(async () => {
+    const [listingRows, requestRows] = await Promise.all([
+      listPages<DanceFloorInsightRow>((from, to) =>
+        args.supabase
+          .from('trade_listings')
+          .select(
+            `id, status, removal_reason, listed_at, created_at, updated_at, deleted_at,
+             listing_source, manual_type_prefix, manual_collection_family, manual_collection_name, manual_size, ring_size,
+             design:jewelry_designs(item_number, design_name, bp_msrp, type_prefix, collection:collections(name))`,
+          )
+          .eq('rep_id', args.repId)
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
+      listPages<{ listing_id: string }>((from, to) =>
+        args.supabase
+          .from('trade_requests')
+          .select('listing_id, listing:trade_listings!inner(rep_id)')
+          .eq('listing.rep_id', args.repId)
+          .order('id', { ascending: true })
+          .range(from, to),
+      ),
+    ])
+    const requests = new Map<string, number>()
+    for (const row of requestRows) {
+      if (!row.listing_id) continue
+      requests.set(row.listing_id, (requests.get(row.listing_id) ?? 0) + 1)
+    }
+    return buildDanceFloorInsights(
+      listingRows.map((row) => toDanceFloorInsightInput(row, requests.get(row.id) ?? 0)),
+      now,
+    )
+  }, emptyDanceFloorInsights())
+  if (danceFloorInsights.failed) partial = true
+
+  const liveOrderActivity = await readRepLiveOrderActivity(args.supabase, args.repId, now)
+
+  let siteVisits = emptySiteVisitSummary(now, timeZone, 'unavailable')
+  try {
+    const periodStart = new Date(now.getTime() - 32 * 24 * 60 * 60 * 1000).toISOString()
+    const rows = await listPages<PublicSiteVisitRow>((from, to) =>
+      args.supabase
+        .from('public_site_visits')
+        .select('viewed_at, src, us_state')
+        .eq('rep_id', args.repId)
+        .gte('viewed_at', periodStart)
+        .order('viewed_at', { ascending: true })
+        .range(from, to),
+    )
+    siteVisits = summarizeSiteVisits({ rows, now, timeZone })
+  } catch (error) {
+    if (!isMissingRelation(error, 'public_site_visits')) partial = true
+  }
+
   return {
     generatedAt: now.toISOString(),
     timeZone,
@@ -327,6 +437,12 @@ export async function getRepDashboard(args: {
       monthly: customerMonthly,
       monthLabels: months.map((month) => month.label),
       addedThisMonth: customerMonthly[customerMonthly.length - 1] ?? 0,
+      ableToEmail,
+      ableToText,
+      missingContact,
+      monthStartLabel: monthStartLabel(now, timeZone),
+      monthStartIso: months[months.length - 1]?.startIso ?? now.toISOString(),
+      liveOrderActivity,
     },
     danceFloor: {
       activeListings,
@@ -337,6 +453,7 @@ export async function getRepDashboard(args: {
     pendingTrades: { count: pendingTrades },
     birthdays: listUpcomingBirthdays({
       people: birthdayRows.map((row) => ({
+        id: row.id,
         name: row.name,
         month: row.birthday_month,
         day: row.birthday_day,
@@ -354,6 +471,7 @@ export async function getRepDashboard(args: {
     team: team.value,
     recipes: recipes.value,
     liveLineup: liveLineup.value,
-    siteVisits: { status: 'coming_soon' },
+    danceFloorInsights: danceFloorInsights.value,
+    siteVisits,
   }
 }

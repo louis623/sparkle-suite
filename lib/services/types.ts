@@ -442,12 +442,21 @@ export interface CustomerAudienceUnsubscribeResult {
 export type CustomerAudienceChannel = 'all' | 'sms' | 'email' | 'marketing'
 
 export interface GetCustomerAudienceFilters {
+  query?: string
+  favoriteCollection?: string
+  favoriteCut?: string
+  birthdayMonth?: number
   channelFilter?: CustomerAudienceChannel
+  liveActivity?: 'ordered_during_live_90' | 'gone_quiet'
+  /** Window start for a LIVE order filter. The window ends 90 days later. */
+  liveActivitySince?: string | null
   /** `null` is reserved for authenticated full-list exports. */
   limit?: number | null
 }
 
 export interface CustomerAudienceMember {
+  identityLabel?: string | null
+  profileVersion?: number
   id: string
   name: string
   phone: string | null
@@ -471,6 +480,8 @@ export interface CustomerAudienceMember {
   smsOptedOutAt: string | null
   emailOptedOutAt: string | null
   stopKeywordReceivedAt: string | null
+  /** Latest LIVE lineup order time. Absent until that column is selected. */
+  lastSeenInLineupAt?: string | null
 }
 
 export interface CustomerAudienceSummary {
@@ -486,6 +497,8 @@ export interface CustomerAudienceSummary {
 export interface CustomerAudienceResult {
   summary: CustomerAudienceSummary
   customers: CustomerAudienceMember[]
+  /** False when a LIVE order filter was requested and order tracking is not available yet. */
+  liveActivityAvailable?: boolean
 }
 
 /**
@@ -494,6 +507,7 @@ export interface CustomerAudienceResult {
  * and unsubscribe flows.
  */
 export interface CustomerAudienceProfileInput {
+  identityLabel?: string | null
   name: string
   email?: string | null
   phone?: string | null
@@ -511,6 +525,8 @@ export interface CustomerAudienceProfileInput {
 export type CustomerAudienceContactCreateInput = CustomerAudienceProfileInput
 
 export interface CustomerAudienceContactUpdateInput {
+  identityLabel?: string | null
+  expectedVersion?: number
   audienceId: string
   name?: string | null
   email?: string | null
