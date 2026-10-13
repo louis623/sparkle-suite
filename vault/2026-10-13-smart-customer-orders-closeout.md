@@ -1,6 +1,6 @@
 # Smart customer orders — October 13, 2026
 
-Draft PR #47 (`cursor/smart-customer-cards-9630`) was merged onto `codex/nic-nac-trade-hardening` at `60c6aae5`. No Smoke deploy, no Live deploy, and no migration was applied.
+Draft PR #47 (`cursor/smart-customer-cards-9630`) was merged onto `codex/nic-nac-trade-hardening` at `60c6aae5` (`87ed596b`). Purchase tracking is `a10c20cb`. No Smoke deploy, no Live deploy, and no migration was applied. Focused Vitest after the archive exclusion-list fix: 9 files, 66 passed. The customer-card UI was not opened in a browser.
 
 ## Purchase tracking
 
