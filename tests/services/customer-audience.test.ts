@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   createCustomerAudienceContact,
+  getCustomerAudience,
   getCustomerAudienceMember,
   importCustomerAudienceContacts,
   unsubscribeCustomerAudienceByPhone,
@@ -298,6 +299,8 @@ describe('customer audience unsubscribe services', () => {
     expect(result).toEqual({
       id: 'aud-1',
       name: 'Jamie Lane',
+      identityLabel: null,
+      profileVersion: 0,
       phone: '(555) 555-1212',
       email: 'jamie@example.com',
       smsConsent: true,
@@ -318,7 +321,7 @@ describe('customer audience unsubscribe services', () => {
   })
 })
 
-function makeProfileSupabase() {
+function makeProfileSupabase(options?: { missingUpdate?: boolean }) {
   const audienceInserts: Array<Record<string, unknown>> = []
   const audienceUpdates: Array<Record<string, unknown>> = []
   const changeLogs: Array<Record<string, unknown>> = []
@@ -390,7 +393,7 @@ function makeProfileSupabase() {
               return {
                 maybeSingle() {
                   return Promise.resolve({
-                    data: { ...storedRow, ...values },
+                    data: options?.missingUpdate ? null : { ...storedRow, ...values },
                     error: null,
                   })
                 },
@@ -496,6 +499,79 @@ describe('customer audience contact profile services', () => {
     expect(audienceUpdates[0]).not.toHaveProperty('email_consent')
     expect(audienceUpdates[0]).not.toHaveProperty('marketing_consent')
     expect(changeLogs[0]).toMatchObject({ action: 'profile_updated' })
+  })
+
+  it('refuses a stale profile version instead of writing over a newer card', async () => {
+    const { client, audienceUpdates, changeLogs, filters } = makeProfileSupabase({ missingUpdate: true })
+
+    await expect(updateCustomerAudienceContact(client, 'rep-1', {
+      audienceId: 'aud-profile-1',
+      favoriteMaterial: 'Silver',
+      expectedVersion: 4,
+    })).rejects.toMatchObject({ code: 'INVALID_INPUT' })
+
+    expect(filters).toEqual([
+      ['id', 'aud-profile-1'],
+      ['rep_id', 'rep-1'],
+      ['profile_version', 4],
+    ])
+    expect(audienceUpdates).toEqual([{ favorite_material: 'Silver' }])
+    expect(changeLogs).toEqual([])
+  })
+
+  it('filters duplicate names and birthday month only after every saved page', async () => {
+    const page = (count: number, name: string, month: number, idPrefix: string, cut: string | null) => Array.from({ length: count }, (_, index) => ({
+      id: `${idPrefix}-${index}`,
+      rep_id: 'rep-1',
+      name,
+      identity_label: index === 1 ? 'Ohio' : null,
+      profile_version: 2,
+      phone: null,
+      email: null,
+      birthday_month: month,
+      birthday_day: 9,
+      favorite_cut: cut,
+      sms_consent: false,
+      email_consent: false,
+      marketing_consent: false,
+      consent_date: null,
+      sms_opted_out_at: null,
+      email_opted_out_at: null,
+      stop_keyword_received_at: null,
+      created_at: '2026-09-01T00:00:00Z',
+    }))
+    const pages = [page(1000, 'Other Person', 1, 'other', null), page(2, 'Jane Smith', 7, 'jane', 'Oval')]
+    let calls = 0
+    const client = {
+      from() {
+        return {
+          select() {
+            const chain = {
+              eq() { return chain },
+              order() { return chain },
+              range() {
+                const data = pages[calls] ?? []
+                calls += 1
+                return Promise.resolve({ data, error: null })
+              },
+            }
+            return chain
+          },
+        }
+      },
+    }
+
+    const result = await getCustomerAudience(client as never, 'rep-1', {
+      query: 'jane smith',
+      birthdayMonth: 7,
+      favoriteCut: 'oval',
+      limit: 25,
+    })
+
+    expect(calls).toBe(2)
+    expect(result.summary.totalCustomers).toBe(1002)
+    expect(result.customers.map((customer) => customer.id)).toEqual(['jane-0', 'jane-1'])
+    expect(result.customers.map((customer) => customer.identityLabel)).toEqual([null, 'Ohio'])
   })
 
   it('preserves omitted profile fields during a partial update', async () => {

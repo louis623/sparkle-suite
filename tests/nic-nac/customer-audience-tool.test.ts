@@ -18,7 +18,7 @@ import {
   inputSchema,
   makeCustomerAudienceTool,
 } from '@/lib/nic-nac/tools/get-customer-audience'
-import { makeManageCustomerContactTool } from '@/lib/nic-nac/tools/manage-customer-contact'
+import { inputSchema as manageCustomerContactInputSchema, makeManageCustomerContactTool } from '@/lib/nic-nac/tools/manage-customer-contact'
 import { NIC_NAC_SYSTEM_PROMPT } from '@/lib/nic-nac/system-prompt'
 
 interface ToolDef {
@@ -158,14 +158,22 @@ describe('get_customer_audience', () => {
     const result = await tool.execute({
       action: 'update',
       audienceId: '11111111-1111-4111-8111-111111111111',
+      expectedVersion: 4,
       favoriteMaterial: 'silver',
     })
 
+    expect(String((tool as { description?: string }).description)).toMatch(/ask the rep to choose/i)
+    expect(manageCustomerContactInputSchema.safeParse({
+      action: 'update',
+      audienceId: '11111111-1111-4111-8111-111111111111',
+      favoriteMaterial: 'silver',
+    }).success).toBe(false)
     expect(updateCustomerAudienceContactMock).toHaveBeenCalledWith(
       expect.anything(),
       'rep-1',
       expect.objectContaining({
         audienceId: '11111111-1111-4111-8111-111111111111',
+        expectedVersion: 4,
         favoriteMaterial: 'silver',
       }),
       expect.objectContaining({ actorKind: 'nic_nac', nicNacConversationId: 'conv-1' }),
