@@ -38,6 +38,13 @@ import {
   buildWorkspacePublicSiteLocation,
   buildJoinTeamRosterSavePayload,
   buildJoinTeamRosterRemovalPayload,
+  buildTeamSignInHref,
+  fetchTeamRequest,
+  normalizeTeamRequestFailure,
+  resolveTeamPersonSelection,
+  TEAM_REQUEST_TIMEOUT_MESSAGE,
+  TEAM_SESSION_EXPIRED_MESSAGE,
+  teamResponseErrorMessage,
   confirmJoinTeamRosterRemoval,
   getJoinTeamRosterDraft,
   moveJoinTeamRosterMember,
@@ -1597,7 +1604,7 @@ describe('DashboardPlaceholder', () => {
       resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
       'utf8',
     )
-    expect(source).toContain("fetch('/api/nic-nac/join-team-roster/photo'")
+    expect(source).toContain("fetchTeamRequest('/api/nic-nac/join-team-roster/photo'")
     expect(source).toContain('TEAM_PROFILE_PHOTO_MAX_BYTES = 3 * 1024 * 1024')
     expect(source).toContain('profilePhotoUrl: imageUrl')
     expect(source).toContain('profilePhotoFraming: framing')
@@ -1699,7 +1706,7 @@ describe('DashboardPlaceholder', () => {
     expect(source).toContain('handleLeadCardFramingChange')
     expect(source).toContain('getSmartTeamPhotoFraming')
     expect(source).toContain('handleMemberCardPhotoUpload')
-    expect(source).toContain("fetch('/api/nic-nac/join-team-roster/photo'")
+    expect(source).toContain("fetchTeamRequest('/api/nic-nac/join-team-roster/photo'")
     expect(source).toContain('profilePhotoUrl')
     expect(source).not.toContain('Photo URL or saved path')
   })
@@ -1760,10 +1767,175 @@ describe('DashboardPlaceholder', () => {
     const source = readFileSync(resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'), 'utf8')
     expect(source).toContain('Keep editing')
     expect(source).toContain('Discard and switch')
-    expect(source).toContain('if (editorBusy || nextKey === selectedKey) return')
+    expect(source).toContain('if (nextKey === selectedKey) return')
+    expect(source).not.toContain('const editorBusy = isLoading || Boolean(actionState?.pendingKey) || photoState.busy')
+    expect(source).toContain('resolveTeamPersonSelection')
     expect(source).toContain('detailsDirty || photoState.dirty')
     expect(source).toContain('hidden={editorTab !==')
     expect(source).toContain('setPublicTeamDraft(getJoinTeamRosterDraft(savedMember))')
+  })
+
+  it('keeps the person picker, tabs, and add button usable while another team action is busy', () => {
+    const member = {
+      id: 'member-lindsey',
+      repId: 'rep-britt',
+      displayName: 'Lindsey',
+      businessName: 'Mile High Fizz',
+      state: 'Colorado',
+      city: 'Denver',
+      initials: 'L',
+      photoUrl: '',
+      photoAlt: '',
+      imageClassName: '',
+      bio: '',
+      links: {},
+      sortOrder: 0,
+      isVisible: true,
+      createdAt: '',
+      updatedAt: '',
+    }
+    const html = renderToStaticMarkup(createElement(PublicTeamRosterPanel, {
+      members: [member],
+      participants: [],
+      draft: getJoinTeamRosterDraft(member),
+      isLoading: true,
+      joinTeamPreviewHref: '/amethyst/Join.html',
+      actionState: {
+        pendingKey: 'public-team:toggle:member-lindsey',
+        error: null,
+        helperMessage: null,
+      },
+    }))
+    const select = html.match(/<select\b[^>]*>/)?.[0] ?? ''
+    const addButton = html.match(/<button\b[^>]*>\+ Add team member<\/button>/)?.[0] ?? ''
+    const photoTab = html.match(/<button\b[^>]*>Photo<\/button>/)?.[0] ?? ''
+    const saveButton = html.match(/<button\b[^>]*>Save card changes<\/button>/)?.[0] ?? ''
+    const hideButton = html.match(/<button\b[^>]*>Hide<\/button>/)?.[0] ?? ''
+
+    expect(select).not.toContain('disabled')
+    expect(addButton).not.toContain('disabled')
+    expect(photoTab).not.toContain('disabled')
+    expect(saveButton).not.toContain('disabled')
+    expect(hideButton).toContain('disabled')
+  })
+
+  it('shows save errors and success beside the Save button, including a session sign-in link', () => {
+    const draft = { ...getJoinTeamRosterDraft(), displayName: 'Lindsey', businessName: 'Mile High Fizz' }
+    const expired = renderToStaticMarkup(createElement(PublicTeamRosterPanel, {
+      members: [],
+      participants: [],
+      draft,
+      isLoading: false,
+      joinTeamPreviewHref: '/amethyst/Join.html',
+      actionState: {
+        pendingKey: null,
+        error: TEAM_SESSION_EXPIRED_MESSAGE,
+        helperMessage: null,
+        feedbackAnchor: 'public-card',
+      },
+    }))
+    const saveAt = expired.indexOf('Save team member card')
+    const errorAt = expired.indexOf(TEAM_SESSION_EXPIRED_MESSAGE)
+    expect(saveAt).toBeGreaterThan(-1)
+    expect(errorAt).toBeGreaterThan(saveAt)
+    expect(expired).toContain('href="/login?redirect=%2Fnic-nac"')
+    expect(expired).toContain('>Sign in<')
+    expect(expired).toContain('value="Lindsey"')
+
+    const saved = renderToStaticMarkup(createElement(PublicTeamRosterPanel, {
+      members: [],
+      participants: [],
+      draft,
+      isLoading: false,
+      joinTeamPreviewHref: '/amethyst/Join.html',
+      actionState: {
+        pendingKey: null,
+        error: null,
+        helperMessage: 'Public team card saved to the Join Team page.',
+        feedbackAnchor: 'public-card',
+      },
+    }))
+    expect(saved.indexOf('Public team card saved to the Join Team page.')).toBeGreaterThan(saved.indexOf('Save team member card'))
+  })
+
+  it('offers Retry when the team list fails to load', () => {
+    const html = renderToStaticMarkup(createElement(TeamManagementCard, {
+      state: {
+        status: 'error',
+        listError: TEAM_REQUEST_TIMEOUT_MESSAGE,
+        access: { enabled: true, status: 'active', source: null },
+        participants: [],
+        publicTeamRoster: [],
+      },
+      publicTeamDraft: { ...getJoinTeamRosterDraft(), displayName: 'Lindsey', businessName: 'Mile High Fizz' },
+      onRetryTeamList: () => {},
+    }))
+    expect(html).toContain(TEAM_REQUEST_TIMEOUT_MESSAGE)
+    expect(html).toContain('>Retry<')
+    expect(html).toContain('Add team member card')
+    expect(html).toContain('value="Lindsey"')
+    const picker = html.match(/<select\b[^>]*>/)?.[0] ?? ''
+    expect(picker).not.toContain('disabled')
+  })
+
+  it('preserves an in-progress new team member when the loaded list no longer matches the picker', () => {
+    const draft = { ...getJoinTeamRosterDraft(), displayName: 'Lindsey', businessName: 'Mile High Fizz' }
+    expect(resolveTeamPersonSelection({
+      selectedKey: 'missing-after-reload',
+      selectedMemberId: null,
+      isLoading: false,
+      draft,
+    })).toBe('restore-new-draft')
+    expect(resolveTeamPersonSelection({
+      selectedKey: 'new',
+      selectedMemberId: null,
+      isLoading: false,
+      draft,
+    })).toBe('keep')
+    expect(resolveTeamPersonSelection({
+      selectedKey: 'member-lindsey',
+      selectedMemberId: null,
+      isLoading: true,
+      draft: { ...getJoinTeamRosterDraft(), id: 'member-lindsey', displayName: 'Lindsey' },
+    })).toBe('keep')
+    expect(resolveTeamPersonSelection({
+      selectedKey: 'member-lindsey',
+      selectedMemberId: null,
+      isLoading: false,
+      draft: { ...getJoinTeamRosterDraft(), id: 'member-lindsey', displayName: 'Lindsey' },
+    })).toBe('reset-missing-member')
+  })
+
+  it('turns team 401s into a sign-in prompt and times out a hung team request', async () => {
+    expect(teamResponseErrorMessage({ ok: false, status: 401 }, { error: 'unauthenticated' }, 'failed')).toBe(TEAM_SESSION_EXPIRED_MESSAGE)
+    expect(normalizeTeamRequestFailure(new Error('unauthenticated'), 'failed')).toBe(TEAM_SESSION_EXPIRED_MESSAGE)
+    expect(buildTeamSignInHref('/nic-nac?section=team-management')).toBe('/login?redirect=%2Fnic-nac%3Fsection%3Dteam-management')
+    expect(buildTeamSignInHref('https://evil.example')).toBe('/login?redirect=%2Fnic-nac')
+
+    vi.useFakeTimers()
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) => new Promise((_resolve, reject) => {
+      const signal = init?.signal
+      if (!signal) return
+      const abort = () => reject(Object.assign(new Error('The operation was aborted.'), { name: 'AbortError' }))
+      if (signal.aborted) abort()
+      else signal.addEventListener('abort', abort, { once: true })
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+    try {
+      const timedOut = fetchTeamRequest('/api/nic-nac/join-team-roster', {}, undefined, 25_000)
+      const timedOutAssertion = expect(timedOut).rejects.toThrow(TEAM_REQUEST_TIMEOUT_MESSAGE)
+      await vi.advanceTimersByTimeAsync(25_000)
+      await timedOutAssertion
+
+      const parent = new AbortController()
+      const aborted = fetchTeamRequest('/api/nic-nac/team-onboarding/participants', {}, parent.signal, 25_000)
+      const abortedAssertion = expect(aborted).rejects.toMatchObject({ name: 'AbortError' })
+      parent.abort()
+      await abortedAssertion
+    } finally {
+      vi.unstubAllGlobals()
+      vi.useRealTimers()
+    }
   })
 
   it('requires explicit UI confirmation and sends the confirmed hard-delete contract', () => {
