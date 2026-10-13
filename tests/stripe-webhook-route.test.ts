@@ -1787,4 +1787,244 @@ describe('POST /api/stripe/webhook', () => {
       p_event_type: 'checkout.session.completed',
     })
   })
+
+  function subscriptionUpdatedEvent(created = 1_779_200_000) {
+    return {
+      id: 'evt_subscription_updated',
+      type: 'customer.subscription.updated',
+      livemode: false,
+      created,
+      data: {
+        object: {
+          id: 'sub_updated',
+          customer: 'cus_updated',
+          status: 'active',
+          cancel_at_period_end: true,
+          canceled_at: null,
+          start_date: 1_779_120_000,
+          billing_cycle_anchor: 1_781_712_000,
+          items: {
+            data: [
+              {
+                quantity: 1,
+                current_period_start: 1_779_120_000,
+                current_period_end: 1_781_712_000,
+                price: {
+                  unit_amount: 7499,
+                  currency: 'usd',
+                  recurring: { interval: 'month', interval_count: 1 },
+                },
+              },
+            ],
+          },
+        },
+      },
+    }
+  }
+
+  function mockSubscriptionUpdatedAdmin(options: {
+    existing?: { stripe_event_timestamp: number | null } | null
+    lookupError?: {
+      message: string
+      code: string
+      details: string | null
+      hint: string | null
+    } | null
+    updateResult?: { error: unknown; count: number | null }
+  }) {
+    const updateEq = vi.fn().mockResolvedValue(
+      options.updateResult ?? { error: null, count: 1 },
+    )
+    const update = vi.fn((_values: unknown, _options?: unknown) => ({ eq: updateEq }))
+    const upsert = vi.fn()
+    const selectEq = vi.fn(() => ({
+      single: vi.fn().mockResolvedValue({
+        data: options.existing ?? null,
+        error: options.lookupError ?? null,
+      }),
+    }))
+    const rpc = createStripeEventRpcMock()
+    const admin = {
+      rpc,
+      from: vi.fn((table: string) => {
+        if (table !== 'subscriptions') throw new Error(`unexpected table ${table}`)
+        return {
+          select: vi.fn(() => ({ eq: selectEq })),
+          update,
+          upsert,
+        }
+      }),
+    }
+    return { admin, update, updateEq, upsert, selectEq, rpc }
+  }
+
+  async function postSubscriptionUpdated(event: ReturnType<typeof subscriptionUpdatedEvent>) {
+    return POST(
+      new Request('http://localhost/api/stripe/webhook', {
+        method: 'POST',
+        headers: { 'stripe-signature': 'verified_sig' },
+        body: JSON.stringify({ id: event.id }),
+      }),
+    )
+  }
+
+  it('updates an existing subscription row from customer.subscription.updated', async () => {
+    const event = subscriptionUpdatedEvent()
+    const { admin, update, updateEq, upsert, selectEq, rpc } = mockSubscriptionUpdatedAdmin({
+      existing: { stripe_event_timestamp: event.created - 60 },
+    })
+
+    createAdminClientMock.mockReturnValue(admin)
+    getStripeMock.mockReturnValue({
+      webhooks: {
+        constructEvent: vi.fn().mockReturnValue(event),
+      },
+    })
+
+    const response = await postSubscriptionUpdated(event)
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({ received: true })
+    expect(selectEq).toHaveBeenCalledWith('stripe_subscription_id', 'sub_updated')
+    expect(upsert).not.toHaveBeenCalled()
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'active',
+        monthly_amount: 74.99,
+        current_period_start: new Date(1_779_120_000 * 1000).toISOString(),
+        current_period_end: new Date(1_781_712_000 * 1000).toISOString(),
+        cancel_at_period_end: true,
+        stripe_event_timestamp: event.created,
+      }),
+      { count: 'exact' },
+    )
+    expect(updateEq).toHaveBeenCalledWith('stripe_subscription_id', 'sub_updated')
+    expect(rpc).toHaveBeenCalledWith('mark_stripe_event_processed', {
+      p_event_id: event.id,
+      p_event_type: 'customer.subscription.updated',
+    })
+  })
+
+  it('ignores an older customer.subscription.updated event', async () => {
+    const event = subscriptionUpdatedEvent()
+    const { admin, update, upsert, rpc } = mockSubscriptionUpdatedAdmin({
+      existing: { stripe_event_timestamp: event.created + 30 },
+    })
+
+    createAdminClientMock.mockReturnValue(admin)
+    getStripeMock.mockReturnValue({
+      webhooks: {
+        constructEvent: vi.fn().mockReturnValue(event),
+      },
+    })
+
+    const response = await postSubscriptionUpdated(event)
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({ received: true })
+    expect(update).not.toHaveBeenCalled()
+    expect(upsert).not.toHaveBeenCalled()
+    expect(rpc).toHaveBeenCalledWith('mark_stripe_event_processed', {
+      p_event_id: event.id,
+      p_event_type: 'customer.subscription.updated',
+    })
+    expect(rpc).not.toHaveBeenCalledWith(
+      'mark_stripe_event_failed',
+      expect.anything(),
+    )
+  })
+
+  it('skips customer.subscription.updated when no subscription row matches', async () => {
+    const event = subscriptionUpdatedEvent()
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { admin, update, upsert, rpc } = mockSubscriptionUpdatedAdmin({
+      existing: null,
+      lookupError: {
+        message: 'Cannot coerce the result to a single JSON object',
+        code: 'PGRST116',
+        details: 'The result contains 0 rows',
+        hint: null,
+      },
+    })
+
+    createAdminClientMock.mockReturnValue(admin)
+    getStripeMock.mockReturnValue({
+      webhooks: {
+        constructEvent: vi.fn().mockReturnValue(event),
+      },
+    })
+
+    const response = await postSubscriptionUpdated(event)
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({ received: true })
+    expect(update).not.toHaveBeenCalled()
+    expect(upsert).not.toHaveBeenCalled()
+    expect(rpc).toHaveBeenCalledWith('mark_stripe_event_processed', {
+      p_event_id: event.id,
+      p_event_type: 'customer.subscription.updated',
+    })
+    expect(warnSpy).toHaveBeenCalled()
+    const logged = warnSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    expect(logged).toContain('missing_subscription_row')
+    expect(logged).toContain('sub_updated')
+    warnSpy.mockRestore()
+  })
+
+  it('logs the full Supabase error when a subscription update fails', async () => {
+    const event = subscriptionUpdatedEvent()
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const supabaseError = {
+      message: 'null value in column "rep_id" of relation "subscriptions" violates not-null constraint',
+      code: '23502',
+      details: 'Failing row contains (null).',
+      hint: 'Provide rep_id and plan_tier.',
+    }
+    const { admin, rpc } = mockSubscriptionUpdatedAdmin({
+      existing: { stripe_event_timestamp: event.created - 60 },
+      updateResult: { error: supabaseError, count: null },
+    })
+
+    createAdminClientMock.mockReturnValue(admin)
+    getStripeMock.mockReturnValue({
+      webhooks: {
+        constructEvent: vi.fn().mockReturnValue(event),
+      },
+    })
+
+    const response = await postSubscriptionUpdated(event)
+
+    expect(response.status).toBe(500)
+    const logged = errorSpy.mock.calls.map((call) => String(call[0])).join('\n')
+    const handlerLog = errorSpy.mock.calls
+      .map((call) => {
+        try {
+          return JSON.parse(String(call[0])) as {
+            phase?: string
+            error?: {
+              message?: string
+              code?: string
+              details?: string
+              hint?: string
+            }
+          }
+        } catch {
+          return null
+        }
+      })
+      .find((entry) => entry?.phase === 'handler_error')
+    expect(handlerLog?.error).toEqual({
+      message: supabaseError.message,
+      code: supabaseError.code,
+      details: supabaseError.details,
+      hint: supabaseError.hint,
+    })
+    expect(logged).toContain('23502')
+    expect(rpc).toHaveBeenCalledWith('mark_stripe_event_failed', {
+      p_event_id: event.id,
+      p_event_type: 'customer.subscription.updated',
+      p_error: supabaseError.message,
+    })
+    errorSpy.mockRestore()
+  })
 })
