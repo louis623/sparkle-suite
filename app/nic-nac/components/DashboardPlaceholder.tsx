@@ -916,30 +916,35 @@ type TeamManagementState =
       access?: TeamManagementAccess
       participants?: TeamOnboardingParticipant[]
       publicTeamRoster?: JoinTeamMember[]
+      listError?: string | null
     }
   | {
       status: 'locked'
       access: TeamManagementAccess
       participants?: TeamOnboardingParticipant[]
       publicTeamRoster?: JoinTeamMember[]
+      listError?: string | null
     }
   | {
       status: 'ready'
       access: TeamManagementAccess
       participants: TeamOnboardingParticipant[]
       publicTeamRoster?: JoinTeamMember[]
+      listError?: string | null
     }
   | {
       status: 'error'
       access?: TeamManagementAccess
       participants?: TeamOnboardingParticipant[]
       publicTeamRoster?: JoinTeamMember[]
+      listError?: string | null
     }
 
 type TeamManagementActionState = {
   pendingKey: string | null
   error: string | null
   helperMessage: string | null
+  feedbackAnchor?: 'public-card' | 'banner'
 }
 
 export type JoinTeamRosterDraft = {
@@ -1239,6 +1244,147 @@ export function applyJoinTeamRosterDraftPatch(
   // An explicit cleared ID starts a fresh person; never carry hidden metadata,
   // a previous photo crop, or sort order into the new card.
   return { ...(Object.hasOwn(patch, 'id') && !patch.id ? getJoinTeamRosterDraft() : current), ...patch }
+}
+
+export const TEAM_REQUEST_TIMEOUT_MS = 25_000
+export const TEAM_REQUEST_TIMEOUT_MESSAGE = 'This team request took too long. Please try again.'
+export const TEAM_SESSION_EXPIRED_MESSAGE = 'Your session expired. Please sign in again.'
+export const TEAM_LIST_LOAD_ERROR = 'Unable to load Team Management right now.'
+
+export function buildTeamSignInHref(returnPath: string) {
+  const trimmed = returnPath.trim()
+  const safePath = trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.startsWith('/\\')
+    ? trimmed
+    : '/nic-nac'
+  return `/login?redirect=${encodeURIComponent(safePath)}`
+}
+
+export function hasInProgressNewMemberDraft(draft: JoinTeamRosterDraft) {
+  if (draft.id) return false
+  return [
+    draft.displayName,
+    draft.businessName,
+    draft.state,
+    draft.city,
+    draft.initials,
+    draft.photoUrl,
+    draft.photoAlt,
+    draft.imageClassName,
+    draft.bio,
+    draft.birthdayMonth,
+    draft.birthdayDay,
+    draft.tiktok,
+    draft.facebook,
+    draft.instagram,
+    draft.website,
+    draft.youtube,
+    draft.whatnot,
+  ].some((value) => Boolean(value?.trim())) || draft.isVisible
+}
+
+export type TeamPersonSelectionResolution = 'keep' | 'restore-new-draft' | 'sync-lead' | 'reset-missing-member'
+
+export function resolveTeamPersonSelection({
+  selectedKey,
+  selectedMemberId,
+  isLoading,
+  draft,
+}: {
+  selectedKey: string
+  selectedMemberId?: string | null
+  isLoading: boolean
+  draft: JoinTeamRosterDraft
+}): TeamPersonSelectionResolution {
+  if (selectedKey === 'new' || hasInProgressNewMemberDraft(draft)) {
+    return selectedKey === 'new' ? 'keep' : 'restore-new-draft'
+  }
+  if (selectedKey === 'lead' && selectedMemberId && draft.id !== selectedMemberId) {
+    return 'sync-lead'
+  }
+  if (selectedKey !== 'lead' && !selectedMemberId && !isLoading) {
+    return 'reset-missing-member'
+  }
+  return 'keep'
+}
+
+export function teamResponseErrorMessage(
+  response: Pick<Response, 'ok' | 'status'>,
+  payload: { error?: string | null } | null | undefined,
+  fallback: string,
+) {
+  const raw = payload?.error?.trim() ?? ''
+  if (response.status === 401 || raw.toLowerCase() === 'unauthenticated') {
+    return TEAM_SESSION_EXPIRED_MESSAGE
+  }
+  if (!response.ok) return raw || fallback
+  return null
+}
+
+export function normalizeTeamRequestFailure(error: unknown, fallback: string) {
+  if (error instanceof Error) {
+    if (error.name === 'TimeoutError' || error.message === TEAM_REQUEST_TIMEOUT_MESSAGE) {
+      return TEAM_REQUEST_TIMEOUT_MESSAGE
+    }
+    if (error.message.trim().toLowerCase() === 'unauthenticated') {
+      return TEAM_SESSION_EXPIRED_MESSAGE
+    }
+    if (error.message.trim()) return error.message
+  }
+  return fallback
+}
+
+export function isIgnorableTeamAbort(error: unknown) {
+  return error instanceof Error && error.name === 'AbortError'
+}
+
+export function createTeamRequestSignal(parentSignal?: AbortSignal, timeoutMs = TEAM_REQUEST_TIMEOUT_MS) {
+  const controller = new AbortController()
+  let timedOut = false
+  const timeoutId = setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, timeoutMs)
+  const onParentAbort = () => controller.abort()
+  if (parentSignal) {
+    if (parentSignal.aborted) controller.abort()
+    else parentSignal.addEventListener('abort', onParentAbort, { once: true })
+  }
+
+  return {
+    signal: controller.signal,
+    cleanup() {
+      clearTimeout(timeoutId)
+      parentSignal?.removeEventListener('abort', onParentAbort)
+    },
+    didTimeOut() {
+      return timedOut && !parentSignal?.aborted
+    },
+  }
+}
+
+export async function fetchTeamRequest(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+  parentSignal?: AbortSignal,
+  timeoutMs = TEAM_REQUEST_TIMEOUT_MS,
+) {
+  const teamSignal = createTeamRequestSignal(parentSignal, timeoutMs)
+  try {
+    return await fetch(input, {
+      ...init,
+      credentials: init.credentials ?? 'include',
+      signal: teamSignal.signal,
+    })
+  } catch (error) {
+    if (teamSignal.didTimeOut()) {
+      const timeoutError = new Error(TEAM_REQUEST_TIMEOUT_MESSAGE)
+      timeoutError.name = 'TimeoutError'
+      throw timeoutError
+    }
+    throw error
+  } finally {
+    teamSignal.cleanup()
+  }
 }
 
 export function moveJoinTeamRosterMember<T extends { id: string }>(
@@ -2175,7 +2321,7 @@ async function requestJoinTeamProfilePhotoUpload(file: File) {
   }
 
   const base64Data = await readFileAsDataUrl(file)
-  const response = await fetch('/api/nic-nac/join-team-roster/photo', {
+  const response = await fetchTeamRequest('/api/nic-nac/join-team-roster/photo', {
     method: 'POST',
     credentials: 'include',
     headers: { 'content-type': 'application/json' },
@@ -2184,8 +2330,13 @@ async function requestJoinTeamProfilePhotoUpload(file: File) {
   const payload = (await response.json().catch(() => null)) as
     | { error?: string; imageUrl?: string; framing?: TeamPhotoFraming; quality?: { status: string; message: string } }
     | null
-  if (!response.ok || !payload?.imageUrl) {
-    throw new Error(payload?.error || 'Unable to upload that profile photo right now.')
+  const responseError = teamResponseErrorMessage(
+    response,
+    payload,
+    'Unable to upload that profile photo right now.',
+  )
+  if (responseError || !payload?.imageUrl) {
+    throw new Error(responseError || 'Unable to upload that profile photo right now.')
   }
   return { imageUrl: payload.imageUrl, framing: normalizeTeamPhotoFraming(payload.framing), quality: payload.quality }
 }
@@ -3697,11 +3848,35 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
   }
 
+  function rememberTeamListFailure(error: unknown) {
+    if (isIgnorableTeamAbort(error)) return
+    const listError = normalizeTeamRequestFailure(error, TEAM_LIST_LOAD_ERROR)
+    setTeamManagementState((current) => ({
+      status: 'error',
+      access: current.access,
+      participants: current.participants,
+      publicTeamRoster: current.publicTeamRoster,
+      listError,
+    }))
+  }
+
+  async function retryTeamManagementLoad() {
+    setTeamManagementState((current) => ({
+      ...current,
+      status: 'loading',
+      listError: null,
+    }))
+    try {
+      await loadTeamManagement()
+    } catch (error) {
+      rememberTeamListFailure(error)
+    }
+  }
+
   async function loadTeamManagement(signal?: AbortSignal) {
-    const response = await fetch('/api/nic-nac/team-onboarding/participants', {
+    const response = await fetchTeamRequest('/api/nic-nac/team-onboarding/participants', {
       credentials: 'include',
-      signal,
-    })
+    }, signal)
     const payload = (await response.json().catch(() => null)) as
       | TeamManagementResponsePayload
       | null
@@ -3712,43 +3887,57 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         access: payload.access,
         participants: [],
         publicTeamRoster: [],
+        listError: null,
       })
       return
     }
 
-    if (!response.ok || !payload?.access) {
-      throw new Error(payload?.error || `team management request failed: ${response.status}`)
+    const responseError = teamResponseErrorMessage(
+      response,
+      payload,
+      payload?.error || `team management request failed: ${response.status}`,
+    )
+    if (responseError || !payload?.access) {
+      throw new Error(responseError || `team management request failed: ${response.status}`)
     }
 
     let publicTeamRoster: JoinTeamMember[] = []
+    let listError: string | null = null
     try {
       publicTeamRoster = await loadJoinTeamRoster(signal)
     } catch (error) {
-      if ((error as { name?: string }).name === 'AbortError') throw error
-      setTeamManagementActionState({
-        pendingKey: null,
-        error: null,
-        helperMessage: 'Onboarding is loaded. Public team cards could not load yet.',
-      })
+      if (isIgnorableTeamAbort(error)) throw error
+      const normalized = normalizeTeamRequestFailure(
+        error,
+        'Onboarding is loaded. Public team cards could not load yet.',
+      )
+      listError = normalized === TEAM_REQUEST_TIMEOUT_MESSAGE || normalized === TEAM_SESSION_EXPIRED_MESSAGE
+        ? normalized
+        : 'Onboarding is loaded. Public team cards could not load yet.'
     }
     setTeamManagementState({
       status: 'ready',
       access: payload.access,
       participants: payload.participants ?? [],
       publicTeamRoster,
+      listError,
     })
   }
 
   async function loadJoinTeamRoster(signal?: AbortSignal) {
-    const response = await fetch('/api/nic-nac/join-team-roster', {
+    const response = await fetchTeamRequest('/api/nic-nac/join-team-roster', {
       credentials: 'include',
-      signal,
-    })
+    }, signal)
     const payload = (await response.json().catch(() => null)) as
       | JoinTeamRosterResponsePayload
       | null
-    if (!response.ok) {
-      throw new Error(payload?.error || 'Unable to load public team cards right now.')
+    const responseError = teamResponseErrorMessage(
+      response,
+      payload,
+      'Unable to load public team cards right now.',
+    )
+    if (responseError) {
+      throw new Error(responseError)
     }
 
     return payload?.members ?? []
@@ -3850,13 +4039,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         setMessagesState({ status: 'error' })
       }),
       loadTeamManagement(signal).catch((error) => {
-        if ((error as { name?: string }).name === 'AbortError') return
-        setTeamManagementState((current) => ({
-          status: 'error',
-          access: current.access,
-          participants: current.participants,
-          publicTeamRoster: current.publicTeamRoster,
-        }))
+        rememberTeamListFailure(error)
       }),
     ])
   }
@@ -4408,7 +4591,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const response = await fetch('/api/nic-nac/site-settings', {
+      const response = await fetchTeamRequest('/api/nic-nac/site-settings', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -4420,8 +4603,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         | { error?: string; settings?: SiteSettingsDashboardResult }
         | null
 
-      if (!response.ok || !payload?.settings) {
-        throw new Error(payload?.error || 'Unable to save the team details.')
+      const responseError = teamResponseErrorMessage(
+        response,
+        payload,
+        'Unable to save the team details.',
+      )
+      if (responseError || !payload?.settings) {
+        throw new Error(responseError || 'Unable to save the team details.')
       }
 
       const savedSettings = payload.settings
@@ -4446,7 +4634,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error: error instanceof Error ? error.message : 'Unable to save the team details.',
+        error: normalizeTeamRequestFailure(error, 'Unable to save the team details.'),
         helperMessage: null,
       })
     }
@@ -5888,10 +6076,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to upload that profile photo right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to upload that profile photo right now.'),
         helperMessage: null,
       })
     }
@@ -5901,7 +6086,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     imageUrl: string,
     framing?: TeamPhotoFraming,
   ) {
-    const response = await fetch('/api/nic-nac/site-settings', {
+    const response = await fetchTeamRequest('/api/nic-nac/site-settings', {
       method: 'POST',
       credentials: 'include',
       headers: { 'content-type': 'application/json' },
@@ -5913,8 +6098,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     const payload = (await response.json().catch(() => null)) as
       | { error?: string; settings?: SiteSettingsDashboardResult }
       | null
-    if (!response.ok || !payload?.settings) {
-      throw new Error(payload?.error || 'Unable to save that lead card photo right now.')
+    const responseError = teamResponseErrorMessage(
+      response,
+      payload,
+      'Unable to save that lead card photo right now.',
+    )
+    if (responseError || !payload?.settings) {
+      throw new Error(responseError || 'Unable to save that lead card photo right now.')
     }
     const savedSettings = payload.settings
     setSiteSettingsState({ status: 'ready', settings: savedSettings })
@@ -5945,7 +6135,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         ? { imageClassName: serializeTeamPhotoFraming(framing) }
         : {}),
     }
-    const response = await fetch('/api/nic-nac/join-team-roster', {
+    const response = await fetchTeamRequest('/api/nic-nac/join-team-roster', {
       method: 'POST',
       credentials: 'include',
       headers: { 'content-type': 'application/json' },
@@ -5957,8 +6147,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     const payload = (await response.json().catch(() => null)) as
       | JoinTeamRosterResponsePayload
       | null
-    if (!response.ok || !payload?.member) {
-      throw new Error(payload?.error || 'Unable to save that team card photo right now.')
+    const responseError = teamResponseErrorMessage(
+      response,
+      payload,
+      'Unable to save that team card photo right now.',
+    )
+    if (responseError || !payload?.member) {
+      throw new Error(responseError || 'Unable to save that team card photo right now.')
     }
     const savedMember = payload.member
     setTeamManagementState((current) => {
@@ -6009,10 +6204,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to save that lead card photo right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to save that lead card photo right now.'),
         helperMessage: null,
       })
     }
@@ -6062,10 +6254,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to save that lead card frame right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to save that lead card frame right now.'),
         helperMessage: null,
       })
     }
@@ -6096,10 +6285,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to suggest a frame for that photo right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to suggest a frame for that photo right now.'),
         helperMessage: null,
       })
     }
@@ -6138,10 +6324,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to save that team card photo right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to save that team card photo right now.'),
         helperMessage: null,
       })
     }
@@ -6178,6 +6361,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         pendingKey: null,
         error: 'Enter the first name before saving the public card.',
         helperMessage: null,
+        feedbackAnchor: 'public-card',
       })
       return
     }
@@ -6186,10 +6370,11 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       pendingKey: 'public-team:save',
       error: null,
       helperMessage: null,
+      feedbackAnchor: 'public-card',
     })
 
     try {
-      const response = await fetch('/api/nic-nac/join-team-roster', {
+      const response = await fetchTeamRequest('/api/nic-nac/join-team-roster', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -6201,8 +6386,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       const payload = (await response.json().catch(() => null)) as
         | JoinTeamRosterResponsePayload
         | null
-      if (!response.ok || !payload?.member) {
-        throw new Error(payload?.error || 'Unable to save that public team card right now.')
+      const responseError = teamResponseErrorMessage(
+        response,
+        payload,
+        'Unable to save that public team card right now.',
+      )
+      if (responseError || !payload?.member) {
+        throw new Error(responseError || 'Unable to save that public team card right now.')
       }
 
       const savedMember = payload.member
@@ -6224,15 +6414,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         pendingKey: null,
         error: null,
         helperMessage: 'Public team card saved to the Join Team page.',
+        feedbackAnchor: 'public-card',
       })
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to save that public team card right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to save that public team card right now.'),
         helperMessage: null,
+        feedbackAnchor: 'public-card',
       })
     }
   }
@@ -6254,7 +6443,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const response = await fetch('/api/nic-nac/join-team-roster', {
+      const response = await fetchTeamRequest('/api/nic-nac/join-team-roster', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -6269,8 +6458,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       const payload = (await response.json().catch(() => null)) as
         | JoinTeamRosterResponsePayload
         | null
-      if (!response.ok || !payload?.member) {
-        throw new Error(payload?.error || 'Unable to update that public card right now.')
+      const responseError = teamResponseErrorMessage(
+        response,
+        payload,
+        'Unable to update that public card right now.',
+      )
+      if (responseError || !payload?.member) {
+        throw new Error(responseError || 'Unable to update that public card right now.')
       }
       const savedVisibilityMember = payload.member
       setTeamManagementState((current) => ({
@@ -6292,10 +6486,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to update that public card right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to update that public card right now.'),
         helperMessage: null,
       })
     }
@@ -6316,7 +6507,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const response = await fetch('/api/nic-nac/join-team-roster', {
+      const response = await fetchTeamRequest('/api/nic-nac/join-team-roster', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -6328,8 +6519,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       const payload = (await response.json().catch(() => null)) as
         | { error?: string }
         | null
-      if (!response.ok) {
-        throw new Error(payload?.error || 'Unable to reorder public team cards right now.')
+      const responseError = teamResponseErrorMessage(
+        response,
+        payload,
+        'Unable to reorder public team cards right now.',
+      )
+      if (responseError) {
+        throw new Error(responseError)
       }
 
       const byId = new Map(roster.map((member) => [member.id, member]))
@@ -6353,10 +6549,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to reorder public team cards right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to reorder public team cards right now.'),
         helperMessage: null,
       })
     }
@@ -6370,7 +6563,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const response = await fetch('/api/nic-nac/join-team-roster', {
+      const response = await fetchTeamRequest('/api/nic-nac/join-team-roster', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -6379,8 +6572,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       const payload = (await response.json().catch(() => null)) as
         | { error?: string }
         | null
-      if (!response.ok) {
-        throw new Error(payload?.error || 'Unable to remove that public team card right now.')
+      const responseError = teamResponseErrorMessage(
+        response,
+        payload,
+        'Unable to remove that public team card right now.',
+      )
+      if (responseError) {
+        throw new Error(responseError)
       }
 
       setTeamManagementState((current) => ({
@@ -6397,10 +6595,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to remove that public team card right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to remove that public team card right now.'),
         helperMessage: null,
       })
     }
@@ -6414,7 +6609,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const response = await fetch('/api/nic-nac/team-onboarding/participants', {
+      const response = await fetchTeamRequest('/api/nic-nac/team-onboarding/participants', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -6427,8 +6622,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         | TeamManagementResponsePayload
         | null
 
-      if (!response.ok || !payload?.participant || !payload.accessUrl) {
-        throw new Error(payload?.error || 'Unable to create that onboarding link right now.')
+      const responseError = teamResponseErrorMessage(
+        response,
+        payload,
+        'Unable to create that onboarding link right now.',
+      )
+      if (responseError || !payload?.participant || !payload.accessUrl) {
+        throw new Error(responseError || 'Unable to create that onboarding link right now.')
       }
 
       const participant = {
@@ -6454,10 +6654,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to create that onboarding link right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to create that onboarding link right now.'),
         helperMessage: null,
       })
     }
@@ -6471,7 +6668,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const response = await fetch(
+      const response = await fetchTeamRequest(
         `/api/nic-nac/team-onboarding/participants/${participantId}`,
         {
           method: 'PATCH',
@@ -6484,10 +6681,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         | TeamManagementResponsePayload
         | null
 
-      if (!response.ok || !payload?.participant || !payload.accessUrl) {
-        throw new Error(
-          payload?.error || 'Unable to create a fresh onboarding link right now.',
-        )
+      const responseError = teamResponseErrorMessage(
+        response,
+        payload,
+        'Unable to create a fresh onboarding link right now.',
+      )
+      if (responseError || !payload?.participant || !payload.accessUrl) {
+        throw new Error(responseError || 'Unable to create a fresh onboarding link right now.')
       }
 
       setTeamManagementState((current) => ({
@@ -6510,10 +6710,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to create a fresh onboarding link right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to create a fresh onboarding link right now.'),
         helperMessage: null,
       })
     }
@@ -6553,7 +6750,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     })
 
     try {
-      const response = await fetch(
+      const response = await fetchTeamRequest(
         `/api/nic-nac/team-onboarding/participants/${participantId}`,
         {
           method: 'PATCH',
@@ -6565,8 +6762,13 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       const payload = (await response.json().catch(() => null)) as
         | { error?: string }
         | null
-      if (!response.ok) {
-        throw new Error(payload?.error || 'Unable to archive that onboarding link right now.')
+      const responseError = teamResponseErrorMessage(
+        response,
+        payload,
+        'Unable to archive that onboarding link right now.',
+      )
+      if (responseError) {
+        throw new Error(responseError)
       }
 
       setTeamManagementState((current) => ({
@@ -6585,10 +6787,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     } catch (error) {
       setTeamManagementActionState({
         pendingKey: null,
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Unable to archive that onboarding link right now.',
+        error: normalizeTeamRequestFailure(error, 'Unable to archive that onboarding link right now.'),
         helperMessage: null,
       })
     }
@@ -6976,6 +7175,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
             onUploadMemberCardPhoto={reviewWorkspaceMode ? undefined : handleMemberCardPhotoUpload}
             onSaveTeamPhoto={handleSaveTeamPhoto}
             onOpenPhotoHelp={() => openMessageCenter({ view: 'support', composeSupport: true, source: 'team-photo-polish' })}
+            onRetryTeamList={reviewWorkspaceMode ? undefined : retryTeamManagementLoad}
             onSavePublicTeamMember={reviewWorkspaceMode ? undefined : handleSavePublicTeamMember}
             onEditPublicTeamMember={handleEditPublicTeamMember}
             onTogglePublicTeamMember={reviewWorkspaceMode ? undefined : handleTogglePublicTeamMember}
@@ -11370,6 +11570,7 @@ export function TeamManagementCard({
   onMovePublicTeamMember,
   onRemovePublicTeamMember,
   onOpenMessages,
+  onRetryTeamList,
 }: {
   initialMemberId?: string | null
   reviewMode?: boolean
@@ -11406,7 +11607,14 @@ export function TeamManagementCard({
   onMovePublicTeamMember?: (memberId: string, direction: 'up' | 'down') => void
   onRemovePublicTeamMember?: (memberId: string) => void
   onOpenMessages?: (conversationId: string) => void
+  onRetryTeamList?: () => void
 }) {
+  const [signInHref, setSignInHref] = useState('/login?redirect=%2Fnic-nac')
+  useEffect(() => {
+    setSignInHref(buildTeamSignInHref(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    ))
+  }, [])
   const participants = state.participants ?? []
   const publicTeamRoster = state.publicTeamRoster ?? []
   const activeParticipants = participants.filter(
@@ -11427,7 +11635,9 @@ export function TeamManagementCard({
   const initialLinkedMember = initialMemberId
     ? publicTeamRoster.find((member) => member.id === initialMemberId)
     : undefined
-  const resolvedPublicTeamDraft = initialLinkedMember && !publicTeamDraft.id
+  const resolvedPublicTeamDraft = initialLinkedMember
+    && !publicTeamDraft.id
+    && !hasInProgressNewMemberDraft(publicTeamDraft)
     ? getJoinTeamRosterDraft(initialLinkedMember)
     : publicTeamDraft
 
@@ -11505,11 +11715,40 @@ export function TeamManagementCard({
         </span>
       </div>
 
-      {actionState?.error ? (
-        <div className={styles.actionError}>{actionState.error}</div>
+      {actionState?.feedbackAnchor !== 'public-card' && actionState?.error ? (
+        <div className={styles.actionError} role="alert">
+          <span>{actionState.error}</span>
+          {actionState.error === TEAM_SESSION_EXPIRED_MESSAGE ? (
+            <>
+              {' '}
+              <Link href={signInHref}>Sign in</Link>
+            </>
+          ) : null}
+        </div>
       ) : null}
-      {actionState?.helperMessage ? (
+      {actionState?.feedbackAnchor !== 'public-card' && actionState?.helperMessage ? (
         <div className={styles.helperMessage}>{actionState.helperMessage}</div>
+      ) : null}
+      {state.listError || state.status === 'error' ? (
+        <div className={styles.actionError} role="alert">
+          <span>{state.listError || TEAM_LIST_LOAD_ERROR}</span>
+          {(state.listError || TEAM_LIST_LOAD_ERROR) === TEAM_SESSION_EXPIRED_MESSAGE ? (
+            <>
+              {' '}
+              <Link href={signInHref}>Sign in</Link>
+            </>
+          ) : null}
+          <div className={styles.workspaceInlineActions}>
+            <button
+              type="button"
+              className={styles.actionButton}
+              onClick={onRetryTeamList}
+              disabled={isLoading}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
       ) : null}
 
       <div className={styles.teamManagementGrid}>
@@ -11549,7 +11788,7 @@ export function TeamManagementCard({
           <button
             type="button"
             className={styles.actionButton}
-            disabled={actionState?.pendingKey === 'team-name' || isLoading}
+            disabled={actionState?.pendingKey === 'team-name'}
             onClick={onSaveTeamDetails}
           >
             {actionState?.pendingKey === 'team-name' ? 'Saving team details...' : 'Save team details'}
@@ -11567,7 +11806,7 @@ export function TeamManagementCard({
           leadCard={leadCard}
           onDraftChange={(patch) =>
             onPublicTeamDraftChange?.(
-              initialLinkedMember && !publicTeamDraft.id
+              initialLinkedMember && !publicTeamDraft.id && !hasInProgressNewMemberDraft(publicTeamDraft)
                 ? { ...resolvedPublicTeamDraft, ...patch }
                 : patch,
             )
@@ -11579,6 +11818,7 @@ export function TeamManagementCard({
           onUploadMemberPhoto={onUploadMemberCardPhoto}
           onSaveTeamPhoto={onSaveTeamPhoto}
           onOpenPhotoHelp={onOpenPhotoHelp}
+          signInHref={signInHref}
           onSave={onSavePublicTeamMember}
           onEdit={onEditPublicTeamMember}
           onToggle={onTogglePublicTeamMember}
@@ -12194,6 +12434,34 @@ function TeamCardPhotoField({
   )
 }
 
+function TeamCardSaveNotice({
+  actionState,
+  signInHref,
+}: {
+  actionState?: TeamManagementActionState
+  signInHref: string
+}) {
+  if (!actionState || (!actionState.error && !actionState.helperMessage)) return null
+  return (
+    <>
+      {actionState.error ? (
+        <div className={styles.actionError} role="alert">
+          <span>{actionState.error}</span>
+          {actionState.error === TEAM_SESSION_EXPIRED_MESSAGE ? (
+            <>
+              {' '}
+              <Link href={signInHref}>Sign in</Link>
+            </>
+          ) : null}
+        </div>
+      ) : null}
+      {actionState.helperMessage ? (
+        <p className={styles.helperMessage} role="status">{actionState.helperMessage}</p>
+      ) : null}
+    </>
+  )
+}
+
 export function PublicTeamRosterPanel({
   initialMemberId,
   reviewMode = false,
@@ -12212,6 +12480,7 @@ export function PublicTeamRosterPanel({
   onUploadMemberPhoto,
   onSaveTeamPhoto,
   onOpenPhotoHelp,
+  signInHref = '/login?redirect=%2Fnic-nac',
   onSave,
   onEdit,
   onToggle,
@@ -12245,6 +12514,7 @@ export function PublicTeamRosterPanel({
   onUploadMemberPhoto?: (member: JoinTeamMember, file: File | null) => void
   onSaveTeamPhoto?: (cardKey: string, imageUrl: string, framing?: TeamPhotoFraming) => Promise<void>
   onOpenPhotoHelp?: () => void
+  signInHref?: string
   onSave?: () => void
   onEdit?: (member: JoinTeamMember) => void
   onToggle?: (member: JoinTeamMember) => void
@@ -12291,7 +12561,8 @@ export function PublicTeamRosterPanel({
     ? matchingLeadMember
     : members.find((member) => member.id === selectedKey)
   const isNew = selectedKey === 'new'
-  const editorBusy = isLoading || Boolean(actionState?.pendingKey) || photoState.busy
+  const savePending = actionState?.pendingKey === 'public-team:save'
+  const preserveNewMemberDraft = hasInProgressNewMemberDraft(draft)
   const birthdayIncomplete = Boolean(draft.birthdayMonth) !== Boolean(draft.birthdayDay)
   const detailsDirty = (isNew || draft.id === selectedMember?.id) &&
     JSON.stringify(buildJoinTeamRosterSavePayload(draft)) !==
@@ -12305,10 +12576,21 @@ export function PublicTeamRosterPanel({
     return () => window.clearTimeout(timer)
   }, [selectedKey, draft.id, matchingLeadMember?.id])
   useEffect(() => {
-    if (selectedKey === 'lead' && selectedMember && draft.id !== selectedMember.id) {
-      onEdit?.(selectedMember)
+    const resolution = resolveTeamPersonSelection({
+      selectedKey,
+      selectedMemberId: selectedMember?.id ?? null,
+      isLoading,
+      draft,
+    })
+    if (resolution === 'restore-new-draft') {
+      const timer = window.setTimeout(() => setSelectedKey('new'), 0)
+      return () => window.clearTimeout(timer)
     }
-    if (selectedKey !== 'lead' && selectedKey !== 'new' && !selectedMember && !isLoading) {
+    if (resolution === 'sync-lead' && selectedMember) {
+      onEdit?.(selectedMember)
+      return
+    }
+    if (resolution === 'reset-missing-member') {
       const timer = window.setTimeout(() => {
         setSelectedKey('lead')
         setEditorTab('photo')
@@ -12316,10 +12598,10 @@ export function PublicTeamRosterPanel({
       }, 0)
       return () => window.clearTimeout(timer)
     }
-  }, [selectedKey, selectedMember, draft.id, isLoading, onEdit, onDraftChange])
+  }, [selectedKey, selectedMember, draft.id, preserveNewMemberDraft, isLoading, onEdit, onDraftChange])
 
   function selectPerson(nextKey: string, discardConfirmed = false) {
-    if (editorBusy || nextKey === selectedKey) return
+    if (nextKey === selectedKey) return
     if ((detailsDirty || photoState.dirty) && !discardConfirmed) {
       setPendingSelection(nextKey)
       return
@@ -12380,7 +12662,7 @@ export function PublicTeamRosterPanel({
       <div className={styles.teamPersonPicker}>
         <label className={styles.searchField}>
           <span className={styles.searchLabel}>Choose a person</span>
-          <select className={styles.searchInput} value={selectedKey} disabled={editorBusy} onChange={(event) => selectPerson(event.target.value)}>
+          <select className={styles.searchInput} value={selectedKey} onChange={(event) => selectPerson(event.target.value)}>
             <option value="lead">You — Team Lead · {leadName}</option>
             {members.filter((member) => member.id !== matchingLeadMember?.id).map((member) => (
               <option key={member.id} value={member.id}>{member.displayName}{member.businessName ? ` · ${member.businessName}` : ''}{member.isVisible ? '' : ' (hidden)'}</option>
@@ -12388,14 +12670,14 @@ export function PublicTeamRosterPanel({
             {isNew ? <option value="new">New team member</option> : null}
           </select>
         </label>
-        <button type="button" className={styles.actionButton} disabled={editorBusy || isNew} onClick={() => selectPerson('new')}>+ Add team member</button>
+        <button type="button" className={styles.actionButton} disabled={isNew} onClick={() => selectPerson('new')}>+ Add team member</button>
       </div>
       {pendingSelection ? <div className={styles.teamMessagePreview} role="alert">
         <strong>Unsaved changes for {selectedName}</strong>
         <p>Your changes have not been saved. Keep editing, or discard them to switch people.</p>
         <div className={styles.workspaceInlineActions}>
           <button type="button" className={styles.actionButton} onClick={() => setPendingSelection(null)}>Keep editing</button>
-          <button type="button" className={styles.helperButton} disabled={editorBusy} onClick={() => selectPerson(pendingSelection, true)}>Discard and switch</button>
+          <button type="button" className={styles.helperButton} onClick={() => selectPerson(pendingSelection, true)}>Discard and switch</button>
         </div>
       </div> : null}
       <div className={styles.teamSingleEditor}>
@@ -12405,7 +12687,7 @@ export function PublicTeamRosterPanel({
         </div>
         <div className={styles.teamEditorTabs} aria-label="Person editor sections">
           {(['photo', 'details', 'onboarding'] as const).map((tab) => (
-            <button type="button" key={tab} className={styles.helperButton} aria-pressed={editorTab === tab} disabled={editorBusy} onClick={() => setEditorTab(tab)}>
+            <button type="button" key={tab} className={styles.helperButton} aria-pressed={editorTab === tab} onClick={() => setEditorTab(tab)}>
               {tab === 'photo' ? 'Photo' : tab === 'details' ? 'Details & Links' : 'Private Onboarding'}
             </button>
           ))}
@@ -12458,7 +12740,7 @@ export function PublicTeamRosterPanel({
       </div> : null}
 
       {isNew || selectedMember ? <div className={styles.teamEditorPane} hidden={editorTab !== 'details'}>
-        <fieldset className={styles.teamEditorFields} disabled={editorBusy}>
+        <fieldset className={styles.teamEditorFields} disabled={savePending}>
           <div className={styles.walletSettingsTitle}>{isNew ? 'Add team member card' : 'Details & Links'}</div>
           {isNew ? <>
           <div className={styles.helperNote}>
@@ -12630,13 +12912,14 @@ export function PublicTeamRosterPanel({
           <button
             type="button"
             className={styles.actionButton}
-            disabled={actionState?.pendingKey === 'public-team:save' || isLoading || birthdayIncomplete}
+            disabled={savePending || birthdayIncomplete}
             onClick={onSave}
           >
-            {actionState?.pendingKey === 'public-team:save'
-              ? 'Saving card...'
-              : saveLabel}
+            {savePending ? 'Saving card...' : saveLabel}
           </button>
+          {actionState?.feedbackAnchor === 'public-card' ? (
+            <TeamCardSaveNotice actionState={actionState} signInHref={signInHref} />
+          ) : null}
         </fieldset>
       </div> : <div className={styles.teamEditorPane} hidden={editorTab !== 'details'}>
         <p className={styles.helperNote}>Your lead name and social links come from Site Settings.</p>
@@ -12660,7 +12943,10 @@ export function PublicTeamRosterPanel({
             onRemovePhoto={() => onDraftChange?.(buildTeamPhotoRemovalPatch())}
             onFramingChange={(nextFraming) => onDraftChange?.({ imageClassName: serializeTeamPhotoFraming(nextFraming) })}
           />
-          <button type="button" className={styles.actionButton} disabled={editorBusy || birthdayIncomplete} onClick={onSave}>{actionState?.pendingKey === 'public-team:save' ? 'Saving card...' : saveLabel}</button>
+          <button type="button" className={styles.actionButton} disabled={savePending || birthdayIncomplete} onClick={onSave}>{savePending ? 'Saving card...' : saveLabel}</button>
+          {actionState?.feedbackAnchor === 'public-card' ? (
+            <TeamCardSaveNotice actionState={actionState} signInHref={signInHref} />
+          ) : null}
         </div>
         <div className={styles.teamEditorPane} hidden={editorTab !== 'onboarding'}><p className={styles.helperNote}>Save this team member first to create their private onboarding link.</p></div>
       </> : null}
@@ -12751,7 +13037,7 @@ export function PublicTeamRosterPanel({
                       <button
                         type="button"
                         className={styles.helperButton}
-                        disabled={Boolean(isCreating) || isLoading}
+                        disabled={Boolean(isCreating)}
                         onClick={() => onCreateParticipant?.(member)}
                       >
                         {isCreating ? 'Creating link...' : 'Create onboarding link'}
@@ -12834,7 +13120,7 @@ export function PublicTeamRosterPanel({
                           <button
                             type="button"
                             className={styles.helperButton}
-                            disabled={Boolean(isRefreshing) || isLoading}
+                            disabled={Boolean(isRefreshing)}
                             onClick={() => {
                               if (
                                 participant.accessUrl &&
@@ -12877,7 +13163,7 @@ export function PublicTeamRosterPanel({
                       </>
                     )}
                   </div></div>
-                  <fieldset className={styles.teamEditorFields} disabled={editorBusy || detailsDirty || photoState.dirty}>
+                  <fieldset className={styles.teamEditorFields} disabled={detailsDirty || photoState.dirty}>
                   <div className={styles.workspaceInlineActions}>
                     <button
                       type="button"
