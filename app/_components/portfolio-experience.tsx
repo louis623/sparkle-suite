@@ -1,51 +1,54 @@
 import Image from 'next/image'
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ProductPeekVideo } from './product-peek-video'
+import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
+import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { MarketingFooter, MarketingHeader } from '@/app/_components/landing-experience'
-import { PortfolioCarousels } from '@/app/_components/portfolio-carousels'
-import { sparkleSuitePortfolioContent, sparkleSuiteScheduleBuild } from '@/lib/sparkle-suite/portfolio-content'
+import { QueueLink } from '@/app/_components/queue-link'
+import { sparkleSuitePortfolioContent } from '@/lib/sparkle-suite/portfolio-content'
 import styles from './portfolio-experience.module.css'
 
 export function PortfolioExperience() {
-  const hero = sparkleSuitePortfolioContent.hero
-
+  const sites = sparkleSuitePortfolioContent.carousels[0].slides
   return (
-    <main className={styles.page}>
+    <main className={`suite-marketing ${styles.page}`}>
       <a className={styles.skipLink} href="#main-content">Skip to content</a>
       <MarketingHeader current="portfolio" />
-      <section className={styles.hero} id="main-content" aria-labelledby="portfolio-title" data-band="night">
-        <div className={styles.heroInner}>
-          <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>{hero.eyebrow}</p>
-            <h1 id="portfolio-title">{hero.headline}</h1>
-            <p className={styles.heroBody}>{hero.body}</p>
-            <div className={styles.heroActions}>
-              <Link className={styles.primaryButton} href={sparkleSuiteScheduleBuild.href}>
-                {sparkleSuiteScheduleBuild.label} <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-              <a className={styles.textLink} href="#rep-highlights">See the shows <ArrowRight size={16} aria-hidden="true" /></a>
-            </div>
-            <p className={styles.heroNote}>{sparkleSuiteScheduleBuild.note}</p>
-          </div>
-          <figure className={styles.heroFigure}>
-            <div className={styles.heroWindow}>
-              <div className={styles.browserBar} aria-hidden="true">
-                <em>{hero.image.label}</em>
-              </div>
-              <Image
-                src={hero.image.src}
-                alt={hero.image.alt}
-                width={hero.image.width}
-                height={hero.image.height}
-                sizes="(max-width: 700px) 94vw, 1180px"
-                preload
-              />
-            </div>
-            <figcaption>A community Halloween look. The carousels below are the shows and themes.</figcaption>
-          </figure>
+      <section className={styles.hero} id="main-content" aria-labelledby="portfolio-title">
+        <div className={styles.container}>
+          <p className={styles.eyebrow}>Portfolio</p>
+          <h1 id="portfolio-title">Shows we’re proud<br />to put on the <em>floor.</em></h1>
+          <p className={styles.heroBody}>Real rep sites, each with its own personality.</p>
         </div>
       </section>
-      <PortfolioCarousels />
+      <section className={styles.gallery} aria-label="Real rep websites">
+        <div className={styles.container}>
+          {sites.map((site, index) => (
+            <article className={styles.site} key={site.id} aria-labelledby={`${site.id}-title`}>
+              <div className={styles.capture}>
+                <div className={styles.browserBar} aria-hidden="true">{site.linkLabel}</div>
+                {portfolioMotion[site.id] ? <ProductPeekVideo {...portfolioMotion[site.id]} alt={`Recorded website header and complete hero from ${site.title}`} label={site.title} /> : <Image src={site.src} alt={site.alt} width={site.width} height={site.height}
+                  sizes="(max-width: 700px) calc(100vw - 40px), (max-width: 1240px) 65vw, 780px" preload={index === 0} />}
+              </div>
+              <div className={styles.siteCopy}>
+                <h2 id={`${site.id}-title`}>{site.title}</h2>
+                <p>{site.linkLabel}</p>
+                <a className={styles.visitButton} href={site.href} target="_blank" rel="noopener noreferrer">
+                  Visit site <ArrowUpRight size={18} aria-hidden="true" />
+                  <span className={styles.srOnly}> (opens in a new tab)</span>
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className={styles.close} aria-labelledby="portfolio-close-title">
+        <div className={styles.container}>
+          <h2 id="portfolio-close-title">Make room for <em>your</em> show.</h2>
+          <QueueLink className={styles.primaryButton}>Join the build queue <ArrowRight size={18} aria-hidden="true" /></QueueLink>
+          <p className={styles.noPayment}>No payment when you join the queue.</p>
+          <p className={styles.promise}>Join the build queue and I&apos;ll email you to book a quick 30-minute call. Your build starts once your first month and setup fee are paid.</p>
+        </div>
+      </section>
       <MarketingFooter />
     </main>
   )

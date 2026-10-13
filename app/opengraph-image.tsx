@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export const alt =
-  'Sparkle Suite coming soon: a better customer experience starts with a better rep setup.'
+  'Sparkle Suite: a polished website for your live-selling business.'
 
 export const size = {
   width: 1200,
@@ -17,6 +17,17 @@ export const size = {
 }
 
 export const contentType = 'image/png'
+
+let marketingBodyFont: Promise<ArrayBuffer> | null = null
+function loadMarketingBodyFont() {
+  marketingBodyFont ??= fetch('https://fonts.gstatic.com/s/dmsans/v17/rP2tp2ywxg089UriI5-g4vlH9VoD8CmcqZG40F9JadbnoEwAopxhTg.ttf', { signal: AbortSignal.timeout(5000) })
+    .then(response => {
+      if (!response.ok) throw new Error('Unable to load the marketing body font')
+      return response.arrayBuffer()
+    })
+    .catch(error => { marketingBodyFont = null; throw error })
+  return marketingBodyFont
+}
 
 export default async function Image() {
   const brand = await getCustomerSiteBrandAssetContext(await headers())
@@ -198,174 +209,30 @@ export default async function Image() {
     )
   }
 
+  const [logo, preview, bodyFont] = await Promise.all([
+    loadCustomerSiteBrandImageDataUri('/brand/sparkle-suite-logo-transparent.png'),
+    loadCustomerSiteBrandImageDataUri('/marketing/demo-social-preview.jpg'),
+    loadMarketingBodyFont(),
+  ])
   return new ImageResponse(
     (
-      <div
-        style={{
-          background: '#fff9fc',
-          color: '#241a2f',
-          display: 'flex',
-          height: '100%',
-          padding: 64,
-          position: 'relative',
-          width: '100%',
-        }}
-      >
-        <div
-          style={{
-            background:
-              'radial-gradient(circle at 20% 20%, rgba(247, 215, 231, 0.95), transparent 310px), radial-gradient(circle at 82% 28%, rgba(232, 221, 255, 0.92), transparent 340px), linear-gradient(135deg, #fff9fc 0%, #fff4f8 55%, #ffffff 100%)',
-            bottom: 0,
-            display: 'flex',
-            left: 0,
-            position: 'absolute',
-            right: 0,
-            top: 0,
-          }}
-        />
-        <div
-          style={{
-            border: '1px solid rgba(90, 52, 92, 0.16)',
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-            justifyContent: 'space-between',
-            padding: 54,
-            position: 'relative',
-            width: '100%',
-          }}
-        >
-          <div
-            style={{
-              alignItems: 'center',
-              display: 'flex',
-              justifyContent: 'space-between',
-              width: '100%',
-            }}
-          >
-            <div
-              style={{
-                alignItems: 'center',
-                display: 'flex',
-                gap: 18,
-              }}
-            >
-              <div
-                style={{
-                  alignItems: 'center',
-                  background: '#5a345c',
-                  border: '4px solid #f3cfa8',
-                  borderRadius: 999,
-                  color: '#fff9fc',
-                  display: 'flex',
-                  fontFamily: 'Georgia, serif',
-                  fontSize: 58,
-                  height: 88,
-                  justifyContent: 'center',
-                  lineHeight: 1,
-                  width: 88,
-                }}
-              >
-                S
-              </div>
-              <div
-                style={{
-                  color: '#5a345c',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  fontFamily: 'Arial, sans-serif',
-                  gap: 6,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 28,
-                    fontWeight: 700,
-                    letterSpacing: 1,
-                  }}
-                >
-                  Sparkle Suite
-                </div>
-                <div
-                  style={{
-                    color: '#765f78',
-                    fontSize: 18,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Coming Soon
-                </div>
-              </div>
-            </div>
-            <div
-              style={{
-                border: '1px solid rgba(90, 52, 92, 0.2)',
-                color: '#5a345c',
-                display: 'flex',
-                fontFamily: 'Arial, sans-serif',
-                fontSize: 18,
-                padding: '12px 18px',
-              }}
-            >
-              yoursparklesuite.com
-            </div>
+      <div style={{ display: 'flex', width: '100%', height: '100%', background: '#34252f', color: '#f6e7da', padding: 48, gap: 44, fontFamily: 'DM Sans' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: 510 }}>
+          <div style={{ display: 'flex', background: 'white', borderRadius: 12, padding: '12px 20px', width: 330 }}>
+            <img src={logo} alt="Sparkle Suite" width={290} height={74} />
           </div>
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 28,
-              maxWidth: 900,
-            }}
-          >
-            <div
-              style={{
-                color: '#5a345c',
-                display: 'flex',
-                fontFamily: 'Georgia, serif',
-                fontSize: 72,
-                letterSpacing: -1,
-                lineHeight: 0.98,
-              }}
-            >
-              A better customer experience starts with a better rep setup.
-            </div>
-            <div
-              style={{
-                color: '#765f78',
-                display: 'flex',
-                fontFamily: 'Arial, sans-serif',
-                fontSize: 28,
-                lineHeight: 1.35,
-                maxWidth: 820,
-              }}
-            >
-              A more polished website, standout live show tools, and built-in
-              support that helps customers feel the difference.
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+            <div style={{ display: 'flex', fontFamily: 'Playfair Display', fontSize: 60, lineHeight: 1.08 }}>Your brand. Your show. A setup that shines.</div>
+            <div style={{ display: 'flex', fontSize: 25, lineHeight: 1.4 }}>A polished website for your live-selling business.</div>
           </div>
-
-          <div
-            style={{
-              color: '#5a345c',
-              display: 'flex',
-              fontFamily: 'Arial, sans-serif',
-              fontSize: 22,
-              gap: 18,
-            }}
-          >
-            <span>Polished website</span>
-            <span>Live show tools</span>
-            <span>Nic-Nac support</span>
-            <span>Waitlist open</span>
-          </div>
+          <div style={{ display: 'flex', color: '#ffd4ea', fontSize: 20 }}>yoursparklesuite.com</div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', width: 550, border: '1px solid #ffd4ea', borderRadius: 18, overflow: 'hidden', background: '#fff6fa' }}>
+          <div style={{ display: 'flex', padding: '16px 20px', background: '#36221d', fontSize: 18 }}>A website that feels like you</div>
+          <img src={preview} alt="Sparkle Suite customer website example" width={550} height={490} style={{ objectFit: 'cover', objectPosition: 'top' }} />
         </div>
       </div>
     ),
-    {
-      ...size,
-      fonts,
-    },
+    { ...size, fonts: [...fonts, { name: 'DM Sans', data: bodyFont, style: 'normal', weight: 400 }] },
   )
 }

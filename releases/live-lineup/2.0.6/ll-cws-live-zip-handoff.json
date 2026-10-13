@@ -1,0 +1,88 @@
+{
+  "artifact": "Chrome Web Store Live Lineup package",
+  "readyForWatch": true,
+  "uploadedToCws": false,
+  "productionSuiteDeployed": false,
+  "version": "2.0.6",
+  "storeListingId": "kmodgfffflplfdlkkhadgimmobplhoih",
+  "storeName": "Sparkle Suite Live Queue",
+  "zipPath": "/workspace/uploads/sparkle-suite-live-lineup-2.0.6-cws.zip",
+  "sha256": "341c2c0f3f177f700c102fe36683ab0403d2dcfc5f8a5241ddc7bd31193d0819",
+  "bytes": 62354,
+  "source": {
+    "repo": "louis623/sparkle-suite",
+    "pr": 49,
+    "prUrl": "https://github.com/louis623/sparkle-suite/pull/49",
+    "branch": "cursor/live-lineup-status-copy-0977",
+    "commit": "d3f1dff625b645747a68d30cf8949a05dfd7dabc",
+    "chromeExtensionBlobsMatchCommit": true
+  },
+  "identity": {
+    "target": "production",
+    "noSmokeBanner": true,
+    "noManifestKey": true,
+    "smokeExtensionIdAbsent": "bpipafleeajdagfimfnfgmhcdendgkfl",
+    "environment": "production",
+    "publishUrl": "https://www.yoursparklesuite.com/api/live-lineup/publish",
+    "hostPermissions": [
+      "https://myoffice.bombparty.com/*",
+      "https://www.yoursparklesuite.com/*"
+    ],
+    "permissions": [
+      "alarms",
+      "scripting",
+      "storage"
+    ],
+    "notSmokePackage": "sparkle-suite-live-lineup-smoke-2.0.6-verified"
+  },
+  "verifier": {
+    "script": "scripts/verify-live-lineup-extension-package.mjs",
+    "targetDefault": "production",
+    "expectedVersion": "2.0.6",
+    "passed": true,
+    "sha256": "341c2c0f3f177f700c102fe36683ab0403d2dcfc5f8a5241ddc7bd31193d0819"
+  },
+  "filesChecklist": [
+    "background.js",
+    "content.js",
+    "icons/icon128.png",
+    "icons/icon16.png",
+    "icons/icon48.png",
+    "manifest.json",
+    "popup.css",
+    "popup.html",
+    "popup.js",
+    "publisher-client.js",
+    "queue-filter.js",
+    "queue-parser.js"
+  ],
+  "fileSha256": {
+    "background.js": "e50d9bafca136cf9119db268dcf601fc7b5494032827b55116cde7bdde2a076e",
+    "content.js": "6ccff2675f69c5ef073c3336d40c6d086d53a4d83941fd1a504e5136960fd097",
+    "icons/icon128.png": "488ac0f9e5923677946bf0b33493339fd267d854c1764fcfae962c90b74cf495",
+    "icons/icon16.png": "840e3dd93686dfa915050361fdad0dde044396db03f34032f4e8ad1fd8dc1439",
+    "icons/icon48.png": "11931d6a6bde588bd267ae650551e624e2bf5b61e24adf2087651a9bb5675e31",
+    "manifest.json": "50d38200e897ed1cc55d429d3a7da749b0f764fafb2d86a305225d1012a9ae25",
+    "popup.css": "fe15aa8dc2e40697021d9d7309edef17a77ddbd97c2fe80d8328bf98a09fe926",
+    "popup.html": "3243d851420fc6d7e5e3f775d31366dae9d207708005c226e6ca2fd763b1af83",
+    "popup.js": "76ae49685a79fbb506ac418fae59cc1ebef6b8ff1b185dce0cdddb6825dbd638",
+    "publisher-client.js": "37de8b9fa66e492c1457470bf5bc7c6d1f67da7ff77018657b625c91144b2a5b",
+    "queue-filter.js": "0fbf223fe33df871efc8447b82a5a5a64b8f270ed2837537cf5f4c3058e0b828",
+    "queue-parser.js": "69e5e05dd1a0ae0a00299502e84e1d78918fe4f6f7511f822df5a4d5cf34b7ef"
+  },
+  "statusCopy": {
+    "scope": "PR #49 popup status copy only; no further extension code edits in this package build",
+    "healthyPhrase": "Connected + Updating",
+    "popupPlaceholder": "Connecting"
+  },
+  "notesForWatchStatusStamp": [
+    "ZIP is Live/production identity for CWS item kmodgfffflplfdlkkhadgimmobplhoih. Not uploaded.",
+    "Version 2.0.6 is ahead of Store 2.0.4. Store name remains Sparkle Suite Live Queue (same as 2.0.4 listing).",
+    "No Smoke banner, no Smoke host (sparkle-suite-smoke.vercel.app), no pinned key, ENVIRONMENT is production, publish URL is https://www.yoursparklesuite.com/api/live-lineup/publish.",
+    "background.js still contains inert smoke-vs-live branches gated by ENVIRONMENT === 'smoke'; the packaged constant is production. Those lines are existing source, not a Smoke package.",
+    "Bytes are unmodified chrome-extension files from PR #49 tip d3f1dff. Packed with repo zipSources (stored ZIP) and checked by the production verifier. sha256 341c2c0f3f177f700c102fe36683ab0403d2dcfc5f8a5241ddc7bd31193d0819.",
+    "Live Suite deploy was NOT performed. Workspace card status copy in PR #49 will not appear on production Suite until Louis separately OKs that deploy. This handoff is the extension ZIP only.",
+    "Do not substitute sparkle-suite-live-lineup-smoke-2.0.6-verified or id bpipafleeajdagfimfnfgmhcdendgkfl."
+  ],
+  "builtAt": "2026-09-29T20:46:22-04:00"
+}

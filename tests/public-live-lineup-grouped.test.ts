@@ -213,13 +213,13 @@ it('new HTML pins template and runtime together, with privacy-safe counts and de
     const htmlName = page === 'homepage' ? 'Homepage' : page === 'join' ? 'Join' : 'Trade'
     const html = readFileSync(`public/amethyst/${htmlName}.html`, 'utf8')
     expect(html).toContain('data-lineup-presentation="grouped-v1"')
-    expect(html).toContain('live-lineup.js?v=20260928-lineup-always-on')
+    expect(html).toContain('live-lineup.js?v=20261002-compact-lineup')
     const jsx = readFileSync(`public/amethyst/${page}.jsx`, 'utf8')
     expect(jsx).toContain('data-lineup-token={entry.token}')
     expect(jsx).toContain('key={entry.token || entry.position}')
     expect(jsx).toContain('hp-lineup-sparkle" aria-hidden="true"')
-    expect(jsx).toContain('data-lineup-clone={index >= entries.length ? "true" : undefined}')
-    expect(jsx).toContain('hp-ticker-track" data-ticker-pps="32" aria-hidden="true"')
+    expect(jsx).not.toContain('<LiveLineupTicker />')
+    expect(jsx).toContain('data-lineup-surface="list"')
     expect(jsx).not.toMatch(/entry\.lastName|entry\.birthday|entry\.preferences|entry\.groupEntryIds/)
   }
   expect(readFileSync('public/amethyst/homepage.css', 'utf8')).toContain('@media (prefers-reduced-motion: reduce)')

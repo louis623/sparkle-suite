@@ -1,5 +1,8 @@
 import { controlCenterMcpHandler } from '@/lib/remy-communications/mcp'
-import { remyMcpSecurityResponse } from '@/lib/remy-communications/security'
+import {
+  remyMcpSecurityResponse,
+  runWithOwnerScopedControlCenterMcp,
+} from '@/lib/remy-communications/security'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -7,7 +10,7 @@ export const dynamic = 'force-dynamic'
 async function handle(request: Request) {
   const securityResponse = remyMcpSecurityResponse(request)
   if (securityResponse) return securityResponse
-  return controlCenterMcpHandler.fetch(request)
+  return runWithOwnerScopedControlCenterMcp(() => controlCenterMcpHandler.fetch(request))
 }
 
 export async function GET(request: Request) {

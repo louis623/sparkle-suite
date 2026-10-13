@@ -284,6 +284,13 @@ export const locOperationCatalog: LocOperation[] = [
     page,
   ),
   read(
+    "finder.launchNotify.list",
+    "launch",
+    "Live Finder launch-notify signups from public.sparkle_finder_launch_notify.",
+    ["finder"],
+    page,
+  ),
+  read(
     "lab.snapshot",
     "lab",
     "Sparkle Lab findings, artifacts and run history.",
@@ -460,6 +467,57 @@ export const locOperationCatalog: LocOperation[] = [
     "lab",
     "Run an allowed manual Lab scan within existing limits.",
   ),
+  read(
+    "communications.emailPreview",
+    "communications",
+    "Render the exact Suite official-notice email HTML. Does not send.",
+    ["suite"],
+    {
+      title: { ...string, maxLength: 160 },
+      summary: { type: "string", maxLength: 500 },
+      body: { ...string, maxLength: 20000 },
+      actionUrl: { type: "string", maxLength: 2000 },
+      resourceType: { enum: ["help", "faq", "blog", "video"] },
+      thumbnailUrl: optionalText,
+      videoUrl: optionalText,
+    },
+  ),
+  read(
+    "fizz.issue.get",
+    "communications",
+    "Read one staged Fizz issue and its email and Workspace results.",
+    ["suite"],
+    { issueId: { type: "string", pattern: "^[0-9]{4}-W[0-9]{2}$" } },
+    ["issueId"],
+  ),
+  write(
+    "fizz.issue.stage",
+    "communications",
+    "Stage one Fizz issue. Does not email or post.",
+    ["issueId"],
+    ["suite"],
+    {
+      issueId: { type: "string", pattern: "^[0-9]{4}-W[0-9]{2}$" },
+      subject: { ...string, maxLength: 160 },
+      preheader: string,
+      content: { type: "object", description: "Structured Weekly Fizz content: issueDate, weekNote (opens with Good morning), items[{headline,summary,whatItMeans,sourceLabel,sourceUrl}] (max 5), latest{kind blog|video,title,summary,url,thumbnailUrl}, optional cta{label,url}. Raw HTML is rejected; the server renders the template." },
+      workspaceTitle: { ...string, maxLength: 160 },
+      workspaceSummary: { type: "string", maxLength: 500 },
+      workspaceBody: { ...string, maxLength: 20000 },
+      actionUrl: { type: "string", maxLength: 2000 },
+    },
+  ),
+  write(
+    "fizz.issue.approve",
+    "communications",
+    "Approve one staged Fizz issue once. test emails and posts only to the owner. live uses the Suite list and all active reps.",
+    ["issueId"],
+    ["suite"],
+    {
+      issueId: { type: "string", pattern: "^[0-9]{4}-W[0-9]{2}$" },
+      mode: { enum: ["test", "live"] },
+    },
+  ),
 ];
 export function findLocOperation(name: string) {
   return locOperationCatalog.find((operation) => operation.name === name);
@@ -478,6 +536,10 @@ const requiredByName: Record<string, string[]> = {
   "approvals.decide": ["requestId", "decision"],
   "moderation.suspension": ["repId", "suspended"],
   "support.reply": ["conversationId", "body", "clientRequestId"],
+  "communications.emailPreview": ["title", "body"],
+  "fizz.issue.stage": ["issueId", "subject", "preheader", "content", "workspaceTitle", "workspaceSummary", "workspaceBody"],
+  "fizz.issue.get": ["issueId"],
+  "fizz.issue.approve": ["issueId", "mode"],
 };
 const boolean = { type: "boolean" };
 const textList = { type: "array", items: { type: "string" }, maxItems: 12 };
@@ -611,6 +673,7 @@ const fieldsByName: Record<string, Record<string, unknown>> = {
     audienceToken: { ...string, minLength: 16, maxLength: 128 },
     expectedRecipientCount: { type: "integer", minimum: 1, maximum: 10000 },
     confirmed: boolean,
+    emailSuiteList: boolean,
   },
   "resources.publish": {
     resourceKey: { type: "string", maxLength: 120 },
@@ -628,6 +691,7 @@ const fieldsByName: Record<string, Record<string, unknown>> = {
     isFeatured: boolean,
     authorLabel: optionalText,
     announce: boolean,
+    emailSuiteList: boolean,
   },
   "finder.review.update": { reviewNote: { type: "string", maxLength: 2000 } },
   "lab.run": { runType: { enum: ["manual", "urgent"] } },
@@ -641,6 +705,7 @@ for (const operation of locOperationCatalog) {
     if (!schema.properties[key]) schema.properties[key] = string;
   Object.assign(schema.properties, fieldsByName[operation.name] ?? {});
   operation.ownerOnly =
+    operation.name.startsWith("fizz.") ||
     operation.name === "finder.review.evidence" ||
     operation.name.startsWith("support.session.") ||
     operation.name.startsWith("support.workspace.") ||

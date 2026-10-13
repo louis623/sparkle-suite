@@ -56,13 +56,15 @@ describe('Amethyst trade page template wiring', () => {
     expect(source).not.toContain('options.limit ?? 18')
   })
 
-  it('keeps desktop Dance Floor controls sticky while mobile controls scroll with the page', () => {
+  it('lets Dance Floor search scroll with the page at every screen size', () => {
     const css = readFileSync(
       resolve(process.cwd(), 'public/amethyst/trade.css'),
       'utf8',
     )
 
-    expect(css).toMatch(/\.tp-filters\s*\{[\s\S]*?position:\s*sticky;/)
+    const filterRules = [...css.matchAll(/\.tp-filters\s*\{([^}]*)\}/g)].map((match) => match[1])
+    expect(filterRules.some((rule) => /position:\s*static;/.test(rule))).toBe(true)
+    expect(filterRules.some((rule) => /position:\s*(sticky|fixed);/.test(rule))).toBe(false)
     expect(css).toMatch(/@media\s+\(max-width:\s*900px\)[\s\S]*?\.tp-drawer,[\s\S]*?\.tp-filters\s*\{[\s\S]*?position:\s*static;/)
     expect(css).toMatch(/@media\s+\(pointer:\s*coarse\)[\s\S]*?\.tp-filter-pill[\s\S]*?min-height:\s*44px;/)
     expect(css).toMatch(/@media\s+\(pointer:\s*coarse\)[\s\S]*?\.tp-card-close[\s\S]*?min-width:\s*44px;/)
@@ -657,7 +659,7 @@ describe('Amethyst trade page template wiring', () => {
     expect(html).toContain('Playfair+Display')
   })
 
-  it('ships the Rose Gold skin in the local trade preset picker', () => {
+  it('ships distinct Rose Gold and Rose Champagne ids in the local trade theme picker', () => {
     const jsx = readFileSync(
       resolve(process.cwd(), 'public/amethyst/trade.jsx'),
       'utf8',
@@ -668,7 +670,8 @@ describe('Amethyst trade page template wiring', () => {
     )
 
     expect(jsx).toContain('rose_gold')
-    expect(jsx).toContain('Rose Gold')
+    expect(jsx).toContain('{ value: "rose_gold", label: "Rose Gold" }')
+    expect(jsx).toContain('{ value: "rose_champagne", label: "Rose Champagne" }')
     expect(html).toContain('DM+Sans')
     expect(html).toContain('Playfair+Display')
   })
@@ -724,8 +727,8 @@ describe('Amethyst trade page template wiring', () => {
     )
 
     expect(jsx).toContain('function RequestSheet')
-    expect(jsx).toContain('<label>Your name</label>')
-    expect(jsx).toContain('<label>What did you just reveal?</label>')
+    expect(jsx).toContain('<label htmlFor="tp-customer-name">Your name</label>')
+    expect(jsx).toContain('<label htmlFor="tp-customer-reveal">What did you just reveal?</label>')
     expect(jsx).toContain('placeholder="Example: July Birthday 2026 necklace"')
     expect(jsx).toContain('Collection family you revealed')
     expect(jsx).toContain('Jewelry type you revealed')
@@ -784,7 +787,7 @@ describe('Amethyst trade page template wiring', () => {
     )
 
     expect(jsx).toContain('setSuccess(true)')
-    expect(jsx).toContain('<h3 className="tp-sheet-success-title">Request sent.</h3>')
+    expect(jsx).toContain('<h3 id="trade-request-title" className="tp-sheet-success-title">Request sent.</h3>')
     expect(jsx).toContain('setRequestError(error?.message || DEFAULT_TRADE_REQUEST_ERROR)')
     expect(jsx).not.toContain('}, [availableSamples, t.demoSheet]);')
     expect(jsx).toContain('}, [t.demoSheet]);')

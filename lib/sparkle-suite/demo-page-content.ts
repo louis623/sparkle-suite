@@ -186,14 +186,14 @@ export const sparkleSuiteDemoStories = [
   },
   {
     id: 'live-queue',
-    eyebrow: 'Live queue',
+    eyebrow: 'Live Lineup',
     title: 'A lineup customers can actually find.',
     body: 'The show site is the front door. The lineup belongs there, not buried in a comment thread.',
     image: {
-      src: '/sparkle-suite/landing/jane-customer-home-mobile.png',
-      alt: 'Mobile customer homepage for a Sparkle Suite show, with the show name and actions a customer would open first.',
-      width: 390,
-      height: 844,
+      src: '/sparkle-suite/landing/demo-live-lineup-v1.png',
+      alt: 'Live Lineup full lineup modal with numbered positions for Sample Harper, Sample Rowan, and Sample Sage.',
+      width: 1280,
+      height: 800,
     },
   },
   {
@@ -202,10 +202,10 @@ export const sparkleSuiteDemoStories = [
     title: 'The next live, already on the calendar.',
     body: 'Date, time, and what the night is about, before anyone has to ask in the comments.',
     image: {
-      src: '/sparkle-suite/landing/calendar-emerald-garden-v2.webp',
-      alt: 'Emerald Garden show card with the date, time, collection, and add-to-calendar actions.',
-      width: 429,
-      height: 469,
+      src: '/sparkle-suite/landing/demo-live-calendar-v1.png',
+      alt: 'Upcoming Shows on the live calendar, with two sample reveal cards, dates, times, and add-to-calendar actions.',
+      width: 1265,
+      height: 960,
     },
   },
 ] as const

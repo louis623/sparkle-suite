@@ -145,6 +145,19 @@ describe("LOC signed service boundary", () => {
     expect(mock.rows.get(opId)?.status).toBe("failed");
     expect(mock.calls).toBe(0);
   });
+  it("refuses agent authority on fizz approve before any route runs", async () => {
+    expect(
+      (
+        await dispatchLocRequest(
+          request({
+            operation: "fizz.issue.approve",
+            input: { product: "suite", issueId: "2026-W42", mode: "test" },
+          }),
+        )
+      ).status,
+    ).toBe(403);
+    expect(mock.calls).toBe(0);
+  });
   it("requires server-signed owner authority for owner-only actions and discovery", async () => {
     vi.stubEnv("LOC_CONTROL_CENTER_OPERATIONS", "approvals.decide");
     expect(

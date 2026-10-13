@@ -240,7 +240,7 @@ describe('Amethyst join page template data wiring', () => {
     expect(html).toContain('Playfair+Display')
   })
 
-  it('ships the Rose Gold skin in the local join preset picker', () => {
+  it('ships distinct Rose Gold and Rose Champagne ids in the local join theme picker', () => {
     const jsx = readFileSync(
       resolve(process.cwd(), 'public/amethyst/join.jsx'),
       'utf8',
@@ -251,7 +251,8 @@ describe('Amethyst join page template data wiring', () => {
     )
 
     expect(jsx).toContain('rose_gold')
-    expect(jsx).toContain('Rose Gold')
+    expect(jsx).toContain('{ value: "rose_gold", label: "Rose Gold" }')
+    expect(jsx).toContain('{ value: "rose_champagne", label: "Rose Champagne" }')
     expect(html).toContain('DM+Sans')
     expect(html).toContain('Playfair+Display')
   })
@@ -331,8 +332,8 @@ describe('Amethyst join page template data wiring', () => {
     expect(css).toContain('transform: rotate(var(--jp-team-photo-rotation, 0deg)) scale(var(--jp-team-photo-zoom, 1))')
     expect(css).not.toContain('rotate(-25deg)')
     expect(css).not.toContain('object-position: left center')
-    expect(html).toContain('join.css?v=20260920-team-portraits-v1')
-    expect(html).toContain('join-runtime.js?v=20260928-lineup-always-on')
+    expect(html).toContain('join.css?v=20260930-keyboard-v1')
+    expect(html).toContain('join-runtime.js?v=20261004-rg04-v1')
   })
 
   it('renders shared SVG social marks on team cards and hides empty or hash hrefs', () => {

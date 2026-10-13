@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     absolute: 'Sparkle Suite Portfolio',
   },
   description:
-    'Customer sites, community looks, and seasonal themes Sparkle Suite is proud to put on the floor for Bomb Party reps.',
+    'Explore real rep websites built with Sparkle Suite. Find a look for your live-selling business.',
   alternates: {
     canonical: '/portfolio',
   },
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Sparkle Suite Portfolio',
     description:
-      'Real customer sites, community looks, and seasonal themes. Schedule your Sparkle Suite build.',
+      'Real rep websites, each with its own personality. Explore Sparkle Suite and join the build queue.',
     url: '/portfolio',
     siteName: 'Sparkle Suite',
     type: 'website',

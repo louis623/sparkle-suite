@@ -1,3 +1,5 @@
+import { loadAmethystHomepageUpcomingShows } from '@/lib/amethyst/homepage-upcoming-shows'
+import { buildLineupCalendar } from '@/lib/amethyst/lineup-calendar'
 import { buildPublicLiveLineup, requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
 
@@ -28,13 +30,14 @@ export async function GET(request: Request) {
       headers: { 'cache-control': 'no-store' },
     })
   }
-  const [templateData, tradeBoardListings] = await Promise.all([
+  const [templateData, tradeBoardListings, events] = await Promise.all([
     loadAmethystPreviewTemplateData(lookupTarget),
     loadAmethystTradeBoardPreviewListings({
       ...lookupTarget,
       targeted,
       limit: 8,
     }),
+    loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }),
   ])
   const customerTemplateData = applyCustomDomainToTemplateData(
     templateData,
@@ -43,7 +46,11 @@ export async function GET(request: Request) {
 
   return new NextResponse(
     buildAmethystJoinBootstrapScript(
-      { ...customerTemplateData.join, ...buildPublicLiveLineup(null, requestedLineupPresentation(request)) },
+      {
+        ...customerTemplateData.join,
+        ...buildLineupCalendar(customerTemplateData.homepage, events),
+        ...buildPublicLiveLineup(null, requestedLineupPresentation(request)),
+      },
       customerTemplateData.appearancePreset,
       { publicSiteSlug, repId, targeted },
       tradeBoardListings,

@@ -576,9 +576,8 @@ body.britt-with-bling-trade .hp-footer {
 
 /* ---------- Filter pill bar ---------- */
 .tp-filters {
-  position: sticky;
-  top: 144px;
-  z-index: 5;
+  /* Keep search above the inventory without covering dancers while browsing. */
+  position: static;
   background: color-mix(in oklab, var(--hp-bg) 92%, transparent);
   backdrop-filter: blur(8px);
   border: 1px solid var(--border);
@@ -587,12 +586,6 @@ body.britt-with-bling-trade .hp-footer {
   padding: 14px 0;
   margin-bottom: 24px;
   overflow: hidden;
-}
-@media (max-width: 900px) {
-  .tp-filters {
-    top: var(--hp-mobile-sticky-filters-top);
-    z-index: 60;
-  }
 }
 .tp-filters-topline {
   display: flex;
@@ -760,16 +753,25 @@ body.bg-moonstone-charcoal .tp-filter-pill.active {
 
 body.bg-alpine-opal .tp-filter-pill.active {
   background: linear-gradient(90deg, var(--hp-primary), color-mix(in srgb, var(--hp-primary) 58%, var(--hp-accent)), var(--hp-accent));
-  color: #ffffff;
+  color: var(--hp-action-fg);
   border-color: transparent;
 }
 
 body.bg-suite-paper .tp-filter-pill.active,
-body.bg-moonstone-charcoal .tp-filter-pill.active,
+body.bg-moonstone-charcoal .tp-filter-pill.active {
+  color: #080808;
+}
+
+/* Follow the skin's action foreground so RG-04 can inherit RG-01's
+ * decoration without inheriting its dark text on a darker rose fill. */
 body.bg-rose-gold-paper .tp-filter-pill.active,
 body.bg-amber-paper .tp-filter-pill.active,
 body.bg-quartz-paper .tp-filter-pill.active {
-  color: #080808;
+  color: var(--hp-action-fg);
+}
+
+body.bg-neon-butterfly .tp-filter-pill.active {
+  color: var(--hp-final-icon-fg);
 }
 
 body.bg-black-velvet .tp-filter-pill.active .count,
@@ -1192,9 +1194,6 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
   .tp-card-expand { grid-template-columns: 1fr; }
   .tp-filter-grid { grid-template-columns: 1fr; }
   .tp-filters {
-    position: sticky;
-    top: 0;
-    z-index: 76;
     box-shadow: 0 12px 28px rgba(14, 8, 32, 0.08);
   }
   .tp-mobile-filter-cue {

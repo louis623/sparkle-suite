@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     absolute: 'Sparkle Suite FAQ — Pricing, Setup & Live-Show Tools',
   },
   description:
-    'Deeper answers on pricing, what is included, domains, mobile, and independence. Independent tools for Bomb Party reps — not affiliated with Bomb Party.',
+    'Straight answers about Sparkle Suite websites, pricing, themes, show tools, and getting started.',
   alternates: {
     canonical: '/faq',
   },
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Sparkle Suite FAQ — Pricing, Setup & Live-Show Tools',
     description:
-      'Deeper answers on pricing, what is included, domains, mobile, and independence. Independent tools for Bomb Party reps.',
+      'Straight answers about your Sparkle Suite site, pricing, and getting started.',
     url: '/faq',
     siteName: 'Sparkle Suite',
     type: 'website',

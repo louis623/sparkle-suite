@@ -624,6 +624,12 @@ body.joinpage .hp-saturate {
   border-bottom: 1px solid var(--border);
 }
 .jp-faq-q {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  line-height: inherit;
   display: flex;
   justify-content: space-between;
   align-items: center;

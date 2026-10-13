@@ -1,3 +1,4 @@
+import { buildLineupCalendar } from '@/lib/amethyst/lineup-calendar'
 import { requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
 
@@ -17,6 +18,8 @@ import {
   applyPublicSiteSlugToTemplateData,
 } from '@/lib/amethyst/public-site-links'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
+import { DEFAULT_AMETHYST_APPEARANCE_PRESET } from '@/lib/amethyst/appearance-presets'
+import { applyBlingKitchenHomepage } from '@/lib/bling-kitchen/profile'
 import { getEffectiveLiveQueueSnapshot } from '@/lib/live-lineup/service'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { LiveQueueSnapshot } from '@/lib/services/types'
@@ -70,6 +73,11 @@ async function resolveHomepageFeatureRepId(lookupTarget: {
   }
 }
 
+function isSmokeBlingKitchenPreview(request: Request) {
+  if (process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT !== 'smoke') return false
+  return new URL(request.url).searchParams.get('skinPreview') === 'bling_kitchen_hybrid'
+}
+
 export async function GET(request: Request) {
   const target = resolveAmethystRequestTarget(request)
   const requestCustomDomain = resolveAmethystRequestCustomDomainHost(request)
@@ -102,10 +110,18 @@ export async function GET(request: Request) {
     templateData,
     publicSiteSlug,
   )
-  const customerTemplateData = applyCustomDomainToTemplateData(
+  const domainTemplateData = applyCustomDomainToTemplateData(
     linkedTemplateData,
     requestCustomDomain,
   )
+  // Smoke-only design preview of Heather's BlingKitchen kitchen hero. Never on Live.
+  const customerTemplateData = isSmokeBlingKitchenPreview(request)
+    ? {
+        ...domainTemplateData,
+        homepage: applyBlingKitchenHomepage(domainTemplateData.homepage),
+        appearancePreset: DEFAULT_AMETHYST_APPEARANCE_PRESET,
+      }
+    : domainTemplateData
   const linkedEvents = applyCustomDomainToHomepageEvents(
     applyPublicSiteSlugToHomepageEvents(events, publicSiteSlug),
     requestCustomDomain,
@@ -113,11 +129,14 @@ export async function GET(request: Request) {
 
   return new NextResponse(
     buildAmethystHomepageBootstrapScript(
-      enrichAmethystHomepageFeatureData(customerTemplateData.homepage, {
-        liveQueueSnapshot,
-        lineupPresentation: requestedLineupPresentation(request),
-        tradeBoardListings,
-      }),
+      {
+        ...enrichAmethystHomepageFeatureData(customerTemplateData.homepage, {
+          liveQueueSnapshot,
+          lineupPresentation: requestedLineupPresentation(request),
+          tradeBoardListings,
+        }),
+        ...buildLineupCalendar(customerTemplateData.homepage, linkedEvents),
+      },
       linkedEvents,
       customerTemplateData.appearancePreset,
       { publicSiteSlug, repId, targeted },

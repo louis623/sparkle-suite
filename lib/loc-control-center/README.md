@@ -60,6 +60,12 @@ The Suite operation `finder.review.evidence` accepts only `finderSubmissionId` a
 
 Finder verifies its own queued submission, asset ownership, exact private bucket/path, MIME type and size. The returned image URL lasts 120 seconds. The LOC UI needs the actual Finder Supabase storage origin in its image policy and `referrerPolicy="no-referrer"` on private images. Expired photos require a fresh explicit read. No Suite database key is used against Finder.
 
+## Finder launch notify
+
+`finder.launchNotify.list` is a Finder-only read. It lists `public.sparkle_finder_launch_notify` through Suite's signed LOC bridge. `finder.reviews` stays on the Suite-side studio ledger and is not this list.
+
+The read uses `SPARKLE_FINDER_SUPABASE_URL` and `SPARKLE_FINDER_SERVICE_ROLE_KEY`. Both must identify live Finder project `pzksocboqauqjdtsgpdp`. A Smoke project URL or key is refused. Suite's own `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are not used. The response is `{ items, nextOffset }`. Each item contains only the public signup fields. The Finder migration is in the repo and is not applied by this change.
+
 ## Verification recorded during implementation
 
 - 92 passing Suite tests across 19 focused new and existing test files: signed boundary, receipts, owner/agent distinction, pure reads, customer paging and related-row history, stale setup/waitlist changes, encrypted support mapping, existing support notices/HTTP/gateway behavior, accounting and legacy routes.

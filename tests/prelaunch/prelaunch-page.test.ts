@@ -1,41 +1,36 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createElement } from 'react'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
-
+const { readAvailability } = vi.hoisted(() => ({ readAvailability: vi.fn() }))
+vi.mock('@/lib/sparkle-suite/live-founder-availability', () => ({ readLandingFounderAvailability: readAvailability }))
 import PrelaunchPage, { metadata } from '@/app/prelaunch/page'
 import { PrelaunchWaitlistForm } from '@/app/prelaunch/_components/PrelaunchWaitlistForm'
 import { prelaunchContent } from '@/lib/prelaunch/content'
 
+const renderIntake = async () => renderToStaticMarkup(await PrelaunchPage())
+beforeEach(() => readAvailability.mockResolvedValue({ status: 'unavailable', remaining: null, checkedAt: null }))
+
 describe('Sparkle Suite build-queue intake', () => {
-  it('renders a compact active-build intake without dormant or internal copy', () => {
-    const html = renderToStaticMarkup(createElement(PrelaunchPage))
-    expect(html).toContain('Now building Sparkle Suite sites')
-    expect(html).toContain('Your spot in line starts here.')
-    expect(html).toContain('Sign up to get your spot in line.')
+  it('explains the call and payment sequence before the form', async () => {
+    const html = await renderIntake()
+    expect(html).toContain('Let’s talk about your site.')
     expect(html).toContain('Join the build queue')
-    expect(html).toContain('No payment to join.')
+    expect(html).toContain('quick 30-minute call')
+    expect(html).toContain('Your build starts once your first month and setup fee are paid.')
+    expect(html).toContain('No payment when you join the queue.')
     expect(html).toContain('application/ld+json')
-    expect(html).not.toContain('Coming Soon')
-    expect(html).not.toContain('Join the Waitlist')
-    expect(html).not.toContain('V1 preview')
-    expect(html).not.toContain('backend')
-    expect(html).not.toContain('launch flow')
-    expect(html).not.toContain('Thank you, Louis Chapman')
+    for (const phrase of ['Coming Soon', 'Join the Waitlist', 'V1 preview', 'backend', 'Thank you, Louis Chapman', 'Your spot in line starts here.']) expect(html).not.toContain(phrase)
     expect(metadata.title).toEqual({ absolute: 'Join the build queue | Sparkle Suite' })
     expect(metadata.alternates?.canonical).toBe('/prelaunch')
   })
 
-  it('preserves navigation, account utility, signup anchor, and legal destinations', () => {
-    const html = renderToStaticMarkup(createElement(PrelaunchPage))
+  it('preserves navigation, signup anchor, and legal destinations', async () => {
+    const html = await renderIntake()
     const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'))
-    expect(header).toContain('href="/"')
-    expect(header).toContain('href="/#customer-site-proof"')
-    expect(header).toContain('href="/#workspace-proof"')
-    expect(header).toContain('href="/#pricing"')
+    for (const href of ['/', '/portfolio', '/#pricing', '/faq']) expect(header).toContain(`href="${href}"`)
     expect(header).toContain('aria-label="Account links"')
-    expect(header).toContain('Sparkle Suite account')
     expect(html).toContain('href="#waitlist"')
     expect(html).toContain('id="waitlist"')
     expect(html).toContain('href="/privacy-policy"')
@@ -46,37 +41,32 @@ describe('Sparkle Suite build-queue intake', () => {
     expect(formSource.indexOf('if (!response.ok)')).toBeLessThan(formSource.indexOf('setIsSubmitted(true)'))
   })
 
-  it('shows the shared honest offer while availability is unconfirmed', () => {
-    const html = renderToStaticMarkup(createElement(PrelaunchPage))
-    expect(html).toContain('aria-label="Included in Sparkle Suite"')
-    expect(html).toContain('Sparkle Suite Standard')
-    expect(html).toContain('$74.99')
+  it('server-renders founder pricing without fabricated availability and keeps consent disclosures', async () => {
+    const html = await renderIntake()
+    expect(readAvailability).toHaveBeenCalled()
+    expect(html).toContain('aria-label="Sparkle Suite founding rep pricing"')
     expect(html).toContain('$49.99')
-    expect(html).toContain('$124.98')
-    expect(html).toContain('applicable tax')
-    expect(html).toContain('Setup is non-refundable.')
-    expect(html).toContain('Founder availability is temporarily unconfirmed.')
-    expect(html).toContain('Joining the queue does not reserve a founder rate.')
-    expect(html).not.toContain('19 founder spots remaining')
-    expect(html).not.toContain('19 of 20')
+    expect(html).toContain('$99.98')
+    expect(html).toContain('first 12 paid months')
+    expect(html).not.toContain('$124.98')
+    expect(html).not.toContain('founder spots remaining')
+    expect(html).toContain('Joining the queue does not reserve founder pricing.')
     expect(html).toContain('Message frequency may vary')
     expect(html).toContain('Reply STOP to')
     expect(html).toContain('HELP for help')
     expect(html).toContain('not sold, rented, traded, or shared for third-party')
+    expect(html).toContain('source and campaign label')
   })
 
-  it('preserves intake fields, consent defaults, and honest build-queue confirmation', () => {
+  it('preserves intake fields, consent defaults, and an honest confirmation', () => {
     const html = renderToStaticMarkup(createElement(PrelaunchWaitlistForm))
     const field = (name: string) => html.match(new RegExp(`<input[^>]*name="${name}"[^>]*>`))?.[0] ?? ''
-
-    expect(html).toContain('id="waitlist"')
     expect(field('name')).toContain('required=""')
     expect(field('email')).toContain('required=""')
     for (const name of ['phone', 'tiktokHandle', 'teamRepName']) {
       expect(field(name)).not.toBe('')
       expect(field(name)).not.toContain('required=""')
     }
-    expect(html.match(/ss-field__opt/g)).toHaveLength(4)
     expect(html).toContain('name="setupPain"')
     expect(field('website')).toContain('hidden=""')
     expect(field('smsConsent')).not.toContain('checked=""')
@@ -84,10 +74,9 @@ describe('Sparkle Suite build-queue intake', () => {
     expect(field('emailConsent')).toContain('checked=""')
     expect(field('emailConsent')).toContain('required=""')
     expect(html).toContain('Consent is not a condition of purchase.')
-    expect(html).toContain('not sold, rented, traded, or shared for third-party')
-    expect(prelaunchContent.waitlistSuccessBody).toContain('text only if you chose SMS updates')
-    expect(prelaunchContent.waitlistSuccessBody).toContain('founder pricing is confirmed separately')
-    expect(prelaunchContent.pricing.founder.term).toBe('Founder rate for the first 12 paid service months.')
-    expect(prelaunchContent.pricing.founder.afterTerm).toBe('Then moves to the standard $74.99/month rate.')
+    expect(prelaunchContent.waitlistSuccessBody).toContain('quick 30-minute call')
+    expect(prelaunchContent.waitlistSuccessBody).toContain('No payment has been taken.')
+    expect(prelaunchContent.waitlistSuccessBody).toContain('does not reserve founder pricing')
+    expect(prelaunchContent.waitlistSuccessBody).toContain('first month and setup fee are paid')
   })
 })

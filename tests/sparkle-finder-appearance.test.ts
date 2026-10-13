@@ -40,7 +40,7 @@ describe('Sparkle Finder appearance settings', () => {
     expect(appearance).toMatchObject({
       schemaVersion: 1,
       preset: 'amethyst',
-      label: 'Amethyst',
+      label: 'Chasing Unicorns (Amethyst)',
       tokens: {
         background: '#E8DFF5',
         primary: '#5C0EFF',

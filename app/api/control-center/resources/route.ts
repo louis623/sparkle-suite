@@ -8,6 +8,11 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin'
 import { dispatchWorkspaceMessageAutomationAfterResponse } from '@/lib/services/workspace-message-dispatch'
 import {
+  deliverSuiteListNotice,
+  renderSuiteOfficialNoticeHtml,
+  resourceNoticeContent,
+} from '@/lib/services/suite-official-notice'
+import {
   AuthError,
   getControlCenterAccess,
   OperatorAuthError,
@@ -32,6 +37,8 @@ const publishSchema = z.object({
   isFeatured: z.boolean().default(false),
   authorLabel: z.string().trim().min(2).max(80).default('Sparkle Suite'),
   announce: z.boolean().default(true),
+  emailSuiteList: z.boolean().optional().default(false),
+  operation: z.enum(['publish', 'email_preview']).optional().default('publish'),
 })
 
 function authErrorResponse(error: unknown) {
@@ -64,6 +71,19 @@ export async function POST(request: Request) {
   try {
     const { operator } = await getControlCenterAccess()
     const input = publishSchema.parse(await request.json())
+    if (input.operation === 'email_preview') {
+      const content = resourceNoticeContent(input)
+      const rendered = renderSuiteOfficialNoticeHtml(content)
+      return NextResponse.json({
+        ok: true,
+        html: rendered.html,
+        subject: content.headline,
+        variables: rendered.variables,
+        thumbnailUrl: content.thumbnailUrl,
+        ctaLabel: content.ctaLabel,
+        ctaUrl: content.ctaUrl,
+      })
+    }
     const admin = createAdminClient()
     const result = await publishWorkspaceResource({
       supabase: admin,
@@ -77,8 +97,23 @@ export async function POST(request: Request) {
       supabase: admin,
       source: 'resource_publish',
     })
+    const suiteListEmail = input.emailSuiteList
+      ? await deliverSuiteListNotice({
+          supabase: admin,
+          idempotencyKey: `suite-list:resource:${result.resource.id}:v${result.resource.version}`,
+          sourceKind: 'workspace_resource',
+          sourceId: result.resource.id,
+          content: resourceNoticeContent({
+            ...input,
+            title: result.resource.title,
+            thumbnailUrl: result.resource.thumbnailUrl,
+            videoUrl: result.resource.videoUrl,
+            actionUrl: result.resource.actionUrl,
+          }),
+        })
+      : null
 
-    return NextResponse.json({ ok: true, ...result }, { status: 201 })
+    return NextResponse.json({ ok: true, ...result, suiteListEmail }, { status: 201 })
   } catch (error) {
     const authResponse = authErrorResponse(error)
     if (authResponse) return authResponse

@@ -10,7 +10,7 @@ export const sparkleSuiteTikTokChannelUrl = 'https://www.tiktok.com/@yoursparkle
 
 export const sparkleSuitePublicLandingSafety = {
   disclaimer:
-    'Sparkle Suite is an independent tool for reps. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.',
+    'Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.',
   audienceClarifier:
     'Sparkle Suite is built for reps who want a more polished customer experience, smoother live shows, and less patchwork behind the scenes.',
 } as const

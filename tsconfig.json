@@ -36,6 +36,7 @@
     "supabase",
     "apps/rep-onboarding",
     "apps/finder",
-    "sites"
+    "sites",
+    "scripts/card-qr/qricon-v3"
   ]
 }

@@ -121,8 +121,10 @@
 
 @media (max-width: 840px) {
   .shell {
-    height: var(--nic-nac-app-height, 100vh);
-    min-height: var(--nic-nac-app-height, 100vh);
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
     border: 0;
     border-radius: 0;
     box-shadow: none;
@@ -130,6 +132,14 @@
   }
 
   .tabsWrap {
+    position: fixed;
+    left: 0;
+    right: 0;
     flex: 0 0 auto;
+  }
+
+  .content {
+    flex: 0 0 auto;
+    overflow: visible;
   }
 }

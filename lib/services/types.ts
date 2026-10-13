@@ -623,7 +623,11 @@ export type SiteAppearancePreset =
   | 'neon_butterfly'
   | 'halloween_pumpkin_witch'
   | 'halloween_pumpkin_cat'
+  | 'gilded_autumn'
   | 'rose_gold'
+  | 'midnight_rose'
+  | 'pearl_rose'
+  | 'rose_champagne'
   | 'garnet'
   | 'amber'
   | 'velvet'
@@ -1040,6 +1044,7 @@ export interface LiveQueueSnapshot {
 }
 
 export interface PrelaunchWaitlistInput {
+  attribution?: { src?: string; campaign?: string }
   name: string
   email: string
   phone: string
@@ -1059,7 +1064,7 @@ export interface PrelaunchWaitlistInsert {
   setup_pain: string | null
   sms_consent: boolean
   email_consent: boolean
-  source: 'prelaunch_site'
+  source: string
 }
 
 export type PrelaunchWaitlistWelcomeEmailStatus =

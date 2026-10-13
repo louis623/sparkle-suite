@@ -30,6 +30,7 @@ export interface AmethystTradeBoardTickerItem {
 }
 
 export interface AmethystTradeTemplateData {
+  liveQueueCalendarHref?: string | null
   visibility?: PublicSiteVisibility
   publicSiteVariant?: 'mile_high_fizz_hybrid' | 'britt_with_bling_hybrid' | 'bling_kitchen_hybrid'
   danceFloorComingSoon?: boolean

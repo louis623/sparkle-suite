@@ -1,0 +1,323 @@
+.page {
+  --suite-paper: #fcf8f6;
+  --suite-blush: #fff6fa;
+  --suite-ink: #402924;
+  --suite-magenta: #ee2c9b;
+  --finder-ink: #2a1f40;
+  --espresso: #140e0b;
+  --espresso-raised: #2a1c14;
+  background: var(--espresso);
+  color: #f6eee8;
+  font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
+  overflow-x: clip;
+}
+
+.page :is(h1, h2, p) {
+  margin: 0;
+}
+
+.page :is(h1, h2, .cardBrand, .cardTitle) {
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-weight: 500;
+}
+
+.page :is(a, button):focus-visible {
+  outline: 3px solid #ffd6ec;
+  outline-offset: 4px;
+}
+
+.skipLink {
+  position: absolute;
+  top: -100px;
+  left: 20px;
+  z-index: 20;
+  padding: 14px;
+  background: white;
+  color: var(--suite-ink);
+}
+
+.skipLink:focus {
+  top: 10px;
+}
+
+.veteranBanner {
+  padding: 16px 20px 0;
+  color: #e4d2c4;
+  font-size: 0.84rem;
+  font-weight: 550;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.stage {
+  background:
+    radial-gradient(ellipse at 50% 0%, #3d2a1c 0%, transparent 48%),
+    radial-gradient(ellipse at 100% 80%, #4a322644 0%, transparent 42%),
+    linear-gradient(180deg, var(--espresso-raised) 0%, var(--espresso) 72%);
+}
+
+.hero {
+  padding: 36px 20px 56px;
+  text-align: center;
+}
+
+.hero h1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 12em;
+  margin-inline: auto;
+  font-size: clamp(1.7rem, 4.4vw, 2.4rem);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.supportLine {
+  display: block;
+}
+
+.hero .prompt {
+  margin-top: 28px;
+  color: #f3e4dc;
+  font-size: clamp(1.2rem, 2.4vw, 1.48rem);
+  line-height: 1.35;
+}
+
+.spark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  max-width: 240px;
+  margin: 18px auto 0;
+  color: #f0b7d4;
+}
+
+.spark span {
+  height: 1px;
+  flex: 1;
+  background: #f6eee833;
+}
+
+.paths {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 980px;
+  margin: 32px auto 0;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  padding: 22px 22px 16px;
+  border-radius: 22px;
+  text-align: left;
+}
+
+.suite {
+  background: linear-gradient(180deg, var(--suite-paper) 0%, var(--suite-blush) 58%, #ffc6e3 100%);
+  color: var(--suite-ink);
+  box-shadow:
+    0 0 0 1px rgba(238, 44, 155, 0.38),
+    0 18px 46px rgba(238, 44, 155, 0.28);
+}
+
+.finder {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 46%),
+    linear-gradient(165deg, #f7f0ff 0%, #e8dff5 68%, #d4c2ee 100%);
+  color: var(--finder-ink);
+  box-shadow:
+    0 0 0 1px rgba(196, 176, 230, 0.9),
+    0 18px 46px rgba(110, 80, 170, 0.28);
+}
+
+.cardCopy {
+  display: grid;
+  gap: 8px;
+  overflow-wrap: break-word;
+}
+
+.cardBrand {
+  font-size: clamp(1.85rem, 3.6vw, 2.4rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.cardTitle {
+  font-size: clamp(1.25rem, 2.4vw, 1.6rem);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.cardDetail {
+  font-size: 1.02rem;
+  line-height: 1.4;
+}
+
+.cardBody {
+  font-size: 1rem;
+  font-weight: 450;
+  line-height: 1.5;
+}
+
+.card .narrative {
+  margin-top: 18px;
+  font-size: 1.05rem;
+  font-weight: 450;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
+.card .comingSoon {
+  margin-top: 16px;
+  color: var(--finder-ink);
+  font-size: 1.02rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.sneakPeek {
+  color: var(--finder-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.accountActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.accountLink {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 auto;
+  max-width: calc(50% - 6px);
+  min-height: 48px;
+  color: var(--suite-magenta);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: left;
+  text-decoration: none;
+}
+
+.accountActions .accountLink:last-child {
+  margin-left: auto;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.finder .accountLink {
+  color: #9a93a3;
+  font-weight: 650;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.learnMore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  min-height: 48px;
+  margin-top: 18px;
+  padding: 12px 22px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.authSpacer {
+  height: 22px;
+  flex: 0 0 22px;
+}
+
+.suite .learnMore {
+  background: var(--suite-magenta);
+  color: #fff;
+}
+
+.finder .learnMore {
+  background: var(--finder-ink);
+  color: #f7f0ff;
+}
+
+.quietExits {
+  max-width: 980px;
+  margin: 22px auto 0;
+  text-align: center;
+}
+
+.quietNote {
+  color: #cbb8b4;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.quietLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 18px;
+  margin-top: 6px;
+}
+
+.quietLinks a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #e7d5cf;
+  font-size: 0.98rem;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+@media (min-width: 900px) {
+  .hero {
+    padding-top: 48px;
+  }
+
+  .card {
+    padding: 28px 28px 20px;
+  }
+}
+
+@media (min-width: 768px) {
+  .paths {
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

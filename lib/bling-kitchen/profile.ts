@@ -20,7 +20,7 @@ export const BLING_KITCHEN_PROFILE = {
   tiktokHandle: '@blingkitchen',
   facebookVipUrl: 'https://www.facebook.com/groups/1485026002799524',
   heroImageUrl:
-    'https://bqhzfkgkjyuhlsozpylf.supabase.co/storage/v1/object/public/public-site-media/9a971c05-3631-443e-bcb8-4e9a26e15885/profile/4a5a2fb9-2c72-4536-94d3-771915d80dc6-homepage-hero.jpg',
+    '/amethyst/bling-kitchen/homepage-hero-pendant.jpg',
   aboutImageUrl:
     'https://bqhzfkgkjyuhlsozpylf.supabase.co/storage/v1/object/public/public-site-media/9a971c05-3631-443e-bcb8-4e9a26e15885/profile/40fa6136-b6d1-45b9-b88d-42bfce0f5207-about.jpg',
   joinHeroImageUrl:

@@ -14,7 +14,7 @@ import {
 export async function getFounderAvailability(): Promise<FounderAvailability> {
   try {
     const admin = createAdminClient()
-    const signal = AbortSignal.timeout(5_000)
+    const signal = AbortSignal.timeout(1_500)
     const [reps, subscriptions] = await Promise.all([
       admin.from('reps')
         .select('id,founder_sequence,account_classification', { count: 'exact' })

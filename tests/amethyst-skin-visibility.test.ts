@@ -5,15 +5,42 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   AMETHYST_SKIN_CARDS,
   getAmethystSkinCardsForIds,
+  getAmethystSkinCard,
+  getCommunityAmethystSkinCards,
+  normalizeAmethystSkinSelection,
 } from '@/lib/amethyst/skin-cards'
 import {
   getAvailableAmethystSkinCardsForRep,
+  getAvailableAmethystSkinIdsForRep,
   isAmethystSkinSelectionAvailableToRep,
 } from '@/lib/amethyst/skin-access'
 
 const read = (...parts: string[]) => readFileSync(resolve(process.cwd(), ...parts), 'utf8')
 
 describe('Amethyst skin visibility policy', () => {
+  it('removes Rose Quartz from Suite choices even when the database includes it', async () => {
+    const rpc = vi.fn(async () => ({
+      data: [{ skin_id: 'amethyst' }, { skin_id: 'rose_quartz' }, { skin_id: 'rose_gold' }],
+      error: null,
+    }))
+    const client = { rpc } as never
+    expect(getAmethystSkinCardsForIds(['rose_quartz', 'rose_gold']).map(({ id }) => id))
+      .toEqual(['rose_gold'])
+    expect(getCommunityAmethystSkinCards().map(({ id }) => id)).not.toContain('rose_quartz')
+    await expect(getAvailableAmethystSkinIdsForRep(client, 'test-rep'))
+      .resolves.toEqual(['amethyst', 'rose_gold'])
+    await expect(getAvailableAmethystSkinCardsForRep(client, 'test-rep'))
+      .resolves.toMatchObject([{ id: 'amethyst' }, { id: 'rose_gold' }])
+  })
+
+  it('preserves saved Rose Quartz selections and metadata for existing sites and Finder', () => {
+    expect(normalizeAmethystSkinSelection('RQ-01')).toBe('rose_quartz')
+    expect(getAmethystSkinCard('rose_quartz')).toMatchObject({
+      id: 'rose_quartz', code: 'RQ-01', selectable: false,
+    })
+    expect(AMETHYST_SKIN_CARDS.some(({ id }) => id === 'rose_quartz')).toBe(true)
+  })
+
   it('marks the four issued custom skins private and seasonal Halloween community', () => {
     expect(
       AMETHYST_SKIN_CARDS

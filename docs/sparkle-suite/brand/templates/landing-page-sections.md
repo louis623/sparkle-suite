@@ -1,82 +1,54 @@
 # Landing Page Sections
 
-## Use this when
+**Approved October 6, 2026.** Use `../08-production-site-design-kit.md` and `../playbooks/homepage-and-signup.md`. These are the current Home/queue anchors, replacing the old Coming Soon templates. Preserve owner-approved copy instead of generating alternatives without a reason.
 
-- you need homepage, waitlist, or signup section copy
-- you want reusable blocks that stay inside approved feature claims
-- you need the page to sound polished, plain-English, and rep-centered
+## Hero
 
-## Goal
+- Headline: **Your brand. / Your show. / A setup that shines.** Italicize “shines.”
+- Body: **A polished website for your live-selling business. Give shoppers one place to find your next show, follow your Live Lineup, and explore your Dance Floor.**
+- CTA: **Join the build queue**
+- Reassurance: **No payment when you join the queue.**
+- Promise: **Join the build queue and I'll email you to book a quick 30-minute call. Your build starts once your first month and setup fee are paid.**
+- Visual: current demo-account theme, responsive poster first; community-only theme picker. Plum band, approved logo, pink action.
 
-- translate the master brand into conversion-ready sections
-- lead with customer experience and rep setup, not hype
-- keep feature language grounded in the approved product story
+## Real-site gallery
 
-## Inputs
+- Heading direction: **A site that feels like you.**
+- Three to five real rep sites inline. Show/domain names only.
+- Secondary link: **Explore the portfolio**.
+- Light background and large readable captures; no carousel or fabricated testimonial.
 
-- page stage: homepage, waitlist page, or future signup page
-- primary angle: better customer experience, smoother live shows, stand out, or less patchwork
-- one to three approved feature claims
-- one CTA goal
+## Show tools
 
-## Structure
+- Heading: **More than a website.** Two-column Home grid, stacking on mobile, with exactly four cards in order: Dance Floor, Live Lineup, Live Show Calendar, Team Management. Icon, short description, two benefits, and a descriptive Explore link per card.
+- Below: **There’s more inside your Suite.** Explain broader business/team/show support and link **Explore all tools** to `/tools`.
+- Move deep captures and the isolated Live Lineup sample to `/tools`. Sticky desktop section navigation; mobile “Jump to a tool”. Preserve full Team Management and New Rep Onboarding coverage together. Nic-Nac has his own factual section with real workspace proof; supporting tools are grouped under Workspace essentials.
+- Email/SMS remain coming soon. No public Nic-Nac use.
 
-- Hero
-- Proof or positioning section
-- Feature section
-- CTA section
+## Founder
 
-## What good finished output looks like
+**Hi, I'm Louis.** Real photo; retain the approved story verbatim from 08. No invented credentials or testimonial framing.
 
-- the page reads like a polished Sparkle Suite acquisition surface, not a generic SaaS landing page
-- the hero and supporting sections stay anchored to rep setup and customer experience
-- each approved feature claim stays distinct enough to read like its own product story
-- the CTA path feels confident and clear without leaning on hype or fake urgency
+## Watch
 
-## Hero Section Template
+**See it in action.** Existing theme recording, with equal-size branded **Watch on TikTok** and **Watch on YouTube** channel buttons and trailing icons. No separate featured-clip button or automatic third-party video embeds. Use only the approved accounts in 08.
 
-For the current `/prelaunch` page, use the locked `Sparkle Suite V1 Preview Public Site` direction:
+## Pricing
 
-- Eyebrow: `Sparkle Suite - Coming Soon`
-- Headline: `A better customer experience starts with a better rep setup.`
-- Subheadline: `Sparkle Suite gives reps a more polished website, standout live show tools, and built-in support that helps customers feel the difference.`
-- Primary CTA: `Join the Waitlist`
-- Secondary CTA: `What Is Sparkle Suite?`
+**Get in at the start.** Show $49.99/month for 12 paid months, then $74.99/month, plus $49.99 setup. First month + setup: $99.98. Show a confirmed live count as “X founder spots remaining.” Unconfirmed availability does not create a count or replace founder pricing with standard. Confirmed zero shows standard.
 
-Do not bring back the rejected `One easier home for your Bomb Party business.`
-public page, the rejected software-led public page, or named success-card copy
-without fresh Louis approval.
+Repeat queue CTA, no-payment reassurance, call/payment sequence, and the explicit non-reservation statement. Founder pricing applies after the call when both agree to proceed, while spots last.
 
-## Broader Brand Hero Template
+## Questions and close
 
-- Headline: `A better customer experience starts with a better rep setup.`
-- Subheadline: `Sparkle Suite is being built for reps who want smoother live shows, less patchwork, and an experience customers can actually feel.`
-- CTA: `Join the waitlist`
+**A few things you might be wondering.** Brief answers on joining, founder eligibility, and existing domains; link **Read all FAQs**. Public FAQ is readable content, not Nic-Nac.
 
-## Positioning Section Template
+**Your next chapter looks good on you.** Plum closing band with **Join the build queue**. Finish with the approved shared white footer unchanged.
 
-- Section lead: `Sparkle Suite gives reps an edge customers can feel.`
-- Support line: `The difference is not just what you sell. It is how polished, organized, and easy to follow the whole experience feels.`
+## Subpages
 
-## Feature Section Template
+- Portfolio: **Shows we're proud to put on the floor.** Short plum band, alternating real-site rows, **Make room for your show.** closing CTA.
+- FAQ: **A few things you might be wondering.** Light readable answers and topic navigation; espresso **See the sites. Watch the demos.**; plum **Ready to talk about your site?**.
+- Queue: **Let's talk about your site.** Explain call and payment before the form, preserve source attribution and consent, and match the confirmation to the promise.
 
-- Intro line: `Use approved feature claims only and keep each one tied to a real rep or customer benefit.`
-- Feature card 1: `Trade board - helps key parts of the show feel more organized and easier to follow.`
-- Feature card 2: `Live queue - supports smoother flow when interest starts stacking up.`
-- Feature card 3: `Live event calendar - helps the customer journey feel clearer before the live even starts.`
-- Feature card 4: `Email updates - help reps send clearer follow-through that keeps customers informed after the live.`
-- Feature card 5: `SMS updates - create a faster, more direct update path when timing and visibility matter most.`
-- Feature card 6: `Nic-Nac - built-in Sparkle Suite assistant support that stays useful and grounded.`
-
-## CTA Section Template
-
-- CTA lead: `If you want a setup that helps your live feel more polished from the customer side out, Sparkle Suite is worth watching.`
-- CTA button: `Join the waitlist`
-
-## Brand mistakes to avoid
-
-- do not use unapproved feature claims
-- do not drift into generic SaaS copy
-- do not oversell Nic-Nac ahead of the core rep-facing value story
-- do not make the page sound flashy, fake-luxury, or hype-heavy
-- do not polish, rebrand, rewrite, or visually improve the public site unless Louis explicitly says `go ahead and polish this`
+Keep shared brand roles consistent. These templates authorize no extra pages, Live deployment, or email/Workspace overhaul beyond the current user request.

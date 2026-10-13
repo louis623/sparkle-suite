@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   controlCenterMcpToolNames,
+  fizzIssueItemSchema,
   remyMcpToolNames,
 } from '@/lib/remy-communications/mcp'
 
@@ -23,12 +24,23 @@ describe('Sparkle Suite Control Center MCP contract', () => {
       'control_center_get_operator_health',
       'control_center_get_nic_nac_usage',
       'control_center_get_accounting_summary',
+      'communications_preview_broadcast',
+      'communications_publish_broadcast',
+      'fizz_issue_stage',
+      'fizz_issue_get',
+      'fizz_issue_approve',
     ])
     expect(remyMcpToolNames).toBe(controlCenterMcpToolNames)
   })
 
   it('does not expose blocked writes or private conversation access', () => {
-    expect(controlCenterMcpToolNames).not.toContain('communications_publish_broadcast')
+    const source = readFileSync('lib/remy-communications/mcp.ts', 'utf8')
+    const route = readFileSync('app/api/remy/mcp/route.ts', 'utf8')
+    expect(controlCenterMcpToolNames).toContain('communications_publish_broadcast')
+    expect(controlCenterMcpToolNames).toContain('communications_preview_broadcast')
+    expect(source).toContain('assertOwnerScopedControlCenterMcp()')
+    expect(source).toContain('agentName')
+    expect(route).toContain('runWithOwnerScopedControlCenterMcp')
     expect(controlCenterMcpToolNames).not.toContain('communications_moderate_network')
     expect(controlCenterMcpToolNames).not.toContain('communications_change_support_status')
     expect(controlCenterMcpToolNames).not.toContain('control_center_update_waitlist_lead')
@@ -36,6 +48,19 @@ describe('Sparkle Suite Control Center MCP contract', () => {
     expect(controlCenterMcpToolNames).not.toContain('control_center_deploy')
     expect(controlCenterMcpToolNames).not.toContain('control_center_run_sparkle_lab')
     expect(controlCenterMcpToolNames).not.toContain('control_center_suspend_rep')
+  })
+
+  it('accepts a 2000-character fizz item summary and rejects 2001', () => {
+    const item = {
+      headline: 'Cards are live',
+      summary: 'a'.repeat(2000),
+      whatItMeans: 'You can print from Suite.',
+      sourceUrl: 'https://www.yoursparklesuite.com/cards',
+    }
+    expect(fizzIssueItemSchema.safeParse(item).success).toBe(true)
+    expect(fizzIssueItemSchema.safeParse({ ...item, summary: ` ${'a'.repeat(2000)} ` }).success).toBe(true)
+    expect(fizzIssueItemSchema.safeParse({ ...item, summary: 'a'.repeat(2001) }).success).toBe(false)
+    expect(fizzIssueItemSchema.safeParse({ ...item, summary: 'a'.repeat(1500) }).success).toBe(true)
   })
 
   it('does not wrap a missing waitlist lead as a generic outage', () => {

@@ -1,157 +1,57 @@
 ---
 name: sparkle-suite-dynamic-landing-page
-description: "Use when designing, reviewing, or implementing a dynamic Sparkle Suite public landing page, homepage, sales page, signup page, or product-led marketing page. Trigger when the request mentions Sparkle Suite landing page, post-waitlist site, yoursparklesuite.com public page, Beacons-style inspiration, dynamic landing site, product mockups, page wow factor, or conversion-focused Sparkle Suite page work."
+description: "Use when designing, reviewing, or implementing Sparkle Suite public landing, homepage, portfolio, FAQ, build-queue, or conversion-focused marketing pages. Applies the approved warm-plum brand system and product-first preview/queue contracts."
 ---
 
 # Sparkle Suite Dynamic Landing Page
 
-## Purpose
+Build public pages that sell with clarity, craft, and real product proof. Use `sparkle-suite-master-brand` for copy. A rep's customer-site theme belongs to `sparkle-suite-skin-builder`; do not transplant customer-theme or Finder colors into master Suite chrome.
 
-Build Sparkle Suite public pages that sell the product with taste, clarity, and product proof. The page must feel like Sparkle Suite can make a rep's business look more polished and easier for customers to use. Do not improvise from generic SaaS instincts.
-
-This skill governs Sparkle Suite's master public/acquisition pages. A rep's
-Amethyst customer-site skin uses `sparkle-suite-skin-builder` instead. Reuse
-cinematic composition and QA methods across both surfaces, but never transplant
-a private rep skin's palette, motifs, or visual identity into the master brand.
-
-## Required Reading
-
-Before writing copy, creating concepts, or touching page code, read:
+## Read first
 
 - `docs/sparkle-suite/brand/00-master-index.md`
+- `docs/sparkle-suite/brand/08-production-site-design-kit.md` (canonical current direction)
 - `docs/sparkle-suite/brand/01-master-brand-spec.md`
 - `docs/sparkle-suite/brand/02-messaging-pillars.md`
 - `docs/sparkle-suite/brand/03-nic-nac-positioning.md`
-- `docs/sparkle-suite/brand/08-production-site-design-kit.md`
 - `docs/sparkle-suite/brand/playbooks/homepage-and-signup.md`
 - `docs/sparkle-suite/brand/templates/landing-page-sections.md`
-- `docs/sparkle-suite/landing-page/dynamic-landing-page-expert-brief-2026-05-26.md`
 
-For copy, also use `sparkle-suite-master-brand`.
-For implementation, use frontend app builder/browser verification skills after the design is approved.
+Older dynamic-landing briefs and May prelaunch locks are historical inspiration/evidence only. They do not override the October 6, 2026 owner-approved Warm plum / concept 2 full-page and subpage mockups. No special approval phrase is required when the user has already authorized the work. Keep Smoke and Live release authority separate.
 
-## Brand Lock
+## Brand and copy contract
 
-- Fonts: Playfair Display for display/headlines, DM Sans for body/UI.
-- Logo mark: single italic `S` seal in a light circle. Never use `SS`.
-- Palette: production blush, warm white, accent pink, plum/brown ink.
-- Tone: polished, warm, plain-English, premium without fake luxury.
-- Audience language: say `Bomb Party reps`, `reps`, `customers`, `live shows`, or `your business`. Do not use `BB business`.
-- Forbidden public-page words unless quoting old/internal context: `launch flow`, `post-launch`, `backend`, `pipeline`, `SaaS workflow`, `modules`.
+- Plum `#34252f` for brand openings and closing CTA bands; espresso `#36221d` for demonstrations; warm paper/blush between them. Use the complete token roles in 08.
+- Playfair Display headlines, occasional soft-pink italic emphasis; DM Sans body/UI.
+- Approved transparent PNG header lockup, not a reconstructed S seal. Keep the extracted approved white footer.
+- Exact hero: **Your brand. / Your show. / A setup that shines.**
+- Exact explanation: **A polished website for your live-selling business. Give shoppers one place to find your next show, follow your Live Lineup, and explore your Dance Floor.**
+- Primary CTA: **Join the build queue**. Product before price; no Bomb Party title.
+- Use Dance Floor, Live Lineup, event calendar, themes. No user-visible “skins.” Email/SMS updates are coming soon. Nic-Nac is paid-rep only, never a public marketing chat or question form.
 
-## Landing Page Standard
+## Page story
 
-A good Sparkle Suite page must answer these in the first screen:
+Home: poster-first demo → real-site gallery → espresso product rows → approved Louis founder block → Watch → pricing → short FAQ → plum close → locked footer. Preserve the slim all-real-sites Portfolio and standalone readable FAQ. Route `/learn` to `/` and `/demo` to `/#watch` with 301s; no Suite/Finder chooser.
 
-1. What is this? A polished website and live-show tool suite for Bomb Party reps.
-2. Who is it for? Reps who want a more professional customer experience and smoother shows.
-3. Why care? Customers know where to go, shows feel easier to follow, and reps stop patching everything together by hand.
-4. Is it real? Show product-like visuals in the hero, not abstract cards.
-5. What next? One obvious CTA.
+Hero default always follows the official demo account's saved theme, even seasonal, custom, or retired. Read only; never mutate it. Resolve a configurable slug rather than hardcoding a cross-environment rep ID. Community picker uses confirmed catalog rows, never private themes or retired Rose Quartz. Neutral poster on lookup failure with no substituted theme claim. No automatic theme rotation or carousel. Preserve real animation with visible-only muted playback and pause controls; retain the poster for reduced motion and data saver until the visitor chooses play.
 
-## Concept Workflow
+## Workflow
 
-1. Research first.
-   - Review current comparables and current landing-page patterns.
-   - Record what is being borrowed and what is not being copied.
+1. Inspect current approved references and real assets before designing. Do not redo concept exploration when an approved direction already exists.
+2. If the task is a new visual exploration, create screenshot-style concepts before code and include a below-hero transition. Use image generation for concepts, not fabricated product proof.
+3. Compose the actual layout around real desktop/mobile copy and captures. Large alternating rows and distinct section roles should replace generic repeated cards.
+4. Preserve the queue/call/payment promise, non-reservation statement, server-first founder offer, and live-counter rules from 08. Keep source attribution through navigation and signup.
+5. Use correct Watch channels, real assets, approved founder likeness/story, and a price-free social card. Show names/domains only for rep-site labels.
+6. Verify rendered desktop and 390px layouts, header fit, keyboard/focus, contrast, reduced motion, slow first load, poster fallback, and interactive controls. Use appropriate frontend/browser verification skills.
 
-2. Copy before layout.
-   - Write the promise in plain English.
-   - Remove internal language, jargon, and vague all-in-one claims.
-   - Prefer outcome-first lines over feature lists.
+## Quality gate
 
-3. Visual concept before HTML.
-   - Produce screenshot-style concepts or high-fidelity mockups before coding.
-   - HTML-only rough drafts are not acceptable for wow-factor exploration.
-   - Show the user a visible artifact that works in chat or the browser before implementing.
-   - Show enough below the hero to prove how the visual language flows into a
-     real card or product section; a hero-only concept is incomplete.
+- Does the first screen explain what a rep gets, show credible product proof, and offer one next step?
+- Does plum establish the identity while espresso and light sections create the approved scroll rhythm?
+- Are headline, spacing, assets, and logo faithful to the approved direction rather than merely sharing its colors?
+- Does the hero remain usable without interaction or a successful demo lookup?
+- Are real-site proof, Watch links, pricing phases, and no-payment/call promise correct?
+- Does the page omit public Nic-Nac, fake proof, invented urgency, affiliation objections, and internal jargon?
+- Is the exact review environment clear, and does deployment stay within the user's authorized scope?
 
-4. Plan cinematic heroes in layers.
-   - Separate the environment/product plate, tonal grade, source-specific
-     assets, ambient light/effects, content, and interaction controls.
-   - When a supplied reference is exact, inventory its silhouettes, counts,
-     perspective, crop, negative space, and exclusions before generating.
-   - Reserve copy-safe areas before creating artwork and use independently
-     art-directed desktop and mobile compositions when one crop cannot work.
-   - Keep ambient motion staggered, low-frequency, reduced-motion safe,
-     pausable, and subordinate to the CTA. Animate object mechanics rather than
-     pulsing a flat picture and calling it motion.
-
-5. Product proof first.
-   - Use a large product universe: customer site, live queue, trade board, event calendar, updates, and Nic-Nac in context.
-   - The visual should feel like a real polished product surface, not generic white cards.
-
-6. Tool choice comes after direction.
-   - Image generation: use for high-fidelity page concepts and hero mockups.
-   - Pomelli: use only for campaign ideation or marketing angle exploration when useful.
-   - Higgsfield: use only when high-energy visuals, motion, or ad-style assets are useful.
-   - Canva: use for editable marketing assets, not as the source of truth for production UI.
-   - Browser: use for rendered verification and mobile checks.
-
-## Design Direction
-
-Borrow from Beacons:
-
-- bold, confident first viewport
-- product-forward visual center
-- layered UI that feels alive
-- punchy section rhythm
-- clear "you look more legit" outcome
-
-Do not copy from Beacons:
-
-- their copy, claims, creator/influencer tone, color system, or pricing frame
-- link-in-bio language as the main Sparkle Suite story
-- aggressive creator-bro phrasing
-
-Sparkle Suite should feel like:
-
-- a more polished customer experience
-- a smoother live-show setup
-- a real place for customers to go
-- an easier way for reps to keep customers informed
-- a product with taste, not a generic SaaS page
-
-## Copy Rules
-
-Lead with outcomes:
-
-- customer confidence
-- smoother shows
-- fewer repeated questions
-- fewer scattered links, posts, and messages
-- a site that makes the rep look more professional
-
-Approved feature set:
-
-- Trade board
-- Live queue
-- Live event calendar
-- Email updates
-- SMS updates
-- Nic-Nac
-
-Keep Nic-Nac important but secondary. Sparkle Suite is the product; Nic-Nac helps reps use it.
-
-## Quality Gate
-
-Before showing a concept or implementation, check:
-
-- Does it use the real Sparkle Suite mark and fonts?
-- Does it avoid internal language?
-- Would a Bomb Party rep understand the value in five seconds?
-- Does the hero visual prove we can build something polished?
-- Does the first viewport have one clear CTA?
-- Does the hero remain composed at desktop, tablet, mobile, and a nonstandard
-  right-panel width without copy/art collisions or horizontal overflow?
-- If a reference-specific motif was requested, does its rendered silhouette
-  actually match instead of merely sharing the theme?
-- Do decorative effects preserve pointer access, reduced motion, page-hidden
-  pausing, and a usable pause control when motion persists?
-- Has the concept shown at least one real below-hero card/section transition?
-- Does the visual have more craft than a generic card stack?
-- Does the page sell both rep ease and customer experience?
-- Would Louis plausibly say it has the Beacons-level confidence he wanted?
-
-If any answer is no, keep working before showing it.
+Do not broaden a marketing change into email/Workspace code or Live publication. The brand system is a reference for those later tasks, not blanket permission.

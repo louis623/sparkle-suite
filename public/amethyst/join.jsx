@@ -256,6 +256,27 @@ const PRESETS = {
     textureOverlay: "neon-butterflies", buttonEnergy: "neon-lift", ctaEmphasis: "standard",
     tradeFlair: "butterfly-glow", cursorEffect: "default", tickerSpeed: 1,
   },
+  gilded_autumn: {
+  "primaryColor": "#91451d",
+  "accentColor": "#b18338",
+  "bgTone": "gildedAutumn",
+  "headingFont": "playfair",
+  "bodyFont": "dmSans",
+  "headingWeight": 500,
+  "shapeRadius": "soft",
+  "density": "regular",
+  "saturation": 100,
+  "heroMotion": "autumn_leaves",
+  "sparkleLevel": "none",
+  "bgTreatment": "gilded-autumn",
+  "cardSurface": "warm-paper",
+  "textureOverlay": "none",
+  "buttonEnergy": "suite-lift",
+  "ctaEmphasis": "standard",
+  "tradeFlair": "champagne-copper",
+  "cursorEffect": "default",
+  "tickerSpeed": 1
+},
   halloween_pumpkin_cat: {
     "primaryColor": "#ff923d",
     "accentColor": "#f4eee3",
@@ -293,6 +314,31 @@ const PRESETS = {
     bgTone: "roseGold", primaryColor: "#e04f73", accentColor: "#f5c66d",
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
   },
+  midnight_rose: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "midnight-rose", cardSurface: "midnight-rose",
+    textureOverlay: "none", buttonEnergy: "midnight-rose-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-midnight", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "midnightRose", primaryColor: "#efb5a3", accentColor: "#d29b82",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
+  pearl_rose: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "pearl-rose", cardSurface: "pearl-rose-paper",
+    textureOverlay: "none", buttonEnergy: "pearl-rose-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-pearl", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "pearlRose", primaryColor: "#954354", accentColor: "#d29b82",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
+  rose_champagne: {
+    sparkleLevel: "subtle", bgTreatment: "rose-champagne", cardSurface: "pearl-rose",
+    textureOverlay: "none", buttonEnergy: "rose-gold-lift", ctaEmphasis: "standard",
+    tradeFlair: "champagne-rose", cursorEffect: "default", saturation: 108,
+    bgTone: "roseGold", primaryColor: "#a04e5d", accentColor: "#d29b82",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+  },
   garnet: {
     sparkleLevel: "subtle", bgTreatment: "garnet-shell", cardSurface: "blush-shell",
     textureOverlay: "none", buttonEnergy: "garnet-lift", ctaEmphasis: "standard",
@@ -324,6 +370,7 @@ const PRESETS = {
 };
 
 const TONES = {
+  gildedAutumn: {bg:"#fff8ec",elevated:"#fffdf7",deep:"#f0dfc5"},
   halloweenPumpkinCat: {bg:"#080706",elevated:"#1b1511",deep:"#050403"},
   lavender: { bg: "#E8DFF5", elevated: "#F2EBFA", deep: "#DCD0EE" },
   warm: { bg: "#FFF0E8", elevated: "#FFF7F1", deep: "#FFE2D0" },
@@ -340,6 +387,8 @@ const TONES = {
   neonButterfly: { bg: "#120414", elevated: "#261029", deep: "#09010c" },
   halloweenPumpkinWitch: { bg: "#090909", elevated: "#211914", deep: "#050505" },
   roseGold: { bg: "#fff5f6", elevated: "#fffafa", deep: "#ffe8ec" },
+  midnightRose: { bg: "#180e16", elevated: "#271920", deep: "#100910" },
+  pearlRose: { bg: "#faf5ef", elevated: "#fffefa", deep: "#f2e5dc" },
   garnet: { bg: "#FFE5DD", elevated: "#fff8f5", deep: "#ffd0c4" },
   amber: { bg: "#FAFAFA", elevated: "#fffaf5", deep: "#ffe4cf" },
   velvet: { bg: "#FFE8FF", elevated: "#fff7ff", deep: "#f7c9ff" },
@@ -608,24 +657,6 @@ function parseAnnouncementTickerItems(topText) {
   });
 }
 
-function LiveLineupTicker() {
-  const lineup = React.useContext(LiveLineupContext);
-  const entries = (lineup?.liveQueueEntries || []).slice(0, 12);
-  if (lineup?.liveQueuePresentation !== "grouped-v1") return null;
-  return <div className="hp-ticker-row hp-lineup-ticker" data-lineup-surface="ticker">
-    <span className="hp-ticker-label">Live Lineup</span>
-    <span className="hp-ticker-sr" role="status" aria-live="polite" aria-atomic="true" key={lineup?.liveQueueFlare?.cursor || "baseline"}>{lineup?.liveQueueFlare ? "Live Lineup updated after an order reveal." : ""}</span>
-    <div className="hp-ticker-track" data-ticker-pps="32" aria-hidden="true">
-      {entries.length ? [...entries, ...entries].map((entry, index) => <span
-        key={`${entry.token || entry.position}-${index < entries.length ? "original" : "clone"}`}
-        className="hp-ticker-item" data-lineup-token={entry.token} data-lineup-clone={index >= entries.length ? "true" : undefined}
-        data-ticker-segment-start={index === 0 ? "true" : undefined} data-ticker-segment-repeat-start={index === entries.length ? "true" : undefined}>
-        <span className="hp-lineup-sparkle" aria-hidden="true">{"\u2727"}</span><span className="dot" />{entry.position}. {entry.name}{entry.remainingOrders > 1 ? ` · ${entry.remainingOrders} orders` : ""}
-      </span>) : <span className="hp-ticker-item">{lineup.liveQueueSummary}</span>}
-    </div>
-  </div>;
-}
-
 function Ticker({ topText }) {
   useDynamicTickerMotion();
   const items = parseAnnouncementTickerItems(topText);
@@ -655,7 +686,6 @@ function Ticker({ topText }) {
         ))}
         <a {...linkProps(TRADE_BOARD_HREF)}>{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Browse current dance floor highlights"}</a>
       </div>
-      <LiveLineupTicker />
       <div className="hp-ticker-row">
         <span className="hp-ticker-label">Announcements</span>
         <div className="hp-ticker-track" data-ticker-pps={ANNOUNCEMENT_TICKER_SPEED_PPS} aria-hidden="true">
@@ -708,7 +738,7 @@ function LiveLineupUpdatedAt({ lineup }) {
       dateTime={new Date(updatedAt).toISOString()}
       title={new Date(updatedAt).toLocaleString()}
     >
-      Updated {new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
     </time>
   );
 }
@@ -733,19 +763,9 @@ function LiveQueueStrip({ onOpen }) {
   const lineupState = lineup?.liveQueueState;
   const current = lineupState === "live" || lineupState === "empty";
   if (entries.length === 0) {
-    return (
-      <section className="hp-trade-preview" data-lineup-surface="list">
-        <div className="hp-trade-preview-inner">
-          <div className="hp-trade-preview-head">
-            <span className="live-dot" style={!current ? { background: "var(--fg-muted)", animation: "none" } : undefined} />
-            <span>Live Lineup</span>
-          </div>
-          <div className="hp-trade-preview-items">
-            {lineup?.liveQueueSummary || "Live Lineup is waiting for a recent update."}
-          </div>
-          <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
-          <LiveLineupUpdatedAt lineup={lineup} />
-        </div>
+    return window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref) || (
+      <section className="hp-trade-preview hp-lineup-idle" data-lineup-surface="calendar" aria-label="Upcoming shows">
+        <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt">Check back for upcoming shows</span></div>
       </section>
     );
   }
@@ -1286,11 +1306,11 @@ function Faq({ teamName, repName, locationLabel }) {
         <div className="jp-faq-list">
           {questions.map((item, index) => (
             <div key={index} className={`jp-faq-item ${open === index ? "open" : ""}`}>
-              <div className="jp-faq-q" onClick={() => setOpen(open === index ? -1 : index)}>
+              <button type="button" className="jp-faq-q" aria-expanded={open === index} aria-controls={`join-faq-answer-${index}`} onClick={() => setOpen(open === index ? -1 : index)}>
                 <span>{item.q}</span>
-                <span className="chev">+</span>
-              </div>
-              <div className="jp-faq-a">
+                <span className="chev" aria-hidden="true">+</span>
+              </button>
+              <div id={`join-faq-answer-${index}`} className="jp-faq-a" aria-hidden={open !== index}>
                 <div className="jp-faq-a-inner slot" data-slot={item.aSlot}>{item.a}</div>
               </div>
             </div>
@@ -1483,9 +1503,13 @@ function App() {
     if (t.bgTreatment === "emerald-garden") body.classList.add("bg-emerald-garden");
     if (t.bgTreatment === "gnome-garden") body.classList.add("bg-gnome-garden");
     if (t.bgTreatment === "neon-butterfly") body.classList.add("bg-neon-butterfly");
+    if (t.bgTreatment === "gilded-autumn") body.classList.add("bg-gilded-autumn");
     if (t.bgTreatment === "halloween-pumpkin-cat") body.classList.add("bg-halloween-pumpkin-cat");
     if (t.bgTreatment === "halloween-pumpkin-witch") body.classList.add("bg-halloween-pumpkin-witch");
     if (t.bgTreatment === "rose-gold-paper") body.classList.add("bg-rose-gold-paper");
+    if (t.bgTreatment === "rose-champagne") body.classList.add("bg-rose-gold-paper", "bg-rose-champagne");
+    if (t.bgTreatment === "midnight-rose") body.classList.add("bg-midnight-rose");
+    if (t.bgTreatment === "pearl-rose") body.classList.add("bg-pearl-rose");
     if (t.bgTreatment === "garnet-shell") body.classList.add("bg-garnet-shell");
     if (t.bgTreatment === "amber-paper") body.classList.add("bg-amber-paper");
     if (t.bgTreatment === "velvet-orchid") body.classList.add("bg-velvet-orchid");
@@ -1501,7 +1525,9 @@ function App() {
     if (t.cardSurface === "neon-velvet-glass") body.classList.add("surface-neon-velvet-glass");
     if (t.cardSurface === "pumpkin-cat-glass") body.classList.add("surface-pumpkin-cat-glass");
     if (t.cardSurface === "midnight-glass") body.classList.add("surface-midnight-glass");
+    if (t.cardSurface === "pearl-rose-paper") body.classList.add("surface-pearl-rose-paper");
     if (t.cardSurface === "pearl-rose") body.classList.add("surface-pearl-rose");
+    if (t.cardSurface === "midnight-rose") body.classList.add("surface-midnight-rose");
     if (t.cardSurface === "blush-shell") body.classList.add("surface-blush-shell");
     if (t.cardSurface === "sunlit-pearl") body.classList.add("surface-sunlit-pearl");
     if (t.cardSurface === "plush-orchid") body.classList.add("surface-plush-orchid");
@@ -1520,6 +1546,8 @@ function App() {
     if (t.buttonEnergy === "lantern-lift") body.classList.add("btn-lantern-lift");
     if (t.buttonEnergy === "neon-lift") body.classList.add("btn-neon-lift");
     if (t.buttonEnergy === "rose-gold-lift") body.classList.add("btn-rose-gold-lift");
+    if (t.buttonEnergy === "midnight-rose-lift") body.classList.add("btn-midnight-rose-lift");
+    if (t.buttonEnergy === "pearl-rose-lift") body.classList.add("btn-pearl-rose-lift");
     if (t.buttonEnergy === "garnet-lift") body.classList.add("btn-garnet-lift");
     if (t.buttonEnergy === "amber-pop") body.classList.add("btn-amber-pop");
     if (t.buttonEnergy === "velvet-lift") body.classList.add("btn-velvet-lift");
@@ -1654,7 +1682,7 @@ function App() {
             value={t.preset}
             onChange={applyPreset}
             options={[
-              { value: "amethyst", label: "Amethyst" },
+              { value: "amethyst", label: "Chasing Unicorns (Amethyst)" },
               { value: "sparkle_suite_morganite", label: "Sparkle Suite/Morganite" },
               { value: "black_diamond", label: "Black Diamond" },
               { value: "moonstone", label: "Moonstone" },
@@ -1663,8 +1691,12 @@ function App() {
               { value: "gnome_garden", label: "Gnome Forest" },
               { value: "neon_butterfly", label: "Neon Butterfly" },
               { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
+              { value: "gilded_autumn", label: "The Golden Leaves of Autumn" },
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
+              { value: "midnight_rose", label: "Midnight Rose" },
+              { value: "pearl_rose", label: "Pearl Rose" },
+              { value: "rose_champagne", label: "Rose Champagne" },
               { value: "garnet", label: "Garnet" },
               { value: "amber", label: "Amber" },
               { value: "velvet", label: "Velvet" },

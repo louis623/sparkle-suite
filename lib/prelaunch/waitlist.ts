@@ -1,4 +1,5 @@
 import { errors } from '@/lib/services/errors'
+import { normalizeQueueAttribution, queueSignupSource } from './attribution'
 import type {
   PrelaunchWaitlistInput,
   PrelaunchWaitlistInsert,
@@ -39,6 +40,7 @@ export function parsePrelaunchWaitlistInput(
     setupPain: readString(body.setupPain ?? body.setup_pain),
     smsConsent: readBoolean(body.smsConsent ?? body.sms_consent),
     emailConsent: readBoolean(body.emailConsent ?? body.email_consent),
+    attribution: normalizeQueueAttribution(body.attribution),
   }
 }
 
@@ -87,6 +89,7 @@ export function validatePrelaunchWaitlistInput(
     setupPain: setupPain || undefined,
     smsConsent: input.smsConsent,
     emailConsent: true,
+    ...(input.attribution ? { attribution: normalizeQueueAttribution(input.attribution) } : {}),
   }
 }
 
@@ -104,6 +107,6 @@ export function buildPrelaunchWaitlistInsert(
     setup_pain: validated.setupPain ?? null,
     sms_consent: validated.smsConsent,
     email_consent: validated.emailConsent,
-    source: 'prelaunch_site',
+    source: queueSignupSource(validated.attribution ?? {}),
   }
 }

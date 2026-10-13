@@ -31,9 +31,25 @@ import { getControlCenterNicNacUsage } from '@/lib/remy-communications/nic-nac-u
 import { buildAccountingAgentSummary } from '@/lib/control-center/accounting-agent-api'
 import { loadCurrentAccountingSnapshot } from '@/lib/control-center/accounting'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { publishAgentBroadcast, previewAgentBroadcast } from '@/lib/services/agent-broadcasts'
+import { approveFizzIssue, getFizzIssue, stageFizzIssue } from '@/lib/services/fizz-issues'
+import { FIZZ_ITEM_SUMMARY_MAX } from '@/lib/services/fizz-issue-render'
+import { ServiceError } from '@/lib/services/errors'
+import {
+  assertOwnerScopedControlCenterMcp,
+  OwnerScopedMcpError,
+} from '@/lib/remy-communications/security'
 
 const ACTOR_KEY = 'sparkle-control-center'
 const MAX_CALLS_PER_MINUTE = 60
+
+export const fizzIssueItemSchema = z.object({
+  headline: z.string().trim().min(3).max(160),
+  summary: z.string().trim().min(3).max(FIZZ_ITEM_SUMMARY_MAX),
+  whatItMeans: z.string().trim().min(3).max(800),
+  sourceLabel: z.string().trim().min(2).max(80).optional(),
+  sourceUrl: z.string().trim().max(2_000),
+}).strict()
 
 const toolNames = [
   'communications_get_inbox_summary',
@@ -51,6 +67,11 @@ const toolNames = [
   'control_center_get_operator_health',
   'control_center_get_nic_nac_usage',
   'control_center_get_accounting_summary',
+  'communications_preview_broadcast',
+  'communications_publish_broadcast',
+  'fizz_issue_stage',
+  'fizz_issue_get',
+  'fizz_issue_approve',
 ] as const
 
 type ToolName = (typeof toolNames)[number]
@@ -84,18 +105,20 @@ async function recordAuditEvent(input: {
   arguments: unknown
   outcome: AuditOutcome
   resourceIds?: string[]
+  agentName?: string | null
   detail?: Record<string, string | number | boolean | null>
 }) {
+  const agentName = input.agentName?.trim() || null
   const { error } = await createAdminClient()
     .from('remy_communications_agent_audit_events')
     .insert({
-      actor_key: ACTOR_KEY,
+      actor_key: agentName ? `${ACTOR_KEY}:${agentName}` : ACTOR_KEY,
       operation: input.toolName,
       tool_name: input.toolName,
       outcome: input.outcome,
       request_digest: requestDigest(input.arguments),
       resource_ids: safeResourceIds(input.resourceIds ?? []),
-      details: input.detail ?? {},
+      details: { ...(input.detail ?? {}), ...(agentName ? { agentName } : {}) },
     })
   if (error) throw new Error('Remy audit logging is unavailable.')
 }
@@ -105,7 +128,7 @@ async function assertRateLimit() {
   const { count, error } = await createAdminClient()
     .from('remy_communications_agent_audit_events')
     .select('id', { count: 'exact', head: true })
-    .eq('actor_key', ACTOR_KEY)
+    .like('actor_key', `${ACTOR_KEY}%`)
     .gte('created_at', cutoff)
   if (error) throw new Error('Remy rate-limit check is unavailable.')
   if ((count ?? 0) >= MAX_CALLS_PER_MINUTE) throw new RemyRateLimitError()
@@ -130,6 +153,7 @@ async function runTool<T>(
   toolName: ToolName,
   argumentsValue: unknown,
   work: () => Promise<{ result: T; resourceIds?: string[] }>,
+  audit?: { agentName?: string | null; exposeServiceErrors?: boolean },
 ) {
   try {
     await assertRateLimit()
@@ -139,6 +163,7 @@ async function runTool<T>(
       arguments: argumentsValue,
       outcome: 'success',
       resourceIds: output.resourceIds,
+      agentName: audit?.agentName,
       detail: { draftOnly: toolName.startsWith('communications_draft_') },
     })
     return textResult(output.result)
@@ -149,10 +174,15 @@ async function runTool<T>(
         toolName,
         arguments: argumentsValue,
         outcome,
+        agentName: audit?.agentName,
         detail: { errorClass: error instanceof Error ? error.constructor.name : 'unknown' },
       })
     } catch {
       // The primary error remains intentionally generic; do not leak database state.
+    }
+    if (error instanceof OwnerScopedMcpError) return errorResult(error.message)
+    if (audit?.exposeServiceErrors && error instanceof ServiceError && error.statusCode < 500) {
+      return errorResult(error.userMessage)
     }
     return errorResult(
       error instanceof RemyRateLimitError
@@ -187,7 +217,7 @@ const supportReportIdSchema = z.object({
 export function createControlCenterMcpServer() {
   const server = new McpServer({
     name: 'sparkle-suite-control-center',
-    version: '1.2.0',
+    version: '1.3.0',
   })
 
   server.registerTool(
@@ -552,6 +582,174 @@ export function createControlCenterMcpServer() {
           result: buildAccountingAgentSummary({ product, snapshot }),
         }
       },
+    ),
+  )
+
+  const broadcastAgentName = z.enum(['suite', 'bunny', 'fizz'])
+  const broadcastCategory = z.enum([
+    'announcement',
+    'business_update',
+    'customer_activity',
+    'monthly_report',
+    'platform_update',
+    'help_update',
+    'blog',
+    'video',
+  ])
+  const broadcastAudience = z.discriminatedUnion('kind', [
+    z.object({ kind: z.literal('all_active') }),
+    z.object({
+      kind: z.literal('selected'),
+      repIds: z.array(z.string().uuid()).min(1).max(500),
+    }),
+  ])
+  const broadcastFields = {
+    agentName: broadcastAgentName,
+    title: z.string().trim().min(3).max(160),
+    body: z.string().trim().min(3).max(20_000),
+    category: broadcastCategory,
+    audience: broadcastAudience,
+    actionUrl: z.string().trim().max(2_000).optional(),
+    emailSuiteList: z.boolean().optional().default(false),
+  }
+
+  server.registerTool(
+    'communications_preview_broadcast',
+    {
+      description: 'Owner-token only. Preview the exact Workspace broadcast and the Suite-list email HTML. This does not publish or send. Pass agentName suite or bunny so the audit row names the caller. Bunny uses the same Control Center MCP URL and bearer token as Suite.',
+      inputSchema: z.object(broadcastFields),
+    },
+    async (input) => runTool(
+      'communications_preview_broadcast',
+      input,
+      async () => {
+        assertOwnerScopedControlCenterMcp()
+        return {
+          result: await previewAgentBroadcast(createAdminClient(), input),
+        }
+      },
+      { agentName: input.agentName, exposeServiceErrors: true },
+    ),
+  )
+
+  server.registerTool(
+    'communications_publish_broadcast',
+    {
+      description: 'Owner-token only. Publish one Workspace broadcast through publishWorkspaceMessage. When emailSuiteList is true, also send one Suite-list Resend broadcast. Requires idempotencyKey. Repeating the same agent and key does not send again. Pass agentName suite or bunny. Bunny uses the same MCP URL and bearer token as Suite.',
+      inputSchema: z.object({
+        ...broadcastFields,
+        idempotencyKey: z.string().trim().min(8).max(180),
+      }),
+    },
+    async (input) => runTool(
+      'communications_publish_broadcast',
+      input,
+      async () => {
+        assertOwnerScopedControlCenterMcp()
+        const published = await publishAgentBroadcast(createAdminClient(), input)
+        return {
+          result: published,
+          resourceIds: [published.publication.id, published.idempotencyKey],
+        }
+      },
+      { agentName: input.agentName, exposeServiceErrors: true },
+    ),
+  )
+
+  const fizzIssueId = z.string().regex(/^[0-9]{4}-W(?:0[1-9]|[1-4][0-9]|5[0-3])$/)
+
+  server.registerTool(
+    'fizz_issue_stage',
+    {
+      description: 'Owner-token only. Stage one Fizz issue for a later approve-once send from structured content (server renders the Weekly Fizz template; raw HTML rejected). Does not email or post. Pass agentName suite or bunny.',
+      inputSchema: z.object({
+        agentName: broadcastAgentName,
+        issueId: fizzIssueId,
+        subject: z.string().trim().min(3).max(160),
+        preheader: z.string().trim().min(1).max(180),
+        content: z.object({
+          issueDate: z.string().trim().min(3).max(60),
+          weekNote: z.string().trim().min(20).max(2_000).describe('Opens with "Good morning", then the rundown. Plain text; blank lines split paragraphs.'),
+          items: z.array(fizzIssueItemSchema).max(5),
+          latest: z.object({
+            kind: z.enum(['blog', 'video']),
+            title: z.string().trim().min(3).max(160),
+            summary: z.string().trim().min(3).max(600),
+            url: z.string().trim().max(2_000),
+            thumbnailUrl: z.string().trim().max(2_000).optional(),
+          }).strict(),
+          cta: z.object({ label: z.string().trim().min(2).max(60), url: z.string().trim().max(2_000) }).strict().optional(),
+        }).strict().describe('Structured issue. The server renders the Weekly Fizz template; raw HTML is rejected.'),
+        workspaceTitle: z.string().trim().min(3).max(160),
+        workspaceSummary: z.string().trim().min(1).max(500),
+        workspaceBody: z.string().trim().min(3).max(20_000),
+        actionUrl: z.string().trim().max(2_000).optional(),
+      }),
+    },
+    async (input) => runTool(
+      'fizz_issue_stage',
+      input,
+      async () => {
+        assertOwnerScopedControlCenterMcp()
+        const staged = await stageFizzIssue(createAdminClient(), {
+          ...input,
+          stagedBy: input.agentName,
+        })
+        return { result: staged, resourceIds: [staged.issue.issueId] }
+      },
+      { agentName: input.agentName, exposeServiceErrors: true },
+    ),
+  )
+
+  server.registerTool(
+    'fizz_issue_get',
+    {
+      description: 'Owner-token only. Read one staged Fizz issue and its per-channel results. Pass agentName suite or bunny.',
+      inputSchema: z.object({
+        agentName: broadcastAgentName,
+        issueId: fizzIssueId,
+      }),
+    },
+    async (input) => runTool(
+      'fizz_issue_get',
+      input,
+      async () => {
+        assertOwnerScopedControlCenterMcp()
+        return {
+          result: await getFizzIssue(createAdminClient(), input.issueId),
+          resourceIds: [input.issueId],
+        }
+      },
+      { agentName: input.agentName, exposeServiceErrors: true },
+    ),
+  )
+
+  server.registerTool(
+    'fizz_issue_approve',
+    {
+      description: 'Owner-token only. Approve one staged Fizz issue. mode test emails only louis@neonrabbit.net and posts only to the owner Workspace. mode live broadcasts to the Suite list and posts to all active reps. Channels are separate and idempotent: fizz-<issueId>-<mode>-email and fizz-<issueId>-<mode>-broadcast. A failure in one channel does not skip the other. Pass agentName suite or bunny. Bunny uses the same MCP URL and bearer token as Suite.',
+      inputSchema: z.object({
+        agentName: broadcastAgentName,
+        issueId: fizzIssueId,
+        mode: z.enum(['test', 'live']),
+      }),
+    },
+    async (input) => runTool(
+      'fizz_issue_approve',
+      input,
+      async () => {
+        assertOwnerScopedControlCenterMcp()
+        const approved = await approveFizzIssue({
+          supabase: createAdminClient(),
+          issueId: input.issueId,
+          mode: input.mode,
+        })
+        return {
+          result: approved,
+          resourceIds: [approved.email.idempotencyKey, approved.broadcast.idempotencyKey],
+        }
+      },
+      { agentName: input.agentName, exposeServiceErrors: true },
     ),
   )
 

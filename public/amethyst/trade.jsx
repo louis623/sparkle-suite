@@ -277,6 +277,27 @@ const PRESETS = {
     textureOverlay: "neon-butterflies", buttonEnergy: "neon-lift", ctaEmphasis: "standard",
     tradeFlair: "butterfly-glow", cursorEffect: "default", tickerSpeed: 1,
   },
+  gilded_autumn: {
+  "primaryColor": "#91451d",
+  "accentColor": "#b18338",
+  "bgTone": "gildedAutumn",
+  "headingFont": "playfair",
+  "bodyFont": "dmSans",
+  "headingWeight": 500,
+  "shapeRadius": "soft",
+  "density": "regular",
+  "saturation": 100,
+  "heroMotion": "autumn_leaves",
+  "sparkleLevel": "none",
+  "bgTreatment": "gilded-autumn",
+  "cardSurface": "warm-paper",
+  "textureOverlay": "none",
+  "buttonEnergy": "suite-lift",
+  "ctaEmphasis": "standard",
+  "tradeFlair": "champagne-copper",
+  "cursorEffect": "default",
+  "tickerSpeed": 1
+},
   halloween_pumpkin_cat: {
     "primaryColor": "#ff923d",
     "accentColor": "#f4eee3",
@@ -314,6 +335,31 @@ const PRESETS = {
     bgTone: "roseGold", primaryColor: "#e04f73", accentColor: "#f5c66d",
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
   },
+  midnight_rose: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "midnight-rose", cardSurface: "midnight-rose",
+    textureOverlay: "none", buttonEnergy: "midnight-rose-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-midnight", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "midnightRose", primaryColor: "#efb5a3", accentColor: "#d29b82",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
+  pearl_rose: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "pearl-rose", cardSurface: "pearl-rose-paper",
+    textureOverlay: "none", buttonEnergy: "pearl-rose-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-pearl", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "pearlRose", primaryColor: "#954354", accentColor: "#d29b82",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
+  rose_champagne: {
+    sparkleLevel: "subtle", bgTreatment: "rose-champagne", cardSurface: "pearl-rose",
+    textureOverlay: "none", buttonEnergy: "rose-gold-lift", ctaEmphasis: "standard",
+    tradeFlair: "champagne-rose", cursorEffect: "default", saturation: 108,
+    bgTone: "roseGold", primaryColor: "#a04e5d", accentColor: "#d29b82",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+  },
   garnet: {
     sparkleLevel: "subtle", bgTreatment: "garnet-shell", cardSurface: "blush-shell",
     textureOverlay: "none", buttonEnergy: "garnet-lift", ctaEmphasis: "standard",
@@ -345,6 +391,7 @@ const PRESETS = {
 };
 
 const TONES = {
+  gildedAutumn: {bg:"#fff8ec",elevated:"#fffdf7",deep:"#f0dfc5"},
   halloweenPumpkinCat: {bg:"#080706",elevated:"#1b1511",deep:"#050403"},
   lavender: { bg: "#E8DFF5", elevated: "#F2EBFA", deep: "#DCD0EE" },
   warm: { bg: "#FFF0E8", elevated: "#FFF7F1", deep: "#FFE2D0" },
@@ -361,6 +408,8 @@ const TONES = {
   neonButterfly: { bg: "#120414", elevated: "#261029", deep: "#09010c" },
   halloweenPumpkinWitch: { bg: "#090909", elevated: "#211914", deep: "#050505" },
   roseGold: { bg: "#fff5f6", elevated: "#fffafa", deep: "#ffe8ec" },
+  midnightRose: { bg: "#180e16", elevated: "#271920", deep: "#100910" },
+  pearlRose: { bg: "#faf5ef", elevated: "#fffefa", deep: "#f2e5dc" },
   garnet: { bg: "#FFE5DD", elevated: "#fff8f5", deep: "#ffd0c4" },
   amber: { bg: "#FAFAFA", elevated: "#fffaf5", deep: "#ffe4cf" },
   velvet: { bg: "#FFE8FF", elevated: "#fff7ff", deep: "#f7c9ff" },
@@ -898,24 +947,6 @@ function parseAnnouncementTickerItems(topText) {
   });
 }
 
-function LiveLineupTicker() {
-  const lineup = React.useContext(LiveLineupContext);
-  const entries = (lineup?.liveQueueEntries || []).slice(0, 12);
-  if (lineup?.liveQueuePresentation !== "grouped-v1") return null;
-  return <div className="hp-ticker-row hp-lineup-ticker" data-lineup-surface="ticker">
-    <span className="hp-ticker-label">Live Lineup</span>
-    <span className="hp-ticker-sr" role="status" aria-live="polite" aria-atomic="true" key={lineup?.liveQueueFlare?.cursor || "baseline"}>{lineup?.liveQueueFlare ? "Live Lineup updated after an order reveal." : ""}</span>
-    <div className="hp-ticker-track" data-ticker-pps="32" aria-hidden="true">
-      {entries.length ? [...entries, ...entries].map((entry, index) => <span
-        key={`${entry.token || entry.position}-${index < entries.length ? "original" : "clone"}`}
-        className="hp-ticker-item" data-lineup-token={entry.token} data-lineup-clone={index >= entries.length ? "true" : undefined}
-        data-ticker-segment-start={index === 0 ? "true" : undefined} data-ticker-segment-repeat-start={index === entries.length ? "true" : undefined}>
-        <span className="hp-lineup-sparkle" aria-hidden="true">{"\u2727"}</span><span className="dot" />{entry.position}. {entry.name}{entry.remainingOrders > 1 ? ` · ${entry.remainingOrders} orders` : ""}
-      </span>) : <span className="hp-ticker-item">{lineup.liveQueueSummary}</span>}
-    </div>
-  </div>;
-}
-
 function Ticker({ topText }) {
   useDynamicTickerMotion();
   const items = parseAnnouncementTickerItems(topText);
@@ -961,7 +992,6 @@ function Ticker({ topText }) {
         ))}
         <a {...linkProps(TRADE_BOARD_HREF)}>{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Browse current dance floor highlights"}</a>
       </div>
-      <LiveLineupTicker />
       <div className="hp-ticker-row">
         <span className="hp-ticker-label">Announcements</span>
         <div className="hp-ticker-track" data-ticker-pps={ANNOUNCEMENT_TICKER_SPEED_PPS} aria-hidden="true">
@@ -1014,7 +1044,7 @@ function LiveLineupUpdatedAt({ lineup }) {
       dateTime={new Date(updatedAt).toISOString()}
       title={new Date(updatedAt).toLocaleString()}
     >
-      Updated {new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
     </time>
   );
 }
@@ -1038,19 +1068,9 @@ function LiveQueueStrip({ live, onOpen }) {
   const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
   const delayed = lineup?.liveQueueState === "delayed";
   if (entries.length === 0) {
-    return (
-      <section className="hp-trade-preview" data-lineup-surface="list">
-        <div className="hp-trade-preview-inner">
-          <div className="hp-trade-preview-head">
-            <span className="live-dot" style={{ background: "var(--fg-muted)" }} />
-            <span>Live Lineup</span>
-          </div>
-          <div className="hp-trade-preview-items" style={{ color: "var(--hp-preview-muted, var(--fg-muted))" }}>
-            {lineup?.liveQueueSummary || "Live Lineup is waiting for a recent update."}
-          </div>
-          <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
-          <LiveLineupUpdatedAt lineup={lineup} />
-        </div>
+    return window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref) || (
+      <section className="hp-trade-preview hp-lineup-idle" data-lineup-surface="calendar" aria-label="Upcoming shows">
+        <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt">Check back for upcoming shows</span></div>
       </section>
     );
   }
@@ -1163,7 +1183,10 @@ function TradeHero({ tweakRepName, tweakHeroTitle, tweakHeroSub, gnomeGarden }) 
         <p className="tp-hero-sub slot" data-slot="trade hero sub">
           {tweakHeroSub} Browse what <span className="slot" data-slot="rep name">{tweakRepName}</span> has available, then request the closest fit you love.
         </p>
-        <p className="tp-screenshot-tip">Save a screenshot of your reveal before leaving the live show. Upload is optional; crop out personal and order details first.</p>
+        <aside className="tp-screenshot-tip" aria-label="Trade screenshot tip">
+          <strong>Planning a Dance Floor trade?</strong>
+          <div>Save a screenshot of your reveal before leaving the live show. Crop out personal and order details before sharing it with your rep.</div>
+        </aside>
       </div>
     </section>
   );
@@ -1450,7 +1473,47 @@ function TradeCard({ piece, onTap, tierVisible }) {
   );
 }
 
+function useTradeDialog(open, onClose, view) {
+  const ref = useRef(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    if (!open || !ref.current) return;
+    const dialog = ref.current;
+    const previous = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusable = () => [...dialog.querySelectorAll('button:not([disabled]), a[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]')]
+      .filter(element => !element.hidden && element.getClientRects().length > 0);
+    (focusable()[0] || dialog).focus();
+    function focusin(event) {
+      if (!dialog.contains(event.target)) (focusable()[0] || dialog).focus();
+    }
+    function keydown(event) {
+      if (event.key === "Escape") { event.preventDefault(); close.current(); return; }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      const first = items[0] || dialog;
+      const last = items[items.length - 1] || dialog;
+      if (!dialog.contains(document.activeElement) || (event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      }
+    }
+    document.addEventListener("keydown", keydown);
+    document.addEventListener("focusin", focusin);
+    return () => {
+      document.removeEventListener("keydown", keydown);
+      document.removeEventListener("focusin", focusin);
+      document.body.style.overflow = overflow;
+      if (previous?.isConnected) previous.focus();
+    };
+  }, [open, view]);
+  return ref;
+}
+
 function ExpandedCard({ piece, onClose, onWantThis }) {
+  const dialogRef = useTradeDialog(Boolean(piece), onClose);
   if (!piece) return null;
 
   const tierLabel = piece.tier === "unicorn"
@@ -1461,8 +1524,8 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
 
   return (
     <div className="tp-card-expand-mask" onClick={onClose}>
-      <div className="tp-card-expand" onClick={(event) => event.stopPropagation()}>
-        <button className="tp-card-close" onClick={onClose} aria-label="Close">&times;</button>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="trade-expanded-title" tabIndex={-1} className="tp-card-expand" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className="tp-card-close" onClick={onClose} aria-label="Close">&times;</button>
         <div className={`tp-card-expand-photo slot ${piece.photoUrl ? "has-photo" : ""}`} data-slot="jewelry photo">
           {piece.photoUrl ? (
             <img className="tp-card-expand-photo-img" src={piece.photoUrl} alt={piece.name} loading="lazy" decoding="async" />
@@ -1476,7 +1539,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
             {tierLabel}
           </span>
           <div className="tp-card-expand-collection">{piece.collection} collection</div>
-          <h2 className="tp-card-expand-name slot" data-slot="design name">{piece.name}</h2>
+          <h2 id="trade-expanded-title" className="tp-card-expand-name slot" data-slot="design name">{piece.name}</h2>
           <p className="tp-card-expand-desc slot" data-slot="description">
             This {piece.type.toLowerCase()} can be requested as an item-for-item trade if the item number just revealed for you stays within the same collection and the same jewelry type.
           </p>
@@ -1507,7 +1570,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
             <div>{piece.note}</div>
           </div>
           <p className="tp-card-expand-rule">Trades are one dancer for one dancer, with no added payment or credit. Your rep makes the final decision.</p>
-          <button className="tp-card-expand-cta" onClick={() => onWantThis(piece)}>
+          <button type="button" className="tp-card-expand-cta" onClick={() => onWantThis(piece)}>
             Request this trade
             <span>?</span>
           </button>
@@ -1518,6 +1581,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
 }
 
 function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferChange, manualReviewRequired, keepDraftOnAlternative, success, pending, error, repName }) {
+  const dialogRef = useTradeDialog(Boolean(piece || success), () => { if (!pending) onClose(); }, success ? "success" : "form");
   const [name, setName] = useState("");
   const [offering, setOffering] = useState("");
   const [offeredFamily, setOfferedFamily] = useState("");
@@ -1671,11 +1735,11 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
   if (success) {
     return (
       <div className="tp-sheet-mask" onClick={pending ? undefined : onClose}>
-        <div className="tp-sheet success" onClick={(event) => event.stopPropagation()}>
-          <button className="tp-sheet-close" onClick={onClose} aria-label="Close" disabled={pending}>&times;</button>
+        <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="trade-request-title" tabIndex={-1} className="tp-sheet success" onClick={(event) => event.stopPropagation()}>
+          <button type="button" className="tp-sheet-close" onClick={onClose} aria-label="Close" disabled={pending}>&times;</button>
           <div className="tp-sheet-handle" />
           <div className="tp-sheet-success-icon">&#10003;</div>
-          <h3 className="tp-sheet-success-title">Request sent.</h3>
+          <h3 id="trade-request-title" className="tp-sheet-success-title">Request sent.</h3>
           <p className="tp-sheet-success-body">
             <strong>{repName}</strong> will review your request. This is not an approved trade yet.
           </p>
@@ -1706,11 +1770,11 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
 
   return (
     <div className="tp-sheet-mask" onClick={pending ? undefined : onClose}>
-      <div className="tp-sheet" onClick={(event) => event.stopPropagation()}>
-        <button className="tp-sheet-close" onClick={onClose} aria-label="Close" disabled={pending}>&times;</button>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="trade-request-title" aria-busy={Boolean(pending)} tabIndex={-1} className="tp-sheet" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className="tp-sheet-close" onClick={onClose} aria-label="Close" disabled={pending}>&times;</button>
         <div className="tp-sheet-handle" />
         <div className="tp-sheet-eyebrow">Trade Request</div>
-        <h3 className="tp-sheet-title">{piece.name}</h3>
+        <h3 id="trade-request-title" className="tp-sheet-title">{piece.name}</h3>
         <div className="tp-sheet-piece">
           {piece.collection} - {piece.type}{piece.size ? ` - Size ${piece.size}` : ""}
         </div>
@@ -1725,8 +1789,9 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
           }}
         >
           <div className="tp-sheet-field">
-            <label>Your name</label>
+            <label htmlFor="tp-customer-name">Your name</label>
             <input
+              id="tp-customer-name"
               type="text"
               placeholder="As shown on your reveal"
               value={name}
@@ -1805,8 +1870,9 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
           )}
           {screeningState === "error" && <p className="tp-sheet-screening" role="status">Match guidance is temporarily unavailable. Your rep can review your request.</p>}
           <div className="tp-sheet-field">
-            <label>What did you just reveal?</label>
+            <label htmlFor="tp-customer-reveal">What did you just reveal?</label>
             <textarea
+              id="tp-customer-reveal"
               placeholder="Example: July Birthday 2026 necklace"
               value={offering}
               onChange={(event) => setOffering(event.target.value)}
@@ -2102,9 +2168,13 @@ function App() {
     if (t.bgTreatment === "emerald-garden") body.classList.add("bg-emerald-garden");
     if (t.bgTreatment === "gnome-garden") body.classList.add("bg-gnome-garden");
     if (t.bgTreatment === "neon-butterfly") body.classList.add("bg-neon-butterfly");
+    if (t.bgTreatment === "gilded-autumn") body.classList.add("bg-gilded-autumn");
     if (t.bgTreatment === "halloween-pumpkin-cat") body.classList.add("bg-halloween-pumpkin-cat");
     if (t.bgTreatment === "halloween-pumpkin-witch") body.classList.add("bg-halloween-pumpkin-witch");
     if (t.bgTreatment === "rose-gold-paper") body.classList.add("bg-rose-gold-paper");
+    if (t.bgTreatment === "rose-champagne") body.classList.add("bg-rose-gold-paper", "bg-rose-champagne");
+    if (t.bgTreatment === "midnight-rose") body.classList.add("bg-midnight-rose");
+    if (t.bgTreatment === "pearl-rose") body.classList.add("bg-pearl-rose");
     if (t.bgTreatment === "garnet-shell") body.classList.add("bg-garnet-shell");
     if (t.bgTreatment === "amber-paper") body.classList.add("bg-amber-paper");
     if (t.bgTreatment === "velvet-orchid") body.classList.add("bg-velvet-orchid");
@@ -2120,7 +2190,9 @@ function App() {
     if (t.cardSurface === "neon-velvet-glass") body.classList.add("surface-neon-velvet-glass");
     if (t.cardSurface === "pumpkin-cat-glass") body.classList.add("surface-pumpkin-cat-glass");
     if (t.cardSurface === "midnight-glass") body.classList.add("surface-midnight-glass");
+    if (t.cardSurface === "pearl-rose-paper") body.classList.add("surface-pearl-rose-paper");
     if (t.cardSurface === "pearl-rose") body.classList.add("surface-pearl-rose");
+    if (t.cardSurface === "midnight-rose") body.classList.add("surface-midnight-rose");
     if (t.cardSurface === "blush-shell") body.classList.add("surface-blush-shell");
     if (t.cardSurface === "sunlit-pearl") body.classList.add("surface-sunlit-pearl");
     if (t.cardSurface === "plush-orchid") body.classList.add("surface-plush-orchid");
@@ -2139,6 +2211,8 @@ function App() {
     if (t.buttonEnergy === "lantern-lift") body.classList.add("btn-lantern-lift");
     if (t.buttonEnergy === "neon-lift") body.classList.add("btn-neon-lift");
     if (t.buttonEnergy === "rose-gold-lift") body.classList.add("btn-rose-gold-lift");
+    if (t.buttonEnergy === "midnight-rose-lift") body.classList.add("btn-midnight-rose-lift");
+    if (t.buttonEnergy === "pearl-rose-lift") body.classList.add("btn-pearl-rose-lift");
     if (t.buttonEnergy === "garnet-lift") body.classList.add("btn-garnet-lift");
     if (t.buttonEnergy === "amber-pop") body.classList.add("btn-amber-pop");
     if (t.buttonEnergy === "velvet-lift") body.classList.add("btn-velvet-lift");
@@ -2451,7 +2525,7 @@ function App() {
             value={t.preset}
             onChange={applyPreset}
             options={[
-              { value: "amethyst", label: "Amethyst" },
+              { value: "amethyst", label: "Chasing Unicorns (Amethyst)" },
               { value: "sparkle_suite_morganite", label: "Sparkle Suite/Morganite" },
               { value: "black_diamond", label: "Black Diamond" },
               { value: "moonstone", label: "Moonstone" },
@@ -2460,8 +2534,12 @@ function App() {
               { value: "gnome_garden", label: "Gnome Forest" },
               { value: "neon_butterfly", label: "Neon Butterfly" },
               { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
+              { value: "gilded_autumn", label: "The Golden Leaves of Autumn" },
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
+              { value: "midnight_rose", label: "Midnight Rose" },
+              { value: "pearl_rose", label: "Pearl Rose" },
+              { value: "rose_champagne", label: "Rose Champagne" },
               { value: "garnet", label: "Garnet" },
               { value: "amber", label: "Amber" },
               { value: "velvet", label: "Velvet" },

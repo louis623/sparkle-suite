@@ -188,10 +188,10 @@ export const prelaunchContent = {
       'Founder pricing is limited to the first 20 paid reps. Joining the build queue does not reserve a founder rate. No payment is taken on this form.',
   },
   waitlistEyebrow: 'Now building Sparkle Suite sites',
-  waitlistHeading: 'Sign up to get your spot in line.',
+  waitlistHeading: 'Let’s talk about your site.',
   waitlistBody:
-    "Ready for a site that feels like you? Join the build queue and we'll email you about your setup and next steps.",
-  waitlistNote: 'Name and email are all you need to start. No payment today. Joining the queue does not reserve founder pricing.',
+    "Join the build queue and I'll email you to book a quick 30-minute call. Your build starts once your first month and setup fee are paid.",
+  waitlistNote: 'No payment when you join the queue. Founder pricing is available to reps who move forward after our call, while spots last. Joining the queue does not reserve founder pricing.',
   waitlistFields: {
     name: {
       label: 'Name',
@@ -225,13 +225,13 @@ export const prelaunchContent = {
   waitlistConsentNote:
     "We'll send practical updates by email, and by text only if you choose SMS.",
   waitlistSubmitLabel: 'Join the build queue',
-  waitlistSubmittingLabel: 'Saving your place...',
+  waitlistSubmittingLabel: 'Sending your details...',
   waitlistErrorFallback:
     'Something went wrong while joining the build queue. Please try again.',
   waitlistSuccessEyebrow: "You're in the build queue",
   waitlistSuccessTitle: "Thank you, friend. We've got you.",
   waitlistSuccessBody:
-    "Your details are saved. We'll email you about your setup and next steps, and text only if you chose SMS updates. No payment has been taken, and founder pricing is confirmed separately.",
+    "Your details are saved. I'll email you to book a quick 30-minute call. No payment has been taken. Your build starts once your first month and setup fee are paid. Joining the queue does not reserve founder pricing.",
   footerEyebrow: 'A note from the team',
   footerHeading: "We're building this carefully.",
   footerBody:

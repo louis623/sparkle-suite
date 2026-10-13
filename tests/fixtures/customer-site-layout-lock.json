@@ -1,0 +1,65 @@
+{
+  "approvedSource": "b260c3ab5d418f10322f5d2a4fac28d0f587238c",
+  "restoration": "Louis requested original shared layout on 2026-10-02: remove only the duplicate ticker added by 65a9386. Original header functions and shared CSS match the earlier source; preserve the existing lower strip and announcement mapping.",
+  "locks": [
+    {
+      "path": "public/amethyst/homepage.css",
+      "sha256": "d0146fc10ab3b752634511349eb924c56170176be3567a40d80ac8f88fc518ce"
+    },
+    {
+      "path": "lib/amethyst/preview-template-data.ts",
+      "sha256": "b910f68e0011ad77799d807e6478fefafdbdae4542fa78bb2a281afc31d570ee"
+    },
+    {
+      "path": "public/amethyst/homepage.jsx",
+      "function": "SparkleSuiteHeaderStack",
+      "sha256": "5a12c4e3f7e2bcdcbd47f50b06201979fa81a630fdcab637947df4edb8156171"
+    },
+    {
+      "path": "public/amethyst/homepage.jsx",
+      "function": "Ticker",
+      "sha256": "810d42470f03f7afd1b911a8e73114cc1ca268a71bca4c202a11d7cf19e8b46d"
+    },
+    {
+      "path": "public/amethyst/homepage.jsx",
+      "function": "LiveQueueStrip",
+      "sha256": "73642fa84312731ab9da46e3da1e64a5692eb26bba782b4c4cd992268fafa3dd"
+    },
+    {
+      "path": "public/amethyst/trade.jsx",
+      "function": "Header",
+      "sha256": "d95e0d318f470d2c24d973c370254f615ed7ed6d551eb48df51dbb78406cc4da"
+    },
+    {
+      "path": "public/amethyst/trade.jsx",
+      "function": "Ticker",
+      "sha256": "1d56034bd02bb8bc9141bc863bc1fd6d00ee92909b26ab9c6a67a25b79a0b967"
+    },
+    {
+      "path": "public/amethyst/trade.jsx",
+      "function": "LiveQueueStrip",
+      "sha256": "df8e2039e01847d8c44e797084e2b8e8d1abdc998c1a7e40e63d19977cfa5dce"
+    },
+    {
+      "path": "public/amethyst/join.jsx",
+      "function": "Header",
+      "sha256": "1ddb1396362eba9c90eefd67a09f0492ea36a5b5cb83455dc1d845dcdd01049e"
+    },
+    {
+      "path": "public/amethyst/join.jsx",
+      "function": "Ticker",
+      "sha256": "4600ad03cac1951fbeca555c3983146bc2d7b83d1452fd62c9edd591ebf06f0c"
+    },
+    {
+      "path": "public/amethyst/join.jsx",
+      "function": "LiveQueueStrip",
+      "sha256": "dbf764dd35b944b0966e52bb8fd40d76dd9bcbb50f222e1cfc593367f31aacaa"
+    }
+  ],
+  "approvedSharedChange": {
+    "date": "2026-10-02",
+    "base": "777a38bda5b2f9ec1f52894bfe34a69026ff6962",
+    "approval": "Louis selected compact calendar row option 1 and asked for implementation. Only empty lineup presentation, delayed text, and calendar scrolling are authorized; queue sync and unrelated shared layout stay locked.",
+    "plan": "docs/plans/2026-10-02-compact-public-lineup.md"
+  }
+}

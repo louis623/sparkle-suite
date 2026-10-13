@@ -28,6 +28,12 @@ function renderDemo() {
   return renderToStaticMarkup(createElement(DemoExperience))
 }
 
+function pngSize(bytes: Buffer) {
+  expect(bytes.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a')
+  expect(bytes.subarray(12, 16).toString('ascii')).toBe('IHDR')
+  return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) }
+}
+
 describe('Sparkle Suite demo page', () => {
   it('points the build-queue action at the existing waitlist and links the portfolio', () => {
     expect(sparkleSuiteDemoCta).toMatchObject({
@@ -48,15 +54,21 @@ describe('Sparkle Suite demo page', () => {
 
     expect(html).toContain('href="/demo"')
     expect(html).toContain('aria-current="page"')
-    expect(html).toContain('>Demo<')
+    expect(html).toContain('>Demos<')
     expect(html).toContain('href="/"')
     expect(html).toContain('href="/portfolio"')
     expect(html).toContain('href="#featured"')
     expect(html).not.toContain('Demo soon')
     expect(home).toContain('href="/demo"')
+    expect(home).toContain('>Demos<')
+    expect(home).not.toContain('>Demo<')
+    expect(home).not.toContain('Your site')
+    expect(home).not.toContain('Show tools')
+    expect(home).not.toContain('Founding offer')
     expect(home).not.toContain('Demo soon')
     expect(home).not.toContain('aria-current="page"')
     expect(portfolio).toContain('href="/demo"')
+    expect(portfolio).toContain('>Demos<')
     expect(portfolio).toContain('href="/portfolio"')
     expect(portfolio).not.toContain('Demo soon')
   })
@@ -98,9 +110,29 @@ describe('Sparkle Suite demo page', () => {
     expect(html).not.toContain('unlisted')
 
     for (const story of sparkleSuiteDemoStories) {
-      expect(existsSync(join(process.cwd(), 'public', ...story.image.src.split('/').filter(Boolean)))).toBe(true)
+      const file = join(process.cwd(), 'public', ...story.image.src.split('/').filter(Boolean))
+      expect(existsSync(file)).toBe(true)
       expect(html).toContain(story.image.alt)
+      if (story.image.src.endsWith('.png')) {
+        const size = pngSize(readFileSync(file))
+        expect(size).toEqual({ width: story.image.width, height: story.image.height })
+      }
     }
+
+    const [danceFloor, liveLineup, liveCalendar] = sparkleSuiteDemoStories
+    expect(danceFloor.image.src).toBe('/sparkle-suite/landing/dance-floor-garnet-v2.webp')
+    expect(liveLineup.eyebrow).toBe('Live Lineup')
+    expect(liveLineup.image.src).toBe('/sparkle-suite/landing/demo-live-lineup-v1.png')
+    expect(liveLineup.image.alt).toContain('Live Lineup')
+    expect(liveLineup.image.alt.toLowerCase()).not.toContain('homepage')
+    expect(liveLineup.image.alt.toLowerCase()).not.toContain('calendar')
+    expect(liveCalendar.eyebrow).toBe('Live calendar')
+    expect(liveCalendar.image.src).toBe('/sparkle-suite/landing/demo-live-calendar-v1.png')
+    expect(liveCalendar.image.alt).toContain('Upcoming Shows')
+    expect(liveLineup.image.src).not.toBe(liveCalendar.image.src)
+    expect(html).toContain('>Live Lineup<')
+    expect(html).not.toContain('jane-customer-home-mobile.png')
+    expect(html).not.toContain('calendar-emerald-garden-v2.webp')
   })
 
   it('keeps the Option D palette and refuses unlisted or factory clips', () => {

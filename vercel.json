@@ -27,6 +27,14 @@
     {
       "path": "/api/internal/owner-direct-uploads/cleanup",
       "schedule": "30 5 * * *"
+    },
+    {
+      "path": "/api/internal/card-qr/approver-emails?slot=13",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/internal/card-qr/approver-emails?slot=14",
+      "schedule": "0 14 * * *"
     }
   ]
 }

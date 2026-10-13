@@ -1,6 +1,28 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['@resvg/resvg-js'],
+  outputFileTracingIncludes: {
+    // Server-rendered email shells read with readFileSync (official notice + Weekly Fizz).
+    '/api/**/*': [
+      './brand-assets/email/official-notices/*.html',
+      './brand-assets/email/weekly-fizz-report/weekly-fizz-report.resend-template.html',
+    ],
+    '/api/workspace/card-qr/flyer': [
+      './lib/workspace/card-qr/fonts/**/*',
+      './public/amethyst/skins/**/flyer/plate.webp',
+    ],
+    '/api/workspace/card-qr/card': [
+      './lib/workspace/card-qr/fonts/card/**/*',
+      './lib/workspace/card-qr/card-plates/**/*',
+    ],
+  },
+  async redirects() {
+    return [
+      { source: '/learn', destination: '/', statusCode: 301 },
+      { source: '/demo', destination: '/#watch', statusCode: 301 },
+    ]
+  },
   async headers() {
     return [
       {

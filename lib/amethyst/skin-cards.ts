@@ -17,6 +17,8 @@ export interface AmethystSkinCard {
   aliases?: readonly string[]
   previewHref?: string
   visibility: 'community' | 'private'
+  /** False hides a retired look from Suite pickers while preserving saved sites. */
+  selectable?: boolean
   exclusiveLabel?: string
   headingFont: string
   bodyFont: string
@@ -30,12 +32,14 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     id: 'amethyst',
     visibility: 'community',
     code: 'AM-01',
-    label: 'Amethyst',
-    description: 'The default high-sparkle Amethyst look with lavender, hot pink, and glossy cards.',
+    label: 'Chasing Unicorns (Amethyst)',
+    description: 'Chasing Unicorns: magical violet and hot-pink reveals with a full-body unicorn and the familiar glossy Amethyst cards.',
+    aliases: ['Amethyst', 'Chasing Unicorns'],
+    previewHref: '/skin-preview/amethyst/homepage',
     headingFont: 'Italiana',
     bodyFont: 'Inter',
     surfaceNote: 'Holographic cards with confetti sparkle',
-    motionNote: 'Calm CTA with sparkle cursor',
+    motionNote: 'A unicorn entrance, flowing mane and tail, and a final held pose. Replay or opt into gentle Moonlit Magic sound.',
     swatches: [
       { label: 'Primary', value: '#5C0EFF' },
       { label: 'Accent', value: '#FF1AC2' },
@@ -211,6 +215,42 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     ],
   },
   {
+  "id": "gilded_autumn",
+  "visibility": "community",
+  "code": "GA-01",
+  "label": "The Golden Leaves of Autumn",
+  "aliases": [
+    "Gilded Autumn",
+    "Golden Leaves",
+    "Autumn",
+    "Fall Leaves"
+  ],
+  "previewHref": "/skin-preview/gilded_autumn/homepage",
+  "description": "Sunlit autumn trees, crisp copper leaves, and a fine champagne shimmer.",
+  "headingFont": "Playfair Display",
+  "bodyFont": "DM Sans",
+  "surfaceNote": "Warm ivory cards, copper buttons, and champagne details",
+  "motionNote": "Falling leaves with fine metallic shimmer on desktop and phones; pause and reduced-motion support",
+  "swatches": [
+    {
+      "label": "Copper",
+      "value": "#91451d"
+    },
+    {
+      "label": "Champagne",
+      "value": "#b18338"
+    },
+    {
+      "label": "Ivory",
+      "value": "#fff8ec"
+    },
+    {
+      "label": "Espresso",
+      "value": "#392519"
+    }
+  ]
+},
+  {
     id: 'rose_gold',
     visibility: 'community',
     code: 'RG-01',
@@ -226,6 +266,61 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
       { label: 'Rose', value: '#e04f73' },
       { label: 'Blush', value: '#f9a8d4' },
       { label: 'Gold', value: '#f5c66d' },
+    ],
+  },
+  {
+    id: 'midnight_rose',
+    visibility: 'community',
+    code: 'RG-02',
+    label: 'Midnight Rose',
+    previewHref: '/skin-preview/midnight_rose/homepage',
+    description: 'Deep aubergine surfaces, warm copper-blush accents, and dramatic glitter.',
+    headingFont: 'Playfair Display',
+    bodyFont: 'DM Sans',
+    surfaceNote: 'Aubergine cards with ivory ink and rose-copper edges',
+    motionNote: 'A restrained light ribbon crosses the glitter ridge with sparse independent glints',
+    swatches: [
+      { label: 'Aubergine', value: '#180e16' },
+      { label: 'Rose velvet', value: '#271920' },
+      { label: 'Copper blush', value: '#efb5a3' },
+      { label: 'Ivory', value: '#fff0e8' },
+    ],
+  },
+  {
+    id: 'pearl_rose',
+    visibility: 'community',
+    code: 'RG-03',
+    label: 'Pearl Rose',
+    previewHref: '/skin-preview/pearl_rose/homepage',
+    description: 'Airy ivory surfaces, copper details and refined burgundy ink.',
+    headingFont: 'Playfair Display',
+    bodyFont: 'DM Sans',
+    surfaceNote: 'Pearl cards with burgundy ink and copper accents',
+    motionNote: 'Fine light follows the crystalline crescent with gentle pearl bokeh',
+    swatches: [
+      { label: 'Ivory', value: '#faf5ef' },
+      { label: 'Pearl', value: '#fffefa' },
+      { label: 'Burgundy', value: '#954354' },
+      { label: 'Wine ink', value: '#4d2931' },
+    ],
+  },
+  {
+    id: 'rose_champagne',
+    visibility: 'community',
+    code: 'RG-04',
+    label: 'Rose Champagne',
+    previewHref: '/skin-preview/rose_champagne/homepage',
+    description:
+      'Warm rose-copper shimmer, champagne bokeh, and luminous pearl cards.',
+    headingFont: 'Playfair Display',
+    bodyFont: 'DM Sans',
+    surfaceNote: 'Warm pearl cards, rose-copper borders, and burgundy buttons',
+    motionNote: 'Independent glitter shimmer and champagne bokeh with a fixed camera',
+    swatches: [
+      { label: 'Warm pearl', value: '#fff7f5' },
+      { label: 'Rose', value: '#a04e5d' },
+      { label: 'Copper', value: '#d29b82' },
+      { label: 'Burgundy', value: '#723745' },
     ],
   },
   {
@@ -285,6 +380,7 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
   {
     id: 'rose_quartz',
     visibility: 'community',
+    selectable: false,
     code: 'RQ-01',
     label: 'Rose Quartz',
     description:
@@ -306,11 +402,15 @@ export function getAmethystSkinCardsForIds(
   availableSkinIds: readonly string[],
 ) {
   const visibleIds = new Set(availableSkinIds)
-  return AMETHYST_SKIN_CARDS.filter((skin) => visibleIds.has(skin.id))
+  return AMETHYST_SKIN_CARDS.filter(
+    (skin) => skin.selectable !== false && visibleIds.has(skin.id),
+  )
 }
 
 export function getCommunityAmethystSkinCards() {
-  return AMETHYST_SKIN_CARDS.filter((skin) => skin.visibility === 'community')
+  return AMETHYST_SKIN_CARDS.filter(
+    (skin) => skin.selectable !== false && skin.visibility === 'community',
+  )
 }
 
 export function getAmethystSkinDropdownLabel(skin: AmethystSkinCard) {

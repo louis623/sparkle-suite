@@ -12,7 +12,7 @@ import { AMETHYST_APPEARANCE_PRESETS } from '@/lib/amethyst/appearance-presets'
 
 describe('Amethyst homepage template data wiring', () => {
 
-  it('shows the last lineup update at the far right without customer-facing delay copy', () => {
+  it('shows a discreet updating label alongside the retained lineup timestamp', () => {
     const publicLineupSources = [
       'public/amethyst/homepage.jsx',
       'public/amethyst/trade.jsx',
@@ -30,7 +30,8 @@ describe('Amethyst homepage template data wiring', () => {
     for (const source of publicLineupSources) {
       expect(source).not.toContain('Update delayed')
       expect(source).toContain('className="hp-trade-preview-updated"')
-      expect(source).toContain('Updated {new Date(updatedAt)')
+      expect(source).toContain('Updating · Last update ')
+      expect(source).toContain('new Date(updatedAt).toLocaleTimeString')
       expect(source).toMatch(
         /className="hp-trade-preview-items"[\s\S]*?className="hp-trade-preview-link"[\s\S]*?<LiveLineupUpdatedAt lineup=\{lineup\} \/>/,
       )
@@ -134,7 +135,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20260928-lineup-always-on')
+    expect(homepage).toContain('homepage.jsx?v=20261010-bk-framed-hero')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -1035,7 +1036,7 @@ describe('Amethyst homepage template data wiring', () => {
     expect(css).toMatch(/\.hp-hero-trade-board-cta\s*\{[\s\S]*?width:\s*100%;/)
   })
 
-  it('places the readable trade tip after hero actions in every homepage layout', () => {
+  it('keeps the trade reminder only in the Dance Floor hero across homepage layouts', () => {
     const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.jsx'), 'utf8')
     const css = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.css'), 'utf8')
     const layouts = [
@@ -1048,16 +1049,14 @@ describe('Amethyst homepage template data wiring', () => {
     for (const [start, end, actionClass] of layouts) {
       const layout = jsx.slice(jsx.indexOf(start), jsx.indexOf(end, jsx.indexOf(start)))
       expect(layout.indexOf(`className="${actionClass}"`)).toBeGreaterThan(-1)
-      expect(layout.indexOf('<RevealScreenshotTip />')).toBeGreaterThan(
-        layout.indexOf(`className="${actionClass}"`),
-      )
-      expect(layout.indexOf('<RevealScreenshotTip />')).toBeLessThan(layout.indexOf('</section>'))
-      expect(layout.match(/<RevealScreenshotTip \/>/g)).toHaveLength(start === 'function Hero({' ? 2 : 1)
-      if (start === 'function Hero({') {
-        expect(layout).toContain('t.preset !== "halloween_pumpkin_cat" && <RevealScreenshotTip />')
-        expect(layout).toContain('t.preset === "halloween_pumpkin_cat" && <div className="hpc-reminder">')
-      }
+      expect(layout).not.toContain('RevealScreenshotTip')
+      expect(layout).not.toContain('hpc-reminder')
     }
+
+    const trade = readFileSync(resolve(process.cwd(), 'public/amethyst/trade.jsx'), 'utf8')
+    const tradeHero = trade.slice(trade.indexOf('function TradeHero('), trade.indexOf('function Filters('))
+    expect(tradeHero).toContain('Planning a Dance Floor trade?')
+    expect(tradeHero).toContain('Crop out personal and order details before sharing it with your rep.')
 
     expect(css).toContain('--hp-tip-surface: #1b1720;')
     expect(css).toContain('--hp-tip-ink: #fffaf3;')
@@ -1118,7 +1117,7 @@ describe('Amethyst homepage template data wiring', () => {
     const blingKitchenHero = jsx.slice(
       jsx.indexOf('function BlingKitchenHomepage('),
       jsx.indexOf('// ============================================================\n// Main App'),
-    )
+    ).split('className="bk-home-hero"').slice(1).join('className="bk-home-hero"')
 
     expect(brittHero).toContain('className="bwb-hero-cta-stack"')
     expect(brittHero).toContain('className="bwb-hero-cta-primary-row"')
@@ -1134,6 +1133,20 @@ describe('Amethyst homepage template data wiring', () => {
     )
     expect(css).toMatch(/\.bwb-cta-dance-floor\s*\{[\s\S]*?width:\s*100%;/)
     expect(css).toMatch(/\.bk-home-cta-dance-floor\s*\{[\s\S]*?width:\s*100%;/)
+  })
+
+  it('renders the Louis-approved framed kitchen hero for BlingKitchen outside seasonal skins', () => {
+    const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.jsx'), 'utf8')
+    const css = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.css'), 'utf8')
+    const framedCss = readFileSync(resolve(process.cwd(), 'public/amethyst/bling-kitchen/framed-hero.css'), 'utf8')
+    const route = readFileSync(resolve(process.cwd(), 'app/api/amethyst/homepage-template/route.ts'), 'utf8')
+    const blingKitchen = jsx.slice(jsx.indexOf('function BlingKitchenHomepage('), jsx.indexOf('// ============================================================\n// Main App'))
+    expect(blingKitchen).toContain('useFramedKitchenHero ? (')
+    expect(blingKitchen).toMatch(/halloween\|gnome/)
+    expect(blingKitchen).toContain('className="bkf-card"')
+    expect(blingKitchen).not.toContain('Nurse, Nonna')
+    expect(framedCss).toMatch(/\.bkf-card\s*\{[\s\S]*?border:\s*3px solid #c9a15a;/)
+    expect(route).toContain("process.env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT !== 'smoke'")
   })
 
   it('uses the live-show header grid with brand, centered nav, and primary shop CTA', () => {
@@ -1297,7 +1310,7 @@ describe('Amethyst homepage template data wiring', () => {
     expect(css).toMatch(/\.hp-queue-modal-row \.name\s*\{[\s\S]*?color:\s*#2b1b1f;/)
   })
 
-  it('ships the Rose Gold skin in the local homepage preset picker', () => {
+  it('ships distinct Rose Gold and Rose Champagne presets', () => {
     const jsx = readFileSync(
       resolve(process.cwd(), 'public/amethyst/homepage.jsx'),
       'utf8',
@@ -1308,7 +1321,8 @@ describe('Amethyst homepage template data wiring', () => {
     )
 
     expect(jsx).toContain('rose_gold')
-    expect(jsx).toContain('Rose Gold')
+    expect(jsx).toContain('{ value: "rose_gold", label: "Rose Gold" }')
+    expect(jsx).toContain('{ value: "rose_champagne", label: "Rose Champagne" }')
     expect(html).toContain('DM+Sans')
     expect(html).toContain('Playfair+Display')
   })

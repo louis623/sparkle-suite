@@ -1,0 +1,28 @@
+/* Approved warm-plum marketing system, October 6, 2026.
+   Scoped typography/surfaces: customer themes and the workspace keep their own styles. */
+:root {
+  --suite-plum:#34252f; --suite-espresso:#36221d;
+  --suite-paper:#fff6fa; --suite-blush:#fbf5f2; --suite-white:#fff;
+  --suite-cream:#f6e7da; --suite-pink:#ee2c9b; --suite-soft-pink:#ffd4ea;
+  --suite-ink:#402924; --suite-muted:#775d57;
+  --suite-line:rgba(64,41,36,.16); --suite-dark-line:rgba(246,231,218,.24);
+  --suite-button:linear-gradient(110deg,#ff4cae,#d81b87);
+  --suite-plum-surface:radial-gradient(ellipse at 85% 30%,rgba(238,44,155,.09),transparent 60%),#34252f;
+}
+.suite-marketing {font-family:var(--font-prelaunch-sans),"DM Sans",sans-serif;color:var(--suite-ink);background:var(--suite-paper)}
+.suite-marketing * {box-sizing:border-box}
+.suite-marketing :is(h1,h2,h3,p,figure) {margin:0}
+.suite-marketing :is(h1,h2,h3) {font-family:var(--font-prelaunch-display),"Playfair Display",Georgia,serif;font-weight:500;letter-spacing:-.035em}
+.suite-marketing :is(a,button,input,textarea,summary):focus-visible {outline:3px solid var(--suite-pink);outline-offset:5px}
+.suite-marketing :is(button,input,textarea,summary) {font-family:inherit}
+.suite-marketing :is(section,[id]) {scroll-margin-top:24px}
+.suite-legal .prelaunch-section{padding:0 22px 64px;background:var(--suite-paper)}
+.suite-legal .sparkle-legal-shell{max-width:1080px;margin:auto;background:transparent}
+.suite-legal .prelaunch-card{box-shadow:none;background:transparent;border:0}
+.suite-legal article>header{background:var(--suite-plum-surface);padding:40px;border-radius:20px;color:var(--suite-cream)}
+.suite-legal article>header :is(h1,p,strong,a){color:var(--suite-cream)}
+.suite-legal article>header h1{margin-top:16px}.suite-legal article>header p{margin-top:16px}
+.suite-legal article>section{padding-top:32px}.suite-legal article h2{margin-bottom:12px}
+.suite-legal article p{line-height:1.9}
+@media(max-width:760px){.suite-legal article>header{padding:28px 22px}.suite-legal .prelaunch-card{padding:0}}
+@media(prefers-reduced-motion:reduce){.suite-marketing *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}

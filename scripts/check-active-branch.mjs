@@ -67,6 +67,8 @@ export function evaluateBranchPolicy({
   remoteRepository,
   worktree,
   isVercel = false,
+  deploymentProjectId,
+  deploymentEnvironment,
   platform = process.platform,
 }) {
   const errors = [];
@@ -81,6 +83,12 @@ export function evaluateBranchPolicy({
     errors.push(
       `GitHub repository "${remoteRepository}" does not match ${policy.repository}`,
     );
+  }
+
+  const previewRule = policy.previewBranches?.[branch];
+  if (isVercel && previewRule &&
+      (deploymentProjectId !== previewRule.projectId || deploymentEnvironment !== previewRule.environment)) {
+    errors.push(`branch "${branch}" is limited to ${previewRule.projectId} / ${previewRule.environment}`);
   }
 
   if (
@@ -106,11 +114,16 @@ export function currentBranch() {
     process.env.GITHUB_HEAD_REF ||
     process.env.GITHUB_REF_NAME;
   const declaredReleaseBranch = process.env.SPARKLE_RELEASE_BRANCH?.trim();
+  const platformBranch = environmentBranch?.replace(/^refs\/heads\//, "");
+  const previewRule = policy.previewBranches?.[platformBranch];
+  const authorizedPreview = process.env.VERCEL === "1" && previewRule &&
+    process.env.VERCEL_PROJECT_ID === previewRule.projectId &&
+    process.env.VERCEL_ENV === previewRule.environment;
 
   if (
     environmentBranch &&
     declaredReleaseBranch &&
-    environmentBranch.replace(/^refs\/heads\//, "") !== declaredReleaseBranch
+    platformBranch !== declaredReleaseBranch && !authorizedPreview
   ) {
     throw new Error(
       `Declared release branch "${declaredReleaseBranch}" does not match platform branch "${environmentBranch}".`,
@@ -180,6 +193,8 @@ function main() {
     worktree,
     isVercel:
       process.env.VERCEL === "1" || hasDeclaredManualReleaseProvenance(),
+    deploymentProjectId: process.env.VERCEL_PROJECT_ID,
+    deploymentEnvironment: process.env.VERCEL_ENV,
   });
 
   if (errors.length > 0) {

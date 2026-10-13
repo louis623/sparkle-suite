@@ -1,3 +1,5 @@
+import { loadAmethystHomepageUpcomingShows } from '@/lib/amethyst/homepage-upcoming-shows'
+import { buildLineupCalendar } from '@/lib/amethyst/lineup-calendar'
 import { buildPublicLiveLineup, requestedLineupPresentation } from '@/lib/amethyst/public-live-lineup'
 import { NextResponse } from 'next/server'
 
@@ -23,9 +25,10 @@ export async function GET(request: Request) {
     ...(publicSiteSlug ? { publicSiteSlug } : {}),
     repId,
   }
-  const [listings, templateData] = await Promise.all([
+  const [listings, templateData, events] = await Promise.all([
     loadAmethystTradeBoardPreviewListings({ ...lookupTarget, targeted }),
     loadAmethystPreviewTemplateData(lookupTarget),
+    loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }),
   ])
   const linkedTemplateData = applyPublicSiteSlugToTemplateData(
     templateData,
@@ -38,7 +41,11 @@ export async function GET(request: Request) {
 
   return new NextResponse(
     buildAmethystTradeBootstrapScript(
-      { ...customerTemplateData.trade, ...buildPublicLiveLineup(null, requestedLineupPresentation(request)) },
+      {
+        ...customerTemplateData.trade,
+        ...buildLineupCalendar(customerTemplateData.homepage, events),
+        ...buildPublicLiveLineup(null, requestedLineupPresentation(request)),
+      },
       listings,
       customerTemplateData.appearancePreset,
       { publicSiteSlug, repId, targeted },

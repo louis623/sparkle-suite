@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { type ChangeEvent, type FormEvent, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 
 import { prelaunchContent } from '@/lib/prelaunch/content'
+import { readBrowserQueueAttribution, rememberBrowserQueueAttribution } from '@/lib/prelaunch/attribution'
 import { SparkleSeal } from './PrelaunchVisuals'
 
 type WaitlistFormValues = {
@@ -35,6 +36,7 @@ export function PrelaunchWaitlistForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  useEffect(rememberBrowserQueueAttribution, [])
 
   function handleChange(
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -58,6 +60,7 @@ export function PrelaunchWaitlistForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!event.currentTarget.reportValidity()) return
     setIsSubmitting(true)
     setErrorMessage(null)
 
@@ -67,7 +70,7 @@ export function PrelaunchWaitlistForm() {
         headers: {
           'content-type': 'application/json',
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, attribution: readBrowserQueueAttribution() }),
       })
 
       const payload = (await response.json().catch(() => null)) as

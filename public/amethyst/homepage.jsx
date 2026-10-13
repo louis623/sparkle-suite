@@ -453,7 +453,7 @@ function LiveLineupUpdatedAt({ lineup }) {
       dateTime={new Date(updatedAt).toISOString()}
       title={new Date(updatedAt).toLocaleString()}
     >
-      Updated {new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
     </time>
   );
 }
@@ -528,6 +528,27 @@ const PRESETS = {
     textureOverlay: "neon-butterflies", buttonEnergy: "neon-lift", ctaEmphasis: "standard",
     tradeFlair: "butterfly-glow", cursorEffect: "default", tickerSpeed: 1,
   },
+  gilded_autumn: {
+  "primaryColor": "#91451d",
+  "accentColor": "#b18338",
+  "bgTone": "gildedAutumn",
+  "headingFont": "playfair",
+  "bodyFont": "dmSans",
+  "headingWeight": 500,
+  "shapeRadius": "soft",
+  "density": "regular",
+  "saturation": 100,
+  "heroMotion": "autumn_leaves",
+  "sparkleLevel": "none",
+  "bgTreatment": "gilded-autumn",
+  "cardSurface": "warm-paper",
+  "textureOverlay": "none",
+  "buttonEnergy": "suite-lift",
+  "ctaEmphasis": "standard",
+  "tradeFlair": "champagne-copper",
+  "cursorEffect": "default",
+  "tickerSpeed": 1
+},
   halloween_pumpkin_cat: {
     "primaryColor": "#ff923d",
     "accentColor": "#f4eee3",
@@ -564,6 +585,32 @@ const PRESETS = {
     textureOverlay: "none", buttonEnergy: "rose-gold-lift", ctaEmphasis: "standard",
     tradeFlair: "champagne-rose", cursorEffect: "default", saturation: 108,
     bgTone: "roseGold", primaryColor: "#e04f73", accentColor: "#f5c66d",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+  },
+  midnight_rose: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "midnight-rose", cardSurface: "midnight-rose",
+    textureOverlay: "none", buttonEnergy: "midnight-rose-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-midnight", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "midnightRose", primaryColor: "#efb5a3", accentColor: "#d29b82",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
+  pearl_rose: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "pearl-rose", cardSurface: "pearl-rose-paper",
+    textureOverlay: "none", buttonEnergy: "pearl-rose-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-pearl", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "pearlRose", primaryColor: "#954354", accentColor: "#d29b82",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
+  rose_champagne: {
+    heroMotion: "sparkle_rise",
+    sparkleLevel: "subtle", bgTreatment: "rose-champagne", cardSurface: "pearl-rose",
+    textureOverlay: "none", buttonEnergy: "rose-gold-lift", ctaEmphasis: "standard",
+    tradeFlair: "champagne-rose", cursorEffect: "default", saturation: 108,
+    bgTone: "roseGold", primaryColor: "#a04e5d", accentColor: "#d29b82",
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
   },
   garnet: {
@@ -604,6 +651,7 @@ const PRESETS = {
 // Color tone palettes
 // ============================================================
 const TONES = {
+  gildedAutumn: {bg:"#fff8ec",elevated:"#fffdf7",deep:"#f0dfc5"},
   halloweenPumpkinCat: {bg:"#080706",elevated:"#1b1511",deep:"#050403"},
   lavender: { bg: "#E8DFF5", elevated: "#F2EBFA", deep: "#DCD0EE" },
   warm:     { bg: "#FFF0E8", elevated: "#FFF7F1", deep: "#FFE2D0" },
@@ -619,6 +667,8 @@ const TONES = {
   gnomeGarden: { bg: "#173126", elevated: "#FFF3D6", deep: "#102319" },
   neonButterfly: { bg: "#120414", elevated: "#261029", deep: "#09010c" },
   roseGold: { bg: "#fff5f6", elevated: "#fffafa", deep: "#ffe8ec" },
+  midnightRose: { bg: "#180e16", elevated: "#271920", deep: "#100910" },
+  pearlRose: { bg: "#faf5ef", elevated: "#fffefa", deep: "#f2e5dc" },
   garnet: { bg: "#FFE5DD", elevated: "#fff8f5", deep: "#ffd0c4" },
   amber: { bg: "#FAFAFA", elevated: "#fffaf5", deep: "#ffe4cf" },
   velvet: { bg: "#FFE8FF", elevated: "#fff7ff", deep: "#f7c9ff" },
@@ -754,10 +804,10 @@ function Hero({ t, isLive, liveShow }) {
 
   return (
     <>
-    <section className="hp-hero" data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
+    <section className="hp-hero" data-appearance-preset={t.preset} data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
       {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
       <div className="hp-hero-media" aria-hidden="true" />
-      {t.preset !== "halloween_pumpkin_cat" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
+      {t.preset !== "halloween_pumpkin_cat" && t.preset !== "amethyst" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
       <div className="hp-hero-inner">
         <div>
           {isMileHighFizzHybrid && (
@@ -821,11 +871,9 @@ function Hero({ t, isLive, liveShow }) {
               </>
             )}
           </div>
-          {t.preset !== "halloween_pumpkin_cat" && <RevealScreenshotTip />}
         </div>
       </div>
     </section>
-    {t.preset === "halloween_pumpkin_cat" && <div className="hpc-reminder"><RevealScreenshotTip /></div>}
     </>
   );
 }
@@ -1314,24 +1362,6 @@ function parseAnnouncementTickerItems(topText) {
   });
 }
 
-function LiveLineupTicker() {
-  const lineup = React.useContext(LiveLineupContext);
-  const entries = (lineup?.liveQueueEntries || []).slice(0, 12);
-  if (lineup?.liveQueuePresentation !== "grouped-v1") return null;
-  return <div className="hp-ticker-row hp-lineup-ticker" data-lineup-surface="ticker">
-    <span className="hp-ticker-label">Live Lineup</span>
-    <span className="hp-ticker-sr" role="status" aria-live="polite" aria-atomic="true" key={lineup?.liveQueueFlare?.cursor || "baseline"}>{lineup?.liveQueueFlare ? "Live Lineup updated after an order reveal." : ""}</span>
-    <div className="hp-ticker-track" data-ticker-pps="32" aria-hidden="true">
-      {entries.length ? [...entries, ...entries].map((entry, index) => <span
-        key={`${entry.token || entry.position}-${index < entries.length ? "original" : "clone"}`}
-        className="hp-ticker-item" data-lineup-token={entry.token} data-lineup-clone={index >= entries.length ? "true" : undefined}
-        data-ticker-segment-start={index === 0 ? "true" : undefined} data-ticker-segment-repeat-start={index === entries.length ? "true" : undefined}>
-        <span className="hp-lineup-sparkle" aria-hidden="true">{"\u2727"}</span><span className="dot" />{entry.position}. {entry.name}{entry.remainingOrders > 1 ? ` · ${entry.remainingOrders} orders` : ""}
-      </span>) : <span className="hp-ticker-item">{lineup.liveQueueSummary}</span>}
-    </div>
-  </div>;
-}
-
 function Ticker({ topText }) {
   const lineup = React.useContext(LiveLineupContext);
   useDynamicTickerMotion();
@@ -1368,7 +1398,6 @@ function Ticker({ topText }) {
         <p>{lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup opens when the show starts.")}</p>
         <a {...linkProps(getTradeBoardHref())}>{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Browse current dance floor highlights"}</a>
       </div>
-      <LiveLineupTicker />
       <div className="hp-ticker-row">
         <span className="hp-ticker-label">Announcements</span>
         <div className="hp-ticker-track" data-ticker-pps={ANNOUNCEMENT_TICKER_SPEED_PPS} aria-hidden="true">
@@ -1414,55 +1443,10 @@ function Ticker({ topText }) {
 function LiveQueueStrip({ state, onOpen }) {
   const lineup = React.useContext(LiveLineupContext);
   const entries = lineup?.liveQueueEntries ?? LIVE_QUEUE_ENTRIES;
-  if (state === "offline") {
-    return (
-      <section className="hp-trade-preview" data-lineup-surface="list">
-        <div className="hp-trade-preview-inner">
-          <div className="hp-trade-preview-head">
-            <span>Live Lineup</span>
-          </div>
-          <div className="hp-trade-preview-items" style={{ color: "var(--hp-preview-muted, var(--fg-muted))" }}>
-            {lineup?.liveQueueSummary || getLiveQueueSummary("Lineup opens when the next scheduled show starts.")}
-          </div>
-          <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View lineup</button>
-          <LiveLineupUpdatedAt lineup={lineup} />
-        </div>
-      </section>
-    );
-  }
-
-  if (state === "loading") {
-    return (
-      <section className="hp-trade-preview" data-lineup-surface="list">
-        <div className="hp-trade-preview-inner">
-          <div className="hp-trade-preview-head">
-            <span className="live-dot" />
-            <span>Live Lineup</span>
-          </div>
-          <div className="hp-trade-preview-items">
-            Loading lineup...
-          </div>
-          <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
-          <LiveLineupUpdatedAt lineup={lineup} />
-        </div>
-      </section>
-    );
-  }
-
-  if (state === "empty") {
-    return (
-      <section className="hp-trade-preview" data-lineup-surface="list">
-        <div className="hp-trade-preview-inner">
-          <div className="hp-trade-preview-head">
-            <span className="live-dot" />
-            <span>Live Lineup</span>
-          </div>
-          <div className="hp-trade-preview-items">
-            {lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup is ready. Customer names appear here when a live show is connected.")}
-          </div>
-          <button type="button" className="hp-trade-preview-link" onClick={onOpen}>View full lineup</button>
-          <LiveLineupUpdatedAt lineup={lineup} />
-        </div>
+  if (entries.length === 0) {
+    return window.SparkleLiveLineup?.renderEmpty?.(React, CONTENT.liveQueueCalendarHref) || (
+      <section className="hp-trade-preview hp-lineup-idle" data-lineup-surface="calendar" aria-label="Upcoming shows">
+        <div className="hp-lineup-idle-inner"><span className="hp-lineup-idle-prompt">Check back for upcoming shows</span></div>
       </section>
     );
   }
@@ -1692,11 +1676,50 @@ function buildOutlookCalendarHref(event) {
   return `https://outlook.live.com/calendar/0/action/compose?${params.toString()}`;
 }
 
+function useCalendarDialog(open, onClose) {
+  const ref = useRef(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    if (!open || !ref.current) return;
+    const dialog = ref.current;
+    const previous = document.activeElement;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusable = () => [...dialog.querySelectorAll('button:not([disabled]), a[href], [tabindex="0"]')].filter(element => !element.hidden);
+    (focusable()[0] || dialog).focus();
+    function focusin(event) {
+      if (!dialog.contains(event.target)) (focusable()[0] || dialog).focus();
+    }
+    function keydown(event) {
+      if (event.key === "Escape") { event.preventDefault(); close.current(); return; }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      const first = items[0] || dialog;
+      const last = items[items.length - 1] || dialog;
+      if (!dialog.contains(document.activeElement) || (event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      }
+    }
+    document.addEventListener("keydown", keydown);
+    document.addEventListener("focusin", focusin);
+    return () => {
+      document.removeEventListener("keydown", keydown);
+      document.removeEventListener("focusin", focusin);
+      document.body.style.overflow = overflow;
+      if (previous?.isConnected) previous.focus();
+    };
+  }, [open]);
+  return ref;
+}
+
 function CalendarChooser({ event, onClose }) {
+  const dialogRef = useCalendarDialog(Boolean(event), onClose);
   if (!event) return null;
   return (
     <div className="hp-calendar-modal-mask" role="presentation" onClick={onClose}>
-      <section className="hp-calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-choice-title" onClick={(click) => click.stopPropagation()}>
+      <section ref={dialogRef} tabIndex={-1} className="hp-calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-choice-title" onClick={(click) => click.stopPropagation()}>
         <div className="hp-calendar-modal-head">
           <div>
             <div className="hp-calendar-modal-eyebrow">Save the date</div>
@@ -2354,16 +2377,6 @@ function SparkleSuiteHeaderStack({ t, scheduleIsLive, effectiveLrqState, onOpenQ
   );
 }
 
-function RevealScreenshotTip() {
-  if (isBrittDanceFloorComingSoon) return null;
-  return (
-    <aside className="hp-reveal-screenshot-tip" aria-label="Trade screenshot tip">
-      <strong>Planning a Dance Floor trade?</strong>
-      <div>Save a screenshot of your reveal before leaving the live show. Crop out personal and order details before sharing it with your rep.</div>
-    </aside>
-  );
-}
-
 function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queueState, onOpenQueue }) {
   const joinTeamHref = CONTENT.footerLinks?.joinTeam || "#";
   const heroVideoUrl = CONTENT.heroVideoUrl || "/mile-high-fizz/hero.mp4";
@@ -2374,11 +2387,11 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
-      <section className="mhf-hero" aria-labelledby="mhf-hero-title">
+      <section className="mhf-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="mhf-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-        <video className="mhf-hero-video" autoPlay muted loop playsInline poster="">
+        {t.preset !== "gilded_autumn" && <video className="mhf-hero-video" autoPlay muted loop playsInline poster="">
           <source src={CONTENT.heroVideoUrl || heroVideoUrl} type="video/mp4" />
-        </video>
+        </video>}
         <div className="mhf-hero-shade" aria-hidden="true" />
         <div className="mhf-hero-content">
           <h1 id="mhf-hero-title" className="mhf-hero-title mhf-logo-gradient">
@@ -2402,7 +2415,6 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
               <a {...linkProps(getTradeBoardHref())} className="mhf-cta mhf-cta-dance-floor">Browse the Dance Floor</a>
             </div>
           </div>
-          <RevealScreenshotTip />
         </div>
       </section>
       )}
@@ -2502,7 +2514,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
-      <section className="bwb-hero" aria-labelledby="bwb-hero-title">
+      <section className="bwb-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bwb-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         <img className="bwb-hero-image" src={heroImageUrl} alt="" />
         <div className="bwb-hero-shade" aria-hidden="true" />
@@ -2528,7 +2540,6 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
               <a {...linkProps(getTradeBoardHref())} className="bwb-cta bwb-cta-dance-floor">Dance Floor · Coming soon</a>
             </div>
           </div>
-          <RevealScreenshotTip />
         </div>
       </section>
       )}
@@ -2553,13 +2564,41 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
   const pantryHref = CONTENT.pantryPageUrl || "#";
   const heroImageUrl = CONTENT.heroImageUrl || "";
   const heroWatchLinks = getHeroWatchLinks(liveShow, isLive);
+  const tiktokLink = heroWatchLinks.find((link) => link.id === "tiktok") || { href: "https://www.tiktok.com/@blingkitchen" };
+  // Louis-approved framed kitchen hero (option C). Seasonal / art skins keep their own hero.
+  const useFramedKitchenHero = Boolean(heroImageUrl) && !/halloween|gnome|neon|gilded|unicorn|am01|rose|pearl|witch/i.test(String(t.preset || ""));
 
   return (
     <div className="bk-home-page" id="top">
       <SparkleSuiteHeaderStack t={t} scheduleIsLive={isLive} effectiveLrqState={queueState} onOpenQueue={onOpenQueue} />
 
-      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
-      <section className="bk-home-hero" aria-labelledby="bk-home-hero-title">
+      {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : useFramedKitchenHero ? (
+      <section className="bkf-hero" aria-labelledby="bkf-hero-title">
+        <div className="bkf-hero-inner">
+          <div className="bkf-hero-copy">
+            <p className="bkf-eyebrow">{CONTENT.heroEyebrow || "With Heather"}</p>
+            <h1 id="bkf-hero-title">{CONTENT.heroHeadline || businessName}</h1>
+            <p className="bkf-tagline">{CONTENT.tagline || "Serving Sparkle from the Heart of the Home"}</p>
+            <p className="bkf-sub">Live jewelry reveals from my Ohio kitchen.</p>
+            <div className="bkf-ctas">
+              <a {...linkProps(getShopHref())} className="bkf-btn bkf-btn-primary">Shop Bomb Party</a>
+              {tiktokLink && <a {...linkProps(tiktokLink.href)} className={"bkf-btn bkf-btn-secondary" + (isLive ? " is-live" : "")}>{isLive ? "Watch Live on TikTok" : "Watch on TikTok"}</a>}
+            </div>
+            <div className="bkf-links">
+              <a {...linkProps(getTradeBoardHref())}>Browse the Dance Floor →</a>
+              <a {...linkProps(pantryHref)}>In the Pantry →</a>
+            </div>
+            <p className="bkf-live"><i aria-hidden="true"></i>Live M / W / F · 7 PM EST</p>
+          </div>
+          {heroImageUrl && (
+            <div className="bkf-card">
+              <img src={heroImageUrl} alt="Heather in her kitchen with Bomb Party jewelry on display" />
+            </div>
+          )}
+        </div>
+      </section>
+      ) : (
+      <section className="bk-home-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bk-home-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
         {heroImageUrl && <img className="bk-home-hero-image" src={heroImageUrl} alt="" />}
         <div className="bk-home-hero-content">
@@ -2581,7 +2620,6 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
               <a {...linkProps(getTradeBoardHref())} className="bk-home-cta-dance-floor"><span className="bk-home-cta-label">Browse the Dance Floor</span></a>
             </div>
           </div>
-          <RevealScreenshotTip />
         </div>
       </section>
       )}
@@ -2677,9 +2715,13 @@ function App() {
     if (t.bgTreatment === "emerald-garden") body.classList.add("bg-emerald-garden");
     if (t.bgTreatment === "gnome-garden") body.classList.add("bg-gnome-garden");
     if (t.bgTreatment === "neon-butterfly") body.classList.add("bg-neon-butterfly");
-  if (t.bgTreatment === "halloween-pumpkin-cat") body.classList.add("bg-halloween-pumpkin-cat");
+  if (t.bgTreatment === "gilded-autumn") body.classList.add("bg-gilded-autumn");
+    if (t.bgTreatment === "halloween-pumpkin-cat") body.classList.add("bg-halloween-pumpkin-cat");
     if (t.bgTreatment === "halloween-pumpkin-witch") body.classList.add("bg-halloween-pumpkin-witch");
     if (t.bgTreatment === "rose-gold-paper") body.classList.add("bg-rose-gold-paper");
+    if (t.bgTreatment === "rose-champagne") body.classList.add("bg-rose-gold-paper", "bg-rose-champagne");
+    if (t.bgTreatment === "midnight-rose") body.classList.add("bg-midnight-rose");
+    if (t.bgTreatment === "pearl-rose") body.classList.add("bg-pearl-rose");
     if (t.bgTreatment === "garnet-shell") body.classList.add("bg-garnet-shell");
     if (t.bgTreatment === "amber-paper") body.classList.add("bg-amber-paper");
     if (t.bgTreatment === "velvet-orchid") body.classList.add("bg-velvet-orchid");
@@ -2695,7 +2737,9 @@ function App() {
     if (t.cardSurface === "neon-velvet-glass") body.classList.add("surface-neon-velvet-glass");
   if (t.cardSurface === "pumpkin-cat-glass") body.classList.add("surface-pumpkin-cat-glass");
     if (t.cardSurface === "midnight-glass") body.classList.add("surface-midnight-glass");
+    if (t.cardSurface === "pearl-rose-paper") body.classList.add("surface-pearl-rose-paper");
     if (t.cardSurface === "pearl-rose") body.classList.add("surface-pearl-rose");
+    if (t.cardSurface === "midnight-rose") body.classList.add("surface-midnight-rose");
     if (t.cardSurface === "blush-shell") body.classList.add("surface-blush-shell");
     if (t.cardSurface === "sunlit-pearl") body.classList.add("surface-sunlit-pearl");
     if (t.cardSurface === "plush-orchid") body.classList.add("surface-plush-orchid");
@@ -2714,6 +2758,8 @@ function App() {
     if (t.buttonEnergy === "lantern-lift") body.classList.add("btn-lantern-lift");
     if (t.buttonEnergy === "neon-lift") body.classList.add("btn-neon-lift");
     if (t.buttonEnergy === "rose-gold-lift") body.classList.add("btn-rose-gold-lift");
+    if (t.buttonEnergy === "midnight-rose-lift") body.classList.add("btn-midnight-rose-lift");
+    if (t.buttonEnergy === "pearl-rose-lift") body.classList.add("btn-pearl-rose-lift");
     if (t.buttonEnergy === "garnet-lift") body.classList.add("btn-garnet-lift");
     if (t.buttonEnergy === "amber-pop") body.classList.add("btn-amber-pop");
     if (t.buttonEnergy === "velvet-lift") body.classList.add("btn-velvet-lift");
@@ -2830,7 +2876,7 @@ function App() {
             value={t.preset}
             onChange={applyPreset}
             options={[
-              { value: "amethyst", label: "Amethyst" },
+              { value: "amethyst", label: "Chasing Unicorns (Amethyst)" },
               { value: "sparkle_suite_morganite", label: "Sparkle Suite/Morganite" },
               { value: "black_diamond", label: "Black Diamond" },
               { value: "moonstone", label: "Moonstone" },
@@ -2839,8 +2885,12 @@ function App() {
               { value: "gnome_garden", label: "Gnome Forest" },
               { value: "neon_butterfly", label: "Neon Butterfly" },
             { value: "halloween_pumpkin_witch", label: "Halloween Pumpkin and Witch" },
+              { value: "gilded_autumn", label: "The Golden Leaves of Autumn" },
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
+              { value: "midnight_rose", label: "Midnight Rose" },
+              { value: "pearl_rose", label: "Pearl Rose" },
+              { value: "rose_champagne", label: "Rose Champagne" },
               { value: "garnet", label: "Garnet" },
               { value: "amber", label: "Amber" },
               { value: "velvet", label: "Velvet" },
