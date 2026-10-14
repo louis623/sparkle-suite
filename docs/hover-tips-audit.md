@@ -22,7 +22,7 @@ Routes are the Workspace section a rep actually opens. The Tools list is `/nic-n
 | `/nic-nac?section=trade-board` Dance Floor | Approve, in Request inbox | Opens a check of what they offered. Nothing is approved until you confirm in that review. |
 | `/nic-nac?section=trade-board` Dance Floor | Deny, in Request inbox | Opens the same review so you can turn the request down with a reason. Nothing is denied until you confirm. |
 | `/nic-nac?section=more` Tools list | Jewelry Library | Search the catalog, then add a piece to your Dance Floor so customers can request it. |
-| `/nic-nac?section=more` Tools list | Bulk Collection Intake | Add a whole folder of jewelry photos, then review each piece before it goes on your Dance Floor. |
+| `/nic-nac?section=trade-board` Dance Floor | Open Bulk Collection Intake › | Add a whole folder of jewelry photos, then review each piece before it goes on your Dance Floor. |
 | `/nic-nac?section=more` Tools list | Wispr Flow | Optional voice typing so you can talk to Nic-Nac during a LIVE without stopping to type. |
 | `/nic-nac?section=site-settings` Customer-facing site setup | Save site settings | Publishes this draft to your public site. Preview does not. |
 
