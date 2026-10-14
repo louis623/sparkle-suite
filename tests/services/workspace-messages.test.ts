@@ -17,6 +17,7 @@ function makeQuery(result: { data: unknown; error: unknown; count?: number }) {
     'order',
     'range',
     'limit',
+    'or',
     'insert',
     'upsert',
     'update',
@@ -30,6 +31,16 @@ function makeQuery(result: { data: unknown; error: unknown; count?: number }) {
     reject: (reason: unknown) => unknown,
   ) => Promise.resolve(result).then(resolve, reject)
   return query
+}
+
+function activeCustomer(row: { id: string; display_name: string; business_name: string }) {
+  return {
+    ...row,
+    email: `${row.id}@example.com`,
+    account_classification: 'customer',
+    public_site_slug: row.id,
+    status: 'active',
+  }
 }
 
 const senderRow = {
@@ -78,8 +89,8 @@ describe('workspace message publishing service', () => {
     const senderQuery = makeQuery({ data: senderRow, error: null })
     const repsQuery = makeQuery({
       data: [
-        { id: 'rep-1', display_name: 'Amy', business_name: 'Amy Sparkles' },
-        { id: 'rep-2', display_name: 'Bea', business_name: 'Bea Gems' },
+        activeCustomer({ id: 'rep-1', display_name: 'Amy', business_name: 'Amy Sparkles' }),
+        activeCustomer({ id: 'rep-2', display_name: 'Bea', business_name: 'Bea Gems' }),
       ],
       error: null,
     })
@@ -155,8 +166,8 @@ describe('workspace message publishing service', () => {
     const senderQuery = makeQuery({ data: senderRow, error: null })
     const repsQuery = makeQuery({
       data: [
-        { id: 'rep-1', display_name: 'Amy', business_name: 'Amy Sparkles' },
-        { id: 'rep-3', display_name: 'Cara', business_name: 'Cara Gems' },
+        activeCustomer({ id: 'rep-1', display_name: 'Amy', business_name: 'Amy Sparkles' }),
+        activeCustomer({ id: 'rep-3', display_name: 'Cara', business_name: 'Cara Gems' }),
       ],
       error: null,
     })

@@ -21,6 +21,63 @@ type RepRow = {
   id: string
   display_name: string
   business_name: string
+  email?: string | null
+  account_classification?: string | null
+  public_site_slug?: string | null
+  status?: string | null
+}
+
+/**
+ * Broadcast fan-out (all_active, monthly reports, weekly birthday reports)
+ * includes active customer reps, plus this explicit exception.
+ * Louis's real workspace is classified demo, so classification alone would drop it.
+ * Match email and slug together so a second louis@neonrabbit.net row stays out.
+ */
+export const BROADCAST_AUDIENCE_ALLOWLIST = [
+  {
+    email: 'louis@neonrabbit.net',
+    publicSiteSlug: 'dudesfizzfest',
+    label: 'The Dudes Fizzfest',
+  },
+] as const
+
+function normalizedIdentity(value: string | null | undefined) {
+  return (value ?? '').trim().toLowerCase()
+}
+
+export function isAllowlistedBroadcastRecipient(row: {
+  email?: string | null
+  public_site_slug?: string | null
+}) {
+  const email = normalizedIdentity(row.email)
+  const slug = normalizedIdentity(row.public_site_slug)
+  return BROADCAST_AUDIENCE_ALLOWLIST.some(
+    (entry) => entry.email === email && entry.publicSiteSlug === slug,
+  )
+}
+
+export function isBroadcastAudienceRecipient(row: {
+  status?: string | null
+  account_classification?: string | null
+  email?: string | null
+  public_site_slug?: string | null
+}) {
+  if (normalizedIdentity(row.status) !== 'active') return false
+  if (normalizedIdentity(row.account_classification) === 'customer') return true
+  return isAllowlistedBroadcastRecipient(row)
+}
+
+function quotedFilterValue(value: string) {
+  return `"${value.replaceAll('"', '""')}"`
+}
+
+/** PostgREST or() filter. Kept in sync with isBroadcastAudienceRecipient. */
+export function broadcastAudienceOrFilter() {
+  const exceptions = BROADCAST_AUDIENCE_ALLOWLIST.map(
+    (entry) =>
+      `and(email.ilike.${quotedFilterValue(entry.email)},public_site_slug.ilike.${quotedFilterValue(entry.publicSiteSlug)})`,
+  )
+  return ['account_classification.eq.customer', ...exceptions].join(',')
 }
 
 function audienceError(
@@ -64,8 +121,14 @@ export async function resolveWorkspaceMessageAudience(
   const normalized = normalizeAudience(audience)
   let query = supabase
     .from('reps')
-    .select('id, display_name, business_name')
+    .select(
+      'id, display_name, business_name, email, account_classification, public_site_slug, status',
+    )
     .eq('status', 'active')
+
+  if (normalized.kind === 'all_active') {
+    query = query.or(broadcastAudienceOrFilter())
+  }
 
   if (normalized.kind === 'selected') {
     query = query.in('id', normalized.repIds)
@@ -74,7 +137,9 @@ export async function resolveWorkspaceMessageAudience(
   const { data, error } = await query.order('display_name', { ascending: true })
   if (error) throw error
 
-  const rows = (data ?? []) as RepRow[]
+  const rows = ((data ?? []) as RepRow[]).filter((row) =>
+    normalized.kind === 'all_active' ? isBroadcastAudienceRecipient(row) : true,
+  )
   if (normalized.kind === 'selected' && rows.length !== normalized.repIds.length) {
     const found = new Set(rows.map((row) => row.id))
     const missing = normalized.repIds.filter((id) => !found.has(id))
