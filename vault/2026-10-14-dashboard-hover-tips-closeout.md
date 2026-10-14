@@ -6,3 +6,4 @@
 - Smoke preview: `dpl_62gb9UoHsLuWvR95MLviKrP35j4v` at `https://sparkle-suite-smoke-dlaqdh7b5-louis-2849s-projects.vercel.app` (preview target, project `sparkle-suite-smoke`).
 - `sparkle-suite-smoke.vercel.app` stayed on `dpl_4CwkKgDxoyfxAA7tsKgHMcexhEep`. No Live deploy, no domain move, no Live DB write.
 - Next: Louis reviews the draft PR. Do not merge until he says so.
+- Audit only, same day: `docs/hover-tips-audit.md` lists other Workspace and Nic-Nac spots for a later delayed tip. No tips were built from that list. No new preview, no Live deploy, no Live DB write.
