@@ -169,6 +169,7 @@ describe('rep dashboard hover tips', () => {
     const source = readFileSync(new URL('../../app/nic-nac/components/SubjectCardTip.tsx', import.meta.url), 'utf8')
     expect(source).toContain('if (!result.preventClick) return')
     expect(source).toContain('event.preventDefault()')
+    expect(source).toContain('stillOverCard')
     expect(source).toContain('role="tooltip"')
     const tips = Object.keys(REP_DASHBOARD_TIPS) as DashboardTipId[]
     expect(tips).toEqual([...DASHBOARD_TIP_IDS])

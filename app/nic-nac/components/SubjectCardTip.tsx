@@ -122,6 +122,13 @@ export function SubjectCardTip({
       onPointerLeave={(event: ReactPointerEvent<HTMLElement>) => {
         const pointer = pointerKind(event.pointerType)
         if (pointer !== 'touch' && Date.now() < ignoreMouseUntil.current) return
+        const rect = event.currentTarget.getBoundingClientRect()
+        const stillOverCard =
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom
+        if (stillOverCard) return
         const active = document.activeElement
         apply({
           type: 'pointer-leave',
