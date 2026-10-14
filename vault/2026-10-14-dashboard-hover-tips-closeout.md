@@ -1,0 +1,8 @@
+# 2026-10-14 dashboard hover tips
+
+- Shipped delayed tips on the six Tools dashboard subject cards (Shows, Customers including birthdays, Dance Floor, Messages, Website visitors, Last month).
+- Copy lives in `app/nic-nac/components/rep-dashboard-tips.ts`. A tip appears after a 2 second rest, on focus, or after a touch long-press. It does not sit on the card at rest and does not block Manage.
+- Branch `cursor/dashboard-hover-tips-a45f`, tip `e4aa38fe`. Allowlisted for Smoke preview only.
+- Smoke preview: `dpl_62gb9UoHsLuWvR95MLviKrP35j4v` at `https://sparkle-suite-smoke-dlaqdh7b5-louis-2849s-projects.vercel.app` (preview target, project `sparkle-suite-smoke`).
+- `sparkle-suite-smoke.vercel.app` stayed on `dpl_4CwkKgDxoyfxAA7tsKgHMcexhEep`. No Live deploy, no domain move, no Live DB write.
+- Next: Louis reviews the draft PR. Do not merge until he says so.
