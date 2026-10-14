@@ -1190,7 +1190,7 @@ describe('DashboardPlaceholder', () => {
     expect(resolveWorkspaceSectionForAccess('help-resources', false)).toBe('help-resources')
     expect(isComingSoonWorkspaceSection('business-calculator')).toBe(true)
     expect(isComingSoonWorkspaceSection('team-management')).toBe(false)
-    expect(isComingSoonWorkspaceSection('collection-intake')).toBe(false)
+    expect(isComingSoonWorkspaceSection('collection-intake')).toBe(true)
     expect(isWorkspaceToolSection('collection-intake')).toBe(false)
     expect(getWorkspaceToolSections().map((section) => section.key)).not.toContain('collection-intake')
     expect(isComingSoonWorkspaceSection('customer-list')).toBe(false)

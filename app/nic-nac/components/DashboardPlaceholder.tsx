@@ -165,10 +165,7 @@ import {
 
 export const MessagesCenterCard = UnifiedMessageCenter
 
-const CollectionIntakeTool = dynamic(() =>
-  import('./CollectionIntakeTool').then((module) => module.CollectionIntakeTool),
-)
-
+// Bulk Collection Intake is parked as Coming Soon (Louis, 10/14). CollectionIntakeTool.tsx stays in the repo, unused.
 // Bulk Collection Intake lives on the Dance Floor page, not in the Tools list.
 export const DANCE_FLOOR_SUBPAGE_SECTIONS = new Set<string>(['collection-intake'])
 
@@ -232,6 +229,7 @@ const SECONDARY_WORKSPACE_SECTIONS = [
     label: 'Bulk Collection Intake',
     shortLabel: 'Bulk Intake',
     icon: Images,
+    comingSoon: true,
   },
   {
     key: 'business-calculator',
@@ -6980,10 +6978,6 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       )
     }
 
-    if (canRenderWorkspaceSections && activeSection === 'collection-intake') {
-      return <CollectionIntakeTool />
-    }
-
     if (canRenderWorkspaceSections && activeSection === 'trade-board') {
       return (
         <div className={styles.workspaceSectionStack}>
@@ -6991,13 +6985,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
           <span className={styles.liveQueueEyebrow}>Dance Floor</span>
           <h2 id="dance-floor-bulk-intake-title">Bulk Collection Intake</h2>
           <p>Add a whole folder of jewelry photos to your Dance Floor at once, then review each piece before it goes up.</p>
-          <button
-            type="button"
-            className={styles.panelCtaButton}
-            onClick={() => setActiveSection('collection-intake')}
-          >
-            Open Bulk Collection Intake ›
-          </button>
+          <span className={styles.toolsHubSoonMark}>Coming Soon</span>
         </section>
         <TradeBoardWorkspaceCard
           tradeBoardState={tradeBoardState}
