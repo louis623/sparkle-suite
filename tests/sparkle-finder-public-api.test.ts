@@ -5,6 +5,7 @@ import {
   deriveSparkleFinderCatalogFacets,
   filterListingsWithNextShows,
   filterFinderAvailabilityEligibleRepRows,
+  finderScheduledShowLookbackMinutes,
   mapFinderShowRowsToNextShows,
   mapSparkleFinderLiveShowRows,
   mapSparkleFinderAvailabilityListingRow,
@@ -745,6 +746,8 @@ describe('Sparkle Finder public API contract helpers', () => {
         startsAt: '2026-06-05T23:30:00.000Z',
         status: 'live',
         customerSiteUrl: 'https://www.yoursparklesuite.com/gracieteststudio',
+        durationMinutes: 60,
+        endTime: '2026-06-06T00:30:00.000Z',
       },
       {
         showId: 'future-show',
@@ -753,6 +756,8 @@ describe('Sparkle Finder public API contract helpers', () => {
         startsAt: '2026-06-10T01:00:00.000Z',
         status: 'scheduled',
         customerSiteUrl: 'https://www.yoursparklesuite.com/milamoonreveals',
+        durationMinutes: 60,
+        endTime: '2026-06-10T02:00:00.000Z',
       },
     ])
     expect(JSON.stringify(shows)).not.toContain('trade')
@@ -1012,6 +1017,7 @@ describe('Sparkle Finder public API contract helpers', () => {
       status: 'live',
       customerSiteUrl: null,
       durationMinutes: 60,
+      endTime: '2026-08-21T17:30:00.000Z',
     })
     expect(reps.find((rep) => rep.repId === 'rep-future')?.nextShow).toMatchObject({
       showId: 'show-future',
@@ -1020,5 +1026,144 @@ describe('Sparkle Finder public API contract helpers', () => {
     })
     expect(reps.find((rep) => rep.repId === 'rep-stale-live')?.nextShow).toBeNull()
     expect(reps.find((rep) => rep.repId === 'rep-past')?.nextShow).toBeNull()
+  })
+
+  it('keeps a scheduled show until start plus duration and reports that window', () => {
+    const now = '2026-06-06T00:00:00.000Z'
+    const shows = mapFinderShowRowsToNextShows(
+      [
+        {
+          id: 'in-progress-default',
+          rep_id: 'rep-default',
+          event_time: '2026-06-05T23:30:00.000Z',
+          title: 'Still scheduled',
+          status: 'scheduled',
+          duration_minutes: null,
+        },
+        {
+          id: 'later-default',
+          rep_id: 'rep-default',
+          event_time: '2026-06-06T02:00:00.000Z',
+          title: 'Later scheduled',
+          status: 'scheduled',
+          duration_minutes: 45,
+        },
+        {
+          id: 'in-progress-long',
+          rep_id: 'rep-long',
+          event_time: '2026-06-05T22:30:00.000Z',
+          title: 'Long scheduled',
+          status: 'scheduled',
+          duration_minutes: 120,
+        },
+        {
+          id: 'ended',
+          rep_id: 'rep-ended',
+          event_time: '2026-06-05T22:00:00.000Z',
+          title: 'Ended scheduled',
+          status: 'scheduled',
+          duration_minutes: 60,
+        },
+        {
+          id: 'cancelled',
+          rep_id: 'rep-cancelled',
+          event_time: '2026-06-05T23:40:00.000Z',
+          title: 'Cancelled',
+          status: 'cancelled',
+          duration_minutes: 60,
+        },
+        {
+          id: 'upcoming',
+          rep_id: 'rep-upcoming',
+          event_time: '2026-06-06T03:00:00.000Z',
+          title: 'Upcoming',
+          status: 'scheduled',
+          duration_minutes: 90,
+        },
+      ],
+      now,
+    )
+
+    expect(shows.get('rep-default')).toEqual({
+      showId: 'in-progress-default',
+      repId: 'rep-default',
+      startsAt: '2026-06-05T23:30:00.000Z',
+      title: 'Still scheduled',
+      status: 'scheduled',
+      durationMinutes: 60,
+      endTime: '2026-06-06T00:30:00.000Z',
+    })
+    expect(shows.get('rep-long')).toMatchObject({
+      showId: 'in-progress-long',
+      status: 'scheduled',
+      durationMinutes: 120,
+      endTime: '2026-06-06T00:30:00.000Z',
+    })
+    expect(shows.get('rep-upcoming')).toMatchObject({
+      showId: 'upcoming',
+      durationMinutes: 90,
+      endTime: '2026-06-06T04:30:00.000Z',
+    })
+    expect(shows.has('rep-ended')).toBe(false)
+    expect(shows.has('rep-cancelled')).toBe(false)
+    expect(finderScheduledShowLookbackMinutes(null)).toBe(60)
+    expect(finderScheduledShowLookbackMinutes(15)).toBe(60)
+    expect(finderScheduledShowLookbackMinutes(120)).toBe(120)
+  })
+
+  it('keeps an in-progress scheduled directory show through its end time', () => {
+    const reps = mapSparkleFinderDirectoryRows(
+      [
+        {
+          rep_id: 'rep-live-now',
+          display_name: 'Live Now',
+          business_name: null,
+          avatar_url: null,
+          public_site_slug: null,
+          next_show_id: 'show-live-now',
+          next_show_name: 'Evening Reveal',
+          next_show_starts_at: '2026-08-21T16:20:00.000Z',
+          next_show_status: 'scheduled',
+          next_show_duration_minutes: null,
+        },
+        {
+          rep_id: 'rep-ended',
+          display_name: 'Ended',
+          business_name: null,
+          avatar_url: null,
+          public_site_slug: null,
+          next_show_id: 'show-ended',
+          next_show_name: 'Ended Reveal',
+          next_show_starts_at: '2026-08-21T15:00:00.000Z',
+          next_show_status: 'scheduled',
+          next_show_duration_minutes: 90,
+        },
+        {
+          rep_id: 'rep-cancelled',
+          display_name: 'Cancelled',
+          business_name: null,
+          avatar_url: null,
+          public_site_slug: null,
+          next_show_id: 'show-cancelled',
+          next_show_name: 'Cancelled Reveal',
+          next_show_starts_at: '2026-08-21T16:40:00.000Z',
+          next_show_status: 'cancelled',
+          next_show_duration_minutes: 60,
+        },
+      ],
+      '2026-08-21T17:00:00.000Z',
+    )
+
+    expect(reps.find((rep) => rep.repId === 'rep-live-now')?.nextShow).toEqual({
+      showId: 'show-live-now',
+      showName: 'Evening Reveal',
+      startsAt: '2026-08-21T16:20:00.000Z',
+      status: 'scheduled',
+      customerSiteUrl: null,
+      durationMinutes: 60,
+      endTime: '2026-08-21T17:20:00.000Z',
+    })
+    expect(reps.find((rep) => rep.repId === 'rep-ended')?.nextShow).toBeNull()
+    expect(reps.find((rep) => rep.repId === 'rep-cancelled')?.nextShow).toBeNull()
   })
 })
