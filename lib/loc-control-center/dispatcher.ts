@@ -155,11 +155,14 @@ async function locService<T>(work: () => Promise<T>) {
     throw error;
   }
 }
-async function previewLocSuiteEmail(input: Record<string, unknown>) {
+async function previewLocSuiteEmail(
+  input: Record<string, unknown>,
+  options?: { resource?: boolean },
+) {
   const resourceType = typeof input.resourceType === "string" ? input.resourceType : "";
-  const content = resourceType
+  const content = options?.resource || resourceType
     ? resourceNoticeContent({
-        resourceType,
+        resourceType: resourceType || "blog",
         title: String(input.title ?? ""),
         summary: typeof input.summary === "string" ? input.summary : "",
         body: typeof input.body === "string" ? input.body : "",
@@ -292,8 +295,13 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
     }
     if (operation.effect === "read") {
       const result = await runWithLocOperator(context, () => {
-        if (operation.name === "communications.emailPreview") {
-          return previewLocSuiteEmail(body.input);
+        if (
+          operation.name === "communications.emailPreview" ||
+          operation.name === "resources.emailPreview"
+        ) {
+          return previewLocSuiteEmail(body.input, {
+            resource: operation.name === "resources.emailPreview",
+          });
         }
         if (operation.name === "fizz.issue.get") {
           return locService(() => getFizzIssue(createAdminClient(), String(body.input.issueId ?? "")));
