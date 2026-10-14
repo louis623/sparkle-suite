@@ -9,6 +9,8 @@ export const LINEUP_MAX_STATE_BYTES = 8_388_608
 export const LINEUP_MAX_EVENTS = 128
 export const LINEUP_MAX_EVENT_MEMBERS = 4000
 export const LINEUP_OFFLINE_MS = 180_000
+/** A show older than this is archived on the next accepted packet and replaced. */
+export const LINEUP_SHOW_MAX_MS = 18 * 60 * 60 * 1000
 const parsers: ParserState[] = ['ready', 'loading', 'partial', 'invalid']
 const validId = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/.test(value)
 export const isClaimId = (value: unknown): value is string => typeof value === 'string'
@@ -327,13 +329,27 @@ export function claimPublisher(state: LineupState, publisherId: string, expected
       ...(options.capabilities ? {capabilities: options.capabilities} : {}) } } }
 }
 
+/** Parties visible in this packet. An empty snapshot is not evidence that every party left. */
+function partiesInPacket(packet: SourcePacket): string[] | null {
+  const ids = [...packet.entries.map(entry => entry.id), ...packet.revealedIds]
+  if (!ids.length || ids.some(id => !id.includes(':'))) return null
+  const parties = [...new Set(ids.map(entryParty))].sort()
+  return validParties(parties) ? parties : null
+}
+
 /** Every accepted packet is a heartbeat, even if unchanged. Clock comes exclusively from the receiving server. */
 export function applySourcePacket(state: LineupState, input: unknown, now: number): LineupResult {
   if (!validTime(now) || now + LINEUP_LEASE_MS > 8_640_000_000_000_000) return fail('invalid_time')
   const packet = parseSourcePacket(input)
   if (!packet) return fail('invalid_payload')
   if ((packet.generation ?? 0) !== (state.show?.generation ?? 0)) return fail('show_changed')
-  if (state.show && [...packet.entries.map(e => e.id), ...packet.revealedIds]
+  const detectedParties = state.show ? partiesInPacket(packet) : null
+  const scopedPartyPresent = !!detectedParties?.some(id => state.show!.partyIds.includes(id))
+  const showExpired = !!state.show && now - Date.parse(state.show.startedAt) > LINEUP_SHOW_MAX_MS
+  // Same successor as a manual start-show (empty carry). The service must commit it
+  // with no publisher token so the guarded archive insert runs.
+  const autoStart = !!detectedParties && (showExpired || packet.parserState === 'ready' && !scopedPartyPresent)
+  if (state.show && !autoStart && [...packet.entries.map(e => e.id), ...packet.revealedIds]
     .some(id => !id.includes(':') || !state.show!.partyIds.includes(entryParty(id)))) return fail('invalid_scope')
   if (state.show && packet.parserState === 'ready' && packet.revealedIds.length && !packet.revealedEntries) return fail('invalid_scope')
   const lease = state.publisher
@@ -355,6 +371,11 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   if (!validInteger(state.revision + 1)) return fail('capacity_exceeded')
   // A server clock reversal is never allowed to regress receipt time or extend stale content ordering.
   if (clockRegressed(state, now)) return fail('invalid_time')
+  if (autoStart && detectedParties) {
+    return applyLineupCommand(state, {
+      type: 'start-show', partyIds: detectedParties, carryEntryIds: [], confirmed: true, expectedRevision: state.revision,
+    }, now)
+  }
   const receivedAt = new Date(now).toISOString()
   const documentChanged = !!(observation && priorObservation && observation.documentId !== priorObservation.documentId)
   const retiredDocumentIds = [...(state.retiredDocumentIds ?? []), ...(documentChanged ? [priorObservation!.documentId] : [])]
@@ -473,6 +494,26 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   }
   next.revealedIds = [...revealed]
   next.restorations = [...restorations.values()]
+  // A party missing from a ready snapshot is gone when that snapshot still shows
+  // at least one party this show is displaying. Individual orders inside a party
+  // that is still present stay put: absence of one row is not a reveal.
+  // Excluded parties are omitted by the publisher on purpose, so their orders stay.
+  // A snapshot that only names excluded parties is a hidden-party observation,
+  // not proof the visible parties left the page.
+  if (state.show && packet.parserState === 'ready' && detectedParties) {
+    const present = new Set(detectedParties)
+    const excluded = new Set(state.show.excludedPartyIds)
+    const visiblePartyPresent = state.show.partyIds.some(id => present.has(id) && !excluded.has(id))
+    if (visiblePartyPresent) {
+      const keep = (id: string) => {
+        const party = entryParty(id)
+        return present.has(party) || excluded.has(party)
+      }
+      next.entries = next.entries.filter(entry => keep(entry.id))
+      next.order = next.order.filter(keep)
+      next.held = next.held.filter(keep)
+    }
+  }
   next.revealEventCursor = cursor
   next.revealEvents = events.filter(event => revealed.has(event.entryId)
     && !state.show?.excludedPartyIds.includes(entryParty(event.entryId)) && now - Date.parse(event.at) <= LINEUP_FRESH_MS).slice(-LINEUP_MAX_EVENTS)

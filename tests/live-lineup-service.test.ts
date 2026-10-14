@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { claimPublisher, createLineupState, applySourcePacket, applyLineupCommand } from '@/lib/live-lineup/model'
+import { claimPublisher, createLineupState, applySourcePacket, applyLineupCommand, LINEUP_SHOW_MAX_MS } from '@/lib/live-lineup/model'
 import { changeLineup, claimSource, configureSourceParties, describeSource, getEffectiveLiveQueueSnapshot, getWorkspaceLineup, hashPublisherToken, issuePublisher, listPublishers, readLineupState, receiveSource, revokePublisher } from '@/lib/live-lineup/service'
 
 const now = Date.parse('2026-09-09T12:00:00.000Z')
@@ -531,5 +531,78 @@ describe('Live Lineup Workspace timestamp harden (service)', () => {
     const bad = database()
     bad.rows.live_lineup_states.push({ rep_id: repA, revision: 1, state: {} })
     await expect(readLineupState(bad.db, repA)).rejects.toMatchObject({ code: 'invalid_stored_lineup' })
+  })
+})
+
+describe('automatic show ending', () => {
+  it('archives an expired show on the owner start-show path and opens an empty one', async () => {
+    const d = database()
+    const claim = claimPublisher(createLineupState(), publisherId, 0, now, { claimId })
+    if (!claim.ok) throw Error('fixture')
+    const ready = applySourcePacket(claim.state, {
+      publisherId, epoch: 1, sequence: 0, sourceVersion: '2.0.5', generation: 0, parserState: 'ready',
+      entries: [{ id: 'old:brooke', name: 'Brooke', orderedAt: now }, { id: 'old:other', name: 'Casey', orderedAt: now }],
+      revealedIds: [],
+    }, now + 1000)
+    if (!ready.ok) throw Error('fixture')
+    const started = applyLineupCommand(ready.state, {
+      type: 'start-show', confirmed: true, expectedRevision: ready.state.revision,
+      partyIds: ['old'], carryEntryIds: ['old:brooke', 'old:other'],
+    }, now + 2000)
+    if (!started.ok || !started.state.show) throw Error('fixture')
+    const packetAt = now + 4000
+    const aged = { ...started.state, show: { ...started.state.show, startedAt: new Date(packetAt - LINEUP_SHOW_MAX_MS - 1).toISOString() } }
+    const leased = claimPublisher(aged, publisherId, aged.revision, now + 3000, { claimId: otherClaimId, generation: 1 })
+    if (!leased.ok) throw Error('fixture')
+    d.rows.live_lineup_states.push({ rep_id: repA, revision: leased.state.revision, state: leased.state })
+    const commits: Array<{ token: unknown; guard: unknown }> = []
+    const real = d.db.rpc.bind(d.db)
+    d.db.rpc = (async (name: string, args: any) => {
+      if (name === 'live_lineup_commit') {
+        commits.push({ token: args.p_token_id ?? null, guard: args.p_guard })
+        const existing = d.rows.live_lineup_states.find(row => row.rep_id === args.p_rep_id)
+        const priorGeneration = existing?.state?.show?.generation ?? 0
+        const nextGeneration = args.p_state?.show?.generation ?? 0
+        if (nextGeneration !== priorGeneration && args.p_token_id) return { data: null, error: { code: '22023' } }
+      }
+      return real(name, args)
+    }) as typeof d.db.rpc
+    await expect(receiveSource(d.db, token, {
+      publisherId, epoch: leased.state.publisher!.epoch, sequence: 0, sourceVersion: '2.0.5', generation: 1,
+      parserState: 'ready', entries: [{ id: 'newp:ava', name: 'Ava', orderedAt: packetAt }], revealedIds: [],
+    }, packetAt)).rejects.toMatchObject({ code: 'show_changed', status: 409 })
+    expect(commits).toEqual([{ token: null, guard: { kind: 'owner', requireFresh: false } }])
+    const stored = d.rows.live_lineup_states[0].state
+    expect(stored.show).toMatchObject({
+      generation: 2, partyIds: ['newp'], carryEntryIds: [], startedAt: new Date(packetAt).toISOString(),
+    })
+    expect(stored.entries).toEqual([])
+    expect(stored.revealedIds).toEqual([])
+    expect(leased.state.entries.map((entry: { id: string }) => entry.name)).toEqual(['Brooke', 'Casey'])
+  })
+
+  it('adopts a detected party when the current scope is absent, and still unions a party that remains', async () => {
+    const d = database()
+    d.rows.live_queue.push({ rep_id: repA, sync_code: 'MHF-9446', queue: [], last_updated: null })
+    const firstClaim = await claimSource(d.db, 'MHF-9446', claimId, now, 0)
+    await receiveSource(d.db, 'MHF-9446', {
+      publisherId: repA, epoch: firstClaim.epoch, sequence: 0, sourceVersion: '2.0.5', generation: 0,
+      parserState: 'ready', entries: [{ id: 'old:brooke', name: 'Brooke', orderedAt: now }], revealedIds: [],
+    }, now + 1000)
+    await configureSourceParties(d.db, 'MHF-9446', 0, ['old'], [], now + 2000)
+    const secondClaim = await claimSource(d.db, 'MHF-9446', otherClaimId, now + 3000, 1)
+    await receiveSource(d.db, 'MHF-9446', {
+      publisherId: repA, epoch: secondClaim.epoch, sequence: 0, sourceVersion: '2.0.5', generation: 1,
+      parserState: 'ready', entries: [{ id: 'old:brooke', name: 'Brooke', orderedAt: now }], revealedIds: [],
+    }, now + 4000)
+    const adopted = await configureSourceParties(d.db, 'MHF-9446', 1, ['newp'], [], now + 5000)
+    expect(adopted.generation).toBe(1)
+    expect(adopted.scope?.partyIds).toEqual(['newp'])
+    const adoptedState = d.rows.live_lineup_states[0].state
+    expect(adoptedState.entries).toEqual([])
+    expect(adoptedState.revealedIds).toEqual([])
+    expect(adoptedState.show.partyIds).toEqual(['newp'])
+    const widened = await configureSourceParties(d.db, 'MHF-9446', 1, ['newp', 'later'], [], now + 6000)
+    expect(widened.scope?.partyIds).toEqual(['later', 'newp'])
   })
 })

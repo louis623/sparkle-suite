@@ -323,18 +323,37 @@ export async function configureSourceParties(db: SupabaseClient, token: string |
       if (!started.ok || !started.state.show) throw new LineupServiceError(started.ok ? 'invalid_scope' : started.code, 409)
       next = { ...started.state, bootstrapPending: true, show: { ...started.state.show, excludedPartyIds: excluded } }
     } else {
-      const parties = [...new Set([...state.show.partyIds, ...detected])].sort()
-      if (parties.length > 100) throw new LineupServiceError('invalid_scope', 409)
-      const visibleNow = new Set(detected)
-      const exclusions = [...new Set([
-        ...state.show.excludedPartyIds.filter(id => !visibleNow.has(id)), ...excluded,
-      ])].sort()
-      // Even unchanged configuration has an atomic ownership-checked receipt. A stale
-      // read or compatibility no-op is never an upgraded applied acknowledgement.
-      next = { ...state, revision: state.revision + 1, lastChangedAt: new Date(now).toISOString(),
-        parserState: 'loading',
-        show: { ...state.show, partyIds: parties, excludedPartyIds: exclusions },
-        revealEvents: (state.revealEvents ?? []).filter(event => !exclusions.includes(event.entryId.split(':')[0])) }
+      const allowed = new Set(detected)
+      const oldScopeAbsent = state.show.partyIds.every(id => !allowed.has(id))
+      const hasNewParty = detected.some(id => !state.show.partyIds.includes(id))
+      // The page no longer shows this show's parties. Take the new party instead of
+      // keeping the old scope unioned in forever. Generation stays put so the
+      // publisher's configure receipt still matches.
+      if (oldScopeAbsent && hasNewParty) {
+        const keep = (id: string) => allowed.has(id.split(':')[0])
+        next = { ...state, revision: state.revision + 1, lastChangedAt: new Date(now).toISOString(),
+          parserState: 'loading',
+          entries: state.entries.filter(entry => keep(entry.id)),
+          order: state.order.filter(keep), held: state.held.filter(keep),
+          revealedIds: state.revealedIds.filter(keep),
+          restorations: (state.restorations ?? []).filter(item => keep(item.entry.id)),
+          revealEvents: (state.revealEvents ?? []).filter(event => keep(event.entryId) && !excluded.includes(event.entryId.split(':')[0])),
+          show: { ...state.show, partyIds: detected, excludedPartyIds: excluded,
+            carryEntryIds: state.show.carryEntryIds.filter(keep) } }
+      } else {
+        const parties = [...new Set([...state.show.partyIds, ...detected])].sort()
+        if (parties.length > 100) throw new LineupServiceError('invalid_scope', 409)
+        const visibleNow = new Set(detected)
+        const exclusions = [...new Set([
+          ...state.show.excludedPartyIds.filter(id => !visibleNow.has(id)), ...excluded,
+        ])].sort()
+        // Even unchanged configuration has an atomic ownership-checked receipt. A stale
+        // read or compatibility no-op is never an upgraded applied acknowledgement.
+        next = { ...state, revision: state.revision + 1, lastChangedAt: new Date(now).toISOString(),
+          parserState: 'loading',
+          show: { ...state.show, partyIds: parties, excludedPartyIds: exclusions },
+          revealEvents: (state.revealEvents ?? []).filter(event => !exclusions.includes(event.entryId.split(':')[0])) }
+      }
     }
     if (!isLineupState(next)) throw new LineupServiceError('invalid_scope', 409)
     try {
@@ -402,6 +421,13 @@ export async function receiveSource(db: SupabaseClient, token: string | null, in
   const result = applySourcePacket(state, input, now)
   if (!result.ok) throw new LineupServiceError(result.code, result.code === 'invalid_payload' ? 400 : 409)
   const packet = input as {claimId?: string; epoch: number; generation?: number; observation?: {serverTime: string}}
+  // A fresh show is the manual start-show commit: no publisher token, owner guard,
+  // generation + 1. That is what lets live_lineup_commit archive the previous show.
+  // A source commit carrying the token is rejected before the archive insert.
+  if ((result.state.show?.generation ?? 0) !== (state.show?.generation ?? 0)) {
+    await saveState(db, publisher.rep_id, state.revision, result.state, undefined, {kind: 'owner', requireFresh: false})
+    throw new LineupServiceError('show_changed', 409)
+  }
   await saveState(db, publisher.rep_id, state.revision, result.state, publisher.durableTokenId ?? undefined,
     {kind: 'source', claimId: packet.claimId, epoch: packet.epoch, generation: packet.generation ?? 0, observationTime: packet.observation?.serverTime})
   return { ok: true, revision: result.state.revision, acceptedSequence: result.state.publisher!.lastSequence, serverTime: new Date(now).toISOString(), leaseExpiresAt: result.state.publisher!.leaseExpiresAt,
