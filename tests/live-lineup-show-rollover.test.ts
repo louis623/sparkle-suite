@@ -2,13 +2,15 @@ import { readFileSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
 import { describe, expect, it } from 'vitest'
 import { lineupSqlAdapter } from './fixtures/live-lineup-sql-adapter'
-import { applyLineupCommand, applySourcePacket, claimPublisher, createLineupState, isLineupState, LINEUP_SHOW_MAX_MS } from '@/lib/live-lineup/model'
+import { applyLineupCommand, applySourcePacket, claimPublisher, createLineupState, isLineupState, LINEUP_PARTY_ABSENCE_MS, LINEUP_SHOW_IDLE_MS, LINEUP_SHOW_MAX_MS } from '@/lib/live-lineup/model'
 import { changeLineup, claimSource, issuePublisher, receiveSource } from '@/lib/live-lineup/service'
 import type { LineupResult, LineupState, SourcePacket } from '@/lib/live-lineup/types'
 
 const T = Date.parse('2026-09-09T12:00:00Z')
 const nonce = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const second = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+const third = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
+const documentId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
 const take = (result: LineupResult): LineupState => { if (!result.ok) throw Error(result.code); return result.state }
 const entry = (id: string, name = 'Jessica', orderedAt = T) => ({ id, name, orderedAt })
 
@@ -36,10 +38,21 @@ function ageShow(state: LineupState, startedAt: number): LineupState {
   return { ...state, show: { ...state.show!, startedAt: new Date(startedAt).toISOString() } }
 }
 
+function idleAt(state: LineupState, at: number): LineupState {
+  return {
+    ...ageShow(state, at - LINEUP_SHOW_MAX_MS - 1),
+    lastChangedAt: new Date(at - LINEUP_SHOW_IDLE_MS - 1).toISOString(),
+  }
+}
+
+function observe(at: number, serial: number) {
+  return { documentId, serial, serverTime: new Date(at).toISOString(), settled: true as const }
+}
+
 describe('automatic show ending', () => {
   it('archives a show older than 18 hours through the manual start-show state', () => {
     const at = T + 102
-    const current = ageShow(showWith([{ id: 'p1:brooke', name: 'Brooke' }, { id: 'p2:casey', name: 'Casey' }]), at - LINEUP_SHOW_MAX_MS - 1)
+    const current = idleAt(showWith([{ id: 'p1:brooke', name: 'Brooke' }, { id: 'p2:casey', name: 'Casey' }]), at)
     const before = structuredClone(current)
     const next = take(applySourcePacket(current, packet(current, { entries: [entry('p2:casey', 'Casey')] }), at))
     const manual = take(applyLineupCommand(current, {
@@ -72,24 +85,53 @@ describe('automatic show ending', () => {
     expect(next.entries.map(row => row.name)).toEqual(['Brooke'])
   })
 
-  it('ends an old show on a non-ready packet once a party is detected', () => {
+  it('does not end an idle show on a non-ready packet', () => {
     const at = T + 102
-    const current = ageShow(showWith([{ id: 'p1:brooke', name: 'Brooke' }], ['p1']), at - LINEUP_SHOW_MAX_MS - 1)
+    const current = idleAt(showWith([{ id: 'p1:brooke', name: 'Brooke' }], ['p1']), at)
     const next = take(applySourcePacket(current, packet(current, {
       parserState: 'loading', entries: [entry('p1:brooke', 'Brooke')],
     }), at))
-    expect(next.show).toMatchObject({ generation: 2, partyIds: ['p1'], carryEntryIds: [] })
-    expect(next.entries).toEqual([])
+    expect(next.show).toMatchObject({ generation: 1, partyIds: ['p1'] })
+    expect(next.entries.map(row => row.name)).toEqual(['Brooke'])
     expect(next.revealedIds).toEqual([])
     expect(next.parserState).toBe('loading')
   })
 
-  it('starts a fresh show when a ready snapshot contains none of the scoped parties', () => {
+  it('does not end an active show that has passed 18 hours', () => {
+    const at = T + 102
+    const current = ageShow(showWith([{ id: 'p1:brooke', name: 'Brooke' }], ['p1']), at - LINEUP_SHOW_MAX_MS - 1)
+    const next = take(applySourcePacket(current, packet(current, { entries: [entry('p1:brooke', 'Brooke')] }), at))
+    expect(next.show?.generation).toBe(1)
+    expect(next.entries.map(row => row.name)).toEqual(['Brooke'])
+    expect(next.revealedIds).toEqual([])
+  })
+
+  it('does not start a fresh show on one ready snapshot of a new party', () => {
     const current = showWith([{ id: 'p1:brooke', name: 'Brooke' }], ['p1'])
     const next = take(applySourcePacket(current, packet(current, { entries: [entry('p9:ava', 'Ava')] }), T + 102))
+    expect(next.show).toMatchObject({ generation: 1, partyIds: ['p1'] })
+    expect(next.entries.map(row => row.name)).toEqual(['Brooke'])
+    expect(next.partyAbsence).toMatchObject({ partyIds: ['p1'], packets: 1 })
+    expect(isLineupState(next)).toBe(true)
+  })
+
+  it('starts a fresh show after a new party stays across ready packets spanning 10 minutes', () => {
+    let current = showWith([{ id: 'p1:brooke', name: 'Brooke' }], ['p1'])
+    const first = T + 102
+    current = take(applySourcePacket(current, packet(current, { entries: [entry('p9:ava', 'Ava')] }), first))
+    current = take(applySourcePacket(current, packet(current, {
+      parserState: 'loading', entries: [entry('p1:brooke', 'Brooke')],
+    }), first + 1000))
+    expect(current.partyAbsence).toBeNull()
+    expect(current.entries.map(row => row.name)).toEqual(['Brooke'])
+    const restarted = first + 2000
+    current = take(applySourcePacket(current, packet(current, { entries: [entry('p9:ava', 'Ava')] }), restarted))
+    current = take(claimPublisher(current, 'device', current.revision, restarted + LINEUP_PARTY_ABSENCE_MS - 1000, { claimId: third, generation: 1 }))
+    const next = take(applySourcePacket(current, packet(current, { entries: [entry('p9:ava', 'Ava')] }), restarted + LINEUP_PARTY_ABSENCE_MS))
     expect(next.show).toMatchObject({ generation: 2, partyIds: ['p9'], carryEntryIds: [] })
     expect(next.entries).toEqual([])
     expect(next.revealedIds).toEqual([])
+    expect(next.partyAbsence ?? null).toBeNull()
     expect(isLineupState(next)).toBe(true)
   })
 
@@ -102,7 +144,7 @@ describe('automatic show ending', () => {
     expect(current.lastReceivedAt).toBeNull()
   })
 
-  it('drops entries whose party is missing from a ready snapshot and keeps the rest', () => {
+  it('parks a party missing across ready snapshots for 10 minutes and restores it when the party returns', () => {
     let current = showWith([
       { id: 'p1:brooke', name: 'Brooke' },
       { id: 'p2:casey', name: 'Casey' },
@@ -112,14 +154,33 @@ describe('automatic show ending', () => {
       entries: [entry('p1:brooke', 'Brooke'), entry('p2:casey', 'Casey'), entry('p2:later', 'Later')],
     }), T + 102))
     current = take(applyLineupCommand(current, { type: 'hold', entryId: 'p1:brooke', expectedRevision: current.revision }, T + 103))
-    const next = take(applySourcePacket(current, packet(current, { entries: [entry('p2:casey', 'Casey')] }), T + 104))
+    const first = T + 104
+    const kept = take(applySourcePacket(current, packet(current, { entries: [entry('p2:casey', 'Casey')] }), first))
+    expect(kept.show?.generation).toBe(1)
+    expect(kept.held).toEqual(['p1:brooke'])
+    expect(kept.entries.map(row => row.id)).toContain('p1:brooke')
+    expect(kept.entries.map(row => row.id)).toContain('p2:later')
+    const at = first + LINEUP_PARTY_ABSENCE_MS
+    const leased = take(claimPublisher(kept, 'device', kept.revision, at - 1000, { claimId: third, generation: 1 }))
+    const next = take(applySourcePacket(leased, packet(leased, {
+      entries: [entry('p2:casey', 'Casey')], observation: observe(at, 1),
+    }), at))
     expect(next.show?.generation).toBe(1)
     expect(next.show?.partyIds).toEqual(['p1', 'p2'])
     expect(next.entries.map(row => row.id).sort()).toEqual(['p2:casey', 'p2:later'])
     expect(next.held).toEqual([])
     expect(next.order).toEqual(['p2:casey', 'p2:later'])
-    expect(next.revealedIds).toEqual([])
+    expect(next.revealedIds).toEqual(['p1:brooke'])
+    expect(next.restorations).toMatchObject([{ entry: { name: 'Brooke' }, category: 'held', reason: 'party-absent' }])
     expect(isLineupState(next)).toBe(true)
+    const backAt = at + 1000
+    const back = take(applySourcePacket(next, packet(next, {
+      entries: [entry('p1:brooke', 'Brooke'), entry('p2:casey', 'Casey')], observation: observe(backAt, 2),
+    }), backAt))
+    expect(back.held).toEqual(['p1:brooke'])
+    expect(back.revealedIds).toEqual([])
+    expect(back.restorations ?? []).toEqual([])
+    expect(back.show?.generation).toBe(1)
   })
 
   it('keeps visible parties when a ready snapshot only reports an excluded party', () => {
@@ -161,7 +222,7 @@ describe('automatic show ending', () => {
     let current = showWith([{ id: 'p1:brooke', name: 'Brooke' }], ['p1'])
     current = take(applySourcePacket(current, packet(current, { entries: [entry('p1:brooke', 'Brooke')] }), at))
     current = ageShow(current, at - LINEUP_SHOW_MAX_MS - 1)
-    expect(applySourcePacket(current, packet(current, { sequence: 0 }), at + 1)).toEqual({ ok: false, code: 'stale_sequence' })
+    expect(applySourcePacket(current, packet(current, { sequence: 0, entries: [entry('p1:brooke', 'Brooke')] }), at + 1)).toEqual({ ok: false, code: 'stale_sequence' })
     expect(current.show?.generation).toBe(1)
     expect(current.entries.map(row => row.name)).toEqual(['Brooke'])
   })
@@ -193,8 +254,8 @@ it('commits an expired show through SQL so the archive insert keeps Brooke', asy
     expect(started.management?.generation).toBe(1)
     const packetAt = now + 5000
     await sql.query(
-      `update live_lineup_states set state = jsonb_set(state, '{show,startedAt}', to_jsonb($2::text)) where rep_id = $1`,
-      [rep, new Date(packetAt - LINEUP_SHOW_MAX_MS - 1).toISOString()],
+      `update live_lineup_states set state = jsonb_set(jsonb_set(state, '{show,startedAt}', to_jsonb($2::text)), '{lastChangedAt}', to_jsonb($3::text)) where rep_id = $1`,
+      [rep, new Date(packetAt - LINEUP_SHOW_MAX_MS - 1).toISOString(), new Date(packetAt - LINEUP_SHOW_IDLE_MS - 1).toISOString()],
     )
     const fresh = await claimSource(db, issued.token, nonceB, now + 3000, 1)
     await expect(receiveSource(db, issued.token, {

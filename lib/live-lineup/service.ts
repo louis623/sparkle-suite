@@ -324,37 +324,18 @@ export async function configureSourceParties(db: SupabaseClient, token: string |
       next = { ...started.state, bootstrapPending: true, show: { ...started.state.show, excludedPartyIds: excluded } }
     } else {
       const show = state.show
-      const allowed = new Set(detected)
-      const oldScopeAbsent = show.partyIds.every(id => !allowed.has(id))
-      const hasNewParty = detected.some(id => !show.partyIds.includes(id))
-      // The page no longer shows this show's parties. Take the new party instead of
-      // keeping the old scope unioned in forever. Generation stays put so the
-      // publisher's configure receipt still matches.
-      if (oldScopeAbsent && hasNewParty) {
-        const keep = (id: string) => allowed.has(id.split(':')[0])
-        next = { ...state, revision: state.revision + 1, lastChangedAt: new Date(now).toISOString(),
-          parserState: 'loading',
-          entries: state.entries.filter(entry => keep(entry.id)),
-          order: state.order.filter(keep), held: state.held.filter(keep),
-          revealedIds: state.revealedIds.filter(keep),
-          restorations: (state.restorations ?? []).filter(item => keep(item.entry.id)),
-          revealEvents: (state.revealEvents ?? []).filter(event => keep(event.entryId) && !excluded.includes(event.entryId.split(':')[0])),
-          show: { ...show, partyIds: detected, excludedPartyIds: excluded,
-            carryEntryIds: show.carryEntryIds.filter(keep) } }
-      } else {
-        const parties = [...new Set([...show.partyIds, ...detected])].sort()
-        if (parties.length > 100) throw new LineupServiceError('invalid_scope', 409)
-        const visibleNow = new Set(detected)
-        const exclusions = [...new Set([
-          ...show.excludedPartyIds.filter(id => !visibleNow.has(id)), ...excluded,
-        ])].sort()
-        // Even unchanged configuration has an atomic ownership-checked receipt. A stale
-        // read or compatibility no-op is never an upgraded applied acknowledgement.
-        next = { ...state, revision: state.revision + 1, lastChangedAt: new Date(now).toISOString(),
-          parserState: 'loading',
-          show: { ...show, partyIds: parties, excludedPartyIds: exclusions },
-          revealEvents: (state.revealEvents ?? []).filter(event => !exclusions.includes(event.entryId.split(':')[0])) }
-      }
+      const parties = [...new Set([...show.partyIds, ...detected])].sort()
+      if (parties.length > 100) throw new LineupServiceError('invalid_scope', 409)
+      const visibleNow = new Set(detected)
+      const exclusions = [...new Set([
+        ...show.excludedPartyIds.filter(id => !visibleNow.has(id)), ...excluded,
+      ])].sort()
+      // Keep every party already in the show. Replacing the scope here would drop
+      // orders without archiving, and a generation bump would pause 2.0.6.
+      next = { ...state, revision: state.revision + 1, lastChangedAt: new Date(now).toISOString(),
+        parserState: 'loading',
+        show: { ...show, partyIds: parties, excludedPartyIds: exclusions },
+        revealEvents: (state.revealEvents ?? []).filter(event => !exclusions.includes(event.entryId.split(':')[0])) }
     }
     if (!isLineupState(next)) throw new LineupServiceError('invalid_scope', 409)
     try {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { claimPublisher, createLineupState, applySourcePacket, applyLineupCommand, LINEUP_SHOW_MAX_MS } from '@/lib/live-lineup/model'
+import { claimPublisher, createLineupState, applySourcePacket, applyLineupCommand, LINEUP_SHOW_IDLE_MS, LINEUP_SHOW_MAX_MS } from '@/lib/live-lineup/model'
 import { changeLineup, claimSource, configureSourceParties, describeSource, getEffectiveLiveQueueSnapshot, getWorkspaceLineup, hashPublisherToken, issuePublisher, listPublishers, readLineupState, receiveSource, revokePublisher } from '@/lib/live-lineup/service'
 
 const now = Date.parse('2026-09-09T12:00:00.000Z')
@@ -551,7 +551,11 @@ describe('automatic show ending', () => {
     }, now + 2000)
     if (!started.ok || !started.state.show) throw Error('fixture')
     const packetAt = now + 4000
-    const aged = { ...started.state, show: { ...started.state.show, startedAt: new Date(packetAt - LINEUP_SHOW_MAX_MS - 1).toISOString() } }
+    const aged = {
+      ...started.state,
+      lastChangedAt: new Date(packetAt - LINEUP_SHOW_IDLE_MS - 1).toISOString(),
+      show: { ...started.state.show, startedAt: new Date(packetAt - LINEUP_SHOW_MAX_MS - 1).toISOString() },
+    }
     const leased = claimPublisher(aged, publisherId, aged.revision, now + 3000, { claimId: otherClaimId, generation: 1 })
     if (!leased.ok) throw Error('fixture')
     d.rows.live_lineup_states.push({ rep_id: repA, revision: leased.state.revision, state: leased.state })
@@ -581,7 +585,7 @@ describe('automatic show ending', () => {
     expect(leased.state.entries.map((entry: { id: string }) => entry.name)).toEqual(['Brooke', 'Casey'])
   })
 
-  it('adopts a detected party when the current scope is absent, and still unions a party that remains', async () => {
+  it('keeps the old party and its orders when a new party is detected', async () => {
     const d = database()
     d.rows.live_queue.push({ rep_id: repA, sync_code: 'MHF-9446', queue: [], last_updated: null })
     const firstClaim = await claimSource(d.db, 'MHF-9446', claimId, now, 0)
@@ -597,12 +601,13 @@ describe('automatic show ending', () => {
     }, now + 4000)
     const adopted = await configureSourceParties(d.db, 'MHF-9446', 1, ['newp'], [], now + 5000)
     expect(adopted.generation).toBe(1)
-    expect(adopted.scope?.partyIds).toEqual(['newp'])
+    expect(adopted.scope?.partyIds).toEqual(['newp', 'old'])
     const adoptedState = d.rows.live_lineup_states[0].state
-    expect(adoptedState.entries).toEqual([])
+    expect(adoptedState.entries.map((entry: { name: string }) => entry.name)).toEqual(['Brooke'])
     expect(adoptedState.revealedIds).toEqual([])
-    expect(adoptedState.show.partyIds).toEqual(['newp'])
+    expect(adoptedState.show.generation).toBe(1)
+    expect(adoptedState.show.partyIds).toEqual(['newp', 'old'])
     const widened = await configureSourceParties(d.db, 'MHF-9446', 1, ['newp', 'later'], [], now + 6000)
-    expect(widened.scope?.partyIds).toEqual(['later', 'newp'])
+    expect(widened.scope?.partyIds).toEqual(['later', 'newp', 'old'])
   })
 })
