@@ -5,6 +5,7 @@ import type { SiteVisitSummary } from '@/lib/services/site-visit-summary'
 import { US_STATE_HEX, US_STATE_NAMES } from '@/lib/services/site-visit-summary'
 import { workspaceSectionHref } from '@/lib/services/rep-dashboard-math'
 import { ClickCue, DashboardLink } from './DashboardLink'
+import { SubjectCardTip } from './SubjectCardTip'
 import styles from './RepDashboard.module.css'
 
 function VisitShell({
@@ -244,7 +245,7 @@ export function SiteVisitsPanel({
 }) {
   const publicSiteHref = siteHref?.trim() || null
   return (
-    <section className={styles.subjectCard} data-testid="site-visitors" aria-labelledby="site-visitors-title">
+    <SubjectCardTip tip="visitors" testId="site-visitors" ariaLabelledBy="site-visitors-title">
       <header className={styles.customerTop}>
         <div>
           <p className={styles.kicker}>Website</p>
@@ -270,7 +271,7 @@ export function SiteVisitsPanel({
       ) : (
         <VisitCards visits={visits} siteHref={publicSiteHref} />
       )}
-    </section>
+    </SubjectCardTip>
   )
 }
 

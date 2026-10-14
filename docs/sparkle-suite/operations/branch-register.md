@@ -113,6 +113,10 @@ reconciliation and must not be swept into the active branch merely to make
 
 ## Branch lifecycle
 
+### October 14 dashboard hover-tip preview
+
+Louis asked for delayed hover tips on the Tools dashboard subject cards, a draft PR, and a Vercel preview on `sparkle-suite-smoke` only. `cursor/dashboard-hover-tips-a45f` is allowlisted for this review. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change.
+
 ### October 12 Suite list and Fizz approve review
 
 Louis approved a Smoke-only branch for Suite-list email, Fizz approve-once, and owner-scoped broadcast tools. `cursor/suite-list-fizz-approve-105c` is allowlisted for this review. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `production` on that Smoke project. Live project deploys fail closed. GitHub's default branch, Vercel's Live production branch, and the Live domains stay unchanged.
