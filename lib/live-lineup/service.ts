@@ -323,9 +323,10 @@ export async function configureSourceParties(db: SupabaseClient, token: string |
       if (!started.ok || !started.state.show) throw new LineupServiceError(started.ok ? 'invalid_scope' : started.code, 409)
       next = { ...started.state, bootstrapPending: true, show: { ...started.state.show, excludedPartyIds: excluded } }
     } else {
+      const show = state.show
       const allowed = new Set(detected)
-      const oldScopeAbsent = state.show.partyIds.every(id => !allowed.has(id))
-      const hasNewParty = detected.some(id => !state.show.partyIds.includes(id))
+      const oldScopeAbsent = show.partyIds.every(id => !allowed.has(id))
+      const hasNewParty = detected.some(id => !show.partyIds.includes(id))
       // The page no longer shows this show's parties. Take the new party instead of
       // keeping the old scope unioned in forever. Generation stays put so the
       // publisher's configure receipt still matches.
@@ -338,20 +339,20 @@ export async function configureSourceParties(db: SupabaseClient, token: string |
           revealedIds: state.revealedIds.filter(keep),
           restorations: (state.restorations ?? []).filter(item => keep(item.entry.id)),
           revealEvents: (state.revealEvents ?? []).filter(event => keep(event.entryId) && !excluded.includes(event.entryId.split(':')[0])),
-          show: { ...state.show, partyIds: detected, excludedPartyIds: excluded,
-            carryEntryIds: state.show.carryEntryIds.filter(keep) } }
+          show: { ...show, partyIds: detected, excludedPartyIds: excluded,
+            carryEntryIds: show.carryEntryIds.filter(keep) } }
       } else {
-        const parties = [...new Set([...state.show.partyIds, ...detected])].sort()
+        const parties = [...new Set([...show.partyIds, ...detected])].sort()
         if (parties.length > 100) throw new LineupServiceError('invalid_scope', 409)
         const visibleNow = new Set(detected)
         const exclusions = [...new Set([
-          ...state.show.excludedPartyIds.filter(id => !visibleNow.has(id)), ...excluded,
+          ...show.excludedPartyIds.filter(id => !visibleNow.has(id)), ...excluded,
         ])].sort()
         // Even unchanged configuration has an atomic ownership-checked receipt. A stale
         // read or compatibility no-op is never an upgraded applied acknowledgement.
         next = { ...state, revision: state.revision + 1, lastChangedAt: new Date(now).toISOString(),
           parserState: 'loading',
-          show: { ...state.show, partyIds: parties, excludedPartyIds: exclusions },
+          show: { ...show, partyIds: parties, excludedPartyIds: exclusions },
           revealEvents: (state.revealEvents ?? []).filter(event => !exclusions.includes(event.entryId.split(':')[0])) }
       }
     }
