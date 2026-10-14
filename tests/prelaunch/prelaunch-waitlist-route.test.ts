@@ -25,6 +25,23 @@ import { POST } from '@/app/api/prelaunch/waitlist/route'
 import { PRELAUNCH_WAITLIST_WELCOME_EMAIL_SKIP_REASON } from '@/lib/prelaunch/waitlist-email'
 import { resetBuildListWebhookConfigLogForTests } from '@/lib/prelaunch/build-list-webhook'
 import { resetPrelaunchRequestGuardForTests } from '@/lib/prelaunch/request-guard'
+import { PRELAUNCH_WAITLIST_SIGNUP_COLUMNS } from '@/lib/prelaunch/waitlist'
+
+const originalResendKey = process.env.RESEND_API_KEY
+const originalResendFrom = process.env.RESEND_FROM_EMAIL
+
+function restoreResendEnv() {
+  if (originalResendKey === undefined) {
+    delete process.env.RESEND_API_KEY
+  } else {
+    process.env.RESEND_API_KEY = originalResendKey
+  }
+  if (originalResendFrom === undefined) {
+    delete process.env.RESEND_FROM_EMAIL
+  } else {
+    process.env.RESEND_FROM_EMAIL = originalResendFrom
+  }
+}
 
 const originalWebhookUrl = process.env.BUILD_LIST_WEBHOOK_URL
 const originalWebhookKey = process.env.BUILD_LIST_WEBHOOK_KEY
@@ -46,6 +63,13 @@ function mockSuccessfulInsert(data: {
   id: string
   name: string
   email: string
+  phone?: string | null
+  tiktok_handle?: string | null
+  team_rep_name?: string | null
+  setup_pain?: string | null
+  sms_consent?: boolean | null
+  email_consent?: boolean | null
+  source?: string | null
   created_at?: string
 }) {
   const singleMock = vi.fn().mockResolvedValueOnce({
@@ -72,7 +96,19 @@ describe('POST /api/prelaunch/waitlist', () => {
       if (!address || typeof address === 'string') throw new Error('Loopback receiver unavailable')
       process.env.BUILD_LIST_WEBHOOK_URL = `http://127.0.0.1:${address.port}/build-list`
       process.env.BUILD_LIST_WEBHOOK_KEY = 'synthetic-local-only-key'
-      mockSuccessfulInsert({ id: 'synthetic-release', name: 'TEST ONLY Release QA', email: 'release@example.com', created_at: '2026-10-06T18:00:00.000Z' })
+      mockSuccessfulInsert({
+        id: 'synthetic-release',
+        name: 'TEST ONLY Release QA',
+        email: 'release@example.com',
+        phone: null,
+        tiktok_handle: null,
+        team_rep_name: null,
+        setup_pain: null,
+        sms_consent: false,
+        email_consent: true,
+        source: 'prelaunch_site?src=release_qa&campaign=2026_10_06',
+        created_at: '2026-10-06T18:00:00.000Z',
+      })
       updateEqMock.mockResolvedValueOnce({ error: null })
       const result = await POST(new Request('http://localhost/api/prelaunch/waitlist', {
         method: 'POST', headers: { 'content-type': 'application/json' },
@@ -80,11 +116,26 @@ describe('POST /api/prelaunch/waitlist', () => {
       }))
       expect(result.status).toBe(201)
       expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({ source: 'prelaunch_site?src=release_qa&campaign=2026_10_06' }))
-      expect(afterMock).toHaveBeenCalledTimes(1)
+      expect(afterMock).toHaveBeenCalledTimes(2)
       await afterMock.mock.calls[0][0]()
+      await afterMock.mock.calls[1][0]()
       expect(received).toEqual([{
         authorization: 'Bearer synthetic-local-only-key',
-        body: { event: 'build_list_signup', leadId: 'synthetic-release', name: 'TEST ONLY Release QA', email: 'release@example.com', shopName: null, source: 'prelaunch_site', createdAt: '2026-10-06T18:00:00.000Z' },
+        body: {
+          event: 'build_list_signup',
+          leadId: 'synthetic-release',
+          name: 'TEST ONLY Release QA',
+          email: 'release@example.com',
+          phone: null,
+          tiktokHandle: null,
+          teamRepName: null,
+          setupPain: null,
+          smsConsent: false,
+          emailConsent: true,
+          shopName: null,
+          source: 'prelaunch_site?src=release_qa&campaign=2026_10_06',
+          createdAt: '2026-10-06T18:00:00.000Z',
+        },
       }])
     } finally {
       await new Promise<void>((resolve, reject) => receiver.close(error => error ? reject(error) : resolve()))
@@ -100,12 +151,15 @@ describe('POST /api/prelaunch/waitlist', () => {
     afterMock.mockReset()
     delete process.env.BUILD_LIST_WEBHOOK_URL
     delete process.env.BUILD_LIST_WEBHOOK_KEY
+    delete process.env.RESEND_API_KEY
+    delete process.env.RESEND_FROM_EMAIL
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   afterEach(() => {
     restoreWebhookEnv()
+    restoreResendEnv()
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
   })
@@ -154,7 +208,7 @@ describe('POST /api/prelaunch/waitlist', () => {
       email_consent: true,
       source: 'prelaunch_site',
     })
-    expect(selectMock).toHaveBeenCalledWith('id, name, email, created_at')
+    expect(selectMock).toHaveBeenCalledWith(PRELAUNCH_WAITLIST_SIGNUP_COLUMNS)
     expect(fetchMock).not.toHaveBeenCalled()
     expect(updateMock).toHaveBeenCalledWith({
       welcome_email_status: 'skipped',
@@ -214,7 +268,9 @@ describe('POST /api/prelaunch/waitlist', () => {
       email: 'queue@example.com',
     }))
     expect(fetchMock).not.toHaveBeenCalled()
-    expect(afterMock).not.toHaveBeenCalled()
+    expect(afterMock).toHaveBeenCalledTimes(1)
+    await expect(afterMock.mock.calls[0][0]()).resolves.toBeUndefined()
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('stores an email-only waitlist signup without SMS consent', async () => {
@@ -423,6 +479,13 @@ describe('POST /api/prelaunch/waitlist', () => {
       id: 'waitlist-webhook-1',
       name: 'Jamie Hart',
       email: 'jamie@example.com',
+      phone: '303-555-0123',
+      tiktok_handle: '@jamiehart',
+      team_rep_name: 'Lindsey',
+      setup_pain: 'Too many links and DMs',
+      sms_consent: true,
+      email_consent: true,
+      source: 'prelaunch_site',
       created_at: '2026-09-18T20:00:00.000Z',
     })
     updateEqMock.mockResolvedValueOnce({ error: null })
@@ -455,10 +518,12 @@ describe('POST /api/prelaunch/waitlist', () => {
       welcome_email_sent_at: null,
     })
     expect(fetchMock).not.toHaveBeenCalled()
-    expect(afterMock).toHaveBeenCalledTimes(1)
+    expect(afterMock).toHaveBeenCalledTimes(2)
 
     await afterMock.mock.calls[0][0]()
+    await afterMock.mock.calls[1][0]()
 
+    expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(fetchMock).toHaveBeenCalledWith(
       'https://bot.example.test/build-list',
       {
@@ -472,6 +537,12 @@ describe('POST /api/prelaunch/waitlist', () => {
           leadId: 'waitlist-webhook-1',
           name: 'Jamie Hart',
           email: 'jamie@example.com',
+          phone: '303-555-0123',
+          tiktokHandle: '@jamiehart',
+          teamRepName: 'Lindsey',
+          setupPain: 'Too many links and DMs',
+          smsConsent: true,
+          emailConsent: true,
           shopName: null,
           source: 'prelaunch_site',
           createdAt: '2026-09-18T20:00:00.000Z',
@@ -527,5 +598,85 @@ describe('POST /api/prelaunch/waitlist', () => {
         return typeof value !== 'string' || !value.includes('test-build-list-key')
       }),
     ).toBe(true)
+  })
+
+  it('returns 201 when the owner alert fails and does not email the lead', async () => {
+    process.env.RESEND_API_KEY = 'rk_test_owner_alert'
+    process.env.RESEND_FROM_EMAIL = 'Sparkle Suite <notifications@yoursparklesuite.com>'
+    const fetchMock = vi.fn(async (url: string) => {
+      if (String(url).includes('api.resend.com')) {
+        return {
+          ok: false,
+          status: 502,
+          text: async () => '{"message":"sandbox rejected"}',
+        }
+      }
+      return { ok: true, status: 200, text: async () => '' }
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const errorSpy = vi.mocked(console.error)
+
+    mockSuccessfulInsert({
+      id: 'waitlist-alert-1',
+      name: 'Jamie Hart',
+      email: 'jamie@example.com',
+      phone: '303-555-0123',
+      tiktok_handle: '@jamiehart',
+      team_rep_name: 'Lindsey',
+      setup_pain: 'Too many links and DMs',
+      sms_consent: true,
+      email_consent: true,
+      source: 'prelaunch_site',
+      created_at: '2026-10-14T14:06:45.000Z',
+    })
+    updateEqMock.mockResolvedValueOnce({ error: null })
+
+    const response = await POST(
+      new Request('http://localhost/api/prelaunch/waitlist', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Jamie Hart',
+          email: 'jamie@example.com',
+          phone: '303-555-0123',
+          tiktokHandle: '@jamiehart',
+          teamRepName: 'Lindsey',
+          setupPain: 'Too many links and DMs',
+          smsConsent: true,
+          emailConsent: true,
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(201)
+    await expect(response.json()).resolves.toEqual({
+      ok: true,
+      welcomeEmail: { status: 'skipped' },
+    })
+    expect(afterMock).toHaveBeenCalledTimes(1)
+
+    await expect(afterMock.mock.calls[0][0]()).resolves.toBeUndefined()
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [, options] = fetchMock.mock.calls[0]
+    const body = JSON.parse(String(options?.body))
+    expect(body.from).toBe('Sparkle Suite <notifications@yoursparklesuite.com>')
+    expect(body.to).toEqual(['louis@neonrabbit.net'])
+    expect(body.to).not.toContain('jamie@example.com')
+    expect(body.text).toContain('jamie@example.com')
+    expect(body.text).toContain('303-555-0123')
+    expect(body.text).toContain('@jamiehart')
+    expect(body.text).toContain('Lindsey')
+    expect(body.text).toContain('Too many links and DMs')
+    expect(body.text).toContain('SMS consent: yes')
+    expect(body.text).toContain('Email consent: yes')
+    const logged = errorSpy.mock.calls
+      .flat()
+      .map((value) => (value instanceof Error ? value.message : String(value)))
+      .join('\n')
+    expect(logged).toContain('502')
+    expect(logged).toContain('sandbox rejected')
+    expect(logged).not.toContain('rk_test_owner_alert')
+    expect(logged).not.toContain('jamie@example.com')
   })
 })

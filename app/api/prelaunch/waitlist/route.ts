@@ -7,7 +7,9 @@ import {
 import {
   buildPrelaunchWaitlistInsert,
   parsePrelaunchWaitlistInput,
+  PRELAUNCH_WAITLIST_SIGNUP_COLUMNS,
 } from '@/lib/prelaunch/waitlist'
+import { notifyPrelaunchWaitlistOwnerAfterResponse } from '@/lib/prelaunch/waitlist-owner-alert'
 import { assertPrelaunchRequestAllowed } from '@/lib/prelaunch/request-guard'
 import {
   skipPrelaunchWaitlistWelcomeEmail,
@@ -63,7 +65,7 @@ export async function POST(request: Request) {
     const { data, error } = await admin
       .from('sparkle_suite_waitlist')
       .insert(insert)
-      .select('id, name, email, created_at')
+      .select(PRELAUNCH_WAITLIST_SIGNUP_COLUMNS)
       .single()
 
     if (error || !data?.id) {
@@ -73,9 +75,9 @@ export async function POST(request: Request) {
     const welcomeEmail = skipPrelaunchWaitlistWelcomeEmail()
     await recordWelcomeEmailStatus(data.id, welcomeEmail)
 
-    notifyBuildListSignupAfterResponse(
-      buildBuildListSignupWebhookPayload(data),
-    )
+    const signupPayload = buildBuildListSignupWebhookPayload(data)
+    notifyBuildListSignupAfterResponse(signupPayload)
+    notifyPrelaunchWaitlistOwnerAfterResponse(signupPayload)
 
     return NextResponse.json(
       { ok: true, welcomeEmail: { status: welcomeEmail.status } },

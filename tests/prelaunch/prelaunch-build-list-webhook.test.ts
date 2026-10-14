@@ -52,6 +52,13 @@ describe('build-list webhook notify', () => {
         id: 'lead-1',
         name: 'Jamie Hart',
         email: 'jamie@example.com',
+        phone: '303-555-0123',
+        tiktok_handle: '@jamiehart',
+        team_rep_name: 'Lindsey',
+        setup_pain: 'Too many links and DMs',
+        sms_consent: true,
+        email_consent: true,
+        source: 'prelaunch_site?src=tiktok&campaign=october_dms',
         created_at: '2026-09-18T20:00:00.000Z',
       }),
     ).toEqual({
@@ -59,6 +66,37 @@ describe('build-list webhook notify', () => {
       leadId: 'lead-1',
       name: 'Jamie Hart',
       email: 'jamie@example.com',
+      phone: '303-555-0123',
+      tiktokHandle: '@jamiehart',
+      teamRepName: 'Lindsey',
+      setupPain: 'Too many links and DMs',
+      smsConsent: true,
+      emailConsent: true,
+      shopName: null,
+      source: 'prelaunch_site?src=tiktok&campaign=october_dms',
+      createdAt: '2026-09-18T20:00:00.000Z',
+    })
+  })
+
+  it('keeps the original webhook keys when optional signup columns are absent', () => {
+    expect(
+      buildBuildListSignupWebhookPayload({
+        id: 'lead-1',
+        name: 'Jamie Hart',
+        email: 'jamie@example.com',
+        created_at: '2026-09-18T20:00:00.000Z',
+      }),
+    ).toEqual({
+      event: 'build_list_signup',
+      leadId: 'lead-1',
+      name: 'Jamie Hart',
+      email: 'jamie@example.com',
+      phone: null,
+      tiktokHandle: null,
+      teamRepName: null,
+      setupPain: null,
+      smsConsent: false,
+      emailConsent: false,
       shopName: null,
       source: 'prelaunch_site',
       createdAt: '2026-09-18T20:00:00.000Z',
@@ -103,7 +141,8 @@ describe('build-list webhook notify', () => {
       'fetch',
       vi.fn().mockResolvedValue({
         ok: false,
-        status: 503,
+        status: 400,
+        text: async () => '{"error":"phone is required"}',
       }),
     )
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -119,7 +158,8 @@ describe('build-list webhook notify', () => {
 
     await expect(afterMock.mock.calls[0][0]()).resolves.toBeUndefined()
     expect(errorSpy).toHaveBeenCalledWith(
-      '[prelaunch/waitlist] Build-list webhook failed: 503',
+      '[prelaunch/waitlist] Build-list webhook failed: 400',
+      '{"error":"phone is required"}',
     )
     expect(
       JSON.stringify(errorSpy.mock.calls).includes('test-build-list-key'),
