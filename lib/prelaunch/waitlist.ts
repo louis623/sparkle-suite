@@ -93,24 +93,27 @@ export function validatePrelaunchWaitlistInput(
   }
 }
 
-const prelaunchWaitlistInsertColumns = {
-  name: 'name',
-  email: 'email',
-  phone: 'phone',
-  tiktok_handle: 'tiktok_handle',
-  team_rep_name: 'team_rep_name',
-  setup_pain: 'setup_pain',
-  sms_consent: 'sms_consent',
-  email_consent: 'email_consent',
-  source: 'source',
-} as const satisfies Record<keyof PrelaunchWaitlistInsert, string>
+type WaitlistSignupColumnToken<T extends string> =
+  T extends `${infer Head}, ${infer Rest}`
+    ? Head | WaitlistSignupColumnToken<Rest>
+    : T
 
 /** Insert columns plus the generated id and timestamp the signup notify needs. */
-export const PRELAUNCH_WAITLIST_SIGNUP_COLUMNS = [
-  'id',
-  ...Object.values(prelaunchWaitlistInsertColumns),
-  'created_at',
-].join(', ')
+export const PRELAUNCH_WAITLIST_SIGNUP_COLUMNS =
+  'id, name, email, phone, tiktok_handle, team_rep_name, setup_pain, sms_consent, email_consent, source, created_at' as const
+
+type MissingPrelaunchWaitlistInsertColumn = Exclude<
+  keyof PrelaunchWaitlistInsert,
+  WaitlistSignupColumnToken<typeof PRELAUNCH_WAITLIST_SIGNUP_COLUMNS>
+>
+
+const prelaunchWaitlistSignupColumnsCoverInsert: [
+  MissingPrelaunchWaitlistInsertColumn,
+] extends [never]
+  ? true
+  : never = true
+
+void prelaunchWaitlistSignupColumnsCoverInsert
 
 export function buildPrelaunchWaitlistInsert(
   input: PrelaunchWaitlistInput,
