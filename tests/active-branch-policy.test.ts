@@ -46,6 +46,28 @@ describe("Sparkle Suite active branch policy", () => {
     expect(errors.some((error) => error.startsWith('branch "main" is not active;'))).toBe(true);
   });
 
+  it("accepts the dashboard hover-tip branch only on the approved Smoke preview target", () => {
+    const input = {
+      branch: "cursor/dashboard-hover-tips-a45f",
+      remoteRepository: "louis623/sparkle-suite",
+      worktree: "/vercel/path0",
+      isVercel: true,
+      deploymentProjectId: "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      deploymentEnvironment: "preview",
+    };
+    expect(evaluateBranchPolicy(input)).toEqual([]);
+    for (const override of [
+      { deploymentEnvironment: "production" },
+      { deploymentProjectId: "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3" },
+      { deploymentProjectId: undefined },
+      { deploymentEnvironment: undefined },
+    ]) {
+      expect(evaluateBranchPolicy({ ...input, ...override })).toContain(
+        'branch "cursor/dashboard-hover-tips-a45f" is limited to prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ / preview',
+      );
+    }
+  });
+
   it("accepts the FAQ branch only on the approved Smoke preview target", () => {
     const input = {
       branch: "codex/faq-articles",
@@ -87,6 +109,24 @@ describe("Sparkle Suite active branch policy", () => {
       expect(evaluateBranchPolicy({ ...input, ...override })).toContain(
         'branch "cursor/suite-list-fizz-approve-105c" is limited to prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ / production',
       );
+    }
+  });
+
+  it("uses actual dashboard-tip platform provenance over inherited Smoke release settings only for its preview", () => {
+    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("VERCEL_GIT_COMMIT_REF", "cursor/dashboard-hover-tips-a45f");
+    vi.stubEnv("SPARKLE_RELEASE_BRANCH", "codex/nic-nac-trade-hardening");
+    vi.stubEnv("VERCEL_PROJECT_ID", "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    try {
+      expect(currentBranch()).toBe("cursor/dashboard-hover-tips-a45f");
+      vi.stubEnv("VERCEL_ENV", "production");
+      expect(() => currentBranch()).toThrow("does not match platform branch");
+      vi.stubEnv("VERCEL_ENV", "preview");
+      vi.stubEnv("VERCEL_PROJECT_ID", "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3");
+      expect(() => currentBranch()).toThrow("does not match platform branch");
+    } finally {
+      vi.unstubAllEnvs();
     }
   });
 

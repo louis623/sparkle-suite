@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useState } from 'react'
 import { DanceFloorInsightsPanel } from '@/app/nic-nac/components/DanceFloorInsights'
 import { ClickCue, DashboardLink } from '@/app/nic-nac/components/DashboardLink'
 import { SiteVisitsPanel } from '@/app/nic-nac/components/SiteVisitsPanel'
+import { SubjectCardTip } from '@/app/nic-nac/components/SubjectCardTip'
 import {
   birthdayTimingLabel,
   createEmptyRepDashboard,
@@ -331,7 +332,7 @@ export function RepDashboard({
         </p>
       ) : null}
 
-      <section className={styles.subjectCard} data-testid="shows-card" aria-label="Your shows">
+      <SubjectCardTip tip="shows" testId="shows-card" ariaLabel="Your shows">
         <DashboardLink
           className={styles.customerTop}
           href={workspaceSectionHref('show-calendar')}
@@ -383,9 +384,14 @@ export function RepDashboard({
           </div>
           {countdown ? <CountdownRing countdown={countdown} /> : null}
         </DashboardLink>
-      </section>
+      </SubjectCardTip>
 
-      <section className={styles.customerCard} data-testid="customers-card" aria-label="Your customers">
+      <SubjectCardTip
+        tip="customers"
+        testId="customers-card"
+        ariaLabel="Your customers"
+        className={styles.customerCard}
+      >
         <DashboardLink
           className={styles.customerTop}
           href={customerListHref()}
@@ -502,9 +508,9 @@ export function RepDashboard({
             </DashboardLink>
           )}
         </div>
-      </section>
+      </SubjectCardTip>
 
-      <section className={styles.subjectCard} data-testid="dance-floor-insights" aria-labelledby="dance-floor-title">
+      <SubjectCardTip tip="dance-floor" testId="dance-floor-insights" ariaLabelledBy="dance-floor-title">
         <DashboardLink
           className={styles.customerTop}
           href={workspaceSectionHref('trade-board')}
@@ -567,9 +573,9 @@ export function RepDashboard({
           insights={view.danceFloorInsights}
           onOpenDanceFloor={() => onOpenSection('trade-board')}
         />
-      </section>
+      </SubjectCardTip>
 
-      <section className={styles.subjectCard} data-testid="messages-card" aria-label="Messages">
+      <SubjectCardTip tip="messages" testId="messages-card" ariaLabel="Messages">
         <DashboardLink
           className={styles.customerTop}
           href={workspaceSectionHref('messages')}
@@ -608,11 +614,11 @@ export function RepDashboard({
           )}
           <span className={styles.textAction}>Open Message Center</span>
         </DashboardLink>
-      </section>
+      </SubjectCardTip>
 
       <SiteVisitsPanel visits={view.siteVisits} siteHref={publicSiteHref} />
 
-      <section className={styles.subjectCard} data-testid="month-at-a-glance" aria-label="Last month at a glance">
+      <SubjectCardTip tip="last-month" testId="month-at-a-glance" ariaLabel="Last month at a glance">
         <div className={styles.customerTop}>
           <div>
             <p className={styles.kicker}>Last month at a glance</p>
@@ -656,7 +662,7 @@ export function RepDashboard({
         ) : (
           <p className={styles.muted}>Your monthly snapshot will land here.</p>
         )}
-      </section>
+      </SubjectCardTip>
 
       {view.team?.count || view.recipes?.count ? (
         <div className={styles.subjectPair}>

@@ -112,6 +112,7 @@ import {
   Gem,
   Globe2,
   Images,
+  LayoutDashboard,
   LogOut,
   Mail,
   Mic,
@@ -8320,6 +8321,19 @@ export function ToolsHub({
           </p>
         </header>
         <div className={styles.toolsHubList} role="list">
+          <button
+            type="button"
+            role="listitem"
+            data-testid="tools-hub-dashboard"
+            className={toolOpen ? styles.toolsHubButton : styles.toolsHubButtonActive}
+            aria-current={toolOpen ? undefined : 'page'}
+            onClick={() => onSelect('more')}
+          >
+            <LayoutDashboard className={styles.toolsHubIcon} aria-hidden="true" />
+            <span className={styles.toolsHubButtonCopy}>
+              <span className={styles.toolsHubButtonLabel}>Dashboard</span>
+            </span>
+          </button>
           {tools.map((section) => {
             const Icon = section.icon
             const selected = section.key === activeKey

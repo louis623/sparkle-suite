@@ -691,6 +691,28 @@ a.birthdayLink:focus-visible {
   background: #fffdfb;
 }
 
+.tipHost {
+  position: relative;
+}
+
+.tipBubble {
+  margin: 0;
+  max-width: 34rem;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 76, 174, 0.38);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 76, 174, 0.32), transparent 42%),
+    var(--dash-amethyst);
+  color: var(--dash-cream);
+  box-shadow: 0 14px 32px rgba(23, 16, 52, 0.18);
+  font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  pointer-events: none;
+}
+
 .subjectStack {
   display: flex;
   flex-direction: column;
@@ -905,6 +927,10 @@ a.birthdayLink:focus-visible {
   .skeletonShort {
     animation: dashboardShimmer 1.4s ease-in-out infinite;
   }
+
+  .tipBubble {
+    animation: dashboardTipIn 160ms ease;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -917,7 +943,8 @@ a.birthdayLink:focus-visible {
   .statCard.cardLink,
   .conditionalCard.cardLink,
   .subjectCard.cardLink,
-  .customerTile {
+  .customerTile,
+  .tipBubble {
     animation: none;
     transition: none;
   }
@@ -940,6 +967,18 @@ a.birthdayLink:focus-visible {
 
   100% {
     background-position: -100% 0;
+  }
+}
+
+@keyframes dashboardTipIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

@@ -14,10 +14,15 @@
     "codex/seo-crawl-refresh",
     "codex/smoke-landing-hero",
     "codex/faq-articles",
-    "cursor/suite-list-fizz-approve-105c"
+    "cursor/suite-list-fizz-approve-105c",
+    "cursor/dashboard-hover-tips-a45f"
   ],
   "previewBranches": {
     "codex/faq-articles": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/dashboard-hover-tips-a45f": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },
