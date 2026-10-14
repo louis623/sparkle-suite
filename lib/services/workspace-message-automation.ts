@@ -346,7 +346,13 @@ export async function enqueueDueWeeklyBirthdayReports(args: {
       .order('id', { ascending: true })
       .range(from, from + pageSize - 1)
     if (error) throw error
-    const rawPage = (data ?? []) as Array<{ id: string }>
+    const rawPage = (data ?? []) as Array<{
+      id: string
+      email?: string | null
+      account_classification?: string | null
+      public_site_slug?: string | null
+      status?: string | null
+    }>
     reps.push(...rawPage.filter((row) => isBroadcastAudienceRecipient(row)))
     if (rawPage.length < pageSize) break
   }
