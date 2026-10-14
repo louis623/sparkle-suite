@@ -2,6 +2,8 @@
 
 Audit only. No new tips were built from this list.
 
+After this audit, the Tools list gained a first item labeled Dashboard. It returns to the dashboard view and is selected while that view is showing. The rows below still describe the other controls.
+
 The six Tools dashboard subject cards (Shows, Customers, Dance Floor, Messages, Website visitors, Last month) already have delayed tips. This list is every other Workspace or Nic-Nac control where the same rest-then-explain pattern would help a non-technical rep. A tip belongs here when the label hides a consequence, or the only explanation is inside a collapsed section. Spots that already say what they do, right next to the control, are listed at the end and left alone.
 
 Routes are the Workspace section a rep actually opens. The Tools list is `/nic-nac?section=more`; the same buttons stay in the list after a tool is open.

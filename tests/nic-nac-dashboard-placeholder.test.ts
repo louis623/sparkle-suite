@@ -10,6 +10,14 @@ function readFileSync(path: string, encoding: 'utf8') {
   return readFileSyncRaw(path, encoding).replace(/\r\n/g, '\n')
 }
 
+function toolsHubButtonMarkup(html: string, label: string) {
+  const labelAt = html.indexOf(`>${label}<`)
+  if (labelAt < 0) return ''
+  const start = html.lastIndexOf('<button', labelAt)
+  const end = html.indexOf('</button>', labelAt)
+  return start < 0 || end < 0 ? '' : html.slice(start, end)
+}
+
 import {
   AccountBillingCard,
   BusinessCalculatorCard,
@@ -4395,6 +4403,49 @@ describe('DashboardPlaceholder', () => {
     expect(hub).toContain('>Tools<')
     expect(hub).not.toContain('Business Tools')
     expect(hub).not.toContain('>Recipes<')
+    expect(hub.indexOf('>Dashboard<')).toBeGreaterThan(-1)
+    expect(hub.indexOf('>Dashboard<')).toBeLessThan(hub.indexOf('>Account<'))
+    expect(toolsHubButtonMarkup(hub, 'Dashboard')).not.toContain('aria-current="page"')
+    expect(toolsHubButtonMarkup(hub, 'Wispr Flow')).toContain('aria-current="page"')
+  })
+
+  it('selects Dashboard as the first tools-list item only while the dashboard is showing', () => {
+    const tools = getWorkspaceToolSections({
+      includeRecipes: true,
+      includeCardQr: true,
+    })
+    expect(tools.map((section) => section.label)).not.toContain('Dashboard')
+
+    const dashboard = renderToStaticMarkup(
+      createElement(ToolsHub, {
+        tools,
+        activeKey: 'more',
+        onSelect: () => undefined,
+        reviewMode: true,
+      }),
+    )
+    expect(dashboard.indexOf('>Dashboard<')).toBeLessThan(dashboard.indexOf('>Account<'))
+    expect(toolsHubButtonMarkup(dashboard, 'Dashboard')).toContain('aria-current="page"')
+    expect(toolsHubButtonMarkup(dashboard, 'Dashboard')).not.toContain('Coming Soon')
+    expect(toolsHubButtonMarkup(dashboard, 'Account')).not.toContain('aria-current="page"')
+    expect(dashboard).toContain('Shows')
+
+    const account = renderToStaticMarkup(
+      createElement(
+        ToolsHub,
+        {
+          tools,
+          activeKey: 'account',
+          onSelect: () => undefined,
+        },
+        createElement('div', null, 'Account body'),
+      ),
+    )
+    expect(account.indexOf('>Dashboard<')).toBeLessThan(account.indexOf('>Account<'))
+    expect(toolsHubButtonMarkup(account, 'Dashboard')).not.toContain('aria-current="page"')
+    expect(toolsHubButtonMarkup(account, 'Account')).toContain('aria-current="page"')
+    expect(account).toContain('Account body')
+    expect(account).not.toContain('>Shows<')
   })
 
   it('renders a plain-English Live Lineup 2.0 setup and verification guide', () => {
