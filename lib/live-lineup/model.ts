@@ -550,11 +550,14 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   // Orders inside a party that is still present stay put.
   if (mature && streak && observation && observation.settled) {
     const missingParties = new Set(streak.partyIds)
-    const parked = next.entries.filter(entry => missingParties.has(entryParty(entry.id)))
-    const parkedIds = new Set(parked.map(entry => entry.id))
+    const candidates = next.entries.filter(entry => missingParties.has(entryParty(entry.id)))
     const revealedIds = new Set(next.revealedIds)
     const parkedRestorations = new Map((next.restorations ?? []).map(item => [item.entry.id, item]))
-    for (const entry of parked) {
+    const parkedIds = new Set<string>()
+    // A full restoration list stays full. Orders that do not fit remain in the
+    // lineup, and the packet is still accepted.
+    for (const entry of candidates) {
+      if (parkedRestorations.size >= LINEUP_MAX_REVEALED || revealedIds.size >= LINEUP_MAX_REVEALED) break
       const category = next.held.includes(entry.id) ? 'held' : 'order'
       const arrangement = next[category]
       const position = arrangement.indexOf(entry.id)
@@ -564,8 +567,8 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
         checked: observation, reason: 'party-absent',
       })
       revealedIds.add(entry.id)
+      parkedIds.add(entry.id)
     }
-    if (revealedIds.size > LINEUP_MAX_REVEALED || parkedRestorations.size > LINEUP_MAX_REVEALED) return fail('capacity_exceeded')
     next.entries = next.entries.filter(entry => !parkedIds.has(entry.id))
     next.order = next.order.filter(id => !parkedIds.has(id))
     next.held = next.held.filter(id => !parkedIds.has(id))

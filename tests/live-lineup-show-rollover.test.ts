@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
 import { describe, expect, it } from 'vitest'
 import { lineupSqlAdapter } from './fixtures/live-lineup-sql-adapter'
-import { applyLineupCommand, applySourcePacket, claimPublisher, createLineupState, isLineupState, LINEUP_PARTY_ABSENCE_MS, LINEUP_SHOW_IDLE_MS, LINEUP_SHOW_MAX_MS } from '@/lib/live-lineup/model'
+import { applyLineupCommand, applySourcePacket, claimPublisher, createLineupState, isLineupState, LINEUP_MAX_REVEALED, LINEUP_PARTY_ABSENCE_MS, LINEUP_SHOW_IDLE_MS, LINEUP_SHOW_MAX_MS } from '@/lib/live-lineup/model'
 import { changeLineup, claimSource, issuePublisher, receiveSource } from '@/lib/live-lineup/service'
 import type { LineupResult, LineupState, SourcePacket } from '@/lib/live-lineup/types'
 
@@ -181,6 +181,42 @@ describe('automatic show ending', () => {
     expect(back.revealedIds).toEqual([])
     expect(back.restorations ?? []).toEqual([])
     expect(back.show?.generation).toBe(1)
+  })
+
+  it('keeps accepting the packet when parked restorations are already at the cap', () => {
+    let current = showWith([
+      { id: 'p1:casey', name: 'Casey' },
+      { id: 'p2:brooke', name: 'Brooke' },
+    ], ['p1', 'p2', 'p3'])
+    const first = T + 102
+    current = take(applySourcePacket(current, packet(current, {
+      entries: [entry('p1:casey', 'Casey'), entry('p2:brooke', 'Brooke')],
+    }), first))
+    const checked = {
+      documentId, serial: 1, serverTime: new Date(first).toISOString(), settled: true,
+      epoch: current.publisher!.epoch, generation: current.show!.generation,
+    }
+    const restorations = Array.from({ length: LINEUP_MAX_REVEALED }, (_, index) => ({
+      entry: entry(`p3:${index}`, 'P', T), category: 'order' as const, position: 0,
+      previousId: null, nextId: null, checked, reason: 'party-absent' as const,
+    }))
+    const at = first + LINEUP_PARTY_ABSENCE_MS
+    const leased = take(claimPublisher({
+      ...current,
+      revealedIds: restorations.map(item => item.entry.id),
+      restorations,
+      partyAbsence: { partyIds: ['p2', 'p3'], since: new Date(at - LINEUP_PARTY_ABSENCE_MS).toISOString(), packets: 1 },
+    }, 'device', current.revision, at - 1000, { claimId: third, generation: 1 }))
+    const oldest = leased.restorations?.[0]?.entry.id
+    const next = take(applySourcePacket(leased, packet(leased, {
+      entries: [entry('p1:casey', 'Casey')], observation: observe(at, 1),
+    }), at))
+    expect(next.show?.generation).toBe(1)
+    expect(next.entries.map(row => row.name).sort()).toEqual(['Brooke', 'Casey'])
+    expect(next.restorations).toHaveLength(LINEUP_MAX_REVEALED)
+    expect(next.restorations?.[0]?.entry.id).toBe(oldest)
+    expect(next.revealedIds).toHaveLength(LINEUP_MAX_REVEALED)
+    expect(isLineupState(next)).toBe(true)
   })
 
   it('keeps visible parties when a ready snapshot only reports an excluded party', () => {

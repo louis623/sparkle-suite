@@ -610,4 +610,37 @@ describe('automatic show ending', () => {
     const widened = await configureSourceParties(d.db, 'MHF-9446', 1, ['newp', 'later'], [], now + 6000)
     expect(widened.scope?.partyIds).toEqual(['later', 'newp', 'old'])
   })
+
+  it('keeps the same generation and drops nothing when a party is added', async () => {
+    const d = database()
+    d.rows.live_queue.push({ rep_id: repA, sync_code: 'MHF-9446', queue: [], last_updated: null })
+    const orders = [
+      { id: 'old:brooke', name: 'Brooke', orderedAt: now },
+      { id: 'old:casey', name: 'Casey', orderedAt: now + 1 },
+    ]
+    const firstClaim = await claimSource(d.db, 'MHF-9446', claimId, now, 0)
+    await receiveSource(d.db, 'MHF-9446', {
+      publisherId: repA, epoch: firstClaim.epoch, sequence: 0, sourceVersion: '2.0.5', generation: 0,
+      parserState: 'ready', entries: orders, revealedIds: [],
+    }, now + 1000)
+    await configureSourceParties(d.db, 'MHF-9446', 0, ['old'], [], now + 2000)
+    const secondClaim = await claimSource(d.db, 'MHF-9446', otherClaimId, now + 3000, 1)
+    await receiveSource(d.db, 'MHF-9446', {
+      publisherId: repA, epoch: secondClaim.epoch, sequence: 0, sourceVersion: '2.0.5', generation: 1,
+      parserState: 'ready', entries: orders, revealedIds: [],
+    }, now + 4000)
+    const before = d.rows.live_lineup_states[0].state
+    await changeLineup(d.db, repA, { type: 'hold', entryId: 'old:brooke', expectedRevision: before.revision }, now + 4500)
+    const held = d.rows.live_lineup_states[0].state
+    const adopted = await configureSourceParties(d.db, 'MHF-9446', held.show.generation, ['newp'], [], now + 5000)
+    const stored = d.rows.live_lineup_states[0].state
+    expect(adopted.generation).toBe(held.show.generation)
+    expect(stored.show.generation).toBe(held.show.generation)
+    expect(stored.show.partyIds).toEqual(['newp', 'old'])
+    expect(stored.entries).toEqual(held.entries)
+    expect(stored.order).toEqual(held.order)
+    expect(stored.held).toEqual(held.held)
+    expect(stored.revealedIds).toEqual(held.revealedIds)
+    expect(stored.restorations ?? []).toEqual(held.restorations ?? [])
+  })
 })
