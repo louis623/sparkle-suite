@@ -178,14 +178,15 @@ BEGIN
 
   SELECT count(*) INTO matched_inactive
   FROM public.reps
-  WHERE id = ANY (inactive_ids);
+  WHERE id = ANY (inactive_ids)
+    AND account_classification = 'demo';
 
   SELECT count(*) INTO matched_churned
   FROM public.reps
   WHERE id = ANY (churned_ids);
 
   IF matched_inactive <> expected_inactive OR matched_churned <> expected_churned THEN
-    RAISE EXCEPTION 'expected_match_count mismatch. Expected % inactive targets and % churned target (% total). Found inactive % and churned %. No rows were changed.',
+    RAISE EXCEPTION 'expected_match_count mismatch. Expected % inactive demo targets and % churned target (% total). Found inactive demo % and churned %. No rows were changed.',
       expected_inactive, expected_churned, expected_total, matched_inactive, matched_churned;
   END IF;
 

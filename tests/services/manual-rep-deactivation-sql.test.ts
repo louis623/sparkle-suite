@@ -108,6 +108,9 @@ describe('manual rep deactivation script', () => {
     expect(applySql).toContain('expected_churned constant int := 1')
     expect(applySql).toContain('expected_total constant int := 20')
     expect(applySql).toContain('expected_match_count mismatch')
+    expect(applySql).toMatch(
+      /SELECT count\(\*\) INTO matched_inactive\s+FROM public\.reps\s+WHERE id = ANY \(inactive_ids\)\s+AND account_classification = 'demo';/,
+    )
     expect(applySql).toContain('a target UUID overlaps the protected list')
     expect(applySql).not.toContain('bqhzfkgkjyuhlsozpylf')
     expect(undoSql).not.toContain('bqhzfkgkjyuhlsozpylf')
