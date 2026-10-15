@@ -113,6 +113,10 @@ reconciliation and must not be swept into the active branch merely to make
 
 ## Branch lifecycle
 
+### October 14 Live Lineup automatic show ending
+
+Louis asked for automatic show ending on a draft review branch, deployed only to Suite Smoke. `cursor/live-lineup-auto-end-show-b22f` is allowlisted for that review. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Smoke production, the shared Smoke alias, the Live project, and the Live domains fail closed. GitHub's default branch and Vercel's Live production branch stay unchanged.
+
 ### October 14 broadcast audience preview
 
 Louis approved a Smoke-only fix so broadcast audiences include active customer reps plus his Dudes Fizzfest account, with a manual reversible deactivation script and no Live write. `cursor/broadcast-customer-audience-6b62` is allowlisted for this review. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change.

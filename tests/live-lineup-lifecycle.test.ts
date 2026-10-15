@@ -47,9 +47,9 @@ describe('explicit show generations and reversible party visibility', () => {
     expect(next.order).toEqual(['p1:a', 'p1:b'])
     expect(take(applySourcePacket(claim(), packet({entries: [{...entry('p1:unknown'), orderedAt: null}]}), T + 102)).order).toEqual(['p1:unknown'])
   })
-  it('rejects orders or revelations from a different party without refreshing health', () => {
+  it('rejects a new party mixed with the current scope, and a dateless revelation, without refreshing health', () => {
     const s = claim()
-    expect(applySourcePacket(s, packet({entries: [entry('p3:a', T + 101)]}), T + 102)).toEqual({ok: false, code: 'invalid_scope'})
+    expect(applySourcePacket(s, packet({entries: [entry('p1:b', T + 101), entry('p3:a', T + 101)]}), T + 102)).toEqual({ok: false, code: 'invalid_scope'})
     expect(applySourcePacket(s, packet({revealedIds: ['p3:z']}), T + 102)).toEqual({ok: false, code: 'invalid_scope'})
     expect(s.lastReceivedAt).toBeNull()
   })

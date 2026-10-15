@@ -68,8 +68,8 @@ test('publisher obtains lease before invoking genuine read; persists sequence be
   const result=await client.sync(async()=>{events.push('read');return{...parseTable(table([{id:'a',party:'P9'}])),observation:{documentId,serial:1,serverTime:new Date(clock).toISOString(),settled:true}};},'2.0.5',{readyHint:true});
   assert.equal(result.status,'confirmed');assert.deepEqual(events,['claim','read','snapshot']);assert.equal(state.readyDeadline,clock);
 });
-function worker({noOp=false,nonready=false,multiple=false,legacyBridge=false,empty=false,version='2.0.6',oldServer=false}={}) {
-  const local={},session={},listeners={},requests=[];let clock=Date.now(),observations=0,epoch=0,seq=-1;
+function worker({noOp=false,nonready=false,multiple=false,legacyBridge=false,empty=false,version='2.0.6',oldServer=false,showChangeOnSnapshot=false}={}) {
+  const local={},session={},listeners={},requests=[];let clock=Date.now(),observations=0,epoch=0,seq=-1,snapshots=0;
   let descriptor={protocol:2,...(oldServer?{}:{orderScope:'selected-parties'}),generation:0,scope:null,serverTime:new Date(clock).toISOString()};
   const area=record=>({setAccessLevel:async()=>{},get:async k=>Array.isArray(k)?Object.fromEntries(k.map(x=>[x,record[x]])):{[k]:structuredClone(record[k])},set:async v=>Object.assign(record,structuredClone(v)),remove:async k=>{delete record[k];}});
   const event=k=>({addListener:f=>{listeners[k]=f;}});
@@ -81,12 +81,33 @@ function worker({noOp=false,nonready=false,multiple=false,legacyBridge=false,emp
     fetch:async(_url,o)=>{clock+=600;const b=JSON.parse(o.body);requests.push(b);let body;const stamp=new Date(clock).toISOString(),lease=new Date(clock+90000).toISOString();
       if(b.action==='describe')body={...descriptor,serverTime:stamp};
       else if(b.action==='claim'){epoch++;seq=-1;body={claimId:b.claimId,capabilities:b.capabilities,generation:descriptor.generation,publisherId:rep,epoch,revision:requests.length,acceptedSequence:seq,serverTime:stamp,leaseExpiresAt:lease};}
-      else if(b.action==='snapshot'){seq=b.packet.sequence;body={ok:true,revision:requests.length,acceptedSequence:seq,serverTime:stamp,leaseExpiresAt:lease,freshForMs:nonready?0:45000};}
+      else if(b.action==='snapshot'){
+        snapshots+=1;
+        if(showChangeOnSnapshot && snapshots===3){
+          descriptor={...descriptor,generation:(descriptor.generation||0)+1};
+          const denied=new Response(JSON.stringify({error:'show_changed'}),{status:409,headers:{'content-type':'application/json'}});
+          Object.defineProperty(denied,'url',{value:endpoint});
+          return denied;
+        }
+        seq=b.packet.sequence;body={ok:true,revision:requests.length,acceptedSequence:seq,serverTime:stamp,leaseExpiresAt:lease,freshForMs:nonready?0:45000};
+      }
       else if(b.action==='configure'){if(!noOp){descriptor={protocol:2,orderScope:'selected-parties',generation:descriptor.generation||1,scope:{partyIds:b.partyIds,excludedPartyIds:b.excludedPartyIds,carryEntryIds:['P9:a'],startedAt:stamp},serverTime:stamp};body={...descriptor,configured:{applied:true,claimId:b.claimId,epoch:b.epoch,generation:descriptor.generation,partyIds:b.partyIds,excludedPartyIds:b.excludedPartyIds}};}else body={...descriptor,serverTime:stamp};}
       const result=new Response(JSON.stringify(body),{headers:{'content-type':'application/json'}});Object.defineProperty(result,'url',{value:endpoint});return result;}});
   vm.runInContext(fs.readFileSync('chrome-extension/background.js','utf8'),context);
-  return{requests,local,session,listeners,run:s=>vm.runInContext(s,context),async settle(){await vm.runInContext('ready',context);await new Promise(r=>setImmediate(r));await vm.runInContext('serial',context);}};
+  return{requests,local,session,listeners,advance(ms){clock+=ms;},run:s=>vm.runInContext(s,context),async settle(){await vm.runInContext('ready',context);await new Promise(r=>setImmediate(r));await vm.runInContext('serial',context);}};
 }
+test('2.0.6 resumes the next pull after show_changed without a rep reselect',async()=>{
+  const w=worker({showChangeOnSnapshot:true});await w.settle();
+  const paused=await w.run('exclusive(pull)');
+  assert.equal(paused.status,'show_changed');
+  assert.equal(w.local.sparklePublisherV2.needsSelection,true);
+  w.advance(60000);
+  const resumed=await w.run('exclusive(pull)');
+  assert.equal(resumed.status,'confirmed');
+  assert.equal(w.local.sparklePublisherV2.needsSelection,false);
+  assert.equal(w.local.sparklePublisherV2.generation,2);
+  assert.ok(w.requests.some(request=>request.action==='claim' && request.generation===2));
+});
 test('worker bootstrap claims and publishes before configure, then reclaims/rereads final scope',async()=>{
   const w=worker();await w.settle();
   const actions=w.requests.map(x=>x.action).filter(x=>x!=='describe');
