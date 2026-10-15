@@ -18,7 +18,10 @@ vi.mock('@/lib/resend/config', () => ({
 }))
 
 import { buildBuildListSignupWebhookPayload } from '@/lib/prelaunch/build-list-webhook'
-import { notifyPrelaunchWaitlistOwnerAfterResponse } from '@/lib/prelaunch/waitlist-owner-alert'
+import {
+  buildPrelaunchWaitlistOwnerAlert,
+  notifyPrelaunchWaitlistOwnerAfterResponse,
+} from '@/lib/prelaunch/waitlist-owner-alert'
 
 const signup = buildBuildListSignupWebhookPayload({
   id: 'lead-1',
@@ -81,7 +84,17 @@ describe('prelaunch waitlist owner alert', () => {
       .map((value) => (value instanceof Error ? value.message : String(value)))
       .join('\n')
     expect(logged).toContain('502')
-    expect(logged).toContain('sandbox rejected')
+    expect(logged).not.toContain('sandbox rejected')
     expect(logged).not.toContain('rk_test_owner_alert')
+  })
+
+  it('strips newlines from the name in the alert subject', () => {
+    const alert = buildPrelaunchWaitlistOwnerAlert({
+      ...signup,
+      name: 'Jamie\r\nBcc: attacker@example.com',
+    })
+    expect(alert.subject).toBe('Build-list signup: Jamie Bcc: attacker@example.com')
+    expect(alert.subject).not.toMatch(/[\r\n]/)
+    expect(alert.text).toContain('Jamie\r\nBcc: attacker@example.com')
   })
 })

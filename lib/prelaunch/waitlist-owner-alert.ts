@@ -10,6 +10,10 @@ function display(value: string | null | undefined) {
   return value && value.trim() ? value.trim() : '(none)'
 }
 
+function alertSubjectName(name: string) {
+  return name.replace(/[\r\n]+/g, ' ').trim()
+}
+
 export function buildPrelaunchWaitlistOwnerAlert(
   payload: BuildListSignupWebhookPayload,
 ) {
@@ -27,23 +31,15 @@ export function buildPrelaunchWaitlistOwnerAlert(
     `Email consent: ${payload.emailConsent ? 'yes' : 'no'}`,
     `Shop name: ${display(payload.shopName)}`,
     `Source: ${display(payload.source)}`,
+    `Source detail: ${display(payload.sourceDetail)}`,
     `Created: ${display(payload.createdAt)}`,
   ].join('\n')
 
   return {
     fromEnv: 'RESEND_FROM_EMAIL' as const,
     to: [PRELAUNCH_WAITLIST_OWNER_ALERT_EMAIL],
-    subject: `Build-list signup: ${payload.name}`,
+    subject: `Build-list signup: ${alertSubjectName(payload.name)}`,
     text,
-  }
-}
-
-async function readResponseBody(response: { text?: () => Promise<string> }) {
-  try {
-    if (typeof response.text !== 'function') return ''
-    return (await response.text()).slice(0, 2000)
-  } catch {
-    return ''
   }
 }
 
@@ -85,19 +81,23 @@ export async function sendPrelaunchWaitlistOwnerAlert(
       subject: alert.subject,
       text: alert.text,
     }),
+    signal: AbortSignal.timeout(5000),
   })
 
-  const body = await readResponseBody(response)
+  if (!response.ok) {
+    throw new Error(`Owner alert failed: ${response.status}`)
+  }
+
   let providerId: string | null = null
   try {
-    const parsed = body ? (JSON.parse(body) as { id?: unknown }) : null
+    const parsed = (await response.json()) as { id?: unknown }
     providerId = typeof parsed?.id === 'string' ? parsed.id : null
   } catch {
     providerId = null
   }
 
-  if (!response.ok || !providerId) {
-    throw new Error(`Owner alert failed: ${response.status} ${body}`)
+  if (!providerId) {
+    throw new Error(`Owner alert failed: ${response.status}`)
   }
 }
 

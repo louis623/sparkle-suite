@@ -133,7 +133,8 @@ describe('POST /api/prelaunch/waitlist', () => {
           smsConsent: false,
           emailConsent: true,
           shopName: null,
-          source: 'prelaunch_site?src=release_qa&campaign=2026_10_06',
+          source: 'prelaunch_site',
+          sourceDetail: 'prelaunch_site?src=release_qa&campaign=2026_10_06',
           createdAt: '2026-10-06T18:00:00.000Z',
         },
       }])
@@ -545,8 +546,10 @@ describe('POST /api/prelaunch/waitlist', () => {
           emailConsent: true,
           shopName: null,
           source: 'prelaunch_site',
+          sourceDetail: 'prelaunch_site',
           createdAt: '2026-09-18T20:00:00.000Z',
         }),
+        signal: expect.any(AbortSignal),
       },
     )
   })
@@ -675,7 +678,7 @@ describe('POST /api/prelaunch/waitlist', () => {
       .map((value) => (value instanceof Error ? value.message : String(value)))
       .join('\n')
     expect(logged).toContain('502')
-    expect(logged).toContain('sandbox rejected')
+    expect(logged).not.toContain('sandbox rejected')
     expect(logged).not.toContain('rk_test_owner_alert')
     expect(logged).not.toContain('jamie@example.com')
   })

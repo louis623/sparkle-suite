@@ -15,7 +15,8 @@ export type BuildListSignupWebhookPayload = {
   smsConsent: boolean
   emailConsent: boolean
   shopName: string | null
-  source: string
+  source: typeof BUILD_LIST_SIGNUP_SOURCE
+  sourceDetail: string | null
   createdAt: string
 }
 
@@ -85,19 +86,9 @@ export function buildBuildListSignupWebhookPayload(
     smsConsent: row.sms_consent === true,
     emailConsent: row.email_consent === true,
     shopName: null,
-    source: emptyToNull(row.source) ?? BUILD_LIST_SIGNUP_SOURCE,
+    source: BUILD_LIST_SIGNUP_SOURCE,
+    sourceDetail: emptyToNull(row.source),
     createdAt: row.created_at || new Date().toISOString(),
-  }
-}
-
-async function readResponseBody(response: {
-  text?: () => Promise<string>
-}) {
-  try {
-    if (typeof response.text !== 'function') return ''
-    return (await response.text()).slice(0, 2000)
-  } catch {
-    return ''
   }
 }
 
@@ -113,13 +104,12 @@ async function postBuildListSignupWebhook(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(5000),
     })
 
     if (!response.ok) {
-      const body = await readResponseBody(response)
       console.error(
         `[prelaunch/waitlist] Build-list webhook failed: ${response.status}`,
-        body,
       )
     }
   } catch {

@@ -73,7 +73,8 @@ describe('build-list webhook notify', () => {
       smsConsent: true,
       emailConsent: true,
       shopName: null,
-      source: 'prelaunch_site?src=tiktok&campaign=october_dms',
+      source: 'prelaunch_site',
+      sourceDetail: 'prelaunch_site?src=tiktok&campaign=october_dms',
       createdAt: '2026-09-18T20:00:00.000Z',
     })
   })
@@ -99,6 +100,7 @@ describe('build-list webhook notify', () => {
       emailConsent: false,
       shopName: null,
       source: 'prelaunch_site',
+      sourceDetail: null,
       createdAt: '2026-09-18T20:00:00.000Z',
     })
   })
@@ -159,8 +161,8 @@ describe('build-list webhook notify', () => {
     await expect(afterMock.mock.calls[0][0]()).resolves.toBeUndefined()
     expect(errorSpy).toHaveBeenCalledWith(
       '[prelaunch/waitlist] Build-list webhook failed: 400',
-      '{"error":"phone is required"}',
     )
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain('phone is required')
     expect(
       JSON.stringify(errorSpy.mock.calls).includes('test-build-list-key'),
     ).toBe(false)
