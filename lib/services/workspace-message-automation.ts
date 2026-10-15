@@ -6,6 +6,10 @@ import {
   failWorkspaceMessageOutboxEvent,
   type WorkspaceMessageOutboxEvent,
 } from '@/lib/services/workspace-message-outbox'
+import {
+  broadcastAudienceOrFilter,
+  isBroadcastAudienceRecipient,
+} from '@/lib/services/workspace-message-audience'
 import { publishWorkspaceMessage } from '@/lib/services/workspace-messages'
 import {
   attachWeeklyBirthdayReportPublication,
@@ -295,12 +299,13 @@ export async function enqueueDueMonthlyReports(args: {
   const now = args.now ?? new Date()
   const { data, error } = await args.supabase
     .from('reps')
-    .select('id, time_zone')
+    .select('id, time_zone, email, account_classification, public_site_slug, status')
     .eq('status', 'active')
+    .or(broadcastAudienceOrFilter())
   if (error) throw error
 
   const results: Array<{ repId: string; idempotencyKey: string }> = []
-  for (const rep of data ?? []) {
+  for (const rep of (data ?? []).filter((row) => isBroadcastAudienceRecipient(row))) {
     const timeZone =
       typeof rep.time_zone === 'string' && rep.time_zone.trim()
         ? rep.time_zone.trim()
@@ -335,14 +340,21 @@ export async function enqueueDueWeeklyBirthdayReports(args: {
   for (let from = 0; ; from += pageSize) {
     const { data, error } = await args.supabase
       .from('reps')
-      .select('id')
+      .select('id, email, account_classification, public_site_slug, status')
       .eq('status', 'active')
+      .or(broadcastAudienceOrFilter())
       .order('id', { ascending: true })
       .range(from, from + pageSize - 1)
     if (error) throw error
-    const page = (data ?? []) as Array<{ id: string }>
-    reps.push(...page)
-    if (page.length < pageSize) break
+    const rawPage = (data ?? []) as Array<{
+      id: string
+      email?: string | null
+      account_classification?: string | null
+      public_site_slug?: string | null
+      status?: string | null
+    }>
+    reps.push(...rawPage.filter((row) => isBroadcastAudienceRecipient(row)))
+    if (rawPage.length < pageSize) break
   }
 
   const results: Array<{ repId: string; idempotencyKey: string }> = []
