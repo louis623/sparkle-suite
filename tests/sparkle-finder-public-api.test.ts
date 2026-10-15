@@ -1109,6 +1109,8 @@ describe('Sparkle Finder public API contract helpers', () => {
     expect(finderScheduledShowLookbackMinutes(null)).toBe(60)
     expect(finderScheduledShowLookbackMinutes(15)).toBe(60)
     expect(finderScheduledShowLookbackMinutes(120)).toBe(120)
+    expect(finderScheduledShowLookbackMinutes(24 * 60)).toBe(24 * 60)
+    expect(finderScheduledShowLookbackMinutes(24 * 60 + 30)).toBe(24 * 60)
   })
 
   it('keeps an in-progress scheduled directory show through its end time', () => {

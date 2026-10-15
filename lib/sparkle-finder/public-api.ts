@@ -289,6 +289,7 @@ export const MAX_FINDER_LIVE_SHOW_LIMIT = 100
 export const DEFAULT_FINDER_REP_DIRECTORY_LIMIT = 50
 export const MAX_FINDER_REP_DIRECTORY_LIMIT = 200
 const FINDER_DEFAULT_SHOW_DURATION_MINUTES = 60
+const FINDER_SCHEDULED_SHOW_LOOKBACK_CAP_MINUTES = 24 * 60
 
 const TYPE_MAP: Record<JewelryType, FinderJewelryType> = {
   RG: 'ring',
@@ -1004,11 +1005,15 @@ async function readFinderScheduledLookbackMinutes(
   repIds: string[],
   nowIso: string,
 ) {
+  const lookbackFloor = new Date(
+    Date.parse(nowIso) - FINDER_SCHEDULED_SHOW_LOOKBACK_CAP_MINUTES * 60_000,
+  ).toISOString()
   const { data, error } = await supabase
     .from('calendar_events')
     .select('duration_minutes')
     .in('rep_id', repIds)
     .eq('status', 'scheduled')
+    .gte('event_time', lookbackFloor)
     .lt('event_time', nowIso)
     .gt('duration_minutes', 0)
     .order('duration_minutes', { ascending: false })
@@ -1022,9 +1027,12 @@ async function readFinderScheduledLookbackMinutes(
 export function finderScheduledShowLookbackMinutes(
   longestPositiveDuration: number | null | undefined,
 ) {
-  return Math.max(
-    finderPublicShowDurationMinutes(longestPositiveDuration),
-    FINDER_DEFAULT_SHOW_DURATION_MINUTES,
+  return Math.min(
+    FINDER_SCHEDULED_SHOW_LOOKBACK_CAP_MINUTES,
+    Math.max(
+      finderPublicShowDurationMinutes(longestPositiveDuration),
+      FINDER_DEFAULT_SHOW_DURATION_MINUTES,
+    ),
   )
 }
 
