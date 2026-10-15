@@ -8,9 +8,30 @@ export type BuildListSignupWebhookPayload = {
   leadId: string
   name: string
   email: string
+  phone: string | null
+  tiktokHandle: string | null
+  teamRepName: string | null
+  setupPain: string | null
+  smsConsent: boolean
+  emailConsent: boolean
   shopName: string | null
   source: typeof BUILD_LIST_SIGNUP_SOURCE
+  sourceDetail: string | null
   createdAt: string
+}
+
+export type BuildListSignupRow = {
+  id: string
+  name: string
+  email: string
+  phone?: string | null
+  tiktok_handle?: string | null
+  team_rep_name?: string | null
+  setup_pain?: string | null
+  sms_consent?: boolean | null
+  email_consent?: boolean | null
+  source?: string | null
+  created_at?: string | null
 }
 
 type BuildListWebhookConfig = {
@@ -44,19 +65,29 @@ export function readBuildListWebhookConfig(): BuildListWebhookConfig | null {
   return { url, key }
 }
 
-export function buildBuildListSignupWebhookPayload(row: {
-  id: string
-  name: string
-  email: string
-  created_at?: string | null
-}): BuildListSignupWebhookPayload {
+function emptyToNull(value: string | null | undefined) {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return trimmed ? trimmed : null
+}
+
+export function buildBuildListSignupWebhookPayload(
+  row: BuildListSignupRow,
+): BuildListSignupWebhookPayload {
   return {
     event: BUILD_LIST_SIGNUP_EVENT,
     leadId: row.id,
     name: row.name,
     email: row.email,
+    phone: emptyToNull(row.phone),
+    tiktokHandle: emptyToNull(row.tiktok_handle),
+    teamRepName: emptyToNull(row.team_rep_name),
+    setupPain: emptyToNull(row.setup_pain),
+    smsConsent: row.sms_consent === true,
+    emailConsent: row.email_consent === true,
     shopName: null,
     source: BUILD_LIST_SIGNUP_SOURCE,
+    sourceDetail: emptyToNull(row.source),
     createdAt: row.created_at || new Date().toISOString(),
   }
 }
@@ -73,6 +104,7 @@ async function postBuildListSignupWebhook(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(5000),
     })
 
     if (!response.ok) {
@@ -92,7 +124,13 @@ export function notifyBuildListSignupAfterResponse(
     const config = readBuildListWebhookConfig()
     if (!config) return
 
-    after(() => postBuildListSignupWebhook(config, payload))
+    after(async () => {
+      try {
+        await postBuildListSignupWebhook(config, payload)
+      } catch (error) {
+        console.error('[prelaunch/waitlist] Build-list webhook failed.', error)
+      }
+    })
   } catch {
     console.error('[prelaunch/waitlist] Build-list webhook schedule failed.')
   }
