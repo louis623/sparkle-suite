@@ -12,7 +12,7 @@ export function lineupSqlAdapter(sql: PGlite): SupabaseClient {
     fields = '*'; filters: [string, unknown][] = []; maximum = 1000; single = false
     values: Record<string, unknown> | null = null; sort: string | null = null; ascending = true
     constructor(readonly table: string) {
-      if (!['live_lineup_states', 'live_lineup_publisher_tokens', 'live_queue'].includes(table)) throw new Error('Unexpected table')
+      if (!['live_lineup_states', 'live_lineup_publisher_tokens', 'live_lineup_connection_codes', 'live_queue'].includes(table)) throw new Error('Unexpected table')
     }
     select(fields: string) { this.fields = fields.split(',').map(identifier).join(','); return this }
     eq(key: string, value: unknown) { this.filters.push([identifier(key), value]); return this }

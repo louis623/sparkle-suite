@@ -12,8 +12,8 @@ const base=new URL('../supabase/migrations/20260910000100_live_lineup_v2.sql',im
 const migration=new URL('../supabase/migrations/20260926000100_live_lineup_atomic_observations.sql',import.meta.url)
 async function database(){
   const sql=new PGlite()
-  await sql.exec('create role anon;create role authenticated;create role service_role bypassrls;create table reps(id uuid primary key);create table live_queue(rep_id uuid,sync_code text,queue jsonb,last_updated timestamptz);grant select on live_queue to service_role;')
-  await sql.query('insert into reps values($1)',[rep]);await sql.query('insert into live_queue values($1,$2,$3,$4)',[rep,code,'[]',new Date().toISOString()])
+  await sql.exec('create role anon;create role authenticated;create role service_role bypassrls;create table reps(id uuid primary key);create table live_queue(rep_id uuid,sync_code text,queue jsonb,last_updated timestamptz);grant select on live_queue to service_role;create table live_lineup_connection_codes(rep_id uuid not null, sync_code text not null, created_at timestamptz not null default now());grant select on live_lineup_connection_codes to service_role;')
+  await sql.query('insert into reps values($1)',[rep]);await sql.query('insert into live_queue values($1,$2,$3,$4)',[rep,code,'["Stale Customer"]',new Date().toISOString()]);await sql.query('insert into live_lineup_connection_codes(rep_id, sync_code) values($1,$2)',[rep,code])
   await sql.exec(readFileSync(base,'utf8'));await sql.exec(readFileSync(migration,'utf8'))
   return {sql,db:lineupSqlAdapter(sql)}
 }

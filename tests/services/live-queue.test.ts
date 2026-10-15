@@ -108,17 +108,18 @@ describe('live queue service', () => {
       now: new Date('2026-05-18T20:05:00.000Z'),
     })
 
-    expect(chain.spies.from).toHaveBeenCalledWith('live_queue')
-    expect(chain.spies.select).toHaveBeenCalledWith(
-      'sync_code, queue, last_updated',
-    )
+    expect(chain.spies.from).toHaveBeenCalledWith('live_lineup_connection_codes')
+    expect(chain.spies.select).toHaveBeenCalledWith('sync_code')
     expect(chain.spies.eqRep).toHaveBeenCalledWith('rep_id', 'rep-1')
     expect(chain.spies.eqSync).toHaveBeenCalledWith('sync_code', 'SYNC123')
     expect(snapshot).toMatchObject({
       syncCode: 'SYNC123',
-      currentCustomer: 'Jamie',
+      queue: [],
+      currentCustomer: null,
       isFresh: false,
+      sourceReady: false,
     })
+    expect(JSON.stringify(snapshot)).not.toContain('Jamie')
   })
 
   it('loads the assigned Live Queue sync code for setup without deriving it from rep id', async () => {
@@ -131,7 +132,7 @@ describe('live queue service', () => {
       getLiveQueueSyncCodeForRep(chain.supabase as never, 'rep-1'),
     ).resolves.toBe('MHF-7342')
 
-    expect(chain.spies.from).toHaveBeenCalledWith('live_queue')
+    expect(chain.spies.from).toHaveBeenCalledWith('live_lineup_connection_codes')
     expect(chain.spies.select).toHaveBeenCalledWith('sync_code')
     expect(chain.spies.eqRep).toHaveBeenCalledWith('rep_id', 'rep-1')
     expect(chain.spies.order).toHaveBeenCalledWith('created_at', {
@@ -180,7 +181,7 @@ describe('live queue service', () => {
     }) }))
     const insert = vi.fn(() => ({ select: insertSelect }))
     const from = vi.fn((table: string) => {
-      if (table === 'live_queue') {
+      if (table === 'live_lineup_connection_codes') {
         return existingSelect.mock.calls.length === 0
           ? { select: existingSelect }
           : { insert }
@@ -202,11 +203,10 @@ describe('live queue service', () => {
     expect(insert).toHaveBeenCalledWith({
       rep_id: 'rep-1',
       sync_code: 'GFF-7342',
-      queue: [],
     })
   })
 
-  it('does not query live_queue for missing or auto-generated anchors', async () => {
+  it('does not query connection codes for missing or auto-generated anchors', async () => {
     const chain = makeLiveQueueSelectChain({ data: null, error: null })
 
     await expect(

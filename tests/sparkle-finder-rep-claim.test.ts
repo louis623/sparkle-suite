@@ -309,7 +309,7 @@ function makeDeps(options: {
 
   const supabase = {
     from: vi.fn((table: string) => {
-      if (table === 'live_queue') {
+      if (table === 'live_lineup_connection_codes') {
         return { select: liveQueueSelect }
       }
       if (table === 'reps') {

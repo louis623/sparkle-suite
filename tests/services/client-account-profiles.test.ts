@@ -9,7 +9,7 @@ type TableName =
   | 'self_serve_setup_sessions'
   | 'subscriptions'
   | 'client_account_profiles'
-  | 'live_queue'
+  | 'live_lineup_connection_codes'
   | 'rep_referrals'
 
 function makeSingleResult(data: unknown, error: unknown = null) {
@@ -39,7 +39,10 @@ function makeListResult(data: unknown[], error: unknown = null) {
     select: vi.fn(() => query),
     in: vi.fn((key:string,values:string[]) => { filtered=filtered.filter(row=>values.includes(String((row as Record<string,unknown>)[key]))); return query }),
     order: vi.fn(() => query),
-    range: vi.fn(async (start:number,end:number) => ({data:filtered.slice(start,end+1),error})),
+    range: vi.fn((start:number,end:number) => {
+      const result = { data: filtered.slice(start, end + 1), error }
+      return Object.assign(Promise.resolve(result), { returns: vi.fn(async () => result) })
+    }),
     limit: vi.fn(async () => ({ data:filtered, error })),
   }
   return query
@@ -96,7 +99,7 @@ function makeListClient(options: {
     subscriptions: makeListResult(options.subscriptions),
     client_account_profiles: makeListResult(options.profiles),
     self_serve_setup_sessions: makeListResult(options.setupSessions),
-    live_queue: makeListResult(options.liveQueue ?? []),
+    live_lineup_connection_codes: makeListResult(options.liveQueue ?? []),
     rep_referrals: makeListResult(options.repReferrals ?? []),
   } satisfies Record<TableName, unknown>
 
@@ -330,7 +333,7 @@ describe('listOperatorCustomerProfiles', () => {
     expect(client.from).toHaveBeenCalledWith('subscriptions')
     expect(client.from).toHaveBeenCalledWith('client_account_profiles')
     expect(client.from).toHaveBeenCalledWith('self_serve_setup_sessions')
-    expect(client.from).toHaveBeenCalledWith('live_queue')
+    expect(client.from).toHaveBeenCalledWith('live_lineup_connection_codes')
     expect(queries.reps.select).toHaveBeenCalledWith(
       'id, account_classification, display_name, business_name, email, phone, status, referral_code, public_site_slug, custom_domain, shop_link, streaming_links, social_handles, created_at, updated_at',
     )
