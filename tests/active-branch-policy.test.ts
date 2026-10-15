@@ -134,6 +134,46 @@ describe("Sparkle Suite active branch policy", () => {
     }
   });
 
+  it("accepts the combined Smoke preview branch only on the Smoke production target", () => {
+    const input = {
+      branch: "smoke/combined-95-96-99-100",
+      remoteRepository: "louis623/sparkle-suite",
+      worktree: "/vercel/path0",
+      isVercel: true,
+      deploymentProjectId: "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      deploymentEnvironment: "production",
+    };
+    expect(evaluateBranchPolicy(input)).toEqual([]);
+    for (const override of [
+      { deploymentEnvironment: "preview" },
+      { deploymentProjectId: "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3" },
+      { deploymentProjectId: undefined },
+      { deploymentEnvironment: undefined },
+    ]) {
+      expect(evaluateBranchPolicy({ ...input, ...override })).toContain(
+        'branch "smoke/combined-95-96-99-100" is limited to prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ / production',
+      );
+    }
+  });
+
+  it("uses the combined Smoke branch over inherited release settings only on Smoke production", () => {
+    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("VERCEL_GIT_COMMIT_REF", "smoke/combined-95-96-99-100");
+    vi.stubEnv("SPARKLE_RELEASE_BRANCH", "codex/nic-nac-trade-hardening");
+    vi.stubEnv("VERCEL_PROJECT_ID", "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ");
+    vi.stubEnv("VERCEL_ENV", "production");
+    try {
+      expect(currentBranch()).toBe("smoke/combined-95-96-99-100");
+      vi.stubEnv("VERCEL_ENV", "preview");
+      expect(() => currentBranch()).toThrow("does not match platform branch");
+      vi.stubEnv("VERCEL_ENV", "production");
+      vi.stubEnv("VERCEL_PROJECT_ID", "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3");
+      expect(() => currentBranch()).toThrow("does not match platform branch");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("accepts the Suite-list review branch only on the Smoke production target", () => {
     const input = {
       branch: "cursor/suite-list-fizz-approve-105c",

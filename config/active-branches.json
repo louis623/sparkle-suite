@@ -19,7 +19,8 @@
     "cursor/broadcast-customer-audience-6b62",
     "cursor/live-lineup-auto-end-show-b22f",
     "cursor/live-lineup-order-tracking-8a01",
-    "cursor/waitlist-signup-alert-3682"
+    "cursor/waitlist-signup-alert-3682",
+    "smoke/combined-95-96-99-100"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -49,6 +50,10 @@
     "cursor/waitlist-signup-alert-3682": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
+    },
+    "smoke/combined-95-96-99-100": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "production"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
