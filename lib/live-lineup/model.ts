@@ -134,6 +134,13 @@ const validObservation = (value: unknown): value is AcceptedObservation => recor
   && validInteger(value.serial) && canonicalTime(value.serverTime) && typeof value.settled === 'boolean'
   && validInteger(value.epoch) && value.epoch > 0 && validInteger(value.generation)
 const plainEntry = (entry: SourceEntry): SourceEntry => ({id: entry.id, name: entry.name, orderedAt: entry.orderedAt})
+// A checked buyer is no longer in the live table, so a later table replacement cannot send the surname again.
+// Keep the identity already observed on that restoration. Waiting rows are still rebuilt from the new table.
+const rememberedRestorationEntry = (entry: SourceEntry): SourceEntry => {
+  const lastName = optionalSurname(entry.lastName)
+  if (!lastName || entry.identityEligible !== true || !entry.sourceIdentityVersion) return plainEntry(entry)
+  return {...plainEntry(entry), lastName, identityEligible: true, sourceIdentityVersion: entry.sourceIdentityVersion}
+}
 const stateFits = (state: LineupState) => new TextEncoder().encode(JSON.stringify(state)).byteLength <= LINEUP_MAX_STATE_BYTES
 
 /** A server receipt never restarts source evidence's lifetime. */
@@ -336,7 +343,8 @@ export function claimPublisher(state: LineupState, publisherId: string, expected
   if (!validInteger(epoch) || !validInteger(state.revision + 1)) return fail('capacity_exceeded')
   return { ok: true, state: { ...state, revision: state.revision + 1, parserState: 'loading', lastReceivedAt: null,
     sourceObservation: null, lastReadyObservation: null, retiredDocumentIds: [], revealEvents: [],
-    entries: state.entries.map(plainEntry), restorations: state.restorations?.map(item => ({...item, entry: plainEntry(item.entry)})) ?? [],
+    entries: state.entries.map(plainEntry), restorations: state.restorations?.map(item => ({...item,
+      entry: options.capabilities === 'lineup-2.0.5' ? rememberedRestorationEntry(item.entry) : plainEntry(item.entry)})) ?? [],
     sourceVersion: null, publisher: { id: publisherId, claimId: options.claimId, epoch, lastSequence: -1, leaseExpiresAt: new Date(now + LINEUP_LEASE_MS).toISOString(),
       ...(options.capabilities ? {capabilities: options.capabilities} : {}) } } }
 }
@@ -424,7 +432,8 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   // Old publishers cannot revive cached identities on rows absent from their next snapshot.
   if (!upgraded || documentChanged) {
     next.entries = state.entries.map(plainEntry)
-    next.restorations = state.restorations?.map(item => ({...item, entry: plainEntry(item.entry)})) ?? []
+    next.restorations = state.restorations?.map(item => ({...item,
+      entry: upgraded ? rememberedRestorationEntry(item.entry) : plainEntry(item.entry)})) ?? []
     next.revealEvents = []
   }
   if (packet.parserState !== 'ready') {

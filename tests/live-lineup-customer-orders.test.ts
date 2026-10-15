@@ -80,6 +80,7 @@ beforeEach(async () => {
     '20260926000200_ss_live_lineup_audience_matches.sql',
     '20260929000100_live_lineup_customer_cards.sql',
     '20261013000100_ss_live_lineup_customer_orders.sql',
+    '20261014193000_ss_live_lineup_record_buyer_orders.sql',
   ]) await db.exec(readFileSync(new URL('../supabase/migrations/' + file, import.meta.url), 'utf8'))
   await state()
 }, 60_000)
@@ -210,6 +211,42 @@ describe('lineup purchase tracking', () => {
     expect((await orders()).find((row) => row.order_id === 'order1')?.audience_id).toBe(jane)
     await db.query('delete from customer_audience where id=$1', [jane])
     expect((await orders()).some((row) => row.audience_id === jane)).toBe(false)
+  })
+
+  it('creates one card and link for a revealed buyer who was not on the list yet', async () => {
+    await archive(8, {
+      show: { excludedPartyIds: [] },
+      entries: [entry('party:waiting', 'Casey', 'Ng', later)],
+      restorations: [{ entry: entry('party:revealed', 'June', 'Park', early) }],
+    })
+    const rows = await orders()
+    expect(rows.map((row) => row.order_id).sort()).toEqual(['revealed', 'waiting'])
+    const links = await db.query<{ entry_id: string; audience_id: string }>(
+      'select entry_id, audience_id from live_lineup_customer_links order by entry_id',
+    )
+    expect(links.rows.map((row) => row.entry_id)).toEqual(['party:revealed', 'party:waiting'])
+    const cards = await db.query<{ name: string; record_source: string; last_seen: Date }>(
+      `select name, record_source, last_seen_in_lineup_at as last_seen
+       from customer_audience where record_source='live_lineup' order by name`,
+    )
+    expect(cards.rows.map((row) => row.name)).toEqual(['Casey Ng', 'June Park'])
+    expect(cards.rows.every((row) => row.record_source === 'live_lineup' && row.last_seen)).toBe(true)
+    expect(new Set(links.rows.map((row) => row.audience_id)).size).toBe(2)
+    await archive(9, {
+      entries: [entry('party:waiting', 'Casey', 'Ng', later), entry('party:again', 'Casey', 'Ng', later)],
+      restorations: [{ entry: entry('party:revealed', 'June', 'Park', early) }],
+    })
+    expect(await orders()).toHaveLength(3)
+    expect((await db.query("select id from customer_audience where record_source='live_lineup'")).rows).toHaveLength(2)
+    const activity = (await db.query<{ result: { orderedDuringLiveLast90Days: number; goneQuiet: number } }>(
+      'select live_lineup_customer_activity($1,$2) result',
+      [rep, new Date(later).toISOString()],
+    )).rows[0].result
+    expect(activity).toMatchObject({ orderedDuringLiveLast90Days: 2, goneQuiet: 0 })
+    await db.query("insert into customer_audience(rep_id, name) values($1,'June Park')", [rep])
+    await archive(10, { entries: [entry('party:twin', 'June', 'Park', later)] })
+    expect((await orders()).some((row) => row.order_id === 'twin')).toBe(false)
+    expect((await db.query("select id from customer_audience where name='June Park'")).rows).toHaveLength(2)
   })
 
   it('counts recent live buyers and customers who have gone quiet', async () => {

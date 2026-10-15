@@ -46,6 +46,28 @@ describe("Sparkle Suite active branch policy", () => {
     expect(errors.some((error) => error.startsWith('branch "main" is not active;'))).toBe(true);
   });
 
+  it("accepts the Live Lineup order-tracking branch only on the approved Smoke preview target", () => {
+    const input = {
+      branch: "cursor/live-lineup-order-tracking-8a01",
+      remoteRepository: "louis623/sparkle-suite",
+      worktree: "/vercel/path0",
+      isVercel: true,
+      deploymentProjectId: "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      deploymentEnvironment: "preview",
+    };
+    expect(evaluateBranchPolicy(input)).toEqual([]);
+    for (const override of [
+      { deploymentEnvironment: "production" },
+      { deploymentProjectId: "prj_zCKmYDx1Sbs9hA1Lokzdv9Qm0TM3" },
+      { deploymentProjectId: undefined },
+      { deploymentEnvironment: undefined },
+    ]) {
+      expect(evaluateBranchPolicy({ ...input, ...override })).toContain(
+        'branch "cursor/live-lineup-order-tracking-8a01" is limited to prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ / preview',
+      );
+    }
+  });
+
   it("accepts the Live Lineup auto-end branch only on the Smoke preview target", () => {
     const input = {
       branch: "cursor/live-lineup-auto-end-show-b22f",
