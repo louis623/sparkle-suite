@@ -20,6 +20,24 @@ const objectSchema = (
 });
 const string = { type: "string", minLength: 1, maxLength: 4000 };
 const optionalText = { type: "string", maxLength: 4000 };
+const boolean = { type: "boolean" };
+const textList = { type: "array", items: { type: "string" }, maxItems: 12 };
+const resourceContentFields = {
+  resourceKey: { type: "string", maxLength: 120 },
+  resourceType: { enum: ["help", "faq", "blog", "video"] },
+  title: { type: "string", maxLength: 160 },
+  summary: { type: "string", maxLength: 500 },
+  body: { type: "string", maxLength: 30000 },
+  category: string,
+  tags: textList,
+  thumbnailUrl: optionalText,
+  videoProvider: { enum: ["youtube", "vimeo", "loom", "other"] },
+  videoUrl: optionalText,
+  actionUrl: optionalText,
+  changeSummary: optionalText,
+  isFeatured: boolean,
+  authorLabel: optionalText,
+};
 const page = {
   offset: { type: "integer", minimum: 0 },
   limit: { type: "integer", minimum: 1, maximum: 100 },
@@ -483,6 +501,13 @@ export const locOperationCatalog: LocOperation[] = [
     },
   ),
   read(
+    "resources.emailPreview",
+    "resources",
+    "Render the exact Suite official-notice email HTML for one resource. Does not send.",
+    ["suite"],
+    resourceContentFields,
+  ),
+  read(
     "fizz.issue.get",
     "communications",
     "Read one staged Fizz issue and its email and Workspace results.",
@@ -537,12 +562,11 @@ const requiredByName: Record<string, string[]> = {
   "moderation.suspension": ["repId", "suspended"],
   "support.reply": ["conversationId", "body", "clientRequestId"],
   "communications.emailPreview": ["title", "body"],
+  "resources.emailPreview": ["title"],
   "fizz.issue.stage": ["issueId", "subject", "preheader", "content", "workspaceTitle", "workspaceSummary", "workspaceBody"],
   "fizz.issue.get": ["issueId"],
   "fizz.issue.approve": ["issueId", "mode"],
 };
-const boolean = { type: "boolean" };
-const textList = { type: "array", items: { type: "string" }, maxItems: 12 };
 const content = {
   publicationId: string,
   title: { ...string, maxLength: 160 },
@@ -676,20 +700,7 @@ const fieldsByName: Record<string, Record<string, unknown>> = {
     emailSuiteList: boolean,
   },
   "resources.publish": {
-    resourceKey: { type: "string", maxLength: 120 },
-    resourceType: { enum: ["help", "faq", "blog", "video"] },
-    title: { type: "string", maxLength: 160 },
-    summary: { type: "string", maxLength: 500 },
-    body: { type: "string", maxLength: 30000 },
-    category: string,
-    tags: textList,
-    thumbnailUrl: optionalText,
-    videoProvider: { enum: ["youtube", "vimeo", "loom", "other"] },
-    videoUrl: optionalText,
-    actionUrl: optionalText,
-    changeSummary: optionalText,
-    isFeatured: boolean,
-    authorLabel: optionalText,
+    ...resourceContentFields,
     announce: boolean,
     emailSuiteList: boolean,
   },
