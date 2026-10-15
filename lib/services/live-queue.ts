@@ -7,6 +7,9 @@ const DEFAULT_STALE_AFTER_SECONDS = 180
 const MAX_QUEUE_NAMES = 200
 const DEFAULT_SYNC_CODE_ATTEMPTS = 8
 
+/** Per-rep extension / Secret Rep ID home. live_queue.sync_code is retired. */
+export const LIVE_LINEUP_CONNECTION_CODE_TABLE = 'live_lineup_connection_codes'
+
 type LiveQueueRepProfile = {
   businessName?: string | null
   displayName?: string | null
@@ -81,19 +84,24 @@ export async function getLiveQueueSnapshot(
   if (!syncCode || syncCode.startsWith(AUTO_ANCHOR_PREFIX)) return null
 
   const { data, error } = await supabase
-    .from('live_queue')
-    .select('sync_code, queue, last_updated')
+    .from(LIVE_LINEUP_CONNECTION_CODE_TABLE)
+    .select('sync_code')
     .eq('rep_id', input.repId)
     .eq('sync_code', syncCode)
     .maybeSingle()
 
   if (error) throw error
-  if (!data) return null
+  const assigned = (data as { sync_code?: unknown } | null)?.sync_code
+  if (typeof assigned !== 'string' || assigned !== syncCode) return null
 
-  return buildLiveQueueSnapshot(data as unknown as LiveQueueRow, {
-    now: input.now,
-    staleAfterSeconds: input.staleAfterSeconds,
-  })
+  // A matching connection code is not a lineup. Never project retired live_queue.queue rows.
+  return {
+    ...buildLiveQueueSnapshot(
+      { sync_code: assigned, queue: [], last_updated: null },
+      { now: input.now, staleAfterSeconds: input.staleAfterSeconds },
+    ),
+    sourceReady: false,
+  }
 }
 
 export async function getLiveQueueSyncCodeForRep(
@@ -101,7 +109,7 @@ export async function getLiveQueueSyncCodeForRep(
   repId: string,
 ): Promise<string | null> {
   const { data, error } = await supabase
-    .from('live_queue')
+    .from(LIVE_LINEUP_CONNECTION_CODE_TABLE)
     .select('sync_code')
     .eq('rep_id', repId)
     .order('created_at', { ascending: true })
@@ -143,11 +151,10 @@ export async function ensureLiveQueueSyncCodeForRep(
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const syncCode = generateLiveQueueSyncCode(profile, input.randomDigits)
     const { data, error } = await supabase
-      .from('live_queue')
+      .from(LIVE_LINEUP_CONNECTION_CODE_TABLE)
       .insert({
         rep_id: input.repId,
         sync_code: syncCode,
-        queue: [],
       })
       .select('sync_code')
       .single()
