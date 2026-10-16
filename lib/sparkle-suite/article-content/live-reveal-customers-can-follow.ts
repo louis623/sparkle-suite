@@ -123,7 +123,7 @@ export const liveRevealCustomersCanFollowArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "**Thinking about Sparkle Suite?** See everything that comes with a rep site in What is Sparkle Suite?, or look at plans on the [pricing section](https://www.yoursparklesuite.com/#pricing)."
+      "text": "**Thinking about Sparkle Suite?** See everything that comes with a rep site in [What is Sparkle Suite?](https://www.yoursparklesuite.com/faq/articles/what-is-sparkle-suite), or look at plans on the [pricing section](https://www.yoursparklesuite.com/#pricing)."
     },
     {
       "type": "paragraph",
