@@ -1,3 +1,4 @@
+import { renderCustomerSiteUnavailableResponse } from '@/lib/amethyst/customer-domain-site'
 import { renderCustomerFaq } from '@/lib/amethyst/customer-faq'
 import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -13,6 +14,6 @@ export async function GET(request: Request) {
     repId: customerDomain,
     select: 'id',
   })
-  if (!rep) return new Response('Not found', { status: 404 })
+  if (!rep) return renderCustomerSiteUnavailableResponse()
   return renderCustomerFaq(request, { repId: rep.id, customDomain: true })
 }
