@@ -33,7 +33,7 @@ export const howToGetYourOwnBombPartyRepWebsiteArticle: SuiteArticle = {
       "items": [
         "**When is your next live?** That's your Live Show Calendar.",
         "**What order are the reveals in?** That's your Live Lineup.",
-        "**What pieces are available to trade?** That's your Dance Floor, where customers browse and send trade requests, and you make the final call.",
+        "**Which dancers are available to swap?** That's your Dance Floor, where customers browse and send swap requests, and you make the final call.",
         "**Who are you?** Your name, your look and your story.",
         "**How do I follow you?** Links to your socials."
       ]
