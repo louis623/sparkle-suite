@@ -1,4 +1,4 @@
-import type { AcceptedObservation, LineupCommand, LineupResult, LineupState, ParserState, RevealRestoration, SourceEntry, SourcePacket, WorkspaceLineupSnapshot } from './types'
+import type { AcceptedObservation, LineupCommand, LineupResult, LineupState, ParserState, PartyAbsence, RevealRestoration, SourceEntry, SourcePacket, WorkspaceLineupSnapshot } from './types'
 
 export const LINEUP_MAX_ENTRIES = 2000
 export const LINEUP_MAX_REVEALED = 10000
@@ -9,6 +9,13 @@ export const LINEUP_MAX_STATE_BYTES = 8_388_608
 export const LINEUP_MAX_EVENTS = 128
 export const LINEUP_MAX_EVENT_MEMBERS = 4000
 export const LINEUP_OFFLINE_MS = 180_000
+/** A show older than this can be archived once it has also been idle. */
+export const LINEUP_SHOW_MAX_MS = 18 * 60 * 60 * 1000
+/** No entry or lineup change for this long counts as idle. */
+export const LINEUP_SHOW_IDLE_MS = 2 * 60 * 60 * 1000
+/** A party must stay missing across ready packets at least this long. */
+export const LINEUP_PARTY_ABSENCE_MS = 10 * 60 * 1000
+export const LINEUP_PARTY_ABSENCE_PACKETS = 2
 const parsers: ParserState[] = ['ready', 'loading', 'partial', 'invalid']
 const validId = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/.test(value)
 export const isClaimId = (value: unknown): value is string => typeof value === 'string'
@@ -127,6 +134,13 @@ const validObservation = (value: unknown): value is AcceptedObservation => recor
   && validInteger(value.serial) && canonicalTime(value.serverTime) && typeof value.settled === 'boolean'
   && validInteger(value.epoch) && value.epoch > 0 && validInteger(value.generation)
 const plainEntry = (entry: SourceEntry): SourceEntry => ({id: entry.id, name: entry.name, orderedAt: entry.orderedAt})
+// A checked buyer is no longer in the live table, so a later table replacement cannot send the surname again.
+// Keep the identity already observed on that restoration. Waiting rows are still rebuilt from the new table.
+const rememberedRestorationEntry = (entry: SourceEntry): SourceEntry => {
+  const lastName = optionalSurname(entry.lastName)
+  if (!lastName || entry.identityEligible !== true || !entry.sourceIdentityVersion) return plainEntry(entry)
+  return {...plainEntry(entry), lastName, identityEligible: true, sourceIdentityVersion: entry.sourceIdentityVersion}
+}
 const stateFits = (state: LineupState) => new TextEncoder().encode(JSON.stringify(state)).byteLength <= LINEUP_MAX_STATE_BYTES
 
 /** A server receipt never restarts source evidence's lifetime. */
@@ -203,6 +217,12 @@ export function isLineupState(input: unknown): input is LineupState {
   if (record(input.sourceObservation) && Array.isArray(input.retiredDocumentIds) && input.retiredDocumentIds.includes(input.sourceObservation.documentId)) return false
   if (input.revealEventCursor !== undefined && !validInteger(input.revealEventCursor)) return false
   if (input.restorationNotice !== undefined && input.restorationNotice !== null && input.restorationNotice !== 'Restored orders without surviving anchors were placed at the end of their previous list.') return false
+  if (input.partyAbsence != null) {
+    if (!record(input.show) || !record(input.partyAbsence) || !validParties(input.partyAbsence.partyIds)
+      || !input.partyAbsence.partyIds.length || !canonicalTime(input.partyAbsence.since)
+      || !validInteger(input.partyAbsence.packets) || input.partyAbsence.packets < 1
+      || input.partyAbsence.partyIds.some(id => !(input.show as {partyIds: string[]}).partyIds.includes(id))) return false
+  }
   if (input.restorations !== undefined) {
     if (!Array.isArray(input.restorations) || input.restorations.length > LINEUP_MAX_REVEALED) return false
     const restoredIds = new Set<string>()
@@ -214,7 +234,8 @@ export function isLineupState(input: unknown): input is LineupState {
         || typeof item.entry.name !== 'string' || !item.entry.name || item.entry.name.length > 100
         || item.entry.name !== item.entry.name.trim() || /[\u0000-\u001f\u007f]/.test(item.entry.name)
         || !(item.entry.orderedAt === null || typeof item.entry.orderedAt === 'number' && validTime(item.entry.orderedAt))
-        || item.entry.lastName !== undefined && optionalSurname(item.entry.lastName) !== item.entry.lastName) return false
+        || item.entry.lastName !== undefined && optionalSurname(item.entry.lastName) !== item.entry.lastName
+        || item.reason !== undefined && item.reason !== 'party-absent') return false
       restoredIds.add(item.entry.id)
     }
   }
@@ -322,9 +343,28 @@ export function claimPublisher(state: LineupState, publisherId: string, expected
   if (!validInteger(epoch) || !validInteger(state.revision + 1)) return fail('capacity_exceeded')
   return { ok: true, state: { ...state, revision: state.revision + 1, parserState: 'loading', lastReceivedAt: null,
     sourceObservation: null, lastReadyObservation: null, retiredDocumentIds: [], revealEvents: [],
-    entries: state.entries.map(plainEntry), restorations: state.restorations?.map(item => ({...item, entry: plainEntry(item.entry)})) ?? [],
+    entries: state.entries.map(plainEntry), restorations: state.restorations?.map(item => ({...item,
+      entry: options.capabilities === 'lineup-2.0.5' ? rememberedRestorationEntry(item.entry) : plainEntry(item.entry)})) ?? [],
     sourceVersion: null, publisher: { id: publisherId, claimId: options.claimId, epoch, lastSequence: -1, leaseExpiresAt: new Date(now + LINEUP_LEASE_MS).toISOString(),
       ...(options.capabilities ? {capabilities: options.capabilities} : {}) } } }
+}
+
+/** Parties visible in this packet. An empty snapshot is not evidence that every party left. */
+function partiesInPacket(packet: SourcePacket): string[] | null {
+  const ids = [...packet.entries.map(entry => entry.id), ...packet.revealedIds]
+  if (!ids.length || ids.some(id => !id.includes(':'))) return null
+  const parties = [...new Set(ids.map(entryParty))].sort()
+  return validParties(parties) ? parties : null
+}
+
+function absenceStreak(state: LineupState, missing: string[], now: number): PartyAbsence {
+  const prior = state.partyAbsence
+  const same = !!prior && prior.partyIds.length === missing.length && prior.partyIds.every((id, index) => id === missing[index])
+  return { partyIds: missing, since: same && prior ? prior.since : new Date(now).toISOString(), packets: same && prior ? prior.packets + 1 : 1 }
+}
+
+function absenceMature(streak: PartyAbsence, now: number) {
+  return streak.packets >= LINEUP_PARTY_ABSENCE_PACKETS && now - Date.parse(streak.since) >= LINEUP_PARTY_ABSENCE_MS
 }
 
 /** Every accepted packet is a heartbeat, even if unchanged. Clock comes exclusively from the receiving server. */
@@ -333,8 +373,28 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   const packet = parseSourcePacket(input)
   if (!packet) return fail('invalid_payload')
   if ((packet.generation ?? 0) !== (state.show?.generation ?? 0)) return fail('show_changed')
-  if (state.show && [...packet.entries.map(e => e.id), ...packet.revealedIds]
-    .some(id => !id.includes(':') || !state.show!.partyIds.includes(entryParty(id)))) return fail('invalid_scope')
+  const detectedParties = state.show ? partiesInPacket(packet) : null
+  const excluded = new Set(state.show?.excludedPartyIds ?? [])
+  const visible = state.show ? state.show.partyIds.filter(id => !excluded.has(id)) : []
+  // A snapshot that only names excluded parties is a hidden-party observation.
+  const onlyExcluded = !!detectedParties?.length && detectedParties.every(id => excluded.has(id))
+  const present = new Set(onlyExcluded ? [] : detectedParties ?? [])
+  const missing = detectedParties && packet.parserState === 'ready' && !onlyExcluded
+    ? visible.filter(id => !present.has(id)).sort() : []
+  const scopeAbsent = missing.length > 0 && missing.length === visible.length
+  const streak = missing.length ? absenceStreak(state, missing, now) : null
+  const mature = !!streak && absenceMature(streak, now)
+  const showExpired = !!state.show && now - Date.parse(state.show.startedAt) > LINEUP_SHOW_MAX_MS
+  const showIdle = !!state.lastChangedAt && now - Date.parse(state.lastChangedAt) >= LINEUP_SHOW_IDLE_MS
+  // Same successor as a manual start-show (empty carry). The service must commit it
+  // with no publisher token so the guarded archive insert runs. An active show never
+  // takes this path: 18 hours only counts once the lineup has been idle, and a party
+  // has to be gone across ready packets for 10 minutes.
+  const autoStart = !!detectedParties && packet.parserState === 'ready'
+    && (showExpired && showIdle || mature && scopeAbsent)
+  const foreign = !!state.show && [...packet.entries.map(e => e.id), ...packet.revealedIds]
+    .some(id => !id.includes(':') || !state.show!.partyIds.includes(entryParty(id)))
+  if (foreign && !autoStart && !(packet.parserState === 'ready' && scopeAbsent)) return fail('invalid_scope')
   if (state.show && packet.parserState === 'ready' && packet.revealedIds.length && !packet.revealedEntries) return fail('invalid_scope')
   const lease = state.publisher
   if (!lease || lease.id !== packet.publisherId || lease.epoch !== packet.epoch) return fail('publisher_conflict')
@@ -355,6 +415,11 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   if (!validInteger(state.revision + 1)) return fail('capacity_exceeded')
   // A server clock reversal is never allowed to regress receipt time or extend stale content ordering.
   if (clockRegressed(state, now)) return fail('invalid_time')
+  if (autoStart && detectedParties) {
+    return applyLineupCommand(state, {
+      type: 'start-show', partyIds: detectedParties, carryEntryIds: [], confirmed: true, expectedRevision: state.revision,
+    }, now)
+  }
   const receivedAt = new Date(now).toISOString()
   const documentChanged = !!(observation && priorObservation && observation.documentId !== priorObservation.documentId)
   const retiredDocumentIds = [...(state.retiredDocumentIds ?? []), ...(documentChanged ? [priorObservation!.documentId] : [])]
@@ -367,14 +432,25 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   // Old publishers cannot revive cached identities on rows absent from their next snapshot.
   if (!upgraded || documentChanged) {
     next.entries = state.entries.map(plainEntry)
-    next.restorations = state.restorations?.map(item => ({...item, entry: plainEntry(item.entry)})) ?? []
+    next.restorations = state.restorations?.map(item => ({...item,
+      entry: upgraded ? rememberedRestorationEntry(item.entry) : plainEntry(item.entry)})) ?? []
     next.revealEvents = []
   }
-  if (packet.parserState !== 'ready') return { ok: true, state: next }
+  if (packet.parserState !== 'ready') {
+    next.partyAbsence = null
+    return { ok: true, state: next }
+  }
   next.lastReadyAt = receivedAt
   next.lastReadySourceAt = observation?.serverTime ?? receivedAt
   next.lastReadyObservation = observation
   if (state.show) next.bootstrapPending = false
+  // The page is showing parties outside this show. Keep the current orders and
+  // remember the gap. One snapshot is not enough to archive the show.
+  if (scopeAbsent && streak) {
+    next.partyAbsence = streak
+    if (!stateFits(next) || !isLineupState(next)) return fail('capacity_exceeded')
+    return { ok: true, state: next }
+  }
 
   // Observe every order in selected parties regardless of age.
   // Generation fencing and explicit reveal reconciliation remain independent.
@@ -423,6 +499,10 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   const restored: RevealRestoration[] = []
   for (const entry of incomingEntries) {
     const previous = restorations.get(entry.id)
+    if (previous?.reason === 'party-absent') {
+      revealed.delete(entry.id); restored.push(previous); restorations.delete(entry.id)
+      continue
+    }
     if (upgraded && observation?.settled && previous && previous.checked.epoch === observation.epoch
       && previous.checked.generation === observation.generation && previous.checked.documentId === observation.documentId
       && previous.checked.serial < observation.serial) {
@@ -473,6 +553,37 @@ export function applySourcePacket(state: LineupState, input: unknown, now: numbe
   }
   next.revealedIds = [...revealed]
   next.restorations = [...restorations.values()]
+  if (state.show) next.partyAbsence = streak
+  // A party missing from one ready snapshot stays. After several ready packets
+  // spanning 10 minutes, park its orders in restorations instead of deleting them.
+  // Orders inside a party that is still present stay put.
+  if (mature && streak && observation && observation.settled) {
+    const missingParties = new Set(streak.partyIds)
+    const candidates = next.entries.filter(entry => missingParties.has(entryParty(entry.id)))
+    const revealedIds = new Set(next.revealedIds)
+    const parkedRestorations = new Map((next.restorations ?? []).map(item => [item.entry.id, item]))
+    const parkedIds = new Set<string>()
+    // A full restoration list stays full. Orders that do not fit remain in the
+    // lineup, and the packet is still accepted.
+    for (const entry of candidates) {
+      if (parkedRestorations.size >= LINEUP_MAX_REVEALED || revealedIds.size >= LINEUP_MAX_REVEALED) break
+      const category = next.held.includes(entry.id) ? 'held' : 'order'
+      const arrangement = next[category]
+      const position = arrangement.indexOf(entry.id)
+      parkedRestorations.set(entry.id, {
+        entry: { ...entry }, category, position: Math.max(0, position),
+        previousId: arrangement[position - 1] ?? null, nextId: arrangement[position + 1] ?? null,
+        checked: observation, reason: 'party-absent',
+      })
+      revealedIds.add(entry.id)
+      parkedIds.add(entry.id)
+    }
+    next.entries = next.entries.filter(entry => !parkedIds.has(entry.id))
+    next.order = next.order.filter(id => !parkedIds.has(id))
+    next.held = next.held.filter(id => !parkedIds.has(id))
+    next.revealedIds = [...revealedIds]
+    next.restorations = [...parkedRestorations.values()]
+  }
   next.revealEventCursor = cursor
   next.revealEvents = events.filter(event => revealed.has(event.entryId)
     && !state.show?.excludedPartyIds.includes(entryParty(event.entryId)) && now - Date.parse(event.at) <= LINEUP_FRESH_MS).slice(-LINEUP_MAX_EVENTS)
@@ -510,12 +621,14 @@ export function applyLineupCommand(state: LineupState, input: unknown, now: numb
     if (command.carryEntryIds.some(id => !state.entries.some(e => e.id === id) || !id.includes(':') || !command.partyIds.includes(entryParty(id)))) return fail('invalid_scope')
     // The service must persist this transition through the atomic archive-and-CAS function.
     // Old claim attempts and in-flight packets remain generation-fenced even after lease expiry.
-    return {ok: true, state: {...state, revision: state.revision + 1,
+    const opened: LineupState = {...state, revision: state.revision + 1,
       show: {generation, partyIds: command.partyIds, excludedPartyIds: [], carryEntryIds: command.carryEntryIds, startedAt: new Date(now).toISOString()},
       entries: state.entries.filter(e => carry.has(e.id)).map(plainEntry), order: state.order.filter(id => carry.has(id)), held: state.held.filter(id => carry.has(id)), revealedIds: [], undo: null, lastReceivedAt: null,
       sourceObservation: null, lastReadyObservation: null, retiredDocumentIds: [], restorations: [], revealEvents: [], revealEventCursor: 0,
       lastChangedAt: new Date(now).toISOString(), parserState: 'loading', sourceVersion: null,
-      publisher: {...state.publisher, lastSequence: -1, leaseExpiresAt: new Date(now).toISOString()}}}
+      publisher: {...state.publisher, lastSequence: -1, leaseExpiresAt: new Date(now).toISOString()}}
+    delete opened.partyAbsence
+    return {ok: true, state: opened}
   }
   if (command.type === 'filter-parties') {
     if (!state.show || command.excludedPartyIds.some(id => !state.show!.partyIds.includes(id))) return fail('invalid_scope')

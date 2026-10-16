@@ -3,7 +3,7 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { isDeepStrictEqual } from 'node:util'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { LiveQueueSnapshot } from '@/lib/services/types'
-import { buildLiveQueueSnapshot } from '@/lib/services/live-queue'
+import { LIVE_LINEUP_CONNECTION_CODE_TABLE } from '@/lib/services/live-queue'
 import { projectPublicLineup } from '@/lib/amethyst/public-live-lineup'
 import { liveLineupOwnerMutationsAvailable } from './runtime-mode'
 import { applyLineupCommand, applySourcePacket, buildWorkspaceLineupSnapshot, canonicalizeLineupTimestamps, claimPublisher, createLineupState, healLineupStateTimestamps, isClaimId, isLineupState, lineupFreshness, parseLineupCommand } from './model'
@@ -28,18 +28,15 @@ export async function readLineupState(db: SupabaseClient, repId: string): Promis
   return state
 }
 
-async function legacySnapshot(db: SupabaseClient, repId: string, now: number): Promise<LiveQueueSnapshot | null> {
-  const { data, error } = await db.from('live_queue').select('rep_id,sync_code,queue,last_updated').eq('rep_id', repId).limit(2)
-  if (error) throw new LineupServiceError('lineup_unavailable')
-  if (!data?.length) return null
-  if (data.length !== 1) throw new LineupServiceError('ambiguous_queue_mapping', 409)
-  if (data[0]?.rep_id !== repId) throw new LineupServiceError('invalid_queue_receipt')
-  const snapshot = buildLiveQueueSnapshot(data[0], { now: new Date(now) })
-  // Legacy sender clocks are untrusted. Future dates must not become a fresh, sticky snapshot.
-  if (snapshot.lastUpdated && Date.parse(snapshot.lastUpdated) > now + 30_000) {
-    return { ...snapshot, lastUpdated: null, ageSeconds: null, isFresh: false, sourceReady: false }
+function noLineupYet(repId: string, now: number, authorized: boolean, revision = 0): WorkspaceLineupSnapshot {
+  return {
+    revision, connection: 'offline', lastReceivedAt: null, lastChangedAt: null,
+    sourceVersion: null, canManage: false, authorized, canRecover: false,
+    runtimeWritable: liveLineupOwnerMutationsAvailable(), tenantContext: repId,
+    serverTime: new Date(now).toISOString(), freshUntil: null, freshForMs: 0,
+    entries: [], heldEntries: [], undoAvailable: false,
+    warning: 'No Live Lineup data yet.',
   }
-  return snapshot
 }
 
 export async function getWorkspaceLineup(db: SupabaseClient, repId: string, now = Date.now(), authorized = false): Promise<WorkspaceLineupSnapshot> {
@@ -48,24 +45,19 @@ export async function getWorkspaceLineup(db: SupabaseClient, repId: string, now 
     const snapshot = buildWorkspaceLineupSnapshot(state, now, authorized), runtimeWritable = liveLineupOwnerMutationsAvailable()
     return {...snapshot, canManage: snapshot.canManage && runtimeWritable, canRecover: snapshot.canRecover && runtimeWritable, runtimeWritable, tenantContext: repId}
   }
-  const legacy = await legacySnapshot(db, repId, now)
-  return {
-    revision: state?.revision ?? 0, connection: legacy?.isFresh ? 'delayed' : 'offline',
-    lastReceivedAt: legacy?.lastUpdated ?? null, lastChangedAt: legacy?.lastUpdated ?? null,
-    sourceVersion: null, canManage: false, authorized, canRecover: false, runtimeWritable: liveLineupOwnerMutationsAvailable(), tenantContext: repId,
-    serverTime: new Date(now).toISOString(), freshUntil: null, freshForMs: 0,
-    entries: (legacy?.queue ?? []).map((name, index) => ({ id: `legacy:${index}`, name, position: index + 1, held: false })),
-    heldEntries: [], undoAvailable: false,
-    warning: 'Read-only legacy feed. Connect the upgraded extension before rearranging orders. Its connection health is not verified.',
-  }
+  // No current lineup. Do not read live_queue.queue; a retired payload is not current data.
+  return noLineupYet(repId, now, authorized, state?.revision ?? 0)
 }
 
 /** Only this projection may reach customer sites: no order/device IDs, token/code, holds, or undo history. */
 export async function getEffectiveLiveQueueSnapshot(db: SupabaseClient, repId: string, now = Date.now()): Promise<LiveQueueSnapshot | null> {
   const state = await readLineupState(db, repId)
   if (!state?.lastReadyAt) {
-    const legacy = await legacySnapshot(db, repId, now)
-    return legacy ? { ...legacy, serverTime: new Date(now).toISOString() } : null
+    return {
+      syncCode: '', queue: [], queueLength: 0, currentCustomer: null, onDeckCustomer: null,
+      lastUpdated: null, ageSeconds: null, staleAfterSeconds: 45, isFresh: false,
+      revision: state?.revision ?? 0, sourceReady: false, serverTime: new Date(now).toISOString(),
+    }
   }
   const workspace = buildWorkspaceLineupSnapshot(state, now)
   const configured = !state.bootstrapPending && (state.show !== null || state.entries.length === 0)
@@ -222,7 +214,7 @@ export async function revokePublisher(db: SupabaseClient, repId: string, id: unk
 
 async function authenticatePublisher(db: SupabaseClient, credential: string | null, now: number): Promise<AuthenticatedPublisher> {
   if (credential && /^[A-Z0-9]{3}-[0-9]{4}$/.test(credential)) {
-    const { data, error } = await db.from('live_queue').select('rep_id,sync_code').eq('sync_code', credential).limit(2)
+    const { data, error } = await db.from(LIVE_LINEUP_CONNECTION_CODE_TABLE).select('rep_id,sync_code').eq('sync_code', credential).limit(2)
     if (error) throw new LineupServiceError('publisher_service_unavailable')
     if (!Array.isArray(data) || data.length !== 1) throw new LineupServiceError('unauthorized', 401)
     const row = data[0] as { rep_id?: unknown; sync_code?: unknown }
@@ -323,17 +315,18 @@ export async function configureSourceParties(db: SupabaseClient, token: string |
       if (!started.ok || !started.state.show) throw new LineupServiceError(started.ok ? 'invalid_scope' : started.code, 409)
       next = { ...started.state, bootstrapPending: true, show: { ...started.state.show, excludedPartyIds: excluded } }
     } else {
-      const parties = [...new Set([...state.show.partyIds, ...detected])].sort()
+      const show = state.show
+      const parties = [...new Set([...show.partyIds, ...detected])].sort()
       if (parties.length > 100) throw new LineupServiceError('invalid_scope', 409)
       const visibleNow = new Set(detected)
       const exclusions = [...new Set([
-        ...state.show.excludedPartyIds.filter(id => !visibleNow.has(id)), ...excluded,
+        ...show.excludedPartyIds.filter(id => !visibleNow.has(id)), ...excluded,
       ])].sort()
-      // Even unchanged configuration has an atomic ownership-checked receipt. A stale
-      // read or compatibility no-op is never an upgraded applied acknowledgement.
+      // Keep every party already in the show. Replacing the scope here would drop
+      // orders without archiving, and a generation bump would pause 2.0.6.
       next = { ...state, revision: state.revision + 1, lastChangedAt: new Date(now).toISOString(),
         parserState: 'loading',
-        show: { ...state.show, partyIds: parties, excludedPartyIds: exclusions },
+        show: { ...show, partyIds: parties, excludedPartyIds: exclusions },
         revealEvents: (state.revealEvents ?? []).filter(event => !exclusions.includes(event.entryId.split(':')[0])) }
     }
     if (!isLineupState(next)) throw new LineupServiceError('invalid_scope', 409)
@@ -402,6 +395,13 @@ export async function receiveSource(db: SupabaseClient, token: string | null, in
   const result = applySourcePacket(state, input, now)
   if (!result.ok) throw new LineupServiceError(result.code, result.code === 'invalid_payload' ? 400 : 409)
   const packet = input as {claimId?: string; epoch: number; generation?: number; observation?: {serverTime: string}}
+  // A fresh show is the manual start-show commit: no publisher token, owner guard,
+  // generation + 1. That is what lets live_lineup_commit archive the previous show.
+  // A source commit carrying the token is rejected before the archive insert.
+  if ((result.state.show?.generation ?? 0) !== (state.show?.generation ?? 0)) {
+    await saveState(db, publisher.rep_id, state.revision, result.state, undefined, {kind: 'owner', requireFresh: false})
+    throw new LineupServiceError('show_changed', 409)
+  }
   await saveState(db, publisher.rep_id, state.revision, result.state, publisher.durableTokenId ?? undefined,
     {kind: 'source', claimId: packet.claimId, epoch: packet.epoch, generation: packet.generation ?? 0, observationTime: packet.observation?.serverTime})
   return { ok: true, revision: result.state.revision, acceptedSequence: result.state.publisher!.lastSequence, serverTime: new Date(now).toISOString(), leaseExpiresAt: result.state.publisher!.leaseExpiresAt,

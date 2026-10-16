@@ -341,7 +341,7 @@ export async function listOperatorCustomerProfiles(
         .order('updated_at', { ascending: false })
         .order('id').in('rep_id', pageRepIds)),
       readAllProfileRelations(supabase
-        .from('live_queue')
+        .from('live_lineup_connection_codes')
         .select('rep_id, sync_code, created_at')
         .order('created_at', { ascending: true })
         .order('id').in('rep_id', pageRepIds)),

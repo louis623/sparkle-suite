@@ -16,7 +16,11 @@
     "codex/faq-articles",
     "cursor/suite-list-fizz-approve-105c",
     "cursor/dashboard-hover-tips-a45f",
-    "cursor/broadcast-customer-audience-6b62"
+    "cursor/broadcast-customer-audience-6b62",
+    "cursor/live-lineup-auto-end-show-b22f",
+    "cursor/live-lineup-order-tracking-8a01",
+    "cursor/waitlist-signup-alert-3682",
+    "smoke/combined-95-96-99-100"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -31,7 +35,23 @@
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },
+    "cursor/live-lineup-auto-end-show-b22f": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/live-lineup-order-tracking-8a01": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
     "cursor/suite-list-fizz-approve-105c": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "production"
+    },
+    "cursor/waitlist-signup-alert-3682": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "smoke/combined-95-96-99-100": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "production"
     }

@@ -1,6 +1,7 @@
 import 'server-only'
 import { isDeepStrictEqual } from 'node:util'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { LIVE_LINEUP_CONNECTION_CODE_TABLE } from '@/lib/services/live-queue'
 import { isLineupState, lineupFreshness, LINEUP_FRESH_MS } from './model'
 import type { LineupState } from './types'
 
@@ -64,7 +65,7 @@ export async function readLineupSetupReadiness(db: SupabaseClient, repId: string
 
     let credentialExpiresAt: string | null = null
     if (publisher.id === tenant) {
-      const assigned = await db.from('live_queue').select('rep_id,sync_code').eq('rep_id', tenant)
+      const assigned = await db.from(LIVE_LINEUP_CONNECTION_CODE_TABLE).select('rep_id,sync_code').eq('rep_id', tenant)
         .order('created_at', { ascending: true }).limit(1).maybeSingle()
       if (assigned.error) return result(missingSchema(assigned.error.code) ? 'schema_unavailable' : 'unavailable', state)
       if (!assigned.data) return result('publisher_unavailable', state)

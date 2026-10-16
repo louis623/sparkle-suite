@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { LIVE_LINEUP_CONNECTION_CODE_TABLE } from '@/lib/services/live-queue'
 import { loadPublicFinderEligibleRepIds } from '@/lib/sparkle-finder/public-api'
 
 export type SparkleFinderRepClaimPayload = {
@@ -79,7 +80,7 @@ export async function validateSparkleFinderRepClaim(
   }
 
   const { data: liveQueueRow, error: liveQueueError } = await deps.supabase
-    .from('live_queue')
+    .from(LIVE_LINEUP_CONNECTION_CODE_TABLE)
     .select('rep_id')
     .eq('sync_code', payload.secretRepIdNumber)
     .maybeSingle()

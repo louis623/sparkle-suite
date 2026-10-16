@@ -8,6 +8,13 @@ export interface AcceptedObservation extends SourceObservation { epoch: number; 
 export interface RevealRestoration {
   entry: SourceEntry; category: 'order' | 'held'; position: number; previousId: string | null; nextId: string | null
   checked: AcceptedObservation
+  /** Parked because the party was missing, not because the order was revealed. */
+  reason?: 'party-absent'
+}
+export interface PartyAbsence {
+  partyIds: string[]
+  since: string
+  packets: number
 }
 export interface LineupRevealEvent { cursor: number; entryId: string; at: string; groupEntryIds: string[] }
 export interface LineupShow { generation: number; partyIds: string[]; excludedPartyIds: string[]; carryEntryIds: string[]; startedAt: string }
@@ -45,6 +52,8 @@ export interface LineupState {
   revealEvents?: LineupRevealEvent[]
   revealEventCursor?: number
   restorationNotice?: string | null
+  /** Consecutive ready packets that omitted these show parties. */
+  partyAbsence?: PartyAbsence | null
 }
 export interface SourcePacket {
   /** Unscoped prototype packets are generation zero only; never accepted into a later show. */
