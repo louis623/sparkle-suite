@@ -43,7 +43,7 @@ export const whatIsSparkleSuiteArticle: SuiteArticle = {
     {
       "type": "list",
       "items": [
-        "**Your own rep website.** Branded to you, works on phones, with a choice of looks, including seasonal ones. You can keep your own domain. See how to get your own Bomb Party rep website.",
+        "**Your own rep website.** Branded to you, works on phones, with a choice of looks, including seasonal ones. You can keep your own domain. See [how to get your own Bomb Party rep website](https://www.yoursparklesuite.com/faq/articles/how-to-get-your-own-bomb-party-rep-website).",
         "**Live Lineup.** Shoppers follow the order of your live show. See [how to run a live reveal customers can follow](https://www.yoursparklesuite.com/faq/articles/run-a-bomb-party-live-reveal-customers-can-follow).",
         "**Live Show Calendar.** Your upcoming lives on your site, stored in the right US time zone. See why posting show times grows your audience.",
         "**Dance Floor.** Customers browse available pieces and send trade requests. You make the final call. See Bomb Party trades without the DM chaos.",
