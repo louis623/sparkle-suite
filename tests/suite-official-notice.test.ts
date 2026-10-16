@@ -6,10 +6,11 @@ import {
   SUITE_LIST_REPLY_TO,
   SUITE_LIST_SEGMENT_ID,
   SUITE_LIST_TOPIC_ID,
-  SUITE_OFFICIAL_NOTICE_TEMPLATE_ID,
   SUITE_OWNER_EMAIL,
+  assertRetryableFailedNotice,
   deliverSingleOwnerEmail,
   deliverSuiteListNotice,
+  parseSuiteListResourceNoticeKey,
   renderSuiteOfficialNoticeHtml,
   suiteNoticeVariables,
 } from '@/lib/services/suite-official-notice'
@@ -43,7 +44,7 @@ describe('suite official notices', () => {
     ).toThrow(/secure https URL/)
   })
 
-  it('sends one Suite-list template broadcast and replays the same key without another fetch', async () => {
+  it('sends one Suite-list broadcast with rendered html and replays the same key without another fetch', async () => {
     vi.stubEnv('RESEND_API_KEY', 're_test_key')
     vi.stubEnv('RESEND_FROM_EMAIL', 'notifications@yoursparklesuite.com')
     vi.stubEnv('SPARKLE_ENVIRONMENT', 'live')
@@ -78,20 +79,152 @@ describe('suite official notices', () => {
     expect(first).toMatchObject({ status: 'sent', broadcastId: 'brd_1', replayed: false })
     expect(second).toMatchObject({ status: 'sent', broadcastId: 'brd_1', replayed: true })
     expect(fetchImpl).toHaveBeenCalledTimes(2)
+    const rendered = renderSuiteOfficialNoticeHtml(content)
     expect(calls[0]?.url).toBe('https://api.resend.com/broadcasts')
     expect(calls[0]?.body).toMatchObject({
       segment_id: SUITE_LIST_SEGMENT_ID,
       topic_id: SUITE_LIST_TOPIC_ID,
       from: SUITE_LIST_FROM,
       reply_to: SUITE_LIST_REPLY_TO,
-      template: { id: SUITE_OFFICIAL_NOTICE_TEMPLATE_ID },
+      html: rendered.html,
     })
+    expect(calls[0]?.body.html).toContain('{{{RESEND_UNSUBSCRIBE_URL}}}')
+    expect(calls[0]?.body.text).toContain('Unsubscribe: {{{RESEND_UNSUBSCRIBE_URL}}}')
+    expect(calls[0]?.body).not.toHaveProperty('template')
     expect(calls[0]?.body).not.toHaveProperty('to')
     expect(calls[1]?.url).toBe('https://api.resend.com/broadcasts/brd_1/send')
     expect(calls.map((call) => call.key)).toEqual([
       'suite-list:publication:pub-1:create',
       'suite-list:publication:pub-1:send',
     ])
+  })
+
+  it('retries a failed Suite-list send once and never resends a success or an in-progress send', async () => {
+    vi.stubEnv('RESEND_API_KEY', 're_test_key')
+    vi.stubEnv('RESEND_FROM_EMAIL', 'notifications@yoursparklesuite.com')
+    vi.stubEnv('SPARKLE_ENVIRONMENT', 'live')
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', '')
+    const key = 'suite-list:resource:958bd34d-7b46-4570-b115-ec3ea12f86f0:v1'
+    let rejectCreate = true
+    const calls: Array<{ url: string; body: Record<string, unknown>; key: string | null }> = []
+    const fetchImpl = vi.fn(async (url: string | URL, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>
+      calls.push({
+        url: String(url),
+        body,
+        key: new Headers(init?.headers).get('Idempotency-Key'),
+      })
+      if (String(url).endsWith('/broadcasts') && rejectCreate) {
+        return new Response(
+          JSON.stringify({ message: 'At least one of `html` or `text` must be provided.' }),
+          { status: 422 },
+        )
+      }
+      return resendOk(String(url).endsWith('/broadcasts') ? 'brd_retry' : 'brd_sent')
+    })
+    const ledger = createMemoryNoticeLedger()
+    const args = {
+      ledger,
+      idempotencyKey: key,
+      sourceKind: 'workspace_resource' as const,
+      sourceId: '958bd34d-7b46-4570-b115-ec3ea12f86f0',
+      content,
+      fetchImpl,
+    }
+    const failed = await deliverSuiteListNotice(args)
+    expect(failed).toMatchObject({ status: 'failed', broadcastId: null, replayed: false })
+    expect(calls[0]?.body.html).toContain('{{{RESEND_UNSUBSCRIBE_URL}}}')
+
+    rejectCreate = false
+    const retried = await deliverSuiteListNotice(args)
+    expect(retried).toMatchObject({ status: 'sent', broadcastId: 'brd_retry', replayed: false })
+    const creates = calls.filter((call) => call.url === 'https://api.resend.com/broadcasts')
+    expect(creates).toHaveLength(2)
+    expect(creates[1]?.body.html).toBe(renderSuiteOfficialNoticeHtml(content).html)
+    expect(creates[1]?.key).toMatch(new RegExp(`^${key}:create:`))
+    expect(creates[1]?.key).not.toBe(creates[0]?.key)
+
+    const replayed = await deliverSuiteListNotice(args)
+    expect(replayed).toMatchObject({ status: 'sent', broadcastId: 'brd_retry', replayed: true })
+    expect(calls.filter((call) => call.url === 'https://api.resend.com/broadcasts')).toHaveLength(2)
+
+    let releaseCreate: () => void = () => {}
+    const createGate = new Promise<void>((resolve) => {
+      releaseCreate = resolve
+    })
+    const overlapCalls: string[] = []
+    const slowFetch = vi.fn(async (url: string | URL) => {
+      overlapCalls.push(String(url))
+      if (String(url).endsWith('/broadcasts')) await createGate
+      return resendOk(String(url).endsWith('/broadcasts') ? 'brd_slow' : 'brd_slow_sent')
+    })
+    const overlapLedger = createMemoryNoticeLedger()
+    const overlapKey = 'suite-list:resource:11111111-1111-4111-8111-111111111111:v1'
+    const first = deliverSuiteListNotice({
+      ledger: overlapLedger,
+      idempotencyKey: overlapKey,
+      sourceKind: 'workspace_resource',
+      sourceId: '11111111-1111-4111-8111-111111111111',
+      content,
+      fetchImpl: slowFetch,
+    })
+    await vi.waitFor(() => expect(slowFetch).toHaveBeenCalledTimes(1))
+    const overlap = await deliverSuiteListNotice({
+      ledger: overlapLedger,
+      idempotencyKey: overlapKey,
+      sourceKind: 'workspace_resource',
+      sourceId: '11111111-1111-4111-8111-111111111111',
+      content,
+      fetchImpl: slowFetch,
+    })
+    expect(overlap).toMatchObject({ status: 'in_progress', replayed: true, broadcastId: null })
+    expect(slowFetch).toHaveBeenCalledTimes(1)
+    releaseCreate()
+    await expect(first).resolves.toMatchObject({ status: 'sent', broadcastId: 'brd_slow', replayed: false })
+    expect(overlapCalls.filter((url) => url === 'https://api.resend.com/broadcasts')).toHaveLength(1)
+  })
+
+  it('retries a failed send by posting the saved broadcast and does not create another', async () => {
+    vi.stubEnv('RESEND_API_KEY', 're_test_key')
+    vi.stubEnv('RESEND_FROM_EMAIL', 'notifications@yoursparklesuite.com')
+    vi.stubEnv('SPARKLE_ENVIRONMENT', 'live')
+    vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', '')
+    const calls: string[] = []
+    let failSend = true
+    const fetchImpl = vi.fn(async (url: string | URL) => {
+      calls.push(String(url))
+      if (String(url).endsWith('/send') && failSend) {
+        return new Response(JSON.stringify({ message: 'send failed' }), { status: 500 })
+      }
+      return resendOk(String(url).endsWith('/broadcasts') ? 'brd_saved' : 'brd_sent')
+    })
+    const ledger = createMemoryNoticeLedger()
+    const args = {
+      ledger,
+      idempotencyKey: 'suite-list:resource:958bd34d-7b46-4570-b115-ec3ea12f86f0:v1',
+      sourceKind: 'workspace_resource' as const,
+      sourceId: '958bd34d-7b46-4570-b115-ec3ea12f86f0',
+      content,
+      fetchImpl,
+    }
+    const failed = await deliverSuiteListNotice(args)
+    expect(failed).toMatchObject({ status: 'failed', broadcastId: 'brd_saved' })
+    failSend = false
+    const retried = await deliverSuiteListNotice(args)
+    expect(retried).toMatchObject({ status: 'sent', broadcastId: 'brd_saved', replayed: false })
+    expect(calls.filter((url) => url === 'https://api.resend.com/broadcasts')).toHaveLength(1)
+    expect(calls.filter((url) => url.endsWith('/send'))).toHaveLength(2)
+  })
+
+  it('parses a resource notice key and refuses to retry anything that is not failed', () => {
+    expect(parseSuiteListResourceNoticeKey('suite-list:resource:958bd34d-7b46-4570-b115-ec3ea12f86f0:v1')).toEqual({
+      resourceId: '958bd34d-7b46-4570-b115-ec3ea12f86f0',
+      version: 1,
+    })
+    expect(() => assertRetryableFailedNotice({ status: 'failed' })).not.toThrow()
+    expect(() => assertRetryableFailedNotice(null)).toThrow(/nothing is retried/)
+    expect(() => assertRetryableFailedNotice({ status: 'sent' })).toThrow(/will not be sent again/)
+    expect(() => assertRetryableFailedNotice({ status: 'pending' })).toThrow(/still sending/)
   })
 
   it('blocks Suite-list sends on Smoke before a ledger claim or a fetch', async () => {
