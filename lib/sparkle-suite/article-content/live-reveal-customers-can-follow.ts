@@ -90,7 +90,7 @@ export const liveRevealCustomersCanFollowArticle: SuiteArticle = {
       "items": [
         "**Your Live Lineup**, so they can follow the order.",
         "**Your Live Show Calendar**, so they know when the next one is.",
-        "**Your Dance Floor**, so they can browse available pieces and send a trade request. You still make the final call on every trade. More on that in Bomb Party trades without the DM chaos."
+        "**Your Dance Floor**, so they can browse your dancers and send a swap request. You still make the final call on every swap. More on that in [Bomb Party dancer swaps without the DM chaos](https://www.yoursparklesuite.com/faq/articles/bomb-party-dancer-swaps-without-the-dm-chaos)."
       ]
     },
     {

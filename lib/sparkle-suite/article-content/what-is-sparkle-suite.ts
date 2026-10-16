@@ -5,7 +5,7 @@ export const whatIsSparkleSuiteArticle: SuiteArticle = {
   "slug": "what-is-sparkle-suite",
   "status": "published",
   "title": "What Is Sparkle Suite? A Guide for Bomb Party Reps",
-  "description": "Sparkle Suite gives Bomb Party reps their own website plus Live Lineup, a show calendar, Dance Floor trades and team tools. Here's what's included.",
+  "description": "Sparkle Suite gives Bomb Party reps their own website plus Live Lineup, a show calendar, Dance Floor dancer swaps and team tools. Here's what's included.",
   "publishedAt": "2026-10-16T21:00:00Z",
   "body": [
     {
@@ -46,7 +46,7 @@ export const whatIsSparkleSuiteArticle: SuiteArticle = {
         "**Your own rep website.** Branded to you, works on phones, with a choice of looks, including seasonal ones. You can keep your own domain. See [how to get your own Bomb Party rep website](https://www.yoursparklesuite.com/faq/articles/how-to-get-your-own-bomb-party-rep-website).",
         "**Live Lineup.** Shoppers follow the order of your live show. See [how to run a live reveal customers can follow](https://www.yoursparklesuite.com/faq/articles/run-a-bomb-party-live-reveal-customers-can-follow).",
         "**Live Show Calendar.** Your upcoming lives on your site, stored in the right US time zone. See why posting show times grows your audience.",
-        "**Dance Floor.** Customers browse available pieces and send trade requests. You make the final call. See Bomb Party trades without the DM chaos.",
+        "**Dance Floor.** Customers browse your dancers and send swap requests. You make the final call. See [Bomb Party dancer swaps without the DM chaos](https://www.yoursparklesuite.com/faq/articles/bomb-party-dancer-swaps-without-the-dm-chaos).",
         "**Team Management.** Team photos, show names and social links, plus a public Join Team page where you pick which cards show. See a Join my team page that recruits for you.",
         "**New Rep Onboarding.** A private link for each new team member, with progress tracking. Questions land in your Message Center. See onboarding a new team rep.",
         "**Nic-Nac.** An assistant inside your workspace for paying reps. It can add and update shows and Dance Floor listings, search the jewelry database and more. See Meet Nic-Nac.",
