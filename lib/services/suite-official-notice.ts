@@ -181,6 +181,63 @@ export function renderSuiteOfficialNoticeHtml(content: SuiteNoticeContent) {
   return { html, variables }
 }
 
+const RESOURCE_NOTICE_KEY =
+  /^suite-list:resource:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}):v([1-9][0-9]*)$/i
+
+export function parseSuiteListResourceNoticeKey(key: string) {
+  const match = RESOURCE_NOTICE_KEY.exec(key.trim())
+  if (!match?.[1] || !match[2]) {
+    throw noticeError(
+      'SUITE_NOTICE_RETRY_KEY',
+      'Expected a Suite list resource key like suite-list:resource:<id>:v1.',
+    )
+  }
+  return { resourceId: match[1].toLowerCase(), version: Number(match[2]) }
+}
+
+export function assertRetryableFailedNotice(row: { status: string } | null) {
+  if (!row) {
+    throw noticeError(
+      'SUITE_NOTICE_RETRY_MISSING',
+      'No Suite list send exists for that key, so nothing is retried.',
+      409,
+    )
+  }
+  if (row.status === 'sent') {
+    throw noticeError(
+      'SUITE_NOTICE_RETRY_SENT',
+      'This Suite list notice already succeeded and will not be sent again.',
+      409,
+    )
+  }
+  if (row.status !== 'failed') {
+    throw noticeError(
+      'SUITE_NOTICE_RETRY_IN_PROGRESS',
+      'This Suite list notice is still sending and will not be sent again.',
+      409,
+    )
+  }
+}
+
+/** Plain text for the broadcast. Resend fills {{{RESEND_UNSUBSCRIBE_URL}}} at send time. */
+export function suiteNoticePlainText(content: SuiteNoticeContent) {
+  const headline = content.headline.trim().slice(0, 160)
+  const ctaLabel = content.ctaLabel.trim().slice(0, 40)
+  const ctaUrl = assertHttpsUrl(content.ctaUrl, 'Button link')
+  const messageSource = (content.message || headline).replace(/\r\n/g, '\n').trim()
+  const message = messageSource.length > 4000 ? `${messageSource.slice(0, 3999).trimEnd()}…` : messageSource
+  const lines = [headline, '', message, '', `${ctaLabel}: ${ctaUrl}`]
+  if (content.thumbnailUrl?.trim()) {
+    try {
+      lines.push('', assertHttpsUrl(content.thumbnailUrl, 'Thumbnail'))
+    } catch {
+      // Same as the HTML render: an unsafe thumbnail is omitted.
+    }
+  }
+  lines.push('', 'Unsubscribe: {{{RESEND_UNSUBSCRIBE_URL}}}')
+  return lines.join('\n')
+}
+
 export function publicationNoticeContent(input: {
   title: string
   summary?: string | null
@@ -308,6 +365,13 @@ export async function deliverSuiteListNotice(args: {
   let broadcastId = claim.row.broadcast_id
   try {
     if (!broadcastId) {
+      // Broadcast create requires html or text and has no template field. The
+      // emails API rejects html together with a template, so the rendered shell
+      // is the body and {{{RESEND_UNSUBSCRIBE_URL}}} stays for Resend to fill.
+      // A reclaimed failure uses a new create key so a cached 400 cannot replay.
+      const createKey = claim.reclaimed
+        ? `${args.idempotencyKey}:create:${claim.row.updated_at}`
+        : `${args.idempotencyKey}:create`
       const created = await postResend(
         '/broadcasts',
         {
@@ -316,12 +380,10 @@ export async function deliverSuiteListNotice(args: {
           from: SUITE_LIST_FROM,
           reply_to: SUITE_LIST_REPLY_TO,
           subject: args.content.headline.trim().slice(0, 160),
-          template: {
-            id: SUITE_OFFICIAL_NOTICE_TEMPLATE_ID,
-            variables: rendered.variables,
-          },
+          html: rendered.html,
+          text: suiteNoticePlainText(args.content),
         },
-        `${args.idempotencyKey}:create`,
+        createKey,
         fetchImpl,
       )
       if (!created.ok || !created.id) {
