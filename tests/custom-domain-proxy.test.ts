@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { getRedirectUrl, getRewrittenUrl, isRewrite } from 'next/experimental/testing/server'
 import { NextRequest } from 'next/server'
 
-import { proxy } from '@/proxy'
+import { config, proxy } from '@/proxy'
 
 describe('custom-domain customer site proxy', () => {
   it.each([
@@ -84,13 +84,106 @@ describe('custom-domain customer site proxy', () => {
     expect(response.headers.get('x-middleware-rewrite')).toBeNull()
   })
 
-  it('leaves non-customer-site routes alone', () => {
+  it.each([
+    ['/sitemap.xml', 'https://brisglowtique.com/sitemap.xml'],
+    ['/robots.txt', 'https://brisglowtique.com/robots.txt'],
+    ['/amethyst/homepage.css', 'https://brisglowtique.com/amethyst/homepage.css'],
+    ['/amethyst/homepage.jsx', 'https://brisglowtique.com/amethyst/homepage.jsx'],
+    ['/favicon.ico', 'https://brisglowtique.com/favicon.ico'],
+  ])('redirects www %s to the same apex path', (path, destination) => {
     const response = proxy(
+      new NextRequest(`https://www.brisglowtique.com${path}?ref=crawl`, {
+        headers: { host: 'www.brisglowtique.com' },
+      }),
+    )
+
+    expect(response.status).toBe(308)
+    expect(getRedirectUrl(response)).toBe(`${destination}?ref=crawl`)
+  })
+
+  it.each([
+    ['/amethyst/Homepage.html', 'https://sparklybutterflies.com/'],
+    ['/amethyst/Trade.html', 'https://sparklybutterflies.com/trade'],
+    ['/amethyst/Join.html', 'https://sparklybutterflies.com/'],
+    ['/amethyst/Pantry.html', 'https://sparklybutterflies.com/'],
+    ['/amethyst/Unsubscribe.html', 'https://sparklybutterflies.com/'],
+    ['/amethyst/Amethyst%20Design%20System.html', 'https://sparklybutterflies.com/'],
+  ])('redirects legacy %s on a customer www host straight to the apex live path', (_path, destination) => {
+    const response = proxy(
+      new NextRequest(`https://www.sparklybutterflies.com${_path}`, {
+        headers: { host: 'www.sparklybutterflies.com' },
+      }),
+    )
+
+    expect(response.status).toBe(308)
+    expect(getRedirectUrl(response)).toBe(destination)
+  })
+
+  it('keeps Suite www in place and sends legacy HTML home', () => {
+    const home = proxy(
+      new NextRequest('https://www.yoursparklesuite.com/', {
+        headers: { host: 'www.yoursparklesuite.com' },
+      }),
+    )
+    const legacyHome = proxy(
+      new NextRequest('https://www.yoursparklesuite.com/amethyst/Homepage.html?c=demo', {
+        headers: { host: 'www.yoursparklesuite.com' },
+      }),
+    )
+    const legacyTrade = proxy(
+      new NextRequest('https://www.yoursparklesuite.com/amethyst/Trade.html', {
+        headers: { host: 'www.yoursparklesuite.com' },
+      }),
+    )
+    const stylesheet = proxy(
+      new NextRequest('https://www.yoursparklesuite.com/amethyst/homepage.css', {
+        headers: { host: 'www.yoursparklesuite.com' },
+      }),
+    )
+
+    expect(getRedirectUrl(home)).toBeNull()
+    expect(legacyHome.status).toBe(308)
+    expect(getRedirectUrl(legacyHome)).toBe('https://www.yoursparklesuite.com/?c=demo')
+    expect(legacyTrade.status).toBe(308)
+    expect(getRedirectUrl(legacyTrade)).toBe('https://www.yoursparklesuite.com/')
+    expect(isRewrite(stylesheet)).toBe(false)
+    expect(stylesheet.status).not.toBe(308)
+  })
+
+  it('matches sitemap, robots, and legacy HTML while skipping Next internals', () => {
+    const pattern = config.matcher[0]
+    expect(pattern).toBe('/((?!_next/static|_next/image).*)')
+    const expression = new RegExp(`^${pattern}$`)
+    expect(expression.test('/sitemap.xml')).toBe(true)
+    expect(expression.test('/robots.txt')).toBe(true)
+    expect(expression.test('/amethyst/Homepage.html')).toBe(true)
+    expect(expression.test('/amethyst/homepage.css')).toBe(true)
+    expect(expression.test('/')).toBe(true)
+    expect(expression.test('/_next/static/chunk.js')).toBe(false)
+    expect(expression.test('/_next/image')).toBe(false)
+  })
+
+  it('leaves non-customer-site routes and Amethyst assets alone on the apex', () => {
+    const login = proxy(
       new NextRequest('https://brisglowtique.com/login', {
         headers: { host: 'brisglowtique.com' },
       }),
     )
+    const stylesheet = proxy(
+      new NextRequest('https://brisglowtique.com/amethyst/homepage.css', {
+        headers: { host: 'brisglowtique.com' },
+      }),
+    )
+    const trade = proxy(
+      new NextRequest('https://milehighfizz.com/amethyst/Trade.html?collection=OG', {
+        headers: { host: 'milehighfizz.com' },
+      }),
+    )
 
-    expect(isRewrite(response)).toBe(false)
+    expect(isRewrite(login)).toBe(false)
+    expect(login.status).not.toBe(308)
+    expect(stylesheet.status).not.toBe(308)
+    expect(trade.status).toBe(308)
+    expect(getRedirectUrl(trade)).toBe('https://milehighfizz.com/trade?collection=OG')
   })
 })

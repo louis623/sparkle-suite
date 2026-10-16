@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next'
 import { loadAmethystPreviewTemplateData } from '@/lib/amethyst/preview-template-data'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
 import { buildSparkleLlmsText } from '@/lib/seo/llms'
-import { normalizeSparkleOrigin } from '@/lib/seo/sparkle-crawl'
+import { canonicalizeSparkleCrawlOrigin } from '@/lib/seo/sparkle-crawl'
 
 type CustomerSiteCrawlData = {
   businessName: string
@@ -44,7 +44,7 @@ export function buildCustomerSiteSitemap(
   origin: string | URL,
   input: CustomerSiteCrawlData,
 ): MetadataRoute.Sitemap {
-  const normalizedOrigin = normalizeSparkleOrigin(origin)
+  const normalizedOrigin = canonicalizeSparkleCrawlOrigin(origin)
   return buildCustomerSiteCrawlData(input).pages.map((page) => ({
     url: new URL(page.path, normalizedOrigin).toString(),
     lastModified: CUSTOMER_SITE_LAST_MODIFIED,
@@ -88,7 +88,7 @@ export function buildCustomerSiteLlmsText(
 ) {
   const crawl = buildCustomerSiteCrawlData(input)
   return buildSparkleLlmsText({
-    origin,
+    origin: canonicalizeSparkleCrawlOrigin(origin),
     businessName: crawl.businessName,
     repName: crawl.repName,
     repLocation: crawl.repLocation,
@@ -114,7 +114,7 @@ export function buildCustomerSiteLlmsText(
  * Platform-host crawl files keep their separate Sparkle Suite product content.
  */
 export async function loadCustomerSiteCrawlData(origin: string | URL) {
-  const normalizedOrigin = normalizeSparkleOrigin(origin)
+  const normalizedOrigin = canonicalizeSparkleCrawlOrigin(origin)
   const host = normalizeAmethystCustomDomainCandidate(
     new URL(normalizedOrigin).hostname,
   )
