@@ -135,6 +135,26 @@ function resolveRequestProtocol(
   return 'https:'
 }
 
+/**
+ * Crawl URLs use one public hostname. Suite stays on www. A rep custom
+ * domain always uses its apex, even when the request arrived on www.
+ */
+export function canonicalizeSparkleCrawlOrigin(
+  origin: string | URL = SPARKLE_PUBLIC_ORIGIN,
+): string {
+  const normalized = normalizeSparkleOrigin(origin)
+  const host = new URL(normalized).hostname
+  if (DEFAULT_PUBLIC_HOSTS.has(host) || isLocalOrPreviewSparkleHost(host)) {
+    return SPARKLE_PUBLIC_ORIGIN
+  }
+  if (host.startsWith('www.')) {
+    const url = new URL(normalized)
+    url.hostname = host.slice('www.'.length)
+    return url.origin
+  }
+  return normalized
+}
+
 export function resolveSparkleRequestOriginFromHeaders(
   headers: Pick<Headers, 'get'>,
   requestUrl?: string | URL,
@@ -148,11 +168,13 @@ export function resolveSparkleRequestOriginFromHeaders(
     headers.get('host') ?? headers.get('x-forwarded-host') ?? requestUrlHost,
   )
 
-  if (DEFAULT_PUBLIC_HOSTS.has(host ?? '') || isLocalOrPreviewSparkleHost(host)) {
+  if (!host || DEFAULT_PUBLIC_HOSTS.has(host) || isLocalOrPreviewSparkleHost(host)) {
     return SPARKLE_PUBLIC_ORIGIN
   }
 
-  return normalizeSparkleOrigin(`${resolveRequestProtocol(headers, requestUrl)}//${host}`)
+  return canonicalizeSparkleCrawlOrigin(
+    `${resolveRequestProtocol(headers, requestUrl)}//${host}`,
+  )
 }
 
 export function resolveSparkleRequestOrigin(request: Request) {
@@ -162,7 +184,7 @@ export function resolveSparkleRequestOrigin(request: Request) {
 export function buildSparkleSitemap(
   origin: string | URL = SPARKLE_PUBLIC_ORIGIN,
 ): MetadataRoute.Sitemap {
-  const normalizedOrigin = normalizeSparkleOrigin(origin)
+  const normalizedOrigin = canonicalizeSparkleCrawlOrigin(origin)
 
   return [...SPARKLE_PUBLIC_ROUTES.map((route) => ({
     url: `${normalizedOrigin}${route.path}`,
@@ -175,7 +197,7 @@ export function buildSparkleSitemap(
 export function buildSparkleRobots(
   origin: string | URL = SPARKLE_PUBLIC_ORIGIN,
 ): MetadataRoute.Robots {
-  const normalizedOrigin = normalizeSparkleOrigin(origin)
+  const normalizedOrigin = canonicalizeSparkleCrawlOrigin(origin)
 
   return {
     rules: [

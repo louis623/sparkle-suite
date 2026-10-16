@@ -4,6 +4,7 @@ import {
   SPARKLE_PUBLIC_ORIGIN,
   buildSparkleRobots,
   buildSparkleSitemap,
+  canonicalizeSparkleCrawlOrigin,
   normalizeSparkleOrigin,
   resolveSparkleRequestOrigin,
   resolveSparkleRequestOriginFromHeaders,
@@ -98,6 +99,54 @@ describe('Sparkle Suite crawl helpers', () => {
     expect(resolveSparkleRequestOriginFromHeaders(headers)).toBe(
       'https://theblingkitchen.com',
     )
+  })
+
+  it('builds custom-domain crawl URLs on the apex and keeps Suite on www', () => {
+    expect(canonicalizeSparkleCrawlOrigin('https://www.sparklybutterflies.com/sitemap.xml')).toBe(
+      'https://sparklybutterflies.com',
+    )
+    expect(canonicalizeSparkleCrawlOrigin('https://www.yoursparklesuite.com/sitemap.xml')).toBe(
+      'https://www.yoursparklesuite.com',
+    )
+    expect(canonicalizeSparkleCrawlOrigin('https://yoursparklesuite.com/robots.txt')).toBe(
+      'https://www.yoursparklesuite.com',
+    )
+
+    expect(buildSparkleSitemap('https://www.sparklybutterflies.com')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          url: 'https://sparklybutterflies.com/prelaunch',
+        }),
+      ]),
+    )
+    expect(buildSparkleSitemap('https://www.sparklybutterflies.com')).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          url: expect.stringContaining('https://www.sparklybutterflies.com'),
+        }),
+      ]),
+    )
+    expect(buildSparkleRobots('https://www.theblingkitchen.com')).toEqual(
+      expect.objectContaining({
+        host: 'https://theblingkitchen.com',
+        sitemap: 'https://theblingkitchen.com/sitemap.xml',
+      }),
+    )
+    expect(
+      resolveSparkleRequestOrigin(
+        new Request('https://www.milehighfizz.com/sitemap.xml', {
+          headers: { host: 'www.milehighfizz.com' },
+        }),
+      ),
+    ).toBe('https://milehighfizz.com')
+    expect(
+      resolveSparkleRequestOriginFromHeaders(
+        new Headers({
+          host: 'www.goforthebling.com',
+          'x-forwarded-host': 'www.yoursparklesuite.com',
+        }),
+      ),
+    ).toBe('https://goforthebling.com')
   })
 
   it('rejects non-web origins before they can become crawl URLs', () => {

@@ -11,10 +11,50 @@ const CUSTOMER_SITE_ROUTES: Record<string, string> = {
   '/in-the-pantry': '/customer-site/in-the-pantry',
 }
 
+/**
+ * Public /amethyst/*.html documents are the old indexable template URLs.
+ * The app still reads those files from disk for customer-site rendering and
+ * skin previews, and still serves CSS, JS, and images from /amethyst/.
+ * Dance Floor's live path is /trade on a rep custom domain. The Suite host
+ * has no /trade page, so that same document consolidates to /.
+ */
+export function legacyAmethystHtmlDestination(
+  pathname: string,
+  onCustomerDomain: boolean,
+): string | null {
+  const match = pathname.match(/^\/amethyst\/([^/]+)$/)
+  if (!match) return null
+
+  let file = match[1]
+  try {
+    file = decodeURIComponent(file)
+  } catch {
+    return null
+  }
+  if (!file.toLowerCase().endsWith('.html')) return null
+  if (file.toLowerCase() === 'trade.html' && onCustomerDomain) return '/trade'
+  return '/'
+}
+
 export function proxy(request: NextRequest) {
   const headers = new Headers(request.headers)
   // Only this proxy may introduce the internal tenant handoff header.
   headers.delete('x-sparkle-customer-domain')
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
+  const customerDomain = normalizeAmethystCustomDomainCandidate(host)
+  const onCustomerDomain = Boolean(customerDomain) && !isAmethystPlatformHost(host)
+
+  // Every www path on a rep custom domain, including sitemap, robots, assets,
+  // and legacy HTML, consolidates onto the apex before a response is served.
+  // Suite www.yoursparklesuite.com is not a customer domain and stays on www.
+  if (onCustomerDomain && customerDomain?.startsWith('www.')) {
+    const canonicalUrl = request.nextUrl.clone()
+    canonicalUrl.hostname = customerDomain.slice('www.'.length)
+    const legacyPath = legacyAmethystHtmlDestination(canonicalUrl.pathname, true)
+    if (legacyPath) canonicalUrl.pathname = legacyPath
+    return NextResponse.redirect(canonicalUrl, 308)
+  }
+
   if (request.nextUrl.pathname.startsWith('/onboarding/')) {
     const response = NextResponse.next({ request: { headers } })
     response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
@@ -22,8 +62,15 @@ export function proxy(request: NextRequest) {
     response.headers.set('Referrer-Policy', 'no-referrer')
     return response
   }
-  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
-  const customerDomain = normalizeAmethystCustomDomainCandidate(host)
+  const legacyPath = legacyAmethystHtmlDestination(
+    request.nextUrl.pathname,
+    onCustomerDomain,
+  )
+  if (legacyPath) {
+    const canonicalUrl = request.nextUrl.clone()
+    canonicalUrl.pathname = legacyPath
+    return NextResponse.redirect(canonicalUrl, 308)
+  }
   if (customerDomain && (request.nextUrl.pathname === '/faq/articles' || request.nextUrl.pathname.startsWith('/faq/articles/'))) {
     return new NextResponse('Not found', { status: 404, headers: { 'X-Robots-Tag': 'noindex', 'Content-Type': 'text/plain; charset=utf-8' } })
   }
@@ -35,17 +82,8 @@ export function proxy(request: NextRequest) {
     url.pathname = '/internal/customer-faq-preview'
     return NextResponse.rewrite(url, { request: { headers } })
   }
-  if (!customerDomain || isAmethystPlatformHost(host)) {
+  if (!customerDomain || !onCustomerDomain) {
     return NextResponse.next({ request: { headers } })
-  }
-
-  // Customer domains use the apex hostname as their one public search identity.
-  // Keep existing www links working, but permanently consolidate their crawl
-  // signals and visitors onto that preferred hostname before any page rewrite.
-  if (customerDomain.startsWith('www.')) {
-    const canonicalUrl = request.nextUrl.clone()
-    canonicalUrl.hostname = customerDomain.slice('www.'.length)
-    return NextResponse.redirect(canonicalUrl, 308)
   }
 
   const publicAssetPath = CUSTOMER_SITE_ROUTES[request.nextUrl.pathname]
@@ -65,14 +103,8 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/',
-    '/trade',
-    '/faq',
-    '/faq/articles/:path*',
-    '/join',
-    '/in-the-pantry',
-    '/onboarding/:path*',
-    '/api/:path*',
-  ],
+  // Run on every public path so a www customer host redirects before sitemap,
+  // robots, legacy HTML, or any other response can advertise that host.
+  // Next internals stay out of the proxy.
+  matcher: ['/((?!_next/static|_next/image).*)'],
 }
