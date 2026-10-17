@@ -14,6 +14,11 @@ import { whySeriousBpRepArticle } from './article-content/why-serious-bp-rep'
 
 const ORIGIN = 'https://www.yoursparklesuite.com'
 
+export const ARTICLE_INDEX_PATH = '/faq/articles'
+export const articleIndexTitle = 'Sparkle Suite Articles — Sites, Live Lineup, and the Dance Floor'
+export const articleIndexDescription =
+  'Published Sparkle Suite articles for Bomb Party reps. Read about the customer site, Live Lineup, Dance Floor, dancer swaps, pricing, and getting started.'
+
 export type ArticleBlock =
   | { type: 'paragraph'; text: string }
   | { type: 'heading'; text: string }
@@ -61,6 +66,51 @@ export function findPublishedArticle(slug: string) {
 
 export function articleUrl(article: SuiteArticle) {
   return `${ORIGIN}/faq/articles/${article.slug}`
+}
+
+export function articleIndexUrl() {
+  return `${ORIGIN}${ARTICLE_INDEX_PATH}`
+}
+
+export function articleIndexMetadata(): Metadata {
+  const url = articleIndexUrl()
+  return {
+    title: { absolute: articleIndexTitle },
+    description: articleIndexDescription,
+    alternates: { canonical: url },
+    robots: { index: true, follow: true },
+    openGraph: {
+      type: 'website',
+      url,
+      siteName: 'Sparkle Suite',
+      title: articleIndexTitle,
+      description: articleIndexDescription,
+    },
+    twitter: { card: 'summary', title: articleIndexTitle, description: articleIndexDescription },
+  }
+}
+
+export function articleIndexJsonLd(articles: readonly SuiteArticle[] = publishedArticles()) {
+  const url = articleIndexUrl()
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: articleIndexTitle,
+    description: articleIndexDescription,
+    url,
+    isPartOf: { '@type': 'WebSite', name: 'Sparkle Suite', url: ORIGIN },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: articles.length,
+      itemListElement: articles.map((article, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: article.title,
+        description: article.description,
+        url: articleUrl(article),
+      })),
+    },
+  }
 }
 
 export function articleDate(value: string) {

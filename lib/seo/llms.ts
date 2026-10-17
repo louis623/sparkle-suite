@@ -1,4 +1,5 @@
-import { normalizeSparkleOrigin } from './sparkle-crawl'
+import { articleUrl, publishedArticles } from '@/lib/sparkle-suite/articles'
+import { canonicalizeSparkleCrawlOrigin, normalizeSparkleOrigin } from './sparkle-crawl'
 
 export const SPARKLE_AGENT_CONTENT_SIGNAL = 'ai-train=no, search=yes, ai-input=yes'
 
@@ -98,29 +99,53 @@ export function buildSparkleLlmsText(input: SparkleLlmsInput): string {
   ].join('\n')
 }
 
+const SPARKLE_SUITE_SUMMARY =
+  'Sparkle Suite is a website and live-show setup for Bomb Party reps. It gives the rep a customer site, a Live Lineup, a Dance Floor for dancer swaps, and tools to run the show.'
+
+const SPARKLE_SUITE_KEY_PAGES: SparkleLlmsPublicPage[] = [
+  { title: 'Home', path: '/' },
+  { title: 'Portfolio', path: '/portfolio' },
+  { title: 'Tools', path: '/tools' },
+  { title: 'FAQ', path: '/faq' },
+  { title: 'Articles', path: '/faq/articles' },
+  { title: 'Sparkle Suite and Sparkle Finder', path: '/adventure' },
+  { title: 'Build queue', path: '/prelaunch' },
+  { title: 'Privacy Policy', path: '/privacy-policy' },
+  { title: 'Terms and Conditions', path: '/terms-and-conditions' },
+]
+
 export function buildDefaultSparkleLlmsText(origin: string | URL): string {
-  return buildSparkleLlmsText({
-    origin,
-    businessName: "Jane's Sparkle Party",
-    repName: 'Jane',
-    summary:
-      "Jane's Sparkle Party is a Sparkle Suite-powered customer site for live Bomb Party jewelry reveals, dance floor browsing, and team information.",
-    publicPages: [
-      { title: 'Home', path: '/amethyst/Homepage.html' },
-      { title: 'Dance Floor', path: '/amethyst/Trade.html' },
-      { title: 'Join Team', path: '/amethyst/Join.html' },
-    ],
-    glossary: [
-      {
-        term: 'Dance Floor',
-        definition:
-          'A public customer board for browsing jewelry trade listings and requesting fair trades.',
-      },
-      {
-        term: 'Live reveal',
-        definition:
-          'A streamed Bomb Party jewelry opening where customers see pieces revealed live.',
-      },
-    ],
-  })
+  const canonical = canonicalizeSparkleCrawlOrigin(origin)
+  const articles = publishedArticles()
+
+  return [
+    '# Sparkle Suite',
+    '',
+    SPARKLE_SUITE_SUMMARY,
+    '',
+    '## Public Site',
+    '',
+    `- Canonical origin: ${canonical}`,
+    '- Location: Jacksonville, FL',
+    '',
+    '## Key Pages',
+    '',
+    ...renderPages(canonical, SPARKLE_SUITE_KEY_PAGES),
+    '',
+    '## FAQ Articles',
+    '',
+    ...(articles.length
+      ? articles.map(
+          (article) =>
+            `- [${cleanLine(article.title)}](${articleUrl(article)}): ${cleanLine(article.description)}`,
+        )
+      : ['- No published FAQ articles are listed.']),
+    '',
+    '## Agent Use',
+    '',
+    `- Content-Signal: ${SPARKLE_AGENT_CONTENT_SIGNAL}`,
+    '- Use this file to understand Sparkle Suite, its public pages, and published FAQ articles.',
+    '- Do not treat this file as permission to train on private customer or rep data.',
+    '',
+  ].join('\n')
 }

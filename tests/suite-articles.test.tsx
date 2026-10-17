@@ -2,12 +2,12 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
-import { articleJsonLd, articleMetadata, articleSitemapEntries, publishedArticles, suiteArticles, type SuiteArticle } from '@/lib/sparkle-suite/articles'
+import { articleIndexJsonLd, articleIndexMetadata, articleJsonLd, articleMetadata, articleSitemapEntries, articleUrl, publishedArticles, suiteArticles, type SuiteArticle } from '@/lib/sparkle-suite/articles'
 import { FaqArticles } from '@/app/_components/faq-articles'
 import { SuiteArticleExperience } from '@/app/_components/suite-article'
 import { FaqExperience } from '@/app/_components/faq-experience'
 import ArticlePage, { generateMetadata } from '@/app/faq/articles/[slug]/page'
-import BlogIndex from '@/app/faq/articles/page'
+import ArticleIndexPage, { generateMetadata as generateArticleIndexMetadata } from '@/app/faq/articles/page'
 import { proxy } from '@/proxy'
 import { buildSparkleSitemap } from '@/lib/seo/sparkle-crawl'
 
@@ -35,10 +35,17 @@ afterEach(() => {
 })
 
 describe('FAQ article publication boundary', () => {
-  it('renders an empty catalog without a placeholder, FAQ section, or sitemap article', () => {
+  it('renders an empty catalog without a placeholder, FAQ section, or sitemap article', async () => {
     expect(suiteArticles).toEqual([])
     expect(renderToStaticMarkup(createElement(FaqArticles))).toBe('')
-    expect(buildSparkleSitemap().some((entry) => entry.url.includes('/faq/articles'))).toBe(false)
+    const urls = buildSparkleSitemap().map((entry) => entry.url)
+    expect(urls.filter((url) => url === 'https://www.yoursparklesuite.com/faq/articles')).toEqual([
+      'https://www.yoursparklesuite.com/faq/articles',
+    ])
+    expect(urls.some((url) => url.includes('/faq/articles/'))).toBe(false)
+    const html = renderToStaticMarkup(await ArticleIndexPage())
+    expect(html).toContain('<h1>')
+    expect(html).not.toContain('href="/faq/articles/')
   })
 
   it.each([
@@ -101,11 +108,34 @@ describe('FAQ article publication boundary', () => {
     } finally { catalog.pop() }
   })
 
-  it('returns notFound for missing/draft slugs and the intentionally absent blog index', async () => {
+  it('returns the article index with metadata, item list schema, and every published article', async () => {
+    const catalog = suiteArticles as SuiteArticle[]
+    catalog.splice(0, catalog.length, ...savedCatalog)
+    const articles = publishedArticles()
+    expect(articles.length).toBeGreaterThan(0)
+    const html = renderToStaticMarkup(await ArticleIndexPage())
+    for (const article of articles) {
+      expect(html).toContain(`href="/faq/articles/${article.slug}"`)
+      expect(html).toContain(article.title)
+      expect(html).toContain(article.description)
+    }
+    const metadata = await generateArticleIndexMetadata()
+    expect(metadata).toEqual(articleIndexMetadata())
+    expect(metadata.title).toEqual({ absolute: expect.stringContaining('Sparkle Suite') })
+    expect(metadata.description).toEqual(expect.stringContaining('Live Lineup'))
+    expect(metadata.alternates?.canonical).toBe('https://www.yoursparklesuite.com/faq/articles')
+    const json = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/)?.[1]
+    const parsed = JSON.parse(json!)
+    expect(parsed).toEqual(articleIndexJsonLd(articles))
+    expect(parsed['@type']).toBe('CollectionPage')
+    expect(parsed.mainEntity['@type']).toBe('ItemList')
+    expect(parsed.mainEntity.itemListElement.map((item: { url: string }) => item.url)).toEqual(articles.map(articleUrl))
+  })
+
+  it('returns notFound for missing or draft slugs', async () => {
     const props = { params: Promise.resolve({ slug: 'missing' }) }
     await expect(ArticlePage(props)).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404')
     await expect(generateMetadata(props)).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404')
-    expect(() => BlogIndex()).toThrow('NEXT_HTTP_ERROR_FALLBACK;404')
     const catalog = suiteArticles as SuiteArticle[]
     catalog.push({ ...fixture, status: 'draft' })
     try {
@@ -120,5 +150,11 @@ describe('FAQ article publication boundary', () => {
     expect(response.headers.get('X-Robots-Tag')).toBe('noindex')
     const platform = proxy(new NextRequest(`https://www.yoursparklesuite.com${path}`, { headers: { host: 'www.yoursparklesuite.com' } }))
     expect(platform.status).toBe(200)
+  })
+
+  it('returns notFound for the article index on a customer domain', async () => {
+    requestState.host = 'rep.example'
+    await expect(ArticleIndexPage()).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404')
+    await expect(generateArticleIndexMetadata()).rejects.toThrow('NEXT_HTTP_ERROR_FALLBACK;404')
   })
 })

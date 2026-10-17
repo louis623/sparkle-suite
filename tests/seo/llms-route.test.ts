@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { GET } from '@/app/llms.txt/route'
+import { articleUrl, publishedArticles } from '@/lib/sparkle-suite/articles'
 
 describe('GET /llms.txt', () => {
   it('returns 404 noindex for an unmapped custom host instead of demo or Suite text', async () => {
@@ -21,11 +22,25 @@ describe('GET /llms.txt', () => {
       new Request('https://sparkle-suite-git-wave-3.vercel.app/llms.txt'),
     )
 
-    await expect(localResponse.text()).resolves.toContain(
-      'Canonical origin: https://www.yoursparklesuite.com',
-    )
-    await expect(previewResponse.text()).resolves.toContain(
-      'Canonical origin: https://www.yoursparklesuite.com',
-    )
+    const localText = await localResponse.text()
+    const previewText = await previewResponse.text()
+
+    expect(localText).toContain('Canonical origin: https://www.yoursparklesuite.com')
+    expect(previewText).toContain('Canonical origin: https://www.yoursparklesuite.com')
+    for (const text of [localText, previewText]) {
+      expect(text).not.toContain("Jane's Sparkle Party")
+      expect(text).not.toContain('Rep: Jane')
+      expect(text).not.toContain('/amethyst/')
+      expect(text).not.toMatch(/\btrades?\b/i)
+      expect(text).toContain('# Sparkle Suite')
+      expect(text).toContain('Live Lineup')
+      expect(text).toContain('Dance Floor')
+      expect(text).toContain('Location: Jacksonville, FL')
+      expect(text).toContain('https://www.yoursparklesuite.com/faq/articles')
+      for (const article of publishedArticles()) {
+        expect(text).toContain(`[${article.title}](${articleUrl(article)})`)
+        expect(text).toContain(article.description)
+      }
+    }
   })
 })

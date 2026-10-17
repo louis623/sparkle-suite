@@ -161,7 +161,7 @@ describe('Sparkle Suite demo page', () => {
     expect(sparkleSuiteDemoEmbeds.filter((embed) => embed.role === 'featured')).toHaveLength(1)
     expect(metadata.title).toEqual({ absolute: 'Sparkle Suite Demo' })
     expect(metadata.alternates?.canonical).toBe('/demo')
-    expect(buildSparkleSitemap().some((entry) => entry.url.endsWith('/demo'))).toBe(true)
+    expect(buildSparkleSitemap().some((entry) => entry.url.endsWith('/demo'))).toBe(false)
 
     const blocked = {
       id: 'blocked',

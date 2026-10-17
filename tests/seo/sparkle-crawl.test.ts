@@ -21,19 +21,15 @@ describe('Sparkle Suite crawl helpers', () => {
           priority: 1,
         }),
         expect.objectContaining({
-          url: 'https://www.yoursparklesuite.com/learn',
-          priority: 0.95,
-        }),
-        expect.objectContaining({
           url: 'https://www.yoursparklesuite.com/portfolio',
           priority: 0.9,
         }),
         expect.objectContaining({
-          url: 'https://www.yoursparklesuite.com/demo',
-          priority: 0.9,
+          url: 'https://www.yoursparklesuite.com/faq',
+          priority: 0.8,
         }),
         expect.objectContaining({
-          url: 'https://www.yoursparklesuite.com/faq',
+          url: 'https://www.yoursparklesuite.com/faq/articles',
           priority: 0.8,
         }),
         expect.objectContaining({
@@ -44,6 +40,10 @@ describe('Sparkle Suite crawl helpers', () => {
         }),
       ]),
     )
+    const urls = buildSparkleSitemap().map((entry) => entry.url)
+    expect(urls).toContain('https://www.yoursparklesuite.com/faq/articles')
+    expect(urls).not.toContain('https://www.yoursparklesuite.com/learn')
+    expect(urls).not.toContain('https://www.yoursparklesuite.com/demo')
     expect(buildSparkleRobots()).toEqual(
       expect.objectContaining({
         host: 'https://www.yoursparklesuite.com',
