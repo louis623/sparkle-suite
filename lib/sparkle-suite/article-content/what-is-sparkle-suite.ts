@@ -49,7 +49,7 @@ export const whatIsSparkleSuiteArticle: SuiteArticle = {
         "**Dance Floor.** Customers browse your dancers and send swap requests. You make the final call. See [Bomb Party dancer swaps without the DM chaos](https://www.yoursparklesuite.com/faq/articles/bomb-party-dancer-swaps-without-the-dm-chaos).",
         "**Team Management.** Team photos, show names and social links, plus a public Join Team page where you pick which cards show. See [a Join my team page that recruits for you](https://www.yoursparklesuite.com/faq/articles/bomb-party-join-my-team-page).",
         "**New Rep Onboarding.** A private link for each new team member, with progress tracking. Questions land in your Message Center. See [onboarding a new team rep](https://www.yoursparklesuite.com/faq/articles/how-to-onboard-a-new-bomb-party-team-rep).",
-        "**Nic-Nac.** An assistant inside your workspace for paying reps. It can add and update shows and Dance Floor listings, search the jewelry database and more. See Meet Nic-Nac.",
+        "**Nic-Nac.** An assistant inside your workspace for paying reps. It can add and update shows and Dance Floor listings, search the jewelry database and more. See [Meet Nic-Nac](https://www.yoursparklesuite.com/faq/articles/meet-nic-nac-sparkle-suite-assistant).",
         "**Help & Resources.** A library of videos and blogs inside your workspace."
       ]
     },

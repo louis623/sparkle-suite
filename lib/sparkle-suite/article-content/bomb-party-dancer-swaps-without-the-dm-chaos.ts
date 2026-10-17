@@ -58,7 +58,7 @@ export const bombPartyDancerSwapsWithoutTheDmChaosArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "If you're a paying rep, Nic-Nac, the assistant in your workspace, can add and update Dance Floor listings for you. Adding Dance Floor listings is one of the things reps ask Nic-Nac to do most. More on that in Meet Nic-Nac."
+      "text": "If you're a paying rep, Nic-Nac, the assistant in your workspace, can add and update Dance Floor listings for you. Adding Dance Floor listings is one of the things reps ask Nic-Nac to do most. More on that in [Meet Nic-Nac](https://www.yoursparklesuite.com/faq/articles/meet-nic-nac-sparkle-suite-assistant)."
     },
     {
       "type": "heading",
