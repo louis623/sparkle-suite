@@ -24,7 +24,8 @@
     "cursor/seo-www-amethyst-redirects-513f",
     "cursor/workspace-control-hover-tips-3d3f",
     "smoke/combined-95-96-99-100",
-    "cursor/pricing-card-email-sms-90a8"
+    "cursor/pricing-card-email-sms-90a8",
+    "cursor/dance-floor-swap-copy-eddd"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -64,6 +65,10 @@
       "environment": "preview"
     },
     "cursor/seo-www-amethyst-redirects-513f": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/dance-floor-swap-copy-eddd": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },

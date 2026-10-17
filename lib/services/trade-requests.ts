@@ -99,7 +99,7 @@ function rpcError(err: PostgrestError | null): ServiceError | null {
   if (msg.includes('IDEMPOTENCY_CONFLICT')) {
     return errors.INVALID_INPUT(
       'trade request submission identity conflict',
-      'This trade request changed while it was being retried. Please refresh and submit it again.',
+      'This swap request changed while it was being retried. Please refresh and submit it again.',
     )
   }
   if (msg.includes('TRADE_UPLOAD_')) {
@@ -112,7 +112,7 @@ function rpcError(err: PostgrestError | null): ServiceError | null {
   if (msg.includes('INVALID_TRADE_REQUEST')) {
     return errors.INVALID_INPUT(
       'invalid trade request payload',
-      'Please check the trade request details and try again.',
+      'Please check the swap request details and try again.',
     )
   }
   // Partial unique index collision surfaces as 23505.
@@ -152,7 +152,7 @@ export async function submitTradeRequest(
   if (submissionId && !UUID_PATTERN.test(submissionId)) {
     throw errors.INVALID_INPUT(
       'submissionId must be a UUID',
-      'Please refresh the trade request form and try again.',
+      'Please refresh the swap request form and try again.',
     )
   }
   if (input.uploadId && (!UUID_PATTERN.test(input.uploadId) || !submissionId)) {
@@ -260,7 +260,7 @@ export async function attachTradeRequestRevealScreenshot(
   if (!screenshot.objectPath) {
     throw errors.INVALID_INPUT(
       'reveal screenshot path required',
-      'That screenshot could not be attached to the trade request.',
+      'That screenshot could not be attached to the swap request.',
     )
   }
 

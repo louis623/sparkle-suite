@@ -154,7 +154,7 @@ export const defaultAmethystSiteContent: AmethystSiteContent = {
       title: 'Citrine Sun Pendant',
       type: 'Necklace',
       collection: 'Velvet Hour',
-      description: 'Warm gold tones with a bright center stone and a one-for-one trade request option.',
+      description: 'Warm gold tones with a bright center stone and a one-for-one swap request option.',
       tier: 'unicorn',
       statusLabel: 'Available',
     },

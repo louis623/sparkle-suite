@@ -127,9 +127,9 @@ export function applyMileHighFizzTrade(
     publicSiteVariant: 'mile_high_fizz_hybrid',
     tradeHeroTitle: `${trade.businessName} Dance Floor`,
     tradeHeroSub:
-      `Browse ${trade.repName}'s available trade pieces and request an item-for-item swap from a live reveal.`,
+      `Browse ${trade.repName}'s available dancers and request an item-for-item swap from a live reveal.`,
     footerTagline:
-      `Real-time reveals, sparkling jewelry, and rep-reviewed trades with ${trade.businessName}.`,
+      `Real-time reveals, sparkling jewelry, and rep-reviewed dancer swaps with ${trade.businessName}.`,
     footerLinks: {
       ...trade.footerLinks,
       home: '/amethyst/Homepage.html',

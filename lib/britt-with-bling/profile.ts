@@ -454,7 +454,7 @@ export function applyBrittWithBlingHomepage(
           {
             typeLabel: 'The Virtuous Fizzers',
             caption:
-              'Meet the team, shop with Brittany, and come back when new trade pieces are posted.',
+              'Meet the team, shop with Brittany, and come back when new dancers are posted.',
             href: '/amethyst/Join.html',
             mediaUrl: BRITT_WITH_BLING_PROFILE.joinHeroImageUrl,
           },
@@ -517,7 +517,7 @@ export function applyBrittWithBlingTrade(
     tradeHeroSub:
       `When ${trade.repName} adds available dancers, you can request a rep-reviewed item-for-item swap here.`,
     footerTagline:
-      `Faith, fizz, VIP reveals, and rep-reviewed trades with ${trade.businessName}.`,
+      `Faith, fizz, VIP reveals, and rep-reviewed dancer swaps with ${trade.businessName}.`,
     footerLinks: {
       ...trade.footerLinks,
       home: '/amethyst/Homepage.html',

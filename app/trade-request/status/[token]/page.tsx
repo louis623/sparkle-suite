@@ -4,8 +4,8 @@ import ReceiptStatus from './receipt-status'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Private trade request status',
-  description: 'Private status for a Dance Floor trade request.',
+  title: 'Private swap request status',
+  description: 'Private status for a Dance Floor swap request.',
   robots: { index: false, follow: false },
   referrer: 'no-referrer',
 }

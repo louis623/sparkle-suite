@@ -1055,7 +1055,7 @@ describe('Amethyst homepage template data wiring', () => {
 
     const trade = readFileSync(resolve(process.cwd(), 'public/amethyst/trade.jsx'), 'utf8')
     const tradeHero = trade.slice(trade.indexOf('function TradeHero('), trade.indexOf('function Filters('))
-    expect(tradeHero).toContain('Planning a Dance Floor trade?')
+    expect(tradeHero).toContain('Planning a Dance Floor swap?')
     expect(tradeHero).toContain('Crop out personal and order details before sharing it with your rep.')
 
     expect(css).toContain('--hp-tip-surface: #1b1720;')

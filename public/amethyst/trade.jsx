@@ -23,7 +23,7 @@ const DEFAULTS = window.TRADE_TWEAK_DEFAULTS || {
   showLegal: true,
   showFooter: true,
   showNicNac: true,
-  tickerTopText: "Dance Floor open now | Item-for-item only | Same collection + same jewelry type | Birthday dancers can trade across months",
+  tickerTopText: "Dance Floor open now | Item-for-item only | Same collection + same jewelry type | Birthday dancers can swap across months",
   tradeHeroTitle: "Find the dancer you wanted to love.",
   tradeHeroSub: "The Dance Floor is for item-for-item swaps only. Requests must stay within the same collection and the same jewelry type.",
   primaryColor: "#5C0EFF",
@@ -1183,8 +1183,8 @@ function TradeHero({ tweakRepName, tweakHeroTitle, tweakHeroSub, gnomeGarden }) 
         <p className="tp-hero-sub slot" data-slot="trade hero sub">
           {tweakHeroSub} Browse what <span className="slot" data-slot="rep name">{tweakRepName}</span> has available, then request the closest fit you love.
         </p>
-        <aside className="tp-screenshot-tip" aria-label="Trade screenshot tip">
-          <strong>Planning a Dance Floor trade?</strong>
+        <aside className="tp-screenshot-tip" aria-label="Reveal screenshot tip">
+          <strong>Planning a Dance Floor swap?</strong>
           <div>Save a screenshot of your reveal before leaving the live show. Crop out personal and order details before sharing it with your rep.</div>
         </aside>
       </div>
@@ -1466,7 +1466,7 @@ function TradeCard({ piece, onTap, tierVisible }) {
         <div className="tp-card-quantity">{Math.max(0, Number(piece.quantityAvailable ?? 1))} available</div>
         <div className="tp-card-material">{piece.material} · {piece.stone}</div>
         <button type="button" className="tp-card-action" onClick={(event) => { event.stopPropagation(); onTap(piece); }}>
-          View dancer and request trade
+          View dancer and send a swap request
         </button>
       </div>
     </article>
@@ -1541,7 +1541,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
           <div className="tp-card-expand-collection">{piece.collection} collection</div>
           <h2 id="trade-expanded-title" className="tp-card-expand-name slot" data-slot="design name">{piece.name}</h2>
           <p className="tp-card-expand-desc slot" data-slot="description">
-            This {piece.type.toLowerCase()} can be requested as an item-for-item trade if the item number just revealed for you stays within the same collection and the same jewelry type.
+            This {piece.type.toLowerCase()} can be requested as an item-for-item dancer swap if the item number just revealed for you stays within the same collection and the same jewelry type.
           </p>
           <dl className="tp-card-expand-specs">
             <div>
@@ -1569,9 +1569,9 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
             <div className="thumb">BOX</div>
             <div>{piece.note}</div>
           </div>
-          <p className="tp-card-expand-rule">Trades are one dancer for one dancer, with no added payment or credit. Your rep makes the final decision.</p>
+          <p className="tp-card-expand-rule">A dancer swap is one dancer for one dancer, with no added payment or credit. Your rep makes the final decision.</p>
           <button type="button" className="tp-card-expand-cta" onClick={() => onWantThis(piece)}>
-            Request this trade
+            Request this swap
             <span>?</span>
           </button>
         </div>
@@ -1741,7 +1741,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
           <div className="tp-sheet-success-icon">&#10003;</div>
           <h3 id="trade-request-title" className="tp-sheet-success-title">Request sent.</h3>
           <p className="tp-sheet-success-body">
-            <strong>{repName}</strong> will review your request. This is not an approved trade yet.
+            <strong>{repName}</strong> will review your request. This is not an approved swap yet.
           </p>
           {success?.warning && <p className="tp-sheet-error" role="alert">{success.warning}</p>}
           {receiptUrl && (
@@ -1761,7 +1761,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
             </div>
           )}
           <p className="tp-sheet-success-legal">
-            This trade is solely between you and <strong>{repName}</strong>, an Independent Bomb Party Representative. The platform does not verify condition, authenticity, or value.
+            This dancer swap is solely between you and <strong>{repName}</strong>, an Independent Bomb Party Representative. The platform does not verify condition, authenticity, or value.
           </p>
         </div>
       </div>
@@ -1773,7 +1773,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="trade-request-title" aria-busy={Boolean(pending)} tabIndex={-1} className="tp-sheet" onClick={(event) => event.stopPropagation()}>
         <button type="button" className="tp-sheet-close" onClick={onClose} aria-label="Close" disabled={pending}>&times;</button>
         <div className="tp-sheet-handle" />
-        <div className="tp-sheet-eyebrow">Trade Request</div>
+        <div className="tp-sheet-eyebrow">Swap request</div>
         <h3 id="trade-request-title" className="tp-sheet-title">{piece.name}</h3>
         <div className="tp-sheet-piece">
           {piece.collection} - {piece.type}{piece.size ? ` - Size ${piece.size}` : ""}
@@ -1962,7 +1962,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
             </button>
           ) : (
             <button type="submit" className="tp-sheet-submit" disabled={!canSubmit}>
-              {pending ? "Sending request..." : screenshot && !screenshotAttached ? "Attach photo to continue" : "Send trade request"}
+              {pending ? "Sending request..." : screenshot && !screenshotAttached ? "Attach photo to continue" : "Send swap request"}
             </button>
           )}
         </form>
@@ -1977,7 +1977,7 @@ function EmptyState({ repName }) {
       <div className="tp-empty-glyph">?</div>
       <h3 className="tp-empty-title">{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Dance Floor is empty right now."}</h3>
       <p className="tp-empty-sub">
-          <strong>{repName}</strong> adds dancers after live reveals. Check back after the next show for fresh one-for-one trade options.
+          <strong>{repName}</strong> adds dancers after live reveals. Check back after the next show for fresh one-for-one swap options.
       </p>
       <div className="tp-empty-next">
         <span className="live-dot" />
@@ -2049,7 +2049,7 @@ function Footer({ businessName }) {
             <a {...linkProps(FOOTER_LINKS.accessibility || "#faq")}>Accessibility</a>
           </span>
         </div>
-        <p>{CONTENT.legalDisclaimer || "Trades are private agreements between the customer and the rep. Requests are one dancer for one dancer, with no added payment or credit."}</p>
+        <p>{CONTENT.legalDisclaimer || "Dancer swaps are private agreements between the customer and the rep. Requests are one dancer for one dancer, with no added payment or credit."}</p>
       </div>
     </footer>
   );
@@ -2390,7 +2390,7 @@ function App() {
 
             {t.showLegal && (
               <div className="tp-legal slot" data-slot="brand separation footer">
-                {CONTENT.legalDisclaimer || "Trades are private agreements between the customer and the rep. Requests are one dancer for one dancer, with no added payment or credit."}
+                {CONTENT.legalDisclaimer || "Dancer swaps are private agreements between the customer and the rep. Requests are one dancer for one dancer, with no added payment or credit."}
               </div>
             )}
 

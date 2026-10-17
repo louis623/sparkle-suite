@@ -199,7 +199,7 @@ function buildTargetedPageText(
   if (page === 'trade') {
     return {
       title: `${businessName} - Dance Floor`,
-      description: `Browse available trade pieces from ${businessName}.`,
+      description: `Browse available dancers from ${businessName}.`,
     }
   }
 

@@ -82,7 +82,7 @@ export const errors = {
           : 'clickwrap acceptance required before listing',
       userMessage:
         context === 'request'
-          ? 'That trade request could not be submitted yet.'
+          ? 'That swap request could not be submitted yet.'
           : 'That listing could not be added yet.',
     }),
   LISTING_NOT_FOUND: (detail?: string) =>
@@ -109,13 +109,13 @@ export const errors = {
     new ServiceError({
       code: 'REQUEST_NOT_PENDING',
       message: 'trade request is not in pending status',
-      userMessage: 'That trade request has already been handled.',
+      userMessage: 'That swap request has already been handled.',
     }),
   REQUEST_ALREADY_EXISTS: () =>
     new ServiceError({
       code: 'REQUEST_ALREADY_EXISTS',
       message: 'a pending request already exists for this listing',
-      userMessage: 'That piece already has a pending trade request.',
+      userMessage: 'That piece already has a pending swap request.',
       statusCode: 409,
     }),
   INVALID_STATUS_TRANSITION: (from: string, to: string) =>
