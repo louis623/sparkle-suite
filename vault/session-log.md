@@ -1,6 +1,6 @@
-## October 17, 2026 - Fall Owl community theme prepared
+## October 17, 2026 - Fall Owl community theme live
 
-- Louis authorized publishing Fall Owl and Harvest Moon (FO-01) to all reps. Clean current-tip clone contains the approved animation, full Amethyst theme, shared catalog/persistence integration, guarded migration, and print-asset compatibility. Build and 232 focused checks passed. Database publication and live release await authorized database access after automatic review rejected exporting production secrets. See [release state](2026-10-17-fall-owl-release.md).
+- Louis authorized publishing Fall Owl and Harvest Moon (FO-01) to all reps and approved in-memory database credential use. Existing authenticated Supabase CLI applied the guarded migration without exporting credentials; all-rep availability and unchanged saved selections verified. Product `52fd92ac` is READY on `dpl_5a8SKJU3hKPbmijmrXpDqWUEE3L8`, confirmed on both Suite domains and existing aliases. Build and 232 focused checks passed; live desktop/mobile sample pages and motion/audio controls passed. Protected reviewer entry unavailable, so authenticated picker/save/reload remains visually unverified. See [release state](2026-10-17-fall-owl-release.md).
 
 ## September 29, 2026 - Live Lineup status copy and signals
 

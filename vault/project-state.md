@@ -1,3 +1,8 @@
+## October 17, 2026 - Fall Owl and Harvest Moon community theme live
+
+- FO-01 / `fall_owl_harvest_moon` is a Community theme available to every rep, preserving all existing saved selections. Product SHA `52fd92ac5e1b2ec846a792bad2d3fb93ca86c2f1` is READY on `dpl_5a8SKJU3hKPbmijmrXpDqWUEE3L8` on both Suite domains and all existing aliases. Migration `20261017000100` applied and recorded through existing authenticated Supabase CLI; no credentials exported.
+- Build, 232 focused checks, all-rep catalog policy and live desktop/mobile sample/motion checks passed. Authenticated picker/save/reload was not visually tested because protected reviewer controls remain unavailable. Safe live sample: `/skin-preview/fall_owl_harvest_moon/homepage`. See [closeout](2026-10-17-fall-owl-release.md).
+
 ## September 23, 2026 - Trade upload, readability, and MSRP retirement live
 
 - Product commit `1e4b8cee262707f5767c924280493efc0e8cf0d1` is Ready production deployment `dpl_29qoZBeZ5WdfPMbH6LL9sKXW5YgK` on both Suite domains. The prior `dpl_AW1GVeN697R8FS4VCWs83kBRrJQt` is preserved. The three trade-upload/atomic-request migrations are applied; production migration dry run is up to date.
