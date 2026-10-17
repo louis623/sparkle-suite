@@ -30,7 +30,8 @@
     "cursor/public-seo-faq-index-9201",
     "cursor/founder-copy-llms-disclaimer-8afd",
     "cursor/founder-count-privacy-c41f",
-    "cursor/site-traffic-redesign-ff40"
+    "cursor/site-traffic-redesign-ff40",
+    "cursor/no-trial-wording"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -102,6 +103,10 @@
       "environment": "preview"
     },
     "cursor/site-traffic-redesign-ff40": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/no-trial-wording": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }
