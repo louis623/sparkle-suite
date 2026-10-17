@@ -85,7 +85,7 @@ export function LandingExperience({ initialAvailability, demo = null }: { initia
       <h2 id="pricing-title">Get in at the <em>start.</em></h2>
       <FounderOffer />
       <IncludedFeatures />
-      <p className={styles.finePrint}>Email and SMS updates: coming soon.</p>
+      <p className={styles.finePrint}>Email and SMS updates: coming soon (included on every plan).</p>
     </div></section>
     <section className={styles.faqSection} id="questions" aria-labelledby="questions-title"><div className={styles.container}>
       <h2 id="questions-title">A few things you might be <em>wondering.</em></h2>

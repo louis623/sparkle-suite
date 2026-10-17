@@ -113,6 +113,10 @@ reconciliation and must not be swept into the active branch merely to make
 
 ## Branch lifecycle
 
+### October 17 pricing-card email and SMS preview
+
+Louis approved a Smoke-only wording check for the landing-page pricing card. `cursor/pricing-card-email-sms-90a8` is allowlisted for that preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Smoke production, the shared Smoke alias, the Live project, and the Live domains fail closed. GitHub's default branch and Vercel's Live production branch stay unchanged. This is a review exception, not a production branch-status change.
+
 ### October 15 combined Smoke preview
 
 Louis approved a Smoke-only combined preview of rebased PRs #95, #96, #99, and #100. `smoke/combined-95-96-99-100` is allowlisted for that preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `production` on that Smoke project, which is what moves `sparkle-suite-smoke.vercel.app`. Live project deploys fail closed. GitHub's default branch, Vercel's Live production branch, and the Live domains stay unchanged. This is a review exception, not a production branch-status change. Suite applies the Finder and Live Lineup migrations to the Smoke database separately.
