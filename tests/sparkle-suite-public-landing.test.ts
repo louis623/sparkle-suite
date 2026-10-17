@@ -28,7 +28,7 @@ describe('Sparkle Suite public landing page', () => {
     expect(html).toContain('No payment when you join the queue')
     expect(html).toContain('30-minute call')
     expect(html).toContain('first month and setup fee are paid')
-    expect(html).toContain('Email and SMS updates: coming soon.')
+    expect(html).toContain('Email and SMS updates: coming soon (included on every plan).')
     expect(html).toContain('aria-label="Included in Sparkle Suite"')
     expect(html).toContain('Dance Floor')
     expect(html).toContain('Live Lineup')

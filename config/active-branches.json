@@ -23,7 +23,8 @@
     "cursor/public-site-past-due-grace",
     "cursor/seo-www-amethyst-redirects-513f",
     "cursor/workspace-control-hover-tips-3d3f",
-    "smoke/combined-95-96-99-100"
+    "smoke/combined-95-96-99-100",
+    "cursor/pricing-card-email-sms-90a8"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -69,6 +70,10 @@
     "smoke/combined-95-96-99-100": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "production"
+    },
+    "cursor/pricing-card-email-sms-90a8": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
     }
   },
   "productionBranch": "codex/nic-nac-trade-hardening",
