@@ -26,7 +26,8 @@
     "smoke/combined-95-96-99-100",
     "cursor/pricing-card-email-sms-90a8",
     "cursor/dance-floor-swap-copy-eddd",
-    "cursor/rep-ga4-properties-30e9"
+    "cursor/rep-ga4-properties-30e9",
+    "cursor/public-seo-faq-index-9201"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -82,6 +83,10 @@
       "environment": "preview"
     },
     "cursor/rep-ga4-properties-30e9": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/public-seo-faq-index-9201": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }

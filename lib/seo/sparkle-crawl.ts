@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { articleSitemapEntries } from '@/lib/sparkle-suite/articles'
+import { ARTICLE_INDEX_PATH, articleSitemapEntries } from '@/lib/sparkle-suite/articles'
 
 export const SPARKLE_PUBLIC_ORIGIN = 'https://www.yoursparklesuite.com'
 
@@ -25,11 +25,6 @@ const SPARKLE_PUBLIC_ROUTES: SparklePublicRoute[] = [
     priority: 1,
   },
   {
-    path: '/learn',
-    changeFrequency: 'weekly',
-    priority: 0.95,
-  },
-  {
     path: '/portfolio',
     changeFrequency: 'weekly',
     priority: 0.9,
@@ -40,12 +35,12 @@ const SPARKLE_PUBLIC_ROUTES: SparklePublicRoute[] = [
     priority: 0.9,
   },
   {
-    path: '/demo',
+    path: '/faq',
     changeFrequency: 'weekly',
-    priority: 0.9,
+    priority: 0.8,
   },
   {
-    path: '/faq',
+    path: ARTICLE_INDEX_PATH,
     changeFrequency: 'weekly',
     priority: 0.8,
   },
