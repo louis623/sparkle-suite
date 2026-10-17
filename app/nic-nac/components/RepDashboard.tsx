@@ -616,7 +616,7 @@ export function RepDashboard({
         </DashboardLink>
       </SubjectCardTip>
 
-      <SiteVisitsPanel visits={view.siteVisits} siteHref={publicSiteHref} />
+      <SiteVisitsPanel traffic={view.siteTraffic} siteHref={publicSiteHref} now={clock} />
 
       <SubjectCardTip tip="last-month" testId="month-at-a-glance" ariaLabel="Last month at a glance">
         <div className={styles.customerTop}>

@@ -24,9 +24,16 @@ import {
 } from '@/lib/services/rep-dashboard-math'
 import {
   emptySiteVisitSummary,
+  SITE_VISIT_HASH_SALT_ENV,
   summarizeSiteVisits,
   type PublicSiteVisitRow,
 } from '@/lib/services/site-visit-summary'
+import {
+  buildSiteTrafficLedger,
+  emptySiteTrafficLedger,
+  readVisitSaltSince,
+  SITE_TRAFFIC_HISTORY_START,
+} from '@/lib/services/site-traffic'
 import { readRepLiveOrderActivity } from '@/lib/services/live-lineup-customer-orders'
 
 export const MISSING_CONTACT_FILTER =
@@ -378,17 +385,44 @@ export async function getRepDashboard(args: {
   const liveOrderActivity = await readRepLiveOrderActivity(args.supabase, args.repId, now)
 
   let siteVisits = emptySiteVisitSummary(now, timeZone, 'unavailable')
+  let siteTraffic = emptySiteTrafficLedger(now, timeZone, 'unavailable')
   try {
-    const periodStart = new Date(now.getTime() - 32 * 24 * 60 * 60 * 1000).toISOString()
+    const historyStart = `${SITE_TRAFFIC_HISTORY_START}T00:00:00.000Z`
     const rows = await listPages<PublicSiteVisitRow>((from, to) =>
       args.supabase
         .from('public_site_visits')
-        .select('viewed_at, src, us_state')
+        .select('viewed_at, src, us_state, path, visitor_day_hash')
         .eq('rep_id', args.repId)
-        .gte('viewed_at', periodStart)
+        .gte('viewed_at', historyStart)
         .order('viewed_at', { ascending: true })
         .range(from, to),
     )
+    let showTimes: string[] = []
+    try {
+      const shows = await listPages<{ event_time: string }>((from, to) =>
+        args.supabase
+          .from('calendar_events')
+          .select('event_time')
+          .eq('rep_id', args.repId)
+          .in('status', ['scheduled', 'live', 'completed'])
+          .gte('event_time', historyStart)
+          .lte('event_time', nowIso)
+          .order('event_time', { ascending: true })
+          .range(from, to),
+      )
+      showTimes = shows.map((show) => show.event_time).filter((value) => typeof value === 'string')
+    } catch {
+      showTimes = []
+    }
+    const uniqueCounting = Boolean(process.env[SITE_VISIT_HASH_SALT_ENV]?.trim())
+    siteTraffic = buildSiteTrafficLedger({
+      rows,
+      showTimes,
+      now,
+      timeZone,
+      uniqueCounting,
+      uniqueSince: uniqueCounting ? readVisitSaltSince(process.env.PUBLIC_SITE_VISIT_SALT_SINCE) : null,
+    })
     siteVisits = summarizeSiteVisits({ rows, now, timeZone })
   } catch (error) {
     if (!isMissingRelation(error, 'public_site_visits')) partial = true
@@ -442,5 +476,6 @@ export async function getRepDashboard(args: {
     recipes: recipes.value,
     danceFloorInsights: danceFloorInsights.value,
     siteVisits,
+    siteTraffic,
   }
 }

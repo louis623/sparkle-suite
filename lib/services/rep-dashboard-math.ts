@@ -1,6 +1,7 @@
 import { emptyDanceFloorInsights, type DanceFloorInsights } from '@/lib/services/dance-floor-insights'
 import { liveOrderWindowStartIso } from '@/lib/services/live-lineup-customer-orders'
 import { emptySiteVisitSummary, type SiteVisitSummary } from '@/lib/services/site-visit-summary'
+import { emptySiteTrafficLedger, type SiteTrafficLedger } from '@/lib/services/site-traffic'
 
 export const BIRTHDAY_WINDOW_DAYS = 30
 export const COUNTDOWN_RING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
@@ -98,6 +99,7 @@ export type RepDashboardPayload = {
   }
   danceFloorInsights: DanceFloorInsights
   siteVisits: SiteVisitSummary
+  siteTraffic: SiteTrafficLedger
   pendingTrades: {
     count: number
   }
@@ -514,6 +516,7 @@ export function createEmptyRepDashboard(
     },
     danceFloorInsights: emptyDanceFloorInsights(),
     siteVisits: emptySiteVisitSummary(now, zone),
+    siteTraffic: emptySiteTrafficLedger(now, zone),
     pendingTrades: { count: 0 },
     birthdays: [],
     monthAtAGlance: {

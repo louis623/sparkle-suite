@@ -209,11 +209,16 @@ export async function getSiteAnalyticsDashboard(args: {
   supabase: SupabaseClient
   repId: string
   env?: Record<string, string | undefined>
+  startDate?: string
+  endDate?: string
 }): Promise<SiteAnalyticsDashboardResult> {
   const summary = await loadRepGa4Dashboard({
     supabase: args.supabase,
     repId: args.repId,
     env: args.env,
+    startDate: args.startDate,
+    endDate: args.endDate,
+    includeRealtime: true,
   })
   let operationalSnapshot = EMPTY_OPERATIONAL_SNAPSHOT
   try {
@@ -223,7 +228,7 @@ export async function getSiteAnalyticsDashboard(args: {
   }
 
   return {
-    configured: summary.status === 'ready',
+    configured: summary.configured,
     ga4Status: summary.status,
     ga4UpdatedAt: summary.updatedAt,
     privacy: SITE_ANALYTICS_PRIVACY,
@@ -236,6 +241,11 @@ export async function getSiteAnalyticsDashboard(args: {
     topPages: summary.topPages,
     trafficSources: summary.sources,
     deviceMix: summary.devices,
+    regions: summary.regions,
+    cities: summary.cities,
+    newVisitors: summary.newVisitors,
+    returningVisitors: summary.returningVisitors,
+    realtimeUsers: summary.realtimeUsers,
     operationalSnapshot,
   }
 }

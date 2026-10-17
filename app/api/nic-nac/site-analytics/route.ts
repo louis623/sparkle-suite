@@ -29,6 +29,11 @@ function emptySiteAnalytics(): SiteAnalyticsDashboardResult {
     topPages: [],
     trafficSources: [],
     deviceMix: [],
+    regions: [],
+    cities: [],
+    newVisitors: null,
+    returningVisitors: null,
+    realtimeUsers: null,
     operationalSnapshot: {
       activeListings: 0,
       pendingRequests: 0,
@@ -38,8 +43,24 @@ function emptySiteAnalytics(): SiteAnalyticsDashboardResult {
   }
 }
 
+function readTrafficRange(request?: Request) {
+  if (!request) return {}
+  let start = ''
+  let end = ''
+  try {
+    const url = new URL(request.url)
+    start = url.searchParams.get('start')?.trim() ?? ''
+    end = url.searchParams.get('end')?.trim() ?? ''
+  } catch {
+    return {}
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end) || start > end) {
+    return {}
+  }
+  return { startDate: start, endDate: end }
+}
+
 export async function GET(request?: Request) {
-  void request
   let repId: string | null = null
   try {
     const context = await getPaidNicNacContext()
@@ -47,6 +68,7 @@ export async function GET(request?: Request) {
     const summary = await getSiteAnalyticsDashboard({
       supabase: createAdminClient(),
       repId,
+      ...readTrafficRange(request),
     })
     return NextResponse.json(summary)
   } catch (error) {

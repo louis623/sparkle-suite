@@ -106,6 +106,7 @@ describe('rep GA4 dashboard isolation', () => {
     })
 
     expect(summary.status).toBe('not_set_up')
+    expect(summary.configured).toBe(false)
     expect(summary.pageViews).toBeNull()
     expect(runReport).not.toHaveBeenCalled()
   })
@@ -268,6 +269,7 @@ describe('site analytics route tenant boundary', () => {
     const body = await response.json()
 
     expect(response.status).toBe(200)
+    expect(body.configured).toBe(true)
     expect(body.overview.pageViews30d).toBe(20)
     expect(body.overview.uniqueVisitors30d).toBe(5)
     expect(body.topPages[0].label).toBe('/join')
