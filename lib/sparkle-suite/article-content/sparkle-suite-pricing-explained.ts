@@ -14,7 +14,7 @@ export const sparkleSuitePricingExplainedArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "There's a one-time setup fee of $49.99, plus a monthly plan. The Standard plan is $74.99 a month. During the founding-rep beta, the first 20 reps who sign up get Founder pricing: $49.99 a month for their first 12 paid months, which is 33% off, then $74.99 a month after that."
+      "text": "There's a one-time setup fee of $49.99, plus a monthly plan. The Standard plan is $74.99 a month. During the founding-rep beta, a limited number of founding reps who sign up get Founder pricing: $49.99 a month for their first 12 paid months, which is 33% off, then $74.99 a month after that."
     },
     {
       "type": "paragraph",
@@ -37,7 +37,7 @@ export const sparkleSuitePricingExplainedArticle: SuiteArticle = {
       "items": [
         "**$49.99 a month** for your first 12 paid months.",
         "**Then $74.99 a month**, the Standard rate.",
-        "**Limited to the first 20 reps** who sign up."
+        "**For a limited number of founding reps** who sign up."
       ]
     },
     {

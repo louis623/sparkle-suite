@@ -12,12 +12,11 @@ function text(html: string) {
 }
 
 describe('customer-visible founder offer states', () => {
-  it.each([19, 1])('shows the confirmed %i count with correct grammar and no reservation pressure', remaining => {
+  it.each([19, 1])('does not print the confirmed %i founder-spot count', remaining => {
     const html = renderToStaticMarkup(<FounderAvailabilityProvider initialAvailability={{ status: 'available', remaining, checkedAt }}><FounderStrip /><FounderSpotLabel large /></FounderAvailabilityProvider>)
-    expect(text(html)).toContain(`${remaining} founder ${remaining === 1 ? 'spot' : 'spots'} remaining.`)
-    expect(html).toContain('aria-live="polite"')
+    expect(text(html)).not.toMatch(/\d+ founder spots? remaining|of 20|spots left/)
     expect(html).toContain('href="#pricing"')
-    expect(text(html)).not.toMatch(/of 20|secure|reserve/i)
+    expect(text(html)).not.toMatch(/secure|reserve/i)
   })
 
   it.each([19, 1])('server-renders the %i-slot founder price and the full payment schedule', remaining => {

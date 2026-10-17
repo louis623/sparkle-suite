@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
+import { sparkleMarketingDisclaimer } from '@/app/_components/sparkle-marketing-footer/SparkleMarketingFooter'
 import {
   SPARKLE_AGENT_CONTENT_SIGNAL,
+  buildDefaultSparkleLlmsText,
   buildSparkleLlmsText,
 } from '@/lib/seo/llms'
 
@@ -51,5 +53,15 @@ describe('Sparkle Suite Markdown-for-agents builder', () => {
     )
     expect(markdown).toContain('- Live reveal: A streamed jewelry opening')
     expect(markdown).not.toContain('undefined')
+  })
+
+  it('adds the FAQ index Bomb Party disclaimer to the Suite llms.txt file', () => {
+    const markdown = buildDefaultSparkleLlmsText('https://www.yoursparklesuite.com')
+
+    expect(sparkleMarketingDisclaimer).toBe(
+      'Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.',
+    )
+    expect(markdown).toContain(sparkleMarketingDisclaimer)
+    expect(markdown).not.toMatch(/\bfirst 20\b|\b20 founding\b|\b20 founder\b|founder spots remaining|spots left/)
   })
 })

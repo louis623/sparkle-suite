@@ -50,6 +50,16 @@ describe('Sparkle Suite build-queue intake', () => {
     expect(html).toContain('first 12 paid months')
     expect(html).not.toContain('$124.98')
     expect(html).not.toContain('founder spots remaining')
+    expect(prelaunchContent.pricing.body).toContain('A limited number of founding reps')
+    expect(prelaunchContent.pricing.note).toContain('a limited number of founding reps')
+    expect(prelaunchContent.pricing.founder.badge).toBe('A limited number of founding reps')
+    expect(prelaunchContent.pricing.standard.badge).toBe('Standard rate')
+    expect([
+      prelaunchContent.pricing.body,
+      prelaunchContent.pricing.note,
+      prelaunchContent.pricing.founder.badge,
+      prelaunchContent.pricing.standard.badge,
+    ].join('\n')).not.toMatch(/\bfirst 20\b|\b20 paid\b|\bRep 21\b|spots left/)
     expect(html).toContain('Joining the queue does not reserve founder pricing.')
     expect(html).toContain('Message frequency may vary')
     expect(html).toContain('Reply STOP to')

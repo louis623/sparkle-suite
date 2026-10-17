@@ -86,7 +86,7 @@ export function buildPrelaunchPaymentCheckoutEmailContent(input: {
   const recipientName = normalizeRecipientName(input.name)
   const tierLine =
     input.pricingTier === 'founder'
-      ? 'This checkout uses the first-20 founder pricing path.'
+      ? 'This checkout uses the founding-rep pricing path.'
       : 'This checkout uses the current Sparkle Suite pricing path.'
 
   return {

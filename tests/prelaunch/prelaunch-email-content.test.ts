@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildInitialPrelaunchNewsletterIssue,
+  buildPrelaunchPaymentCheckoutEmailContent,
   buildSelfServePurchaseConfirmationEmailContent,
   buildPrelaunchWaitlistWelcomeEmailContent,
 } from '@/lib/prelaunch/email-content'
@@ -21,6 +22,17 @@ describe('prelaunch email content', () => {
     expect(email.text).toContain('Joining the build queue does not reserve a founder rate.')
     expect(email.text).not.toContain('Stripe test-mode')
     expect(email.text).not.toContain('waitlist')
+  })
+
+  it('describes founder checkout without a founder-spot count', () => {
+    const email = buildPrelaunchPaymentCheckoutEmailContent({
+      name: 'Jamie Hart',
+      checkoutUrl: 'https://checkout.example/founder',
+      pricingTier: 'founder',
+    })
+
+    expect(email.text).toContain('This checkout uses the founding-rep pricing path.')
+    expect(email.text).not.toMatch(/\bfirst-20\b|\bfirst 20\b|\b20 spots\b|founder spots remaining|spots left/)
   })
 
   it('builds a text-first prelaunch newsletter issue draft', () => {

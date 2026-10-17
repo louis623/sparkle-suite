@@ -37,10 +37,9 @@ export function FounderAvailabilityProvider({ children, initialAvailability = un
   return <AvailabilityContext.Provider value={availability}>{children}</AvailabilityContext.Provider>
 }
 
-export function FounderSpotLabel({large=false}:{large?:boolean}) {
-  const availability=useContext(AvailabilityContext)
-  if(availability.status!=='available') return null
-  return <span className={large?styles.spotLarge:styles.spotLabel} aria-live="polite">{availability.remaining} founder {availability.remaining===1?'spot':'spots'} remaining.</span>
+// Never print a founder-spot count. Availability still switches the price when the offer is full.
+export function FounderSpotLabel(_props: { large?: boolean }) {
+  return null
 }
 
 // Kept for existing callers; no reservation language or hardcoded counter.

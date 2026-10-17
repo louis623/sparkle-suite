@@ -47,6 +47,8 @@ describe('Sparkle Suite marketing FAQ', () => {
     expect(plain).toContain('Your build starts once your first month and setup fee are paid.')
     expect(plain).toContain('Email and SMS updates are coming soon.')
     expect(plain).not.toMatch(/eligibility is confirmed at checkout|spots remaining|Bomb Party|Live queue|Ask Nic-Nac/i)
+    expect(plain).toContain('a limited number of founding reps')
+    expect(plain).not.toMatch(/\bfirst 20\b|\blimited to 20\b|\b20 reps\b|spots left/i)
   })
 
   it('keeps canonical metadata and the customer FAQ compatibility route', () => {

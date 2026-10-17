@@ -154,7 +154,7 @@ export const prelaunchContent = {
     eyebrow: 'Founder pricing',
     heading: 'Get in at the start. Secure your founding rate.',
     body:
-      'The first 20 paid reps get the same Sparkle Suite package at the founding monthly rate before standard pricing begins.',
+      'A limited number of founding reps get the same Sparkle Suite package at the founding monthly rate before standard pricing begins.',
     buildFee: {
       label: 'Sparkle Suite setup fee',
       price: '$49.99',
@@ -162,7 +162,7 @@ export const prelaunchContent = {
     },
     founder: {
       label: 'Founding rep monthly',
-      badge: 'First 20 paid reps',
+      badge: 'A limited number of founding reps',
       price: '$49.99/month',
       term: 'Founder rate for the first 12 paid service months.',
       firstCheckout: '$99.98 first checkout before taxes or Stripe-calculated extras.',
@@ -170,7 +170,7 @@ export const prelaunchContent = {
     },
     standard: {
       label: 'Standard monthly',
-      badge: 'Rep 21 and beyond',
+      badge: 'Standard rate',
       price: '$74.99/month',
       term: 'Monthly subscription from the start.',
       firstCheckout: '$124.98 first checkout before taxes or Stripe-calculated extras.',
@@ -185,7 +185,7 @@ export const prelaunchContent = {
     ],
     cta: { label: 'Join the build queue', href: '#waitlist' },
     note:
-      'Founder pricing is limited to the first 20 paid reps. Joining the build queue does not reserve a founder rate. No payment is taken on this form.',
+      'Founder pricing is for a limited number of founding reps. Joining the build queue does not reserve a founder rate. No payment is taken on this form.',
   },
   waitlistEyebrow: 'Now building Sparkle Suite sites',
   waitlistHeading: 'Let’s talk about your site.',

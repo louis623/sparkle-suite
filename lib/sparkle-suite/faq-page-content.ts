@@ -54,7 +54,7 @@ export const sparkleSuiteFaqGroups = [
     questions: [
       {
         id: 'founder-rate', question: 'What does founder pricing include?',
-        paragraphs: [['Founder pricing is $49.99 a month for your first 12 paid months, then $74.99 a month, plus a one-time $49.99 setup fee. Your first month and setup fee total $99.98.'], ['The founder offer is limited to 20 reps. Founder pricing is available to reps who move forward after our call, while spots last. Joining the queue does not reserve it.']],
+        paragraphs: [['Founder pricing is $49.99 a month for your first 12 paid months, then $74.99 a month, plus a one-time $49.99 setup fee. Your first month and setup fee total $99.98.'], ['The founder offer is for a limited number of founding reps. Founder pricing is available to reps who move forward after our call, while spots last. Joining the queue does not reserve it.']],
       },
       {
         id: 'cost', question: 'What is the standard price?',
