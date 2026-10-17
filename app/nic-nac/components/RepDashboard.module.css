@@ -1502,6 +1502,18 @@ a.birthdayLink:focus-visible {
   }
 }
 
+.ga4Grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+@container repdash (min-width: 860px) {
+  .ga4Grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @container repdash (max-width: 720px) {
   .sittingList li {
     grid-template-columns: minmax(0, 1fr) auto;

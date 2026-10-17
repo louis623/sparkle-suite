@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ServiceError } from '@/lib/services/errors'
+import { loadRepGa4Dashboard } from '@/lib/services/rep-ga4-dashboard'
 import type {
   SiteAnalyticsDashboardResult,
   SiteAnalyticsOperationalSnapshot,
@@ -197,24 +198,53 @@ async function getOperationalSnapshot(
   }
 }
 
+const EMPTY_OPERATIONAL_SNAPSHOT: SiteAnalyticsOperationalSnapshot = {
+  activeListings: 0,
+  pendingRequests: 0,
+  upcomingShows: 0,
+  reachableCustomers: 0,
+}
+
 export async function getSiteAnalyticsDashboard(args: {
   supabase: SupabaseClient
   repId: string
+  env?: Record<string, string | undefined>
 }): Promise<SiteAnalyticsDashboardResult> {
-  const captureConfig = getSiteAnalyticsCaptureConfig()
+  const ga4 = await loadRepGa4Dashboard({
+    supabase: args.supabase,
+    repId: args.repId,
+    env: args.env,
+  }).catch(() => null)
+  const summary = ga4 ?? {
+    status: 'unavailable' as const,
+    updatedAt: null,
+    pageViews: null,
+    visitors: null,
+    topPages: [],
+    sources: [],
+    devices: [],
+  }
+  let operationalSnapshot = EMPTY_OPERATIONAL_SNAPSHOT
+  try {
+    operationalSnapshot = await getOperationalSnapshot(args.supabase, args.repId)
+  } catch {
+    operationalSnapshot = EMPTY_OPERATIONAL_SNAPSHOT
+  }
 
   return {
-    configured: captureConfig.enabled,
+    configured: summary.status === 'ready',
+    ga4Status: summary.status,
+    ga4UpdatedAt: summary.updatedAt,
     privacy: SITE_ANALYTICS_PRIVACY,
     overview: {
-      pageViews30d: null,
-      uniqueVisitors30d: null,
-      topTrafficSource: null,
-      topDeviceType: null,
+      pageViews30d: summary.pageViews,
+      uniqueVisitors30d: summary.visitors,
+      topTrafficSource: summary.sources[0]?.label ?? null,
+      topDeviceType: summary.devices[0]?.label ?? null,
     },
-    topPages: [],
-    trafficSources: [],
-    deviceMix: [],
-    operationalSnapshot: await getOperationalSnapshot(args.supabase, args.repId),
+    topPages: summary.topPages,
+    trafficSources: summary.sources,
+    deviceMix: summary.devices,
+    operationalSnapshot,
   }
 }

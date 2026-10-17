@@ -19,4 +19,12 @@ describe('operator onboarding checklist', () => {
     expect(searchVisibility?.description).toContain('Google and Bing')
     expect(searchVisibility?.description).toContain('not a demo')
   })
+  it('asks for site analytics after search visibility', () => {
+    const keys = OPERATOR_ONBOARDING_CHECKLIST_ITEMS.map((item) => item.key)
+    expect(keys.indexOf('analytics_setup')).toBe(keys.indexOf('search_visibility') + 1)
+    const analytics = OPERATOR_ONBOARDING_CHECKLIST_ITEMS.find((item) => item.key === 'analytics_setup')
+    expect(analytics?.title).toBe("Set up the rep's site analytics.")
+    expect(analytics?.description).toContain('GA4 property')
+    expect(analytics?.description).not.toMatch(/\b(her|his|they|their|trade)\b/i)
+  })
 })

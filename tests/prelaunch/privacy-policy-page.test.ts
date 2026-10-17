@@ -30,6 +30,10 @@ describe('Sparkle Suite privacy policy page', () => {
     expect(html).toContain('replying HELP')
     expect(html).toContain('href="/prelaunch"')
     expect(html).toContain('href="/terms-and-conditions"')
+    expect(html).toContain('Website Analytics')
+    expect(html).toContain('use Google Analytics to understand visits')
+    expect(html).toContain('No personal information is sent to Google Analytics.')
+    expect(html).toContain('href="https://tools.google.com/dlpage/gaoptout"')
   })
 
   it('exports SEO metadata for the privacy policy route', () => {

@@ -2107,6 +2107,8 @@ function Signup({ repName, businessName }) {
         return;
       }
 
+      if (typeof window.gtag === "function") window.gtag("event", "lead");
+
       setForm({
         firstName: "",
         lastName: "",

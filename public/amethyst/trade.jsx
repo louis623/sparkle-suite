@@ -2294,6 +2294,7 @@ function App() {
       setSubmittedListingIds((current) =>
         current.includes(payload.listingId) ? current : [...current, payload.listingId],
       );
+      if (typeof window.gtag === "function") window.gtag("event", "swap_request");
       setSuccess(result);
       setManualReviewRequired(false);
     } catch (error) {
