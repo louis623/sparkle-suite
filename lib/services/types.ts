@@ -633,6 +633,7 @@ export type SiteAppearancePreset =
   | 'gilded_autumn'
   | 'rose_gold'
   | 'midnight_rose'
+  | 'fall_owl_harvest_moon'
   | 'pearl_rose'
   | 'rose_champagne'
   | 'garnet'

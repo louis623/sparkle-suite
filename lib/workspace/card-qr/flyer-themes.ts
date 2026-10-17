@@ -24,6 +24,7 @@ export interface FlyerThemeRecord {
 const skin = (folder: string, file: string) => `public/amethyst/skins/${folder}/${file}`
 
 export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
+  { theme: 'fall_owl_harvest_moon', status: 'art', source: skin('fall-owl', 'hero-poster.webp'), plate: skin('fall-owl', 'hero-poster.webp'), panelStyle: 'solid', note: 'Approved Fall Owl artwork; solid readable panels use the autumn palette.' },
   {
     theme: 'amethyst',
     status: 'art',

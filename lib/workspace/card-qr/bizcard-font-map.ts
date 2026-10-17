@@ -35,6 +35,13 @@ export const BIZCARD_FONT_FILES = {
     "body600": "DMSansopsz-wght-opsz40-wght600.ttf",
     "body700": "DMSansopsz-wght-opsz40-wght700.ttf"
   },
+  "fall-owl": {
+    "head": "PlayfairDisplaywght-wght600.ttf",
+    "script": "PlayfairDisplay-Italic-VariableFont_wght-wght500.ttf",
+    "body": "DMSansopsz-wght-opsz40-wght500.ttf",
+    "body600": "DMSansopsz-wght-opsz40-wght600.ttf",
+    "body700": "DMSansopsz-wght-opsz40-wght700.ttf"
+  },
   "pearl-rose": {
     "head": "PlayfairDisplaywght-wght600.ttf",
     "script": "PlayfairDisplay-Italic-VariableFont_wght-wght500.ttf",

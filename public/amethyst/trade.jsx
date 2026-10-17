@@ -344,6 +344,15 @@ const PRESETS = {
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
     shapeRadius: "soft", density: "regular",
   },
+  fall_owl_harvest_moon: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "fall-owl", cardSurface: "fall-owl",
+    textureOverlay: "none", buttonEnergy: "fall-owl-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-midnight", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "fallOwl", primaryColor: "#efba73", accentColor: "#c7854f",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
   pearl_rose: {
     heroMotion: "sparkle_rise", sparkleLevel: "subtle",
     bgTreatment: "pearl-rose", cardSurface: "pearl-rose-paper",
@@ -409,6 +418,7 @@ const TONES = {
   halloweenPumpkinWitch: { bg: "#090909", elevated: "#211914", deep: "#050505" },
   roseGold: { bg: "#fff5f6", elevated: "#fffafa", deep: "#ffe8ec" },
   midnightRose: { bg: "#180e16", elevated: "#271920", deep: "#100910" },
+  fallOwl: { bg: "#201321", elevated: "#302030", deep: "#160e18" },
   pearlRose: { bg: "#faf5ef", elevated: "#fffefa", deep: "#f2e5dc" },
   garnet: { bg: "#FFE5DD", elevated: "#fff8f5", deep: "#ffd0c4" },
   amber: { bg: "#FAFAFA", elevated: "#fffaf5", deep: "#ffe4cf" },
@@ -2174,6 +2184,7 @@ function App() {
     if (t.bgTreatment === "rose-gold-paper") body.classList.add("bg-rose-gold-paper");
     if (t.bgTreatment === "rose-champagne") body.classList.add("bg-rose-gold-paper", "bg-rose-champagne");
     if (t.bgTreatment === "midnight-rose") body.classList.add("bg-midnight-rose");
+    if (t.bgTreatment === "fall-owl") body.classList.add("bg-fall-owl");
     if (t.bgTreatment === "pearl-rose") body.classList.add("bg-pearl-rose");
     if (t.bgTreatment === "garnet-shell") body.classList.add("bg-garnet-shell");
     if (t.bgTreatment === "amber-paper") body.classList.add("bg-amber-paper");
@@ -2193,6 +2204,7 @@ function App() {
     if (t.cardSurface === "pearl-rose-paper") body.classList.add("surface-pearl-rose-paper");
     if (t.cardSurface === "pearl-rose") body.classList.add("surface-pearl-rose");
     if (t.cardSurface === "midnight-rose") body.classList.add("surface-midnight-rose");
+    if (t.cardSurface === "fall-owl") body.classList.add("surface-fall-owl");
     if (t.cardSurface === "blush-shell") body.classList.add("surface-blush-shell");
     if (t.cardSurface === "sunlit-pearl") body.classList.add("surface-sunlit-pearl");
     if (t.cardSurface === "plush-orchid") body.classList.add("surface-plush-orchid");
@@ -2539,6 +2551,7 @@ function App() {
               { value: "halloween_pumpkin_cat", label: "Halloween Pumpkin and Cat" },
               { value: "rose_gold", label: "Rose Gold" },
               { value: "midnight_rose", label: "Midnight Rose" },
+              { value: "fall_owl_harvest_moon", label: "Fall Owl and Harvest Moon" },
               { value: "pearl_rose", label: "Pearl Rose" },
               { value: "rose_champagne", label: "Rose Champagne" },
               { value: "garnet", label: "Garnet" },

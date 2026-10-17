@@ -36,6 +36,17 @@ function applyUnsubscribeAppearance() {
     Object.entries(midnightTokens).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
     return;
   }
+  if (preset === "fall_owl_harvest_moon") {
+    document.body.classList.add("bg-fall-owl", "surface-fall-owl", "shape-soft");
+    const midnightTokens = {
+      "--hp-primary": "#efba73", "--hp-accent": "#c7854f", "--primary": "#efba73", "--accent": "#c7854f",
+      "--hp-bg": "#201321", "--hp-bg-elevated": "#302030", "--bg-deep": "#160e18",
+      "--hp-display-font": '"Playfair Display", Georgia, serif',
+      "--hp-body-font": '"DM Sans", "Inter", system-ui, sans-serif', "--hp-heading-weight": "600",
+    };
+    Object.entries(midnightTokens).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
+    return;
+  }
 
   if (preset === "rose_champagne") {
     document.body.classList.add("bg-rose-gold-paper", "bg-rose-champagne", "surface-pearl-rose", "shape-soft");

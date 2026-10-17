@@ -46,7 +46,7 @@ function inside(box: { x: number; y: number; x2: number; y2: number }) {
 describe('business card themes', () => {
   it('covers every shared flyer theme plus the four approved custom reps', () => {
     for (const theme of CARD_QR_SHARED_FLYER_THEMES) expect(BIZCARD_SHARED_THEMES[theme]).toBeTruthy()
-    expect(KEYS).toHaveLength(18)
+    expect(KEYS).toHaveLength(19)
     for (const key of KEYS) {
       expect(existsSync(path.join(process.cwd(), 'lib/workspace/card-qr/card-plates', `${key}.jpg`))).toBe(true)
       for (const file of Object.values(BIZCARD_FONT_FILES[key])) {

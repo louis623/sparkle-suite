@@ -274,7 +274,7 @@ describe('flyer theme designs', () => {
     expect(FLYER_THEME_RECORDS.map((record) => record.theme).sort()).toEqual(
       [...AMETHYST_APPEARANCE_PRESET_IDS].sort(),
     )
-    expect(CARD_QR_SHARED_FLYER_THEMES).toHaveLength(14)
+    expect(CARD_QR_SHARED_FLYER_THEMES).toHaveLength(15)
     for (const theme of CARD_QR_SHARED_FLYER_THEMES) {
       const plate = flyerPlateAbsolute(theme)
       expect(plate, theme).toBeTruthy()

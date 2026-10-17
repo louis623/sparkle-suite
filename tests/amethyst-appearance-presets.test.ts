@@ -90,6 +90,7 @@ describe('Amethyst appearance presets', () => {
       'gilded_autumn',
       'rose_gold',
       'midnight_rose',
+      'fall_owl_harvest_moon',
       'pearl_rose',
       'rose_champagne',
       'garnet',
@@ -111,6 +112,7 @@ describe('Amethyst appearance presets', () => {
       'The Golden Leaves of Autumn',
       'Rose Gold',
       'Midnight Rose',
+      'Fall Owl and Harvest Moon',
       'Pearl Rose',
       'Rose Champagne',
       'Garnet',
@@ -433,11 +435,15 @@ describe('Amethyst appearance presets', () => {
         ? readFileSync(resolve(process.cwd(), 'public/amethyst/pearl-rose.css'), 'utf8')
         : surface === 'midnight-rose'
         ? readFileSync(resolve(process.cwd(), 'public/amethyst/midnight-rose.css'), 'utf8')
+        : surface === 'fall-owl'
+        ? readFileSync(resolve(process.cwd(), 'public/amethyst/fall-owl.css'), 'utf8')
         : homepageCss
       const className = surface === 'pearl-rose-paper'
         ? 'bg-pearl-rose'
         : surface === 'midnight-rose'
         ? 'bg-midnight-rose'
+        : surface === 'fall-owl'
+        ? 'bg-fall-owl'
         : surface === 'holographic' ? 'fx-holographic' : `surface-${surface}`
       expect(surfaceCss).toMatch(
         new RegExp(

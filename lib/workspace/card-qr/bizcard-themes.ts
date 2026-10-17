@@ -8,6 +8,7 @@ export type BizcardKey =
   | 'amethyst'
   | 'gilded-autumn'
   | 'midnight-rose'
+  | 'fall-owl'
   | 'pearl-rose'
   | 'rose-champagne'
   | 'morganite'
@@ -55,6 +56,8 @@ export const BIZCARD_THEMES: Record<BizcardKey, BizcardTheme> = {
     back: '#1c0e08', name: '#ffa04d', ink: '#fff4e8', sub: '#f0c9a0', rule: '#5e3218', title: '#fff4e8', script: '#ffa04d' }),
   amethyst: t({ key: 'amethyst', qrTheme: 'amethyst', align: 'left', tw: 0.4, shadow: true,
     back: '#26105c', name: '#ff8fd0', ink: '#ffffff', sub: '#cdb8ff', rule: '#4f3398', title: '#ffffff', script: '#ff9bd6' }),
+  'fall-owl': t({ key: 'fall-owl', qrTheme: 'fall_owl_harvest_moon', align: 'left', tw: 0.47, shadow: true,
+    back: '#201321', name: '#efba73', ink: '#fff3e4', sub: '#ddc8b8', rule: '#70513e', title: '#fff3e4', script: '#efba73' }),
   'midnight-rose': t({ key: 'midnight-rose', qrTheme: 'midnight_rose', align: 'top', shadow: true,
     back: '#2a1218', name: '#efb5a3', ink: '#fff1ea', sub: '#e7c2b6', rule: '#5a303b', title: '#fff1ea', script: '#efb5a3' }),
   morganite: t({ key: 'morganite', qrTheme: 'sparkle_suite_morganite', align: 'center', shadow: false,
@@ -96,6 +99,7 @@ export const BIZCARD_SHARED_THEMES: Partial<Record<string, BizcardKey>> = {
   amethyst: 'amethyst',
   gilded_autumn: 'gilded-autumn',
   midnight_rose: 'midnight-rose',
+  fall_owl_harvest_moon: 'fall-owl',
   pearl_rose: 'pearl-rose',
   rose_champagne: 'rose-champagne',
   sparkle_suite_morganite: 'morganite',

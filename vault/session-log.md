@@ -1,3 +1,7 @@
+## October 17, 2026 - Fall Owl community theme prepared
+
+- Louis authorized publishing Fall Owl and Harvest Moon (FO-01) to all reps. Clean current-tip clone contains the approved animation, full Amethyst theme, shared catalog/persistence integration, guarded migration, and print-asset compatibility. Build and 232 focused checks passed. Database publication and live release await authorized database access after automatic review rejected exporting production secrets. See [release state](2026-10-17-fall-owl-release.md).
+
 ## September 29, 2026 - Live Lineup status copy and signals
 
 - Draft PR https://github.com/louis623/sparkle-suite/pull/49 on `cursor/live-lineup-status-copy-0977`. Popup and Workspace Live Lineup now share Connecting, Connected + Updating, Reconnecting, Needs attention, and Off. Green stays on a healthy heartbeat and a routine source refresh. Red is Needs attention. Parser, lease, publish, read, customer cards, the 2.0.6 package version, and the Chrome Web Store item were not changed. Not deployed. Details: [status copy closeout](2026-09-29-live-lineup-status-copy-closeout.md).

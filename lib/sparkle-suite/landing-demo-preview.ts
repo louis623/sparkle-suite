@@ -32,7 +32,7 @@ export async function landingPreviewDocument(demo: LandingDemo, theme: AmethystA
   const mediaFolders: Partial<Record<AmethystAppearancePresetId, string>> = {
     amethyst:'am01-unicorn', gilded_autumn:'gilded-autumn', gnome_garden:'gnome-garden',
     halloween_pumpkin_cat:'halloween-pumpkin-cat', halloween_pumpkin_witch:'halloween-pumpkin-witch',
-    midnight_rose:'midnight-rose', pearl_rose:'pearl-rose', rose_champagne:'rose-champagne', neon_butterfly:'neon-butterfly',
+    midnight_rose:'midnight-rose', fall_owl_harvest_moon:'fall-owl', pearl_rose:'pearl-rose', rose_champagne:'rose-champagne', neon_butterfly:'neon-butterfly',
   }
   const folder = mediaFolders[theme]
   const assets = folder ? (await readdir(join(process.cwd(), 'public', 'amethyst', 'skins', folder)))
