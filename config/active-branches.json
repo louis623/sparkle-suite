@@ -31,7 +31,8 @@
     "cursor/founder-copy-llms-disclaimer-8afd",
     "cursor/founder-count-privacy-c41f",
     "cursor/site-traffic-redesign-ff40",
-    "cursor/no-trial-wording"
+    "cursor/no-trial-wording",
+    "cursor/no-trial-access"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -107,6 +108,10 @@
       "environment": "preview"
     },
     "cursor/no-trial-wording": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/no-trial-access": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }

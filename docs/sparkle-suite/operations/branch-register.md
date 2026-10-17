@@ -113,6 +113,10 @@ reconciliation and must not be swept into the active branch merely to make
 
 ## Branch lifecycle
 
+### October 17 payment-first workspace Smoke preview
+
+Louis asked to remove the five-day free-access path so the workspace opens only after the first payment, on a draft pull request stacked on `cursor/no-trial-wording` and targeting `codex/nic-nac-trade-hardening`. No merge and no Live deploy. `cursor/no-trial-access` is allowlisted for a Smoke preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change. Existing `workspace_trials` rows stay stored and are not used to open the workspace. No database migration is applied.
+
 ### October 17 no-trial wording Smoke preview
 
 Louis asked to remove free-trial wording from Suite copy on a draft pull request against `codex/nic-nac-trade-hardening`, with no merge or Live deploy. `cursor/no-trial-wording` is allowlisted for a Smoke preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change. The trial mechanism and the Live database are not modified.
