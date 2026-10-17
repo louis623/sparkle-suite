@@ -147,7 +147,7 @@ describe('site analytics panel', () => {
         ga4: { status: 'processing', realtimeUsers: null },
       }),
     )
-    expect(dates).toContain('Not enough counted days in the same number of days just before to compare yet.')
+    expect(dates).toContain('Not enough counted days before these dates to compare yet.')
     expect(dates).toContain('Who stopped by your site in this date range.')
     expect(dates).toContain('Your takeaway for these dates')
     expect(dates).toContain('Times your Join my team page was opened in this date range.')

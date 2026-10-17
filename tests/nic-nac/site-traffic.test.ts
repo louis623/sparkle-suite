@@ -478,7 +478,7 @@ describe('site traffic copy and fetch key', () => {
       customEnd: '2026-10-20',
     }))
     expect(pageViewComparisonCopy(week)).toBe('Not enough counted days in the previous 7 days to compare yet.')
-    expect(pageViewComparisonCopy(dates)).toBe('Not enough counted days in the same number of days just before to compare yet.')
+    expect(pageViewComparisonCopy(dates)).toBe('Not enough counted days before these dates to compare yet.')
     expect(takeawayHeading(week.period)).toBe('Your takeaway for the last 7 days')
     expect(takeawayHeading(dates.period)).toBe('Your takeaway for these dates')
     expect(joinOpenedSentence(week.period)).toBe('Times your Join my team page was opened in the last 7 days.')

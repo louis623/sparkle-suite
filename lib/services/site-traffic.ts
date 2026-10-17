@@ -927,7 +927,7 @@ export function pageViewComparisonCopy(summary: TrafficPeriodSummary) {
   }
   if (summary.comparisonPageViews == null || !summary.comparisonLabel) {
     if (summary.period.id === 'last-7') return 'Not enough counted days in the previous 7 days to compare yet.'
-    if (summary.period.id === 'custom') return 'Not enough counted days in the same number of days just before to compare yet.'
+    if (summary.period.id === 'custom') return 'Not enough counted days before these dates to compare yet.'
     if (summary.period.id === 'last-month') return 'Not enough counted days in the previous month to compare yet.'
     return 'Not enough counted days last month to compare yet.'
   }
