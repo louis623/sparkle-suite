@@ -310,12 +310,12 @@ describe('POST /api/stripe/create-checkout', () => {
           'http://localhost:3000/nic-nac?section=account&billing=subscription-cancelled',
         metadata: expect.objectContaining({
           rep_id: 'rep-operator-trial',
-          first_run_setup: 'operator_trial_conversion',
+          first_run_setup: 'operator_payment_first',
           light_box_required: 'false',
         }),
         subscription_data: expect.objectContaining({
           metadata: expect.objectContaining({
-            first_run_setup: 'operator_trial_conversion',
+            first_run_setup: 'operator_payment_first',
             light_box_required: 'false',
           }),
         }),
@@ -1244,7 +1244,7 @@ describe('POST /api/stripe/create-checkout', () => {
           'http://localhost:3000/nic-nac?section=account&billing=subscription-cancelled',
         metadata: expect.objectContaining({
           rep_id: 'rep-kelly',
-          first_run_setup: 'operator_trial_conversion',
+          first_run_setup: 'operator_payment_first',
           light_box_required: 'false',
           pricing_tier: 'founder',
           founder_sequence: '2',

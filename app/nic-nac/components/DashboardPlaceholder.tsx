@@ -13365,19 +13365,21 @@ export function AccountBillingCard({
   const { summary } = state
   const workspaceAccess = summary.workspaceAccess
   const grandfatheredCheckout = summary.grandfatheredCheckout
-  const isActiveWorkspaceTrial =
-    workspaceAccess?.source === 'trial' && workspaceAccess.hasFullAccess
   const convertingInternalEntitlement = Boolean(
     summary.canStartSubscription &&
       summary.subscription &&
-      summary.subscription.status !== 'cancelled' &&
-      !isActiveWorkspaceTrial,
+      summary.subscription.status !== 'cancelled',
   )
+  const awaitingFirstPayment =
+    !summary.subscription &&
+    !convertingInternalEntitlement &&
+    (workspaceAccess?.source === 'trial' ||
+      workspaceAccess?.hasFullAccess !== true)
   const subscriptionStatus = summary.subscription
     ? summary.subscription.status.replace('_', ' ')
     : 'No active subscription'
-  const subscriptionTitle = isActiveWorkspaceTrial
-    ? 'Workspace access active'
+  const subscriptionTitle = awaitingFirstPayment
+    ? 'Not active yet'
     : convertingInternalEntitlement
     ? 'Billing not started'
     : summary.subscription
@@ -13406,17 +13408,9 @@ export function AccountBillingCard({
         <span className={styles.accountStatusBadge}>{subscriptionTitle}</span>
       </div>
 
-      {isActiveWorkspaceTrial ? (
+      {awaitingFirstPayment ? (
         <div className={styles.helperMessage} role="status">
-          Your Sparkle Suite workspace access is active through{' '}
-          {formatAccountBillingDate(workspaceAccess?.trialEndsAt ?? null)}.
-          Start billing before then to keep your workspace and customer site
-          available without interruption.
-        </div>
-      ) : workspaceAccess?.status === 'trial_expired' ? (
-        <div className={styles.actionError} role="status">
-          Your workspace access has ended. Your work is saved; start billing to
-          reopen the workspace and customer site.
+          The workspace opens after your first payment goes through.
         </div>
       ) : convertingInternalEntitlement ? (
         <div className={styles.helperMessage} role="status">

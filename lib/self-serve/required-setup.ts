@@ -317,12 +317,42 @@ async function createRequiredSetupSessionAfterPaidAccess(
   return normalizeRequiredSetupSession(data as RequiredSetupSessionRow)
 }
 
+function isOperatorProvisionedSession(row: RequiredSetupSessionRow | null) {
+  return (
+    Array.isArray(row?.completed_steps) &&
+    row.completed_steps.includes('operator_account_provisioned')
+  )
+}
+
+async function hasStoredWorkspaceAccessRow(admin: AdminClient, repId: string) {
+  const { data, error } = await admin
+    .from('workspace_trials')
+    .select('id')
+    .eq('rep_id', repId)
+    .maybeSingle()
+
+  if (error) throw error
+  return Boolean(data)
+}
+
 async function reconcilePaidRequiredSetupState(
   admin: AdminClient,
   repId: string,
   row: RequiredSetupSessionRow | null,
 ) {
   const state = normalizeRequiredSetupSession(row)
+  if (state.status === 'dashboard_unlocked' && row) {
+    if (await hasPaidSetupSubscription(admin, repId)) return state
+    const openedByStoredAccessRow = await hasStoredWorkspaceAccessRow(admin, repId)
+    if (!isOperatorProvisionedSession(row) && !openedByStoredAccessRow) {
+      return state
+    }
+    return {
+      ...state,
+      status: 'checkout_required' as const,
+    }
+  }
+
   if (
     state.status !== 'checkout_required' &&
     state.status !== 'payment_pending'
@@ -332,6 +362,15 @@ async function reconcilePaidRequiredSetupState(
 
   if (!(await hasPaidSetupSubscription(admin, repId))) return state
   if (!row) return createRequiredSetupSessionAfterPaidAccess(admin, repId)
+
+  if (isOperatorProvisionedSession(row)) {
+    return updateRequiredSetupSession(admin, repId, {
+      status: 'dashboard_unlocked',
+      current_step: state.currentStep,
+      dashboard_unlocked_at:
+        row.dashboard_unlocked_at ?? new Date().toISOString(),
+    })
+  }
 
   return updateRequiredSetupSession(admin, repId, {
     status: 'required_setup',

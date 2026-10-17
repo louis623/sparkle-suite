@@ -38,7 +38,10 @@ async function parsePayload(request: Request) {
     return {
       launchBuildId: readString(body.launchBuildId),
       repId: readString(body.repId),
-      createClientAccount: readBoolean(body.createClientAccount),
+      createClientAccount:
+      readBoolean(body.createClientAccount) ||
+      Boolean(readString(body.temporaryPassword)) ||
+      Boolean(readString(body.temporaryPasswordConfirm)),
       temporaryPassword: readString(body.temporaryPassword),
       temporaryPasswordConfirm: readString(body.temporaryPasswordConfirm),
       notes: readString(body.notes),
@@ -52,7 +55,10 @@ async function parsePayload(request: Request) {
   return {
     launchBuildId: readString(form.get('launchBuildId')),
     repId: readString(form.get('repId')),
-    createClientAccount: readBoolean(form.get('createClientAccount')),
+    createClientAccount:
+      readBoolean(form.get('createClientAccount')) ||
+      Boolean(readString(form.get('temporaryPassword'))) ||
+      Boolean(readString(form.get('temporaryPasswordConfirm'))),
     temporaryPassword: readString(form.get('temporaryPassword')),
     temporaryPasswordConfirm: readString(
       form.get('temporaryPasswordConfirm'),

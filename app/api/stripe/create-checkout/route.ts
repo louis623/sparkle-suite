@@ -323,8 +323,23 @@ export async function POST(request: Request) {
       throw workspaceTrialError
     }
 
-    const isOperatorTrialConversion =
-      Boolean(workspaceTrial) || convertingInternalEntitlement
+    const { data: setupSession, error: setupSessionError } = await admin
+      .from('self_serve_setup_sessions')
+      .select('completed_steps')
+      .eq('rep_id', repId)
+      .maybeSingle()
+
+    if (setupSessionError) {
+      throw setupSessionError
+    }
+
+    const operatorProvisioned =
+      Array.isArray(setupSession?.completed_steps) &&
+      setupSession.completed_steps.includes('operator_account_provisioned')
+    const isOperatorPaymentFirst =
+      Boolean(workspaceTrial) ||
+      operatorProvisioned ||
+      convertingInternalEntitlement
 
     const testBuyerCheckoutEnabled = isTestBuyerCheckoutEnabled()
     if (testBuyerCheckoutEnabled && !canUseTestBuyerCheckout()) {
@@ -400,9 +415,9 @@ export async function POST(request: Request) {
       agreement_version: getSelfServeAgreementVersion(),
       signwell_required: 'false',
     }
-    const requiredSetupMetadata = isOperatorTrialConversion
+    const requiredSetupMetadata = isOperatorPaymentFirst
       ? {
-          first_run_setup: 'operator_trial_conversion',
+          first_run_setup: 'operator_payment_first',
           light_box_required: 'false',
         }
       : {
@@ -411,10 +426,10 @@ export async function POST(request: Request) {
         }
 
     const returnOrigin = resolveCheckoutReturnOrigin(request)
-    const successUrl = isOperatorTrialConversion
+    const successUrl = isOperatorPaymentFirst
       ? `${returnOrigin}/nic-nac?section=account&billing=subscription-success&session_id={CHECKOUT_SESSION_ID}`
       : `${returnOrigin}/nic-nac?onboarding=required-setup&billing=subscription-success&session_id={CHECKOUT_SESSION_ID}`
-    const cancelUrl = isOperatorTrialConversion
+    const cancelUrl = isOperatorPaymentFirst
       ? `${returnOrigin}/nic-nac?section=account&billing=subscription-cancelled`
       : `${returnOrigin}/nic-nac?onboarding=checkout-required&billing=subscription-cancelled`
     const stripe = getStripe()

@@ -88,23 +88,6 @@ export default function LoginClient() {
               setError(signErr.message)
               return
             }
-            const trialResponse = await fetch('/api/account/activate-trial', {
-              method: 'POST',
-            })
-            if (!trialResponse.ok) {
-              await supabase.auth.signOut()
-              const payload = (await trialResponse.json().catch(() => null)) as
-                | { error?: string; message?: string }
-                | null
-              setError(
-                payload?.error === 'account_not_found'
-                  ? 'No Sparkle Suite account is associated with this email. Contact Louis or sign in with a different email.'
-                  : payload?.message ??
-                      payload?.error ??
-                      'We could not open your workspace. Please sign in again.',
-              )
-              return
-            }
             router.replace(redirect)
           } catch (err) {
             setError((err as Error).message)

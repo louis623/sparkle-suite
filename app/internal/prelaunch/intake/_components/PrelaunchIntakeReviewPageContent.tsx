@@ -1660,15 +1660,6 @@ export function PrelaunchIntakeReviewPageContent({
                       name="notes"
                     />
                   </label>
-                  <label className="flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700">
-                    <input
-                      className="h-4 w-4 rounded border-slate-300"
-                      name="createClientAccount"
-                      type="checkbox"
-                      value="true"
-                    />
-                    Create five-day trial account
-                  </label>
                   <label className="text-xs font-semibold text-slate-700">
                     Temporary password
                     <input
@@ -1695,8 +1686,11 @@ export function PrelaunchIntakeReviewPageContent({
                 <p className="mt-3 text-xs leading-5 text-slate-500">
                   Account creation uses the customer email on this build and
                   does not send an email. Hand the login details to the rep
-                  yourself. The five-day trial starts on their first successful
-                  sign-in, not when you create the account. {getPasswordRequirements()}
+                  yourself. Enter a temporary password to create the account.
+                  The rep can sign in, and the workspace opens after the first
+                  payment goes through. Leave the password blank and enter an
+                  existing rep ID to link that account instead.{' '}
+                  {getPasswordRequirements()}
                 </p>
                 <button
                   className="mt-4 inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-100"

@@ -1032,10 +1032,11 @@ describe('PrelaunchIntakeReviewPageContent', () => {
       'action="/api/control-center/intake/production-roster"',
     )
     expect(html).toContain('Existing rep ID')
-    expect(html).toContain('Create five-day trial account')
+    expect(html).not.toContain('createClientAccount')
     expect(html).toContain('Temporary password')
     expect(html).toContain('Confirm temporary password')
-    expect(html).toContain('five-day trial starts on their first successful')
+    expect(html).toContain('workspace opens after the first payment goes through')
+    expect(html).not.toMatch(/trial/i)
     expect(html).toContain('does not send an email')
     expect(html).toContain('Hand the login details to the rep')
     expect(html).toContain('Save roster connection')

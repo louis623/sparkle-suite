@@ -75,7 +75,7 @@ describe('POST /api/control-center/intake/production-roster', () => {
     })
   })
 
-  it('creates and links a pending trial without calling the legacy gate path', async () => {
+  it('creates and links an account that waits for payment', async () => {
     getAuthenticatedOperatorMock.mockResolvedValueOnce({
       repId: 'operator-1',
       rep: { email: 'louis@neonrabbit.net' },
@@ -85,8 +85,7 @@ describe('POST /api/control-center/intake/production-roster', () => {
       email: 'customer@example.com',
       createdAuthUser: true,
       sentInvite: false,
-      trialStatus: 'pending',
-      trialDurationDays: 5,
+      workspaceAccess: 'checkout_required',
       build: {
         id: 'build-1',
         repId: 'rep-created',
@@ -129,8 +128,7 @@ describe('POST /api/control-center/intake/production-roster', () => {
         email: 'customer@example.com',
         createdAuthUser: true,
         sentInvite: false,
-        trialStatus: 'pending',
-        trialDurationDays: 5,
+        workspaceAccess: 'checkout_required',
         build: {
           id: 'build-1',
           repId: 'rep-created',

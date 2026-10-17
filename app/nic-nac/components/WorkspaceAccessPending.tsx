@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { RequiredSetupStatus } from '@/lib/self-serve/required-setup-contract'
+import type { AccountBillingDashboardResult } from '@/lib/services/types'
 import { createClient } from '@/lib/supabase/client'
 import styles from './WorkspaceAccessPending.module.css'
 
@@ -12,7 +13,31 @@ export function WorkspaceAccessPending({
 }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [agreementAccepted, setAgreementAccepted] = useState(false)
+  const [billing, setBilling] = useState<AccountBillingDashboardResult | null>(
+    null,
+  )
   const paymentPending = status === 'payment_pending'
+  const grandfatheredCheckout = billing?.grandfatheredCheckout ?? null
+
+  useEffect(() => {
+    if (paymentPending) return
+    const controller = new AbortController()
+    void (async () => {
+      try {
+        const response = await fetch('/api/nic-nac/account-billing', {
+          credentials: 'include',
+          signal: controller.signal,
+        })
+        if (!response.ok) return
+        const payload = (await response.json()) as AccountBillingDashboardResult
+        setBilling(payload)
+      } catch {
+        if (controller.signal.aborted) return
+      }
+    })()
+    return () => controller.abort()
+  }, [paymentPending])
 
   async function handleUseDifferentEmail() {
     setBusy(true)
@@ -32,6 +57,33 @@ export function WorkspaceAccessPending({
     }
   }
 
+  async function handleCheckout() {
+    setBusy(true)
+    setError(null)
+    try {
+      const response = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ agreementAccepted: true }),
+      })
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: string; url?: string }
+        | null
+      if (!response.ok || !payload?.url) {
+        throw new Error(payload?.error || 'Unable to open checkout.')
+      }
+      window.location.assign(payload.url)
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'Unable to open checkout.',
+      )
+      setBusy(false)
+    }
+  }
+
   return (
     <main className={styles.page}>
       <section className={styles.card} aria-labelledby="workspace-access-title">
@@ -40,17 +92,39 @@ export function WorkspaceAccessPending({
         <h1 id="workspace-access-title">
           {paymentPending
             ? 'Payment is still being confirmed'
-            : 'Workspace access is not active for this account'}
+            : 'Finish checkout to open your workspace'}
         </h1>
         <p>
           {paymentPending
             ? 'No new checkout will start automatically. Sign in again after payment is confirmed.'
-            : 'Louis needs to finish setting up this email before it can open a Sparkle Suite workspace.'}
+            : 'Your account can sign in now. The workspace opens after your first payment goes through.'}
         </p>
-        <p>
-          Sparkle Suite never starts checkout just because you sign in. Billing
-          is started deliberately from <strong>Account</strong> inside the app.
-        </p>
+        {paymentPending ? null : grandfatheredCheckout ? (
+          <a className={styles.payLink} href={grandfatheredCheckout.href}>
+            Continue to checkout
+          </a>
+        ) : (
+          <>
+            <label className={styles.agreement}>
+              <input
+                type="checkbox"
+                checked={agreementAccepted}
+                onChange={(event) => setAgreementAccepted(event.target.checked)}
+              />
+              <span>
+                I accept the Sparkle Suite Terms and Conditions and understand
+                the first payment is collected at checkout.
+              </span>
+            </label>
+            <button
+              type="button"
+              disabled={busy || !agreementAccepted}
+              onClick={() => void handleCheckout()}
+            >
+              {busy ? 'Opening checkout...' : 'Continue to checkout'}
+            </button>
+          </>
+        )}
         <button
           type="button"
           disabled={busy}

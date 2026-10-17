@@ -64,8 +64,7 @@ export interface PrelaunchClientAccountResult {
   email: string
   createdAuthUser: boolean
   sentInvite: false
-  trialStatus: 'pending'
-  trialDurationDays: 5
+  workspaceAccess: 'checkout_required'
   build: PrelaunchLaunchBuild
 }
 
@@ -388,7 +387,7 @@ export async function preparePrelaunchClientAccountForLaunchBuild(
 
     const rep = repData as unknown as CreatedRepRow
     createdRepId = rep.id
-    const unlockedAt = new Date().toISOString()
+    const provisionedAt = new Date().toISOString()
 
     const { error: siteSettingsError } = await admin
       .from('site_settings')
@@ -419,7 +418,7 @@ export async function preparePrelaunchClientAccountForLaunchBuild(
             'waitlist',
             'conversation',
             'setup_profile',
-            'trial_provisioned',
+            'account_provisioned',
           ],
         },
         { onConflict: 'rep_id' },
@@ -432,7 +431,7 @@ export async function preparePrelaunchClientAccountForLaunchBuild(
       .upsert(
         {
           rep_id: rep.id,
-          status: 'dashboard_unlocked',
+          status: 'checkout_required',
           current_step: 'account_basics',
           completed_steps: ['operator_account_provisioned'],
           answers: {
@@ -440,23 +439,13 @@ export async function preparePrelaunchClientAccountForLaunchBuild(
             businessName: rep.business_name,
             email: rep.email,
           },
-          dashboard_unlocked_at: unlockedAt,
-          updated_at: unlockedAt,
+          dashboard_unlocked_at: null,
+          updated_at: provisionedAt,
         },
         { onConflict: 'rep_id' },
       )
 
     if (setupSessionError) throw setupSessionError
-
-    const { error: trialError } = await admin.from('workspace_trials').insert({
-      rep_id: rep.id,
-      status: 'pending',
-      duration_days: 5,
-      provisioned_by_rep_id: input.operatorRepId ?? null,
-      launch_build_id: launchBuildId,
-    })
-
-    if (trialError) throw trialError
 
     const linkedBuild = await linkLaunchBuildToCreatedRep(
       build,
@@ -470,8 +459,7 @@ export async function preparePrelaunchClientAccountForLaunchBuild(
       email: rep.email,
       createdAuthUser: true,
       sentInvite: false,
-      trialStatus: 'pending',
-      trialDurationDays: 5,
+      workspaceAccess: 'checkout_required',
       build: linkedBuild,
     }
   } catch (error) {

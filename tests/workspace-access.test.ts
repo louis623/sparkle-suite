@@ -176,57 +176,32 @@ describe('workspace access service', () => {
     },
   )
 
-  it('grants an active application trial before its request-time expiry', async () => {
-    const { client } = accessClient({ trial: trialRow() })
+  it('does not open the workspace from a stored access row', async () => {
+    const { client, trial } = accessClient({ trial: trialRow() })
 
     await expect(
       resolveWorkspaceAccess({
         supabase: client as never,
         repId: 'rep-1',
-        now: new Date('2026-08-07T12:59:59.999Z'),
-      }),
-    ).resolves.toEqual(
-      expect.objectContaining({
-        hasFullAccess: true,
-        source: 'trial',
-        status: 'trial_active',
-      }),
-    )
-  })
-
-  it('denies the trial at the exact expiry boundary without requiring a cron', async () => {
-    const { client } = accessClient({ trial: trialRow() })
-
-    await expect(
-      resolveWorkspaceAccess({
-        supabase: client as never,
-        repId: 'rep-1',
-        now: new Date('2026-08-07T13:00:00.000Z'),
+        now: new Date('2026-08-03T12:00:00.000Z'),
       }),
     ).resolves.toEqual(
       expect.objectContaining({
         hasFullAccess: false,
-        status: 'trial_expired',
+        source: 'none',
+        status: 'no_entitlement',
       }),
     )
+    expect(trial.maybeSingle).not.toHaveBeenCalled()
   })
 
   it.each([
-    ['pending', 'trial_pending'],
-    ['revoked', 'trial_revoked'],
-  ])('denies a %s trial', async (status, reason) => {
-    const row =
-      status === 'pending'
-        ? trialRow({
-            status,
-            first_signed_in_at: null,
-            expires_at: null,
-          })
-        : trialRow({
-            status,
-            revoked_at: '2026-08-03T12:00:00.000Z',
-          })
-    const { client } = accessClient({ trial: row })
+    ['manual internal subscription', 'sub_internal_demo'],
+    ['grandfathered stripe subscription', 'sub_123'],
+  ])('keeps access for an existing %s', async (_label, stripeId) => {
+    const { client } = accessClient({
+      subscription: { status: 'active', stripe_subscription_id: stripeId },
+    })
 
     await expect(
       resolveWorkspaceAccess({
@@ -234,8 +209,52 @@ describe('workspace access service', () => {
         repId: 'rep-1',
       }),
     ).resolves.toEqual(
-      expect.objectContaining({ hasFullAccess: false, status: reason }),
+      expect.objectContaining({
+        hasFullAccess: true,
+        source: 'subscription',
+        status: 'subscription_active',
+      }),
     )
+  })
+
+  it('keeps every current Smoke subscription shape and denies an unpaid rep', async () => {
+    const shapes = [
+      { status: 'active', stripe_subscription_id: 'sub_internal_demo' },
+      { status: 'active', stripe_subscription_id: 'sub_reviewer_demo' },
+      { status: 'active', stripe_subscription_id: 'sub_customer_1' },
+      { status: 'trialing', stripe_subscription_id: 'sub_grandfathered' },
+    ]
+
+    for (const subscription of shapes) {
+      const { client, trial } = accessClient({ subscription })
+      await expect(
+        resolveWorkspaceAccess({
+          supabase: client as never,
+          repId: 'rep-1',
+        }),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          hasFullAccess: true,
+          source: 'subscription',
+        }),
+      )
+      expect(trial.maybeSingle).not.toHaveBeenCalled()
+    }
+
+    const unpaid = accessClient({ subscription: null, trial: trialRow() })
+    await expect(
+      resolveWorkspaceAccess({
+        supabase: unpaid.client as never,
+        repId: 'rep-unpaid',
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        hasFullAccess: false,
+        source: 'none',
+        status: 'no_entitlement',
+      }),
+    )
+    expect(unpaid.trial.maybeSingle).not.toHaveBeenCalled()
   })
 
   it('fails closed when a subscription lookup fails', async () => {

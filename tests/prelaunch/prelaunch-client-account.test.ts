@@ -88,7 +88,7 @@ function setupRepLookup(fromMock: ReturnType<typeof vi.fn>) {
 }
 
 describe('prelaunch client account provisioning', () => {
-  it('creates an unlocked pending five-day trial once setup is ready', async () => {
+  it('creates an account that stays at checkout until the first payment', async () => {
     const { admin, fromMock, createUserMock, listUsersMock } = makeAdminClient()
     const build = readySetupBuild()
     setupLaunchBuildLookup(fromMock, build)
@@ -112,12 +112,10 @@ describe('prelaunch client account provisioning', () => {
     const upsertSiteSettings = vi.fn().mockResolvedValueOnce({ error: null })
     const upsertOnboarding = vi.fn().mockResolvedValueOnce({ error: null })
     const upsertSetupSession = vi.fn().mockResolvedValueOnce({ error: null })
-    const insertTrial = vi.fn().mockResolvedValueOnce({ error: null })
     fromMock
       .mockReturnValueOnce({ upsert: upsertSiteSettings })
       .mockReturnValueOnce({ upsert: upsertOnboarding })
       .mockReturnValueOnce({ upsert: upsertSetupSession })
-      .mockReturnValueOnce({ insert: insertTrial })
 
     const linkedBuild = readySetupBuild({
       rep_id: 'rep-1',
@@ -181,19 +179,14 @@ describe('prelaunch client account provisioning', () => {
     expect(upsertSetupSession).toHaveBeenCalledWith(
       expect.objectContaining({
         rep_id: 'rep-1',
-        status: 'dashboard_unlocked',
+        status: 'checkout_required',
         current_step: 'account_basics',
         completed_steps: ['operator_account_provisioned'],
+        dashboard_unlocked_at: null,
       }),
       { onConflict: 'rep_id' },
     )
-    expect(insertTrial).toHaveBeenCalledWith({
-      rep_id: 'rep-1',
-      status: 'pending',
-      duration_days: 5,
-      provisioned_by_rep_id: 'operator-1',
-      launch_build_id: 'build-1',
-    })
+    expect(fromMock).not.toHaveBeenCalledWith('workspace_trials')
     expect(updateLink).toHaveBeenCalledWith({
       rep_id: 'rep-1',
       production_roster_status: 'connected',
@@ -211,8 +204,7 @@ describe('prelaunch client account provisioning', () => {
       email: 'louis+real@neonrabbit.net',
       createdAuthUser: true,
       sentInvite: false,
-      trialStatus: 'pending',
-      trialDurationDays: 5,
+      workspaceAccess: 'checkout_required',
       build: {
         id: 'build-1',
         repId: 'rep-1',

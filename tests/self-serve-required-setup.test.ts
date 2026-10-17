@@ -494,6 +494,153 @@ describe('self-serve required setup service contract', () => {
     expect(state.currentStep).toBe('account_basics')
   })
 
+  function setupSessionRow(
+    overrides: Partial<RequiredSetupSessionRow> = {},
+  ): RequiredSetupSessionRow {
+    return {
+      id: 'setup-1',
+      rep_id: 'rep-1',
+      status: 'dashboard_unlocked',
+      current_step: 'account_basics',
+      completed_steps: ['operator_account_provisioned'],
+      answers: {},
+      generated_copy: {},
+      support_state: {},
+      dashboard_unlocked_at: '2026-08-02T14:00:00Z',
+      created_at: '2026-08-02T14:00:00Z',
+      updated_at: '2026-08-02T14:00:00Z',
+      ...overrides,
+    }
+  }
+
+  function mockSetupAndSubscription(row: RequiredSetupSessionRow | null, paid: boolean) {
+    const setupSelectMock = vi.fn()
+    const setupEqMock = vi.fn()
+    const setupMaybeSingleMock = vi.fn()
+    const subscriptionSelectMock = vi.fn()
+    const subscriptionEqMock = vi.fn()
+    const subscriptionInMock = vi.fn()
+    const subscriptionOrderMock = vi.fn()
+    const subscriptionLimitMock = vi.fn()
+    const subscriptionMaybeSingleMock = vi.fn()
+
+    fromMock
+      .mockReturnValueOnce({ select: setupSelectMock })
+      .mockReturnValueOnce({ select: subscriptionSelectMock })
+    setupSelectMock.mockReturnValueOnce({ eq: setupEqMock })
+    setupEqMock.mockReturnValueOnce({ maybeSingle: setupMaybeSingleMock })
+    setupMaybeSingleMock.mockResolvedValueOnce({ data: row, error: null })
+    subscriptionSelectMock.mockReturnValueOnce({ eq: subscriptionEqMock })
+    subscriptionEqMock.mockReturnValueOnce({ in: subscriptionInMock })
+    subscriptionInMock.mockReturnValueOnce({ order: subscriptionOrderMock })
+    subscriptionOrderMock.mockReturnValueOnce({ limit: subscriptionLimitMock })
+    subscriptionLimitMock.mockReturnValueOnce({
+      maybeSingle: subscriptionMaybeSingleMock,
+    })
+    subscriptionMaybeSingleMock.mockResolvedValueOnce({
+      data: paid ? { id: 'sub-1', status: 'active' } : null,
+      error: null,
+    })
+  }
+
+  it('holds an unpaid operator account at checkout without rewriting the row', async () => {
+    mockSetupAndSubscription(setupSessionRow(), false)
+    const trialSelectMock = vi.fn()
+    const trialEqMock = vi.fn()
+    const trialMaybeSingleMock = vi.fn()
+    fromMock.mockReturnValueOnce({ select: trialSelectMock })
+    trialSelectMock.mockReturnValueOnce({ eq: trialEqMock })
+    trialEqMock.mockReturnValueOnce({ maybeSingle: trialMaybeSingleMock })
+    trialMaybeSingleMock.mockResolvedValueOnce({ data: null, error: null })
+
+    const state = await getRequiredSetupState('rep-1')
+
+    expect(state.status).toBe('checkout_required')
+    expect(fromMock).toHaveBeenCalledTimes(3)
+    expect(fromMock).toHaveBeenNthCalledWith(3, 'workspace_trials')
+  })
+
+  it('holds an unpaid stored-access account at checkout without granting that row', async () => {
+    mockSetupAndSubscription(
+      setupSessionRow({ completed_steps: [], dashboard_unlocked_at: '2026-08-02T14:00:00Z' }),
+      false,
+    )
+    const trialSelectMock = vi.fn()
+    const trialEqMock = vi.fn()
+    const trialMaybeSingleMock = vi.fn()
+    fromMock.mockReturnValueOnce({ select: trialSelectMock })
+    trialSelectMock.mockReturnValueOnce({ eq: trialEqMock })
+    trialEqMock.mockReturnValueOnce({ maybeSingle: trialMaybeSingleMock })
+    trialMaybeSingleMock.mockResolvedValueOnce({
+      data: { id: 'trial-1' },
+      error: null,
+    })
+
+    const state = await getRequiredSetupState('rep-1')
+
+    expect(state.status).toBe('checkout_required')
+    expect(fromMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('leaves an unlocked unpaid account alone when it was not opened by free access', async () => {
+    mockSetupAndSubscription(
+      setupSessionRow({ completed_steps: ['account_basics'], dashboard_unlocked_at: '2026-08-02T14:00:00Z' }),
+      false,
+    )
+    const trialSelectMock = vi.fn()
+    const trialEqMock = vi.fn()
+    const trialMaybeSingleMock = vi.fn()
+    fromMock.mockReturnValueOnce({ select: trialSelectMock })
+    trialSelectMock.mockReturnValueOnce({ eq: trialEqMock })
+    trialEqMock.mockReturnValueOnce({ maybeSingle: trialMaybeSingleMock })
+    trialMaybeSingleMock.mockResolvedValueOnce({ data: null, error: null })
+
+    const state = await getRequiredSetupState('rep-1')
+
+    expect(state.status).toBe('dashboard_unlocked')
+  })
+
+  it('keeps a paying unlocked account in the workspace', async () => {
+    mockSetupAndSubscription(setupSessionRow(), true)
+
+    const state = await getRequiredSetupState('rep-1')
+
+    expect(state.status).toBe('dashboard_unlocked')
+    expect(fromMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('opens the workspace after the first payment for an operator-created account', async () => {
+    mockSetupAndSubscription(
+      setupSessionRow({
+        status: 'checkout_required',
+        dashboard_unlocked_at: null,
+      }),
+      true,
+    )
+    const updateMock = vi.fn()
+    const updateEqMock = vi.fn()
+    const updateSelectMock = vi.fn()
+    const updateSingleMock = vi.fn()
+    fromMock.mockReturnValueOnce({ update: updateMock })
+    updateMock.mockReturnValueOnce({ eq: updateEqMock })
+    updateEqMock.mockReturnValueOnce({ select: updateSelectMock })
+    updateSelectMock.mockReturnValueOnce({ single: updateSingleMock })
+    updateSingleMock.mockResolvedValueOnce({
+      data: setupSessionRow({
+        status: 'dashboard_unlocked',
+        dashboard_unlocked_at: '2026-10-17T12:00:00Z',
+      }),
+      error: null,
+    })
+
+    const state = await getRequiredSetupState('rep-1')
+
+    expect(updateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'dashboard_unlocked' }),
+    )
+    expect(state.status).toBe('dashboard_unlocked')
+  })
+
   it('saves a step answer by merging structured setup state before returning normalized state', async () => {
     const selectMock = vi.fn()
     const eqMock = vi.fn()

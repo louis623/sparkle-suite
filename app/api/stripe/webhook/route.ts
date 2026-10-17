@@ -681,7 +681,10 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
   if (error) throw error
 
-  if (session.metadata?.first_run_setup === 'operator_trial_conversion') {
+  if (
+    session.metadata?.first_run_setup === 'operator_payment_first' ||
+    session.metadata?.first_run_setup === 'operator_trial_conversion'
+  ) {
     const now = new Date().toISOString()
     const { error: workspaceTrialError } = await admin
       .from('workspace_trials')

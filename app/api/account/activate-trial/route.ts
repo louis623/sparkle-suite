@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 
-import { activatePendingWorkspaceTrial } from '@/lib/services/workspace-access'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { AuthError, getAuthenticatedRep } from '@/lib/supabase/auth'
 
 export const runtime = 'nodejs'
@@ -9,13 +7,8 @@ export const dynamic = 'force-dynamic'
 
 export async function POST() {
   try {
-    const { repId, rep } = await getAuthenticatedRep()
-    const trial = await activatePendingWorkspaceTrial({
-      supabase: createAdminClient(),
-      repId,
-    })
-
-    if (!trial && rep.status !== 'active') {
+    const { rep } = await getAuthenticatedRep()
+    if (rep.status !== 'active') {
       return NextResponse.json(
         {
           error: 'account_not_found',
@@ -27,9 +20,7 @@ export async function POST() {
 
     return NextResponse.json({
       ok: true,
-      activated: trial?.status === 'active',
-      trialStartsAt: trial?.firstSignedInAt ?? null,
-      trialEndsAt: trial?.expiresAt ?? null,
+      activated: false,
     })
   } catch (error) {
     if (error instanceof AuthError) {

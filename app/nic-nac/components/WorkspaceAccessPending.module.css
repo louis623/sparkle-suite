@@ -53,6 +53,33 @@
   line-height: 1.6;
 }
 
+.agreement {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 22px;
+  color: #574d69;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.agreement input {
+  margin-top: 3px;
+}
+
+.payLink {
+  display: block;
+  width: 100%;
+  margin-top: 26px;
+  padding: 13px 18px;
+  border-radius: 12px;
+  background: #2f174e;
+  color: white;
+  font-weight: 750;
+  text-align: center;
+  text-decoration: none;
+}
+
 .card button {
   width: 100%;
   margin-top: 26px;

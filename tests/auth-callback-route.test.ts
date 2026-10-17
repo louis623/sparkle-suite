@@ -253,9 +253,7 @@ describe('GET /api/auth/callback', () => {
       new Request('http://localhost/api/auth/callback?code=oauth-code'),
     )
 
-    expect(admin.rpc).toHaveBeenCalledWith('activate_workspace_trial', {
-      p_rep_id: 'rep-orphaned',
-    })
+    expect(admin.rpc).not.toHaveBeenCalled()
     expect(signOutMock).toHaveBeenCalledWith({ scope: 'local' })
     expect(response.headers.get('location')).toBe(
       'http://localhost/login?error=account_not_found',

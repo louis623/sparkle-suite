@@ -4140,7 +4140,7 @@ describe('DashboardPlaceholder', () => {
     expect(html.match(/Photo caption<\/span>/g)).toHaveLength(1)
   })
 
-  it('shows the workspace access deadline and preserved-work expiry message', () => {
+  it('tells an unpaid account that the workspace opens after payment', () => {
     const activeHtml = renderToStaticMarkup(
       createElement(AccountBillingCard, {
         state: {
@@ -4186,11 +4186,10 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(activeHtml).toContain('Workspace access active')
-    expect(activeHtml).toContain('Sparkle Suite workspace access is active through')
-    expect(activeHtml).toContain('keep your workspace and customer site')
-    expect(expiredHtml).toContain('Your workspace access has ended.')
-    expect(expiredHtml).toContain('Your work is saved')
+    expect(activeHtml).toContain('The workspace opens after your first payment goes through.')
+    expect(activeHtml).not.toMatch(/trial/i)
+    expect(expiredHtml).toContain('The workspace opens after your first payment goes through.')
+    expect(expiredHtml).not.toMatch(/trial/i)
   })
 
   it('hides empty billing admin states during unpaid checkout review', () => {

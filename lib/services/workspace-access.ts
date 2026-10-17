@@ -63,19 +63,6 @@ interface SubscriptionRow {
   status: string
 }
 
-const WORKSPACE_TRIAL_SELECT = [
-  'id',
-  'rep_id',
-  'status',
-  'duration_days',
-  'provisioned_by_rep_id',
-  'launch_build_id',
-  'provisioned_at',
-  'first_signed_in_at',
-  'expires_at',
-  'revoked_at',
-].join(', ')
-
 function workspaceAccessLookupError(
   source: 'subscription' | 'trial',
   cause: unknown,
@@ -96,7 +83,7 @@ function mapWorkspaceTrial(row: WorkspaceTrialRow): WorkspaceTrial {
       code: 'WORKSPACE_TRIAL_INVALID',
       message: `workspace trial ${row.id} has an invalid duration`,
       userMessage:
-        "I couldn't verify the trial period right now. Please contact support.",
+        "I couldn't verify workspace access right now. Please contact support.",
       statusCode: 500,
     })
   }
@@ -138,7 +125,7 @@ export async function activatePendingWorkspaceTrial({
       code: 'WORKSPACE_TRIAL_ACTIVATION_FAILED',
       message: 'failed to activate workspace trial after first sign-in',
       userMessage:
-        "I couldn't start the trial right now. Please try signing in again.",
+        "I couldn't open your workspace right now. Please try signing in again.",
       statusCode: 500,
       cause: error,
     })
@@ -162,20 +149,6 @@ async function loadLatestSubscription(
   return (data as SubscriptionRow | null) ?? null
 }
 
-async function loadWorkspaceTrial(
-  supabase: SupabaseClient,
-  repId: string,
-): Promise<WorkspaceTrial | null> {
-  const { data, error } = await supabase
-    .from('workspace_trials')
-    .select(WORKSPACE_TRIAL_SELECT)
-    .eq('rep_id', repId)
-    .maybeSingle()
-
-  if (error) throw workspaceAccessLookupError('trial', error)
-  return data ? mapWorkspaceTrial(data as unknown as WorkspaceTrialRow) : null
-}
-
 function denied(
   reason: WorkspaceAccessReason,
   subscriptionStatus: string | null,
@@ -195,7 +168,6 @@ function denied(
 export async function resolveWorkspaceAccess({
   supabase,
   repId,
-  now = new Date(),
 }: {
   supabase: SupabaseClient
   repId: string
@@ -232,32 +204,10 @@ export async function resolveWorkspaceAccess({
     return denied('subscription_ineligible', subscriptionStatus)
   }
 
-  const trial = await loadWorkspaceTrial(supabase, repId)
-  if (!trial) return denied('no_entitlement', null)
-  if (trial.status === 'pending') return denied('trial_pending', null, trial)
-  if (trial.status === 'revoked') return denied('trial_revoked', null, trial)
-  if (!trial.firstSignedInAt || !trial.expiresAt) {
-    return denied('trial_invalid', null, trial)
-  }
-
-  const expiresAt = Date.parse(trial.expiresAt)
-  if (!Number.isFinite(expiresAt)) {
-    return denied('trial_invalid', null, trial)
-  }
-
-  if (expiresAt <= now.getTime()) {
-    return denied('trial_expired', null, trial)
-  }
-
-  return {
-    hasFullAccess: true,
-    source: 'trial',
-    status: 'trial_active',
-    subscriptionStatus: null,
-    trialStartsAt: trial.firstSignedInAt,
-    trialEndsAt: trial.expiresAt,
-    trial,
-  }
+  // Historical workspace_trials rows stay stored. They do not open the
+  // workspace. Access stays on the subscription row: active and trialing
+  // grant it, including manual internal and grandfathered subscriptions.
+  return denied('no_entitlement', null)
 }
 
 /**
