@@ -119,6 +119,7 @@ describe('site analytics panel', () => {
         ga4: { status: 'processing', realtimeUsers: null },
       }),
     )
+    expect(week).toContain('Who stopped by your site in the last 7 days.')
     expect(week).toContain('Your takeaway for the last 7 days')
     expect(week).toContain('Not enough counted days in the previous 7 days to compare yet.')
     expect(week).toContain('Times your Join my team page was opened in the last 7 days.')
@@ -146,7 +147,8 @@ describe('site analytics panel', () => {
         ga4: { status: 'processing', realtimeUsers: null },
       }),
     )
-    expect(dates).toContain('Not enough counted days in the previous equal span to compare yet.')
+    expect(dates).toContain('Not enough counted days in the same number of days just before to compare yet.')
+    expect(dates).toContain('Who stopped by your site in this date range.')
     expect(dates).toContain('Your takeaway for these dates')
     expect(dates).toContain('Times your Join my team page was opened in this date range.')
   })

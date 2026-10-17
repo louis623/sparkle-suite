@@ -161,12 +161,14 @@ describe('rep dashboard hover tips', () => {
   it('styles the bubble like the dashboard and keeps it from taking clicks', () => {
     const css = readFileSync(new URL('../../app/nic-nac/components/RepDashboard.module.css', import.meta.url), 'utf8')
     const bubble = css.slice(css.indexOf('.tipBubble {'), css.indexOf('}', css.indexOf('.tipBubble {')) + 1)
+    expect(bubble).toContain('position: absolute')
     expect(bubble).toContain('pointer-events: none')
     expect(bubble).toContain('var(--dash-amethyst)')
     expect(bubble).toContain('var(--dash-cream)')
     expect(css).toContain('#ff4cae')
 
     const source = readFileSync(new URL('../../app/nic-nac/components/use-delayed-hover-tip.ts', import.meta.url), 'utf8')
+    expect(source).toContain('pointerFocus')
     expect(source).toContain('if (!result.preventClick) return')
     expect(source).toContain('event.preventDefault()')
     expect(source).toContain('stillOverCard')

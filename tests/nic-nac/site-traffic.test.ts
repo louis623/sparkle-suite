@@ -1,4 +1,5 @@
 import { generateKeyPairSync } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -22,6 +23,7 @@ import {
   dailyChartAxisLabels,
   joinOpenedSentence,
   pageViewComparisonCopy,
+  trafficIntro,
   pickSiteTrafficTakeaway,
   plainPageName,
   resolveTrafficPeriod,
@@ -417,6 +419,7 @@ describe('GA4 cache rules', () => {
     })
     expect(again).not.toHaveBeenCalled()
     expect(cached.status).toBe('processing')
+    expect(cached.configured).toBe(true)
     expect(cached.pageViews).toBeNull()
 
     const later = vi.fn(async () => sampleReport)
@@ -454,6 +457,7 @@ describe('GA4 cache rules', () => {
     })
     expect((writes[0]?.payload as { quality?: string }).quality).toBe('failed')
     expect(summary.status).toBe('unavailable')
+    expect(summary.configured).toBe(true)
     expect(summary.pageViews).toBeNull()
   })
 })
@@ -474,11 +478,33 @@ describe('site traffic copy and fetch key', () => {
       customEnd: '2026-10-20',
     }))
     expect(pageViewComparisonCopy(week)).toBe('Not enough counted days in the previous 7 days to compare yet.')
-    expect(pageViewComparisonCopy(dates)).toBe('Not enough counted days in the previous equal span to compare yet.')
+    expect(pageViewComparisonCopy(dates)).toBe('Not enough counted days in the same number of days just before to compare yet.')
     expect(takeawayHeading(week.period)).toBe('Your takeaway for the last 7 days')
     expect(takeawayHeading(dates.period)).toBe('Your takeaway for these dates')
     expect(joinOpenedSentence(week.period)).toBe('Times your Join my team page was opened in the last 7 days.')
     expect(joinOpenedSentence(dates.period)).toBe('Times your Join my team page was opened in this date range.')
+    expect(trafficIntro(week.period)).toBe('Who stopped by your site in the last 7 days.')
+    expect(trafficIntro(dates.period)).toBe('Who stopped by your site in this date range.')
+    const namedMonth = resolveTrafficPeriod({
+      period: 'last-month',
+      now: new Date('2026-11-17T16:00:00.000Z'),
+      timeZone: ZONE,
+    })
+    const unnamedMonth = resolveTrafficPeriod({
+      period: 'last-month',
+      now: new Date('2026-10-20T18:00:00.000Z'),
+      timeZone: ZONE,
+    })
+    expect(joinOpenedSentence(namedMonth)).toBe('Times your Join my team page was opened in October.')
+    expect(joinOpenedSentence(unnamedMonth)).toBe('Times your Join my team page was opened last month.')
+    expect(joinOpenedSentence(unnamedMonth)).not.toContain('in last month')
+    expect(trafficIntro(namedMonth)).toBe('Who stopped by your site in October.')
+    expect(trafficIntro(unnamedMonth)).toBe('Who stopped by your site last month.')
+    const css = readFileSync(new URL('../../app/nic-nac/components/RepDashboard.module.css', import.meta.url), 'utf8')
+    const narrow = css.slice(css.indexOf('@container repdash (max-width: 520px)'))
+    const rule = narrow.slice(0, narrow.indexOf('@container', 10))
+    expect(rule).toContain('flex: 0 0 auto')
+    expect(rule).toContain('align-self: flex-start')
     expect(pickSiteTrafficTakeaway(facts({
       spanPhrase: 'in the last 7 days',
       comparisonPhrase: 'in the previous 7 days',

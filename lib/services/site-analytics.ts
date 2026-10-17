@@ -228,7 +228,7 @@ export async function getSiteAnalyticsDashboard(args: {
   }
 
   return {
-    configured: summary.status === 'ready',
+    configured: summary.configured,
     ga4Status: summary.status,
     ga4UpdatedAt: summary.updatedAt,
     privacy: SITE_ANALYTICS_PRIVACY,

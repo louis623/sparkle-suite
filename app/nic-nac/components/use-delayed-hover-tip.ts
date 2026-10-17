@@ -36,6 +36,7 @@ export function useDelayedHoverTip() {
   const timerRef = useRef<number | null>(null)
   const pressOrigin = useRef<{ x: number; y: number } | null>(null)
   const ignoreMouseUntil = useRef(0)
+  const pointerFocus = useRef(false)
 
   const clearTimer = useCallback(() => {
     if (timerRef.current == null) return
@@ -83,6 +84,15 @@ export function useDelayedHoverTip() {
   const open = model.phase === 'open'
 
   const handlers = {
+    onPointerDown() {
+      pointerFocus.current = true
+    },
+    onPointerUp() {
+      pointerFocus.current = false
+    },
+    onPointerCancel() {
+      pointerFocus.current = false
+    },
     onPointerEnter(event: ReactPointerEvent<HTMLElement>) {
       const pointer = pointerKind(event.pointerType)
       if (pointer !== 'touch' && Date.now() < ignoreMouseUntil.current) return
@@ -110,6 +120,10 @@ export function useDelayedHoverTip() {
       })
     },
     onFocus() {
+      if (pointerFocus.current) {
+        pointerFocus.current = false
+        return
+      }
       apply({ type: 'focus' })
     },
     onBlur(event: FocusEvent<HTMLElement>) {

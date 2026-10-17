@@ -24,6 +24,8 @@ export type Ga4CacheQuality = 'ok' | 'empty' | 'failed'
 export type RepGa4DashboardStatus = 'ready' | 'processing' | 'not_set_up' | 'unavailable'
 
 export type RepGa4Dashboard = {
+  /** True when this rep has a property mapping and the reader account can ask Google. */
+  configured: boolean
   status: RepGa4DashboardStatus
   updatedAt: string | null
   pageViews: number | null
@@ -82,6 +84,7 @@ export function emptyRepGa4Dashboard(
   status: Exclude<RepGa4DashboardStatus, 'ready' | 'processing'>,
 ): RepGa4Dashboard {
   return {
+    configured: false,
     status,
     updatedAt: null,
     pageViews: null,
@@ -120,6 +123,7 @@ function dashboardFromNumbers(
   const quality = ga4NumbersQuality(numbers)
   if (quality !== 'ok') {
     return {
+      configured: true,
       status: quality === 'empty' ? 'processing' : 'unavailable',
       updatedAt,
       pageViews: null,
@@ -135,6 +139,7 @@ function dashboardFromNumbers(
     }
   }
   return {
+    configured: true,
     status: 'ready',
     updatedAt,
     pageViews: numbers.pageViews,

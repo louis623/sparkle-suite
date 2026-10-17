@@ -719,31 +719,39 @@ export function siteAgeDays(now = new Date(), timeZone?: string | null) {
   return Math.round((dayStamp(today) - dayStamp(HISTORY_DAY)) / 86_400_000)
 }
 
+function periodWhen(period: ResolvedTrafficPeriod) {
+  if (period.id === 'last-7') return 'in the last 7 days'
+  if (period.id === 'custom') return 'in this date range'
+  if (period.id === 'last-month') {
+    return period.label === 'Last month' ? 'last month' : `in ${period.label}`
+  }
+  return 'this month'
+}
+
 export function periodTakeawayPhrases(period: ResolvedTrafficPeriod) {
   if (period.id === 'last-7') {
     return {
-      spanPhrase: 'in the last 7 days',
+      spanPhrase: periodWhen(period),
       comparisonPhrase: 'in the previous 7 days',
       samePeriodPhrase: 'the previous 7 days',
     }
   }
   if (period.id === 'custom') {
     return {
-      spanPhrase: 'in this date range',
-      comparisonPhrase: 'in the previous span',
-      samePeriodPhrase: 'the previous equal span',
+      spanPhrase: periodWhen(period),
+      comparisonPhrase: 'in the same number of days just before',
+      samePeriodPhrase: 'the same number of days just before',
     }
   }
   if (period.id === 'last-month') {
-    const name = period.label === 'Last month' ? 'last month' : period.label
     return {
-      spanPhrase: `in ${name}`,
+      spanPhrase: periodWhen(period),
       comparisonPhrase: 'in the previous month',
       samePeriodPhrase: 'the previous month',
     }
   }
   return {
-    spanPhrase: 'this month',
+    spanPhrase: periodWhen(period),
     comparisonPhrase: 'at this point last month',
     samePeriodPhrase: 'the same days last month',
   }
@@ -760,13 +768,11 @@ export function takeawayHeading(period: ResolvedTrafficPeriod) {
 }
 
 export function joinOpenedSentence(period: ResolvedTrafficPeriod) {
-  if (period.id === 'last-7') return 'Times your Join my team page was opened in the last 7 days.'
-  if (period.id === 'custom') return 'Times your Join my team page was opened in this date range.'
-  if (period.id === 'last-month') {
-    const name = period.label === 'Last month' ? 'last month' : period.label
-    return `Times your Join my team page was opened in ${name}.`
-  }
-  return 'Times your Join my team page was opened this month.'
+  return `Times your Join my team page was opened ${periodWhen(period)}.`
+}
+
+export function trafficIntro(period: ResolvedTrafficPeriod) {
+  return `Who stopped by your site ${periodWhen(period)}.`
 }
 
 export function thisMonthTakeawayFacts(args: {
@@ -921,7 +927,7 @@ export function pageViewComparisonCopy(summary: TrafficPeriodSummary) {
   }
   if (summary.comparisonPageViews == null || !summary.comparisonLabel) {
     if (summary.period.id === 'last-7') return 'Not enough counted days in the previous 7 days to compare yet.'
-    if (summary.period.id === 'custom') return 'Not enough counted days in the previous equal span to compare yet.'
+    if (summary.period.id === 'custom') return 'Not enough counted days in the same number of days just before to compare yet.'
     if (summary.period.id === 'last-month') return 'Not enough counted days in the previous month to compare yet.'
     return 'Not enough counted days last month to compare yet.'
   }

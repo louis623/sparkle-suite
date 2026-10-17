@@ -29,6 +29,7 @@ import {
   summarizeTrafficPeriod,
   takeawayHeading,
   thisMonthTakeawayFacts,
+  trafficIntro,
   type SiteTrafficLedger,
   type TrafficPeriodId,
 } from '@/lib/services/site-traffic'
@@ -265,7 +266,6 @@ function InfoButton({
       className={open ? styles.infoButtonOpen : styles.infoButton}
       aria-expanded={open}
       aria-controls={`${cardId}-details`}
-      onPointerDown={(event) => event.stopPropagation()}
       onClick={(event) => {
         event.stopPropagation()
         onToggle(cardId)
@@ -519,7 +519,7 @@ export function SiteVisitsPanel({
           <p className={styles.kicker}>Website</p>
           <h3 id="site-visitors-title" className={styles.cardTitle}>Site traffic</h3>
           <p className={styles.customerExplainer} id={guideId}>
-            Who stopped by your site this month. New to this?{' '}
+            {trafficIntro(period)} New to this?{' '}
             <a
               href="/nic-nac?section=resources&resource=how-to-read-your-site-traffic"
               data-testid="site-traffic-guide-slot"
