@@ -10,7 +10,7 @@ import { PrelaunchWaitlistForm } from '@/app/prelaunch/_components/PrelaunchWait
 import { prelaunchContent } from '@/lib/prelaunch/content'
 
 const renderIntake = async () => renderToStaticMarkup(await PrelaunchPage())
-beforeEach(() => readAvailability.mockResolvedValue({ status: 'unavailable', remaining: null, checkedAt: null }))
+beforeEach(() => readAvailability.mockResolvedValue({ status: 'unavailable', checkedAt: null }))
 
 describe('Sparkle Suite build-queue intake', () => {
   it('explains the call and payment sequence before the form', async () => {

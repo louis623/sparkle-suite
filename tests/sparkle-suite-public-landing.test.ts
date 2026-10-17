@@ -48,7 +48,7 @@ describe('Sparkle Suite public landing page', () => {
     expect(html).toContain('Joining the queue does not reserve founder pricing.')
     expect(html).toContain('move forward after our call, while spots last')
     const counted = renderToStaticMarkup(createElement(SparkleSuitePublicLanding, {
-      initialAvailability: { status: 'available', remaining: 18, checkedAt: '2026-10-03T21:40:20.623Z' },
+      initialAvailability: { status: 'available', checkedAt: '2026-10-03T21:40:20.623Z' },
     }))
     expect(counted).not.toMatch(/\d+ founder spots? remaining/)
     expect(counted).not.toContain('18 of 20')
