@@ -6,6 +6,7 @@ import { howToGetYourOwnBombPartyRepWebsiteArticle } from './article-content/how
 import { howToOnboardANewBombPartyTeamRepArticle } from './article-content/how-to-onboard-a-new-bomb-party-team-rep'
 import { joiningBombPartyWhyJoinUnderASparkleSuiteRepArticle } from './article-content/joining-bomb-party-why-join-under-a-sparkle-suite-rep'
 import { liveRevealCustomersCanFollowArticle } from './article-content/live-reveal-customers-can-follow'
+import { meetNicNacSparkleSuiteAssistantArticle } from './article-content/meet-nic-nac-sparkle-suite-assistant'
 import { whatIsSparkleSuiteArticle } from './article-content/what-is-sparkle-suite'
 import { whyPostingBombPartyShowTimesGrowsYourAudienceArticle } from './article-content/why-posting-bomb-party-show-times-grows-your-audience'
 import { whySeriousBpRepArticle } from './article-content/why-serious-bp-rep'
@@ -29,7 +30,7 @@ export type SuiteArticle = {
 }
 
 // Add approved articles here. Draft content must never be imported by a client component.
-export const suiteArticles: readonly SuiteArticle[] = [joiningBombPartyWhyJoinUnderASparkleSuiteRepArticle, bombPartyJoinMyTeamPageArticle, howToOnboardANewBombPartyTeamRepArticle, whyPostingBombPartyShowTimesGrowsYourAudienceArticle, bombPartyDancerSwapsWithoutTheDmChaosArticle, howToGetYourOwnBombPartyRepWebsiteArticle, whatIsSparkleSuiteArticle, liveRevealCustomersCanFollowArticle, foundOnGoogleAndAiArticle, whySeriousBpRepArticle]
+export const suiteArticles: readonly SuiteArticle[] = [meetNicNacSparkleSuiteAssistantArticle, joiningBombPartyWhyJoinUnderASparkleSuiteRepArticle, bombPartyJoinMyTeamPageArticle, howToOnboardANewBombPartyTeamRepArticle, whyPostingBombPartyShowTimesGrowsYourAudienceArticle, bombPartyDancerSwapsWithoutTheDmChaosArticle, howToGetYourOwnBombPartyRepWebsiteArticle, whatIsSparkleSuiteArticle, liveRevealCustomersCanFollowArticle, foundOnGoogleAndAiArticle, whySeriousBpRepArticle]
 
 function validDate(value: string | undefined) {
   if (!value || !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-]\d{2}:\d{2})$/.test(value) || !Number.isFinite(Date.parse(value))) return false

@@ -70,7 +70,7 @@ export const whyPostingBombPartyShowTimesGrowsYourAudienceArticle: SuiteArticle 
     },
     {
       "type": "paragraph",
-      "text": "If you're a paying rep, Nic-Nac can add, update and list your shows for you. Updating a show is one of the things reps ask it for most. See Meet Nic-Nac."
+      "text": "If you're a paying rep, Nic-Nac can add, update and list your shows for you. Updating a show is one of the things reps ask it for most. See [Meet Nic-Nac](https://www.yoursparklesuite.com/faq/articles/meet-nic-nac-sparkle-suite-assistant)."
     },
     {
       "type": "heading",
