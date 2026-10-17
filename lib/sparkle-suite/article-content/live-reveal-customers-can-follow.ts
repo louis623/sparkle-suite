@@ -58,7 +58,7 @@ export const liveRevealCustomersCanFollowArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "The calendar shows each customer your show times in her own local time zone, so a customer in Arizona and a customer in Florida both see the right time. I wrote more about that in why posting your show times grows your audience."
+      "text": "The calendar shows each customer your show times in her own local time zone, so a customer in Arizona and a customer in Florida both see the right time. I wrote more about that in [why posting your show times grows your audience](https://www.yoursparklesuite.com/faq/articles/why-posting-bomb-party-show-times-grows-your-audience)."
     },
     {
       "type": "heading",

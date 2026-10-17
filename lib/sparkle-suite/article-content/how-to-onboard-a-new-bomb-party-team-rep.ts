@@ -87,7 +87,7 @@ export const howToOnboardANewBombPartyTeamRepArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "They work together. Your public Join Team page is how people find you. The private onboarding link is what you hand them once they've joined. More on the public side in a Join my team page that recruits for you."
+      "text": "They work together. Your public Join Team page is how people find you. The private onboarding link is what you hand them once they've joined. More on the public side in [a Join my team page that recruits for you](https://www.yoursparklesuite.com/faq/articles/bomb-party-join-my-team-page)."
     },
     {
       "type": "heading",
@@ -115,7 +115,7 @@ export const howToOnboardANewBombPartyTeamRepArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "**Thinking about it?** Read why it matters who you join under or see [everything that's included](https://www.yoursparklesuite.com/faq/articles/what-is-sparkle-suite)."
+      "text": "**Thinking about it?** Read [why it matters who you join under](https://www.yoursparklesuite.com/faq/articles/joining-bomb-party-why-join-under-a-sparkle-suite-rep) or see [everything that's included](https://www.yoursparklesuite.com/faq/articles/what-is-sparkle-suite)."
     },
     {
       "type": "paragraph",
