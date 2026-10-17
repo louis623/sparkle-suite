@@ -20,6 +20,7 @@ import {
   getBoardInventoryMaterial,
   hasActiveBoardInventoryBrowse,
 } from '@/lib/nic-nac/board-inventory-view'
+import { ControlTip } from './ControlTip'
 import { TradeScreenshotLink } from './TradeScreenshotLink'
 import surfaceStyles from './WorkspaceSurface.module.css'
 import styles from './TradeBoardWorkspaceCard.module.css'
@@ -653,16 +654,18 @@ export function TradeBoardWorkspaceCard({
                               View dancer
                             </button>
                           </div>
-                          <button
-                            type="button"
-                            className={`${surfaceStyles.helperButton} ${styles.inventoryButton} ${styles.boardInventoryRemoveButton}`}
-                            disabled={actionState.pendingKey === `remove:${listing.id}`}
-                            onClick={() => onRemoveListing(listing.id)}
-                          >
-                            {actionState.pendingKey === `remove:${listing.id}`
-                              ? 'Removing...'
-                              : 'Remove'}
-                          </button>
+                          <ControlTip tip="remove-dancer">
+                            <button
+                              type="button"
+                              className={`${surfaceStyles.helperButton} ${styles.inventoryButton} ${styles.boardInventoryRemoveButton}`}
+                              disabled={actionState.pendingKey === `remove:${listing.id}`}
+                              onClick={() => onRemoveListing(listing.id)}
+                            >
+                              {actionState.pendingKey === `remove:${listing.id}`
+                                ? 'Removing...'
+                                : 'Remove'}
+                            </button>
+                          </ControlTip>
                         </article>
                       )
                     })}
@@ -807,26 +810,30 @@ export function TradeBoardWorkspaceCard({
                     ) : null}
                   </div>
                   <div className={`${surfaceStyles.actionRow} ${styles.tradeActions}`}>
-                    <button
-                      type="button"
-                      className={surfaceStyles.actionButton}
-                      disabled={actionState.pendingKey === `approve:${request.id}`}
-                      onClick={() => onReviewRequest(request.id, 'approve')}
-                    >
-                      {actionState.pendingKey === `approve:${request.id}`
-                        ? 'Approving...'
-                        : 'Approve'}
-                    </button>
-                    <button
-                      type="button"
-                      className={surfaceStyles.helperButton}
-                      disabled={actionState.pendingKey === `reject:${request.id}`}
-                      onClick={() => onReviewRequest(request.id, 'reject')}
-                    >
-                      {actionState.pendingKey === `reject:${request.id}`
-                        ? 'Denying...'
-                        : 'Deny'}
-                    </button>
+                    <ControlTip tip="approve-request">
+                      <button
+                        type="button"
+                        className={surfaceStyles.actionButton}
+                        disabled={actionState.pendingKey === `approve:${request.id}`}
+                        onClick={() => onReviewRequest(request.id, 'approve')}
+                      >
+                        {actionState.pendingKey === `approve:${request.id}`
+                          ? 'Approving...'
+                          : 'Approve'}
+                      </button>
+                    </ControlTip>
+                    <ControlTip tip="deny-request">
+                      <button
+                        type="button"
+                        className={surfaceStyles.helperButton}
+                        disabled={actionState.pendingKey === `reject:${request.id}`}
+                        onClick={() => onReviewRequest(request.id, 'reject')}
+                      >
+                        {actionState.pendingKey === `reject:${request.id}`
+                          ? 'Denying...'
+                          : 'Deny'}
+                      </button>
+                    </ControlTip>
                   </div>
                 </div>
               )

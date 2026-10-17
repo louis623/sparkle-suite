@@ -157,6 +157,7 @@ import type {
 import { isConversationItem } from './messages/types'
 import styles from './DashboardPlaceholder.module.css'
 import { CardQrTool } from './CardQrTool'
+import { ControlTip } from './ControlTip'
 import {
   CARD_QR_ENTRY_TITLE,
   CARD_QR_WORKSPACE_SECTION,
@@ -8326,11 +8327,12 @@ export function ToolsHub({
             const Icon = section.icon
             const selected = section.key === activeKey
             const comingSoon = 'comingSoon' in section && section.comingSoon === true
-            return (
+            const tipped = section.key === 'jewelry-library' || section.key === 'wispr-flow'
+            const button = (
               <button
-                key={section.key}
+                key={tipped ? undefined : section.key}
                 type="button"
-                role="listitem"
+                role={tipped ? undefined : 'listitem'}
                 className={selected ? styles.toolsHubButtonActive : styles.toolsHubButton}
                 aria-current={selected ? 'page' : undefined}
                 onClick={() => onSelect(section.key)}
@@ -8344,6 +8346,14 @@ export function ToolsHub({
                 </span>
               </button>
             )
+            if (section.key === 'jewelry-library' || section.key === 'wispr-flow') {
+              return (
+                <ControlTip key={section.key} tip={section.key} block listItem>
+                  {button}
+                </ControlTip>
+              )
+            }
+            return button
           })}
         </div>
       </nav>
@@ -9829,14 +9839,16 @@ export function SiteSettingsCard({
           >
             Preview customer site
           </button>
-          <button
-            type="button"
-            className={styles.siteSettingsSaveButton}
-            onClick={onSave}
-            disabled={actionState?.pending || !hasUnsavedChanges}
-          >
-            {actionState?.pending ? 'Saving...' : 'Save site settings'}
-          </button>
+          <ControlTip tip="save-site-settings">
+            <button
+              type="button"
+              className={styles.siteSettingsSaveButton}
+              onClick={onSave}
+              disabled={actionState?.pending || !hasUnsavedChanges}
+            >
+              {actionState?.pending ? 'Saving...' : 'Save site settings'}
+            </button>
+          </ControlTip>
         </div>
       </div>
       <div className={styles.calendarHeader}>

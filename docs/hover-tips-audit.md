@@ -1,6 +1,6 @@
 # Hover tips audit
 
-Audit only. No new tips were built from this list.
+The twelve High tips below, except Bulk Collection Intake, now use the same rest-then-explain pattern as the Tools dashboard cards. Bulk Collection Intake stays Coming Soon and has no tip. The Medium and Low rows are still audit-only.
 
 After this audit, the Tools list gained a first item labeled Dashboard. It returns to the dashboard view and is selected while that view is showing. The rows below still describe the other controls.
 
