@@ -64,6 +64,24 @@ describe('v5.2 source evidence, atomic candidate and privacy eligibility',()=>{
     expect(next.lastChangedAt).toBe(s.lastChangedAt)
     expect(next.entries[0].sourceIdentityVersion).toBe(s.entries[0].sourceIdentityVersion)
   })
+  it('keeps a revealed buyer surname when the source table is replaced',()=>{
+    const shown=reveal(ready(),['p:a'])
+    const remembered=shown.restorations?.[0].entry
+    expect(remembered).toMatchObject({name:'April',lastName:'Smith',identityEligible:true})
+    const replaced=publish(shown,T+11,{entries:[entry('b'),entry('c','Beth','Jones')],revealedIds:['p:a'],
+      revealedEntries:[{id:'p:a',orderedAt:T}],
+      observation:{documentId:E,serial:0,serverTime:new Date(T+11).toISOString(),settled:true}})
+    expect(replaced.restorations?.[0].entry).toMatchObject({
+      name:'April',lastName:'Smith',identityEligible:true,sourceIdentityVersion:remembered?.sourceIdentityVersion,
+    })
+    const again=publish(replaced,T+12,{entries:[entry('b'),entry('c','Beth','Jones')],revealedIds:['p:a'],
+      revealedEntries:[{id:'p:a',orderedAt:T}],
+      observation:{documentId:'ffffffff-ffff-4fff-8fff-ffffffffffff',serial:0,serverTime:new Date(T+12).toISOString(),settled:true}})
+    expect(again.restorations?.[0].entry.lastName).toBe('Smith')
+    const reclaimed=ok(claimPublisher(again,'device',again.revision,T+200000,{claimId:A,generation:1,capabilities:'lineup-2.0.5'}))
+    expect(reclaimed.restorations?.[0].entry.lastName).toBe('Smith')
+    expect(reclaimed.entries.every(entry=>!entry.lastName)).toBe(true)
+  })
   it('clears all retained identity eligibility on downgrade, including absent/held/restoration rows',()=>{
     let s=command(ready(),'hold',{entryId:'p:b'})
     s=reveal(s,['p:a'])

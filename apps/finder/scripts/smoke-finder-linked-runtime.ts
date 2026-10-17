@@ -172,7 +172,7 @@ async function resolveSecretRepClaimCandidate(
     },
   });
   const { data, error } = await suiteAdmin
-    .from("live_queue")
+    .from("live_lineup_connection_codes")
     .select("rep_id, sync_code")
     .not("sync_code", "is", null)
     .limit(50);

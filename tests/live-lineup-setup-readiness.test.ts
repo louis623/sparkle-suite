@@ -33,7 +33,7 @@ function dbFixture(options: {state?: unknown; stateTenant?: string; revision?: n
       async maybeSingle() {
         if(options.throwMessage) throw Error(options.throwMessage)
         if(table==='live_lineup_publisher_tokens') return {data:token,error:options.tokenError??null}
-        if(table==='live_queue') return {data:'assignedCode' in options?options.assignedCode:{rep_id:rep,sync_code:'MHF-9446'},error:options.tokenError??null}
+        if(table==='live_lineup_connection_codes') return {data:'assignedCode' in options?options.assignedCode:{rep_id:rep,sync_code:'MHF-9446'},error:options.tokenError??null}
         if(table!=='live_lineup_states') throw Error('Unexpected table access')
         const final = stateReads++ > 0
         if (final) options.onFinalRead?.()
@@ -91,7 +91,7 @@ describe('sanitized v2 setup readiness reads', () => {
   it('accepts a fresh assigned-code source without requiring a generated publisher token',async()=>{
     const f=dbFixture({state:ready(false,rep),assignedCode:{rep_id:rep,sync_code:'MHF-9446'}})
     expect(await readLineupSetupReadiness(f.db,rep,T)).toMatchObject({ready:true,reason:'ready'})
-    expect(f.calls.map(c=>c.table)).toEqual(['live_lineup_states','live_queue','live_lineup_states'])
+    expect(f.calls.map(c=>c.table)).toEqual(['live_lineup_states','live_lineup_connection_codes','live_lineup_states'])
     expect(f.calls[1].selected).toBe('rep_id,sync_code')
   })
   it.each([{state:null,reason:'not_initialized'},{stateError:{code:'42P01'},reason:'schema_unavailable'},

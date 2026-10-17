@@ -117,6 +117,21 @@ reconciliation and must not be swept into the active branch merely to make
 
 Louis asked for delayed hover tips on twelve Workspace controls, a draft PR, and a Vercel preview on `sparkle-suite-smoke` only. `cursor/workspace-control-hover-tips-3d3f` is allowlisted for this review. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change.
 
+### October 15 combined Smoke preview
+
+Louis approved a Smoke-only combined preview of rebased PRs #95, #96, #99, and #100. `smoke/combined-95-96-99-100` is allowlisted for that preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `production` on that Smoke project, which is what moves `sparkle-suite-smoke.vercel.app`. Live project deploys fail closed. GitHub's default branch, Vercel's Live production branch, and the Live domains stay unchanged. This is a review exception, not a production branch-status change. Suite applies the Finder and Live Lineup migrations to the Smoke database separately.
+
+### October 14 waitlist signup alert preview
+
+Louis asked for a fix to the prelaunch build-list signup alert, a pull request against `codex/nic-nac-trade-hardening`, and a Vercel preview that uses Smoke env vars only. `cursor/waitlist-signup-alert-3682` is allowlisted for that preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change.
+
+### October 14 Live Lineup order tracking preview
+
+Live Lineup customer order tracking recorded no buyers. `cursor/live-lineup-order-tracking-8a01` is allowlisted for this review. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change. The Live database is not modified.
+
+### October 14 Live Lineup automatic show ending
+
+Louis asked for automatic show ending on a draft review branch, deployed only to Suite Smoke. `cursor/live-lineup-auto-end-show-b22f` is allowlisted for that review. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Smoke production, the shared Smoke alias, the Live project, and the Live domains fail closed. GitHub's default branch and Vercel's Live production branch stay unchanged.
 ### October 14 broadcast audience preview
 
 Louis approved a Smoke-only fix so broadcast audiences include active customer reps plus his Dudes Fizzfest account, with a manual reversible deactivation script and no Live write. `cursor/broadcast-customer-audience-6b62` is allowlisted for this review. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change.

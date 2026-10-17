@@ -67,9 +67,10 @@ it('carries reviewed extension sources through HTTP, SQL, Workspace ordering, an
   ]))
   const sql = new PGlite()
   try {
-    await sql.exec('create role anon; create role authenticated; create role service_role bypassrls; create table reps(id uuid primary key); create table live_queue(rep_id uuid,sync_code text,queue jsonb,last_updated timestamptz); grant select on live_queue to service_role;')
+    await sql.exec('create role anon; create role authenticated; create role service_role bypassrls; create table reps(id uuid primary key); create table live_queue(rep_id uuid,sync_code text,queue jsonb,last_updated timestamptz); grant select on live_queue to service_role; create table live_lineup_connection_codes(rep_id uuid not null, sync_code text not null, created_at timestamptz not null default now()); grant select on live_lineup_connection_codes to service_role;')
     await sql.query('insert into reps values($1)', [rep])
-    await sql.query(`insert into live_queue(rep_id, sync_code, queue, last_updated) values($1, 'MHF-9446', '[]'::jsonb, now())`, [rep])
+    await sql.query(`insert into live_queue(rep_id, sync_code, queue, last_updated) values($1, 'MHF-9446', '["Stale Customer"]'::jsonb, now())`, [rep])
+    await sql.query(`insert into live_lineup_connection_codes(rep_id, sync_code) values($1, 'MHF-9446')`, [rep])
     await sql.exec(readFileSync(new URL('../supabase/migrations/20260910000100_live_lineup_v2.sql', import.meta.url), 'utf8'))
     await sql.exec(readFileSync(new URL('../supabase/migrations/20260926000100_live_lineup_atomic_observations.sql', import.meta.url), 'utf8'))
     await sql.exec('set role service_role')

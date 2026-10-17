@@ -76,26 +76,36 @@ describe('Live Lineup audit — reproducible current behavior', () => {
 })
 
 function edgeHarness() {
-  let handler:any; const writes:any[]=[]
+  let handler:any; const writes:any[]=[]; let createdClients = 0
   const db={from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{id:'synthetic'},error:null})})}),update:(data:any)=>({eq:async()=>{writes.push(data);return {error:null}}})})}
-  const edge=readFileSync('supabase/functions/live-queue-sync/index.ts','utf8').replace(/import \{ createClient \} from [^;]+;/,'')
+  const edge=readFileSync('supabase/functions/live-queue-sync/index.ts','utf8')
   runInNewContext(ts.transpileModule(edge,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}}).outputText,{
-    Deno:{serve:(h:any)=>handler=h,env:{get:(name:string)=>name==='LIVE_QUEUE_SYNC_KEY'?'synthetic-key':'synthetic'}},createClient:()=>db,Response,Date,
+    Deno:{serve:(h:any)=>handler=h,env:{get:()=>{ throw new Error('retired function must not read env') }}},createClient:()=>{ createdClients += 1; return db },Response,Date,
   })
-  return {writes,send:(body:any)=>handler({method:'POST',headers:new Headers({'x-sync-key':'synthetic-key'}),json:async()=>body})}
+  return {writes, createdClients: () => createdClients, send:(body:any)=>handler({method:'POST',headers:new Headers({'x-sync-key':'synthetic-key'}),json:async()=>body})}
 }
-describe('Edge function audit with fake database only',()=>{
-  it('accepts arbitrary nested values and unbounded names',async()=>{
-    const h=edgeHarness();const response=await h.send({sync_code:'SYN-0001',queue:[{bad:true},'x'.repeat(100000)]});expect(response.status).toBe(200);expect(h.writes).toHaveLength(1)
+describe('Retired live-queue-sync function',()=>{
+  it('does not read or write a database for a legacy queue payload',async()=>{
+    const source=readFileSync('supabase/functions/live-queue-sync/index.ts','utf8')
+    expect(source).not.toMatch(/createClient|\.from\(|\.update\(/)
+    const h=edgeHarness();const response=await h.send({sync_code:'SYN-0001',queue:[{bad:true},'x'.repeat(1000)],timestamp:'2026-10-14T12:55:00.000Z'})
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ status: 'retired' })
+    expect(h.writes).toHaveLength(0)
+    expect(h.createdClients()).toBe(0)
   })
-  it('older snapshots overwrite newer snapshots',async()=>{
-    const h=edgeHarness();await h.send({sync_code:'SYN-0001',queue:['New'],timestamp:'2026-09-09T00:01:00Z'});await h.send({sync_code:'SYN-0001',queue:['Old'],timestamp:'2026-09-09T00:00:00Z'})
-    expect(h.writes.at(-1).queue).toEqual(['Old'])
+  it('does not store an older or future client timestamp',async()=>{
+    const h=edgeHarness()
+    await h.send({sync_code:'SYN-0001',queue:['New'],timestamp:'2026-09-09T00:01:00Z'})
+    await h.send({sync_code:'SYN-0001',queue:['Old'],timestamp:'2026-09-09T00:00:00Z'})
+    await h.send({sync_code:'SYN-0001',queue:[],timestamp:'2099-01-01T00:00:00Z'})
+    expect(h.writes).toHaveLength(0)
   })
-  it('future client timestamp is stored without server normalization',async()=>{
-    const h=edgeHarness();await h.send({sync_code:'SYN-0001',queue:[],timestamp:'2099-01-01T00:00:00Z'});expect(h.writes[0].last_updated).toBe('2099-01-01T00:00:00Z')
+  it('ignores a null body instead of writing',async()=>{
+    const response=await edgeHarness().send(null)
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ status: 'retired' })
   })
-  it('null JSON crashes before a structured validation response',async()=>{await expect(edgeHarness().send(null)).rejects.toThrow()})
 })
 
 describe('Public runtime audit findings — repaired regression coverage',()=>{

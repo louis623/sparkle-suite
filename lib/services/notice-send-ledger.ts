@@ -12,7 +12,7 @@ export type NoticeLedgerRow = {
 }
 
 export type NoticeClaim =
-  | { action: 'send'; row: NoticeLedgerRow }
+  | { action: 'send'; row: NoticeLedgerRow; reclaimed: boolean }
   | { action: 'replay'; row: NoticeLedgerRow }
 
 const STALE_PENDING_MS = 120_000
@@ -80,7 +80,7 @@ export function createSupabaseNoticeLedger(supabase: SupabaseClient, table: Ledg
       if (!inserted.error && inserted.data) {
         const row = asRow(inserted.data)
         if (!row) throw new Error('Notice ledger insert returned an unreadable row.')
-        return { action: 'send', row }
+        return { action: 'send', row, reclaimed: false }
       }
       if (inserted.error && inserted.error.code !== '23505') throw inserted.error
 
@@ -104,7 +104,7 @@ export function createSupabaseNoticeLedger(supabase: SupabaseClient, table: Ledg
         if (!current) throw new Error('Notice ledger row disappeared during reclaim.')
         return { action: 'replay', row: current }
       }
-      return { action: 'send', row: reclaimed }
+      return { action: 'send', row: reclaimed, reclaimed: true }
     },
     async saveBroadcastId(key: string, broadcastId: string) {
       const { error } = await supabase
@@ -161,14 +161,14 @@ export function createMemoryNoticeLedger(): NoticeLedger {
           if (field !== 'status' && field !== 'idempotency_key') row[field] = value
         }
         rows.set(key, row)
-        return { action: 'send', row }
+        return { action: 'send', row, reclaimed: false }
       }
       if (!existing) throw new Error('Missing ledger row.')
       if (decision === 'replay' || decision === 'in_progress') return { action: 'replay', row: existing }
       existing.status = 'pending'
       existing.error_message = null
       existing.updated_at = now.toISOString()
-      return { action: 'send', row: existing }
+      return { action: 'send', row: existing, reclaimed: true }
     },
     async saveBroadcastId(key, broadcastId) {
       const row = rows.get(key)

@@ -25,7 +25,7 @@ export const REP_DASHBOARD_TIPS: Record<DashboardTipId, readonly string[]> = {
   shows: [
     'This is your show calendar, starting with the next one on the books.',
     'It helps you see how soon you go LIVE, so you can line up pieces, messages, and your Dance Floor.',
-    'Open it to add a show or change the plan.',
+    'Open it to look through your shows, read the details, or set your show time zone.',
   ],
   customers: [
     'This is everyone on your customer list, from shows, your site, and Nic-Nac.',

@@ -80,6 +80,8 @@ beforeEach(async () => {
     '20260926000200_ss_live_lineup_audience_matches.sql',
     '20260929000100_live_lineup_customer_cards.sql',
     '20261013000100_ss_live_lineup_customer_orders.sql',
+    '20261014193000_ss_live_lineup_record_buyer_orders.sql',
+    '20261015130000_ss_live_lineup_batch_buyer_orders.sql',
   ]) await db.exec(readFileSync(new URL('../supabase/migrations/' + file, import.meta.url), 'utf8'))
   await state()
 }, 60_000)
@@ -212,6 +214,42 @@ describe('lineup purchase tracking', () => {
     expect((await orders()).some((row) => row.audience_id === jane)).toBe(false)
   })
 
+  it('creates one card and link for a revealed buyer who was not on the list yet', async () => {
+    await archive(8, {
+      show: { excludedPartyIds: [] },
+      entries: [entry('party:waiting', 'Casey', 'Ng', later)],
+      restorations: [{ entry: entry('party:revealed', 'June', 'Park', early) }],
+    })
+    const rows = await orders()
+    expect(rows.map((row) => row.order_id).sort()).toEqual(['revealed', 'waiting'])
+    const links = await db.query<{ entry_id: string; audience_id: string }>(
+      'select entry_id, audience_id from live_lineup_customer_links order by entry_id',
+    )
+    expect(links.rows.map((row) => row.entry_id)).toEqual(['party:revealed', 'party:waiting'])
+    const cards = await db.query<{ name: string; record_source: string; last_seen: Date }>(
+      `select name, record_source, last_seen_in_lineup_at as last_seen
+       from customer_audience where record_source='live_lineup' order by name`,
+    )
+    expect(cards.rows.map((row) => row.name)).toEqual(['Casey Ng', 'June Park'])
+    expect(cards.rows.every((row) => row.record_source === 'live_lineup' && row.last_seen)).toBe(true)
+    expect(new Set(links.rows.map((row) => row.audience_id)).size).toBe(2)
+    await archive(9, {
+      entries: [entry('party:waiting', 'Casey', 'Ng', later), entry('party:again', 'Casey', 'Ng', later)],
+      restorations: [{ entry: entry('party:revealed', 'June', 'Park', early) }],
+    })
+    expect(await orders()).toHaveLength(3)
+    expect((await db.query("select id from customer_audience where record_source='live_lineup'")).rows).toHaveLength(2)
+    const activity = (await db.query<{ result: { orderedDuringLiveLast90Days: number; goneQuiet: number } }>(
+      'select live_lineup_customer_activity($1,$2) result',
+      [rep, new Date(later).toISOString()],
+    )).rows[0].result
+    expect(activity).toMatchObject({ orderedDuringLiveLast90Days: 2, goneQuiet: 0 })
+    await db.query("insert into customer_audience(rep_id, name) values($1,'June Park')", [rep])
+    await archive(10, { entries: [entry('party:twin', 'June', 'Park', later)] })
+    expect((await orders()).some((row) => row.order_id === 'twin')).toBe(false)
+    expect((await db.query("select id from customer_audience where name='June Park'")).rows).toHaveLength(2)
+  })
+
   it('counts recent live buyers and customers who have gone quiet', async () => {
     const ids = Object.fromEntries(await Promise.all(['recent', 'quiet', 'both', 'undated', 'never', 'foreign'].map(async (name) => {
       const id = (await db.query<{ id: string }>('insert into customer_audience(rep_id, name) values($1,$2) returning id', [
@@ -255,4 +293,79 @@ describe('lineup purchase tracking', () => {
     await expect(db.query('select live_lineup_backfill_customer_orders($1)', [rep])).rejects.toThrow('permission denied')
     await db.exec('reset role')
   })
+
+  it('records a long show in batches of 250 without duplicating a retry', async () => {
+    const sql = readFileSync(new URL('../supabase/migrations/20261015130000_ss_live_lineup_batch_buyer_orders.sql', import.meta.url), 'utf8')
+    expect(sql).toMatch(/chunk_size constant integer := 250/)
+    expect(readFileSync(new URL('../supabase/migrations/20261014193000_ss_live_lineup_record_buyer_orders.sql', import.meta.url), 'utf8'))
+      .not.toMatch(/chunk_size/)
+
+    const count = 2000
+    const entries = []
+    const restorations = []
+    for (let i = 0; i < count; i++) {
+      let name = `Buyer${i}`
+      let lastName = 'Lane'
+      if (i === 1) { name = 'First'; lastName = 'Buyer' }
+      if (i === 10 || i === 300) { name = i === 10 ? 'Jane' : 'JANE'; lastName = i === 10 ? 'Roe' : 'ROE' }
+      if (i === 249 || i === 250) { name = 'Boundary'; lastName = 'Case' }
+      const row = entry(`party:o${String(i).padStart(5, '0')}`, name, lastName, early + i * 1000)
+      if (i % 2 === 0) restorations.push({ entry: row })
+      else entries.push(row)
+    }
+    restorations.push({ entry: entry('party:o00001', 'Second', 'Buyer', later) })
+    entries.push(entry('hidden:zskip', 'Skip', 'Me', later))
+    entries.push(entry('party:ztwin', 'Twin', 'Match', later))
+    const known = (await db.query<{ id: string }>(
+      "insert into customer_audience(rep_id, name) values($1,'Known Buyer') returning id",
+      [rep],
+    )).rows[0].id
+    entries.push(entry('party:zknown', 'Known', 'Buyer', later))
+    await db.query("insert into customer_audience(rep_id, name) values($1,'Twin Match'),($1,'Twin Match')", [rep])
+
+    const archived = {
+      show: { excludedPartyIds: ['hidden'] },
+      entries,
+      restorations,
+    }
+    await db.exec("set statement_timeout = '8s'")
+    await archive(21, archived)
+    await db.exec('set statement_timeout = 0')
+
+    const rows = await orders()
+    expect(rows).toHaveLength(count + 1)
+    expect(rows.some((row) => row.order_id === 'zskip' || row.order_id === 'ztwin')).toBe(false)
+    expect(rows.find((row) => row.order_id === 'zknown')?.audience_id).toBe(known)
+    const boundaryOrders = rows.filter((row) => row.order_id === 'o00249' || row.order_id === 'o00250')
+    expect(new Set(boundaryOrders.map((row) => row.audience_id)).size).toBe(1)
+    const janeOrders = rows.filter((row) => row.order_id === 'o00010' || row.order_id === 'o00300')
+    expect(new Set(janeOrders.map((row) => row.audience_id)).size).toBe(1)
+    const named = await db.query<{ name: string }>(
+      "select name from customer_audience where name in ('Jane Roe', 'JANE ROE', 'Boundary Case', 'First Buyer', 'Second Buyer') order by name",
+    )
+    expect(named.rows.map((row) => row.name)).toEqual(['Boundary Case', 'First Buyer', 'Jane Roe'])
+    const boundarySeen = await db.query<{ last_seen: Date }>(
+      "select last_seen_in_lineup_at as last_seen from customer_audience where name = 'Boundary Case'",
+    )
+    expect(boundarySeen.rows[0].last_seen.toISOString()).toBe(new Date(early + 250 * 1000).toISOString())
+    expect((await db.query("select id from customer_audience where record_source = 'live_lineup'")).rows).toHaveLength(count - 2)
+    expect((await db.query('select audience_id from customer_audience_change_log')).rows).toHaveLength(count - 2)
+    const version = await db.query<{ version: string }>(
+      'select version::text as version from live_lineup_audience_versions where rep_id = $1',
+      [rep],
+    )
+    expect(version.rows[0].version).toBe(String(count - 2 + 3))
+    const kept = rows.find((row) => row.order_id === 'o00042')
+    expect(kept).toBeTruthy()
+
+    const again = await db.query<{ n: number }>(
+      'select live_lineup_record_orders_from_state($1, $2::jsonb) as n',
+      [rep, JSON.stringify(archived)],
+    )
+    expect(again.rows[0].n).toBe(0)
+    expect(await orders()).toHaveLength(count + 1)
+    expect((await db.query("select id from customer_audience where record_source = 'live_lineup'")).rows).toHaveLength(count - 2)
+    expect((await db.query('select audience_id from customer_audience_change_log')).rows).toHaveLength(count - 2)
+    expect((await orders()).find((row) => row.order_id === 'o00042')?.updated_at.toISOString()).toBe(kept?.updated_at.toISOString())
+  }, 60_000)
 })

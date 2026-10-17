@@ -148,6 +148,8 @@ export interface SparkleFinderPublicShow {
   startsAt: string
   title: string | null
   status: 'scheduled' | 'live'
+  durationMinutes: number
+  endTime: string
 }
 
 export interface SparkleFinderAvailabilityMatch {
@@ -177,6 +179,8 @@ export interface SparkleFinderLiveShow {
   startsAt: string
   status: 'scheduled' | 'live'
   customerSiteUrl: string
+  durationMinutes: number
+  endTime: string
 }
 
 export interface SparkleFinderDirectoryShow {
@@ -185,7 +189,8 @@ export interface SparkleFinderDirectoryShow {
   startsAt: string
   status: 'scheduled' | 'live'
   customerSiteUrl: string | null
-  durationMinutes: number | null
+  durationMinutes: number
+  endTime: string
 }
 
 export interface SparkleFinderDirectoryRep {
@@ -283,6 +288,8 @@ export const DEFAULT_FINDER_LIVE_SHOW_LIMIT = 50
 export const MAX_FINDER_LIVE_SHOW_LIMIT = 100
 export const DEFAULT_FINDER_REP_DIRECTORY_LIMIT = 50
 export const MAX_FINDER_REP_DIRECTORY_LIMIT = 200
+const FINDER_DEFAULT_SHOW_DURATION_MINUTES = 60
+const FINDER_SCHEDULED_SHOW_LOOKBACK_CAP_MINUTES = 24 * 60
 
 const TYPE_MAP: Record<JewelryType, FinderJewelryType> = {
   RG: 'ring',
@@ -901,19 +908,18 @@ async function loadNextShowsByRepId(supabase: SupabaseClient, repIds: string[]) 
     .order('event_time', { ascending: true })
   if (liveResult.error) throw liveResult.error
 
-  const { data, error } = await supabase
-    .from('calendar_events')
-    .select('id, rep_id, event_time, title, status, duration_minutes')
-    .in('rep_id', repIds)
-    .eq('status', 'scheduled')
-    .gte('event_time', now)
-    .order('event_time', { ascending: true })
-  if (error) throw error
+  const scheduledRows = await loadScheduledFinderLeadRows<FinderShowRow>(
+    supabase,
+    repIds,
+    'id, rep_id, event_time, title, status, duration_minutes',
+    now,
+    null,
+  )
 
   return mapFinderShowRowsToNextShows([
     ...((liveResult.data ?? []) as FinderShowRow[]),
-    ...((data ?? []) as FinderShowRow[]),
-  ])
+    ...scheduledRows,
+  ], now)
 }
 
 async function loadFinderLiveShowRows(
@@ -931,20 +937,124 @@ async function loadFinderLiveShowRows(
     .limit(limit)
   if (liveResult.error) throw liveResult.error
 
-  const scheduledResult = await supabase
-    .from('calendar_events')
-    .select(FINDER_LIVE_SHOW_SELECT)
-    .in('rep_id', eligibleRepIds)
-    .eq('status', 'scheduled')
-    .gte('event_time', now)
-    .order('event_time', { ascending: true })
-    .limit(limit)
-  if (scheduledResult.error) throw scheduledResult.error
+  const scheduledRows = await loadScheduledFinderLeadRows<FinderLiveShowRow>(
+    supabase,
+    eligibleRepIds,
+    FINDER_LIVE_SHOW_SELECT,
+    now,
+    limit,
+  )
 
   return [
     ...((liveResult.data ?? []) as unknown as FinderLiveShowRow[]),
-    ...((scheduledResult.data ?? []) as unknown as FinderLiveShowRow[]),
+    ...scheduledRows,
   ]
+}
+
+async function loadScheduledFinderLeadRows<T>(
+  supabase: SupabaseClient,
+  repIds: string[],
+  select: string,
+  nowIso: string,
+  upcomingLimit: number | null,
+): Promise<T[]> {
+  const lookbackMinutes = await readFinderScheduledLookbackMinutes(
+    supabase,
+    repIds,
+    nowIso,
+  )
+  const floorIso = new Date(
+    Date.parse(nowIso) - lookbackMinutes * 60_000,
+  ).toISOString()
+  const startedResult = await supabase
+    .from('calendar_events')
+    .select(select)
+    .in('rep_id', repIds)
+    .eq('status', 'scheduled')
+    .gte('event_time', floorIso)
+    .lt('event_time', nowIso)
+    .order('event_time', { ascending: true })
+  if (startedResult.error) throw startedResult.error
+
+  const upcomingResult = upcomingLimit === null
+    ? await supabase
+      .from('calendar_events')
+      .select(select)
+      .in('rep_id', repIds)
+      .eq('status', 'scheduled')
+      .gte('event_time', nowIso)
+      .order('event_time', { ascending: true })
+    : await supabase
+      .from('calendar_events')
+      .select(select)
+      .in('rep_id', repIds)
+      .eq('status', 'scheduled')
+      .gte('event_time', nowIso)
+      .order('event_time', { ascending: true })
+      .limit(upcomingLimit)
+  if (upcomingResult.error) throw upcomingResult.error
+
+  return [
+    ...((startedResult.data ?? []) as T[]),
+    ...((upcomingResult.data ?? []) as T[]),
+  ]
+}
+
+async function readFinderScheduledLookbackMinutes(
+  supabase: SupabaseClient,
+  repIds: string[],
+  nowIso: string,
+) {
+  const lookbackFloor = new Date(
+    Date.parse(nowIso) - FINDER_SCHEDULED_SHOW_LOOKBACK_CAP_MINUTES * 60_000,
+  ).toISOString()
+  const { data, error } = await supabase
+    .from('calendar_events')
+    .select('duration_minutes')
+    .in('rep_id', repIds)
+    .eq('status', 'scheduled')
+    .gte('event_time', lookbackFloor)
+    .lt('event_time', nowIso)
+    .gt('duration_minutes', 0)
+    .order('duration_minutes', { ascending: false })
+    .limit(1)
+  if (error) throw error
+  const longest = (data?.[0] as { duration_minutes?: number | null } | undefined)
+    ?.duration_minutes
+  return finderScheduledShowLookbackMinutes(longest)
+}
+
+export function finderScheduledShowLookbackMinutes(
+  longestPositiveDuration: number | null | undefined,
+) {
+  return Math.min(
+    FINDER_SCHEDULED_SHOW_LOOKBACK_CAP_MINUTES,
+    Math.max(
+      finderPublicShowDurationMinutes(longestPositiveDuration),
+      FINDER_DEFAULT_SHOW_DURATION_MINUTES,
+    ),
+  )
+}
+
+export function finderPublicShowWindow(
+  startsAt: string,
+  durationMinutes: number | null | undefined,
+) {
+  const startsAtMs = Date.parse(startsAt)
+  if (!Number.isFinite(startsAtMs)) return null
+  const effectiveDurationMinutes = finderPublicShowDurationMinutes(durationMinutes)
+  const endsAtMs = startsAtMs + effectiveDurationMinutes * 60_000
+  return {
+    startsAtMs,
+    durationMinutes: effectiveDurationMinutes,
+    endsAtMs,
+    endTime: new Date(endsAtMs).toISOString(),
+  }
+}
+
+function finderPublicShowDurationMinutes(value: number | null | undefined) {
+  return normalizeFinderDurationMinutes(value ?? null)
+    ?? FINDER_DEFAULT_SHOW_DURATION_MINUTES
 }
 
 async function loadRepIdsWithFinderShows(
@@ -956,12 +1066,18 @@ async function loadRepIdsWithFinderShows(
 }
 
 function mapFinderShowRow(row: FinderShowRow): SparkleFinderPublicShow {
+  const window = finderPublicShowWindow(row.event_time, row.duration_minutes)
+  if (!window) {
+    throw new Error('Finder public show is missing a valid start time.')
+  }
   return {
     showId: row.id,
     repId: row.rep_id,
     startsAt: row.event_time,
     title: row.title,
     status: row.status === 'live' ? 'live' : 'scheduled',
+    durationMinutes: window.durationMinutes,
+    endTime: window.endTime,
   }
 }
 
@@ -987,18 +1103,12 @@ export function mapFinderShowRowsToNextShows(
 }
 
 function isFinderLeadShowRow(row: FinderShowRow, nowIso: string) {
-  const startsAtMs = Date.parse(row.event_time)
+  if (row.status !== 'live' && row.status !== 'scheduled') return false
+  const window = finderPublicShowWindow(row.event_time, row.duration_minutes)
   const nowMs = Date.parse(nowIso)
-  if (!Number.isFinite(startsAtMs) || !Number.isFinite(nowMs)) return false
-
-  if (row.status === 'live') {
-    const durationMinutes = normalizeFinderDurationMinutes(
-      row.duration_minutes ?? null,
-    ) ?? 60
-    return startsAtMs <= nowMs && startsAtMs + durationMinutes * 60_000 > nowMs
-  }
-
-  return row.status === 'scheduled' && startsAtMs >= nowMs
+  if (!window || !Number.isFinite(nowMs) || window.endsAtMs <= nowMs) return false
+  if (row.status === 'live') return window.startsAtMs <= nowMs
+  return true
 }
 
 export function mapSparkleFinderLiveShowRows(
@@ -1026,6 +1136,11 @@ export function mapSparkleFinderLiveShowRows(
         throw new Error('Finder live show is missing a public rep relation.')
       }
 
+      const window = finderPublicShowWindow(row.event_time, row.duration_minutes)
+      if (!window) {
+        throw new Error('Finder live show is missing a valid start time.')
+      }
+
       return {
         showId: row.id,
         showName: getFinderShowName(rep),
@@ -1033,6 +1148,8 @@ export function mapSparkleFinderLiveShowRows(
         startsAt: row.event_time,
         status: row.status === 'live' ? 'live' : 'scheduled',
         customerSiteUrl: buildFinderCustomerSiteUrl(rep),
+        durationMinutes: window.durationMinutes,
+        endTime: window.endTime,
       }
     })
 }
@@ -1103,12 +1220,9 @@ function mapSparkleFinderDirectoryShow(
   const durationMinutes = normalizeFinderDurationMinutes(
     row.next_show_duration_minutes,
   )
-  if (status === 'scheduled' && startsAtMs < nowMs) return null
-  if (status === 'live') {
-    const effectiveDurationMinutes = durationMinutes ?? 60
-    const endsAtMs = startsAtMs + effectiveDurationMinutes * 60_000
-    if (startsAtMs > nowMs || endsAtMs <= nowMs) return null
-  }
+  const window = finderPublicShowWindow(startsAt, durationMinutes)
+  if (!window || window.endsAtMs <= nowMs) return null
+  if (status === 'live' && window.startsAtMs > nowMs) return null
 
   return {
     showId,
@@ -1116,7 +1230,8 @@ function mapSparkleFinderDirectoryShow(
     startsAt: new Date(startsAtMs).toISOString(),
     status,
     customerSiteUrl: null,
-    durationMinutes,
+    durationMinutes: window.durationMinutes,
+    endTime: window.endTime,
   }
 }
 
