@@ -166,11 +166,13 @@ describe('rep dashboard hover tips', () => {
     expect(bubble).toContain('var(--dash-cream)')
     expect(css).toContain('#ff4cae')
 
-    const source = readFileSync(new URL('../../app/nic-nac/components/SubjectCardTip.tsx', import.meta.url), 'utf8')
+    const source = readFileSync(new URL('../../app/nic-nac/components/use-delayed-hover-tip.ts', import.meta.url), 'utf8')
     expect(source).toContain('if (!result.preventClick) return')
     expect(source).toContain('event.preventDefault()')
     expect(source).toContain('stillOverCard')
-    expect(source).toContain('role="tooltip"')
+    const card = readFileSync(new URL('../../app/nic-nac/components/SubjectCardTip.tsx', import.meta.url), 'utf8')
+    expect(card).toContain('useDelayedHoverTip')
+    expect(card).toContain('role="tooltip"')
     const tips = Object.keys(REP_DASHBOARD_TIPS) as DashboardTipId[]
     expect(tips).toEqual([...DASHBOARD_TIP_IDS])
   })

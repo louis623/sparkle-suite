@@ -5,6 +5,7 @@ import type { WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
 import { canConfirmShow } from './live-lineup-client'
 import { archiveRecoveryRequest, isArchiveDetail, isArchivePage, recoveryIneligibleReason, type ArchiveDetail, type ArchivePage } from './live-lineup-archive-client'
 import type { LineupArchiveSummary } from '@/lib/live-lineup/archive-recovery'
+import { ControlTip } from './ControlTip'
 import styles from './LiveLineupCard.module.css'
 
 export function LiveLineupArchiveControls({ snapshot, disabled, recover }: { snapshot: WorkspaceLineupSnapshot; disabled: boolean;
@@ -49,7 +50,7 @@ export function LiveLineupArchiveControls({ snapshot, disabled, recover }: { sna
   }
   const stale = !!preview && !canConfirmShow(preview, snapshot)
   const valid = !!detail && !!preview && !!archiveRecoveryRequest(preview, snapshot, detail, selected, confirmed)
-  return <details className={styles.pairing} onToggle={event => {
+  return <ControlTip tip="recover-archive" block><details className={styles.pairing} onToggle={event => {
     if (!event.currentTarget.open) { controller.current?.abort(); clearPreview() }
   }}>
     <summary>Recover from a private archive</summary>
@@ -89,5 +90,5 @@ export function LiveLineupArchiveControls({ snapshot, disabled, recover }: { sna
       <button type="button" disabled={disabled || pending} onClick={clearPreview}>Cancel recovery</button>
     </div>}
     <p role="status" aria-live="polite">{pending ? 'Loading private archive…' : message}</p>
-  </details>
+  </details></ControlTip>
 }

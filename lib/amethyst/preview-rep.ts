@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getAmethystCustomDomainCandidates } from './host-routing'
-import { resolveWorkspaceAccess } from '@/lib/services/workspace-access'
+import { canServePublicCustomerSiteForRep } from '@/lib/services/workspace-access'
 
 export const DEFAULT_AMETHYST_PREVIEW_EMAIL = 'testrep@neonrabbit.net'
 
@@ -154,12 +154,10 @@ async function canServePublicCustomerSite(
   admin: PreviewAdminClient,
   repId: string,
 ) {
-  return (
-    await resolveWorkspaceAccess({
-      supabase: admin as unknown as SupabaseClient,
-      repId,
-    })
-  ).hasFullAccess
+  return canServePublicCustomerSiteForRep({
+    supabase: admin as unknown as SupabaseClient,
+    repId,
+  })
 }
 
 export async function resolveAmethystPreviewRep(

@@ -1,0 +1,57 @@
+.host {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.hostBlock {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.bubble {
+  position: fixed;
+  z-index: 40;
+  margin: 0;
+  width: max-content;
+  max-width: min(34rem, calc(100vw - 16px));
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 76, 174, 0.38);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 76, 174, 0.32), transparent 42%),
+    #171034;
+  color: #f8efe4;
+  box-shadow: 0 14px 32px rgba(23, 16, 52, 0.18);
+  font-family: var(--font-prelaunch-sans), "DM Sans", sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.bubble[data-placed='true'] {
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bubble[data-placed='true'] {
+    animation: controlTipIn 160ms ease;
+  }
+}
+
+@keyframes controlTipIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -20,7 +20,9 @@
     "cursor/live-lineup-auto-end-show-b22f",
     "cursor/live-lineup-order-tracking-8a01",
     "cursor/waitlist-signup-alert-3682",
+    "cursor/public-site-past-due-grace",
     "cursor/seo-www-amethyst-redirects-513f",
+    "cursor/workspace-control-hover-tips-3d3f",
     "smoke/combined-95-96-99-100",
     "cursor/pricing-card-email-sms-90a8"
   ],
@@ -30,6 +32,10 @@
       "environment": "preview"
     },
     "cursor/dashboard-hover-tips-a45f": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/workspace-control-hover-tips-3d3f": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },
@@ -50,6 +56,10 @@
       "environment": "production"
     },
     "cursor/waitlist-signup-alert-3682": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/public-site-past-due-grace": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },

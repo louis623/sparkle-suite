@@ -9,6 +9,7 @@ import type { WorkspaceLineupCommand } from './live-lineup-client'
 import styles from './LiveLineupCard.module.css'
 import { LineupCustomerEditor } from './LineupCustomerEditor'
 import { useLineupAudience } from './use-lineup-audience'
+import { ControlTip } from './ControlTip'
 import { LiveLineupShowControls } from './LiveLineupShowControls'
 import { LiveLineupArchiveControls } from './LiveLineupArchiveControls'
 import { LiveLineupPublisherControls } from './LiveLineupPublisherControls'
@@ -484,10 +485,10 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
                 {audienceMatches[entry.id].birthday && <span>🎂 {audienceMatches[entry.id].birthday}</span>}
                 {audienceMatches[entry.id].preferences.map((preference, chipIndex) => <span key={chipIndex}>{preference}</span>)}
               </div>}
-              {!viewOnly && entry.identityEligible && <button type="button" className={styles.customerButton} data-clarify={audienceMatches[entry.id]?.status === 'needs_clarification'} disabled={saving || !!dragging} onClick={()=>setCustomerSelection({entry,generation:snapshot!.management!.generation})}>{audienceMatches[entry.id]?.status === 'needs_clarification' ? 'Which customer?' : audienceMatches[entry.id]?.label || 'Customer card'}</button>}
+              {!viewOnly && entry.identityEligible && <ControlTip tip="customer-card"><button type="button" className={styles.customerButton} data-clarify={audienceMatches[entry.id]?.status === 'needs_clarification'} disabled={saving || !!dragging} onClick={()=>setCustomerSelection({entry,generation:snapshot!.management!.generation})}>{audienceMatches[entry.id]?.status === 'needs_clarification' ? 'Which customer?' : audienceMatches[entry.id]?.label || 'Customer card'}</button></ControlTip>}
               {!compact && <div className={styles.actions}>
-                <button type="button" disabled={disabled || index === 0} aria-label={`Reveal ${entry.name} next, position ${index + 1}`} onClick={() => void submit({ type: 'reveal-next', entryId: entry.id })}>Reveal next</button>
-                <button type="button" disabled={disabled} aria-label={`Hold ${entry.name} for later, position ${index + 1}`} onClick={() => void submit({ type: 'hold', entryId: entry.id })}>Hold</button>
+                <ControlTip tip="reveal-next"><button type="button" disabled={disabled || index === 0} aria-label={`Reveal ${entry.name} next, position ${index + 1}`} onClick={() => void submit({ type: 'reveal-next', entryId: entry.id })}>Reveal next</button></ControlTip>
+                <ControlTip tip="hold"><button type="button" disabled={disabled} aria-label={`Hold ${entry.name} for later, position ${index + 1}`} onClick={() => void submit({ type: 'hold', entryId: entry.id })}>Hold</button></ControlTip>
               </div>}
             </li>
           ))}
@@ -501,8 +502,8 @@ export function LiveLineupCard({ compact = false, readOnly = false, onAskCustome
                 {audienceMatches[entry.id].birthday && <span>🎂 {audienceMatches[entry.id].birthday}</span>}
                 {audienceMatches[entry.id].preferences.map((preference, chipIndex) => <span key={chipIndex}>{preference}</span>)}
               </div> : null}
-              {!viewOnly && entry.identityEligible && <button type="button" className={styles.customerButton} data-clarify={audienceMatches[entry.id]?.status === 'needs_clarification'} disabled={saving || !!dragging} onClick={()=>setCustomerSelection({entry,generation:snapshot!.management!.generation})}>{audienceMatches[entry.id]?.status === 'needs_clarification' ? 'Which customer?' : audienceMatches[entry.id]?.label || 'Customer card'}</button>}
-              <button type="button" disabled={disabled} aria-label={`Return ${entry.name} to lineup, held position ${index + 1}`} onClick={() => void submit({ type: 'return', entryId: entry.id })}>Return</button>
+              {!viewOnly && entry.identityEligible && <ControlTip tip="customer-card"><button type="button" className={styles.customerButton} data-clarify={audienceMatches[entry.id]?.status === 'needs_clarification'} disabled={saving || !!dragging} onClick={()=>setCustomerSelection({entry,generation:snapshot!.management!.generation})}>{audienceMatches[entry.id]?.status === 'needs_clarification' ? 'Which customer?' : audienceMatches[entry.id]?.label || 'Customer card'}</button></ControlTip>}
+              <ControlTip tip="return"><button type="button" disabled={disabled} aria-label={`Return ${entry.name} to lineup, held position ${index + 1}`} onClick={() => void submit({ type: 'return', entryId: entry.id })}>Return</button></ControlTip>
             </div>
           </li>)}</ul>
         </section>}
