@@ -101,7 +101,7 @@ export default function LoginClient() {
                   ? 'No Sparkle Suite account is associated with this email. Contact Louis or sign in with a different email.'
                   : payload?.message ??
                       payload?.error ??
-                      'We could not start your trial. Please sign in again.',
+                      'We could not open your workspace. Please sign in again.',
               )
               return
             }

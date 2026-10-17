@@ -48,10 +48,8 @@ export function WorkspaceAccessPending({
             : 'Louis needs to finish setting up this email before it can open a Sparkle Suite workspace.'}
         </p>
         <p>
-          Sparkle Suite never starts checkout just because you sign in. Once an
-          account is provisioned, the first sign-in begins five days of access.
-          Billing is started deliberately from <strong>Account</strong> inside
-          the app.
+          Sparkle Suite never starts checkout just because you sign in. Billing
+          is started deliberately from <strong>Account</strong> inside the app.
         </p>
         <button
           type="button"

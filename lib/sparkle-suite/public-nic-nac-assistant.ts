@@ -98,7 +98,7 @@ export function answerPublicNicNacQuestion(rawQuestion: string): PublicNicNacRep
       return {
         kind: 'answer',
         message:
-          'No card is needed to join the build queue. Joining does not create an account, charge you, or reserve founder pricing. If Louis approves your onboarding, you receive a five-day trial account and can complete billing from the workspace before the trial expires.',
+          'No card is needed to join the build queue. Joining does not create an account, charge you, or reserve founder pricing. When your build is ready to start, you complete your first payment, and work on your build begins once it goes through.',
       }
     }
 
@@ -114,14 +114,14 @@ export function answerPublicNicNacQuestion(rawQuestion: string): PublicNicNacRep
       return {
         kind: 'answer',
         message:
-          'After you join the build queue, Louis reviews your interest, reaches out, and schedules coaching one person at a time. Approved reps receive a five-day trial account, explore the full workspace during coaching, and complete billing from the workspace before the trial expires.',
+          'After you join the build queue, Louis reviews your interest, reaches out, and schedules coaching one person at a time. Work on your build starts once your first payment goes through.',
       }
     }
 
     return {
       kind: 'answer',
       message:
-        'Sparkle Suite is building sites now. This form joins the build queue with your name and email; extra rep-context details are optional. It does not create an account, workspace, trial, or checkout, or reserve founder pricing.',
+        'Sparkle Suite is building sites now. This form joins the build queue with your name and email; extra rep-context details are optional. It does not create an account, workspace, or checkout, or reserve founder pricing.',
     }
   }
 

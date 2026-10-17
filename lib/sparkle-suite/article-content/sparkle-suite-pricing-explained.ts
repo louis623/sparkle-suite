@@ -143,10 +143,6 @@ export const sparkleSuitePricingExplainedArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "**Is there a free trial?**\nNo. There's no free trial. Joining the build queue is free, and nothing is paid until your build is ready to start."
-    },
-    {
-      "type": "paragraph",
       "text": "**Does Founder pricing last forever?**\nNo. It's $49.99 a month for your first 12 paid months, then $74.99."
     },
     {

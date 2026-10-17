@@ -38,7 +38,7 @@ export async function POST() {
 
     console.error('[account/activate-trial] Error:', error)
     return NextResponse.json(
-      { error: 'We could not start your trial. Please sign in again.' },
+      { error: 'We could not open your workspace. Please sign in again.' },
       { status: 500 },
     )
   }
