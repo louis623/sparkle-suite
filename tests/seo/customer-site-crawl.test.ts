@@ -46,4 +46,23 @@ describe('customer-site crawl content', () => {
     expect(llms).toContain('https://goforthebling.com/trade')
     expect(llms).not.toContain("Jane's Sparkle Party")
   })
+
+  it('writes customer sitemap and llms URLs on the apex when the request host is www', () => {
+    const sitemap = buildCustomerSiteSitemap('https://www.goforthebling.com/sitemap.xml', kim)
+    expect(sitemap).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ url: 'https://goforthebling.com/' }),
+        expect.objectContaining({ url: 'https://goforthebling.com/trade' }),
+      ]),
+    )
+    expect(sitemap.some((entry) => entry.url.includes('://www.'))).toBe(false)
+
+    const xml = renderCustomerSiteSitemapXml('https://www.brittwithbling.com', kim)
+    expect(xml).toContain('<loc>https://brittwithbling.com/</loc>')
+    expect(xml).not.toContain('www.brittwithbling.com')
+
+    const llms = buildCustomerSiteLlmsText('https://www.sparklybutterflies.com', kim)
+    expect(llms).toContain('https://sparklybutterflies.com/trade')
+    expect(llms).not.toContain('www.sparklybutterflies.com')
+  })
 })

@@ -21,6 +21,7 @@
     "cursor/live-lineup-order-tracking-8a01",
     "cursor/waitlist-signup-alert-3682",
     "cursor/public-site-past-due-grace",
+    "cursor/seo-www-amethyst-redirects-513f",
     "smoke/combined-95-96-99-100"
   ],
   "previewBranches": {
@@ -53,6 +54,10 @@
       "environment": "preview"
     },
     "cursor/public-site-past-due-grace": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/seo-www-amethyst-redirects-513f": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },
