@@ -264,6 +264,7 @@ export function summarizeSiteVisits(args: {
   for (const row of args.rows) {
     const viewed = new Date(row.viewed_at)
     if (!Number.isFinite(viewed.getTime()) || viewed < periodStart || viewed > now) continue
+    if (isInternalSiteVisitSource(row.src)) continue
     const parts = zonedVisitParts(viewed, zone)
     const index = dayIndex.get(parts.key)
     if (index == null) continue
@@ -337,18 +338,51 @@ export function publicReferrer(value: unknown) {
   }
 }
 
+const INTERNAL_VISIT_SOURCES = new Set([
+  'bot',
+  'deploy-check',
+  'deploycheck',
+  'health-check',
+  'healthcheck',
+  'internal',
+  'preview',
+  'smoke',
+  'ss-smoke',
+])
+
+/** Rep-facing totals skip deploy checks and other internal source tags. */
+export function isInternalSiteVisitSource(src: string | null | undefined) {
+  const value = src?.trim().toLowerCase() ?? ''
+  if (!value) return false
+  if (INTERNAL_VISIT_SOURCES.has(value)) return true
+  return value.startsWith('deploycheck') || value.startsWith('internal')
+}
+
+/**
+ * Daily visitor id. Salt rotates the id each UTC day. A network hint is hashed
+ * in when present and is never stored. No salt means no id, so totals stay page views.
+ */
 export function dailyVisitorHash(args: {
   salt: string | null | undefined
   userAgent: string
   now: Date
+  networkHint?: string | null
 }) {
   const salt = args.salt?.trim() ?? ''
   if (!salt) return null
   const day = args.now.toISOString().slice(0, 10)
-  return createHash('sha256')
-    .update(`${salt}|${day}|${args.userAgent.slice(0, 300)}`)
-    .digest('hex')
-    .slice(0, 32)
+  const hint = args.networkHint?.trim() ?? ''
+  const hintHash = hint ? createHash('sha256').update(hint).digest('hex').slice(0, 16) : ''
+  const material = hintHash
+    ? `${salt}|${day}|${args.userAgent.slice(0, 300)}|${hintHash}`
+    : `${salt}|${day}|${args.userAgent.slice(0, 300)}`
+  return createHash('sha256').update(material).digest('hex').slice(0, 32)
+}
+
+function networkHintFromHeaders(headers: Headers) {
+  const forwarded = header(headers, 'x-vercel-forwarded-for')
+  if (!forwarded || forwarded.length > 80) return null
+  return forwarded
 }
 
 export function interpretPublicSiteVisit(args: {
@@ -364,6 +398,7 @@ export function interpretPublicSiteVisit(args: {
   const path = safePath(body.path)
   if (!path) return { action: 'ignore', reason: 'path' }
   const userAgent = header(args.headers, 'user-agent')
+  const networkHint = networkHintFromHeaders(args.headers)
   return {
     action: 'insert',
     row: {
@@ -375,7 +410,12 @@ export function interpretPublicSiteVisit(args: {
       utm_medium: trackingValue(body.utmMedium, 80),
       utm_campaign: trackingValue(body.utmCampaign, 80),
       us_state: usStateFromVercelHeaders(args.headers),
-      visitor_day_hash: dailyVisitorHash({ salt: args.salt, userAgent, now }),
+      visitor_day_hash: dailyVisitorHash({
+        salt: args.salt,
+        userAgent,
+        now,
+        networkHint,
+      }),
     },
   }
 }

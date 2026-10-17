@@ -1,45 +1,37 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
-import type { SiteVisitSummary } from '@/lib/services/site-visit-summary'
-import { US_STATE_HEX, US_STATE_NAMES } from '@/lib/services/site-visit-summary'
+import { useEffect, useId, useState } from 'react'
 import { workspaceSectionHref } from '@/lib/services/rep-dashboard-math'
-import { ClickCue, DashboardLink } from './DashboardLink'
+import { US_STATE_HEX, US_STATE_NAMES } from '@/lib/services/site-visit-summary'
+import {
+  ABOUT_NUMBERS_COPY,
+  bucketGa4Sources,
+  buildTrafficMonthBars,
+  calendarDayKey,
+  GA4_PROCESSING_COPY,
+  GA4_SOURCE_ORDER,
+  joinComparisonCopy,
+  NEW_SITE_COPY,
+  PAGE_VIEWS_NOTE,
+  pageViewComparisonCopy,
+  peopleSinceLabel,
+  pickSiteTrafficTakeaway,
+  plainDeviceName,
+  resolveTrafficPeriod,
+  SITE_TRAFFIC_HISTORY_LABEL,
+  SITE_TRAFFIC_HISTORY_START,
+  SITE_TRAFFIC_INFO,
+  siteAgeDays,
+  stateFromRegionLabel,
+  summarizeTrafficPeriod,
+  thisMonthTakeawayFacts,
+  type SiteTrafficLedger,
+  type TrafficPeriodId,
+} from '@/lib/services/site-traffic'
+import { zonedCalendarDay } from '@/lib/services/rep-dashboard-math'
+import { ClickCue } from './DashboardLink'
 import { SubjectCardTip } from './SubjectCardTip'
 import styles from './RepDashboard.module.css'
-
-function VisitShell({
-  href,
-  className,
-  external = false,
-  testId,
-  children,
-}: {
-  href?: string | null
-  className: string
-  external?: boolean
-  testId?: string
-  children: ReactNode
-}) {
-  if (!href) return <article className={className} data-testid={testId}>{children}</article>
-  return (
-    <DashboardLink
-      className={className}
-      href={href}
-      testId={testId}
-      target={external ? '_blank' : undefined}
-      rel={external ? 'noreferrer noopener' : undefined}
-    >
-      <div className={styles.cueEnd}>
-        <ClickCue kind={external ? 'site' : 'manage'} />
-        {external ? <span className={styles.srOnly}>Opens in a new tab.</span> : null}
-      </div>
-      {children}
-    </DashboardLink>
-  )
-}
-
-const TRACKING_STARTED = 'October 13, 2026'
 
 const MAP_COLORS = ['#f4eefc', '#d9c8f3', '#a07ad8', '#6f2bd0', '#2a1248'] as const
 
@@ -49,6 +41,24 @@ type ColorBand = {
   color: string
   label: string
 }
+
+type Breakdown = { label: string; value: number }
+
+export type SiteTrafficGa4State =
+  | {
+      status: 'loading' | 'not_set_up' | 'unavailable' | 'processing'
+      realtimeUsers?: number | null
+    }
+  | {
+      status: 'ready'
+      sources: Breakdown[]
+      regions: Breakdown[]
+      cities: Breakdown[]
+      devices: Breakdown[]
+      newVisitors: number | null
+      returningVisitors: number | null
+      realtimeUsers: number | null
+    }
 
 function formatCount(value: number) {
   return value.toLocaleString('en-US')
@@ -89,41 +99,15 @@ export function stateVisitColorBands(max: number): ColorBand[] {
 function bandForCount(count: number, bands: ColorBand[]) {
   for (let index = bands.length - 1; index >= 0; index -= 1) {
     const band = bands[index]
-    if (count >= band.min && count <= band.max) return { band, index }
+    if (count >= band.min && count <= band.max) return band
   }
-  return { band: bands[0], index: 0 }
+  return bands[0]
 }
 
 function hourLabel(hour: number) {
-  const suffix = hour < 12 ? 'am' : 'pm'
+  const suffix = hour < 12 ? 'AM' : 'PM'
   const face = hour % 12 === 0 ? 12 : hour % 12
-  return `${face}${suffix}`
-}
-
-function shareLabel(share: number | null) {
-  if (share == null) return 'No visits in this period yet.'
-  return `${Math.round(share * 100)}% of visits came from a QR code.`
-}
-
-function VisitSparkline({ values, labels }: { values: number[]; labels: string[] }) {
-  const width = 280
-  const height = 56
-  const max = Math.max(...values, 1)
-  const step = values.length > 1 ? width / (values.length - 1) : 0
-  const points = values.map((value, index) => {
-    const x = values.length === 1 ? width / 2 : index * step
-    const y = height - 8 - (value / max) * (height - 16)
-    return `${x},${y}`
-  })
-  const line = points.join(' ')
-  const summary = labels
-    .map((label, index) => `${label} ${values[index] ?? 0}`)
-    .join(', ')
-  return (
-    <svg className={styles.visitSpark} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Daily visits: ${summary}`}>
-      <polyline className={styles.visitSparkLine} points={line} />
-    </svg>
-  )
+  return `${face} ${suffix}`
 }
 
 function heatColor(count: number, max: number) {
@@ -132,7 +116,19 @@ function heatColor(count: number, max: number) {
   return `color-mix(in srgb, #e2198f ${Math.round(mix * 100)}%, #f1eafd)`
 }
 
-function StateMap({ states }: { states: SiteVisitSummary['states'] }) {
+function regionsToStates(rows: Breakdown[]) {
+  const counts = new Map<string, { code: string; name: string; count: number }>()
+  for (const row of rows) {
+    const state = stateFromRegionLabel(row.label)
+    if (!state || row.value <= 0) continue
+    const current = counts.get(state.code)
+    if (current) current.count += row.value
+    else counts.set(state.code, { code: state.code, name: state.name, count: row.value })
+  }
+  return [...counts.values()].sort((left, right) => right.count - left.count || left.code.localeCompare(right.code))
+}
+
+function StateMap({ states }: { states: Array<{ code: string; name: string; count: number }> }) {
   const counts = new Map(states.map((state) => [state.code, state.count]))
   const max = Math.max(...states.map((state) => state.count), 0)
   const bands = stateVisitColorBands(max)
@@ -158,7 +154,7 @@ function StateMap({ states }: { states: SiteVisitSummary['states'] }) {
         <svg className={styles.stateMap} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Visits by US state. Darker states sent more visitors.">
           {US_STATE_HEX.map((state) => {
             const count = counts.get(state.code) ?? 0
-            const { band } = bandForCount(count, bands)
+            const band = bandForCount(count, bands)
             const onDark = band.color === MAP_COLORS[3] || band.color === MAP_COLORS[4]
             const name = US_STATE_NAMES[state.code]
             const cx = 22 + state.col * radius * 1.72 + (state.row % 2) * radius * 0.86
@@ -193,12 +189,7 @@ function StateMap({ states }: { states: SiteVisitSummary['states'] }) {
                 >
                   <title>{`${name}: ${formatCount(count)} ${visitWord(count)}`}</title>
                 </polygon>
-                <text
-                  x={cx}
-                  y={cy + 3}
-                  textAnchor="middle"
-                  className={onDark ? styles.stateCodeOnDark : styles.stateCode}
-                >
+                <text x={cx} y={cy + 3} textAnchor="middle" className={onDark ? styles.stateCodeOnDark : styles.stateCode}>
                   {state.code}
                 </text>
               </g>
@@ -217,7 +208,7 @@ function StateMap({ states }: { states: SiteVisitSummary['states'] }) {
               ))}
             </ol>
           ) : (
-            <p className={styles.muted}>No state visits yet. Names and counts show up here as people open your site.</p>
+            <p className={styles.muted}>No state visits in this period yet.</p>
           )}
         </div>
       </div>
@@ -236,212 +227,442 @@ function StateMap({ states }: { states: SiteVisitSummary['states'] }) {
   )
 }
 
-type Ga4View =
-  | { status: 'loading' | 'not_set_up' | 'unavailable' }
-  | {
-      status: 'ready'
-      pageViews: number | null
-      visitors: number | null
-      topPages: Array<{ label: string; value: number }>
-      sources: Array<{ label: string; value: number }>
-      devices: Array<{ label: string; value: number }>
-      updatedAt: string | null
-    }
-
-function formatUpdatedEt(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  const formatted = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date)
-  return `Updated ${formatted} ET`
-}
-
-function BreakdownList({
-  title,
-  rows,
+function Teach({
+  id,
+  copy,
 }: {
-  title: string
-  rows: Array<{ label: string; value: number }>
+  id: string
+  copy: { means: string; matters: string; try: string }
 }) {
   return (
-    <div>
-      <h4 className={styles.mapListTitle}>{title}</h4>
-      {rows.length > 0 ? (
-        <ol className={styles.topStates}>
-          {rows.slice(0, 5).map((row) => (
-            <li key={`${title}-${row.label}`}>
-              <span>{row.label}</span>
-              <strong>{formatCount(row.value)}</strong>
-            </li>
-          ))}
-        </ol>
-      ) : (
-        <p className={styles.muted}>None yet.</p>
-      )}
+    <div className={styles.trafficTeach} id={id}>
+      <p><b>What this means</b> {copy.means}</p>
+      <p><b>Why it matters</b> {copy.matters}</p>
+      <p><b>What to try</b> {copy.try}</p>
     </div>
   )
 }
 
-export function SiteGa4SummaryView({ view }: { view: Ga4View }) {
-  if (view.status !== 'ready') {
-    if (view.status === 'not_set_up') {
-      return <p className={styles.muted}>Analytics not set up yet.</p>
-    }
-    if (view.status === 'unavailable') {
-      return <p className={styles.muted}>Analytics will show up here when the connection is ready.</p>
-    }
-    return <p className={styles.muted}>Loading site analytics.</p>
-  }
-
-  const updated = view.updatedAt ? formatUpdatedEt(view.updatedAt) : ''
+function InfoButton({
+  cardId,
+  label,
+  openId,
+  onToggle,
+}: {
+  cardId: string
+  label: string
+  openId: string | null
+  onToggle: (id: string) => void
+}) {
+  const open = openId === cardId
   return (
-    <div className={styles.ga4Grid} data-testid="site-ga4-ready">
-      <article className={styles.statCard}>
-        <h3 className={styles.pieceTitle}>Page views</h3>
-        <p className={styles.statValue}>{formatCount(view.pageViews ?? 0)}</p>
-        <p className={styles.muted}>Last 28 days.</p>
-      </article>
-      <article className={styles.statCard}>
-        <h3 className={styles.pieceTitle}>Visitors</h3>
-        <p className={styles.statValue}>{formatCount(view.visitors ?? 0)}</p>
-        <p className={styles.muted}>Last 28 days.</p>
-      </article>
-      <BreakdownList title="Top pages" rows={view.topPages} />
-      <BreakdownList title="Sources" rows={view.sources} />
-      <BreakdownList title="Devices" rows={view.devices} />
-      {updated ? <p className={styles.muted}>{updated}</p> : null}
+    <button
+      type="button"
+      className={open ? styles.infoButtonOpen : styles.infoButton}
+      aria-expanded={open}
+      aria-controls={`${cardId}-details`}
+      onClick={() => onToggle(cardId)}
+    >
+      <span aria-hidden="true">i</span>
+      <span className={styles.srOnly}>{open ? `Hide what ${label} means` : `What ${label} means`}</span>
+    </button>
+  )
+}
+
+function CardHead({
+  title,
+  cardId,
+  openId,
+  onToggle,
+  testId,
+}: {
+  title: string
+  cardId: string
+  openId: string | null
+  onToggle: (id: string) => void
+  testId?: string
+}) {
+  return (
+    <div className={styles.trafficHead}>
+      <h3 className={styles.pieceTitle} data-testid={testId}>{title}</h3>
+      <InfoButton cardId={cardId} label={title} openId={openId} onToggle={onToggle} />
     </div>
   )
 }
 
-function SiteGa4Section() {
-  const [view, setView] = useState<Ga4View>({ status: 'loading' })
+function DailyChart({
+  bars,
+}: {
+  bars: Array<{ key: string; label: string; pageViews: number; showDay: boolean }>
+}) {
+  const max = Math.max(...bars.map((bar) => bar.pageViews), 1)
+  const first = bars[0]?.label ?? ''
+  const middle = bars[Math.floor((bars.length - 1) / 2)]?.label ?? ''
+  const last = bars[bars.length - 1]?.label ?? ''
+  const summary = bars.map((bar) => `${bar.label} ${bar.pageViews}`).join(', ')
+  return (
+    <div>
+      <div className={styles.trafficChart} role="img" aria-label={`Daily page views: ${summary || 'none yet'}`}>
+        {bars.map((bar) => (
+          <span
+            key={bar.key}
+            className={bar.showDay ? styles.trafficBarShow : styles.trafficBar}
+            style={{ height: `${Math.max(4, Math.round((bar.pageViews / max) * 100))}%` }}
+            title={`${bar.label}: ${bar.pageViews}`}
+          />
+        ))}
+      </div>
+      {bars.length > 0 ? (
+        <div className={styles.trafficAxis}>
+          <span>{first}</span>
+          {bars.length > 2 ? <span>{middle}</span> : <span />}
+          <span>{last}</span>
+        </div>
+      ) : null}
+      <div className={styles.trafficLegend}>
+        <span><i className={styles.legendShow} /> Show day</span>
+        <span><i className={styles.legendOther} /> Other day</span>
+      </div>
+    </div>
+  )
+}
+
+function ShareRows({ rows }: { rows: Array<{ label: string; value: number; qr?: boolean }> }) {
+  const total = rows.reduce((sum, row) => sum + row.value, 0)
+  return (
+    <ul className={styles.trafficRows}>
+      {rows.map((row) => {
+        const pct = total > 0 ? Math.round((row.value / total) * 100) : 0
+        return (
+          <li key={row.label}>
+            <span>{row.label}</span>
+            <span className={styles.trafficTrack}>
+              <span
+                className={row.qr ? styles.trafficFillQr : styles.trafficFill}
+                style={{ width: `${pct}%` }}
+              />
+            </span>
+            <span className={styles.trafficNum}>{pct}%</span>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+function ga4StatusLine(status: SiteTrafficGa4State['status']) {
+  if (status === 'processing') return GA4_PROCESSING_COPY
+  if (status === 'not_set_up') return 'Analytics not set up yet.'
+  if (status === 'unavailable') return 'Analytics will show up here when the connection is ready.'
+  return 'Loading where your visitors are.'
+}
+
+function realtimeSentence(users: number) {
+  if (users <= 0) return 'No one on your site this minute.'
+  if (users === 1) return '1 person on your site right now'
+  return `${formatCount(users)} people on your site right now`
+}
+
+function readGa4Body(body: {
+  ga4Status?: string
+  status?: string
+  trafficSources?: Breakdown[]
+  regions?: Breakdown[]
+  cities?: Breakdown[]
+  deviceMix?: Breakdown[]
+  newVisitors?: number | null
+  returningVisitors?: number | null
+  realtimeUsers?: number | null
+}): SiteTrafficGa4State {
+  const realtimeUsers = typeof body.realtimeUsers === 'number' ? body.realtimeUsers : null
+  if (body.ga4Status === 'ready') {
+    return {
+      status: 'ready',
+      sources: body.trafficSources ?? [],
+      regions: body.regions ?? [],
+      cities: body.cities ?? [],
+      devices: body.deviceMix ?? [],
+      newVisitors: body.newVisitors ?? null,
+      returningVisitors: body.returningVisitors ?? null,
+      realtimeUsers,
+    }
+  }
+  if (body.ga4Status === 'processing') return { status: 'processing', realtimeUsers }
+  if (body.ga4Status === 'not_set_up') return { status: 'not_set_up', realtimeUsers }
+  return { status: 'unavailable', realtimeUsers }
+}
+
+export function SiteVisitsPanel({
+  traffic,
+  siteHref = null,
+  now,
+  ga4 = undefined,
+}: {
+  traffic: SiteTrafficLedger
+  siteHref?: string | null
+  now?: Date
+  ga4?: SiteTrafficGa4State
+}) {
+  const clock = now ?? new Date()
+  const zone = traffic?.timeZone
+  const todayKey = calendarDayKey(zonedCalendarDay(clock, zone))
+  const [periodId, setPeriodId] = useState<TrafficPeriodId>('this-month')
+  const [customStart, setCustomStart] = useState(SITE_TRAFFIC_HISTORY_START)
+  const [customEnd, setCustomEnd] = useState(todayKey)
+  const [openId, setOpenId] = useState<string | null>(null)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const [remoteGa4, setRemoteGa4] = useState<SiteTrafficGa4State>({ status: 'loading' })
+  const guideId = useId()
+  const ledger = traffic ?? {
+    status: 'unavailable' as const,
+    historyStart: SITE_TRAFFIC_HISTORY_START,
+    timeZone: 'America/New_York',
+    uniqueCounting: false,
+    uniqueSince: null,
+    showDays: [],
+    days: [],
+  }
+  const period = resolveTrafficPeriod({
+    period: periodId,
+    now: clock,
+    timeZone: ledger.timeZone,
+    customStart,
+    customEnd,
+  })
+  const summary = summarizeTrafficPeriod(ledger, period)
+  const months = buildTrafficMonthBars(ledger, clock, ledger.timeZone)
+  const view = ga4 ?? remoteGa4
+  const ga4Ready = view.status === 'ready'
+  const buckets = ga4Ready ? bucketGa4Sources(view.sources) : null
+  const takeaway = pickSiteTrafficTakeaway(thisMonthTakeawayFacts({
+    ledger,
+    now: clock,
+    timeZone: ledger.timeZone,
+    ga4Processing: !ga4Ready,
+    knownSessions: buckets?.knownSessions ?? 0,
+    topSourceLabel: buckets?.topSourceLabel ?? null,
+    topSourceSessions: buckets?.topSourceSessions ?? 0,
+  }))
+  const peopleSince = peopleSinceLabel(summary.peopleSince)
+  const publicSiteHref = siteHref?.trim() || null
+  const young = siteAgeDays(clock, ledger.timeZone) < 7
+  const rangeKey = `${calendarDayKey(period.start)}:${calendarDayKey(period.end)}:${period.countable}`
 
   useEffect(() => {
+    if (ga4 || !period.countable) return undefined
     const controller = new AbortController()
-    fetch('/api/nic-nac/site-analytics', {
+    const start = calendarDayKey(period.start)
+    const end = calendarDayKey(period.end)
+    fetch(`/api/nic-nac/site-analytics?start=${start}&end=${end}`, {
       credentials: 'same-origin',
       signal: controller.signal,
     })
       .then(async (response) => {
         if (!response.ok) return { status: 'unavailable' as const }
-        const body = (await response.json()) as {
-          configured?: boolean
-          ga4Status?: string
-          ga4UpdatedAt?: string | null
-          overview?: { pageViews30d?: number | null; uniqueVisitors30d?: number | null }
-          topPages?: Array<{ label: string; value: number }>
-          trafficSources?: Array<{ label: string; value: number }>
-          deviceMix?: Array<{ label: string; value: number }>
-        }
-        if (body.ga4Status === 'ready' && body.configured) {
-          return {
-            status: 'ready' as const,
-            pageViews: body.overview?.pageViews30d ?? null,
-            visitors: body.overview?.uniqueVisitors30d ?? null,
-            topPages: body.topPages ?? [],
-            sources: body.trafficSources ?? [],
-            devices: body.deviceMix ?? [],
-            updatedAt: body.ga4UpdatedAt ?? null,
-          }
-        }
-        if (body.ga4Status === 'unavailable') return { status: 'unavailable' as const }
-        return { status: 'not_set_up' as const }
+        return readGa4Body(await response.json())
       })
-      .then((next) => setView(next))
+      .then((next) => setRemoteGa4(next))
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return
-        setView({ status: 'unavailable' })
+        setRemoteGa4({ status: 'unavailable' })
       })
     return () => controller.abort()
-  }, [])
+  }, [ga4, period.countable, period.end, period.start, rangeKey])
 
-  return (
-    <article className={styles.card} data-testid="site-ga4">
-      <h3 className={styles.pieceTitle}>Site analytics</h3>
-      <p className={styles.why}>
-        Page views, visitors, top pages, sources, and devices for the last 28 days.
-      </p>
-      <SiteGa4SummaryView view={view} />
-    </article>
-  )
-}
+  const toggleInfo = (id: string) => setOpenId((current) => (current === id ? null : id))
+  const sourceValue = (label: (typeof GA4_SOURCE_ORDER)[number]) =>
+    buckets?.sources.find((row) => row.label === label)?.value ?? 0
+  const sourceRows = ga4Ready
+    ? [
+        { label: 'TikTok', value: sourceValue('TikTok') },
+        { label: 'QR cards', value: summary.qrVisits, qr: true },
+        { label: 'Google', value: sourceValue('Google') },
+        { label: 'Facebook / IG', value: sourceValue('Facebook / IG') },
+        { label: 'Direct / other', value: sourceValue('Direct / other') },
+      ].filter((row) => row.value > 0)
+    : summary.qrVisits > 0
+      ? [{ label: 'QR cards', value: summary.qrVisits, qr: true }]
+      : []
+  const readyGa4 = view.status === 'ready' ? view : null
+  const states = readyGa4 ? regionsToStates(readyGa4.regions) : []
+  const realtime = view.realtimeUsers
+  const heatMax = Math.max(...summary.heatmap.flat(), 0)
+  const heatOrder = [1, 2, 3, 4, 5, 6, 0]
+  const qrShare = summary.pageViews > 0 ? Math.round((summary.qrVisits / summary.pageViews) * 100) : null
 
-export function SiteVisitsPanel({
-  visits,
-  siteHref = null,
-}: {
-  visits: SiteVisitSummary
-  siteHref?: string | null
-}) {
-  const publicSiteHref = siteHref?.trim() || null
   return (
     <SubjectCardTip tip="visitors" testId="site-visitors" ariaLabelledBy="site-visitors-title">
       <header className={styles.customerTop}>
         <div>
           <p className={styles.kicker}>Website</p>
-          <h3 id="site-visitors-title" className={styles.cardTitle}>Your site visitors</h3>
-          <p className={styles.customerExplainer}>
-            Page views on your public site over the last 28 days. Tracking started {TRACKING_STARTED}. QR codes printed before that still open your site and count as regular visits.
+          <h3 id="site-visitors-title" className={styles.cardTitle}>Site traffic</h3>
+          <p className={styles.customerExplainer} id={guideId}>
+            Who stopped by your site this month. New to this?{' '}
+            <a
+              href="/nic-nac?section=resources&resource=how-to-read-your-site-traffic"
+              data-testid="site-traffic-guide-slot"
+            >
+              Read the guide
+            </a>
           </p>
         </div>
+      </header>
+
+      <div className={styles.periodBar} role="group" aria-label="Site traffic dates">
+        {(
+          [
+            ['this-month', 'This month'],
+            ['last-month', 'Last month'],
+            ['last-7', '7 days'],
+            ['custom', 'Dates'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            className={periodId === id ? styles.periodOn : styles.periodButton}
+            aria-pressed={periodId === id}
+            onClick={() => setPeriodId(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {periodId === 'custom' ? (
+        <div className={styles.customDates}>
+          <label>
+            From
+            <input
+              type="date"
+              min={SITE_TRAFFIC_HISTORY_START}
+              max={todayKey}
+              value={customStart}
+              onChange={(event) => setCustomStart(event.target.value)}
+            />
+          </label>
+          <label>
+            To
+            <input
+              type="date"
+              min={SITE_TRAFFIC_HISTORY_START}
+              max={todayKey}
+              value={customEnd}
+              onChange={(event) => setCustomEnd(event.target.value)}
+            />
+          </label>
+        </div>
+      ) : null}
+
+      <section className={styles.trafficTakeaway} data-testid="site-traffic-takeaway">
+        <p className={styles.kickerLight}>Your takeaway this month</p>
+        <p>{takeaway.text}</p>
+      </section>
+
+      {young ? <p className={styles.trafficNote}>{NEW_SITE_COPY}</p> : null}
+      {ledger.status === 'unavailable' ? (
+        <p className={styles.muted}>
+          Site traffic isn&apos;t available yet. Counting started {SITE_TRAFFIC_HISTORY_LABEL}.
+        </p>
+      ) : null}
+
+      {typeof realtime === 'number' ? (
+        <section className={styles.trafficNow} data-testid="traffic-now">
+          <span className={styles.pulse} aria-hidden="true" />
+          <p>{realtimeSentence(realtime)}</p>
+          <InfoButton cardId="right-now" label="Right now" openId={openId} onToggle={toggleInfo} />
+          {openId === 'right-now' ? <Teach id="right-now-details" copy={SITE_TRAFFIC_INFO.rightNow} /> : null}
+        </section>
+      ) : null}
+
+      <article className={styles.card} data-testid="site-visits">
+        <CardHead title="Page views" cardId="page-views" openId={openId} onToggle={toggleInfo} />
         {publicSiteHref ? (
-          <a className={styles.headerSiteLink} href={publicSiteHref} target="_blank" rel="noreferrer noopener">
+          <a className={styles.trafficCue} href={publicSiteHref} target="_blank" rel="noreferrer noopener">
             <ClickCue kind="site" />
             <span className={styles.srOnly}> Opens in a new tab.</span>
           </a>
         ) : null}
-      </header>
-      {visits.status === 'unavailable' ? (
-        <article className={styles.card}>
-          <h3 className={styles.pieceTitle}>Visits</h3>
-          <p className={styles.muted}>
-            Site visits aren&apos;t available yet. They&apos;ll show up here after tracking is on, from {TRACKING_STARTED} onward.
-          </p>
-        </article>
-      ) : (
-        <VisitCards visits={visits} siteHref={publicSiteHref} />
-      )}
-      <SiteGa4Section />
-    </SubjectCardTip>
-  )
-}
-
-function VisitCards({ visits, siteHref }: { visits: SiteVisitSummary; siteHref: string | null }) {
-  const heatMax = Math.max(...visits.heatmap.flat(), 0)
-  const busiest = visits.busiest
-    ? `${visits.busiest.day} at ${hourLabel(visits.busiest.hour)}`
-    : null
-
-  return (
-    <div className={styles.visitGrid}>
-      <VisitShell className={styles.statCard} href={siteHref} external testId="site-visits">
-        <div className={styles.statTop}>
-          <h3 className={styles.pieceTitle}>Visits</h3>
-          <span className={styles.pill}>{visits.periodLabel}</span>
+        <div className={styles.trafficStatRow}>
+          <p className={styles.statValue}>{formatCount(summary.pageViews)}</p>
+          <span className={styles.pill}>{pageViewComparisonCopy(summary)}</span>
         </div>
-        <p className={styles.why}>How many times your public site was opened in this period.</p>
-        <p className={styles.statValue}>{formatCount(visits.total)}</p>
-        <p className={styles.muted}>
-          {visits.total === 0
-            ? `No visits yet. They start counting on ${TRACKING_STARTED}.`
-            : 'Each open of your public site counts once.'}
-        </p>
-        <VisitSparkline values={visits.daily} labels={visits.dayLabels} />
-      </VisitShell>
+        <p className={styles.trafficNote}>{PAGE_VIEWS_NOTE}</p>
+        {summary.people != null ? (
+          <p className={styles.why}>
+            <strong>{formatCount(summary.people)}</strong> people who visited
+            {peopleSince ? `. Counting since ${peopleSince}.` : '. Counting starts once visitor ids are on.'}
+          </p>
+        ) : null}
+        {period.countable ? <DailyChart bars={summary.daily} /> : (
+          <p className={styles.muted}>Counting started {SITE_TRAFFIC_HISTORY_LABEL}.</p>
+        )}
+        {openId === 'page-views' ? (
+          <div id="page-views-details">
+            <Teach id="page-views-means" copy={SITE_TRAFFIC_INFO.pageViews} />
+            <Teach id="page-views-chart" copy={SITE_TRAFFIC_INFO.dailyChart} />
+          </div>
+        ) : null}
+      </article>
+
+      <article className={styles.card} data-testid="traffic-sources">
+        <CardHead title="Where they came from" cardId="sources" openId={openId} onToggle={toggleInfo} />
+        {!period.countable ? (
+          <p className={styles.muted}>No counted days in this period yet.</p>
+        ) : ga4Ready && sourceRows.length > 0 ? (
+          <ShareRows rows={sourceRows} />
+        ) : ga4Ready ? (
+          <p className={styles.muted}>No source visits in this period yet.</p>
+        ) : (
+          <>
+            <p className={styles.muted}>{ga4StatusLine(view.status)}</p>
+            {summary.qrVisits > 0 ? <ShareRows rows={sourceRows} /> : null}
+          </>
+        )}
+        <p className={styles.trafficSourceNote}>QR from Sparkle Suite&apos;s counter. Others from Google Analytics.</p>
+        {openId === 'sources' ? <Teach id="sources-details" copy={SITE_TRAFFIC_INFO.sources} /> : null}
+      </article>
+
+      <article className={styles.card} data-testid="traffic-pages">
+        <CardHead title="What they looked at" cardId="pages" openId={openId} onToggle={toggleInfo} />
+        {summary.pages.length > 0 ? (
+          <ol className={styles.trafficPages}>
+            {summary.pages.map((page) => (
+              <li key={page.name}>
+                <span>{page.name}</span>
+                <strong>{formatCount(page.count)}</strong>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className={styles.muted}>Pages show up here after someone opens your site.</p>
+        )}
+        {openId === 'pages' ? <Teach id="pages-details" copy={SITE_TRAFFIC_INFO.pages} /> : null}
+      </article>
+
+      <article className={styles.card} data-testid="traffic-join">
+        <CardHead title="Join page interest" cardId="join" openId={openId} onToggle={toggleInfo} />
+        <div className={styles.trafficStatRow}>
+          <p className={styles.statValue}>{formatCount(summary.joinViews)}</p>
+          {joinComparisonCopy(summary) ? <span className={styles.pill}>{joinComparisonCopy(summary)}</span> : null}
+        </div>
+        <p className={styles.why}>Times your Join my team page was opened this month.</p>
+        {openId === 'join' ? <Teach id="join-details" copy={SITE_TRAFFIC_INFO.join} /> : null}
+      </article>
 
       <article className={styles.card} data-testid="visit-heatmap">
-        <h3 className={styles.pieceTitle}>Busiest hour</h3>
-        <p className={styles.why}>
-          The day and hour people already show up, in your time zone. Darker squares are busier hours, so you can schedule a live when visitors are looking.
+        <CardHead title="Busiest hour" cardId="busiest" openId={openId} onToggle={toggleInfo} />
+        <p className={styles.muted}>
+          {summary.busiest
+            ? `Busiest: ${summary.busiest.day}, ${hourLabel(summary.busiest.hour)}. Darker squares are busier hours.`
+            : 'A busy hour shows up after a few page views.'}
         </p>
-        <p className={styles.muted}>{busiest ? `Busiest: ${busiest}.` : 'A busy hour shows up after a few visits.'}</p>
-        <div className={styles.heatmap} role="img" aria-label={busiest ? `Busiest ${busiest}. Darker squares are busier hours.` : 'Visit heatmap, no visits yet. Darker squares will be busier hours.'}>
+        <div
+          className={styles.heatmap}
+          role="img"
+          aria-label={summary.busiest
+            ? `Busiest ${summary.busiest.day}, ${hourLabel(summary.busiest.hour)}. Darker squares are busier hours.`
+            : 'Page view heatmap. Darker squares will be busier hours.'}
+        >
           <div className={styles.heatHours} aria-hidden="true">
             <span />
             <span>12a</span>
@@ -449,37 +670,156 @@ function VisitCards({ visits, siteHref }: { visits: SiteVisitSummary; siteHref: 
             <span>12p</span>
             <span>6p</span>
           </div>
-          {visits.dayNames.map((day, dayIndex) => (
-            <div className={styles.heatRow} key={day}>
-              <span className={styles.heatDay}>{day}</span>
+          {heatOrder.map((dayIndex) => (
+            <div className={styles.heatRow} key={summary.dayNames[dayIndex]}>
+              <span className={styles.heatDay}>{summary.dayNames[dayIndex]}</span>
               <span className={styles.heatCells}>
-                {visits.heatmap[dayIndex]?.map((count, hour) => (
+                {summary.heatmap[dayIndex]?.map((count, hour) => (
                   <span
-                    key={`${day}-${hour}`}
+                    key={`${dayIndex}-${hour}`}
                     className={styles.heatCell}
                     style={{ background: heatColor(count, heatMax) }}
-                    title={`${day} ${hourLabel(hour)}: ${count}`}
+                    title={`${summary.dayNames[dayIndex]} ${hourLabel(hour)}: ${count}`}
                   />
                 ))}
               </span>
             </div>
           ))}
         </div>
+        {openId === 'busiest' ? <Teach id="busiest-details" copy={SITE_TRAFFIC_INFO.busiest} /> : null}
       </article>
-
-      <VisitShell className={styles.statCard} href={workspaceSectionHref('card-qr')} testId="qr-visits">
-        <h3 className={styles.pieceTitle}>QR visits</h3>
-        <p className={styles.why}>
-          Scans from Cards &amp; QR codes made after tracking started. Codes you already printed still open your site and count as regular visits, not QR scans.
-        </p>
-        <p className={styles.statValue}>{formatCount(visits.qrVisits)}</p>
-        <p className={styles.muted}>{shareLabel(visits.qrShare)}</p>
-      </VisitShell>
 
       <article className={styles.card} data-testid="visit-map">
-        <h3 className={styles.pieceTitle}>Where they are</h3>
-        <StateMap states={visits.states} />
+        <CardHead title="Where they are" cardId="places" openId={openId} onToggle={toggleInfo} />
+        {!period.countable ? (
+          <p className={styles.muted}>No counted days in this period yet.</p>
+        ) : readyGa4 ? (
+          <>
+            <StateMap states={states} />
+            {readyGa4.cities.length > 0 ? (
+              <div>
+                <h4 className={styles.mapListTitle}>Top cities</h4>
+                <ol className={styles.topStates}>
+                  {readyGa4.cities.slice(0, 5).map((city) => (
+                    <li key={city.label}>
+                      <span>{city.label}</span>
+                      <strong>{formatCount(city.value)}</strong>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
+            <p className={styles.trafficSourceNote}>From Google Analytics. State and city only, never addresses.</p>
+          </>
+        ) : (
+          <p className={styles.muted}>{ga4StatusLine(view.status)}</p>
+        )}
+        {openId === 'places' ? <Teach id="places-details" copy={SITE_TRAFFIC_INFO.places} /> : null}
       </article>
-    </div>
+
+      <article className={styles.card} data-testid="qr-visits">
+        <CardHead title="QR visits" cardId="qr" openId={openId} onToggle={toggleInfo} />
+        <div className={styles.trafficStatRow}>
+          <p className={styles.statValue}>{formatCount(summary.qrVisits)}</p>
+          {qrShare != null ? <span className={styles.pill}>{qrShare}% of page views</span> : null}
+        </div>
+        <p className={styles.why}>Scans of QR codes you made in Cards &amp; QR codes.</p>
+        <a className={styles.trafficCue} href={workspaceSectionHref('card-qr')}>
+          <ClickCue />
+        </a>
+        {openId === 'qr' ? <Teach id="qr-details" copy={SITE_TRAFFIC_INFO.qr} /> : null}
+      </article>
+
+      <article className={styles.card} data-testid="traffic-months">
+        <CardHead title="Month by month" cardId="months" openId={openId} onToggle={toggleInfo} />
+        {months.length > 0 ? (
+          <>
+            <div className={styles.monthChart} role="img" aria-label={months.map((month) => `${month.label} ${month.pageViews}`).join(', ')}>
+              {months.map((month) => {
+                const max = Math.max(...months.map((item) => item.pageViews), 1)
+                return (
+                  <div className={styles.monthCol} key={month.key}>
+                    <span>{formatCount(month.pageViews)}</span>
+                    <div
+                      className={month.partial ? styles.monthBarPartial : month.current ? styles.monthBarCurrent : styles.monthBar}
+                      style={{ height: `${Math.max(8, Math.round((month.pageViews / max) * 100))}%` }}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+            <div className={styles.monthLabels}>
+              {months.map((month) => <span key={month.key}>{month.label}</span>)}
+            </div>
+            {months.some((month) => month.partial) ? (
+              <p className={styles.muted}>*Partial month. Counting started Oct 17.</p>
+            ) : null}
+          </>
+        ) : (
+          <p className={styles.muted}>Month by month shows up after the first page views. Counting started {SITE_TRAFFIC_HISTORY_LABEL}.</p>
+        )}
+        {openId === 'months' ? <Teach id="months-details" copy={SITE_TRAFFIC_INFO.months} /> : null}
+      </article>
+
+      <div className={styles.card}>
+        <button
+          type="button"
+          className={styles.moreToggle}
+          aria-expanded={moreOpen}
+          aria-controls="traffic-more-panel"
+          onClick={() => setMoreOpen((open) => !open)}
+        >
+          <span>
+            More details
+            <small>Devices, new vs returning visitors</small>
+          </span>
+          <span aria-hidden="true">{moreOpen ? '\u25B4' : '\u25BE'}</span>
+        </button>
+        {moreOpen ? (
+          <div id="traffic-more-panel">
+            <InfoButton cardId="more" label="More details" openId={openId} onToggle={toggleInfo} />
+            {readyGa4 ? (
+              <div className={styles.trafficMoreGrid}>
+                <div>
+                  <h4 className={styles.mapListTitle}>Devices</h4>
+                  {readyGa4.devices.some((device) => device.value > 0) ? (
+                    <ol className={styles.topStates}>
+                      {readyGa4.devices.filter((device) => device.value > 0).map((device) => (
+                        <li key={device.label}>
+                          <span>{plainDeviceName(device.label)}</span>
+                          <strong>{formatCount(device.value)}</strong>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p className={styles.muted}>No device data for this period yet.</p>
+                  )}
+                </div>
+                <div>
+                  <h4 className={styles.mapListTitle}>New vs returning</h4>
+                  {(readyGa4.newVisitors ?? 0) > 0 || (readyGa4.returningVisitors ?? 0) > 0 ? (
+                    <ol className={styles.topStates}>
+                      <li><span>New</span><strong>{formatCount(readyGa4.newVisitors ?? 0)}</strong></li>
+                      <li><span>Returning</span><strong>{formatCount(readyGa4.returningVisitors ?? 0)}</strong></li>
+                    </ol>
+                  ) : (
+                    <p className={styles.muted}>{GA4_PROCESSING_COPY}</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className={styles.muted}>{ga4StatusLine(view.status)}</p>
+            )}
+            {openId === 'more' ? <Teach id="more-details" copy={SITE_TRAFFIC_INFO.more} /> : null}
+          </div>
+        ) : null}
+      </div>
+
+      <p className={styles.trafficAbout}>{ABOUT_NUMBERS_COPY}</p>
+    </SubjectCardTip>
   )
+}
+
+export function SiteGa4SummaryView({ view }: { view: { status: SiteTrafficGa4State['status'] } }) {
+  return <p className={styles.muted}>{ga4StatusLine(view.status)}</p>
 }

@@ -916,13 +916,18 @@ export interface SiteAnalyticsOperationalSnapshot {
 export interface SiteAnalyticsDashboardResult {
   configured: boolean
   status?: 'error'
-  ga4Status?: 'ready' | 'not_set_up' | 'unavailable'
+  ga4Status?: 'ready' | 'processing' | 'not_set_up' | 'unavailable'
   ga4UpdatedAt?: string | null
   privacy: SiteAnalyticsPrivacySummary
   overview: SiteAnalyticsOverview
   topPages: SiteAnalyticsBreakdownItem[]
   trafficSources: SiteAnalyticsBreakdownItem[]
   deviceMix: SiteAnalyticsBreakdownItem[]
+  regions?: SiteAnalyticsBreakdownItem[]
+  cities?: SiteAnalyticsBreakdownItem[]
+  newVisitors?: number | null
+  returningVisitors?: number | null
+  realtimeUsers?: number | null
   operationalSnapshot: SiteAnalyticsOperationalSnapshot
 }
 

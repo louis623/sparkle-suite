@@ -1502,6 +1502,330 @@ a.birthdayLink:focus-visible {
   }
 }
 
+.periodBar,
+.customDates,
+.trafficLegend,
+.trafficAxis,
+.monthLabels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.periodButton,
+.periodOn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(115, 69, 202, 0.22);
+  background: #fffdfb;
+  color: var(--dash-amethyst);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.periodOn {
+  background: var(--dash-amethyst);
+  color: var(--dash-cream);
+  border-color: var(--dash-amethyst);
+}
+
+.customDates label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.customDates input {
+  min-height: 36px;
+  border: 1px solid rgba(115, 69, 202, 0.22);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font: inherit;
+}
+
+.trafficTakeaway {
+  border-radius: 22px;
+  padding: 16px 16px 16px 18px;
+  color: var(--dash-cream);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 76, 174, 0.38), transparent 42%),
+    radial-gradient(circle at 0% 100%, rgba(111, 43, 208, 0.55), transparent 48%),
+    var(--dash-amethyst);
+}
+
+.trafficTakeaway p:last-child {
+  margin: 6px 0 0;
+  font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
+  font-size: 21px;
+  line-height: 1.25;
+}
+
+.trafficNow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(115, 69, 202, 0.16);
+  border-radius: 22px;
+  background: #fffdfb;
+}
+
+.trafficNow p {
+  margin: 0;
+  flex: 1;
+}
+
+.trafficHead,
+.trafficStatRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.trafficStatRow {
+  align-items: baseline;
+}
+
+.infoButton,
+.infoButtonOpen {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(115, 69, 202, 0.35);
+  background: #fff;
+  color: var(--dash-violet-deep);
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.infoButtonOpen {
+  background: var(--dash-violet-deep);
+  color: #fff;
+  border-color: var(--dash-violet-deep);
+}
+
+.trafficTeach {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(115, 69, 202, 0.3);
+}
+
+.trafficTeach p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.trafficTeach b {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dash-violet-deep);
+}
+
+.trafficNote,
+.trafficSourceNote,
+.trafficAbout {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(23, 16, 52, 0.72);
+}
+
+.trafficNote {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--dash-lilac);
+}
+
+.trafficChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 84px;
+  border-bottom: 1px solid rgba(115, 69, 202, 0.18);
+}
+
+.trafficBar,
+.trafficBarShow {
+  flex: 1;
+  min-width: 0;
+  border-radius: 4px 4px 0 0;
+  background: #d9c8f3;
+}
+
+.trafficBarShow {
+  background: var(--dash-violet);
+}
+
+.trafficAxis,
+.monthLabels {
+  justify-content: space-between;
+  color: rgba(23, 16, 52, 0.5);
+  font-size: 11px;
+}
+
+.trafficLegend {
+  color: rgba(23, 16, 52, 0.65);
+  font-size: 12px;
+}
+
+.trafficLegend i,
+.legendShow,
+.legendOther {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+  border-radius: 3px;
+  vertical-align: -1px;
+}
+
+.legendShow { background: var(--dash-violet); }
+.legendOther { background: #d9c8f3; }
+
+.trafficRows,
+.trafficPages {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trafficRows li {
+  display: grid;
+  grid-template-columns: minmax(88px, 104px) minmax(0, 1fr) 44px;
+  gap: 8px;
+  align-items: center;
+  font-size: 13.5px;
+}
+
+.trafficTrack {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--dash-lilac);
+  overflow: hidden;
+}
+
+.trafficFill,
+.trafficFillQr {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--dash-violet);
+}
+
+.trafficFillQr { background: var(--dash-magenta); }
+
+.trafficNum {
+  text-align: right;
+  font-family: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
+  font-size: 13px;
+}
+
+.trafficPages li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(115, 69, 202, 0.12);
+}
+
+.trafficCue {
+  align-self: flex-start;
+  color: inherit;
+  text-decoration: none;
+}
+
+.monthChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  height: 96px;
+  border-bottom: 1px solid rgba(115, 69, 202, 0.18);
+}
+
+.monthCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  height: 100%;
+  min-width: 0;
+}
+
+.monthCol span {
+  font-family: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.monthBar,
+.monthBarCurrent,
+.monthBarPartial {
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+  background: #d9c8f3;
+}
+
+.monthBarCurrent { background: var(--dash-violet); }
+
+.monthBarPartial {
+  background: repeating-linear-gradient(45deg, #d9c8f3 0 6px, #ece2fa 6px 12px);
+}
+
+.monthLabels span {
+  flex: 1;
+  text-align: center;
+}
+
+.moreToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+}
+
+.moreToggle small {
+  display: block;
+  margin-top: 2px;
+  font-weight: 400;
+  color: rgba(23, 16, 52, 0.6);
+}
+
+.trafficMoreGrid {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
 .ga4Grid {
   display: grid;
   gap: 14px;

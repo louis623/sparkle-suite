@@ -269,11 +269,10 @@ describe('rep dashboard presentation', () => {
     expect(html).not.toContain('Show streak')
     expect(html).not.toContain('askNicNac')
     expect(html).not.toContain('ringPlaceholder')
-    expect(html).toContain('Your site visitors')
+    expect(html).toContain('Site traffic')
     expect(html).toContain('Your Dance Floor')
-    expect(html).toContain('Darker states sent you more visitors.')
-    expect(html).toContain('Light = few visits. Dark = most visits.')
-    expect(html).toContain('October 13, 2026')
+    expect(html).toContain('Counting started October 17, 2026.')
+    expect(html).toContain('October 17, 2026')
     expect(html).not.toContain('Site visits — coming soon')
     expect(html).not.toContain('hidden=""')
     expect(html.indexOf('Next show')).toBeLessThan(html.indexOf('Your customers'))
@@ -315,7 +314,7 @@ describe('rep dashboard presentation', () => {
     )
     const visitMap = html.slice(
       html.indexOf('data-testid="visit-map"'),
-      html.indexOf('data-testid="month-at-a-glance"'),
+      html.indexOf('data-testid="qr-visits"'),
     )
     const siteVisits = html.slice(
       html.indexOf('data-testid="site-visits"'),
@@ -328,7 +327,7 @@ describe('rep dashboard presentation', () => {
     expect(visitMap).not.toContain('Open site ›')
     expect(siteVisits).not.toContain('Open site ›')
     expect(siteVisits).not.toContain('Manage ›')
-    expect(html.slice(html.indexOf('data-testid="qr-visits"'), html.indexOf('data-testid="visit-map"'))).toContain('Manage ›')
+    expect(html.slice(html.indexOf('data-testid="qr-visits"'), html.indexOf('data-testid="traffic-months"'))).toContain('Manage ›')
   })
 
   it('uses the same reachable-customer filter as site analytics', () => {
@@ -609,20 +608,11 @@ describe('rep dashboard presentation', () => {
     expect(html).not.toContain('Removed · "other"')
     expect(html).toContain('QR visits')
     expect(html).toContain('Where they are')
-    expect(html).toContain('Top 5 states')
-    expect(html).toContain('Darker states sent you more visitors.')
-    expect(html).toContain('Light = few visits. Dark = most visits.')
-    expect(html).toContain('1\u20132 visits')
-    expect(html).toContain('5 visits')
-    expect(html).toContain('New York, 5 visits')
-    expect(html).toContain('Hover or tap a state to see its name and visit count.')
+    expect(html).toContain('Page views')
+    expect(html).toContain('Counts page openings, not people.')
+    expect(html).toContain('Your takeaway this month')
     expect(html).toContain('Dance Floor totals')
     expect(html).toContain('Feature them in your next live')
-    const topStates = html.slice(html.indexOf('data-testid="top-states"'), html.indexOf('</ol>', html.indexOf('data-testid="top-states"')))
-    expect(topStates).toContain('New York')
-    expect(topStates).toContain('California')
-    expect(topStates).toContain('Texas')
-    expect(topStates).not.toContain('Washington')
     expect(html).not.toContain('hidden=""')
     expect(html).not.toContain('Site visits — coming soon')
     const danceFloorCard = html.slice(
@@ -644,7 +634,8 @@ describe('rep dashboard presentation', () => {
     expect(visitorsCard).toContain('data-testid="visit-heatmap"')
     expect(visitorsCard).toContain('data-testid="qr-visits"')
     expect(visitorsCard).toContain('data-testid="visit-map"')
-    expect(visitorsCard).toContain('Top 5 states')
+    expect(visitorsCard).toContain('Where they came from')
+    expect(visitorsCard).toContain('Join page interest')
     expect(html.indexOf('data-testid="next-show"')).toBeLessThan(html.indexOf('Your customers'))
     expect(html.indexOf('Your customers')).toBeLessThan(html.indexOf('Birthdays'))
     expect(html.indexOf('Birthdays')).toBeLessThan(html.indexOf('Last month at a glance'))
@@ -708,7 +699,7 @@ describe('rep dashboard presentation', () => {
     expect(customersCard).toContain('href="/nic-nac?section=customer-list&amp;filter=ordered_during_live_90"')
     expect(customersCard).toContain('href="/nic-nac?section=customer-list&amp;filter=gone_quiet"')
     expect(html).toContain('Friday Live')
-    expect(html).toContain('Your site visitors')
+    expect(html).toContain('Site traffic')
     expect(html).toContain('Dance Floor')
   })
 

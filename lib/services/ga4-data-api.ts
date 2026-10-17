@@ -12,6 +12,11 @@ export type Ga4DashboardNumbers = {
   topPages: Ga4Breakdown[]
   sources: Ga4Breakdown[]
   devices: Ga4Breakdown[]
+  regions?: Ga4Breakdown[]
+  cities?: Ga4Breakdown[]
+  newVisitors?: number
+  returningVisitors?: number
+  quality?: 'ok' | 'empty' | 'failed'
 }
 
 type ServiceAccount = {
@@ -102,13 +107,101 @@ export function parseGa4BatchReport(body: unknown): Ga4DashboardNumbers | null {
     reports[3] as Parameters<typeof breakdownRows>[0],
     'Unknown',
   ).map((row) => ({ ...row, label: titleCaseDevice(row.label) }))
+  const extras = parseGa4TrafficExtras(reports)
   return {
     pageViews: metricNumber(metrics[0]?.value),
     visitors: metricNumber(metrics[1]?.value),
     topPages: breakdownRows(reports[1] as Parameters<typeof breakdownRows>[0], '/'),
     sources: breakdownRows(reports[2] as Parameters<typeof breakdownRows>[0], 'Direct'),
     devices,
+    ...extras,
   }
+}
+
+type Ga4Report = Parameters<typeof breakdownRows>[0]
+
+function parseGa4TrafficExtras(reports: unknown[]) {
+  const empty = {
+    regions: [] as Ga4Breakdown[],
+    cities: [] as Ga4Breakdown[],
+    newVisitors: 0,
+    returningVisitors: 0,
+  }
+  if (reports.length < 5) return empty
+  const regions = breakdownRows(reports[4] as Ga4Report, '')
+    .filter((row) => row.label && row.label !== 'Unknown' && row.value > 0)
+  const cityReport = reports[5] as {
+    rows?: Array<{ dimensionValues?: Array<{ value?: string }>; metricValues?: Array<{ value?: string }> }>
+  } | undefined
+  const cities = (cityReport?.rows ?? [])
+    .map((row) => {
+      const city = cleanLabel(row.dimensionValues?.[0]?.value, '')
+      const region = cleanLabel(row.dimensionValues?.[1]?.value, '')
+      const label = city && region && region !== city ? `${city}, ${region}` : city
+      return { label, value: metricNumber(row.metricValues?.[0]?.value) }
+    })
+    .filter((row) => row.label && row.value > 0)
+    .slice(0, 8)
+  let newVisitors = 0
+  let returningVisitors = 0
+  const audience = reports[6] as Ga4Report
+  for (const row of audience?.rows ?? []) {
+    const label = cleanLabel(row.dimensionValues?.[0]?.value, '').toLowerCase()
+    const value = metricNumber(row.metricValues?.[0]?.value)
+    if (label === 'new') newVisitors += value
+    if (label === 'returning') returningVisitors += value
+  }
+  return { regions, cities, newVisitors, returningVisitors }
+}
+
+export async function runGa4RealtimeReport(args: {
+  propertyId: string
+  account: ServiceAccount
+  fetchImpl?: Ga4Fetch
+  now?: Date
+}): Promise<number | null> {
+  if (!PROPERTY_ID_PATTERN.test(args.propertyId)) return null
+  const fetchImpl = args.fetchImpl ?? fetch
+  const nowSeconds = Math.floor((args.now ?? new Date()).getTime() / 1000)
+  let assertion = ''
+  try {
+    assertion = signServiceAccountJwt(args.account, nowSeconds)
+  } catch {
+    return null
+  }
+  const tokenResponse = await fetchImpl(TOKEN_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion,
+    }),
+    signal: AbortSignal.timeout(8000),
+  }).catch(() => null)
+  if (!tokenResponse?.ok) return null
+  const tokenBody = (await tokenResponse.json().catch(() => null)) as { access_token?: string } | null
+  const accessToken = tokenBody?.access_token
+  if (!accessToken) return null
+  const reportResponse = await fetchImpl(
+    `https://analyticsdata.googleapis.com/v1beta/properties/${args.propertyId}:runRealtimeReport`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        metrics: [{ name: 'activeUsers' }],
+      }),
+      signal: AbortSignal.timeout(8000),
+    },
+  ).catch(() => null)
+  if (!reportResponse?.ok) return null
+  const body = (await reportResponse.json().catch(() => null)) as {
+    rows?: Array<{ metricValues?: Array<{ value?: string }> }>
+  } | null
+  if (!body) return null
+  return metricNumber(body.rows?.[0]?.metricValues?.[0]?.value)
 }
 
 export async function runGa4DashboardReport(args: {
@@ -116,6 +209,8 @@ export async function runGa4DashboardReport(args: {
   account: ServiceAccount
   fetchImpl?: Ga4Fetch
   now?: Date
+  startDate?: string
+  endDate?: string
 }): Promise<Ga4DashboardNumbers | null> {
   if (!PROPERTY_ID_PATTERN.test(args.propertyId)) return null
   const fetchImpl = args.fetchImpl ?? fetch
@@ -143,7 +238,16 @@ export async function runGa4DashboardReport(args: {
   const accessToken = tokenBody?.access_token
   if (!accessToken) return null
 
-  const dateRange = { startDate: '28daysAgo', endDate: 'today' }
+  const dateRange = {
+    startDate: args.startDate?.trim() || '28daysAgo',
+    endDate: args.endDate?.trim() || 'today',
+  }
+  const countryFilter = {
+    filter: {
+      fieldName: 'country',
+      stringFilter: { matchType: 'EXACT', value: 'United States' },
+    },
+  }
   const reportResponse = await fetchImpl(
     `https://analyticsdata.googleapis.com/v1beta/properties/${args.propertyId}:batchRunReports`,
     {
@@ -178,6 +282,28 @@ export async function runGa4DashboardReport(args: {
             metrics: [{ name: 'sessions' }],
             limit: 5,
             orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+          },
+          {
+            dateRanges: [dateRange],
+            dimensions: [{ name: 'region' }],
+            metrics: [{ name: 'totalUsers' }],
+            dimensionFilter: countryFilter,
+            limit: 60,
+            orderBys: [{ metric: { metricName: 'totalUsers' }, desc: true }],
+          },
+          {
+            dateRanges: [dateRange],
+            dimensions: [{ name: 'city' }, { name: 'region' }],
+            metrics: [{ name: 'totalUsers' }],
+            dimensionFilter: countryFilter,
+            limit: 8,
+            orderBys: [{ metric: { metricName: 'totalUsers' }, desc: true }],
+          },
+          {
+            dateRanges: [dateRange],
+            dimensions: [{ name: 'newVsReturning' }],
+            metrics: [{ name: 'totalUsers' }],
+            limit: 4,
           },
         ],
       }),
