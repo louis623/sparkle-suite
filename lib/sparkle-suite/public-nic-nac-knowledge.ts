@@ -66,7 +66,7 @@ export const PUBLIC_NIC_NAC_KNOWLEDGE = {
     monthly: sparkleSuitePublicLandingContent.pricing.standard.price,
     firstCheckout: '$124.98',
     founder: '$49.99/month for the first 12 paid service months, then $74.99/month; plus the $49.99 one-time setup fee. Founder first payment is $99.98 before tax. Standard first payment is $124.98 before tax.',
-    founderEligibility: 'Founder pricing is limited to the first 20 qualifying paid reps and confirmed separately through eligible checkout. Build-queue membership and contact inquiries do not reserve it. The assistant cannot verify remaining spots; refer to the current availability shown on the page and never invent a remaining count or guarantee availability.',
+    founderEligibility: 'Founder pricing is for a limited number of founding reps and is confirmed separately through eligible checkout. Build-queue membership and contact inquiries do not reserve it. The assistant must never invent a remaining count or guarantee availability.',
     taxNote: 'Tax is not included in the listed first checkout price.',
     feeNote:
       'The setup fee is one-time and non-refundable. Approved reps receive a five-day trial and complete billing through their workspace before it expires.',

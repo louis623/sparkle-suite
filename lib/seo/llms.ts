@@ -123,6 +123,8 @@ export function buildDefaultSparkleLlmsText(origin: string | URL): string {
     '',
     SPARKLE_SUITE_SUMMARY,
     '',
+    'Sparkle Suite is an independent tool for Reps and Collectors. We are not affiliated with, endorsed by, sponsored by, or officially connected to Bomb Party.',
+    '',
     '## Public Site',
     '',
     `- Canonical origin: ${canonical}`,

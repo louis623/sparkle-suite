@@ -50,8 +50,9 @@ describe('Sparkle Suite public landing page', () => {
     const counted = renderToStaticMarkup(createElement(SparkleSuitePublicLanding, {
       initialAvailability: { status: 'available', remaining: 18, checkedAt: '2026-10-03T21:40:20.623Z' },
     }))
-    expect(counted).toContain('18 founder spots remaining.')
+    expect(counted).not.toMatch(/\d+ founder spots? remaining/)
     expect(counted).not.toContain('18 of 20')
+    expect(counted).toContain('while spots last')
   })
 
   it('keeps the hero useful without a demo response and defers interactive frames', () => {

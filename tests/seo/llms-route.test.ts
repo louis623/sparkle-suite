@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { sparkleMarketingDisclaimer } from '@/app/_components/sparkle-marketing-footer/SparkleMarketingFooter'
 import { GET } from '@/app/llms.txt/route'
 import { articleUrl, publishedArticles } from '@/lib/sparkle-suite/articles'
 
@@ -32,6 +33,7 @@ describe('GET /llms.txt', () => {
       expect(text).not.toContain('Rep: Jane')
       expect(text).not.toContain('/amethyst/')
       expect(text).not.toMatch(/\btrades?\b/i)
+      expect(text).toContain(sparkleMarketingDisclaimer)
       expect(text).toContain('# Sparkle Suite')
       expect(text).toContain('Live Lineup')
       expect(text).toContain('Dance Floor')

@@ -184,7 +184,9 @@ describe('public Nic-Nac knowledge pack', () => {
   it('contains public waitlist form and next-step guidance', () => {
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.pricing.founder).toContain('12 paid service months')
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.pricing.founder).toContain('$99.98')
+    expect(PUBLIC_NIC_NAC_KNOWLEDGE.pricing.founderEligibility).toContain('a limited number of founding reps')
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.pricing.founderEligibility).toContain('never invent a remaining count')
+    expect(PUBLIC_NIC_NAC_KNOWLEDGE.pricing.founderEligibility).not.toMatch(/\bfirst 20\b|\b20 qualifying\b|spots left/)
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.handoff).toContain('Only a successful form submission saves it')
     expect(classifyPublicNicNacQuestion('How does the founder discount work?')).toEqual({ kind: 'public_safe' })
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.signupPage.purpose).toContain(
