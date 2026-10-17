@@ -91,7 +91,7 @@ export const bombPartyJoinMyTeamPageArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "New reps have a choice about whose team to join. A leader with good tools can give them a smoother start. I wrote more on that in joining Bomb Party? Why join under a Sparkle Suite rep."
+      "text": "New reps have a choice about whose team to join. A leader with good tools can give them a smoother start. I wrote more on that in [joining Bomb Party? Why join under a Sparkle Suite rep](https://www.yoursparklesuite.com/faq/articles/joining-bomb-party-why-join-under-a-sparkle-suite-rep)."
     },
     {
       "type": "heading",

@@ -45,10 +45,10 @@ export const whatIsSparkleSuiteArticle: SuiteArticle = {
       "items": [
         "**Your own rep website.** Branded to you, works on phones, with a choice of looks, including seasonal ones. You can keep your own domain. See [how to get your own Bomb Party rep website](https://www.yoursparklesuite.com/faq/articles/how-to-get-your-own-bomb-party-rep-website).",
         "**Live Lineup.** Shoppers follow the order of your live show. See [how to run a live reveal customers can follow](https://www.yoursparklesuite.com/faq/articles/run-a-bomb-party-live-reveal-customers-can-follow).",
-        "**Live Show Calendar.** Your upcoming lives on your site, stored in the right US time zone. See why posting show times grows your audience.",
+        "**Live Show Calendar.** Your upcoming lives on your site, stored in the right US time zone. See [why posting show times grows your audience](https://www.yoursparklesuite.com/faq/articles/why-posting-bomb-party-show-times-grows-your-audience).",
         "**Dance Floor.** Customers browse your dancers and send swap requests. You make the final call. See [Bomb Party dancer swaps without the DM chaos](https://www.yoursparklesuite.com/faq/articles/bomb-party-dancer-swaps-without-the-dm-chaos).",
-        "**Team Management.** Team photos, show names and social links, plus a public Join Team page where you pick which cards show. See a Join my team page that recruits for you.",
-        "**New Rep Onboarding.** A private link for each new team member, with progress tracking. Questions land in your Message Center. See onboarding a new team rep.",
+        "**Team Management.** Team photos, show names and social links, plus a public Join Team page where you pick which cards show. See [a Join my team page that recruits for you](https://www.yoursparklesuite.com/faq/articles/bomb-party-join-my-team-page).",
+        "**New Rep Onboarding.** A private link for each new team member, with progress tracking. Questions land in your Message Center. See [onboarding a new team rep](https://www.yoursparklesuite.com/faq/articles/how-to-onboard-a-new-bomb-party-team-rep).",
         "**Nic-Nac.** An assistant inside your workspace for paying reps. It can add and update shows and Dance Floor listings, search the jewelry database and more. See Meet Nic-Nac.",
         "**Help & Resources.** A library of videos and blogs inside your workspace."
       ]
