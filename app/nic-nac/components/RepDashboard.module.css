@@ -1592,11 +1592,24 @@ a.birthdayLink:focus-visible {
 }
 
 .trafficStatRow {
-  align-items: baseline;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.trafficStatRow .pill {
+  flex: 1 1 12rem;
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+  text-align: left;
 }
 
 .infoButton,
 .infoButtonOpen {
+  position: relative;
+  z-index: 1;
   flex: 0 0 auto;
   width: 28px;
   height: 28px;
@@ -1835,6 +1848,13 @@ a.birthdayLink:focus-visible {
 @container repdash (min-width: 860px) {
   .ga4Grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@container repdash (max-width: 520px) {
+  .trafficStatRow {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

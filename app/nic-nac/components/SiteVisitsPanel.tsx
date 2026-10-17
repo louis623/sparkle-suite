@@ -8,9 +8,11 @@ import {
   bucketGa4Sources,
   buildTrafficMonthBars,
   calendarDayKey,
+  dailyChartAxisLabels,
   GA4_PROCESSING_COPY,
   GA4_SOURCE_ORDER,
   joinComparisonCopy,
+  joinOpenedSentence,
   NEW_SITE_COPY,
   PAGE_VIEWS_NOTE,
   pageViewComparisonCopy,
@@ -22,8 +24,10 @@ import {
   SITE_TRAFFIC_HISTORY_START,
   SITE_TRAFFIC_INFO,
   siteAgeDays,
+  siteTrafficAnalyticsKey,
   stateFromRegionLabel,
   summarizeTrafficPeriod,
+  takeawayHeading,
   thisMonthTakeawayFacts,
   type SiteTrafficLedger,
   type TrafficPeriodId,
@@ -261,7 +265,11 @@ function InfoButton({
       className={open ? styles.infoButtonOpen : styles.infoButton}
       aria-expanded={open}
       aria-controls={`${cardId}-details`}
-      onClick={() => onToggle(cardId)}
+      onPointerDown={(event) => event.stopPropagation()}
+      onClick={(event) => {
+        event.stopPropagation()
+        onToggle(cardId)
+      }}
     >
       <span aria-hidden="true">i</span>
       <span className={styles.srOnly}>{open ? `Hide what ${label} means` : `What ${label} means`}</span>
@@ -296,9 +304,7 @@ function DailyChart({
   bars: Array<{ key: string; label: string; pageViews: number; showDay: boolean }>
 }) {
   const max = Math.max(...bars.map((bar) => bar.pageViews), 1)
-  const first = bars[0]?.label ?? ''
-  const middle = bars[Math.floor((bars.length - 1) / 2)]?.label ?? ''
-  const last = bars[bars.length - 1]?.label ?? ''
+  const axis = dailyChartAxisLabels(bars.map((bar) => bar.label))
   const summary = bars.map((bar) => `${bar.label} ${bar.pageViews}`).join(', ')
   return (
     <div>
@@ -312,11 +318,9 @@ function DailyChart({
           />
         ))}
       </div>
-      {bars.length > 0 ? (
-        <div className={styles.trafficAxis}>
-          <span>{first}</span>
-          {bars.length > 2 ? <span>{middle}</span> : <span />}
-          <span>{last}</span>
+      {axis.length > 0 ? (
+        <div className={styles.trafficAxis} data-testid="traffic-axis">
+          {axis.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}
         </div>
       ) : null}
       <div className={styles.trafficLegend}>
@@ -397,16 +401,18 @@ export function SiteVisitsPanel({
   siteHref = null,
   now,
   ga4 = undefined,
+  initialPeriod = 'this-month',
 }: {
   traffic: SiteTrafficLedger
   siteHref?: string | null
   now?: Date
   ga4?: SiteTrafficGa4State
+  initialPeriod?: TrafficPeriodId
 }) {
   const clock = now ?? new Date()
   const zone = traffic?.timeZone
   const todayKey = calendarDayKey(zonedCalendarDay(clock, zone))
-  const [periodId, setPeriodId] = useState<TrafficPeriodId>('this-month')
+  const [periodId, setPeriodId] = useState<TrafficPeriodId>(initialPeriod)
   const [customStart, setCustomStart] = useState(SITE_TRAFFIC_HISTORY_START)
   const [customEnd, setCustomEnd] = useState(todayKey)
   const [openId, setOpenId] = useState<string | null>(null)
@@ -438,6 +444,7 @@ export function SiteVisitsPanel({
     ledger,
     now: clock,
     timeZone: ledger.timeZone,
+    period,
     ga4Processing: !ga4Ready,
     knownSessions: buckets?.knownSessions ?? 0,
     topSourceLabel: buckets?.topSourceLabel ?? null,
@@ -446,13 +453,21 @@ export function SiteVisitsPanel({
   const peopleSince = peopleSinceLabel(summary.peopleSince)
   const publicSiteHref = siteHref?.trim() || null
   const young = siteAgeDays(clock, ledger.timeZone) < 7
-  const rangeKey = `${calendarDayKey(period.start)}:${calendarDayKey(period.end)}:${period.countable}`
+  const rangeStart = calendarDayKey(period.start)
+  const rangeEnd = calendarDayKey(period.end)
+  const analyticsKey = siteTrafficAnalyticsKey({
+    ga4Provided: ga4 !== undefined,
+    countable: period.countable,
+    startKey: rangeStart,
+    endKey: rangeEnd,
+  })
 
   useEffect(() => {
-    if (ga4 || !period.countable) return undefined
+    if (!analyticsKey) return undefined
     const controller = new AbortController()
-    const start = calendarDayKey(period.start)
-    const end = calendarDayKey(period.end)
+    let active = true
+    setRemoteGa4({ status: 'loading' })
+    const [start, end] = analyticsKey.split(':')
     fetch(`/api/nic-nac/site-analytics?start=${start}&end=${end}`, {
       credentials: 'same-origin',
       signal: controller.signal,
@@ -461,18 +476,27 @@ export function SiteVisitsPanel({
         if (!response.ok) return { status: 'unavailable' as const }
         return readGa4Body(await response.json())
       })
-      .then((next) => setRemoteGa4(next))
+      .then((next) => {
+        if (active) setRemoteGa4(next)
+      })
       .catch((error: unknown) => {
+        if (!active) return
         if (error instanceof DOMException && error.name === 'AbortError') return
         setRemoteGa4({ status: 'unavailable' })
       })
-    return () => controller.abort()
-  }, [ga4, period.countable, period.end, period.start, rangeKey])
+    return () => {
+      active = false
+      controller.abort()
+    }
+  }, [analyticsKey])
 
   const toggleInfo = (id: string) => setOpenId((current) => (current === id ? null : id))
   const sourceValue = (label: (typeof GA4_SOURCE_ORDER)[number]) =>
     buckets?.sources.find((row) => row.label === label)?.value ?? 0
-  const sourceRows = ga4Ready
+  const ga4SourceCount = ga4Ready
+    ? GA4_SOURCE_ORDER.reduce((sum, label) => sum + sourceValue(label), 0)
+    : 0
+  const sourceRows = ga4Ready && ga4SourceCount > 0
     ? [
         { label: 'TikTok', value: sourceValue('TikTok') },
         { label: 'QR cards', value: summary.qrVisits, qr: true },
@@ -480,9 +504,7 @@ export function SiteVisitsPanel({
         { label: 'Facebook / IG', value: sourceValue('Facebook / IG') },
         { label: 'Direct / other', value: sourceValue('Direct / other') },
       ].filter((row) => row.value > 0)
-    : summary.qrVisits > 0
-      ? [{ label: 'QR cards', value: summary.qrVisits, qr: true }]
-      : []
+    : []
   const readyGa4 = view.status === 'ready' ? view : null
   const states = readyGa4 ? regionsToStates(readyGa4.regions) : []
   const realtime = view.realtimeUsers
@@ -554,7 +576,7 @@ export function SiteVisitsPanel({
       ) : null}
 
       <section className={styles.trafficTakeaway} data-testid="site-traffic-takeaway">
-        <p className={styles.kickerLight}>Your takeaway this month</p>
+        <p className={styles.kickerLight}>{takeawayHeading(period)}</p>
         <p>{takeaway.text}</p>
       </section>
 
@@ -566,10 +588,12 @@ export function SiteVisitsPanel({
       ) : null}
 
       {typeof realtime === 'number' ? (
-        <section className={styles.trafficNow} data-testid="traffic-now">
-          <span className={styles.pulse} aria-hidden="true" />
-          <p>{realtimeSentence(realtime)}</p>
-          <InfoButton cardId="right-now" label="Right now" openId={openId} onToggle={toggleInfo} />
+        <section data-testid="traffic-now">
+          <div className={styles.trafficNow}>
+            <span className={styles.pulse} aria-hidden="true" />
+            <p>{realtimeSentence(realtime)}</p>
+            <InfoButton cardId="right-now" label="Right now" openId={openId} onToggle={toggleInfo} />
+          </div>
           {openId === 'right-now' ? <Teach id="right-now-details" copy={SITE_TRAFFIC_INFO.rightNow} /> : null}
         </section>
       ) : null}
@@ -608,14 +632,22 @@ export function SiteVisitsPanel({
         <CardHead title="Where they came from" cardId="sources" openId={openId} onToggle={toggleInfo} />
         {!period.countable ? (
           <p className={styles.muted}>No counted days in this period yet.</p>
-        ) : ga4Ready && sourceRows.length > 0 ? (
+        ) : sourceRows.length > 0 ? (
           <ShareRows rows={sourceRows} />
         ) : ga4Ready ? (
-          <p className={styles.muted}>No source visits in this period yet.</p>
+          <p className={styles.muted}>
+            {summary.qrVisits > 0
+              ? `QR cards: ${formatCount(summary.qrVisits)} ${summary.qrVisits === 1 ? 'visit' : 'visits'} from your counter. Google Analytics has no other sources for these dates yet.`
+              : 'No source visits in this period yet.'}
+          </p>
         ) : (
           <>
             <p className={styles.muted}>{ga4StatusLine(view.status)}</p>
-            {summary.qrVisits > 0 ? <ShareRows rows={sourceRows} /> : null}
+            {summary.qrVisits > 0 ? (
+              <p className={styles.why}>
+                QR cards: {formatCount(summary.qrVisits)} {summary.qrVisits === 1 ? 'visit' : 'visits'} from your counter. The source split shows up when Google Analytics is ready.
+              </p>
+            ) : null}
           </>
         )}
         <p className={styles.trafficSourceNote}>QR from Sparkle Suite&apos;s counter. Others from Google Analytics.</p>
@@ -645,7 +677,7 @@ export function SiteVisitsPanel({
           <p className={styles.statValue}>{formatCount(summary.joinViews)}</p>
           {joinComparisonCopy(summary) ? <span className={styles.pill}>{joinComparisonCopy(summary)}</span> : null}
         </div>
-        <p className={styles.why}>Times your Join my team page was opened this month.</p>
+        <p className={styles.why}>{joinOpenedSentence(period)}</p>
         {openId === 'join' ? <Teach id="join-details" copy={SITE_TRAFFIC_INFO.join} /> : null}
       </article>
 

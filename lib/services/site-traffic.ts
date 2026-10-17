@@ -183,6 +183,12 @@ export type TakeawayFacts = {
   topSourceSessions: number
   uniqueCounting: boolean
   historyLabel: string
+  /** How the takeaway names the selected dates, such as "this month" or "in the last 7 days". */
+  spanPhrase?: string
+  /** How a Join comparison names the earlier window. */
+  comparisonPhrase?: string
+  /** How a page-view comparison names the earlier window. */
+  samePeriodPhrase?: string
 }
 
 export type SiteTrafficTakeaway = {
@@ -275,6 +281,33 @@ export function formatTrafficRange(span: TrafficDaySpan) {
     return `${start} to ${span.end.day}`
   }
   return `${start} to ${end}`
+}
+
+/** Axis labels for the daily chart. A single day is one label, never "Oct 17 … Oct 17". */
+export function dailyChartAxisLabels(labels: string[]) {
+  const first = labels[0]
+  const last = labels[labels.length - 1]
+  if (!first || !last) return []
+  if (labels.length === 1 || first === last) return [first]
+  if (labels.length === 2) return [first, last]
+  const middle = labels[Math.floor((labels.length - 1) / 2)] ?? ''
+  if (!middle || middle === first || middle === last) return [first, last]
+  return [first, middle, last]
+}
+
+/**
+ * Stable key for the site-analytics request. Date objects are not part of it,
+ * so a clock tick on the same calendar days does not refetch.
+ */
+export function siteTrafficAnalyticsKey(args: {
+  ga4Provided: boolean
+  countable: boolean
+  startKey: string
+  endKey: string
+}) {
+  if (args.ga4Provided || !args.countable) return null
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(args.startKey) || !/^\d{4}-\d{2}-\d{2}$/.test(args.endKey)) return null
+  return `${args.startKey}:${args.endKey}`
 }
 
 function monthName(year: number, month: number) {
@@ -686,10 +719,61 @@ export function siteAgeDays(now = new Date(), timeZone?: string | null) {
   return Math.round((dayStamp(today) - dayStamp(HISTORY_DAY)) / 86_400_000)
 }
 
+export function periodTakeawayPhrases(period: ResolvedTrafficPeriod) {
+  if (period.id === 'last-7') {
+    return {
+      spanPhrase: 'in the last 7 days',
+      comparisonPhrase: 'in the previous 7 days',
+      samePeriodPhrase: 'the previous 7 days',
+    }
+  }
+  if (period.id === 'custom') {
+    return {
+      spanPhrase: 'in this date range',
+      comparisonPhrase: 'in the previous span',
+      samePeriodPhrase: 'the previous equal span',
+    }
+  }
+  if (period.id === 'last-month') {
+    const name = period.label === 'Last month' ? 'last month' : period.label
+    return {
+      spanPhrase: `in ${name}`,
+      comparisonPhrase: 'in the previous month',
+      samePeriodPhrase: 'the previous month',
+    }
+  }
+  return {
+    spanPhrase: 'this month',
+    comparisonPhrase: 'at this point last month',
+    samePeriodPhrase: 'the same days last month',
+  }
+}
+
+export function takeawayHeading(period: ResolvedTrafficPeriod) {
+  if (period.id === 'last-7') return 'Your takeaway for the last 7 days'
+  if (period.id === 'custom') return 'Your takeaway for these dates'
+  if (period.id === 'last-month') {
+    const name = period.label === 'Last month' ? 'last month' : period.label
+    return `Your takeaway for ${name}`
+  }
+  return 'Your takeaway this month'
+}
+
+export function joinOpenedSentence(period: ResolvedTrafficPeriod) {
+  if (period.id === 'last-7') return 'Times your Join my team page was opened in the last 7 days.'
+  if (period.id === 'custom') return 'Times your Join my team page was opened in this date range.'
+  if (period.id === 'last-month') {
+    const name = period.label === 'Last month' ? 'last month' : period.label
+    return `Times your Join my team page was opened in ${name}.`
+  }
+  return 'Times your Join my team page was opened this month.'
+}
+
 export function thisMonthTakeawayFacts(args: {
   ledger: SiteTrafficLedger
   now?: Date
   timeZone?: string | null
+  period?: ResolvedTrafficPeriod
   ga4Processing?: boolean
   knownSessions?: number
   topSourceLabel?: string | null
@@ -697,7 +781,7 @@ export function thisMonthTakeawayFacts(args: {
 }): TakeawayFacts {
   const now = args.now ?? new Date()
   const zone = args.timeZone ?? args.ledger.timeZone
-  const period = resolveTrafficPeriod({ period: 'this-month', now, timeZone: zone })
+  const period = args.period ?? resolveTrafficPeriod({ period: 'this-month', now, timeZone: zone })
   const summary = summarizeTrafficPeriod(args.ledger, period)
   const showDays = new Set(args.ledger.showDays)
   const views = dayMap(args.ledger)
@@ -734,6 +818,7 @@ export function thisMonthTakeawayFacts(args: {
     topSourceSessions: args.topSourceSessions ?? 0,
     uniqueCounting: args.ledger.uniqueCounting,
     historyLabel: SITE_TRAFFIC_HISTORY_LABEL,
+    ...periodTakeawayPhrases(period),
   }
 }
 
@@ -754,6 +839,9 @@ export function pickSiteTrafficTakeaway(facts: TakeawayFacts): SiteTrafficTakeaw
     return { id: 'T1', text: TOO_EARLY }
   }
 
+  const span = facts.spanPhrase ?? 'this month'
+  const comparedWith = facts.comparisonPhrase ?? 'at this point last month'
+  const samePeriod = facts.samePeriodPhrase ?? 'the same days last month'
   const topShare = facts.knownSessions > 0 ? facts.topSourceSessions / facts.knownSessions : 0
   if (
     !facts.ga4Processing &&
@@ -764,7 +852,7 @@ export function pickSiteTrafficTakeaway(facts: TakeawayFacts): SiteTrafficTakeaw
     const noun = facts.uniqueCounting ? 'visitors' : 'page views'
     return {
       id: 'T2',
-      text: `Most of your ${noun} this month came from ${facts.topSourceLabel} (${wholePercent(facts.topSourceSessions, facts.knownSessions)}%).`,
+      text: `Most of your ${noun} ${span} came from ${facts.topSourceLabel} (${wholePercent(facts.topSourceSessions, facts.knownSessions)}%).`,
     }
   }
 
@@ -787,22 +875,22 @@ export function pickSiteTrafficTakeaway(facts: TakeawayFacts): SiteTrafficTakeaw
         : 'down from'
     return {
       id: 'T4',
-      text: `${facts.joinViews} Join page views so far this month, ${direction} ${previousJoin} at this point last month.`,
+      text: `${facts.joinViews} Join page views so far ${span}, ${direction} ${previousJoin} ${comparedWith}.`,
     }
   }
   if (facts.joinViews >= 1 && previousJoin == null) {
     return {
       id: 'T4',
       text: facts.uniqueCounting
-        ? `${facts.joinViews} people opened your Join page this month.`
-        : `${facts.joinViews} Join page views this month.`,
+        ? `${facts.joinViews} people opened your Join page ${span}.`
+        : `${facts.joinViews} Join page views ${span}.`,
     }
   }
 
   if (facts.qrVisits >= 5) {
     return {
       id: 'T5',
-      text: `Your QR cards brought ${facts.qrVisits} visits this month, ${wholePercent(facts.qrVisits, facts.pageViews)}% of your page views.`,
+      text: `Your QR cards brought ${facts.qrVisits} visits ${span}, ${wholePercent(facts.qrVisits, facts.pageViews)}% of your page views.`,
     }
   }
 
@@ -810,11 +898,11 @@ export function pickSiteTrafficTakeaway(facts: TakeawayFacts): SiteTrafficTakeaw
   if (previous != null && facts.pageViews >= 20 && previous >= 20) {
     const delta = changePercent(facts.pageViews, previous)
     const change = Math.abs(delta) < 5
-      ? 'about the same as the same days last month'
-      : `${Math.abs(delta)}% ${delta >= 0 ? 'more' : 'fewer'} than the same days last month`
+      ? `about the same as ${samePeriod}`
+      : `${Math.abs(delta)}% ${delta >= 0 ? 'more' : 'fewer'} than ${samePeriod}`
     return {
       id: 'T6',
-      text: `Your site had ${facts.pageViews} page views so far this month, ${change}.`,
+      text: `Your site had ${facts.pageViews} page views so far ${span}, ${change}.`,
     }
   }
   if (previous == null) {
@@ -832,6 +920,9 @@ export function pageViewComparisonCopy(summary: TrafficPeriodSummary) {
     return 'First month, comparison starts in November.'
   }
   if (summary.comparisonPageViews == null || !summary.comparisonLabel) {
+    if (summary.period.id === 'last-7') return 'Not enough counted days in the previous 7 days to compare yet.'
+    if (summary.period.id === 'custom') return 'Not enough counted days in the previous equal span to compare yet.'
+    if (summary.period.id === 'last-month') return 'Not enough counted days in the previous month to compare yet.'
     return 'Not enough counted days last month to compare yet.'
   }
   const delta = changePercent(summary.pageViews, summary.comparisonPageViews)

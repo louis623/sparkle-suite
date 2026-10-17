@@ -1,6 +1,12 @@
+import { generateKeyPairSync } from 'node:crypto'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { Ga4DashboardNumbers } from '@/lib/services/ga4-data-api'
+import {
+  chunkGa4ReportRequests,
+  GA4_MAX_REPORTS_PER_BATCH,
+  runGa4DashboardReport,
+  type Ga4DashboardNumbers,
+} from '@/lib/services/ga4-data-api'
 import {
   GA4_CACHE_TTL_MS,
   GA4_SHORT_CACHE_TTL_MS,
@@ -12,10 +18,16 @@ import {
   bucketGa4Sources,
   buildSiteTrafficLedger,
   buildTrafficMonthBars,
+  calendarDayKey,
+  dailyChartAxisLabels,
+  joinOpenedSentence,
+  pageViewComparisonCopy,
   pickSiteTrafficTakeaway,
   plainPageName,
   resolveTrafficPeriod,
+  siteTrafficAnalyticsKey,
   summarizeTrafficPeriod,
+  takeawayHeading,
   type TakeawayFacts,
 } from '@/lib/services/site-traffic'
 import { dailyVisitorHash, interpretPublicSiteVisit } from '@/lib/services/site-visit-summary'
@@ -443,5 +455,124 @@ describe('GA4 cache rules', () => {
     expect((writes[0]?.payload as { quality?: string }).quality).toBe('failed')
     expect(summary.status).toBe('unavailable')
     expect(summary.pageViews).toBeNull()
+  })
+})
+
+describe('site traffic copy and fetch key', () => {
+  it('names the comparison after the selected period', () => {
+    const ledger = buildSiteTrafficLedger({ now: NOW, timeZone: ZONE, rows: [] })
+    const week = summarizeTrafficPeriod(ledger, resolveTrafficPeriod({
+      period: 'last-7',
+      now: new Date('2026-10-20T18:00:00.000Z'),
+      timeZone: ZONE,
+    }))
+    const dates = summarizeTrafficPeriod(ledger, resolveTrafficPeriod({
+      period: 'custom',
+      now: new Date('2026-10-20T18:00:00.000Z'),
+      timeZone: ZONE,
+      customStart: '2026-10-17',
+      customEnd: '2026-10-20',
+    }))
+    expect(pageViewComparisonCopy(week)).toBe('Not enough counted days in the previous 7 days to compare yet.')
+    expect(pageViewComparisonCopy(dates)).toBe('Not enough counted days in the previous equal span to compare yet.')
+    expect(takeawayHeading(week.period)).toBe('Your takeaway for the last 7 days')
+    expect(takeawayHeading(dates.period)).toBe('Your takeaway for these dates')
+    expect(joinOpenedSentence(week.period)).toBe('Times your Join my team page was opened in the last 7 days.')
+    expect(joinOpenedSentence(dates.period)).toBe('Times your Join my team page was opened in this date range.')
+    expect(pickSiteTrafficTakeaway(facts({
+      spanPhrase: 'in the last 7 days',
+      comparisonPhrase: 'in the previous 7 days',
+      samePeriodPhrase: 'the previous 7 days',
+      joinViews: 8,
+      previousJoinViews: 3,
+    })).text).toBe('8 Join page views so far in the last 7 days, up from 3 in the previous 7 days.')
+  })
+
+  it('uses one axis label for a single day', () => {
+    expect(dailyChartAxisLabels(['Oct 17'])).toEqual(['Oct 17'])
+    expect(dailyChartAxisLabels(['Oct 17', 'Oct 18'])).toEqual(['Oct 17', 'Oct 18'])
+    expect(dailyChartAxisLabels(['Oct 1', 'Oct 9', 'Oct 17'])).toEqual(['Oct 1', 'Oct 9', 'Oct 17'])
+  })
+
+  it('keeps the analytics request key stable when the clock ticks on the same days', () => {
+    const morning = resolveTrafficPeriod({
+      period: 'this-month',
+      now: new Date('2026-12-17T15:00:00.000Z'),
+      timeZone: ZONE,
+    })
+    const evening = resolveTrafficPeriod({
+      period: 'this-month',
+      now: new Date('2026-12-17T22:30:00.000Z'),
+      timeZone: ZONE,
+    })
+    expect(morning.start).not.toBe(evening.start)
+    const morningKey = siteTrafficAnalyticsKey({
+      ga4Provided: false,
+      countable: morning.countable,
+      startKey: calendarDayKey(morning.start),
+      endKey: calendarDayKey(morning.end),
+    })
+    const eveningKey = siteTrafficAnalyticsKey({
+      ga4Provided: false,
+      countable: evening.countable,
+      startKey: calendarDayKey(evening.start),
+      endKey: calendarDayKey(evening.end),
+    })
+    expect(morningKey).toBe('2026-12-01:2026-12-17')
+    expect(eveningKey).toBe(morningKey)
+    const week = resolveTrafficPeriod({
+      period: 'last-7',
+      now: new Date('2026-12-17T22:30:00.000Z'),
+      timeZone: ZONE,
+    })
+    expect(siteTrafficAnalyticsKey({
+      ga4Provided: false,
+      countable: week.countable,
+      startKey: calendarDayKey(week.start),
+      endKey: calendarDayKey(week.end),
+    })).not.toBe(morningKey)
+    expect(siteTrafficAnalyticsKey({
+      ga4Provided: true,
+      countable: true,
+      startKey: '2026-12-01',
+      endKey: '2026-12-17',
+    })).toBeNull()
+  })
+})
+
+describe('GA4 batch size', () => {
+  it('never sends more than 5 reports in one batch', async () => {
+    expect(GA4_MAX_REPORTS_PER_BATCH).toBe(5)
+    const oversized = chunkGa4ReportRequests(Array.from({ length: 7 }, (_, index) => index), 9)
+    expect(oversized.map((chunk) => chunk.length)).toEqual([5, 2])
+    expect(oversized.every((chunk) => chunk.length <= 5)).toBe(true)
+
+    const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 })
+    const sizes: number[] = []
+    const result = await runGa4DashboardReport({
+      propertyId: '123456789',
+      account: {
+        clientEmail: 'reader@example.iam.gserviceaccount.com',
+        privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }).toString(),
+      },
+      fetchImpl: async (input, init) => {
+        const url = String(input)
+        if (url.includes('oauth2.googleapis.com')) {
+          return new Response(JSON.stringify({ access_token: 'test-token' }), { status: 200 })
+        }
+        const body = JSON.parse(String(init?.body)) as { requests?: unknown[] }
+        const count = body.requests?.length ?? 0
+        sizes.push(count)
+        expect(count).toBeLessThanOrEqual(GA4_MAX_REPORTS_PER_BATCH)
+        return new Response(JSON.stringify({
+          reports: Array.from({ length: count }, () => ({ rows: [] })),
+        }), { status: 200 })
+      },
+    })
+
+    expect(sizes).toEqual([5, 2])
+    expect(result).not.toBeNull()
+    expect(result?.regions).toEqual([])
+    expect(result?.newVisitors).toBe(0)
   })
 })

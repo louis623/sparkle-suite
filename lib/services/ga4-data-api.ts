@@ -4,6 +4,18 @@ const GA4_READONLY_SCOPE = 'https://www.googleapis.com/auth/analytics.readonly'
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const PROPERTY_ID_PATTERN = /^[0-9]{6,15}$/
 
+/** Google rejects batchRunReports calls with more than 5 requests. */
+export const GA4_MAX_REPORTS_PER_BATCH = 5
+
+export function chunkGa4ReportRequests<T>(requests: readonly T[], limit = GA4_MAX_REPORTS_PER_BATCH) {
+  const size = Math.max(1, Math.min(limit, GA4_MAX_REPORTS_PER_BATCH))
+  const chunks: T[][] = []
+  for (let index = 0; index < requests.length; index += size) {
+    chunks.push(requests.slice(index, index + size))
+  }
+  return chunks
+}
+
 export type Ga4Breakdown = { label: string; value: number }
 
 export type Ga4DashboardNumbers = {
@@ -248,7 +260,57 @@ export async function runGa4DashboardReport(args: {
       stringFilter: { matchType: 'EXACT', value: 'United States' },
     },
   }
-  const reportResponse = await fetchImpl(
+  const requests = [
+    {
+      dateRanges: [dateRange],
+      metrics: [{ name: 'screenPageViews' }, { name: 'totalUsers' }],
+    },
+    {
+      dateRanges: [dateRange],
+      dimensions: [{ name: 'pagePath' }],
+      metrics: [{ name: 'screenPageViews' }],
+      limit: 8,
+      orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+    },
+    {
+      dateRanges: [dateRange],
+      dimensions: [{ name: 'sessionSource' }],
+      metrics: [{ name: 'sessions' }],
+      limit: 8,
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+    },
+    {
+      dateRanges: [dateRange],
+      dimensions: [{ name: 'deviceCategory' }],
+      metrics: [{ name: 'sessions' }],
+      limit: 5,
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+    },
+    {
+      dateRanges: [dateRange],
+      dimensions: [{ name: 'region' }],
+      metrics: [{ name: 'totalUsers' }],
+      dimensionFilter: countryFilter,
+      limit: 60,
+      orderBys: [{ metric: { metricName: 'totalUsers' }, desc: true }],
+    },
+    {
+      dateRanges: [dateRange],
+      dimensions: [{ name: 'city' }, { name: 'region' }],
+      metrics: [{ name: 'totalUsers' }],
+      dimensionFilter: countryFilter,
+      limit: 8,
+      orderBys: [{ metric: { metricName: 'totalUsers' }, desc: true }],
+    },
+    {
+      dateRanges: [dateRange],
+      dimensions: [{ name: 'newVsReturning' }],
+      metrics: [{ name: 'totalUsers' }],
+      limit: 4,
+    },
+  ]
+  const batches = chunkGa4ReportRequests(requests)
+  const responses = await Promise.all(batches.map((batch) => fetchImpl(
     `https://analyticsdata.googleapis.com/v1beta/properties/${args.propertyId}:batchRunReports`,
     {
       method: 'POST',
@@ -256,60 +318,16 @@ export async function runGa4DashboardReport(args: {
         authorization: `Bearer ${accessToken}`,
         'content-type': 'application/json',
       },
-      body: JSON.stringify({
-        requests: [
-          {
-            dateRanges: [dateRange],
-            metrics: [{ name: 'screenPageViews' }, { name: 'totalUsers' }],
-          },
-          {
-            dateRanges: [dateRange],
-            dimensions: [{ name: 'pagePath' }],
-            metrics: [{ name: 'screenPageViews' }],
-            limit: 8,
-            orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-          },
-          {
-            dateRanges: [dateRange],
-            dimensions: [{ name: 'sessionSource' }],
-            metrics: [{ name: 'sessions' }],
-            limit: 8,
-            orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
-          },
-          {
-            dateRanges: [dateRange],
-            dimensions: [{ name: 'deviceCategory' }],
-            metrics: [{ name: 'sessions' }],
-            limit: 5,
-            orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
-          },
-          {
-            dateRanges: [dateRange],
-            dimensions: [{ name: 'region' }],
-            metrics: [{ name: 'totalUsers' }],
-            dimensionFilter: countryFilter,
-            limit: 60,
-            orderBys: [{ metric: { metricName: 'totalUsers' }, desc: true }],
-          },
-          {
-            dateRanges: [dateRange],
-            dimensions: [{ name: 'city' }, { name: 'region' }],
-            metrics: [{ name: 'totalUsers' }],
-            dimensionFilter: countryFilter,
-            limit: 8,
-            orderBys: [{ metric: { metricName: 'totalUsers' }, desc: true }],
-          },
-          {
-            dateRanges: [dateRange],
-            dimensions: [{ name: 'newVsReturning' }],
-            metrics: [{ name: 'totalUsers' }],
-            limit: 4,
-          },
-        ],
-      }),
+      body: JSON.stringify({ requests: batch }),
       signal: AbortSignal.timeout(8000),
     },
-  )
-  if (!reportResponse.ok) return null
-  return parseGa4BatchReport(await reportResponse.json().catch(() => null))
+  )))
+  if (responses.some((response) => !response.ok)) return null
+  const reports: unknown[] = []
+  for (const response of responses) {
+    const body = (await response.json().catch(() => null)) as { reports?: unknown[] } | null
+    if (!Array.isArray(body?.reports)) return null
+    reports.push(...body.reports)
+  }
+  return parseGa4BatchReport({ reports })
 }
