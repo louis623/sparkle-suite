@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { bombPartyDancerSwapsWithoutTheDmChaosArticle } from './article-content/bomb-party-dancer-swaps-without-the-dm-chaos'
+import { bombPartyJoinMyTeamPageArticle } from './article-content/bomb-party-join-my-team-page'
 import { foundOnGoogleAndAiArticle } from './article-content/found-on-google-and-ai'
 import { howToGetYourOwnBombPartyRepWebsiteArticle } from './article-content/how-to-get-your-own-bomb-party-rep-website'
 import { howToOnboardANewBombPartyTeamRepArticle } from './article-content/how-to-onboard-a-new-bomb-party-team-rep'
@@ -27,7 +28,7 @@ export type SuiteArticle = {
 }
 
 // Add approved articles here. Draft content must never be imported by a client component.
-export const suiteArticles: readonly SuiteArticle[] = [howToOnboardANewBombPartyTeamRepArticle, whyPostingBombPartyShowTimesGrowsYourAudienceArticle, bombPartyDancerSwapsWithoutTheDmChaosArticle, howToGetYourOwnBombPartyRepWebsiteArticle, whatIsSparkleSuiteArticle, liveRevealCustomersCanFollowArticle, foundOnGoogleAndAiArticle, whySeriousBpRepArticle]
+export const suiteArticles: readonly SuiteArticle[] = [bombPartyJoinMyTeamPageArticle, howToOnboardANewBombPartyTeamRepArticle, whyPostingBombPartyShowTimesGrowsYourAudienceArticle, bombPartyDancerSwapsWithoutTheDmChaosArticle, howToGetYourOwnBombPartyRepWebsiteArticle, whatIsSparkleSuiteArticle, liveRevealCustomersCanFollowArticle, foundOnGoogleAndAiArticle, whySeriousBpRepArticle]
 
 function validDate(value: string | undefined) {
   if (!value || !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-]\d{2}:\d{2})$/.test(value) || !Number.isFinite(Date.parse(value))) return false
