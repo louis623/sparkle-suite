@@ -10,10 +10,16 @@ export async function GET(request: Request) {
   const customerDomain = new URL(request.url).searchParams.get('c')?.trim()
   if (!customerDomain) return new Response('Not found', { status: 404 })
 
-  const rep = await resolveAmethystPreviewRep(createAdminClient(), {
-    repId: customerDomain,
-    select: 'id',
-  })
+  let rep: Awaited<ReturnType<typeof resolveAmethystPreviewRep>>
+  try {
+    rep = await resolveAmethystPreviewRep(createAdminClient(), {
+      repId: customerDomain,
+      select: 'id',
+      strict: true,
+    })
+  } catch {
+    return renderCustomerSiteUnavailableResponse()
+  }
   if (!rep) return renderCustomerSiteUnavailableResponse()
   return renderCustomerFaq(request, { repId: rep.id, customDomain: true })
 }
