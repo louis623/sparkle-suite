@@ -124,7 +124,7 @@ export const howToGetYourOwnBombPartyRepWebsiteArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "**What does it cost?**\nSetup is $49.99 one-time, plus a monthly plan. See the [pricing section](https://www.yoursparklesuite.com/#pricing) or Sparkle Suite pricing explained."
+      "text": "**What does it cost?**\nSetup is $49.99 one-time, plus a monthly plan. See the [pricing section](https://www.yoursparklesuite.com/#pricing) or [Sparkle Suite pricing explained](https://www.yoursparklesuite.com/faq/articles/sparkle-suite-pricing-explained)."
     },
     {
       "type": "paragraph",

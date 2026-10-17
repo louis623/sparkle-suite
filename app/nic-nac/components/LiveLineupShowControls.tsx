@@ -3,6 +3,7 @@
 import { useId, useMemo } from 'react'
 import type { WorkspaceLineupSnapshot } from '@/lib/live-lineup/types'
 import { partyVisibilityCommand, type WorkspaceLineupCommand } from './live-lineup-client'
+import { ControlTip } from './ControlTip'
 import styles from './LiveLineupCard.module.css'
 
 export function LiveLineupShowControls({snapshot, disabled, submit}: {snapshot: WorkspaceLineupSnapshot; disabled: boolean;
@@ -18,7 +19,7 @@ export function LiveLineupShowControls({snapshot, disabled, submit}: {snapshot: 
     return counts
   }, [snapshot.management?.candidates])
   if (!snapshot.management) return null
-  return <details className={styles.pairing}>
+  return <ControlTip tip="party-controls" block><details className={styles.pairing}>
     <summary>Party controls</summary>
     {snapshot.management.generation > 0 ? <fieldset className={styles.partyVisibility} disabled={disabled} aria-describedby={`${id}-visibility-help`}>
       <legend>Parties visible in this lineup</legend>
@@ -39,5 +40,5 @@ export function LiveLineupShowControls({snapshot, disabled, submit}: {snapshot: 
       {snapshot.management.excludedPartyIds.length === snapshot.management.partyIds.length && <p>All selected parties are hidden. Their customers remain private and can be shown again here.</p>}
       <p>Each change appears after the server confirms it. Restore visibility here; Undo below applies to ordering and holds.</p>
     </fieldset> : <p>Parties appear automatically when the connected extension reads the Live Party Orders page. No scheduled show is needed.</p>}
-  </details>
+  </details></ControlTip>
 }
