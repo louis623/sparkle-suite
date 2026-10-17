@@ -210,20 +210,11 @@ export async function getSiteAnalyticsDashboard(args: {
   repId: string
   env?: Record<string, string | undefined>
 }): Promise<SiteAnalyticsDashboardResult> {
-  const ga4 = await loadRepGa4Dashboard({
+  const summary = await loadRepGa4Dashboard({
     supabase: args.supabase,
     repId: args.repId,
     env: args.env,
-  }).catch(() => null)
-  const summary = ga4 ?? {
-    status: 'unavailable' as const,
-    updatedAt: null,
-    pageViews: null,
-    visitors: null,
-    topPages: [],
-    sources: [],
-    devices: [],
-  }
+  })
   let operationalSnapshot = EMPTY_OPERATIONAL_SNAPSHOT
   try {
     operationalSnapshot = await getOperationalSnapshot(args.supabase, args.repId)

@@ -295,8 +295,31 @@ describe('site analytics route tenant boundary', () => {
     expect(response.status).toBe(200)
     expect(body.configured).toBe(false)
     expect(body.ga4Status).toBe('unavailable')
+    expect(body.status).toBeUndefined()
     expect(body.overview.pageViews30d).toBeNull()
     expect(body.topPages).toEqual([])
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('logs an unexpected failure with the rep id and returns an empty error flag', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    getPaidNicNacContextMock.mockResolvedValue({ repId: REP_A, rep: { id: REP_A } })
+    createAdminClientMock.mockImplementation(() => {
+      throw new Error('database exploded PRIVATE KEY should-not-leak')
+    })
+
+    const response = await GET()
+    const body = await response.json()
+    const logged = JSON.stringify(errorSpy.mock.calls)
+
+    expect(response.status).toBe(200)
+    expect(body.status).toBe('error')
+    expect(body.configured).toBe(false)
+    expect(body.overview.pageViews30d).toBeNull()
+    expect(body.topPages).toEqual([])
+    expect(logged).toContain(REP_A)
+    expect(logged).not.toContain('PRIVATE KEY')
+    expect(logged).not.toContain('should-not-leak')
+    errorSpy.mockRestore()
   })
 })

@@ -206,7 +206,7 @@ export const privacyPolicyDocument: LegalDocument = {
     {
       title: "Website Analytics",
       paragraphs: [
-        "Sparkle Suite representative websites use Google Analytics to understand visits. No personal information is sent to Google Analytics.",
+        "Sparkle Suite representative websites use Google Analytics to understand visits. We don't send names, emails, or phone numbers to Google Analytics. Google may collect standard information like approximate location and device type.",
         "A visitor can opt out of Google Analytics with the Google Analytics Opt-out Browser Add-on.",
       ],
       links: [

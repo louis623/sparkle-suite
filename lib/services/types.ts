@@ -914,6 +914,7 @@ export interface SiteAnalyticsOperationalSnapshot {
 
 export interface SiteAnalyticsDashboardResult {
   configured: boolean
+  status?: 'error'
   ga4Status?: 'ready' | 'not_set_up' | 'unavailable'
   ga4UpdatedAt?: string | null
   privacy: SiteAnalyticsPrivacySummary

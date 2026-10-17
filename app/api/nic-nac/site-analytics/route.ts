@@ -40,8 +40,10 @@ function emptySiteAnalytics(): SiteAnalyticsDashboardResult {
 
 export async function GET(request?: Request) {
   void request
+  let repId: string | null = null
   try {
-    const { repId } = await getPaidNicNacContext()
+    const context = await getPaidNicNacContext()
+    repId = context.repId
     const summary = await getSiteAnalyticsDashboard({
       supabase: createAdminClient(),
       repId,
@@ -57,6 +59,10 @@ export async function GET(request?: Request) {
         { status: error.statusCode },
       )
     }
-    return NextResponse.json(emptySiteAnalytics())
+    console.error('[site-analytics] unexpected failure', {
+      repId,
+      errorName: error instanceof Error ? error.name : 'UnknownError',
+    })
+    return NextResponse.json({ ...emptySiteAnalytics(), status: 'error' as const })
   }
 }
