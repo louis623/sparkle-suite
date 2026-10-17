@@ -20,6 +20,7 @@ import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import { canServeTargetedAmethystJoinPage } from '@/lib/amethyst/join-page-access'
 import { getPublicRepName } from '@/lib/amethyst/public-rep-name'
 import { injectPublicSiteVisitBeacon } from '@/lib/services/site-visit-summary'
+import { injectRepGa4Tag, resolveRepGa4TagHtml } from '@/lib/amethyst/rep-ga4-tag'
 
 interface RenderAmethystPublicAssetResponseOptions {
   repIdOverride?: string | null
@@ -428,6 +429,7 @@ function rewriteAmethystPublicHtml(
   requestUrl: URL,
   templateData?: AmethystPreviewTemplateData | null,
   options: RenderAmethystPublicAssetResponseOptions = {},
+  ga4Tag = '',
 ) {
   const metadataBlock = renderMetadataBlock(
     page,
@@ -440,20 +442,23 @@ function rewriteAmethystPublicHtml(
     `${metadataBlock}\n`,
   )
 
-  return injectPublicSiteVisitBeacon(
-    injectAmethystJsonLd(
-      rewriteAmethystStaticAssetUrls(
-        rewriteTemplateScriptTarget(rewritten, page, requestUrl, options),
+  return injectRepGa4Tag(
+    injectPublicSiteVisitBeacon(
+      injectAmethystJsonLd(
+        rewriteAmethystStaticAssetUrls(
+          rewriteTemplateScriptTarget(rewritten, page, requestUrl, options),
+        ),
+        page,
+        origin,
+        templateData,
+        options.canonicalPathOverride,
       ),
-      page,
-      origin,
-      templateData,
-      options.canonicalPathOverride,
+      {
+        repId: options.repIdOverride,
+        slug: options.publicSiteSlugOverride,
+      },
     ),
-    {
-      repId: options.repIdOverride,
-      slug: options.publicSiteSlugOverride,
-    },
+    ga4Tag,
   )
 }
 
@@ -494,6 +499,11 @@ export async function renderAmethystPublicAssetResponse(
     if (contentType.startsWith('text/html')) {
       const html = body.toString('utf8')
       if (page) {
+        const ga4Tag = await resolveRepGa4TagHtml({
+          request,
+          repId,
+          shopHref: templateData?.homepage.streamLinks.shop,
+        }).catch(() => '')
         responseBody = rewriteAmethystPublicHtml(
           html,
           page,
@@ -502,6 +512,7 @@ export async function renderAmethystPublicAssetResponse(
           requestUrl,
           templateData,
           resolvedOptions,
+          ga4Tag,
         )
       } else if (templateScriptPage) {
         responseBody = rewriteTemplateScriptTarget(

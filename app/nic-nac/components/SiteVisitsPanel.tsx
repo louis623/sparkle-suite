@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type { SiteVisitSummary } from '@/lib/services/site-visit-summary'
 import { US_STATE_HEX, US_STATE_NAMES } from '@/lib/services/site-visit-summary'
 import { workspaceSectionHref } from '@/lib/services/rep-dashboard-math'
@@ -236,6 +236,142 @@ function StateMap({ states }: { states: SiteVisitSummary['states'] }) {
   )
 }
 
+type Ga4View =
+  | { status: 'loading' | 'not_set_up' | 'unavailable' }
+  | {
+      status: 'ready'
+      pageViews: number | null
+      visitors: number | null
+      topPages: Array<{ label: string; value: number }>
+      sources: Array<{ label: string; value: number }>
+      devices: Array<{ label: string; value: number }>
+      updatedAt: string | null
+    }
+
+function formatUpdatedEt(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const formatted = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+  return `Updated ${formatted} ET`
+}
+
+function BreakdownList({
+  title,
+  rows,
+}: {
+  title: string
+  rows: Array<{ label: string; value: number }>
+}) {
+  return (
+    <div>
+      <h4 className={styles.mapListTitle}>{title}</h4>
+      {rows.length > 0 ? (
+        <ol className={styles.topStates}>
+          {rows.slice(0, 5).map((row) => (
+            <li key={`${title}-${row.label}`}>
+              <span>{row.label}</span>
+              <strong>{formatCount(row.value)}</strong>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className={styles.muted}>None yet.</p>
+      )}
+    </div>
+  )
+}
+
+export function SiteGa4SummaryView({ view }: { view: Ga4View }) {
+  if (view.status !== 'ready') {
+    if (view.status === 'not_set_up') {
+      return <p className={styles.muted}>Analytics not set up yet.</p>
+    }
+    if (view.status === 'unavailable') {
+      return <p className={styles.muted}>Analytics will show up here when the connection is ready.</p>
+    }
+    return <p className={styles.muted}>Loading site analytics.</p>
+  }
+
+  const updated = view.updatedAt ? formatUpdatedEt(view.updatedAt) : ''
+  return (
+    <div className={styles.ga4Grid} data-testid="site-ga4-ready">
+      <article className={styles.statCard}>
+        <h3 className={styles.pieceTitle}>Page views</h3>
+        <p className={styles.statValue}>{formatCount(view.pageViews ?? 0)}</p>
+        <p className={styles.muted}>Last 28 days.</p>
+      </article>
+      <article className={styles.statCard}>
+        <h3 className={styles.pieceTitle}>Visitors</h3>
+        <p className={styles.statValue}>{formatCount(view.visitors ?? 0)}</p>
+        <p className={styles.muted}>Last 28 days.</p>
+      </article>
+      <BreakdownList title="Top pages" rows={view.topPages} />
+      <BreakdownList title="Sources" rows={view.sources} />
+      <BreakdownList title="Devices" rows={view.devices} />
+      {updated ? <p className={styles.muted}>{updated}</p> : null}
+    </div>
+  )
+}
+
+function SiteGa4Section() {
+  const [view, setView] = useState<Ga4View>({ status: 'loading' })
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('/api/nic-nac/site-analytics', {
+      credentials: 'same-origin',
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) return { status: 'unavailable' as const }
+        const body = (await response.json()) as {
+          configured?: boolean
+          ga4Status?: string
+          ga4UpdatedAt?: string | null
+          overview?: { pageViews30d?: number | null; uniqueVisitors30d?: number | null }
+          topPages?: Array<{ label: string; value: number }>
+          trafficSources?: Array<{ label: string; value: number }>
+          deviceMix?: Array<{ label: string; value: number }>
+        }
+        if (body.ga4Status === 'ready' && body.configured) {
+          return {
+            status: 'ready' as const,
+            pageViews: body.overview?.pageViews30d ?? null,
+            visitors: body.overview?.uniqueVisitors30d ?? null,
+            topPages: body.topPages ?? [],
+            sources: body.trafficSources ?? [],
+            devices: body.deviceMix ?? [],
+            updatedAt: body.ga4UpdatedAt ?? null,
+          }
+        }
+        if (body.ga4Status === 'unavailable') return { status: 'unavailable' as const }
+        return { status: 'not_set_up' as const }
+      })
+      .then((next) => setView(next))
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        setView({ status: 'unavailable' })
+      })
+    return () => controller.abort()
+  }, [])
+
+  return (
+    <article className={styles.card} data-testid="site-ga4">
+      <h3 className={styles.pieceTitle}>Site analytics</h3>
+      <p className={styles.why}>
+        Page views, visitors, top pages, sources, and devices for the last 28 days.
+      </p>
+      <SiteGa4SummaryView view={view} />
+    </article>
+  )
+}
+
 export function SiteVisitsPanel({
   visits,
   siteHref = null,
@@ -271,6 +407,7 @@ export function SiteVisitsPanel({
       ) : (
         <VisitCards visits={visits} siteHref={publicSiteHref} />
       )}
+      <SiteGa4Section />
     </SubjectCardTip>
   )
 }

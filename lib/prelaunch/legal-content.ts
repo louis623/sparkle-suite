@@ -204,6 +204,19 @@ export const privacyPolicyDocument: LegalDocument = {
       ],
     },
     {
+      title: "Website Analytics",
+      paragraphs: [
+        "Sparkle Suite representative websites use Google Analytics to understand visits. We don't send names, emails, or phone numbers to Google Analytics. Google may collect standard information like approximate location and device type.",
+        "A visitor can opt out of Google Analytics with the Google Analytics Opt-out Browser Add-on.",
+      ],
+      links: [
+        {
+          href: "https://tools.google.com/dlpage/gaoptout",
+          label: "Google Analytics Opt-out Browser Add-on",
+        },
+      ],
+    },
+    {
       title: "Data Retention",
       paragraphs: [
         "The current Live Lineup state is updated as the selected source changes. Private show archives may retain lineup entries, stable identifiers, show scope, and operational timestamps so the representative can deliberately recover selected customers into a later show's private Hold area. These archives are not part of the anonymous customer-facing lineup and are retained only as needed to provide the Live Lineup service, support recovery, protect the service, resolve disputes, or comply with legal obligations.",

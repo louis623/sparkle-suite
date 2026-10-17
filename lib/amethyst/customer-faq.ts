@@ -1,5 +1,6 @@
 import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 import { injectPublicSiteVisitBeacon } from '@/lib/services/site-visit-summary'
+import { injectRepGa4Tag, resolveRepGa4TagHtml } from '@/lib/amethyst/rep-ga4-tag'
 import { renderSparkleSuitePoweredByLinkHtml } from './sparkle-suite-footer-credit'
 import { loadAmethystPreviewTemplateData } from './preview-template-data'
 import { resolveSparkleRequestOrigin } from '@/lib/seo/sparkle-crawl'
@@ -370,11 +371,20 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
 </body>
 </html>`
 
+  const ga4Tag = await resolveRepGa4TagHtml({
+    request,
+    repId: options.repId,
+    shopHref: data.homepage.streamLinks?.shop,
+  }).catch(() => '')
+
   return new Response(
-    injectPublicSiteVisitBeacon(html, {
-      repId: options.repId,
-      slug: options.publicSiteSlug,
-    }),
+    injectRepGa4Tag(
+      injectPublicSiteVisitBeacon(html, {
+        repId: options.repId,
+        slug: options.publicSiteSlug,
+      }),
+      ga4Tag,
+    ),
     {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',

@@ -41,5 +41,6 @@ export async function GET(
 
   return renderAmethystPublicAssetResponse(request, asset, {
     canonicalPathOverride,
+    ...(site.kind === 'serve' ? { repIdOverride: site.repId } : {}),
   })
 }

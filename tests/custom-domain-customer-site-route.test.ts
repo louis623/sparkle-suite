@@ -8,10 +8,17 @@ vi.mock('@/lib/amethyst/public-asset-response', () => ({
 
 vi.mock('@/lib/amethyst/customer-domain-site', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/amethyst/customer-domain-site')>()),
-  resolveCustomerDomainSiteState: vi.fn().mockResolvedValue({ kind: 'serve', host: 'brisglowtique.com', repId: 'rep-1' }),
+  resolveCustomerDomainSiteState: vi.fn().mockResolvedValue({
+    kind: 'serve',
+    host: 'brisglowtique.com',
+    repId: '2b5a27c5-9c05-4014-8d0b-754e19815bf6',
+  }),
 }))
 
 import { GET } from '@/app/customer-site/[page]/route'
+import { buildPublicSiteVisitBeacon } from '@/lib/services/site-visit-summary'
+
+const RESOLVED_REP_ID = '2b5a27c5-9c05-4014-8d0b-754e19815bf6'
 
 describe('custom-domain customer-site route', () => {
   beforeEach(() => {
@@ -32,8 +39,15 @@ describe('custom-domain customer-site route', () => {
     expect(renderAmethystPublicAssetResponseMock).toHaveBeenCalledWith(
       request,
       asset,
-      { canonicalPathOverride },
+      { canonicalPathOverride, repIdOverride: RESOLVED_REP_ID },
     )
+  })
+
+  it('gives the visit beacon a rep id instead of a domain string', () => {
+    expect(buildPublicSiteVisitBeacon({ repId: 'brisglowtique.com' })).toBe('')
+    const beacon = buildPublicSiteVisitBeacon({ repId: RESOLVED_REP_ID })
+    expect(beacon).toContain('id="sparkle-site-visit"')
+    expect(beacon).toContain(RESOLVED_REP_ID)
   })
 
   it('rejects an unknown customer-site page', async () => {
