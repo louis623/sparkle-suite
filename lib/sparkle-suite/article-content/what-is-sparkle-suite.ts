@@ -63,7 +63,7 @@ export const whatIsSparkleSuiteArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "There's a one-time setup fee of $49.99. Founder pricing is $49.99 a month for your first 12 paid months, then $74.99, for the first 20 founding reps, who are helping shape and test Sparkle Suite during the beta. The Standard plan is $74.99 a month. The full breakdown is in Sparkle Suite pricing explained, and current plans are always on the [pricing section](https://www.yoursparklesuite.com/#pricing)."
+      "text": "There's a one-time setup fee of $49.99. Founder pricing is $49.99 a month for your first 12 paid months, then $74.99, for the first 20 founding reps, who are helping shape and test Sparkle Suite during the beta. The Standard plan is $74.99 a month. The full breakdown is in [Sparkle Suite pricing explained](https://www.yoursparklesuite.com/faq/articles/sparkle-suite-pricing-explained), and current plans are always on the [pricing section](https://www.yoursparklesuite.com/#pricing)."
     },
     {
       "type": "heading",
