@@ -123,31 +123,31 @@ export const defaultAmethystTradeTemplateData: AmethystTradeTemplateData = {
   tradeHeroSub:
     'The Dance Floor is for item-for-item swaps only. Requests must stay within the same collection and the same jewelry type.',
   tickerTopText:
-    'Dance Floor open now | Item-for-item only | Same collection + same jewelry type | Birthday dancers can trade across months',
+    'Dance Floor open now | Item-for-item only | Same collection + same jewelry type | Birthday dancers can swap across months',
   shopUrl: 'https://bombparty.com',
   footerTagline:
     'Live jewelry reveals every Tuesday at 8pm CST. Real pieces, real sparkle.',
   legalDisclaimer:
-    'Sparkle by Sasha is operated by an independent Bomb Party Representative. Bomb Party is a registered trademark of Bomb Party LLC. This dance floor is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by Bomb Party LLC. Trades are private agreements between the customer and the rep. Requests are one dancer for one dancer, with no added payment or credit.',
+    'Sparkle by Sasha is operated by an independent Bomb Party Representative. Bomb Party is a registered trademark of Bomb Party LLC. This dance floor is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by Bomb Party LLC. Dancer swaps are private agreements between the customer and the rep. Requests are one dancer for one dancer, with no added payment or credit.',
   tradeRules: [
     'Item-for-item only.',
     'No pay-the-difference requests.',
-    'No trade credit is issued with a Dance Floor trade.',
-    'Trades must stay within the same collection and the same jewelry type.',
+    'No swap credit is issued with a Dance Floor swap.',
+    'Swaps must stay within the same collection and the same jewelry type.',
   ],
   faqAnswers: {
     howTradeWorks:
       "When you do not love the item number just revealed for you, you can request a dancer from the Dance Floor. The rep has both dancers during the live show and, if approved, swaps your just-revealed dancer for the requested dancer one-for-one.",
     cashDifference:
-      'No. Dance Floor trades are one dancer for one dancer, without added payment.',
+      'No. Dance Floor swaps are one dancer for one dancer, without added payment.',
     tradeCredit:
-      'No. A Dance Floor trade does not include credit or a payout.',
+      'No. A Dance Floor swap does not include credit or a payout.',
     matchingRules:
-      'Trades need to stay within the same collection and the same jewelry type. OG trades for OG, Birthday trades for Birthday, and earrings trade for earrings, necklaces for necklaces, pendants for pendants, bracelets for bracelets, and stacks for stacks.',
+      'Swaps need to stay within the same collection and the same jewelry type. OG swaps for OG, Birthday swaps for Birthday, and earrings swap for earrings, necklaces for necklaces, pendants for pendants, bracelets for bracelets, and stacks for stacks.',
     rarePieces:
       'Diamond and unicorn dancers are allowed on the Dance Floor, but they are expected to be rare edge cases rather than the default inventory mix.',
     responseTime:
-      'Most reps review trade requests after the live show ends and follow up directly with the customer.',
+      'Most reps review swap requests after the live show ends and follow up directly with the customer.',
   },
   socialLinks: [
     { label: 'TikTok', shortLabel: 'TT', href: '#' },
@@ -169,11 +169,11 @@ export const defaultAmethystTradeTemplateData: AmethystTradeTemplateData = {
     accessibility: '#faq',
   },
   footerColumn: {
-    title: 'Trade Notes',
+    title: 'Swap notes',
     links: [
-      { label: 'Birthday dancers can trade across months', href: '#faq' },
+      { label: 'Birthday dancers can swap across months', href: '#faq' },
       { label: 'Diamonds and unicorns are rare', href: '#faq' },
-      { label: 'All trades are rep reviewed', href: '#faq' },
+      { label: 'All swaps are rep reviewed', href: '#faq' },
     ],
   },
 }

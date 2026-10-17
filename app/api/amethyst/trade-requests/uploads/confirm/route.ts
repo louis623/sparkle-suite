@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     }
     if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json') ||
         Number(request.headers.get('content-length') ?? 0) > 16 * 1024) {
-      return NextResponse.json({ code: 'TRADE_UPLOAD_INVALID_REQUEST', error: 'Refresh the trade form and try again.' }, { status: 400 })
+      return NextResponse.json({ code: 'TRADE_UPLOAD_INVALID_REQUEST', error: 'Refresh the swap form and try again.' }, { status: 400 })
     }
     const input = await request.json() as Record<string, unknown>
     const admin = createAdminClient()
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       select: 'id, email',
     }) : null
     if (target.targeted && !targetRep?.id) {
-      return NextResponse.json({ code: 'TRADE_UPLOAD_UNAVAILABLE', error: 'Trade requests are temporarily unavailable.' }, { status: 503 })
+      return NextResponse.json({ code: 'TRADE_UPLOAD_UNAVAILABLE', error: 'Swap requests are temporarily unavailable.' }, { status: 503 })
     }
     const result = await confirmTradeUpload(admin, {
       uploadId: typeof input.uploadId === 'string' ? input.uploadId : '',
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result, { headers: { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' } })
   } catch (error) {
     if (error instanceof SyntaxError || error instanceof TypeError) {
-      return NextResponse.json({ code: 'TRADE_UPLOAD_INVALID_REQUEST', error: 'Refresh the trade form and try again.' }, { status: 400 })
+      return NextResponse.json({ code: 'TRADE_UPLOAD_INVALID_REQUEST', error: 'Refresh the swap form and try again.' }, { status: 400 })
     }
     if (error instanceof ServiceError) {
       return NextResponse.json({ code: error.code, error: error.userMessage }, { status: error.statusCode })

@@ -48,7 +48,7 @@ async function readPayload(request: Request): Promise<TradeRequestPayload> {
   const isJson = contentType.split(';', 1)[0]?.trim() === 'application/json'
   if (!isJson) {
     throw new TradeRequestPayloadError(
-      'Refresh the Dance Floor page before sending a trade request.',
+      'Refresh the Dance Floor page before sending a swap request.',
       415,
     )
   }
@@ -148,7 +148,7 @@ export async function POST(request: Request) {
     const throttle = allowTradeRequest(request, payload.listingId)
     if (!throttle.allowed) {
       return NextResponse.json(
-        { error: 'Too many trade requests for this dancer. Please try again shortly.' },
+        { error: 'Too many swap requests for this dancer. Please try again shortly.' },
         { status: 429, headers: { 'retry-after': String(throttle.retryAfter) } },
       )
     }
@@ -165,7 +165,7 @@ export async function POST(request: Request) {
 
     if (target.targeted && !targetRep?.id) {
       return NextResponse.json(
-        { error: 'Trade requests are temporarily unavailable right now.' },
+        { error: 'Swap requests are temporarily unavailable right now.' },
         { status: 503 },
       )
     }
@@ -219,7 +219,7 @@ export async function POST(request: Request) {
 
     console.error('[amethyst/trade-requests] Error:', error)
     return NextResponse.json(
-      { error: 'Failed to submit trade request.' },
+      { error: 'Failed to submit swap request.' },
       { status: 500 },
     )
   }

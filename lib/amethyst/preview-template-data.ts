@@ -345,7 +345,7 @@ function resolveStreamingLinks(settings: SiteSettingsDashboardResult, extras: Pr
 function buildLegalDisclaimer(businessName: string, context: 'homepage' | 'trade' | 'join') {
   const tradeNote =
     context === 'trade'
-      ? ' Trades are private agreements between the customer and the rep.'
+      ? ' Dancer swaps are private agreements between the customer and the rep.'
       : ''
 
   return `${businessName} is operated by an independent Bomb Party Representative. Bomb Party is a registered trademark of Bomb Party LLC. This site is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by Bomb Party LLC.${tradeNote}`

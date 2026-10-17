@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const offeredFamily = typeof body.offeredFamily === 'string' ? body.offeredFamily.trim() : null
     const offeredType = typeof body.offeredType === 'string' ? body.offeredType.trim() : null
     if (!listingId || listingId.length > 100 || (offeredFamily?.length ?? 0) > TRADE_REQUEST_OFFERED_FAMILY_MAX_LENGTH) {
-      return NextResponse.json({ error: 'Invalid trade details.' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid swap details.' }, { status: 400 })
     }
     const admin = createAdminClient()
     const target = resolveAmethystRequestTarget(request)
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
           select: 'id, email',
         })
       : null
-    if (target.targeted && !targetRep?.id) return NextResponse.json({ error: 'Trade guidance unavailable.' }, { status: 503 })
+    if (target.targeted && !targetRep?.id) return NextResponse.json({ error: 'Swap guidance unavailable.' }, { status: 503 })
     const screen = await screenTradeRequestForListing(admin, listingId, offeredFamily, offeredType, targetRep?.id)
     const alternatives: Array<{ listingId: string; designName: string; collectionName: string; typePrefix: string; photoUrl: string | null }> = []
     if (screen.screening.status === 'mismatch') {
@@ -70,6 +70,6 @@ export async function POST(request: Request) {
     if (error instanceof SyntaxError) return NextResponse.json({ error: 'Invalid payload.' }, { status: 400 })
     if (error instanceof ServiceError) return NextResponse.json({ code: error.code, error: error.userMessage }, { status: error.statusCode })
     console.error('[amethyst/trade-requests/screen] Error:', error)
-    return NextResponse.json({ error: 'Trade guidance unavailable.' }, { status: 500 })
+    return NextResponse.json({ error: 'Swap guidance unavailable.' }, { status: 500 })
   }
 }

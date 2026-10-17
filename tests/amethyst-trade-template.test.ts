@@ -769,7 +769,7 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).not.toContain('MSRP')
     expect(jsx).not.toContain('tp-card-rep')
     expect(jsx).not.toContain('tp-card-expand-rep')
-    expect(jsx).toContain('View dancer and request trade')
+    expect(jsx).toContain('View dancer and send a swap request')
     expect(jsx).toContain('data-slot="brand separation footer"')
   })
 

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
     if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json') ||
         Number(request.headers.get('content-length') ?? 0) > 16 * 1024) {
-      return NextResponse.json({ code: 'TRADE_UPLOAD_INVALID_REQUEST', error: 'Refresh the trade form and try again.' }, { status: 400 })
+      return NextResponse.json({ code: 'TRADE_UPLOAD_INVALID_REQUEST', error: 'Refresh the swap form and try again.' }, { status: 400 })
     }
     const input = await request.json() as Record<string, unknown>
     const admin = createAdminClient()
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       select: 'id, email',
     }) : null
     if (target.targeted && !targetRep?.id) {
-      return NextResponse.json({ code: 'TRADE_UPLOAD_UNAVAILABLE', error: 'Trade requests are temporarily unavailable.' }, { status: 503 })
+      return NextResponse.json({ code: 'TRADE_UPLOAD_UNAVAILABLE', error: 'Swap requests are temporarily unavailable.' }, { status: 503 })
     }
     const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     const address = (forwarded || request.headers.get('x-real-ip')?.trim() || 'unknown').slice(0, 128)
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     return NextResponse.json(ticket, { status: 201, headers: { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' } })
   } catch (error) {
     if (error instanceof SyntaxError || error instanceof TypeError) {
-      return NextResponse.json({ code: 'TRADE_UPLOAD_INVALID_REQUEST', error: 'Refresh the trade form and try again.' }, { status: 400 })
+      return NextResponse.json({ code: 'TRADE_UPLOAD_INVALID_REQUEST', error: 'Refresh the swap form and try again.' }, { status: 400 })
     }
     return responseError(error)
   }

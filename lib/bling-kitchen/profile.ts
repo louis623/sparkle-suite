@@ -132,12 +132,12 @@ export function applyBlingKitchenTrade(
     businessName: BLING_KITCHEN_PROFILE.businessName,
     tradeHeroTitle: 'BlingKitchen Dance Floor',
     tradeHeroSub:
-      "Browse Heather's available trade pieces and request a standard Sparkle Suite item-for-item swap.",
+      "Browse Heather's available dancers and request a standard Sparkle Suite item-for-item swap.",
     tickerTopText:
       'Dance Floor open - item-for-item only - same collection and jewelry type - Heather reviews every request',
     shopUrl: BLING_KITCHEN_PROFILE.shopUrl,
     footerTagline:
-      'Serving sparkle from the heart of the home, with rep-reviewed trades from BlingKitchen.',
+      'Serving sparkle from the heart of the home, with rep-reviewed dancer swaps from BlingKitchen.',
     socialLinks: trade.socialLinks,
     footerLinks: {
       ...trade.footerLinks,

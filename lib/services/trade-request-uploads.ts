@@ -48,7 +48,7 @@ export function assertTradeUploadInput(input: {
   byteSize: number
 }) {
   if (!UUID.test(input.listingId) || !UUID.test(input.submissionId)) {
-    throw failure('TRADE_UPLOAD_INVALID_REQUEST', 'Refresh the trade form and try the photo again.', 400)
+    throw failure('TRADE_UPLOAD_INVALID_REQUEST', 'Refresh the swap form and try the photo again.', 400)
   }
   const contentType = input.contentType.trim().toLowerCase()
   if (!CONTENT_TYPES[contentType]) {
@@ -76,7 +76,7 @@ export async function createTradeUploadTicket(admin: SupabaseClient, input: {
 }) {
   const parsed = assertTradeUploadInput(input)
   if (!/^[a-f0-9]{64}$/.test(input.ipHash)) {
-    throw failure('TRADE_UPLOAD_INVALID_REQUEST', 'Refresh the trade form and try the photo again.', 400)
+    throw failure('TRADE_UPLOAD_INVALID_REQUEST', 'Refresh the swap form and try the photo again.', 400)
   }
   const listing = await admin.from('trade_listings')
     .select('id, rep_id, status, quantity_available')
@@ -124,7 +124,7 @@ async function findTicket(admin: SupabaseClient, input: {
   expectedRepId?: string | null
 }): Promise<Ticket> {
   if (!UUID.test(input.uploadId) || !UUID.test(input.listingId) || !UUID.test(input.submissionId)) {
-    throw failure('TRADE_UPLOAD_INVALID_REQUEST', 'Refresh the trade form and try the photo again.', 400)
+    throw failure('TRADE_UPLOAD_INVALID_REQUEST', 'Refresh the swap form and try the photo again.', 400)
   }
   const result = await admin.from('trade_request_upload_tickets').select('*')
     .eq('id', input.uploadId).maybeSingle()
@@ -136,7 +136,7 @@ async function findTicket(admin: SupabaseClient, input: {
     throw failure('TRADE_UPLOAD_NOT_FOUND', 'This photo upload is no longer available. Choose the photo again.', 404)
   }
   if (ticket.consumed_request_id) {
-    throw failure('TRADE_UPLOAD_ALREADY_USED', 'This photo was already sent with a trade request.', 409)
+    throw failure('TRADE_UPLOAD_ALREADY_USED', 'This photo was already sent with a swap request.', 409)
   }
   if (Date.now() - new Date(ticket.created_at).getTime() > TICKET_HOURS * 60 * 60 * 1000) {
     throw failure('TRADE_UPLOAD_EXPIRED', 'This photo upload expired. Choose the photo again.', 409)

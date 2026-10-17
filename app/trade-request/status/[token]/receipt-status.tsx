@@ -15,16 +15,16 @@ const STATUS_COPY: Record<Receipt['status'], { heading: string; body: string }> 
     body: 'Your rep has the request and will review the collection, jewelry type, and availability.',
   },
   approved: {
-    heading: 'Your trade was approved',
-    body: 'Your rep approved this trade. Approval does not mean the item has shipped or been fulfilled.',
+    heading: 'Your swap was approved',
+    body: 'Your rep approved this dancer swap. Approval does not mean the item has shipped or been fulfilled.',
   },
   denied: {
     heading: 'Your request was declined',
-    body: 'Your rep could not approve this trade.',
+    body: 'Your rep could not approve this swap.',
   },
   cancelled: {
     heading: 'Your request was cancelled',
-    body: 'This trade request is no longer active.',
+    body: 'This swap request is no longer active.',
   },
 }
 

@@ -259,7 +259,7 @@ describe('POST /api/amethyst/trade-requests', () => {
     expect(response.status).toBe(409)
     await expect(response.json()).resolves.toEqual({
       code: 'REQUEST_ALREADY_EXISTS',
-      error: 'That piece already has a pending trade request.',
+      error: 'That piece already has a pending swap request.',
     })
   })
 
