@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { FounderAvailabilityProvider, FounderOffer, FounderSpotLabel, FounderStrip } from '@/app/_components/landing-interactions'
-import type { FounderAvailability } from '@/lib/sparkle-suite/founder-availability'
+import type { PublicFounderAvailability as FounderAvailability } from '@/lib/sparkle-suite/public-founder-availability'
 
 const checkedAt = '2026-10-06T13:00:00.000Z'
 function renderOffer(availability?: FounderAvailability, compact = false) {
@@ -13,14 +13,14 @@ function text(html: string) {
 
 describe('customer-visible founder offer states', () => {
   it.each([19, 1])('does not print the confirmed %i founder-spot count', remaining => {
-    const html = renderToStaticMarkup(<FounderAvailabilityProvider initialAvailability={{ status: 'available', remaining, checkedAt }}><FounderStrip /><FounderSpotLabel large /></FounderAvailabilityProvider>)
+    const html = renderToStaticMarkup(<FounderAvailabilityProvider initialAvailability={{ status: 'available', remaining, checkedAt } as FounderAvailability}><FounderStrip /><FounderSpotLabel large /></FounderAvailabilityProvider>)
     expect(text(html)).not.toMatch(/\d+ founder spots? remaining|of 20|spots left/)
     expect(html).toContain('href="#pricing"')
     expect(text(html)).not.toMatch(/secure|reserve/i)
   })
 
   it.each([19, 1])('server-renders the %i-slot founder price and the full payment schedule', remaining => {
-    const html = renderOffer({ status: 'available', remaining, checkedAt })
+    const html = renderOffer({ status: 'available', remaining, checkedAt } as FounderAvailability)
     const copy = text(html)
     expect(html).toContain('Sparkle Suite founding rep pricing')
     expect(copy).toContain('$49.99/mo')
@@ -32,8 +32,14 @@ describe('customer-visible founder offer states', () => {
     expect(copy).toContain('Founder pricing is available to reps who move forward after our call, while spots last.')
   })
 
+  it('never serializes a count, even if a caller passes one', () => {
+    const html = renderOffer({ status: 'available', remaining: 18, taken: 2, checkedAt } as FounderAvailability)
+    expect(html).not.toMatch(/remaining|taken/)
+    expect(text(html)).not.toMatch(/\b18\b|of 20/)
+  })
+
   it('switches to standard only for confirmed full availability', () => {
-    const html = renderOffer({ status: 'full', remaining: 0, checkedAt })
+    const html = renderOffer({ status: 'full', checkedAt })
     const copy = text(html)
     expect(html).toContain('Sparkle Suite standard pricing')
     expect(copy).toContain('$74.99/mo')
@@ -43,7 +49,7 @@ describe('customer-visible founder offer states', () => {
   })
 
   it('keeps founder pricing on unconfirmed and missing first-load data, with no invented count or urgency', () => {
-    for (const availability of [undefined, { status: 'unavailable', remaining: null, checkedAt: null } satisfies FounderAvailability]) {
+    for (const availability of [undefined, { status: 'unavailable', checkedAt: null } satisfies FounderAvailability]) {
       const html = renderOffer(availability)
       const copy = text(html)
       expect(copy).toContain('$49.99/mo')
@@ -55,9 +61,9 @@ describe('customer-visible founder offer states', () => {
   })
 
   it.each([
-    { status: 'available', remaining: 19, checkedAt },
-    { status: 'full', remaining: 0, checkedAt },
-    { status: 'unavailable', remaining: null, checkedAt: null },
+    { status: 'available', checkedAt },
+    { status: 'full', checkedAt },
+    { status: 'unavailable', checkedAt: null },
   ] satisfies FounderAvailability[])('keeps joining separate from reserving and paying: $status', availability => {
     const html = renderOffer(availability)
     const copy = text(html)

@@ -1,10 +1,15 @@
-import { FOUNDER_PRICING_REP_LIMIT } from '@/lib/stripe/sparkle-suite-pricing'
-import { unavailableFounderAvailability, type FounderAvailability } from '@/lib/sparkle-suite/founder-availability'
+import {
+  toPublicFounderAvailability,
+  unavailablePublicFounderAvailability,
+  type PublicFounderAvailability,
+} from '@/lib/sparkle-suite/public-founder-availability'
 
 /**
  * Smoke env values are rejected when they contain the production host, so the
  * live URL stays in source. Smoke reads this endpoint; it does not count its
- * own database and it does not invent a number.
+ * own database and it does not invent a number. Smoke only needs the status
+ * (founder pricing offered or full), so the public endpoint never has to
+ * expose a slot count.
  */
 export const LIVE_FOUNDER_AVAILABILITY_URL = 'https://www.yoursparklesuite.com/api/public/founder-availability'
 
@@ -12,36 +17,34 @@ export function isSuiteSmokeEnvironment(env: NodeJS.ProcessEnv = process.env) {
   return env.SPARKLE_ENVIRONMENT === 'smoke' && env.NEXT_PUBLIC_SPARKLE_ENVIRONMENT === 'smoke'
 }
 
-export function parseLiveFounderAvailability(payload: unknown): FounderAvailability | null {
-  if (!payload || typeof payload !== 'object') return null
-  const data = payload as { status?: unknown; remaining?: unknown; checkedAt?: unknown }
-  const checkedAt = data.checkedAt == null ? null : typeof data.checkedAt === 'string' && data.checkedAt.length > 0 ? data.checkedAt : undefined
-  if (checkedAt === undefined) return null
-  if (data.status === 'available' && Number.isInteger(data.remaining) && (data.remaining as number) > 0 && (data.remaining as number) <= FOUNDER_PRICING_REP_LIMIT) {
-    return { status: 'available', remaining: data.remaining as number, checkedAt }
-  }
-  if (data.status === 'full' && data.remaining === 0) return { status: 'full', remaining: 0, checkedAt }
-  return null
+/** Accepts a status-only payload. Any count Live may still send is dropped. */
+export function parseLiveFounderAvailability(payload: unknown): PublicFounderAvailability | null {
+  const parsed = toPublicFounderAvailability(payload)
+  return parsed.status === 'unavailable' ? null : parsed
 }
 
-export async function readLiveFounderAvailability(fetchImpl: typeof fetch = fetch): Promise<FounderAvailability> {
+export async function readLiveFounderAvailability(fetchImpl: typeof fetch = fetch): Promise<PublicFounderAvailability> {
   try {
     const response = await fetchImpl(LIVE_FOUNDER_AVAILABILITY_URL, {
       cache: 'no-store',
       signal: AbortSignal.timeout(1500),
     })
-    if (!response.ok) return unavailableFounderAvailability()
-    return parseLiveFounderAvailability(await response.json()) ?? unavailableFounderAvailability()
+    if (!response.ok) return unavailablePublicFounderAvailability()
+    return parseLiveFounderAvailability(await response.json()) ?? unavailablePublicFounderAvailability()
   } catch {
-    return unavailableFounderAvailability()
+    return unavailablePublicFounderAvailability()
   }
 }
 
-/** Server-render the correct offer in each environment without calling Stripe. */
-export async function readLandingFounderAvailability(fetchImpl: typeof fetch = fetch): Promise<FounderAvailability> {
+/**
+ * Server-render the correct offer in each environment without calling Stripe.
+ * Returns only `{ status, checkedAt }` because the result is passed to a client
+ * component and serialized into the page source.
+ */
+export async function readLandingFounderAvailability(fetchImpl: typeof fetch = fetch): Promise<PublicFounderAvailability> {
   const { connection } = await import('next/server')
   await connection()
   if (isSuiteSmokeEnvironment()) return readLiveFounderAvailability(fetchImpl)
   const { getFounderAvailability } = await import('./founder-availability-service')
-  return getFounderAvailability()
+  return toPublicFounderAvailability(await getFounderAvailability())
 }

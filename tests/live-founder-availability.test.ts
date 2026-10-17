@@ -14,7 +14,7 @@ import {
 } from '@/lib/sparkle-suite/live-founder-availability'
 
 const checkedAt = '2026-10-03T21:40:20.623Z'
-const unavailable = { status: 'unavailable', remaining: null, checkedAt: null }
+const unavailable = { status: 'unavailable', checkedAt: null }
 
 afterEach(() => {
   vi.clearAllMocks()
@@ -22,17 +22,16 @@ afterEach(() => {
 })
 
 describe('live founder availability', () => {
-  it('accepts a counted live payload and rejects anything that is not a real slot count', () => {
-    expect(parseLiveFounderAvailability({ status: 'available', remaining: 18, checkedAt })).toEqual({ status: 'available', remaining: 18, checkedAt })
-    expect(parseLiveFounderAvailability({ status: 'available', remaining: 7, checkedAt })).toEqual({ status: 'available', remaining: 7, checkedAt })
-    expect(parseLiveFounderAvailability({ status: 'available', remaining: 20, checkedAt })).toEqual({ status: 'available', remaining: 20, checkedAt })
-    expect(parseLiveFounderAvailability({ status: 'full', remaining: 0, checkedAt })).toEqual({ status: 'full', remaining: 0, checkedAt })
+  it('accepts a status-only live payload, drops any legacy count, and rejects anything else', () => {
+    expect(parseLiveFounderAvailability({ status: 'available', checkedAt })).toEqual({ status: 'available', checkedAt })
+    expect(parseLiveFounderAvailability({ status: 'full', checkedAt })).toEqual({ status: 'full', checkedAt })
+    expect(parseLiveFounderAvailability({ status: 'available', remaining: 18, checkedAt })).toEqual({ status: 'available', checkedAt })
+    expect(parseLiveFounderAvailability({ status: 'full', remaining: 0, checkedAt })).toEqual({ status: 'full', checkedAt })
     for (const payload of [
-      { status: 'available', remaining: 0, checkedAt },
-      { status: 'available', remaining: 21, checkedAt },
-      { status: 'available', remaining: '18', checkedAt },
-      { status: 'unavailable', remaining: 18, checkedAt },
-      { status: 'full', remaining: 18, checkedAt },
+      { status: 'unavailable', checkedAt },
+      { status: 'open', checkedAt },
+      { status: 'available', checkedAt: 7 },
+      { status: 'available', checkedAt: '' },
       null,
     ]) {
       expect(parseLiveFounderAvailability(payload)).toBeNull()
@@ -41,13 +40,13 @@ describe('live founder availability', () => {
 
   it('reads the live endpoint without storing the response', async () => {
     const fetchImpl = vi.fn(async () => ({ ok: true, json: async () => ({ status: 'available', remaining: 18, checkedAt }) }))
-    await expect(readLiveFounderAvailability(fetchImpl as unknown as typeof fetch)).resolves.toEqual({ status: 'available', remaining: 18, checkedAt })
+    await expect(readLiveFounderAvailability(fetchImpl as unknown as typeof fetch)).resolves.toEqual({ status: 'available', checkedAt })
     expect(fetchImpl).toHaveBeenCalledWith(LIVE_FOUNDER_AVAILABILITY_URL, { cache: 'no-store', signal: expect.any(AbortSignal) })
   })
 
   it('returns unconfirmed when live is down or the body is not a count', async () => {
     const offline = vi.fn(async () => { throw new Error('offline') })
-    const invalid = vi.fn(async () => ({ ok: true, json: async () => ({ status: 'available', remaining: 99, checkedAt }) }))
+    const invalid = vi.fn(async () => ({ ok: true, json: async () => ({ status: 'open', checkedAt }) }))
     const denied = vi.fn(async () => ({ ok: false, json: async () => ({ status: 'available', remaining: 18, checkedAt }) }))
     await expect(readLiveFounderAvailability(offline as unknown as typeof fetch)).resolves.toEqual(unavailable)
     await expect(readLiveFounderAvailability(invalid as unknown as typeof fetch)).resolves.toEqual(unavailable)
@@ -60,7 +59,7 @@ describe('live founder availability', () => {
     vi.stubEnv('SPARKLE_ENVIRONMENT', 'production')
     vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'production')
     expect(isSuiteSmokeEnvironment()).toBe(false)
-    await expect(readLandingFounderAvailability(fetchImpl as unknown as typeof fetch)).resolves.toEqual({ status: 'available', remaining: 17, checkedAt })
+    await expect(readLandingFounderAvailability(fetchImpl as unknown as typeof fetch)).resolves.toEqual({ status: 'available', checkedAt })
     expect(fetchImpl).not.toHaveBeenCalled()
     expect(getFounderAvailability).toHaveBeenCalledOnce()
     expect(connection).toHaveBeenCalledOnce()
@@ -71,7 +70,7 @@ describe('live founder availability', () => {
     vi.stubEnv('SPARKLE_ENVIRONMENT', 'smoke')
     vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'smoke')
     fetchImpl.mockResolvedValue({ ok: true, json: async () => ({ status: 'available', remaining: 18, checkedAt }) })
-    await expect(readLandingFounderAvailability(fetchImpl as unknown as typeof fetch)).resolves.toEqual({ status: 'available', remaining: 18, checkedAt })
+    await expect(readLandingFounderAvailability(fetchImpl as unknown as typeof fetch)).resolves.toEqual({ status: 'available', checkedAt })
     expect(connection).toHaveBeenCalledOnce()
     expect(getFounderAvailability).not.toHaveBeenCalled()
     expect(fetchImpl).toHaveBeenCalledWith(LIVE_FOUNDER_AVAILABILITY_URL, { cache: 'no-store', signal: expect.any(AbortSignal) })
@@ -80,7 +79,7 @@ describe('live founder availability', () => {
   it('passes through unconfirmed own-environment data for the founder-price fallback', async () => {
     vi.stubEnv('SPARKLE_ENVIRONMENT', 'production')
     vi.stubEnv('NEXT_PUBLIC_SPARKLE_ENVIRONMENT', 'production')
-    vi.mocked(getFounderAvailability).mockResolvedValue(unavailable as Awaited<ReturnType<typeof getFounderAvailability>>)
+    vi.mocked(getFounderAvailability).mockResolvedValue({ status: 'unavailable', remaining: null, checkedAt: null })
     const fetchImpl = vi.fn()
     await expect(readLandingFounderAvailability(fetchImpl as unknown as typeof fetch)).resolves.toEqual(unavailable)
     expect(fetchImpl).not.toHaveBeenCalled()

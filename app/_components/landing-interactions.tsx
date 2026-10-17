@@ -2,15 +2,16 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { ArrowRight, Check } from 'lucide-react'
-import type { FounderAvailability } from '@/lib/sparkle-suite/founder-availability'
+import { toPublicFounderAvailability, type PublicFounderAvailability } from '@/lib/sparkle-suite/public-founder-availability'
 import { QueueLink } from './queue-link'
 import styles from './landing-experience.module.css'
 
-const unavailable: FounderAvailability = { status:'unavailable', remaining:null, checkedAt:null }
-const AvailabilityContext = createContext<FounderAvailability>(unavailable)
+const unavailable: PublicFounderAvailability = { status:'unavailable', checkedAt:null }
+const AvailabilityContext = createContext<PublicFounderAvailability>(unavailable)
 
-export function FounderAvailabilityProvider({ children, initialAvailability = unavailable }: { children:ReactNode; initialAvailability?:FounderAvailability }) {
-  const [availability,setAvailability] = useState(initialAvailability)
+export function FounderAvailabilityProvider({ children, initialAvailability = unavailable }: { children:ReactNode; initialAvailability?:PublicFounderAvailability }) {
+  // Keep only status/checkedAt even if a caller passes extra fields.
+  const [availability,setAvailability] = useState<PublicFounderAvailability>(toPublicFounderAvailability(initialAvailability))
   useEffect(() => {
     let active=true
     let pending:AbortController|null=null
@@ -22,9 +23,9 @@ export function FounderAvailabilityProvider({ children, initialAvailability = un
       const timeout=window.setTimeout(()=>controller.abort(),7000)
       try {
         const response=await fetch('/api/public/founder-availability',{cache:'no-store',signal:controller.signal})
-        const data=await response.json() as FounderAvailability
-        const valid=response.ok && ((data.status==='available' && Number.isInteger(data.remaining) && data.remaining!>0 && data.remaining!<=20) || (data.status==='full' && data.remaining===0))
-        if(active && pending===controller) setAvailability(valid?data:unavailable)
+        const data=toPublicFounderAvailability(await response.json())
+        // Status only: 'available' keeps founder pricing, 'full' switches to the standard rate.
+        if(active && pending===controller) setAvailability(response.ok?data:unavailable)
       } catch {
         if(active && pending===controller) setAvailability(unavailable)
       } finally {window.clearTimeout(timeout)}

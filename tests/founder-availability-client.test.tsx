@@ -10,8 +10,8 @@ vi.mock('react', async importOriginal => ({
 }))
 import { FounderAvailabilityProvider } from '@/app/_components/landing-interactions'
 
-const unavailable = { status: 'unavailable', remaining: null, checkedAt: null }
-const snapshot = { status: 'available', remaining: 19, checkedAt: '2026-09-05T15:47:10.792Z' }
+const unavailable = { status: 'unavailable', checkedAt: null }
+const snapshot = { status: 'available', checkedAt: '2026-09-05T15:47:10.792Z' }
 let cleanup: void | (() => void)
 let visibilityListener: (() => void) | undefined
 let hidden = false
@@ -65,9 +65,9 @@ describe('founder availability client refresh policy (hook boundary)', () => {
   })
 
   it.each([
-    { status: 'available', remaining: 1, checkedAt: snapshot.checkedAt },
-    { status: 'full', remaining: 0, checkedAt: snapshot.checkedAt },
-  ])('accepts the last-slot and sold-out contracts: $status', async body => {
+    { status: 'available', checkedAt: snapshot.checkedAt },
+    { status: 'full', checkedAt: snapshot.checkedAt },
+  ])('accepts the status-only available and sold-out contracts: $status', async body => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => body })
     start()
     await vi.advanceTimersByTimeAsync(60_000)
@@ -75,13 +75,21 @@ describe('founder availability client refresh policy (hook boundary)', () => {
   })
 
   it.each([
-    { status: 'available', remaining: 0 },
-    { status: 'available', remaining: 21 },
-    { status: 'available', remaining: 1.5 },
-    { status: 'available', remaining: '19' },
-    { status: 'full', remaining: 19 },
-    { status: 'unavailable', remaining: 19 },
-  ])('suppresses invalid scarcity payloads: %j', async body => {
+    { status: 'available', remaining: 18, checkedAt: snapshot.checkedAt },
+    { status: 'full', remaining: 0, taken: 20, checkedAt: snapshot.checkedAt },
+  ])('drops any count a legacy payload still carries: $status', async body => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => body })
+    start()
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(hooks.setAvailability).toHaveBeenLastCalledWith({ status: body.status, checkedAt: body.checkedAt })
+  })
+
+  it.each([
+    { status: 'unavailable', checkedAt: null },
+    { status: 'open' },
+    { status: 'available', checkedAt: 42 },
+    null,
+  ])('suppresses invalid availability payloads: %j', async body => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => body })
     start()
     await vi.advanceTimersByTimeAsync(60_000)

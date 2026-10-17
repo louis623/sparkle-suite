@@ -9,7 +9,7 @@ import { QueueLink } from './queue-link'
 import { SparkleSuitePublicAccountAction } from './SparkleSuitePublicAccountAction'
 import { SparkleMarketingFooter, sparkleMarketingTikTokUrl, sparkleMarketingYouTubeUrl } from './sparkle-marketing-footer/SparkleMarketingFooter'
 import { FounderAvailabilityProvider, FounderOffer, IncludedFeatures } from './landing-interactions'
-import type { FounderAvailability } from '@/lib/sparkle-suite/founder-availability'
+import type { PublicFounderAvailability } from '@/lib/sparkle-suite/public-founder-availability'
 import type { LandingDemo } from '@/lib/sparkle-suite/landing-demo-model'
 import { sparkleSuitePortfolioContent } from '@/lib/sparkle-suite/portfolio-content'
 import styles from './landing-experience.module.css'
@@ -41,7 +41,7 @@ const questions = [
   ['Can I keep my domain?', 'Tell us what you already have. We’ll review the right way to connect your domain and plan your site together. Joining the queue does not move your website or email.'],
 ] as const
 
-export function LandingExperience({ initialAvailability, demo = null }: { initialAvailability?: FounderAvailability; demo?: LandingDemo | null }) {
+export function LandingExperience({ initialAvailability, demo = null }: { initialAvailability?: PublicFounderAvailability; demo?: LandingDemo | null }) {
   const sites = sparkleSuitePortfolioContent.carousels[0].slides.filter(site => ['mile-high-fizz','go-for-the-bling','sparkly-butterflies'].includes(site.id))
   return <FounderAvailabilityProvider initialAvailability={initialAvailability}><main className={`suite-marketing ${styles.page}`}>
     <a className={styles.skipLink} href="#main-content">Skip to content</a>
