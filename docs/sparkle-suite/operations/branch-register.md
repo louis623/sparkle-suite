@@ -113,6 +113,10 @@ reconciliation and must not be swept into the active branch merely to make
 
 ## Branch lifecycle
 
+### October 16 public-site past_due grace preview
+
+Louis asked for the public-site past_due grace patch on a pull request against `codex/nic-nac-trade-hardening`, with no merge, Live deploy, Live database write, or billing change. `cursor/public-site-past-due-grace` is allowlisted for a Smoke preview only. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change.
+
 ### October 15 combined Smoke preview
 
 Louis approved a Smoke-only combined preview of rebased PRs #95, #96, #99, and #100. `smoke/combined-95-96-99-100` is allowlisted for that preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `production` on that Smoke project, which is what moves `sparkle-suite-smoke.vercel.app`. Live project deploys fail closed. GitHub's default branch, Vercel's Live production branch, and the Live domains stay unchanged. This is a review exception, not a production branch-status change. Suite applies the Finder and Live Lineup migrations to the Smoke database separately.
