@@ -6,6 +6,11 @@ vi.mock('@/lib/amethyst/public-asset-response', () => ({
   renderAmethystPublicAssetResponse: renderAmethystPublicAssetResponseMock,
 }))
 
+vi.mock('@/lib/amethyst/customer-domain-site', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/amethyst/customer-domain-site')>()),
+  resolveCustomerDomainSiteState: vi.fn().mockResolvedValue({ kind: 'serve', host: 'brisglowtique.com', repId: 'rep-1' }),
+}))
+
 import { GET } from '@/app/customer-site/[page]/route'
 
 describe('custom-domain customer-site route', () => {

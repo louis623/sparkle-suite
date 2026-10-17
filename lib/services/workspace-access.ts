@@ -259,3 +259,28 @@ export async function resolveWorkspaceAccess({
     trial,
   }
 }
+
+/**
+ * Public customer-site access (the rep's public site on a custom domain or
+ * slug, plus its llms.txt and sitemap). This is deliberately more lenient than
+ * workspace access: a past_due subscription keeps the public site up during
+ * Stripe's dunning grace period, until Stripe cancels the subscription.
+ * Workspace and dashboard access keep using resolveWorkspaceAccess.
+ */
+export const PUBLIC_SITE_GRACE_SUBSCRIPTION_STATUSES = ['past_due'] as const
+
+export async function canServePublicCustomerSiteForRep({
+  supabase,
+  repId,
+  now = new Date(),
+}: {
+  supabase: SupabaseClient
+  repId: string
+  now?: Date
+}): Promise<boolean> {
+  const access = await resolveWorkspaceAccess({ supabase, repId, now })
+  if (access.hasFullAccess) return true
+  return (PUBLIC_SITE_GRACE_SUBSCRIPTION_STATUSES as readonly string[]).includes(
+    access.subscriptionStatus ?? '',
+  )
+}

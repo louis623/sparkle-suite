@@ -3,17 +3,14 @@ import { describe, expect, it } from 'vitest'
 import { GET } from '@/app/llms.txt/route'
 
 describe('GET /llms.txt', () => {
-  it('serves Markdown-for-agents text from a custom request host', async () => {
+  it('returns 404 noindex for an unmapped custom host instead of demo or Suite text', async () => {
     const response = await GET(
       new Request('https://sparklebysasha.example/llms.txt'),
     )
 
-    await expect(response.text()).resolves.toContain(
-      'Canonical origin: https://sparklebysasha.example',
-    )
-    expect(response.headers.get('content-type')).toContain(
-      'text/plain; charset=utf-8',
-    )
+    expect(response.status).toBe(404)
+    expect(response.headers.get('x-robots-tag')).toContain('noindex')
+    await expect(response.text()).resolves.not.toMatch(/Sasha|Jane|Sparkle Suite/)
   })
 
   it('keeps local and preview hosts on the default Sparkle Suite origin', async () => {
