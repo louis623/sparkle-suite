@@ -185,6 +185,17 @@ describe('payment-link migration', () => {
     expect(sql).toContain('from public, anon, authenticated')
     expect(sql).not.toMatch(/unique[^\n]*lead_email/i)
   })
+
+  it('keeps a needs_attention founder slot in the follow-up assign function', () => {
+    const followUp = readFileSync(
+      join(process.cwd(), 'supabase/migrations/20261018021500_ss_payment_link_needs_attention_holds_slot.sql'),
+      'utf8',
+    )
+    expect(followUp).toContain('assign_sparkle_suite_payment_link_pricing')
+    expect(followUp).toContain("held.status in ('open', 'paid', 'needs_attention')")
+    expect(followUp).toContain("status in ('open', 'paid', 'needs_attention')")
+    expect(followUp).not.toContain("held.status in ('open', 'paid')")
+  })
 })
 
 describe('payment link attention', () => {
@@ -217,6 +228,7 @@ describe('payment link checkout', () => {
     })
 
     expect(params.mode).toBe('subscription')
+    expect(params.payment_method_types).toEqual(['card'])
     expect(params).not.toHaveProperty('customer_email')
     expect(params.line_items).toEqual([
       { price: 'price_build', quantity: 1 },

@@ -130,6 +130,7 @@ export function buildPaymentLinkCheckoutParams({
 
   return {
     mode: 'subscription' as const,
+    payment_method_types: [...(['card'] as const)],
     line_items: lineItems,
     expires_at: Math.floor(now.getTime() / 1000) + PAYMENT_LINK_MAX_EXPIRY_SECONDS,
     success_url: `${origin}/payment/received?session_id={CHECKOUT_SESSION_ID}`,
