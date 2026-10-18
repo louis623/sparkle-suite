@@ -735,10 +735,22 @@ function stripeObjectId(value: string | { id?: string | null } | null | undefine
   return value.id ?? null
 }
 
-function duplicateReversalFailure(kind: 'cancel' | 'refund') {
+class PaymentLinkDuplicateReversalError extends Error {
+  readonly amountLabel: string | null
+
+  constructor(message: string, amountLabel: string | null = null) {
+    super(message)
+    this.name = 'PaymentLinkDuplicateReversalError'
+    this.amountLabel = amountLabel
+  }
+}
+
+function duplicateReversalFailure(kind: 'cancel' | 'refund', amountLabel?: string | null) {
   const detail = kind === 'cancel'
     ? 'The extra subscription could not be cancelled.'
-    : 'The payment could not be refunded.'
+    : amountLabel
+      ? `The payment of ${amountLabel} could not be refunded.`
+      : 'The payment could not be refunded.'
   return `Paid again with an email that already has an account. ${detail} No second account was created.`
 }
 
@@ -773,6 +785,21 @@ function paidInvoicePayment(invoice: {
   }
 }
 
+async function loadDuplicateInvoicePayment(
+  stripe: ReturnType<typeof getStripe>,
+  invoiceId: string,
+) {
+  // API 2026-03-25.dahlia omits invoice.payments unless they are expanded.
+  const invoice = await stripe.invoices.retrieve(invoiceId, { expand: ['payments'] })
+  let payment = paidInvoicePayment(invoice)
+  if (!payment.paymentIntentId && !payment.chargeId) {
+    const listed = await stripe.invoicePayments.list({ invoice: invoiceId, limit: 10 })
+    payment = paidInvoicePayment({ payments: listed })
+  }
+  const amountCents = typeof invoice.amount_paid === 'number' ? invoice.amount_paid : payment.amountCents
+  return { payment, amountCents }
+}
+
 async function reverseDuplicateCheckout({
   stripe,
   subscription,
@@ -789,14 +816,13 @@ async function reverseDuplicateCheckout({
       { idempotencyKey: `payment-link-duplicate-cancel-${sessionId}` },
     )
   } catch (error) {
-    if (!stripeReversalAlreadyDone(error)) throw new Error(duplicateReversalFailure('cancel'))
+    if (!stripeReversalAlreadyDone(error)) throw new PaymentLinkDuplicateReversalError(duplicateReversalFailure('cancel'))
   }
 
   const invoiceId = stripeObjectId(subscription.latest_invoice)
-  if (!invoiceId) throw new Error(duplicateReversalFailure('refund'))
-  const invoice = await stripe.invoices.retrieve(invoiceId)
-  const payment = paidInvoicePayment(invoice)
-  const amountCents = typeof invoice.amount_paid === 'number' ? invoice.amount_paid : payment.amountCents
+  if (!invoiceId) throw new PaymentLinkDuplicateReversalError(duplicateReversalFailure('refund'))
+  const { payment, amountCents } = await loadDuplicateInvoicePayment(stripe, invoiceId)
+  const amountLabel = amountCents == null ? null : formatUsdFromCents(amountCents)
   try {
     if (payment.paymentIntentId) {
       await stripe.refunds.create(
@@ -809,11 +835,13 @@ async function reverseDuplicateCheckout({
         { idempotencyKey: `payment-link-duplicate-refund-${sessionId}` },
       )
     } else {
-      throw new Error(duplicateReversalFailure('refund'))
+      throw new PaymentLinkDuplicateReversalError(duplicateReversalFailure('refund', amountLabel), amountLabel)
     }
   } catch (error) {
-    if (error instanceof Error && error.message === duplicateReversalFailure('refund')) throw error
-    if (!stripeReversalAlreadyDone(error)) throw new Error(duplicateReversalFailure('refund'))
+    if (error instanceof PaymentLinkDuplicateReversalError) throw error
+    if (!stripeReversalAlreadyDone(error)) {
+      throw new PaymentLinkDuplicateReversalError(duplicateReversalFailure('refund', amountLabel), amountLabel)
+    }
   }
   return { amountCents }
 }
@@ -1298,6 +1326,7 @@ export async function fulfillPaidPaymentLink({
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'fulfillment_error'
     const retryable = !PERMANENT_ATTENTION_REASONS.has(reason)
+    const amountLabel = error instanceof PaymentLinkDuplicateReversalError ? error.amountLabel : null
     const settledDuplicate = link?.status === 'duplicate' && duplicatePaymentWasReversed(link.attention_reason)
     if (link?.status !== 'paid' && !settledDuplicate) {
       await recordPaymentLinkAttention({
@@ -1307,6 +1336,7 @@ export async function fulfillPaidPaymentLink({
         reason,
         email: identity.email || null,
         name: identity.name || null,
+        amountLabel,
         notifyAttention,
       }).catch((alertError) => {
         console.error('[payment-link] Could not record the payment failure.', alertError)
@@ -1326,6 +1356,7 @@ async function recordPaymentLinkAttention({
   reason,
   email,
   name,
+  amountLabel = null,
   notifyAttention,
 }: {
   admin: AdminClient
@@ -1334,6 +1365,7 @@ async function recordPaymentLinkAttention({
   reason: string
   email: string | null
   name: string | null
+  amountLabel?: string | null
   notifyAttention: typeof sendPaymentLinkAttentionAlert
 }) {
   const attentionReason = reason.slice(0, 300)
@@ -1360,6 +1392,7 @@ async function recordPaymentLinkAttention({
       reason: attentionReason,
       email,
       name,
+      amountLabel,
     })
   } catch (error) {
     console.error('[payment-link] Owner alert failed.', error)

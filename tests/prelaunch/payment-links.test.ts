@@ -212,6 +212,32 @@ describe('payment link attention', () => {
     expect(alert.text).toContain('missing_email')
     expect(alert.text).not.toMatch(/token|magic/i)
   })
+
+  it('includes the refunded amount on the duplicate owner alert', () => {
+    const refunded = buildPaymentLinkAttentionAlert({
+      sessionId: 'cs_123',
+      paymentLinkId: 'link-1',
+      reason: 'Paid again with an email that already has an account. Refunded $49.99 and cancelled the extra subscription. No second account was created.',
+      email: 'paying@example.com',
+      name: 'Paying Rep',
+      amountLabel: '$49.99',
+      resolvedDuplicate: true,
+    })
+    expect(refunded.subject).toBe('Sparkle Suite duplicate payment refunded')
+    expect(refunded.text).toContain('Amount: $49.99')
+
+    const needsAttention = buildPaymentLinkAttentionAlert({
+      sessionId: 'cs_123',
+      paymentLinkId: 'link-1',
+      reason: 'Paid again with an email that already has an account. The payment of $49.99 could not be refunded. No second account was created.',
+      email: 'paying@example.com',
+      name: 'Paying Rep',
+      amountLabel: '$49.99',
+    })
+    expect(needsAttention.subject).toBe('Sparkle Suite payment needs attention')
+    expect(needsAttention.text).toContain('Amount: $49.99')
+    expect(needsAttention.text).toContain('The payment of $49.99 could not be refunded')
+  })
 })
 
 describe('payment link checkout', () => {
@@ -692,6 +718,7 @@ describe('paid payment link fulfillment', () => {
       { invoice_now: false, prorate: false },
       { idempotencyKey: 'payment-link-duplicate-cancel-cs_123' },
     )
+    expect(stripe.invoices.retrieve).toHaveBeenCalledWith('in_new', { expand: ['payments'] })
     expect(stripe.refunds.create).toHaveBeenCalledTimes(1)
     expect(stripe.refunds.create).toHaveBeenCalledWith(
       { payment_intent: 'pi_new', reason: 'duplicate' },
@@ -747,6 +774,83 @@ describe('paid payment link fulfillment', () => {
     expect(stripe.subscriptions.cancel).toHaveBeenCalledTimes(1)
   })
 
+  it('refunds a duplicate from listed invoice payments when the invoice has no expanded payments', async () => {
+    const admin = createAdminDouble()
+    const stripe = stripeDouble() as ReturnType<typeof stripeDouble> & {
+      subscriptions: { retrieve: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> }
+      invoices: { retrieve: ReturnType<typeof vi.fn> }
+      invoicePayments: { list: ReturnType<typeof vi.fn> }
+      refunds: { create: ReturnType<typeof vi.fn> }
+    }
+    stripe.subscriptions.cancel = vi.fn(async () => ({ id: 'sub_new', status: 'canceled' }))
+    stripe.invoices = {
+      retrieve: vi.fn(async () => ({
+        id: 'in_new',
+        amount_paid: 4999,
+      })),
+    }
+    stripe.invoicePayments = {
+      list: vi.fn(async () => ({
+        data: [{
+          status: 'paid',
+          amount_paid: 4999,
+          payment: { type: 'payment_intent', payment_intent: 'pi_listed' },
+        }],
+      })),
+    }
+    stripe.refunds = { create: vi.fn(async () => ({ id: 're_listed', status: 'succeeded' })) }
+    const notifyAttention = vi.fn()
+    admin.queue('sparkle_suite_payment_links', 'select', { data: openLink(), error: null })
+    admin.queue('reps', 'select', { data: { id: 'rep-paying', auth_user_id: 'auth-paying' }, error: null })
+    admin.queue('subscriptions', 'select', {
+      data: { stripe_subscription_id: 'sub_existing', status: 'active' },
+      error: null,
+    })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
+    admin.rpc.mockResolvedValueOnce({ data: true, error: null })
+    stripe.checkout.sessions.retrieve.mockResolvedValueOnce(
+      paidSession(['price_build', 'price_standard'], 'paying@example.com'),
+    )
+    stripe.subscriptions.retrieve.mockResolvedValueOnce({
+      ...activeSubscription('sub_new'),
+      latest_invoice: 'in_new',
+    })
+
+    const result = await fulfillPaidPaymentLink({
+      session: eventSession(),
+      livemode: false,
+      eventCreated: 1_700_000_000,
+      notifyAttention,
+      admin: admin as never,
+      stripe: stripe as never,
+    })
+
+    expect(result).toEqual({
+      created: false,
+      reason: 'duplicate_account',
+      retryable: false,
+      repId: 'rep-paying',
+    })
+    expect(stripe.invoices.retrieve).toHaveBeenCalledWith('in_new', { expand: ['payments'] })
+    expect(stripe.invoicePayments.list).toHaveBeenCalledWith({ invoice: 'in_new', limit: 10 })
+    expect(stripe.refunds.create).toHaveBeenCalledWith(
+      { payment_intent: 'pi_listed', reason: 'duplicate' },
+      { idempotencyKey: 'payment-link-duplicate-refund-cs_123' },
+    )
+    expect(notifyAttention).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'paying@example.com',
+        amountLabel: '$49.99',
+        resolvedDuplicate: true,
+        reason:
+          'Paid again with an email that already has an account. Refunded $49.99 and cancelled the extra subscription. No second account was created.',
+      }),
+    )
+    const alert = buildPaymentLinkAttentionAlert(notifyAttention.mock.calls[0][0])
+    expect(alert.text).toContain('Amount: $49.99')
+    expect(admin.calls.some((call) => call.table === 'subscriptions' && call.action === 'upsert')).toBe(false)
+  })
+
   it('records needs attention when the duplicate refund fails', async () => {
     const admin = createAdminDouble()
     const stripe = stripeDouble() as ReturnType<typeof stripeDouble> & {
@@ -794,7 +898,7 @@ describe('paid payment link fulfillment', () => {
         admin: admin as never,
         stripe: stripe as never,
       }),
-    ).rejects.toThrow('The payment could not be refunded')
+    ).rejects.toThrow('The payment of $49.99 could not be refunded')
 
     expect(stripe.subscriptions.cancel).toHaveBeenCalledTimes(1)
     expect(stripe.refunds.create).toHaveBeenCalledTimes(1)
@@ -802,17 +906,19 @@ describe('paid payment link fulfillment', () => {
       expect.objectContaining({
         status: 'needs_attention',
         attention_reason:
-          'Paid again with an email that already has an account. The payment could not be refunded. No second account was created.',
+          'Paid again with an email that already has an account. The payment of $49.99 could not be refunded. No second account was created.',
         lead_email: 'paying@example.com',
       }),
     )
     expect(notifyAttention).toHaveBeenCalledWith(
       expect.objectContaining({
         email: 'paying@example.com',
+        amountLabel: '$49.99',
         reason:
-          'Paid again with an email that already has an account. The payment could not be refunded. No second account was created.',
+          'Paid again with an email that already has an account. The payment of $49.99 could not be refunded. No second account was created.',
       }),
     )
+    expect(buildPaymentLinkAttentionAlert(notifyAttention.mock.calls[0][0]).text).toContain('Amount: $49.99')
     expect(admin.auth.admin.createUser).not.toHaveBeenCalled()
   })
 
@@ -986,7 +1092,7 @@ describe('paid payment link fulfillment', () => {
         admin: admin as never,
         stripe: stripe as never,
       }),
-    ).rejects.toThrow('The payment could not be refunded')
+    ).rejects.toThrow('The payment of $49.99 could not be refunded')
 
     expect(admin.calls.some((call) => call.table === 'subscriptions' && call.action === 'upsert')).toBe(false)
     expect(admin.calls.some((call) => call.table === 'reps' && call.action === 'update')).toBe(false)
@@ -994,8 +1100,11 @@ describe('paid payment link fulfillment', () => {
       expect.objectContaining({
         status: 'needs_attention',
         attention_reason:
-          'Paid again with an email that already has an account. The payment could not be refunded. No second account was created.',
+          'Paid again with an email that already has an account. The payment of $49.99 could not be refunded. No second account was created.',
       }),
+    )
+    expect(notifyAttention).toHaveBeenCalledWith(
+      expect.objectContaining({ amountLabel: '$49.99' }),
     )
   })
 
