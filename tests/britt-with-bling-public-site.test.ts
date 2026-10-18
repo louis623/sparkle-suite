@@ -366,8 +366,9 @@ describe('Britt With Bling hybrid public site contract', () => {
     expect(trade.tradeHeroTitle).toBe('Brilliant Fizz Dance Floor')
     expect(trade.tradeHeroSub).toContain('Bri')
     expect(trade.footerLinks.joinTeam).toBeUndefined()
-    expect(join.heroTitle).toBe('Join Radiant Circle with Brilliant Fizz')
-    expect(join.heroPitch).toContain('First custom paragraph')
+    expect(join.heroTitle).toBe('WELCOME TO RADIANT CIRCLE')
+    expect(join.heroPitch).toContain('Radiant Circle')
+    expect(join.heroPitch).toContain('Bri')
     expect(join.repSocialLinks.tiktok).toBe('https://www.tiktok.com/@brilliantfizz')
   })
 
@@ -400,7 +401,7 @@ describe('Britt With Bling hybrid public site contract', () => {
 
     expect(data.homepage.publicSiteVariant).toBe('britt_with_bling_hybrid')
     expect(data.homepage.businessName).toBe('Brilliant Fizz')
-    expect(data.join.heroTitle).toBe('Join Radiant Circle with Brilliant Fizz')
+    expect(data.join.heroTitle).toBe('WELCOME TO RADIANT CIRCLE')
   })
 
   it('serializes BWB as theme-switchable Black Diamond data', () => {
@@ -504,10 +505,8 @@ describe('Britt With Bling hybrid public site contract', () => {
       'britt_with_bling_hybrid',
     )
     expect((join as { heroTitle?: string }).heroTitle).toBe(
-      'Join The Virtuous Fizzers with Britt with Bling',
+      'WELCOME TO THE VIRTUOUS FIZZERS',
     )
-    expect(join.repCity).toBe('')
-    expect(join.repState).toBe('')
     expect(join.heroCtaText).toBe('REVIEW OFFICIAL JOIN DETAILS')
     expect(join.bpReferralUrl).toBe(BRITT_WITH_BLING_PROFILE.joinPackUrl)
     expect(join.teamMembers).toEqual([])

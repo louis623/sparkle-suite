@@ -873,7 +873,7 @@ function GnomeGardenScene() {
   );
 }
 
-function Hero({ teamName, title, pitch, ctaText, ctaUrl, hasRecruitingLink, showPromo, promoText, repName, businessName, locationLabel, gnomeGarden }) {
+function Hero({ teamName, title, pitch, ctaText, ctaUrl, hasRecruitingLink, showPromo, promoText, repName, locationLabel, gnomeGarden }) {
   return (
     <section className="jp-hero">
       {gnomeGarden && <GnomeGardenDecoration />}
@@ -892,7 +892,7 @@ function Hero({ teamName, title, pitch, ctaText, ctaUrl, hasRecruitingLink, show
           </h1>
           <p className="jp-hero-pitch slot" data-slot="recruitment pitch">{pitch}</p>
           <p className="jp-hero-localized">
-            <span className="slot" data-slot="business name">{businessName}</span>{locationLabel ? <> in <span className="slot" data-slot="rep city and state">{locationLabel}</span></> : null}.
+            Led by <span className="slot" data-slot="rep name">{repName}</span>{locationLabel ? <> in <span className="slot" data-slot="rep city and state">{locationLabel}</span></> : null}.
           </p>
           <div className="jp-hero-ctas">
             <RecruitingAction
@@ -1473,11 +1473,9 @@ function App() {
 
   useEffect(() => {
     const locationSuffix = locationLabel ? ` | ${locationLabel}` : "";
-    const indexedTitle = runtimeText(CONTENT.indexTitle);
-    const indexedDescription = runtimeText(CONTENT.indexDescription);
-    const description = indexedDescription || (hasRecruitingLink
-      ? `Explore ${t.teamName}, current official join details, and information from ${t.businessName}${locationLabel ? ` in ${locationLabel}` : ""}.`
-      : `Learn about ${t.teamName} and ask the rep at ${t.businessName}${locationLabel ? ` in ${locationLabel}` : ""} for current official join details.`);
+    const description = hasRecruitingLink
+      ? `Explore ${t.teamName}, current official join details, and information from ${repName}${locationLabel ? ` in ${locationLabel}` : ""}. Review the Income Disclosure Statement before enrolling.`
+      : `Learn about ${t.teamName} and ask ${repName}${locationLabel ? ` in ${locationLabel}` : ""} for current official join details. Review the Income Disclosure Statement before enrolling.`;
     let meta = document.querySelector('meta[name="description"]');
 
     if (!meta) {
@@ -1486,18 +1484,17 @@ function App() {
       document.head.appendChild(meta);
     }
 
-    let pageTitle = indexedTitle || `Join ${t.teamName} | ${t.businessName}${locationSuffix}`;
-    if (!indexedTitle && isMileHighFizzHybrid) {
-      pageTitle = `Join ${t.teamName} | ${t.businessName}`;
-    } else if (!indexedTitle && isBrittWithBlingHybrid) {
-      pageTitle = "Join The Virtuous Fizzers | Britt with Bling";
-    } else if (!indexedTitle && isBlingKitchenHybrid) {
-      pageTitle = "Join Opal Sparkling Gems | BlingKitchen";
+    document.title = `Join ${t.teamName} | ${repName}${locationSuffix}`;
+    if (isMileHighFizzHybrid) {
+      document.title = "Join the Mile High Fizz Team - Colorado Bomb Party Business Opportunity";
+    } else if (isBrittWithBlingHybrid) {
+      document.title = "Join The Virtuous Fizzers | Britt with Bling";
+    } else if (isBlingKitchenHybrid) {
+      document.title = "Join Opal Sparkling Gems | BlingKitchen";
     }
-    document.title = pageTitle;
     meta.setAttribute("content", description);
-    applyTargetedMetadata(pageTitle, description);
-  }, [hasRecruitingLink, locationLabel, t.businessName, t.teamName]);
+    applyTargetedMetadata(document.title, description);
+  }, [hasRecruitingLink, locationLabel, repName, t.teamName]);
 
   useEffect(() => {
     const body = document.body;
@@ -1621,19 +1618,8 @@ function App() {
                 showPromo={t.showPromo}
                 promoText={t.promoText}
                 repName={repName}
-                businessName={t.businessName}
                 locationLabel={locationLabel}
               />
-            ) : null}
-
-            {runtimeText(CONTENT.teamLeaderLabel) || runtimeText(CONTENT.newTeammateSupport) ? (
-              <section className="jp-section" id="team-details">
-                <div className="jp-container">
-                  <h2 className="jp-section-title">Team details</h2>
-                  {runtimeText(CONTENT.teamLeaderLabel) ? <p>Team leader: {CONTENT.teamLeaderLabel}.</p> : null}
-                  {runtimeText(CONTENT.newTeammateSupport) ? <p>How the rep supports new teammates: {CONTENT.newTeammateSupport}</p> : null}
-                </div>
-              </section>
             ) : null}
 
             {t.showTeam ? (

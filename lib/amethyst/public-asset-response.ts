@@ -25,6 +25,7 @@ import {
   formatPublicLocation,
   injectJoinIndexDocument,
 } from '@/lib/amethyst/join-page-index-copy'
+import { indexPublicJoinTemplate } from '@/lib/amethyst/public-join-index'
 import {
   injectPublicPageIndexDocument,
   type PublicIndexRecipe,
@@ -556,13 +557,16 @@ export async function renderAmethystPublicAssetResponse(
     }
     const repId = options.repIdOverride?.trim() || resolveAmethystRequestRepId(request)
     const resolvedOptions = repId ? { ...options, repIdOverride: repId } : options
-    const templateData =
+    const loadedTemplate =
       page && contentType.startsWith('text/html') && repId
         ? await loadAmethystPreviewTemplateData({
             repId,
             publicSiteSlug: options.publicSiteSlugOverride,
           })
         : null
+    const templateData = loadedTemplate
+      ? await indexPublicJoinTemplate(loadedTemplate, { repId })
+      : null
     const pantryRecipes =
       page === 'pantry' && repId ? await loadPantryIndexRecipes(repId) : []
     let responseBody: BodyInit = new Uint8Array(body)

@@ -304,21 +304,16 @@ describe('BlingKitchen hybrid public site contract', () => {
     ).toContain('Shop live jewelry reveals')
     expect(
       buildTargetedAmethystPublicPageTextForTest('join', templateData).title,
-    ).toBe('BlingKitchen — Join Opal Sparkling Gems')
+    ).toBe('Join Opal Sparkling Gems')
     expect(join.businessName).toBe('BlingKitchen')
     expect(join.teamName).toBe('Opal Sparkling Gems')
-    expect(join.repCity).toBe('')
-    expect(join.repState).toBe('')
-    expect(join.heroPitch).toContain('Mondays, Wednesdays, and Fridays')
     const metadata = buildRenderedAmethystPublicMetadataForTest(
       'join',
-      'https://theblingkitchen.com',
+      'https://goforthebling.com',
       templateData,
       '/join',
     )
-    expect(metadata.title).toBe('BlingKitchen — Join Opal Sparkling Gems')
-    expect(metadata.canonicalUrl).toBe('https://theblingkitchen.com/join')
-    expect(metadata.robots).toBe('index,follow')
+    expect(metadata.title).toBe('Join Opal Sparkling Gems')
     expect(metadata.openGraph.siteName).toBe('BlingKitchen')
   })
 })

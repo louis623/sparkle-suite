@@ -15,6 +15,7 @@ import {
   extractScheduleFromText,
 } from '@/lib/amethyst/join-page-index-copy'
 import { renderPublicPageIndexBlock } from '@/lib/amethyst/public-page-index-html'
+import { applyPublicJoinIndex } from '@/lib/amethyst/public-join-index'
 
 const { loadTemplateMock, resolveSiteMock } = vi.hoisted(() => ({
   loadTemplateMock: vi.fn(),
@@ -291,6 +292,39 @@ describe('rep /join server HTML', () => {
     expect(wordCount(afterHome)).toBeGreaterThan(40)
     expect(wordCount(afterJoin)).toBeGreaterThan(60)
   })
+
+  it('keeps a skin join heading and writes a unique title without a fallback place', async () => {
+    loadTemplateMock.mockResolvedValue(
+      templateFor(
+        settings({
+          displayName: 'Lindsey',
+          businessName: 'Mile High Fizz',
+          email: 'lindseychapman1188@gmail.com',
+          teamName: 'Diamond Peak Society',
+          appearancePreset: 'alpine_opal',
+          tickerText: 'Live on Tiktok Tues/Thurs/Sat',
+        }),
+      ),
+    )
+    const response = await GET(
+      new Request('https://milehighfizz.com/customer-site/join'),
+      { params: Promise.resolve({ page: 'join' }) },
+    )
+    const html = await response.text()
+
+    expect(field(html, /<h1>(.*?)<\/h1>/)).toBe(
+      'Welcome to the Diamond Peak Society',
+    )
+    expect(field(html, /<title>(.*?)<\/title>/)).toBe(
+      'Mile High Fizz — Join Diamond Peak Society',
+    )
+    expect(field(html, /<meta name="description" content="(.*?)"/)).toContain(
+      'Mile High Fizz',
+    )
+    expect(html).toContain('official requirements')
+    expect(html).not.toContain('Littleton')
+    expect(html).not.toMatch(/\b\d{5}(?:-\d{4})?\b/)
+  })
 })
 
 function readPublicHtml(fileName: string) {
@@ -319,7 +353,7 @@ function wordCount(value: string) {
 
 describe('public page index copy', () => {
   it('puts pantry recipe titles in the initial HTML and drops banned sentences', () => {
-    const html = renderPublicPageIndexBlock('pantry', glowtiqueTemplate(), [
+    const html = renderPublicPageIndexBlock('pantry', applyPublicJoinIndex(glowtiqueTemplate()), [
       {
         title: 'Peach tea',
         description: 'A cold pitcher for show night. She serves it between reveals.',
