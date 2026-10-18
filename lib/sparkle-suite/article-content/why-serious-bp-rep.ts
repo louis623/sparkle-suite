@@ -50,7 +50,7 @@ export const whySeriousBpRepArticle: SuiteArticle = {
       "items": [
         "Where do I order or find your shop?",
         "Where am I in line?",
-        "What’s available to trade or browse?",
+        "Which dancers can I browse or swap?",
         "When is your next live?"
       ]
     },
@@ -116,7 +116,7 @@ export const whySeriousBpRepArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "**Dance Floor** gives shoppers a place to browse pieces and send trade requests. You still make the final call."
+      "text": "**Dance Floor** gives shoppers a place to browse dancers and swap dancers. You still make the final call."
     },
     {
       "type": "paragraph",

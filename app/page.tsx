@@ -5,9 +5,11 @@ import { SparkleSuitePublicLanding } from '@/app/_components/sparkle-suite-publi
 import { readLandingFounderAvailability } from '@/lib/sparkle-suite/live-founder-availability'
 import { sparkleSuitePublicLandingContent } from '@/lib/sparkle-suite/public-landing-content'
 
+const suiteHomeTitle = 'Sparkle Suite | Websites and tools for independent Bomb Party reps'
+
 export const metadata: Metadata = {
   title: {
-    absolute: 'Sparkle Suite',
+    absolute: suiteHomeTitle,
   },
   description: 'A polished website and live-show tools for Bomb Party reps. Now building Sparkle Suite sites—join the build queue for your spot in line.',
   alternates: {
@@ -18,7 +20,7 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: 'Sparkle Suite',
+    title: suiteHomeTitle,
     description:
       'Sparkle Suite gives reps a polished customer site, standout live-show tools, and built-in support that helps customers feel the difference.',
     url: '/',
@@ -35,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sparkle Suite',
+    title: suiteHomeTitle,
     description: 'A polished website and live-show tools for Bomb Party reps. Now building Sparkle Suite sites—join the build queue for your spot in line.',
     images: [
       {
@@ -84,6 +86,12 @@ const sparkleSuiteJsonLd = {
       '@id': 'https://www.yoursparklesuite.com/#organization',
       name: 'Sparkle Suite',
       url: 'https://www.yoursparklesuite.com/',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Jacksonville',
+        addressRegion: 'FL',
+        addressCountry: 'US',
+      },
     },
   ],
 }

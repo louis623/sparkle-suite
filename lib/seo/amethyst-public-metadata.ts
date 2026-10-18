@@ -73,7 +73,7 @@ export const AMETHYST_PUBLIC_PAGES: Record<
     path: '/amethyst/Trade.html',
     title: "Jane's Sparkle Party - Dance Floor",
     description:
-      "Browse Jane's Sparkle Party Dance Floor dancers and request fair jewelry trades from live reveal customers.",
+      "Browse dancers on Jane's Sparkle Party Dance Floor and swap dancers from live reveal shows.",
   },
   join: {
     path: '/amethyst/Join.html',
@@ -205,4 +205,60 @@ export function buildAmethystPublicMetaTags(
       content: metadata.twitter.image,
     },
   ]
+}
+
+/**
+ * City and state already shown on the public Join page.
+ * There is no separate "approved to show location" flag. Blank city and state
+ * means the rep has not published a location, so callers omit it.
+ */
+export function publicRepLocationLabel(
+  city?: string | null,
+  state?: string | null,
+) {
+  const locality = city?.trim() ?? ''
+  const region = state?.trim() ?? ''
+  if (locality && region) return `${locality}, ${region}`
+  return locality || region
+}
+
+export function buildRepPublicPageText(input: {
+  page: AmethystPublicPage
+  businessName: string
+  repName: string
+  teamName: string
+  city?: string | null
+  state?: string | null
+}) {
+  const businessName = input.businessName.trim() || 'Sparkle Suite rep'
+  const repName = input.repName.trim() || 'the rep'
+  const teamName = input.teamName.trim() || businessName
+  const location = publicRepLocationLabel(input.city, input.state)
+  const place = location ? ` in ${location}` : ''
+
+  if (input.page === 'trade') {
+    return {
+      title: `${businessName} Dance Floor${place}`,
+      description: `Browse dancers from ${businessName} and swap dancers on the Dance Floor${place}.`,
+    }
+  }
+
+  if (input.page === 'join') {
+    return {
+      title: `Join ${teamName}${place}`,
+      description: `Learn how to join ${teamName} with ${repName}${place}. Review current enrollment details before you decide.`,
+    }
+  }
+
+  if (input.page === 'pantry') {
+    return {
+      title: `In the Pantry | ${businessName}`,
+      description: `Browse recipes, kitchen notes, and live-show favorites from ${businessName}${place}.`,
+    }
+  }
+
+  return {
+    title: `${businessName} | Live jewelry reveals and Dance Floor${place}`,
+    description: `Independent Bomb Party rep site for ${businessName}${place}. Watch live jewelry reveals, follow the Live Lineup, and browse dancers on the Dance Floor.`,
+  }
 }

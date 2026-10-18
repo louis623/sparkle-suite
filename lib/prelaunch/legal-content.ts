@@ -306,7 +306,7 @@ export const termsAndConditionsDocument: LegalDocument = {
       title: "Representative Website Content",
       paragraphs: [
         "Sparkle Suite representative websites may include show information, live queue information, dance floor details, representative updates, links, signup forms, and related content.",
-        "Representatives are responsible for reviewing their own website content, business information, show details, trade details, and customer-facing information.",
+        "Representatives are responsible for reviewing their own website content, business information, show details, Dance Floor details, and customer-facing information.",
         "Neon Rabbit Digital Services may provide tools, templates, automation, or support, but representatives remain responsible for final business decisions, customer interactions, and compliance with any applicable Bomb Party policies or legal requirements.",
       ],
     },

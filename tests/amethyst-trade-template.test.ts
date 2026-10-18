@@ -471,7 +471,7 @@ describe('Amethyst trade page template wiring', () => {
     )
 
     expect(html).toContain(
-      '<meta name="description" content="Browse Sparkle by Sasha\'s Dance Floor dancers and request fair jewelry trades from live reveal customers." />',
+      '<meta name="description" content="Browse dancers on Sparkle by Sasha\'s Dance Floor and swap dancers from live reveal shows." />',
     )
     expect(html).toContain(
       '<link rel="canonical" href="https://www.yoursparklesuite.com/amethyst/Trade.html" />',

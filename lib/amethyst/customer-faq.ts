@@ -333,7 +333,7 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
         ${showJoin ? `<a href="${escapeHtml(links.join)}">Join Team</a>` : ''}
         <a href="${escapeHtml(links.faq)}" aria-current="page">FAQ</a>
         <a href="/portfolio">Portfolio</a>
-        <a href="/demo">Demo</a>
+        <a href="/#watch">Watch</a>
       </nav>
     </div>
   </header>

@@ -5,6 +5,7 @@ import {
   type AmethystPublicMetaTag,
   type AmethystPublicPage,
   buildAmethystPublicMetadata,
+  buildRepPublicPageText,
 } from '@/lib/seo/amethyst-public-metadata'
 import {
   buildAmethystPublicPageJsonLd,
@@ -197,31 +198,14 @@ function buildTargetedPageText(
     }
   }
 
-  if (page === 'trade') {
-    return {
-      title: `${businessName} - Dance Floor`,
-      description: `Browse available dancers from ${businessName}.`,
-    }
-  }
-
-  if (page === 'join') {
-    return {
-      title: `Join ${teamName}`,
-      description: `Learn how to join ${teamName} with ${repName}.`,
-    }
-  }
-
-  if (page === 'pantry') {
-    return {
-      title: `In the Pantry - ${businessName}`,
-      description: `Browse Heather's BlingKitchen recipes, kitchen notes, and live-show community favorites.`,
-    }
-  }
-
-  return {
-    title: `${businessName} - Live jewelry reveals`,
-    description: `Shop live jewelry reveals and updates with ${businessName}.`,
-  }
+  return buildRepPublicPageText({
+    page,
+    businessName,
+    repName,
+    teamName,
+    city: templateData.join.repCity,
+    state: templateData.join.repState,
+  })
 }
 
 export const buildTargetedAmethystPublicPageTextForTest = buildTargetedPageText

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { MarketingFooter, MarketingHeader } from './landing-experience'
-import { articleDate, articleJsonLd, type SuiteArticle } from '@/lib/sparkle-suite/articles'
+import { articleDate, articleJsonLd, resolveArticleAuthor, type SuiteArticle } from '@/lib/sparkle-suite/articles'
 import { articleInlineParts } from '@/lib/sparkle-suite/article-inline'
 import { QueueLink } from './queue-link'
 import styles from './suite-articles.module.css'
@@ -21,6 +21,8 @@ function ArticleInline({ text }: { text: string }) {
 }
 
 export function SuiteArticleExperience({ article }: { article: SuiteArticle }) {
+  const author = resolveArticleAuthor(article)
+  const authorName = author.url ? <a href={author.url}>{author.name}</a> : author.name
   const jsonLd = JSON.stringify(articleJsonLd(article)).replace(/</g, '\\u003c')
   return (
     <div className={`suite-marketing ${styles.page}`}>
@@ -32,11 +34,13 @@ export function SuiteArticleExperience({ article }: { article: SuiteArticle }) {
             <div className={styles.reading}>
               <Link href="/faq#articles">Back to FAQs &amp; articles</Link>
               <h1>{article.title}</h1>
-              {(article.author || article.publishedAt || article.updatedAt) && <div className={styles.byline}>
-                {article.author && <span>By {article.author.url ? <a href={article.author.url}>{article.author.name}</a> : article.author.name}</span>}
-                {article.publishedAt && <span>Published <time dateTime={article.publishedAt}>{articleDate(article.publishedAt)}</time></span>}
-                {article.updatedAt && <span>Updated <time dateTime={article.updatedAt}>{articleDate(article.updatedAt)}</time></span>}
-              </div>}
+              {(author || article.publishedAt || article.updatedAt) && (
+                <div className={styles.byline}>
+                  <span>By {authorName}</span>
+                  {article.publishedAt && <span>Published <time dateTime={article.publishedAt}>{articleDate(article.publishedAt)}</time></span>}
+                  {article.updatedAt && <span>Updated <time dateTime={article.updatedAt}>{articleDate(article.updatedAt)}</time></span>}
+                </div>
+              )}
             </div>
           </header>
           <div id="article-body" className={`${styles.reading} ${styles.body}`}>

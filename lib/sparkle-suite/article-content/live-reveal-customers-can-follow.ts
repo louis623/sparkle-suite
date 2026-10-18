@@ -111,7 +111,7 @@ export const liveRevealCustomersCanFollowArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "**Can I see it before I sign up?**\nYes. Check out real rep sites on the [portfolio page](https://www.yoursparklesuite.com/portfolio) or try the [demo](https://www.yoursparklesuite.com/demo)."
+      "text": "**Can I see it before I sign up?**\nYes. Check out real rep sites on the [portfolio page](https://www.yoursparklesuite.com/portfolio) or visit the [watch section](https://www.yoursparklesuite.com/#watch)."
     },
     {
       "type": "heading",

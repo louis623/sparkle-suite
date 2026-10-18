@@ -49,6 +49,7 @@ export function SparkleMarketingFooter({ suiteHref, finderHref }: SparkleMarketi
             </a>
           ))}
         </nav>
+        <p className={styles.place}>Jacksonville, FL</p>
         <p>{sparkleMarketingDisclaimer}</p>
       </div>
     </footer>

@@ -34,9 +34,20 @@
     witchFlight.className = "hpw-witch-flight";
     const witch = document.createElement("img");
     witch.className = "hpw-witch";
-    witch.src = ASSET_ROOT + "witch.webp";
-    witch.alt = "";
+    const witchSrc = ASSET_ROOT + "witch.webp";
+    const witchImage = typeof window.sparkleResponsiveImage === "function"
+      ? window.sparkleResponsiveImage(witchSrc, {
+          alt: "",
+          sizes: "(max-width: 700px) 190px, 25vw",
+          widths: [256, 384, 640],
+        })
+      : { src: witchSrc, alt: "", decoding: "async", loading: "lazy" };
+    witch.src = witchImage.src;
+    if (witchImage.srcSet) witch.srcset = witchImage.srcSet;
+    if (witchImage.sizes) witch.sizes = witchImage.sizes;
+    witch.alt = witchImage.alt || "";
     witch.decoding = "async";
+    witch.loading = "lazy";
     witchFlight.appendChild(witch);
     scene.appendChild(witchFlight);
 

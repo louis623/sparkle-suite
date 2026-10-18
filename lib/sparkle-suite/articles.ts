@@ -14,6 +14,23 @@ import { whySeriousBpRepArticle } from './article-content/why-serious-bp-rep'
 
 const ORIGIN = 'https://www.yoursparklesuite.com'
 
+export const suiteArticleAuthor = {
+  name: 'Louis Chapman',
+  type: 'Person' as const,
+  url: ORIGIN,
+}
+
+export const suiteArticleImage = {
+  url: `${ORIGIN}/opengraph-image`,
+  width: 1200,
+  height: 630,
+  alt: 'Sparkle Suite, websites and tools for independent Bomb Party reps',
+}
+
+export function resolveArticleAuthor(article: SuiteArticle) {
+  return article.author?.name.trim() ? article.author : suiteArticleAuthor
+}
+
 export const ARTICLE_INDEX_PATH = '/faq/articles'
 export const articleIndexTitle = 'Sparkle Suite Articles — Sites, Live Lineup, and the Dance Floor'
 export const articleIndexDescription =
@@ -119,6 +136,7 @@ export function articleDate(value: string) {
 
 export function articleMetadata(article: SuiteArticle): Metadata {
   const url = articleUrl(article)
+  const author = resolveArticleAuthor(article)
   return {
     title: article.title,
     description: article.description,
@@ -127,20 +145,34 @@ export function articleMetadata(article: SuiteArticle): Metadata {
     openGraph: {
       type: 'article', url, siteName: 'Sparkle Suite', title: article.title,
       description: article.description, publishedTime: article.publishedAt,
-      modifiedTime: article.updatedAt, authors: article.author ? [article.author.name] : undefined,
+      modifiedTime: article.updatedAt, authors: [author.name],
+      images: [{ url: suiteArticleImage.url, width: suiteArticleImage.width, height: suiteArticleImage.height, alt: suiteArticleImage.alt }],
     },
-    twitter: { card: 'summary', title: article.title, description: article.description },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.description,
+      images: [suiteArticleImage.url],
+    },
   }
 }
 
 export function articleJsonLd(article: SuiteArticle) {
+  const author = resolveArticleAuthor(article)
   return {
     '@context': 'https://schema.org', '@type': 'BlogPosting',
     headline: article.title, description: article.description,
     url: articleUrl(article), mainEntityOfPage: articleUrl(article),
+    image: {
+      '@type': 'ImageObject',
+      url: suiteArticleImage.url,
+      width: suiteArticleImage.width,
+      height: suiteArticleImage.height,
+      caption: suiteArticleImage.alt,
+    },
     ...(article.publishedAt ? { datePublished: article.publishedAt } : {}),
     ...(article.updatedAt ? { dateModified: article.updatedAt } : {}),
-    ...(article.author ? { author: { '@type': article.author.type, name: article.author.name, ...(article.author.url ? { url: article.author.url } : {}) } } : {}),
+    author: { '@type': author.type, name: author.name, ...(author.url ? { url: author.url } : {}) },
     publisher: { '@type': 'Organization', name: 'Sparkle Suite', url: ORIGIN },
   }
 }

@@ -104,7 +104,7 @@ export const sparkleSuiteFaqGroups = [
       },
       {
         id: 'dance-floor', question: 'What are Dance Floor and Live Lineup?',
-        paragraphs: [['Dance Floor lets customers browse available pieces and send a trade request, with you making the final call. Live Lineup lets shoppers follow the order of your live show.']],
+        paragraphs: [['Dance Floor lets customers browse available dancers and swap dancers, with you making the final call. Live Lineup lets shoppers follow the order of your live show.']],
       },
       {
         id: 'email-sms', question: 'Are email and SMS updates available?',

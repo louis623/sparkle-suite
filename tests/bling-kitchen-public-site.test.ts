@@ -259,7 +259,7 @@ describe('BlingKitchen hybrid public site contract', () => {
     expect(pantryJsx).toContain('type: nextMuted ? "mute" : "unMute"')
     expect(pantryHtml).toContain('class="bk-pantry-page"')
     expect(pantryHtml).toContain('data-template-src="/api/amethyst/pantry-template"')
-    expect(pantryHtml).toContain('pantry.jsx?v=20260817-baking-and-sweets')
+    expect(pantryHtml).toContain('pantry.jsx?v=20261018-responsive-images')
     expect(pantryHtml).toContain(
       'pantry.css?v=20260817-recipe-card-footer-alignment',
     )
@@ -294,14 +294,14 @@ describe('BlingKitchen hybrid public site contract', () => {
 
     expect(
       buildTargetedAmethystPublicPageTextForTest('homepage', templateData).title,
-    ).toBe('BlingKitchen - Live jewelry reveals')
+    ).toBe('BlingKitchen | Live jewelry reveals and Dance Floor')
     expect(
       buildTargetedAmethystPublicPageTextForTest('pantry', templateData).title,
-    ).toBe('In the Pantry - BlingKitchen')
+    ).toBe('In the Pantry | BlingKitchen')
     expect(
       buildTargetedAmethystPublicPageTextForTest('homepage', templateData)
         .description,
-    ).toContain('Shop live jewelry reveals')
+    ).toContain('Independent Bomb Party rep site for BlingKitchen')
     expect(
       buildTargetedAmethystPublicPageTextForTest('join', templateData).title,
     ).toBe('Join Opal Sparkling Gems')

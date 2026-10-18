@@ -29,6 +29,7 @@ describe('Amethyst structured data builders', () => {
       ],
     })
 
+    expect(serializeJsonLd(jsonLd)).not.toContain('streetAddress')
     expect(jsonLd['@context']).toBe('https://schema.org')
     expect(jsonLd['@graph']).toEqual(
       expect.arrayContaining([
@@ -44,9 +45,24 @@ describe('Amethyst structured data builders', () => {
           sameAs: ['https://www.tiktok.com/@sparklebysasha'],
         }),
         expect.objectContaining({
+          '@type': 'Person',
+          address: expect.objectContaining({
+            '@type': 'PostalAddress',
+            addressLocality: 'Chicago',
+            addressRegion: 'Illinois',
+            addressCountry: 'US',
+          }),
+        }),
+        expect.objectContaining({
           '@type': 'LocalBusiness',
           '@id': 'https://sparklebysasha.example/#local-business',
           name: 'Sparkle by Sasha',
+          address: expect.objectContaining({
+            '@type': 'PostalAddress',
+            addressLocality: 'Chicago',
+            addressRegion: 'Illinois',
+            addressCountry: 'US',
+          }),
           areaServed: expect.objectContaining({
             addressLocality: 'Chicago',
             addressRegion: 'Illinois',
@@ -77,5 +93,21 @@ describe('Amethyst structured data builders', () => {
 
     expect(serialized).not.toContain('<script>')
     expect(serialized).toContain('\\u003cscript>')
+  })
+
+  it('omits city and state when the public join template has no location', () => {
+    const jsonLd = buildAmethystPublicPageJsonLd({
+      origin: 'https://sparklebysasha.example/',
+      path: '/',
+      title: 'Sparkle by Sasha',
+      description: 'Live jewelry reveals.',
+      repName: 'Sasha',
+      businessName: 'Sparkle by Sasha',
+    })
+    const serialized = serializeJsonLd(jsonLd)
+
+    expect(serialized).not.toContain('addressLocality')
+    expect(serialized).not.toContain('streetAddress')
+    expect(serialized).not.toContain('founderSequence')
   })
 })

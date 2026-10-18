@@ -19,6 +19,18 @@ const {
   TweakColor, TweakText
 } = window;
 
+function responsiveRepImage(src, options) {
+  if (typeof window.sparkleResponsiveImage === "function") {
+    return window.sparkleResponsiveImage(src, options);
+  }
+  return {
+    src: src || "",
+    alt: options.alt || "",
+    decoding: "async",
+    loading: options.eager ? "eager" : "lazy",
+  };
+}
+
 const DEFAULTS = window.JOIN_TWEAK_DEFAULTS || {
   teamName: "Sparkle by Sasha",
   repName: "Sasha",
@@ -971,12 +983,13 @@ function TeamCard({ member, isLeader }) {
       <div className="jp-team-avatar slot" data-slot={isLeader ? "rep headshot" : "team member headshot"}>
         {member.imageUrl && failedImage !== member.imageUrl ? (
           <img
-            src={member.imageUrl}
-            alt={avatarLabel}
+            {...responsiveRepImage(member.imageUrl, {
+              alt: avatarLabel,
+              sizes: "(max-width: 700px) 92vw, 320px",
+              widths: [256, 384, 640],
+            })}
             className="jp-team-avatar-img"
             style={teamPhotoFramingStyle(photoFraming)}
-            loading="lazy"
-            decoding="async"
             onError={() => setFailedImage(member.imageUrl)}
           />
         ) : <span className="jp-team-initials" aria-label={avatarLabel}>{member.initials || member.name?.slice(0, 1) || '✦'}</span>}

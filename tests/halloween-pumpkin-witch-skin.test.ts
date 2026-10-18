@@ -124,7 +124,7 @@ describe("Halloween Pumpkin and Witch Amethyst skin", () => {
       const html = read("public", "amethyst", page);
       expect(html).toContain("halloween-pumpkin-witch.css");
       expect(html).toContain("halloween-pumpkin-witch.js");
-      expect(html).toContain("20260928-hpw3");
+      expect(html).toContain("20261018-responsive-images");
     },
   );
 
