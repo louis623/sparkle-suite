@@ -9,4 +9,6 @@
 - Singular rep pronouns in the touched FAQ and tools copy use "the rep".
 - Live database was read only. Sparkly Butterflies still has one past calendar row marked `live`: `calendar_events.id` `eda6487a-ff4f-4756-b655-97a60be5b85b`, `rep_id` `b5404543-b90a-41cf-85f6-4e6d1d576cfa`, title `TikTok Live`, `event_time` `2026-10-05 17:47:00+00`, `time_zone` `America/Denver`, `duration_minutes` 60, `status` `live`. Suggested data fix, not applied: set `status` to `completed`.
 
+- Layout lock: `preview-template-data.ts`, `homepage.jsx`, `trade.jsx`, `join.jsx`, and `homepage.css` match `codex/nic-nac-trade-hardening`. About placeholder blanking runs in `buildAmethystHomepageBootstrapScript`. `/demo` redirects only from the proxy on Suite hosts. Rep `/faq` reads the rep from the rewrite query, then Host.
+
 Next session: review the draft pull request. Do not merge, deploy, or write the Live database unless Louis asks.
