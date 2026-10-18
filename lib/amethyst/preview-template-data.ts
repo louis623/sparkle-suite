@@ -62,6 +62,12 @@ import {
 import {
   isBlingKitchenSettings,
 } from '@/lib/bling-kitchen/profile'
+import {
+  buildJoinPageIndexCopy,
+  readCustomJoinIntro,
+  summarizePublicShowSchedule,
+  type PublicShowSlot,
+} from './join-page-index-copy'
 
 interface PreviewTemplateDataDependencies {
   createAdminClient?: typeof createAdminClient
@@ -82,6 +88,7 @@ interface PreviewRepExtras {
   shopLink?: string | null
   streamingLinks?: unknown
   publicSiteSlug?: string | null
+  showSchedule?: string | null
 }
 
 export interface AmethystPreviewTemplateData {
@@ -718,6 +725,91 @@ export function mapPreviewSettingsToTradeTemplateData(
   return trade
 }
 
+function splitRosterLocation(value: string | undefined) {
+  const parts = clean(value)
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+  if (parts.length >= 2) {
+    return { city: parts.slice(0, -1).join(', '), state: parts[parts.length - 1] }
+  }
+  return { city: '', state: parts[0] ?? '' }
+}
+
+function findJoinOwnerMember(
+  members: AmethystJoinTeamMember[],
+  businessName: string,
+  repName: string,
+) {
+  const business = businessName.trim().toLowerCase()
+  const name = getPublicRepName(repName).trim().toLowerCase()
+  const visible = members.filter((member) => member.isVisible !== false)
+  return (
+    visible.find((member) => member.business.trim().toLowerCase() === business) ||
+    visible.find((member) => member.name.trim().toLowerCase() === name) ||
+    null
+  )
+}
+
+/**
+ * City and state already published for a known tenant profile. Used only to
+ * fill a blank public location; a roster card wins when it has its own place.
+ */
+function publishedTenantLocation(
+  settings: SiteSettingsDashboardResult,
+  publicSiteSlug?: string | null,
+) {
+  if (isMileHighFizzSettings(settings)) {
+    return { city: 'Littleton', state: 'Colorado' }
+  }
+  if (isBlingKitchenSettings(settings)) {
+    return { city: '', state: 'Ohio' }
+  }
+  if (isBrittWithBlingSettings(settings, publicSiteSlug)) {
+    return { city: '', state: 'Florida' }
+  }
+  return null
+}
+
+function applyJoinIndexIdentity(
+  join: AmethystJoinTemplateData,
+  settings: SiteSettingsDashboardResult,
+  extras: PreviewRepExtras,
+  teamMembers: AmethystJoinTeamMember[],
+) {
+  const owner = findJoinOwnerMember(teamMembers, join.businessName, join.repName)
+  const roster = splitRosterLocation(owner?.state)
+  const known = publishedTenantLocation(settings, extras.publicSiteSlug)
+  const city = clean(join.repCity) || roster.city || known?.city || ''
+  const state = clean(join.repState) || roster.state || known?.state || ''
+  const bio = readCustomJoinIntro(owner?.bio)
+  const about = readCustomJoinIntro(settings.aboutNarrative)
+  const copy = buildJoinPageIndexCopy({
+    businessName: join.businessName,
+    teamName: join.teamName,
+    city,
+    state,
+    customIntro: about || bio,
+    supportNote:
+      about && bio && about !== bio ? bio : join.faqAnswers.support,
+    showSchedule: extras.showSchedule,
+    tickerText: join.tickerTopText,
+  })
+
+  return {
+    ...join,
+    repCity: city,
+    repState: state,
+    heroTitle: copy.h1,
+    heroPitch: copy.intro,
+    indexTitle: copy.title,
+    indexDescription: copy.description,
+    teamLeaderLabel: copy.teamLeader,
+    newTeammateSupport: copy.support,
+    publicShowSchedule: copy.showSchedule,
+  }
+}
+
 export function mapPreviewSettingsToJoinTemplateData(
   settings: SiteSettingsDashboardResult,
   extras: PreviewRepExtras = {},
@@ -796,17 +888,24 @@ export function mapPreviewSettingsToJoinTemplateData(
       : defaultAmethystJoinTemplateData.teamMembers,
   }
 
-  if (isMileHighFizzSettings(settings) && selectedSkin === 'alpine_opal') return applyMileHighFizzJoin(join)
-  if (isBrittWithBling && selectedSkin === 'black_diamond') {
-    return applyBrittWithBlingJoin(join, teamMembers ? resolvedTeamMembers : [])
-  }
-  if (isBlingKitchenSettings(settings)) {
-    return {
+  let indexed = join
+  if (isMileHighFizzSettings(settings) && selectedSkin === 'alpine_opal') {
+    indexed = applyMileHighFizzJoin(join)
+  } else if (isBrittWithBling && selectedSkin === 'black_diamond') {
+    indexed = applyBrittWithBlingJoin(join, teamMembers ? resolvedTeamMembers : [])
+  } else if (isBlingKitchenSettings(settings)) {
+    indexed = {
       ...join,
       pantryPageUrl: '/amethyst/Pantry.html',
     }
   }
-  return join
+
+  return applyJoinIndexIdentity(
+    indexed,
+    settings,
+    extras,
+    teamMembers ? resolvedTeamMembers : [],
+  )
 }
 
 function mapJoinTeamRosterToTemplateMembers(
@@ -835,6 +934,54 @@ function mapJoinTeamRosterToTemplateMembers(
       ...(member.links.whatnot ? { whatnot: member.links.whatnot } : {}),
     },
   }))
+}
+
+async function loadUpcomingShowSchedule(
+  admin: { from: (table: string) => unknown },
+  repId: string,
+) {
+  try {
+    const query = admin.from('calendar_events') as {
+      select: (columns: string) => {
+        eq: (column: string, value: string) => {
+          eq: (column: string, value: string) => {
+            gte: (column: string, value: string) => {
+              order: (column: string, options: { ascending: boolean }) => {
+                limit: (count: number) => Promise<{
+                  data: Array<{
+                    event_time?: string | null
+                    time_zone?: string | null
+                    status?: string | null
+                  }> | null
+                  error: unknown
+                }>
+              }
+            }
+          }
+        }
+      }
+    }
+    const { data, error } = await query
+      .select('event_time, time_zone, status')
+      .eq('rep_id', repId)
+      .eq('status', 'scheduled')
+      .gte('event_time', new Date().toISOString())
+      .order('event_time', { ascending: true })
+      .limit(24)
+    if (error || !data) return ''
+    const shows: PublicShowSlot[] = data.flatMap((row) =>
+      row.event_time
+        ? [{
+            eventTime: row.event_time,
+            timeZone: row.time_zone,
+            status: row.status,
+          }]
+        : [],
+    )
+    return summarizePublicShowSchedule(shows)
+  } catch {
+    return ''
+  }
 }
 
 function canLoadPreviewData(env: Record<string, string | undefined>) {
@@ -889,10 +1036,12 @@ export async function loadAmethystPreviewTemplateData(
       settings,
       activeSetupDraftState,
     )
+    const showSchedule = await loadUpcomingShowSchedule(admin, rep.id)
     const extras = {
       shopLink: rep.shop_link,
       streamingLinks: rep.streaming_links,
       publicSiteSlug: requestedPublicSiteSlug ?? rep.public_site_slug,
+      showSchedule,
     }
     const draftExtras = applyRequiredSetupDraftToExtras(extras, activeSetupDraftState)
 

@@ -71,6 +71,16 @@ export interface AmethystJoinTemplateData {
   heroTitle?: string
   promoText: string
   heroPitch: string
+  /** Document title rendered in the initial /join HTML for this rep. */
+  indexTitle?: string
+  /** Meta description rendered in the initial /join HTML for this rep. */
+  indexDescription?: string
+  /** Public team-leader label. Empty when the rep has no business name. */
+  teamLeaderLabel?: string
+  /** How the rep supports new teammates, only when that note was supplied. */
+  newTeammateSupport?: string
+  /** Upcoming show days and time, city/state only, for the initial HTML. */
+  publicShowSchedule?: string
   heroCtaText: string
   finalPitch: string
   bpReferralUrl: string

@@ -308,7 +308,8 @@ describe('Amethyst join page template data wiring', () => {
     )
 
     expect(jsx).toContain('Bomb Party Income Disclosure Statement')
-    expect(jsx).toContain('document.title = `Join ${t.teamName} | ${repName}')
+    expect(jsx).toContain('CONTENT.indexTitle')
+    expect(jsx).toContain('Join ${t.teamName} | ${t.businessName}')
     expect(jsx).toContain('Rep city')
     expect(jsx).toContain('rep city and state')
     expect(jsx).toContain('Proud member of the {CONTENT.memberTeamName} team')

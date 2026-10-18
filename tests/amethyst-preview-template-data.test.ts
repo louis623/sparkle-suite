@@ -220,7 +220,15 @@ describe('Amethyst preview template data', () => {
     expect(join.businessName).toBe('Sparkle Suite Demo Boutique')
     expect(join.teamName).toBe('Sparkle Demo Circle')
     expect(join.memberTeamName).toBe('North Star Team')
-    expect(join.heroTitle).toBe('Join Sparkle Demo Circle')
+    expect(join.heroTitle).toBe(
+      'Join Sparkle Demo Circle with Sparkle Suite Demo Boutique',
+    )
+    expect(join.indexTitle).toBe(
+      'Sparkle Suite Demo Boutique — Join Sparkle Demo Circle',
+    )
+    expect(join.heroPitch).toContain(
+      'Sparkle Suite Demo Boutique leads Sparkle Demo Circle',
+    )
     expect(join.repCity).toBe('')
     expect(join.repState).toBe('')
     expect(join.bpReferralUrl).toBe(
@@ -514,7 +522,9 @@ describe('Amethyst preview template data', () => {
 
     expect(data.join.teamName).toBe('GofortheBling')
     expect(data.join.heroTitle).toBe('Join GofortheBling')
-    expect(data.join.heroPitch).toContain('join GofortheBling with Kim')
+    expect(data.join.indexTitle).toBe('GofortheBling — Join the Team')
+    expect(data.join.heroPitch).toContain('The rep can explain what joining the team involves')
+    expect(data.join.heroPitch).not.toMatch(/\b(she|her|he|him|they|their)\b/i)
     expect(data.join.finalPitch).toContain('connect with Kim')
     expect(data.join.promoText).toBe('')
     expect(JSON.stringify(data.join.faqAnswers)).not.toContain('Sasha')
