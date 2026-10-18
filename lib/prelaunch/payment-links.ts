@@ -85,6 +85,7 @@ interface PaymentLinkRow {
   attention_reason: string | null
   returning_rep: boolean | null
   created_at?: string | null
+  updated_at?: string | null
 }
 
 export function buildPaymentLinkCheckoutParams({
@@ -205,10 +206,52 @@ export function normalizePaymentEmail(value: string | null | undefined) {
   return value?.trim().toLowerCase() ?? ''
 }
 
+const PAYMENT_LINK_ATTENTION_ALERT_COOLDOWN_MS = 60 * 60 * 1000
+
+const PAYMENT_LINK_ATTENTION_TEXT: Record<string, string> = {
+  missing_payment_link: 'This Checkout session is not tied to a payment link.',
+  missing_email: 'Stripe did not collect an email, so the account could not be created.',
+  missing_subscription: 'The Checkout session has no subscription.',
+  not_subscription: 'This Checkout was not a subscription payment.',
+  not_paid: 'This Checkout is not paid.',
+  subscription_not_active: 'The subscription is not active, so the account was not created.',
+  trial_present: 'This subscription includes a trial, so the account was not created.',
+  missing_monthly_price: 'The Checkout is missing the monthly price.',
+  setup_fee_present: 'The setup fee was waived, but the Checkout still charged it.',
+  missing_setup_fee: 'The Checkout is missing the setup fee.',
+  fulfillment_error: 'The account could not be created from this payment.',
+}
+
+export function paymentLinkAttentionText(reason: string | null | undefined) {
+  if (!reason) return 'The payment could not be confirmed.'
+  return PAYMENT_LINK_ATTENTION_TEXT[reason] ?? reason
+}
+
 export function duplicatePaymentWasReversed(reason: string | null | undefined) {
-  return Boolean(
-    reason?.includes('Refunded ') && reason.includes('cancelled the extra subscription'),
-  )
+  if (!reason) return false
+  if (reason.includes('owner alert still needs to be sent')) return false
+  return reason.includes('Refunded ') && reason.includes('cancelled the extra subscription')
+}
+
+function attentionAlertSuppressed(
+  link: { status?: PaymentLinkStatus; attention_reason?: string | null; updated_at?: string | null } | null,
+  attentionReason: string,
+  now = Date.now(),
+) {
+  if (!link?.attention_reason) return false
+  const previous = paymentLinkAttentionText(link.attention_reason).slice(0, 300)
+  if (previous !== attentionReason) return false
+  const updatedAt = link.updated_at ? Date.parse(link.updated_at) : Number.NaN
+  if (Number.isFinite(updatedAt)) return now - updatedAt < PAYMENT_LINK_ATTENTION_ALERT_COOLDOWN_MS
+  return link.status === 'needs_attention' || link.status === 'duplicate'
+}
+
+function duplicateReversalPending(link: { status: PaymentLinkStatus; attention_reason: string | null }) {
+  if (duplicatePaymentWasReversed(link.attention_reason)) return false
+  if (link.status === 'duplicate') return true
+  const reason = link.attention_reason ?? ''
+  return reason.includes('Paid again with an email that already has an account')
+    || reason.includes('owner alert still needs to be sent')
 }
 
 export function buildPaymentLinkAttentionAlert({
@@ -240,7 +283,7 @@ export function buildPaymentLinkAttentionAlert({
       '',
       `Session: ${sessionId}`,
       `Payment link: ${paymentLinkId ?? '(none)'}`,
-      `Reason: ${reason}`,
+      `Reason: ${paymentLinkAttentionText(reason)}`,
       `Email: ${email || '(none)'}`,
       `Name: ${name || '(none)'}`,
       amountLabel ? `Amount: ${amountLabel}` : null,
@@ -809,14 +852,18 @@ async function reverseDuplicateCheckout({
   subscription: Awaited<ReturnType<ReturnType<typeof getStripe>['subscriptions']['retrieve']>>
   sessionId: string
 }) {
-  try {
-    await stripe.subscriptions.cancel(
-      subscription.id,
-      { invoice_now: false, prorate: false },
-      { idempotencyKey: `payment-link-duplicate-cancel-${sessionId}` },
-    )
-  } catch (error) {
-    if (!stripeReversalAlreadyDone(error)) throw new PaymentLinkDuplicateReversalError(duplicateReversalFailure('cancel'))
+  const subscriptionStatus = subscription.status as string
+  const alreadyCanceled = subscriptionStatus === 'canceled' || subscriptionStatus === 'cancelled'
+  if (!alreadyCanceled) {
+    try {
+      await stripe.subscriptions.cancel(
+        subscription.id,
+        { invoice_now: false, prorate: false },
+        { idempotencyKey: `payment-link-duplicate-cancel-${sessionId}` },
+      )
+    } catch (error) {
+      if (!stripeReversalAlreadyDone(error)) throw new PaymentLinkDuplicateReversalError(duplicateReversalFailure('cancel'))
+    }
   }
 
   const invoiceId = stripeObjectId(subscription.latest_invoice)
@@ -1000,29 +1047,6 @@ export async function fulfillPaidPaymentLink({
 
     const monthlyPriceId = link.monthly_price_id || session.metadata.monthly_price_id || ''
     const buildFeePriceId = link.build_fee_price_id || session.metadata.build_fee_price_id || ''
-    const verification = verifyPaidSubscriptionCheckout({
-      mode: fullSession.mode,
-      paymentStatus: fullSession.payment_status,
-      subscriptionStatus: subscription.status,
-      trialEnd: subscription.trial_end ?? null,
-      linePriceIds: linePriceIds(fullSession),
-      monthlyPriceId,
-      buildFeePriceId,
-      buildFeeWaived: link.build_fee_waived,
-    })
-    if (!verification.ok) {
-      await recordPaymentLinkAttention({
-        admin,
-        link,
-        sessionId: session.id,
-        reason: verification.reason,
-        email: identity.email,
-        name: identity.name || null,
-        notifyAttention,
-      })
-      return { created: false, reason: verification.reason, retryable: false as const }
-    }
-
     const { data: existingRep, error: existingRepError } = await admin
       .from('reps')
       .select('id, auth_user_id, status, created_at')
@@ -1059,7 +1083,13 @@ export async function fulfillPaidPaymentLink({
       && isSamePaymentLinkPurchase(link, existingRep as { created_at?: string | null }),
     )
     let returningRep = false
-    if (repId && (link.status === 'duplicate' || liveDifferentSubscription)) {
+    const shouldReverseDuplicate = duplicateReversalPending(link)
+      || Boolean(repId && (link.status === 'duplicate' || liveDifferentSubscription))
+    if (
+      shouldReverseDuplicate
+      && fullSession.mode === 'subscription'
+      && fullSession.payment_status === 'paid'
+    ) {
       const sessionIsTheLiveSubscription = Boolean(
         existingSubscriptionId
         && existingSubscriptionId === subscription.id
@@ -1089,11 +1119,29 @@ export async function fulfillPaidPaymentLink({
       const amountLabel = reversal.amountCents == null
         ? 'the checkout payment'
         : formatUsdFromCents(reversal.amountCents)
-      const reason = `Paid again with an email that already has an account. Refunded ${amountLabel} and cancelled the extra subscription. No second account was created.`
+      const settledReason = `Paid again with an email that already has an account. Refunded ${amountLabel} and cancelled the extra subscription. No second account was created.`
+      let alertSent = true
+      try {
+        await notifyAttention({
+          sessionId: session.id,
+          paymentLinkId: link.id,
+          reason: settledReason,
+          email: identity.email,
+          name: identity.name || null,
+          amountLabel,
+          resolvedDuplicate: true,
+        })
+      } catch (alertError) {
+        alertSent = false
+        console.error('[payment-link] Owner alert failed.', alertError)
+      }
+      const reason = alertSent
+        ? settledReason
+        : `${settledReason} The owner alert still needs to be sent.`
       const { error: duplicateError } = await admin
         .from('sparkle_suite_payment_links')
         .update({
-          status: 'duplicate',
+          status: alertSent ? 'duplicate' : 'needs_attention',
           lead_email: identity.email,
           lead_name: identity.name || null,
           stripe_subscription_id: subscription.id,
@@ -1104,22 +1152,37 @@ export async function fulfillPaidPaymentLink({
         .eq('id', link.id)
       if (duplicateError) throw duplicateError
       link.rep_id = null
-      link.status = 'duplicate'
+      link.status = alertSent ? 'duplicate' : 'needs_attention'
       link.attention_reason = reason.slice(0, 300)
-      try {
-        await notifyAttention({
-          sessionId: session.id,
-          paymentLinkId: link.id,
-          reason,
-          email: identity.email,
-          name: identity.name || null,
-          amountLabel,
-          resolvedDuplicate: true,
-        })
-      } catch (alertError) {
-        console.error('[payment-link] Owner alert failed.', alertError)
+      return {
+        created: false,
+        reason: 'duplicate_account' as const,
+        retryable: !alertSent,
+        repId,
       }
-      return { created: false, reason: 'duplicate_account' as const, retryable: false as const, repId }
+    }
+
+    const verification = verifyPaidSubscriptionCheckout({
+      mode: fullSession.mode,
+      paymentStatus: fullSession.payment_status,
+      subscriptionStatus: subscription.status,
+      trialEnd: subscription.trial_end ?? null,
+      linePriceIds: linePriceIds(fullSession),
+      monthlyPriceId,
+      buildFeePriceId,
+      buildFeeWaived: link.build_fee_waived,
+    })
+    if (!verification.ok) {
+      await recordPaymentLinkAttention({
+        admin,
+        link,
+        sessionId: session.id,
+        reason: verification.reason,
+        email: identity.email,
+        name: identity.name || null,
+        notifyAttention,
+      })
+      return { created: false, reason: verification.reason, retryable: false as const }
     }
     if (repId && !samePurchase) returningRep = true
     if (subscriptionOverwriteBlocked(existingSubscription, subscription.id, returningRep)) {
@@ -1368,9 +1431,8 @@ async function recordPaymentLinkAttention({
   amountLabel?: string | null
   notifyAttention: typeof sendPaymentLinkAttentionAlert
 }) {
-  const attentionReason = reason.slice(0, 300)
-  const alreadyRecorded =
-    link?.status === 'needs_attention' && link.attention_reason === attentionReason
+  const attentionReason = paymentLinkAttentionText(reason).slice(0, 300)
+  const suppressAlert = attentionAlertSuppressed(link, attentionReason)
   if (link) {
     const { error } = await admin
       .from('sparkle_suite_payment_links')
@@ -1384,7 +1446,7 @@ async function recordPaymentLinkAttention({
       .eq('id', link.id)
     if (error) throw error
   }
-  if (alreadyRecorded) return
+  if (suppressAlert) return
   try {
     await notifyAttention({
       sessionId,

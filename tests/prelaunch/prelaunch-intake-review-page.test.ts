@@ -1109,7 +1109,7 @@ describe('PrelaunchIntakeReviewPageContent', () => {
             paymentEmailDraft: null,
             welcomeEmailDraft: null,
             welcomeEmailStatus: 'not_queued',
-            attentionReason: 'missing_email',
+            attentionReason: 'subscription_not_active',
             returningRep: false,
           },
           {
@@ -1152,7 +1152,8 @@ describe('PrelaunchIntakeReviewPageContent', () => {
     )
 
     expect(html).toContain('Needs attention')
-    expect(html).toContain('missing_email')
+    expect(html).toContain('The subscription is not active, so the account was not created.')
+    expect(html).not.toContain('subscription_not_active')
     expect(html).toContain('Refunded $49.99 and cancelled the extra subscription')
     expect(html).toContain('No second account was created.')
     expect(html).toContain('name="retryLinkId"')

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import {
   duplicatePaymentWasReversed,
+  paymentLinkAttentionText,
   type OperatorPaymentLinkView,
 } from '@/lib/prelaunch/payment-links'
 import {
@@ -663,7 +664,8 @@ function PaymentLinkPanel({
               <>
                 <p className="mt-2 text-xs leading-5 text-amber-800">
                   {link.attentionReason
-                    || 'Paid again with an email that already has an account. The extra subscription still needs to be cancelled and the payment refunded. No second account was created.'}
+                    ? paymentLinkAttentionText(link.attentionReason)
+                    : 'Paid again with an email that already has an account. The extra subscription still needs to be cancelled and the payment refunded. No second account was created.'}
                 </p>
                 {duplicatePaymentWasReversed(link.attentionReason) ? null : (
                   <form action="/api/control-center/intake/payment-link" className="mt-3" method="post">
@@ -682,7 +684,7 @@ function PaymentLinkPanel({
             {link.status === 'needs_attention' ? (
               <>
                 <p className="mt-2 text-xs leading-5 text-amber-800">
-                  {link.attentionReason || 'The payment could not be confirmed.'}
+                  {paymentLinkAttentionText(link.attentionReason)}
                 </p>
                 <form action="/api/control-center/intake/payment-link" className="mt-3" method="post">
                   <input name="retryLinkId" type="hidden" value={link.id} />
