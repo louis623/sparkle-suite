@@ -16,11 +16,12 @@ import { applyBrittWithBlingJoin } from '@/lib/britt-with-bling/profile'
 
 const source = readFileSync(resolve(process.cwd(), 'public/amethyst/join.jsx'), 'utf8')
 const memberSetup = source.slice(source.indexOf('const FALLBACK_TEAM ='), source.indexOf('const FOOTER_LINKS ='))
+const imageHelper = source.slice(source.indexOf('function responsiveRepImage('), source.indexOf('const DEFAULTS'))
 const cardSource = source.slice(source.indexOf('function TeamCard('), source.indexOf('function SpotCard('))
 const TeamCard = runInNewContext(
-  transformSync(`${cardSource}\nTeamCard;`, { loader: 'jsx', target: 'es2020' }).code,
+  transformSync(`${imageHelper}\n${cardSource}\nTeamCard;`, { loader: 'jsx', target: 'es2020' }).code,
   {
-    React, useState: React.useState, parseTeamPhotoFraming, teamPhotoFramingStyle,
+    React, useState: React.useState, parseTeamPhotoFraming, teamPhotoFramingStyle, window: {},
     PinIcon: () => null, TeamConnect: () => null,
   },
 ) as React.ComponentType<{ member: AmethystJoinTeamMember; isLeader?: boolean }>

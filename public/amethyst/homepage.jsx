@@ -2690,20 +2690,7 @@ function App() {
   const contentLiveQueueState = lineup?.liveQueueState || getContentLiveQueueState();
   const effectiveLrqState = contentLiveQueueState || (scheduleIsLive ? t.lrqState : "offline");
 
-  useEffect(() => {
-    if (isBlingKitchenHybrid) {
-      applyTargetedMetadata(
-        "BlingKitchen - Heather Daugherty | Ohio Bomb Party Host | Serving Sparkle from the Heart of the Home",
-        "Shop Bomb Party reveals with Heather Daugherty at BlingKitchen, join the live show, browse Heather's Pantry recipes, and connect with the Ohio BlingKitchen community.",
-      );
-      return;
-    }
-
-    applyTargetedMetadata(
-      `${t.businessName} - Live jewelry reveals`,
-      `Shop live jewelry reveals and updates with ${t.businessName}.`,
-    );
-  }, [t.businessName]);
+  // Targeted pages keep the server title and description.
 
   // Apply tokens to root
   useEffect(() => {

@@ -2097,13 +2097,6 @@ function App() {
   const [queueOpen, setQueueOpen] = useState(false);
   const repName = publicRepName(t.repName);
 
-  useEffect(() => {
-    applyTargetedMetadata(
-      `${t.businessName} - Dance Floor`,
-      `Browse available dancers from ${t.businessName}'s Dance Floor.`,
-    );
-  }, [t.businessName]);
-
   const bootstrappedListings = useMemo(
     () => liveListings.map(normalizeBootstrapPiece).filter(Boolean),
     [liveListings],

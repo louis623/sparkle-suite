@@ -179,34 +179,6 @@ function buildTargetedPageText(
       description: templateData.join.indexDescription,
     }
   }
-  const isBlingKitchen =
-    templateData.homepage.publicSiteVariant === 'bling_kitchen_hybrid'
-
-  if (isBlingKitchen && page !== 'pantry') {
-    if (page === 'trade') {
-      return {
-        title: 'BlingKitchen Dance Floor - Heather Daugherty',
-        description:
-          "Browse Heather's BlingKitchen dance floor for live-show jewelry swaps.",
-      }
-    }
-
-    if (page === 'join') {
-      return {
-        title: "Join Heather's BlingKitchen Team - Opal Sparkling Gems",
-        description:
-          "Learn about Heather Daugherty's Opal Sparkling Gems team, review official enrollment details, and ask what support is currently available.",
-      }
-    }
-
-    return {
-      title:
-        'BlingKitchen - Heather Daugherty | Ohio Bomb Party Host | Serving Sparkle from the Heart of the Home',
-      description:
-        "Shop Bomb Party reveals with Heather Daugherty at BlingKitchen, join the live show, browse Heather's Pantry recipes, and connect with the Ohio BlingKitchen community.",
-    }
-  }
-
   return buildRepPublicPageText({
     page,
     businessName,
