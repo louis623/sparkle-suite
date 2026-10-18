@@ -3,6 +3,10 @@ import { injectPublicSiteVisitBeacon } from '@/lib/services/site-visit-summary'
 import { injectRepGa4Tag, resolveRepGa4TagHtml } from '@/lib/amethyst/rep-ga4-tag'
 import { renderSparkleSuitePoweredByLinkHtml } from './sparkle-suite-footer-credit'
 import { loadAmethystPreviewTemplateData } from './preview-template-data'
+import {
+  formatPublicShowTime,
+  loadAmethystHomepageUpcomingShows,
+} from './homepage-upcoming-shows'
 import { resolveSparkleRequestOrigin } from '@/lib/seo/sparkle-crawl'
 
 interface CustomerFaqOptions {
@@ -84,7 +88,7 @@ const DANCE_FLOOR_EXTRA: readonly CustomerFaqItem[] = [
   {
     question: 'How fast will my request be answered?',
     answer:
-      'Usually during the live show while both pieces are in play, but timing is up to your rep. Your rep reviews requests during the show when they can. Watch the live and your messages with them for the final yes or no.',
+      'Usually during the live show while both pieces are in play, but timing is up to your rep. The rep reviews requests during the show when a review is possible. Watch the live and your messages with the rep for the final yes or no.',
   },
   {
     question: 'Can I send a request after the show ends?',
@@ -112,7 +116,7 @@ const LIVE_LINEUP_FAQ: readonly CustomerFaqItem[] = [
   {
     question: 'Where do I find the next live show?',
     answer:
-      "Look for your rep's live event calendar on their Sparkle Suite site (when they have shows listed). You can also follow the social links they share on the site.",
+      "Look for the live event calendar on the rep's Sparkle Suite site when shows are listed. You can also follow the social links on the site.",
   },
 ]
 
@@ -130,7 +134,7 @@ const JOIN_TEAM_FAQ: readonly CustomerFaqItem[] = [
   {
     question: 'Do I need experience?',
     answer:
-      "No experience needed. That's the beauty of being on a team — you get support from that rep and their team.",
+      "No experience needed. That's the beauty of being on a team — you get support from the rep and the rep's team.",
   },
   {
     question: 'How much time does it take?',
@@ -145,7 +149,7 @@ const JOIN_TEAM_FAQ: readonly CustomerFaqItem[] = [
   {
     question: 'Is joining a team the same as signing up for Sparkle Suite?',
     answer:
-      'No. Joining a Bomb Party team is about becoming (or exploring becoming) an independent rep with that company. Sparkle Suite is a separate website and show toolkit some reps use for their customers. Sparkle Suite is not affiliated with Bomb Party.',
+      'No. Joining a Bomb Party team is about becoming (or exploring becoming) an independent rep with that company. Sparkle Suite is a separate website and show toolkit reps use for customers. Sparkle Suite is not affiliated with Bomb Party.',
   },
 ]
 
@@ -158,7 +162,7 @@ const CUSTOMER_PRIVACY_FAQ: readonly CustomerFaqItem[] = [
   {
     question: 'Will I get texts from this site?',
     answer:
-      'Only if you opt in. Message frequency may vary; message and data rates may apply; consent is not a condition of purchase. Reply STOP to opt out, HELP for help. Customer email and SMS tools from Sparkle Suite are still rolling out — if your rep offers updates, follow the consent language on their form.',
+      'Only if you opt in. Message frequency may vary; message and data rates may apply; consent is not a condition of purchase. Reply STOP to opt out, HELP for help. Customer email and SMS tools from Sparkle Suite are still rolling out — if the rep offers updates, follow the consent language on the rep\'s form.',
   },
 ]
 
@@ -212,6 +216,42 @@ function faqLinks(options: CustomerFaqOptions) {
   }
 }
 
+function publicRepLocation(data: Awaited<ReturnType<typeof loadAmethystPreviewTemplateData>>) {
+  const city = data.join?.repCity?.trim() || ''
+  const state = data.join?.repState?.trim() || ''
+  if (city || state) return [city, state].filter(Boolean).join(', ')
+
+  const business = data.homepage.businessName.trim().toLowerCase()
+  const member = data.join?.teamMembers?.find(
+    (item) =>
+      item.isVisible !== false &&
+      item.business?.trim().toLowerCase() === business &&
+      item.state?.trim(),
+  )
+  return member?.state?.trim() || undefined
+}
+
+function personalizeCustomerFaq(
+  businessName: string,
+  location?: string,
+  nextShow?: string,
+): CustomerFaqSection[] {
+  const place = location ? ` in ${location}` : ''
+  const showSentence = nextShow
+    ? ` The next public show for ${businessName} is ${nextShow}.`
+    : ` ${businessName} lists public show times on the homepage when the rep schedules a show.`
+
+  return CUSTOMER_FAQ_SECTIONS.map((section) => ({
+    ...section,
+    intro: `${section.intro} Written for ${businessName}${place}.${section.id === 'live-lineup' ? showSentence : ''}`,
+    items: section.items.map((item) =>
+      item.question === 'Where do I find the next live show?'
+        ? { ...item, answer: `${item.answer}${showSentence}` }
+        : item,
+    ),
+  }))
+}
+
 export async function renderCustomerFaq(request: Request, options: CustomerFaqOptions = {}) {
   const data = await loadAmethystPreviewTemplateData({
     repId: options.repId,
@@ -227,8 +267,32 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
   const origin = resolveSparkleRequestOrigin(request)
   const canonicalUrl = new URL(links.faq, origin).toString()
   const businessName = escapeHtml(data.homepage.businessName)
+  const location = publicRepLocation(data)
+  let nextShow: string | undefined
+  if (options.repId || options.publicSiteSlug) {
+    try {
+      const [event] = await loadAmethystHomepageUpcomingShows({
+        repId: options.repId,
+        publicSiteSlug: options.publicSiteSlug,
+        targeted: true,
+        limit: 1,
+      })
+      if (event) {
+        const label =
+          event.title && event.title !== 'Upcoming live reveal' ? event.title : 'Live reveal'
+        nextShow = `${label}, ${formatPublicShowTime(event.eventTime, event.timeZone)}`
+      }
+    } catch {
+      nextShow = undefined
+    }
+  }
+  const faqSections = personalizeCustomerFaq(data.homepage.businessName, location, nextShow)
   const title = `FAQ | ${data.homepage.businessName}`
-  const description = `Answers about the Dance Floor, Live lineup, and more from ${data.homepage.businessName}.`
+  const description = [
+    `Answers about the Dance Floor, Live Lineup, and shows from ${data.homepage.businessName}`,
+    location ? ` in ${location}` : '',
+    '.',
+  ].join('')
   const showJoin = Boolean(data.homepage.footerLinks.joinTeam)
   const year = new Date().getFullYear()
   const jumpHtml = TOPIC_JUMP.map(
@@ -237,7 +301,7 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
   ).join('<span class="faq-jump-sep" aria-hidden="true">·</span>')
 
   let firstOpenDone = false
-  const continuousItemsHtml = CUSTOMER_FAQ_SECTIONS.map((section) => {
+  const continuousItemsHtml = faqSections.map((section) => {
     const groupLabel = `
         <div class="faq-group" id="${escapeHtml(section.id)}">
           <p class="faq-group-label">${escapeHtml(
@@ -248,7 +312,8 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
                 : section.id === 'join-team'
                   ? 'Join Team'
                   : 'Dance Floor',
-          )}</p>`
+          )}</p>
+          <p class="faq-group-intro">${escapeHtml(section.intro)}</p>`
     const items = section.items
       .map((item) => {
         const open = !firstOpenDone ? ' open' : ''
@@ -332,8 +397,8 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
         <a href="${escapeHtml(links.danceFloor)}">Dance Floor</a>
         ${showJoin ? `<a href="${escapeHtml(links.join)}">Join Team</a>` : ''}
         <a href="${escapeHtml(links.faq)}" aria-current="page">FAQ</a>
-        <a href="/portfolio">Portfolio</a>
-        <a href="/demo">Demo</a>
+        ${options.customDomain ? '' : `<a href="/portfolio">Portfolio</a>
+        <a href="/demo">Demo</a>`}
       </nav>
     </div>
   </header>
@@ -342,7 +407,7 @@ export async function renderCustomerFaq(request: Request, options: CustomerFaqOp
       <div class="faq-hero-inner">
         <p class="faq-eyebrow">Here to help · ${businessName}</p>
         <h1 id="faq-title">FAQ</h1>
-        <p>Answers to your questions, all in one place.</p>
+        <p>Answers for ${businessName}${location ? ` in ${escapeHtml(location)}` : ''}.${nextShow ? ` Next show: ${escapeHtml(nextShow)}.` : ''}</p>
         ${scopeLine}
       </div>
     </section>

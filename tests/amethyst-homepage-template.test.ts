@@ -865,9 +865,8 @@ describe('Amethyst homepage template data wiring', () => {
       },
     )
 
-    expect(noQueueYet.liveQueueSummary).toBe(
-      'Live Lineup is waiting for a recent update.',
-    )
+    expect(noQueueYet.liveQueueSummary).toBe('')
+    expect(noQueueYet.liveQueueSummary).not.toMatch(/waiting|retry/i)
     expect(waitingForUpdate.liveQueueSummary).toBe(
       'Showing the last received lineup. Positions may have changed; checking for updates.',
     )

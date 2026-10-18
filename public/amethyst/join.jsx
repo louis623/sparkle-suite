@@ -837,7 +837,7 @@ function LiveQueueModal({ open, onClose }) {
             ))}
           </div>
         ) : (
-          <div className="hp-queue-modal-empty">{lineup?.liveQueueSummary || "Live Lineup is waiting for a recent update."}</div>
+          <div className="hp-queue-modal-empty">{lineup?.liveQueueSummary || ""}</div>
         )}
       </div>
     </div>

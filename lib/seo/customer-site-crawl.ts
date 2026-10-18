@@ -2,7 +2,11 @@ import type { MetadataRoute } from 'next'
 
 import { loadAmethystPreviewTemplateData } from '@/lib/amethyst/preview-template-data'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
-import { buildSparkleLlmsText } from '@/lib/seo/llms'
+import {
+  formatPublicShowTime,
+  loadAmethystHomepageUpcomingShows,
+} from '@/lib/amethyst/homepage-upcoming-shows'
+import { buildSparkleLlmsText, type SparkleLlmsLiveShow } from '@/lib/seo/llms'
 import { canonicalizeSparkleCrawlOrigin } from '@/lib/seo/sparkle-crawl'
 
 type CustomerSiteCrawlData = {
@@ -12,6 +16,7 @@ type CustomerSiteCrawlData = {
   showJoinPage: boolean
   showPantryPage: boolean
   repLocation?: string
+  liveShows?: SparkleLlmsLiveShow[]
 }
 
 const CUSTOMER_SITE_LAST_MODIFIED = new Date('2026-09-03')
@@ -29,6 +34,7 @@ export function buildCustomerSiteCrawlData(input: CustomerSiteCrawlData) {
   const pages = [
     { title: 'Home', path: '/', priority: 1 },
     { title: 'Dance Floor', path: '/trade', priority: 0.8 },
+    { title: 'FAQ', path: '/faq', priority: 0.6 },
     ...(input.showJoinPage
       ? [{ title: 'Join Team', path: '/join', priority: 0.7 }]
       : []),
@@ -92,13 +98,21 @@ export function buildCustomerSiteLlmsText(
     businessName: crawl.businessName,
     repName: crawl.repName,
     repLocation: crawl.repLocation,
-    summary: crawl.summary,
+    summary: [
+      crawl.summary,
+      `${crawl.businessName} is an independent Bomb Party rep. This site is not affiliated with or endorsed by Bomb Party.`,
+    ].join(' '),
     publicPages: crawl.pages.map(({ title, path }) => ({ title, path })),
+    liveShows: input.liveShows,
     glossary: [
       {
         term: 'Dance Floor',
         definition:
-          'A public customer board for browsing jewelry trade listings and requesting fair trades.',
+          'The public board where customers browse dancers and request a dancer swap.',
+      },
+      {
+        term: 'Dancer',
+        definition: 'A jewelry piece the rep has put up for a dancer swap.',
       },
       {
         term: 'Live reveal',
@@ -126,15 +140,42 @@ export async function loadCustomerSiteCrawlData(origin: string | URL) {
     homepage.businessName === 'Sparkle by Sasha' && homepage.repName === 'Sasha'
   if (isUntargetedDefault) return null
 
+  const repLocation = [template.join.repCity, template.join.repState]
+    .map(clean)
+    .filter(Boolean)
+    .join(', ')
+  let liveShows: SparkleLlmsLiveShow[] = []
+  try {
+    const events = await loadAmethystHomepageUpcomingShows({
+      repId: host,
+      targeted: true,
+      limit: 12,
+    })
+    liveShows = events.map((event) => {
+      const platform = event.platforms[0]
+      const title =
+        event.title && event.title !== 'Upcoming live reveal'
+          ? event.title
+          : platform?.label
+            ? `${platform.label.replace(/^(Watch on|Join me on)\s+/i, '')} live reveal`
+            : 'Live reveal'
+      return {
+        title,
+        eventTime: formatPublicShowTime(event.eventTime, event.timeZone),
+        ...(platform?.href && platform.href !== '#' ? { url: platform.href } : {}),
+      }
+    })
+  } catch {
+    liveShows = []
+  }
+
   return {
     businessName: homepage.businessName,
     repName: homepage.repName,
     summary: homepage.tagline,
     showJoinPage: homepage.showJoinPage,
     showPantryPage: Boolean(homepage.pantryPageUrl),
-    repLocation: [template.join.repCity, template.join.repState]
-      .map(clean)
-      .filter(Boolean)
-      .join(', '),
+    ...(repLocation ? { repLocation } : {}),
+    liveShows,
   } satisfies CustomerSiteCrawlData
 }

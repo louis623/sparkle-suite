@@ -163,6 +163,55 @@ describe('custom-domain customer site proxy', () => {
     expect(expression.test('/_next/image')).toBe(false)
   })
 
+  it('301s Britt legacy URLs to the closest current page on the apex', () => {
+    const cases = [
+      ['/about', 'https://brittwithbling.com/?ref=search#about'],
+      ['/diamonds-unicorns/', 'https://brittwithbling.com/?ref=search#wibp'],
+      ['/join-team', 'https://brittwithbling.com/join?ref=search'],
+      ['/embed', 'https://brittwithbling.com/?ref=search'],
+    ] as const
+
+    for (const [path, destination] of cases) {
+      const response = proxy(
+        new NextRequest(`https://www.brittwithbling.com${path}?ref=search`, {
+          headers: { host: 'www.brittwithbling.com' },
+        }),
+      )
+      expect(response.status).toBe(301)
+      expect(getRedirectUrl(response)).toBe(destination)
+    }
+  })
+
+  it('keeps Britt legacy paths off other rep hosts', () => {
+    const response = proxy(
+      new NextRequest('https://milehighfizz.com/about', {
+        headers: { host: 'milehighfizz.com' },
+      }),
+    )
+    expect(response.status).not.toBe(301)
+    expect(isRewrite(response)).toBe(false)
+  })
+
+  it('returns 404 for Suite marketing pages on a rep host and leaves the Suite host alone', () => {
+    for (const path of ['/portfolio', '/tools', '/prelaunch/intake', '/adventure', '/demo']) {
+      const rep = proxy(
+        new NextRequest(`https://brittwithbling.com${path}`, {
+          headers: { host: 'brittwithbling.com' },
+        }),
+      )
+      expect(rep.status).toBe(404)
+      expect(isRewrite(rep)).toBe(false)
+
+      const suite = proxy(
+        new NextRequest(`https://www.yoursparklesuite.com${path}`, {
+          headers: { host: 'www.yoursparklesuite.com' },
+        }),
+      )
+      expect(suite.status).not.toBe(404)
+      expect(isRewrite(suite)).toBe(false)
+    }
+  })
+
   it('leaves non-customer-site routes and Amethyst assets alone on the apex', () => {
     const login = proxy(
       new NextRequest('https://brisglowtique.com/login', {

@@ -57,7 +57,7 @@
       ...(grouped(current) ? { liveQueueEvents: [], ...(!retain ? { liveQueueOrderCount: 0, liveQueueGroupCount: 0, liveQueueCurrent: null, liveQueueOnDeck: null } : {}) } : {}),
       liveQueueState: retain ? 'delayed' : 'offline',
       liveQueueEntries: retain ? (current?.liveQueueEntries || []).map((entry) => ({ ...entry, label: 'Position at last update', highlight: false })) : [],
-      liveQueueSummary: retain ? 'Showing the latest lineup while we check for updates.' : 'Live Lineup is waiting for a recent update. Retrying automatically.',
+      liveQueueSummary: retain ? 'Showing the latest lineup while we check for updates.' : '',
     };
   }
   function fresh(current) {

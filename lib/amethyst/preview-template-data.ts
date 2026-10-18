@@ -368,26 +368,22 @@ function applyBlingKitchenPantryAccess(
   }
 }
 
+function isAboutPlaceholder(value: string) {
+  const normalized = value.toLowerCase()
+  return (
+    normalized.includes('share how you got started') ||
+    normalized.includes('nic-nac can rewrite this') ||
+    normalized.includes('add a final paragraph') ||
+    normalized.includes('will share more about this live reveal') ||
+    normalized.includes('will appear here after they are added')
+  )
+}
+
 function targetedHomepageAboutParagraphs(
   homepage: AmethystHomepageTemplateData,
 ): [string, string, string] {
-  const repName = getPublicRepName(homepage.repName)
-  const neutral: [string, string, string] = [
-    `${repName} will share more about this live reveal community soon.`,
-    'Customer details, show style, and favorite reveal notes will appear here after they are added.',
-    homepage.heroEyebrow,
-  ]
-  const isPlaceholder = (value: string) => {
-    const normalized = value.toLowerCase()
-    return (
-      normalized.includes('share how you got started') ||
-      normalized.includes('nic-nac can rewrite this') ||
-      normalized.includes('add a final paragraph')
-    )
-  }
-
-  return homepage.aboutParagraphs.map((paragraph, index) =>
-    isPlaceholder(paragraph) ? neutral[index] : paragraph,
+  return homepage.aboutParagraphs.map((paragraph) =>
+    isAboutPlaceholder(paragraph) ? '' : paragraph,
   ) as [string, string, string]
 }
 
