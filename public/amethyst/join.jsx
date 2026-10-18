@@ -1488,7 +1488,7 @@ function App() {
 
     let pageTitle = indexedTitle || `Join ${t.teamName} | ${t.businessName}${locationSuffix}`;
     if (!indexedTitle && isMileHighFizzHybrid) {
-      pageTitle = "Join the Mile High Fizz Team - Colorado Bomb Party Business Opportunity";
+      pageTitle = `Join ${t.teamName} | ${t.businessName}`;
     } else if (!indexedTitle && isBrittWithBlingHybrid) {
       pageTitle = "Join The Virtuous Fizzers | Britt with Bling";
     } else if (!indexedTitle && isBlingKitchenHybrid) {

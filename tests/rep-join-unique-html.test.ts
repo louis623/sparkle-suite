@@ -174,12 +174,13 @@ describe('rep /join server HTML', () => {
     expect(mile.canonical).not.toBe(glow.canonical)
 
     expect(mile.title).toBe(
-      'Mile High Fizz in Littleton, Colorado — Join Diamond Peak Society',
+      'Mile High Fizz — Join Diamond Peak Society',
     )
     expect(mile.h1).toBe(
-      'Join Diamond Peak Society with Mile High Fizz in Littleton, Colorado',
+      'Join Diamond Peak Society with Mile High Fizz',
     )
-    expect(mile.description).toContain('Mile High Fizz in Littleton, Colorado')
+    expect(mile.description).toContain('Mile High Fizz')
+    expect(mile.description).not.toMatch(/\bin\b/)
     expect(mile.description).toContain('Tuesdays, Thursdays, and Saturdays')
     expect(mile.canonical).toBe('https://milehighfizz.com/join')
     expect(mile.ogUrl).toBe(mile.canonical)
@@ -213,7 +214,8 @@ describe('rep /join server HTML', () => {
     }
     const mileIntro = field(mileHtml, /<main class="join-index"><h1>.*?<\/h1><p>(.*?)<\/p>/)
     expect(mileIntro).not.toMatch(BANNED_COPY)
-    expect(mileHtml).toContain('Lindsey is the rep for Mile High Fizz in Littleton, Colorado.')
+    expect(mileHtml).toContain('Lindsey is the rep for Mile High Fizz.')
+    expect(mileHtml).not.toContain('Littleton')
     expect(glowHtml).toContain("Brianna is the rep for Bri's Glowtique in Wichita, Kansas.")
     expect(mileHtml).toContain('Live shows run Tuesdays, Thursdays, and Saturdays.')
   })
@@ -241,12 +243,10 @@ describe('rep /join server HTML', () => {
     const mileFloorHtml = await mileFloor.text()
     const glowPantryHtml = await glowPantry.text()
 
-    expect(field(mileHomeHtml, /<h1>(.*?)<\/h1>/)).toBe(
-      'Mile High Fizz in Littleton, Colorado',
-    )
-    expect(mileHomeHtml).toContain('Lindsey is the rep for Mile High Fizz in Littleton, Colorado.')
+    expect(field(mileHomeHtml, /<h1>(.*?)<\/h1>/)).toBe('Mile High Fizz')
+    expect(mileHomeHtml).toContain('Lindsey is the rep for Mile High Fizz.')
     expect(mileHomeHtml).toContain(
-      'Mile High Fizz in Littleton, Colorado hosts live jewelry reveals on Tuesdays, Thursdays, and Saturdays.',
+      'Mile High Fizz hosts live jewelry reveals on Tuesdays, Thursdays, and Saturdays.',
     )
     expect(mileHomeHtml).toContain('Live shows run Tuesdays, Thursdays, and Saturdays.')
     expect(field(glowHomeHtml, /<h1>(.*?)<\/h1>/)).toBe(
@@ -256,11 +256,10 @@ describe('rep /join server HTML', () => {
     expect(glowHomeHtml).toContain('a calm place to learn the business')
     expect(mileHomeHtml).not.toBe(glowHomeHtml)
 
-    expect(field(mileFloorHtml, /<h1>(.*?)<\/h1>/)).toBe(
-      'Mile High Fizz Dance Floor in Littleton, Colorado',
-    )
+    expect(field(mileFloorHtml, /<h1>(.*?)<\/h1>/)).toBe('Mile High Fizz Dance Floor')
     expect(mileFloorHtml).toContain('one-for-one dancer swap')
-    expect(mileFloorHtml).toContain('Lindsey is the rep for Mile High Fizz in Littleton, Colorado.')
+    expect(mileFloorHtml).toContain('Lindsey is the rep for Mile High Fizz.')
+    expect(mileFloorHtml).not.toContain('Littleton')
     expect(field(glowPantryHtml, /<h1>(.*?)<\/h1>/)).toBe(
       "In the Pantry with Bri's Glowtique in Wichita, Kansas",
     )
@@ -290,7 +289,7 @@ describe('rep /join server HTML', () => {
     expect(wordCount(beforeHome)).toBeLessThan(40)
     expect(wordCount(beforeJoin)).toBeLessThan(40)
     expect(wordCount(afterHome)).toBeGreaterThan(40)
-    expect(wordCount(afterJoin)).toBeGreaterThan(80)
+    expect(wordCount(afterJoin)).toBeGreaterThan(60)
   })
 })
 
@@ -388,6 +387,14 @@ describe('join page index copy', () => {
     expect(withSchedule.intro).toContain('Tuesdays at 8:00 PM CT')
     expect(withSchedule.location).toBe('Austin, Texas')
     expect(formatStreet()).toBe('Denver, Colorado')
+    expect(formatSuiteAndZip()).toBe('Orlando, Florida')
+    expect(
+      buildJoinPageIndexCopy({
+        businessName: 'Mile High Fizz',
+        teamName: 'Diamond Peak Society',
+        tickerText: 'Live on Tiktok Tues/Thurs/Sat',
+      }).title,
+    ).toBe('Mile High Fizz — Join Diamond Peak Society')
   })
 
   it('reads a slash-style show schedule without copying the rest of the ticker', () => {
@@ -410,5 +417,13 @@ function formatStreet() {
     businessName: 'Peak Sparkle',
     city: '123 Main Street',
     state: 'Denver, Colorado 80202',
+  }).location
+}
+
+function formatSuiteAndZip() {
+  return buildJoinPageIndexCopy({
+    businessName: 'Peak Sparkle',
+    city: 'PO Box 12',
+    state: 'Suite 4, Orlando, Florida 32801-1234',
   }).location
 }

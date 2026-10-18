@@ -160,8 +160,6 @@ export function applyBlingKitchenJoin(
     ...join,
     publicSiteVariant: 'bling_kitchen_hybrid',
     repName: BLING_KITCHEN_PROFILE.publicName,
-    repCity: '',
-    repState: 'Ohio',
     businessName: BLING_KITCHEN_PROFILE.businessName,
     teamName: BLING_KITCHEN_PROFILE.teamName,
     heroTitle: 'Join the Team',

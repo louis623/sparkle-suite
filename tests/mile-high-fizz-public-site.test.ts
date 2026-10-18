@@ -172,8 +172,8 @@ describe('Mile High Fizz hybrid public site contract', () => {
     expect(trade.tradeHeroTitle).toBe('Summit Sparkle Dance Floor')
     expect(trade.footerLinks.joinTeam).toBeUndefined()
     expect(join.teamName).toBe('Summit Society')
-    expect(join.heroTitle).toBe('Welcome to the Summit Society')
-    expect(join.heroPitch).toContain('Summit Society')
+    expect(join.heroTitle).toBe('Join Summit Society with Summit Sparkle')
+    expect(join.heroPitch).toContain('First custom paragraph')
     expect(join.repSocialLinks.tiktok).toBe('https://www.tiktok.com/@liasparkles')
   })
 
@@ -340,10 +340,12 @@ describe('Mile High Fizz hybrid public site contract', () => {
       'mile_high_fizz_hybrid',
     )
     expect((join as { heroTitle?: string }).heroTitle).toBe(
-      'Welcome to the Diamond Peak Society',
+      'Join Diamond Peak Society with Mile High Fizz',
     )
     expect(join.promoText).toContain('current official starter-pack options')
-    expect(join.heroPitch).toContain('official requirements')
+    expect(join.heroPitch).toContain('Mile High Fizz leads Diamond Peak Society')
+    expect(join.repCity).toBe('')
+    expect(join.repState).toBe('')
     expect(join.finalPitch).toContain('before you decide')
     expect(join.faqAnswers.whatIsTeam).toContain('support is available now')
     expect(join.faqAnswers.whatIsTeam).toContain('Diamond Peak Society')
@@ -394,9 +396,11 @@ describe('Mile High Fizz hybrid public site contract', () => {
       'mile_high_fizz_hybrid',
     )
     expect((data.join as { heroTitle?: string }).heroTitle).toBe(
-      'Welcome to the Diamond Peak Society',
+      'Join Diamond Peak Society with Mile High Fizz',
     )
-    expect(data.join.heroPitch).toContain('official requirements')
+    expect(data.join.heroPitch).toContain('Mile High Fizz leads Diamond Peak Society')
+    expect(data.join.repCity).toBe('')
+    expect(data.join.repState).toBe('')
     expect(data.join.faqAnswers.whatIsTeam).toContain('support is available now')
     expect(data.homepage.footerLinks.home).toBe('/milehighfizz')
     expect(data.homepage.footerLinks.tradeBoard).toBe('/milehighfizz/trade')

@@ -1,4 +1,5 @@
 import { normalizeSparkleOrigin } from './sparkle-crawl'
+import { publicLocationParts } from '@/lib/amethyst/join-page-index-copy'
 import { getPublicRepName } from '@/lib/amethyst/public-rep-name'
 
 type JsonLdScalar = string | number | boolean | null
@@ -47,8 +48,9 @@ function buildAreaServed(
   repCity: string | undefined,
   repState: string | undefined,
 ): JsonLdObject | undefined {
-  const city = repCity?.trim()
-  const state = repState?.trim()
+  const location = publicLocationParts(repCity, repState)
+  const city = location.city
+  const state = location.state
 
   if (!city && !state) return undefined
 

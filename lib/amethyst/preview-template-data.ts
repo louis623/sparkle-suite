@@ -64,6 +64,8 @@ import {
 } from '@/lib/bling-kitchen/profile'
 import {
   buildJoinPageIndexCopy,
+  formatPublicLocation,
+  publicLocationParts,
   readCustomJoinIntro,
   summarizePublicShowSchedule,
   type PublicShowSlot,
@@ -751,26 +753,6 @@ function findJoinOwnerMember(
   )
 }
 
-/**
- * City and state already published for a known tenant profile. Used only to
- * fill a blank public location; a roster card wins when it has its own place.
- */
-function publishedTenantLocation(
-  settings: SiteSettingsDashboardResult,
-  publicSiteSlug?: string | null,
-) {
-  if (isMileHighFizzSettings(settings)) {
-    return { city: 'Littleton', state: 'Colorado' }
-  }
-  if (isBlingKitchenSettings(settings)) {
-    return { city: '', state: 'Ohio' }
-  }
-  if (isBrittWithBlingSettings(settings, publicSiteSlug)) {
-    return { city: '', state: 'Florida' }
-  }
-  return null
-}
-
 function applyJoinIndexIdentity(
   join: AmethystJoinTemplateData,
   settings: SiteSettingsDashboardResult,
@@ -779,9 +761,11 @@ function applyJoinIndexIdentity(
 ) {
   const owner = findJoinOwnerMember(teamMembers, join.businessName, join.repName)
   const roster = splitRosterLocation(owner?.state)
-  const known = publishedTenantLocation(settings, extras.publicSiteSlug)
-  const city = clean(join.repCity) || roster.city || known?.city || ''
-  const state = clean(join.repState) || roster.state || known?.state || ''
+  // Public location is only the city and state on the rep's own roster card.
+  // A blank card stays blank. Skin presets do not fill one in.
+  const location = publicLocationParts(roster.city, roster.state)
+  const city = location.city
+  const state = location.state
   const bio = readCustomJoinIntro(owner?.bio)
   const about = readCustomJoinIntro(settings.aboutNarrative)
   const copy = buildJoinPageIndexCopy({
@@ -915,9 +899,7 @@ function mapJoinTeamRosterToTemplateMembers(
     id: member.id,
     name: member.displayName,
     business: member.businessName,
-    state: member.city
-      ? `${member.city}${member.state ? `, ${member.state}` : ''}`
-      : member.state,
+    state: formatPublicLocation(member.city, member.state),
     initials: member.initials || undefined,
     imageUrl: member.photoUrl || undefined,
     imageAlt: member.photoAlt || member.displayName,

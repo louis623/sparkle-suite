@@ -91,18 +91,34 @@ function cleanCopy(value: string | null | undefined) {
     .trim()
 }
 
+const STREET_ADDRESS =
+  /\b(?:street|avenue|road|boulevard|drive|lane|court|terrace|suite|apartment|p\.?o\.?\s*box)\b/i
+
 function cleanLocationPart(value: string | null | undefined) {
   const text = cleanCopy(value).replace(/\b\d{5}(?:-\d{4})?\b/g, ' ').replace(/\s+/g, ' ').trim()
-  if (!text || /\d/.test(text)) return ''
+  if (!text) return ''
   return text
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part && !/\d/.test(part) && !STREET_ADDRESS.test(part))
+    .join(', ')
+}
+
+export function publicLocationParts(
+  city?: string | null,
+  state?: string | null,
+) {
+  return {
+    city: cleanLocationPart(city),
+    state: cleanLocationPart(state),
+  }
 }
 
 export function formatPublicLocation(
   city?: string | null,
   state?: string | null,
 ) {
-  const cityText = cleanLocationPart(city)
-  const stateText = cleanLocationPart(state)
+  const { city: cityText, state: stateText } = publicLocationParts(city, state)
   if (cityText && stateText) return `${cityText}, ${stateText}`
   return cityText || stateText
 }

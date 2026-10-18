@@ -150,8 +150,6 @@ export function applyMileHighFizzJoin(
   return {
     ...join,
     publicSiteVariant: 'mile_high_fizz_hybrid',
-    repCity: 'Littleton',
-    repState: 'Colorado',
     heroTitle: `Welcome to the ${join.teamName}`,
     promoText:
       'Review Bomb Party\'s current official starter-pack options and promotions before enrolling.',
