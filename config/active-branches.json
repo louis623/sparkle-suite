@@ -31,7 +31,8 @@
     "cursor/founder-copy-llms-disclaimer-8afd",
     "cursor/founder-count-privacy-c41f",
     "cursor/site-traffic-redesign-ff40",
-    "cursor/payment-first-onboarding"
+    "cursor/payment-first-onboarding",
+    "cursor/rep-join-unique-content"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -107,6 +108,10 @@
       "environment": "preview"
     },
     "cursor/payment-first-onboarding": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/rep-join-unique-content": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }

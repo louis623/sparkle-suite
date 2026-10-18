@@ -21,12 +21,19 @@ import { canServeTargetedAmethystJoinPage } from '@/lib/amethyst/join-page-acces
 import { getPublicRepName } from '@/lib/amethyst/public-rep-name'
 import { injectPublicSiteVisitBeacon } from '@/lib/services/site-visit-summary'
 import { injectRepGa4Tag, resolveRepGa4TagHtml } from '@/lib/amethyst/rep-ga4-tag'
+import { indexPublicJoinTemplate } from '@/lib/amethyst/public-join-index'
+import {
+  injectPublicPageIndexDocument,
+  type PublicIndexRecipe,
+} from '@/lib/amethyst/public-page-index-html'
 
 interface RenderAmethystPublicAssetResponseOptions {
   repIdOverride?: string | null
   canonicalPathOverride?: string | null
+  canonicalOriginOverride?: string | null
   publicSiteSlugOverride?: string | null
   joinVisibilityVerified?: boolean
+  pantryRecipes?: PublicIndexRecipe[]
 }
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -161,6 +168,16 @@ function buildTargetedPageText(
   const businessName = templateData.homepage.businessName
   const repName = getPublicRepName(templateData.homepage.repName)
   const teamName = templateData.join.teamName
+  if (
+    page === 'join' &&
+    templateData.join.indexTitle &&
+    templateData.join.indexDescription
+  ) {
+    return {
+      title: templateData.join.indexTitle,
+      description: templateData.join.indexDescription,
+    }
+  }
   const isBlingKitchen =
     templateData.homepage.publicSiteVariant === 'bling_kitchen_hybrid'
 
@@ -370,8 +387,8 @@ function injectAmethystJsonLd(
     description: metadata.description,
     repName: getPublicRepName(homepage?.repName, 'Jane'),
     businessName: homepage?.businessName ?? "Jane's Sparkle Party",
-    repCity: join?.repCity,
-    repState: join?.repState,
+    repCity: join?.indexCity,
+    repState: join?.indexState,
     shopUrl: homepage?.streamLinks.shop ?? 'https://bombparty.com',
     sameAs: homepage?.socialLinks.map((link) => link.href).filter((href) => href !== '#'),
   })
@@ -413,6 +430,35 @@ function rewriteTemplateScriptTarget(
     .replace(`data-template-src="${endpoint}"`, `data-template-src="${rewrittenEndpoint}"`)
 }
 
+function injectPublicPageBody(
+  html: string,
+  page: AmethystPublicPage,
+  templateData: AmethystPreviewTemplateData,
+  pantryRecipes: PublicIndexRecipe[],
+) {
+  if (page === 'homepage' || page === 'trade' || page === 'pantry') {
+    return injectPublicPageIndexDocument(html, page, templateData, pantryRecipes)
+  }
+
+  return html
+}
+
+async function loadPantryIndexRecipes(repId: string): Promise<PublicIndexRecipe[]> {
+  try {
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const { getPublicSiteRecipes } = await import('@/lib/services/site-recipes')
+    const recipes = await getPublicSiteRecipes(createAdminClient(), repId, {
+      visibleOnly: true,
+    })
+    return recipes.map((recipe) => ({
+      title: recipe.title,
+      description: recipe.description,
+    }))
+  } catch {
+    return []
+  }
+}
+
 function rewriteAmethystStaticAssetUrls(html: string) {
   return Array.from(AMETHYST_ASSETS).reduce(
     (rewritten, assetPath) =>
@@ -431,16 +477,20 @@ function rewriteAmethystPublicHtml(
   options: RenderAmethystPublicAssetResponseOptions = {},
   ga4Tag = '',
 ) {
+  const metadataOrigin = options.canonicalOriginOverride?.trim() || origin
   const metadataBlock = renderMetadataBlock(
     page,
-    origin,
+    metadataOrigin,
     templateData,
     options.canonicalPathOverride,
   )
-  const rewritten = html.replace(
+  const withMetadata = html.replace(
     /<title>[\s\S]*?<meta name="twitter:image" content="[^"]+" \/>\r?\n?/,
     `${metadataBlock}\n`,
   )
+  const rewritten = templateData
+    ? injectPublicPageBody(withMetadata, page, templateData, options.pantryRecipes ?? [])
+    : withMetadata
 
   return injectRepGa4Tag(
     injectPublicSiteVisitBeacon(
@@ -449,7 +499,7 @@ function rewriteAmethystPublicHtml(
           rewriteTemplateScriptTarget(rewritten, page, requestUrl, options),
         ),
         page,
-        origin,
+        metadataOrigin,
         templateData,
         options.canonicalPathOverride,
       ),
@@ -488,13 +538,18 @@ export async function renderAmethystPublicAssetResponse(
     }
     const repId = options.repIdOverride?.trim() || resolveAmethystRequestRepId(request)
     const resolvedOptions = repId ? { ...options, repIdOverride: repId } : options
-    const templateData =
+    const loadedTemplate =
       page && contentType.startsWith('text/html') && repId
         ? await loadAmethystPreviewTemplateData({
             repId,
             publicSiteSlug: options.publicSiteSlugOverride,
           })
         : null
+    const templateData = loadedTemplate
+      ? await indexPublicJoinTemplate(loadedTemplate, { repId })
+      : null
+    const pantryRecipes =
+      page === 'pantry' && repId ? await loadPantryIndexRecipes(repId) : []
     let responseBody: BodyInit = new Uint8Array(body)
     if (contentType.startsWith('text/html')) {
       const html = body.toString('utf8')
@@ -511,7 +566,7 @@ export async function renderAmethystPublicAssetResponse(
           request,
           requestUrl,
           templateData,
-          resolvedOptions,
+          { ...resolvedOptions, pantryRecipes },
           ga4Tag,
         )
       } else if (templateScriptPage) {

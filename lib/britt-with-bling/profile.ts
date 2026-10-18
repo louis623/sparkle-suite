@@ -542,8 +542,6 @@ export function applyBrittWithBlingJoin(
   return {
     ...join,
     publicSiteVariant: 'britt_with_bling_hybrid',
-    repCity: '',
-    repState: 'Florida',
     heroTitle: `WELCOME TO ${join.teamName.toUpperCase()}`,
     promoText:
       'Review Bomb Party\'s current official starter-pack options and promotions before enrolling.',

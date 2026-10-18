@@ -11,6 +11,7 @@ interface AmethystPreviewRep {
   streaming_links?: unknown
   social_handles?: unknown
   public_site_slug?: string | null
+  custom_domain?: string | null
 }
 
 interface ResolveAmethystPreviewRepOptions {
