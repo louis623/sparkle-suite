@@ -11,6 +11,59 @@ const CUSTOMER_SITE_ROUTES: Record<string, string> = {
   '/in-the-pantry': '/customer-site/in-the-pantry',
 }
 
+const BRITT_WITH_BLING_APEX = 'brittwithbling.com'
+
+/** Old Britt with Bling URLs that still receive search impressions. */
+const BRITT_LEGACY_PATHS: Record<string, string> = {
+  '/about': '/#about',
+  '/diamonds-unicorns': '/#wibp',
+  '/join-team': '/join',
+  '/embed': '/',
+}
+
+const SUITE_MARKETING_PATHS = ['/portfolio', '/tools', '/prelaunch', '/adventure', '/demo']
+
+export function normalizePublicPath(pathname: string) {
+  if (pathname.length > 1 && pathname.endsWith('/')) return pathname.replace(/\/+$/, '')
+  return pathname
+}
+
+export function brittLegacyDestination(pathname: string): string | null {
+  return BRITT_LEGACY_PATHS[normalizePublicPath(pathname)] ?? null
+}
+
+export function isSuiteMarketingPath(pathname: string) {
+  const path = normalizePublicPath(pathname)
+  return SUITE_MARKETING_PATHS.some((page) => path === page || path.startsWith(`${page}/`))
+}
+
+function repApexHost(host: string) {
+  return host.startsWith('www.') ? host.slice('www.'.length) : host
+}
+
+function notFoundResponse() {
+  return new NextResponse('Not found', {
+    status: 404,
+    headers: {
+      'Cache-Control': 'no-store',
+      'Content-Type': 'text/plain; charset=utf-8',
+      'X-Robots-Tag': 'noindex',
+    },
+  })
+}
+
+function redirectBrittLegacy(request: NextRequest, destination: string) {
+  const hashAt = destination.indexOf('#')
+  const pathname = hashAt >= 0 ? destination.slice(0, hashAt) || '/' : destination
+  const hash = hashAt >= 0 ? destination.slice(hashAt + 1) : ''
+  const url = request.nextUrl.clone()
+  url.protocol = 'https:'
+  url.hostname = BRITT_WITH_BLING_APEX
+  url.pathname = pathname
+  url.hash = hash
+  return NextResponse.redirect(url, 301)
+}
+
 /**
  * Public /amethyst/*.html documents are the old indexable template URLs.
  * The app still reads those files from disk for customer-site rendering and
@@ -44,6 +97,29 @@ export function proxy(request: NextRequest) {
   const customerDomain = normalizeAmethystCustomDomainCandidate(host)
   const onCustomerDomain = Boolean(customerDomain) && !isAmethystPlatformHost(host)
 
+  if (
+    onCustomerDomain &&
+    customerDomain &&
+    repApexHost(customerDomain) === BRITT_WITH_BLING_APEX
+  ) {
+    const legacyDestination = brittLegacyDestination(request.nextUrl.pathname)
+    if (legacyDestination) return redirectBrittLegacy(request, legacyDestination)
+  }
+
+  // Suite sales pages stay on yoursparklesuite.com. A rep host should not
+  // publish them. This runs before any Suite-only redirect so /demo on a
+  // rep host is a 404, not the Suite /#watch redirect.
+  if (onCustomerDomain && isSuiteMarketingPath(request.nextUrl.pathname)) {
+    return notFoundResponse()
+  }
+
+  if (!onCustomerDomain && normalizePublicPath(request.nextUrl.pathname) === '/demo') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/'
+    url.hash = 'watch'
+    return NextResponse.redirect(url, 301)
+  }
+
   // Every www path on a rep custom domain, including sitemap, robots, assets,
   // and legacy HTML, consolidates onto the apex before a response is served.
   // Suite www.yoursparklesuite.com is not a customer domain and stays on www.
@@ -72,7 +148,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(canonicalUrl, 308)
   }
   if (customerDomain && (request.nextUrl.pathname === '/faq/articles' || request.nextUrl.pathname.startsWith('/faq/articles/'))) {
-    return new NextResponse('Not found', { status: 404, headers: { 'X-Robots-Tag': 'noindex', 'Content-Type': 'text/plain; charset=utf-8' } })
+    return notFoundResponse()
   }
   // /faq on the Suite host is the marketing FAQ. Rep previews stay on /faq?c=
   // and custom domains keep the customer Dance Floor FAQ.

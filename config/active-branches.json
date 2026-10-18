@@ -33,7 +33,9 @@
     "cursor/site-traffic-redesign-ff40",
     "cursor/payment-first-onboarding",
     "cursor/rep-join-unique-content",
-    "cursor/suite-seo-metadata-images"
+    "cursor/suite-seo-metadata-images",
+    "cursor/rep-host-seo-fixes",
+    "cursor/join-server-html-26e8"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -117,6 +119,14 @@
       "environment": "preview"
     },
     "cursor/suite-seo-metadata-images": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/rep-host-seo-fixes": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/join-server-html-26e8": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }

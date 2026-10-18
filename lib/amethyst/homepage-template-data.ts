@@ -420,6 +420,29 @@ export function buildAmethystHomepageTweakDefaults(
   }
 }
 
+const TARGETED_ABOUT_PLACEHOLDER_MARKERS = [
+  'will share more about this live reveal',
+  'will appear here after they are added',
+  'share how you got started',
+  'nic-nac can rewrite this',
+  'add a final paragraph',
+]
+
+/** Drop stock About lines on a real rep site. The shared template file stays locked. */
+export function blankTargetedAboutPlaceholders(
+  paragraphs: readonly string[],
+): [string, string, string] {
+  const blanked = paragraphs.map((paragraph) => {
+    const normalized = paragraph.toLowerCase()
+    return TARGETED_ABOUT_PLACEHOLDER_MARKERS.some((marker) =>
+      normalized.includes(marker),
+    )
+      ? ''
+      : paragraph
+  })
+  return [blanked[0] ?? '', blanked[1] ?? '', blanked[2] ?? '']
+}
+
 function safeScriptJson(value: unknown) {
   return JSON.stringify(value).replace(/</g, '\\u003c')
 }
@@ -451,7 +474,10 @@ export function buildAmethystHomepageBootstrapScript(
     aboutSubheading: data.aboutSubheading
       ? redactPublicRepFullName(data.aboutSubheading, data.repName)
       : undefined,
-    aboutParagraphs: data.aboutParagraphs.map((paragraph) =>
+    aboutParagraphs: (targeted
+      ? blankTargetedAboutPlaceholders(data.aboutParagraphs)
+      : data.aboutParagraphs
+    ).map((paragraph) =>
       redactPublicRepFullName(paragraph, data.repName),
     ) as [string, string, string],
     signupSub: redactPublicRepFullName(data.signupSub, data.repName),

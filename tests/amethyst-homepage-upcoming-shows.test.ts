@@ -14,8 +14,10 @@ vi.mock('@/lib/services/calendar', () => ({
 import type { CalendarEvent } from '@/lib/services/types'
 import {
   defaultAmethystHomepageEvents,
+  isCurrentPublicShow,
   loadAmethystHomepageUpcomingShows,
   mapCalendarEventToHomepageEvent,
+  publicShowStartMs,
 } from '@/lib/amethyst/homepage-upcoming-shows'
 
 function makeEvent(overrides: Partial<CalendarEvent> = {}): CalendarEvent {
@@ -54,6 +56,93 @@ beforeEach(() => {
 })
 
 describe('Amethyst homepage upcoming shows', () => {
+  it('drops a show that already ended, including one still marked live', async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-key'
+    process.env.AMETHYST_HOMEPAGE_PREVIEW_EMAIL = 'preview@example.com'
+
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { id: 'rep-1', social_handles: { tiktok: '@demo' } },
+      error: null,
+    })
+    const eq = vi.fn(() => ({ maybeSingle }))
+    const select = vi.fn(() => ({ eq }))
+    createAdminClientMock.mockReturnValue({ from: vi.fn(() => ({ select })) })
+    listMyShowsMock.mockImplementation(
+      async (_admin: unknown, _repId: unknown, input: { status?: string }) => {
+        if (input.status === 'live') {
+          return {
+            events: [
+              makeEvent({
+                id: 'ended-live',
+                title: 'TikTok Live',
+                status: 'live',
+                eventTime: '2026-10-05T17:47:00.000Z',
+                timeZone: 'America/Denver',
+                durationMinutes: 60,
+              }),
+            ],
+            totalCount: 1,
+          }
+        }
+        return {
+          events: [
+            makeEvent({
+              id: 'next-show',
+              title: 'Sunday Sparkle',
+              eventTime: '2099-10-18T19:00:00.000Z',
+              timeZone: 'America/Phoenix',
+              durationMinutes: 180,
+            }),
+          ],
+          totalCount: 1,
+        }
+      },
+    )
+
+    const result = await loadAmethystHomepageUpcomingShows()
+
+    expect(listMyShowsMock).toHaveBeenCalledWith(expect.anything(), 'rep-1', {
+      upcoming: false,
+      status: 'live',
+      limit: 12,
+    })
+    expect(listMyShowsMock).toHaveBeenCalledWith(expect.anything(), 'rep-1', {
+      upcoming: true,
+      status: 'scheduled',
+      limit: 2,
+    })
+    expect(result.map((event) => event.id)).toEqual(['next-show'])
+    expect(result[0]?.featured).toBe(true)
+  })
+
+  it('reads a naive show time in the show timezone and Eastern when the zone is missing', () => {
+    const denver = publicShowStartMs('2026-10-05T11:47:00', 'America/Denver')
+    expect(denver).toBe(Date.parse('2026-10-05T17:47:00.000Z'))
+    const eastern = publicShowStartMs('2026-10-18T15:00:00', 'America/New_York')
+    expect(eastern).toBe(Date.parse('2026-10-18T19:00:00.000Z'))
+    expect(
+      isCurrentPublicShow(
+        {
+          eventTime: '2026-10-05T17:47:00.000Z',
+          timeZone: 'America/Denver',
+          durationMinutes: 60,
+        },
+        Date.parse('2026-10-18T16:32:00.000Z'),
+      ),
+    ).toBe(false)
+    expect(
+      isCurrentPublicShow(
+        {
+          eventTime: '2026-10-18T19:00:00.000Z',
+          timeZone: 'America/Phoenix',
+          durationMinutes: 180,
+        },
+        Date.parse('2026-10-18T16:32:00.000Z'),
+      ),
+    ).toBe(true)
+  })
+
   it('includes a live-now demo event in the local fallback schedule', () => {
     const [event] = defaultAmethystHomepageEvents
     const startAt = Date.parse(event.eventTime)
@@ -131,32 +220,38 @@ describe('Amethyst homepage upcoming shows', () => {
     }
 
     createAdminClientMock.mockReturnValue(admin)
-    listMyShowsMock.mockResolvedValue({
-      events: [
-        makeEvent({
-          id: 'event-1',
-          platform: 'TikTok',
-          streamingDestinations: [{ platform: 'tiktok', url: 'https://wrong.example/live' }],
-        }),
-        makeEvent({
-          id: 'event-2',
-          platform: 'Facebook',
-          title: 'Sunday Sparkle Session',
-          streamingDestinations: [{ platform: 'facebook', url: 'https://wrong.example/live' }],
-        }),
-        makeEvent({
-          id: 'event-3',
-          title: 'Should not render',
-        }),
-      ],
-      totalCount: 3,
-    })
+    listMyShowsMock.mockImplementation(
+      async (_admin: unknown, _repId: unknown, input: { status?: string }) => {
+        if (input.status === 'live') return { events: [], totalCount: 0 }
+        return {
+          events: [
+            makeEvent({
+              id: 'event-1',
+              platform: 'TikTok',
+              streamingDestinations: [{ platform: 'tiktok', url: 'https://wrong.example/live' }],
+            }),
+            makeEvent({
+              id: 'event-2',
+              platform: 'Facebook',
+              title: 'Sunday Sparkle Session',
+              streamingDestinations: [{ platform: 'facebook', url: 'https://wrong.example/live' }],
+            }),
+            makeEvent({
+              id: 'event-3',
+              title: 'Should not render',
+            }),
+          ],
+          totalCount: 3,
+        }
+      },
+    )
 
     const result = await loadAmethystHomepageUpcomingShows()
 
     expect(createAdminClientMock).toHaveBeenCalledTimes(1)
     expect(listMyShowsMock).toHaveBeenCalledWith(admin, 'rep-1', {
       upcoming: true,
+      status: 'scheduled',
       limit: 2,
     })
     expect(result).toHaveLength(2)
@@ -225,6 +320,7 @@ describe('Amethyst homepage upcoming shows', () => {
     expect(result).toEqual([])
     expect(listMyShowsMock).toHaveBeenCalledWith(admin, 'rep-bling-kitchen', {
       upcoming: true,
+      status: 'scheduled',
       limit: 2,
     })
   })
