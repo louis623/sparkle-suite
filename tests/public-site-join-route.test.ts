@@ -74,6 +74,35 @@ describe('public Join Team route', () => {
     )
   })
 
+  it('canonicalizes a slug join page to the rep custom domain', async () => {
+    getSiteSettingsDashboardMock.mockResolvedValue({
+      joinTeamAccessEnabled: true,
+      showJoinPage: true,
+    })
+    resolveAmethystPreviewRepMock.mockResolvedValue({
+      id: 'rep-1',
+      email: 'rep@example.com',
+      custom_domain: 'www.milehighfizz.com',
+    })
+
+    const response = await GET(
+      new Request('https://www.yoursparklesuite.com/milehighfizz/join'),
+      { params: Promise.resolve({ publicSiteSlug: 'milehighfizz' }) },
+    )
+
+    expect(response.status).toBe(200)
+    expect(renderAmethystPublicAssetResponseMock).toHaveBeenCalledWith(
+      expect.any(Request),
+      ['Join.html'],
+      expect.objectContaining({
+        repIdOverride: 'rep-1',
+        canonicalPathOverride: '/join',
+        canonicalOriginOverride: 'https://milehighfizz.com',
+        publicSiteSlugOverride: 'milehighfizz',
+      }),
+    )
+  })
+
   it('returns not found when the rep hides Join', async () => {
     getSiteSettingsDashboardMock.mockResolvedValue({
       joinTeamAccessEnabled: true,
