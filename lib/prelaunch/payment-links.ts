@@ -84,6 +84,7 @@ interface PaymentLinkRow {
   welcome_email_status: 'not_queued' | 'draft'
   attention_reason: string | null
   returning_rep: boolean | null
+  created_at?: string | null
 }
 
 export function buildPaymentLinkCheckoutParams({
@@ -703,6 +704,20 @@ function isLiveSubscriptionStatus(status: string | null | undefined) {
   return status === 'active' || status === 'trialing'
 }
 
+function isSamePaymentLinkPurchase(
+  link: PaymentLinkRow,
+  rep: { id?: string | null; created_at?: string | null },
+) {
+  if (link.rep_id && rep.id && link.rep_id === rep.id) return true
+  if (!link.created_at || !rep.created_at) return false
+  const linkCreated = Date.parse(link.created_at)
+  const repCreated = Date.parse(rep.created_at)
+  if (!Number.isFinite(linkCreated) || !Number.isFinite(repCreated)) return false
+  // A rep created while fulfilling this link is the same first purchase.
+  // A rep that existed before the link is a returning rep.
+  return repCreated >= linkCreated
+}
+
 export async function fulfillPaidPaymentLink({
   session,
   livemode,
@@ -834,14 +849,17 @@ export async function fulfillPaidPaymentLink({
 
     const { data: existingRep, error: existingRepError } = await admin
       .from('reps')
-      .select('id, auth_user_id, status')
+      .select('id, auth_user_id, status, created_at')
       .ilike('email', escapeIlikeExact(identity.email))
       .maybeSingle()
     if (existingRepError) throw existingRepError
 
     let repId = existingRep?.id as string | undefined
-    let returningRep = link.returning_rep === true
-    if (repId && repId !== link.rep_id) {
+    const samePurchase = Boolean(
+      repId && isSamePaymentLinkPurchase(link, existingRep as { id?: string; created_at?: string | null }),
+    )
+    let returningRep = false
+    if (repId && !samePurchase) {
       const { data: existingSubscription, error: subscriptionLookupError } = await admin
         .from('subscriptions')
         .select('stripe_subscription_id, status')
@@ -872,9 +890,30 @@ export async function fulfillPaidPaymentLink({
         return { created: false, reason: 'duplicate_account' as const, retryable: false as const, repId }
       }
       returningRep = true
-    } else if (!repId) {
+    }
+
+    const customerId =
+      typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
+    const periodItem = subscription.items.data[0]
+    const periodStart = periodItem?.current_period_start ?? subscription.start_date
+    const periodEnd = periodItem?.current_period_end ?? subscription.billing_cycle_anchor
+    let scheduleId: string | null = null
+    if (link.pricing_tier === 'founder' && link.founder_sequence && monthlyPriceId) {
+      scheduleId = await ensureFounderStepUp({
+        stripe,
+        subscription,
+        repId: repId ?? null,
+        founderSequence: link.founder_sequence,
+        founderMonthlyPriceId: monthlyPriceId,
+        periodStart,
+      })
+    }
+
+    const createdShell = !repId
+    if (!repId) {
       const authUserId = await findOrCreateAuthUser(admin, identity.email)
       const businessName = identity.name || identity.email
+      const nowIso = new Date().toISOString()
       const { data: repData, error: repInsertError } = await admin
         .from('reps')
         .insert({
@@ -886,7 +925,7 @@ export async function fulfillPaidPaymentLink({
           phone: null,
           social_handles: {},
           template_id: 'default',
-          status: 'active',
+          status: 'inactive',
           finder_directory_visible: true,
           pricing_tier: link.pricing_tier,
           founder_sequence: link.founder_sequence,
@@ -895,7 +934,6 @@ export async function fulfillPaidPaymentLink({
         .single()
       if (repInsertError) throw repInsertError
       repId = (repData as { id: string }).id
-      const nowIso = new Date().toISOString()
       const { error: siteError } = await admin.from('site_settings').upsert(
         {
           rep_id: repId,
@@ -919,38 +957,42 @@ export async function fulfillPaidPaymentLink({
         { onConflict: 'rep_id' },
       )
       if (onboardingError) throw onboardingError
-      const { error: setupError } = await admin.from('self_serve_setup_sessions').upsert(
+      const { error: pendingSetupError } = await admin.from('self_serve_setup_sessions').upsert(
         {
           rep_id: repId,
-          status: 'dashboard_unlocked',
+          status: 'payment_pending',
           current_step: 'account_basics',
           completed_steps: ['operator_account_provisioned'],
           answers: { displayName: businessName, businessName, email: identity.email },
-          dashboard_unlocked_at: nowIso,
           updated_at: nowIso,
         },
         { onConflict: 'rep_id' },
       )
-      if (setupError) throw setupError
+      if (pendingSetupError) throw pendingSetupError
+      const { error: claimError } = await admin
+        .from('sparkle_suite_payment_links')
+        .update({
+          rep_id: repId,
+          lead_email: identity.email,
+          lead_name: identity.name || null,
+          updated_at: nowIso,
+        })
+        .eq('id', link.id)
+      if (claimError) throw claimError
+      link.rep_id = repId
+      if (scheduleId && link.pricing_tier === 'founder' && link.founder_sequence && monthlyPriceId) {
+        await ensureFounderStepUp({
+          stripe,
+          subscription,
+          repId,
+          founderSequence: link.founder_sequence,
+          founderMonthlyPriceId: monthlyPriceId,
+          periodStart,
+          scheduleId,
+        })
+      }
     }
     if (!repId) throw new Error('The paid checkout did not resolve a rep.')
-
-    const customerId =
-      typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
-    const periodItem = subscription.items.data[0]
-    const periodStart = periodItem?.current_period_start ?? subscription.start_date
-    const periodEnd = periodItem?.current_period_end ?? subscription.billing_cycle_anchor
-    let scheduleId: string | null = null
-    if (link.pricing_tier === 'founder' && link.founder_sequence && monthlyPriceId) {
-      scheduleId = await ensureFounderStepUp({
-        stripe,
-        subscription,
-        repId,
-        founderSequence: link.founder_sequence,
-        founderMonthlyPriceId: monthlyPriceId,
-        periodStart,
-      })
-    }
     const { error: subscriptionError } = await admin.from('subscriptions').upsert(
       {
         rep_id: repId,
@@ -975,6 +1017,24 @@ export async function fulfillPaidPaymentLink({
       { onConflict: 'rep_id' },
     )
     if (subscriptionError) throw subscriptionError
+
+    if (createdShell || samePurchase) {
+      const unlockedAt = new Date().toISOString()
+      const businessName = identity.name || identity.email
+      const { error: setupError } = await admin.from('self_serve_setup_sessions').upsert(
+        {
+          rep_id: repId,
+          status: 'dashboard_unlocked',
+          current_step: 'account_basics',
+          completed_steps: ['operator_account_provisioned'],
+          answers: { displayName: businessName, businessName, email: identity.email },
+          dashboard_unlocked_at: unlockedAt,
+          updated_at: unlockedAt,
+        },
+        { onConflict: 'rep_id' },
+      )
+      if (setupError) throw setupError
+    }
 
     const { error: repUpdateError } = await admin
       .from('reps')
@@ -1113,13 +1173,15 @@ async function ensureFounderStepUp({
   founderSequence,
   founderMonthlyPriceId,
   periodStart,
+  scheduleId,
 }: {
   stripe: ReturnType<typeof getStripe>
   subscription: Awaited<ReturnType<ReturnType<typeof getStripe>['subscriptions']['retrieve']>>
-  repId: string
+  repId: string | null
   founderSequence: number
   founderMonthlyPriceId: string
   periodStart: number
+  scheduleId?: string | null
 }) {
   const priceIds = await resolveSparkleSuitePriceIds({
     secretKey: getStripeConfig()?.STRIPE_SECRET_KEY,
@@ -1130,13 +1192,14 @@ async function ensureFounderStepUp({
     throw new Error('The standard monthly price could not be resolved.')
   }
   const metadata = {
-    rep_id: repId,
+    ...(repId ? { rep_id: repId } : {}),
     pricing_tier: 'founder',
     founder_sequence: String(founderSequence),
     founder_rate_months: String(FOUNDER_RATE_MONTHS),
   }
   const existingScheduleId =
-    typeof subscription.schedule === 'string' ? subscription.schedule : subscription.schedule?.id
+    scheduleId ||
+    (typeof subscription.schedule === 'string' ? subscription.schedule : subscription.schedule?.id)
   // Stripe rejects metadata on the same call as from_subscription.
   const schedule = existingScheduleId
     ? await stripe.subscriptionSchedules.retrieve(existingScheduleId)

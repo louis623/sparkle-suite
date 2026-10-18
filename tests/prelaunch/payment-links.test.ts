@@ -445,7 +445,9 @@ describe('paid payment link fulfillment', () => {
     admin.queue('site_settings', 'upsert', { error: null })
     admin.queue('onboarding_status', 'upsert', { error: null })
     admin.queue('self_serve_setup_sessions', 'upsert', { error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
     admin.queue('subscriptions', 'upsert', { error: null })
+    admin.queue('self_serve_setup_sessions', 'upsert', { error: null })
     admin.queue('reps', 'update', { error: null })
     admin.queue('sparkle_suite_payment_links', 'update', { error: null })
     stripe.checkout.sessions.retrieve.mockResolvedValueOnce(
@@ -482,11 +484,22 @@ describe('paid payment link fulfillment', () => {
       expect.objectContaining({
         email: 'new.rep@example.com',
         display_name: 'New Rep',
-        status: 'active',
+        status: 'inactive',
       }),
     )
+    expect(
+      admin.calls.find((call) => call.table === 'reps' && call.action === 'update')?.payload,
+    ).toEqual(expect.objectContaining({ status: 'active' }))
+    const setupCalls = admin.calls.filter(
+      (call) => call.table === 'self_serve_setup_sessions' && call.action === 'upsert',
+    )
+    expect(setupCalls[0]?.payload).toEqual(expect.objectContaining({ status: 'payment_pending' }))
+    expect(setupCalls[1]?.payload).toEqual(expect.objectContaining({ status: 'dashboard_unlocked' }))
     const paidUpdate = admin.calls.find(
-      (call) => call.table === 'sparkle_suite_payment_links' && call.action === 'update',
+      (call) =>
+        call.table === 'sparkle_suite_payment_links' &&
+        call.action === 'update' &&
+        (call.payload as { status?: string }).status === 'paid',
     )?.payload as { status: string; welcome_email_status: string; lead_email: string; welcome_email_draft: string; returning_rep: boolean }
     expect(paidUpdate.status).toBe('paid')
     expect(paidUpdate.welcome_email_status).toBe('draft')
@@ -517,7 +530,9 @@ describe('paid payment link fulfillment', () => {
     admin.queue('site_settings', 'upsert', { error: null })
     admin.queue('onboarding_status', 'upsert', { error: null })
     admin.queue('self_serve_setup_sessions', 'upsert', { error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
     admin.queue('subscriptions', 'upsert', { error: null })
+    admin.queue('self_serve_setup_sessions', 'upsert', { error: null })
     admin.queue('reps', 'update', { error: null })
     admin.queue('sparkle_suite_payment_links', 'update', { error: null })
     stripe.checkout.sessions.retrieve.mockResolvedValueOnce(paidSession(['price_standard']))
@@ -745,9 +760,17 @@ describe('paid payment link fulfillment', () => {
   it('reactivates a returning rep who has no live subscription', async () => {
     const admin = createAdminDouble()
     const stripe = stripeDouble()
-    admin.queue('sparkle_suite_payment_links', 'select', { data: openLink(), error: null })
+    admin.queue('sparkle_suite_payment_links', 'select', {
+      data: openLink({ created_at: '2026-10-18T12:00:00.000Z' }),
+      error: null,
+    })
     admin.queue('reps', 'select', {
-      data: { id: 'rep-returning', auth_user_id: 'auth-old', status: 'inactive' },
+      data: {
+        id: 'rep-returning',
+        auth_user_id: 'auth-old',
+        status: 'inactive',
+        created_at: '2026-10-01T00:00:00.000Z',
+      },
       error: null,
     })
     admin.queue('subscriptions', 'select', {
@@ -851,6 +874,7 @@ describe('paid payment link fulfillment', () => {
     const stripe = stripeDouble() as ReturnType<typeof stripeDouble> & {
       subscriptionSchedules: {
         create: ReturnType<typeof vi.fn>
+        retrieve: ReturnType<typeof vi.fn>
         update: ReturnType<typeof vi.fn>
       }
       prices: { list: ReturnType<typeof vi.fn> }
@@ -862,6 +886,10 @@ describe('paid payment link fulfillment', () => {
         }
         return { id: 'sched_founder', current_phase: { start_date: 1_700_000_000 } }
       }),
+      retrieve: vi.fn(async (id: string) => ({
+        id,
+        current_phase: { start_date: 1_700_000_000 },
+      })),
       update: vi.fn(async () => ({ id: 'sched_founder' })),
     }
     stripe.prices = {
@@ -881,7 +909,9 @@ describe('paid payment link fulfillment', () => {
     admin.queue('site_settings', 'upsert', { error: null })
     admin.queue('onboarding_status', 'upsert', { error: null })
     admin.queue('self_serve_setup_sessions', 'upsert', { error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
     admin.queue('subscriptions', 'upsert', { error: null })
+    admin.queue('self_serve_setup_sessions', 'upsert', { error: null })
     admin.queue('reps', 'update', { error: null })
     admin.queue('sparkle_suite_payment_links', 'update', { error: null })
   }
@@ -947,10 +977,26 @@ describe('paid payment link fulfillment', () => {
         retryable: false,
       })
       expect(admin.calls.filter((call) => call.table === 'reps' && call.action === 'insert')).toHaveLength(1)
+      expect(admin.calls.find((call) => call.table === 'reps' && call.action === 'insert')?.payload).toEqual(
+        expect.objectContaining({ status: 'inactive' }),
+      )
       expect(stripe.subscriptionSchedules.create).toHaveBeenCalledTimes(1)
       expect(stripe.subscriptionSchedules.create).toHaveBeenCalledWith({
         from_subscription: 'sub_123',
       })
+      expect(stripe.subscriptionSchedules.create.mock.invocationCallOrder[0]).toBeLessThan(
+        admin.auth.admin.createUser.mock.invocationCallOrder[0],
+      )
+      expect(stripe.subscriptionSchedules.update.mock.invocationCallOrder[0]).toBeLessThan(
+        admin.auth.admin.createUser.mock.invocationCallOrder[0],
+      )
+      expect(stripe.subscriptionSchedules.update.mock.calls.at(-1)?.[1]).toEqual(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            rep_id: waived ? 'rep-waived' : 'rep-unwaived',
+          }),
+        }),
+      )
       expect(stripe.subscriptionSchedules.update).toHaveBeenCalledWith(
         'sched_founder',
         expect.objectContaining({
@@ -994,6 +1040,7 @@ describe('paid payment link fulfillment', () => {
       monthly_price_id: 'price_founder',
       lead_email: 'louis+smoke-pf1@neonrabbit.net',
       rep_id: null,
+      created_at: '2026-10-18T12:00:00.000Z',
     })
     const retrievedSession = {
       id: 'cs_123',
@@ -1020,11 +1067,16 @@ describe('paid payment link fulfillment', () => {
     admin.queue('sparkle_suite_payment_links', 'select', { data: attentionLink, error: null })
     admin.queue('sparkle_suite_payment_links', 'select', { data: attentionLink, error: null })
     admin.queue('reps', 'select', {
-      data: { id: 'rep-partial', auth_user_id: 'auth-partial', status: 'active' },
+      data: {
+        id: 'rep-partial',
+        auth_user_id: 'auth-partial',
+        status: 'active',
+        created_at: '2026-10-18T12:05:00.000Z',
+      },
       error: null,
     })
-    admin.queue('subscriptions', 'select', { data: null, error: null })
     admin.queue('subscriptions', 'upsert', { error: null })
+    admin.queue('self_serve_setup_sessions', 'upsert', { error: null })
     admin.queue('reps', 'update', { error: null })
     admin.queue('sparkle_suite_payment_links', 'update', { error: null })
     stripe.checkout.sessions.retrieve
@@ -1043,10 +1095,18 @@ describe('paid payment link fulfillment', () => {
     expect(recovered).toEqual({
       created: true,
       repId: 'rep-partial',
-      returningRep: true,
+      returningRep: false,
       welcomeEmailStatus: 'draft',
       retryable: false,
     })
+    expect(
+      admin.calls.find(
+        (call) =>
+          call.table === 'sparkle_suite_payment_links' &&
+          call.action === 'update' &&
+          (call.payload as { status?: string }).status === 'paid',
+      )?.payload,
+    ).toEqual(expect.objectContaining({ returning_rep: false, rep_id: 'rep-partial' }))
     expect(admin.auth.admin.createUser).not.toHaveBeenCalled()
     expect(admin.calls.filter((call) => call.table === 'reps' && call.action === 'insert')).toHaveLength(0)
     expect(stripe.subscriptionSchedules.create).toHaveBeenCalledWith({
@@ -1070,6 +1130,104 @@ describe('paid payment link fulfillment', () => {
     })
     expect(stripe.checkout.sessions.retrieve).toHaveBeenCalledTimes(2)
     expect(admin.calls.filter((call) => call.table === 'reps' && call.action === 'insert')).toHaveLength(0)
+  })
+
+  it('does not create a login when the founder schedule step fails', async () => {
+    const admin = createAdminDouble()
+    const stripe = founderScheduleStripe()
+    stripe.subscriptionSchedules.create.mockRejectedValueOnce(
+      new Error('You cannot set `metadata` if `from_subscription` is set.'),
+    )
+    admin.queue('sparkle_suite_payment_links', 'select', {
+      data: openLink({
+        build_fee_waived: true,
+        build_fee_price_id: null,
+        pricing_tier: 'founder',
+        founder_sequence: 4,
+        monthly_price_id: 'price_founder',
+      }),
+      error: null,
+    })
+    admin.queue('reps', 'select', { data: null, error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
+    stripe.checkout.sessions.retrieve.mockResolvedValueOnce(paidSession(['price_founder']))
+    stripe.subscriptions.retrieve.mockResolvedValueOnce(activeSubscription('sub_123'))
+
+    await expect(
+      fulfillPaidPaymentLink({
+        session: eventSession(),
+        livemode: false,
+        eventCreated: 1_700_000_000,
+        notifyAttention: vi.fn(),
+        admin: admin as never,
+        stripe: stripe as never,
+      }),
+    ).rejects.toThrow('from_subscription')
+
+    expect(admin.auth.admin.createUser).not.toHaveBeenCalled()
+    expect(admin.calls.some((call) => call.table === 'reps' && call.action === 'insert')).toBe(false)
+    expect(admin.calls.some((call) => call.table === 'subscriptions')).toBe(false)
+    expect(admin.calls.find((call) => call.action === 'update')?.payload).toEqual(
+      expect.objectContaining({ status: 'needs_attention' }),
+    )
+  })
+
+  it('keeps a new rep inactive when fulfillment fails after the schedule', async () => {
+    const admin = createAdminDouble()
+    const stripe = founderScheduleStripe()
+    stripe.subscriptionSchedules.update
+      .mockResolvedValueOnce({ id: 'sched_founder' })
+      .mockRejectedValueOnce(new Error('schedule metadata failed'))
+    admin.queue('sparkle_suite_payment_links', 'select', {
+      data: openLink({
+        build_fee_waived: false,
+        pricing_tier: 'founder',
+        founder_sequence: 4,
+        monthly_price_id: 'price_founder',
+        build_fee_price_id: 'price_build',
+      }),
+      error: null,
+    })
+    admin.queue('reps', 'select', { data: null, error: null })
+    admin.queue('reps', 'insert', { data: { id: 'rep-shell' }, error: null })
+    admin.queue('site_settings', 'upsert', { error: null })
+    admin.queue('onboarding_status', 'upsert', { error: null })
+    admin.queue('self_serve_setup_sessions', 'upsert', { error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
+    stripe.checkout.sessions.retrieve.mockResolvedValueOnce(
+      paidSession(['price_build', 'price_founder']),
+    )
+    stripe.subscriptions.retrieve.mockResolvedValueOnce(activeSubscription('sub_123'))
+    admin.auth.admin.listUsers.mockResolvedValueOnce({ data: { users: [] }, error: null })
+    admin.auth.admin.createUser.mockResolvedValueOnce({
+      data: { user: { id: 'auth-shell' } },
+      error: null,
+    })
+
+    await expect(
+      fulfillPaidPaymentLink({
+        session: eventSession(),
+        livemode: false,
+        eventCreated: 1_700_000_000,
+        notifyAttention: vi.fn(),
+        admin: admin as never,
+        stripe: stripe as never,
+      }),
+    ).rejects.toThrow('schedule metadata failed')
+
+    expect(stripe.subscriptionSchedules.create.mock.invocationCallOrder[0]).toBeLessThan(
+      admin.auth.admin.createUser.mock.invocationCallOrder[0],
+    )
+    expect(admin.calls.find((call) => call.table === 'reps' && call.action === 'insert')?.payload).toEqual(
+      expect.objectContaining({ status: 'inactive' }),
+    )
+    expect(admin.calls.some((call) => call.table === 'reps' && call.action === 'update')).toBe(false)
+    expect(admin.calls.some((call) => call.table === 'subscriptions')).toBe(false)
+    const setupCalls = admin.calls.filter((call) => call.table === 'self_serve_setup_sessions')
+    expect(setupCalls).toHaveLength(1)
+    expect(setupCalls[0]?.payload).toEqual(expect.objectContaining({ status: 'payment_pending' }))
+    expect(JSON.stringify(setupCalls)).not.toContain('dashboard_unlocked')
   })
 
   it('releases the founder slot when the checkout session expires', async () => {
