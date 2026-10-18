@@ -30,7 +30,6 @@ describe('custom-domain customer-site route', () => {
     ['home', ['Homepage.html'], '/'],
     ['trade', ['Trade.html'], '/trade'],
     ['join', ['Join.html'], '/join'],
-    ['in-the-pantry', ['Pantry.html'], '/in-the-pantry'],
   ])('renders %s using the custom-domain canonical path', async (page, asset, canonicalPathOverride) => {
     const request = new Request(`https://brisglowtique.com/customer-site/${page}`)
     const response = await GET(request, { params: Promise.resolve({ page }) })
@@ -48,6 +47,17 @@ describe('custom-domain customer-site route', () => {
     const beacon = buildPublicSiteVisitBeacon({ repId: RESOLVED_REP_ID })
     expect(beacon).toContain('id="sparkle-site-visit"')
     expect(beacon).toContain(RESOLVED_REP_ID)
+  })
+
+  it('404s In the Pantry for a rep who is not BlingKitchen', async () => {
+    const response = await GET(
+      new Request('https://brisglowtique.com/customer-site/in-the-pantry'),
+      { params: Promise.resolve({ page: 'in-the-pantry' }) },
+    )
+
+    expect(response.status).toBe(404)
+    expect(await response.text()).toBe('Not found')
+    expect(renderAmethystPublicAssetResponseMock).not.toHaveBeenCalled()
   })
 
   it('rejects an unknown customer-site page', async () => {

@@ -118,8 +118,10 @@ describe('BlingKitchen Pantry DB recipe loader', () => {
     )
     const script = await response.text()
 
-    expect(script).toContain('"recipeCount":0')
-    expect(script).not.toContain('"title":"Chocolate-Dipped Strawberries"')
-    expect(script).toContain('"pantry":"/othersparkles/in-the-pantry"')
+    expect(response.status).toBe(404)
+    expect(script).toBe('Not found')
+    expect(script).not.toContain('Chocolate-Dipped Strawberries')
+    expect(script).not.toContain('BlingKitchen')
+    expect(script).not.toContain('/othersparkles/in-the-pantry')
   })
 })

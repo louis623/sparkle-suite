@@ -182,7 +182,10 @@ export function proxy(request: NextRequest) {
     return NextResponse.next({ request: { headers } })
   }
 
-  const publicAssetPath = CUSTOMER_SITE_ROUTES[request.nextUrl.pathname]
+  const publicPath = normalizePublicPath(request.nextUrl.pathname)
+  if (publicPath.startsWith('/in-the-pantry/')) return notFoundResponse()
+
+  const publicAssetPath = CUSTOMER_SITE_ROUTES[publicPath]
   if (!publicAssetPath) return NextResponse.next({ request: { headers } })
 
   const url = request.nextUrl.clone()

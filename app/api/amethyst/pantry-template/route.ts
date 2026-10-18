@@ -12,6 +12,10 @@ import {
 import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
 import { resolveAmethystRequestCustomDomainHost } from '@/lib/amethyst/host-routing'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
+import {
+  isBlingKitchenPantryAllowed,
+  pantryNotFoundResponse,
+} from '@/lib/bling-kitchen/pantry-access'
 import { BLING_KITCHEN_PROFILE } from '@/lib/bling-kitchen/profile'
 import { getSiteSettingsDashboard } from '@/lib/services/site-settings'
 import { getPublicSiteRecipes } from '@/lib/services/site-recipes'
@@ -37,6 +41,15 @@ export async function GET(request: Request) {
   const rawRepId = target.repId ?? target.customDomain
   const targeted = target.targeted
   const publicSiteSlug = target.publicSiteSlug
+  if (
+    !isBlingKitchenPantryAllowed({
+      repId: rawRepId,
+      publicSiteSlug,
+      customDomain: requestCustomDomain,
+    })
+  ) {
+    return pantryNotFoundResponse()
+  }
   let repId = rawRepId
   let repEmail: string | null = null
   let visibility: PublicSiteVisibility | undefined

@@ -54,6 +54,18 @@ describe('custom-domain customer site proxy', () => {
     expect(response.headers.get('x-sparkle-customer-domain')).toBeNull()
   })
 
+  it('404s pantry subpaths on a customer domain instead of rewriting them', () => {
+    const response = proxy(
+      new NextRequest('https://brisglowtique.com/in-the-pantry/peach-tea', {
+        headers: { host: 'brisglowtique.com' },
+      }),
+    )
+
+    expect(isRewrite(response)).toBe(false)
+    expect(response.status).toBe(404)
+    expect(response.headers.get('x-robots-tag')).toBe('noindex')
+  })
+
   it('keeps the Suite host /faq page for marketing and preserves rep previews', () => {
     const marketing = proxy(
       new NextRequest('https://www.yoursparklesuite.com/faq', {

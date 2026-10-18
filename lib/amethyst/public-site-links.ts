@@ -1,3 +1,5 @@
+import { isBlingKitchenPantryAllowed } from '@/lib/bling-kitchen/pantry-access'
+
 import type { AmethystHomepageEventCard } from './homepage-upcoming-shows'
 import type { AmethystPreviewTemplateData } from './preview-template-data'
 import { readPublicSiteSlugFromUrl } from './request-rep-target'
@@ -70,13 +72,18 @@ export function applyCustomDomainToTemplateData(
   customDomain: string | null | undefined,
 ): AmethystPreviewTemplateData {
   if (!customDomain?.trim()) return data
+  const pantryPageUrl = isBlingKitchenPantryAllowed({ customDomain })
+    ? data.homepage.pantryPageUrl
+      ? '/in-the-pantry'
+      : undefined
+    : undefined
 
   return {
     ...data,
     homepage: {
       ...data.homepage,
       joinTeamUrl: '/join',
-      pantryPageUrl: data.homepage.pantryPageUrl ? '/in-the-pantry' : undefined,
+      pantryPageUrl,
       footerLinks: {
         ...data.homepage.footerLinks,
         home: '/',
@@ -88,7 +95,7 @@ export function applyCustomDomainToTemplateData(
     },
     trade: {
       ...data.trade,
-      pantryPageUrl: data.trade.pantryPageUrl ? '/in-the-pantry' : undefined,
+      pantryPageUrl,
       footerLinks: {
         ...data.trade.footerLinks,
         home: '/',
@@ -100,7 +107,7 @@ export function applyCustomDomainToTemplateData(
     },
     join: {
       ...data.join,
-      pantryPageUrl: data.join.pantryPageUrl ? '/in-the-pantry' : undefined,
+      pantryPageUrl,
       footerLinks: {
         ...data.join.footerLinks,
         home: '/',

@@ -3,6 +3,10 @@ import {
   resolveCustomerDomainSiteState,
 } from '@/lib/amethyst/customer-domain-site'
 import { renderAmethystPublicAssetResponse } from '@/lib/amethyst/public-asset-response'
+import {
+  isBlingKitchenPantryAllowed,
+  pantryNotFoundResponse,
+} from '@/lib/bling-kitchen/pantry-access'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -38,6 +42,16 @@ export async function GET(
   )
   // A real customer domain never falls back to demo data.
   if (site.kind === 'unavailable') return renderCustomerSiteUnavailableResponse()
+
+  if (
+    page === 'in-the-pantry' &&
+    !(
+      site.kind === 'serve' &&
+      isBlingKitchenPantryAllowed({ repId: site.repId, customDomain: site.host })
+    )
+  ) {
+    return pantryNotFoundResponse()
+  }
 
   return renderAmethystPublicAssetResponse(request, asset, {
     canonicalPathOverride,

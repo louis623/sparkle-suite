@@ -248,34 +248,27 @@ describe('rep pantry robots', () => {
     return { response, html: await response.text() }
   }
 
-  it('noindexes a pantry with no recipes and keeps the page itself unchanged', async () => {
-    recipesMock.mockResolvedValue([])
-    const empty = await pantry('brisglowtique.com')
-    expect(empty.response.status).toBe(200)
-    expect(empty.response.headers.get('x-robots-tag')).toBe('noindex, follow')
-    expect(empty.html).toContain('<meta name="robots" content="noindex, follow" />')
-    expect(empty.html).not.toContain('content="index,follow"')
-    expect(empty.html).toContain('<link rel="canonical" href="https://brisglowtique.com/in-the-pantry"')
-
+  it('returns a real 404 for every rep except BlingKitchen', async () => {
     recipesMock.mockResolvedValue([
       { title: 'Peach tea', description: 'A cold pitcher for show night.' },
     ])
-    const filled = await pantry('brisglowtique.com')
-    expect(filled.response.headers.get('x-robots-tag')).toBeNull()
-    expect(filled.html).toContain('<meta name="robots" content="index,follow" />')
-    expect(filled.html.replace(/<meta name="robots"[^>]*>/, '').replace(/<main class="public-index"[^>]*>[\s\S]*?<\/main>/, ''))
-      .toBe(empty.html.replace(/<meta name="robots"[^>]*>/, '').replace(/<main class="public-index"[^>]*>[\s\S]*?<\/main>/, ''))
+    const other = await pantry('brisglowtique.com')
+    expect(other.response.status).toBe(404)
+    expect(other.response.headers.get('content-type')).toContain('text/plain')
+    expect(other.response.headers.get('x-robots-tag')).toBe('noindex')
+    expect(other.html).toBe('Not found')
+    expect(other.html).not.toContain('Bri')
+    expect(other.html).not.toContain('BlingKitchen')
+    expect(other.html).not.toContain('pantry.jsx')
+    expect(other.html).not.toContain('application/ld+json')
   })
 
-  it('keeps the pantry indexable when recipes cannot be read or the built-in recipe book applies', async () => {
-    recipesMock.mockRejectedValue(new Error('down'))
-    const failed = await pantry('brisglowtique.com')
-    expect(failed.response.headers.get('x-robots-tag')).toBeNull()
-    expect(failed.html).toContain('<meta name="robots" content="index,follow" />')
-
+  it('keeps BlingKitchen pantry indexable', async () => {
     recipesMock.mockResolvedValue([])
     const kitchenPage = await pantry('theblingkitchen.com')
+    expect(kitchenPage.response.status).toBe(200)
     expect(kitchenPage.response.headers.get('x-robots-tag')).toBeNull()
     expect(kitchenPage.html).toContain('<meta name="robots" content="index,follow" />')
+    expect(kitchenPage.html).not.toContain('noindex')
   })
 })
