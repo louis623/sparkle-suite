@@ -121,8 +121,8 @@ describe('Sparkle Suite public landing page', () => {
     const redirects = await nextConfig.redirects?.()
     expect(redirects).toEqual(expect.arrayContaining([
       { source: '/learn', destination: '/', statusCode: 301 },
-      { source: '/demo', destination: '/#watch', statusCode: 301 },
     ]))
+    expect(redirects?.some((redirect) => redirect.source === '/demo')).toBe(false)
     const pageSource = readFileSync(join(process.cwd(), 'app/page.tsx'), 'utf8')
     expect(pageSource).toContain('readLandingFounderAvailability')
     expect(pageSource).toContain('readLandingDemo')

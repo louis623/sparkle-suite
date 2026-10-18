@@ -844,6 +844,27 @@ describe('Amethyst homepage template data wiring', () => {
     ])
   })
 
+  it('blanks stock About placeholders in the targeted homepage payload', () => {
+    const script = buildAmethystHomepageBootstrapScript(
+      {
+        ...defaultAmethystHomepageTemplateData,
+        repName: 'Brittany',
+        aboutParagraphs: [
+          'Brittany will share more about this live reveal community soon.',
+          'Customer details, show style, and favorite reveal notes will appear here after they are added.',
+          'Live show nights in Denver, CO.',
+        ],
+      },
+      [],
+      null,
+      { targeted: true, repId: 'rep-britt' },
+    )
+
+    expect(script).not.toContain('will share more about this live reveal')
+    expect(script).not.toContain('will appear here after they are added')
+    expect(script).toContain('Live show nights in Denver, CO.')
+  })
+
   it('uses reassuring public copy when a Live Lineup has not opened or needs an update', () => {
     const noQueueYet = enrichAmethystHomepageFeatureData(
       defaultAmethystHomepageTemplateData,
@@ -865,7 +886,7 @@ describe('Amethyst homepage template data wiring', () => {
       },
     )
 
-    expect(noQueueYet.liveQueueSummary).toBe('')
+    expect(noQueueYet.liveQueueSummary).toBe('Check the calendar for the next show.')
     expect(noQueueYet.liveQueueSummary).not.toMatch(/waiting|retry/i)
     expect(waitingForUpdate.liveQueueSummary).toBe(
       'Showing the last received lineup. Positions may have changed; checking for updates.',

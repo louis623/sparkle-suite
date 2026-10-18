@@ -107,9 +107,17 @@ export function proxy(request: NextRequest) {
   }
 
   // Suite sales pages stay on yoursparklesuite.com. A rep host should not
-  // publish them.
+  // publish them. This runs before any Suite-only redirect so /demo on a
+  // rep host is a 404, not the Suite /#watch redirect.
   if (onCustomerDomain && isSuiteMarketingPath(request.nextUrl.pathname)) {
     return notFoundResponse()
+  }
+
+  if (!onCustomerDomain && normalizePublicPath(request.nextUrl.pathname) === '/demo') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/'
+    url.hash = 'watch'
+    return NextResponse.redirect(url, 301)
   }
 
   // Every www path on a rep custom domain, including sitemap, robots, assets,

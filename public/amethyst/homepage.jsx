@@ -424,32 +424,8 @@ const LIVE_QUEUE_ENTRIES = CONTENT_LIVE_QUEUE_ENTRIES.length > 0 || RUNTIME_CONT
   ? CONTENT_LIVE_QUEUE_ENTRIES
   : FALLBACK_LIVE_QUEUE_ENTRIES;
 
-function isCurrentHomepageEvent(event, now = Date.now()) {
-  const start = Date.parse(event?.eventTime || "");
-  if (Number.isNaN(start)) return true;
-  const duration = Number(event?.durationMinutes) > 0 ? Number(event.durationMinutes) : 60;
-  return start + duration * 60 * 1000 > now;
-}
-
-function currentHomepageEvents(now = Date.now()) {
-  return HOMEPAGE_EVENT_PAYLOAD.filter((event) => isCurrentHomepageEvent(event, now)).map(
-    (event, index) => ({ ...event, featured: index === 0 }),
-  );
-}
-
-function nextShowIdleNote(now = Date.now()) {
-  const next = currentHomepageEvents(now)[0];
-  if (!next?.eventTime) return "";
-  const event = normalizeHomepageEvent(next);
-  return event?.name && event?.when ? `Next show: ${event.name}, ${event.when}.` : "";
-}
-
-function lineupNote(lineup) {
-  const state = lineup?.liveQueueState;
-  if (state === "live" || state === "delayed" || state === "empty") {
-    return runtimeText(lineup?.liveQueueSummary) || runtimeText(CONTENT.liveQueueSummary) || "";
-  }
-  return nextShowIdleNote();
+function getLiveQueueSummary(fallback) {
+  return runtimeText(CONTENT.liveQueueSummary) || fallback;
 }
 
 function getContentLiveQueueState() {
@@ -1429,7 +1405,7 @@ function Ticker({ topText }) {
         {items.flatMap((item) => item.parts.filter((part) => part.href)).map((part, index) => (
           <a key={`${part.href}-${index}`} {...linkProps(part.href)}>{part.text}</a>
         ))}
-        <p>{lineupNote(lineup)}</p>
+        <p>{lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup opens when the show starts.")}</p>
         <a {...linkProps(getTradeBoardHref())}>{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Browse current dance floor highlights"}</a>
       </div>
       <div className="hp-ticker-row">
@@ -1534,11 +1510,11 @@ function LiveQueueModal({ open, onClose, state }) {
 
         {entries.length > 0 && <LiveLineupStatus />}
         {state === "offline" ? (
-          lineupNote(lineup) ? <div className="hp-queue-modal-empty">{lineupNote(lineup)}</div> : null
+          <div className="hp-queue-modal-empty">{lineup?.liveQueueSummary || getLiveQueueSummary("No show is running right now. Check the calendar for the next scheduled reveal.")}</div>
         ) : state === "loading" ? (
           <div className="hp-queue-modal-empty">Loading lineup…</div>
         ) : state === "empty" || entries.length === 0 ? (
-          lineup?.liveQueueSummary ? <div className="hp-queue-modal-empty">{lineup.liveQueueSummary}</div> : null
+          <div className="hp-queue-modal-empty">{lineup?.liveQueueSummary || getLiveQueueSummary("Live Lineup is ready. Customer names appear here when a live show is connected.")}</div>
         ) : (
           <div className="hp-queue-modal-list" data-lineup-surface="list">
             {entries.map((entry) => (
@@ -1847,8 +1823,6 @@ function getVisibleEventDescription(event) {
 
 function Events({ count }) {
   const [calendarEvent, setCalendarEvent] = useState(null);
-  const events = currentHomepageEvents().slice(0, count);
-  if (events.length === 0) return null;
   return (
     <section className="hp-section" id="events">
       <div className="hp-container">
@@ -1857,8 +1831,8 @@ function Events({ count }) {
           <h2 className="hp-section-title">Mark your calendar. The next two reveals.</h2>
           <p className="hp-section-sub">Times shown in your local timezone. Tap a code to copy it before showtime.</p>
         </div>
-        <div className="hp-event-grid" style={{ gridTemplateColumns: events.length === 1 ? "1fr" : undefined }}>
-          {events.map((rawEvent, i) => { const event = normalizeHomepageEvent(rawEvent); const ev = event;
+        <div className="hp-event-grid" style={{ gridTemplateColumns: count === 1 ? "1fr" : undefined }}>
+          {HOMEPAGE_EVENT_PAYLOAD.slice(0, count).map((rawEvent, i) => { const event = normalizeHomepageEvent(rawEvent); const ev = event;
             const [dateStr, timeStr = ""] = ev.when.split(" - ");
             const visibleDescription = getVisibleEventDescription(event);
             return (
@@ -2034,22 +2008,16 @@ function BlingKitchenRevealGuide({ repName }) {
 // ============================================================
 // About
 // ============================================================
-function isPlaceholderAbout(paragraph) {
-  const normalized = String(paragraph || "").toLowerCase();
-  return (
-    normalized.includes("will share more about this live reveal") ||
-    normalized.includes("will appear here after they are added") ||
-    normalized.includes("share how you got started") ||
-    normalized.includes("nic-nac can rewrite this") ||
-    normalized.includes("add a final paragraph")
-  );
-}
-
 function AboutSection({ repName, hideEmptyMedia = false }) {
-  const aboutParagraphs = Array.isArray(CONTENT.aboutParagraphs) ? CONTENT.aboutParagraphs : [];
-  const visibleAboutParagraphs = aboutParagraphs.filter(
-    (paragraph) => typeof paragraph === "string" && paragraph.trim() && !isPlaceholderAbout(paragraph),
-  );
+  const neutralAbout = [
+    `${repName} will share more about this live reveal community soon.`,
+    "Customer details, show style, and favorite reveal notes will appear here after they are added.",
+    "Live show schedule and updates will stay current from this Sparkle Suite customer site.",
+  ];
+  const aboutParagraphs = Array.isArray(CONTENT.aboutParagraphs)
+    ? CONTENT.aboutParagraphs
+    : neutralAbout;
+  const visibleAboutParagraphs = aboutParagraphs.filter(Boolean);
   const aboutHeadline = CONTENT.aboutHeadline || `Meet ${repName} and the story behind the sparkle.`;
 
   return (

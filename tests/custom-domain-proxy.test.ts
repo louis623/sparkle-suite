@@ -1,8 +1,34 @@
 import { describe, expect, it } from 'vitest'
 import { getRedirectUrl, getRewrittenUrl, isRewrite } from 'next/experimental/testing/server'
 import { NextRequest } from 'next/server'
+import { getPathMatch } from 'next/dist/shared/lib/router/utils/path-match'
 
+import nextConfig from '@/next.config'
 import { config, proxy } from '@/proxy'
+
+type ConfigRedirect = {
+  source: string
+  destination: string
+  statusCode?: number
+  has?: Array<{ type: string; value?: string }>
+}
+
+function configRedirectFor(request: NextRequest, redirects: ConfigRedirect[]) {
+  const host = (request.headers.get('host') ?? '').split(':')[0].toLowerCase()
+  for (const redirect of redirects) {
+    const matched = getPathMatch(redirect.source, { strict: true })(request.nextUrl.pathname)
+    if (!matched) continue
+    const hostRules = (redirect.has ?? []).filter((item) => item.type === 'host')
+    if (
+      hostRules.length > 0 &&
+      !hostRules.some((item) => !item.value || new RegExp(`^(?:${item.value})$`, 'i').test(host))
+    ) {
+      continue
+    }
+    return redirect
+  }
+  return null
+}
 
 describe('custom-domain customer site proxy', () => {
   it.each([
@@ -190,6 +216,43 @@ describe('custom-domain customer site proxy', () => {
     )
     expect(response.status).not.toBe(301)
     expect(isRewrite(response)).toBe(false)
+  })
+
+  it('runs next.config redirects before the proxy, so rep /demo stays a 404', async () => {
+    const redirects = ((await nextConfig.redirects?.()) ?? []) as ConfigRedirect[]
+    const rep = new NextRequest('https://brittwithbling.com/demo', {
+      headers: { host: 'brittwithbling.com' },
+    })
+    const learn = new NextRequest('https://brittwithbling.com/learn', {
+      headers: { host: 'brittwithbling.com' },
+    })
+    const suite = new NextRequest('https://www.yoursparklesuite.com/demo?ref=nav', {
+      headers: { host: 'www.yoursparklesuite.com' },
+    })
+    const apex = new NextRequest('https://yoursparklesuite.com/demo', {
+      headers: { host: 'yoursparklesuite.com' },
+    })
+
+    expect(configRedirectFor(learn, redirects)).toMatchObject({
+      source: '/learn',
+      destination: '/',
+      statusCode: 301,
+    })
+    expect(configRedirectFor(rep, redirects)).toBeNull()
+    expect(configRedirectFor(suite, redirects)).toBeNull()
+
+    const repResponse = proxy(rep)
+    expect(repResponse.status).toBe(404)
+    expect(getRedirectUrl(repResponse)).toBeNull()
+
+    const suiteResponse = proxy(suite)
+    expect(suiteResponse.status).toBe(301)
+    expect(getRedirectUrl(suiteResponse)).toBe(
+      'https://www.yoursparklesuite.com/?ref=nav#watch',
+    )
+    const apexResponse = proxy(apex)
+    expect(apexResponse.status).toBe(301)
+    expect(getRedirectUrl(apexResponse)).toBe('https://yoursparklesuite.com/#watch')
   })
 
   it('returns 404 for Suite marketing pages on a rep host and leaves the Suite host alone', () => {
