@@ -219,11 +219,11 @@ async function ensureFounderStepUpSchedule({
     founder_rate_months: String(founderRateMonths),
   }
   const existingScheduleId = getSubscriptionScheduleId(subscription)
+  // Stripe rejects metadata on the same call as from_subscription.
   const schedule = existingScheduleId
     ? await stripe.subscriptionSchedules.retrieve(existingScheduleId)
     : await stripe.subscriptionSchedules.create({
         from_subscription: subscription.id,
-        metadata,
       })
   const phaseStart = schedule.current_phase?.start_date ?? periodStart
 

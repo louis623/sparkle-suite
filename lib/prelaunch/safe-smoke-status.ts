@@ -22,9 +22,12 @@ interface BuildPrelaunchSafeSmokeStatusInput {
   env?: EnvLike
 }
 
-const STRIPE_TEST_SMOKE_ENV_KEYS = [
+const STRIPE_TEST_REQUIRED_ENV_KEYS = [
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
+] as const
+
+const STRIPE_TEST_PRICE_ENV_KEYS = [
   'STRIPE_PRICE_BUILD_FEE',
   'STRIPE_PRICE_FOUNDER_MONTHLY',
   'STRIPE_PRICE_STANDARD_MONTHLY',
@@ -73,11 +76,15 @@ function buildClientAccountStatus(
 }
 
 function buildStripeTestStatus(env: EnvLike): PrelaunchSafeSmokeStatusItem {
-  const missing = missingEnvKeys(env, STRIPE_TEST_SMOKE_ENV_KEYS)
   const secretKey = env.STRIPE_SECRET_KEY?.trim() ?? ''
   const isTestKey = secretKey.startsWith('sk_test_')
+  const missingRequired = missingEnvKeys(env, STRIPE_TEST_REQUIRED_ENV_KEYS)
+  const missingPrices = missingEnvKeys(env, STRIPE_TEST_PRICE_ENV_KEYS)
+  // A test key resolves the three prices by lookup key, so absent price env
+  // vars are not a block. This panel does not call Stripe.
+  const pricesResolveByLookupKey = isTestKey && missingRequired.length === 0
 
-  if (missing.length === 0 && isTestKey) {
+  if (pricesResolveByLookupKey && missingPrices.length === 0) {
     return {
       key: 'stripe_test',
       label: 'Stripe test mode',
@@ -86,6 +93,17 @@ function buildStripeTestStatus(env: EnvLike): PrelaunchSafeSmokeStatusItem {
     }
   }
 
+  if (pricesResolveByLookupKey) {
+    return {
+      key: 'stripe_test',
+      label: 'Stripe test mode',
+      status: 'ready',
+      detail:
+        'Test key and webhook secret are present. Sparkle Suite prices resolve by lookup key.',
+    }
+  }
+
+  const missing = [...missingRequired, ...missingPrices]
   const issues = [
     missing.length > 0 ? `Missing ${missing.join(', ')}.` : null,
     secretKey && !isTestKey ? 'STRIPE_SECRET_KEY is not a test key.' : null,

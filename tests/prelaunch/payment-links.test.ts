@@ -11,6 +11,7 @@ import {
   fulfillPaidPaymentLink,
   PAYMENT_LINK_MAX_EXPIRY_SECONDS,
   resendOperatorPaymentLink,
+  retryNeedsAttentionPaymentLink,
   verifyPaidSubscriptionCheckout,
 } from '@/lib/prelaunch/payment-links'
 
@@ -844,6 +845,231 @@ describe('paid payment link fulfillment', () => {
       { price: 'price_build_lookup', quantity: 1 },
       { price: 'price_standard_lookup', quantity: 1 },
     ])
+  })
+
+  function founderScheduleStripe() {
+    const stripe = stripeDouble() as ReturnType<typeof stripeDouble> & {
+      subscriptionSchedules: {
+        create: ReturnType<typeof vi.fn>
+        update: ReturnType<typeof vi.fn>
+      }
+      prices: { list: ReturnType<typeof vi.fn> }
+    }
+    stripe.subscriptionSchedules = {
+      create: vi.fn(async (params: { from_subscription?: string; metadata?: unknown }) => {
+        if (params.from_subscription && params.metadata !== undefined) {
+          throw new Error('You cannot set `metadata` if `from_subscription` is set.')
+        }
+        return { id: 'sched_founder', current_phase: { start_date: 1_700_000_000 } }
+      }),
+      update: vi.fn(async () => ({ id: 'sched_founder' })),
+    }
+    stripe.prices = {
+      list: vi.fn(async () => ({
+        data: [
+          { id: 'price_standard_step', lookup_key: 'sparkle_suite_standard_monthly_live' },
+          { id: 'price_standard_step', lookup_key: 'sparkle_suite_launch_demo_standard_monthly_test' },
+        ],
+      })),
+    }
+    return stripe
+  }
+
+  function queueFounderAccount(admin: ReturnType<typeof createAdminDouble>, repId: string) {
+    admin.queue('reps', 'select', { data: null, error: null })
+    admin.queue('reps', 'insert', { data: { id: repId }, error: null })
+    admin.queue('site_settings', 'upsert', { error: null })
+    admin.queue('onboarding_status', 'upsert', { error: null })
+    admin.queue('self_serve_setup_sessions', 'upsert', { error: null })
+    admin.queue('subscriptions', 'upsert', { error: null })
+    admin.queue('reps', 'update', { error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
+  }
+
+  it.each([
+    {
+      title: 'waived founder checkout',
+      waived: true,
+      linePriceIds: ['price_founder'],
+    },
+    {
+      title: 'unwaived founder checkout',
+      waived: false,
+      linePriceIds: ['price_build', 'price_founder'],
+    },
+  ])(
+    'fulfills a $title when Stripe rejects metadata together with from_subscription',
+    async ({ waived, linePriceIds }) => {
+      const admin = createAdminDouble()
+      const stripe = founderScheduleStripe()
+      admin.queue('sparkle_suite_payment_links', 'select', {
+        data: openLink({
+          build_fee_waived: waived,
+          build_fee_price_id: waived ? null : 'price_build',
+          pricing_tier: 'founder',
+          founder_sequence: 4,
+          monthly_price_id: 'price_founder',
+        }),
+        error: null,
+      })
+      queueFounderAccount(admin, waived ? 'rep-waived' : 'rep-unwaived')
+      stripe.checkout.sessions.retrieve.mockResolvedValueOnce(paidSession(linePriceIds))
+      stripe.subscriptions.retrieve.mockResolvedValueOnce(activeSubscription('sub_123'))
+      admin.auth.admin.listUsers.mockResolvedValueOnce({ data: { users: [] }, error: null })
+      admin.auth.admin.createUser.mockResolvedValueOnce({
+        data: { user: { id: waived ? 'auth-waived' : 'auth-unwaived' } },
+        error: null,
+      })
+
+      const result = await fulfillPaidPaymentLink({
+        session: {
+          ...eventSession(),
+          metadata: {
+            sparkle_suite_payment_first: 'true',
+            payment_link_id: 'link-1',
+            monthly_price_id: 'price_founder',
+            build_fee_price_id: waived ? '' : 'price_build',
+          },
+        },
+        livemode: false,
+        eventCreated: 1_700_000_000,
+        origin: 'https://smoke.example',
+        notifyAttention: vi.fn(),
+        admin: admin as never,
+        stripe: stripe as never,
+      })
+
+      expect(result).toEqual({
+        created: true,
+        repId: waived ? 'rep-waived' : 'rep-unwaived',
+        returningRep: false,
+        welcomeEmailStatus: 'draft',
+        retryable: false,
+      })
+      expect(admin.calls.filter((call) => call.table === 'reps' && call.action === 'insert')).toHaveLength(1)
+      expect(stripe.subscriptionSchedules.create).toHaveBeenCalledTimes(1)
+      expect(stripe.subscriptionSchedules.create).toHaveBeenCalledWith({
+        from_subscription: 'sub_123',
+      })
+      expect(stripe.subscriptionSchedules.update).toHaveBeenCalledWith(
+        'sched_founder',
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            pricing_tier: 'founder',
+            founder_sequence: '4',
+          }),
+          phases: [
+            expect.objectContaining({
+              items: [{ price: 'price_founder', quantity: 1 }],
+            }),
+            expect.objectContaining({
+              items: [{ price: expect.any(String), quantity: 1 }],
+              metadata: expect.objectContaining({ pricing_tier: 'standard' }),
+            }),
+          ],
+        }),
+      )
+      expect(
+        admin.calls.find((call) => call.table === 'subscriptions' && call.action === 'upsert')?.payload,
+      ).toEqual(
+        expect.objectContaining({
+          build_fee_charged: !waived,
+          stripe_subscription_schedule_id: 'sched_founder',
+          status: 'active',
+        }),
+      )
+    },
+  )
+
+  it('retries an already-paid needs_attention link without a second account', async () => {
+    const admin = createAdminDouble()
+    const stripe = founderScheduleStripe()
+    const attentionLink = openLink({
+      status: 'needs_attention',
+      attention_reason: 'You cannot set `metadata` if `from_subscription` is set.',
+      build_fee_waived: true,
+      build_fee_price_id: null,
+      pricing_tier: 'founder',
+      founder_sequence: 4,
+      monthly_price_id: 'price_founder',
+      lead_email: 'louis+smoke-pf1@neonrabbit.net',
+      rep_id: null,
+    })
+    const retrievedSession = {
+      id: 'cs_123',
+      mode: 'subscription',
+      payment_status: 'paid',
+      subscription: 'sub_123',
+      livemode: false,
+      created: 1_700_000_000,
+      metadata: {
+        sparkle_suite_payment_first: 'true',
+        payment_link_id: 'link-1',
+        monthly_price_id: 'price_founder',
+        build_fee_price_id: '',
+      },
+      customer_details: {
+        email: 'louis+smoke-pf1@neonrabbit.net',
+        individual_name: 'Smoke Buyer',
+        name: 'Smoke Buyer',
+      },
+      line_items: {
+        data: [{ price: { id: 'price_founder' } }],
+      },
+    }
+    admin.queue('sparkle_suite_payment_links', 'select', { data: attentionLink, error: null })
+    admin.queue('sparkle_suite_payment_links', 'select', { data: attentionLink, error: null })
+    admin.queue('reps', 'select', {
+      data: { id: 'rep-partial', auth_user_id: 'auth-partial', status: 'active' },
+      error: null,
+    })
+    admin.queue('subscriptions', 'select', { data: null, error: null })
+    admin.queue('subscriptions', 'upsert', { error: null })
+    admin.queue('reps', 'update', { error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
+    stripe.checkout.sessions.retrieve
+      .mockResolvedValueOnce(retrievedSession)
+      .mockResolvedValueOnce(retrievedSession)
+    stripe.subscriptions.retrieve.mockResolvedValueOnce(activeSubscription('sub_123'))
+
+    const recovered = await retryNeedsAttentionPaymentLink({
+      paymentLinkId: 'link-1',
+      origin: 'https://smoke.example',
+      notifyAttention: vi.fn(),
+      admin: admin as never,
+      stripe: stripe as never,
+    })
+
+    expect(recovered).toEqual({
+      created: true,
+      repId: 'rep-partial',
+      returningRep: true,
+      welcomeEmailStatus: 'draft',
+      retryable: false,
+    })
+    expect(admin.auth.admin.createUser).not.toHaveBeenCalled()
+    expect(admin.calls.filter((call) => call.table === 'reps' && call.action === 'insert')).toHaveLength(0)
+    expect(stripe.subscriptionSchedules.create).toHaveBeenCalledWith({
+      from_subscription: 'sub_123',
+    })
+
+    admin.queue('sparkle_suite_payment_links', 'select', {
+      data: { ...attentionLink, status: 'paid', rep_id: 'rep-partial' },
+      error: null,
+    })
+    const again = await retryNeedsAttentionPaymentLink({
+      paymentLinkId: 'link-1',
+      admin: admin as never,
+      stripe: stripe as never,
+    })
+    expect(again).toEqual({
+      created: false,
+      reason: 'already_created',
+      retryable: false,
+      repId: 'rep-partial',
+    })
+    expect(stripe.checkout.sessions.retrieve).toHaveBeenCalledTimes(2)
+    expect(admin.calls.filter((call) => call.table === 'reps' && call.action === 'insert')).toHaveLength(0)
   })
 
   it('releases the founder slot when the checkout session expires', async () => {

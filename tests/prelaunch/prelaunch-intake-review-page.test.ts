@@ -1135,6 +1135,9 @@ describe('PrelaunchIntakeReviewPageContent', () => {
 
     expect(html).toContain('Needs attention')
     expect(html).toContain('missing_email')
+    expect(html).toContain('name="retryLinkId"')
+    expect(html).toContain('value="link-attention"')
+    expect(html).toContain('>Retry<')
     expect(html).toContain('returning rep')
     expect(html).toContain('/login?email=returning.rep%40example.com')
   })

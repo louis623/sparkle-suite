@@ -662,9 +662,21 @@ function PaymentLinkPanel({
               </p>
             ) : null}
             {link.status === 'needs_attention' ? (
-              <p className="mt-2 text-xs leading-5 text-amber-800">
-                {link.attentionReason || 'The payment could not be confirmed.'}
-              </p>
+              <>
+                <p className="mt-2 text-xs leading-5 text-amber-800">
+                  {link.attentionReason || 'The payment could not be confirmed.'}
+                </p>
+                <form action="/api/control-center/intake/payment-link" className="mt-3" method="post">
+                  <input name="retryLinkId" type="hidden" value={link.id} />
+                  <input name="returnTo" type="hidden" value={`${basePath}#payment-link`} />
+                  <button
+                    className="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm"
+                    type="submit"
+                  >
+                    Retry
+                  </button>
+                </form>
+              </>
             ) : null}
           </article>
         ))}

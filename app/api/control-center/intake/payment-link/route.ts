@@ -4,6 +4,7 @@ import {
   createOperatorPaymentLink,
   PaymentLinkError,
   resendOperatorPaymentLink,
+  retryNeedsAttentionPaymentLink,
 } from '@/lib/prelaunch/payment-links'
 import type { SparkleSuitePricingTier } from '@/lib/stripe/sparkle-suite-pricing'
 import {
@@ -41,8 +42,19 @@ export async function POST(request: Request) {
     const pricingTier = readTier(form.get('pricingTier'))
     const waiveSetupFee = readBoolean(form.get('waiveSetupFee'))
     const replaceLinkId = readString(form.get('replaceLinkId'))
+    const retryLinkId = readString(form.get('retryLinkId'))
     const returnTo = sanitizeReturnTo(readString(form.get('returnTo')))
     const origin = new URL(request.url).origin
+    if (retryLinkId) {
+      await retryNeedsAttentionPaymentLink({
+        paymentLinkId: retryLinkId,
+        origin,
+      })
+      const redirectUrl = new URL(returnTo, request.url)
+      redirectUrl.searchParams.set('paymentLink', retryLinkId)
+      redirectUrl.hash = 'payment-link'
+      return NextResponse.redirect(redirectUrl, 303)
+    }
     if (!replaceLinkId && !pricingTier) {
       return NextResponse.json(
         { error: 'Choose founder or standard pricing.' },

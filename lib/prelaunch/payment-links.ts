@@ -622,6 +622,75 @@ export async function resendOperatorPaymentLink({
   })
 }
 
+export async function retryNeedsAttentionPaymentLink({
+  paymentLinkId,
+  admin = createAdminClient(),
+  stripe = getStripe(),
+  origin = getAppUrl(),
+  notifyAttention = sendPaymentLinkAttentionAlert,
+}: {
+  paymentLinkId: string
+  admin?: AdminClient
+  stripe?: ReturnType<typeof getStripe>
+  origin?: string
+  notifyAttention?: typeof sendPaymentLinkAttentionAlert
+}) {
+  const { data, error } = await admin
+    .from('sparkle_suite_payment_links')
+    .select('*')
+    .eq('id', paymentLinkId)
+    .maybeSingle()
+  if (error) throw error
+  const link = data as PaymentLinkRow | null
+  if (!link) throw new PaymentLinkError('Payment link was not found.', 404)
+  if (link.status === 'paid' && link.rep_id) {
+    return {
+      created: false as const,
+      reason: 'already_created' as const,
+      retryable: false as const,
+      repId: link.rep_id,
+    }
+  }
+  if (link.status === 'duplicate') {
+    return {
+      created: false as const,
+      reason: 'duplicate_account' as const,
+      retryable: false as const,
+      repId: link.rep_id,
+    }
+  }
+  if (link.status !== 'needs_attention') {
+    throw new PaymentLinkError('Only a payment that needs attention can be retried.', 409)
+  }
+  const sessionId = link.stripe_checkout_session_id
+  if (!sessionId) {
+    throw new PaymentLinkError('This payment has no Checkout session to retry.', 409)
+  }
+
+  const session = await stripe.checkout.sessions.retrieve(sessionId)
+  const result = await fulfillPaidPaymentLink({
+    session: {
+      id: session.id,
+      mode: session.mode,
+      payment_status: session.payment_status,
+      subscription: session.subscription,
+      metadata: session.metadata,
+      customer: session.customer,
+      customer_details: session.customer_details,
+    },
+    livemode: session.livemode,
+    eventCreated: session.created,
+    admin,
+    stripe,
+    origin,
+    notifyAttention,
+  })
+  if ('reason' in result && result.reason === 'not_payment_first') {
+    throw new PaymentLinkError('This Checkout session is not a payment-first link.', 409)
+  }
+  return result
+}
+
 function linePriceIds(session: {
   line_items?: { data?: Array<{ price?: { id?: string } | string | null }> } | null
 }) {
@@ -1068,9 +1137,10 @@ async function ensureFounderStepUp({
   }
   const existingScheduleId =
     typeof subscription.schedule === 'string' ? subscription.schedule : subscription.schedule?.id
+  // Stripe rejects metadata on the same call as from_subscription.
   const schedule = existingScheduleId
     ? await stripe.subscriptionSchedules.retrieve(existingScheduleId)
-    : await stripe.subscriptionSchedules.create({ from_subscription: subscription.id, metadata })
+    : await stripe.subscriptionSchedules.create({ from_subscription: subscription.id })
   const phaseStart = schedule.current_phase?.start_date ?? periodStart
   await stripe.subscriptionSchedules.update(schedule.id, {
     end_behavior: 'release',
