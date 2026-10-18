@@ -78,7 +78,11 @@ describe('FAQ article publication boundary', () => {
     expect(html).not.toContain('aria-current="page"')
     const json = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/)?.[1]
     expect(JSON.parse(json!)).toEqual(articleJsonLd(fixture))
-    expect(articleJsonLd(fixture)).not.toHaveProperty('image')
+    expect(articleJsonLd(fixture).image).toMatchObject({
+      '@type': 'ImageObject',
+      caption: expect.stringContaining('Sparkle Suite'),
+    })
+    expect(JSON.stringify(articleJsonLd(fixture))).not.toMatch(/streetAddress|founder/i)
     expect(articleJsonLd(fixture)).not.toHaveProperty('dateModified')
   })
 

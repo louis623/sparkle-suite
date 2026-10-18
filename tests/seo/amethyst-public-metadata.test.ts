@@ -51,7 +51,7 @@ describe('Amethyst public metadata helpers', () => {
         tag: 'meta',
         name: 'description',
         content:
-          "Browse Jane's Sparkle Party Dance Floor dancers and request fair jewelry trades from live reveal customers.",
+          "Browse dancers on Jane's Sparkle Party Dance Floor and swap dancers from live reveal shows.",
       },
       {
         tag: 'meta',
@@ -82,7 +82,7 @@ describe('Amethyst public metadata helpers', () => {
         tag: 'meta',
         property: 'og:description',
         content:
-          "Browse Jane's Sparkle Party Dance Floor dancers and request fair jewelry trades from live reveal customers.",
+          "Browse dancers on Jane's Sparkle Party Dance Floor and swap dancers from live reveal shows.",
       },
       {
         tag: 'meta',
@@ -108,7 +108,7 @@ describe('Amethyst public metadata helpers', () => {
         tag: 'meta',
         name: 'twitter:description',
         content:
-          "Browse Jane's Sparkle Party Dance Floor dancers and request fair jewelry trades from live reveal customers.",
+          "Browse dancers on Jane's Sparkle Party Dance Floor and swap dancers from live reveal shows.",
       },
       {
         tag: 'meta',

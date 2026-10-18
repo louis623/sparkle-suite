@@ -8,6 +8,18 @@ const {
   TweakColor, TweakText, TweakButton, TweakNumber
 } = window;
 
+function responsiveRepImage(src, options) {
+  if (typeof window.sparkleResponsiveImage === "function") {
+    return window.sparkleResponsiveImage(src, options);
+  }
+  return {
+    src: src || "",
+    alt: options.alt || "",
+    decoding: "async",
+    loading: options.eager ? "eager" : "lazy",
+  };
+}
+
 // ============================================================
 // Default tweak values — wrapped in EDITMODE markers for persistence
 // ============================================================
@@ -1273,10 +1285,12 @@ function AboutPortraitCard({ fallbackCaption }) {
       footer={<figcaption className="hp-customer-media-footer hp-about-media-caption">{slot?.caption || fallbackCaption}</figcaption>}
     >
       <img
-        alt={slot?.caption || fallbackCaption}
+        {...responsiveRepImage(slot.mediaUrl, {
+          alt: slot?.caption || fallbackCaption || "The rep",
+          sizes: "(max-width: 800px) 80vw, 420px",
+          widths: [384, 640, 828],
+        })}
         className="hp-about-portrait-image"
-        loading="lazy"
-        src={slot.mediaUrl}
         style={{
           "--hp-about-portrait-focus-x": `${slot?.portraitFocusX ?? 50}%`,
           "--hp-about-portrait-focus-y": `${slot?.portraitFocusY ?? 20}%`,
@@ -2528,7 +2542,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
       {t.preset === "halloween_pumpkin_cat" ? <Hero t={t} isLive={isLive} liveShow={liveShow} /> : (
       <section className="bwb-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bwb-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-        <img className="bwb-hero-image" src={heroImageUrl} alt="" />
+        <img className="bwb-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "Live jewelry reveals", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />
         <div className="bwb-hero-shade" aria-hidden="true" />
         <div className="bwb-hero-content">
           <p className="bwb-hero-team">{CONTENT.heroEyebrow || "The Virtuous Fizzers"}</p>
@@ -2604,7 +2618,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
           </div>
           {heroImageUrl && (
             <div className="bkf-card">
-              <img src={heroImageUrl} alt="Heather in her kitchen with Bomb Party jewelry on display" />
+              <img {...responsiveRepImage(heroImageUrl, { alt: "Heather in the kitchen with Bomb Party jewelry on display", sizes: "(max-width: 800px) 100vw, 480px", widths: [384, 640, 828, 1200], eager: true })} />
             </div>
           )}
         </div>
@@ -2612,7 +2626,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
       ) : (
       <section className="bk-home-hero" data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} aria-labelledby="bk-home-hero-title">
         {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-        {heroImageUrl && <img className="bk-home-hero-image" src={heroImageUrl} alt="" />}
+        {heroImageUrl && <img className="bk-home-hero-image" {...responsiveRepImage(heroImageUrl, { alt: businessName || "BlingKitchen", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />}
         <div className="bk-home-hero-content">
           <p>{CONTENT.heroEyebrow || "With Heather"}</p>
           <h1 id="bk-home-hero-title">{businessName}</h1>
@@ -2676,20 +2690,7 @@ function App() {
   const contentLiveQueueState = lineup?.liveQueueState || getContentLiveQueueState();
   const effectiveLrqState = contentLiveQueueState || (scheduleIsLive ? t.lrqState : "offline");
 
-  useEffect(() => {
-    if (isBlingKitchenHybrid) {
-      applyTargetedMetadata(
-        "BlingKitchen - Heather Daugherty | Ohio Bomb Party Host | Serving Sparkle from the Heart of the Home",
-        "Shop Bomb Party reveals with Heather Daugherty at BlingKitchen, join the live show, browse Heather's Pantry recipes, and connect with the Ohio BlingKitchen community.",
-      );
-      return;
-    }
-
-    applyTargetedMetadata(
-      `${t.businessName} - Live jewelry reveals`,
-      `Shop live jewelry reveals and updates with ${t.businessName}.`,
-    );
-  }, [t.businessName]);
+  // Targeted pages keep the server title and description.
 
   // Apply tokens to root
   useEffect(() => {

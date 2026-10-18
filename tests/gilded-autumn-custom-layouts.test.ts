@@ -6,10 +6,11 @@ import { describe, expect, it } from 'vitest'
 
 const source=readFileSync('public/amethyst/homepage.jsx','utf8')
 function component(name:string) {
+  const imageHelper=source.slice(source.indexOf('function responsiveRepImage('), source.indexOf('const DEFAULTS'))
   const start=source.indexOf(`function ${name}(`)
   const end=source.indexOf('\nfunction ',start+1)
-  const jsx=source.slice(start,end === -1 ? undefined : end)
-  const context:Record<string,unknown>={React, CONTENT:{footerLinks:{joinTeam:'/join'},pantryPageUrl:'/pantry'}, getHeroWatchLinks:()=>[{id:'tiktok',label:'Watch',href:'/watch'}],getShopHref:()=>'/shop',getTradeBoardHref:()=>'/trade',linkProps:(href:string)=>({href}),isBrittDanceFloorComingSoon:false}
+  const jsx=`${imageHelper}\n${source.slice(start,end === -1 ? undefined : end)}`
+  const context:Record<string,unknown>={React, window:{}, CONTENT:{footerLinks:{joinTeam:'/join'},pantryPageUrl:'/pantry'}, getHeroWatchLinks:()=>[{id:'tiktok',label:'Watch',href:'/watch'}],getShopHref:()=>'/shop',getTradeBoardHref:()=>'/trade',linkProps:(href:string)=>({href}),isBrittDanceFloorComingSoon:false}
   for (const match of jsx.matchAll(/<([A-Z]\w*)[\s/>]/g)) context[match[1]]=()=>null
   const code=transformSync(`${jsx}\nglobalThis.Subject=${name}`,{loader:'jsx',format:'iife'}).code
   runInNewContext(code,context)

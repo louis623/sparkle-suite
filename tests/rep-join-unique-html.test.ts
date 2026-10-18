@@ -16,6 +16,11 @@ import {
 } from '@/lib/amethyst/join-page-index-copy'
 import { renderPublicPageIndexBlock } from '@/lib/amethyst/public-page-index-html'
 import { applyPublicJoinIndex } from '@/lib/amethyst/public-join-index'
+import {
+  mountReplacesJoinServerIndex,
+  productionJoinVisibleCopy,
+  productionJoinVisibleText,
+} from '@/lib/amethyst/join-server-html'
 
 const { loadTemplateMock, resolveSiteMock } = vi.hoisted(() => ({
   loadTemplateMock: vi.fn(),
@@ -100,6 +105,7 @@ describe('rep /join server HTML', () => {
       displayName: 'Lindsey',
       businessName: 'Mile High Fizz',
       teamName: 'Diamond Peak Society',
+      appearancePreset: 'gilded_autumn',
       tickerText: 'Live on Tiktok Tues/Thurs/Sat',
     }),
   )
@@ -272,6 +278,10 @@ describe('rep /join server HTML', () => {
     expect(wordCount(beforeJoin)).toBeLessThan(40)
     expect(wordCount(afterHome)).toBeGreaterThan(40)
     expect(wordCount(afterJoin)).toBeGreaterThan(wordCount(beforeJoin))
+    expect(bodyWordCount(readPublicHtml('Homepage.html'))).toBe(0)
+    expect(bodyWordCount(mileHomeHtml)).toBe(33)
+    expect(bodyWordCount(mileFloorHtml)).toBe(55)
+    expect(bodyWordCount(glowPantryHtml)).toBe(47)
   })
 
   it('keeps the production join heading and intro on a non-skin preset', () => {
@@ -301,6 +311,60 @@ describe('rep /join server HTML', () => {
     expect(indexed.join.heroPitch).not.toContain('Live schedule coming soon')
     expect(indexed.join.indexTitle).not.toContain('Littleton')
   })
+
+  it('puts the production heading, intro, and team details in the initial HTML once', async () => {
+    const response = await GET(
+      new Request('https://brisglowtique.com/customer-site/join'),
+      { params: Promise.resolve({ page: 'join' }) },
+    )
+    const mileResponse = await GET(
+      new Request('https://milehighfizz.com/customer-site/join'),
+      { params: Promise.resolve({ page: 'join' }) },
+    )
+    const html = await response.text()
+    const mileHtml = await mileResponse.text()
+    const copy = productionJoinVisibleCopy(applyPublicJoinIndex(glowtique))
+    const mileCopy = productionJoinVisibleCopy(applyPublicJoinIndex(mileHigh))
+
+    expect(copy.heading).toBe('Join Team Sparkaholics')
+    expect(copy.intro).toBe(
+      'Explore what it takes to join Team Sparkaholics with Brianna, review the current official details, and ask questions before you decide.',
+    )
+    expect(copy.heading).toBe(glowtique.join.heroTitle)
+    expect(copy.intro).toBe(glowtique.join.heroPitch)
+    expect(mileCopy.heading).toBe('Join Diamond Peak Society')
+    expect(mileCopy.intro).toBe(mileHigh.join.heroPitch)
+    expect(mileCopy.cards).toEqual([])
+
+    expect(headingTexts(html)).toEqual([copy.heading])
+    expect(headingTexts(mileHtml)).toEqual([mileCopy.heading])
+    expect(indexText(html)).toBe(productionJoinVisibleText(copy))
+    expect(indexText(mileHtml)).toBe(productionJoinVisibleText(mileCopy))
+    expect(html).toContain("Bri's Glowtique")
+    expect(html).toContain('Wichita, Kansas')
+    expect(html).toContain(
+      'New teammates get a weekly planning call and help preparing a first live show.',
+    )
+    expect(html).toContain('Ask Brianna for current details')
+    expect(html).not.toMatch(/<main id="join-server-index"[^>]*\shidden/)
+    expect(html).toContain('node.hidden=true')
+    expect(html).not.toContain('class="join-index"')
+    expect(html).not.toContain('Live schedule coming soon')
+
+    const mounted = mountReplacesJoinServerIndex(html)
+    expect(mounted).not.toContain('id="join-server-index"')
+    expect(headingTexts(mounted)).toEqual([])
+    expect(productionJoinVisibleText(productionJoinVisibleCopy(glowtique))).toBe(
+      productionJoinVisibleText(copy),
+    )
+    expect(indexText(html)).toBe(
+      productionJoinVisibleText(productionJoinVisibleCopy(glowtique)),
+    )
+
+    expect(bodyWordCount(readPublicHtml('Join.html'))).toBe(0)
+    expect(bodyWordCount(html)).toBe(96)
+    expect(bodyWordCount(mileHtml)).toBe(26)
+  })
 })
 
 function readPublicHtml(fileName: string) {
@@ -325,6 +389,38 @@ function serverText(html: string) {
 
 function wordCount(value: string) {
   return value.split(/\s+/).filter(Boolean).length
+}
+
+function decodeText(value: string) {
+  return value
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function bodyHtml(html: string) {
+  const withoutCode = html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+  return withoutCode.split(/<body[^>]*>/i)[1]?.split(/<\/body>/i)[0] ?? ''
+}
+
+function headingTexts(html: string) {
+  return [...bodyHtml(html).matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)].map((match) =>
+    decodeText(match[1].replace(/<[^>]+>/g, ' ')),
+  )
+}
+
+function indexText(html: string) {
+  const block = bodyHtml(html).match(/<main id="join-server-index">[\s\S]*?<\/main>/)?.[0] ?? ''
+  return decodeText(block.replace(/<[^>]+>/g, ' '))
+}
+
+function bodyWordCount(html: string) {
+  const text = decodeText(bodyHtml(html).replace(/<[^>]+>/g, ' '))
+  return text ? text.split(/\s+/).filter(Boolean).length : 0
 }
 
 describe('public page index copy', () => {

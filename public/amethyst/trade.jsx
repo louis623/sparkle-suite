@@ -7,6 +7,18 @@ const {
   TweakColor, TweakText
 } = window;
 
+function responsiveRepImage(src, options) {
+  if (typeof window.sparkleResponsiveImage === "function") {
+    return window.sparkleResponsiveImage(src, options);
+  }
+  return {
+    src: src || "",
+    alt: options.alt || "",
+    decoding: "async",
+    loading: options.eager ? "eager" : "lazy",
+  };
+}
+
 const DEFAULTS = window.TRADE_TWEAK_DEFAULTS || {
   repName: "Sasha",
   businessName: "Sparkle by Sasha",
@@ -1462,7 +1474,7 @@ function TradeCard({ piece, onTap, tierVisible }) {
           </span>
         )}
         {piece.photoUrl ? (
-          <img className="tp-card-photo-img" src={piece.photoUrl} alt={piece.name} loading="lazy" decoding="async" />
+          <img className="tp-card-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 700px) 46vw, 280px", widths: [256, 384, 640] })} loading="lazy" decoding="async" />
         ) : (
           <div className="photo-glyph">{piece.glyph}</div>
         )}
@@ -1538,7 +1550,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
         <button type="button" className="tp-card-close" onClick={onClose} aria-label="Close">&times;</button>
         <div className={`tp-card-expand-photo slot ${piece.photoUrl ? "has-photo" : ""}`} data-slot="jewelry photo">
           {piece.photoUrl ? (
-            <img className="tp-card-expand-photo-img" src={piece.photoUrl} alt={piece.name} loading="lazy" decoding="async" />
+            <img className="tp-card-expand-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 800px) 92vw, 640px", widths: [384, 640, 828, 1200], eager: true })} />
           ) : (
             <div className="photo-glyph">{piece.glyph}</div>
           )}
@@ -2084,13 +2096,6 @@ function App() {
   const [secondaryFiltersOpen, setSecondaryFiltersOpen] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
   const repName = publicRepName(t.repName);
-
-  useEffect(() => {
-    applyTargetedMetadata(
-      `${t.businessName} - Dance Floor`,
-      `Browse available dancers from ${t.businessName}'s Dance Floor.`,
-    );
-  }, [t.businessName]);
 
   const bootstrappedListings = useMemo(
     () => liveListings.map(normalizeBootstrapPiece).filter(Boolean),

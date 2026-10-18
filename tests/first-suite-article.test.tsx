@@ -19,7 +19,13 @@ describe('owner-supplied first public FAQ article', () => {
   it('matches the pinned source blob and exact public copy without editorial sections', () => {
     const bytes = Buffer.from(source)
     expect(createHash('sha1').update(Buffer.from(`blob ${bytes.length}\0`)).update(bytes).digest('hex')).toBe(provenance.blob)
-    expect(bodyCopy).toBe(source.split('\n---\n')[1].trim())
+    const approvedCopy = source.split('\n---\n')[1].trim()
+      .replace('What’s available to trade or browse?', 'Which dancers can I browse or swap?')
+      .replace(
+        '**Dance Floor** gives shoppers a place to browse pieces and send trade requests. You still make the final call.',
+        '**Dance Floor** gives shoppers a place to browse dancers and swap dancers. You still make the final call.',
+      )
+    expect(bodyCopy).toBe(approvedCopy)
     expect(article.title).toBe(source.split('\n')[0].slice(2))
     expect(article.description).toBe(source.match(/\*\*Meta description \(~155 chars\)\*\*\n([^\n]+)/)![1])
     expect(bodyCopy).not.toMatch(/Suggested meta|Status:|Voice:|Placement idea:|Research:|SEO\/AEO note:|\$\d|referral/i)
@@ -36,7 +42,7 @@ describe('owner-supplied first public FAQ article', () => {
     expect(html).toContain('Email and SMS updates for customers are coming soon. They’re not live yet.')
     expect(html).not.toContain('Voice: Louis')
     expect(html).not.toContain('Suggested meta')
-    expect(html).not.toContain('By Louis')
+    expect(html).toContain('Louis Chapman')
     expect(html).not.toContain('<time')
   })
 
@@ -50,7 +56,7 @@ describe('owner-supplied first public FAQ article', () => {
     expect(articleMetadata(article).description).toBe(article.description)
     const schema = articleJsonLd(article)
     expect(schema).toMatchObject({ '@type': 'BlogPosting', headline: article.title, mainEntityOfPage: articleUrl(article), url: articleUrl(article) })
-    expect(schema).not.toHaveProperty('author')
+    expect(schema.author).toMatchObject({ '@type': 'Person', name: 'Louis Chapman' })
     expect(schema).not.toHaveProperty('datePublished')
     expect(schema).not.toHaveProperty('dateModified')
     const entries = articleSitemapEntries('https://www.yoursparklesuite.com')

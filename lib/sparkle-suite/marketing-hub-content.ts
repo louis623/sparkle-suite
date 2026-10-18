@@ -58,7 +58,7 @@ export const sparkleSuiteMarketingHubContent = {
     links: [
       sparkleSuitePublicLandingContent.hero.primaryCta,
       { label: 'Portfolio', href: '/portfolio' },
-      { label: 'Demo', href: '/demo' },
+      { label: 'Watch', href: '/#watch' },
       { label: 'FAQ', href: '/faq' },
     ],
   },

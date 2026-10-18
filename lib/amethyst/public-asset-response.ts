@@ -5,6 +5,7 @@ import {
   type AmethystPublicMetaTag,
   type AmethystPublicPage,
   buildAmethystPublicMetadata,
+  buildRepPublicPageText,
 } from '@/lib/seo/amethyst-public-metadata'
 import {
   buildAmethystPublicPageJsonLd,
@@ -26,6 +27,7 @@ import {
   injectPublicPageIndexDocument,
   type PublicIndexRecipe,
 } from '@/lib/amethyst/public-page-index-html'
+import { injectJoinServerIndex } from '@/lib/amethyst/join-server-html'
 
 interface RenderAmethystPublicAssetResponseOptions {
   repIdOverride?: string | null
@@ -178,67 +180,14 @@ function buildTargetedPageText(
       description: templateData.join.indexDescription,
     }
   }
-  const isBlingKitchen =
-    templateData.homepage.publicSiteVariant === 'bling_kitchen_hybrid'
-
-  if (isBlingKitchen) {
-    if (page === 'trade') {
-      return {
-        title: 'BlingKitchen Dance Floor - Heather Daugherty',
-        description:
-          "Browse Heather's BlingKitchen dance floor for live-show jewelry swaps.",
-      }
-    }
-
-    if (page === 'join') {
-      return {
-        title: "Join Heather's BlingKitchen Team - Opal Sparkling Gems",
-        description:
-          "Learn about Heather Daugherty's Opal Sparkling Gems team, review official enrollment details, and ask what support is currently available.",
-      }
-    }
-
-    if (page === 'pantry') {
-      return {
-        title: "In the Pantry - Heather's BlingKitchen Recipes",
-        description:
-          "Browse Heather's BlingKitchen recipes, kitchen notes, TikTok favorites, and live-show community treats.",
-      }
-    }
-
-    return {
-      title:
-        'BlingKitchen - Heather Daugherty | Ohio Bomb Party Host | Serving Sparkle from the Heart of the Home',
-      description:
-        "Shop Bomb Party reveals with Heather Daugherty at BlingKitchen, join the live show, browse Heather's Pantry recipes, and connect with the Ohio BlingKitchen community.",
-    }
-  }
-
-  if (page === 'trade') {
-    return {
-      title: `${businessName} - Dance Floor`,
-      description: `Browse available dancers from ${businessName}.`,
-    }
-  }
-
-  if (page === 'join') {
-    return {
-      title: `Join ${teamName}`,
-      description: `Learn how to join ${teamName} with ${repName}.`,
-    }
-  }
-
-  if (page === 'pantry') {
-    return {
-      title: `In the Pantry - ${businessName}`,
-      description: `Browse Heather's BlingKitchen recipes, kitchen notes, and live-show community favorites.`,
-    }
-  }
-
-  return {
-    title: `${businessName} - Live jewelry reveals`,
-    description: `Shop live jewelry reveals and updates with ${businessName}.`,
-  }
+  return buildRepPublicPageText({
+    page,
+    businessName,
+    repName,
+    teamName,
+    city: templateData.join.repCity,
+    state: templateData.join.repState,
+  })
 }
 
 export const buildTargetedAmethystPublicPageTextForTest = buildTargetedPageText
@@ -439,6 +388,7 @@ function injectPublicPageBody(
   if (page === 'homepage' || page === 'trade' || page === 'pantry') {
     return injectPublicPageIndexDocument(html, page, templateData, pantryRecipes)
   }
+  if (page === 'join') return injectJoinServerIndex(html, templateData)
 
   return html
 }

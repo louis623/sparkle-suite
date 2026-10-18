@@ -1,8 +1,34 @@
 import { describe, expect, it } from 'vitest'
 import { getRedirectUrl, getRewrittenUrl, isRewrite } from 'next/experimental/testing/server'
 import { NextRequest } from 'next/server'
+import { getPathMatch } from 'next/dist/shared/lib/router/utils/path-match'
 
+import nextConfig from '@/next.config'
 import { config, proxy } from '@/proxy'
+
+type ConfigRedirect = {
+  source: string
+  destination: string
+  statusCode?: number
+  has?: Array<{ type: string; value?: string }>
+}
+
+function configRedirectFor(request: NextRequest, redirects: ConfigRedirect[]) {
+  const host = (request.headers.get('host') ?? '').split(':')[0].toLowerCase()
+  for (const redirect of redirects) {
+    const matched = getPathMatch(redirect.source, { strict: true })(request.nextUrl.pathname)
+    if (!matched) continue
+    const hostRules = (redirect.has ?? []).filter((item) => item.type === 'host')
+    if (
+      hostRules.length > 0 &&
+      !hostRules.some((item) => !item.value || new RegExp(`^(?:${item.value})$`, 'i').test(host))
+    ) {
+      continue
+    }
+    return redirect
+  }
+  return null
+}
 
 describe('custom-domain customer site proxy', () => {
   it.each([
@@ -161,6 +187,92 @@ describe('custom-domain customer site proxy', () => {
     expect(expression.test('/')).toBe(true)
     expect(expression.test('/_next/static/chunk.js')).toBe(false)
     expect(expression.test('/_next/image')).toBe(false)
+  })
+
+  it('301s Britt legacy URLs to the closest current page on the apex', () => {
+    const cases = [
+      ['/about', 'https://brittwithbling.com/?ref=search#about'],
+      ['/diamonds-unicorns/', 'https://brittwithbling.com/?ref=search#wibp'],
+      ['/join-team', 'https://brittwithbling.com/join?ref=search'],
+      ['/embed', 'https://brittwithbling.com/?ref=search'],
+    ] as const
+
+    for (const [path, destination] of cases) {
+      const response = proxy(
+        new NextRequest(`https://www.brittwithbling.com${path}?ref=search`, {
+          headers: { host: 'www.brittwithbling.com' },
+        }),
+      )
+      expect(response.status).toBe(301)
+      expect(getRedirectUrl(response)).toBe(destination)
+    }
+  })
+
+  it('keeps Britt legacy paths off other rep hosts', () => {
+    const response = proxy(
+      new NextRequest('https://milehighfizz.com/about', {
+        headers: { host: 'milehighfizz.com' },
+      }),
+    )
+    expect(response.status).not.toBe(301)
+    expect(isRewrite(response)).toBe(false)
+  })
+
+  it('runs next.config redirects before the proxy, so rep /demo stays a 404', async () => {
+    const redirects = ((await nextConfig.redirects?.()) ?? []) as ConfigRedirect[]
+    const rep = new NextRequest('https://brittwithbling.com/demo', {
+      headers: { host: 'brittwithbling.com' },
+    })
+    const learn = new NextRequest('https://brittwithbling.com/learn', {
+      headers: { host: 'brittwithbling.com' },
+    })
+    const suite = new NextRequest('https://www.yoursparklesuite.com/demo?ref=nav', {
+      headers: { host: 'www.yoursparklesuite.com' },
+    })
+    const apex = new NextRequest('https://yoursparklesuite.com/demo', {
+      headers: { host: 'yoursparklesuite.com' },
+    })
+
+    expect(configRedirectFor(learn, redirects)).toMatchObject({
+      source: '/learn',
+      destination: '/',
+      statusCode: 301,
+    })
+    expect(configRedirectFor(rep, redirects)).toBeNull()
+    expect(configRedirectFor(suite, redirects)).toBeNull()
+
+    const repResponse = proxy(rep)
+    expect(repResponse.status).toBe(404)
+    expect(getRedirectUrl(repResponse)).toBeNull()
+
+    const suiteResponse = proxy(suite)
+    expect(suiteResponse.status).toBe(301)
+    expect(getRedirectUrl(suiteResponse)).toBe(
+      'https://www.yoursparklesuite.com/?ref=nav#watch',
+    )
+    const apexResponse = proxy(apex)
+    expect(apexResponse.status).toBe(301)
+    expect(getRedirectUrl(apexResponse)).toBe('https://yoursparklesuite.com/#watch')
+  })
+
+  it('returns 404 for Suite marketing pages on a rep host and leaves the Suite host alone', () => {
+    for (const path of ['/portfolio', '/tools', '/prelaunch/intake', '/adventure', '/demo']) {
+      const rep = proxy(
+        new NextRequest(`https://brittwithbling.com${path}`, {
+          headers: { host: 'brittwithbling.com' },
+        }),
+      )
+      expect(rep.status).toBe(404)
+      expect(isRewrite(rep)).toBe(false)
+
+      const suite = proxy(
+        new NextRequest(`https://www.yoursparklesuite.com${path}`, {
+          headers: { host: 'www.yoursparklesuite.com' },
+        }),
+      )
+      expect(suite.status).not.toBe(404)
+      expect(isRewrite(suite)).toBe(false)
+    }
   })
 
   it('leaves non-customer-site routes and Amethyst assets alone on the apex', () => {

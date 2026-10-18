@@ -1,6 +1,23 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [128, 256, 384],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'bqhzfkgkjyuhlsozpylf.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pukemqiwlyqmyytxkdmo.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
   serverExternalPackages: ['@resvg/resvg-js'],
   outputFileTracingIncludes: {
     // Server-rendered email shells read with readFileSync (official notice + Weekly Fizz).
@@ -20,7 +37,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: '/learn', destination: '/', statusCode: 301 },
-      { source: '/demo', destination: '/#watch', statusCode: 301 },
+      // /demo -> /#watch lives in proxy.ts. A config redirect runs before the
+      // proxy and would send rep hosts to the Suite watch section.
     ]
   },
   async headers() {

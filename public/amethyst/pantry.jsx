@@ -98,6 +98,18 @@ function getRecipeImage(recipe) {
   return recipe.modalImage || recipe.image || CONTENT.heroImageUrl;
 }
 
+function pantryImage(src, options) {
+  if (typeof window.sparkleResponsiveImage === "function") {
+    return window.sparkleResponsiveImage(src, options);
+  }
+  return {
+    src: src || "",
+    alt: options.alt || "",
+    decoding: "async",
+    loading: options.eager ? "eager" : "lazy",
+  };
+}
+
 function getVideoId(tiktokUrl) {
   const match = String(tiktokUrl || "").match(/(?:\/video\/|\/player\/v1\/)(\d+)/);
   return match ? match[1] : "";
@@ -179,7 +191,7 @@ function RecipeModal({ recipe, onClose }) {
       <div className="bk-modal" role="dialog" aria-modal="true" aria-labelledby="bk-modal-title" onClick={(event) => event.stopPropagation()}>
         <button type="button" className="bk-modal-close" aria-label="Close recipe" onClick={onClose}>x</button>
         <div className="bk-modal-hero">
-          <img src={getRecipeImage(recipe)} alt="" style={{ objectPosition: recipe.modalImagePosition || recipe.imagePosition || "center" }} />
+          <img {...pantryImage(getRecipeImage(recipe), { alt: recipe.title || "Recipe photo", sizes: "(max-width: 900px) 100vw, 800px", widths: [640, 828, 1200], eager: true })} style={{ objectPosition: recipe.modalImagePosition || recipe.imagePosition || "center" }} />
         </div>
         <div className="bk-modal-body">
           <p className="bk-recipe-category">{recipe.category}</p>
@@ -224,7 +236,7 @@ function RecipeCard({ recipe, onOpen }) {
   return (
     <article className="bk-recipe-card">
       <button type="button" className="bk-recipe-media" onClick={() => onOpen(recipe)} aria-label={`Open ${recipe.title}`}>
-        <img src={recipe.image || CONTENT.heroImageUrl} alt="" style={{ objectPosition: recipe.imagePosition || "center" }} />
+        <img {...pantryImage(recipe.image || CONTENT.heroImageUrl, { alt: recipe.title || "Recipe photo", sizes: "(max-width: 620px) calc(100vw - 32px), (max-width: 900px) 46vw, 380px", widths: [384, 640, 828] })} style={{ objectPosition: recipe.imagePosition || "center" }} />
       </button>
       <div className="bk-recipe-body">
         <p className="bk-recipe-category">{recipe.category}</p>
@@ -312,7 +324,7 @@ function PantryPage() {
       </header>
 
       <section className="bk-hero">
-        <img src={CONTENT.heroImageUrl} alt="" />
+        <img {...pantryImage(CONTENT.heroImageUrl, { alt: CONTENT.title || "In the Pantry", sizes: "100vw", widths: [640, 828, 1200, 1920], eager: true })} />
         <div className="bk-hero-copy">
           <p>{CONTENT.eyebrow || "Recipes with Heather"}</p>
           <h1>{CONTENT.title || "In the Pantry"}</h1>

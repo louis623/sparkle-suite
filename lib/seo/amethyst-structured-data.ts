@@ -44,20 +44,42 @@ function compactStrings(values: string[] | undefined): string[] {
   return (values ?? []).map((value) => value.trim()).filter(Boolean)
 }
 
+function publishedLocation(repCity: string | undefined, repState: string | undefined) {
+  const location = publicLocationParts(repCity, repState)
+  if (!location.city && !location.state) return undefined
+  return location
+}
+
+/**
+ * City and state only. Street addresses are never published.
+ * Callers pass location only when the public Join template already shows it.
+ */
+function buildPostalAddress(
+  repCity: string | undefined,
+  repState: string | undefined,
+): JsonLdObject | undefined {
+  const location = publishedLocation(repCity, repState)
+  if (!location) return undefined
+
+  return {
+    '@type': 'PostalAddress',
+    ...(location.city ? { addressLocality: location.city } : {}),
+    ...(location.state ? { addressRegion: location.state } : {}),
+    addressCountry: 'US',
+  }
+}
+
 function buildAreaServed(
   repCity: string | undefined,
   repState: string | undefined,
 ): JsonLdObject | undefined {
-  const location = publicLocationParts(repCity, repState)
-  const city = location.city
-  const state = location.state
-
-  if (!city && !state) return undefined
+  const location = publishedLocation(repCity, repState)
+  if (!location) return undefined
 
   return {
     '@type': 'AdministrativeArea',
-    ...(city ? { addressLocality: city } : {}),
-    ...(state ? { addressRegion: state } : {}),
+    ...(location.city ? { addressLocality: location.city } : {}),
+    ...(location.state ? { addressRegion: location.state } : {}),
     addressCountry: 'US',
   }
 }
@@ -100,6 +122,7 @@ export function buildAmethystPublicPageJsonLd(
   const repId = `${origin}/#rep`
   const repName = getPublicRepName(input.repName)
   const areaServed = buildAreaServed(input.repCity, input.repState)
+  const address = buildPostalAddress(input.repCity, input.repState)
   const sameAs = compactStrings(input.sameAs)
 
   const graph: JsonLdObject[] = [
@@ -126,7 +149,7 @@ export function buildAmethystPublicPageJsonLd(
       '@id': repId,
       name: repName,
       ...(sameAs.length ? { sameAs } : {}),
-      ...(areaServed ? { address: areaServed } : {}),
+      ...(address ? { address } : {}),
     },
     {
       '@type': 'LocalBusiness',
@@ -134,6 +157,7 @@ export function buildAmethystPublicPageJsonLd(
       name: input.businessName,
       url: origin,
       ...(input.shopUrl ? { hasOfferCatalog: { url: input.shopUrl } } : {}),
+      ...(address ? { address } : {}),
       ...(areaServed ? { areaServed } : {}),
       founder: {
         '@id': repId,

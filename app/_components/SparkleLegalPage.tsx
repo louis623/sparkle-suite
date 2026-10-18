@@ -3,10 +3,10 @@ import { MarketingHeader, MarketingFooter } from './landing-experience'
 
 function getPlainEnglishSummary(document: LegalDocument) {
   if (document.pageTitle === 'Privacy Policy') {
-    return 'Sparkle Suite uses the information needed to run representative websites, Live Queue display, forms, messages, and support. Neon Rabbit Digital Services does not sell personal information or SMS opt-in data.'
+    return 'Sparkle Suite uses the information needed to run representative websites, Live Lineup display, forms, messages, and support. Neon Rabbit Digital Services does not sell personal information or SMS opt-in data.'
   }
 
-  return 'Sparkle Suite is software and website support from Neon Rabbit Digital Services. These terms explain how the website system, Live Queue extension, representative pages, messages, payments, and support are used.'
+  return 'Sparkle Suite is software and website support from Neon Rabbit Digital Services. These terms explain how the website system, Live Lineup extension, representative pages, messages, payments, and support are used.'
 }
 
 function withReturnTo(href: string, returnTo: string | undefined) {

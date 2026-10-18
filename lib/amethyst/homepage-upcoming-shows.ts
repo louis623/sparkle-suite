@@ -236,6 +236,124 @@ function normalizeEventTitle(event: CalendarEvent) {
   return 'Upcoming live reveal'
 }
 
+const PUBLIC_SHOW_TIME_ZONE = 'America/New_York'
+
+export function resolvePublicShowTimeZone(timeZone: string | null | undefined) {
+  const candidate = timeZone?.trim() || PUBLIC_SHOW_TIME_ZONE
+  try {
+    Intl.DateTimeFormat('en-US', { timeZone: candidate }).format(0)
+    return candidate
+  } catch {
+    return PUBLIC_SHOW_TIME_ZONE
+  }
+}
+
+function zonedWallClockToUtcMs(
+  parts: { year: number; month: number; day: number; hour: number; minute: number; second: number },
+  timeZone: string,
+) {
+  const utcGuess = Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    parts.second,
+  )
+  const formatted = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date(utcGuess))
+  const observed = Object.fromEntries(formatted.map((part) => [part.type, part.value]))
+  const observedAsUtc = Date.UTC(
+    Number(observed.year),
+    Number(observed.month) - 1,
+    Number(observed.day),
+    Number(observed.hour),
+    Number(observed.minute),
+    Number(observed.second),
+  )
+  return utcGuess - (observedAsUtc - utcGuess)
+}
+
+export function publicShowStartMs(
+  eventTime: string | null | undefined,
+  timeZone: string | null | undefined,
+) {
+  const value = eventTime?.trim()
+  if (!value) return null
+  if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)) {
+    const parsed = Date.parse(value)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/)
+  if (!match) {
+    const parsed = Date.parse(value)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+
+  return zonedWallClockToUtcMs(
+    {
+      year: Number(match[1]),
+      month: Number(match[2]),
+      day: Number(match[3]),
+      hour: Number(match[4]),
+      minute: Number(match[5]),
+      second: Number(match[6] ?? 0),
+    },
+    resolvePublicShowTimeZone(timeZone),
+  )
+}
+
+export function publicShowEndMs(event: {
+  eventTime: string
+  timeZone?: string | null
+  durationMinutes?: number | null
+}) {
+  const start = publicShowStartMs(event.eventTime, event.timeZone)
+  if (start == null) return null
+  const duration = Number(event.durationMinutes) > 0 ? Number(event.durationMinutes) : 60
+  return start + duration * 60 * 1000
+}
+
+/** A public show stays on the homepage and llms.txt until its end time. */
+export function isCurrentPublicShow(
+  event: {
+    eventTime: string
+    timeZone?: string | null
+    durationMinutes?: number | null
+  },
+  now = Date.now(),
+) {
+  const end = publicShowEndMs(event)
+  return end != null && end > now
+}
+
+export function formatPublicShowTime(
+  eventTime: string,
+  timeZone: string | null | undefined,
+) {
+  const zone = resolvePublicShowTimeZone(timeZone)
+  const start = publicShowStartMs(eventTime, zone)
+  if (start == null) return eventTime
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: zone,
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  }).format(new Date(start))
+}
+
 export function mapCalendarEventToHomepageEvent(
   event: CalendarEvent,
   index: number,
@@ -305,18 +423,42 @@ export async function loadAmethystHomepageUpcomingShows(
       return targeted ? [] : defaultAmethystHomepageEvents
     }
 
-    const result = await listMyShows(admin as never, rep.id as string, {
-      upcoming: true,
-      limit,
-    })
+    // `listMyShows` returns every `live` row, including ones that already
+    // ended, ahead of future `scheduled` rows. Read the two statuses apart
+    // so a past show left on live cannot hide the next scheduled show.
+    const [liveResult, scheduledResult] = await Promise.all([
+      listMyShows(admin as never, rep.id as string, {
+        upcoming: false,
+        status: 'live',
+        limit: 12,
+      }),
+      listMyShows(admin as never, rep.id as string, {
+        upcoming: true,
+        status: 'scheduled',
+        limit,
+      }),
+    ])
 
-    if (!result.events.length) {
+    const seen = new Set<string>()
+    const currentEvents = [...liveResult.events, ...scheduledResult.events]
+      .filter((event) => {
+        if (!event.id || seen.has(event.id) || !isCurrentPublicShow(event)) return false
+        seen.add(event.id)
+        return true
+      })
+      .sort((left, right) => {
+        const leftStart = publicShowStartMs(left.eventTime, left.timeZone) ?? 0
+        const rightStart = publicShowStartMs(right.eventTime, right.timeZone) ?? 0
+        return leftStart - rightStart
+      })
+
+    if (!currentEvents.length) {
       if (targeted) return []
       if (isBlingKitchen) return buildBlingKitchenFallbackEvents(limit)
       return defaultAmethystHomepageEvents
     }
 
-    return result.events
+    return currentEvents
       .slice(0, limit)
       .map((event, index) =>
         mapCalendarEventToHomepageEvent(event, index, rep.social_handles),

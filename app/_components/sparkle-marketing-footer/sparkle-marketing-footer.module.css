@@ -142,6 +142,16 @@
   line-height: 1.65;
 }
 
+.inner > p.place {
+  margin: 0 0 4px;
+  padding-top: 18px;
+  border-top: 0;
+  color: #402924;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 @media (max-width: 850px) {
   .inner {
     grid-template-columns: 1fr;
