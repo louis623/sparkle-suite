@@ -210,8 +210,12 @@ describe('public Nic-Nac knowledge pack', () => {
       'reviews the build queue',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.signupPage.nextSteps).toContain(
-      'five-day trial account',
+      'reviews the build queue',
     )
+    expect(PUBLIC_NIC_NAC_KNOWLEDGE.signupPage.nextSteps).toContain(
+      'We email a payment link',
+    )
+    expect(PUBLIC_NIC_NAC_KNOWLEDGE.signupPage.nextSteps).not.toMatch(/trial/i)
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.signupPage.nextSteps).toContain('coaching')
   })
 
@@ -312,7 +316,9 @@ describe('public Nic-Nac prompt', () => {
     expect(prompt).toContain('potential Bomb Party representatives')
     expect(prompt).toContain('Answer normal public Dance Floor mechanics questions directly')
     expect(prompt).toContain('Answer build-queue questions directly')
-    expect(prompt).toContain('does not create an account, trial, checkout, or require a payment card')
+    expect(prompt).toContain('does not create an account or checkout, or require a payment card')
+    expect(prompt).toContain('Do not offer a free period of access')
+    expect(prompt).toContain('we email a payment link')
     expect(prompt).toContain('what happens after joining the build queue')
     expect(prompt).toContain('Dance Floor is the feature')
     expect(prompt).toContain('dancers are the rep-listed trade-eligible jewelry')
@@ -342,7 +348,8 @@ describe('public Nic-Nac prompt', () => {
     expect(prompt).toContain('does not collect order IDs')
     expect(prompt).toContain('SMS consent is optional')
     expect(prompt).toContain('does not create login credentials')
-    expect(prompt).toContain('five-day trial account')
+    expect(prompt).toContain('payment goes through')
+    expect(prompt).not.toMatch(/five-day|5-day|free trial/i)
     expect(prompt).toContain('cannot send texts or emails from the public page')
     expect(prompt).toContain('The rep controls the Dance Floor')
     expect(prompt).toContain('$74.99/month')

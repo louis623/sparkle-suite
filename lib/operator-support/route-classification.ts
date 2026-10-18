@@ -130,13 +130,6 @@ export const OPERATOR_SUPPORT_ROUTE_INVENTORY = [
     rationale: 'Deny-by-default boundary that dispatches only separately classified target Workspace routes.',
   },
   {
-    file: 'app/api/account/activate-trial/route.ts',
-    path: '/api/account/activate-trial',
-    methods: ['POST'],
-    classification: 'support_blocked_sensitive',
-    rationale: 'Changes account access/entitlement state.',
-  },
-  {
     file: 'app/api/auth/callback/route.ts',
     path: '/api/auth/callback',
     methods: ['GET'],

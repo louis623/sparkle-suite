@@ -176,66 +176,23 @@ describe('workspace access service', () => {
     },
   )
 
-  it('grants an active application trial before its request-time expiry', async () => {
-    const { client } = accessClient({ trial: trialRow() })
+  it('does not open the workspace from a stored trial row', async () => {
+    const { client, trial } = accessClient({ trial: trialRow() })
 
     await expect(
       resolveWorkspaceAccess({
         supabase: client as never,
         repId: 'rep-1',
-        now: new Date('2026-08-07T12:59:59.999Z'),
-      }),
-    ).resolves.toEqual(
-      expect.objectContaining({
-        hasFullAccess: true,
-        source: 'trial',
-        status: 'trial_active',
-      }),
-    )
-  })
-
-  it('denies the trial at the exact expiry boundary without requiring a cron', async () => {
-    const { client } = accessClient({ trial: trialRow() })
-
-    await expect(
-      resolveWorkspaceAccess({
-        supabase: client as never,
-        repId: 'rep-1',
-        now: new Date('2026-08-07T13:00:00.000Z'),
+        now: new Date('2026-08-03T12:00:00.000Z'),
       }),
     ).resolves.toEqual(
       expect.objectContaining({
         hasFullAccess: false,
-        status: 'trial_expired',
+        source: 'none',
+        status: 'no_entitlement',
       }),
     )
-  })
-
-  it.each([
-    ['pending', 'trial_pending'],
-    ['revoked', 'trial_revoked'],
-  ])('denies a %s trial', async (status, reason) => {
-    const row =
-      status === 'pending'
-        ? trialRow({
-            status,
-            first_signed_in_at: null,
-            expires_at: null,
-          })
-        : trialRow({
-            status,
-            revoked_at: '2026-08-03T12:00:00.000Z',
-          })
-    const { client } = accessClient({ trial: row })
-
-    await expect(
-      resolveWorkspaceAccess({
-        supabase: client as never,
-        repId: 'rep-1',
-      }),
-    ).resolves.toEqual(
-      expect.objectContaining({ hasFullAccess: false, status: reason }),
-    )
+    expect(trial.maybeSingle).not.toHaveBeenCalled()
   })
 
   it('fails closed when a subscription lookup fails', async () => {

@@ -4,6 +4,7 @@ import {
   getSparkleSuitePriceIds,
   getStripeConfig,
 } from '@/lib/stripe/config'
+import { resolveSparkleSuitePriceIds } from '@/lib/stripe/sparkle-suite-price-resolution'
 import {
   buildSparkleSuiteCheckoutPricing,
   buildSparkleSuiteTestBuyerCheckoutPricing,
@@ -340,7 +341,21 @@ export async function POST(request: Request) {
       )
     }
 
-    const priceIds = getSparkleSuitePriceIds()
+    const envPriceIds = getSparkleSuitePriceIds()
+    const priceIds = testBuyerCheckoutEnabled
+      ? envPriceIds
+      : await resolveSparkleSuitePriceIds({
+          envPriceIds,
+          secretKey: getStripeConfig()?.STRIPE_SECRET_KEY,
+          listPrices: async (lookupKeys) => {
+            const listed = await getStripe().prices.list({
+              lookup_keys: lookupKeys,
+              active: true,
+              limit: 10,
+            })
+            return listed.data
+          },
+        })
     const missingPriceEnv = testBuyerCheckoutEnabled
       ? []
       : getMissingSparkleSuitePriceEnv(priceIds)

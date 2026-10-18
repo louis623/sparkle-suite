@@ -3960,7 +3960,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Before checkout')
     expect(html).toContain('Review your Sparkle Suite plan')
     expect(html).toContain('$49.99 setup fee + $74.99 first month = $124.98')
-    expect(html).toContain('These charges are due only when you complete Stripe checkout')
+    expect(html).toContain('This payment is the setup fee and the first month. The monthly plan starts when it goes through.')
     expect(html).toContain('$74.99/month after the first checkout until cancelled.')
     expect(html).toContain('Cancel anytime from billing.')
     expect(html).toContain('After checkout unlocks')
@@ -4140,7 +4140,7 @@ describe('DashboardPlaceholder', () => {
     expect(html.match(/Photo caption<\/span>/g)).toHaveLength(1)
   })
 
-  it('shows the five-day trial deadline and preserved-work expiry message', () => {
+  it('shows that the workspace opens after the first payment goes through', () => {
     const activeHtml = renderToStaticMarkup(
       createElement(AccountBillingCard, {
         state: {
@@ -4186,11 +4186,12 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(activeHtml).toContain('5-day trial active')
-    expect(activeHtml).toContain('full Sparkle Suite trial is active through')
-    expect(activeHtml).toContain('keep your workspace and customer site')
-    expect(expiredHtml).toContain('Your five-day trial has ended.')
-    expect(expiredHtml).toContain('Your work is saved')
+    expect(activeHtml).toContain('Not active yet')
+    expect(activeHtml).toContain('The workspace opens after the first payment goes through.')
+    expect(activeHtml).not.toMatch(/5-day|five-day|trial/i)
+    expect(expiredHtml).toContain('Not active yet')
+    expect(expiredHtml).toContain('The workspace opens after the first payment goes through.')
+    expect(expiredHtml).not.toMatch(/5-day|five-day|trial/i)
   })
 
   it('hides empty billing admin states during unpaid checkout review', () => {

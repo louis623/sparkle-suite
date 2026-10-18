@@ -75,23 +75,10 @@ describe('POST /api/control-center/intake/production-roster', () => {
     })
   })
 
-  it('creates and links a pending trial without calling the legacy gate path', async () => {
+  it('does not create an account when no existing rep id is provided', async () => {
     getAuthenticatedOperatorMock.mockResolvedValueOnce({
       repId: 'operator-1',
       rep: { email: 'louis@neonrabbit.net' },
-    })
-    preparePrelaunchClientAccountForLaunchBuildMock.mockResolvedValueOnce({
-      repId: 'rep-created',
-      email: 'customer@example.com',
-      createdAuthUser: true,
-      sentInvite: false,
-      trialStatus: 'pending',
-      trialDurationDays: 5,
-      build: {
-        id: 'build-1',
-        repId: 'rep-created',
-        status: 'blocked',
-      },
     })
 
     const response = await POST(
@@ -101,71 +88,16 @@ describe('POST /api/control-center/intake/production-roster', () => {
         body: JSON.stringify({
           launchBuildId: 'build-1',
           createClientAccount: true,
-          temporaryPassword: 'RealCustomerTemp2026!',
-          temporaryPasswordConfirm: 'RealCustomerTemp2026!',
           notes: 'Customer account prepared.',
-        }),
-      }),
-    )
-
-    expect(preparePrelaunchClientAccountForLaunchBuildMock).toHaveBeenCalledWith({
-      launchBuildId: 'build-1',
-      temporaryPassword: 'RealCustomerTemp2026!',
-      temporaryPasswordConfirm: 'RealCustomerTemp2026!',
-      notes: 'Customer account prepared.',
-      operatorRepId: 'operator-1',
-    })
-    expect(connectPrelaunchLaunchBuildToProductionRepMock).not.toHaveBeenCalled()
-    expect(response.status).toBe(200)
-    await expect(response.json()).resolves.toEqual({
-      ok: true,
-      build: {
-        id: 'build-1',
-        repId: 'rep-created',
-        status: 'blocked',
-      },
-      clientAccount: {
-        repId: 'rep-created',
-        email: 'customer@example.com',
-        createdAuthUser: true,
-        sentInvite: false,
-        trialStatus: 'pending',
-        trialDurationDays: 5,
-        build: {
-          id: 'build-1',
-          repId: 'rep-created',
-          status: 'blocked',
-        },
-      },
-    })
-  })
-
-  it('requires matching policy-compliant temporary passwords before writing', async () => {
-    getAuthenticatedOperatorMock.mockResolvedValueOnce({
-      repId: 'operator-1',
-      rep: { email: 'louis@neonrabbit.net' },
-    })
-
-    const response = await POST(
-      new Request('http://localhost/api/control-center/intake/production-roster', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          launchBuildId: 'build-1',
-          createClientAccount: true,
-          temporaryPassword: 'RealCustomerTemp2026!',
-          temporaryPasswordConfirm: 'DifferentCustomer2026!',
         }),
       }),
     )
 
     expect(response.status).toBe(400)
     await expect(response.json()).resolves.toEqual({
-      error: 'Enter the same new password twice.',
+      error: 'repId is required. Create a payment link before an account exists.',
     })
-    expect(
-      preparePrelaunchClientAccountForLaunchBuildMock,
-    ).not.toHaveBeenCalled()
+    expect(preparePrelaunchClientAccountForLaunchBuildMock).not.toHaveBeenCalled()
     expect(connectPrelaunchLaunchBuildToProductionRepMock).not.toHaveBeenCalled()
   })
 

@@ -232,32 +232,9 @@ export async function resolveWorkspaceAccess({
     return denied('subscription_ineligible', subscriptionStatus)
   }
 
-  const trial = await loadWorkspaceTrial(supabase, repId)
-  if (!trial) return denied('no_entitlement', null)
-  if (trial.status === 'pending') return denied('trial_pending', null, trial)
-  if (trial.status === 'revoked') return denied('trial_revoked', null, trial)
-  if (!trial.firstSignedInAt || !trial.expiresAt) {
-    return denied('trial_invalid', null, trial)
-  }
-
-  const expiresAt = Date.parse(trial.expiresAt)
-  if (!Number.isFinite(expiresAt)) {
-    return denied('trial_invalid', null, trial)
-  }
-
-  if (expiresAt <= now.getTime()) {
-    return denied('trial_expired', null, trial)
-  }
-
-  return {
-    hasFullAccess: true,
-    source: 'trial',
-    status: 'trial_active',
-    subscriptionStatus: null,
-    trialStartsAt: trial.firstSignedInAt,
-    trialEndsAt: trial.expiresAt,
-    trial,
-  }
+  // Historical workspace_trials rows stay stored. They do not open the workspace.
+  void now
+  return denied('no_entitlement', null)
 }
 
 /**
