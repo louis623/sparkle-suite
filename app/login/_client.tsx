@@ -21,9 +21,9 @@ export default function LoginClient() {
   const signInErrorCode = searchParams.get('error')
   const callbackError =
     signInErrorCode === 'account_not_found'
-      ? 'No Sparkle Suite account is associated with this email. Try a different Google account or contact Louis.'
+      ? 'No Sparkle Suite account is associated with this email. Try a different email.'
       : signInErrorCode === 'self_serve_not_open'
-        ? 'This email has not been set up for Sparkle Suite yet. Contact Louis before signing in.'
+        ? 'This email has not been set up for Sparkle Suite yet. We email a payment link before an account exists.'
         : signInErrorCode === 'missing_oauth_code' ||
             signInErrorCode === 'oauth_exchange_failed'
           ? 'Sign-in did not finish. Please try again.'
@@ -86,23 +86,6 @@ export default function LoginClient() {
             })
             if (signErr) {
               setError(signErr.message)
-              return
-            }
-            const trialResponse = await fetch('/api/account/activate-trial', {
-              method: 'POST',
-            })
-            if (!trialResponse.ok) {
-              await supabase.auth.signOut()
-              const payload = (await trialResponse.json().catch(() => null)) as
-                | { error?: string; message?: string }
-                | null
-              setError(
-                payload?.error === 'account_not_found'
-                  ? 'No Sparkle Suite account is associated with this email. Contact Louis or sign in with a different email.'
-                  : payload?.message ??
-                      payload?.error ??
-                      'We could not start your trial. Please sign in again.',
-              )
               return
             }
             router.replace(redirect)

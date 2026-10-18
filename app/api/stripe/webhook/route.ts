@@ -17,6 +17,10 @@ import {
   createPendingReferralAfterPaidCheckout,
   processReferralPaidSubscriptionInvoice,
 } from '@/lib/services/sparkle-suite-referral-rewards'
+import {
+  expirePaymentLinkFromSession,
+  fulfillPaidPaymentLink,
+} from '@/lib/prelaunch/payment-links'
 
 const GRANDFATHERED_PAYMENT_LINK_ACCOUNTS = {
   '2b5a27c5-9c05-4014-8d0b-754e19815bf6': 'williams.brianna19@yahoo.com',
@@ -590,6 +594,15 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
     return
   }
 
+  if (session.metadata?.sparkle_suite_payment_first === 'true') {
+    await fulfillPaidPaymentLink({
+      session,
+      livemode: event.livemode,
+      eventCreated: event.created,
+    })
+    return
+  }
+
   if (session.mode !== 'subscription' || !session.subscription) return
 
   if (session.payment_status !== 'paid') {
@@ -733,6 +746,13 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
 async function handleCheckoutExpired(event: Stripe.Event) {
   const session = event.data.object as Stripe.Checkout.Session
+  if (session.metadata?.sparkle_suite_payment_first === 'true') {
+    await expirePaymentLinkFromSession({
+      sessionId: session.id,
+      paymentLinkId: session.metadata.payment_link_id,
+    })
+    return
+  }
   if (session.mode !== 'subscription') return
   if (session.metadata?.pricing_tier !== 'founder') return
 
