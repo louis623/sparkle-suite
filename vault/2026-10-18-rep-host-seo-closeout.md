@@ -1,6 +1,6 @@
 # Rep-host SEO draft
 
-- Draft only. No merge and no Live deploy. Branch `cursor/rep-host-seo-fixes` targets `codex/nic-nac-trade-hardening`. Allowlisted for a Smoke preview on project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`, environment `preview`.
+- Draft only. No merge and no Live deploy. Draft pull request https://github.com/louis623/sparkle-suite/pull/133 on `cursor/rep-host-seo-fixes` targets `codex/nic-nac-trade-hardening` at `72b905148613e929f563269fad256cec0ea3f854`. Allowlisted for a Smoke preview on project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ`, environment `preview`.
 - Britt legacy paths `/about`, `/diamonds-unicorns`, `/join-team`, and `/embed` 301 to `/#about`, `/#wibp`, `/join`, and `/` on `brittwithbling.com`.
 - Rep hosts 404 `/portfolio`, `/tools`, `/prelaunch`, `/adventure`, and `/demo`. Suite domains still serve those pages.
 - Each rep sitemap includes `/faq`. FAQ copy uses that rep's business name, city/state, and next show.
