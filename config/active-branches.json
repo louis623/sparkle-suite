@@ -32,7 +32,8 @@
     "cursor/founder-count-privacy-c41f",
     "cursor/site-traffic-redesign-ff40",
     "cursor/payment-first-onboarding",
-    "cursor/rep-join-unique-content"
+    "cursor/rep-join-unique-content",
+    "cursor/join-server-html-26e8"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -112,6 +113,10 @@
       "environment": "preview"
     },
     "cursor/rep-join-unique-content": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/join-server-html-26e8": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }

@@ -26,6 +26,7 @@ import {
   injectPublicPageIndexDocument,
   type PublicIndexRecipe,
 } from '@/lib/amethyst/public-page-index-html'
+import { injectJoinServerIndex } from '@/lib/amethyst/join-server-html'
 
 interface RenderAmethystPublicAssetResponseOptions {
   repIdOverride?: string | null
@@ -439,6 +440,7 @@ function injectPublicPageBody(
   if (page === 'homepage' || page === 'trade' || page === 'pantry') {
     return injectPublicPageIndexDocument(html, page, templateData, pantryRecipes)
   }
+  if (page === 'join') return injectJoinServerIndex(html, templateData)
 
   return html
 }
