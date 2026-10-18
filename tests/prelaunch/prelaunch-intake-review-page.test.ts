@@ -1129,12 +1129,32 @@ describe('PrelaunchIntakeReviewPageContent', () => {
             attentionReason: null,
             returningRep: true,
           },
+          {
+            id: 'link-duplicate',
+            launchBuildId: null,
+            leadName: 'Paying Rep',
+            leadEmail: 'paying@example.com',
+            status: 'duplicate',
+            buildFeeWaived: true,
+            pricingTier: 'founder',
+            expiresAt: null,
+            repId: 'rep-paying',
+            checkoutUrl: null,
+            paymentEmailDraft: null,
+            welcomeEmailDraft: null,
+            welcomeEmailStatus: 'not_queued',
+            attentionReason:
+              'Paid again with an email that already has an account. Refunded $49.99 and cancelled the extra subscription. No second account was created.',
+            returningRep: false,
+          },
         ],
       }),
     )
 
     expect(html).toContain('Needs attention')
     expect(html).toContain('missing_email')
+    expect(html).toContain('Refunded $49.99 and cancelled the extra subscription')
+    expect(html).toContain('No second account was created.')
     expect(html).toContain('name="retryLinkId"')
     expect(html).toContain('value="link-attention"')
     expect(html).toContain('>Retry<')

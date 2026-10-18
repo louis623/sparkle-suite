@@ -1,5 +1,8 @@
 import Link from 'next/link'
-import type { OperatorPaymentLinkView } from '@/lib/prelaunch/payment-links'
+import {
+  duplicatePaymentWasReversed,
+  type OperatorPaymentLinkView,
+} from '@/lib/prelaunch/payment-links'
 import {
   buildPrelaunchScoutInput,
   type PrelaunchIntakeReviewSubmission,
@@ -657,9 +660,24 @@ function PaymentLinkPanel({
               </>
             ) : null}
             {link.status === 'duplicate' ? (
-              <p className="mt-2 text-xs leading-5 text-amber-800">
-                No second account was created.
-              </p>
+              <>
+                <p className="mt-2 text-xs leading-5 text-amber-800">
+                  {link.attentionReason
+                    || 'Paid again with an email that already has an account. The extra subscription still needs to be cancelled and the payment refunded. No second account was created.'}
+                </p>
+                {duplicatePaymentWasReversed(link.attentionReason) ? null : (
+                  <form action="/api/control-center/intake/payment-link" className="mt-3" method="post">
+                    <input name="retryLinkId" type="hidden" value={link.id} />
+                    <input name="returnTo" type="hidden" value={`${basePath}#payment-link`} />
+                    <button
+                      className="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm"
+                      type="submit"
+                    >
+                      Retry
+                    </button>
+                  </form>
+                )}
+              </>
             ) : null}
             {link.status === 'needs_attention' ? (
               <>

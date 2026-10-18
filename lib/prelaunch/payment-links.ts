@@ -205,33 +205,52 @@ export function normalizePaymentEmail(value: string | null | undefined) {
   return value?.trim().toLowerCase() ?? ''
 }
 
+export function duplicatePaymentWasReversed(reason: string | null | undefined) {
+  return Boolean(
+    reason?.includes('Refunded ') && reason.includes('cancelled the extra subscription'),
+  )
+}
+
 export function buildPaymentLinkAttentionAlert({
   sessionId,
   paymentLinkId,
   reason,
   email,
   name,
+  amountLabel = null,
+  resolvedDuplicate = false,
 }: {
   sessionId: string
   paymentLinkId: string | null
   reason: string
   email: string | null
   name: string | null
+  amountLabel?: string | null
+  resolvedDuplicate?: boolean
 }) {
   return {
     to: [PRELAUNCH_WAITLIST_OWNER_ALERT_EMAIL],
-    subject: 'Sparkle Suite payment needs attention',
+    subject: resolvedDuplicate
+      ? 'Sparkle Suite duplicate payment refunded'
+      : 'Sparkle Suite payment needs attention',
     text: [
-      'A paid Sparkle Suite checkout could not create the account.',
+      resolvedDuplicate
+        ? 'A duplicate Sparkle Suite payment was refunded and the extra subscription was cancelled.'
+        : 'A paid Sparkle Suite checkout could not create the account.',
       '',
       `Session: ${sessionId}`,
       `Payment link: ${paymentLinkId ?? '(none)'}`,
       `Reason: ${reason}`,
       `Email: ${email || '(none)'}`,
       `Name: ${name || '(none)'}`,
+      amountLabel ? `Amount: ${amountLabel}` : null,
       '',
-      'The intake page shows this link as needs attention.',
-    ].join('\n'),
+      resolvedDuplicate
+        ? 'No second account was created. The intake card records the refund.'
+        : 'The intake page shows this link as needs attention.',
+    ]
+      .filter((line): line is string => line !== null)
+      .join('\n'),
   }
 }
 
@@ -354,6 +373,8 @@ export async function sendPaymentLinkAttentionAlert(input: {
   reason: string
   email: string | null
   name: string | null
+  amountLabel?: string | null
+  resolvedDuplicate?: boolean
 }) {
   const alert = buildPaymentLinkAttentionAlert(input)
   if (
@@ -652,7 +673,7 @@ export async function retryNeedsAttentionPaymentLink({
       repId: link.rep_id,
     }
   }
-  if (link.status === 'duplicate') {
+  if (link.status === 'duplicate' && duplicatePaymentWasReversed(link.attention_reason)) {
     return {
       created: false as const,
       reason: 'duplicate_account' as const,
@@ -660,7 +681,7 @@ export async function retryNeedsAttentionPaymentLink({
       repId: link.rep_id,
     }
   }
-  if (link.status !== 'needs_attention') {
+  if (link.status !== 'needs_attention' && link.status !== 'duplicate') {
     throw new PaymentLinkError('Only a payment that needs attention can be retried.', 409)
   }
   const sessionId = link.stripe_checkout_session_id
@@ -702,6 +723,99 @@ function linePriceIds(session: {
 
 function isLiveSubscriptionStatus(status: string | null | undefined) {
   return status === 'active' || status === 'trialing'
+}
+
+function formatUsdFromCents(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`
+}
+
+function stripeObjectId(value: string | { id?: string | null } | null | undefined) {
+  if (!value) return null
+  if (typeof value === 'string') return value
+  return value.id ?? null
+}
+
+function duplicateReversalFailure(kind: 'cancel' | 'refund') {
+  const detail = kind === 'cancel'
+    ? 'The extra subscription could not be cancelled.'
+    : 'The payment could not be refunded.'
+  return `Paid again with an email that already has an account. ${detail} No second account was created.`
+}
+
+function stripeReversalAlreadyDone(error: unknown) {
+  const code = error && typeof error === 'object' && 'code' in error
+    ? String((error as { code?: unknown }).code ?? '')
+    : ''
+  const message = error instanceof Error ? error.message : ''
+  return code === 'charge_already_refunded'
+    || /already been refunded|already refunded/i.test(message)
+    || /already been canceled|already canceled|already cancelled/i.test(message)
+}
+
+function paidInvoicePayment(invoice: {
+  payments?: {
+    data?: Array<{
+      status?: string | null
+      amount_paid?: number | null
+      payment?: {
+        payment_intent?: string | { id?: string | null } | null
+        charge?: string | { id?: string | null } | null
+      } | null
+    }>
+  } | null
+}) {
+  const payments = invoice.payments?.data ?? []
+  const paid = payments.find((item) => item.status === 'paid') ?? payments[0]
+  return {
+    paymentIntentId: stripeObjectId(paid?.payment?.payment_intent),
+    chargeId: stripeObjectId(paid?.payment?.charge),
+    amountCents: typeof paid?.amount_paid === 'number' ? paid.amount_paid : null,
+  }
+}
+
+async function reverseDuplicateCheckout({
+  stripe,
+  subscription,
+  sessionId,
+}: {
+  stripe: ReturnType<typeof getStripe>
+  subscription: Awaited<ReturnType<ReturnType<typeof getStripe>['subscriptions']['retrieve']>>
+  sessionId: string
+}) {
+  try {
+    await stripe.subscriptions.cancel(
+      subscription.id,
+      { invoice_now: false, prorate: false },
+      { idempotencyKey: `payment-link-duplicate-cancel-${sessionId}` },
+    )
+  } catch (error) {
+    if (!stripeReversalAlreadyDone(error)) throw new Error(duplicateReversalFailure('cancel'))
+  }
+
+  const invoiceId = stripeObjectId(subscription.latest_invoice)
+  if (!invoiceId) throw new Error(duplicateReversalFailure('refund'))
+  const invoice = await stripe.invoices.retrieve(invoiceId)
+  const payment = paidInvoicePayment(invoice)
+  const amountCents = typeof invoice.amount_paid === 'number' ? invoice.amount_paid : payment.amountCents
+  try {
+    if (payment.paymentIntentId) {
+      await stripe.refunds.create(
+        { payment_intent: payment.paymentIntentId, reason: 'duplicate' },
+        { idempotencyKey: `payment-link-duplicate-refund-${sessionId}` },
+      )
+    } else if (payment.chargeId) {
+      await stripe.refunds.create(
+        { charge: payment.chargeId, reason: 'duplicate' },
+        { idempotencyKey: `payment-link-duplicate-refund-${sessionId}` },
+      )
+    } else {
+      throw new Error(duplicateReversalFailure('refund'))
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message === duplicateReversalFailure('refund')) throw error
+    if (!stripeReversalAlreadyDone(error)) throw new Error(duplicateReversalFailure('refund'))
+  }
+  return { amountCents }
 }
 
 function isSamePaymentLinkPurchase(
@@ -785,7 +899,7 @@ export async function fulfillPaidPaymentLink({
     if (link.status === 'paid' && link.rep_id) {
       return { created: false, reason: 'already_created' as const, retryable: false as const, repId: link.rep_id }
     }
-    if (link.status === 'duplicate') {
+    if (link.status === 'duplicate' && duplicatePaymentWasReversed(link.attention_reason)) {
       return { created: false, reason: 'duplicate_account' as const, retryable: false as const, repId: link.rep_id }
     }
 
@@ -876,7 +990,16 @@ export async function fulfillPaidPaymentLink({
         await admin.rpc('release_sparkle_suite_payment_link_pricing', {
           p_payment_link_id: link.id,
         })
-        await admin
+        const reversal = await reverseDuplicateCheckout({
+          stripe,
+          subscription,
+          sessionId: session.id,
+        })
+        const amountLabel = reversal.amountCents == null
+          ? 'the checkout payment'
+          : formatUsdFromCents(reversal.amountCents)
+        const reason = `Paid again with an email that already has an account. Refunded ${amountLabel} and cancelled the extra subscription. No second account was created.`
+        const { error: duplicateError } = await admin
           .from('sparkle_suite_payment_links')
           .update({
             status: 'duplicate',
@@ -884,9 +1007,24 @@ export async function fulfillPaidPaymentLink({
             lead_name: identity.name || null,
             stripe_subscription_id: subscription.id,
             rep_id: repId,
+            attention_reason: reason.slice(0, 300),
             updated_at: new Date().toISOString(),
           })
           .eq('id', link.id)
+        if (duplicateError) throw duplicateError
+        try {
+          await notifyAttention({
+            sessionId: session.id,
+            paymentLinkId: link.id,
+            reason,
+            email: identity.email,
+            name: identity.name || null,
+            amountLabel,
+            resolvedDuplicate: true,
+          })
+        } catch (alertError) {
+          console.error('[payment-link] Owner alert failed.', alertError)
+        }
         return { created: false, reason: 'duplicate_account' as const, retryable: false as const, repId }
       }
       returningRep = true
