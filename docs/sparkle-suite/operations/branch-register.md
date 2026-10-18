@@ -121,6 +121,10 @@ reconciliation and must not be swept into the active branch merely to make
 
 Louis asked for the October 18 SEO image and metadata fixes on a draft pull request against `codex/nic-nac-trade-hardening`, with no merge or Live deploy. `cursor/suite-seo-metadata-images` is allowlisted for a Smoke preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change. The public Dance Floor path stays `/trade`.
 
+### October 18 rep join unique content preview
+
+Louis asked for each rep `/join` page to be its own indexable page, and for the homepage, Dance Floor, and pantry to carry the rep's name, location, intro, and show schedule in the initial HTML. Live Lineup stays client-hydrated. Draft pull request against `codex/nic-nac-trade-hardening`, with no merge or Live deploy. `cursor/rep-join-unique-content` is allowlisted for a Smoke preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change. No database migration.
+
 ### October 17 site traffic redesign Smoke preview
 
 Louis asked for the rep workspace Site traffic redesign on a draft pull request against `codex/nic-nac-trade-hardening`, with no merge or Live deploy. `cursor/site-traffic-redesign-ff40` is allowlisted for a Smoke preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change.

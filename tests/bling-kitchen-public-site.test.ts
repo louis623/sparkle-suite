@@ -299,6 +299,20 @@ describe('BlingKitchen hybrid public site contract', () => {
       buildTargetedAmethystPublicPageTextForTest('pantry', templateData).title,
     ).toBe('In the Pantry | BlingKitchen')
     expect(
+      buildTargetedAmethystPublicPageTextForTest('pantry', templateData).description,
+    ).toBe('Browse recipes, kitchen notes, and live-show favorites from BlingKitchen.')
+    expect(
+      buildTargetedAmethystPublicPageTextForTest('pantry', {
+        ...templateData,
+        homepage: {
+          ...templateData.homepage,
+          businessName: 'Glowtique',
+          repName: 'Bri',
+          publicSiteVariant: 'bling_kitchen_hybrid',
+        },
+      }).description,
+    ).toBe('Browse recipes, kitchen notes, and live-show favorites from Glowtique.')
+    expect(
       buildTargetedAmethystPublicPageTextForTest('homepage', templateData)
         .description,
     ).toContain('Independent Bomb Party rep site for BlingKitchen')

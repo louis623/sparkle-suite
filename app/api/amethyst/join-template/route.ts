@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 
 import { buildAmethystJoinBootstrapScript } from '@/lib/amethyst/join-template-data'
 import { loadAmethystPreviewTemplateData } from '@/lib/amethyst/preview-template-data'
+import { indexPublicJoinTemplate } from '@/lib/amethyst/public-join-index'
 import { canServeTargetedAmethystJoinPage } from '@/lib/amethyst/join-page-access'
 import { resolveAmethystRequestCustomDomainHost } from '@/lib/amethyst/host-routing'
 import { applyCustomDomainToTemplateData } from '@/lib/amethyst/public-site-links'
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
     loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }),
   ])
   const customerTemplateData = applyCustomDomainToTemplateData(
-    templateData,
+    await indexPublicJoinTemplate(templateData, { repId }),
     requestCustomDomain,
   )
 

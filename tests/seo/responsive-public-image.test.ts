@@ -87,5 +87,17 @@ describe('rep public page text', () => {
       city: ' ',
       state: ' ',
     }).title).toBe('Join Sparkly Butterflies')
+
+    expect(buildRepPublicPageText({
+      page: 'pantry',
+      businessName: 'Glowtique',
+      repName: 'Bri',
+      teamName: 'Glowtique',
+      city: 'Wichita',
+      state: 'Kansas',
+    })).toEqual({
+      title: 'In the Pantry | Glowtique',
+      description: 'Browse recipes, kitchen notes, and live-show favorites from Glowtique in Wichita, Kansas.',
+    })
   })
 })
