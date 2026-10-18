@@ -1,5 +1,4 @@
 import type { MetadataRoute } from 'next'
-import { isBlingKitchenPantryAllowed } from '@/lib/bling-kitchen/pantry-access'
 import { ARTICLE_INDEX_PATH, articleSitemapEntries } from '@/lib/sparkle-suite/articles'
 
 export const SPARKLE_PUBLIC_ORIGIN = 'https://www.yoursparklesuite.com'
@@ -190,59 +189,20 @@ export function buildSparkleSitemap(
   })), ...articleSitemapEntries(normalizedOrigin)]
 }
 
-function pantryRobotsPaths(origin: string) {
-  const host = new URL(origin).hostname.replace(/^www\./, '')
-  if (isBlingKitchenPantryAllowed({ customDomain: host })) {
-    return { allow: ['/'] as string[], disallow: [] as string[] }
-  }
-  if (host === 'yoursparklesuite.com') {
-    return {
-      allow: ['/', '/blingkitchen/in-the-pantry'],
-      disallow: ['/*/in-the-pantry', '/in-the-pantry'],
-    }
-  }
-  return { allow: ['/'], disallow: ['/in-the-pantry'] }
-}
-
 export function buildSparkleRobots(
   origin: string | URL = SPARKLE_PUBLIC_ORIGIN,
 ): MetadataRoute.Robots {
   const normalizedOrigin = canonicalizeSparkleCrawlOrigin(origin)
-  const pantry = pantryRobotsPaths(normalizedOrigin)
 
   return {
     rules: [
       {
         userAgent: '*',
-        allow: pantry.allow,
-        disallow: [
-          ...pantry.disallow,
-          '/api/',
-          '/internal/',
-          '/onboarding/',
-        ],
+        allow: '/',
+        disallow: ['/api/', '/internal/', '/onboarding/'],
       },
     ],
     sitemap: `${normalizedOrigin}/sitemap.xml`,
     host: normalizedOrigin,
   }
-}
-
-export function renderSparkleRobotsText(
-  origin: string | URL = SPARKLE_PUBLIC_ORIGIN,
-) {
-  const robots = buildSparkleRobots(origin)
-  const rule = Array.isArray(robots.rules) ? robots.rules[0] : robots.rules
-  const allows = [rule?.allow].flat().filter((value): value is string => Boolean(value))
-  const disallows = [rule?.disallow]
-    .flat()
-    .filter((value): value is string => Boolean(value))
-
-  return [
-    `User-Agent: ${rule?.userAgent ?? '*'}`,
-    ...allows.map((value) => `Allow: ${value}`),
-    ...disallows.map((value) => `Disallow: ${value}`),
-    `Sitemap: ${robots.sitemap}`,
-    '',
-  ].join('\n')
 }

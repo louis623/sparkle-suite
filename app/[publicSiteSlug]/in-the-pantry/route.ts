@@ -3,6 +3,7 @@ import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
 import {
   isBlingKitchenPantryAllowed,
   pantryNotFoundResponse,
+  pantryRequestHost,
 } from '@/lib/bling-kitchen/pantry-access'
 import { validatePublicSiteSlug } from '@/lib/public-site/show-link'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -25,7 +26,11 @@ export async function GET(
     publicSiteSlug: slug,
     select: 'id, email',
   })
-  if (!rep || !isBlingKitchenPantryAllowed({ publicSiteSlug: slug, repId: rep.id })) {
+  if (!rep || !isBlingKitchenPantryAllowed({
+      publicSiteSlug: slug,
+      repId: rep.id,
+      requestHost: pantryRequestHost(request),
+    })) {
     return pantryNotFoundResponse()
   }
 

@@ -19,7 +19,10 @@ import {
 } from '@/lib/amethyst/public-site-links'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import { DEFAULT_AMETHYST_APPEARANCE_PRESET } from '@/lib/amethyst/appearance-presets'
-import { restrictPantryTemplateData } from '@/lib/bling-kitchen/pantry-access'
+import {
+  pantryRequestHost,
+  restrictPantryTemplateData,
+} from '@/lib/bling-kitchen/pantry-access'
 import { applyBlingKitchenHomepage } from '@/lib/bling-kitchen/profile'
 import { getEffectiveLiveQueueSnapshot } from '@/lib/live-lineup/service'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -127,6 +130,7 @@ export async function GET(request: Request) {
     repId,
     publicSiteSlug,
     customDomain: requestCustomDomain,
+    requestHost: pantryRequestHost(request),
   })
   const linkedEvents = applyCustomDomainToHomepageEvents(
     applyPublicSiteSlugToHomepageEvents(events, publicSiteSlug),

@@ -6,6 +6,7 @@ import { renderAmethystPublicAssetResponse } from '@/lib/amethyst/public-asset-r
 import {
   isBlingKitchenPantryAllowed,
   pantryNotFoundResponse,
+  pantryRequestHost,
 } from '@/lib/bling-kitchen/pantry-access'
 
 export const runtime = 'nodejs'
@@ -43,14 +44,21 @@ export async function GET(
   // A real customer domain never falls back to demo data.
   if (site.kind === 'unavailable') return renderCustomerSiteUnavailableResponse()
 
-  if (
-    page === 'in-the-pantry' &&
-    !(
-      site.kind === 'serve' &&
-      isBlingKitchenPantryAllowed({ repId: site.repId, customDomain: site.host })
-    )
-  ) {
-    return pantryNotFoundResponse()
+  // Pantry is served here only for a real theblingkitchen.com request that the
+  // proxy rewrote. ?c= never unlocks it, and the Suite host always 404s.
+  if (page === 'in-the-pantry') {
+    const requestHost = pantryRequestHost(request)
+    if (
+      !requestHost ||
+      site.kind !== 'serve' ||
+      !isBlingKitchenPantryAllowed({
+        repId: site.repId,
+        customDomain: site.host,
+        requestHost,
+      })
+    ) {
+      return pantryNotFoundResponse()
+    }
   }
 
   return renderAmethystPublicAssetResponse(request, asset, {

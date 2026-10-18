@@ -15,6 +15,7 @@ import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import {
   isBlingKitchenPantryAllowed,
   pantryNotFoundResponse,
+  pantryRequestHost,
 } from '@/lib/bling-kitchen/pantry-access'
 import { BLING_KITCHEN_PROFILE } from '@/lib/bling-kitchen/profile'
 import { getSiteSettingsDashboard } from '@/lib/services/site-settings'
@@ -46,6 +47,7 @@ export async function GET(request: Request) {
       repId: rawRepId,
       publicSiteSlug,
       customDomain: requestCustomDomain,
+      requestHost: pantryRequestHost(request),
     })
   ) {
     return pantryNotFoundResponse()

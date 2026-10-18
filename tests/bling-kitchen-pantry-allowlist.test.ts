@@ -360,14 +360,16 @@ describe('pantry crawl and links for every rep fixture', () => {
     expect(sitemap.status).toBe(200)
     expect(llms.status).toBe(200)
     expect(robots.status).toBe(200)
+    // robots.txt stays exactly as production so Google can crawl and see the 404s.
+    expect(robotsText).toBe(
+      `User-Agent: *\nAllow: /\nDisallow: /api/\nDisallow: /internal/\nDisallow: /onboarding/\nSitemap: https://${rep.domain}/sitemap.xml\n`,
+    )
     if (rep.pantry) {
       expect(sitemapXml).toContain('https://theblingkitchen.com/in-the-pantry')
       expect(llmsText).toContain('https://theblingkitchen.com/in-the-pantry')
-      expect(robotsText).not.toContain('in-the-pantry')
     } else {
       expect(sitemapXml).not.toContain('in-the-pantry')
       expect(llmsText).not.toContain('in-the-pantry')
-      expect(robotsText).toContain('Disallow: /in-the-pantry')
     }
 
     loadTemplateMock.mockClear()
@@ -416,16 +418,15 @@ describe('pantry crawl and links for every rep fixture', () => {
     expect(proxyResponse.headers.get('x-robots-tag')).toBe('noindex')
   })
 
-  it('lets the Suite robots file keep only the BlingKitchen slug pantry', async () => {
+  it('keeps the Suite robots file identical to production and pantry out of Suite crawl files', async () => {
     const response = await GET_ROBOTS(
       new Request('https://www.yoursparklesuite.com/robots.txt', {
         headers: { host: 'www.yoursparklesuite.com' },
       }),
     )
-    const text = await response.text()
-    expect(text).toContain('Allow: /blingkitchen/in-the-pantry')
-    expect(text).toContain('Disallow: /*/in-the-pantry')
-    expect(text).toContain('Disallow: /in-the-pantry')
+    expect(await response.text()).toBe(
+      'User-Agent: *\nAllow: /\nDisallow: /api/\nDisallow: /internal/\nDisallow: /onboarding/\nSitemap: https://www.yoursparklesuite.com/sitemap.xml\n',
+    )
 
     const sitemap = await GET_SITEMAP(
       new Request('https://www.yoursparklesuite.com/sitemap.xml', {
@@ -439,5 +440,168 @@ describe('pantry crawl and links for every rep fixture', () => {
     )
     expect(await sitemap.text()).not.toContain('in-the-pantry')
     expect(await llms.text()).not.toContain('in-the-pantry')
+  })
+})
+
+describe('pantry follows the real request host, never ?c=', () => {
+  const KITCHEN = REPS[0]
+  const BRI = REPS.find((rep) => rep.slug === 'brisglowtique')!
+
+  beforeEach(() => {
+    loadTemplateMock.mockReset()
+    resolveSiteMock.mockReset()
+    resolveRepMock.mockReset()
+    resolveSiteMock.mockImplementation(async (host: string) => {
+      const rep = repByHost(host)
+      return rep
+        ? { kind: 'serve' as const, host: rep.domain, repId: rep.id }
+        : { kind: 'not_customer_host' as const }
+    })
+    resolveRepMock.mockImplementation(async (_admin: unknown, query: { publicSiteSlug?: string }) => {
+      const rep = REPS.find((candidate) => candidate.slug === query.publicSiteSlug)
+      return rep ? { id: rep.id, email: rep.email } : null
+    })
+    loadTemplateMock.mockImplementation(async (options: { repId?: string; publicSiteSlug?: string }) => {
+      const rep =
+        REPS.find((candidate) => candidate.slug === options.publicSiteSlug) ??
+        REPS.find((candidate) => candidate.id === options.repId) ??
+        repByHost(options.repId ?? '')
+      if (!rep) throw new Error(`no fixture for ${JSON.stringify(options)}`)
+      return loadedTemplate(rep, {
+        repId: options.repId ?? rep.id,
+        publicSiteSlug: options.publicSiteSlug ?? rep.slug,
+      })
+    })
+  })
+
+  async function expectPantry404(response: Response) {
+    expect(response.status).toBe(404)
+    expect(response.headers.get('x-robots-tag')).toBe('noindex')
+    const body = await response.text()
+    expect(body).toBe('Not found')
+    expect(body).not.toContain('BlingKitchen')
+  }
+
+  function customer(url: string, headers: Record<string, string>) {
+    return GET_CUSTOMER(new Request(url, { headers }), {
+      params: Promise.resolve({ page: 'in-the-pantry' }),
+    })
+  }
+
+  it('404s brisglowtique.com/customer-site/in-the-pantry?c=theblingkitchen.com', async () => {
+    await expectPantry404(
+      await customer('https://brisglowtique.com/customer-site/in-the-pantry?c=theblingkitchen.com', {
+        host: 'brisglowtique.com',
+      }),
+    )
+    await expectPantry404(
+      await customer(
+        `https://brisglowtique.com/customer-site/in-the-pantry?c=${KITCHEN.id}`,
+        { host: 'brisglowtique.com', 'x-forwarded-host': 'brisglowtique.com' },
+      ),
+    )
+  })
+
+  it('404s ?c= that points BlingKitchen at another rep on her own domain', async () => {
+    await expectPantry404(
+      await customer('https://theblingkitchen.com/customer-site/in-the-pantry?c=brisglowtique.com', {
+        host: 'theblingkitchen.com',
+      }),
+    )
+  })
+
+  it('404s /customer-site/in-the-pantry on the Suite host for every ?c=', async () => {
+    for (const c of ['', '?c=theblingkitchen.com', '?c=blingkitchen', `?c=${KITCHEN.id}`, '?c=dudesfizzfest']) {
+      await expectPantry404(
+        await customer(`https://www.yoursparklesuite.com/customer-site/in-the-pantry${c}`, {
+          host: 'www.yoursparklesuite.com',
+        }),
+      )
+    }
+  })
+
+  it('still serves the proxy-rewritten theblingkitchen.com pantry', async () => {
+    const rewritten = await customer(
+      'https://theblingkitchen.com/customer-site/in-the-pantry?c=theblingkitchen.com',
+      { host: 'theblingkitchen.com', 'x-sparkle-customer-domain': 'theblingkitchen.com' },
+    )
+    expect(rewritten.status).toBe(200)
+    const forwarded = await customer(
+      'https://theblingkitchen.com/customer-site/in-the-pantry?c=theblingkitchen.com',
+      { host: 'theblingkitchen.com', 'x-forwarded-host': 'theblingkitchen.com' },
+    )
+    expect(forwarded.status).toBe(200)
+  })
+
+  it('404s the /blingkitchen slug pantry on another rep domain but keeps it on the Suite host', async () => {
+    await expectPantry404(
+      await GET_SLUG(
+        new Request('https://brisglowtique.com/blingkitchen/in-the-pantry', {
+          headers: { host: 'brisglowtique.com' },
+        }),
+        { params: Promise.resolve({ publicSiteSlug: 'blingkitchen' }) },
+      ),
+    )
+    const suite = await GET_SLUG(
+      new Request('https://www.yoursparklesuite.com/blingkitchen/in-the-pantry', {
+        headers: { host: 'www.yoursparklesuite.com' },
+      }),
+      { params: Promise.resolve({ publicSiteSlug: 'blingkitchen' }) },
+    )
+    expect(suite.status).toBe(200)
+  })
+
+  it('404s the pantry data script when another rep domain asks for BlingKitchen', async () => {
+    await expectPantry404(
+      await GET_TEMPLATE(
+        new Request(`https://brisglowtique.com/api/amethyst/pantry-template?c=${KITCHEN.id}`, {
+          headers: { host: 'brisglowtique.com' },
+        }),
+      ),
+    )
+    const own = await GET_TEMPLATE(
+      new Request(`https://theblingkitchen.com/api/amethyst/pantry-template?c=${KITCHEN.id}`, {
+        headers: { host: 'theblingkitchen.com' },
+      }),
+    )
+    expect(own.status).not.toBe(404)
+  })
+
+  it('drops pantry links when BlingKitchen data is requested from another rep domain', () => {
+    const data = {
+      homepage: { pantryPageUrl: '/in-the-pantry' },
+      trade: { pantryPageUrl: '/in-the-pantry' },
+      join: { pantryPageUrl: '/in-the-pantry' },
+    }
+    const onBri = restrictPantryTemplateData(data, {
+      repId: KITCHEN.domain,
+      customDomain: BRI.domain,
+      requestHost: BRI.domain,
+    })
+    expect(JSON.stringify(onBri)).not.toContain('in-the-pantry')
+    const onKitchen = restrictPantryTemplateData(data, {
+      repId: KITCHEN.id,
+      customDomain: KITCHEN.domain,
+      requestHost: 'www.theblingkitchen.com',
+    })
+    expect(onKitchen).toBe(data)
+  })
+
+  it('keeps proxy behavior for non-pantry routes exactly as production', () => {
+    const join = proxy(
+      new NextRequest('https://brisglowtique.com/join', { headers: { host: 'brisglowtique.com' } }),
+    )
+    expect(isRewrite(join)).toBe(true)
+    const joinSlash = proxy(
+      new NextRequest('https://brisglowtique.com/join/', { headers: { host: 'brisglowtique.com' } }),
+    )
+    expect(isRewrite(joinSlash)).toBe(false)
+    expect(joinSlash.status).not.toBe(404)
+    const pantrySlash = proxy(
+      new NextRequest('https://theblingkitchen.com/in-the-pantry/', {
+        headers: { host: 'theblingkitchen.com' },
+      }),
+    )
+    expect(pantrySlash.status).not.toBe(404)
   })
 })

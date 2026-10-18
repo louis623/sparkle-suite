@@ -1,3 +1,5 @@
+import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
+
 /**
  * Public In the Pantry is an explicit allowlist, not a default and not a
  * name/email/team match. A new rep never receives the page, nav, or crawl
@@ -24,11 +26,37 @@ function apexDomain(value: string | null | undefined) {
   return host.startsWith('www.') ? host.slice('www.'.length) : host
 }
 
+/**
+ * The real host the visitor asked for, as a rep custom domain. Never reads
+ * ?c=. The proxy strips any inbound x-sparkle-customer-domain and sets it only
+ * on its own rewrite, so it is trusted ahead of the platform host headers.
+ * Returns null on the Suite host, previews, and local hosts.
+ */
+export function pantryRequestHost(request: Request) {
+  return normalizeAmethystCustomDomainCandidate(
+    request.headers.get('x-sparkle-customer-domain') ??
+      request.headers.get('x-forwarded-host') ??
+      request.headers.get('host') ??
+      new URL(request.url).host,
+  )
+}
+
+export function isBlingKitchenPantryRequestHost(requestHost: string | null | undefined) {
+  const domain = apexDomain(requestHost)
+  return domain !== '' && DOMAINS.has(domain)
+}
+
 export function isBlingKitchenPantryAllowed(input: {
   repId?: string | null
   publicSiteSlug?: string | null
   customDomain?: string | null
+  /** Real request host from pantryRequestHost. On a rep custom domain it must be BlingKitchen's. */
+  requestHost?: string | null
 }) {
+  if (input.requestHost && !isBlingKitchenPantryRequestHost(input.requestHost)) {
+    return false
+  }
+
   const repId = clean(input.repId)
   const slug = clean(input.publicSiteSlug)
   const domain = apexDomain(input.customDomain)
@@ -55,6 +83,7 @@ export function restrictPantryTemplateData<T extends PantryLinkedPages>(
     repId?: string | null
     publicSiteSlug?: string | null
     customDomain?: string | null
+    requestHost?: string | null
   },
 ): T {
   if (isBlingKitchenPantryAllowed(identity)) return data

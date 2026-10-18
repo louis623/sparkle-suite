@@ -182,10 +182,15 @@ export function proxy(request: NextRequest) {
     return NextResponse.next({ request: { headers } })
   }
 
-  const publicPath = normalizePublicPath(request.nextUrl.pathname)
-  if (publicPath.startsWith('/in-the-pantry/')) return notFoundResponse()
+  // In the Pantry has no public subpages on any customer domain.
+  if (
+    request.nextUrl.pathname.startsWith('/in-the-pantry/') &&
+    request.nextUrl.pathname.replace(/\/+$/, '') !== '/in-the-pantry'
+  ) {
+    return notFoundResponse()
+  }
 
-  const publicAssetPath = CUSTOMER_SITE_ROUTES[publicPath]
+  const publicAssetPath = CUSTOMER_SITE_ROUTES[request.nextUrl.pathname]
   if (!publicAssetPath) return NextResponse.next({ request: { headers } })
 
   const url = request.nextUrl.clone()

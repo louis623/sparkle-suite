@@ -17,7 +17,10 @@ import {
   loadAmethystPreviewTemplateData,
 } from '@/lib/amethyst/preview-template-data'
 import { resolveAmethystRequestCustomDomainHost } from '@/lib/amethyst/host-routing'
-import { restrictPantryTemplateData } from '@/lib/bling-kitchen/pantry-access'
+import {
+  pantryRequestHost,
+  restrictPantryTemplateData,
+} from '@/lib/bling-kitchen/pantry-access'
 import { resolveAmethystRequestRepId } from '@/lib/amethyst/request-rep-target'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import { canServeTargetedAmethystJoinPage } from '@/lib/amethyst/join-page-access'
@@ -559,6 +562,7 @@ export async function renderAmethystPublicAssetResponse(
             repId,
             publicSiteSlug: options.publicSiteSlugOverride,
             customDomain: resolveAmethystRequestCustomDomainHost(request),
+            requestHost: pantryRequestHost(request),
           },
         )
       : null
