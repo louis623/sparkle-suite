@@ -40,18 +40,16 @@ export function WorkspaceAccessPending({
         <h1 id="workspace-access-title">
           {paymentPending
             ? 'Payment is still being confirmed'
-            : 'Workspace access is not active for this account'}
+            : 'Workspace access is not active for this sign-in'}
         </h1>
         <p>
           {paymentPending
             ? 'No new checkout will start automatically. Sign in again after payment is confirmed.'
-            : 'Louis needs to finish setting up this email before it can open a Sparkle Suite workspace.'}
+            : 'This sign-in does not have a paid Sparkle Suite account. We email a payment link, and the account is created after the payment goes through.'}
         </p>
         <p>
-          Sparkle Suite never starts checkout just because you sign in. Once an
-          account is provisioned, the first sign-in begins five days of access.
-          Billing is started deliberately from <strong>Account</strong> inside
-          the app.
+          Sparkle Suite never starts checkout just because you sign in. The
+          workspace opens after the payment goes through.
         </p>
         <button
           type="button"

@@ -1,7 +1,8 @@
 ﻿import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe/client'
-import { getSparkleSuitePriceIds, getStripeConfig } from '@/lib/stripe/config'
+import { getStripeConfig } from '@/lib/stripe/config'
+import { resolveSparkleSuitePriceIds } from '@/lib/stripe/sparkle-suite-price-resolution'
 import { stripeCentsToWalletMils } from '@/lib/services/wallet-units'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CARD_QR_STRIPE_PRODUCT } from '@/lib/workspace/card-qr/checkout'
@@ -17,6 +18,10 @@ import {
   createPendingReferralAfterPaidCheckout,
   processReferralPaidSubscriptionInvoice,
 } from '@/lib/services/sparkle-suite-referral-rewards'
+import {
+  expirePaymentLinkFromSession,
+  fulfillPaidPaymentLink,
+} from '@/lib/prelaunch/payment-links'
 
 const GRANDFATHERED_PAYMENT_LINK_ACCOUNTS = {
   '2b5a27c5-9c05-4014-8d0b-754e19815bf6': 'williams.brianna19@yahoo.com',
@@ -191,9 +196,20 @@ async function ensureFounderStepUpSchedule({
     throw new Error('Founder checkout is missing monthly price metadata.')
   }
 
-  const standardMonthlyPriceId = getSparkleSuitePriceIds().standardMonthly
+  const priceIds = await resolveSparkleSuitePriceIds({
+    secretKey: getStripeConfig()?.STRIPE_SECRET_KEY,
+    listPrices: async (lookupKeys) => {
+      const listed = await stripe.prices.list({
+        lookup_keys: lookupKeys,
+        active: true,
+        limit: 10,
+      })
+      return listed.data
+    },
+  })
+  const standardMonthlyPriceId = priceIds.standardMonthly
   if (!standardMonthlyPriceId) {
-    throw new Error('STRIPE_PRICE_STANDARD_MONTHLY is required for founder step-up scheduling.')
+    throw new Error('The standard monthly price could not be resolved.')
   }
 
   const metadata = {
@@ -203,11 +219,11 @@ async function ensureFounderStepUpSchedule({
     founder_rate_months: String(founderRateMonths),
   }
   const existingScheduleId = getSubscriptionScheduleId(subscription)
+  // Stripe rejects metadata on the same call as from_subscription.
   const schedule = existingScheduleId
     ? await stripe.subscriptionSchedules.retrieve(existingScheduleId)
     : await stripe.subscriptionSchedules.create({
         from_subscription: subscription.id,
-        metadata,
       })
   const phaseStart = schedule.current_phase?.start_date ?? periodStart
 
@@ -590,6 +606,15 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
     return
   }
 
+  if (session.metadata?.sparkle_suite_payment_first === 'true') {
+    await fulfillPaidPaymentLink({
+      session,
+      livemode: event.livemode,
+      eventCreated: event.created,
+    })
+    return
+  }
+
   if (session.mode !== 'subscription' || !session.subscription) return
 
   if (session.payment_status !== 'paid') {
@@ -733,6 +758,13 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
 async function handleCheckoutExpired(event: Stripe.Event) {
   const session = event.data.object as Stripe.Checkout.Session
+  if (session.metadata?.sparkle_suite_payment_first === 'true') {
+    await expirePaymentLinkFromSession({
+      sessionId: session.id,
+      paymentLinkId: session.metadata.payment_link_id,
+    })
+    return
+  }
   if (session.mode !== 'subscription') return
   if (session.metadata?.pricing_tier !== 'founder') return
 

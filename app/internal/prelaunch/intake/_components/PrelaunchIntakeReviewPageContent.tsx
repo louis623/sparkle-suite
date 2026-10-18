@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import {
-  getPasswordMinLength,
-  getPasswordRequirements,
-} from '@/lib/auth/password-policy'
+  duplicatePaymentWasReversed,
+  paymentLinkAttentionText,
+  type OperatorPaymentLinkView,
+} from '@/lib/prelaunch/payment-links'
 import {
   buildPrelaunchScoutInput,
   type PrelaunchIntakeReviewSubmission,
@@ -45,6 +46,8 @@ interface PrelaunchIntakeReviewPageContentProps {
   launchSetupProfiles?: PrelaunchLaunchSetupProfile[]
   safeSmokeStatus?: PrelaunchSafeSmokeStatusItem[]
   surface?: 'prelaunch_review' | 'control_center'
+  paymentLinks?: OperatorPaymentLinkView[]
+  paymentLinksReady?: boolean
 }
 
 interface OperatorReadinessItem {
@@ -136,6 +139,13 @@ function formatDate(value: string) {
 
 function formatLabel(value: string | null | undefined) {
   return value?.replaceAll('_', ' ') ?? 'Not provided'
+}
+
+function formatPricingCohort(value: string | null | undefined) {
+  if (!value) return 'Not provided'
+  if (value.startsWith('founder')) return 'founder pricing'
+  if (value === 'standard') return 'standard pricing'
+  return formatLabel(value)
 }
 
 function formatTitleLabel(value: string | null | undefined) {
@@ -551,6 +561,150 @@ function BriefList({
   )
 }
 
+function PaymentLinkPanel({
+  basePath,
+  links,
+  ready,
+}: {
+  basePath: string
+  links: OperatorPaymentLinkView[]
+  ready: boolean
+}) {
+  return (
+    <section
+      className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+      id="payment-link"
+    >
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+        Payment link
+      </p>
+      <h2 className="mt-1 text-lg font-semibold text-slate-950">Create payment link</h2>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+        Pick founder or standard pricing, and whether to waive the setup fee.
+        Checkout collects the email. The draft stays on this page. Nothing is
+        emailed until the draft is copied and sent by hand.
+      </p>
+      {ready ? null : (
+        <p className="mt-3 text-sm leading-6 text-amber-800">
+          Payment links are unavailable until the payment-link migration is applied on this database.
+        </p>
+      )}
+      <form action="/api/control-center/intake/payment-link" className="mt-4" method="post">
+        <input name="returnTo" type="hidden" value={`${basePath}#payment-link`} />
+        <fieldset className="grid gap-2 text-sm text-slate-800">
+          <legend className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Pricing
+          </legend>
+          <label className="flex min-h-10 items-center gap-2">
+            <input name="pricingTier" required type="radio" value="founder" />
+            Founder pricing
+          </label>
+          <label className="flex min-h-10 items-center gap-2">
+            <input name="pricingTier" required type="radio" value="standard" />
+            Standard pricing
+          </label>
+        </fieldset>
+        <label className="mt-3 flex min-h-10 items-center gap-2 text-sm font-semibold text-slate-700">
+          <input className="h-4 w-4 rounded border-slate-300" name="waiveSetupFee" type="checkbox" value="true" />
+          Waive setup fee
+        </label>
+        <button
+          className="mt-4 inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm"
+          type="submit"
+        >
+          Create payment link
+        </button>
+      </form>
+      <div className="mt-6 grid gap-4">
+        {links.map((link) => (
+          <article className="rounded-md border border-slate-200 bg-slate-50 p-4" key={link.id}>
+            <p className="text-xs font-semibold text-slate-700">
+              {link.status === 'open' ? 'Link ready' : null}
+              {link.status === 'paid' ? 'Paid, account created' : null}
+              {link.status === 'duplicate' ? 'Payment matched an existing account' : null}
+              {link.status === 'needs_attention' ? 'Needs attention' : null}
+              {link.status === 'expired' ? 'Expired' : null}
+              {link.buildFeeWaived ? ' · setup fee waived' : ''}
+              {link.pricingTier === 'founder' ? ' · founder pricing' : ''}
+              {link.pricingTier === 'standard' ? ' · standard pricing' : ''}
+              {link.returningRep ? ' · returning rep' : ''}
+              {link.leadEmail ? ` · ${link.leadEmail}` : ''}
+              {link.status === 'paid' && link.repId ? ` · ${link.repId}` : ''}
+            </p>
+            {link.status === 'open' ? (
+              <>
+                <textarea
+                  className="mt-2 min-h-40 w-full rounded-md border border-slate-300 bg-white p-3 text-xs leading-5 text-slate-800"
+                  readOnly
+                  value={link.paymentEmailDraft ?? ''}
+                />
+                <form action="/api/control-center/intake/payment-link" className="mt-3" method="post">
+                  <input name="replaceLinkId" type="hidden" value={link.id} />
+                  <input name="returnTo" type="hidden" value={`${basePath}#payment-link`} />
+                  <button
+                    className="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm"
+                    type="submit"
+                  >
+                    Create a new payment link
+                  </button>
+                </form>
+              </>
+            ) : null}
+            {link.status === 'paid' ? (
+              <>
+                <p className="mt-1 text-xs text-slate-600">Welcome email draft only. It has not been sent.</p>
+                <textarea
+                  className="mt-2 min-h-32 w-full rounded-md border border-slate-300 bg-white p-3 text-xs leading-5 text-slate-800"
+                  readOnly
+                  value={link.welcomeEmailDraft ?? ''}
+                />
+              </>
+            ) : null}
+            {link.status === 'duplicate' ? (
+              <>
+                <p className="mt-2 text-xs leading-5 text-amber-800">
+                  {link.attentionReason
+                    ? paymentLinkAttentionText(link.attentionReason)
+                    : 'Paid again with an email that already has an account. The extra subscription still needs to be cancelled and the payment refunded. No second account was created.'}
+                </p>
+                {duplicatePaymentWasReversed(link.attentionReason) ? null : (
+                  <form action="/api/control-center/intake/payment-link" className="mt-3" method="post">
+                    <input name="retryLinkId" type="hidden" value={link.id} />
+                    <input name="returnTo" type="hidden" value={`${basePath}#payment-link`} />
+                    <button
+                      className="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm"
+                      type="submit"
+                    >
+                      Retry
+                    </button>
+                  </form>
+                )}
+              </>
+            ) : null}
+            {link.status === 'needs_attention' ? (
+              <>
+                <p className="mt-2 text-xs leading-5 text-amber-800">
+                  {paymentLinkAttentionText(link.attentionReason)}
+                </p>
+                <form action="/api/control-center/intake/payment-link" className="mt-3" method="post">
+                  <input name="retryLinkId" type="hidden" value={link.id} />
+                  <input name="returnTo" type="hidden" value={`${basePath}#payment-link`} />
+                  <button
+                    className="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm"
+                    type="submit"
+                  >
+                    Retry
+                  </button>
+                </form>
+              </>
+            ) : null}
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 export function PrelaunchIntakeReviewPageContent({
   activeLane = null,
   activeWaitlistView = null,
@@ -564,6 +718,8 @@ export function PrelaunchIntakeReviewPageContent({
   submissions,
   surface = 'prelaunch_review',
   waitlistLeads = [],
+  paymentLinks = [],
+  paymentLinksReady = true,
 }: PrelaunchIntakeReviewPageContentProps) {
   const isControlCenter = surface === 'control_center'
   const activeLaunchBuild = launchBuilds[0] ?? null
@@ -805,6 +961,14 @@ export function PrelaunchIntakeReviewPageContent({
             </div>
           </div>
         </header>
+
+        {isControlCenter ? (
+          <PaymentLinkPanel
+            basePath={basePath}
+            links={paymentLinks}
+            ready={paymentLinksReady}
+          />
+        ) : null}
 
         {isControlCenter ? (
           <section
@@ -1332,7 +1496,7 @@ export function PrelaunchIntakeReviewPageContent({
                         <dt className="font-semibold text-slate-500">
                           Pricing
                         </dt>
-                        <dd>{formatLabel(activeAgreementDocument.pricingCohort)}</dd>
+                        <dd>{formatPricingCohort(activeAgreementDocument.pricingCohort)}</dd>
                       </div>
                       <div>
                         <dt className="font-semibold text-slate-500">
@@ -1639,8 +1803,9 @@ export function PrelaunchIntakeReviewPageContent({
                     </h3>
                   </div>
                   <p className="max-w-sm text-xs leading-5 text-slate-600">
-                    Link an existing rep row, or create the client account shell
-                    from this ready build. This does not send an invite.
+                    Link an existing account, or create a payment link. The
+                    account is created after the payment goes through. Nothing
+                    on this page sends email.
                   </p>
                 </div>
                 <div className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -1660,43 +1825,9 @@ export function PrelaunchIntakeReviewPageContent({
                       name="notes"
                     />
                   </label>
-                  <label className="flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700">
-                    <input
-                      className="h-4 w-4 rounded border-slate-300"
-                      name="createClientAccount"
-                      type="checkbox"
-                      value="true"
-                    />
-                    Create five-day trial account
-                  </label>
-                  <label className="text-xs font-semibold text-slate-700">
-                    Temporary password
-                    <input
-                      autoComplete="new-password"
-                      className="mt-1 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm font-normal text-slate-950"
-                      minLength={getPasswordMinLength()}
-                      name="temporaryPassword"
-                      placeholder="Required only when creating account"
-                      type="password"
-                    />
-                  </label>
-                  <label className="text-xs font-semibold text-slate-700">
-                    Confirm temporary password
-                    <input
-                      autoComplete="new-password"
-                      className="mt-1 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm font-normal text-slate-950"
-                      minLength={getPasswordMinLength()}
-                      name="temporaryPasswordConfirm"
-                      placeholder="Enter the same password again"
-                      type="password"
-                    />
-                  </label>
                 </div>
                 <p className="mt-3 text-xs leading-5 text-slate-500">
-                  Account creation uses the customer email on this build and
-                  does not send an email. Hand the login details to the rep
-                  yourself. The five-day trial starts on their first successful
-                  sign-in, not when you create the account. {getPasswordRequirements()}
+                  Use an existing rep ID when the account is already paid.
                 </p>
                 <button
                   className="mt-4 inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-100"

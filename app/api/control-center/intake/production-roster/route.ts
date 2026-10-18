@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 
-import { getNewPasswordValidationError } from '@/lib/auth/password-policy'
-import { preparePrelaunchClientAccountForLaunchBuild } from '@/lib/prelaunch/client-account'
 import { connectPrelaunchLaunchBuildToProductionRep } from '@/lib/prelaunch/production-roster'
 import {
   AuthError,
@@ -14,10 +12,6 @@ export const dynamic = 'force-dynamic'
 
 function readString(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
-}
-
-function readBoolean(value: unknown) {
-  return value === true || value === 'true' || value === 'on'
 }
 
 function isJsonRequest(request: Request) {
@@ -38,9 +32,6 @@ async function parsePayload(request: Request) {
     return {
       launchBuildId: readString(body.launchBuildId),
       repId: readString(body.repId),
-      createClientAccount: readBoolean(body.createClientAccount),
-      temporaryPassword: readString(body.temporaryPassword),
-      temporaryPasswordConfirm: readString(body.temporaryPasswordConfirm),
       notes: readString(body.notes),
       returnTo: '/control-center/intake',
       wantsJson: true,
@@ -52,11 +43,6 @@ async function parsePayload(request: Request) {
   return {
     launchBuildId: readString(form.get('launchBuildId')),
     repId: readString(form.get('repId')),
-    createClientAccount: readBoolean(form.get('createClientAccount')),
-    temporaryPassword: readString(form.get('temporaryPassword')),
-    temporaryPasswordConfirm: readString(
-      form.get('temporaryPasswordConfirm'),
-    ),
     notes: readString(form.get('notes')),
     returnTo: sanitizeReturnTo(readString(form.get('returnTo'))),
     wantsJson: false,
@@ -75,65 +61,25 @@ export async function POST(request: Request) {
       )
     }
 
-    let repId = payload.repId
-    let clientAccount: Awaited<
-      ReturnType<typeof preparePrelaunchClientAccountForLaunchBuild>
-    > | null = null
-    let build: Awaited<
-      ReturnType<typeof connectPrelaunchLaunchBuildToProductionRep>
-    >
-
-    if (payload.createClientAccount) {
-      if (!payload.temporaryPassword || !payload.temporaryPasswordConfirm) {
-        return NextResponse.json(
-          {
-            error:
-              'temporaryPassword and temporaryPasswordConfirm are required.',
-          },
-          { status: 400 },
-        )
-      }
-
-      const passwordError = getNewPasswordValidationError(
-        payload.temporaryPassword,
-        payload.temporaryPasswordConfirm,
+    if (!payload.repId) {
+      return NextResponse.json(
+        { error: 'repId is required. Create a payment link before an account exists.' },
+        { status: 400 },
       )
-      if (passwordError) {
-        return NextResponse.json({ error: passwordError }, { status: 400 })
-      }
-
-      clientAccount = await preparePrelaunchClientAccountForLaunchBuild({
-        launchBuildId: payload.launchBuildId,
-        temporaryPassword: payload.temporaryPassword,
-        temporaryPasswordConfirm: payload.temporaryPasswordConfirm,
-        notes: payload.notes,
-        operatorRepId: operator.repId,
-      })
-      repId = clientAccount.repId
-      build = clientAccount.build
-    } else {
-      if (!repId) {
-        return NextResponse.json(
-          { error: 'repId is required.' },
-          { status: 400 },
-        )
-      }
-
-      build = await connectPrelaunchLaunchBuildToProductionRep({
-        launchBuildId: payload.launchBuildId,
-        repId,
-        notes: payload.notes,
-        operatorRepId: operator.repId,
-      })
     }
+
+    const build = await connectPrelaunchLaunchBuildToProductionRep({
+      launchBuildId: payload.launchBuildId,
+      repId: payload.repId,
+      notes: payload.notes,
+      operatorRepId: operator.repId,
+    })
 
     if (!payload.wantsJson) {
       return NextResponse.redirect(new URL(payload.returnTo, request.url), 303)
     }
 
-    return NextResponse.json(
-      clientAccount ? { ok: true, build, clientAccount } : { ok: true, build },
-    )
+    return NextResponse.json({ ok: true, build })
   } catch (error) {
     if (error instanceof SyntaxError) {
       return NextResponse.json(

@@ -86,7 +86,6 @@ describe('operator support route classification manifest', () => {
 
   it('keeps billing mutations, authentication, provider callbacks, and account safety mutations blocked', () => {
     const sensitiveFiles = new Set([
-      'app/api/account/activate-trial/route.ts',
       'app/api/auth/callback/route.ts',
       'app/api/nic-nac/conversations/[conversationId]/block/route.ts',
       'app/api/nic-nac/conversations/[conversationId]/report/route.ts',
@@ -139,7 +138,6 @@ describe('operator support route classification manifest', () => {
     ).toMatchObject({ methods: ['PATCH'], classification: 'rep_only' })
 
     for (const path of [
-      '/api/account/activate-trial',
       '/api/auth/callback',
       '/api/nic-nac/conversations/[conversationId]/block',
       '/api/nic-nac/conversations/[conversationId]/report',
