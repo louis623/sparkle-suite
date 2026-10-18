@@ -223,15 +223,15 @@ export function TradeBoardWorkspaceCard({
       <section className={styles.summaryCard}>
         <div className={styles.sectionHeader}>
           <div>
-            <div className={surfaceStyles.walletSettingsTitle}>Today&apos;s trade work</div>
+            <div className={surfaceStyles.walletSettingsTitle}>Today&apos;s swap work</div>
             <div className={surfaceStyles.helperNote}>
               {tradeStatusReady
                 ? tradeWorkCount > 0
-                  ? `${tradeWorkCount} item${tradeWorkCount === 1 ? '' : 's'} need attention. Start with requests, then trade follow-up, then fulfillment.`
-                  : 'Everything is caught up. New requests, trade follow-up, and fulfillment work will land here.'
+                  ? `${tradeWorkCount} item${tradeWorkCount === 1 ? '' : 's'} need attention. Start with requests, then swap follow-up, then fulfillment.`
+                  : 'Everything is caught up. New requests, swap follow-up, and fulfillment work will land here.'
                 : tradeRequestsState.status === 'error' && pendingCount !== undefined
                   ? 'Cannot refresh requests right now. Showing the last known pending count.'
-                  : 'Checking requests, trade follow-up, and fulfillment.'}
+                  : 'Checking requests, swap follow-up, and fulfillment.'}
             </div>
           </div>
         </div>
@@ -324,10 +324,10 @@ export function TradeBoardWorkspaceCard({
 
       <section className={styles.sectionCard} id="trade-fulfillment-log">
         <div className={styles.sectionHeader}>
-          <div className={surfaceStyles.walletSettingsTitle}>Trade fulfillment log</div>
+          <div className={surfaceStyles.walletSettingsTitle}>Swap fulfillment log</div>
           <span className={surfaceStyles.rosterTag}>{openFulfillmentCount} open</span>
         </div>
-        <div className={styles.fulfillmentTabs} role="group" aria-label="Trade fulfillment filter">
+        <div className={styles.fulfillmentTabs} role="group" aria-label="Swap fulfillment filter">
           {(['open', 'done', 'all'] as const).map((filter) => (
             <button key={filter} type="button"
               className={fulfillmentLogView.filter === filter ? styles.boardChipActive : styles.boardChip}
@@ -338,7 +338,7 @@ export function TradeBoardWorkspaceCard({
           ))}
         </div>
         {fulfillmentQueueState.status === 'error' ? (
-          <p role="alert" className={surfaceStyles.helperNote}>Could not load the trade log. Try another tab to retry.</p>
+          <p role="alert" className={surfaceStyles.helperNote}>Could not load the swap log. Try another tab to retry.</p>
         ) : fulfillmentQueueState.status === 'loading' ? (
           <div className={surfaceStyles.cardFill}><div className={surfaceStyles.loadingLine} /></div>
         ) : (
@@ -846,9 +846,9 @@ export function TradeBoardWorkspaceCard({
         <section className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
             <div>
-              <div className={surfaceStyles.walletSettingsTitle}>Trade follow-up</div>
+              <div className={surfaceStyles.walletSettingsTitle}>Swap follow-up</div>
               <div className={surfaceStyles.helperNote}>
-                Approved trades stay here until the missing ring size or catalog details are finished.
+                Approved swaps stay here until the missing ring size or catalog details are finished.
               </div>
             </div>
             <span className={surfaceStyles.rosterTag}>{`${cleanupItems.length} to finish`}</span>

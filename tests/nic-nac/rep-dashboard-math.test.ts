@@ -556,18 +556,18 @@ describe('rep dashboard presentation', () => {
         requestCount: 0,
       },
       {
-        id: 'sold',
+        id: 'swapped',
         name: 'The Sugar Kiss Earrings',
         itemNumber: 'ER99962',
         typePrefix: 'ER',
         collectionName: 'Original',
         price: 132,
-        status: 'removed',
-        removalReason: 'sold',
+        status: 'traded',
+        removalReason: null,
         listedAt: new Date(now.getTime() - 18 * day).toISOString(),
         createdAt: new Date(now.getTime() - 18 * day).toISOString(),
         updatedAt: now.toISOString(),
-        deletedAt: now.toISOString(),
+        deletedAt: null,
         requestCount: 1,
       },
     ]
@@ -604,7 +604,8 @@ describe('rep dashboard presentation', () => {
     expect(html).toContain('early data')
     expect(html).toContain('The Sugar Kiss Earrings')
     expect(html).toContain('Days on floor by type')
-    expect(html).toContain('Sold')
+    expect(html).toContain('Swapped')
+    expect(html).toContain('median days to swap')
     expect(html).not.toContain('Removed · "other"')
     expect(html).toContain('QR visits')
     expect(html).toContain('Where they are')
@@ -624,7 +625,9 @@ describe('rep dashboard presentation', () => {
       html.indexOf('data-testid="month-at-a-glance"'),
     )
     expect(danceFloorCard).toContain('Active listings')
-    expect(danceFloorCard).toContain('Pending trades')
+    expect(danceFloorCard).toContain('Pending swap requests')
+    // Dance Floor is swaps only: no sales or trade language on the rep's insights panel.
+    expect(danceFloorCard.replace(/<[^>]*>/g, ' ').match(/.{0,40}(\bsold\b|\bsales?\b|\bsell|\btrade[sd]?\b).{0,40}/gi) ?? []).toEqual([])
     expect(danceFloorCard).toContain('Sitting on the floor')
     expect(danceFloorCard).toContain('Floor mix')
     expect(danceFloorCard).toContain('Fast movers vs sitters')
@@ -644,7 +647,7 @@ describe('rep dashboard presentation', () => {
     expect(html.indexOf('data-testid="site-visitors"')).toBeLessThan(html.indexOf('Last month at a glance'))
     expect(html.indexOf('Sitting on the floor')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
     expect(html.indexOf('Customers')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
-    expect(html.indexOf('Pending trades')).toBeLessThan(html.indexOf('Unread messages'))
+    expect(html.indexOf('Pending swap requests')).toBeLessThan(html.indexOf('Unread messages'))
     expect(html.indexOf('Unread messages')).toBeLessThan(html.indexOf('data-testid="site-visitors"'))
   })
 

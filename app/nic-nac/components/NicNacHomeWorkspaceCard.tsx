@@ -51,7 +51,7 @@ export function NicNacHomeWorkspaceCard({
 
       <div className={styles.todayPanel}>
         <div>
-          <span className={styles.todayLabel}>Today&apos;s trade work</span>
+          <span className={styles.todayLabel}>Today&apos;s swap work</span>
           <span className={styles.todayCopy}>The fast things worth checking.</span>
         </div>
         <div className={styles.todayStrip}>
@@ -59,7 +59,7 @@ export function NicNacHomeWorkspaceCard({
             <strong>{tradeRequestsCount}</strong> Pending requests
           </span>
           <span>
-            <strong>{cleanupCount}</strong> Trade follow-up
+            <strong>{cleanupCount}</strong> Swap follow-up
           </span>
           <span>
             <strong>{fulfillmentCount}</strong> Fulfillment swaps

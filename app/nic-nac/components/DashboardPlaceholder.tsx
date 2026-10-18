@@ -201,7 +201,7 @@ const WORKSPACE_SECTIONS = [
   {
     key: 'trade-board',
     label: 'Dance Floor',
-    shortLabel: 'Trade',
+    shortLabel: 'Floor',
     icon: Gem,
   },
   {
@@ -5585,21 +5585,21 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
       const replacementStatus = payload?.result?.replacementStatus
       const approveMessage =
         replacementStatus === 'added_to_board'
-          ? 'Trade approved. Added the revealed dancer back to your Dance Floor.'
+          ? 'Swap approved. Added the revealed dancer back to your Dance Floor.'
           : replacementStatus === 'needs_ring_size'
-            ? 'Trade approved. I saved the item number to this swap; add the ring size after the show to add the dancer to the Dance Floor.'
+            ? 'Swap approved. I saved the item number to this swap; add the ring size after the show to add the dancer to the Dance Floor.'
             : replacementStatus === 'needs_catalog_details'
-              ? 'Trade approved. I saved the item number to this swap; finish the catalog details after the show.'
+              ? 'Swap approved. I saved the item number to this swap; finish the catalog details after the show.'
               : skippedRevealedItemNumber
-                ? 'Trade approved. Add the revealed dancer later with Nic-Nac when you are ready.'
-              : 'Trade request approved.'
+                ? 'Swap approved. Add the revealed dancer later with Nic-Nac when you are ready.'
+              : 'Swap request approved.'
       setTradeBoardActionState({
         pendingKey: null,
         error: null,
         helperMessage:
           action === 'approve'
             ? `${approveMessage}${refreshFailed ? ' Some workspace details could not refresh yet.' : ''}`
-            : `Trade request denied.${refreshFailed ? ' Some workspace details could not refresh yet.' : ''}`,
+            : `Swap request denied.${refreshFailed ? ' Some workspace details could not refresh yet.' : ''}`,
       })
     } catch (error) {
       setTradeBoardActionState({
@@ -5623,14 +5623,14 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     setTradeReviewLoading(true)
     try {
       const response = await fetch(`/api/nic-nac/trade-requests?requestId=${encodeURIComponent(requestId)}`, { credentials: 'include' })
-      if (!response.ok) throw new Error('Unable to load this trade request.')
+      if (!response.ok) throw new Error('Unable to load this swap request.')
       const matches = (await response.json()) as TradeRequestWithListing[]
       if (!Array.isArray(matches) || matches.length !== 1 || matches[0].id !== requestId || matches[0].status !== 'pending') {
         throw new Error('This request is no longer pending or available to review.')
       }
       setTradeReview({ request: matches[0], action })
     } catch (error) {
-      setTradeReviewLoadError(error instanceof Error ? error.message : 'Unable to load this trade request.')
+      setTradeReviewLoadError(error instanceof Error ? error.message : 'Unable to load this swap request.')
     } finally {
       setTradeReviewLoading(false)
     }
@@ -7469,7 +7469,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
         onClose={() => setTradeReview(null)}
         onSubmit={(decision) => void handleTradeReviewDecision(decision)}
       /> : null}
-      {tradeReviewLoading ? <div role="status">Loading trade request for review…</div> : null}
+      {tradeReviewLoading ? <div role="status">Loading swap request for review…</div> : null}
       {tradeReviewLoadError ? <div role="alert">{tradeReviewLoadError} <button type="button" onClick={() => setTradeReviewLoadError(null)}>Dismiss</button></div> : null}
       {!reviewWorkspaceMode ? <TradeRequestAlertCenter
         requests={tradeInboxLoaded && (tradeRequestsState.pendingCount ?? 0) > (tradeRequestsState.requests?.length ?? 0) && tradeInboxRequests.length === tradeRequestsState.pendingCount ? tradeInboxRequests : tradeRequestsState.requests ?? []}
@@ -7937,7 +7937,7 @@ function ConceptHomeWorkspace({
 
   return (
     <section className={styles.conceptHome} aria-label="Nic-Nac first workspace">
-      <aside className={styles.conceptRail} aria-label="Trade info at a glance">
+      <aside className={styles.conceptRail} aria-label="Swap info at a glance">
         <button
           type="button"
           className={styles.railLaunchAction}
@@ -7946,10 +7946,10 @@ function ConceptHomeWorkspace({
           <span className={styles.railLaunchPieceIcon} aria-hidden="true">+</span>
           <span>Add a dancer</span>
         </button>
-        <ConceptPanel title="Trade Info" icon={<CalendarDays aria-hidden="true" />}>
+        <ConceptPanel title="Swap Info" icon={<CalendarDays aria-hidden="true" />}>
           <MetricRows
             rows={[
-              ['Trade requests', tradeRequestsCount ?? '—'],
+              ['Swap requests', tradeRequestsCount ?? '—'],
               ['Dancers on the Floor', availableDancerCount ?? '—'],
               ['New dancers today', newDancersTodayCount ?? '—'],
             ]}

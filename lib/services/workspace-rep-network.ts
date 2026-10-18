@@ -127,7 +127,7 @@ export async function buildSafeRepMessageRequestContext(
     throw new ServiceError({
       code: 'REP_NETWORK_CONTEXT_LOAD_FAILED',
       message: 'failed to validate trade request context',
-      userMessage: 'That related trade request could not be checked right now.',
+      userMessage: 'That related swap request could not be checked right now.',
       statusCode: 500,
       cause: tradeRequest.error,
     })
@@ -145,8 +145,8 @@ export async function buildSafeRepMessageRequestContext(
     type: contextType,
     id: input.contextId,
     snapshot: {
-      label: 'Trade request',
-      value: 'Related trade request',
+      label: 'Swap request',
+      value: 'Related swap request',
       href: '/nic-nac?section=trade-board',
       source: contextType,
     },

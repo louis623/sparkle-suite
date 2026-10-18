@@ -33,7 +33,7 @@ export const REP_DASHBOARD_TIPS: Record<DashboardTipId, readonly string[]> = {
     'Open a group to work that list.',
   ],
   'dance-floor': [
-    'This is your Dance Floor: pieces still listed, pieces that already left, and trades waiting on you.',
+    'This is your Dance Floor: pieces still listed, pieces that already left, and swap requests waiting on you.',
     'Use it to choose what to feature in your next LIVE and to keep swaps moving.',
     'Open it to add a piece or answer a request.',
   ],

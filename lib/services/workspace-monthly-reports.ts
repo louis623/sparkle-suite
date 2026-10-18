@@ -305,7 +305,7 @@ export async function collectMonthlyReportData(args: {
             .eq('listing.rep_id', args.repId)
             .eq('status', 'pending'),
         'pending_trade_requests',
-        'Pending trade requests',
+        'Pending swap requests',
       ),
       safeCount(
         () =>

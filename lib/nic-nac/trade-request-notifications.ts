@@ -20,13 +20,13 @@ export function buildTradeRequestNotificationText(
     : summary.listing.typePrefix
 
   return [
-    `New trade request from ${summary.customerName} for ${requestedItem}.`,
+    `New swap request from ${summary.customerName} for ${requestedItem}.`,
     `They offered: ${summary.customerDescription}`,
     summary.revealScreenshot
       ? 'They included a reveal screenshot in the Dance Floor request inbox.'
       : null,
     `Review it against the same-collection + same-type rule first: ${collectionLine}.`,
-    'Open your pending trade requests in Nic-Nac when you want to approve or deny it.',
+    'Open your pending swap requests in Nic-Nac when you want to approve or deny it.',
   ].filter(Boolean).join('\n\n')
 }
 

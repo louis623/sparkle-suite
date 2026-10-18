@@ -428,26 +428,26 @@ describe('reviewer smoke UI wiring', () => {
   })
 
   it('puts the trade request inbox after quick-add and dancer browsing in the workspace card', () => {
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Today&#x27;s trade work')).toBeGreaterThan(-1)
+    expect(tradeBoardWorkspaceCardHtml.indexOf('Today&#x27;s swap work')).toBeGreaterThan(-1)
     expect(tradeBoardWorkspaceCardHtml.indexOf('Quick add')).toBeGreaterThan(-1)
     expect(tradeBoardWorkspaceCardHtml.indexOf('Browse dancers')).toBeGreaterThan(-1)
     expect(tradeBoardWorkspaceCardHtml.indexOf('Request inbox')).toBeGreaterThan(-1)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Trade follow-up')).toBeGreaterThan(-1)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Trade fulfillment log')).toBeGreaterThan(-1)
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Today&#x27;s trade work')).toBeLessThan(
+    expect(tradeBoardWorkspaceCardHtml.indexOf('Swap follow-up')).toBeGreaterThan(-1)
+    expect(tradeBoardWorkspaceCardHtml.indexOf('Swap fulfillment log')).toBeGreaterThan(-1)
+    expect(tradeBoardWorkspaceCardHtml.indexOf('Today&#x27;s swap work')).toBeLessThan(
       tradeBoardWorkspaceCardHtml.indexOf('Quick add'),
     )
     expect(tradeBoardWorkspaceCardHtml.indexOf('Quick add')).toBeLessThan(
-      tradeBoardWorkspaceCardHtml.indexOf('Trade fulfillment log'),
+      tradeBoardWorkspaceCardHtml.indexOf('Swap fulfillment log'),
     )
-    expect(tradeBoardWorkspaceCardHtml.indexOf('Trade fulfillment log')).toBeLessThan(
+    expect(tradeBoardWorkspaceCardHtml.indexOf('Swap fulfillment log')).toBeLessThan(
       tradeBoardWorkspaceCardHtml.indexOf('Browse dancers'),
     )
     expect(tradeBoardWorkspaceCardHtml.indexOf('Browse dancers')).toBeLessThan(
       tradeBoardWorkspaceCardHtml.indexOf('Request inbox'),
     )
     expect(tradeBoardWorkspaceCardHtml.indexOf('Request inbox')).toBeLessThan(
-      tradeBoardWorkspaceCardHtml.indexOf('Trade follow-up'),
+      tradeBoardWorkspaceCardHtml.indexOf('Swap follow-up'),
     )
     expect(tradeBoardWorkspaceCardHtml).not.toContain('Fulfillment queue')
   })
@@ -483,8 +483,8 @@ describe('reviewer smoke UI wiring', () => {
     expect(tradeBoardWorkspaceCardQuietHtml).toContain('Jewelry Type')
     expect(tradeBoardWorkspaceCardQuietHtml).toContain('Collection')
     expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('Request inbox')
-    expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('Trade follow-up')
-    expect(tradeBoardWorkspaceCardQuietHtml).toContain('Trade fulfillment log')
+    expect(tradeBoardWorkspaceCardQuietHtml).not.toContain('Swap follow-up')
+    expect(tradeBoardWorkspaceCardQuietHtml).toContain('Swap fulfillment log')
     expect(tradeBoardWorkspaceCardQuietHtml).not.toContain(
       'No pieces on your board yet. Add your first item above.',
     )

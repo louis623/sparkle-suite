@@ -62,7 +62,7 @@ describe('notifyRepOfTradeRequest', () => {
         parts: [
           {
             type: 'text',
-            text: expect.stringContaining('New trade request from Alice'),
+            text: expect.stringContaining('New swap request from Alice'),
           },
           {
             type: 'data-trade-request-card',

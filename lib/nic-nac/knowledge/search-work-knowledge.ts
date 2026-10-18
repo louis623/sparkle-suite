@@ -37,7 +37,7 @@ const ARTICLES: readonly NicNacKnowledgeArticle[] = [
     freshness: 'current_release',
     confidence: 'high',
     summary:
-      'Calendar holds show dates and details; Dance Floor holds trade-eligible dancers and trade work; show-session tools preserve live-show context; customer-audience and notification tools handle opted-in customer follow-up; Help & Resources contains product workflows.',
+      'Calendar holds show dates and details; Dance Floor holds swap-eligible dancers and swap work; show-session tools preserve live-show context; customer-audience and notification tools handle opted-in customer follow-up; Help & Resources contains product workflows.',
     steps: [
       'Use a live read tool for questions about what the rep currently has.',
       'Use the matching write tool only when the rep is asking to change workspace state.',
@@ -125,7 +125,7 @@ const ARTICLES: readonly NicNacKnowledgeArticle[] = [
     ],
     boundaries: [
       'Do not expose customer contact, order, payment, or address information.',
-      'Do not invent a refund, shipping, trade, or platform rule.',
+      'Do not invent a refund, shipping, swap, or platform rule.',
     ],
     keywords: [
       'customer', 'chat', 'moderation', 'confused', 'busy live', 'instructions',

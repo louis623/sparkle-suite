@@ -68,7 +68,7 @@ export const REVIEW_INBOX_FIXTURES: WorkspaceInboxItem[] = [
     subject: 'Question about dancer RG12345',
     senderDisplayName: "Mia's Gem Room",
     senderSubtitle: 'Rep Network',
-    latestMessagePreview: 'Would you be open to coordinating this trade?',
+    latestMessagePreview: 'Would you be open to coordinating this swap?',
     lastMessageAt: '2026-08-25T15:30:00.000Z',
     unreadCount: 1,
     requestDirection: 'incoming',
@@ -148,7 +148,7 @@ export const REVIEW_INBOX_FIXTURES: WorkspaceInboxItem[] = [
     body: [
       { type: 'heading', text: 'Last month at a glance' },
       { type: 'metric', label: 'New customers', value: 8 },
-      { type: 'metric', label: 'Trade requests', value: 4 },
+      { type: 'metric', label: 'Swap requests', value: 4 },
     ],
     category: 'monthly_report',
     priority: 'important',

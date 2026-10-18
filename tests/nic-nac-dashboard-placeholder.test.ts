@@ -128,7 +128,7 @@ import { getHelpResources } from '@/lib/services/help-resources'
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Dance Floor Management|Today(?:&#x27;|')s trade work|Quick add|Trade fulfillment log|Browse dancers|Request inbox|Trade follow-up)</g,
+      />(Dance Floor Management|Today(?:&#x27;|')s swap work|Quick add|Swap fulfillment log|Browse dancers|Request inbox|Swap follow-up)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -740,12 +740,12 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Add a show')
     expect(source).toContain('styles.railLaunchAction')
     expect(source).not.toContain('styles.heroQuickActions')
-    expect(html).toContain('Trade Info')
-    expect(html).toContain('aria-label="Trade info at a glance"')
-    expect(html).toContain('Trade requests')
+    expect(html).toContain('Swap Info')
+    expect(html).toContain('aria-label="Swap info at a glance"')
+    expect(html).toContain('Swap requests')
     expect(html).toContain('Dancers on the Floor')
     expect(html).toContain('New dancers today')
-    expect(html).not.toContain('Trade follow-up')
+    expect(html).not.toContain('Swap follow-up')
     expect(html).not.toContain('Fulfillment swaps')
     expect(html).toContain('Open Dance Floor')
     expect(html).not.toContain('Active Board')
@@ -2873,15 +2873,15 @@ describe('DashboardPlaceholder', () => {
 
     expect(getTradeBoardSectionLabels(html)).toEqual([
       'Dance Floor Management',
-      "Today's trade work",
+      "Today's swap work",
       'Quick add',
-      'Trade fulfillment log',
+      'Swap fulfillment log',
       'Browse dancers',
     ])
     expect(html).toContain('Jewelry type')
     expect(html).toContain('Collection')
     expect(html).toContain(
-      'Everything is caught up. New requests, trade follow-up, and fulfillment work will land here.',
+      'Everything is caught up. New requests, swap follow-up, and fulfillment work will land here.',
     )
     expect(html).toContain('Know the item number? Add a dancer in one step.')
     expect(html).toContain(
@@ -2896,7 +2896,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Rose Quartz Stack')
     expect(html).not.toContain('Default landing section')
     expect(html).not.toContain('Request inbox')
-    expect(html).not.toContain('Trade follow-up')
+    expect(html).not.toContain('Swap follow-up')
     expect(html).not.toContain('Fulfillment queue')
     expect(html).toContain('Loading dancers')
     expect(html).not.toContain('Loading board pieces...')
@@ -2946,10 +2946,10 @@ describe('DashboardPlaceholder', () => {
       }),
     )
 
-    expect(html).toContain('Trade follow-up')
+    expect(html).toContain('Swap follow-up')
     expect(html).toContain('1 to finish')
     expect(html).toContain(
-      'Approved trades stay here until the missing ring size or catalog details are finished.',
+      'Approved swaps stay here until the missing ring size or catalog details are finished.',
     )
     expect(html).toContain('Revealed item number: ER00001')
     expect(html).toContain(
@@ -2967,13 +2967,13 @@ describe('DashboardPlaceholder', () => {
     expect(dashboardSource).toContain('<TradeRequestReviewDialog')
     expect(dashboardSource).toContain('body: JSON.stringify(decision)')
     expect(dashboardSource).toContain(
-      'Trade approved. Added the revealed dancer back to your Dance Floor.',
+      'Swap approved. Added the revealed dancer back to your Dance Floor.',
     )
     expect(dashboardSource).toContain(
       'I saved the item number to this swap; finish the catalog details after the show.',
     )
     expect(dashboardSource).toContain(
-      'Trade approved. Add the revealed dancer later with Nic-Nac when you are ready.',
+      'Swap approved. Add the revealed dancer later with Nic-Nac when you are ready.',
     )
   })
 

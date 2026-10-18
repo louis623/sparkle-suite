@@ -41,7 +41,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
       'Review the dashboard as your home base.',
       'Open Nic-Nac when you want plain-English guidance.',
       'Use Site Settings for customer-facing site details.',
-    'Use the Dance Floor for dancers, requests, and trade follow-up.',
+    'Use the Dance Floor for dancers, swap requests, and swap follow-up.',
       'Use Calendar and Live Queue tools before and during live shows.',
       'Use Account for billing and site analytics.',
       'Use Help & Resources when you need the next workflow.',
@@ -280,7 +280,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     body:
       'You can send either photo first. The item-info tag or label tells Nic-Nac which dancer it is. The clear jewelry photo is the photo customers see on the Dance Floor. They do two different jobs. A boxed display photo works when the jewelry is cleanly visible and looks good on the website.',
     goal: 'Add one dancer with correct details and a customer-facing jewelry photo.',
-    useWhen: 'Use this when you have jewelry you are willing to make available for trade.',
+    useWhen: 'Use this when you have jewelry you are willing to make available for a dancer swap.',
     beforeYouStart: [
       'Item number or readable item-info tag/photo',
       'Clear, close, centered photo of the jewelry itself for customers to see',
@@ -315,36 +315,36 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     id: 'handle-trade-requests',
     type: 'workflow',
     group: 'Dance Floor',
-    category: 'Trade Requests',
-    title: 'Handle trade requests',
+    category: 'Swap Requests',
+    title: 'Handle swap requests',
     summary:
-      'Review customer trade requests, reveal screenshots, approvals, and follow-up without losing the thread.',
+      'Review customer swap requests, reveal screenshots, approvals, and follow-up without losing the thread.',
     body:
-      'Sparkle Suite organizes trade interest, but the rep still controls trade judgment, approvals, shipping, and follow-through. Customers describe the dancer they just revealed and may attach a recommended reveal screenshot. The screenshot appears in the Dance Floor request inbox and on Nic-Nac trade request cards when available, then expires after seven days. Sparkle Suite does not guarantee equal value, settle disputes, or approve trades for the rep.',
-    goal: 'Move trade requests through a clear decision and fulfillment rhythm.',
-    useWhen: 'Use this when a customer requests a trade or a pending trade needs follow-up.',
+      'Sparkle Suite organizes swap interest, but the rep still controls swap judgment, approvals, shipping, and follow-through. Customers describe the dancer they just revealed and may attach a recommended reveal screenshot. The screenshot appears in the Dance Floor request inbox and on Nic-Nac swap request cards when available, then expires after seven days. Sparkle Suite does not guarantee equal value, settle disputes, or approve trades for the rep.',
+    goal: 'Move swap requests through a clear decision and fulfillment rhythm.',
+    useWhen: 'Use this when a customer requests a swap or a pending swap needs follow-up.',
     beforeYouStart: [
       'Customer request note with the revealed jewelry description',
       'Optional reveal screenshot, if the customer uploaded one',
       'Current dancer status',
-      'Rep decision on whether the trade should move forward',
+      'Rep decision on whether the swap should move forward',
     ],
     steps: [
-      'Open the trade request inbox.',
+      'Open the swap request inbox.',
       'Review the requested dancer and the customer description of the jewelry they just revealed.',
-      'Open the reveal screenshot from the request inbox or Nic-Nac trade request card when one is attached.',
+      'Open the reveal screenshot from the request inbox or Nic-Nac swap request card when one is attached.',
       'Use the description, screenshot, and live-show context to confirm the collection and jewelry type.',
-      'Approve the request when the trade should move forward under the same collection and same jewelry type rule.',
-      'Deny the request when the trade should not move forward.',
+      'Approve the request when the swap should move forward under the same collection and same jewelry type rule.',
+      'Deny the request when the swap should not move forward.',
       'When approving, enter the just-revealed item number and ring size when needed so cleanup and fulfillment stay accurate.',
-      'Move approved trades through shipped and completed when follow-through happens.',
+      'Move approved swaps through shipped and completed when follow-through happens.',
       'Keep only one request moving forward when several customers want the same dancer.',
     ],
     goodResult:
       'Each request has the right status, any reveal screenshot has been used as supporting context, and the rep knows what follow-up remains.',
-    nicNacPrompt: 'Help me handle my trade requests.',
+    nicNacPrompt: 'Help me handle my swap requests.',
     stillStuck:
-      'Include the customer name, requested dancer, customer description, whether a reveal screenshot is attached or expired, request status, and the decision you are trying to make. A missing screenshot alone should not block the trade if the description and show context are enough.',
+      'Include the customer name, requested dancer, customer description, whether a reveal screenshot is attached or expired, request status, and the decision you are trying to make. A missing screenshot alone should not block the swap if the description and show context are enough.',
     relatedFeatureIds: ['trade-board'],
     quickActions: [
       'Open request inbox',
@@ -483,7 +483,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
 
 const FEATURE_REFERENCE_TITLES = [
   ['customer-site', 'Customer Site', 'Update your public-facing Sparkle Suite site details.'],
-  ['trade-board', 'Dance Floor', 'Manage dancers, requests, and trade follow-up.'],
+  ['trade-board', 'Dance Floor', 'Manage dancers, swap requests, and swap follow-up.'],
   ['live-queue', 'Live Queue', 'Help customers follow queue state when rollout is active.'],
   [
     'live-event-calendar',
