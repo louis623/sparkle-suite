@@ -818,18 +818,52 @@ async function reverseDuplicateCheckout({
   return { amountCents }
 }
 
+const SUBSCRIPTION_OVERWRITE_REASON =
+  'This checkout would replace a different Stripe subscription already on the account. The existing subscription was left unchanged.'
+
+function repWasCreatedBeforeLink(
+  link: PaymentLinkRow,
+  rep: { created_at?: string | null } | null | undefined,
+) {
+  if (!link.created_at || !rep?.created_at) return false
+  const linkCreated = Date.parse(link.created_at)
+  const repCreated = Date.parse(rep.created_at)
+  if (!Number.isFinite(linkCreated) || !Number.isFinite(repCreated)) return false
+  return repCreated < linkCreated
+}
+
 function isSamePaymentLinkPurchase(
   link: PaymentLinkRow,
-  rep: { id?: string | null; created_at?: string | null },
+  rep: { created_at?: string | null },
 ) {
-  if (link.rep_id && rep.id && link.rep_id === rep.id) return true
+  // Matching rep_id is not enough. Older duplicate rows stored the existing
+  // rep there, and a later retry then looked like the first purchase.
+  if (link.status === 'duplicate') return false
+  if (repWasCreatedBeforeLink(link, rep)) return false
   if (!link.created_at || !rep.created_at) return false
   const linkCreated = Date.parse(link.created_at)
   const repCreated = Date.parse(rep.created_at)
   if (!Number.isFinite(linkCreated) || !Number.isFinite(repCreated)) return false
   // A rep created while fulfilling this link is the same first purchase.
-  // A rep that existed before the link is a returning rep.
   return repCreated >= linkCreated
+}
+
+type ExistingRepSubscription = {
+  stripe_subscription_id?: string | null
+  status?: string | null
+}
+
+function subscriptionOverwriteBlocked(
+  existing: ExistingRepSubscription | null,
+  incomingSubscriptionId: string,
+  returningRep: boolean,
+) {
+  const existingId = existing?.stripe_subscription_id
+  if (!existingId || existingId === incomingSubscriptionId) return false
+  // A returning rep with no live subscription replaces a dead row.
+  // A live row, or any other different subscription id, is never overwritten.
+  if (returningRep && !isLiveSubscriptionStatus(existing?.status)) return false
+  return true
 }
 
 export async function fulfillPaidPaymentLink({
@@ -969,65 +1003,113 @@ export async function fulfillPaidPaymentLink({
     if (existingRepError) throw existingRepError
 
     let repId = existingRep?.id as string | undefined
-    const samePurchase = Boolean(
-      repId && isSamePaymentLinkPurchase(link, existingRep as { id?: string; created_at?: string | null }),
-    )
-    let returningRep = false
-    if (repId && !samePurchase) {
-      const { data: existingSubscription, error: subscriptionLookupError } = await admin
+    let existingSubscription: ExistingRepSubscription | null = null
+    if (repId) {
+      const { data: subscriptionRow, error: subscriptionLookupError } = await admin
         .from('subscriptions')
         .select('stripe_subscription_id, status')
         .eq('rep_id', repId)
         .maybeSingle()
       if (subscriptionLookupError) throw subscriptionLookupError
-      const existingSubscriptionId = existingSubscription?.stripe_subscription_id as string | undefined
-      const existingStatus = existingSubscription?.status as string | undefined
-      if (
-        existingSubscriptionId &&
-        existingSubscriptionId !== subscription.id &&
-        isLiveSubscriptionStatus(existingStatus)
-      ) {
-        await admin.rpc('release_sparkle_suite_payment_link_pricing', {
-          p_payment_link_id: link.id,
-        })
-        const reversal = await reverseDuplicateCheckout({
-          stripe,
-          subscription,
+      existingSubscription = subscriptionRow as ExistingRepSubscription | null
+    }
+    const existingSubscriptionId = existingSubscription?.stripe_subscription_id ?? null
+    const liveDifferentSubscription = Boolean(
+      existingSubscriptionId
+      && existingSubscriptionId !== subscription.id
+      && isLiveSubscriptionStatus(existingSubscription?.status),
+    )
+    const repExistedBeforeLink = repWasCreatedBeforeLink(
+      link,
+      existingRep as { created_at?: string | null } | null,
+    )
+    const samePurchase = Boolean(
+      repId
+      && link.status !== 'duplicate'
+      && !liveDifferentSubscription
+      && !repExistedBeforeLink
+      && isSamePaymentLinkPurchase(link, existingRep as { created_at?: string | null }),
+    )
+    let returningRep = false
+    if (repId && (link.status === 'duplicate' || liveDifferentSubscription)) {
+      const sessionIsTheLiveSubscription = Boolean(
+        existingSubscriptionId
+        && existingSubscriptionId === subscription.id
+        && isLiveSubscriptionStatus(existingSubscription?.status),
+      )
+      if (sessionIsTheLiveSubscription) {
+        const reason = 'This checkout is already the live subscription on the account. The existing subscription was left unchanged.'
+        await recordPaymentLinkAttention({
+          admin,
+          link,
           sessionId: session.id,
+          reason,
+          email: identity.email,
+          name: identity.name || null,
+          notifyAttention,
         })
-        const amountLabel = reversal.amountCents == null
-          ? 'the checkout payment'
-          : formatUsdFromCents(reversal.amountCents)
-        const reason = `Paid again with an email that already has an account. Refunded ${amountLabel} and cancelled the extra subscription. No second account was created.`
-        const { error: duplicateError } = await admin
-          .from('sparkle_suite_payment_links')
-          .update({
-            status: 'duplicate',
-            lead_email: identity.email,
-            lead_name: identity.name || null,
-            stripe_subscription_id: subscription.id,
-            rep_id: repId,
-            attention_reason: reason.slice(0, 300),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', link.id)
-        if (duplicateError) throw duplicateError
-        try {
-          await notifyAttention({
-            sessionId: session.id,
-            paymentLinkId: link.id,
-            reason,
-            email: identity.email,
-            name: identity.name || null,
-            amountLabel,
-            resolvedDuplicate: true,
-          })
-        } catch (alertError) {
-          console.error('[payment-link] Owner alert failed.', alertError)
-        }
-        return { created: false, reason: 'duplicate_account' as const, retryable: false as const, repId }
+        return { created: false, reason, retryable: false as const, repId }
       }
-      returningRep = true
+      await admin.rpc('release_sparkle_suite_payment_link_pricing', {
+        p_payment_link_id: link.id,
+      })
+      const reversal = await reverseDuplicateCheckout({
+        stripe,
+        subscription,
+        sessionId: session.id,
+      })
+      const amountLabel = reversal.amountCents == null
+        ? 'the checkout payment'
+        : formatUsdFromCents(reversal.amountCents)
+      const reason = `Paid again with an email that already has an account. Refunded ${amountLabel} and cancelled the extra subscription. No second account was created.`
+      const { error: duplicateError } = await admin
+        .from('sparkle_suite_payment_links')
+        .update({
+          status: 'duplicate',
+          lead_email: identity.email,
+          lead_name: identity.name || null,
+          stripe_subscription_id: subscription.id,
+          rep_id: null,
+          attention_reason: reason.slice(0, 300),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', link.id)
+      if (duplicateError) throw duplicateError
+      link.rep_id = null
+      link.status = 'duplicate'
+      link.attention_reason = reason.slice(0, 300)
+      try {
+        await notifyAttention({
+          sessionId: session.id,
+          paymentLinkId: link.id,
+          reason,
+          email: identity.email,
+          name: identity.name || null,
+          amountLabel,
+          resolvedDuplicate: true,
+        })
+      } catch (alertError) {
+        console.error('[payment-link] Owner alert failed.', alertError)
+      }
+      return { created: false, reason: 'duplicate_account' as const, retryable: false as const, repId }
+    }
+    if (repId && !samePurchase) returningRep = true
+    if (subscriptionOverwriteBlocked(existingSubscription, subscription.id, returningRep)) {
+      await recordPaymentLinkAttention({
+        admin,
+        link,
+        sessionId: session.id,
+        reason: SUBSCRIPTION_OVERWRITE_REASON,
+        email: identity.email,
+        name: identity.name || null,
+        notifyAttention,
+      })
+      return {
+        created: false,
+        reason: SUBSCRIPTION_OVERWRITE_REASON,
+        retryable: false as const,
+        repId,
+      }
     }
 
     const customerId =
@@ -1216,7 +1298,8 @@ export async function fulfillPaidPaymentLink({
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'fulfillment_error'
     const retryable = !PERMANENT_ATTENTION_REASONS.has(reason)
-    if (link?.status !== 'paid' && link?.status !== 'duplicate') {
+    const settledDuplicate = link?.status === 'duplicate' && duplicatePaymentWasReversed(link.attention_reason)
+    if (link?.status !== 'paid' && !settledDuplicate) {
       await recordPaymentLinkAttention({
         admin,
         link,
