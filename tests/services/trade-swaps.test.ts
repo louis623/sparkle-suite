@@ -392,7 +392,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
       itemNumber: 'NK12345',
       material: undefined,
       ringSize: undefined,
-      repNotes: 'Added from approved trade swap for Jamie.',
+      repNotes: 'Added from approved dancer swap for Jamie.',
       idempotencyKey: 'trade-swap-replacement:request-1',
       inputSignature: expect.any(String),
     }))
@@ -514,7 +514,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
       itemNumber: 'RG99999',
       material: undefined,
       ringSize: '8',
-      repNotes: 'Added from approved trade swap for Jamie.',
+      repNotes: 'Added from approved dancer swap for Jamie.',
       idempotencyKey: 'trade-swap-replacement:request-1',
       inputSignature: expect.any(String),
     }))
@@ -577,7 +577,7 @@ describe('approveTradeWithRevealedItemCapture', () => {
       itemNumber: 'NK12032',
       material: 'hematite plating',
       ringSize: undefined,
-      repNotes: 'Added from approved trade swap for Jamie.',
+      repNotes: 'Added from approved dancer swap for Jamie.',
       idempotencyKey: 'trade-swap-replacement:request-1',
       inputSignature: expect.any(String),
     }))

@@ -107,15 +107,15 @@ export function getTradeRequestCardState({
       terminalStatus !== null,
     terminalNote:
       resolvedAction === 'approve'
-        ? 'Trade approved.'
+        ? 'Swap approved.'
         : resolvedAction === 'reject'
-          ? 'Trade denied.'
+          ? 'Swap denied.'
           : terminalStatus === 'approved'
-            ? 'Trade approved.'
+            ? 'Swap approved.'
             : terminalStatus === 'denied'
-              ? 'Trade denied.'
+              ? 'Swap denied.'
               : terminalStatus === 'cancelled'
-                ? 'Trade cancelled.'
+                ? 'Swap cancelled.'
                 : null,
     errorMessage: tradeDecisionErrors[requestId] ?? null,
   }

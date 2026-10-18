@@ -240,12 +240,12 @@ export async function getTradeRequestReceiptStatus(supabase: SupabaseClient, tok
     collection_mismatch: 'The offered piece is from a different collection family.',
     jewelry_type_mismatch: 'The offered piece is a different jewelry type.',
     item_unavailable: 'The requested dancer is no longer available.',
-    other: data.denial_explanation ?? 'Your rep could not approve this trade.',
+    other: data.denial_explanation ?? 'Your rep could not approve this swap.',
   }
   return {
     status: data.status as TradeRequestStatus,
     denialExplanation: data.status === 'denied'
-      ? explanations[data.rejection_reason as string] ?? 'Your rep could not approve this trade.'
+      ? explanations[data.rejection_reason as string] ?? 'Your rep could not approve this swap.'
       : null,
     updatedAt: data.updated_at as string,
   }

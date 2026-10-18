@@ -137,10 +137,10 @@ export function TradeRequestReviewDialog({
       <section ref={dialogRef} className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="trade-review-heading" onKeyDown={keepFocusInside}>
         <div className={styles.topline}>
           <div>
-            <span className={styles.eyebrow}>Nic-Nac · trade review</span>
+            <span className={styles.eyebrow}>Nic-Nac · swap review</span>
             <h2 id="trade-review-heading" tabIndex={-1} ref={headingRef}>Review {request.customerName}&apos;s request</h2>
           </div>
-          <button type="button" onClick={onClose} disabled={pending} aria-label="Close trade review">×</button>
+          <button type="button" onClick={onClose} disabled={pending} aria-label="Close swap review">×</button>
         </div>
         {exception ? <div className={styles.exception}><strong>Rule exception — rep review needed.</strong> {request.screening?.reason}</div> : null}
         <div className={styles.facts}>
@@ -151,7 +151,7 @@ export function TradeRequestReviewDialog({
           {request.revealScreenshot ? <TradeScreenshotLink requestId={request.id} customerName={request.customerName} imageClassName={styles.screenshot} /> : <p>No screenshot attached. Verify the offered item directly.</p>}
         </div>
         <form onSubmit={submit} className={styles.form}>
-          <div className={styles.tabs} role="group" aria-label="Trade decision">
+          <div className={styles.tabs} role="group" aria-label="Swap decision">
             <button type="button" aria-pressed={action === 'approve'} onClick={() => setAction('approve')}>Approve review</button>
             <button type="button" aria-pressed={action === 'reject'} onClick={() => setAction('reject')}>Deny review</button>
           </div>

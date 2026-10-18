@@ -93,10 +93,10 @@ function summarizeTradeBoard(record: ToolOutputRecord) {
 function summarizeTradeRequests(record: ToolOutputRecord) {
   const requests = readRecords(record, 'requests')
   const count = readNumber(record, 'count') ?? requests.length
-  if (count === 0) return 'You don’t have any matching trade requests right now.'
+  if (count === 0) return 'You don’t have any matching swap requests right now.'
 
   return summarizeRows(
-    `You have ${count} matching trade ${count === 1 ? 'request' : 'requests'}.`,
+    `You have ${count} matching swap ${count === 1 ? 'request' : 'requests'}.`,
     requests,
     (request, index) => {
       const listing = asRecord(request.listing)
@@ -117,7 +117,7 @@ function summarizeFulfillmentQueue(record: ToolOutputRecord) {
 
   const needsAttention = readNumber(record, 'needsAttentionCount') ?? 0
   return summarizeRows(
-    `Your fulfillment queue has ${count} active ${count === 1 ? 'trade' : 'trades'}${
+    `Your fulfillment queue has ${count} active ${count === 1 ? 'swap' : 'swaps'}${
       needsAttention > 0 ? `; ${needsAttention} need attention` : ''
     }.`,
     queue,
@@ -134,10 +134,10 @@ function summarizeFulfillmentQueue(record: ToolOutputRecord) {
 function summarizeSwapCleanup(record: ToolOutputRecord) {
   const items = readRecords(record, 'items')
   const count = readNumber(record, 'count') ?? items.length
-  if (count === 0) return 'You don’t have any revealed trade swaps waiting for cleanup.'
+  if (count === 0) return 'You don’t have any revealed dancer swaps waiting for cleanup.'
 
   return summarizeRows(
-    `You have ${count} revealed trade ${count === 1 ? 'swap' : 'swaps'} waiting for cleanup.`,
+    `You have ${count} revealed dancer ${count === 1 ? 'swap' : 'swaps'} waiting for cleanup.`,
     items,
     (item, index) => {
       const customer = compactLabel(item.customerName, 'Customer')
@@ -171,10 +171,10 @@ function summarizeCatalogSearch(record: ToolOutputRecord) {
 function summarizeTradeHistory(record: ToolOutputRecord) {
   const items = readRecords(record, 'items')
   const count = readNumber(record, 'count') ?? items.length
-  if (count === 0) return 'You don’t have any matching completed or denied trade history yet.'
+  if (count === 0) return 'You don’t have any matching completed or denied swap history yet.'
 
   return summarizeRows(
-    `I found ${count} matching past trade ${count === 1 ? 'record' : 'records'}.`,
+    `I found ${count} matching past swap ${count === 1 ? 'record' : 'records'}.`,
     items,
     (item, index) => {
       const design = asRecord(item.design)

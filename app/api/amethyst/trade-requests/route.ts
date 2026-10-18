@@ -85,7 +85,7 @@ function readBoolean(value: unknown): boolean {
 async function readBoundedRequestBytes(request: Request, maxBytes: number) {
   const contentLength = Number(request.headers.get('content-length') ?? 0)
   if (Number.isFinite(contentLength) && contentLength > maxBytes) {
-    throw new TradeRequestPayloadError('Trade request payload is too large.', 413)
+    throw new TradeRequestPayloadError('Swap request is too large.', 413)
   }
   const reader = request.body?.getReader()
   if (!reader) return new Uint8Array()
@@ -98,7 +98,7 @@ async function readBoundedRequestBytes(request: Request, maxBytes: number) {
       totalBytes += value.byteLength
       if (totalBytes > maxBytes) {
         await reader.cancel()
-        throw new TradeRequestPayloadError('Trade request payload is too large.', 413)
+        throw new TradeRequestPayloadError('Swap request is too large.', 413)
       }
       chunks.push(value)
     }

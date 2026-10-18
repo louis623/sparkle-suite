@@ -151,7 +151,7 @@ export function TradeAlertSoundControls({ enabled, onChange, onTest }: {
   onTest: () => void
 }) {
   return <div className={styles.soundSettings}>
-    <label>Trade request sound
+    <label>Swap request sound
       <select value={enabled ? 'chime' : 'off'} onChange={(event) => onChange(event.target.value === 'chime')}>
         <option value="off">Muted</option><option value="chime">Chime</option>
       </select>
@@ -172,14 +172,14 @@ export function TradeRequestAlertCard({ active, activeIndex, requestCount, pendi
 }) {
   const exception = 'manualReviewRequested' in active && active.manualReviewRequested && 'screening' in active && active.screening?.status === 'mismatch'
   return (
-    <div className={styles.wrapper} aria-label="Trade requests">
+    <div className={styles.wrapper} aria-label="Swap requests">
       <div className={`${styles.alert} ${exception ? styles.exception : ''}`} role="status" aria-live="polite">
         <div className={styles.alertHeader}>
-          <div><span className={styles.brand}>Nic-Nac trade request</span>{exception ? <strong className={styles.exceptionLabel}>Rule exception — rep review needed</strong> : null}</div>
-          <div className={styles.navigation} aria-label="Browse trade requests">
-            <button type="button" onClick={onPrevious} disabled={requestCount < 2} aria-label="Previous trade request">‹</button>
+          <div><span className={styles.brand}>Nic-Nac swap request</span>{exception ? <strong className={styles.exceptionLabel}>Rule exception — rep review needed</strong> : null}</div>
+          <div className={styles.navigation} aria-label="Browse swap requests">
+            <button type="button" onClick={onPrevious} disabled={requestCount < 2} aria-label="Previous swap request">‹</button>
             <span>{activeIndex + 1} of {requestCount}{pendingCount !== undefined && pendingCount > requestCount ? ' shown' : ''}</span>
-            <button type="button" onClick={onNext} disabled={requestCount < 2} aria-label="Next trade request">›</button>
+            <button type="button" onClick={onNext} disabled={requestCount < 2} aria-label="Next swap request">›</button>
           </div>
         </div>
         {refreshError ? <small className={styles.stale}>Showing last known request; refresh is unavailable.</small> : null}

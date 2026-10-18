@@ -52,7 +52,7 @@ function hasNestedDeclaration(
 function getTradeBoardSectionLabels(html: string) {
   return Array.from(
     html.matchAll(
-      />(Dance Floor Management|Today(?:&#x27;|')s trade work|Quick add|Trade fulfillment log|Browse dancers|Request inbox|Trade follow-up)</g,
+      />(Dance Floor Management|Today(?:&#x27;|')s swap work|Quick add|Swap fulfillment log|Browse dancers|Request inbox|Swap follow-up)</g,
     ),
     (match) => match[1].replace('&#x27;', "'"),
   )
@@ -475,12 +475,12 @@ describe('Nic-Nac dance floor surface reset', () => {
     )
     expect(getTradeBoardSectionLabels(html)).toEqual([
       'Dance Floor Management',
-      "Today's trade work",
+      "Today's swap work",
       'Quick add',
-      'Trade fulfillment log',
+      'Swap fulfillment log',
       'Browse dancers',
       'Request inbox',
-      'Trade follow-up',
+      'Swap follow-up',
     ])
     expect(html).toContain('Dancers on the Floor')
     expect(html).toContain('New dancers today')

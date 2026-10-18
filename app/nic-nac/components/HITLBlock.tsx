@@ -11,8 +11,8 @@ export const APPROVAL_COPY: Record<
   { title: ReactNode; confirm: string; cancel: string }
 > = {
   approve_trade: {
-    title: 'Approve this trade?',
-    confirm: 'Approve trade',
+    title: 'Approve this swap?',
+    confirm: 'Approve swap',
     cancel: 'Cancel',
   },
   approve_trade_swap: {

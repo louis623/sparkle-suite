@@ -80,7 +80,7 @@ describe('Sparkle Suite demo page', () => {
     expect(bands).toEqual(['night', 'paper', 'ink', 'night'])
     expect(html).toContain('See the Suite in')
     expect(html).toContain('motion.')
-    expect(html).toContain('Mid-show trades, without the pileup.')
+    expect(html).toContain('Mid-show swaps, without the pileup.')
     expect(html).toContain('A lineup customers can actually find.')
     expect(html).toContain('The next live, already on the calendar.')
     expect(html).not.toContain('href="#clips"')

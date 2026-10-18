@@ -33,7 +33,7 @@ function formatCount(value: number) {
 
 const DOT_CLASS: Record<DanceFloorPointKind, string> = {
   listed: styles.dotListed,
-  sold: styles.dotSold,
+  swapped: styles.dotSold,
   removed: styles.dotRemoved,
 }
 
@@ -182,7 +182,7 @@ export function DanceFloorInsightsPanel({
     return (
       <FloorCard onOpen={onOpenDanceFloor}>
         <h3 className={styles.pieceTitle}>No pieces yet</h3>
-        <p className={styles.muted}>Add a listing and this will show what is sitting, what sold, and where the floor is heavy.</p>
+        <p className={styles.muted}>Add a listing and this will show what is sitting, what swapped, and where the floor is heavy.</p>
         <span className={styles.textAction}>Add your first piece</span>
       </FloorCard>
     )
@@ -198,11 +198,11 @@ export function DanceFloorInsightsPanel({
       <FloorCard onOpen={onOpenDanceFloor}>
         <h3 className={styles.pieceTitle}>Dance Floor totals</h3>
         <p className={styles.why}>
-          On the floor means a shopper can still request it. Sold means it left in a sale. Sitting 45 days or more is a piece to feature in your next live or swap out.
+          On the floor means a shopper can still request it. Swapped means it left your floor in a dancer swap. Sitting 45 days or more is a piece to feature in your next live or swap out.
         </p>
         <div className={styles.insightKpis} aria-label="Dance Floor totals">
           <div><strong>{formatCount(insights.onFloor)}</strong><span>on the floor</span></div>
-          <div><strong>{formatCount(insights.sold)}</strong><span>sold</span></div>
+          <div><strong>{formatCount(insights.swapped)}</strong><span>swapped</span></div>
           <div><strong>{formatCount(insights.sitting45)}</strong><span>sitting 45d+</span></div>
         </div>
       </FloorCard>
@@ -241,7 +241,7 @@ export function DanceFloorInsightsPanel({
             <span><i className={styles.swatchAging} />30–60 days</span>
             <span><i className={styles.swatchSlow} />60+ days</span>
           </p>
-          <p className={styles.learn}><strong>What you learn:</strong> which pieces have waited longest with no trade interest, so you can feature them in your next show or swap them out.</p>
+          <p className={styles.learn}><strong>What you learn:</strong> which pieces have waited longest with no swap interest, so you can feature them in your next show or swap them out.</p>
         </FloorCard>
 
         <FloorCard onOpen={onOpenDanceFloor}>
@@ -283,15 +283,15 @@ export function DanceFloorInsightsPanel({
             <h3 className={styles.cardTitle}>Fast movers vs sitters</h3>
             <span className={insights.movers.earlyData ? styles.tagWarn : styles.tag}>
               {insights.movers.earlyData ? 'early data · ' : ''}
-              {insights.movers.saleCount === 1 ? '1 sale' : `${formatCount(insights.movers.saleCount)} sales`}
+              {insights.movers.swapCount === 1 ? '1 swap' : `${formatCount(insights.movers.swapCount)} swaps`}
             </span>
           </div>
-          <p className={styles.why}>Restock the fast side and stop reordering the slow side. Early data is only a hint until you have more sales.</p>
+          <p className={styles.why}>Feature the slow side in your next live. Early data is only a hint until you have more swaps.</p>
           {insights.movers.medians.length > 0 ? (
             <div className={styles.chips}>
               {insights.movers.medians.map((median) => (
                 <span key={median.label} className={styles.chip}>
-                  {median.label} <b>{median.days}d</b> <small>median to sell · n={median.count}</small>
+                  {median.label} <b>{median.days}d</b> <small>median days to swap · n={median.count}</small>
                 </span>
               ))}
             </div>
@@ -309,7 +309,7 @@ export function DanceFloorInsightsPanel({
                   ))}
                 </ul>
               ) : (
-                <p className={styles.muted}>No sales with a clear exit date yet.</p>
+                <p className={styles.muted}>No swaps with a clear swap date yet.</p>
               )}
             </div>
             <div>
@@ -328,7 +328,7 @@ export function DanceFloorInsightsPanel({
               )}
             </div>
           </div>
-          <p className={styles.learn}><strong>What you learn:</strong> what your shoppers grab quickly compared with what waits, so you know what to restock and what to stop listing.</p>
+          <p className={styles.learn}><strong>What you learn:</strong> what shoppers swap for quickly compared with what waits, so you know what to feature and what to stop listing.</p>
         </FloorCard>
 
         <FloorCard onOpen={onOpenDanceFloor}>
@@ -336,15 +336,15 @@ export function DanceFloorInsightsPanel({
             <h3 className={styles.cardTitle}>Days on floor by type</h3>
             <span className={styles.tag}>every piece</span>
           </div>
-          <p className={styles.why}>A type piled on the right is slow. Sold dots far to the left sell quickly.</p>
+          <p className={styles.why}>A type piled on the right is slow. Swapped dots far to the left were swapped quickly.</p>
           <DaysStrip insights={insights} />
           <p className={styles.legend}>
             <span><i className={styles.swatchListed} />still listed</span>
-            <span><i className={styles.swatchSold} />sold</span>
+            <span><i className={styles.swatchSold} />swapped</span>
             <span><i className={styles.swatchRemoved} />removed</span>
             <span><i className={styles.swatchMedian} />median</span>
           </p>
-          <p className={styles.learn}><strong>What you learn:</strong> whether a whole category is slow, or just a few pieces. Sold dots far to the left of the cluster show what sells quickly.</p>
+          <p className={styles.learn}><strong>What you learn:</strong> whether a whole category is slow, or just a few pieces. Swapped dots far to the left of the cluster show what gets swapped quickly.</p>
         </FloorCard>
 
         <FloorCard onOpen={onOpenDanceFloor}>
@@ -352,11 +352,11 @@ export function DanceFloorInsightsPanel({
             <h3 className={styles.cardTitle}>Outcomes</h3>
             {insights.outcomes.needsCleanup ? <span className={styles.tagWarn}>needs cleanup</span> : <span className={styles.tag}>clear reasons</span>}
           </div>
-          <p className={styles.why}>This is what happened to pieces you listed. &quot;Other&quot; stays vague until you pick sold, keeping, or traded.</p>
+          <p className={styles.why}>This is what happened to pieces you listed. &quot;Other&quot; stays vague until a piece is swapped or marked keeping.</p>
           <OutcomesRing insights={insights} />
           {insights.outcomes.needsCleanup ? (
             <p className={styles.note}>
-              Pieces marked &quot;mistake&quot; are hidden. &quot;Other&quot; covers pulled pieces and anything without a clearer reason, so this ring gets sharper once a sold, keeping, or traded reason is chosen.
+              Pieces marked &quot;mistake&quot; are hidden. &quot;Other&quot; covers pulled pieces and anything without a clearer reason, so this ring gets sharper once pieces are swapped or marked keeping.
             </p>
           ) : null}
           <p className={styles.learn}><strong>What you learn:</strong> how much of what you list actually leaves your floor, and how.</p>

@@ -33,8 +33,8 @@ export const PUBLIC_NIC_NAC_KNOWLEDGE = {
   tradeBoardRules: [
     NIC_NAC_TRADEBOARD_KNOWLEDGE.summary,
     NIC_NAC_TRADEBOARD_KNOWLEDGE.boundaries,
-    'Sparkle Suite does not guarantee trades or equal value.',
-    'Sparkle Suite does not decide what items can be traded for what items on the fly; the current Dance Floor rules define eligibility.',
+    'Sparkle Suite does not guarantee swaps or equal value.',
+    'Sparkle Suite does not decide what items can be swapped for what items on the fly; the current Dance Floor rules define eligibility.',
     NIC_NAC_TRADEBOARD_KNOWLEDGE.repControl,
   ].join(' '),
   tradeBoardLingo: [
@@ -77,7 +77,7 @@ export const PUBLIC_NIC_NAC_KNOWLEDGE = {
   toolDetails: {
     liveq: 'LiveQ helps customers follow live-show queue details more easily.',
     tradeboard:
-      "Dance Floor helps customers browse the rep's available dancers and request to trade for the one they want.",
+      "Dance Floor helps customers browse the rep's available dancers and request a swap for the one they want.",
     calendar:
       'The live event calendar gives customers a clear place to find upcoming live shows.',
     updates:

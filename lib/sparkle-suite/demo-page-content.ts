@@ -175,7 +175,7 @@ export const sparkleSuiteDemoStories = [
   {
     id: 'dance-floor',
     eyebrow: 'Dance Floor',
-    title: 'Mid-show trades, without the pileup.',
+    title: 'Mid-show swaps, without the pileup.',
     body: 'Available pieces stay on the Dance Floor, with a clear way to ask. The show keeps moving.',
     image: {
       src: '/sparkle-suite/landing/dance-floor-garnet-v2.webp',
@@ -225,7 +225,7 @@ export const sparkleSuiteDemoContent = {
   stories: {
     eyebrow: 'Show night',
     heading: 'Three moments that used to live in the comments.',
-    body: 'Customers should not have to hunt through posts to trade, find their place in line, or see when you go live.',
+    body: 'Customers should not have to hunt through posts to swap, find their place in line, or see when you go live.',
   },
   clips: {
     eyebrow: 'Clips',

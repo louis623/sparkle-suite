@@ -94,11 +94,11 @@ export function publicNicNacHandoffMessage() {
 }
 
 function publicNicNacTradeBoardCorrectionMessage() {
-  return "Customers do not add their own dancers. Dancers are the rep-listed, trade-eligible jewelry already on the Dance Floor. A customer can request to trade for an available dancer when they do not want the item just revealed. A reveal photo is optional and helps the rep verify the piece. The rep has both pieces during the live show, sets the final rules, and approves or declines each request. Customers do not ship a separate trade item."
+  return "Customers do not add their own dancers. Dancers are the rep-listed, swap-eligible jewelry already on the Dance Floor. A customer can request a swap for an available dancer when they do not want the item just revealed. A reveal photo is optional and helps the rep verify the piece. The rep has both pieces during the live show, sets the final rules, and approves or declines each request. Customers do not ship a separate trade item."
 }
 
 function publicNicNacShippingCorrectionMessage() {
-  return 'Sparkle Suite does not handle shipping, automate shipping, hold inventory, or vendor fulfillment for trades. Dance Floor organizes the request and lets the workspace track approved, shipped, and completed status, but the rep handles the actual exchange and follow-through.'
+  return 'Sparkle Suite does not handle shipping, automate shipping, hold inventory, or vendor fulfillment for swaps. Dance Floor organizes the request and lets the workspace track approved, shipped, and completed status, but the rep handles the actual exchange and follow-through.'
 }
 
 function publicNicNacValueCorrectionMessage() {
