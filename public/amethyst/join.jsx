@@ -1485,10 +1485,11 @@ function App() {
   }, [t]);
 
   useEffect(() => {
-    const locationSuffix = locationLabel ? ` | ${locationLabel}` : "";
+    if (RUNTIME_CONTEXT.targeted) return;
+
     const description = hasRecruitingLink
-      ? `Explore ${t.teamName}, current official join details, and information from ${repName}${locationLabel ? ` in ${locationLabel}` : ""}. Review the Income Disclosure Statement before enrolling.`
-      : `Learn about ${t.teamName} and ask ${repName}${locationLabel ? ` in ${locationLabel}` : ""} for current official join details. Review the Income Disclosure Statement before enrolling.`;
+      ? `Explore ${t.teamName}, current official join details, and information from ${repName}. Review the Income Disclosure Statement before enrolling.`
+      : `Learn about ${t.teamName} and ask ${repName} for current official join details. Review the Income Disclosure Statement before enrolling.`;
     let meta = document.querySelector('meta[name="description"]');
 
     if (!meta) {
@@ -1497,17 +1498,10 @@ function App() {
       document.head.appendChild(meta);
     }
 
-    document.title = `Join ${t.teamName} | ${repName}${locationSuffix}`;
-    if (isMileHighFizzHybrid) {
-      document.title = "Join the Mile High Fizz Team - Colorado Bomb Party Business Opportunity";
-    } else if (isBrittWithBlingHybrid) {
-      document.title = "Join The Virtuous Fizzers | Britt with Bling";
-    } else if (isBlingKitchenHybrid) {
-      document.title = "Join Opal Sparkling Gems | BlingKitchen";
-    }
+    document.title = `Join ${t.teamName} | ${repName}`;
     meta.setAttribute("content", description);
     applyTargetedMetadata(document.title, description);
-  }, [hasRecruitingLink, locationLabel, repName, t.teamName]);
+  }, [hasRecruitingLink, repName, t.teamName]);
 
   useEffect(() => {
     const body = document.body;

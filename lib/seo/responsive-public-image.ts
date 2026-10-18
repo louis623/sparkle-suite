@@ -25,13 +25,18 @@ export type ResponsivePublicImageProps = {
   sizes?: string
 }
 
+const OPTIMIZABLE_SUPABASE_HOSTS = new Set([
+  'bqhzfkgkjyuhlsozpylf.supabase.co',
+  'pukemqiwlyqmyytxkdmo.supabase.co',
+])
+
 function isOptimizablePublicImage(src: string) {
   if (src.startsWith('/') && !src.startsWith('//')) return true
   try {
     const url = new URL(src)
     return (
       url.protocol === 'https:' &&
-      url.hostname.endsWith('.supabase.co') &&
+      OPTIMIZABLE_SUPABASE_HOSTS.has(url.hostname) &&
       url.pathname.includes('/storage/v1/object/public/')
     )
   } catch {

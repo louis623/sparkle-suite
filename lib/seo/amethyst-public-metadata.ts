@@ -244,9 +244,10 @@ export function buildRepPublicPageText(input: {
   }
 
   if (input.page === 'join') {
+    // /join title and description belong to cursor/rep-join-unique-content.
     return {
-      title: `Join ${teamName}${place}`,
-      description: `Learn how to join ${teamName} with ${repName}${place}. Review current enrollment details before you decide.`,
+      title: `Join ${teamName}`,
+      description: `Learn how to join ${teamName} with ${repName}.`,
     }
   }
 

@@ -11,7 +11,8 @@
     if (src.charAt(0) === "/" && src.charAt(1) !== "/") return true;
     try {
       var url = new URL(src);
-      return url.protocol === "https:" && url.hostname.slice(-12) === ".supabase.co" && url.pathname.indexOf("/storage/v1/object/public/") !== -1;
+      var allowed = url.hostname === "bqhzfkgkjyuhlsozpylf.supabase.co" || url.hostname === "pukemqiwlyqmyytxkdmo.supabase.co";
+      return url.protocol === "https:" && allowed && url.pathname.indexOf("/storage/v1/object/public/") !== -1;
     } catch (error) {
       return false;
     }

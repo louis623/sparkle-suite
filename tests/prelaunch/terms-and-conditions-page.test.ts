@@ -85,7 +85,7 @@ describe('Sparkle Suite terms and conditions page', () => {
     expect(html).toContain('Privacy Policy')
     expect(html).toContain('Plain-English summary')
     expect(html).toContain(
-      'Sparkle Suite uses the information needed to run representative websites, Live Queue display, forms, messages, and support.',
+      'Sparkle Suite uses the information needed to run representative websites, Live Lineup display, forms, messages, and support.',
     )
     expect(html).toContain('Nic-Nac, Memory, And AI-Assisted Features')
     expect(html).toContain(
@@ -116,7 +116,7 @@ describe('Sparkle Suite terms and conditions page', () => {
       'Sparkle Suite Terms and Conditions | Neon Rabbit Digital Services',
     )
     expect(metadata.description).toBe(
-      'Terms and Conditions for Sparkle Suite, the Live Queue Chrome Extension, Sparkle Suite websites, and Sparkle Suite SMS and email updates.',
+      'Terms and Conditions for Sparkle Suite, the Live Lineup Chrome Extension, Sparkle Suite websites, and Sparkle Suite SMS and email updates.',
     )
   })
 })

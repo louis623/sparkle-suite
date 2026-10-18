@@ -35,8 +35,8 @@ export const privacyPolicyDocument: LegalDocument = {
   pageTitle: "Privacy Policy",
   seoTitle: "Sparkle Suite Privacy Policy | Neon Rabbit Digital Services",
   seoDescription:
-    "Privacy Policy for Sparkle Suite, the Live Queue Chrome Extension, Sparkle Suite websites, and Sparkle Suite SMS and email updates.",
-  description: "Sparkle Suite Live Queue Chrome Extension, Sparkle Suite Websites, and SMS Updates",
+    "Privacy Policy for Sparkle Suite, the Live Lineup Chrome Extension, Sparkle Suite websites, and Sparkle Suite SMS and email updates.",
+  description: "Sparkle Suite Live Lineup Chrome Extension, Sparkle Suite Websites, and SMS Updates",
   lastUpdated: "September 13, 2026",
   developer: "Neon Rabbit Digital Services, Jacksonville, FL",
   contact: "louis@neonrabbit.net",
@@ -47,7 +47,7 @@ export const privacyPolicyDocument: LegalDocument = {
         "This privacy policy explains how Neon Rabbit Digital Services collects, uses, stores, and protects information related to:",
       ],
       bullets: [
-        "the Sparkle Suite Live Queue Chrome Extension",
+        "the Sparkle Suite Live Lineup Chrome Extension",
         "Sparkle Suite representative websites",
         "Sparkle Suite waitlist, signup, intake, and contact forms",
         "Sparkle Suite Nic-Nac assistant, memory, and AI-assisted support features",
@@ -56,9 +56,9 @@ export const privacyPolicyDocument: LegalDocument = {
       ],
     },
     {
-      title: "What The Sparkle Suite Live Queue Extension Does",
+      title: "What The Sparkle Suite Live Lineup Extension Does",
       paragraphs: [
-        "Sparkle Suite Live Queue is a Chrome extension that lets a Bomb Party representative deliberately connect a selected Party Orders source to the Live Lineup in that representative's Sparkle Suite Workspace and customer-facing website. The extension reads the selected source without refreshing, clicking, editing, or otherwise changing the Bomb Party page.",
+        "Sparkle Suite Live Lineup is a Chrome extension that lets a Bomb Party representative deliberately connect a selected Party Orders source to the Live Lineup in that representative's Sparkle Suite Workspace and customer-facing website. The extension reads the selected source without refreshing, clicking, editing, or otherwise changing the Bomb Party page.",
       ],
     },
     {
@@ -67,7 +67,7 @@ export const privacyPolicyDocument: LegalDocument = {
     },
     {
       title: "From the Bomb Party dashboard through the Chrome extension, read-only",
-      paragraphs: ["The Sparkle Suite Live Queue Chrome Extension may read:"],
+      paragraphs: ["The Sparkle Suite Live Lineup Chrome Extension may read:"],
       bullets: [
         "customer first names from the Party Orders table",
         "stable order and party identifiers used to distinguish and scope lineup entries",
@@ -80,12 +80,12 @@ export const privacyPolicyDocument: LegalDocument = {
       title: "Stored locally in your browser by the Chrome extension",
       paragraphs: ["The extension may store:"],
       bullets: [
-        "the representative's assigned Live Queue code entered from the Sparkle Suite Workspace",
+        "the representative's assigned Live Lineup code entered from the Sparkle Suite Workspace",
         "publisher identifiers, ordered sequence, acknowledgment, retry, parser-health, and pause state needed to send updates reliably",
         "the explicitly selected Bomb Party source tab, show generation, and party scope for the current browser session",
       ],
       postBulletsParagraphs: [
-        "The assigned Live Queue code and durable publisher state are restricted to trusted extension contexts. The selected source-tab details are stored only for the browser session. Disconnecting the browser deletes its saved code without changing the code assigned to the representative's Workspace.",
+        "The assigned Live Lineup code and durable publisher state are restricted to trusted extension contexts. The selected source-tab details are stored only for the browser session. Disconnecting the browser deletes its saved code without changing the code assigned to the representative's Workspace.",
       ],
     },
     {
@@ -95,7 +95,7 @@ export const privacyPolicyDocument: LegalDocument = {
         "This information is transmitted over HTTPS to the official Sparkle Suite Live Lineup service solely to authenticate the selected publisher, maintain connection health, operate the representative's lineup, and display the public lineup on the representative's website.",
       ],
       bullets: [
-        "the assigned Live Queue code in an authorization header",
+        "the assigned Live Lineup code in an authorization header",
         "customer first names",
         "stable order and party identifiers",
         "order timing and intended queue order",
@@ -127,7 +127,7 @@ export const privacyPolicyDocument: LegalDocument = {
     },
     {
       title: "Data We Do NOT Collect Through The Chrome Extension",
-      paragraphs: ["The Sparkle Suite Live Queue Chrome Extension does not collect:"],
+      paragraphs: ["The Sparkle Suite Live Lineup Chrome Extension does not collect:"],
       bullets: [
         "last names",
         "email addresses",
@@ -147,7 +147,7 @@ export const privacyPolicyDocument: LegalDocument = {
     {
       title: "How We Use Your Data",
       paragraphs: [
-        "We use information handled through the Sparkle Suite Live Queue Chrome Extension exclusively to authenticate the representative's selected publisher, build and operate the Live Lineup, preserve deliberate ordering and hold/reveal state, provide recovery and connection status, and display the public lineup on the representative's Sparkle Suite website. Extension data is not used for advertising, creditworthiness, lending, or purposes unrelated to the Live Lineup feature.",
+        "We use information handled through the Sparkle Suite Live Lineup Chrome Extension exclusively to authenticate the representative's selected publisher, build and operate the Live Lineup, preserve deliberate ordering and hold/reveal state, provide recovery and connection status, and display the public lineup on the representative's Sparkle Suite website. Extension data is not used for advertising, creditworthiness, lending, or purposes unrelated to the Live Lineup feature.",
         "The anonymous customer-facing lineup displays first names, positions, and public lineup status only. It does not expose order IDs, party IDs, pairing credentials, publisher identifiers, private Hold entries, or recovery history.",
         "We may use information collected through Sparkle Suite websites and forms to:",
       ],
@@ -198,7 +198,7 @@ export const privacyPolicyDocument: LegalDocument = {
       title: "Data Sharing",
       paragraphs: [
         "We do not sell personal information.",
-        "We do not sell, trade, or share data collected by the Sparkle Suite Live Queue Chrome Extension with third parties for advertising, promotional, or marketing purposes.",
+        "We do not sell, trade, or share data collected by the Sparkle Suite Live Lineup Chrome Extension with third parties for advertising, promotional, or marketing purposes.",
         "We may share limited information with service providers that help us operate Sparkle Suite and Neon Rabbit Digital Services, such as hosting providers, database providers, messaging providers, email providers, analytics providers, security providers, and compliance vendors. These providers are allowed to use the information only to provide services to us.",
         "We may also disclose information if required to comply with law, legal process, platform rules, carrier requirements, or to protect the rights, safety, and security of Neon Rabbit Digital Services, Sparkle Suite users, representatives, customers, or the public.",
       ],
@@ -240,7 +240,7 @@ export const privacyPolicyDocument: LegalDocument = {
       title: "Security",
       paragraphs: [
         "Data is transmitted over HTTPS.",
-        "The extension limits its Party Orders access to the Bomb Party source explicitly selected by the representative. The assigned Live Queue code is restricted to trusted extension contexts and is never exposed to the customer-facing lineup.",
+        "The extension limits its Party Orders access to the Bomb Party source explicitly selected by the representative. The assigned Live Lineup code is restricted to trusted extension contexts and is never exposed to the customer-facing lineup.",
         "Our database uses security controls, including row-level security where applicable, to help keep representative data isolated.",
         "We take reasonable steps to protect information from unauthorized access, loss, misuse, or disclosure. However, no electronic transmission or storage system can be guaranteed to be completely secure.",
       ],
@@ -272,8 +272,8 @@ export const termsAndConditionsDocument: LegalDocument = {
   pageTitle: "Terms and Conditions",
   seoTitle: "Sparkle Suite Terms and Conditions | Neon Rabbit Digital Services",
   seoDescription:
-    "Terms and Conditions for Sparkle Suite, the Live Queue Chrome Extension, Sparkle Suite websites, and Sparkle Suite SMS and email updates.",
-  description: "Sparkle Suite, Sparkle Suite Live Queue Chrome Extension, and SMS Updates",
+    "Terms and Conditions for Sparkle Suite, the Live Lineup Chrome Extension, Sparkle Suite websites, and Sparkle Suite SMS and email updates.",
+  description: "Sparkle Suite, Sparkle Suite Live Lineup Chrome Extension, and SMS Updates",
   lastUpdated: "June 22, 2026",
   developer: "Neon Rabbit Digital Services, Jacksonville, FL",
   contact: "louis@neonrabbit.net",
@@ -281,7 +281,7 @@ export const termsAndConditionsDocument: LegalDocument = {
     {
       title: "Agreement to These Terms",
       paragraphs: [
-        "These Terms and Conditions explain the rules for using Sparkle Suite, the Sparkle Suite Live Queue Chrome Extension, Sparkle Suite representative websites, related Neon Rabbit Digital Services websites, and SMS or email update programs connected to Sparkle Suite.",
+        "These Terms and Conditions explain the rules for using Sparkle Suite, the Sparkle Suite Live Lineup Chrome Extension, Sparkle Suite representative websites, related Neon Rabbit Digital Services websites, and SMS or email update programs connected to Sparkle Suite.",
         "By using these services, installing the Chrome extension, submitting a form, joining a waitlist, opting in to messages, or using a Sparkle Suite representative website, you agree to these Terms and Conditions.",
         "If you do not agree, do not use these services.",
       ],
@@ -294,9 +294,9 @@ export const termsAndConditionsDocument: LegalDocument = {
       ],
     },
     {
-      title: "Sparkle Suite Live Queue Chrome Extension",
+      title: "Sparkle Suite Live Lineup Chrome Extension",
       paragraphs: [
-        "The Sparkle Suite Live Queue Chrome Extension reads limited queue information from the Bomb Party representative dashboard and syncs it to the representative's Sparkle Suite website.",
+        "The Sparkle Suite Live Lineup Chrome Extension reads limited queue information from the Bomb Party representative dashboard and syncs it to the representative's Sparkle Suite website.",
         "The extension is intended to display customer first names, queue order, and reveal status during live jewelry shows.",
         "The extension does not process payments, place orders, alter Bomb Party orders, or replace any official Bomb Party system.",
         "Representatives are responsible for using the extension appropriately and making sure the information displayed to customers is accurate.",
@@ -376,7 +376,7 @@ export const termsAndConditionsDocument: LegalDocument = {
     {
       title: "Privacy",
       paragraphs: [
-        "Your use of Sparkle Suite, the Sparkle Suite Live Queue Chrome Extension, Sparkle Suite representative websites, and related messaging programs is also governed by our Privacy Policy:",
+        "Your use of Sparkle Suite, the Sparkle Suite Live Lineup Chrome Extension, Sparkle Suite representative websites, and related messaging programs is also governed by our Privacy Policy:",
         "The Privacy Policy explains what information we collect, how we use it, and how SMS opt-in data is protected.",
       ],
       links: [

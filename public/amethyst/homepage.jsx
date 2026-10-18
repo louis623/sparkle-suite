@@ -2618,7 +2618,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
           </div>
           {heroImageUrl && (
             <div className="bkf-card">
-              <img {...responsiveRepImage(heroImageUrl, { alt: "Heather in her kitchen with Bomb Party jewelry on display", sizes: "(max-width: 800px) 100vw, 480px", widths: [384, 640, 828, 1200], eager: true })} />
+              <img {...responsiveRepImage(heroImageUrl, { alt: "Heather in the kitchen with Bomb Party jewelry on display", sizes: "(max-width: 800px) 100vw, 480px", widths: [384, 640, 828, 1200], eager: true })} />
             </div>
           )}
         </div>

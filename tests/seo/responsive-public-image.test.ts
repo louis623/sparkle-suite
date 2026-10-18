@@ -35,13 +35,23 @@ describe('responsive public images', () => {
     })
     expect(external.src).toBe('https://cdn.example.com/huge.jpg')
     expect(external.srcSet).toBeUndefined()
+
+    const otherProject = responsivePublicImage(
+      'https://otherproject.supabase.co/storage/v1/object/public/public-site-media/huge.jpg',
+      { alt: 'Other project', sizes: '100vw' },
+    )
+    expect(otherProject.src).toBe(
+      'https://otherproject.supabase.co/storage/v1/object/public/public-site-media/huge.jpg',
+    )
+    expect(otherProject.srcSet).toBeUndefined()
   })
 
   it('keeps the browser helper on the same optimizer contract', () => {
     const source = readFileSync('public/amethyst/responsive-image.js', 'utf8')
     expect(source).toContain('window.sparkleResponsiveImage')
     expect(source).toContain('/_next/image?')
-    expect(source).toContain('.supabase.co')
+    expect(source).toContain('bqhzfkgkjyuhlsozpylf.supabase.co')
+    expect(source).toContain('pukemqiwlyqmyytxkdmo.supabase.co')
     for (const width of [256, 384, 640, 828, 1200, 1920]) {
       expect(source).toContain(String(width))
     }

@@ -12,9 +12,9 @@ describe('Sparkle Suite privacy policy page', () => {
     expect(html).toContain('Last Updated:')
     expect(html).toContain('September 13, 2026')
     expect(html).toContain('Neon Rabbit Digital Services')
-    expect(html).toContain('Sparkle Suite Live Queue Chrome Extension')
+    expect(html).toContain('Sparkle Suite Live Lineup Chrome Extension')
     expect(html).toContain('stable order and party identifiers')
-    expect(html).toContain('assigned Live Queue code')
+    expect(html).toContain('assigned Live Lineup code')
     expect(html).toContain('stored on our server only as non-reversible hashes')
     expect(html).not.toContain('<li>order IDs</li>')
     expect(html).toContain('does not expose order IDs, party IDs, pairing credentials')
@@ -43,7 +43,7 @@ describe('Sparkle Suite privacy policy page', () => {
       'Sparkle Suite Privacy Policy | Neon Rabbit Digital Services',
     )
     expect(metadata.description).toBe(
-      'Privacy Policy for Sparkle Suite, the Live Queue Chrome Extension, Sparkle Suite websites, and Sparkle Suite SMS and email updates.',
+      'Privacy Policy for Sparkle Suite, the Live Lineup Chrome Extension, Sparkle Suite websites, and Sparkle Suite SMS and email updates.',
     )
   })
 })
