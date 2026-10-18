@@ -1079,17 +1079,17 @@ const KELLY_BENEFITS = [
   {
     key: "community",
     title: "A real welcome from Kelly",
-    desc: "Start with Kelly, not a generic checklist. She'll help you get acquainted with Sparkly Butterflies and talk through the questions that matter to you.",
+    desc: "Start with Kelly, not a generic checklist. The rep will help you get acquainted with Sparkly Butterflies and talk through the questions that matter to you.",
   },
   {
     key: "training",
     title: "Clear answers before you join",
-    desc: "Kelly can explain how her team stays connected, what support is currently available, and what your first steps could look like.",
+    desc: "Kelly can explain how the rep's team stays connected, what support is currently available, and what your first steps could look like.",
   },
   {
     key: "growth",
     title: "Space to choose your pace",
-    desc: "Tell Kelly what you want your business to fit around. She can help you think through a realistic start, without pressure or income promises.",
+    desc: "Tell Kelly what you want your business to fit around. The rep can help you think through a realistic start, without pressure or income promises.",
   },
 ];
 
@@ -1097,12 +1097,12 @@ const HEATHER_BENEFITS = [
   {
     key: "community",
     title: "A warm welcome from Heather",
-    desc: "Get to know Heather and Opal Sparkling Gems before you decide. She can answer your questions and help you understand what joining her team looks like today.",
+    desc: "Get to know Heather and Opal Sparkling Gems before you decide. The rep can answer your questions and help you understand what joining the rep's team looks like today.",
   },
   {
     key: "training",
     title: "Practical guidance to get started",
-    desc: "Heather can walk you through the official resources, explain how her team stays connected, and share what support is currently available to new reps.",
+    desc: "Heather can walk you through the official resources, explain how the rep's team stays connected, and share what support is currently available to new reps.",
   },
   {
     key: "growth",
@@ -1115,12 +1115,12 @@ const KIM_BENEFITS = [
   {
     key: "community",
     title: "A personal welcome from Kim",
-    desc: "Start with a real conversation about GofortheBling. Kim can tell you about her team and help you decide whether it feels like the right place to begin.",
+    desc: "Start with a real conversation about GofortheBling. Kim can tell you about the rep's team and help you decide whether it feels like the right place to begin.",
   },
   {
     key: "training",
     title: "Clear answers and next steps",
-    desc: "Kim can point you to the current official information, explain how her team communicates, and tell you what support is available now.",
+    desc: "Kim can point you to the current official information, explain how the rep's team communicates, and tell you what support is available now.",
   },
   {
     key: "growth",
@@ -1209,7 +1209,7 @@ const KELLY_FAQ_QUESTIONS = [
   {
     q: "What is it like to join Kelly's Sparkly Butterflies team?",
     aSlot: "FAQ answer — Kelly's team",
-    a: "Kelly wants you to feel comfortable asking questions before you make a decision. She'll introduce you to how Sparkly Butterflies stays connected, explain what the team currently offers, and help you decide whether it feels like a good fit.",
+    a: "Kelly wants you to feel comfortable asking questions before you make a decision. The rep will introduce you to how Sparkly Butterflies stays connected, explain what the team currently offers, and help you decide whether it feels like a good fit.",
   },
   {
     q: "How much does it cost to join Kelly's team?",
@@ -1229,7 +1229,7 @@ const KELLY_FAQ_QUESTIONS = [
   {
     q: "What support does Kelly offer new team members?",
     aSlot: "FAQ answer — Kelly's support",
-    a: "Kelly can help you find the official onboarding resources, understand how her team communicates, and get answers as you take your first steps. She'll also tell you clearly what personal support is currently available before you enroll.",
+    a: "Kelly can help you find the official onboarding resources, understand how the rep's team communicates, and get answers as you take your first steps. The rep will also tell you clearly what personal support is currently available before you enroll.",
   },
   {
     q: "Can Kelly guarantee how much I will earn?",

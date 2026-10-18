@@ -195,6 +195,8 @@ describe('custom-domain customer site proxy', () => {
       ['/diamonds-unicorns/', 'https://brittwithbling.com/?ref=search#wibp'],
       ['/join-team', 'https://brittwithbling.com/join?ref=search'],
       ['/embed', 'https://brittwithbling.com/?ref=search'],
+      ['/embed/7602795836380073229', 'https://brittwithbling.com/?ref=search'],
+      ['/embed/7609434971228425486/', 'https://brittwithbling.com/?ref=search'],
     ] as const
 
     for (const [path, destination] of cases) {
@@ -218,6 +220,38 @@ describe('custom-domain customer site proxy', () => {
     expect(isRewrite(response)).toBe(false)
   })
 
+  it('keeps /embed/* off other rep hosts and does not match look-alike paths', () => {
+    const other = proxy(
+      new NextRequest('https://milehighfizz.com/embed/7602795836380073229', {
+        headers: { host: 'milehighfizz.com' },
+      }),
+    )
+    expect(other.status).not.toBe(301)
+    const lookAlike = proxy(
+      new NextRequest('https://brittwithbling.com/embedded', {
+        headers: { host: 'brittwithbling.com' },
+      }),
+    )
+    expect(lookAlike.status).not.toBe(301)
+  })
+
+  it('301s /learn to the Suite homepage on the Suite hosts only', () => {
+    for (const host of ['www.yoursparklesuite.com', 'yoursparklesuite.com']) {
+      const response = proxy(
+        new NextRequest(`https://${host}/learn`, { headers: { host } }),
+      )
+      expect(response.status).toBe(301)
+      expect(getRedirectUrl(response)).toBe(`https://${host}/`)
+    }
+    for (const host of ['milehighfizz.com', 'theblingkitchen.com', 'www.brisglowtique.com']) {
+      const response = proxy(
+        new NextRequest(`https://${host}/learn`, { headers: { host } }),
+      )
+      expect(response.status).toBe(404)
+      expect(response.headers.get('x-robots-tag')).toBe('noindex')
+    }
+  })
+
   it('runs next.config redirects before the proxy, so rep /demo stays a 404', async () => {
     const redirects = ((await nextConfig.redirects?.()) ?? []) as ConfigRedirect[]
     const rep = new NextRequest('https://brittwithbling.com/demo', {
@@ -233,12 +267,11 @@ describe('custom-domain customer site proxy', () => {
       headers: { host: 'yoursparklesuite.com' },
     })
 
-    expect(configRedirectFor(learn, redirects)).toMatchObject({
-      source: '/learn',
-      destination: '/',
-      statusCode: 301,
-    })
+    expect(configRedirectFor(learn, redirects)).toBeNull()
     expect(configRedirectFor(rep, redirects)).toBeNull()
+    const learnResponse = proxy(learn)
+    expect(learnResponse.status).toBe(404)
+    expect(getRedirectUrl(learnResponse)).toBeNull()
     expect(configRedirectFor(suite, redirects)).toBeNull()
 
     const repResponse = proxy(rep)
@@ -256,7 +289,7 @@ describe('custom-domain customer site proxy', () => {
   })
 
   it('returns 404 for Suite marketing pages on a rep host and leaves the Suite host alone', () => {
-    for (const path of ['/portfolio', '/tools', '/prelaunch/intake', '/adventure', '/demo']) {
+    for (const path of ['/portfolio', '/tools', '/prelaunch/intake', '/adventure', '/demo', '/learn']) {
       const rep = proxy(
         new NextRequest(`https://brittwithbling.com${path}`, {
           headers: { host: 'brittwithbling.com' },

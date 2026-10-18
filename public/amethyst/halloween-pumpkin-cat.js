@@ -8,6 +8,10 @@
     picture.setAttribute('aria-hidden', 'true');
     const poster = document.createElement('img');
     poster.src = ASSETS + 'hero-desktop.webp';
+    // Same scene and crop, re-encoded at three widths so phones skip the 1.6 MB master.
+    poster.srcset = ['720', '1200', '1672'].map(w => ASSETS + 'hero-desktop-' + w + '.webp ' + w + 'w').join(', ');
+    // The phone layouts crop the 16:9 scene to 4:3 and 1:1, so the drawn width is wider than the box.
+    poster.sizes = '(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw';
     poster.alt = '';
     poster.width = 1672; poster.height = 941;
     picture.append(poster);

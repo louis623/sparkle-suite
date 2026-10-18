@@ -55,6 +55,8 @@ vi.mock('@/lib/amethyst/join-page-access', () => ({
 
 import { GET } from '@/app/customer-site/[page]/route'
 
+const MILE_JOIN_WORDS = 371
+
 const BANNED_COPY = /\b(she|her|hers|he|him|his|they|them|their|theirs|trade|commission|commissions|earnings|income)\b|Live Queue|\$\d/i
 
 function settings(
@@ -362,8 +364,9 @@ describe('rep /join server HTML', () => {
     )
 
     expect(bodyWordCount(readPublicHtml('Join.html'))).toBe(0)
-    expect(bodyWordCount(html)).toBe(96)
-    expect(bodyWordCount(mileHtml)).toBe(26)
+    // Heading, intro, team cards, Why Join, FAQ, and the final call to action.
+    expect(bodyWordCount(html)).toBe(435)
+    expect(bodyWordCount(mileHtml)).toBe(MILE_JOIN_WORDS)
   })
 })
 
