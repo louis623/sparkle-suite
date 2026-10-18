@@ -21,10 +21,6 @@ import { canServeTargetedAmethystJoinPage } from '@/lib/amethyst/join-page-acces
 import { getPublicRepName } from '@/lib/amethyst/public-rep-name'
 import { injectPublicSiteVisitBeacon } from '@/lib/services/site-visit-summary'
 import { injectRepGa4Tag, resolveRepGa4TagHtml } from '@/lib/amethyst/rep-ga4-tag'
-import {
-  formatPublicLocation,
-  injectJoinIndexDocument,
-} from '@/lib/amethyst/join-page-index-copy'
 import { indexPublicJoinTemplate } from '@/lib/amethyst/public-join-index'
 import {
   injectPublicPageIndexDocument,
@@ -391,8 +387,8 @@ function injectAmethystJsonLd(
     description: metadata.description,
     repName: getPublicRepName(homepage?.repName, 'Jane'),
     businessName: homepage?.businessName ?? "Jane's Sparkle Party",
-    repCity: join?.repCity,
-    repState: join?.repState,
+    repCity: join?.indexCity,
+    repState: join?.indexState,
     shopUrl: homepage?.streamLinks.shop ?? 'https://bombparty.com',
     sameAs: homepage?.socialLinks.map((link) => link.href).filter((href) => href !== '#'),
   })
@@ -440,21 +436,6 @@ function injectPublicPageBody(
   templateData: AmethystPreviewTemplateData,
   pantryRecipes: PublicIndexRecipe[],
 ) {
-  if (page === 'join' && templateData.join.indexTitle) {
-    return injectJoinIndexDocument(html, {
-      h1: templateData.join.heroTitle || templateData.join.indexTitle,
-      intro: templateData.join.heroPitch,
-      teamLeader: templateData.join.teamLeaderLabel || '',
-      support: templateData.join.newTeammateSupport || '',
-      repName: getPublicRepName(templateData.join.repName, ''),
-      location: formatPublicLocation(
-        templateData.join.repCity,
-        templateData.join.repState,
-      ),
-      showSchedule: templateData.join.publicShowSchedule,
-    })
-  }
-
   if (page === 'homepage' || page === 'trade' || page === 'pantry') {
     return injectPublicPageIndexDocument(html, page, templateData, pantryRecipes)
   }

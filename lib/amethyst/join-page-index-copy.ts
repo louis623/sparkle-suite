@@ -229,16 +229,16 @@ export function resolvePublicShowSchedule(input: {
   shows?: PublicShowSlot[]
   now?: Date
 }) {
-  return (
+  const schedule =
     summarizePublicShowSchedule(input.shows, input.now) ||
     cleanCopy(input.showSchedule) ||
     extractScheduleFromText(input.tickerText)
-  )
+  return /live schedule coming soon/i.test(schedule) ? '' : schedule
 }
 
 export function readCustomJoinIntro(value: string | null | undefined) {
   const text = cleanCopy(value)
-  if (!text) return ''
+  if (!text || /live schedule coming soon/i.test(text)) return ''
   if (PLACEHOLDER_INTRO.some((pattern) => pattern.test(text))) return ''
   return text.slice(0, 1600)
 }
@@ -317,6 +317,7 @@ export function buildJoinPageIndexCopy(
   const teamBit = distinctTeam ? ` ${businessName} leads ${teamName}.` : ''
   const introBit = customIntro ? ` ${firstSentence(customIntro)}` : ''
   const description = `${businessName}${place} join page for live jewelry reveals.${teamBit}${scheduleBit}${introBit}`
+    .replace(/live schedule coming soon/gi, '')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 320)

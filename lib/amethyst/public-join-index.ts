@@ -1,9 +1,8 @@
 /**
- * Public /join index copy applied after the locked preview mapper.
- * Skins that already have a heading keep that heading and intro.
- * Everyone else gets a generated heading. The document title and
- * description always identify the rep. Location comes only from the
- * roster card, with street lines and ZIP codes removed.
+ * Public /join index metadata applied after the locked preview mapper.
+ * The visible heading and intro stay exactly as that mapper produced them.
+ * Only the document title, meta description, and roster location used by
+ * structured data are added here.
  */
 
 import type { AmethystPreviewTemplateData } from '@/lib/amethyst/preview-template-data'
@@ -17,11 +16,6 @@ import {
   summarizePublicShowSchedule,
   type PublicShowSlot,
 } from '@/lib/amethyst/join-page-index-copy'
-
-const SKIN_JOIN_VARIANTS = new Set([
-  'mile_high_fizz_hybrid',
-  'britt_with_bling_hybrid',
-])
 
 function cleanRosterState(value: string | undefined) {
   return formatPublicLocation('', value)
@@ -65,11 +59,7 @@ export function applyPublicJoinIndex(
   showSchedule = '',
 ): AmethystPreviewTemplateData {
   const join = template.join
-  const teamMembers = join.teamMembers.map((member) => ({
-    ...member,
-    state: cleanRosterState(member.state),
-  }))
-  const owner = findJoinOwnerMember(teamMembers, join.businessName, join.repName)
+  const owner = findJoinOwnerMember(join.teamMembers, join.businessName, join.repName)
   const roster = splitRosterLocation(owner?.state)
   const location = publicLocationParts(roster.city, roster.state)
   const about = homepageIntro(template)
@@ -84,22 +74,15 @@ export function applyPublicJoinIndex(
     showSchedule,
     tickerText: join.tickerTopText,
   })
-  const keepSkinCopy = SKIN_JOIN_VARIANTS.has(join.publicSiteVariant ?? '')
 
   return {
     ...template,
     join: {
       ...join,
-      teamMembers,
-      repCity: location.city,
-      repState: location.state,
-      heroTitle: keepSkinCopy ? join.heroTitle : copy.h1,
-      heroPitch: keepSkinCopy ? join.heroPitch : copy.intro,
       indexTitle: copy.title,
       indexDescription: copy.description,
-      teamLeaderLabel: copy.teamLeader,
-      newTeammateSupport: copy.support,
-      publicShowSchedule: copy.showSchedule,
+      indexCity: location.city,
+      indexState: location.state,
     },
   }
 }

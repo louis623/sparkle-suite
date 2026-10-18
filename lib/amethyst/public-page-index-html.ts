@@ -50,12 +50,11 @@ function paragraph(value: string) {
 function resolveSchedule(templateData: AmethystPreviewTemplateData) {
   const join = templateData.join
   const homepage = templateData.homepage
-  return (
+  const schedule =
     clean(join?.publicShowSchedule) ||
     extractScheduleFromText(join?.tickerTopText) ||
-    extractScheduleFromText(homepage?.tickerTopText) ||
-    extractScheduleFromText(homepage?.heroEyebrow)
-  )
+    extractScheduleFromText(homepage?.tickerTopText)
+  return /live schedule coming soon/i.test(schedule) ? '' : schedule
 }
 
 function resolveIntro(templateData: AmethystPreviewTemplateData) {
@@ -77,8 +76,8 @@ function pageFacts(templateData: AmethystPreviewTemplateData) {
   const businessName = clean(templateData.homepage?.businessName) || 'This show'
   const repName = getPublicRepName(templateData.homepage?.repName, '')
   const location = formatPublicLocation(
-    templateData.join?.repCity,
-    templateData.join?.repState,
+    templateData.join?.indexCity,
+    templateData.join?.indexState,
   )
   const showSchedule = resolveSchedule(templateData)
   const place = location ? ` in ${location}` : ''

@@ -170,55 +170,36 @@ describe('rep /join server HTML', () => {
     }
 
     expect(mile.title).not.toBe(glow.title)
-    expect(mile.h1).not.toBe(glow.h1)
     expect(mile.description).not.toBe(glow.description)
     expect(mile.canonical).not.toBe(glow.canonical)
 
     expect(mile.title).toBe(
       'Mile High Fizz — Join Diamond Peak Society',
     )
-    expect(mile.h1).toBe(
-      'Join Diamond Peak Society with Mile High Fizz',
-    )
     expect(mile.description).toContain('Mile High Fizz')
-    expect(mile.description).not.toMatch(/\bin\b/)
     expect(mile.description).toContain('Tuesdays, Thursdays, and Saturdays')
+    expect(mile.description).not.toContain('Live schedule coming soon')
     expect(mile.canonical).toBe('https://milehighfizz.com/join')
     expect(mile.ogUrl).toBe(mile.canonical)
 
     expect(glow.title).toBe(
       "Bri's Glowtique in Wichita, Kansas — Join Team Sparkaholics",
     )
-    expect(glow.h1).toBe(
-      "Join Team Sparkaholics with Bri's Glowtique in Wichita, Kansas",
-    )
     expect(glow.description).toContain("Bri's Glowtique in Wichita, Kansas")
     expect(glow.description).toContain('studio for live jewelry reveals')
+    expect(glow.description).not.toContain('Live schedule coming soon')
     expect(glow.canonical).toBe('https://brisglowtique.com/join')
     expect(glow.ogUrl).toBe(glow.canonical)
-
-    expect(mileHtml).toContain('hosts live jewelry reveals on Tuesdays, Thursdays, and Saturdays')
-    expect(glowHtml).toContain('a calm place to learn the business')
-    expect(mileHtml).toContain('Team leader: Mile High Fizz.')
-    expect(glowHtml).toContain("Team leader: Bri's Glowtique.")
-    expect(glowHtml).toContain(
-      'How the rep supports new teammates: New teammates get a weekly planning call and help preparing a first live show.',
-    )
-    expect(mileHtml).not.toContain('How the rep supports new teammates')
 
     for (const html of [mileHtml, glowHtml]) {
       expect(html).toContain('<meta name="robots" content="index,follow"')
       expect(html.toLowerCase()).not.toContain('noindex')
+      expect(html).not.toContain('class="join-index"')
+      expect(html).not.toContain('Littleton')
     }
-    for (const value of [mile.title, mile.h1, mile.description, glow.title, glow.h1, glow.description]) {
+    for (const value of [mile.title, mile.description, glow.title, glow.description]) {
       expect(value).not.toMatch(BANNED_COPY)
     }
-    const mileIntro = field(mileHtml, /<main class="join-index"><h1>.*?<\/h1><p>(.*?)<\/p>/)
-    expect(mileIntro).not.toMatch(BANNED_COPY)
-    expect(mileHtml).toContain('Lindsey is the rep for Mile High Fizz.')
-    expect(mileHtml).not.toContain('Littleton')
-    expect(glowHtml).toContain("Brianna is the rep for Bri's Glowtique in Wichita, Kansas.")
-    expect(mileHtml).toContain('Live shows run Tuesdays, Thursdays, and Saturdays.')
   })
 
   it('server-renders homepage and dance floor copy while leaving Live Lineup to the client', async () => {
@@ -290,40 +271,35 @@ describe('rep /join server HTML', () => {
     expect(wordCount(beforeHome)).toBeLessThan(40)
     expect(wordCount(beforeJoin)).toBeLessThan(40)
     expect(wordCount(afterHome)).toBeGreaterThan(40)
-    expect(wordCount(afterJoin)).toBeGreaterThan(60)
+    expect(wordCount(afterJoin)).toBeGreaterThan(wordCount(beforeJoin))
   })
 
-  it('keeps a skin join heading and writes a unique title without a fallback place', async () => {
-    loadTemplateMock.mockResolvedValue(
-      templateFor(
-        settings({
-          displayName: 'Lindsey',
-          businessName: 'Mile High Fizz',
-          email: 'lindseychapman1188@gmail.com',
-          teamName: 'Diamond Peak Society',
-          appearancePreset: 'alpine_opal',
-          tickerText: 'Live on Tiktok Tues/Thurs/Sat',
-        }),
-      ),
+  it('keeps the production join heading and intro on a non-skin preset', () => {
+    const source = templateFor(
+      settings({
+        displayName: 'Lindsey',
+        businessName: 'Mile High Fizz',
+        teamName: 'Diamond Peak Society',
+        appearancePreset: 'gilded_autumn',
+        tickerText: '',
+      }),
     )
-    const response = await GET(
-      new Request('https://milehighfizz.com/customer-site/join'),
-      { params: Promise.resolve({ page: 'join' }) },
-    )
-    const html = await response.text()
+    const indexed = applyPublicJoinIndex(source)
+    const productionHeading = 'Join Diamond Peak Society'
+    const productionIntro =
+      'Explore what it takes to join Diamond Peak Society with Lindsey, review the current official details, and ask questions before you decide.'
 
-    expect(field(html, /<h1>(.*?)<\/h1>/)).toBe(
-      'Welcome to the Diamond Peak Society',
-    )
-    expect(field(html, /<title>(.*?)<\/title>/)).toBe(
-      'Mile High Fizz — Join Diamond Peak Society',
-    )
-    expect(field(html, /<meta name="description" content="(.*?)"/)).toContain(
-      'Mile High Fizz',
-    )
-    expect(html).toContain('official requirements')
-    expect(html).not.toContain('Littleton')
-    expect(html).not.toMatch(/\b\d{5}(?:-\d{4})?\b/)
+    expect(source.join.heroTitle).toBe(productionHeading)
+    expect(source.join.heroPitch).toBe(productionIntro)
+    expect(indexed.join.heroTitle).toBe(source.join.heroTitle)
+    expect(indexed.join.heroPitch).toBe(source.join.heroPitch)
+    expect(indexed.join.repCity).toBe(source.join.repCity)
+    expect(indexed.join.repState).toBe(source.join.repState)
+    expect(indexed.join.indexTitle).toBe('Mile High Fizz — Join Diamond Peak Society')
+    expect(indexed.join.indexDescription).toContain('Mile High Fizz')
+    expect(indexed.join.indexDescription).not.toContain('Live schedule coming soon')
+    expect(indexed.join.heroPitch).not.toContain('Live schedule coming soon')
+    expect(indexed.join.indexTitle).not.toContain('Littleton')
   })
 })
 

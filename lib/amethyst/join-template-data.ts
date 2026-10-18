@@ -75,6 +75,10 @@ export interface AmethystJoinTemplateData {
   indexTitle?: string
   /** Meta description rendered in the initial /join HTML for this rep. */
   indexDescription?: string
+  /** Roster city for structured data. The visible join heading does not use it. */
+  indexCity?: string
+  /** Roster state for structured data. The visible join heading does not use it. */
+  indexState?: string
   /** Public team-leader label. Empty when the rep has no business name. */
   teamLeaderLabel?: string
   /** How the rep supports new teammates, only when that note was supplied. */
