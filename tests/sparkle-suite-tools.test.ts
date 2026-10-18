@@ -20,7 +20,7 @@ describe('Suite marketing tools journey', () => {
     const team = html.slice(html.indexOf('id="team-management"'),html.indexOf('id="nic-nac"'))
     expect(team).toContain('New Rep Onboarding')
     expect(team).toContain('six starting steps')
-    expect(team).toContain('does not publish their team card')
+    expect(team).toContain('does not publish the rep&#x27;s team card')
     expect(html).toContain('Try the Live Lineup')
     expect(html).toContain('Nic-Nac is included for paying reps')
     expect(html).toContain('Customer email and SMS updates are coming soon.')
