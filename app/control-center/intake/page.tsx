@@ -10,6 +10,7 @@ import { loadPrelaunchIntakeReviewSubmissions } from '@/lib/prelaunch/intake-rev
 import { loadPrelaunchLaunchChecksByBuildIds } from '@/lib/prelaunch/launch-checks'
 import { loadPrelaunchLaunchGatesByBuildIds } from '@/lib/prelaunch/launch-gates'
 import { loadPrelaunchLaunchBuilds } from '@/lib/prelaunch/launch-builds'
+import { loadOperatorPaymentLinks } from '@/lib/prelaunch/payment-links'
 import { loadPrelaunchLaunchSetupProfilesByBuildIds } from '@/lib/prelaunch/setup-profiles'
 import { buildPrelaunchSafeSmokeStatus } from '@/lib/prelaunch/safe-smoke-status'
 import { loadPrelaunchWaitlistReviewLeads } from '@/lib/prelaunch/waitlist-review'
@@ -84,6 +85,7 @@ export default async function SparkleSuiteControlCenterIntakePage({
   const agreementDocuments = await loadPrelaunchAgreementDocumentsByBuildIds(
     launchBuilds.map((build) => build.id),
   )
+  const paymentLinkState = await loadOperatorPaymentLinks()
 
   return (
     <PrelaunchIntakeReviewPageContent
@@ -98,6 +100,8 @@ export default async function SparkleSuiteControlCenterIntakePage({
       safeSmokeStatus={buildPrelaunchSafeSmokeStatus({
         activeLaunchBuild: launchBuilds[0] ?? null,
       })}
+      paymentLinks={paymentLinkState.links}
+      paymentLinksReady={paymentLinkState.ready}
       submissions={submissions}
       surface="control_center"
       waitlistLeads={waitlistLeads}

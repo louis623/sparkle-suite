@@ -22,13 +22,13 @@ export const PUBLIC_NIC_NAC_KNOWLEDGE = {
     'Sparkle Suite includes customer-facing website customization support so the site can feel polished and aligned with the rep.',
   signupPage: {
     purpose:
-      'Sparkle Suite is building sites now. The public signup joins the build queue. Joining it does not create a rep account, workspace, trial, or checkout, and does not reserve a founder rate.',
+      'Sparkle Suite is building sites now. The public signup joins the build queue. Joining it does not create a rep account, workspace, or checkout, and does not reserve a founder rate.',
     fields:
-      'The build queue asks for name and email, with optional phone and rep-context details, so Louis can review interest and reach out about setup and a coaching session.',
+      'The build queue asks for name and email, with optional phone and rep-context details, so the team can review interest and reach out about setup and a coaching session.',
     safety:
       'Submitting the build-queue form does not create login credentials, charge the rep, post anywhere, change provider settings, or send messages to the rep’s customers.',
     nextSteps:
-      'Louis reviews the build queue one person at a time, confirms interest, and schedules a coaching session. An approved rep receives a five-day trial account before coaching, then can pay through the Sparkle Suite workspace before the trial expires.',
+      'The team reviews the build queue one person at a time, confirms interest, and schedules a coaching session. We email a payment link. The account is created after the payment goes through. Joining the queue does not create an account.',
   },
   tradeBoardRules: [
     NIC_NAC_TRADEBOARD_KNOWLEDGE.summary,
@@ -69,7 +69,7 @@ export const PUBLIC_NIC_NAC_KNOWLEDGE = {
     founderEligibility: 'Founder pricing is for a limited number of founding reps and is confirmed separately through eligible checkout. Build-queue membership and contact inquiries do not reserve it. The assistant must never invent a remaining count or guarantee availability.',
     taxNote: 'Tax is not included in the listed first checkout price.',
     feeNote:
-      'The setup fee is one-time and non-refundable. Approved reps receive a five-day trial and complete billing through their workspace before it expires.',
+      'The setup fee is one-time and non-refundable. We email a payment link for the setup fee and the first month. The monthly plan starts when that payment goes through. The account is created after the payment goes through.',
   },
   tools: NIC_NAC_CORE_KNOWLEDGE.publicToolNames.map((name) =>
     name === 'Email updates' || name === 'SMS updates' ? `${name} (coming soon)` : name,

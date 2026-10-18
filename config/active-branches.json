@@ -31,6 +31,7 @@
     "cursor/founder-copy-llms-disclaimer-8afd",
     "cursor/founder-count-privacy-c41f",
     "cursor/site-traffic-redesign-ff40",
+    "cursor/payment-first-onboarding",
     "cursor/rep-join-unique-content"
   ],
   "previewBranches": {
@@ -106,6 +107,10 @@
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     },
+    "cursor/payment-first-onboarding": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
     "cursor/rep-join-unique-content": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
@@ -120,5 +125,5 @@
   "environmentModel": "single-live-surface",
   "reviewerMode": "safe-data-on-production-domain",
   "temporaryDeploymentUrls": "provenance-only",
-  "lastReviewed": "2026-09-20"
+  "lastReviewed": "2026-10-18"
 }

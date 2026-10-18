@@ -3,7 +3,6 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { safeRelativeRedirectPath } from '@/lib/auth/safe-redirect'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { activatePendingWorkspaceTrial } from '@/lib/services/workspace-access'
 import {
   ensureSelfServeWorkspaceForAuthUser,
   getSelfServeDisplayNameFromAuthUser,
@@ -92,18 +91,15 @@ export async function GET(request: Request) {
   const nextPath = safeRelativeRedirectPath(
     requestUrl.searchParams.get('next'),
   )
-  if (!nextPath.startsWith('/reset-password')) {
-    const trial = await activatePendingWorkspaceTrial({
-      supabase: admin,
-      repId: workspace.repId,
-    })
-
-    if (!workspace.created && workspace.repStatus !== 'active' && !trial) {
-      await supabase.auth.signOut({ scope: 'local' })
-      return NextResponse.redirect(
-        new URL('/login?error=account_not_found', requestUrl.origin),
-      )
-    }
+  if (
+    !nextPath.startsWith('/reset-password') &&
+    !workspace.created &&
+    workspace.repStatus !== 'active'
+  ) {
+    await supabase.auth.signOut({ scope: 'local' })
+    return NextResponse.redirect(
+      new URL('/login?error=account_not_found', requestUrl.origin),
+    )
   }
 
   return redirectTo(requestUrl, requestUrl.searchParams.get('next'))
