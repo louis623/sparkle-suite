@@ -1,7 +1,8 @@
 ﻿import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe/client'
-import { getSparkleSuitePriceIds, getStripeConfig } from '@/lib/stripe/config'
+import { getStripeConfig } from '@/lib/stripe/config'
+import { resolveSparkleSuitePriceIds } from '@/lib/stripe/sparkle-suite-price-resolution'
 import { stripeCentsToWalletMils } from '@/lib/services/wallet-units'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CARD_QR_STRIPE_PRODUCT } from '@/lib/workspace/card-qr/checkout'
@@ -195,9 +196,20 @@ async function ensureFounderStepUpSchedule({
     throw new Error('Founder checkout is missing monthly price metadata.')
   }
 
-  const standardMonthlyPriceId = getSparkleSuitePriceIds().standardMonthly
+  const priceIds = await resolveSparkleSuitePriceIds({
+    secretKey: getStripeConfig()?.STRIPE_SECRET_KEY,
+    listPrices: async (lookupKeys) => {
+      const listed = await stripe.prices.list({
+        lookup_keys: lookupKeys,
+        active: true,
+        limit: 10,
+      })
+      return listed.data
+    },
+  })
+  const standardMonthlyPriceId = priceIds.standardMonthly
   if (!standardMonthlyPriceId) {
-    throw new Error('STRIPE_PRICE_STANDARD_MONTHLY is required for founder step-up scheduling.')
+    throw new Error('The standard monthly price could not be resolved.')
   }
 
   const metadata = {

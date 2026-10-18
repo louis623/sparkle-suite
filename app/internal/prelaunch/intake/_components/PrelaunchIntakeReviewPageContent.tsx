@@ -618,10 +618,12 @@ function PaymentLinkPanel({
               {link.status === 'open' ? 'Link ready' : null}
               {link.status === 'paid' ? 'Paid, account created' : null}
               {link.status === 'duplicate' ? 'Payment matched an existing account' : null}
+              {link.status === 'needs_attention' ? 'Needs attention' : null}
               {link.status === 'expired' ? 'Expired' : null}
               {link.buildFeeWaived ? ' · setup fee waived' : ''}
               {link.pricingTier === 'founder' ? ' · founder pricing' : ''}
               {link.pricingTier === 'standard' ? ' · standard pricing' : ''}
+              {link.returningRep ? ' · returning rep' : ''}
               {link.leadEmail ? ` · ${link.leadEmail}` : ''}
               {link.status === 'paid' && link.repId ? ` · ${link.repId}` : ''}
             </p>
@@ -657,6 +659,11 @@ function PaymentLinkPanel({
             {link.status === 'duplicate' ? (
               <p className="mt-2 text-xs leading-5 text-amber-800">
                 No second account was created.
+              </p>
+            ) : null}
+            {link.status === 'needs_attention' ? (
+              <p className="mt-2 text-xs leading-5 text-amber-800">
+                {link.attentionReason || 'The payment could not be confirmed.'}
               </p>
             ) : null}
           </article>

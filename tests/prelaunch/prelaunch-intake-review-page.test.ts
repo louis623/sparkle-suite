@@ -1085,6 +1085,60 @@ describe('PrelaunchIntakeReviewPageContent', () => {
     expect(html).not.toMatch(/spots remaining|five-day|trial|founder first/i)
   })
 
+  it('shows needs attention and a returning rep on the payment link card', () => {
+    const html = renderToStaticMarkup(
+      createElement(PrelaunchIntakeReviewPageContent, {
+        basePath: '/control-center/intake',
+        surface: 'control_center',
+        submissions: [],
+        launchBuilds: [],
+        launchSetupProfiles: [],
+        waitlistLeads: [],
+        paymentLinks: [
+          {
+            id: 'link-attention',
+            launchBuildId: null,
+            leadName: 'Returning Rep',
+            leadEmail: 'returning.rep@example.com',
+            status: 'needs_attention',
+            buildFeeWaived: false,
+            pricingTier: 'standard',
+            expiresAt: null,
+            repId: null,
+            checkoutUrl: null,
+            paymentEmailDraft: null,
+            welcomeEmailDraft: null,
+            welcomeEmailStatus: 'not_queued',
+            attentionReason: 'missing_email',
+            returningRep: false,
+          },
+          {
+            id: 'link-returning',
+            launchBuildId: null,
+            leadName: 'Returning Rep',
+            leadEmail: 'returning.rep@example.com',
+            status: 'paid',
+            buildFeeWaived: false,
+            pricingTier: 'standard',
+            expiresAt: null,
+            repId: 'rep-returning',
+            checkoutUrl: null,
+            paymentEmailDraft: null,
+            welcomeEmailDraft: 'Sign in at:\nhttps://smoke.example/login?email=returning.rep%40example.com',
+            welcomeEmailStatus: 'draft',
+            attentionReason: null,
+            returningRep: true,
+          },
+        ],
+      }),
+    )
+
+    expect(html).toContain('Needs attention')
+    expect(html).toContain('missing_email')
+    expect(html).toContain('returning rep')
+    expect(html).toContain('/login?email=returning.rep%40example.com')
+  })
+
   it('renders waitlist leads with confirmation email status', () => {
     const html = renderToStaticMarkup(
       createElement(PrelaunchIntakeReviewPageContent, {

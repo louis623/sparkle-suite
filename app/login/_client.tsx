@@ -6,10 +6,15 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { safeRelativeRedirectPath } from '@/lib/auth/safe-redirect'
 import { createClient } from '@/lib/supabase/client'
 
+function emailFromQuery(value: string | null) {
+  const email = value?.trim().toLowerCase() ?? ''
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : ''
+}
+
 export default function LoginClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => emailFromQuery(searchParams.get('email')))
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)

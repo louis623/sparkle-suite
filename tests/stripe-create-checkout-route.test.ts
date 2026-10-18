@@ -774,6 +774,12 @@ describe('POST /api/stripe/create-checkout', () => {
     const admin = createCheckoutAdminMock()
     createAdminClientMock.mockReturnValue(admin)
     getSparkleSuitePriceIdsMock.mockReturnValue({})
+    getStripeConfigMock.mockReturnValue({ STRIPE_SECRET_KEY: 'sk_test_missing_prices' })
+    getStripeMock.mockReturnValue({
+      prices: {
+        list: vi.fn(async () => ({ data: [] })),
+      },
+    })
 
     const response = await POST(
       new Request('http://localhost/api/stripe/create-checkout', {

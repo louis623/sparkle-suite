@@ -10,6 +10,7 @@ const loadPrelaunchLaunchBuildsMock = vi.fn()
 const loadPrelaunchLaunchGatesByBuildIdsMock = vi.fn()
 const loadPrelaunchLaunchSetupProfilesByBuildIdsMock = vi.fn()
 const loadPrelaunchWaitlistReviewLeadsMock = vi.fn()
+const loadOperatorPaymentLinksMock = vi.fn()
 const redirectMock = vi.fn((target: string) => {
   throw new Error(`redirect:${target}`)
 })
@@ -65,6 +66,11 @@ vi.mock('@/lib/prelaunch/waitlist-review', () => ({
     loadPrelaunchWaitlistReviewLeadsMock(...args),
 }))
 
+vi.mock('@/lib/prelaunch/payment-links', () => ({
+  loadOperatorPaymentLinks: (...args: unknown[]) =>
+    loadOperatorPaymentLinksMock(...args),
+}))
+
 vi.mock(
   '@/app/internal/prelaunch/intake/_components/PrelaunchIntakeReviewPageContent',
   () => ({
@@ -100,7 +106,9 @@ describe('SparkleSuiteControlCenterIntakePage dev auth bypass', () => {
     loadPrelaunchLaunchGatesByBuildIdsMock.mockReset()
     loadPrelaunchLaunchSetupProfilesByBuildIdsMock.mockReset()
     loadPrelaunchWaitlistReviewLeadsMock.mockReset()
+    loadOperatorPaymentLinksMock.mockReset()
     redirectMock.mockClear()
+    loadOperatorPaymentLinksMock.mockResolvedValue({ ready: true, links: [] })
     loadPrelaunchIntakeReviewSubmissionsMock.mockResolvedValue([])
     loadPrelaunchAgreementDocumentsByBuildIdsMock.mockResolvedValue([])
     loadPrelaunchLaunchChecksByBuildIdsMock.mockResolvedValue([])

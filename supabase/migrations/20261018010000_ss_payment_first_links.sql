@@ -2,8 +2,8 @@
 -- A rep account is created only after a paid subscription Checkout Session.
 -- The pending row is keyed by stripe_checkout_session_id, not by email.
 -- Email and name are filled from Stripe customer_details after payment.
--- Open and paid links can hold a founder sequence so two unpaid links cannot
--- take the same slot. Expired and duplicate links release the slot.
+-- Open, paid, and needs_attention links can hold a founder sequence.
+-- Expired and duplicate links release the slot.
 
 create table if not exists public.sparkle_suite_payment_links (
   id uuid primary key default gen_random_uuid(),
@@ -25,12 +25,14 @@ create table if not exists public.sparkle_suite_payment_links (
   payment_email_draft text,
   welcome_email_draft text,
   welcome_email_status text not null default 'not_queued',
+  attention_reason text,
+  returning_rep boolean not null default false,
   paid_at timestamptz,
   expired_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint sparkle_suite_payment_links_status_check
-    check (status in ('open', 'paid', 'expired', 'duplicate')),
+    check (status in ('open', 'paid', 'expired', 'duplicate', 'needs_attention')),
   constraint sparkle_suite_payment_links_tier_check
     check (pricing_tier is null or pricing_tier in ('founder', 'standard')),
   constraint sparkle_suite_payment_links_welcome_status_check
@@ -50,7 +52,7 @@ create unique index if not exists idx_payment_links_checkout_session
 create unique index if not exists idx_payment_links_founder_sequence_held
   on public.sparkle_suite_payment_links (founder_sequence)
   where founder_sequence is not null
-    and status in ('open', 'paid');
+    and status in ('open', 'paid', 'needs_attention');
 
 create index if not exists idx_payment_links_launch_build
   on public.sparkle_suite_payment_links (launch_build_id, created_at desc);

@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
+  buildPaymentLinkAttentionAlert,
   buildPaymentLinkCheckoutParams,
   collectedCheckoutIdentity,
   createOperatorPaymentLink,
@@ -75,6 +76,7 @@ function createAdminDouble() {
           return query
         },
         eq: () => query,
+        ilike: () => query,
         is: () => query,
         in: () => query,
         order: () => query,
@@ -172,7 +174,9 @@ describe('payment-link migration', () => {
     expect(sql).not.toContain('launch_build_id uuid not null')
     expect(sql).toContain('idx_payment_links_checkout_session')
     expect(sql).toContain('idx_payment_links_founder_sequence_held')
-    expect(sql).toContain("status in ('open', 'paid')")
+    expect(sql).toContain("status in ('open', 'paid', 'needs_attention')")
+    expect(sql).toContain('attention_reason text')
+    expect(sql).toContain('returning_rep boolean not null default false')
     expect(sql).toContain('assign_sparkle_suite_payment_link_pricing')
     expect(sql).toContain('p_pricing_tier text')
     expect(sql).toContain('release_sparkle_suite_payment_link_pricing')
@@ -180,6 +184,21 @@ describe('payment-link migration', () => {
     expect(sql).toContain('grant select, insert, update, delete on table public.sparkle_suite_payment_links to service_role')
     expect(sql).toContain('from public, anon, authenticated')
     expect(sql).not.toMatch(/unique[^\n]*lead_email/i)
+  })
+})
+
+describe('payment link attention', () => {
+  it('emails the owner inbox and does not include a sign-in token', () => {
+    const alert = buildPaymentLinkAttentionAlert({
+      sessionId: 'cs_123',
+      paymentLinkId: 'link-1',
+      reason: 'missing_email',
+      email: 'new.rep@example.com',
+      name: 'New Rep',
+    })
+    expect(alert.to).toEqual(['louis@neonrabbit.net'])
+    expect(alert.text).toContain('missing_email')
+    expect(alert.text).not.toMatch(/token|magic/i)
   })
 })
 
@@ -425,15 +444,13 @@ describe('paid payment link fulfillment', () => {
       data: { user: { id: 'auth-new' } },
       error: null,
     })
-    admin.auth.admin.generateLink.mockResolvedValueOnce({
-      data: { properties: { action_link: 'https://smoke.example/sign-in' } },
-      error: null,
-    })
-
+    const notifyAttention = vi.fn()
     const result = await fulfillPaidPaymentLink({
       session: eventSession(),
       livemode: false,
       eventCreated: 1_700_000_000,
+      origin: 'https://smoke.example',
+      notifyAttention,
       admin: admin as never,
       stripe: stripe as never,
     })
@@ -441,7 +458,9 @@ describe('paid payment link fulfillment', () => {
     expect(result).toEqual({
       created: true,
       repId: 'rep-new',
+      returningRep: false,
       welcomeEmailStatus: 'draft',
+      retryable: false,
     })
     expect(admin.auth.admin.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'new.rep@example.com', email_confirm: true }),
@@ -455,11 +474,15 @@ describe('paid payment link fulfillment', () => {
     )
     const paidUpdate = admin.calls.find(
       (call) => call.table === 'sparkle_suite_payment_links' && call.action === 'update',
-    )?.payload as { status: string; welcome_email_status: string; lead_email: string; welcome_email_draft: string }
+    )?.payload as { status: string; welcome_email_status: string; lead_email: string; welcome_email_draft: string; returning_rep: boolean }
     expect(paidUpdate.status).toBe('paid')
     expect(paidUpdate.welcome_email_status).toBe('draft')
     expect(paidUpdate.lead_email).toBe('new.rep@example.com')
-    expect(paidUpdate.welcome_email_draft).toContain('https://smoke.example/sign-in')
+    expect(paidUpdate.returning_rep).toBe(false)
+    expect(paidUpdate.welcome_email_draft).toContain('https://smoke.example/login?email=new.rep%40example.com')
+    expect(paidUpdate.welcome_email_draft).not.toMatch(/magic|token|action_link/i)
+    expect(admin.auth.admin.generateLink).not.toHaveBeenCalled()
+    expect(notifyAttention).not.toHaveBeenCalled()
     expect(JSON.stringify(admin.calls)).not.toContain('workspace_trials')
   })
 
@@ -491,11 +514,6 @@ describe('paid payment link fulfillment', () => {
       data: { user: { id: 'auth-waived' } },
       error: null,
     })
-    admin.auth.admin.generateLink.mockResolvedValueOnce({
-      data: { properties: { action_link: null } },
-      error: null,
-    })
-
     const result = await fulfillPaidPaymentLink({
       session: {
         ...eventSession(),
@@ -522,6 +540,7 @@ describe('paid payment link fulfillment', () => {
     const admin = createAdminDouble()
     const stripe = stripeDouble()
     admin.queue('sparkle_suite_payment_links', 'select', { data: openLink(), error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
     stripe.checkout.sessions.retrieve.mockResolvedValueOnce(
       paidSession(['price_build', 'price_standard']),
     )
@@ -530,18 +549,30 @@ describe('paid payment link fulfillment', () => {
       status: 'trialing',
       trial_end: 1_700_000_100,
     })
+    const notifyAttention = vi.fn()
 
     const result = await fulfillPaidPaymentLink({
       session: eventSession(),
       livemode: false,
       eventCreated: 1_700_000_000,
+      notifyAttention,
       admin: admin as never,
       stripe: stripe as never,
     })
 
-    expect(result).toEqual({ created: false, reason: 'subscription_not_active' })
+    expect(result).toEqual({ created: false, reason: 'trial_present', retryable: false })
     expect(admin.auth.admin.createUser).not.toHaveBeenCalled()
     expect(admin.calls.some((call) => call.table === 'reps')).toBe(false)
+    expect(admin.calls.find((call) => call.action === 'update')?.payload).toEqual(
+      expect.objectContaining({ status: 'needs_attention', attention_reason: 'trial_present' }),
+    )
+    expect(notifyAttention).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reason: 'trial_present',
+        paymentLinkId: 'link-1',
+        sessionId: 'cs_123',
+      }),
+    )
   })
 
   it('does nothing when the same paid session is delivered again', async () => {
@@ -563,6 +594,7 @@ describe('paid payment link fulfillment', () => {
     expect(result).toEqual({
       created: false,
       reason: 'already_created',
+      retryable: false,
       repId: 'rep-existing',
     })
     expect(stripe.checkout.sessions.retrieve).not.toHaveBeenCalled()
@@ -596,6 +628,7 @@ describe('paid payment link fulfillment', () => {
     expect(result).toEqual({
       created: false,
       reason: 'duplicate_account',
+      retryable: false,
       repId: 'rep-paying',
     })
     expect(admin.auth.admin.createUser).not.toHaveBeenCalled()
@@ -612,6 +645,193 @@ describe('paid payment link fulfillment', () => {
         rep_id: 'rep-paying',
       }),
     )
+  })
+
+  it('records a price mismatch and alerts without asking Stripe to retry', async () => {
+    const admin = createAdminDouble()
+    const stripe = stripeDouble()
+    const notifyAttention = vi.fn()
+    admin.queue('sparkle_suite_payment_links', 'select', { data: openLink(), error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
+    stripe.checkout.sessions.retrieve.mockResolvedValueOnce(paidSession(['price_other']))
+    stripe.subscriptions.retrieve.mockResolvedValueOnce(activeSubscription())
+
+    const result = await fulfillPaidPaymentLink({
+      session: eventSession(),
+      livemode: false,
+      eventCreated: 1_700_000_000,
+      notifyAttention,
+      admin: admin as never,
+      stripe: stripe as never,
+    })
+
+    expect(result).toEqual({
+      created: false,
+      reason: 'missing_monthly_price',
+      retryable: false,
+    })
+    expect(notifyAttention).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'missing_monthly_price', email: 'new.rep@example.com' }),
+    )
+    expect(admin.auth.admin.createUser).not.toHaveBeenCalled()
+  })
+
+  it('alerts when the paid session has no payment link and does not throw', async () => {
+    const admin = createAdminDouble()
+    const stripe = stripeDouble()
+    const notifyAttention = vi.fn()
+    admin.queue('sparkle_suite_payment_links', 'select', { data: null, error: null })
+    admin.queue('sparkle_suite_payment_links', 'select', { data: null, error: null })
+
+    const result = await fulfillPaidPaymentLink({
+      session: eventSession(),
+      livemode: false,
+      eventCreated: 1_700_000_000,
+      notifyAttention,
+      admin: admin as never,
+      stripe: stripe as never,
+    })
+
+    expect(result).toEqual({
+      created: false,
+      reason: 'missing_payment_link',
+      retryable: false,
+    })
+    expect(notifyAttention).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'missing_payment_link', paymentLinkId: null }),
+    )
+  })
+
+  it('rethrows a Stripe read failure after recording it so Stripe can retry', async () => {
+    const admin = createAdminDouble()
+    const stripe = stripeDouble()
+    const notifyAttention = vi.fn()
+    admin.queue('sparkle_suite_payment_links', 'select', { data: openLink(), error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
+    stripe.checkout.sessions.retrieve.mockRejectedValueOnce(new Error('stripe unavailable'))
+
+    await expect(
+      fulfillPaidPaymentLink({
+        session: eventSession(),
+        livemode: false,
+        eventCreated: 1_700_000_000,
+        notifyAttention,
+        admin: admin as never,
+        stripe: stripe as never,
+      }),
+    ).rejects.toThrow('stripe unavailable')
+    expect(admin.calls.find((call) => call.action === 'update')?.payload).toEqual(
+      expect.objectContaining({
+        status: 'needs_attention',
+        attention_reason: 'stripe unavailable',
+      }),
+    )
+    expect(notifyAttention).toHaveBeenCalledOnce()
+  })
+
+  it('reactivates a returning rep who has no live subscription', async () => {
+    const admin = createAdminDouble()
+    const stripe = stripeDouble()
+    admin.queue('sparkle_suite_payment_links', 'select', { data: openLink(), error: null })
+    admin.queue('reps', 'select', {
+      data: { id: 'rep-returning', auth_user_id: 'auth-old', status: 'inactive' },
+      error: null,
+    })
+    admin.queue('subscriptions', 'select', {
+      data: { stripe_subscription_id: 'sub_old', status: 'cancelled' },
+      error: null,
+    })
+    admin.queue('subscriptions', 'upsert', { error: null })
+    admin.queue('reps', 'update', { error: null })
+    admin.queue('sparkle_suite_payment_links', 'update', { error: null })
+    stripe.checkout.sessions.retrieve.mockResolvedValueOnce(
+      paidSession(['price_build', 'price_standard'], 'Returning.Rep@example.com'),
+    )
+    stripe.subscriptions.retrieve.mockResolvedValueOnce(activeSubscription('sub_new'))
+
+    const result = await fulfillPaidPaymentLink({
+      session: eventSession(),
+      livemode: false,
+      eventCreated: 1_700_000_000,
+      origin: 'https://smoke.example',
+      notifyAttention: vi.fn(),
+      admin: admin as never,
+      stripe: stripe as never,
+    })
+
+    expect(result).toEqual({
+      created: true,
+      repId: 'rep-returning',
+      returningRep: true,
+      welcomeEmailStatus: 'draft',
+      retryable: false,
+    })
+    expect(admin.auth.admin.createUser).not.toHaveBeenCalled()
+    expect(admin.calls.find((call) => call.table === 'reps' && call.action === 'update')?.payload).toEqual(
+      expect.objectContaining({
+        email: 'returning.rep@example.com',
+        status: 'active',
+      }),
+    )
+    expect(admin.calls.find((call) => call.table === 'sparkle_suite_payment_links' && call.action === 'update')?.payload).toEqual(
+      expect.objectContaining({
+        status: 'paid',
+        returning_rep: true,
+        lead_email: 'returning.rep@example.com',
+      }),
+    )
+  })
+
+  it('resolves test lookup keys when price env vars are absent', async () => {
+    const admin = createAdminDouble()
+    const stripe = stripeDouble()
+    stripe.prices = {
+      list: vi.fn(async () => ({
+        data: [
+          { id: 'price_build_lookup', lookup_key: 'sparkle_suite_launch_demo_build_fee_test' },
+          { id: 'price_founder_lookup', lookup_key: 'sparkle_suite_launch_demo_founder_monthly_test' },
+          { id: 'price_standard_lookup', lookup_key: 'sparkle_suite_launch_demo_standard_monthly_test' },
+        ],
+      })),
+    }
+    admin.queue('sparkle_suite_payment_links', 'insert', {
+      data: openLink({ stripe_checkout_session_id: null, pricing_tier: null }),
+      error: null,
+    })
+    admin.queue('sparkle_suite_payment_links', 'update', { data: openLink(), error: null })
+    admin.rpc.mockResolvedValueOnce({
+      data: [{ pricing_tier: 'standard', founder_sequence: null }],
+      error: null,
+    })
+    stripe.checkout.sessions.create.mockResolvedValueOnce({
+      id: 'cs_lookup',
+      url: 'https://checkout.stripe.test/cs_lookup',
+    })
+
+    await createOperatorPaymentLink({
+      operatorRepId: 'operator-1',
+      pricingTier: 'standard',
+      waiveSetupFee: false,
+      origin: 'https://smoke.example',
+      secretKey: 'sk_test_prices',
+      priceIds: {},
+      admin: admin as never,
+      stripe: stripe as never,
+    })
+
+    expect(stripe.prices.list).toHaveBeenCalledWith({
+      lookup_keys: [
+        'sparkle_suite_launch_demo_build_fee_test',
+        'sparkle_suite_launch_demo_founder_monthly_test',
+        'sparkle_suite_launch_demo_standard_monthly_test',
+      ],
+      active: true,
+      limit: 10,
+    })
+    expect(stripe.checkout.sessions.create.mock.calls[0][0].line_items).toEqual([
+      { price: 'price_build_lookup', quantity: 1 },
+      { price: 'price_standard_lookup', quantity: 1 },
+    ])
   })
 
   it('releases the founder slot when the checkout session expires', async () => {

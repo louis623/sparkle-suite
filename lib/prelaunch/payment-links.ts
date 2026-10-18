@@ -1,8 +1,11 @@
 import { randomBytes } from 'node:crypto'
 
+import { PRELAUNCH_WAITLIST_OWNER_ALERT_EMAIL } from '@/lib/prelaunch/waitlist-owner-alert'
+import { getResendConfig, isResendEnabled } from '@/lib/resend/config'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getStripe } from '@/lib/stripe/client'
-import { getAppUrl, getSparkleSuitePriceIds } from '@/lib/stripe/config'
+import { getAppUrl, getSparkleSuitePriceIds, getStripeConfig } from '@/lib/stripe/config'
+import { resolveSparkleSuitePriceIds } from '@/lib/stripe/sparkle-suite-price-resolution'
 import {
   FOUNDER_RATE_MONTHS,
   type SparkleSuitePriceIds,
@@ -13,7 +16,20 @@ type AdminClient = ReturnType<typeof createAdminClient>
 
 export const PAYMENT_LINK_MAX_EXPIRY_SECONDS = 23 * 60 * 60
 
-export type PaymentLinkStatus = 'open' | 'paid' | 'expired' | 'duplicate'
+export type PaymentLinkStatus = 'open' | 'paid' | 'expired' | 'duplicate' | 'needs_attention'
+
+const PERMANENT_ATTENTION_REASONS = new Set([
+  'missing_payment_link',
+  'missing_email',
+  'missing_subscription',
+  'not_subscription',
+  'not_paid',
+  'subscription_not_active',
+  'trial_present',
+  'missing_monthly_price',
+  'setup_fee_present',
+  'missing_setup_fee',
+])
 
 export class PaymentLinkError extends Error {
   readonly statusCode: number
@@ -39,6 +55,8 @@ export interface OperatorPaymentLinkView {
   paymentEmailDraft: string | null
   welcomeEmailDraft: string | null
   welcomeEmailStatus: 'not_queued' | 'draft'
+  attentionReason: string | null
+  returningRep: boolean
 }
 
 export interface PaymentLinkCheckoutLine {
@@ -64,6 +82,8 @@ interface PaymentLinkRow {
   payment_email_draft: string | null
   welcome_email_draft: string | null
   welcome_email_status: 'not_queued' | 'draft'
+  attention_reason: string | null
+  returning_rep: boolean | null
 }
 
 export function buildPaymentLinkCheckoutParams({
@@ -151,26 +171,66 @@ export function paymentLinkEmailDraft({
   ].join('\n')
 }
 
+export function paymentLinkSignInUrl(origin: string, email: string) {
+  const url = new URL('/login', origin)
+  url.searchParams.set('email', email.trim().toLowerCase())
+  return url.toString()
+}
+
 export function welcomeEmailDraft({
   leadName,
   signInUrl,
 }: {
   leadName: string | null
-  signInUrl: string | null
+  signInUrl: string
 }) {
   const greeting = leadName ? `Hello ${leadName},` : 'Hello,'
-  const signIn = signInUrl
-    ? `Sign in with this link:\n${signInUrl}`
-    : 'A sign-in link still needs to be prepared before this draft can be sent.'
   return [
     greeting,
     '',
     'The Sparkle Suite payment went through. The account is ready.',
     '',
-    signIn,
+    'Sign in at:',
+    signInUrl,
+    '',
+    'Use the email from checkout. A fresh sign-in link can be requested from that page.',
     '',
     'Sparkle Suite',
   ].join('\n')
+}
+
+export function normalizePaymentEmail(value: string | null | undefined) {
+  return value?.trim().toLowerCase() ?? ''
+}
+
+export function buildPaymentLinkAttentionAlert({
+  sessionId,
+  paymentLinkId,
+  reason,
+  email,
+  name,
+}: {
+  sessionId: string
+  paymentLinkId: string | null
+  reason: string
+  email: string | null
+  name: string | null
+}) {
+  return {
+    to: [PRELAUNCH_WAITLIST_OWNER_ALERT_EMAIL],
+    subject: 'Sparkle Suite payment needs attention',
+    text: [
+      'A paid Sparkle Suite checkout could not create the account.',
+      '',
+      `Session: ${sessionId}`,
+      `Payment link: ${paymentLinkId ?? '(none)'}`,
+      `Reason: ${reason}`,
+      `Email: ${email || '(none)'}`,
+      `Name: ${name || '(none)'}`,
+      '',
+      'The intake page shows this link as needs attention.',
+    ].join('\n'),
+  }
 }
 
 export function collectedCheckoutIdentity(
@@ -183,7 +243,7 @@ export function collectedCheckoutIdentity(
     | null
     | undefined,
 ) {
-  const email = customerDetails?.email?.trim().toLowerCase() ?? ''
+  const email = normalizePaymentEmail(customerDetails?.email)
   const name = (customerDetails?.individual_name || customerDetails?.name || '').trim()
   return { email, name }
 }
@@ -209,8 +269,8 @@ export function verifyPaidSubscriptionCheckout({
 }) {
   if (mode !== 'subscription') return { ok: false as const, reason: 'not_subscription' }
   if (paymentStatus !== 'paid') return { ok: false as const, reason: 'not_paid' }
-  if (subscriptionStatus !== 'active') return { ok: false as const, reason: 'subscription_not_active' }
   if (trialEnd) return { ok: false as const, reason: 'trial_present' }
+  if (subscriptionStatus !== 'active') return { ok: false as const, reason: 'subscription_not_active' }
   if (!linePriceIds.includes(monthlyPriceId)) {
     return { ok: false as const, reason: 'missing_monthly_price' }
   }
@@ -235,6 +295,8 @@ function mapPaymentLink(row: PaymentLinkRow, checkoutUrl: string | null = null):
     paymentEmailDraft: row.payment_email_draft,
     welcomeEmailDraft: row.welcome_email_draft,
     welcomeEmailStatus: row.welcome_email_status,
+    attentionReason: row.attention_reason,
+    returningRep: row.returning_rep === true,
   }
 }
 
@@ -250,6 +312,80 @@ function formatExpiry(expiresAt: string) {
     timeStyle: 'short',
   }).format(new Date(expiresAt))
   return `${formatted} ET`
+}
+
+function escapeIlikeExact(value: string) {
+  return value.replace(/[\\%_]/g, (char) => `\\${char}`)
+}
+
+async function listSparkleSuitePrices(
+  stripe: ReturnType<typeof getStripe>,
+  lookupKeys: string[],
+) {
+  const listed = await stripe.prices.list({
+    lookup_keys: lookupKeys,
+    active: true,
+    limit: 10,
+  })
+  return listed.data
+}
+
+async function resolvePaymentLinkPriceIds({
+  stripe,
+  secretKey,
+  priceIds,
+}: {
+  stripe: ReturnType<typeof getStripe>
+  secretKey?: string | null
+  priceIds?: SparkleSuitePriceIds
+}) {
+  return resolveSparkleSuitePriceIds({
+    envPriceIds: priceIds ?? getSparkleSuitePriceIds(),
+    secretKey: secretKey ?? getStripeConfig()?.STRIPE_SECRET_KEY,
+    listPrices: (lookupKeys) => listSparkleSuitePrices(stripe, lookupKeys),
+  })
+}
+
+export async function sendPaymentLinkAttentionAlert(input: {
+  sessionId: string
+  paymentLinkId: string | null
+  reason: string
+  email: string | null
+  name: string | null
+}) {
+  const alert = buildPaymentLinkAttentionAlert(input)
+  if (
+    alert.to.length !== 1 ||
+    alert.to[0] !== PRELAUNCH_WAITLIST_OWNER_ALERT_EMAIL
+  ) {
+    throw new Error('Owner alert recipient must stay the owner inbox.')
+  }
+  if (!isResendEnabled()) {
+    console.warn('[payment-link] Owner alert skipped because Resend is not configured.')
+    return
+  }
+  const resendConfig = getResendConfig()
+  if (!resendConfig) {
+    console.warn('[payment-link] Owner alert skipped because Resend is not configured.')
+    return
+  }
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${resendConfig.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: resendConfig.RESEND_FROM_EMAIL,
+      to: alert.to,
+      subject: alert.subject,
+      text: alert.text,
+    }),
+    signal: AbortSignal.timeout(5000),
+  })
+  if (!response.ok) {
+    throw new Error(`Owner alert failed: ${response.status}`)
+  }
 }
 
 export async function loadOperatorPaymentLinks() {
@@ -282,6 +418,7 @@ export async function createOperatorPaymentLink({
   admin = createAdminClient(),
   stripe = getStripe(),
   priceIds = getSparkleSuitePriceIds(),
+  secretKey,
 }: {
   operatorRepId: string
   pricingTier: SparkleSuitePricingTier
@@ -291,9 +428,17 @@ export async function createOperatorPaymentLink({
   admin?: AdminClient
   stripe?: ReturnType<typeof getStripe>
   priceIds?: SparkleSuitePriceIds
+  secretKey?: string | null
 }) {
   if (pricingTier !== 'founder' && pricingTier !== 'standard') {
     throw new PaymentLinkError('Choose founder or standard pricing.')
+  }
+
+  const resolvedPriceIds = await resolvePaymentLinkPriceIds({ stripe, secretKey, priceIds })
+  const monthlyPriceId =
+    pricingTier === 'founder' ? resolvedPriceIds.founderMonthly : resolvedPriceIds.standardMonthly
+  if (!monthlyPriceId || (!waiveSetupFee && !resolvedPriceIds.buildFee)) {
+    throw new PaymentLinkError('Sparkle Suite checkout prices are not configured.', 503)
   }
 
   const { data: inserted, error: insertError } = await admin
@@ -337,7 +482,7 @@ export async function createOperatorPaymentLink({
     tier,
     founderSequence,
     waiveSetupFee,
-    priceIds,
+    priceIds: resolvedPriceIds,
     origin: checkoutOrigin,
     now,
   })
@@ -394,7 +539,7 @@ export async function createOperatorPaymentLink({
       pricing_tier: tier,
       founder_sequence: founderSequence,
       monthly_price_id: params.metadata.monthly_price_id,
-      build_fee_price_id: waiveSetupFee ? null : priceIds.buildFee,
+      build_fee_price_id: waiveSetupFee ? null : resolvedPriceIds.buildFee,
       stripe_checkout_session_id: session.id,
       expires_at: expiresAtIso,
       payment_email_draft: draft,
@@ -421,6 +566,7 @@ export async function resendOperatorPaymentLink({
   admin = createAdminClient(),
   stripe = getStripe(),
   priceIds = getSparkleSuitePriceIds(),
+  secretKey,
 }: {
   paymentLinkId: string
   operatorRepId: string
@@ -429,6 +575,7 @@ export async function resendOperatorPaymentLink({
   admin?: AdminClient
   stripe?: ReturnType<typeof getStripe>
   priceIds?: SparkleSuitePriceIds
+  secretKey?: string | null
 }) {
   const { data: openLink, error } = await admin
     .from('sparkle_suite_payment_links')
@@ -470,6 +617,7 @@ export async function resendOperatorPaymentLink({
     admin,
     stripe,
     priceIds,
+    secretKey,
   })
 }
 
@@ -491,6 +639,8 @@ export async function fulfillPaidPaymentLink({
   eventCreated,
   admin = createAdminClient(),
   stripe = getStripe(),
+  origin = getAppUrl(),
+  notifyAttention = sendPaymentLinkAttentionAlert,
 }: {
   session: {
     id: string
@@ -509,258 +659,381 @@ export async function fulfillPaidPaymentLink({
   eventCreated: number
   admin?: AdminClient
   stripe?: ReturnType<typeof getStripe>
+  origin?: string
+  notifyAttention?: typeof sendPaymentLinkAttentionAlert
 }) {
   if (session.metadata?.sparkle_suite_payment_first !== 'true') {
-    return { created: false, reason: 'not_payment_first' as const }
+    return { created: false, reason: 'not_payment_first' as const, retryable: false as const }
   }
 
-  const { data: bySession, error: sessionLookupError } = await admin
-    .from('sparkle_suite_payment_links')
-    .select('*')
-    .eq('stripe_checkout_session_id', session.id)
-    .maybeSingle()
-  if (sessionLookupError) throw sessionLookupError
-  let link = bySession as PaymentLinkRow | null
-  if (!link && session.metadata.payment_link_id) {
-    const { data: byId, error: idError } = await admin
+  let link: PaymentLinkRow | null = null
+  let identity = { email: '', name: '' }
+  try {
+    const { data: bySession, error: sessionLookupError } = await admin
       .from('sparkle_suite_payment_links')
       .select('*')
-      .eq('id', session.metadata.payment_link_id)
+      .eq('stripe_checkout_session_id', session.id)
       .maybeSingle()
-    if (idError) throw idError
-    link = byId as PaymentLinkRow | null
-  }
-  if (!link) return { created: false, reason: 'missing_payment_link' as const }
-  if (link.status === 'paid' && link.rep_id) {
-    return { created: false, reason: 'already_created' as const, repId: link.rep_id }
-  }
-  if (link.status === 'duplicate') {
-    return { created: false, reason: 'duplicate_account' as const, repId: link.rep_id }
-  }
-
-  const subscriptionId =
-    typeof session.subscription === 'string' ? session.subscription : session.subscription?.id
-  if (!subscriptionId) return { created: false, reason: 'missing_subscription' as const }
-
-  const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-    expand: ['line_items.data.price'],
-  })
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-  const identity = collectedCheckoutIdentity(fullSession.customer_details ?? session.customer_details)
-  if (!identity.email) return { created: false, reason: 'missing_email' as const }
-
-  const monthlyPriceId = link.monthly_price_id || session.metadata.monthly_price_id || ''
-  const buildFeePriceId = link.build_fee_price_id || session.metadata.build_fee_price_id || ''
-  const verification = verifyPaidSubscriptionCheckout({
-    mode: fullSession.mode,
-    paymentStatus: fullSession.payment_status,
-    subscriptionStatus: subscription.status,
-    trialEnd: subscription.trial_end ?? null,
-    linePriceIds: linePriceIds(fullSession),
-    monthlyPriceId,
-    buildFeePriceId,
-    buildFeeWaived: link.build_fee_waived,
-  })
-  if (!verification.ok) return { created: false, reason: verification.reason }
-
-  const { data: existingRep, error: existingRepError } = await admin
-    .from('reps')
-    .select('id, auth_user_id')
-    .eq('email', identity.email)
-    .maybeSingle()
-  if (existingRepError) throw existingRepError
-
-  let repId = existingRep?.id as string | undefined
-  if (repId) {
-    const { data: existingSubscription, error: subscriptionLookupError } = await admin
-      .from('subscriptions')
-      .select('stripe_subscription_id, status')
-      .eq('rep_id', repId)
-      .maybeSingle()
-    if (subscriptionLookupError) throw subscriptionLookupError
-    const existingSubscriptionId = existingSubscription?.stripe_subscription_id as string | undefined
-    const existingStatus = existingSubscription?.status as string | undefined
-    if (
-      existingSubscriptionId &&
-      existingSubscriptionId !== subscription.id &&
-      isLiveSubscriptionStatus(existingStatus)
-    ) {
-      await admin.rpc('release_sparkle_suite_payment_link_pricing', {
-        p_payment_link_id: link.id,
-      })
-      await admin
+    if (sessionLookupError) throw sessionLookupError
+    link = bySession as PaymentLinkRow | null
+    if (!link && session.metadata.payment_link_id) {
+      const { data: byId, error: idError } = await admin
         .from('sparkle_suite_payment_links')
-        .update({
-          status: 'duplicate',
-          lead_email: identity.email,
-          lead_name: identity.name || null,
-          stripe_subscription_id: subscription.id,
-          rep_id: repId,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', link.id)
-      return { created: false, reason: 'duplicate_account' as const, repId }
+        .select('*')
+        .eq('id', session.metadata.payment_link_id)
+        .maybeSingle()
+      if (idError) throw idError
+      link = byId as PaymentLinkRow | null
     }
-  } else {
-    const authUserId = await findOrCreateAuthUser(admin, identity.email)
-    const businessName = identity.name || identity.email
-    const { data: repData, error: repInsertError } = await admin
-      .from('reps')
-      .insert({
-        auth_user_id: authUserId,
-        account_classification: 'customer',
+    if (!link) {
+      await recordPaymentLinkAttention({
+        admin,
+        link: null,
+        sessionId: session.id,
+        reason: 'missing_payment_link',
+        email: null,
+        name: null,
+        notifyAttention,
+      })
+      return { created: false, reason: 'missing_payment_link' as const, retryable: false as const }
+    }
+    if (link.status === 'paid' && link.rep_id) {
+      return { created: false, reason: 'already_created' as const, retryable: false as const, repId: link.rep_id }
+    }
+    if (link.status === 'duplicate') {
+      return { created: false, reason: 'duplicate_account' as const, retryable: false as const, repId: link.rep_id }
+    }
+
+    const subscriptionId =
+      typeof session.subscription === 'string' ? session.subscription : session.subscription?.id
+    if (!subscriptionId) {
+      await recordPaymentLinkAttention({
+        admin,
+        link,
+        sessionId: session.id,
+        reason: 'missing_subscription',
+        email: null,
+        name: null,
+        notifyAttention,
+      })
+      return { created: false, reason: 'missing_subscription' as const, retryable: false as const }
+    }
+
+    const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+      expand: ['line_items.data.price'],
+    })
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+    identity = collectedCheckoutIdentity(fullSession.customer_details ?? session.customer_details)
+    if (!identity.email) {
+      await recordPaymentLinkAttention({
+        admin,
+        link,
+        sessionId: session.id,
+        reason: 'missing_email',
+        email: null,
+        name: identity.name || null,
+        notifyAttention,
+      })
+      return { created: false, reason: 'missing_email' as const, retryable: false as const }
+    }
+
+    const monthlyPriceId = link.monthly_price_id || session.metadata.monthly_price_id || ''
+    const buildFeePriceId = link.build_fee_price_id || session.metadata.build_fee_price_id || ''
+    const verification = verifyPaidSubscriptionCheckout({
+      mode: fullSession.mode,
+      paymentStatus: fullSession.payment_status,
+      subscriptionStatus: subscription.status,
+      trialEnd: subscription.trial_end ?? null,
+      linePriceIds: linePriceIds(fullSession),
+      monthlyPriceId,
+      buildFeePriceId,
+      buildFeeWaived: link.build_fee_waived,
+    })
+    if (!verification.ok) {
+      await recordPaymentLinkAttention({
+        admin,
+        link,
+        sessionId: session.id,
+        reason: verification.reason,
         email: identity.email,
-        display_name: businessName,
-        business_name: businessName,
-        phone: null,
-        social_handles: {},
-        template_id: 'default',
+        name: identity.name || null,
+        notifyAttention,
+      })
+      return { created: false, reason: verification.reason, retryable: false as const }
+    }
+
+    const { data: existingRep, error: existingRepError } = await admin
+      .from('reps')
+      .select('id, auth_user_id, status')
+      .ilike('email', escapeIlikeExact(identity.email))
+      .maybeSingle()
+    if (existingRepError) throw existingRepError
+
+    let repId = existingRep?.id as string | undefined
+    let returningRep = link.returning_rep === true
+    if (repId && repId !== link.rep_id) {
+      const { data: existingSubscription, error: subscriptionLookupError } = await admin
+        .from('subscriptions')
+        .select('stripe_subscription_id, status')
+        .eq('rep_id', repId)
+        .maybeSingle()
+      if (subscriptionLookupError) throw subscriptionLookupError
+      const existingSubscriptionId = existingSubscription?.stripe_subscription_id as string | undefined
+      const existingStatus = existingSubscription?.status as string | undefined
+      if (
+        existingSubscriptionId &&
+        existingSubscriptionId !== subscription.id &&
+        isLiveSubscriptionStatus(existingStatus)
+      ) {
+        await admin.rpc('release_sparkle_suite_payment_link_pricing', {
+          p_payment_link_id: link.id,
+        })
+        await admin
+          .from('sparkle_suite_payment_links')
+          .update({
+            status: 'duplicate',
+            lead_email: identity.email,
+            lead_name: identity.name || null,
+            stripe_subscription_id: subscription.id,
+            rep_id: repId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', link.id)
+        return { created: false, reason: 'duplicate_account' as const, retryable: false as const, repId }
+      }
+      returningRep = true
+    } else if (!repId) {
+      const authUserId = await findOrCreateAuthUser(admin, identity.email)
+      const businessName = identity.name || identity.email
+      const { data: repData, error: repInsertError } = await admin
+        .from('reps')
+        .insert({
+          auth_user_id: authUserId,
+          account_classification: 'customer',
+          email: identity.email,
+          display_name: businessName,
+          business_name: businessName,
+          phone: null,
+          social_handles: {},
+          template_id: 'default',
+          status: 'active',
+          finder_directory_visible: true,
+          pricing_tier: link.pricing_tier,
+          founder_sequence: link.founder_sequence,
+        })
+        .select('id')
+        .single()
+      if (repInsertError) throw repInsertError
+      repId = (repData as { id: string }).id
+      const nowIso = new Date().toISOString()
+      const { error: siteError } = await admin.from('site_settings').upsert(
+        {
+          rep_id: repId,
+          tagline: '',
+          banner_text: `Welcome to ${businessName}`,
+          banner_visible: true,
+          ticker_visible: false,
+          team_name: businessName,
+          show_join_page: true,
+          hero_animation_type: 'sparkle_rise',
+        },
+        { onConflict: 'rep_id' },
+      )
+      if (siteError) throw siteError
+      const { error: onboardingError } = await admin.from('onboarding_status').upsert(
+        {
+          rep_id: repId,
+          current_stage: 'intake_completed',
+          completed_steps: ['waitlist', 'conversation', 'setup_profile', 'payment_received'],
+        },
+        { onConflict: 'rep_id' },
+      )
+      if (onboardingError) throw onboardingError
+      const { error: setupError } = await admin.from('self_serve_setup_sessions').upsert(
+        {
+          rep_id: repId,
+          status: 'dashboard_unlocked',
+          current_step: 'account_basics',
+          completed_steps: ['operator_account_provisioned'],
+          answers: { displayName: businessName, businessName, email: identity.email },
+          dashboard_unlocked_at: nowIso,
+          updated_at: nowIso,
+        },
+        { onConflict: 'rep_id' },
+      )
+      if (setupError) throw setupError
+    }
+    if (!repId) throw new Error('The paid checkout did not resolve a rep.')
+
+    const customerId =
+      typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
+    const periodItem = subscription.items.data[0]
+    const periodStart = periodItem?.current_period_start ?? subscription.start_date
+    const periodEnd = periodItem?.current_period_end ?? subscription.billing_cycle_anchor
+    let scheduleId: string | null = null
+    if (link.pricing_tier === 'founder' && link.founder_sequence && monthlyPriceId) {
+      scheduleId = await ensureFounderStepUp({
+        stripe,
+        subscription,
+        repId,
+        founderSequence: link.founder_sequence,
+        founderMonthlyPriceId: monthlyPriceId,
+        periodStart,
+      })
+    }
+    const { error: subscriptionError } = await admin.from('subscriptions').upsert(
+      {
+        rep_id: repId,
+        stripe_subscription_id: subscription.id,
+        stripe_subscription_schedule_id: scheduleId,
+        stripe_customer_id: customerId,
+        plan_tier: 'monthly',
+        pricing_tier: link.pricing_tier,
+        founder_sequence: link.founder_sequence,
+        build_fee_charged: !link.build_fee_waived,
+        founder_rate_months: link.pricing_tier === 'founder' ? FOUNDER_RATE_MONTHS : null,
+        build_fee_price_id: link.build_fee_waived ? null : buildFeePriceId,
+        monthly_price_id: monthlyPriceId,
         status: 'active',
-        finder_directory_visible: true,
+        current_period_start: new Date(periodStart * 1000).toISOString(),
+        current_period_end: new Date(periodEnd * 1000).toISOString(),
+        cancel_at_period_end: subscription.cancel_at_period_end,
+        stripe_livemode: livemode,
+        stripe_event_timestamp: eventCreated,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'rep_id' },
+    )
+    if (subscriptionError) throw subscriptionError
+
+    const { error: repUpdateError } = await admin
+      .from('reps')
+      .update({
+        email: identity.email,
+        status: 'active',
+        stripe_customer_id: customerId,
         pricing_tier: link.pricing_tier,
         founder_sequence: link.founder_sequence,
       })
-      .select('id')
-      .single()
-    if (repInsertError) throw repInsertError
-    repId = (repData as { id: string }).id
-    const nowIso = new Date().toISOString()
-    const { error: siteError } = await admin.from('site_settings').upsert(
-      {
-        rep_id: repId,
-        tagline: '',
-        banner_text: `Welcome to ${businessName}`,
-        banner_visible: true,
-        ticker_visible: false,
-        team_name: businessName,
-        show_join_page: true,
-        hero_animation_type: 'sparkle_rise',
-      },
-      { onConflict: 'rep_id' },
-    )
-    if (siteError) throw siteError
-    const { error: onboardingError } = await admin.from('onboarding_status').upsert(
-      {
-        rep_id: repId,
-        current_stage: 'intake_completed',
-        completed_steps: ['waitlist', 'conversation', 'setup_profile', 'payment_received'],
-      },
-      { onConflict: 'rep_id' },
-    )
-    if (onboardingError) throw onboardingError
-    const { error: setupError } = await admin.from('self_serve_setup_sessions').upsert(
-      {
-        rep_id: repId,
-        status: 'dashboard_unlocked',
-        current_step: 'account_basics',
-        completed_steps: ['operator_account_provisioned'],
-        answers: { displayName: businessName, businessName, email: identity.email },
-        dashboard_unlocked_at: nowIso,
-        updated_at: nowIso,
-      },
-      { onConflict: 'rep_id' },
-    )
-    if (setupError) throw setupError
-  }
+      .eq('id', repId)
+    if (repUpdateError) throw repUpdateError
 
-  const customerId =
-    typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
-  const periodItem = subscription.items.data[0]
-  const periodStart = periodItem?.current_period_start ?? subscription.start_date
-  const periodEnd = periodItem?.current_period_end ?? subscription.billing_cycle_anchor
-  let scheduleId: string | null = null
-  if (link.pricing_tier === 'founder' && link.founder_sequence && monthlyPriceId) {
-    scheduleId = await ensureFounderStepUp({
-      stripe,
-      subscription,
+    const signInUrl = paymentLinkSignInUrl(origin, identity.email)
+    const welcome = welcomeEmailDraft({ leadName: identity.name || null, signInUrl })
+    const { error: paidError } = await admin
+      .from('sparkle_suite_payment_links')
+      .update({
+        status: 'paid',
+        lead_email: identity.email,
+        lead_name: identity.name || null,
+        rep_id: repId,
+        returning_rep: returningRep,
+        attention_reason: null,
+        stripe_subscription_id: subscription.id,
+        stripe_customer_id: customerId,
+        paid_at: new Date().toISOString(),
+        welcome_email_draft: welcome,
+        welcome_email_status: 'draft',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', link.id)
+    if (paidError) throw paidError
+    return {
+      created: true as const,
       repId,
-      founderSequence: link.founder_sequence,
-      founderMonthlyPriceId: monthlyPriceId,
-      periodStart,
-    })
+      returningRep,
+      welcomeEmailStatus: 'draft' as const,
+      retryable: false as const,
+    }
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : 'fulfillment_error'
+    const retryable = !PERMANENT_ATTENTION_REASONS.has(reason)
+    if (link?.status !== 'paid' && link?.status !== 'duplicate') {
+      await recordPaymentLinkAttention({
+        admin,
+        link,
+        sessionId: session.id,
+        reason,
+        email: identity.email || null,
+        name: identity.name || null,
+        notifyAttention,
+      }).catch((alertError) => {
+        console.error('[payment-link] Could not record the payment failure.', alertError)
+      })
+    }
+    if (!retryable) {
+      return { created: false as const, reason, retryable: false as const }
+    }
+    throw error
   }
-  const { error: subscriptionError } = await admin.from('subscriptions').upsert(
-    {
-      rep_id: repId,
-      stripe_subscription_id: subscription.id,
-      stripe_subscription_schedule_id: scheduleId,
-      stripe_customer_id: customerId,
-      plan_tier: 'monthly',
-      pricing_tier: link.pricing_tier,
-      founder_sequence: link.founder_sequence,
-      build_fee_charged: !link.build_fee_waived,
-      founder_rate_months: link.pricing_tier === 'founder' ? FOUNDER_RATE_MONTHS : null,
-      build_fee_price_id: link.build_fee_waived ? null : buildFeePriceId,
-      monthly_price_id: monthlyPriceId,
-      status: 'active',
-      current_period_start: new Date(periodStart * 1000).toISOString(),
-      current_period_end: new Date(periodEnd * 1000).toISOString(),
-      cancel_at_period_end: subscription.cancel_at_period_end,
-      stripe_livemode: livemode,
-      stripe_event_timestamp: eventCreated,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'rep_id' },
-  )
-  if (subscriptionError) throw subscriptionError
+}
 
-  await admin
-    .from('reps')
-    .update({
-      stripe_customer_id: customerId,
-      pricing_tier: link.pricing_tier,
-      founder_sequence: link.founder_sequence,
+async function recordPaymentLinkAttention({
+  admin,
+  link,
+  sessionId,
+  reason,
+  email,
+  name,
+  notifyAttention,
+}: {
+  admin: AdminClient
+  link: PaymentLinkRow | null
+  sessionId: string
+  reason: string
+  email: string | null
+  name: string | null
+  notifyAttention: typeof sendPaymentLinkAttentionAlert
+}) {
+  const attentionReason = reason.slice(0, 300)
+  const alreadyRecorded =
+    link?.status === 'needs_attention' && link.attention_reason === attentionReason
+  if (link) {
+    const { error } = await admin
+      .from('sparkle_suite_payment_links')
+      .update({
+        status: 'needs_attention',
+        attention_reason: attentionReason,
+        lead_email: email || link.lead_email,
+        lead_name: name || link.lead_name,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', link.id)
+    if (error) throw error
+  }
+  if (alreadyRecorded) return
+  try {
+    await notifyAttention({
+      sessionId,
+      paymentLinkId: link?.id ?? null,
+      reason: attentionReason,
+      email,
+      name,
     })
-    .eq('id', repId)
-
-  const signInUrl = await createSignInLink(admin, identity.email)
-  const welcome = welcomeEmailDraft({ leadName: identity.name || null, signInUrl })
-  const { error: paidError } = await admin
-    .from('sparkle_suite_payment_links')
-    .update({
-      status: 'paid',
-      lead_email: identity.email,
-      lead_name: identity.name || null,
-      rep_id: repId,
-      stripe_subscription_id: subscription.id,
-      stripe_customer_id: customerId,
-      paid_at: new Date().toISOString(),
-      welcome_email_draft: welcome,
-      welcome_email_status: 'draft',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', link.id)
-  if (paidError) throw paidError
-  return { created: true as const, repId, welcomeEmailStatus: 'draft' as const }
+  } catch (error) {
+    console.error('[payment-link] Owner alert failed.', error)
+  }
 }
 
 async function findOrCreateAuthUser(admin: AdminClient, email: string) {
+  const normalized = normalizePaymentEmail(email)
   const perPage = 200
   for (let page = 1; ; page += 1) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage })
     if (error) throw error
-    const existing = data.users.find((user) => user.email?.trim().toLowerCase() === email)
+    const existing = data.users.find((user) => normalizePaymentEmail(user.email) === normalized)
     if (existing?.id) return existing.id
     if (data.users.length < perPage) break
   }
   const password = `${randomBytes(24).toString('base64url')}Aa1!`
   const { data, error } = await admin.auth.admin.createUser({
-    email,
+    email: normalized,
     password,
     email_confirm: true,
   })
   if (error) throw error
   if (!data.user?.id) throw new Error('Auth user was not created.')
   return data.user.id
-}
-
-async function createSignInLink(admin: AdminClient, email: string) {
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: 'magiclink',
-    email,
-  })
-  if (error) return null
-  return data.properties?.action_link ?? null
 }
 
 async function ensureFounderStepUp({
@@ -778,8 +1051,14 @@ async function ensureFounderStepUp({
   founderMonthlyPriceId: string
   periodStart: number
 }) {
-  const standardMonthlyPriceId = getSparkleSuitePriceIds().standardMonthly
-  if (!standardMonthlyPriceId) return null
+  const priceIds = await resolveSparkleSuitePriceIds({
+    secretKey: getStripeConfig()?.STRIPE_SECRET_KEY,
+    listPrices: (lookupKeys) => listSparkleSuitePrices(stripe, lookupKeys),
+  })
+  const standardMonthlyPriceId = priceIds.standardMonthly
+  if (!standardMonthlyPriceId) {
+    throw new Error('The standard monthly price could not be resolved.')
+  }
   const metadata = {
     rep_id: repId,
     pricing_tier: 'founder',

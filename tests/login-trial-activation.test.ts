@@ -10,6 +10,7 @@ describe('login does not activate a trial', () => {
     )
 
     expect(source).toContain('supabase.auth.signInWithPassword')
+    expect(source).toContain("searchParams.get('email')")
     expect(source).not.toContain('/api/account/activate-trial')
     expect(source).toContain('No Sparkle Suite account is associated with this email. Try a different email.')
     expect(source).not.toMatch(/trial/i)
