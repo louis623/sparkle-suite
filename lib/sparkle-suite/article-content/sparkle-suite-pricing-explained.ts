@@ -123,7 +123,7 @@ export const sparkleSuitePricingExplainedArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "3. **Your build starts** once your first month and setup fee are paid."
+      "text": "3. **We email you a payment link.** The account is created after the payment goes through."
     },
     {
       "type": "paragraph",
@@ -143,7 +143,7 @@ export const sparkleSuitePricingExplainedArticle: SuiteArticle = {
     },
     {
       "type": "paragraph",
-      "text": "**Is there a free trial?**\nNo. There's no free trial. Joining the build queue is free, and nothing is paid until your build is ready to start."
+      "text": "**When is the account created?**\nAfter the payment goes through. We email you a payment link. Joining the queue does not create an account."
     },
     {
       "type": "paragraph",

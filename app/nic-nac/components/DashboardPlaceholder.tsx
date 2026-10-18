@@ -13308,7 +13308,7 @@ function getSparkleSuiteCheckoutReview(
       : `${setupFee} setup fee + ${monthlyAmount} first month = ${firstCheckoutTotal} before taxes or Stripe-calculated extras.`,
     dueTodayNote: testBuyerPreview
       ? 'Use this local-only path to feel the buyer flow before real checkout is turned on.'
-      : 'These charges are due only when you complete Stripe checkout during your active trial. Stripe itemizes both before you pay.',
+      : 'This payment is the setup fee and the first month. The monthly plan starts when it goes through. Stripe itemizes both before you pay.',
     renewal: testBuyerPreview
       ? '50 cents per month in Stripe test mode until cancelled.'
       : pricing.tier === 'founder'
@@ -13363,26 +13363,20 @@ export function AccountBillingCard({
   }
 
   const { summary } = state
-  const workspaceAccess = summary.workspaceAccess
   const grandfatheredCheckout = summary.grandfatheredCheckout
-  const isActiveWorkspaceTrial =
-    workspaceAccess?.source === 'trial' && workspaceAccess.hasFullAccess
   const convertingInternalEntitlement = Boolean(
     summary.canStartSubscription &&
       summary.subscription &&
-      summary.subscription.status !== 'cancelled' &&
-      !isActiveWorkspaceTrial,
+      summary.subscription.status !== 'cancelled',
   )
-  const subscriptionStatus = summary.subscription
-    ? summary.subscription.status.replace('_', ' ')
-    : 'No active subscription'
-  const subscriptionTitle = isActiveWorkspaceTrial
-    ? '5-day trial active'
-    : convertingInternalEntitlement
+  const rawStatus = summary.subscription?.status ?? null
+  const subscriptionTitle = convertingInternalEntitlement
     ? 'Billing not started'
-    : summary.subscription
-    ? subscriptionStatus.charAt(0).toUpperCase() + subscriptionStatus.slice(1)
-    : 'Not active yet'
+    : rawStatus === 'active' || rawStatus === 'trialing'
+      ? 'Active'
+      : rawStatus
+        ? rawStatus.replaceAll('_', ' ').replace(/^\w/, (letter) => letter.toUpperCase())
+        : 'Not active yet'
   const checkoutReview = getSparkleSuiteCheckoutReview(
     summary.checkoutMode,
     summary.pricing,
@@ -13406,17 +13400,9 @@ export function AccountBillingCard({
         <span className={styles.accountStatusBadge}>{subscriptionTitle}</span>
       </div>
 
-      {isActiveWorkspaceTrial ? (
+      {!summary.subscription ? (
         <div className={styles.helperMessage} role="status">
-          Your full Sparkle Suite trial is active through{' '}
-          {formatAccountBillingDate(workspaceAccess?.trialEndsAt ?? null)}.
-          Start billing before then to keep your workspace and customer site
-          available without interruption.
-        </div>
-      ) : workspaceAccess?.status === 'trial_expired' ? (
-        <div className={styles.actionError} role="status">
-          Your five-day trial has ended. Your work is saved; start billing to
-          reopen the workspace and customer site.
+          The workspace opens after the first payment goes through.
         </div>
       ) : convertingInternalEntitlement ? (
         <div className={styles.helperMessage} role="status">

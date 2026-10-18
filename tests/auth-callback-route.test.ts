@@ -242,6 +242,23 @@ describe('GET /api/auth/callback', () => {
     expect(signOutMock).toHaveBeenCalledWith({ scope: 'local' })
   })
 
+  it('signs out an inactive rep so a half-finished payment cannot open the workspace', async () => {
+    const admin = createAdminMock({
+      id: 'rep-inactive',
+      status: 'inactive',
+    })
+    createAdminClientMock.mockReturnValue(admin)
+
+    const response = await GET(
+      new Request('http://localhost/api/auth/callback?code=oauth-code&next=/nic-nac'),
+    )
+
+    expect(signOutMock).toHaveBeenCalledWith({ scope: 'local' })
+    expect(response.headers.get('location')).toBe(
+      'http://localhost/login?error=account_not_found',
+    )
+  })
+
   it('rejects an old incomplete rep row as an unprovisioned email', async () => {
     const admin = createAdminMock({
       id: 'rep-orphaned',
@@ -253,9 +270,7 @@ describe('GET /api/auth/callback', () => {
       new Request('http://localhost/api/auth/callback?code=oauth-code'),
     )
 
-    expect(admin.rpc).toHaveBeenCalledWith('activate_workspace_trial', {
-      p_rep_id: 'rep-orphaned',
-    })
+    expect(admin.rpc).not.toHaveBeenCalled()
     expect(signOutMock).toHaveBeenCalledWith({ scope: 'local' })
     expect(response.headers.get('location')).toBe(
       'http://localhost/login?error=account_not_found',

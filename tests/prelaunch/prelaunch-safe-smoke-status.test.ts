@@ -40,6 +40,24 @@ describe('prelaunch safe smoke status', () => {
     ])
   })
 
+  it('treats a Stripe test key as ready when prices resolve by lookup key', () => {
+    const [stripe] = buildPrelaunchSafeSmokeStatus({
+      activeLaunchBuild: null,
+      env: {
+        STRIPE_SECRET_KEY: 'sk_test_secret',
+        STRIPE_WEBHOOK_SECRET: 'whsec_secret',
+      },
+    }).filter((item) => item.key === 'stripe_test')
+
+    expect(stripe).toEqual({
+      key: 'stripe_test',
+      label: 'Stripe test mode',
+      status: 'ready',
+      detail:
+        'Test key and webhook secret are present. Sparkle Suite prices resolve by lookup key.',
+    })
+  })
+
   it('marks demo, Stripe test, and SignWell sandbox ready when safe prerequisites exist', () => {
     expect(
       buildPrelaunchSafeSmokeStatus({

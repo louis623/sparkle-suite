@@ -995,7 +995,8 @@ describe('PrelaunchIntakeReviewPageContent', () => {
     expect(html).toContain('Save gate')
     expect(html).toContain('Agreement draft tracker')
     expect(html).toContain('Sparkle Suite service agreement')
-    expect(html).toContain('founder first 20')
+    expect(html).toContain('founder pricing')
+    expect(html).not.toContain('founder first 20')
     expect(html).toContain('Draft tracker only')
     expect(html).toContain(
       'action="/api/control-center/intake/agreement-document"',
@@ -1032,15 +1033,134 @@ describe('PrelaunchIntakeReviewPageContent', () => {
       'action="/api/control-center/intake/production-roster"',
     )
     expect(html).toContain('Existing rep ID')
-    expect(html).toContain('Create five-day trial account')
-    expect(html).toContain('Temporary password')
-    expect(html).toContain('Confirm temporary password')
-    expect(html).toContain('five-day trial starts on their first successful')
-    expect(html).toContain('does not send an email')
-    expect(html).toContain('Hand the login details to the rep')
+    expect(html).toContain('Create payment link')
+    expect(html).toContain('Waive setup fee')
+    expect(html).toContain('name="pricingTier"')
+    expect(html).toContain('Nothing on this page sends email')
     expect(html).toContain('Save roster connection')
+    expect(html).not.toContain('Create five-day trial account')
+    expect(html).not.toContain('Temporary password')
+    expect(html).not.toMatch(/five-day|trial/i)
     expect(html).not.toContain('Send invite')
     expect(html).not.toContain('Launch client')
+  })
+
+  it('shows a payment-link draft without asking for an email or intake record', () => {
+    const html = renderToStaticMarkup(
+      createElement(PrelaunchIntakeReviewPageContent, {
+        basePath: '/control-center/intake',
+        surface: 'control_center',
+        submissions: [],
+        launchBuilds: [],
+        launchSetupProfiles: [],
+        waitlistLeads: [],
+        paymentLinks: [
+          {
+            id: 'link-1',
+            launchBuildId: null,
+            leadName: null,
+            leadEmail: null,
+            status: 'open',
+            buildFeeWaived: true,
+            pricingTier: 'founder',
+            expiresAt: null,
+            repId: null,
+            checkoutUrl: 'https://checkout.stripe.test/cs_test',
+            paymentEmailDraft: 'Hello,\n\nhttps://checkout.stripe.test/cs_test',
+            welcomeEmailDraft: null,
+            welcomeEmailStatus: 'not_queued',
+          },
+        ],
+      }),
+    )
+
+    expect(html).toContain('Link ready')
+    expect(html).toContain('setup fee waived')
+    expect(html).toContain('founder pricing')
+    expect(html).toContain('https://checkout.stripe.test/cs_test')
+    expect(html).toContain('name="pricingTier"')
+    expect(html).toContain('name="waiveSetupFee"')
+    expect(html).not.toContain('name="leadEmail"')
+    expect(html).not.toContain('name="launchBuildId"')
+    expect(html).not.toMatch(/spots remaining|five-day|trial|founder first/i)
+  })
+
+  it('shows needs attention and a returning rep on the payment link card', () => {
+    const html = renderToStaticMarkup(
+      createElement(PrelaunchIntakeReviewPageContent, {
+        basePath: '/control-center/intake',
+        surface: 'control_center',
+        submissions: [],
+        launchBuilds: [],
+        launchSetupProfiles: [],
+        waitlistLeads: [],
+        paymentLinks: [
+          {
+            id: 'link-attention',
+            launchBuildId: null,
+            leadName: 'Returning Rep',
+            leadEmail: 'returning.rep@example.com',
+            status: 'needs_attention',
+            buildFeeWaived: false,
+            pricingTier: 'standard',
+            expiresAt: null,
+            repId: null,
+            checkoutUrl: null,
+            paymentEmailDraft: null,
+            welcomeEmailDraft: null,
+            welcomeEmailStatus: 'not_queued',
+            attentionReason: 'subscription_not_active',
+            returningRep: false,
+          },
+          {
+            id: 'link-returning',
+            launchBuildId: null,
+            leadName: 'Returning Rep',
+            leadEmail: 'returning.rep@example.com',
+            status: 'paid',
+            buildFeeWaived: false,
+            pricingTier: 'standard',
+            expiresAt: null,
+            repId: 'rep-returning',
+            checkoutUrl: null,
+            paymentEmailDraft: null,
+            welcomeEmailDraft: 'Sign in at:\nhttps://smoke.example/login?email=returning.rep%40example.com',
+            welcomeEmailStatus: 'draft',
+            attentionReason: null,
+            returningRep: true,
+          },
+          {
+            id: 'link-duplicate',
+            launchBuildId: null,
+            leadName: 'Paying Rep',
+            leadEmail: 'paying@example.com',
+            status: 'duplicate',
+            buildFeeWaived: true,
+            pricingTier: 'founder',
+            expiresAt: null,
+            repId: 'rep-paying',
+            checkoutUrl: null,
+            paymentEmailDraft: null,
+            welcomeEmailDraft: null,
+            welcomeEmailStatus: 'not_queued',
+            attentionReason:
+              'Paid again with an email that already has an account. Refunded $49.99 and cancelled the extra subscription. No second account was created.',
+            returningRep: false,
+          },
+        ],
+      }),
+    )
+
+    expect(html).toContain('Needs attention')
+    expect(html).toContain('The subscription is not active, so the account was not created.')
+    expect(html).not.toContain('subscription_not_active')
+    expect(html).toContain('Refunded $49.99 and cancelled the extra subscription')
+    expect(html).toContain('No second account was created.')
+    expect(html).toContain('name="retryLinkId"')
+    expect(html).toContain('value="link-attention"')
+    expect(html).toContain('>Retry<')
+    expect(html).toContain('returning rep')
+    expect(html).toContain('/login?email=returning.rep%40example.com')
   })
 
   it('renders waitlist leads with confirmation email status', () => {

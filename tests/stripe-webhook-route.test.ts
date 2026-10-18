@@ -1641,16 +1641,16 @@ describe('POST /api/stripe/webhook', () => {
     expect(response.status).toBe(200)
     expect(createScheduleMock).toHaveBeenCalledWith({
       from_subscription: 'sub_founder_schedule',
-      metadata: expect.objectContaining({
-        rep_id: 'rep-founder',
-        pricing_tier: 'founder',
-        founder_sequence: '3',
-      }),
     })
     expect(updateScheduleMock).toHaveBeenCalledWith(
       'sched_founder',
       expect.objectContaining({
         end_behavior: 'release',
+        metadata: expect.objectContaining({
+          rep_id: 'rep-founder',
+          pricing_tier: 'founder',
+          founder_sequence: '3',
+        }),
         phases: [
           expect.objectContaining({
             start_date: 1_779_120_000,
