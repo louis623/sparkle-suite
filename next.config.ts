@@ -36,9 +36,9 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: '/learn', destination: '/', statusCode: 301 },
-      // /demo -> /#watch lives in proxy.ts. A config redirect runs before the
-      // proxy and would send rep hosts to the Suite watch section.
+      // /demo -> /#watch and /learn -> / live in proxy.ts. A config redirect
+      // runs before the proxy and would also apply on rep hosts, which must
+      // return 404 for both.
     ]
   },
   async headers() {

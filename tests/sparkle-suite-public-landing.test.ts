@@ -5,6 +5,9 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { metadata } from '@/app/page'
 import nextConfig from '@/next.config'
+import { NextRequest } from 'next/server'
+import { getRedirectUrl } from 'next/experimental/testing/server'
+import { proxy } from '@/proxy'
 import { SparkleSuitePublicLanding } from '@/app/_components/sparkle-suite-public-landing'
 import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
 
@@ -120,10 +123,16 @@ describe('Sparkle Suite public landing page', () => {
 
   it('redirects retired marketing routes and keeps home available to signed-in reps', async () => {
     const redirects = await nextConfig.redirects?.()
-    expect(redirects).toEqual(expect.arrayContaining([
-      { source: '/learn', destination: '/', statusCode: 301 },
-    ]))
+    // /learn and /demo redirect in proxy.ts so rep hosts can return 404 instead.
+    expect(redirects?.some((redirect) => redirect.source === '/learn')).toBe(false)
     expect(redirects?.some((redirect) => redirect.source === '/demo')).toBe(false)
+    const learn = proxy(
+      new NextRequest('https://www.yoursparklesuite.com/learn?ref=nav', {
+        headers: { host: 'www.yoursparklesuite.com' },
+      }),
+    )
+    expect(learn.status).toBe(301)
+    expect(getRedirectUrl(learn)).toBe('https://www.yoursparklesuite.com/?ref=nav')
     const pageSource = readFileSync(join(process.cwd(), 'app/page.tsx'), 'utf8')
     expect(pageSource).toContain('readLandingFounderAvailability')
     expect(pageSource).toContain('readLandingDemo')

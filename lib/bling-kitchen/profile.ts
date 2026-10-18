@@ -62,7 +62,7 @@ export function applyBlingKitchenHomepage(
     heroEyebrow: 'With Heather',
     heroHeadline: 'BlingKitchen',
     heroSub:
-      'Place your order, return to the live party, and watch Heather reveal your surprise jewelry from the heart of her Ohio kitchen.',
+      "Place your order, return to the live party, and watch Heather reveal your surprise jewelry from the heart of Heather's Ohio kitchen.",
     heroImageUrl: BLING_KITCHEN_PROFILE.heroImageUrl,
     announcementText: BLING_KITCHEN_PROFILE.announcementText,
     announcementLinkLabel: 'Shop Now',
@@ -72,9 +72,9 @@ export function applyBlingKitchenHomepage(
     pantryPageUrl: '/amethyst/Pantry.html',
     aboutHeadline: 'Meet Heather',
     aboutParagraphs: [
-      'A Registered Nurse for 25 years with 15 years in surgery, Heather knows that the right tool for the right job makes all the difference. Coming from a long line of Italian cooks and bakers, she believes food is the family love language.',
-      'Introduced to Bomb Party by her daughter Mara in 2024, Heather fell in love with the community and the surprise. She built her TikTok following from 183 to over 1,000 in just 3 months by sharing authentic live content.',
-      'Married for 35 years, proud Nonna to 3 grandchildren, and devoted dog mom to Enzo, Heather shares her love of food and family while revealing beautiful jewelry and building a legacy.',
+      'A Registered Nurse for 25 years with 15 years in surgery, Heather knows that the right tool for the right job makes all the difference. Coming from a long line of Italian cooks and bakers, Heather believes food is the family love language.',
+      "Introduced to Bomb Party by Heather's daughter Mara in 2024, Heather fell in love with the community and the surprise. Heather built a TikTok following from 183 to over 1,000 in just 3 months by sharing authentic live content.",
+      'Married for 35 years, proud Nonna to 3 grandchildren, and devoted dog mom to Enzo, Heather shares a love of food and family while revealing beautiful jewelry and building a legacy.',
     ],
     aboutMediaSlots: [
       {
@@ -203,7 +203,7 @@ export function applyBlingKitchenJoin(
       cost:
         'Starter pack details and current promotions are handled by Bomb Party. The current offer highlights a $599 Launch Pack with a guaranteed Diamond reveal.',
       experience:
-        'No experience required. Heather grew her own TikTok organically and personally guides new reps through their first live party.',
+        'No experience required. Heather grew a TikTok following organically and personally guides new reps through their first live party.',
       timeCommitment:
         'Bomb Party is a virtual business you can build from home at your own pace.',
       support:

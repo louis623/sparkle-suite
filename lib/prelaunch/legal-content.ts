@@ -198,7 +198,7 @@ export const privacyPolicyDocument: LegalDocument = {
       title: "Data Sharing",
       paragraphs: [
         "We do not sell personal information.",
-        "We do not sell, trade, or share data collected by the Sparkle Suite Live Lineup Chrome Extension with third parties for advertising, promotional, or marketing purposes.",
+        "We do not sell or share data collected by the Sparkle Suite Live Lineup Chrome Extension with third parties for advertising, promotional, or marketing purposes.",
         "We may share limited information with service providers that help us operate Sparkle Suite and Neon Rabbit Digital Services, such as hosting providers, database providers, messaging providers, email providers, analytics providers, security providers, and compliance vendors. These providers are allowed to use the information only to provide services to us.",
         "We may also disclose information if required to comply with law, legal process, platform rules, carrier requirements, or to protect the rights, safety, and security of Neon Rabbit Digital Services, Sparkle Suite users, representatives, customers, or the public.",
       ],
@@ -305,7 +305,7 @@ export const termsAndConditionsDocument: LegalDocument = {
     {
       title: "Representative Website Content",
       paragraphs: [
-        "Sparkle Suite representative websites may include show information, live queue information, dance floor details, representative updates, links, signup forms, and related content.",
+        "Sparkle Suite representative websites may include show information, Live Lineup information, Dance Floor details, representative updates, links, signup forms, and related content.",
         "Representatives are responsible for reviewing their own website content, business information, show details, Dance Floor details, and customer-facing information.",
         "Neon Rabbit Digital Services may provide tools, templates, automation, or support, but representatives remain responsible for final business decisions, customer interactions, and compliance with any applicable Bomb Party policies or legal requirements.",
       ],

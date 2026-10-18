@@ -117,6 +117,10 @@ reconciliation and must not be swept into the active branch merely to make
 
 ## Branch lifecycle
 
+### October 18 join server sections and rep-host routes
+
+Louis asked for the follow-ups from the October 18 Live check of #133 to #135 on one pull request against `codex/nic-nac-trade-hardening`: the full rep `/join` copy (Why Join, FAQ, final call to action, roster cards) in the initial HTML, Britt `/embed/*` 301s to `/`, `/learn` 404 on rep hosts (the Suite keeps its 301 to `/`), and noindex on a rep pantry with no recipes. At 1:10 PM ET he added the Terms and Privacy wording, "the rep" wording on the Sparkly Butterflies, BlingKitchen, and GofortheBling `/join` copy and the BlingKitchen profile, and a smaller Britt pumpkin-cat hero, and approved Live. `cursor/suite-join-ssr-rep-routes` is allowlisted for a Smoke preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Live ships only after merge into `codex/nic-nac-trade-hardening`. No database migration.
+
 ### October 18 Suite SEO metadata and image Smoke preview
 
 Louis asked for the October 18 SEO image and metadata fixes on a draft pull request against `codex/nic-nac-trade-hardening`, with no merge or Live deploy. `cursor/suite-seo-metadata-images` is allowlisted for a Smoke preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change. The public Dance Floor path stays `/trade`.

@@ -27,7 +27,10 @@ import {
   injectPublicPageIndexDocument,
   type PublicIndexRecipe,
 } from '@/lib/amethyst/public-page-index-html'
-import { injectJoinServerIndex } from '@/lib/amethyst/join-server-html'
+import {
+  injectJoinServerIndex,
+  type JoinServerRuntimeContext,
+} from '@/lib/amethyst/join-server-html'
 
 interface RenderAmethystPublicAssetResponseOptions {
   repIdOverride?: string | null
@@ -36,6 +39,9 @@ interface RenderAmethystPublicAssetResponseOptions {
   publicSiteSlugOverride?: string | null
   joinVisibilityVerified?: boolean
   pantryRecipes?: PublicIndexRecipe[]
+  /** True only when the rep's recipe list loaded and came back empty. */
+  pantryEmpty?: boolean
+  joinRuntimeContext?: JoinServerRuntimeContext
 }
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -384,16 +390,55 @@ function injectPublicPageBody(
   page: AmethystPublicPage,
   templateData: AmethystPreviewTemplateData,
   pantryRecipes: PublicIndexRecipe[],
+  joinRuntimeContext?: JoinServerRuntimeContext,
 ) {
   if (page === 'homepage' || page === 'trade' || page === 'pantry') {
     return injectPublicPageIndexDocument(html, page, templateData, pantryRecipes)
   }
-  if (page === 'join') return injectJoinServerIndex(html, templateData)
+  if (page === 'join') return injectJoinServerIndex(html, templateData, joinRuntimeContext)
 
   return html
 }
 
-async function loadPantryIndexRecipes(repId: string): Promise<PublicIndexRecipe[]> {
+/**
+ * The runtime context /api/amethyst/join-template hands the client for this
+ * page. The page's template script is rewritten to the same ?c= target, so the
+ * server copy picks the same personal recruiting copy the client paints.
+ */
+export function resolveJoinRuntimeContext(
+  request: Request,
+  requestUrl: URL,
+  options: RenderAmethystPublicAssetResponseOptions = {},
+): JoinServerRuntimeContext {
+  const target =
+    options.repIdOverride?.trim() ||
+    requestUrl.searchParams.get('c') ||
+    requestUrl.searchParams.get('repId')
+  const apiUrl = new URL('/api/amethyst/join-template', requestUrl.origin)
+  if (target) apiUrl.searchParams.set('c', target)
+  const publicSiteSlug = options.publicSiteSlugOverride?.trim()
+  if (target && publicSiteSlug) apiUrl.searchParams.set('publicSiteSlug', publicSiteSlug)
+  const resolved = resolveAmethystRequestTarget(
+    new Request(apiUrl, { headers: request.headers }),
+  )
+  return {
+    targeted: resolved.targeted,
+    repId: resolved.repId ?? resolved.customDomain,
+    publicSiteSlug: resolved.publicSiteSlug,
+  }
+}
+
+const EMPTY_PANTRY_ROBOTS = 'noindex, follow'
+
+function applyEmptyPantryRobots(html: string) {
+  return html.replace(
+    /<meta name="robots" content="[^"]*" \/>/,
+    `<meta name="robots" content="${EMPTY_PANTRY_ROBOTS}" />`,
+  )
+}
+
+/** Recipes for the pantry page, or null when they could not be read. */
+async function readPantryIndexRecipes(repId: string): Promise<PublicIndexRecipe[] | null> {
   try {
     const { createAdminClient } = await import('@/lib/supabase/admin')
     const { getPublicSiteRecipes } = await import('@/lib/services/site-recipes')
@@ -405,7 +450,7 @@ async function loadPantryIndexRecipes(repId: string): Promise<PublicIndexRecipe[
       description: recipe.description,
     }))
   } catch {
-    return []
+    return null
   }
 }
 
@@ -434,12 +479,22 @@ function rewriteAmethystPublicHtml(
     templateData,
     options.canonicalPathOverride,
   )
-  const withMetadata = html.replace(
+  const replacedMetadata = html.replace(
     /<title>[\s\S]*?<meta name="twitter:image" content="[^"]+" \/>\r?\n?/,
     `${metadataBlock}\n`,
   )
+  const withMetadata =
+    page === 'pantry' && options.pantryEmpty
+      ? applyEmptyPantryRobots(replacedMetadata)
+      : replacedMetadata
   const rewritten = templateData
-    ? injectPublicPageBody(withMetadata, page, templateData, options.pantryRecipes ?? [])
+    ? injectPublicPageBody(
+        withMetadata,
+        page,
+        templateData,
+        options.pantryRecipes ?? [],
+        options.joinRuntimeContext,
+      )
     : withMetadata
 
   return injectRepGa4Tag(
@@ -498,8 +553,20 @@ export async function renderAmethystPublicAssetResponse(
     const templateData = loadedTemplate
       ? await indexPublicJoinTemplate(loadedTemplate, { repId })
       : null
-    const pantryRecipes =
-      page === 'pantry' && repId ? await loadPantryIndexRecipes(repId) : []
+    const pantryRead =
+      page === 'pantry' && repId ? await readPantryIndexRecipes(repId) : null
+    const pantryRecipes = pantryRead ?? []
+    // A pantry with no recipes yet is a placeholder page: keep it reachable but
+    // out of search until the first recipe exists. BlingKitchen falls back to
+    // its built-in recipe book when the table is empty, so it stays indexable.
+    const pantryEmpty =
+      page === 'pantry' &&
+      Boolean(templateData) &&
+      pantryRead !== null &&
+      pantryRead.length === 0 &&
+      templateData?.join.publicSiteVariant !== 'bling_kitchen_hybrid'
+    const joinRuntimeContext =
+      page === 'join' ? resolveJoinRuntimeContext(request, requestUrl, resolvedOptions) : undefined
     let responseBody: BodyInit = new Uint8Array(body)
     if (contentType.startsWith('text/html')) {
       const html = body.toString('utf8')
@@ -516,7 +583,7 @@ export async function renderAmethystPublicAssetResponse(
           request,
           requestUrl,
           templateData,
-          { ...resolvedOptions, pantryRecipes },
+          { ...resolvedOptions, pantryRecipes, pantryEmpty, joinRuntimeContext },
           ga4Tag,
         )
       } else if (templateScriptPage) {
@@ -537,6 +604,7 @@ export async function renderAmethystPublicAssetResponse(
       headers: {
         'Cache-Control': cacheControl,
         'Content-Type': contentType,
+        ...(pantryEmpty ? { 'X-Robots-Tag': EMPTY_PANTRY_ROBOTS } : {}),
       },
     })
   } catch {

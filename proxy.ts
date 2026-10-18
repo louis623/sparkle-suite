@@ -21,15 +21,26 @@ const BRITT_LEGACY_PATHS: Record<string, string> = {
   '/embed': '/',
 }
 
-const SUITE_MARKETING_PATHS = ['/portfolio', '/tools', '/prelaunch', '/adventure', '/demo']
+const SUITE_MARKETING_PATHS = ['/portfolio', '/tools', '/prelaunch', '/adventure', '/demo', '/learn']
 
 export function normalizePublicPath(pathname: string) {
   if (pathname.length > 1 && pathname.endsWith('/')) return pathname.replace(/\/+$/, '')
   return pathname
 }
 
+/** Old Britt with Bling video embeds (/embed/<id>) all consolidate to the homepage. */
+const BRITT_LEGACY_PREFIXES: Record<string, string> = {
+  '/embed/': '/',
+}
+
 export function brittLegacyDestination(pathname: string): string | null {
-  return BRITT_LEGACY_PATHS[normalizePublicPath(pathname)] ?? null
+  const path = normalizePublicPath(pathname)
+  const exact = BRITT_LEGACY_PATHS[path]
+  if (exact) return exact
+  for (const [prefix, destination] of Object.entries(BRITT_LEGACY_PREFIXES)) {
+    if (path.startsWith(prefix)) return destination
+  }
+  return null
 }
 
 export function isSuiteMarketingPath(pathname: string) {
@@ -117,6 +128,15 @@ export function proxy(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     url.hash = 'watch'
+    return NextResponse.redirect(url, 301)
+  }
+
+  // The Suite's old /learn page consolidates to its homepage. This lives here,
+  // not in next.config redirects, because config redirects run before the
+  // proxy and would also send rep hosts to their homepage.
+  if (!onCustomerDomain && request.nextUrl.pathname === '/learn') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/'
     return NextResponse.redirect(url, 301)
   }
 
