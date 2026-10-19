@@ -66,7 +66,7 @@ export function buildTradeRequestCardPart(
         status: 'needs_review',
         label: `Compare against ${comparisonTarget}`,
         description:
-          'Customer offers are free text, so the rep should confirm the offered piece is the same type and collection before approving the trade.',
+          'Customer offers are free text, so the rep should confirm the offered piece is the same type and collection before approving the swap.',
       },
     },
   }

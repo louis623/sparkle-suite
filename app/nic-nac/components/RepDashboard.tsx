@@ -556,7 +556,7 @@ export function RepDashboard({
             testId="pending-trades"
           >
             <div className={styles.statTop}>
-              <h3>Pending trades</h3>
+              <h3>Pending swap requests</h3>
               <span className={styles.cueCluster}>
                 {view.pendingTrades.count > 0 ? <span className={styles.pulse} data-pulse="true" aria-label="Waiting on you" /> : null}
                 <ClickCue />

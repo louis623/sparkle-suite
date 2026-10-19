@@ -67,23 +67,24 @@ describe('dance floor insight cleanup', () => {
     expect(JSON.stringify(insights)).not.toContain('Test entry')
   })
 
-  it('keeps sold pieces with a missing exit out of the fast-mover list', () => {
+  it('keeps swapped pieces with a missing exit out of the fast-mover list', () => {
     const soldAt = new Date(NOW.getTime() - 2 * DAY).toISOString()
     const insights = buildDanceFloorInsights(
       [
         piece({
           id: 'fast',
           name: 'The Sugar Kiss Earrings',
-          status: 'removed',
-          removalReason: 'sold',
+          status: 'traded',
+          removalReason: null,
           listedAt: new Date(NOW.getTime() - 19.5 * DAY).toISOString(),
-          deletedAt: soldAt,
+          updatedAt: soldAt,
+          deletedAt: null,
         }),
         piece({
           id: 'no-exit',
-          name: 'Sold without a date',
-          status: 'removed',
-          removalReason: 'sold',
+          name: 'Swapped without a date',
+          status: 'traded',
+          removalReason: null,
           listedAt: new Date(NOW.getTime() - 10 * DAY).toISOString(),
           updatedAt: new Date(NOW.getTime() - 10 * DAY).toISOString(),
           deletedAt: null,
@@ -108,10 +109,10 @@ describe('dance floor insight cleanup', () => {
       updatedAt: new Date(NOW.getTime() - 10 * DAY).toISOString(),
       deletedAt: null,
     }), NOW)).toBeNull()
-    expect(insights.sold).toBe(2)
+    expect(insights.swapped).toBe(2)
     expect(insights.movers.fastest.map((row) => row.name)).toEqual(['The Sugar Kiss Earrings'])
     expect(insights.movers.earlyData).toBe(true)
-    expect(insights.movers.saleCount).toBe(2)
+    expect(insights.movers.swapCount).toBe(2)
     expect(insights.outcomes.needsCleanup).toBe(true)
     expect(insights.outcomes.slices.find((slice) => slice.key === 'other')?.count).toBe(1)
     expect(insights.sitting[0]).toMatchObject({ name: 'Unapologetically Luxe', days: 50, requestCount: 2 })
@@ -135,6 +136,6 @@ describe('dance floor insight cleanup', () => {
       NOW,
     )
     expect(insights.onFloor).toBe(1)
-    expect(insights.outcomes.slices.map((slice) => slice.label)).toEqual(['Still on floor', 'Traded'])
+    expect(insights.outcomes.slices.map((slice) => slice.label)).toEqual(['Still on floor', 'Swapped'])
   })
 })

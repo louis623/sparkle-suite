@@ -28,7 +28,7 @@ export function TradeRequestLiveCard({
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <div className={styles.eyebrow}>New trade request</div>
+        <div className={styles.eyebrow}>New swap request</div>
         <div className={styles.customer}>{request.customerName}</div>
       </div>
 
@@ -71,7 +71,7 @@ export function TradeRequestLiveCard({
           type="button"
           disabled={buttonsDisabled}
           aria-busy={pendingAction === 'approve'}
-          aria-label={`Review approval for trade request from ${request.customerName} for ${requestedItem}`}
+          aria-label={`Review approval for swap request from ${request.customerName} for ${requestedItem}`}
           onClick={() => onDecision('approve', request.requestId)}
         >
           {pendingAction === 'approve' ? 'Opening...' : 'Approve'}
@@ -81,7 +81,7 @@ export function TradeRequestLiveCard({
           type="button"
           disabled={buttonsDisabled}
           aria-busy={pendingAction === 'reject'}
-          aria-label={`Review denial for trade request from ${request.customerName} for ${requestedItem}`}
+          aria-label={`Review denial for swap request from ${request.customerName} for ${requestedItem}`}
           onClick={() => onDecision('reject', request.requestId)}
         >
           {pendingAction === 'reject' ? 'Opening...' : 'Deny'}

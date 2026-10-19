@@ -23,7 +23,7 @@ export interface AmethystTradeListing {
   collection: string
   description: string
   tier: AmethystTier
-  statusLabel: 'Available' | 'Reserved' | 'Traded'
+  statusLabel: 'Available' | 'Reserved' | 'Swapped'
   href?: string
 }
 
@@ -183,7 +183,7 @@ export const defaultAmethystSiteContent: AmethystSiteContent = {
       collection: 'Holiday Gift Guide',
       description: 'An easy everyday pair with a polished finish that works for gifting and stacking.',
       tier: 'everyday',
-      statusLabel: 'Traded',
+      statusLabel: 'Swapped',
     },
   ],
   events: [

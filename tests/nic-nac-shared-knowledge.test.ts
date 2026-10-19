@@ -28,7 +28,7 @@ describe('shared Nic-Nac knowledge', () => {
     expect(NIC_NAC_TRADEBOARD_KNOWLEDGE.productTerm).toBe('Dance Floor')
     expect(NIC_NAC_TRADEBOARD_KNOWLEDGE.lingo.danceFloor).toContain('Dance Floor')
     expect(NIC_NAC_TRADEBOARD_KNOWLEDGE.lingo.dancers).toContain(
-      'trade-eligible jewelry',
+      'swap-eligible jewelry',
     )
     expect(NIC_NAC_TRADEBOARD_KNOWLEDGE.customerFlow).toContain(
       'Customers do not add',

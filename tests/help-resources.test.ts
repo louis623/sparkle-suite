@@ -18,7 +18,7 @@ describe('help resources', () => {
       'Use Live Queue during a show',
       'Use Live Lineup on a Mac',
       'Add a dancer to your Dance Floor',
-      'Handle trade requests',
+      'Handle swap requests',
       'Manage customers and updates',
       'Billing and account basics',
       'Share your referral code',
@@ -258,9 +258,9 @@ describe('help resources', () => {
     expect(guide).toMatchObject({
       type: 'workflow',
       group: 'Dance Floor',
-      category: 'Trade Requests',
-      title: 'Handle trade requests',
-      nicNacPrompt: 'Help me handle my trade requests.',
+      category: 'Swap Requests',
+      title: 'Handle swap requests',
+      nicNacPrompt: 'Help me handle my swap requests.',
     })
 
     const combinedText = [
@@ -276,7 +276,7 @@ describe('help resources', () => {
     expect(combinedText).toContain('Customers describe the dancer they just revealed')
     expect(combinedText).toContain('recommended reveal screenshot')
     expect(combinedText).toContain('Dance Floor request inbox')
-    expect(combinedText).toContain('Nic-Nac trade request cards')
+    expect(combinedText).toContain('Nic-Nac swap request cards')
     expect(combinedText).toContain('expires after 48 hours')
     expect(combinedText).toContain('same collection and same jewelry type')
     expect(combinedText).toContain('just-revealed item number')

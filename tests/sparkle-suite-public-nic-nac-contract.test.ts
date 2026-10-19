@@ -62,7 +62,7 @@ describe('public Nic-Nac knowledge pack', () => {
 
   it('contains public Dance Floor facilitation rules and boundaries', () => {
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardRules).toContain(
-      'Dance Floor organizes trade interest',
+      'Dance Floor organizes swap interest',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardRules).toContain(
       'Sparkle Suite does not handle shipping',
@@ -71,10 +71,10 @@ describe('public Nic-Nac knowledge pack', () => {
       'The rep controls the Dance Floor',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardRules).toContain(
-      'Sparkle Suite does not guarantee trades',
+      'Sparkle Suite does not guarantee swaps',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardRules).toContain(
-      'Sparkle Suite does not decide what items can be traded for what items',
+      'Sparkle Suite does not decide what items can be swapped for what items',
     )
   })
 
@@ -104,13 +104,13 @@ describe('public Nic-Nac knowledge pack', () => {
       'Dance Floor is the Sparkle Suite home',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardLingo).toContain(
-      'Dancers are the rep-listed, trade-eligible jewelry',
+      'Dancers are the rep-listed, swap-eligible jewelry',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardLingo).toContain(
       'shown on the Dance Floor',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardLingo).toContain(
-      'rep-listed, trade-eligible jewelry',
+      'rep-listed, swap-eligible jewelry',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardLingo).toContain(
       'Do not say customers add dancers',
@@ -125,7 +125,7 @@ describe('public Nic-Nac knowledge pack', () => {
       'Customers do not add dancers to the Dance Floor',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardLiveShowFlow).toContain(
-      'request to trade for an available dancer',
+      'request a swap for an available dancer',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardLiveShowFlow).toContain(
       'item just revealed for them',
@@ -134,7 +134,7 @@ describe('public Nic-Nac knowledge pack', () => {
       'The rep has both pieces during the live show',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardLiveShowFlow).toContain(
-      'can approve or decline each trade request',
+      'can approve or decline each swap request',
     )
     expect(PUBLIC_NIC_NAC_KNOWLEDGE.tradeBoardLiveShowFlow).not.toContain(
       'piece they revealed or want to offer',
@@ -321,7 +321,7 @@ describe('public Nic-Nac prompt', () => {
     expect(prompt).toContain('we email a payment link')
     expect(prompt).toContain('what happens after joining the build queue')
     expect(prompt).toContain('Dance Floor is the feature')
-    expect(prompt).toContain('dancers are the rep-listed trade-eligible jewelry')
+    expect(prompt).toContain('dancers are the rep-listed swap-eligible jewelry')
     expect(prompt).toContain('never say customers add dancers to the dance floor')
     expect(prompt).toContain('Do not promise additional discounts, exceptions, outcomes, or future roadmap')
     expect(prompt).toContain('Do not use Markdown formatting')
@@ -379,7 +379,7 @@ describe('public Nic-Nac postflight guardrails', () => {
 
     expect(sanitized.kind).toBe('answer')
     expect(sanitized.message).toContain('Customers do not add their own dancers')
-    expect(sanitized.message).toContain('request to trade for an available dancer')
+    expect(sanitized.message).toContain('request a swap for an available dancer')
     expect(sanitized.message).toContain('item just revealed')
     expect(sanitized.message).not.toContain('add their own items in real time')
   })
@@ -403,8 +403,8 @@ describe('public Nic-Nac postflight guardrails', () => {
     expect(sanitized.kind).toBe('answer')
     expect(sanitized.message).toContain('Customers do not add their own dancers')
     expect(sanitized.message).toContain('Dance Floor')
-    expect(sanitized.message).toContain('rep-listed, trade-eligible jewelry')
-    expect(sanitized.message).toContain('request to trade for an available dancer')
+    expect(sanitized.message).toContain('rep-listed, swap-eligible jewelry')
+    expect(sanitized.message).toContain('request a swap for an available dancer')
     expect(sanitized.message).not.toContain('Customers can add dancers')
   })
 

@@ -16,7 +16,7 @@ export type DanceFloorAgeBand = 'fresh' | 'aging' | 'slow' | 'unknown'
 
 export type DanceFloorOutcomeKey = 'on_floor' | 'sold' | 'traded' | 'keeping' | 'other'
 
-export type DanceFloorPointKind = 'listed' | 'sold' | 'removed'
+export type DanceFloorPointKind = 'listed' | 'swapped' | 'removed'
 
 export type DanceFloorInsightInput = {
   id: string
@@ -51,7 +51,8 @@ export type DanceFloorInsights = {
   empty: boolean
   pieceCount: number
   onFloor: number
-  sold: number
+  /** Completed dancer swaps (listing status 'traded'). */
+  swapped: number
   sitting45: number
   sitting: DanceFloorSittingRow[]
   mix: {
@@ -60,7 +61,7 @@ export type DanceFloorInsights = {
     collections: Array<{ name: string; onFloor: number; moved: number }>
   }
   movers: {
-    saleCount: number
+    swapCount: number
     earlyData: boolean
     medians: Array<{ label: string; days: number; count: number }>
     fastest: Array<{ name: string; typeLabel: string; collectionName: string; days: number }>
@@ -90,8 +91,9 @@ type ClassifiedListing = DanceFloorInsightInput & {
 
 const OUTCOME_META: Record<DanceFloorOutcomeKey, { label: string; color: string }> = {
   on_floor: { label: 'Still on floor', color: '#7345ca' },
-  sold: { label: 'Sold', color: '#e2198f' },
-  traded: { label: 'Traded', color: '#171034' },
+  // 'sold' is a legacy removal_reason value. Dance Floor pieces leave by swap only, so it is never labeled as a sale.
+  sold: { label: 'Left the floor', color: '#e2198f' },
+  traded: { label: 'Swapped', color: '#171034' },
   keeping: { label: 'Keeping', color: '#2f9e6b' },
   other: { label: 'Removed · "other"', color: '#c9b8ea' },
 }
@@ -220,11 +222,11 @@ export function emptyDanceFloorInsights(): DanceFloorInsights {
     empty: true,
     pieceCount: 0,
     onFloor: 0,
-    sold: 0,
+    swapped: 0,
     sitting45: 0,
     sitting: [],
     mix: { total: 0, types: [], collections: [] },
-    movers: { saleCount: 0, earlyData: true, medians: [], fastest: [], slowest: [] },
+    movers: { swapCount: 0, earlyData: true, medians: [], fastest: [], slowest: [] },
     strips: [],
     outcomes: { total: 0, needsCleanup: false, slices: [] },
   }
@@ -241,7 +243,8 @@ export function buildDanceFloorInsights(
   if (rows.length === 0) return emptyDanceFloorInsights()
 
   const onFloorRows = rows.filter((row) => row.onFloor)
-  const soldRows = rows.filter((row) => row.outcome === 'sold')
+  // Movers and medians measure days to swap: completed swaps only (internal status 'traded').
+  const swappedRows = rows.filter((row) => row.outcome === 'traded')
   const sittingKnown = onFloorRows
     .filter((row) => row.days != null)
     .sort((left, right) => (right.days ?? 0) - (left.days ?? 0) || left.name.localeCompare(right.name))
@@ -274,25 +277,25 @@ export function buildDanceFloorInsights(
       points: pieces
         .map((piece) => ({
           days: piece.days ?? 0,
-          kind: (piece.onFloor ? 'listed' : piece.outcome === 'sold' ? 'sold' : 'removed') as DanceFloorPointKind,
+          kind: (piece.onFloor ? 'listed' : piece.outcome === 'traded' ? 'swapped' : 'removed') as DanceFloorPointKind,
         }))
         .sort((left, right) => left.days - right.days),
     }
   })
 
-  const outcomeOrder: DanceFloorOutcomeKey[] = ['on_floor', 'sold', 'traded', 'keeping', 'other']
+  const outcomeOrder: DanceFloorOutcomeKey[] = ['on_floor', 'traded', 'keeping', 'sold', 'other']
   const slices = outcomeOrder.flatMap((key) => {
     const count = rows.filter((row) => row.outcome === key).length
     if (count === 0) return []
     return [{ key, count, ...OUTCOME_META[key] }]
   })
 
-  const soldWithDays = soldRows
+  const swappedWithDays = swappedRows
     .filter((row) => row.days != null)
     .sort((left, right) => (left.days ?? 0) - (right.days ?? 0) || left.name.localeCompare(right.name))
 
   const medians = types.flatMap((type) => {
-    const sample = soldWithDays.filter((row) => row.typeLabel === type.label).map((row) => row.days ?? 0)
+    const sample = swappedWithDays.filter((row) => row.typeLabel === type.label).map((row) => row.days ?? 0)
     const value = median(sample)
     if (value == null) return []
     return [{ label: type.label, days: roundDays(value), count: sample.length }]
@@ -302,7 +305,7 @@ export function buildDanceFloorInsights(
     empty: false,
     pieceCount: rows.length,
     onFloor: onFloorRows.length,
-    sold: soldRows.length,
+    swapped: swappedRows.length,
     sitting45,
     sitting: sittingKnown.slice(0, 7).map((row) => ({
       id: row.id,
@@ -328,10 +331,10 @@ export function buildDanceFloorInsights(
         .slice(0, 6),
     },
     movers: {
-      saleCount: soldRows.length,
-      earlyData: soldRows.length < 15,
+      swapCount: swappedRows.length,
+      earlyData: swappedRows.length < 15,
       medians,
-      fastest: soldWithDays.slice(0, 5).map(moverRow),
+      fastest: swappedWithDays.slice(0, 5).map(moverRow),
       slowest: sittingKnown.slice(0, 5).map(moverRow),
     },
     strips,

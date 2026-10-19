@@ -57,8 +57,8 @@ describe('rep trade review UI', () => {
       onReview: vi.fn(), onPrevious: vi.fn(), onNext: vi.fn(),
     }))
     expect(html).not.toContain('2 trade requests pending')
-    expect(html).toContain('Previous trade request')
-    expect(html).toContain('Next trade request')
+    expect(html).toContain('Previous swap request')
+    expect(html).toContain('Next swap request')
     expect(html).toContain('1 of 2')
     expect(html).toContain('>Approve</button>')
     expect(html).toContain('>Deny</button>')
@@ -69,7 +69,7 @@ describe('rep trade review UI', () => {
     const html = renderToStaticMarkup(createElement(TradeAlertSoundControls, {
       enabled: true, onChange: vi.fn(), onTest: vi.fn(),
     }))
-    expect(html).toContain('Trade request sound')
+    expect(html).toContain('Swap request sound')
     expect(html).toContain('>Chime</option>')
     expect(html).toContain('Preview chime')
     expect(html).not.toContain('Voice')

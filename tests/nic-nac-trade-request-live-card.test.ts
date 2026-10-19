@@ -69,9 +69,9 @@ describe('Nic-Nac live trade request card UI wiring', () => {
     expect(source).toContain("pendingAction === 'reject' ? 'Opening...' : 'Deny'")
     expect(source).toContain('terminalNote')
     expect(source).toContain('errorMessage')
-    expect(source).toContain('aria-label={`Review approval for trade request from ${request.customerName} for ${requestedItem}`}')
-    expect(source).toContain('aria-label={`Review denial for trade request from ${request.customerName} for ${requestedItem}`}')
-    expect(source).toContain('New trade request')
+    expect(source).toContain('aria-label={`Review approval for swap request from ${request.customerName} for ${requestedItem}`}')
+    expect(source).toContain('aria-label={`Review denial for swap request from ${request.customerName} for ${requestedItem}`}')
+    expect(source).toContain('New swap request')
     expect(source).toContain('customerName')
     expect(source).toContain('itemNumber')
     expect(source).toContain('designName')
@@ -251,7 +251,7 @@ describe('Nic-Nac live trade request card UI wiring', () => {
     ).toEqual({
       pendingAction: null,
       actionsDisabled: true,
-      terminalNote: 'Trade approved.',
+      terminalNote: 'Swap approved.',
       errorMessage: null,
     })
 
@@ -266,7 +266,7 @@ describe('Nic-Nac live trade request card UI wiring', () => {
     ).toEqual({
       pendingAction: null,
       actionsDisabled: true,
-      terminalNote: 'Trade denied.',
+      terminalNote: 'Swap denied.',
       errorMessage: null,
     })
 

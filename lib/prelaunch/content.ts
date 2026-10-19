@@ -10,7 +10,7 @@ export const prelaunchContent = {
   heroFeatures: [
     {
       title: 'Dance Floor',
-      body: 'that gives customers a cleaner way to browse and request trade pieces.',
+      body: 'that gives customers a cleaner way to browse and request dancer swaps.',
     },
     {
       title: 'Live queue',
@@ -101,7 +101,7 @@ export const prelaunchContent = {
     {
       number: '01',
       title: 'Dance Floor',
-      body: 'Give customers and fellow reps a cleaner trade experience that feels more organized than chasing pieces through comments and messages.',
+      body: 'Give customers and fellow reps a cleaner swap experience that feels more organized than chasing pieces through comments and messages.',
     },
     {
       number: '02',

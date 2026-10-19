@@ -226,7 +226,7 @@ export async function approveTradeWithRevealedItemCapture(
           itemNumber: revealedItemNumber,
           material: revealedMaterial,
           ringSize: revealedRingSize,
-          repNotes: `Added from approved trade swap for ${approved.customerName}.`,
+          repNotes: `Added from approved dancer swap for ${approved.customerName}.`,
           idempotencyKey: `trade-swap-replacement:${approved.requestId}`,
           inputSignature: replacementInputSignature,
         })
