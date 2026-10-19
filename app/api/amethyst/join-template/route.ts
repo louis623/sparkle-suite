@@ -8,6 +8,10 @@ import { loadAmethystPreviewTemplateData } from '@/lib/amethyst/preview-template
 import { indexPublicJoinTemplate } from '@/lib/amethyst/public-join-index'
 import { canServeTargetedAmethystJoinPage } from '@/lib/amethyst/join-page-access'
 import { resolveAmethystRequestCustomDomainHost } from '@/lib/amethyst/host-routing'
+import {
+  pantryRequestHost,
+  restrictPantryTemplateData,
+} from '@/lib/bling-kitchen/pantry-access'
 import { applyCustomDomainToTemplateData } from '@/lib/amethyst/public-site-links'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import { loadAmethystTradeBoardPreviewListings } from '@/lib/amethyst/trade-board-listings'
@@ -40,9 +44,17 @@ export async function GET(request: Request) {
     }),
     loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }),
   ])
-  const customerTemplateData = applyCustomDomainToTemplateData(
-    await indexPublicJoinTemplate(templateData, { repId }),
-    requestCustomDomain,
+  const customerTemplateData = restrictPantryTemplateData(
+    applyCustomDomainToTemplateData(
+      await indexPublicJoinTemplate(templateData, { repId }),
+      requestCustomDomain,
+    ),
+    {
+      repId,
+      publicSiteSlug,
+      customDomain: requestCustomDomain,
+      requestHost: pantryRequestHost(request),
+    },
   )
 
   return new NextResponse(

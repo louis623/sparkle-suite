@@ -11,6 +11,7 @@
   "policy": "deny-unlisted",
   "activeBranches": [
     "codex/nic-nac-trade-hardening",
+    "cursor/pantry-blingkitchen-only-dcf4",
     "codex/seo-crawl-refresh",
     "codex/smoke-landing-hero",
     "codex/faq-articles",

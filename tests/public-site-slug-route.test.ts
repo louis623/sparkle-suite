@@ -250,4 +250,28 @@ describe('public site slug route', () => {
     )
     expect(html).not.toContain('?c=blingkitchen')
   })
+
+  it('404s In the Pantry for every other public slug before any rep HTML is sent', async () => {
+    const admin = { marker: 'admin' }
+    createAdminClientMock.mockReturnValue(admin)
+    resolveAmethystPreviewRepMock.mockResolvedValue({
+      id: 'rep-dudes',
+      email: 'louis@neonrabbit.net',
+    })
+
+    const response = await GET_PANTRY(
+      new Request('https://www.yoursparklesuite.com/dudesfizzfest/in-the-pantry'),
+      { params: Promise.resolve({ publicSiteSlug: 'dudesfizzfest' }) },
+    )
+    const body = await response.text()
+
+    expect(response.status).toBe(404)
+    expect(response.headers.get('content-type')).toContain('text/plain')
+    expect(body).toBe('Not found')
+    expect(body).not.toContain('Dudes')
+    expect(body).not.toContain('BlingKitchen')
+    expect(body).not.toContain('pantry.jsx')
+    expect(body).not.toContain('application/ld+json')
+    expect(loadAmethystPreviewTemplateDataMock).not.toHaveBeenCalled()
+  })
 })

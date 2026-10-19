@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 import { loadAmethystPreviewTemplateData } from '@/lib/amethyst/preview-template-data'
+import { isBlingKitchenPantryAllowed } from '@/lib/bling-kitchen/pantry-access'
 import { normalizeAmethystCustomDomainCandidate } from '@/lib/amethyst/host-routing'
 import {
   formatPublicShowTime,
@@ -174,7 +175,9 @@ export async function loadCustomerSiteCrawlData(origin: string | URL) {
     repName: homepage.repName,
     summary: homepage.tagline,
     showJoinPage: homepage.showJoinPage,
-    showPantryPage: Boolean(homepage.pantryPageUrl),
+    showPantryPage:
+      Boolean(homepage.pantryPageUrl) &&
+      isBlingKitchenPantryAllowed({ customDomain: host }),
     ...(repLocation ? { repLocation } : {}),
     liveShows,
   } satisfies CustomerSiteCrawlData

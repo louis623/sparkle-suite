@@ -232,6 +232,8 @@ describe('rep /join server HTML', () => {
     const glowHomeHtml = await glowHome.text()
     const mileFloorHtml = await mileFloor.text()
     const glowPantryHtml = await glowPantry.text()
+    expect(glowPantry.status).toBe(404)
+    expect(glowPantryHtml).toBe('Not found')
 
     expect(field(mileHomeHtml, /<h1>(.*?)<\/h1>/)).toBe('Mile High Fizz')
     expect(mileHomeHtml).toContain('Lindsey is the rep for Mile High Fizz.')
@@ -250,10 +252,6 @@ describe('rep /join server HTML', () => {
     expect(mileFloorHtml).toContain('one-for-one dancer swap')
     expect(mileFloorHtml).toContain('Lindsey is the rep for Mile High Fizz.')
     expect(mileFloorHtml).not.toContain('Littleton')
-    expect(field(glowPantryHtml, /<h1>(.*?)<\/h1>/)).toBe(
-      "In the Pantry with Bri's Glowtique in Wichita, Kansas",
-    )
-    expect(glowPantryHtml).toContain('Recipes will appear here after the rep adds the first one.')
 
     for (const html of [mileHomeHtml, mileFloorHtml]) {
       expect(html).toContain('live-lineup.js')
@@ -283,7 +281,6 @@ describe('rep /join server HTML', () => {
     expect(bodyWordCount(readPublicHtml('Homepage.html'))).toBe(0)
     expect(bodyWordCount(mileHomeHtml)).toBe(33)
     expect(bodyWordCount(mileFloorHtml)).toBe(55)
-    expect(bodyWordCount(glowPantryHtml)).toBe(47)
   })
 
   it('keeps the production join heading and intro on a non-skin preset', () => {

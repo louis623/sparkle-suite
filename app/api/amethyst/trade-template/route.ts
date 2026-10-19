@@ -11,6 +11,10 @@ import {
 } from '@/lib/amethyst/public-site-links'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import { loadAmethystTradeBoardPreviewListings } from '@/lib/amethyst/trade-board-listings'
+import {
+  pantryRequestHost,
+  restrictPantryTemplateData,
+} from '@/lib/bling-kitchen/pantry-access'
 import { buildAmethystTradeBootstrapScript } from '@/lib/amethyst/trade-template-data'
 
 export const dynamic = 'force-dynamic'
@@ -34,9 +38,14 @@ export async function GET(request: Request) {
     templateData,
     publicSiteSlug,
   )
-  const customerTemplateData = applyCustomDomainToTemplateData(
-    linkedTemplateData,
-    requestCustomDomain,
+  const customerTemplateData = restrictPantryTemplateData(
+    applyCustomDomainToTemplateData(linkedTemplateData, requestCustomDomain),
+    {
+      repId,
+      publicSiteSlug,
+      customDomain: requestCustomDomain,
+      requestHost: pantryRequestHost(request),
+    },
   )
 
   return new NextResponse(

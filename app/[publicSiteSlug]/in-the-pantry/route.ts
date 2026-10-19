@@ -1,5 +1,10 @@
 import { renderAmethystPublicAssetResponse } from '@/lib/amethyst/public-asset-response'
 import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
+import {
+  isBlingKitchenPantryAllowed,
+  pantryNotFoundResponse,
+  pantryRequestHost,
+} from '@/lib/bling-kitchen/pantry-access'
 import { validatePublicSiteSlug } from '@/lib/public-site/show-link'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -21,7 +26,13 @@ export async function GET(
     publicSiteSlug: slug,
     select: 'id, email',
   })
-  if (!rep) return new Response('Not found', { status: 404 })
+  if (!rep || !isBlingKitchenPantryAllowed({
+      publicSiteSlug: slug,
+      repId: rep.id,
+      requestHost: pantryRequestHost(request),
+    })) {
+    return pantryNotFoundResponse()
+  }
 
   return renderAmethystPublicAssetResponse(request, ['Pantry.html'], {
     repIdOverride: rep.id,
