@@ -53,8 +53,10 @@ import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-boa
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
 import {
   catalogVariantPhotoAssetKey,
+  conversationImagesForIntake,
   hasUsableWorkflowJewelryPhoto,
   resolveWorkflowCustomerFacingPhoto,
+  scopeWorkflowPhotosToIntake,
   shouldFallBackToCatalogCanonicalPhoto,
 } from '@/lib/nic-nac/workflows/workflow-photo-selection'
 import {
@@ -192,6 +194,8 @@ async function resolvePhotoFromConversation(ctx: {
   conversationId: string
   latestUserMessageOnly?: boolean
   photoIndex?: number
+  intakeSessionId?: string
+  intakePhotos?: Array<{ imageUrl?: string; intakeSessionId?: string }>
 }): Promise<{
   imageDataUrl: string
 } | null> {
@@ -224,9 +228,11 @@ async function resolvePhotoFromConversation(ctx: {
     .filter((row) => row.imageParts.length > 0)
 
   if (ctx.photoIndex !== undefined) {
-    const conversationPhotos = [...rowsWithImages]
-      .reverse()
-      .flatMap((row) => row.imageParts)
+    const conversationPhotos = conversationImagesForIntake(
+      [...rowsWithImages].reverse().flatMap((row) => row.imageParts),
+      ctx.intakePhotos,
+      ctx.intakeSessionId,
+    )
     const imagePart = conversationPhotos[ctx.photoIndex - 1]
     if (!imagePart?.url) {
       throw new NicNacToolError({
@@ -242,7 +248,11 @@ async function resolvePhotoFromConversation(ctx: {
   }
 
   for (const row of rowsWithImages) {
-    const imageParts = row.imageParts
+    const imageParts = conversationImagesForIntake(
+      row.imageParts,
+      ctx.intakePhotos,
+      ctx.intakeSessionId,
+    )
     if (imageParts.length > 1) {
       throw new NicNacToolError({
         code: 'PHOTO_CHOICE_REQUIRED',
@@ -635,7 +645,9 @@ function getWorkflowPhotoByModelIndex(
   photoIndex: number | undefined,
 ) {
   if (workflow?.status !== 'active' || photoIndex === undefined) return null
-  const photo = workflow.photos[photoIndex - 1]
+  const photo = scopeWorkflowPhotosToIntake(workflow.photos, workflow.id)[
+    photoIndex - 1
+  ]
   return isConfirmedJewelryFrontPhoto(photo) ? photo : null
 }
 
@@ -672,6 +684,7 @@ export function getWorkflowConfirmedJewelryFrontImageUrl(
     resolveWorkflowCustomerFacingPhoto(publishable?.photos, {
       selectedPhotoId,
       modelIndex: photoIndex,
+      intakeSessionId: publishable?.id,
     })?.imageUrl ?? null
   )
 }
@@ -792,6 +805,11 @@ export async function processListingPhotoForAdd(input: {
     supabase: input.supabase,
     conversationId: input.conversationId,
     photoIndex,
+    intakeSessionId:
+      activeTradeBoardWorkflow?.status === 'active'
+        ? activeTradeBoardWorkflow.id
+        : undefined,
+    intakePhotos: activeTradeBoardWorkflow?.photos,
   })
   if (!resolvedListingPhoto) return undefined
 
@@ -1324,6 +1342,7 @@ async function runSingle(
               {
                 selectedPhotoId: input.selectedPhotoId,
                 modelIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+                intakeSessionId: activeWorkflow?.id,
               },
             ),
             catalogHasCanonicalPhoto:
@@ -1536,6 +1555,9 @@ async function runSingle(
         conversationId: ctx.conversationId,
         latestUserMessageOnly: true,
         photoIndex: designSourcePhotoIndex,
+        intakeSessionId:
+          activeWorkflow?.status === 'active' ? activeWorkflow.id : undefined,
+        intakePhotos: activeWorkflow?.photos,
       })
       if (!resolvedPhoto) {
         throw new NicNacToolError({
@@ -1892,6 +1914,7 @@ async function runSingle(
       {
         selectedPhotoId: input.selectedPhotoId,
         modelIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+        intakeSessionId: activeWorkflow?.id,
       },
     ),
     catalogHasCanonicalPhoto: Boolean(

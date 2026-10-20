@@ -119,6 +119,7 @@ export function mapTradeBoardIntakePhotoRow(
 ): TradeBoardIntakePhotoState {
   return {
     id: row.id as string,
+    ...(row.session_id ? { intakeSessionId: row.session_id as string } : {}),
     ...(row.conversation_message_id
       ? { conversationMessageId: row.conversation_message_id as string }
       : {}),

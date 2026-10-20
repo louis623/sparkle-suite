@@ -320,6 +320,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
         ? 'uncertain'
         : inspected.visualRole
     const photo = {
+      intakeSessionId: args.session.id,
       conversationMessageId: args.latestUserMessageId ?? latestUser.id,
       attachmentIndex: index + 1,
       declaredRole,
