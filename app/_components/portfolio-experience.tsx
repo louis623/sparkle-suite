@@ -13,7 +13,7 @@ export function PortfolioExperience() {
         <div className={styles.container}>
           <p className={styles.eyebrow}>Portfolio</p>
           <h1 id="portfolio-title">Shows we’re proud<br />to put on the <em>floor.</em></h1>
-          <p className={styles.heroBody}>Real rep sites, each with its own personality.</p>
+          <p className={styles.heroBody}>Themes and rep sites, each with its own personality.</p>
         </div>
       </section>
       <PortfolioCarousels ids={['community-themes', 'rep-highlights']} />
