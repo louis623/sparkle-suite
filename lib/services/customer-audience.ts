@@ -479,6 +479,16 @@ export async function createCustomerAudienceSignup(
     notes: input.notes,
     tags: input.tags,
   })
+  const picks = input.preferencePicks
+    ? {
+        favorite_stones: input.preferencePicks.favoriteStones,
+        favorite_materials: input.preferencePicks.favoriteMaterials,
+        favorite_cuts: input.preferencePicks.favoriteCuts,
+        favorite_collections: input.preferencePicks.favoriteCollections,
+        ring_size: input.preferencePicks.ringSize,
+        jewelry_notes: input.preferencePicks.jewelryNotes,
+      }
+    : {}
 
   const { data, error } = await supabase
     .from('customer_audience')
@@ -486,6 +496,7 @@ export async function createCustomerAudienceSignup(
       rep_id: repId,
       record_source: 'customer_site_signup',
       ...profile,
+      ...picks,
       sms_consent: input.smsConsent,
       email_consent: input.emailConsent,
       marketing_consent: input.marketingConsent,
@@ -500,7 +511,7 @@ export async function createCustomerAudienceSignup(
     audienceId: data.id as string,
     repId,
     action: 'created',
-    changes: profile,
+    changes: { ...profile, ...picks },
     context: { actorKind: 'customer' },
   })
 
