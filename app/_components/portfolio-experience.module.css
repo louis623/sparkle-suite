@@ -65,16 +65,26 @@
   cursor: pointer;
 }
 .viewport {
+  position: relative;
   display: flex;
   width: 100%;
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
+  overflow-y: clip;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
 .viewport::-webkit-scrollbar { display: none; }
-.slide { flex: 0 0 100%; width: 100%; min-width: 0; scroll-snap-align: center; padding-inline: 6px; }
+.slide {
+  position: relative;
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
+  overflow: clip;
+  scroll-snap-align: center;
+  padding-inline: 6px;
+}
 .frame, .phoneFrame {
   border: 1px solid rgba(64, 41, 36, .2);
   padding: 4px;
