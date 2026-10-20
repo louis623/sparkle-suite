@@ -97,7 +97,7 @@ function PortfolioCarousel({
     scrollToSlide(0)
     const viewport = viewportRef.current
     if (!viewport) return
-    const onEnd = () => {
+    const syncActive = () => {
       const slides = [...viewport.querySelectorAll<HTMLElement>('[data-slide-index]')]
       const center = viewport.scrollLeft + viewport.clientWidth / 2
       let closest = 0
@@ -114,8 +114,32 @@ function PortfolioCarousel({
       })
       setActive(closest)
     }
-    viewport.addEventListener('scrollend', onEnd)
-    return () => viewport.removeEventListener('scrollend', onEnd)
+    let frame = 0
+    let settleTimer = 0
+    const onScroll = () => {
+      cancelAnimationFrame(frame)
+      window.clearTimeout(settleTimer)
+      frame = requestAnimationFrame(() => {
+        settleTimer = window.setTimeout(syncActive, 80)
+      })
+    }
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0]
+      const index = Number(visible?.target.getAttribute('data-slide-index'))
+      if (Number.isInteger(index)) setActive(index)
+    }, { root: viewport, threshold: [0.6] })
+    viewport.querySelectorAll('[data-slide-index]').forEach((slide) => observer.observe(slide))
+    viewport.addEventListener('scroll', onScroll, { passive: true })
+    viewport.addEventListener('scrollend', syncActive)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.clearTimeout(settleTimer)
+      observer.disconnect()
+      viewport.removeEventListener('scroll', onScroll)
+      viewport.removeEventListener('scrollend', syncActive)
+    }
   }, [])
 
   function focusSlide(index: number) {
