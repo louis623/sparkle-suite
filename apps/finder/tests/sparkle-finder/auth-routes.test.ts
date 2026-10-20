@@ -226,6 +226,76 @@ describe("Sparkle Finder Supabase proxy", () => {
     );
   });
 
+  it("exchanges a PKCE magic-link code and continues to post-login", async () => {
+    const exchangeCodeForSession = vi.fn().mockResolvedValue({ error: null });
+    const verifyOtp = vi.fn();
+
+    vi.doMock("../../lib/supabase/server", () => ({
+      createClient: async () => ({
+        auth: {
+          exchangeCodeForSession,
+          verifyOtp,
+        },
+      }),
+    }));
+
+    const { GET } = await import("../../app/auth/confirm/route");
+    const response = await GET(
+      new Request("http://localhost:4310/auth/confirm?code=magic-code&next=/library"),
+    );
+
+    expect(exchangeCodeForSession).toHaveBeenCalledWith("magic-code");
+    expect(verifyOtp).not.toHaveBeenCalled();
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:4310/auth/post-login?next=%2Flibrary",
+    );
+  });
+
+  it("sends a PKCE recovery code to the reset-password form", async () => {
+    const exchangeCodeForSession = vi.fn().mockResolvedValue({ error: null });
+
+    vi.doMock("../../lib/supabase/server", () => ({
+      createClient: async () => ({
+        auth: {
+          exchangeCodeForSession,
+        },
+      }),
+    }));
+
+    const { GET } = await import("../../app/auth/confirm/route");
+    const response = await GET(
+      new Request("http://localhost:4310/auth/confirm?code=recovery-code&type=recovery&next=/account"),
+    );
+
+    expect(exchangeCodeForSession).toHaveBeenCalledWith("recovery-code");
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:4310/auth/reset-password?next=%2Faccount",
+    );
+  });
+
+  it("prefers token_hash confirmation when both a code and token hash are present", async () => {
+    const verifyOtp = vi.fn().mockResolvedValue({ error: null });
+    const exchangeCodeForSession = vi.fn();
+
+    vi.doMock("../../lib/supabase/server", () => ({
+      createClient: async () => ({
+        auth: {
+          exchangeCodeForSession,
+          verifyOtp,
+        },
+      }),
+    }));
+
+    const { GET } = await import("../../app/auth/confirm/route");
+    const response = await GET(
+      new Request("http://localhost:4310/auth/confirm?code=ignored&token_hash=abc123&type=email&next=/"),
+    );
+
+    expect(verifyOtp).toHaveBeenCalledWith({ token_hash: "abc123", type: "email" });
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+    expect(response.headers.get("location")).toBe("http://localhost:4310/auth/post-login?next=%2F");
+  });
+
   it("redirects failed confirmations to sign-in with a safe error", async () => {
     vi.doMock("../../lib/supabase/server", () => ({
       createClient: async () => ({
@@ -421,6 +491,17 @@ describe("Sparkle Finder Supabase proxy", () => {
     const response = await GET(new Request("http://localhost:4310/auth/post-login?next=/dashboard"));
 
     expect(response.headers.get("location")).toBe("http://localhost:4310/dashboard");
+  });
+
+  it("sends a finished sign-in to the collection home instead of another sign-in page", async () => {
+    vi.doMock("../../lib/sparkle-finder/account-service", () => ({
+      getCurrentSparkleFinderAccount: vi.fn().mockResolvedValue(activeTrialAccountState()),
+    }));
+
+    const { GET } = await import("../../app/auth/post-login/route");
+    const response = await GET(new Request("http://localhost:4310/auth/post-login?next=/auth/sign-in"));
+
+    expect(response.headers.get("location")).toBe("http://localhost:4310/");
   });
 
   it("routes anonymous post-login requests back to sign-in", async () => {
