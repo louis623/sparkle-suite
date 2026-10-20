@@ -135,7 +135,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20261019-thanksgiving-v3')
+    expect(homepage).toContain('homepage.jsx?v=20261020-customer-prefs')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -1230,10 +1230,12 @@ describe('Amethyst homepage template data wiring', () => {
     expect(jsx).toContain('emailConsent')
     expect(jsx).toContain('marketingConsent')
     expect(jsx).toContain('birthday')
-    expect(jsx).toContain('favoriteGemOrStone')
-    expect(jsx).toContain('favoriteMaterial')
-    expect(jsx).toContain('favoriteCut')
-    expect(jsx).toContain('favoriteCollection')
+    expect(jsx).toContain('favoriteStones')
+    expect(jsx).toContain('favoriteMaterials')
+    expect(jsx).toContain('favoriteCuts')
+    expect(jsx).toContain('favoriteCollections')
+    expect(jsx).toContain('Pick at least 1, up to 3')
+    expect(jsx).toContain('Show older collections')
     expect(jsx).toContain('Only for birthday promotions and gift ideas. It will not be used for anything else.')
     expect(jsx).toContain('Choose SMS, email, or both')
     expect(jsx).toContain('/amethyst/Unsubscribe.html')

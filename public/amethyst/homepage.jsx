@@ -2088,8 +2088,112 @@ function AboutSection({ repName, hideEmptyMedia = false }) {
 }
 
 // ============================================================
-// Signup
+// Signup favorites — pick up to 3, same interaction as Sparkle Finder
 // ============================================================
+const SIGNUP_PREFERENCE_MAX = 3;
+const SIGNUP_NOT_SURE = "not_sure";
+const SIGNUP_PREFERENCE_STYLES = `
+.hp-pref { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; }
+.hp-pref legend { padding: 0; }
+.hp-pref-hint, .hp-pref-group, .hp-pref-live { margin: 0; color: var(--hp-card-muted); font-size: 13px; line-height: 1.4; }
+.hp-pref-live { min-height: 1.4em; }
+.hp-pref-chips { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; max-width: 100%; }
+.hp-pref-chip { position: relative; display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; margin: 0; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--hp-field-bg); color: var(--hp-field-fg); font-size: 14px; line-height: 1.3; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.hp-pref-chip input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.hp-pref-chip.is-selected { background: var(--hp-card-accent); color: var(--hp-action-fg); border-color: var(--hp-card-accent); }
+.hp-pref-chip.is-disabled { opacity: 0.45; cursor: not-allowed; }
+.hp-pref-chip.is-disabled input { cursor: not-allowed; }
+.hp-pref-chip:focus-within { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
+.hp-pref-more { justify-self: start; min-height: 44px; padding: 8px 2px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.hp-pref-more:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
+.hp-signup-form, .hp-signup-preferences, .hp-pref { max-width: 100%; }
+@media (max-width: 420px) {
+  .hp-pref-chip { font-size: 15px; }
+}
+`;
+
+function applySignupPreferenceToggle(selected, slug, checked) {
+  if (!checked) return selected.filter((item) => item !== slug);
+  if (slug === SIGNUP_NOT_SURE) return [SIGNUP_NOT_SURE];
+  const withoutSure = selected.filter((item) => item !== SIGNUP_NOT_SURE);
+  if (withoutSure.includes(slug) || withoutSure.length >= SIGNUP_PREFERENCE_MAX) return withoutSure;
+  return [...withoutSure, slug];
+}
+
+function SignupPreferenceChip({ option, fieldName, selected, onChange }) {
+  const checked = selected.includes(option.slug);
+  const disabled = !checked && selected.length >= SIGNUP_PREFERENCE_MAX;
+  return (
+    <label className={`hp-pref-chip${checked ? " is-selected" : ""}${disabled ? " is-disabled" : ""}`}>
+      <input
+        type="checkbox"
+        name={fieldName}
+        value={option.slug}
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(applySignupPreferenceToggle(selected, option.slug, event.target.checked))}
+      />
+      <span>{option.label}</span>
+    </label>
+  );
+}
+
+function SignupPreferencePicker({ legend, fieldName, options, selected, onChange, showOlderControl }) {
+  const [showAll, setShowAll] = useState(false);
+  const [showOlder, setShowOlder] = useState(false);
+  const list = Array.isArray(options) ? options : [];
+  const active = list.filter((option) => !option.isRetired);
+  const retired = list.filter((option) => option.isRetired);
+  const visibleActive = showAll ? active : active.slice(0, 8);
+  const visibleRetired = showOlder ? retired : retired.filter((option) => selected.includes(option.slug));
+  const atMax = selected.length >= SIGNUP_PREFERENCE_MAX;
+
+  return (
+    <fieldset className="hp-pref">
+      <legend className="hp-signup-label">{legend}</legend>
+      <p className="hp-pref-hint" id={`${fieldName}-hint`}>Pick at least 1, up to 3</p>
+      <div className="hp-pref-chips" role="group" aria-describedby={`${fieldName}-hint`}>
+        {visibleActive.map((option) => (
+          <SignupPreferenceChip
+            key={option.slug}
+            option={option}
+            fieldName={fieldName}
+            selected={selected}
+            onChange={onChange}
+          />
+        ))}
+      </div>
+      {active.length > 8 ? (
+        <button type="button" className="hp-pref-more" onClick={() => setShowAll((current) => !current)}>
+          {showAll ? "Show fewer" : "Show all"}
+        </button>
+      ) : null}
+      {showOlderControl && retired.length > 0 ? (
+        <button type="button" className="hp-pref-more" onClick={() => setShowOlder((current) => !current)}>
+          {showOlder ? "Hide older collections" : "Show older collections"}
+        </button>
+      ) : null}
+      {visibleRetired.length > 0 ? (
+        <div className="hp-pref-chips">
+          {showOlder ? <p className="hp-pref-group">Older collections</p> : null}
+          {visibleRetired.map((option) => (
+            <SignupPreferenceChip
+              key={option.slug}
+              option={option}
+              fieldName={fieldName}
+              selected={selected}
+              onChange={onChange}
+            />
+          ))}
+        </div>
+      ) : null}
+      <p className="hp-pref-live" aria-live="polite">
+        {atMax ? "You've picked 3. Unpick one to choose another." : ""}
+      </p>
+    </fieldset>
+  );
+}
+
 function Signup({ repName, businessName }) {
   const [form, setForm] = useState({
     firstName: "",
@@ -2100,12 +2204,33 @@ function Signup({ repName, businessName }) {
     emailConsent: false,
     marketingConsent: false,
     birthday: "",
-    favoriteGemOrStone: "",
-    favoriteMaterial: "",
-    favoriteCut: "",
-    favoriteCollection: "",
+    favoriteStones: [],
+    favoriteMaterials: [],
+    favoriteCuts: [],
+    favoriteCollections: [],
   });
+  const [preferenceOptions, setPreferenceOptions] = useState(null);
+  const [preferenceOptionsError, setPreferenceOptionsError] = useState(false);
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
+  useEffect(() => {
+    let cancelled = false;
+    fetch(withCurrentSearch("/api/amethyst/preference-options"))
+      .then((response) => response.json().then((payload) => ({ ok: response.ok, payload })))
+      .then(({ ok, payload }) => {
+        if (cancelled) return;
+        if (!ok || !payload || !payload.options) {
+          setPreferenceOptionsError(true);
+          return;
+        }
+        setPreferenceOptions(payload.options);
+      })
+      .catch(() => {
+        if (!cancelled) setPreferenceOptionsError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const signupTitle = CONTENT.signupTitle || "Never miss a show.";
   const signupSub = CONTENT.signupSub || `Get a heads-up when ${repName} goes live, plus first dibs on new drops.`;
 
@@ -2118,6 +2243,27 @@ function Signup({ repName, businessName }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (!preferenceOptions) {
+      setSubmitState({
+        status: "error",
+        message: preferenceOptionsError
+          ? "Favorites could not load. Refresh the page and try again."
+          : "Favorites are still loading. Try again in a moment.",
+      });
+      return;
+    }
+    if (
+      form.favoriteStones.length < 1 ||
+      form.favoriteMaterials.length < 1 ||
+      form.favoriteCuts.length < 1 ||
+      form.favoriteCollections.length < 1
+    ) {
+      setSubmitState({
+        status: "error",
+        message: "Pick at least one favorite in each list. Not sure yet counts.",
+      });
+      return;
+    }
     setSubmitState({ status: "submitting", message: "" });
 
     try {
@@ -2135,10 +2281,10 @@ function Signup({ repName, businessName }) {
           emailConsent: form.emailConsent,
           marketingConsent: form.marketingConsent,
           birthday: form.birthday,
-          favoriteGemOrStone: form.favoriteGemOrStone,
-          favoriteMaterial: form.favoriteMaterial,
-          favoriteCut: form.favoriteCut,
-          favoriteCollection: form.favoriteCollection,
+          favoriteStones: form.favoriteStones,
+          favoriteMaterials: form.favoriteMaterials,
+          favoriteCuts: form.favoriteCuts,
+          favoriteCollections: form.favoriteCollections,
         }),
       });
 
@@ -2162,10 +2308,10 @@ function Signup({ repName, businessName }) {
         emailConsent: false,
         marketingConsent: false,
         birthday: "",
-        favoriteGemOrStone: "",
-        favoriteMaterial: "",
-        favoriteCut: "",
-        favoriteCollection: "",
+        favoriteStones: [],
+        favoriteMaterials: [],
+        favoriteCuts: [],
+        favoriteCollections: [],
       });
       setSubmitState({
         status: "success",
@@ -2233,38 +2379,49 @@ function Signup({ repName, businessName }) {
               </label>
             </div>
             <div className="hp-signup-preferences">
+              <style>{SIGNUP_PREFERENCE_STYLES}</style>
               <div className="hp-signup-preferences-heading">
                 <strong>Make it a little more personal</strong>
                 <span>Optional</span>
               </div>
               <p className="hp-signup-preferences-copy">Share only what you&apos;d like. These details help your rep send more thoughtful promotional and gift ideas.</p>
-              <div className="hp-signup-row">
-                <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
-                  <input id="hp-birthday" className="hp-signup-input" type="text" inputMode="numeric" pattern="[0-1][0-9]-[0-3][0-9]" placeholder="MM-DD" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
-                  <span className="hp-signup-field-note">Only for birthday promotions and gift ideas. It will not be used for anything else.</span>
-                </div>
-                <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-favorite-collection">Favorite collection <span className="hp-signup-label-aux">(optional)</span></label>
-                  <input id="hp-favorite-collection" className="hp-signup-input" type="text" placeholder="A collection you love" value={form.favoriteCollection} onChange={(e) => updateField("favoriteCollection", e.target.value)} />
-                </div>
+              <div className="hp-signup-field">
+                <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
+                <input id="hp-birthday" className="hp-signup-input" type="text" inputMode="numeric" pattern="[0-1][0-9]-[0-3][0-9]" placeholder="MM-DD" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
+                <span className="hp-signup-field-note">Only for birthday promotions and gift ideas. It will not be used for anything else.</span>
               </div>
-              <div className="hp-signup-row">
-                <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-favorite-gem">Favorite gem or stone <span className="hp-signup-label-aux">(optional)</span></label>
-                  <input id="hp-favorite-gem" className="hp-signup-input" type="text" placeholder="For example, turquoise or opal" value={form.favoriteGemOrStone} onChange={(e) => updateField("favoriteGemOrStone", e.target.value)} />
-                </div>
-                <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-favorite-material">Favorite material <span className="hp-signup-label-aux">(optional)</span></label>
-                  <input id="hp-favorite-material" className="hp-signup-input" type="text" placeholder="For example, gold or silver" value={form.favoriteMaterial} onChange={(e) => updateField("favoriteMaterial", e.target.value)} />
-                </div>
-              </div>
-              <div className="hp-signup-row">
-                <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-favorite-cut">Favorite cut <span className="hp-signup-label-aux">(optional)</span></label>
-                  <input id="hp-favorite-cut" className="hp-signup-input" type="text" placeholder="If you have one" value={form.favoriteCut} onChange={(e) => updateField("favoriteCut", e.target.value)} />
-                </div>
-              </div>
+              {preferenceOptionsError ? (
+                <p className="hp-signup-status error" role="alert">Favorites could not load. Refresh the page and try again.</p>
+              ) : null}
+              <SignupPreferencePicker
+                legend="Favorite stones"
+                fieldName="favoriteStones"
+                options={preferenceOptions?.stone}
+                selected={form.favoriteStones}
+                onChange={(value) => updateField("favoriteStones", value)}
+              />
+              <SignupPreferencePicker
+                legend="Favorite metals & finishes"
+                fieldName="favoriteMaterials"
+                options={preferenceOptions?.material}
+                selected={form.favoriteMaterials}
+                onChange={(value) => updateField("favoriteMaterials", value)}
+              />
+              <SignupPreferencePicker
+                legend="Favorite cuts"
+                fieldName="favoriteCuts"
+                options={preferenceOptions?.cut}
+                selected={form.favoriteCuts}
+                onChange={(value) => updateField("favoriteCuts", value)}
+              />
+              <SignupPreferencePicker
+                legend="Favorite Bomb Party collections"
+                fieldName="favoriteCollections"
+                options={preferenceOptions?.collection}
+                selected={form.favoriteCollections}
+                onChange={(value) => updateField("favoriteCollections", value)}
+                showOlderControl
+              />
             </div>
             <div className="hp-signup-actions">
               <button type="submit" className="hp-signup-submit" disabled={submitState.status === "submitting"}>
