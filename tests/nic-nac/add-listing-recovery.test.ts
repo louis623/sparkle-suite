@@ -164,6 +164,7 @@ import {
   makeAddListingTool,
   processListingPhotoForAdd,
 } from '@/lib/nic-nac/tools/add-listing'
+import { renderItemNumberPng } from '@/lib/nic-nac/workflows/label-item-number'
 import { computeTradeBoardAddAttemptReadiness } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 
 interface AddListingToolDef {
@@ -3797,6 +3798,128 @@ describe('add_listing - active workflow readiness guard', () => {
     })
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock).not.toHaveBeenCalled()
+  })
+
+  it('blocks the save when the label photo names a different item number', async () => {
+    const labelPng = await renderItemNumberPng('NK60295')
+    const labelUrl = `data:image/png;base64,${labelPng.toString('base64')}`
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-st21027',
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'ST21027',
+          designName: 'Stack',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            intakeSessionId: 'intake-st21027',
+            attachmentIndex: 1,
+            declaredRole: 'label_details',
+            visualRole: 'label_or_packaging',
+            roleConfirmed: true,
+            imageUrl: labelUrl,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as label/details source'],
+          },
+          {
+            intakeSessionId: 'intake-st21027',
+            attachmentIndex: 2,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,U1RBQ0s=',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ST21027',
+        collectionName: 'Original',
+      }),
+    ).rejects.toMatchObject({
+      code: 'LABEL_ITEM_NUMBER_MISMATCH',
+      userMessage: expect.stringContaining('NK60295'),
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
+  })
+
+  it('does not block an NK60295 gold citrine variant when the label says NK60295', async () => {
+    const labelPng = await renderItemNumberPng('NK60295')
+    const labelUrl = `data:image/png;base64,${labelPng.toString('base64')}`
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/nk60295-gold-citrine.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-gold-citrine',
+      designId: 'design-gold-citrine',
+      itemNumber: 'NK60295',
+      designName: 'Necklace',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk-gold',
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK60295',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          material: 'Gold',
+          mainStone: 'Citrine',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            intakeSessionId: 'intake-nk-gold',
+            attachmentIndex: 1,
+            declaredRole: 'label_details',
+            visualRole: 'label_or_packaging',
+            roleConfirmed: true,
+            imageUrl: labelUrl,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as label/details source'],
+          },
+          {
+            intakeSessionId: 'intake-nk-gold',
+            attachmentIndex: 2,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,R09MRAok',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK60295',
+        collectionName: 'Original',
+        material: 'Gold',
+        mainStone: 'Citrine',
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-gold-citrine',
+      itemNumber: 'NK60295',
+    })
   })
 
   it('does not block an NK60295 gold citrine variant when that item number already has the photo', async () => {

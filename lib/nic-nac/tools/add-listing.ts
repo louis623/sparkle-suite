@@ -48,6 +48,10 @@ import {
   loadItemNumbersForPhotoHash,
   resolvePhotoContentSha256,
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
+import {
+  decideLabelItemNumber,
+  readItemNumbersFromImageUrl,
+} from '@/lib/nic-nac/workflows/label-item-number'
 import { NicNacMutationFailure } from '@/lib/nic-nac/tool-failure-classification'
 import {
   computeTradeBoardAddAttemptReadiness,
@@ -646,12 +650,50 @@ function isConfirmedJewelryFrontPhoto(
   return isAcceptedCustomerFacingWorkflowPhoto(photo) && photo.roleConfirmed
 }
 
+async function assertLabelAgreesWithItemNumber(args: {
+  itemNumber?: string
+  sourceImageUrl?: string
+  workflowPhotos?: Array<{
+    imageUrl?: string
+    declaredRole?: string
+    visualRole?: string
+  }>
+}) {
+  const itemNumber = args.itemNumber?.trim()
+  if (!itemNumber) return
+  const urls = new Set<string>()
+  const sourceImageUrl = args.sourceImageUrl?.trim()
+  if (sourceImageUrl) urls.add(sourceImageUrl)
+  for (const photo of args.workflowPhotos ?? []) {
+    const isLabel =
+      photo.declaredRole === 'label_details' ||
+      photo.visualRole === 'label_or_packaging'
+    if (isLabel && photo.imageUrl) urls.add(photo.imageUrl)
+  }
+  const readItemNumbers: string[] = []
+  for (const url of urls) {
+    readItemNumbers.push(...(await readItemNumbersFromImageUrl(url)))
+  }
+  const decision = decideLabelItemNumber({ itemNumber, readItemNumbers })
+  if (!decision.blocked) return
+  throw new NicNacToolError({
+    code: 'LABEL_ITEM_NUMBER_MISMATCH',
+    userMessage: decision.message,
+  })
+}
+
 async function assertCustomerPhotoNotReused(args: {
   repId: string
   itemNumber?: string
   sourceImageUrl?: string
-  workflowPhotos?: Array<{ imageUrl?: string; contentSha256?: string }>
+  workflowPhotos?: Array<{
+    imageUrl?: string
+    contentSha256?: string
+    declaredRole?: string
+    visualRole?: string
+  }>
 }) {
+  await assertLabelAgreesWithItemNumber(args)
   const itemNumber = args.itemNumber?.trim()
   const sourceImageUrl = args.sourceImageUrl?.trim()
   if (!itemNumber || !sourceImageUrl) return

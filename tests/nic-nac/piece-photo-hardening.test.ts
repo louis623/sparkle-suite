@@ -1,6 +1,12 @@
 import { createHash } from 'crypto'
 import { describe, expect, it, vi } from 'vitest'
 
+import {
+  decideLabelItemNumber,
+  readItemNumbersFromImageBytes,
+  readItemNumbersFromImageUrl,
+  renderItemNumberPng,
+} from '@/lib/nic-nac/workflows/label-item-number'
 import { decidePhotoReuse, hashDataImageUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import {
   hasTradeBoardIntakeSignal,
@@ -356,5 +362,44 @@ describe('Louis June — a label tagged as the front photo stays off the library
       }),
       { onConflict: 'session_id,conversation_message_id,attachment_index' },
     )
+  })
+})
+
+describe('label item numbers', () => {
+  it('reads an item number painted in the label font and ignores a broken photo', async () => {
+    const png = await renderItemNumberPng('NK60295')
+    expect(await readItemNumbersFromImageBytes(png)).toEqual(['NK60295'])
+    expect(
+      await readItemNumbersFromImageUrl('data:image/jpeg;base64,TEFCRUw='),
+    ).toEqual([])
+    expect(
+      await readItemNumbersFromImageUrl('https://cdn.example.com/label.jpg'),
+    ).toEqual([])
+  })
+
+  it('blocks a label for a different item number and allows the same item number', () => {
+    const mismatch = decideLabelItemNumber({
+      itemNumber: 'ST21027',
+      readItemNumbers: ['NK60295'],
+    })
+    expect(mismatch.blocked).toBe(true)
+    if (!mismatch.blocked) return
+    expect(mismatch.message).toContain('NK60295')
+    expect(mismatch.message).toContain('ST21027')
+    expect(mismatch.message).not.toMatch(/\b(sold|sales|trade|traded)\b/i)
+    expect(mismatch.message).not.toMatch(/\b(her|his|their|they)\b/i)
+
+    expect(
+      decideLabelItemNumber({
+        itemNumber: 'NK60295',
+        readItemNumbers: ['nk60295'],
+      }).blocked,
+    ).toBe(false)
+    expect(
+      decideLabelItemNumber({
+        itemNumber: 'ER34579',
+        readItemNumbers: [],
+      }).blocked,
+    ).toBe(false)
   })
 })
