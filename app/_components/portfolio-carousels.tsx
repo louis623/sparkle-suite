@@ -19,7 +19,6 @@ function prefersReducedMotion() {
 const portfolioBands = {
   'rep-highlights': { name: 'paper', className: styles.bandPaper },
   'community-themes': { name: 'blush', className: styles.bandBlush },
-  'holiday-themes': { name: 'ink', className: styles.bandInk },
 } as const
 
 function SlideFrame({ slide, active }: { slide: PortfolioSlide; active: boolean }) {
@@ -194,10 +193,19 @@ function PortfolioCarousel({
   )
 }
 
-export function PortfolioCarousels() {
+export function PortfolioCarousels({
+  ids,
+}: {
+  ids: readonly (typeof sparkleSuitePortfolioContent.carousels)[number]['id'][]
+}) {
+  const carousels = ids.flatMap((id) => {
+    const carousel = sparkleSuitePortfolioContent.carousels.find((item) => item.id === id)
+    return carousel ? [carousel] : []
+  })
+
   return (
     <>
-      {sparkleSuitePortfolioContent.carousels.map((carousel) => (
+      {carousels.map((carousel) => (
         <PortfolioCarousel key={carousel.id} carousel={carousel} />
       ))}
     </>

@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { PortfolioCarousels } from './portfolio-carousels'
 import { ProductPeekVideo } from './product-peek-video'
 import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
@@ -20,6 +21,7 @@ export function PortfolioExperience() {
           <p className={styles.heroBody}>Real rep sites, each with its own personality.</p>
         </div>
       </section>
+      <PortfolioCarousels ids={['community-themes']} />
       <section className={styles.gallery} aria-label="Real rep websites">
         <div className={styles.container}>
           {sites.map((site, index) => (
