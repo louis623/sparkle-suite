@@ -2108,6 +2108,7 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-pref-more:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
 .hp-signup-form, .hp-signup-preferences, .hp-pref { max-width: 100%; }
 .hp-signup-notes-label { display: block; color: var(--hp-card-fg); font-size: 15px; line-height: 1.45; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }
 .hp-signup-notes { min-height: 120px; resize: vertical; }
 @media (max-width: 420px) {
   .hp-pref-chip { font-size: 15px; }
@@ -2453,6 +2454,9 @@ function Signup({ repName, businessName }) {
               </div>
             </div>
             <div className="hp-signup-actions">
+              <p className="hp-signup-privacy">
+                We never sell your information. Your answers are only used to give you a better shopping experience with {businessName}, our Sparkle Suite reps and Sparkle Finder.
+              </p>
               <button type="submit" className="hp-signup-submit" disabled={submitState.status === "submitting"}>
                 {submitState.status === "submitting" ? "Saving..." : "Sign me up"}
                 <span className="hp-signup-submit-arrow" aria-hidden="true">→</span>
