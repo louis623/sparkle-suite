@@ -19,6 +19,7 @@ import type {
 } from './types'
 import { formatBirthday, normalizeBirthday } from './birthdays'
 import { sanitizeLineupPreference } from '@/lib/live-lineup/audience'
+import { legacyFavoriteChipText } from '@/lib/sparkle-suite/jewelry-preferences'
 import {
   classifyLiveOrderLastSeen,
   isMissingLiveOrderColumn,
@@ -482,10 +483,10 @@ export async function createCustomerAudienceSignup(
     }),
     ...(input.preferencePicks
       ? {
-          favorite_gem_or_stone: input.preferencePicks.labels.favoriteGemOrStone,
-          favorite_material: input.preferencePicks.labels.favoriteMaterial,
-          favorite_cut: input.preferencePicks.labels.favoriteCut,
-          favorite_collection: input.preferencePicks.labels.favoriteCollection,
+          favorite_gem_or_stone: legacyFavoriteChipText(input.preferencePicks.labels.favoriteGemOrStone),
+          favorite_material: legacyFavoriteChipText(input.preferencePicks.labels.favoriteMaterial),
+          favorite_cut: legacyFavoriteChipText(input.preferencePicks.labels.favoriteCut),
+          favorite_collection: legacyFavoriteChipText(input.preferencePicks.labels.favoriteCollection),
         }
       : {}),
   }

@@ -369,10 +369,18 @@ export function joinPreferenceLabels(
   kind: PreferenceKind,
   options: PreferenceOptionsByKind = fallbackPreferenceOptions,
 ): string | null {
-  if (slugs.length === 0) return null
+  const visible = slugs.filter((slug) => slug !== NOT_SURE_SLUG)
+  if (visible.length === 0) return null
   const labels = new Map(options[kind].map((option) => [option.slug, option.label]))
-  const text = slugs.map((slug) => labels.get(slug) ?? slug).join(', ')
+  const text = visible.map((slug) => labels.get(slug) ?? slug).join(', ')
   return text.length > 0 ? text : null
+}
+
+/** Live Lineup chips read the old text columns. not_sure stays in the slug arrays and must not become a chip. */
+export function legacyFavoriteChipText(value: string | null | undefined): string | null {
+  const text = value?.trim() ?? ''
+  if (!text || text === NOT_SURE_LABEL) return null
+  return text
 }
 
 export function applyPreferenceToggle(selected: string[], slug: string, checked: boolean): string[] {

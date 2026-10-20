@@ -11,6 +11,7 @@ import {
   RING_SIZE_VALUES,
   fallbackPreferenceOptions,
   joinPreferenceLabels,
+  legacyFavoriteChipText,
   readSignupPreferences,
 } from '@/lib/sparkle-suite/jewelry-preferences'
 import {
@@ -63,8 +64,20 @@ describe('signup preference validation', () => {
     const notSure = readSignupPreferences({
       ...validPicks,
       favoriteStones: [NOT_SURE_SLUG],
+      favoriteMaterials: [NOT_SURE_SLUG],
+      favoriteCuts: [NOT_SURE_SLUG],
+      favoriteCollections: [NOT_SURE_SLUG],
     })
     expect(notSure.ok).toBe(true)
+    if (notSure.ok && notSure.picks) {
+      expect(notSure.picks.favoriteStones).toEqual([NOT_SURE_SLUG])
+      expect(notSure.picks.labels).toEqual({
+        favoriteGemOrStone: null,
+        favoriteMaterial: null,
+        favoriteCut: null,
+        favoriteCollection: null,
+      })
+    }
 
     const exclusive = readSignupPreferences({
       ...validPicks,
@@ -117,7 +130,10 @@ describe('signup preference validation', () => {
 
   it('joins readable labels for the legacy text columns', () => {
     expect(joinPreferenceLabels(['ruby', 'opal'], 'stone')).toBe('Ruby, Opal (incl. fire opal)')
-    expect(joinPreferenceLabels([NOT_SURE_SLUG], 'collection')).toBe('Not sure yet')
+    expect(joinPreferenceLabels([NOT_SURE_SLUG], 'collection')).toBeNull()
+    expect(joinPreferenceLabels(['ruby', NOT_SURE_SLUG], 'stone')).toBe('Ruby')
+    expect(legacyFavoriteChipText('Not sure yet')).toBeNull()
+    expect(legacyFavoriteChipText('Ruby')).toBe('Ruby')
     expect(joinPreferenceLabels([], 'cut')).toBeNull()
   })
 })
@@ -206,7 +222,7 @@ describe('customer signup preference save', () => {
       favorite_gem_or_stone: 'Ruby, Opal (incl. fire opal)',
       favorite_material: 'Gold plated',
       favorite_cut: 'Round',
-      favorite_collection: 'Not sure yet',
+      favorite_collection: null,
       ring_size: '8',
       jewelry_notes: 'Loves stacks.',
       notes: null,
