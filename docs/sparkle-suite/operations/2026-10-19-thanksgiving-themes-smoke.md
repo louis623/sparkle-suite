@@ -61,3 +61,40 @@ For persisted selection testing, use the synthetic Codex Smoke account only,
 save each theme, reload, inspect its customer pages, and restore its original
 selection. Never change a real rep's settings for QA. Record deployment and
 authenticated verification results in Core Memory, including any access limit.
+
+## Pie refinement after owner review — October 19
+
+Louis accepted Gobble & Fizz unchanged. Pie's 1100px stack breakpoint had put
+its copy below the video in the owner's roughly 1045px window. The overlay now
+continues down to 701px; phones retain the approved art-above-copy layout.
+Pumpkin-orange accents, ruby actions/headings and a deep ruby footer carry the
+artwork palette through Home, Dance Floor, Join and Preferences. Reading and
+form surfaces remain cream. Shared header/ticker/lineup geometry is unchanged.
+
+Louis approved one Pie-only Higgsfield replacement, capped at $5, and confirmed
+funding. Exact-input estimate: $4.622 before discounts; actual charge unverified.
+Request `95d66f8f-c677-47ba-bc3c-f7d84f089090` completed. The brief requests fixed
+foliage and barely perceptible sunlight. The raw 10.04-second output is retained
+outside the repository; the web export trims reference snaps and uses an
+8-frame circular overlap, yielding 221 frames at 24fps (9.208 seconds), 1280x720,
+2,340,959 bytes, silent H.264. No stabilization, reverse playback, interpolation
+or programmed still-image animation was applied. Gobble assets are unchanged.
+
+The new Pie filenames include `-v4`, covering customer playback, CSS fallback,
+marketing-preview bundling and flyer source references without reusing a cached
+old clip. Independent review caught the marketing cache and flyer references;
+both are corrected.
+
+Validation: 249 focused theme/motion/header/layout/template/marketing tests;
+local production build and TypeScript passed. Real IAB viewport checks at
+1440, 1100, 1045, 820 and 701px retain the overlay; 390 and 320px stack without
+horizontal overflow. Fonts reported loaded. Solid-surface contrast inspection
+on all four pages at desktop and phone sizes found no failures after correcting
+footer background specificity. Photo/gradient areas were visually reviewed;
+this is not exhaustive accessibility certification. Browser playback sampled
+223 states through three actual 9.208-second restarts and captured 32 images;
+window-region source sequences and the resulting seam were inspected. Numerical
+restart delta is 0.825 against a maximum within-clip delta of 1.002 (8-bit luma).
+Physical iOS/Safari playback remains untested and final owner motion acceptance
+is pending. This revision is for Smoke only, without a database or rep-setting
+change; Live remains separately gated.

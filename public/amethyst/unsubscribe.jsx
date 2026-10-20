@@ -61,7 +61,7 @@ function applyUnsubscribeAppearance() {
   if (preset === "pie_please") {
     document.body.classList.add("bg-pie-please", "surface-pie-please", "shape-soft");
     const midnightTokens = {
-      "--hp-primary": "#813c32", "--hp-accent": "#ba7648", "--primary": "#813c32", "--accent": "#ba7648",
+      "--hp-primary": "#9b233d", "--hp-accent": "#b95015", "--primary": "#9b233d", "--accent": "#b95015",
       "--hp-bg": "#fcf3e5", "--hp-bg-elevated": "#fffaf2", "--bg-deep": "#f2dfc9",
       "--hp-display-font": '"Playfair Display", Georgia, serif',
       "--hp-body-font": '"DM Sans", "Inter", system-ui, sans-serif', "--hp-heading-weight": "600",

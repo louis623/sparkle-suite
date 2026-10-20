@@ -5,10 +5,11 @@
   function mount(hero){
     const theme=themes[hero.dataset.appearancePreset];
     const assets='/amethyst/skins/'+theme+'/';
+    const revision=theme==='pie-please'?'-v4':'';
     const host=hero.querySelector('.hp-hero-media');if(!host)return null;
     const previousHidden=host.getAttribute('aria-hidden');host.removeAttribute('aria-hidden');
     const media=document.createElement('div');media.className='tg-media';media.setAttribute('aria-hidden','true');
-    const poster=document.createElement('img');poster.className='tg-poster';poster.src=assets+'hero-poster.webp';poster.alt='';
+    const poster=document.createElement('img');poster.className='tg-poster';poster.src=assets+'hero-poster'+revision+'.webp';poster.alt='';
     const video=document.createElement('video');video.className='tg-video';video.muted=true;video.playsInline=true;video.loop=true;video.preload='none';video.tabIndex=-1;video.setAttribute('aria-hidden','true');
     media.append(poster,video);host.prepend(media);
     const control=document.createElement('button');control.type='button';control.className='tg-toggle';host.append(control);
@@ -21,7 +22,7 @@
       if(disposed)return;
       control.hidden=!allowed();control.textContent=wanted?'Pause animation':'Play animation';control.setAttribute('aria-pressed',String(allowed()&&wanted));
       if(!allowed()){release();return;}if(!shouldPlay()){pause();return;}
-      if(!video.hasAttribute('src'))video.src=assets+'hero-loop.mp4';
+      if(!video.hasAttribute('src'))video.src=assets+'hero-loop'+revision+'.mp4';
       if(pending||!video.paused)return;pending=true;interrupted=false;
       let playback;try{playback=video.play();}catch{pending=false;wanted=false;update();return;}
       Promise.resolve(playback).then(()=>{pending=false;if(!shouldPlay())pause();else if(video.paused)update();}).catch(error=>{

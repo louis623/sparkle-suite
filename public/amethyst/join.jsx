@@ -358,7 +358,7 @@ const PRESETS = {
     bgTreatment: "pie-please", cardSurface: "pie-please",
     textureOverlay: "none", buttonEnergy: "pie-please-lift", ctaEmphasis: "standard",
     tradeFlair: "copper-thanksgiving", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
-    bgTone: "piePlease", primaryColor: "#813c32", accentColor: "#ba7648",
+    bgTone: "piePlease", primaryColor: "#9b233d", accentColor: "#b95015",
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
     shapeRadius: "soft", density: "regular",
   },

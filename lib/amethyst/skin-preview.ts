@@ -486,7 +486,7 @@ export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreview
     : skin === 'gobble_and_fizz'
     ? { bg: '#291522', fg: '#fff2df', muted: '#e5cbbb', border: '#c9854f', active: '#efb36c', focus: '#efb36c' }
     : skin === 'pie_please'
-    ? { bg: '#fcf3e5', fg: '#502d24', muted: '#796052', border: '#ba7648', active: '#813c32', focus: '#813c32' }
+    ? { bg: '#fcf3e5', fg: '#502d24', muted: '#796052', border: '#b95015', active: '#9b233d', focus: '#9b233d' }
     : skin === 'pearl_rose'
     ? { bg: '#faf5ef', fg: '#4d2931', muted: '#785963', border: '#dcc4b7', active: '#813f50', focus: '#954354' }
     : skin === 'fall_owl_harvest_moon'

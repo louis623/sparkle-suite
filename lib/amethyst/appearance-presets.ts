@@ -429,7 +429,7 @@ export const AMETHYST_APPEARANCE_PRESETS: Record<
     id: 'pie_please', label: 'Pie, Please!',
     description: 'Pumpkin pie, copper jewelry and soft window light with a frosted ivory welcome.',
     values: {
-      primaryColor: '#813c32', accentColor: '#ba7648', bgTone: 'piePlease',
+      primaryColor: '#9b233d', accentColor: '#b95015', bgTone: 'piePlease',
       headingFont: 'playfair', bodyFont: 'dmSans', headingWeight: 600,
       shapeRadius: 'soft', density: 'regular', saturation: 100,
       heroMotion: 'sparkle_rise', sparkleLevel: 'subtle',

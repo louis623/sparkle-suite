@@ -54,14 +54,15 @@ const settle = async () => { await Promise.resolve(); await Promise.resolve(); a
 
 describe.each(['gobble-and-fizz', 'pie-please'])('%s motion lifecycle', theme => {
   const harness = (options = {}) => makeHarness({ ...options, theme })
+  const revision = theme === 'pie-please' ? '-v4' : ''
   it('does not mount or load on another theme', () => { const h = harness({ otherTheme: true }); expect(h.hero.children).toHaveLength(0) })
 
   it.each([false, true])('defers identical inline media until visible on phone and desktop (mobile=%s)', async mobile => {
     const h = harness({ mobile })
     expect(h.video.hasAttribute('src')).toBe(false); expect(h.video.play).not.toHaveBeenCalled()
     h.visible(true); await settle()
-    expect(h.video.getAttribute('src')).toBe(`/amethyst/skins/${theme}/hero-loop.mp4`)
-    expect(h.poster.getAttribute('src')).toBe(`/amethyst/skins/${theme}/hero-poster.webp`)
+    expect(h.video.getAttribute('src')).toBe(`/amethyst/skins/${theme}/hero-loop${revision}.mp4`)
+    expect(h.poster.getAttribute('src')).toBe(`/amethyst/skins/${theme}/hero-poster${revision}.webp`)
     expect(h.video).toMatchObject({ muted: true, playsInline: true, loop: true, preload: 'none' })
     expect(h.queries).toEqual(['(prefers-reduced-motion:reduce)'])
     expect(h.video.play).toHaveBeenCalledTimes(1)

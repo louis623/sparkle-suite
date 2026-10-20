@@ -12,9 +12,10 @@ describe('public landing theme boundary', () => {
   it.each([['gobble_and_fizz', 'gobble-and-fizz'], ['pie_please', 'pie-please']] as const)('bundles %s motion when it is the saved demo theme', async (theme, folder) => {
     expect(permittedLandingTheme({ ...demo, theme }, null)).toBe(theme)
     const html = await landingPreviewDocument({ ...demo, theme }, theme, 'https://smoke.example')
+    const revision = theme === 'pie_please' ? '-v4' : ''
     const manifest = html.match(/id="marketing-preview-assets" type="application\/json">([^<]*)<\/script>/)?.[1]
     expect(JSON.parse(manifest!)).toEqual(expect.arrayContaining([
-      `/amethyst/skins/${folder}/hero-loop.mp4`, `/amethyst/skins/${folder}/hero-poster.webp`,
+      `/amethyst/skins/${folder}/hero-loop${revision}.mp4`, `/amethyst/skins/${folder}/hero-poster${revision}.webp`,
     ]))
     expect(html).toContain('media-src data:;')
     expect(communityLandingThemes([{ skin_id: theme, visibility: 'community' }])).toEqual([])
