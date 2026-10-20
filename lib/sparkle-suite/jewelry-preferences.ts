@@ -57,7 +57,7 @@ export const invalidPreferencesMessage =
   'Choose up to 3 favorites in each list. Not sure yet stands on its own.'
 
 export const missingPreferencesMessage =
-  'Pick at least one favorite in each list. Not sure yet counts.'
+  'Refresh the page and pick at least one favorite in each list, or choose Not sure yet.'
 
 export type PreferenceOption = {
   slug: string
@@ -406,15 +406,6 @@ type SignupPreferenceBody = {
   jewelryNotes?: unknown
 }
 
-export function signupSentPreferenceArrays(input: SignupPreferenceBody): boolean {
-  return (
-    input.favoriteStones !== undefined ||
-    input.favoriteMaterials !== undefined ||
-    input.favoriteCuts !== undefined ||
-    input.favoriteCollections !== undefined
-  )
-}
-
 function preferenceFailureMessage(reason: PreferenceParseResult & { ok: false }): string {
   if (reason.reason === 'missing') return missingPreferencesMessage
   if (reason.reason === 'unknown' || reason.reason === 'invalid') {
@@ -446,10 +437,10 @@ export function parseJewelryNotes(
 }
 
 /**
- * Validates a sign-up body.
- * When any of the four favorite arrays is present, each list is required
- * (min 1, max 3). Omitting all four keeps the previous single-text fields
- * for one release. Ring size and notes stay optional either way.
+ * Validates a public sign-up body.
+ * Stones, materials, cuts, and collections are always required
+ * (min 1, max 3). A cached page that omits them gets the same refresh
+ * message as an empty list. Ring size and notes stay optional.
  */
 export function readSignupPreferences(
   input: SignupPreferenceBody,
@@ -471,10 +462,6 @@ export function readSignupPreferences(
       detail: 'jewelry notes too long',
       message: 'Keep jewelry notes to 500 characters.',
     }
-  }
-
-  if (!signupSentPreferenceArrays(input)) {
-    return { ok: true, picks: null }
   }
 
   const asList = (value: unknown) => (value === undefined || value === null ? [] : value)

@@ -13,6 +13,13 @@ vi.mock('@/lib/services/workspace-message-dispatch', () => ({
 
 import { POST } from '@/app/api/amethyst/customer-audience/route'
 
+const favoriteAnswers = {
+  favoriteStones: ['ruby'],
+  favoriteMaterials: ['gold'],
+  favoriteCuts: ['round'],
+  favoriteCollections: ['originals'],
+}
+
 function makeAdminClient({
   repId = 'rep-1',
   insertError = null,
@@ -161,6 +168,7 @@ describe('POST /api/amethyst/customer-audience', () => {
           smsConsent: true,
           emailConsent: true,
           marketingConsent: true,
+          ...favoriteAnswers,
         }),
       }),
     )
@@ -210,6 +218,7 @@ describe('POST /api/amethyst/customer-audience', () => {
           smsConsent: true,
           emailConsent: true,
           marketingConsent: true,
+          ...favoriteAnswers,
         }),
       }),
     )
@@ -247,6 +256,7 @@ describe('POST /api/amethyst/customer-audience', () => {
           smsConsent: true,
           emailConsent: true,
           marketingConsent: true,
+          ...favoriteAnswers,
         }),
       }),
     )
@@ -279,6 +289,7 @@ describe('POST /api/amethyst/customer-audience', () => {
           smsConsent: false,
           emailConsent: false,
           marketingConsent: false,
+          ...favoriteAnswers,
         }),
       }),
     )
@@ -308,6 +319,7 @@ describe('POST /api/amethyst/customer-audience', () => {
           smsConsent: true,
           emailConsent: false,
           marketingConsent: false,
+          ...favoriteAnswers,
         }),
       }),
     )
@@ -338,6 +350,7 @@ describe('POST /api/amethyst/customer-audience', () => {
           smsConsent: true,
           emailConsent: true,
           marketingConsent: true,
+          ...favoriteAnswers,
         }),
       }),
     )
@@ -420,7 +433,7 @@ describe('POST /api/amethyst/customer-audience', () => {
     )
     expect(missing.status).toBe(400)
     await expect(missing.json()).resolves.toMatchObject({
-      error: 'Pick at least one favorite in each list. Not sure yet counts.',
+      error: 'Refresh the page and pick at least one favorite in each list, or choose Not sure yet.',
     })
 
     const accepted = await POST(
@@ -456,6 +469,33 @@ describe('POST /api/amethyst/customer-audience', () => {
         jewelry_notes: 'Soft colors.',
       }),
     )
+  })
+
+  it('asks the customer to refresh when an old form sends no favorite lists', async () => {
+    process.env.AMETHYST_HOMEPAGE_PREVIEW_EMAIL = 'preview@example.com'
+    const { client, spies } = makeAdminClient()
+    createAdminClientMock.mockReturnValue(client)
+
+    const response = await POST(
+      new Request('http://localhost/api/amethyst/customer-audience', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          firstName: 'Jamie',
+          lastName: 'Lane',
+          email: 'jamie@example.com',
+          emailConsent: true,
+          favoriteGemOrStone: 'Moonstone',
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(400)
+    await expect(response.json()).resolves.toMatchObject({
+      code: 'INVALID_INPUT',
+      error: 'Refresh the page and pick at least one favorite in each list, or choose Not sure yet.',
+    })
+    expect(spies.insert).not.toHaveBeenCalled()
   })
 
   it('rejects a ring size outside 5-11 and not_sure', async () => {

@@ -120,12 +120,18 @@ describe('signup preference validation', () => {
     expect(readSignupPreferences({ ...validPicks, jewelryNotes: 'a'.repeat(501) }).ok).toBe(false)
   })
 
-  it('keeps a sign-up with only the old text fields for one release', () => {
+  it('requires the four lists even when an old form omits them', () => {
     const legacy = readSignupPreferences({
       ringSize: ' ',
       jewelryNotes: '   ',
     })
-    expect(legacy).toEqual({ ok: true, picks: null })
+    expect(legacy.ok).toBe(false)
+    if (!legacy.ok) {
+      expect(legacy.message).toBe(
+        'Refresh the page and pick at least one favorite in each list, or choose Not sure yet.',
+      )
+      expect(legacy.detail).toBe('missing_stone')
+    }
   })
 
   it('joins readable labels for the legacy text columns', () => {
