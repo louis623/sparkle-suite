@@ -79,6 +79,22 @@
   height: auto;
   border-radius: 0 0 6px 6px;
 }
+.frame > .mediaWell, .phoneFrame > .mediaWell {
+  position: relative;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0 0 6px 6px;
+  background: #241811;
+}
+.mediaWell > div, .mediaWell > img, .mediaWell > span {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
 .placeholder {
   display: grid;
   align-content: center;
@@ -97,9 +113,14 @@
 }
 .cardMeta a, .cardMeta p { margin-top: 8px; font-size: 15px; }
 .cardMeta a { color: var(--suite-pink); font-weight: 700; text-decoration: none; }
-.cardMeta p { color: var(--suite-muted); }
-.caption { width: min(640px, calc(100% - 48px)); margin-top: 14px; color: var(--suite-muted); text-align: center; font-size: 16px; line-height: 1.55; }
-.dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
+.cardDetail {
+  min-height: 4.8em;
+  margin-top: 8px;
+  color: var(--suite-muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
 .dots button {
   width: 11px;
   height: 11px;

@@ -44,24 +44,28 @@ function SlideFrame({ slide, active }: { slide: PortfolioSlide; active: boolean 
         <em>{slide.title}</em>
       </div>
       {video ? (
-        <ProductPeekVideo
-          poster={recording?.poster ?? slide.src}
-          mp4={video.mp4}
-          width={video.width}
-          height={video.height}
-          alt={recording ? `Recorded website header and complete hero from ${slide.title}` : slide.alt}
-          label={slide.title}
-          active={active}
-          eagerPoster={Boolean(recording)}
-        />
+        <div className={styles.mediaWell}>
+          <ProductPeekVideo
+            poster={recording?.poster ?? slide.src}
+            mp4={video.mp4}
+            width={video.width}
+            height={video.height}
+            alt={recording ? `Recorded website header and complete hero from ${slide.title}` : slide.alt}
+            label={slide.title}
+            active={active}
+            eagerPoster={Boolean(recording)}
+          />
+        </div>
       ) : (
-        <Image
-          src={slide.src}
-          alt={slide.alt}
-          width={slide.width}
-          height={slide.height}
-          sizes="(max-width: 700px) 86vw, 860px"
-        />
+        <div className={styles.mediaWell}>
+          <Image
+            src={slide.src}
+            alt={slide.alt}
+            width={slide.width}
+            height={slide.height}
+            sizes="(max-width: 700px) 86vw, 860px"
+          />
+        </div>
       )}
     </div>
   )
@@ -75,7 +79,6 @@ function PortfolioCarousel({
   const viewportRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
   const count = carousel.slides.length
-  const slide = carousel.slides[active]
 
   function scrollToSlide(index: number) {
     const viewport = viewportRef.current
@@ -173,9 +176,8 @@ function PortfolioCarousel({
                     {item.linkLabel}
                     {item.href.startsWith('http') ? <span className={styles.srOnly}> (opens in a new tab)</span> : null}
                   </a>
-                ) : (
-                  <p>{item.detail}</p>
-                )}
+                ) : null}
+                <p className={styles.cardDetail}>{item.detail}</p>
               </div>
             </div>
           ))}
@@ -183,9 +185,6 @@ function PortfolioCarousel({
         <button type="button" className={styles.carouselButton} aria-label={`Next ${carousel.label}`} onClick={() => focusSlide(active + 1)}>
           <ChevronRight size={22} aria-hidden="true" />
         </button>
-      </div>
-      <div className={styles.caption} aria-live="polite">
-        <p>{slide.detail}</p>
       </div>
       <div className={styles.dots} role="tablist" aria-label={`${carousel.label} slides`}>
         {carousel.slides.map((item, index) => (
