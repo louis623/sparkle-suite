@@ -2454,7 +2454,7 @@ function Signup({ repName, businessName }) {
             </div>
             <div className="hp-signup-actions">
               <p className="hp-signup-privacy">
-                We never sell your information. Your answers are only used to give you a better shopping experience with {businessName}, our Sparkle Suite reps and Sparkle Finder.
+                We never sell your information. Your answers are only used by {businessName} to give you a better experience.
               </p>
               <button type="submit" className="hp-signup-submit" disabled={submitState.status === "submitting"}>
                 {submitState.status === "submitting" ? "Saving..." : "Sign me up"}

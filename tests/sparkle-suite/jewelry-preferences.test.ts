@@ -268,8 +268,10 @@ describe('signup copy and migration parity', () => {
     const signup = jsx.slice(jsx.indexOf('function Signup('), jsx.indexOf('function Footer('))
 
     expect(signup).toContain(
-      'We never sell your information. Your answers are only used to give you a better shopping experience with {businessName}, our Sparkle Suite reps and Sparkle Finder.',
+      'We never sell your information. Your answers are only used by {businessName} to give you a better experience.',
     )
+    const privacy = signup.slice(signup.indexOf('hp-signup-privacy'), signup.indexOf('type="submit"'))
+    expect(privacy).not.toMatch(/Sparkle Finder|Sparkle Suite/)
     const actions = signup.slice(
       signup.indexOf('className="hp-signup-actions"'),
       signup.indexOf('className="hp-signup-consent slot"'),
