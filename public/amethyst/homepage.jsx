@@ -2208,6 +2208,7 @@ function Signup({ repName, businessName }) {
     favoriteMaterials: [],
     favoriteCuts: [],
     favoriteCollections: [],
+    ringSize: "",
   });
   const [preferenceOptions, setPreferenceOptions] = useState(null);
   const [preferenceOptionsError, setPreferenceOptionsError] = useState(false);
@@ -2285,6 +2286,7 @@ function Signup({ repName, businessName }) {
           favoriteMaterials: form.favoriteMaterials,
           favoriteCuts: form.favoriteCuts,
           favoriteCollections: form.favoriteCollections,
+          ringSize: form.ringSize,
         }),
       });
 
@@ -2312,6 +2314,7 @@ function Signup({ repName, businessName }) {
         favoriteMaterials: [],
         favoriteCuts: [],
         favoriteCollections: [],
+        ringSize: "",
       });
       setSubmitState({
         status: "success",
@@ -2422,6 +2425,20 @@ function Signup({ repName, businessName }) {
                 onChange={(value) => updateField("favoriteCollections", value)}
                 showOlderControl
               />
+              <div className="hp-signup-field">
+                <label className="hp-signup-label" htmlFor="hp-ring-size">Ring size <span className="hp-signup-label-aux">(optional)</span></label>
+                <select id="hp-ring-size" className="hp-signup-input" value={form.ringSize} onChange={(e) => updateField("ringSize", e.target.value)}>
+                  <option value="">Select a size</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                  <option value="11">11</option>
+                  <option value="not_sure">Not sure</option>
+                </select>
+              </div>
             </div>
             <div className="hp-signup-actions">
               <button type="submit" className="hp-signup-submit" disabled={submitState.status === "submitting"}>
