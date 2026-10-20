@@ -3662,6 +3662,79 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     )
   })
+
+  it('asks instead of counting photo 2 from older chat photos', async () => {
+    const supabaseMock = makeConversationLookupMock([
+      {
+        parts: [
+          {
+            type: 'file',
+            mediaType: 'image/jpeg',
+            url: 'data:image/jpeg;base64,TktK',
+          },
+        ],
+      },
+      {
+        parts: [
+          {
+            type: 'file',
+            mediaType: 'image/jpeg',
+            url: 'data:image/jpeg;base64,T0xEMg==',
+          },
+        ],
+      },
+      {
+        parts: [
+          {
+            type: 'file',
+            mediaType: 'image/jpeg',
+            url: 'data:image/jpeg;base64,T0xEMQ==',
+          },
+        ],
+      },
+    ])
+    const tool = makeTool(supabaseMock, {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk60295',
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK60295',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            intakeSessionId: 'intake-nk60295',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,TktK',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK60295',
+        collectionName: 'Original',
+        listingPhotoIndex: 2,
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_CHOICE_REQUIRED',
+      userMessage: expect.stringContaining('photo 2'),
+    })
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+    expect(addListingMock).not.toHaveBeenCalled()
+  })
+
   it('publishes the jewelry-front photo from two-photo intake and ignores a label selectedPhotoId', async () => {
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
       photoUrl:

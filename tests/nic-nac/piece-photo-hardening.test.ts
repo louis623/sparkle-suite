@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   conversationImagesForIntake,
+  resolvePiecePhotoNumber,
   resolveWorkflowCustomerFacingPhoto,
   selectWorkflowJewelryPhoto,
 } from '@/lib/nic-nac/workflows/workflow-photo-selection'
@@ -77,5 +78,52 @@ describe('Kelly 9/18 — photos stay on the intake they were sent for', () => {
       'nk60295-label',
       'nk60295-necklace',
     ])
+  })
+})
+
+describe('photo numbers stay inside the current piece', () => {
+  it('counts photo 2 as this piece necklace, not an earlier chat photo', () => {
+    const decision = resolvePiecePhotoNumber(
+      [leftoverLabel, nkLabel, nkNecklace],
+      2,
+      'intake-nk60295',
+    )
+
+    expect(decision.status).toBe('use')
+    if (decision.status !== 'use') return
+    expect(decision.photo.imageUrl).toBe('nk60295-necklace')
+    expect(decision.photo.imageUrl).not.toBe('earlier-piece-label')
+    expect(decision.photo.imageUrl).not.toBe('nk60295-label')
+  })
+
+  it('asks when the number does not fit this piece instead of guessing', () => {
+    const decision = resolvePiecePhotoNumber(
+      [leftoverLabel, nkLabel, nkNecklace],
+      4,
+      'intake-nk60295',
+    )
+
+    expect(decision.status).toBe('ask')
+    if (decision.status !== 'ask') return
+    expect(decision.photoCount).toBe(2)
+    expect(decision.message).toContain('photo 4')
+    expect(decision.message).not.toContain('earlier-piece-label')
+    expect(decision.message).not.toMatch(/\b(sold|sales|trade|traded)\b/i)
+  })
+
+  it('keeps an in-range label number on this piece confirmed jewelry photo', () => {
+    const decision = resolvePiecePhotoNumber(
+      [leftoverLabel, nkLabel, nkNecklace],
+      1,
+      'intake-nk60295',
+    )
+    expect(decision.status).toBe('confirmed-front')
+
+    const selected = resolveWorkflowCustomerFacingPhoto(
+      [leftoverLabel, nkLabel, nkNecklace],
+      { modelIndex: 1, intakeSessionId: 'intake-nk60295' },
+    )
+    expect(selected?.imageUrl).toBe('nk60295-necklace')
+    expect(selected?.imageUrl).not.toBe('earlier-piece-label')
   })
 })

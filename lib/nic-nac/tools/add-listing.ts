@@ -55,6 +55,7 @@ import {
   catalogVariantPhotoAssetKey,
   conversationImagesForIntake,
   hasUsableWorkflowJewelryPhoto,
+  resolvePiecePhotoNumber,
   resolveWorkflowCustomerFacingPhoto,
   scopeWorkflowPhotosToIntake,
   shouldFallBackToCatalogCanonicalPhoto,
@@ -640,6 +641,26 @@ function isConfirmedJewelryFrontPhoto(
   return isAcceptedCustomerFacingWorkflowPhoto(photo) && photo.roleConfirmed
 }
 
+function requirePiecePhotoNumberUrl(
+  workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
+  photoIndex: number | undefined,
+): string | undefined {
+  if (workflow?.status !== 'active' || photoIndex === undefined) return undefined
+  const decision = resolvePiecePhotoNumber(
+    workflow.photos,
+    photoIndex,
+    workflow.id,
+  )
+  if (decision.status === 'ask') {
+    throw new NicNacToolError({
+      code: 'PHOTO_CHOICE_REQUIRED',
+      userMessage: decision.message,
+    })
+  }
+  if (decision.status === 'confirmed-front') return undefined
+  return decision.photo.imageUrl
+}
+
 function getWorkflowPhotoByModelIndex(
   workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
   photoIndex: number | undefined,
@@ -734,6 +755,10 @@ export async function processListingPhotoForAdd(input: {
   )
   const itemNumber = input.itemNumber ?? 'listing'
   const photoIndex = input.photoIndex ?? input.listingPhotoIndex
+  const numberedPiecePhotoUrl = requirePiecePhotoNumberUrl(
+    activeTradeBoardWorkflow,
+    photoIndex,
+  )
   const variantAssetKey = catalogVariantPhotoAssetKey({
     designId: input.designId,
     material: input.material,
@@ -744,6 +769,21 @@ export async function processListingPhotoForAdd(input: {
     filenameStem: `${itemNumber}-listing-photo`,
     mutationAssetKey: input.mutationAssetKey,
     ...(variantAssetKey ? { variantAssetKey } : {}),
+  }
+  if (numberedPiecePhotoUrl) {
+    try {
+      return (
+        await processRepListingPhotoUrl(
+          {
+            ...listingPhotoProcessInput,
+            sourceImageUrl: numberedPiecePhotoUrl,
+          },
+          { confirmedJewelryFront: true },
+        )
+      ).photoUrl
+    } catch (err) {
+      explainServiceError(err)
+    }
   }
   const workflowPhotoUrl = getWorkflowConfirmedJewelryFrontImageUrl(
     activeTradeBoardWorkflow,
@@ -1443,6 +1483,10 @@ async function runSingle(
     const newDesignId = randomUUID()
     let publicPhotoObjectPath: string | null = null
     const designSourcePhotoIndex = input.piecePhotoIndex ?? input.listingPhotoIndex
+    const numberedDesignPhotoUrl = requirePiecePhotoNumberUrl(
+      activeWorkflow,
+      designSourcePhotoIndex,
+    )
     const workflowConfirmedDesignPhoto = workflowConfirmsJewelryFrontPhoto(
       activeWorkflow,
       designSourcePhotoIndex,
@@ -1459,6 +1503,7 @@ async function runSingle(
     // Workflow-owned selection wins. A model-provided URL is a legacy fallback
     // only when no durable workflow is active.
     let resolvedPhotoUrl: string | null =
+      numberedDesignPhotoUrl ??
       workflowConfirmedPhotoUrl ??
       (activeWorkflow?.status === 'active' ? ownedPiecePhotoUrl : null) ??
       (activeWorkflow?.status === 'active' ? null : piecePhotoUrl?.trim() ?? null)

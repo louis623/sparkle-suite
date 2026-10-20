@@ -7,6 +7,11 @@ import {
   stampSoleReadinessJewelryFrontCandidate,
 } from './workflow-photo-roles'
 
+export type PiecePhotoNumberDecision =
+  | { status: 'use'; photo: WorkflowJewelryPhoto }
+  | { status: 'confirmed-front' }
+  | { status: 'ask'; photoCount: number; message: string }
+
 export interface WorkflowJewelryPhoto {
   id?: string
   intakeSessionId?: string
@@ -77,12 +82,40 @@ export function resolveWorkflowCustomerFacingPhoto(
 ): WorkflowJewelryPhoto | null {
   const selected = selectWorkflowJewelryPhoto(photos, selection)
   if (selected) return selected
+  // Stay on this intake. A bad id or an in-range number that is not the
+  // jewelry photo falls back to the confirmed front. An out-of-range number
+  // never reaches this helper.
   if (selection.selectedPhotoId || selection.modelIndex !== undefined) {
     return selectWorkflowJewelryPhoto(photos, {
       intakeSessionId: selection.intakeSessionId,
     })
   }
   return null
+}
+
+export function resolvePiecePhotoNumber(
+  photos: WorkflowJewelryPhoto[] | null | undefined,
+  photoNumber: number,
+  intakeSessionId?: string,
+): PiecePhotoNumberDecision {
+  const piecePhotos = scopeWorkflowPhotosToIntake(photos, intakeSessionId)
+  const photo = piecePhotos[photoNumber - 1]
+  if (!photo) {
+    return {
+      status: 'ask',
+      photoCount: piecePhotos.length,
+      message: piecePhotoNumberAsk(photoNumber, piecePhotos.length),
+    }
+  }
+  if (isAcceptedCustomerFacingWorkflowPhoto(photo)) {
+    return { status: 'use', photo }
+  }
+  return { status: 'confirmed-front' }
+}
+
+function piecePhotoNumberAsk(photoNumber: number, count: number): string {
+  const noun = count === 1 ? 'photo' : 'photos'
+  return `I have ${count} ${noun} for this piece, so photo ${photoNumber} doesn't match. Which one should be the main photo?`
 }
 
 export function hasUsableWorkflowJewelryPhoto(
