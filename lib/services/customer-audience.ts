@@ -466,19 +466,29 @@ export async function createCustomerAudienceSignup(
     )
   }
 
-  const profile = getProfileValues({
-    name: `${firstName} ${lastName}`,
-    email,
-    phone,
-    address: input.address,
-    birthday: input.birthday,
-    favoriteGemOrStone: input.favoriteGemOrStone,
-    favoriteMaterial: input.favoriteMaterial,
-    favoriteCut: input.favoriteCut,
-    favoriteCollection: input.favoriteCollection,
-    notes: input.notes,
-    tags: input.tags,
-  })
+  const profile = {
+    ...getProfileValues({
+      name: `${firstName} ${lastName}`,
+      email,
+      phone,
+      address: input.address,
+      birthday: input.birthday,
+      favoriteGemOrStone: input.favoriteGemOrStone,
+      favoriteMaterial: input.favoriteMaterial,
+      favoriteCut: input.favoriteCut,
+      favoriteCollection: input.favoriteCollection,
+      notes: input.notes,
+      tags: input.tags,
+    }),
+    ...(input.preferencePicks
+      ? {
+          favorite_gem_or_stone: input.preferencePicks.labels.favoriteGemOrStone,
+          favorite_material: input.preferencePicks.labels.favoriteMaterial,
+          favorite_cut: input.preferencePicks.labels.favoriteCut,
+          favorite_collection: input.preferencePicks.labels.favoriteCollection,
+        }
+      : {}),
+  }
   const picks = input.preferencePicks
     ? {
         favorite_stones: input.preferencePicks.favoriteStones,
