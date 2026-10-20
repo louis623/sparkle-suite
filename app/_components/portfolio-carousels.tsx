@@ -22,7 +22,7 @@ const portfolioBands = {
   'community-themes': { name: 'blush', className: styles.bandBlush },
 } as const
 
-function SlideFrame({ slide, active }: { slide: PortfolioSlide; active: boolean }) {
+function SlideFrame({ slide, active, prioritizePoster = false }: { slide: PortfolioSlide; active: boolean; prioritizePoster?: boolean }) {
   if (slide.kind === 'placeholder') {
     return (
       <div className={styles.placeholder}>
@@ -53,7 +53,7 @@ function SlideFrame({ slide, active }: { slide: PortfolioSlide; active: boolean 
             alt={recording ? `Recorded website header and complete hero from ${slide.title}` : slide.alt}
             label={slide.title}
             active={active}
-            eagerPoster={Boolean(recording)}
+            eagerPoster={Boolean(recording) && prioritizePoster}
           />
         </div>
       ) : (
@@ -196,7 +196,7 @@ function PortfolioCarousel({
               data-slide-index={index}
               data-active={index === active}
             >
-              <SlideFrame slide={item} active={index === active} />
+              <SlideFrame slide={item} active={index === active} prioritizePoster={index === 0} />
               <div className={styles.cardMeta}>
                 <h3>{item.title}</h3>
                 {item.kind === 'capture' && item.href && item.linkLabel ? (

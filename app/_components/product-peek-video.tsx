@@ -4,7 +4,7 @@ import styles from './product-peek-video.module.css'
 type ProductPeekVideoProps = {
   poster: string; mp4: string; width: number; height: number
   alt: string; label: string; active?: boolean
-  /** Paint the still before playback, including slides that start off screen. */
+  /** Paint one on-screen still before playback. Other posters stay lazy. */
   eagerPoster?: boolean
 }
 /** Real recordings, loaded only in view. The poster survives blocked playback. */
