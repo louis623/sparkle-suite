@@ -147,26 +147,24 @@ describe('photo numbers stay inside the current piece', () => {
   })
 })
 
-describe('Kelly 9/18 — a label sent alone starts the piece', () => {
-  it('starts piece tracking on a label shot sent by itself', () => {
-    expect(
-      hasTradeBoardIntakeSignal([
-        {
-          id: 'label-turn',
-          role: 'user',
-          parts: [
-            {
-              type: 'file',
-              mediaType: 'image/jpeg',
-              url: 'data:image/jpeg;base64,TEFCRUw=',
-            },
-          ],
-        },
-      ]),
-    ).toBe(true)
+describe('Kelly 9/18 — a photo starts a piece only while one is being added', () => {
+  const labelPhoto = {
+    id: 'label-turn',
+    role: 'user' as const,
+    parts: [
+      {
+        type: 'file' as const,
+        mediaType: 'image/jpeg',
+        url: 'data:image/jpeg;base64,TEFCRUw=',
+      },
+    ],
+  }
+
+  it('does not start piece tracking on a label shot sent by itself', () => {
+    expect(hasTradeBoardIntakeSignal([labelPhoto])).toBe(false)
   })
 
-  it('starts tracking when the previous message was not a photo ask', () => {
+  it('does not start tracking when the previous message was not an add', () => {
     expect(
       hasTradeBoardIntakeSignal([
         {
@@ -174,17 +172,30 @@ describe('Kelly 9/18 — a label sent alone starts the piece', () => {
           role: 'assistant',
           parts: [{ type: 'text', text: 'Sure, send whatever you have for the next one.' }],
         },
+        labelPhoto,
+      ]),
+    ).toBe(false)
+    expect(
+      hasTradeBoardIntakeSignal([
         {
-          id: 'label-turn',
-          role: 'user',
-          parts: [
-            {
-              type: 'file',
-              mediaType: 'image/jpeg',
-              url: 'data:image/jpeg;base64,TEFCRUw=',
-            },
-          ],
+          id: 'assistant-site',
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'Send the logo you want on the website.' }],
         },
+        labelPhoto,
+      ]),
+    ).toBe(false)
+  })
+
+  it('starts tracking when the previous message asked for the piece photo', () => {
+    expect(
+      hasTradeBoardIntakeSignal([
+        {
+          id: 'assistant-ask',
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'Send the label for this piece.' }],
+        },
+        labelPhoto,
       ]),
     ).toBe(true)
   })

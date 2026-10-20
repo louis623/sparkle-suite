@@ -537,18 +537,7 @@ describe('Dance Floor intake route context', () => {
     })
   })
 
-  it('starts piece tracking when the first turn is only a label photo', async () => {
-    const sessionRow = {
-      id: 'workflow-nk60295',
-      rep_id: 'rep-1',
-      conversation_id: 'conv-1',
-      workflow_type: 'trade_board_add_listing',
-      status: 'active',
-      current_phase: 'started',
-      missing_fields: [],
-      hard_blockers: [],
-      soft_warnings: [],
-    }
+  it('does not start piece tracking when the first turn is only a label photo', async () => {
     const activeBuilder = {
       select: vi.fn(() => activeBuilder),
       eq: vi.fn(() => activeBuilder),
@@ -559,26 +548,19 @@ describe('Dance Floor intake route context', () => {
       maybeSingle: vi.fn(() => ({ data: null, error: null })),
     }
     const createBuilder = {
-      insert: vi.fn(() => createBuilder),
-      select: vi.fn(() => createBuilder),
-      single: vi.fn(() => ({ data: sessionRow, error: null })),
-    }
-    const updateBuilder = {
-      update: vi.fn(() => updateBuilder),
-      eq: vi.fn(() => ({ error: null })),
-    }
-    const photoBuilder = {
-      upsert: vi.fn(() => ({ error: null })),
+      insert: vi.fn(() => {
+        throw new Error('should not create a new workflow')
+      }),
     }
     const workflowSupabase = {
       from: vi.fn((table: string) => {
-        if (table === 'trade_board_intake_photos') return photoBuilder
+        if (table !== 'trade_board_intake_sessions') {
+          throw new Error(`Unexpected table ${table}`)
+        }
         const sessionCallCount = workflowSupabase.from.mock.calls.filter(
           ([name]) => name === 'trade_board_intake_sessions',
         ).length
-        if (sessionCallCount === 1) return activeBuilder
-        if (sessionCallCount === 2) return createBuilder
-        return updateBuilder
+        return sessionCallCount === 1 ? activeBuilder : createBuilder
       }),
     }
     const labelUrl = 'data:image/jpeg;base64,TEFCRUw='
@@ -600,19 +582,12 @@ describe('Dance Floor intake route context', () => {
       nowIso: '2026-09-18T00:00:00.000Z',
     } as never)
 
-    expect(createBuilder.insert).toHaveBeenCalled()
-    expect(context.sessionAfter?.id).toBe('workflow-nk60295')
-    expect(context.sessionAfter?.photos.map((photo) => photo.imageUrl)).toEqual([
-      labelUrl,
-    ])
-    expect(context.sessionAfter?.photos[0]?.intakeSessionId).toBe('workflow-nk60295')
-    expect(photoBuilder.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        session_id: 'workflow-nk60295',
-        image_url: labelUrl,
-      }),
-      { onConflict: 'session_id,conversation_message_id,attachment_index' },
-    )
+    expect(context).toMatchObject({
+      sessionAfter: null,
+      workflowIntents: [],
+      toolPolicySource: 'latest_turn_intent',
+    })
+    expect(createBuilder.insert).not.toHaveBeenCalled()
   })
 
   it('does not start a blank add-listing workflow for a post-completion follow-up photo', async () => {

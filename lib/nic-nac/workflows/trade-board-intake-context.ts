@@ -157,10 +157,15 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
   }
 }
 
+const ADD_PIECE_PHOTO_ASK =
+  /\b(label|details|tag|jewelry|customer-facing|dance floor|add a piece)\b/i
+
 export function hasTradeBoardIntakeSignal(messages: UIMessage[]): boolean {
-  const latestUser = [...messages].reverse().find((message) => message.role === 'user')
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  const latestUser = latestUserIndex === -1 ? undefined : messages[latestUserIndex]
   const text = getMessageText(latestUser)
-  const previousAssistant = [...messages]
+  const previousAssistant = messages
+    .slice(0, Math.max(latestUserIndex, 0))
     .reverse()
     .find((message) => message.role === 'assistant')
   const assistantText = getMessageText(previousAssistant)
@@ -173,13 +178,13 @@ export function hasTradeBoardIntakeSignal(messages: UIMessage[]): boolean {
     return false
   }
 
-  // A photo starts the piece, including a label sent on its own turn. The
-  // post-completion guard above keeps a follow-up snapshot from opening a new piece.
-  return (
-    hasExplicitTradeBoardAddSignal(text) ||
-    /\b[A-Z]{1,4}\d{3,}\b/.test(text) ||
-    hasImage
-  )
+  if (hasExplicitTradeBoardAddSignal(text) || /\b[A-Z]{1,4}\d{3,}\b/.test(text)) {
+    return true
+  }
+
+  // A photo starts a piece only while one is being added. A photo in ordinary
+  // chat, or a label sent with no add in progress, does not open an intake.
+  return hasImage && ADD_PIECE_PHOTO_ASK.test(assistantText)
 }
 
 function hasExplicitTradeBoardAddSignal(text: string): boolean {
