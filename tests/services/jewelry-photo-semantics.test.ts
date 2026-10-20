@@ -69,6 +69,7 @@ describe('jewelry photo semantics', () => {
       }),
     ).toMatchObject({
       role: 'jewelry',
+      canAttemptCrop: true,
       reasons: expect.arrayContaining(['boxed display jewelry is clear enough']),
     })
   })
@@ -90,6 +91,7 @@ describe('jewelry photo semantics', () => {
       }),
     ).toMatchObject({
       role: 'jewelry',
+      canAttemptCrop: true,
     })
   })
 
@@ -111,6 +113,7 @@ describe('jewelry photo semantics', () => {
 
     expect(semantic).toMatchObject({
       role: 'jewelry',
+      canAttemptCrop: true,
     })
     expect(canUseConfirmedJewelryFront(input, semantic, true)).toBe(true)
   })

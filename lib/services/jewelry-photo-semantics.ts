@@ -71,7 +71,9 @@ export function classifyJewelryPhotoSemantics(
       reasons: packagingDominates
         ? ['boxed display jewelry is clear enough']
         : [],
-      canAttemptCrop: false,
+      // Crop boxed and small pieces. A piece that already fills the frame
+      // stays as-is; that path used to land on jewelry-forward below.
+      canAttemptCrop: packagingDominates || input.subjectCoverage < 0.24,
     }
   }
 
@@ -88,7 +90,7 @@ export function classifyJewelryPhotoSemantics(
       role: 'jewelry',
       confidence: 0.8,
       reasons: ['jewelry is clear, just small in the frame'],
-      canAttemptCrop: false,
+      canAttemptCrop: true,
     }
   }
 
@@ -105,7 +107,7 @@ export function classifyJewelryPhotoSemantics(
       role: 'jewelry',
       confidence: 0.76,
       reasons: ['small jewelry is clear enough to tell the piece'],
-      canAttemptCrop: false,
+      canAttemptCrop: true,
     }
   }
 
