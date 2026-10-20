@@ -12,21 +12,8 @@
 .hero h1 { margin-top: 20px; font-size: clamp(42px, 5.7vw, 72px); line-height: 1.05; }
 .hero em, .close em { color: var(--suite-soft-pink); }
 .hero .heroBody { margin-top: 24px; font-size: 19px; line-height: 1.65; }
-.gallery { padding-block: 16px; }
-.site { display: grid; grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr); align-items: center; gap: 40px; padding-block: 56px; }
-.site + .site { border-top: 1px solid rgba(64, 41, 36, .14); }
-.site:nth-child(even) { grid-template-columns: minmax(0, 1fr) minmax(0, 2.1fr); }
-.site:nth-child(even) .capture { grid-column: 2; grid-row: 1; }
-.site:nth-child(even) .siteCopy { grid-column: 1; grid-row: 1; }
-.capture { display: block; min-width: 0; border: 1px solid rgba(64, 41, 36, .2); padding: 4px; border-radius: 10px; background: white; box-shadow: 0 12px 30px rgba(54, 34, 29, .07); text-decoration: none; }
 .browserBar { border-radius: 6px 6px 0 0; background: var(--suite-plum); color: var(--suite-paper); padding: 7px 12px; font-size: 11px; letter-spacing: .03em; }
-.capture > img { width: 100%; height: auto; display: block; border-radius: 0 0 6px 6px; }
-.siteCopy { min-width: 0; }
-.siteCopy h2 { font-size: clamp(30px, 3vw, 42px); line-height: 1.16; }
-.siteCopy p { margin-top: 8px; font-size: 17px; overflow-wrap: anywhere; }
-.visitButton, .primaryButton { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 16px; text-decoration: none; border-radius: 999px; font-size: 15px; font-weight: 600; }
-.visitButton { margin-top: 28px; padding: 12px 23px; border: 1px solid var(--suite-muted); color: var(--suite-ink); }
-.visitButton:hover { background: white; }
+.primaryButton { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 16px; text-decoration: none; border-radius: 999px; font-size: 15px; font-weight: 600; }
 .close { text-align: center; padding-block: 68px; }
 .close h2 { font-size: clamp(36px, 4.5vw, 54px); line-height: 1.15; }
 .primaryButton { margin-top: 28px; padding: 15px 30px; background: linear-gradient(135deg, #ff4cae, #d81b87); color: #fff6fb; }
@@ -131,10 +118,6 @@
   .hero { padding-block: 48px; }
   .hero h1 { font-size: clamp(38px, 10.5vw, 58px); }
   .hero .heroBody { font-size: 17px; }
-  .site, .site:nth-child(even) { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 36px; }
-  .site:nth-child(even) .capture, .site:nth-child(even) .siteCopy { grid-column: auto; grid-row: auto; }
-  .siteCopy h2 { font-size: 32px; }
-  .visitButton { margin-top: 20px; }
   .close { padding-block: 48px; }
   .close h2 { font-size: 38px; }
   .showcase { padding: 48px 0 40px; }

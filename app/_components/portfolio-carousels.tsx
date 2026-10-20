@@ -9,6 +9,7 @@ import {
   sparkleSuiteScheduleBuild,
   type PortfolioSlide,
 } from '@/lib/sparkle-suite/portfolio-content'
+import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 import { ProductPeekVideo } from './product-peek-video'
 import styles from './portfolio-experience.module.css'
 
@@ -32,18 +33,23 @@ function SlideFrame({ slide, active }: { slide: PortfolioSlide; active: boolean 
     )
   }
 
+  const recording = slide.video ? undefined : portfolioMotion[slide.id]
+  const video = slide.video ?? (recording
+    ? { mp4: recording.mp4, width: recording.width, height: recording.height }
+    : undefined)
+
   return (
     <div className={slide.width < 700 ? styles.phoneFrame : styles.frame}>
       <div className={styles.browserBar} aria-hidden="true">
         <em>{slide.title}</em>
       </div>
-      {slide.video ? (
+      {video ? (
         <ProductPeekVideo
-          poster={slide.src}
-          mp4={slide.video.mp4}
-          width={slide.video.width}
-          height={slide.video.height}
-          alt={slide.alt}
+          poster={recording?.poster ?? slide.src}
+          mp4={video.mp4}
+          width={video.width}
+          height={video.height}
+          alt={recording ? `Recorded website header and complete hero from ${slide.title}` : slide.alt}
           label={slide.title}
           active={active}
         />
@@ -158,8 +164,14 @@ function PortfolioCarousel({
               <SlideFrame slide={item} active={index === active} />
               <div className={styles.cardMeta}>
                 <h3>{item.title}</h3>
-                {item.kind === 'capture' && 'href' in item && item.href && 'linkLabel' in item && item.linkLabel ? (
-                  <a href={item.href} rel="noopener noreferrer">{item.linkLabel}</a>
+                {item.kind === 'capture' && item.href && item.linkLabel ? (
+                  <a
+                    href={item.href}
+                    {...(item.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  >
+                    {item.linkLabel}
+                    {item.href.startsWith('http') ? <span className={styles.srOnly}> (opens in a new tab)</span> : null}
+                  </a>
                 ) : (
                   <p>{item.detail}</p>
                 )}
