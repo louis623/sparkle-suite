@@ -4,9 +4,11 @@ import styles from './product-peek-video.module.css'
 type ProductPeekVideoProps = {
   poster: string; mp4: string; width: number; height: number
   alt: string; label: string; active?: boolean
+  /** Paint the still before playback, including slides that start off screen. */
+  eagerPoster?: boolean
 }
 /** Real recordings, loaded only in view. The poster survives blocked playback. */
-export function ProductPeekVideo({ poster, mp4, width, height, alt, label, active = true }: ProductPeekVideoProps) {
+export function ProductPeekVideo({ poster, mp4, width, height, alt, label, active = true, eagerPoster = false }: ProductPeekVideoProps) {
   const container = useRef<HTMLDivElement>(null)
   const video = useRef<HTMLVideoElement>(null)
   const [visible, setVisible] = useState(false)
@@ -40,9 +42,17 @@ export function ProductPeekVideo({ poster, mp4, width, height, alt, label, activ
     document.addEventListener('visibilitychange', sync)
     return () => { player.pause(); document.removeEventListener('visibilitychange', sync) }
   }, [mp4, shouldLoad, paused])
-  return <div ref={container} className={styles.media} style={{aspectRatio:width + '/' + height}}>
+  return <div ref={container} className={styles.media} style={{
+    aspectRatio: width + '/' + height,
+    ...(eagerPoster ? {
+      backgroundImage: `url("${poster}")`,
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'contain',
+    } : {}),
+  }}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img className={styles.still} src={poster} alt={alt} width={width} height={height} loading="lazy" />
+    <img className={styles.still} src={poster} alt={alt} width={width} height={height} loading={eagerPoster ? 'eager' : 'lazy'} fetchPriority={eagerPoster ? 'high' : 'auto'} decoding={eagerPoster ? 'sync' : 'async'} />
     {shouldLoad || loaded ? <video ref={video} className={styles.motion} data-loaded={loaded && !failed}
       width={width} height={height} muted loop playsInline preload="none" aria-label={alt}
       onPlaying={() => { setPlaying(true); setLoaded(true); setFailed(false) }}
