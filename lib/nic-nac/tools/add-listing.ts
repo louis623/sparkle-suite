@@ -60,6 +60,7 @@ import {
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
+import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
 import {
   catalogVariantPhotoAssetKey,
   conversationImagesForIntake,
@@ -721,26 +722,27 @@ function pendingMainPhotoConfirmation(args: {
   selectedPhotoId?: string
   photoIndex?: number
 }): {
-  previewImageUrl: string
   itemNumber: string | null
   message: string
+  locator: { previewPhotoId?: string; previewImageUrl?: string }
 } | null {
   const workflow = args.workflow
   if (workflow?.status !== 'active') return null
   if (workflow.metadata?.mainPhotoConfirmationRequired !== true) return null
   if (workflow.metadata?.mainPhotoConfirmed === true) return null
-  const previewImageUrl = getWorkflowConfirmedJewelryFrontImageUrl(
-    workflow,
-    args.photoIndex,
-    args.selectedPhotoId,
-  )
-  if (!previewImageUrl) return null
+  const publishable = workflowWithPublishableJewelryFront(workflow)
+  const photo = resolveWorkflowCustomerFacingPhoto(publishable?.photos, {
+    selectedPhotoId: args.selectedPhotoId,
+    modelIndex: args.photoIndex,
+    intakeSessionId: publishable?.id,
+  })
+  if (!photo?.imageUrl?.trim()) return null
   const itemNumber = args.itemNumber?.trim() || workflow.known.itemNumber?.trim() || ''
   const label = itemNumber || 'this piece'
   return {
-    previewImageUrl,
     itemNumber: itemNumber || null,
     message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
+    locator: mainPhotoPreviewLocator(photo),
   }
 }
 
@@ -1273,7 +1275,7 @@ async function runNonItemNumberSingle(
       needsAction: 'confirm_main_photo' as const,
       code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
       itemNumber: nonItemPreview.itemNumber,
-      previewImageUrl: nonItemPreview.previewImageUrl,
+      ...nonItemPreview.locator,
       message: nonItemPreview.message,
     }
   }
@@ -1470,7 +1472,7 @@ async function runSingle(
       needsAction: 'confirm_main_photo' as const,
       code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
       itemNumber: mainPhotoPreview.itemNumber,
-      previewImageUrl: mainPhotoPreview.previewImageUrl,
+      ...mainPhotoPreview.locator,
       message: mainPhotoPreview.message,
     }
   }

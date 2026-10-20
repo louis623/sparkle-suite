@@ -407,14 +407,15 @@ describe('label item numbers', () => {
 
 describe('main photo confirmation', () => {
   it('shows the chosen main photo thumbnail before a new piece is saved', () => {
-    const photoUrl = 'data:image/jpeg;base64,TktK'
+    const liveSizedPhoto = `data:image/jpeg;base64,${'A'.repeat(182_000)}`
     const renderables = buildAssistantMessageRenderables([
       {
         type: 'tool-add_listing',
         state: 'output-available',
         output: {
           needsAction: 'confirm_main_photo',
-          previewImageUrl: photoUrl,
+          previewPhotoId: 'photo-nk60295',
+          previewImageUrl: liveSizedPhoto,
           message:
             'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
         },
@@ -425,9 +426,11 @@ describe('main photo confirmation', () => {
         type: 'main-photo-preview',
         key: 'main-photo-0',
         text: 'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
-        imageUrl: photoUrl,
+        imageUrl: '/api/nic-nac/intake-photos/photo-nk60295',
       },
     ])
+    expect(JSON.stringify(renderables)).not.toContain('data:image')
+    expect(JSON.stringify(renderables).length).toBeLessThan(2_000)
     expect(renderables[0]).not.toMatchObject({
       text: expect.stringMatching(/\b(sold|sales|trade|traded|Live Queue)\b/i),
     })
@@ -475,7 +478,7 @@ describe('main photo confirmation', () => {
               state: 'output-available',
               output: {
                 needsAction: 'confirm_main_photo',
-                previewImageUrl: 'data:image/jpeg;base64,TktK',
+                previewPhotoId: 'photo-nk60295',
                 message:
                   'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
               },

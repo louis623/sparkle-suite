@@ -306,6 +306,14 @@ export const OPERATOR_SUPPORT_ROUTE_INVENTORY = [
     rationale: 'Operational health does not read or mutate a target rep Workspace.',
   },
   {
+    file: 'app/api/nic-nac/intake-photos/[photoId]/route.ts',
+    path: '/api/nic-nac/intake-photos/[photoId]',
+    methods: ['GET'],
+    classification: 'support_allowed_read',
+    capabilities: ['nic_nac.use'],
+    rationale: 'Serves the target rep main-photo thumbnail by id so the confirm step does not embed image bytes in chat.',
+  },
+  {
     file: 'app/api/nic-nac/jewelry-library/route.ts',
     path: '/api/nic-nac/jewelry-library',
     methods: ['GET', 'POST'],

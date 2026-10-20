@@ -8,6 +8,7 @@ import {
   type FileUIPart,
   type UIMessage,
 } from 'ai'
+import { mainPhotoPreviewSrc } from '@/lib/nic-nac/workflows/main-photo-preview'
 import { Bubble } from './Bubble'
 import { ChatHistory } from './ChatHistory'
 import { EmptyGreeting, type NicNacChatMode } from './EmptyGreeting'
@@ -134,7 +135,7 @@ export type AssistantMessageRenderable =
       type: 'main-photo-preview'
       key: string
       text: string
-      imageUrl: string
+      imageUrl?: string
     }
 
 export function buildAssistantMessageRenderables(
@@ -167,22 +168,27 @@ export function buildAssistantMessageRenderables(
     const toolPart = part as {
       type?: string
       state?: string
-      output?: { needsAction?: string; previewImageUrl?: string; message?: string }
+      output?: {
+        needsAction?: string
+        previewPhotoId?: string
+        previewImageUrl?: string
+        message?: string
+      }
     }
     if (
       toolPart.type === 'tool-add_listing' &&
       toolPart.state === 'output-available' &&
-      toolPart.output?.needsAction === 'confirm_main_photo' &&
-      toolPart.output.previewImageUrl
+      toolPart.output?.needsAction === 'confirm_main_photo'
     ) {
       flushText(`text-${index}`)
+      const imageUrl = mainPhotoPreviewSrc(toolPart.output)
       renderables.push({
         type: 'main-photo-preview',
         key: `main-photo-${index}`,
         text:
           toolPart.output.message ??
           'This is the main photo I will save. If this is the right piece, reply yes.',
-        imageUrl: toolPart.output.previewImageUrl,
+        ...(imageUrl ? { imageUrl } : {}),
       })
     }
   })
@@ -982,7 +988,7 @@ function AssistantMessage({
                 variant="nicNac"
                 showGlyph={showGlyph}
                 text={item.text}
-                images={[{ url: item.imageUrl }]}
+                images={item.imageUrl ? [{ url: item.imageUrl }] : undefined}
                 timestamp={itemTimestamp}
               />
             )

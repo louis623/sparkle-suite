@@ -15,6 +15,8 @@
 // error-translation logic are exercised end-to-end.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { UIMessage } from 'ai'
+import { selectMessagesForModel } from '@/lib/nic-nac/model-context'
 import { ServiceError, errors } from '@/lib/services/errors'
 import type { ToolContext } from '@/lib/nic-nac/tools'
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
@@ -3938,6 +3940,159 @@ describe('add_listing - active workflow readiness guard', () => {
         },
         photos: [
           {
+            id: 'photo-nk60295',
+            intakeSessionId: 'intake-nk60295',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: photoUrl,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    const result = await tool.execute({
+      mode: 'single',
+      itemNumber: 'NK60295',
+      collectionName: 'Original',
+    })
+    expect(result).toMatchObject({
+      needsAction: 'confirm_main_photo',
+      previewPhotoId: 'photo-nk60295',
+      message: expect.stringContaining('NK60295'),
+    })
+    expect(result).not.toHaveProperty('previewImageUrl')
+    expect(JSON.stringify(result)).not.toContain('data:image')
+    expect(addListingMock).not.toHaveBeenCalled()
+  })
+
+  it('keeps a live-sized main photo out of the model text and saved tool result', async () => {
+    const liveSizedPhoto = `data:image/jpeg;base64,${'A'.repeat(182_000)}`
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk60295',
+        phase: 'ready_to_add',
+        missing: [],
+        metadata: { mainPhotoConfirmationRequired: true },
+        known: {
+          itemNumber: 'NK60295',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            intakeSessionId: 'intake-nk60295',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: liveSizedPhoto,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    const result = await tool.execute({
+      mode: 'single',
+      itemNumber: 'NK60295',
+      collectionName: 'Original',
+    })
+    const serialized = JSON.stringify(result)
+    expect(result).toMatchObject({
+      needsAction: 'confirm_main_photo',
+      previewPhotoId: '11111111-1111-4111-8111-111111111111',
+      message: expect.stringContaining('main photo I will save for NK60295'),
+    })
+    expect(serialized).not.toContain('data:image')
+    expect(serialized).not.toContain('A'.repeat(80))
+    expect(serialized.length).toBeLessThan(2_000)
+    expect(addListingMock).not.toHaveBeenCalled()
+
+    const earlier = {
+      id: 'earlier',
+      role: 'user',
+      parts: [{ type: 'text', text: 'This piece is NK60295.' }],
+    } as UIMessage
+    const yes = {
+      id: 'yes',
+      role: 'user',
+      parts: [{ type: 'text', text: 'yes' }],
+    } as UIMessage
+    const kept = selectMessagesForModel(
+      [
+        earlier,
+        {
+          id: 'preview',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: result,
+            },
+          ],
+        } as UIMessage,
+        yes,
+      ],
+      { maxEstimatedTokens: 18_000 },
+    )
+    expect(kept.messages.map((message) => message.id)).toEqual([
+      'earlier',
+      'preview',
+      'yes',
+    ])
+
+    const dropped = selectMessagesForModel(
+      [
+        earlier,
+        {
+          id: 'preview',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: {
+                needsAction: 'confirm_main_photo',
+                previewImageUrl: liveSizedPhoto,
+                message: 'This is the main photo I will save for NK60295.',
+              },
+            },
+          ],
+        } as UIMessage,
+        yes,
+      ],
+      { maxEstimatedTokens: 18_000 },
+    )
+    expect(dropped.messages.map((message) => message.id)).toEqual(['yes'])
+  })
+
+  it('passes a short https main photo through without copying a data url', async () => {
+    const photoUrl = 'https://cdn.example.com/listings/rep-1/nk60295.jpg'
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk60295',
+        phase: 'ready_to_add',
+        missing: [],
+        metadata: { mainPhotoConfirmationRequired: true },
+        known: {
+          itemNumber: 'NK60295',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: 'photo-nk60295',
             intakeSessionId: 'intake-nk60295',
             attachmentIndex: 1,
             declaredRole: 'jewelry_front',
@@ -3960,10 +4115,9 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     ).resolves.toMatchObject({
       needsAction: 'confirm_main_photo',
+      previewPhotoId: 'photo-nk60295',
       previewImageUrl: photoUrl,
-      message: expect.stringContaining('NK60295'),
     })
-    expect(addListingMock).not.toHaveBeenCalled()
   })
 
   it('saves after the main photo was confirmed', async () => {
