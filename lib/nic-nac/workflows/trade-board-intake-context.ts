@@ -172,13 +172,12 @@ export function hasTradeBoardIntakeSignal(messages: UIMessage[]): boolean {
     return false
   }
 
+  // A photo starts the piece, including a label sent on its own turn. The
+  // post-completion guard above keeps a follow-up snapshot from opening a new piece.
   return (
     hasExplicitTradeBoardAddSignal(text) ||
     /\b[A-Z]{1,4}\d{3,}\b/.test(text) ||
-    (hasImage &&
-      /\b(label|details|tag|jewelry|customer-facing|dance floor|add a piece)\b/i.test(
-        assistantText,
-      ))
+    hasImage
   )
 }
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { hasTradeBoardIntakeSignal } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import {
   conversationImagesForIntake,
   resolvePiecePhotoNumber,
@@ -125,5 +126,76 @@ describe('photo numbers stay inside the current piece', () => {
     )
     expect(selected?.imageUrl).toBe('nk60295-necklace')
     expect(selected?.imageUrl).not.toBe('earlier-piece-label')
+  })
+})
+
+describe('Kelly 9/18 — a label sent alone starts the piece', () => {
+  it('starts piece tracking on a label shot sent by itself', () => {
+    expect(
+      hasTradeBoardIntakeSignal([
+        {
+          id: 'label-turn',
+          role: 'user',
+          parts: [
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TEFCRUw=',
+            },
+          ],
+        },
+      ]),
+    ).toBe(true)
+  })
+
+  it('starts tracking when the previous message was not a photo ask', () => {
+    expect(
+      hasTradeBoardIntakeSignal([
+        {
+          id: 'assistant-chat',
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'Sure, send whatever you have for the next one.' }],
+        },
+        {
+          id: 'label-turn',
+          role: 'user',
+          parts: [
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TEFCRUw=',
+            },
+          ],
+        },
+      ]),
+    ).toBe(true)
+  })
+
+  it('does not start a new piece from a photo after the last one was saved', () => {
+    expect(
+      hasTradeBoardIntakeSignal([
+        {
+          id: 'assistant-done',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'text',
+              text: 'NK60295 is now on your Dance Floor as available.',
+            },
+          ],
+        },
+        {
+          id: 'snapshot',
+          role: 'user',
+          parts: [
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TEFCRUw=',
+            },
+          ],
+        },
+      ]),
+    ).toBe(false)
   })
 })
