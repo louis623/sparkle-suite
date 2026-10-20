@@ -3,6 +3,8 @@
 -- Finder API names are favoriteStones, favoriteMaterials, favoriteCuts,
 -- and favoriteCollections. Slug membership stays in the sign-up API so
 -- retiring an option never invalidates an older row. not_sure stands alone.
+-- Postgres does not allow subqueries in CHECK, so the slug format is checked
+-- on the comma-joined array instead (slugs never contain commas).
 
 ALTER TABLE public.customer_audience
   ADD COLUMN IF NOT EXISTS favorite_stones text[] NOT NULL DEFAULT '{}',
@@ -21,37 +23,33 @@ ALTER TABLE public.customer_audience
     CHECK (
       cardinality(favorite_stones) <= 3
       AND NOT (cardinality(favorite_stones) > 1 AND 'not_sure' = ANY (favorite_stones))
-      AND NOT EXISTS (
-        SELECT 1 FROM unnest(favorite_stones) AS slug
-        WHERE slug !~ '^[a-z0-9]+([_-][a-z0-9]+)*$'
-      )
+      AND array_position(favorite_stones, NULL) IS NULL
+      AND (cardinality(favorite_stones) = 0
+        OR array_to_string(favorite_stones, ',') ~ '^[a-z0-9]+([_-][a-z0-9]+)*(,[a-z0-9]+([_-][a-z0-9]+)*)*$')
     ),
   ADD CONSTRAINT customer_audience_favorite_materials_check
     CHECK (
       cardinality(favorite_materials) <= 3
       AND NOT (cardinality(favorite_materials) > 1 AND 'not_sure' = ANY (favorite_materials))
-      AND NOT EXISTS (
-        SELECT 1 FROM unnest(favorite_materials) AS slug
-        WHERE slug !~ '^[a-z0-9]+([_-][a-z0-9]+)*$'
-      )
+      AND array_position(favorite_materials, NULL) IS NULL
+      AND (cardinality(favorite_materials) = 0
+        OR array_to_string(favorite_materials, ',') ~ '^[a-z0-9]+([_-][a-z0-9]+)*(,[a-z0-9]+([_-][a-z0-9]+)*)*$')
     ),
   ADD CONSTRAINT customer_audience_favorite_cuts_check
     CHECK (
       cardinality(favorite_cuts) <= 3
       AND NOT (cardinality(favorite_cuts) > 1 AND 'not_sure' = ANY (favorite_cuts))
-      AND NOT EXISTS (
-        SELECT 1 FROM unnest(favorite_cuts) AS slug
-        WHERE slug !~ '^[a-z0-9]+([_-][a-z0-9]+)*$'
-      )
+      AND array_position(favorite_cuts, NULL) IS NULL
+      AND (cardinality(favorite_cuts) = 0
+        OR array_to_string(favorite_cuts, ',') ~ '^[a-z0-9]+([_-][a-z0-9]+)*(,[a-z0-9]+([_-][a-z0-9]+)*)*$')
     ),
   ADD CONSTRAINT customer_audience_favorite_collections_check
     CHECK (
       cardinality(favorite_collections) <= 3
       AND NOT (cardinality(favorite_collections) > 1 AND 'not_sure' = ANY (favorite_collections))
-      AND NOT EXISTS (
-        SELECT 1 FROM unnest(favorite_collections) AS slug
-        WHERE slug !~ '^[a-z0-9]+([_-][a-z0-9]+)*$'
-      )
+      AND array_position(favorite_collections, NULL) IS NULL
+      AND (cardinality(favorite_collections) = 0
+        OR array_to_string(favorite_collections, ',') ~ '^[a-z0-9]+([_-][a-z0-9]+)*(,[a-z0-9]+([_-][a-z0-9]+)*)*$')
     );
 
 COMMENT ON COLUMN public.customer_audience.favorite_stones IS
