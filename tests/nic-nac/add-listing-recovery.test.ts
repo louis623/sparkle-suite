@@ -2496,12 +2496,12 @@ describe('add_listing - active workflow readiness guard', () => {
         {
           attachmentIndex: 1,
           declaredRole: 'unknown',
-          visualRole: 'uncertain',
+          visualRole: 'jewelry',
           roleConfirmed: false,
           imageUrl: boxedUrl,
           quality: 'usable',
           qualityIssues: [],
-          notes: ['boxed display jewelry appears clear enough'],
+          notes: ['boxed display jewelry is clear enough'],
         },
       ],
     })

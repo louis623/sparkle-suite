@@ -79,7 +79,6 @@ export function workflowPhotoSatisfiesJewelryFront(photo: {
   }
   if (photo.declaredRole === 'jewelry_front') return true
   if (photo.visualRole === 'jewelry') return true
-  if (photo.visualRole === 'uncertain') return true
   return false
 }
 
@@ -327,18 +326,13 @@ export function assignDeclaredPhotoRolesForTurn(args: {
   }
 
   if (count === 1 && !roles[0]) {
-    if (
-      args.visualRoles[0] === 'uncertain' &&
-      args.inheritedRole !== 'label_details'
-    ) {
-      roles[0] = 'jewelry_front'
-    } else {
-      roles[0] = reconcileDeclaredPhotoRoleWithWorkflow({
-        inferredRole: args.inheritedRole,
-        latestUserText: args.latestUserText,
-        photos: args.existingPhotos,
-      })
-    }
+    // An uncertain photo stays undecided. It does not become the main photo
+    // just because it is the only attachment.
+    roles[0] = reconcileDeclaredPhotoRoleWithWorkflow({
+      inferredRole: args.inheritedRole,
+      latestUserText: args.latestUserText,
+      photos: args.existingPhotos,
+    })
   }
 
   const turnHasLabel = roles.some((role) => role === 'label_details')
