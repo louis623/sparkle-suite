@@ -3,16 +3,31 @@ import type {
   TradeBoardPhotoVisualRole,
 } from './trade-board-intake-types'
 
+export const REP_CONFIRMED_MAIN_PHOTO_NOTE =
+  'confirmed by rep as customer-facing jewelry photo'
+
+export function repExplicitlyConfirmedMainPhoto(photo: {
+  notes?: string[]
+} | null | undefined): boolean {
+  return Boolean(photo?.notes?.includes(REP_CONFIRMED_MAIN_PHOTO_NOTE))
+}
+
 export function isBarredFromCustomerFacingMedia(photo: {
   declaredRole?: string
   visualRole?: string
   quality?: string
+  notes?: string[]
 } | null | undefined): boolean {
   if (!photo) return true
   if (photo.declaredRole === 'label_details' || photo.declaredRole === 'other') {
     return true
   }
-  if (photo.visualRole === 'label_or_packaging') return true
+  if (
+    photo.visualRole === 'label_or_packaging' &&
+    !repExplicitlyConfirmedMainPhoto(photo)
+  ) {
+    return true
+  }
   if (photo.quality === 'blocked') return true
   return false
 }
@@ -47,15 +62,18 @@ export function workflowPhotoSatisfiesJewelryFront(photo: {
   declaredRole?: string
   visualRole?: string
   quality?: string
+  notes?: string[]
 } | null | undefined): boolean {
   if (!photo) return false
   if (photo.quality === 'blocked') return false
   if (photo.declaredRole === 'label_details' || photo.declaredRole === 'other') {
     return false
   }
+  // A front tag does not turn a label into the main photo. The rep has to
+  // confirm that shot in words first.
   if (
     photo.visualRole === 'label_or_packaging' &&
-    photo.declaredRole !== 'jewelry_front'
+    !repExplicitlyConfirmedMainPhoto(photo)
   ) {
     return false
   }
@@ -75,7 +93,9 @@ export function findWorkflowJewelryFrontForReadiness<
   const allPhotos = photos ?? []
   const declared = allPhotos.find(
     (photo) =>
-      photo.declaredRole === 'jewelry_front' && photo.quality !== 'blocked',
+      photo.declaredRole === 'jewelry_front' &&
+      photo.quality !== 'blocked' &&
+      workflowPhotoSatisfiesJewelryFront(photo),
   )
   if (declared) return declared
   const candidates = allPhotos.filter(workflowPhotoSatisfiesJewelryFront)
@@ -95,9 +115,8 @@ type StampableWorkflowPhoto = {
 }
 
 /**
- * When a photo is promoted to jewelry_front, remap a visual label/packaging
- * classification to uncertain so boxed hex-card shots are not barred from
- * customer-facing publish. Same remap as ingest.
+ * Promote a photo to jewelry_front without erasing a label classification.
+ * A visual label stays a label until the rep confirms it in words.
  */
 export function stampPhotoAsJewelryFront<T extends StampableWorkflowPhoto>(
   photo: T,
@@ -109,8 +128,7 @@ export function stampPhotoAsJewelryFront<T extends StampableWorkflowPhoto>(
   return {
     ...photo,
     declaredRole: 'jewelry_front',
-    visualRole:
-      photo.visualRole === 'label_or_packaging' ? 'uncertain' : photo.visualRole,
+    visualRole: photo.visualRole,
     roleConfirmed: true,
     notes,
   }
@@ -119,11 +137,7 @@ export function stampPhotoAsJewelryFront<T extends StampableWorkflowPhoto>(
 function jewelryFrontStampAlreadyApplied<T extends StampableWorkflowPhoto>(
   photo: T,
 ): boolean {
-  return (
-    photo.declaredRole === 'jewelry_front' &&
-    photo.visualRole !== 'label_or_packaging' &&
-    photo.roleConfirmed === true
-  )
+  return photo.declaredRole === 'jewelry_front' && photo.roleConfirmed === true
 }
 
 /**

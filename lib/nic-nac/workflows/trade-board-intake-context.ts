@@ -35,6 +35,7 @@ import { isExplicitTradeBoardAddRequest } from './trade-board-add-intent'
 import {
   assignDeclaredPhotoRolesForTurn,
   inferRoleFromText,
+  REP_CONFIRMED_MAIN_PHOTO_NOTE,
   stampSoleReadinessJewelryFrontCandidate,
 } from './workflow-photo-roles'
 
@@ -313,11 +314,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
           qualityIssues: [],
         } satisfies InspectedWorkflowPhoto),
     )
-    const visualRole =
-      declaredRole === 'jewelry_front' &&
-      inspected.visualRole === 'label_or_packaging'
-        ? 'uncertain'
-        : inspected.visualRole
+    const visualRole = inspected.visualRole
     const photo = {
       intakeSessionId: args.session.id,
       conversationMessageId: args.latestUserMessageId ?? latestUser.id,
@@ -533,6 +530,17 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
     if (photo.quality === 'blocked') continue
     if (!photo.imageUrl) continue
     if (photo.declaredRole === 'jewelry_front' && photo.roleConfirmed) {
+      if (
+        photo.visualRole === 'label_or_packaging' &&
+        !photo.notes.includes(REP_CONFIRMED_MAIN_PHOTO_NOTE)
+      ) {
+        const confirmed = {
+          ...photo,
+          notes: [...photo.notes, REP_CONFIRMED_MAIN_PHOTO_NOTE],
+        }
+        args.photos[index] = confirmed
+        return confirmed
+      }
       return photo
     }
     if (photo.declaredRole !== 'unknown' && photo.declaredRole !== 'other') {
@@ -545,7 +553,7 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
       roleConfirmed: true,
       notes: [
         ...photo.notes,
-        'confirmed by rep as customer-facing jewelry photo',
+        REP_CONFIRMED_MAIN_PHOTO_NOTE,
       ],
     }
     args.photos[index] = confirmed

@@ -327,7 +327,7 @@ describe('customer-facing media selection', () => {
     expect(resolveWorkflowCustomerFacingPhoto(twoUncertain)).toBeNull()
   })
 
-  it('remaps a visual label to uncertain when the sole readiness candidate is stamped jewelry_front', () => {
+  it('keeps a visual label from becoming the main photo when it is only tagged jewelry_front', () => {
     const boxedHexCard = {
       declaredRole: 'unknown' as const,
       visualRole: 'uncertain' as const,
@@ -336,24 +336,28 @@ describe('customer-facing media selection', () => {
       imageUrl: 'boxed-hex-card',
       notes: [] as string[],
     }
-    const inheritedLabelAsFront = {
+    const labelTaggedAsFront = {
       declaredRole: 'jewelry_front' as const,
       visualRole: 'label_or_packaging' as const,
       quality: 'usable' as const,
       roleConfirmed: true,
-      imageUrl: 'boxed-hex-card',
+      imageUrl: 'er34579-label',
       notes: [] as string[],
     }
-    const remapped = stampSoleReadinessJewelryFrontCandidate([inheritedLabelAsFront])
-    expect(remapped[0]).toMatchObject({
+    const stamped = stampSoleReadinessJewelryFrontCandidate([labelTaggedAsFront])
+    expect(stamped[0]).toMatchObject({
       declaredRole: 'jewelry_front',
-      visualRole: 'uncertain',
-      imageUrl: 'boxed-hex-card',
+      visualRole: 'label_or_packaging',
+      imageUrl: 'er34579-label',
     })
-    expect(isAcceptedCustomerFacingWorkflowPhoto(remapped[0])).toBe(true)
-    expect(isAcceptedCustomerFacingWorkflowPhoto(inheritedLabelAsFront)).toBe(
-      false,
-    )
+    expect(isAcceptedCustomerFacingWorkflowPhoto(stamped[0])).toBe(false)
+    expect(workflowPhotoSatisfiesJewelryFront(stamped[0])).toBe(false)
+    expect(
+      isAcceptedCustomerFacingWorkflowPhoto({
+        ...labelTaggedAsFront,
+        notes: ['confirmed by rep as customer-facing jewelry photo'],
+      }),
+    ).toBe(true)
     expect(isAcceptedCustomerFacingWorkflowPhoto(boxedHexCard)).toBe(false)
   })
 
