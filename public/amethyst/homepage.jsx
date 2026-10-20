@@ -2390,10 +2390,9 @@ function Signup({ repName, businessName }) {
             <div className="hp-signup-preferences">
               <style>{SIGNUP_PREFERENCE_STYLES}</style>
               <div className="hp-signup-preferences-heading">
-                <strong>Make it a little more personal</strong>
-                <span>Optional</span>
+                <strong>Your jewelry favorites</strong>
               </div>
-              <p className="hp-signup-preferences-copy">Share only what you&apos;d like. These details help your rep send more thoughtful promotional and gift ideas.</p>
+              <p className="hp-signup-preferences-copy">Helps {businessName} pick pieces you&apos;ll love. Pick up to 3 in each list.</p>
               <div className="hp-signup-field">
                 <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
                 <input id="hp-birthday" className="hp-signup-input" type="text" inputMode="numeric" pattern="[0-1][0-9]-[0-3][0-9]" placeholder="MM-DD" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
