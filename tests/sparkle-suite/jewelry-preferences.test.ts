@@ -309,6 +309,27 @@ describe('signup copy and migration parity', () => {
     expect(notes).toContain('length(jewelry_notes) <= 500')
     expect(notes).toContain('rep-private notes')
   })
+
+  it('rejects comma-joined favorite values and duplicates in a forward migration', () => {
+    const root = resolve(process.cwd(), 'supabase')
+    const shape = readFileSync(
+      resolve(root, 'migrations/20261020235500_ss_customer_audience_favorite_slug_shape.sql'),
+      'utf8',
+    )
+    const undo = readFileSync(
+      resolve(root, 'manual/20261020235500_ss_customer_audience_favorite_slug_shape_undo.sql'),
+      'utf8',
+    )
+
+    expect(shape).not.toMatch(/\bSELECT\b/)
+    expect(shape).toContain("array_to_string(favorite_stones, '') !~ ','")
+    expect(shape).toContain('favorite_stones[1] IS DISTINCT FROM favorite_stones[2]')
+    expect(shape).toContain('favorite_collections[2] IS DISTINCT FROM favorite_collections[3]')
+    expect(shape).toContain("NOTIFY pgrst, 'reload schema';")
+    expect(undo).toContain('DROP CONSTRAINT IF EXISTS customer_audience_favorite_stones_check')
+    expect(undo).toContain("NOTIFY pgrst, 'reload schema';")
+    expect(undo).not.toContain('DROP COLUMN')
+  })
 })
 
 function mockAudienceClient() {
