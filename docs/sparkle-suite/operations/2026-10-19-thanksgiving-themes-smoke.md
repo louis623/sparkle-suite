@@ -98,3 +98,18 @@ restart delta is 0.825 against a maximum within-clip delta of 1.002 (8-bit luma)
 Physical iOS/Safari playback remains untested and final owner motion acceptance
 is pending. This revision is for Smoke only, without a database or rep-setting
 change; Live remains separately gated.
+
+## Final approval and display name — October 19
+
+Louis accepted the revised Pie appearance and v4 loop, then requested the name
+**Pumpkin Pie**. Updated public labels, preview title, selection registry and
+runtime pickers. The stable `pie_please` ID, PP-01 code, asset paths and preview
+URLs remain compatible; the previous name remains a recognized selection alias.
+No art, video, saved rep selection or database change accompanies the rename.
+150 focused label, normalization/save, template and layout checks passed.
+Both Pumpkin Pie and Gobble & Fizz are owner-approved on Smoke. Remaining Live
+work is the separately authorized release batch: preflight current production,
+apply the additive Community catalog migration to Live if still absent, rebuild
+the accepted SHA with Live configuration, verify both aliases and safe customer
+selection/rendering, and record release evidence. Physical iPhone/Safari remains
+untested. No additional Higgsfield generation or funding is needed.

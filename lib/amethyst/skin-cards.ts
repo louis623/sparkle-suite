@@ -36,7 +36,8 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     swatches: [{ label: 'Primary', value: '#efb36c' }, { label: 'Accent', value: '#c9854f' }, { label: 'Ground', value: '#291522' }],
   },
   {
-    id: 'pie_please', code: 'PP-01', label: 'Pie, Please!', visibility: 'community',
+    id: 'pie_please', code: 'PP-01', label: 'Pumpkin Pie', visibility: 'community',
+    aliases: ['Pie, Please!'],
     description: 'Pumpkin pie, copper jewelry and soft window light with a frosted ivory welcome.', previewHref: '/skin-preview/pie_please/homepage',
     headingFont: 'Playfair Display', bodyFont: 'DM Sans',
     surfaceNote: 'Cream reading surfaces, pumpkin-orange accents, ruby-red actions and a frosted hero panel', motionNote: 'A 9.2-second silent sunlight loop. Pause or use reduced motion for a still scene.',

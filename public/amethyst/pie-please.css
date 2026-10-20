@@ -1,4 +1,4 @@
-/* Pie, Please!: palette and decorative hero only. Shared Amethyst
+/* Pumpkin Pie: palette and decorative hero only. Shared Amethyst
  * fonts, spacing, header, tickers and Live Lineup geometry stay untouched. */
 html:has(body.bg-pie-please) {
   background: #fcf3e5;

@@ -148,7 +148,7 @@ const PREVIEW_PROFILES = {
     ],
   },
   pie_please: {
-    label: 'Pie, Please!', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
+    label: 'Pumpkin Pie', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
     ticker: 'Live jewelry reveals | A little sparkle, a lovely surprise | Explore the Dance Floor',
     tagline: 'Good company. Beautiful surprises.',
     eyebrow: '', headline: 'Real jewelry. Live reveals. Pure sparkle.',

@@ -9,7 +9,7 @@ import { buildSkinPreviewDocument, skinPreviewMediaSource } from '@/lib/amethyst
 
 describe.each([
   { id: 'gobble_and_fizz', label: 'Gobble & Fizz', code: 'GF-01', slug: 'gobble-and-fizz', primary: '#efb36c', accent: '#c9854f', tone: 'gobbleAndFizz' },
-  { id: 'pie_please', label: 'Pie, Please!', code: 'PP-01', slug: 'pie-please', primary: '#9b233d', accent: '#b95015', tone: 'piePlease' },
+  { id: 'pie_please', label: 'Pumpkin Pie', code: 'PP-01', slug: 'pie-please', primary: '#9b233d', accent: '#b95015', tone: 'piePlease' },
 ] as const)('$label Community theme', theme => {
   it('is selectable by stable id, label and code without changing existing selections or defaults', () => {
     for (const input of [theme.id, theme.label, theme.code]) expect(normalizeAmethystSkinSelection(input)).toBe(theme.id)

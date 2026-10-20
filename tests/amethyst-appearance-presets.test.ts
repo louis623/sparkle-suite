@@ -102,7 +102,7 @@ describe('Amethyst appearance presets', () => {
     ])
     expect(AMETHYST_SKIN_CARDS.map((skin) => skin.label)).toEqual([
       'Gobble & Fizz',
-      'Pie, Please!',
+      'Pumpkin Pie',
       'Chasing Unicorns (Amethyst)',
       'Sparkle Suite/Morganite',
       'Black Diamond',

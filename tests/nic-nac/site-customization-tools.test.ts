@@ -344,6 +344,7 @@ describe('site customization tools', () => {
     ['Gobble & Fizz', 'gobble_and_fizz'],
     ['PP-01', 'pie_please'],
     ['Pie, Please!', 'pie_please'],
+    ['Pumpkin Pie', 'pie_please'],
     ['Rose Champagne', 'rose_champagne'],
     ['Midnight Rose', 'midnight_rose'],
     ['GA-01', 'gilded_autumn'],

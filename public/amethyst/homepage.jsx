@@ -2930,7 +2930,7 @@ function App() {
               { value: "midnight_rose", label: "Midnight Rose" },
               { value: "fall_owl_harvest_moon", label: "Fall Owl and Harvest Moon" },
               { value: "gobble_and_fizz", label: "Gobble & Fizz" },
-              { value: "pie_please", label: "Pie, Please!" },
+              { value: "pie_please", label: "Pumpkin Pie" },
               { value: "pearl_rose", label: "Pearl Rose" },
               { value: "rose_champagne", label: "Rose Champagne" },
               { value: "garnet", label: "Garnet" },
