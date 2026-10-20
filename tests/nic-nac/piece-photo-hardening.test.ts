@@ -12,6 +12,7 @@ import {
   hasTradeBoardIntakeSignal,
   ingestLatestTradeBoardIntakeTurn,
 } from '@/lib/nic-nac/workflows/trade-board-intake-context'
+import { buildAssistantMessageRenderables } from '@/app/nic-nac/components/NicNacChatBody'
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
 import {
   isAcceptedCustomerFacingWorkflowPhoto,
@@ -401,5 +402,99 @@ describe('label item numbers', () => {
         readItemNumbers: [],
       }).blocked,
     ).toBe(false)
+  })
+})
+
+describe('main photo confirmation', () => {
+  it('shows the chosen main photo thumbnail before a new piece is saved', () => {
+    const photoUrl = 'data:image/jpeg;base64,TktK'
+    const renderables = buildAssistantMessageRenderables([
+      {
+        type: 'tool-add_listing',
+        state: 'output-available',
+        output: {
+          needsAction: 'confirm_main_photo',
+          previewImageUrl: photoUrl,
+          message:
+            'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
+        },
+      },
+    ])
+    expect(renderables).toEqual([
+      {
+        type: 'main-photo-preview',
+        key: 'main-photo-0',
+        text: 'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
+        imageUrl: photoUrl,
+      },
+    ])
+    expect(renderables[0]).not.toMatchObject({
+      text: expect.stringMatching(/\b(sold|sales|trade|traded|Live Queue)\b/i),
+    })
+  })
+
+  it('remembers a yes after the main photo preview', async () => {
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_sessions') return { update }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-nk60295',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'ready_to_add',
+      known: {
+        itemNumber: 'NK60295',
+        designName: 'Necklace',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: { mainPhotoConfirmationRequired: true },
+      photos: [],
+    }
+
+    const ingested = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'preview',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: {
+                needsAction: 'confirm_main_photo',
+                previewImageUrl: 'data:image/jpeg;base64,TktK',
+                message:
+                  'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
+              },
+            },
+          ],
+        },
+        {
+          id: 'yes',
+          role: 'user',
+          parts: [{ type: 'text', text: 'Yes' }],
+        },
+      ],
+    })
+
+    expect(ingested.metadata.mainPhotoConfirmed).toBe(true)
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({ mainPhotoConfirmed: true }),
+      }),
+    )
   })
 })

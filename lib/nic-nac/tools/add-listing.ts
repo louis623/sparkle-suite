@@ -715,6 +715,35 @@ async function assertCustomerPhotoNotReused(args: {
   })
 }
 
+function pendingMainPhotoConfirmation(args: {
+  itemNumber?: string | null
+  workflow: ToolContext['activeTradeBoardWorkflow'] | undefined
+  selectedPhotoId?: string
+  photoIndex?: number
+}): {
+  previewImageUrl: string
+  itemNumber: string | null
+  message: string
+} | null {
+  const workflow = args.workflow
+  if (workflow?.status !== 'active') return null
+  if (workflow.metadata?.mainPhotoConfirmationRequired !== true) return null
+  if (workflow.metadata?.mainPhotoConfirmed === true) return null
+  const previewImageUrl = getWorkflowConfirmedJewelryFrontImageUrl(
+    workflow,
+    args.photoIndex,
+    args.selectedPhotoId,
+  )
+  if (!previewImageUrl) return null
+  const itemNumber = args.itemNumber?.trim() || workflow.known.itemNumber?.trim() || ''
+  const label = itemNumber || 'this piece'
+  return {
+    previewImageUrl,
+    itemNumber: itemNumber || null,
+    message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
+  }
+}
+
 function requirePiecePhotoNumberUrl(
   workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
   photoIndex: number | undefined,
@@ -1233,6 +1262,22 @@ async function runNonItemNumberSingle(
     })
   }
 
+  const nonItemPreview = pendingMainPhotoConfirmation({
+    itemNumber: activeWorkflow?.known.itemNumber,
+    workflow: activeWorkflow,
+    selectedPhotoId: input.selectedPhotoId,
+    photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+  })
+  if (nonItemPreview) {
+    return {
+      needsAction: 'confirm_main_photo' as const,
+      code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
+      itemNumber: nonItemPreview.itemNumber,
+      previewImageUrl: nonItemPreview.previewImageUrl,
+      message: nonItemPreview.message,
+    }
+  }
+
   // Listing-only row: jewelry-front still wins, but never resolve or
   // create jewelry_designs. Photo cache uses mutation identity, not a
   // catalog designId / item number.
@@ -1411,6 +1456,22 @@ async function runSingle(
           userMessage: formatWorkflowNotReadyMessage(readiness),
         })
       }
+    }
+  }
+
+  const mainPhotoPreview = pendingMainPhotoConfirmation({
+    itemNumber,
+    workflow: activeWorkflow,
+    selectedPhotoId: input.selectedPhotoId,
+    photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+  })
+  if (mainPhotoPreview) {
+    return {
+      needsAction: 'confirm_main_photo' as const,
+      code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
+      itemNumber: mainPhotoPreview.itemNumber,
+      previewImageUrl: mainPhotoPreview.previewImageUrl,
+      message: mainPhotoPreview.message,
     }
   }
 

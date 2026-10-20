@@ -3922,6 +3922,103 @@ describe('add_listing - active workflow readiness guard', () => {
     })
   })
 
+  it('shows the main photo and waits for a yes before saving a new piece', async () => {
+    const photoUrl = 'data:image/jpeg;base64,TktK'
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk60295',
+        phase: 'ready_to_add',
+        missing: [],
+        metadata: { mainPhotoConfirmationRequired: true },
+        known: {
+          itemNumber: 'NK60295',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            intakeSessionId: 'intake-nk60295',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: photoUrl,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK60295',
+        collectionName: 'Original',
+      }),
+    ).resolves.toMatchObject({
+      needsAction: 'confirm_main_photo',
+      previewImageUrl: photoUrl,
+      message: expect.stringContaining('NK60295'),
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
+  })
+
+  it('saves after the main photo was confirmed', async () => {
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/nk60295.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-confirmed',
+      designId: 'design-1',
+      itemNumber: 'NK60295',
+      designName: 'Necklace',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk60295',
+        phase: 'ready_to_add',
+        missing: [],
+        metadata: {
+          mainPhotoConfirmationRequired: true,
+          mainPhotoConfirmed: true,
+        },
+        known: {
+          itemNumber: 'NK60295',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            intakeSessionId: 'intake-nk60295',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,TktK',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK60295',
+        collectionName: 'Original',
+      }),
+    ).resolves.toMatchObject({ listingId: 'listing-confirmed' })
+    expect(addListingMock).toHaveBeenCalled()
+  })
+
   it('does not block an NK60295 gold citrine variant when that item number already has the photo', async () => {
     createAdminClientMock.mockReturnValue(
       makeAdminClientMock([], null, [{ item_number: 'NK60295' }]),

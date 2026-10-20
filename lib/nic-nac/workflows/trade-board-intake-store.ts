@@ -249,6 +249,7 @@ export async function createTradeBoardIntakeSession(
       status: 'active',
       current_phase: 'started',
       last_user_message_id: args.lastUserMessageId ?? null,
+      metadata: { mainPhotoConfirmationRequired: true },
     })
     .select('*')
     .single()

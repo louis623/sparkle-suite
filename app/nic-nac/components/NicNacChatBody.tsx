@@ -130,6 +130,12 @@ export type AssistantMessageRenderable =
       key: string
       request: TradeRequestCardPart['data']
     }
+  | {
+      type: 'main-photo-preview'
+      key: string
+      text: string
+      imageUrl: string
+    }
 
 export function buildAssistantMessageRenderables(
   parts: readonly unknown[],
@@ -155,6 +161,28 @@ export function buildAssistantMessageRenderables(
         type: 'data-trade-request-card',
         key: `trade-request-${part.data.requestId}-${index}`,
         request: part.data,
+      })
+      return
+    }
+    const toolPart = part as {
+      type?: string
+      state?: string
+      output?: { needsAction?: string; previewImageUrl?: string; message?: string }
+    }
+    if (
+      toolPart.type === 'tool-add_listing' &&
+      toolPart.state === 'output-available' &&
+      toolPart.output?.needsAction === 'confirm_main_photo' &&
+      toolPart.output.previewImageUrl
+    ) {
+      flushText(`text-${index}`)
+      renderables.push({
+        type: 'main-photo-preview',
+        key: `main-photo-${index}`,
+        text:
+          toolPart.output.message ??
+          'This is the main photo I will save. If this is the right piece, reply yes.',
+        imageUrl: toolPart.output.previewImageUrl,
       })
     }
   })
@@ -946,6 +974,19 @@ function AssistantMessage({
           const showGlyph = isFirstInRun && index === 0
           const itemTimestamp =
             index === lastRenderableIndex ? timestamp : undefined
+
+          if (item.type === 'main-photo-preview') {
+            return (
+              <Bubble
+                key={item.key}
+                variant="nicNac"
+                showGlyph={showGlyph}
+                text={item.text}
+                images={[{ url: item.imageUrl }]}
+                timestamp={itemTimestamp}
+              />
+            )
+          }
 
           if (item.type === 'text') {
             return isStreamingTail ? (

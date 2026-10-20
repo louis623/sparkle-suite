@@ -409,11 +409,15 @@ export async function ingestLatestTradeBoardIntakeTurn(
     })
   }
 
+  const metadata = latestTurnConfirmsMainPhoto(args.messages)
+    ? { ...args.session.metadata, mainPhotoConfirmed: true }
+    : args.session.metadata
   const updated: TradeBoardIntakeSessionState = {
     ...args.session,
     catalogMode,
     known,
     photos,
+    metadata,
     lastUserMessageId: args.latestUserMessageId ?? latestUser.id,
   }
   const readiness = computeTradeBoardIntakeReadiness(updated)
@@ -561,6 +565,21 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
   }
 
   return null
+}
+
+function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return false
+  if (!isPositiveConfirmation(getMessageText(messages[latestUserIndex]))) return false
+  const previousAssistant = messages
+    .slice(0, latestUserIndex)
+    .reverse()
+    .find((message) => message.role === 'assistant')
+  if (/main photo I will save/i.test(getMessageText(previousAssistant))) return true
+  return (previousAssistant?.parts ?? []).some((part) => {
+    const output = (part as { output?: { needsAction?: string } }).output
+    return output?.needsAction === 'confirm_main_photo'
+  })
 }
 
 function isPositiveConfirmation(text: string): boolean {
