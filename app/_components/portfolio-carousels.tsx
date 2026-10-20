@@ -77,6 +77,7 @@ function PortfolioCarousel({
   carousel: (typeof sparkleSuitePortfolioContent.carousels)[number]
 }) {
   const viewportRef = useRef<HTMLDivElement>(null)
+  const dotsRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
   const count = carousel.slides.length
 
@@ -146,6 +147,12 @@ function PortfolioCarousel({
     const next = (index + count) % count
     setActive(next)
     scrollToSlide(next)
+    return next
+  }
+
+  function moveDot(index: number) {
+    const next = focusSlide(index)
+    dotsRef.current?.querySelectorAll('button')[next]?.focus()
   }
 
   const band = portfolioBands[carousel.id]
@@ -210,15 +217,20 @@ function PortfolioCarousel({
           <ChevronRight size={22} aria-hidden="true" />
         </button>
       </div>
-      <div className={styles.dots} role="tablist" aria-label={`${carousel.label} slides`}>
+      <div ref={dotsRef} className={styles.dots} role="group" aria-label={`${carousel.label} slides`}>
         {carousel.slides.map((item, index) => (
           <button
             key={item.id}
             type="button"
-            role="tab"
-            aria-selected={index === active}
+            aria-current={index === active ? 'true' : undefined}
             aria-label={`${item.title}, slide ${index + 1} of ${count}`}
+            tabIndex={index === active ? 0 : -1}
             onClick={() => focusSlide(index)}
+            onKeyDown={(event) => {
+              if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+              event.preventDefault()
+              moveDot(index + (event.key === 'ArrowRight' ? 1 : -1))
+            }}
           />
         ))}
       </div>

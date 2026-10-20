@@ -151,7 +151,7 @@
   background: rgba(64, 41, 36, .28);
   cursor: pointer;
 }
-.dots button[aria-selected='true'] { width: 28px; background: var(--suite-pink); }
+.dots button[aria-current='true'] { width: 28px; background: var(--suite-pink); }
 @media (prefers-reduced-motion: reduce) {
   .viewport { scroll-behavior: auto; }
 }
