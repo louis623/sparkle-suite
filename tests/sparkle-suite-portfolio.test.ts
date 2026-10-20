@@ -16,51 +16,71 @@ const publicFile = (src: string) => join(process.cwd(), 'public', ...src.split('
 const communityThemes = [
   {
     id: 'amethyst',
+    title: 'Chasing Unicorns',
+    pickerLabel: 'Chasing Unicorns (Amethyst)',
     poster: '/amethyst/skins/am01-unicorn/hero-poster.webp',
     mp4: '/amethyst/skins/am01-unicorn/hero-motion.mp4',
   },
   {
     id: 'halloween_pumpkin_witch',
+    title: 'Pumpkin and Witch',
+    pickerLabel: 'Halloween Pumpkin and Witch',
     poster: halloweenHeroMotion.witch.poster,
     mp4: halloweenHeroMotion.witch.mp4,
   },
   {
     id: 'halloween_pumpkin_cat',
+    title: 'Pumpkin and Cat',
+    pickerLabel: 'Halloween Pumpkin and Cat',
     poster: halloweenHeroMotion.cat.poster,
     mp4: halloweenHeroMotion.cat.mp4,
   },
   {
     id: 'gilded_autumn',
+    title: 'The Golden Leaves of Autumn',
+    pickerLabel: 'The Golden Leaves of Autumn',
     poster: '/amethyst/skins/gilded-autumn/hero-poster.webp',
     mp4: '/amethyst/skins/gilded-autumn/hero-motion.mp4',
   },
   {
     id: 'fall_owl_harvest_moon',
+    title: 'Fall Owl Harvest Moon',
+    pickerLabel: 'Fall Owl and Harvest Moon',
     poster: '/amethyst/skins/fall-owl/hero-poster.webp',
     mp4: '/amethyst/skins/fall-owl/hero-loop.mp4',
   },
   {
     id: 'gobble_and_fizz',
+    title: 'Gobble & Fizz',
+    pickerLabel: 'Gobble & Fizz',
     poster: '/amethyst/skins/gobble-and-fizz/hero-poster.webp',
     mp4: '/amethyst/skins/gobble-and-fizz/hero-loop.mp4',
   },
   {
     id: 'pie_please',
+    title: 'Pumpkin Pie',
+    pickerLabel: 'Pumpkin Pie',
     poster: '/amethyst/skins/pie-please/hero-poster-v4.webp',
     mp4: '/amethyst/skins/pie-please/hero-loop-v4.mp4',
   },
   {
     id: 'midnight_rose',
+    title: 'Midnight Rose',
+    pickerLabel: 'Midnight Rose',
     poster: '/amethyst/skins/midnight-rose/hero-poster.webp',
     mp4: '/amethyst/skins/midnight-rose/hero-loop.mp4',
   },
   {
     id: 'pearl_rose',
+    title: 'Pearl Rose',
+    pickerLabel: 'Pearl Rose',
     poster: '/amethyst/skins/pearl-rose/hero-poster.webp',
     mp4: '/amethyst/skins/pearl-rose/hero-loop.mp4',
   },
   {
     id: 'rose_champagne',
+    title: 'Rose Champagne',
+    pickerLabel: 'Rose Champagne',
     poster: '/amethyst/skins/rose-champagne/hero-poster.webp',
     mp4: '/amethyst/skins/rose-champagne/hero-loop.mp4',
   },
@@ -74,6 +94,7 @@ describe('Sparkle Suite portfolio carousels', () => {
     const themes = sparkleSuitePortfolioContent.carousels.find((carousel) => carousel.id === 'community-themes')
     const reps = sparkleSuitePortfolioContent.carousels.find((carousel) => carousel.id === 'rep-highlights')
     expect(themes?.slides.map((slide) => slide.id)).toEqual(communityThemes.map((theme) => theme.id))
+    expect(themes?.slides.map((slide) => slide.title)).toEqual(communityThemes.map((theme) => theme.title))
     expect(html.indexOf('id="community-themes"')).toBeGreaterThan(-1)
     expect(html.indexOf('id="community-themes"')).toBeLessThan(html.indexOf('id="rep-highlights"'))
     expect(html.match(/aria-roledescription="carousel"/g)).toHaveLength(2)
@@ -81,7 +102,8 @@ describe('Sparkle Suite portfolio carousels', () => {
     const themeHtml = html.slice(html.indexOf('id="community-themes"'), html.indexOf('id="rep-highlights"'))
     let previous = -1
     for (const theme of communityThemes) {
-      const title = getAmethystAppearancePreset(theme.id).label.replaceAll('&', '&amp;')
+      const title = theme.title.replaceAll('&', '&amp;')
+      expect(getAmethystAppearancePreset(theme.id).label).toBe(theme.pickerLabel)
       const index = themeHtml.indexOf(title)
       expect(index).toBeGreaterThan(previous)
       previous = index

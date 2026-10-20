@@ -1,7 +1,4 @@
-import {
-  getAmethystAppearancePreset,
-  type AmethystAppearancePresetId,
-} from '@/lib/amethyst/appearance-presets'
+import type { AmethystAppearancePresetId } from '@/lib/amethyst/appearance-presets'
 import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
 import { sparkleSuitePublicLandingContent } from '@/lib/sparkle-suite/public-landing-content'
 
@@ -38,6 +35,7 @@ export type PortfolioSlide =
 
 function communityThemeSlide(theme: {
   id: AmethystAppearancePresetId
+  title: string
   detail: string
   src: string
   alt: string
@@ -48,7 +46,7 @@ function communityThemeSlide(theme: {
   return {
     id: theme.id,
     kind: 'capture',
-    title: getAmethystAppearancePreset(theme.id).label,
+    title: theme.title,
     detail: theme.detail,
     href: `/skin-preview/${theme.id}/homepage`,
     linkLabel: 'Preview this look',
@@ -63,6 +61,7 @@ function communityThemeSlide(theme: {
 const communityThemeSlides = [
   communityThemeSlide({
     id: 'amethyst',
+    title: 'Chasing Unicorns',
     detail: 'Magical violet and hot-pink light, with a full-body unicorn.',
     src: '/amethyst/skins/am01-unicorn/hero-poster.webp',
     alt: 'Chasing Unicorns homepage hero, with a violet unicorn and glossy cards.',
@@ -72,6 +71,7 @@ const communityThemeSlides = [
   }),
   communityThemeSlide({
     id: 'halloween_pumpkin_witch',
+    title: 'Pumpkin and Witch',
     detail: 'A sparkling black-and-orange night with a jack-o’-lantern, silver moon, and a flying witch.',
     src: halloweenHeroMotion.witch.poster,
     alt: 'Halloween Pumpkin and Witch homepage hero, with a jack-o’-lantern, silver moon, and flying witch.',
@@ -85,6 +85,7 @@ const communityThemeSlides = [
   }),
   communityThemeSlide({
     id: 'halloween_pumpkin_cat',
+    title: 'Pumpkin and Cat',
     detail: 'A glittering pumpkin night, with a black cat perched on the silver moon.',
     src: halloweenHeroMotion.cat.poster,
     alt: 'Halloween Pumpkin and Cat homepage hero, with a black cat beside a glowing jack-o’-lantern.',
@@ -98,6 +99,7 @@ const communityThemeSlides = [
   }),
   communityThemeSlide({
     id: 'gilded_autumn',
+    title: 'The Golden Leaves of Autumn',
     detail: 'Sunlit autumn trees, copper leaves, and a fine champagne shimmer.',
     src: '/amethyst/skins/gilded-autumn/hero-poster.webp',
     alt: 'The Golden Leaves of Autumn homepage hero, with sunlit trees and copper leaves.',
@@ -107,6 +109,7 @@ const communityThemeSlides = [
   }),
   communityThemeSlide({
     id: 'fall_owl_harvest_moon',
+    title: 'Fall Owl Harvest Moon',
     detail: 'A jeweled owl beneath the harvest moon, in deep plum and warm gold.',
     src: '/amethyst/skins/fall-owl/hero-poster.webp',
     alt: 'Fall Owl and Harvest Moon homepage hero, with a jeweled owl under a harvest moon.',
@@ -116,6 +119,7 @@ const communityThemeSlides = [
   }),
   communityThemeSlide({
     id: 'gobble_and_fizz',
+    title: 'Gobble & Fizz',
     detail: 'A curious turkey, copper sparkle, and a cozy plum Thanksgiving scene.',
     src: '/amethyst/skins/gobble-and-fizz/hero-poster.webp',
     alt: 'Gobble and Fizz homepage hero, with a turkey in a plum Thanksgiving scene.',
@@ -125,6 +129,7 @@ const communityThemeSlides = [
   }),
   communityThemeSlide({
     id: 'pie_please',
+    title: 'Pumpkin Pie',
     detail: 'Pumpkin pie, copper jewelry, and soft window light.',
     src: '/amethyst/skins/pie-please/hero-poster-v4.webp',
     alt: 'Pumpkin Pie homepage hero, with pumpkin pie, copper jewelry, and window light.',
@@ -134,6 +139,7 @@ const communityThemeSlides = [
   }),
   communityThemeSlide({
     id: 'midnight_rose',
+    title: 'Midnight Rose',
     detail: 'Deep aubergine surfaces with warm copper-blush glitter.',
     src: '/amethyst/skins/midnight-rose/hero-poster.webp',
     alt: 'Midnight Rose homepage hero, with aubergine surfaces and copper-blush glitter.',
@@ -143,6 +149,7 @@ const communityThemeSlides = [
   }),
   communityThemeSlide({
     id: 'pearl_rose',
+    title: 'Pearl Rose',
     detail: 'Airy ivory surfaces, copper details, and burgundy ink.',
     src: '/amethyst/skins/pearl-rose/hero-poster.webp',
     alt: 'Pearl Rose homepage hero, with ivory surfaces, copper details, and burgundy ink.',
@@ -152,6 +159,7 @@ const communityThemeSlides = [
   }),
   communityThemeSlide({
     id: 'rose_champagne',
+    title: 'Rose Champagne',
     detail: 'Warm rose-copper shimmer and champagne bokeh.',
     src: '/amethyst/skins/rose-champagne/hero-poster.webp',
     alt: 'Rose Champagne homepage hero, with rose-copper shimmer and champagne bokeh.',
