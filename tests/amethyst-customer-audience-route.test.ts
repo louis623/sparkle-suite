@@ -471,6 +471,43 @@ describe('POST /api/amethyst/customer-audience', () => {
     )
   })
 
+  it('logs a database failure without customer values', async () => {
+    process.env.AMETHYST_HOMEPAGE_PREVIEW_EMAIL = 'preview@example.com'
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { client } = makeAdminClient({
+      insertError: {
+        code: '23514',
+        message:
+          'new row for relation "customer_audience" violates check constraint "customer_audience_favorite_stones_check"',
+        details: 'Failing row contains (Jamie Lane, jamie@example.com, 5555551212)',
+      },
+    })
+    createAdminClientMock.mockReturnValue(client)
+
+    const response = await POST(
+      new Request('http://localhost/api/amethyst/customer-audience', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          firstName: 'Jamie',
+          lastName: 'Lane',
+          email: 'jamie@example.com',
+          emailConsent: true,
+          ...favoriteAnswers,
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(500)
+    const logged = JSON.stringify(errorSpy.mock.calls)
+    expect(logged).toContain('23514')
+    expect(logged).toContain('customer_audience_favorite_stones_check')
+    expect(logged).not.toContain('jamie@example.com')
+    expect(logged).not.toContain('5555551212')
+    expect(logged).not.toContain('Jamie Lane')
+    errorSpy.mockRestore()
+  })
+
   it('asks the customer to refresh when an old form sends no favorite lists', async () => {
     process.env.AMETHYST_HOMEPAGE_PREVIEW_EMAIL = 'preview@example.com'
     const { client, spies } = makeAdminClient()

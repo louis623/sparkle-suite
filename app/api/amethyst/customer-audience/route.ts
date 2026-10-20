@@ -137,6 +137,20 @@ async function parseSignupPayload(request: Request): Promise<SignupRequestBody> 
   }
 }
 
+function logSignupSaveError(error: unknown) {
+  const record =
+    error && typeof error === 'object'
+      ? (error as { code?: unknown; message?: unknown })
+      : {}
+  const code =
+    typeof record.code === 'string' && /^[A-Z0-9]{1,10}$/.test(record.code)
+      ? record.code
+      : 'unknown'
+  const message = typeof record.message === 'string' ? record.message : ''
+  const constraint = message.match(/constraint "([a-z0-9_]+)"/i)?.[1] ?? null
+  console.error('[amethyst/customer-audience] save failed', { code, constraint })
+}
+
 export async function POST(request: Request) {
   try {
     const payload = await parseSignupPayload(request)
@@ -201,7 +215,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.error('[amethyst/customer-audience] Error:', error)
+    logSignupSaveError(error)
     return NextResponse.json(
       { error: 'Failed to save signup right now.' },
       { status: 500 },
