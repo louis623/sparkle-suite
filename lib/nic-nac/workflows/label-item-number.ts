@@ -46,6 +46,9 @@ const GLYPH_WIDTH = 5
 const GLYPH_HEIGHT = 7
 const GLYPH_GAP = 1
 
+/** This reader only matches its own 5×7 template. Real chat photos are far larger. */
+export const LABEL_TEMPLATE_MAX_BYTES = 16_000
+
 function normalizeItemNumber(itemNumber: string): string {
   return itemNumber.trim().toUpperCase()
 }
@@ -135,6 +138,7 @@ function readRun(pixels: Uint8Array, width: number, height: number, x: number, y
 export async function readItemNumbersFromImageBytes(
   bytes: Buffer,
 ): Promise<string[]> {
+  if (bytes.length === 0 || bytes.length > LABEL_TEMPLATE_MAX_BYTES) return []
   try {
     const { data, info } = await sharp(bytes)
       .greyscale()
@@ -165,9 +169,11 @@ export async function readItemNumbersFromImageUrl(
   if (!url) return []
   const match = /^data:[^;]+;base64,(.+)$/i.exec(url.trim())
   if (!match?.[1]) return []
+  const payload = match[1].replace(/\s/g, '')
+  const estimatedBytes = Math.floor((payload.length * 3) / 4)
+  if (estimatedBytes === 0 || estimatedBytes > LABEL_TEMPLATE_MAX_BYTES) return []
   try {
-    const bytes = Buffer.from(match[1], 'base64')
-    if (bytes.length === 0) return []
+    const bytes = Buffer.from(payload, 'base64')
     return await readItemNumbersFromImageBytes(bytes)
   } catch {
     return []

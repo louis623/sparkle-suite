@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   decideLabelItemNumber,
+  LABEL_TEMPLATE_MAX_BYTES,
   readItemNumbersFromImageBytes,
   readItemNumbersFromImageUrl,
   renderItemNumberPng,
@@ -378,6 +379,21 @@ describe('label item numbers', () => {
     expect(
       await readItemNumbersFromImageUrl('https://cdn.example.com/label.jpg'),
     ).toEqual([])
+    expect(png.length).toBeLessThanOrEqual(LABEL_TEMPLATE_MAX_BYTES)
+  })
+
+  it('does not decode a real-sized chat photo and does not block from it', async () => {
+    const liveSized = Buffer.alloc(140_000, 1)
+    expect(liveSized.length).toBeGreaterThan(LABEL_TEMPLATE_MAX_BYTES)
+    expect(await readItemNumbersFromImageBytes(liveSized)).toEqual([])
+    const liveUrl = `data:image/jpeg;base64,${'A'.repeat(182_000)}`
+    expect(await readItemNumbersFromImageUrl(liveUrl)).toEqual([])
+    expect(
+      decideLabelItemNumber({
+        itemNumber: 'ST21027',
+        readItemNumbers: await readItemNumbersFromImageUrl(liveUrl),
+      }).blocked,
+    ).toBe(false)
   })
 
   it('blocks a label for a different item number and allows the same item number', () => {
