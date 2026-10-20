@@ -137,8 +137,14 @@ describe('Sparkle Suite portfolio carousels', () => {
     }
     expect(portfolioMotion['blingkitchen']).toBeUndefined()
     expect(portfolioMotion['bris-glowtique']).toBeUndefined()
-    expect(existsSync(publicFile('/marketing/blingkitchen-site-preview.mp4'))).toBe(true)
-    expect(existsSync(publicFile('/marketing/bris-glowtique-site-preview.mp4'))).toBe(true)
+    for (const removed of [
+      '/marketing/blingkitchen-site-preview.mp4',
+      '/marketing/blingkitchen-site-preview.webp',
+      '/marketing/bris-glowtique-site-preview.mp4',
+      '/marketing/bris-glowtique-site-preview.webp',
+    ]) {
+      expect(existsSync(publicFile(removed))).toBe(false)
+    }
     const repPosters = [...repHtml.matchAll(/<img\b[^>]*site-preview\.webp[^>]*>/g)].map((match) => match[0])
     expect(repPosters).toHaveLength(4)
     expect(repPosters[0]).toContain('mile-high-fizz-site-preview.webp')
