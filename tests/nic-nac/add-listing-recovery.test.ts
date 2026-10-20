@@ -293,6 +293,7 @@ function makeConversationLookupMock(
 function makeAdminClientMock(
   existingListings: Array<Record<string, unknown>> = [],
   committedDesign: Record<string, unknown> | null = null,
+  photoReuseMatches: Array<{ item_number?: string | null }> = [],
 ) {
   const duplicateLimit = vi.fn().mockResolvedValue({
     data: existingListings,
@@ -316,6 +317,23 @@ function makeAdminClientMock(
         const eq = vi.fn(() => ({ maybeSingle }))
         const select = vi.fn(() => ({ eq }))
         return { select }
+      }
+      if (table === 'trade_board_intake_photos') {
+        const result = {
+          data: photoReuseMatches.map((match) => ({
+            trade_board_intake_sessions: { item_number: match.item_number ?? null },
+          })),
+          error: null,
+        }
+        const builder: Record<string, unknown> = {}
+        const passthrough = () => builder
+        builder.select = passthrough
+        builder.eq = passthrough
+        builder.then = (
+          onFulfilled: (value: typeof result) => unknown,
+          onRejected?: (reason: unknown) => unknown,
+        ) => Promise.resolve(result).then(onFulfilled, onRejected)
+        return builder
       }
       throw new Error(`unexpected table ${table}`)
     }),
@@ -3733,6 +3751,121 @@ describe('add_listing - active workflow readiness guard', () => {
     })
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses to save the NK60295 necklace photo onto ST21027', async () => {
+    createAdminClientMock.mockReturnValue(
+      makeAdminClientMock([], null, [{ item_number: 'NK60295' }]),
+    )
+    const necklaceUrl = 'data:image/jpeg;base64,TktK'
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-st21027',
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'ST21027',
+          designName: 'Stack',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            intakeSessionId: 'intake-st21027',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: necklaceUrl,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ST21027',
+        collectionName: 'Original',
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      userMessage: expect.stringMatching(/NK60295/),
+    })
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+    expect(addListingMock).not.toHaveBeenCalled()
+  })
+
+  it('does not block an NK60295 gold citrine variant when that item number already has the photo', async () => {
+    createAdminClientMock.mockReturnValue(
+      makeAdminClientMock([], null, [{ item_number: 'NK60295' }]),
+    )
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/nk60295-gold.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-gold',
+      designId: 'design-gold',
+      itemNumber: 'NK60295',
+      designName: 'Necklace',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+    const goldUrl = 'data:image/jpeg;base64,R09MRA=='
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk60295-gold',
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'NK60295',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          material: 'Gold',
+          mainStone: 'Citrine',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            intakeSessionId: 'intake-nk60295-gold',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: goldUrl,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK60295',
+        collectionName: 'Original',
+        material: 'Gold',
+        mainStone: 'Citrine',
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-gold',
+      itemNumber: 'NK60295',
+    })
+    expect(addListingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({
+        itemNumber: 'NK60295',
+        material: 'Gold',
+        mainStone: 'Citrine',
+        listingPhotoUrl: 'https://cdn.example.com/listings/rep-1/nk60295-gold.png',
+      }),
+    )
   })
 
   it('publishes the jewelry-front photo from two-photo intake and ignores a label selectedPhotoId', async () => {

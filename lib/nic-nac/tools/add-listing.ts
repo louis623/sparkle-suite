@@ -43,6 +43,11 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { writeTradeActionAudit } from '@/lib/nic-nac/audit'
 import { logIncident } from '@/lib/nic-nac/guardian-telemetry'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
+import {
+  decidePhotoReuse,
+  loadItemNumbersForPhotoHash,
+  resolvePhotoContentSha256,
+} from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import { NicNacMutationFailure } from '@/lib/nic-nac/tool-failure-classification'
 import {
   computeTradeBoardAddAttemptReadiness,
@@ -641,6 +646,33 @@ function isConfirmedJewelryFrontPhoto(
   return isAcceptedCustomerFacingWorkflowPhoto(photo) && photo.roleConfirmed
 }
 
+async function assertCustomerPhotoNotReused(args: {
+  repId: string
+  itemNumber?: string
+  sourceImageUrl?: string
+  workflowPhotos?: Array<{ imageUrl?: string; contentSha256?: string }>
+}) {
+  const itemNumber = args.itemNumber?.trim()
+  const sourceImageUrl = args.sourceImageUrl?.trim()
+  if (!itemNumber || !sourceImageUrl) return
+  const contentSha256 = resolvePhotoContentSha256({
+    sourceImageUrl,
+    workflowPhotos: args.workflowPhotos,
+  })
+  if (!contentSha256) return
+
+  const existing = await loadItemNumbersForPhotoHash(createAdminClient(), {
+    repId: args.repId,
+    contentSha256,
+  })
+  const decision = decidePhotoReuse({ itemNumber, contentSha256, existing })
+  if (!decision.blocked) return
+  throw new NicNacToolError({
+    code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+    userMessage: decision.message,
+  })
+}
+
 function requirePiecePhotoNumberUrl(
   workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
   photoIndex: number | undefined,
@@ -771,6 +803,12 @@ export async function processListingPhotoForAdd(input: {
     ...(variantAssetKey ? { variantAssetKey } : {}),
   }
   if (numberedPiecePhotoUrl) {
+    await assertCustomerPhotoNotReused({
+      repId: input.repId,
+      itemNumber: input.itemNumber,
+      sourceImageUrl: numberedPiecePhotoUrl,
+      workflowPhotos: activeTradeBoardWorkflow?.photos,
+    })
     try {
       return (
         await processRepListingPhotoUrl(
@@ -794,6 +832,12 @@ export async function processListingPhotoForAdd(input: {
   // emitted by the model may be stale copies from an earlier piece or another
   // finish/stone of the same item number.
   if (workflowPhotoUrl) {
+    await assertCustomerPhotoNotReused({
+      repId: input.repId,
+      itemNumber: input.itemNumber,
+      sourceImageUrl: workflowPhotoUrl,
+      workflowPhotos: activeTradeBoardWorkflow?.photos,
+    })
     try {
       return (
         await processRepListingPhotoUrl(
@@ -813,6 +857,12 @@ export async function processListingPhotoForAdd(input: {
     activeTradeBoardWorkflow,
   })
   if (listingPhotoUrl) {
+    await assertCustomerPhotoNotReused({
+      repId: input.repId,
+      itemNumber: input.itemNumber,
+      sourceImageUrl: listingPhotoUrl,
+      workflowPhotos: activeTradeBoardWorkflow?.photos,
+    })
     try {
       const processInput = {
         ...listingPhotoProcessInput,
@@ -853,6 +903,12 @@ export async function processListingPhotoForAdd(input: {
   })
   if (!resolvedListingPhoto) return undefined
 
+  await assertCustomerPhotoNotReused({
+    repId: input.repId,
+    itemNumber: input.itemNumber,
+    sourceImageUrl: resolvedListingPhoto.imageDataUrl,
+    workflowPhotos: activeTradeBoardWorkflow?.photos,
+  })
   try {
     const processInput = {
       ...listingPhotoProcessInput,
@@ -1514,6 +1570,12 @@ async function runSingle(
         }
       | null = null
     if (resolvedPhotoUrl) {
+      await assertCustomerPhotoNotReused({
+        repId: ctx.repId,
+        itemNumber,
+        sourceImageUrl: resolvedPhotoUrl,
+        workflowPhotos: activeWorkflow?.photos,
+      })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {
         preparedSource = await prepareDesignSourcePhoto(
@@ -1552,6 +1614,12 @@ async function runSingle(
         subjectCentered: preparedSource.analysis.subjectCentered,
       }
     } else if (workflowConfirmedPhotoUrl) {
+      await assertCustomerPhotoNotReused({
+        repId: ctx.repId,
+        itemNumber,
+        sourceImageUrl: workflowConfirmedPhotoUrl,
+        workflowPhotos: activeWorkflow?.photos,
+      })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {
         preparedSource = await prepareDesignSourcePhoto(
@@ -1611,6 +1679,12 @@ async function runSingle(
             "I don't see a photo of this piece in our conversation. Send me a photo and I'll add it.",
         })
       }
+      await assertCustomerPhotoNotReused({
+        repId: ctx.repId,
+        itemNumber,
+        sourceImageUrl: resolvedPhoto.imageDataUrl,
+        workflowPhotos: activeWorkflow?.photos,
+      })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {
         preparedSource = await prepareDesignSourcePhoto(

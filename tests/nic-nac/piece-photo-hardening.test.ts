@@ -1,5 +1,7 @@
+import { createHash } from 'crypto'
 import { describe, expect, it } from 'vitest'
 
+import { decidePhotoReuse, hashDataImageUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import { hasTradeBoardIntakeSignal } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import {
   conversationImagesForIntake,
@@ -197,5 +199,43 @@ describe('Kelly 9/18 — a label sent alone starts the piece', () => {
         },
       ]),
     ).toBe(false)
+  })
+})
+
+describe('Kelly 9/18 — the same photo file cannot land on a different item number', () => {
+  const necklaceUrl = 'data:image/jpeg;base64,TktK'
+  const necklaceHash = createHash('sha256')
+    .update(Buffer.from('TktK', 'base64'))
+    .digest('hex')
+
+  it('hashes photo bytes the same way intake inspection does', () => {
+    expect(hashDataImageUrl(necklaceUrl)).toBe(necklaceHash)
+    expect(hashDataImageUrl('https://cdn.example.com/nk60295.jpg')).toBeNull()
+  })
+
+  it('refuses the NK60295 necklace photo on ST21027 and ST49881', () => {
+    for (const itemNumber of ['ST21027', 'ST49881']) {
+      const decision = decidePhotoReuse({
+        itemNumber,
+        contentSha256: necklaceHash,
+        existing: [{ itemNumber: 'NK60295' }],
+      })
+      expect(decision.blocked).toBe(true)
+      if (!decision.blocked) return
+      expect(decision.otherItemNumber).toBe('NK60295')
+      expect(decision.message).toContain(itemNumber)
+      expect(decision.message).toContain('NK60295')
+      expect(decision.message).not.toMatch(/\b(sold|sales|trade|traded)\b/i)
+      expect(decision.message).not.toMatch(/\b(her|his|their|they)\b/i)
+    }
+  })
+
+  it('does not block a gold and citrine variant that shares NK60295 with the silver photo', () => {
+    const decision = decidePhotoReuse({
+      itemNumber: 'nk60295',
+      contentSha256: necklaceHash,
+      existing: [{ itemNumber: 'NK60295' }, { itemNumber: null }],
+    })
+    expect(decision.blocked).toBe(false)
   })
 })
