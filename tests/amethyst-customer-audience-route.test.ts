@@ -349,4 +349,142 @@ describe('POST /api/amethyst/customer-audience', () => {
       error: 'Signup is temporarily unavailable right now.',
     })
   })
+
+  it('rejects more than 3 picks and a Not sure yet pick combined with another', async () => {
+    process.env.AMETHYST_HOMEPAGE_PREVIEW_EMAIL = 'preview@example.com'
+    const { client, spies } = makeAdminClient()
+    createAdminClientMock.mockReturnValue(client)
+
+    const tooMany = await POST(
+      new Request('http://localhost/api/amethyst/customer-audience', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          firstName: 'Jamie',
+          lastName: 'Lane',
+          email: 'jamie@example.com',
+          emailConsent: true,
+          favoriteStones: ['ruby', 'opal', 'pearl', 'garnet'],
+          favoriteMaterials: ['gold'],
+          favoriteCuts: ['round'],
+          favoriteCollections: ['originals'],
+        }),
+      }),
+    )
+    expect(tooMany.status).toBe(400)
+    await expect(tooMany.json()).resolves.toMatchObject({
+      code: 'INVALID_INPUT',
+      error: 'Choose up to 3 favorites in each list. Not sure yet stands on its own.',
+    })
+
+    const exclusive = await POST(
+      new Request('http://localhost/api/amethyst/customer-audience', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          firstName: 'Jamie',
+          lastName: 'Lane',
+          email: 'jamie@example.com',
+          emailConsent: true,
+          favoriteStones: ['not_sure', 'ruby'],
+          favoriteMaterials: ['gold'],
+          favoriteCuts: ['round'],
+          favoriteCollections: ['originals'],
+        }),
+      }),
+    )
+    expect(exclusive.status).toBe(400)
+    expect(spies.insert).not.toHaveBeenCalled()
+  })
+
+  it('requires each favorite list and accepts Not sure yet as the answer', async () => {
+    process.env.AMETHYST_HOMEPAGE_PREVIEW_EMAIL = 'preview@example.com'
+    const { client, spies } = makeAdminClient()
+    createAdminClientMock.mockReturnValue(client)
+
+    const missing = await POST(
+      new Request('http://localhost/api/amethyst/customer-audience', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          firstName: 'Jamie',
+          lastName: 'Lane',
+          email: 'jamie@example.com',
+          emailConsent: true,
+          favoriteStones: [],
+          favoriteMaterials: ['gold'],
+          favoriteCuts: ['round'],
+          favoriteCollections: ['originals'],
+        }),
+      }),
+    )
+    expect(missing.status).toBe(400)
+    await expect(missing.json()).resolves.toMatchObject({
+      error: 'Pick at least one favorite in each list. Not sure yet counts.',
+    })
+
+    const accepted = await POST(
+      new Request('http://localhost/api/amethyst/customer-audience', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          firstName: 'Jamie',
+          lastName: 'Lane',
+          email: 'jamie@example.com',
+          emailConsent: true,
+          favoriteStones: ['not_sure'],
+          favoriteMaterials: ['not_sure'],
+          favoriteCuts: ['not_sure'],
+          favoriteCollections: ['not_sure'],
+          ringSize: '9',
+          jewelryNotes: 'Soft colors.',
+        }),
+      }),
+    )
+    expect(accepted.status).toBe(201)
+    expect(spies.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        favorite_stones: ['not_sure'],
+        favorite_materials: ['not_sure'],
+        favorite_cuts: ['not_sure'],
+        favorite_collections: ['not_sure'],
+        favorite_gem_or_stone: 'Not sure yet',
+        favorite_material: 'Not sure yet',
+        favorite_cut: 'Not sure yet',
+        favorite_collection: 'Not sure yet',
+        ring_size: '9',
+        jewelry_notes: 'Soft colors.',
+      }),
+    )
+  })
+
+  it('rejects a ring size outside 5-11 and not_sure', async () => {
+    process.env.AMETHYST_HOMEPAGE_PREVIEW_EMAIL = 'preview@example.com'
+    const { client, spies } = makeAdminClient()
+    createAdminClientMock.mockReturnValue(client)
+
+    const response = await POST(
+      new Request('http://localhost/api/amethyst/customer-audience', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          firstName: 'Jamie',
+          lastName: 'Lane',
+          email: 'jamie@example.com',
+          emailConsent: true,
+          favoriteStones: ['ruby'],
+          favoriteMaterials: ['gold'],
+          favoriteCuts: ['round'],
+          favoriteCollections: ['originals'],
+          ringSize: '5.5',
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(400)
+    await expect(response.json()).resolves.toMatchObject({
+      error: 'Choose a ring size from 5 to 11, or Not sure.',
+    })
+    expect(spies.insert).not.toHaveBeenCalled()
+  })
 })
