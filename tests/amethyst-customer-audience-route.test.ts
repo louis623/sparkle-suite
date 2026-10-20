@@ -12,6 +12,10 @@ vi.mock('@/lib/services/workspace-message-dispatch', () => ({
 }))
 
 import { POST } from '@/app/api/amethyst/customer-audience/route'
+import {
+  allowCustomerSignup,
+  resetCustomerSignupRateLimitsForTests,
+} from '@/lib/amethyst/customer-audience-rate-limit'
 
 const favoriteAnswers = {
   favoriteStones: ['ruby'],
@@ -141,6 +145,7 @@ describe('POST /api/amethyst/customer-audience', () => {
   const originalTradePreviewEmail = process.env.AMETHYST_TRADE_PREVIEW_EMAIL
 
   beforeEach(() => {
+    resetCustomerSignupRateLimitsForTests()
     createAdminClientMock.mockReset()
     dispatchWorkspaceMessages.mockReset()
     process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl
@@ -469,6 +474,43 @@ describe('POST /api/amethyst/customer-audience', () => {
         jewelry_notes: 'Soft colors.',
       }),
     )
+  })
+
+  it('limits repeated sign-up attempts from one IP', async () => {
+    const headers = {
+      'content-type': 'application/json',
+      'x-forwarded-for': '203.0.113.10',
+    }
+    const limitedRequest = new Request('http://localhost/api/amethyst/customer-audience', {
+      method: 'POST',
+      headers,
+    })
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      expect(allowCustomerSignup(limitedRequest).allowed).toBe(true)
+    }
+
+    const { client, spies } = makeAdminClient()
+    createAdminClientMock.mockReturnValue(client)
+    const response = await POST(
+      new Request('http://localhost/api/amethyst/customer-audience', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          firstName: 'Jamie',
+          lastName: 'Lane',
+          email: 'jamie@example.com',
+          emailConsent: true,
+          ...favoriteAnswers,
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(429)
+    expect(response.headers.get('retry-after')).toBeTruthy()
+    await expect(response.json()).resolves.toEqual({
+      error: 'Please wait a moment and try the sign-up again.',
+    })
+    expect(spies.insert).not.toHaveBeenCalled()
   })
 
   it('logs a database failure without customer values', async () => {

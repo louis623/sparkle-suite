@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { allowCustomerSignup } from '@/lib/amethyst/customer-audience-rate-limit'
 import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
 import { ServiceError, errors } from '@/lib/services/errors'
@@ -152,6 +153,14 @@ function logSignupSaveError(error: unknown) {
 }
 
 export async function POST(request: Request) {
+  const throttle = allowCustomerSignup(request)
+  if (!throttle.allowed) {
+    return NextResponse.json(
+      { error: 'Please wait a moment and try the sign-up again.' },
+      { status: 429, headers: { 'retry-after': String(throttle.retryAfter) } },
+    )
+  }
+
   try {
     const payload = await parseSignupPayload(request)
     const loaded = await loadPreferenceOptions()
