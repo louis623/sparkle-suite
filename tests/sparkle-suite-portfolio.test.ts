@@ -5,42 +5,167 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { metadata } from '@/app/portfolio/page'
 import { PortfolioExperience } from '@/app/_components/portfolio-experience'
+import { getAmethystAppearancePreset } from '@/lib/amethyst/appearance-presets'
+import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
 import { sparkleSuitePortfolioContent } from '@/lib/sparkle-suite/portfolio-content'
 import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 
 const renderPortfolio = () => renderToStaticMarkup(createElement(PortfolioExperience))
+const publicFile = (src: string) => join(process.cwd(), 'public', ...src.split('/').filter(Boolean))
 
-describe('Sparkle Suite real-site portfolio', () => {
-  it('renders all six real sites as directly accessible previews', () => {
+const communityThemes = [
+  {
+    id: 'amethyst',
+    title: 'Chasing Unicorns',
+    pickerLabel: 'Chasing Unicorns (Amethyst)',
+    poster: '/amethyst/skins/am01-unicorn/hero-poster.webp',
+    mp4: '/amethyst/skins/am01-unicorn/hero-motion.mp4',
+  },
+  {
+    id: 'halloween_pumpkin_witch',
+    title: 'Pumpkin and Witch',
+    pickerLabel: 'Halloween Pumpkin and Witch',
+    poster: halloweenHeroMotion.witch.poster,
+    mp4: halloweenHeroMotion.witch.mp4,
+  },
+  {
+    id: 'halloween_pumpkin_cat',
+    title: 'Pumpkin and Cat',
+    pickerLabel: 'Halloween Pumpkin and Cat',
+    poster: halloweenHeroMotion.cat.poster,
+    mp4: halloweenHeroMotion.cat.mp4,
+  },
+  {
+    id: 'gilded_autumn',
+    title: 'The Golden Leaves of Autumn',
+    pickerLabel: 'The Golden Leaves of Autumn',
+    poster: '/amethyst/skins/gilded-autumn/hero-poster.webp',
+    mp4: '/amethyst/skins/gilded-autumn/hero-motion.mp4',
+  },
+  {
+    id: 'fall_owl_harvest_moon',
+    title: 'Fall Owl Harvest Moon',
+    pickerLabel: 'Fall Owl and Harvest Moon',
+    poster: '/amethyst/skins/fall-owl/hero-poster.webp',
+    mp4: '/amethyst/skins/fall-owl/hero-loop.mp4',
+  },
+  {
+    id: 'gobble_and_fizz',
+    title: 'Gobble & Fizz',
+    pickerLabel: 'Gobble & Fizz',
+    poster: '/amethyst/skins/gobble-and-fizz/hero-poster.webp',
+    mp4: '/amethyst/skins/gobble-and-fizz/hero-loop.mp4',
+  },
+  {
+    id: 'pie_please',
+    title: 'Pumpkin Pie',
+    pickerLabel: 'Pumpkin Pie',
+    poster: '/amethyst/skins/pie-please/hero-poster-v4.webp',
+    mp4: '/amethyst/skins/pie-please/hero-loop-v4.mp4',
+  },
+  {
+    id: 'midnight_rose',
+    title: 'Midnight Rose',
+    pickerLabel: 'Midnight Rose',
+    poster: '/amethyst/skins/midnight-rose/hero-poster.webp',
+    mp4: '/amethyst/skins/midnight-rose/hero-loop.mp4',
+  },
+  {
+    id: 'pearl_rose',
+    title: 'Pearl Rose',
+    pickerLabel: 'Pearl Rose',
+    poster: '/amethyst/skins/pearl-rose/hero-poster.webp',
+    mp4: '/amethyst/skins/pearl-rose/hero-loop.mp4',
+  },
+  {
+    id: 'rose_champagne',
+    title: 'Rose Champagne',
+    pickerLabel: 'Rose Champagne',
+    poster: '/amethyst/skins/rose-champagne/hero-poster.webp',
+    mp4: '/amethyst/skins/rose-champagne/hero-loop.mp4',
+  },
+] as const
+
+const repIds = ['mile-high-fizz', 'britt-with-bling', 'go-for-the-bling', 'sparkly-butterflies'] as const
+
+describe('Sparkle Suite portfolio carousels', () => {
+  it('shows the ten community themes above the rep carousel', () => {
     const html = renderPortfolio()
-    const sites = sparkleSuitePortfolioContent.carousels[0].slides
-    expect(sites).toHaveLength(6)
-    expect(html.match(/<article /g)).toHaveLength(6)
-    for (const site of sites) {
-      expect(html).toContain(site.title)
-      expect(html).toContain(`href="${site.href}"`)
-      expect(html).toContain(site.linkLabel)
-      expect(html).toContain(portfolioMotion[site.id]?.poster || encodeURIComponent(site.src))
-      expect(existsSync(join(process.cwd(), 'public', site.src))).toBe(true)
+    const themes = sparkleSuitePortfolioContent.carousels.find((carousel) => carousel.id === 'community-themes')
+    const reps = sparkleSuitePortfolioContent.carousels.find((carousel) => carousel.id === 'rep-highlights')
+    expect(themes?.slides.map((slide) => slide.id)).toEqual(communityThemes.map((theme) => theme.id))
+    expect(themes?.slides.map((slide) => slide.title)).toEqual(communityThemes.map((theme) => theme.title))
+    expect(html.indexOf('id="community-themes"')).toBeGreaterThan(-1)
+    expect(html.indexOf('id="community-themes"')).toBeLessThan(html.indexOf('id="rep-highlights"'))
+    expect(html.match(/aria-roledescription="carousel"/g)).toHaveLength(2)
+
+    const themeHtml = html.slice(html.indexOf('id="community-themes"'), html.indexOf('id="rep-highlights"'))
+    let previous = -1
+    for (const theme of communityThemes) {
+      const title = theme.title.replaceAll('&', '&amp;')
+      expect(getAmethystAppearancePreset(theme.id).label).toBe(theme.pickerLabel)
+      const index = themeHtml.indexOf(title)
+      expect(index).toBeGreaterThan(previous)
+      previous = index
+      expect(themeHtml).toContain(`href="/skin-preview/${theme.id}/homepage"`)
+      expect(themeHtml).toContain(theme.poster)
+      expect(existsSync(publicFile(theme.poster))).toBe(true)
+      expect(existsSync(publicFile(theme.mp4))).toBe(true)
+      const slide = themes?.slides.find((item) => item.id === theme.id)
+      expect(slide && slide.kind === 'capture' ? slide.video?.mp4 : undefined).toBe(theme.mp4)
     }
+    expect(themeHtml).not.toMatch(/Morganite|Rose Gold|Garnet|Amber|Velvet|Moonstone|Emerald Garden|Rose Quartz|Black Diamond|Alpine Opal|Gnome Forest|Neon Butterfly/)
+    expect(reps?.slides.map((slide) => slide.id)).toEqual([...repIds])
   })
 
-  it('uses show names only and does not substitute a theme gallery for real-site proof', () => {
+  it('keeps four rep recordings and leaves removed shows out', () => {
     const html = renderPortfolio()
-    expect(html).not.toMatch(/Lindsey|Brittany|Heather|Kim’s|Kelly|Placeholder|aria-roledescription="carousel"|<video[^>]+src=/)
-    expect(html).not.toContain('Community themes')
-    expect(html).not.toContain('Halloween Pumpkin')
-    expect(html).not.toContain('Schedule your build now')
+    const repHtml = html.slice(html.indexOf('id="rep-highlights"'), html.indexOf('id="portfolio-close-title"'))
+    expect(repHtml).toContain('Mile High Fizz')
+    expect(repHtml).toContain('Britt with Bling')
+    expect(repHtml).toContain('Go for the Bling')
+    expect(repHtml).toContain('Sparkly Butterflies')
+    expect(repHtml).not.toMatch(/BlingKitchen|Bri’s Glowtique|theblingkitchen\.com|brisglowtique\.com/)
+    for (const id of repIds) {
+      const motion = portfolioMotion[id]
+      expect(motion).toBeTruthy()
+      expect(repHtml).toContain(motion.poster)
+      expect(repHtml).toContain(`width="${motion.width}"`)
+      expect(repHtml).toContain(`height="${motion.height}"`)
+      expect(existsSync(publicFile(motion.poster))).toBe(true)
+      expect(existsSync(publicFile(motion.mp4))).toBe(true)
+    }
+    expect(portfolioMotion['blingkitchen']).toBeUndefined()
+    expect(portfolioMotion['bris-glowtique']).toBeUndefined()
+    for (const removed of [
+      '/marketing/blingkitchen-site-preview.mp4',
+      '/marketing/blingkitchen-site-preview.webp',
+      '/marketing/bris-glowtique-site-preview.mp4',
+      '/marketing/bris-glowtique-site-preview.webp',
+    ]) {
+      expect(existsSync(publicFile(removed))).toBe(false)
+    }
+    const repPosters = [...repHtml.matchAll(/<img\b[^>]*site-preview\.webp[^>]*>/g)].map((match) => match[0])
+    expect(repPosters).toHaveLength(4)
+    expect(repPosters[0]).toContain('mile-high-fizz-site-preview.webp')
+    expect(repPosters[0]).toContain('loading="eager"')
+    expect(repPosters[0]).toMatch(/fetchpriority="high"/i)
+    for (const poster of repPosters.slice(1)) {
+      expect(poster).toContain('loading="lazy"')
+      expect(poster).not.toMatch(/fetchpriority="high"/i)
+    }
+    expect(repHtml.match(/target="_blank"/g)).toHaveLength(4)
+    expect(repHtml).toContain('opens in a new tab')
+  })
+
+  it('keeps portfolio metadata and the build queue close', () => {
+    const html = renderPortfolio()
+    expect(html).not.toMatch(/Lindsey|Brittany|Heather|Kelly|Placeholder/)
+    expect(html).not.toMatch(/\b(trade|sold|sales|Live Queue|trial)\b/i)
     expect(html).toContain('Join the build queue')
     expect(html).toContain('href="/prelaunch#waitlist"')
     expect(html).toContain('No payment when you join the queue.')
     expect(html).toContain('quick 30-minute call')
-  })
-
-  it('keeps external visits explicit and portfolio metadata specific to real sites', () => {
-    const html = renderPortfolio()
-    expect(html.match(/target="_blank"/g)?.length).toBeGreaterThanOrEqual(5)
-    expect(html).toContain('opens in a new tab')
     expect(metadata.title).toEqual({ absolute: 'Sparkle Suite Portfolio' })
     expect(metadata.alternates?.canonical).toBe('/portfolio')
     expect(metadata.description).toContain('real rep websites')

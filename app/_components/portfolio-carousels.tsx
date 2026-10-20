@@ -9,6 +9,7 @@ import {
   sparkleSuiteScheduleBuild,
   type PortfolioSlide,
 } from '@/lib/sparkle-suite/portfolio-content'
+import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 import { ProductPeekVideo } from './product-peek-video'
 import styles from './portfolio-experience.module.css'
 
@@ -19,10 +20,9 @@ function prefersReducedMotion() {
 const portfolioBands = {
   'rep-highlights': { name: 'paper', className: styles.bandPaper },
   'community-themes': { name: 'blush', className: styles.bandBlush },
-  'holiday-themes': { name: 'ink', className: styles.bandInk },
 } as const
 
-function SlideFrame({ slide, active }: { slide: PortfolioSlide; active: boolean }) {
+function SlideFrame({ slide, active, prioritizePoster = false }: { slide: PortfolioSlide; active: boolean; prioritizePoster?: boolean }) {
   if (slide.kind === 'placeholder') {
     return (
       <div className={styles.placeholder}>
@@ -33,29 +33,39 @@ function SlideFrame({ slide, active }: { slide: PortfolioSlide; active: boolean 
     )
   }
 
+  const recording = slide.video ? undefined : portfolioMotion[slide.id]
+  const video = slide.video ?? (recording
+    ? { mp4: recording.mp4, width: recording.width, height: recording.height }
+    : undefined)
+
   return (
     <div className={slide.width < 700 ? styles.phoneFrame : styles.frame}>
       <div className={styles.browserBar} aria-hidden="true">
         <em>{slide.title}</em>
       </div>
-      {slide.video ? (
-        <ProductPeekVideo
-          poster={slide.src}
-          mp4={slide.video.mp4}
-          width={slide.video.width}
-          height={slide.video.height}
-          alt={slide.alt}
-          label={slide.title}
-          active={active}
-        />
+      {video ? (
+        <div className={styles.mediaWell}>
+          <ProductPeekVideo
+            poster={recording?.poster ?? slide.src}
+            mp4={video.mp4}
+            width={video.width}
+            height={video.height}
+            alt={recording ? `Recorded website header and complete hero from ${slide.title}` : slide.alt}
+            label={slide.title}
+            active={active}
+            eagerPoster={Boolean(recording) && prioritizePoster}
+          />
+        </div>
       ) : (
-        <Image
-          src={slide.src}
-          alt={slide.alt}
-          width={slide.width}
-          height={slide.height}
-          sizes="(max-width: 700px) 86vw, 860px"
-        />
+        <div className={styles.mediaWell}>
+          <Image
+            src={slide.src}
+            alt={slide.alt}
+            width={slide.width}
+            height={slide.height}
+            sizes="(max-width: 700px) 86vw, 860px"
+          />
+        </div>
       )}
     </div>
   )
@@ -67,9 +77,9 @@ function PortfolioCarousel({
   carousel: (typeof sparkleSuitePortfolioContent.carousels)[number]
 }) {
   const viewportRef = useRef<HTMLDivElement>(null)
+  const dotsRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
   const count = carousel.slides.length
-  const slide = carousel.slides[active]
 
   function scrollToSlide(index: number) {
     const viewport = viewportRef.current
@@ -88,7 +98,7 @@ function PortfolioCarousel({
     scrollToSlide(0)
     const viewport = viewportRef.current
     if (!viewport) return
-    const onEnd = () => {
+    const syncActive = () => {
       const slides = [...viewport.querySelectorAll<HTMLElement>('[data-slide-index]')]
       const center = viewport.scrollLeft + viewport.clientWidth / 2
       let closest = 0
@@ -105,14 +115,44 @@ function PortfolioCarousel({
       })
       setActive(closest)
     }
-    viewport.addEventListener('scrollend', onEnd)
-    return () => viewport.removeEventListener('scrollend', onEnd)
+    let frame = 0
+    let settleTimer = 0
+    const onScroll = () => {
+      cancelAnimationFrame(frame)
+      window.clearTimeout(settleTimer)
+      frame = requestAnimationFrame(() => {
+        settleTimer = window.setTimeout(syncActive, 80)
+      })
+    }
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0]
+      const index = Number(visible?.target.getAttribute('data-slide-index'))
+      if (Number.isInteger(index)) setActive(index)
+    }, { root: viewport, threshold: [0.6] })
+    viewport.querySelectorAll('[data-slide-index]').forEach((slide) => observer.observe(slide))
+    viewport.addEventListener('scroll', onScroll, { passive: true })
+    viewport.addEventListener('scrollend', syncActive)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.clearTimeout(settleTimer)
+      observer.disconnect()
+      viewport.removeEventListener('scroll', onScroll)
+      viewport.removeEventListener('scrollend', syncActive)
+    }
   }, [])
 
   function focusSlide(index: number) {
     const next = (index + count) % count
     setActive(next)
     scrollToSlide(next)
+    return next
+  }
+
+  function moveDot(index: number) {
+    const next = focusSlide(index)
+    dotsRef.current?.querySelectorAll('button')[next]?.focus()
   }
 
   const band = portfolioBands[carousel.id]
@@ -156,14 +196,19 @@ function PortfolioCarousel({
               data-slide-index={index}
               data-active={index === active}
             >
-              <SlideFrame slide={item} active={index === active} />
+              <SlideFrame slide={item} active={index === active} prioritizePoster={index === 0} />
               <div className={styles.cardMeta}>
                 <h3>{item.title}</h3>
-                {item.kind === 'capture' && 'href' in item && item.href && 'linkLabel' in item && item.linkLabel ? (
-                  <a href={item.href} rel="noopener noreferrer">{item.linkLabel}</a>
-                ) : (
-                  <p>{item.detail}</p>
-                )}
+                {item.kind === 'capture' && item.href && item.linkLabel ? (
+                  <a
+                    href={item.href}
+                    {...(item.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  >
+                    {item.linkLabel}
+                    {item.href.startsWith('http') ? <span className={styles.srOnly}> (opens in a new tab)</span> : null}
+                  </a>
+                ) : null}
+                <p className={styles.cardDetail}>{item.detail}</p>
               </div>
             </div>
           ))}
@@ -172,18 +217,20 @@ function PortfolioCarousel({
           <ChevronRight size={22} aria-hidden="true" />
         </button>
       </div>
-      <div className={styles.caption} aria-live="polite">
-        <p>{slide.detail}</p>
-      </div>
-      <div className={styles.dots} role="tablist" aria-label={`${carousel.label} slides`}>
+      <div ref={dotsRef} className={styles.dots} role="group" aria-label={`${carousel.label} slides`}>
         {carousel.slides.map((item, index) => (
           <button
             key={item.id}
             type="button"
-            role="tab"
-            aria-selected={index === active}
+            aria-current={index === active ? 'true' : undefined}
             aria-label={`${item.title}, slide ${index + 1} of ${count}`}
+            tabIndex={index === active ? 0 : -1}
             onClick={() => focusSlide(index)}
+            onKeyDown={(event) => {
+              if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+              event.preventDefault()
+              moveDot(index + (event.key === 'ArrowRight' ? 1 : -1))
+            }}
           />
         ))}
       </div>
@@ -194,10 +241,19 @@ function PortfolioCarousel({
   )
 }
 
-export function PortfolioCarousels() {
+export function PortfolioCarousels({
+  ids,
+}: {
+  ids: readonly (typeof sparkleSuitePortfolioContent.carousels)[number]['id'][]
+}) {
+  const carousels = ids.flatMap((id) => {
+    const carousel = sparkleSuitePortfolioContent.carousels.find((item) => item.id === id)
+    return carousel ? [carousel] : []
+  })
+
   return (
     <>
-      {sparkleSuitePortfolioContent.carousels.map((carousel) => (
+      {carousels.map((carousel) => (
         <PortfolioCarousel key={carousel.id} carousel={carousel} />
       ))}
     </>
