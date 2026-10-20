@@ -381,6 +381,8 @@ export async function ingestLatestTradeBoardIntakeTurn(
         qualityScore: confirmedPhoto.qualityScore,
         qualityIssues: confirmedPhoto.qualityIssues,
         notes: confirmedPhoto.notes,
+        contentSha256: confirmedPhoto.contentSha256,
+        visualRoleSource: confirmedPhoto.visualRoleSource,
       })
     }
   }

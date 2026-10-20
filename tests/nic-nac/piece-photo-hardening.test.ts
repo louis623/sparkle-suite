@@ -564,4 +564,78 @@ describe('main photo confirmation', () => {
     expect(ingested.metadata.photoSetReuseConfirmed).toBe(true)
     expect(ingested.metadata.mainPhotoConfirmed).toBeUndefined()
   })
+
+  it('keeps the photo fingerprint when a yes confirms the main photo in words', async () => {
+    const contentSha256 = 'a'.repeat(64)
+    const upsert = vi.fn(() => ({ error: null }))
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_photos') return { upsert }
+        if (table === 'trade_board_intake_sessions') return { update }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-nk60295',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'photo_capture',
+      known: { itemNumber: 'NK60295' },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: {},
+      photos: [
+        {
+          intakeSessionId: 'intake-nk60295',
+          conversationMessageId: 'photo-msg',
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,TktK',
+          contentSha256,
+          visualRoleSource: 'inspection',
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+      ],
+    }
+
+    await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'ask',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'text',
+              text: 'Can you confirm this is the jewelry-front photo for NK60295?',
+            },
+          ],
+        },
+        {
+          id: 'yes',
+          role: 'user',
+          parts: [{ type: 'text', text: 'Yes' }],
+        },
+      ],
+    })
+
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content_sha256: contentSha256,
+        visual_role_source: 'inspection',
+        image_url: 'data:image/jpeg;base64,TktK',
+      }),
+      expect.anything(),
+    )
+  })
 })
