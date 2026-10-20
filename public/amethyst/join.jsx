@@ -344,6 +344,24 @@ const PRESETS = {
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
     shapeRadius: "soft", density: "regular",
   },
+  gobble_and_fizz: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "gobble-and-fizz", cardSurface: "gobble-and-fizz",
+    textureOverlay: "none", buttonEnergy: "gobble-and-fizz-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-thanksgiving", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "gobbleAndFizz", primaryColor: "#efb36c", accentColor: "#c9854f",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
+  pie_please: {
+    heroMotion: "sparkle_rise", sparkleLevel: "subtle",
+    bgTreatment: "pie-please", cardSurface: "pie-please",
+    textureOverlay: "none", buttonEnergy: "pie-please-lift", ctaEmphasis: "standard",
+    tradeFlair: "copper-thanksgiving", cursorEffect: "default", saturation: 100, tickerSpeed: 1,
+    bgTone: "piePlease", primaryColor: "#813c32", accentColor: "#ba7648",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+    shapeRadius: "soft", density: "regular",
+  },
   pearl_rose: {
     heroMotion: "sparkle_rise", sparkleLevel: "subtle",
     bgTreatment: "pearl-rose", cardSurface: "pearl-rose-paper",
@@ -410,6 +428,8 @@ const TONES = {
   roseGold: { bg: "#fff5f6", elevated: "#fffafa", deep: "#ffe8ec" },
   midnightRose: { bg: "#180e16", elevated: "#271920", deep: "#100910" },
   fallOwl: { bg: "#201321", elevated: "#302030", deep: "#160e18" },
+  gobbleAndFizz: { bg: "#291522", elevated: "#392330", deep: "#1d111a" },
+  piePlease: { bg: "#fcf3e5", elevated: "#fffaf2", deep: "#f2dfc9" },
   pearlRose: { bg: "#faf5ef", elevated: "#fffefa", deep: "#f2e5dc" },
   garnet: { bg: "#FFE5DD", elevated: "#fff8f5", deep: "#ffd0c4" },
   amber: { bg: "#FAFAFA", elevated: "#fffaf5", deep: "#ffe4cf" },
@@ -1527,6 +1547,8 @@ function App() {
     if (t.bgTreatment === "rose-champagne") body.classList.add("bg-rose-gold-paper", "bg-rose-champagne");
     if (t.bgTreatment === "midnight-rose") body.classList.add("bg-midnight-rose");
     if (t.bgTreatment === "fall-owl") body.classList.add("bg-fall-owl");
+    if (t.bgTreatment === "gobble-and-fizz") body.classList.add("bg-gobble-and-fizz");
+    if (t.bgTreatment === "pie-please") body.classList.add("bg-pie-please");
     if (t.bgTreatment === "pearl-rose") body.classList.add("bg-pearl-rose");
     if (t.bgTreatment === "garnet-shell") body.classList.add("bg-garnet-shell");
     if (t.bgTreatment === "amber-paper") body.classList.add("bg-amber-paper");
@@ -1547,6 +1569,8 @@ function App() {
     if (t.cardSurface === "pearl-rose") body.classList.add("surface-pearl-rose");
     if (t.cardSurface === "midnight-rose") body.classList.add("surface-midnight-rose");
     if (t.cardSurface === "fall-owl") body.classList.add("surface-fall-owl");
+    if (t.cardSurface === "gobble-and-fizz") body.classList.add("surface-gobble-and-fizz");
+    if (t.cardSurface === "pie-please") body.classList.add("surface-pie-please");
     if (t.cardSurface === "blush-shell") body.classList.add("surface-blush-shell");
     if (t.cardSurface === "sunlit-pearl") body.classList.add("surface-sunlit-pearl");
     if (t.cardSurface === "plush-orchid") body.classList.add("surface-plush-orchid");
@@ -1715,6 +1739,8 @@ function App() {
               { value: "rose_gold", label: "Rose Gold" },
               { value: "midnight_rose", label: "Midnight Rose" },
               { value: "fall_owl_harvest_moon", label: "Fall Owl and Harvest Moon" },
+              { value: "gobble_and_fizz", label: "Gobble & Fizz" },
+              { value: "pie_please", label: "Pie, Please!" },
               { value: "pearl_rose", label: "Pearl Rose" },
               { value: "rose_champagne", label: "Rose Champagne" },
               { value: "garnet", label: "Garnet" },

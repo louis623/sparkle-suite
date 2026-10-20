@@ -33,7 +33,7 @@ Input shape used successfully:
 ```json
 {
   "prompt": "<locked scene and bounded motion brief>",
-  "duration": 5,
+  "duration": 10,
   "resolution": "720p",
   "image_url": "<approved uploaded image>",
   "end_image_url": "<same approved uploaded image>",
@@ -42,6 +42,12 @@ Input shape used successfully:
 }
 ```
 Matching endpoint images help but do not guarantee a seamless loop.
+
+### Default loop target (Louis, October 19, 2026)
+
+Customer-site looping heroes should normally finish at **8–10 seconds**. Plan a quiet closed motion cycle from the start: fixed camera, compatible first/last composition, light, pose and motion speed. This does not set the length of unrelated marketing videos. The five-second cat recipe below is historical.
+
+Do not automatically stabilize a generated fixed-camera scene. Compare the original and processed video at normal speed, inspect consecutive frames, and watch several end-to-start transitions. Contact sheets, matching endpoints and a successful decode are not sufficient temporal QA. Reject twitching, frame corrections, bouncing, ghosting and abrupt light changes. Where suitable, trim reference-frame snaps and use a short circular overlap; do not hide problems with reversed motion, frozen padding or optical-flow warping. Preserve originals and obtain a fresh estimate and approval before buying replacement generations. When Louis requests actual Higgsfield video, do not substitute programmed still-image motion.
 
 Prompt structure: preserve the exact reference and composition; lock the camera; describe one small movement per subject with timing and return pose; specify localized light; explicitly prohibit unwanted changes.
 

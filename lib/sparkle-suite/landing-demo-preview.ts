@@ -30,6 +30,7 @@ export async function landingPreviewDocument(demo: LandingDemo, theme: AmethystA
     document = document.replace(match[0], '<style>' + css.replace(/<\/style/gi, '<\\/style') + '</style>')
   }
   const mediaFolders: Partial<Record<AmethystAppearancePresetId, string>> = {
+    gobble_and_fizz:'gobble-and-fizz', pie_please:'pie-please',
     amethyst:'am01-unicorn', gilded_autumn:'gilded-autumn', gnome_garden:'gnome-garden',
     halloween_pumpkin_cat:'halloween-pumpkin-cat', halloween_pumpkin_witch:'halloween-pumpkin-witch',
     midnight_rose:'midnight-rose', fall_owl_harvest_moon:'fall-owl', pearl_rose:'pearl-rose', rose_champagne:'rose-champagne', neon_butterfly:'neon-butterfly',

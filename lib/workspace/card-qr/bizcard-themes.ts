@@ -9,6 +9,8 @@ export type BizcardKey =
   | 'gilded-autumn'
   | 'midnight-rose'
   | 'fall-owl'
+  | 'gobble-and-fizz'
+  | 'pie-please'
   | 'pearl-rose'
   | 'rose-champagne'
   | 'morganite'
@@ -52,6 +54,10 @@ export interface BizcardTheme {
 const t = (theme: BizcardTheme) => theme
 
 export const BIZCARD_THEMES: Record<BizcardKey, BizcardTheme> = {
+  'gobble-and-fizz': t({ key: 'gobble-and-fizz', qrTheme: 'gobble_and_fizz', align: 'left', tw: 0.47, shadow: true,
+    back: '#291522', name: '#efb66b', ink: '#fff2df', sub: '#e5cbbb', rule: '#795439', title: '#fff2df', script: '#efb66b' }),
+  'pie-please': t({ key: 'pie-please', qrTheme: 'pie_please', align: 'center', panel: '#fffaf2', frost: [0.9, 9], cmaxh: 300, hmax: 120, shadow: false,
+    back: '#502d24', name: '#f3c296', ink: '#fffaf2', sub: '#efdaca', rule: '#a77962', title: '#502d24', script: '#813c32' }),
   'pumpkin-cat': t({ key: 'pumpkin-cat', qrTheme: 'halloween_pumpkin_cat', align: 'left', tw: 0.47, shadow: true,
     back: '#1c0e08', name: '#ffa04d', ink: '#fff4e8', sub: '#f0c9a0', rule: '#5e3218', title: '#fff4e8', script: '#ffa04d' }),
   amethyst: t({ key: 'amethyst', qrTheme: 'amethyst', align: 'left', tw: 0.4, shadow: true,
@@ -94,6 +100,8 @@ export const BIZCARD_THEMES: Record<BizcardKey, BizcardTheme> = {
 
 /** Shared site theme -> approved card. */
 export const BIZCARD_SHARED_THEMES: Partial<Record<string, BizcardKey>> = {
+  gobble_and_fizz: 'gobble-and-fizz',
+  pie_please: 'pie-please',
   halloween_pumpkin_cat: 'pumpkin-cat',
   halloween_pumpkin_witch: 'pumpkin-witch',
   amethyst: 'amethyst',

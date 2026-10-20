@@ -91,6 +91,8 @@ describe('Amethyst appearance presets', () => {
       'rose_gold',
       'midnight_rose',
       'fall_owl_harvest_moon',
+      'gobble_and_fizz',
+      'pie_please',
       'pearl_rose',
       'rose_champagne',
       'garnet',
@@ -99,6 +101,8 @@ describe('Amethyst appearance presets', () => {
       'rose_quartz',
     ])
     expect(AMETHYST_SKIN_CARDS.map((skin) => skin.label)).toEqual([
+      'Gobble & Fizz',
+      'Pie, Please!',
       'Chasing Unicorns (Amethyst)',
       'Sparkle Suite/Morganite',
       'Black Diamond',
@@ -431,14 +435,18 @@ describe('Amethyst appearance presets', () => {
 
     for (const surface of cardSurfaces) {
       // New collection themes keep palette tokens in their scoped stylesheet.
-      const surfaceCss = surface === 'pearl-rose-paper'
+      const surfaceCss = ['gobble-and-fizz', 'pie-please'].includes(surface)
+        ? readFileSync(resolve(process.cwd(), `public/amethyst/${surface}.css`), 'utf8')
+        : surface === 'pearl-rose-paper'
         ? readFileSync(resolve(process.cwd(), 'public/amethyst/pearl-rose.css'), 'utf8')
         : surface === 'midnight-rose'
         ? readFileSync(resolve(process.cwd(), 'public/amethyst/midnight-rose.css'), 'utf8')
         : surface === 'fall-owl'
         ? readFileSync(resolve(process.cwd(), 'public/amethyst/fall-owl.css'), 'utf8')
         : homepageCss
-      const className = surface === 'pearl-rose-paper'
+      const className = ['gobble-and-fizz', 'pie-please'].includes(surface)
+        ? `bg-${surface}`
+        : surface === 'pearl-rose-paper'
         ? 'bg-pearl-rose'
         : surface === 'midnight-rose'
         ? 'bg-midnight-rose'

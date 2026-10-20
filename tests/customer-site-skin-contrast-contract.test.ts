@@ -27,18 +27,19 @@ describe('customer-site skin contrast contract', () => {
   const midnightCss = readCustomerSiteCss('midnight-rose.css')
   const owlCss = readCustomerSiteCss('fall-owl.css')
   const pearlCss = readCustomerSiteCss('pearl-rose.css')
+  const thanksgiving = (id: string) => id === 'gobble_and_fizz' || id === 'pie_please'
   const presets = Object.values(AMETHYST_APPEARANCE_PRESETS)
 
   it('gives every selectable skin a semantic foreground contract for its card surface', () => {
     expect(presets.map(({ id }) => id)).toEqual([...AMETHYST_APPEARANCE_PRESET_IDS])
 
     for (const preset of presets) {
-      const selector = preset.id === 'fall_owl_harvest_moon' ? 'body.bg-fall-owl' : preset.id === 'pearl_rose'
+      const selector = thanksgiving(preset.id) ? `body.bg-${preset.values.bgTreatment}` : preset.id === 'fall_owl_harvest_moon' ? 'body.bg-fall-owl' : preset.id === 'pearl_rose'
         ? 'body.bg-pearl-rose'
         : preset.id === 'midnight_rose'
         ? 'body.bg-midnight-rose'
         : `body.${cardSurfaceClass(preset.values.cardSurface)}`
-      const css = preset.id === 'fall_owl_harvest_moon' ? owlCss : preset.id === 'pearl_rose' ? pearlCss : preset.id === 'midnight_rose' ? midnightCss : homepageCss
+      const css = thanksgiving(preset.id) ? readCustomerSiteCss(preset.values.bgTreatment + '.css') : preset.id === 'fall_owl_harvest_moon' ? owlCss : preset.id === 'pearl_rose' ? pearlCss : preset.id === 'midnight_rose' ? midnightCss : homepageCss
 
       expect(css).toMatch(cssRule(selector, '--hp-card-fg'))
       expect(css).toMatch(cssRule(selector, '--hp-card-muted'))
@@ -68,8 +69,8 @@ describe('customer-site skin contrast contract', () => {
 
   it('uses a skin-aware foreground token for all customer action controls and active Trade filters', () => {
     for (const preset of presets) {
-      const selector = preset.id === 'fall_owl_harvest_moon' ? 'body.bg-fall-owl' : preset.id === 'pearl_rose' ? 'body.bg-pearl-rose' : preset.id === 'midnight_rose' ? 'body.bg-midnight-rose' : `body.btn-${preset.values.buttonEnergy}`
-      expect(preset.id === 'fall_owl_harvest_moon' ? owlCss : preset.id === 'pearl_rose' ? pearlCss : preset.id === 'midnight_rose' ? midnightCss : homepageCss).toMatch(cssRule(selector, '--hp-action-fg'))
+      const selector = thanksgiving(preset.id) ? `body.bg-${preset.values.bgTreatment}` : preset.id === 'fall_owl_harvest_moon' ? 'body.bg-fall-owl' : preset.id === 'pearl_rose' ? 'body.bg-pearl-rose' : preset.id === 'midnight_rose' ? 'body.bg-midnight-rose' : `body.btn-${preset.values.buttonEnergy}`
+      expect(thanksgiving(preset.id) ? readCustomerSiteCss(preset.values.bgTreatment + '.css') : preset.id === 'fall_owl_harvest_moon' ? owlCss : preset.id === 'pearl_rose' ? pearlCss : preset.id === 'midnight_rose' ? midnightCss : homepageCss).toMatch(cssRule(selector, '--hp-action-fg'))
     }
 
     for (const [selector, css] of [

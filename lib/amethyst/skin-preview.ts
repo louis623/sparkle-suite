@@ -9,7 +9,7 @@ import type { AmethystHomepageEventCard } from './homepage-upcoming-shows'
 
 export const SKIN_PREVIEW_PAGES = ['homepage', 'trade', 'join', 'unsubscribe'] as const
 export type SkinPreviewPage = (typeof SKIN_PREVIEW_PAGES)[number]
-export const SKIN_PREVIEW_SKINS = ['amethyst', 'gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn', 'rose_gold', 'midnight_rose', 'fall_owl_harvest_moon', 'pearl_rose', 'rose_champagne'] as const
+export const SKIN_PREVIEW_SKINS = ['amethyst', 'gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn', 'rose_gold', 'midnight_rose', 'fall_owl_harvest_moon', 'gobble_and_fizz', 'pie_please', 'pearl_rose', 'rose_champagne'] as const
 export type SkinPreviewSkin = (typeof SKIN_PREVIEW_SKINS)[number]
 const FILES: Record<SkinPreviewPage, string> = {
   homepage: 'Homepage.html', trade: 'Trade.html', join: 'Join.html', unsubscribe: 'Unsubscribe.html',
@@ -131,6 +131,34 @@ const PREVIEW_PROFILES = {
     events: [
       { id: 'sample-rose-evening', title: 'Harvest Moon Reveal Night', description: 'A little sparkle, good company, and beautiful jewelry surprises. Join Sasha for an evening of live reveals.', eventTime: '2099-10-12T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{ code: 'SAMPLE10', desc: 'Sample offer for this appearance preview' }], collections: [{ label: 'OG Collection', href: previewPath('fall_owl_harvest_moon', 'trade') }], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
       { id: 'sample-rose-weekend', title: 'Saturday Sparkle & Sip', description: 'Bring your favorite drink and settle in for a relaxed weekend reveal.', eventTime: '2099-10-14T17:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 60, featured: false, codes: [], collections: [{ label: 'Birthday Collection', href: previewPath('fall_owl_harvest_moon', 'trade') }], platforms: [{ kind: 'fb', label: 'Watch on Facebook', href: '#preview-action' }] },
+    ],
+  },
+  gobble_and_fizz: {
+    label: 'Gobble & Fizz', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
+    ticker: 'Live jewelry reveals | A little sparkle, a lovely surprise | Explore the Dance Floor',
+    tagline: 'Good company. Beautiful surprises.',
+    eyebrow: '', headline: 'Real jewelry. Live reveals. Pure sparkle.',
+    heroSub: 'Join Sasha for live jewelry reveals, friendly conversation, and your next favorite find.',
+    aboutHeadline: 'Come for a reveal. Stay for the company.',
+    aboutParagraphs: ['Hi, I’m Sasha. I love sharing the surprise of a jewelry reveal with you.', 'Whether you are discovering your first piece or chasing your next favorite, you are welcome here.', 'Check the sample show calendar and come join the fun.'],
+    signupSub: 'Get a friendly heads-up before the next live reveal.',
+    events: [
+      { id: 'sample-rose-evening', title: 'Thanksgiving Reveal Night', description: 'A little sparkle, good company, and beautiful jewelry surprises. Join Sasha for an evening of live reveals.', eventTime: '2099-10-12T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{ code: 'SAMPLE10', desc: 'Sample offer for this appearance preview' }], collections: [{ label: 'OG Collection', href: previewPath('gobble_and_fizz', 'trade') }], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
+      { id: 'sample-rose-weekend', title: 'Saturday Sparkle & Sip', description: 'Bring your favorite drink and settle in for a relaxed weekend reveal.', eventTime: '2099-10-14T17:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 60, featured: false, codes: [], collections: [{ label: 'Birthday Collection', href: previewPath('gobble_and_fizz', 'trade') }], platforms: [{ kind: 'fb', label: 'Watch on Facebook', href: '#preview-action' }] },
+    ],
+  },
+  pie_please: {
+    label: 'Pie, Please!', businessName: 'Sparkle by Sasha', repName: 'Sasha', teamName: 'The Sparkle Circle',
+    ticker: 'Live jewelry reveals | A little sparkle, a lovely surprise | Explore the Dance Floor',
+    tagline: 'Good company. Beautiful surprises.',
+    eyebrow: '', headline: 'Real jewelry. Live reveals. Pure sparkle.',
+    heroSub: 'Join Sasha for live jewelry reveals, friendly conversation, and your next favorite find.',
+    aboutHeadline: 'Come for a reveal. Stay for the company.',
+    aboutParagraphs: ['Hi, I’m Sasha. I love sharing the surprise of a jewelry reveal with you.', 'Whether you are discovering your first piece or chasing your next favorite, you are welcome here.', 'Check the sample show calendar and come join the fun.'],
+    signupSub: 'Get a friendly heads-up before the next live reveal.',
+    events: [
+      { id: 'sample-rose-evening', title: 'Thanksgiving Reveal Night', description: 'A little sparkle, good company, and beautiful jewelry surprises. Join Sasha for an evening of live reveals.', eventTime: '2099-10-12T23:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 90, featured: true, codes: [{ code: 'SAMPLE10', desc: 'Sample offer for this appearance preview' }], collections: [{ label: 'OG Collection', href: previewPath('pie_please', 'trade') }], platforms: [{ kind: 'tt', label: 'Watch on TikTok', href: '#preview-action' }] },
+      { id: 'sample-rose-weekend', title: 'Saturday Sparkle & Sip', description: 'Bring your favorite drink and settle in for a relaxed weekend reveal.', eventTime: '2099-10-14T17:00:00.000Z', timeZone: 'America/New_York', durationMinutes: 60, featured: false, codes: [], collections: [{ label: 'Birthday Collection', href: previewPath('pie_please', 'trade') }], platforms: [{ kind: 'fb', label: 'Watch on Facebook', href: '#preview-action' }] },
     ],
   },
   pearl_rose: {
@@ -260,7 +288,7 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
   }
   if (page === 'join') {
     return buildAmethystJoinBootstrapScript({
-      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'amethyst' || skin === 'gilded_autumn' || (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'pearl_rose' || skin === 'rose_champagne') ? 'Find your place with Sasha.' : skin === 'neon_butterfly' ? 'Find your place in the glow.' : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat') ? 'Find your place beneath the pumpkin moon.' : 'Find your place in the garden.',
+      ...defaultAmethystJoinTemplateData, ...common, teamName: profile.teamName, heroTitle: skin === 'amethyst' || skin === 'gilded_autumn' || (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne') ? 'Find your place with Sasha.' : skin === 'neon_butterfly' ? 'Find your place in the glow.' : (skin === 'halloween_pumpkin_witch' || skin === 'halloween_pumpkin_cat') ? 'Find your place beneath the pumpkin moon.' : 'Find your place in the garden.',
       shopUrl: '#preview-action', bpReferralUrl: '', hasRecruitingLink: false,
       teamMembers: [
         ...(skin === 'neon_butterfly'
@@ -270,7 +298,7 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
               { name: 'Jules', business: 'Bright Wing Sparkle', state: 'Virginia', initials: 'J', socialLinks: {} },
             ]
           : [
-              { name: 'Sasha', business: (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'pearl_rose' || skin === 'rose_champagne') ? profile.businessName : 'The Gnome Forest', state: 'Virginia', initials: 'S', socialLinks: {} },
+              { name: 'Sasha', business: (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne') ? profile.businessName : 'The Gnome Forest', state: 'Virginia', initials: 'S', socialLinks: {} },
               { name: 'Alex', business: 'Moonlit Sparkle', state: 'North Carolina', initials: 'A', socialLinks: {} },
               { name: 'Jamie', business: 'Little Lantern Reveals', state: 'Georgia', initials: 'J', socialLinks: {} },
             ]),
@@ -349,7 +377,7 @@ export const SKIN_PREVIEW_GUARDS = `
     }
     event.preventDefault(); event.stopImmediatePropagation();
     var path = href.split('?')[0].split('#')[0];
-    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:amethyst|gnome_garden|neon_butterfly|halloween_pumpkin_witch|halloween_pumpkin_cat|gilded_autumn|rose_gold|midnight_rose|fall_owl_harvest_moon|pearl_rose|rose_champagne)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
+    var page = pages[path.split('/').pop()] || (/^\\/skin-preview\\/(?:amethyst|gnome_garden|neon_butterfly|halloween_pumpkin_witch|halloween_pumpkin_cat|gilded_autumn|rose_gold|midnight_rose|fall_owl_harvest_moon|gobble_and_fizz|pie_please|pearl_rose|rose_champagne)\\/(homepage|trade|join|unsubscribe)$/.exec(path) || [])[1];
     if (page) window.parent.postMessage({ type: 'sparkle-skin-preview-page', page: page, ...(href.endsWith('#events') ? { fragment: '#events' } : {}) }, '*'); else notice();
   }, true);
   function disableUploads() {
@@ -387,6 +415,8 @@ export function skinPreviewMediaSource(skin: SkinPreviewSkin, origin: string) {
   if (skin === 'pearl_rose') return origin + '/amethyst/skins/pearl-rose/'
   if (skin === 'midnight_rose') return origin + '/amethyst/skins/midnight-rose/'
   if (skin === 'fall_owl_harvest_moon') return origin + '/amethyst/skins/fall-owl/'
+  if (skin === 'gobble_and_fizz') return origin + '/amethyst/skins/gobble-and-fizz/'
+  if (skin === 'pie_please') return origin + '/amethyst/skins/pie-please/'
   if (skin === 'rose_champagne') return origin + '/amethyst/skins/rose-champagne/'
   if (skin === 'amethyst') return origin + '/amethyst/skins/am01-unicorn/'
   if (skin === 'gilded_autumn') return origin + '/amethyst/skins/gilded-autumn/'
@@ -400,14 +430,14 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
   // Inline only allowlisted repository runtime files. Inline Babel input does not need network XHR.
-  const runtimeNames = ['tweaks-panel.jsx', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'rose-champagne.js', 'midnight-rose.js', 'fall-owl.js', 'pearl-rose.js', 'sparkle-suite-footer-credit.js']
+  const runtimeNames = ['tweaks-panel.jsx', 'responsive-image.js', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'rose-champagne.js', 'midnight-rose.js', 'fall-owl.js', 'thanksgiving-motion.js', 'pearl-rose.js', 'sparkle-suite-footer-credit.js']
   for (const name of runtimeNames) {
     const escaped = name.replace('.', '\\.')
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')
     if (!pattern.test(document)) continue
     pattern.lastIndex = 0
     let source = await readFile(join(root, name), 'utf8')
-    if ((skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'pearl_rose' || skin === 'rose_champagne') && page === 'homepage' && name === 'homepage.jsx') {
+    if ((skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne') && page === 'homepage' && name === 'homepage.jsx') {
       // Avoid even an initial blocked external-sprite request before the
       // preview observer fills this placeholder with the real glyph paths.
       source = source.replace('<use href={`/amethyst/media-icons.svg#${name}`} />', '<use data-preview-icon={name} />')
@@ -431,7 +461,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   const bootstrap = bootstrapOverride ?? fixtureBootstrap(page, skin, review).replaceAll('Sparkle by Sasha', profile.businessName)
   const reviewGuards = SKIN_PREVIEW_GUARDS.replace('var sample = '+JSON.stringify(GNOME_PREVIEW_LINEUP)+';', 'var sample = '+JSON.stringify(reviewLineup(review))+';')
   let mediaSymbols = ''
-  if ((skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'pearl_rose' || skin === 'rose_champagne') && page === 'homepage') {
+  if ((skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne') && page === 'homepage') {
     mediaSymbols = (await readFile(join(root, 'media-icons.svg'), 'utf8'))
       .replace('<svg xmlns="http://www.w3.org/2000/svg">', '<svg id="rgc-preview-media-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="0" height="0" style="position:absolute;overflow:hidden;pointer-events:none">')
       .replace(/\bid="([a-z][a-z0-9-]*)"/g, (_match, id: string) => id === 'rgc-preview-media-symbols' ? _match : `id="rgc-preview-icon-${id}"`)
@@ -447,12 +477,16 @@ export async function buildGnomeSkinPreviewDocument(page: SkinPreviewPage, origi
 export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string, review: LineupReviewState | null = null) {
   const profile = PREVIEW_PROFILES[skin]
   const document = await buildSkinPreviewDocument(skin, page, origin, review)
-  const previewKind = (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'pearl_rose' || skin === 'rose_champagne') ? 'Theme' : 'Skin'
+  const previewKind = (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne') ? 'Theme' : 'Skin'
   const reviewQuery = review ? '?lineupReview='+review : ''
   const reviewControls = review ? '<nav aria-label="Lineup review states">'+(['empty','queued','delayed','no-calendar'] as const).map(state => '<a href="'+previewPath(skin,page)+'?lineupReview='+state+'"'+(state === review ? ' aria-current="page"' : '')+'>'+({empty:'Empty',queued:'Names waiting',delayed:'Delayed', 'no-calendar':'No calendar'}[state])+'</a>').join('')+'</nav>' : ''
   const navigation = SKIN_PREVIEW_PAGES.map((item) => `<a href="${previewPath(skin, item)}${reviewQuery}"${item === page ? ' aria-current="page"' : ''}>${LABELS[item]}</a>`).join('')
   const chrome = skin === 'amethyst'
     ? { bg: '#22064b', fg: '#fff4fa', muted: '#E8DFF5', border: '#FF1AC255', active: '#E8DFF5', focus: '#FF1AC2' }
+    : skin === 'gobble_and_fizz'
+    ? { bg: '#291522', fg: '#fff2df', muted: '#e5cbbb', border: '#c9854f', active: '#efb36c', focus: '#efb36c' }
+    : skin === 'pie_please'
+    ? { bg: '#fcf3e5', fg: '#502d24', muted: '#796052', border: '#ba7648', active: '#813c32', focus: '#813c32' }
     : skin === 'pearl_rose'
     ? { bg: '#faf5ef', fg: '#4d2931', muted: '#785963', border: '#dcc4b7', active: '#813f50', focus: '#954354' }
     : skin === 'fall_owl_harvest_moon'

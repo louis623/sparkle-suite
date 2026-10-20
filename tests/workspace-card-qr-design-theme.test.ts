@@ -18,24 +18,31 @@ async function decode(png: Buffer) {
 }
 
 describe('Design theme picker', () => {
-  it('shared-theme rep: their theme first as the site tile, 14 tiles total, no duplicates', () => {
+  it.each([['gobble_and_fizz', 'gobble-and-fizz'], ['pie_please', 'pie-please']] as const)('%s keeps its matching card and thumbnail in the shared picker', (preset, key) => {
+    const options = cardQrDesignThemeOptions(preset, key)
+    expect(options[0]).toMatchObject({ id: 'site', preset, thumb: `/card-qr-themes/${key}.webp` })
+    expect(options.filter(option => option.preset === preset)).toHaveLength(1)
+    expect(fs.existsSync(path.join(process.cwd(), 'public', options[0].thumb!))).toBe(true)
+    expect(readCardQrDesignTheme(preset)).toBe(preset)
+  })
+  it('shared-theme rep: their theme first as the site tile, one tile per shared theme, no duplicates', () => {
     const options = cardQrDesignThemeOptions('amethyst', 'amethyst')
-    expect(options).toHaveLength(14)
+    expect(options).toHaveLength(CARD_QR_SHARED_FLYER_THEMES.length)
     expect(options[0]).toMatchObject({ id: 'site', preset: 'amethyst', isSite: true, thumb: '/card-qr-themes/amethyst.webp' })
     expect(options.filter((o) => o.preset === 'amethyst')).toHaveLength(1)
     expect(new Set(options.map((o) => o.preset))).toEqual(new Set(CARD_QR_SHARED_FLYER_THEMES))
   })
 
-  it('custom rep: their custom design first, then all 14 shared themes', () => {
+  it('custom rep: their custom design first, then all shared themes', () => {
     const options = cardQrDesignThemeOptions('gnome_garden', 'custom-kim')
-    expect(options).toHaveLength(15)
+    expect(options).toHaveLength(CARD_QR_SHARED_FLYER_THEMES.length + 1)
     expect(options[0]).toMatchObject({ id: 'site', label: 'Your custom design', thumb: '/card-qr-themes/custom-kim.webp' })
     expect(options.slice(1).map((o) => o.id)).toEqual([...CARD_QR_SHARED_FLYER_THEMES])
   })
 
   it('custom rep on a shared preset still sees their own design first and can pick that shared theme', () => {
     const options = cardQrDesignThemeOptions('amethyst', 'custom-lindsey')
-    expect(options).toHaveLength(15)
+    expect(options).toHaveLength(CARD_QR_SHARED_FLYER_THEMES.length + 1)
     expect(options[0].thumb).toBe('/card-qr-themes/custom-lindsey.webp')
     expect(options.some((o) => o.id === 'amethyst')).toBe(true)
   })

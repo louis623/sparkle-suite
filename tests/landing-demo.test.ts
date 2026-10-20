@@ -9,6 +9,16 @@ vi.mock('next/cache', () => ({ unstable_cache: (fn: unknown) => fn }))
 
 const demo: LandingDemo = {slug:'dudesfizzfest',businessName:'Demo',theme:'neon_butterfly',themeLabel:'Neon Butterfly',headline:'Hello',subtitle:'Welcome',ticker:'',themes:[{id:'rose_gold',label:'Rose Gold',colors:[]}]}
 describe('public landing theme boundary', () => {
+  it.each([['gobble_and_fizz', 'gobble-and-fizz'], ['pie_please', 'pie-please']] as const)('bundles %s motion when it is the saved demo theme', async (theme, folder) => {
+    expect(permittedLandingTheme({ ...demo, theme }, null)).toBe(theme)
+    const html = await landingPreviewDocument({ ...demo, theme }, theme, 'https://smoke.example')
+    const manifest = html.match(/id="marketing-preview-assets" type="application\/json">([^<]*)<\/script>/)?.[1]
+    expect(JSON.parse(manifest!)).toEqual(expect.arrayContaining([
+      `/amethyst/skins/${folder}/hero-loop.mp4`, `/amethyst/skins/${folder}/hero-poster.webp`,
+    ]))
+    expect(html).toContain('media-src data:;')
+    expect(communityLandingThemes([{ skin_id: theme, visibility: 'community' }])).toEqual([])
+  })
   it('never replaces missing or unknown saved themes with a default', () => {
     expect(exactLandingTheme(null)).toBeNull()
     expect(exactLandingTheme('not-a-theme')).toBeNull()

@@ -47,6 +47,28 @@ function applyUnsubscribeAppearance() {
     Object.entries(midnightTokens).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
     return;
   }
+  if (preset === "gobble_and_fizz") {
+    document.body.classList.add("bg-gobble-and-fizz", "surface-gobble-and-fizz", "shape-soft");
+    const midnightTokens = {
+      "--hp-primary": "#efb36c", "--hp-accent": "#c9854f", "--primary": "#efb36c", "--accent": "#c9854f",
+      "--hp-bg": "#291522", "--hp-bg-elevated": "#392330", "--bg-deep": "#1d111a",
+      "--hp-display-font": '"Playfair Display", Georgia, serif',
+      "--hp-body-font": '"DM Sans", "Inter", system-ui, sans-serif', "--hp-heading-weight": "600",
+    };
+    Object.entries(midnightTokens).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
+    return;
+  }
+  if (preset === "pie_please") {
+    document.body.classList.add("bg-pie-please", "surface-pie-please", "shape-soft");
+    const midnightTokens = {
+      "--hp-primary": "#813c32", "--hp-accent": "#ba7648", "--primary": "#813c32", "--accent": "#ba7648",
+      "--hp-bg": "#fcf3e5", "--hp-bg-elevated": "#fffaf2", "--bg-deep": "#f2dfc9",
+      "--hp-display-font": '"Playfair Display", Georgia, serif',
+      "--hp-body-font": '"DM Sans", "Inter", system-ui, sans-serif', "--hp-heading-weight": "600",
+    };
+    Object.entries(midnightTokens).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
+    return;
+  }
 
   if (preset === "rose_champagne") {
     document.body.classList.add("bg-rose-gold-paper", "bg-rose-champagne", "surface-pearl-rose", "shape-soft");
