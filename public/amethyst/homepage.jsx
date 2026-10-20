@@ -2107,6 +2107,8 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-pref-more { justify-self: start; min-height: 44px; padding: 8px 2px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
 .hp-pref-more:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
 .hp-signup-form, .hp-signup-preferences, .hp-pref { max-width: 100%; }
+.hp-signup-notes-label { display: block; color: var(--hp-card-fg); font-size: 15px; line-height: 1.45; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.hp-signup-notes { min-height: 120px; resize: vertical; }
 @media (max-width: 420px) {
   .hp-pref-chip { font-size: 15px; }
 }
@@ -2209,6 +2211,7 @@ function Signup({ repName, businessName }) {
     favoriteCuts: [],
     favoriteCollections: [],
     ringSize: "",
+    jewelryNotes: "",
   });
   const [preferenceOptions, setPreferenceOptions] = useState(null);
   const [preferenceOptionsError, setPreferenceOptionsError] = useState(false);
@@ -2287,6 +2290,7 @@ function Signup({ repName, businessName }) {
           favoriteCuts: form.favoriteCuts,
           favoriteCollections: form.favoriteCollections,
           ringSize: form.ringSize,
+          jewelryNotes: form.jewelryNotes,
         }),
       });
 
@@ -2315,6 +2319,7 @@ function Signup({ repName, businessName }) {
         favoriteCuts: [],
         favoriteCollections: [],
         ringSize: "",
+        jewelryNotes: "",
       });
       setSubmitState({
         status: "success",
@@ -2438,6 +2443,13 @@ function Signup({ repName, businessName }) {
                   <option value="11">11</option>
                   <option value="not_sure">Not sure</option>
                 </select>
+              </div>
+              <div className="hp-signup-field">
+                <label className="hp-signup-notes-label" htmlFor="hp-jewelry-notes">
+                  Put any notes that you would like reps and our system to know about the types of jewelry or what you like about Bomb Party jewelry, so we can help you find the pieces you love.
+                  <span className="hp-signup-label-aux"> Optional.</span>
+                </label>
+                <textarea id="hp-jewelry-notes" className="hp-signup-input hp-signup-notes" maxLength={500} rows={4} value={form.jewelryNotes} onChange={(e) => updateField("jewelryNotes", e.target.value)} />
               </div>
             </div>
             <div className="hp-signup-actions">
