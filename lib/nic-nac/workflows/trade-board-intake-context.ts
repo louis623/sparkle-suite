@@ -409,9 +409,13 @@ export async function ingestLatestTradeBoardIntakeTurn(
     })
   }
 
-  const metadata = latestTurnConfirmsMainPhoto(args.messages)
-    ? { ...args.session.metadata, mainPhotoConfirmed: true }
-    : args.session.metadata
+  let metadata = args.session.metadata
+  if (latestTurnConfirmsMainPhoto(args.messages)) {
+    metadata = { ...metadata, mainPhotoConfirmed: true }
+  }
+  if (latestTurnConfirmsPhotoSet(args.messages)) {
+    metadata = { ...metadata, photoSetReuseConfirmed: true }
+  }
   const updated: TradeBoardIntakeSessionState = {
     ...args.session,
     catalogMode,
@@ -565,6 +569,24 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
   }
 
   return null
+}
+
+function latestTurnConfirmsPhotoSet(messages: UIMessage[]): boolean {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return false
+  if (!isPositiveConfirmation(getMessageText(messages[latestUserIndex]))) return false
+  const previousAssistant = messages
+    .slice(0, latestUserIndex)
+    .reverse()
+    .find((message) => message.role === 'assistant')
+  if (/belongs with that set/i.test(getMessageText(previousAssistant))) return true
+  return (previousAssistant?.parts ?? []).some((part) => {
+    const output = (
+      part as { output?: { code?: string; message?: string } }
+    ).output
+    if (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM') return true
+    return typeof output?.message === 'string' && /belongs with that set/i.test(output.message)
+  })
 }
 
 function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {

@@ -14,9 +14,9 @@ export type PhotoReuseDecision =
   | { blocked: true; otherItemNumber: string; message: string }
 
 /**
- * Same file bytes on a different item number are a wrong-piece save.
- * The same item number may have another finish, cut, or stone color, so a
- * matching item number is never a conflict — even when the file hash matches.
+ * The same photo bytes on a saved piece with a different item number need a
+ * set confirmation. The same item number may have another finish, cut, or
+ * stone color, so a matching item number is never a conflict.
  */
 export function decidePhotoReuse(args: {
   itemNumber: string
@@ -35,7 +35,7 @@ export function decidePhotoReuse(args: {
   return {
     blocked: true,
     otherItemNumber,
-    message: `This photo is already saved on ${otherItemNumber}. I won't use it for ${current}. Send a photo of ${current}.`,
+    message: `This photo is already on ${otherItemNumber}. If ${current} belongs with that set, reply yes.`,
   }
 }
 
@@ -64,11 +64,13 @@ export function resolvePhotoContentSha256(args: {
   return hashDataImageUrl(args.sourceImageUrl)
 }
 
+type PhotoHashSession = {
+  item_number?: string | null
+  status?: string | null
+}
+
 type PhotoHashRow = {
-  trade_board_intake_sessions?:
-    | { item_number?: string | null }
-    | Array<{ item_number?: string | null }>
-    | null
+  trade_board_intake_sessions?: PhotoHashSession | PhotoHashSession[] | null
 }
 
 export async function loadItemNumbersForPhotoHash(
@@ -77,15 +79,18 @@ export async function loadItemNumbersForPhotoHash(
 ): Promise<PhotoReuseMatch[]> {
   const { data, error } = await admin
     .from('trade_board_intake_photos')
-    .select('trade_board_intake_sessions!inner(item_number)')
+    .select('trade_board_intake_sessions!inner(item_number, status)')
     .eq('rep_id', args.repId)
     .eq('content_sha256', args.contentSha256)
+    .eq('trade_board_intake_sessions.status', 'completed')
 
   if (error) throw error
 
   return ((data ?? []) as PhotoHashRow[]).flatMap((row) => {
     const session = row.trade_board_intake_sessions
     const sessions = Array.isArray(session) ? session : session ? [session] : []
-    return sessions.map((entry) => ({ itemNumber: entry.item_number ?? null }))
+    return sessions
+      .filter((entry) => entry.status === 'completed')
+      .map((entry) => ({ itemNumber: entry.item_number ?? null }))
   })
 }

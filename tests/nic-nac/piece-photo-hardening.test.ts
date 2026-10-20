@@ -228,7 +228,7 @@ describe('Kelly 9/18 — the same photo file cannot land on a different item num
     expect(hashDataImageUrl('https://cdn.example.com/nk60295.jpg')).toBeNull()
   })
 
-  it('refuses the NK60295 necklace photo on ST21027 and ST49881', () => {
+  it('asks before using the NK60295 necklace photo on ST21027 and ST49881', () => {
     for (const itemNumber of ['ST21027', 'ST49881']) {
       const decision = decidePhotoReuse({
         itemNumber,
@@ -240,8 +240,10 @@ describe('Kelly 9/18 — the same photo file cannot land on a different item num
       expect(decision.otherItemNumber).toBe('NK60295')
       expect(decision.message).toContain(itemNumber)
       expect(decision.message).toContain('NK60295')
+      expect(decision.message).toContain('belongs with that set')
       expect(decision.message).not.toMatch(/\b(sold|sales|trade|traded)\b/i)
       expect(decision.message).not.toMatch(/\b(her|his|their|they)\b/i)
+      expect(decision.message).not.toMatch(/I won't use it/i)
     }
   })
 
@@ -494,10 +496,72 @@ describe('main photo confirmation', () => {
     })
 
     expect(ingested.metadata.mainPhotoConfirmed).toBe(true)
+    expect(ingested.metadata.photoSetReuseConfirmed).toBeUndefined()
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({
         metadata: expect.objectContaining({ mainPhotoConfirmed: true }),
       }),
     )
+  })
+
+  it('remembers a yes when the photo belongs with a saved set', async () => {
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_sessions') return { update }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-st21027',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'ready_to_add',
+      known: {
+        itemNumber: 'ST21027',
+        designName: 'Stack',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: {},
+      photos: [],
+    }
+
+    const ingested = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'ask',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: {
+                ok: false,
+                code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                message:
+                  'This photo is already on NK60295. If ST21027 belongs with that set, reply yes.',
+              },
+            },
+          ],
+        },
+        {
+          id: 'yes',
+          role: 'user',
+          parts: [{ type: 'text', text: 'Yes' }],
+        },
+      ],
+    })
+
+    expect(ingested.metadata.photoSetReuseConfirmed).toBe(true)
+    expect(ingested.metadata.mainPhotoConfirmed).toBeUndefined()
   })
 })
