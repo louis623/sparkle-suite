@@ -2,11 +2,22 @@ import { NextResponse } from 'next/server'
 
 import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
 import { resolveAmethystRequestTarget } from '@/lib/amethyst/request-rep-target'
-import { ServiceError } from '@/lib/services/errors'
+import { ServiceError, errors } from '@/lib/services/errors'
 import { createCustomerAudienceSignup } from '@/lib/services/customer-audience'
 import type { CustomerAudienceSignupInput } from '@/lib/services/types'
+import { readSignupPreferences } from '@/lib/sparkle-suite/jewelry-preferences'
+import { loadPreferenceOptions } from '@/lib/sparkle-suite/load-preference-options'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { dispatchWorkspaceMessageAutomationAfterResponse } from '@/lib/services/workspace-message-dispatch'
+
+type SignupRequestBody = CustomerAudienceSignupInput & {
+  favoriteStones?: unknown
+  favoriteMaterials?: unknown
+  favoriteCuts?: unknown
+  favoriteCollections?: unknown
+  ringSize?: unknown
+  jewelryNotes?: unknown
+}
 
 function readString(value: unknown) {
   return typeof value === 'string' ? value : ''
@@ -26,30 +37,54 @@ function readBoolean(value: unknown) {
   return false
 }
 
-async function parseSignupPayload(
-  request: Request,
-): Promise<CustomerAudienceSignupInput> {
+function readJsonList(body: Record<string, unknown>, ...keys: string[]) {
+  const key = keys.find((candidate) => candidate in body)
+  return key ? body[key] : undefined
+}
+
+function readFormList(formData: FormData, ...keys: string[]) {
+  const key = keys.find((candidate) => formData.has(candidate))
+  if (!key) return undefined
+  return formData.getAll(key).map((value) => (typeof value === 'string' ? value : ''))
+}
+
+async function parseSignupPayload(request: Request): Promise<SignupRequestBody> {
   const contentType = request.headers.get('content-type') ?? ''
 
   if (contentType.includes('application/json')) {
     const body = await request.json()
+    const record = body && typeof body === 'object' ? (body as Record<string, unknown>) : {}
 
     return {
-      firstName: readString(body?.firstName ?? body?.first_name),
-      lastName: readString(body?.lastName ?? body?.last_name),
-      email: readString(body?.email),
-      phone: readString(body?.phone),
-      smsConsent: readBoolean(body?.smsConsent ?? body?.sms_consent),
-      emailConsent: readBoolean(body?.emailConsent ?? body?.email_consent),
+      firstName: readString(record.firstName ?? record.first_name),
+      lastName: readString(record.lastName ?? record.last_name),
+      email: readString(record.email),
+      phone: readString(record.phone),
+      smsConsent: readBoolean(record.smsConsent ?? record.sms_consent),
+      emailConsent: readBoolean(record.emailConsent ?? record.email_consent),
       marketingConsent: readBoolean(
-        body?.marketingConsent ?? body?.marketing_consent,
+        record.marketingConsent ?? record.marketing_consent,
       ),
-      address: readString(body?.address),
-      birthday: readString(body?.birthday),
-      favoriteGemOrStone: readString(body?.favoriteGemOrStone),
-      favoriteMaterial: readString(body?.favoriteMaterial),
-      favoriteCut: readString(body?.favoriteCut),
-      favoriteCollection: readString(body?.favoriteCollection),
+      address: readString(record.address),
+      birthday: readString(record.birthday),
+      favoriteGemOrStone: readString(
+        record.favoriteGemOrStone ?? record.favorite_gem_or_stone,
+      ),
+      favoriteMaterial: readString(record.favoriteMaterial ?? record.favorite_material),
+      favoriteCut: readString(record.favoriteCut ?? record.favorite_cut),
+      favoriteCollection: readString(
+        record.favoriteCollection ?? record.favorite_collection,
+      ),
+      favoriteStones: readJsonList(record, 'favoriteStones', 'favorite_stones'),
+      favoriteMaterials: readJsonList(record, 'favoriteMaterials', 'favorite_materials'),
+      favoriteCuts: readJsonList(record, 'favoriteCuts', 'favorite_cuts'),
+      favoriteCollections: readJsonList(
+        record,
+        'favoriteCollections',
+        'favorite_collections',
+      ),
+      ringSize: readJsonList(record, 'ringSize', 'ring_size'),
+      jewelryNotes: readJsonList(record, 'jewelryNotes', 'jewelry_notes'),
     }
   }
 
@@ -71,16 +106,46 @@ async function parseSignupPayload(
     ),
     address: readString(formData.get('address')),
     birthday: readString(formData.get('birthday')),
-    favoriteGemOrStone: readString(formData.get('favoriteGemOrStone')),
-    favoriteMaterial: readString(formData.get('favoriteMaterial')),
-    favoriteCut: readString(formData.get('favoriteCut')),
-    favoriteCollection: readString(formData.get('favoriteCollection')),
+    favoriteGemOrStone: readString(
+      formData.get('favoriteGemOrStone') ?? formData.get('favorite_gem_or_stone'),
+    ),
+    favoriteMaterial: readString(
+      formData.get('favoriteMaterial') ?? formData.get('favorite_material'),
+    ),
+    favoriteCut: readString(formData.get('favoriteCut') ?? formData.get('favorite_cut')),
+    favoriteCollection: readString(
+      formData.get('favoriteCollection') ?? formData.get('favorite_collection'),
+    ),
+    favoriteStones: readFormList(formData, 'favoriteStones', 'favorite_stones'),
+    favoriteMaterials: readFormList(formData, 'favoriteMaterials', 'favorite_materials'),
+    favoriteCuts: readFormList(formData, 'favoriteCuts', 'favorite_cuts'),
+    favoriteCollections: readFormList(
+      formData,
+      'favoriteCollections',
+      'favorite_collections',
+    ),
+    ringSize: formData.has('ringSize')
+      ? formData.get('ringSize')
+      : formData.has('ring_size')
+        ? formData.get('ring_size')
+        : undefined,
+    jewelryNotes: formData.has('jewelryNotes')
+      ? formData.get('jewelryNotes')
+      : formData.has('jewelry_notes')
+        ? formData.get('jewelry_notes')
+        : undefined,
   }
 }
 
 export async function POST(request: Request) {
   try {
     const payload = await parseSignupPayload(request)
+    const loaded = await loadPreferenceOptions()
+    const preferences = readSignupPreferences(payload, loaded.options)
+    if (!preferences.ok) {
+      throw errors.INVALID_INPUT(preferences.detail, preferences.message)
+    }
+
     const admin = createAdminClient()
     const target = resolveAmethystRequestTarget(request)
     const rep = await resolveAmethystPreviewRep(admin, {
@@ -97,7 +162,24 @@ export async function POST(request: Request) {
       )
     }
 
-    await createCustomerAudienceSignup(admin, rep.id, payload)
+    await createCustomerAudienceSignup(admin, rep.id, {
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      email: payload.email,
+      phone: payload.phone,
+      smsConsent: payload.smsConsent,
+      emailConsent: payload.emailConsent,
+      marketingConsent: payload.marketingConsent,
+      address: payload.address,
+      birthday: payload.birthday,
+      favoriteGemOrStone: payload.favoriteGemOrStone,
+      favoriteMaterial: payload.favoriteMaterial,
+      favoriteCut: payload.favoriteCut,
+      favoriteCollection: payload.favoriteCollection,
+      notes: payload.notes,
+      tags: payload.tags,
+      preferencePicks: preferences.picks,
+    })
     dispatchWorkspaceMessageAutomationAfterResponse({
       supabase: admin,
       source: 'customer_signup',

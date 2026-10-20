@@ -419,6 +419,11 @@ export interface CustomerAudienceSignupInput {
   favoriteCollection?: string
   notes?: string
   tags?: string[]
+  /**
+   * Null keeps the single-text favorite fields for one release.
+   * An object is a validated pick-up-to-3 sign-up.
+   */
+  preferencePicks?: import('@/lib/sparkle-suite/jewelry-preferences').CustomerSignupPreferencePicks | null
 }
 
 export interface CustomerAudienceSignupResult {
