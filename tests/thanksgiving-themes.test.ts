@@ -33,6 +33,15 @@ describe.each([
     expect(doc).toContain('Uploads are unavailable in this sample preview')
     expect(skinPreviewMediaSource(theme.id, origin)).toBe(`${origin}/amethyst/skins/${theme.slug}/`)
   })
+  it('fills the sample homepage with that theme’s own artwork and leaves real empty slots empty', async () => {
+    const doc = await buildSkinPreviewDocument(theme.id, 'homepage', 'https://example.test')
+    const revision = theme.id === 'pie_please' ? '-v4' : ''
+    expect(doc).toContain(`/amethyst/skins/${theme.slug}/hero-loop${revision}.mp4`)
+    expect(doc).toContain(`/amethyst/skins/${theme.slug}/sample-portrait.webp`)
+    expect(doc).toContain(`/amethyst/skins/${theme.slug}/sample-moment-1.webp`)
+    expect(defaultAmethystHomepageTemplateData.showcaseVideoUrl).toBe('#')
+    expect(defaultAmethystHomepageTemplateData.aboutMediaSlots.every((slot) => !slot.mediaUrl)).toBe(true)
+  })
   it('keeps shared navigation, ticker and lineup geometry locked', () => {
     const css = readFileSync(`public/amethyst/${theme.slug}.css`, 'utf8')
     expect(css).not.toMatch(/127\.0\.0\.1|localhost|animation:none!important/)

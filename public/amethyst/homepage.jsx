@@ -1005,6 +1005,11 @@ function getCustomerVideoProvider(value) {
   return "";
 }
 
+function getThemeSampleVideoPath(value) {
+  const input = String(value || "").trim();
+  return /^\/amethyst\/skins\/[a-z0-9-]+\/hero-loop(?:-v\d+)?\.mp4$/.test(input) ? input : "";
+}
+
 function getCustomerVideoPresentation(value) {
   const sourceUrl = getCustomerVideoSourceUrl(value);
   const provider = getCustomerVideoProvider(sourceUrl);
@@ -1079,6 +1084,7 @@ function CustomerVideoCard({
   variant,
 }) {
   const presentation = getCustomerVideoPresentation(videoUrl);
+  const sampleVideo = getThemeSampleVideoPath(videoUrl);
   const caption = String(subtitle || "").trim();
   return (
     <CustomerMediaCard
@@ -1086,12 +1092,14 @@ function CustomerVideoCard({
       dataSlot={dataSlot}
       emptyLabel="Video coming soon"
       icon="video"
-      mediaUrl={presentation.outboundUrl}
-      provider={presentation.provider}
+      mediaUrl={presentation.outboundUrl || sampleVideo}
+      provider={presentation.provider || (sampleVideo ? "sample" : "")}
       subtitle=""
       title={title}
       variant={variant}
-      footer={presentation.outboundUrl ? (
+      footer={sampleVideo ? (
+        caption ? <figcaption className="hp-customer-media-footer hp-about-media-caption">{caption}</figcaption> : null
+      ) : presentation.outboundUrl ? (
         <figcaption className="hp-customer-media-footer hp-customer-video-footer">
           {caption ? <span className="hp-customer-video-caption">{caption}</span> : null}
           <a className="hp-customer-media-action" href={presentation.outboundUrl} target="_blank" rel="noreferrer noopener">
@@ -1226,6 +1234,22 @@ function TikTokEmbed({ className = "", videoUrl, title, children, dataSlot }) {
 }
 
 function CustomerVideoEmbed({ className = "", videoUrl, title, children, dataSlot }) {
+  const sampleVideo = getThemeSampleVideoPath(videoUrl);
+  if (sampleVideo) {
+    const poster = sampleVideo.replace(/hero-loop(-v\d+)?\.mp4$/, "hero-poster$1.webp");
+    return (
+      <video
+        autoPlay
+        className={`hp-theme-sample-video ${className}`.trim()}
+        loop
+        muted
+        playsInline
+        poster={poster}
+        preload="metadata"
+        src={sampleVideo}
+      />
+    );
+  }
   const sourceUrl = getCustomerVideoSourceUrl(videoUrl);
   const tiktokVideoId = getTikTokVideoId(sourceUrl || videoUrl);
   const youtubeVideoId = getYouTubeVideoId(sourceUrl || videoUrl);
@@ -1324,6 +1348,27 @@ function AboutPortraitCard({ fallbackCaption }) {
 function AboutShortCard({ index, hideEmptyMedia = false }) {
   const slot = getAboutMediaSlot(index + 1);
   const presentation = getCustomerVideoPresentation(slot?.href);
+  if (slot?.mediaUrl && !presentation.provider) {
+    return (
+      <CustomerMediaCard
+        className="hp-about-short-card slot"
+        dataSlot={`about short ${index + 1}`}
+        icon="camera"
+        mediaUrl={slot.mediaUrl}
+        title={`Sparkle moment ${index + 1}`}
+        variant="short"
+        footer={<figcaption className="hp-customer-media-footer hp-about-media-caption">{slot.caption}</figcaption>}
+      >
+        <img
+          alt={slot.caption || `Sparkle moment ${index + 1}`}
+          decoding="async"
+          loading="lazy"
+          src={slot.mediaUrl}
+          style={{ display: "block", width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
+        />
+      </CustomerMediaCard>
+    );
+  }
   if (hideEmptyMedia && !presentation.provider) return null;
 
   return (

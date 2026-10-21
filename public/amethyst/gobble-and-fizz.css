@@ -375,6 +375,7 @@ body.bg-gobble-and-fizz .tp-sheet-upload input::file-selector-button {
   body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] .tg-toggle{position:absolute;top:16px;left:16px;z-index:5;min-height:44px;padding:10px 16px;border:1px solid #fff7e5a6;border-radius:24px;background:#291522df;color:#fff2df;font:600 13px/1.4 "DM Sans","Inter",system-ui,sans-serif;cursor:pointer;pointer-events:auto}
   body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] .tg-toggle:focus-visible{outline:3px solid #efb36c;outline-offset:3px}
   body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] .tg-toggle[hidden]{display:none}
+  body.bg-gobble-and-fizz .hp-theme-sample-video{object-fit:cover;object-position:center;background:#291522}
   @media(max-width:600px){body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] :is(.tg-poster,.tg-video){object-position:right center}}
   /* Keep the approved 16:9 frame, including the tail and feet, on every desktop overlay. */
   @media(min-width:1101px){body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"]{min-height:56.25vw}}
