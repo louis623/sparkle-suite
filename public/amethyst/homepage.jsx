@@ -2110,6 +2110,10 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-notes-label { display: block; color: var(--hp-card-fg); font-size: 15px; line-height: 1.45; font-weight: 600; letter-spacing: 0; text-transform: none; }
 .hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }
 .hp-signup-notes { min-height: 120px; resize: vertical; }
+.hp-signup-intro { display: grid; gap: 6px; text-align: center; }
+.hp-signup-step-title { margin: 0; color: var(--hp-card-fg); font-family: var(--hp-display-font); font-size: clamp(26px, 3vw, 34px); font-weight: 700; letter-spacing: var(--hp-heading-tracking, -0.02em); line-height: 1.15; }
+.hp-signup-step-why { margin: 0 auto; max-width: 36rem; color: var(--hp-card-muted); font-size: 15px; line-height: 1.5; }
+.hp-pref > legend { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .hp-signup-progress-wrap { display: grid; justify-items: center; gap: 0; }
 .hp-signup-progress { margin: 0; color: var(--hp-card-fg); font-size: 14px; font-weight: 700; letter-spacing: 0.04em; text-align: center; }
 .hp-signup-meter { display: flex; gap: 4px; width: min(100%, 420px); }
@@ -2145,16 +2149,16 @@ const SIGNUP_PREFERENCE_STYLES = `
 `;
 
 const SIGNUP_STEP_LABELS = [
-  "Name and email",
-  "Favorite stones",
-  "Favorite metals & finishes",
+  "Let's get you on the list",
+  "Stones you love",
+  "Metals and finishes",
   "Favorite cuts",
-  "Favorite Bomb Party collections",
-  "Reminders and updates",
-  "Phone",
-  "Birthday",
+  "Bomb Party collections",
+  "How should we reach you?",
+  "A number for texts",
+  "Your birthday",
   "Ring size",
-  "Jewelry notes",
+  "Anything else?",
   "Sign me up",
 ];
 const SIGNUP_LAST_STEP = SIGNUP_STEP_LABELS.length - 1;
@@ -2268,7 +2272,8 @@ function Signup({ repName, businessName }) {
   const stepRef = useRef(null);
   const stepWasShown = useRef(false);
   useEffect(() => {
-    setStepAnnouncement(`Step ${step + 1} of ${SIGNUP_STEP_LABELS.length}. ${SIGNUP_STEP_LABELS[step]}.`);
+    const announcedTitle = step === SIGNUP_LAST_STEP ? `Join ${repName}` : SIGNUP_STEP_LABELS[step];
+    setStepAnnouncement(`Step ${step + 1} of ${SIGNUP_STEP_LABELS.length}. ${announcedTitle}.`);
     if (!stepWasShown.current) {
       stepWasShown.current = true;
       return;
@@ -2276,7 +2281,7 @@ function Signup({ repName, businessName }) {
     const field = stepRef.current?.querySelector("input, select, textarea");
     if (field) field.focus();
     else document.querySelector("#signup .hp-signup-submit")?.focus();
-  }, [step]);
+  }, [step, repName]);
   useEffect(() => {
     if (!stepError) return;
     document.getElementById("hp-signup-step-error")?.focus();
@@ -2302,6 +2307,20 @@ function Signup({ repName, businessName }) {
   }, []);
   const signupTitle = CONTENT.signupTitle || "Never miss a show.";
   const signupSub = CONTENT.signupSub || `Get a heads-up when ${repName} goes live, plus first dibs on new drops.`;
+  const stepWhy = [
+    `${repName} saves your spot with your name and email.`,
+    `${repName} uses this to pull pieces you'll want. Pick up to 3.`,
+    "So the finish matches what you like to wear. Pick up to 3.",
+    "The shape changes the whole piece. Pick up to 3.",
+    `${repName} can watch for the Bomb Party lines you want. Pick up to 3.`,
+    `Choose email, texts, or both. ${repName} only uses what you pick.`,
+    `${repName} needs a mobile number for the reminders you asked for.`,
+    "Only for birthday promotions and gift ideas. It will not be used for anything else.",
+    `Optional. It helps ${repName} point you toward rings that are more likely to fit.`,
+    "Optional. Add a note only if you want to.",
+    `Here's what ${businessName} will have when you sign up.`,
+  ];
+  const stepTitle = step === SIGNUP_LAST_STEP ? `Join ${repName}` : SIGNUP_STEP_LABELS[step];
 
   function updateField(key, value) {
     setStepError("");
@@ -2564,6 +2583,10 @@ function Signup({ repName, businessName }) {
               {stepError ? (
                 <p id="hp-signup-step-error" className="hp-signup-status error" role="alert" tabIndex={-1}>{stepError}</p>
               ) : null}
+              <div className="hp-signup-intro">
+                <h3 className="hp-signup-step-title" id="hp-signup-step-title">{stepTitle}</h3>
+                <p className="hp-signup-step-why" id="hp-signup-step-why">{stepWhy[step]}</p>
+              </div>
               {step === 0 ? (
                 <div className="hp-signup-identity hp-signup-single">
                   <div className="hp-signup-row">
@@ -2584,10 +2607,6 @@ function Signup({ repName, businessName }) {
               ) : null}
               {step >= 1 && step <= 4 ? (
                 <div className="hp-signup-preferences">
-                  <div className="hp-signup-preferences-heading">
-                    <strong>Your jewelry favorites</strong>
-                  </div>
-                  <p className="hp-signup-preferences-copy">Helps {businessName} pick pieces you&apos;ll love. Pick up to 3 in each list.</p>
                   {!preferenceOptions && !preferenceOptionsError ? (
                     <p className="hp-signup-field-note" role="status">Favorites are still loading. Try again in a moment.</p>
                   ) : null}
@@ -2658,8 +2677,7 @@ function Signup({ repName, businessName }) {
               {step === 7 ? (
                 <div className="hp-signup-field hp-signup-single">
                   <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
-                  <input id="hp-birthday" className="hp-signup-input" type="text" name="birthday" inputMode="text" autoComplete="off" enterKeyHint="next" placeholder="MM-DD" aria-describedby="hp-birthday-note" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
-                  <span className="hp-signup-field-note" id="hp-birthday-note">Only for birthday promotions and gift ideas. It will not be used for anything else.</span>
+                  <input id="hp-birthday" className="hp-signup-input" type="text" name="birthday" inputMode="text" autoComplete="off" enterKeyHint="next" placeholder="MM-DD" aria-describedby="hp-signup-step-why" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
                 </div>
               ) : null}
               {step === 8 ? (

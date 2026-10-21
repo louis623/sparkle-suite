@@ -288,7 +288,15 @@ describe('signup copy and migration parity', () => {
     expect(signup).toContain(
       'Put any notes that you would like reps and our system to know about the types of jewelry or what you like about Bomb Party jewelry, so we can help you find the pieces you love.',
     )
-    expect(signup).toContain('Your jewelry favorites')
+    expect(jsx).toContain("Let's get you on the list")
+    expect(jsx).toContain('Stones you love')
+    expect(jsx).toContain('Metals and finishes')
+    expect(jsx).toContain('Favorite cuts')
+    expect(jsx).toContain('Bomb Party collections')
+    expect(jsx).toContain('How should we reach you?')
+    expect(jsx).toContain('Your birthday')
+    expect(jsx).toContain('Anything else?')
+    expect(signup).not.toContain('Your jewelry favorites')
     expect(signup).not.toMatch(/\b(trade|sold|sales|traded)\b/i)
     expect(signup).not.toContain('Live Queue')
     expect(signup).not.toMatch(/free trial/i)
