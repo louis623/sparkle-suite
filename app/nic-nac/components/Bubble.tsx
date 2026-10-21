@@ -59,9 +59,9 @@ export function Bubble({
         </span>
       )
     ) : null
-  // Keep this an array. A formatted fragment would leave whitespace that
-  // pre-wrap turns into a gap above the photo and an indent on the sentence.
-  const body = [imageBlock, textBlock, children]
+  // No whitespace text nodes. pre-wrap would turn those into a gap above the
+  // photo and an indent on the sentence.
+  const body = <>{imageBlock}{textBlock}{children}</>
 
   if (variant === 'rep') {
     return (
