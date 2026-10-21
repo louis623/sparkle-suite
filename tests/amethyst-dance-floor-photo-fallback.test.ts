@@ -87,6 +87,18 @@ function responsiveRepImage(src: string, options: { alt?: string; sizes?: string
   }
 }
 
+function SparkleMark() {
+  return React.createElement('svg', { className: 'tp-sparkle-mark', 'aria-hidden': true, focusable: 'false' })
+}
+
+function displayCollectionLabel(value: unknown) {
+  return value
+}
+
+function isSpecificDancerNote() {
+  return false
+}
+
 function photoHarness() {
   let failedUrl = ''
   let ready = false
@@ -103,7 +115,7 @@ function photoHarness() {
 describe('Dance Floor photo fallback', () => {
   it('swaps a broken grid photo for the same placeholder a card with no photo uses', () => {
     const { useState } = photoHarness()
-    const TradeCard = actualFunction('TradeCard', { useState, responsiveRepImage })
+    const TradeCard = actualFunction('TradeCard', { useState, responsiveRepImage, SparkleMark, displayCollectionLabel })
     const render = (photoUrl: string | null, name?: string) => descendants(TradeCard({
       piece: piece(photoUrl, name),
       onTap: () => {},
@@ -152,6 +164,9 @@ describe('Dance Floor photo fallback', () => {
     const ExpandedCard = actualFunction('ExpandedCard', {
       useState,
       responsiveRepImage,
+      SparkleMark,
+      displayCollectionLabel,
+      isSpecificDancerNote,
       useTradeDialog: () => ({ current: null }),
     })
     const render = (photoUrl: string | null) => descendants(ExpandedCard({

@@ -193,6 +193,9 @@ describe('Trade dialogs keyboard behavior', () => {
     const Expanded = actualFunction('trade', 'ExpandedCard', {
       useTradeDialog: hook,
       useState: (initial: unknown) => [initial, () => {}],
+      SparkleMark: () => React.createElement('svg', { className: 'tp-sparkle-mark' }),
+      displayCollectionLabel: (value: unknown) => value,
+      isSpecificDancerNote: () => false,
     })
     expect(Expanded({ piece: null, onClose, onWantThis })).toBeNull()
     expect(hook).toHaveBeenLastCalledWith(false, onClose)
