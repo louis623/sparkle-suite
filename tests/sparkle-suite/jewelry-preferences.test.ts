@@ -285,9 +285,8 @@ describe('signup copy and migration parity', () => {
     expect(actions.indexOf('hp-signup-privacy')).toBeGreaterThan(-1)
     expect(actions.indexOf('hp-signup-privacy')).toBeLessThan(actions.indexOf('type="submit"'))
     expect(jsx).toContain('.hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }')
-    expect(signup).toContain(
-      'Put any notes that you would like reps and our system to know about the types of jewelry or what you like about Bomb Party jewelry, so we can help you find the pieces you love.',
-    )
+    expect(signup).toContain("Pieces you're hunting for, sizes, or styles you love.")
+    expect(signup).not.toContain('our system to know')
     expect(jsx).toContain("Let's get you on the list")
     expect(jsx).toContain('Stones you love')
     expect(jsx).toContain('Metals and finishes')

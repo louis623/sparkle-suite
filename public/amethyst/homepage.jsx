@@ -2319,7 +2319,7 @@ function Signup({ repName, businessName }) {
     `${repName} needs a mobile number for the reminders you asked for.`,
     "Only for birthday promotions and gift ideas. It will not be used for anything else.",
     `Optional. It helps ${repName} point you toward rings that are more likely to fit.`,
-    "Optional. Add a note only if you want to.",
+    `Anything else ${repName} should know? Pieces you're hunting for, sizes, or styles you love.`,
     `Here's what ${businessName} will have when you sign up.`,
   ];
   const stepTitle = step === SIGNUP_LAST_STEP ? `Join ${repName}` : SIGNUP_STEP_LABELS[step];
@@ -2707,11 +2707,7 @@ function Signup({ repName, businessName }) {
               {step === 9 ? (
                 <div className="hp-signup-question">
                   <div className="hp-signup-field">
-                  <label className="hp-signup-notes-label" htmlFor="hp-jewelry-notes">
-                    Put any notes that you would like reps and our system to know about the types of jewelry or what you like about Bomb Party jewelry, so we can help you find the pieces you love.
-                    <span className="hp-signup-label-aux"> Optional.</span>
-                  </label>
-                  <textarea id="hp-jewelry-notes" className="hp-signup-input hp-signup-notes" name="jewelryNotes" autoComplete="off" enterKeyHint="next" maxLength={500} rows={4} value={form.jewelryNotes} onChange={(e) => updateField("jewelryNotes", e.target.value)} />
+                  <textarea id="hp-jewelry-notes" className="hp-signup-input hp-signup-notes" name="jewelryNotes" autoComplete="off" enterKeyHint="next" maxLength={500} rows={4} aria-labelledby="hp-signup-step-title" aria-describedby="hp-signup-step-why" value={form.jewelryNotes} onChange={(e) => updateField("jewelryNotes", e.target.value)} />
                   </div>
                 </div>
               ) : null}
