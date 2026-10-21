@@ -233,48 +233,43 @@ describe('Dance Floor photo fallback', () => {
 
     const apply = (initialSrc: string, cssHref: string) => {
       const attrs: Record<string, string> = { src: initialSrc }
-      const links = [{ rel: 'stylesheet', href: cssHref }]
-      const current = {
-        nextSibling: null as null,
-        parentNode: {
-          insertBefore(node: { rel: string; href: string }) {
-            links.push(node)
-          },
-        },
-      }
+      const links = [{ href: cssHref }]
       runInNewContext(`${scriptMatch?.[1]}\n`, {
         document: {
           querySelectorAll(selector: string) {
-            if (selector !== 'script[src*="trade.jsx"]') return []
-            return [{
-              getAttribute: (name: string) => attrs[name] || '',
-              setAttribute: (name: string, value: string) => { attrs[name] = value },
-            }]
-          },
-          querySelector(selector: string) {
-            if (selector === `link[rel="stylesheet"][href="trade.css?v=${version}"]`) {
-              return links.some(link => link.href === `trade.css?v=${version}`) ? current : null
+            if (selector === 'script[src*="trade.jsx"]') {
+              return [{
+                getAttribute: (name: string) => attrs[name] || '',
+                setAttribute: (name: string, value: string) => { attrs[name] = value },
+              }]
             }
-            if (selector === 'link[rel="stylesheet"][href*="trade.css"]') return current
-            return null
+            if (selector === 'link[rel="stylesheet"][href*="trade.css"]') {
+              return links.map(link => ({
+                getAttribute: (name: string) => (name === 'href' ? link.href : ''),
+                setAttribute: (name: string, value: string) => { if (name === 'href') link.href = value },
+              }))
+            }
+            return []
           },
-          createElement: () => ({ rel: '', href: '' }),
         },
       })
       return { src: attrs.src, hrefs: links.map(link => link.href) }
     }
 
-    expect(apply('trade.jsx?v=20261021-dance-floor-9', 'trade.css?v=20261021-ticker-edge')).toEqual({
-      src: 'trade.jsx?v=20261021-photo-frame',
-      hrefs: ['trade.css?v=20261021-ticker-edge', 'trade.css?v=20261021-photo-frame'],
-    })
-    expect(apply('trade.jsx?v=20261019-thanksgiving-v3', 'trade.css?v=20261004-filter-contrast')).toEqual({
-      src: 'trade.jsx?v=20261021-photo-frame',
-      hrefs: ['trade.css?v=20261004-filter-contrast', 'trade.css?v=20261021-photo-frame'],
-    })
-    expect(apply('trade.jsx', 'trade.css')).toEqual({
-      src: 'trade.jsx?v=20261021-photo-frame',
-      hrefs: ['trade.css', 'trade.css?v=20261021-photo-frame'],
-    })
+    const absolute = {
+      src: '/amethyst/trade.jsx?v=20261021-photo-frame',
+      hrefs: ['/amethyst/trade.css?v=20261021-photo-frame'],
+    }
+    for (const rewritten of [
+      apply('trade.jsx?v=20261021-dance-floor-9', 'trade.css?v=20261021-ticker-edge'),
+      apply('/amethyst/trade.jsx?v=20261021-dance-floor-9', '/amethyst/trade.css?v=20261021-ticker-edge'),
+      apply('trade.jsx?v=20261019-thanksgiving-v3', 'trade.css?v=20261004-filter-contrast'),
+      apply('trade.jsx', 'trade.css'),
+    ]) {
+      expect(rewritten).toEqual(absolute)
+      expect(rewritten.src.startsWith('/amethyst/')).toBe(true)
+      expect(rewritten.hrefs).toHaveLength(1)
+      expect(rewritten.hrefs[0].startsWith('/amethyst/')).toBe(true)
+    }
   })
 })
