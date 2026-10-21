@@ -2110,6 +2110,7 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-notes-label { display: block; color: var(--hp-card-fg); font-size: 15px; line-height: 1.45; font-weight: 600; letter-spacing: 0; text-transform: none; }
 .hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }
 .hp-signup-notes { min-height: 120px; resize: vertical; }
+.hp-signup-question { display: grid; gap: 16px; width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid var(--border); border-radius: 20px; background: var(--hp-form-panel-bg); color: var(--hp-form-panel-fg); padding: 20px; }
 .hp-signup-intro { display: grid; gap: 6px; text-align: center; }
 .hp-signup-step-title { margin: 0; color: var(--hp-card-fg); font-family: var(--hp-display-font); font-size: clamp(26px, 3vw, 34px); font-weight: 700; letter-spacing: var(--hp-heading-tracking, -0.02em); line-height: 1.15; }
 .hp-signup-step-why { margin: 0 auto; max-width: 36rem; color: var(--hp-card-muted); font-size: 15px; line-height: 1.5; }
@@ -2588,7 +2589,7 @@ function Signup({ repName, businessName }) {
                 <p className="hp-signup-step-why" id="hp-signup-step-why">{stepWhy[step]}</p>
               </div>
               {step === 0 ? (
-                <div className="hp-signup-identity hp-signup-single">
+                <div className="hp-signup-question hp-signup-identity">
                   <div className="hp-signup-row">
                     <div className="hp-signup-field">
                       <label className="hp-signup-label" htmlFor="hp-first-name">First name</label>
@@ -2606,7 +2607,7 @@ function Signup({ repName, businessName }) {
                 </div>
               ) : null}
               {step >= 1 && step <= 4 ? (
-                <div className="hp-signup-preferences">
+                <div className="hp-signup-question">
                   {!preferenceOptions && !preferenceOptionsError ? (
                     <p className="hp-signup-field-note" role="status">Favorites are still loading. Try again in a moment.</p>
                   ) : null}
@@ -2653,7 +2654,7 @@ function Signup({ repName, businessName }) {
                 </div>
               ) : null}
               {step === 5 ? (
-                <div className="hp-signup-consent-box">
+                <div className="hp-signup-question">
                   <label className="hp-signup-check">
                     <input type="checkbox" checked={form.smsConsent} onChange={(e) => updateField("smsConsent", e.target.checked)} />
                     <span>Text me show reminders and SMS updates.</span>
@@ -2669,19 +2670,24 @@ function Signup({ repName, businessName }) {
                 </div>
               ) : null}
               {step === 6 ? (
-                <div className="hp-signup-field hp-signup-single">
+                <div className="hp-signup-question">
+                  <div className="hp-signup-field">
                   <label className="hp-signup-label" htmlFor="hp-phone">Phone <span className="hp-signup-label-aux">(optional, for SMS)</span></label>
                   <input id="hp-phone" className="hp-signup-input" type="tel" name="tel" inputMode="tel" autoComplete="tel" enterKeyHint="next" placeholder="Mobile number" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} />
+                  </div>
                 </div>
               ) : null}
               {step === 7 ? (
-                <div className="hp-signup-field hp-signup-single">
+                <div className="hp-signup-question">
+                  <div className="hp-signup-field">
                   <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
                   <input id="hp-birthday" className="hp-signup-input" type="text" name="birthday" inputMode="text" autoComplete="off" enterKeyHint="next" placeholder="MM-DD" aria-describedby="hp-signup-step-why" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
+                  </div>
                 </div>
               ) : null}
               {step === 8 ? (
-                <div className="hp-signup-field hp-signup-single">
+                <div className="hp-signup-question">
+                  <div className="hp-signup-field">
                   <label className="hp-signup-label" htmlFor="hp-ring-size">Ring size <span className="hp-signup-label-aux">(optional)</span></label>
                   <select id="hp-ring-size" className="hp-signup-input" name="ringSize" autoComplete="off" value={form.ringSize} onChange={(e) => updateField("ringSize", e.target.value)}>
                     <option value="">Select a size</option>
@@ -2694,16 +2700,22 @@ function Signup({ repName, businessName }) {
                     <option value="11">11</option>
                     <option value="not_sure">Not sure</option>
                   </select>
+                  </div>
                 </div>
               ) : null}
               {step === 9 ? (
-                <div className="hp-signup-field hp-signup-single">
+                <div className="hp-signup-question">
+                  <div className="hp-signup-field">
                   <label className="hp-signup-notes-label" htmlFor="hp-jewelry-notes">
                     Put any notes that you would like reps and our system to know about the types of jewelry or what you like about Bomb Party jewelry, so we can help you find the pieces you love.
                     <span className="hp-signup-label-aux"> Optional.</span>
                   </label>
                   <textarea id="hp-jewelry-notes" className="hp-signup-input hp-signup-notes" name="jewelryNotes" autoComplete="off" enterKeyHint="next" maxLength={500} rows={4} value={form.jewelryNotes} onChange={(e) => updateField("jewelryNotes", e.target.value)} />
+                  </div>
                 </div>
+              ) : null}
+              {step === SIGNUP_LAST_STEP ? (
+                <div className="hp-signup-question" />
               ) : null}
               </div>
             </div>
