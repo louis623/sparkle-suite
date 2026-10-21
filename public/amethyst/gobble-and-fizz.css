@@ -211,6 +211,33 @@ body.bg-gobble-and-fizz .hp-customer-media-empty-icon {
   color: #efb36c;
   border-color: #c9854f;
 }
+body.bg-gobble-and-fizz .hp-customer-media-card.is-empty { align-self: start; }
+body.bg-gobble-and-fizz .hp-customer-media-card.is-empty .hp-customer-media-viewport {
+  aspect-ratio: auto;
+  height: auto;
+  background: transparent;
+}
+body.bg-gobble-and-fizz .hp-customer-media-empty {
+  height: auto;
+  min-height: 0;
+  gap: 10px;
+  padding: 18px 16px 20px;
+  color: #fff2df;
+  background: radial-gradient(circle at 50% 0%, #efb36c33, transparent 58%), #392330;
+  border: 1px dashed #c9854f;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.45;
+  text-transform: none;
+}
+body.bg-gobble-and-fizz .hp-customer-media-empty .hp-customer-media-empty-icon {
+  width: 40px;
+  height: 40px;
+  color: #28161e;
+  background: #efb36c;
+  border-color: #c9854f;
+}
 body.bg-gobble-and-fizz :is(.jp-benefit-icon, .jp-final-icon, .tp-sheet-success-icon) {
   background: #efb36c;
   color: #28161e;

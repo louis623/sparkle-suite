@@ -346,6 +346,14 @@ function getAboutMediaSlot(index) {
   return CONTENT.aboutMediaSlots?.[index] || null;
 }
 
+function mediaEmptyPrompt(kind) {
+  const seasonal = CONTENT.preset === "gobble_and_fizz" || CONTENT.preset === "pie_please";
+  if (!seasonal) return kind === "portrait" ? "Portrait photo coming soon" : "Video coming soon";
+  if (kind === "portrait") return "Add a portrait so guests can meet you.";
+  if (kind === "short") return "Add a short from a recent reveal.";
+  return "Add a video from a live reveal.";
+}
+
 function SocialLogo({ label, shortLabel }) {
   const key = `${label || ""} ${shortLabel || ""}`.toLowerCase();
 
@@ -1090,7 +1098,7 @@ function CustomerVideoCard({
     <CustomerMediaCard
       className={className}
       dataSlot={dataSlot}
-      emptyLabel="Video coming soon"
+      emptyLabel={mediaEmptyPrompt(variant === "short" ? "short" : "showcase")}
       icon="video"
       mediaUrl={presentation.outboundUrl || sampleVideo}
       provider={presentation.provider || (sampleVideo ? "sample" : "")}
@@ -1308,7 +1316,7 @@ function AboutPortraitCard({ fallbackCaption }) {
       <CustomerMediaCard
         className="hp-about-portrait-card slot"
         dataSlot="about portrait"
-        emptyLabel="Portrait photo coming soon"
+        emptyLabel={mediaEmptyPrompt("portrait")}
         icon="camera"
         title="Meet the rep"
         subtitle={fallbackCaption}

@@ -33,6 +33,19 @@ describe.each([
     expect(doc).toContain('Uploads are unavailable in this sample preview')
     expect(skinPreviewMediaSource(theme.id, origin)).toBe(`${origin}/amethyst/skins/${theme.slug}/`)
   })
+  it('uses a compact on-theme prompt when a rep has no homepage media', () => {
+    const css = readFileSync(`public/amethyst/${theme.slug}.css`, 'utf8')
+    const jsx = readFileSync('public/amethyst/homepage.jsx', 'utf8')
+    expect(jsx).toContain('Add a portrait so guests can meet you.')
+    expect(jsx).toContain('Add a short from a recent reveal.')
+    expect(jsx).toContain('Add a video from a live reveal.')
+    expect(css).toContain('.hp-customer-media-card.is-empty { align-self: start; }')
+    expect(css).toContain('aspect-ratio: auto;')
+    expect(css).toContain('height: auto;')
+    expect(css).toContain('min-height: 0;')
+    expect(css).toContain('text-transform: none;')
+    expect(css).toContain('font-size: 15px;')
+  })
   it('fills the sample homepage with that theme’s own artwork and leaves real empty slots empty', async () => {
     const doc = await buildSkinPreviewDocument(theme.id, 'homepage', 'https://example.test')
     const revision = theme.id === 'pie_please' ? '-v4' : ''
