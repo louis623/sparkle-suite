@@ -83,10 +83,21 @@ const isMileHighFizzHybrid = CONTENT.publicSiteVariant === "mile_high_fizz_hybri
 const isBrittWithBlingHybrid = CONTENT.publicSiteVariant === "britt_with_bling_hybrid";
 const isBrittDanceFloorComingSoon = CONTENT.danceFloorComingSoon === true;
 const isBlingKitchenHybrid = CONTENT.publicSiteVariant === "bling_kitchen_hybrid";
-const BOOTSTRAP_LISTINGS = (Array.isArray(window.AMETHYST_TRADE_BOARD_LISTINGS)
+const DEMO_DANCE_FLOOR_LISTINGS = [
+  { id: "demo-prestige-hoops", name: "The Prestige Hoops", collection: "Hoop Earrings", type: "Earrings", material: "Rhodium plating", stone: "Diamond cubic zirconia", photoUrl: "/amethyst/demo-dancers/prestige-hoops.jpg" },
+  { id: "demo-all-shine", name: "All Shine, No Shade", collection: "Hoop Earrings", type: "Earrings", material: "Rhodium plating", stone: "Cubic zirconia", photoUrl: "/amethyst/demo-dancers/all-shine-no-shade.jpg" },
+  { id: "demo-baguette-rose", name: "Baguette Braid in Rose Quartz", collection: "Baguette Earrings", type: "Earrings", material: "Rhodium plating", stone: "Rose quartz", photoUrl: "/amethyst/demo-dancers/baguette-braid-rose.jpg" },
+  { id: "demo-baguette-ruby", name: "Baguette Braid in Ruby", collection: "Baguette Earrings", type: "Earrings", material: "Rhodium plating", stone: "Ruby", photoUrl: "/amethyst/demo-dancers/baguette-braid-ruby.jpg" },
+  { id: "demo-elodie", name: "The Elodie Luxe", collection: "Drop Earrings", type: "Earrings", material: "Silver tone", stone: "Cubic zirconia", photoUrl: "/amethyst/demo-dancers/elodie-luxe.jpg" },
+  { id: "demo-dreaming", name: "I've Been Dreaming Of You", collection: "Drop Earrings", type: "Earrings", material: "Gold plating", stone: "Amethyst cubic zirconia", photoUrl: "/amethyst/demo-dancers/dreaming-of-you.jpg" },
+  { id: "demo-marisol", name: "The Marisol Earrings", collection: "Drop Earrings", type: "Earrings", material: "Gold plating", stone: "Lab-created pink sapphire", photoUrl: "/amethyst/demo-dancers/marisol-earrings.jpg" },
+  { id: "demo-statement", name: "Statement of Sparkle", collection: "Necklace", type: "Necklace", material: "Hematite tone", stone: "Blue stone", photoUrl: "/amethyst/demo-dancers/statement-of-sparkle.jpg" },
+  { id: "demo-gogo", name: "The GoGo Necklace", collection: "Necklace", type: "Necklace", material: "Rhodium plating", stone: "Lab-created blue spinel", photoUrl: "/amethyst/demo-dancers/gogo-necklace.jpg" },
+];
+const BOOTSTRAP_SOURCE = Array.isArray(window.AMETHYST_TRADE_BOARD_LISTINGS)
   ? window.AMETHYST_TRADE_BOARD_LISTINGS
-  : []
-).map((listing) => (
+  : (RUNTIME_CONTEXT.targeted ? [] : DEMO_DANCE_FLOOR_LISTINGS);
+const BOOTSTRAP_LISTINGS = BOOTSTRAP_SOURCE.map((listing) => (
   listing && typeof listing === "object"
     ? { ...listing, collection: displayCollectionLabel(listing.collection) }
     : listing

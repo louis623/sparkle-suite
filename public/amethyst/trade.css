@@ -1020,6 +1020,16 @@ body.bg-quartz-paper .tp-filter-pill.active .count {
   object-fit: cover;
   display: block;
 }
+.tp-card-photo.has-photo,
+.tp-card-expand-photo.has-photo {
+  background: #fff;
+}
+.tp-card-photo.has-photo .tp-card-photo-img,
+.tp-card-expand-photo.has-photo .tp-card-expand-photo-img {
+  object-fit: contain;
+  padding: 12px;
+  box-sizing: border-box;
+}
 .tp-card-photo .photo-glyph {
   position: absolute;
   inset: 0;

@@ -8,6 +8,7 @@ import {
   defaultAmethystTradeTemplateData,
 } from '@/lib/amethyst/trade-template-data'
 import {
+  defaultAmethystTradeBoardListings,
   mapTradeListingToAmethystTradeBoardListing,
   parseAmethystPublicNetRows,
   type AmethystTradeBoardListing,
@@ -448,6 +449,15 @@ describe('Amethyst trade page template wiring', () => {
       photoUrl: null,
       photoSource: 'missing',
     })
+  })
+
+  it('gives the Sasha demo a photo for every dancer', () => {
+    expect(defaultAmethystTradeBoardListings.length).toBeGreaterThan(0)
+    for (const listing of defaultAmethystTradeBoardListings) {
+      expect(listing.name).not.toMatch(/sample dancer/i)
+      expect(listing.photoUrl).toMatch(/^\/amethyst\/demo-dancers\/.+\.jpg$/)
+      expect(readFileSync(resolve(process.cwd(), `public${listing.photoUrl}`)).length).toBeGreaterThan(0)
+    }
   })
 
   it('loads the runtime bootstrap script before the locked trade-page export', () => {
