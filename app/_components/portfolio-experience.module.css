@@ -157,6 +157,16 @@
 .heroCopy span { font-size: clamp(13px, 1.25vw, 17px); line-height: 1.45; }
 .heroCopy[data-tone='ink'] :is(strong, p, span) { color: #36221d; text-shadow: none; }
 .heroCopy[data-font='georgia'] strong { font-family: Georgia, "Times New Roman", serif; font-weight: 600; }
+.heroCopy[data-font='script'] strong {
+  font-family: var(--font-mhf-script), "Pacifico", cursive;
+  font-weight: 400;
+  font-size: clamp(40px, 5vw, 72px);
+  line-height: 1.04;
+  background: linear-gradient(90deg, #f472d0, #bd7cff 52%, #60a5fa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 .heroCopy[data-align='center'] { align-items: center; text-align: center; padding: 8% 12% 12%; }
 .placeholder {
   display: grid;

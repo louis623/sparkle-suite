@@ -24,6 +24,7 @@ export type PortfolioSlide =
         width: number
         height: number
       }
+      fixedShowcase?: boolean
       hero?: {
         eyebrow?: string
         headline: string
@@ -203,10 +204,20 @@ export const sparkleSuitePortfolioContent = {
           detail: 'A custom look for Mile High Fizz.',
           href: 'https://milehighfizz.com/',
           linkLabel: 'milehighfizz.com',
-          src: '/sparkle-suite/portfolio/mile-high-fizz-hero.webp',
-          alt: 'Mile High Fizz custom homepage hero, with a pink and blue show name over the live-reveal video.',
-          width: 1440,
-          height: 820,
+          src: '/sparkle-suite/portfolio/mile-high-fizz-custom-hero.webp',
+          alt: 'Mile High Fizz custom hero video, with the show name over the live-reveal footage.',
+          width: 1284,
+          height: 716,
+          fixedShowcase: true,
+          video: { mp4: '/mile-high-fizz/hero.mp4', width: 1284, height: 716 },
+          hero: {
+            eyebrow: 'With Lindsey',
+            headline: 'Mile High Fizz',
+            sub: 'Revealing something magical together. Place your order and return to the live party to watch your reveal.',
+            tone: 'light',
+            font: 'script',
+            align: 'center',
+          },
         },
         {
           id: 'britt-with-bling',
@@ -215,10 +226,18 @@ export const sparkleSuitePortfolioContent = {
           detail: 'A custom look for Britt with Bling.',
           href: 'https://brittwithbling.com/',
           linkLabel: 'brittwithbling.com',
-          src: '/sparkle-suite/portfolio/britt-with-bling-hero.webp',
-          alt: 'Britt with Bling custom homepage hero, with the black, gold, and blush show name over the show portrait.',
-          width: 1440,
-          height: 820,
+          src: '/sparkle-suite/portfolio/britt-with-bling-custom-hero.webp',
+          alt: 'Britt with Bling custom hero portrait, with the show name over the portrait.',
+          width: 1200,
+          height: 675,
+          fixedShowcase: true,
+          hero: {
+            eyebrow: 'The Virtuous Fizzers',
+            headline: 'Britt with Bling',
+            sub: 'Where Faith Meets Fizz & Every Reveal is a VIP Experience.',
+            tone: 'light',
+            align: 'center',
+          },
         },
         {
           id: 'go-for-the-bling',

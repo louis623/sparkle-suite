@@ -135,7 +135,16 @@ describe('Sparkle Suite portfolio carousels', () => {
     expect(repHtml).toContain('Go for the Bling')
     expect(repHtml).toContain('Sparkly Butterflies')
     expect(repHtml).not.toMatch(/BlingKitchen|Bri’s Glowtique|theblingkitchen\.com|brisglowtique\.com/)
-    for (const id of repIds) {
+    expect(repHtml).toContain('/sparkle-suite/portfolio/mile-high-fizz-custom-hero.webp')
+    expect(repHtml).toContain('/mile-high-fizz/hero.mp4')
+    expect(repHtml).toContain('With Lindsey')
+    expect(repHtml).toContain('Revealing something magical together.')
+    expect(repHtml).toContain('/sparkle-suite/portfolio/britt-with-bling-custom-hero.webp')
+    expect(repHtml).toContain('The Virtuous Fizzers')
+    expect(repHtml).toContain('Where Faith Meets Fizz')
+    expect(repHtml).not.toContain('mile-high-fizz-site-preview')
+    expect(repHtml).not.toContain('britt-with-bling-site-preview')
+    for (const id of ['go-for-the-bling', 'sparkly-butterflies'] as const) {
       const motion = portfolioMotion[id]
       expect(motion).toBeTruthy()
       expect(repHtml).toContain(motion.poster)
@@ -144,6 +153,11 @@ describe('Sparkle Suite portfolio carousels', () => {
       expect(existsSync(publicFile(motion.poster))).toBe(true)
       expect(existsSync(publicFile(motion.mp4))).toBe(true)
     }
+    expect(existsSync(publicFile('/sparkle-suite/portfolio/mile-high-fizz-custom-hero.webp'))).toBe(true)
+    expect(existsSync(publicFile('/mile-high-fizz/hero.mp4'))).toBe(true)
+    expect(existsSync(publicFile('/sparkle-suite/portfolio/britt-with-bling-custom-hero.webp'))).toBe(true)
+    expect(portfolioMotion['mile-high-fizz']).toBeTruthy()
+    expect(portfolioMotion['britt-with-bling']).toBeTruthy()
     expect(portfolioMotion['blingkitchen']).toBeUndefined()
     expect(portfolioMotion['bris-glowtique']).toBeUndefined()
     for (const removed of [
@@ -154,9 +168,9 @@ describe('Sparkle Suite portfolio carousels', () => {
     ]) {
       expect(existsSync(publicFile(removed))).toBe(false)
     }
-    const repPosters = [...repHtml.matchAll(/<img\b[^>]*site-preview\.webp[^>]*>/g)].map((match) => match[0])
+    const repPosters = [...repHtml.matchAll(/<img\b[^>]*(?:site-preview|custom-hero)\.webp[^>]*>/g)].map((match) => match[0])
     expect(repPosters).toHaveLength(4)
-    expect(repPosters[0]).toContain('mile-high-fizz-site-preview.webp')
+    expect(repPosters[0]).toContain('mile-high-fizz-custom-hero.webp')
     expect(repPosters[0]).toContain('loading="eager"')
     expect(repPosters[0]).toMatch(/fetchpriority="high"/i)
     for (const poster of repPosters.slice(1)) {
@@ -169,7 +183,7 @@ describe('Sparkle Suite portfolio carousels', () => {
 
   it('keeps portfolio metadata and the build queue close', () => {
     const html = renderPortfolio()
-    expect(html).not.toMatch(/Lindsey|Brittany|Heather|Kelly|Placeholder/)
+    expect(html).not.toMatch(/Brittany|Heather|Kelly|Placeholder/)
     expect(html).not.toMatch(/\b(trade|sold|sales|Live Queue|trial)\b/i)
     expect(html).toContain('Join the build queue')
     expect(html).toContain('href="/prelaunch#waitlist"')

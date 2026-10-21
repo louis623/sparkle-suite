@@ -1,5 +1,6 @@
 'use client'
 
+import { Pacifico } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -12,6 +13,8 @@ import {
 import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 import { ProductPeekVideo } from './product-peek-video'
 import styles from './portfolio-experience.module.css'
+
+const mileHighScript = Pacifico({ weight: '400', subsets: ['latin'], variable: '--font-mhf-script' })
 
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -33,13 +36,15 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
     )
   }
 
-  const recording = slide.video ? undefined : portfolioMotion[slide.id]
+  const recording = slide.kind === 'capture' && (slide.video || slide.fixedShowcase)
+    ? undefined
+    : portfolioMotion[slide.id]
   const video = slide.video ?? (recording
     ? { mp4: recording.mp4, width: recording.width, height: recording.height }
     : undefined)
 
   return (
-    <div className={slide.width < 700 ? styles.phoneFrame : styles.frame}>
+    <div className={`${slide.width < 700 ? styles.phoneFrame : styles.frame} ${mileHighScript.variable}`}>
       <div className={styles.browserBar} aria-hidden="true">
         <em>{slide.title}</em>
       </div>
