@@ -113,8 +113,13 @@
   height: auto;
   aspect-ratio: 16 / 9;
   overflow: hidden;
+  padding: 0;
   border-radius: 0 0 6px 6px;
   background: #241811;
+}
+.mediaWell img, .mediaWell video {
+  object-fit: cover;
+  object-position: center;
 }
 .mediaWell > div, .mediaWell > img, .mediaWell > span {
   position: absolute;

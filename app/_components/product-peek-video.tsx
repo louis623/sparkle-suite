@@ -6,9 +6,10 @@ type ProductPeekVideoProps = {
   alt: string; label: string; active?: boolean
   /** Paint one on-screen still before playback. Other posters stay lazy. */
   eagerPoster?: boolean
+  fit?: 'contain' | 'cover'
 }
 /** Real recordings, loaded only in view. The poster survives blocked playback. */
-export function ProductPeekVideo({ poster, mp4, width, height, alt, label, active = true, eagerPoster = false }: ProductPeekVideoProps) {
+export function ProductPeekVideo({ poster, mp4, width, height, alt, label, active = true, eagerPoster = false, fit = 'contain' }: ProductPeekVideoProps) {
   const container = useRef<HTMLDivElement>(null)
   const video = useRef<HTMLVideoElement>(null)
   const [visible, setVisible] = useState(false)
@@ -42,13 +43,13 @@ export function ProductPeekVideo({ poster, mp4, width, height, alt, label, activ
     document.addEventListener('visibilitychange', sync)
     return () => { player.pause(); document.removeEventListener('visibilitychange', sync) }
   }, [mp4, shouldLoad, paused])
-  return <div ref={container} className={styles.media} style={{
+  return <div ref={container} className={styles.media} data-fit={fit} style={{
     aspectRatio: width + '/' + height,
     ...(eagerPoster ? {
       backgroundImage: `url("${poster}")`,
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
-      backgroundSize: 'contain',
+      backgroundSize: fit,
     } : {}),
   }}>
     {/* eslint-disable-next-line @next/next/no-img-element */}

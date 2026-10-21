@@ -54,6 +54,7 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
             label={slide.title}
             active={active}
             eagerPoster={Boolean(recording) && prioritizePoster}
+            fit="cover"
           />
         ) : (
           <Image

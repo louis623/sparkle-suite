@@ -1,5 +1,5 @@
 import { createElement } from 'react'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -178,5 +178,16 @@ describe('Sparkle Suite portfolio carousels', () => {
     expect(metadata.title).toEqual({ absolute: 'Sparkle Suite Portfolio' })
     expect(metadata.alternates?.canonical).toBe('/portfolio')
     expect(metadata.description).toContain('real rep websites')
+  })
+
+  it('uses one shared media frame for every portfolio slide', () => {
+    const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
+    const carousel = readFileSync(join(process.cwd(), 'app/_components/portfolio-carousels.tsx'), 'utf8')
+    expect(css.match(/aspect-ratio:\s*16\s*\/\s*9/g)).toHaveLength(1)
+    expect(css).toContain('object-fit: cover')
+    expect(css).toContain('object-position: center')
+    expect(css).not.toMatch(/data-theme|aspect-ratio:\s*var/)
+    expect(carousel.match(/fit="cover"/g)).toHaveLength(1)
+    expect(carousel).not.toMatch(/fit="contain"/)
   })
 })
