@@ -4735,3 +4735,15 @@ describe('DashboardPlaceholder', () => {
     })
   })
 })
+
+describe('home recent conversations', () => {
+  it('does not invent a conversation for a new rep', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'app/nic-nac/components/DashboardPlaceholder.tsx'),
+      'utf8',
+    )
+    expect(source).not.toContain('Next show setup')
+    expect(source).not.toContain('Added 2 new dancers to my Dance Floor')
+    expect(source).toContain('None yet')
+  })
+})

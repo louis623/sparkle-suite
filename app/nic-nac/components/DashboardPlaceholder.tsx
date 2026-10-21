@@ -8144,18 +8144,7 @@ function ConceptHomeWorkspace({
           </div>
         </ConceptPanel>
         <ConceptPanel title="Recent conversations" className={styles.recentConversationsPanel}>
-          <div className={styles.recentConversationList}>
-            <button type="button" onClick={() => onLaunchAction('check_board')}>
-              <span>N</span>
-              Added 2 new dancers to my Dance Floor
-              <small>9:30 AM</small>
-            </button>
-            <button type="button" onClick={onOpenCalendar}>
-              <span>N</span>
-              Next show setup
-              <small>Yesterday</small>
-            </button>
-          </div>
+          <p className={styles.recentConversationEmpty}>None yet</p>
         </ConceptPanel>
       </aside>
     </section>
