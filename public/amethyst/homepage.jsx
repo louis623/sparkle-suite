@@ -2569,16 +2569,16 @@ function Signup({ repName, businessName }) {
                   <div className="hp-signup-row">
                     <div className="hp-signup-field">
                       <label className="hp-signup-label" htmlFor="hp-first-name">First name</label>
-                      <input id="hp-first-name" className="hp-signup-input" type="text" placeholder="First name" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
+                      <input id="hp-first-name" className="hp-signup-input" type="text" name="firstName" autoComplete="given-name" autoCapitalize="words" enterKeyHint="next" placeholder="First name" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
                     </div>
                     <div className="hp-signup-field">
                       <label className="hp-signup-label" htmlFor="hp-last-name">Last name</label>
-                      <input id="hp-last-name" className="hp-signup-input" type="text" placeholder="Last name" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
+                      <input id="hp-last-name" className="hp-signup-input" type="text" name="lastName" autoComplete="family-name" autoCapitalize="words" enterKeyHint="next" placeholder="Last name" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
                     </div>
                   </div>
                   <div className="hp-signup-field">
                     <label className="hp-signup-label" htmlFor="hp-email">Email</label>
-                    <input id="hp-email" className="hp-signup-input" type="email" placeholder="Email address" value={form.email} onChange={(e) => updateField("email", e.target.value)} />
+                    <input id="hp-email" className="hp-signup-input" type="email" name="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} enterKeyHint="next" placeholder="Email address" value={form.email} onChange={(e) => updateField("email", e.target.value)} />
                   </div>
                 </div>
               ) : null}
@@ -2652,20 +2652,20 @@ function Signup({ repName, businessName }) {
               {step === 6 ? (
                 <div className="hp-signup-field hp-signup-single">
                   <label className="hp-signup-label" htmlFor="hp-phone">Phone <span className="hp-signup-label-aux">(optional, for SMS)</span></label>
-                  <input id="hp-phone" className="hp-signup-input" type="tel" placeholder="Mobile number" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} />
+                  <input id="hp-phone" className="hp-signup-input" type="tel" name="tel" inputMode="tel" autoComplete="tel" enterKeyHint="next" placeholder="Mobile number" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} />
                 </div>
               ) : null}
               {step === 7 ? (
                 <div className="hp-signup-field hp-signup-single">
                   <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
-                  <input id="hp-birthday" className="hp-signup-input" type="text" inputMode="numeric" placeholder="MM-DD" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
-                  <span className="hp-signup-field-note">Only for birthday promotions and gift ideas. It will not be used for anything else.</span>
+                  <input id="hp-birthday" className="hp-signup-input" type="text" name="birthday" inputMode="text" autoComplete="off" enterKeyHint="next" placeholder="MM-DD" aria-describedby="hp-birthday-note" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
+                  <span className="hp-signup-field-note" id="hp-birthday-note">Only for birthday promotions and gift ideas. It will not be used for anything else.</span>
                 </div>
               ) : null}
               {step === 8 ? (
                 <div className="hp-signup-field hp-signup-single">
                   <label className="hp-signup-label" htmlFor="hp-ring-size">Ring size <span className="hp-signup-label-aux">(optional)</span></label>
-                  <select id="hp-ring-size" className="hp-signup-input" value={form.ringSize} onChange={(e) => updateField("ringSize", e.target.value)}>
+                  <select id="hp-ring-size" className="hp-signup-input" name="ringSize" autoComplete="off" value={form.ringSize} onChange={(e) => updateField("ringSize", e.target.value)}>
                     <option value="">Select a size</option>
                     <option value="5">5</option>
                     <option value="6">6</option>
@@ -2684,7 +2684,7 @@ function Signup({ repName, businessName }) {
                     Put any notes that you would like reps and our system to know about the types of jewelry or what you like about Bomb Party jewelry, so we can help you find the pieces you love.
                     <span className="hp-signup-label-aux"> Optional.</span>
                   </label>
-                  <textarea id="hp-jewelry-notes" className="hp-signup-input hp-signup-notes" maxLength={500} rows={4} value={form.jewelryNotes} onChange={(e) => updateField("jewelryNotes", e.target.value)} />
+                  <textarea id="hp-jewelry-notes" className="hp-signup-input hp-signup-notes" name="jewelryNotes" autoComplete="off" enterKeyHint="next" maxLength={500} rows={4} value={form.jewelryNotes} onChange={(e) => updateField("jewelryNotes", e.target.value)} />
                 </div>
               ) : null}
               </div>
