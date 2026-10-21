@@ -2395,3 +2395,11 @@ body.bg-emerald-garden .tp-card-expand-photo {
     z-index: auto;
   }
 }
+
+/* A grid photo that fails keeps the loaded has-photo frame and the dark sparkle placeholder. */
+.tp-grid .tp-card-photo.has-photo.photo-fallback {
+  background: linear-gradient(135deg, var(--bg-deep), var(--hp-bg-elevated));
+}
+.tp-card-photo.has-photo.photo-fallback::after {
+  opacity: 1;
+}

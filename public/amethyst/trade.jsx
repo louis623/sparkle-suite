@@ -1483,12 +1483,13 @@ function Filters({
 function TradeCard({ piece, onTap, tierVisible }) {
   const [failedPhotoUrl, setFailedPhotoUrl] = useState("");
   const showPhoto = Boolean(piece.photoUrl) && failedPhotoUrl !== piece.photoUrl;
+  const photoFailed = Boolean(piece.photoUrl) && !showPhoto;
   const showTier = piece.tier !== "everyday" || tierVisible === "all";
   const tierLabel = piece.tier === "unicorn" ? "Unicorn" : piece.tier === "diamond" ? "Diamond" : "Everyday";
 
   return (
     <article className={`tp-card ${piece.tier}`} onClick={() => onTap(piece)}>
-      <div className={`tp-card-photo slot ${showPhoto ? "has-photo" : ""}`} data-slot="jewelry photo">
+      <div className={`tp-card-photo slot ${photoFailed ? "has-photo photo-fallback" : showPhoto ? "has-photo" : ""}`} data-slot="jewelry photo">
         {showTier && (
           <span className={`tp-card-tier ${piece.tier}`}>
             <span className="pip" />
