@@ -1250,10 +1250,6 @@ function Filters({
   secondaryOpen,
   setSecondaryOpen,
 }) {
-  const availableDancerCount = listings.reduce(
-    (total, listing) => total + Math.max(0, Number(listing.quantityAvailable ?? 1)),
-    0,
-  );
   const options = useMemo(() => deriveTradeBoardFilterOptions(listings), [listings]);
   const visibleCollections = useMemo(
     () => filterCollectionOptions(options.collections, collectionSearch),
@@ -1280,11 +1276,15 @@ function Filters({
         <div>
           <div className="tp-mobile-filter-cue">Search or filter the Dance Floor</div>
           <div className="tp-filter-results">
-            <strong>{availableDancerCount}</strong> available dancers
+            <strong>{resultCount}</strong>{activeBoardControlCount > 0
+              ? (resultCount === 1 ? " dancer matches" : " dancers match")
+              : (resultCount === 1 ? " dancer on this Dance Floor" : " dancers on this Dance Floor")}
           </div>
-          <div className="tp-board-showing">
-            Showing {Math.min(visibleCount, resultCount)} of {resultCount} matches
-          </div>
+          {visibleCount < resultCount && (
+            <div className="tp-board-showing">
+              Showing {visibleCount} of {resultCount}
+            </div>
+          )}
         </div>
         <div className="tp-filter-actions">
           {activeBoardControlCount > 0 && (
@@ -2428,9 +2428,11 @@ function App() {
                         ))}
                       </div>
                       <div className="tp-board-pagination">
-                        <div className="tp-board-showing">
-                          Showing {visibleTradeBoardPieces.length} of {filtered.length} dancers
-                        </div>
+                        {hasMoreTradeBoardPieces && (
+                          <div className="tp-board-showing">
+                            Showing {visibleTradeBoardPieces.length} of {filtered.length} dancers
+                          </div>
+                        )}
                         {hasMoreTradeBoardPieces && (
                           <button
                             type="button"
