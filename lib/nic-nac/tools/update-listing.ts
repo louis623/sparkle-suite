@@ -363,6 +363,7 @@ async function loadListingForPhotoGuard(
 type ConversationPart = {
   type?: string
   text?: string
+  mediaType?: string
   output?: {
     needsAction?: string
     code?: string
@@ -405,7 +406,18 @@ async function conversationConfirmsListingPhoto(args: {
   const rows = data as Array<{ role?: string; parts?: ConversationPart[] | null }>
   const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
   if (latestUserIndex === -1) return false
-  const text = (rows[latestUserIndex]?.parts ?? [])
+  const latestParts = rows[latestUserIndex]?.parts ?? []
+  if (
+    latestParts.some(
+      (part) =>
+        part.type === 'file' &&
+        typeof part.mediaType === 'string' &&
+        part.mediaType.startsWith('image/'),
+    )
+  ) {
+    return false
+  }
+  const text = latestParts
     .map((part) => (typeof part.text === 'string' ? part.text : ''))
     .join('\n')
   if (!isPositiveConfirmation(text)) return false

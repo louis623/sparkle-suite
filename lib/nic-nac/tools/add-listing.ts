@@ -819,6 +819,7 @@ function setReuseYesInConversation(
 ): { earlierPhotoUrl?: string; flaggedSha?: string; itemNumber: string } | null {
   const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
   if (latestUserIndex === -1) return null
+  if (conversationRowImageUrls(rows[latestUserIndex]).length > 0) return null
   if (!isPositiveConfirmation(conversationRowText(rows[latestUserIndex]!))) return null
   const assistant = rows
     .slice(latestUserIndex + 1)

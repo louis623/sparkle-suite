@@ -660,6 +660,7 @@ function flaggedPhotoSetSha(
 function latestTurnConfirmsPhotoSet(messages: UIMessage[]): boolean {
   const latestUserIndex = findLatestUserMessageIndex(messages)
   if (latestUserIndex === -1) return false
+  if (hasImagePart(messages[latestUserIndex])) return false
   if (!isPositiveConfirmation(getMessageText(messages[latestUserIndex]))) return false
   const previousAssistant = messages
     .slice(0, latestUserIndex)

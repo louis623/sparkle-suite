@@ -4789,6 +4789,58 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(addListingMock).not.toHaveBeenCalled()
   })
 
+  it('does not treat a set yes as confirmation when that turn also has a new image', async () => {
+    createAdminClientMock.mockReturnValue(
+      makeAdminClientMock([], null, [
+        {
+          item_number: 'NK10001',
+          status: 'completed',
+          created_design_id: 'design-nk10001',
+          created_listing_ids: ['listing-nk10001'],
+        },
+      ]),
+    )
+    const photoUrl = 'data:image/jpeg;base64,TktK'
+    const tool = makeTool(
+      makeConversationLookupMock([
+        {
+          role: 'user',
+          parts: [
+            { type: 'text', text: 'Yes' },
+            { type: 'file', mediaType: 'image/jpeg', url: photoUrl },
+          ],
+        },
+        {
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              output: {
+                code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                contentSha256: hashDataImageUrl(photoUrl),
+                pieceKey: 'NK60296',
+                message:
+                  'This photo is already on NK10001. If NK60296 belongs with that set, reply yes.',
+              },
+            },
+          ],
+        },
+      ]),
+    )
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK60296',
+        designName: 'Necklace',
+        collectionName: 'Original',
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
+  })
+
   it('returns the main photo preview for a batch item with an unconfirmed selected photo and saves nothing', async () => {
     const tool = makeTool(makeConversationLookupMock([]), {
       activeTradeBoardWorkflow: activeWorkflow({

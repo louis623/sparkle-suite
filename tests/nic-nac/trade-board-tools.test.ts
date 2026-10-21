@@ -413,6 +413,55 @@ describe('update_listing — write + audit happy path', () => {
     expect(updateListingMock).toHaveBeenCalledTimes(1)
   })
 
+  it('does not treat a photo yes as confirmation when that turn also has a new image', async () => {
+    const photoUrl =
+      'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/raw-upload.jpg'
+    const tool = makeTool(
+      undefined,
+      photoSupabase({
+        conversations: [
+          {
+            role: 'user',
+            parts: [
+              { type: 'text', text: 'Yes' },
+              {
+                type: 'file',
+                mediaType: 'image/jpeg',
+                url: 'data:image/jpeg;base64,TkVX',
+              },
+            ],
+          },
+          {
+            role: 'assistant',
+            parts: [
+              {
+                type: 'tool-update_listing',
+                output: {
+                  needsAction: 'confirm_main_photo',
+                  listingId: VALID_LISTING_ID,
+                  previewImageUrl: photoUrl,
+                  contentSha256: DEFAULT_FETCH_SHA,
+                  pieceKey: 'NK70001',
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    )
+
+    await expect(
+      tool.execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: photoUrl,
+      }),
+    ).resolves.toMatchObject({
+      needsAction: 'confirm_main_photo',
+    })
+    expect(updateListingMock).not.toHaveBeenCalled()
+    expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
+  })
+
   it('refuses a data-URL listing photo it cannot show', async () => {
     const tool = makeTool(undefined, photoSupabase())
 

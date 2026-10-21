@@ -1144,6 +1144,87 @@ describe('main photo confirmation', () => {
     expect(ingested.metadata.mainPhotoConfirmedPhotoId).toBeUndefined()
   })
 
+  it('ignores a set yes when that turn also attaches a new image', async () => {
+    const earlierSha = 'a'.repeat(64)
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const upsert = vi.fn(async () => ({ error: null }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_sessions') return { update }
+        if (table === 'trade_board_intake_photos') return { upsert }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-st21027',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'photo_capture',
+      known: { itemNumber: 'ST21027' },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: {},
+      photos: [
+        {
+          id: 'photo-earlier',
+          intakeSessionId: 'intake-st21027',
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,TktK',
+          contentSha256: earlierSha,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+      ],
+    }
+
+    const ingested = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'ask',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: {
+                ok: false,
+                code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                contentSha256: earlierSha,
+                message:
+                  'This photo is already on NK60295. If ST21027 belongs with that set, reply yes.',
+              },
+            },
+          ],
+        },
+        {
+          id: 'yes',
+          role: 'user',
+          parts: [
+            { type: 'text', text: 'Yes' },
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TkVX',
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(ingested.metadata.photoSetReuseConfirmedSha).toBeUndefined()
+    expect(ingested.metadata.photoSetReuseConfirmedItemNumber).toBeUndefined()
+  })
+
   it('binds a set yes to the photo id when the reuse error has no hash', async () => {
     const earlierSha = 'c'.repeat(64)
     const eq = vi.fn(() => ({ error: null }))

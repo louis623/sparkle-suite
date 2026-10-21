@@ -596,6 +596,52 @@ describe('report_jewelry_catalog_issue', () => {
     expect(reportJewelryCatalogIssueMock).toHaveBeenCalledTimes(1)
   })
 
+  it('does not treat a catalog photo yes as confirmation when that turn also has a new image', async () => {
+    createAdminClientMock.mockReturnValue(emptyPhotoAdmin())
+    const tool = makeTool(null, {
+      supabase: conversationSupabase([
+        {
+          role: 'user',
+          parts: [
+            { type: 'text', text: 'Yes' },
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TkVX',
+            },
+          ],
+        },
+        {
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-report_jewelry_catalog_issue',
+              output: {
+                needsAction: 'confirm_main_photo',
+                itemNumber: 'ER34579',
+                previewImageUrl: CANONICAL_PHOTO_URL,
+                contentSha256: DEFAULT_FETCH_SHA,
+                pieceKey: 'ER34579',
+              },
+            },
+          ],
+        },
+      ]),
+    })
+
+    await expect(
+      tool.execute({
+        itemNumber: 'ER34579',
+        issueType: 'bad_photo',
+        reason: 'The current catalog photo is the item label/details photo.',
+        correction: { canonicalPhotoUrl: CANONICAL_PHOTO_URL },
+      }),
+    ).resolves.toMatchObject({
+      needsAction: 'confirm_main_photo',
+    })
+    expect(reportJewelryCatalogIssueMock).not.toHaveBeenCalled()
+  })
+
   it('drops stray catalog photo URLs from non-photo corrections', async () => {
     reportJewelryCatalogIssueMock.mockResolvedValueOnce({
       designId: 'design-1',
