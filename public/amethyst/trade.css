@@ -1190,13 +1190,19 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
 .tp-card-expand-mask {
   position: fixed;
   inset: 0;
-  background: rgba(14, 8, 32, 0.55);
-  backdrop-filter: blur(4px);
+  background: transparent;
   z-index: 80;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+}
+.tp-card-expand-mask::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 8, 32, 0.62);
+  backdrop-filter: blur(4px);
   animation: tp-fade-in 0.4s ease-in-out;
 }
 @keyframes tp-fade-in {
@@ -1206,17 +1212,19 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
 .tp-card-expand {
   width: min(900px, 100%);
   max-height: 90vh;
-  background: var(--hp-bg-elevated);
+  background: var(--hp-bg-elevated, #f2ebfa);
+  opacity: 1;
   border-radius: 20px;
   overflow: auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
   position: relative;
+  z-index: 1;
   animation: tp-pop-in 0.4s ease-in-out;
 }
 @keyframes tp-pop-in {
-  from { transform: scale(0.96) translateY(8px); opacity: 0; }
-  to { transform: scale(1) translateY(0); opacity: 1; }
+  from { transform: scale(0.98) translateY(8px); }
+  to { transform: none; }
 }
 @media (max-width: 700px) {
   .tp-card-expand { grid-template-columns: 1fr; }
@@ -1422,21 +1430,29 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
 .tp-sheet-mask {
   position: fixed;
   inset: 0;
-  background: rgba(14, 8, 32, 0.55);
-  backdrop-filter: blur(4px);
+  background: transparent;
   z-index: 90;
   display: flex;
   align-items: flex-end;
   justify-content: center;
+}
+.tp-sheet-mask::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 8, 32, 0.62);
+  backdrop-filter: blur(4px);
   animation: tp-fade-in 0.4s ease-in-out;
 }
 .tp-sheet {
   width: min(560px, 100%);
-  background: var(--hp-bg-elevated);
+  background: var(--hp-bg-elevated, #f2ebfa);
+  opacity: 1;
   color: var(--hp-form-panel-fg, var(--hp-card-fg, var(--fg)));
   border-radius: 20px 20px 0 0;
   padding: 28px 28px 36px;
   position: relative;
+  z-index: 1;
   animation: tp-slide-up 0.4s ease-in-out;
   max-height: 90vh;
   overflow: auto;
@@ -1868,8 +1884,10 @@ body.tradepage.dance-floor-empty .hp-ticker:not(:has(.hp-ticker-row:not(.reverse
   .tp-drawer-bar .live-dot,
   .tp-card.unicorn,
   .tp-card-expand-mask,
+  .tp-card-expand-mask::before,
   .tp-card-expand,
   .tp-sheet-mask,
+  .tp-sheet-mask::before,
   .tp-sheet {
     animation: none !important;
   }
