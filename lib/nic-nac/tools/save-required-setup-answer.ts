@@ -32,7 +32,7 @@ export const saveRequiredSetupAnswerTool: ToolDefinition = {
   build: (ctx) =>
     tool({
       description:
-        'Save a required setup answer and optionally mark that setup step complete. Live Queue completion is verified by the server, not checklist claims. Never send publisher keys; use an empty answer for Live Queue.',
+        'Save a required setup answer and optionally mark that setup step complete. Live Lineup completion is verified by the server, not checklist claims. Never send publisher keys; use an empty answer for Live Lineup.',
       inputSchema,
       execute: async (input) => {
         validateCompletion(input)

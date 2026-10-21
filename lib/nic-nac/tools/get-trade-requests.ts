@@ -38,8 +38,8 @@ export function makeGetTradeRequestsTool(ctx: {
 }) {
   return tool({
     description:
-      "List incoming trade requests against the authenticated rep's listings. " +
-      "Use this whenever the rep asks about trade requests, pending offers, who's interested in their pieces, or what they need to approve. " +
+      "List incoming swap requests against the authenticated rep's listings. " +
+      "Use this whenever the rep asks about swap requests, pending offers, who's interested in their pieces, or what they need to approve. " +
       "Defaults to status='pending' inside the service. Pass statusFilter to surface approved/denied/cancelled history.",
     inputSchema,
     execute: async ({ statusFilter, limit }) => {

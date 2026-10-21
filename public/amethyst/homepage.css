@@ -1171,7 +1171,7 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
   display: flex;
   align-items: center;
   padding: 0 28px 0 18px;
-  background: linear-gradient(90deg, #ffffff 0%, #ffffff 70%, rgba(255,255,255,0) 100%);
+  background: #ffffff;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 10px;
   letter-spacing: 0.12em;
@@ -1182,7 +1182,7 @@ body.homepage h1, body.homepage h2, body.homepage h3, body.homepage h4 {
 }
 .hp-ticker-row.reverse .hp-ticker-label {
   color: rgba(255, 255, 255, 0.78);
-  background: linear-gradient(90deg, #111111 0%, #111111 70%, rgba(17, 17, 17, 0));
+  background: #111111;
 }
 .hp-ticker-track {
   display: flex;
@@ -6539,7 +6539,7 @@ body.bg-emerald-garden .hp-ticker-row.reverse {
 }
 
 body.bg-emerald-garden .hp-ticker-label {
-  background: rgba(3, 44, 34, 0.94);
+  background: #032c22;
   color: #ffffff;
 }
 

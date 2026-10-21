@@ -41,7 +41,7 @@ export function makeRestoreListingTool(ctx: {
 }) {
   return tool({
     description:
-      "Restore one of the authenticated rep's recently removed trade-board listings. " +
+      "Restore one of the authenticated rep's recently removed Dance Floor listings. " +
       'Use this only when the rep asks to bring back a listing they removed. ' +
       'Identify the listing by listingId, or by itemNumber after checking the board. ' +
       'Expired removed listings cannot be restored.',

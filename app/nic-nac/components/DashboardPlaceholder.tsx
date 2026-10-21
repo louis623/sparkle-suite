@@ -8427,7 +8427,7 @@ export function LiveQueueTool({
 
         <div className={styles.liveQueueSetupGrid}>
           <div className={styles.liveQueueCodePanel}>
-            <span className={styles.liveQueueEyebrow}>Your Live Queue code</span>
+            <span className={styles.liveQueueEyebrow}>Your Live Lineup code</span>
             <div className={styles.liveQueueCodeRow}>
               <strong className={styles.liveQueueCode}>{code || 'Preparing code…'}</strong>
               <button type="button" className={styles.liveQueueCopyButton} onClick={copyCode} disabled={!code}>
@@ -8456,7 +8456,7 @@ export function LiveQueueTool({
             <span className={styles.liveQueueEyebrow}>Start here</span>
             <h3>Install the Chrome extension</h3>
             <p className={styles.liveQueueBody}>
-              Use the official Sparkle Suite Live Queue listing. Install it in
+              Use the official Sparkle Suite extension listing. Install it in
               the same Chrome profile you will use for the Bomb Party back
               office.
             </p>
@@ -8503,7 +8503,7 @@ export function LiveQueueTool({
               <p>
                 Choose <b>Open Chrome Web Store</b> above, then <b>Add to Chrome</b>
                 and <b>Add extension</b>. Select Chrome&apos;s puzzle-piece icon
-                and pin Sparkle Suite Live Queue so it stays easy to reach.
+                and pin the Sparkle Suite extension so it stays easy to reach.
               </p>
             </div>
           </li>
@@ -8529,7 +8529,7 @@ export function LiveQueueTool({
           <li>
             <span className={styles.liveQueueStepNumber}>4</span>
             <div>
-              <strong>Enter your Live Queue code</strong>
+              <strong>Enter your Live Lineup code</strong>
               <p>
                 Open the extension, enter the same code shown above and at the
                 top of your Workspace, then choose <b>Connect</b>.
@@ -8566,7 +8566,7 @@ export function LiveQueueTool({
 
         <ul className={styles.liveQueueChecklist}>
           <li>The official extension is installed and pinned in Chrome.</li>
-          <li>The extension is connected with the assigned Live Queue code shown in this Workspace.</li>
+          <li>The extension is connected with the assigned Live Lineup code shown in this Workspace.</li>
           <li>Bomb Party Party Orders is open in the same Chrome profile.</li>
           <li>The extension shows a green Connected + Updating light and the expected parties.</li>
           <li>
@@ -8599,7 +8599,7 @@ export function LiveQueueTool({
         <div className={styles.liveQueueTroubleshooting}>
           <strong>If the queue looks stale or does not connect</strong>
           <p>
-            Confirm Party Orders is still open and the assigned Live Queue code
+            Confirm Party Orders is still open and the assigned Live Lineup code
             is connected. Turn Live Lineup off and back on once. If it is still
             not connected, open Help &amp; Resources and tell support exactly what
             the extension shows.

@@ -8,7 +8,7 @@ export const REQUIRED_SETUP_STEPS = [
   { id: 'about_page', label: 'About page', required: true },
   { id: 'show_schedule', label: 'Show schedule', required: true },
   { id: 'customer_site_orientation', label: 'Customer-facing website orientation', required: true },
-  { id: 'live_queue_setup', label: 'Live Queue setup', required: true },
+  { id: 'live_queue_setup', label: 'Live Lineup setup', required: true },
   { id: 'trade_board_orientation', label: 'Dance Floor orientation', required: true },
   { id: 'final_preview_approval', label: 'Final preview approval', required: true },
 ] as const

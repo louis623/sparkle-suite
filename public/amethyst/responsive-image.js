@@ -1,7 +1,8 @@
 /* global window */
 /**
- * Same contract as lib/seo/responsive-public-image.ts.
- * Customer-site pages are static JSX, so they call this instead of next/image.
+ * Same optimizer contract as lib/seo/responsive-public-image.ts.
+ * Customer-site pages are static JSX on React 18.3, so they call this instead of next/image.
+ * React 18 warns when the priority field is camelCase. This helper returns the lowercase DOM attribute.
  * Widths must stay inside the Next image optimizer allowlist in next.config.ts.
  */
 (function sparkleResponsiveImageRuntime() {
@@ -48,7 +49,7 @@
       alt: alt,
       decoding: "async",
       loading: loading,
-      fetchPriority: settings.eager ? "high" : "low",
+      fetchpriority: settings.eager ? "high" : "low",
     };
   }
 

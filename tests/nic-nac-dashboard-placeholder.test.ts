@@ -2891,7 +2891,9 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Search Dance Floor')
     expect(html).toContain('Sort dancers')
     expect(html).toContain('All types')
-    expect(html).toContain('All rarity')
+    expect(html).not.toContain('All rarity')
+    expect(html).not.toContain('Rare first')
+    expect(html).toContain('id="rep-collection-filters"')
     expect(html).toContain('Sapphire Halo')
     expect(html).toContain('Rose Quartz Stack')
     expect(html).not.toContain('Default landing section')
@@ -2900,6 +2902,67 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('Fulfillment queue')
     expect(html).toContain('Loading dancers')
     expect(html).not.toContain('Loading board pieces...')
+  })
+
+  it('shows rarity filters only when dancers have a rarity tag and hides browse filters on an empty Dance Floor', () => {
+    const rareListing = {
+      ...TRADE_BOARD_READY_STATE.board.listings[0],
+      rarity_classification: 'diamond' as const,
+    }
+    const rareHtml = renderToStaticMarkup(
+      createElement(TradeBoardWorkspaceCard, {
+        tradeBoardState: {
+          ...TRADE_BOARD_READY_STATE,
+          board: {
+            ...TRADE_BOARD_READY_STATE.board,
+            listings: [rareListing, TRADE_BOARD_READY_STATE.board.listings[1]],
+          },
+        },
+        tradeRequestsState: { status: 'ready', requests: [] },
+        fulfillmentQueueState: { status: 'ready', items: [] },
+        tradeBoardSearchQuery: '',
+        onTradeBoardSearchQueryChange: () => {},
+        quickAddItemNumber: '',
+        onQuickAddItemNumberChange: () => {},
+        actionState: { pendingKey: null, error: null, helperMessage: null },
+        onQuickAddListing: () => {},
+        onRemoveListing: () => {},
+        onApproveRequest: () => {},
+        onRejectRequest: () => {},
+        onAdvanceFulfillment: () => {},
+      }),
+    )
+    expect(rareHtml).toContain('All rarity')
+    expect(rareHtml).toContain('Rare first')
+    expect(rareHtml).toContain('Diamond')
+
+    const emptyHtml = renderToStaticMarkup(
+      createElement(TradeBoardWorkspaceCard, {
+        tradeBoardState: {
+          ...TRADE_BOARD_READY_STATE,
+          board: {
+            ...TRADE_BOARD_READY_STATE.board,
+            listings: [],
+          },
+        },
+        tradeRequestsState: { status: 'ready', requests: [] },
+        fulfillmentQueueState: { status: 'ready', items: [] },
+        tradeBoardSearchQuery: '',
+        onTradeBoardSearchQueryChange: () => {},
+        quickAddItemNumber: '',
+        onQuickAddItemNumberChange: () => {},
+        actionState: { pendingKey: null, error: null, helperMessage: null },
+        onQuickAddListing: () => {},
+        onRemoveListing: () => {},
+        onApproveRequest: () => {},
+        onRejectRequest: () => {},
+        onAdvanceFulfillment: () => {},
+      }),
+    )
+    expect(emptyHtml).toContain('Your Dance Floor is empty. Add a dancer to show it here.')
+    expect(emptyHtml).not.toContain('All types')
+    expect(emptyHtml).not.toContain('Search Dance Floor')
+    expect(emptyHtml).not.toContain('All rarity')
   })
 
   it('lets Home metric badges grow for double and triple digit counts', () => {
@@ -4467,7 +4530,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('https://myoffice.bombparty.com/live-party-orders')
     expect(html).toContain('MacBook')
     expect(html).toContain('Windows laptop')
-    expect(html).toContain('Enter your Live Queue code')
+    expect(html).toContain('Enter your Live Lineup code')
     expect(html).toContain('MHF-9446')
     expect(html).not.toContain('Create private connection key')
     expect(html).toContain('Copy code')

@@ -1,4 +1,4 @@
-import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
+import type { AmethystAppearancePresetId } from '@/lib/amethyst/appearance-presets'
 import { sparkleSuitePublicLandingContent } from '@/lib/sparkle-suite/public-landing-content'
 
 export const sparkleSuiteScheduleBuild = {
@@ -24,6 +24,19 @@ export type PortfolioSlide =
         width: number
         height: number
       }
+      fixedShowcase?: boolean
+      hero?: {
+        eyebrow?: string
+        headline: string
+        sub: string
+        tone: 'light' | 'ink'
+        font?: 'display' | 'georgia' | 'script'
+        align?: 'start' | 'center'
+        accent?: 'copper'
+        lockup?: 'britt'
+        instruction?: string
+        actions?: readonly string[]
+      }
     }
   | {
       id: string
@@ -32,6 +45,154 @@ export type PortfolioSlide =
       detail: string
     }
 
+function communityThemeSlide(theme: {
+  id: AmethystAppearancePresetId
+  title: string
+  detail: string
+  src: string
+  alt: string
+  width: number
+  height: number
+  video?: { mp4: string; width: number; height: number }
+  hero?: Extract<PortfolioSlide, { kind: 'capture' }>['hero']
+}): PortfolioSlide {
+  return {
+    id: theme.id,
+    kind: 'capture',
+    title: theme.title,
+    detail: theme.detail,
+    href: `/skin-preview/${theme.id}/homepage`,
+    linkLabel: 'Preview this look',
+    src: theme.src,
+    alt: theme.alt,
+    width: theme.width,
+    height: theme.height,
+    video: theme.video,
+    hero: theme.hero,
+  }
+}
+
+// Hero lines are the homepage headline and heroSub from PREVIEW_PROFILES in
+// lib/amethyst/skin-preview.ts. These themes use the shared default pair
+// ("Real jewelry. Live reveals. Pure sparkle." / "Join Sasha for live jewelry
+// reveals, friendly conversation, and your next favorite find."), so the slide
+// shows the theme art instead of repeating that line:
+// amethyst, gilded_autumn, fall_owl_harvest_moon, gobble_and_fizz, pie_please,
+// midnight_rose, pearl_rose, rose_champagne.
+const communityThemeSlides = [
+  communityThemeSlide({
+    id: 'amethyst',
+    title: 'Chasing Unicorns',
+    detail: 'Magical violet and hot-pink light, with a full-body unicorn.',
+    src: '/amethyst/skins/am01-unicorn/hero-poster.webp',
+    alt: 'Chasing Unicorns homepage hero, with a violet unicorn and glossy cards.',
+    width: 1310,
+    height: 704,
+    video: { mp4: '/amethyst/skins/am01-unicorn/hero-motion.mp4', width: 1310, height: 704 },
+  }),
+  communityThemeSlide({
+    id: 'halloween_pumpkin_witch',
+    title: 'Pumpkin and Witch',
+    detail: 'A sparkling black-and-orange night with a jack-o’-lantern, silver moon, and a flying witch.',
+    src: '/amethyst/skins/halloween-pumpkin-witch/hero-desktop.webp',
+    alt: 'Pumpkin and Witch theme hero, with a jack-o’-lantern, silver moon, and flying witch.',
+    width: 1672,
+    height: 941,
+    hero: {
+      headline: 'A frightfully fun night to sparkle.',
+      sub: 'Glowing jack-o-lanterns, silver moonlight, and a welcoming place to share the Halloween fun.',
+      tone: 'light',
+    },
+  }),
+  communityThemeSlide({
+    id: 'halloween_pumpkin_cat',
+    title: 'Pumpkin and Cat',
+    detail: 'A glittering pumpkin night, with a black cat perched on the silver moon.',
+    src: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp',
+    alt: 'Pumpkin and Cat theme hero, with a black cat beside a glowing jack-o’-lantern.',
+    width: 1672,
+    height: 941,
+    video: { mp4: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4', width: 1280, height: 720 },
+    // Configured headline is the shared default. The distinct heroSub is shown.
+    hero: {
+      headline: 'A little mystery. A lot of sparkle.',
+      sub: 'Join Sasha for live jewelry reveals and find your next favorite.',
+      tone: 'light',
+      font: 'georgia',
+    },
+  }),
+  communityThemeSlide({
+    id: 'gilded_autumn',
+    title: 'The Golden Leaves of Autumn',
+    detail: 'Sunlit autumn trees, copper leaves, and a fine champagne shimmer.',
+    src: '/amethyst/skins/gilded-autumn/hero-poster.webp',
+    alt: 'The Golden Leaves of Autumn homepage hero, with sunlit trees and copper leaves.',
+    width: 1204,
+    height: 764,
+    video: { mp4: '/amethyst/skins/gilded-autumn/hero-motion.mp4', width: 1204, height: 764 },
+  }),
+  communityThemeSlide({
+    id: 'fall_owl_harvest_moon',
+    title: 'Fall Owl Harvest Moon',
+    detail: 'A jeweled owl beneath the harvest moon, in deep plum and warm gold.',
+    src: '/amethyst/skins/fall-owl/hero-poster.webp',
+    alt: 'Fall Owl and Harvest Moon homepage hero, with a jeweled owl under a harvest moon.',
+    width: 1280,
+    height: 720,
+    video: { mp4: '/amethyst/skins/fall-owl/hero-loop.mp4', width: 1280, height: 720 },
+  }),
+  communityThemeSlide({
+    id: 'gobble_and_fizz',
+    title: 'Gobble & Fizz',
+    detail: 'A curious turkey, copper sparkle, and a cozy plum Thanksgiving scene.',
+    src: '/amethyst/skins/gobble-and-fizz/hero-poster.webp',
+    alt: 'Gobble and Fizz homepage hero, with a turkey in a plum Thanksgiving scene.',
+    width: 1280,
+    height: 720,
+    video: { mp4: '/amethyst/skins/gobble-and-fizz/hero-loop.mp4', width: 1280, height: 720 },
+  }),
+  communityThemeSlide({
+    id: 'pie_please',
+    title: 'Pumpkin Pie',
+    detail: 'Pumpkin pie, copper jewelry, and soft window light.',
+    src: '/amethyst/skins/pie-please/hero-poster-v4.webp',
+    alt: 'Pumpkin Pie homepage hero, with pumpkin pie, copper jewelry, and window light.',
+    width: 1280,
+    height: 720,
+    video: { mp4: '/amethyst/skins/pie-please/hero-loop-v4.mp4', width: 1280, height: 720 },
+  }),
+  communityThemeSlide({
+    id: 'midnight_rose',
+    title: 'Midnight Rose',
+    detail: 'Deep aubergine surfaces with warm copper-blush glitter.',
+    src: '/amethyst/skins/midnight-rose/hero-poster.webp',
+    alt: 'Midnight Rose homepage hero, with aubergine surfaces and copper-blush glitter.',
+    width: 1280,
+    height: 720,
+    video: { mp4: '/amethyst/skins/midnight-rose/hero-loop.mp4', width: 1280, height: 720 },
+  }),
+  communityThemeSlide({
+    id: 'pearl_rose',
+    title: 'Pearl Rose',
+    detail: 'Airy ivory surfaces, copper details, and burgundy ink.',
+    src: '/amethyst/skins/pearl-rose/hero-poster.webp',
+    alt: 'Pearl Rose homepage hero, with ivory surfaces, copper details, and burgundy ink.',
+    width: 1280,
+    height: 720,
+    video: { mp4: '/amethyst/skins/pearl-rose/hero-loop.mp4', width: 1280, height: 720 },
+  }),
+  communityThemeSlide({
+    id: 'rose_champagne',
+    title: 'Rose Champagne',
+    detail: 'Warm rose-copper shimmer and champagne bokeh.',
+    src: '/amethyst/skins/rose-champagne/hero-poster.webp',
+    alt: 'Rose Champagne homepage hero, with rose-copper shimmer and champagne bokeh.',
+    width: 1280,
+    height: 720,
+    video: { mp4: '/amethyst/skins/rose-champagne/hero-loop.mp4', width: 1280, height: 720 },
+  }),
+] as const satisfies readonly PortfolioSlide[]
+
 export const sparkleSuitePortfolioContent = {
   hero: {
     eyebrow: 'Portfolio',
@@ -39,10 +200,10 @@ export const sparkleSuitePortfolioContent = {
     body:
       'Real customer sites, community looks, and seasonal themes. Sparkle Suite builds the customer side so a live show has a polished place to land.',
     image: {
-      src: '/sparkle-suite/landing/hero-halloween-witch-live.webp',
-      alt: 'Halloween Pumpkin and Witch homepage hero, with the live lineup, shop actions, jack-o’-lantern, and flying witch.',
-      width: 1024,
-      height: 513,
+      src: '/amethyst/skins/halloween-pumpkin-witch/hero-desktop.webp',
+      alt: 'Pumpkin and Witch theme hero, with a jack-o’-lantern, silver moon, and flying witch.',
+      width: 1672,
+      height: 941,
       label: 'Halloween · Pumpkin and Witch',
     },
   },
@@ -51,7 +212,7 @@ export const sparkleSuitePortfolioContent = {
       id: 'rep-highlights',
       eyebrow: 'Rep highlights',
       heading: 'Live shows, with the name on the door.',
-      body: 'These are customer-facing sites on the floor right now. Each peek is that show’s own custom look.',
+      body: 'Real Sparkle Suite sites, live right now. Each one is built around its rep’s own look.',
       label: 'Rep highlights',
       slides: [
         {
@@ -61,10 +222,20 @@ export const sparkleSuitePortfolioContent = {
           detail: 'A custom look for Mile High Fizz.',
           href: 'https://milehighfizz.com/',
           linkLabel: 'milehighfizz.com',
-          src: '/sparkle-suite/portfolio/mile-high-fizz-hero.webp',
-          alt: 'Mile High Fizz custom homepage hero, with a pink and blue show name over the live-reveal video.',
-          width: 1440,
-          height: 820,
+          src: '/sparkle-suite/portfolio/mile-high-fizz-custom-hero.webp',
+          alt: 'Mile High Fizz custom hero video, with the show name over the live-reveal footage.',
+          width: 1284,
+          height: 716,
+          fixedShowcase: true,
+          video: { mp4: '/mile-high-fizz/hero.mp4', width: 1284, height: 716 },
+          hero: {
+            eyebrow: 'With Lindsey',
+            headline: 'Mile High Fizz',
+            sub: 'Revealing something magical together.',
+            tone: 'light',
+            font: 'script',
+            align: 'center',
+          },
         },
         {
           id: 'britt-with-bling',
@@ -73,22 +244,21 @@ export const sparkleSuitePortfolioContent = {
           detail: 'A custom look for Britt with Bling.',
           href: 'https://brittwithbling.com/',
           linkLabel: 'brittwithbling.com',
-          src: '/sparkle-suite/portfolio/britt-with-bling-hero.webp',
-          alt: 'Britt with Bling custom homepage hero, with the black, gold, and blush show name over the show portrait.',
-          width: 1440,
-          height: 820,
-        },
-        {
-          id: 'blingkitchen',
-          kind: 'capture',
-          title: 'BlingKitchen',
-          detail: 'A custom look for BlingKitchen.',
-          href: 'https://theblingkitchen.com/',
-          linkLabel: 'theblingkitchen.com',
-          src: '/sparkle-suite/portfolio/blingkitchen-hero.webp',
-          alt: 'BlingKitchen custom homepage hero, with a kitchen photograph and plum shop actions.',
-          width: 1440,
-          height: 820,
+          src: '/britt-with-bling/hero.jpeg',
+          alt: 'Britt with Bling custom hero, with the Virtuous Fizzers name and show title on her sparkle background.',
+          width: 1200,
+          height: 675,
+          fixedShowcase: true,
+          hero: {
+            eyebrow: 'The Virtuous Fizzers',
+            headline: 'Britt with Bling',
+            sub: 'Where Faith Meets Fizz & Every Reveal is a VIP Experience.',
+            instruction: 'Place your order and return to the live party to watch your reveal',
+            actions: ['Shop Now', 'Join the Team'],
+            tone: 'light',
+            align: 'center',
+            lockup: 'britt',
+          },
         },
         {
           id: 'go-for-the-bling',
@@ -97,10 +267,17 @@ export const sparkleSuitePortfolioContent = {
           detail: 'A custom Gnome Forest look for Go for the Bling.',
           href: 'https://goforthebling.com/',
           linkLabel: 'goforthebling.com',
-          src: '/sparkle-suite/portfolio/go-for-the-bling-hero.webp',
-          alt: 'Go for the Bling custom homepage hero on the Gnome Forest theme, with woodland art and the show name.',
-          width: 1440,
-          height: 820,
+          src: '/amethyst/skins/gnome-garden/forest.webp',
+          alt: 'Go for the Bling homepage hero on the Gnome Forest theme, with the show headline over the woodland art.',
+          width: 1536,
+          height: 1024,
+          fixedShowcase: true,
+          hero: {
+            headline: 'A little wonder, a lot of sparkle.',
+            sub: 'Settle in for live reveals, friendly faces, and the joy of discovering something you love.',
+            tone: 'light',
+            align: 'center',
+          },
         },
         {
           id: 'sparkly-butterflies',
@@ -109,22 +286,17 @@ export const sparkleSuitePortfolioContent = {
           detail: 'A custom Neon Butterfly look for Sparkly Butterflies.',
           href: 'https://sparklybutterflies.com/',
           linkLabel: 'sparklybutterflies.com',
-          src: '/sparkle-suite/portfolio/sparkly-butterflies-hero.webp',
-          alt: 'Sparkly Butterflies custom homepage hero on the Neon Butterfly theme, with a neon studio and glowing signs.',
-          width: 1440,
-          height: 820,
-        },
-        {
-          id: 'bris-glowtique',
-          kind: 'capture',
-          title: 'Bri’s Glowtique',
-          detail: 'A community theme made personal for Bri’s Glowtique.',
-          href: 'https://brisglowtique.com/',
-          linkLabel: 'brisglowtique.com',
-          src: '/marketing/bris-glowtique-site-preview.webp',
-          alt: 'Bri’s Glowtique website, from the top of its header through the complete Rose Gold hero.',
-          width: 960,
-          height: 782,
+          src: '/amethyst/skins/neon-butterfly/kelly-studio-desktop.webp',
+          alt: 'Sparkly Butterflies homepage hero on the Neon Butterfly theme, with the show headline over the neon studio.',
+          width: 1920,
+          height: 1080,
+          fixedShowcase: true,
+          hero: {
+            headline: 'Your Sparkle Taking Flight',
+            sub: 'Live jewelry reveals, electric color, and a welcoming place to find your next favorite.',
+            tone: 'light',
+            align: 'center',
+          },
         },
       ],
     },
@@ -132,91 +304,9 @@ export const sparkleSuitePortfolioContent = {
       id: 'community-themes',
       eyebrow: 'Community themes',
       heading: 'Looks the whole community can wear.',
-      body: 'Shared themes any rep can choose. The tools stay familiar. The night can feel like hers.',
+      body: 'Shared themes any rep can choose. The tools stay familiar, and the night can feel personal.',
       label: 'Community themes',
-      slides: [
-        {
-          id: 'emerald-garden',
-          kind: 'capture',
-          title: 'Emerald Garden',
-          detail: 'Soft green light, ivory lettering, and a calm garden night.',
-          src: '/sparkle-suite/landing/hero-emerald-desktop-v3.webp',
-          alt: 'Emerald Garden desktop theme preview of a Sparkle Suite customer site.',
-          width: 1265,
-          height: 961,
-        },
-        {
-          id: 'amethyst',
-          kind: 'capture',
-          title: 'Amethyst',
-          detail: 'Vibrant violet for a show that feels unmistakably hers.',
-          src: '/sparkle-suite/landing/site-amethyst-v2.webp',
-          alt: 'Amethyst customer-site theme preview with violet light and jewelry.',
-          width: 1265,
-          height: 961,
-        },
-        {
-          id: 'rose-gold',
-          kind: 'capture',
-          title: 'Rose Gold',
-          detail: 'Rose, pearl, and champagne, shown on a phone.',
-          src: '/sparkle-suite/landing/hero-rose-mobile-v3.webp',
-          alt: 'Rose Gold mobile theme preview of a Sparkle Suite customer site.',
-          width: 390,
-          height: 1020,
-        },
-      ],
-    },
-    {
-      id: 'holiday-themes',
-      eyebrow: 'Holiday and special occasions',
-      heading: 'Nights that deserve their own look.',
-      body: 'Seasonal themes for the shows that mark the calendar. Two Halloween looks are ready now.',
-      label: 'Holiday and special occasion themes',
-      slides: [
-        {
-          id: 'halloween-pumpkin-witch',
-          kind: 'capture',
-          title: 'Halloween Pumpkin and Witch',
-          detail: 'A sparkling black-and-orange night with a jack-o’-lantern, silver moon, and a flying witch.',
-          src: halloweenHeroMotion.witch.poster,
-          alt: 'Halloween Pumpkin and Witch homepage hero, with the live lineup, shop actions, jack-o’-lantern, and flying witch.',
-          width: halloweenHeroMotion.witch.posterWidth,
-          height: halloweenHeroMotion.witch.posterHeight,
-          video: {
-            mp4: halloweenHeroMotion.witch.mp4,
-            width: halloweenHeroMotion.witch.width,
-            height: halloweenHeroMotion.witch.height,
-          },
-        },
-        {
-          id: 'halloween-pumpkin-cat',
-          kind: 'capture',
-          title: 'Halloween Pumpkin and Cat',
-          detail: 'A glittering pumpkin night, with a black cat perched on the silver moon.',
-          src: halloweenHeroMotion.cat.poster,
-          alt: 'Halloween Pumpkin and Cat homepage hero, with the site header, live lineup, and a black cat beside the jack-o’-lantern.',
-          width: halloweenHeroMotion.cat.posterWidth,
-          height: halloweenHeroMotion.cat.posterHeight,
-          video: {
-            mp4: halloweenHeroMotion.cat.mp4,
-            width: halloweenHeroMotion.cat.width,
-            height: halloweenHeroMotion.cat.height,
-          },
-        },
-        {
-          id: 'holiday-placeholder-winter',
-          kind: 'placeholder',
-          title: 'Winter night',
-          detail: 'Placeholder. A real capture still needs to be placed here.',
-        },
-        {
-          id: 'holiday-placeholder-celebration',
-          kind: 'placeholder',
-          title: 'Celebration look',
-          detail: 'Placeholder. A real capture still needs to be placed here.',
-        },
-      ],
+      slides: communityThemeSlides,
     },
   ],
 } as const satisfies {

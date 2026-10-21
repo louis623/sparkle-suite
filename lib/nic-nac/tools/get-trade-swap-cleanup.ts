@@ -29,7 +29,7 @@ export function makeGetTradeSwapCleanupTool(ctx: {
 }) {
   return tool({
     description:
-      "List approved trade swaps where the customer's just-revealed item number still needs post-show cleanup before it can return to the Dance Floor. " +
+      "List approved swaps where the customer's just-revealed item number still needs post-show cleanup before it can return to the Dance Floor. " +
       'Use this when the rep asks what swaps need cleanup after the show, which revealed pieces still need catalog details, or which rings still need a size.',
     inputSchema,
     execute: async () => {

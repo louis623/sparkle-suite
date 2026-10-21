@@ -68,7 +68,7 @@ export function makeSearchJewelryDatabaseTool(ctx: { repId: string }) {
           isOnMyBoard: r.isOnMyBoard,
           activeListingsCount: r.activeListingsCount,
           addListingGuidance: r.isOnMyBoard
-            ? 'This rep already has at least one active listing for this design. Do not refuse as a duplicate. If they are adding an identical physical copy and did not already say so or give a quantity, ask: "That item number is already on your Dance Floor. Are we adding a second identical physical piece?" If they say yes or give quantity, call add_listing; it will increase that dancer\'s quantity instead of making a duplicate card. Different material, main stone/color, size, photo, note, or trade preference stays separate.'
+            ? 'This rep already has at least one active listing for this design. Do not refuse as a duplicate. If they are adding an identical physical copy and did not already say so or give a quantity, ask: "That item number is already on your Dance Floor. Are we adding a second identical physical piece?" If they say yes or give quantity, call add_listing; it will increase that dancer\'s quantity instead of making a duplicate card. Different material, main stone/color, size, photo, note, or swap preference stays separate.'
             : undefined,
         })),
       }

@@ -68,4 +68,45 @@ describe('Nic-Nac conversation rollover', () => {
     expect(new Set(messages.map((m) => m.id)).size).toBe(messages.length)
     expect(Math.max(...messages.map((m) => m.id.length))).toBeLessThanOrEqual(80)
   })
+
+  it('does not carry photo files into the new conversation', () => {
+    const messages: UIMessage[] = [
+      {
+        id: 'old-photo',
+        role: 'user',
+        parts: [
+          { type: 'text', text: 'Earlier piece' },
+          {
+            type: 'file',
+            mediaType: 'image/jpeg',
+            url: 'data:image/jpeg;base64,T0xE',
+          },
+        ],
+      },
+      {
+        id: 'photo-only',
+        role: 'user',
+        parts: [
+          {
+            type: 'file',
+            mediaType: 'image/jpeg',
+            url: 'data:image/jpeg;base64,TEFCRUw=',
+          },
+        ],
+      },
+      message('kept', 'assistant'),
+    ]
+
+    const rolled = buildNicNacRolloverMessages(messages, 6)
+    const serialized = JSON.stringify(rolled)
+
+    expect(serialized).not.toContain('data:image/jpeg')
+    expect(serialized).not.toContain('TEFCRUw')
+    expect(rolled[0]?.parts).toEqual([{ type: 'text', text: 'Earlier piece' }])
+    expect(rolled[1]?.parts?.[0]).toMatchObject({
+      type: 'text',
+      text: expect.stringContaining('not brought over'),
+    })
+    expect(rolled[2]?.parts).toEqual([{ type: 'text', text: 'kept' }])
+  })
 })

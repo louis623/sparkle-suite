@@ -61,11 +61,11 @@ body.bg-pearl-rose :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .hp-
 body.bg-pearl-rose .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #4d2931; }
 body.bg-pearl-rose .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #954354; }
 body.bg-pearl-rose .hp-ticker-row .hp-ticker-label {
-  background: linear-gradient(90deg, #f1dfd8 0%, #f1dfd8 70%, transparent 100%);
+  background: #f1dfd8;
   color: #4d2931;
 }
 body.bg-pearl-rose .hp-ticker-row.reverse .hp-ticker-label {
-  background: linear-gradient(90deg, #f9ede7 0%, #f9ede7 70%, transparent 100%);
+  background: #f9ede7;
   color: #4d2931;
 }
 body.bg-pearl-rose :is(.hp-trade-preview, .hp-lrq-strip, .hp-lrq, .hp-lineup-calendar-row) {

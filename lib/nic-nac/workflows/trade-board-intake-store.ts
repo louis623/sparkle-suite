@@ -119,6 +119,7 @@ export function mapTradeBoardIntakePhotoRow(
 ): TradeBoardIntakePhotoState {
   return {
     id: row.id as string,
+    ...(row.session_id ? { intakeSessionId: row.session_id as string } : {}),
     ...(row.conversation_message_id
       ? { conversationMessageId: row.conversation_message_id as string }
       : {}),
@@ -248,6 +249,7 @@ export async function createTradeBoardIntakeSession(
       status: 'active',
       current_phase: 'started',
       last_user_message_id: args.lastUserMessageId ?? null,
+      metadata: { mainPhotoConfirmationRequired: true },
     })
     .select('*')
     .single()
