@@ -584,10 +584,12 @@
   height: 100%;
   display: grid;
   place-items: center;
-  color: var(--nic-nac-text-primary);
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 24px;
-  font-weight: 800;
+  color: #7135b6;
+}
+
+.tradePieceMark {
+  width: 42px;
+  height: 42px;
 }
 
 .tradePieceQuantity {

@@ -88,6 +88,14 @@ export type TradeBoardWorkspaceCardProps = {
   onSoundSettingsTarget: (target: HTMLElement | null) => void
 }
 
+function DancerPhotoMark() {
+  return (
+    <svg className={styles.tradePieceMark} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="currentColor" d="M12 1.2 13.7 8.3 20.8 10 13.7 11.7 12 18.8 10.3 11.7 3.2 10 10.3 8.3 12 1.2Zm6.2 11.1.7 2.4 2.4.7-2.4.7-.7 2.4-.7-2.4-2.4-.7 2.4-.7.7-2.4ZM5.6 14.2l.5 1.7 1.7.5-1.7.5-.5 1.7-.5-1.7-1.7-.5 1.7-.5.5-1.7Z" />
+    </svg>
+  )
+}
+
 function getTradeListingPhotoUrl(listing: TradeListingWithDesign) {
   return getTradeListingDisplayFields(listing).photoUrl
 }
@@ -648,7 +656,7 @@ export function TradeBoardWorkspaceCard({
                                 />
                               ) : (
                                 <span className={styles.tradePieceFallback}>
-                                  {display.typePrefix}
+                                  <DancerPhotoMark />
                                 </span>
                               )}
                             </span>
@@ -744,7 +752,7 @@ export function TradeBoardWorkspaceCard({
                         />
                       ) : (
                         <div className={styles.tradePieceFallback}>
-                          {previewDisplay.typePrefix}
+                          <DancerPhotoMark />
                         </div>
                       )}
                     </div>
