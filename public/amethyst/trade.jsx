@@ -1593,6 +1593,8 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
     : piece.tier === "diamond"
       ? "Diamond"
       : "Everyday";
+  const typeLabel = String(piece.type || "dancer").toLowerCase();
+  const typeArticle = /s$/i.test(typeLabel) && !/ss$/i.test(typeLabel) ? "These" : "This";
 
   return (
     <div className="tp-card-expand-mask" onClick={onClose}>
@@ -1613,7 +1615,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
           <div className="tp-card-expand-collection">{displayCollectionLabel(piece.collection)} collection</div>
           <h2 id="trade-expanded-title" className="tp-card-expand-name slot" data-slot="design name">{piece.name}</h2>
           <p className="tp-card-expand-desc slot" data-slot="description">
-            This {piece.type.toLowerCase()} can be requested as an item-for-item dancer swap if the item number just revealed for you stays within the same collection and the same jewelry type.
+            {typeArticle} {typeLabel} can be requested as an item-for-item dancer swap if the item number just revealed for you stays within the same collection and the same jewelry type.
           </p>
           <dl className="tp-card-expand-specs">
             <div>
