@@ -18,7 +18,7 @@
     {
       "path": "public/amethyst/homepage.jsx",
       "function": "Ticker",
-      "sha256": "810d42470f03f7afd1b911a8e73114cc1ca268a71bca4c202a11d7cf19e8b46d"
+      "sha256": "2f6c2410641aabf0cb10e21f8c07f3ce7ae53a7bcce8f3f44fd4a8c60338fb22"
     },
     {
       "path": "public/amethyst/homepage.jsx",
@@ -33,7 +33,7 @@
     {
       "path": "public/amethyst/trade.jsx",
       "function": "Ticker",
-      "sha256": "7db9c21b1c3b18060b4520cd8287f2e2c55ba7d06839ed6736436b61acd1d74d"
+      "sha256": "841ff6e09812e1a6153951df7adfc216b499154c4f2bdd0563ab6277196578c7"
     },
     {
       "path": "public/amethyst/trade.jsx",
