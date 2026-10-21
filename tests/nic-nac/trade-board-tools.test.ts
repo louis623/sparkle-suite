@@ -443,6 +443,72 @@ describe('update_listing — write + audit happy path', () => {
     expect(updateListingMock).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ['data URL', 'data:image/jpeg;base64,TktK'],
+    [
+      '520-character storage link',
+      `https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/${'a'.repeat(520 - 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/'.length - '.jpg'.length)}.jpg`,
+    ],
+  ])(
+    'refuses a reused %s it cannot show before the reuse ask, and a following yes saves nothing',
+    async (_label, photoUrl) => {
+      if (!photoUrl.startsWith('data:')) expect(photoUrl).toHaveLength(520)
+      createAdminClientMock.mockReturnValue({
+        from: () =>
+          queryResult({
+            data: [
+              {
+                trade_board_intake_sessions: {
+                  item_number: 'NK60295',
+                  status: 'completed',
+                  created_design_id: 'design-nk60295',
+                  created_listing_ids: ['listing-nk60295'],
+                },
+              },
+            ],
+            error: null,
+          }),
+      })
+      const input = { listingId: VALID_LISTING_ID, listingPhotoUrl: photoUrl }
+      await expect(makeTool(undefined, photoSupabase()).execute(input)).rejects.toMatchObject({
+        code: 'PHOTO_PREVIEW_UNAVAILABLE',
+      })
+
+      const contentSha256 = photoUrl.startsWith('data:')
+        ? hashDataImageUrl(photoUrl)
+        : DEFAULT_FETCH_SHA
+      const afterYes = makeTool(
+        undefined,
+        photoSupabase({
+          conversations: [
+            { role: 'user', parts: [{ type: 'text', text: 'Yes' }] },
+            {
+              role: 'assistant',
+              parts: [
+                {
+                  output: {
+                    code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                    contentSha256,
+                    listingId: VALID_LISTING_ID,
+                    itemNumber: 'NK70001',
+                    pieceKey: 'NK70001',
+                    message:
+                      'This photo is already on NK60295. If NK70001 belongs with that set, reply yes.',
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      )
+      await expect(afterYes.execute(input)).rejects.toMatchObject({
+        code: 'PHOTO_PREVIEW_UNAVAILABLE',
+      })
+      expect(updateListingMock).not.toHaveBeenCalled()
+      expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
+    },
+  )
+
   it('previews the listing photo even when an open intake has a different picture', async () => {
     const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/raw-upload.jpg'
     const tool = makeTool(
@@ -514,6 +580,20 @@ describe('update_listing — write + audit happy path', () => {
     const tool = makeTool(
       intakeWorkflow({
         known: { itemNumber: 'NK60295' },
+        photos: [
+          {
+            id: 'photo-nk60296',
+            intakeSessionId: 'intake-nk60295',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: photoUrl,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: [],
+          },
+        ],
       }),
       photoSupabase({
         listing: listingRow({ design: { item_number: 'NK60296' } }),

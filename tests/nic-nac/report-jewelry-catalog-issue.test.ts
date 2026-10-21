@@ -14,6 +14,7 @@ vi.mock('@/lib/supabase/admin', () => ({
 }))
 
 import { reportJewelryCatalogIssueTool } from '@/lib/nic-nac/tools/report-jewelry-catalog-issue'
+import { hashDataImageUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 
 interface ToolDef {
   description?: string
@@ -499,6 +500,73 @@ describe('report_jewelry_catalog_issue', () => {
     })
     expect(reportJewelryCatalogIssueMock).not.toHaveBeenCalled()
   })
+
+  it.each([
+    ['data URL', 'data:image/jpeg;base64,TktK'],
+    [
+      '520-character storage link',
+      `https://project.supabase.co/storage/v1/object/public/jewelry-photos/approved/${'a'.repeat(520 - 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/approved/'.length - '.png'.length)}.png`,
+    ],
+  ])(
+    'refuses a reused %s it cannot show before the reuse ask, and a following yes saves nothing',
+    async (_label, canonicalPhotoUrl) => {
+      if (!canonicalPhotoUrl.startsWith('data:')) expect(canonicalPhotoUrl).toHaveLength(520)
+      const reusedAdmin = {
+        from: () =>
+          queryResult({
+            data: [
+              {
+                trade_board_intake_sessions: {
+                  item_number: 'NK60295',
+                  status: 'completed',
+                  created_design_id: 'design-nk60295',
+                  created_listing_ids: ['listing-nk60295'],
+                },
+              },
+            ],
+            error: null,
+          }),
+      }
+      createAdminClientMock.mockReturnValue(reusedAdmin)
+      const input = {
+        itemNumber: 'ER34579',
+        issueType: 'bad_photo' as const,
+        reason: 'The current catalog photo is the item label/details photo.',
+        correction: { canonicalPhotoUrl },
+      }
+      await expect(makeTool().execute(input)).rejects.toMatchObject({
+        code: 'PHOTO_PREVIEW_UNAVAILABLE',
+      })
+
+      const contentSha256 = canonicalPhotoUrl.startsWith('data:')
+        ? hashDataImageUrl(canonicalPhotoUrl)
+        : DEFAULT_FETCH_SHA
+      const afterYes = makeTool(null, {
+        supabase: conversationSupabase([
+          { role: 'user', parts: [{ type: 'text', text: 'Yes' }] },
+          {
+            role: 'assistant',
+            parts: [
+              {
+                output: {
+                  code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                  contentSha256,
+                  itemNumber: 'ER34579',
+                  pieceKey: 'ER34579',
+                  message:
+                    'This photo is already on NK60295. If ER34579 belongs with that set, reply yes.',
+                },
+              },
+            ],
+          },
+        ]),
+      })
+      await expect(afterYes.execute(input)).rejects.toMatchObject({
+        code: 'PHOTO_PREVIEW_UNAVAILABLE',
+      })
+      expect(reportJewelryCatalogIssueMock).not.toHaveBeenCalled()
+    },
+  )
 
   it('saves a catalog photo yes from the hash and item, not the link text', async () => {
     createAdminClientMock

@@ -167,6 +167,14 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
             ? correction.canonicalPhotoUrl.trim()
             : ''
         if (input.issueType === 'bad_photo' && canonicalPhotoUrl) {
+          const preview = mainPhotoPreviewLocator({ imageUrl: canonicalPhotoUrl })
+          if (!photoPreviewIsVisible(preview)) {
+            throw new NicNacToolError({
+              code: 'PHOTO_PREVIEW_UNAVAILABLE',
+              userMessage:
+                "I can't show you that photo before saving it on the shared catalog, so I didn't save it. Send a normal photo link I can show you, and I'll check it with you first.",
+            })
+          }
           if (!isApprovedCatalogPhotoUrl(canonicalPhotoUrl)) {
             throw new NicNacToolError({
               code: 'PHOTO_NOT_APPROVED',
@@ -193,7 +201,6 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
             itemNumber: input.itemNumber,
             catalogMode: 'item_number',
           })
-          const preview = mainPhotoPreviewLocator({ imageUrl: canonicalPhotoUrl })
           await assertCustomerPhotoNotReused({
             repId: ctx.repId,
             itemNumber: input.itemNumber,
@@ -220,13 +227,6 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
             pieceKey,
           })
           if (!confirmed) {
-            if (!photoPreviewIsVisible(preview)) {
-              throw new NicNacToolError({
-                code: 'PHOTO_PREVIEW_UNAVAILABLE',
-                userMessage:
-                  "I can't show you that photo before saving it on the shared catalog, so I didn't save it. Send a normal photo link I can show you, and I'll check it with you first.",
-              })
-            }
             return {
               needsAction: 'confirm_main_photo' as const,
               code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,

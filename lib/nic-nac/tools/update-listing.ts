@@ -190,6 +190,13 @@ export function makeUpdateListingTool(ctx: {
             id: workflowPhoto?.id,
             imageUrl: photoUrl,
           })
+          if (!photoPreviewIsVisible(preview)) {
+            throw new NicNacToolError({
+              code: 'PHOTO_PREVIEW_UNAVAILABLE',
+              userMessage:
+                "I can't show you that photo before saving it, so I didn't save it. Upload it in the chat, or send a normal photo link, and I'll check it with you first.",
+            })
+          }
           await assertCustomerPhotoNotReused({
             repId: ctx.repId,
             itemNumber: listing.pieceKey,
@@ -221,13 +228,6 @@ export function makeUpdateListingTool(ctx: {
             pieceKey: listing.pieceKey,
           })
           if (!confirmed) {
-            if (!photoPreviewIsVisible(preview)) {
-              throw new NicNacToolError({
-                code: 'PHOTO_PREVIEW_UNAVAILABLE',
-                userMessage:
-                  "I can't show you that photo before saving it, so I didn't save it. Upload it in the chat, or send a normal photo link, and I'll check it with you first.",
-              })
-            }
             const label = listing.pieceKey.startsWith('NON_ITEM:')
               ? 'this piece'
               : listing.pieceKey
