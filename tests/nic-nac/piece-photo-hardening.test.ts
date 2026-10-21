@@ -1486,6 +1486,23 @@ describe('customer photo hashing', () => {
     restoreUrl()
   })
 
+  it('does not follow a redirect when hashing a storage photo', async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      headers: { get: () => '3' },
+      arrayBuffer: async () => Uint8Array.from([4, 5, 6]).buffer,
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await hashCustomerPhotoUrl({ sourceImageUrl: storageUrl })
+    expect(fetchMock).toHaveBeenCalledWith(
+      storageUrl,
+      expect.objectContaining({ redirect: 'error' }),
+    )
+    restoreUrl()
+  })
+
   it('does not read a storage photo that declares it is too large', async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
     const arrayBuffer = vi.fn()

@@ -165,6 +165,7 @@ export async function hashCustomerPhotoUrl(args: {
   if (!isAllowedCustomerPhotoFetchUrl(url)) return null
   try {
     const response = await fetch(url, {
+      redirect: 'error',
       signal: AbortSignal.timeout(args.timeoutMs ?? PHOTO_HASH_TIMEOUT_MS),
     })
     if (!response.ok) return null
