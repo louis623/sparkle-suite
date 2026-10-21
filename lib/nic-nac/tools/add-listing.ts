@@ -194,12 +194,13 @@ async function writeAuditIsolated(args: {
 }
 
 // Look up a user-uploaded image part in this conversation and return its
-// client-compressed data URL. Explicit photo indexes are treated as 1-based
-// numbers across recent conversation photos in normal conversation order, which
-// matches how reps and Nic-Nac talk about "the second photo" across a guided
-// add flow. Without an explicit index, choose the most recent user turn that
-// contains exactly one image; still ask for a choice when a single turn includes
-// multiple images and the model did not identify which one is jewelry-front.
+// client-compressed data URL. Inside an open intake, explicit photo indexes are
+// 1-based numbers across that piece's photos. Outside an intake, an index only
+// counts photos inside one message; photos spread across messages are unclear,
+// so ask the rep. Without an explicit index, choose the most recent user turn
+// that contains exactly one image; still ask for a choice when a single turn
+// includes multiple images and the model did not identify which one is
+// jewelry-front.
 async function resolvePhotoFromConversation(ctx: {
   supabase: SupabaseClient
   conversationId: string
@@ -239,6 +240,12 @@ async function resolvePhotoFromConversation(ctx: {
     .filter((row) => row.imageParts.length > 0)
 
   if (ctx.photoIndex !== undefined) {
+    if (!ctx.intakeSessionId && rowsWithImages.length > 1) {
+      throw new NicNacToolError({
+        code: 'PHOTO_CHOICE_REQUIRED',
+        userMessage: `I see photos from more than one message, so I can't tell which photo ${ctx.photoIndex} means. Tell me which attached image is the jewelry-front photo.`,
+      })
+    }
     const conversationPhotos = conversationImagesForIntake(
       [...rowsWithImages].reverse().flatMap((row) => row.imageParts),
       ctx.intakePhotos,

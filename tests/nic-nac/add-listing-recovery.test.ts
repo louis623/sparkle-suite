@@ -1342,19 +1342,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
     })
   })
 
-  it('treats listingPhotoIndex as a recent-conversation photo number when the latest turn is text-only', async () => {
-    addListingMock.mockResolvedValueOnce({
-      listingId: 'listing-1',
-      designId: 'design-1',
-      itemNumber: 'ER13229',
-      designName: 'The Florence Earrings',
-      status: 'available',
-      usesCanonicalPhoto: false,
-    })
-    processRepListingPhotoUrlMock.mockResolvedValueOnce({
-      photoUrl: 'https://cdn.example.com/listings/rep-1/florence-boxed-display.png',
-    })
-
+  it('asks which photo to use when a save outside intake numbers photos across messages', async () => {
     const supabaseMock = makeConversationLookupMock([
       {
         parts: [{ type: 'text', text: 'Correct.' }],
@@ -1380,18 +1368,18 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
     ])
     const tool = makeTool(supabaseMock)
 
-    await tool.execute({
-      mode: 'single',
-      itemNumber: 'ER13229',
-      listingPhotoIndex: 2,
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ER13229',
+        listingPhotoIndex: 2,
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_CHOICE_REQUIRED',
+      userMessage: expect.stringMatching(/more than one message[\s\S]*photo 2/),
     })
-
-    expect(processRepListingPhotoUrlMock).toHaveBeenCalledWith({
-      repId: 'rep-1',
-      sourceImageUrl: 'data:image/jpeg;base64,Qk9YRURfSkVXRUxSWQ==',
-      filenameStem: 'ER13229-listing-photo',
-      mutationAssetKey: expect.any(String),
-    })
+    expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
+    expect(addListingMock).not.toHaveBeenCalled()
   })
 })
 
