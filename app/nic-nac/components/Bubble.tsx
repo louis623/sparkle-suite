@@ -16,6 +16,7 @@ export function Bubble({
   images,
   timestamp,
   renderMarkdown,
+  layout = 'default',
 }: {
   variant: 'rep' | 'nicNac'
   showGlyph?: boolean
@@ -25,38 +26,42 @@ export function Bubble({
   images?: BubbleImage[]
   timestamp?: string | number
   renderMarkdown?: boolean
+  // Main-photo confirmation uses a wide photo and normal-weight text.
+  layout?: 'default' | 'main-photo'
 }) {
   const hasImages = !!images && images.length > 0
-  const body = (
-    <>
-      {hasImages ? (
-        <div className={styles.imageGrid}>
-          {images!.map((img, i) => (
-            <a
-              key={i}
-              href={img.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.imageThumb}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={img.url} alt="" />
-            </a>
-          ))}
+  const isMainPhoto = layout === 'main-photo'
+  const imageBlock = hasImages ? (
+    <div key="images" className={isMainPhoto ? styles.previewPhotos : styles.imageGrid}>
+      {images!.map((img, i) => (
+        <a
+          key={i}
+          href={img.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={isMainPhoto ? styles.previewFrame : styles.imageThumb}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={img.url} alt="" />
+        </a>
+      ))}
+    </div>
+  ) : null
+  const textBlock =
+    text !== undefined && text !== '' ? (
+      renderMarkdown ? (
+        <div key="text" className={styles.mdRoot}>
+          <Markdown text={text} />
         </div>
-      ) : null}
-      {text !== undefined && text !== '' ? (
-        renderMarkdown ? (
-          <div className={styles.mdRoot}>
-            <Markdown text={text} />
-          </div>
-        ) : (
-          <span className={styles.plain}>{text}</span>
-        )
-      ) : null}
-      {children}
-    </>
-  )
+      ) : (
+        <span key="text" className={isMainPhoto ? styles.previewText : styles.plain}>
+          {text}
+        </span>
+      )
+    ) : null
+  // Keep this an array. A formatted fragment would leave whitespace that
+  // pre-wrap turns into a gap above the photo and an indent on the sentence.
+  const body = [imageBlock, textBlock, children]
 
   if (variant === 'rep') {
     return (
@@ -77,8 +82,16 @@ export function Bubble({
       <div className={styles.glyphSlot}>
         {showGlyph ? <NicNacGlyph size={22} /> : null}
       </div>
-      <div className={styles.nicNacCol}>
-        <div className={`${styles.bubble} ${styles.nicNac}`}>{body}</div>
+      <div className={isMainPhoto ? `${styles.nicNacCol} ${styles.previewCol}` : styles.nicNacCol}>
+        <div
+          className={
+            isMainPhoto
+              ? `${styles.bubble} ${styles.nicNac} ${styles.previewBubble}`
+              : `${styles.bubble} ${styles.nicNac}`
+          }
+        >
+          {body}
+        </div>
         {timestamp !== undefined ? (
           <div className={`${styles.timestamp} ${styles.timestampNicNac}`}>
             <RelativeTime value={timestamp} />

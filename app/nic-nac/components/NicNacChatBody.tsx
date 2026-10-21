@@ -993,6 +993,7 @@ function AssistantMessage({
               <Bubble
                 key={item.key}
                 variant="nicNac"
+                layout="main-photo"
                 showGlyph={showGlyph}
                 text={item.text}
                 images={item.imageUrl ? [{ url: item.imageUrl }] : undefined}
