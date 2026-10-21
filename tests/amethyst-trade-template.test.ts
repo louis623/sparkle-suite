@@ -594,7 +594,8 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).toContain('Shop live')
     expect(jsx).toContain('OG Halo Bloom Ring')
     expect(jsx).toContain('{tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}')
-    expect(jsx).toContain('Dancers will appear after this rep adds them to the Dance Floor.')
+    expect(jsx).toContain('The Dance Floor is quiet right now')
+    expect(jsx).toContain('adds dancers after a live reveal')
   })
 
   it('uses the shared sticky live reveal queue strip and modal trigger on trade', () => {
