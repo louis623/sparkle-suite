@@ -1523,6 +1523,31 @@ describe('customer photo hashing', () => {
     restoreUrl()
   })
 
+  it('stops reading a storage photo once the streamed body passes 8MB', async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    const cancel = vi.fn(async () => undefined)
+    const read = vi.fn(async () => ({
+      done: false,
+      value: { byteLength: PHOTO_HASH_MAX_BYTES + 1 },
+    }))
+    const arrayBuffer = vi.fn()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        headers: { get: () => null },
+        body: { getReader: () => ({ read, cancel }) },
+        arrayBuffer,
+      })),
+    )
+
+    await expect(hashCustomerPhotoUrl({ sourceImageUrl: storageUrl })).resolves.toBeNull()
+    expect(read).toHaveBeenCalledTimes(1)
+    expect(cancel).toHaveBeenCalledTimes(1)
+    expect(arrayBuffer).not.toHaveBeenCalled()
+    restoreUrl()
+  })
+
   it('stops when storage does not answer in time', async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
     vi.stubGlobal(

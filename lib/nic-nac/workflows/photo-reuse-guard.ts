@@ -151,6 +151,44 @@ export function isApprovedCatalogPhotoUrl(url: string): boolean {
   }
 }
 
+async function readCappedPhotoBytes(response: {
+  body?: {
+    getReader?: () => {
+      read: () => Promise<{ done?: boolean; value?: Uint8Array }>
+      cancel: () => Promise<void>
+    }
+  } | null
+  arrayBuffer?: () => Promise<ArrayBuffer>
+}): Promise<Buffer | null> {
+  const reader = response.body?.getReader?.()
+  if (!reader) {
+    if (!response.arrayBuffer) return null
+    const bytes = Buffer.from(await response.arrayBuffer())
+    if (bytes.length === 0 || bytes.length > PHOTO_HASH_MAX_BYTES) return null
+    return bytes
+  }
+  const chunks: Uint8Array[] = []
+  let total = 0
+  try {
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      if (!value || value.byteLength === 0) continue
+      if (total + value.byteLength > PHOTO_HASH_MAX_BYTES) {
+        await reader.cancel()
+        return null
+      }
+      chunks.push(value)
+      total += value.byteLength
+    }
+  } catch {
+    await reader.cancel().catch(() => undefined)
+    return null
+  }
+  if (total === 0) return null
+  return Buffer.concat(chunks)
+}
+
 /** Hash photo bytes. Data URLs are hashed locally. Storage URLs are fetched, unless a stored hash is already known. */
 export async function hashCustomerPhotoUrl(args: {
   sourceImageUrl: string
@@ -171,8 +209,8 @@ export async function hashCustomerPhotoUrl(args: {
     if (!response.ok) return null
     const declaredLength = Number(response.headers?.get?.('content-length'))
     if (Number.isFinite(declaredLength) && declaredLength > PHOTO_HASH_MAX_BYTES) return null
-    const bytes = Buffer.from(await response.arrayBuffer())
-    if (bytes.length === 0 || bytes.length > PHOTO_HASH_MAX_BYTES) return null
+    const bytes = await readCappedPhotoBytes(response)
+    if (!bytes) return null
     return createHash('sha256').update(bytes).digest('hex')
   } catch {
     return null
