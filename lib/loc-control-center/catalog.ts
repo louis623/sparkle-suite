@@ -222,6 +222,61 @@ export const locOperationCatalog: LocOperation[] = [
     ["conversationId", "attachmentId"],
   ),
   read(
+    "ownerDirect.list",
+    "support",
+    "Louis's direct messages from reps. File storage stays in Suite.",
+    ["suite"],
+    {
+      recipientQuery: { type: "string", maxLength: 240 },
+      threadQuery: { type: "string", maxLength: 240 },
+      recipientOffset: { type: "integer", minimum: 0 },
+      threadOffset: { type: "integer", minimum: 0 },
+    },
+  ),
+  read(
+    "ownerDirect.conversation",
+    "support",
+    "One direct-message conversation, including attachment references.",
+    ["suite"],
+    { conversationId: string },
+    ["conversationId"],
+  ),
+  write(
+    "ownerDirect.reply",
+    "support",
+    "Reply in one direct-message conversation. Does not store files in LOC.",
+    ["conversationId"],
+    ["suite"],
+    {
+      conversationId: string,
+      body: { type: "string", minLength: 1, maxLength: 10000 },
+    },
+  ),
+  write(
+    "ownerDirect.send",
+    "support",
+    "Start a direct-message thread with one rep, or add to the thread that rep already has. Does not store files in LOC.",
+    ["repId"],
+    ["suite"],
+    {
+      repId: {
+        type: "string",
+        pattern:
+          "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+      },
+      body: { type: "string", minLength: 1, maxLength: 10000 },
+      clientRequestId: { type: "string", minLength: 8, maxLength: 180 },
+    },
+  ),
+  read(
+    "ownerDirect.attachment",
+    "support",
+    "A short-lived link to one Suite-stored direct-message attachment.",
+    ["suite"],
+    { conversationId: string, attachmentId: string },
+    ["conversationId", "attachmentId"],
+  ),
+  read(
     "support.sessions",
     "support",
     "Transparent support access history; existing Workspace remains the session execution surface.",
@@ -566,6 +621,10 @@ const requiredByName: Record<string, string[]> = {
   "fizz.issue.stage": ["issueId", "subject", "preheader", "content", "workspaceTitle", "workspaceSummary", "workspaceBody"],
   "fizz.issue.get": ["issueId"],
   "fizz.issue.approve": ["issueId", "mode"],
+  "ownerDirect.conversation": ["conversationId"],
+  "ownerDirect.reply": ["conversationId", "body"],
+  "ownerDirect.send": ["repId", "body", "clientRequestId"],
+  "ownerDirect.attachment": ["conversationId", "attachmentId"],
 };
 const content = {
   publicationId: string,
@@ -716,6 +775,7 @@ for (const operation of locOperationCatalog) {
     if (!schema.properties[key]) schema.properties[key] = string;
   Object.assign(schema.properties, fieldsByName[operation.name] ?? {});
   operation.ownerOnly =
+    operation.name.startsWith("ownerDirect.") ||
     operation.name.startsWith("fizz.") ||
     operation.name === "finder.review.evidence" ||
     operation.name.startsWith("support.session.") ||
