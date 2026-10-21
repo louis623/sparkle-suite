@@ -1,6 +1,8 @@
 import type { UIMessage } from 'ai'
 import { unfinishedPieceQuestion } from '@/lib/nic-nac/piece-task'
 
+export const LOST_PHOTO_NOTE = 'That earlier photo was not brought into this chat.'
+
 export const NIC_NAC_ROLLOVER_TAIL_MESSAGES = 12
 
 export type NicNacConversationRunHealth = {
@@ -67,19 +69,34 @@ function isPendingPhotoConfirmationPart(part: unknown): boolean {
   return output.code === 'PHOTO_REUSED_ON_OTHER_ITEM'
 }
 
-function withoutPendingPiece(message: UIMessage): UIMessage {
-  const parts = (message.parts ?? []).filter(
-    (part) => !isPendingPhotoConfirmationPart(part),
+function messageText(message: UIMessage): string {
+  return (message.parts ?? [])
+    .filter((part) => (part as { type?: string }).type === 'text')
+    .map((part) => (part as { text?: string }).text ?? '')
+    .join('\n')
+}
+
+function assistantClaimsLostPhoto(message: UIMessage): boolean {
+  if (message.role !== 'assistant') return false
+  if ((message.parts ?? []).some((part) => isPendingPhotoConfirmationPart(part))) {
+    return true
+  }
+  return /main photo I will save|belongs with that set|recent photos in this add flow|couldn't use photo|I (?:have|got|see|received) (?:the |your )?(?:photo|picture|image)|photo you sent/i.test(
+    messageText(message),
   )
-  if (parts.length > 0) return { ...message, parts }
+}
+
+function withoutLostPhotoClaims(message: UIMessage): UIMessage {
+  if (!assistantClaimsLostPhoto(message)) return message
+  const parts = (message.parts ?? []).filter(
+    (part) =>
+      !isImageFilePart(part) &&
+      !isPendingPhotoConfirmationPart(part) &&
+      (part as { type?: string }).type !== 'text',
+  )
   return {
     ...message,
-    parts: [
-      {
-        type: 'text',
-        text: 'The unfinished piece was not brought into this chat.',
-      },
-    ],
+    parts: [{ type: 'text', text: LOST_PHOTO_NOTE }, ...parts],
   }
 }
 
@@ -91,9 +108,10 @@ export function buildNicNacRolloverMessages(
   const tail = messages.slice(-Math.max(1, limit))
   const rolled = tail.map((message, index) => {
     const carried = withoutCarriedPhotoFiles(message)
-    const visible = options?.dropPendingPiece
-      ? withoutPendingPiece(carried)
-      : carried
+    const visible =
+      options?.dropPendingPiece === false
+        ? carried
+        : withoutLostPhotoClaims(carried)
     return {
       ...visible,
       id: `rollover-${index}-${message.id.slice(-64)}`,
@@ -101,6 +119,7 @@ export function buildNicNacRolloverMessages(
   })
   if (!options || !('unfinishedItemNumber' in options)) return rolled
   return [
+    ...rolled,
     {
       id: 'rollover-finish-ask',
       role: 'assistant',
@@ -111,6 +130,5 @@ export function buildNicNacRolloverMessages(
         },
       ],
     },
-    ...rolled,
   ]
 }

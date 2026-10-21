@@ -9,7 +9,10 @@ import {
   prepareNicNacSendMessages,
   scopeMessagesToCurrentPiece,
 } from '@/lib/nic-nac/piece-task'
-import { getOrCreateTradeBoardIntakeContext } from '@/lib/nic-nac/workflows/trade-board-intake-context'
+import {
+  getOrCreateTradeBoardIntakeContext,
+  ingestLatestTradeBoardIntakeTurn,
+} from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import {
   decideLabelSave,
   LABEL_UNREADABLE_MESSAGE,
@@ -18,6 +21,9 @@ import {
 import { getNicNacModelPolicy } from '@/lib/nic-nac/core/model-policy'
 import { shouldClearSendErrorAfterServerReply } from '@/lib/nic-nac/client-message-refresh'
 import { recentConversationsFromRows } from '@/lib/nic-nac/recent-conversations'
+import { buildTradeBoardIntakePromptState } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
+import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
+import { TURNED_DOWN_MAIN_PHOTO_NOTE } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import { buildAssistantMessageRenderables } from '@/app/nic-nac/components/NicNacChatBody'
 
 function photoMessage(id: string, bytes: string): UIMessage {
@@ -322,6 +328,180 @@ describe('recent conversations', () => {
         dateLabel: 'Oct 20',
       },
     ])
+  })
+})
+
+describe('recent conversation list', () => {
+  it('hides the open chat and keeps one entry when a rollover continues it', () => {
+    const rows = [
+      {
+        conversation_id: 'dest',
+        role: 'user',
+        parts: [{ type: 'text', text: 'Add ER94204' }],
+        created_at: '2026-10-21T18:00:00.000Z',
+      },
+      {
+        conversation_id: 'source',
+        role: 'user',
+        parts: [{ type: 'text', text: 'Add ER94204' }],
+        created_at: '2026-10-21T17:00:00.000Z',
+      },
+      {
+        conversation_id: 'past',
+        role: 'user',
+        parts: [{ type: 'text', text: 'Where is my show?' }],
+        created_at: '2026-10-20T15:00:00.000Z',
+      },
+    ]
+    const edges = [
+      { sourceConversationId: 'source', destinationConversationId: 'dest' },
+    ]
+
+    expect(
+      recentConversationsFromRows(rows, 5, { rolloverEdges: edges }).map(
+        (item) => item.conversationId,
+      ),
+    ).toEqual(['dest', 'past'])
+    expect(
+      recentConversationsFromRows(rows, 5, {
+        excludeConversationId: 'dest',
+        rolloverEdges: edges,
+      }).map((item) => item.conversationId),
+    ).toEqual(['past'])
+    expect(
+      recentConversationsFromRows(rows, 5, {
+        excludeConversationId: 'source',
+        rolloverEdges: edges,
+      }).map((item) => item.conversationId),
+    ).toEqual(['past'])
+  })
+})
+
+describe('duplicate photo no', () => {
+  it('keeps the piece details and uses the new photo', async () => {
+    const sharedUrl = 'https://cdn.example.com/earrings.jpg'
+    const upserts: Array<Record<string, unknown>> = []
+    const sessionPatches: Array<Record<string, unknown>> = []
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_photos') {
+          return {
+            upsert: (row: Record<string, unknown>) => {
+              upserts.push(row)
+              const pending = Promise.resolve({ data: null, error: null })
+              return Object.assign(pending, {
+                select: () => ({
+                  maybeSingle: async () => ({
+                    data: { id: `saved-${upserts.length}` },
+                    error: null,
+                  }),
+                }),
+              })
+            },
+          }
+        }
+        if (table === 'trade_board_intake_sessions') {
+          return {
+            update: (patch: Record<string, unknown>) => {
+              sessionPatches.push(patch)
+              return { eq: async () => ({ error: null }) }
+            },
+          }
+        }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-nk94304',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'photo_capture',
+      known: {
+        itemNumber: 'NK94304',
+        material: 'Silver',
+        designName: 'The Lumen Necklace',
+        mainStone: 'Opal',
+        rarityClassification: 'standard',
+      },
+      missing: ['jewelryFrontPhoto'],
+      blockers: [],
+      warnings: [],
+      metadata: { openedOnMessageId: 'ask' },
+      photos: [
+        {
+          id: 'shared-photo',
+          conversationMessageId: 'old-photo',
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: sharedUrl,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+      ],
+    }
+
+    const next = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      latestUserMessageId: 'no-photo',
+      messages: [
+        {
+          id: 'ask',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'text',
+              text: 'This photo is already on ER94204. This is the main photo I will save for NK94304. If NK94304 belongs with that set and this is the right piece, reply yes.',
+            },
+          ],
+        },
+        {
+          id: 'no-photo',
+          role: 'user',
+          parts: [
+            { type: 'text', text: 'no' },
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TkVX',
+            },
+          ],
+        },
+      ] as UIMessage[],
+    })
+
+    expect(next.known).toMatchObject({
+      itemNumber: 'NK94304',
+      material: 'Silver',
+      designName: 'The Lumen Necklace',
+      mainStone: 'Opal',
+    })
+    expect(next.metadata.declinedSharedPhoto).toBe(true)
+    expect(next.photos[0]?.notes).toContain(TURNED_DOWN_MAIN_PHOTO_NOTE)
+    expect(next.photos[1]?.imageUrl).toContain('TkVX')
+    expect(next.photos[1]?.notes ?? []).not.toContain(TURNED_DOWN_MAIN_PHOTO_NOTE)
+    expect(
+      upserts.some((row) =>
+        Array.isArray(row.notes) &&
+        row.notes.includes(TURNED_DOWN_MAIN_PHOTO_NOTE) &&
+        row.image_url === sharedUrl,
+      ),
+    ).toBe(true)
+    const prompt = buildTradeBoardIntakePromptState(next)
+    const rule = prompt.hardRules.find((line) =>
+      line.includes('Do not offer to replace the shared catalog photo'),
+    )
+    expect(rule).toContain('NK94304')
+    expect(rule).toContain('Silver')
+    expect(rule).toContain('The Lumen Necklace')
+    expect(rule).toContain('Opal')
+    expect(rule).toContain('Use the new photo for this piece')
+    expect(sessionPatches[0]?.metadata).toMatchObject({ declinedSharedPhoto: true })
   })
 })
 

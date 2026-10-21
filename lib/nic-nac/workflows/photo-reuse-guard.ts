@@ -282,6 +282,62 @@ function intakeSavedALibraryDesignOrListing(entry: PhotoHashSession): boolean {
   return designId.length > 0 || listingIds.length > 0
 }
 
+export async function loadItemNumbersForPhotoUrl(
+  admin: SupabaseClient,
+  args: { repId: string; imageUrl: string },
+): Promise<PhotoReuseMatch[]> {
+  const imageUrl = args.imageUrl.trim()
+  if (!imageUrl.startsWith('https://') || imageUrl.length > 500) return []
+  const { data, error } = await admin
+    .from('trade_board_intake_photos')
+    .select(
+      'trade_board_intake_sessions!inner(item_number, status, created_design_id, created_listing_ids)',
+    )
+    .eq('rep_id', args.repId)
+    .eq('image_url', imageUrl)
+    .eq('trade_board_intake_sessions.status', 'completed')
+
+  if (error) throw error
+  return savedPhotoMatches(data as PhotoHashRow[] | null)
+}
+
+/** Hash match and exact stored-URL match. A missing hash does not skip the check. */
+export async function loadItemNumbersForCustomerPhoto(
+  admin: SupabaseClient,
+  args: { repId: string; contentSha256?: string | null; imageUrl?: string | null },
+): Promise<PhotoReuseMatch[]> {
+  const matches: PhotoReuseMatch[] = []
+  const contentSha256 = args.contentSha256?.trim()
+  if (contentSha256) {
+    matches.push(
+      ...(await loadItemNumbersForPhotoHash(admin, {
+        repId: args.repId,
+        contentSha256,
+      })),
+    )
+  }
+  const imageUrl = args.imageUrl?.trim()
+  if (imageUrl) {
+    matches.push(
+      ...(await loadItemNumbersForPhotoUrl(admin, {
+        repId: args.repId,
+        imageUrl,
+      })),
+    )
+  }
+  return matches
+}
+
+function savedPhotoMatches(data: PhotoHashRow[] | null): PhotoReuseMatch[] {
+  return (data ?? []).flatMap((row) => {
+    const session = row.trade_board_intake_sessions
+    const sessions = Array.isArray(session) ? session : session ? [session] : []
+    return sessions
+      .filter(intakeSavedALibraryDesignOrListing)
+      .map((entry) => ({ itemNumber: entry.item_number ?? null }))
+  })
+}
+
 export async function loadItemNumbersForPhotoHash(
   admin: SupabaseClient,
   args: { repId: string; contentSha256: string },
@@ -297,11 +353,5 @@ export async function loadItemNumbersForPhotoHash(
 
   if (error) throw error
 
-  return ((data ?? []) as PhotoHashRow[]).flatMap((row) => {
-    const session = row.trade_board_intake_sessions
-    const sessions = Array.isArray(session) ? session : session ? [session] : []
-    return sessions
-      .filter(intakeSavedALibraryDesignOrListing)
-      .map((entry) => ({ itemNumber: entry.item_number ?? null }))
-  })
+  return savedPhotoMatches((data ?? []) as PhotoHashRow[])
 }

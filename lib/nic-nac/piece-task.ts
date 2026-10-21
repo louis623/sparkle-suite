@@ -61,6 +61,25 @@ export function unfinishedPieceQuestion(itemNumber?: string | null): string {
   return item ? `Want to finish ${item}?` : 'Want to finish this piece?'
 }
 
+export function sendPhotoAgainMessage(itemNumber?: string | null): string {
+  const item = itemNumber?.trim()
+  return item ? `Send the photo for ${item} again.` : 'Send the photo for this piece again.'
+}
+
+/** A fresh chat is asking the rep to pick up a piece whose photo was not carried. */
+export function assistantIsResumingUnfinishedPiece(text: string): boolean {
+  return /want to finish\b|send the photo for\b|not brought into this chat|that earlier photo was not brought|main photo I will save|belongs with that set/i.test(
+    text,
+  )
+}
+
+export function itemNumberFromResumeAsk(text: string): string | null {
+  const match = text.match(
+    /\b(?:want to finish|send the photo for|main photo I will save for)\s+([A-Za-z]{1,4}\d{3,})\b/i,
+  )
+  return match?.[1] ? match[1].toUpperCase() : null
+}
+
 export function statedItemNumber(text: string): string | null {
   const match = text.match(/\b[A-Z]{1,4}\d{3,}\b/i)
   return match ? match[0].toUpperCase() : null

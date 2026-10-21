@@ -58,6 +58,7 @@ export async function POST(request: Request) {
     clearedConversationIds = await clearActiveConversationsForRep(
       ctx.supabase,
       ctx.repId,
+      conversationId,
     )
   }
   return NextResponse.json({

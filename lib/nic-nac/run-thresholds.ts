@@ -36,7 +36,13 @@ export function evaluateNicNacRunThresholds(
   if ((input.totalTokens ?? 0) >= HIGH_TOTAL_TOKENS && chatIsLongEnough) {
     reasons.push('high_total_tokens')
   }
-  if (input.contextCompacted && input.droppedMessageCount > 0) {
+  // Per-piece chats trim older turns on purpose. That trim is not a rollover.
+  // Compacted context only counts once the piece itself is actually large.
+  if (
+    input.contextCompacted &&
+    input.droppedMessageCount > 0 &&
+    input.estimatedContextTokens >= HIGH_ESTIMATED_CONTEXT_TOKENS
+  ) {
     reasons.push('context_compacted')
   }
   if (input.estimatedContextTokens >= HIGH_ESTIMATED_CONTEXT_TOKENS) {

@@ -155,6 +155,9 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
       messages: UIMessage[]
     }
     expect(JSON.stringify(inserted.messages)).toContain('Want to finish NK91303?')
+    expect(inserted.messages.at(-1)?.parts).toEqual([
+      { type: 'text', text: 'Want to finish NK91303?' },
+    ])
     expect(JSON.stringify(inserted.messages)).not.toContain('data:image')
     expect(createAdminClientMock).toHaveBeenCalledTimes(1)
     expect(adminRpcMock).not.toHaveBeenCalled()
@@ -201,6 +204,11 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
     }
     expect(JSON.stringify(inserted.messages)).not.toContain('confirm_main_photo')
     expect(JSON.stringify(inserted.messages)).not.toContain('photo-ring')
+    expect(JSON.stringify(inserted.messages)).not.toContain('main photo I will save')
+    expect(JSON.stringify(inserted.messages)).toContain(
+      'That earlier photo was not brought into this chat.',
+    )
+    expect(inserted.messages.at(-1)?.id).toBe('rollover-finish-ask')
   })
 
   it('does not move the piece when rollover is retried', async () => {

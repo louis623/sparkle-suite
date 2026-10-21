@@ -6,7 +6,7 @@ import {
 } from '@/lib/nic-nac/persistence'
 
 describe('Nic-Nac cleared conversation persistence', () => {
-  it('marks every active thread owned by the rep as cleared instead of deleting it', async () => {
+  it('clears only the open chat and leaves earlier chats in Recent', async () => {
     const complete = Promise.resolve({
       data: [
         { conversation_id: 'conversation-current' },
@@ -29,7 +29,11 @@ describe('Nic-Nac cleared conversation persistence', () => {
     const supabase = { from: vi.fn(() => query) }
 
     await expect(
-      clearActiveConversationsForRep(supabase as never, 'rep-1'),
+      clearActiveConversationsForRep(
+        supabase as never,
+        'rep-1',
+        'conversation-current',
+      ),
     ).resolves.toEqual(['conversation-current', 'conversation-old'])
 
     expect(supabase.from).toHaveBeenCalledWith('nic_nac_conversations')
@@ -37,7 +41,7 @@ describe('Nic-Nac cleared conversation persistence', () => {
       expect.objectContaining({ cleared_at: expect.any(String) }),
     )
     expect(query.eq).toHaveBeenCalledWith('rep_id', 'rep-1')
-    expect(query.eq).not.toHaveBeenCalledWith('conversation_id', expect.anything())
+    expect(query.eq).toHaveBeenCalledWith('conversation_id', 'conversation-current')
     expect(query.is).toHaveBeenCalledWith('cleared_at', null)
     expect(query.select).toHaveBeenCalledWith('conversation_id')
   })

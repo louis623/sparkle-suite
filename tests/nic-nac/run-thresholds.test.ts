@@ -53,19 +53,19 @@ describe('Nic-Nac run thresholds', () => {
     })
   })
 
-  it('recommends rollover when context compaction drops even one message', () => {
+  it('does not roll over when a small piece trims older turns', () => {
     expect(
       evaluateNicNacRunThresholds({
         latencyMs: 1_000,
-        inputTokens: 2_000,
-        totalTokens: 2_100,
-        estimatedContextTokens: 2_000,
+        inputTokens: 4_057,
+        totalTokens: 4_200,
+        estimatedContextTokens: 4_057,
         contextCompacted: true,
-        droppedMessageCount: 1,
+        droppedMessageCount: 4,
       }),
     ).toEqual({
-      rolloverRecommended: true,
-      reasons: ['context_compacted'],
+      rolloverRecommended: false,
+      reasons: [],
     })
   })
 

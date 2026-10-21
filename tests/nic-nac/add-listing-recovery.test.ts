@@ -163,6 +163,8 @@ vi.mock('@/lib/nic-nac/workflows/trade-workflow-store', () => ({
 
 import { NicNacToolError } from '@/lib/nic-nac/errors'
 import {
+  freshPhotoPreviewDecision,
+  freshStartYesDecision,
   getWorkflowConfirmedJewelryFrontImageUrl,
   makeAddListingTool,
   processListingPhotoForAdd,
@@ -5630,6 +5632,176 @@ describe('add_listing - active workflow readiness guard', () => {
         listingPhotoUrl: undefined,
       }),
     )
+  })
+})
+
+describe('fresh start photo confirmation', () => {
+  it('does not save a photo resent after a rollover until the rep says yes', async () => {
+    const tool = makeTool(
+      makeConversationLookupMock([
+        {
+          role: 'user',
+          parts: [
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TkVX',
+            },
+          ],
+        },
+        {
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'Want to finish ER94204?' }],
+        },
+      ]),
+    )
+
+    const result = await tool.execute({
+      mode: 'single',
+      itemNumber: 'ER94204',
+      clickwrapAccepted: true,
+    })
+
+    expect(result).toMatchObject({
+      needsAction: 'confirm_main_photo',
+      code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED',
+      message: expect.stringContaining('main photo I will save for ER94204'),
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(
+      freshPhotoPreviewDecision([
+        {
+          role: 'user',
+          parts: [
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TkVX',
+            },
+          ],
+        },
+        {
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'Want to finish ER94204?' }],
+        },
+      ]),
+    ).toMatchObject({ required: true, itemNumber: 'ER94204' })
+    expect(
+      freshPhotoPreviewDecision([
+        {
+          role: 'user',
+          parts: [
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TkVX',
+            },
+          ],
+        },
+      ]).required,
+    ).toBe(false)
+  })
+
+  it('answers yes after a fresh start by asking for the photo again', async () => {
+    const tool = makeTool(
+      makeConversationLookupMock([
+        {
+          role: 'user',
+          parts: [{ type: 'text', text: 'yes' }],
+        },
+        {
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'Want to finish ER94204?' }],
+        },
+      ]),
+    )
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ER94204',
+        piecePhotoIndex: 1,
+        clickwrapAccepted: true,
+      }),
+    ).rejects.toMatchObject({
+      userMessage: 'Send the photo for ER94204 again.',
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(
+      freshStartYesDecision([
+        { role: 'user', parts: [{ type: 'text', text: 'yes' }] },
+        {
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'Want to finish ER94204?' }],
+        },
+      ]),
+    ).toEqual({ askAgain: true, itemNumber: 'ER94204' })
+  })
+
+  it('warns when a storage photo with no stored hash is already on another piece', async () => {
+    const previousUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    const photoUrl =
+      'https://project.supabase.co/storage/v1/object/public/jewelry-photos/er94204.jpg'
+    fetchMock.mockResolvedValueOnce(makeImageResponse(new Uint8Array([9, 4, 2])))
+    createAdminClientMock.mockReturnValue(
+      makeAdminClientMock([], null, [
+        {
+          item_number: 'ER94204',
+          status: 'completed',
+          created_listing_ids: ['listing-earrings'],
+        },
+      ]),
+    )
+    try {
+      const tool = makeTool(makeConversationLookupMock([]), {
+        activeTradeBoardWorkflow: activeWorkflow({
+          id: 'intake-nk94304',
+          phase: 'ready_to_add',
+          missing: [],
+          metadata: { mainPhotoConfirmationRequired: true },
+          known: {
+            itemNumber: 'NK94304',
+            designName: 'Necklace',
+            collectionName: 'Original',
+            rarityClassification: 'standard',
+          },
+          photos: [
+            {
+              id: 'photo-necklace',
+              intakeSessionId: 'intake-nk94304',
+              attachmentIndex: 1,
+              declaredRole: 'jewelry_front',
+              visualRole: 'jewelry',
+              roleConfirmed: true,
+              imageUrl: photoUrl,
+              quality: 'usable',
+              qualityIssues: [],
+              notes: ['declared as customer-facing jewelry photo'],
+            },
+          ],
+        }),
+      })
+
+      const result = await tool.execute({
+        mode: 'single',
+        itemNumber: 'NK94304',
+        collectionName: 'Original',
+      })
+
+      expect(result).toMatchObject({
+        needsAction: 'confirm_main_photo',
+        code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      })
+      const message = String((result as { message?: string }).message)
+      expect(message).toContain('already on ER94204')
+      expect(message).toContain('main photo I will save for NK94304')
+      expect(message).toContain('belongs with that set')
+      expect(addListingMock).not.toHaveBeenCalled()
+    } finally {
+      if (previousUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
+      else process.env.NEXT_PUBLIC_SUPABASE_URL = previousUrl
+    }
   })
 })
 

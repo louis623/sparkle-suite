@@ -1031,6 +1031,7 @@ export default function NicNacClient({
         onOpenConversation={(nextConversationId) => {
           void openRecentConversation(nextConversationId)
         }}
+        currentConversationId={conversationId}
         conversationControlsDisabled={newDisabled}
         desktopChat={
           isDesktop && (desktopOpen || shouldKeepDesktopNicNacOpen)

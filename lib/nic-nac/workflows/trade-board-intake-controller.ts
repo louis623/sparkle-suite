@@ -347,6 +347,20 @@ export function buildTradeBoardIntakePromptState(
       'do not create or invent an item number for a non-item-number piece',
       'dance-floor-only vs catalog is Nic-Nac discretion, not a forced path',
       'catalog and Finder keep jewelry-facing quality; if the rep says the piece is Bomb Party, a good-quality-looking image is enough — do not invent extra proof hurdles',
+      ...(state.metadata.declinedSharedPhoto === true
+        ? [
+            `The rep said no to the shared photo. Keep these details: ${
+              [
+                state.known.itemNumber,
+                state.known.material,
+                state.known.designName,
+                state.known.mainStone,
+              ]
+                .filter(Boolean)
+                .join(', ') || 'the details already collected'
+            }. Use the new photo for this piece. Do not offer to replace the shared catalog photo.`,
+          ]
+        : []),
     ],
   }
 }

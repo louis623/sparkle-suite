@@ -3074,6 +3074,7 @@ export type DashboardPlaceholderProps = {
   onSendNicNacPrompt?: (prompt: string) => void
   onNewConversation?: () => void
   onOpenConversation?: (conversationId: string) => void
+  currentConversationId?: string | null
   conversationControlsDisabled?: boolean
   desktopChat?: ReactNode
   mobileTradeAlertTarget?: HTMLElement | null
@@ -3133,6 +3134,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     onSendNicNacPrompt,
     onNewConversation,
     onOpenConversation,
+    currentConversationId = null,
     conversationControlsDisabled = false,
     desktopChat,
     mobileTradeAlertTarget = null,
@@ -7560,6 +7562,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
               onOpenHelp={() => setActiveSection('help-resources')}
               onNewConversation={onNewConversation}
               onOpenConversation={onOpenConversation}
+              currentConversationId={currentConversationId}
               repName={repProfileState.displayName ?? siteSettingsState.settings?.displayName ?? null}
               conversationControlsDisabled={conversationControlsDisabled}
               liveLineupReadOnly={liveLineupReadOnly}
@@ -7876,6 +7879,7 @@ function ConceptHomeWorkspace({
   onOpenHelp,
   onNewConversation,
   onOpenConversation,
+  currentConversationId = null,
   conversationControlsDisabled,
   repName,
   liveLineupReadOnly,
@@ -7896,6 +7900,7 @@ function ConceptHomeWorkspace({
   onOpenHelp: () => void
   onNewConversation?: () => void
   onOpenConversation?: (conversationId: string) => void
+  currentConversationId?: string | null
   conversationControlsDisabled: boolean
   repName: string | null
   liveLineupReadOnly: boolean
@@ -7939,7 +7944,11 @@ function ConceptHomeWorkspace({
 
   useEffect(() => {
     const controller = new AbortController()
-    void fetch('/api/nic-nac/conversations/recent', {
+    const current = currentConversationId?.trim()
+    const recentUrl = current
+      ? `/api/nic-nac/conversations/recent?current=${encodeURIComponent(current)}`
+      : '/api/nic-nac/conversations/recent'
+    void fetch(recentUrl, {
       credentials: 'include',
       signal: controller.signal,
     })
@@ -7962,7 +7971,7 @@ function ConceptHomeWorkspace({
         }
       })
     return () => controller.abort()
-  }, [])
+  }, [currentConversationId])
 
   const latestYouTubeThumbnail = getYouTubeResourceThumbnail(
     latestYouTubeResource?.videoUrl ?? null,

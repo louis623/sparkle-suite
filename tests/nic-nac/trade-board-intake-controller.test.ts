@@ -185,6 +185,26 @@ describe('Dance Floor intake controller', () => {
     ])
   })
 
+  it('tells the model to keep details when the rep says no to a shared photo', () => {
+    const prompt = buildTradeBoardIntakePromptState(
+      baseState({
+        known: {
+          itemNumber: 'NK94304',
+          material: 'Silver',
+          designName: 'The Lumen Necklace',
+          mainStone: 'Opal',
+        },
+        metadata: { declinedSharedPhoto: true },
+      }),
+    )
+    const rule = prompt.hardRules.find((line) =>
+      line.includes('Do not offer to replace the shared catalog photo'),
+    )
+    expect(rule).toContain('NK94304')
+    expect(rule).toContain('Silver')
+    expect(rule).toContain('Use the new photo for this piece')
+  })
+
   it('builds model prompt state with the correct next action', () => {
     const promptState = buildTradeBoardIntakePromptState(
       baseState({

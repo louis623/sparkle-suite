@@ -86,6 +86,13 @@ export async function listRecentNicNacConversations(
   supabase: SupabaseClient,
   repId: string,
   limit = 5,
+  options?: {
+    excludeConversationId?: string | null
+    rolloverEdges?: Array<{
+      sourceConversationId: string
+      destinationConversationId: string
+    }>
+  },
 ): Promise<RecentConversationSummary[]> {
   const { data, error } = await supabase
     .from('nic_nac_conversations')
@@ -95,23 +102,22 @@ export async function listRecentNicNacConversations(
     .order('created_at', { ascending: false })
     .limit(80)
   if (error) throw error
-  return recentConversationsFromRows(data ?? [], limit)
+  return recentConversationsFromRows(data ?? [], limit, options)
 }
 
-// A workspace can accumulate more than one active conversation when a tab is
-// restored from an old URL or two devices are used at once. Clearing only the
-// ID held by the current client leaves the other thread eligible for the
-// "latest" lookup and lets old history reappear on the next sign-in. Retire
-// every currently active thread for this rep, while retaining every row for
-// audit continuity.
+// Clear retires the open chat so the next visit does not resume it. Earlier
+// chats stay uncleared so Recent can reopen them. Rows are kept for audit.
 export async function clearActiveConversationsForRep(
   supabase: SupabaseClient,
   repId: string,
+  conversationId: string,
 ): Promise<string[]> {
+  // Retire only the open chat. Earlier chats stay in Recent and can be reopened.
   const { data, error } = await supabase
     .from('nic_nac_conversations')
     .update({ cleared_at: new Date().toISOString() })
     .eq('rep_id', repId)
+    .eq('conversation_id', conversationId)
     .is('cleared_at', null)
     .select('conversation_id')
   if (error) throw error

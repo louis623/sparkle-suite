@@ -3,6 +3,7 @@ import type { UIMessage } from 'ai'
 import { evaluateNicNacRunThresholds } from '@/lib/nic-nac/run-thresholds'
 import {
   buildNicNacRolloverMessages,
+  LOST_PHOTO_NOTE,
   shouldCarryTradeBoardIntakeOnRollover,
   shouldStartNicNacRollover,
 } from '@/lib/nic-nac/rollover'
@@ -47,6 +48,22 @@ describe('Nic-Nac conversation rollover', () => {
         rolloverReasons: ['context_compacted'],
       }),
     ).toBe(true)
+  })
+
+  it('does not roll a normal piece over when older turns are trimmed', () => {
+    expect(
+      evaluateNicNacRunThresholds({
+        latencyMs: 1_000,
+        inputTokens: 4_057,
+        totalTokens: 4_200,
+        estimatedContextTokens: 4_057,
+        contextCompacted: true,
+        droppedMessageCount: 4,
+      }),
+    ).toEqual({
+      rolloverRecommended: false,
+      reasons: [],
+    })
   })
 
   it('does not treat a short chat as too many tokens', () => {
@@ -115,6 +132,8 @@ describe('Nic-Nac conversation rollover', () => {
     )
     expect(JSON.stringify(rolled)).not.toContain('photo-ring')
     expect(JSON.stringify(rolled)).not.toContain('confirm_main_photo')
+    expect(JSON.stringify(rolled)).not.toContain('main photo I will save')
+    expect(JSON.stringify(rolled)).toContain(LOST_PHOTO_NOTE)
 
     const asked = buildNicNacRolloverMessages(
       [
@@ -134,11 +153,49 @@ describe('Nic-Nac conversation rollover', () => {
       12,
       { dropPendingPiece: true, unfinishedItemNumber: 'NK91303' },
     )
-    expect(asked[0]?.parts).toEqual([
+    expect(asked[0]?.parts).toEqual([{ type: 'text', text: 'NK91303' }])
+    expect(asked.at(-1)?.id).toBe('rollover-finish-ask')
+    expect(asked.at(-1)?.parts).toEqual([
       { type: 'text', text: unfinishedPieceQuestion('NK91303') },
     ])
     expect(JSON.stringify(asked)).not.toContain('data:image')
     expect(JSON.stringify(asked)).toContain('Want to finish NK91303?')
+
+    const claimed = buildNicNacRolloverMessages(
+      [
+        {
+          id: 'claimed-photo',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'text',
+              text: 'I have the photo. This is the main photo I will save for ER94204.',
+            },
+          ],
+        } as UIMessage,
+        {
+          id: 'old-photo',
+          role: 'user',
+          parts: [
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,T0xE',
+            },
+          ],
+        } as UIMessage,
+      ],
+      12,
+      { dropPendingPiece: true, unfinishedItemNumber: 'ER94204' },
+    )
+    const claimedText = JSON.stringify(claimed)
+    expect(claimedText).not.toContain('I have the photo')
+    expect(claimedText).not.toContain('main photo I will save')
+    expect(claimedText).not.toContain('data:image')
+    expect(claimedText).toContain(LOST_PHOTO_NOTE)
+    expect(claimed.at(-1)?.parts).toEqual([
+      { type: 'text', text: 'Want to finish ER94204?' },
+    ])
   })
 
   it('does not roll over latency-only or reasonless historical health rows', () => {

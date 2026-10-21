@@ -27,6 +27,7 @@ import type {
 } from './trade-board-intake-types'
 import {
   EMPTY_PIECE_MODEL_CONTEXT,
+  assistantIsResumingUnfinishedPiece,
   pieceCarryNote,
   pieceNoteList,
   pieceTurnBoundary,
@@ -284,7 +285,11 @@ export function hasTradeBoardIntakeSignal(messages: UIMessage[]): boolean {
 
   // A photo starts a piece only while one is being added. A photo in ordinary
   // chat, or a label sent with no add in progress, does not open an intake.
-  return hasImage && ADD_PIECE_PHOTO_ASK.test(assistantText)
+  return (
+    hasImage &&
+    (ADD_PIECE_PHOTO_ASK.test(assistantText) ||
+      assistantIsResumingUnfinishedPiece(assistantText))
+  )
 }
 
 function hasExplicitTradeBoardAddSignal(text: string): boolean {
@@ -545,10 +550,42 @@ export async function ingestLatestTradeBoardIntakeTurn(
   }
 
   const ingestedNewImage = photos.length > photosBeforeThisTurn
+  const declinedSharedPhoto = isNegativePhotoConfirmation(latestUserText) &&
+    /already on|belongs with that set|main photo I will save/i.test(previousAssistantText)
   if (ingestedNewImage) {
     delete metadata.mainPhotoConfirmedPhotoId
     delete metadata.mainPhotoConfirmed
     delete metadata.mainPhotoConfirmedItemNumber
+    if (declinedSharedPhoto) {
+      metadata.declinedSharedPhoto = true
+      for (let index = 0; index < photosBeforeThisTurn; index += 1) {
+        const photo = photos[index]
+        if (!photo?.imageUrl || photo.declaredRole === 'label_details') continue
+        if (photo.notes.includes(TURNED_DOWN_MAIN_PHOTO_NOTE)) continue
+        const turnedDown = {
+          ...photo,
+          notes: [...photo.notes, TURNED_DOWN_MAIN_PHOTO_NOTE],
+        }
+        photos[index] = turnedDown
+        await upsertTradeBoardIntakePhoto(supabase, {
+          sessionId: args.session.id,
+          repId: args.session.repId,
+          conversationId: args.session.conversationId,
+          conversationMessageId: turnedDown.conversationMessageId,
+          attachmentIndex: turnedDown.attachmentIndex,
+          declaredRole: turnedDown.declaredRole,
+          visualRole: turnedDown.visualRole,
+          roleConfirmed: turnedDown.roleConfirmed,
+          imageUrl: turnedDown.imageUrl,
+          quality: turnedDown.quality,
+          qualityScore: turnedDown.qualityScore,
+          qualityIssues: turnedDown.qualityIssues,
+          notes: turnedDown.notes,
+          contentSha256: turnedDown.contentSha256,
+          visualRoleSource: turnedDown.visualRoleSource,
+        })
+      }
+    }
   } else if (latestTurnConfirmsMainPhoto(args.messages)) {
     const shownPreview = lastShownMainPhotoPreview(args.messages)
     const confirmedPhotoId = shownPreview.shown
@@ -571,6 +608,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
       delete metadata.mainPhotoConfirmed
     }
   } else if (latestTurnTurnsDownMainPhoto(args.messages)) {
+    if (declinedSharedPhoto) metadata.declinedSharedPhoto = true
     const shownPreview = lastShownMainPhotoPreview(args.messages)
     const turnedDownId = shownPreview.shown
       ? shownPreview.id

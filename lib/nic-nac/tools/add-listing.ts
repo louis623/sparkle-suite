@@ -45,8 +45,9 @@ import { logIncident } from '@/lib/nic-nac/guardian-telemetry'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
 import {
   decidePhotoReuse,
+  hashCustomerPhotoUrl,
   hashDataImageUrl,
-  loadItemNumbersForPhotoHash,
+  loadItemNumbersForCustomerPhoto,
   mainPhotoConfirmationIdentity,
   normalizePhotoConfirmationKey,
   photoConfirmationPieceKey,
@@ -63,7 +64,13 @@ import {
   formatWorkflowNotReadyMessage,
   transitionTradeBoardIntake,
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
-import { pieceCarryNote, pieceNoteList } from '@/lib/nic-nac/piece-task'
+import {
+  assistantIsResumingUnfinishedPiece,
+  itemNumberFromResumeAsk,
+  pieceCarryNote,
+  pieceNoteList,
+  sendPhotoAgainMessage,
+} from '@/lib/nic-nac/piece-task'
 import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
 import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
@@ -207,11 +214,35 @@ async function writeAuditIsolated(args: {
 // that contains exactly one image; still ask for a choice when a single turn
 // includes multiple images and the model did not identify which one is
 // jewelry-front.
+async function itemNumberFromRecentAssistant(ctx: {
+  supabase: SupabaseClient
+  conversationId: string
+}): Promise<string | null> {
+  try {
+    const { data, error } = await ctx.supabase
+      .from('nic_nac_conversations')
+      .select('role, parts')
+      .eq('conversation_id', ctx.conversationId)
+      .eq('role', 'assistant')
+      .order('created_at', { ascending: false })
+      .limit(8)
+    if (error || !Array.isArray(data)) return null
+    for (const row of data as ConversationRow[]) {
+      const item = itemNumberFromResumeAsk(conversationRowText(row))
+      if (item) return item
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
 async function resolvePhotoFromConversation(ctx: {
   supabase: SupabaseClient
   conversationId: string
   latestUserMessageOnly?: boolean
   photoIndex?: number
+  itemNumber?: string | null
   intakeSessionId?: string
   intakePhotos?: Array<{ imageUrl?: string; intakeSessionId?: string }>
 }): Promise<{
@@ -259,11 +290,19 @@ async function resolvePhotoFromConversation(ctx: {
     )
     const imagePart = conversationPhotos[ctx.photoIndex - 1]
     if (!imagePart?.url) {
+      const askedItem =
+        ctx.itemNumber?.trim() ||
+        (conversationPhotos.length === 0
+          ? await itemNumberFromRecentAssistant(ctx)
+          : null)
       throw new NicNacToolError({
         code: 'PHOTO_CHOICE_REQUIRED',
-        userMessage: `I found ${conversationPhotos.length} recent photo${
-          conversationPhotos.length === 1 ? '' : 's'
-        } in this add flow, so I couldn't use photo ${ctx.photoIndex}. Tell me which attached image is the jewelry-front photo.`,
+        userMessage:
+          conversationPhotos.length === 0
+            ? sendPhotoAgainMessage(askedItem)
+            : `I found ${conversationPhotos.length} recent photo${
+                conversationPhotos.length === 1 ? '' : 's'
+              } in this add flow, so I couldn't use photo ${ctx.photoIndex}. Tell me which attached image is the jewelry-front photo.`,
       })
     }
     return {
@@ -770,8 +809,8 @@ type ConversationRow = {
   parts?: ConversationPart[] | null
 }
 
-function conversationRowText(row: ConversationRow): string {
-  return (row.parts ?? [])
+function conversationRowText(row: ConversationRow | undefined): string {
+  return (row?.parts ?? [])
     .map((part) => (typeof part.text === 'string' ? part.text : ''))
     .filter(Boolean)
     .join('\n')
@@ -814,6 +853,79 @@ async function loadRecentConversationRows(args: {
     .limit(20)
   if (error || !Array.isArray(data)) return []
   return data as ConversationRow[]
+}
+
+const LOST_PHOTO_YES =
+  /want to finish\b|send the photo for\b|not brought into this chat|that earlier photo was not brought/i
+
+/** A photo sent after a rollover or fresh start still needs a preview and a yes. */
+export function freshPhotoPreviewDecision(rows: ConversationRow[]): {
+  required: boolean
+  imageUrl?: string
+  itemNumber?: string | null
+} {
+  const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
+  if (latestUserIndex < 0) return { required: false }
+  const imageUrl = conversationRowImageUrls(rows[latestUserIndex])[0]
+  if (!imageUrl) return { required: false }
+  const assistant = rows
+    .slice(latestUserIndex + 1)
+    .find((row) => row.role === 'assistant')
+  const text = conversationRowText(assistant)
+  if (!assistantIsResumingUnfinishedPiece(text)) return { required: false }
+  return {
+    required: true,
+    imageUrl,
+    itemNumber: itemNumberFromResumeAsk(text),
+  }
+}
+
+/** Yes after a fresh start does not save. The photo has to be sent again. */
+export function freshStartYesDecision(rows: ConversationRow[]): {
+  askAgain: boolean
+  itemNumber?: string | null
+} {
+  const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
+  if (latestUserIndex < 0) return { askAgain: false }
+  const user = rows[latestUserIndex]
+  if (!user || conversationRowImageUrls(user).length > 0) return { askAgain: false }
+  if (!isPositiveConfirmation(conversationRowText(user))) return { askAgain: false }
+  const assistant = rows
+    .slice(latestUserIndex + 1)
+    .find((row) => row.role === 'assistant')
+  const text = conversationRowText(assistant)
+  if (!LOST_PHOTO_YES.test(text)) return { askAgain: false }
+  return { askAgain: true, itemNumber: itemNumberFromResumeAsk(text) }
+}
+
+async function previewResentPhoto(args: {
+  itemNumber?: string | null
+  supabase: SupabaseClient
+  conversationId: string
+}) {
+  let rows: ConversationRow[] = []
+  try {
+    rows = await loadRecentConversationRows(args)
+  } catch {
+    return null
+  }
+  const yes = freshStartYesDecision(rows)
+  if (yes.askAgain) {
+    throw new NicNacToolError({
+      code: 'PHOTO_CHOICE_REQUIRED',
+      userMessage: sendPhotoAgainMessage(yes.itemNumber || args.itemNumber),
+    })
+  }
+  const decision = freshPhotoPreviewDecision(rows)
+  if (!decision.required || !decision.imageUrl) return null
+  const label = decision.itemNumber || args.itemNumber?.trim() || 'this piece'
+  return {
+    needsAction: 'confirm_main_photo' as const,
+    code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
+    itemNumber: label === 'this piece' ? null : label,
+    ...mainPhotoPreviewLocator({ imageUrl: decision.imageUrl }),
+    message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
+  }
 }
 
 function itemNumberFromSetAsk(row: ConversationRow | undefined): string {
@@ -946,14 +1058,21 @@ export async function assertCustomerPhotoNotReused(args: {
     resolvePhotoContentSha256({
       sourceImageUrl,
       workflowPhotos: args.workflowPhotos,
-    })
-  if (!contentSha256) return
+    }) ||
+    (await hashCustomerPhotoUrl({ sourceImageUrl })) ||
+    ''
 
-  const existing = await loadItemNumbersForPhotoHash(createAdminClient(), {
+  const existing = await loadItemNumbersForCustomerPhoto(createAdminClient(), {
     repId: args.repId,
     contentSha256,
+    imageUrl: sourceImageUrl,
   })
-  const decision = decidePhotoReuse({ itemNumber, contentSha256, existing })
+  if (!contentSha256 && existing.length === 0) return
+  const decision = decidePhotoReuse({
+    itemNumber,
+    contentSha256: contentSha256 || 'matched-by-url',
+    existing,
+  })
   if (!decision.blocked) return
   if (args.setReuseConfirmedSha && args.setReuseConfirmedSha === contentSha256) return
   if (
@@ -1136,7 +1255,10 @@ function requirePiecePhotoNumberUrl(
   if (decision.status === 'ask') {
     throw new NicNacToolError({
       code: 'PHOTO_CHOICE_REQUIRED',
-      userMessage: decision.message,
+      userMessage:
+        decision.photoCount === 0
+          ? sendPhotoAgainMessage(workflow.known.itemNumber)
+          : decision.message,
     })
   }
   if (decision.status === 'confirmed-front') return undefined
@@ -1359,6 +1481,7 @@ export async function processListingPhotoForAdd(input: {
   const resolvedListingPhoto = await resolvePhotoFromConversation({
     supabase: input.supabase,
     conversationId: input.conversationId,
+    itemNumber: input.itemNumber,
     photoIndex,
     intakeSessionId:
       activeTradeBoardWorkflow?.status === 'active'
@@ -1690,6 +1813,13 @@ async function runNonItemNumberSingle(
     })
   }
 
+  const resentNonItemPreview = await previewResentPhoto({
+    itemNumber: activeWorkflow?.known.itemNumber,
+    supabase: ctx.supabase,
+    conversationId: ctx.conversationId,
+  })
+  if (resentNonItemPreview) return resentNonItemPreview
+
   // Listing-only row: jewelry-front still wins, but never resolve or
   // create jewelry_designs. Photo cache uses mutation identity, not a
   // catalog designId / item number.
@@ -1890,6 +2020,13 @@ async function runSingle(
       preview: mainPhotoPreview,
     })
   }
+
+  const resentPreview = await previewResentPhoto({
+    itemNumber,
+    supabase: ctx.supabase,
+    conversationId: ctx.conversationId,
+  })
+  if (resentPreview) return resentPreview
 
   let createdNewDesign = false
   let photoPreflight:
@@ -2196,6 +2333,7 @@ async function runSingle(
       let resolvedPhoto = await resolvePhotoFromConversation({
         supabase: ctx.supabase,
         conversationId: ctx.conversationId,
+        itemNumber,
         latestUserMessageOnly: true,
         photoIndex: designSourcePhotoIndex,
         intakeSessionId:
