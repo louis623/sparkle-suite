@@ -26,6 +26,7 @@ function isProjectStorageObjectUrl(url: string): boolean {
     return false
   }
   if (parsed.protocol !== 'https:') return false
+  if (parsed.username !== '' || parsed.password !== '') return false
   if (!projectStorageHosts().includes(parsed.host)) return false
   return parsed.pathname.startsWith('/storage/v1/object/')
 }

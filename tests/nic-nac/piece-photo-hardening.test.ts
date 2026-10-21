@@ -1756,6 +1756,24 @@ describe('main photo preview sources', () => {
     restore()
   })
 
+  it('rejects a storage URL that includes a username or password', () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    delete process.env.SUPABASE_URL
+    try {
+      const withUserinfo = [
+        'https://user:secret@project.supabase.co/storage/v1/object/public/jewelry-photos/a.jpg',
+        'https://user@project.supabase.co/storage/v1/object/public/jewelry-photos/a.jpg',
+        'https://:secret@project.supabase.co/storage/v1/object/public/jewelry-photos/a.jpg',
+      ]
+      for (const previewImageUrl of withUserinfo) {
+        expect(mainPhotoPreviewSrc({ previewImageUrl })).toBeNull()
+        expect(mainPhotoPreviewLocator({ imageUrl: previewImageUrl }).previewImageUrl).toBeUndefined()
+      }
+    } finally {
+      restore()
+    }
+  })
+
   it('asks for the photo again when the browser cannot draw a picture', () => {
     delete process.env.NEXT_PUBLIC_SUPABASE_URL
     delete process.env.SUPABASE_URL
