@@ -2139,9 +2139,9 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-meter-step.is-done { cursor: pointer; }
 .hp-signup-meter-step.is-done::after, .hp-signup-meter-step.is-current::after { background: var(--hp-card-accent); }
 .hp-signup-meter-step.is-done:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
-.hp-signup-step-panel { display: grid; gap: 16px; animation: hp-signup-step-in 180ms var(--ease, ease); }
+.hp-signup-step-panel { display: grid; gap: 16px; opacity: 1; transform: none; animation: hp-signup-step-in 180ms var(--ease, ease) forwards; }
 @keyframes hp-signup-step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .hp-signup-step-panel { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .hp-signup-step-panel { animation: none; opacity: 1; transform: none; } }
 .hp-signup-single { width: 100%; max-width: none; margin-inline: 0; }
 .hp-signup-input { font-size: 16px; }
 .hp-signup-submit { min-height: 48px; }

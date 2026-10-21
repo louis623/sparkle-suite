@@ -304,6 +304,7 @@ describe('signup copy and migration parity', () => {
     expect(signup).toContain('favorites`}')
     expect(jsx).toContain('#signup .hp-signup-card { max-width: 640px; }')
     expect(jsx).toContain('#signup .hp-signup-meter { width: 100%; max-width: none; }')
+    expect(jsx).toContain('@media (prefers-reduced-motion: reduce) { .hp-signup-step-panel { animation: none; opacity: 1; transform: none; } }')
     expect(signup).not.toMatch(/\b(trade|sold|sales|traded)\b/i)
     expect(signup).not.toContain('Live Queue')
     expect(signup).not.toMatch(/free trial/i)
