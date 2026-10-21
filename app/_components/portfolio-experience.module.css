@@ -156,6 +156,7 @@
 .heroCopy span { font-size: clamp(13px, 1.25vw, 17px); line-height: 1.45; }
 .heroCopy[data-tone='ink'] :is(strong, p, span) { color: #36221d; text-shadow: none; }
 .heroCopy[data-font='georgia'] strong { font-family: Georgia, "Times New Roman", serif; font-weight: 600; }
+.heroCopy[data-accent='copper'] strong { color: #ffa357; }
 .heroCopy[data-font='script'] strong {
   font-family: var(--font-mhf-script), "Pacifico", cursive;
   font-weight: 400;

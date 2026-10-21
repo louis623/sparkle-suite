@@ -74,6 +74,7 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
             data-tone={slide.hero.tone}
             data-font={slide.hero.font ?? 'display'}
             data-align={slide.hero.align ?? 'start'}
+            data-accent={slide.hero.accent}
           >
             {slide.hero.eyebrow ? <p>{slide.hero.eyebrow}</p> : null}
             <strong>{slide.hero.headline}</strong>

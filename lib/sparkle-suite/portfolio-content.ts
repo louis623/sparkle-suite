@@ -32,6 +32,7 @@ export type PortfolioSlide =
         tone: 'light' | 'ink'
         font?: 'display' | 'georgia' | 'script'
         align?: 'start' | 'center'
+        accent?: 'copper'
       }
     }
   | {
@@ -240,17 +241,18 @@ export const sparkleSuitePortfolioContent = {
           detail: 'A custom look for Britt with Bling.',
           href: 'https://brittwithbling.com/',
           linkLabel: 'brittwithbling.com',
-          src: '/sparkle-suite/portfolio/britt-with-bling-custom-hero.webp',
-          alt: 'Britt with Bling custom hero portrait, with the show name over the portrait.',
-          width: 1200,
-          height: 675,
+          src: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp',
+          alt: 'Britt with Bling homepage hero on the Pumpkin and Cat theme, with the show name beside the jack-o’-lantern.',
+          width: 1672,
+          height: 941,
           fixedShowcase: true,
           hero: {
-            eyebrow: 'The Virtuous Fizzers',
             headline: 'Britt with Bling',
             sub: 'Where Faith Meets Fizz & Every Reveal is a VIP Experience.',
             tone: 'light',
-            align: 'center',
+            font: 'georgia',
+            align: 'start',
+            accent: 'copper',
           },
         },
         {
