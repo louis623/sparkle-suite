@@ -21,7 +21,7 @@ import {
   resourceNoticeContent,
 } from '@/lib/services/suite-official-notice'
 
-import { locJobDelegationSchema, verifyLocJobDelegation } from './job-delegation'
+import { locJobDelegationSchema, locNamedAgentGrantSchema, verifyLocJobDelegation, verifyLocNamedAgentGrant, withLocNamedAgentAudit } from './job-delegation'
 
 const envelope = z
   .object({
@@ -33,6 +33,7 @@ const envelope = z
     operationId: z.uuid().optional(),
     connectionId: z.string().min(1).max(160).default("loc-owner"),
     intendedAssignee: z.string().max(160).nullable().optional(),
+    namedAgentGrant: locNamedAgentGrantSchema.optional(),
   })
   .strict();
 const taskPatch = z
@@ -232,6 +233,7 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
     verifyLocSignature(raw, request.headers);
     const body = envelope.parse(JSON.parse(raw));
     operationId = body.operationId;
+    const namedAgent = verifyLocNamedAgentGrant(body);
     const context = await operatorContext(body);
     if (body.operation === "catalog")
       return Response.json(
@@ -251,7 +253,7 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
     const operation = findLocOperation(body.operation);
     if (!operation) throw new LocBridgeError(404, "Unknown LOC operation.");
     const delegated = verifyLocJobDelegation(body, operation.targetKeys)
-    if (operation.ownerOnly && body.authority !== "owner" && !delegated)
+    if (operation.ownerOnly && body.authority !== "owner" && !delegated && !namedAgent)
       throw new LocBridgeError(
         403,
         "This operation requires the verified LOC owner.",
@@ -326,6 +328,9 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
       input: body.input,
       connectionId: context.connectionId,
       authority: body.authority,
+      ...(namedAgent
+        ? { namedAgentGrant: { agentId: namedAgent.agentId, grantId: namedAgent.grantId } }
+        : {}),
     });
     const row = {
       id: operationId,
@@ -379,6 +384,14 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
       );
     }
     try {
+      if (namedAgent)
+        console.info("[loc-named-agent-grant]", {
+          event: "publish",
+          operationId,
+          agentId: namedAgent.agentId,
+          agentName: namedAgent.agentName,
+          grantId: namedAgent.grantId,
+        });
       const rawResult = await runWithLocOperator(context, () =>
         operation.name === "tasks.update"
           ? updateTask(body.input)
@@ -413,7 +426,8 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
             ? runLocSupportOperation(operation.name, body.input, operationId)
             : runExistingLocRoute(operation.name, body.input),
       );
-      const result = redactCredentialFields(rawResult);
+      const redacted = redactCredentialFields(rawResult);
+      const result = namedAgent ? withLocNamedAgentAudit(redacted, namedAgent) : redacted;
       const { data: saved, error } = await admin
         .from("loc_control_center_operations")
         .update({
