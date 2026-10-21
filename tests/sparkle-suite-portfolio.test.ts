@@ -2,7 +2,11 @@ import { createElement } from 'react'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('next/font/google', () => ({
+  Pacifico: () => ({ variable: '--font-mhf-script', className: 'mile-high-script' }),
+}))
 import { metadata } from '@/app/portfolio/page'
 import { PortfolioExperience } from '@/app/_components/portfolio-experience'
 import { getAmethystAppearancePreset } from '@/lib/amethyst/appearance-presets'
