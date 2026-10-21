@@ -4467,7 +4467,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('https://myoffice.bombparty.com/live-party-orders')
     expect(html).toContain('MacBook')
     expect(html).toContain('Windows laptop')
-    expect(html).toContain('Enter your Live Queue code')
+    expect(html).toContain('Enter your Live Lineup code')
     expect(html).toContain('MHF-9446')
     expect(html).not.toContain('Create private connection key')
     expect(html).toContain('Copy code')
