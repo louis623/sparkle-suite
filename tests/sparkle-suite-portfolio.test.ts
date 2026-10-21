@@ -230,6 +230,19 @@ describe('Sparkle Suite portfolio carousels', () => {
     expect(metadata.description).toContain('real rep websites')
   })
 
+  it('keeps phone pause and arrow controls below the frame on both carousels', () => {
+    const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
+    const videoCss = readFileSync(join(process.cwd(), 'app/_components/product-peek-video.module.css'), 'utf8')
+    const phoneControls = css.slice(css.indexOf('@media (max-width: 800px)'))
+    expect(phoneControls).toContain('bottom: 8px')
+    expect(phoneControls).not.toMatch(/community-themes|bandBlush|bandPaper/)
+    expect(videoCss).toContain('top: calc(100% + 8px)')
+    const html = renderPortfolio()
+    expect(html.match(/aria-label="Previous /g)).toHaveLength(2)
+    expect(html.match(/aria-label="Next /g)).toHaveLength(2)
+    expect(html).toContain('Play animation')
+  })
+
   it('uses one shared media frame for every portfolio slide', () => {
     const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
     const carousel = readFileSync(join(process.cwd(), 'app/_components/portfolio-carousels.tsx'), 'utf8')
