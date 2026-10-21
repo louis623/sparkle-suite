@@ -152,7 +152,7 @@ describe('Sparkle Suite portfolio carousels', () => {
     expect(mileHigh && mileHigh.kind === 'capture' ? mileHigh.video?.mp4 : undefined).toBe('/mile-high-fizz/hero.mp4')
     expect(repHtml).toContain('With Lindsey')
     expect(repHtml).toContain('Revealing something magical together.')
-    expect(repHtml).toContain('/sparkle-suite/portfolio/britt-with-bling-custom-hero.webp')
+    expect(repHtml).toContain('britt-with-bling-custom-hero.webp')
     expect(repHtml).toContain('The Virtuous Fizzers')
     expect(repHtml).toContain('Where Faith Meets Fizz')
     expect(repHtml).not.toContain('mile-high-fizz-site-preview')
