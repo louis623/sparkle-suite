@@ -57,6 +57,58 @@
 <script type="text/babel" data-presets="react" src="trade.jsx?v=20261019-thanksgiving-v3"></script>
 
 <script src="/amethyst/halloween-pumpkin-cat.js?v=20261018-hpc3"></script>
+<style id="dance-floor-photo-frame">
+/* A grid photo that fails keeps the loaded has-photo frame and the dark sparkle placeholder. */
+.tp-grid .tp-card-photo.has-photo.photo-fallback {
+  background: linear-gradient(135deg, var(--bg-deep), var(--hp-bg-elevated));
+}
+.tp-card-photo.has-photo.photo-fallback::after {
+  opacity: 1;
+}
+.tp-card-expand-photo.has-photo.photo-fallback {
+  background: linear-gradient(135deg, var(--bg-deep), var(--hp-bg-elevated));
+}
+.tp-card-expand-photo.has-photo.photo-fallback::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 50%),
+    radial-gradient(circle at 70% 70%, color-mix(in oklab, var(--hp-primary) 20%, transparent), transparent 60%);
+}
+.tp-card-expand-photo.has-photo.photo-fallback .photo-glyph {
+  z-index: 1;
+  color: var(--hp-primary);
+}
+.tp-card-expand-photo.has-photo.photo-fallback .photo-glyph .tp-sparkle-mark {
+  width: 64px;
+  height: 64px;
+  opacity: 1;
+}
+</style>
+<script>
+(function () {
+  var version = "20261021-photo-frame";
+  var scripts = document.querySelectorAll('script[src*="trade.jsx"]');
+  for (var i = 0; i < scripts.length; i += 1) {
+    var src = scripts[i].getAttribute("src") || "";
+    var next = src.indexOf("v=") === -1
+      ? src + (src.indexOf("?") === -1 ? "?v=" : "&v=") + version
+      : src.replace(/([?&])v=[^&#]*/, "$1v=" + version);
+    scripts[i].setAttribute("src", next);
+  }
+  var freshHref = "trade.css?v=" + version;
+  var current = document.querySelector('link[rel="stylesheet"][href*="trade.css"]');
+  if (current && current.parentNode && !document.querySelector('link[rel="stylesheet"][href="' + freshHref + '"]')) {
+    var fresh = document.createElement("link");
+    fresh.rel = "stylesheet";
+    fresh.href = freshHref;
+    current.parentNode.insertBefore(fresh, current.nextSibling);
+  }
+})();
+</script>
 <script src="/amethyst/gilded-autumn.js?v=20260930-ga1"></script>
 </body>
 </html>

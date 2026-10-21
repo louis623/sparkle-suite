@@ -211,4 +211,70 @@ describe('Dance Floor photo fallback', () => {
     expect(expandedFallback).not.toMatch(/\.photo-fallback[^{]*\{[^}]*(?:168px|height:\s*84px|grid-template-columns:\s*168px)/)
     expect(failed.find(node => node.props?.id === 'trade-expanded-title')?.props?.children).toBe('Unicorn Rain Earrings')
   })
+
+  it('rewrites the Dance Floor script request to the photo-frame cache tag before Babel fetches it', () => {
+    const version = '20261021-photo-frame'
+    const html = readFileSync('public/amethyst/Trade.html', 'utf8')
+    const css = readFileSync('public/amethyst/trade.css', 'utf8')
+    const marker = '/* A grid photo that fails keeps the loaded has-photo frame and the dark sparkle placeholder. */'
+    const rules = css.slice(css.indexOf(marker)).trim()
+    const scriptTag = html.indexOf('src="trade.jsx?')
+    const rewriteAt = html.indexOf('script[src*="trade.jsx"]')
+    const scriptMatch = html.match(/<script>\n([\s\S]*?)<\/script>\n<script src="\/amethyst\/gilded-autumn\.js/)
+
+    expect(rules.length).toBeGreaterThan(0)
+    expect(html).toContain(`<style id="dance-floor-photo-frame">\n${rules}\n</style>`)
+    expect(scriptTag).toBeGreaterThan(-1)
+    expect(rewriteAt).toBeGreaterThan(scriptTag)
+    expect(rewriteAt).toBeLessThan(html.indexOf('/amethyst/gilded-autumn.js'))
+    expect(scriptMatch?.[1]).toContain(version)
+    expect(readFileSync('public/amethyst/Pantry.html', 'utf8')).not.toContain(version)
+    expect(readFileSync('public/amethyst/pantry.jsx', 'utf8')).not.toContain(version)
+
+    const apply = (initialSrc: string, cssHref: string) => {
+      const attrs: Record<string, string> = { src: initialSrc }
+      const links = [{ rel: 'stylesheet', href: cssHref }]
+      const current = {
+        nextSibling: null as null,
+        parentNode: {
+          insertBefore(node: { rel: string; href: string }) {
+            links.push(node)
+          },
+        },
+      }
+      runInNewContext(`${scriptMatch?.[1]}\n`, {
+        document: {
+          querySelectorAll(selector: string) {
+            if (selector !== 'script[src*="trade.jsx"]') return []
+            return [{
+              getAttribute: (name: string) => attrs[name] || '',
+              setAttribute: (name: string, value: string) => { attrs[name] = value },
+            }]
+          },
+          querySelector(selector: string) {
+            if (selector === `link[rel="stylesheet"][href="trade.css?v=${version}"]`) {
+              return links.some(link => link.href === `trade.css?v=${version}`) ? current : null
+            }
+            if (selector === 'link[rel="stylesheet"][href*="trade.css"]') return current
+            return null
+          },
+          createElement: () => ({ rel: '', href: '' }),
+        },
+      })
+      return { src: attrs.src, hrefs: links.map(link => link.href) }
+    }
+
+    expect(apply('trade.jsx?v=20261021-dance-floor-9', 'trade.css?v=20261021-ticker-edge')).toEqual({
+      src: 'trade.jsx?v=20261021-photo-frame',
+      hrefs: ['trade.css?v=20261021-ticker-edge', 'trade.css?v=20261021-photo-frame'],
+    })
+    expect(apply('trade.jsx?v=20261019-thanksgiving-v3', 'trade.css?v=20261004-filter-contrast')).toEqual({
+      src: 'trade.jsx?v=20261021-photo-frame',
+      hrefs: ['trade.css?v=20261004-filter-contrast', 'trade.css?v=20261021-photo-frame'],
+    })
+    expect(apply('trade.jsx', 'trade.css')).toEqual({
+      src: 'trade.jsx?v=20261021-photo-frame',
+      hrefs: ['trade.css', 'trade.css?v=20261021-photo-frame'],
+    })
+  })
 })
