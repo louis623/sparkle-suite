@@ -320,7 +320,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     summary:
       'Review customer swap requests, reveal screenshots, approvals, and follow-up without losing the thread.',
     body:
-      'Sparkle Suite organizes swap interest, but the rep still controls swap judgment, approvals, shipping, and follow-through. Customers describe the dancer they just revealed and may attach a recommended reveal screenshot. The screenshot appears in the Dance Floor request inbox and on Nic-Nac swap request cards when available, then expires after seven days. Sparkle Suite does not guarantee equal value, settle disputes, or approve trades for the rep.',
+      'Sparkle Suite organizes swap interest, but the rep still controls swap judgment, approvals, shipping, and follow-through. Customers describe the dancer they just revealed and may attach a recommended reveal screenshot. The screenshot appears in the Dance Floor request inbox and on Nic-Nac swap request cards when available, then expires after seven days. Sparkle Suite does not guarantee equal value, settle disputes, or approve swaps for the rep.',
     goal: 'Move swap requests through a clear decision and fulfillment rhythm.',
     useWhen: 'Use this when a customer requests a swap or a pending swap needs follow-up.',
     beforeYouStart: [
