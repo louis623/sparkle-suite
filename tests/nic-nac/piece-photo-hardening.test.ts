@@ -1756,6 +1756,21 @@ describe('main photo preview sources', () => {
     restore()
   })
 
+  it('returns the parsed storage URL', () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    delete process.env.SUPABASE_URL
+    try {
+      expect(
+        mainPhotoPreviewSrc({
+          previewImageUrl:
+            'HTTPS://Project.supabase.co:443/storage/v1/object/public/jewelry-photos/a.jpg',
+        }),
+      ).toBe('https://project.supabase.co/storage/v1/object/public/jewelry-photos/a.jpg')
+    } finally {
+      restore()
+    }
+  })
+
   it('rejects a storage URL that includes a username or password', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
     delete process.env.SUPABASE_URL
