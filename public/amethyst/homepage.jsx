@@ -2157,7 +2157,6 @@ const SIGNUP_STEP_LABELS = [
   "Favorite cuts",
   "Bomb Party collections",
   "How should we reach you?",
-  "A number for texts",
   "Your birthday",
   "Ring size",
   "Anything else?",
@@ -2316,7 +2315,6 @@ function Signup({ repName, businessName }) {
     "The shape changes the whole piece. Pick up to 3.",
     `${repName} can watch for the Bomb Party lines you want. Pick up to 3.`,
     `Choose email, texts, or both. ${repName} only uses what you pick.`,
-    `${repName} needs a mobile number for the reminders you asked for.`,
     "Only for birthday promotions and gift ideas. It will not be used for anything else.",
     `Optional. It helps ${repName} point you toward rings that are more likely to fit.`,
     `Anything else ${repName} should know? Pieces you're hunting for, sizes, or styles you love.`,
@@ -2374,22 +2372,22 @@ function Signup({ repName, businessName }) {
     if (step === 5 && !form.smsConsent && !form.emailConsent) {
       return "Choose SMS, email, or both before signing up.";
     }
-    if (step === 6 && form.smsConsent && !form.phone.trim()) {
+    if (step === 5 && form.smsConsent && !form.phone.trim()) {
       return "A phone number is required if the customer wants SMS updates.";
     }
-    if (step === 7) return birthdayError();
-    if (step === 9 && form.jewelryNotes.length > 500) return "Keep jewelry notes to 500 characters.";
+    if (step === 6) return birthdayError();
+    if (step === 8 && form.jewelryNotes.length > 500) return "Keep jewelry notes to 500 characters.";
     return "";
   }
 
   function stepForServerMessage(message) {
     if (/favorite|Not sure yet|Refresh the page and pick/i.test(message)) return favoriteStepForEmptyList();
-    if (/phone number is required/i.test(message)) return 6;
+    if (/phone number is required/i.test(message)) return 5;
     if (/Choose SMS, email, or both/i.test(message)) return 5;
     if (/email address is required|First name is required|Last name is required/i.test(message)) return 0;
-    if (/Birthday must/i.test(message)) return 7;
-    if (/ring size/i.test(message)) return 8;
-    if (/jewelry notes/i.test(message)) return 9;
+    if (/Birthday must/i.test(message)) return 6;
+    if (/ring size/i.test(message)) return 7;
+    if (/jewelry notes/i.test(message)) return 8;
     return null;
   }
 
@@ -2668,17 +2666,15 @@ function Signup({ repName, businessName }) {
                     <input type="checkbox" checked={form.marketingConsent} onChange={(e) => updateField("marketingConsent", e.target.checked)} />
                     <span>I also want promotional drops, launches, and special offers.</span>
                   </label>
+                  {form.smsConsent ? (
+                    <div className="hp-signup-field">
+                      <label className="hp-signup-label" htmlFor="hp-phone">Phone</label>
+                      <input id="hp-phone" className="hp-signup-input" type="tel" name="tel" inputMode="tel" autoComplete="tel" enterKeyHint="next" placeholder="Mobile number" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} />
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
               {step === 6 ? (
-                <div className="hp-signup-question">
-                  <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-phone">Phone <span className="hp-signup-label-aux">(optional, for SMS)</span></label>
-                  <input id="hp-phone" className="hp-signup-input" type="tel" name="tel" inputMode="tel" autoComplete="tel" enterKeyHint="next" placeholder="Mobile number" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} />
-                  </div>
-                </div>
-              ) : null}
-              {step === 7 ? (
                 <div className="hp-signup-question">
                   <div className="hp-signup-field">
                   <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
@@ -2686,7 +2682,7 @@ function Signup({ repName, businessName }) {
                   </div>
                 </div>
               ) : null}
-              {step === 8 ? (
+              {step === 7 ? (
                 <div className="hp-signup-question">
                   <div className="hp-signup-field">
                   <label className="hp-signup-label" htmlFor="hp-ring-size">Ring size <span className="hp-signup-label-aux">(optional)</span></label>
@@ -2704,7 +2700,7 @@ function Signup({ repName, businessName }) {
                   </div>
                 </div>
               ) : null}
-              {step === 9 ? (
+              {step === 8 ? (
                 <div className="hp-signup-question">
                   <div className="hp-signup-field">
                   <textarea id="hp-jewelry-notes" className="hp-signup-input hp-signup-notes" name="jewelryNotes" autoComplete="off" enterKeyHint="next" maxLength={500} rows={4} aria-labelledby="hp-signup-step-title" aria-describedby="hp-signup-step-why" value={form.jewelryNotes} onChange={(e) => updateField("jewelryNotes", e.target.value)} />
