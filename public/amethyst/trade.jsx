@@ -1481,20 +1481,22 @@ function Filters({
 }
 
 function TradeCard({ piece, onTap, tierVisible }) {
+  const [failedPhotoUrl, setFailedPhotoUrl] = useState("");
+  const showPhoto = Boolean(piece.photoUrl) && failedPhotoUrl !== piece.photoUrl;
   const showTier = piece.tier !== "everyday" || tierVisible === "all";
   const tierLabel = piece.tier === "unicorn" ? "Unicorn" : piece.tier === "diamond" ? "Diamond" : "Everyday";
 
   return (
     <article className={`tp-card ${piece.tier}`} onClick={() => onTap(piece)}>
-      <div className={`tp-card-photo slot ${piece.photoUrl ? "has-photo" : ""}`} data-slot="jewelry photo">
+      <div className={`tp-card-photo slot ${showPhoto ? "has-photo" : ""}`} data-slot="jewelry photo">
         {showTier && (
           <span className={`tp-card-tier ${piece.tier}`}>
             <span className="pip" />
             {tierLabel}
           </span>
         )}
-        {piece.photoUrl ? (
-          <img className="tp-card-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 700px) 46vw, 280px", widths: [256, 384, 640] })} loading="lazy" decoding="async" />
+        {showPhoto ? (
+          <img className="tp-card-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 700px) 46vw, 280px", widths: [256, 384, 640] })} loading="lazy" decoding="async" onError={() => setFailedPhotoUrl(piece.photoUrl)} />
         ) : (
           <div className="photo-glyph">{piece.glyph}</div>
         )}
@@ -1556,6 +1558,8 @@ function useTradeDialog(open, onClose, view) {
 
 function ExpandedCard({ piece, onClose, onWantThis }) {
   const dialogRef = useTradeDialog(Boolean(piece), onClose);
+  const [failedPhotoUrl, setFailedPhotoUrl] = useState("");
+  const showPhoto = Boolean(piece?.photoUrl) && failedPhotoUrl !== piece?.photoUrl;
   if (!piece) return null;
 
   const tierLabel = piece.tier === "unicorn"
@@ -1568,9 +1572,9 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
     <div className="tp-card-expand-mask" onClick={onClose}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="trade-expanded-title" tabIndex={-1} className="tp-card-expand" onClick={(event) => event.stopPropagation()}>
         <button type="button" className="tp-card-close" onClick={onClose} aria-label="Close">&times;</button>
-        <div className={`tp-card-expand-photo slot ${piece.photoUrl ? "has-photo" : ""}`} data-slot="jewelry photo">
-          {piece.photoUrl ? (
-            <img className="tp-card-expand-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 800px) 92vw, 640px", widths: [384, 640, 828, 1200], eager: true })} />
+        <div className={`tp-card-expand-photo slot ${showPhoto ? "has-photo" : ""}`} data-slot="jewelry photo">
+          {showPhoto ? (
+            <img className="tp-card-expand-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 800px) 92vw, 640px", widths: [384, 640, 828, 1200], eager: true })} onError={() => setFailedPhotoUrl(piece.photoUrl)} />
           ) : (
             <div className="photo-glyph">{piece.glyph}</div>
           )}
