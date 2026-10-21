@@ -2136,6 +2136,9 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-back:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
 .hp-signup-back:disabled { opacity: 0.45; cursor: wait; }
 .hp-signup-live { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.hp-signup-status.success, .hp-signup-status.error { color: var(--hp-card-fg); border-radius: 12px; padding: 12px 14px; }
+.hp-signup-status.success { background: color-mix(in oklab, var(--hp-card-accent) 16%, var(--hp-bg-elevated)); border: 1px solid color-mix(in oklab, var(--hp-card-accent) 42%, var(--border)); }
+.hp-signup-status.error { background: color-mix(in oklab, var(--hp-card-fg) 8%, var(--hp-bg-elevated)); border: 1px solid color-mix(in oklab, #9c1c3d 55%, var(--border)); }
 @media (max-width: 420px) {
   .hp-pref-chip { font-size: 15px; }
 }
@@ -2259,6 +2262,7 @@ function Signup({ repName, businessName }) {
   const [preferenceOptionsError, setPreferenceOptionsError] = useState(false);
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
   const [step, setStep] = useState(0);
+  const [resumeStep, setResumeStep] = useState(null);
   const [stepError, setStepError] = useState("");
   const [stepAnnouncement, setStepAnnouncement] = useState(`Step 1 of ${SIGNUP_STEP_LABELS.length}. ${SIGNUP_STEP_LABELS[0]}.`);
   const stepRef = useRef(null);
@@ -2315,7 +2319,26 @@ function Signup({ repName, businessName }) {
     return 1;
   }
 
+  function birthdayError() {
+    const value = form.birthday.trim();
+    if (!value) return "";
+    if (!/^\d{2}-\d{2}$/.test(value)) {
+      return "Birthday must use month and day in MM-DD format. Do not include a year.";
+    }
+    const month = Number(value.slice(0, 2));
+    const day = Number(value.slice(3, 5));
+    const candidate = new Date(Date.UTC(2024, month - 1, day));
+    if (candidate.getUTCMonth() !== month - 1 || candidate.getUTCDate() !== day) {
+      return "Birthday must be a real month and day.";
+    }
+    return "";
+  }
+
   function validateCurrentStep() {
+    if (step === 0) {
+      if (!form.firstName.trim()) return "First name is required.";
+      if (!form.lastName.trim()) return "Last name is required.";
+    }
     if (step >= 1 && step <= 4) {
       if (!preferenceOptions) {
         return preferenceOptionsError
@@ -2333,12 +2356,33 @@ function Signup({ repName, businessName }) {
     if (step === 6 && form.smsConsent && !form.phone.trim()) {
       return "A phone number is required if the customer wants SMS updates.";
     }
+    if (step === 7) return birthdayError();
+    if (step === 9 && form.jewelryNotes.length > 500) return "Keep jewelry notes to 500 characters.";
     return "";
   }
 
+  function stepForServerMessage(message) {
+    if (/favorite|Not sure yet|Refresh the page and pick/i.test(message)) return favoriteStepForEmptyList();
+    if (/phone number is required/i.test(message)) return 6;
+    if (/Choose SMS, email, or both/i.test(message)) return 5;
+    if (/email address is required|First name is required|Last name is required/i.test(message)) return 0;
+    if (/Birthday must/i.test(message)) return 7;
+    if (/ring size/i.test(message)) return 8;
+    if (/jewelry notes/i.test(message)) return 9;
+    return null;
+  }
+
   function goBack() {
+    if (submitState.status === "submitting") return;
     setStepError("");
     setSubmitState({ status: "idle", message: "" });
+    if (resumeStep != null && step === 0) {
+      const destination = resumeStep;
+      setResumeStep(null);
+      setStep(destination);
+      return;
+    }
+    setResumeStep(null);
     setStep((current) => Math.max(0, current - 1));
   }
 
@@ -2347,6 +2391,7 @@ function Signup({ repName, businessName }) {
     if (next < 0 || next >= step) return;
     setStepError("");
     setSubmitState({ status: "idle", message: "" });
+    setResumeStep(null);
     setStep(next);
   }
 
@@ -2358,17 +2403,28 @@ function Signup({ repName, businessName }) {
         setStepError(error);
         return;
       }
+      if (step === 5 && form.emailConsent && !form.email.trim()) {
+        setResumeStep(5);
+        setStep(0);
+        setStepError("An email address is required if the customer wants email updates.");
+        return;
+      }
       setStepError("");
+      if (resumeStep != null && step === 0) {
+        const destination = resumeStep;
+        setResumeStep(null);
+        setStep(destination);
+        return;
+      }
       setStep((current) => current + 1);
       return;
     }
     if (!preferenceOptions) {
-      setSubmitState({
-        status: "error",
-        message: preferenceOptionsError
-          ? "Favorites could not load. Refresh the page and try again."
-          : "Favorites are still loading. Try again in a moment.",
-      });
+      setStep(1);
+      setStepError(preferenceOptionsError
+        ? "Favorites could not load. Refresh the page and try again."
+        : "Favorites are still loading. Try again in a moment.");
+      setSubmitState({ status: "idle", message: "" });
       return;
     }
     if (
@@ -2377,10 +2433,9 @@ function Signup({ repName, businessName }) {
       form.favoriteCuts.length < 1 ||
       form.favoriteCollections.length < 1
     ) {
-      setSubmitState({
-        status: "error",
-        message: "Pick at least one favorite in each list. Not sure yet counts.",
-      });
+      setStep(favoriteStepForEmptyList());
+      setStepError("Pick at least one favorite in each list. Not sure yet counts.");
+      setSubmitState({ status: "idle", message: "" });
       return;
     }
     setSubmitState({ status: "submitting", message: "" });
@@ -2412,17 +2467,7 @@ function Signup({ repName, businessName }) {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         const message = payload.error || "We couldn't save your signup right now.";
-        const jump = /favorite|Not sure yet|Refresh the page and pick/i.test(message)
-          ? favoriteStepForEmptyList()
-          : /phone number is required/i.test(message)
-            ? 6
-            : /Choose SMS, email, or both/i.test(message)
-              ? 5
-              : /ring size/i.test(message)
-                ? 8
-                : /jewelry notes/i.test(message)
-                  ? 9
-                  : null;
+        const jump = stepForServerMessage(message);
         if (jump != null) {
           setStep(jump);
           setStepError(message);
@@ -2455,6 +2500,7 @@ function Signup({ repName, businessName }) {
         jewelryNotes: "",
       });
       setStep(0);
+      setResumeStep(null);
       setStepError("");
       setSubmitState({
         status: "success",
@@ -2470,6 +2516,7 @@ function Signup({ repName, businessName }) {
 
   return (
     <section className="hp-signup" id="signup">
+      <style>{SIGNUP_PREFERENCE_STYLES}</style>
       <div className="hp-container">
         <div className="hp-signup-card">
           <div className="hp-signup-card-body">
@@ -2486,8 +2533,8 @@ function Signup({ repName, businessName }) {
               </p>
             ) : null}
           </div>
+          {submitState.status === "success" ? null : (
           <form className="hp-signup-form" onSubmit={handleSubmit}>
-            <style>{SIGNUP_PREFERENCE_STYLES}</style>
             <div className="hp-signup-progress-wrap">
               <p className="hp-signup-progress" id="hp-signup-progress">Step {step + 1} of {SIGNUP_STEP_LABELS.length}</p>
               <div className="hp-signup-meter" role="group" aria-labelledby="hp-signup-progress">
@@ -2541,6 +2588,9 @@ function Signup({ repName, businessName }) {
                     <strong>Your jewelry favorites</strong>
                   </div>
                   <p className="hp-signup-preferences-copy">Helps {businessName} pick pieces you&apos;ll love. Pick up to 3 in each list.</p>
+                  {!preferenceOptions && !preferenceOptionsError ? (
+                    <p className="hp-signup-field-note" role="status">Favorites are still loading. Try again in a moment.</p>
+                  ) : null}
                   {preferenceOptionsError ? (
                     <p className="hp-signup-status error" role="alert">Favorites could not load. Refresh the page and try again.</p>
                   ) : null}
@@ -2608,7 +2658,7 @@ function Signup({ repName, businessName }) {
               {step === 7 ? (
                 <div className="hp-signup-field hp-signup-single">
                   <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
-                  <input id="hp-birthday" className="hp-signup-input" type="text" inputMode="numeric" pattern="[0-1][0-9]-[0-3][0-9]" placeholder="MM-DD" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
+                  <input id="hp-birthday" className="hp-signup-input" type="text" inputMode="numeric" placeholder="MM-DD" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
                   <span className="hp-signup-field-note">Only for birthday promotions and gift ideas. It will not be used for anything else.</span>
                 </div>
               ) : null}
@@ -2662,6 +2712,7 @@ function Signup({ repName, businessName }) {
               ) : null}
             </div>
           </form>
+          )}
         </div>
       </div>
     </section>
