@@ -46,6 +46,7 @@ import { NicNacToolError } from '@/lib/nic-nac/errors'
 import {
   decidePhotoReuse,
   loadItemNumbersForPhotoHash,
+  mainPhotoConfirmationIdentity,
   resolvePhotoContentSha256,
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import {
@@ -737,7 +738,6 @@ function pendingMainPhotoConfirmation(args: {
   const workflow = args.workflow
   if (workflow?.status !== 'active') return null
   if (workflow.metadata?.mainPhotoConfirmationRequired !== true) return null
-  if (workflow.metadata?.mainPhotoConfirmed === true) return null
   const publishable = workflowWithPublishableJewelryFront(workflow)
   const photo = resolveWorkflowCustomerFacingPhoto(publishable?.photos, {
     selectedPhotoId: args.selectedPhotoId,
@@ -745,6 +745,11 @@ function pendingMainPhotoConfirmation(args: {
     intakeSessionId: publishable?.id,
   })
   if (!photo?.imageUrl?.trim()) return null
+  const photoKey = mainPhotoConfirmationIdentity(photo)
+  const confirmedId = workflow.metadata?.mainPhotoConfirmedPhotoId
+  if (typeof confirmedId === 'string' && photoKey && confirmedId === photoKey) {
+    return null
+  }
   const itemNumber = args.itemNumber?.trim() || workflow.known.itemNumber?.trim() || ''
   const label = itemNumber || 'this piece'
   return {

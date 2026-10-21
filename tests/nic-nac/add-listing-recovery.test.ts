@@ -4314,7 +4314,7 @@ describe('add_listing - active workflow readiness guard', () => {
         missing: [],
         metadata: {
           mainPhotoConfirmationRequired: true,
-          mainPhotoConfirmed: true,
+          mainPhotoConfirmedPhotoId: 'photo-nk60295',
         },
         known: {
           itemNumber: 'NK60295',
@@ -4324,6 +4324,7 @@ describe('add_listing - active workflow readiness guard', () => {
         },
         photos: [
           {
+            id: 'photo-nk60295',
             intakeSessionId: 'intake-nk60295',
             attachmentIndex: 1,
             declaredRole: 'jewelry_front',
@@ -4346,6 +4347,54 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     ).resolves.toMatchObject({ listingId: 'listing-confirmed' })
     expect(addListingMock).toHaveBeenCalled()
+  })
+
+  it('shows the main photo preview again when the saved photo is not the one that was confirmed', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk60295',
+        phase: 'ready_to_add',
+        missing: [],
+        metadata: {
+          mainPhotoConfirmationRequired: true,
+          mainPhotoConfirmedPhotoId: 'photo-old',
+        },
+        known: {
+          itemNumber: 'NK60295',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: 'photo-new',
+            intakeSessionId: 'intake-nk60295',
+            attachmentIndex: 2,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,TkVX',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK60295',
+        collectionName: 'Original',
+      }),
+    ).resolves.toMatchObject({
+      needsAction: 'confirm_main_photo',
+      previewPhotoId: 'photo-new',
+      message:
+        'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
   })
 
   it('does not block an NK60295 gold citrine variant when that item number already has the photo', async () => {

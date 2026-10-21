@@ -40,6 +40,23 @@ export function decidePhotoReuse(args: {
   }
 }
 
+/**
+ * Identity of the photo a rep confirmed as the main image.
+ * Prefer the stored photo id, then the byte hash already on the photo, then
+ * a hash of a data URL. Remote URLs without an id or hash have no identity.
+ */
+export function mainPhotoConfirmationIdentity(photo: {
+  id?: string | null
+  contentSha256?: string | null
+  imageUrl?: string | null
+}): string | null {
+  const id = photo.id?.trim()
+  if (id) return id
+  const sha = photo.contentSha256?.trim()
+  if (sha) return sha
+  return hashDataImageUrl(photo.imageUrl ?? undefined)
+}
+
 /** Hash a data URL the same way intake inspection hashes photo bytes. Skip remote URLs. */
 export function hashDataImageUrl(url: string | undefined): string | null {
   if (!url) return null

@@ -31,6 +31,7 @@ import {
   updateTradeBoardIntakeSession,
   upsertTradeBoardIntakePhoto,
 } from './trade-board-intake-store'
+import { mainPhotoConfirmationIdentity } from './photo-reuse-guard'
 import { isExplicitTradeBoardAddRequest } from './trade-board-add-intent'
 import {
   assignDeclaredPhotoRolesForTurn,
@@ -289,6 +290,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
     hasItemNumber: Boolean(known.itemNumber),
   })
   const photos = [...args.session.photos]
+  const photosBeforeThisTurn = photos.length
   const fileParts = (latestUser.parts ?? []).filter(
     (part) =>
       (part as { type?: string; mediaType?: string }).type === 'file' &&
@@ -416,9 +418,24 @@ export async function ingestLatestTradeBoardIntakeTurn(
     })
   }
 
-  let metadata = args.session.metadata
-  if (latestTurnConfirmsMainPhoto(args.messages)) {
-    metadata = { ...metadata, mainPhotoConfirmed: true }
+  let metadata = { ...args.session.metadata }
+  const ingestedJewelryFront = photos
+    .slice(photosBeforeThisTurn)
+    .some((photo) => photo.declaredRole === 'jewelry_front')
+  if (ingestedJewelryFront) {
+    delete metadata.mainPhotoConfirmedPhotoId
+    delete metadata.mainPhotoConfirmed
+  } else if (latestTurnConfirmsMainPhoto(args.messages)) {
+    const confirmedPhotoId =
+      previewedMainPhotoId(args.messages) ??
+      currentMainPhotoIdentity(photos)
+    if (confirmedPhotoId) {
+      metadata = {
+        ...metadata,
+        mainPhotoConfirmedPhotoId: confirmedPhotoId,
+      }
+      delete metadata.mainPhotoConfirmed
+    }
   }
   if (latestTurnConfirmsPhotoSet(args.messages)) {
     metadata = { ...metadata, photoSetReuseConfirmed: true }
@@ -594,6 +611,36 @@ function latestTurnConfirmsPhotoSet(messages: UIMessage[]): boolean {
     if (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM') return true
     return typeof output?.message === 'string' && /belongs with that set/i.test(output.message)
   })
+}
+
+function previewedMainPhotoId(messages: UIMessage[]): string | null {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return null
+  const previousAssistant = messages
+    .slice(0, latestUserIndex)
+    .reverse()
+    .find((message) => message.role === 'assistant')
+  for (const part of previousAssistant?.parts ?? []) {
+    const output = (part as { output?: { previewPhotoId?: unknown } }).output
+    if (typeof output?.previewPhotoId === 'string' && output.previewPhotoId.trim()) {
+      return output.previewPhotoId.trim()
+    }
+  }
+  return null
+}
+
+function currentMainPhotoIdentity(
+  photos: TradeBoardIntakeSessionState['photos'],
+): string | null {
+  for (let index = photos.length - 1; index >= 0; index -= 1) {
+    const photo = photos[index]
+    if (!photo?.imageUrl?.trim()) continue
+    if (photo.declaredRole === 'label_details') continue
+    if (photo.declaredRole !== 'jewelry_front') continue
+    const identity = mainPhotoConfirmationIdentity(photo)
+    if (identity) return identity
+  }
+  return null
 }
 
 function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {

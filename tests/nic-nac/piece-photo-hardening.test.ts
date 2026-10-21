@@ -522,13 +522,133 @@ describe('main photo confirmation', () => {
       ],
     })
 
-    expect(ingested.metadata.mainPhotoConfirmed).toBe(true)
+    expect(ingested.metadata.mainPhotoConfirmedPhotoId).toBe('photo-nk60295')
+    expect(ingested.metadata.mainPhotoConfirmed).toBeUndefined()
     expect(ingested.metadata.photoSetReuseConfirmed).toBeUndefined()
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({
-        metadata: expect.objectContaining({ mainPhotoConfirmed: true }),
+        metadata: expect.objectContaining({
+          mainPhotoConfirmedPhotoId: 'photo-nk60295',
+        }),
       }),
     )
+  })
+
+  it('shows the main photo preview again after a yes when a new jewelry photo arrives', async () => {
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const upsert = vi.fn(() => ({ error: null }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_photos') return { upsert }
+        if (table === 'trade_board_intake_sessions') return { update }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-nk60295',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'ready_to_add',
+      known: {
+        itemNumber: 'NK60295',
+        designName: 'Necklace',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: { mainPhotoConfirmationRequired: true },
+      photos: [
+        {
+          id: 'photo-old',
+          intakeSessionId: 'intake-nk60295',
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,TktK',
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+      ],
+    }
+    const confirmed = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'preview',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: {
+                needsAction: 'confirm_main_photo',
+                previewPhotoId: 'photo-old',
+                message:
+                  'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
+              },
+            },
+          ],
+        },
+        {
+          id: 'yes',
+          role: 'user',
+          parts: [{ type: 'text', text: 'Yes' }],
+        },
+      ],
+    })
+    expect(confirmed.metadata.mainPhotoConfirmedPhotoId).toBe('photo-old')
+
+    const replaced = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session: confirmed,
+      messages: [
+        ...[
+          {
+            id: 'preview',
+            role: 'assistant' as const,
+            parts: [
+              {
+                type: 'text' as const,
+                text: 'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
+              },
+            ],
+          },
+          {
+            id: 'yes',
+            role: 'user' as const,
+            parts: [{ type: 'text' as const, text: 'Yes' }],
+          },
+        ],
+        {
+          id: 'new-photo',
+          role: 'user',
+          parts: [
+            { type: 'text', text: 'The first photo is the jewelry.' },
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TkVX',
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(replaced.metadata.mainPhotoConfirmedPhotoId).toBeUndefined()
+    expect(
+      replaced.photos.some(
+        (photo) =>
+          photo.imageUrl === 'data:image/jpeg;base64,TkVX' &&
+          photo.declaredRole === 'jewelry_front',
+      ),
+    ).toBe(true)
   })
 
   it('remembers a yes when the photo belongs with a saved set', async () => {
