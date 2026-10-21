@@ -19,7 +19,7 @@ function responsiveRepImage(src, options) {
   };
 }
 
-const DEFAULTS = window.TRADE_TWEAK_DEFAULTS || {
+const BUILTIN_TRADE_DEFAULTS = {
   repName: "Sasha",
   businessName: "Sparkle by Sasha",
   liveState: "live",
@@ -58,6 +58,12 @@ const DEFAULTS = window.TRADE_TWEAK_DEFAULTS || {
   cursorEffect: "sparkle",
   tickerSpeed: 1,
   showSlots: false,
+};
+const DEFAULTS = {
+  ...BUILTIN_TRADE_DEFAULTS,
+  ...(window.TRADE_TWEAK_DEFAULTS && typeof window.TRADE_TWEAK_DEFAULTS === "object"
+    ? window.TRADE_TWEAK_DEFAULTS
+    : {}),
 };
 
 function publicRepName(value, fallback = "your rep") {

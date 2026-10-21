@@ -1750,6 +1750,12 @@ body.tradepage .tp-sheet-title {
 body.tradepage.dance-floor-empty .hp-ticker-row.reverse {
   display: none;
 }
+body.tradepage .hp-ticker-row:not(.reverse):not(:has(.hp-ticker-item)) {
+  display: none;
+}
+body.tradepage.dance-floor-empty .hp-ticker:not(:has(.hp-ticker-row:not(.reverse) .hp-ticker-item)) {
+  display: none;
+}
 .tp-empty {
   text-align: center;
   padding: 48px 24px;
