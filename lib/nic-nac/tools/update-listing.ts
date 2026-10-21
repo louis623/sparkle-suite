@@ -23,7 +23,12 @@ import { ServiceError } from '@/lib/services/errors'
 import { writeTradeActionAudit } from '@/lib/nic-nac/audit'
 import { logIncident } from '@/lib/nic-nac/guardian-telemetry'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
-import type { ToolDefinition } from './types'
+import {
+  assertCustomerPhotoNotReused,
+  confirmedPhotoSetSha,
+  pendingMainPhotoConfirmation,
+} from './add-listing'
+import type { ToolContext, ToolDefinition } from './types'
 
 export const inputSchema = z
   .object({
@@ -73,6 +78,7 @@ export function makeUpdateListingTool(ctx: {
   supabase: SupabaseClient
   conversationId: string
   runId: string
+  activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
 }) {
   return tool({
     description:
@@ -146,6 +152,30 @@ export function makeUpdateListingTool(ctx: {
         listingPhotoUrl !== undefined &&
         !(useCanonicalPhoto === true && listingPhotoUrl !== null)
       ) {
+        if (typeof listingPhotoUrl === 'string' && listingPhotoUrl.trim()) {
+          const workflow = ctx.activeTradeBoardWorkflow ?? undefined
+          const itemNumber = workflow?.known.itemNumber
+          const mainPhotoPreview = pendingMainPhotoConfirmation({
+            itemNumber,
+            workflow,
+          })
+          if (mainPhotoPreview) {
+            return {
+              needsAction: 'confirm_main_photo' as const,
+              code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
+              itemNumber: mainPhotoPreview.itemNumber,
+              ...mainPhotoPreview.locator,
+              message: mainPhotoPreview.message,
+            }
+          }
+          await assertCustomerPhotoNotReused({
+            repId: ctx.repId,
+            itemNumber,
+            sourceImageUrl: listingPhotoUrl,
+            workflowPhotos: workflow?.photos,
+            setReuseConfirmedSha: confirmedPhotoSetSha(workflow, itemNumber),
+          })
+        }
         try {
           patch.listingPhotoUrl =
             listingPhotoUrl === null
@@ -233,5 +263,6 @@ export const updateListingTool: ToolDefinition = {
       supabase: ctx.supabase,
       conversationId: ctx.conversationId,
       runId: ctx.runId,
+      activeTradeBoardWorkflow: ctx.activeTradeBoardWorkflow,
     }),
 }

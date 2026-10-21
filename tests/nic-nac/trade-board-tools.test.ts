@@ -8,19 +8,30 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { errors } from '@/lib/services/errors'
+import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
+import { hashDataImageUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 
 const updateListingMock = vi.fn()
 const processRepCustomListingPhotoUrlMock = vi.fn()
 const writeTradeActionAuditMock = vi.fn()
 const logIncidentMock = vi.fn()
+const createAdminClientMock = vi.fn()
 
 vi.mock('@/lib/services/trade-board', () => ({
   updateListing: (...args: unknown[]) => updateListingMock(...args),
+  addListing: vi.fn(),
+  addListingBatch: vi.fn(),
+  addNonItemNumberListing: vi.fn(),
 }))
 
 vi.mock('@/lib/services/listing-photo-processing', () => ({
   processRepCustomListingPhotoUrl: (...args: unknown[]) =>
     processRepCustomListingPhotoUrlMock(...args),
+  processRepListingPhotoUrl: vi.fn(),
+}))
+
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => createAdminClientMock(),
 }))
 
 vi.mock('@/lib/nic-nac/audit', () => ({
@@ -43,13 +54,49 @@ interface ToolDef {
   needsApproval?: boolean
 }
 
-function makeTool(): ToolDef {
+function makeTool(
+  activeTradeBoardWorkflow?: TradeBoardIntakeSessionState,
+): ToolDef {
   return makeUpdateListingTool({
     repId: 'rep-1',
     supabase: {} as never,
     conversationId: 'conv-1',
     runId: 'run-1',
+    activeTradeBoardWorkflow,
   }) as unknown as ToolDef
+}
+
+function intakeWorkflow(
+  overrides: Partial<TradeBoardIntakeSessionState> = {},
+): TradeBoardIntakeSessionState {
+  return {
+    id: 'intake-nk60295',
+    repId: 'rep-1',
+    conversationId: 'conv-1',
+    workflowType: 'trade_board_add_listing',
+    catalogMode: 'item_number',
+    status: 'active',
+    phase: 'ready_to_add',
+    known: {
+      itemNumber: 'NK60295',
+      designName: 'Necklace',
+      collectionName: 'Original',
+      rarityClassification: 'standard',
+    },
+    missing: [],
+    blockers: [],
+    warnings: [],
+    metadata: {},
+    photos: [],
+    ...overrides,
+    known: {
+      itemNumber: 'NK60295',
+      designName: 'Necklace',
+      collectionName: 'Original',
+      rarityClassification: 'standard',
+      ...(overrides.known ?? {}),
+    },
+  }
 }
 
 // Zod 4 enforces version + variant bits on `.uuid()`: the 3rd group must
@@ -225,6 +272,93 @@ describe('update_listing — write + audit happy path', () => {
       status: 'available',
       patchedFields: ['listingPhotoUrl'],
     })
+  })
+
+  it('shows the main photo preview before update_listing saves an unconfirmed photo', async () => {
+    const tool = makeTool(
+      intakeWorkflow({
+        metadata: { mainPhotoConfirmationRequired: true },
+        photos: [
+          {
+            id: '11111111-1111-4111-8111-111111111112',
+            intakeSessionId: 'intake-nk60295',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,TktK',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    )
+
+    await expect(
+      tool.execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: 'https://rep.example.com/raw-upload.jpg',
+      }),
+    ).resolves.toMatchObject({
+      needsAction: 'confirm_main_photo',
+      previewPhotoId: '11111111-1111-4111-8111-111111111112',
+      message: expect.stringContaining('NK60295'),
+    })
+    expect(updateListingMock).not.toHaveBeenCalled()
+    expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses a listing photo that is already on another saved piece', async () => {
+    const photoUrl = 'data:image/jpeg;base64,TktK'
+    const result = {
+      data: [
+        {
+          trade_board_intake_sessions: {
+            item_number: 'NK60295',
+            status: 'completed',
+            created_design_id: 'design-nk60295',
+            created_listing_ids: ['listing-nk60295'],
+          },
+        },
+      ],
+      error: null,
+    }
+    const builder: Record<string, unknown> = {}
+    const passthrough = () => builder
+    builder.select = passthrough
+    builder.eq = passthrough
+    builder.then = (
+      onFulfilled: (value: typeof result) => unknown,
+      onRejected?: (reason: unknown) => unknown,
+    ) => Promise.resolve(result).then(onFulfilled, onRejected)
+    createAdminClientMock.mockReturnValue({
+      from: (table: string) => {
+        if (table !== 'trade_board_intake_photos') {
+          throw new Error(`unexpected table ${table}`)
+        }
+        return builder
+      },
+    })
+    const tool = makeTool(
+      intakeWorkflow({
+        known: { itemNumber: 'NK60296' },
+      }),
+    )
+
+    await expect(
+      tool.execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: photoUrl,
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      details: {
+        contentSha256: hashDataImageUrl(photoUrl),
+      },
+    })
+    expect(updateListingMock).not.toHaveBeenCalled()
+    expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
   })
 
   it('useCanonicalPhoto:true does not include listingPhotoUrl in patchedFields even if model passed it as null (allowed combo)', async () => {

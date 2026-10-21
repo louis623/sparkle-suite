@@ -697,7 +697,7 @@ function savedItemNumber(value: unknown): string {
   return typeof value === 'string' ? value.trim().toUpperCase() : ''
 }
 
-function confirmedPhotoSetSha(
+export function confirmedPhotoSetSha(
   workflow: { metadata?: Record<string, unknown> } | null | undefined,
   itemNumber?: string,
 ): string | undefined {
@@ -841,7 +841,7 @@ async function photoFromConversationSetReuseYes(args: {
   }
 }
 
-async function assertCustomerPhotoNotReused(args: {
+export async function assertCustomerPhotoNotReused(args: {
   repId: string
   itemNumber?: string
   sourceImageUrl?: string
@@ -899,7 +899,7 @@ async function assertCustomerPhotoNotReused(args: {
   })
 }
 
-function pendingMainPhotoConfirmation(args: {
+export function pendingMainPhotoConfirmation(args: {
   itemNumber?: string | null
   workflow: ToolContext['activeTradeBoardWorkflow'] | undefined
   selectedPhotoId?: string
