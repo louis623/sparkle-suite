@@ -209,7 +209,7 @@ export const sparkleSuitePortfolioContent = {
       id: 'rep-highlights',
       eyebrow: 'Rep highlights',
       heading: 'Live shows, with the name on the door.',
-      body: 'These are customer-facing sites on the floor right now. Each peek is that show’s own custom look.',
+      body: 'Real Sparkle Suite sites, live right now. Each one is built around its rep’s own look.',
       label: 'Rep highlights',
       slides: [
         {

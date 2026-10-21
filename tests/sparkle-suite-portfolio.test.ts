@@ -152,6 +152,7 @@ describe('Sparkle Suite portfolio carousels', () => {
   it('keeps four rep recordings and leaves removed shows out', () => {
     const html = renderPortfolio()
     const repHtml = html.slice(html.indexOf('id="rep-highlights"'), html.indexOf('id="portfolio-close-title"'))
+    expect(repHtml).toContain('Real Sparkle Suite sites, live right now. Each one is built around its rep’s own look.')
     expect(repHtml).toContain('Mile High Fizz')
     expect(repHtml).toContain('Britt with Bling')
     expect(repHtml).toContain('Go for the Bling')
