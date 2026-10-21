@@ -83,14 +83,14 @@
   min-width: 0;
   overflow: clip;
   scroll-snap-align: center;
-  padding-inline: 6px;
 }
 .frame, .phoneFrame {
-  border: 1px solid rgba(64, 41, 36, .2);
-  padding: 4px;
-  border-radius: 10px;
-  background: white;
-  box-shadow: 0 12px 30px rgba(54, 34, 29, .07);
+  border: 0;
+  padding: 0;
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
 }
 .phoneFrame { width: min(390px, 100%); margin-inline: auto; }
 .browserBar em { font-style: normal; }
