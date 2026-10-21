@@ -170,7 +170,14 @@ export function TradeBoardWorkspaceCard({
   }
   const hasActiveInventoryBrowse = hasActiveBoardInventoryBrowse(inventoryFilters)
   const inventoryOptions = getBoardInventoryOptions(boardListings)
+  const hasRarityTags = inventoryOptions.rarities.length > 0
   const inventoryResults = getBoardInventoryResults(boardListings, inventoryFilters)
+
+  useEffect(() => {
+    if (hasRarityTags) return
+    if (inventoryRarity) setInventoryRarity('')
+    if (inventorySortMode === 'rarity') setInventorySortMode('newest')
+  }, [hasRarityTags, inventoryRarity, inventorySortMode])
   const visibleInventoryResults = inventoryResults.slice(0, inventoryVisibleCount)
   const requests = tradeRequestsState.requests ?? []
   const queueItems = fulfillmentQueueState.items ?? []
@@ -430,6 +437,8 @@ export function TradeBoardWorkspaceCard({
         </div>
         {tradeBoardState.status === 'ready' && boardSummary ? (
           <>
+            {boardListings.length > 0 ? (
+            <>
             <div className={styles.boardSearchRow}>
               <label className={surfaceStyles.searchField}>
                 <span className={surfaceStyles.searchLabel}>Search Dance Floor</span>
@@ -457,7 +466,7 @@ export function TradeBoardWorkspaceCard({
                   <option value="newest">Newest added</option>
                   <option value="collection">Collection</option>
                   <option value="type">Jewelry type</option>
-                  <option value="rarity">Rare first</option>
+                  {hasRarityTags ? <option value="rarity">Rare first</option> : null}
                   <option value="name">Dancer name</option>
                 </select>
               </label>
@@ -488,6 +497,7 @@ export function TradeBoardWorkspaceCard({
                   </button>
                 ))}
               </div>
+              {hasRarityTags ? (
               <div className={styles.boardFilterChips} aria-label="Filter by rarity">
                 <button
                   type="button"
@@ -513,8 +523,11 @@ export function TradeBoardWorkspaceCard({
                   </button>
                 ))}
               </div>
+              ) : null}
               {inventoryOptions.collections.length > 0 ? (
-                <div className={styles.boardFilterChips} aria-label="Filter by collection">
+                <div className={styles.boardFilterGroup}>
+                  <span className={styles.boardFilterLabel} id="rep-collection-filters">Collection</span>
+                  <div className={styles.boardFilterChips} role="group" aria-labelledby="rep-collection-filters">
                   {inventoryOptions.collections.map((collection) => (
                     <button
                       key={collection}
@@ -528,6 +541,7 @@ export function TradeBoardWorkspaceCard({
                       {collection}
                     </button>
                   ))}
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -587,6 +601,8 @@ export function TradeBoardWorkspaceCard({
                 </select>
               </div>
             </details>
+            </>
+            ) : null}
             {inventoryResults.length > 0 ? (
                 <div
                   className={styles.boardInventoryGridShell}
