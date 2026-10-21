@@ -692,22 +692,42 @@ function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {
   })
 }
 
+function straightenConfirmationText(text: string): string {
+  return text.replace(/[\u2018\u2019\u2032]/g, "'").replace(/[\u201C\u201D\u2033]/g, '"')
+}
+
+function hasConfirmationCorrection(text: string): boolean {
+  if (/[👎❌]/.test(text)) return true
+  if (/\bnoo+\b/i.test(text)) return true
+  if (
+    /\b(?:nah|nope|never(?:\s+mind)?|wait|hold\s+on|stop|cancel|different|instead|wrong|isn'?t|isnt|doesn'?t|doesnt|can'?t|cant|don'?t|dont|no|not)\b/i.test(
+      text,
+    )
+  ) {
+    return true
+  }
+  return false
+}
+
 export function isPositiveConfirmation(text: string): boolean {
-  const trimmed = text.trim()
+  const trimmed = straightenConfirmationText(text).trim()
   if (!trimmed || trimmed.endsWith('?')) return false
-  if (/\b(?:no|not|wrong|isn'?t|isnt|don'?t|dont)\b/i.test(trimmed)) return false
+  const scanned = trimmed
+    .replace(/\bno\s+problem\b/gi, ' ')
+    .replace(/\bnot\s+bad\b/gi, ' ')
+  if (hasConfirmationCorrection(scanned)) return false
   return (
     /\b(?:confirmed|confirm|yes|yep|yeah|correct|that'?s right|that is right|that is correct|exactly|use it|use that|use this(?:\s+(?:photo|shot|image|one))?|good enough)\b/i.test(
-      text,
+      trimmed,
     ) ||
     /\bpush\s+(?:it|that|this|the\s+photo|the\s+shot|the\s+image)\s+through\b/i.test(
-      text,
+      trimmed,
     ) ||
     /\b(?:it'?s|it is|that'?s|that is|this is|photo is|shot is|image is)\s+a?\s*(?:good|great|perfect|usable|clear)\s+(?:photo|shot|image)\b/i.test(
-      text,
+      trimmed,
     ) ||
     /\b(?:good|great|perfect|usable|clear)\s+(?:photo|shot|image)\b/i.test(
-      text,
+      trimmed,
     )
   )
 }

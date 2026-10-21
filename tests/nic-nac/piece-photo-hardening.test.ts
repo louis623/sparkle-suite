@@ -12,6 +12,7 @@ import { decidePhotoReuse, hashDataImageUrl } from '@/lib/nic-nac/workflows/phot
 import {
   hasTradeBoardIntakeSignal,
   ingestLatestTradeBoardIntakeTurn,
+  isPositiveConfirmation,
 } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import { buildAssistantMessageRenderables } from '@/app/nic-nac/components/NicNacChatBody'
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
@@ -663,6 +664,29 @@ describe('main photo confirmation', () => {
       ),
     ).toBe(true)
   })
+
+  it.each([
+    'that isn’t correct',
+    'don’t use that one',
+    'Nah, use this one',
+    'nope, use this one instead',
+    "doesn't look right, use this one",
+    'can’t use that…',
+    'never mind, use this one',
+    'wait, use this one instead',
+    'nooo use this one',
+    '👎 use this one',
+    'yes 👎',
+  ])('does not treat %s as a yes', (reply) => {
+    expect(isPositiveConfirmation(reply)).toBe(false)
+  })
+
+  it.each(['yes', 'yep', 'that’s right', 'yes, no problem', 'not bad, yes'])(
+    'still treats %s as a yes',
+    (reply) => {
+      expect(isPositiveConfirmation(reply)).toBe(true)
+    },
+  )
 
   it.each([
     'No, that is not correct',
