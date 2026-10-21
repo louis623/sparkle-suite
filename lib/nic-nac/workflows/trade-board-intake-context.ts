@@ -771,12 +771,12 @@ function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {
 }
 
 const POSITIVE_CONFIRMATION_EMOJI =
-  /(?:\u{1F44D}|\u{1F44C}|\u{1F64C}|\u{1F60A}|\u{1F642}|\u{1F600}|\u{1F601}|\u{2705})(?:\u{1F3FB}|\u{1F3FC}|\u{1F3FD}|\u{1F3FE}|\u{1F3FF})?\u{FE0F}?/gu
+  /(?:\u{1F44D}|\u{1F44C}|\u{1F64C}|\u{1F60A}|\u{1F642}|\u{1F600}|\u{1F601}|\u{2705}|\u{2714})(?:\u{1F3FB}|\u{1F3FC}|\u{1F3FD}|\u{1F3FE}|\u{1F3FF})?\u{FE0F}?/gu
 
 const CONFIRMATION_FILLER = /\b(?:no\s+problem|not\s+bad|nothing\s+wrong)\b/gi
 
 const AFFIRMATIVE_PHRASE =
-  /yes|yep|yeah|yup|correct|that(?:'s| is) right|that(?:'s| is) correct|looks? good|perfect|confirmed|ok|okay|sure|use (?:it|this|that)(?: (?:one|photo|shot|image))?|(?:this|that) one/i
+  /yes please|yes thank you|yes that(?:'s| is) it|thats right|that(?:'s| is) the one|sounds good|go ahead|all good|yea|yes|yep|yeah|yup|correct|that(?:'s| is) right|that(?:'s| is) correct|looks? good|perfect|confirmed|ok|okay|sure|use (?:it|this|that)(?: (?:one|photo|shot|image))?|(?:this|that) one/i
 
 const ONLY_AFFIRMATIVES = new RegExp(
   `^(?:${AFFIRMATIVE_PHRASE.source})(?:\\s+(?:${AFFIRMATIVE_PHRASE.source}))*$`,
