@@ -188,6 +188,24 @@ describe('Kelly 9/18 — a photo starts a piece only while one is being added', 
     ).toBe(false)
   })
 
+  it('does not start tracking from generic jewelry advice', () => {
+    expect(
+      hasTradeBoardIntakeSignal([
+        {
+          id: 'assistant-tips',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'text',
+              text: 'I can share jewelry tips if you need them',
+            },
+          ],
+        },
+        labelPhoto,
+      ]),
+    ).toBe(false)
+  })
+
   it('does not start tracking from a Dance Floor status update', () => {
     expect(
       hasTradeBoardIntakeSignal([
