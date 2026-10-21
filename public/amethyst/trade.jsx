@@ -83,9 +83,14 @@ const isMileHighFizzHybrid = CONTENT.publicSiteVariant === "mile_high_fizz_hybri
 const isBrittWithBlingHybrid = CONTENT.publicSiteVariant === "britt_with_bling_hybrid";
 const isBrittDanceFloorComingSoon = CONTENT.danceFloorComingSoon === true;
 const isBlingKitchenHybrid = CONTENT.publicSiteVariant === "bling_kitchen_hybrid";
-const BOOTSTRAP_LISTINGS = Array.isArray(window.AMETHYST_TRADE_BOARD_LISTINGS)
+const BOOTSTRAP_LISTINGS = (Array.isArray(window.AMETHYST_TRADE_BOARD_LISTINGS)
   ? window.AMETHYST_TRADE_BOARD_LISTINGS
-  : [];
+  : []
+).map((listing) => (
+  listing && typeof listing === "object"
+    ? { ...listing, collection: displayCollectionLabel(listing.collection) }
+    : listing
+));
 const TRADE_REQUEST_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests");
 const TRADE_UPLOAD_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/uploads");
 const TRADE_UPLOAD_CONFIRM_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/uploads/confirm");
