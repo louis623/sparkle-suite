@@ -254,7 +254,7 @@ export const sparkleSuitePortfolioContent = {
             headline: 'Britt with Bling',
             sub: 'Where Faith Meets Fizz & Every Reveal is a VIP Experience.',
             instruction: 'Place your order and return to the live party to watch your reveal',
-            actions: ['Shop Now', 'Join the Team', 'Dance Floor · Coming soon'],
+            actions: ['Shop Now', 'Join the Team'],
             tone: 'light',
             align: 'center',
             lockup: 'britt',
