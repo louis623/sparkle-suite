@@ -218,12 +218,16 @@ describe('Dance Floor photo fallback', () => {
     const css = readFileSync('public/amethyst/trade.css', 'utf8')
     const marker = '/* A grid photo that fails keeps the loaded has-photo frame and the dark sparkle placeholder. */'
     const rules = css.slice(css.indexOf(marker)).trim()
-    const scriptTag = html.indexOf('src="trade.jsx?')
+    const staticStyle = '<link rel="stylesheet" href="/amethyst/trade.css?v=20261021-photo-frame" />'
+    const staticScript = 'src="/amethyst/trade.jsx?v=20261021-photo-frame"'
+    const scriptTag = html.indexOf(staticScript)
     const rewriteAt = html.indexOf('script[src*="trade.jsx"]')
     const scriptMatch = html.match(/<script>\n([\s\S]*?)<\/script>\n<script src="\/amethyst\/gilded-autumn\.js/)
 
     expect(rules.length).toBeGreaterThan(0)
     expect(html).toContain(`<style id="dance-floor-photo-frame">\n${rules}\n</style>`)
+    expect(html).toContain(staticStyle)
+    expect(html).toContain(`<script type="text/babel" data-presets="react" ${staticScript}></script>`)
     expect(scriptTag).toBeGreaterThan(-1)
     expect(rewriteAt).toBeGreaterThan(scriptTag)
     expect(rewriteAt).toBeLessThan(html.indexOf('/amethyst/gilded-autumn.js'))
@@ -234,26 +238,27 @@ describe('Dance Floor photo fallback', () => {
     const apply = (initialSrc: string, cssHref: string) => {
       const attrs: Record<string, string> = { src: initialSrc }
       const links = [{ href: cssHref }]
+      let writes = 0
       runInNewContext(`${scriptMatch?.[1]}\n`, {
         document: {
           querySelectorAll(selector: string) {
             if (selector === 'script[src*="trade.jsx"]') {
               return [{
                 getAttribute: (name: string) => attrs[name] || '',
-                setAttribute: (name: string, value: string) => { attrs[name] = value },
+                setAttribute: (name: string, value: string) => { writes += 1; attrs[name] = value },
               }]
             }
             if (selector === 'link[rel="stylesheet"][href*="trade.css"]') {
               return links.map(link => ({
                 getAttribute: (name: string) => (name === 'href' ? link.href : ''),
-                setAttribute: (name: string, value: string) => { if (name === 'href') link.href = value },
+                setAttribute: (name: string, value: string) => { if (name === 'href') { writes += 1; link.href = value } },
               }))
             }
             return []
           },
         },
       })
-      return { src: attrs.src, hrefs: links.map(link => link.href) }
+      return { src: attrs.src, hrefs: links.map(link => link.href), writes }
     }
 
     const absolute = {
@@ -266,10 +271,15 @@ describe('Dance Floor photo fallback', () => {
       apply('trade.jsx?v=20261019-thanksgiving-v3', 'trade.css?v=20261004-filter-contrast'),
       apply('trade.jsx', 'trade.css'),
     ]) {
-      expect(rewritten).toEqual(absolute)
+      expect(rewritten.src).toBe(absolute.src)
+      expect(rewritten.hrefs).toEqual(absolute.hrefs)
+      expect(rewritten.writes).toBe(2)
       expect(rewritten.src.startsWith('/amethyst/')).toBe(true)
-      expect(rewritten.hrefs).toHaveLength(1)
       expect(rewritten.hrefs[0].startsWith('/amethyst/')).toBe(true)
     }
+    const alreadyStatic = apply(absolute.src, absolute.hrefs[0])
+    expect(alreadyStatic.src).toBe('/amethyst/trade.jsx?v=20261021-photo-frame')
+    expect(alreadyStatic.hrefs).toEqual(['/amethyst/trade.css?v=20261021-photo-frame'])
+    expect(alreadyStatic.writes).toBe(0)
   })
 })
