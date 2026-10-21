@@ -2041,18 +2041,16 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
   );
 }
 
-function EmptyState({ repName }) {
+function EmptyState({ businessName }) {
   return (
     <div className="tp-empty">
       <div className="tp-empty-glyph" aria-hidden="true"><SparkleMark /></div>
-      <h3 className="tp-empty-title">{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Dance Floor is empty right now."}</h3>
+      <h3 className="tp-empty-title">{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "The Dance Floor is quiet right now"}</h3>
       <p className="tp-empty-sub">
-          <strong>{repName}</strong> adds dancers after live reveals. Check back after the next show for fresh one-for-one swap options.
+        {isBrittDanceFloorComingSoon
+          ? "This show is getting the Dance Floor ready. Check back for the first dancers."
+          : <><strong>{businessName}</strong> adds dancers after a live reveal. Check back after the next show to request a one-for-one swap.</>}
       </p>
-      <div className="tp-empty-next">
-        <span className="live-dot" />
-        Dancers will appear after this rep adds them to the Dance Floor.
-      </div>
     </div>
   );
 }
@@ -2343,7 +2341,12 @@ function App() {
 
   const live = t.liveState === "live";
   const isEmpty = t.contentState === "empty";
-  const showNoMatches = !isEmpty && availableSamples.length > 0 && filtered.length === 0;
+  const boardIsEmpty = isEmpty || availableSamples.length === 0;
+  useEffect(() => {
+    document.body.classList.toggle("dance-floor-empty", boardIsEmpty);
+    return () => document.body.classList.remove("dance-floor-empty");
+  }, [boardIsEmpty]);
+  const showNoMatches = !boardIsEmpty && filtered.length === 0;
   const clearFilters = () => {
     setFilters(EMPTY_FILTER_STATE);
     setBoardSearch("");
@@ -2406,6 +2409,7 @@ function App() {
             <section className="tp-board">
               <div className="tp-board-inner no-lrq">
                 <div>
+                  {!boardIsEmpty && (
                   <Filters
                     style={t.filterStyle}
                     listings={availableSamples}
@@ -2422,8 +2426,9 @@ function App() {
                     secondaryOpen={secondaryFiltersOpen}
                     setSecondaryOpen={setSecondaryFiltersOpen}
                   />
-                  {isEmpty ? (
-                    <div className="tp-grid-wrap"><EmptyState repName={repName} /></div>
+                  )}
+                  {boardIsEmpty ? (
+                    <div className="tp-grid-wrap"><EmptyState businessName={t.businessName || "The rep"} /></div>
                   ) : showNoMatches ? (
                     <div className="tp-grid-wrap"><NoMatchesState onClear={clearFilters} /></div>
                   ) : (
