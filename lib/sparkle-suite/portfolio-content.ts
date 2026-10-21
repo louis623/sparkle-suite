@@ -182,10 +182,10 @@ export const sparkleSuitePortfolioContent = {
     body:
       'Real customer sites, community looks, and seasonal themes. Sparkle Suite builds the customer side so a live show has a polished place to land.',
     image: {
-      src: '/sparkle-suite/landing/hero-halloween-witch-live.webp',
-      alt: 'Halloween Pumpkin and Witch homepage hero, with the live lineup, shop actions, jack-o’-lantern, and flying witch.',
-      width: 1024,
-      height: 513,
+      src: '/amethyst/skins/halloween-pumpkin-witch/hero-desktop.webp',
+      alt: 'Pumpkin and Witch theme hero, with a jack-o’-lantern, silver moon, and flying witch.',
+      width: 1672,
+      height: 941,
       label: 'Halloween · Pumpkin and Witch',
     },
   },
