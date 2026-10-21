@@ -691,11 +691,18 @@ async function assertLabelAgreesWithItemNumber(args: {
   })
 }
 
+function confirmedPhotoSetSha(
+  workflow: { metadata?: Record<string, unknown> } | null | undefined,
+): string | undefined {
+  const sha = workflow?.metadata?.photoSetReuseConfirmedSha
+  return typeof sha === 'string' && sha.trim() ? sha.trim() : undefined
+}
+
 async function assertCustomerPhotoNotReused(args: {
   repId: string
   itemNumber?: string
   sourceImageUrl?: string
-  setReuseConfirmed?: boolean
+  setReuseConfirmedSha?: string
   workflowPhotos?: Array<{
     imageUrl?: string
     contentSha256?: string
@@ -718,7 +725,8 @@ async function assertCustomerPhotoNotReused(args: {
     contentSha256,
   })
   const decision = decidePhotoReuse({ itemNumber, contentSha256, existing })
-  if (!decision.blocked || args.setReuseConfirmed) return
+  if (!decision.blocked) return
+  if (args.setReuseConfirmedSha && args.setReuseConfirmedSha === contentSha256) return
   throw new NicNacToolError({
     code: 'PHOTO_REUSED_ON_OTHER_ITEM',
     userMessage: decision.message,
@@ -894,8 +902,7 @@ export async function processListingPhotoForAdd(input: {
       itemNumber: input.itemNumber,
       sourceImageUrl: numberedPiecePhotoUrl,
       workflowPhotos: activeTradeBoardWorkflow?.photos,
-      setReuseConfirmed:
-        activeTradeBoardWorkflow?.metadata?.photoSetReuseConfirmed === true,
+      setReuseConfirmedSha: confirmedPhotoSetSha(activeTradeBoardWorkflow),
     })
     try {
       return (
@@ -925,8 +932,7 @@ export async function processListingPhotoForAdd(input: {
       itemNumber: input.itemNumber,
       sourceImageUrl: workflowPhotoUrl,
       workflowPhotos: activeTradeBoardWorkflow?.photos,
-      setReuseConfirmed:
-        activeTradeBoardWorkflow?.metadata?.photoSetReuseConfirmed === true,
+      setReuseConfirmedSha: confirmedPhotoSetSha(activeTradeBoardWorkflow),
     })
     try {
       return (
@@ -952,8 +958,7 @@ export async function processListingPhotoForAdd(input: {
       itemNumber: input.itemNumber,
       sourceImageUrl: listingPhotoUrl,
       workflowPhotos: activeTradeBoardWorkflow?.photos,
-      setReuseConfirmed:
-        activeTradeBoardWorkflow?.metadata?.photoSetReuseConfirmed === true,
+      setReuseConfirmedSha: confirmedPhotoSetSha(activeTradeBoardWorkflow),
     })
     try {
       const processInput = {
@@ -1000,8 +1005,7 @@ export async function processListingPhotoForAdd(input: {
     itemNumber: input.itemNumber,
     sourceImageUrl: resolvedListingPhoto.imageDataUrl,
     workflowPhotos: activeTradeBoardWorkflow?.photos,
-    setReuseConfirmed:
-      activeTradeBoardWorkflow?.metadata?.photoSetReuseConfirmed === true,
+    setReuseConfirmedSha: confirmedPhotoSetSha(activeTradeBoardWorkflow),
   })
   try {
     const processInput = {
@@ -1701,7 +1705,7 @@ async function runSingle(
         itemNumber,
         sourceImageUrl: resolvedPhotoUrl,
         workflowPhotos: activeWorkflow?.photos,
-        setReuseConfirmed: activeWorkflow?.metadata?.photoSetReuseConfirmed === true,
+        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow),
       })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {
@@ -1746,7 +1750,7 @@ async function runSingle(
         itemNumber,
         sourceImageUrl: workflowConfirmedPhotoUrl,
         workflowPhotos: activeWorkflow?.photos,
-        setReuseConfirmed: activeWorkflow?.metadata?.photoSetReuseConfirmed === true,
+        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow),
       })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {
@@ -1812,7 +1816,7 @@ async function runSingle(
         itemNumber,
         sourceImageUrl: resolvedPhoto.imageDataUrl,
         workflowPhotos: activeWorkflow?.photos,
-        setReuseConfirmed: activeWorkflow?.metadata?.photoSetReuseConfirmed === true,
+        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow),
       })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {

@@ -31,7 +31,10 @@ import {
   updateTradeBoardIntakeSession,
   upsertTradeBoardIntakePhoto,
 } from './trade-board-intake-store'
-import { mainPhotoConfirmationIdentity } from './photo-reuse-guard'
+import {
+  hashDataImageUrl,
+  mainPhotoConfirmationIdentity,
+} from './photo-reuse-guard'
 import { isExplicitTradeBoardAddRequest } from './trade-board-add-intent'
 import {
   assignDeclaredPhotoRolesForTurn,
@@ -438,7 +441,11 @@ export async function ingestLatestTradeBoardIntakeTurn(
     }
   }
   if (latestTurnConfirmsPhotoSet(args.messages)) {
-    metadata = { ...metadata, photoSetReuseConfirmed: true }
+    const confirmedSha = flaggedPhotoSetSha(args.messages, photos)
+    if (confirmedSha) {
+      metadata = { ...metadata, photoSetReuseConfirmedSha: confirmedSha }
+      delete metadata.photoSetReuseConfirmed
+    }
   }
   const updated: TradeBoardIntakeSessionState = {
     ...args.session,
@@ -592,6 +599,33 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
     return confirmed
   }
 
+  return null
+}
+
+function flaggedPhotoSetSha(
+  messages: UIMessage[],
+  photos: TradeBoardIntakeSessionState['photos'],
+): string | null {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  const previousAssistant =
+    latestUserIndex === -1
+      ? undefined
+      : messages
+          .slice(0, latestUserIndex)
+          .reverse()
+          .find((message) => message.role === 'assistant')
+  for (const part of previousAssistant?.parts ?? []) {
+    const output = (part as { output?: { contentSha256?: unknown } }).output
+    if (typeof output?.contentSha256 === 'string' && output.contentSha256.trim()) {
+      return output.contentSha256.trim()
+    }
+  }
+  for (let index = photos.length - 1; index >= 0; index -= 1) {
+    const photo = photos[index]
+    if (!photo || photo.declaredRole === 'label_details') continue
+    const sha = photo.contentSha256?.trim() || hashDataImageUrl(photo.imageUrl)
+    if (sha) return sha
+  }
   return null
 }
 

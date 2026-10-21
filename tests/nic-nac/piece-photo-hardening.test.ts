@@ -746,7 +746,20 @@ describe('main photo confirmation', () => {
       blockers: [],
       warnings: [],
       metadata: {},
-      photos: [],
+      photos: [
+        {
+          intakeSessionId: 'intake-st21027',
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,TktK',
+          contentSha256: 'a'.repeat(64),
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+      ],
     }
 
     const ingested = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
@@ -776,8 +789,9 @@ describe('main photo confirmation', () => {
       ],
     })
 
-    expect(ingested.metadata.photoSetReuseConfirmed).toBe(true)
-    expect(ingested.metadata.mainPhotoConfirmed).toBeUndefined()
+    expect(ingested.metadata.photoSetReuseConfirmedSha).toBe('a'.repeat(64))
+    expect(ingested.metadata.photoSetReuseConfirmed).toBeUndefined()
+    expect(ingested.metadata.mainPhotoConfirmedPhotoId).toBeUndefined()
   })
 
   it('keeps the photo fingerprint when a yes confirms the main photo in words', async () => {

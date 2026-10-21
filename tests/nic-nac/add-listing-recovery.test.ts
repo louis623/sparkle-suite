@@ -168,6 +168,7 @@ import {
 } from '@/lib/nic-nac/tools/add-listing'
 import { renderItemNumberPng } from '@/lib/nic-nac/workflows/label-item-number'
 import { computeTradeBoardAddAttemptReadiness } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
+import { hashDataImageUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 
 interface AddListingToolDef {
   execute: (input: unknown) => Promise<Record<string, unknown>>
@@ -3945,7 +3946,9 @@ describe('add_listing - active workflow readiness guard', () => {
         id: 'intake-st21027',
         phase: 'ready_to_add',
         missing: [],
-        metadata: { photoSetReuseConfirmed: true },
+        metadata: {
+          photoSetReuseConfirmedSha: hashDataImageUrl('data:image/jpeg;base64,TktK'),
+        },
         known: {
           itemNumber: 'ST21027',
           designName: 'Stack',
@@ -3975,6 +3978,60 @@ describe('add_listing - active workflow readiness guard', () => {
         collectionName: 'Original',
       }),
     ).resolves.toMatchObject({ listingId: 'listing-set' })
+  })
+
+  it('still asks when a set yes for one photo is followed by a different photo', async () => {
+    createAdminClientMock.mockReturnValue(
+      makeAdminClientMock([], null, [
+        {
+          item_number: 'NK60295',
+          status: 'completed',
+          created_design_id: 'design-nk60295',
+          created_listing_ids: ['listing-nk60295'],
+        },
+      ]),
+    )
+    const hashA = hashDataImageUrl('data:image/jpeg;base64,TktK')
+    const hashBUrl = 'data:image/jpeg;base64,R09MRA=='
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-er34579',
+        phase: 'ready_to_add',
+        missing: [],
+        metadata: { photoSetReuseConfirmedSha: hashA },
+        known: {
+          itemNumber: 'ER34579',
+          designName: 'Earrings',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            intakeSessionId: 'intake-er34579',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: hashBUrl,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ER34579',
+        collectionName: 'Original',
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      userMessage: expect.stringMatching(/already on NK60295[\s\S]*ER34579 belongs with that set/),
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
   })
 
   it('blocks the save when the label photo names a different item number', async () => {
