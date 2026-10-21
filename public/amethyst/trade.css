@@ -217,7 +217,8 @@ body.britt-with-bling-trade .tp-empty-title {
 }
 
 body.britt-with-bling-trade .tp-card-expand-specs,
-body.britt-with-bling-trade .tp-card-expand-box {
+body.britt-with-bling-trade .tp-card-expand-box,
+body.britt-with-bling-trade .tp-card-expand-note {
   color: var(--bwb-gold);
 }
 
@@ -1289,26 +1290,26 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
   color: var(--hp-card-fg, var(--fg));
   font-weight: 500;
 }
-.tp-card-expand-box {
-  padding: 12px;
-  background: var(--hp-bg);
-  border: 1px dashed var(--border);
-  border-radius: 12px;
+.tp-card-expand-note {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 12px;
-  color: var(--hp-card-muted, var(--fg-muted));
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--hp-primary) 10%, var(--hp-bg-elevated));
+  color: var(--hp-card-fg, var(--fg));
+  font-size: 13px;
+  line-height: 1.45;
 }
-.tp-card-expand-box .thumb {
-  width: 56px; height: 56px;
-  background: linear-gradient(135deg, var(--bg-deep), var(--hp-bg-elevated));
-  border-radius: 6px;
-  display: grid; place-items: center;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--fg-muted);
-  flex-shrink: 0;
+.tp-card-expand-note p {
+  margin: 0;
+}
+.tp-card-expand-note .tp-sparkle-mark {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: var(--hp-primary);
 }
 .tp-card-expand-rule {
   margin: 0;
@@ -2134,7 +2135,8 @@ body.mile-high-fizz-trade .tp-empty-sub {
 }
 
 body.mile-high-fizz-trade .tp-card-expand-specs,
-body.mile-high-fizz-trade .tp-card-expand-box {
+body.mile-high-fizz-trade .tp-card-expand-box,
+body.mile-high-fizz-trade .tp-card-expand-note {
   background: rgba(253, 242, 248, 0.72);
   border-color: rgba(236, 72, 153, 0.16);
 }

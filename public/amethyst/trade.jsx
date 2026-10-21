@@ -1554,6 +1554,13 @@ function useTradeDialog(open, onClose, view) {
   return ref;
 }
 
+function isSpecificDancerNote(note) {
+  const value = String(note || "").trim().toLowerCase();
+  if (!value) return false;
+  return value !== "item-for-item only. requests must stay within the same collection and the same jewelry type."
+    && value !== "dance floor dancer.";
+}
+
 function SparkleMark() {
   return (
     <svg className="tp-sparkle-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -1615,10 +1622,12 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
               <dd>{Math.max(0, Number(piece.quantityAvailable ?? 1))}</dd>
             </div>
           </dl>
-          <div className="tp-card-expand-box slot" data-slot="reveal box photo">
-            <div className="thumb">BOX</div>
-            <div>{piece.note}</div>
-          </div>
+          {isSpecificDancerNote(piece.note) ? (
+            <div className="tp-card-expand-note">
+              <SparkleMark />
+              <p>{piece.note}</p>
+            </div>
+          ) : null}
           <p className="tp-card-expand-rule">A dancer swap is one dancer for one dancer, with no added payment or credit. Your rep makes the final decision.</p>
           <button type="button" className="tp-card-expand-cta" onClick={() => onWantThis(piece)}>
             Request this swap
