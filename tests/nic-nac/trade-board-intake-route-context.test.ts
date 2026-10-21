@@ -590,6 +590,89 @@ describe('Dance Floor intake route context', () => {
     expect(createBuilder.insert).not.toHaveBeenCalled()
   })
 
+  it('stores a label sent alone while a Dance Floor intake is already open', async () => {
+    const sessionRow = {
+      id: 'workflow-1',
+      rep_id: 'rep-1',
+      conversation_id: 'conv-1',
+      workflow_type: 'trade_board_add_listing',
+      status: 'active',
+      current_phase: 'photo_capture',
+      item_number: 'NK60295',
+      missing_fields: ['jewelryFrontPhoto'],
+      hard_blockers: [],
+      soft_warnings: [],
+    }
+    const activeBuilder = {
+      select: vi.fn(() => activeBuilder),
+      eq: vi.fn(() => activeBuilder),
+      in: vi.fn(() => activeBuilder),
+      gt: vi.fn(() => activeBuilder),
+      order: vi.fn(() => activeBuilder),
+      limit: vi.fn(() => activeBuilder),
+      maybeSingle: vi.fn(() => ({ data: sessionRow, error: null })),
+    }
+    const selectPhotosBuilder = {
+      select: vi.fn(() => selectPhotosBuilder),
+      eq: vi.fn(() => selectPhotosBuilder),
+      order: vi.fn(() => ({ data: [], error: null })),
+    }
+    const upsertPhotoBuilder = {
+      upsert: vi.fn(() => ({ error: null })),
+    }
+    const updateBuilder = {
+      update: vi.fn(() => updateBuilder),
+      eq: vi.fn(() => ({ error: null })),
+    }
+    const workflowSupabase = {
+      from: vi.fn((table: string) => {
+        const callsForTable = workflowSupabase.from.mock.calls.filter(
+          ([name]) => name === table,
+        ).length
+        if (table === 'trade_board_intake_sessions') {
+          return callsForTable === 1 ? activeBuilder : updateBuilder
+        }
+        if (table === 'trade_board_intake_photos') {
+          return callsForTable === 1 ? selectPhotosBuilder : upsertPhotoBuilder
+        }
+        throw new Error(`Unexpected table ${table}`)
+      }),
+    }
+    const labelUrl = 'data:image/jpeg;base64,TEFCRUw='
+
+    const context = await getOrCreateTradeBoardIntakeContext({
+      supabase: workflowSupabase as never,
+      workflowSupabase: workflowSupabase as never,
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      messages: [
+        {
+          id: 'label-during-intake',
+          role: 'user',
+          parts: [{ type: 'file', mediaType: 'image/jpeg', url: labelUrl }],
+        } as UIMessage,
+      ],
+      latestUserMessageId: 'label-during-intake',
+      mode: 'workspace',
+      nowIso: '2026-09-18T00:00:00.000Z',
+    } as never)
+
+    expect(context.sessionAfter?.id).toBe('workflow-1')
+    expect(context.sessionAfter?.photos).toEqual([
+      expect.objectContaining({
+        attachmentIndex: 1,
+        imageUrl: labelUrl,
+      }),
+    ])
+    expect(upsertPhotoBuilder.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        session_id: 'workflow-1',
+        image_url: labelUrl,
+      }),
+      { onConflict: 'session_id,conversation_message_id,attachment_index' },
+    )
+  })
+
   it('does not start a blank add-listing workflow for a post-completion follow-up photo', async () => {
     const activeBuilder = {
       select: vi.fn(() => activeBuilder),
