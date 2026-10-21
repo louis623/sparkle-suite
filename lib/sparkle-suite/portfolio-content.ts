@@ -68,12 +68,13 @@ function communityThemeSlide(theme: {
   }
 }
 
-const sampleThemeHero = {
-  headline: 'Real jewelry. Live reveals. Pure sparkle.',
-  sub: 'Join Sasha for live jewelry reveals, friendly conversation, and your next favorite find.',
-  tone: 'light' as const,
-}
-
+// Hero lines are the homepage headline and heroSub from PREVIEW_PROFILES in
+// lib/amethyst/skin-preview.ts. These themes use the shared default pair
+// ("Real jewelry. Live reveals. Pure sparkle." / "Join Sasha for live jewelry
+// reveals, friendly conversation, and your next favorite find."), so the slide
+// shows the theme art instead of repeating that line:
+// amethyst, gilded_autumn, fall_owl_harvest_moon, gobble_and_fizz, pie_please,
+// midnight_rose, pearl_rose, rose_champagne.
 const communityThemeSlides = [
   communityThemeSlide({
     id: 'amethyst',
@@ -84,7 +85,6 @@ const communityThemeSlides = [
     width: 1310,
     height: 704,
     video: { mp4: '/amethyst/skins/am01-unicorn/hero-motion.mp4', width: 1310, height: 704 },
-    hero: sampleThemeHero,
   }),
   communityThemeSlide({
     id: 'halloween_pumpkin_witch',
@@ -109,9 +109,11 @@ const communityThemeSlides = [
     width: 1672,
     height: 941,
     video: { mp4: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4', width: 1280, height: 720 },
+    // Configured headline is the shared default. The distinct heroSub is shown.
     hero: {
-      ...sampleThemeHero,
-      sub: 'A little mystery. A lot of sparkle. Join Sasha for live jewelry reveals and find your next favorite.',
+      headline: 'A little mystery. A lot of sparkle.',
+      sub: 'Join Sasha for live jewelry reveals and find your next favorite.',
+      tone: 'light',
       font: 'georgia',
     },
   }),
@@ -124,7 +126,6 @@ const communityThemeSlides = [
     width: 1204,
     height: 764,
     video: { mp4: '/amethyst/skins/gilded-autumn/hero-motion.mp4', width: 1204, height: 764 },
-    hero: sampleThemeHero,
   }),
   communityThemeSlide({
     id: 'fall_owl_harvest_moon',
@@ -135,7 +136,6 @@ const communityThemeSlides = [
     width: 1280,
     height: 720,
     video: { mp4: '/amethyst/skins/fall-owl/hero-loop.mp4', width: 1280, height: 720 },
-    hero: sampleThemeHero,
   }),
   communityThemeSlide({
     id: 'gobble_and_fizz',
@@ -146,7 +146,6 @@ const communityThemeSlides = [
     width: 1280,
     height: 720,
     video: { mp4: '/amethyst/skins/gobble-and-fizz/hero-loop.mp4', width: 1280, height: 720 },
-    hero: sampleThemeHero,
   }),
   communityThemeSlide({
     id: 'pie_please',
@@ -157,7 +156,6 @@ const communityThemeSlides = [
     width: 1280,
     height: 720,
     video: { mp4: '/amethyst/skins/pie-please/hero-loop-v4.mp4', width: 1280, height: 720 },
-    hero: { ...sampleThemeHero, tone: 'ink' },
   }),
   communityThemeSlide({
     id: 'midnight_rose',
@@ -168,7 +166,6 @@ const communityThemeSlides = [
     width: 1280,
     height: 720,
     video: { mp4: '/amethyst/skins/midnight-rose/hero-loop.mp4', width: 1280, height: 720 },
-    hero: sampleThemeHero,
   }),
   communityThemeSlide({
     id: 'pearl_rose',
@@ -179,7 +176,6 @@ const communityThemeSlides = [
     width: 1280,
     height: 720,
     video: { mp4: '/amethyst/skins/pearl-rose/hero-loop.mp4', width: 1280, height: 720 },
-    hero: { ...sampleThemeHero, tone: 'ink' },
   }),
   communityThemeSlide({
     id: 'rose_champagne',
@@ -190,7 +186,6 @@ const communityThemeSlides = [
     width: 1280,
     height: 720,
     video: { mp4: '/amethyst/skins/rose-champagne/hero-loop.mp4', width: 1280, height: 720 },
-    hero: sampleThemeHero,
   }),
 ] as const satisfies readonly PortfolioSlide[]
 

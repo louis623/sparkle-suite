@@ -111,12 +111,19 @@ describe('Sparkle Suite portfolio carousels', () => {
       expect(index).toBeGreaterThan(previous)
       previous = index
       expect(themeHtml).toContain(`href="/skin-preview/${theme.id}/homepage"`)
+      const slide = themes?.slides.find((item) => item.id === theme.id)
       if (theme.id === 'halloween_pumpkin_witch') {
-        expect(themeHtml).toContain('A frightfully fun night to sparkle.')
+        expect(slide?.kind === 'capture' ? slide.hero?.headline : undefined).toBe('A frightfully fun night to sparkle.')
+        expect(slide?.kind === 'capture' ? slide.hero?.sub : undefined).toBe(
+          'Glowing jack-o-lanterns, silver moonlight, and a welcoming place to share the Halloween fun.',
+        )
       } else if (theme.id === 'halloween_pumpkin_cat') {
-        expect(themeHtml).toContain('A little mystery. A lot of sparkle.')
+        expect(slide?.kind === 'capture' ? slide.hero?.headline : undefined).toBe('A little mystery. A lot of sparkle.')
+        expect(slide?.kind === 'capture' ? slide.hero?.sub : undefined).toBe(
+          'Join Sasha for live jewelry reveals and find your next favorite.',
+        )
       } else {
-        expect(themeHtml).toContain('Real jewelry. Live reveals. Pure sparkle.')
+        expect(slide?.kind === 'capture' ? slide.hero : undefined).toBeUndefined()
       }
       expect(
         themeHtml.includes(theme.poster) || themeHtml.includes(encodeURIComponent(theme.poster)),
@@ -125,7 +132,6 @@ describe('Sparkle Suite portfolio carousels', () => {
       expect(themeHtml).not.toContain('hero-halloween-witch-live')
       expect(themeHtml).not.toContain('hero-halloween-cat-live')
       expect(themeHtml).not.toContain('milehighfizz.com')
-      const slide = themes?.slides.find((item) => item.id === theme.id)
       if (theme.mp4) {
         expect(existsSync(publicFile(theme.mp4))).toBe(true)
         expect(slide && slide.kind === 'capture' ? slide.video?.mp4 : undefined).toBe(theme.mp4)
@@ -133,6 +139,12 @@ describe('Sparkle Suite portfolio carousels', () => {
         expect(slide && slide.kind === 'capture' ? slide.video : undefined).toBeUndefined()
       }
     }
+    expect(themeHtml).not.toContain('Real jewelry. Live reveals. Pure sparkle.')
+    const previewProfiles = readFileSync(join(process.cwd(), 'lib/amethyst/skin-preview.ts'), 'utf8')
+    expect(previewProfiles).toContain("headline: 'A frightfully fun night to sparkle.'")
+    expect(previewProfiles).toContain(
+      "heroSub: 'A little mystery. A lot of sparkle. Join Sasha for live jewelry reveals and find your next favorite.'",
+    )
     expect(themeHtml).not.toMatch(/Morganite|Rose Gold|Garnet|Amber|Velvet|Moonstone|Emerald Garden|Rose Quartz|Black Diamond|Alpine Opal|Gnome Forest|Neon Butterfly/)
     expect(reps?.slides.map((slide) => slide.id)).toEqual([...repIds])
   })
