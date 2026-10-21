@@ -659,6 +659,9 @@ function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {
 }
 
 function isPositiveConfirmation(text: string): boolean {
+  const trimmed = text.trim()
+  if (!trimmed || trimmed.endsWith('?')) return false
+  if (/\b(?:no|not|wrong|isn'?t|isnt|don'?t|dont)\b/i.test(trimmed)) return false
   return (
     /\b(?:confirmed|confirm|yes|yep|yeah|correct|that'?s right|that is right|that is correct|exactly|use it|use that|use this(?:\s+(?:photo|shot|image|one))?|good enough)\b/i.test(
       text,

@@ -651,6 +651,74 @@ describe('main photo confirmation', () => {
     ).toBe(true)
   })
 
+  it.each([
+    'No, that is not correct',
+    "no, don't use that one",
+    'Is that correct?',
+  ])('does not confirm the main photo or the set from %s', async (reply) => {
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_sessions') return { update }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-nk60295',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'ready_to_add',
+      known: {
+        itemNumber: 'NK60295',
+        designName: 'Necklace',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: { mainPhotoConfirmationRequired: true },
+      photos: [],
+    }
+
+    const ingested = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'ask',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: {
+                needsAction: 'confirm_main_photo',
+                previewPhotoId: 'photo-nk60295',
+                code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                message:
+                  'This photo is already on NK60295. If ST21027 belongs with that set, reply yes. This is the main photo I will save for NK60295.',
+              },
+            },
+          ],
+        },
+        {
+          id: 'reply',
+          role: 'user',
+          parts: [{ type: 'text', text: reply }],
+        },
+      ],
+    })
+
+    expect(ingested.metadata.mainPhotoConfirmedPhotoId).toBeUndefined()
+    expect(ingested.metadata.mainPhotoConfirmed).toBeUndefined()
+    expect(ingested.metadata.photoSetReuseConfirmed).toBeUndefined()
+    expect(ingested.metadata.photoSetReuseConfirmedSha).toBeUndefined()
+  })
+
   it('remembers a yes when the photo belongs with a saved set', async () => {
     const eq = vi.fn(() => ({ error: null }))
     const update = vi.fn(() => ({ eq }))
