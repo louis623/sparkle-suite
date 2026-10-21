@@ -1554,6 +1554,14 @@ function useTradeDialog(open, onClose, view) {
   return ref;
 }
 
+function SparkleMark() {
+  return (
+    <svg className="tp-sparkle-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="currentColor" d="M12 1.2 13.7 8.3 20.8 10 13.7 11.7 12 18.8 10.3 11.7 3.2 10 10.3 8.3 12 1.2Zm6.2 11.1.7 2.4 2.4.7-2.4.7-.7 2.4-.7-2.4-2.4-.7 2.4-.7.7-2.4ZM5.6 14.2l.5 1.7 1.7.5-1.7.5-.5 1.7-.5-1.7-1.7-.5 1.7-.5.5-1.7Z" />
+    </svg>
+  );
+}
+
 function ExpandedCard({ piece, onClose, onWantThis }) {
   const dialogRef = useTradeDialog(Boolean(piece), onClose);
   if (!piece) return null;
@@ -1614,7 +1622,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
           <p className="tp-card-expand-rule">A dancer swap is one dancer for one dancer, with no added payment or credit. Your rep makes the final decision.</p>
           <button type="button" className="tp-card-expand-cta" onClick={() => onWantThis(piece)}>
             Request this swap
-            <span>?</span>
+            <SparkleMark />
           </button>
         </div>
       </div>
@@ -2016,7 +2024,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
 function EmptyState({ repName }) {
   return (
     <div className="tp-empty">
-      <div className="tp-empty-glyph">?</div>
+      <div className="tp-empty-glyph" aria-hidden="true"><SparkleMark /></div>
       <h3 className="tp-empty-title">{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Dance Floor is empty right now."}</h3>
       <p className="tp-empty-sub">
           <strong>{repName}</strong> adds dancers after live reveals. Check back after the next show for fresh one-for-one swap options.
@@ -2032,7 +2040,7 @@ function EmptyState({ repName }) {
 function NoMatchesState({ onClear }) {
   return (
     <div className="tp-empty">
-      <div className="tp-empty-glyph">?</div>
+      <div className="tp-empty-glyph" aria-hidden="true"><SparkleMark /></div>
           <h3 className="tp-empty-title">No dancers match these filters.</h3>
       <p className="tp-empty-sub">
         Try a different collection, jewelry type, rarity tag, or material mix to widen the Dance Floor again.

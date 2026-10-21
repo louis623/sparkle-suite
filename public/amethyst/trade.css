@@ -1316,6 +1316,20 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
   font-size: 13px;
   line-height: 1.5;
 }
+.tp-sparkle-mark {
+  width: 1em;
+  height: 1em;
+  display: block;
+  flex: none;
+}
+.tp-card-expand-cta .tp-sparkle-mark {
+  width: 16px;
+  height: 16px;
+}
+.tp-empty-glyph .tp-sparkle-mark {
+  width: 48px;
+  height: 48px;
+}
 .tp-card-expand-cta {
   display: inline-flex;
   align-items: center;
@@ -1680,10 +1694,9 @@ body.tradepage .tp-sheet-title {
   background: var(--hp-bg-elevated);
 }
 .tp-empty-glyph {
-  font-family: var(--hp-display-font);
-  font-size: 64px;
+  display: flex;
+  justify-content: center;
   color: var(--hp-primary);
-  opacity: 0.3;
   margin-bottom: 12px;
 }
 .tp-empty-title {
