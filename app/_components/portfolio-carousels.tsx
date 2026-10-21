@@ -10,6 +10,7 @@ import {
   sparkleSuiteScheduleBuild,
   type PortfolioSlide,
 } from '@/lib/sparkle-suite/portfolio-content'
+import { nextCarouselIndex } from '@/lib/sparkle-suite/portfolio-carousel-index'
 import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 import { ProductPeekVideo } from './product-peek-video'
 import styles from './portfolio-experience.module.css'
@@ -91,27 +92,36 @@ function PortfolioCarousel({
 }) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const dotsRef = useRef<HTMLDivElement>(null)
+  const activeRef = useRef(0)
+  const userMovedRef = useRef(false)
+  const programmaticRef = useRef(false)
+  const programmaticTimer = useRef(0)
   const [active, setActive] = useState(0)
   const count = carousel.slides.length
 
-  function scrollToSlide(index: number) {
+  function scrollToSlide(index: number, behavior?: ScrollBehavior) {
     const viewport = viewportRef.current
     const target = viewport?.querySelector<HTMLElement>(`[data-slide-index="${index}"]`)
     if (!viewport || !target) return
     const viewportRect = viewport.getBoundingClientRect()
     const targetRect = target.getBoundingClientRect()
     const delta = targetRect.left - viewportRect.left - (viewportRect.width - targetRect.width) / 2
+    const chosen = behavior ?? (prefersReducedMotion() ? 'auto' : 'smooth')
+    programmaticRef.current = true
+    window.clearTimeout(programmaticTimer.current)
+    programmaticTimer.current = window.setTimeout(() => {
+      programmaticRef.current = false
+    }, chosen === 'auto' ? 80 : 700)
     viewport.scrollTo({
       left: viewport.scrollLeft + delta,
-      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      behavior: chosen,
     })
   }
 
   useEffect(() => {
-    scrollToSlide(0)
     const viewport = viewportRef.current
     if (!viewport) return
-    const syncActive = () => {
+    const nearestIndex = () => {
       const slides = [...viewport.querySelectorAll<HTMLElement>('[data-slide-index]')]
       const center = viewport.scrollLeft + viewport.clientWidth / 2
       let closest = 0
@@ -126,39 +136,66 @@ function PortfolioCarousel({
           closest = index
         }
       })
-      setActive(closest)
+      return closest
+    }
+    const applyUserScroll = () => {
+      const next = nextCarouselIndex(activeRef.current, nearestIndex(), userMovedRef.current)
+      activeRef.current = next
+      setActive(next)
     }
     let frame = 0
     let settleTimer = 0
+    let restoreFrame = 0
+    const restoreHeldSlide = () => {
+      userMovedRef.current = false
+      cancelAnimationFrame(restoreFrame)
+      restoreFrame = requestAnimationFrame(() => scrollToSlide(activeRef.current, 'auto'))
+    }
     const onScroll = () => {
+      if (programmaticRef.current) return
+      if (!userMovedRef.current) {
+        restoreHeldSlide()
+        return
+      }
       cancelAnimationFrame(frame)
       window.clearTimeout(settleTimer)
       frame = requestAnimationFrame(() => {
-        settleTimer = window.setTimeout(syncActive, 80)
+        settleTimer = window.setTimeout(applyUserScroll, 80)
       })
     }
-    const observer = new IntersectionObserver((entries) => {
-      const visible = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0]
-      const index = Number(visible?.target.getAttribute('data-slide-index'))
-      if (Number.isInteger(index)) setActive(index)
-    }, { root: viewport, threshold: [0.6] })
-    viewport.querySelectorAll('[data-slide-index]').forEach((slide) => observer.observe(slide))
+    const markUserMoved = () => {
+      userMovedRef.current = true
+    }
+    const onScrollEnd = () => {
+      if (userMovedRef.current) applyUserScroll()
+      userMovedRef.current = false
+    }
+    scrollToSlide(0, 'auto')
+    window.addEventListener('resize', restoreHeldSlide)
+    viewport.addEventListener('pointerdown', markUserMoved)
+    viewport.addEventListener('wheel', markUserMoved, { passive: true })
+    viewport.addEventListener('touchstart', markUserMoved, { passive: true })
     viewport.addEventListener('scroll', onScroll, { passive: true })
-    viewport.addEventListener('scrollend', syncActive)
+    viewport.addEventListener('scrollend', onScrollEnd)
     return () => {
       cancelAnimationFrame(frame)
+      cancelAnimationFrame(restoreFrame)
       window.clearTimeout(settleTimer)
-      observer.disconnect()
+      window.clearTimeout(programmaticTimer.current)
+      window.removeEventListener('resize', restoreHeldSlide)
+      viewport.removeEventListener('pointerdown', markUserMoved)
+      viewport.removeEventListener('wheel', markUserMoved)
+      viewport.removeEventListener('touchstart', markUserMoved)
       viewport.removeEventListener('scroll', onScroll)
-      viewport.removeEventListener('scrollend', syncActive)
+      viewport.removeEventListener('scrollend', onScrollEnd)
     }
   }, [])
 
   function focusSlide(index: number) {
     const next = (index + count) % count
+    activeRef.current = next
     setActive(next)
+    userMovedRef.current = false
     scrollToSlide(next)
     return next
   }
