@@ -1756,6 +1756,68 @@ describe('main photo preview sources', () => {
     restore()
   })
 
+  it('returns the parsed storage URL', () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    delete process.env.SUPABASE_URL
+    try {
+      expect(
+        mainPhotoPreviewSrc({
+          previewImageUrl:
+            'HTTPS://Project.supabase.co:443/storage/v1/object/public/jewelry-photos/a.jpg',
+        }),
+      ).toBe('https://project.supabase.co/storage/v1/object/public/jewelry-photos/a.jpg')
+    } finally {
+      restore()
+    }
+  })
+
+  it('rejects a storage URL that includes a username or password', () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    delete process.env.SUPABASE_URL
+    try {
+      const withUserinfo = [
+        'https://user:secret@project.supabase.co/storage/v1/object/public/jewelry-photos/a.jpg',
+        'https://user@project.supabase.co/storage/v1/object/public/jewelry-photos/a.jpg',
+        'https://:secret@project.supabase.co/storage/v1/object/public/jewelry-photos/a.jpg',
+      ]
+      for (const previewImageUrl of withUserinfo) {
+        expect(mainPhotoPreviewSrc({ previewImageUrl })).toBeNull()
+        expect(mainPhotoPreviewLocator({ imageUrl: previewImageUrl }).previewImageUrl).toBeUndefined()
+      }
+    } finally {
+      restore()
+    }
+  })
+
+  it('asks for the photo again when the browser cannot draw a picture', () => {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL
+    delete process.env.SUPABASE_URL
+    try {
+      const renderables = buildAssistantMessageRenderables([
+        {
+          type: 'tool-add_listing',
+          state: 'output-available',
+          output: {
+            needsAction: 'confirm_main_photo',
+            previewImageUrl:
+              'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/front.jpg',
+            message:
+              'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
+          },
+        },
+      ])
+      expect(renderables).toEqual([
+        {
+          type: 'main-photo-preview',
+          key: 'main-photo-0',
+          text: "I can't show this photo here. Please send it again.",
+        },
+      ])
+    } finally {
+      restore()
+    }
+  })
+
   it('does not render a foreign https link as the chat image', () => {
     const previous = process.env.NEXT_PUBLIC_SUPABASE_URL
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'

@@ -192,9 +192,10 @@ export function buildAssistantMessageRenderables(
       renderables.push({
         type: 'main-photo-preview',
         key: `main-photo-${index}`,
-        text:
-          output.message ??
-          'This is the main photo I will save. If this is the right piece, reply yes.',
+        text: imageUrl
+          ? (output.message ??
+            'This is the main photo I will save. If this is the right piece, reply yes.')
+          : "I can't show this photo here. Please send it again.",
         ...(imageUrl ? { imageUrl } : {}),
       })
     }
