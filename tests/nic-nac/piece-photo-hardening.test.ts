@@ -187,6 +187,19 @@ describe('Kelly 9/18 — a photo starts a piece only while one is being added', 
     ).toBe(false)
   })
 
+  it('does not start tracking from a Dance Floor status update', () => {
+    expect(
+      hasTradeBoardIntakeSignal([
+        {
+          id: 'assistant-count',
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'Your Dance Floor has 12 dancers.' }],
+        },
+        labelPhoto,
+      ]),
+    ).toBe(false)
+  })
+
   it('starts tracking when the previous message asked for the piece photo', () => {
     expect(
       hasTradeBoardIntakeSignal([
