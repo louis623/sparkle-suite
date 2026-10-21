@@ -776,16 +776,61 @@ describe('main photo confirmation', () => {
     'nooo use this one',
     '👎 use this one',
     'yes 👎',
+    'No, that is not correct',
+    "no, don't use that one",
+    'Is that correct?',
+    'nvm, use this one',
+    'ugh, use this one',
+    'meh, use this',
+    'idk, yes',
+    'yes, the other one',
+    'yes, the second one',
+    'yes the 2nd photo',
+    'other one, use that one',
+    'swap it, use this one',
+    'redo it, use that',
+    'try again, use this one',
+    'x use this one',
+    'yes but use the other one',
+    'yes but crop it',
+    'yes 🤔',
+    'confirmed, oops, other one',
+    'don\u02BCt use that',
+    'isn`t right',
+    'hold on, use this one',
+    'stop, use this one',
+    'cancel, use that one',
+    'different one, use that',
+    'use this one instead',
+    '❌ use this one',
   ])('does not treat %s as a yes', (reply) => {
     expect(isPositiveConfirmation(reply)).toBe(false)
   })
 
-  it.each(['yes', 'yep', 'that’s right', 'yes, no problem', 'not bad, yes'])(
-    'still treats %s as a yes',
-    (reply) => {
-      expect(isPositiveConfirmation(reply)).toBe(true)
-    },
-  )
+  it.each([
+    'yes',
+    'yep',
+    'yeah',
+    'yup',
+    'that’s right',
+    'yes, no problem',
+    'not bad, yes',
+    'nothing wrong, yes',
+    'yes 👍',
+    'yes 🙌',
+    'yes 😊',
+    'looks good',
+    'perfect',
+    'confirmed',
+    'ok',
+    'okay',
+    'sure',
+    'use it',
+    'that one',
+    '👍',
+  ])('still treats %s as a yes', (reply) => {
+    expect(isPositiveConfirmation(reply)).toBe(true)
+  })
 
   it.each([
     'No, that is not correct',

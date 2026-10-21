@@ -770,44 +770,37 @@ function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {
   })
 }
 
-function straightenConfirmationText(text: string): string {
-  return text.replace(/[\u2018\u2019\u2032]/g, "'").replace(/[\u201C\u201D\u2033]/g, '"')
-}
+const POSITIVE_CONFIRMATION_EMOJI =
+  /(?:\u{1F44D}|\u{1F44C}|\u{1F64C}|\u{1F60A}|\u{1F642}|\u{1F600}|\u{1F601}|\u{2705})(?:\u{1F3FB}|\u{1F3FC}|\u{1F3FD}|\u{1F3FE}|\u{1F3FF})?\u{FE0F}?/gu
 
-function hasConfirmationCorrection(text: string): boolean {
-  if (/[👎❌]/.test(text)) return true
-  if (/\bnoo+\b/i.test(text)) return true
-  if (
-    /\b(?:nah|nope|never(?:\s+mind)?|wait|hold\s+on|stop|cancel|different|instead|wrong|isn'?t|isnt|doesn'?t|doesnt|can'?t|cant|don'?t|dont|no|not)\b/i.test(
-      text,
-    )
-  ) {
-    return true
-  }
-  return false
+const CONFIRMATION_FILLER = /\b(?:no\s+problem|not\s+bad|nothing\s+wrong)\b/gi
+
+const AFFIRMATIVE_PHRASE =
+  /yes|yep|yeah|yup|correct|that(?:'s| is) right|that(?:'s| is) correct|looks? good|perfect|confirmed|ok|okay|sure|use (?:it|this|that)(?: (?:one|photo|shot|image))?|(?:this|that) one/i
+
+const ONLY_AFFIRMATIVES = new RegExp(
+  `^(?:${AFFIRMATIVE_PHRASE.source})(?:\\s+(?:${AFFIRMATIVE_PHRASE.source}))*$`,
+  'i',
+)
+
+function normalizeConfirmationText(text: string): string {
+  return text
+    .replace(/[\u2018\u2019\u2032\u02BC`]/g, "'")
+    .replace(/[\u201C\u201D\u2033]/g, '"')
 }
 
 export function isPositiveConfirmation(text: string): boolean {
-  const trimmed = straightenConfirmationText(text).trim()
-  if (!trimmed || trimmed.endsWith('?')) return false
-  const scanned = trimmed
-    .replace(/\bno\s+problem\b/gi, ' ')
-    .replace(/\bnot\s+bad\b/gi, ' ')
-  if (hasConfirmationCorrection(scanned)) return false
-  return (
-    /\b(?:confirmed|confirm|yes|yep|yeah|correct|that'?s right|that is right|that is correct|exactly|use it|use that|use this(?:\s+(?:photo|shot|image|one))?|good enough)\b/i.test(
-      trimmed,
-    ) ||
-    /\bpush\s+(?:it|that|this|the\s+photo|the\s+shot|the\s+image)\s+through\b/i.test(
-      trimmed,
-    ) ||
-    /\b(?:it'?s|it is|that'?s|that is|this is|photo is|shot is|image is)\s+a?\s*(?:good|great|perfect|usable|clear)\s+(?:photo|shot|image)\b/i.test(
-      trimmed,
-    ) ||
-    /\b(?:good|great|perfect|usable|clear)\s+(?:photo|shot|image)\b/i.test(
-      trimmed,
-    )
-  )
+  const normalized = normalizeConfirmationText(text).trim()
+  if (!normalized || normalized.includes('?')) return false
+  const withoutEmoji = normalized.replace(POSITIVE_CONFIRMATION_EMOJI, ' ')
+  const hadPositiveEmoji = withoutEmoji !== normalized
+  const remainder = withoutEmoji
+    .replace(CONFIRMATION_FILLER, ' ')
+    .replace(/[!.,…"“”]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!remainder) return hadPositiveEmoji
+  return ONLY_AFFIRMATIVES.test(remainder)
 }
 
 function assistantAskedToConfirmJewelryFront(text: string): boolean {
