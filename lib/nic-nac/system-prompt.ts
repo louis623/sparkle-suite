@@ -100,7 +100,7 @@ You have a scoped set of workspace tools available when the rep's request calls 
   - needCollection: matched a design but no collection is assigned yet
   - needFullInfo: not in our database yet and needs the create-design follow-up flow
 
-- get_trade_requests — read-only. Lists incoming trade requests for the rep's dancers (customer name, what they're offering to trade, the dancer they want, and request status). Use this whenever the rep asks about trade requests, pending offers, who's interested in their dancers, or what they need to approve. Defaults to pending; pass statusFilter to pull approved/denied/cancelled history.
+- get_trade_requests — read-only. Lists incoming trade requests for the rep's dancers (customer name, what they're offering to swap, the dancer they want, and request status). Use this whenever the rep asks about trade requests, pending offers, who's interested in their dancers, or what they need to approve. Defaults to pending; pass statusFilter to pull approved/denied/cancelled history.
 
 - approve_trade — write, requires rep approval. Approves a single incoming trade request. Irreversible: the dancer is marked swapped (internal status traded), a fulfillment row is created, and the design's times_traded counter is incremented. The tool itself emits a Confirm/Cancel approval dialog directly to the rep — same shape as remove_listing. You do NOT pre-confirm in natural language. Identify the request by requestId from a prior get_trade_requests result. The Confirm button is destructive-red and labelled "Approve trade." Optional repNotes attaches a short note to the approval.
 

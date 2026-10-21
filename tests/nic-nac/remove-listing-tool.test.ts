@@ -26,6 +26,14 @@ vi.mock('@/lib/nic-nac/guardian-telemetry', () => ({
   logIncident: (...args: unknown[]) => logIncidentMock(...args),
 }))
 
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => ({}),
+}))
+
+vi.mock('@/lib/nic-nac/workflows/trade-workflow-store', () => ({
+  completeTradeWorkflowSession: vi.fn(async () => undefined),
+}))
+
 import { makeRemoveListingTool } from '@/lib/nic-nac/tools/remove-listing'
 
 interface ToolDef {
@@ -108,5 +116,33 @@ describe('remove_listing tool', () => {
 
     expect(removeListingMock).not.toHaveBeenCalled()
     expect(writeTradeActionAuditMock).not.toHaveBeenCalled()
+  })
+
+  it('stores a swapped removal using the existing sold reason', async () => {
+    removeListingMock.mockResolvedValueOnce({
+      listingId: '11111111-1111-4111-8111-111111111111',
+      designName: 'Earrings',
+      previousStatus: 'available',
+      cancelledRequestId: null,
+    })
+    const workflow = activeRemoveWorkflow()
+
+    await makeTool({
+      ...workflow,
+      knownFields: {
+        ...workflow.knownFields,
+        removalReason: 'sold',
+      },
+    }).execute({
+      listingId: '11111111-1111-4111-8111-111111111111',
+      itemNumber: 'ER13229',
+      reason: 'swapped',
+    })
+
+    expect(removeListingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      'rep-1',
+      expect.objectContaining({ reason: 'sold' }),
+    )
   })
 })
