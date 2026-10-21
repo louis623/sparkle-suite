@@ -25,9 +25,15 @@ import {
 import {
   hasTradeBoardIntakeSignal,
   ingestLatestTradeBoardIntakeTurn,
+  isNegativePhotoConfirmation,
   isPositiveConfirmation,
 } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import { buildAssistantMessageRenderables } from '@/app/nic-nac/components/NicNacChatBody'
+import {
+  CLIENT_PHOTO_MAX_EDGE,
+  compressedPhotoEdges,
+} from '@/lib/nic-nac/image-compress'
+import { assessJewelryPhotoPreflight } from '@/lib/services/jewelry-photo-preflight'
 import {
   mainPhotoPreviewLocator,
   mainPhotoPreviewSrc,
@@ -35,6 +41,7 @@ import {
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
 import {
   isAcceptedCustomerFacingWorkflowPhoto,
+  TURNED_DOWN_MAIN_PHOTO_NOTE,
   workflowPhotoSatisfiesJewelryFront,
 } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import {
@@ -485,18 +492,66 @@ describe('label item numbers', () => {
     expect(png.length).toBeLessThanOrEqual(LABEL_TEMPLATE_MAX_BYTES)
   })
 
-  it('H7 is a no-op on a real-sized chat photo until real OCR exists', async () => {
-    const liveSized = Buffer.alloc(140_000, 1)
-    expect(liveSized.length).toBeGreaterThan(LABEL_TEMPLATE_MAX_BYTES)
-    expect(await readItemNumbersFromImageBytes(liveSized)).toEqual([])
-    const liveUrl = `data:image/jpeg;base64,${'A'.repeat(182_000)}`
-    expect(await readItemNumbersFromImageUrl(liveUrl)).toEqual([])
-    expect(
-      decideLabelItemNumber({
-        itemNumber: 'ST21027',
-        readItemNumbers: await readItemNumbersFromImageUrl(liveUrl),
-      }).blocked,
-    ).toBe(false)
+  it('leaves a real-sized label unread when no vision key is set', async () => {
+    const previous = process.env.OPENAI_API_KEY
+    delete process.env.OPENAI_API_KEY
+    try {
+      const liveSized = Buffer.alloc(140_000, 1)
+      expect(liveSized.length).toBeGreaterThan(LABEL_TEMPLATE_MAX_BYTES)
+      expect(await readItemNumbersFromImageBytes(liveSized)).toEqual([])
+      const liveUrl = `data:image/jpeg;base64,${'A'.repeat(182_000)}`
+      expect(await readItemNumbersFromImageUrl(liveUrl, { allowVision: true })).toEqual([])
+      expect(
+        decideLabelItemNumber({
+          itemNumber: 'ST21027',
+          readItemNumbers: await readItemNumbersFromImageUrl(liveUrl, {
+            allowVision: true,
+          }),
+        }).blocked,
+      ).toBe(false)
+    } finally {
+      if (previous === undefined) delete process.env.OPENAI_API_KEY
+      else process.env.OPENAI_API_KEY = previous
+    }
+  })
+
+  it('refuses a save when vision reads a different item number on the label', async () => {
+    const previous = process.env.OPENAI_API_KEY
+    process.env.OPENAI_API_KEY = 'test-key'
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        output: [
+          {
+            content: [
+              { type: 'output_text', text: '{"itemNumbers":["ER90999"]}' },
+            ],
+          },
+        ],
+      }),
+    }))
+    try {
+      const liveUrl = `data:image/jpeg;base64,${'A'.repeat(182_000)}`
+      const readItemNumbers = await readItemNumbersFromImageUrl(liveUrl, {
+        allowVision: true,
+        fetch: fetchMock as unknown as typeof fetch,
+      })
+      expect(readItemNumbers).toEqual(['ER90999'])
+      const decision = decideLabelItemNumber({
+        itemNumber: 'NK90303',
+        readItemNumbers,
+      })
+      expect(decision.blocked).toBe(true)
+      if (!decision.blocked) return
+      expect(decision.message).toContain('ER90999')
+      expect(decision.message).toContain("I won't save it on NK90303")
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      const request = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))
+      expect(request.input[0].content[1].image_url).toBe(liveUrl)
+    } finally {
+      if (previous === undefined) delete process.env.OPENAI_API_KEY
+      else process.env.OPENAI_API_KEY = previous
+    }
   })
 
   it('blocks a label for a different item number and allows the same item number', () => {
@@ -654,6 +709,94 @@ describe('main photo confirmation', () => {
     })
   })
 
+  it('shows only the current preview when one reply has two photo cards', () => {
+    const renderables = buildAssistantMessageRenderables([
+      {
+        type: 'tool-add_listing',
+        state: 'output-available',
+        output: {
+          needsAction: 'confirm_main_photo',
+          previewPhotoId: 'photo-ring',
+          message:
+            'This is the main photo I will save for NK90303. If this is the right piece, reply yes.',
+        },
+      },
+      {
+        type: 'tool-add_listing',
+        state: 'output-available',
+        output: {
+          needsAction: 'confirm_main_photo',
+          previewPhotoId: 'photo-earrings',
+          message:
+            'This is the main photo I will save for ER90202. If this is the right piece, reply yes.',
+        },
+      },
+    ])
+    expect(renderables.filter((item) => item.type === 'main-photo-preview')).toEqual([
+      {
+        type: 'main-photo-preview',
+        key: 'main-photo-1',
+        text: 'This is the main photo I will save for ER90202. If this is the right piece, reply yes.',
+        imageUrl: '/api/nic-nac/intake-photos/photo-earrings',
+      },
+    ])
+  })
+
+  it('keeps the saved id for a photo sent in the same message as the add request', async () => {
+    const upsert = vi.fn(() => ({
+      select: () => ({
+        maybeSingle: async () => ({ data: { id: 'photo-current' }, error: null }),
+      }),
+    }))
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_photos') return { upsert }
+        if (table === 'trade_board_intake_sessions') return { update }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-er90202',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'photo_capture',
+      known: { itemNumber: 'ER90202' },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: {},
+      photos: [],
+    }
+    const ingested = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'add',
+          role: 'user',
+          parts: [
+            { type: 'text', text: 'Add ER90202. This is the jewelry.' },
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TkVX',
+            },
+          ],
+        },
+      ],
+    })
+    const photo = ingested.photos.at(-1)
+    expect(photo?.id).toBe('photo-current')
+    expect(mainPhotoPreviewLocator(photo ?? {}).previewPhotoId).toBe('photo-current')
+    expect(mainPhotoPreviewSrc({ previewPhotoId: photo?.id })).toBe(
+      '/api/nic-nac/intake-photos/photo-current',
+    )
+  })
+
   it('remembers a yes after the main photo preview', async () => {
     const eq = vi.fn(() => ({ error: null }))
     const update = vi.fn(() => ({ eq }))
@@ -722,6 +865,228 @@ describe('main photo confirmation', () => {
         }),
       }),
     )
+  })
+
+  it('binds yes to the last photo shown, not an earlier turned-down one', async () => {
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_sessions') return { update }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-nk90303',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'ready_to_add',
+      known: {
+        itemNumber: 'NK90303',
+        designName: 'Necklace',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: { mainPhotoConfirmationRequired: true },
+      photos: [
+        {
+          id: 'photo-ring',
+          intakeSessionId: 'intake-nk90303',
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,UklORw==',
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+        {
+          id: 'photo-earrings',
+          intakeSessionId: 'intake-nk90303',
+          attachmentIndex: 2,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,RUFSA==',
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+      ],
+    }
+
+    const ingested = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'preview',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: {
+                needsAction: 'confirm_main_photo',
+                previewPhotoId: 'photo-ring',
+                message:
+                  'This is the main photo I will save for NK90303. If this is the right piece, reply yes.',
+              },
+            },
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: {
+                needsAction: 'confirm_main_photo',
+                previewPhotoId: 'photo-earrings',
+                message:
+                  'This is the main photo I will save for NK90303. If this is the right piece, reply yes.',
+              },
+            },
+          ],
+        },
+        {
+          id: 'yes',
+          role: 'user',
+          parts: [{ type: 'text', text: 'yes' }],
+        },
+      ],
+    })
+
+    expect(ingested.metadata.mainPhotoConfirmedPhotoId).toBe('photo-earrings')
+    expect(ingested.metadata.mainPhotoConfirmedPhotoId).not.toBe('photo-ring')
+  })
+
+  it('detaches a photo the rep turns down so it is not offered again', async () => {
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const upsert = vi.fn(() => ({ error: null }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_photos') return { upsert }
+        if (table === 'trade_board_intake_sessions') return { update }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const ring = {
+      id: 'photo-ring',
+      intakeSessionId: 'intake-nk90303',
+      attachmentIndex: 1,
+      declaredRole: 'jewelry_front' as const,
+      visualRole: 'jewelry' as const,
+      roleConfirmed: true,
+      imageUrl: 'data:image/jpeg;base64,UklORw==',
+      quality: 'usable' as const,
+      qualityIssues: [],
+      notes: ['declared as customer-facing jewelry photo'],
+    }
+    const earrings = {
+      id: 'photo-earrings',
+      intakeSessionId: 'intake-nk90303',
+      attachmentIndex: 2,
+      declaredRole: 'jewelry_front' as const,
+      visualRole: 'jewelry' as const,
+      roleConfirmed: true,
+      imageUrl: 'data:image/jpeg;base64,RUFSA==',
+      quality: 'usable' as const,
+      qualityIssues: [],
+      notes: ['declared as customer-facing jewelry photo'],
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-nk90303',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'ready_to_add',
+      known: {
+        itemNumber: 'NK90303',
+        designName: 'Necklace',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: {
+        mainPhotoConfirmationRequired: true,
+        mainPhotoConfirmedPhotoId: 'photo-ring',
+        mainPhotoConfirmedItemNumber: 'NK90303',
+      },
+      photos: [ring, earrings],
+    }
+
+    const turnedDown = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'preview',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: {
+                needsAction: 'confirm_main_photo',
+                previewPhotoId: 'photo-ring',
+                message:
+                  'This is the main photo I will save for NK90303. If this is the right piece, reply yes.',
+              },
+            },
+          ],
+        },
+        {
+          id: 'no',
+          role: 'user',
+          parts: [{ type: 'text', text: 'no' }],
+        },
+      ],
+    })
+
+    expect(isNegativePhotoConfirmation('no')).toBe(true)
+    expect(isNegativePhotoConfirmation('no problem')).toBe(false)
+    expect(isPositiveConfirmation('no problem')).toBe(false)
+    const ringAfter = turnedDown.photos.find((photo) => photo.id === 'photo-ring')
+    expect(ringAfter?.notes).toContain(TURNED_DOWN_MAIN_PHOTO_NOTE)
+    expect(isAcceptedCustomerFacingWorkflowPhoto(ringAfter)).toBe(false)
+    expect(workflowPhotoSatisfiesJewelryFront(ringAfter)).toBe(false)
+    expect(turnedDown.metadata.mainPhotoConfirmedPhotoId).toBeUndefined()
+    expect(turnedDown.metadata.turnedDownMainPhotoIds).toEqual(['photo-ring'])
+    expect(
+      resolveWorkflowCustomerFacingPhoto(turnedDown.photos, {
+        intakeSessionId: 'intake-nk90303',
+      })?.id,
+    ).toBe('photo-earrings')
+
+    const stillAttached = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'preview',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'text',
+              text: 'This is the main photo I will save for NK90303. If this is the right piece, reply yes.',
+            },
+          ],
+        },
+        {
+          id: 'filler',
+          role: 'user',
+          parts: [{ type: 'text', text: 'no problem' }],
+        },
+      ],
+    })
+    expect(stillAttached.photos[0]?.notes).not.toContain(TURNED_DOWN_MAIN_PHOTO_NOTE)
+    expect(stillAttached.metadata.mainPhotoConfirmedPhotoId).toBe('photo-ring')
   })
 
   it('shows the main photo preview again after a yes when a new jewelry photo arrives', async () => {
@@ -1840,5 +2205,37 @@ describe('main photo preview sources', () => {
       if (previous === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
       else process.env.NEXT_PUBLIC_SUPABASE_URL = previous
     }
+  })
+})
+
+describe('phone photo size and quality', () => {
+  const clear = {
+    blurRisk: 0.12,
+    lightingRisk: 0.18,
+    subjectCoverage: 0.42,
+    subjectCentered: true,
+  }
+
+  it('rates a good phone photo as good after the client shrinks it', () => {
+    expect(CLIENT_PHOTO_MAX_EDGE).toBe(2400)
+    const fourByThree = compressedPhotoEdges(4032, 3024)
+    const sixteenByNine = compressedPhotoEdges(4032, 2268)
+    expect(assessJewelryPhotoPreflight({ ...fourByThree, ...clear }).passed).toBe(true)
+    expect(assessJewelryPhotoPreflight({ ...sixteenByNine, ...clear }).passed).toBe(true)
+    expect(
+      assessJewelryPhotoPreflight({ ...fourByThree, ...clear }).issues.some(
+        (issue) => issue.code === 'low_resolution',
+      ),
+    ).toBe(false)
+
+    const oldClientSize = assessJewelryPhotoPreflight({
+      width: 1024,
+      height: 768,
+      ...clear,
+    })
+    expect(oldClientSize.passed).toBe(false)
+    expect(oldClientSize.issues).toContainEqual(
+      expect.objectContaining({ code: 'low_resolution', severity: 'critical' }),
+    )
   })
 })

@@ -9,9 +9,15 @@ import {
   loadConversationForClient,
 } from '@/lib/nic-nac/persistence'
 import { findActionableApproval } from '@/lib/nic-nac/hitl-state'
-import { buildNicNacRolloverMessages } from '@/lib/nic-nac/rollover'
+import {
+  buildNicNacRolloverMessages,
+  shouldCarryTradeBoardIntakeOnRollover,
+} from '@/lib/nic-nac/rollover'
 import { logNicNacRollover } from '@/lib/nic-nac/rollover-telemetry'
-import { transferActiveTradeBoardIntakeConversation } from '@/lib/nic-nac/workflows/trade-board-intake-store'
+import {
+  getActiveTradeBoardIntakeSession,
+  transferActiveTradeBoardIntakeConversation,
+} from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
@@ -57,7 +63,22 @@ export async function POST(request: Request) {
   }
 
   const conversationId = randomUUID()
-  const messages = buildNicNacRolloverMessages(sourceMessages)
+  const nowIso = new Date().toISOString()
+  const admin = createAdminClient()
+  let carryWorkflow = false
+  try {
+    const activeIntake = await getActiveTradeBoardIntakeSession(admin, {
+      repId,
+      conversationId: sourceConversationId,
+      nowIso,
+    })
+    carryWorkflow = shouldCarryTradeBoardIntakeOnRollover(activeIntake)
+  } catch {
+    carryWorkflow = false
+  }
+  const messages = buildNicNacRolloverMessages(sourceMessages, undefined, {
+    dropPendingPiece: !carryWorkflow,
+  })
   await insertConversationMessages(supabase, {
     conversationId,
     repId,
@@ -65,20 +86,22 @@ export async function POST(request: Request) {
   })
   let workflowTransfer: Awaited<
     ReturnType<typeof transferActiveTradeBoardIntakeConversation>
-  >
-  try {
-    workflowTransfer = await transferActiveTradeBoardIntakeConversation(
-      createAdminClient(),
-      {
-        repId,
-        sourceConversationId,
-        destinationConversationId: conversationId,
-        nowIso: new Date().toISOString(),
-      },
-    )
-  } catch (error) {
-    await deleteConversationMessages(supabase, { conversationId, repId })
-    throw error
+  > = null
+  if (carryWorkflow) {
+    try {
+      workflowTransfer = await transferActiveTradeBoardIntakeConversation(
+        admin,
+        {
+          repId,
+          sourceConversationId,
+          destinationConversationId: conversationId,
+          nowIso,
+        },
+      )
+    } catch (error) {
+      await deleteConversationMessages(supabase, { conversationId, repId })
+      throw error
+    }
   }
   if (workflowTransfer?.replayed) {
     await deleteConversationMessages(supabase, { conversationId, repId })

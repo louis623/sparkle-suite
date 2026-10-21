@@ -147,24 +147,10 @@ function redactFailureMessage(error: unknown): string {
 }
 
 function formatAddListingSaveFailureMessage(
-  error: unknown,
-  classification: { code: string; stage: string },
+  _error: unknown,
+  _classification: { code: string; stage: string },
 ): string {
-  const cause = redactFailureMessage(error)
-    .replace(/\s+/g, ' ')
-    .trim()
-  const stageLabel =
-    classification.stage === 'catalog_photo_storage'
-      ? 'photo upload'
-      : classification.stage === 'listing_write'
-        ? 'listing save'
-        : classification.stage === 'database_write'
-          ? 'database save'
-          : 'save'
-  const detail = cause
-    ? ` ${stageLabel} error (${classification.code}): ${cause}`
-    : ` ${stageLabel} error (${classification.code}).`
-  return `The save failed on the Sparkle Suite side.${detail} I kept your details and confirmed photo, so you can retry once without uploading it again.`
+  return "I couldn't save this piece just now. Nothing was lost. Reply yes if the photo I'm showing is the right one, and I'll try again."
 }
 
 async function escalate(

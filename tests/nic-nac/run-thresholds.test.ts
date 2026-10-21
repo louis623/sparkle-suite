@@ -69,6 +69,33 @@ describe('Nic-Nac run thresholds', () => {
     })
   })
 
+  it('does not roll a short chat over when the provider count includes the standing prompt', () => {
+    expect(
+      evaluateNicNacRunThresholds({
+        latencyMs: 4_000,
+        inputTokens: 2_500,
+        totalTokens: 2_700,
+        estimatedContextTokens: 2_500,
+        contextCompacted: false,
+        droppedMessageCount: 0,
+      }),
+    ).toEqual({
+      rolloverRecommended: false,
+      reasons: [],
+    })
+
+    expect(
+      evaluateNicNacRunThresholds({
+        latencyMs: 4_000,
+        inputTokens: 85_000,
+        totalTokens: 91_000,
+        estimatedContextTokens: 2_500,
+        contextCompacted: false,
+        droppedMessageCount: 0,
+      }).reasons,
+    ).not.toContain('high_input_tokens')
+  })
+
   it('treats the estimated context token threshold as an exact boundary', () => {
     expect(
       evaluateNicNacRunThresholds({

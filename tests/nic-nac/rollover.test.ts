@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { UIMessage } from 'ai'
+import { evaluateNicNacRunThresholds } from '@/lib/nic-nac/run-thresholds'
 import {
   buildNicNacRolloverMessages,
+  shouldCarryTradeBoardIntakeOnRollover,
   shouldStartNicNacRollover,
 } from '@/lib/nic-nac/rollover'
 
@@ -44,6 +46,74 @@ describe('Nic-Nac conversation rollover', () => {
         rolloverReasons: ['context_compacted'],
       }),
     ).toBe(true)
+  })
+
+  it('does not treat a short chat as too many tokens', () => {
+    expect(
+      evaluateNicNacRunThresholds({
+        latencyMs: 2_000,
+        inputTokens: 2_500,
+        totalTokens: 2_700,
+        estimatedContextTokens: 2_500,
+        contextCompacted: false,
+        droppedMessageCount: 0,
+      }).rolloverRecommended,
+    ).toBe(false)
+    expect(
+      evaluateNicNacRunThresholds({
+        latencyMs: 2_000,
+        inputTokens: 85_000,
+        totalTokens: 91_000,
+        estimatedContextTokens: 2_500,
+        contextCompacted: false,
+        droppedMessageCount: 0,
+      }).reasons,
+    ).not.toContain('high_input_tokens')
+  })
+
+  it('does not carry a pending piece that has no confirmed photo', () => {
+    expect(shouldCarryTradeBoardIntakeOnRollover(null)).toBe(false)
+    expect(
+      shouldCarryTradeBoardIntakeOnRollover({
+        status: 'active',
+        metadata: {},
+      }),
+    ).toBe(false)
+    expect(
+      shouldCarryTradeBoardIntakeOnRollover({
+        status: 'active',
+        metadata: { mainPhotoConfirmedPhotoId: 'photo-earrings' },
+      }),
+    ).toBe(true)
+    expect(
+      shouldCarryTradeBoardIntakeOnRollover({
+        status: 'needs_human_review',
+        metadata: {},
+      }),
+    ).toBe(true)
+
+    const rolled = buildNicNacRolloverMessages(
+      [
+        {
+          id: 'pending',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              output: {
+                needsAction: 'confirm_main_photo',
+                previewPhotoId: 'photo-ring',
+                message: 'This is the main photo I will save for NK90303.',
+              },
+            },
+          ],
+        } as UIMessage,
+      ],
+      12,
+      { dropPendingPiece: true },
+    )
+    expect(JSON.stringify(rolled)).not.toContain('photo-ring')
+    expect(JSON.stringify(rolled)).not.toContain('confirm_main_photo')
   })
 
   it('does not roll over latency-only or reasonless historical health rows', () => {

@@ -42,6 +42,7 @@ import {
   inferRoleFromText,
   REP_CONFIRMED_MAIN_PHOTO_NOTE,
   stampSoleReadinessJewelryFrontCandidate,
+  TURNED_DOWN_MAIN_PHOTO_NOTE,
 } from './workflow-photo-roles'
 
 export { reconcileDeclaredPhotoRoleWithWorkflow } from './workflow-photo-roles'
@@ -326,7 +327,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
         } satisfies InspectedWorkflowPhoto),
     )
     const visualRole = inspected.visualRole
-    const photo = {
+    const photo: TradeBoardIntakeSessionState['photos'][number] = {
       intakeSessionId: args.session.id,
       conversationMessageId: args.latestUserMessageId ?? latestUser.id,
       attachmentIndex: index + 1,
@@ -347,7 +348,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
             : [],
     }
     photos.push(photo)
-    await upsertTradeBoardIntakePhoto(supabase, {
+    const savedId = await upsertTradeBoardIntakePhoto(supabase, {
       sessionId: args.session.id,
       repId: args.session.repId,
       conversationId: args.session.conversationId,
@@ -364,6 +365,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
       contentSha256: photo.contentSha256,
       visualRoleSource: photo.visualRoleSource,
     })
+    if (savedId) photo.id = savedId
   }
 
   if (fileParts.length === 0) {
@@ -429,9 +431,10 @@ export async function ingestLatestTradeBoardIntakeTurn(
     delete metadata.mainPhotoConfirmed
     delete metadata.mainPhotoConfirmedItemNumber
   } else if (latestTurnConfirmsMainPhoto(args.messages)) {
-    const confirmedPhotoId =
-      previewedMainPhotoId(args.messages) ??
-      currentMainPhotoIdentity(photos)
+    const shownPreview = lastShownMainPhotoPreview(args.messages)
+    const confirmedPhotoId = shownPreview.shown
+      ? shownPreview.id
+      : currentMainPhotoIdentity(photos)
     const confirmedItemNumber = photoConfirmationPieceKey({
       itemNumber: mainPhotoConfirmedItemNumber(
         args.messages,
@@ -447,6 +450,49 @@ export async function ingestLatestTradeBoardIntakeTurn(
         mainPhotoConfirmedItemNumber: confirmedItemNumber,
       }
       delete metadata.mainPhotoConfirmed
+    }
+  } else if (latestTurnTurnsDownMainPhoto(args.messages)) {
+    const shownPreview = lastShownMainPhotoPreview(args.messages)
+    const turnedDownId = shownPreview.shown
+      ? shownPreview.id
+      : currentMainPhotoIdentity(photos)
+    metadata = recordTurnedDownMainPhoto(metadata, turnedDownId)
+    if (
+      turnedDownId &&
+      metadata.mainPhotoConfirmedPhotoId === turnedDownId
+    ) {
+      delete metadata.mainPhotoConfirmedPhotoId
+      delete metadata.mainPhotoConfirmed
+      delete metadata.mainPhotoConfirmedItemNumber
+    }
+    if (turnedDownId) {
+      for (let index = 0; index < photos.length; index += 1) {
+        const photo = photos[index]
+        if (!photo || !photoMatchesPreviewId(photo, turnedDownId)) continue
+        if (photo.notes.includes(TURNED_DOWN_MAIN_PHOTO_NOTE)) continue
+        const turnedDown = {
+          ...photo,
+          notes: [...photo.notes, TURNED_DOWN_MAIN_PHOTO_NOTE],
+        }
+        photos[index] = turnedDown
+        await upsertTradeBoardIntakePhoto(supabase, {
+          sessionId: args.session.id,
+          repId: args.session.repId,
+          conversationId: args.session.conversationId,
+          conversationMessageId: turnedDown.conversationMessageId,
+          attachmentIndex: turnedDown.attachmentIndex,
+          declaredRole: turnedDown.declaredRole,
+          visualRole: turnedDown.visualRole,
+          roleConfirmed: turnedDown.roleConfirmed,
+          imageUrl: turnedDown.imageUrl,
+          quality: turnedDown.quality,
+          qualityScore: turnedDown.qualityScore,
+          qualityIssues: turnedDown.qualityIssues,
+          notes: turnedDown.notes,
+          contentSha256: turnedDown.contentSha256,
+          visualRoleSource: turnedDown.visualRoleSource,
+        })
+      }
     }
   }
   if (latestTurnConfirmsPhotoSet(args.messages)) {
@@ -726,20 +772,84 @@ function setAskItemNumber(messages: UIMessage[]): string {
   return ''
 }
 
-function previewedMainPhotoId(messages: UIMessage[]): string | null {
+function previousAssistantMessage(
+  messages: UIMessage[],
+): UIMessage | undefined {
   const latestUserIndex = findLatestUserMessageIndex(messages)
-  if (latestUserIndex === -1) return null
-  const previousAssistant = messages
+  if (latestUserIndex === -1) return undefined
+  return messages
     .slice(0, latestUserIndex)
     .reverse()
     .find((message) => message.role === 'assistant')
+}
+
+function isMainPhotoPreviewOutput(output: {
+  needsAction?: unknown
+  code?: unknown
+  previewPhotoId?: unknown
+  previewImageUrl?: unknown
+} | null | undefined): boolean {
+  if (!output) return false
+  if (output.needsAction === 'confirm_main_photo') return true
+  if (output.code !== 'PHOTO_REUSED_ON_OTHER_ITEM') return false
+  const previewPhotoId =
+    typeof output.previewPhotoId === 'string' ? output.previewPhotoId.trim() : ''
+  const previewImageUrl =
+    typeof output.previewImageUrl === 'string' ? output.previewImageUrl.trim() : ''
+  return Boolean(previewPhotoId || previewImageUrl)
+}
+
+function lastShownMainPhotoPreview(messages: UIMessage[]): {
+  shown: boolean
+  id: string | null
+} {
+  const previousAssistant = previousAssistantMessage(messages)
+  let shown = false
+  let id: string | null = null
   for (const part of previousAssistant?.parts ?? []) {
-    const output = (part as { output?: { previewPhotoId?: unknown } }).output
-    if (typeof output?.previewPhotoId === 'string' && output.previewPhotoId.trim()) {
-      return output.previewPhotoId.trim()
-    }
+    const output = (
+      part as {
+        output?: {
+          needsAction?: unknown
+          code?: unknown
+          previewPhotoId?: unknown
+          previewImageUrl?: unknown
+        }
+      }
+    ).output
+    if (!isMainPhotoPreviewOutput(output)) continue
+    shown = true
+    const previewPhotoId =
+      typeof output?.previewPhotoId === 'string' ? output.previewPhotoId.trim() : ''
+    id = previewPhotoId || null
   }
-  return null
+  return { shown, id }
+}
+
+function photoMatchesPreviewId(
+  photo: TradeBoardIntakeSessionState['photos'][number],
+  previewId: string,
+): boolean {
+  if (photo.id === previewId) return true
+  return mainPhotoConfirmationIdentity(photo) === previewId
+}
+
+function recordTurnedDownMainPhoto(
+  metadata: Record<string, unknown>,
+  turnedDownId: string | null,
+): Record<string, unknown> {
+  if (!turnedDownId) return metadata
+  const existing = Array.isArray(metadata.turnedDownMainPhotoIds)
+    ? metadata.turnedDownMainPhotoIds.filter(
+        (value): value is string =>
+          typeof value === 'string' && value.trim().length > 0,
+      )
+    : []
+  if (existing.includes(turnedDownId)) return metadata
+  return {
+    ...metadata,
+    turnedDownMainPhotoIds: [...existing, turnedDownId],
+  }
 }
 
 function currentMainPhotoIdentity(
@@ -756,19 +866,29 @@ function currentMainPhotoIdentity(
   return null
 }
 
-function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {
-  const latestUserIndex = findLatestUserMessageIndex(messages)
-  if (latestUserIndex === -1) return false
-  if (!isPositiveConfirmation(getMessageText(messages[latestUserIndex]))) return false
-  const previousAssistant = messages
-    .slice(0, latestUserIndex)
-    .reverse()
-    .find((message) => message.role === 'assistant')
+function previousAssistantAskedForMainPhoto(messages: UIMessage[]): boolean {
+  const previousAssistant = previousAssistantMessage(messages)
   if (/main photo I will save/i.test(getMessageText(previousAssistant))) return true
   return (previousAssistant?.parts ?? []).some((part) => {
     const output = (part as { output?: { needsAction?: string } }).output
     return output?.needsAction === 'confirm_main_photo'
   })
+}
+
+function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return false
+  if (!isPositiveConfirmation(getMessageText(messages[latestUserIndex]))) return false
+  return previousAssistantAskedForMainPhoto(messages)
+}
+
+function latestTurnTurnsDownMainPhoto(messages: UIMessage[]): boolean {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return false
+  if (!isNegativePhotoConfirmation(getMessageText(messages[latestUserIndex]))) {
+    return false
+  }
+  return previousAssistantAskedForMainPhoto(messages)
 }
 
 const POSITIVE_CONFIRMATION_EMOJI =
@@ -802,6 +922,21 @@ export function isPositiveConfirmation(text: string): boolean {
     .trim()
   if (!remainder) return hadPositiveEmoji
   return ONLY_AFFIRMATIVES.test(remainder)
+}
+
+const NEGATIVE_PHOTO_CONFIRMATION =
+  /^(?:no|nope|nah|not that(?: one)?|not this(?: one)?|wrong photo|wrong piece|that(?:'s| is) not it|don'?t use (?:that|this)|do not use (?:that|this))$/i
+
+export function isNegativePhotoConfirmation(text: string): boolean {
+  const normalized = normalizeConfirmationText(text).trim()
+  if (!normalized || normalized.includes('?')) return false
+  const remainder = normalized
+    .replace(CONFIRMATION_FILLER, ' ')
+    .replace(/[!.,…"“”]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!remainder) return false
+  return NEGATIVE_PHOTO_CONFIRMATION.test(remainder)
 }
 
 function assistantAskedToConfirmJewelryFront(text: string): boolean {

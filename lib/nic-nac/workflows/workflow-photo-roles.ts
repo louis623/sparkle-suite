@@ -6,10 +6,18 @@ import type {
 export const REP_CONFIRMED_MAIN_PHOTO_NOTE =
   'confirmed by rep as customer-facing jewelry photo'
 
+export const TURNED_DOWN_MAIN_PHOTO_NOTE = 'turned down for this piece'
+
 export function repExplicitlyConfirmedMainPhoto(photo: {
   notes?: string[]
 } | null | undefined): boolean {
   return Boolean(photo?.notes?.includes(REP_CONFIRMED_MAIN_PHOTO_NOTE))
+}
+
+export function photoTurnedDownForThisPiece(photo: {
+  notes?: string[]
+} | null | undefined): boolean {
+  return Boolean(photo?.notes?.includes(TURNED_DOWN_MAIN_PHOTO_NOTE))
 }
 
 export function isBarredFromCustomerFacingMedia(photo: {
@@ -19,6 +27,7 @@ export function isBarredFromCustomerFacingMedia(photo: {
   notes?: string[]
 } | null | undefined): boolean {
   if (!photo) return true
+  if (photoTurnedDownForThisPiece(photo)) return true
   if (photo.declaredRole === 'label_details' || photo.declaredRole === 'other') {
     return true
   }
@@ -65,6 +74,7 @@ export function workflowPhotoSatisfiesJewelryFront(photo: {
   notes?: string[]
 } | null | undefined): boolean {
   if (!photo) return false
+  if (photoTurnedDownForThisPiece(photo)) return false
   if (photo.quality === 'blocked') return false
   if (photo.declaredRole === 'label_details' || photo.declaredRole === 'other') {
     return false

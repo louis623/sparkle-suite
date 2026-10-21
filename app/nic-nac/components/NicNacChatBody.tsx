@@ -202,7 +202,13 @@ export function buildAssistantMessageRenderables(
   })
   flushText('text-final')
 
-  return renderables
+  const lastPreview = renderables.findLastIndex(
+    (item) => item.type === 'main-photo-preview',
+  )
+  if (lastPreview === -1) return renderables
+  return renderables.filter(
+    (item, index) => item.type !== 'main-photo-preview' || index === lastPreview,
+  )
 }
 
 type ConversationHydrateResponse = {

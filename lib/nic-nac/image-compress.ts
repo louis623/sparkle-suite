@@ -1,10 +1,11 @@
-// Client-only image compression. Resize to max 1024px on the longest edge,
+// Client-only image compression. Resize to max 2400px on the longest edge,
 // re-encode as JPEG quality 0.8. Canvas re-encode strips EXIF as a side effect.
+// A good phone photo still clears the server's good-quality bar after this shrink.
 // Returns both a File (compressed) and a data URL for thumbnail/transport use.
 
 import { measureImageQualitySignals } from './image-quality'
 
-const MAX_EDGE = 1024
+export const CLIENT_PHOTO_MAX_EDGE = 2400
 const JPEG_QUALITY = 0.8
 
 export interface CompressedImage {
@@ -33,7 +34,7 @@ export async function compressImage(file: File): Promise<CompressedImage> {
     const { width: targetW, height: targetH } = fitWithin(
       img.naturalWidth,
       img.naturalHeight,
-      MAX_EDGE
+      CLIENT_PHOTO_MAX_EDGE
     )
 
     const canvas = document.createElement('canvas')
@@ -78,6 +79,13 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     img.onerror = () => reject(new Error('image_load_failed'))
     img.src = src
   })
+}
+
+export function compressedPhotoEdges(
+  width: number,
+  height: number,
+): { width: number; height: number } {
+  return fitWithin(width, height, CLIENT_PHOTO_MAX_EDGE)
 }
 
 function fitWithin(w: number, h: number, max: number): { width: number; height: number } {

@@ -675,17 +675,25 @@ async function assertLabelAgreesWithItemNumber(args: {
   const itemNumber = args.itemNumber?.trim()
   if (!itemNumber) return
   const urls = new Set<string>()
+  const labelUrls = new Set<string>()
   const sourceImageUrl = args.sourceImageUrl?.trim()
   if (sourceImageUrl) urls.add(sourceImageUrl)
   for (const photo of args.workflowPhotos ?? []) {
     const isLabel =
       photo.declaredRole === 'label_details' ||
       photo.visualRole === 'label_or_packaging'
-    if (isLabel && photo.imageUrl) urls.add(photo.imageUrl)
+    if (isLabel && photo.imageUrl) {
+      urls.add(photo.imageUrl)
+      labelUrls.add(photo.imageUrl)
+    }
   }
   const readItemNumbers: string[] = []
   for (const url of urls) {
-    readItemNumbers.push(...(await readItemNumbersFromImageUrl(url)))
+    readItemNumbers.push(
+      ...(await readItemNumbersFromImageUrl(url, {
+        allowVision: labelUrls.has(url),
+      })),
+    )
   }
   const decision = decideLabelItemNumber({ itemNumber, readItemNumbers })
   if (!decision.blocked) return
@@ -1003,6 +1011,83 @@ export function pendingMainPhotoConfirmation(args: {
     message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
     locator: mainPhotoPreviewLocator(photo),
   }
+}
+
+async function mainPhotoPreviewOrReuse(args: {
+  itemNumber?: string | null
+  workflow: ToolContext['activeTradeBoardWorkflow'] | undefined
+  selectedPhotoId?: string
+  photoIndex?: number
+  conversation?: {
+    supabase: SupabaseClient
+    conversationId: string
+  }
+  preview: NonNullable<ReturnType<typeof pendingMainPhotoConfirmation>>
+}) {
+  const workflow = args.workflow
+  const preview = args.preview
+  const label = preview.itemNumber || 'this piece'
+  const plainPreview = {
+    needsAction: 'confirm_main_photo' as const,
+    code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
+    itemNumber: preview.itemNumber,
+    ...preview.locator,
+    message: preview.message,
+  }
+  if (!workflow || workflow.status !== 'active') return plainPreview
+  const photo = resolveWorkflowCustomerFacingPhoto(workflow.photos, {
+    selectedPhotoId: args.selectedPhotoId,
+    modelIndex: args.photoIndex,
+    intakeSessionId: workflow.id,
+  })
+  if (!photo?.imageUrl?.trim()) return plainPreview
+  const itemNumber =
+    args.itemNumber?.trim() || workflow.known.itemNumber?.trim() || ''
+  const storedPhoto = workflow.photos.find(
+    (candidate) => candidate.imageUrl === photo.imageUrl,
+  )
+  try {
+    await assertCustomerPhotoNotReused({
+      repId: workflow.repId,
+      itemNumber,
+      sourceImageUrl: photo.imageUrl,
+      contentSha256: storedPhoto?.contentSha256,
+      setReuseConfirmedSha: confirmedPhotoSetSha(workflow, itemNumber),
+      workflowPhotos: workflow.photos,
+      conversation: args.conversation,
+      reuseAsk: {
+        itemNumber: preview.itemNumber,
+        pieceKey: photoConfirmationPieceKey({
+          itemNumber,
+          catalogMode: workflow.catalogMode,
+          intakeId: workflow.id,
+        }),
+        previewImageUrl: preview.locator.previewImageUrl,
+        previewPhotoId: preview.locator.previewPhotoId,
+      },
+    })
+  } catch (error) {
+    if (!(error instanceof NicNacToolError)) return plainPreview
+    if (error.code === 'LABEL_ITEM_NUMBER_MISMATCH') throw error
+    if (error.code !== 'PHOTO_REUSED_ON_OTHER_ITEM') throw error
+    const reuseMessage = error.userMessage.trim()
+    const photoSentence = `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`
+    return {
+      needsAction: 'confirm_main_photo' as const,
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM' as const,
+      itemNumber: preview.itemNumber,
+      ...preview.locator,
+      ...(error.details?.contentSha256
+        ? { contentSha256: error.details.contentSha256 }
+        : {}),
+      ...(error.details?.photoId ? { photoId: error.details.photoId } : {}),
+      ...(error.details?.pieceKey ? { pieceKey: error.details.pieceKey } : {}),
+      message: reuseMessage.includes('main photo I will save')
+        ? reuseMessage
+        : `${reuseMessage} ${photoSentence}`,
+    }
+  }
+  return plainPreview
 }
 
 function requirePiecePhotoNumberUrl(
@@ -1546,13 +1631,17 @@ async function runNonItemNumberSingle(
     photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
   })
   if (nonItemPreview) {
-    return {
-      needsAction: 'confirm_main_photo' as const,
-      code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
-      itemNumber: nonItemPreview.itemNumber,
-      ...nonItemPreview.locator,
-      message: nonItemPreview.message,
-    }
+    return mainPhotoPreviewOrReuse({
+      itemNumber: activeWorkflow?.known.itemNumber,
+      workflow: activeWorkflow,
+      selectedPhotoId: input.selectedPhotoId,
+      photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+      conversation: {
+        supabase: ctx.supabase,
+        conversationId: ctx.conversationId,
+      },
+      preview: nonItemPreview,
+    })
   }
 
   // Listing-only row: jewelry-front still wins, but never resolve or
@@ -1743,13 +1832,17 @@ async function runSingle(
     photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
   })
   if (mainPhotoPreview) {
-    return {
-      needsAction: 'confirm_main_photo' as const,
-      code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
-      itemNumber: mainPhotoPreview.itemNumber,
-      ...mainPhotoPreview.locator,
-      message: mainPhotoPreview.message,
-    }
+    return mainPhotoPreviewOrReuse({
+      itemNumber,
+      workflow: activeWorkflow,
+      selectedPhotoId: input.selectedPhotoId,
+      photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+      conversation: {
+        supabase: ctx.supabase,
+        conversationId: ctx.conversationId,
+      },
+      preview: mainPhotoPreview,
+    })
   }
 
   let createdNewDesign = false
@@ -2622,13 +2715,17 @@ async function runBatch(
         photoIndex: item.listingPhotoIndex ?? item.piecePhotoIndex,
       })
       if (mainPhotoPreview) {
-        return {
-          needsAction: 'confirm_main_photo' as const,
-          code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
-          itemNumber: mainPhotoPreview.itemNumber,
-          ...mainPhotoPreview.locator,
-          message: mainPhotoPreview.message,
-        }
+        return mainPhotoPreviewOrReuse({
+          itemNumber: item.itemNumber,
+          workflow: ctx.activeTradeBoardWorkflow,
+          selectedPhotoId: item.selectedPhotoId,
+          photoIndex: item.listingPhotoIndex ?? item.piecePhotoIndex,
+          conversation: {
+            supabase: ctx.supabase,
+            conversationId: ctx.conversationId,
+          },
+          preview: mainPhotoPreview,
+        })
       }
     }
     const listingPhotoUrl = await processListingPhotoForAdd({
@@ -2727,15 +2824,25 @@ async function runBatch(
         admin,
       )
 
-      if (typeof firstResult.listingId === 'string') {
+      if (
+        'listingId' in firstResult &&
+        typeof firstResult.listingId === 'string'
+      ) {
         recoveredNewDesignAdds.push({
           listingId: firstResult.listingId,
-          itemNumber: firstResult.itemNumber ?? recoveryItem.itemNumber,
+          itemNumber:
+            typeof firstResult.itemNumber === 'string'
+              ? firstResult.itemNumber
+              : recoveryItem.itemNumber,
           designName:
-            'designName' in firstResult
+            'designName' in firstResult &&
+            typeof firstResult.designName === 'string'
               ? firstResult.designName
               : (recoveryItem.designName ?? ''),
-          status: firstResult.status ?? 'available',
+          status:
+            'status' in firstResult && typeof firstResult.status === 'string'
+              ? firstResult.status
+              : 'available',
         })
         recoveredVariantKeys.add(variantKey)
         retryItems.push(

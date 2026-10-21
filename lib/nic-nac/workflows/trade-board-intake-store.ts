@@ -339,8 +339,8 @@ export async function upsertTradeBoardIntakePhoto(
     contentSha256?: string
     visualRoleSource?: string
   },
-): Promise<void> {
-  const { error } = await supabase.from('trade_board_intake_photos').upsert(
+): Promise<string | null> {
+  const pending = supabase.from('trade_board_intake_photos').upsert(
     {
       session_id: args.sessionId,
       rep_id: args.repId,
@@ -362,6 +362,25 @@ export async function upsertTradeBoardIntakePhoto(
     },
     { onConflict: 'session_id,conversation_message_id,attachment_index' },
   )
+  const selectable = pending as unknown as {
+    select?: (columns: string) => {
+      maybeSingle?: () => Promise<{
+        data?: { id?: string | null } | null
+        error: { message?: string } | null
+      }>
+    }
+  }
+  if (typeof selectable.select === 'function') {
+    const selected = selectable.select('id')
+    if (typeof selected.maybeSingle === 'function') {
+      const row = await selected.maybeSingle()
+      if (row.error) throw row.error
+      const id = row.data?.id?.trim()
+      return id || null
+    }
+  }
 
+  const { error } = await pending
   if (error) throw error
+  return null
 }

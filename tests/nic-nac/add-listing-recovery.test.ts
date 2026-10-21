@@ -4425,6 +4425,65 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(addListingMock).not.toHaveBeenCalled()
   })
 
+  it('says the photo is already on another piece before asking for a yes', async () => {
+    createAdminClientMock.mockReturnValue(
+      makeAdminClientMock([], null, [
+        {
+          item_number: 'RG90101',
+          status: 'completed',
+          created_design_id: 'design-rg90101',
+          created_listing_ids: ['listing-rg90101'],
+        },
+      ]),
+    )
+    const photoUrl = 'data:image/jpeg;base64,UklORw=='
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk90303',
+        phase: 'ready_to_add',
+        missing: [],
+        metadata: { mainPhotoConfirmationRequired: true },
+        known: {
+          itemNumber: 'NK90303',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: 'photo-ring',
+            intakeSessionId: 'intake-nk90303',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: photoUrl,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    const result = await tool.execute({
+      mode: 'single',
+      itemNumber: 'NK90303',
+      collectionName: 'Original',
+    })
+    expect(result).toMatchObject({
+      needsAction: 'confirm_main_photo',
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      previewPhotoId: 'photo-ring',
+      contentSha256: hashDataImageUrl(photoUrl),
+      message: expect.stringContaining('already on RG90101'),
+    })
+    expect(String((result as { message?: string }).message)).toContain(
+      'main photo I will save for NK90303',
+    )
+    expect(addListingMock).not.toHaveBeenCalled()
+  })
+
   it('keeps a live-sized main photo out of the model text and saved tool result', async () => {
     const liveSizedPhoto = `data:image/jpeg;base64,${'A'.repeat(182_000)}`
     const tool = makeTool(makeConversationLookupMock([]), {

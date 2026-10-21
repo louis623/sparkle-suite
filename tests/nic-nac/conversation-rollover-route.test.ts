@@ -11,6 +11,41 @@ const logNicNacRolloverMock = vi.fn()
 const createAdminClientMock = vi.fn()
 const adminRpcMock = vi.fn()
 
+function confirmedIntakeRow() {
+  return {
+    id: 'workflow-1',
+    rep_id: 'rep-1',
+    conversation_id: 'conv-source',
+    status: 'active',
+    catalog_mode: 'item_number',
+    current_phase: 'ready_to_add',
+    metadata: { mainPhotoConfirmedPhotoId: 'photo-confirmed' },
+  }
+}
+
+function makeAdminClient(session: Record<string, unknown> | null) {
+  return {
+    rpc: adminRpcMock,
+    from(table: string) {
+      const builder: Record<string, unknown> = {}
+      const chain = () => builder
+      builder.select = chain
+      builder.eq = chain
+      builder.in = chain
+      builder.gt = chain
+      builder.limit = chain
+      builder.order = (column: string) => {
+        if (table === 'trade_board_intake_photos' && column === 'created_at') {
+          return Promise.resolve({ data: [], error: null })
+        }
+        return builder
+      }
+      builder.maybeSingle = async () => ({ data: session, error: null })
+      return builder
+    },
+  }
+}
+
 vi.mock('@/lib/nic-nac/auth', () => ({
   AuthError: class AuthError extends Error {},
   getPaidNicNacContext: (...args: unknown[]) =>
@@ -77,7 +112,7 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
     findActionableApprovalMock.mockReturnValue(null)
     insertConversationMessagesMock.mockResolvedValue(undefined)
     deleteConversationMessagesMock.mockResolvedValue(undefined)
-    createAdminClientMock.mockReturnValue({ rpc: adminRpcMock })
+    createAdminClientMock.mockReturnValue(makeAdminClient(confirmedIntakeRow()))
     adminRpcMock.mockImplementation(
       async (_name: string, args: { p_destination_conversation_id: string }) => ({
         data: {
@@ -124,6 +159,49 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
         p_destination_conversation_id: body.conversationId,
       }),
     )
+  })
+
+  it('leaves an unconfirmed piece in the old chat', async () => {
+    createAdminClientMock.mockReturnValue(
+      makeAdminClient({
+        ...confirmedIntakeRow(),
+        metadata: {},
+      }),
+    )
+    loadConversationForClientMock.mockResolvedValue([
+      {
+        id: 'pending-preview',
+        role: 'assistant',
+        parts: [
+          {
+            type: 'tool-add_listing',
+            state: 'output-available',
+            output: {
+              needsAction: 'confirm_main_photo',
+              previewPhotoId: 'photo-ring',
+              message: 'This is the main photo I will save for NK90303.',
+            },
+          },
+        ],
+      } as UIMessage,
+    ])
+
+    const response = await post(
+      new Request('https://www.yoursparklesuite.com/api/nic-nac/conversation/rollover', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ conversationId: 'conv-source' }),
+      }),
+    )
+    const body = (await response.json()) as { workflowId: string | null }
+    expect(response.status).toBe(200)
+    expect(body.workflowId).toBeNull()
+    expect(adminRpcMock).not.toHaveBeenCalled()
+    const inserted = insertConversationMessagesMock.mock.calls[0]?.[1] as {
+      messages: UIMessage[]
+    }
+    expect(JSON.stringify(inserted.messages)).not.toContain('confirm_main_photo')
+    expect(JSON.stringify(inserted.messages)).not.toContain('photo-ring')
   })
 
   it('replays the first destination instead of orphaning the workflow on a concurrent retry', async () => {
