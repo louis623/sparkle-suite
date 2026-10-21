@@ -1,5 +1,5 @@
 import { createHash } from 'crypto'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const reportJewelryCatalogIssueMock = vi.fn()
 const createAdminClientMock = vi.fn()
@@ -42,7 +42,7 @@ function activeCatalogWorkflow() {
 }
 
 const CANONICAL_PHOTO_URL =
-  'https://example.com/storage/v1/object/public/jewelry-photos/approved/design-er34579/front.png'
+  'https://project.supabase.co/storage/v1/object/public/jewelry-photos/approved/design-er34579/front.png'
 const DEFAULT_FETCH_SHA = createHash('sha256')
   .update(Uint8Array.from([1, 2, 3, 4]))
   .digest('hex')
@@ -122,7 +122,10 @@ function makeTool(
   }) as unknown as ToolDef
 }
 
+const PREVIOUS_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+
 beforeEach(() => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
   reportJewelryCatalogIssueMock.mockReset()
   createAdminClientMock.mockReset()
   createAdminClientMock.mockReturnValue({ __isAdmin: true })
@@ -133,6 +136,11 @@ beforeEach(() => {
       arrayBuffer: async () => Uint8Array.from([1, 2, 3, 4]).buffer,
     })),
   )
+})
+
+afterEach(() => {
+  if (PREVIOUS_SUPABASE_URL === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
+  else process.env.NEXT_PUBLIC_SUPABASE_URL = PREVIOUS_SUPABASE_URL
 })
 
 describe('report_jewelry_catalog_issue', () => {
@@ -476,7 +484,7 @@ describe('report_jewelry_catalog_issue', () => {
   it('refuses a catalog photo it cannot show instead of asking forever', async () => {
     createAdminClientMock.mockReturnValue(emptyPhotoAdmin())
     const tool = makeTool()
-    const longUrl = `https://example.com/storage/v1/object/public/jewelry-photos/approved/${'a'.repeat(500)}.png`
+    const longUrl = `https://project.supabase.co/storage/v1/object/public/jewelry-photos/approved/${'a'.repeat(500)}.png`
 
     await expect(
       tool.execute({
@@ -572,6 +580,28 @@ describe('report_jewelry_catalog_issue', () => {
       code: 'WORKFLOW_TARGET_MISMATCH',
     })
 
+    expect(reportJewelryCatalogIssueMock).not.toHaveBeenCalled()
+  })
+
+  it('does not download a catalog photo that is not an approved storage photo', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    const tool = makeTool()
+
+    await expect(
+      tool.execute({
+        itemNumber: 'ER34579',
+        issueType: 'bad_photo',
+        reason: 'The current catalog photo is the item label/details photo.',
+        correction: {
+          canonicalPhotoUrl: 'https://evil.example/jewelry-photos/approved/front.png',
+        },
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_NOT_APPROVED',
+      userMessage: expect.stringMatching(/didn't save that one/i),
+    })
+    expect(fetchMock).not.toHaveBeenCalled()
     expect(reportJewelryCatalogIssueMock).not.toHaveBeenCalled()
   })
 

@@ -8,7 +8,13 @@ import {
   readItemNumbersFromImageUrl,
   renderItemNumberPng,
 } from '@/lib/nic-nac/workflows/label-item-number'
-import { decidePhotoReuse, hashDataImageUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'
+import {
+  PHOTO_HASH_MAX_BYTES,
+  decidePhotoReuse,
+  hashCustomerPhotoUrl,
+  hashDataImageUrl,
+  isApprovedCatalogPhotoUrl,
+} from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import {
   hasTradeBoardIntakeSignal,
   ingestLatestTradeBoardIntakeTurn,
@@ -1273,5 +1279,90 @@ describe('main photo confirmation', () => {
       }),
       expect.anything(),
     )
+  })
+})
+
+describe('customer photo hashing', () => {
+  const storageUrl =
+    'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/front.jpg'
+  const previousUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  function restoreUrl() {
+    if (previousUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
+    else process.env.NEXT_PUBLIC_SUPABASE_URL = previousUrl
+  }
+
+  it('does not fetch a photo from a host outside storage', async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      hashCustomerPhotoUrl({
+        sourceImageUrl: 'https://evil.example/storage/v1/object/public/jewelry-photos/a.jpg',
+      }),
+    ).resolves.toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
+    restoreUrl()
+  })
+
+  it('does not read a storage photo that declares it is too large', async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    const arrayBuffer = vi.fn()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        headers: {
+          get: (name: string) =>
+            name === 'content-length' ? String(PHOTO_HASH_MAX_BYTES + 1) : null,
+        },
+        arrayBuffer,
+      })),
+    )
+
+    await expect(hashCustomerPhotoUrl({ sourceImageUrl: storageUrl })).resolves.toBeNull()
+    expect(arrayBuffer).not.toHaveBeenCalled()
+    restoreUrl()
+  })
+
+  it('stops when storage does not answer in time', async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    vi.stubGlobal(
+      'fetch',
+      (_url: string, init?: { signal?: AbortSignal }) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => {
+            reject(new DOMException('aborted', 'AbortError'))
+          })
+        }),
+    )
+
+    await expect(
+      hashCustomerPhotoUrl({ sourceImageUrl: storageUrl, timeoutMs: 20 }),
+    ).resolves.toBeNull()
+    restoreUrl()
+  })
+
+  it('hashes an approved storage photo and rejects one that is not approved', async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    const bytes = Uint8Array.from([4, 5, 6])
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        headers: { get: () => null },
+        arrayBuffer: async () => bytes.buffer,
+      })),
+    )
+    const approved =
+      'https://project.supabase.co/storage/v1/object/public/jewelry-photos/approved/design-1/front.png'
+
+    await expect(hashCustomerPhotoUrl({ sourceImageUrl: approved })).resolves.toBe(
+      createHash('sha256').update(bytes).digest('hex'),
+    )
+    expect(isApprovedCatalogPhotoUrl(approved)).toBe(true)
+    expect(isApprovedCatalogPhotoUrl(storageUrl)).toBe(false)
+    expect(isApprovedCatalogPhotoUrl('https://evil.example/approved/front.png')).toBe(false)
+    restoreUrl()
   })
 })

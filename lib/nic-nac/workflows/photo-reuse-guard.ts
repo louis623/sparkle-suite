@@ -110,22 +110,72 @@ export function resolvePhotoContentSha256(args: {
   return hashDataImageUrl(args.sourceImageUrl)
 }
 
-/** Hash photo bytes. Data URLs are hashed locally. Https URLs are fetched, unless a stored hash is already known. */
+export const PHOTO_HASH_TIMEOUT_MS = 8_000
+export const PHOTO_HASH_MAX_BYTES = 8 * 1024 * 1024
+
+/** Hosts we will download a customer photo from. Only this project's storage. */
+export function customerPhotoStorageHosts(): string[] {
+  const hosts: string[] = []
+  for (const raw of [process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_URL]) {
+    const trimmed = raw?.trim()
+    if (!trimmed) continue
+    try {
+      const host = new URL(trimmed).host
+      if (host && !hosts.includes(host)) hosts.push(host)
+    } catch {
+      // Ignore a malformed env value and keep the other host, if any.
+    }
+  }
+  return hosts
+}
+
+export function isAllowedCustomerPhotoFetchUrl(url: string): boolean {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    return false
+  }
+  if (parsed.protocol !== 'https:') return false
+  if (!customerPhotoStorageHosts().includes(parsed.host)) return false
+  return parsed.pathname.startsWith('/storage/v1/object/')
+}
+
+/** An approved shared-catalog photo lives on our storage host, under jewelry-photos/approved/. */
+export function isApprovedCatalogPhotoUrl(url: string): boolean {
+  if (!isAllowedCustomerPhotoFetchUrl(url)) return false
+  try {
+    return new URL(url).pathname.includes('/jewelry-photos/approved/')
+  } catch {
+    return false
+  }
+}
+
+/** Hash photo bytes. Data URLs are hashed locally. Storage URLs are fetched, unless a stored hash is already known. */
 export async function hashCustomerPhotoUrl(args: {
   sourceImageUrl: string
   storedSha256?: string | null
+  timeoutMs?: number
 }): Promise<string | null> {
   const stored = args.storedSha256?.trim()
   if (stored) return stored
   const dataHash = hashDataImageUrl(args.sourceImageUrl)
   if (dataHash) return dataHash
   const url = args.sourceImageUrl.trim()
-  if (!/^https:\/\//i.test(url)) return null
-  const response = await fetch(url)
-  if (!response.ok) return null
-  const bytes = Buffer.from(await response.arrayBuffer())
-  if (bytes.length === 0) return null
-  return createHash('sha256').update(bytes).digest('hex')
+  if (!isAllowedCustomerPhotoFetchUrl(url)) return null
+  try {
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(args.timeoutMs ?? PHOTO_HASH_TIMEOUT_MS),
+    })
+    if (!response.ok) return null
+    const declaredLength = Number(response.headers?.get?.('content-length'))
+    if (Number.isFinite(declaredLength) && declaredLength > PHOTO_HASH_MAX_BYTES) return null
+    const bytes = Buffer.from(await response.arrayBuffer())
+    if (bytes.length === 0 || bytes.length > PHOTO_HASH_MAX_BYTES) return null
+    return createHash('sha256').update(bytes).digest('hex')
+  } catch {
+    return null
+  }
 }
 
 type PhotoHashSession = {

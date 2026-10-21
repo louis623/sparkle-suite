@@ -7,7 +7,7 @@
 // lib/nic-nac/tools/update-listing.ts.
 
 import { createHash } from 'crypto'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { errors } from '@/lib/services/errors'
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
 import { hashDataImageUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'
@@ -181,7 +181,10 @@ const DEFAULT_FETCH_SHA = createHash('sha256')
   .update(Uint8Array.from([1, 2, 3, 4]))
   .digest('hex')
 
+const PREVIOUS_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+
 beforeEach(() => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
   updateListingMock.mockReset()
   processRepCustomListingPhotoUrlMock.mockReset()
   writeTradeActionAuditMock.mockReset()
@@ -195,6 +198,11 @@ beforeEach(() => {
       arrayBuffer: async () => Uint8Array.from([1, 2, 3, 4]).buffer,
     })),
   )
+})
+
+afterEach(() => {
+  if (PREVIOUS_SUPABASE_URL === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
+  else process.env.NEXT_PUBLIC_SUPABASE_URL = PREVIOUS_SUPABASE_URL
 })
 
 describe('update_listing — schema (inputSchema.safeParse)', () => {
@@ -328,7 +336,7 @@ describe('update_listing — write + audit happy path', () => {
   })
 
   it('previews the exact https photo and waits for a yes when no intake is open', async () => {
-    const photoUrl = 'https://rep.example.com/raw-upload.jpg'
+    const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/raw-upload.jpg'
     const tool = makeTool(undefined, photoSupabase())
 
     await expect(
@@ -347,7 +355,7 @@ describe('update_listing — write + audit happy path', () => {
   })
 
   it('processes a confirmed https listing photo before calling updateListing', async () => {
-    const photoUrl = 'https://rep.example.com/raw-upload.jpg'
+    const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/raw-upload.jpg'
     processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
       photoUrl: 'https://cdn.example.com/normalized.jpg',
     })
@@ -383,7 +391,7 @@ describe('update_listing — write + audit happy path', () => {
   })
 
   it('treats a yes as the photo yes from the hash and listing, not the link text', async () => {
-    const photoUrl = 'https://rep.example.com/raw-upload.jpg'
+    const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/raw-upload.jpg'
     processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
       photoUrl: 'https://cdn.example.com/normalized.jpg',
     })
@@ -391,7 +399,7 @@ describe('update_listing — write + audit happy path', () => {
       listingId: VALID_LISTING_ID,
       status: 'available',
     })
-    const conversations = confirmedPhotoConversation('https://rep.example.com/some-other-link.jpg')
+    const conversations = confirmedPhotoConversation('https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/some-other-link.jpg')
     const tool = makeTool(undefined, photoSupabase({ conversations }))
 
     await expect(
@@ -421,7 +429,7 @@ describe('update_listing — write + audit happy path', () => {
   })
 
   it('refuses an https listing photo whose link is too long to show', async () => {
-    const photoUrl = `https://rep.example.com/${'a'.repeat(500)}.jpg`
+    const photoUrl = `https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/${'a'.repeat(500)}.jpg`
     const tool = makeTool(undefined, photoSupabase())
 
     await expect(
@@ -436,7 +444,7 @@ describe('update_listing — write + audit happy path', () => {
   })
 
   it('previews the listing photo even when an open intake has a different picture', async () => {
-    const photoUrl = 'https://rep.example.com/raw-upload.jpg'
+    const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/raw-upload.jpg'
     const tool = makeTool(
       intakeWorkflow({
         metadata: { mainPhotoConfirmationRequired: true },
@@ -529,7 +537,7 @@ describe('update_listing — write + audit happy path', () => {
   })
 
   it('hashes an https listing photo and checks that listing when no intake is open', async () => {
-    const photoUrl = 'https://rep.example.com/other-piece.jpg'
+    const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/other-piece.jpg'
     const bytes = Uint8Array.from([9, 9, 9])
     vi.stubGlobal(
       'fetch',
@@ -578,7 +586,7 @@ describe('update_listing — write + audit happy path', () => {
   })
 
   it('saves a reused https listing photo after one yes, with no second ask', async () => {
-    const photoUrl = 'https://rep.example.com/reused-set.jpg'
+    const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/reused-set.jpg'
     const bytes = Uint8Array.from([9, 9, 9])
     vi.stubGlobal(
       'fetch',
@@ -670,7 +678,7 @@ describe('update_listing — write + audit happy path', () => {
   })
 
   it('uses a stored photo hash instead of downloading the listing photo again', async () => {
-    const photoUrl = 'https://rep.example.com/stored.jpg'
+    const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/stored.jpg'
     const storedSha = 'ab'.repeat(32)
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
@@ -727,7 +735,7 @@ describe('update_listing — write + audit happy path', () => {
 
   it('saves a non-item listing after one yes to a reused photo', async () => {
     const listingId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-    const photoUrl = 'https://rep.example.com/non-item-reused.jpg'
+    const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/non-item-reused.jpg'
     const bytes = Uint8Array.from([7, 7, 7])
     vi.stubGlobal(
       'fetch',
@@ -818,7 +826,7 @@ describe('update_listing — write + audit happy path', () => {
   })
 
   it('previews a non-item listing photo as this piece', async () => {
-    const photoUrl = 'https://rep.example.com/non-item.jpg'
+    const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/non-item.jpg'
     const tool = makeTool(
       undefined,
       photoSupabase({
@@ -906,7 +914,7 @@ describe('update_listing — error handling', () => {
       ]),
     )
 
-    const photoUrl = 'https://rep.example.com/raw-upload.jpg'
+    const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/raw-upload.jpg'
     const tool = makeTool(
       undefined,
       photoSupabase({ conversations: confirmedPhotoConversation(photoUrl) }),

@@ -8,6 +8,7 @@ import { NicNacToolError } from '@/lib/nic-nac/errors'
 import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import {
   hashCustomerPhotoUrl,
+  isApprovedCatalogPhotoUrl,
   normalizePhotoConfirmationKey,
   photoConfirmationPieceKey,
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
@@ -166,6 +167,13 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
             ? correction.canonicalPhotoUrl.trim()
             : ''
         if (input.issueType === 'bad_photo' && canonicalPhotoUrl) {
+          if (!isApprovedCatalogPhotoUrl(canonicalPhotoUrl)) {
+            throw new NicNacToolError({
+              code: 'PHOTO_NOT_APPROVED',
+              userMessage:
+                "I can only use an approved jewelry photo for the shared catalog, so I didn't save that one. Send the approved front photo and I'll check it with you first.",
+            })
+          }
           const storedSha = ctx.activeTradeBoardWorkflow?.photos?.find(
             (photo) =>
               photo.imageUrl?.trim() === canonicalPhotoUrl && photo.contentSha256?.trim(),
