@@ -53,7 +53,7 @@ body.bg-halloween-pumpkin-witch .hp-live-rail {
 }
 
 body.bg-halloween-pumpkin-witch .hp-ticker-row:not(.reverse) .hp-ticker-label {
-  background: linear-gradient(90deg, #211914 0%, #211914 70%, rgba(33, 25, 20, 0) 100%);
+  background: #211914;
   color: #fff7ed;
 }
 

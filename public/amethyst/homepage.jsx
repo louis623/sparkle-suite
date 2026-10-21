@@ -1529,7 +1529,7 @@ function Ticker({ topText }) {
               data-ticker-segment-start={i === 0 ? "true" : undefined}
               data-ticker-segment-repeat-start={i === tradeSegmentLength ? "true" : undefined}
             >
-              {tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}
+              {danceFloorTickerLabel(tr)}
             </a>
           ))}
         </div>

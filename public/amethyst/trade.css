@@ -2051,12 +2051,12 @@ body.mile-high-fizz-trade .hp-ticker-row.reverse {
 }
 
 body.mile-high-fizz-trade .hp-ticker-label {
-  background: linear-gradient(90deg, #2b0d45 0%, #2b0d45 70%, rgba(43, 13, 69, 0) 100%);
+  background: #2b0d45;
   color: #fce7f3;
 }
 
 body.mile-high-fizz-trade .hp-ticker-row.reverse .hp-ticker-label {
-  background: linear-gradient(90deg, #38bdf8 0%, #38bdf8 70%, rgba(56, 189, 248, 0) 100%);
+  background: #38bdf8;
   color: white;
 }
 
