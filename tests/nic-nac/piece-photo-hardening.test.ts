@@ -1586,6 +1586,11 @@ describe('customer photo hashing', () => {
     expect(isApprovedCatalogPhotoUrl(approved)).toBe(true)
     expect(isApprovedCatalogPhotoUrl(storageUrl)).toBe(false)
     expect(isApprovedCatalogPhotoUrl('https://evil.example/approved/front.png')).toBe(false)
+    expect(
+      isApprovedCatalogPhotoUrl(
+        'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/jewelry-photos/approved/front.png',
+      ),
+    ).toBe(false)
     restoreUrl()
   })
 })

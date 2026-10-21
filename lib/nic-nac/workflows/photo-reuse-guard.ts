@@ -145,7 +145,9 @@ export function isAllowedCustomerPhotoFetchUrl(url: string): boolean {
 export function isApprovedCatalogPhotoUrl(url: string): boolean {
   if (!isAllowedCustomerPhotoFetchUrl(url)) return false
   try {
-    return new URL(url).pathname.includes('/jewelry-photos/approved/')
+    return new URL(url).pathname.startsWith(
+      '/storage/v1/object/public/jewelry-photos/approved/',
+    )
   } catch {
     return false
   }
