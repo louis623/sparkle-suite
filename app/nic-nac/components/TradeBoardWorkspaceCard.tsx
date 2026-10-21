@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+import { displayCollectionLabel } from '@/lib/amethyst/trade-board-filters'
 import {
   getTradeListingDisplayFields,
   TRADE_LISTING_TYPE_LABELS,
@@ -637,7 +638,7 @@ export function TradeBoardWorkspaceCard({
                             </span>
                           </button>
                           <div className={styles.boardInventoryPieceBody}>
-                            <div className={styles.boardCardCollection}>{display.collectionName ?? 'Jewelry'}</div>
+                            <div className={styles.boardCardCollection}>{displayCollectionLabel(display.collectionName) || 'Jewelry'}</div>
                             <div className={styles.customerName}>{display.designName}</div>
                             <div className={styles.tradePieceMetaLine}>
                               {display.typeLabel}{display.size ? ` · Size ${display.size}` : ''}
@@ -735,7 +736,7 @@ export function TradeBoardWorkspaceCard({
                       {previewDisplay.designName}
                     </div>
                     <div className={surfaceStyles.helperNote}>
-                      {[previewDisplay.collectionName, previewDisplay.typeLabel, previewDisplay.size ? `Size ${previewDisplay.size}` : null].filter(Boolean).join(' · ')}
+                      {[displayCollectionLabel(previewDisplay.collectionName), previewDisplay.typeLabel, previewDisplay.size ? `Size ${previewDisplay.size}` : null].filter(Boolean).join(' · ')}
                     </div>
                     <div className={surfaceStyles.helperNote}>
                       {Math.max(0, previewListing.quantity_available ?? 1)} available

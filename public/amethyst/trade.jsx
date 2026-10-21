@@ -620,8 +620,29 @@ function getInitialTradeFilters() {
 
   return {
     ...EMPTY_FILTER_STATE,
-    collection: requestedCollection,
+    collection: displayCollectionLabel(requestedCollection),
   };
+}
+
+function displayCollectionLabel(value) {
+  const cleaned = String(value || "").trim().replace(/\s+/g, " ");
+  const match = cleaned.match(/^(.*\S)\s+(earring|earrings|ring|rings|necklace|necklaces|bracelet|bracelets|stack|stacks|pendant|pendants)$/i);
+  if (!match) return cleaned;
+  const typeLabels = {
+    earring: "Earrings",
+    earrings: "Earrings",
+    ring: "Ring",
+    rings: "Ring",
+    necklace: "Necklace",
+    necklaces: "Necklace",
+    bracelet: "Bracelet",
+    bracelets: "Bracelet",
+    stack: "Stack",
+    stacks: "Stack",
+    pendant: "Pendant",
+    pendants: "Pendant",
+  };
+  return `${match[1]} ${typeLabels[match[2].toLowerCase()]}`;
 }
 
 function deriveTradeBoardFilterOptions(listings) {
@@ -632,7 +653,7 @@ function deriveTradeBoardFilterOptions(listings) {
   const rarityTags = new Set();
 
   listings.forEach((listing) => {
-    if (listing.collection) collections.add(listing.collection);
+    if (listing.collection) collections.add(displayCollectionLabel(listing.collection));
     if (listing.type) types.add(listing.type);
     if (listing.material) materials.add(listing.material);
     if (listing.size) sizes.add(listing.size);
@@ -660,7 +681,7 @@ function filterCollectionOptions(collections, collectionSearch) {
 
 function filterTradeBoardListings(listings, filters) {
   return listings.filter((listing) => {
-    if (filters.collection !== "all" && listing.collection !== filters.collection) return false;
+    if (filters.collection !== "all" && displayCollectionLabel(listing.collection) !== filters.collection) return false;
     if (filters.type !== "all" && listing.type !== filters.type) return false;
     if (filters.rarity !== "all" && listing.tier !== filters.rarity) return false;
     if (filters.material !== "all" && listing.material !== filters.material) return false;
@@ -1511,7 +1532,7 @@ function TradeCard({ piece, onTap, tierVisible }) {
         )}
       </div>
       <div className="tp-card-body">
-        <div className="tp-card-collection">{piece.collection}</div>
+        <div className="tp-card-collection">{displayCollectionLabel(piece.collection)}</div>
         <h3 className="tp-card-name slot" data-slot="design name">{piece.name}</h3>
         <div className="tp-card-meta">
           <span>{piece.type}{piece.size ? ` - Size ${piece.size}` : ""}</span>
@@ -1606,7 +1627,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
             <span className="pip" />
             {tierLabel}
           </span>
-          <div className="tp-card-expand-collection">{piece.collection} collection</div>
+          <div className="tp-card-expand-collection">{displayCollectionLabel(piece.collection)} collection</div>
           <h2 id="trade-expanded-title" className="tp-card-expand-name slot" data-slot="design name">{piece.name}</h2>
           <p className="tp-card-expand-desc slot" data-slot="description">
             This {piece.type.toLowerCase()} can be requested as an item-for-item dancer swap if the item number just revealed for you stays within the same collection and the same jewelry type.
@@ -1614,7 +1635,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
           <dl className="tp-card-expand-specs">
             <div>
               <dt>Collection</dt>
-              <dd>{piece.collection}</dd>
+              <dd>{displayCollectionLabel(piece.collection)}</dd>
             </div>
             <div>
               <dt>Jewelry type</dt>
@@ -1846,7 +1867,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
         <div className="tp-sheet-eyebrow">Swap request</div>
         <h3 id="trade-request-title" className="tp-sheet-title">{piece.name}</h3>
         <div className="tp-sheet-piece">
-          {piece.collection} - {piece.type}{piece.size ? ` - Size ${piece.size}` : ""}
+          {displayCollectionLabel(piece.collection)} - {piece.type}{piece.size ? ` - Size ${piece.size}` : ""}
         </div>
         <p className="tp-sheet-helper">
           Tell <strong>{repName}</strong> what you just revealed. Your dancer should be from the same collection family and jewelry type. Birthday months and years can differ.
@@ -1874,7 +1895,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
             <div>
               <strong>Requested dancer</strong>
               <span>{piece.name}</span>
-              <small>{piece.collection} · {piece.type}{piece.size ? ` · Size ${piece.size}` : ""}</small>
+              <small>{displayCollectionLabel(piece.collection)} · {piece.type}{piece.size ? ` · Size ${piece.size}` : ""}</small>
             </div>
             <div>
               <strong>Your reveal</strong>
@@ -1898,7 +1919,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
               disabled={pending}
             />
             <datalist id="tp-collection-families">
-              {[...new Set(["Birthday", "OG", "Sterling Club", piece.collection].filter((family) => typeof family === "string" && family.trim()))].map((family) => <option key={family} value={family} />)}
+              {[...new Set(["Birthday", "OG", "Sterling Club", displayCollectionLabel(piece.collection)].filter((family) => typeof family === "string" && family.trim()))].map((family) => <option key={family} value={family} />)}
             </datalist>
           </div>
           <div className="tp-sheet-field">

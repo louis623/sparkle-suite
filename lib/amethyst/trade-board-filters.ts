@@ -16,6 +16,29 @@ export interface AmethystTradeBoardFilterOptions {
   rarityTags: string[]
 }
 
+const COLLECTION_TYPE_LABELS: Record<string, string> = {
+  earring: 'Earrings',
+  earrings: 'Earrings',
+  ring: 'Ring',
+  rings: 'Ring',
+  necklace: 'Necklace',
+  necklaces: 'Necklace',
+  bracelet: 'Bracelet',
+  bracelets: 'Bracelet',
+  stack: 'Stack',
+  stacks: 'Stack',
+  pendant: 'Pendant',
+  pendants: 'Pendant',
+}
+
+/** Display label only. Singular and plural jewelry words on a collection name collapse to one chip. */
+export function displayCollectionLabel(value: string | null | undefined) {
+  const cleaned = String(value ?? '').trim().replace(/\s+/g, ' ')
+  const match = cleaned.match(/^(.*\S)\s+(earring|earrings|ring|rings|necklace|necklaces|bracelet|bracelets|stack|stacks|pendant|pendants)$/i)
+  if (!match) return cleaned
+  return `${match[1]} ${COLLECTION_TYPE_LABELS[match[2].toLowerCase()]}`
+}
+
 function sortValues(values: Set<string>) {
   return [...values].sort((left, right) => left.localeCompare(right))
 }
@@ -30,7 +53,7 @@ export function deriveTradeBoardFilterOptions(
   const rarityTags = new Set<string>()
 
   for (const listing of listings) {
-    if (listing.collection) collections.add(listing.collection)
+    if (listing.collection) collections.add(displayCollectionLabel(listing.collection))
     if (listing.type) types.add(listing.type)
     if (listing.material) materials.add(listing.material)
     if (listing.size) sizes.add(listing.size)
@@ -65,7 +88,7 @@ export function filterTradeBoardListings(
   state: AmethystTradeBoardFilterState,
 ) {
   return listings.filter((listing) => {
-    if (state.collection !== 'all' && listing.collection !== state.collection) {
+    if (state.collection !== 'all' && displayCollectionLabel(listing.collection) !== state.collection) {
       return false
     }
     if (state.type !== 'all' && listing.type !== state.type) {
