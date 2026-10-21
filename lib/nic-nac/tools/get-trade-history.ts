@@ -39,9 +39,9 @@ export function makeGetTradeHistoryTool(ctx: {
 }) {
   return tool({
     description:
-      "List past trade requests against the authenticated rep's listings, with summary analytics. " +
-      'Use this when the rep asks about past trades, completed swaps, rejected requests, who has traded with them before, or how their trade activity is trending. ' +
-      'Returns approved + denied trade records (not pending — for pending use get_trade_requests). ' +
+      "List past swap requests against the authenticated rep's listings, with summary analytics. " +
+      'Use this when the rep asks about past swaps, completed swaps, rejected requests, who has swapped with them before, or how their swap activity is trending. ' +
+      'Returns approved and denied swap records (not pending — for pending use get_trade_requests). ' +
       'Summary includes totalCompleted, avgFulfillmentDays, and any repeat customers.',
     inputSchema,
     execute: async ({ limit }) => {

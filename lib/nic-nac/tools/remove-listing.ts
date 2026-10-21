@@ -57,7 +57,7 @@ export function makeRemoveListingTool(ctx: {
   return tool({
     description:
       "Remove a listing from the authenticated rep's dance floor (soft delete — sets status='removed' and records the reason). " +
-      'Auto-cancels any pending trade request against the listing. ' +
+      'Auto-cancels any pending swap request against the listing. ' +
       "Requires explicit user approval — never remove without asking first. Identify the listing by listingId OR itemNumber and capture the reason (swapped | keeping | mistake | other).",
     inputSchema,
     needsApproval: true,

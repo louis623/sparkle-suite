@@ -21,7 +21,7 @@ export function makeRecordShowSessionEventTool(ctx: {
 }) {
   return tool({
     description:
-      'Record a structured event in the current show session. Use for promises, follow-ups, queue snapshots, customer requests, inventory notes, trade notes, and show summaries.',
+      'Record a structured event in the current show session. Use for promises, follow-ups, queue snapshots, customer requests, inventory notes, swap notes, and show summaries.',
     inputSchema,
     execute: async ({ sessionId, eventType, summary, payload }) =>
       recordNicNacShowSessionEvent(ctx.supabase, {

@@ -696,7 +696,7 @@ export function NicNacChatBody({
     void sendMessage({ text })
   }
 
-  const handlePickFiles = async (files: FileList | null, _mode: 'gallery' | 'camera') => {
+  const handlePickFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return
     const remainingSlots = MAX_ATTACHMENTS - attachments.length
     if (remainingSlots <= 0) {
