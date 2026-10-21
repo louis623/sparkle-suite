@@ -2112,19 +2112,19 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-notes { min-height: 120px; resize: vertical; }
 .hp-signup-question { display: grid; gap: 16px; width: 100%; min-width: 0; min-height: 212px; box-sizing: border-box; align-content: center; border: 1px solid var(--border); border-radius: 20px; background: var(--hp-form-panel-bg); color: var(--hp-form-panel-fg); padding: 20px; }
 .hp-signup-question.is-choices, .hp-signup-question.is-review { min-height: 0; align-content: start; }
-.hp-signup-question.is-review { gap: 0; padding: 4px 18px 8px; }
+.hp-signup-question.is-review { gap: 0; padding: 8px 18px 12px; }
 .hp-signup-review, .hp-signup-review-nested { list-style: none; margin: 0; padding: 0; display: grid; }
-.hp-signup-review-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 2px; border-top: 1px solid color-mix(in oklab, var(--hp-form-panel-fg) 12%, transparent); }
+.hp-signup-review-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 2px; border-top: 1px solid color-mix(in oklab, var(--hp-form-panel-fg) 12%, transparent); }
 .hp-signup-review > .hp-signup-review-row:first-child { border-top: 0; }
-.hp-signup-review-group { display: grid; gap: 2px; padding: 14px 2px 2px; border-top: 1px solid color-mix(in oklab, var(--hp-form-panel-fg) 12%, transparent); }
+.hp-signup-review-group { display: grid; gap: 8px; padding: 16px 2px 4px; border-top: 1px solid color-mix(in oklab, var(--hp-form-panel-fg) 12%, transparent); }
 .hp-signup-review-nested { margin-top: 4px; }
-.hp-signup-review-nested .hp-signup-review-row { padding: 8px 0; }
-.hp-signup-review-copy { min-width: 0; display: grid; gap: 2px; }
-.hp-signup-review-label { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hp-card-muted); }
+.hp-signup-review-nested .hp-signup-review-row { padding: 14px 0; }
+.hp-signup-review-copy { min-width: 0; display: grid; gap: 4px; }
+.hp-signup-review-label { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--hp-card-muted); }
 .hp-signup-review-value { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.45; color: var(--hp-form-panel-fg); overflow-wrap: break-word; }
-.hp-signup-review-meta { margin: 0; font-size: 14px; line-height: 1.4; color: var(--hp-card-muted); overflow-wrap: anywhere; }
+.hp-signup-review-meta { margin: 0; font-size: 15px; line-height: 1.45; color: var(--hp-card-muted); overflow-wrap: break-word; }
 .hp-signup-review-notes { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.hp-signup-review-edit { flex: none; min-height: 44px; min-width: 44px; padding: 8px 2px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.hp-signup-review-edit { flex: none; align-self: center; min-height: 44px; min-width: 44px; padding: 10px 8px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 16px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .hp-signup-review-edit:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
 .hp-signup-review-edit:disabled { opacity: 0.45; cursor: wait; }
 .hp-signup-intro { display: grid; gap: 6px; min-height: 84px; align-content: end; text-align: center; }

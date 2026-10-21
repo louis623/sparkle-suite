@@ -302,6 +302,8 @@ describe('signup copy and migration parity', () => {
     expect(signup).toContain('hp-signup-review-label">Favorites')
     expect(signup).toContain('1 favorite')
     expect(signup).toContain('favorites`}')
+    expect(jsx).toContain('.hp-signup-review-label { margin: 0; font-size: 14px;')
+    expect(jsx).toContain('min-height: 44px; min-width: 44px; padding: 10px 8px;')
     expect(signup).toContain('function preferenceShortLabel(label)')
     expect(signup).toContain('indexOf(" (")')
     expect(signup).toContain('return "Not sure yet"')
