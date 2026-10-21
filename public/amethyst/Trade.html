@@ -94,19 +94,11 @@
   var version = "20261021-photo-frame";
   var scripts = document.querySelectorAll('script[src*="trade.jsx"]');
   for (var i = 0; i < scripts.length; i += 1) {
-    var src = scripts[i].getAttribute("src") || "";
-    var next = src.indexOf("v=") === -1
-      ? src + (src.indexOf("?") === -1 ? "?v=" : "&v=") + version
-      : src.replace(/([?&])v=[^&#]*/, "$1v=" + version);
-    scripts[i].setAttribute("src", next);
+    scripts[i].setAttribute("src", "/amethyst/trade.jsx?v=" + version);
   }
-  var freshHref = "trade.css?v=" + version;
-  var current = document.querySelector('link[rel="stylesheet"][href*="trade.css"]');
-  if (current && current.parentNode && !document.querySelector('link[rel="stylesheet"][href="' + freshHref + '"]')) {
-    var fresh = document.createElement("link");
-    fresh.rel = "stylesheet";
-    fresh.href = freshHref;
-    current.parentNode.insertBefore(fresh, current.nextSibling);
+  var links = document.querySelectorAll('link[rel="stylesheet"][href*="trade.css"]');
+  for (var j = 0; j < links.length; j += 1) {
+    links[j].setAttribute("href", "/amethyst/trade.css?v=" + version);
   }
 })();
 </script>
