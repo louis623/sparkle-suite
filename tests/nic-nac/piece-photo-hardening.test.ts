@@ -230,6 +230,49 @@ describe('Kelly 9/18 — a photo starts a piece only while one is being added', 
         labelPhoto,
       ]),
     ).toBe(true)
+    expect(
+      hasTradeBoardIntakeSignal([
+        {
+          id: 'assistant-photo',
+          role: 'assistant',
+          parts: [{ type: 'text', text: 'Send the photo for this piece.' }],
+        },
+        labelPhoto,
+      ]),
+    ).toBe(true)
+  })
+
+  it('does not start tracking from a banner upload or a photo checklist', () => {
+    expect(
+      hasTradeBoardIntakeSignal([
+        {
+          id: 'assistant-banner',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'text',
+              text: 'Upload your banner image in Site Settings.',
+            },
+          ],
+        },
+        labelPhoto,
+      ]),
+    ).toBe(false)
+    expect(
+      hasTradeBoardIntakeSignal([
+        {
+          id: 'assistant-checklist',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'text',
+              text: 'Want me to send you a photo checklist…',
+            },
+          ],
+        },
+        labelPhoto,
+      ]),
+    ).toBe(false)
   })
 
   it('does not start a new piece from a photo after the last one was saved', () => {

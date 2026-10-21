@@ -1371,7 +1371,7 @@ describe('Dance Floor intake route context', () => {
     expect(context.sessionAfter?.phase).toBe('ready_to_add')
   })
 
-  it('promotes the latest unknown photo when the rep asks Nic-Nac to push through a visually accepted front photo', async () => {
+  it('promotes the latest unknown photo when the rep says yes to a visually accepted front photo', async () => {
     const sessionRow = {
       id: 'workflow-1',
       rep_id: 'rep-1',
@@ -1462,7 +1462,7 @@ describe('Dance Floor intake route context', () => {
           parts: [
             {
               type: 'text',
-              text: "Push it through, please. It's a good photo.",
+              text: 'Yes',
             },
           ],
         } as UIMessage,

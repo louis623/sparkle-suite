@@ -163,7 +163,7 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
 }
 
 const ADD_PIECE_PHOTO_ASK =
-  /\b(?:send|upload|snap|attach)\b[\s\S]{0,160}\b(?:label|details|tag|customer-facing|photo|image)\b|\badd a piece\b|\b(?:label|details|tag|jewelry|customer-facing)\b[\s\S]{0,48}\b(?:photo|shot|image|for this piece)\b/i
+  /\b(?:photo|image|shot|picture|label)s?\b[\s\S]{0,80}\bfor this piece\b|\bfor this piece\b[\s\S]{0,80}\b(?:photo|image|shot|picture|label)s?\b/i
 
 export function hasTradeBoardIntakeSignal(messages: UIMessage[]): boolean {
   const latestUserIndex = findLatestUserMessageIndex(messages)
