@@ -1112,6 +1112,7 @@ body.bg-quartz-paper .tp-filter-pill.active .count {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
 }
 .tp-card-name {
   font-family: var(--hp-display-font);
@@ -1162,7 +1163,7 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
 .tp-card-action {
   align-self: flex-start;
   min-height: 40px;
-  margin-top: 5px;
+  margin-top: auto;
   padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: 9px;
