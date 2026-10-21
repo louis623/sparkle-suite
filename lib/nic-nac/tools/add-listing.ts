@@ -48,6 +48,8 @@ import {
   hashDataImageUrl,
   loadItemNumbersForPhotoHash,
   mainPhotoConfirmationIdentity,
+  normalizePhotoConfirmationKey,
+  photoConfirmationPieceKey,
   resolvePhotoContentSha256,
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
@@ -698,12 +700,26 @@ function savedItemNumber(value: unknown): string {
 }
 
 export function confirmedPhotoSetSha(
-  workflow: { metadata?: Record<string, unknown> } | null | undefined,
+  workflow:
+    | {
+        id?: string
+        catalogMode?: string
+        known?: { itemNumber?: string | null }
+        metadata?: Record<string, unknown>
+      }
+    | null
+    | undefined,
   itemNumber?: string,
 ): string | undefined {
   const sha = workflow?.metadata?.photoSetReuseConfirmedSha
-  const storedItem = savedItemNumber(workflow?.metadata?.photoSetReuseConfirmedItemNumber)
-  const saveItem = savedItemNumber(itemNumber)
+  const storedItem = normalizePhotoConfirmationKey(
+    workflow?.metadata?.photoSetReuseConfirmedItemNumber,
+  )
+  const saveItem = photoConfirmationPieceKey({
+    itemNumber: itemNumber || workflow?.known?.itemNumber,
+    catalogMode: workflow?.catalogMode,
+    intakeId: workflow?.id,
+  })
   if (!storedItem || !saveItem || storedItem !== saveItem) return undefined
   return typeof sha === 'string' && sha.trim() ? sha.trim() : undefined
 }
@@ -921,8 +937,14 @@ export function pendingMainPhotoConfirmation(args: {
   if (!photo?.imageUrl?.trim()) return null
   const photoKey = mainPhotoConfirmationIdentity(photo)
   const confirmedId = workflow.metadata?.mainPhotoConfirmedPhotoId
-  const confirmedItem = savedItemNumber(workflow.metadata?.mainPhotoConfirmedItemNumber)
-  const saveItem = savedItemNumber(args.itemNumber || workflow.known.itemNumber)
+  const confirmedItem = normalizePhotoConfirmationKey(
+    workflow.metadata?.mainPhotoConfirmedItemNumber,
+  )
+  const saveItem = photoConfirmationPieceKey({
+    itemNumber: args.itemNumber || workflow.known.itemNumber,
+    catalogMode: workflow.catalogMode,
+    intakeId: workflow.id,
+  })
   if (
     typeof confirmedId === 'string' &&
     photoKey &&

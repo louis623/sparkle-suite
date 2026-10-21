@@ -5,6 +5,33 @@ function normalizeItemNumber(itemNumber: string): string {
   return itemNumber.trim().toUpperCase()
 }
 
+/**
+ * Piece key for a photo confirmation. Item-number pieces use the item number.
+ * A non-item piece, or any piece that still has no item number, uses
+ * NON_ITEM:<intakeId> so a yes can match the later save.
+ */
+export function photoConfirmationPieceKey(args: {
+  itemNumber?: string | null
+  catalogMode?: string | null
+  intakeId?: string | null
+}): string {
+  const item = typeof args.itemNumber === 'string' ? args.itemNumber.trim().toUpperCase() : ''
+  if (args.catalogMode !== 'non_item_number' && item) return item
+  const intakeId = typeof args.intakeId === 'string' ? args.intakeId.trim() : ''
+  return intakeId ? `NON_ITEM:${intakeId}` : ''
+}
+
+export function normalizePhotoConfirmationKey(value: unknown): string {
+  if (typeof value !== 'string') return ''
+  const trimmed = value.trim()
+  const marker = 'NON_ITEM:'
+  if (trimmed.slice(0, marker.length).toUpperCase() === marker) {
+    const intakeId = trimmed.slice(marker.length).trim()
+    return intakeId ? `NON_ITEM:${intakeId}` : ''
+  }
+  return trimmed.toUpperCase()
+}
+
 export type PhotoReuseMatch = {
   itemNumber?: string | null
 }

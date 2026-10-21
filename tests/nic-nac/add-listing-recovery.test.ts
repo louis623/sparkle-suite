@@ -171,6 +171,7 @@ import { withErrorHandling } from '@/lib/nic-nac/tools/wrappers/with-error-handl
 import { renderItemNumberPng } from '@/lib/nic-nac/workflows/label-item-number'
 import { computeTradeBoardAddAttemptReadiness } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 import { hashDataImageUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'
+import { ingestLatestTradeBoardIntakeTurn } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 
 interface AddListingToolDef {
   execute: (input: unknown) => Promise<Record<string, unknown>>
@@ -3415,6 +3416,111 @@ describe('add_listing - active workflow readiness guard', () => {
         }),
       },
     )
+  })
+
+  it('saves a non-item piece after the main photo preview and a yes', async () => {
+    const photoUrl = 'data:image/jpeg;base64,Tk9OSVRFTV9SSU5H'
+    const workflow = activeWorkflow({
+      id: 'intake-non-item',
+      catalogMode: 'non_item_number',
+      phase: 'ready_to_add',
+      missing: [],
+      metadata: { mainPhotoConfirmationRequired: true },
+      known: {
+        jewelryType: 'RG',
+        collectionFamily: 'Birthday',
+        collectionName: 'July Birthday 2026',
+        ringSize: '7',
+      },
+      photos: [
+        {
+          id: 'photo-non-item',
+          intakeSessionId: 'intake-non-item',
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: photoUrl,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['customer-facing jewelry photo'],
+        },
+      ],
+    })
+    delete workflow.known.itemNumber
+
+    const previewTool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: workflow,
+    })
+    const preview = await previewTool.execute({
+      mode: 'single',
+      catalogMode: 'non_item_number',
+      jewelryType: 'RG',
+      collectionFamily: 'Birthday',
+      collectionName: 'July Birthday 2026',
+      ringSize: '7',
+    })
+    expect(preview).toMatchObject({
+      needsAction: 'confirm_main_photo',
+      previewPhotoId: 'photo-non-item',
+      message: expect.stringContaining('this piece'),
+    })
+    expect(addNonItemNumberListingMock).not.toHaveBeenCalled()
+
+    const ingested = await ingestLatestTradeBoardIntakeTurn({} as never, {
+      session: workflow,
+      messages: [
+        {
+          id: 'preview',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: preview,
+            },
+          ],
+        },
+        {
+          id: 'yes',
+          role: 'user',
+          parts: [{ type: 'text', text: 'Yes' }],
+        },
+      ],
+    })
+    expect(ingested.metadata.mainPhotoConfirmedPhotoId).toBe('photo-non-item')
+    expect(ingested.metadata.mainPhotoConfirmedItemNumber).toBe(
+      'NON_ITEM:intake-non-item',
+    )
+
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl:
+        'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/non-item-ring.jpg',
+    })
+    addNonItemNumberListingMock.mockResolvedValueOnce({
+      listingId: 'listing-non-item-yes',
+      listingSource: 'non_item_number',
+      displayName: 'July Birthday 2026 Ring - Size 7',
+      status: 'available',
+    })
+    const saveTool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: ingested,
+    })
+    await expect(
+      saveTool.execute({
+        mode: 'single',
+        catalogMode: 'non_item_number',
+        jewelryType: 'RG',
+        collectionFamily: 'Birthday',
+        collectionName: 'July Birthday 2026',
+        ringSize: '7',
+      }),
+    ).resolves.toMatchObject({
+      listingId: 'listing-non-item-yes',
+      listingSource: 'non_item_number',
+      itemNumber: null,
+    })
+    expect(addNonItemNumberListingMock).toHaveBeenCalledTimes(1)
   })
 
   it('does not expose accepted-photo warning details in successful add_listing results', async () => {

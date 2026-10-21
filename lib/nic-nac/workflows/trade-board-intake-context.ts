@@ -34,6 +34,7 @@ import {
 import {
   hashDataImageUrl,
   mainPhotoConfirmationIdentity,
+  photoConfirmationPieceKey,
 } from './photo-reuse-guard'
 import { isExplicitTradeBoardAddRequest } from './trade-board-add-intent'
 import {
@@ -431,10 +432,14 @@ export async function ingestLatestTradeBoardIntakeTurn(
     const confirmedPhotoId =
       previewedMainPhotoId(args.messages) ??
       currentMainPhotoIdentity(photos)
-    const confirmedItemNumber = mainPhotoConfirmedItemNumber(
-      args.messages,
-      args.session.known.itemNumber,
-    )
+    const confirmedItemNumber = photoConfirmationPieceKey({
+      itemNumber: mainPhotoConfirmedItemNumber(
+        args.messages,
+        args.session.known.itemNumber,
+      ),
+      catalogMode,
+      intakeId: args.session.id,
+    })
     if (confirmedPhotoId && confirmedItemNumber) {
       metadata = {
         ...metadata,
@@ -446,7 +451,11 @@ export async function ingestLatestTradeBoardIntakeTurn(
   }
   if (latestTurnConfirmsPhotoSet(args.messages)) {
     const confirmedSha = flaggedPhotoSetSha(args.messages, photos)
-    const confirmedItemNumber = setAskItemNumber(args.messages)
+    const confirmedItemNumber = photoConfirmationPieceKey({
+      itemNumber: setAskItemNumber(args.messages),
+      catalogMode,
+      intakeId: args.session.id,
+    })
     if (confirmedSha && confirmedItemNumber) {
       metadata = {
         ...metadata,
