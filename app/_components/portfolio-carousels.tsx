@@ -185,8 +185,9 @@ function PortfolioCarousel({
           }
         }}
       >
-        <button type="button" className={styles.carouselButton} aria-label={`Previous ${carousel.label}`} onClick={() => focusSlide(active - 1)}>
-          <ChevronLeft size={22} aria-hidden="true" />
+        <div className={styles.stage}>
+        <button type="button" className={`${styles.carouselButton} ${styles.previousSlide}`} aria-label={`Previous ${carousel.label}`} onClick={() => focusSlide(active - 1)}>
+          <ChevronLeft size={26} aria-hidden="true" />
         </button>
         <div ref={viewportRef} className={styles.viewport}>
           {carousel.slides.map((item, index) => (
@@ -213,9 +214,10 @@ function PortfolioCarousel({
             </div>
           ))}
         </div>
-        <button type="button" className={styles.carouselButton} aria-label={`Next ${carousel.label}`} onClick={() => focusSlide(active + 1)}>
-          <ChevronRight size={22} aria-hidden="true" />
+        <button type="button" className={`${styles.carouselButton} ${styles.nextSlide}`} aria-label={`Next ${carousel.label}`} onClick={() => focusSlide(active + 1)}>
+          <ChevronRight size={26} aria-hidden="true" />
         </button>
+        </div>
       </div>
       <div ref={dotsRef} className={styles.dots} role="group" aria-label={`${carousel.label} slides`}>
         {carousel.slides.map((item, index) => (

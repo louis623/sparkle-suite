@@ -47,23 +47,30 @@
 .showcase h2 { margin-top: 12px; font-size: clamp(34px, 4.4vw, 52px); line-height: 1.12; }
 .showcaseCopy > p { margin-top: 14px; color: var(--suite-muted); font-size: 17px; line-height: 1.65; }
 .carousel {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 52px;
-  align-items: center;
-  gap: 8px;
+  display: block;
   margin-top: 28px;
 }
+.stage { position: relative; }
 .carouselButton {
-  width: 44px;
-  height: 44px;
+  position: absolute;
+  top: 43%;
+  z-index: 4;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(64, 41, 36, .2);
+  border: 0;
   border-radius: 999px;
-  background: white;
-  color: var(--suite-ink);
+  background: linear-gradient(135deg, #ff4cae, #d81b87);
+  color: #fff6fb;
+  box-shadow: 0 8px 18px rgba(54, 34, 29, .35);
   cursor: pointer;
+  transform: translateY(-50%);
 }
+.carouselButton:hover { filter: brightness(1.08); }
+.carouselButton:focus-visible { outline: 3px solid var(--suite-pink); outline-offset: 3px; }
+.previousSlide { left: 14px; }
+.nextSlide { right: 14px; }
 .viewport {
   position: relative;
   display: flex;
@@ -165,7 +172,7 @@
   .showcase { padding: 48px 0 40px; }
   .showcaseCopy { width: calc(100% - 40px); }
   .showcase h2 { font-size: 34px; }
-  .carousel { grid-template-columns: 40px minmax(0, 1fr) 40px; gap: 4px; }
-  .carouselButton { width: 36px; height: 36px; }
+  .previousSlide { left: 8px; }
+  .nextSlide { right: 8px; }
   .cardMeta h3 { font-size: 28px; }
 }
