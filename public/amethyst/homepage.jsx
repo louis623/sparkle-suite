@@ -2110,10 +2110,32 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-notes-label { display: block; color: var(--hp-card-fg); font-size: 15px; line-height: 1.45; font-weight: 600; letter-spacing: 0; text-transform: none; }
 .hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }
 .hp-signup-notes { min-height: 120px; resize: vertical; }
+.hp-signup-progress { margin: 0; color: var(--hp-card-fg); font-size: 14px; font-weight: 700; letter-spacing: 0.04em; }
+.hp-signup-step { display: grid; gap: 16px; min-width: 0; outline: none; }
+.hp-signup-identity { display: grid; gap: 16px; }
+.hp-signup-step:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 4px; }
+.hp-signup-back { min-height: 44px; min-width: 44px; padding: 8px 12px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.hp-signup-back:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
+.hp-signup-live { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @media (max-width: 420px) {
   .hp-pref-chip { font-size: 15px; }
 }
 `;
+
+const SIGNUP_STEP_LABELS = [
+  "Name and email",
+  "Favorite stones",
+  "Favorite metals & finishes",
+  "Favorite cuts",
+  "Favorite Bomb Party collections",
+  "Reminders and updates",
+  "Phone",
+  "Birthday",
+  "Ring size",
+  "Jewelry notes",
+  "Sign me up",
+];
+const SIGNUP_LAST_STEP = SIGNUP_STEP_LABELS.length - 1;
 
 function applySignupPreferenceToggle(selected, slug, checked) {
   if (!checked) return selected.filter((item) => item !== slug);
@@ -2217,6 +2239,25 @@ function Signup({ repName, businessName }) {
   const [preferenceOptions, setPreferenceOptions] = useState(null);
   const [preferenceOptionsError, setPreferenceOptionsError] = useState(false);
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
+  const [step, setStep] = useState(0);
+  const [stepError, setStepError] = useState("");
+  const [stepAnnouncement, setStepAnnouncement] = useState(`Step 1 of ${SIGNUP_STEP_LABELS.length}. ${SIGNUP_STEP_LABELS[0]}.`);
+  const stepRef = useRef(null);
+  const stepWasShown = useRef(false);
+  useEffect(() => {
+    setStepAnnouncement(`Step ${step + 1} of ${SIGNUP_STEP_LABELS.length}. ${SIGNUP_STEP_LABELS[step]}.`);
+    if (!stepWasShown.current) {
+      stepWasShown.current = true;
+      return;
+    }
+    const field = stepRef.current?.querySelector("input, select, textarea");
+    if (field) field.focus();
+    else document.querySelector("#signup .hp-signup-submit")?.focus();
+  }, [step]);
+  useEffect(() => {
+    if (!stepError) return;
+    document.getElementById("hp-signup-step-error")?.focus();
+  }, [stepError]);
   useEffect(() => {
     let cancelled = false;
     fetch(withCurrentSearch("/api/amethyst/preference-options"))
@@ -2240,14 +2281,60 @@ function Signup({ repName, businessName }) {
   const signupSub = CONTENT.signupSub || `Get a heads-up when ${repName} goes live, plus first dibs on new drops.`;
 
   function updateField(key, value) {
+    setStepError("");
     setForm((current) => ({
       ...current,
       [key]: value,
     }));
   }
 
+  function favoriteStepForEmptyList() {
+    if (form.favoriteStones.length < 1) return 1;
+    if (form.favoriteMaterials.length < 1) return 2;
+    if (form.favoriteCuts.length < 1) return 3;
+    if (form.favoriteCollections.length < 1) return 4;
+    return 1;
+  }
+
+  function validateCurrentStep() {
+    if (step >= 1 && step <= 4) {
+      if (!preferenceOptions) {
+        return preferenceOptionsError
+          ? "Favorites could not load. Refresh the page and try again."
+          : "Favorites are still loading. Try again in a moment.";
+      }
+      const picks = [form.favoriteStones, form.favoriteMaterials, form.favoriteCuts, form.favoriteCollections][step - 1];
+      if (!picks || picks.length < 1) {
+        return "Pick at least one favorite in each list. Not sure yet counts.";
+      }
+    }
+    if (step === 5 && !form.smsConsent && !form.emailConsent) {
+      return "Choose SMS, email, or both before signing up.";
+    }
+    if (step === 6 && form.smsConsent && !form.phone.trim()) {
+      return "A phone number is required if the customer wants SMS updates.";
+    }
+    return "";
+  }
+
+  function goBack() {
+    setStepError("");
+    setSubmitState({ status: "idle", message: "" });
+    setStep((current) => Math.max(0, current - 1));
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
+    if (step < SIGNUP_LAST_STEP) {
+      const error = validateCurrentStep();
+      if (error) {
+        setStepError(error);
+        return;
+      }
+      setStepError("");
+      setStep((current) => current + 1);
+      return;
+    }
     if (!preferenceOptions) {
       setSubmitState({
         status: "error",
@@ -2297,9 +2384,27 @@ function Signup({ repName, businessName }) {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
+        const message = payload.error || "We couldn't save your signup right now.";
+        const jump = /favorite|Not sure yet|Refresh the page and pick/i.test(message)
+          ? favoriteStepForEmptyList()
+          : /phone number is required/i.test(message)
+            ? 6
+            : /Choose SMS, email, or both/i.test(message)
+              ? 5
+              : /ring size/i.test(message)
+                ? 8
+                : /jewelry notes/i.test(message)
+                  ? 9
+                  : null;
+        if (jump != null) {
+          setStep(jump);
+          setStepError(message);
+          setSubmitState({ status: "idle", message: "" });
+          return;
+        }
         setSubmitState({
           status: "error",
-          message: payload.error || "We couldn't save your signup right now.",
+          message,
         });
         return;
       }
@@ -2322,6 +2427,8 @@ function Signup({ repName, businessName }) {
         ringSize: "",
         jewelryNotes: "",
       });
+      setStep(0);
+      setStepError("");
       setSubmitState({
         status: "success",
         message: "You're on the list. We'll use the channels you selected.",
@@ -2353,117 +2460,153 @@ function Signup({ repName, businessName }) {
             ) : null}
           </div>
           <form className="hp-signup-form" onSubmit={handleSubmit}>
-            <div className="hp-signup-row">
-              <div className="hp-signup-field">
-                <label className="hp-signup-label" htmlFor="hp-first-name">First name</label>
-                <input id="hp-first-name" className="hp-signup-input" type="text" placeholder="First name" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
-              </div>
-              <div className="hp-signup-field">
-                <label className="hp-signup-label" htmlFor="hp-last-name">Last name</label>
-                <input id="hp-last-name" className="hp-signup-input" type="text" placeholder="Last name" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
-              </div>
-            </div>
-            <div className="hp-signup-row">
-              <div className="hp-signup-field">
-                <label className="hp-signup-label" htmlFor="hp-email">Email</label>
-                <input id="hp-email" className="hp-signup-input" type="email" placeholder="Email address" value={form.email} onChange={(e) => updateField("email", e.target.value)} />
-              </div>
-              <div className="hp-signup-field">
-                <label className="hp-signup-label" htmlFor="hp-phone">Phone <span className="hp-signup-label-aux">(optional, for SMS)</span></label>
-                <input id="hp-phone" className="hp-signup-input" type="tel" placeholder="Mobile number" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} />
-              </div>
-            </div>
-            <div className="hp-signup-consent-box">
-              <label className="hp-signup-check">
-                <input type="checkbox" checked={form.smsConsent} onChange={(e) => updateField("smsConsent", e.target.checked)} />
-                <span>Text me show reminders and SMS updates.</span>
-              </label>
-              <label className="hp-signup-check">
-                <input type="checkbox" checked={form.emailConsent} onChange={(e) => updateField("emailConsent", e.target.checked)} />
-                <span>Email me show reminders and collection updates.</span>
-              </label>
-              <label className="hp-signup-check">
-                <input type="checkbox" checked={form.marketingConsent} onChange={(e) => updateField("marketingConsent", e.target.checked)} />
-                <span>I also want promotional drops, launches, and special offers.</span>
-              </label>
-            </div>
-            <div className="hp-signup-preferences">
-              <style>{SIGNUP_PREFERENCE_STYLES}</style>
-              <div className="hp-signup-preferences-heading">
-                <strong>Your jewelry favorites</strong>
-              </div>
-              <p className="hp-signup-preferences-copy">Helps {businessName} pick pieces you&apos;ll love. Pick up to 3 in each list.</p>
-              <div className="hp-signup-field">
-                <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
-                <input id="hp-birthday" className="hp-signup-input" type="text" inputMode="numeric" pattern="[0-1][0-9]-[0-3][0-9]" placeholder="MM-DD" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
-                <span className="hp-signup-field-note">Only for birthday promotions and gift ideas. It will not be used for anything else.</span>
-              </div>
-              {preferenceOptionsError ? (
-                <p className="hp-signup-status error" role="alert">Favorites could not load. Refresh the page and try again.</p>
+            <style>{SIGNUP_PREFERENCE_STYLES}</style>
+            <p className="hp-signup-progress">Step {step + 1} of {SIGNUP_STEP_LABELS.length}</p>
+            <p className="hp-signup-live" aria-live="polite">{stepAnnouncement}</p>
+            <div className="hp-signup-step" ref={stepRef} tabIndex={-1} aria-invalid={stepError ? "true" : undefined}>
+              {stepError ? (
+                <p id="hp-signup-step-error" className="hp-signup-status error" role="alert" tabIndex={-1}>{stepError}</p>
               ) : null}
-              <SignupPreferencePicker
-                legend="Favorite stones"
-                fieldName="favoriteStones"
-                options={preferenceOptions?.stone}
-                selected={form.favoriteStones}
-                onChange={(value) => updateField("favoriteStones", value)}
-              />
-              <SignupPreferencePicker
-                legend="Favorite metals & finishes"
-                fieldName="favoriteMaterials"
-                options={preferenceOptions?.material}
-                selected={form.favoriteMaterials}
-                onChange={(value) => updateField("favoriteMaterials", value)}
-              />
-              <SignupPreferencePicker
-                legend="Favorite cuts"
-                fieldName="favoriteCuts"
-                options={preferenceOptions?.cut}
-                selected={form.favoriteCuts}
-                onChange={(value) => updateField("favoriteCuts", value)}
-              />
-              <SignupPreferencePicker
-                legend="Favorite Bomb Party collections"
-                fieldName="favoriteCollections"
-                options={preferenceOptions?.collection}
-                selected={form.favoriteCollections}
-                onChange={(value) => updateField("favoriteCollections", value)}
-                showOlderControl
-              />
-              <div className="hp-signup-field">
-                <label className="hp-signup-label" htmlFor="hp-ring-size">Ring size <span className="hp-signup-label-aux">(optional)</span></label>
-                <select id="hp-ring-size" className="hp-signup-input" value={form.ringSize} onChange={(e) => updateField("ringSize", e.target.value)}>
-                  <option value="">Select a size</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <option value="11">11</option>
-                  <option value="not_sure">Not sure</option>
-                </select>
-              </div>
-              <div className="hp-signup-field">
-                <label className="hp-signup-notes-label" htmlFor="hp-jewelry-notes">
-                  Put any notes that you would like reps and our system to know about the types of jewelry or what you like about Bomb Party jewelry, so we can help you find the pieces you love.
-                  <span className="hp-signup-label-aux"> Optional.</span>
-                </label>
-                <textarea id="hp-jewelry-notes" className="hp-signup-input hp-signup-notes" maxLength={500} rows={4} value={form.jewelryNotes} onChange={(e) => updateField("jewelryNotes", e.target.value)} />
-              </div>
+              {step === 0 ? (
+                <div className="hp-signup-identity">
+                  <div className="hp-signup-row">
+                    <div className="hp-signup-field">
+                      <label className="hp-signup-label" htmlFor="hp-first-name">First name</label>
+                      <input id="hp-first-name" className="hp-signup-input" type="text" placeholder="First name" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
+                    </div>
+                    <div className="hp-signup-field">
+                      <label className="hp-signup-label" htmlFor="hp-last-name">Last name</label>
+                      <input id="hp-last-name" className="hp-signup-input" type="text" placeholder="Last name" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
+                    </div>
+                  </div>
+                  <div className="hp-signup-field">
+                    <label className="hp-signup-label" htmlFor="hp-email">Email</label>
+                    <input id="hp-email" className="hp-signup-input" type="email" placeholder="Email address" value={form.email} onChange={(e) => updateField("email", e.target.value)} />
+                  </div>
+                </div>
+              ) : null}
+              {step >= 1 && step <= 4 ? (
+                <div className="hp-signup-preferences">
+                  <div className="hp-signup-preferences-heading">
+                    <strong>Your jewelry favorites</strong>
+                  </div>
+                  <p className="hp-signup-preferences-copy">Helps {businessName} pick pieces you&apos;ll love. Pick up to 3 in each list.</p>
+                  {preferenceOptionsError ? (
+                    <p className="hp-signup-status error" role="alert">Favorites could not load. Refresh the page and try again.</p>
+                  ) : null}
+                  {step === 1 ? (
+                    <SignupPreferencePicker
+                      legend="Favorite stones"
+                      fieldName="favoriteStones"
+                      options={preferenceOptions?.stone}
+                      selected={form.favoriteStones}
+                      onChange={(value) => updateField("favoriteStones", value)}
+                    />
+                  ) : null}
+                  {step === 2 ? (
+                    <SignupPreferencePicker
+                      legend="Favorite metals & finishes"
+                      fieldName="favoriteMaterials"
+                      options={preferenceOptions?.material}
+                      selected={form.favoriteMaterials}
+                      onChange={(value) => updateField("favoriteMaterials", value)}
+                    />
+                  ) : null}
+                  {step === 3 ? (
+                    <SignupPreferencePicker
+                      legend="Favorite cuts"
+                      fieldName="favoriteCuts"
+                      options={preferenceOptions?.cut}
+                      selected={form.favoriteCuts}
+                      onChange={(value) => updateField("favoriteCuts", value)}
+                    />
+                  ) : null}
+                  {step === 4 ? (
+                    <SignupPreferencePicker
+                      legend="Favorite Bomb Party collections"
+                      fieldName="favoriteCollections"
+                      options={preferenceOptions?.collection}
+                      selected={form.favoriteCollections}
+                      onChange={(value) => updateField("favoriteCollections", value)}
+                      showOlderControl
+                    />
+                  ) : null}
+                </div>
+              ) : null}
+              {step === 5 ? (
+                <div className="hp-signup-consent-box">
+                  <label className="hp-signup-check">
+                    <input type="checkbox" checked={form.smsConsent} onChange={(e) => updateField("smsConsent", e.target.checked)} />
+                    <span>Text me show reminders and SMS updates.</span>
+                  </label>
+                  <label className="hp-signup-check">
+                    <input type="checkbox" checked={form.emailConsent} onChange={(e) => updateField("emailConsent", e.target.checked)} />
+                    <span>Email me show reminders and collection updates.</span>
+                  </label>
+                  <label className="hp-signup-check">
+                    <input type="checkbox" checked={form.marketingConsent} onChange={(e) => updateField("marketingConsent", e.target.checked)} />
+                    <span>I also want promotional drops, launches, and special offers.</span>
+                  </label>
+                </div>
+              ) : null}
+              {step === 6 ? (
+                <div className="hp-signup-field">
+                  <label className="hp-signup-label" htmlFor="hp-phone">Phone <span className="hp-signup-label-aux">(optional, for SMS)</span></label>
+                  <input id="hp-phone" className="hp-signup-input" type="tel" placeholder="Mobile number" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} />
+                </div>
+              ) : null}
+              {step === 7 ? (
+                <div className="hp-signup-field">
+                  <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
+                  <input id="hp-birthday" className="hp-signup-input" type="text" inputMode="numeric" pattern="[0-1][0-9]-[0-3][0-9]" placeholder="MM-DD" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
+                  <span className="hp-signup-field-note">Only for birthday promotions and gift ideas. It will not be used for anything else.</span>
+                </div>
+              ) : null}
+              {step === 8 ? (
+                <div className="hp-signup-field">
+                  <label className="hp-signup-label" htmlFor="hp-ring-size">Ring size <span className="hp-signup-label-aux">(optional)</span></label>
+                  <select id="hp-ring-size" className="hp-signup-input" value={form.ringSize} onChange={(e) => updateField("ringSize", e.target.value)}>
+                    <option value="">Select a size</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="not_sure">Not sure</option>
+                  </select>
+                </div>
+              ) : null}
+              {step === 9 ? (
+                <div className="hp-signup-field">
+                  <label className="hp-signup-notes-label" htmlFor="hp-jewelry-notes">
+                    Put any notes that you would like reps and our system to know about the types of jewelry or what you like about Bomb Party jewelry, so we can help you find the pieces you love.
+                    <span className="hp-signup-label-aux"> Optional.</span>
+                  </label>
+                  <textarea id="hp-jewelry-notes" className="hp-signup-input hp-signup-notes" maxLength={500} rows={4} value={form.jewelryNotes} onChange={(e) => updateField("jewelryNotes", e.target.value)} />
+                </div>
+              ) : null}
             </div>
             <div className="hp-signup-actions">
-              <p className="hp-signup-privacy">
-                We never sell your information. Your answers are only used by {businessName} to give you a better experience.
-              </p>
+              {step === SIGNUP_LAST_STEP ? (
+                <p className="hp-signup-privacy">
+                  We never sell your information. Your answers are only used by {businessName} to give you a better experience.
+                </p>
+              ) : null}
+              {step > 0 ? (
+                <button type="button" className="hp-signup-back" onClick={goBack}>Back</button>
+              ) : null}
               <button type="submit" className="hp-signup-submit" disabled={submitState.status === "submitting"}>
-                {submitState.status === "submitting" ? "Saving..." : "Sign me up"}
+                {submitState.status === "submitting" ? "Saving..." : step === SIGNUP_LAST_STEP ? "Sign me up" : "Continue"}
                 <span className="hp-signup-submit-arrow" aria-hidden="true">→</span>
               </button>
-              <p className="hp-signup-consent slot" data-slot="consent — pending legal">
-                Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from <span className="slot" data-slot="business name">{businessName}</span>.
-                Msg & data rates may apply. Reply STOP to unsubscribe. <a {...linkProps(getUnsubscribeHref())}>Manage or unsubscribe</a>.
-              </p>
+              {step === SIGNUP_LAST_STEP ? (
+                <p className="hp-signup-consent slot" data-slot="consent — pending legal">
+                  Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from <span className="slot" data-slot="business name">{businessName}</span>.
+                  Msg & data rates may apply. Reply STOP to unsubscribe. <a {...linkProps(getUnsubscribeHref())}>Manage or unsubscribe</a>.
+                </p>
+              ) : null}
             </div>
           </form>
         </div>
