@@ -368,6 +368,14 @@ describe('Amethyst homepage template data wiring', () => {
         '/amethyst/dance-floor-ticker-label.js',
       )
     }
+    const css = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.css'), 'utf8')
+    expect(css).toContain('background: #ffffff;')
+    expect(css).toContain('background: #111111;')
+    expect(css).not.toContain('rgba(255,255,255,0)')
+    expect(css).not.toContain('rgba(17, 17, 17, 0)')
+    for (const file of ['gobble-and-fizz.css', 'pie-please.css', 'fall-owl.css', 'midnight-rose.css', 'pearl-rose.css', 'rose-champagne.css', 'gilded-autumn.css', 'halloween-pumpkin-witch.css']) {
+      expect(readFileSync(resolve(process.cwd(), 'public/amethyst', file), 'utf8')).not.toMatch(/\.hp-ticker-label[^{]*\{[^}]*transparent/)
+    }
   })
 
   it('ships shared customer-facing mobile CSS containment and motion safeguards', () => {
