@@ -322,8 +322,8 @@ body.bg-pie-please .tp-sheet-error {
   body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] :is(.tg-poster,.tg-video){position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
   body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-video{opacity:0}
   body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-media[data-has-frame] .tg-video{opacity:1}
-  body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle{position:absolute;bottom:16px;right:16px;z-index:5;min-height:44px;padding:10px 16px;border:1px solid #fff7e5a6;border-radius:24px;background:#291522df;color:#fff2df;font:600 13px/1.4 system-ui;cursor:pointer;pointer-events:auto}
-  body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle:focus-visible{outline:3px solid #efb36c;outline-offset:3px}
+  body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle{position:absolute;bottom:16px;right:16px;z-index:5;min-height:44px;padding:10px 16px;border:1px solid #d99b73;border-radius:24px;background:#fffaf2eb;color:#502d24;font:600 13px/1.4 "DM Sans","Inter",system-ui,sans-serif;cursor:pointer;pointer-events:auto;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle:focus-visible{outline:3px solid #9b233d;outline-offset:3px}
   body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle[hidden]{display:none}
   @media(max-width:600px){body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] :is(.tg-poster,.tg-video){object-position:right center}}
   /* Keep the approved 16:9 frame on every desktop overlay, including 1440. */
