@@ -2118,11 +2118,23 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-meter-step.is-done { cursor: pointer; }
 .hp-signup-meter-step.is-done::after, .hp-signup-meter-step.is-current::after { background: var(--hp-card-accent); }
 .hp-signup-meter-step.is-done:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
+.hp-signup-step-panel { display: grid; gap: 16px; animation: hp-signup-step-in 180ms var(--ease, ease); }
+@keyframes hp-signup-step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hp-signup-step-panel { animation: none; } }
+.hp-signup-single { width: 100%; max-width: 560px; margin-inline: auto; }
+.hp-signup-input { font-size: 16px; }
+.hp-signup-submit { min-height: 48px; }
+.hp-signup-submit:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 3px; }
+.hp-signup-check { min-height: 44px; align-items: center; }
+.hp-signup-check input { width: 22px; height: 22px; margin-top: 0; accent-color: var(--hp-primary); }
+.hp-signup-nav { display: flex; flex-direction: column-reverse; align-items: center; gap: 4px; width: 100%; }
+@media (min-width: 720px) { .hp-signup-nav { flex-direction: row; justify-content: center; gap: 12px; } }
 .hp-signup-step { display: grid; gap: 16px; min-width: 0; outline: none; }
 .hp-signup-identity { display: grid; gap: 16px; }
 .hp-signup-step:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 4px; }
 .hp-signup-back { min-height: 44px; min-width: 44px; padding: 8px 12px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .hp-signup-back:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
+.hp-signup-back:disabled { opacity: 0.45; cursor: wait; }
 .hp-signup-live { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @media (max-width: 420px) {
   .hp-pref-chip { font-size: 15px; }
@@ -2501,11 +2513,12 @@ function Signup({ repName, businessName }) {
             </div>
             <p className="hp-signup-live" aria-live="polite">{stepAnnouncement}</p>
             <div className="hp-signup-step" ref={stepRef} tabIndex={-1} aria-invalid={stepError ? "true" : undefined}>
+              <div key={step} className="hp-signup-step-panel">
               {stepError ? (
                 <p id="hp-signup-step-error" className="hp-signup-status error" role="alert" tabIndex={-1}>{stepError}</p>
               ) : null}
               {step === 0 ? (
-                <div className="hp-signup-identity">
+                <div className="hp-signup-identity hp-signup-single">
                   <div className="hp-signup-row">
                     <div className="hp-signup-field">
                       <label className="hp-signup-label" htmlFor="hp-first-name">First name</label>
@@ -2587,20 +2600,20 @@ function Signup({ repName, businessName }) {
                 </div>
               ) : null}
               {step === 6 ? (
-                <div className="hp-signup-field">
+                <div className="hp-signup-field hp-signup-single">
                   <label className="hp-signup-label" htmlFor="hp-phone">Phone <span className="hp-signup-label-aux">(optional, for SMS)</span></label>
                   <input id="hp-phone" className="hp-signup-input" type="tel" placeholder="Mobile number" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} />
                 </div>
               ) : null}
               {step === 7 ? (
-                <div className="hp-signup-field">
+                <div className="hp-signup-field hp-signup-single">
                   <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
                   <input id="hp-birthday" className="hp-signup-input" type="text" inputMode="numeric" pattern="[0-1][0-9]-[0-3][0-9]" placeholder="MM-DD" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
                   <span className="hp-signup-field-note">Only for birthday promotions and gift ideas. It will not be used for anything else.</span>
                 </div>
               ) : null}
               {step === 8 ? (
-                <div className="hp-signup-field">
+                <div className="hp-signup-field hp-signup-single">
                   <label className="hp-signup-label" htmlFor="hp-ring-size">Ring size <span className="hp-signup-label-aux">(optional)</span></label>
                   <select id="hp-ring-size" className="hp-signup-input" value={form.ringSize} onChange={(e) => updateField("ringSize", e.target.value)}>
                     <option value="">Select a size</option>
@@ -2616,7 +2629,7 @@ function Signup({ repName, businessName }) {
                 </div>
               ) : null}
               {step === 9 ? (
-                <div className="hp-signup-field">
+                <div className="hp-signup-field hp-signup-single">
                   <label className="hp-signup-notes-label" htmlFor="hp-jewelry-notes">
                     Put any notes that you would like reps and our system to know about the types of jewelry or what you like about Bomb Party jewelry, so we can help you find the pieces you love.
                     <span className="hp-signup-label-aux"> Optional.</span>
@@ -2624,6 +2637,7 @@ function Signup({ repName, businessName }) {
                   <textarea id="hp-jewelry-notes" className="hp-signup-input hp-signup-notes" maxLength={500} rows={4} value={form.jewelryNotes} onChange={(e) => updateField("jewelryNotes", e.target.value)} />
                 </div>
               ) : null}
+              </div>
             </div>
             <div className="hp-signup-actions">
               {step === SIGNUP_LAST_STEP ? (
@@ -2631,13 +2645,15 @@ function Signup({ repName, businessName }) {
                   We never sell your information. Your answers are only used by {businessName} to give you a better experience.
                 </p>
               ) : null}
-              {step > 0 ? (
-                <button type="button" className="hp-signup-back" onClick={goBack}>Back</button>
-              ) : null}
-              <button type="submit" className="hp-signup-submit" disabled={submitState.status === "submitting"}>
-                {submitState.status === "submitting" ? "Saving..." : step === SIGNUP_LAST_STEP ? "Sign me up" : "Continue"}
-                <span className="hp-signup-submit-arrow" aria-hidden="true">→</span>
-              </button>
+              <div className="hp-signup-nav">
+                {step > 0 ? (
+                  <button type="button" className="hp-signup-back" onClick={goBack} disabled={submitState.status === "submitting"}>Back</button>
+                ) : null}
+                <button type="submit" className="hp-signup-submit" disabled={submitState.status === "submitting"}>
+                  {submitState.status === "submitting" ? "Saving..." : step === SIGNUP_LAST_STEP ? "Sign me up" : "Continue"}
+                  <span className="hp-signup-submit-arrow" aria-hidden="true">→</span>
+                </button>
+              </div>
               {step === SIGNUP_LAST_STEP ? (
                 <p className="hp-signup-consent slot" data-slot="consent — pending legal">
                   Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from <span className="slot" data-slot="business name">{businessName}</span>.
