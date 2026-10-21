@@ -55,6 +55,11 @@ describe.each([
     expect(defaultAmethystHomepageTemplateData.showcaseVideoUrl).toBe('#')
     expect(defaultAmethystHomepageTemplateData.aboutMediaSlots.every((slot) => !slot.mediaUrl)).toBe(true)
   })
+  it('wraps Live Lineup name chips on a phone so the third circled name stays visible', () => {
+    const css = readFileSync(`public/amethyst/${theme.slug}.css`, 'utf8')
+    expect(css).toMatch(/@media \(max-width: 640px\) \{[\s\S]*?\.hp-trade-preview-items \{[\s\S]*?flex-wrap: wrap;[\s\S]*?overflow: visible;/)
+    expect(css).not.toMatch(/hp-ticker[^{]*\{[^}]*(?:overflow|flex-wrap)\s*:/)
+  })
   it('keeps shared navigation, ticker and lineup geometry locked', () => {
     const css = readFileSync(`public/amethyst/${theme.slug}.css`, 'utf8')
     expect(css).not.toMatch(/127\.0\.0\.1|localhost|animation:none!important/)

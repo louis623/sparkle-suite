@@ -388,3 +388,11 @@ body.bg-pie-please .hp-footer .hp-footer-tagline{color:#f0d2c6}
 body.bg-pie-please .hp-footer .hp-footer-coming-soon span{background:#7b2840;color:#fff7ec}
 body.bg-pie-please .hp-footer .hp-footer-social{background:#7b2840;color:#fff7ec}
 body.bg-pie-please .hp-footer .hp-footer-social:hover{background:#9b233d;color:#fff7ec}
+
+/* Phone width clips the third circled Live Lineup name. Wrap the chips instead of scrolling them out of sight. */
+@media (max-width: 640px) {
+  body.bg-pie-please .hp-trade-preview-items {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
