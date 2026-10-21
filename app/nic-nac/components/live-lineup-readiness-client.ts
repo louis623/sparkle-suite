@@ -14,9 +14,9 @@ export function isLineupSetupReadiness(value: unknown): value is LineupSetupRead
       && Date.parse(r.checkedAt!) >= Date.parse(r.lastReadyAt!) && Date.parse(r.checkedAt!) - Date.parse(r.lastReadyAt!) <= 45_000))
 }
 export function readinessHelp(reason: LineupSetupReadiness['reason']): string {
-  if (reason === 'publisher_revoked' || reason === 'publisher_expired') return 'Reconnect the extension with the assigned Live Queue code shown in your Workspace.'
+  if (reason === 'publisher_revoked' || reason === 'publisher_expired') return 'Reconnect the extension with the assigned Live Lineup code shown in your Workspace.'
   if (reason === 'stale' || reason === 'lease_expired') return 'Updates are not current. Keep the selected Bomb Party Party Orders tab open and check the extension, then verify again.'
   if (reason === 'state_changed') return 'The source changed during verification. Please verify again.'
-  if (reason === 'not_initialized' || reason === 'awaiting_ready' || reason === 'source_not_ready' || reason === 'publisher_unavailable') return 'No ready source verified yet. Enter the assigned Live Queue code in the extension, keep the Bomb Party Live Party Orders page open, then verify again. No scheduled show is needed.'
+  if (reason === 'not_initialized' || reason === 'awaiting_ready' || reason === 'source_not_ready' || reason === 'publisher_unavailable') return 'No ready source verified yet. Enter the assigned Live Lineup code in the extension, keep the Bomb Party Live Party Orders page open, then verify again. No scheduled show is needed.'
   return 'The connection could not be verified. Try again or ask Nic-Nac for support. Your existing lineup is unchanged.'
 }

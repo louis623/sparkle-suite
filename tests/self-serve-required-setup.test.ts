@@ -134,7 +134,7 @@ describe('self-serve required setup service contract', () => {
       'trade_board_inventory',
     )
     expect(REQUIRED_SETUP_STEPS.map((step) => step.label)).toContain(
-      'Live Queue setup',
+      'Live Lineup setup',
     )
     expect(REQUIRED_SETUP_STEPS.map((step) => step.label)).toContain(
       'Customer-facing site theme',
