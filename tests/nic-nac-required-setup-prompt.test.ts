@@ -206,7 +206,7 @@ describe('required Nic-Nac setup prompt', () => {
       'Do not require any Dance Floor inventory before unlock',
     )
     expect(prompt).toContain(
-      'Dance Floor helps reps organize customer trade requests instead of chasing DMs, comments, and screenshots',
+      'Dance Floor helps reps organize customer swap requests instead of chasing DMs, comments, and screenshots',
     )
   })
 

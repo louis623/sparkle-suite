@@ -64,7 +64,7 @@ export function makeApproveTradeTool(ctx: {
         workflow: ctx.activeTradeWorkflow,
         workflowType: 'trade_request_decision',
         toolName: 'approve_trade',
-        checks: [{ field: 'requestId', value: requestId, label: 'trade request' }],
+        checks: [{ field: 'requestId', value: requestId, label: 'swap request' }],
       })
       const admin = createAdminClient()
 

@@ -15,7 +15,7 @@ describe('help resources', () => {
       'Update your customer-facing site',
       'Embed a TikTok video on your customer-facing site',
       'Get ready for a live show',
-      'Use Live Queue during a show',
+      'Use Live Lineup during a show',
       'Use Live Lineup on a Mac',
       'Add a dancer to your Dance Floor',
       'Handle swap requests',
@@ -62,7 +62,7 @@ describe('help resources', () => {
     expect(featureReferences).toEqual([
       'Customer Site',
       'Dance Floor',
-      'Live Queue',
+      'Live Lineup',
       'Live Event Calendar',
       'Email Updates',
       'SMS Updates',
@@ -154,7 +154,7 @@ describe('help resources', () => {
     expect(guide).toMatchObject({
       type: 'workflow',
       group: 'Live Shows',
-      category: 'Live Queue',
+      category: 'Live Lineup',
       title: 'Use Live Lineup on a Mac',
       nicNacPrompt: 'Help me set up Live Lineup on my Mac.',
     })

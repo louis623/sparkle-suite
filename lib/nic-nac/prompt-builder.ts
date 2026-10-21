@@ -52,7 +52,7 @@ const INTENT_PROMPTS: Record<NicNacToolIntent, string> = {
 - Use get_show_session_context when a live show, current-show, or post-show workflow starts.
 - Use start_show_session when the rep says the show is starting, asks for help during the live, or gives a live queue/calendar anchor. If the rep is clearly live but gives no anchor, ask one short question or use a generated sync code only when the flow needs durable state immediately. If a different show session is already active, ask whether to keep it or replace it; replacing it requires the tool's approval dialog.
 - Use end_show when the rep says the linked live show is over, done, ended, or completed.
-- Use record_show_session_event for queue snapshots, inventory notes, customer requests, promises, follow-ups, trade notes, and show summaries.
+- Use record_show_session_event for queue snapshots, inventory notes, customer requests, promises, follow-ups, swap notes, and show summaries.
 - Keep current-show memory factual and operational. Do not claim that you sent reminders, updated a live feed, or took provider action unless another real tool result says so.`,
 
   trade_board: `Trade-board tools:
@@ -81,7 +81,7 @@ const INTENT_PROMPTS: Record<NicNacToolIntent, string> = {
 - Use recent add-flow photos, not just the latest message. If the rep confirms a prior jewelry-front photo, call add_listing with that photo context instead of asking for a reupload.
 - If the rep insists a clear boxed display photo is final, proceed instead of arguing.
 - If add_listing is active and the rep provides a missing field, call add_listing or ask one field; do not say add_listing is unavailable.
-- A rep can own multiple physical dancers with the same item number. Identical copies share one dancer card with a quantity available; different material, main stone/color, size, photo, note, or trade preference is a separate dancer.
+- A rep can own multiple physical dancers with the same item number. Identical copies share one dancer card with a quantity available; different material, main stone/color, size, photo, note, or swap preference is a separate dancer.
 - Item numbers can have plating/material or main-stone/color variants; a different variant is separate catalog data, not a correction to another variant.
 - If search_jewelry_database says isOnMyBoard:true during an add flow, ask: "That item number is already on your Dance Floor. Are we adding a second identical physical piece?" Then add it to that dancer's quantity instead of making a duplicate card.
 - Quantity comes from the latest rep message.
@@ -92,16 +92,16 @@ const INTENT_PROMPTS: Record<NicNacToolIntent, string> = {
 
   trade_requests: `Trade-request tools:
 - get_trade_requests lists incoming requests. Use it when the rep asks about offers, pending requests, or who wants a dancer.
-- approve_trade_swap requires the approval dialog and is the primary path for normal live-show swaps. The customer requested a dancer because they did not want the item number just revealed for them. The customer never has the just-revealed dancer in their possession, never photographs it, and never ships a separate item. The rep has both dancers during the live show. Ask exactly: "Which item number was just revealed for the customer?" If the revealed item is a ring and the rep knows the size, include revealedRingSize. If the rep is too busy to capture the revealed item number now, approve the trade without live-show revealed item capture by using approve_trade, then tell them to add the revealed dancer to the Dance Floor later with Nic-Nac. Do not use LiveQ matching for this; LiveQ does not know item numbers.
+- approve_trade_swap requires the approval dialog and is the primary path for normal live-show swaps. The customer requested a dancer because they did not want the item number just revealed for them. The customer never has the just-revealed dancer in their possession, never photographs it, and never ships a separate item. The rep has both dancers during the live show. Ask exactly: "Which item number was just revealed for the customer?" If the revealed item is a ring and the rep knows the size, include revealedRingSize. If the rep is too busy to capture the revealed item number now, approve the swap without live-show revealed item capture by using approve_trade, then tell them to add the revealed dancer to the Dance Floor later with Nic-Nac. Do not use LiveQ matching for this; LiveQ does not know item numbers.
 - approve_trade requires the approval dialog and is irreversible for v1. Use it when approving without the live-show revealed item capture, including the busy-show skip path. Identify the request first.
 - reject_trade is reversible and does not need an approval dialog. Identify the request first.
 - get_trade_swap_cleanup lists approved swaps whose just-revealed item number still needs catalog details or ring size before its dancer can return to the Dance Floor.
 - get_trade_history is for completed or rejected trade history, not pending decisions.`,
 
   fulfillment: `Fulfillment tools:
-- get_fulfillment_queue lists active post-approval trade fulfillment items.
+- get_fulfillment_queue lists active post-approval swap fulfillment items.
 - update_fulfillment_status moves approved to shipped to completed. Do not claim vendor automation or shipping automation; only record the status the rep gives you.
-- If a trade is completed, ask whether the rep wants to add the received dancer to the Dance Floor.`,
+- If a swap is completed, ask whether the rep wants to add the received dancer to the Dance Floor.`,
 
   catalog: `Catalog tools:
 - search_jewelry_database searches the shared jewelry catalog by item number, name, material, stone, or keyword.

@@ -63,7 +63,7 @@ describe('prelaunch email content', () => {
     expect(email.text).toContain('help/how-to hub')
     expect(email.text).toContain('calculator')
     expect(email.text).toContain('Chrome extension')
-    expect(email.text).toContain('Live Queue')
+    expect(email.text).toContain('Live Lineup')
     expect(email.text).toContain('Louis only needs to step in if something gets escalated')
     expect(email.text).not.toContain('consult')
     expect(email.text).not.toContain('SignWell')

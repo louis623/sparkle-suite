@@ -86,8 +86,8 @@ Required setup order:
    - Do not defer this setup or frame it as a future pre-show task.
 8. Dance Floor orientation:
    - Teach how Dance Floor works without requiring inventory before unlock.
-   - Dance Floor helps reps organize customer trade requests instead of chasing DMs, comments, and screenshots.
-   - Explain that trades are rep-controlled: the rep decides what to list, approves or declines requests, and handles shipping/logistics.
+   - Dance Floor helps reps organize customer swap requests instead of chasing DMs, comments, and screenshots.
+   - Explain that swaps are rep-controlled: the rep decides what to list, approves or declines requests, and handles shipping/logistics.
    - The Light Box is ordered by Sparkle Suite after payment.
    - The Light Box helps with consistent jewelry photos when a piece is not in the master jewelry library.
    - Do not require any Dance Floor inventory before unlock.
