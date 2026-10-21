@@ -214,19 +214,6 @@ function PortfolioCarousel({
               data-active={index === active}
             >
               <SlideFrame slide={item} active={index === active} prioritizePoster={index === 0} />
-              <div className={styles.cardMeta}>
-                <h3>{item.title}</h3>
-                {item.kind === 'capture' && item.href && item.linkLabel ? (
-                  <a
-                    href={item.href}
-                    {...(item.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  >
-                    {item.linkLabel}
-                    {item.href.startsWith('http') ? <span className={styles.srOnly}> (opens in a new tab)</span> : null}
-                  </a>
-                ) : null}
-                <p className={styles.cardDetail}>{item.detail}</p>
-              </div>
             </div>
           ))}
         </div>
@@ -234,6 +221,21 @@ function PortfolioCarousel({
           <ChevronRight size={26} aria-hidden="true" />
         </button>
         </div>
+        {carousel.slides.map((item, index) => (
+          <div key={item.id} className={styles.cardMeta} hidden={index !== active}>
+            <h3>{item.title}</h3>
+            {item.kind === 'capture' && item.href && item.linkLabel ? (
+              <a
+                href={item.href}
+                {...(item.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              >
+                {item.linkLabel}
+                {item.href.startsWith('http') ? <span className={styles.srOnly}> (opens in a new tab)</span> : null}
+              </a>
+            ) : null}
+            <p className={styles.cardDetail}>{item.detail}</p>
+          </div>
+        ))}
       </div>
       <div ref={dotsRef} className={styles.dots} role="group" aria-label={`${carousel.label} slides`}>
         {carousel.slides.map((item, index) => (

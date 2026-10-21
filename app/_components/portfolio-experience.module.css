@@ -30,6 +30,7 @@
 }
 .showcaseCopy,
 .carousel,
+.cardMeta,
 .dots {
   width: min(1180px, calc(100% - 48px));
   max-width: 100%;
@@ -178,6 +179,7 @@
   background: rgba(255, 255, 255, .72);
 }
 .cardMeta { margin-top: 16px; text-align: center; }
+.cardMeta[hidden] { display: none; }
 .cardMeta h3 {
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
   font-size: clamp(26px, 3vw, 36px);
@@ -227,11 +229,21 @@
   .showcase { padding: 48px 0 40px; }
   .showcaseCopy { width: calc(100% - 40px); }
   .showcase h2 { font-size: 34px; }
-  .previousSlide { left: 8px; }
-  .nextSlide { right: 8px; }
   .heroCopy { padding: 7% 10% 16% 7%; gap: 6px; }
   .heroCopy[data-align='center'] { padding: 6% 14% 18%; }
   .heroCopy[data-font='script'] strong { font-size: 34px; }
   .heroCopy span { font-size: 13px; }
   .cardMeta h3 { font-size: 28px; }
+}
+@media (max-width: 800px) {
+  .frame, .phoneFrame, .frame > .mediaWell, .phoneFrame > .mediaWell { overflow: visible; }
+  .mediaWell :is(img, video) { border-radius: 12px; }
+  .slide { padding-bottom: 60px; }
+  .carouselButton {
+    top: auto;
+    bottom: 8px;
+    transform: none;
+  }
+  .previousSlide { left: 0; }
+  .nextSlide { right: 0; }
 }
