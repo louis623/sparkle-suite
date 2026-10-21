@@ -45,10 +45,12 @@ import { logIncident } from '@/lib/nic-nac/guardian-telemetry'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
 import {
   decidePhotoReuse,
+  hashDataImageUrl,
   loadItemNumbersForPhotoHash,
   mainPhotoConfirmationIdentity,
   resolvePhotoContentSha256,
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
+import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import {
   decideLabelItemNumber,
   readItemNumbersFromImageUrl,
@@ -698,6 +700,117 @@ function confirmedPhotoSetSha(
   return typeof sha === 'string' && sha.trim() ? sha.trim() : undefined
 }
 
+type ConversationPart = {
+  type?: string
+  text?: string
+  mediaType?: string
+  url?: string
+  output?: { code?: string; message?: string; contentSha256?: string }
+}
+
+type ConversationRow = {
+  role?: string
+  parts?: ConversationPart[] | null
+}
+
+function conversationRowText(row: ConversationRow): string {
+  return (row.parts ?? [])
+    .map((part) => (typeof part.text === 'string' ? part.text : ''))
+    .filter(Boolean)
+    .join('\n')
+}
+
+function conversationRowImageUrls(row: ConversationRow | undefined): string[] {
+  return (row?.parts ?? [])
+    .filter(
+      (part) =>
+        part.type === 'file' &&
+        typeof part.mediaType === 'string' &&
+        part.mediaType.startsWith('image/') &&
+        typeof part.url === 'string',
+    )
+    .map((part) => part.url as string)
+}
+
+function conversationRowAskedAboutPhotoSet(row: ConversationRow | undefined): boolean {
+  if (!row) return false
+  if (/belongs with that set/i.test(conversationRowText(row))) return true
+  return (row.parts ?? []).some((part) => {
+    if (part.output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM') return true
+    return (
+      typeof part.output?.message === 'string' &&
+      /belongs with that set/i.test(part.output.message)
+    )
+  })
+}
+
+async function loadRecentConversationRows(args: {
+  supabase: SupabaseClient
+  conversationId: string
+}): Promise<ConversationRow[]> {
+  const { data, error } = await args.supabase
+    .from('nic_nac_conversations')
+    .select('role, parts, created_at')
+    .eq('conversation_id', args.conversationId)
+    .eq('status', 'complete')
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error || !Array.isArray(data)) return []
+  return data as ConversationRow[]
+}
+
+function setReuseYesInConversation(
+  rows: ConversationRow[],
+): { earlierPhotoUrl?: string; flaggedSha?: string } | null {
+  const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
+  if (latestUserIndex === -1) return null
+  if (!isPositiveConfirmation(conversationRowText(rows[latestUserIndex]!))) return null
+  const assistant = rows
+    .slice(latestUserIndex + 1)
+    .find((row) => row.role === 'assistant')
+  if (!conversationRowAskedAboutPhotoSet(assistant)) return null
+  const flaggedSha = (assistant?.parts ?? [])
+    .map((part) => part.output?.contentSha256?.trim())
+    .find((sha) => Boolean(sha))
+  const earlierUser = rows
+    .slice(rows.indexOf(assistant!) + 1)
+    .find((row) => (row.role ?? 'user') === 'user')
+  return {
+    earlierPhotoUrl: conversationRowImageUrls(earlierUser)[0],
+    flaggedSha,
+  }
+}
+
+async function conversationConfirmsPhotoSetHash(args: {
+  supabase: SupabaseClient
+  conversationId: string
+  contentSha256: string
+}): Promise<boolean> {
+  try {
+    const rows = await loadRecentConversationRows(args)
+    const confirmation = setReuseYesInConversation(rows)
+    if (!confirmation) return false
+    if (confirmation.flaggedSha) return confirmation.flaggedSha === args.contentSha256
+    return hashDataImageUrl(confirmation.earlierPhotoUrl) === args.contentSha256
+  } catch {
+    return false
+  }
+}
+
+async function photoFromConversationSetReuseYes(args: {
+  supabase: SupabaseClient
+  conversationId: string
+}): Promise<{ imageDataUrl: string } | null> {
+  try {
+    const rows = await loadRecentConversationRows(args)
+    const confirmation = setReuseYesInConversation(rows)
+    if (!confirmation?.earlierPhotoUrl) return null
+    return { imageDataUrl: confirmation.earlierPhotoUrl }
+  } catch {
+    return null
+  }
+}
+
 async function assertCustomerPhotoNotReused(args: {
   repId: string
   itemNumber?: string
@@ -709,6 +822,10 @@ async function assertCustomerPhotoNotReused(args: {
     declaredRole?: string
     visualRole?: string
   }>
+  conversation?: {
+    supabase: SupabaseClient
+    conversationId: string
+  }
 }) {
   await assertLabelAgreesWithItemNumber(args)
   const itemNumber = args.itemNumber?.trim()
@@ -727,6 +844,16 @@ async function assertCustomerPhotoNotReused(args: {
   const decision = decidePhotoReuse({ itemNumber, contentSha256, existing })
   if (!decision.blocked) return
   if (args.setReuseConfirmedSha && args.setReuseConfirmedSha === contentSha256) return
+  if (
+    args.conversation &&
+    (await conversationConfirmsPhotoSetHash({
+      supabase: args.conversation.supabase,
+      conversationId: args.conversation.conversationId,
+      contentSha256,
+    }))
+  ) {
+    return
+  }
   throw new NicNacToolError({
     code: 'PHOTO_REUSED_ON_OTHER_ITEM',
     userMessage: decision.message,
@@ -1706,6 +1833,13 @@ async function runSingle(
         sourceImageUrl: resolvedPhotoUrl,
         workflowPhotos: activeWorkflow?.photos,
         setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow),
+        conversation:
+          activeWorkflow?.status === 'active'
+            ? undefined
+            : {
+                supabase: ctx.supabase,
+                conversationId: ctx.conversationId,
+              },
       })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {
@@ -1795,7 +1929,7 @@ async function runSingle(
           'I still need the customer-facing jewelry photo before I can save this listing. The label/details photo is only for reading the card.',
       })
     } else {
-      const resolvedPhoto = await resolvePhotoFromConversation({
+      let resolvedPhoto = await resolvePhotoFromConversation({
         supabase: ctx.supabase,
         conversationId: ctx.conversationId,
         latestUserMessageOnly: true,
@@ -1804,6 +1938,12 @@ async function runSingle(
           activeWorkflow?.status === 'active' ? activeWorkflow.id : undefined,
         intakePhotos: activeWorkflow?.photos,
       })
+      if (!resolvedPhoto && activeWorkflow?.status !== 'active') {
+        resolvedPhoto = await photoFromConversationSetReuseYes({
+          supabase: ctx.supabase,
+          conversationId: ctx.conversationId,
+        })
+      }
       if (!resolvedPhoto) {
         throw new NicNacToolError({
           code: 'MISSING_PIECE_PHOTO',
@@ -1817,6 +1957,13 @@ async function runSingle(
         sourceImageUrl: resolvedPhoto.imageDataUrl,
         workflowPhotos: activeWorkflow?.photos,
         setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow),
+        conversation:
+          activeWorkflow?.status === 'active'
+            ? undefined
+            : {
+                supabase: ctx.supabase,
+                conversationId: ctx.conversationId,
+              },
       })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {

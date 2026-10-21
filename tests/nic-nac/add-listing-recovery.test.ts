@@ -4034,6 +4034,80 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(addListingMock).not.toHaveBeenCalled()
   })
 
+  it('saves after a yes when a reused photo was flagged outside an intake', async () => {
+    createAdminClientMock.mockReturnValue(
+      makeAdminClientMock([], null, [
+        {
+          item_number: 'NK60295',
+          status: 'completed',
+          created_design_id: 'design-nk60295',
+          created_listing_ids: ['listing-nk60295'],
+        },
+      ]),
+    )
+    uploadJewelryPhotoMock.mockResolvedValueOnce(
+      'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/set-yes.jpg',
+    )
+    uploadStagedOriginalPhotoMock.mockResolvedValueOnce({
+      objectPath: 'rep-1/originals/set-yes.jpg',
+      signedUrl: 'https://signed.example.com/set-yes',
+    })
+    createDesignMock.mockResolvedValueOnce({
+      designId: 'design-set-yes',
+      itemNumber: 'NEW-100',
+      collectionId: 'coll-1',
+      collectionName: 'Original',
+      typePrefix: 'NK',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-set-yes',
+      designId: 'design-set-yes',
+      itemNumber: 'NEW-100',
+      designName: 'Necklace',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+    const photoUrl = 'data:image/jpeg;base64,TktK'
+    const tool = makeTool(
+      makeConversationLookupMock([
+        { role: 'user', parts: [{ type: 'text', text: 'Yes' }] },
+        {
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              output: {
+                code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                message:
+                  'This photo is already on NK60295. If NEW-100 belongs with that set, reply yes.',
+              },
+            },
+          ],
+        },
+        {
+          role: 'user',
+          parts: [
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: photoUrl,
+            },
+          ],
+        },
+      ]),
+    )
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NEW-100',
+        designName: 'Necklace',
+        collectionName: 'Original',
+      }),
+    ).resolves.toMatchObject({ listingId: 'listing-set-yes' })
+    expect(addListingMock).toHaveBeenCalled()
+  })
+
   it('blocks the save when the label photo names a different item number', async () => {
     const labelPng = await renderItemNumberPng('NK60295')
     const labelUrl = `data:image/png;base64,${labelPng.toString('base64')}`

@@ -692,7 +692,7 @@ function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {
   })
 }
 
-function isPositiveConfirmation(text: string): boolean {
+export function isPositiveConfirmation(text: string): boolean {
   const trimmed = text.trim()
   if (!trimmed || trimmed.endsWith('?')) return false
   if (/\b(?:no|not|wrong|isn'?t|isnt|don'?t|dont)\b/i.test(trimmed)) return false
