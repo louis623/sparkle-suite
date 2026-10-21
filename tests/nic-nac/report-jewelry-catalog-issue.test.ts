@@ -697,7 +697,7 @@ describe('report_jewelry_catalog_issue', () => {
     expect(reportJewelryCatalogIssueMock).not.toHaveBeenCalled()
   })
 
-  it('does not download a catalog photo that is not an approved storage photo', async () => {
+  it('does not download a catalog photo from outside our storage', async () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
     const tool = makeTool()
@@ -709,6 +709,28 @@ describe('report_jewelry_catalog_issue', () => {
         reason: 'The current catalog photo is the item label/details photo.',
         correction: {
           canonicalPhotoUrl: 'https://evil.example/jewelry-photos/approved/front.png',
+        },
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_PREVIEW_UNAVAILABLE',
+    })
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(reportJewelryCatalogIssueMock).not.toHaveBeenCalled()
+  })
+
+  it('does not download a catalog photo that is not an approved storage photo', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    const tool = makeTool()
+
+    await expect(
+      tool.execute({
+        itemNumber: 'ER34579',
+        issueType: 'bad_photo',
+        reason: 'The current catalog photo is the item label/details photo.',
+        correction: {
+          canonicalPhotoUrl:
+            'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/front.png',
         },
       }),
     ).rejects.toMatchObject({

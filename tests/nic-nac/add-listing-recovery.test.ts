@@ -4531,7 +4531,7 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(dropped.messages.map((message) => message.id)).toEqual(['yes'])
   })
 
-  it('passes a short https main photo through without copying a data url', async () => {
+  it('shows the intake photo instead of a foreign https link', async () => {
     const photoUrl = 'https://cdn.example.com/listings/rep-1/nk60295.jpg'
     const tool = makeTool(makeConversationLookupMock([]), {
       activeTradeBoardWorkflow: activeWorkflow({
@@ -4562,17 +4562,18 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     })
 
-    await expect(
-      tool.execute({
-        mode: 'single',
-        itemNumber: 'NK60295',
-        collectionName: 'Original',
-      }),
-    ).resolves.toMatchObject({
+    const result = await tool.execute({
+      mode: 'single',
+      itemNumber: 'NK60295',
+      collectionName: 'Original',
+    })
+    expect(result).toMatchObject({
       needsAction: 'confirm_main_photo',
       previewPhotoId: 'photo-nk60295',
-      previewImageUrl: photoUrl,
     })
+    expect(result).not.toHaveProperty('previewImageUrl')
+    expect(JSON.stringify(result)).not.toContain(photoUrl)
+    expect(JSON.stringify(result)).not.toContain('data:image')
   })
 
   it('saves after the main photo was confirmed', async () => {

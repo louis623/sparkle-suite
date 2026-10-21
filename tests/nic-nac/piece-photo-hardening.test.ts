@@ -28,6 +28,10 @@ import {
   isPositiveConfirmation,
 } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import { buildAssistantMessageRenderables } from '@/app/nic-nac/components/NicNacChatBody'
+import {
+  mainPhotoPreviewLocator,
+  mainPhotoPreviewSrc,
+} from '@/lib/nic-nac/workflows/main-photo-preview'
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
 import {
   isAcceptedCustomerFacingWorkflowPhoto,
@@ -579,43 +583,57 @@ describe('main photo confirmation', () => {
       },
     ],
   ])('shows a main-photo preview for %s', (toolType, output) => {
-    const renderables = buildAssistantMessageRenderables([
-      { type: toolType, state: 'output-available', output },
-    ])
-    expect(renderables).toEqual([
-      {
-        type: 'main-photo-preview',
-        key: 'main-photo-0',
-        text: output.message,
-        imageUrl: output.previewImageUrl,
-      },
-    ])
+    const previous = process.env.NEXT_PUBLIC_SUPABASE_URL
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    try {
+      const renderables = buildAssistantMessageRenderables([
+        { type: toolType, state: 'output-available', output },
+      ])
+      expect(renderables).toEqual([
+        {
+          type: 'main-photo-preview',
+          key: 'main-photo-0',
+          text: output.message,
+          imageUrl: output.previewImageUrl,
+        },
+      ])
+    } finally {
+      if (previous === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
+      else process.env.NEXT_PUBLIC_SUPABASE_URL = previous
+    }
   })
 
   it('shows the photo on a set-reuse ask that carries a preview', () => {
+    const previous = process.env.NEXT_PUBLIC_SUPABASE_URL
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
     const previewImageUrl =
       'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/reused.jpg'
     const message =
       'This photo is already on NK60295. If NK70001 belongs with that set, reply yes.'
-    const renderables = buildAssistantMessageRenderables([
-      {
-        type: 'tool-update_listing',
-        state: 'output-available',
-        output: {
-          code: 'PHOTO_REUSED_ON_OTHER_ITEM',
-          previewImageUrl,
-          message,
+    try {
+      const renderables = buildAssistantMessageRenderables([
+        {
+          type: 'tool-update_listing',
+          state: 'output-available',
+          output: {
+            code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+            previewImageUrl,
+            message,
+          },
         },
-      },
-    ])
-    expect(renderables).toEqual([
-      {
-        type: 'main-photo-preview',
-        key: 'main-photo-0',
-        text: message,
-        imageUrl: previewImageUrl,
-      },
-    ])
+      ])
+      expect(renderables).toEqual([
+        {
+          type: 'main-photo-preview',
+          key: 'main-photo-0',
+          text: message,
+          imageUrl: previewImageUrl,
+        },
+      ])
+    } finally {
+      if (previous === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
+      else process.env.NEXT_PUBLIC_SUPABASE_URL = previous
+    }
   })
 
   it('shows a set-reuse photo from its photo id', () => {
@@ -1681,4 +1699,84 @@ describe('customer photo hashing', () => {
     },
     120_000,
   )
+})
+
+describe('main photo preview sources', () => {
+  const previousPublic = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const previousServer = process.env.SUPABASE_URL
+
+  function restore() {
+    if (previousPublic === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
+    else process.env.NEXT_PUBLIC_SUPABASE_URL = previousPublic
+    if (previousServer === undefined) delete process.env.SUPABASE_URL
+    else process.env.SUPABASE_URL = previousServer
+  }
+
+  it('shows our storage object and an intake photo, and no other link', () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    delete process.env.SUPABASE_URL
+    const storage =
+      'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/front.jpg'
+    expect(mainPhotoPreviewSrc({ previewImageUrl: storage })).toBe(storage)
+    expect(mainPhotoPreviewLocator({ imageUrl: storage }).previewImageUrl).toBe(storage)
+    expect(mainPhotoPreviewSrc({ previewPhotoId: 'photo-nk60295' })).toBe(
+      '/api/nic-nac/intake-photos/photo-nk60295',
+    )
+    expect(
+      mainPhotoPreviewSrc({
+        previewImageUrl: '/api/nic-nac/intake-photos/photo-er34579',
+      }),
+    ).toBe('/api/nic-nac/intake-photos/photo-er34579')
+    expect(
+      mainPhotoPreviewSrc({
+        previewImageUrl: 'https://evil.example/storage/v1/object/public/jewelry-photos/a.jpg',
+        previewPhotoId: 'photo-nk60295',
+      }),
+    ).toBe('/api/nic-nac/intake-photos/photo-nk60295')
+
+    const hidden = [
+      'https://evil.example/photo.jpg',
+      'https://project.supabase.co.evil.example/storage/v1/object/public/a.jpg',
+      'https://project.supabase.co/rest/v1/jewelry-photos/a.jpg',
+      'http://project.supabase.co/storage/v1/object/public/a.jpg',
+      'https://www.yoursparklesuite.com/api/nic-nac/intake-photos/photo-nk60295',
+      '/api/nic-nac/intake-photos/../photo-nk60295',
+      '/api/nic-nac/intake-photos/photo-nk60295/extra',
+      `https://project.supabase.co/storage/v1/object/public/${'a'.repeat(480)}.jpg`,
+    ]
+    for (const previewImageUrl of hidden) {
+      expect(mainPhotoPreviewSrc({ previewImageUrl })).toBeNull()
+      expect(mainPhotoPreviewLocator({ imageUrl: previewImageUrl }).previewImageUrl).toBeUndefined()
+    }
+
+    process.env.SUPABASE_URL = 'https://other.supabase.co'
+    const otherHost =
+      'https://other.supabase.co/storage/v1/object/public/jewelry-photos/approved/front.jpg'
+    expect(mainPhotoPreviewSrc({ previewImageUrl: otherHost })).toBe(otherHost)
+    restore()
+  })
+
+  it('does not render a foreign https link as the chat image', () => {
+    const previous = process.env.NEXT_PUBLIC_SUPABASE_URL
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    try {
+      const renderables = buildAssistantMessageRenderables([
+        {
+          type: 'tool-update_listing',
+          state: 'output-available',
+          output: {
+            needsAction: 'confirm_main_photo',
+            previewImageUrl: 'https://evil.example/storage/v1/object/public/a.jpg',
+            message: 'This is the main photo I will save for NK70001. If this is the right piece, reply yes.',
+          },
+        },
+      ])
+      expect(renderables[0]).toMatchObject({ type: 'main-photo-preview' })
+      expect(renderables[0]).not.toHaveProperty('imageUrl')
+      expect(JSON.stringify(renderables)).not.toContain('evil.example')
+    } finally {
+      if (previous === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
+      else process.env.NEXT_PUBLIC_SUPABASE_URL = previous
+    }
+  })
 })
