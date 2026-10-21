@@ -194,7 +194,13 @@ describe('Trade dialogs keyboard behavior', () => {
 
   it('keeps expanded-card actions and gives the dialog its item title', () => {
     const ref = { current: null }, hook = vi.fn(() => ref), onClose = vi.fn(), onWantThis = vi.fn()
-    const Expanded = actualFunction('trade', 'ExpandedCard', { useTradeDialog: hook })
+    const Expanded = actualFunction('trade', 'ExpandedCard', {
+      useTradeDialog: hook,
+      useState: (initial: unknown) => [initial, () => {}],
+      SparkleMark: () => React.createElement('svg', { className: 'tp-sparkle-mark' }),
+      displayCollectionLabel: (value: unknown) => value,
+      isSpecificDancerNote: () => false,
+    })
     expect(Expanded({ piece: null, onClose, onWantThis })).toBeNull()
     expect(hook).toHaveBeenLastCalledWith(false, onClose)
     const piece = { id: 'synthetic', name: 'Sample dancer', type: 'Ring', tier: 'everyday' }
