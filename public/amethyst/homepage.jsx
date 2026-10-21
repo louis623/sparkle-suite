@@ -2113,12 +2113,9 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-question { display: grid; gap: 16px; width: 100%; min-width: 0; min-height: 212px; box-sizing: border-box; align-content: center; border: 1px solid var(--border); border-radius: 20px; background: var(--hp-form-panel-bg); color: var(--hp-form-panel-fg); padding: 20px; }
 .hp-signup-question.is-choices, .hp-signup-question.is-review { min-height: 0; align-content: start; }
 .hp-signup-question.is-review { gap: 0; padding: 8px 18px 12px; }
-.hp-signup-review, .hp-signup-review-nested { list-style: none; margin: 0; padding: 0; display: grid; }
+.hp-signup-review { list-style: none; margin: 0; padding: 0; display: grid; }
 .hp-signup-review-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 2px; border-top: 1px solid color-mix(in oklab, var(--hp-form-panel-fg) 12%, transparent); }
 .hp-signup-review > .hp-signup-review-row:first-child { border-top: 0; }
-.hp-signup-review-group { display: grid; gap: 8px; padding: 16px 2px 4px; border-top: 1px solid color-mix(in oklab, var(--hp-form-panel-fg) 12%, transparent); }
-.hp-signup-review-nested { margin-top: 4px; }
-.hp-signup-review-nested .hp-signup-review-row { padding: 14px 0; }
 .hp-signup-review-copy { min-width: 0; display: grid; gap: 4px; }
 .hp-signup-review-label { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--hp-card-muted); }
 .hp-signup-review-value { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.45; color: var(--hp-form-panel-fg); overflow-wrap: break-word; }
@@ -2579,7 +2576,6 @@ function Signup({ repName, businessName }) {
     }).join(", ");
   }
 
-  const favoriteCount = form.favoriteStones.length + form.favoriteMaterials.length + form.favoriteCuts.length + form.favoriteCollections.length;
   let channelSummary = "";
   if (form.emailConsent && form.smsConsent) channelSummary = "Email and texts";
   else if (form.emailConsent) channelSummary = "Email";
@@ -2788,21 +2784,15 @@ function Signup({ repName, businessName }) {
                       </div>
                       <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[5]}`} onClick={() => goToStep(5)} disabled={submitState.status === "submitting"}>Edit</button>
                     </li>
-                    <li className="hp-signup-review-group">
-                      <p className="hp-signup-review-label">Favorites</p>
-                      <p className="hp-signup-review-value">{favoriteCount === 1 ? "1 favorite" : `${favoriteCount} favorites`}</p>
-                      <ul className="hp-signup-review-nested">
-                        {favoriteRows.map(([label, picks, options, stepIndex]) => (
-                          <li className="hp-signup-review-row" key={label}>
-                            <div className="hp-signup-review-copy">
-                              <p className="hp-signup-review-label">{label}</p>
-                              <p className="hp-signup-review-value">{preferenceNames(picks, options)}</p>
-                            </div>
-                            <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[stepIndex]}`} onClick={() => goToStep(stepIndex)} disabled={submitState.status === "submitting"}>Edit</button>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
+                    {favoriteRows.map(([label, picks, options, stepIndex]) => (
+                      <li className="hp-signup-review-row" key={label}>
+                        <div className="hp-signup-review-copy">
+                          <p className="hp-signup-review-label">{label}</p>
+                          <p className="hp-signup-review-value">{preferenceNames(picks, options)}</p>
+                        </div>
+                        <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[stepIndex]}`} onClick={() => goToStep(stepIndex)} disabled={submitState.status === "submitting"}>Edit</button>
+                      </li>
+                    ))}
                     {form.birthday.trim() ? (
                       <li className="hp-signup-review-row">
                         <div className="hp-signup-review-copy">
