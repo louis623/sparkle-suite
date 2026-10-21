@@ -1270,6 +1270,12 @@ function Filters({
     setCollectionSearch("");
   };
 
+  useEffect(() => {
+    if (options.rarityTags.length === 0 && sortMode === "rarity") setSortMode("newest");
+  }, [options.rarityTags.length, sortMode, setSortMode]);
+
+  if (listings.length === 0) return null;
+
   return (
     <div className={`tp-filters style-${style}`}>
       <div className="tp-filters-topline">
@@ -1321,7 +1327,7 @@ function Filters({
             <option value="newest">Newest added</option>
             <option value="collection">Collection</option>
             <option value="type">Jewelry type</option>
-            <option value="rarity">Rare first</option>
+            {options.rarityTags.length > 0 && <option value="rarity">Rare first</option>}
             <option value="name">Dancer name</option>
           </select>
         </label>
@@ -1348,38 +1354,43 @@ function Filters({
           ))}
         </div>
 
-        <div className="tp-filters-row tp-filters-row-primary">
-          <button
-            type="button"
-            className={`tp-filter-pill ${filters.rarity === "all" ? "active" : ""}`}
-            onClick={() => setFilter("rarity", "all")}
-          >
-            All rarity
-          </button>
-          {options.rarityTags.map((rarity) => (
+        {options.rarityTags.length > 0 && (
+          <div className="tp-filters-row tp-filters-row-primary">
             <button
-              key={rarity}
               type="button"
-              className={`tp-filter-pill ${filters.rarity === rarity ? "active" : ""}`}
-              onClick={() => setFilter("rarity", rarity)}
+              className={`tp-filter-pill ${filters.rarity === "all" ? "active" : ""}`}
+              onClick={() => setFilter("rarity", "all")}
             >
-              {rarityLabel(rarity)}
+              All rarity
             </button>
-          ))}
-        </div>
-
-        {options.collections.length > 0 && (
-          <div className="tp-filters-row tp-filters-row-primary tp-filters-row-collections" aria-label="Filter by collection">
-            {options.collections.map((collection) => (
+            {options.rarityTags.map((rarity) => (
               <button
-                key={collection}
+                key={rarity}
                 type="button"
-                className={`tp-filter-pill ${filters.collection === collection ? "active" : ""}`}
-                onClick={() => setFilter("collection", collection)}
+                className={`tp-filter-pill ${filters.rarity === rarity ? "active" : ""}`}
+                onClick={() => setFilter("rarity", rarity)}
               >
-                {collection}
+                {rarityLabel(rarity)}
               </button>
             ))}
+          </div>
+        )}
+
+        {options.collections.length > 0 && (
+          <div className="tp-filters-row tp-filters-row-primary tp-filters-row-collections">
+            <span className="tp-filter-row-label" id="trade-collection-filters">Collection</span>
+            <div className="tp-filter-chip-row" role="group" aria-labelledby="trade-collection-filters">
+              {options.collections.map((collection) => (
+                <button
+                  key={collection}
+                  type="button"
+                  className={`tp-filter-pill ${filters.collection === collection ? "active" : ""}`}
+                  onClick={() => setFilter("collection", collection)}
+                >
+                  {collection}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
