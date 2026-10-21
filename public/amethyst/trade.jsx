@@ -36,7 +36,7 @@ const DEFAULTS = window.TRADE_TWEAK_DEFAULTS || {
   showFooter: true,
   showNicNac: true,
   tickerTopText: "Dance Floor open now | Item-for-item only | Same collection + same jewelry type | Birthday dancers can swap across months",
-  tradeHeroTitle: "Find the dancer you wanted to love.",
+  tradeHeroTitle: "Find the dancer you were hoping for.",
   tradeHeroSub: "The Dance Floor is for item-for-item swaps only. Requests must stay within the same collection and the same jewelry type.",
   primaryColor: "#5C0EFF",
   accentColor: "#FF1AC2",

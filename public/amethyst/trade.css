@@ -39,7 +39,7 @@ body.tradepage h4 {
   margin: 0 auto 14px;
   padding-block: 0.04em 0.12em;
   text-wrap: balance;
-  max-width: 16ch;
+  max-width: 18ch;
   overflow: visible;
 }
 
@@ -296,7 +296,7 @@ body.britt-with-bling-trade .hp-footer {
     font-size: clamp(32px, 9.6vw, 44px);
     line-height: 1.12;
     width: 100%;
-    max-width: 10ch;
+    max-width: 13ch;
     padding-block: 0.04em 0.12em;
     overflow-wrap: anywhere;
   }

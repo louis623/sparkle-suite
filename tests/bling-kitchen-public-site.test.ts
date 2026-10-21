@@ -104,7 +104,7 @@ describe('BlingKitchen hybrid public site contract', () => {
     )
 
     expect(trade.publicSiteVariant).toBeUndefined()
-    expect(trade.tradeHeroTitle).toBe('Find the dancer you wanted to love.')
+    expect(trade.tradeHeroTitle).toBe('Find the dancer you were hoping for.')
     expect(trade.tradeRules).toContain('Item-for-item only.')
     expect(trade.pantryPageUrl).toBe('/amethyst/Pantry.html')
     expect(join.publicSiteVariant).toBeUndefined()
