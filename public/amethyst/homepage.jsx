@@ -2111,7 +2111,22 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }
 .hp-signup-notes { min-height: 120px; resize: vertical; }
 .hp-signup-question { display: grid; gap: 16px; width: 100%; min-width: 0; min-height: 212px; box-sizing: border-box; align-content: center; border: 1px solid var(--border); border-radius: 20px; background: var(--hp-form-panel-bg); color: var(--hp-form-panel-fg); padding: 20px; }
-.hp-signup-question.is-choices { min-height: 0; align-content: start; }
+.hp-signup-question.is-choices, .hp-signup-question.is-review { min-height: 0; align-content: start; }
+.hp-signup-question.is-review { gap: 0; padding: 4px 18px 8px; }
+.hp-signup-review, .hp-signup-review-nested { list-style: none; margin: 0; padding: 0; display: grid; }
+.hp-signup-review-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 2px; border-top: 1px solid color-mix(in oklab, var(--hp-form-panel-fg) 12%, transparent); }
+.hp-signup-review > .hp-signup-review-row:first-child { border-top: 0; }
+.hp-signup-review-group { display: grid; gap: 2px; padding: 14px 2px 2px; border-top: 1px solid color-mix(in oklab, var(--hp-form-panel-fg) 12%, transparent); }
+.hp-signup-review-nested { margin-top: 4px; }
+.hp-signup-review-nested .hp-signup-review-row { padding: 8px 0; }
+.hp-signup-review-copy { min-width: 0; display: grid; gap: 2px; }
+.hp-signup-review-label { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hp-card-muted); }
+.hp-signup-review-value { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.35; color: var(--hp-form-panel-fg); overflow-wrap: anywhere; }
+.hp-signup-review-meta { margin: 0; font-size: 14px; line-height: 1.4; color: var(--hp-card-muted); overflow-wrap: anywhere; }
+.hp-signup-review-notes { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hp-signup-review-edit { flex: none; min-height: 44px; min-width: 44px; padding: 8px 2px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.hp-signup-review-edit:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
+.hp-signup-review-edit:disabled { opacity: 0.45; cursor: wait; }
 .hp-signup-intro { display: grid; gap: 6px; min-height: 84px; align-content: end; text-align: center; }
 .hp-signup-step-title { margin: 0; color: var(--hp-card-fg); font-family: var(--hp-display-font); font-size: clamp(26px, 3vw, 34px); font-weight: 700; letter-spacing: var(--hp-heading-tracking, -0.02em); line-height: 1.15; }
 .hp-signup-step-why { margin: 0 auto; max-width: 36rem; color: var(--hp-card-muted); font-size: 15px; line-height: 1.5; }
@@ -2279,7 +2294,7 @@ function Signup({ repName, businessName }) {
       stepWasShown.current = true;
       return;
     }
-    const field = stepRef.current?.querySelector("input, select, textarea");
+    const field = stepRef.current?.querySelector("input, select, textarea, .hp-signup-review-edit");
     if (field) field.focus();
     else document.querySelector("#signup .hp-signup-submit")?.focus();
   }, [step, repName]);
@@ -2533,6 +2548,27 @@ function Signup({ repName, businessName }) {
     }
   }
 
+  function preferenceCount(picks) {
+    if (picks.length === 1 && picks[0] === SIGNUP_NOT_SURE) return "Not sure yet";
+    return picks.length === 1 ? "1 pick" : `${picks.length} picks`;
+  }
+
+  const favoriteCount = form.favoriteStones.length + form.favoriteMaterials.length + form.favoriteCuts.length + form.favoriteCollections.length;
+  let channelSummary = "";
+  if (form.emailConsent && form.smsConsent) channelSummary = "Email and texts";
+  else if (form.emailConsent) channelSummary = "Email";
+  else if (form.smsConsent) channelSummary = "Texts";
+  if (form.marketingConsent) {
+    channelSummary = channelSummary ? `${channelSummary}, plus promotional drops` : "Promotional drops";
+  }
+  const reviewName = [form.firstName.trim(), form.lastName.trim()].filter(Boolean).join(" ");
+  const favoriteRows = [
+    ["Stones", form.favoriteStones, 1],
+    ["Metals", form.favoriteMaterials, 2],
+    ["Cuts", form.favoriteCuts, 3],
+    ["Collections", form.favoriteCollections, 4],
+  ];
+
   return (
     <section className="hp-signup" id="signup">
       <style>{SIGNUP_PREFERENCE_STYLES}</style>
@@ -2708,7 +2744,68 @@ function Signup({ repName, businessName }) {
                 </div>
               ) : null}
               {step === SIGNUP_LAST_STEP ? (
-                <div className="hp-signup-question" />
+                <div className="hp-signup-question is-review">
+                  <ul className="hp-signup-review">
+                    <li className="hp-signup-review-row">
+                      <div className="hp-signup-review-copy">
+                        <p className="hp-signup-review-label">Name</p>
+                        <p className="hp-signup-review-value">{reviewName}</p>
+                        {form.email.trim() ? <p className="hp-signup-review-meta">{form.email.trim()}</p> : null}
+                      </div>
+                      <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[0]}`} onClick={() => goToStep(0)} disabled={submitState.status === "submitting"}>Edit</button>
+                    </li>
+                    <li className="hp-signup-review-row">
+                      <div className="hp-signup-review-copy">
+                        <p className="hp-signup-review-label">Channels</p>
+                        <p className="hp-signup-review-value">{channelSummary}</p>
+                        {form.smsConsent && form.phone.trim() ? <p className="hp-signup-review-meta">{form.phone.trim()}</p> : null}
+                      </div>
+                      <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[5]}`} onClick={() => goToStep(5)} disabled={submitState.status === "submitting"}>Edit</button>
+                    </li>
+                    <li className="hp-signup-review-group">
+                      <p className="hp-signup-review-label">Favorites</p>
+                      <p className="hp-signup-review-value">{favoriteCount === 1 ? "1 favorite" : `${favoriteCount} favorites`}</p>
+                      <ul className="hp-signup-review-nested">
+                        {favoriteRows.map(([label, picks, stepIndex]) => (
+                          <li className="hp-signup-review-row" key={label}>
+                            <div className="hp-signup-review-copy">
+                              <p className="hp-signup-review-label">{label}</p>
+                              <p className="hp-signup-review-value">{preferenceCount(picks)}</p>
+                            </div>
+                            <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[stepIndex]}`} onClick={() => goToStep(stepIndex)} disabled={submitState.status === "submitting"}>Edit</button>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                    {form.birthday.trim() ? (
+                      <li className="hp-signup-review-row">
+                        <div className="hp-signup-review-copy">
+                          <p className="hp-signup-review-label">Birthday</p>
+                          <p className="hp-signup-review-value">{form.birthday.trim()}</p>
+                        </div>
+                        <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[6]}`} onClick={() => goToStep(6)} disabled={submitState.status === "submitting"}>Edit</button>
+                      </li>
+                    ) : null}
+                    {form.ringSize ? (
+                      <li className="hp-signup-review-row">
+                        <div className="hp-signup-review-copy">
+                          <p className="hp-signup-review-label">Ring size</p>
+                          <p className="hp-signup-review-value">{form.ringSize === "not_sure" ? "Not sure" : form.ringSize}</p>
+                        </div>
+                        <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[7]}`} onClick={() => goToStep(7)} disabled={submitState.status === "submitting"}>Edit</button>
+                      </li>
+                    ) : null}
+                    {form.jewelryNotes.trim() ? (
+                      <li className="hp-signup-review-row">
+                        <div className="hp-signup-review-copy">
+                          <p className="hp-signup-review-label">Notes</p>
+                          <p className="hp-signup-review-value hp-signup-review-notes">{form.jewelryNotes.trim()}</p>
+                        </div>
+                        <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[8]}`} onClick={() => goToStep(8)} disabled={submitState.status === "submitting"}>Edit</button>
+                      </li>
+                    ) : null}
+                  </ul>
+                </div>
               ) : null}
               </div>
             </div>
