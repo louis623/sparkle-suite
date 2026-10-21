@@ -422,10 +422,8 @@ export async function ingestLatestTradeBoardIntakeTurn(
   }
 
   let metadata = { ...args.session.metadata }
-  const ingestedJewelryFront = photos
-    .slice(photosBeforeThisTurn)
-    .some((photo) => photo.declaredRole === 'jewelry_front')
-  if (ingestedJewelryFront) {
+  const ingestedNewImage = photos.length > photosBeforeThisTurn
+  if (ingestedNewImage) {
     delete metadata.mainPhotoConfirmedPhotoId
     delete metadata.mainPhotoConfirmed
   } else if (latestTurnConfirmsMainPhoto(args.messages)) {

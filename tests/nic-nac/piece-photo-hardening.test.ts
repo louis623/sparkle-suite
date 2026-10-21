@@ -665,6 +665,85 @@ describe('main photo confirmation', () => {
     ).toBe(true)
   })
 
+  it('cancels a yes when the same turn adds a photo with no role words', async () => {
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const upsert = vi.fn(() => ({ error: null }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_photos') return { upsert }
+        if (table === 'trade_board_intake_sessions') return { update }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-nk60295',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'ready_to_add',
+      known: {
+        itemNumber: 'NK60295',
+        designName: 'Necklace',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: {
+        mainPhotoConfirmationRequired: true,
+        mainPhotoConfirmedPhotoId: 'photo-old',
+      },
+      photos: [
+        {
+          id: 'photo-old',
+          intakeSessionId: 'intake-nk60295',
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,TktK',
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+      ],
+    }
+
+    const ingested = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'yes-with-photo',
+          role: 'user',
+          parts: [
+            { type: 'text', text: 'yes' },
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,TkVX',
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(ingested.metadata.mainPhotoConfirmedPhotoId).toBeUndefined()
+    expect(ingested.metadata.mainPhotoConfirmed).toBeUndefined()
+    expect(
+      ingested.photos.some(
+        (photo) => photo.imageUrl === 'data:image/jpeg;base64,TkVX',
+      ),
+    ).toBe(true)
+    expect(
+      ingested.photos.find((photo) => photo.imageUrl === 'data:image/jpeg;base64,TkVX')
+        ?.declaredRole,
+    ).not.toBe('jewelry_front')
+  })
+
   it.each([
     'that isn’t correct',
     'don’t use that one',

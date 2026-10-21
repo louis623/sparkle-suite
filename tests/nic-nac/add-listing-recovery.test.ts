@@ -4480,6 +4480,61 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(addListingMock).toHaveBeenCalled()
   })
 
+  it('shows the preview again when a yes arrived with a new photo that has no role words', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk60295',
+        phase: 'ready_to_add',
+        missing: [],
+        metadata: { mainPhotoConfirmationRequired: true },
+        known: {
+          itemNumber: 'NK60295',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: 'photo-old',
+            intakeSessionId: 'intake-nk60295',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,TktK',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+          {
+            id: 'photo-new',
+            intakeSessionId: 'intake-nk60295',
+            attachmentIndex: 2,
+            declaredRole: 'unknown',
+            visualRole: 'uncertain',
+            roleConfirmed: false,
+            imageUrl: 'data:image/jpeg;base64,TkVX',
+            quality: 'unknown',
+            qualityIssues: [],
+            notes: [],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK60295',
+        collectionName: 'Original',
+      }),
+    ).resolves.toMatchObject({
+      needsAction: 'confirm_main_photo',
+      previewPhotoId: 'photo-old',
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
+  })
+
   it('shows the main photo preview again when the saved photo is not the one that was confirmed', async () => {
     const tool = makeTool(makeConversationLookupMock([]), {
       activeTradeBoardWorkflow: activeWorkflow({
