@@ -2163,6 +2163,22 @@ const SIGNUP_PREFERENCE_STYLES = `
 @media (max-width: 420px) {
   .hp-pref-chip { font-size: 15px; }
 }
+#signup .hp-signup-card { max-width: 640px; }
+#signup .hp-signup-form { width: 100%; }
+#signup .hp-signup-progress-wrap { width: 100%; justify-items: stretch; }
+#signup .hp-signup-meter { width: 100%; max-width: none; }
+#signup .hp-signup-actions { width: 100%; align-items: stretch; }
+#signup .hp-signup-privacy { width: 100%; max-width: none; }
+#signup .hp-signup-nav { width: 100%; }
+@media (max-width: 719px) {
+  #signup .hp-signup-nav { align-items: stretch; }
+  #signup .hp-signup-submit { width: 100%; }
+  #signup .hp-signup-back { text-align: center; }
+}
+@media (min-width: 720px) {
+  #signup .hp-signup-nav { align-items: center; }
+  #signup .hp-signup-submit { flex: 1 1 auto; }
+}
 `;
 
 const SIGNUP_STEP_LABELS = [
