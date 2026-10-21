@@ -1245,11 +1245,35 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
     padding: 0 24px;
   }
 }
+.tp-card-expand:has(.tp-card-expand-photo:not(.has-photo)) {
+  grid-template-columns: 168px minmax(0, 1fr);
+}
 .tp-card-expand-photo {
   aspect-ratio: 4 / 5;
   background: linear-gradient(135deg, var(--bg-deep), var(--hp-bg));
   position: relative;
   overflow: hidden;
+}
+.tp-card-expand-photo:not(.has-photo) {
+  aspect-ratio: auto;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in oklab, var(--hp-primary) 16%, white), transparent 58%),
+    linear-gradient(180deg, color-mix(in oklab, var(--hp-primary) 7%, white), var(--hp-bg));
+}
+.tp-card-expand-photo:not(.has-photo) .photo-glyph .tp-sparkle-mark {
+  width: 36px;
+  height: 36px;
+  opacity: 0.7;
+}
+@media (max-width: 700px) {
+  .tp-card-expand:has(.tp-card-expand-photo:not(.has-photo)) {
+    grid-template-columns: 1fr;
+  }
+  .tp-card-expand-photo:not(.has-photo) {
+    min-height: 0;
+    height: 84px;
+  }
 }
 .tp-card-expand-photo .photo-glyph {
   position: absolute;
