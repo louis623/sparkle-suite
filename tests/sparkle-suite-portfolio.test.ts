@@ -107,7 +107,11 @@ describe('Sparkle Suite portfolio carousels', () => {
       expect(index).toBeGreaterThan(previous)
       previous = index
       expect(themeHtml).toContain(`href="/skin-preview/${theme.id}/homepage"`)
-      if (theme.id === 'amethyst') {
+      if (theme.id === 'halloween_pumpkin_witch') {
+        expect(themeHtml).toContain('A frightfully fun night to sparkle.')
+      } else if (theme.id === 'halloween_pumpkin_cat') {
+        expect(themeHtml).toContain('A little mystery. A lot of sparkle.')
+      } else {
         expect(themeHtml).toContain('Real jewelry. Live reveals. Pure sparkle.')
       }
       expect(themeHtml).toContain(theme.poster)
