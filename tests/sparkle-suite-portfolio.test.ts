@@ -118,7 +118,9 @@ describe('Sparkle Suite portfolio carousels', () => {
       } else {
         expect(themeHtml).toContain('Real jewelry. Live reveals. Pure sparkle.')
       }
-      expect(themeHtml).toContain(theme.poster)
+      expect(
+        themeHtml.includes(theme.poster) || themeHtml.includes(encodeURIComponent(theme.poster)),
+      ).toBe(true)
       expect(existsSync(publicFile(theme.poster))).toBe(true)
       expect(themeHtml).not.toContain('hero-halloween-witch-live')
       expect(themeHtml).not.toContain('hero-halloween-cat-live')
@@ -144,7 +146,10 @@ describe('Sparkle Suite portfolio carousels', () => {
     expect(repHtml).toContain('Sparkly Butterflies')
     expect(repHtml).not.toMatch(/BlingKitchen|Bri’s Glowtique|theblingkitchen\.com|brisglowtique\.com/)
     expect(repHtml).toContain('/sparkle-suite/portfolio/mile-high-fizz-custom-hero.webp')
-    expect(repHtml).toContain('/mile-high-fizz/hero.mp4')
+    const mileHigh = sparkleSuitePortfolioContent.carousels
+      .find((carousel) => carousel.id === 'rep-highlights')
+      ?.slides.find((slide) => slide.id === 'mile-high-fizz')
+    expect(mileHigh && mileHigh.kind === 'capture' ? mileHigh.video?.mp4 : undefined).toBe('/mile-high-fizz/hero.mp4')
     expect(repHtml).toContain('With Lindsey')
     expect(repHtml).toContain('Revealing something magical together.')
     expect(repHtml).toContain('/sparkle-suite/portfolio/britt-with-bling-custom-hero.webp')
