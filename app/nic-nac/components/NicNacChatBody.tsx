@@ -8,6 +8,7 @@ import {
   type FileUIPart,
   type UIMessage,
 } from 'ai'
+import { mainPhotoPreviewSrc } from '@/lib/nic-nac/workflows/main-photo-preview'
 import { Bubble } from './Bubble'
 import { ChatHistory } from './ChatHistory'
 import { EmptyGreeting, type NicNacChatMode } from './EmptyGreeting'
@@ -130,6 +131,12 @@ export type AssistantMessageRenderable =
       key: string
       request: TradeRequestCardPart['data']
     }
+  | {
+      type: 'main-photo-preview'
+      key: string
+      text: string
+      imageUrl?: string
+    }
 
 export function buildAssistantMessageRenderables(
   parts: readonly unknown[],
@@ -155,6 +162,40 @@ export function buildAssistantMessageRenderables(
         type: 'data-trade-request-card',
         key: `trade-request-${part.data.requestId}-${index}`,
         request: part.data,
+      })
+      return
+    }
+    const toolPart = part as {
+      type?: string
+      state?: string
+      output?: {
+        needsAction?: string
+        code?: string
+        previewPhotoId?: string
+        previewImageUrl?: string
+        message?: string
+      }
+    }
+    const output = toolPart.output
+    const isToolResult =
+      typeof toolPart.type === 'string' &&
+      toolPart.type.startsWith('tool-') &&
+      toolPart.state === 'output-available' &&
+      output != null
+    const showsMainPhoto =
+      output?.needsAction === 'confirm_main_photo' ||
+      (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM' &&
+        Boolean(output.previewImageUrl?.trim() || output.previewPhotoId?.trim()))
+    if (isToolResult && showsMainPhoto) {
+      flushText(`text-${index}`)
+      const imageUrl = mainPhotoPreviewSrc(output)
+      renderables.push({
+        type: 'main-photo-preview',
+        key: `main-photo-${index}`,
+        text:
+          output.message ??
+          'This is the main photo I will save. If this is the right piece, reply yes.',
+        ...(imageUrl ? { imageUrl } : {}),
       })
     }
   })
@@ -662,7 +703,7 @@ export function NicNacChatBody({
     void sendMessage({ text })
   }
 
-  const handlePickFiles = async (files: FileList | null, _mode: 'gallery' | 'camera') => {
+  const handlePickFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return
     const remainingSlots = MAX_ATTACHMENTS - attachments.length
     if (remainingSlots <= 0) {
@@ -946,6 +987,20 @@ function AssistantMessage({
           const showGlyph = isFirstInRun && index === 0
           const itemTimestamp =
             index === lastRenderableIndex ? timestamp : undefined
+
+          if (item.type === 'main-photo-preview') {
+            return (
+              <Bubble
+                key={item.key}
+                variant="nicNac"
+                layout="main-photo"
+                showGlyph={showGlyph}
+                text={item.text}
+                images={item.imageUrl ? [{ url: item.imageUrl }] : undefined}
+                timestamp={itemTimestamp}
+              />
+            )
+          }
 
           if (item.type === 'text') {
             return isStreamingTail ? (

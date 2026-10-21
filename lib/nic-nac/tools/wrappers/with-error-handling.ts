@@ -79,11 +79,25 @@ export function withErrorHandling({ name, ctx, readOnly }: Args, tool: Tool): To
         }
       }
       if (err instanceof NicNacToolError) {
+        const contentSha256 = err.details?.contentSha256?.trim()
+        const photoId = err.details?.photoId?.trim()
+        const listingId = err.details?.listingId?.trim()
+        const itemNumber = err.details?.itemNumber?.trim()
+        const previewImageUrl = err.details?.previewImageUrl?.trim()
+        const previewPhotoId = err.details?.previewPhotoId?.trim()
+        const pieceKey = err.details?.pieceKey?.trim()
         return {
           ok: false,
           errorTier: 'explain' as const,
           code: err.code,
           message: err.userMessage,
+          ...(contentSha256 ? { contentSha256 } : {}),
+          ...(photoId ? { photoId } : {}),
+          ...(listingId ? { listingId } : {}),
+          ...(itemNumber ? { itemNumber } : {}),
+          ...(previewImageUrl ? { previewImageUrl } : {}),
+          ...(previewPhotoId ? { previewPhotoId } : {}),
+          ...(pieceKey ? { pieceKey } : {}),
         }
       }
       return await escalate(err, name, ctx, args[0])

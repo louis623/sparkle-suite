@@ -88,11 +88,12 @@ describe('Nic-Nac branding copy', () => {
       }),
     )
 
-    expect(html).toContain('Set up Live Queue')
-    expect(html).toContain('Your Live Queue code')
+    expect(html).toContain('Set up Live Lineup')
+    expect(html).toContain('Your Live Lineup code')
     expect(html).toContain('MHF-7342')
     expect(html).toContain('code already assigned to your Workspace')
-    expect(html).toContain('Sparkle Suite Live Queue extension')
+    expect(html).toContain('Live Lineup extension')
+    expect(html).not.toContain('Live Queue')
     expect(html).toContain(
       'https://chromewebstore.google.com/detail/sparkle-suite-live-queue/kmodgfffflplfdlkkhadgimmobplhoih',
     )
@@ -101,7 +102,7 @@ describe('Nic-Nac branding copy', () => {
     expect(html).toContain('Bomb Party Party Orders tab')
     expect(html).toContain('review and confirm that tab and the parties for your show')
     expect(html).toContain('Verify connection and continue')
-    expect(html).toContain('I need help with Live Queue setup')
+    expect(html).toContain('I need help with Live Lineup setup')
     expect(html).not.toContain('search')
     expect(html).not.toContain('064632')
     expect(html).not.toContain('orientation')

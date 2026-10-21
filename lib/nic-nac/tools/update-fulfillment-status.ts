@@ -89,7 +89,7 @@ export function makeUpdateFulfillmentStatusTool(ctx: {
   return tool({
     description:
       'Update one fulfillment item for the authenticated rep. ' +
-      'Use this after get_fulfillment_queue when the rep says a trade has shipped or logistics are done. ' +
+      'Use this after get_fulfillment_queue when the rep says a swap has shipped or logistics are done. ' +
       'Approved or shipped can move directly to completed; undo completed by moving to approved. ' +
       'Prefer requestId from the queue; customerName is only for clear one-off cases. ' +
       'shippingNotes can hold tracking or shipment details.',

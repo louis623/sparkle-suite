@@ -143,7 +143,7 @@ export function makePrepareTradeBoardWorkTool(ctx: {
 }) {
   return tool({
     description:
-      'Read-only preflight for ambiguous Dance Floor mutations and jewelry-identification work. Use it before adding, removing, correcting, or facilitating a dancer when the next safe path depends on catalog identity, photo roles, duplicate physical inventory, ring size, or trade-request state. Do not use it for a simple request to view the current Dance Floor; call list_my_trade_board directly. Do not call it merely because an earlier turn involved Dance Floor work.',
+      'Read-only preflight for ambiguous Dance Floor mutations and jewelry-identification work. Use it before adding, removing, correcting, or facilitating a dancer when the next safe path depends on catalog identity, photo roles, duplicate physical inventory, ring size, or swap-request state. Do not use it for a simple request to view the current Dance Floor; call list_my_trade_board directly. Do not call it merely because an earlier turn involved Dance Floor work.',
     inputSchema,
     execute: async (modelInput) => {
       const input = appOwnedInput(

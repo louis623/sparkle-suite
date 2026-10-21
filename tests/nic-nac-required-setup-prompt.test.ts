@@ -121,21 +121,22 @@ describe('required Nic-Nac setup prompt', () => {
   it('requires support escalation when Live Queue setup is blocked', () => {
     const prompt = buildRequiredSetupPrompt()
 
-    expect(prompt).toContain('Live Queue setup')
-    expect(prompt).toContain('Live Queue is not optional')
-    expect(prompt).toContain('If Live Queue setup is blocked')
-    expect(prompt).toContain("assigned Live Queue code")
+    expect(prompt).toContain('Live Lineup setup')
+    expect(prompt).toContain('Live Lineup is not optional')
+    expect(prompt).toContain('If Live Lineup setup is blocked')
+    expect(prompt).toContain("assigned Live Lineup code")
     expect(prompt).toContain('enter that exact code in the extension')
     expect(prompt).toContain('Do not replace or rotate an existing assigned code')
     expect(prompt).toContain("Never invent a code or use another rep's code")
     expect(prompt).toContain(
-      'Do not mark Live Queue setup complete from vague replies like yes, okay, install now, or set it up now',
+      'Do not mark Live Lineup setup complete from vague replies like yes, okay, install now, or set it up now',
     )
     expect(prompt).toContain('server rechecks fresh source readiness at completion')
     expect(prompt).toContain('answer: {}, and completeStep: true')
     expect(prompt).toContain('A valid empty Party Orders table can be ready')
     expect(prompt).toContain('Announce completion only after that tool succeeds')
-    expect(prompt).toContain('Never re-open an already completed Live Queue setup')
+    expect(prompt).toContain('Never re-open an already completed Live Lineup setup')
+    expect(prompt).not.toContain('Live Queue')
     expect(prompt).toContain(
       'https://chromewebstore.google.com/detail/sparkle-suite-live-queue/kmodgfffflplfdlkkhadgimmobplhoih',
     )
@@ -187,7 +188,7 @@ describe('required Nic-Nac setup prompt', () => {
     )
     expect(prompt).toContain('Do not amplify hype claims')
     expect(prompt).toContain(
-      'Use customer-facing website, Sparkle Suite Workspace, Live Queue, Dance Floor, and customer-facing site theme',
+      'Use customer-facing website, Sparkle Suite Workspace, Live Lineup, Dance Floor, and customer-facing site theme',
     )
     expect(prompt).not.toContain('LiveQ')
     expect(prompt).not.toContain('TradeBoard')
@@ -205,7 +206,7 @@ describe('required Nic-Nac setup prompt', () => {
       'Do not require any Dance Floor inventory before unlock',
     )
     expect(prompt).toContain(
-      'Dance Floor helps reps organize customer trade requests instead of chasing DMs, comments, and screenshots',
+      'Dance Floor helps reps organize customer swap requests instead of chasing DMs, comments, and screenshots',
     )
   })
 

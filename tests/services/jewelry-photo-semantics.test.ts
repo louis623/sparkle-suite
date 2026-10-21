@@ -52,7 +52,7 @@ describe('jewelry photo semantics', () => {
     })
   })
 
-  it('does not classify a clear centered boxed display photo as packaging only', () => {
+  it('calls a clear centered boxed display photo jewelry', () => {
     expect(
       classifyJewelryPhotoSemantics({
         width: 1512,
@@ -68,13 +68,13 @@ describe('jewelry photo semantics', () => {
         backgroundCleanliness: 0.38,
       }),
     ).toMatchObject({
-      role: 'uncertain',
+      role: 'jewelry',
       canAttemptCrop: true,
-      reasons: expect.arrayContaining(['boxed display jewelry appears clear enough']),
+      reasons: expect.arrayContaining(['boxed display jewelry is clear enough']),
     })
   })
 
-  it('marks a clear but small centered subject as a crop candidate instead of auto-approving it', () => {
+  it('calls a clear but small centered subject jewelry', () => {
     expect(
       classifyJewelryPhotoSemantics({
         width: 1800,
@@ -90,13 +90,12 @@ describe('jewelry photo semantics', () => {
         backgroundCleanliness: 0.88,
       }),
     ).toMatchObject({
-      role: 'uncertain',
+      role: 'jewelry',
       canAttemptCrop: true,
-      reasons: expect.arrayContaining(['jewelry appears clear but small']),
     })
   })
 
-  it('keeps a high-detail tiny boxed display reviewable instead of falsely labeling it', () => {
+  it('calls a high-detail tiny centered boxed display jewelry instead of a label', () => {
     const input = {
       width: 768,
       height: 1024,
@@ -113,10 +112,28 @@ describe('jewelry photo semantics', () => {
     const semantic = classifyJewelryPhotoSemantics(input)
 
     expect(semantic).toMatchObject({
-      role: 'uncertain',
+      role: 'jewelry',
       canAttemptCrop: true,
     })
     expect(canUseConfirmedJewelryFront(input, semantic, true)).toBe(true)
+  })
+
+  it('stays uncertain when the photo is neither a clear piece nor a clear label', () => {
+    expect(
+      classifyJewelryPhotoSemantics({
+        width: 900,
+        height: 900,
+        blurRisk: 0.7,
+        lightingRisk: 0.6,
+        detailRisk: 0.7,
+        backgroundDistractionRisk: 0.4,
+        subjectCoverage: 0.1,
+        subjectCentered: true,
+        detailConfidence: 0.2,
+        backgroundUniformity: 0.5,
+        backgroundCleanliness: 0.5,
+      }).role,
+    ).toBe('uncertain')
   })
 
   it('keeps packaging classification informational once a clear photo role is confirmed', () => {

@@ -53,7 +53,7 @@ export function makeRejectTradeTool(ctx: {
 }) {
   return tool({
     description:
-      "Reject an incoming trade request against one of the authenticated rep's listings. " +
+      "Reject an incoming swap request against one of the authenticated rep's listings. " +
       'Reversible: the listing returns to status=available so it can receive new requests. ' +
       "No approval dialog — rejecting is reversible. Identify the request by requestId. A customer-safe reason is required; for other, supply customerExplanation. Rep notes stay private.",
     inputSchema,

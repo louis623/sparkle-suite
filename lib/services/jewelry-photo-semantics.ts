@@ -41,15 +41,12 @@ export function classifyJewelryPhotoSemantics(
     reasons.push('background or packaging dominates the image')
   }
 
-  // Low subject coverage plus a busy card/box is not enough to call an image a
-  // label. Small earrings on a Bomb Party display produce the same signals.
-  // Reserve the hard label result for a measurable, off-center foreground
-  // region; zero-coverage and centered cases need workflow confirmation.
+  // An off-center card or box with little jewelry in frame is a label, including
+  // when subject detection finds nothing. A centered piece stays jewelry.
   const strongLabelSignal =
-    tinySubject &&
     packagingDominates &&
     !input.subjectCentered &&
-    input.subjectCoverage >= 0.015
+    input.subjectCoverage < 0.12
 
   if (strongLabelSignal) {
     return {
@@ -60,52 +57,56 @@ export function classifyJewelryPhotoSemantics(
     }
   }
 
-  const reviewableDisplayCropCandidate =
-    tinySubject &&
-    packagingDominates &&
-    input.detailConfidence >= 0.6 &&
-    input.blurRisk <= 0.45 &&
-    input.detailRisk <= 0.55
-  if (reviewableDisplayCropCandidate) {
-    return {
-      role: 'uncertain',
-      confidence: 0.58,
-      reasons: ['small boxed display jewelry needs workflow confirmation'],
-      canAttemptCrop: true,
-    }
-  }
-
-  const boxedDisplayCropCandidate =
-    packagingDominates &&
+  const clearBoxedJewelry =
     input.subjectCentered &&
     input.subjectCoverage >= 0.08 &&
     input.detailConfidence >= 0.65 &&
     input.blurRisk <= 0.45 &&
     input.detailRisk <= 0.55
 
-  if (boxedDisplayCropCandidate) {
+  if (clearBoxedJewelry) {
     return {
-      role: 'uncertain',
-      confidence: 0.68,
-      reasons: ['boxed display jewelry appears clear enough'],
-      canAttemptCrop: true,
+      role: 'jewelry',
+      confidence: 0.84,
+      reasons: packagingDominates
+        ? ['boxed display jewelry is clear enough']
+        : [],
+      // Crop boxed and small pieces. A piece that already fills the frame
+      // stays as-is; that path used to land on jewelry-forward below.
+      canAttemptCrop: packagingDominates || input.subjectCoverage < 0.24,
     }
   }
 
-  const clearSmallCropCandidate =
+  const clearSmallJewelry =
     smallSubject &&
     input.subjectCentered &&
     input.detailConfidence >= 0.7 &&
     input.blurRisk <= 0.25 &&
     input.detailRisk <= 0.3 &&
-    input.backgroundDistractionRisk <= 0.25 &&
     input.backgroundCleanliness >= 0.75
 
-  if (clearSmallCropCandidate) {
+  if (clearSmallJewelry) {
     return {
-      role: 'uncertain',
-      confidence: 0.72,
-      reasons: ['jewelry appears clear but small'],
+      role: 'jewelry',
+      confidence: 0.8,
+      reasons: ['jewelry is clear, just small in the frame'],
+      canAttemptCrop: true,
+    }
+  }
+
+  const tinyCenteredJewelry =
+    input.subjectCentered &&
+    input.subjectCoverage >= 0.04 &&
+    input.subjectCoverage < 0.08 &&
+    input.detailConfidence >= 0.6 &&
+    input.blurRisk <= 0.45 &&
+    input.detailRisk <= 0.55
+
+  if (tinyCenteredJewelry) {
+    return {
+      role: 'jewelry',
+      confidence: 0.76,
+      reasons: ['small jewelry is clear enough to tell the piece'],
       canAttemptCrop: true,
     }
   }

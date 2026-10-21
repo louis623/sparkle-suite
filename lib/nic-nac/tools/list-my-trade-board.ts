@@ -38,7 +38,7 @@ export function makeListMyTradeBoardTool(ctx: { repId: string; supabase: Supabas
   return tool({
     description:
       "See which dancers are on the authenticated rep's Dance Floor right now. " +
-      'Use this for questions about the rep’s dancers, pieces available for trade, or what is currently on their Dance Floor. ' +
+      'Use this for questions about the rep’s dancers, pieces available to swap, or what is currently on their Dance Floor. ' +
       'This is a read only; optionally filter dancers by status.',
     inputSchema,
     execute: async ({ statusFilter, limit }) => {

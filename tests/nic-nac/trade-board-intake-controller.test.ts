@@ -334,12 +334,12 @@ describe('Dance Floor intake controller', () => {
         {
           attachmentIndex: 1,
           declaredRole: 'unknown',
-          visualRole: 'uncertain',
+          visualRole: 'jewelry',
           roleConfirmed: false,
           imageUrl: BOXED_HEX_CARD_URL,
           quality: 'usable',
           qualityIssues: [],
-          notes: ['boxed display jewelry appears clear enough'],
+          notes: ['boxed display jewelry is clear enough'],
         },
       ],
     })

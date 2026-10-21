@@ -31,10 +31,16 @@ import {
   updateTradeBoardIntakeSession,
   upsertTradeBoardIntakePhoto,
 } from './trade-board-intake-store'
+import {
+  hashDataImageUrl,
+  mainPhotoConfirmationIdentity,
+  photoConfirmationPieceKey,
+} from './photo-reuse-guard'
 import { isExplicitTradeBoardAddRequest } from './trade-board-add-intent'
 import {
   assignDeclaredPhotoRolesForTurn,
   inferRoleFromText,
+  REP_CONFIRMED_MAIN_PHOTO_NOTE,
   stampSoleReadinessJewelryFrontCandidate,
 } from './workflow-photo-roles'
 
@@ -156,10 +162,15 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
   }
 }
 
+const ADD_PIECE_PHOTO_ASK =
+  /\b(?:photo|image|shot|picture|label)s?\b[\s\S]{0,80}\bfor this piece\b|\bfor this piece\b[\s\S]{0,80}\b(?:photo|image|shot|picture|label)s?\b/i
+
 export function hasTradeBoardIntakeSignal(messages: UIMessage[]): boolean {
-  const latestUser = [...messages].reverse().find((message) => message.role === 'user')
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  const latestUser = latestUserIndex === -1 ? undefined : messages[latestUserIndex]
   const text = getMessageText(latestUser)
-  const previousAssistant = [...messages]
+  const previousAssistant = messages
+    .slice(0, Math.max(latestUserIndex, 0))
     .reverse()
     .find((message) => message.role === 'assistant')
   const assistantText = getMessageText(previousAssistant)
@@ -172,14 +183,13 @@ export function hasTradeBoardIntakeSignal(messages: UIMessage[]): boolean {
     return false
   }
 
-  return (
-    hasExplicitTradeBoardAddSignal(text) ||
-    /\b[A-Z]{1,4}\d{3,}\b/.test(text) ||
-    (hasImage &&
-      /\b(label|details|tag|jewelry|customer-facing|dance floor|add a piece)\b/i.test(
-        assistantText,
-      ))
-  )
+  if (hasExplicitTradeBoardAddSignal(text) || /\b[A-Z]{1,4}\d{3,}\b/.test(text)) {
+    return true
+  }
+
+  // A photo starts a piece only while one is being added. A photo in ordinary
+  // chat, or a label sent with no add in progress, does not open an intake.
+  return hasImage && ADD_PIECE_PHOTO_ASK.test(assistantText)
 }
 
 function hasExplicitTradeBoardAddSignal(text: string): boolean {
@@ -284,6 +294,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
     hasItemNumber: Boolean(known.itemNumber),
   })
   const photos = [...args.session.photos]
+  const photosBeforeThisTurn = photos.length
   const fileParts = (latestUser.parts ?? []).filter(
     (part) =>
       (part as { type?: string; mediaType?: string }).type === 'file' &&
@@ -314,12 +325,9 @@ export async function ingestLatestTradeBoardIntakeTurn(
           qualityIssues: [],
         } satisfies InspectedWorkflowPhoto),
     )
-    const visualRole =
-      declaredRole === 'jewelry_front' &&
-      inspected.visualRole === 'label_or_packaging'
-        ? 'uncertain'
-        : inspected.visualRole
+    const visualRole = inspected.visualRole
     const photo = {
+      intakeSessionId: args.session.id,
       conversationMessageId: args.latestUserMessageId ?? latestUser.id,
       attachmentIndex: index + 1,
       declaredRole,
@@ -384,6 +392,8 @@ export async function ingestLatestTradeBoardIntakeTurn(
         qualityScore: confirmedPhoto.qualityScore,
         qualityIssues: confirmedPhoto.qualityIssues,
         notes: confirmedPhoto.notes,
+        contentSha256: confirmedPhoto.contentSha256,
+        visualRoleSource: confirmedPhoto.visualRoleSource,
       })
     }
   }
@@ -412,11 +422,55 @@ export async function ingestLatestTradeBoardIntakeTurn(
     })
   }
 
+  let metadata = { ...args.session.metadata }
+  const ingestedNewImage = photos.length > photosBeforeThisTurn
+  if (ingestedNewImage) {
+    delete metadata.mainPhotoConfirmedPhotoId
+    delete metadata.mainPhotoConfirmed
+    delete metadata.mainPhotoConfirmedItemNumber
+  } else if (latestTurnConfirmsMainPhoto(args.messages)) {
+    const confirmedPhotoId =
+      previewedMainPhotoId(args.messages) ??
+      currentMainPhotoIdentity(photos)
+    const confirmedItemNumber = photoConfirmationPieceKey({
+      itemNumber: mainPhotoConfirmedItemNumber(
+        args.messages,
+        args.session.known.itemNumber,
+      ),
+      catalogMode,
+      intakeId: args.session.id,
+    })
+    if (confirmedPhotoId && confirmedItemNumber) {
+      metadata = {
+        ...metadata,
+        mainPhotoConfirmedPhotoId: confirmedPhotoId,
+        mainPhotoConfirmedItemNumber: confirmedItemNumber,
+      }
+      delete metadata.mainPhotoConfirmed
+    }
+  }
+  if (latestTurnConfirmsPhotoSet(args.messages)) {
+    const confirmedSha = flaggedPhotoSetSha(args.messages, photos)
+    const confirmedItemNumber = photoConfirmationPieceKey({
+      itemNumber: setAskItemNumber(args.messages),
+      catalogMode,
+      intakeId: args.session.id,
+    })
+    if (confirmedSha && confirmedItemNumber) {
+      metadata = {
+        ...metadata,
+        photoSetReuseConfirmedSha: confirmedSha,
+        photoSetReuseConfirmedItemNumber: confirmedItemNumber,
+      }
+      delete metadata.photoSetReuseConfirmed
+    }
+  }
   const updated: TradeBoardIntakeSessionState = {
     ...args.session,
     catalogMode,
     known,
     photos,
+    metadata,
     lastUserMessageId: args.latestUserMessageId ?? latestUser.id,
   }
   const readiness = computeTradeBoardIntakeReadiness(updated)
@@ -533,6 +587,17 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
     if (photo.quality === 'blocked') continue
     if (!photo.imageUrl) continue
     if (photo.declaredRole === 'jewelry_front' && photo.roleConfirmed) {
+      if (
+        photo.visualRole === 'label_or_packaging' &&
+        !photo.notes.includes(REP_CONFIRMED_MAIN_PHOTO_NOTE)
+      ) {
+        const confirmed = {
+          ...photo,
+          notes: [...photo.notes, REP_CONFIRMED_MAIN_PHOTO_NOTE],
+        }
+        args.photos[index] = confirmed
+        return confirmed
+      }
       return photo
     }
     if (photo.declaredRole !== 'unknown' && photo.declaredRole !== 'other') {
@@ -545,7 +610,7 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
       roleConfirmed: true,
       notes: [
         ...photo.notes,
-        'confirmed by rep as customer-facing jewelry photo',
+        REP_CONFIRMED_MAIN_PHOTO_NOTE,
       ],
     }
     args.photos[index] = confirmed
@@ -555,21 +620,188 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
   return null
 }
 
-function isPositiveConfirmation(text: string): boolean {
-  return (
-    /\b(?:confirmed|confirm|yes|yep|yeah|correct|that'?s right|that is right|that is correct|exactly|use it|use that|use this(?:\s+(?:photo|shot|image|one))?|good enough)\b/i.test(
-      text,
-    ) ||
-    /\bpush\s+(?:it|that|this|the\s+photo|the\s+shot|the\s+image)\s+through\b/i.test(
-      text,
-    ) ||
-    /\b(?:it'?s|it is|that'?s|that is|this is|photo is|shot is|image is)\s+a?\s*(?:good|great|perfect|usable|clear)\s+(?:photo|shot|image)\b/i.test(
-      text,
-    ) ||
-    /\b(?:good|great|perfect|usable|clear)\s+(?:photo|shot|image)\b/i.test(
-      text,
-    )
+function flaggedPhotoSetSha(
+  messages: UIMessage[],
+  photos: TradeBoardIntakeSessionState['photos'],
+): string | null {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  const previousAssistant =
+    latestUserIndex === -1
+      ? undefined
+      : messages
+          .slice(0, latestUserIndex)
+          .reverse()
+          .find((message) => message.role === 'assistant')
+  for (const part of previousAssistant?.parts ?? []) {
+    const output = (
+      part as {
+        output?: {
+          code?: unknown
+          contentSha256?: unknown
+          photoId?: unknown
+        }
+      }
+    ).output
+    if (output?.code !== 'PHOTO_REUSED_ON_OTHER_ITEM') continue
+    if (typeof output.contentSha256 === 'string' && output.contentSha256.trim()) {
+      return output.contentSha256.trim()
+    }
+    if (typeof output.photoId === 'string' && output.photoId.trim()) {
+      const flagged = photos.find((photo) => photo.id === output.photoId)
+      const sha =
+        flagged?.contentSha256?.trim() || hashDataImageUrl(flagged?.imageUrl)
+      return sha || null
+    }
+    return null
+  }
+  return null
+}
+
+function latestTurnConfirmsPhotoSet(messages: UIMessage[]): boolean {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return false
+  if (hasImagePart(messages[latestUserIndex])) return false
+  if (!isPositiveConfirmation(getMessageText(messages[latestUserIndex]))) return false
+  const previousAssistant = messages
+    .slice(0, latestUserIndex)
+    .reverse()
+    .find((message) => message.role === 'assistant')
+  if (/belongs with that set/i.test(getMessageText(previousAssistant))) return true
+  return (previousAssistant?.parts ?? []).some((part) => {
+    const output = (
+      part as { output?: { code?: string; message?: string } }
+    ).output
+    if (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM') return true
+    return typeof output?.message === 'string' && /belongs with that set/i.test(output.message)
+  })
+}
+
+function normalizeSavedItemNumber(value: unknown): string {
+  return typeof value === 'string' ? value.trim().toUpperCase() : ''
+}
+
+function itemNumberInSetAsk(text: string): string {
+  const match = text.match(/\bif\s+([A-Za-z]{1,4}-?\d{3,})\s+belongs with that set\b/i)
+  return match?.[1] ? match[1].trim().toUpperCase() : ''
+}
+
+function itemNumberInMainPhotoAsk(text: string): string {
+  const match = text.match(
+    /\bmain photo I will save for\s+([A-Za-z]{1,4}-?\d{3,})\b/i,
   )
+  return match?.[1] ? match[1].trim().toUpperCase() : ''
+}
+
+function previousAssistantBlobs(messages: UIMessage[]): string[] {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return []
+  const previousAssistant = messages
+    .slice(0, latestUserIndex)
+    .reverse()
+    .find((message) => message.role === 'assistant')
+  const blobs = [getMessageText(previousAssistant)]
+  for (const part of previousAssistant?.parts ?? []) {
+    const message = (part as { output?: { message?: unknown } }).output?.message
+    if (typeof message === 'string' && message.trim()) blobs.push(message)
+  }
+  return blobs
+}
+
+function mainPhotoConfirmedItemNumber(
+  messages: UIMessage[],
+  knownItemNumber: unknown,
+): string {
+  for (const blob of previousAssistantBlobs(messages)) {
+    const named = itemNumberInMainPhotoAsk(blob)
+    if (named) return named
+  }
+  return normalizeSavedItemNumber(knownItemNumber)
+}
+
+function setAskItemNumber(messages: UIMessage[]): string {
+  for (const blob of previousAssistantBlobs(messages)) {
+    const named = itemNumberInSetAsk(blob)
+    if (named) return named
+  }
+  return ''
+}
+
+function previewedMainPhotoId(messages: UIMessage[]): string | null {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return null
+  const previousAssistant = messages
+    .slice(0, latestUserIndex)
+    .reverse()
+    .find((message) => message.role === 'assistant')
+  for (const part of previousAssistant?.parts ?? []) {
+    const output = (part as { output?: { previewPhotoId?: unknown } }).output
+    if (typeof output?.previewPhotoId === 'string' && output.previewPhotoId.trim()) {
+      return output.previewPhotoId.trim()
+    }
+  }
+  return null
+}
+
+function currentMainPhotoIdentity(
+  photos: TradeBoardIntakeSessionState['photos'],
+): string | null {
+  for (let index = photos.length - 1; index >= 0; index -= 1) {
+    const photo = photos[index]
+    if (!photo?.imageUrl?.trim()) continue
+    if (photo.declaredRole === 'label_details') continue
+    if (photo.declaredRole !== 'jewelry_front') continue
+    const identity = mainPhotoConfirmationIdentity(photo)
+    if (identity) return identity
+  }
+  return null
+}
+
+function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return false
+  if (!isPositiveConfirmation(getMessageText(messages[latestUserIndex]))) return false
+  const previousAssistant = messages
+    .slice(0, latestUserIndex)
+    .reverse()
+    .find((message) => message.role === 'assistant')
+  if (/main photo I will save/i.test(getMessageText(previousAssistant))) return true
+  return (previousAssistant?.parts ?? []).some((part) => {
+    const output = (part as { output?: { needsAction?: string } }).output
+    return output?.needsAction === 'confirm_main_photo'
+  })
+}
+
+const POSITIVE_CONFIRMATION_EMOJI =
+  /(?:\u{1F44D}|\u{1F44C}|\u{1F64C}|\u{1F60A}|\u{1F642}|\u{1F600}|\u{1F601}|\u{2705}|\u{2714})(?:\u{1F3FB}|\u{1F3FC}|\u{1F3FD}|\u{1F3FE}|\u{1F3FF})?\u{FE0F}?/gu
+
+const CONFIRMATION_FILLER = /\b(?:no\s+problem|not\s+bad|nothing\s+wrong)\b/gi
+
+const AFFIRMATIVE_PHRASE =
+  /yes please|yes thank you|yes that(?:'s| is) it|thats right|that(?:'s| is) the one|sounds good|go ahead|all good|yea|yes|yep|yeah|yup|correct|that(?:'s| is) right|that(?:'s| is) correct|looks? good|perfect|confirmed|ok|okay|sure|use (?:it|this|that)(?: (?:one|photo|shot|image))?|(?:this|that) one/i
+
+const ONLY_AFFIRMATIVES = new RegExp(
+  `^(?:${AFFIRMATIVE_PHRASE.source})(?:\\s+(?:${AFFIRMATIVE_PHRASE.source}))*$`,
+  'i',
+)
+
+function normalizeConfirmationText(text: string): string {
+  return text
+    .replace(/[\u2018\u2019\u2032\u02BC`]/g, "'")
+    .replace(/[\u201C\u201D\u2033]/g, '"')
+}
+
+export function isPositiveConfirmation(text: string): boolean {
+  const normalized = normalizeConfirmationText(text).trim()
+  if (!normalized || normalized.includes('?')) return false
+  const withoutEmoji = normalized.replace(POSITIVE_CONFIRMATION_EMOJI, ' ')
+  const hadPositiveEmoji = withoutEmoji !== normalized
+  const remainder = withoutEmoji
+    .replace(CONFIRMATION_FILLER, ' ')
+    .replace(/[!.,…"“”]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!remainder) return hadPositiveEmoji
+  return ONLY_AFFIRMATIVES.test(remainder)
 }
 
 function assistantAskedToConfirmJewelryFront(text: string): boolean {

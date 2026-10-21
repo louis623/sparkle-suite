@@ -54,8 +54,8 @@ export function makeApproveTradeTool(ctx: {
 }) {
   return tool({
     description:
-      "Approve an incoming trade request against one of the authenticated rep's listings. " +
-      'Irreversible: the listing flips to traded, a fulfillment row is created, and the design times_traded counter is incremented. ' +
+      "Approve an incoming swap request against one of the authenticated rep's listings. " +
+      'Irreversible: the dancer is marked swapped, a fulfillment row is created, and the design swap count is incremented. ' +
       "Requires explicit rep verification of the offered family and jewelry type, a final confirmation, and the tool's approval dialog. Identify the request by requestId.",
     inputSchema,
     needsApproval: true,
@@ -64,7 +64,7 @@ export function makeApproveTradeTool(ctx: {
         workflow: ctx.activeTradeWorkflow,
         workflowType: 'trade_request_decision',
         toolName: 'approve_trade',
-        checks: [{ field: 'requestId', value: requestId, label: 'trade request' }],
+        checks: [{ field: 'requestId', value: requestId, label: 'swap request' }],
       })
       const admin = createAdminClient()
 
