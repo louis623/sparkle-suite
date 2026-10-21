@@ -58,7 +58,7 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
             alt={recording ? `Recorded website header and complete hero from ${slide.title}` : slide.alt}
             label={slide.title}
             active={active}
-            eagerPoster={Boolean(recording) && prioritizePoster}
+            eagerPoster={prioritizePoster}
             fit="cover"
           />
         ) : (
