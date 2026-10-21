@@ -9,6 +9,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { UIMessage } from 'ai'
 import { isTradeRequestCardPart } from '@/lib/nic-nac/trade-request-card-parts'
+import {
+  recentConversationsFromRows,
+  type RecentConversationSummary,
+} from '@/lib/nic-nac/recent-conversations'
 import type { TradeRequestStatus } from '@/lib/services/types'
 
 export async function loadCanonicalHistory(
@@ -76,6 +80,22 @@ export async function getLatestConversationId(
     .maybeSingle()
   if (error) throw error
   return (data?.conversation_id as string | undefined) ?? null
+}
+
+export async function listRecentNicNacConversations(
+  supabase: SupabaseClient,
+  repId: string,
+  limit = 5,
+): Promise<RecentConversationSummary[]> {
+  const { data, error } = await supabase
+    .from('nic_nac_conversations')
+    .select('conversation_id, role, parts, created_at')
+    .eq('rep_id', repId)
+    .is('cleared_at', null)
+    .order('created_at', { ascending: false })
+    .limit(80)
+  if (error) throw error
+  return recentConversationsFromRows(data ?? [], limit)
 }
 
 // A workspace can accumulate more than one active conversation when a tab is

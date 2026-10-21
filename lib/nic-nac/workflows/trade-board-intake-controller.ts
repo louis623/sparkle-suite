@@ -1,4 +1,5 @@
 import type { NicNacToolIntent } from '@/lib/nic-nac/tools'
+import { pieceNoteList } from '@/lib/nic-nac/piece-task'
 import { mergeTradeBoardKnownFields } from './trade-board-known-fields'
 import {
   isAcceptedCustomerFacingWorkflowPhoto,
@@ -299,6 +300,7 @@ export function buildTradeBoardIntakePromptState(
         new Set([...state.blockers, 'add_listing_backend_failure']),
       ),
       nextAction: 'escalate_to_human_review',
+      ...piecePromptFields(state),
       hardRules: [
         'do not call add_listing while this workflow needs human review',
         'do not ask the rep to re-upload already confirmed photos',
@@ -332,6 +334,7 @@ export function buildTradeBoardIntakePromptState(
     missing: readiness.missing,
     blockers: readiness.blockers,
     nextAction: readiness.nextAction,
+    ...piecePromptFields(state),
     hardRules: [
       'label_details photos cannot satisfy jewelry_front',
       'visible jewelry in a label_details photo does not change its declared role',
@@ -345,6 +348,20 @@ export function buildTradeBoardIntakePromptState(
       'dance-floor-only vs catalog is Nic-Nac discretion, not a forced path',
       'catalog and Finder keep jewelry-facing quality; if the rep says the piece is Bomb Party, a good-quality-looking image is enough — do not invent extra proof hurdles',
     ],
+  }
+}
+
+function piecePromptFields(state: TradeBoardIntakeSessionState): {
+  pieceNotes?: string[]
+  unfinishedQuestion?: string
+} {
+  const notes = pieceNoteList(state.metadata.priorPieceNotes)
+  const question = state.metadata.unfinishedQuestion
+  return {
+    ...(notes.length > 0 ? { pieceNotes: notes } : {}),
+    ...(typeof question === 'string' && question.trim()
+      ? { unfinishedQuestion: question.trim() }
+      : {}),
   }
 }
 

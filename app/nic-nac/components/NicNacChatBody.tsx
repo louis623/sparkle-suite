@@ -29,6 +29,7 @@ import { findActionableApproval, type ActionableApproval } from '@/lib/nic-nac/h
 import {
   hasCompletedAssistantAfterLatestUser,
   mergeServerMessages,
+  shouldClearSendErrorAfterServerReply,
 } from '@/lib/nic-nac/client-message-refresh'
 import {
   isTradeRequestCardPart,
@@ -206,9 +207,15 @@ export function buildAssistantMessageRenderables(
     (item) => item.type === 'main-photo-preview',
   )
   if (lastPreview === -1) return renderables
-  return renderables.filter(
-    (item, index) => item.type !== 'main-photo-preview' || index === lastPreview,
-  )
+  const latestPreview = renderables[lastPreview]
+  const duplicateWarning =
+    latestPreview?.type === 'main-photo-preview' &&
+    /already on/i.test(latestPreview.text)
+  return renderables.filter((item, index) => {
+    if (item.type === 'main-photo-preview') return index === lastPreview
+    if (duplicateWarning && item.type === 'text') return false
+    return true
+  })
 }
 
 type ConversationHydrateResponse = {
@@ -529,6 +536,45 @@ export function NicNacChatBody({
     status,
     stop,
   ])
+
+  // A phone send can finish on the server and still look failed in the chat.
+  // If the saved thread already has Nic-Nac's reply, show that instead.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!conversationId || status !== 'error') return
+
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch(buildConversationStateUrl(conversationId), {
+          credentials: 'include',
+        })
+        if (!res.ok || cancelled) return
+        const body = (await readJsonResponse<ConversationHydrateResponse>(
+          res,
+          'conversation send recovery',
+        ).catch(() => null)) as ConversationHydrateResponse | null
+        if (!body?.messages || cancelled) return
+        if (
+          !shouldClearSendErrorAfterServerReply({
+            status,
+            currentMessages: messages,
+            serverMessages: body.messages,
+          })
+        ) {
+          return
+        }
+        setMessages((current) => mergeServerMessages(current, body.messages ?? []))
+        clearError()
+      } catch {
+        return
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [clearError, conversationId, messages, setMessages, status])
 
   useEffect(() => {
     if (typeof window === 'undefined') return

@@ -54,8 +54,8 @@ import {
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import {
-  decideLabelItemNumber,
-  readItemNumbersFromImageUrl,
+  decideLabelSave,
+  readLabelPhoto,
 } from '@/lib/nic-nac/workflows/label-item-number'
 import { NicNacMutationFailure } from '@/lib/nic-nac/tool-failure-classification'
 import {
@@ -63,6 +63,7 @@ import {
   formatWorkflowNotReadyMessage,
   transitionTradeBoardIntake,
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
+import { pieceCarryNote, pieceNoteList } from '@/lib/nic-nac/piece-task'
 import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
 import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
@@ -663,9 +664,17 @@ function isConfirmedJewelryFrontPhoto(
   return isAcceptedCustomerFacingWorkflowPhoto(photo) && photo.roleConfirmed
 }
 
+function confirmedLabelNumber(
+  workflow?: { metadata?: Record<string, unknown> } | null,
+): string | undefined {
+  const value = workflow?.metadata?.labelItemNumberConfirmed
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
 async function assertLabelAgreesWithItemNumber(args: {
   itemNumber?: string
   sourceImageUrl?: string
+  labelConfirmedItemNumber?: string | null
   workflowPhotos?: Array<{
     imageUrl?: string
     declaredRole?: string
@@ -687,20 +696,31 @@ async function assertLabelAgreesWithItemNumber(args: {
       labelUrls.add(photo.imageUrl)
     }
   }
-  const readItemNumbers: string[] = []
   for (const url of urls) {
-    readItemNumbers.push(
-      ...(await readItemNumbersFromImageUrl(url, {
-        allowVision: labelUrls.has(url),
-      })),
-    )
+    const read = labelUrls.has(url)
+      ? await readLabelPhoto(url)
+      : { outcome: 'not_attempted' as const, itemNumbers: [] }
+    const decision = decideLabelSave({
+      itemNumber,
+      read,
+      confirmedItemNumber: args.labelConfirmedItemNumber,
+    })
+    if (!decision.blocked) continue
+    if (decision.code === 'LABEL_ITEM_NUMBER_UNREADABLE') {
+      await logIncident({
+        errorType: 'label_vision_unreadable',
+        severity: 'warn',
+        details: {
+          reason: read.reason ?? 'unreadable',
+          model: read.model ?? null,
+        },
+      })
+    }
+    throw new NicNacToolError({
+      code: decision.code,
+      userMessage: decision.message,
+    })
   }
-  const decision = decideLabelItemNumber({ itemNumber, readItemNumbers })
-  if (!decision.blocked) return
-  throw new NicNacToolError({
-    code: 'LABEL_ITEM_NUMBER_MISMATCH',
-    userMessage: decision.message,
-  })
 }
 
 function savedItemNumber(value: unknown): string {
@@ -898,6 +918,7 @@ export async function assertCustomerPhotoNotReused(args: {
     declaredRole?: string
     visualRole?: string
   }>
+  labelConfirmedItemNumber?: string | null
   conversation?: {
     supabase: SupabaseClient
     conversationId: string
@@ -911,7 +932,12 @@ export async function assertCustomerPhotoNotReused(args: {
     previewPhotoId?: string
   }
 }) {
-  await assertLabelAgreesWithItemNumber(args)
+  await assertLabelAgreesWithItemNumber({
+    itemNumber: args.itemNumber,
+    sourceImageUrl: args.sourceImageUrl,
+    workflowPhotos: args.workflowPhotos,
+    labelConfirmedItemNumber: args.labelConfirmedItemNumber,
+  })
   const itemNumber = args.itemNumber?.trim()
   const sourceImageUrl = args.sourceImageUrl?.trim()
   if (!itemNumber || !sourceImageUrl) return
@@ -1054,6 +1080,7 @@ async function mainPhotoPreviewOrReuse(args: {
       contentSha256: storedPhoto?.contentSha256,
       setReuseConfirmedSha: confirmedPhotoSetSha(workflow, itemNumber),
       workflowPhotos: workflow.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(workflow),
       conversation: args.conversation,
       reuseAsk: {
         itemNumber: preview.itemNumber,
@@ -1068,10 +1095,18 @@ async function mainPhotoPreviewOrReuse(args: {
     })
   } catch (error) {
     if (!(error instanceof NicNacToolError)) return plainPreview
-    if (error.code === 'LABEL_ITEM_NUMBER_MISMATCH') throw error
+    if (
+      error.code === 'LABEL_ITEM_NUMBER_MISMATCH' ||
+      error.code === 'LABEL_ITEM_NUMBER_UNREADABLE'
+    ) {
+      throw error
+    }
     if (error.code !== 'PHOTO_REUSED_ON_OTHER_ITEM') throw error
     const reuseMessage = error.userMessage.trim()
-    const photoSentence = `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`
+    const otherItem =
+      reuseMessage.match(/\balready on\s+([A-Za-z]{1,4}\d{3,})\b/i)?.[1] ??
+      'another piece'
+    const message = `This photo is already on ${otherItem}. This is the main photo I will save for ${label}. If ${label} belongs with that set and this is the right piece, reply yes.`
     return {
       needsAction: 'confirm_main_photo' as const,
       code: 'PHOTO_REUSED_ON_OTHER_ITEM' as const,
@@ -1082,9 +1117,7 @@ async function mainPhotoPreviewOrReuse(args: {
         : {}),
       ...(error.details?.photoId ? { photoId: error.details.photoId } : {}),
       ...(error.details?.pieceKey ? { pieceKey: error.details.pieceKey } : {}),
-      message: reuseMessage.includes('main photo I will save')
-        ? reuseMessage
-        : `${reuseMessage} ${photoSentence}`,
+      message,
     }
   }
   return plainPreview
@@ -1225,6 +1258,7 @@ export async function processListingPhotoForAdd(input: {
       itemNumber: input.itemNumber,
       sourceImageUrl: numberedPiecePhotoUrl,
       workflowPhotos: activeTradeBoardWorkflow?.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(activeTradeBoardWorkflow),
       setReuseConfirmedSha: confirmedPhotoSetSha(
         activeTradeBoardWorkflow,
         input.itemNumber,
@@ -1258,6 +1292,7 @@ export async function processListingPhotoForAdd(input: {
       itemNumber: input.itemNumber,
       sourceImageUrl: workflowPhotoUrl,
       workflowPhotos: activeTradeBoardWorkflow?.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(activeTradeBoardWorkflow),
       setReuseConfirmedSha: confirmedPhotoSetSha(
         activeTradeBoardWorkflow,
         input.itemNumber,
@@ -1287,6 +1322,7 @@ export async function processListingPhotoForAdd(input: {
       itemNumber: input.itemNumber,
       sourceImageUrl: listingPhotoUrl,
       workflowPhotos: activeTradeBoardWorkflow?.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(activeTradeBoardWorkflow),
       setReuseConfirmedSha: confirmedPhotoSetSha(
         activeTradeBoardWorkflow,
         input.itemNumber,
@@ -1337,6 +1373,7 @@ export async function processListingPhotoForAdd(input: {
     itemNumber: input.itemNumber,
     sourceImageUrl: resolvedListingPhoto.imageDataUrl,
     workflowPhotos: activeTradeBoardWorkflow?.photos,
+    labelConfirmedItemNumber: confirmedLabelNumber(activeTradeBoardWorkflow),
     setReuseConfirmedSha: confirmedPhotoSetSha(
         activeTradeBoardWorkflow,
         input.itemNumber,
@@ -1380,6 +1417,13 @@ async function markActiveTradeBoardWorkflowCompleted(input: {
     designId: input.designId ?? undefined,
   })
 
+  const savedNote = pieceCarryNote({
+    reason: 'saved',
+    itemNumber: workflow.known.itemNumber,
+    material: workflow.known.material,
+    jewelryType: workflow.known.jewelryType,
+    designName: workflow.known.designName,
+  })
   try {
     await updateTradeBoardIntakeSession(input.admin, {
       sessionId: workflow.id,
@@ -1393,6 +1437,8 @@ async function markActiveTradeBoardWorkflowCompleted(input: {
         soft_warnings: [],
         metadata: {
           ...workflow.metadata,
+          carryNote: savedNote,
+          priorPieceNotes: [...pieceNoteList(workflow.metadata.priorPieceNotes), savedNote].slice(-8),
           addAttempt: {
             ...((workflow.metadata.addAttempt as Record<string, unknown> | undefined) ?? {}),
             toolName: 'add_listing',
@@ -2048,6 +2094,7 @@ async function runSingle(
         itemNumber,
         sourceImageUrl: resolvedPhotoUrl,
         workflowPhotos: activeWorkflow?.photos,
+        labelConfirmedItemNumber: confirmedLabelNumber(activeWorkflow),
         setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow, itemNumber),
         conversation:
           activeWorkflow?.status === 'active'
@@ -2100,6 +2147,7 @@ async function runSingle(
         itemNumber,
         sourceImageUrl: workflowConfirmedPhotoUrl,
         workflowPhotos: activeWorkflow?.photos,
+        labelConfirmedItemNumber: confirmedLabelNumber(activeWorkflow),
         setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow, itemNumber),
       })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
@@ -2172,6 +2220,7 @@ async function runSingle(
         itemNumber,
         sourceImageUrl: resolvedPhoto.imageDataUrl,
         workflowPhotos: activeWorkflow?.photos,
+        labelConfirmedItemNumber: confirmedLabelNumber(activeWorkflow),
         setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow, itemNumber),
         conversation:
           activeWorkflow?.status === 'active'

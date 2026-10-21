@@ -143,4 +143,6 @@ export interface TradeBoardIntakePromptState {
   blockers: string[]
   nextAction: TradeBoardIntakeNextAction
   hardRules: string[]
+  pieceNotes?: string[]
+  unfinishedQuestion?: string | null
 }

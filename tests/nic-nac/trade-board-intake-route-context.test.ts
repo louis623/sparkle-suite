@@ -484,6 +484,14 @@ describe('Dance Floor intake route context', () => {
       limit: vi.fn(() => activeBuilder),
       maybeSingle: vi.fn(() => ({ data: null, error: null })),
     }
+    const notesBuilder = {
+      select: vi.fn(() => notesBuilder),
+      eq: vi.fn(() => notesBuilder),
+      in: vi.fn(() => notesBuilder),
+      order: vi.fn(() => notesBuilder),
+      limit: vi.fn(() => notesBuilder),
+      maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+    }
     const createBuilder = {
       insert: vi.fn(() => createBuilder),
       select: vi.fn(() => createBuilder),
@@ -505,7 +513,8 @@ describe('Dance Floor intake route context', () => {
           ([name]) => name === 'trade_board_intake_sessions',
         ).length
         if (sessionCallCount === 1) return activeBuilder
-        if (sessionCallCount === 2) return createBuilder
+        if (sessionCallCount === 2) return notesBuilder
+        if (sessionCallCount === 3) return createBuilder
         return updateBuilder
       }),
     }
@@ -852,6 +861,7 @@ describe('Dance Floor intake route context', () => {
     expect(context.sessionAfter?.metadata).toEqual({
       failureCount: 1,
       lastFailure: { code: 'object_exists', stage: 'storage_upload' },
+      openedOnMessageId: 'user-1',
     })
     expect(updateBuilder.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -867,6 +877,7 @@ describe('Dance Floor intake route context', () => {
           failureCount: 1,
           lastFailure: { code: 'object_exists', stage: 'storage_upload' },
           duplicatePhysicalConfirmed: false,
+          openedOnMessageId: 'user-1',
         },
       }),
     )

@@ -31,6 +31,7 @@ import {
   getLaunchPromptForWorkspaceAction,
   type WorkspaceLaunchAction,
 } from '@/lib/nic-nac/workspace-launch-actions'
+import { prepareNicNacSendMessages } from '@/lib/nic-nac/piece-task'
 import { resolveNicNacWorkspaceMode } from '@/lib/nic-nac/required-setup-client-mode'
 import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 import {
@@ -533,6 +534,22 @@ export default function NicNacClient({
     [isOperatorSupport, router, workspaceRoutePath],
   )
 
+  const openRecentConversation = useCallback(
+    async (nextConversationId: string) => {
+      const res = await fetch(buildConversationStateUrl(nextConversationId), {
+        credentials: 'include',
+      })
+      if (!res.ok) return
+      const body = (await readJsonResponse<{ messages?: UIMessage[] }>(
+        res,
+        'recent conversation',
+      ).catch(() => null)) as { messages?: UIMessage[] } | null
+      if (!body?.messages) return
+      activateConversation(nextConversationId, body.messages)
+    },
+    [activateConversation],
+  )
+
   const rolloverConversation = useCallback(
     async (sourceConversationId: string) => {
       if (isOperatorSupport) return false
@@ -786,7 +803,7 @@ export default function NicNacClient({
       prepareSendMessagesRequest: ({ messages }) => ({
         body: {
           conversationId,
-          messages,
+          messages: prepareNicNacSendMessages(messages),
           mode: isRequiredSetupMode ? 'required_setup' : 'workspace',
         },
       }),
@@ -1011,6 +1028,9 @@ export default function NicNacClient({
         onLaunchNicNacAction={handleLaunchNicNacAction}
         onSendNicNacPrompt={handleSendNicNacPrompt}
         onNewConversation={handleNewConversation}
+        onOpenConversation={(nextConversationId) => {
+          void openRecentConversation(nextConversationId)
+        }}
         conversationControlsDisabled={newDisabled}
         desktopChat={
           isDesktop && (desktopOpen || shouldKeepDesktopNicNacOpen)

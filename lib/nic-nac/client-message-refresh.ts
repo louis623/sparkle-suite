@@ -27,6 +27,18 @@ export function mergeServerMessages(
   return changed ? [...merged, ...appended] : current
 }
 
+export function shouldClearSendErrorAfterServerReply(args: {
+  status: string
+  currentMessages: UIMessage[]
+  serverMessages: UIMessage[] | null | undefined
+}): boolean {
+  if (args.status !== 'error' || !args.serverMessages?.length) return false
+  return hasCompletedAssistantAfterLatestUser(
+    args.currentMessages,
+    args.serverMessages,
+  )
+}
+
 export function hasCompletedAssistantAfterLatestUser(
   current: UIMessage[],
   incoming: UIMessage[],

@@ -1,4 +1,5 @@
 import type { UIMessage } from 'ai'
+import { unfinishedPieceQuestion } from '@/lib/nic-nac/piece-task'
 
 export const NIC_NAC_ROLLOVER_TAIL_MESSAGES = 12
 
@@ -45,7 +46,7 @@ function withoutCarriedPhotoFiles(message: UIMessage): UIMessage {
 }
 
 export function shouldCarryTradeBoardIntakeOnRollover(
-  session:
+  _session:
     | {
         status?: string | null
         metadata?: Record<string, unknown> | null
@@ -53,10 +54,9 @@ export function shouldCarryTradeBoardIntakeOnRollover(
     | null
     | undefined,
 ): boolean {
-  if (!session) return false
-  if (session.status === 'needs_human_review') return true
-  const confirmed = session.metadata?.mainPhotoConfirmedPhotoId
-  return typeof confirmed === 'string' && confirmed.trim().length > 0
+  // A fresh chat never inherits photos, labels, or confirmation state.
+  // An unfinished piece is asked about in plain text instead.
+  return false
 }
 
 function isPendingPhotoConfirmationPart(part: unknown): boolean {
@@ -86,10 +86,10 @@ function withoutPendingPiece(message: UIMessage): UIMessage {
 export function buildNicNacRolloverMessages(
   messages: UIMessage[],
   limit = NIC_NAC_ROLLOVER_TAIL_MESSAGES,
-  options?: { dropPendingPiece?: boolean },
+  options?: { dropPendingPiece?: boolean; unfinishedItemNumber?: string | null },
 ): UIMessage[] {
   const tail = messages.slice(-Math.max(1, limit))
-  return tail.map((message, index) => {
+  const rolled = tail.map((message, index) => {
     const carried = withoutCarriedPhotoFiles(message)
     const visible = options?.dropPendingPiece
       ? withoutPendingPiece(carried)
@@ -99,4 +99,18 @@ export function buildNicNacRolloverMessages(
       id: `rollover-${index}-${message.id.slice(-64)}`,
     }
   })
+  if (!options || !('unfinishedItemNumber' in options)) return rolled
+  return [
+    {
+      id: 'rollover-finish-ask',
+      role: 'assistant',
+      parts: [
+        {
+          type: 'text',
+          text: unfinishedPieceQuestion(options.unfinishedItemNumber),
+        },
+      ],
+    },
+    ...rolled,
+  ]
 }

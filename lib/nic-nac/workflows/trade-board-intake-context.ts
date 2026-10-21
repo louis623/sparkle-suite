@@ -26,8 +26,18 @@ import type {
   TradeBoardPhotoVisualRole,
 } from './trade-board-intake-types'
 import {
+  EMPTY_PIECE_MODEL_CONTEXT,
+  pieceCarryNote,
+  pieceNoteList,
+  pieceTurnBoundary,
+  repConfirmedPrintedLabelNumber,
+  unfinishedPieceQuestion,
+  type PieceModelContext,
+} from '@/lib/nic-nac/piece-task'
+import {
   createTradeBoardIntakeSession,
   getActiveTradeBoardIntakeSession,
+  readLatestClosedPieceNotes,
   updateTradeBoardIntakeSession,
   upsertTradeBoardIntakePhoto,
 } from './trade-board-intake-store'
@@ -100,6 +110,7 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
   workflowIntents: NicNacToolIntent[]
   toolPolicySource: TradeBoardIntakeToolPolicySource
   workflowPromptState: string
+  modelPieceContext: PieceModelContext
 }> {
   if (args.mode !== 'workspace') {
     return emptyWorkflowContext('mode_required_setup')
@@ -115,17 +126,98 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
             conversationId: args.conversationId,
             nowIso: args.nowIso,
           })
-    const shouldStart = existing !== null || hasTradeBoardIntakeSignal(args.messages)
+    const latestUserIndex = findLatestUserMessageIndex(args.messages)
+    const latestUser =
+      latestUserIndex === -1 ? undefined : args.messages[latestUserIndex]
+    const latestText = getMessageText(latestUser)
+    const previousAssistantText = getMessageText(
+      args.messages
+        .slice(0, Math.max(latestUserIndex, 0))
+        .reverse()
+        .find((message) => message.role === 'assistant'),
+    )
+    let session = existing
+    let inheritedNotes: string[] | null = null
+    let unfinishedQuestion: string | null = null
+    if (session?.status === 'active') {
+      const boundary = pieceTurnBoundary({
+        latestUserText: latestText,
+        previousAssistantText,
+        activeItemNumber: session.known.itemNumber,
+        latestTurnIsPhotoConfirmation:
+          isPositiveConfirmation(latestText) ||
+          isNegativePhotoConfirmation(latestText),
+      })
+      if (boundary.action === 'close') {
+        const note = pieceCarryNote({
+          reason: boundary.reason,
+          itemNumber: session.known.itemNumber,
+          material: session.known.material,
+          jewelryType: session.known.jewelryType,
+          designName: session.known.designName,
+        })
+        const notes = [...pieceNoteList(session.metadata.priorPieceNotes), note].slice(-8)
+        unfinishedQuestion = boundary.askToFinish
+          ? unfinishedPieceQuestion(session.known.itemNumber)
+          : null
+        await updateTradeBoardIntakeSession(workflowSupabase, {
+          sessionId: session.id,
+          patch: {
+            status: 'cancelled',
+            current_phase: 'cancelled',
+            metadata: {
+              ...clearedPieceConfirmation(session.metadata),
+              carryNote: note,
+              priorPieceNotes: notes,
+              pieceClosedReason: boundary.reason,
+            },
+          },
+        })
+        inheritedNotes = notes
+        if (!boundary.startsReplacement) {
+          return {
+            sessionBefore: existing,
+            sessionAfter: null,
+            workflowIntents: [],
+            toolPolicySource: 'latest_turn_intent',
+            workflowPromptState: notes.join('. '),
+            modelPieceContext: {
+              fromMessageId: latestUser?.id ?? null,
+              carryNotes: notes,
+              unfinishedQuestion,
+            },
+          }
+        }
+        session = null
+      }
+    }
+
+    const shouldStart = session !== null || hasTradeBoardIntakeSignal(args.messages)
     if (!shouldStart) {
       return emptyWorkflowContext('latest_turn_intent')
     }
 
+    const priorNotes =
+      inheritedNotes ??
+      (session
+        ? pieceNoteList(session.metadata.priorPieceNotes)
+        : await readLatestClosedPieceNotes(workflowSupabase, {
+            repId: args.repId,
+            conversationId: args.conversationId,
+          }))
     const baseSession =
-      existing ??
+      session ??
       (await createTradeBoardIntakeSession(workflowSupabase, {
         repId: args.repId,
         conversationId: args.conversationId,
         lastUserMessageId: args.latestUserMessageId,
+        metadata: {
+          priorPieceNotes: priorNotes,
+          ...(args.latestUserMessageId
+            ? { openedOnMessageId: args.latestUserMessageId }
+            : {}),
+          ...(unfinishedQuestion ? { unfinishedQuestion } : {}),
+        },
       }))
     if (baseSession.status === 'needs_human_review') {
       return {
@@ -136,6 +228,7 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
         workflowPromptState: renderTradeBoardIntakePromptState(
           buildTradeBoardIntakePromptState(baseSession),
         ),
+        modelPieceContext: pieceModelContext(baseSession),
       }
     }
     const ingested = await ingestLatestTradeBoardIntakeTurn(workflowSupabase, {
@@ -151,6 +244,7 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
       workflowIntents: getTradeBoardIntakeToolsRequired(ingested),
       toolPolicySource: 'active_workflow',
       workflowPromptState: renderTradeBoardIntakePromptState(promptState),
+      modelPieceContext: pieceModelContext(ingested),
     }
   } catch (err) {
     if (isMissingWorkflowSchemaError(err)) {
@@ -273,13 +367,39 @@ export async function ingestLatestTradeBoardIntakeTurn(
       .reverse()
       .find((message) => message.role === 'assistant'),
   )
+  let metadata = { ...args.session.metadata }
+  if (typeof metadata.openedOnMessageId !== 'string' || !metadata.openedOnMessageId) {
+    metadata.openedOnMessageId =
+      args.session.photos.find((photo) => photo.conversationMessageId)
+        ?.conversationMessageId ??
+      args.latestUserMessageId ??
+      latestUser.id
+  }
+  const openedOnMessageId = metadata.openedOnMessageId as string
+  const openedIndex = args.messages.findIndex(
+    (message) => message.id === openedOnMessageId,
+  )
+  const pieceMessages =
+    openedIndex === -1 ? args.messages : args.messages.slice(openedIndex)
   let known = mergeTradeBoardKnownFields(
     mergeTradeBoardKnownFields(
       args.session.known,
-      extractKnownFieldsFromCatalogToolOutputs(args.messages),
+      extractKnownFieldsFromCatalogToolOutputs(pieceMessages),
     ),
     extractKnownFieldsFromText(latestUserText),
   )
+  if (
+    repConfirmedPrintedLabelNumber({
+      latestUserText,
+      previousAssistantText,
+      itemNumber: known.itemNumber,
+    })
+  ) {
+    metadata = {
+      ...metadata,
+      labelItemNumberConfirmed: known.itemNumber?.toUpperCase(),
+    }
+  }
   if (
     latestTurnConfirmsAdditionalPhysicalPiece({
       latestUserText,
@@ -424,7 +544,6 @@ export async function ingestLatestTradeBoardIntakeTurn(
     })
   }
 
-  let metadata = { ...args.session.metadata }
   const ingestedNewImage = photos.length > photosBeforeThisTurn
   if (ingestedNewImage) {
     delete metadata.mainPhotoConfirmedPhotoId
@@ -575,6 +694,38 @@ function emptyWorkflowContext(
     workflowIntents: [],
     toolPolicySource,
     workflowPromptState: '',
+    modelPieceContext: EMPTY_PIECE_MODEL_CONTEXT,
+  }
+}
+
+function clearedPieceConfirmation(
+  metadata: Record<string, unknown>,
+): Record<string, unknown> {
+  const next = { ...metadata }
+  for (const key of [
+    'mainPhotoConfirmedPhotoId',
+    'mainPhotoConfirmed',
+    'mainPhotoConfirmedItemNumber',
+    'photoSetReuseConfirmedSha',
+    'photoSetReuseConfirmedItemNumber',
+    'photoSetReuseConfirmed',
+    'labelItemNumberConfirmed',
+    'unfinishedQuestion',
+  ]) {
+    delete next[key]
+  }
+  return next
+}
+
+function pieceModelContext(
+  session: TradeBoardIntakeSessionState,
+): PieceModelContext {
+  const fromMessageId = session.metadata.openedOnMessageId
+  const unfinished = session.metadata.unfinishedQuestion
+  return {
+    fromMessageId: typeof fromMessageId === 'string' ? fromMessageId : null,
+    carryNotes: pieceNoteList(session.metadata.priorPieceNotes),
+    unfinishedQuestion: typeof unfinished === 'string' ? unfinished : null,
   }
 }
 

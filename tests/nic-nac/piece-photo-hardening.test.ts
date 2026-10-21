@@ -10,11 +10,16 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   decideLabelItemNumber,
+  decideLabelSave,
   LABEL_TEMPLATE_MAX_BYTES,
+  LABEL_UNREADABLE_MESSAGE,
   readItemNumbersFromImageBytes,
   readItemNumbersFromImageUrl,
+  readLabelPhoto,
   renderItemNumberPng,
 } from '@/lib/nic-nac/workflows/label-item-number'
+import { getNicNacModelPolicy } from '@/lib/nic-nac/core/model-policy'
+import sharp from 'sharp'
 import {
   PHOTO_HASH_MAX_BYTES,
   decidePhotoReuse,
@@ -492,21 +497,35 @@ describe('label item numbers', () => {
     expect(png.length).toBeLessThanOrEqual(LABEL_TEMPLATE_MAX_BYTES)
   })
 
-  it('leaves a real-sized label unread when no vision key is set', async () => {
+  it('does not allow a save when the label cannot be read', async () => {
     const previous = process.env.OPENAI_API_KEY
     delete process.env.OPENAI_API_KEY
     try {
       const liveSized = Buffer.alloc(140_000, 1)
       expect(liveSized.length).toBeGreaterThan(LABEL_TEMPLATE_MAX_BYTES)
       expect(await readItemNumbersFromImageBytes(liveSized)).toEqual([])
-      const liveUrl = `data:image/jpeg;base64,${'A'.repeat(182_000)}`
-      expect(await readItemNumbersFromImageUrl(liveUrl, { allowVision: true })).toEqual([])
+      const pixels = Buffer.alloc(240 * 240 * 3)
+      for (let index = 0; index < pixels.length; index += 1) pixels[index] = (index * 13) % 256
+      const jpeg = await sharp(pixels, {
+        raw: { width: 240, height: 240, channels: 3 },
+      })
+        .jpeg({ quality: 100 })
+        .toBuffer()
+      expect(jpeg.length).toBeGreaterThan(LABEL_TEMPLATE_MAX_BYTES)
+      const liveUrl = `data:image/jpeg;base64,${jpeg.toString('base64')}`
+      const read = await readLabelPhoto(liveUrl)
+      expect(read.outcome).toBe('failed')
+      expect(read.reason).toBe('missing_api_key')
+      expect(read.model).toBe(getNicNacModelPolicy('human_default').modelId)
+      const decision = decideLabelSave({ itemNumber: 'ER92202', read })
+      expect(decision.blocked).toBe(true)
+      if (!decision.blocked) return
+      expect(decision.message).toBe(LABEL_UNREADABLE_MESSAGE)
       expect(
-        decideLabelItemNumber({
-          itemNumber: 'ST21027',
-          readItemNumbers: await readItemNumbersFromImageUrl(liveUrl, {
-            allowVision: true,
-          }),
+        decideLabelSave({
+          itemNumber: 'ER92202',
+          read,
+          confirmedItemNumber: 'ER92202',
         }).blocked,
       ).toBe(false)
     } finally {
@@ -531,12 +550,29 @@ describe('label item numbers', () => {
       }),
     }))
     try {
-      const liveUrl = `data:image/jpeg;base64,${'A'.repeat(182_000)}`
-      const readItemNumbers = await readItemNumbersFromImageUrl(liveUrl, {
-        allowVision: true,
+      const noisy = Buffer.alloc(1600 * 1200 * 3)
+      for (let index = 0; index < noisy.length; index += 1) noisy[index] = (index * 17) % 256
+      const jpeg = await sharp(noisy, {
+        raw: { width: 1600, height: 1200, channels: 3 },
+      })
+        .jpeg({ quality: 100 })
+        .toBuffer()
+      expect(jpeg.length).toBeGreaterThan(1_500_000)
+      const liveUrl = `data:image/jpeg;base64,${jpeg.toString('base64')}`
+      const read = await readLabelPhoto(liveUrl, {
         fetch: fetchMock as unknown as typeof fetch,
       })
-      expect(readItemNumbers).toEqual(['ER90999'])
+      expect(read.itemNumbers).toEqual(['ER90999'])
+      expect(read.model).toBe('gpt-5.6-terra')
+      const sent = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as {
+        model: string
+        input: Array<{ content: Array<{ image_url?: string }> }>
+      }
+      const sentUrl = sent.input[0]?.content.find((part) => part.image_url)?.image_url ?? ''
+      expect(sent.model).toBe(getNicNacModelPolicy('human_default').modelId)
+      expect(sentUrl.length).toBeLessThan(jpeg.length)
+      expect(sentUrl.startsWith('data:image/jpeg;base64,')).toBe(true)
+      const readItemNumbers = read.itemNumbers
       const decision = decideLabelItemNumber({
         itemNumber: 'NK90303',
         readItemNumbers,
@@ -547,7 +583,8 @@ describe('label item numbers', () => {
       expect(decision.message).toContain("I won't save it on NK90303")
       expect(fetchMock).toHaveBeenCalledTimes(1)
       const request = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))
-      expect(request.input[0].content[1].image_url).toBe(liveUrl)
+      expect(request.input[0].content[1].image_url).toBe(sentUrl)
+      expect(request.model).toBe('gpt-5.6-terra')
     } finally {
       if (previous === undefined) delete process.env.OPENAI_API_KEY
       else process.env.OPENAI_API_KEY = previous

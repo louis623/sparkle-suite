@@ -3073,6 +3073,7 @@ export type DashboardPlaceholderProps = {
   onLaunchNicNacAction?: (action: WorkspaceLaunchAction) => void
   onSendNicNacPrompt?: (prompt: string) => void
   onNewConversation?: () => void
+  onOpenConversation?: (conversationId: string) => void
   conversationControlsDisabled?: boolean
   desktopChat?: ReactNode
   mobileTradeAlertTarget?: HTMLElement | null
@@ -3131,6 +3132,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     onLaunchNicNacAction,
     onSendNicNacPrompt,
     onNewConversation,
+    onOpenConversation,
     conversationControlsDisabled = false,
     desktopChat,
     mobileTradeAlertTarget = null,
@@ -7557,6 +7559,7 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
               onOpenPublicSite={handleOpenCustomerSitePreview}
               onOpenHelp={() => setActiveSection('help-resources')}
               onNewConversation={onNewConversation}
+              onOpenConversation={onOpenConversation}
               repName={repProfileState.displayName ?? siteSettingsState.settings?.displayName ?? null}
               conversationControlsDisabled={conversationControlsDisabled}
               liveLineupReadOnly={liveLineupReadOnly}
@@ -7872,6 +7875,7 @@ function ConceptHomeWorkspace({
   onOpenPublicSite,
   onOpenHelp,
   onNewConversation,
+  onOpenConversation,
   conversationControlsDisabled,
   repName,
   liveLineupReadOnly,
@@ -7891,6 +7895,7 @@ function ConceptHomeWorkspace({
   onOpenPublicSite: () => void
   onOpenHelp: () => void
   onNewConversation?: () => void
+  onOpenConversation?: (conversationId: string) => void
   conversationControlsDisabled: boolean
   repName: string | null
   liveLineupReadOnly: boolean
@@ -7902,6 +7907,9 @@ function ConceptHomeWorkspace({
         ? getLatestPublishedYouTubeResource(REVIEW_RESOURCE_FIXTURES)
         : null,
     )
+  const [recentConversations, setRecentConversations] = useState<
+    Array<{ conversationId: string; title: string; dateLabel: string }>
+  >([])
 
   useEffect(() => {
     if (reviewWorkspaceMode) return
@@ -7928,6 +7936,33 @@ function ConceptHomeWorkspace({
 
     return () => controller.abort()
   }, [reviewWorkspaceMode])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    void fetch('/api/nic-nac/conversations/recent', {
+      credentials: 'include',
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`recent conversations failed: ${response.status}`)
+        return response.json() as Promise<{
+          conversations?: Array<{
+            conversationId: string
+            title: string
+            dateLabel: string
+          }>
+        }>
+      })
+      .then((payload) => {
+        setRecentConversations(payload.conversations ?? [])
+      })
+      .catch((error: unknown) => {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          setRecentConversations([])
+        }
+      })
+    return () => controller.abort()
+  }, [])
 
   const latestYouTubeThumbnail = getYouTubeResourceThumbnail(
     latestYouTubeResource?.videoUrl ?? null,
@@ -8144,7 +8179,25 @@ function ConceptHomeWorkspace({
           </div>
         </ConceptPanel>
         <ConceptPanel title="Recent conversations" className={styles.recentConversationsPanel}>
-          <p className={styles.recentConversationEmpty}>None yet</p>
+          {recentConversations.length === 0 ? (
+            <p className={styles.recentConversationEmpty}>None yet</p>
+          ) : (
+            <div className={styles.recentConversationList}>
+              {recentConversations.map((conversation) => (
+                <button
+                  key={conversation.conversationId}
+                  type="button"
+                  onClick={() => onOpenConversation?.(conversation.conversationId)}
+                >
+                  <span aria-hidden="true">
+                    {conversation.title.slice(0, 1).toUpperCase()}
+                  </span>
+                  {conversation.title}
+                  <small>{conversation.dateLabel}</small>
+                </button>
+              ))}
+            </div>
+          )}
         </ConceptPanel>
       </aside>
     </section>

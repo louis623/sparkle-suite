@@ -28,6 +28,12 @@ export function renderTradeBoardIntakePromptState(
     photos ? `Photos:\n${photos}` : 'Photos: none yet',
     `Missing: ${state.missing.length ? state.missing.join(', ') : 'none'}`,
     `Blockers: ${state.blockers.length ? state.blockers.join(', ') : 'none'}`,
+    state.pieceNotes?.length
+      ? `Earlier pieces:\n${state.pieceNotes.map((note) => `- ${note}`).join('\n')}`
+      : '',
+    state.unfinishedQuestion
+      ? `Ask the rep exactly: "${state.unfinishedQuestion}" Do not bring that piece's photos or label into this piece unless they say yes.`
+      : '',
     `Next action: ${state.nextAction}`,
     state.nextAction === 'ask_for_rarity_classification'
       ? 'Ask exactly: "Is this piece a diamond or unicorn?" Accept only: No — standard, Diamond, or Unicorn.'

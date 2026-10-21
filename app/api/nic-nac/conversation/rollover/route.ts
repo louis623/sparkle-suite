@@ -4,20 +4,13 @@ import { AuthError, getPaidNicNacContext } from '@/lib/nic-nac/auth'
 import { ServiceError } from '@/lib/services/errors'
 import {
   getConversationOwner,
-  deleteConversationMessages,
   insertConversationMessages,
   loadConversationForClient,
 } from '@/lib/nic-nac/persistence'
 import { findActionableApproval } from '@/lib/nic-nac/hitl-state'
-import {
-  buildNicNacRolloverMessages,
-  shouldCarryTradeBoardIntakeOnRollover,
-} from '@/lib/nic-nac/rollover'
+import { buildNicNacRolloverMessages } from '@/lib/nic-nac/rollover'
 import { logNicNacRollover } from '@/lib/nic-nac/rollover-telemetry'
-import {
-  getActiveTradeBoardIntakeSession,
-  transferActiveTradeBoardIntakeConversation,
-} from '@/lib/nic-nac/workflows/trade-board-intake-store'
+import { getActiveTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
@@ -65,57 +58,26 @@ export async function POST(request: Request) {
   const conversationId = randomUUID()
   const nowIso = new Date().toISOString()
   const admin = createAdminClient()
-  let carryWorkflow = false
-  try {
-    const activeIntake = await getActiveTradeBoardIntakeSession(admin, {
-      repId,
-      conversationId: sourceConversationId,
-      nowIso,
-    })
-    carryWorkflow = shouldCarryTradeBoardIntakeOnRollover(activeIntake)
-  } catch {
-    carryWorkflow = false
-  }
+  const activeIntake = await getActiveTradeBoardIntakeSession(admin, {
+    repId,
+    conversationId: sourceConversationId,
+    nowIso,
+  })
+  const unfinished =
+    activeIntake &&
+    (activeIntake.status === 'active' ||
+      activeIntake.status === 'needs_human_review')
   const messages = buildNicNacRolloverMessages(sourceMessages, undefined, {
-    dropPendingPiece: !carryWorkflow,
+    dropPendingPiece: true,
+    ...(unfinished
+      ? { unfinishedItemNumber: activeIntake.known.itemNumber ?? null }
+      : {}),
   })
   await insertConversationMessages(supabase, {
     conversationId,
     repId,
     messages,
   })
-  let workflowTransfer: Awaited<
-    ReturnType<typeof transferActiveTradeBoardIntakeConversation>
-  > = null
-  if (carryWorkflow) {
-    try {
-      workflowTransfer = await transferActiveTradeBoardIntakeConversation(
-        admin,
-        {
-          repId,
-          sourceConversationId,
-          destinationConversationId: conversationId,
-          nowIso,
-        },
-      )
-    } catch (error) {
-      await deleteConversationMessages(supabase, { conversationId, repId })
-      throw error
-    }
-  }
-  if (workflowTransfer?.replayed) {
-    await deleteConversationMessages(supabase, { conversationId, repId })
-    const replayMessages = await loadConversationForClient(
-      supabase,
-      workflowTransfer.destinationConversationId,
-    )
-    return NextResponse.json({
-      conversationId: workflowTransfer.destinationConversationId,
-      messages: replayMessages,
-      carriedMessageCount: replayMessages.length,
-      workflowId: workflowTransfer.workflowId,
-    })
-  }
   await logNicNacRollover({
     repId,
     sourceConversationId,
@@ -127,6 +89,6 @@ export async function POST(request: Request) {
     conversationId,
     messages,
     carriedMessageCount: messages.length,
-    workflowId: workflowTransfer?.workflowId ?? null,
+    workflowId: null,
   })
 }

@@ -6,6 +6,7 @@ import {
   shouldCarryTradeBoardIntakeOnRollover,
   shouldStartNicNacRollover,
 } from '@/lib/nic-nac/rollover'
+import { unfinishedPieceQuestion } from '@/lib/nic-nac/piece-task'
 
 function message(id: string, role: 'user' | 'assistant'): UIMessage {
   return {
@@ -84,13 +85,13 @@ describe('Nic-Nac conversation rollover', () => {
         status: 'active',
         metadata: { mainPhotoConfirmedPhotoId: 'photo-earrings' },
       }),
-    ).toBe(true)
+    ).toBe(false)
     expect(
       shouldCarryTradeBoardIntakeOnRollover({
         status: 'needs_human_review',
         metadata: {},
       }),
-    ).toBe(true)
+    ).toBe(false)
 
     const rolled = buildNicNacRolloverMessages(
       [
@@ -114,6 +115,30 @@ describe('Nic-Nac conversation rollover', () => {
     )
     expect(JSON.stringify(rolled)).not.toContain('photo-ring')
     expect(JSON.stringify(rolled)).not.toContain('confirm_main_photo')
+
+    const asked = buildNicNacRolloverMessages(
+      [
+        {
+          id: 'old-photo',
+          role: 'user',
+          parts: [
+            { type: 'text', text: 'NK91303' },
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: 'data:image/jpeg;base64,T0xE',
+            },
+          ],
+        } as UIMessage,
+      ],
+      12,
+      { dropPendingPiece: true, unfinishedItemNumber: 'NK91303' },
+    )
+    expect(asked[0]?.parts).toEqual([
+      { type: 'text', text: unfinishedPieceQuestion('NK91303') },
+    ])
+    expect(JSON.stringify(asked)).not.toContain('data:image')
+    expect(JSON.stringify(asked)).toContain('Want to finish NK91303?')
   })
 
   it('does not roll over latency-only or reasonless historical health rows', () => {

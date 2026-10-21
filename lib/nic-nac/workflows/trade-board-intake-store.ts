@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { pieceNoteList } from '@/lib/nic-nac/piece-task'
 import type {
   TradeBoardIntakePhotoState,
   TradeBoardIntakeSessionState,
@@ -231,12 +232,35 @@ export async function recordTradeBoardIntakeFailure(
   }
 }
 
+export async function readLatestClosedPieceNotes(
+  supabase: SupabaseClient,
+  args: { repId: string; conversationId: string },
+): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('trade_board_intake_sessions')
+      .select('metadata')
+      .eq('rep_id', args.repId)
+      .eq('conversation_id', args.conversationId)
+      .in('status', ['completed', 'cancelled'])
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (error || !data) return []
+    const metadata = (data as { metadata?: { priorPieceNotes?: unknown } }).metadata
+    return pieceNoteList(metadata?.priorPieceNotes)
+  } catch {
+    return []
+  }
+}
+
 export async function createTradeBoardIntakeSession(
   supabase: SupabaseClient,
   args: {
     repId: string
     conversationId: string
     lastUserMessageId?: string
+    metadata?: Record<string, unknown>
   },
 ): Promise<TradeBoardIntakeSessionState> {
   const { data, error } = await supabase
@@ -249,7 +273,10 @@ export async function createTradeBoardIntakeSession(
       status: 'active',
       current_phase: 'started',
       last_user_message_id: args.lastUserMessageId ?? null,
-      metadata: { mainPhotoConfirmationRequired: true },
+      metadata: {
+        mainPhotoConfirmationRequired: true,
+        ...(args.metadata ?? {}),
+      },
     })
     .select('*')
     .single()

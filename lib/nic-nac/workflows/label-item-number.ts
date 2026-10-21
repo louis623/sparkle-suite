@@ -1,4 +1,5 @@
 import sharp from 'sharp'
+import { getNicNacModelPolicy } from '@/lib/nic-nac/core/model-policy'
 
 const ITEM_NUMBER = /^[A-Z]{1,4}\d{3,}$/
 
@@ -48,12 +49,19 @@ const GLYPH_GAP = 1
 
 /**
  * The 5×7 template reader only matches its own tiny test images.
- * Real label photos are larger than this cap and are read by a vision call
- * when OPENAI_API_KEY is set. Without a key, or if that call fails, the
- * photo stays unread so a missing key cannot block a save.
+ * Real label photos are downscaled and read by the same model Nic-Nac uses
+ * for conversation. A failed read does not allow the save.
  */
 export const LABEL_TEMPLATE_MAX_BYTES = 16_000
-const LABEL_VISION_MAX_BYTES = 1_500_000
+export const LABEL_UNREADABLE_MESSAGE =
+  "I couldn't read the item number on the label. Reply with the item number printed on it, or send a clearer label photo."
+
+export type LabelPhotoRead = {
+  outcome: 'read' | 'failed' | 'not_attempted'
+  itemNumbers: string[]
+  reason?: string
+  model?: string
+}
 
 function normalizeItemNumber(itemNumber: string): string {
   return itemNumber.trim().toUpperCase()
@@ -77,6 +85,42 @@ export function decideLabelItemNumber(args: {
     blocked: true,
     labelItemNumber,
     message: `The label says ${labelItemNumber}. I won't save it on ${current}. Send the label for ${current}.`,
+  }
+}
+
+export function decideLabelSave(args: {
+  itemNumber: string
+  read: LabelPhotoRead
+  confirmedItemNumber?: string | null
+}):
+  | { blocked: false }
+  | {
+      blocked: true
+      code: 'LABEL_ITEM_NUMBER_MISMATCH' | 'LABEL_ITEM_NUMBER_UNREADABLE'
+      message: string
+    } {
+  const current = normalizeItemNumber(args.itemNumber)
+  const confirmed = normalizeItemNumber(args.confirmedItemNumber ?? '')
+  if (!current || args.read.outcome === 'not_attempted') return { blocked: false }
+  if (args.read.outcome === 'read') {
+    const decision = decideLabelItemNumber({
+      itemNumber: current,
+      readItemNumbers: args.read.itemNumbers,
+    })
+    if (decision.blocked) {
+      return {
+        blocked: true,
+        code: 'LABEL_ITEM_NUMBER_MISMATCH',
+        message: decision.message,
+      }
+    }
+    if (args.read.itemNumbers.length > 0) return { blocked: false }
+  }
+  if (confirmed && confirmed === current) return { blocked: false }
+  return {
+    blocked: true,
+    code: 'LABEL_ITEM_NUMBER_UNREADABLE',
+    message: LABEL_UNREADABLE_MESSAGE,
   }
 }
 
@@ -202,22 +246,56 @@ function visionResponseText(body: unknown): string {
     .join('')
 }
 
+const LABEL_VISION_EDGE = 1024
+
+async function downscaledLabelDataUrl(bytes: Buffer): Promise<string> {
+  const small = await sharp(bytes, { failOn: 'none', limitInputPixels: 40_000_000 })
+    .rotate()
+    .resize({
+      width: LABEL_VISION_EDGE,
+      height: LABEL_VISION_EDGE,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: 80 })
+    .toBuffer()
+  return `data:image/jpeg;base64,${small.toString('base64')}`
+}
+
 /**
- * Read a jewelry item number from a real label photo. Fails open: no key,
- * a bad image, or a vision error returns no numbers.
+ * Read a jewelry item number from a real label photo.
+ * Large photos are downscaled first. A missing key, bad image, timeout,
+ * or rejected model is a failed read, not permission to save.
  */
-export async function readLabelItemNumbersWithVision(
+export async function readLabelPhoto(
   url: string | undefined,
   options: { fetch?: typeof fetch } = {},
-): Promise<string[]> {
-  const key = process.env.OPENAI_API_KEY?.trim()
-  if (!key || !url) return []
+): Promise<LabelPhotoRead> {
+  const model = getNicNacModelPolicy('human_default').modelId
+  if (!url) return { outcome: 'not_attempted', itemNumbers: [], model }
   const match = /^data:[^;]+;base64,(.+)$/i.exec(url.trim())
-  if (!match?.[1]) return []
+  if (!match?.[1]) return { outcome: 'not_attempted', itemNumbers: [], model }
   const payload = match[1].replace(/\s/g, '')
   const estimatedBytes = Math.floor((payload.length * 3) / 4)
-  if (estimatedBytes <= LABEL_TEMPLATE_MAX_BYTES || estimatedBytes > LABEL_VISION_MAX_BYTES) {
-    return []
+  if (estimatedBytes === 0) return { outcome: 'not_attempted', itemNumbers: [], model }
+  if (estimatedBytes <= LABEL_TEMPLATE_MAX_BYTES) {
+    try {
+      const numbers = await readItemNumbersFromImageBytes(Buffer.from(payload, 'base64'))
+      if (numbers.length === 0) return { outcome: 'not_attempted', itemNumbers: [], model }
+      return { outcome: 'read', itemNumbers: numbers, model }
+    } catch {
+      return { outcome: 'failed', itemNumbers: [], reason: 'unreadable_image', model }
+    }
+  }
+  const key = process.env.OPENAI_API_KEY?.trim()
+  if (!key) {
+    return { outcome: 'failed', itemNumbers: [], reason: 'missing_api_key', model }
+  }
+  let imageUrl: string
+  try {
+    imageUrl = await downscaledLabelDataUrl(Buffer.from(payload, 'base64'))
+  } catch {
+    return { outcome: 'failed', itemNumbers: [], reason: 'unreadable_image', model }
   }
   try {
     const response = await (options.fetch ?? fetch)('https://api.openai.com/v1/responses', {
@@ -228,7 +306,7 @@ export async function readLabelItemNumbersWithVision(
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5.6-terra',
+        model,
         reasoning: { effort: 'low' },
         max_output_tokens: 200,
         store: false,
@@ -242,7 +320,7 @@ export async function readLabelItemNumbersWithVision(
               },
               {
                 type: 'input_image',
-                image_url: url.trim(),
+                image_url: imageUrl,
                 detail: 'high',
               },
             ],
@@ -251,13 +329,32 @@ export async function readLabelItemNumbersWithVision(
         text: { format: { type: 'json_object' } },
       }),
     })
-    if (!response.ok) return []
+    if (!response.ok) {
+      return { outcome: 'failed', itemNumbers: [], reason: `http_${response.status}`, model }
+    }
     const text = visionResponseText(await response.json())
-    if (!text.trim()) return []
-    return itemNumbersFromVisionPayload(JSON.parse(text))
-  } catch {
-    return []
+    if (!text.trim()) {
+      return { outcome: 'failed', itemNumbers: [], reason: 'empty_response', model }
+    }
+    return {
+      outcome: 'read',
+      itemNumbers: itemNumbersFromVisionPayload(JSON.parse(text)),
+      model,
+    }
+  } catch (error) {
+    const name = error instanceof Error ? error.name : ''
+    const reason = name === 'TimeoutError' || name === 'AbortError' ? 'timeout' : 'vision_error'
+    return { outcome: 'failed', itemNumbers: [], reason, model }
   }
+}
+
+/** @deprecated Prefer readLabelPhoto. Kept so older callers still receive numbers only. */
+export async function readLabelItemNumbersWithVision(
+  url: string | undefined,
+  options: { fetch?: typeof fetch } = {},
+): Promise<string[]> {
+  const read = await readLabelPhoto(url, options)
+  return read.outcome === 'read' ? read.itemNumbers : []
 }
 
 /**
@@ -283,5 +380,6 @@ export async function readItemNumbersFromImageUrl(
     }
   }
   if (!options.allowVision) return []
-  return readLabelItemNumbersWithVision(url, options)
+  const read = await readLabelPhoto(url, options)
+  return read.outcome === 'read' ? read.itemNumbers : []
 }

@@ -40,6 +40,10 @@ import {
 } from '@/lib/nic-nac/hitl-state'
 import { selectMessagesForModel } from '@/lib/nic-nac/model-context'
 import {
+  EMPTY_PIECE_MODEL_CONTEXT,
+  scopeMessagesToCurrentPiece,
+} from '@/lib/nic-nac/piece-task'
+import {
   logNicNacRun,
   normalizeRunUsage,
   type NicNacRunUsage,
@@ -724,6 +728,7 @@ export async function POST(request: Request) {
         workflowIntents: [] as NicNacToolIntent[],
         toolPolicySource: 'latest_turn_intent' as const,
         workflowPromptState: '',
+        modelPieceContext: EMPTY_PIECE_MODEL_CONTEXT,
       }
   const activeTradeBoardWorkflow =
     tradeBoardWorkflowContext.sessionAfter ??
@@ -844,7 +849,15 @@ export async function POST(request: Request) {
     recoverableTaskCount: runtimeTaskContext.pausedGoals.length,
   })
 
-  const modelContext = selectMessagesForModel(messages)
+  const modelContext = selectMessagesForModel(
+    scopeMessagesToCurrentPiece({
+      messages,
+      fromMessageId: tradeBoardWorkflowContext.modelPieceContext?.fromMessageId,
+      carryNotes: tradeBoardWorkflowContext.modelPieceContext?.carryNotes,
+      unfinishedQuestion:
+        tradeBoardWorkflowContext.modelPieceContext?.unfinishedQuestion,
+    }),
+  )
   if (modelContext.wasCompacted) {
     console.info('[nic-nac] model context compacted', {
       runId,
