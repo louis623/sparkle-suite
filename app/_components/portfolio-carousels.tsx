@@ -21,6 +21,36 @@ function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
+function SlideCaption({
+  slide,
+  interactive,
+}: {
+  slide: PortfolioSlide
+  interactive: boolean
+}) {
+  const href = slide.kind === 'capture' ? slide.href : undefined
+  const linkLabel = slide.kind === 'capture' ? slide.linkLabel : undefined
+  return (
+    <>
+      <h3>{slide.title}</h3>
+      {href && linkLabel ? (
+        interactive ? (
+          <a
+            href={href}
+            {...(href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          >
+            {linkLabel}
+            {href.startsWith('http') ? <span className={styles.srOnly}> (opens in a new tab)</span> : null}
+          </a>
+        ) : (
+          <span className={styles.linkLine}>{linkLabel}</span>
+        )
+      ) : null}
+      <p className={styles.cardDetail}>{slide.detail}</p>
+    </>
+  )
+}
+
 const portfolioBands = {
   'rep-highlights': { name: 'paper', className: styles.bandPaper },
   'community-themes': { name: 'blush', className: styles.bandBlush },
@@ -265,21 +295,18 @@ function PortfolioCarousel({
           <ChevronRight size={26} aria-hidden="true" />
         </button>
         </div>
-        {carousel.slides.map((item, index) => (
-          <div key={item.id} className={styles.cardMeta} hidden={index !== active}>
-            <h3>{item.title}</h3>
-            {item.kind === 'capture' && item.href && item.linkLabel ? (
-              <a
-                href={item.href}
-                {...(item.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-              >
-                {item.linkLabel}
-                {item.href.startsWith('http') ? <span className={styles.srOnly}> (opens in a new tab)</span> : null}
-              </a>
-            ) : null}
-            <p className={styles.cardDetail}>{item.detail}</p>
-          </div>
-        ))}
+        <div className={styles.cardDeck}>
+          {carousel.slides.map((item) => (
+            <div key={`${item.id}-size`} className={styles.cardSizer} aria-hidden="true">
+              <SlideCaption slide={item} interactive={false} />
+            </div>
+          ))}
+          {carousel.slides.map((item, index) => (
+            <div key={item.id} className={styles.cardMeta} hidden={index !== active}>
+              <SlideCaption slide={item} interactive />
+            </div>
+          ))}
+        </div>
       </div>
       <div ref={dotsRef} className={styles.dots} data-count={count} role="group" aria-label={`${carousel.label} slides`}>
         {carousel.slides.map((item, index) => (

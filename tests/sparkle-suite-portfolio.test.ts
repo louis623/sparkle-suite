@@ -253,6 +253,20 @@ describe('Sparkle Suite portfolio carousels', () => {
     expect(html).toContain('Play animation')
   })
 
+  it('reserves the tallest caption so both carousels keep a stable height', () => {
+    const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
+    const carousel = readFileSync(join(process.cwd(), 'app/_components/portfolio-carousels.tsx'), 'utf8')
+    expect(css).toContain('grid-area: 1 / 1')
+    expect(css).toMatch(/\.cardSizer\s*\{[^}]*visibility:\s*hidden/)
+    expect(css).not.toMatch(/\.cardDetail[^{]*\{[^}]*line-clamp|text-overflow:\s*ellipsis/)
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(carousel).toContain('aria-hidden="true"')
+    const html = renderPortfolio()
+    expect(html.match(/aria-hidden="true"/g)?.length).toBeGreaterThanOrEqual(14)
+    expect(html).toContain('The Golden Leaves of Autumn')
+    expect(html).toContain('A custom Gnome Forest look for Go for the Bling.')
+  })
+
   it('uses one shared media frame for every portfolio slide', () => {
     const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
     const carousel = readFileSync(join(process.cwd(), 'app/_components/portfolio-carousels.tsx'), 'utf8')
