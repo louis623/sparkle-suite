@@ -29,7 +29,7 @@
 }
 .showcaseCopy,
 .carousel,
-.cardMeta,
+.cardDeck,
 .dots {
   width: min(1180px, calc(100% - 48px));
   max-width: 100%;
@@ -248,16 +248,26 @@
   border-radius: 8px;
   background: rgba(255, 255, 255, .72);
 }
-.cardMeta { margin-top: 16px; text-align: center; }
+.cardDeck { display: grid; margin-top: 16px; }
+.cardDeck > .cardSizer,
+.cardDeck > .cardMeta {
+  grid-area: 1 / 1;
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+  text-align: center;
+}
+.cardSizer { visibility: hidden; pointer-events: none; }
 .cardMeta[hidden] { display: none; }
-.cardMeta h3 {
+.cardDeck h3 {
   font-family: var(--font-prelaunch-display), "Playfair Display", Georgia, serif;
   font-size: clamp(26px, 3vw, 36px);
   font-weight: 500;
   letter-spacing: -.03em;
 }
-.cardMeta a, .cardMeta p { margin-top: 8px; font-size: 15px; }
-.cardMeta a { color: var(--suite-pink); font-weight: 700; text-decoration: none; }
+.cardDeck :is(a, .linkLine), .cardDeck p { margin-top: 8px; font-size: 15px; }
+.cardDeck :is(a, .linkLine) { color: var(--suite-pink); font-weight: 700; text-decoration: none; }
+.linkLine { display: inline; }
 .cardDetail {
   min-height: 4.8em;
   margin-top: 8px;
@@ -310,8 +320,8 @@
   .close { padding-block: 48px; }
   .close h2 { font-size: 38px; }
   .showcase { padding: 40px 0 28px; }
-  .cardMeta { margin-top: 10px; }
-  .cardMeta a, .cardMeta p { margin-top: 4px; }
+  .cardDeck { margin-top: 10px; }
+  .cardDeck :is(a, .linkLine), .cardDeck p { margin-top: 4px; }
   .cardDetail { min-height: 0; }
   .dots, .counter { margin-top: 8px; }
   .showcaseCopy { width: calc(100% - 40px); }
@@ -346,7 +356,7 @@
     padding: 3px 8px;
     font-size: 8px;
   }
-  .cardMeta h3 { font-size: 28px; }
+  .cardDeck h3 { font-size: 28px; }
 }
 @media (max-width: 800px) {
   .frame, .phoneFrame, .frame > .mediaWell, .phoneFrame > .mediaWell { overflow: visible; }
