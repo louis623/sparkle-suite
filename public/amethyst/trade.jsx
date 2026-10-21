@@ -1909,7 +1909,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
               id="tp-offered-family"
               type="text"
               list="tp-collection-families"
-              placeholder="Birthday, OG, or another collection — leave blank if unsure"
+              placeholder="Birthday, OG, or another"
               value={offeredFamily}
               onChange={(event) => {
                 setOfferedFamily(event.target.value);
@@ -1921,6 +1921,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
             <datalist id="tp-collection-families">
               {[...new Set(["Birthday", "OG", "Sterling Club", displayCollectionLabel(piece.collection)].filter((family) => typeof family === "string" && family.trim()))].map((family) => <option key={family} value={family} />)}
             </datalist>
+            <p className="tp-field-hint">Leave this blank if the collection is unsure.</p>
           </div>
           <div className="tp-sheet-field">
             <label htmlFor="tp-offered-type">Jewelry type you revealed</label>

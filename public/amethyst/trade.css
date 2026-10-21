@@ -1478,6 +1478,15 @@ body.tradepage .tp-sheet-title {
   resize: vertical;
 }
 .tp-sheet-field textarea { min-height: 88px; }
+.tp-field-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.4;
+  color: var(--hp-card-muted, var(--fg-muted));
+}
 .tp-sheet-field input:focus,
 .tp-sheet-field textarea:focus,
 .tp-sheet-field select:focus {
