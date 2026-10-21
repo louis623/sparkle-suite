@@ -2110,8 +2110,9 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-notes-label { display: block; color: var(--hp-card-fg); font-size: 15px; line-height: 1.45; font-weight: 600; letter-spacing: 0; text-transform: none; }
 .hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }
 .hp-signup-notes { min-height: 120px; resize: vertical; }
-.hp-signup-question { display: grid; gap: 16px; width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid var(--border); border-radius: 20px; background: var(--hp-form-panel-bg); color: var(--hp-form-panel-fg); padding: 20px; }
-.hp-signup-intro { display: grid; gap: 6px; text-align: center; }
+.hp-signup-question { display: grid; gap: 16px; width: 100%; min-width: 0; min-height: 212px; box-sizing: border-box; align-content: center; border: 1px solid var(--border); border-radius: 20px; background: var(--hp-form-panel-bg); color: var(--hp-form-panel-fg); padding: 20px; }
+.hp-signup-question.is-choices { min-height: 0; align-content: start; }
+.hp-signup-intro { display: grid; gap: 6px; min-height: 84px; align-content: end; text-align: center; }
 .hp-signup-step-title { margin: 0; color: var(--hp-card-fg); font-family: var(--hp-display-font); font-size: clamp(26px, 3vw, 34px); font-weight: 700; letter-spacing: var(--hp-heading-tracking, -0.02em); line-height: 1.15; }
 .hp-signup-step-why { margin: 0 auto; max-width: 36rem; color: var(--hp-card-muted); font-size: 15px; line-height: 1.5; }
 .hp-pref > legend { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
@@ -2126,7 +2127,7 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-step-panel { display: grid; gap: 16px; animation: hp-signup-step-in 180ms var(--ease, ease); }
 @keyframes hp-signup-step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .hp-signup-step-panel { animation: none; } }
-.hp-signup-single { width: 100%; max-width: 560px; margin-inline: auto; }
+.hp-signup-single { width: 100%; max-width: none; margin-inline: 0; }
 .hp-signup-input { font-size: 16px; }
 .hp-signup-submit { min-height: 48px; }
 .hp-signup-submit:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 3px; }
@@ -2607,7 +2608,7 @@ function Signup({ repName, businessName }) {
                 </div>
               ) : null}
               {step >= 1 && step <= 4 ? (
-                <div className="hp-signup-question">
+                <div className="hp-signup-question is-choices">
                   {!preferenceOptions && !preferenceOptionsError ? (
                     <p className="hp-signup-field-note" role="status">Favorites are still loading. Try again in a moment.</p>
                   ) : null}
