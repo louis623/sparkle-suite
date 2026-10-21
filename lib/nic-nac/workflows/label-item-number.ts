@@ -46,7 +46,12 @@ const GLYPH_WIDTH = 5
 const GLYPH_HEIGHT = 7
 const GLYPH_GAP = 1
 
-/** This reader only matches its own 5×7 template. Real chat photos are far larger. */
+/**
+ * NN-H7 is a no-op on real chat photos until real OCR exists.
+ * This reader only matches its own 5×7 pixel template. It does not call a
+ * vision model or any paid OCR service. Bytes above this cap are returned
+ * unread and are not decoded.
+ */
 export const LABEL_TEMPLATE_MAX_BYTES = 16_000
 
 function normalizeItemNumber(itemNumber: string): string {
@@ -135,6 +140,10 @@ function readRun(pixels: Uint8Array, width: number, height: number, x: number, y
   return text
 }
 
+/**
+ * Template match only. Real chat photos are a no-op here: nothing is decoded
+ * and no item number is read, so H7 does not block them.
+ */
 export async function readItemNumbersFromImageBytes(
   bytes: Buffer,
 ): Promise<string[]> {
@@ -163,6 +172,11 @@ export async function readItemNumbersFromImageBytes(
   }
 }
 
+/**
+ * Same no-op as readItemNumbersFromImageBytes. A real-sized data URL is
+ * rejected from its length before the bytes are allocated. Remote URLs are
+ * not fetched.
+ */
 export async function readItemNumbersFromImageUrl(
   url: string | undefined,
 ): Promise<string[]> {

@@ -393,7 +393,7 @@ describe('label item numbers', () => {
     expect(png.length).toBeLessThanOrEqual(LABEL_TEMPLATE_MAX_BYTES)
   })
 
-  it('does not decode a real-sized chat photo and does not block from it', async () => {
+  it('H7 is a no-op on a real-sized chat photo until real OCR exists', async () => {
     const liveSized = Buffer.alloc(140_000, 1)
     expect(liveSized.length).toBeGreaterThan(LABEL_TEMPLATE_MAX_BYTES)
     expect(await readItemNumbersFromImageBytes(liveSized)).toEqual([])
