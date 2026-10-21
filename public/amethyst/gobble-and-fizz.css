@@ -211,6 +211,33 @@ body.bg-gobble-and-fizz .hp-customer-media-empty-icon {
   color: #efb36c;
   border-color: #c9854f;
 }
+body.bg-gobble-and-fizz .hp-customer-media-card.is-empty { align-self: start; }
+body.bg-gobble-and-fizz .hp-customer-media-card.is-empty .hp-customer-media-viewport {
+  aspect-ratio: auto;
+  height: auto;
+  background: transparent;
+}
+body.bg-gobble-and-fizz .hp-customer-media-empty {
+  height: auto;
+  min-height: 0;
+  gap: 10px;
+  padding: 18px 16px 20px;
+  color: #fff2df;
+  background: radial-gradient(circle at 50% 0%, #efb36c33, transparent 58%), #392330;
+  border: 1px dashed #c9854f;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.45;
+  text-transform: none;
+}
+body.bg-gobble-and-fizz .hp-customer-media-empty .hp-customer-media-empty-icon {
+  width: 40px;
+  height: 40px;
+  color: #28161e;
+  background: #efb36c;
+  border-color: #c9854f;
+}
 body.bg-gobble-and-fizz :is(.jp-benefit-icon, .jp-final-icon, .tp-sheet-success-icon) {
   background: #efb36c;
   color: #28161e;
@@ -372,11 +399,20 @@ body.bg-gobble-and-fizz .tp-sheet-upload input::file-selector-button {
   body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] :is(.tg-poster,.tg-video){position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
   body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] .tg-video{opacity:0}
   body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] .tg-media[data-has-frame] .tg-video{opacity:1}
-  body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] .tg-toggle{position:absolute;bottom:16px;right:16px;z-index:5;min-height:44px;padding:10px 16px;border:1px solid #fff7e5a6;border-radius:24px;background:#291522df;color:#fff2df;font:600 13px/1.4 system-ui;cursor:pointer;pointer-events:auto}
+  body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] .tg-toggle{position:absolute;top:16px;left:16px;z-index:5;min-height:44px;padding:10px 16px;border:1px solid #fff7e5a6;border-radius:24px;background:#291522df;color:#fff2df;font:600 13px/1.4 "DM Sans","Inter",system-ui,sans-serif;cursor:pointer;pointer-events:auto}
   body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] .tg-toggle:focus-visible{outline:3px solid #efb36c;outline-offset:3px}
   body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] .tg-toggle[hidden]{display:none}
+  body.bg-gobble-and-fizz .hp-theme-sample-video{object-fit:cover;object-position:center;background:#291522}
   @media(max-width:600px){body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] :is(.tg-poster,.tg-video){object-position:right center}}
-  /* Preserve the turkey's tail and feet throughout the loop on wide screens. */
-  @media(min-width:1520px){body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"]{min-height:56.25vw}}
+  /* Keep the approved 16:9 frame, including the tail and feet, on every desktop overlay. */
+  @media(min-width:1101px){body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"]{min-height:56.25vw}}
   @media(max-width:600px){body.bg-gobble-and-fizz :is(.hp-signup-input,.tp-board-search input,.tp-board-sort select,.tp-sheet-field input,.tp-sheet-field textarea,.tp-sheet-field select){font-size:16px}}
-  
+
+/* Phone width clips the third circled Live Lineup name. Wrap the chips instead of scrolling them out of sight. */
+@media (max-width: 640px) {
+  body.bg-gobble-and-fizz .hp-trade-preview-items {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+ 

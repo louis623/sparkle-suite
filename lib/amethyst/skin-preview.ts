@@ -266,6 +266,37 @@ function reviewLineup(state: LineupReviewState | null) {
   return { ...GNOME_PREVIEW_LINEUP, liveQueueState: 'empty' as const, liveQueueEntries: [], liveQueueOrderCount: 0, liveQueueGroupCount: 0, liveQueueCurrent: null, liveQueueOnDeck: null, liveQueueEvents: [], liveQueueSummary: 'No sample orders waiting.' }
 }
 
+function thanksgivingPreviewMedia(skin: SkinPreviewSkin) {
+  if (skin !== 'gobble_and_fizz' && skin !== 'pie_please') return {}
+  const folder = skin === 'gobble_and_fizz' ? 'gobble-and-fizz' : 'pie-please'
+  const revision = skin === 'pie_please' ? '-v4' : ''
+  const base = `/amethyst/skins/${folder}/`
+  const moments = skin === 'gobble_and_fizz'
+    ? ['Copper fizz and sparkle', 'The curious turkey', 'A golden pour']
+    : ['Window light and copper', 'The pumpkin pie', 'A piece of sparkle']
+  return {
+    showcaseVideoUrl: `${base}hero-loop${revision}.mp4`,
+    showcaseVideoCaption: skin === 'gobble_and_fizz' ? 'A Gobble & Fizz reveal with Sasha' : 'A Pumpkin Pie reveal with Sasha',
+    aboutMediaSlots: [
+      {
+        typeLabel: 'Portrait photo',
+        caption: skin === 'gobble_and_fizz' ? "Sasha's Thanksgiving table" : "Sasha's pumpkin table",
+        href: '#',
+        mediaUrl: `${base}sample-portrait.webp`,
+        portraitFocusX: 50,
+        portraitFocusY: 46,
+        portraitZoom: 1,
+      },
+      ...moments.map((caption, index) => ({
+        typeLabel: `Short video ${index + 1}`,
+        caption,
+        href: '#',
+        mediaUrl: `${base}sample-moment-${index + 1}.webp`,
+      })),
+    ],
+  }
+}
+
 function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_garden', review: LineupReviewState | null = null) {
   const profile = PREVIEW_PROFILES[skin]
   const footerLinks = {
@@ -321,6 +352,7 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
     signupSub: profile.signupSub,
     streamLinks: { shop: '#preview-action', watch: '#preview-action', tiktok: '#preview-action', facebook: '#preview-action', whatnot: '#preview-action' },
     joinTeamUrl: previewPath(skin, 'join'),
+    ...thanksgivingPreviewMedia(skin),
   }, profile.events, skin, context)
 }
 

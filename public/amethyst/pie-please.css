@@ -219,6 +219,33 @@ body.bg-pie-please .hp-customer-media-empty-icon {
   color: #fff9f2;
   border-color: #b95015;
 }
+body.bg-pie-please .hp-customer-media-card.is-empty { align-self: start; }
+body.bg-pie-please .hp-customer-media-card.is-empty .hp-customer-media-viewport {
+  aspect-ratio: auto;
+  height: auto;
+  background: transparent;
+}
+body.bg-pie-please .hp-customer-media-empty {
+  height: auto;
+  min-height: 0;
+  gap: 10px;
+  padding: 18px 16px 20px;
+  color: #502d24;
+  background: radial-gradient(circle at 50% 0%, #f3a45155, transparent 58%), #fff6ea;
+  border: 1px dashed #d99b73;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.45;
+  text-transform: none;
+}
+body.bg-pie-please .hp-customer-media-empty .hp-customer-media-empty-icon {
+  width: 40px;
+  height: 40px;
+  color: #fff9f2;
+  background: #9b233d;
+  border-color: #b95015;
+}
 body.bg-pie-please :is(.jp-benefit-icon, .jp-final-icon, .tp-sheet-success-icon) {
   background: #a54813;
   color: #fff9f2;
@@ -322,12 +349,13 @@ body.bg-pie-please .tp-sheet-error {
   body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] :is(.tg-poster,.tg-video){position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
   body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-video{opacity:0}
   body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-media[data-has-frame] .tg-video{opacity:1}
-  body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle{position:absolute;bottom:16px;right:16px;z-index:5;min-height:44px;padding:10px 16px;border:1px solid #fff7e5a6;border-radius:24px;background:#291522df;color:#fff2df;font:600 13px/1.4 system-ui;cursor:pointer;pointer-events:auto}
-  body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle:focus-visible{outline:3px solid #efb36c;outline-offset:3px}
+  body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle{position:absolute;bottom:16px;right:16px;z-index:5;min-height:44px;padding:10px 16px;border:1px solid #d99b73;border-radius:24px;background:#fffaf2eb;color:#502d24;font:600 13px/1.4 "DM Sans","Inter",system-ui,sans-serif;cursor:pointer;pointer-events:auto;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle:focus-visible{outline:3px solid #9b233d;outline-offset:3px}
   body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle[hidden]{display:none}
+  body.bg-pie-please .hp-theme-sample-video{object-fit:cover;object-position:center;background:#fcf3e5}
   @media(max-width:600px){body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] :is(.tg-poster,.tg-video){object-position:right center}}
-  /* Preserve the whole scene instead of cropping it vertically on wide screens. */
-  @media(min-width:1520px){body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"]{min-height:56.25vw}}
+  /* Keep the approved 16:9 frame on every desktop overlay, including 1440. */
+  @media(min-width:1101px){body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"]{min-height:56.25vw}}
   @media(max-width:600px){body.bg-pie-please :is(.hp-signup-input,.tp-board-search input,.tp-board-sort select,.tp-sheet-field input,.tp-sheet-field textarea,.tp-sheet-field select){font-size:16px}}
   
 
@@ -360,3 +388,11 @@ body.bg-pie-please .hp-footer .hp-footer-tagline{color:#f0d2c6}
 body.bg-pie-please .hp-footer .hp-footer-coming-soon span{background:#7b2840;color:#fff7ec}
 body.bg-pie-please .hp-footer .hp-footer-social{background:#7b2840;color:#fff7ec}
 body.bg-pie-please .hp-footer .hp-footer-social:hover{background:#9b233d;color:#fff7ec}
+
+/* Phone width clips the third circled Live Lineup name. Wrap the chips instead of scrolling them out of sight. */
+@media (max-width: 640px) {
+  body.bg-pie-please .hp-trade-preview-items {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
