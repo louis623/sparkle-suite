@@ -2381,6 +2381,17 @@ function Signup({ repName, businessName }) {
     return "";
   }
 
+  function birthdayReviewLabel(value) {
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const text = String(value || "").trim();
+    if (!/^\d{2}-\d{2}$/.test(text)) return "";
+    const month = Number(text.slice(0, 2));
+    const day = Number(text.slice(3, 5));
+    const candidate = new Date(Date.UTC(2024, month - 1, day));
+    if (candidate.getUTCMonth() !== month - 1 || candidate.getUTCDate() !== day) return "";
+    return `${months[month - 1]} ${day}`;
+  }
+
   function validateCurrentStep() {
     if (step === 0) {
       if (!form.firstName.trim()) return "First name is required.";
@@ -2584,6 +2595,7 @@ function Signup({ repName, businessName }) {
     channelSummary = channelSummary ? `${channelSummary}, plus promotional drops` : "Promotional drops";
   }
   const reviewName = [form.firstName.trim(), form.lastName.trim()].filter(Boolean).join(" ");
+  const birthdayReview = birthdayReviewLabel(form.birthday);
   const favoriteRows = [
     ["Stones", form.favoriteStones, preferenceOptions?.stone, 1],
     ["Metals", form.favoriteMaterials, preferenceOptions?.material, 2],
@@ -2793,11 +2805,11 @@ function Signup({ repName, businessName }) {
                         <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[stepIndex]}`} onClick={() => goToStep(stepIndex)} disabled={submitState.status === "submitting"}>Edit</button>
                       </li>
                     ))}
-                    {form.birthday.trim() ? (
+                    {birthdayReview ? (
                       <li className="hp-signup-review-row">
                         <div className="hp-signup-review-copy">
                           <p className="hp-signup-review-label">Birthday</p>
-                          <p className="hp-signup-review-value">{form.birthday.trim()}</p>
+                          <p className="hp-signup-review-value">{birthdayReview}</p>
                         </div>
                         <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[6]}`} onClick={() => goToStep(6)} disabled={submitState.status === "submitting"}>Edit</button>
                       </li>
