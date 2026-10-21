@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 import { metadata } from '@/app/portfolio/page'
 import { PortfolioExperience } from '@/app/_components/portfolio-experience'
 import { getAmethystAppearancePreset } from '@/lib/amethyst/appearance-presets'
-import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
 import { sparkleSuitePortfolioContent } from '@/lib/sparkle-suite/portfolio-content'
 import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 
@@ -25,15 +24,15 @@ const communityThemes = [
     id: 'halloween_pumpkin_witch',
     title: 'Pumpkin and Witch',
     pickerLabel: 'Halloween Pumpkin and Witch',
-    poster: halloweenHeroMotion.witch.poster,
-    mp4: halloweenHeroMotion.witch.mp4,
+    poster: '/amethyst/skins/halloween-pumpkin-witch/hero-desktop.webp',
+    mp4: '',
   },
   {
     id: 'halloween_pumpkin_cat',
     title: 'Pumpkin and Cat',
     pickerLabel: 'Halloween Pumpkin and Cat',
-    poster: halloweenHeroMotion.cat.poster,
-    mp4: halloweenHeroMotion.cat.mp4,
+    poster: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp',
+    mp4: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4',
   },
   {
     id: 'gilded_autumn',
@@ -113,9 +112,16 @@ describe('Sparkle Suite portfolio carousels', () => {
       }
       expect(themeHtml).toContain(theme.poster)
       expect(existsSync(publicFile(theme.poster))).toBe(true)
-      expect(existsSync(publicFile(theme.mp4))).toBe(true)
+      expect(themeHtml).not.toContain('hero-halloween-witch-live')
+      expect(themeHtml).not.toContain('hero-halloween-cat-live')
+      expect(themeHtml).not.toContain('milehighfizz.com')
       const slide = themes?.slides.find((item) => item.id === theme.id)
-      expect(slide && slide.kind === 'capture' ? slide.video?.mp4 : undefined).toBe(theme.mp4)
+      if (theme.mp4) {
+        expect(existsSync(publicFile(theme.mp4))).toBe(true)
+        expect(slide && slide.kind === 'capture' ? slide.video?.mp4 : undefined).toBe(theme.mp4)
+      } else {
+        expect(slide && slide.kind === 'capture' ? slide.video : undefined).toBeUndefined()
+      }
     }
     expect(themeHtml).not.toMatch(/Morganite|Rose Gold|Garnet|Amber|Velvet|Moonstone|Emerald Garden|Rose Quartz|Black Diamond|Alpine Opal|Gnome Forest|Neon Butterfly/)
     expect(reps?.slides.map((slide) => slide.id)).toEqual([...repIds])

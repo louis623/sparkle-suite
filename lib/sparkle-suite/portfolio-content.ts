@@ -1,5 +1,4 @@
 import type { AmethystAppearancePresetId } from '@/lib/amethyst/appearance-presets'
-import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
 import { sparkleSuitePublicLandingContent } from '@/lib/sparkle-suite/public-landing-content'
 
 export const sparkleSuiteScheduleBuild = {
@@ -88,29 +87,20 @@ const communityThemeSlides = [
     id: 'halloween_pumpkin_witch',
     title: 'Pumpkin and Witch',
     detail: 'A sparkling black-and-orange night with a jack-o’-lantern, silver moon, and a flying witch.',
-    src: halloweenHeroMotion.witch.poster,
-    alt: 'Halloween Pumpkin and Witch homepage hero, with a jack-o’-lantern, silver moon, and flying witch.',
-    width: halloweenHeroMotion.witch.posterWidth,
-    height: halloweenHeroMotion.witch.posterHeight,
-    video: {
-      mp4: halloweenHeroMotion.witch.mp4,
-      width: halloweenHeroMotion.witch.width,
-      height: halloweenHeroMotion.witch.height,
-    },
+    src: '/amethyst/skins/halloween-pumpkin-witch/hero-desktop.webp',
+    alt: 'Pumpkin and Witch theme hero, with a jack-o’-lantern, silver moon, and flying witch.',
+    width: 1672,
+    height: 941,
   }),
   communityThemeSlide({
     id: 'halloween_pumpkin_cat',
     title: 'Pumpkin and Cat',
     detail: 'A glittering pumpkin night, with a black cat perched on the silver moon.',
-    src: halloweenHeroMotion.cat.poster,
-    alt: 'Halloween Pumpkin and Cat homepage hero, with a black cat beside a glowing jack-o’-lantern.',
-    width: halloweenHeroMotion.cat.posterWidth,
-    height: halloweenHeroMotion.cat.posterHeight,
-    video: {
-      mp4: halloweenHeroMotion.cat.mp4,
-      width: halloweenHeroMotion.cat.width,
-      height: halloweenHeroMotion.cat.height,
-    },
+    src: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp',
+    alt: 'Pumpkin and Cat theme hero, with a black cat beside a glowing jack-o’-lantern.',
+    width: 1672,
+    height: 941,
+    video: { mp4: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4', width: 1280, height: 720 },
   }),
   communityThemeSlide({
     id: 'gilded_autumn',
