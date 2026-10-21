@@ -1020,15 +1020,22 @@ body.bg-quartz-paper .tp-filter-pill.active .count {
   object-fit: cover;
   display: block;
 }
-.tp-card-photo.has-photo,
+.tp-grid .tp-card-photo.has-photo,
 .tp-card-expand-photo.has-photo {
-  background: #fff;
+  aspect-ratio: 3 / 4;
+  background: #a8aaa9;
+}
+.tp-card-expand-photo.has-photo {
+  align-self: start;
+  width: 100%;
+  height: auto;
 }
 .tp-card-photo.has-photo .tp-card-photo-img,
 .tp-card-expand-photo.has-photo .tp-card-expand-photo-img {
   object-fit: contain;
-  padding: 12px;
-  box-sizing: border-box;
+  object-position: center;
+  padding: 0;
+  background: transparent;
 }
 .tp-card-photo .photo-glyph {
   position: absolute;
