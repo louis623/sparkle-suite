@@ -50,7 +50,7 @@ const INTENT_PROMPTS: Record<NicNacToolIntent, string> = {
   show_memory: `Current-show memory tools:
 - get_show_session_context, start_show_session, end_show, and record_show_session_event are zero-provider database tools. They write/read show memory and calendar status only.
 - Use get_show_session_context when a live show, current-show, or post-show workflow starts.
-- Use start_show_session when the rep says the show is starting, asks for help during the live, or gives a Live Lineup. If the rep is clearly live but gives no anchor, ask one short question or use a generated sync code only when the flow needs durable state immediately. If a different show session is already active, ask whether to keep it or replace it; replacing it requires the tool's approval dialog.
+- Use start_show_session when the rep says the show is starting, asks for help during the live, or shares a Live Lineup code or calendar anchor. If the rep is clearly live but gives no anchor, ask one short question or use a generated sync code only when the flow needs durable state immediately. If a different show session is already active, ask whether to keep it or replace it; replacing it requires the tool's approval dialog.
 - Use end_show when the rep says the linked live show is over, done, ended, or completed.
 - Use record_show_session_event for queue snapshots, inventory notes, customer requests, promises, follow-ups, swap notes, and show summaries.
 - Keep current-show memory factual and operational. Do not claim that you sent reminders, updated a live feed, or took provider action unless another real tool result says so.`,
