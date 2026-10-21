@@ -4480,6 +4480,62 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(addListingMock).toHaveBeenCalled()
   })
 
+  it('returns the main photo preview for a batch item with an unconfirmed selected photo and saves nothing', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-batch',
+        phase: 'ready_to_add',
+        missing: [],
+        metadata: { mainPhotoConfirmationRequired: true },
+        known: {
+          itemNumber: 'NK60295',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            intakeSessionId: 'intake-batch',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,TktK',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'batch',
+        items: [
+          {
+            itemNumber: 'NK60295',
+            collectionName: 'Original',
+            rarityClassification: 'standard',
+            selectedPhotoId: '11111111-1111-4111-8111-111111111111',
+          },
+          {
+            itemNumber: 'NK60296',
+            collectionName: 'Original',
+            rarityClassification: 'standard',
+          },
+        ],
+      }),
+    ).resolves.toMatchObject({
+      needsAction: 'confirm_main_photo',
+      previewPhotoId: '11111111-1111-4111-8111-111111111111',
+      message: expect.stringContaining('NK60295'),
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(addListingBatchMock).not.toHaveBeenCalled()
+  })
+
   it('shows the preview again when a yes arrived with a new photo that has no role words', async () => {
     const tool = makeTool(makeConversationLookupMock([]), {
       activeTradeBoardWorkflow: activeWorkflow({

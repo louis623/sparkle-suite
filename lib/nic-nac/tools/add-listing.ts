@@ -2491,6 +2491,23 @@ async function runBatch(
       Boolean(item.selectedPhotoId) ||
       item.listingPhotoIndex !== undefined ||
       item.piecePhotoIndex !== undefined
+    if (shareWorkflowJewelry) {
+      const mainPhotoPreview = pendingMainPhotoConfirmation({
+        itemNumber: item.itemNumber,
+        workflow: ctx.activeTradeBoardWorkflow,
+        selectedPhotoId: item.selectedPhotoId,
+        photoIndex: item.listingPhotoIndex ?? item.piecePhotoIndex,
+      })
+      if (mainPhotoPreview) {
+        return {
+          needsAction: 'confirm_main_photo' as const,
+          code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
+          itemNumber: mainPhotoPreview.itemNumber,
+          ...mainPhotoPreview.locator,
+          message: mainPhotoPreview.message,
+        }
+      }
+    }
     const listingPhotoUrl = await processListingPhotoForAdd({
       listingPhotoUrl: item.listingPhotoUrl,
       listingPhotoIndex: item.listingPhotoIndex,
