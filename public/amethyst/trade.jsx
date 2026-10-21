@@ -1077,7 +1077,7 @@ function Ticker({ topText }) {
               data-ticker-segment-start={index === 0 ? "true" : undefined}
               data-ticker-segment-repeat-start={index === tradeSegmentLength ? "true" : undefined}
             >
-              {tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}
+              {tr.name} · {tr.collection || "Collection pending"}
             </a>
           ))}
         </div>
@@ -1859,7 +1859,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
         <div className="tp-sheet-eyebrow">Swap request</div>
         <h3 id="trade-request-title" className="tp-sheet-title">{piece.name}</h3>
         <div className="tp-sheet-piece">
-          {displayCollectionLabel(piece.collection)} - {piece.type}{piece.size ? ` - Size ${piece.size}` : ""}
+          {displayCollectionLabel(piece.collection)} · {piece.type}{piece.size ? ` · Size ${piece.size}` : ""}
         </div>
         <p className="tp-sheet-helper">
           Tell <strong>{repName}</strong> what you just revealed. Your dancer should be from the same collection family and jewelry type. Birthday months and years can differ.

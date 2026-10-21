@@ -621,7 +621,7 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).not.toContain('Shop ?')
     expect(jsx).toContain('Shop live')
     expect(jsx).toContain('OG Halo Bloom Ring')
-    expect(jsx).toContain('{tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}')
+    expect(jsx).toContain('{tr.name} · {tr.collection || "Collection pending"}')
     expect(jsx).toContain('The Dance Floor is quiet right now')
     expect(jsx).toContain('adds dancers after a live reveal')
   })
