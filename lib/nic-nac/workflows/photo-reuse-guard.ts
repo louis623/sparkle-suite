@@ -153,38 +153,79 @@ export function isApprovedCatalogPhotoUrl(url: string): boolean {
   }
 }
 
-async function readCappedPhotoBytes(response: {
-  body?: {
-    getReader?: () => {
-      read: () => Promise<{ done?: boolean; value?: Uint8Array }>
-      cancel: () => Promise<void>
+type PhotoBodyReader = {
+  read: () => Promise<{ done?: boolean; value?: Uint8Array }>
+  cancel: () => Promise<void>
+}
+
+function abortReason(signal: AbortSignal): unknown {
+  return signal.reason ?? new DOMException('The operation was aborted.', 'AbortError')
+}
+
+/** Settle when `pending` settles, or when `signal` aborts, whichever is first. */
+function raceAbort<T>(pending: Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) return Promise.reject(abortReason(signal))
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      reject(abortReason(signal))
     }
-  } | null
-  arrayBuffer?: () => Promise<ArrayBuffer>
-}): Promise<Buffer | null> {
+    signal.addEventListener('abort', onAbort, { once: true })
+    pending.then(
+      (value) => {
+        signal.removeEventListener('abort', onAbort)
+        resolve(value)
+      },
+      (error) => {
+        signal.removeEventListener('abort', onAbort)
+        reject(error)
+      },
+    )
+  })
+}
+
+/** Drop the socket without waiting. A dribbling body can leave cancel() pending for tens of seconds. */
+function dropReader(reader: PhotoBodyReader) {
+  try {
+    void reader.cancel().catch(() => undefined)
+  } catch {
+    // A synchronous cancel failure still means this read is abandoned.
+  }
+}
+
+async function readCappedPhotoBytes(
+  response: {
+    body?: { getReader?: () => PhotoBodyReader } | null
+    arrayBuffer?: () => Promise<ArrayBuffer>
+  },
+  signal: AbortSignal,
+): Promise<Buffer | null> {
   const reader = response.body?.getReader?.()
   if (!reader) {
     if (!response.arrayBuffer) return null
-    const bytes = Buffer.from(await response.arrayBuffer())
-    if (bytes.length === 0 || bytes.length > PHOTO_HASH_MAX_BYTES) return null
-    return bytes
+    try {
+      const bytes = Buffer.from(await raceAbort(response.arrayBuffer(), signal))
+      if (bytes.length === 0 || bytes.length > PHOTO_HASH_MAX_BYTES) return null
+      return bytes
+    } catch {
+      return null
+    }
   }
   const chunks: Uint8Array[] = []
   let total = 0
   try {
     for (;;) {
-      const { done, value } = await reader.read()
+      const { done, value } = await raceAbort(reader.read(), signal)
       if (done) break
       if (!value || value.byteLength === 0) continue
       if (total + value.byteLength > PHOTO_HASH_MAX_BYTES) {
-        await reader.cancel()
+        dropReader(reader)
         return null
       }
       chunks.push(value)
       total += value.byteLength
     }
   } catch {
-    await reader.cancel().catch(() => undefined)
+    dropReader(reader)
     return null
   }
   if (total === 0) return null
@@ -203,15 +244,16 @@ export async function hashCustomerPhotoUrl(args: {
   if (dataHash) return dataHash
   const url = args.sourceImageUrl.trim()
   if (!isAllowedCustomerPhotoFetchUrl(url)) return null
+  const signal = AbortSignal.timeout(args.timeoutMs ?? PHOTO_HASH_TIMEOUT_MS)
   try {
     const response = await fetch(url, {
       redirect: 'error',
-      signal: AbortSignal.timeout(args.timeoutMs ?? PHOTO_HASH_TIMEOUT_MS),
+      signal,
     })
     if (!response.ok) return null
     const declaredLength = Number(response.headers?.get?.('content-length'))
     if (Number.isFinite(declaredLength) && declaredLength > PHOTO_HASH_MAX_BYTES) return null
-    const bytes = await readCappedPhotoBytes(response)
+    const bytes = await readCappedPhotoBytes(response, signal)
     if (!bytes) return null
     return createHash('sha256').update(bytes).digest('hex')
   } catch {

@@ -1,4 +1,11 @@
-import { createHash } from 'crypto'
+import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
+import { createServer } from 'node:https'
+import { mkdtempSync, readFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import type { Socket } from 'node:net'
+import { Agent, getGlobalDispatcher, setGlobalDispatcher } from 'undici'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -1593,4 +1600,85 @@ describe('customer photo hashing', () => {
     ).toBe(false)
     restoreUrl()
   })
+
+  it(
+    'stops a dribbling storage photo within the timeout, ten times',
+    async () => {
+      vi.unstubAllGlobals()
+      const dir = mkdtempSync(join(tmpdir(), 'nn-r47-'))
+      const keyPath = join(dir, 'key.pem')
+      const certPath = join(dir, 'cert.pem')
+      execFileSync('openssl', [
+        'req',
+        '-x509',
+        '-newkey',
+        'rsa:2048',
+        '-keyout',
+        keyPath,
+        '-out',
+        certPath,
+        '-days',
+        '1',
+        '-nodes',
+        '-subj',
+        '/CN=127.0.0.1',
+      ])
+      const timers = new Set<ReturnType<typeof setInterval>>()
+      const sockets = new Set<Socket>()
+      const server = createServer(
+        { key: readFileSync(keyPath), cert: readFileSync(certPath) },
+        (_req, res) => {
+          res.writeHead(200, { 'Content-Type': 'application/octet-stream' })
+          res.write(Buffer.from([0xff, 0xd8, 0xff]))
+          const timer = setInterval(() => {
+            if (res.destroyed || res.writableEnded) {
+              clearInterval(timer)
+              timers.delete(timer)
+              return
+            }
+            res.write(Buffer.from([0]))
+          }, 3_000)
+          timers.add(timer)
+          const stop = () => {
+            clearInterval(timer)
+            timers.delete(timer)
+          }
+          res.on('close', stop)
+          res.on('error', stop)
+        },
+      )
+      server.on('connection', (socket) => {
+        sockets.add(socket)
+        socket.on('close', () => sockets.delete(socket))
+      })
+      const previousDispatcher = getGlobalDispatcher()
+      setGlobalDispatcher(new Agent({ connect: { rejectUnauthorized: false } }))
+      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://127.0.0.1'
+      try {
+        await new Promise<void>((resolve, reject) => {
+          server.listen(0, '127.0.0.1', () => resolve())
+          server.on('error', reject)
+        })
+        const address = server.address()
+        if (!address || typeof address === 'string') throw new Error('no port')
+        const port = address.port
+        process.env.NEXT_PUBLIC_SUPABASE_URL = `https://127.0.0.1:${port}`
+        const url = `https://127.0.0.1:${port}/storage/v1/object/public/jewelry-photos/rep-1/slow.jpg`
+        for (let attempt = 0; attempt < 10; attempt += 1) {
+          const started = Date.now()
+          await expect(hashCustomerPhotoUrl({ sourceImageUrl: url })).resolves.toBeNull()
+          const elapsed = Date.now() - started
+          expect(elapsed).toBeGreaterThanOrEqual(7_000)
+          expect(elapsed).toBeLessThan(9_500)
+        }
+      } finally {
+        for (const timer of timers) clearInterval(timer)
+        for (const socket of sockets) socket.destroy()
+        setGlobalDispatcher(previousDispatcher)
+        await new Promise<void>((resolve) => server.close(() => resolve()))
+        restoreUrl()
+      }
+    },
+    120_000,
+  )
 })
