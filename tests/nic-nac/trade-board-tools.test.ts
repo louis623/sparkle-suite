@@ -6,6 +6,7 @@
 // audit-failure isolation. Mock paths exactly match the imports in
 // lib/nic-nac/tools/update-listing.ts.
 
+import { createHash } from 'crypto'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { errors } from '@/lib/services/errors'
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
@@ -95,7 +96,7 @@ function photoSupabase(args: {
   }
 }
 
-function confirmedPhotoConversation(photoUrl: string) {
+function confirmedPhotoConversation(photoUrl: string, contentSha256 = DEFAULT_FETCH_SHA) {
   return [
     {
       role: 'user',
@@ -110,6 +111,8 @@ function confirmedPhotoConversation(photoUrl: string) {
             needsAction: 'confirm_main_photo',
             listingId: VALID_LISTING_ID,
             previewImageUrl: photoUrl,
+            contentSha256,
+            pieceKey: 'NK70001',
             message:
               'This is the main photo I will save for NK70001. If this is the right piece, reply yes.',
           },
@@ -174,6 +177,9 @@ function intakeWorkflow(
 // Zod 4 enforces version + variant bits on `.uuid()`: the 3rd group must
 // start with [1-8] and the 4th with [89abAB]. Picking a v4-shaped UUID.
 const VALID_LISTING_ID = '11111111-1111-4111-8111-111111111111'
+const DEFAULT_FETCH_SHA = createHash('sha256')
+  .update(Uint8Array.from([1, 2, 3, 4]))
+  .digest('hex')
 
 beforeEach(() => {
   updateListingMock.mockReset()
@@ -374,6 +380,59 @@ describe('update_listing — write + audit happy path', () => {
       status: 'available',
       patchedFields: ['listingPhotoUrl'],
     })
+  })
+
+  it('treats a yes as the photo yes from the hash and listing, not the link text', async () => {
+    const photoUrl = 'https://rep.example.com/raw-upload.jpg'
+    processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/normalized.jpg',
+    })
+    updateListingMock.mockResolvedValueOnce({
+      listingId: VALID_LISTING_ID,
+      status: 'available',
+    })
+    const conversations = confirmedPhotoConversation('https://rep.example.com/some-other-link.jpg')
+    const tool = makeTool(undefined, photoSupabase({ conversations }))
+
+    await expect(
+      tool.execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: photoUrl,
+      }),
+    ).resolves.toMatchObject({
+      patchedFields: ['listingPhotoUrl'],
+    })
+    expect(updateListingMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('refuses a data-URL listing photo it cannot show', async () => {
+    const tool = makeTool(undefined, photoSupabase())
+
+    await expect(
+      tool.execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: 'data:image/jpeg;base64,TktK',
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_PREVIEW_UNAVAILABLE',
+      userMessage: expect.stringMatching(/didn't save it/i),
+    })
+    expect(updateListingMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses an https listing photo whose link is too long to show', async () => {
+    const photoUrl = `https://rep.example.com/${'a'.repeat(500)}.jpg`
+    const tool = makeTool(undefined, photoSupabase())
+
+    await expect(
+      tool.execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: photoUrl,
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_PREVIEW_UNAVAILABLE',
+    })
+    expect(updateListingMock).not.toHaveBeenCalled()
   })
 
   it('previews the listing photo even when an open intake has a different picture', async () => {
@@ -664,6 +723,98 @@ describe('update_listing — write + audit happy path', () => {
     })
     expect(fetchMock).not.toHaveBeenCalled()
     expect(updateListingMock).not.toHaveBeenCalled()
+  })
+
+  it('saves a non-item listing after one yes to a reused photo', async () => {
+    const listingId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    const photoUrl = 'https://rep.example.com/non-item-reused.jpg'
+    const bytes = Uint8Array.from([7, 7, 7])
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        arrayBuffer: async () => bytes.buffer,
+      })),
+    )
+    const { createHash } = await import('crypto')
+    const contentSha256 = createHash('sha256').update(bytes).digest('hex')
+    const pieceKey = `NON_ITEM:${listingId}`
+    createAdminClientMock.mockReturnValue({
+      from: () =>
+        queryResult({
+          data: [
+            {
+              trade_board_intake_sessions: {
+                item_number: 'NK60295',
+                status: 'completed',
+                created_design_id: 'design-nk60295',
+                created_listing_ids: ['listing-nk60295'],
+              },
+            },
+          ],
+          error: null,
+        }),
+    })
+    const listing = listingRow({
+      id: listingId,
+      listing_source: 'non_item_number',
+      design: null,
+    })
+    const first = makeTool(undefined, photoSupabase({ listing }))
+    const ask = await first
+      .execute({ listingId, listingPhotoUrl: photoUrl })
+      .then(
+        () => {
+          throw new Error('expected the set ask')
+        },
+        (err: { userMessage?: string; details?: Record<string, unknown> }) => err,
+      )
+    expect(ask.userMessage).toContain('this piece')
+    expect(ask.userMessage).not.toMatch(/If [A-Z]{1,4}-?\d{3,} belongs with that set/)
+    expect(ask.details).toMatchObject({
+      contentSha256,
+      listingId,
+      pieceKey,
+    })
+
+    processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/non-item-normalized.jpg',
+    })
+    updateListingMock.mockResolvedValueOnce({
+      listingId,
+      status: 'available',
+    })
+    const second = makeTool(
+      undefined,
+      photoSupabase({
+        listing,
+        conversations: [
+          { role: 'user', parts: [{ type: 'text', text: 'Yes' }] },
+          {
+            role: 'assistant',
+            parts: [
+              {
+                output: {
+                  code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                  message: ask.userMessage,
+                  contentSha256,
+                  listingId,
+                  pieceKey,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    )
+
+    await expect(
+      second.execute({ listingId, listingPhotoUrl: photoUrl }),
+    ).resolves.toMatchObject({
+      listingId,
+      patchedFields: ['listingPhotoUrl'],
+    })
+    expect(updateListingMock).toHaveBeenCalledTimes(1)
   })
 
   it('previews a non-item listing photo as this piece', async () => {

@@ -29,7 +29,10 @@ import {
   normalizePhotoConfirmationKey,
   photoConfirmationPieceKey,
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
-import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
+import {
+  mainPhotoPreviewLocator,
+  photoPreviewIsVisible,
+} from '@/lib/nic-nac/workflows/main-photo-preview'
 import {
   assertCustomerPhotoNotReused,
   confirmedPhotoSetSha,
@@ -180,7 +183,13 @@ export function makeUpdateListingTool(ctx: {
                 'I could not read that photo, so I did not save it. Send it again and I will check it first.',
             })
           }
-          const preview = mainPhotoPreviewLocator({ imageUrl: photoUrl })
+          const workflowPhoto = workflow?.photos?.find(
+            (photo) => photo.imageUrl?.trim() === photoUrl,
+          )
+          const preview = mainPhotoPreviewLocator({
+            id: workflowPhoto?.id,
+            imageUrl: photoUrl,
+          })
           await assertCustomerPhotoNotReused({
             repId: ctx.repId,
             itemNumber: listing.pieceKey,
@@ -212,6 +221,13 @@ export function makeUpdateListingTool(ctx: {
             pieceKey: listing.pieceKey,
           })
           if (!confirmed) {
+            if (!photoPreviewIsVisible(preview)) {
+              throw new NicNacToolError({
+                code: 'PHOTO_PREVIEW_UNAVAILABLE',
+                userMessage:
+                  "I can't show you that photo before saving it, so I didn't save it. Upload it in the chat, or send a normal photo link, and I'll check it with you first.",
+              })
+            }
             const label = listing.pieceKey.startsWith('NON_ITEM:')
               ? 'this piece'
               : listing.pieceKey
@@ -220,7 +236,9 @@ export function makeUpdateListingTool(ctx: {
               code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
               listingId,
               itemNumber: listing.itemNumber,
-              ...mainPhotoPreviewLocator({ imageUrl: photoUrl }),
+              contentSha256,
+              pieceKey: listing.pieceKey,
+              ...preview,
               message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
             }
           }
@@ -400,7 +418,9 @@ async function conversationConfirmsListingPhoto(args: {
     return (
       output?.needsAction === 'confirm_main_photo' &&
       output.listingId === args.listingId &&
-      output.previewImageUrl === args.photoUrl
+      output.contentSha256?.trim() === args.contentSha256 &&
+      normalizePhotoConfirmationKey(output.pieceKey) ===
+        normalizePhotoConfirmationKey(args.pieceKey)
     )
   })
 }

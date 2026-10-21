@@ -11,7 +11,10 @@ import {
   normalizePhotoConfirmationKey,
   photoConfirmationPieceKey,
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
-import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
+import {
+  mainPhotoPreviewLocator,
+  photoPreviewIsVisible,
+} from '@/lib/nic-nac/workflows/main-photo-preview'
 import { sanitizeCatalogCorrectionFields } from '@/lib/nic-nac/workflows/trade-workflow-sanitizers'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
 import { assertTradeWorkflowInputMatches } from '@/lib/nic-nac/workflows/trade-workflow-tool-guards'
@@ -124,8 +127,9 @@ async function conversationConfirmsCatalogPhoto(args: {
       }
       return (
         output?.needsAction === 'confirm_main_photo' &&
-        output.itemNumber?.trim().toUpperCase() === itemNumber &&
-        output.previewImageUrl === args.photoUrl
+        output.contentSha256?.trim() === args.contentSha256 &&
+        normalizePhotoConfirmationKey(output.pieceKey) === pieceKey &&
+        output.itemNumber?.trim().toUpperCase() === itemNumber
       )
     })
   } catch {
@@ -208,11 +212,20 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
             pieceKey,
           })
           if (!confirmed) {
+            if (!photoPreviewIsVisible(preview)) {
+              throw new NicNacToolError({
+                code: 'PHOTO_PREVIEW_UNAVAILABLE',
+                userMessage:
+                  "I can't show you that photo before saving it on the shared catalog, so I didn't save it. Send a normal photo link I can show you, and I'll check it with you first.",
+              })
+            }
             return {
               needsAction: 'confirm_main_photo' as const,
               code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
               itemNumber: input.itemNumber.trim().toUpperCase(),
-              ...mainPhotoPreviewLocator({ imageUrl: canonicalPhotoUrl }),
+              contentSha256,
+              pieceKey,
+              ...preview,
               message: `This is the main photo I will save for ${input.itemNumber.trim().toUpperCase()}. If this is the right piece, reply yes.`,
             }
           }

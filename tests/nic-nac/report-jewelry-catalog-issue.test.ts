@@ -1,3 +1,4 @@
+import { createHash } from 'crypto'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const reportJewelryCatalogIssueMock = vi.fn()
@@ -42,6 +43,9 @@ function activeCatalogWorkflow() {
 
 const CANONICAL_PHOTO_URL =
   'https://example.com/storage/v1/object/public/jewelry-photos/approved/design-er34579/front.png'
+const DEFAULT_FETCH_SHA = createHash('sha256')
+  .update(Uint8Array.from([1, 2, 3, 4]))
+  .digest('hex')
 
 function queryResult(result: { data: unknown; error: unknown }) {
   const builder: Record<string, unknown> = {}
@@ -92,6 +96,8 @@ function confirmedCatalogConversation(itemNumber: string, photoUrl: string) {
             needsAction: 'confirm_main_photo',
             itemNumber,
             previewImageUrl: photoUrl,
+            contentSha256: DEFAULT_FETCH_SHA,
+            pieceKey: itemNumber,
           },
         },
       ],
@@ -465,6 +471,53 @@ describe('report_jewelry_catalog_issue', () => {
     })
     expect(reportJewelryCatalogIssueMock).not.toHaveBeenCalled()
     expect(createAdminClientMock).not.toHaveBeenCalled()
+  })
+
+  it('refuses a catalog photo it cannot show instead of asking forever', async () => {
+    createAdminClientMock.mockReturnValue(emptyPhotoAdmin())
+    const tool = makeTool()
+    const longUrl = `https://example.com/storage/v1/object/public/jewelry-photos/approved/${'a'.repeat(500)}.png`
+
+    await expect(
+      tool.execute({
+        itemNumber: 'ER34579',
+        issueType: 'bad_photo',
+        reason: 'The current catalog photo is the item label/details photo.',
+        correction: { canonicalPhotoUrl: longUrl },
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_PREVIEW_UNAVAILABLE',
+      userMessage: expect.stringMatching(/didn't save it/i),
+    })
+    expect(reportJewelryCatalogIssueMock).not.toHaveBeenCalled()
+  })
+
+  it('saves a catalog photo yes from the hash and item, not the link text', async () => {
+    createAdminClientMock
+      .mockReturnValueOnce(emptyPhotoAdmin())
+      .mockReturnValueOnce({ __isAdmin: true })
+    reportJewelryCatalogIssueMock.mockResolvedValueOnce({
+      designId: 'design-er34579',
+      itemNumber: 'ER34579',
+      changedFields: ['canonicalPhotoUrl'],
+      issueLogged: true,
+      corrected: true,
+    })
+    const tool = makeTool(null, {
+      supabase: conversationSupabase(
+        confirmedCatalogConversation('ER34579', 'https://example.com/different-link.png'),
+      ),
+    })
+
+    await expect(
+      tool.execute({
+        itemNumber: 'ER34579',
+        issueType: 'bad_photo',
+        reason: 'The current catalog photo is the item label/details photo.',
+        correction: { canonicalPhotoUrl: CANONICAL_PHOTO_URL },
+      }),
+    ).resolves.toMatchObject({ corrected: true })
+    expect(reportJewelryCatalogIssueMock).toHaveBeenCalledTimes(1)
   })
 
   it('drops stray catalog photo URLs from non-photo corrections', async () => {

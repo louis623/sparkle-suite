@@ -22,6 +22,18 @@ export function mainPhotoPreviewLocator(photo: {
   }
 }
 
+export function photoPreviewIsVisible(
+  output:
+    | {
+        previewPhotoId?: string | null
+        previewImageUrl?: string | null
+      }
+    | null
+    | undefined,
+): boolean {
+  return mainPhotoPreviewSrc(output) !== null
+}
+
 export function mainPhotoPreviewSrc(
   output:
     | {
