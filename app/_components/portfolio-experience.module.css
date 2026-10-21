@@ -237,7 +237,11 @@
   .hero .heroBody { font-size: 17px; }
   .close { padding-block: 48px; }
   .close h2 { font-size: 38px; }
-  .showcase { padding: 48px 0 40px; }
+  .showcase { padding: 40px 0 28px; }
+  .cardMeta { margin-top: 10px; }
+  .cardMeta a, .cardMeta p { margin-top: 4px; }
+  .cardDetail { min-height: 0; }
+  .dots, .counter { margin-top: 8px; }
   .showcaseCopy { width: calc(100% - 40px); }
   .showcase h2 { font-size: 34px; }
   .heroCopy {
