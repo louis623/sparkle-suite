@@ -729,7 +729,12 @@ type ConversationPart = {
   text?: string
   mediaType?: string
   url?: string
-  output?: { code?: string; message?: string; contentSha256?: string }
+  output?: {
+    code?: string
+    message?: string
+    contentSha256?: string
+    pieceKey?: string
+  }
 }
 
 type ConversationRow = {
@@ -800,6 +805,15 @@ function itemNumberFromSetAsk(row: ConversationRow | undefined): string {
   return ''
 }
 
+function pieceKeyFromSetAsk(row: ConversationRow | undefined): string {
+  if (!row) return ''
+  for (const part of row.parts ?? []) {
+    const key = part.output?.pieceKey
+    if (typeof key === 'string' && key.trim()) return normalizePhotoConfirmationKey(key)
+  }
+  return itemNumberFromSetAsk(row)
+}
+
 function setReuseYesInConversation(
   rows: ConversationRow[],
 ): { earlierPhotoUrl?: string; flaggedSha?: string; itemNumber: string } | null {
@@ -810,7 +824,7 @@ function setReuseYesInConversation(
     .slice(latestUserIndex + 1)
     .find((row) => row.role === 'assistant')
   if (!conversationRowAskedAboutPhotoSet(assistant)) return null
-  const itemNumber = itemNumberFromSetAsk(assistant)
+  const itemNumber = pieceKeyFromSetAsk(assistant)
   if (!itemNumber) return null
   const flaggedSha = (assistant?.parts ?? [])
     .map((part) => part.output?.contentSha256?.trim())
@@ -835,7 +849,12 @@ async function conversationConfirmsPhotoSetHash(args: {
     const rows = await loadRecentConversationRows(args)
     const confirmation = setReuseYesInConversation(rows)
     if (!confirmation) return false
-    if (confirmation.itemNumber !== savedItemNumber(args.itemNumber)) return false
+    if (
+      normalizePhotoConfirmationKey(confirmation.itemNumber) !==
+      normalizePhotoConfirmationKey(args.itemNumber)
+    ) {
+      return false
+    }
     if (confirmation.flaggedSha) return confirmation.flaggedSha === args.contentSha256
     return hashDataImageUrl(confirmation.earlierPhotoUrl) === args.contentSha256
   } catch {
