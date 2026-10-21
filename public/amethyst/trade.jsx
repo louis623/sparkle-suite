@@ -1528,7 +1528,7 @@ function TradeCard({ piece, onTap, tierVisible }) {
         {piece.photoUrl ? (
           <img className="tp-card-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 700px) 46vw, 280px", widths: [256, 384, 640] })} loading="lazy" decoding="async" />
         ) : (
-          <div className="photo-glyph">{piece.glyph}</div>
+          <div className="photo-glyph" aria-hidden="true"><SparkleMark /></div>
         )}
       </div>
       <div className="tp-card-body">
@@ -1619,7 +1619,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
           {piece.photoUrl ? (
             <img className="tp-card-expand-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 800px) 92vw, 640px", widths: [384, 640, 828, 1200], eager: true })} />
           ) : (
-            <div className="photo-glyph">{piece.glyph}</div>
+            <div className="photo-glyph" aria-hidden="true"><SparkleMark /></div>
           )}
         </div>
         <div className="tp-card-expand-body">

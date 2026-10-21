@@ -1025,13 +1025,12 @@ body.bg-quartz-paper .tp-filter-pill.active .count {
   inset: 0;
   display: grid;
   place-items: center;
-  color: color-mix(in oklab, var(--hp-primary) 30%, var(--fg-muted));
-  font-family: var(--hp-display-font);
-  font-size: 48px;
-  font-weight: 300;
-  letter-spacing: 0.1em;
-  opacity: 0.5;
+  color: var(--hp-primary);
   z-index: 1;
+}
+.tp-card-photo .photo-glyph .tp-sparkle-mark {
+  width: 64px;
+  height: 64px;
 }
 /* Tier badge top-left */
 .tp-card-tier {
@@ -1247,11 +1246,11 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
   inset: 0;
   display: grid;
   place-items: center;
-  color: color-mix(in oklab, var(--hp-primary) 40%, var(--fg-muted));
-  font-family: var(--hp-display-font);
-  font-size: 96px;
-  font-weight: 300;
-  opacity: 0.4;
+  color: var(--hp-primary);
+}
+.tp-card-expand-photo .photo-glyph .tp-sparkle-mark {
+  width: 88px;
+  height: 88px;
 }
 .tp-card-expand-body {
   padding: 36px 32px;
