@@ -613,16 +613,26 @@ function flaggedPhotoSetSha(
           .reverse()
           .find((message) => message.role === 'assistant')
   for (const part of previousAssistant?.parts ?? []) {
-    const output = (part as { output?: { contentSha256?: unknown } }).output
-    if (typeof output?.contentSha256 === 'string' && output.contentSha256.trim()) {
+    const output = (
+      part as {
+        output?: {
+          code?: unknown
+          contentSha256?: unknown
+          photoId?: unknown
+        }
+      }
+    ).output
+    if (output?.code !== 'PHOTO_REUSED_ON_OTHER_ITEM') continue
+    if (typeof output.contentSha256 === 'string' && output.contentSha256.trim()) {
       return output.contentSha256.trim()
     }
-  }
-  for (let index = photos.length - 1; index >= 0; index -= 1) {
-    const photo = photos[index]
-    if (!photo || photo.declaredRole === 'label_details') continue
-    const sha = photo.contentSha256?.trim() || hashDataImageUrl(photo.imageUrl)
-    if (sha) return sha
+    if (typeof output.photoId === 'string' && output.photoId.trim()) {
+      const flagged = photos.find((photo) => photo.id === output.photoId)
+      const sha =
+        flagged?.contentSha256?.trim() || hashDataImageUrl(flagged?.imageUrl)
+      return sha || null
+    }
+    return null
   }
   return null
 }

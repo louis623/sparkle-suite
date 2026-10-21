@@ -817,6 +817,7 @@ async function assertCustomerPhotoNotReused(args: {
   sourceImageUrl?: string
   setReuseConfirmedSha?: string
   workflowPhotos?: Array<{
+    id?: string
     imageUrl?: string
     contentSha256?: string
     declaredRole?: string
@@ -854,9 +855,16 @@ async function assertCustomerPhotoNotReused(args: {
   ) {
     return
   }
+  const flaggedPhoto = args.workflowPhotos?.find(
+    (photo) => photo.imageUrl?.trim() === sourceImageUrl,
+  )
   throw new NicNacToolError({
     code: 'PHOTO_REUSED_ON_OTHER_ITEM',
     userMessage: decision.message,
+    details: {
+      contentSha256,
+      ...(flaggedPhoto?.id ? { photoId: flaggedPhoto.id } : {}),
+    },
   })
 }
 

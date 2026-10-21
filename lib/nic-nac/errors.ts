@@ -6,15 +6,27 @@
 // service-layer errors into a NicNacToolError inside the tool's execute
 // function. The wrapper only needs to know about this one base type.
 
+export type NicNacToolErrorDetails = {
+  contentSha256?: string
+  photoId?: string
+}
+
 export class NicNacToolError extends Error {
   readonly code: string
   readonly userMessage: string
+  readonly details?: NicNacToolErrorDetails
 
-  constructor(args: { code: string; userMessage: string; cause?: unknown }) {
+  constructor(args: {
+    code: string
+    userMessage: string
+    cause?: unknown
+    details?: NicNacToolErrorDetails
+  }) {
     super(args.userMessage)
     this.name = 'NicNacToolError'
     this.code = args.code
     this.userMessage = args.userMessage
+    if (args.details) this.details = args.details
     if (args.cause !== undefined) {
       ;(this as { cause?: unknown }).cause = args.cause
     }

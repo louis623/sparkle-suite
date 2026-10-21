@@ -161,11 +161,13 @@ vi.mock('@/lib/nic-nac/workflows/trade-workflow-store', () => ({
     completeTradeWorkflowSessionMock(...args),
 }))
 
+import { NicNacToolError } from '@/lib/nic-nac/errors'
 import {
   getWorkflowConfirmedJewelryFrontImageUrl,
   makeAddListingTool,
   processListingPhotoForAdd,
 } from '@/lib/nic-nac/tools/add-listing'
+import { withErrorHandling } from '@/lib/nic-nac/tools/wrappers/with-error-handling'
 import { renderItemNumberPng } from '@/lib/nic-nac/workflows/label-item-number'
 import { computeTradeBoardAddAttemptReadiness } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
 import { hashDataImageUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'
@@ -3780,6 +3782,7 @@ describe('add_listing - active workflow readiness guard', () => {
         },
         photos: [
           {
+            id: 'photo-necklace',
             intakeSessionId: 'intake-st21027',
             attachmentIndex: 1,
             declaredRole: 'jewelry_front',
@@ -3803,9 +3806,45 @@ describe('add_listing - active workflow readiness guard', () => {
     ).rejects.toMatchObject({
       code: 'PHOTO_REUSED_ON_OTHER_ITEM',
       userMessage: expect.stringMatching(/already on NK60295[\s\S]*ST21027 belongs with that set/),
+      details: {
+        contentSha256: hashDataImageUrl(necklaceUrl),
+        photoId: 'photo-necklace',
+      },
     })
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock).not.toHaveBeenCalled()
+
+    const wrapped = withErrorHandling(
+      {
+        name: 'add_listing',
+        readOnly: false,
+        ctx: {
+          repId: 'rep-1',
+          conversationId: 'conv-1',
+          runId: 'run-1',
+          supabase: makeConversationLookupMock([]) as never,
+        },
+      },
+      {
+        execute: async () => {
+          throw new NicNacToolError({
+            code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+            userMessage:
+              'This photo is already on NK60295. If ST21027 belongs with that set, reply yes.',
+            details: {
+              contentSha256: hashDataImageUrl(necklaceUrl),
+              photoId: 'photo-necklace',
+            },
+          })
+        },
+      } as never,
+    ) as { execute: () => Promise<Record<string, unknown>> }
+    await expect(wrapped.execute()).resolves.toMatchObject({
+      ok: false,
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      contentSha256: hashDataImageUrl(necklaceUrl),
+      photoId: 'photo-necklace',
+    })
   })
 
   it('does not block a photo that was only sent on an open intake', async () => {

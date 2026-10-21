@@ -79,11 +79,15 @@ export function withErrorHandling({ name, ctx, readOnly }: Args, tool: Tool): To
         }
       }
       if (err instanceof NicNacToolError) {
+        const contentSha256 = err.details?.contentSha256?.trim()
+        const photoId = err.details?.photoId?.trim()
         return {
           ok: false,
           errorTier: 'explain' as const,
           code: err.code,
           message: err.userMessage,
+          ...(contentSha256 ? { contentSha256 } : {}),
+          ...(photoId ? { photoId } : {}),
         }
       }
       return await escalate(err, name, ctx, args[0])

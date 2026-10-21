@@ -835,7 +835,9 @@ describe('main photo confirmation', () => {
     expect(ingested.metadata.photoSetReuseConfirmedSha).toBeUndefined()
   })
 
-  it('remembers a yes when the photo belongs with a saved set', async () => {
+  it('binds a set yes to the earlier flagged photo, not the latest one', async () => {
+    const earlierSha = 'a'.repeat(64)
+    const laterSha = 'b'.repeat(64)
     const eq = vi.fn(() => ({ error: null }))
     const update = vi.fn(() => ({ eq }))
     const supabase = {
@@ -864,6 +866,188 @@ describe('main photo confirmation', () => {
       metadata: {},
       photos: [
         {
+          id: 'photo-earlier',
+          intakeSessionId: 'intake-st21027',
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,TktK',
+          contentSha256: earlierSha,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+        {
+          id: 'photo-later',
+          intakeSessionId: 'intake-st21027',
+          attachmentIndex: 2,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,TEFURVI=',
+          contentSha256: laterSha,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+      ],
+    }
+
+    const ingested = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'ask',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: {
+                ok: false,
+                code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                contentSha256: earlierSha,
+                photoId: 'photo-earlier',
+                message:
+                  'This photo is already on NK60295. If ST21027 belongs with that set, reply yes.',
+              },
+            },
+          ],
+        },
+        {
+          id: 'yes',
+          role: 'user',
+          parts: [{ type: 'text', text: 'Yes' }],
+        },
+      ],
+    })
+
+    expect(ingested.metadata.photoSetReuseConfirmedSha).toBe(earlierSha)
+    expect(ingested.metadata.photoSetReuseConfirmedSha).not.toBe(laterSha)
+    expect(ingested.metadata.photoSetReuseConfirmed).toBeUndefined()
+    expect(ingested.metadata.mainPhotoConfirmedPhotoId).toBeUndefined()
+  })
+
+  it('binds a set yes to the photo id when the reuse error has no hash', async () => {
+    const earlierSha = 'c'.repeat(64)
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_sessions') return { update }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-st21027',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'ready_to_add',
+      known: {
+        itemNumber: 'ST21027',
+        designName: 'Stack',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: {},
+      photos: [
+        {
+          id: 'photo-earlier',
+          intakeSessionId: 'intake-st21027',
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,TktK',
+          contentSha256: earlierSha,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+        {
+          id: 'photo-later',
+          intakeSessionId: 'intake-st21027',
+          attachmentIndex: 2,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,TEFURVI=',
+          contentSha256: 'd'.repeat(64),
+          quality: 'usable',
+          qualityIssues: [],
+          notes: ['declared as customer-facing jewelry photo'],
+        },
+      ],
+    }
+
+    const ingested = await ingestLatestTradeBoardIntakeTurn(supabase as never, {
+      session,
+      messages: [
+        {
+          id: 'ask',
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              state: 'output-available',
+              output: {
+                ok: false,
+                code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                photoId: 'photo-earlier',
+                message:
+                  'This photo is already on NK60295. If ST21027 belongs with that set, reply yes.',
+              },
+            },
+          ],
+        },
+        {
+          id: 'yes',
+          role: 'user',
+          parts: [{ type: 'text', text: 'Yes' }],
+        },
+      ],
+    })
+
+    expect(ingested.metadata.photoSetReuseConfirmedSha).toBe(earlierSha)
+  })
+
+  it('stores no set confirmation when the reuse error names no photo', async () => {
+    const eq = vi.fn(() => ({ error: null }))
+    const update = vi.fn(() => ({ eq }))
+    const supabase = {
+      from: (table: string) => {
+        if (table === 'trade_board_intake_sessions') return { update }
+        throw new Error(`unexpected table ${table}`)
+      },
+    }
+    const session: TradeBoardIntakeSessionState = {
+      id: 'intake-st21027',
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      workflowType: 'trade_board_add_listing',
+      catalogMode: 'item_number',
+      status: 'active',
+      phase: 'ready_to_add',
+      known: {
+        itemNumber: 'ST21027',
+        designName: 'Stack',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      missing: [],
+      blockers: [],
+      warnings: [],
+      metadata: {},
+      photos: [
+        {
+          id: 'photo-later',
           intakeSessionId: 'intake-st21027',
           attachmentIndex: 1,
           declaredRole: 'jewelry_front',
@@ -905,9 +1089,7 @@ describe('main photo confirmation', () => {
       ],
     })
 
-    expect(ingested.metadata.photoSetReuseConfirmedSha).toBe('a'.repeat(64))
-    expect(ingested.metadata.photoSetReuseConfirmed).toBeUndefined()
-    expect(ingested.metadata.mainPhotoConfirmedPhotoId).toBeUndefined()
+    expect(ingested.metadata.photoSetReuseConfirmedSha).toBeUndefined()
   })
 
   it('keeps the photo fingerprint when a yes confirms the main photo in words', async () => {
