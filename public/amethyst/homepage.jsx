@@ -2121,7 +2121,7 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-review-nested .hp-signup-review-row { padding: 8px 0; }
 .hp-signup-review-copy { min-width: 0; display: grid; gap: 2px; }
 .hp-signup-review-label { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hp-card-muted); }
-.hp-signup-review-value { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.35; color: var(--hp-form-panel-fg); overflow-wrap: anywhere; }
+.hp-signup-review-value { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.45; color: var(--hp-form-panel-fg); overflow-wrap: break-word; }
 .hp-signup-review-meta { margin: 0; font-size: 14px; line-height: 1.4; color: var(--hp-card-muted); overflow-wrap: anywhere; }
 .hp-signup-review-notes { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .hp-signup-review-edit { flex: none; min-height: 44px; min-width: 44px; padding: 8px 2px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
@@ -2564,9 +2564,19 @@ function Signup({ repName, businessName }) {
     }
   }
 
-  function preferenceCount(picks) {
-    if (picks.length === 1 && picks[0] === SIGNUP_NOT_SURE) return "Not sure yet";
-    return picks.length === 1 ? "1 pick" : `${picks.length} picks`;
+  function preferenceShortLabel(label) {
+    const text = String(label || "").trim();
+    const cut = text.indexOf(" (");
+    return cut === -1 ? text : text.slice(0, cut);
+  }
+
+  function preferenceNames(picks, options) {
+    const list = Array.isArray(options) ? options : [];
+    return picks.map((slug) => {
+      if (slug === SIGNUP_NOT_SURE) return "Not sure yet";
+      const match = list.find((option) => option.slug === slug);
+      return preferenceShortLabel(match ? match.label : slug);
+    }).join(", ");
   }
 
   const favoriteCount = form.favoriteStones.length + form.favoriteMaterials.length + form.favoriteCuts.length + form.favoriteCollections.length;
@@ -2579,10 +2589,10 @@ function Signup({ repName, businessName }) {
   }
   const reviewName = [form.firstName.trim(), form.lastName.trim()].filter(Boolean).join(" ");
   const favoriteRows = [
-    ["Stones", form.favoriteStones, 1],
-    ["Metals", form.favoriteMaterials, 2],
-    ["Cuts", form.favoriteCuts, 3],
-    ["Collections", form.favoriteCollections, 4],
+    ["Stones", form.favoriteStones, preferenceOptions?.stone, 1],
+    ["Metals", form.favoriteMaterials, preferenceOptions?.material, 2],
+    ["Cuts", form.favoriteCuts, preferenceOptions?.cut, 3],
+    ["Collections", form.favoriteCollections, preferenceOptions?.collection, 4],
   ];
 
   return (
@@ -2782,11 +2792,11 @@ function Signup({ repName, businessName }) {
                       <p className="hp-signup-review-label">Favorites</p>
                       <p className="hp-signup-review-value">{favoriteCount === 1 ? "1 favorite" : `${favoriteCount} favorites`}</p>
                       <ul className="hp-signup-review-nested">
-                        {favoriteRows.map(([label, picks, stepIndex]) => (
+                        {favoriteRows.map(([label, picks, options, stepIndex]) => (
                           <li className="hp-signup-review-row" key={label}>
                             <div className="hp-signup-review-copy">
                               <p className="hp-signup-review-label">{label}</p>
-                              <p className="hp-signup-review-value">{preferenceCount(picks)}</p>
+                              <p className="hp-signup-review-value">{preferenceNames(picks, options)}</p>
                             </div>
                             <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[stepIndex]}`} onClick={() => goToStep(stepIndex)} disabled={submitState.status === "submitting"}>Edit</button>
                           </li>
