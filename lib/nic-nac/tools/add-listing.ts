@@ -874,6 +874,14 @@ export async function assertCustomerPhotoNotReused(args: {
     supabase: SupabaseClient
     conversationId: string
   }
+  /** Fields copied onto the PHOTO_REUSED output so one yes can cover the set and the photo. */
+  reuseAsk?: {
+    listingId?: string
+    itemNumber?: string | null
+    pieceKey?: string
+    previewImageUrl?: string
+    previewPhotoId?: string
+  }
 }) {
   await assertLabelAgreesWithItemNumber(args)
   const itemNumber = args.itemNumber?.trim()
@@ -908,12 +916,22 @@ export async function assertCustomerPhotoNotReused(args: {
   const flaggedPhoto = args.workflowPhotos?.find(
     (photo) => photo.imageUrl?.trim() === sourceImageUrl,
   )
+  const listingId = args.reuseAsk?.listingId?.trim()
+  const askedItem = args.reuseAsk?.itemNumber?.trim()
+  const pieceKey = args.reuseAsk?.pieceKey?.trim()
+  const previewImageUrl = args.reuseAsk?.previewImageUrl?.trim()
+  const previewPhotoId = args.reuseAsk?.previewPhotoId?.trim()
   throw new NicNacToolError({
     code: 'PHOTO_REUSED_ON_OTHER_ITEM',
     userMessage: decision.message,
     details: {
       contentSha256,
       ...(flaggedPhoto?.id ? { photoId: flaggedPhoto.id } : {}),
+      ...(listingId ? { listingId } : {}),
+      ...(askedItem ? { itemNumber: askedItem } : {}),
+      ...(pieceKey ? { pieceKey } : {}),
+      ...(previewImageUrl ? { previewImageUrl } : {}),
+      ...(previewPhotoId ? { previewPhotoId } : {}),
     },
   })
 }

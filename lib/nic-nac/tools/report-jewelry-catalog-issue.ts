@@ -6,7 +6,11 @@ import { ServiceError } from '@/lib/services/errors'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
 import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
-import { hashCustomerPhotoUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'
+import {
+  hashCustomerPhotoUrl,
+  normalizePhotoConfirmationKey,
+  photoConfirmationPieceKey,
+} from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
 import { sanitizeCatalogCorrectionFields } from '@/lib/nic-nac/workflows/trade-workflow-sanitizers'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
@@ -73,8 +77,11 @@ type ConversationPart = {
   text?: string
   output?: {
     needsAction?: string
+    code?: string
     itemNumber?: string
     previewImageUrl?: string
+    contentSha256?: string
+    pieceKey?: string
   }
 }
 
@@ -83,6 +90,8 @@ async function conversationConfirmsCatalogPhoto(args: {
   conversationId: string
   itemNumber: string
   photoUrl: string
+  contentSha256: string
+  pieceKey: string
 }): Promise<boolean> {
   try {
     const { data, error } = await args.supabase
@@ -102,8 +111,17 @@ async function conversationConfirmsCatalogPhoto(args: {
     if (!isPositiveConfirmation(text)) return false
     const assistant = rows.slice(latestUserIndex + 1).find((row) => row.role === 'assistant')
     const itemNumber = args.itemNumber.trim().toUpperCase()
+    const pieceKey = normalizePhotoConfirmationKey(args.pieceKey)
     return (assistant?.parts ?? []).some((part) => {
       const output = part.output
+      if (
+        output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM' &&
+        output.contentSha256?.trim() === args.contentSha256 &&
+        normalizePhotoConfirmationKey(output.pieceKey) === pieceKey &&
+        output.itemNumber?.trim().toUpperCase() === itemNumber
+      ) {
+        return true
+      }
       return (
         output?.needsAction === 'confirm_main_photo' &&
         output.itemNumber?.trim().toUpperCase() === itemNumber &&
@@ -159,6 +177,11 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
                 'I could not read that photo, so I did not save it on the shared catalog. Send it again and I will check it first.',
             })
           }
+          const pieceKey = photoConfirmationPieceKey({
+            itemNumber: input.itemNumber,
+            catalogMode: 'item_number',
+          })
+          const preview = mainPhotoPreviewLocator({ imageUrl: canonicalPhotoUrl })
           await assertCustomerPhotoNotReused({
             repId: ctx.repId,
             itemNumber: input.itemNumber,
@@ -169,12 +192,20 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
               supabase: ctx.supabase,
               conversationId: ctx.conversationId,
             },
+            reuseAsk: {
+              itemNumber: pieceKey,
+              pieceKey,
+              previewImageUrl: preview.previewImageUrl,
+              previewPhotoId: preview.previewPhotoId,
+            },
           })
           const confirmed = await conversationConfirmsCatalogPhoto({
             supabase: ctx.supabase,
             conversationId: ctx.conversationId,
             itemNumber: input.itemNumber,
             photoUrl: canonicalPhotoUrl,
+            contentSha256,
+            pieceKey,
           })
           if (!confirmed) {
             return {

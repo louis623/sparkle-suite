@@ -506,10 +506,108 @@ describe('update_listing — write + audit happy path', () => {
       }),
     ).rejects.toMatchObject({
       code: 'PHOTO_REUSED_ON_OTHER_ITEM',
-      details: { contentSha256 },
+      details: {
+        contentSha256,
+        listingId: VALID_LISTING_ID,
+        itemNumber: 'NK70001',
+        pieceKey: 'NK70001',
+        previewImageUrl: photoUrl,
+      },
       userMessage: expect.stringContaining('NK70001'),
     })
     expect(updateListingMock).not.toHaveBeenCalled()
+  })
+
+  it('saves a reused https listing photo after one yes, with no second ask', async () => {
+    const photoUrl = 'https://rep.example.com/reused-set.jpg'
+    const bytes = Uint8Array.from([9, 9, 9])
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        arrayBuffer: async () => bytes.buffer,
+      })),
+    )
+    const { createHash } = await import('crypto')
+    const contentSha256 = createHash('sha256').update(bytes).digest('hex')
+    const reused = {
+      data: [
+        {
+          trade_board_intake_sessions: {
+            item_number: 'NK60295',
+            status: 'completed',
+            created_design_id: 'design-nk60295',
+            created_listing_ids: ['listing-nk60295'],
+          },
+        },
+      ],
+      error: null,
+    }
+    createAdminClientMock.mockReturnValue({
+      from: () => queryResult(reused),
+    })
+    const first = makeTool(undefined, photoSupabase())
+    const ask = await first
+      .execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: photoUrl,
+      })
+      .then(
+        () => {
+          throw new Error('expected the set ask')
+        },
+        (err: { userMessage?: string; details?: Record<string, unknown> }) => err,
+      )
+    expect(ask.details).toMatchObject({
+      contentSha256,
+      listingId: VALID_LISTING_ID,
+      pieceKey: 'NK70001',
+      previewImageUrl: photoUrl,
+    })
+
+    processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/normalized.jpg',
+    })
+    updateListingMock.mockResolvedValueOnce({
+      listingId: VALID_LISTING_ID,
+      status: 'available',
+    })
+    const second = makeTool(
+      undefined,
+      photoSupabase({
+        conversations: [
+          { role: 'user', parts: [{ type: 'text', text: 'Yes' }] },
+          {
+            role: 'assistant',
+            parts: [
+              {
+                output: {
+                  code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                  message: ask.userMessage,
+                  contentSha256,
+                  listingId: VALID_LISTING_ID,
+                  itemNumber: 'NK70001',
+                  previewImageUrl: photoUrl,
+                  pieceKey: 'NK70001',
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    )
+
+    await expect(
+      second.execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: photoUrl,
+      }),
+    ).resolves.toMatchObject({
+      listingId: VALID_LISTING_ID,
+      patchedFields: ['listingPhotoUrl'],
+    })
+    expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledTimes(1)
+    expect(updateListingMock).toHaveBeenCalledTimes(1)
   })
 
   it('uses a stored photo hash instead of downloading the listing photo again', async () => {

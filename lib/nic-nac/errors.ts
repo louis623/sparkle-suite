@@ -9,6 +9,11 @@
 export type NicNacToolErrorDetails = {
   contentSha256?: string
   photoId?: string
+  listingId?: string
+  itemNumber?: string
+  previewImageUrl?: string
+  previewPhotoId?: string
+  pieceKey?: string
 }
 
 export class NicNacToolError extends Error {

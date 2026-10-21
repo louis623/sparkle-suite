@@ -26,6 +26,7 @@ import { NicNacToolError } from '@/lib/nic-nac/errors'
 import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import {
   hashCustomerPhotoUrl,
+  normalizePhotoConfirmationKey,
   photoConfirmationPieceKey,
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
@@ -179,6 +180,7 @@ export function makeUpdateListingTool(ctx: {
                 'I could not read that photo, so I did not save it. Send it again and I will check it first.',
             })
           }
+          const preview = mainPhotoPreviewLocator({ imageUrl: photoUrl })
           await assertCustomerPhotoNotReused({
             repId: ctx.repId,
             itemNumber: listing.pieceKey,
@@ -193,12 +195,21 @@ export function makeUpdateListingTool(ctx: {
               supabase: ctx.supabase,
               conversationId: ctx.conversationId,
             },
+            reuseAsk: {
+              listingId,
+              itemNumber: listing.itemNumber,
+              pieceKey: listing.pieceKey,
+              previewImageUrl: preview.previewImageUrl,
+              previewPhotoId: preview.previewPhotoId,
+            },
           })
           const confirmed = await conversationConfirmsListingPhoto({
             supabase: ctx.supabase,
             conversationId: ctx.conversationId,
             listingId,
             photoUrl,
+            contentSha256,
+            pieceKey: listing.pieceKey,
           })
           if (!confirmed) {
             const label = listing.pieceKey.startsWith('NON_ITEM:')
@@ -336,9 +347,25 @@ type ConversationPart = {
   text?: string
   output?: {
     needsAction?: string
+    code?: string
     listingId?: string
     previewImageUrl?: string
+    contentSha256?: string
+    pieceKey?: string
   }
+}
+
+function reuseAskConfirmsListingPhoto(
+  output: ConversationPart['output'],
+  args: { listingId: string; contentSha256: string; pieceKey: string },
+): boolean {
+  if (output?.code !== 'PHOTO_REUSED_ON_OTHER_ITEM') return false
+  return (
+    output.listingId === args.listingId &&
+    output.contentSha256?.trim() === args.contentSha256 &&
+    normalizePhotoConfirmationKey(output.pieceKey) ===
+      normalizePhotoConfirmationKey(args.pieceKey)
+  )
 }
 
 async function conversationConfirmsListingPhoto(args: {
@@ -346,6 +373,8 @@ async function conversationConfirmsListingPhoto(args: {
   conversationId: string
   listingId: string
   photoUrl: string
+  contentSha256: string
+  pieceKey: string
 }): Promise<boolean> {
   const { data, error } = await args.supabase
     .from('nic_nac_conversations')
@@ -367,6 +396,7 @@ async function conversationConfirmsListingPhoto(args: {
     .find((row) => row.role === 'assistant')
   return (assistant?.parts ?? []).some((part) => {
     const output = part.output
+    if (reuseAskConfirmsListingPhoto(output, args)) return true
     return (
       output?.needsAction === 'confirm_main_photo' &&
       output.listingId === args.listingId &&
