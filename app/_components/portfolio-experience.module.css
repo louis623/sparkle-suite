@@ -12,7 +12,6 @@
 .hero h1 { margin-top: 20px; font-size: clamp(42px, 5.7vw, 72px); line-height: 1.05; }
 .hero em, .close em { color: var(--suite-soft-pink); }
 .hero .heroBody { margin-top: 24px; font-size: 19px; line-height: 1.65; }
-.browserBar { border-radius: 6px 6px 0 0; background: var(--suite-plum); color: var(--suite-paper); padding: 7px 12px; font-size: 11px; letter-spacing: .03em; }
 .primaryButton { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 16px; text-decoration: none; border-radius: 999px; font-size: 15px; font-weight: 600; }
 .close { text-align: center; padding-block: 68px; }
 .close h2 { font-size: clamp(36px, 4.5vw, 54px); line-height: 1.15; }
@@ -101,12 +100,11 @@
   overflow: hidden;
 }
 .phoneFrame { width: min(390px, 100%); margin-inline: auto; }
-.browserBar em { font-style: normal; }
 .frame > img, .phoneFrame > img, .frame > div, .phoneFrame > div, .frame > span, .phoneFrame > span {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 0 0 6px 6px;
+  border-radius: 12px;
 }
 .frame > .mediaWell, .phoneFrame > .mediaWell {
   position: relative;
@@ -115,7 +113,7 @@
   aspect-ratio: 16 / 9;
   overflow: hidden;
   padding: 0;
-  border-radius: 0 0 6px 6px;
+  border-radius: 12px;
   background: #241811;
 }
 .mediaWell img, .mediaWell video {

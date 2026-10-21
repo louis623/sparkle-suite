@@ -45,9 +45,6 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
 
   return (
     <div className={`${slide.width < 700 ? styles.phoneFrame : styles.frame} ${mileHighScript.variable}`}>
-      <div className={styles.browserBar} aria-hidden="true">
-        <em>{slide.title}</em>
-      </div>
       <div className={styles.mediaWell}>
         {video ? (
           <ProductPeekVideo
