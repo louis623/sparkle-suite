@@ -497,32 +497,6 @@ const FONTS = {
   chunky: '"Archivo Black", "Inter", sans-serif',
 };
 
-const COLLECTIONS = ["OG", "Birthday", "Spring Luxe", "Simply Studded", "Market Fresh", "Stacks"];
-const TYPES = ["Ring", "Necklace", "Earrings", "Bracelet", "Pendant", "Stack"];
-const MATERIALS = [
-  "Sterling silver",
-  "Triple-plated gold",
-  "Nickel-free brass",
-  "Gold vermeil",
-  "Mixed alloy plating",
-  "Silver-tone finish",
-];
-const STONES = ["Amethyst", "Opal", "Pearl", "Moonstone", "Citrine", "Topaz"];
-const PIECE_NAMES = [
-  "Halo Bloom Ring",
-  "Velvet Hour Necklace",
-  "Petal Drop Earrings",
-  "Crescent Bracelet",
-  "North Star Pendant",
-  "Aurora Stack",
-  "Lavender Tide Ring",
-  "Birthday Spark Necklace",
-  "Moon Petal Earrings",
-  "Golden Glow Bracelet",
-  "Starlight Pendant",
-  "Rose Halo Stack",
-];
-
 const LIVE_QUEUE_NAMES = [
   "Jamie L.", "Priya M.", "Devon R.", "Carla J.", "Sophie A.", "Monique T.",
   "Riley B.", "Harper V.", "Tasha W.", "Megan C.", "Bailey H.", "Jordan P.",
@@ -546,36 +520,29 @@ const LIVE_QUEUE_ENTRIES = RUNTIME_CONTEXT.targeted ? [] : LIVE_QUEUE_NAMES.map(
   marker: index === 0 ? "?" : "",
 }));
 
-function buildSamples(count) {
-  const out = [];
-  for (let i = 0; i < count; i++) {
-    let tier = "everyday";
-    if (i === 0) tier = "unicorn";
-    else if (i === 1) tier = "diamond";
+function sampleTypeMatchesCollection(collection, type) {
+  const label = String(collection || "").toLowerCase();
+  const kind = String(type || "").toLowerCase();
+  if (kind === "earrings") return /\bearrings?\b/.test(label);
+  if (kind === "necklace" || kind === "pendant") return /\b(necklace|pendant)s?\b/.test(label);
+  if (kind === "ring") return /\brings?\b/.test(label);
+  if (kind === "bracelet") return /\bbracelets?\b/.test(label);
+  if (kind === "stack") return /\bstacks?\b/.test(label);
+  return false;
+}
 
-    const collection = COLLECTIONS[i % COLLECTIONS.length];
-    const type = TYPES[i % TYPES.length];
-    const material = MATERIALS[i % MATERIALS.length];
-    const stone = STONES[i % STONES.length];
-    out.push({
-      id: i + 1,
-      name: PIECE_NAMES[i % PIECE_NAMES.length] + (i >= PIECE_NAMES.length ? ` ${Math.floor(i / PIECE_NAMES.length) + 1}` : ""),
-      tier,
-      collection,
-      type,
-      material,
-      stone,
-      size: type === "Ring" ? ["6", "7", "8", "9"][i % 4] : null,
-      note: tier === "diamond"
-        ? "Rare Diamond dancer - still item-for-item only."
-        : tier === "unicorn"
-          ? "Rare Unicorn dancer."
-          : "Dance Floor dancer.",
-      glyph: PIECE_NAMES[i % PIECE_NAMES.length].charAt(0),
-      photoUrl: null,
-    });
-  }
-  return out;
+function buildSamples(count) {
+  return DEMO_DANCE_FLOOR_LISTINGS
+    .filter((piece) => sampleTypeMatchesCollection(piece.collection, piece.type))
+    .slice(0, count)
+    .map((piece) => ({
+      ...piece,
+      tier: "everyday",
+      size: null,
+      note: "Dance Floor dancer.",
+      glyph: piece.name.charAt(0),
+      quantityAvailable: 1,
+    }));
 }
 
 function normalizeBootstrapPiece(piece, index) {

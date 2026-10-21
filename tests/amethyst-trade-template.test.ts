@@ -7,6 +7,7 @@ import {
   buildAmethystTradeTweakDefaults,
   defaultAmethystTradeTemplateData,
 } from '@/lib/amethyst/trade-template-data'
+import { displayCollectionLabel } from '@/lib/amethyst/trade-board-filters'
 import {
   defaultAmethystTradeBoardListings,
   mapTradeListingToAmethystTradeBoardListing,
@@ -449,6 +450,23 @@ describe('Amethyst trade page template wiring', () => {
       photoUrl: null,
       photoSource: 'missing',
     })
+  })
+
+  it('keeps each Sasha demo dancer in a collection that matches its jewelry type', () => {
+    const agrees = (collection: string, type: string) => {
+      const label = displayCollectionLabel(collection).toLowerCase()
+      const kind = type.toLowerCase()
+      if (kind === 'earrings') return /\bearrings?\b/.test(label)
+      if (kind === 'necklace' || kind === 'pendant') return /\b(necklace|pendant)s?\b/.test(label)
+      if (kind === 'ring') return /\brings?\b/.test(label)
+      if (kind === 'bracelet') return /\bbracelets?\b/.test(label)
+      if (kind === 'stack') return /\bstacks?\b/.test(label)
+      return false
+    }
+
+    for (const listing of defaultAmethystTradeBoardListings) {
+      expect(agrees(listing.collection, listing.type), `${listing.name}: ${listing.type} in ${listing.collection}`).toBe(true)
+    }
   })
 
   it('gives the Sasha demo a photo for every dancer', () => {
