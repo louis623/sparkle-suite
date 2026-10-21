@@ -347,7 +347,8 @@ function getAboutMediaSlot(index) {
 }
 
 function mediaEmptyPrompt(kind) {
-  const seasonal = CONTENT.preset === "gobble_and_fizz" || CONTENT.preset === "pie_please";
+  const preset = window.HOMEPAGE_TWEAK_DEFAULTS?.preset || CONTENT.preset || "";
+  const seasonal = preset === "gobble_and_fizz" || preset === "pie_please";
   if (!seasonal) return kind === "portrait" ? "Portrait photo coming soon" : "Video coming soon";
   if (kind === "portrait") return "Add a portrait so guests can meet you.";
   if (kind === "short") return "Add a short from a recent reveal.";

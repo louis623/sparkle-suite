@@ -38,6 +38,7 @@ describe.each([
     const jsx = readFileSync('public/amethyst/homepage.jsx', 'utf8')
     expect(jsx).toContain('Add a portrait so guests can meet you.')
     expect(jsx).toContain('Add a short from a recent reveal.')
+    expect(jsx).toContain('window.HOMEPAGE_TWEAK_DEFAULTS?.preset || CONTENT.preset')
     expect(jsx).toContain('Add a video from a live reveal.')
     expect(css).toContain('.hp-customer-media-card.is-empty { align-self: start; }')
     expect(css).toContain('aspect-ratio: auto;')
