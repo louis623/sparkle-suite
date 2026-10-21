@@ -169,14 +169,24 @@ describe('Sparkle Suite portfolio carousels', () => {
     expect(repHtml).toContain('Where Faith Meets Fizz')
     expect(repHtml).not.toContain('mile-high-fizz-site-preview')
     expect(repHtml).not.toContain('britt-with-bling-site-preview')
+    expect(repHtml).not.toContain('go-for-the-bling-site-preview')
+    expect(repHtml).not.toContain('sparkly-butterflies-site-preview')
+    expect(repHtml).toContain('A little wonder, a lot of sparkle.')
+    expect(repHtml).toContain('Your Sparkle Taking Flight')
+    for (const plate of [
+      '/amethyst/skins/gnome-garden/forest.webp',
+      '/amethyst/skins/neon-butterfly/kelly-studio-desktop.webp',
+    ]) {
+      expect(repHtml.includes(plate) || repHtml.includes(encodeURIComponent(plate))).toBe(true)
+      expect(existsSync(publicFile(plate))).toBe(true)
+    }
     for (const id of ['go-for-the-bling', 'sparkly-butterflies'] as const) {
-      const motion = portfolioMotion[id]
-      expect(motion).toBeTruthy()
-      expect(repHtml).toContain(motion.poster)
-      expect(repHtml).toContain(`width="${motion.width}"`)
-      expect(repHtml).toContain(`height="${motion.height}"`)
-      expect(existsSync(publicFile(motion.poster))).toBe(true)
-      expect(existsSync(publicFile(motion.mp4))).toBe(true)
+      const slide = sparkleSuitePortfolioContent.carousels
+        .find((carousel) => carousel.id === 'rep-highlights')
+        ?.slides.find((item) => item.id === id)
+      expect(slide && slide.kind === 'capture' ? slide.fixedShowcase : undefined).toBe(true)
+      expect(slide && slide.kind === 'capture' ? slide.video : undefined).toBeUndefined()
+      expect(portfolioMotion[id]).toBeTruthy()
     }
     expect(existsSync(publicFile('/sparkle-suite/portfolio/mile-high-fizz-custom-hero.webp'))).toBe(true)
     expect(existsSync(publicFile('/mile-high-fizz/hero.mp4'))).toBe(true)
@@ -193,7 +203,7 @@ describe('Sparkle Suite portfolio carousels', () => {
     ]) {
       expect(existsSync(publicFile(removed))).toBe(false)
     }
-    const repPosters = [...repHtml.matchAll(/<img\b[^>]*(?:site-preview|custom-hero)\.webp[^>]*>/g)].map((match) => match[0])
+    const repPosters = [...repHtml.matchAll(/<img\b[^>]*>/g)].map((match) => match[0])
     expect(repPosters).toHaveLength(4)
     expect(repPosters[0]).toContain('mile-high-fizz-custom-hero.webp')
     expect(repPosters[0]).toContain('loading="eager"')
