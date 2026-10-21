@@ -546,6 +546,89 @@ describe('main photo confirmation', () => {
     })
   })
 
+  it.each([
+    [
+      'tool-add_listing',
+      {
+        needsAction: 'confirm_main_photo',
+        previewImageUrl: 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/add.jpg',
+        message: 'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
+      },
+    ],
+    [
+      'tool-update_listing',
+      {
+        needsAction: 'confirm_main_photo',
+        previewImageUrl: 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/update.jpg',
+        message: 'This is the main photo I will save for NK70001. If this is the right piece, reply yes.',
+      },
+    ],
+    [
+      'tool-report_jewelry_catalog_issue',
+      {
+        needsAction: 'confirm_main_photo',
+        previewImageUrl: 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/approved/design-1/front.jpg',
+        message: 'This is the main photo I will save for ER34579. If this is the right piece, reply yes.',
+      },
+    ],
+  ])('shows a main-photo preview for %s', (toolType, output) => {
+    const renderables = buildAssistantMessageRenderables([
+      { type: toolType, state: 'output-available', output },
+    ])
+    expect(renderables).toEqual([
+      {
+        type: 'main-photo-preview',
+        key: 'main-photo-0',
+        text: output.message,
+        imageUrl: output.previewImageUrl,
+      },
+    ])
+  })
+
+  it('shows the photo on a set-reuse ask that carries a preview', () => {
+    const previewImageUrl =
+      'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/reused.jpg'
+    const message =
+      'This photo is already on NK60295. If NK70001 belongs with that set, reply yes.'
+    const renderables = buildAssistantMessageRenderables([
+      {
+        type: 'tool-update_listing',
+        state: 'output-available',
+        output: {
+          code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+          previewImageUrl,
+          message,
+        },
+      },
+    ])
+    expect(renderables).toEqual([
+      {
+        type: 'main-photo-preview',
+        key: 'main-photo-0',
+        text: message,
+        imageUrl: previewImageUrl,
+      },
+    ])
+  })
+
+  it('shows a set-reuse photo from its photo id', () => {
+    const renderables = buildAssistantMessageRenderables([
+      {
+        type: 'tool-report_jewelry_catalog_issue',
+        state: 'output-available',
+        output: {
+          code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+          previewPhotoId: 'photo-er34579',
+          message: 'This photo is already on NK60295. If ER34579 belongs with that set, reply yes.',
+        },
+      },
+    ])
+    expect(renderables[0]).toMatchObject({
+      type: 'main-photo-preview',
+      imageUrl: '/api/nic-nac/intake-photos/photo-er34579',
+    })
+  })
+
   it('remembers a yes after the main photo preview', async () => {
     const eq = vi.fn(() => ({ error: null }))
     const update = vi.fn(() => ({ eq }))

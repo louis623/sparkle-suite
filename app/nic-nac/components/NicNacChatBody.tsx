@@ -170,23 +170,30 @@ export function buildAssistantMessageRenderables(
       state?: string
       output?: {
         needsAction?: string
+        code?: string
         previewPhotoId?: string
         previewImageUrl?: string
         message?: string
       }
     }
-    if (
-      toolPart.type === 'tool-add_listing' &&
+    const output = toolPart.output
+    const isToolResult =
+      typeof toolPart.type === 'string' &&
+      toolPart.type.startsWith('tool-') &&
       toolPart.state === 'output-available' &&
-      toolPart.output?.needsAction === 'confirm_main_photo'
-    ) {
+      output != null
+    const showsMainPhoto =
+      output?.needsAction === 'confirm_main_photo' ||
+      (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM' &&
+        Boolean(output.previewImageUrl?.trim() || output.previewPhotoId?.trim()))
+    if (isToolResult && showsMainPhoto) {
       flushText(`text-${index}`)
-      const imageUrl = mainPhotoPreviewSrc(toolPart.output)
+      const imageUrl = mainPhotoPreviewSrc(output)
       renderables.push({
         type: 'main-photo-preview',
         key: `main-photo-${index}`,
         text:
-          toolPart.output.message ??
+          output.message ??
           'This is the main photo I will save. If this is the right piece, reply yes.',
         ...(imageUrl ? { imageUrl } : {}),
       })
