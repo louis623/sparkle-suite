@@ -39,7 +39,7 @@ body.tradepage h4 {
   margin: 0 auto 14px;
   padding-block: 0.04em 0.12em;
   text-wrap: balance;
-  max-width: 16ch;
+  max-width: 18ch;
   overflow: visible;
 }
 
@@ -217,7 +217,8 @@ body.britt-with-bling-trade .tp-empty-title {
 }
 
 body.britt-with-bling-trade .tp-card-expand-specs,
-body.britt-with-bling-trade .tp-card-expand-box {
+body.britt-with-bling-trade .tp-card-expand-box,
+body.britt-with-bling-trade .tp-card-expand-note {
   color: var(--bwb-gold);
 }
 
@@ -295,7 +296,7 @@ body.britt-with-bling-trade .hp-footer {
     font-size: clamp(32px, 9.6vw, 44px);
     line-height: 1.12;
     width: 100%;
-    max-width: 10ch;
+    max-width: 13ch;
     padding-block: 0.04em 0.12em;
     overflow-wrap: anywhere;
   }
@@ -893,6 +894,23 @@ body.bg-quartz-paper .tp-filter-pill.active .count {
   flex-wrap: wrap;
   padding: 0;
 }
+.tp-filters .tp-filters-row-collections {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.tp-filter-row-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.tp-filter-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .tp-filter-drop {
   display: inline-flex;
   align-items: center;
@@ -1002,18 +1020,34 @@ body.bg-quartz-paper .tp-filter-pill.active .count {
   object-fit: cover;
   display: block;
 }
+.tp-grid .tp-card-photo.has-photo,
+.tp-card-expand-photo.has-photo {
+  aspect-ratio: 3 / 4;
+  background: #a8aaa9;
+}
+.tp-card-expand-photo.has-photo {
+  align-self: start;
+  width: 100%;
+  height: auto;
+}
+.tp-card-photo.has-photo .tp-card-photo-img,
+.tp-card-expand-photo.has-photo .tp-card-expand-photo-img {
+  object-fit: contain;
+  object-position: center;
+  padding: 0;
+  background: transparent;
+}
 .tp-card-photo .photo-glyph {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  color: color-mix(in oklab, var(--hp-primary) 30%, var(--fg-muted));
-  font-family: var(--hp-display-font);
-  font-size: 48px;
-  font-weight: 300;
-  letter-spacing: 0.1em;
-  opacity: 0.5;
+  color: var(--hp-primary);
   z-index: 1;
+}
+.tp-card-photo .photo-glyph .tp-sparkle-mark {
+  width: 64px;
+  height: 64px;
 }
 /* Tier badge top-left */
 .tp-card-tier {
@@ -1094,6 +1128,7 @@ body.bg-quartz-paper .tp-filter-pill.active .count {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
 }
 .tp-card-name {
   font-family: var(--hp-display-font);
@@ -1108,13 +1143,11 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
   color: var(--hp-card-fg, var(--fg));
 }
 .tp-card-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
+  display: block;
   font-size: 13px;
   color: var(--hp-card-muted, var(--fg-muted));
-  letter-spacing: 0.04em;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
 }
 .tp-card-collection {
   text-transform: uppercase;
@@ -1144,7 +1177,7 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
 .tp-card-action {
   align-self: flex-start;
   min-height: 40px;
-  margin-top: 5px;
+  margin-top: auto;
   padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -1162,13 +1195,19 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
 .tp-card-expand-mask {
   position: fixed;
   inset: 0;
-  background: rgba(14, 8, 32, 0.55);
-  backdrop-filter: blur(4px);
+  background: transparent;
   z-index: 80;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+}
+.tp-card-expand-mask::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 8, 32, 0.62);
+  backdrop-filter: blur(4px);
   animation: tp-fade-in 0.4s ease-in-out;
 }
 @keyframes tp-fade-in {
@@ -1178,17 +1217,19 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
 .tp-card-expand {
   width: min(900px, 100%);
   max-height: 90vh;
-  background: var(--hp-bg-elevated);
+  background: var(--hp-bg-elevated, #f2ebfa);
+  opacity: 1;
   border-radius: 20px;
   overflow: auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
   position: relative;
+  z-index: 1;
   animation: tp-pop-in 0.4s ease-in-out;
 }
 @keyframes tp-pop-in {
-  from { transform: scale(0.96) translateY(8px); opacity: 0; }
-  to { transform: scale(1) translateY(0); opacity: 1; }
+  from { transform: scale(0.98) translateY(8px); }
+  to { transform: none; }
 }
 @media (max-width: 700px) {
   .tp-card-expand { grid-template-columns: 1fr; }
@@ -1217,22 +1258,46 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
     padding: 0 24px;
   }
 }
+.tp-card-expand:has(.tp-card-expand-photo:not(.has-photo)) {
+  grid-template-columns: 168px minmax(0, 1fr);
+}
 .tp-card-expand-photo {
   aspect-ratio: 4 / 5;
   background: linear-gradient(135deg, var(--bg-deep), var(--hp-bg));
   position: relative;
   overflow: hidden;
 }
+.tp-card-expand-photo:not(.has-photo) {
+  aspect-ratio: auto;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in oklab, var(--hp-primary) 16%, white), transparent 58%),
+    linear-gradient(180deg, color-mix(in oklab, var(--hp-primary) 7%, white), var(--hp-bg));
+}
+.tp-card-expand-photo:not(.has-photo) .photo-glyph .tp-sparkle-mark {
+  width: 36px;
+  height: 36px;
+  opacity: 0.7;
+}
+@media (max-width: 700px) {
+  .tp-card-expand:has(.tp-card-expand-photo:not(.has-photo)) {
+    grid-template-columns: 1fr;
+  }
+  .tp-card-expand-photo:not(.has-photo) {
+    min-height: 0;
+    height: 84px;
+  }
+}
 .tp-card-expand-photo .photo-glyph {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  color: color-mix(in oklab, var(--hp-primary) 40%, var(--fg-muted));
-  font-family: var(--hp-display-font);
-  font-size: 96px;
-  font-weight: 300;
-  opacity: 0.4;
+  color: var(--hp-primary);
+}
+.tp-card-expand-photo .photo-glyph .tp-sparkle-mark {
+  width: 88px;
+  height: 88px;
 }
 .tp-card-expand-body {
   padding: 36px 32px;
@@ -1289,32 +1354,46 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
   color: var(--hp-card-fg, var(--fg));
   font-weight: 500;
 }
-.tp-card-expand-box {
-  padding: 12px;
-  background: var(--hp-bg);
-  border: 1px dashed var(--border);
-  border-radius: 12px;
+.tp-card-expand-note {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 12px;
-  color: var(--hp-card-muted, var(--fg-muted));
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--hp-primary) 10%, var(--hp-bg-elevated));
+  color: var(--hp-card-fg, var(--fg));
+  font-size: 13px;
+  line-height: 1.45;
 }
-.tp-card-expand-box .thumb {
-  width: 56px; height: 56px;
-  background: linear-gradient(135deg, var(--bg-deep), var(--hp-bg-elevated));
-  border-radius: 6px;
-  display: grid; place-items: center;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--fg-muted);
-  flex-shrink: 0;
+.tp-card-expand-note p {
+  margin: 0;
+}
+.tp-card-expand-note .tp-sparkle-mark {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: var(--hp-primary);
 }
 .tp-card-expand-rule {
   margin: 0;
   color: var(--hp-card-muted, var(--fg-muted));
   font-size: 13px;
   line-height: 1.5;
+}
+.tp-sparkle-mark {
+  width: 1em;
+  height: 1em;
+  display: block;
+  flex: none;
+}
+.tp-card-expand-cta .tp-sparkle-mark {
+  width: 16px;
+  height: 16px;
+}
+.tp-empty-glyph .tp-sparkle-mark {
+  width: 48px;
+  height: 48px;
 }
 .tp-card-expand-cta {
   display: inline-flex;
@@ -1356,21 +1435,29 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
 .tp-sheet-mask {
   position: fixed;
   inset: 0;
-  background: rgba(14, 8, 32, 0.55);
-  backdrop-filter: blur(4px);
+  background: transparent;
   z-index: 90;
   display: flex;
   align-items: flex-end;
   justify-content: center;
+}
+.tp-sheet-mask::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 8, 32, 0.62);
+  backdrop-filter: blur(4px);
   animation: tp-fade-in 0.4s ease-in-out;
 }
 .tp-sheet {
   width: min(560px, 100%);
-  background: var(--hp-bg-elevated);
+  background: var(--hp-bg-elevated, #f2ebfa);
+  opacity: 1;
   color: var(--hp-form-panel-fg, var(--hp-card-fg, var(--fg)));
   border-radius: 20px 20px 0 0;
   padding: 28px 28px 36px;
   position: relative;
+  z-index: 1;
   animation: tp-slide-up 0.4s ease-in-out;
   max-height: 90vh;
   overflow: auto;
@@ -1445,6 +1532,15 @@ body.tradepage .tp-sheet-title {
   resize: vertical;
 }
 .tp-sheet-field textarea { min-height: 88px; }
+.tp-field-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.4;
+  color: var(--hp-card-muted, var(--fg-muted));
+}
 .tp-sheet-field input:focus,
 .tp-sheet-field textarea:focus,
 .tp-sheet-field select:focus {
@@ -1672,18 +1768,28 @@ body.tradepage .tp-sheet-title {
 }
 
 /* ---------- Empty state ---------- */
+body.tradepage.dance-floor-empty .hp-ticker-row.reverse {
+  display: none;
+}
+body.tradepage .hp-ticker-row:not(.reverse):not(:has(.hp-ticker-item)) {
+  display: none;
+}
+body.tradepage.dance-floor-empty .hp-ticker:not(:has(.hp-ticker-row:not(.reverse) .hp-ticker-item)) {
+  display: none;
+}
 .tp-empty {
   text-align: center;
-  padding: 80px 24px;
-  border: 1px dashed var(--border);
+  padding: 48px 24px;
+  border: 1px solid color-mix(in oklab, var(--hp-primary) 22%, var(--border));
   border-radius: var(--hp-radius-card);
-  background: var(--hp-bg-elevated);
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in oklab, var(--hp-primary) 14%, transparent), transparent 58%),
+    var(--hp-bg-elevated);
 }
 .tp-empty-glyph {
-  font-family: var(--hp-display-font);
-  font-size: 64px;
+  display: flex;
+  justify-content: center;
   color: var(--hp-primary);
-  opacity: 0.3;
   margin-bottom: 12px;
 }
 .tp-empty-title {
@@ -1783,8 +1889,10 @@ body.tradepage .tp-sheet-title {
   .tp-drawer-bar .live-dot,
   .tp-card.unicorn,
   .tp-card-expand-mask,
+  .tp-card-expand-mask::before,
   .tp-card-expand,
   .tp-sheet-mask,
+  .tp-sheet-mask::before,
   .tp-sheet {
     animation: none !important;
   }
@@ -2121,7 +2229,8 @@ body.mile-high-fizz-trade .tp-empty-sub {
 }
 
 body.mile-high-fizz-trade .tp-card-expand-specs,
-body.mile-high-fizz-trade .tp-card-expand-box {
+body.mile-high-fizz-trade .tp-card-expand-box,
+body.mile-high-fizz-trade .tp-card-expand-note {
   background: rgba(253, 242, 248, 0.72);
   border-color: rgba(236, 72, 153, 0.16);
 }

@@ -47,10 +47,10 @@ export function RequiredSetupLiveQueuePanel({ syncCode, onSend, disabled = false
       <p>Connect your show computer to Sparkle Suite with the Live Lineup code already assigned to your Workspace. Verification still checks for a recent, ready update from your selected source.</p>
     </div>
     <ol className={styles.steps}>
-      <li>Use the <a className={styles.storeLink} href={LIVE_QUEUE_CHROME_EXTENSION_URL} target="_blank" rel="noreferrer">Live Lineup extension</a>.</li>
+      <li>Use the <a className={styles.storeLink} href={LIVE_QUEUE_CHROME_EXTENSION_URL} target="_blank" rel="noreferrer">Sparkle Suite extension</a>.</li>
       <li>Open the extension and enter the assigned code shown below. This is the same code shown at the top of your Workspace.</li>
       <li>Open your Bomb Party Party Orders tab. In the extension, review and confirm that tab and the parties for your show.</li>
-      <li>Keep the selected tab open and verify below. An authoritative empty lineup is valid; you do not need a customer to place a test order.</li>
+      <li>Keep the selected tab open and verify below. An empty lineup can still be ready; you do not need a customer to place a test order.</li>
     </ol>
     <div className={styles.pairingArea}>
       <strong>Your Live Lineup code</strong>

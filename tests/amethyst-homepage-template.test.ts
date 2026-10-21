@@ -340,7 +340,9 @@ describe('Amethyst homepage template data wiring', () => {
       expect(jsx).toContain('function buildTickerLoopItems(items, minimumSegmentItems)')
       expect(jsx).toContain('function useDynamicTickerMotion()')
       expect(jsx).toContain('CONTENT.tradeBoardTickerItems')
-      expect(jsx).toContain('{tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}')
+      expect(jsx).toContain(jsx === trade
+        ? '{tr.name} · {tr.collection || "Collection pending"}'
+        : '{tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}')
       expect(jsx).toContain('data-ticker-segment-start')
       expect(jsx).toContain('data-ticker-segment-repeat-start')
       expect(jsx).toContain('data-ticker-pps={TRADE_TICKER_SPEED_PPS}')

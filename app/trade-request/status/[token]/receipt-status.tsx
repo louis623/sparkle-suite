@@ -33,18 +33,23 @@ export default function ReceiptStatus({ token }: { token: string }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [invalidLink, setInvalidLink] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
     async function load() {
       setLoading(true)
       setError('')
+      setInvalidLink(false)
       try {
         const response = await fetch(`/api/amethyst/trade-requests/status?token=${encodeURIComponent(token)}`, {
           cache: 'no-store',
           signal: controller.signal,
         })
-        if (!response.ok) throw new Error(response.status === 404 ? 'This private link is invalid or no longer available.' : 'Status is unavailable right now. Please try again.')
+        if (!response.ok) {
+          if (response.status === 404) setInvalidLink(true)
+          throw new Error(response.status === 404 ? 'This private link is invalid or no longer available.' : 'Status is unavailable right now. Please try again.')
+        }
         const data = await response.json() as Partial<Receipt>
         if (!data.status || !Object.hasOwn(STATUS_COPY, data.status)) throw new Error('Status is unavailable right now. Please try again.')
         setReceipt({
@@ -76,18 +81,20 @@ export default function ReceiptStatus({ token }: { token: string }) {
             {receipt.updatedAt ? <p className={styles.updated}>Updated {new Date(receipt.updatedAt).toLocaleString()}</p> : null}
           </>
         ) : null}
-        <div className={styles.saveBox}>
-          <strong>Keep this link private</strong>
-          <p>Save it to check for changes. This page updates when you open it; it does not send notifications.</p>
-          <button type="button" onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(window.location.href)
-              setCopied(true)
-            } catch {
-              setCopied(false)
-            }
-          }}>{copied ? 'Copied' : 'Copy status link'}</button>
-        </div>
+        {!loading && !invalidLink ? (
+          <div className={styles.saveBox}>
+            <strong>Keep this link private</strong>
+            <p>Save it to check for changes. This page updates when you open it; it does not send notifications.</p>
+            <button type="button" onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(window.location.href)
+                setCopied(true)
+              } catch {
+                setCopied(false)
+              }
+            }}>{copied ? 'Copied' : 'Copy status link'}</button>
+          </div>
+        ) : null}
       </section>
     </main>
   )

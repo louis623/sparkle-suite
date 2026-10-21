@@ -82,7 +82,7 @@ describe('rep trade review UI', () => {
     expect(html).toContain('Rule exception — rep review needed')
     expect(html).toContain('The customer selected the wrong family.')
     expect(html).toContain('I verified these facts')
-    expect(html).toContain('I confirm this one-for-one trade')
+    expect(html).toContain('I confirm this one-for-one dancer swap')
     expect(html).toMatch(/type="submit"[^>]*disabled=""/)
   })
 
