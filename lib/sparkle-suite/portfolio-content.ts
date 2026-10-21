@@ -232,7 +232,7 @@ export const sparkleSuitePortfolioContent = {
           hero: {
             eyebrow: 'With Lindsey',
             headline: 'Mile High Fizz',
-            sub: 'Revealing something magical together. Place your order and return to the live party to watch your reveal.',
+            sub: 'Revealing something magical together.',
             tone: 'light',
             font: 'script',
             align: 'center',
