@@ -1756,6 +1756,35 @@ describe('main photo preview sources', () => {
     restore()
   })
 
+  it('asks for the photo again when the browser cannot draw a picture', () => {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL
+    delete process.env.SUPABASE_URL
+    try {
+      const renderables = buildAssistantMessageRenderables([
+        {
+          type: 'tool-add_listing',
+          state: 'output-available',
+          output: {
+            needsAction: 'confirm_main_photo',
+            previewImageUrl:
+              'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/front.jpg',
+            message:
+              'This is the main photo I will save for NK60295. If this is the right piece, reply yes.',
+          },
+        },
+      ])
+      expect(renderables).toEqual([
+        {
+          type: 'main-photo-preview',
+          key: 'main-photo-0',
+          text: "I can't show this photo here. Please send it again.",
+        },
+      ])
+    } finally {
+      restore()
+    }
+  })
+
   it('does not render a foreign https link as the chat image', () => {
     const previous = process.env.NEXT_PUBLIC_SUPABASE_URL
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
