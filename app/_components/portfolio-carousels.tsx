@@ -75,10 +75,19 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
             data-font={slide.hero.font ?? 'display'}
             data-align={slide.hero.align ?? 'start'}
             data-accent={slide.hero.accent}
+            data-lockup={slide.hero.lockup}
           >
             {slide.hero.eyebrow ? <p>{slide.hero.eyebrow}</p> : null}
             <strong>{slide.hero.headline}</strong>
             <span>{slide.hero.sub}</span>
+            {slide.hero.instruction ? <em>{slide.hero.instruction}</em> : null}
+            {slide.hero.actions?.length ? (
+              <div className={styles.heroActions}>
+                {slide.hero.actions.map((action) => (
+                  <div key={action} className={styles.heroAction}>{action}</div>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>

@@ -168,6 +168,77 @@
   color: transparent;
 }
 .heroCopy[data-align='center'] { align-items: center; text-align: center; padding: 8% 12% 12%; }
+.heroCopy[data-lockup='britt'] {
+  justify-content: center;
+  gap: 6px;
+  padding: 7% 8% 5%;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(0, 217, 255, .16), transparent 34%),
+    linear-gradient(180deg, rgba(8, 8, 8, .08), rgba(8, 8, 8, .42) 58%, rgba(8, 8, 8, .78));
+}
+.heroCopy[data-lockup='britt'] p {
+  color: #00d9ff;
+  font-size: clamp(13px, 1.7vw, 22px);
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+  text-shadow: 0 0 18px rgba(0, 217, 255, .45);
+}
+.heroCopy[data-lockup='britt'] strong {
+  max-width: 12ch;
+  background: linear-gradient(90deg, #d4af37, #f4c2c2, #00d9ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: clamp(34px, 4.8vw, 72px);
+  font-weight: 700;
+  line-height: 0.96;
+  text-shadow: none;
+  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, .55));
+}
+.heroCopy[data-lockup='britt'] span {
+  max-width: 36em;
+  font-size: clamp(12px, 1.25vw, 18px);
+  font-weight: 700;
+}
+.heroCopy[data-lockup='britt'] em {
+  margin: 0;
+  color: #f4c2c2;
+  font-size: clamp(8px, .85vw, 12px);
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 640px;
+  margin-top: 4px;
+}
+.heroAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  color: #080808;
+  font-size: clamp(10px, .95vw, 13px);
+  font-weight: 800;
+  letter-spacing: .08em;
+  line-height: 1.2;
+  text-shadow: none;
+  text-transform: uppercase;
+}
+.heroAction:nth-child(1) { background: linear-gradient(90deg, #d4af37, #f4c2c2); }
+.heroAction:nth-child(2) { background: #00d9ff; }
+.heroAction:nth-child(3) {
+  flex-basis: 100%;
+  background: linear-gradient(90deg, #d4af37, #f4c2c2, #00d9ff);
+}
 .placeholder {
   display: grid;
   align-content: center;
@@ -264,6 +335,20 @@
   }
   .heroCopy[data-align='center'] { align-items: center; padding: 50% 16px 10px; }
   .heroCopy[data-font='script'] strong { font-size: 26px; }
+  .heroCopy[data-lockup='britt'] {
+    justify-content: center;
+    gap: 2px;
+    padding: 6% 12px 8px;
+  }
+  .heroCopy[data-lockup='britt'] p { font-size: 11px; }
+  .heroCopy[data-lockup='britt'] strong { font-size: 26px; }
+  .heroCopy[data-lockup='britt'] span { font-size: 11px; }
+  .heroCopy[data-lockup='britt'] em { font-size: 7px; letter-spacing: .06em; }
+  .heroCopy[data-lockup='britt'] .heroAction {
+    min-height: 22px;
+    padding: 3px 8px;
+    font-size: 8px;
+  }
   .cardMeta h3 { font-size: 28px; }
 }
 @media (max-width: 800px) {
