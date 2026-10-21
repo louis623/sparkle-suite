@@ -296,7 +296,12 @@ function makeConversationLookupMock(
 function makeAdminClientMock(
   existingListings: Array<Record<string, unknown>> = [],
   committedDesign: Record<string, unknown> | null = null,
-  photoReuseMatches: Array<{ item_number?: string | null; status?: string | null }> = [],
+  photoReuseMatches: Array<{
+    item_number?: string | null
+    status?: string | null
+    created_design_id?: string | null
+    created_listing_ids?: string[] | null
+  }> = [],
 ) {
   const duplicateLimit = vi.fn().mockResolvedValue({
     data: existingListings,
@@ -327,6 +332,8 @@ function makeAdminClientMock(
             trade_board_intake_sessions: {
               item_number: match.item_number ?? null,
               status: match.status ?? null,
+              created_design_id: match.created_design_id ?? null,
+              created_listing_ids: match.created_listing_ids ?? null,
             },
           })),
           error: null,
@@ -3761,7 +3768,14 @@ describe('add_listing - active workflow readiness guard', () => {
 
   it('asks before saving the NK60295 necklace photo onto ST21027', async () => {
     createAdminClientMock.mockReturnValue(
-      makeAdminClientMock([], null, [{ item_number: 'NK60295', status: 'completed' }]),
+      makeAdminClientMock([], null, [
+        {
+          item_number: 'NK60295',
+          status: 'completed',
+          created_design_id: 'design-nk60295',
+          created_listing_ids: ['listing-nk60295'],
+        },
+      ]),
     )
     const necklaceUrl = 'data:image/jpeg;base64,TktK'
     const tool = makeTool(makeConversationLookupMock([]), {
@@ -3857,9 +3871,75 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(addListingMock).toHaveBeenCalled()
   })
 
+  it('does not block a photo from a completed intake that never saved a design or listing', async () => {
+    createAdminClientMock.mockReturnValue(
+      makeAdminClientMock([], null, [
+        {
+          item_number: 'NK60295',
+          status: 'completed',
+          created_design_id: null,
+          created_listing_ids: [],
+        },
+      ]),
+    )
+    processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      photoUrl: 'https://cdn.example.com/listings/rep-1/st21027-abandoned.png',
+    })
+    addListingMock.mockResolvedValueOnce({
+      listingId: 'listing-abandoned',
+      designId: 'design-abandoned',
+      itemNumber: 'ST21027',
+      designName: 'Stack',
+      status: 'available',
+      usesCanonicalPhoto: false,
+    })
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-st21027',
+        phase: 'ready_to_add',
+        missing: [],
+        known: {
+          itemNumber: 'ST21027',
+          designName: 'Stack',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            intakeSessionId: 'intake-st21027',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,TktK',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ST21027',
+        collectionName: 'Original',
+      }),
+    ).resolves.toMatchObject({ listingId: 'listing-abandoned' })
+    expect(addListingMock).toHaveBeenCalled()
+  })
+
   it('saves a matching set after the rep confirms the shared photo', async () => {
     createAdminClientMock.mockReturnValue(
-      makeAdminClientMock([], null, [{ item_number: 'NK60295', status: 'completed' }]),
+      makeAdminClientMock([], null, [
+        {
+          item_number: 'NK60295',
+          status: 'completed',
+          created_design_id: 'design-nk60295',
+          created_listing_ids: ['listing-nk60295'],
+        },
+      ]),
     )
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
       photoUrl: 'https://cdn.example.com/listings/rep-1/st21027-set.png',
@@ -4282,7 +4362,14 @@ describe('add_listing - active workflow readiness guard', () => {
 
   it('does not block an NK60295 gold citrine variant when that item number already has the photo', async () => {
     createAdminClientMock.mockReturnValue(
-      makeAdminClientMock([], null, [{ item_number: 'NK60295', status: 'completed' }]),
+      makeAdminClientMock([], null, [
+        {
+          item_number: 'NK60295',
+          status: 'completed',
+          created_design_id: 'design-nk60295',
+          created_listing_ids: ['listing-nk60295'],
+        },
+      ]),
     )
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
       photoUrl: 'https://cdn.example.com/listings/rep-1/nk60295-gold.png',

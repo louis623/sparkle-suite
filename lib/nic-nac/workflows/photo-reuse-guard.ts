@@ -14,8 +14,9 @@ export type PhotoReuseDecision =
   | { blocked: true; otherItemNumber: string; message: string }
 
 /**
- * The same photo bytes on a saved piece with a different item number need a
- * set confirmation. The same item number may have another finish, cut, or
+ * The same photo bytes on a saved library design or saved Dance Floor listing
+ * with a different item number need a set confirmation. Open and abandoned
+ * intakes do not count. The same item number may have another finish, cut, or
  * stone color, so a matching item number is never a conflict.
  */
 export function decidePhotoReuse(args: {
@@ -67,10 +68,22 @@ export function resolvePhotoContentSha256(args: {
 type PhotoHashSession = {
   item_number?: string | null
   status?: string | null
+  created_design_id?: string | null
+  created_listing_ids?: string[] | null
 }
 
 type PhotoHashRow = {
   trade_board_intake_sessions?: PhotoHashSession | PhotoHashSession[] | null
+}
+
+function intakeSavedALibraryDesignOrListing(entry: PhotoHashSession): boolean {
+  if (entry.status !== 'completed') return false
+  const designId =
+    typeof entry.created_design_id === 'string' ? entry.created_design_id.trim() : ''
+  const listingIds = Array.isArray(entry.created_listing_ids)
+    ? entry.created_listing_ids.filter((id) => typeof id === 'string' && id.trim().length > 0)
+    : []
+  return designId.length > 0 || listingIds.length > 0
 }
 
 export async function loadItemNumbersForPhotoHash(
@@ -79,7 +92,9 @@ export async function loadItemNumbersForPhotoHash(
 ): Promise<PhotoReuseMatch[]> {
   const { data, error } = await admin
     .from('trade_board_intake_photos')
-    .select('trade_board_intake_sessions!inner(item_number, status)')
+    .select(
+      'trade_board_intake_sessions!inner(item_number, status, created_design_id, created_listing_ids)',
+    )
     .eq('rep_id', args.repId)
     .eq('content_sha256', args.contentSha256)
     .eq('trade_board_intake_sessions.status', 'completed')
@@ -90,7 +105,7 @@ export async function loadItemNumbersForPhotoHash(
     const session = row.trade_board_intake_sessions
     const sessions = Array.isArray(session) ? session : session ? [session] : []
     return sessions
-      .filter((entry) => entry.status === 'completed')
+      .filter(intakeSavedALibraryDesignOrListing)
       .map((entry) => ({ itemNumber: entry.item_number ?? null }))
   })
 }
