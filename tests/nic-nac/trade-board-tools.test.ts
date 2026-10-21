@@ -54,12 +54,84 @@ interface ToolDef {
   needsApproval?: boolean
 }
 
+function queryResult(result: { data: unknown; error: unknown }) {
+  const builder: Record<string, unknown> = {}
+  const passthrough = () => builder
+  builder.select = passthrough
+  builder.eq = passthrough
+  builder.order = passthrough
+  builder.limit = passthrough
+  builder.maybeSingle = () => Promise.resolve(result)
+  builder.then = (
+    onFulfilled: (value: typeof result) => unknown,
+    onRejected?: (reason: unknown) => unknown,
+  ) => Promise.resolve(result).then(onFulfilled, onRejected)
+  return builder
+}
+
+function listingRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: VALID_LISTING_ID,
+    listing_source: 'catalog',
+    design: { item_number: 'NK70001' },
+    ...overrides,
+  }
+}
+
+function photoSupabase(args: {
+  listing?: Record<string, unknown>
+  conversations?: Array<{ role?: string; parts?: unknown }>
+} = {}) {
+  return {
+    from: (table: string) => {
+      if (table === 'trade_listings') {
+        return queryResult({ data: args.listing ?? listingRow(), error: null })
+      }
+      if (table === 'nic_nac_conversations') {
+        return queryResult({ data: args.conversations ?? [], error: null })
+      }
+      throw new Error(`unexpected table ${table}`)
+    },
+  }
+}
+
+function confirmedPhotoConversation(photoUrl: string) {
+  return [
+    {
+      role: 'user',
+      parts: [{ type: 'text', text: 'Yes' }],
+    },
+    {
+      role: 'assistant',
+      parts: [
+        {
+          type: 'tool-update_listing',
+          output: {
+            needsAction: 'confirm_main_photo',
+            listingId: VALID_LISTING_ID,
+            previewImageUrl: photoUrl,
+            message:
+              'This is the main photo I will save for NK70001. If this is the right piece, reply yes.',
+          },
+        },
+      ],
+    },
+  ]
+}
+
+function emptyPhotoAdmin() {
+  return {
+    from: () => queryResult({ data: [], error: null }),
+  }
+}
+
 function makeTool(
   activeTradeBoardWorkflow?: TradeBoardIntakeSessionState,
+  supabase: unknown = {},
 ): ToolDef {
   return makeUpdateListingTool({
     repId: 'rep-1',
-    supabase: {} as never,
+    supabase: supabase as never,
     conversationId: 'conv-1',
     runId: 'run-1',
     activeTradeBoardWorkflow,
@@ -108,6 +180,15 @@ beforeEach(() => {
   processRepCustomListingPhotoUrlMock.mockReset()
   writeTradeActionAuditMock.mockReset()
   logIncidentMock.mockReset()
+  createAdminClientMock.mockReset()
+  createAdminClientMock.mockReturnValue(emptyPhotoAdmin())
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({
+      ok: true,
+      arrayBuffer: async () => Uint8Array.from([1, 2, 3, 4]).buffer,
+    })),
+  )
 })
 
 describe('update_listing — schema (inputSchema.safeParse)', () => {
@@ -240,7 +321,27 @@ describe('update_listing — write + audit happy path', () => {
     })
   })
 
-  it('processes a non-null custom listing photo URL before calling updateListing', async () => {
+  it('previews the exact https photo and waits for a yes when no intake is open', async () => {
+    const photoUrl = 'https://rep.example.com/raw-upload.jpg'
+    const tool = makeTool(undefined, photoSupabase())
+
+    await expect(
+      tool.execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: photoUrl,
+      }),
+    ).resolves.toMatchObject({
+      needsAction: 'confirm_main_photo',
+      listingId: VALID_LISTING_ID,
+      previewImageUrl: photoUrl,
+      message: expect.stringContaining('NK70001'),
+    })
+    expect(updateListingMock).not.toHaveBeenCalled()
+    expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
+  })
+
+  it('processes a confirmed https listing photo before calling updateListing', async () => {
+    const photoUrl = 'https://rep.example.com/raw-upload.jpg'
     processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
       photoUrl: 'https://cdn.example.com/normalized.jpg',
     })
@@ -249,20 +350,21 @@ describe('update_listing — write + audit happy path', () => {
       status: 'available',
     })
 
-    const tool = makeTool()
+    const tool = makeTool(
+      undefined,
+      photoSupabase({ conversations: confirmedPhotoConversation(photoUrl) }),
+    )
     const result = await tool.execute({
       listingId: VALID_LISTING_ID,
-      listingPhotoUrl: 'https://rep.example.com/raw-upload.jpg',
+      listingPhotoUrl: photoUrl,
     })
 
     expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledTimes(1)
-    expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledWith(
-      {
-        repId: 'rep-1',
-        sourceImageUrl: 'https://rep.example.com/raw-upload.jpg',
-        filenameStem: `${VALID_LISTING_ID}-listing-photo`,
-      },
-    )
+    expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledWith({
+      repId: 'rep-1',
+      sourceImageUrl: photoUrl,
+      filenameStem: `${VALID_LISTING_ID}-listing-photo`,
+    })
     expect(updateListingMock).toHaveBeenCalledTimes(1)
     expect(updateListingMock.mock.calls[0][3]).toEqual({
       listingPhotoUrl: 'https://cdn.example.com/normalized.jpg',
@@ -274,7 +376,8 @@ describe('update_listing — write + audit happy path', () => {
     })
   })
 
-  it('shows the main photo preview before update_listing saves an unconfirmed photo', async () => {
+  it('previews the listing photo even when an open intake has a different picture', async () => {
+    const photoUrl = 'https://rep.example.com/raw-upload.jpg'
     const tool = makeTool(
       intakeWorkflow({
         metadata: { mainPhotoConfirmationRequired: true },
@@ -293,18 +396,19 @@ describe('update_listing — write + audit happy path', () => {
           },
         ],
       }),
+      photoSupabase(),
     )
 
-    await expect(
-      tool.execute({
-        listingId: VALID_LISTING_ID,
-        listingPhotoUrl: 'https://rep.example.com/raw-upload.jpg',
-      }),
-    ).resolves.toMatchObject({
-      needsAction: 'confirm_main_photo',
-      previewPhotoId: '11111111-1111-4111-8111-111111111112',
-      message: expect.stringContaining('NK60295'),
+    const result = await tool.execute({
+      listingId: VALID_LISTING_ID,
+      listingPhotoUrl: photoUrl,
     })
+    expect(result).toMatchObject({
+      needsAction: 'confirm_main_photo',
+      previewImageUrl: photoUrl,
+      message: expect.stringContaining('NK70001'),
+    })
+    expect(result).not.toHaveProperty('previewPhotoId')
     expect(updateListingMock).not.toHaveBeenCalled()
     expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
   })
@@ -342,7 +446,10 @@ describe('update_listing — write + audit happy path', () => {
     })
     const tool = makeTool(
       intakeWorkflow({
-        known: { itemNumber: 'NK60296' },
+        known: { itemNumber: 'NK60295' },
+      }),
+      photoSupabase({
+        listing: listingRow({ design: { item_number: 'NK60296' } }),
       }),
     )
 
@@ -353,12 +460,138 @@ describe('update_listing — write + audit happy path', () => {
       }),
     ).rejects.toMatchObject({
       code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      userMessage: expect.stringContaining('NK60296'),
       details: {
         contentSha256: hashDataImageUrl(photoUrl),
       },
     })
     expect(updateListingMock).not.toHaveBeenCalled()
     expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
+  })
+
+  it('hashes an https listing photo and checks that listing when no intake is open', async () => {
+    const photoUrl = 'https://rep.example.com/other-piece.jpg'
+    const bytes = Uint8Array.from([9, 9, 9])
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        arrayBuffer: async () => bytes.buffer,
+      })),
+    )
+    const { createHash } = await import('crypto')
+    const contentSha256 = createHash('sha256').update(bytes).digest('hex')
+    const result = {
+      data: [
+        {
+          trade_board_intake_sessions: {
+            item_number: 'NK60295',
+            status: 'completed',
+            created_design_id: 'design-nk60295',
+            created_listing_ids: ['listing-nk60295'],
+          },
+        },
+      ],
+      error: null,
+    }
+    createAdminClientMock.mockReturnValue({
+      from: () => queryResult(result),
+    })
+    const tool = makeTool(undefined, photoSupabase())
+
+    await expect(
+      tool.execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: photoUrl,
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      details: { contentSha256 },
+      userMessage: expect.stringContaining('NK70001'),
+    })
+    expect(updateListingMock).not.toHaveBeenCalled()
+  })
+
+  it('uses a stored photo hash instead of downloading the listing photo again', async () => {
+    const photoUrl = 'https://rep.example.com/stored.jpg'
+    const storedSha = 'ab'.repeat(32)
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    createAdminClientMock.mockReturnValue({
+      from: () =>
+        queryResult({
+          data: [
+            {
+              trade_board_intake_sessions: {
+                item_number: 'NK60295',
+                status: 'completed',
+                created_design_id: 'design-nk60295',
+                created_listing_ids: ['listing-nk60295'],
+              },
+            },
+          ],
+          error: null,
+        }),
+    })
+    const tool = makeTool(
+      intakeWorkflow({
+        photos: [
+          {
+            intakeSessionId: 'intake-nk60295',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: photoUrl,
+            contentSha256: storedSha,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: [],
+          },
+        ],
+      }),
+      photoSupabase({
+        listing: listingRow({ design: { item_number: 'NK60296' } }),
+      }),
+    )
+
+    await expect(
+      tool.execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: photoUrl,
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      details: { contentSha256: storedSha },
+    })
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(updateListingMock).not.toHaveBeenCalled()
+  })
+
+  it('previews a non-item listing photo as this piece', async () => {
+    const photoUrl = 'https://rep.example.com/non-item.jpg'
+    const tool = makeTool(
+      undefined,
+      photoSupabase({
+        listing: listingRow({
+          listing_source: 'non_item_number',
+          design: null,
+        }),
+      }),
+    )
+
+    await expect(
+      tool.execute({
+        listingId: VALID_LISTING_ID,
+        listingPhotoUrl: photoUrl,
+      }),
+    ).resolves.toMatchObject({
+      needsAction: 'confirm_main_photo',
+      previewImageUrl: photoUrl,
+      itemNumber: null,
+      message: expect.stringContaining('this piece'),
+    })
+    expect(updateListingMock).not.toHaveBeenCalled()
   })
 
   it('useCanonicalPhoto:true does not include listingPhotoUrl in patchedFields even if model passed it as null (allowed combo)', async () => {
@@ -424,11 +657,15 @@ describe('update_listing — error handling', () => {
       ]),
     )
 
-    const tool = makeTool()
+    const photoUrl = 'https://rep.example.com/raw-upload.jpg'
+    const tool = makeTool(
+      undefined,
+      photoSupabase({ conversations: confirmedPhotoConversation(photoUrl) }),
+    )
     await expect(
       tool.execute({
         listingId: VALID_LISTING_ID,
-        listingPhotoUrl: 'https://rep.example.com/raw-upload.jpg',
+        listingPhotoUrl: photoUrl,
       }),
     ).rejects.toMatchObject({
       name: 'NicNacToolError',

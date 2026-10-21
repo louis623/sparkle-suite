@@ -23,10 +23,15 @@ import { ServiceError } from '@/lib/services/errors'
 import { writeTradeActionAudit } from '@/lib/nic-nac/audit'
 import { logIncident } from '@/lib/nic-nac/guardian-telemetry'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
+import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
+import {
+  hashCustomerPhotoUrl,
+  photoConfirmationPieceKey,
+} from '@/lib/nic-nac/workflows/photo-reuse-guard'
+import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
 import {
   assertCustomerPhotoNotReused,
   confirmedPhotoSetSha,
-  pendingMainPhotoConfirmation,
 } from './add-listing'
 import type { ToolContext, ToolDefinition } from './types'
 
@@ -153,28 +158,61 @@ export function makeUpdateListingTool(ctx: {
         !(useCanonicalPhoto === true && listingPhotoUrl !== null)
       ) {
         if (typeof listingPhotoUrl === 'string' && listingPhotoUrl.trim()) {
+          const photoUrl = listingPhotoUrl.trim()
+          const listing = await loadListingForPhotoGuard(
+            ctx.supabase,
+            ctx.repId,
+            listingId,
+          )
           const workflow = ctx.activeTradeBoardWorkflow ?? undefined
-          const itemNumber = workflow?.known.itemNumber
-          const mainPhotoPreview = pendingMainPhotoConfirmation({
-            itemNumber,
-            workflow,
+          const storedSha = workflow?.photos?.find(
+            (photo) => photo.imageUrl?.trim() === photoUrl && photo.contentSha256?.trim(),
+          )?.contentSha256
+          const contentSha256 = await hashCustomerPhotoUrl({
+            sourceImageUrl: photoUrl,
+            storedSha256: storedSha,
           })
-          if (mainPhotoPreview) {
-            return {
-              needsAction: 'confirm_main_photo' as const,
-              code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
-              itemNumber: mainPhotoPreview.itemNumber,
-              ...mainPhotoPreview.locator,
-              message: mainPhotoPreview.message,
-            }
+          if (!contentSha256) {
+            throw new NicNacToolError({
+              code: 'PHOTO_UNREADABLE',
+              userMessage:
+                'I could not read that photo, so I did not save it. Send it again and I will check it first.',
+            })
           }
           await assertCustomerPhotoNotReused({
             repId: ctx.repId,
-            itemNumber,
-            sourceImageUrl: listingPhotoUrl,
+            itemNumber: listing.pieceKey,
+            sourceImageUrl: photoUrl,
+            contentSha256,
             workflowPhotos: workflow?.photos,
-            setReuseConfirmedSha: confirmedPhotoSetSha(workflow, itemNumber),
+            setReuseConfirmedSha: confirmedPhotoSetSha(
+              workflow,
+              listing.pieceKey,
+            ),
+            conversation: {
+              supabase: ctx.supabase,
+              conversationId: ctx.conversationId,
+            },
           })
+          const confirmed = await conversationConfirmsListingPhoto({
+            supabase: ctx.supabase,
+            conversationId: ctx.conversationId,
+            listingId,
+            photoUrl,
+          })
+          if (!confirmed) {
+            const label = listing.pieceKey.startsWith('NON_ITEM:')
+              ? 'this piece'
+              : listing.pieceKey
+            return {
+              needsAction: 'confirm_main_photo' as const,
+              code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
+              listingId,
+              itemNumber: listing.itemNumber,
+              ...mainPhotoPreviewLocator({ imageUrl: photoUrl }),
+              message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
+            }
+          }
         }
         try {
           patch.listingPhotoUrl =
@@ -251,6 +289,89 @@ export function makeUpdateListingTool(ctx: {
         patchedFields,
       }
     },
+  })
+}
+
+type ListingPhotoRow = {
+  id?: string
+  listing_source?: string | null
+  design?:
+    | { item_number?: string | null }
+    | Array<{ item_number?: string | null }>
+    | null
+}
+
+async function loadListingForPhotoGuard(
+  supabase: SupabaseClient,
+  repId: string,
+  listingId: string,
+): Promise<{ pieceKey: string; itemNumber: string | null }> {
+  const { data, error } = await supabase
+    .from('trade_listings')
+    .select('id, listing_source, design:jewelry_designs(item_number)')
+    .eq('id', listingId)
+    .eq('rep_id', repId)
+    .maybeSingle()
+  if (error) throw error
+  const row = data as ListingPhotoRow | null
+  if (!row?.id) {
+    throw new NicNacToolError({
+      code: 'LISTING_NOT_FOUND',
+      userMessage: 'I could not find that listing on your Dance Floor.',
+    })
+  }
+  const design = Array.isArray(row.design) ? row.design[0] : row.design
+  const itemNumber = design?.item_number?.trim() || ''
+  const pieceKey = photoConfirmationPieceKey({
+    itemNumber,
+    catalogMode:
+      row.listing_source === 'non_item_number' ? 'non_item_number' : 'item_number',
+    intakeId: row.id,
+  })
+  return { pieceKey, itemNumber: itemNumber || null }
+}
+
+type ConversationPart = {
+  type?: string
+  text?: string
+  output?: {
+    needsAction?: string
+    listingId?: string
+    previewImageUrl?: string
+  }
+}
+
+async function conversationConfirmsListingPhoto(args: {
+  supabase: SupabaseClient
+  conversationId: string
+  listingId: string
+  photoUrl: string
+}): Promise<boolean> {
+  const { data, error } = await args.supabase
+    .from('nic_nac_conversations')
+    .select('role, parts, created_at')
+    .eq('conversation_id', args.conversationId)
+    .eq('status', 'complete')
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error || !Array.isArray(data)) return false
+  const rows = data as Array<{ role?: string; parts?: ConversationPart[] | null }>
+  const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
+  if (latestUserIndex === -1) return false
+  const text = (rows[latestUserIndex]?.parts ?? [])
+    .map((part) => (typeof part.text === 'string' ? part.text : ''))
+    .join('\n')
+  if (!isPositiveConfirmation(text)) return false
+  const assistant = rows
+    .slice(latestUserIndex + 1)
+    .find((row) => row.role === 'assistant')
+  return (assistant?.parts ?? []).some((part) => {
+    const output = part.output
+    return (
+      output?.needsAction === 'confirm_main_photo' &&
+      output.listingId === args.listingId &&
+      output.previewImageUrl === args.photoUrl
+    )
   })
 }
 

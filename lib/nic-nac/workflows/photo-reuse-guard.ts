@@ -60,10 +60,11 @@ export function decidePhotoReuse(args: {
 
   if (!otherItemNumber) return { blocked: false }
 
+  const label = current.startsWith('NON_ITEM:') ? 'this piece' : current
   return {
     blocked: true,
     otherItemNumber,
-    message: `This photo is already on ${otherItemNumber}. If ${current} belongs with that set, reply yes.`,
+    message: `This photo is already on ${otherItemNumber}. If ${label} belongs with that set, reply yes.`,
   }
 }
 
@@ -107,6 +108,24 @@ export function resolvePhotoContentSha256(args: {
   )?.contentSha256
   if (stored) return stored
   return hashDataImageUrl(args.sourceImageUrl)
+}
+
+/** Hash photo bytes. Data URLs are hashed locally. Https URLs are fetched, unless a stored hash is already known. */
+export async function hashCustomerPhotoUrl(args: {
+  sourceImageUrl: string
+  storedSha256?: string | null
+}): Promise<string | null> {
+  const stored = args.storedSha256?.trim()
+  if (stored) return stored
+  const dataHash = hashDataImageUrl(args.sourceImageUrl)
+  if (dataHash) return dataHash
+  const url = args.sourceImageUrl.trim()
+  if (!/^https:\/\//i.test(url)) return null
+  const response = await fetch(url)
+  if (!response.ok) return null
+  const bytes = Buffer.from(await response.arrayBuffer())
+  if (bytes.length === 0) return null
+  return createHash('sha256').update(bytes).digest('hex')
 }
 
 type PhotoHashSession = {

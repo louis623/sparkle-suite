@@ -861,6 +861,7 @@ export async function assertCustomerPhotoNotReused(args: {
   repId: string
   itemNumber?: string
   sourceImageUrl?: string
+  contentSha256?: string
   setReuseConfirmedSha?: string
   workflowPhotos?: Array<{
     id?: string
@@ -878,10 +879,12 @@ export async function assertCustomerPhotoNotReused(args: {
   const itemNumber = args.itemNumber?.trim()
   const sourceImageUrl = args.sourceImageUrl?.trim()
   if (!itemNumber || !sourceImageUrl) return
-  const contentSha256 = resolvePhotoContentSha256({
-    sourceImageUrl,
-    workflowPhotos: args.workflowPhotos,
-  })
+  const contentSha256 =
+    args.contentSha256?.trim() ||
+    resolvePhotoContentSha256({
+      sourceImageUrl,
+      workflowPhotos: args.workflowPhotos,
+    })
   if (!contentSha256) return
 
   const existing = await loadItemNumbersForPhotoHash(createAdminClient(), {
