@@ -214,6 +214,19 @@
 }
 .dots button[aria-current='true']::before { width: 28px; background: var(--suite-pink); }
 .dots button:focus-visible { outline: 3px solid var(--suite-pink); outline-offset: 2px; }
+.counter {
+  display: none;
+  width: min(1180px, calc(100% - 48px));
+  margin-top: 4px;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: .14em;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .dots[data-count='10'] { display: none; }
+  .counter[data-count='10'] { display: block; }
+}
 @media (prefers-reduced-motion: reduce) {
   .viewport { scroll-behavior: auto; }
 }

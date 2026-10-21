@@ -234,7 +234,7 @@ function PortfolioCarousel({
           </div>
         ))}
       </div>
-      <div ref={dotsRef} className={styles.dots} role="group" aria-label={`${carousel.label} slides`}>
+      <div ref={dotsRef} className={styles.dots} data-count={count} role="group" aria-label={`${carousel.label} slides`}>
         {carousel.slides.map((item, index) => (
           <button
             key={item.id}
@@ -251,6 +251,10 @@ function PortfolioCarousel({
           />
         ))}
       </div>
+      <p className={styles.counter} data-count={count}>
+        <span className={styles.srOnly} aria-live="polite">Slide {active + 1} of {count}</span>
+        <span aria-hidden="true">{active + 1} / {count}</span>
+      </p>
       <Link className={styles.primaryButton} href={sparkleSuiteScheduleBuild.href}>
         {sparkleSuiteScheduleBuild.label} <ArrowRight size={18} aria-hidden="true" />
       </Link>
