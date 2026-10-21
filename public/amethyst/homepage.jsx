@@ -2110,7 +2110,14 @@ const SIGNUP_PREFERENCE_STYLES = `
 .hp-signup-notes-label { display: block; color: var(--hp-card-fg); font-size: 15px; line-height: 1.45; font-weight: 600; letter-spacing: 0; text-transform: none; }
 .hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }
 .hp-signup-notes { min-height: 120px; resize: vertical; }
-.hp-signup-progress { margin: 0; color: var(--hp-card-fg); font-size: 14px; font-weight: 700; letter-spacing: 0.04em; }
+.hp-signup-progress-wrap { display: grid; justify-items: center; gap: 0; }
+.hp-signup-progress { margin: 0; color: var(--hp-card-fg); font-size: 14px; font-weight: 700; letter-spacing: 0.04em; text-align: center; }
+.hp-signup-meter { display: flex; gap: 4px; width: min(100%, 420px); }
+.hp-signup-meter-step { position: relative; flex: 1 1 0; min-width: 24px; min-height: 44px; padding: 0; border: 0; background: transparent; }
+.hp-signup-meter-step::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 4px; border-radius: 999px; transform: translateY(-50%); background: color-mix(in oklab, var(--hp-card-fg) 16%, transparent); }
+.hp-signup-meter-step.is-done { cursor: pointer; }
+.hp-signup-meter-step.is-done::after, .hp-signup-meter-step.is-current::after { background: var(--hp-card-accent); }
+.hp-signup-meter-step.is-done:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
 .hp-signup-step { display: grid; gap: 16px; min-width: 0; outline: none; }
 .hp-signup-identity { display: grid; gap: 16px; }
 .hp-signup-step:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 4px; }
@@ -2323,6 +2330,14 @@ function Signup({ repName, businessName }) {
     setStep((current) => Math.max(0, current - 1));
   }
 
+  function goToStep(next) {
+    if (submitState.status === "submitting") return;
+    if (next < 0 || next >= step) return;
+    setStepError("");
+    setSubmitState({ status: "idle", message: "" });
+    setStep(next);
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     if (step < SIGNUP_LAST_STEP) {
@@ -2461,7 +2476,29 @@ function Signup({ repName, businessName }) {
           </div>
           <form className="hp-signup-form" onSubmit={handleSubmit}>
             <style>{SIGNUP_PREFERENCE_STYLES}</style>
-            <p className="hp-signup-progress">Step {step + 1} of {SIGNUP_STEP_LABELS.length}</p>
+            <div className="hp-signup-progress-wrap">
+              <p className="hp-signup-progress" id="hp-signup-progress">Step {step + 1} of {SIGNUP_STEP_LABELS.length}</p>
+              <div className="hp-signup-meter" role="group" aria-labelledby="hp-signup-progress">
+                {SIGNUP_STEP_LABELS.map((label, index) => (
+                  index < step ? (
+                    <button
+                      key={label}
+                      type="button"
+                      className="hp-signup-meter-step is-done"
+                      aria-label={`Edit ${label}`}
+                      disabled={submitState.status === "submitting"}
+                      onClick={() => goToStep(index)}
+                    />
+                  ) : (
+                    <span
+                      key={label}
+                      className={`hp-signup-meter-step${index === step ? " is-current" : ""}`}
+                      aria-current={index === step ? "step" : undefined}
+                    />
+                  )
+                ))}
+              </div>
+            </div>
             <p className="hp-signup-live" aria-live="polite">{stepAnnouncement}</p>
             <div className="hp-signup-step" ref={stepRef} tabIndex={-1} aria-invalid={stepError ? "true" : undefined}>
               {stepError ? (
