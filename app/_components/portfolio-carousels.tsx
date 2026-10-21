@@ -43,8 +43,8 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
       <div className={styles.browserBar} aria-hidden="true">
         <em>{slide.title}</em>
       </div>
-      {video ? (
-        <div className={styles.mediaWell}>
+      <div className={styles.mediaWell}>
+        {video ? (
           <ProductPeekVideo
             poster={recording?.poster ?? slide.src}
             mp4={video.mp4}
@@ -55,9 +55,7 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
             active={active}
             eagerPoster={Boolean(recording) && prioritizePoster}
           />
-        </div>
-      ) : (
-        <div className={styles.mediaWell}>
+        ) : (
           <Image
             src={slide.src}
             alt={slide.alt}
@@ -65,8 +63,20 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
             height={slide.height}
             sizes="(max-width: 700px) 86vw, 860px"
           />
-        </div>
-      )}
+        )}
+        {slide.hero ? (
+          <div
+            className={styles.heroCopy}
+            data-tone={slide.hero.tone}
+            data-font={slide.hero.font ?? 'display'}
+            data-align={slide.hero.align ?? 'start'}
+          >
+            {slide.hero.eyebrow ? <p>{slide.hero.eyebrow}</p> : null}
+            <strong>{slide.hero.headline}</strong>
+            <span>{slide.hero.sub}</span>
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }

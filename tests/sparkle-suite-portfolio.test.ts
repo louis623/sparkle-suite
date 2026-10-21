@@ -108,6 +108,9 @@ describe('Sparkle Suite portfolio carousels', () => {
       expect(index).toBeGreaterThan(previous)
       previous = index
       expect(themeHtml).toContain(`href="/skin-preview/${theme.id}/homepage"`)
+      if (theme.id === 'amethyst') {
+        expect(themeHtml).toContain('Real jewelry. Live reveals. Pure sparkle.')
+      }
       expect(themeHtml).toContain(theme.poster)
       expect(existsSync(publicFile(theme.poster))).toBe(true)
       expect(existsSync(publicFile(theme.mp4))).toBe(true)

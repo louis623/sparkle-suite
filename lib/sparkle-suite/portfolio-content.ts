@@ -25,6 +25,14 @@ export type PortfolioSlide =
         width: number
         height: number
       }
+      hero?: {
+        eyebrow?: string
+        headline: string
+        sub: string
+        tone: 'light' | 'ink'
+        font?: 'display' | 'georgia' | 'script'
+        align?: 'start' | 'center'
+      }
     }
   | {
       id: string
@@ -41,7 +49,8 @@ function communityThemeSlide(theme: {
   alt: string
   width: number
   height: number
-  video: { mp4: string; width: number; height: number }
+  video?: { mp4: string; width: number; height: number }
+  hero?: Extract<PortfolioSlide, { kind: 'capture' }>['hero']
 }): PortfolioSlide {
   return {
     id: theme.id,
@@ -55,6 +64,7 @@ function communityThemeSlide(theme: {
     width: theme.width,
     height: theme.height,
     video: theme.video,
+    hero: theme.hero,
   }
 }
 
@@ -68,6 +78,11 @@ const communityThemeSlides = [
     width: 1310,
     height: 704,
     video: { mp4: '/amethyst/skins/am01-unicorn/hero-motion.mp4', width: 1310, height: 704 },
+    hero: {
+      headline: 'Real jewelry. Live reveals. Pure sparkle.',
+      sub: 'Join Sasha for live jewelry reveals, friendly conversation, and your next favorite find.',
+      tone: 'light',
+    },
   }),
   communityThemeSlide({
     id: 'halloween_pumpkin_witch',
