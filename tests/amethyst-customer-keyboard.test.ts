@@ -7,9 +7,13 @@ import { describe, expect, it, vi } from 'vitest'
 function actualFunction(page: string, name: string, context: Record<string, unknown>) {
   const source = readFileSync(`public/amethyst/${page}.jsx`, 'utf8')
   const ast = ts.createSourceFile(`${page}.jsx`, source, ts.ScriptTarget.ESNext, true, ts.ScriptKind.JSX)
-  const declaration = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === name)
-  if (!declaration) throw new Error(`Missing ${name}`)
-  const script = ts.transpileModule(`${declaration.getText(ast)}\n${name};`, {
+  const provided = new Set(Object.keys(context))
+  const declarations = ast.statements.filter(node =>
+    ts.isFunctionDeclaration(node) && node.name && (node.name.text === name || !provided.has(node.name.text))
+  )
+  if (!declarations.some(node => node.name?.text === name)) throw new Error(`Missing ${name}`)
+  // Sibling helpers stay in scope, matching the browser script. Injected mocks still win.
+  const script = ts.transpileModule(`${declarations.map(node => node.getText(ast)).join('\n')}\n${name};`, {
     compilerOptions: { jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2020 },
   }).outputText
   return runInNewContext(script, { React, ...context })
