@@ -326,8 +326,8 @@ body.bg-pie-please .tp-sheet-error {
   body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle:focus-visible{outline:3px solid #efb36c;outline-offset:3px}
   body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] .tg-toggle[hidden]{display:none}
   @media(max-width:600px){body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"] :is(.tg-poster,.tg-video){object-position:right center}}
-  /* Preserve the whole scene instead of cropping it vertically on wide screens. */
-  @media(min-width:1520px){body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"]{min-height:56.25vw}}
+  /* Keep the approved 16:9 frame on every desktop overlay, including 1440. */
+  @media(min-width:1101px){body.bg-pie-please .hp-hero[data-appearance-preset="pie_please"]{min-height:56.25vw}}
   @media(max-width:600px){body.bg-pie-please :is(.hp-signup-input,.tp-board-search input,.tp-board-sort select,.tp-sheet-field input,.tp-sheet-field textarea,.tp-sheet-field select){font-size:16px}}
   
 

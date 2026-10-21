@@ -376,7 +376,7 @@ body.bg-gobble-and-fizz .tp-sheet-upload input::file-selector-button {
   body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] .tg-toggle:focus-visible{outline:3px solid #efb36c;outline-offset:3px}
   body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] .tg-toggle[hidden]{display:none}
   @media(max-width:600px){body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"] :is(.tg-poster,.tg-video){object-position:right center}}
-  /* Preserve the turkey's tail and feet throughout the loop on wide screens. */
-  @media(min-width:1520px){body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"]{min-height:56.25vw}}
+  /* Keep the approved 16:9 frame, including the tail and feet, on every desktop overlay. */
+  @media(min-width:1101px){body.bg-gobble-and-fizz .hp-hero[data-appearance-preset="gobble_and_fizz"]{min-height:56.25vw}}
   @media(max-width:600px){body.bg-gobble-and-fizz :is(.hp-signup-input,.tp-board-search input,.tp-board-sort select,.tp-sheet-field input,.tp-sheet-field textarea,.tp-sheet-field select){font-size:16px}}
   
