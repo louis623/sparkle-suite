@@ -693,10 +693,18 @@ async function assertLabelAgreesWithItemNumber(args: {
   })
 }
 
+function savedItemNumber(value: unknown): string {
+  return typeof value === 'string' ? value.trim().toUpperCase() : ''
+}
+
 function confirmedPhotoSetSha(
   workflow: { metadata?: Record<string, unknown> } | null | undefined,
+  itemNumber?: string,
 ): string | undefined {
   const sha = workflow?.metadata?.photoSetReuseConfirmedSha
+  const storedItem = savedItemNumber(workflow?.metadata?.photoSetReuseConfirmedItemNumber)
+  const saveItem = savedItemNumber(itemNumber)
+  if (!storedItem || !saveItem || storedItem !== saveItem) return undefined
   return typeof sha === 'string' && sha.trim() ? sha.trim() : undefined
 }
 
@@ -759,9 +767,26 @@ async function loadRecentConversationRows(args: {
   return data as ConversationRow[]
 }
 
+function itemNumberFromSetAsk(row: ConversationRow | undefined): string {
+  if (!row) return ''
+  const blobs = [
+    conversationRowText(row),
+    ...(row.parts ?? []).map((part) =>
+      typeof part.output?.message === 'string' ? part.output.message : '',
+    ),
+  ]
+  for (const blob of blobs) {
+    const match = blob.match(
+      /\bif\s+([A-Za-z]{1,4}-?\d{3,})\s+belongs with that set\b/i,
+    )
+    if (match?.[1]) return match[1].trim().toUpperCase()
+  }
+  return ''
+}
+
 function setReuseYesInConversation(
   rows: ConversationRow[],
-): { earlierPhotoUrl?: string; flaggedSha?: string } | null {
+): { earlierPhotoUrl?: string; flaggedSha?: string; itemNumber: string } | null {
   const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
   if (latestUserIndex === -1) return null
   if (!isPositiveConfirmation(conversationRowText(rows[latestUserIndex]!))) return null
@@ -769,6 +794,8 @@ function setReuseYesInConversation(
     .slice(latestUserIndex + 1)
     .find((row) => row.role === 'assistant')
   if (!conversationRowAskedAboutPhotoSet(assistant)) return null
+  const itemNumber = itemNumberFromSetAsk(assistant)
+  if (!itemNumber) return null
   const flaggedSha = (assistant?.parts ?? [])
     .map((part) => part.output?.contentSha256?.trim())
     .find((sha) => Boolean(sha))
@@ -778,6 +805,7 @@ function setReuseYesInConversation(
   return {
     earlierPhotoUrl: conversationRowImageUrls(earlierUser)[0],
     flaggedSha,
+    itemNumber,
   }
 }
 
@@ -785,11 +813,13 @@ async function conversationConfirmsPhotoSetHash(args: {
   supabase: SupabaseClient
   conversationId: string
   contentSha256: string
+  itemNumber: string
 }): Promise<boolean> {
   try {
     const rows = await loadRecentConversationRows(args)
     const confirmation = setReuseYesInConversation(rows)
     if (!confirmation) return false
+    if (confirmation.itemNumber !== savedItemNumber(args.itemNumber)) return false
     if (confirmation.flaggedSha) return confirmation.flaggedSha === args.contentSha256
     return hashDataImageUrl(confirmation.earlierPhotoUrl) === args.contentSha256
   } catch {
@@ -851,6 +881,7 @@ async function assertCustomerPhotoNotReused(args: {
       supabase: args.conversation.supabase,
       conversationId: args.conversation.conversationId,
       contentSha256,
+      itemNumber,
     }))
   ) {
     return
@@ -890,7 +921,16 @@ function pendingMainPhotoConfirmation(args: {
   if (!photo?.imageUrl?.trim()) return null
   const photoKey = mainPhotoConfirmationIdentity(photo)
   const confirmedId = workflow.metadata?.mainPhotoConfirmedPhotoId
-  if (typeof confirmedId === 'string' && photoKey && confirmedId === photoKey) {
+  const confirmedItem = savedItemNumber(workflow.metadata?.mainPhotoConfirmedItemNumber)
+  const saveItem = savedItemNumber(args.itemNumber || workflow.known.itemNumber)
+  if (
+    typeof confirmedId === 'string' &&
+    photoKey &&
+    confirmedId === photoKey &&
+    confirmedItem &&
+    saveItem &&
+    confirmedItem === saveItem
+  ) {
     return null
   }
   const itemNumber = args.itemNumber?.trim() || workflow.known.itemNumber?.trim() || ''
@@ -1037,7 +1077,10 @@ export async function processListingPhotoForAdd(input: {
       itemNumber: input.itemNumber,
       sourceImageUrl: numberedPiecePhotoUrl,
       workflowPhotos: activeTradeBoardWorkflow?.photos,
-      setReuseConfirmedSha: confirmedPhotoSetSha(activeTradeBoardWorkflow),
+      setReuseConfirmedSha: confirmedPhotoSetSha(
+        activeTradeBoardWorkflow,
+        input.itemNumber,
+      ),
     })
     try {
       return (
@@ -1067,7 +1110,10 @@ export async function processListingPhotoForAdd(input: {
       itemNumber: input.itemNumber,
       sourceImageUrl: workflowPhotoUrl,
       workflowPhotos: activeTradeBoardWorkflow?.photos,
-      setReuseConfirmedSha: confirmedPhotoSetSha(activeTradeBoardWorkflow),
+      setReuseConfirmedSha: confirmedPhotoSetSha(
+        activeTradeBoardWorkflow,
+        input.itemNumber,
+      ),
     })
     try {
       return (
@@ -1093,7 +1139,10 @@ export async function processListingPhotoForAdd(input: {
       itemNumber: input.itemNumber,
       sourceImageUrl: listingPhotoUrl,
       workflowPhotos: activeTradeBoardWorkflow?.photos,
-      setReuseConfirmedSha: confirmedPhotoSetSha(activeTradeBoardWorkflow),
+      setReuseConfirmedSha: confirmedPhotoSetSha(
+        activeTradeBoardWorkflow,
+        input.itemNumber,
+      ),
     })
     try {
       const processInput = {
@@ -1140,7 +1189,10 @@ export async function processListingPhotoForAdd(input: {
     itemNumber: input.itemNumber,
     sourceImageUrl: resolvedListingPhoto.imageDataUrl,
     workflowPhotos: activeTradeBoardWorkflow?.photos,
-    setReuseConfirmedSha: confirmedPhotoSetSha(activeTradeBoardWorkflow),
+    setReuseConfirmedSha: confirmedPhotoSetSha(
+        activeTradeBoardWorkflow,
+        input.itemNumber,
+      ),
   })
   try {
     const processInput = {
@@ -1840,7 +1892,7 @@ async function runSingle(
         itemNumber,
         sourceImageUrl: resolvedPhotoUrl,
         workflowPhotos: activeWorkflow?.photos,
-        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow),
+        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow, itemNumber),
         conversation:
           activeWorkflow?.status === 'active'
             ? undefined
@@ -1892,7 +1944,7 @@ async function runSingle(
         itemNumber,
         sourceImageUrl: workflowConfirmedPhotoUrl,
         workflowPhotos: activeWorkflow?.photos,
-        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow),
+        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow, itemNumber),
       })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {
@@ -1964,7 +2016,7 @@ async function runSingle(
         itemNumber,
         sourceImageUrl: resolvedPhoto.imageDataUrl,
         workflowPhotos: activeWorkflow?.photos,
-        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow),
+        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow, itemNumber),
         conversation:
           activeWorkflow?.status === 'active'
             ? undefined

@@ -537,6 +537,7 @@ describe('main photo confirmation', () => {
     })
 
     expect(ingested.metadata.mainPhotoConfirmedPhotoId).toBe('photo-nk60295')
+    expect(ingested.metadata.mainPhotoConfirmedItemNumber).toBe('NK60295')
     expect(ingested.metadata.mainPhotoConfirmed).toBeUndefined()
     expect(ingested.metadata.photoSetReuseConfirmed).toBeUndefined()
     expect(update).toHaveBeenCalledWith(
@@ -656,6 +657,7 @@ describe('main photo confirmation', () => {
     })
 
     expect(replaced.metadata.mainPhotoConfirmedPhotoId).toBeUndefined()
+    expect(replaced.metadata.mainPhotoConfirmedItemNumber).toBeUndefined()
     expect(
       replaced.photos.some(
         (photo) =>
@@ -924,6 +926,7 @@ describe('main photo confirmation', () => {
     })
 
     expect(ingested.metadata.photoSetReuseConfirmedSha).toBe(earlierSha)
+    expect(ingested.metadata.photoSetReuseConfirmedItemNumber).toBe('ST21027')
     expect(ingested.metadata.photoSetReuseConfirmedSha).not.toBe(laterSha)
     expect(ingested.metadata.photoSetReuseConfirmed).toBeUndefined()
     expect(ingested.metadata.mainPhotoConfirmedPhotoId).toBeUndefined()

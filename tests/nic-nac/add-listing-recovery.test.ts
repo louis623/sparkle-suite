@@ -3987,6 +3987,7 @@ describe('add_listing - active workflow readiness guard', () => {
         missing: [],
         metadata: {
           photoSetReuseConfirmedSha: hashDataImageUrl('data:image/jpeg;base64,TktK'),
+          photoSetReuseConfirmedItemNumber: 'ST21027',
         },
         known: {
           itemNumber: 'ST21027',
@@ -4037,7 +4038,10 @@ describe('add_listing - active workflow readiness guard', () => {
         id: 'intake-er34579',
         phase: 'ready_to_add',
         missing: [],
-        metadata: { photoSetReuseConfirmedSha: hashA },
+        metadata: {
+          photoSetReuseConfirmedSha: hashA,
+          photoSetReuseConfirmedItemNumber: 'ER34579',
+        },
         known: {
           itemNumber: 'ER34579',
           designName: 'Earrings',
@@ -4485,6 +4489,7 @@ describe('add_listing - active workflow readiness guard', () => {
         metadata: {
           mainPhotoConfirmationRequired: true,
           mainPhotoConfirmedPhotoId: 'photo-nk60295',
+          mainPhotoConfirmedItemNumber: 'NK60295',
         },
         known: {
           itemNumber: 'NK60295',
@@ -4517,6 +4522,165 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     ).resolves.toMatchObject({ listingId: 'listing-confirmed' })
     expect(addListingMock).toHaveBeenCalled()
+  })
+
+  it('asks again when a yes for NK60295 is used to save NK60296', async () => {
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk60296',
+        phase: 'ready_to_add',
+        missing: [],
+        metadata: {
+          mainPhotoConfirmationRequired: true,
+          mainPhotoConfirmedPhotoId: 'photo-nk60295',
+          mainPhotoConfirmedItemNumber: 'NK60295',
+        },
+        known: {
+          itemNumber: 'NK60295',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            id: 'photo-nk60295',
+            intakeSessionId: 'intake-nk60296',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: 'data:image/jpeg;base64,TktK',
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK60296',
+        collectionName: 'Original',
+      }),
+    ).resolves.toMatchObject({
+      needsAction: 'confirm_main_photo',
+      previewPhotoId: 'photo-nk60295',
+      message: expect.stringContaining('NK60296'),
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
+  })
+
+  it('asks again when a set yes for NK60295 is used to save NK60296', async () => {
+    createAdminClientMock.mockReturnValue(
+      makeAdminClientMock([], null, [
+        {
+          item_number: 'NK10001',
+          status: 'completed',
+          created_design_id: 'design-nk10001',
+          created_listing_ids: ['listing-nk10001'],
+        },
+      ]),
+    )
+    const photoUrl = 'data:image/jpeg;base64,TktK'
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: activeWorkflow({
+        id: 'intake-nk60296',
+        phase: 'ready_to_add',
+        missing: [],
+        metadata: {
+          photoSetReuseConfirmedSha: hashDataImageUrl(photoUrl),
+          photoSetReuseConfirmedItemNumber: 'NK60295',
+        },
+        known: {
+          itemNumber: 'NK60296',
+          designName: 'Necklace',
+          collectionName: 'Original',
+          rarityClassification: 'standard',
+        },
+        photos: [
+          {
+            intakeSessionId: 'intake-nk60296',
+            attachmentIndex: 1,
+            declaredRole: 'jewelry_front',
+            visualRole: 'jewelry',
+            roleConfirmed: true,
+            imageUrl: photoUrl,
+            quality: 'usable',
+            qualityIssues: [],
+            notes: ['declared as customer-facing jewelry photo'],
+          },
+        ],
+      }),
+    })
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK60296',
+        collectionName: 'Original',
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      userMessage: expect.stringContaining('NK60296 belongs with that set'),
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
+  })
+
+  it('asks again when a conversation yes for NK60295 is used to save NK60296', async () => {
+    createAdminClientMock.mockReturnValue(
+      makeAdminClientMock([], null, [
+        {
+          item_number: 'NK10001',
+          status: 'completed',
+          created_design_id: 'design-nk10001',
+          created_listing_ids: ['listing-nk10001'],
+        },
+      ]),
+    )
+    const photoUrl = 'data:image/jpeg;base64,TktK'
+    const tool = makeTool(
+      makeConversationLookupMock([
+        { role: 'user', parts: [{ type: 'text', text: 'Yes' }] },
+        {
+          role: 'assistant',
+          parts: [
+            {
+              type: 'tool-add_listing',
+              output: {
+                code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+                message:
+                  'This photo is already on NK10001. If NK60295 belongs with that set, reply yes.',
+              },
+            },
+          ],
+        },
+        {
+          role: 'user',
+          parts: [
+            {
+              type: 'file',
+              mediaType: 'image/jpeg',
+              url: photoUrl,
+            },
+          ],
+        },
+      ]),
+    )
+
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK60296',
+        designName: 'Necklace',
+        collectionName: 'Original',
+      }),
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      userMessage: expect.stringContaining('NK60296 belongs with that set'),
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
   })
 
   it('returns the main photo preview for a batch item with an unconfirmed selected photo and saves nothing', async () => {
@@ -4639,6 +4803,7 @@ describe('add_listing - active workflow readiness guard', () => {
         metadata: {
           mainPhotoConfirmationRequired: true,
           mainPhotoConfirmedPhotoId: 'photo-old',
+          mainPhotoConfirmedItemNumber: 'NK60295',
         },
         known: {
           itemNumber: 'NK60295',

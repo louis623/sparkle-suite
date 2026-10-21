@@ -426,22 +426,33 @@ export async function ingestLatestTradeBoardIntakeTurn(
   if (ingestedNewImage) {
     delete metadata.mainPhotoConfirmedPhotoId
     delete metadata.mainPhotoConfirmed
+    delete metadata.mainPhotoConfirmedItemNumber
   } else if (latestTurnConfirmsMainPhoto(args.messages)) {
     const confirmedPhotoId =
       previewedMainPhotoId(args.messages) ??
       currentMainPhotoIdentity(photos)
-    if (confirmedPhotoId) {
+    const confirmedItemNumber = mainPhotoConfirmedItemNumber(
+      args.messages,
+      args.session.known.itemNumber,
+    )
+    if (confirmedPhotoId && confirmedItemNumber) {
       metadata = {
         ...metadata,
         mainPhotoConfirmedPhotoId: confirmedPhotoId,
+        mainPhotoConfirmedItemNumber: confirmedItemNumber,
       }
       delete metadata.mainPhotoConfirmed
     }
   }
   if (latestTurnConfirmsPhotoSet(args.messages)) {
     const confirmedSha = flaggedPhotoSetSha(args.messages, photos)
-    if (confirmedSha) {
-      metadata = { ...metadata, photoSetReuseConfirmedSha: confirmedSha }
+    const confirmedItemNumber = setAskItemNumber(args.messages)
+    if (confirmedSha && confirmedItemNumber) {
+      metadata = {
+        ...metadata,
+        photoSetReuseConfirmedSha: confirmedSha,
+        photoSetReuseConfirmedItemNumber: confirmedItemNumber,
+      }
       delete metadata.photoSetReuseConfirmed
     }
   }
@@ -653,6 +664,56 @@ function latestTurnConfirmsPhotoSet(messages: UIMessage[]): boolean {
     if (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM') return true
     return typeof output?.message === 'string' && /belongs with that set/i.test(output.message)
   })
+}
+
+function normalizeSavedItemNumber(value: unknown): string {
+  return typeof value === 'string' ? value.trim().toUpperCase() : ''
+}
+
+function itemNumberInSetAsk(text: string): string {
+  const match = text.match(/\bif\s+([A-Za-z]{1,4}-?\d{3,})\s+belongs with that set\b/i)
+  return match?.[1] ? match[1].trim().toUpperCase() : ''
+}
+
+function itemNumberInMainPhotoAsk(text: string): string {
+  const match = text.match(
+    /\bmain photo I will save for\s+([A-Za-z]{1,4}-?\d{3,})\b/i,
+  )
+  return match?.[1] ? match[1].trim().toUpperCase() : ''
+}
+
+function previousAssistantBlobs(messages: UIMessage[]): string[] {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return []
+  const previousAssistant = messages
+    .slice(0, latestUserIndex)
+    .reverse()
+    .find((message) => message.role === 'assistant')
+  const blobs = [getMessageText(previousAssistant)]
+  for (const part of previousAssistant?.parts ?? []) {
+    const message = (part as { output?: { message?: unknown } }).output?.message
+    if (typeof message === 'string' && message.trim()) blobs.push(message)
+  }
+  return blobs
+}
+
+function mainPhotoConfirmedItemNumber(
+  messages: UIMessage[],
+  knownItemNumber: unknown,
+): string {
+  for (const blob of previousAssistantBlobs(messages)) {
+    const named = itemNumberInMainPhotoAsk(blob)
+    if (named) return named
+  }
+  return normalizeSavedItemNumber(knownItemNumber)
+}
+
+function setAskItemNumber(messages: UIMessage[]): string {
+  for (const blob of previousAssistantBlobs(messages)) {
+    const named = itemNumberInSetAsk(blob)
+    if (named) return named
+  }
+  return ''
 }
 
 function previewedMainPhotoId(messages: UIMessage[]): string | null {
