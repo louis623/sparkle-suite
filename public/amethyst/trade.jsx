@@ -1504,6 +1504,10 @@ function Filters({
 function TradeCard({ piece, onTap, tierVisible }) {
   const showTier = piece.tier !== "everyday" || tierVisible === "all";
   const tierLabel = piece.tier === "unicorn" ? "Unicorn" : piece.tier === "diamond" ? "Diamond" : "Everyday";
+  const detailChips = [piece.type, piece.size ? `Size ${piece.size}` : "", piece.material, piece.stone]
+    .map((part) => String(part || "").trim())
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <article className={`tp-card ${piece.tier}`} onClick={() => onTap(piece)}>
@@ -1523,11 +1527,8 @@ function TradeCard({ piece, onTap, tierVisible }) {
       <div className="tp-card-body">
         <div className="tp-card-collection">{displayCollectionLabel(piece.collection)}</div>
         <h3 className="tp-card-name slot" data-slot="design name">{piece.name}</h3>
-        <div className="tp-card-meta">
-          <span>{piece.type}{piece.size ? ` - Size ${piece.size}` : ""}</span>
-        </div>
+        <div className="tp-card-meta">{detailChips}</div>
         <div className="tp-card-quantity">{Math.max(0, Number(piece.quantityAvailable ?? 1))} available</div>
-        <div className="tp-card-material">{piece.material} · {piece.stone}</div>
         <button type="button" className="tp-card-action" onClick={(event) => { event.stopPropagation(); onTap(piece); }}>
           View dancer and send a swap request
         </button>

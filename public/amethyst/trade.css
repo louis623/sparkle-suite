@@ -1143,13 +1143,11 @@ body.tradepage :is(.tp-card-name, .tp-card-expand-name) {
   color: var(--hp-card-fg, var(--fg));
 }
 .tp-card-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
+  display: block;
   font-size: 13px;
   color: var(--hp-card-muted, var(--fg-muted));
-  letter-spacing: 0.04em;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
 }
 .tp-card-collection {
   text-transform: uppercase;
