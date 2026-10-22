@@ -1,3 +1,9 @@
+## October 22, 2026 — PR 141 repairs, not deployed
+
+- Louis authorized a PR-only branch exception for cursor/nicnac-photo-hardening. Seven isolated commits fix send, stored preview recovery, history, quality gates, original images, replay/time and skip status. Product tip 810bea061a8de73f8ab52a05bf3bae0e34e9b22b.
+- All 754 tests in 47 files and TypeScript pass. Real route/service/SQL tests use synthetic boundaries; no signed-in Smoke, merge, deploy, production branch or Live changes. GitHub reports base conflicts; integration needs a separate decision.
+- See [PR-only closeout](2026-10-22-pr141-nicnac-repair.md) and [analysis](../ANALYSIS.md). The primary dirty checkout and permanent branch policy remain untouched.
+
 ## October 17, 2026 - Fall Owl community theme live
 
 - Louis authorized publishing Fall Owl and Harvest Moon (FO-01) to all reps and approved in-memory database credential use. Existing authenticated Supabase CLI applied the guarded migration without exporting credentials; all-rep availability and unchanged saved selections verified. Product `52fd92ac` is READY on `dpl_5a8SKJU3hKPbmijmrXpDqWUEE3L8`, confirmed on both Suite domains and existing aliases. Build and 232 focused checks passed; live desktop/mobile sample pages and motion/audio controls passed. Protected reviewer entry unavailable, so authenticated picker/save/reload remains visually unverified. See [release state](2026-10-17-fall-owl-release.md).
