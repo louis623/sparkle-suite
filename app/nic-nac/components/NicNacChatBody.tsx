@@ -11,7 +11,7 @@ import { sendNicNacParts } from '@/lib/nic-nac/client-send'
 import { sortMessagesByCreatedAt } from '@/lib/nic-nac/message-order'
 import { mainPhotoPreviewSrc } from '@/lib/nic-nac/workflows/main-photo-preview'
 import { MOVED_ON_MESSAGE } from '@/lib/nic-nac/piece-task'
-import { asksToConfirmSave, lastVisibleAssistantId, retireLastConfirmationLine } from '@/lib/nic-nac/conversation-display'
+import { asksToConfirmSave, hasPendingSaveConfirmation, hasMovedOnNotice, lastVisibleAssistantId, retireLastConfirmationLine } from '@/lib/nic-nac/conversation-display'
 import { Bubble } from './Bubble'
 import { ChatHistory } from './ChatHistory'
 import { EmptyGreeting, type NicNacChatMode } from './EmptyGreeting'
@@ -146,6 +146,9 @@ export function buildAssistantMessageRenderables(
   parts: readonly unknown[],
   options?: { readOnly?: boolean; overlayMovedOn?: boolean },
 ): AssistantMessageRenderable[] {
+  if (options?.overlayMovedOn && (hasPendingSaveConfirmation(parts) || hasMovedOnNotice(parts))) {
+    return [{ type: 'text', key: 'moved-on', text: MOVED_ON_MESSAGE }]
+  }
   if (options?.overlayMovedOn) {
     const visible = buildAssistantMessageRenderables(parts, { ...options, overlayMovedOn: false })
     const pending = (item: AssistantMessageRenderable) => item.type === 'main-photo-preview' ||

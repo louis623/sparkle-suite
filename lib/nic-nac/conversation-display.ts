@@ -13,6 +13,26 @@ type PreviewPart = {
   }
 }
 
+/** Tool state is authoritative; the model can word its confirmation freely. */
+export function hasPendingSaveConfirmation(parts: readonly unknown[]): boolean {
+  return parts.some((part) => {
+    const record = part as PreviewPart | null
+    if (!record || typeof record !== 'object') return false
+    const output = record.output
+    return output?.needsAction === 'confirm_main_photo' ||
+      output?.code === 'MAIN_PHOTO_CONFIRMATION_REQUIRED' ||
+      (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM' && Boolean(output.previewPhotoId || output.previewImageUrl))
+  })
+}
+
+/** An already-retired reply must never regain the model's trailing question. */
+export function hasMovedOnNotice(parts: readonly unknown[]): boolean {
+  return parts.some((part) => {
+    const record = part as PreviewPart | null
+    return record?.type === 'text' && record.text?.includes(MOVED_ON_MESSAGE)
+  })
+}
+
 export function asksToConfirmSave(text: string): boolean {
   return /reply\s+["“']?yes\b|i(?:'|’)ll add it|i will add it|right main photo|main photo I(?:['’]ll| will) save|right piece to save|is this the right piece/i.test(
     text,
@@ -46,8 +66,7 @@ export function lastVisibleAssistantId<T extends { id?: string; role?: string; p
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     const message = messages[index]
     if (message.role !== 'assistant' || !Array.isArray(message.parts)) continue
-    if (visibleAssistantText(message.parts).trim() || message.parts.some((part: PreviewPart) =>
-      part?.output?.needsAction === 'confirm_main_photo')) return message.id ?? null
+    if (visibleAssistantText(message.parts).trim() || hasPendingSaveConfirmation(message.parts)) return message.id ?? null
   }
   return null
 }
@@ -64,14 +83,30 @@ export function retireSupersededPreviews<T extends { role?: string; parts?: unkn
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     const message = messages[index]
     if (message?.role !== 'assistant') continue
-    if (!visibleAssistantText(message.parts).trim()) continue
+    if (!visibleAssistantText(message.parts).trim() &&
+      !(Array.isArray(message.parts) && hasPendingSaveConfirmation(message.parts))) continue
     target = index
     break
   }
   if (target < 0) return messages
   const message = messages[target]
-  if (!message || !asksToConfirmSave(visibleAssistantText(message.parts))) return messages
-  if (!Array.isArray(message.parts)) return messages
+  if (!message || !Array.isArray(message.parts)) return messages
+  if (hasPendingSaveConfirmation(message.parts) || hasMovedOnNotice(message.parts)) {
+    const copy = messages.slice()
+    // Keep tool evidence in the display copy, but replace all visible text.
+    // Source messages and persisted rows remain immutable.
+    let written = false
+    const parts = message.parts.map((part) => {
+      if ((part as PreviewPart)?.type !== 'text') return part
+      const text = written ? '' : MOVED_ON_MESSAGE
+      written = true
+      return { ...(part as PreviewPart), text }
+    })
+    if (!written) parts.push({ type: 'text', text: MOVED_ON_MESSAGE })
+    copy[target] = { ...message, parts }
+    return copy
+  }
+  if (!asksToConfirmSave(visibleAssistantText(message.parts))) return messages
   const pending = (part: unknown) => {
     const record = part as PreviewPart | null
     return record?.type === 'text' && typeof record.text === 'string' &&

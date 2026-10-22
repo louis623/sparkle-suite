@@ -567,3 +567,10 @@ describe('round 10 stored history, photos, replay, and skip', () => {
     expect(known.collectionName).toBe('July Birthday')
   })
 })
+
+it.each([false,true])('renders only the moved-on notice for the phone wording (notice=%s)',(withNotice)=>{
+  const parts=[{type:'tool-add_listing',state:'output-available',output:{needsAction:'confirm_main_photo',previewPhotoId:'phone-photo'}},{type:'text',text:(withNotice?MOVED_ON_MESSAGE+'\n':'')+"I've got RG16117 ready with the silver finish, Smoke Test collection, size 10, and standard classification. Is this the correct main photo to save for it?"}]
+  const before=structuredClone(parts)
+  expect(buildAssistantMessageRenderables(parts,{readOnly:true,overlayMovedOn:true})).toEqual([{type:'text',key:'moved-on',text:MOVED_ON_MESSAGE}])
+  expect(parts).toEqual(before)
+})

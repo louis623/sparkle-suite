@@ -267,6 +267,20 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect((await db.sql.query("select * from nic_nac_conversations where conversation_id='piece-chat' order by created_at,id")).rows).toEqual(before)
   })
 
+  it.each([false,true])('retires the exact phone confirmation from pending state (notice=%s)',async(withNotice)=>{
+    await stored({id:'phone-confirm',role:'assistant',parts:[
+      {type:'tool-add_listing',state:'output-available',toolCallId:'phone-preview',output:{needsAction:'confirm_main_photo',previewPhotoId:PHOTO}},
+      {type:'text',text:(withNotice?MOVED_ON_MESSAGE+'\n':'')+"I've got RG16117 ready with the silver finish, Smoke Test collection, size 10, and standard classification. Is this the correct main photo to save for it?"}
+    ] as any})
+    const before=await loadCanonicalHistory(db.client,'piece-chat')
+    expect((await rollover(new Request('http://local.test/rollover',{method:'POST',body:JSON.stringify({conversationId:'piece-chat'})}))).status).toBe(200)
+    for(const response of [await history(new Request('http://local.test/history?conversationId=piece-chat')),await historyById(new Request('http://local.test/'),{params:Promise.resolve({conversationId:'piece-chat'})})]) {
+      const result=await response.json()
+      expect(result.messages.at(-1).parts.filter((p:any)=>p.type==='text').map((p:any)=>p.text).join('')).toBe(MOVED_ON_MESSAGE)
+    }
+    expect(await loadCanonicalHistory(db.client,'piece-chat')).toEqual(before)
+  })
+
   it('Recent includes cleared chats and counts conversations across a long history',async()=>{
     await db.sql.exec("insert into nic_nac_conversations(rep_id,conversation_id,message_id,role,parts,cleared_at,created_at) values ('"+REP+"','cleared-chat','old','user','[{\"type\":\"text\",\"text\":\"Old piece\"}]',now(),now()-interval '1 day');")
     await db.sql.query("insert into nic_nac_conversations(rep_id,conversation_id,message_id,role,parts) select $1,'piece-chat','row-'||i,'user','[{\"type\":\"text\",\"text\":\"Current piece\"}]'::jsonb from generate_series(1,1001) i",[REP])
