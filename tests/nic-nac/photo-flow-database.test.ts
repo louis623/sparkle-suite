@@ -528,13 +528,27 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
   })
 
+  it.each([0.5,0.95].flatMap(blurRisk=>[false,true].map(packaging=>({blurRisk,packaging}))))('refuses blur before the model on a captionless photo follow-up ($blurRisk, packaging=$packaging)',async({blurRisk,packaging})=>{
+    // The intake is active but the recent conversation contains only photo
+    // questions, with no trade-board routing keyword.
+    await stored({id:'photo-ask',role:'assistant',parts:[{type:'text',text:'Please send the label and a front photo of the jewelry.'}]})
+    state.analysis={blurRisk,...(packaging?{subjectCentered:false,subjectCoverage:0.06,backgroundDistractionRisk:0.8,backgroundUniformity:0.2,backgroundCleanliness:0.2}:{})}
+    const reply=await turn('captionless-blur','','data:image/png;base64,Ymx1cnJ5')
+    expect(reply).toContain('blurry')
+    expect(reply).toMatch(/clearer.*photo/)
+    expect(reply).not.toContain('confirm_main_photo')
+    expect(state.model).not.toHaveBeenCalled()
+    expect(state.uploads).toHaveLength(0)
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+  })
+
   it.each([false,true])('explains blur on a jewelry upload even when the phone framing looks like packaging (label-first=%s)',async(labelFirst)=>{
     state.labelUrl='data:image/png;base64,bGFiZWw='
     if(labelFirst) await turn('blur-label','Here is the label for NK11312.',state.labelUrl)
     state.analysis={blurRisk:0.95,subjectCentered:false,subjectCoverage:0.06,backgroundDistractionRisk:0.8,backgroundUniformity:0.2,backgroundCleanliness:0.2}
     const reply=await turn('phone-blur','Here is the jewelry photo for NK11312.','data:image/png;base64,cGhvbmUtYmx1cg==')
     expect(reply).toContain('blurry')
-    expect(reply).toContain('clearer photo of the jewelry')
+    expect(reply).toContain('clearer front photo of the jewelry')
     expect(reply).not.toContain('confirm_main_photo')
     expect(state.model).not.toHaveBeenCalled()
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)

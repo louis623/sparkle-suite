@@ -119,6 +119,7 @@ import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-boa
 import {
   CUT_OFF_PHOTO_MESSAGE,
   mainPhotoPreviewRefusal,
+  inferRoleFromText,
   photoIsLabel,
   selectBoundMainPhoto,
   speculativeSecondItemClaim,
@@ -951,8 +952,16 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
     latestUserMessageId: latestUserMessage?.id,
     previewPhotoId: shownMainPhotoPreviewId(messages, workflowTaskContinuity.tradeBoardSession?.photos),
   })
+  // A requested label/jewelry upload still needs admission and quality checks
+  // when its caption is empty and recent prose contains no routing keyword.
+  const answersPiecePhotoRequest =
+    workflowTaskContinuity.tradeBoardSession?.status === 'active' &&
+    latestUserHasImage &&
+    latestToolIntents.every(intent => intent === 'memory' || intent === 'show_memory') &&
+    /\b(?:label|jewelry|main photo)\b/i.test(previousAssistantText) &&
+    /\b(?:photo|picture|image)\b/i.test(previousAssistantText)
   const tradeBoardWorkflowContext =
-    workflowContinuityAccess.tradeBoard && (workflowTurn.tradeBoard || confirmsStoredPhoto)
+    workflowContinuityAccess.tradeBoard && (workflowTurn.tradeBoard || confirmsStoredPhoto || answersPiecePhotoRequest)
     ? await getOrCreateTradeBoardIntakeContext({
         supabase,
         workflowSupabase,
@@ -1008,8 +1017,16 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
     )
     const latestJewelryPhoto = [...latestTurnPhotos].reverse().find(isJewelryPhoto)
     const qualityPhoto = latestJewelryPhoto
-    const gateRefusal =
-      latestUserHasImage && qualityPhoto
+    // Pixel framing can mistake a blurred jewelry photo for packaging. Preserve
+    // the blur reason before role-based missing-photo replies. An explicit or
+    // OCR-identified label keeps the existing label handling.
+    const blurredUpload = inferRoleFromText(latestUserText) !== 'label_details'
+      ? latestTurnPhotos.find(photo => photo.qualityIssues.includes('blur_risk') &&
+          !photo.notes.some(note => /^printed-item:/i.test(note)))
+      : undefined
+    const gateRefusal = blurredUpload
+      ? 'That photo is a little blurry. Please send a clearer front photo of the jewelry.'
+      : latestUserHasImage && qualityPhoto
         ? mainPhotoPreviewRefusal({
             photo: qualityPhoto,
             itemNumber: sessionAfter?.known.itemNumber,
