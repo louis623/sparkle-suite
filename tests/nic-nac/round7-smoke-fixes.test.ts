@@ -101,7 +101,8 @@ describe('round 7 a refused upload cannot be previewed or saved', () => {
   beforeEach(() => {
     processRepListingPhotoUrl.mockReset()
     processRepListingPhotoUrl.mockImplementation(
-      async (input: { sourceImageUrl: string }) => ({ photoUrl: input.sourceImageUrl }),
+      async (input: { sourceImageUrl: string }) => ({ originalPhotoUrl: input.sourceImageUrl,
+      photoUrl: input.sourceImageUrl }),
     )
   })
 
@@ -158,7 +159,7 @@ describe('round 7 a refused upload cannot be previewed or saved', () => {
         selectedPhotoId: 'photo-a',
         workflow: refusedOnly as never,
       }),
-    ).toThrow(/That photo was refused/)
+    ).toThrow(/too blurry/)
     await expect(
       processListingPhotoForAdd({
         selectedPhotoId: 'photo-a',

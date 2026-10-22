@@ -3,7 +3,7 @@ import type { UIMessage } from 'ai'
 import { createChatDatabase } from './fixtures/sql-client'
 import { DESIGN,PHOTO,REP,SESSION,installIntakeSchema,seedPiece } from './fixtures/intake-database'
 import { loadCanonicalHistory,insertConversationMessages } from '@/lib/nic-nac/persistence'
-const state=vi.hoisted(()=>({client:null as any,analysis:{} as Record<string,unknown>,uploads:[] as Array<{data:string,name:string}>,model:vi.fn()}))
+const state=vi.hoisted(()=>({client:null as any,analysis:{} as Record<string,unknown>,uploads:[] as Array<{data:string,name:string}>,model:vi.fn(),crop:vi.fn(),enhance:vi.fn()}))
 vi.mock('@/lib/nic-nac/auth',()=>({AuthError:class extends Error{},getPaidNicNacContext:async()=>({repId:'10000000-0000-4000-8000-000000000001',rep:{auth_user_id:'synthetic'},supabase:state.client})}))
 vi.mock('@/lib/supabase/admin',()=>({createAdminClient:()=>state.client}))
 vi.mock('@/lib/nic-nac/guardian-telemetry',()=>({logIncident:async()=>{},logToolExecution:async()=>{}}))
@@ -15,7 +15,9 @@ vi.mock('@/lib/nic-nac/agent',()=>({createConfiguredNicNacAgent:(...args:any[])=
 // listing tool, listing service and the checked-in listing SQL RPC remain real.
 vi.mock('@/lib/services/server-image-quality',()=>({analyzeServerImageQuality:async()=>({contentType:'image/png',width:1200,height:1200,blurRisk:0.1,lightingRisk:0.1,detailRisk:0.1,backgroundDistractionRisk:0.1,subjectCoverage:0.55,subjectCentered:true,subjectCenterX:0.5,subjectCenterY:0.5,detailConfidence:0.9,backgroundUniformity:0.9,backgroundCleanliness:0.9,...state.analysis})}))
 vi.mock('@/lib/nic-nac/workflows/label-item-number',async(original)=>({...await original<any>(),readLabelPhoto:async()=>({status:'unreadable',itemNumber:null})}))
-vi.mock('@/lib/services/storage',async(original)=>({...await original<any>(),uploadJewelryPhoto:async(_rep:string,data:string,name:string)=>{state.uploads.push({data,name});return `https://storage.test/storage/v1/object/public/jewelry-photos/${_rep}/${name}.png`}}))
+vi.mock('@/lib/services/storage',async(original)=>({...await original<any>(),uploadStagedOriginalPhoto:async(_rep:string,data:string,name:string)=>({objectPath:name,signedUrl:'https://storage.test/'+name}),uploadCatalogDesignSourcePhoto:async(rep:string,_design:string,data:string,name:string)=>{state.uploads.push({data,name});return {objectPath:name,publicUrl:'https://storage.test/storage/v1/object/public/jewelry-photos/'+rep+'/'+name+'.png'}},uploadJewelryPhoto:async(_rep:string,data:string,name:string)=>{state.uploads.push({data,name});return `https://storage.test/storage/v1/object/public/jewelry-photos/${_rep}/${name}.png`}}))
+vi.mock('@/lib/services/jewelry-photo-crop',()=>({createGuardedJewelryPhotoCrop:(...args:any[])=>state.crop(...args)}))
+vi.mock('@/lib/services/photo-enhancement',()=>({executePhotoEnhancement:(...args:any[])=>state.enhance(...args)}))
 vi.mock('@/lib/photoroom/config',()=>({getPhotoroomConfig:()=>null}))
 import { createRepTextScrubber } from '@/lib/nic-nac/core/stream-output-guard'
 import { POST } from '@/app/api/nic-nac/route'
@@ -29,7 +31,7 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
   let db:Awaited<ReturnType<typeof createChatDatabase>>
   beforeAll(async()=>{db=await createChatDatabase();state.client=db.client;await installIntakeSchema(db.sql)},60000)
   afterAll(async()=>{await db.sql.close()})
-  beforeEach(async()=>{await seedPiece(db.sql);state.uploads=[];state.analysis={};state.model.mockReset();state.model.mockImplementation(()=>{throw new Error('Unexpected model path')})})
+  beforeEach(async()=>{await seedPiece(db.sql);state.uploads=[];state.analysis={};state.crop.mockClear();state.enhance.mockClear();state.model.mockReset();state.model.mockImplementation(()=>{throw new Error('Unexpected model path')})})
   async function stored(message:UIMessage){await insertConversationMessages(db.client,{repId:REP,conversationId:'piece-chat',messages:[message]})}
   async function turn(id:string,text:string,photo?:string){
     const messages=await loadCanonicalHistory(db.client,'piece-chat')
@@ -55,6 +57,9 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(listings).toHaveLength(1);expect(listings[0].design_id).toBe(DESIGN);expect(listings[0].rarity_classification).toBe('standard')
     expect(state.uploads.some(upload=>upload.data===source)).toBe(true)
     expect(listings[0].listing_photo_url).toContain('-source.')
+    expect(state.uploads).toHaveLength(1)
+    expect(state.crop).not.toHaveBeenCalled();expect(state.enhance).not.toHaveBeenCalled()
+    expect((await db.sql.query('select canonical_photo_url from jewelry_designs where id=$1',[DESIGN])).rows[0].canonical_photo_url).toBe('https://storage.test/catalog/original.jpg')
   })
   it('recovers the persisted preview when the client sends only the new yes',async()=>{
     await oldPhoto();await turn('no','no');await turn('replacement',"Here's the right photo",'data:image/png;base64,bmV3LXBob3Rv')
@@ -159,6 +164,20 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(response.status).toBe(200)
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
     expect((await db.sql.query("select * from nic_nac_conversations where message_id='phantom'")).rows).toHaveLength(0)
+  })
+
+  it('creates a new design and listing with the original upload through the real save route',async()=>{
+    await db.sql.exec('delete from jewelry_designs')
+    await oldPhoto();await turn('no','no')
+    const source='data:image/png;base64,bmV3LWRlc2lnbg=='
+    await turn('new-design-photo',"Here's the right photo",source)
+    expect(await turn('new-design-yes','yes')).toContain('is on your Dance Floor')
+    const listing=(await db.sql.query('select * from trade_listings')).rows[0]
+    const design=(await db.sql.query('select * from jewelry_designs')).rows[0]
+    expect(design.design_name).toBe('Moonlight');expect(listing.design_id).toBe(design.id)
+    expect(listing.listing_photo_url).toContain('NK11312-source.png')
+    expect(state.uploads).toEqual([{data:source,name:'NK11312-source'}])
+    expect(state.crop).not.toHaveBeenCalled()
   })
 
 })

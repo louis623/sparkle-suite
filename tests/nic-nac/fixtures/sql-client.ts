@@ -63,11 +63,11 @@ export function sqlClient(sql: PGlite): SupabaseClient {
         let query: string
         if (this.operation === 'insert') {
           const keys=Object.keys(this.values[0]);
-          query=`insert into ${ident(this.table)} (${keys.map(ident).join(',')}) values ${this.values.map(row=>`(${keys.map(k=>this.bind(k === 'parts' ? JSON.stringify(row[k]) : row[k] ?? null)).join(',')})`).join(',')}`
+          query=`insert into ${ident(this.table)} (${keys.map(ident).join(',')}) values ${this.values.map(row=>`(${keys.map(k=>this.bind(['parts','photo_pipeline_preflight_issues'].includes(k) ? JSON.stringify(row[k]) : row[k] ?? null)).join(',')})`).join(',')}`
           if(this.conflict) query+=` on conflict (${this.conflict.split(',').map(ident).join(',')}) do `+(this.ignore?'nothing':`update set ${keys.map(k=>`${ident(k)}=excluded.${ident(k)}`).join(',')}`)
           query+=' returning *'
         } else if (this.operation === 'update') {
-          query=`update ${ident(this.table)} set ${Object.entries(this.values[0]).map(([k,v])=>`${ident(k)}=${this.bind(k === 'parts' ? JSON.stringify(v) : v)}`).join(',')}${where} returning *`
+          query=`update ${ident(this.table)} set ${Object.entries(this.values[0]).map(([k,v])=>`${ident(k)}=${this.bind(['parts','photo_pipeline_preflight_issues'].includes(k) ? JSON.stringify(v) : v)}`).join(',')}${where} returning *`
         } else if (this.operation === 'delete') query=`delete from ${ident(this.table)}${this.joins.join('')}${where} returning *`
         else query=`select ${this.fields === '*' ? '*' : this.fields.split(',').map(k=>k.trim().startsWith('to_jsonb(')?k:ident(this.table)+'.'+ident(k.trim())).join(',')} from ${ident(this.table)}${this.joins.join('')}${where}${this.sorts.length ? ` order by ${this.sorts.join(',')}` : ''} limit ${this.count} offset ${this.offset}`
         const result=await sql.query(query,this.params)

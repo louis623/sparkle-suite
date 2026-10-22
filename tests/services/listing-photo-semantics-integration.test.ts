@@ -428,4 +428,22 @@ describe('listing/design photo semantic integration', () => {
       },
     })
   })
+  it('preserves the exact original bytes for an explicitly original listing',async()=>{
+    analyzeServerImageQualityMock.mockResolvedValueOnce(smallJewelryAnalysis)
+    uploadJewelryPhotoMock.mockResolvedValueOnce('https://cdn.example.com/original.jpg')
+    const result=await processRepListingPhotoUrl({repId:'rep-1',sourceImageUrl:'data:image/jpeg;base64,AQID',filenameStem:'NK123'}, {publishOriginalUpload:true,confirmedJewelryFront:true})
+    expect(result.selectedSource).toBe('original')
+    expect(createGuardedJewelryPhotoCropMock).not.toHaveBeenCalled()
+    expect(uploadJewelryPhotoMock).toHaveBeenCalledExactlyOnceWith('rep-1','data:image/jpeg;base64,AQID',expect.stringMatching(/-source$/))
+  })
+  it('publishes original new-design bytes without even attempting a crop',async()=>{
+    analyzeServerImageQualityMock.mockResolvedValueOnce(smallJewelryAnalysis)
+    uploadStagedOriginalPhotoMock.mockResolvedValueOnce({objectPath:'original.jpg',signedUrl:'https://storage.test/original.jpg'})
+    uploadCatalogDesignSourcePhotoMock.mockResolvedValueOnce({objectPath:'source.jpg',publicUrl:'https://cdn.example.com/source.jpg'})
+    const result=await prepareDesignSourcePhoto({repId:'rep-1',designId:'d',sourceImageDataUrl:'data:image/jpeg;base64,AQID',filenameStem:'NK123'}, {publishOriginalUpload:true,confirmedJewelryFront:true})
+    expect(result.selectedSource).toBe('original')
+    expect(createGuardedJewelryPhotoCropMock).not.toHaveBeenCalled()
+    expect(uploadCatalogDesignSourcePhotoMock).toHaveBeenCalledExactlyOnceWith('rep-1','d','data:image/jpeg;base64,AQID','NK123-source')
+  })
+
 })

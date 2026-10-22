@@ -1703,11 +1703,17 @@ function workflowOwnedListingPhotoUrl(input: {
 export function originalUploadUrl(processed: {
   photoUrl?: string | null
   originalPhotoUrl?: string | null
+  selectedSource?: string
 } | null | undefined): string | undefined {
   const original = processed?.originalPhotoUrl?.trim()
   if (original) return original
   const photo = processed?.photoUrl?.trim()
-  return photo || undefined
+  if (processed?.selectedSource === 'original' && photo) return photo
+  if (processed) throw new NicNacToolError({
+    code: 'ORIGINAL_PHOTO_MISSING',
+    userMessage: "I couldn't preserve the original upload. Please send the jewelry photo again.",
+  })
+  return undefined
 }
 
 export async function processListingPhotoForAdd(input: {
@@ -1785,7 +1791,7 @@ export async function processListingPhotoForAdd(input: {
             ...listingPhotoProcessInput,
             sourceImageUrl: boundPhoto.imageUrl,
           },
-          { confirmedJewelryFront: true },
+          { confirmedJewelryFront: true, publishOriginalUpload: true },
         ),
       )
     } catch (err) {
@@ -1811,7 +1817,7 @@ export async function processListingPhotoForAdd(input: {
             ...listingPhotoProcessInput,
             sourceImageUrl: numberedPiecePhotoUrl,
           },
-          { confirmedJewelryFront: true },
+          { confirmedJewelryFront: true, publishOriginalUpload: true },
         ),
       )
     } catch (err) {
@@ -1845,7 +1851,7 @@ export async function processListingPhotoForAdd(input: {
             ...listingPhotoProcessInput,
             sourceImageUrl: workflowPhotoUrl,
           },
-          { confirmedJewelryFront: true },
+          { confirmedJewelryFront: true, publishOriginalUpload: true },
         ),
       )
     } catch (err) {
@@ -1876,9 +1882,9 @@ export async function processListingPhotoForAdd(input: {
       const processed =
         workflowPhotoUrl === listingPhotoUrl
           ? await processRepListingPhotoUrl(processInput, {
-              confirmedJewelryFront: true,
+              confirmedJewelryFront: true, publishOriginalUpload: true,
             })
-          : await processRepListingPhotoUrl(processInput)
+          : await processRepListingPhotoUrl(processInput, { publishOriginalUpload: true })
       return originalUploadUrl(processed)
     } catch (err) {
       explainServiceError(err)
@@ -1941,9 +1947,9 @@ export async function processListingPhotoForAdd(input: {
     )
     const processed = isWorkflowConfirmed
       ? await processRepListingPhotoUrl(processInput, {
-          confirmedJewelryFront: true,
+          confirmedJewelryFront: true, publishOriginalUpload: true,
         })
-      : await processRepListingPhotoUrl(processInput)
+      : await processRepListingPhotoUrl(processInput, { publishOriginalUpload: true })
     return originalUploadUrl(processed)
   } catch (err) {
     explainServiceError(err)

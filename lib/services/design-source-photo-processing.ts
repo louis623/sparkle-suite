@@ -135,7 +135,7 @@ export async function prepareDesignSourcePhoto(
     subjectCentered: analysis.subjectCentered,
   })
   const publishOriginalUpload = options.publishOriginalUpload === true
-  const crop = semantic.canAttemptCrop
+  const crop = !publishOriginalUpload && semantic.canAttemptCrop
       ? await createGuardedJewelryPhotoCrop({
           bytes: fetched.bytes,
           analysis,

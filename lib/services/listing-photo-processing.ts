@@ -24,6 +24,8 @@ export interface ProcessRepListingPhotoUrlInput {
 export interface ProcessRepListingPhotoUrlOptions {
   fetch?: typeof fetch
   confirmedJewelryFront?: boolean
+  /** Keep the exact upload as the public listing image. */
+  publishOriginalUpload?: boolean
 }
 
 export interface ProcessRepListingPhotoUrlResult {
@@ -135,7 +137,7 @@ export async function processRepListingPhotoUrl(
     subjectCoverage: metadata.subjectCoverage,
     subjectCentered: metadata.subjectCentered,
   })
-  const crop = semantic.canAttemptCrop
+  const crop = !options.publishOriginalUpload && semantic.canAttemptCrop
     ? await createGuardedJewelryPhotoCrop({
         bytes: fetched.bytes,
         analysis: metadata,
@@ -200,6 +202,8 @@ export async function processRepListingPhotoUrl(
       attempted: false,
     },
   }
+
+  if (options.publishOriginalUpload) return baseResult
 
   let photoroomConfig: ReturnType<typeof getPhotoroomConfig>
   try {

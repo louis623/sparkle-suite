@@ -24,6 +24,10 @@ export async function installIntakeSchema(sql: PGlite) {
     create table trade_listings(id uuid primary key default gen_random_uuid(),rep_id uuid,design_id uuid references jewelry_designs(id),listing_source text,status listing_status,rep_notes text,trade_preferences text,ring_size text,listing_photo_url text,uses_canonical_photo boolean,quantity_available integer,listed_at timestamptz,rarity_classification text,rarity_confirmed_at timestamptz,rarity_confirmation_source text,created_at timestamptz default now(),updated_at timestamptz default now());
     create table trade_requests(id uuid default gen_random_uuid(),listing_id uuid,status text);
     create table trade_listing_add_mutations(idempotency_key text,rep_id uuid,input_signature text,listing_id uuid,result jsonb,unique(rep_id,idempotency_key));`)
+  const pipeline=readFileSync('supabase/migrations/040_ss_photo_pipeline_state.sql','utf8')
+  await sql.exec(pipeline.slice(pipeline.indexOf('ALTER TABLE'),pipeline.indexOf('DO $')))
+  await sql.exec(`alter table jewelry_designs add column special_features text, add column length_info text, add column created_by_rep_id uuid, add column rarity_confirmed_at timestamptz, add column rarity_confirmation_source text;
+    create table jewelry_catalog_change_log(design_id uuid,rep_id uuid,conversation_id text,change_type text,issue_type text,reason text,before_state jsonb,after_state jsonb);`)
   const concurrency=readFileSync('supabase/migrations/20260825015000_trade_listing_quantity_concurrency.sql','utf8')
   const start=concurrency.indexOf('create or replace function public.trade_listing_catalog_group_digest(')
   await sql.exec(concurrency.slice(start,concurrency.indexOf('$$;',start)+3))
@@ -33,7 +37,7 @@ export async function installIntakeSchema(sql: PGlite) {
 }
 
 export async function seedPiece(sql:PGlite, rarity='standard') {
-  await sql.exec(`truncate trade_listing_add_mutations,trade_listings,trade_requests,trade_board_intake_photos,trade_board_intake_sessions,nic_nac_conversations,nic_nac_rollovers,jewelry_designs,collections cascade;
+  await sql.exec(`truncate jewelry_catalog_change_log,trade_listing_add_mutations,trade_listings,trade_requests,trade_board_intake_photos,trade_board_intake_sessions,nic_nac_conversations,nic_nac_rollovers,jewelry_designs,collections cascade;
     insert into collections(id,name,collection_year,type) values ('50000000-0000-4000-8000-000000000001','July Birthday 2026',2026,'birthday');
     insert into jewelry_designs(id,item_number,design_name,type_prefix,collection_id,canonical_photo_url) values ('${DESIGN}','NK11312','Moonlight','NK','50000000-0000-4000-8000-000000000001','https://storage.test/catalog/original.jpg');`)
   await sql.query(`insert into trade_board_intake_sessions(id,rep_id,conversation_id,item_number,jewelry_type,design_name,collection_name,collection_family,collection_year,rarity_classification,metadata)

@@ -661,6 +661,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       },
     })
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/florence-boxed-display.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/florence-boxed-display.png',
     })
     addListingMock.mockResolvedValueOnce({
@@ -716,7 +717,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       filenameStem: 'ER13229-listing-photo',
       mutationAssetKey: expect.any(String),
       variantAssetKey: 'design-existing',
-    }, { confirmedJewelryFront: true })
+    }, { confirmedJewelryFront: true, publishOriginalUpload: true })
     expect(addListingMock).toHaveBeenCalledWith(
       expect.anything(),
       'rep-1',
@@ -1116,6 +1117,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       usesCanonicalPhoto: false,
     })
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/ring-enhanced.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/ring-enhanced.png',
     })
 
@@ -1135,7 +1137,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       sourceImageUrl: 'https://rep.example.com/raw-listing.jpg',
       filenameStem: 'NEW-100-listing-photo',
       mutationAssetKey: expect.any(String),
-    })
+    }, { publishOriginalUpload: true })
     expect(addListingMock.mock.calls[0][2]).toMatchObject({
       listingPhotoUrl: 'https://cdn.example.com/listings/rep-1/ring-enhanced.png',
     })
@@ -1151,6 +1153,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       usesCanonicalPhoto: false,
     })
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/elodie-jewelry.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/elodie-jewelry.png',
     })
 
@@ -1179,7 +1182,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       sourceImageUrl: 'data:image/jpeg;base64,SkVXRUw=',
       filenameStem: 'ER76003-listing-photo',
       mutationAssetKey: expect.any(String),
-    })
+    }, { publishOriginalUpload: true })
     expect(addListingMock.mock.calls[0][2]).toMatchObject({
       listingPhotoUrl: 'https://cdn.example.com/listings/rep-1/elodie-jewelry.png',
     })
@@ -1229,6 +1232,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       usesCanonicalPhoto: false,
     })
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/for-keeps-front.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/for-keeps-front.png',
     })
 
@@ -1262,7 +1266,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       sourceImageUrl: 'data:image/jpeg;base64,SkVXRUw=',
       filenameStem: 'ER13743-listing-photo',
       mutationAssetKey: expect.any(String),
-    })
+    }, { publishOriginalUpload: true })
     expect(addListingMock.mock.calls[0][2]).toMatchObject({
       itemNumber: 'ER13743',
       listingPhotoUrl:
@@ -1280,6 +1284,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       usesCanonicalPhoto: false,
     })
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/florence-boxed-display.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/florence-boxed-display.png',
     })
 
@@ -1324,7 +1329,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
       sourceImageUrl: 'data:image/jpeg;base64,Qk9YRURfSkVXRUxSWQ==',
       filenameStem: 'ER13229-listing-photo',
       mutationAssetKey: expect.any(String),
-    })
+    }, { publishOriginalUpload: true })
     expect(addListingMock.mock.calls[0][2]).toMatchObject({
       itemNumber: 'ER13229',
       collectionName: 'July Birthday',
@@ -2448,6 +2453,7 @@ describe('add_listing - active workflow readiness guard', () => {
     })
 
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/kelly-studs.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/kelly-studs.png',
     })
     resolveItemNumberMock.mockResolvedValueOnce({
@@ -2473,7 +2479,7 @@ describe('add_listing - active workflow readiness guard', () => {
       expect.objectContaining({
         sourceImageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
       }),
-      { confirmedJewelryFront: true },
+      { confirmedJewelryFront: true, publishOriginalUpload: true },
     )
     expect(addListingMock).toHaveBeenCalled()
   })
@@ -2506,6 +2512,7 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(getWorkflowConfirmedJewelryFrontImageUrl(workflow)).toBe(boxedUrl)
 
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/boxed-hex-card.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/boxed-hex-card.png',
     })
 
@@ -2523,11 +2530,12 @@ describe('add_listing - active workflow readiness guard', () => {
       expect.objectContaining({
         sourceImageUrl: boxedUrl,
       }),
-      { confirmedJewelryFront: true },
+      { confirmedJewelryFront: true, publishOriginalUpload: true },
     )
     expect(processRepListingPhotoUrlMock).toHaveBeenCalledTimes(1)
 
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/boxed-hex-card.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/boxed-hex-card.png',
     })
     resolveItemNumberMock.mockResolvedValueOnce({
@@ -2837,6 +2845,7 @@ describe('add_listing - active workflow readiness guard', () => {
       usesCanonicalPhoto: false,
     })
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/florence-boxed.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/florence-boxed.png',
     })
     resolveItemNumberMock.mockResolvedValueOnce({
@@ -3219,6 +3228,7 @@ describe('add_listing - active workflow readiness guard', () => {
 
   it('does not let stale workflow catalog fields veto a valid ER13229 add attempt with a confirmed jewelry photo', async () => {
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/florence-boxed-display.png',
       photoUrl:
         'https://cdn.example.com/listings/rep-1/florence-boxed-display.png',
     })
@@ -3292,6 +3302,7 @@ describe('add_listing - active workflow readiness guard', () => {
 
   it('adds a confirmed non-item-number piece without creating or resolving catalog designs', async () => {
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/non-item-ring.jpg',
       photoUrl:
         'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/non-item-ring.jpg',
     })
@@ -3357,7 +3368,7 @@ describe('add_listing - active workflow readiness guard', () => {
         filenameStem: 'non-item-number-piece-listing-photo',
         mutationAssetKey: expect.any(String),
       },
-      { confirmedJewelryFront: true },
+      { confirmedJewelryFront: true, publishOriginalUpload: true },
     )
     expect(processRepListingPhotoUrlMock.mock.calls[0]?.[0]).not.toHaveProperty(
       'variantAssetKey',
@@ -3370,7 +3381,7 @@ describe('add_listing - active workflow readiness guard', () => {
         collectionFamily: 'Birthday',
         collectionName: 'July Birthday 2026',
         size: '7',
-        photoUrl:
+      photoUrl:
           'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/non-item-ring.jpg',
         repNotes: undefined,
         tradePreferences: undefined,
@@ -3469,6 +3480,7 @@ describe('add_listing - active workflow readiness guard', () => {
     )
 
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/non-item-ring.jpg',
       photoUrl:
         'https://example.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/non-item-ring.jpg',
     })
@@ -3682,6 +3694,7 @@ describe('add_listing - active workflow readiness guard', () => {
 
   it('treats piecePhotoIndex as the model-facing workflow photo number when several jewelry photos are confirmed', async () => {
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/florence-second-boxed-display.png',
       photoUrl:
         'https://cdn.example.com/listings/rep-1/florence-second-boxed-display.png',
     })
@@ -3754,7 +3767,7 @@ describe('add_listing - active workflow readiness guard', () => {
         filenameStem: 'ER13229-listing-photo',
         mutationAssetKey: expect.any(String),
       },
-      { confirmedJewelryFront: true },
+      { confirmedJewelryFront: true, publishOriginalUpload: true },
     )
     expect(addListingMock).toHaveBeenCalledWith(
       expect.anything(),
@@ -3933,6 +3946,7 @@ describe('add_listing - active workflow readiness guard', () => {
       makeAdminClientMock([], null, [{ item_number: 'NK60295', status: 'active' }]),
     )
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/st21027.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/st21027.png',
     })
     addListingMock.mockResolvedValueOnce({
@@ -3992,6 +4006,7 @@ describe('add_listing - active workflow readiness guard', () => {
       ]),
     )
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/st21027-abandoned.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/st21027-abandoned.png',
     })
     addListingMock.mockResolvedValueOnce({
@@ -4051,6 +4066,7 @@ describe('add_listing - active workflow readiness guard', () => {
       ]),
     )
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/st21027-set.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/st21027-set.png',
     })
     addListingMock.mockResolvedValueOnce({
@@ -4297,6 +4313,7 @@ describe('add_listing - active workflow readiness guard', () => {
     const labelPng = await renderItemNumberPng('NK60295')
     const labelUrl = `data:image/png;base64,${labelPng.toString('base64')}`
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/nk60295-gold-citrine.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/nk60295-gold-citrine.png',
     })
     addListingMock.mockResolvedValueOnce({
@@ -4614,6 +4631,7 @@ describe('add_listing - active workflow readiness guard', () => {
 
   it('saves after the main photo was confirmed', async () => {
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/nk60295.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/nk60295.png',
     })
     addListingMock.mockResolvedValueOnce({
@@ -5050,6 +5068,7 @@ describe('add_listing - active workflow readiness guard', () => {
       ]),
     )
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/nk60295-gold.png',
       photoUrl: 'https://cdn.example.com/listings/rep-1/nk60295-gold.png',
     })
     addListingMock.mockResolvedValueOnce({
@@ -5116,6 +5135,7 @@ describe('add_listing - active workflow readiness guard', () => {
 
   it('publishes the jewelry-front photo from two-photo intake and ignores a label selectedPhotoId', async () => {
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
       photoUrl:
         'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
     })
@@ -5188,7 +5208,7 @@ describe('add_listing - active workflow readiness guard', () => {
         filenameStem: 'NK96080-listing-photo',
         mutationAssetKey: expect.any(String),
       },
-      { confirmedJewelryFront: true },
+      { confirmedJewelryFront: true, publishOriginalUpload: true },
     )
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalledWith(
       expect.objectContaining({
@@ -5219,6 +5239,7 @@ describe('add_listing - active workflow readiness guard', () => {
       },
     })
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/statement-of-sparkle-jewelry.png',
       photoUrl:
         'https://cdn.example.com/listings/rep-1/statement-of-sparkle-jewelry.png',
     })
@@ -5292,7 +5313,7 @@ describe('add_listing - active workflow readiness guard', () => {
         mutationAssetKey: expect.any(String),
         variantAssetKey: 'design-nk57811',
       },
-      { confirmedJewelryFront: true },
+      { confirmedJewelryFront: true, publishOriginalUpload: true },
     )
     expect(addListingMock).toHaveBeenCalledWith(
       expect.anything(),
@@ -5317,6 +5338,7 @@ describe('add_listing - active workflow readiness guard', () => {
       },
     })
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
       photoUrl:
         'https://cdn.example.com/listings/rep-1/half-moon-crescent-jewelry.png',
     })
@@ -5375,7 +5397,7 @@ describe('add_listing - active workflow readiness guard', () => {
         mutationAssetKey: expect.any(String),
         variantAssetKey: 'design-nk88350',
       },
-      { confirmedJewelryFront: true },
+      { confirmedJewelryFront: true, publishOriginalUpload: true },
     )
     expect(addListingMock).toHaveBeenCalledWith(
       expect.anything(),
@@ -5427,6 +5449,7 @@ describe('add_listing - active workflow readiness guard', () => {
       },
     )
     processRepListingPhotoUrlMock.mockResolvedValueOnce({
+      originalPhotoUrl: 'https://cdn.example.com/listings/rep-1/nk88350-rhodium-jewelry.png',
       photoUrl:
         'https://cdn.example.com/listings/rep-1/nk88350-rhodium-jewelry.png',
     })
@@ -5498,7 +5521,7 @@ describe('add_listing - active workflow readiness guard', () => {
         mutationAssetKey: expect.any(String),
         variantAssetKey: 'design-nk88350-rhodium',
       },
-      { confirmedJewelryFront: true },
+      { confirmedJewelryFront: true, publishOriginalUpload: true },
     )
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalledWith(
       expect.objectContaining({
