@@ -135,7 +135,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20261022-signup-success')
+    expect(homepage).toContain('homepage.jsx?v=20261022-signup-step-error')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -1291,6 +1291,32 @@ describe('Amethyst homepage template data wiring', () => {
     expect(jsx).toContain('margin: 16px auto 0;')
     expect(jsx).toContain('.hp-signup-title,\n#signup .hp-signup-card.is-success .hp-signup-sub')
     expect(jsx).toContain('overflow: visible;')
+  })
+
+  it('keeps a phone step error inside the card padding', () => {
+    const jsx = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/homepage.jsx'),
+      'utf8',
+    )
+    const styles = jsx.slice(
+      jsx.indexOf('const SIGNUP_PREFERENCE_STYLES'),
+      jsx.indexOf('const SIGNUP_STEP_LABELS'),
+    )
+    const phone = styles.slice(styles.lastIndexOf('@media (max-width: 600px)'))
+    const signup = jsx.slice(jsx.indexOf('function Signup('), jsx.indexOf('function Footer('))
+
+    expect(phone).toContain('#signup .hp-signup-card:not(.is-success) {\n    padding: 36px 24px 32px;\n    overflow: clip;')
+    expect(phone).toContain('#signup .hp-signup-card:not(.is-success) .hp-signup-status.error {\n    width: 100%;\n    max-width: 100%;\n    margin: 0;\n    box-sizing: border-box;')
+    expect(phone).toContain('.hp-signup-title,\n  #signup .hp-signup-card:not(.is-success) .hp-signup-sub')
+    expect(styles.indexOf('#signup .hp-signup-card:not(.is-success)')).toBeGreaterThan(
+      styles.lastIndexOf('@media (max-width: 600px)'),
+    )
+    expect(styles).toContain('#signup .hp-signup-card.is-success {\n  padding: 56px 56px 48px;')
+    expect(signup).toContain('if (submitState.status === "success") return')
+    expect(signup).toContain('!window.matchMedia("(max-width: 600px)").matches')
+    expect(signup).toContain('card.scrollTop = 0')
+    expect(signup).toContain('card.scrollLeft = 0')
+    expect(signup).toContain('[step, stepError, submitState.status]')
   })
 
   it('asks for a phone number in customer wording when texts are chosen', () => {

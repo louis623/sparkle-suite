@@ -2257,6 +2257,22 @@ const SIGNUP_PREFERENCE_STYLES = `
 }
 @media (max-width: 600px) {
   #signup .hp-signup-card.is-success { padding: 36px 24px 32px; }
+  #signup .hp-signup-card:not(.is-success) {
+    padding: 36px 24px 32px;
+    overflow: clip;
+  }
+  #signup .hp-signup-card:not(.is-success) .hp-signup-title,
+  #signup .hp-signup-card:not(.is-success) .hp-signup-sub,
+  #signup .hp-signup-card:not(.is-success) .hp-signup-eyebrow {
+    width: 100%;
+    overflow: visible;
+  }
+  #signup .hp-signup-card:not(.is-success) .hp-signup-status.error {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+  }
 }
 `;
 
@@ -2408,6 +2424,19 @@ function Signup({ repName, businessName }) {
     if (!stepError) return;
     document.getElementById("hp-signup-step-error")?.focus();
   }, [stepError]);
+  useEffect(() => {
+    if (submitState.status === "success") return;
+    if (typeof window.matchMedia !== "function" || !window.matchMedia("(max-width: 600px)").matches) return;
+    const card = cardRef.current;
+    if (!card) return;
+    const pin = () => {
+      card.scrollTop = 0;
+      card.scrollLeft = 0;
+    };
+    pin();
+    const frame = window.requestAnimationFrame(pin);
+    return () => window.cancelAnimationFrame(frame);
+  }, [step, stepError, submitState.status]);
   useEffect(() => {
     let cancelled = false;
     fetch(withCurrentSearch("/api/amethyst/preference-options"))
