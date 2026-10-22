@@ -1,3 +1,5 @@
+import * as persistence from '@/lib/nic-nac/persistence'
+import * as pendingPhoto from '@/lib/nic-nac/workflows/pending-photo-confirmation'
 import { afterAll,beforeAll,beforeEach,describe,expect,it,vi } from 'vitest'
 import type { UIMessage } from 'ai'
 import { createChatDatabase } from './fixtures/sql-client'
@@ -36,8 +38,9 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
   afterAll(async()=>{await db.sql.close()})
   beforeEach(async()=>{await seedPiece(db.sql);state.uploads=[];state.labelUrl='';state.labelItemNumber='NK11312';state.analysisWait.mockReset();state.analysis={};state.crop.mockClear();state.enhance.mockClear();state.model.mockReset();state.model.mockImplementation(()=>{throw new Error('Unexpected model path')})})
   async function stored(message:UIMessage){await insertConversationMessages(db.client,{repId:REP,conversationId:'piece-chat',messages:[message]})}
-  async function turn(id:string,text:string,photo?:string|string[]){
+  async function turn(id:string,text:string,photo?:string|string[],visiblePreview?:UIMessage){
     const messages=await loadCanonicalHistory(db.client,'piece-chat')
+    if(visiblePreview) messages.push(visiblePreview)
     messages.push({id,role:'user',parts:[{type:'text',text},...(photo?(Array.isArray(photo)?photo:[photo]).map(url=>({type:'file' as const,mediaType:'image/png',url})):[])]})
     const response=await POST(new Request('http://local.test/api/nic-nac',{method:'POST',body:JSON.stringify({conversationId:'piece-chat',mode:'workspace',messages,submittedMessageId:id})}))
     expect(response.status).toBe(200)
@@ -296,6 +299,63 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(await turn('run17-yes','yes')).toContain('RG17101 is on your Dance Floor')
     expect(state.uploads).toHaveLength(1)
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
+  })
+
+  it.each([false,true])('waits for the photo-first preview reply when yes arrives early (aborted=%s)',async(aborted)=>{
+    const jewelry='data:image/png;base64,cGVuZGluZy1waG90bw=='
+    state.labelUrl='data:image/png;base64,cGVuZGluZy1sYWJlbA=='
+    state.model.mockImplementation(({toolContext}:any)=>({catalog:{allowedIntents:['trade_board'],requestedIntents:['trade_board'],toolNames:['add_listing'],source:'workspace_permissions',blockedIntents:[],blockedToolNames:[]},agent:{stream:async()=>({toUIMessageStream:async function*(){
+      const photo=toolContext.activeTradeBoardWorkflow.photos.find((p:any)=>p.imageUrl===jewelry)
+      const input={mode:'single' as const,itemNumber:'NK11312',selectedPhotoId:photo.id}
+      const output=await makeAddListingTool(toolContext).execute!(input,{} as any)
+      yield {type:'tool-input-available',toolCallId:'pending-preview',toolName:'add_listing',input}
+      yield {type:'tool-output-available',toolCallId:'pending-preview',output}
+      yield {type:'text-start',id:'pending-text'}
+      yield {type:'text-delta',id:'pending-text',delta:'Is this the correct main photo to save for it?'}
+      yield {type:'text-end',id:'pending-text'}
+    }})}}))
+    await turn('pending-jewelry','Here is the jewelry photo for NK11312.',jewelry)
+    let release!:()=>void
+    let previewVisible!:(message:UIMessage)=>void
+    const visible=new Promise<UIMessage>(resolve=>{previewVisible=resolve})
+    const finish=new Promise<void>(resolve=>{release=resolve})
+    const complete=persistence.completeAssistant
+    const completion=vi.spyOn(persistence,'completeAssistant').mockImplementation(async(client,args)=>{
+      if(args.parts.some((p:any)=>p.output?.needsAction==='confirm_main_photo')) {
+        previewVisible({id:args.messageId,role:'assistant',parts:args.parts})
+        await finish
+        if(aborted) return persistence.abortAssistant(client,args)
+      }
+      return complete(client,args)
+    })
+    const originalWait=pendingPhoto.waitForPendingPhotoReply
+    let entered!:()=>void
+    const waiting=new Promise<void>(resolve=>{entered=resolve})
+    const waitSpy=vi.spyOn(pendingPhoto,'waitForPendingPhotoReply').mockImplementation((...args)=>{entered();return originalWait(...args)})
+    const label=turn('pending-label','Here is the label.',state.labelUrl)
+    let saving:Promise<string>|undefined
+    try {
+      const preview=await visible
+      expect((await loadCanonicalHistory(db.client,'piece-chat')).at(-1)?.role).toBe('user')
+      saving=turn('early-yes','yes',undefined,preview)
+      await waiting
+      expect(state.uploads).toHaveLength(0)
+      expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+      release()
+      const result=await saving
+      expect(result).toContain(aborted ? "I couldn't finish reading those photos" : 'NK11312 is on your Dance Floor')
+      expect(result).not.toMatch(/photo check|once more|retry|confirmation step/)
+      expect(await label).toContain('confirm_main_photo')
+      expect(state.model).toHaveBeenCalledTimes(1)
+      expect(state.uploads).toHaveLength(aborted?0:1)
+      if(!aborted) expect(state.uploads[0].data).toBe(jewelry)
+      expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(aborted?0:1)
+      expect(await turn('early-yes','yes')).toContain(aborted ? "I couldn't finish reading those photos" : 'NK11312 is on your Dance Floor')
+      expect(state.uploads).toHaveLength(aborted?0:1)
+    } finally {
+      release();await label;await saving
+      completion.mockRestore();waitSpy.mockRestore()
+    }
   })
 
   it('a genuine photo-analysis failure uses plain language and does not upload or save',async()=>{

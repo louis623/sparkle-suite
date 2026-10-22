@@ -124,7 +124,8 @@ import {
   speculativeSecondItemClaim,
   SUBJECT_CUT_OFF_ISSUE,
 } from '@/lib/nic-nac/workflows/workflow-photo-roles'
-import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
+import { waitForPendingPhotoReply } from '@/lib/nic-nac/workflows/pending-photo-confirmation'
+import { lastShownMainPhotoPreview, mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
 import { readMyShowsForNicNac } from '@/lib/nic-nac/tools/list-my-shows'
 import { buildPersonalizedRepGreeting } from '@/lib/nic-nac/core/rep-personalization'
 import { createConfiguredNicNacAgent } from '@/lib/nic-nac/agent'
@@ -535,6 +536,25 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
     })
   }
 
+  // A fast yes may arrive after the preview is visible but before onFinish
+  // makes that reply canonical. Wait before ingesting or writing the next turn.
+  let pendingPhotoReplyFailed = false
+  const incomingConfirmation = messages.at(-1)
+  const precedingPhotoTurn = existingHistory.at(-1)
+  if (mode === 'workspace' && !supportScope && incomingConfirmation?.role === 'user' &&
+    submittedMessageId === incomingConfirmation.id &&
+    isPositiveConfirmation(incomingConfirmation.parts.map(part => part.type === 'text' ? part.text : '').join('\n')) &&
+    !incomingConfirmation.parts.some(part => part.type === 'file' && part.mediaType?.startsWith('image/')) &&
+    lastShownMainPhotoPreview(messages).shown && precedingPhotoTurn?.role === 'user' &&
+    precedingPhotoTurn.id !== incomingConfirmation.id &&
+    precedingPhotoTurn.parts.some(part => part.type === 'file' && part.mediaType?.startsWith('image/'))) {
+    const completed = await waitForPendingPhotoReply(supabase, {
+      repId, conversationId, photoMessageId: precedingPhotoTurn.id,
+    })
+    pendingPhotoReplyFailed = !completed
+    if (completed) existingHistory = await loadCanonicalHistory(supabase, conversationId)
+  }
+
   const replay = supportScope
     ? {
         dropIds: [] as string[],
@@ -603,6 +623,12 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
     }
     claimedAssistantId = replyId
     claimedTurn.abort = () => abortAssistant(supabase, { conversationId, messageId: replyId })
+  }
+
+  if (pendingPhotoReplyFailed && claimedAssistantId) {
+    const message = "I couldn't finish reading those photos, so I haven't saved this piece. Please send the label and jewelry photos again."
+    await completeAssistant(supabase, { conversationId, messageId: claimedAssistantId, parts: [{ type: 'text', text: message }] })
+    return createNicNacStaticTextStreamResponse({ message, messageId: claimedAssistantId, headers: responseHeaders })
   }
 
   const missionScope = classifyNicNacMissionScopeForMessages(messages)
