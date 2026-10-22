@@ -7,7 +7,9 @@ import {
   buildAmethystTradeTweakDefaults,
   defaultAmethystTradeTemplateData,
 } from '@/lib/amethyst/trade-template-data'
+import { displayCollectionLabel } from '@/lib/amethyst/trade-board-filters'
 import {
+  defaultAmethystTradeBoardListings,
   mapTradeListingToAmethystTradeBoardListing,
   parseAmethystPublicNetRows,
   type AmethystTradeBoardListing,
@@ -76,7 +78,7 @@ describe('Amethyst trade page template wiring', () => {
     expect(css).toMatch(/@media\s+\(max-width:\s*640px\)[\s\S]*?\.tp-hero-title[\s\S]*?font-size:\s*clamp\(32px,\s*9\.6vw,\s*44px\);/)
     expect(css).toMatch(/@media\s+\(max-width:\s*640px\)[\s\S]*?\.tp-hero-inner[\s\S]*?width:\s*100vw;/)
     expect(css).toMatch(/@media\s+\(max-width:\s*640px\)[\s\S]*?\.tp-hero-inner[\s\S]*?margin-inline:\s*calc\(50% - 50vw\);/)
-    expect(css).toMatch(/@media\s+\(max-width:\s*640px\)[\s\S]*?\.tp-hero-title[\s\S]*?max-width:\s*10ch;/)
+    expect(css).toMatch(/@media\s+\(max-width:\s*640px\)[\s\S]*?\.tp-hero-title[\s\S]*?max-width:\s*13ch;/)
     expect(css).toMatch(/@media\s+\(max-width:\s*640px\)[\s\S]*?\.tp-hero-title[\s\S]*?padding-block:\s*0\.04em 0\.12em;/)
     expect(css).toMatch(/@media\s+\(max-width:\s*640px\)[\s\S]*?\.tp-hero-title[\s\S]*?overflow-wrap:\s*anywhere;/)
     expect(css).toMatch(/@media\s+\(max-width:\s*640px\)[\s\S]*?\.tp-hero-sub[\s\S]*?width:\s*100%;/)
@@ -450,6 +452,32 @@ describe('Amethyst trade page template wiring', () => {
     })
   })
 
+  it('keeps each Sasha demo dancer in a collection that matches its jewelry type', () => {
+    const agrees = (collection: string, type: string) => {
+      const label = displayCollectionLabel(collection).toLowerCase()
+      const kind = type.toLowerCase()
+      if (kind === 'earrings') return /\bearrings?\b/.test(label)
+      if (kind === 'necklace' || kind === 'pendant') return /\b(necklace|pendant)s?\b/.test(label)
+      if (kind === 'ring') return /\brings?\b/.test(label)
+      if (kind === 'bracelet') return /\bbracelets?\b/.test(label)
+      if (kind === 'stack') return /\bstacks?\b/.test(label)
+      return false
+    }
+
+    for (const listing of defaultAmethystTradeBoardListings) {
+      expect(agrees(listing.collection, listing.type), `${listing.name}: ${listing.type} in ${listing.collection}`).toBe(true)
+    }
+  })
+
+  it('gives the Sasha demo a photo for every dancer', () => {
+    expect(defaultAmethystTradeBoardListings.length).toBeGreaterThan(0)
+    for (const listing of defaultAmethystTradeBoardListings) {
+      expect(listing.name).not.toMatch(/sample dancer/i)
+      expect(listing.photoUrl).toMatch(/^\/amethyst\/demo-dancers\/.+\.jpg$/)
+      expect(readFileSync(resolve(process.cwd(), `public${listing.photoUrl}`)).length).toBeGreaterThan(0)
+    }
+  })
+
   it('loads the runtime bootstrap script before the locked trade-page export', () => {
     const html = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Trade.html'),
@@ -517,7 +545,7 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).not.toContain('<RulesStrip />')
     expect(jsx).not.toContain('tp-rules-strip')
     expect(jsx).toContain('piece.material')
-    expect(jsx).toContain('{piece.material} · {piece.stone}')
+    expect(jsx).toContain('[piece.type, piece.size ? `Size ${piece.size}` : "", piece.material, piece.stone]')
     expect(jsx).toContain('piece.photoUrl')
     expect(jsx).toContain('same collection')
     expect(jsx).toContain('same jewelry type')
@@ -593,8 +621,10 @@ describe('Amethyst trade page template wiring', () => {
     expect(jsx).not.toContain('Shop ?')
     expect(jsx).toContain('Shop live')
     expect(jsx).toContain('OG Halo Bloom Ring')
-    expect(jsx).toContain('{tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}')
-    expect(jsx).toContain('Dancers will appear after this rep adds them to the Dance Floor.')
+    expect(jsx).toContain('{danceFloorTickerLabel(tr)}')
+    expect(readFileSync(resolve(process.cwd(), 'public/amethyst/dance-floor-ticker-label.js'), 'utf8')).toContain('name + " · " + (collection || "Collection pending")')
+    expect(jsx).toContain('The Dance Floor is quiet right now')
+    expect(jsx).toContain('adds dancers after a live reveal')
   })
 
   it('uses the shared sticky live reveal queue strip and modal trigger on trade', () => {

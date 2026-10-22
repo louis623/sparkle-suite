@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+import { displayCollectionLabel } from '@/lib/amethyst/trade-board-filters'
 import {
   getTradeListingDisplayFields,
   TRADE_LISTING_TYPE_LABELS,
@@ -87,6 +88,14 @@ export type TradeBoardWorkspaceCardProps = {
   onSoundSettingsTarget: (target: HTMLElement | null) => void
 }
 
+function DancerPhotoMark() {
+  return (
+    <svg className={styles.tradePieceMark} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="currentColor" d="M12 1.2 13.7 8.3 20.8 10 13.7 11.7 12 18.8 10.3 11.7 3.2 10 10.3 8.3 12 1.2Zm6.2 11.1.7 2.4 2.4.7-2.4.7-.7 2.4-.7-2.4-2.4-.7 2.4-.7.7-2.4ZM5.6 14.2l.5 1.7 1.7.5-1.7.5-.5 1.7-.5-1.7-1.7-.5 1.7-.5.5-1.7Z" />
+    </svg>
+  )
+}
+
 function getTradeListingPhotoUrl(listing: TradeListingWithDesign) {
   return getTradeListingDisplayFields(listing).photoUrl
 }
@@ -169,7 +178,14 @@ export function TradeBoardWorkspaceCard({
   }
   const hasActiveInventoryBrowse = hasActiveBoardInventoryBrowse(inventoryFilters)
   const inventoryOptions = getBoardInventoryOptions(boardListings)
+  const hasRarityTags = inventoryOptions.rarities.length > 0
   const inventoryResults = getBoardInventoryResults(boardListings, inventoryFilters)
+
+  useEffect(() => {
+    if (hasRarityTags) return
+    if (inventoryRarity) setInventoryRarity('')
+    if (inventorySortMode === 'rarity') setInventorySortMode('newest')
+  }, [hasRarityTags, inventoryRarity, inventorySortMode])
   const visibleInventoryResults = inventoryResults.slice(0, inventoryVisibleCount)
   const requests = tradeRequestsState.requests ?? []
   const queueItems = fulfillmentQueueState.items ?? []
@@ -429,6 +445,8 @@ export function TradeBoardWorkspaceCard({
         </div>
         {tradeBoardState.status === 'ready' && boardSummary ? (
           <>
+            {boardListings.length > 0 ? (
+            <>
             <div className={styles.boardSearchRow}>
               <label className={surfaceStyles.searchField}>
                 <span className={surfaceStyles.searchLabel}>Search Dance Floor</span>
@@ -456,7 +474,7 @@ export function TradeBoardWorkspaceCard({
                   <option value="newest">Newest added</option>
                   <option value="collection">Collection</option>
                   <option value="type">Jewelry type</option>
-                  <option value="rarity">Rare first</option>
+                  {hasRarityTags ? <option value="rarity">Rare first</option> : null}
                   <option value="name">Dancer name</option>
                 </select>
               </label>
@@ -487,6 +505,7 @@ export function TradeBoardWorkspaceCard({
                   </button>
                 ))}
               </div>
+              {hasRarityTags ? (
               <div className={styles.boardFilterChips} aria-label="Filter by rarity">
                 <button
                   type="button"
@@ -512,8 +531,11 @@ export function TradeBoardWorkspaceCard({
                   </button>
                 ))}
               </div>
+              ) : null}
               {inventoryOptions.collections.length > 0 ? (
-                <div className={styles.boardFilterChips} aria-label="Filter by collection">
+                <div className={styles.boardFilterGroup}>
+                  <span className={styles.boardFilterLabel} id="rep-collection-filters">Collection</span>
+                  <div className={styles.boardFilterChips} role="group" aria-labelledby="rep-collection-filters">
                   {inventoryOptions.collections.map((collection) => (
                     <button
                       key={collection}
@@ -527,6 +549,7 @@ export function TradeBoardWorkspaceCard({
                       {collection}
                     </button>
                   ))}
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -586,6 +609,8 @@ export function TradeBoardWorkspaceCard({
                 </select>
               </div>
             </details>
+            </>
+            ) : null}
             {inventoryResults.length > 0 ? (
                 <div
                   className={styles.boardInventoryGridShell}
@@ -631,13 +656,13 @@ export function TradeBoardWorkspaceCard({
                                 />
                               ) : (
                                 <span className={styles.tradePieceFallback}>
-                                  {display.typePrefix}
+                                  <DancerPhotoMark />
                                 </span>
                               )}
                             </span>
                           </button>
                           <div className={styles.boardInventoryPieceBody}>
-                            <div className={styles.boardCardCollection}>{display.collectionName ?? 'Jewelry'}</div>
+                            <div className={styles.boardCardCollection}>{displayCollectionLabel(display.collectionName) || 'Jewelry'}</div>
                             <div className={styles.customerName}>{display.designName}</div>
                             <div className={styles.tradePieceMetaLine}>
                               {display.typeLabel}{display.size ? ` · Size ${display.size}` : ''}
@@ -727,7 +752,7 @@ export function TradeBoardWorkspaceCard({
                         />
                       ) : (
                         <div className={styles.tradePieceFallback}>
-                          {previewDisplay.typePrefix}
+                          <DancerPhotoMark />
                         </div>
                       )}
                     </div>
@@ -735,7 +760,7 @@ export function TradeBoardWorkspaceCard({
                       {previewDisplay.designName}
                     </div>
                     <div className={surfaceStyles.helperNote}>
-                      {[previewDisplay.collectionName, previewDisplay.typeLabel, previewDisplay.size ? `Size ${previewDisplay.size}` : null].filter(Boolean).join(' · ')}
+                      {[displayCollectionLabel(previewDisplay.collectionName), previewDisplay.typeLabel, previewDisplay.size ? `Size ${previewDisplay.size}` : null].filter(Boolean).join(' · ')}
                     </div>
                     <div className={surfaceStyles.helperNote}>
                       {Math.max(0, previewListing.quantity_available ?? 1)} available

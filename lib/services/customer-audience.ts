@@ -19,6 +19,7 @@ import type {
 } from './types'
 import { formatBirthday, normalizeBirthday } from './birthdays'
 import { sanitizeLineupPreference } from '@/lib/live-lineup/audience'
+import { legacyFavoriteChipText } from '@/lib/sparkle-suite/jewelry-preferences'
 import {
   classifyLiveOrderLastSeen,
   isMissingLiveOrderColumn,
@@ -455,7 +456,7 @@ export async function createCustomerAudienceSignup(
   if (input.smsConsent && !phone) {
     throw errors.INVALID_INPUT(
       'phone required when sms_consent is true',
-      'A phone number is required if the customer wants SMS updates.',
+      'Add your phone number to get text updates.',
     )
   }
 
@@ -466,19 +467,39 @@ export async function createCustomerAudienceSignup(
     )
   }
 
-  const profile = getProfileValues({
-    name: `${firstName} ${lastName}`,
-    email,
-    phone,
-    address: input.address,
-    birthday: input.birthday,
-    favoriteGemOrStone: input.favoriteGemOrStone,
-    favoriteMaterial: input.favoriteMaterial,
-    favoriteCut: input.favoriteCut,
-    favoriteCollection: input.favoriteCollection,
-    notes: input.notes,
-    tags: input.tags,
-  })
+  const profile = {
+    ...getProfileValues({
+      name: `${firstName} ${lastName}`,
+      email,
+      phone,
+      address: input.address,
+      birthday: input.birthday,
+      favoriteGemOrStone: input.favoriteGemOrStone,
+      favoriteMaterial: input.favoriteMaterial,
+      favoriteCut: input.favoriteCut,
+      favoriteCollection: input.favoriteCollection,
+      notes: input.notes,
+      tags: input.tags,
+    }),
+    ...(input.preferencePicks
+      ? {
+          favorite_gem_or_stone: legacyFavoriteChipText(input.preferencePicks.labels.favoriteGemOrStone),
+          favorite_material: legacyFavoriteChipText(input.preferencePicks.labels.favoriteMaterial),
+          favorite_cut: legacyFavoriteChipText(input.preferencePicks.labels.favoriteCut),
+          favorite_collection: legacyFavoriteChipText(input.preferencePicks.labels.favoriteCollection),
+        }
+      : {}),
+  }
+  const picks = input.preferencePicks
+    ? {
+        favorite_stones: input.preferencePicks.favoriteStones,
+        favorite_materials: input.preferencePicks.favoriteMaterials,
+        favorite_cuts: input.preferencePicks.favoriteCuts,
+        favorite_collections: input.preferencePicks.favoriteCollections,
+        ring_size: input.preferencePicks.ringSize,
+        jewelry_notes: input.preferencePicks.jewelryNotes,
+      }
+    : {}
 
   const { data, error } = await supabase
     .from('customer_audience')
@@ -486,6 +507,7 @@ export async function createCustomerAudienceSignup(
       rep_id: repId,
       record_source: 'customer_site_signup',
       ...profile,
+      ...picks,
       sms_consent: input.smsConsent,
       email_consent: input.emailConsent,
       marketing_consent: input.marketingConsent,
@@ -500,7 +522,7 @@ export async function createCustomerAudienceSignup(
     audienceId: data.id as string,
     repId,
     action: 'created',
-    changes: profile,
+    changes: { ...profile, ...picks },
     context: { actorKind: 'customer' },
   })
 

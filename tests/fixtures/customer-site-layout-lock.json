@@ -4,7 +4,7 @@
   "locks": [
     {
       "path": "public/amethyst/homepage.css",
-      "sha256": "d0146fc10ab3b752634511349eb924c56170176be3567a40d80ac8f88fc518ce"
+      "sha256": "2089d703683ded2a456250ff349caf5d49cbb4c09d9a17316b9a055b6fd45f00"
     },
     {
       "path": "lib/amethyst/preview-template-data.ts",
@@ -18,7 +18,7 @@
     {
       "path": "public/amethyst/homepage.jsx",
       "function": "Ticker",
-      "sha256": "810d42470f03f7afd1b911a8e73114cc1ca268a71bca4c202a11d7cf19e8b46d"
+      "sha256": "2f6c2410641aabf0cb10e21f8c07f3ce7ae53a7bcce8f3f44fd4a8c60338fb22"
     },
     {
       "path": "public/amethyst/homepage.jsx",
@@ -33,7 +33,7 @@
     {
       "path": "public/amethyst/trade.jsx",
       "function": "Ticker",
-      "sha256": "1d56034bd02bb8bc9141bc863bc1fd6d00ee92909b26ab9c6a67a25b79a0b967"
+      "sha256": "841ff6e09812e1a6153951df7adfc216b499154c4f2bdd0563ab6277196578c7"
     },
     {
       "path": "public/amethyst/trade.jsx",

@@ -171,7 +171,7 @@ export function TradeRequestReviewDialog({
             {family && type ? <p className={match.status === 'likely_match' ? styles.match : styles.error} role="status">{match.status === 'likely_match' ? 'Collection family and jewelry type match this dancer.' : match.reason}</p> : null}
             <label>Revealed item number (optional)<input value={itemNumber} onChange={(event) => setItemNumber(event.target.value)} maxLength={40} placeholder="RG12345" /></label>
             {itemNumber.trim().toUpperCase().startsWith('RG') ? <label>Ring size (if known)<input value={ringSize} onChange={(event) => setRingSize(event.target.value)} maxLength={20} /></label> : null}
-            <label className={styles.check}><input type="checkbox" checked={finalConfirmation} onChange={(event) => setFinalConfirmation(event.target.checked)} /> I confirm this one-for-one trade after checking collection family and jewelry type.</label>
+            <label className={styles.check}><input type="checkbox" checked={finalConfirmation} onChange={(event) => setFinalConfirmation(event.target.checked)} /> I confirm this one-for-one dancer swap after checking collection family and jewelry type.</label>
           </> : <>
             <label>Reason for denial
               <select value={reason} onChange={(event) => setReason(event.target.value as typeof reason)} required>

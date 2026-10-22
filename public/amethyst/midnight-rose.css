@@ -61,11 +61,11 @@ body.bg-midnight-rose :is(.hp-ticker-item, .hp-ticker-label, .hp-ticker-trade, .
 body.bg-midnight-rose .hp-ticker-row.reverse :is(.hp-ticker-trade, .hp-ticker-empty) { color: #fff0e8; }
 body.bg-midnight-rose .hp-ticker-row.reverse .hp-ticker-trade:hover { color: #efb5a3; }
 body.bg-midnight-rose .hp-ticker-row .hp-ticker-label {
-  background: linear-gradient(90deg, #25151f 0%, #25151f 70%, transparent 100%);
+  background: #25151f;
   color: #fff0e8;
 }
 body.bg-midnight-rose .hp-ticker-row.reverse .hp-ticker-label {
-  background: linear-gradient(90deg, #30202a 0%, #30202a 70%, transparent 100%);
+  background: #30202a;
   color: #fff0e8;
 }
 body.bg-midnight-rose :is(.hp-trade-preview, .hp-lrq-strip, .hp-lrq, .hp-lineup-calendar-row) {

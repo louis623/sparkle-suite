@@ -49,6 +49,8 @@ describe('responsive public images', () => {
   it('keeps the browser helper on the same optimizer contract', () => {
     const source = readFileSync('public/amethyst/responsive-image.js', 'utf8')
     expect(source).toContain('window.sparkleResponsiveImage')
+    expect(source).toContain('fetchpriority:')
+    expect(source).not.toContain('fetchPriority')
     expect(source).toContain('/_next/image?')
     expect(source).toContain('bqhzfkgkjyuhlsozpylf.supabase.co')
     expect(source).toContain('pukemqiwlyqmyytxkdmo.supabase.co')
