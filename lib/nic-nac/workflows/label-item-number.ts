@@ -1,3 +1,5 @@
+import 'server-only'
+
 import sharp from 'sharp'
 import { getNicNacModelPolicy } from '@/lib/nic-nac/core/model-policy'
 import { isAllowedCustomerPhotoFetchUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'

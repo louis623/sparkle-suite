@@ -1,3 +1,5 @@
+import 'server-only'
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createHash } from 'crypto'
 import type { UIMessage } from 'ai'
