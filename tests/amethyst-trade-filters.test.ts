@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   countActiveTradeBoardFilters,
   deriveTradeBoardFilterOptions,
+  displayCollectionLabel,
   filterCollectionOptions,
   filterTradeBoardListings,
   type AmethystTradeBoardFilterState,
@@ -92,5 +93,22 @@ describe('Amethyst dance floor filters', () => {
     expect(filterCollectionOptions(options.collections, '')).toEqual(
       options.collections,
     )
+  })
+
+  it('shows Original Earring and Original Earrings as one collection chip', () => {
+    const mixed = [
+      { ...listings[0], id: 'earring', collection: 'Original Earring' },
+      { ...listings[1], id: 'earrings', collection: 'Original Earrings' },
+    ]
+
+    expect(displayCollectionLabel('Original Earring')).toBe('Original Earrings')
+    expect(deriveTradeBoardFilterOptions(mixed).collections).toEqual(['Original Earrings'])
+    expect(filterTradeBoardListings(mixed, {
+      collection: 'Original Earrings',
+      type: 'all',
+      rarity: 'all',
+      material: 'all',
+      size: 'all',
+    }).map((listing) => listing.id)).toEqual(['earring', 'earrings'])
   })
 })

@@ -183,7 +183,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
       'Confirm the upcoming show appears in the calendar.',
       'Open the customer site link and check the visible show information.',
       'Review the Dance Floor for unavailable dancers.',
-      'Check Live Lineup readiness based on current rollout instructions.',
+      'Check Live Lineup readiness in the Workspace before the show.',
       'Confirm any customer update feature is enabled only if it is production-ready for this account.',
       'Ask Nic-Nac to review anything that looks out of place.',
     ],
@@ -200,32 +200,32 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     group: 'Live Shows',
     category: 'Live Lineup',
     title: 'Use Live Lineup during a show',
-    summary: 'Understand what the queue is doing and what to check when it looks wrong.',
+    summary: 'Understand what the lineup is doing and what to check when it looks wrong.',
     body:
-      'Live Lineup can be coming soon or launch-gated depending on rollout state. Follow the approved extension rollout for your account. Live Lineup uses the assigned code shown in the rep’s Workspace, an explicitly selected Party Orders tab/show, and recent server-verified updates. Ask support when the queue is stale, unexpectedly empty, or missing customers. Saving the code alone is not proof of connection. Web Store approval, unpacked testing, rep rollout, and installed-copy verification remain separate release steps.',
-    goal: 'Keep the public queue understandable during a live show.',
+      'Live Lineup shows customers the reveal order during a show. It uses the assigned code in your Workspace, the Bomb Party Party Orders tab for that show, and a recent update from the extension. If Live Lineup is not ready for this account yet, the Workspace says so. Ask support when the lineup looks stale, unexpectedly empty, or is missing customers. Saving the code is not enough on its own. Install the extension from the Chrome Web Store and confirm it shows as connected before the show.',
+    goal: 'Keep the public lineup understandable during a live show.',
     useWhen: 'Use this when checking Live Lineup before or during a live show.',
     beforeYouStart: [
-      'The approved extension version and the assigned Live Lineup code shown in your Workspace',
+      'The extension from the Chrome Web Store and the assigned Live Lineup code shown in your Workspace',
       'Bomb Party Party Orders tab',
       'Current party or show context',
     ],
     steps: [
-      'Confirm the approved Live Lineup setup path for this account.',
-      'For the upgraded extension, pair using Extension connection setup and verify the selected source. Legacy versions use their assigned short code instead.',
-      'Confirm the Bomb Party Party Orders tab is open when queue sync is expected.',
-      'Confirm the selected show and parties. In upgraded Workspace Show controls, hiding a party is reversible and keeps its order and holds private.',
+      'Confirm Live Lineup is connected for this account.',
+      'Open the Sparkle Suite extension and enter the assigned code from your Workspace.',
+      'Keep the Bomb Party Party Orders tab open in that same Chrome window.',
+      'Confirm the show and parties you want customers to see. Hiding a party keeps that order private and can be turned back on.',
       'Drag to reorder, Hold customers who step away, and Return them deliberately. These controls do not change Bomb Party orders.',
-      'Check whether the queue is stale, empty, or missing expected names.',
-      'Ask Nic-Nac to gather status details if the queue still looks wrong.',
+      'Check whether the lineup looks stale, empty, or is missing expected names.',
+      'Ask Nic-Nac for help if the lineup still looks wrong.',
     ],
     goodResult:
-      'The queue state makes sense for the current show, or the right support details are collected.',
+      'The lineup matches the current show, or support has the details needed to help.',
     nicNacPrompt: 'Help me check my Live Lineup.',
     stillStuck:
-      'Include extension version, visible status, selected show/parties, whether Chrome and the selected BP tab are open, and what the public queue shows. Never include customer order details.',
+      'Tell support the extension status, the show and parties you selected, and whether Chrome and Party Orders are open. Never include customer order details.',
     relatedFeatureIds: ['live-queue'],
-    quickActions: ['Check extension status', 'Review stale queue', 'Ask Nic-Nac for help'],
+    quickActions: ['Check extension status', 'Review a stale lineup', 'Ask Nic-Nac for help'],
   }),
   helpResource({
     id: 'use-live-lineup-on-a-mac',
@@ -236,7 +236,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     summary:
       'You can use Live Lineup on a MacBook or Mac desktop—just install Google Chrome and the Sparkle Suite extension.',
     body:
-      'You do not need a Windows PC to use Live Lineup. Safari is fine for everyday browsing, but the Sparkle Suite Live Lineup extension runs in Google Chrome on a computer. It can be used on a MacBook, iMac, or other Mac desktop. Chrome extensions cannot be installed or run from an iPhone or iPad.',
+      'You do not need a Windows PC to use Live Lineup. Safari is fine for everyday browsing, but the Sparkle Suite extension runs in Google Chrome on a computer. It can be used on a MacBook, iMac, or other Mac desktop. Chrome extensions cannot be installed or run from an iPhone or iPad.',
     goal:
       'Use Chrome on a Mac so your Live Lineup can update normally during a live show.',
     useWhen:
@@ -250,9 +250,9 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
       'Open Safari and go to google.com/chrome.',
       'Choose Download Chrome, open the downloaded file, and follow the on-screen steps to install it.',
       'Open Google Chrome from Applications or by searching for “Chrome” with Spotlight.',
-      'In Chrome, open your Sparkle Suite Workspace and open the Live Lineup setup tool.',
-      'Choose Open Chrome Web Store, then choose Add to Chrome and Add extension for Sparkle Suite Live Lineup.',
-      'Select Chrome’s puzzle-piece icon, find Sparkle Suite Live Lineup, and pin it so it is easy to find.',
+      'In Chrome, open your Sparkle Suite Workspace and open Live Lineup setup.',
+      'Choose Open Chrome Web Store, then choose Add to Chrome and Add extension.',
+      'Select Chrome’s puzzle-piece icon, find the Sparkle Suite extension, and pin it so it is easy to find.',
       'Use that same Chrome profile to sign in to your Bomb Party back office and open Party Orders.',
       'Open the Sparkle Suite extension and follow the connection steps for your Workspace. Keep private connection details private.',
       'Keep Chrome open on Party Orders while you are live, then check that the extension shows it is connected before relying on your customer-facing lineup.',
@@ -320,7 +320,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
     summary:
       'Review customer swap requests, reveal screenshots, approvals, and follow-up without losing the thread.',
     body:
-      'Sparkle Suite organizes swap interest, but the rep still controls swap judgment, approvals, shipping, and follow-through. Customers describe the dancer they just revealed and may attach a recommended reveal screenshot. The screenshot appears in the Dance Floor request inbox and on Nic-Nac swap request cards when available, then expires after seven days. Sparkle Suite does not guarantee equal value, settle disputes, or approve swaps for the rep.',
+      'Sparkle Suite organizes swap interest, but the rep still controls swap judgment, approvals, shipping, and follow-through. Customers describe the dancer they just revealed and may attach a recommended reveal screenshot. The screenshot appears in the Dance Floor request inbox and on Nic-Nac swap request cards when available, then expires after seven days. Sparkle Suite does not guarantee equal value, settle disputes, or approve dancer swaps for the rep.',
     goal: 'Move swap requests through a clear decision and fulfillment rhythm.',
     useWhen: 'Use this when a customer requests a swap or a pending swap needs follow-up.',
     beforeYouStart: [
@@ -484,7 +484,7 @@ const WORKFLOW_RESOURCES: HelpResource[] = [
 const FEATURE_REFERENCE_TITLES = [
   ['customer-site', 'Customer Site', 'Update your public-facing Sparkle Suite site details.'],
   ['trade-board', 'Dance Floor', 'Manage dancers, swap requests, and swap follow-up.'],
-  ['live-queue', 'Live Lineup', 'Help customers follow queue state when rollout is active.'],
+  ['live-queue', 'Live Lineup', 'Show customers the reveal order on the public site during a live show.'],
   [
     'live-event-calendar',
     'Live Event Calendar',

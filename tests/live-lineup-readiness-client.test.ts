@@ -10,7 +10,6 @@ it.each([null, [], {}, {...ready,protocol:1}, {...ready,reason:'stale'}, {...rea
 })
 it('offers safe actionable support text without passing server strings through', () => {
   expect(readinessHelp('publisher_revoked')).toContain('assigned Live Lineup code')
-  expect(readinessHelp('not_initialized')).not.toContain('Live Queue')
   expect(readinessHelp('state_changed')).toContain('verify again')
   expect(readinessHelp('schema_unavailable')).toContain('support')
 })

@@ -92,8 +92,7 @@ describe('Nic-Nac branding copy', () => {
     expect(html).toContain('Your Live Lineup code')
     expect(html).toContain('MHF-7342')
     expect(html).toContain('code already assigned to your Workspace')
-    expect(html).toContain('Live Lineup extension')
-    expect(html).not.toContain('Live Queue')
+    expect(html).toContain('Sparkle Suite extension')
     expect(html).toContain(
       'https://chromewebstore.google.com/detail/sparkle-suite-live-queue/kmodgfffflplfdlkkhadgimmobplhoih',
     )

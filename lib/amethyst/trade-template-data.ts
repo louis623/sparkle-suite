@@ -119,7 +119,7 @@ export interface AmethystTradeTweakDefaults {
 export const defaultAmethystTradeTemplateData: AmethystTradeTemplateData = {
   repName: 'Sasha',
   businessName: 'Sparkle by Sasha',
-  tradeHeroTitle: 'Find the dancer you wanted to love.',
+  tradeHeroTitle: 'Find the dancer you were hoping for.',
   tradeHeroSub:
     'The Dance Floor is for item-for-item swaps only. Requests must stay within the same collection and the same jewelry type.',
   tickerTopText:

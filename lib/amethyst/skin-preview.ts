@@ -266,6 +266,37 @@ function reviewLineup(state: LineupReviewState | null) {
   return { ...GNOME_PREVIEW_LINEUP, liveQueueState: 'empty' as const, liveQueueEntries: [], liveQueueOrderCount: 0, liveQueueGroupCount: 0, liveQueueCurrent: null, liveQueueOnDeck: null, liveQueueEvents: [], liveQueueSummary: 'No sample orders waiting.' }
 }
 
+function thanksgivingPreviewMedia(skin: SkinPreviewSkin) {
+  if (skin !== 'gobble_and_fizz' && skin !== 'pie_please') return {}
+  const folder = skin === 'gobble_and_fizz' ? 'gobble-and-fizz' : 'pie-please'
+  const revision = skin === 'pie_please' ? '-v4' : ''
+  const base = `/amethyst/skins/${folder}/`
+  const moments = skin === 'gobble_and_fizz'
+    ? ['Copper fizz and sparkle', 'The curious turkey', 'A golden pour']
+    : ['Window light and copper', 'The pumpkin pie', 'A piece of sparkle']
+  return {
+    showcaseVideoUrl: `${base}hero-loop${revision}.mp4`,
+    showcaseVideoCaption: skin === 'gobble_and_fizz' ? 'A Gobble & Fizz reveal with Sasha' : 'A Pumpkin Pie reveal with Sasha',
+    aboutMediaSlots: [
+      {
+        typeLabel: 'Portrait photo',
+        caption: skin === 'gobble_and_fizz' ? "Sasha's Thanksgiving table" : "Sasha's pumpkin table",
+        href: '#',
+        mediaUrl: `${base}sample-portrait.webp`,
+        portraitFocusX: 50,
+        portraitFocusY: 46,
+        portraitZoom: 1,
+      },
+      ...moments.map((caption, index) => ({
+        typeLabel: `Short video ${index + 1}`,
+        caption,
+        href: '#',
+        mediaUrl: `${base}sample-moment-${index + 1}.webp`,
+      })),
+    ],
+  }
+}
+
 function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_garden', review: LineupReviewState | null = null) {
   const profile = PREVIEW_PROFILES[skin]
   const footerLinks = {
@@ -321,6 +352,7 @@ function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_
     signupSub: profile.signupSub,
     streamLinks: { shop: '#preview-action', watch: '#preview-action', tiktok: '#preview-action', facebook: '#preview-action', whatnot: '#preview-action' },
     joinTeamUrl: previewPath(skin, 'join'),
+    ...thanksgivingPreviewMedia(skin),
   }, profile.events, skin, context)
 }
 
@@ -430,7 +462,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
   // Inline only allowlisted repository runtime files. Inline Babel input does not need network XHR.
-  const runtimeNames = ['tweaks-panel.jsx', 'responsive-image.js', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'rose-champagne.js', 'midnight-rose.js', 'fall-owl.js', 'thanksgiving-motion.js', 'pearl-rose.js', 'sparkle-suite-footer-credit.js']
+  const runtimeNames = ['tweaks-panel.jsx', 'responsive-image.js', 'dance-floor-ticker-label.js', 'homepage.jsx', 'trade.jsx', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'rose-champagne.js', 'midnight-rose.js', 'fall-owl.js', 'thanksgiving-motion.js', 'pearl-rose.js', 'sparkle-suite-footer-credit.js']
   for (const name of runtimeNames) {
     const escaped = name.replace('.', '\\.')
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')

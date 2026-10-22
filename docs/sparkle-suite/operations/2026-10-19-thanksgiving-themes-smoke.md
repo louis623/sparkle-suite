@@ -17,7 +17,7 @@ Dance Floor, Join and Preferences. Shared header, ticker and lineup geometry
 remains unchanged. Matching print-card assets reuse the approved posters and
 existing renderer; no additional generated art or paid media was requested.
 
-The silent loops are 9.0 and 8.375 seconds, respectively. Pause/resume, reduced
+The silent loops are 9.0 and 9.208 seconds, respectively. Pause/resume, reduced
 motion, saved motion-off, offscreen/background suspension and static error
 fallback are supported. Shipped videos match the owner-approved v3 files byte
 for byte. The animated-skin reference now requires 8–10-second loops and repeated
@@ -74,8 +74,8 @@ form surfaces remain cream. Shared header/ticker/lineup geometry is unchanged.
 Louis approved one Pie-only Higgsfield replacement, capped at $5, and confirmed
 funding. Exact-input estimate: $4.622 before discounts; actual charge unverified.
 Request `95d66f8f-c677-47ba-bc3c-f7d84f089090` completed. The brief requests fixed
-foliage and barely perceptible sunlight. The raw 10.04-second output is retained
-outside the repository; the web export trims reference snaps and uses an
+foliage and barely perceptible sunlight. The raw 10.04-second output is not in
+the repository; the web export trims reference snaps and uses an
 8-frame circular overlap, yielding 221 frames at 24fps (9.208 seconds), 1280x720,
 2,340,959 bytes, silent H.264. No stabilization, reverse playback, interpolation
 or programmed still-image animation was applied. Gobble assets are unchanged.

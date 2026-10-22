@@ -21,7 +21,16 @@ import {
   resourceNoticeContent,
 } from '@/lib/services/suite-official-notice'
 
-import { locJobDelegationSchema, verifyLocJobDelegation } from './job-delegation'
+import { locJobDelegationSchema, locNamedAgentGrantSchema, verifyLocJobDelegation, verifyLocNamedAgentGrant, withLocNamedAgentAudit } from './job-delegation'
+import {
+  isOwnerDirectOperation,
+  isOwnerDirectRequest,
+  OWNER_DIRECT_REJECTION_MESSAGE,
+  ownerDirectSessionRejection,
+  preflightOwnerDirectBridge,
+  runLocOwnerDirectOperation,
+  sessionFromOperator,
+} from './owner-direct-bridge'
 
 const envelope = z
   .object({
@@ -33,6 +42,7 @@ const envelope = z
     operationId: z.uuid().optional(),
     connectionId: z.string().min(1).max(160).default("loc-owner"),
     intendedAssignee: z.string().max(160).nullable().optional(),
+    namedAgentGrant: locNamedAgentGrantSchema.optional(),
   })
   .strict();
 const taskPatch = z
@@ -230,9 +240,49 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
     if (Buffer.byteLength(raw) > 128_000)
       throw new LocBridgeError(413, "Request too large.");
     verifyLocSignature(raw, request.headers);
-    const body = envelope.parse(JSON.parse(raw));
+    const parsed = JSON.parse(raw);
+    const ownerDirectRequest = isOwnerDirectRequest(parsed);
+    if (ownerDirectRequest) {
+      const preflight = preflightOwnerDirectBridge(parsed, "loc-bridge");
+      if (preflight) {
+        throw new LocBridgeError(403, OWNER_DIRECT_REJECTION_MESSAGE[preflight]);
+      }
+    }
+    const body = envelope.parse(parsed);
     operationId = body.operationId;
-    const context = await operatorContext(body);
+    const namedAgent = verifyLocNamedAgentGrant(body);
+    let context: LocOperatorContext;
+    try {
+      context = await operatorContext(body);
+    } catch (error) {
+      if (
+        ownerDirectRequest &&
+        error instanceof LocBridgeError &&
+        error.status === 403
+      ) {
+        throw new LocBridgeError(
+          403,
+          OWNER_DIRECT_REJECTION_MESSAGE.missing_session,
+        );
+      }
+      throw error;
+    }
+    if (ownerDirectRequest && isOwnerDirectOperation(body.operation)) {
+      const session = ownerDirectSessionRejection({
+        ownerId: body.ownerId,
+        expectedOwnerId: process.env.LOC_CONTROL_CENTER_OWNER_ID ?? "",
+        ownerEmails: (
+          process.env.CONTROL_CENTER_OWNER_EMAILS ?? "louis@neonrabbit.net"
+        )
+          .split(",")
+          .map((value) => value.trim().toLowerCase())
+          .filter(Boolean),
+        session: sessionFromOperator(context),
+      });
+      if (session) {
+        throw new LocBridgeError(403, OWNER_DIRECT_REJECTION_MESSAGE[session]);
+      }
+    }
     if (body.operation === "catalog")
       return Response.json(
         {
@@ -251,7 +301,7 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
     const operation = findLocOperation(body.operation);
     if (!operation) throw new LocBridgeError(404, "Unknown LOC operation.");
     const delegated = verifyLocJobDelegation(body, operation.targetKeys)
-    if (operation.ownerOnly && body.authority !== "owner" && !delegated)
+    if (operation.ownerOnly && body.authority !== "owner" && !delegated && !namedAgent)
       throw new LocBridgeError(
         403,
         "This operation requires the verified LOC owner.",
@@ -306,6 +356,18 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
         if (operation.name === "fizz.issue.get") {
           return locService(() => getFizzIssue(createAdminClient(), String(body.input.issueId ?? "")));
         }
+        if (isOwnerDirectOperation(operation.name)) {
+          const ownerDirectOperation = operation.name;
+          return locService(() =>
+            runLocOwnerDirectOperation({
+              operation: ownerDirectOperation,
+              input: body.input,
+              operationId,
+              operatorRepId: context.operator.repId,
+              ownerId: context.ownerId,
+            }),
+          );
+        }
         return operation.name.startsWith("support.session.") ||
           operation.name.startsWith("support.workspace.")
           ? runLocSupportOperation(operation.name, body.input)
@@ -326,6 +388,9 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
       input: body.input,
       connectionId: context.connectionId,
       authority: body.authority,
+      ...(namedAgent
+        ? { namedAgentGrant: { agentId: namedAgent.agentId, grantId: namedAgent.grantId } }
+        : {}),
     });
     const row = {
       id: operationId,
@@ -379,8 +444,29 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
       );
     }
     try {
+      if (namedAgent)
+        console.info("[loc-named-agent-grant]", {
+          event: "publish",
+          operationId,
+          agentId: namedAgent.agentId,
+          agentName: namedAgent.agentName,
+          grantId: namedAgent.grantId,
+        });
+      const ownerDirectOperation = isOwnerDirectOperation(operation.name)
+        ? operation.name
+        : null;
       const rawResult = await runWithLocOperator(context, () =>
-        operation.name === "tasks.update"
+        ownerDirectOperation
+          ? locService(() =>
+              runLocOwnerDirectOperation({
+                operation: ownerDirectOperation,
+                input: body.input,
+                operationId,
+                operatorRepId: context.operator.repId,
+                ownerId: context.ownerId,
+              }),
+            )
+          : operation.name === "tasks.update"
           ? updateTask(body.input)
           : operation.name === 'onboarding.setup-profile'?saveLocSetupProfile(body.input)
           : operation.name === "fizz.issue.stage"
@@ -413,7 +499,8 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
             ? runLocSupportOperation(operation.name, body.input, operationId)
             : runExistingLocRoute(operation.name, body.input),
       );
-      const result = redactCredentialFields(rawResult);
+      const redacted = redactCredentialFields(rawResult);
+      const result = namedAgent ? withLocNamedAgentAudit(redacted, namedAgent) : redacted;
       const { data: saved, error } = await admin
         .from("loc_control_center_operations")
         .update({
@@ -436,7 +523,7 @@ export async function dispatchLocRequest(request: Request): Promise<Response> {
       const certain =
         error instanceof LocPreconditionError ||
         error instanceof z.ZodError ||
-          (['tasks.update','onboarding.setup-profile','onboarding.waitlist.update','onboarding.waitlist.delete','fizz.issue.stage','fizz.issue.approve'].includes(operation.name) &&
+          (['tasks.update','onboarding.setup-profile','onboarding.waitlist.update','onboarding.waitlist.delete','fizz.issue.stage','fizz.issue.approve','ownerDirect.reply','ownerDirect.send'].includes(operation.name) &&
           error instanceof LocBridgeError &&
           error.status < 500);
       // Existing handlers can return an error after committing one of several

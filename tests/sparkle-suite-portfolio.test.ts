@@ -1,48 +1,280 @@
 import { createElement } from 'react'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('next/font/google', () => ({
+  Pacifico: () => ({ variable: '--font-mhf-script', className: 'mile-high-script' }),
+}))
 import { metadata } from '@/app/portfolio/page'
 import { PortfolioExperience } from '@/app/_components/portfolio-experience'
+import { getAmethystAppearancePreset } from '@/lib/amethyst/appearance-presets'
 import { sparkleSuitePortfolioContent } from '@/lib/sparkle-suite/portfolio-content'
 import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 
 const renderPortfolio = () => renderToStaticMarkup(createElement(PortfolioExperience))
+const publicFile = (src: string) => join(process.cwd(), 'public', ...src.split('/').filter(Boolean))
 
-describe('Sparkle Suite real-site portfolio', () => {
-  it('renders all six real sites as directly accessible previews', () => {
+const communityThemes = [
+  {
+    id: 'amethyst',
+    title: 'Chasing Unicorns',
+    pickerLabel: 'Chasing Unicorns (Amethyst)',
+    poster: '/amethyst/skins/am01-unicorn/hero-poster.webp',
+    mp4: '/amethyst/skins/am01-unicorn/hero-motion.mp4',
+  },
+  {
+    id: 'halloween_pumpkin_witch',
+    title: 'Pumpkin and Witch',
+    pickerLabel: 'Halloween Pumpkin and Witch',
+    poster: '/amethyst/skins/halloween-pumpkin-witch/hero-desktop.webp',
+    mp4: '',
+  },
+  {
+    id: 'halloween_pumpkin_cat',
+    title: 'Pumpkin and Cat',
+    pickerLabel: 'Halloween Pumpkin and Cat',
+    poster: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp',
+    mp4: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4',
+  },
+  {
+    id: 'gilded_autumn',
+    title: 'The Golden Leaves of Autumn',
+    pickerLabel: 'The Golden Leaves of Autumn',
+    poster: '/amethyst/skins/gilded-autumn/hero-poster.webp',
+    mp4: '/amethyst/skins/gilded-autumn/hero-motion.mp4',
+  },
+  {
+    id: 'fall_owl_harvest_moon',
+    title: 'Fall Owl Harvest Moon',
+    pickerLabel: 'Fall Owl and Harvest Moon',
+    poster: '/amethyst/skins/fall-owl/hero-poster.webp',
+    mp4: '/amethyst/skins/fall-owl/hero-loop.mp4',
+  },
+  {
+    id: 'gobble_and_fizz',
+    title: 'Gobble & Fizz',
+    pickerLabel: 'Gobble & Fizz',
+    poster: '/amethyst/skins/gobble-and-fizz/hero-poster.webp',
+    mp4: '/amethyst/skins/gobble-and-fizz/hero-loop.mp4',
+  },
+  {
+    id: 'pie_please',
+    title: 'Pumpkin Pie',
+    pickerLabel: 'Pumpkin Pie',
+    poster: '/amethyst/skins/pie-please/hero-poster-v4.webp',
+    mp4: '/amethyst/skins/pie-please/hero-loop-v4.mp4',
+  },
+  {
+    id: 'midnight_rose',
+    title: 'Midnight Rose',
+    pickerLabel: 'Midnight Rose',
+    poster: '/amethyst/skins/midnight-rose/hero-poster.webp',
+    mp4: '/amethyst/skins/midnight-rose/hero-loop.mp4',
+  },
+  {
+    id: 'pearl_rose',
+    title: 'Pearl Rose',
+    pickerLabel: 'Pearl Rose',
+    poster: '/amethyst/skins/pearl-rose/hero-poster.webp',
+    mp4: '/amethyst/skins/pearl-rose/hero-loop.mp4',
+  },
+  {
+    id: 'rose_champagne',
+    title: 'Rose Champagne',
+    pickerLabel: 'Rose Champagne',
+    poster: '/amethyst/skins/rose-champagne/hero-poster.webp',
+    mp4: '/amethyst/skins/rose-champagne/hero-loop.mp4',
+  },
+] as const
+
+const repIds = ['mile-high-fizz', 'britt-with-bling', 'go-for-the-bling', 'sparkly-butterflies'] as const
+
+describe('Sparkle Suite portfolio carousels', () => {
+  it('shows the ten community themes above the rep carousel', () => {
     const html = renderPortfolio()
-    const sites = sparkleSuitePortfolioContent.carousels[0].slides
-    expect(sites).toHaveLength(6)
-    expect(html.match(/<article /g)).toHaveLength(6)
-    for (const site of sites) {
-      expect(html).toContain(site.title)
-      expect(html).toContain(`href="${site.href}"`)
-      expect(html).toContain(site.linkLabel)
-      expect(html).toContain(portfolioMotion[site.id]?.poster || encodeURIComponent(site.src))
-      expect(existsSync(join(process.cwd(), 'public', site.src))).toBe(true)
+    const themes = sparkleSuitePortfolioContent.carousels.find((carousel) => carousel.id === 'community-themes')
+    const reps = sparkleSuitePortfolioContent.carousels.find((carousel) => carousel.id === 'rep-highlights')
+    expect(themes?.slides.map((slide) => slide.id)).toEqual(communityThemes.map((theme) => theme.id))
+    expect(themes?.slides.map((slide) => slide.title)).toEqual(communityThemes.map((theme) => theme.title))
+    expect(html.indexOf('id="community-themes"')).toBeGreaterThan(-1)
+    expect(html.indexOf('id="community-themes"')).toBeLessThan(html.indexOf('id="rep-highlights"'))
+    expect(html.match(/aria-roledescription="carousel"/g)).toHaveLength(2)
+
+    const themeHtml = html.slice(html.indexOf('id="community-themes"'), html.indexOf('id="rep-highlights"'))
+    let previous = -1
+    for (const theme of communityThemes) {
+      const title = theme.title.replaceAll('&', '&amp;')
+      expect(getAmethystAppearancePreset(theme.id).label).toBe(theme.pickerLabel)
+      const index = themeHtml.indexOf(title)
+      expect(index).toBeGreaterThan(previous)
+      previous = index
+      expect(themeHtml).toContain(`href="/skin-preview/${theme.id}/homepage"`)
+      const slide = themes?.slides.find((item) => item.id === theme.id)
+      if (theme.id === 'halloween_pumpkin_witch') {
+        expect(slide?.kind === 'capture' ? slide.hero?.headline : undefined).toBe('A frightfully fun night to sparkle.')
+        expect(slide?.kind === 'capture' ? slide.hero?.sub : undefined).toBe(
+          'Glowing jack-o-lanterns, silver moonlight, and a welcoming place to share the Halloween fun.',
+        )
+      } else if (theme.id === 'halloween_pumpkin_cat') {
+        expect(slide?.kind === 'capture' ? slide.hero?.headline : undefined).toBe('A little mystery. A lot of sparkle.')
+        expect(slide?.kind === 'capture' ? slide.hero?.sub : undefined).toBe(
+          'Join Sasha for live jewelry reveals and find your next favorite.',
+        )
+      } else {
+        expect(slide?.kind === 'capture' ? slide.hero : undefined).toBeUndefined()
+      }
+      expect(
+        themeHtml.includes(theme.poster) || themeHtml.includes(encodeURIComponent(theme.poster)),
+      ).toBe(true)
+      expect(existsSync(publicFile(theme.poster))).toBe(true)
+      expect(themeHtml).not.toContain('hero-halloween-witch-live')
+      expect(themeHtml).not.toContain('hero-halloween-cat-live')
+      expect(themeHtml).not.toContain('milehighfizz.com')
+      if (theme.mp4) {
+        expect(existsSync(publicFile(theme.mp4))).toBe(true)
+        expect(slide && slide.kind === 'capture' ? slide.video?.mp4 : undefined).toBe(theme.mp4)
+      } else {
+        expect(slide && slide.kind === 'capture' ? slide.video : undefined).toBeUndefined()
+      }
     }
+    expect(themeHtml).not.toContain('Real jewelry. Live reveals. Pure sparkle.')
+    const previewProfiles = readFileSync(join(process.cwd(), 'lib/amethyst/skin-preview.ts'), 'utf8')
+    expect(previewProfiles).toContain("headline: 'A frightfully fun night to sparkle.'")
+    expect(previewProfiles).toContain(
+      "heroSub: 'A little mystery. A lot of sparkle. Join Sasha for live jewelry reveals and find your next favorite.'",
+    )
+    expect(themeHtml).not.toMatch(/Morganite|Rose Gold|Garnet|Amber|Velvet|Moonstone|Emerald Garden|Rose Quartz|Black Diamond|Alpine Opal|Gnome Forest|Neon Butterfly/)
+    expect(reps?.slides.map((slide) => slide.id)).toEqual([...repIds])
   })
 
-  it('uses show names only and does not substitute a theme gallery for real-site proof', () => {
+  it('keeps four rep recordings and leaves removed shows out', () => {
     const html = renderPortfolio()
-    expect(html).not.toMatch(/Lindsey|Brittany|Heather|Kim’s|Kelly|Placeholder|aria-roledescription="carousel"|<video[^>]+src=/)
-    expect(html).not.toContain('Community themes')
-    expect(html).not.toContain('Halloween Pumpkin')
-    expect(html).not.toContain('Schedule your build now')
+    const repHtml = html.slice(html.indexOf('id="rep-highlights"'), html.indexOf('id="portfolio-close-title"'))
+    expect(repHtml).toContain('Real Sparkle Suite sites, live right now. Each one is built around its rep’s own look.')
+    expect(repHtml).toContain('Mile High Fizz')
+    expect(repHtml).toContain('Britt with Bling')
+    expect(repHtml).toContain('Go for the Bling')
+    expect(repHtml).toContain('Sparkly Butterflies')
+    expect(repHtml).not.toMatch(/BlingKitchen|Bri’s Glowtique|theblingkitchen\.com|brisglowtique\.com/)
+    expect(repHtml).toContain('/sparkle-suite/portfolio/mile-high-fizz-custom-hero.webp')
+    const mileHigh = sparkleSuitePortfolioContent.carousels
+      .find((carousel) => carousel.id === 'rep-highlights')
+      ?.slides.find((slide) => slide.id === 'mile-high-fizz')
+    expect(mileHigh && mileHigh.kind === 'capture' ? mileHigh.video?.mp4 : undefined).toBe('/mile-high-fizz/hero.mp4')
+    expect(repHtml).toContain('With Lindsey')
+    expect(repHtml).toContain('Revealing something magical together.')
+    expect(repHtml.includes('/britt-with-bling/hero.jpeg')
+      || repHtml.includes(encodeURIComponent('/britt-with-bling/hero.jpeg'))).toBe(true)
+    expect(repHtml).not.toContain('halloween-pumpkin-cat')
+    expect(repHtml).not.toContain('britt-with-bling-custom-hero.webp')
+    expect(repHtml).toContain('The Virtuous Fizzers')
+    expect(repHtml).toContain('Where Faith Meets Fizz')
+    expect(repHtml).toContain('Shop Now')
+    expect(repHtml).toContain('Join the Team')
+    expect(repHtml).not.toContain('Dance Floor · Coming soon')
+    expect(repHtml).not.toContain('Coming soon')
+    expect(repHtml).not.toContain('mile-high-fizz-site-preview')
+    expect(repHtml).not.toContain('britt-with-bling-site-preview')
+    expect(repHtml).not.toContain('go-for-the-bling-site-preview')
+    expect(repHtml).not.toContain('sparkly-butterflies-site-preview')
+    expect(repHtml).toContain('A little wonder, a lot of sparkle.')
+    expect(repHtml).toContain('Your Sparkle Taking Flight')
+    for (const plate of [
+      '/amethyst/skins/gnome-garden/forest.webp',
+      '/amethyst/skins/neon-butterfly/kelly-studio-desktop.webp',
+    ]) {
+      expect(repHtml.includes(plate) || repHtml.includes(encodeURIComponent(plate))).toBe(true)
+      expect(existsSync(publicFile(plate))).toBe(true)
+    }
+    for (const id of ['go-for-the-bling', 'sparkly-butterflies'] as const) {
+      const slide = sparkleSuitePortfolioContent.carousels
+        .find((carousel) => carousel.id === 'rep-highlights')
+        ?.slides.find((item) => item.id === id)
+      expect(slide && slide.kind === 'capture' ? slide.fixedShowcase : undefined).toBe(true)
+      expect(slide && slide.kind === 'capture' ? slide.video : undefined).toBeUndefined()
+      expect(portfolioMotion[id]).toBeTruthy()
+    }
+    expect(existsSync(publicFile('/sparkle-suite/portfolio/mile-high-fizz-custom-hero.webp'))).toBe(true)
+    expect(existsSync(publicFile('/mile-high-fizz/hero.mp4'))).toBe(true)
+    expect(existsSync(publicFile('/britt-with-bling/hero.jpeg'))).toBe(true)
+    expect(portfolioMotion['mile-high-fizz']).toBeTruthy()
+    expect(portfolioMotion['britt-with-bling']).toBeTruthy()
+    expect(portfolioMotion['blingkitchen']).toBeUndefined()
+    expect(portfolioMotion['bris-glowtique']).toBeUndefined()
+    for (const removed of [
+      '/marketing/blingkitchen-site-preview.mp4',
+      '/marketing/blingkitchen-site-preview.webp',
+      '/marketing/bris-glowtique-site-preview.mp4',
+      '/marketing/bris-glowtique-site-preview.webp',
+    ]) {
+      expect(existsSync(publicFile(removed))).toBe(false)
+    }
+    const repPosters = [...repHtml.matchAll(/<img\b[^>]*>/g)].map((match) => match[0])
+    expect(repPosters).toHaveLength(4)
+    expect(repPosters[0]).toContain('mile-high-fizz-custom-hero.webp')
+    expect(repPosters[0]).toContain('loading="eager"')
+    expect(repPosters[0]).toMatch(/fetchpriority="high"/i)
+    for (const poster of repPosters.slice(1)) {
+      expect(poster).toContain('loading="lazy"')
+      expect(poster).not.toMatch(/fetchpriority="high"/i)
+    }
+    expect(repHtml.match(/target="_blank"/g)).toHaveLength(4)
+    expect(repHtml).toContain('opens in a new tab')
+  })
+
+  it('keeps portfolio metadata and the build queue close', () => {
+    const html = renderPortfolio()
+    expect(html).not.toMatch(/Brittany|Heather|Kelly|Placeholder/)
+    expect(html).not.toMatch(/\b(trade|sold|sales|Live Queue|trial)\b/i)
     expect(html).toContain('Join the build queue')
     expect(html).toContain('href="/prelaunch#waitlist"')
     expect(html).toContain('No payment when you join the queue.')
     expect(html).toContain('quick 30-minute call')
-  })
-
-  it('keeps external visits explicit and portfolio metadata specific to real sites', () => {
-    const html = renderPortfolio()
-    expect(html.match(/target="_blank"/g)?.length).toBeGreaterThanOrEqual(5)
-    expect(html).toContain('opens in a new tab')
     expect(metadata.title).toEqual({ absolute: 'Sparkle Suite Portfolio' })
     expect(metadata.alternates?.canonical).toBe('/portfolio')
     expect(metadata.description).toContain('real rep websites')
+  })
+
+  it('keeps phone pause and arrow controls below the frame on both carousels', () => {
+    const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
+    const videoCss = readFileSync(join(process.cwd(), 'app/_components/product-peek-video.module.css'), 'utf8')
+    const phoneControls = css.slice(css.indexOf('@media (max-width: 800px)'))
+    const phoneHero = css.slice(css.indexOf('@media (max-width: 700px)'), css.indexOf('@media (max-width: 800px)'))
+    expect(phoneHero).toContain('flex-shrink: 0')
+    expect(phoneHero).not.toMatch(/-webkit-line-clamp|padding:\s*50%|padding:\s*46%/)
+    expect(phoneControls).toContain('bottom: 8px')
+    expect(phoneControls).not.toMatch(/community-themes|bandBlush|bandPaper/)
+    expect(videoCss).toContain('top: calc(100% + 8px)')
+    const html = renderPortfolio()
+    expect(html.match(/aria-label="Previous /g)).toHaveLength(2)
+    expect(html.match(/aria-label="Next /g)).toHaveLength(2)
+    expect(html).toContain('Play animation')
+  })
+
+  it('reserves the tallest caption so both carousels keep a stable height', () => {
+    const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
+    const carousel = readFileSync(join(process.cwd(), 'app/_components/portfolio-carousels.tsx'), 'utf8')
+    expect(css).toContain('grid-area: 1 / 1')
+    expect(css).toMatch(/\.cardSizer\s*\{[^}]*visibility:\s*hidden/)
+    expect(css).not.toMatch(/\.cardDetail[^{]*\{[^}]*line-clamp|text-overflow:\s*ellipsis/)
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(carousel).toContain('aria-hidden="true"')
+    const html = renderPortfolio()
+    expect(html.match(/aria-hidden="true"/g)?.length).toBeGreaterThanOrEqual(14)
+    expect(html).toContain('The Golden Leaves of Autumn')
+    expect(html).toContain('A custom Gnome Forest look for Go for the Bling.')
+  })
+
+  it('uses one shared media frame for every portfolio slide', () => {
+    const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
+    const carousel = readFileSync(join(process.cwd(), 'app/_components/portfolio-carousels.tsx'), 'utf8')
+    expect(css.match(/aspect-ratio:\s*16\s*\/\s*9/g)).toHaveLength(1)
+    expect(css).toContain('object-fit: cover')
+    expect(css).toContain('object-position: center')
+    expect(css).not.toMatch(/data-theme|aspect-ratio:\s*var/)
+    expect(carousel.match(/fit="cover"/g)).toHaveLength(1)
+    expect(carousel).not.toMatch(/fit="contain"/)
   })
 })
