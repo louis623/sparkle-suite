@@ -5,7 +5,7 @@
 // AI SDK onStepFinish/onToolCall hook path). See lib/nic-nac/guardian-telemetry.ts.
 
 import { NextResponse } from 'next/server'
-import { randomUUID } from 'crypto'
+import { createHash, randomUUID } from 'crypto'
 import { isDeepStrictEqual } from 'node:util'
 import {
   convertToModelMessages,
@@ -102,7 +102,6 @@ import {
   repHasListingForItemNumber,
   savedListingPhotoFacts,
 } from '@/lib/nic-nac/tools/add-listing'
-import { sortMessagesByCreatedAt } from '@/lib/nic-nac/message-order'
 import {
   confirmationAlreadyUsed,
   shownMainPhotoPreviewId,
@@ -374,6 +373,16 @@ function validateApprovalResponseProvenance(args: {
 }
 
 export async function POST(request: Request) {
+  const claimedTurn: { abort?: () => Promise<void> } = {}
+  try {
+    return await handlePost(request, claimedTurn)
+  } catch (error) {
+    await claimedTurn.abort?.()
+    throw error
+  }
+}
+
+async function handlePost(request: Request, claimedTurn: { abort?: () => Promise<void> }) {
   const runId = randomUUID()
   const runStartedAt = Date.now()
   const responseHeaders: Record<string, string> = {
@@ -446,7 +455,7 @@ export async function POST(request: Request) {
   const { conversationId } = body
   const submittedMessageId = body.submittedMessageId?.trim() || null
   let messages = dropUnsubmittedConfirmation(
-    sortMessagesByCreatedAt(body.messages),
+    body.messages,
     submittedMessageId,
   )
   if (messages.length === 0) {
@@ -538,9 +547,16 @@ export async function POST(request: Request) {
   }
   if (replay.suppressNewTurn) {
     if (replay.storedAssistantText && replay.storedAssistantId) {
+      const parts = existingHistory.find((message) => message.id === replay.storedAssistantId)?.parts ?? []
+      const previewOutput = parts.map((part) => (part as { output?: { needsAction?: string; previewPhotoId?: string; previewImageUrl?: string; message?: string } }).output)
+        .find((output) => output?.needsAction === 'confirm_main_photo')
       return createNicNacStaticTextStreamResponse({
         message: guardAssistantVisibleText(replay.storedAssistantText),
         messageId: replay.storedAssistantId,
+        preview: previewOutput ? {
+          message: guardAssistantVisibleText(previewOutput.message ?? replay.storedAssistantText),
+          previewPhotoId: previewOutput.previewPhotoId, previewImageUrl: previewOutput.previewImageUrl,
+        } : undefined,
         headers: responseHeaders,
       })
     }
@@ -548,6 +564,41 @@ export async function POST(request: Request) {
       { replayed: true },
       { status: 200, headers: responseHeaders },
     )
+  }
+
+  // For a normal user turn, stored history is authoritative. A stale client
+  // may omit the preview tool part, and a client must never invent a preview
+  // (or replace its photo ID) to authorize a save. Approval continuations have
+  // their own validated merge path below.
+  const incomingUser = messages.at(-1)
+  const submittedUser = incomingUser?.role === 'user'
+    ? existingHistory.find((message) => message.id === incomingUser.id && message.role === 'user') ?? incomingUser
+    : incomingUser
+  if (mode === 'workspace' && !supportScope && submittedUser?.role === 'user') {
+    messages = [
+      ...existingHistory.filter((message) => message.id !== submittedUser.id),
+      submittedUser,
+    ]
+  }
+
+  let claimedAssistantId: string | null = null
+  if (mode === 'workspace' && !supportScope && submittedUser?.role === 'user') {
+    await insertUserMessage(supabase, {
+      conversationId, repId, messageId: submittedUser.id, parts: submittedUser.parts,
+      receivedAt: new Date(runStartedAt).toISOString(),
+    })
+    const replyId = 'reply-' + createHash('sha256').update(conversationId + ':' + submittedUser.id).digest('hex')
+    const claimed = await reserveAssistantMessage(supabase, {
+      conversationId, repId, messageId: replyId, claimSubmission: true,
+    })
+    if (claimed === false) {
+      return NextResponse.json(
+        { error: 'This message has already been received. Reload the chat to see its reply.', code: 'SUBMISSION_ALREADY_RECEIVED' },
+        { status: 409, headers: responseHeaders },
+      )
+    }
+    claimedAssistantId = replyId
+    claimedTurn.abort = () => abortAssistant(supabase, { conversationId, messageId: replyId })
   }
 
   const missionScope = classifyNicNacMissionScopeForMessages(messages)
@@ -565,11 +616,12 @@ export async function POST(request: Request) {
           repId,
           messageId: m.id,
           parts: m.parts,
+          receivedAt: new Date(runStartedAt).toISOString(),
         })
       }
     }
 
-    const assistantMessageId = randomUUID()
+    const assistantMessageId = claimedAssistantId ?? randomUUID()
     if (supportScope) {
       await insertOperatorSupportConversationMessage(supabase, supportScope, {
         id: assistantMessageId,
@@ -644,11 +696,12 @@ export async function POST(request: Request) {
           repId,
           messageId: message.id,
           parts: message.parts,
+          receivedAt: new Date(runStartedAt).toISOString(),
         })
       }
     }
 
-    const assistantMessageId = randomUUID()
+    const assistantMessageId = claimedAssistantId ?? randomUUID()
     if (supportScope) {
       await insertOperatorSupportConversationMessage(supabase, supportScope, {
         id: assistantMessageId,
@@ -753,18 +806,6 @@ export async function POST(request: Request) {
     }
   }
 
-  // For a normal user turn, stored history is authoritative. A stale client
-  // may omit the preview tool part, and a client must never invent a preview
-  // (or replace its photo ID) to authorize a save. Approval continuations have
-  // their own validated merge path above.
-  const submittedUser = messages.at(-1)
-  if (mode === 'workspace' && !supportScope && submittedUser?.role === 'user') {
-    messages = [
-      ...existingHistory.filter((message) => message.id !== submittedUser.id),
-      submittedUser,
-    ]
-  }
-
   // Idempotent persist of any new user-role messages from the client array.
   const existingIds = new Set(existingHistory.map((m) => m.id))
   for (const m of messages) {
@@ -778,6 +819,7 @@ export async function POST(request: Request) {
         repId,
         messageId: m.id,
         parts: m.parts,
+        receivedAt: new Date(runStartedAt).toISOString(),
       })
     }
   }
@@ -792,7 +834,7 @@ export async function POST(request: Request) {
   // resume's output-available state on the original DB row, not a parallel
   // one that would resurrect a dead approval card on reload.
   const { messageId: assistantMessageId, isContinuation } =
-    decideAssistantMessageId(messages, () => randomUUID())
+    decideAssistantMessageId(messages, () => claimedAssistantId ?? randomUUID())
   if (!isContinuation) {
     if (supportScope) {
       await insertOperatorSupportConversationMessage(supabase, supportScope, {

@@ -142,7 +142,42 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(reply).toMatch(/blurry|cut off/)
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
     state.analysis={}
-    expect(await turn('good-upload',"Here's the correct photo",'data:image/png;base64,Z29vZC1waG90bw==')).toContain('confirm_main_photo')
+    expect(await turn('good-upload',"Here's the right photo",'data:image/png;base64,Z29vZC1waG90bw==')).toContain('confirm_main_photo')
+  })
+
+  it('accepts different uploads with identical captions as distinct submitted turns',async()=>{
+    await oldPhoto();await turn('no','no')
+    await turn('photo-one',"Here's the right photo",'data:image/png;base64,b25l')
+    await turn('photo-two',"Here's the right photo",'data:image/png;base64,dHdv')
+    expect((await db.sql.query("select * from nic_nac_conversations where message_id in ('photo-one','photo-two')")).rows).toHaveLength(2)
+    expect(await turn('yes-two','yes')).toContain('is on your Dance Floor')
+    expect(state.uploads[0].data).toBe('data:image/png;base64,dHdv')
+  })
+
+  it('does not run a slow submission twice and preserves its first server receive time',async()=>{
+    let release!:()=>void, started!:()=>void
+    const waiting=new Promise<void>(resolve=>{release=resolve})
+    const entered=new Promise<void>(resolve=>{started=resolve})
+    const stream=vi.fn(async()=>{started();await waiting;return {toUIMessageStream:async function*(){
+      yield {type:'text-start',id:'t'};yield {type:'text-delta',id:'t',delta:'I can help with your Dance Floor.'};yield {type:'text-end',id:'t'}
+    }}})
+    state.model.mockReturnValue({catalog:{allowedIntents:['trade_board'],requestedIntents:['trade_board'],toolNames:[],source:'workspace_permissions',blockedIntents:[],blockedToolNames:[]},agent:{stream}})
+    const request=()=>new Request('http://local.test/api/nic-nac',{method:'POST',body:JSON.stringify({conversationId:'piece-chat',mode:'workspace',submittedMessageId:'slow',messages:[{id:'slow',role:'user',metadata:{created_at:'1999-01-01T00:00:00Z'},parts:[{type:'text',text:'Help me understand my Dance Floor'}]}]})})
+    const received=Date.now()
+    const response=await POST(request())
+    await entered
+    const before=(await db.sql.query("select * from nic_nac_conversations where message_id='slow'")).rows[0]
+    expect(new Date(before.created_at as string).getTime()).toBeGreaterThanOrEqual(received)
+    const clock=vi.spyOn(Date,'now').mockReturnValue(received+301000)
+    try {
+      expect((await POST(request())).status).toBe(409)
+      expect(stream).toHaveBeenCalledTimes(1)
+    } finally {clock.mockRestore();release()}
+    await response.text()
+    expect((await POST(request())).status).toBe(200)
+    expect(stream).toHaveBeenCalledTimes(1)
+    expect((await db.sql.query("select * from nic_nac_conversations where message_id='slow'")).rows).toEqual([before])
+    expect((await db.sql.query("select * from nic_nac_conversations where role='assistant'")).rows).toHaveLength(1)
   })
 
   it('a label cannot replace the jewelry upload after preview',async()=>{

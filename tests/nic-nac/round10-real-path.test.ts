@@ -464,7 +464,7 @@ describe('round 10 stored history, photos, replay, and skip', () => {
     ).toThrow(/too blurry/)
   })
 
-  it('drops a replayed long message and stamps the server receive time', async () => {
+  it('keeps distinct client IDs and stamps the server receive time', async () => {
     const stored = [
       textMessage('client-1', 'user', "It's NK11306. The label is fine. Save it."),
     ]
@@ -473,8 +473,8 @@ describe('round 10 stored history, photos, replay, and skip', () => {
       textMessage('client-2', 'user', "It's NK11306. The label is fine. Save it."),
     ]
     const replay = classifySubmissionReplay({ incoming, stored })
-    expect(replay.dropIds).toEqual(['client-2'])
-    expect(replay.suppressNewTurn).toBe(true)
+    expect(replay.dropIds).toEqual([])
+    expect(replay.suppressNewTurn).toBe(false)
     const sameId = classifySubmissionReplay({
       incoming: [
         textMessage('client-1', 'user', "Here's a clearer photo of the necklace."),

@@ -276,6 +276,7 @@ export async function insertUserMessage(
     repId: string
     messageId: string
     parts: UIMessage['parts']
+    receivedAt?: string
   }
 ): Promise<void> {
   // ON CONFLICT DO NOTHING on (conversation_id, message_id) — idempotent.
@@ -289,7 +290,7 @@ export async function insertUserMessage(
       role: 'user',
       parts: args.parts,
       status: 'complete',
-      created_at: new Date().toISOString(),
+      created_at: args.receivedAt ?? new Date().toISOString(),
     },
     { onConflict: 'conversation_id,message_id', ignoreDuplicates: true }
   )
@@ -340,9 +341,10 @@ export async function reserveAssistantMessage(
     conversationId: string
     repId: string
     messageId: string
+    claimSubmission?: boolean
   }
-): Promise<void> {
-  const { error } = await supabase.from('nic_nac_conversations').upsert(
+): Promise<boolean> {
+  const query = supabase.from('nic_nac_conversations').upsert(
     {
       conversation_id: args.conversationId,
       message_id: args.messageId,
@@ -353,7 +355,17 @@ export async function reserveAssistantMessage(
     },
     { onConflict: 'conversation_id,message_id', ignoreDuplicates: true }
   )
+  const { data, error } = args.claimSubmission ? await query.select('message_id') : await query
   if (error) throw error
+  if (!args.claimSubmission || (data?.length ?? 0) > 0) return true
+  // Only an explicitly failed run may be retried. A slow/pending run is never
+  // stolen on a timer; a second request cannot execute its tools again.
+  const retry = await supabase.from('nic_nac_conversations')
+    .update({ status: 'pending', parts: [], updated_at: new Date().toISOString() })
+    .eq('conversation_id', args.conversationId).eq('message_id', args.messageId)
+    .eq('rep_id', args.repId).eq('status', 'aborted').select('message_id')
+  if (retry.error) throw retry.error
+  return (retry.data?.length ?? 0) > 0
 }
 
 export async function checkpointAssistant(

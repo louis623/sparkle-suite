@@ -1123,7 +1123,7 @@ describe('main photo confirmation', () => {
       ],
     })
     expect(stillAttached.photos[0]?.notes).not.toContain(TURNED_DOWN_MAIN_PHOTO_NOTE)
-    expect(stillAttached.metadata.mainPhotoConfirmedPhotoId).toBe('photo-ring')
+    expect(stillAttached.metadata.mainPhotoConfirmedPhotoId).toBeUndefined()
   })
 
   it('shows the main photo preview again after a yes when a new jewelry photo arrives', async () => {

@@ -695,10 +695,11 @@ export async function ingestLatestTradeBoardIntakeTurn(
   const ingestedNewImage = photos.length > photosBeforeThisTurn
   const declinedSharedPhoto = isNegativePhotoConfirmation(latestUserText) &&
     /already on|belongs with that set|main photo I will save/i.test(previousAssistantText)
+  // Confirmation belongs to this submitted turn, never an older yes.
+  delete metadata.mainPhotoConfirmedPhotoId
+  delete metadata.mainPhotoConfirmed
+  delete metadata.mainPhotoConfirmedItemNumber
   if (ingestedNewImage) {
-    delete metadata.mainPhotoConfirmedPhotoId
-    delete metadata.mainPhotoConfirmed
-    delete metadata.mainPhotoConfirmedItemNumber
     if (declinedSharedPhoto) {
       metadata.declinedSharedPhoto = true
       for (let index = 0; index < photosBeforeThisTurn; index += 1) {
@@ -731,9 +732,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
     }
   } else if (latestTurnConfirmsMainPhoto(args.messages)) {
     const shownPreview = lastShownMainPhotoPreview(args.messages)
-    const confirmedPhotoId = shownPreview.shown
-      ? shownPreview.id
-      : currentMainPhotoIdentity(photos)
+    const confirmedPhotoId = shownPreview.id
     const confirmedItemNumber = photoConfirmationPieceKey({
       itemNumber: mainPhotoConfirmedItemNumber(
         args.messages,
@@ -1109,10 +1108,8 @@ function previousAssistantMessage(
 ): UIMessage | undefined {
   const latestUserIndex = findLatestUserMessageIndex(messages)
   if (latestUserIndex === -1) return undefined
-  return messages
-    .slice(0, latestUserIndex)
-    .reverse()
-    .find((message) => message.role === 'assistant')
+  const previous = messages[latestUserIndex - 1]
+  return previous?.role === 'assistant' ? previous : undefined
 }
 
 function isMainPhotoPreviewOutput(output: {

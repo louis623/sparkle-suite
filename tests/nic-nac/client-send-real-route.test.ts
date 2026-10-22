@@ -58,4 +58,15 @@ describe('composer sends through SDK, real POST and PostgreSQL persistence', () 
       {id:'u',role:'user',parts:[{type:'text',text:'yes'}]}, {id:'a',role:'assistant',parts:[]},
     ]})).not.toHaveProperty('submittedMessageId')
   })
+  it('claims only one reply when identical submissions arrive concurrently',async()=>{
+    const makeRequest=()=>new Request('http://local.test/api/nic-nac',{method:'POST',body:JSON.stringify({conversationId:'synthetic-chat',mode:'workspace',submittedMessageId:'race',messages:[{id:'race',role:'user',parts:[{type:'text',text:'Write a grocery list'}]}]})})
+    const responses=await Promise.all(Array.from({length:6},()=>POST(makeRequest())))
+    expect(responses.some(response=>response.status===200)).toBe(true)
+    expect(responses.every(response=>[200,409].includes(response.status))).toBe(true)
+    const rows=(await db.sql.query('select * from nic_nac_conversations')).rows
+    expect(rows.filter(row=>row.role==='user')).toHaveLength(1)
+    expect(rows.filter(row=>row.role==='assistant')).toHaveLength(1)
+    expect(rows.find(row=>row.role==='assistant')?.status).toBe('complete')
+  })
+
 })
