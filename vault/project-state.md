@@ -1,3 +1,9 @@
+## October 22, 2026 — PR 141 Run 15 smoke regressions, PR only
+
+- Corrected-duplicate saves now recover rep names/collections when a label/tool identified the item; photo-first then label retains the selected jewelry through yes; retired confirmation lines become one moved-on notice.
+- Product tip 4fe762121409aaa1b7c4940ff51f011e9b4f0226: real Next build, standalone TypeScript and npm test pass (48 files / 774 tests). Real route/database tests now verify the saved design and image, not just preview text.
+- No merge, deploy, production branch, migration or Live changes. Suite's signed-in PR retest remains next. See [Run 15 closeout](2026-10-22-pr141-run15-retest.md).
+
 ## October 22, 2026 — PR 141 Run 14 retest repairs, PR only
 
 - Fixed assistant prose leaking into saved design names; name recovery uses rep text or established details, strips Markdown, and keeps stored-name authority on the matching item. Fixed contradictory jewelry/label replies and pending questions left beside moved-on notices.
