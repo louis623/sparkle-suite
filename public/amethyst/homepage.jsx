@@ -2088,8 +2088,192 @@ function AboutSection({ repName, hideEmptyMedia = false }) {
 }
 
 // ============================================================
-// Signup
+// Signup favorites — pick up to 3, same interaction as Sparkle Finder
 // ============================================================
+const SIGNUP_PREFERENCE_MAX = 3;
+const SIGNUP_NOT_SURE = "not_sure";
+const SIGNUP_PREFERENCE_STYLES = `
+.hp-pref { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; }
+.hp-pref legend { padding: 0; }
+.hp-pref-hint, .hp-pref-group, .hp-pref-live { margin: 0; color: var(--hp-card-muted); font-size: 13px; line-height: 1.4; }
+.hp-pref-live { min-height: 1.4em; }
+.hp-pref-chips { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; max-width: 100%; }
+.hp-pref-chip { position: relative; display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; margin: 0; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--hp-field-bg); color: var(--hp-field-fg); font-size: 14px; line-height: 1.3; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.hp-pref-chip input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.hp-pref-chip.is-selected { background: var(--hp-card-accent); color: var(--hp-action-fg); border-color: var(--hp-card-accent); }
+.hp-pref-chip.is-disabled { opacity: 0.45; cursor: not-allowed; }
+.hp-pref-chip.is-disabled input { cursor: not-allowed; }
+.hp-pref-chip:focus-within { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
+.hp-pref-more { justify-self: start; min-height: 44px; padding: 8px 2px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.hp-pref-more:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
+.hp-signup-form, .hp-signup-preferences, .hp-pref { max-width: 100%; }
+.hp-signup-notes-label { display: block; color: var(--hp-card-fg); font-size: 15px; line-height: 1.45; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }
+.hp-signup-notes { min-height: 120px; resize: vertical; }
+.hp-signup-question { display: grid; gap: 16px; width: 100%; min-width: 0; min-height: 212px; box-sizing: border-box; align-content: center; border: 1px solid var(--border); border-radius: 20px; background: var(--hp-form-panel-bg); color: var(--hp-form-panel-fg); padding: 20px; }
+.hp-signup-question.is-choices, .hp-signup-question.is-review { min-height: 0; align-content: start; }
+.hp-signup-question.is-review { gap: 0; padding: 8px 18px 12px; }
+.hp-signup-review { list-style: none; margin: 0; padding: 0; display: grid; }
+.hp-signup-review-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 2px; border-top: 1px solid color-mix(in oklab, var(--hp-form-panel-fg) 12%, transparent); }
+.hp-signup-review > .hp-signup-review-row:first-child { border-top: 0; }
+.hp-signup-review-copy { min-width: 0; display: grid; gap: 4px; }
+.hp-signup-review-label { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--hp-card-muted); }
+.hp-signup-review-value { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.45; color: var(--hp-form-panel-fg); overflow-wrap: break-word; }
+.hp-signup-review-meta { margin: 0; font-size: 15px; line-height: 1.45; color: var(--hp-card-muted); overflow-wrap: break-word; }
+.hp-signup-review-notes { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hp-signup-review-edit { flex: none; align-self: center; min-height: 44px; min-width: 44px; padding: 10px 8px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 16px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.hp-signup-review-edit:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
+.hp-signup-review-edit:disabled { opacity: 0.45; cursor: wait; }
+.hp-signup-intro { display: grid; gap: 6px; min-height: 84px; align-content: end; text-align: center; }
+.hp-signup-step-title { margin: 0; color: var(--hp-card-fg); font-family: var(--hp-display-font); font-size: clamp(26px, 3vw, 34px); font-weight: 700; letter-spacing: var(--hp-heading-tracking, -0.02em); line-height: 1.15; }
+.hp-signup-step-why { margin: 0 auto; max-width: 36rem; color: var(--hp-card-muted); font-size: 15px; line-height: 1.5; }
+.hp-pref > legend { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.hp-signup-progress-wrap { display: grid; justify-items: center; gap: 0; }
+.hp-signup-progress { margin: 0; color: var(--hp-card-fg); font-size: 14px; font-weight: 700; letter-spacing: 0.04em; text-align: center; }
+.hp-signup-meter { display: flex; gap: 4px; width: min(100%, 420px); }
+.hp-signup-meter-step { position: relative; flex: 1 1 0; min-width: 24px; min-height: 44px; padding: 0; border: 0; background: transparent; }
+.hp-signup-meter-step::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 4px; border-radius: 999px; transform: translateY(-50%); background: color-mix(in oklab, var(--hp-card-fg) 16%, transparent); }
+.hp-signup-meter-step.is-done { cursor: pointer; }
+.hp-signup-meter-step.is-done::after, .hp-signup-meter-step.is-current::after { background: var(--hp-card-accent); }
+.hp-signup-meter-step.is-done:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
+.hp-signup-step-panel { display: grid; gap: 16px; opacity: 1; transform: none; animation: hp-signup-step-in 180ms var(--ease, ease) forwards; }
+@keyframes hp-signup-step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hp-signup-step-panel { animation: none; opacity: 1; transform: none; } }
+.hp-signup-single { width: 100%; max-width: none; margin-inline: 0; }
+.hp-signup-input { font-size: 16px; }
+.hp-signup-submit { min-height: 48px; }
+.hp-signup-submit:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 3px; }
+.hp-signup-check { min-height: 44px; align-items: center; }
+.hp-signup-check input { width: 22px; height: 22px; margin-top: 0; accent-color: var(--hp-primary); }
+.hp-signup-nav { display: flex; flex-direction: column-reverse; align-items: center; gap: 4px; width: 100%; }
+@media (min-width: 720px) { .hp-signup-nav { flex-direction: row; justify-content: center; gap: 12px; } }
+.hp-signup-step { display: grid; gap: 16px; min-width: 0; outline: none; }
+.hp-signup-identity { display: grid; gap: 16px; }
+.hp-signup-step:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 4px; }
+.hp-signup-back { min-height: 44px; min-width: 44px; padding: 8px 12px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.hp-signup-back:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
+.hp-signup-back:disabled { opacity: 0.45; cursor: wait; }
+.hp-signup-live { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.hp-signup-status.success, .hp-signup-status.error { color: var(--hp-card-fg); border-radius: 12px; padding: 12px 14px; }
+.hp-signup-status.success { background: color-mix(in oklab, var(--hp-card-accent) 16%, var(--hp-bg-elevated)); border: 1px solid color-mix(in oklab, var(--hp-card-accent) 42%, var(--border)); }
+.hp-signup-status.error { background: color-mix(in oklab, var(--hp-card-fg) 8%, var(--hp-bg-elevated)); border: 1px solid color-mix(in oklab, #9c1c3d 55%, var(--border)); }
+@media (max-width: 420px) {
+  .hp-pref-chip { font-size: 15px; }
+}
+#signup .hp-signup-card { max-width: 640px; }
+#signup .hp-signup-form { width: 100%; }
+#signup .hp-signup-progress-wrap { width: 100%; justify-items: stretch; }
+#signup .hp-signup-meter { width: 100%; max-width: none; }
+#signup .hp-signup-actions { width: 100%; align-items: stretch; }
+#signup .hp-signup-privacy { width: 100%; max-width: none; }
+#signup .hp-signup-nav { width: 100%; }
+@media (max-width: 719px) {
+  #signup .hp-signup-nav { align-items: stretch; }
+  #signup .hp-signup-submit { width: 100%; }
+  #signup .hp-signup-back { text-align: center; }
+}
+@media (min-width: 720px) {
+  #signup .hp-signup-nav { align-items: center; }
+  #signup .hp-signup-submit { flex: 1 1 auto; }
+}
+`;
+
+const SIGNUP_STEP_LABELS = [
+  "Let's get you on the list",
+  "Stones you love",
+  "Metals and finishes",
+  "Favorite cuts",
+  "Bomb Party collections",
+  "How should we reach you?",
+  "Your birthday",
+  "Ring size",
+  "Anything else?",
+  "Sign me up",
+];
+const SIGNUP_LAST_STEP = SIGNUP_STEP_LABELS.length - 1;
+
+function applySignupPreferenceToggle(selected, slug, checked) {
+  if (!checked) return selected.filter((item) => item !== slug);
+  if (slug === SIGNUP_NOT_SURE) return [SIGNUP_NOT_SURE];
+  const withoutSure = selected.filter((item) => item !== SIGNUP_NOT_SURE);
+  if (withoutSure.includes(slug) || withoutSure.length >= SIGNUP_PREFERENCE_MAX) return withoutSure;
+  return [...withoutSure, slug];
+}
+
+function SignupPreferenceChip({ option, fieldName, selected, onChange }) {
+  const checked = selected.includes(option.slug);
+  const disabled = !checked && selected.length >= SIGNUP_PREFERENCE_MAX;
+  return (
+    <label className={`hp-pref-chip${checked ? " is-selected" : ""}${disabled ? " is-disabled" : ""}`}>
+      <input
+        type="checkbox"
+        name={fieldName}
+        value={option.slug}
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange(applySignupPreferenceToggle(selected, option.slug, event.target.checked))}
+      />
+      <span>{option.label}</span>
+    </label>
+  );
+}
+
+function SignupPreferencePicker({ legend, fieldName, options, selected, onChange, showOlderControl }) {
+  const [showAll, setShowAll] = useState(false);
+  const [showOlder, setShowOlder] = useState(false);
+  const list = Array.isArray(options) ? options : [];
+  const active = list.filter((option) => !option.isRetired);
+  const retired = list.filter((option) => option.isRetired);
+  const visibleActive = showAll ? active : active.slice(0, 8);
+  const visibleRetired = showOlder ? retired : retired.filter((option) => selected.includes(option.slug));
+  const atMax = selected.length >= SIGNUP_PREFERENCE_MAX;
+
+  return (
+    <fieldset className="hp-pref">
+      <legend className="hp-signup-label">{legend}</legend>
+      <p className="hp-pref-hint" id={`${fieldName}-hint`}>Pick at least 1, up to 3</p>
+      <div className="hp-pref-chips" role="group" aria-describedby={`${fieldName}-hint`}>
+        {visibleActive.map((option) => (
+          <SignupPreferenceChip
+            key={option.slug}
+            option={option}
+            fieldName={fieldName}
+            selected={selected}
+            onChange={onChange}
+          />
+        ))}
+      </div>
+      {active.length > 8 ? (
+        <button type="button" className="hp-pref-more" onClick={() => setShowAll((current) => !current)}>
+          {showAll ? "Show fewer" : "Show all"}
+        </button>
+      ) : null}
+      {showOlderControl && retired.length > 0 ? (
+        <button type="button" className="hp-pref-more" onClick={() => setShowOlder((current) => !current)}>
+          {showOlder ? "Hide older collections" : "Show older collections"}
+        </button>
+      ) : null}
+      {visibleRetired.length > 0 ? (
+        <div className="hp-pref-chips">
+          {showOlder ? <p className="hp-pref-group">Older collections</p> : null}
+          {visibleRetired.map((option) => (
+            <SignupPreferenceChip
+              key={option.slug}
+              option={option}
+              fieldName={fieldName}
+              selected={selected}
+              onChange={onChange}
+            />
+          ))}
+        </div>
+      ) : null}
+      <p className="hp-pref-live" aria-live="polite">
+        {atMax ? "You've picked 3. Unpick one to choose another." : ""}
+      </p>
+    </fieldset>
+  );
+}
+
 function Signup({ repName, businessName }) {
   const [form, setForm] = useState({
     firstName: "",
@@ -2100,24 +2284,218 @@ function Signup({ repName, businessName }) {
     emailConsent: false,
     marketingConsent: false,
     birthday: "",
-    favoriteGemOrStone: "",
-    favoriteMaterial: "",
-    favoriteCut: "",
-    favoriteCollection: "",
+    favoriteStones: [],
+    favoriteMaterials: [],
+    favoriteCuts: [],
+    favoriteCollections: [],
+    ringSize: "",
+    jewelryNotes: "",
   });
+  const [preferenceOptions, setPreferenceOptions] = useState(null);
+  const [preferenceOptionsError, setPreferenceOptionsError] = useState(false);
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
+  const [step, setStep] = useState(0);
+  const [resumeStep, setResumeStep] = useState(null);
+  const [stepError, setStepError] = useState("");
+  const [stepAnnouncement, setStepAnnouncement] = useState(`Step 1 of ${SIGNUP_STEP_LABELS.length}. ${SIGNUP_STEP_LABELS[0]}.`);
+  const stepRef = useRef(null);
+  const stepWasShown = useRef(false);
+  useEffect(() => {
+    const announcedTitle = step === SIGNUP_LAST_STEP ? `Join ${repName}` : SIGNUP_STEP_LABELS[step];
+    setStepAnnouncement(`Step ${step + 1} of ${SIGNUP_STEP_LABELS.length}. ${announcedTitle}.`);
+    if (!stepWasShown.current) {
+      stepWasShown.current = true;
+      return;
+    }
+    const field = stepRef.current?.querySelector("input, select, textarea, .hp-signup-review-edit");
+    if (field) field.focus();
+    else document.querySelector("#signup .hp-signup-submit")?.focus();
+  }, [step, repName]);
+  useEffect(() => {
+    if (!stepError) return;
+    document.getElementById("hp-signup-step-error")?.focus();
+  }, [stepError]);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(withCurrentSearch("/api/amethyst/preference-options"))
+      .then((response) => response.json().then((payload) => ({ ok: response.ok, payload })))
+      .then(({ ok, payload }) => {
+        if (cancelled) return;
+        if (!ok || !payload || !payload.options) {
+          setPreferenceOptionsError(true);
+          return;
+        }
+        setPreferenceOptions(payload.options);
+      })
+      .catch(() => {
+        if (!cancelled) setPreferenceOptionsError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const signupTitle = CONTENT.signupTitle || "Never miss a show.";
   const signupSub = CONTENT.signupSub || `Get a heads-up when ${repName} goes live, plus first dibs on new drops.`;
+  const stepWhy = [
+    `${repName} saves your spot with your name and email.`,
+    `${repName} uses this to pull pieces you'll want. Pick up to 3.`,
+    "So the finish matches what you like to wear. Pick up to 3.",
+    "The shape changes the whole piece. Pick up to 3.",
+    `${repName} can watch for the Bomb Party lines you want. Pick up to 3.`,
+    `Choose email, texts, or both. ${repName} only uses what you pick.`,
+    "Only for birthday promotions and gift ideas. It will not be used for anything else.",
+    `Optional. It helps ${repName} point you toward rings that are more likely to fit.`,
+    `Anything else ${repName} should know? Pieces you're hunting for, sizes, or styles you love.`,
+    `Here's what ${businessName} will have when you sign up.`,
+  ];
+  const stepTitle = step === SIGNUP_LAST_STEP ? `Join ${repName}` : SIGNUP_STEP_LABELS[step];
 
   function updateField(key, value) {
+    setStepError("");
     setForm((current) => ({
       ...current,
       [key]: value,
     }));
   }
 
+  function favoriteStepForEmptyList() {
+    if (form.favoriteStones.length < 1) return 1;
+    if (form.favoriteMaterials.length < 1) return 2;
+    if (form.favoriteCuts.length < 1) return 3;
+    if (form.favoriteCollections.length < 1) return 4;
+    return 1;
+  }
+
+  function birthdayError() {
+    const value = form.birthday.trim();
+    if (!value) return "";
+    if (!/^\d{2}-\d{2}$/.test(value)) {
+      return "Birthday must use month and day in MM-DD format. Do not include a year.";
+    }
+    const month = Number(value.slice(0, 2));
+    const day = Number(value.slice(3, 5));
+    const candidate = new Date(Date.UTC(2024, month - 1, day));
+    if (candidate.getUTCMonth() !== month - 1 || candidate.getUTCDate() !== day) {
+      return "Birthday must be a real month and day.";
+    }
+    return "";
+  }
+
+  function birthdayReviewLabel(value) {
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const text = String(value || "").trim();
+    if (!/^\d{2}-\d{2}$/.test(text)) return "";
+    const month = Number(text.slice(0, 2));
+    const day = Number(text.slice(3, 5));
+    const candidate = new Date(Date.UTC(2024, month - 1, day));
+    if (candidate.getUTCMonth() !== month - 1 || candidate.getUTCDate() !== day) return "";
+    return `${months[month - 1]} ${day}`;
+  }
+
+  function validateCurrentStep() {
+    if (step === 0) {
+      if (!form.firstName.trim()) return "First name is required.";
+      if (!form.lastName.trim()) return "Last name is required.";
+    }
+    if (step >= 1 && step <= 4) {
+      if (!preferenceOptions) {
+        return preferenceOptionsError
+          ? "Favorites could not load. Refresh the page and try again."
+          : "Favorites are still loading. Try again in a moment.";
+      }
+      const picks = [form.favoriteStones, form.favoriteMaterials, form.favoriteCuts, form.favoriteCollections][step - 1];
+      if (!picks || picks.length < 1) {
+        return "Pick at least one favorite in each list. Not sure yet counts.";
+      }
+    }
+    if (step === 5 && !form.smsConsent && !form.emailConsent) {
+      return "Choose SMS, email, or both before signing up.";
+    }
+    if (step === 5 && form.smsConsent && !form.phone.trim()) {
+      return "A phone number is required if the customer wants SMS updates.";
+    }
+    if (step === 6) return birthdayError();
+    if (step === 8 && form.jewelryNotes.length > 500) return "Keep jewelry notes to 500 characters.";
+    return "";
+  }
+
+  function stepForServerMessage(message) {
+    if (/favorite|Not sure yet|Refresh the page and pick/i.test(message)) return favoriteStepForEmptyList();
+    if (/phone number is required/i.test(message)) return 5;
+    if (/Choose SMS, email, or both/i.test(message)) return 5;
+    if (/email address is required|First name is required|Last name is required/i.test(message)) return 0;
+    if (/Birthday must/i.test(message)) return 6;
+    if (/ring size/i.test(message)) return 7;
+    if (/jewelry notes/i.test(message)) return 8;
+    return null;
+  }
+
+  function goBack() {
+    if (submitState.status === "submitting") return;
+    setStepError("");
+    setSubmitState({ status: "idle", message: "" });
+    if (resumeStep != null && step === 0) {
+      const destination = resumeStep;
+      setResumeStep(null);
+      setStep(destination);
+      return;
+    }
+    setResumeStep(null);
+    setStep((current) => Math.max(0, current - 1));
+  }
+
+  function goToStep(next) {
+    if (submitState.status === "submitting") return;
+    if (next < 0 || next >= step) return;
+    setStepError("");
+    setSubmitState({ status: "idle", message: "" });
+    setResumeStep(null);
+    setStep(next);
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
+    if (step < SIGNUP_LAST_STEP) {
+      const error = validateCurrentStep();
+      if (error) {
+        setStepError(error);
+        return;
+      }
+      if (step === 5 && form.emailConsent && !form.email.trim()) {
+        setResumeStep(5);
+        setStep(0);
+        setStepError("An email address is required if the customer wants email updates.");
+        return;
+      }
+      setStepError("");
+      if (resumeStep != null && step === 0) {
+        const destination = resumeStep;
+        setResumeStep(null);
+        setStep(destination);
+        return;
+      }
+      setStep((current) => current + 1);
+      return;
+    }
+    if (!preferenceOptions) {
+      setStep(1);
+      setStepError(preferenceOptionsError
+        ? "Favorites could not load. Refresh the page and try again."
+        : "Favorites are still loading. Try again in a moment.");
+      setSubmitState({ status: "idle", message: "" });
+      return;
+    }
+    if (
+      form.favoriteStones.length < 1 ||
+      form.favoriteMaterials.length < 1 ||
+      form.favoriteCuts.length < 1 ||
+      form.favoriteCollections.length < 1
+    ) {
+      setStep(favoriteStepForEmptyList());
+      setStepError("Pick at least one favorite in each list. Not sure yet counts.");
+      setSubmitState({ status: "idle", message: "" });
+      return;
+    }
     setSubmitState({ status: "submitting", message: "" });
 
     try {
@@ -2135,18 +2513,28 @@ function Signup({ repName, businessName }) {
           emailConsent: form.emailConsent,
           marketingConsent: form.marketingConsent,
           birthday: form.birthday,
-          favoriteGemOrStone: form.favoriteGemOrStone,
-          favoriteMaterial: form.favoriteMaterial,
-          favoriteCut: form.favoriteCut,
-          favoriteCollection: form.favoriteCollection,
+          favoriteStones: form.favoriteStones,
+          favoriteMaterials: form.favoriteMaterials,
+          favoriteCuts: form.favoriteCuts,
+          favoriteCollections: form.favoriteCollections,
+          ringSize: form.ringSize,
+          jewelryNotes: form.jewelryNotes,
         }),
       });
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
+        const message = payload.error || "We couldn't save your signup right now.";
+        const jump = stepForServerMessage(message);
+        if (jump != null) {
+          setStep(jump);
+          setStepError(message);
+          setSubmitState({ status: "idle", message: "" });
+          return;
+        }
         setSubmitState({
           status: "error",
-          message: payload.error || "We couldn't save your signup right now.",
+          message,
         });
         return;
       }
@@ -2162,11 +2550,16 @@ function Signup({ repName, businessName }) {
         emailConsent: false,
         marketingConsent: false,
         birthday: "",
-        favoriteGemOrStone: "",
-        favoriteMaterial: "",
-        favoriteCut: "",
-        favoriteCollection: "",
+        favoriteStones: [],
+        favoriteMaterials: [],
+        favoriteCuts: [],
+        favoriteCollections: [],
+        ringSize: "",
+        jewelryNotes: "",
       });
+      setStep(0);
+      setResumeStep(null);
+      setStepError("");
       setSubmitState({
         status: "success",
         message: "You're on the list. We'll use the channels you selected.",
@@ -2179,8 +2572,40 @@ function Signup({ repName, businessName }) {
     }
   }
 
+  function preferenceShortLabel(label) {
+    const text = String(label || "").trim();
+    const cut = text.indexOf(" (");
+    return cut === -1 ? text : text.slice(0, cut);
+  }
+
+  function preferenceNames(picks, options) {
+    const list = Array.isArray(options) ? options : [];
+    return picks.map((slug) => {
+      if (slug === SIGNUP_NOT_SURE) return "Not sure yet";
+      const match = list.find((option) => option.slug === slug);
+      return preferenceShortLabel(match ? match.label : slug);
+    }).join(", ");
+  }
+
+  let channelSummary = "";
+  if (form.emailConsent && form.smsConsent) channelSummary = "Email and texts";
+  else if (form.emailConsent) channelSummary = "Email";
+  else if (form.smsConsent) channelSummary = "Texts";
+  if (form.marketingConsent) {
+    channelSummary = channelSummary ? `${channelSummary}, plus promotional drops` : "Promotional drops";
+  }
+  const reviewName = [form.firstName.trim(), form.lastName.trim()].filter(Boolean).join(" ");
+  const birthdayReview = birthdayReviewLabel(form.birthday);
+  const favoriteRows = [
+    ["Stones", form.favoriteStones, preferenceOptions?.stone, 1],
+    ["Metals", form.favoriteMaterials, preferenceOptions?.material, 2],
+    ["Cuts", form.favoriteCuts, preferenceOptions?.cut, 3],
+    ["Collections", form.favoriteCollections, preferenceOptions?.collection, 4],
+  ];
+
   return (
     <section className="hp-signup" id="signup">
+      <style>{SIGNUP_PREFERENCE_STYLES}</style>
       <div className="hp-container">
         <div className="hp-signup-card">
           <div className="hp-signup-card-body">
@@ -2197,86 +2622,245 @@ function Signup({ repName, businessName }) {
               </p>
             ) : null}
           </div>
+          {submitState.status === "success" ? null : (
           <form className="hp-signup-form" onSubmit={handleSubmit}>
-            <div className="hp-signup-row">
-              <div className="hp-signup-field">
-                <label className="hp-signup-label" htmlFor="hp-first-name">First name</label>
-                <input id="hp-first-name" className="hp-signup-input" type="text" placeholder="First name" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
-              </div>
-              <div className="hp-signup-field">
-                <label className="hp-signup-label" htmlFor="hp-last-name">Last name</label>
-                <input id="hp-last-name" className="hp-signup-input" type="text" placeholder="Last name" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
+            <div className="hp-signup-progress-wrap">
+              <p className="hp-signup-progress" id="hp-signup-progress">Step {step + 1} of {SIGNUP_STEP_LABELS.length}</p>
+              <div className="hp-signup-meter" role="group" aria-labelledby="hp-signup-progress">
+                {SIGNUP_STEP_LABELS.map((label, index) => (
+                  index < step ? (
+                    <button
+                      key={label}
+                      type="button"
+                      className="hp-signup-meter-step is-done"
+                      aria-label={`Edit ${label}`}
+                      disabled={submitState.status === "submitting"}
+                      onClick={() => goToStep(index)}
+                    />
+                  ) : (
+                    <span
+                      key={label}
+                      className={`hp-signup-meter-step${index === step ? " is-current" : ""}`}
+                      aria-current={index === step ? "step" : undefined}
+                    />
+                  )
+                ))}
               </div>
             </div>
-            <div className="hp-signup-row">
-              <div className="hp-signup-field">
-                <label className="hp-signup-label" htmlFor="hp-email">Email</label>
-                <input id="hp-email" className="hp-signup-input" type="email" placeholder="Email address" value={form.email} onChange={(e) => updateField("email", e.target.value)} />
+            <p className="hp-signup-live" aria-live="polite">{stepAnnouncement}</p>
+            <div className="hp-signup-step" ref={stepRef} tabIndex={-1} aria-invalid={stepError ? "true" : undefined}>
+              <div key={step} className="hp-signup-step-panel">
+              {stepError ? (
+                <p id="hp-signup-step-error" className="hp-signup-status error" role="alert" tabIndex={-1}>{stepError}</p>
+              ) : null}
+              <div className="hp-signup-intro">
+                <h3 className="hp-signup-step-title" id="hp-signup-step-title">{stepTitle}</h3>
+                <p className="hp-signup-step-why" id="hp-signup-step-why">{stepWhy[step]}</p>
               </div>
-              <div className="hp-signup-field">
-                <label className="hp-signup-label" htmlFor="hp-phone">Phone <span className="hp-signup-label-aux">(optional, for SMS)</span></label>
-                <input id="hp-phone" className="hp-signup-input" type="tel" placeholder="Mobile number" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} />
-              </div>
-            </div>
-            <div className="hp-signup-consent-box">
-              <label className="hp-signup-check">
-                <input type="checkbox" checked={form.smsConsent} onChange={(e) => updateField("smsConsent", e.target.checked)} />
-                <span>Text me show reminders and SMS updates.</span>
-              </label>
-              <label className="hp-signup-check">
-                <input type="checkbox" checked={form.emailConsent} onChange={(e) => updateField("emailConsent", e.target.checked)} />
-                <span>Email me show reminders and collection updates.</span>
-              </label>
-              <label className="hp-signup-check">
-                <input type="checkbox" checked={form.marketingConsent} onChange={(e) => updateField("marketingConsent", e.target.checked)} />
-                <span>I also want promotional drops, launches, and special offers.</span>
-              </label>
-            </div>
-            <div className="hp-signup-preferences">
-              <div className="hp-signup-preferences-heading">
-                <strong>Make it a little more personal</strong>
-                <span>Optional</span>
-              </div>
-              <p className="hp-signup-preferences-copy">Share only what you&apos;d like. These details help your rep send more thoughtful promotional and gift ideas.</p>
-              <div className="hp-signup-row">
-                <div className="hp-signup-field">
+              {step === 0 ? (
+                <div className="hp-signup-question hp-signup-identity">
+                  <div className="hp-signup-row">
+                    <div className="hp-signup-field">
+                      <label className="hp-signup-label" htmlFor="hp-first-name">First name</label>
+                      <input id="hp-first-name" className="hp-signup-input" type="text" name="firstName" autoComplete="given-name" autoCapitalize="words" enterKeyHint="next" placeholder="First name" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
+                    </div>
+                    <div className="hp-signup-field">
+                      <label className="hp-signup-label" htmlFor="hp-last-name">Last name</label>
+                      <input id="hp-last-name" className="hp-signup-input" type="text" name="lastName" autoComplete="family-name" autoCapitalize="words" enterKeyHint="next" placeholder="Last name" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
+                    </div>
+                  </div>
+                  <div className="hp-signup-field">
+                    <label className="hp-signup-label" htmlFor="hp-email">Email</label>
+                    <input id="hp-email" className="hp-signup-input" type="email" name="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} enterKeyHint="next" placeholder="Email address" value={form.email} onChange={(e) => updateField("email", e.target.value)} />
+                  </div>
+                </div>
+              ) : null}
+              {step >= 1 && step <= 4 ? (
+                <div className="hp-signup-question is-choices">
+                  {!preferenceOptions && !preferenceOptionsError ? (
+                    <p className="hp-signup-field-note" role="status">Favorites are still loading. Try again in a moment.</p>
+                  ) : null}
+                  {preferenceOptionsError ? (
+                    <p className="hp-signup-status error" role="alert">Favorites could not load. Refresh the page and try again.</p>
+                  ) : null}
+                  {step === 1 ? (
+                    <SignupPreferencePicker
+                      legend="Favorite stones"
+                      fieldName="favoriteStones"
+                      options={preferenceOptions?.stone}
+                      selected={form.favoriteStones}
+                      onChange={(value) => updateField("favoriteStones", value)}
+                    />
+                  ) : null}
+                  {step === 2 ? (
+                    <SignupPreferencePicker
+                      legend="Favorite metals & finishes"
+                      fieldName="favoriteMaterials"
+                      options={preferenceOptions?.material}
+                      selected={form.favoriteMaterials}
+                      onChange={(value) => updateField("favoriteMaterials", value)}
+                    />
+                  ) : null}
+                  {step === 3 ? (
+                    <SignupPreferencePicker
+                      legend="Favorite cuts"
+                      fieldName="favoriteCuts"
+                      options={preferenceOptions?.cut}
+                      selected={form.favoriteCuts}
+                      onChange={(value) => updateField("favoriteCuts", value)}
+                    />
+                  ) : null}
+                  {step === 4 ? (
+                    <SignupPreferencePicker
+                      legend="Favorite Bomb Party collections"
+                      fieldName="favoriteCollections"
+                      options={preferenceOptions?.collection}
+                      selected={form.favoriteCollections}
+                      onChange={(value) => updateField("favoriteCollections", value)}
+                      showOlderControl
+                    />
+                  ) : null}
+                </div>
+              ) : null}
+              {step === 5 ? (
+                <div className="hp-signup-question">
+                  <label className="hp-signup-check">
+                    <input type="checkbox" checked={form.smsConsent} onChange={(e) => updateField("smsConsent", e.target.checked)} />
+                    <span>Text me show reminders and SMS updates.</span>
+                  </label>
+                  <label className="hp-signup-check">
+                    <input type="checkbox" checked={form.emailConsent} onChange={(e) => updateField("emailConsent", e.target.checked)} />
+                    <span>Email me show reminders and collection updates.</span>
+                  </label>
+                  <label className="hp-signup-check">
+                    <input type="checkbox" checked={form.marketingConsent} onChange={(e) => updateField("marketingConsent", e.target.checked)} />
+                    <span>I also want promotional drops, launches, and special offers.</span>
+                  </label>
+                  {form.smsConsent ? (
+                    <div className="hp-signup-field">
+                      <label className="hp-signup-label" htmlFor="hp-phone">Phone</label>
+                      <input id="hp-phone" className="hp-signup-input" type="tel" name="tel" inputMode="tel" autoComplete="tel" enterKeyHint="next" placeholder="Mobile number" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} />
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+              {step === 6 ? (
+                <div className="hp-signup-question">
+                  <div className="hp-signup-field">
                   <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
-                  <input id="hp-birthday" className="hp-signup-input" type="text" inputMode="numeric" pattern="[0-1][0-9]-[0-3][0-9]" placeholder="MM-DD" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
-                  <span className="hp-signup-field-note">Only for birthday promotions and gift ideas. It will not be used for anything else.</span>
+                  <input id="hp-birthday" className="hp-signup-input" type="text" name="birthday" inputMode="text" autoComplete="off" enterKeyHint="next" placeholder="MM-DD" aria-describedby="hp-signup-step-why" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
+                  </div>
                 </div>
-                <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-favorite-collection">Favorite collection <span className="hp-signup-label-aux">(optional)</span></label>
-                  <input id="hp-favorite-collection" className="hp-signup-input" type="text" placeholder="A collection you love" value={form.favoriteCollection} onChange={(e) => updateField("favoriteCollection", e.target.value)} />
+              ) : null}
+              {step === 7 ? (
+                <div className="hp-signup-question">
+                  <div className="hp-signup-field">
+                  <label className="hp-signup-label" htmlFor="hp-ring-size">Ring size <span className="hp-signup-label-aux">(optional)</span></label>
+                  <select id="hp-ring-size" className="hp-signup-input" name="ringSize" autoComplete="off" value={form.ringSize} onChange={(e) => updateField("ringSize", e.target.value)}>
+                    <option value="">Select a size</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="not_sure">Not sure</option>
+                  </select>
+                  </div>
                 </div>
-              </div>
-              <div className="hp-signup-row">
-                <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-favorite-gem">Favorite gem or stone <span className="hp-signup-label-aux">(optional)</span></label>
-                  <input id="hp-favorite-gem" className="hp-signup-input" type="text" placeholder="For example, turquoise or opal" value={form.favoriteGemOrStone} onChange={(e) => updateField("favoriteGemOrStone", e.target.value)} />
+              ) : null}
+              {step === 8 ? (
+                <div className="hp-signup-question">
+                  <div className="hp-signup-field">
+                  <textarea id="hp-jewelry-notes" className="hp-signup-input hp-signup-notes" name="jewelryNotes" autoComplete="off" enterKeyHint="next" maxLength={500} rows={4} aria-labelledby="hp-signup-step-title" aria-describedby="hp-signup-step-why" value={form.jewelryNotes} onChange={(e) => updateField("jewelryNotes", e.target.value)} />
+                  </div>
                 </div>
-                <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-favorite-material">Favorite material <span className="hp-signup-label-aux">(optional)</span></label>
-                  <input id="hp-favorite-material" className="hp-signup-input" type="text" placeholder="For example, gold or silver" value={form.favoriteMaterial} onChange={(e) => updateField("favoriteMaterial", e.target.value)} />
+              ) : null}
+              {step === SIGNUP_LAST_STEP ? (
+                <div className="hp-signup-question is-review">
+                  <ul className="hp-signup-review">
+                    <li className="hp-signup-review-row">
+                      <div className="hp-signup-review-copy">
+                        <p className="hp-signup-review-label">Name</p>
+                        <p className="hp-signup-review-value">{reviewName}</p>
+                        {form.email.trim() ? <p className="hp-signup-review-meta">{form.email.trim()}</p> : null}
+                      </div>
+                      <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[0]}`} onClick={() => goToStep(0)} disabled={submitState.status === "submitting"}>Edit</button>
+                    </li>
+                    <li className="hp-signup-review-row">
+                      <div className="hp-signup-review-copy">
+                        <p className="hp-signup-review-label">Channels</p>
+                        <p className="hp-signup-review-value">{channelSummary}</p>
+                        {form.smsConsent && form.phone.trim() ? <p className="hp-signup-review-meta">{form.phone.trim()}</p> : null}
+                      </div>
+                      <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[5]}`} onClick={() => goToStep(5)} disabled={submitState.status === "submitting"}>Edit</button>
+                    </li>
+                    {favoriteRows.map(([label, picks, options, stepIndex]) => (
+                      <li className="hp-signup-review-row" key={label}>
+                        <div className="hp-signup-review-copy">
+                          <p className="hp-signup-review-label">{label}</p>
+                          <p className="hp-signup-review-value">{preferenceNames(picks, options)}</p>
+                        </div>
+                        <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[stepIndex]}`} onClick={() => goToStep(stepIndex)} disabled={submitState.status === "submitting"}>Edit</button>
+                      </li>
+                    ))}
+                    {birthdayReview ? (
+                      <li className="hp-signup-review-row">
+                        <div className="hp-signup-review-copy">
+                          <p className="hp-signup-review-label">Birthday</p>
+                          <p className="hp-signup-review-value">{birthdayReview}</p>
+                        </div>
+                        <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[6]}`} onClick={() => goToStep(6)} disabled={submitState.status === "submitting"}>Edit</button>
+                      </li>
+                    ) : null}
+                    {form.ringSize ? (
+                      <li className="hp-signup-review-row">
+                        <div className="hp-signup-review-copy">
+                          <p className="hp-signup-review-label">Ring size</p>
+                          <p className="hp-signup-review-value">{form.ringSize === "not_sure" ? "Not sure" : form.ringSize}</p>
+                        </div>
+                        <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[7]}`} onClick={() => goToStep(7)} disabled={submitState.status === "submitting"}>Edit</button>
+                      </li>
+                    ) : null}
+                    {form.jewelryNotes.trim() ? (
+                      <li className="hp-signup-review-row">
+                        <div className="hp-signup-review-copy">
+                          <p className="hp-signup-review-label">Notes</p>
+                          <p className="hp-signup-review-value hp-signup-review-notes">{form.jewelryNotes.trim()}</p>
+                        </div>
+                        <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[8]}`} onClick={() => goToStep(8)} disabled={submitState.status === "submitting"}>Edit</button>
+                      </li>
+                    ) : null}
+                  </ul>
                 </div>
-              </div>
-              <div className="hp-signup-row">
-                <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-favorite-cut">Favorite cut <span className="hp-signup-label-aux">(optional)</span></label>
-                  <input id="hp-favorite-cut" className="hp-signup-input" type="text" placeholder="If you have one" value={form.favoriteCut} onChange={(e) => updateField("favoriteCut", e.target.value)} />
-                </div>
+              ) : null}
               </div>
             </div>
             <div className="hp-signup-actions">
-              <button type="submit" className="hp-signup-submit" disabled={submitState.status === "submitting"}>
-                {submitState.status === "submitting" ? "Saving..." : "Sign me up"}
-                <span className="hp-signup-submit-arrow" aria-hidden="true">→</span>
-              </button>
-              <p className="hp-signup-consent slot" data-slot="consent — pending legal">
-                Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from <span className="slot" data-slot="business name">{businessName}</span>.
-                Msg & data rates may apply. Reply STOP to unsubscribe. <a {...linkProps(getUnsubscribeHref())}>Manage or unsubscribe</a>.
-              </p>
+              {step === SIGNUP_LAST_STEP ? (
+                <p className="hp-signup-privacy">
+                  We never sell your information. Your answers are only used by {businessName} to give you a better experience.
+                </p>
+              ) : null}
+              <div className="hp-signup-nav">
+                {step > 0 ? (
+                  <button type="button" className="hp-signup-back" onClick={goBack} disabled={submitState.status === "submitting"}>Back</button>
+                ) : null}
+                <button type="submit" className="hp-signup-submit" disabled={submitState.status === "submitting"}>
+                  {submitState.status === "submitting" ? "Saving..." : step === SIGNUP_LAST_STEP ? "Sign me up" : "Continue"}
+                  <span className="hp-signup-submit-arrow" aria-hidden="true">→</span>
+                </button>
+              </div>
+              {step === SIGNUP_LAST_STEP ? (
+                <p className="hp-signup-consent slot" data-slot="consent — pending legal">
+                  Choose SMS, email, or both. Marketing consent stays separate from reminders and updates from <span className="slot" data-slot="business name">{businessName}</span>.
+                  Msg & data rates may apply. Reply STOP to unsubscribe. <a {...linkProps(getUnsubscribeHref())}>Manage or unsubscribe</a>.
+                </p>
+              ) : null}
             </div>
           </form>
+          )}
         </div>
       </div>
     </section>
