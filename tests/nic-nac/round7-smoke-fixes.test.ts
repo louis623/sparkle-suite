@@ -469,6 +469,10 @@ describe('round 7 titles come from confirmed details', () => {
       },
     )
     expect(omitted.designName).toBeUndefined()
+    expect(carryKnownListingFields(
+      { mode: 'single', itemNumber: 'ER59000', designName: 'Baguette Braid Sparkle' },
+      { status: 'active', known: { itemNumber: 'RG98104', designName: 'Grok Run8 Piece' } },
+    ).designName).toBe('Baguette Braid Sparkle')
   })
 })
 

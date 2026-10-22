@@ -2398,6 +2398,10 @@ export function carryKnownListingFields(
     return trimmed ? trimmed : undefined
   }
   const explicitItem = text(input.itemNumber)
+  const knownDesignName = !explicitItem || !known.itemNumber ||
+    explicitItem.toUpperCase() === known.itemNumber.trim().toUpperCase()
+      ? text(known.designName)
+      : undefined
   const workflowNonItem = workflow?.catalogMode === 'non_item_number'
   const itemNumber = explicitItem ?? (workflowNonItem ? undefined : text(known.itemNumber))
   const collectionName = text(input.collectionName) ?? text(known.collectionName)
@@ -2422,8 +2426,8 @@ export function carryKnownListingFields(
     designName:
       pieceTitleFromConfirmedDetails({
         proposed: text(input.designName),
-        confirmed: text(known.designName),
-      }) ?? (promoteKnownDesign ? text(known.designName) : undefined),
+        confirmed: knownDesignName,
+      }) ?? (promoteKnownDesign ? knownDesignName : undefined),
   }
   if (!itemNumber) {
     return definedFields({
