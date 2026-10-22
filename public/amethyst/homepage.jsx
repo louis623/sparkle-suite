@@ -2230,6 +2230,34 @@ const SIGNUP_PREFERENCE_STYLES = `
   #signup .hp-signup-nav { align-items: center; }
   #signup .hp-signup-submit { flex: 1 1 auto; }
 }
+#signup .hp-signup-card.is-success {
+  padding: 56px 56px 48px;
+  overflow: hidden;
+}
+#signup .hp-signup-card.is-success .hp-signup-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  text-align: center;
+}
+#signup .hp-signup-card.is-success .hp-signup-title,
+#signup .hp-signup-card.is-success .hp-signup-sub,
+#signup .hp-signup-card.is-success .hp-signup-eyebrow {
+  width: 100%;
+  overflow: visible;
+}
+#signup .hp-signup-card.is-success .hp-signup-status.success {
+  align-self: center;
+  width: fit-content;
+  max-width: 100%;
+  margin: 16px auto 0;
+  text-align: center;
+  box-sizing: border-box;
+}
+@media (max-width: 600px) {
+  #signup .hp-signup-card.is-success { padding: 36px 24px 32px; }
+}
 `;
 
 const SIGNUP_STEP_LABELS = [
@@ -2353,7 +2381,17 @@ function Signup({ repName, businessName }) {
   const [stepError, setStepError] = useState("");
   const [stepAnnouncement, setStepAnnouncement] = useState(`Step 1 of ${SIGNUP_STEP_LABELS.length}. ${SIGNUP_STEP_LABELS[0]}.`);
   const stepRef = useRef(null);
+  const cardRef = useRef(null);
   const stepWasShown = useRef(false);
+  useEffect(() => {
+    if (submitState.status !== "success") return;
+    const card = cardRef.current;
+    if (!card) return;
+    card.scrollTop = 0;
+    card.scrollLeft = 0;
+    const top = card.getBoundingClientRect().top;
+    if (top < 0) card.scrollIntoView({ block: "start", inline: "nearest" });
+  }, [submitState.status]);
   useEffect(() => {
     const announcedTitle = step === SIGNUP_LAST_STEP ? `Join ${repName}` : SIGNUP_STEP_LABELS[step];
     setStepAnnouncement(`Step ${step + 1} of ${SIGNUP_STEP_LABELS.length}. ${announcedTitle}.`);
@@ -2661,7 +2699,10 @@ function Signup({ repName, businessName }) {
     <section className="hp-signup" id="signup">
       <style>{SIGNUP_PREFERENCE_STYLES}</style>
       <div className="hp-container">
-        <div className="hp-signup-card">
+        <div
+          className={`hp-signup-card${submitState.status === "success" ? " is-success" : ""}`}
+          ref={cardRef}
+        >
           <div className="hp-signup-card-body">
             <div className="hp-signup-eyebrow">Stay in the loop</div>
             <h2 className="hp-signup-title">{signupTitle}</h2>

@@ -135,7 +135,7 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20261021-signup-steps')
+    expect(homepage).toContain('homepage.jsx?v=20261022-signup-success')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -1273,6 +1273,24 @@ describe('Amethyst homepage template data wiring', () => {
     expect(jsx).toContain('role={submitState.status === "error" ? "alert" : "status"}')
     expect(jsx).toContain('Saving...')
     expect(jsx).toContain('Proud member of the {CONTENT.memberTeamName} team')
+  })
+
+  it('centers the signup success message inside the card padding', () => {
+    const jsx = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/homepage.jsx'),
+      'utf8',
+    )
+
+    expect(jsx).toContain('hp-signup-card${submitState.status === "success" ? " is-success" : ""}')
+    expect(jsx).toContain('card.scrollTop = 0')
+    expect(jsx).toContain('card.scrollLeft = 0')
+    expect(jsx).toContain('#signup .hp-signup-card.is-success {\n  padding: 56px 56px 48px;')
+    expect(jsx).toContain('#signup .hp-signup-card.is-success { padding: 36px 24px 32px; }')
+    expect(jsx).toContain('align-items: center;')
+    expect(jsx).toContain('width: fit-content;')
+    expect(jsx).toContain('margin: 16px auto 0;')
+    expect(jsx).toContain('.hp-signup-title,\n#signup .hp-signup-card.is-success .hp-signup-sub')
+    expect(jsx).toContain('overflow: visible;')
   })
 
   it('keeps signup submission state scoped to the signup form so the homepage can fresh-load', () => {
