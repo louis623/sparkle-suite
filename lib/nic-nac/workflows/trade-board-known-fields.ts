@@ -14,12 +14,23 @@ export function mergeTradeBoardKnownFields(
   current: TradeBoardIntakeKnownFields,
   next: TradeBoardIntakeKnownFields,
 ): TradeBoardIntakeKnownFields {
-  return {
+  const merged = {
     ...current,
     ...Object.fromEntries(
       Object.entries(next).filter(([, value]) => value !== undefined),
     ),
   }
+  if (merged.designName !== undefined) merged.designName = normalizeDesignName(merged.designName)
+  return merged
+}
+
+/** Persist a plain name, never Markdown presentation from the chat. */
+export function normalizeDesignName(value?: string | null): string | undefined {
+  return value
+    ?.replace(/!?\[([^\]]+)\]\([^)]*\)/g, (_match, label: string) => label)
+    .replace(/[*_~`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim() || undefined
 }
 
 export function extractKnownFieldsFromText(
@@ -43,7 +54,7 @@ export function extractKnownFieldsFromText(
     : itemNumber
       ? extractDesignNameNearItemNumber(normalizedText, itemNumber)
       : null
-  if (designName) known.designName = designName
+  if (designName) known.designName = normalizeDesignName(designName)
 
   const collection = extractCollectionFields(normalizedText)
   if (collection.collectionFamily) known.collectionFamily = collection.collectionFamily
@@ -201,7 +212,7 @@ export function knownFieldsFromCatalogResult(
     known.itemNumber = result.itemNumber.trim().toUpperCase()
   }
   if (typeof result.designName === 'string' && result.designName.trim()) {
-    known.designName = result.designName.trim()
+    known.designName = normalizeDesignName(result.designName)
   }
   if (typeof result.collectionName === 'string' && result.collectionName.trim()) {
     known.collectionName = normalizeCollectionName(result.collectionName)
@@ -317,10 +328,10 @@ export function pieceTitleFromConfirmedDetails(args: {
   proposed?: string | null
   confirmed?: string | null
 }): string | undefined {
-  const proposed = args.proposed?.trim()
-  const confirmed = args.confirmed?.trim()
+  const proposed = normalizeDesignName(args.proposed)
+  const confirmed = normalizeDesignName(args.confirmed)
   if (!proposed) return undefined
-  if (confirmed && proposed.toLowerCase() === confirmed.toLowerCase()) return confirmed
+  if (confirmed && !looksLikeRawLabelTitle(confirmed)) return confirmed
   if (
     confirmed &&
     proposed.toLowerCase().includes(confirmed.toLowerCase()) &&
@@ -443,7 +454,9 @@ function fieldsFromToolPart(
     .toUpperCase()
   if (named && named !== itemNumber) return {}
   const known: TradeBoardIntakeKnownFields = {}
-  const designName = stringField(input.designName) ?? stringField(output.designName)
+  // A proposed tool input is model text, not an established design. Only a
+  // completed catalog/listing result can supply existing design details.
+  const designName = stringField(output.designId) ? normalizeDesignName(stringField(output.designName)) : undefined
   if (designName && !looksLikeRawLabelTitle(designName)) known.designName = designName
   const collectionName = stringField(input.collectionName) ?? stringField(output.collectionName)
   if (collectionName) known.collectionName = normalizeCollectionName(collectionName)
@@ -461,8 +474,8 @@ function fieldsFromToolPart(
 }
 
 /**
- * Details the rep already gave, including a design name that lived only on an
- * earlier tool call. Stored session values win over a later guess.
+ * Recover rep-provided text and completed catalog results, never assistant
+ * prose or a proposed tool name. Stored session values win over a later guess.
  */
 export function recoverStoredPieceDetails(
   known: TradeBoardIntakeKnownFields,
@@ -471,14 +484,18 @@ export function recoverStoredPieceDetails(
   const item = known.itemNumber?.trim().toUpperCase()
   if (!item) return known
   let filled = { ...known }
+  let currentItem: string | undefined
   for (const message of messages) {
     const parts = Array.isArray(message.parts) ? message.parts : []
     for (const part of parts) {
       filled = mergeTradeBoardKnownFields(filled, fieldsFromToolPart(part, item))
     }
+    if (message.role !== 'user') continue
     const text = messageText(message.parts)
-    if (!text.toUpperCase().includes(item)) continue
-    filled = mergeTradeBoardKnownFields(filled, extractKnownFieldsFromText(text))
+    const extracted = extractKnownFieldsFromText(text)
+    currentItem = extracted.itemNumber ?? currentItem
+    if (currentItem !== item) continue
+    filled = mergeTradeBoardKnownFields(filled, extracted)
     if (!filled.designName) {
       const title = designTitleNearItem(text, item)
       if (title) filled = { ...filled, designName: title }

@@ -439,7 +439,7 @@ describe('round 7 titles come from confirmed details', () => {
         proposed: 'Smoke Test Ring',
         confirmed: 'Grok Run8 Piece',
       }),
-    ).toBe('Smoke Test Ring')
+    ).toBe('Grok Run8 Piece')
     expect(
       pieceTitleFromConfirmedDetails({
         proposed: '',

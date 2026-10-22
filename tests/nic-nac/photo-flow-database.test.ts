@@ -61,6 +61,46 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(state.crop).not.toHaveBeenCalled();expect(state.enhance).not.toHaveBeenCalled()
     expect((await db.sql.query('select canonical_photo_url from jewelry_designs where id=$1',[DESIGN])).rows[0].canonical_photo_url).toBe('https://storage.test/catalog/original.jpg')
   })
+  it.each([
+    ['Grok Run14 Piece', 'NK11312 necklace photo for NK11312—the Dance Floor needs a jewelry photo that actually shows the ring.'],
+    ['Grok Run14 Piece', 'NK11312 listing photo onto a separate ring listing—it needs its own customer-facing ring photo.'],
+    ['  **Grok Run14 Piece**  ', 'The design name is **Assistant Invented Name** for NK11312.'],
+    ['__Grok Run14 Piece__', 'NK11312 is ready for a new photo.'],
+  ])('corrected duplicate saves only the rep name %s despite assistant prose',async(name,assistantText)=>{
+    await db.sql.exec('delete from jewelry_designs; update trade_board_intake_sessions set design_name=null')
+    await stored({id:'piece-details',role:'user',parts:[{type:'text',text:'Add NK11312, July Birthday 2026, standard.'}]})
+    await stored({id:'rep-name',role:'user',parts:[{type:'text',text:'design name '+name}]})
+    await stored({id:'bad-assistant-name',role:'assistant',parts:[
+      {type:'text',text:assistantText},
+      ...(name.startsWith('__') ? [{type:'tool-add_listing',state:'output-available',toolCallId:'old-attempt',input:{itemNumber:'NK11312',designName:'Assistant Tool Guess'},output:{needsAction:'confirm_main_photo'}}] : []),
+    ] as any})
+    await oldPhoto();await turn('no','no')
+    await turn('corrected-photo',"Here's the right photo",'data:image/png;base64,bmV3LWRlc2lnbg==')
+    expect(await turn('corrected-yes','yes')).toContain('is on your Dance Floor')
+    const design=(await db.sql.query('select * from jewelry_designs')).rows[0]
+    expect(design.design_name).toBe('Grok Run14 Piece')
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
+  })
+
+  it('never creates a design from an assistant sentence when the rep supplied no name',async()=>{
+    await db.sql.exec('delete from jewelry_designs; update trade_board_intake_sessions set design_name=null')
+    await stored({id:'details-without-name',role:'user',parts:[{type:'text',text:'Add NK11312.'}]})
+    await stored({id:'assistant-description',role:'assistant',parts:[{type:'text',text:'NK11312 necklace photo for NK11312—the Dance Floor needs a jewelry photo that actually shows the ring.'}]})
+    await oldPhoto();await turn('no','no')
+    await turn('unnamed-photo',"Here's the right photo",'data:image/png;base64,bmV3LWRlc2lnbg==')
+    expect(await turn('unnamed-yes','yes')).not.toContain('is on your Dance Floor')
+    expect((await db.sql.query('select * from jewelry_designs')).rows).toHaveLength(0)
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+  })
+
+  it('normalizes an existing stored name before saving a corrected duplicate',async()=>{
+    await db.sql.exec("delete from jewelry_designs; update trade_board_intake_sessions set design_name='  **Grok Run14 Piece**  '")
+    await oldPhoto();await turn('no','no')
+    await turn('stored-name-photo',"Here's the right photo",'data:image/png;base64,bmV3LWRlc2lnbg==')
+    expect(await turn('stored-name-yes','yes')).toContain('is on your Dance Floor')
+    expect((await db.sql.query('select design_name from jewelry_designs')).rows[0].design_name).toBe('Grok Run14 Piece')
+  })
+
   it('recovers the persisted preview when the client sends only the new yes',async()=>{
     await oldPhoto();await turn('no','no');await turn('replacement',"Here's the right photo",'data:image/png;base64,bmV3LXBob3Rv')
     const response=await POST(new Request('http://local.test/api/nic-nac',{method:'POST',body:JSON.stringify({conversationId:'piece-chat',mode:'workspace',submittedMessageId:'thin-yes',messages:[{id:'thin-yes',role:'user',parts:[{type:'text',text:'yes'}]}]})}))
