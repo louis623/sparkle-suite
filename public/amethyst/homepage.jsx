@@ -2504,7 +2504,7 @@ function Signup({ repName, businessName }) {
       return "Choose SMS, email, or both before signing up.";
     }
     if (step === 5 && form.smsConsent && !form.phone.trim()) {
-      return "A phone number is required if the customer wants SMS updates.";
+      return "Add your phone number to get text updates.";
     }
     if (step === 6) return birthdayError();
     if (step === 8 && form.jewelryNotes.length > 500) return "Keep jewelry notes to 500 characters.";
@@ -2513,7 +2513,7 @@ function Signup({ repName, businessName }) {
 
   function stepForServerMessage(message) {
     if (/favorite|Not sure yet|Refresh the page and pick/i.test(message)) return favoriteStepForEmptyList();
-    if (/phone number is required/i.test(message)) return 5;
+    if (/phone number is required|add your phone number to get text updates/i.test(message)) return 5;
     if (/Choose SMS, email, or both/i.test(message)) return 5;
     if (/email address is required|First name is required|Last name is required/i.test(message)) return 0;
     if (/Birthday must/i.test(message)) return 6;

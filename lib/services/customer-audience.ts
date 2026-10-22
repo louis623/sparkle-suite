@@ -456,7 +456,7 @@ export async function createCustomerAudienceSignup(
   if (input.smsConsent && !phone) {
     throw errors.INVALID_INPUT(
       'phone required when sms_consent is true',
-      'A phone number is required if the customer wants SMS updates.',
+      'Add your phone number to get text updates.',
     )
   }
 

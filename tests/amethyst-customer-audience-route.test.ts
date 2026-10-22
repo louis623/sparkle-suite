@@ -333,7 +333,7 @@ describe('POST /api/amethyst/customer-audience', () => {
     expect(response.status).toBe(400)
     await expect(response.json()).resolves.toEqual({
       code: 'INVALID_INPUT',
-      error: 'A phone number is required if the customer wants SMS updates.',
+      error: 'Add your phone number to get text updates.',
     })
   })
 

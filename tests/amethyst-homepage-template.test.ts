@@ -1293,6 +1293,16 @@ describe('Amethyst homepage template data wiring', () => {
     expect(jsx).toContain('overflow: visible;')
   })
 
+  it('asks for a phone number in customer wording when texts are chosen', () => {
+    const jsx = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/homepage.jsx'),
+      'utf8',
+    )
+
+    expect(jsx).toContain('Add your phone number to get text updates.')
+    expect(jsx).not.toContain('if the customer wants SMS updates')
+  })
+
   it('keeps signup submission state scoped to the signup form so the homepage can fresh-load', () => {
     const jsx = readFileSync(
       resolve(process.cwd(), 'public/amethyst/homepage.jsx'),
