@@ -91,8 +91,23 @@ export function retireSupersededPreviews<T extends { role?: string; parts?: unkn
   if (target < 0) return messages
   const message = messages[target]
   if (!message || !Array.isArray(message.parts)) return messages
-  if (hasPendingSaveConfirmation(message.parts) || hasMovedOnNotice(message.parts)) {
+  const turnStart = messages.slice(0, target + 1).findLastIndex((row) => row.role === 'user') + 1
+  const pendingTurn = messages.slice(turnStart, target + 1).some((row) =>
+    row.role === 'assistant' && Array.isArray(row.parts) && hasPendingSaveConfirmation(row.parts))
+  if (pendingTurn || hasMovedOnNotice(message.parts)) {
     const copy = messages.slice()
+    // A tool preview can precede its paraphrase in a separate assistant row.
+    // Hide that pending card in the display copy as well, leaving one notice.
+    for (let index = turnStart; index < target; index += 1) {
+      const row = messages[index]
+      if (row.role !== 'assistant' || !Array.isArray(row.parts) || !hasPendingSaveConfirmation(row.parts)) continue
+      copy[index] = { ...row, parts: row.parts.map((part) => {
+        const record = part as PreviewPart
+        if (record.type === 'text') return { ...record, text: '' }
+        if (hasPendingSaveConfirmation([part])) return { ...record, output: { ...record.output, message: MOVED_ON_MESSAGE } }
+        return part
+      }) }
+    }
     // Keep tool evidence in the display copy, but replace all visible text.
     // Source messages and persisted rows remain immutable.
     let written = false

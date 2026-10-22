@@ -47,3 +47,15 @@ describe('browser-safe conversation display', () => {
     ])).toBe('preview')
   })
 })
+
+it('uses pending tool state even when the model paraphrase is a separate assistant message',()=>{
+  const stored=[
+    {id:'upload',role:'user',parts:[{type:'text',text:'Here are both photos.'}]},
+    {id:'preview',role:'assistant',parts:[{type:'tool-add_listing',output:{needsAction:'confirm_main_photo',previewPhotoId:'phone-photo'}}]},
+    {id:'paraphrase',role:'assistant',parts:[{type:'text',text:"I've got RG16117 ready with the silver finish, Smoke Test collection, size 10, and standard classification. Is this the correct main photo to save for it?"}]},
+  ]
+  const original=structuredClone(stored)
+  const result=retireSupersededPreviews(stored)
+  expect(result.at(-1)?.parts).toEqual([{type:'text',text:MOVED_ON_MESSAGE}])
+  expect(stored).toEqual(original)
+})

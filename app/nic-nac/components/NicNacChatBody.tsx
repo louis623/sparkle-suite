@@ -11,7 +11,7 @@ import { sendNicNacParts } from '@/lib/nic-nac/client-send'
 import { sortMessagesByCreatedAt } from '@/lib/nic-nac/message-order'
 import { mainPhotoPreviewSrc } from '@/lib/nic-nac/workflows/main-photo-preview'
 import { MOVED_ON_MESSAGE } from '@/lib/nic-nac/piece-task'
-import { asksToConfirmSave, hasPendingSaveConfirmation, hasMovedOnNotice, lastVisibleAssistantId, retireLastConfirmationLine } from '@/lib/nic-nac/conversation-display'
+import { asksToConfirmSave, hasPendingSaveConfirmation, hasMovedOnNotice, retireSupersededPreviews, lastVisibleAssistantId, retireLastConfirmationLine } from '@/lib/nic-nac/conversation-display'
 import { Bubble } from './Bubble'
 import { ChatHistory } from './ChatHistory'
 import { EmptyGreeting, type NicNacChatMode } from './EmptyGreeting'
@@ -828,7 +828,7 @@ export function NicNacChatBody({
     <>
       <ChatHistory isStreaming={isStreaming}>
         {!hasMessages ? <EmptyGreeting mode={chatMode} /> : null}
-        {sortMessagesByCreatedAt(messages).map((m, idx, ordered) => {
+        {(readOnly ? retireSupersededPreviews(sortMessagesByCreatedAt(messages)) : sortMessagesByCreatedAt(messages)).map((m, idx, ordered) => {
           const lastAssistantId = lastVisibleAssistantId(ordered)
           const ts = readCreatedAt(
             m,
