@@ -133,6 +133,7 @@ describe('round 5 skip after a save', () => {
       ],
       latestUserText: 'Skip',
       latestUserHasImage: false,
+      listingExists: true,
     })
     expect(reply).toBe(
       "RG96104 is already on your Dance Floor. If you want it removed, say remove it and I'll ask you to confirm.",

@@ -219,10 +219,23 @@ export function buildAssistantMessageRenderables(
   const duplicateWarning =
     latestPreview?.type === 'main-photo-preview' &&
     /already on/i.test(latestPreview.text)
-  return renderables.filter((item, index) => {
-    if (item.type === 'main-photo-preview') return index === lastPreview
-    if (duplicateWarning && item.type === 'text') return false
-    return true
+  return renderables.flatMap((item, index): AssistantMessageRenderable[] => {
+    if (item.type === 'main-photo-preview') {
+      return index === lastPreview ? [item] : []
+    }
+    if (duplicateWarning && item.type === 'text') return []
+    if (item.type !== 'text') return [item]
+    const text = item.text
+      .split(/(?<=[.!?])\s+/)
+      .filter(
+        (sentence) =>
+          !/main photo I(?:['’]ll| will) save/i.test(sentence) &&
+          !/\breply yes\b/i.test(sentence),
+      )
+      .join(' ')
+      .trim()
+    if (!text) return []
+    return [{ ...item, text }]
   })
 }
 
@@ -240,6 +253,7 @@ export function NicNacChatBody({
   requiredSetupPreviewHref = '/amethyst/Homepage.html',
   transport,
   initialMessages,
+  readOnly = false,
   onChatStateChange,
   onRolloverRecommended,
   launchPrompt,
@@ -253,6 +267,7 @@ export function NicNacChatBody({
   requiredSetupPreviewHref?: string
   transport: DefaultChatTransport<UIMessage>
   initialMessages: UIMessage[]
+  readOnly?: boolean
   onChatStateChange: (s: { isStreaming: boolean; hasPendingApproval: boolean }) => void
   onRolloverRecommended: (conversationId: string) => Promise<boolean>
   resetSignal: string
@@ -665,7 +680,7 @@ export function NicNacChatBody({
   const showPreviewPanel =
     chatMode === 'required_setup' &&
     requiredSetupStep === 'final_preview_approval'
-  const inputAriaDisabled = hasPendingApproval
+  const inputAriaDisabled = hasPendingApproval || readOnly
   const latestUserId = findLatestUserMessageId(messages)
   const latestPendingUserId =
     pendingOptimisticCreated &&
@@ -925,11 +940,13 @@ export function NicNacChatBody({
         onRemoveAttachment={handleRemoveAttachment}
         attachmentNotice={attachmentNotice}
         placeholder={
-          hasPendingApproval
-            ? 'Approve or cancel above…'
-            : chatMode === 'required_setup'
-              ? 'Reply to Nic-Nac…'
-              : 'Ask Nic-Nac…'
+          readOnly
+            ? MOVED_ON_MESSAGE
+            : hasPendingApproval
+              ? 'Approve or cancel above…'
+              : chatMode === 'required_setup'
+                ? 'Reply to Nic-Nac…'
+                : 'Ask Nic-Nac…'
         }
       />
     </>

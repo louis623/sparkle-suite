@@ -8,6 +8,7 @@ export interface ImageQualitySignals {
   detailConfidence: number
   backgroundUniformity: number
   backgroundCleanliness: number
+  subjectEdgeContact: number
 }
 
 export interface ImageQualityInput {
@@ -55,6 +56,7 @@ export function measureImageQualitySignals(
       detailConfidence: 0,
       backgroundUniformity: 0,
       backgroundCleanliness: 0,
+      subjectEdgeContact: 0,
     }
   }
 
@@ -128,6 +130,9 @@ export function measureImageQualitySignals(
     detailConfidence: round3(detailConfidence),
     backgroundUniformity: round3(backgroundUniformity),
     backgroundCleanliness: round3(backgroundCleanliness),
+    subjectEdgeContact: round3(
+      subjectMask.count > 0 ? subjectMask.borderCount / subjectMask.count : 0,
+    ),
   }
 }
 

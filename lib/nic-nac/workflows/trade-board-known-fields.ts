@@ -275,6 +275,41 @@ function collectionFamilyFromName(name: string): string | undefined {
 }
 
 /** Birthday, OG, Luxe, Original, Sterling, and Stacks are named by the collection. */
+const RAW_LABEL_TITLE =
+  /smoke only|\bonly\s*-|item\s*#|style\s*#|not for sale|for smoke/i
+
+/** Small print on a label is not a design name. */
+export function looksLikeRawLabelTitle(value?: string | null): boolean {
+  const text = value?.trim() ?? ''
+  if (!text) return false
+  return RAW_LABEL_TITLE.test(text)
+}
+
+/**
+ * A title comes from the design the rep confirmed. Raw label text is dropped.
+ * An empty proposal stays empty so a later save does not invent a name.
+ */
+export function pieceTitleFromConfirmedDetails(args: {
+  proposed?: string | null
+  confirmed?: string | null
+}): string | undefined {
+  const proposed = args.proposed?.trim()
+  const confirmed = args.confirmed?.trim()
+  if (!proposed) return undefined
+  if (confirmed && proposed.toLowerCase() === confirmed.toLowerCase()) return confirmed
+  if (
+    confirmed &&
+    proposed.toLowerCase().includes(confirmed.toLowerCase()) &&
+    looksLikeRawLabelTitle(proposed)
+  ) {
+    return confirmed
+  }
+  if (looksLikeRawLabelTitle(proposed)) {
+    return confirmed && !looksLikeRawLabelTitle(confirmed) ? confirmed : undefined
+  }
+  return proposed
+}
+
 export function impliedCollectionType(name?: string | null): string | undefined {
   const text = name?.trim()
   if (!text) return undefined

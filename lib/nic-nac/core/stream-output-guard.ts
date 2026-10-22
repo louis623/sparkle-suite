@@ -581,7 +581,7 @@ export function scrubInternalCatalogPhrases(text: string): string {
 }
 
 const SHARED_CATALOG_PHOTO_OFFER =
-  /replacement catalog photo|design list image|for all reps|shared catalog (?:photo|image)|catalog photo for every rep/i
+  /replacement catalog photo|design list (?:image|photo)|for all reps|shared catalog (?:photo|image)|catalog photo for every rep|replace the design list/i
 
 /** A rep chat may change the shared design-list photo only when this turn asks for that. */
 export function repAskedToUpdateSharedCatalogImage(text: string): boolean {

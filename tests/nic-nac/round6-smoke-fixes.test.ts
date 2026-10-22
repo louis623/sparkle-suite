@@ -187,8 +187,9 @@ describe('round 6 a replacement photo keeps stored details', () => {
     expect(reply).toBe(acceptedReplacementPhotoReply(known))
     expect(reply).toContain('Smoke Test collection')
     expect(reply).toContain('standard')
-    expect(reply).toContain('I have this photo for RG97103.')
-    expect(reply).not.toMatch(/design name|diamond|unicorn|for all reps|catalog photo/i)
+    expect(reply).toContain('This is the main photo I will save for RG97103.')
+    expect(reply).toContain('reply yes')
+    expect(reply).not.toMatch(/design name|diamond or unicorn|for all reps|catalog photo|what's its/i)
   })
 })
 

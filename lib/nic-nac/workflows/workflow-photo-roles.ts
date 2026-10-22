@@ -20,6 +20,39 @@ export function photoTurnedDownForThisPiece(photo: {
   return Boolean(photo?.notes?.includes(TURNED_DOWN_MAIN_PHOTO_NOTE))
 }
 
+export const REFUSED_MAIN_PHOTO_NOTE = 'refused as main photo'
+
+export const SUBJECT_CUT_OFF_ISSUE = 'subject_cut_off'
+
+export const CUT_OFF_PHOTO_MESSAGE =
+  'Part of the piece is cut off; step back so the whole piece is in the photo.'
+
+export function photoRefusedAsMainPhoto(photo: {
+  notes?: string[]
+} | null | undefined): boolean {
+  return Boolean(photo?.notes?.includes(REFUSED_MAIN_PHOTO_NOTE))
+}
+
+export function stampRefusedMainPhoto<T extends { notes?: string[]; quality?: string }>(
+  photo: T,
+): T {
+  const notes = [...(photo.notes ?? [])]
+  if (!notes.includes(REFUSED_MAIN_PHOTO_NOTE)) notes.push(REFUSED_MAIN_PHOTO_NOTE)
+  return { ...photo, notes, quality: 'blocked' }
+}
+
+/** The previous reply already refused the photo, whatever words the model chose. */
+/** A second jewelry type mentioned beside the real one is not a conflict. */
+export function speculativeSecondItemClaim(text: string): boolean {
+  return /also shows|as well as (?:a |an )?(?:ring|earrings|necklace|bracelet)/i.test(text)
+}
+
+export function previousAssistantRefusedPhoto(text: string): boolean {
+  return /too blurry|isn'?t clear enough|not clear enough|won'?t use (?:it|that|this) as the main|send a clearer|send one clear/i.test(
+    text,
+  )
+}
+
 export function isBarredFromCustomerFacingMedia(photo: {
   declaredRole?: string
   visualRole?: string
@@ -27,6 +60,7 @@ export function isBarredFromCustomerFacingMedia(photo: {
   notes?: string[]
 } | null | undefined): boolean {
   if (!photo) return true
+  if (photoRefusedAsMainPhoto(photo)) return true
   if (photoTurnedDownForThisPiece(photo)) return true
   if (photo.declaredRole === 'label_details' || photo.declaredRole === 'other') {
     return true
@@ -74,6 +108,7 @@ export function workflowPhotoSatisfiesJewelryFront(photo: {
   notes?: string[]
 } | null | undefined): boolean {
   if (!photo) return false
+  if (photoRefusedAsMainPhoto(photo)) return false
   if (photoTurnedDownForThisPiece(photo)) return false
   if (photo.quality === 'blocked') return false
   if (photo.declaredRole === 'label_details' || photo.declaredRole === 'other') {
@@ -406,7 +441,9 @@ function subjectJewelryType(photo: {
       return printed[1].toUpperCase()
     }
   }
-  const blob = [...notes, ...(photo.qualityIssues ?? [])].join(' ')
+  const blob = [...notes, ...(photo.qualityIssues ?? [])]
+    .filter((note) => !speculativeSecondItemClaim(note))
+    .join(' ')
   const hits = [
     /\bring\b/i.test(blob) ? 'RG' : '',
     /\bearrings?\b/i.test(blob) ? 'ER' : '',
@@ -442,13 +479,107 @@ export function mainPhotoPreviewRefusal(args: {
     return `That photo shows ${shown}, so I won't use it as the main photo for ${wanted}. Send a photo of the ${send}.`
   }
   const blurry = (photo.qualityIssues ?? []).includes('blur_risk')
+  const cutOff = (photo.qualityIssues ?? []).includes(SUBJECT_CUT_OFF_ISSUE)
   const failedQuality =
     photo.quality === 'blocked' ||
     photo.quality === 'warning' ||
     (typeof photo.qualityScore === 'number' && photo.qualityScore < 70)
+  if (cutOff && !blurry && failedQuality) return CUT_OFF_PHOTO_MESSAGE
   if (blurry) return 'That photo is too blurry. Send a clearer photo of the jewelry.'
   if (failedQuality) {
     return "That photo isn't clear enough. Send a clearer photo of the jewelry."
   }
   return null
+}
+
+function isLabelSidePhoto(photo: {
+  declaredRole?: string
+  visualRole?: string
+}): boolean {
+  return (
+    photo.declaredRole === 'label_details' ||
+    photo.visualRole === 'label_or_packaging'
+  )
+}
+
+/**
+ * The upload that passed the gate on this turn is the only photo preview
+ * and save may use. A refused upload stays ineligible.
+ */
+export function bindMainPhotoForTurn<
+  T extends {
+    id?: string
+    declaredRole?: string
+    visualRole?: string
+    quality?: string
+    qualityScore?: number | null
+    qualityIssues?: string[]
+    notes?: string[]
+  },
+>(args: {
+  photos: T[]
+  newPhotoStart: number
+  itemNumber?: string | null
+  jewelryType?: string | null
+  metadata: Record<string, unknown>
+  previousAssistantText?: string
+}): { photos: T[]; metadata: Record<string, unknown> } {
+  const photos = args.photos.map((photo) => ({
+    ...photo,
+    notes: [...(photo.notes ?? [])],
+  }))
+  const metadata = { ...args.metadata }
+  if (previousAssistantRefusedPhoto(args.previousAssistantText ?? '')) {
+    for (let index = 0; index < args.newPhotoStart; index += 1) {
+      const photo = photos[index]
+      if (!photo || isLabelSidePhoto(photo)) continue
+      photos[index] = stampRefusedMainPhoto(photo)
+    }
+  }
+  let passedId = ''
+  let sawNewJewelry = false
+  for (let index = args.newPhotoStart; index < photos.length; index += 1) {
+    const photo = photos[index]
+    if (!photo || isLabelSidePhoto(photo)) continue
+    sawNewJewelry = true
+    const refusal = mainPhotoPreviewRefusal({
+      photo,
+      itemNumber: args.itemNumber,
+      jewelryType: args.jewelryType,
+    })
+    if (refusal) {
+      photos[index] = stampRefusedMainPhoto(photo)
+      continue
+    }
+    if (photo.id) passedId = photo.id
+  }
+  if (sawNewJewelry) {
+    if (passedId) metadata.boundMainPhotoId = passedId
+    else delete metadata.boundMainPhotoId
+  }
+  const boundId =
+    typeof metadata.boundMainPhotoId === 'string' ? metadata.boundMainPhotoId : ''
+  if (
+    boundId &&
+    photos.some((photo) => photo.id === boundId && photoRefusedAsMainPhoto(photo))
+  ) {
+    delete metadata.boundMainPhotoId
+  }
+  return { photos, metadata }
+}
+
+export function selectBoundMainPhoto<
+  T extends { id?: string; notes?: string[]; imageUrl?: string; quality?: string },
+>(
+  photos: T[] | null | undefined,
+  metadata?: Record<string, unknown> | null,
+): T | null {
+  const boundId =
+    typeof metadata?.boundMainPhotoId === 'string' ? metadata.boundMainPhotoId.trim() : ''
+  if (!boundId) return null
+  const photo = (photos ?? []).find((item) => item.id === boundId)
+  if (!photo || photoRefusedAsMainPhoto(photo) || photo.quality === 'blocked' || !photo.imageUrl) {
+    return null
+  }
+  return photo
 }

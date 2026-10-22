@@ -16,9 +16,6 @@ import {
 const LOST_PHOTO_YES =
   /want to finish\b|send the photo for\b|not brought into this chat|that earlier photo was not brought|I started a fresh chat/i
 
-const SAVED_ON_DANCE_FLOOR =
-  /on your Dance Floor|Added to your Dance Floor|is now on your Dance Floor/i
-
 const REFUSED_PHOTO =
   /already on\b|belongs with that set|main photo I will save|won'?t use (?:it|that|this)|cannot reuse|can'?t use (?:it|that|this)/i
 
@@ -92,15 +89,14 @@ export function keptDetailsReply(known?: KeptPieceDetails | null): string {
   return `I'll keep ${details.join(', ')}. Send a different photo of this piece.`
 }
 
-/** The rep replaced a refused photo. Stored details stay; nothing is asked again. */
+/** The rep replaced a refused photo. Stored details stay, then the new photo is previewed. */
 export function acceptedReplacementPhotoReply(known?: KeptPieceDetails | null): string {
   const details = keptDetailList(known)
-  const item = known?.itemNumber?.trim()
+  const item = known?.itemNumber?.trim() || 'this piece'
   const kept = details.length
     ? `I'll keep ${details.join(', ')}.`
     : `I'll keep the details you already gave.`
-  const photo = item ? `I have this photo for ${item}.` : 'I have this photo for this piece.'
-  return `${kept} ${photo}`
+  return `${kept} This is the main photo I will save for ${item}. If this is the right piece, reply yes.`
 }
 
 export function labelMismatchSentence(labelItemNumber: string, itemNumber: string): string {
@@ -153,7 +149,7 @@ export function directPieceReply(args: {
     decidePieceClose(text) === 'skipped' ||
     decidePieceClose(text) === 'cancelled' ||
     SKIP_AFTER_SAVE.test(text)
-  if (skipping && (args.listingExists || SAVED_ON_DANCE_FLOOR.test(previous))) {
+  if (skipping && args.listingExists) {
     return alreadySavedReply(
       statedItemNumber(text) ?? statedItemNumber(previous) ?? args.known?.itemNumber,
     )
@@ -175,8 +171,9 @@ export function directPieceReply(args: {
 
   if (
     args.latestUserHasImage &&
-    sendingReplacementPhoto(text) &&
-    DUPLICATE_REFUSAL.test(previous)
+    (sendingReplacementPhoto(text) ||
+      (DUPLICATE_REFUSAL.test(previous) && /\b(?:no|nope)\b/i.test(text)) ||
+      LOST_PHOTO_YES.test(previous))
   ) {
     return acceptedReplacementPhotoReply(args.known)
   }

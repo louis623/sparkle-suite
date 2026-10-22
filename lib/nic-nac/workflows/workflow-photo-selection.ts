@@ -4,6 +4,7 @@ import {
 } from '@/lib/services/jewelry-database'
 import {
   isAcceptedCustomerFacingWorkflowPhoto,
+  photoRefusedAsMainPhoto,
   stampSoleReadinessJewelryFrontCandidate,
 } from './workflow-photo-roles'
 
@@ -20,6 +21,7 @@ export interface WorkflowJewelryPhoto {
   visualRole: string
   quality: string
   imageUrl?: string
+  notes?: string[]
 }
 
 export interface WorkflowPhotoSelection {
@@ -80,6 +82,12 @@ export function resolveWorkflowCustomerFacingPhoto(
   photos: WorkflowJewelryPhoto[] | null | undefined,
   selection: WorkflowPhotoSelection = {},
 ): WorkflowJewelryPhoto | null {
+  if (selection.selectedPhotoId) {
+    const refused = scopeWorkflowPhotosToIntake(photos, selection.intakeSessionId).find(
+      (photo) => photo.id === selection.selectedPhotoId && photoRefusedAsMainPhoto(photo),
+    )
+    if (refused) return null
+  }
   const selected = selectWorkflowJewelryPhoto(photos, selection)
   if (selected) return selected
   // Stay on this intake. A bad id or an in-range number that is not the

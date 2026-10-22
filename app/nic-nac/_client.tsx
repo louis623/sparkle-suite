@@ -59,6 +59,7 @@ type ConversationHydrateResponse = {
   conversationId?: string
   messages?: UIMessage[]
   runHealth?: NicNacConversationRunHealth
+  readOnly?: boolean
 }
 
 type ConversationRolloverResponse = {
@@ -273,10 +274,12 @@ export default function NicNacClient({
     conversationId: string | null
     messages: UIMessage[] | null
     error: string | null
+    readOnly: boolean
   }>({
     conversationId: null,
     messages: null,
     error: null,
+    readOnly: false,
   })
   // Distinct from initLoadError: this fires when /latest itself fails (5xx /
   // network). We deliberately do NOT fall through to a fresh UUID here —
@@ -515,13 +518,14 @@ export default function NicNacClient({
   }, [chatState])
 
   const activateConversation = useCallback(
-    (next: string, messages?: UIMessage[]) => {
+    (next: string, messages?: UIMessage[], readOnly = false) => {
       setConversationId(next)
       if (messages) {
         setHistoryState({
           conversationId: next,
           messages,
           error: null,
+          readOnly,
         })
       }
       if (!isOperatorSupport && typeof window !== 'undefined') {
@@ -540,12 +544,12 @@ export default function NicNacClient({
         credentials: 'include',
       })
       if (!res.ok) return
-      const body = (await readJsonResponse<{ messages?: UIMessage[] }>(
+      const body = (await readJsonResponse<{ messages?: UIMessage[]; readOnly?: boolean }>(
         res,
         'recent conversation',
-      ).catch(() => null)) as { messages?: UIMessage[] } | null
+      ).catch(() => null)) as { messages?: UIMessage[]; readOnly?: boolean } | null
       if (!body?.messages) return
-      activateConversation(nextConversationId, body.messages)
+      activateConversation(nextConversationId, body.messages, body.readOnly === true)
     },
     [activateConversation],
   )
@@ -606,6 +610,7 @@ export default function NicNacClient({
           conversationId: operatorSupportSessionId,
           messages: null,
           error: null,
+          readOnly: false,
         })
         return
       }
@@ -619,6 +624,7 @@ export default function NicNacClient({
           conversationId: id,
           messages: [],
           error: null,
+          readOnly: false,
         })
         if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, id)
         return
@@ -707,6 +713,7 @@ export default function NicNacClient({
         conversationId,
         messages: [],
         error: null,
+        readOnly: false,
       })
       return
     }
@@ -723,6 +730,7 @@ export default function NicNacClient({
             conversationId,
             messages: null,
             error: 'Not signed in - visit /login and come back.',
+            readOnly: false,
           })
           return
         }
@@ -731,6 +739,7 @@ export default function NicNacClient({
             conversationId,
             messages: null,
             error: 'This conversation belongs to another rep.',
+            readOnly: false,
           })
           return
         }
@@ -739,6 +748,7 @@ export default function NicNacClient({
             conversationId,
             messages: null,
             error: `Couldn't load conversation history (${res.status}).`,
+            readOnly: false,
           })
           return
         }
@@ -747,7 +757,9 @@ export default function NicNacClient({
           'conversation history',
         )
         if (cancelled) return
+        const readOnly = body.readOnly === true
         if (
+          !readOnly &&
           !isOperatorSupport &&
           shouldStartNicNacRollover(body.runHealth) &&
           (await rolloverConversation(conversationId))
@@ -758,6 +770,7 @@ export default function NicNacClient({
           conversationId,
           messages: (body.messages ?? []) as UIMessage[],
           error: null,
+          readOnly,
         })
       } catch (err) {
         if (cancelled) return
@@ -765,6 +778,7 @@ export default function NicNacClient({
           conversationId,
           messages: null,
           error: `Failed to load conversation: ${(err as Error).message}`,
+          readOnly: false,
         })
       }
     })()
@@ -810,10 +824,10 @@ export default function NicNacClient({
     })
   }, [conversationId, isRequiredSetupMode])
 
-  const initialMessages =
+  const historyReady =
     conversationId && historyState.conversationId === conversationId
-      ? historyState.messages
-      : null
+  const initialMessages = historyReady ? historyState.messages : null
+  const historyReadOnly = historyReady ? historyState.readOnly : false
   const initLoadError =
     conversationId && historyState.conversationId === conversationId
       ? historyState.error
@@ -945,6 +959,7 @@ export default function NicNacClient({
       requiredSetupPreviewHref={requiredSetupPreviewHref}
       transport={transport!}
       initialMessages={initialMessages!}
+      readOnly={historyReadOnly}
       onChatStateChange={setChatState}
       onRolloverRecommended={rolloverConversation}
       resetSignal={conversationId!}

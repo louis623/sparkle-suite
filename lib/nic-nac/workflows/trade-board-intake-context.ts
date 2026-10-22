@@ -56,9 +56,11 @@ import {
 import { isExplicitTradeBoardAddRequest } from './trade-board-add-intent'
 import {
   assignDeclaredPhotoRolesForTurn,
+  bindMainPhotoForTurn,
   inferRoleFromText,
   REP_CONFIRMED_MAIN_PHOTO_NOTE,
   stampSoleReadinessJewelryFrontCandidate,
+  SUBJECT_CUT_OFF_ISSUE,
   TURNED_DOWN_MAIN_PHOTO_NOTE,
 } from './workflow-photo-roles'
 
@@ -447,7 +449,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
     previousAssistantText,
     hasItemNumber: Boolean(known.itemNumber),
   })
-  const photos = [...args.session.photos]
+  let photos = [...args.session.photos]
   const photosBeforeThisTurn = photos.length
   const fileParts = (latestUser.parts ?? []).filter(
     (part) =>
@@ -575,6 +577,40 @@ export async function ingestLatestTradeBoardIntakeTurn(
     } catch {
       // A failed label read does not reject the jewelry photo.
     }
+  }
+
+  const gated = bindMainPhotoForTurn({
+    photos,
+    newPhotoStart: photosBeforeThisTurn,
+    itemNumber: known.itemNumber,
+    jewelryType: known.jewelryType,
+    metadata,
+    previousAssistantText,
+  })
+  const gatedNotes = photos.map((photo) => `${photo.quality}|${photo.notes.join('|')}`)
+  photos = gated.photos
+  metadata = gated.metadata
+  for (let index = 0; index < photos.length; index += 1) {
+    const photo = photos[index]
+    if (!photo) continue
+    if (gatedNotes[index] === `${photo.quality}|${photo.notes.join('|')}`) continue
+    await upsertTradeBoardIntakePhoto(supabase, {
+      sessionId: args.session.id,
+      repId: args.session.repId,
+      conversationId: args.session.conversationId,
+      conversationMessageId: photo.conversationMessageId,
+      attachmentIndex: photo.attachmentIndex,
+      declaredRole: photo.declaredRole,
+      visualRole: photo.visualRole,
+      roleConfirmed: photo.roleConfirmed,
+      imageUrl: photo.imageUrl,
+      quality: photo.quality,
+      qualityScore: photo.qualityScore,
+      qualityIssues: photo.qualityIssues,
+      notes: photo.notes,
+      contentSha256: photo.contentSha256,
+      visualRoleSource: photo.visualRoleSource,
+    })
   }
 
   if (fileParts.length === 0) {
@@ -1292,6 +1328,10 @@ async function inspectWorkflowPhoto(
       qualityIssues: [
         ...semantic.reasons,
         ...preflight.issues.map((issue) => issue.code),
+        ...(typeof analysis.subjectEdgeContact === 'number' &&
+        analysis.subjectEdgeContact >= 0.08
+          ? [SUBJECT_CUT_OFF_ISSUE]
+          : []),
       ],
       contentSha256: createHash('sha256').update(bytes).digest('hex'),
       visualRoleSource: 'server_image_analysis_v1',

@@ -17,6 +17,7 @@ export interface ServerImageQualityAnalysis {
   detailConfidence: number
   backgroundUniformity: number
   backgroundCleanliness: number
+  subjectEdgeContact?: number
 }
 
 const MIME_BY_FORMAT: Record<string, string> = {

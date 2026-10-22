@@ -54,7 +54,10 @@ import {
   resolvePhotoContentSha256,
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
-import { impliedCollectionType } from '@/lib/nic-nac/workflows/trade-board-known-fields'
+import {
+  impliedCollectionType,
+  pieceTitleFromConfirmedDetails,
+} from '@/lib/nic-nac/workflows/trade-board-known-fields'
 import {
   decideLabelItemNumber,
   decideLabelSave,
@@ -92,6 +95,8 @@ import {
 import {
   isAcceptedCustomerFacingWorkflowPhoto,
   mainPhotoPreviewRefusal,
+  photoRefusedAsMainPhoto,
+  selectBoundMainPhoto,
   stampSoleReadinessJewelryFrontCandidate,
 } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import type { ToolContext, ToolDefinition } from './types'
@@ -679,23 +684,7 @@ export async function repHasListingForItemNumber(input: {
     const ids = designRows
       .map((row) => (typeof row.id === 'string' ? row.id : ''))
       .filter(Boolean)
-    if (ids.length === 0) {
-      const sessions = await input.admin
-        .from('trade_board_intake_sessions')
-        .select('created_listing_ids')
-        .eq('rep_id', input.repId)
-        .eq('item_number', itemNumber)
-        .eq('status', 'completed')
-        .limit(5)
-      const sessionRows = Array.isArray((sessions as { data?: unknown }).data)
-        ? ((sessions as { data: Array<{ created_listing_ids?: string[] | null }> }).data ??
-          [])
-        : []
-      return sessionRows.some(
-        (row) =>
-          Array.isArray(row.created_listing_ids) && row.created_listing_ids.length > 0,
-      )
-    }
+    if (ids.length === 0) return false
     const listings = await input.admin
       .from('trade_listings')
       .select('id')
@@ -1315,11 +1304,23 @@ export function pendingMainPhotoConfirmation(args: {
   if (workflow?.status !== 'active') return null
   if (workflow.metadata?.mainPhotoConfirmationRequired !== true) return null
   const publishable = workflowWithPublishableJewelryFront(workflow)
-  const photo = resolveWorkflowCustomerFacingPhoto(publishable?.photos, {
-    selectedPhotoId: args.selectedPhotoId,
-    modelIndex: args.photoIndex,
-    intakeSessionId: publishable?.id,
-  })
+  const bound = selectBoundMainPhoto(publishable?.photos, publishable?.metadata)
+  if (args.selectedPhotoId && !bound) {
+    const selected = publishable?.photos.find((photo) => photo.id === args.selectedPhotoId)
+    if (selected && photoRefusedAsMainPhoto(selected)) {
+      throw new NicNacToolError({
+        code: 'MAIN_PHOTO_NOT_USABLE',
+        userMessage: 'That photo was refused. Send a new photo of the jewelry.',
+      })
+    }
+  }
+  const photo =
+    bound ??
+    resolveWorkflowCustomerFacingPhoto(publishable?.photos, {
+      selectedPhotoId: bound ? undefined : args.selectedPhotoId,
+      modelIndex: bound ? undefined : args.photoIndex,
+      intakeSessionId: publishable?.id,
+    })
   if (!photo?.imageUrl?.trim()) return null
   const photoKey = mainPhotoConfirmationIdentity(photo)
   const confirmedId = workflow.metadata?.mainPhotoConfirmedPhotoId
@@ -1542,6 +1543,25 @@ export async function processListingPhotoForAdd(input: {
   const activeTradeBoardWorkflow = workflowWithPublishableJewelryFront(
     input.activeTradeBoardWorkflow,
   )
+  const boundPhoto =
+    activeTradeBoardWorkflow?.status === 'active'
+      ? selectBoundMainPhoto(activeTradeBoardWorkflow.photos, activeTradeBoardWorkflow.metadata)
+      : null
+  if (
+    input.selectedPhotoId &&
+    activeTradeBoardWorkflow?.status === 'active' &&
+    !boundPhoto
+  ) {
+    const selected = activeTradeBoardWorkflow.photos.find(
+      (photo) => photo.id === input.selectedPhotoId,
+    )
+    if (selected && photoRefusedAsMainPhoto(selected)) {
+      throw new NicNacToolError({
+        code: 'MAIN_PHOTO_NOT_USABLE',
+        userMessage: 'That photo was refused. Send a new photo of the jewelry.',
+      })
+    }
+  }
   const itemNumber = input.itemNumber ?? 'listing'
   const photoIndex = input.photoIndex ?? input.listingPhotoIndex
   const numberedPiecePhotoUrl = requirePiecePhotoNumberUrl(
@@ -1558,6 +1578,33 @@ export async function processListingPhotoForAdd(input: {
     filenameStem: `${itemNumber}-listing-photo`,
     mutationAssetKey: input.mutationAssetKey,
     ...(variantAssetKey ? { variantAssetKey } : {}),
+  }
+  if (boundPhoto?.imageUrl) {
+    await assertCustomerPhotoNotReused({
+      repId: input.repId,
+      itemNumber: input.itemNumber,
+      sourceImageUrl: boundPhoto.imageUrl,
+      contentSha256: boundPhoto.contentSha256,
+      workflowPhotos: activeTradeBoardWorkflow?.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(activeTradeBoardWorkflow),
+      setReuseConfirmedSha: confirmedPhotoSetSha(
+        activeTradeBoardWorkflow,
+        input.itemNumber,
+      ),
+    })
+    try {
+      return (
+        await processRepListingPhotoUrl(
+          {
+            ...listingPhotoProcessInput,
+            sourceImageUrl: boundPhoto.imageUrl,
+          },
+          { confirmedJewelryFront: true },
+        )
+      ).photoUrl
+    } catch (err) {
+      explainServiceError(err)
+    }
   }
   if (numberedPiecePhotoUrl) {
     await assertCustomerPhotoNotReused({
@@ -1675,6 +1722,16 @@ export async function processListingPhotoForAdd(input: {
     intakePhotos: activeTradeBoardWorkflow?.photos,
   })
   if (!resolvedListingPhoto) return undefined
+  if (
+    activeTradeBoardWorkflow?.status === 'active' &&
+    activeTradeBoardWorkflow.photos.some(
+      (photo) =>
+        photo.imageUrl === resolvedListingPhoto.imageDataUrl &&
+        photoRefusedAsMainPhoto(photo),
+    )
+  ) {
+    return undefined
+  }
 
   await assertCustomerPhotoNotReused({
     repId: input.repId,
@@ -2158,8 +2215,10 @@ export function carryKnownListingFields(
     jewelryType: input.jewelryType ?? known.jewelryType,
     collectionYear: input.collectionYear ?? known.collectionYear,
     designName:
-      text(input.designName) ??
-      (promoteKnownDesign ? text(known.designName) : undefined),
+      pieceTitleFromConfirmedDetails({
+        proposed: text(input.designName),
+        confirmed: text(known.designName),
+      }) ?? (promoteKnownDesign ? text(known.designName) : undefined),
   }
   if (!itemNumber) {
     return definedFields({

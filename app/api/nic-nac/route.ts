@@ -94,7 +94,14 @@ import {
 } from '@/lib/nic-nac/turn-replies'
 import { decidePieceClose, statedItemNumber, assistantIsResumingUnfinishedPiece } from '@/lib/nic-nac/piece-task'
 import { repHasListingForItemNumber } from '@/lib/nic-nac/tools/add-listing'
-import { mainPhotoPreviewRefusal } from '@/lib/nic-nac/workflows/workflow-photo-roles'
+import {
+  CUT_OFF_PHOTO_MESSAGE,
+  mainPhotoPreviewRefusal,
+  selectBoundMainPhoto,
+  speculativeSecondItemClaim,
+  SUBJECT_CUT_OFF_ISSUE,
+} from '@/lib/nic-nac/workflows/workflow-photo-roles'
+import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
 import { readMyShowsForNicNac } from '@/lib/nic-nac/tools/list-my-shows'
 import { buildPersonalizedRepGreeting } from '@/lib/nic-nac/core/rep-personalization'
 import { createConfiguredNicNacAgent } from '@/lib/nic-nac/agent'
@@ -749,6 +756,15 @@ export async function POST(request: Request) {
         (part as { type?: string }).type === 'file' &&
         (part as { mediaType?: string }).mediaType?.startsWith('image/'),
     ) ?? false
+  const previousAssistantText = (() => {
+    const latestUserIndex = messages.findLastIndex((message) => message.role === 'user')
+    for (let index = latestUserIndex - 1; index >= 0; index -= 1) {
+      if (messages[index]?.role === 'assistant') {
+        return readTextFromMessage(messages[index])
+      }
+    }
+    return ''
+  })()
   if (mode === 'workspace' && !supportScope) {
     const movedTo = await findForwardRolloverDestination(
       workflowSupabase,
@@ -756,7 +772,10 @@ export async function POST(request: Request) {
       conversationId,
     )
     const sessionAfter = tradeBoardWorkflowContext.sessionAfter
-    const skipItem = statedItemNumber(latestUserText)
+    const skipItem =
+      statedItemNumber(latestUserText) ??
+      statedItemNumber(sessionAfter?.known.itemNumber ?? '') ??
+      statedItemNumber(previousAssistantText)
     const userIsSkipping =
       decidePieceClose(latestUserText) !== null ||
       /\b(?:don'?t|do not)\s+save\b/i.test(latestUserText)
@@ -768,6 +787,22 @@ export async function POST(request: Request) {
         itemNumber: skipItem,
       })
     }
+    const latestJewelryPhoto = [...(sessionAfter?.photos ?? [])]
+      .reverse()
+      .find(
+        (photo) =>
+          photo.conversationMessageId === latestUserMessage?.id &&
+          photo.declaredRole !== 'label_details' &&
+          photo.visualRole !== 'label_or_packaging',
+      )
+    const gateRefusal =
+      latestUserHasImage && latestJewelryPhoto
+        ? mainPhotoPreviewRefusal({
+            photo: latestJewelryPhoto,
+            itemNumber: sessionAfter?.known.itemNumber,
+            jewelryType: sessionAfter?.known.jewelryType,
+          })
+        : null
     const pieceReply = movedTo
       ? MOVED_ON_MESSAGE
       : directPieceReply({
@@ -785,6 +820,7 @@ export async function POST(request: Request) {
     const mismatchTurn = sessionAfter?.metadata.labelMismatchMessageId
     const labelReply =
       !pieceReply &&
+      !gateRefusal &&
       latestUserHasImage &&
       typeof mismatch === 'string' &&
       mismatch.trim() &&
@@ -792,12 +828,39 @@ export async function POST(request: Request) {
       sessionAfter?.known.itemNumber
         ? labelMismatchSentence(mismatch, sessionAfter.known.itemNumber)
         : null
-    const directText = pieceReply || labelReply
+    const directText = gateRefusal || pieceReply || labelReply
     if (directText) {
+      const boundPhoto = selectBoundMainPhoto(sessionAfter?.photos, sessionAfter?.metadata)
+      const previewLocator =
+        !gateRefusal && /reply yes/i.test(directText) && boundPhoto
+          ? mainPhotoPreviewLocator(boundPhoto)
+          : null
+      const previewMessage = directText.match(
+        /This is the main photo I will save for[\s\S]*reply yes\./,
+      )?.[0]
+      const assistantParts = [
+        { type: 'text' as const, text: directText },
+        ...(previewLocator
+          ? [
+              {
+                type: 'tool-add_listing' as const,
+                toolCallId: 'bound-main-photo',
+                state: 'output-available' as const,
+                input: {},
+                output: {
+                  needsAction: 'confirm_main_photo',
+                  code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED',
+                  message: previewMessage ?? directText,
+                  ...previewLocator,
+                },
+              },
+            ]
+          : []),
+      ]
       await completeAssistant(supabase, {
         conversationId,
         messageId: assistantMessageId,
-        parts: [{ type: 'text', text: directText }],
+        parts: assistantParts,
       })
       await logNicNacRun({
         runId,
@@ -828,6 +891,14 @@ export async function POST(request: Request) {
         message: directText,
         messageId: assistantMessageId,
         headers: responseHeaders,
+        ...(previewLocator
+          ? {
+              preview: {
+                message: previewMessage ?? directText,
+                ...previewLocator,
+              },
+            }
+          : {}),
       })
     }
   }
@@ -1011,15 +1082,7 @@ export async function POST(request: Request) {
           !blameBlurry,
       )
       const storedMismatch = blameSession?.metadata.labelItemNumberMismatch
-      const previousAssistant = (() => {
-        const latestUserIndex = messages.findLastIndex((message) => message.role === 'user')
-        for (let index = latestUserIndex - 1; index >= 0; index -= 1) {
-          if (messages[index]?.role === 'assistant') {
-            return readTextFromMessage(messages[index])
-          }
-        }
-        return ''
-      })()
+      const previousAssistant = previousAssistantText
       const previewRefusal = mainPhotoPreviewRefusal({
         photo: blamePhoto,
         itemNumber: blameSession?.known.itemNumber,
@@ -1039,6 +1102,21 @@ export async function POST(request: Request) {
                   acceptedProductPhoto: blameAccepted,
                 })
                 if (corrected) return corrected
+                if (
+                  (blamePhoto?.qualityIssues ?? []).includes(SUBJECT_CUT_OFF_ISSUE) &&
+                  /isn'?t clear enough|not clear enough/i.test(text)
+                ) {
+                  return CUT_OFF_PHOTO_MESSAGE
+                }
+                if (
+                  speculativeSecondItemClaim(text) &&
+                  !(previewRefusal && previewRefusal.startsWith('That photo shows'))
+                ) {
+                  const item = blameSession?.known.itemNumber?.trim()
+                  return item
+                    ? `I can use that photo for ${item}.`
+                    : 'I can use that photo.'
+                }
                 if (
                   previewRefusal &&
                   /reply yes|main photo I will save|still need the customer-facing/i.test(text)
