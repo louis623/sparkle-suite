@@ -119,6 +119,7 @@ import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-boa
 import {
   CUT_OFF_PHOTO_MESSAGE,
   mainPhotoPreviewRefusal,
+  photoIsLabel,
   selectBoundMainPhoto,
   speculativeSecondItemClaim,
   SUBJECT_CUT_OFF_ISSUE,
@@ -964,8 +965,7 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
       declaredRole?: string
       visualRole?: string
     }) =>
-      photo.declaredRole !== 'label_details' &&
-      photo.visualRole !== 'label_or_packaging'
+      !photoIsLabel(photo)
     const latestTurnPhotos = (sessionAfter?.photos ?? []).filter(
       (photo) => photo.conversationMessageId === latestUserMessage?.id,
     )
@@ -1375,7 +1375,7 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
       // accepted jewelry photo already bound to this piece.
       const blamePhoto = selectBoundMainPhoto(blameSession?.photos, blameSession?.metadata) ??
         [...turnPhotos].reverse().find((photo) =>
-          photo.declaredRole !== 'label_details' && photo.visualRole !== 'label_or_packaging') ??
+          !photoIsLabel(photo)) ??
         turnPhotos.at(-1)
       const blameBlurry = Boolean(blamePhoto?.qualityIssues?.includes('blur_risk'))
       const blameAccepted = Boolean(
@@ -1397,7 +1397,7 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
           ? {
               correctPhotoBlame: (text: string) => {
                 const genericPhotoLine =
-                  /customer-facing|send a (?:clear |clearer )?photo|isn'?t clear enough|not clear enough|isn'?t a customer-facing/i.test(
+                  /customer-facing|send a (?:clear |clearer )?(?:front )?photo|isn'?t clear enough|not clear enough|isn'?t a customer-facing/i.test(
                     text,
                   )
                 const blameCutOff = photoHasVisibleDefect(blamePhoto) &&

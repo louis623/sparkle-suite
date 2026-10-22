@@ -422,6 +422,19 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
   })
 
+  it.each([false,true])('explains blur on a jewelry upload even when the phone framing looks like packaging (label-first=%s)',async(labelFirst)=>{
+    state.labelUrl='data:image/png;base64,bGFiZWw='
+    if(labelFirst) await turn('blur-label','Here is the label for NK11312.',state.labelUrl)
+    state.analysis={blurRisk:0.95,subjectCentered:false,subjectCoverage:0.06,backgroundDistractionRisk:0.8,backgroundUniformity:0.2,backgroundCleanliness:0.2}
+    const reply=await turn('phone-blur','Here is the jewelry photo for NK11312.','data:image/png;base64,cGhvbmUtYmx1cg==')
+    expect(reply).toContain('blurry')
+    expect(reply).toContain('clearer photo of the jewelry')
+    expect(reply).not.toContain('confirm_main_photo')
+    expect(state.model).not.toHaveBeenCalled()
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+    expect(state.uploads).toHaveLength(0)
+  })
+
   it.each([{blurRisk:0.95},{subjectTouchesFrameEdge:true}])('never previews a newly uploaded defective photo %j',async(analysis)=>{
     await oldPhoto();await turn('no','no');state.analysis=analysis
     const reply=await turn('bad-upload',"Here's the right photo",'data:image/png;base64,YmFkLXBob3Rv')
