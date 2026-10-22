@@ -1,3 +1,9 @@
+## October 22, 2026 — PR 141 Run 14 retest repairs, PR only
+
+- Fixed assistant prose leaking into saved design names; name recovery uses rep text or established details, strips Markdown, and keeps stored-name authority on the matching item. Fixed contradictory jewelry/label replies and pending questions left beside moved-on notices.
+- Product tip f4bc4857092481d623354df677d67469d7921aaf: real Next build, standalone tsc, and npm test all pass (48 files / 769 tests). Twelve new regression cases cover the real save/history routes and client rendering. The known production help/branding failures remain unchanged.
+- No new merge, deploy, production branch, migration or Live changes. Signed-in PR retest remains next. See [Run 14 closeout](2026-10-22-pr141-run14-retest.md).
+
 ## October 22, 2026 — PR 141 build fixed; production integrated into PR only
 
 - Integrated production 5fd172f89c86705297f1bf7014c959d0309e8417 into cursor/nicnac-photo-hardening, preserving production wording/help. Product fix b47160bab10d88077c027c955c00eeeb417b264c separates browser display helpers and guards Sharp-dependent server modules.
