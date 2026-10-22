@@ -684,6 +684,7 @@ export async function repHasListingForItemNumber(input: {
       .from('jewelry_designs')
       .select('id')
       .eq('item_number', itemNumber)
+    if (designs.error) throw designs.error
     const designRows = Array.isArray((designs as { data?: unknown }).data)
       ? ((designs as { data: Array<{ id?: string }> }).data ?? [])
       : []
@@ -698,12 +699,13 @@ export async function repHasListingForItemNumber(input: {
       .in('design_id', ids)
       .neq('status', 'removed')
       .limit(1)
+    if (listings.error) throw listings.error
     const listingRows = Array.isArray((listings as { data?: unknown }).data)
       ? ((listings as { data: unknown[] }).data ?? [])
       : []
     return listingRows.length > 0
   } catch {
-    return false
+    throw new NicNacToolError({ code: 'LISTING_STATUS_UNAVAILABLE', userMessage: "I couldn't check whether this piece is on your Dance Floor. Try again before changing it." })
   }
 }
 

@@ -156,7 +156,7 @@ export function directPieceReply(args: {
     SKIP_AFTER_SAVE.test(text)
   if (skipping) {
     const item =
-      statedItemNumber(text) ?? statedItemNumber(previous) ?? args.known?.itemNumber
+      statedItemNumber(text) ?? args.known?.itemNumber ?? statedItemNumber(previous)
     return args.listingExists ? alreadySavedReply(item) : leaveItOffReply(item)
   }
   if (!previous && !args.listingExists && !args.labelItemNumber) return null

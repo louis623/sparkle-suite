@@ -180,6 +180,42 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect((await db.sql.query("select * from nic_nac_conversations where role='assistant'")).rows).toHaveLength(1)
   })
 
+  it('skip leaves an unsaved current piece off, even after an assistant mentions another item',async()=>{
+    await stored({id:'other-item',role:'assistant',parts:[{type:'text',text:'ER99999 is another design.'}]})
+    const reply=await turn('skip-unsaved','skip')
+    expect(reply).toContain('leave it off');expect(reply).not.toContain('already on your Dance Floor')
+    expect(reply).not.toContain('ER99999');expect(reply).toContain('NK11312')
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+  })
+  it('skip after a save reports the real listing and never deletes it',async()=>{
+    await oldPhoto();await turn('no','no');await turn('replacement',"Here's the right photo",'data:image/png;base64,bmV3LXBob3Rv');await turn('yes-save','yes')
+    const before=(await db.sql.query('select * from trade_listings')).rows
+    expect(await turn('skip-saved','skip')).toContain('already on your Dance Floor')
+    expect((await db.sql.query('select * from trade_listings')).rows).toEqual(before)
+  })
+  it('does not claim a piece is unsaved when the listing lookup fails',async()=>{
+    await db.sql.exec('alter table trade_listings rename to temporarily_unavailable')
+    try {
+      const reply=await turn('skip-error','skip')
+      expect(reply).toContain("couldn't check")
+      expect(reply).not.toMatch(/is not saved|already on your Dance Floor/)
+    } finally {await db.sql.exec('alter table temporarily_unavailable rename to trade_listings')}
+  })
+
+  it('creates a new design and listing with the original upload through the real save route',async()=>{
+    await db.sql.exec('delete from jewelry_designs')
+    await oldPhoto();await turn('no','no')
+    const source='data:image/png;base64,bmV3LWRlc2lnbg=='
+    await turn('new-design-photo',"Here's the right photo",source)
+    expect(await turn('new-design-yes','yes')).toContain('is on your Dance Floor')
+    const listing=(await db.sql.query('select * from trade_listings')).rows[0]
+    const design=(await db.sql.query('select * from jewelry_designs')).rows[0]
+    expect(design.design_name).toBe('Moonlight');expect(listing.design_id).toBe(design.id)
+    expect(listing.listing_photo_url).toContain('NK11312-source.png')
+    expect(state.uploads).toEqual([{data:source,name:'NK11312-source'}])
+    expect(state.crop).not.toHaveBeenCalled()
+  })
+
   it('a label cannot replace the jewelry upload after preview',async()=>{
     await oldPhoto();await turn('no','no');await turn('replacement',"Here's the right photo",'data:image/png;base64,bmV3LXBob3Rv')
     await db.sql.exec("update trade_board_intake_photos set declared_role='label_details',visual_role='label_or_packaging',notes=ARRAY['printed-item:NK11312'] where conversation_message_id='replacement'")
@@ -199,20 +235,6 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(response.status).toBe(200)
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
     expect((await db.sql.query("select * from nic_nac_conversations where message_id='phantom'")).rows).toHaveLength(0)
-  })
-
-  it('creates a new design and listing with the original upload through the real save route',async()=>{
-    await db.sql.exec('delete from jewelry_designs')
-    await oldPhoto();await turn('no','no')
-    const source='data:image/png;base64,bmV3LWRlc2lnbg=='
-    await turn('new-design-photo',"Here's the right photo",source)
-    expect(await turn('new-design-yes','yes')).toContain('is on your Dance Floor')
-    const listing=(await db.sql.query('select * from trade_listings')).rows[0]
-    const design=(await db.sql.query('select * from jewelry_designs')).rows[0]
-    expect(design.design_name).toBe('Moonlight');expect(listing.design_id).toBe(design.id)
-    expect(listing.listing_photo_url).toContain('NK11312-source.png')
-    expect(state.uploads).toEqual([{data:source,name:'NK11312-source'}])
-    expect(state.crop).not.toHaveBeenCalled()
   })
 
 })

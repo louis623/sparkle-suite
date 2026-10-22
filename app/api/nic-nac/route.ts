@@ -941,17 +941,21 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
     const skipItem =
       statedItemNumber(latestUserText) ??
       statedItemNumber(sessionAfter?.known.itemNumber ?? '') ??
+      statedItemNumber(tradeBoardWorkflowContext.sessionBefore?.known.itemNumber ?? '') ??
+      statedItemNumber(workflowTaskContinuity.tradeBoardSession?.known.itemNumber ?? '') ??
       statedItemNumber(previousAssistantText)
     const userIsSkipping =
       decidePieceClose(latestUserText) !== null ||
       /\b(?:don'?t|do not)\s+save\b/i.test(latestUserText)
     let listingExists = false
+    let skipLookupError: string | null = null
     if (userIsSkipping && skipItem) {
-      listingExists = await repHasListingForItemNumber({
-        admin: workflowSupabase,
-        repId,
-        itemNumber: skipItem,
-      })
+      try {
+        listingExists = await repHasListingForItemNumber({ admin: workflowSupabase, repId, itemNumber: skipItem })
+      } catch (error) {
+        if (!(error instanceof NicNacToolError)) throw error
+        skipLookupError = error.userMessage
+      }
     }
     const isJewelryPhoto = (photo: {
       declaredRole?: string
@@ -978,7 +982,7 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
           messages,
           latestUserText,
           latestUserHasImage,
-          known: sessionAfter?.known,
+          known: sessionAfter?.known ?? tradeBoardWorkflowContext.sessionBefore?.known ?? workflowTaskContinuity.tradeBoardSession?.known,
           listingExists,
           labelItemNumber:
             typeof sessionAfter?.metadata.labelItemNumberMismatch === 'string'
@@ -1017,7 +1021,7 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
       itemNumber: savedPhoto?.itemNumber ?? disputeItem,
       designName: savedPhoto?.designName,
     })
-    let directText = gateRefusal || pieceReply || labelReply || disputeReply
+    let directText = skipLookupError || gateRefusal || pieceReply || labelReply || disputeReply
     const previewPhotoId = shownMainPhotoPreviewId(messages)
     const confirmationUsed = confirmationAlreadyUsed({
       submittedMessageId,
