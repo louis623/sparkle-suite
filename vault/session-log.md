@@ -1,3 +1,10 @@
+## October 22, 2026 — PR 141 Run 17 first-yes save and blur fixes, PR only
+
+- Closed the race where a streamed preview is visible before its assistant reply becomes canonical: an early yes waits for that exact reply, then saves from authoritative state. Preview readers now agree on the last preview across split assistant rows. Quality analysis waits up to 20 seconds before any upload or save; a late result cannot perform a mutation.
+- Phone-like blurry jewelry now gets an explicit blurry refusal even when the visual classification resembles packaging. The required-label rule, either photo order, label exclusion, moved-on notice and replay protections remain intact.
+- Product tip c5357d5754a110103bad92e6bbf5192c11857a50: real Next build, standalone TypeScript and npm test pass (48 files / 801 tests). See [Run 17 closeout](2026-10-22-pr141-run17-retest.md) for evidence and limits. Suite's signed-in PR retest remains next.
+- PR-only authorization: no merge, deploy, production branch, migration or Live changes. The primary checkout and permanent branch policy were preserved.
+
 ## October 22, 2026 — PR 141 Run 16 rule change and phone history fix, PR only
 
 - Pending confirmation state now retires the whole final reply, including the exact RG16117 phone wording and split assistant rows. Louis now requires a Bomb Party label photo plus a separate jewelry-front photo for every Nic-Nac add; typed details can supplement but cannot replace either upload.
