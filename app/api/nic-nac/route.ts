@@ -1359,9 +1359,15 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
       let mandatoryToolFollowUpText: string | null = null
       let renderedText = ''
       const blameSession = tradeBoardWorkflowContext.sessionAfter
-      const blamePhoto = [...(blameSession?.photos ?? [])]
-        .reverse()
-        .find((photo) => photo.conversationMessageId === latestUserMessage?.id)
+      const turnPhotos = (blameSession?.photos ?? []).filter(
+        (photo) => photo.conversationMessageId === latestUserMessage?.id,
+      )
+      // Judge the same jewelry upload used by the preview. The last attachment
+      // may be its label, which must not invalidate an accepted jewelry photo.
+      const blamePhoto = selectBoundMainPhoto(turnPhotos, blameSession?.metadata) ??
+        [...turnPhotos].reverse().find((photo) =>
+          photo.declaredRole !== 'label_details' && photo.visualRole !== 'label_or_packaging') ??
+        turnPhotos.at(-1)
       const blameBlurry = Boolean(blamePhoto?.qualityIssues?.includes('blur_risk'))
       const blameAccepted = Boolean(
         blamePhoto &&

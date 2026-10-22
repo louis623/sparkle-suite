@@ -3,7 +3,7 @@ import type { UIMessage } from 'ai'
 import { createChatDatabase } from './fixtures/sql-client'
 import { DESIGN,PHOTO,REP,SESSION,installIntakeSchema,seedPiece } from './fixtures/intake-database'
 import { loadCanonicalHistory,insertConversationMessages } from '@/lib/nic-nac/persistence'
-const state=vi.hoisted(()=>({client:null as any,analysis:{} as Record<string,unknown>,uploads:[] as Array<{data:string,name:string}>,model:vi.fn(),crop:vi.fn(),enhance:vi.fn()}))
+const state=vi.hoisted(()=>({client:null as any,labelUrl:'',analysis:{} as Record<string,unknown>,uploads:[] as Array<{data:string,name:string}>,model:vi.fn(),crop:vi.fn(),enhance:vi.fn()}))
 vi.mock('@/lib/nic-nac/auth',()=>({AuthError:class extends Error{},getPaidNicNacContext:async()=>({repId:'10000000-0000-4000-8000-000000000001',rep:{auth_user_id:'synthetic'},supabase:state.client})}))
 vi.mock('@/lib/supabase/admin',()=>({createAdminClient:()=>state.client}))
 vi.mock('@/lib/nic-nac/guardian-telemetry',()=>({logIncident:async()=>{},logToolExecution:async()=>{}}))
@@ -14,7 +14,7 @@ vi.mock('@/lib/nic-nac/agent',()=>({createConfiguredNicNacAgent:(...args:any[])=
 // Pixel/OCR and remote storage are deterministic boundaries; intake, controller,
 // listing tool, listing service and the checked-in listing SQL RPC remain real.
 vi.mock('@/lib/services/server-image-quality',()=>({analyzeServerImageQuality:async()=>({contentType:'image/png',width:1200,height:1200,blurRisk:0.1,lightingRisk:0.1,detailRisk:0.1,backgroundDistractionRisk:0.1,subjectCoverage:0.55,subjectCentered:true,subjectCenterX:0.5,subjectCenterY:0.5,detailConfidence:0.9,backgroundUniformity:0.9,backgroundCleanliness:0.9,...state.analysis})}))
-vi.mock('@/lib/nic-nac/workflows/label-item-number',async(original)=>({...await original<any>(),readLabelPhoto:async()=>({status:'unreadable',itemNumber:null})}))
+vi.mock('@/lib/nic-nac/workflows/label-item-number',async(original)=>({...await original<any>(),readLabelPhoto:async(url:string)=>({outcome:url===state.labelUrl?'read':'unreadable',itemNumbers:url===state.labelUrl?['NK11312']:[]}),readStoredLabelItemNumbers:async({url}:{url:string})=>url===state.labelUrl?['NK11312']:[]}))
 vi.mock('@/lib/services/storage',async(original)=>({...await original<any>(),uploadStagedOriginalPhoto:async(_rep:string,data:string,name:string)=>({objectPath:name,signedUrl:'https://storage.test/'+name}),uploadCatalogDesignSourcePhoto:async(rep:string,_design:string,data:string,name:string)=>{state.uploads.push({data,name});return {objectPath:name,publicUrl:'https://storage.test/storage/v1/object/public/jewelry-photos/'+rep+'/'+name+'.png'}},uploadJewelryPhoto:async(_rep:string,data:string,name:string)=>{state.uploads.push({data,name});return `https://storage.test/storage/v1/object/public/jewelry-photos/${_rep}/${name}.png`}}))
 vi.mock('@/lib/services/jewelry-photo-crop',()=>({createGuardedJewelryPhotoCrop:(...args:any[])=>state.crop(...args)}))
 vi.mock('@/lib/services/photo-enhancement',()=>({executePhotoEnhancement:(...args:any[])=>state.enhance(...args)}))
@@ -31,11 +31,11 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
   let db:Awaited<ReturnType<typeof createChatDatabase>>
   beforeAll(async()=>{db=await createChatDatabase();state.client=db.client;await installIntakeSchema(db.sql)},60000)
   afterAll(async()=>{await db.sql.close()})
-  beforeEach(async()=>{await seedPiece(db.sql);state.uploads=[];state.analysis={};state.crop.mockClear();state.enhance.mockClear();state.model.mockReset();state.model.mockImplementation(()=>{throw new Error('Unexpected model path')})})
+  beforeEach(async()=>{await seedPiece(db.sql);state.uploads=[];state.labelUrl='';state.analysis={};state.crop.mockClear();state.enhance.mockClear();state.model.mockReset();state.model.mockImplementation(()=>{throw new Error('Unexpected model path')})})
   async function stored(message:UIMessage){await insertConversationMessages(db.client,{repId:REP,conversationId:'piece-chat',messages:[message]})}
-  async function turn(id:string,text:string,photo?:string){
+  async function turn(id:string,text:string,photo?:string|string[]){
     const messages=await loadCanonicalHistory(db.client,'piece-chat')
-    messages.push({id,role:'user',parts:[{type:'text',text},...(photo?[{type:'file' as const,mediaType:'image/png',url:photo}]:[])]})
+    messages.push({id,role:'user',parts:[{type:'text',text},...(photo?(Array.isArray(photo)?photo:[photo]).map(url=>({type:'file' as const,mediaType:'image/png',url})):[])]})
     const response=await POST(new Request('http://local.test/api/nic-nac',{method:'POST',body:JSON.stringify({conversationId:'piece-chat',mode:'workspace',messages,submittedMessageId:id})}))
     expect(response.status).toBe(200)
     return response.text()
@@ -107,6 +107,33 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(await response.text()).toContain('NK11312 is on your Dance Floor')
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
   })
+  it.each([false,true])('uses the identified jewelry photo for the reply with label-first=%s',async(labelFirst)=>{
+    const jewelry='data:image/png;base64,amV3ZWxyeQ=='
+    state.labelUrl='data:image/png;base64,bGFiZWw='
+    state.model.mockImplementation(({toolContext}:any)=>{
+      const workflow=toolContext.activeTradeBoardWorkflow
+      const photo=workflow.photos.find((p:any)=>p.id===workflow.metadata.boundMainPhotoId)
+      expect(photo.imageUrl).toBe(jewelry)
+      expect(workflow.photos.find((p:any)=>p.imageUrl===state.labelUrl).declaredRole).toBe('label_details')
+      const message='This is the main photo I will save for NK11312. If this is the right piece, reply yes.'
+      return {catalog:{allowedIntents:['trade_board'],requestedIntents:['trade_board'],toolNames:['add_listing'],source:'workspace_permissions',blockedIntents:[],blockedToolNames:[]},agent:{stream:async()=>({toUIMessageStream:async function*(){
+        yield {type:'tool-input-available',toolCallId:'paired-photo',toolName:'add_listing',input:{itemNumber:'NK11312'}}
+        yield {type:'tool-output-available',toolCallId:'paired-photo',output:{needsAction:'confirm_main_photo',previewPhotoId:photo.id,message}}
+        yield {type:'text-start',id:'pair-text'}
+        yield {type:'text-delta',id:'pair-text',delta:message}
+        yield {type:'text-end',id:'pair-text'}
+      }})}}
+    })
+    const reply=await turn('paired-upload','Add NK11312 with the jewelry photo and label.',labelFirst?[state.labelUrl,jewelry]:[jewelry,state.labelUrl])
+    expect(reply).toContain('confirm_main_photo')
+    expect(reply).toContain('This is the main photo I will save')
+    expect(reply).not.toContain('That photo is the label')
+    expect(reply).not.toContain('Send a photo of the jewelry')
+    const storedReply=await loadCanonicalHistory(db.client,'piece-chat')
+    expect(JSON.stringify(storedReply.at(-1))).not.toContain('That photo is the label')
+    expect(state.model).toHaveBeenCalled()
+  })
+
   it('never releases a handler instruction split into one-character stream deltas',()=>{
     const scrubber=createRepTextScrubber()
     const leak="Use vision on the rep's photos to extract designName. The handler uploads the photo from chat automatically."
