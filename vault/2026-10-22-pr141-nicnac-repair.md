@@ -1,3 +1,5 @@
+> October 22 follow-up: the Sharp client-bundle failure is fixed and production 5fd172f8 is integrated into the PR. Real Next build, standalone tsc and 757 tests pass. The earlier base-conflict restriction below is historical and superseded by Louis's explicit authorization. See [build/integration closeout](2026-10-22-pr141-build-fix.md), including two unchanged production test failures found in extra checks.
+
 # October 22, 2026 — PR 141 Nic-Nac repairs (PR only)
 
 Louis explicitly approved an exception for cursor/nicnac-photo-hardening only:

@@ -1,3 +1,5 @@
+> October 22 follow-up: the Sharp client-bundle failure is fixed and production 5fd172f8 is integrated into the PR. Real Next build, standalone tsc and 757 tests pass. The earlier base-conflict restriction below is historical and superseded by Louis's explicit authorization. See [build/integration closeout](vault/2026-10-22-pr141-build-fix.md), including two unchanged production test failures found in extra checks.
+
 # PR 141: photo-chat repair analysis
 
 Baseline: `b618966dfcb252bc54ec951cdee8a4375dffe42a`, inspected October 22, 2026.

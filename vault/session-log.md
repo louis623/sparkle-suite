@@ -1,3 +1,9 @@
+## October 22, 2026 — PR 141 build fixed; production integrated into PR only
+
+- Integrated production 5fd172f89c86705297f1bf7014c959d0309e8417 into cursor/nicnac-photo-hardening, preserving production wording/help. Product fix b47160bab10d88077c027c955c00eeeb417b264c separates browser display helpers and guards Sharp-dependent server modules.
+- Real npm run build, standalone tsc, and npm test (48 files / 757 tests) pass. Extra help/branding checks expose two unchanged production test expectations; see [full verification](2026-10-22-pr141-build-fix.md).
+- PR only: no PR merge into production, deploy, migration, Smoke or Live changes. This supersedes the earlier note that base integration remained unapproved. Signed-in PR retest remains outstanding.
+
 ## October 22, 2026 — PR 141 repairs, not deployed
 
 - Louis authorized a PR-only branch exception for cursor/nicnac-photo-hardening. Seven isolated commits fix send, stored preview recovery, history, quality gates, original images, replay/time and skip status. Product tip 810bea061a8de73f8ab52a05bf3bae0e34e9b22b.
