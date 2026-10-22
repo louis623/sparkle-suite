@@ -108,7 +108,7 @@ describe('round 4 timestamps and clear', () => {
     expect(relativeTimeLabel(then, Date.now())).toBe('2h ago')
   })
 
-  it('clears the rollover chain and opens the empty chat', async () => {
+  it('keeps the open chat in Recent and opens an empty chat', async () => {
     const cleared: string[] = []
     const upserts: Array<Record<string, unknown>> = []
     const supabase = {
@@ -161,8 +161,8 @@ describe('round 4 timestamps and clear', () => {
         'after-rollover',
         'fresh-chat',
       ),
-    ).resolves.toEqual(['after-rollover', 'pre-rollover'])
-    expect(cleared).toEqual(['after-rollover', 'pre-rollover'])
+    ).resolves.toEqual([])
+    expect(cleared).toEqual([])
     expect(upserts[0]).toMatchObject({
       conversation_id: 'fresh-chat',
       role: 'assistant',

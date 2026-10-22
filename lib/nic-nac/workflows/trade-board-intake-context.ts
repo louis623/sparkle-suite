@@ -13,6 +13,11 @@ import {
   extractKnownFieldsFromText,
   mergeTradeBoardKnownFields,
 } from './trade-board-known-fields'
+import { acceptResentProductPhoto } from './jewelry-main-photo'
+import {
+  decideLabelItemNumber,
+  readStoredLabelItemNumbers,
+} from './label-item-number'
 import {
   buildTradeBoardIntakePromptState,
   computeTradeBoardIntakeReadiness,
@@ -475,7 +480,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
         } satisfies InspectedWorkflowPhoto),
     )
     const visualRole = inspected.visualRole
-    const photo: TradeBoardIntakeSessionState['photos'][number] = {
+    const drafted: TradeBoardIntakeSessionState['photos'][number] = {
       intakeSessionId: args.session.id,
       conversationMessageId: args.latestUserMessageId ?? latestUser.id,
       attachmentIndex: index + 1,
@@ -495,6 +500,9 @@ export async function ingestLatestTradeBoardIntakeTurn(
             ? ['declared as customer-facing jewelry photo']
             : [],
     }
+    const photo = assistantIsResumingUnfinishedPiece(previousAssistantText)
+      ? acceptResentProductPhoto(drafted)
+      : drafted
     photos.push(photo)
     const savedId = await upsertTradeBoardIntakePhoto(supabase, {
       sessionId: args.session.id,
@@ -514,6 +522,36 @@ export async function ingestLatestTradeBoardIntakeTurn(
       visualRoleSource: photo.visualRoleSource,
     })
     if (savedId) photo.id = savedId
+  }
+
+  if (fileParts.length > 0 && known.itemNumber) {
+    try {
+      const reads = await Promise.all(
+        fileParts.map(async (_filePart, index) => {
+          const photo = photos[photosBeforeThisTurn + index]
+          if (!photo?.imageUrl) return []
+          return readStoredLabelItemNumbers({
+            url: photo.imageUrl,
+            allowVision:
+              photo.visualRole === 'label_or_packaging' ||
+              photo.declaredRole === 'label_details',
+          })
+        }),
+      )
+      const decision = decideLabelItemNumber({
+        itemNumber: known.itemNumber,
+        readItemNumbers: reads.flat(),
+      })
+      if (decision.blocked) {
+        metadata = {
+          ...metadata,
+          labelItemNumberMismatch: decision.labelItemNumber,
+          labelMismatchMessageId: args.latestUserMessageId ?? latestUser.id,
+        }
+      }
+    } catch {
+      // A failed label read does not reject the jewelry photo.
+    }
   }
 
   if (fileParts.length === 0) {

@@ -51,6 +51,45 @@ export async function correctJewelryVersusLabelPhotos<T extends RolePhoto>(
   })
 }
 
+/**
+ * A photo sent again after "send the photo again" is this piece's photo.
+ * A printed label stays a label. A blurry photo stays blocked.
+ */
+export function acceptResentProductPhoto<
+  T extends {
+    declaredRole: string
+    visualRole: string
+    quality?: string
+    qualityIssues?: string[]
+    roleConfirmed?: boolean
+    notes?: string[]
+  },
+>(photo: T): T {
+  if (
+    photo.visualRole === 'label_or_packaging' ||
+    photo.declaredRole === 'label_details'
+  ) {
+    return photo
+  }
+  const blurry = (photo.qualityIssues ?? []).includes('blur_risk')
+  if (blurry) {
+    return {
+      ...photo,
+      declaredRole: 'jewelry_front',
+      roleConfirmed: true,
+      quality: 'blocked',
+    }
+  }
+  return {
+    ...photo,
+    declaredRole: 'jewelry_front',
+    visualRole: photo.visualRole === 'uncertain' ? 'jewelry' : photo.visualRole,
+    roleConfirmed: true,
+    quality: photo.quality === 'blocked' || !photo.quality ? 'usable' : photo.quality,
+    notes: [...(photo.notes ?? []), 'resent jewelry photo'],
+  }
+}
+
 /** Prefer a photo that did not read as a label. A lone photo stays usable. */
 export function pickNonLabelImageUrl(
   urls: string[],

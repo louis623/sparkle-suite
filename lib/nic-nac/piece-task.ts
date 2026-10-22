@@ -77,8 +77,10 @@ export function freshChatNotice(args: {
   material?: string | null
   mainStone?: string | null
   designName?: string | null
+  collectionName?: string | null
 }): string {
   const item = args.itemNumber?.trim()
+  const collection = args.collectionName?.trim()
   const details = [
     item,
     args.ringSize?.trim() ? `size ${args.ringSize.trim()}` : '',
@@ -86,6 +88,7 @@ export function freshChatNotice(args: {
     args.material?.trim(),
     args.mainStone?.trim(),
     args.designName?.trim(),
+    collection ? `${collection} collection` : '',
   ].filter(Boolean)
   const kept = details.length ? ` I still have ${details.join(', ')}.` : ''
   const finish = item ? ` Want to finish ${item}?` : ' Want to finish this piece?'

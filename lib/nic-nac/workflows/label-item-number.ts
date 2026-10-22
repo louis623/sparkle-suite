@@ -384,6 +384,30 @@ export async function readLabelPhoto(
   }
 }
 
+/**
+ * Template match first. Vision runs only when the caller already classed the
+ * photo as a label. A failed read returns nothing and does not reject jewelry.
+ */
+export async function readStoredLabelItemNumbers(args: {
+  url?: string
+  allowVision?: boolean
+}): Promise<string[]> {
+  if (!args.url) return []
+  try {
+    const template = await readItemNumbersFromImageUrl(args.url)
+    if (template.length > 0) return template
+  } catch {
+    return []
+  }
+  if (!args.allowVision) return []
+  try {
+    const read = await readLabelPhoto(args.url)
+    return read.outcome === 'read' ? read.itemNumbers : []
+  } catch {
+    return []
+  }
+}
+
 /** @deprecated Prefer readLabelPhoto. Kept so older callers still receive numbers only. */
 export async function readLabelItemNumbersWithVision(
   url: string | undefined,

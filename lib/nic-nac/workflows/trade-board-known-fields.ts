@@ -35,9 +35,14 @@ export function extractKnownFieldsFromText(
   const jewelryType = extractJewelryType(normalizedText)
   if (jewelryType) known.jewelryType = jewelryType
 
-  const designName = itemNumber
-    ? extractDesignNameNearItemNumber(normalizedText, itemNumber)
-    : null
+  const explicitDesignName = normalizedText.match(
+    /\bdesign name\s*(?:is|:)?\s*["“]?([^".\n]+)/i,
+  )?.[1]
+  const designName = explicitDesignName
+    ? explicitDesignName.split(',')[0]?.trim()
+    : itemNumber
+      ? extractDesignNameNearItemNumber(normalizedText, itemNumber)
+      : null
   if (designName) known.designName = designName
 
   const collection = extractCollectionFields(normalizedText)
@@ -49,11 +54,25 @@ export function extractKnownFieldsFromText(
     /\b(Lab[-\s]?Created\s+[A-Z][A-Za-z]+)\b/i,
   )?.[1]
   if (mainStone) known.mainStone = normalizeCapitalizedPhrase(mainStone)
+  if (!known.mainStone) {
+    const coloredStone = normalizedText.match(
+      /\b(pink|blue|green|purple|red|orange|yellow|violet|teal|clear|black|white)\s+stones?\b/i,
+    )?.[1]
+    if (coloredStone) {
+      known.mainStone = normalizeCapitalizedPhrase(`${coloredStone} stone`)
+    }
+  }
 
   const material = normalizedText.match(
     /\b((?:Rhodium|Rose Gold|Gold|Silver|Sterling Silver)\s+Plating)\b/i,
   )?.[1]
   if (material) known.material = normalizeCapitalizedPhrase(material)
+  if (!known.material) {
+    const bareMetal = normalizedText.match(
+      /\b(rose gold|sterling silver|silver|gold)\b/i,
+    )?.[1]
+    if (bareMetal) known.material = normalizeCapitalizedPhrase(bareMetal)
+  }
 
   const quantity = normalizedText.match(
     /\b(?:qty|quantity|count)\s*(?:is|:|-)?\s*(\d+)\b/i,
@@ -61,11 +80,47 @@ export function extractKnownFieldsFromText(
   if (quantity?.[1]) known.quantity = Number(quantity[1])
 
   const ringSize = normalizedText.match(
-    /\b(?:ring\s*)?size\s*(?:is|:|-)?\s*([0-9](?:\.[0-9])?)\b/i,
+    /\b(?:ring\s*)?size\s*(?:is|:|-)?\s*([0-9]{1,2}(?:\.[0-9])?)\b/i,
   )
   if (ringSize?.[1]) known.ringSize = ringSize[1]
 
+  if (
+    !known.rarityClassification &&
+    known.itemNumber &&
+    /\bstandard\b/i.test(normalizedText)
+  ) {
+    known.rarityClassification = 'standard'
+  }
+
   return known
+}
+
+/** Known values win. User lines that name the piece fill anything still blank. */
+export function enrichKnownFromPieceMessages(
+  known: TradeBoardIntakeKnownFields,
+  messages: Array<{ role?: string; parts?: unknown }>,
+): TradeBoardIntakeKnownFields {
+  const item = known.itemNumber?.trim().toUpperCase()
+  if (!item) return known
+  const text = messages
+    .filter((message) => message.role === 'user')
+    .map((message) => messageText(message.parts))
+    .filter((line) => line.toUpperCase().includes(item))
+    .join('\n')
+  if (!text.trim()) return known
+  return mergeTradeBoardKnownFields(extractKnownFieldsFromText(text), known)
+}
+
+function messageText(parts: unknown): string {
+  if (!Array.isArray(parts)) return ''
+  return parts
+    .filter(
+      (part): part is { type?: string; text?: string } =>
+        Boolean(part) && typeof part === 'object',
+    )
+    .filter((part) => part.type === 'text' && typeof part.text === 'string')
+    .map((part) => part.text ?? '')
+    .join('\n')
 }
 
 function extractRarityClassification(
@@ -157,7 +212,7 @@ function extractCollectionFields(text: string): {
     /\b(?:collection|coll)\b\s*(?:is|:|-)\s*([A-Za-z][A-Za-z\s]*?)(?:\s+Collection)?(?:[,\s]+(20\d{2}))?(?=\.|,|$)/i,
   )
   if (prefix?.[1]) {
-    const collectionName = normalizeCollectionName(prefix[1])
+    const collectionName = tidyCollectionName(prefix[1])
     return {
       collectionFamily: family ?? collectionFamilyFromName(collectionName),
       collectionName,
@@ -166,10 +221,10 @@ function extractCollectionFields(text: string): {
   }
 
   const suffix = text.match(
-    /\b([A-Za-z]+(?:\s+(?:Birthday|Originals|Luxe|Stacks?))?)\s+collection\b(?:,?\s*(20\d{2}))?/i,
+    /\b((?:[A-Za-z]+\s+){0,3}[A-Za-z]+)\s+collection\b(?:,?\s*(20\d{2}))?/i,
   )
   if (suffix?.[1]) {
-    const collectionName = normalizeCollectionName(suffix[1])
+    const collectionName = tidyCollectionName(suffix[1])
     return {
       collectionFamily: family ?? collectionFamilyFromName(collectionName),
       collectionName,
@@ -219,6 +274,24 @@ function collectionFamilyFromName(name: string): string | undefined {
   return extractCollectionFamily(name)
 }
 
+/** Birthday, OG, Luxe, Original, Sterling, and Stacks are named by the collection. */
+export function impliedCollectionType(name?: string | null): string | undefined {
+  const text = name?.trim()
+  if (!text) return undefined
+  return extractCollectionFamily(text)
+}
+
+const COLLECTION_LEAD =
+  /^(?:the|a|an|my|this|that|in|for|from|our|to|into|is|it|was|its|correct)\s+/i
+
+function tidyCollectionName(raw: string): string {
+  let name = normalizeCollectionName(raw)
+  for (let pass = 0; pass < 4 && COLLECTION_LEAD.test(name); pass += 1) {
+    name = name.replace(COLLECTION_LEAD, '').trim()
+  }
+  return name
+}
+
 function extractDesignNameNearItemNumber(
   text: string,
   itemNumber: string,
@@ -228,7 +301,9 @@ function extractDesignNameNearItemNumber(
     new RegExp(`\\b${escapedItemNumber}\\b\\s*(?:[,;:\\-=]|is)?\\s*([^.;\\n]+)`, 'i'),
   )
   const rawCandidate = match?.[1]?.split(/\s*,\s*/)[0]?.trim() ?? ''
-  const candidate = rawCandidate.replace(/^["']|["']$/g, '').trim()
+  const candidate = trimDesignCandidate(
+    rawCandidate.replace(/^["']|["']$/g, '').trim(),
+  )
   if (!candidate) return null
   if (
     !/\b(rings?|earrings?|necklaces?|bracelets?|pendants?|stacks?|hoops?|studs?)\b/i.test(
@@ -238,6 +313,13 @@ function extractDesignNameNearItemNumber(
     return null
   }
   return candidate
+}
+
+function trimDesignCandidate(candidate: string): string {
+  return candidate
+    .split(/\b(?:size|collection|standard|diamond|unicorn)\b/i)[0]
+    ?.replace(/[,:\-]\s*$/, '')
+    .trim() ?? ''
 }
 
 function normalizeCapitalizedPhrase(raw: string): string {

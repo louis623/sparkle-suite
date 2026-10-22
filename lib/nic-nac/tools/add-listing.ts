@@ -54,6 +54,7 @@ import {
   resolvePhotoContentSha256,
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
+import { impliedCollectionType } from '@/lib/nic-nac/workflows/trade-board-known-fields'
 import {
   decideLabelItemNumber,
   decideLabelSave,
@@ -2069,6 +2070,83 @@ async function runNonItemNumberSingle(
   }
 }
 
+function definedFields<T extends Record<string, unknown>>(value: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined),
+  ) as Partial<T>
+}
+
+/**
+ * An item number means this is that piece, even if the model called it a
+ * non-item listing. Details the rep already gave fill anything the call omitted.
+ */
+export function carryKnownListingFields(
+  input: ToolInput,
+  workflow:
+    | {
+        status?: string
+        catalogMode?: 'item_number' | 'non_item_number'
+        known?: {
+          itemNumber?: string
+          designName?: string
+          collectionName?: string
+          collectionFamily?: string
+          collectionYear?: number
+          material?: string
+          mainStone?: string
+          ringSize?: string
+          rarityClassification?: 'standard' | 'diamond' | 'unicorn'
+          jewelryType?: 'RG' | 'NK' | 'ER' | 'ST' | 'BR'
+        }
+      }
+    | null
+    | undefined,
+): Partial<ToolInput> {
+  const known = workflow?.status === 'active' ? workflow.known ?? {} : {}
+  const text = (value?: string | null) => {
+    const trimmed = value?.trim()
+    return trimmed ? trimmed : undefined
+  }
+  const explicitItem = text(input.itemNumber)
+  const workflowNonItem = workflow?.catalogMode === 'non_item_number'
+  const itemNumber = explicitItem ?? (workflowNonItem ? undefined : text(known.itemNumber))
+  const collectionName = text(input.collectionName) ?? text(known.collectionName)
+  const implied = impliedCollectionType(collectionName)
+  const collectionFamily =
+    text(input.collectionFamily) ?? text(known.collectionFamily) ?? implied
+  const modelCalledNonItem = input.catalogMode === 'non_item_number'
+  const promoteKnownDesign = Boolean(
+    itemNumber &&
+      modelCalledNonItem &&
+      !workflowNonItem &&
+      !text(input.designName),
+  )
+  const shared = {
+    collectionName,
+    material: text(input.material) ?? text(known.material),
+    mainStone: text(input.mainStone) ?? text(known.mainStone),
+    ringSize: text(input.ringSize) ?? text(known.ringSize),
+    rarityClassification: input.rarityClassification ?? known.rarityClassification,
+    jewelryType: input.jewelryType ?? known.jewelryType,
+    collectionYear: input.collectionYear ?? known.collectionYear,
+    designName:
+      text(input.designName) ??
+      (promoteKnownDesign ? text(known.designName) : undefined),
+  }
+  if (!itemNumber) {
+    return definedFields({
+      ...shared,
+      collectionFamily: collectionFamily ?? collectionName,
+    })
+  }
+  return definedFields({
+    ...shared,
+    catalogMode: 'item_number' as const,
+    itemNumber,
+    collectionFamily,
+  })
+}
+
 async function runSingle(
   input: ToolInput,
   ctx: {
@@ -2082,10 +2160,11 @@ async function runSingle(
   },
   admin: SupabaseClient,
 ) {
-  const { itemNumber, designName, piecePhotoUrl, collectionName } = input
   let activeWorkflow = workflowWithPublishableJewelryFront(
     ctx.activeTradeBoardWorkflow,
   )
+  Object.assign(input, carryKnownListingFields(input, activeWorkflow))
+  const { itemNumber, designName, piecePhotoUrl, collectionName } = input
   if (activeWorkflow?.status === 'active' && activeWorkflow.photos.length >= 2) {
     const corrected = await correctJewelryVersusLabelPhotos(activeWorkflow.photos)
     activeWorkflow.photos = corrected
@@ -2102,8 +2181,9 @@ async function runSingle(
   })
 
   if (
-    input.catalogMode === 'non_item_number' ||
-    (!itemNumber && activeWorkflow?.catalogMode === 'non_item_number')
+    !itemNumber &&
+    (input.catalogMode === 'non_item_number' ||
+      activeWorkflow?.catalogMode === 'non_item_number')
   ) {
     return runNonItemNumberSingle(
       input,

@@ -349,24 +349,29 @@ export function buildTradeBoardIntakePromptState(
       'catalog and Finder keep jewelry-facing quality; if the rep says the piece is Bomb Party, a good-quality-looking image is enough — do not invent extra proof hurdles',
       ...(state.metadata.declinedSharedPhoto === true
         ? [
-            `The rep said no to the shared photo. Keep these details: ${
+            `The rep said no to the shared photo. Already confirmed: ${
               [
                 state.known.itemNumber,
-                state.known.material,
                 state.known.designName,
+                state.known.collectionName,
+                state.known.material,
                 state.known.mainStone,
+                state.known.ringSize ? `size ${state.known.ringSize}` : '',
+                state.known.rarityClassification,
               ]
                 .filter(Boolean)
                 .join(', ') || 'the details already collected'
-            }. Use the new photo for this piece. Do not offer that photo as the main photo.`,
+            }. Do not ask for these again. Use the new photo for this piece. Do not offer that photo as the main photo.`,
           ]
         : []),
       'Never say "catalog record" or "shared catalog" to the rep.',
       'The main photo is the jewelry photo. Never describe or save a label as the main photo.',
+      'Never call a clear product photo artwork. If it is blurry, say it is blurry. If the label item number does not match, say that.',
+      'Do not ask again for a detail the rep already gave. When the collection name implies Birthday, OG, Luxe, Original, Sterling, or Stacks, use that as the collection type.',
       'A photo already on another piece is never the main photo for this piece.',
       ...(state.metadata.carriedFromRollover === true
         ? [
-            'The details already listed are confirmed. Do not ask for the item number, size, or rarity again. The photo was not brought into this chat, so ask for that photo again.',
+            'The details already listed are confirmed. Do not ask for the item number, size, rarity, metal, stone, design name, or collection again. The photo was not brought into this chat, so ask for that photo again.',
           ]
         : []),
     ],

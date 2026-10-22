@@ -580,12 +580,56 @@ export function scrubInternalCatalogPhrases(text: string): string {
   return next
 }
 
+export const PHOTO_BLAME =
+  /artwork|isn'?t a photo of|is not a photo of|doesn'?t show the (?:jewelry|earrings|ring|necklace|piece)|does not show the (?:jewelry|earrings|ring|necklace|piece)/i
+
+export function blameNamesAnotherItem(
+  text: string,
+  itemNumber?: string | null,
+): string | null {
+  const current = itemNumber?.trim().toUpperCase() || ''
+  const found = text.match(/\b[A-Z]{1,4}\d{3,}\b/gi) ?? []
+  return (
+    found.map((value) => value.toUpperCase()).find((value) => value !== current) ??
+    null
+  )
+}
+
+/** Say the real problem. A clear product photo is not artwork. */
+export function photoBlameCorrection(args: {
+  text: string
+  itemNumber?: string | null
+  labelItemNumber?: string | null
+  blurry?: boolean
+  acceptedProductPhoto?: boolean
+}): string | null {
+  if (!PHOTO_BLAME.test(args.text)) return null
+  const item = args.itemNumber?.trim().toUpperCase() || ''
+  const label =
+    args.labelItemNumber?.trim().toUpperCase() ||
+    blameNamesAnotherItem(args.text, item)
+  if (label && item && label !== item) {
+    return `The label says ${label}. I won't save it on ${item}. Send the label for ${item}.`
+  }
+  if (args.blurry) return 'That photo is too blurry. Send a clearer photo of the jewelry.'
+  if (args.acceptedProductPhoto) return 'I have that photo.'
+  return null
+}
+
 /** Holds a short tail so a phrase split across stream deltas is still removed. */
-export function createRepTextScrubber() {
+export function createRepTextScrubber(options?: {
+  correctPhotoBlame?: (text: string) => string | null
+}) {
+  const correct = options?.correctPhotoBlame
   const tail = 'catalog records'.length - 1
   let hold = ''
+  let buffered = ''
   return {
     push(delta: string): string {
+      if (correct) {
+        buffered += delta
+        return ''
+      }
       hold += delta
       if (hold.length <= tail) return ''
       const scrubbed = scrubInternalCatalogPhrases(hold)
@@ -594,6 +638,11 @@ export function createRepTextScrubber() {
       return emit
     },
     flush(): string {
+      if (correct) {
+        const scrubbed = scrubInternalCatalogPhrases(buffered)
+        buffered = ''
+        return correct(scrubbed) ?? scrubbed
+      }
       const emit = scrubInternalCatalogPhrases(hold)
       hold = ''
       return emit

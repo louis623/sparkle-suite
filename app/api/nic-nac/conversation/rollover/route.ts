@@ -9,6 +9,7 @@ import {
 } from '@/lib/nic-nac/persistence'
 import { findActionableApproval } from '@/lib/nic-nac/hitl-state'
 import { buildNicNacRolloverMessages } from '@/lib/nic-nac/rollover'
+import { enrichKnownFromPieceMessages } from '@/lib/nic-nac/workflows/trade-board-known-fields'
 import { logNicNacRollover } from '@/lib/nic-nac/rollover-telemetry'
 import {
   copyConfirmedPieceDetailsToConversation,
@@ -70,7 +71,9 @@ export async function POST(request: Request) {
     activeIntake &&
     (activeIntake.status === 'active' ||
       activeIntake.status === 'needs_human_review')
-  const known = unfinished ? activeIntake.known : null
+  const known = unfinished
+    ? enrichKnownFromPieceMessages(activeIntake.known, sourceMessages)
+    : null
   const messages = buildNicNacRolloverMessages(sourceMessages, undefined, {
     dropPendingPiece: true,
     ...(unfinished
@@ -82,6 +85,7 @@ export async function POST(request: Request) {
             material: known?.material,
             mainStone: known?.mainStone,
             designName: known?.designName,
+            collectionName: known?.collectionName,
           },
         }
       : {}),
@@ -96,7 +100,7 @@ export async function POST(request: Request) {
       await copyConfirmedPieceDetailsToConversation(admin, {
         repId,
         conversationId,
-        source: activeIntake,
+        source: { ...activeIntake, known: known ?? activeIntake.known },
       })
     } catch {
       // The fresh chat still opens. Details are also in the one notice.

@@ -24,6 +24,7 @@ import {
   abortAssistant,
   checkpointAssistant,
   recordApprovalEvent,
+  findForwardRolloverDestination,
 } from '@/lib/nic-nac/persistence'
 import {
   getToolIntentsForMessages,
@@ -83,7 +84,13 @@ import {
   NIC_NAC_EMPTY_RESPONSE_FALLBACK,
   scrubInternalCatalogPhrases,
   recoverNicNacEmptyCalendarRead,
+  photoBlameCorrection,
 } from '@/lib/nic-nac/core/stream-output-guard'
+import {
+  directPieceReply,
+  labelMismatchSentence,
+  MOVED_ON_MESSAGE,
+} from '@/lib/nic-nac/turn-replies'
 import { readMyShowsForNicNac } from '@/lib/nic-nac/tools/list-my-shows'
 import { buildPersonalizedRepGreeting } from '@/lib/nic-nac/core/rep-personalization'
 import { createConfiguredNicNacAgent } from '@/lib/nic-nac/agent'
@@ -732,6 +739,77 @@ export async function POST(request: Request) {
         workflowPromptState: '',
         modelPieceContext: EMPTY_PIECE_MODEL_CONTEXT,
       }
+  const latestUserHasImage =
+    latestUserMessage?.parts?.some(
+      (part) =>
+        (part as { type?: string }).type === 'file' &&
+        (part as { mediaType?: string }).mediaType?.startsWith('image/'),
+    ) ?? false
+  if (mode === 'workspace' && !supportScope) {
+    const movedTo = await findForwardRolloverDestination(
+      workflowSupabase,
+      repId,
+      conversationId,
+    )
+    const sessionAfter = tradeBoardWorkflowContext.sessionAfter
+    const pieceReply = movedTo
+      ? MOVED_ON_MESSAGE
+      : directPieceReply({
+          messages,
+          latestUserText,
+          latestUserHasImage,
+          known: sessionAfter?.known,
+        })
+    const mismatch = sessionAfter?.metadata.labelItemNumberMismatch
+    const mismatchTurn = sessionAfter?.metadata.labelMismatchMessageId
+    const labelReply =
+      !pieceReply &&
+      latestUserHasImage &&
+      typeof mismatch === 'string' &&
+      mismatch.trim() &&
+      mismatchTurn === latestUserMessage?.id &&
+      sessionAfter?.known.itemNumber
+        ? labelMismatchSentence(mismatch, sessionAfter.known.itemNumber)
+        : null
+    const directText = pieceReply || labelReply
+    if (directText) {
+      await completeAssistant(supabase, {
+        conversationId,
+        messageId: assistantMessageId,
+        parts: [{ type: 'text', text: directText }],
+      })
+      await logNicNacRun({
+        runId,
+        repId,
+        conversationId,
+        model: 'direct_reply',
+        status: 'complete',
+        latencyMs: Date.now() - runStartedAt,
+        intents: [],
+        toolNames: [],
+        productContext,
+        modelContext: {
+          originalMessageCount: messages.length,
+          modelMessageCount: 0,
+          droppedMessageCount: 0,
+          estimatedTokens: 0,
+          wasCompacted: false,
+        },
+        usage: {
+          inputTokens: 0,
+          outputTokens: 0,
+          totalTokens: 0,
+          estimatedCostCents: 0,
+        },
+        errorMessage: 'direct_reply',
+      })
+      return createNicNacStaticTextStreamResponse({
+        message: directText,
+        messageId: assistantMessageId,
+        headers: responseHeaders,
+      })
+    }
+  }
   const activeTradeBoardWorkflow =
     tradeBoardWorkflowContext.sessionAfter ??
     workflowTaskContinuity.tradeBoardSession
@@ -797,12 +875,7 @@ export async function POST(request: Request) {
       defaultTimeZone: rep.time_zone,
       agentHarness: true,
       latestUserText,
-      latestUserHasImage:
-        latestUserMessage?.parts?.some(
-          (part) =>
-            (part as { type?: string }).type === 'file' &&
-            (part as { mediaType?: string }).mediaType?.startsWith('image/'),
-        ) ?? false,
+      latestUserHasImage,
       activeTradeBoardWorkflow,
       activeTradeWorkflow,
       activeCalendarWorkflow,
@@ -905,7 +978,33 @@ export async function POST(request: Request) {
       let toolFailureRecoveryText: string | null = null
       let mandatoryToolFollowUpText: string | null = null
       let renderedText = ''
-      const repTextScrubber = createRepTextScrubber()
+      const blameSession = tradeBoardWorkflowContext.sessionAfter
+      const blamePhoto = [...(blameSession?.photos ?? [])]
+        .reverse()
+        .find((photo) => photo.conversationMessageId === latestUserMessage?.id)
+      const blameBlurry = Boolean(blamePhoto?.qualityIssues?.includes('blur_risk'))
+      const blameAccepted = Boolean(
+        blamePhoto &&
+          blamePhoto.declaredRole === 'jewelry_front' &&
+          blamePhoto.quality !== 'blocked' &&
+          !blameBlurry,
+      )
+      const storedMismatch = blameSession?.metadata.labelItemNumberMismatch
+      const repTextScrubber = createRepTextScrubber(
+        latestUserHasImage || typeof storedMismatch === 'string'
+          ? {
+              correctPhotoBlame: (text) =>
+                photoBlameCorrection({
+                  text,
+                  itemNumber: blameSession?.known.itemNumber,
+                  labelItemNumber:
+                    typeof storedMismatch === 'string' ? storedMismatch : null,
+                  blurry: blameBlurry,
+                  acceptedProductPhoto: blameAccepted,
+                }),
+            }
+          : undefined,
+      )
 
       const emitHide = (reason: 'plain-text' | 'final-text' | 'finish' | 'error') => {
         if (!currentlyVisible) return

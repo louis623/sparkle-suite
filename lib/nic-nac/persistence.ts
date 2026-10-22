@@ -209,78 +209,60 @@ export async function clearActiveConversationsForRep(
   )
 }
 
-function linkedConversationIds(
-  startId: string,
-  edges: Array<{ source?: string | null; destination?: string | null }>,
-): string[] {
-  const forward = new Map<string, string[]>()
-  const backward = new Map<string, string[]>()
-  for (const edge of edges) {
-    const source = edge.source?.trim()
-    const destination = edge.destination?.trim()
-    if (!source || !destination) continue
-    forward.set(source, [...(forward.get(source) ?? []), destination])
-    backward.set(destination, [...(backward.get(destination) ?? []), source])
-  }
-  const found = new Set<string>([startId])
-  const queue = [startId]
-  while (queue.length > 0) {
-    const current = queue.shift()
-    if (!current) continue
-    for (const next of [...(forward.get(current) ?? []), ...(backward.get(current) ?? [])]) {
-      if (found.has(next)) continue
-      found.add(next)
-      queue.push(next)
-    }
-  }
-  return [...found]
-}
-
 /**
- * Clear the open chat and every rollover that belongs to it, then leave a
- * hidden marker so the next visit opens the new empty chat.
+ * Clear starts a new empty chat. The chat that was open stays in Recent, so
+ * it is not marked cleared. A pending marker makes the new chat the latest.
  */
 export async function clearNicNacConversationChain(
   supabase: SupabaseClient,
-  admin: SupabaseClient,
+  _admin: SupabaseClient,
   repId: string,
   conversationId: string,
   nextConversationId: string,
 ): Promise<string[]> {
-  let ids = [conversationId]
-  try {
-    const { data, error } = await admin
-      .from('nic_nac_rollovers')
-      .select('source_conversation_id, destination_conversation_id')
-      .eq('rep_id', repId)
-      .order('created_at', { ascending: false })
-      .limit(200)
-    if (!error) {
-      ids = linkedConversationIds(
-        conversationId,
-        (data ?? []).map((row) => ({
-          source: (row as { source_conversation_id?: string }).source_conversation_id,
-          destination: (row as { destination_conversation_id?: string })
-            .destination_conversation_id,
-        })),
-      )
-    }
-  } catch {
-    ids = [conversationId]
-  }
-  const cleared: string[] = []
-  for (const id of ids) {
-    cleared.push(...(await clearActiveConversationsForRep(supabase, repId, id)))
-  }
   const nextId = nextConversationId.trim()
-  if (nextId && nextId !== conversationId && !ids.includes(nextId)) {
+  if (nextId && nextId !== conversationId) {
     await reserveAssistantMessage(supabase, {
       conversationId: nextId,
       repId,
       messageId: `fresh-start-${nextId}`,
     })
   }
-  return Array.from(new Set(cleared))
+  return []
+}
+
+/** The newest chat this one rolled into, or null when this chat is current. */
+export async function findForwardRolloverDestination(
+  supabase: SupabaseClient,
+  repId: string,
+  conversationId: string,
+): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from('nic_nac_rollovers')
+      .select('source_conversation_id, destination_conversation_id')
+      .eq('rep_id', repId)
+      .order('created_at', { ascending: true })
+      .limit(200)
+    if (error || !Array.isArray(data)) return null
+    const forward = new Map<string, string>()
+    for (const row of data) {
+      const source = (row as { source_conversation_id?: string }).source_conversation_id?.trim()
+      const destination = (
+        row as { destination_conversation_id?: string }
+      ).destination_conversation_id?.trim()
+      if (source && destination) forward.set(source, destination)
+    }
+    let current = conversationId
+    const seen = new Set<string>()
+    while (forward.has(current) && !seen.has(current)) {
+      seen.add(current)
+      current = forward.get(current) ?? current
+    }
+    return current !== conversationId ? current : null
+  } catch {
+    return null
+  }
 }
 
 export async function insertUserMessage(

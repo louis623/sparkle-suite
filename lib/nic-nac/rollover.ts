@@ -122,6 +122,7 @@ export function buildNicNacRolloverMessages(
       material?: string | null
       mainStone?: string | null
       designName?: string | null
+      collectionName?: string | null
     }
   },
 ): UIMessage[] {
@@ -165,6 +166,7 @@ export function buildNicNacRolloverMessages(
             material: details?.material,
             mainStone: details?.mainStone,
             designName: details?.designName,
+            collectionName: details?.collectionName,
           }),
         },
       ],
