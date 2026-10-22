@@ -3,7 +3,7 @@ import type { UIMessage } from 'ai'
 import { createChatDatabase } from './fixtures/sql-client'
 import { DESIGN,PHOTO,REP,SESSION,installIntakeSchema,seedPiece } from './fixtures/intake-database'
 import { loadCanonicalHistory,insertConversationMessages } from '@/lib/nic-nac/persistence'
-const state=vi.hoisted(()=>({client:null as any,labelUrl:'',analysis:{} as Record<string,unknown>,uploads:[] as Array<{data:string,name:string}>,model:vi.fn(),crop:vi.fn(),enhance:vi.fn()}))
+const state=vi.hoisted(()=>({client:null as any,labelUrl:'',labelItemNumber:'NK11312',analysisWait:vi.fn(),analysis:{} as Record<string,unknown>,uploads:[] as Array<{data:string,name:string}>,model:vi.fn(),crop:vi.fn(),enhance:vi.fn()}))
 vi.mock('@/lib/nic-nac/auth',()=>({AuthError:class extends Error{},getPaidNicNacContext:async()=>({repId:'10000000-0000-4000-8000-000000000001',rep:{auth_user_id:'synthetic'},supabase:state.client})}))
 vi.mock('@/lib/supabase/admin',()=>({createAdminClient:()=>state.client}))
 vi.mock('@/lib/nic-nac/guardian-telemetry',()=>({logIncident:async()=>{},logToolExecution:async()=>{}}))
@@ -13,8 +13,8 @@ vi.mock('@/lib/nic-nac/core/memory/rep-memory-cards',()=>({loadSuiteRepMemoryCar
 vi.mock('@/lib/nic-nac/agent',()=>({createConfiguredNicNacAgent:(...args:any[])=>state.model(...args)}))
 // Pixel/OCR and remote storage are deterministic boundaries; intake, controller,
 // listing tool, listing service and the checked-in listing SQL RPC remain real.
-vi.mock('@/lib/services/server-image-quality',()=>({analyzeServerImageQuality:async()=>({contentType:'image/png',width:1200,height:1200,blurRisk:0.1,lightingRisk:0.1,detailRisk:0.1,backgroundDistractionRisk:0.1,subjectCoverage:0.55,subjectCentered:true,subjectCenterX:0.5,subjectCenterY:0.5,detailConfidence:0.9,backgroundUniformity:0.9,backgroundCleanliness:0.9,...state.analysis})}))
-vi.mock('@/lib/nic-nac/workflows/label-item-number',async(original)=>({...await original<any>(),readLabelPhoto:async(url:string)=>({outcome:url===state.labelUrl?'read':'unreadable',itemNumbers:url===state.labelUrl?['NK11312']:[]}),readStoredLabelItemNumbers:async({url}:{url:string})=>url===state.labelUrl?['NK11312']:[]}))
+vi.mock('@/lib/services/server-image-quality',()=>({analyzeServerImageQuality:async()=>{await state.analysisWait();return ({contentType:'image/png',width:1200,height:1200,blurRisk:0.1,lightingRisk:0.1,detailRisk:0.1,backgroundDistractionRisk:0.1,subjectCoverage:0.55,subjectCentered:true,subjectCenterX:0.5,subjectCenterY:0.5,detailConfidence:0.9,backgroundUniformity:0.9,backgroundCleanliness:0.9,...state.analysis})}}))
+vi.mock('@/lib/nic-nac/workflows/label-item-number',async(original)=>({...await original<any>(),readLabelPhoto:async(url:string)=>({outcome:url===state.labelUrl?'read':'unreadable',itemNumbers:url===state.labelUrl?[state.labelItemNumber]:[]}),readStoredLabelItemNumbers:async({url}:{url:string})=>url===state.labelUrl?[state.labelItemNumber]:[]}))
 vi.mock('@/lib/services/storage',async(original)=>({...await original<any>(),uploadStagedOriginalPhoto:async(_rep:string,data:string,name:string)=>({objectPath:name,signedUrl:'https://storage.test/'+name}),uploadCatalogDesignSourcePhoto:async(rep:string,_design:string,data:string,name:string)=>{state.uploads.push({data,name});return {objectPath:name,publicUrl:'https://storage.test/storage/v1/object/public/jewelry-photos/'+rep+'/'+name+'.png'}},uploadJewelryPhoto:async(_rep:string,data:string,name:string)=>{state.uploads.push({data,name});return `https://storage.test/storage/v1/object/public/jewelry-photos/${_rep}/${name}.png`}}))
 vi.mock('@/lib/services/jewelry-photo-crop',()=>({createGuardedJewelryPhotoCrop:(...args:any[])=>state.crop(...args)}))
 vi.mock('@/lib/services/photo-enhancement',()=>({executePhotoEnhancement:(...args:any[])=>state.enhance(...args)}))
@@ -34,7 +34,7 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
   let db:Awaited<ReturnType<typeof createChatDatabase>>
   beforeAll(async()=>{db=await createChatDatabase();state.client=db.client;await installIntakeSchema(db.sql)},60000)
   afterAll(async()=>{await db.sql.close()})
-  beforeEach(async()=>{await seedPiece(db.sql);state.uploads=[];state.labelUrl='';state.analysis={};state.crop.mockClear();state.enhance.mockClear();state.model.mockReset();state.model.mockImplementation(()=>{throw new Error('Unexpected model path')})})
+  beforeEach(async()=>{await seedPiece(db.sql);state.uploads=[];state.labelUrl='';state.labelItemNumber='NK11312';state.analysisWait.mockReset();state.analysis={};state.crop.mockClear();state.enhance.mockClear();state.model.mockReset();state.model.mockImplementation(()=>{throw new Error('Unexpected model path')})})
   async function stored(message:UIMessage){await insertConversationMessages(db.client,{repId:REP,conversationId:'piece-chat',messages:[message]})}
   async function turn(id:string,text:string,photo?:string|string[]){
     const messages=await loadCanonicalHistory(db.client,'piece-chat')
@@ -240,6 +240,73 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
     expect(state.uploads).toHaveLength(1)
     expect(state.uploads[0].data).toBe(jewelry)
+  })
+
+  it.each(['single', 'last-preview', 'split-prose', 'url-preview'])('one yes waits for a pending photo check and saves RG17101 exactly once (%s)',async(shape)=>{
+    await db.sql.exec("delete from jewelry_designs; update trade_board_intake_sessions set item_number='RG17101', jewelry_type='RG', ring_size='10'")
+    state.labelItemNumber='RG17101'
+    const jewelry='data:image/png;base64,cnVuMTctamV3ZWxyeQ=='
+    state.labelUrl='data:image/png;base64,cnVuMTctbGFiZWw='
+    state.model.mockImplementation(({toolContext}:any)=>({catalog:{allowedIntents:['trade_board'],requestedIntents:['trade_board'],toolNames:['add_listing'],source:'workspace_permissions',blockedIntents:[],blockedToolNames:[]},agent:{stream:async()=>({toUIMessageStream:async function*(){
+      const photo=toolContext.activeTradeBoardWorkflow.photos.find((p:any)=>p.imageUrl===jewelry)
+      const input={mode:'single' as const,itemNumber:'RG17101',selectedPhotoId:photo.id}
+      const output=await makeAddListingTool(toolContext).execute!(input,{} as any)
+      yield {type:'tool-input-available',toolCallId:'run17-preview',toolName:'add_listing',input}
+      yield {type:'tool-output-available',toolCallId:'run17-preview',output}
+      yield {type:'text-start',id:'run17-text'}
+      yield {type:'text-delta',id:'run17-text',delta:'Is this the correct main photo to save for it?'}
+      yield {type:'text-end',id:'run17-text'}
+    }})}}))
+    await turn('run17-jewelry','Here is the jewelry photo for RG17101.',jewelry)
+    expect(await turn('run17-label','Here is the label.',state.labelUrl)).toContain('confirm_main_photo')
+    const preview=(await loadCanonicalHistory(db.client,'piece-chat')).at(-1)!
+    const parts=structuredClone(preview.parts) as any[]
+    const card=parts.find(p=>p.output?.needsAction==='confirm_main_photo')
+    expect(card.output.previewPhotoId).toBeTruthy()
+    if(shape==='last-preview') {
+      parts.unshift({...card,toolCallId:'earlier-preview',output:{...card.output,previewPhotoId:PHOTO}})
+    } else if(shape==='url-preview') {
+      card.output.previewImageUrl='/api/nic-nac/intake-photos/'+card.output.previewPhotoId
+      delete card.output.previewPhotoId
+    }
+    if(shape!=='single') await db.sql.query("update nic_nac_conversations set parts=$1::jsonb where conversation_id='piece-chat' and message_id=$2",[JSON.stringify(parts),preview.id])
+    if(shape==='split-prose') await stored({id:'run17-tail',role:'assistant',parts:[{type:'text',text:'Is this the correct main photo to save for it?'}]})
+    let release!:()=>void
+    let started!:()=>void
+    const waiting=new Promise<void>(resolve=>{started=resolve})
+    const check=new Promise<void>(resolve=>{release=resolve})
+    state.analysisWait.mockImplementationOnce(()=>{started();return check})
+    const saving=turn('run17-yes','yes')
+    try {
+      await Promise.race([waiting,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Save never reached photo analysis')),3000))])
+      expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+      expect(state.uploads).toHaveLength(0)
+      // A concurrent delivery cannot execute another save while analysis is pending.
+      const messages=await loadCanonicalHistory(db.client,'piece-chat')
+      const duplicate=await POST(new Request('http://local.test/api/nic-nac',{method:'POST',body:JSON.stringify({conversationId:'piece-chat',mode:'workspace',messages,submittedMessageId:'run17-yes'})}))
+      expect(duplicate.status).toBe(409)
+    } finally {release()}
+    const reply=await saving
+    expect(reply).toContain('RG17101 is on your Dance Floor')
+    expect(reply).not.toMatch(/photo check|once more|retry|looping|confirmation step/)
+    expect(state.model).toHaveBeenCalledTimes(1)
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
+    expect(state.uploads).toHaveLength(1)
+    expect(state.uploads[0].data).toBe(jewelry)
+    expect(await turn('run17-yes','yes')).toContain('RG17101 is on your Dance Floor')
+    expect(state.uploads).toHaveLength(1)
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
+  })
+
+  it('a genuine photo-analysis failure uses plain language and does not upload or save',async()=>{
+    await oldPhoto();await turn('no','no');await turn('replacement',"Here's the right photo",'data:image/png;base64,ZmFpbGVkLWNoZWNr')
+    state.analysisWait.mockRejectedValueOnce(new Error('decoder unavailable'))
+    const reply=await turn('failed-check-yes','yes')
+    expect(reply).toContain("I couldn't read that photo")
+    expect(reply).not.toMatch(/photo check|once more|retry the save|decoder|confirmation step/)
+    expect(state.uploads).toHaveLength(0)
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+    expect(state.model).not.toHaveBeenCalled()
   })
 
   it.each([

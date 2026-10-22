@@ -1,5 +1,7 @@
 import 'server-only'
 
+import { lastShownMainPhotoPreview } from './main-photo-preview'
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createHash } from 'crypto'
 import type { UIMessage } from 'ai'
@@ -733,7 +735,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
       }
     }
   } else if (latestTurnConfirmsMainPhoto(args.messages)) {
-    const shownPreview = lastShownMainPhotoPreview(args.messages)
+    const shownPreview = lastShownMainPhotoPreview(args.messages, photos)
     const confirmedPhotoId = shownPreview.id
     const confirmedItemNumber = photoConfirmationPieceKey({
       itemNumber: mainPhotoConfirmedItemNumber(
@@ -753,7 +755,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
     }
   } else if (latestTurnTurnsDownMainPhoto(args.messages)) {
     if (declinedSharedPhoto) metadata.declinedSharedPhoto = true
-    const shownPreview = lastShownMainPhotoPreview(args.messages)
+    const shownPreview = lastShownMainPhotoPreview(args.messages, photos)
     const turnedDownId = shownPreview.shown
       ? shownPreview.id
       : currentMainPhotoIdentity(photos)
@@ -1114,49 +1116,6 @@ function previousAssistantMessage(
   return previous?.role === 'assistant' ? previous : undefined
 }
 
-function isMainPhotoPreviewOutput(output: {
-  needsAction?: unknown
-  code?: unknown
-  previewPhotoId?: unknown
-  previewImageUrl?: unknown
-} | null | undefined): boolean {
-  if (!output) return false
-  if (output.needsAction === 'confirm_main_photo') return true
-  if (output.code !== 'PHOTO_REUSED_ON_OTHER_ITEM') return false
-  const previewPhotoId =
-    typeof output.previewPhotoId === 'string' ? output.previewPhotoId.trim() : ''
-  const previewImageUrl =
-    typeof output.previewImageUrl === 'string' ? output.previewImageUrl.trim() : ''
-  return Boolean(previewPhotoId || previewImageUrl)
-}
-
-function lastShownMainPhotoPreview(messages: UIMessage[]): {
-  shown: boolean
-  id: string | null
-} {
-  const previousAssistant = previousAssistantMessage(messages)
-  let shown = false
-  let id: string | null = null
-  for (const part of previousAssistant?.parts ?? []) {
-    const output = (
-      part as {
-        output?: {
-          needsAction?: unknown
-          code?: unknown
-          previewPhotoId?: unknown
-          previewImageUrl?: unknown
-        }
-      }
-    ).output
-    if (!isMainPhotoPreviewOutput(output)) continue
-    shown = true
-    const previewPhotoId =
-      typeof output?.previewPhotoId === 'string' ? output.previewPhotoId.trim() : ''
-    id = previewPhotoId || null
-  }
-  return { shown, id }
-}
-
 function photoMatchesPreviewId(
   photo: TradeBoardIntakeSessionState['photos'][number],
   previewId: string,
@@ -1198,6 +1157,7 @@ function currentMainPhotoIdentity(
 }
 
 function previousAssistantAskedForMainPhoto(messages: UIMessage[]): boolean {
+  if (lastShownMainPhotoPreview(messages).shown) return true
   const previousAssistant = previousAssistantMessage(messages)
   if (/main photo I will save/i.test(getMessageText(previousAssistant))) return true
   return (previousAssistant?.parts ?? []).some((part) => {

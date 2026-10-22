@@ -1,3 +1,4 @@
+import { analyzeListingPhoto } from './listing-photo-analysis'
 import { getPhotoroomConfig } from '@/lib/photoroom/config'
 import { randomUUID } from 'crypto'
 import { errors, ServiceError } from '@/lib/services/errors'
@@ -125,7 +126,7 @@ export async function processRepListingPhotoUrl(
   const fetchImpl = options.fetch ?? fetch
   const confirmedJewelryFront = options.confirmedJewelryFront === true
   const fetched = await fetchImageBytes(input, fetchImpl)
-  const metadata = await analyzeServerImageQuality(fetched.bytes)
+  const metadata = await analyzeListingPhoto(fetched.bytes)
   const semantic = classifyJewelryPhotoSemantics(metadata)
   const preflight = assessJewelryPhotoPreflight({
     width: metadata.width,

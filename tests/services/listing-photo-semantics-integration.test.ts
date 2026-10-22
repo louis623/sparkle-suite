@@ -446,4 +446,23 @@ describe('listing/design photo semantic integration', () => {
     expect(uploadCatalogDesignSourcePhotoMock).toHaveBeenCalledExactlyOnceWith('rep-1','d','data:image/jpeg;base64,AQID','NK123-source')
   })
 
+  it.each(['listing', 'design'])('times out a pending %s analysis without a late photo upload',async(kind)=>{
+    vi.useFakeTimers()
+    let release!:(value:typeof smallJewelryAnalysis)=>void
+    analyzeServerImageQualityMock.mockImplementationOnce(()=>new Promise(resolve=>{release=resolve}))
+    try {
+      const pending=kind==='listing'
+        ? processRepListingPhotoUrl({repId:'rep-1',sourceImageUrl:'data:image/jpeg;base64,AQID',filenameStem:'NK123'}, {publishOriginalUpload:true,confirmedJewelryFront:true})
+        : prepareDesignSourcePhoto({repId:'rep-1',designId:'d',sourceImageDataUrl:'data:image/jpeg;base64,AQID',filenameStem:'NK123'}, {publishOriginalUpload:true,confirmedJewelryFront:true})
+      const rejected=expect(pending).rejects.toMatchObject({code:'LISTING_PHOTO_ANALYSIS_UNAVAILABLE',userMessage:expect.stringContaining("I couldn't read that photo")})
+      await vi.advanceTimersByTimeAsync(20_001)
+      await rejected
+      release(smallJewelryAnalysis)
+      await vi.runAllTimersAsync()
+      expect(uploadJewelryPhotoMock).not.toHaveBeenCalled()
+      expect(uploadStagedOriginalPhotoMock).not.toHaveBeenCalled()
+      expect(uploadCatalogDesignSourcePhotoMock).not.toHaveBeenCalled()
+    } finally {vi.useRealTimers()}
+  })
+
 })

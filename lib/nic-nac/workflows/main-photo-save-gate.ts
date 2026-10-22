@@ -1,3 +1,4 @@
+import { lastShownMainPhotoPreview } from './main-photo-preview'
 import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 
 /**
@@ -86,25 +87,7 @@ export function yesCommitsPreviewedPhoto(args: {
 
 export function shownMainPhotoPreviewId(
   messages: Array<{ role?: string; parts?: unknown[] | null }>,
+  photos: Array<{ id?: string; imageUrl?: string }> = [],
 ): string | null {
-  const latestUserIndex = [...messages]
-    .map((message, index) => ({ message, index }))
-    .reverse()
-    .find((entry) => entry.message.role === 'user')?.index
-  if (latestUserIndex === undefined) return null
-  for (let index = latestUserIndex - 1; index >= 0; index -= 1) {
-    const message = messages[index]
-    if (message?.role === 'user') return null
-    if (message?.role !== 'assistant') continue
-    for (const part of message.parts ?? []) {
-      if (!part || typeof part !== 'object') continue
-      const output = (part as { output?: { needsAction?: unknown; previewPhotoId?: unknown } })
-        .output
-      if (output?.needsAction !== 'confirm_main_photo') continue
-      const id = typeof output.previewPhotoId === 'string' ? output.previewPhotoId.trim() : ''
-      if (id) return id
-    }
-    return null
-  }
-  return null
+  return lastShownMainPhotoPreview(messages, photos).id
 }

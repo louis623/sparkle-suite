@@ -1,7 +1,7 @@
+import { analyzeListingPhoto } from './listing-photo-analysis'
 import { assessJewelryPhotoPreflight } from '@/lib/services/jewelry-photo-preflight'
 import { ServiceError } from '@/lib/services/errors'
 import {
-  analyzeServerImageQuality,
   type ServerImageQualityAnalysis,
 } from '@/lib/services/server-image-quality'
 import {
@@ -122,7 +122,7 @@ export async function prepareDesignSourcePhoto(
         ? decodeDataUrl(input.sourceImageUrl)
         : await fetchRemoteImage(input.sourceImageUrl, fetchImpl)
 
-  const analysis = await analyzeServerImageQuality(fetched.bytes)
+  const analysis = await analyzeListingPhoto(fetched.bytes)
   const semantic = classifyJewelryPhotoSemantics(analysis)
   const preflight = assessJewelryPhotoPreflight({
     width: analysis.width,

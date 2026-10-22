@@ -1030,7 +1030,7 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
       Object.keys(extractKnownFieldsFromText(latestUserText)).length > 0
     ) ? requiredPiecePhotoRequest(sessionAfter.photos) : null
     let directText = skipLookupError || gateRefusal || photoRequest?.message || pieceReply || labelReply || disputeReply
-    const previewPhotoId = shownMainPhotoPreviewId(messages)
+    const previewPhotoId = shownMainPhotoPreviewId(messages, sessionAfter?.photos)
     const confirmationUsed = confirmationAlreadyUsed({
       submittedMessageId,
       previewPhotoId,

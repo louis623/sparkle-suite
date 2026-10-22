@@ -92,3 +92,30 @@ export function mainPhotoPreviewSrc(
   }
   return null
 }
+
+/** Last visible preview in the assistant turn immediately before the submitted user turn.
+ * Tool state and prose can occupy separate assistant messages. Never cross a user turn.
+ */
+export function lastShownMainPhotoPreview(
+  messages: Array<{ role?: string; parts?: unknown[] | null }>,
+  photos: Array<{ id?: string; imageUrl?: string }> = [],
+): { shown: boolean; id: string | null } {
+  const latestUser = messages.findLastIndex(message => message.role === 'user')
+  for (let index = latestUser - 1; index >= 0; index--) {
+    const message = messages[index]
+    if (message.role === 'user') break
+    if (message.role !== 'assistant') continue
+    for (const part of [...(message.parts ?? [])].reverse()) {
+      const output = (part as { output?: { needsAction?: string; code?: string; previewPhotoId?: string; previewImageUrl?: string } } | null)?.output
+      if (!output || (output.needsAction !== 'confirm_main_photo' &&
+        !(output.code === 'PHOTO_REUSED_ON_OTHER_ITEM' && (output.previewPhotoId || output.previewImageUrl)))) continue
+      const id = typeof output.previewPhotoId === 'string' ? output.previewPhotoId.trim() : ''
+      const url = typeof output.previewImageUrl === 'string' ? output.previewImageUrl.trim() : ''
+      // URL-only previews must identify an actual stored upload, never an arbitrary URL.
+      const stored = !id && url ? photos.find(photo => photo.imageUrl === url ||
+        (photo.id && url === '/api/nic-nac/intake-photos/' + photo.id)) : undefined
+      return { shown: true, id: id || stored?.id || null }
+    }
+  }
+  return { shown: false, id: null }
+}
