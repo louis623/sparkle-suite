@@ -63,6 +63,13 @@ export function alreadySavedReply(itemNumber?: string | null): string {
   return `${pieceLabel(itemNumber)} is already on your Dance Floor. If you want it removed, say remove it and I'll ask you to confirm.`
 }
 
+export function leaveItOffReply(itemNumber?: string | null): string {
+  const item = itemNumber?.trim()
+  return item
+    ? `I'll leave it off your Dance Floor. ${item} is not saved.`
+    : `I'll leave it off your Dance Floor.`
+}
+
 export function refusedPhotoReply(previousAssistant: string): string {
   const other = previousAssistant.match(/\balready on\s+([A-Za-z]{1,4}\d{3,})\b/i)?.[1]
   if (other) {
@@ -143,17 +150,16 @@ export function directPieceReply(args: {
   const previous = previousAssistantText(args.messages)
   const text = args.latestUserText.trim()
   if (!text) return null
-  if (!previous && !args.listingExists && !args.labelItemNumber) return null
-
   const skipping =
     decidePieceClose(text) === 'skipped' ||
     decidePieceClose(text) === 'cancelled' ||
     SKIP_AFTER_SAVE.test(text)
-  if (skipping && args.listingExists) {
-    return alreadySavedReply(
-      statedItemNumber(text) ?? statedItemNumber(previous) ?? args.known?.itemNumber,
-    )
+  if (skipping) {
+    const item =
+      statedItemNumber(text) ?? statedItemNumber(previous) ?? args.known?.itemNumber
+    return args.listingExists ? alreadySavedReply(item) : leaveItOffReply(item)
   }
+  if (!previous && !args.listingExists && !args.labelItemNumber) return null
 
   const storedLabel = args.labelItemNumber?.trim().toUpperCase() || ''
   const namedLabel = labelNamedInText(previous)
@@ -257,56 +263,57 @@ type PreviewPart = {
   }
 }
 
-function asksToConfirmSave(text: string): boolean {
-  return /reply\s+["“']?yes\b|i(?:'|’)ll add it|i will add it|right main photo|main photo I will save/i.test(
+export function asksToConfirmSave(text: string): boolean {
+  return /reply\s+["“']?yes\b|i(?:'|’)ll add it|i will add it|right main photo|main photo I will save|right piece to save|is this the right piece/i.test(
     text,
   )
+}
+
+function visibleAssistantText(parts: unknown): string {
+  if (!Array.isArray(parts)) return ''
+  return parts
+    .filter(
+      (part): part is PreviewPart => Boolean(part) && typeof part === 'object',
+    )
+    .filter((part) => part.type === 'text' && typeof part.text === 'string')
+    .map((part) => part.text ?? '')
+    .join('\n')
 }
 
 export const REMOVAL_NEEDS_ITS_OWN_CONFIRMATION =
   "I won't remove anything from that yes. Name the piece and I'll ask you to confirm that removal."
 
-/** An old chat's reply-yes card cannot save the piece after the chat moved on. */
+/**
+ * Display copy only. Stored rows stay as they were saved. The last visible
+ * assistant line is the only one that can show the moved-on sentence, and
+ * only when that line is still asking the rep to confirm a save.
+ */
 export function retireSupersededPreviews<T extends { role?: string; parts?: unknown }>(
   messages: T[],
 ): T[] {
-  return messages.map((message) => {
-    if (message.role !== 'assistant' || !Array.isArray(message.parts)) return message
-    let changed = false
-    const parts = message.parts.map((part) => {
-      if (!part || typeof part !== 'object') return part
-      const record = part as PreviewPart
-      if (record.type === 'text' && typeof record.text === 'string' && asksToConfirmSave(record.text)) {
-        changed = true
-        return { ...record, text: MOVED_ON_MESSAGE }
-      }
-      const output = record.output
-      const actionable =
-        output?.needsAction === 'confirm_main_photo' ||
-        asksToConfirmSave(output?.message ?? '')
-      if (!output || !actionable) return part
-      changed = true
-      return {
-        ...record,
-        output: {
-          ...output,
-          needsAction: undefined,
-          previewImageUrl: undefined,
-          previewPhotoId: undefined,
-          message: MOVED_ON_MESSAGE,
-        },
-      }
-    })
-    if (!changed) return message
-    const hasText = parts.some(
-      (part) =>
-        Boolean(part) &&
-        typeof part === 'object' &&
-        (part as PreviewPart).type === 'text',
-    )
-    return {
-      ...message,
-      parts: hasText ? parts : [...parts, { type: 'text', text: MOVED_ON_MESSAGE }],
-    }
+  let target = -1
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index]
+    if (message?.role !== 'assistant') continue
+    if (!visibleAssistantText(message.parts).trim()) continue
+    target = index
+    break
+  }
+  if (target < 0) return messages
+  const message = messages[target]
+  if (!message || !asksToConfirmSave(visibleAssistantText(message.parts))) return messages
+  if (!Array.isArray(message.parts)) return messages
+  let changed = false
+  const parts = message.parts.map((part) => {
+    if (!part || typeof part !== 'object') return part
+    const record = part as PreviewPart
+    if (record.type !== 'text' || typeof record.text !== 'string') return part
+    if (!asksToConfirmSave(record.text)) return part
+    changed = true
+    return { ...record, text: MOVED_ON_MESSAGE }
   })
+  if (!changed) return messages
+  const copy = messages.slice()
+  copy[target] = { ...message, parts }
+  return copy
 }

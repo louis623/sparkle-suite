@@ -58,6 +58,7 @@ import { turnBlocksCustomerFacingSave } from '@/lib/nic-nac/workflows/main-photo
 import {
   impliedCollectionType,
   pieceTitleFromConfirmedDetails,
+  recoverStoredPieceDetails,
 } from '@/lib/nic-nac/workflows/trade-board-known-fields'
 import {
   decideLabelItemNumber,
@@ -1496,6 +1497,17 @@ export function decideCustomerFacingSave(args: {
   if (jewelry?.id && jewelry.imageUrl) {
     const itemNumber = args.itemNumber?.trim() || workflow?.known.itemNumber?.trim() || ''
     const label = itemNumber || 'this piece'
+    const refusal = mainPhotoPreviewRefusal({
+      photo: jewelry,
+      itemNumber: label === 'this piece' ? workflow?.known.itemNumber : itemNumber,
+      jewelryType: workflow?.known.jewelryType,
+    })
+    if (refusal) {
+      throw new NicNacToolError({
+        code: 'MAIN_PHOTO_NOT_USABLE',
+        userMessage: refusal,
+      })
+    }
     return {
       needsAction: 'confirm_main_photo',
       code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED',
@@ -2788,6 +2800,7 @@ async function runSingle(
             confirmedJewelryFront:
               workflowConfirmedDesignPhoto &&
               workflowConfirmedPhotoUrl === resolvedPhotoUrl,
+            publishOriginalUpload: true,
           },
         )
       } catch (err) {
@@ -2830,7 +2843,7 @@ async function runSingle(
             sourceImageUrl: workflowConfirmedPhotoUrl,
             filenameStem: itemNumber,
           },
-          { confirmedJewelryFront: true },
+          { confirmedJewelryFront: true, publishOriginalUpload: true },
         )
       } catch (err) {
         throwMutationFailure(err, {
@@ -2913,6 +2926,7 @@ async function runSingle(
           },
           {
             confirmedJewelryFront: workflowConfirmedDesignPhoto,
+            publishOriginalUpload: true,
           },
         )
       } catch (err) {
@@ -3707,13 +3721,17 @@ export async function commitPreviewedAddListing(args: {
   workflow: NonNullable<ToolContext['activeTradeBoardWorkflow']>
   latestUserText: string
   previewPhotoId: string
+  messages?: Array<{ role?: string; parts?: unknown }>
 }) {
   const admin = createAdminClient()
   const workflow =
     args.workflow.status === 'active'
       ? await fillBlankKnownFromPriorSession(args.supabase, args.workflow)
       : args.workflow
-  const known = workflow.status === 'active' ? workflow.known : {}
+  const known =
+    workflow.status === 'active'
+      ? recoverStoredPieceDetails(workflow.known, args.messages ?? [])
+      : {}
   return runSingle(
     {
       mode: 'single',

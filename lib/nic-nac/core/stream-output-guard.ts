@@ -572,6 +572,33 @@ const INTERNAL_CATALOG_PHRASES: Array<[RegExp, string]> = [
   [/catalog record/gi, 'piece'],
 ]
 
+/** Model and handler instructions. These must never be assistant-visible text. */
+export const HANDLER_INSTRUCTION_PATTERNS: RegExp[] = [
+  /use vision on the rep'?s photos/i,
+  /handler uploads the photo/i,
+  /pass piecePhotoIndex or listingPhotoIndex/i,
+  /needsAction\s*[:=]\s*['"]?create_design/i,
+  /NEEDS_FULL_INFO/i,
+  /ask the rep for the exact collection/i,
+  /do not guess it from vision/i,
+]
+
+export function containsHandlerInstruction(text: string): boolean {
+  return HANDLER_INSTRUCTION_PATTERNS.some((pattern) => pattern.test(text))
+}
+
+/**
+ * Rep-facing text only. A handler instruction is replaced as a whole so a
+ * split sentence cannot leave the instruction on screen.
+ */
+export function guardAssistantVisibleText(text: string): string {
+  if (!containsHandlerInstruction(text)) return scrubInternalCatalogPhrases(text)
+  const item = text.match(/\b[A-Z]{1,4}\d{3,}\b/i)?.[0]?.toUpperCase()
+  return item
+    ? `I still need the design name and collection for ${item} before I can save it.`
+    : 'I still need the design name and collection before I can save that.'
+}
+
 export function scrubInternalCatalogPhrases(text: string): string {
   let next = text
   for (const [pattern, replacement] of INTERNAL_CATALOG_PHRASES) {
@@ -654,7 +681,7 @@ export function createRepTextScrubber(options?: {
   let hold = ''
   let buffered = ''
   const finish = (text: string): string => {
-    const scrubbed = scrubInternalCatalogPhrases(text)
+    const scrubbed = guardAssistantVisibleText(text)
     return allowOffer ? scrubbed : stripUnaskedCatalogPhotoOffer(scrubbed)
   }
   return {
@@ -664,6 +691,7 @@ export function createRepTextScrubber(options?: {
         return ''
       }
       hold += delta
+      if (containsHandlerInstruction(hold)) return ''
       if (hold.length <= tail) return ''
       const scrubbed = scrubInternalCatalogPhrases(hold)
       const emit = scrubbed.slice(0, scrubbed.length - tail)
@@ -672,7 +700,7 @@ export function createRepTextScrubber(options?: {
     },
     flush(): string {
       if (correct) {
-        const scrubbed = scrubInternalCatalogPhrases(buffered)
+        const scrubbed = guardAssistantVisibleText(buffered)
         buffered = ''
         return finish(correct(scrubbed) ?? scrubbed)
       }

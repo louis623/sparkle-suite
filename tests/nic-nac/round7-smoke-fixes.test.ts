@@ -330,7 +330,9 @@ describe('round 7 skip checks the Dance Floor row', () => {
       known: { itemNumber: 'RG98104' },
       listingExists: false,
     })
-    expect(reply).toBeNull()
+    expect(reply).toMatch(/leave it off/i)
+    expect(reply).toContain('RG98104')
+    expect(reply).not.toMatch(/already on your Dance Floor/i)
     const saved = directPieceReply({
       messages: [
         textMessage('assistant', 'I put the wrong piece on your Dance Floor.'),
@@ -470,7 +472,7 @@ describe('round 7 titles come from confirmed details', () => {
 })
 
 describe('round 7 a cropped piece says it is cut off', () => {
-  it('uses the step-back sentence only when the jewelry fails and touches the edge', () => {
+  it('uses the step-back sentence whenever the stored photo is cut off', () => {
     expect(
       mainPhotoPreviewRefusal({
         photo: {
@@ -504,7 +506,7 @@ describe('round 7 a cropped piece says it is cut off', () => {
         itemNumber: 'NK98304',
         jewelryType: 'NK',
       }),
-    ).toBeNull()
+    ).toBe(CUT_OFF_PHOTO_MESSAGE)
   })
 })
 

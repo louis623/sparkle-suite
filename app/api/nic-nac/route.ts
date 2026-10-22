@@ -81,6 +81,7 @@ import {
   getNicNacToolOnlyRecoveryText,
   getNicNacToolFailure,
   createRepTextScrubber,
+  guardAssistantVisibleText,
   isRenderableNicNacStreamChunk,
   NIC_NAC_EMPTY_RESPONSE_FALLBACK,
   scrubInternalCatalogPhrases,
@@ -107,7 +108,11 @@ import {
   shownMainPhotoPreviewId,
   yesCommitsPreviewedPhoto,
 } from '@/lib/nic-nac/workflows/main-photo-save-gate'
-import { rarityFromConversation } from '@/lib/nic-nac/workflows/trade-board-known-fields'
+import {
+  rarityFromConversation,
+  recoverStoredPieceDetails,
+} from '@/lib/nic-nac/workflows/trade-board-known-fields'
+import { classifySubmissionReplay } from '@/lib/nic-nac/submission-replay'
 import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import {
   CUT_OFF_PHOTO_MESSAGE,
@@ -440,7 +445,7 @@ export async function POST(request: Request) {
 
   const { conversationId } = body
   const submittedMessageId = body.submittedMessageId?.trim() || null
-  const messages = dropUnsubmittedConfirmation(
+  let messages = dropUnsubmittedConfirmation(
     sortMessagesByCreatedAt(body.messages),
     submittedMessageId,
   )
@@ -504,6 +509,34 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: 'forbidden' },
       { status: 403, headers: responseHeaders }
+    )
+  }
+
+  const replay = supportScope
+    ? {
+        dropIds: [] as string[],
+        suppressNewTurn: false,
+        storedAssistantId: null as string | null,
+        storedAssistantText: null as string | null,
+      }
+    : classifySubmissionReplay({ incoming: messages, stored: existingHistory })
+  if (replay.dropIds.length > 0) {
+    const dropped = new Set(replay.dropIds)
+    messages = messages.filter(
+      (message) => message.role !== 'user' || !dropped.has(message.id),
+    )
+  }
+  if (replay.suppressNewTurn) {
+    if (replay.storedAssistantText && replay.storedAssistantId) {
+      return createNicNacStaticTextStreamResponse({
+        message: guardAssistantVisibleText(replay.storedAssistantText),
+        messageId: replay.storedAssistantId,
+        headers: responseHeaders,
+      })
+    }
+    return NextResponse.json(
+      { replayed: true },
+      { status: 200, headers: responseHeaders },
     )
   }
 
@@ -953,15 +986,13 @@ export async function POST(request: Request) {
     ) {
       try {
         const remembered = rarityFromConversation(messages)
-        const workflow = remembered && !sessionAfter.known.rarityClassification
-          ? {
-              ...sessionAfter,
-              known: {
-                ...sessionAfter.known,
-                rarityClassification: remembered,
-              },
-            }
-          : sessionAfter
+        const known = recoverStoredPieceDetails(
+          remembered && !sessionAfter.known.rarityClassification
+            ? { ...sessionAfter.known, rarityClassification: remembered }
+            : sessionAfter.known,
+          messages,
+        )
+        const workflow = { ...sessionAfter, known }
         const committed = await commitPreviewedAddListing({
           repId,
           conversationId,
@@ -969,6 +1000,7 @@ export async function POST(request: Request) {
           workflow,
           latestUserText,
           previewPhotoId: previewPhotoId ?? '',
+          messages,
         })
         if (
           committed &&
@@ -976,8 +1008,9 @@ export async function POST(request: Request) {
           'needsAction' in committed &&
           committed.needsAction
         ) {
-          directText =
-            typeof committed.message === 'string' ? committed.message : directText
+          directText = guardAssistantVisibleText(
+            typeof committed.message === 'string' ? committed.message : '',
+          )
         } else if (
           committed &&
           typeof committed === 'object' &&
@@ -1020,6 +1053,7 @@ export async function POST(request: Request) {
       }
     }
     if (directText) {
+      directText = guardAssistantVisibleText(directText)
       const boundPhoto = selectBoundMainPhoto(sessionAfter?.photos, sessionAfter?.metadata)
       const previewLocator =
         !gateRefusal && /reply yes/i.test(directText) && boundPhoto

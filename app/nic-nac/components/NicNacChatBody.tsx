@@ -143,7 +143,7 @@ export type AssistantMessageRenderable =
 
 export function buildAssistantMessageRenderables(
   parts: readonly unknown[],
-  options?: { readOnly?: boolean },
+  options?: { readOnly?: boolean; overlayMovedOn?: boolean },
 ): AssistantMessageRenderable[] {
   const renderables: AssistantMessageRenderable[] = []
   let textBuffer = ''
@@ -197,7 +197,7 @@ export function buildAssistantMessageRenderables(
       output?.needsAction === 'confirm_main_photo' ||
       (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM' &&
         Boolean(output.previewImageUrl?.trim() || output.previewPhotoId?.trim()))
-    if (options?.readOnly && showsMainPhoto) {
+    if (options?.overlayMovedOn && showsMainPhoto) {
       flushText(`text-${index}`)
       renderables.push({
         type: 'text',
@@ -226,10 +226,12 @@ export function buildAssistantMessageRenderables(
     (item) => item.type === 'main-photo-preview',
   )
   if (lastPreview === -1) {
-    if (!options?.readOnly) return renderables
+    if (!options?.overlayMovedOn) return renderables
     return renderables.map((item) =>
       item.type === 'text' &&
-      /reply\s+yes|right main photo|main photo I will save|i(?:'|’)ll add it/i.test(item.text)
+      /reply\s+yes|right main photo|main photo I will save|i(?:'|’)ll add it|right piece to save|is this the right piece/i.test(
+        item.text,
+      )
         ? { ...item, text: MOVED_ON_MESSAGE }
         : item,
     )
@@ -245,8 +247,10 @@ export function buildAssistantMessageRenderables(
     if (duplicateWarning && item.type === 'text') return []
     if (item.type !== 'text') return [item]
     if (
-      options?.readOnly &&
-      /reply\s+yes|right main photo|main photo I will save|i(?:'|’)ll add it/i.test(item.text)
+      options?.overlayMovedOn &&
+      /reply\s+yes|right main photo|main photo I will save|i(?:'|’)ll add it|right piece to save|is this the right piece/i.test(
+        item.text,
+      )
     ) {
       return [{ ...item, text: MOVED_ON_MESSAGE }]
     }
@@ -256,7 +260,7 @@ export function buildAssistantMessageRenderables(
         (sentence) =>
           !/main photo I(?:['’]ll| will) save/i.test(sentence) &&
           !/\breply yes\b/i.test(sentence) &&
-          !(options?.readOnly && /right main photo/i.test(sentence)),
+          !(options?.overlayMovedOn && /right (?:main photo|piece)/i.test(sentence)),
       )
       .join(' ')
       .trim()
@@ -412,7 +416,6 @@ export function NicNacChatBody({
     error,
     regenerate,
     clearError,
-    stop,
     setMessages,
   } = useChat({
     transport,
@@ -567,7 +570,6 @@ export function NicNacChatBody({
 
       setMessages((current) => mergeServerMessages(current, body.messages ?? []))
       if (activeMessageIdRef.current) requestHide(activeMessageIdRef.current)
-      await stop()
       textareaRef.current?.focus()
     }, STREAM_COMPLETION_RECOVERY_MS)
 
@@ -583,7 +585,6 @@ export function NicNacChatBody({
     requestHide,
     setMessages,
     status,
-    stop,
   ])
 
   // A phone send can finish on the server and still look failed in the chat.
@@ -797,7 +798,7 @@ export function NicNacChatBody({
       stamp: Date.now(),
       previousLatestUserId: findLatestUserMessageId(messages),
     })
-    await sendWithParts(parts)
+    await sendWithParts(parts, crypto.randomUUID())
   }
 
   const handleLookChoice = (text: string) => {
@@ -880,6 +881,9 @@ export function NicNacChatBody({
       <ChatHistory isStreaming={isStreaming}>
         {!hasMessages ? <EmptyGreeting mode={chatMode} /> : null}
         {sortMessagesByCreatedAt(messages).map((m, idx, ordered) => {
+          const lastAssistantId = [...ordered]
+            .reverse()
+            .find((message) => message.role === 'assistant')?.id
           const ts = readCreatedAt(
             m,
             latestPendingUserId,
@@ -919,6 +923,7 @@ export function NicNacChatBody({
                   : null
               }
               readOnly={readOnly}
+              overlayMovedOn={Boolean(readOnly && m.id === lastAssistantId)}
             />
           )
         })}
@@ -1052,6 +1057,7 @@ function AssistantMessage({
   tradeDecisionErrors,
   actionableApproval,
   readOnly = false,
+  overlayMovedOn = false,
 }: {
   message: UIMessage
   timestamp?: string | number
@@ -1074,9 +1080,13 @@ function AssistantMessage({
   // conveys the outcome.
   actionableApproval: ActionableApproval | null
   readOnly?: boolean
+  overlayMovedOn?: boolean
 }) {
   const parts = message.parts ?? []
-  const renderables = buildAssistantMessageRenderables(parts, { readOnly })
+  const renderables = buildAssistantMessageRenderables(parts, {
+    readOnly,
+    overlayMovedOn,
+  })
 
   // Visibility is server-owned: the route emits transient `data-thinking`
   // signals (show / confirm / hide) and the parent threads `isThinking` here.

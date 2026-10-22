@@ -480,14 +480,17 @@ export function mainPhotoPreviewRefusal(args: {
     const send = JEWELRY_TYPE_WORD[piece] ?? 'jewelry'
     return `That photo shows ${shown}, so I won't use it as the main photo for ${wanted}. Send a photo of the ${send}.`
   }
-  const blurry = (photo.qualityIssues ?? []).includes('blur_risk')
-  const cutOff = (photo.qualityIssues ?? []).includes(SUBJECT_CUT_OFF_ISSUE)
+  const notes = (photo.notes ?? []).join(' ')
+  const blurry =
+    (photo.qualityIssues ?? []).includes('blur_risk') || /\bblur(?:ry| risk)\b/i.test(notes)
+  const cutOff =
+    (photo.qualityIssues ?? []).includes(SUBJECT_CUT_OFF_ISSUE) || /\bcut off\b/i.test(notes)
   const failedQuality =
     photo.quality === 'blocked' ||
     photo.quality === 'warning' ||
     (typeof photo.qualityScore === 'number' && photo.qualityScore < 70)
   if (blurry) return 'That photo is too blurry. Send a clearer photo of the jewelry.'
-  if (cutOff && failedQuality) return CUT_OFF_PHOTO_MESSAGE
+  if (cutOff) return CUT_OFF_PHOTO_MESSAGE
   if (failedQuality) {
     return "That photo isn't clear enough. Send a clearer photo of the jewelry."
   }

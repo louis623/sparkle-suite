@@ -287,6 +287,7 @@ export async function insertUserMessage(
       role: 'user',
       parts: args.parts,
       status: 'complete',
+      created_at: new Date().toISOString(),
     },
     { onConflict: 'conversation_id,message_id', ignoreDuplicates: true }
   )

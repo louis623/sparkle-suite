@@ -44,6 +44,20 @@ export interface DesignSourcePhotoResult {
 export interface DesignSourcePhotoOptions {
   fetch?: typeof fetch
   confirmedJewelryFront?: boolean
+  /** A rep listing saves the upload they confirmed, not a zoomed crop. */
+  publishOriginalUpload?: boolean
+}
+
+/** The public catalog file for one design photo. Listing saves keep the upload. */
+export function designSourcePublicFile(args: {
+  filenameStem: string
+  cropped: boolean
+  publishOriginalUpload?: boolean
+}): { filename: string; selectedSource: 'original' | 'cropped' } {
+  if (args.publishOriginalUpload || !args.cropped) {
+    return { filename: `${args.filenameStem}-source`, selectedSource: 'original' }
+  }
+  return { filename: `${args.filenameStem}-cropped`, selectedSource: 'cropped' }
 }
 
 function isDataUrl(value: string): boolean {
@@ -120,6 +134,7 @@ export async function prepareDesignSourcePhoto(
     subjectCoverage: analysis.subjectCoverage,
     subjectCentered: analysis.subjectCentered,
   })
+  const publishOriginalUpload = options.publishOriginalUpload === true
   const crop = semantic.canAttemptCrop
       ? await createGuardedJewelryPhotoCrop({
           bytes: fetched.bytes,
@@ -127,9 +142,10 @@ export async function prepareDesignSourcePhoto(
           allowReviewableOutput: confirmedJewelryFront,
         })
     : null
-  const selectedBytes = crop?.bytes ?? fetched.bytes
-  const selectedAnalysis = crop?.analysis ?? analysis
-  const selectedPreflight = crop?.preflight ?? preflight
+  const useCrop = Boolean(crop) && !publishOriginalUpload
+  const selectedBytes = useCrop && crop ? crop.bytes : fetched.bytes
+  const selectedAnalysis = useCrop && crop ? crop.analysis : analysis
+  const selectedPreflight = useCrop && crop ? crop.preflight : preflight
 
   if (
     !selectedPreflight.passed &&
@@ -151,9 +167,15 @@ export async function prepareDesignSourcePhoto(
     analysis.contentType || fetched.contentType,
     fetched.bytes,
   )
-  const selectedDataUrl = crop
-    ? toDataUrl(selectedAnalysis.contentType, selectedBytes)
-    : normalizedDataUrl
+  const publicFile = designSourcePublicFile({
+    filenameStem: input.filenameStem,
+    cropped: useCrop,
+    publishOriginalUpload,
+  })
+  const selectedDataUrl =
+    publicFile.selectedSource === 'cropped'
+      ? toDataUrl(selectedAnalysis.contentType, selectedBytes)
+      : normalizedDataUrl
   const stagedOriginal = await uploadStagedOriginalPhoto(
     input.repId,
     normalizedDataUrl,
@@ -168,7 +190,7 @@ export async function prepareDesignSourcePhoto(
       input.repId,
       input.designId,
       selectedDataUrl,
-      crop ? `${input.filenameStem}-cropped` : `${input.filenameStem}-source`,
+      publicFile.filename,
     )
   } catch (error) {
     try {
@@ -188,6 +210,6 @@ export async function prepareDesignSourcePhoto(
     stagedOriginal,
     preflight: selectedPreflight,
     analysis: selectedAnalysis,
-    selectedSource: crop ? 'cropped' : 'original',
+    selectedSource: publicFile.selectedSource,
   }
 }

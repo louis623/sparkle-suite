@@ -158,7 +158,9 @@ describe('round 6 skip follows the Dance Floor row', () => {
       latestUserHasImage: false,
       listingExists: false,
     })
-    expect(notSaved).toBeNull()
+    expect(notSaved).toMatch(/leave it off/i)
+    expect(notSaved).toContain('ER97202')
+    expect(notSaved).not.toMatch(/already on your Dance Floor/i)
   })
 })
 

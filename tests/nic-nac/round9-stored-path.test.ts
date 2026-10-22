@@ -194,7 +194,7 @@ describe('round 9 stored details, recent chats, and photo words', () => {
     expect(JSON.stringify(retired)).not.toContain('Reply yes')
     const rendered = buildAssistantMessageRenderables(
       [{ type: 'text', text: 'If this is the right main photo, reply yes.' }],
-      { readOnly: true },
+      { readOnly: true, overlayMovedOn: true },
     )
     expect(rendered.map((item) => (item.type === 'text' ? item.text : '')).join(' ')).toContain(
       'This chat moved on',
