@@ -184,14 +184,14 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
             throw new NicNacToolError({
               code: 'PHOTO_PREVIEW_UNAVAILABLE',
               userMessage:
-                "I can't show you that photo before saving it on the shared catalog, so I didn't save it. Send a normal photo link I can show you, and I'll check it with you first.",
+                "I can't show you that photo before saving it, so I didn't save it. Send a normal photo link I can show you, and I'll check it with you first.",
             })
           }
           if (!isApprovedCatalogPhotoUrl(canonicalPhotoUrl)) {
             throw new NicNacToolError({
               code: 'PHOTO_NOT_APPROVED',
               userMessage:
-                "I can only use an approved jewelry photo for the shared catalog, so I didn't save that one. Send the approved front photo and I'll check it with you first.",
+                "I can only use an approved jewelry photo, so I didn't save that one. Send the approved front photo and I'll check it with you first.",
             })
           }
           const storedSha = ctx.activeTradeBoardWorkflow?.photos?.find(
@@ -206,7 +206,7 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
             throw new NicNacToolError({
               code: 'PHOTO_UNREADABLE',
               userMessage:
-                'I could not read that photo, so I did not save it on the shared catalog. Send it again and I will check it first.',
+                'I could not read that photo, so I did not save it. Send it again and I will check it first.',
             })
           }
           const pieceKey = photoConfirmationPieceKey({

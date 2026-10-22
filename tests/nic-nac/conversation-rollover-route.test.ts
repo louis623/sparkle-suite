@@ -154,10 +154,10 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
     const inserted = insertConversationMessagesMock.mock.calls[0]?.[1] as {
       messages: UIMessage[]
     }
+    expect(JSON.stringify(inserted.messages)).toContain('I started a fresh chat.')
     expect(JSON.stringify(inserted.messages)).toContain('Want to finish NK91303?')
-    expect(inserted.messages.at(-1)?.parts).toEqual([
-      { type: 'text', text: 'Want to finish NK91303?' },
-    ])
+    expect(JSON.stringify(inserted.messages)).toContain('Send the photo again.')
+    expect(JSON.stringify(inserted.messages).match(/I started a fresh chat/g)?.length).toBe(1)
     expect(JSON.stringify(inserted.messages)).not.toContain('data:image')
     expect(createAdminClientMock).toHaveBeenCalledTimes(1)
     expect(adminRpcMock).not.toHaveBeenCalled()
@@ -205,9 +205,10 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
     expect(JSON.stringify(inserted.messages)).not.toContain('confirm_main_photo')
     expect(JSON.stringify(inserted.messages)).not.toContain('photo-ring')
     expect(JSON.stringify(inserted.messages)).not.toContain('main photo I will save')
-    expect(JSON.stringify(inserted.messages)).toContain(
+    expect(JSON.stringify(inserted.messages)).not.toContain(
       'That earlier photo was not brought into this chat.',
     )
+    expect(JSON.stringify(inserted.messages).match(/I started a fresh chat/g)?.length).toBe(1)
     expect(inserted.messages.at(-1)?.id).toBe('rollover-finish-ask')
   })
 

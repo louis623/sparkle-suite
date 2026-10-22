@@ -78,8 +78,10 @@ import {
   getNicNacMandatoryToolFollowUpText,
   getNicNacToolOnlyRecoveryText,
   getNicNacToolFailure,
+  createRepTextScrubber,
   isRenderableNicNacStreamChunk,
   NIC_NAC_EMPTY_RESPONSE_FALLBACK,
+  scrubInternalCatalogPhrases,
   recoverNicNacEmptyCalendarRead,
 } from '@/lib/nic-nac/core/stream-output-guard'
 import { readMyShowsForNicNac } from '@/lib/nic-nac/tools/list-my-shows'
@@ -903,6 +905,7 @@ export async function POST(request: Request) {
       let toolFailureRecoveryText: string | null = null
       let mandatoryToolFollowUpText: string | null = null
       let renderedText = ''
+      const repTextScrubber = createRepTextScrubber()
 
       const emitHide = (reason: 'plain-text' | 'final-text' | 'finish' | 'error') => {
         if (!currentlyVisible) return
@@ -1009,16 +1012,31 @@ export async function POST(request: Request) {
             if (isRenderableNicNacStreamChunk(chunk)) {
               sawRenderableOutput = true
             }
-            if (chunk.type === 'text-delta') renderedText += chunk.delta
+            let outbound: typeof chunk = chunk
+            if (chunk.type === 'text-delta') {
+              const delta = repTextScrubber.push(chunk.delta)
+              renderedText += delta
+              outbound = { ...chunk, delta }
+            }
+            if (chunk.type === 'text-end') {
+              const rest = repTextScrubber.flush()
+              if (rest) {
+                const textId = 'id' in chunk ? chunk.id : assistantMessageId
+                writer.write({ type: 'text-delta', id: textId, delta: rest })
+                renderedText += rest
+              }
+            }
             if (
-              chunk.type === 'text-delta' &&
-              /\S/.test(chunk.delta) &&
+              outbound.type === 'text-delta' &&
+              /\S/.test(outbound.delta) &&
               currentlyVisible &&
               activeToolCalls === 0
             ) {
               emitHide(toolEverFired ? 'final-text' : 'plain-text')
             }
-            writer.write(chunk)
+            if (!(outbound.type === 'text-delta' && outbound.delta === '')) {
+              writer.write(outbound)
+            }
           }
 
           const shouldRetryEmptyAgentTurn =
@@ -1092,7 +1110,7 @@ export async function POST(request: Request) {
           writer.write({
             type: 'text-delta',
             id: fallbackTextId,
-            delta: toolFailureRecoveryText,
+            delta: scrubInternalCatalogPhrases(toolFailureRecoveryText),
           })
           writer.write({ type: 'text-end', id: fallbackTextId })
         } else if (
@@ -1118,7 +1136,9 @@ export async function POST(request: Request) {
           writer.write({
             type: 'text-delta',
             id: fallbackTextId,
-            delta: toolOnlyRecoveryText ?? NIC_NAC_EMPTY_RESPONSE_FALLBACK,
+            delta: scrubInternalCatalogPhrases(
+              toolOnlyRecoveryText ?? NIC_NAC_EMPTY_RESPONSE_FALLBACK,
+            ),
           })
           writer.write({ type: 'text-end', id: fallbackTextId })
         }

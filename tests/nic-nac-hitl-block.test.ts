@@ -13,7 +13,7 @@ describe('Nic-Nac HITL approval copy', () => {
 
   it('uses catalog-specific approval copy for shared catalog corrections', () => {
     expect(APPROVAL_COPY.report_jewelry_catalog_issue).toEqual({
-      title: 'Update shared catalog data?',
+      title: 'Update this design for every rep?',
       confirm: 'Update catalog',
       cancel: 'Cancel',
     })

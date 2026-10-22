@@ -17,6 +17,26 @@ export type RolloverEdge = {
   destinationConversationId: string
 }
 
+function isWeakConversationTitle(line: string): boolean {
+  const text = line.trim()
+  if (/^(yes|yep|yeah|yup|no|nope|ok|okay|skip|sure)\b[.!]?$/i.test(text)) return true
+  if (/^reference photo \d+$/i.test(text)) return true
+  return false
+}
+
+/** First real piece or sentence. A bare yes or "Reference photo N" is not a title. */
+export function stableRecentTitle(lines: string[], startedAt: string): string {
+  const usable = lines.map((line) => line.trim()).filter(Boolean)
+  const withItem = usable.find(
+    (line) => !isWeakConversationTitle(line) && /\b[A-Z]{1,4}\d{3,}\b/i.test(line),
+  )
+  if (withItem) return withItem.replace(/\s+/g, ' ').slice(0, 80)
+  const real = usable.find((line) => !isWeakConversationTitle(line))
+  if (real) return real.replace(/\s+/g, ' ').slice(0, 80)
+  const date = formatRecentConversationDate(startedAt)
+  return date ? `Started ${date}` : 'Conversation'
+}
+
 function firstLine(parts: unknown): string {
   if (!Array.isArray(parts)) return ''
   const text = parts
@@ -87,9 +107,14 @@ export function recentConversationsFromRows(
     const earliestAt = current.earliest?.created_at ?? ''
     if (!current.earliest || createdAt < earliestAt) current.earliest = row
     const line = row.role === 'user' ? firstLine(row.parts) : ''
-    if (line && (!current.userTitleAt || createdAt < current.userTitleAt)) {
-      current.userTitle = line
-      current.userTitleAt = createdAt
+    if (line) {
+      const currentWeak = !current.userTitle || isWeakConversationTitle(current.userTitle)
+      const nextWeak = isWeakConversationTitle(line)
+      const earlier = !current.userTitleAt || createdAt < current.userTitleAt
+      if ((earlier && (!nextWeak || currentWeak)) || (currentWeak && !nextWeak)) {
+        current.userTitle = line
+        current.userTitleAt = createdAt
+      }
     }
     grouped.set(conversationId, current)
   }
@@ -124,9 +149,14 @@ export function recentConversationsFromRows(
     }
     if (value.latestAt > current.latestAt) current.conversationId = conversationId
     if (value.latestAt > current.latestAt) current.latestAt = value.latestAt
-    if (value.userTitle && (!current.userTitleAt || value.userTitleAt < current.userTitleAt)) {
-      current.userTitle = value.userTitle
-      current.userTitleAt = value.userTitleAt
+    if (value.userTitle) {
+      const currentWeak = !current.userTitle || isWeakConversationTitle(current.userTitle)
+      const nextWeak = isWeakConversationTitle(value.userTitle)
+      const earlier = !current.userTitleAt || value.userTitleAt < current.userTitleAt
+      if ((earlier && (!nextWeak || currentWeak)) || (currentWeak && !nextWeak)) {
+        current.userTitle = value.userTitle
+        current.userTitleAt = value.userTitleAt
+      }
     }
     const earliestAt = current.earliest?.created_at ?? ''
     const nextEarliestAt = value.earliest?.created_at ?? ''
@@ -137,8 +167,11 @@ export function recentConversationsFromRows(
 
   return [...byLineage.values()]
     .map((value) => {
-      const title =
-        value.userTitle || firstLine(value.earliest?.parts) || 'Conversation'
+      const rawTitle =
+        value.userTitle || firstLine(value.earliest?.parts) || ''
+      const title = rawTitle
+        ? stableRecentTitle([rawTitle], value.earliest?.created_at || value.latestAt)
+        : stableRecentTitle([], value.latestAt)
       return {
         conversationId: value.conversationId,
         title,

@@ -55,9 +55,14 @@ import {
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import {
+  decideLabelItemNumber,
   decideLabelSave,
   readLabelPhoto,
 } from '@/lib/nic-nac/workflows/label-item-number'
+import {
+  correctJewelryVersusLabelPhotos,
+  pickNonLabelImageUrl,
+} from '@/lib/nic-nac/workflows/jewelry-main-photo'
 import { NicNacMutationFailure } from '@/lib/nic-nac/tool-failure-classification'
 import {
   computeTradeBoardAddAttemptReadiness,
@@ -653,6 +658,58 @@ async function repAlreadyHasActiveListingForItem(input: {
   return (data ?? []).length > 0
 }
 
+/** Any saved design with this item number, not only the variant resolved on this call. */
+async function repHasListingForItemNumber(input: {
+  admin: SupabaseClient
+  repId: string
+  itemNumber: string
+}): Promise<boolean> {
+  try {
+    const itemNumber = input.itemNumber.trim().toUpperCase()
+    if (!itemNumber) return false
+    const designs = await input.admin
+      .from('jewelry_designs')
+      .select('id')
+      .eq('item_number', itemNumber)
+    const designRows = Array.isArray((designs as { data?: unknown }).data)
+      ? ((designs as { data: Array<{ id?: string }> }).data ?? [])
+      : []
+    const ids = designRows
+      .map((row) => (typeof row.id === 'string' ? row.id : ''))
+      .filter(Boolean)
+    if (ids.length === 0) {
+      const sessions = await input.admin
+        .from('trade_board_intake_sessions')
+        .select('created_listing_ids')
+        .eq('rep_id', input.repId)
+        .eq('item_number', itemNumber)
+        .eq('status', 'completed')
+        .limit(5)
+      const sessionRows = Array.isArray((sessions as { data?: unknown }).data)
+        ? ((sessions as { data: Array<{ created_listing_ids?: string[] | null }> }).data ??
+          [])
+        : []
+      return sessionRows.some(
+        (row) =>
+          Array.isArray(row.created_listing_ids) && row.created_listing_ids.length > 0,
+      )
+    }
+    const listings = await input.admin
+      .from('trade_listings')
+      .select('id')
+      .eq('rep_id', input.repId)
+      .in('design_id', ids)
+      .neq('status', 'removed')
+      .limit(1)
+    const listingRows = Array.isArray((listings as { data?: unknown }).data)
+      ? ((listings as { data: unknown[] }).data ?? [])
+      : []
+    return listingRows.length > 0
+  } catch {
+    return false
+  }
+}
+
 async function requireDuplicatePhysicalPieceConfirmationIfNeeded(input: {
   admin: SupabaseClient
   supabase: SupabaseClient
@@ -664,15 +721,33 @@ async function requireDuplicatePhysicalPieceConfirmationIfNeeded(input: {
   designId?: string
   activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
 }) {
-  const alreadyListed = await repAlreadyHasActiveListingForItem({
-    admin: input.admin,
-    repId: input.repId,
-    itemNumber: input.itemNumber,
-    material: input.material,
-    mainStone: input.mainStone,
-    designId: input.designId,
-  })
-  if (!alreadyListed) return
+  if ((input.activeTradeBoardWorkflow?.createdListingIds?.length ?? 0) > 0) {
+    throw new NicNacToolError({
+      code: 'ALREADY_ON_DANCE_FLOOR',
+      userMessage: `${input.itemNumber.trim().toUpperCase()} is already on your Dance Floor.`,
+    })
+  }
+  // Without a design id this must not call resolveItemNumber. That lookup
+  // belongs to the save itself. The item-number check below is enough to
+  // stop a second Dance Floor entry.
+  const alreadyListed = input.designId
+    ? await repAlreadyHasActiveListingForItem({
+        admin: input.admin,
+        repId: input.repId,
+        itemNumber: input.itemNumber,
+        material: input.material,
+        mainStone: input.mainStone,
+        designId: input.designId,
+      })
+    : false
+  const listedOnAnyDesign =
+    alreadyListed ||
+    (await repHasListingForItemNumber({
+      admin: input.admin,
+      repId: input.repId,
+      itemNumber: input.itemNumber,
+    }))
+  if (!listedOnAnyDesign) return
   if (input.activeTradeBoardWorkflow?.known.duplicatePhysicalConfirmed) return
 
   const confirmed = await latestConversationConfirmsAdditionalPhysicalPiece({
@@ -710,6 +785,50 @@ function confirmedLabelNumber(
   return typeof value === 'string' && value.trim() ? value.trim() : undefined
 }
 
+async function rememberLabelMismatch(args: {
+  admin?: SupabaseClient
+  workflow?: { id?: string; status?: string; metadata?: Record<string, unknown> }
+  mirrorWorkflow?: { id?: string; status?: string; metadata?: Record<string, unknown> }
+  labelItemNumber: string
+}) {
+  const metadata = {
+    labelItemNumberMismatch: args.labelItemNumber,
+  }
+  let sessionId: string | undefined
+  let stored: Record<string, unknown> | undefined
+  for (const workflow of [args.workflow, args.mirrorWorkflow]) {
+    if (!workflow || workflow.status !== 'active') continue
+    const next = {
+      ...(workflow.metadata ?? {}),
+      ...metadata,
+    }
+    workflow.metadata = next
+    stored = next
+    if (workflow.id) sessionId = workflow.id
+  }
+  if (!args.admin || !sessionId || !stored) return
+  try {
+    await updateTradeBoardIntakeSession(args.admin, {
+      sessionId,
+      patch: { metadata: stored },
+    })
+  } catch {
+    // The refusal still stands for this call.
+  }
+}
+
+function storedLabelMismatch(
+  workflow: { metadata?: Record<string, unknown> } | null | undefined,
+  itemNumber: string,
+): string | null {
+  const stored = workflow?.metadata?.labelItemNumberMismatch
+  if (typeof stored !== 'string' || !stored.trim()) return null
+  const label = stored.trim().toUpperCase()
+  const item = itemNumber.trim().toUpperCase()
+  if (!label || !item || label === item) return null
+  return label
+}
+
 async function assertLabelAgreesWithItemNumber(args: {
   itemNumber?: string
   sourceImageUrl?: string
@@ -718,33 +837,85 @@ async function assertLabelAgreesWithItemNumber(args: {
     imageUrl?: string
     declaredRole?: string
     visualRole?: string
+    contentSha256?: string
   }>
+  admin?: SupabaseClient
+  workflow?: { id?: string; status?: string; metadata?: Record<string, unknown> }
+  mirrorWorkflow?: { id?: string; status?: string; metadata?: Record<string, unknown> }
 }) {
   const itemNumber = args.itemNumber?.trim()
   if (!itemNumber) return
+  const remembered = storedLabelMismatch(args.workflow, itemNumber)
+  if (remembered) {
+    throw new NicNacToolError({
+      code: 'LABEL_ITEM_NUMBER_MISMATCH',
+      userMessage: `The label says ${remembered}. I won't save it on ${itemNumber.toUpperCase()}. Send the label for ${itemNumber.toUpperCase()}.`,
+    })
+  }
   const urls = new Set<string>()
   const labelUrls = new Set<string>()
   const sourceImageUrl = args.sourceImageUrl?.trim()
   if (sourceImageUrl) urls.add(sourceImageUrl)
   for (const photo of args.workflowPhotos ?? []) {
+    if (!photo.imageUrl) continue
+    urls.add(photo.imageUrl)
     const isLabel =
       photo.declaredRole === 'label_details' ||
       photo.visualRole === 'label_or_packaging'
-    if (isLabel && photo.imageUrl) {
-      urls.add(photo.imageUrl)
-      labelUrls.add(photo.imageUrl)
-    }
+    if (isLabel) labelUrls.add(photo.imageUrl)
   }
   for (const url of urls) {
-    const read = labelUrls.has(url)
-      ? await readLabelPhoto(url)
-      : { outcome: 'not_attempted' as const, itemNumbers: [] }
+    const photo = (args.workflowPhotos ?? []).find((item) => item.imageUrl === url)
+    const isLabel = labelUrls.has(url)
+    // A photo we already hashed is the piece photo. Do not download it again
+    // just to guess whether it is a label. Two-photo turns are corrected first.
+    if (
+      !isLabel &&
+      photo?.contentSha256?.trim() &&
+      photo.declaredRole !== 'label_details' &&
+      photo.visualRole !== 'label_or_packaging'
+    ) {
+      continue
+    }
+    const read = await readLabelPhoto(url)
+    if (!isLabel) {
+      if (read.outcome !== 'read') continue
+      const mismatch = decideLabelItemNumber({
+        itemNumber,
+        readItemNumbers: read.itemNumbers,
+      })
+      if (!mismatch.blocked) continue
+      await rememberLabelMismatch({
+        admin: args.admin,
+        workflow: args.workflow,
+        mirrorWorkflow: args.mirrorWorkflow,
+        labelItemNumber: mismatch.labelItemNumber,
+      })
+      throw new NicNacToolError({
+        code: 'LABEL_ITEM_NUMBER_MISMATCH',
+        userMessage: mismatch.message,
+      })
+    }
     const decision = decideLabelSave({
       itemNumber,
       read,
       confirmedItemNumber: args.labelConfirmedItemNumber,
     })
     if (!decision.blocked) continue
+    if (decision.code === 'LABEL_ITEM_NUMBER_MISMATCH') {
+      const mismatch = decideLabelItemNumber({
+        itemNumber,
+        readItemNumbers: read.itemNumbers,
+      })
+      if (mismatch.blocked) {
+        await rememberLabelMismatch({
+          admin: args.admin,
+          workflow: args.workflow,
+          mirrorWorkflow: args.mirrorWorkflow,
+          labelItemNumber: mismatch.labelItemNumber,
+        })
+      }
+    }
     if (decision.code === 'LABEL_ITEM_NUMBER_UNREADABLE') {
       await logIncident({
         errorType: 'label_vision_unreadable',
@@ -862,11 +1033,13 @@ const LOST_PHOTO_YES =
 export function freshPhotoPreviewDecision(rows: ConversationRow[]): {
   required: boolean
   imageUrl?: string
+  imageUrls?: string[]
   itemNumber?: string | null
 } {
   const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
   if (latestUserIndex < 0) return { required: false }
-  const imageUrl = conversationRowImageUrls(rows[latestUserIndex])[0]
+  const imageUrls = conversationRowImageUrls(rows[latestUserIndex])
+  const imageUrl = imageUrls[0]
   if (!imageUrl) return { required: false }
   const assistant = rows
     .slice(latestUserIndex + 1)
@@ -876,6 +1049,7 @@ export function freshPhotoPreviewDecision(rows: ConversationRow[]): {
   return {
     required: true,
     imageUrl,
+    imageUrls,
     itemNumber: itemNumberFromResumeAsk(text),
   }
 }
@@ -917,13 +1091,30 @@ async function previewResentPhoto(args: {
     })
   }
   const decision = freshPhotoPreviewDecision(rows)
-  if (!decision.required || !decision.imageUrl) return null
+  const urls =
+    decision.imageUrls ?? (decision.imageUrl ? [decision.imageUrl] : [])
+  if (!decision.required || urls.length === 0) return null
+  const labelUrls = new Set<string>()
+  if (urls.length >= 2) {
+    await Promise.all(
+      urls.map(async (url) => {
+        try {
+          const read = await readLabelPhoto(url)
+          if (read.outcome === 'read' && read.itemNumbers.length > 0) labelUrls.add(url)
+        } catch {
+          // A photo we cannot read is not treated as the label.
+        }
+      }),
+    )
+  }
+  const imageUrl = pickNonLabelImageUrl(urls, labelUrls)
+  if (!imageUrl) return null
   const label = decision.itemNumber || args.itemNumber?.trim() || 'this piece'
   return {
     needsAction: 'confirm_main_photo' as const,
     code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
     itemNumber: label === 'this piece' ? null : label,
-    ...mainPhotoPreviewLocator({ imageUrl: decision.imageUrl }),
+    ...mainPhotoPreviewLocator({ imageUrl }),
     message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
   }
 }
@@ -1074,26 +1265,12 @@ export async function assertCustomerPhotoNotReused(args: {
     existing,
   })
   if (!decision.blocked) return
-  if (args.setReuseConfirmedSha && args.setReuseConfirmedSha === contentSha256) return
-  if (
-    args.conversation &&
-    (await conversationConfirmsPhotoSetHash({
-      supabase: args.conversation.supabase,
-      conversationId: args.conversation.conversationId,
-      contentSha256,
-      itemNumber,
-    }))
-  ) {
-    return
-  }
   const flaggedPhoto = args.workflowPhotos?.find(
     (photo) => photo.imageUrl?.trim() === sourceImageUrl,
   )
   const listingId = args.reuseAsk?.listingId?.trim()
   const askedItem = args.reuseAsk?.itemNumber?.trim()
   const pieceKey = args.reuseAsk?.pieceKey?.trim()
-  const previewImageUrl = args.reuseAsk?.previewImageUrl?.trim()
-  const previewPhotoId = args.reuseAsk?.previewPhotoId?.trim()
   throw new NicNacToolError({
     code: 'PHOTO_REUSED_ON_OTHER_ITEM',
     userMessage: decision.message,
@@ -1103,8 +1280,6 @@ export async function assertCustomerPhotoNotReused(args: {
       ...(listingId ? { listingId } : {}),
       ...(askedItem ? { itemNumber: askedItem } : {}),
       ...(pieceKey ? { pieceKey } : {}),
-      ...(previewImageUrl ? { previewImageUrl } : {}),
-      ...(previewPhotoId ? { previewPhotoId } : {}),
     },
   })
 }
@@ -1171,7 +1346,6 @@ async function mainPhotoPreviewOrReuse(args: {
 }) {
   const workflow = args.workflow
   const preview = args.preview
-  const label = preview.itemNumber || 'this piece'
   const plainPreview = {
     needsAction: 'confirm_main_photo' as const,
     code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
@@ -1220,24 +1394,7 @@ async function mainPhotoPreviewOrReuse(args: {
     ) {
       throw error
     }
-    if (error.code !== 'PHOTO_REUSED_ON_OTHER_ITEM') throw error
-    const reuseMessage = error.userMessage.trim()
-    const otherItem =
-      reuseMessage.match(/\balready on\s+([A-Za-z]{1,4}\d{3,})\b/i)?.[1] ??
-      'another piece'
-    const message = `This photo is already on ${otherItem}. This is the main photo I will save for ${label}. If ${label} belongs with that set and this is the right piece, reply yes.`
-    return {
-      needsAction: 'confirm_main_photo' as const,
-      code: 'PHOTO_REUSED_ON_OTHER_ITEM' as const,
-      itemNumber: preview.itemNumber,
-      ...preview.locator,
-      ...(error.details?.contentSha256
-        ? { contentSha256: error.details.contentSha256 }
-        : {}),
-      ...(error.details?.photoId ? { photoId: error.details.photoId } : {}),
-      ...(error.details?.pieceKey ? { pieceKey: error.details.pieceKey } : {}),
-      message,
-    }
+    throw error
   }
   return plainPreview
 }
@@ -1926,9 +2083,17 @@ async function runSingle(
   admin: SupabaseClient,
 ) {
   const { itemNumber, designName, piecePhotoUrl, collectionName } = input
-  const activeWorkflow = workflowWithPublishableJewelryFront(
+  let activeWorkflow = workflowWithPublishableJewelryFront(
     ctx.activeTradeBoardWorkflow,
   )
+  if (activeWorkflow?.status === 'active' && activeWorkflow.photos.length >= 2) {
+    const corrected = await correctJewelryVersusLabelPhotos(activeWorkflow.photos)
+    activeWorkflow.photos = corrected
+    const source = ctx.activeTradeBoardWorkflow
+    if (source && source !== activeWorkflow && source.status === 'active') {
+      source.photos = corrected
+    }
+  }
   const mutationIdentity = catalogMutationIdentity({
     toolInput: input,
     workflow: activeWorkflow,
@@ -1951,6 +2116,27 @@ async function runSingle(
     throw new NicNacToolError({
       code: 'MISSING_ITEM_INPUT',
       userMessage: 'I need an item number to add a piece to your board.',
+    })
+  }
+
+  await requireDuplicatePhysicalPieceConfirmationIfNeeded({
+    admin,
+    supabase: ctx.supabase,
+    repId: ctx.repId,
+    conversationId: ctx.conversationId,
+    itemNumber,
+    material: input.material,
+    mainStone: input.mainStone,
+    activeTradeBoardWorkflow: activeWorkflow,
+  })
+  if (activeWorkflow?.status === 'active') {
+    await assertLabelAgreesWithItemNumber({
+      itemNumber,
+      workflowPhotos: activeWorkflow.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(activeWorkflow),
+      admin,
+      workflow: activeWorkflow,
+      mirrorWorkflow: ctx.activeTradeBoardWorkflow ?? undefined,
     })
   }
 

@@ -707,14 +707,13 @@ describe('update_listing — write + audit happy path', () => {
         listingId: VALID_LISTING_ID,
         itemNumber: 'NK70001',
         pieceKey: 'NK70001',
-        previewImageUrl: photoUrl,
       },
       userMessage: expect.stringContaining('NK70001'),
     })
     expect(updateListingMock).not.toHaveBeenCalled()
   })
 
-  it('saves a reused https listing photo after one yes, with no second ask', async () => {
+  it('refuses a reused https listing photo again after yes', async () => {
     const photoUrl = 'https://project.supabase.co/storage/v1/object/public/jewelry-photos/rep-1/reused-set.jpg'
     const bytes = Uint8Array.from([9, 9, 9])
     vi.stubGlobal(
@@ -758,16 +757,9 @@ describe('update_listing — write + audit happy path', () => {
       contentSha256,
       listingId: VALID_LISTING_ID,
       pieceKey: 'NK70001',
-      previewImageUrl: photoUrl,
     })
+    expect(ask.details).not.toHaveProperty('previewImageUrl')
 
-    processRepCustomListingPhotoUrlMock.mockResolvedValueOnce({
-      photoUrl: 'https://cdn.example.com/normalized.jpg',
-    })
-    updateListingMock.mockResolvedValueOnce({
-      listingId: VALID_LISTING_ID,
-      status: 'available',
-    })
     const second = makeTool(
       undefined,
       photoSupabase({
@@ -798,12 +790,11 @@ describe('update_listing — write + audit happy path', () => {
         listingId: VALID_LISTING_ID,
         listingPhotoUrl: photoUrl,
       }),
-    ).resolves.toMatchObject({
-      listingId: VALID_LISTING_ID,
-      patchedFields: ['listingPhotoUrl'],
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
     })
-    expect(processRepCustomListingPhotoUrlMock).toHaveBeenCalledTimes(1)
-    expect(updateListingMock).toHaveBeenCalledTimes(1)
+    expect(processRepCustomListingPhotoUrlMock).not.toHaveBeenCalled()
+    expect(updateListingMock).not.toHaveBeenCalled()
   })
 
   it('uses a stored photo hash instead of downloading the listing photo again', async () => {
@@ -947,11 +938,11 @@ describe('update_listing — write + audit happy path', () => {
 
     await expect(
       second.execute({ listingId, listingPhotoUrl: photoUrl }),
-    ).resolves.toMatchObject({
-      listingId,
-      patchedFields: ['listingPhotoUrl'],
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      userMessage: expect.stringContaining("won't use it as the main photo"),
     })
-    expect(updateListingMock).toHaveBeenCalledTimes(1)
+    expect(updateListingMock).not.toHaveBeenCalled()
   })
 
   it('previews a non-item listing photo as this piece', async () => {

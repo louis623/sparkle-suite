@@ -3913,7 +3913,7 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     ).rejects.toMatchObject({
       code: 'PHOTO_REUSED_ON_OTHER_ITEM',
-      userMessage: expect.stringMatching(/already on NK60295[\s\S]*ST21027 belongs with that set/),
+      userMessage: expect.stringMatching(/already on NK60295[\s\S]*won't use it as the main photo for ST21027/),
       details: {
         contentSha256: hashDataImageUrl(necklaceUrl),
         photoId: 'photo-necklace',
@@ -4125,7 +4125,11 @@ describe('add_listing - active workflow readiness guard', () => {
         itemNumber: 'ST21027',
         collectionName: 'Original',
       }),
-    ).resolves.toMatchObject({ listingId: 'listing-set' })
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      userMessage: expect.stringContaining("won't use it as the main photo"),
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
   })
 
   it('still asks when a set yes for one photo is followed by a different photo', async () => {
@@ -4180,7 +4184,7 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     ).rejects.toMatchObject({
       code: 'PHOTO_REUSED_ON_OTHER_ITEM',
-      userMessage: expect.stringMatching(/already on NK60295[\s\S]*ER34579 belongs with that set/),
+      userMessage: expect.stringMatching(/already on NK60295[\s\S]*won't use it as the main photo for ER34579/),
     })
     expect(addListingMock).not.toHaveBeenCalled()
   })
@@ -4255,8 +4259,11 @@ describe('add_listing - active workflow readiness guard', () => {
         designName: 'Necklace',
         collectionName: 'Original',
       }),
-    ).resolves.toMatchObject({ listingId: 'listing-set-yes' })
-    expect(addListingMock).toHaveBeenCalled()
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+      userMessage: expect.stringContaining("won't use it as the main photo"),
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
   })
 
   it('blocks the save when the label photo names a different item number', async () => {
@@ -4468,21 +4475,16 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     })
 
-    const result = await tool.execute({
-      mode: 'single',
-      itemNumber: 'NK90303',
-      collectionName: 'Original',
-    })
-    expect(result).toMatchObject({
-      needsAction: 'confirm_main_photo',
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'NK90303',
+        collectionName: 'Original',
+      }),
+    ).rejects.toMatchObject({
       code: 'PHOTO_REUSED_ON_OTHER_ITEM',
-      previewPhotoId: 'photo-ring',
-      contentSha256: hashDataImageUrl(photoUrl),
-      message: expect.stringContaining('already on RG90101'),
+      userMessage: expect.stringContaining('already on RG90101'),
     })
-    expect(String((result as { message?: string }).message)).toContain(
-      'main photo I will save for NK90303',
-    )
     expect(addListingMock).not.toHaveBeenCalled()
   })
 
@@ -4791,7 +4793,7 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     ).rejects.toMatchObject({
       code: 'PHOTO_REUSED_ON_OTHER_ITEM',
-      userMessage: expect.stringContaining('NK60296 belongs with that set'),
+      userMessage: expect.stringContaining("won't use it as the main photo for NK60296"),
     })
     expect(addListingMock).not.toHaveBeenCalled()
   })
@@ -4846,7 +4848,7 @@ describe('add_listing - active workflow readiness guard', () => {
       }),
     ).rejects.toMatchObject({
       code: 'PHOTO_REUSED_ON_OTHER_ITEM',
-      userMessage: expect.stringContaining('NK60296 belongs with that set'),
+      userMessage: expect.stringContaining("won't use it as the main photo for NK60296"),
     })
     expect(addListingMock).not.toHaveBeenCalled()
   })
@@ -5783,25 +5785,132 @@ describe('fresh start photo confirmation', () => {
         }),
       })
 
-      const result = await tool.execute({
-        mode: 'single',
-        itemNumber: 'NK94304',
-        collectionName: 'Original',
-      })
-
-      expect(result).toMatchObject({
-        needsAction: 'confirm_main_photo',
+      await expect(
+        tool.execute({
+          mode: 'single',
+          itemNumber: 'NK94304',
+          collectionName: 'Original',
+        }),
+      ).rejects.toMatchObject({
         code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+        userMessage: expect.stringContaining('already on ER94204'),
       })
-      const message = String((result as { message?: string }).message)
-      expect(message).toContain('already on ER94204')
-      expect(message).toContain('main photo I will save for NK94304')
-      expect(message).toContain('belongs with that set')
       expect(addListingMock).not.toHaveBeenCalled()
     } finally {
       if (previousUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
       else process.env.NEXT_PUBLIC_SUPABASE_URL = previousUrl
     }
+  })
+})
+
+describe('round 4 save guards', () => {
+  it('does not create a second Dance Floor entry for an item already saved', async () => {
+    createAdminClientMock.mockReturnValue({
+      from: (table: string) => {
+        if (table === 'jewelry_designs') {
+          return {
+            select: () => ({
+              eq: () => Promise.resolve({ data: [{ id: 'design-er95204' }], error: null }),
+            }),
+          }
+        }
+        if (table === 'trade_listings') {
+          return {
+            select: () => ({
+              eq: () => ({
+                in: () => ({
+                  neq: () => ({
+                    limit: () => Promise.resolve({ data: [{ id: 'listing-er95204' }], error: null }),
+                  }),
+                }),
+                eq: () => ({
+                  neq: () => ({
+                    limit: () => Promise.resolve({ data: [], error: null }),
+                  }),
+                }),
+              }),
+            }),
+          }
+        }
+        throw new Error(`unexpected table ${table}`)
+      },
+    })
+    const tool = makeTool(makeConversationLookupMock([]))
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ER95204',
+        clickwrapAccepted: true,
+      }),
+    ).rejects.toMatchObject({
+      code: 'DUPLICATE_PHYSICAL_CONFIRMATION_REQUIRED',
+      userMessage: expect.stringContaining('already on your Dance Floor'),
+    })
+    expect(addListingMock).not.toHaveBeenCalled()
+  })
+
+  it('keeps refusing a normal label that names a different item', async () => {
+    const labelPng = await renderItemNumberPng('ER95999')
+    const workflow = activeWorkflow({
+      id: 'intake-er95205',
+      phase: 'ready_to_add',
+      missing: [],
+      metadata: { mainPhotoConfirmationRequired: true },
+      known: {
+        itemNumber: 'ER95205',
+        designName: 'Earrings',
+        collectionName: 'Original',
+        rarityClassification: 'standard',
+      },
+      photos: [
+        {
+          id: 'photo-label',
+          intakeSessionId: 'intake-er95205',
+          attachmentIndex: 1,
+          declaredRole: 'jewelry_front',
+          visualRole: 'jewelry',
+          roleConfirmed: true,
+          imageUrl: `data:image/png;base64,${labelPng.toString('base64')}`,
+          quality: 'usable',
+          qualityIssues: [],
+          notes: [],
+        },
+        {
+          id: 'photo-jewelry',
+          intakeSessionId: 'intake-er95205',
+          attachmentIndex: 2,
+          declaredRole: 'label_details',
+          visualRole: 'label_or_packaging',
+          roleConfirmed: true,
+          imageUrl: 'data:image/jpeg;base64,TkVX',
+          quality: 'usable',
+          qualityIssues: [],
+          notes: [],
+        },
+      ],
+    })
+    const tool = makeTool(makeConversationLookupMock([]), {
+      activeTradeBoardWorkflow: workflow,
+    })
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ER95205',
+        collectionName: 'Original',
+      }),
+    ).rejects.toMatchObject({
+      code: 'LABEL_ITEM_NUMBER_MISMATCH',
+      userMessage: expect.stringContaining('ER95999'),
+    })
+    await expect(
+      tool.execute({
+        mode: 'single',
+        itemNumber: 'ER95205',
+        collectionName: 'Original',
+      }),
+    ).rejects.toMatchObject({ code: 'LABEL_ITEM_NUMBER_MISMATCH' })
+    expect(addListingMock).not.toHaveBeenCalled()
+    expect(workflow.metadata.labelItemNumberMismatch).toBe('ER95999')
   })
 })
 

@@ -833,16 +833,20 @@ export default function NicNacClient({
     }
     setClearInFlight(true)
     try {
+      const nextId = operatorSupportSessionId ?? newConversationId()
       if (!showWorkspaceReviewState) {
         const res = await fetch('/api/nic-nac/conversation/clear', {
           method: 'POST',
           credentials: 'include',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ conversationId }),
+          body: JSON.stringify({
+            conversationId,
+            nextConversationId: nextId,
+          }),
         })
         if (!res.ok) return
       }
-      activateConversation(operatorSupportSessionId ?? newConversationId(), [])
+      activateConversation(nextId, [])
     } finally {
       setClearInFlight(false)
     }

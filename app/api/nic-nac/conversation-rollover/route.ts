@@ -10,7 +10,10 @@ import {
 import { findActionableApproval } from '@/lib/nic-nac/hitl-state'
 import { buildNicNacRolloverMessages } from '@/lib/nic-nac/rollover'
 import { logNicNacRollover } from '@/lib/nic-nac/rollover-telemetry'
-import { getActiveTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
+import {
+  copyConfirmedPieceDetailsToConversation,
+  getActiveTradeBoardIntakeSession,
+} from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
@@ -67,10 +70,20 @@ export async function POST(request: Request) {
     activeIntake &&
     (activeIntake.status === 'active' ||
       activeIntake.status === 'needs_human_review')
+  const known = unfinished ? activeIntake.known : null
   const messages = buildNicNacRolloverMessages(sourceMessages, undefined, {
     dropPendingPiece: true,
     ...(unfinished
-      ? { unfinishedItemNumber: activeIntake.known.itemNumber ?? null }
+      ? {
+          unfinishedItemNumber: known?.itemNumber ?? null,
+          carriedDetails: {
+            ringSize: known?.ringSize,
+            rarity: known?.rarityClassification,
+            material: known?.material,
+            mainStone: known?.mainStone,
+            designName: known?.designName,
+          },
+        }
       : {}),
   })
   await insertConversationMessages(supabase, {
@@ -78,6 +91,17 @@ export async function POST(request: Request) {
     repId,
     messages,
   })
+  if (unfinished && activeIntake) {
+    try {
+      await copyConfirmedPieceDetailsToConversation(admin, {
+        repId,
+        conversationId,
+        source: activeIntake,
+      })
+    } catch {
+      // The fresh chat still opens. Details are also in the one notice.
+    }
+  }
   await logNicNacRollover({
     repId,
     sourceConversationId,

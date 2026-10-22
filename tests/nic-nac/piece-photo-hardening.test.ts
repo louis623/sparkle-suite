@@ -356,10 +356,10 @@ describe('Kelly 9/18 — the same photo file cannot land on a different item num
       expect(decision.otherItemNumber).toBe('NK60295')
       expect(decision.message).toContain(itemNumber)
       expect(decision.message).toContain('NK60295')
-      expect(decision.message).toContain('belongs with that set')
+      expect(decision.message).toContain("I won't use it as the main photo")
+      expect(decision.message).not.toContain('belongs with that set')
       expect(decision.message).not.toMatch(/\b(sold|sales|trade|traded)\b/i)
       expect(decision.message).not.toMatch(/\b(her|his|their|they)\b/i)
-      expect(decision.message).not.toMatch(/I won't use it/i)
     }
   })
 

@@ -64,7 +64,7 @@ export function decidePhotoReuse(args: {
   return {
     blocked: true,
     otherItemNumber,
-    message: `This photo is already on ${otherItemNumber}. If ${label} belongs with that set, reply yes.`,
+    message: `This photo is already on ${otherItemNumber}. I won't use it as the main photo for ${label}. Send a different photo of this piece.`,
   }
 }
 

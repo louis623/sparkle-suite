@@ -9,6 +9,7 @@ export function RelativeTime({ value }: { value: string | number | undefined }) 
   const [now, setNow] = useState<number | null>(null)
 
   useEffect(() => {
+    setNow(Date.now())
     const id = setInterval(() => setNow(Date.now()), 30_000)
     return () => clearInterval(id)
   }, [])
@@ -17,9 +18,21 @@ export function RelativeTime({ value }: { value: string | number | undefined }) 
   const ts = typeof value === 'number' ? value : Date.parse(value)
   if (!Number.isFinite(ts)) return null
 
-  const label = formatRelative(ts, now ?? ts)
+  const label = relativeTimeLabel(ts, now)
   const isoLabel = new Date(ts).toISOString()
   return <time dateTime={isoLabel} title={new Date(ts).toLocaleString()}>{label}</time>
+}
+
+export function relativeTimeLabel(then: number, now: number | null): string {
+  if (now === null) {
+    return new Date(then).toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    })
+  }
+  return formatRelative(then, now)
 }
 
 function formatRelative(then: number, now: number): string {

@@ -323,7 +323,7 @@ describe('report_jewelry_catalog_issue', () => {
     expect(reportJewelryCatalogIssueMock).not.toHaveBeenCalled()
   })
 
-  it('saves a reused catalog photo after one yes, with no second ask', async () => {
+  it('refuses a reused catalog photo again after yes', async () => {
     const bytes = Uint8Array.from([9, 9, 9])
     vi.stubGlobal(
       'fetch',
@@ -369,19 +369,10 @@ describe('report_jewelry_catalog_issue', () => {
       contentSha256,
       itemNumber: 'ER34579',
       pieceKey: 'ER34579',
-      previewImageUrl: CANONICAL_PHOTO_URL,
     })
+    expect(ask.details).not.toHaveProperty('previewImageUrl')
 
-    createAdminClientMock
-      .mockReturnValueOnce(reusedAdmin)
-      .mockReturnValueOnce({ __isAdmin: true })
-    reportJewelryCatalogIssueMock.mockResolvedValueOnce({
-      designId: 'design-er34579',
-      itemNumber: 'ER34579',
-      changedFields: ['canonicalPhotoUrl'],
-      issueLogged: true,
-      corrected: true,
-    })
+    createAdminClientMock.mockReturnValueOnce(reusedAdmin)
     const second = makeTool(null, {
       supabase: conversationSupabase([
         { role: 'user', parts: [{ type: 'text', text: 'Yes' }] },
@@ -410,11 +401,10 @@ describe('report_jewelry_catalog_issue', () => {
         reason: 'The current catalog photo is the item label/details photo.',
         correction: { canonicalPhotoUrl: CANONICAL_PHOTO_URL },
       }),
-    ).resolves.toMatchObject({
-      designId: 'design-er34579',
-      corrected: true,
+    ).rejects.toMatchObject({
+      code: 'PHOTO_REUSED_ON_OTHER_ITEM',
     })
-    expect(reportJewelryCatalogIssueMock).toHaveBeenCalledTimes(1)
+    expect(reportJewelryCatalogIssueMock).not.toHaveBeenCalled()
   })
 
   it('does not download a canonical photo again when the intake already hashed it', async () => {

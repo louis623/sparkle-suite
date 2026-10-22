@@ -254,6 +254,54 @@ export async function readLatestClosedPieceNotes(
   }
 }
 
+/**
+ * A fresh chat keeps confirmed text details and does not copy photos,
+ * labels, or a previous yes. The old workflow stays where it was.
+ */
+export async function copyConfirmedPieceDetailsToConversation(
+  supabase: SupabaseClient,
+  args: {
+    repId: string
+    conversationId: string
+    source: TradeBoardIntakeSessionState
+  },
+): Promise<string> {
+  const known = args.source.known
+  const created = await createTradeBoardIntakeSession(supabase, {
+    repId: args.repId,
+    conversationId: args.conversationId,
+    metadata: {
+      carriedFromRollover: true,
+      mainPhotoConfirmationRequired: true,
+      priorPieceNotes: pieceNoteList(args.source.metadata.priorPieceNotes),
+      ...(typeof args.source.metadata.labelItemNumberMismatch === 'string'
+        ? { labelItemNumberMismatch: args.source.metadata.labelItemNumberMismatch }
+        : {}),
+    },
+  })
+  await updateTradeBoardIntakeSession(supabase, {
+    sessionId: created.id,
+    patch: {
+      catalog_mode: args.source.catalogMode,
+      item_number: known.itemNumber ?? null,
+      jewelry_type: known.jewelryType ?? null,
+      quantity: known.quantity ?? null,
+      design_name: known.designName ?? null,
+      collection_family: known.collectionFamily ?? null,
+      collection_name: known.collectionName ?? null,
+      collection_year: known.collectionYear ?? null,
+      material: known.material ?? null,
+      main_stone: known.mainStone ?? null,
+      ring_size: known.ringSize ?? null,
+      rep_notes: known.repNotes ?? null,
+      trade_preferences: known.tradePreferences ?? null,
+      rarity_classification: known.rarityClassification ?? null,
+      current_phase: 'details_capture',
+    },
+  })
+  return created.id
+}
+
 export async function createTradeBoardIntakeSession(
   supabase: SupabaseClient,
   args: {

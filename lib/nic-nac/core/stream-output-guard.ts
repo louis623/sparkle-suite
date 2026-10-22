@@ -152,10 +152,10 @@ function summarizeSwapCleanup(record: ToolOutputRecord) {
 function summarizeCatalogSearch(record: ToolOutputRecord) {
   const results = readRecords(record, 'results')
   const count = readNumber(record, 'count') ?? results.length
-  if (count === 0) return 'I couldn’t find a matching jewelry catalog record.'
+  if (count === 0) return 'I couldn’t find a matching piece.'
 
   return summarizeRows(
-    `I found ${count} matching catalog ${count === 1 ? 'record' : 'records'}.`,
+    `I found ${count} matching ${count === 1 ? 'piece' : 'pieces'}.`,
     results,
     (result, index) => {
       const name = compactLabel(result.designName, 'Unnamed design')
@@ -564,6 +564,41 @@ export function getNicNacMandatoryToolFollowUpText(
     return 'Fulfillment is complete. Want to add the dancer you received to your Dance Floor now?'
   }
   return null
+}
+
+const INTERNAL_CATALOG_PHRASES: Array<[RegExp, string]> = [
+  [/shared catalog/gi, 'design list'],
+  [/catalog records/gi, 'pieces'],
+  [/catalog record/gi, 'piece'],
+]
+
+export function scrubInternalCatalogPhrases(text: string): string {
+  let next = text
+  for (const [pattern, replacement] of INTERNAL_CATALOG_PHRASES) {
+    next = next.replace(pattern, replacement)
+  }
+  return next
+}
+
+/** Holds a short tail so a phrase split across stream deltas is still removed. */
+export function createRepTextScrubber() {
+  const tail = 'catalog records'.length - 1
+  let hold = ''
+  return {
+    push(delta: string): string {
+      hold += delta
+      if (hold.length <= tail) return ''
+      const scrubbed = scrubInternalCatalogPhrases(hold)
+      const emit = scrubbed.slice(0, scrubbed.length - tail)
+      hold = scrubbed.slice(scrubbed.length - tail)
+      return emit
+    },
+    flush(): string {
+      const emit = scrubInternalCatalogPhrases(hold)
+      hold = ''
+      return emit
+    },
+  }
 }
 
 export function isRenderableNicNacStreamChunk(chunk: UIMessageChunk) {

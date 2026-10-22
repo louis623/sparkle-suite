@@ -1,5 +1,5 @@
 import type { UIMessage } from 'ai'
-import { unfinishedPieceQuestion } from '@/lib/nic-nac/piece-task'
+import { freshChatNotice } from '@/lib/nic-nac/piece-task'
 
 export const LOST_PHOTO_NOTE = 'That earlier photo was not brought into this chat.'
 
@@ -100,33 +100,72 @@ function withoutLostPhotoClaims(message: UIMessage): UIMessage {
   }
 }
 
+function photoOnlyMessage(message: UIMessage): boolean {
+  const parts = message.parts ?? []
+  if (parts.length === 0) return false
+  return parts.every((part) => isImageFilePart(part))
+}
+
+function isStandaloneLostPhotoNotice(message: UIMessage): boolean {
+  return messageText(message).trim() === LOST_PHOTO_NOTE
+}
+
 export function buildNicNacRolloverMessages(
   messages: UIMessage[],
   limit = NIC_NAC_ROLLOVER_TAIL_MESSAGES,
-  options?: { dropPendingPiece?: boolean; unfinishedItemNumber?: string | null },
+  options?: {
+    dropPendingPiece?: boolean
+    unfinishedItemNumber?: string | null
+    carriedDetails?: {
+      ringSize?: string | null
+      rarity?: string | null
+      material?: string | null
+      mainStone?: string | null
+      designName?: string | null
+    }
+  },
 ): UIMessage[] {
   const tail = messages.slice(-Math.max(1, limit))
-  const rolled = tail.map((message, index) => {
-    const carried = withoutCarriedPhotoFiles(message)
-    const visible =
-      options?.dropPendingPiece === false
-        ? carried
-        : withoutLostPhotoClaims(carried)
-    return {
-      ...visible,
-      id: `rollover-${index}-${message.id.slice(-64)}`,
+  const keepClaims = options?.dropPendingPiece === false
+  const rolled = tail.flatMap((message, index) => {
+    if (
+      !keepClaims &&
+      (assistantClaimsLostPhoto(message) ||
+        photoOnlyMessage(message) ||
+        isStandaloneLostPhotoNotice(message))
+    ) {
+      return []
     }
+    const carried = withoutCarriedPhotoFiles(message)
+    return [
+      {
+        ...carried,
+        id: `rollover-${index}-${message.id.slice(-64)}`,
+      },
+    ]
   })
-  if (!options || !('unfinishedItemNumber' in options)) return rolled
+  const mentionFreshChat =
+    !keepClaims &&
+    (Boolean(options && 'unfinishedItemNumber' in options) ||
+      rolled.length !== tail.length)
+  if (!mentionFreshChat) return rolled
+  const details = options?.carriedDetails
   return [
     ...rolled,
     {
       id: 'rollover-finish-ask',
-      role: 'assistant',
+      role: 'assistant' as const,
       parts: [
         {
-          type: 'text',
-          text: unfinishedPieceQuestion(options.unfinishedItemNumber),
+          type: 'text' as const,
+          text: freshChatNotice({
+            itemNumber: options?.unfinishedItemNumber,
+            ringSize: details?.ringSize,
+            rarity: details?.rarity,
+            material: details?.material,
+            mainStone: details?.mainStone,
+            designName: details?.designName,
+          }),
         },
       ],
     },

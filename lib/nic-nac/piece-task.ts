@@ -61,6 +61,37 @@ export function unfinishedPieceQuestion(itemNumber?: string | null): string {
   return item ? `Want to finish ${item}?` : 'Want to finish this piece?'
 }
 
+function rarityWord(value?: string | null): string {
+  const text = value?.trim().toLowerCase()
+  if (text === 'diamond') return 'Diamond'
+  if (text === 'unicorn') return 'Unicorn'
+  if (text === 'standard') return 'standard'
+  return ''
+}
+
+/** One plain notice. Details already given stay; photos do not. */
+export function freshChatNotice(args: {
+  itemNumber?: string | null
+  ringSize?: string | null
+  rarity?: string | null
+  material?: string | null
+  mainStone?: string | null
+  designName?: string | null
+}): string {
+  const item = args.itemNumber?.trim()
+  const details = [
+    item,
+    args.ringSize?.trim() ? `size ${args.ringSize.trim()}` : '',
+    rarityWord(args.rarity),
+    args.material?.trim(),
+    args.mainStone?.trim(),
+    args.designName?.trim(),
+  ].filter(Boolean)
+  const kept = details.length ? ` I still have ${details.join(', ')}.` : ''
+  const finish = item ? ` Want to finish ${item}?` : ' Want to finish this piece?'
+  return `I started a fresh chat.${kept}${finish} Send the photo again.`
+}
+
 export function sendPhotoAgainMessage(itemNumber?: string | null): string {
   const item = itemNumber?.trim()
   return item ? `Send the photo for ${item} again.` : 'Send the photo for this piece again.'

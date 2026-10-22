@@ -28,6 +28,7 @@ import type {
 import {
   EMPTY_PIECE_MODEL_CONTEXT,
   assistantIsResumingUnfinishedPiece,
+  decidePieceClose,
   pieceCarryNote,
   pieceNoteList,
   pieceTurnBoundary,
@@ -195,6 +196,28 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
 
     const shouldStart = session !== null || hasTradeBoardIntakeSignal(args.messages)
     if (!shouldStart) {
+      const closedNotes =
+        inheritedNotes ??
+        (await readLatestClosedPieceNotes(workflowSupabase, {
+          repId: args.repId,
+          conversationId: args.conversationId,
+        }))
+      const saved = [...closedNotes].reverse().find((note) => note.startsWith('Saved '))
+      const latestUser = args.messages
+        .slice()
+        .reverse()
+        .find((message) => message.role === 'user')
+      if (saved && decidePieceClose(getMessageText(latestUser)) === 'skipped') {
+        return {
+          ...emptyWorkflowContext('latest_turn_intent'),
+          workflowPromptState: `${saved}. This piece is already on the Dance Floor. Tell the rep that. Do not say it was skipped. If she wants it removed, call remove_listing and let the approval dialog confirm it.`,
+          modelPieceContext: {
+            fromMessageId: latestUser?.id ?? null,
+            carryNotes: closedNotes,
+            unfinishedQuestion: null,
+          },
+        }
+      }
       return emptyWorkflowContext('latest_turn_intent')
     }
 

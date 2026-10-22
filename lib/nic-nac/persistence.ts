@@ -82,6 +82,28 @@ export async function getLatestConversationId(
   return (data?.conversation_id as string | undefined) ?? null
 }
 
+const RECENT_PAGE = 200
+const RECENT_SCAN_CAP = 2000
+const RECENT_CONVERSATION_CAP = 40
+
+async function earliestUserLines(
+  supabase: SupabaseClient,
+  repId: string,
+  conversationId: string,
+): Promise<Array<{ parts?: unknown; created_at?: string | null }>> {
+  const { data, error } = await supabase
+    .from('nic_nac_conversations')
+    .select('parts, created_at')
+    .eq('rep_id', repId)
+    .eq('conversation_id', conversationId)
+    .eq('role', 'user')
+    .is('cleared_at', null)
+    .order('created_at', { ascending: true })
+    .limit(8)
+  if (error) throw error
+  return data ?? []
+}
+
 export async function listRecentNicNacConversations(
   supabase: SupabaseClient,
   repId: string,
@@ -94,15 +116,71 @@ export async function listRecentNicNacConversations(
     }>
   },
 ): Promise<RecentConversationSummary[]> {
-  const { data, error } = await supabase
-    .from('nic_nac_conversations')
-    .select('conversation_id, role, parts, created_at')
-    .eq('rep_id', repId)
-    .is('cleared_at', null)
-    .order('created_at', { ascending: false })
-    .limit(80)
-  if (error) throw error
-  return recentConversationsFromRows(data ?? [], limit, options)
+  const discovered: Array<{ id: string; latestAt: string }> = []
+  const seen = new Set<string>()
+  for (let offset = 0; offset < RECENT_SCAN_CAP; offset += RECENT_PAGE) {
+    const { data, error } = await supabase
+      .from('nic_nac_conversations')
+      .select('conversation_id, created_at')
+      .eq('rep_id', repId)
+      .is('cleared_at', null)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + RECENT_PAGE - 1)
+    if (error) throw error
+    const page = data ?? []
+    for (const row of page) {
+      const id = (row.conversation_id as string | null | undefined)?.trim()
+      const createdAt = (row.created_at as string | null | undefined)?.trim()
+      if (!id || !createdAt || seen.has(id)) continue
+      seen.add(id)
+      discovered.push({ id, latestAt: createdAt })
+    }
+    if (page.length < RECENT_PAGE) break
+  }
+
+  const titled = await Promise.all(
+    discovered.slice(0, RECENT_CONVERSATION_CAP).map(async (item) => {
+      const users = await earliestUserLines(supabase, repId, item.id)
+      return { item, users }
+    }),
+  )
+  const rows: Array<{
+    conversation_id: string
+    role: string
+    parts: unknown
+    created_at: string
+  }> = []
+  for (const { item, users } of titled) {
+    const startedAt =
+      (users[0]?.created_at as string | null | undefined)?.trim() || item.latestAt
+    for (const user of users) {
+      const createdAt = (user.created_at as string | null | undefined)?.trim()
+      if (!createdAt) continue
+      rows.push({
+        conversation_id: item.id,
+        role: 'user',
+        parts: user.parts,
+        created_at: createdAt,
+      })
+    }
+    if (!users.length) {
+      rows.push({
+        conversation_id: item.id,
+        role: 'user',
+        parts: [],
+        created_at: startedAt,
+      })
+    }
+    if (item.latestAt !== startedAt) {
+      rows.push({
+        conversation_id: item.id,
+        role: 'assistant',
+        parts: [],
+        created_at: item.latestAt,
+      })
+    }
+  }
+  return recentConversationsFromRows(rows, limit, options)
 }
 
 // Clear retires the open chat so the next visit does not resume it. Earlier
@@ -129,6 +207,80 @@ export async function clearActiveConversationsForRep(
         .filter((conversationId): conversationId is string => Boolean(conversationId)),
     ),
   )
+}
+
+function linkedConversationIds(
+  startId: string,
+  edges: Array<{ source?: string | null; destination?: string | null }>,
+): string[] {
+  const forward = new Map<string, string[]>()
+  const backward = new Map<string, string[]>()
+  for (const edge of edges) {
+    const source = edge.source?.trim()
+    const destination = edge.destination?.trim()
+    if (!source || !destination) continue
+    forward.set(source, [...(forward.get(source) ?? []), destination])
+    backward.set(destination, [...(backward.get(destination) ?? []), source])
+  }
+  const found = new Set<string>([startId])
+  const queue = [startId]
+  while (queue.length > 0) {
+    const current = queue.shift()
+    if (!current) continue
+    for (const next of [...(forward.get(current) ?? []), ...(backward.get(current) ?? [])]) {
+      if (found.has(next)) continue
+      found.add(next)
+      queue.push(next)
+    }
+  }
+  return [...found]
+}
+
+/**
+ * Clear the open chat and every rollover that belongs to it, then leave a
+ * hidden marker so the next visit opens the new empty chat.
+ */
+export async function clearNicNacConversationChain(
+  supabase: SupabaseClient,
+  admin: SupabaseClient,
+  repId: string,
+  conversationId: string,
+  nextConversationId: string,
+): Promise<string[]> {
+  let ids = [conversationId]
+  try {
+    const { data, error } = await admin
+      .from('nic_nac_rollovers')
+      .select('source_conversation_id, destination_conversation_id')
+      .eq('rep_id', repId)
+      .order('created_at', { ascending: false })
+      .limit(200)
+    if (!error) {
+      ids = linkedConversationIds(
+        conversationId,
+        (data ?? []).map((row) => ({
+          source: (row as { source_conversation_id?: string }).source_conversation_id,
+          destination: (row as { destination_conversation_id?: string })
+            .destination_conversation_id,
+        })),
+      )
+    }
+  } catch {
+    ids = [conversationId]
+  }
+  const cleared: string[] = []
+  for (const id of ids) {
+    cleared.push(...(await clearActiveConversationsForRep(supabase, repId, id)))
+  }
+  const nextId = nextConversationId.trim()
+  if (nextId && nextId !== conversationId && !ids.includes(nextId)) {
+    await reserveAssistantMessage(supabase, {
+      conversationId: nextId,
+      repId,
+      messageId: `fresh-start-${nextId}`,
+    })
+  }
+  return Array.from(new Set(cleared))
 }
 
 export async function insertUserMessage(

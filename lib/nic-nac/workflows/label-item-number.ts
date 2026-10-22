@@ -1,5 +1,6 @@
 import sharp from 'sharp'
 import { getNicNacModelPolicy } from '@/lib/nic-nac/core/model-policy'
+import { isAllowedCustomerPhotoFetchUrl } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 
 const ITEM_NUMBER = /^[A-Z]{1,4}\d{3,}$/
 
@@ -262,6 +263,44 @@ async function downscaledLabelDataUrl(bytes: Buffer): Promise<string> {
   return `data:image/jpeg;base64,${small.toString('base64')}`
 }
 
+const LABEL_FETCH_MAX_BYTES = 8_000_000
+
+/** Data URLs are local. Only this project's storage https URLs are fetched. */
+async function customerPhotoBytes(
+  url: string,
+  fetchImpl: typeof fetch,
+): Promise<Buffer | null> {
+  const trimmed = url.trim()
+  const match = /^data:[^;]+;base64,(.+)$/i.exec(trimmed)
+  if (match?.[1]) {
+    const payload = match[1].replace(/\s/g, '')
+    if (!payload) return null
+    return Buffer.from(payload, 'base64')
+  }
+  let parsed: URL
+  try {
+    parsed = new URL(trimmed)
+  } catch {
+    return null
+  }
+  if (parsed.username || parsed.password) return null
+  if (!isAllowedCustomerPhotoFetchUrl(trimmed)) return null
+  try {
+    const response = await fetchImpl(trimmed, {
+      redirect: 'error',
+      signal: AbortSignal.timeout(8_000),
+    })
+    if (!response.ok) return null
+    const declared = Number(response.headers.get('content-length'))
+    if (Number.isFinite(declared) && declared > LABEL_FETCH_MAX_BYTES) return null
+    const bytes = Buffer.from(await response.arrayBuffer())
+    if (bytes.length === 0 || bytes.length > LABEL_FETCH_MAX_BYTES) return null
+    return bytes
+  } catch {
+    return null
+  }
+}
+
 /**
  * Read a jewelry item number from a real label photo.
  * Large photos are downscaled first. A missing key, bad image, timeout,
@@ -273,14 +312,11 @@ export async function readLabelPhoto(
 ): Promise<LabelPhotoRead> {
   const model = getNicNacModelPolicy('human_default').modelId
   if (!url) return { outcome: 'not_attempted', itemNumbers: [], model }
-  const match = /^data:[^;]+;base64,(.+)$/i.exec(url.trim())
-  if (!match?.[1]) return { outcome: 'not_attempted', itemNumbers: [], model }
-  const payload = match[1].replace(/\s/g, '')
-  const estimatedBytes = Math.floor((payload.length * 3) / 4)
-  if (estimatedBytes === 0) return { outcome: 'not_attempted', itemNumbers: [], model }
-  if (estimatedBytes <= LABEL_TEMPLATE_MAX_BYTES) {
+  const bytes = await customerPhotoBytes(url, options.fetch ?? fetch)
+  if (!bytes || bytes.length === 0) return { outcome: 'not_attempted', itemNumbers: [], model }
+  if (bytes.length <= LABEL_TEMPLATE_MAX_BYTES) {
     try {
-      const numbers = await readItemNumbersFromImageBytes(Buffer.from(payload, 'base64'))
+      const numbers = await readItemNumbersFromImageBytes(bytes)
       if (numbers.length === 0) return { outcome: 'not_attempted', itemNumbers: [], model }
       return { outcome: 'read', itemNumbers: numbers, model }
     } catch {
@@ -293,7 +329,7 @@ export async function readLabelPhoto(
   }
   let imageUrl: string
   try {
-    imageUrl = await downscaledLabelDataUrl(Buffer.from(payload, 'base64'))
+    imageUrl = await downscaledLabelDataUrl(bytes)
   } catch {
     return { outcome: 'failed', itemNumbers: [], reason: 'unreadable_image', model }
   }

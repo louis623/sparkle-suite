@@ -133,7 +133,8 @@ describe('Nic-Nac conversation rollover', () => {
     expect(JSON.stringify(rolled)).not.toContain('photo-ring')
     expect(JSON.stringify(rolled)).not.toContain('confirm_main_photo')
     expect(JSON.stringify(rolled)).not.toContain('main photo I will save')
-    expect(JSON.stringify(rolled)).toContain(LOST_PHOTO_NOTE)
+    expect(JSON.stringify(rolled)).toContain('I started a fresh chat.')
+    expect(JSON.stringify(rolled)).not.toContain(LOST_PHOTO_NOTE)
 
     const asked = buildNicNacRolloverMessages(
       [
@@ -155,11 +156,11 @@ describe('Nic-Nac conversation rollover', () => {
     )
     expect(asked[0]?.parts).toEqual([{ type: 'text', text: 'NK91303' }])
     expect(asked.at(-1)?.id).toBe('rollover-finish-ask')
-    expect(asked.at(-1)?.parts).toEqual([
-      { type: 'text', text: unfinishedPieceQuestion('NK91303') },
-    ])
+    expect(JSON.stringify(asked.at(-1)?.parts)).toContain('I started a fresh chat.')
+    expect(JSON.stringify(asked.at(-1)?.parts)).toContain('Want to finish NK91303?')
+    expect(JSON.stringify(asked.at(-1)?.parts)).toContain('Send the photo again.')
+    expect(JSON.stringify(asked).match(/I started a fresh chat/g)?.length).toBe(1)
     expect(JSON.stringify(asked)).not.toContain('data:image')
-    expect(JSON.stringify(asked)).toContain('Want to finish NK91303?')
 
     const claimed = buildNicNacRolloverMessages(
       [
@@ -192,10 +193,11 @@ describe('Nic-Nac conversation rollover', () => {
     expect(claimedText).not.toContain('I have the photo')
     expect(claimedText).not.toContain('main photo I will save')
     expect(claimedText).not.toContain('data:image')
-    expect(claimedText).toContain(LOST_PHOTO_NOTE)
-    expect(claimed.at(-1)?.parts).toEqual([
-      { type: 'text', text: 'Want to finish ER94204?' },
-    ])
+    expect(claimedText).not.toContain(LOST_PHOTO_NOTE)
+    expect(claimedText.match(/I started a fresh chat/g)?.length).toBe(1)
+    expect(claimed.at(-1)?.id).toBe('rollover-finish-ask')
+    expect(JSON.stringify(claimed.at(-1)?.parts)).toContain('Want to finish ER94204?')
+    expect(JSON.stringify(claimed.at(-1)?.parts)).toContain('Send the photo again.')
   })
 
   it('does not roll over latency-only or reasonless historical health rows', () => {
@@ -255,10 +257,8 @@ describe('Nic-Nac conversation rollover', () => {
     expect(serialized).not.toContain('data:image/jpeg')
     expect(serialized).not.toContain('TEFCRUw')
     expect(rolled[0]?.parts).toEqual([{ type: 'text', text: 'Earlier piece' }])
-    expect(rolled[1]?.parts?.[0]).toMatchObject({
-      type: 'text',
-      text: expect.stringContaining('not brought over'),
-    })
-    expect(rolled[2]?.parts).toEqual([{ type: 'text', text: 'kept' }])
+    expect(rolled[1]?.parts).toEqual([{ type: 'text', text: 'kept' }])
+    expect(serialized.match(/I started a fresh chat/g)?.length).toBe(1)
+    expect(serialized).not.toContain('That earlier photo was not brought into this chat.')
   })
 })

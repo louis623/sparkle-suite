@@ -358,7 +358,15 @@ export function buildTradeBoardIntakePromptState(
               ]
                 .filter(Boolean)
                 .join(', ') || 'the details already collected'
-            }. Use the new photo for this piece. Do not offer to replace the shared catalog photo.`,
+            }. Use the new photo for this piece. Do not offer that photo as the main photo.`,
+          ]
+        : []),
+      'Never say "catalog record" or "shared catalog" to the rep.',
+      'The main photo is the jewelry photo. Never describe or save a label as the main photo.',
+      'A photo already on another piece is never the main photo for this piece.',
+      ...(state.metadata.carriedFromRollover === true
+        ? [
+            'The details already listed are confirmed. Do not ask for the item number, size, or rarity again. The photo was not brought into this chat, so ask for that photo again.',
           ]
         : []),
     ],

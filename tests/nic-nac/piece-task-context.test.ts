@@ -494,7 +494,7 @@ describe('duplicate photo no', () => {
     ).toBe(true)
     const prompt = buildTradeBoardIntakePromptState(next)
     const rule = prompt.hardRules.find((line) =>
-      line.includes('Do not offer to replace the shared catalog photo'),
+      line.includes('Do not offer that photo as the main photo'),
     )
     expect(rule).toContain('NK94304')
     expect(rule).toContain('Silver')
