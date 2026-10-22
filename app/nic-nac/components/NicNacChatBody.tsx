@@ -5,9 +5,9 @@ import { useChat } from '@ai-sdk/react'
 import {
   DefaultChatTransport,
   lastAssistantMessageIsCompleteWithApprovalResponses,
-  type FileUIPart,
   type UIMessage,
 } from 'ai'
+import { sendNicNacParts } from '@/lib/nic-nac/client-send'
 import { sortMessagesByCreatedAt } from '@/lib/nic-nac/message-order'
 import { mainPhotoPreviewSrc } from '@/lib/nic-nac/workflows/main-photo-preview'
 import { MOVED_ON_MESSAGE } from '@/lib/nic-nac/piece-task'
@@ -716,63 +716,23 @@ export function NicNacChatBody({
       ? latestUserId
       : null
 
+  const submissionInFlight = useRef(false)
   const sendWithParts = useCallback(
-    async (parts: UIMessage['parts'], replaceMessageId?: string) => {
-      // Split parts into text + file payload so we hit useChat's
-      // ({ text, files }) overload, which is the canonical send path.
-      const textChunks: string[] = []
-      const files: FileUIPart[] = []
-      for (const p of parts ?? []) {
-        const pt = p as {
-          type?: string
-          text?: string
-          mediaType?: string
-          url?: string
-          filename?: string
-        }
-        if (pt.type === 'text' && typeof pt.text === 'string') {
-          textChunks.push(pt.text)
-        } else if (
-          pt.type === 'file' &&
-          typeof pt.mediaType === 'string' &&
-          typeof pt.url === 'string'
-        ) {
-          files.push({
-            type: 'file',
-            mediaType: pt.mediaType,
-            url: pt.url,
-            ...(pt.filename ? { filename: pt.filename } : {}),
-          })
-        }
-      }
-      const text = textChunks.join('\n').trim()
-      const optimisticId = replaceMessageId
-      try {
-        if (text && files.length > 0) {
-          await sendMessage({
-            text,
-            files,
-            ...(optimisticId ? { messageId: optimisticId } : {}),
-          })
-        } else if (files.length > 0) {
-          await sendMessage({
-            files,
-            ...(optimisticId ? { messageId: optimisticId } : {}),
-          })
-        } else if (text) {
-          await sendMessage({
-            text,
-            ...(optimisticId ? { messageId: optimisticId } : {}),
-          })
-        }
-      } catch {
-        // useChat surfaces error state; no rethrow needed.
-      }
+    async (parts: UIMessage['parts'], id: string, replace = false) => {
+      await sendNicNacParts({
+        sendMessage, parts, id, replace,
+        onFailure: (message) => {
+          setMessages((current) => current.some((row) => row.id === id)
+            ? current : [...current, message])
+          setFailedMessages((current) => new Map(current).set(id, { parts }))
+        },
+      })
     },
-    [sendMessage]
+    [sendMessage, setMessages],
   )
 
   const handleSubmit = async () => {
+    if (readOnly || isStreaming || hasPendingApproval || submissionInFlight.current) return
     const text = draft.trim()
     if (!text && attachments.length === 0) return
     // Build canonical parts for failure-retry storage.
@@ -798,7 +758,12 @@ export function NicNacChatBody({
       stamp: Date.now(),
       previousLatestUserId: findLatestUserMessageId(messages),
     })
-    await sendWithParts(parts, crypto.randomUUID())
+    submissionInFlight.current = true
+    try {
+      await sendWithParts(parts, crypto.randomUUID())
+    } finally {
+      submissionInFlight.current = false
+    }
   }
 
   const handleLookChoice = (text: string) => {
@@ -871,9 +836,9 @@ export function NicNacChatBody({
       })
       clearError()
       // Replace the failed message in place by passing its existing id.
-      await sendWithParts(entry.parts, messageId)
+      await sendWithParts(entry.parts, messageId, messages.some((row) => row.id === messageId))
     },
-    [displayedFailedMessages, clearError, sendWithParts]
+    [displayedFailedMessages, clearError, sendWithParts, messages]
   )
 
   return (

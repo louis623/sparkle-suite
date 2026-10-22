@@ -31,7 +31,7 @@ import {
   getLaunchPromptForWorkspaceAction,
   type WorkspaceLaunchAction,
 } from '@/lib/nic-nac/workspace-launch-actions'
-import { prepareNicNacSendMessages } from '@/lib/nic-nac/piece-task'
+import { prepareNicNacRequest } from '@/lib/nic-nac/client-send'
 import { resolveNicNacWorkspaceMode } from '@/lib/nic-nac/required-setup-client-mode'
 import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 import {
@@ -815,19 +815,11 @@ export default function NicNacClient({
     return new DefaultChatTransport({
       api: '/api/nic-nac',
       prepareSendMessagesRequest: ({ messages, trigger, messageId }) => {
-        const named = messages.find(
-          (message) => message.id === messageId && message.role === 'user',
-        )
-        const latestUser = [...messages].reverse().find((message) => message.role === 'user')
-        const submitted =
-          trigger === 'submit-message' ? named ?? (messageId ? null : latestUser) : null
         return {
-          body: {
-            conversationId,
-            messages: prepareNicNacSendMessages(messages),
+          body: prepareNicNacRequest({
+            messages, trigger, messageId, conversationId,
             mode: isRequiredSetupMode ? 'required_setup' : 'workspace',
-            ...(submitted ? { submittedMessageId: submitted.id } : {}),
-          },
+          }),
         }
       },
     })
