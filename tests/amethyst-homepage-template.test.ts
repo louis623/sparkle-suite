@@ -1303,6 +1303,31 @@ describe('Amethyst homepage template data wiring', () => {
     expect(jsx).not.toContain('if the customer wants SMS updates')
   })
 
+  it('returns to review after saving one step opened from review', () => {
+    const jsx = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/homepage.jsx'),
+      'utf8',
+    )
+    const signup = jsx.slice(jsx.indexOf('function Signup('), jsx.indexOf('function Footer('))
+    const submit = signup.slice(signup.indexOf('async function handleSubmit'))
+    const save = submit.slice(
+      submit.indexOf('if (step < SIGNUP_LAST_STEP)'),
+      submit.indexOf('if (!preferenceOptions)'),
+    )
+    const emailDetour = save.indexOf('setResumeStep(5)')
+    const returnToReview = save.indexOf('if (returnToReview)')
+    const walkForward = save.indexOf('setStep((current) => current + 1)')
+
+    expect(signup).toContain('const [returnToReview, setReturnToReview] = useState(false)')
+    expect(signup).toContain('if (step === SIGNUP_LAST_STEP) setReturnToReview(true)')
+    expect(signup).toContain('if (!returnToReview) setResumeStep(null)')
+    expect(emailDetour).toBeGreaterThan(-1)
+    expect(returnToReview).toBeGreaterThan(emailDetour)
+    expect(walkForward).toBeGreaterThan(returnToReview)
+    expect(save).toContain('setReturnToReview(false)')
+    expect(save).toContain('setStep(SIGNUP_LAST_STEP)')
+  })
+
   it('keeps signup submission state scoped to the signup form so the homepage can fresh-load', () => {
     const jsx = readFileSync(
       resolve(process.cwd(), 'public/amethyst/homepage.jsx'),

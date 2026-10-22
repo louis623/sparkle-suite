@@ -2378,6 +2378,7 @@ function Signup({ repName, businessName }) {
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
   const [step, setStep] = useState(0);
   const [resumeStep, setResumeStep] = useState(null);
+  const [returnToReview, setReturnToReview] = useState(false);
   const [stepError, setStepError] = useState("");
   const [stepAnnouncement, setStepAnnouncement] = useState(`Step 1 of ${SIGNUP_STEP_LABELS.length}. ${SIGNUP_STEP_LABELS[0]}.`);
   const stepRef = useRef(null);
@@ -2532,7 +2533,7 @@ function Signup({ repName, businessName }) {
       setStep(destination);
       return;
     }
-    setResumeStep(null);
+    if (!returnToReview) setResumeStep(null);
     setStep((current) => Math.max(0, current - 1));
   }
 
@@ -2541,6 +2542,7 @@ function Signup({ repName, businessName }) {
     if (next < 0 || next >= step) return;
     setStepError("");
     setSubmitState({ status: "idle", message: "" });
+    if (step === SIGNUP_LAST_STEP) setReturnToReview(true);
     setResumeStep(null);
     setStep(next);
   }
@@ -2560,6 +2562,12 @@ function Signup({ repName, businessName }) {
         return;
       }
       setStepError("");
+      if (returnToReview) {
+        setReturnToReview(false);
+        setResumeStep(null);
+        setStep(SIGNUP_LAST_STEP);
+        return;
+      }
       if (resumeStep != null && step === 0) {
         const destination = resumeStep;
         setResumeStep(null);
@@ -2651,6 +2659,7 @@ function Signup({ repName, businessName }) {
       });
       setStep(0);
       setResumeStep(null);
+      setReturnToReview(false);
       setStepError("");
       setSubmitState({
         status: "success",
