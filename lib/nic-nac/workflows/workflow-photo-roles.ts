@@ -61,6 +61,7 @@ export function isBarredFromCustomerFacingMedia(photo: {
 } | null | undefined): boolean {
   if (!photo) return true
   if (photoRefusedAsMainPhoto(photo)) return true
+  if (photoIsLabel(photo)) return true
   if (photoTurnedDownForThisPiece(photo)) return true
   if (photo.declaredRole === 'label_details' || photo.declaredRole === 'other') {
     return true
@@ -108,6 +109,7 @@ export function workflowPhotoSatisfiesJewelryFront(photo: {
   notes?: string[]
 } | null | undefined): boolean {
   if (!photo) return false
+  if (photoIsLabel(photo)) return false
   if (photoRefusedAsMainPhoto(photo)) return false
   if (photoTurnedDownForThisPiece(photo)) return false
   if (photo.quality === 'blocked') return false
@@ -492,14 +494,80 @@ export function mainPhotoPreviewRefusal(args: {
   return null
 }
 
+/** A label, or a photo that prints an item number, is never the main photo. */
+export function photoIsLabel(photo: {
+  declaredRole?: string
+  visualRole?: string
+  notes?: string[]
+} | null | undefined): boolean {
+  if (!photo) return false
+  if ((photo.notes ?? []).some((note) => /^printed-item:/i.test(note))) return true
+  if (photo.declaredRole === 'label_details') return true
+  return (
+    photo.visualRole === 'label_or_packaging' && photo.declaredRole !== 'jewelry_front'
+  )
+}
+
+/**
+ * A photo that prints an item number is the label. When another photo came
+ * in on the same turn, that other photo is the jewelry shot, even if the
+ * visual classifier swapped them. A blocked photo is not promoted.
+ */
+export function separateLabelFromJewelry<
+  T extends {
+    declaredRole: string
+    visualRole: string
+    quality?: string
+    notes?: string[]
+    roleConfirmed?: boolean
+  },
+>(photos: T[], start = 0): void {
+  const fresh = photos.slice(Math.max(0, start))
+  if (fresh.length === 0) return
+  const printsItem = (photo: T) =>
+    (photo.notes ?? []).some((note) => /^printed-item:/i.test(note))
+  const pinLabel = (photo: T) => {
+    photo.declaredRole = 'label_details'
+    photo.visualRole = 'label_or_packaging'
+    photo.roleConfirmed = true
+  }
+  const pinJewelry = (photo: T) => {
+    if (photo.quality === 'blocked') return
+    photo.declaredRole = 'jewelry_front'
+    photo.visualRole = 'jewelry'
+    photo.roleConfirmed = true
+  }
+  if (fresh.some(printsItem)) {
+    for (const photo of fresh) {
+      if (printsItem(photo)) pinLabel(photo)
+      else pinJewelry(photo)
+    }
+    return
+  }
+  if (fresh.length < 2) return
+  const labelish = fresh.filter(
+    (photo) =>
+      photo.visualRole === 'label_or_packaging' || photo.declaredRole === 'label_details',
+  )
+  if (labelish.length === 0 || labelish.length === fresh.length) return
+  for (const photo of fresh) {
+    if (
+      photo.visualRole === 'label_or_packaging' ||
+      photo.declaredRole === 'label_details'
+    ) {
+      pinLabel(photo)
+    } else {
+      pinJewelry(photo)
+    }
+  }
+}
+
 function isLabelSidePhoto(photo: {
   declaredRole?: string
   visualRole?: string
+  notes?: string[]
 }): boolean {
-  return (
-    photo.declaredRole === 'label_details' ||
-    photo.visualRole === 'label_or_packaging'
-  )
+  return photoIsLabel(photo)
 }
 
 /**
@@ -578,7 +646,13 @@ export function selectBoundMainPhoto<
     typeof metadata?.boundMainPhotoId === 'string' ? metadata.boundMainPhotoId.trim() : ''
   if (!boundId) return null
   const photo = (photos ?? []).find((item) => item.id === boundId)
-  if (!photo || photoRefusedAsMainPhoto(photo) || photo.quality === 'blocked' || !photo.imageUrl) {
+  if (
+    !photo ||
+    photoRefusedAsMainPhoto(photo) ||
+    photoIsLabel(photo) ||
+    photo.quality === 'blocked' ||
+    !photo.imageUrl
+  ) {
     return null
   }
   return photo

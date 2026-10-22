@@ -91,9 +91,19 @@ import {
   directPieceReply,
   labelMismatchSentence,
   MOVED_ON_MESSAGE,
+  savedPhotoDisputeReply,
 } from '@/lib/nic-nac/turn-replies'
 import { decidePieceClose, statedItemNumber, assistantIsResumingUnfinishedPiece } from '@/lib/nic-nac/piece-task'
-import { repHasListingForItemNumber } from '@/lib/nic-nac/tools/add-listing'
+import { NicNacToolError } from '@/lib/nic-nac/errors'
+import {
+  commitPreviewedAddListing,
+  listingPhotoUrlForItemNumber,
+  repHasListingForItemNumber,
+} from '@/lib/nic-nac/tools/add-listing'
+import {
+  shownMainPhotoPreviewId,
+  yesCommitsPreviewedPhoto,
+} from '@/lib/nic-nac/workflows/main-photo-save-gate'
 import {
   CUT_OFF_PHOTO_MESSAGE,
   mainPhotoPreviewRefusal,
@@ -828,7 +838,73 @@ export async function POST(request: Request) {
       sessionAfter?.known.itemNumber
         ? labelMismatchSentence(mismatch, sessionAfter.known.itemNumber)
         : null
-    const directText = gateRefusal || pieceReply || labelReply
+    const disputeItem =
+      statedItemNumber(latestUserText) ??
+      statedItemNumber(sessionAfter?.known.itemNumber ?? '') ??
+      statedItemNumber(previousAssistantText)
+    const listingPhotoUrl =
+      /saved the wrong|wrong image was saved|you saved the wrong|that saved photo|photo you saved/i.test(
+        latestUserText,
+      ) && disputeItem
+        ? await listingPhotoUrlForItemNumber({
+            admin: workflowSupabase,
+            repId,
+            itemNumber: disputeItem,
+          })
+        : null
+    const disputeReply = savedPhotoDisputeReply({
+      latestUserText,
+      listingPhotoUrl,
+    })
+    let directText = gateRefusal || pieceReply || labelReply || disputeReply
+    const previewPhotoId = shownMainPhotoPreviewId(messages)
+    if (
+      !directText &&
+      sessionAfter?.status === 'active' &&
+      yesCommitsPreviewedPhoto({
+        latestUserText,
+        latestUserHasImage,
+        previewPhotoId,
+        previousAssistantText,
+      })
+    ) {
+      try {
+        const committed = await commitPreviewedAddListing({
+          repId,
+          conversationId,
+          supabase: workflowSupabase,
+          workflow: sessionAfter,
+          latestUserText,
+          previewPhotoId: previewPhotoId ?? '',
+        })
+        if (
+          committed &&
+          typeof committed === 'object' &&
+          'needsAction' in committed &&
+          committed.needsAction
+        ) {
+          directText =
+            typeof committed.message === 'string' ? committed.message : directText
+        } else if (
+          committed &&
+          typeof committed === 'object' &&
+          'listingId' in committed &&
+          committed.listingId
+        ) {
+          const item =
+            ('itemNumber' in committed && committed.itemNumber) ||
+            sessionAfter.known.itemNumber ||
+            'This piece'
+          directText = `${item} is on your Dance Floor and available for swaps.`
+        }
+      } catch (err) {
+        if (err instanceof NicNacToolError) {
+          directText = err.userMessage
+        } else {
+          throw err
+        }
+      }
+    }
     if (directText) {
       const boundPhoto = selectBoundMainPhoto(sessionAfter?.photos, sessionAfter?.metadata)
       const previewLocator =

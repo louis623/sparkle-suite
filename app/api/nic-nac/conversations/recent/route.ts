@@ -47,9 +47,13 @@ export async function GET(request: Request) {
   } catch {
     rolloverEdges = []
   }
-  const conversations = await listRecentNicNacConversations(ctx.supabase, ctx.repId, 5, {
-    excludeConversationId: current,
-    rolloverEdges,
-  })
-  return NextResponse.json({ conversations })
+  try {
+    const conversations = await listRecentNicNacConversations(ctx.supabase, ctx.repId, 5, {
+      excludeConversationId: current,
+      rolloverEdges,
+    })
+    return NextResponse.json({ conversations })
+  } catch {
+    return NextResponse.json({ error: 'recent_unavailable' }, { status: 503 })
+  }
 }

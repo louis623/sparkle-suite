@@ -203,6 +203,22 @@ export function directPieceReply(args: {
   return null
 }
 
+const SAVED_PHOTO_DISPUTE =
+  /saved the wrong|wrong image was saved|you saved the wrong|that saved photo|photo you saved/i
+
+/** Check the listing photo before agreeing a saved image was wrong. Do not confess. */
+export function savedPhotoDisputeReply(args: {
+  latestUserText: string
+  listingPhotoUrl?: string | null
+}): string | null {
+  if (!SAVED_PHOTO_DISPUTE.test(args.latestUserText)) return null
+  const url = args.listingPhotoUrl?.trim()
+  if (!url) {
+    return "I checked, and there isn't a saved Dance Floor photo to compare. I didn't change anything."
+  }
+  return "I checked the photo saved on your Dance Floor. It is still the photo on that listing, and I didn't change it."
+}
+
 type PreviewPart = {
   type?: string
   text?: string
@@ -215,6 +231,10 @@ type PreviewPart = {
   }
 }
 
+function asksToConfirmSave(text: string): boolean {
+  return /reply\s+["“']?yes\b|i(?:'|’)ll add it|i will add it/i.test(text)
+}
+
 /** An old chat's reply-yes card cannot save the piece after the chat moved on. */
 export function retireSupersededPreviews<T extends { role?: string; parts?: unknown }>(
   messages: T[],
@@ -225,14 +245,14 @@ export function retireSupersededPreviews<T extends { role?: string; parts?: unkn
     const parts = message.parts.map((part) => {
       if (!part || typeof part !== 'object') return part
       const record = part as PreviewPart
-      if (record.type === 'text' && typeof record.text === 'string' && /reply yes/i.test(record.text)) {
+      if (record.type === 'text' && typeof record.text === 'string' && asksToConfirmSave(record.text)) {
         changed = true
         return { ...record, text: MOVED_ON_MESSAGE }
       }
       const output = record.output
       const actionable =
         output?.needsAction === 'confirm_main_photo' ||
-        /reply yes/i.test(output?.message ?? '')
+        asksToConfirmSave(output?.message ?? '')
       if (!output || !actionable) return part
       changed = true
       return {

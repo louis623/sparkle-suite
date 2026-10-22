@@ -84,7 +84,9 @@ export function resolveWorkflowCustomerFacingPhoto(
 ): WorkflowJewelryPhoto | null {
   if (selection.selectedPhotoId) {
     const refused = scopeWorkflowPhotosToIntake(photos, selection.intakeSessionId).find(
-      (photo) => photo.id === selection.selectedPhotoId && photoRefusedAsMainPhoto(photo),
+      (photo) =>
+        photo.id === selection.selectedPhotoId &&
+        photoRefusedAsMainPhoto(photo),
     )
     if (refused) return null
   }

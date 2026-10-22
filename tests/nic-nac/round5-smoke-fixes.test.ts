@@ -282,28 +282,30 @@ describe('round 5 superseded chat', () => {
     expect(json).not.toContain('confirm_main_photo')
     expect(json).not.toContain('previewImageUrl')
     expect(json).not.toContain('reply yes')
+    const edges = [
+      { source_conversation_id: 'older', destination_conversation_id: 'middle' },
+      { source_conversation_id: 'middle', destination_conversation_id: 'current' },
+    ]
+    const chain = (filters: Record<string, string>) => {
+      const api = {
+        eq(column: string, value: string) {
+          return chain({ ...filters, [column]: value })
+        },
+        order() {
+          return api
+        },
+        limit() {
+          const row = edges.find(
+            (edge) => edge.source_conversation_id === filters.source_conversation_id,
+          )
+          return Promise.resolve({ data: row ? [row] : [], error: null })
+        },
+      }
+      return api
+    }
     const admin = {
       from: () => ({
-        select: () => ({
-          eq: () => ({
-            order: () => ({
-              limit: () =>
-                Promise.resolve({
-                  data: [
-                    {
-                      source_conversation_id: 'older',
-                      destination_conversation_id: 'middle',
-                    },
-                    {
-                      source_conversation_id: 'middle',
-                      destination_conversation_id: 'current',
-                    },
-                  ],
-                  error: null,
-                }),
-            }),
-          }),
-        }),
+        select: () => chain({}),
       }),
     }
     await expect(

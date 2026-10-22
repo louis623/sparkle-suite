@@ -54,6 +54,7 @@ import {
   resolvePhotoContentSha256,
 } from '@/lib/nic-nac/workflows/photo-reuse-guard'
 import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
+import { turnBlocksCustomerFacingSave } from '@/lib/nic-nac/workflows/main-photo-save-gate'
 import {
   impliedCollectionType,
   pieceTitleFromConfirmedDetails,
@@ -95,6 +96,7 @@ import {
 import {
   isAcceptedCustomerFacingWorkflowPhoto,
   mainPhotoPreviewRefusal,
+  photoIsLabel,
   photoRefusedAsMainPhoto,
   selectBoundMainPhoto,
   stampSoleReadinessJewelryFrontCandidate,
@@ -701,6 +703,43 @@ export async function repHasListingForItemNumber(input: {
   }
 }
 
+/** The photo actually stored on this rep's listing, if one exists. */
+export async function listingPhotoUrlForItemNumber(input: {
+  admin: SupabaseClient
+  repId: string
+  itemNumber: string
+}): Promise<string | null> {
+  try {
+    const itemNumber = input.itemNumber.trim().toUpperCase()
+    if (!itemNumber) return null
+    const designs = await input.admin
+      .from('jewelry_designs')
+      .select('id')
+      .eq('item_number', itemNumber)
+    const designRows = Array.isArray((designs as { data?: unknown }).data)
+      ? ((designs as { data: Array<{ id?: string }> }).data ?? [])
+      : []
+    const ids = designRows
+      .map((row) => (typeof row.id === 'string' ? row.id : ''))
+      .filter(Boolean)
+    if (ids.length === 0) return null
+    const listings = await input.admin
+      .from('trade_listings')
+      .select('listing_photo_url')
+      .eq('rep_id', input.repId)
+      .in('design_id', ids)
+      .neq('status', 'removed')
+      .limit(1)
+    const listingRows = Array.isArray((listings as { data?: unknown }).data)
+      ? ((listings as { data: Array<{ listing_photo_url?: string }> }).data ?? [])
+      : []
+    const url = listingRows[0]?.listing_photo_url?.trim()
+    return url || null
+  } catch {
+    return null
+  }
+}
+
 async function requireDuplicatePhysicalPieceConfirmationIfNeeded(input: {
   admin: SupabaseClient
   supabase: SupabaseClient
@@ -890,7 +929,7 @@ async function assertLabelAgreesWithItemNumber(args: {
     const decision = decideLabelSave({
       itemNumber,
       read,
-      confirmedItemNumber: args.labelConfirmedItemNumber,
+      confirmedItemNumber: args.labelConfirmedItemNumber || itemNumber,
     })
     if (!decision.blocked) continue
     if (decision.code === 'LABEL_ITEM_NUMBER_MISMATCH') {
@@ -1362,6 +1401,74 @@ export function pendingMainPhotoConfirmation(args: {
   }
 }
 
+/**
+ * Refuse a customer-facing save unless this turn is a yes for the upload
+ * that was already previewed. A photo turn, a non-yes, or a different id
+ * cannot mutate. Callers that omit the turn keep the older behavior.
+ */
+export function decideCustomerFacingSave(args: {
+  latestUserText?: string | null
+  latestUserHasImage?: boolean
+  workflow?: ToolContext['activeTradeBoardWorkflow']
+  itemNumber?: string | null
+  selectedPhotoId?: string
+}): {
+  needsAction: 'confirm_main_photo'
+  code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED'
+  itemNumber: string | null
+  message: string
+  previewPhotoId?: string
+  previewImageUrl?: string
+} | null {
+  const workflow = workflowWithPublishableJewelryFront(args.workflow ?? undefined)
+  const bound = selectBoundMainPhoto(workflow?.photos, workflow?.metadata)
+  const confirmedRaw = workflow?.metadata?.mainPhotoConfirmedPhotoId
+  const blocked = turnBlocksCustomerFacingSave({
+    latestUserText: args.latestUserText,
+    latestUserHasImage: args.latestUserHasImage,
+    confirmedPhotoId: typeof confirmedRaw === 'string' ? confirmedRaw : null,
+    savingPhotoId: bound?.id ?? null,
+  })
+  if (!blocked) return null
+  const jewelry =
+    bound ??
+    (workflow?.status === 'active'
+      ? workflow.photos.find(
+          (photo) =>
+            Boolean(photo.imageUrl) &&
+            photo.quality !== 'blocked' &&
+            !photoRefusedAsMainPhoto(photo) &&
+            !photoIsLabel(photo),
+        )
+      : null)
+  if (args.selectedPhotoId && workflow?.status === 'active' && !jewelry) {
+    const selected = workflow.photos.find((photo) => photo.id === args.selectedPhotoId)
+    if (selected && (photoRefusedAsMainPhoto(selected) || photoIsLabel(selected))) {
+      throw new NicNacToolError({
+        code: 'MAIN_PHOTO_NOT_USABLE',
+        userMessage: photoIsLabel(selected)
+          ? 'That photo is the label. I need the jewelry photo before I save it.'
+          : 'That photo was refused. Send a new photo of the jewelry.',
+      })
+    }
+  }
+  if (jewelry?.id && jewelry.imageUrl) {
+    const itemNumber = args.itemNumber?.trim() || workflow?.known.itemNumber?.trim() || ''
+    const label = itemNumber || 'this piece'
+    return {
+      needsAction: 'confirm_main_photo',
+      code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED',
+      itemNumber: itemNumber || null,
+      message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
+      ...mainPhotoPreviewLocator(jewelry),
+    }
+  }
+  throw new NicNacToolError({
+    code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED',
+    userMessage: 'I need to show you that photo before I save it. Reply yes after the preview.',
+  })
+}
+
 async function mainPhotoPreviewOrReuse(args: {
   itemNumber?: string | null
   workflow: ToolContext['activeTradeBoardWorkflow'] | undefined
@@ -1727,7 +1834,7 @@ export async function processListingPhotoForAdd(input: {
     activeTradeBoardWorkflow.photos.some(
       (photo) =>
         photo.imageUrl === resolvedListingPhoto.imageDataUrl &&
-        photoRefusedAsMainPhoto(photo),
+        (photoRefusedAsMainPhoto(photo) || photoIsLabel(photo)),
     )
   ) {
     return undefined
@@ -1980,6 +2087,8 @@ async function runNonItemNumberSingle(
     activeTradeWorkflow?: ToolContext['activeTradeWorkflow']
     mutationSuffix?: string
     mutationAssetKey?: string
+    latestUserText?: string | null
+    latestUserHasImage?: boolean
   },
   admin: SupabaseClient,
 ) {
@@ -2054,6 +2163,15 @@ async function runNonItemNumberSingle(
       preview: nonItemPreview,
     })
   }
+
+  const nonItemTurnBlock = decideCustomerFacingSave({
+    latestUserText: ctx.latestUserText,
+    latestUserHasImage: ctx.latestUserHasImage,
+    workflow: activeWorkflow,
+    itemNumber: activeWorkflow?.known.itemNumber,
+    selectedPhotoId: input.selectedPhotoId,
+  })
+  if (nonItemTurnBlock) return nonItemTurnBlock
 
   const resentNonItemPreview = await previewResentPhoto({
     itemNumber: activeWorkflow?.known.itemNumber,
@@ -2244,6 +2362,8 @@ async function runSingle(
     activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
     activeTradeWorkflow?: ToolContext['activeTradeWorkflow']
     mutationSuffix?: string
+    latestUserText?: string | null
+    latestUserHasImage?: boolean
   },
   admin: SupabaseClient,
 ) {
@@ -2373,6 +2493,15 @@ async function runSingle(
       preview: mainPhotoPreview,
     })
   }
+
+  const turnBlock = decideCustomerFacingSave({
+    latestUserText: ctx.latestUserText,
+    latestUserHasImage: ctx.latestUserHasImage,
+    workflow: activeWorkflow,
+    itemNumber,
+    selectedPhotoId: input.selectedPhotoId,
+  })
+  if (turnBlock) return turnBlock
 
   const resentPreview = await previewResentPhoto({
     itemNumber,
@@ -3217,6 +3346,8 @@ async function runBatch(
     runId: string
     supabase: SupabaseClient
     activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
+    latestUserText?: string | null
+    latestUserHasImage?: boolean
   },
   admin: SupabaseClient,
 ) {
@@ -3269,6 +3400,14 @@ async function runBatch(
         })
       }
     }
+    const batchTurnBlock = decideCustomerFacingSave({
+      latestUserText: ctx.latestUserText,
+      latestUserHasImage: ctx.latestUserHasImage,
+      workflow: ctx.activeTradeBoardWorkflow ?? undefined,
+      itemNumber: item.itemNumber,
+      selectedPhotoId: item.selectedPhotoId,
+    })
+    if (batchTurnBlock) return batchTurnBlock
     const listingPhotoUrl = await processListingPhotoForAdd({
       listingPhotoUrl: item.listingPhotoUrl,
       listingPhotoIndex: item.listingPhotoIndex,
@@ -3509,6 +3648,45 @@ async function runBatch(
   }
 }
 
+/** Save the previewed upload with the details already stored for this piece. */
+export async function commitPreviewedAddListing(args: {
+  repId: string
+  conversationId: string
+  supabase: SupabaseClient
+  workflow: NonNullable<ToolContext['activeTradeBoardWorkflow']>
+  latestUserText: string
+  previewPhotoId: string
+}) {
+  const admin = createAdminClient()
+  const known = args.workflow.status === 'active' ? args.workflow.known : {}
+  return runSingle(
+    {
+      mode: 'single',
+      itemNumber: known.itemNumber,
+      designName: known.designName,
+      collectionName: known.collectionName,
+      collectionFamily: known.collectionFamily,
+      collectionYear: known.collectionYear,
+      jewelryType: known.jewelryType,
+      material: known.material,
+      mainStone: known.mainStone,
+      ringSize: known.ringSize,
+      rarityClassification: known.rarityClassification,
+      selectedPhotoId: args.previewPhotoId,
+    },
+    {
+      repId: args.repId,
+      conversationId: args.conversationId,
+      runId: `preview-yes-${args.previewPhotoId}`,
+      supabase: args.supabase,
+      activeTradeBoardWorkflow: args.workflow,
+      latestUserText: args.latestUserText,
+      latestUserHasImage: false,
+    },
+    admin,
+  )
+}
+
 export function makeAddListingTool(ctx: {
   repId: string
   supabase: SupabaseClient
@@ -3516,6 +3694,8 @@ export function makeAddListingTool(ctx: {
   runId: string
   activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
   activeTradeWorkflow?: ToolContext['activeTradeWorkflow']
+  latestUserText?: string | null
+  latestUserHasImage?: boolean
 }) {
   return tool({
     description:
@@ -3524,6 +3704,7 @@ export function makeAddListingTool(ctx: {
       "For rings (RG item numbers), capture ringSize before saving. Ring size is usually printed on the box instead of the label; if you cannot read it from a box/details photo, ask the rep for the ring size. " +
       "If the resolved item exists in the jewelry database, pass mode:'single' and itemNumber for one piece, or mode:'batch' and items[] for several pieces at once. " +
       "Every dancer requires the rep's explicit answer to: 'Is this piece a diamond or unicorn?' Pass rarityClassification:'standard' for No, 'diamond' for Diamond, or 'unicorn' for Unicorn. Never infer rarity from a name, description, stone, tag, price, or the word diamond. " +
+      "If rarity, size, collection, or the design name are already stored for this piece, pass those stored values and do not ask again. " +
       "Order does not matter; use photos and facts in whatever order the rep provides them. Only block on unreadable item details or a genuinely unusable jewelry image. Accept clear rep-provided collection, name, stone, material, and ring size instead of requiring proof photos. " +
       "Label, box, and back-of-card photos can provide details; the saved listing/canonical image must show the jewelry clearly. Boxed display photos for earrings, rings, necklaces, and similar pieces count as jewelry-front photos when the jewelry is centered, close, and clear, even with Bomb Party packaging visible. Do not treat label/details photos as bad jewelry photos; a label/details photo is only a label/details photo, and visible jewelry in that label/details photo does not satisfy the jewelry photo requirement. If the only uploaded image is a label/details or back-of-card photo, ask for the first customer-facing jewelry photo. Do not ask for unboxed, no-packaging, or plain-background retakes. Do not ask for retakes without the box/card or on a plain surface. Select the app-owned workflow photo with selectedPhotoId when available; otherwise use listingPhotoIndex or piecePhotoIndex. Never copy or reuse a raw photo URL from another piece. Ask for another photo only when you cannot tell which attached image is the jewelry-front photo. " +
       "If the item isn't in the Sparkle Suite jewelry database, the tool returns needsAction:'create_design'. Use vision to extract designName and readable metadata, and use clear rep-provided fields. Birthday collection names must include the year. For Birthday boxes like 'Birthday Collection March 2026', use collectionName:'March Birthday 2026' and collectionYear:2026 when clear. The handler uploads the photo from chat automatically. " +
@@ -3535,7 +3716,15 @@ export function makeAddListingTool(ctx: {
       const admin = createAdminClient()
 
       if (input.mode === 'single') {
-        return await runSingle(input, ctx, admin)
+        return await runSingle(
+          input,
+          {
+            ...ctx,
+            latestUserText: ctx.latestUserText,
+            latestUserHasImage: ctx.latestUserHasImage,
+          },
+          admin,
+        )
       }
       if (await shouldCollapseRepeatedBatchToSingle(input, ctx)) {
         const firstItem = input.items?.[0]
@@ -3565,5 +3754,7 @@ export const addListingTool: ToolDefinition = {
       runId: ctx.runId,
       activeTradeBoardWorkflow: ctx.activeTradeBoardWorkflow,
       activeTradeWorkflow: ctx.activeTradeWorkflow,
+      latestUserText: ctx.latestUserText,
+      latestUserHasImage: ctx.latestUserHasImage,
     }),
 }

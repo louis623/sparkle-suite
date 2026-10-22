@@ -9,6 +9,8 @@ export interface ImageQualitySignals {
   backgroundUniformity: number
   backgroundCleanliness: number
   subjectEdgeContact: number
+  /** Subject pixels sit on the outermost two rows or columns. */
+  subjectTouchesFrameEdge: boolean
 }
 
 export interface ImageQualityInput {
@@ -38,6 +40,7 @@ interface SubjectMaskSummary {
   centroidX: number
   centroidY: number
   borderCount: number
+  edgeTouchCount: number
   detailPixelRatio: number
 }
 
@@ -57,6 +60,7 @@ export function measureImageQualitySignals(
       backgroundUniformity: 0,
       backgroundCleanliness: 0,
       subjectEdgeContact: 0,
+      subjectTouchesFrameEdge: false,
     }
   }
 
@@ -133,6 +137,7 @@ export function measureImageQualitySignals(
     subjectEdgeContact: round3(
       subjectMask.count > 0 ? subjectMask.borderCount / subjectMask.count : 0,
     ),
+    subjectTouchesFrameEdge: subjectMask.edgeTouchCount >= 8,
   }
 }
 
@@ -282,6 +287,7 @@ function buildSubjectMask(
   let totalX = 0
   let totalY = 0
   let borderCount = 0
+  let edgeTouchCount = 0
   let detailPixels = 0
 
   for (let i = 0; i < luminance.length; i += 1) {
@@ -303,6 +309,9 @@ function buildSubjectMask(
     if (isWithinBorderBand(x, y, width, height, borderStats.bandSize)) {
       borderCount += 1
     }
+    if (x <= 1 || y <= 1 || x >= width - 2 || y >= height - 2) {
+      edgeTouchCount += 1
+    }
 
     if (
       gradientMap[i] >= detailThreshold ||
@@ -320,6 +329,7 @@ function buildSubjectMask(
     centroidX: count > 0 ? totalX / count : width / 2,
     centroidY: count > 0 ? totalY / count : height / 2,
     borderCount,
+    edgeTouchCount,
     detailPixelRatio: count > 0 ? detailPixels / count : 0,
   }
 }

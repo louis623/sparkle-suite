@@ -7915,6 +7915,8 @@ function ConceptHomeWorkspace({
   const [recentConversations, setRecentConversations] = useState<
     Array<{ conversationId: string; title: string; dateLabel: string }>
   >([])
+  const [recentStatus, setRecentStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [recentAttempt, setRecentAttempt] = useState(0)
 
   useEffect(() => {
     if (reviewWorkspaceMode) return
@@ -7948,6 +7950,7 @@ function ConceptHomeWorkspace({
     const recentUrl = current
       ? `/api/nic-nac/conversations/recent?current=${encodeURIComponent(current)}`
       : '/api/nic-nac/conversations/recent'
+    setRecentStatus('loading')
     void fetch(recentUrl, {
       credentials: 'include',
       signal: controller.signal,
@@ -7964,14 +7967,15 @@ function ConceptHomeWorkspace({
       })
       .then((payload) => {
         setRecentConversations(payload.conversations ?? [])
+        setRecentStatus('ready')
       })
       .catch((error: unknown) => {
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
-          setRecentConversations([])
+          setRecentStatus('error')
         }
       })
     return () => controller.abort()
-  }, [currentConversationId])
+  }, [currentConversationId, recentAttempt])
 
   const latestYouTubeThumbnail = getYouTubeResourceThumbnail(
     latestYouTubeResource?.videoUrl ?? null,
@@ -8188,7 +8192,16 @@ function ConceptHomeWorkspace({
           </div>
         </ConceptPanel>
         <ConceptPanel title="Recent conversations" className={styles.recentConversationsPanel}>
-          {recentConversations.length === 0 ? (
+          {recentStatus === 'error' ? (
+            <p className={styles.recentConversationEmpty}>
+              Couldn&apos;t load recent conversations.{' '}
+              <button type="button" onClick={() => setRecentAttempt((attempt) => attempt + 1)}>
+                Try again
+              </button>
+            </p>
+          ) : recentStatus === 'loading' ? (
+            <p className={styles.recentConversationEmpty}>Loading recent conversations</p>
+          ) : recentConversations.length === 0 ? (
             <p className={styles.recentConversationEmpty}>None yet</p>
           ) : (
             <div className={styles.recentConversationList}>

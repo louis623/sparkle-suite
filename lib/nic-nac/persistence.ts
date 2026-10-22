@@ -82,9 +82,9 @@ export async function getLatestConversationId(
   return (data?.conversation_id as string | undefined) ?? null
 }
 
-const RECENT_PAGE = 200
-const RECENT_SCAN_CAP = 2000
-const RECENT_CONVERSATION_CAP = 40
+const RECENT_PAGE = 100
+const RECENT_SCAN_CAP = 100
+const RECENT_CONVERSATION_CAP = 8
 
 async function earliestUserLines(
   supabase: SupabaseClient,
@@ -238,26 +238,23 @@ export async function findForwardRolloverDestination(
   conversationId: string,
 ): Promise<string | null> {
   try {
-    const { data, error } = await supabase
-      .from('nic_nac_rollovers')
-      .select('source_conversation_id, destination_conversation_id')
-      .eq('rep_id', repId)
-      .order('created_at', { ascending: false })
-      .limit(1000)
-    if (error || !Array.isArray(data)) return null
-    const forward = new Map<string, string>()
-    for (const row of data) {
-      const source = (row as { source_conversation_id?: string }).source_conversation_id?.trim()
-      const destination = (
-        row as { destination_conversation_id?: string }
-      ).destination_conversation_id?.trim()
-      if (source && destination) forward.set(source, destination)
-    }
     let current = conversationId
     const seen = new Set<string>()
-    while (forward.has(current) && !seen.has(current)) {
+    for (let hop = 0; hop < 8; hop += 1) {
+      if (seen.has(current)) break
       seen.add(current)
-      current = forward.get(current) ?? current
+      const { data, error } = await supabase
+        .from('nic_nac_rollovers')
+        .select('destination_conversation_id')
+        .eq('rep_id', repId)
+        .eq('source_conversation_id', current)
+        .order('created_at', { ascending: false })
+        .limit(1)
+      if (error || !Array.isArray(data) || data.length === 0) break
+      const next = (data[0] as { destination_conversation_id?: string })
+        .destination_conversation_id?.trim()
+      if (!next || next === current) break
+      current = next
     }
     return current !== conversationId ? current : null
   } catch {

@@ -58,6 +58,7 @@ import {
   assignDeclaredPhotoRolesForTurn,
   bindMainPhotoForTurn,
   inferRoleFromText,
+  separateLabelFromJewelry,
   REP_CONFIRMED_MAIN_PHOTO_NOTE,
   stampSoleReadinessJewelryFrontCandidate,
   SUBJECT_CUT_OFF_ISSUE,
@@ -535,6 +536,7 @@ export async function ingestLatestTradeBoardIntakeTurn(
           return readStoredLabelItemNumbers({
             url: photo.imageUrl,
             allowVision:
+              fileParts.length >= 2 ||
               photo.visualRole === 'label_or_packaging' ||
               photo.declaredRole === 'label_details',
           })
@@ -579,6 +581,12 @@ export async function ingestLatestTradeBoardIntakeTurn(
     }
   }
 
+  const gatedNotes = photos.map(
+    (photo) =>
+      `${photo.declaredRole}|${photo.visualRole}|${photo.quality}|${photo.notes.join('|')}`,
+  )
+  separateLabelFromJewelry(photos, photosBeforeThisTurn)
+
   const gated = bindMainPhotoForTurn({
     photos,
     newPhotoStart: photosBeforeThisTurn,
@@ -587,13 +595,17 @@ export async function ingestLatestTradeBoardIntakeTurn(
     metadata,
     previousAssistantText,
   })
-  const gatedNotes = photos.map((photo) => `${photo.quality}|${photo.notes.join('|')}`)
   photos = gated.photos
   metadata = gated.metadata
   for (let index = 0; index < photos.length; index += 1) {
     const photo = photos[index]
     if (!photo) continue
-    if (gatedNotes[index] === `${photo.quality}|${photo.notes.join('|')}`) continue
+    if (
+      gatedNotes[index] ===
+      `${photo.declaredRole}|${photo.visualRole}|${photo.quality}|${photo.notes.join('|')}`
+    ) {
+      continue
+    }
     await upsertTradeBoardIntakePhoto(supabase, {
       sessionId: args.session.id,
       repId: args.session.repId,
@@ -1328,8 +1340,9 @@ async function inspectWorkflowPhoto(
       qualityIssues: [
         ...semantic.reasons,
         ...preflight.issues.map((issue) => issue.code),
-        ...(typeof analysis.subjectEdgeContact === 'number' &&
-        analysis.subjectEdgeContact >= 0.08
+        ...((typeof analysis.subjectEdgeContact === 'number' &&
+          analysis.subjectEdgeContact >= 0.03) ||
+        analysis.subjectTouchesFrameEdge === true
           ? [SUBJECT_CUT_OFF_ISSUE]
           : []),
       ],

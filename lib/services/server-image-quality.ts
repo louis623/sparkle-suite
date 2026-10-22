@@ -18,6 +18,7 @@ export interface ServerImageQualityAnalysis {
   backgroundUniformity: number
   backgroundCleanliness: number
   subjectEdgeContact?: number
+  subjectTouchesFrameEdge?: boolean
 }
 
 const MIME_BY_FORMAT: Record<string, string> = {
