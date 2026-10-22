@@ -1,3 +1,9 @@
+## October 22, 2026 — PR 141 Run 16 rule change and phone history fix, PR only
+
+- Pending confirmation state now retires the whole final reply, including the exact RG16117 phone wording and split assistant rows. Louis now requires a Bomb Party label photo plus a separate jewelry-front photo for every Nic-Nac add; typed details can supplement but cannot replace either upload.
+- Product tip f4b8bf6ebe8fd069dabbc607920ffa62f30e6f2e: real Next build, standalone TypeScript and npm test pass (48 files / 790 tests). Both photo orders, typed-only rejection, actual database saves and tool-bypass attempts are covered.
+- No merge, deploy, production branch, migration or Live changes. Suite's PR retest remains next. See [Run 16 closeout](2026-10-22-pr141-run16-retest.md) and the updated decisions.
+
 ## October 22, 2026 — PR 141 Run 15 smoke regressions, PR only
 
 - Corrected-duplicate saves now recover rep names/collections when a label/tool identified the item; photo-first then label retains the selected jewelry through yes; retired confirmation lines become one moved-on notice.
