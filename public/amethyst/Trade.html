@@ -26,7 +26,7 @@
 <link rel="stylesheet" href="tokens.css?v=20260725-emerald-garden" />
 <link rel="stylesheet" href="components.css?v=20260725-emerald-garden" />
 <link rel="stylesheet" href="homepage.css?v=20261021-ticker-edge" />
-<link rel="stylesheet" href="trade.css?v=20261021-ticker-edge" />
+<link rel="stylesheet" href="/amethyst/trade.css?v=20261021-photo-frame" />
 <link rel="stylesheet" href="/amethyst/gnome-garden.css?v=20260905-gnome1" />
 <link rel="stylesheet" href="/amethyst/neon-butterfly.css?v=20260914-nb1" />
 <link rel="stylesheet" href="/amethyst/halloween-pumpkin-witch.css?v=20261021-ticker-edge" />
@@ -55,9 +55,59 @@
 <script src="/amethyst/halloween-pumpkin-witch.js?v=20261018-responsive-images"></script>
 <script src="sparkle-suite-footer-credit.js?v=20260927-powered-by"></script>
 <script src="/amethyst/dance-floor-ticker-label.js?v=20261021-dance-floor-26"></script>
-<script type="text/babel" data-presets="react" src="trade.jsx?v=20261021-dance-floor-9"></script>
+<script type="text/babel" data-presets="react" src="/amethyst/trade.jsx?v=20261021-photo-frame"></script>
 
 <script src="/amethyst/halloween-pumpkin-cat.js?v=20261018-hpc3"></script>
+<style id="dance-floor-photo-frame">
+/* A grid photo that fails keeps the loaded has-photo frame and the dark sparkle placeholder. */
+.tp-grid .tp-card-photo.has-photo.photo-fallback {
+  background: linear-gradient(135deg, var(--bg-deep), var(--hp-bg-elevated));
+}
+.tp-card-photo.has-photo.photo-fallback::after {
+  opacity: 1;
+}
+.tp-card-expand-photo.has-photo.photo-fallback {
+  background: linear-gradient(135deg, var(--bg-deep), var(--hp-bg-elevated));
+}
+.tp-card-expand-photo.has-photo.photo-fallback::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 50%),
+    radial-gradient(circle at 70% 70%, color-mix(in oklab, var(--hp-primary) 20%, transparent), transparent 60%);
+}
+.tp-card-expand-photo.has-photo.photo-fallback .photo-glyph {
+  z-index: 1;
+  color: var(--hp-primary);
+}
+.tp-card-expand-photo.has-photo.photo-fallback .photo-glyph .tp-sparkle-mark {
+  width: 64px;
+  height: 64px;
+  opacity: 1;
+}
+</style>
+<script>
+(function () {
+  var version = "20261021-photo-frame";
+  var scriptSrc = "/amethyst/trade.jsx?v=" + version;
+  var styleHref = "/amethyst/trade.css?v=" + version;
+  var scripts = document.querySelectorAll('script[src*="trade.jsx"]');
+  for (var i = 0; i < scripts.length; i += 1) {
+    if ((scripts[i].getAttribute("src") || "") !== scriptSrc) {
+      scripts[i].setAttribute("src", scriptSrc);
+    }
+  }
+  var links = document.querySelectorAll('link[rel="stylesheet"][href*="trade.css"]');
+  for (var j = 0; j < links.length; j += 1) {
+    if ((links[j].getAttribute("href") || "") !== styleHref) {
+      links[j].setAttribute("href", styleHref);
+    }
+  }
+})();
+</script>
 <script src="/amethyst/gilded-autumn.js?v=20260930-ga1"></script>
 </body>
 </html>
