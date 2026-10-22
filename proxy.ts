@@ -80,7 +80,8 @@ function redirectBrittLegacy(request: NextRequest, destination: string) {
  * The app still reads those files from disk for customer-site rendering and
  * skin previews, and still serves CSS, JS, and images from /amethyst/.
  * Dance Floor's live path is /trade on a rep custom domain. The Suite host
- * has no /trade page, so that same document consolidates to /.
+ * serves the Sparkle by Sasha demo at /amethyst/Trade.html. Other legacy
+ * HTML documents consolidate to /.
  */
 export function legacyAmethystHtmlDestination(
   pathname: string,
@@ -96,7 +97,7 @@ export function legacyAmethystHtmlDestination(
     return null
   }
   if (!file.toLowerCase().endsWith('.html')) return null
-  if (file.toLowerCase() === 'trade.html' && onCustomerDomain) return '/trade'
+  if (file.toLowerCase() === 'trade.html') return onCustomerDomain ? '/trade' : null
   return '/'
 }
 

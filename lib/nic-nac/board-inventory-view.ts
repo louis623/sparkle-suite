@@ -1,3 +1,4 @@
+import { displayCollectionLabel } from '@/lib/amethyst/trade-board-filters'
 import type { TradeListingWithDesign } from '@/lib/services/types'
 import { getTradeListingDisplayFields } from '@/lib/services/trade-listing-display'
 
@@ -52,7 +53,7 @@ export function getBoardInventoryOptions(
     jewelryTypes.add(display.typePrefix)
     const collectionName = display.collectionName?.trim()
     if (collectionName) {
-      collections.add(collectionName)
+      collections.add(displayCollectionLabel(collectionName))
     }
     const rarity = listing.rarity_classification ??
       listing.design?.rarity_classification ?? 'standard'
@@ -87,7 +88,7 @@ export function getBoardInventoryResults(
     .filter((listing) => {
       const display = getTradeListingDisplayFields(listing)
       if (jewelryType && display.typePrefix !== jewelryType) return false
-      if (collection && display.collectionName !== collection) return false
+      if (collection && displayCollectionLabel(display.collectionName) !== collection) return false
       if (
         rarity &&
         (listing.rarity_classification ?? listing.design?.rarity_classification ?? 'standard') !== rarity

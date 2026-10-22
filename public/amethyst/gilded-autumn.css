@@ -27,9 +27,9 @@ body.bg-gilded-autumn :is(.hp-header,.tp-header,.jp-header,.hp-sticky-stack) {ba
 body.bg-gilded-autumn :is(.hp-header-link,.tp-header-link,.jp-header-link) {color:#715d49}
 body.bg-gilded-autumn :is(.hp-header-link.active,.hp-brand-name) {color:#87451b}
 body.bg-gilded-autumn .hp-ticker {background:#fff9ef}
-body.bg-gilded-autumn .hp-ticker-label {background:linear-gradient(90deg,#fff9ef 70%,#fff9ef00);color:#715d49}
+body.bg-gilded-autumn .hp-ticker-label {background:#fff9ef;color:#715d49}
 body.bg-gilded-autumn .hp-ticker-row.reverse {background:#352115;color:#fff8ec}
-body.bg-gilded-autumn .hp-ticker-row.reverse .hp-ticker-label {background:linear-gradient(90deg,#352115 70%,#35211500);color:#efd3a0}
+body.bg-gilded-autumn .hp-ticker-row.reverse .hp-ticker-label {background:#352115;color:#efd3a0}
 body.bg-gilded-autumn :is(.hp-hero,.mhf-hero,.bwb-hero,.bk-home-hero) {isolation:isolate;background:#754017;color:#fff8ec}
 body.bg-gilded-autumn :is(.mhf-hero-content,.bwb-hero-content,.bk-home-hero-content) {position:relative;z-index:2}
 body.bg-gilded-autumn :is(.hp-hero-media,.hp-hero-fx-layer,.mhf-hero-video,.mhf-hero-shade,.bwb-hero-image,.bwb-hero-shade,.bk-home-hero-image) {visibility:hidden}
@@ -197,10 +197,10 @@ body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-header,.hp-sticky-stack,.hp-t
 body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-brand-name,.hp-header-brand,.tp-hero-title) {background:none;color:#87451b;-webkit-text-fill-color:#87451b}
 body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-brand-sub,.hp-header-link) {color:#715d49}
 body.bg-gilded-autumn.mile-high-fizz-trade .hp-header-link:is(:hover,[aria-current]) {color:#87451b}
-body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-label {background:linear-gradient(90deg,#fff9ef 70%,#fff9ef00);color:#715d49}
+body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-label {background:#fff9ef;color:#715d49}
 body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-row:not(.reverse) :is(.hp-ticker-item,.hp-ticker-trade) {color:#87451b;text-shadow:none}
 body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-row.reverse {background:#352115;color:#fff8ec}
-body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-row.reverse .hp-ticker-label {background:linear-gradient(90deg,#352115 70%,#35211500);color:#efd3a0}
+body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-row.reverse .hp-ticker-label {background:#352115;color:#efd3a0}
 body.bg-gilded-autumn.mile-high-fizz-trade .hp-ticker-row.reverse :is(.hp-ticker-item,.hp-ticker-trade) {color:#fff8ec;text-shadow:none}
 body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-ticker-item .dot,.hp-ticker-trade .pip) {background:#b18338}
 body.bg-gilded-autumn.mile-high-fizz-trade :is(.hp-live-strip,.hp-trade-preview) {background:#352115;color:#fff8ec;border-color:#aa8653}
@@ -246,10 +246,10 @@ body.bg-gilded-autumn.mile-high-fizz-join .hp-header-link:is([aria-current="page
 body.bg-gilded-autumn.mile-high-fizz-join .hp-header-link::after {background:#91451d}
 body.bg-gilded-autumn.mile-high-fizz-join .hp-shop-btn {background:#91451d;color:#fff9ef;border-color:#91451d;box-shadow:0 12px 26px #75411726}
 body.bg-gilded-autumn.mile-high-fizz-join :is(.hp-ticker,.hp-ticker-row) {background:#fff9ef;color:#382617;border-color:#cdb18b}
-body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-label {background:linear-gradient(90deg,#fff9ef 70%,#fff9ef00);color:#715d49}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-label {background:#fff9ef;color:#715d49}
 body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-row:not(.reverse) :is(.hp-ticker-item,.hp-ticker-trade) {color:#87451b;text-shadow:none}
 body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-row.reverse {background:#352115;color:#fff8ec}
-body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-row.reverse .hp-ticker-label {background:linear-gradient(90deg,#352115 70%,#35211500);color:#efd3a0}
+body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-row.reverse .hp-ticker-label {background:#352115;color:#efd3a0}
 body.bg-gilded-autumn.mile-high-fizz-join .hp-ticker-row.reverse :is(.hp-ticker-item,.hp-ticker-trade) {color:#fff8ec;text-shadow:none}
 body.bg-gilded-autumn.mile-high-fizz-join :is(.hp-ticker-item .dot,.hp-ticker-trade .pip) {background:#b18338}
 body.bg-gilded-autumn.mile-high-fizz-join .hp-trade-preview {background:#352115;color:#fff8ec;border-color:#aa8653}

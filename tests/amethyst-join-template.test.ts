@@ -332,7 +332,7 @@ describe('Amethyst join page template data wiring', () => {
     expect(css).toContain('transform: rotate(var(--jp-team-photo-rotation, 0deg)) scale(var(--jp-team-photo-zoom, 1))')
     expect(css).not.toContain('rotate(-25deg)')
     expect(css).not.toContain('object-position: left center')
-    expect(html).toContain('join.css?v=20260930-keyboard-v1')
+    expect(html).toContain('join.css?v=20261021-ticker-edge')
     expect(html).toContain('join-runtime.js?v=20261019-thanksgiving-v3')
   })
 

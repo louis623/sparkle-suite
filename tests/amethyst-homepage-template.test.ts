@@ -340,7 +340,9 @@ describe('Amethyst homepage template data wiring', () => {
       expect(jsx).toContain('function buildTickerLoopItems(items, minimumSegmentItems)')
       expect(jsx).toContain('function useDynamicTickerMotion()')
       expect(jsx).toContain('CONTENT.tradeBoardTickerItems')
-      expect(jsx).toContain('{tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}')
+      expect(jsx).toContain(jsx === join
+        ? '{tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}'
+        : '{danceFloorTickerLabel(tr)}')
       expect(jsx).toContain('data-ticker-segment-start')
       expect(jsx).toContain('data-ticker-segment-repeat-start')
       expect(jsx).toContain('data-ticker-pps={TRADE_TICKER_SPEED_PPS}')
@@ -348,6 +350,31 @@ describe('Amethyst homepage template data wiring', () => {
       expect(jsx).not.toContain('[...TICKER_TRADES, ...TICKER_TRADES, ...TICKER_TRADES]')
       expect(jsx).not.toContain('trade.name} - {trade.meta')
       expect(jsx).not.toContain('trade.name} Â· {trade.price')
+    }
+
+    const tickerLabel = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/dance-floor-ticker-label.js'),
+      'utf8',
+    )
+    expect(tickerLabel).toContain('function danceFloorTickerLabel')
+    expect(tickerLabel).toContain('name + " · " + (collection || "Collection pending")')
+    expect(homepage.match(/danceFloorTickerLabel\(tr\)/g)).toHaveLength(1)
+    expect(trade.match(/danceFloorTickerLabel\(tr\)/g)).toHaveLength(1)
+    expect(join).not.toContain('danceFloorTickerLabel')
+    expect(homepage).not.toContain('{tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}')
+    expect(trade).not.toContain('{tr.name} · {tr.collection || "Collection pending"}')
+    for (const page of ['Homepage.html', 'Trade.html']) {
+      expect(readFileSync(resolve(process.cwd(), 'public/amethyst', page), 'utf8')).toContain(
+        '/amethyst/dance-floor-ticker-label.js',
+      )
+    }
+    const css = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.css'), 'utf8')
+    expect(css).toContain('background: #ffffff;')
+    expect(css).toContain('background: #111111;')
+    expect(css).not.toContain('rgba(255,255,255,0)')
+    expect(css).not.toContain('rgba(17, 17, 17, 0)')
+    for (const file of ['gobble-and-fizz.css', 'pie-please.css', 'fall-owl.css', 'midnight-rose.css', 'pearl-rose.css', 'rose-champagne.css', 'gilded-autumn.css', 'halloween-pumpkin-witch.css']) {
+      expect(readFileSync(resolve(process.cwd(), 'public/amethyst', file), 'utf8')).not.toMatch(/\.hp-ticker-label[^{]*\{[^}]*transparent/)
     }
   })
 

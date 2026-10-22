@@ -19,7 +19,7 @@ function responsiveRepImage(src, options) {
   };
 }
 
-const DEFAULTS = window.TRADE_TWEAK_DEFAULTS || {
+const BUILTIN_TRADE_DEFAULTS = {
   repName: "Sasha",
   businessName: "Sparkle by Sasha",
   liveState: "live",
@@ -36,7 +36,7 @@ const DEFAULTS = window.TRADE_TWEAK_DEFAULTS || {
   showFooter: true,
   showNicNac: true,
   tickerTopText: "Dance Floor open now | Item-for-item only | Same collection + same jewelry type | Birthday dancers can swap across months",
-  tradeHeroTitle: "Find the dancer you wanted to love.",
+  tradeHeroTitle: "Find the dancer you were hoping for.",
   tradeHeroSub: "The Dance Floor is for item-for-item swaps only. Requests must stay within the same collection and the same jewelry type.",
   primaryColor: "#5C0EFF",
   accentColor: "#FF1AC2",
@@ -58,6 +58,12 @@ const DEFAULTS = window.TRADE_TWEAK_DEFAULTS || {
   cursorEffect: "sparkle",
   tickerSpeed: 1,
   showSlots: false,
+};
+const DEFAULTS = {
+  ...BUILTIN_TRADE_DEFAULTS,
+  ...(window.TRADE_TWEAK_DEFAULTS && typeof window.TRADE_TWEAK_DEFAULTS === "object"
+    ? window.TRADE_TWEAK_DEFAULTS
+    : {}),
 };
 
 function publicRepName(value, fallback = "your rep") {
@@ -83,9 +89,25 @@ const isMileHighFizzHybrid = CONTENT.publicSiteVariant === "mile_high_fizz_hybri
 const isBrittWithBlingHybrid = CONTENT.publicSiteVariant === "britt_with_bling_hybrid";
 const isBrittDanceFloorComingSoon = CONTENT.danceFloorComingSoon === true;
 const isBlingKitchenHybrid = CONTENT.publicSiteVariant === "bling_kitchen_hybrid";
-const BOOTSTRAP_LISTINGS = Array.isArray(window.AMETHYST_TRADE_BOARD_LISTINGS)
+const DEMO_DANCE_FLOOR_LISTINGS = [
+  { id: "demo-prestige-hoops", name: "The Prestige Hoops", collection: "Hoop Earrings", type: "Earrings", material: "Rhodium plating", stone: "Diamond cubic zirconia", photoUrl: "/amethyst/demo-dancers/prestige-hoops.jpg" },
+  { id: "demo-all-shine", name: "All Shine, No Shade", collection: "Hoop Earrings", type: "Earrings", material: "Rhodium plating", stone: "Cubic zirconia", photoUrl: "/amethyst/demo-dancers/all-shine-no-shade.jpg" },
+  { id: "demo-baguette-rose", name: "Baguette Braid in Rose Quartz", collection: "Baguette Earrings", type: "Earrings", material: "Rhodium plating", stone: "Rose quartz", photoUrl: "/amethyst/demo-dancers/baguette-braid-rose.jpg" },
+  { id: "demo-baguette-ruby", name: "Baguette Braid in Ruby", collection: "Baguette Earrings", type: "Earrings", material: "Rhodium plating", stone: "Ruby", photoUrl: "/amethyst/demo-dancers/baguette-braid-ruby.jpg" },
+  { id: "demo-elodie", name: "The Elodie Luxe", collection: "Drop Earrings", type: "Earrings", material: "Silver tone", stone: "Cubic zirconia", photoUrl: "/amethyst/demo-dancers/elodie-luxe.jpg" },
+  { id: "demo-dreaming", name: "I've Been Dreaming Of You", collection: "Drop Earrings", type: "Earrings", material: "Gold plating", stone: "Amethyst cubic zirconia", photoUrl: "/amethyst/demo-dancers/dreaming-of-you.jpg" },
+  { id: "demo-marisol", name: "The Marisol Earrings", collection: "Drop Earrings", type: "Earrings", material: "Gold plating", stone: "Lab-created pink sapphire", photoUrl: "/amethyst/demo-dancers/marisol-earrings.jpg" },
+  { id: "demo-statement", name: "Statement of Sparkle", collection: "Necklace", type: "Necklace", material: "Hematite tone", stone: "Blue stone", photoUrl: "/amethyst/demo-dancers/statement-of-sparkle.jpg" },
+  { id: "demo-gogo", name: "The GoGo Necklace", collection: "Necklace", type: "Necklace", material: "Rhodium plating", stone: "Lab-created blue spinel", photoUrl: "/amethyst/demo-dancers/gogo-necklace.jpg" },
+];
+const BOOTSTRAP_SOURCE = Array.isArray(window.AMETHYST_TRADE_BOARD_LISTINGS)
   ? window.AMETHYST_TRADE_BOARD_LISTINGS
-  : [];
+  : (RUNTIME_CONTEXT.targeted ? [] : DEMO_DANCE_FLOOR_LISTINGS);
+const BOOTSTRAP_LISTINGS = BOOTSTRAP_SOURCE.map((listing) => (
+  listing && typeof listing === "object"
+    ? { ...listing, collection: displayCollectionLabel(listing.collection) }
+    : listing
+));
 const TRADE_REQUEST_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests");
 const TRADE_UPLOAD_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/uploads");
 const TRADE_UPLOAD_CONFIRM_ENDPOINT = withCurrentSearch("/api/amethyst/trade-requests/uploads/confirm");
@@ -481,32 +503,6 @@ const FONTS = {
   chunky: '"Archivo Black", "Inter", sans-serif',
 };
 
-const COLLECTIONS = ["OG", "Birthday", "Spring Luxe", "Simply Studded", "Market Fresh", "Stacks"];
-const TYPES = ["Ring", "Necklace", "Earrings", "Bracelet", "Pendant", "Stack"];
-const MATERIALS = [
-  "Sterling silver",
-  "Triple-plated gold",
-  "Nickel-free brass",
-  "Gold vermeil",
-  "Mixed alloy plating",
-  "Silver-tone finish",
-];
-const STONES = ["Amethyst", "Opal", "Pearl", "Moonstone", "Citrine", "Topaz"];
-const PIECE_NAMES = [
-  "Halo Bloom Ring",
-  "Velvet Hour Necklace",
-  "Petal Drop Earrings",
-  "Crescent Bracelet",
-  "North Star Pendant",
-  "Aurora Stack",
-  "Lavender Tide Ring",
-  "Birthday Spark Necklace",
-  "Moon Petal Earrings",
-  "Golden Glow Bracelet",
-  "Starlight Pendant",
-  "Rose Halo Stack",
-];
-
 const LIVE_QUEUE_NAMES = [
   "Jamie L.", "Priya M.", "Devon R.", "Carla J.", "Sophie A.", "Monique T.",
   "Riley B.", "Harper V.", "Tasha W.", "Megan C.", "Bailey H.", "Jordan P.",
@@ -530,36 +526,29 @@ const LIVE_QUEUE_ENTRIES = RUNTIME_CONTEXT.targeted ? [] : LIVE_QUEUE_NAMES.map(
   marker: index === 0 ? "?" : "",
 }));
 
-function buildSamples(count) {
-  const out = [];
-  for (let i = 0; i < count; i++) {
-    let tier = "everyday";
-    if (i === 0) tier = "unicorn";
-    else if (i === 1) tier = "diamond";
+function sampleTypeMatchesCollection(collection, type) {
+  const label = String(collection || "").toLowerCase();
+  const kind = String(type || "").toLowerCase();
+  if (kind === "earrings") return /\bearrings?\b/.test(label);
+  if (kind === "necklace" || kind === "pendant") return /\b(necklace|pendant)s?\b/.test(label);
+  if (kind === "ring") return /\brings?\b/.test(label);
+  if (kind === "bracelet") return /\bbracelets?\b/.test(label);
+  if (kind === "stack") return /\bstacks?\b/.test(label);
+  return false;
+}
 
-    const collection = COLLECTIONS[i % COLLECTIONS.length];
-    const type = TYPES[i % TYPES.length];
-    const material = MATERIALS[i % MATERIALS.length];
-    const stone = STONES[i % STONES.length];
-    out.push({
-      id: i + 1,
-      name: PIECE_NAMES[i % PIECE_NAMES.length] + (i >= PIECE_NAMES.length ? ` ${Math.floor(i / PIECE_NAMES.length) + 1}` : ""),
-      tier,
-      collection,
-      type,
-      material,
-      stone,
-      size: type === "Ring" ? ["6", "7", "8", "9"][i % 4] : null,
-      note: tier === "diamond"
-        ? "Rare Diamond dancer - still item-for-item only."
-        : tier === "unicorn"
-          ? "Rare Unicorn dancer."
-          : "Dance Floor dancer.",
-      glyph: PIECE_NAMES[i % PIECE_NAMES.length].charAt(0),
-      photoUrl: null,
-    });
-  }
-  return out;
+function buildSamples(count) {
+  return DEMO_DANCE_FLOOR_LISTINGS
+    .filter((piece) => sampleTypeMatchesCollection(piece.collection, piece.type))
+    .slice(0, count)
+    .map((piece) => ({
+      ...piece,
+      tier: "everyday",
+      size: null,
+      note: "Dance Floor dancer.",
+      glyph: piece.name.charAt(0),
+      quantityAvailable: 1,
+    }));
 }
 
 function normalizeBootstrapPiece(piece, index) {
@@ -620,8 +609,29 @@ function getInitialTradeFilters() {
 
   return {
     ...EMPTY_FILTER_STATE,
-    collection: requestedCollection,
+    collection: displayCollectionLabel(requestedCollection),
   };
+}
+
+function displayCollectionLabel(value) {
+  const cleaned = String(value || "").trim().replace(/\s+/g, " ");
+  const match = cleaned.match(/^(.*\S)\s+(earring|earrings|ring|rings|necklace|necklaces|bracelet|bracelets|stack|stacks|pendant|pendants)$/i);
+  if (!match) return cleaned;
+  const typeLabels = {
+    earring: "Earrings",
+    earrings: "Earrings",
+    ring: "Ring",
+    rings: "Ring",
+    necklace: "Necklace",
+    necklaces: "Necklace",
+    bracelet: "Bracelet",
+    bracelets: "Bracelet",
+    stack: "Stack",
+    stacks: "Stack",
+    pendant: "Pendant",
+    pendants: "Pendant",
+  };
+  return `${match[1]} ${typeLabels[match[2].toLowerCase()]}`;
 }
 
 function deriveTradeBoardFilterOptions(listings) {
@@ -632,7 +642,7 @@ function deriveTradeBoardFilterOptions(listings) {
   const rarityTags = new Set();
 
   listings.forEach((listing) => {
-    if (listing.collection) collections.add(listing.collection);
+    if (listing.collection) collections.add(displayCollectionLabel(listing.collection));
     if (listing.type) types.add(listing.type);
     if (listing.material) materials.add(listing.material);
     if (listing.size) sizes.add(listing.size);
@@ -660,7 +670,7 @@ function filterCollectionOptions(collections, collectionSearch) {
 
 function filterTradeBoardListings(listings, filters) {
   return listings.filter((listing) => {
-    if (filters.collection !== "all" && listing.collection !== filters.collection) return false;
+    if (filters.collection !== "all" && displayCollectionLabel(listing.collection) !== filters.collection) return false;
     if (filters.type !== "all" && listing.type !== filters.type) return false;
     if (filters.rarity !== "all" && listing.tier !== filters.rarity) return false;
     if (filters.material !== "all" && listing.material !== filters.material) return false;
@@ -1067,7 +1077,7 @@ function Ticker({ topText }) {
               data-ticker-segment-start={index === 0 ? "true" : undefined}
               data-ticker-segment-repeat-start={index === tradeSegmentLength ? "true" : undefined}
             >
-              {tr.name} - {tr.type || "Jewelry"} - {tr.collection || "Collection pending"}
+              {danceFloorTickerLabel(tr)}
             </a>
           ))}
         </div>
@@ -1250,10 +1260,6 @@ function Filters({
   secondaryOpen,
   setSecondaryOpen,
 }) {
-  const availableDancerCount = listings.reduce(
-    (total, listing) => total + Math.max(0, Number(listing.quantityAvailable ?? 1)),
-    0,
-  );
   const options = useMemo(() => deriveTradeBoardFilterOptions(listings), [listings]);
   const visibleCollections = useMemo(
     () => filterCollectionOptions(options.collections, collectionSearch),
@@ -1274,17 +1280,27 @@ function Filters({
     setCollectionSearch("");
   };
 
+  useEffect(() => {
+    if (options.rarityTags.length === 0 && sortMode === "rarity") setSortMode("newest");
+  }, [options.rarityTags.length, sortMode, setSortMode]);
+
+  if (listings.length === 0) return null;
+
   return (
     <div className={`tp-filters style-${style}`}>
       <div className="tp-filters-topline">
         <div>
           <div className="tp-mobile-filter-cue">Search or filter the Dance Floor</div>
           <div className="tp-filter-results">
-            <strong>{availableDancerCount}</strong> available dancers
+            <strong>{resultCount}</strong>{activeBoardControlCount > 0
+              ? (resultCount === 1 ? " dancer matches" : " dancers match")
+              : (resultCount === 1 ? " dancer on this Dance Floor" : " dancers on this Dance Floor")}
           </div>
-          <div className="tp-board-showing">
-            Showing {Math.min(visibleCount, resultCount)} of {resultCount} matches
-          </div>
+          {visibleCount < resultCount && (
+            <div className="tp-board-showing">
+              Showing {visibleCount} of {resultCount}
+            </div>
+          )}
         </div>
         <div className="tp-filter-actions">
           {activeBoardControlCount > 0 && (
@@ -1321,7 +1337,7 @@ function Filters({
             <option value="newest">Newest added</option>
             <option value="collection">Collection</option>
             <option value="type">Jewelry type</option>
-            <option value="rarity">Rare first</option>
+            {options.rarityTags.length > 0 && <option value="rarity">Rare first</option>}
             <option value="name">Dancer name</option>
           </select>
         </label>
@@ -1348,38 +1364,43 @@ function Filters({
           ))}
         </div>
 
-        <div className="tp-filters-row tp-filters-row-primary">
-          <button
-            type="button"
-            className={`tp-filter-pill ${filters.rarity === "all" ? "active" : ""}`}
-            onClick={() => setFilter("rarity", "all")}
-          >
-            All rarity
-          </button>
-          {options.rarityTags.map((rarity) => (
+        {options.rarityTags.length > 0 && (
+          <div className="tp-filters-row tp-filters-row-primary">
             <button
-              key={rarity}
               type="button"
-              className={`tp-filter-pill ${filters.rarity === rarity ? "active" : ""}`}
-              onClick={() => setFilter("rarity", rarity)}
+              className={`tp-filter-pill ${filters.rarity === "all" ? "active" : ""}`}
+              onClick={() => setFilter("rarity", "all")}
             >
-              {rarityLabel(rarity)}
+              All rarity
             </button>
-          ))}
-        </div>
-
-        {options.collections.length > 0 && (
-          <div className="tp-filters-row tp-filters-row-primary tp-filters-row-collections" aria-label="Filter by collection">
-            {options.collections.map((collection) => (
+            {options.rarityTags.map((rarity) => (
               <button
-                key={collection}
+                key={rarity}
                 type="button"
-                className={`tp-filter-pill ${filters.collection === collection ? "active" : ""}`}
-                onClick={() => setFilter("collection", collection)}
+                className={`tp-filter-pill ${filters.rarity === rarity ? "active" : ""}`}
+                onClick={() => setFilter("rarity", rarity)}
               >
-                {collection}
+                {rarityLabel(rarity)}
               </button>
             ))}
+          </div>
+        )}
+
+        {options.collections.length > 0 && (
+          <div className="tp-filters-row tp-filters-row-primary tp-filters-row-collections">
+            <span className="tp-filter-row-label" id="trade-collection-filters">Collection</span>
+            <div className="tp-filter-chip-row" role="group" aria-labelledby="trade-collection-filters">
+              {options.collections.map((collection) => (
+                <button
+                  key={collection}
+                  type="button"
+                  className={`tp-filter-pill ${filters.collection === collection ? "active" : ""}`}
+                  onClick={() => setFilter("collection", collection)}
+                >
+                  {collection}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -1483,6 +1504,10 @@ function Filters({
 function TradeCard({ piece, onTap, tierVisible }) {
   const showTier = piece.tier !== "everyday" || tierVisible === "all";
   const tierLabel = piece.tier === "unicorn" ? "Unicorn" : piece.tier === "diamond" ? "Diamond" : "Everyday";
+  const detailChips = [piece.type, piece.size ? `Size ${piece.size}` : "", piece.material, piece.stone]
+    .map((part) => String(part || "").trim())
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <article className={`tp-card ${piece.tier}`} onClick={() => onTap(piece)}>
@@ -1496,17 +1521,14 @@ function TradeCard({ piece, onTap, tierVisible }) {
         {piece.photoUrl ? (
           <img className="tp-card-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 700px) 46vw, 280px", widths: [256, 384, 640] })} loading="lazy" decoding="async" />
         ) : (
-          <div className="photo-glyph">{piece.glyph}</div>
+          <div className="photo-glyph" aria-hidden="true"><SparkleMark /></div>
         )}
       </div>
       <div className="tp-card-body">
-        <div className="tp-card-collection">{piece.collection}</div>
+        <div className="tp-card-collection">{displayCollectionLabel(piece.collection)}</div>
         <h3 className="tp-card-name slot" data-slot="design name">{piece.name}</h3>
-        <div className="tp-card-meta">
-          <span>{piece.type}{piece.size ? ` - Size ${piece.size}` : ""}</span>
-        </div>
+        <div className="tp-card-meta">{detailChips}</div>
         <div className="tp-card-quantity">{Math.max(0, Number(piece.quantityAvailable ?? 1))} available</div>
-        <div className="tp-card-material">{piece.material} · {piece.stone}</div>
         <button type="button" className="tp-card-action" onClick={(event) => { event.stopPropagation(); onTap(piece); }}>
           View dancer and send a swap request
         </button>
@@ -1554,6 +1576,21 @@ function useTradeDialog(open, onClose, view) {
   return ref;
 }
 
+function isSpecificDancerNote(note) {
+  const value = String(note || "").trim().toLowerCase();
+  if (!value) return false;
+  return value !== "item-for-item only. requests must stay within the same collection and the same jewelry type."
+    && value !== "dance floor dancer.";
+}
+
+function SparkleMark() {
+  return (
+    <svg className="tp-sparkle-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path fill="currentColor" d="M12 1.2 13.7 8.3 20.8 10 13.7 11.7 12 18.8 10.3 11.7 3.2 10 10.3 8.3 12 1.2Zm6.2 11.1.7 2.4 2.4.7-2.4.7-.7 2.4-.7-2.4-2.4-.7 2.4-.7.7-2.4ZM5.6 14.2l.5 1.7 1.7.5-1.7.5-.5 1.7-.5-1.7-1.7-.5 1.7-.5.5-1.7Z" />
+    </svg>
+  );
+}
+
 function ExpandedCard({ piece, onClose, onWantThis }) {
   const dialogRef = useTradeDialog(Boolean(piece), onClose);
   if (!piece) return null;
@@ -1563,6 +1600,8 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
     : piece.tier === "diamond"
       ? "Diamond"
       : "Everyday";
+  const typeLabel = String(piece.type || "dancer").toLowerCase();
+  const typeArticle = /s$/i.test(typeLabel) && !/ss$/i.test(typeLabel) ? "These" : "This";
 
   return (
     <div className="tp-card-expand-mask" onClick={onClose}>
@@ -1572,7 +1611,7 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
           {piece.photoUrl ? (
             <img className="tp-card-expand-photo-img" {...responsiveRepImage(piece.photoUrl, { alt: piece.name || "Dancer", sizes: "(max-width: 800px) 92vw, 640px", widths: [384, 640, 828, 1200], eager: true })} />
           ) : (
-            <div className="photo-glyph">{piece.glyph}</div>
+            <div className="photo-glyph" aria-hidden="true"><SparkleMark /></div>
           )}
         </div>
         <div className="tp-card-expand-body">
@@ -1580,15 +1619,15 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
             <span className="pip" />
             {tierLabel}
           </span>
-          <div className="tp-card-expand-collection">{piece.collection} collection</div>
+          <div className="tp-card-expand-collection">{displayCollectionLabel(piece.collection)} collection</div>
           <h2 id="trade-expanded-title" className="tp-card-expand-name slot" data-slot="design name">{piece.name}</h2>
           <p className="tp-card-expand-desc slot" data-slot="description">
-            This {piece.type.toLowerCase()} can be requested as an item-for-item dancer swap if the item number just revealed for you stays within the same collection and the same jewelry type.
+            {typeArticle} {typeLabel} can be requested as an item-for-item dancer swap if the item number just revealed for you stays within the same collection and the same jewelry type.
           </p>
           <dl className="tp-card-expand-specs">
             <div>
               <dt>Collection</dt>
-              <dd>{piece.collection}</dd>
+              <dd>{displayCollectionLabel(piece.collection)}</dd>
             </div>
             <div>
               <dt>Jewelry type</dt>
@@ -1607,14 +1646,16 @@ function ExpandedCard({ piece, onClose, onWantThis }) {
               <dd>{Math.max(0, Number(piece.quantityAvailable ?? 1))}</dd>
             </div>
           </dl>
-          <div className="tp-card-expand-box slot" data-slot="reveal box photo">
-            <div className="thumb">BOX</div>
-            <div>{piece.note}</div>
-          </div>
+          {isSpecificDancerNote(piece.note) ? (
+            <div className="tp-card-expand-note">
+              <SparkleMark />
+              <p>{piece.note}</p>
+            </div>
+          ) : null}
           <p className="tp-card-expand-rule">A dancer swap is one dancer for one dancer, with no added payment or credit. Your rep makes the final decision.</p>
           <button type="button" className="tp-card-expand-cta" onClick={() => onWantThis(piece)}>
             Request this swap
-            <span>?</span>
+            <SparkleMark />
           </button>
         </div>
       </div>
@@ -1818,7 +1859,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
         <div className="tp-sheet-eyebrow">Swap request</div>
         <h3 id="trade-request-title" className="tp-sheet-title">{piece.name}</h3>
         <div className="tp-sheet-piece">
-          {piece.collection} - {piece.type}{piece.size ? ` - Size ${piece.size}` : ""}
+          {displayCollectionLabel(piece.collection)} · {piece.type}{piece.size ? ` · Size ${piece.size}` : ""}
         </div>
         <p className="tp-sheet-helper">
           Tell <strong>{repName}</strong> what you just revealed. Your dancer should be from the same collection family and jewelry type. Birthday months and years can differ.
@@ -1846,7 +1887,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
             <div>
               <strong>Requested dancer</strong>
               <span>{piece.name}</span>
-              <small>{piece.collection} · {piece.type}{piece.size ? ` · Size ${piece.size}` : ""}</small>
+              <small>{displayCollectionLabel(piece.collection)} · {piece.type}{piece.size ? ` · Size ${piece.size}` : ""}</small>
             </div>
             <div>
               <strong>Your reveal</strong>
@@ -1860,7 +1901,7 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
               id="tp-offered-family"
               type="text"
               list="tp-collection-families"
-              placeholder="Birthday, OG, or another collection — leave blank if unsure"
+              placeholder="Birthday, OG, or another"
               value={offeredFamily}
               onChange={(event) => {
                 setOfferedFamily(event.target.value);
@@ -1870,8 +1911,9 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
               disabled={pending}
             />
             <datalist id="tp-collection-families">
-              {[...new Set(["Birthday", "OG", "Sterling Club", piece.collection].filter((family) => typeof family === "string" && family.trim()))].map((family) => <option key={family} value={family} />)}
+              {[...new Set(["Birthday", "OG", "Sterling Club", displayCollectionLabel(piece.collection)].filter((family) => typeof family === "string" && family.trim()))].map((family) => <option key={family} value={family} />)}
             </datalist>
+            <p className="tp-field-hint">Leave this blank if the collection is unsure.</p>
           </div>
           <div className="tp-sheet-field">
             <label htmlFor="tp-offered-type">Jewelry type you revealed</label>
@@ -2013,18 +2055,16 @@ function RequestSheet({ piece, onClose, onSubmit, onChooseAlternative, onOfferCh
   );
 }
 
-function EmptyState({ repName }) {
+function EmptyState({ businessName }) {
   return (
     <div className="tp-empty">
-      <div className="tp-empty-glyph">?</div>
-      <h3 className="tp-empty-title">{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "Dance Floor is empty right now."}</h3>
+      <div className="tp-empty-glyph" aria-hidden="true"><SparkleMark /></div>
+      <h3 className="tp-empty-title">{isBrittDanceFloorComingSoon ? "Digital Dance Floor coming soon" : "The Dance Floor is quiet right now"}</h3>
       <p className="tp-empty-sub">
-          <strong>{repName}</strong> adds dancers after live reveals. Check back after the next show for fresh one-for-one swap options.
+        {isBrittDanceFloorComingSoon
+          ? "This show is getting the Dance Floor ready. Check back for the first dancers."
+          : <><strong>{businessName}</strong> adds dancers after a live reveal. Check back after the next show to request a one-for-one swap.</>}
       </p>
-      <div className="tp-empty-next">
-        <span className="live-dot" />
-        Dancers will appear after this rep adds them to the Dance Floor.
-      </div>
     </div>
   );
 }
@@ -2032,7 +2072,7 @@ function EmptyState({ repName }) {
 function NoMatchesState({ onClear }) {
   return (
     <div className="tp-empty">
-      <div className="tp-empty-glyph">?</div>
+      <div className="tp-empty-glyph" aria-hidden="true"><SparkleMark /></div>
           <h3 className="tp-empty-title">No dancers match these filters.</h3>
       <p className="tp-empty-sub">
         Try a different collection, jewelry type, rarity tag, or material mix to widen the Dance Floor again.
@@ -2315,7 +2355,12 @@ function App() {
 
   const live = t.liveState === "live";
   const isEmpty = t.contentState === "empty";
-  const showNoMatches = !isEmpty && availableSamples.length > 0 && filtered.length === 0;
+  const boardIsEmpty = isEmpty || availableSamples.length === 0;
+  useEffect(() => {
+    document.body.classList.toggle("dance-floor-empty", boardIsEmpty);
+    return () => document.body.classList.remove("dance-floor-empty");
+  }, [boardIsEmpty]);
+  const showNoMatches = !boardIsEmpty && filtered.length === 0;
   const clearFilters = () => {
     setFilters(EMPTY_FILTER_STATE);
     setBoardSearch("");
@@ -2378,6 +2423,7 @@ function App() {
             <section className="tp-board">
               <div className="tp-board-inner no-lrq">
                 <div>
+                  {!boardIsEmpty && (
                   <Filters
                     style={t.filterStyle}
                     listings={availableSamples}
@@ -2394,8 +2440,9 @@ function App() {
                     secondaryOpen={secondaryFiltersOpen}
                     setSecondaryOpen={setSecondaryFiltersOpen}
                   />
-                  {isEmpty ? (
-                    <div className="tp-grid-wrap"><EmptyState repName={repName} /></div>
+                  )}
+                  {boardIsEmpty ? (
+                    <div className="tp-grid-wrap"><EmptyState businessName={t.businessName || "The rep"} /></div>
                   ) : showNoMatches ? (
                     <div className="tp-grid-wrap"><NoMatchesState onClear={clearFilters} /></div>
                   ) : (
@@ -2411,9 +2458,11 @@ function App() {
                         ))}
                       </div>
                       <div className="tp-board-pagination">
-                        <div className="tp-board-showing">
-                          Showing {visibleTradeBoardPieces.length} of {filtered.length} dancers
-                        </div>
+                        {hasMoreTradeBoardPieces && (
+                          <div className="tp-board-showing">
+                            Showing {visibleTradeBoardPieces.length} of {filtered.length} dancers
+                          </div>
+                        )}
                         {hasMoreTradeBoardPieces && (
                           <button
                             type="button"
