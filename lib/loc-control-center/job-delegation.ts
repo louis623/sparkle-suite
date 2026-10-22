@@ -1,6 +1,94 @@
 import { z } from 'zod'
 import { digestLocInput, LocBridgeError } from './security'
 
+// Standing grant proof from louis-ops-center PR #61. The signed object is
+// mode, agentId, agentName, and operation. agentId is the grant id unless a
+// separate grantId is present. scopes, expiresAt, revoked, and revokedAt are
+// checked only when the payload includes them.
+export const LOC_NAMED_AGENT_PUBLISH_SCOPE = 'suite.resources.publish'
+export const LOC_NAMED_AGENT_EMAIL_SCOPE = 'suite.resources.emailPreview'
+
+export const locNamedAgentGrantSchema = z.object({
+  mode: z.literal('named-agent'),
+  agentId: z.uuid(),
+  agentName: z.string().trim().min(1).max(160),
+  operation: z.literal(LOC_NAMED_AGENT_PUBLISH_SCOPE),
+  grantId: z.uuid().optional(),
+  scopes: z.array(z.enum([
+    LOC_NAMED_AGENT_PUBLISH_SCOPE,
+    LOC_NAMED_AGENT_EMAIL_SCOPE,
+  ])).max(2).optional(),
+  expiresAt: z.iso.datetime({ offset: true }).nullable().optional(),
+  revoked: z.boolean().optional(),
+  revokedAt: z.iso.datetime({ offset: true }).nullable().optional(),
+}).strict()
+
+export type LocNamedAgentGrantAudit = {
+  agentId: string
+  agentName: string
+  grantId: string
+  emailAllowed: boolean
+}
+
+/** Call only after the LOC bridge signature has been verified. A missing grant grants nothing. */
+export function verifyLocNamedAgentGrant(body: {
+  authority: 'owner' | 'agent'
+  operation: string
+  intendedAssignee?: string | null
+  input: Record<string, unknown>
+  delegation?: unknown
+  namedAgentGrant?: z.infer<typeof locNamedAgentGrantSchema>
+}, now = Date.now()): LocNamedAgentGrantAudit | null {
+  const grant = body.namedAgentGrant
+  if (!grant) return null
+  const product = typeof body.input.product === 'string' ? body.input.product : ''
+  if (`${product}.${body.operation}` !== LOC_NAMED_AGENT_PUBLISH_SCOPE)
+    throw new LocBridgeError(403, 'A named-agent grant is only valid for suite.resources.publish.')
+  if (body.authority !== 'agent')
+    throw new LocBridgeError(403, 'A named-agent grant is only valid on an agent connection.')
+  if (body.delegation)
+    throw new LocBridgeError(403, 'A named-agent grant cannot be combined with a one-time job approval.')
+  if (body.intendedAssignee !== grant.agentName)
+    throw new LocBridgeError(403, 'This named-agent grant does not match the signed agent.')
+  const scopes = grant.scopes ?? [grant.operation]
+  const unique = new Set(scopes)
+  if (unique.size !== scopes.length || !unique.has(LOC_NAMED_AGENT_PUBLISH_SCOPE))
+    throw new LocBridgeError(403, 'This named-agent grant does not include suite.resources.publish.')
+  if (grant.expiresAt) {
+    const expires = Date.parse(grant.expiresAt)
+    if (!Number.isFinite(expires) || expires <= now)
+      throw new LocBridgeError(403, 'This named-agent grant is expired.')
+  }
+  if (grant.revoked === true || (grant.revokedAt != null && grant.revokedAt !== ''))
+    throw new LocBridgeError(403, 'This named-agent grant is revoked.')
+  const emailAllowed = unique.has(LOC_NAMED_AGENT_EMAIL_SCOPE)
+  if (body.input.emailSuiteList === true && !emailAllowed)
+    throw new LocBridgeError(403, 'This named-agent grant does not include Suite list email.')
+  return {
+    agentId: grant.agentId,
+    agentName: grant.agentName,
+    grantId: grant.grantId ?? grant.agentId,
+    emailAllowed,
+  }
+}
+
+export function withLocNamedAgentAudit(
+  result: unknown,
+  audit: Pick<LocNamedAgentGrantAudit, 'agentId' | 'agentName' | 'grantId'>,
+) {
+  const base = result && typeof result === 'object' && !Array.isArray(result)
+    ? { ...(result as Record<string, unknown>) }
+    : { value: result }
+  return {
+    ...base,
+    locNamedAgentAudit: {
+      agentId: audit.agentId,
+      agentName: audit.agentName,
+      grantId: audit.grantId,
+    },
+  }
+}
+
 export const locJobDelegationSchema = z.object({
   mode: z.literal('owner-approved'),
   ownerId: z.uuid(), jobId: z.uuid(), agentId: z.uuid(), operationId: z.uuid(), connectionId: z.uuid(),
