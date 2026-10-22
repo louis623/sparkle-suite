@@ -22,6 +22,7 @@ vi.mock('@/lib/photoroom/config',()=>({getPhotoroomConfig:()=>null}))
 import { MOVED_ON_MESSAGE } from '@/lib/nic-nac/piece-task'
 import { createRepTextScrubber } from '@/lib/nic-nac/core/stream-output-guard'
 import { POST } from '@/app/api/nic-nac/route'
+import { makeAddListingTool } from '@/lib/nic-nac/tools/add-listing'
 import { POST as rollover } from '@/app/api/nic-nac/conversation/rollover/route'
 import { POST as alternateRollover } from '@/app/api/nic-nac/conversation-rollover/route'
 import { GET as history } from '@/app/api/nic-nac/conversation-state/route'
@@ -132,8 +133,10 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
       expect(workflow.photos.find((p:any)=>p.imageUrl===state.labelUrl).declaredRole).toBe('label_details')
       const message='This is the main photo I will save for NK11312. If this is the right piece, reply yes.'
       return {catalog:{allowedIntents:['trade_board'],requestedIntents:['trade_board'],toolNames:['add_listing'],source:'workspace_permissions',blockedIntents:[],blockedToolNames:[]},agent:{stream:async()=>({toUIMessageStream:async function*(){
-        yield {type:'tool-input-available',toolCallId:'paired-photo',toolName:'add_listing',input:{itemNumber:'NK11312'}}
-        yield {type:'tool-output-available',toolCallId:'paired-photo',output:{needsAction:'confirm_main_photo',previewPhotoId:photo.id,message}}
+        const input={mode:'single' as const,itemNumber:'NK11312',selectedPhotoId:photo.id}
+        const output=await makeAddListingTool(toolContext).execute!(input,{} as any)
+        yield {type:'tool-input-available',toolCallId:'paired-photo',toolName:'add_listing',input}
+        yield {type:'tool-output-available',toolCallId:'paired-photo',output}
         yield {type:'text-start',id:'pair-text'}
         yield {type:'text-delta',id:'pair-text',delta:message}
         yield {type:'text-end',id:'pair-text'}
@@ -146,7 +149,62 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(reply).not.toContain('Send a photo of the jewelry')
     const storedReply=await loadCanonicalHistory(db.client,'piece-chat')
     expect(JSON.stringify(storedReply.at(-1))).not.toContain('That photo is the label')
-    expect(state.model).toHaveBeenCalled()
+    expect(state.model).toHaveBeenCalledTimes(1)
+    const saved=await turn('paired-yes','yes')
+    expect(saved).toContain('is on your Dance Floor')
+    expect(saved).not.toMatch(/looping|confirmation step|support report/i)
+    expect(state.model).toHaveBeenCalledTimes(1)
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
+    expect(state.uploads).toHaveLength(1)
+    expect(state.uploads[0].data).toBe(jewelry)
+  })
+
+  it.each([false])('saves sequential uploads with label-first=%s',async(labelFirst)=>{
+    const jewelry='data:image/png;base64,amV3ZWxyeQ=='
+    state.labelUrl='data:image/png;base64,bGFiZWw='
+    state.model.mockImplementation(({toolContext}:any)=>{
+      const workflow=toolContext.activeTradeBoardWorkflow
+      const photo=workflow.photos.find((p:any)=>p.id===workflow.metadata.boundMainPhotoId)
+      if(workflow.photos.length===2) expect(photo.imageUrl).toBe(jewelry)
+      if(workflow.photos.length===2) expect(workflow.photos.find((p:any)=>p.imageUrl===state.labelUrl).declaredRole).toBe('label_details')
+      const message='This is the main photo I will save for NK11312. If this is the right piece, reply yes.'
+      return {catalog:{allowedIntents:['trade_board'],requestedIntents:['trade_board'],toolNames:['add_listing'],source:'workspace_permissions',blockedIntents:[],blockedToolNames:[]},agent:{stream:async()=>({toUIMessageStream:async function*(){
+        const input={mode:'single' as const,itemNumber:'NK11312',selectedPhotoId:photo?.id}
+        const output=await makeAddListingTool(toolContext).execute!(input,{} as any)
+        yield {type:'tool-input-available',toolCallId:'paired-photo',toolName:'add_listing',input}
+        yield {type:'tool-output-available',toolCallId:'paired-photo',output}
+        yield {type:'text-start',id:'pair-text'}
+        yield {type:'text-delta',id:'pair-text',delta:message}
+        yield {type:'text-end',id:'pair-text'}
+      }})}}
+    })
+    await turn('first-upload',labelFirst?'Here is the label for NK11312.':'Here is the jewelry photo for NK11312.',labelFirst?state.labelUrl:jewelry)
+    const reply=await turn('second-upload',labelFirst?'Here is the jewelry photo.':'Here is the label.',labelFirst?jewelry:state.labelUrl)
+    expect(reply).toContain('confirm_main_photo')
+    expect(reply).toContain('This is the main photo I will save')
+    expect(reply).not.toContain('That photo is the label')
+    expect(reply).not.toContain('Send a photo of the jewelry')
+    const storedReply=await loadCanonicalHistory(db.client,'piece-chat')
+    expect(JSON.stringify(storedReply.at(-1))).not.toContain('That photo is the label')
+    expect(state.model).toHaveBeenCalledTimes(2)
+    const saved=await turn('paired-yes','yes')
+    expect(saved).toContain('is on your Dance Floor')
+    expect(saved).not.toMatch(/looping|confirmation step|support report/i)
+    expect(state.model).toHaveBeenCalledTimes(2)
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
+    expect(state.uploads).toHaveLength(1)
+    expect(state.uploads[0].data).toBe(jewelry)
+  })
+
+  it.each([
+    "The Dance Floor upload is looping on the photo-confirmation step. Try replying 'yes, use photo 1'.",
+    'It is still looping and has not been added yet. I can send a support report.',
+  ])('keeps internal save mechanics out of streamed replies: %s',(reply)=>{
+    const scrubber=createRepTextScrubber()
+    let visible=''
+    for(const char of reply) visible+=scrubber.push(char)
+    visible+=scrubber.flush()
+    expect(visible).toBe("I couldn't save this piece. Please try again.")
   })
 
   it('never releases a handler instruction split into one-character stream deltas',()=>{

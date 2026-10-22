@@ -592,6 +592,9 @@ export function containsHandlerInstruction(text: string): boolean {
  * split sentence cannot leave the instruction on screen.
  */
 export function guardAssistantVisibleText(text: string): string {
+  if (/\blooping\b|\b(?:photo|save|upload)[- ]confirmation\s+(?:step|loop)\b/i.test(text)) {
+    return "I couldn't save this piece. Please try again."
+  }
   if (!containsHandlerInstruction(text)) return scrubInternalCatalogPhrases(text)
   const item = text.match(/\b[A-Z]{1,4}\d{3,}\b/i)?.[0]?.toUpperCase()
   return item

@@ -1363,8 +1363,9 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
         (photo) => photo.conversationMessageId === latestUserMessage?.id,
       )
       // Judge the same jewelry upload used by the preview. The last attachment
-      // may be its label, which must not invalidate an accepted jewelry photo.
-      const blamePhoto = selectBoundMainPhoto(turnPhotos, blameSession?.metadata) ??
+      // may be its label, even on a later turn. That must not invalidate the
+      // accepted jewelry photo already bound to this piece.
+      const blamePhoto = selectBoundMainPhoto(blameSession?.photos, blameSession?.metadata) ??
         [...turnPhotos].reverse().find((photo) =>
           photo.declaredRole !== 'label_details' && photo.visualRole !== 'label_or_packaging') ??
         turnPhotos.at(-1)
