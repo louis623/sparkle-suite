@@ -6,8 +6,12 @@ import {
   mergeWorkflowToolIntents,
   reconcileDeclaredPhotoRoleWithWorkflow,
 } from '@/lib/nic-nac/workflows/trade-board-intake-context'
+import { analyzeServerImageQuality } from '@/lib/services/server-image-quality'
 import { renderTradeBoardIntakePromptState } from '@/lib/nic-nac/workflows/trade-board-intake-prompt'
 import type { TradeBoardIntakePromptState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
+
+// Classification boundary: these routing fixtures represent inspected clear images.
+vi.mock('@/lib/services/server-image-quality',()=>({analyzeServerImageQuality:vi.fn(async()=>({contentType:'image/jpeg',width:1200,height:1200,blurRisk:0.1,lightingRisk:0.1,detailRisk:0.1,backgroundDistractionRisk:0.1,subjectCoverage:0.55,subjectCentered:true,subjectCenterX:0.5,subjectCenterY:0.5,detailConfidence:0.9,backgroundUniformity:0.9,backgroundCleanliness:0.9}))}))
 
 describe('Dance Floor intake route context', () => {
   it('inherits label_details role after Nic-Nac asks for a label/details photo', () => {
@@ -252,6 +256,7 @@ describe('Dance Floor intake route context', () => {
   })
 
   it('leaves both same-turn photos unknown after a jewelry ask when visuals are uncertain', async () => {
+    vi.mocked(analyzeServerImageQuality).mockRejectedValueOnce(new Error('uncertain')).mockRejectedValueOnce(new Error('uncertain'))
     const sessionRow = {
       id: 'workflow-1',
       rep_id: 'rep-1',
@@ -1032,7 +1037,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'label_or_packaging',
             role_confirmed: true,
             image_url: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: ['declared as label/details source'],
           },
@@ -1175,7 +1180,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'label_or_packaging',
             role_confirmed: true,
             image_url: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: ['declared as label/details source'],
           },
@@ -1186,7 +1191,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'uncertain',
             role_confirmed: false,
             image_url: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: [],
           },
@@ -1303,7 +1308,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'label_or_packaging',
             role_confirmed: true,
             image_url: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: ['declared as label/details source'],
           },
@@ -1314,7 +1319,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'uncertain',
             role_confirmed: false,
             image_url: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: [],
           },
@@ -1420,7 +1425,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'uncertain',
             role_confirmed: false,
             image_url: 'data:image/jpeg;base64,RVIxODAxMl9GUk9OVA==',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: [],
           },

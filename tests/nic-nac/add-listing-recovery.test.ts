@@ -683,7 +683,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
             visualRole: 'jewelry',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
           },
@@ -802,7 +802,7 @@ describe('add_listing — manual URL fallback (Task 1.5B regression guard)', () 
             visualRole: 'jewelry',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,SEVNQVRJVEU=',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
           },
@@ -2563,7 +2563,7 @@ describe('add_listing - active workflow readiness guard', () => {
     expect(processRepListingPhotoUrlMock).toHaveBeenCalledTimes(2)
   })
 
-  it('adds a known catalog design with the canonical photo after duplicate confirmation even when the only workflow photo is label/details', async () => {
+  it('refuses a label-only workflow even when the catalog already has a canonical image', async () => {
     resolveItemNumberMock.mockResolvedValueOnce({
       found: true,
       hasCollection: true,
@@ -2641,21 +2641,9 @@ describe('add_listing - active workflow readiness guard', () => {
         mode: 'single',
         itemNumber: 'ER13229',
       }),
-    ).resolves.toMatchObject({
-      mode: 'single',
-      listingId: 'listing-2',
-      usesCanonicalPhoto: true,
-    })
-
+    ).rejects.toMatchObject({ code: 'MAIN_PHOTO_NOT_USABLE' })
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
-    expect(addListingMock).toHaveBeenCalledWith(
-      expect.anything(),
-      'rep-1',
-      expect.objectContaining({
-        itemNumber: 'ER13229',
-        listingPhotoUrl: undefined,
-      }),
-    )
+    expect(addListingMock).not.toHaveBeenCalled()
   })
 
   it('uses durable workflow duplicate confirmation instead of depending on recent wording', async () => {
@@ -2990,7 +2978,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'jewelry',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
           },
@@ -3086,7 +3074,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'jewelry',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
           },
@@ -3177,7 +3165,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'jewelry',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,Qk9YRUQ=',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
           },
@@ -3257,7 +3245,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'label_or_packaging',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as label/details source'],
           },
@@ -3267,7 +3255,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'jewelry',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
           },
@@ -3563,7 +3551,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'label_or_packaging',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as label/details source'],
           },
@@ -3573,7 +3561,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'jewelry',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,UElQRVJfTkVDS0xBQ0U=',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
           },
@@ -3647,7 +3635,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'jewelry',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,T0xEX0ZBUg==',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
           },
@@ -3657,7 +3645,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'jewelry',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,TEFURVNUX0NMT1NF',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
           },
@@ -3717,7 +3705,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'label_or_packaging',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as label/details source'],
           },
@@ -3727,7 +3715,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'jewelry',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,RklSU1Q=',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
           },
@@ -3737,7 +3725,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'jewelry',
             roleConfirmed: true,
             imageUrl: 'data:image/jpeg;base64,U0VDT05E',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: ['declared as customer-facing jewelry photo'],
           },
@@ -4980,7 +4968,7 @@ describe('add_listing - active workflow readiness guard', () => {
             visualRole: 'uncertain',
             roleConfirmed: false,
             imageUrl: 'data:image/jpeg;base64,TkVX',
-            quality: 'unknown',
+            quality: 'usable',
             qualityIssues: [],
             notes: [],
           },

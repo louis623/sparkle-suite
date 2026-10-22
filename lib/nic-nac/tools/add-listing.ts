@@ -1386,6 +1386,10 @@ export function pendingMainPhotoConfirmation(args: {
   if (workflow.metadata?.mainPhotoConfirmationRequired !== true) return null
   const publishable = workflowWithPublishableJewelryFront(workflow)
   const bound = selectBoundMainPhoto(publishable?.photos, publishable?.metadata)
+  const rawBound = publishable?.photos.find((photo) => photo.id === publishable.metadata?.boundMainPhotoId)
+    ?? (publishable?.photos.length === 1 ? publishable.photos[0] : undefined)
+  const boundRefusal = mainPhotoPreviewRefusal({ photo: rawBound, itemNumber: args.itemNumber || workflow.known.itemNumber, jewelryType: workflow.known.jewelryType })
+  if (boundRefusal) throw new NicNacToolError({ code: 'MAIN_PHOTO_NOT_USABLE', userMessage: boundRefusal })
   if (args.selectedPhotoId && !bound) {
     const selected = publishable?.photos.find((photo) => photo.id === args.selectedPhotoId)
     if (selected && photoRefusedAsMainPhoto(selected)) {
@@ -1464,6 +1468,18 @@ export function decideCustomerFacingSave(args: {
 } | null {
   const workflow = workflowWithPublishableJewelryFront(args.workflow ?? undefined)
   const bound = selectBoundMainPhoto(workflow?.photos, workflow?.metadata)
+  // Recheck the exact selected upload even when an earlier turn confirmed it.
+  const selectedId = workflow?.metadata?.boundMainPhotoId || args.selectedPhotoId
+  const selected = workflow?.metadata?.boundMainPhotoId
+    ? workflow.photos.find((photo) => photo.id === selectedId)
+    : resolveWorkflowCustomerFacingPhoto(workflow?.photos, { selectedPhotoId: args.selectedPhotoId, intakeSessionId: workflow?.id })
+      ?? workflow?.photos.find((photo) => photo.id === selectedId)
+  const refusal = mainPhotoPreviewRefusal({
+    photo: selected,
+    itemNumber: args.itemNumber || workflow?.known.itemNumber,
+    jewelryType: workflow?.known.jewelryType,
+  })
+  if (refusal) throw new NicNacToolError({ code: 'MAIN_PHOTO_NOT_USABLE', userMessage: refusal })
   const confirmedRaw = workflow?.metadata?.mainPhotoConfirmedPhotoId
   const blocked = turnBlocksCustomerFacingSave({
     latestUserText: args.latestUserText,

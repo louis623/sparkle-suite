@@ -3,7 +3,7 @@ import type { UIMessage } from 'ai'
 import { createChatDatabase } from './fixtures/sql-client'
 import { DESIGN,PHOTO,REP,SESSION,installIntakeSchema,seedPiece } from './fixtures/intake-database'
 import { loadCanonicalHistory,insertConversationMessages } from '@/lib/nic-nac/persistence'
-const state=vi.hoisted(()=>({client:null as any,uploads:[] as Array<{data:string,name:string}>,model:vi.fn()}))
+const state=vi.hoisted(()=>({client:null as any,analysis:{} as Record<string,unknown>,uploads:[] as Array<{data:string,name:string}>,model:vi.fn()}))
 vi.mock('@/lib/nic-nac/auth',()=>({AuthError:class extends Error{},getPaidNicNacContext:async()=>({repId:'10000000-0000-4000-8000-000000000001',rep:{auth_user_id:'synthetic'},supabase:state.client})}))
 vi.mock('@/lib/supabase/admin',()=>({createAdminClient:()=>state.client}))
 vi.mock('@/lib/nic-nac/guardian-telemetry',()=>({logIncident:async()=>{},logToolExecution:async()=>{}}))
@@ -13,7 +13,7 @@ vi.mock('@/lib/nic-nac/core/memory/rep-memory-cards',()=>({loadSuiteRepMemoryCar
 vi.mock('@/lib/nic-nac/agent',()=>({createConfiguredNicNacAgent:(...args:any[])=>state.model(...args)}))
 // Pixel/OCR and remote storage are deterministic boundaries; intake, controller,
 // listing tool, listing service and the checked-in listing SQL RPC remain real.
-vi.mock('@/lib/services/server-image-quality',()=>({analyzeServerImageQuality:async()=>({contentType:'image/png',width:1200,height:1200,blurRisk:0.1,lightingRisk:0.1,detailRisk:0.1,backgroundDistractionRisk:0.1,subjectCoverage:0.55,subjectCentered:true,subjectCenterX:0.5,subjectCenterY:0.5,detailConfidence:0.9,backgroundUniformity:0.9,backgroundCleanliness:0.9})}))
+vi.mock('@/lib/services/server-image-quality',()=>({analyzeServerImageQuality:async()=>({contentType:'image/png',width:1200,height:1200,blurRisk:0.1,lightingRisk:0.1,detailRisk:0.1,backgroundDistractionRisk:0.1,subjectCoverage:0.55,subjectCentered:true,subjectCenterX:0.5,subjectCenterY:0.5,detailConfidence:0.9,backgroundUniformity:0.9,backgroundCleanliness:0.9,...state.analysis})}))
 vi.mock('@/lib/nic-nac/workflows/label-item-number',async(original)=>({...await original<any>(),readLabelPhoto:async()=>({status:'unreadable',itemNumber:null})}))
 vi.mock('@/lib/services/storage',async(original)=>({...await original<any>(),uploadJewelryPhoto:async(_rep:string,data:string,name:string)=>{state.uploads.push({data,name});return `https://storage.test/storage/v1/object/public/jewelry-photos/${_rep}/${name}.png`}}))
 vi.mock('@/lib/photoroom/config',()=>({getPhotoroomConfig:()=>null}))
@@ -29,7 +29,7 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
   let db:Awaited<ReturnType<typeof createChatDatabase>>
   beforeAll(async()=>{db=await createChatDatabase();state.client=db.client;await installIntakeSchema(db.sql)},60000)
   afterAll(async()=>{await db.sql.close()})
-  beforeEach(async()=>{await seedPiece(db.sql);state.uploads=[];state.model.mockReset();state.model.mockImplementation(()=>{throw new Error('Unexpected model path')})})
+  beforeEach(async()=>{await seedPiece(db.sql);state.uploads=[];state.analysis={};state.model.mockReset();state.model.mockImplementation(()=>{throw new Error('Unexpected model path')})})
   async function stored(message:UIMessage){await insertConversationMessages(db.client,{repId:REP,conversationId:'piece-chat',messages:[message]})}
   async function turn(id:string,text:string,photo?:string){
     const messages=await loadCanonicalHistory(db.client,'piece-chat')
@@ -111,6 +111,54 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(old.messages).toHaveLength(1)
     await db.sql.exec('alter table nic_nac_conversations rename to temporarily_unavailable')
     try{expect((await recent(new Request('http://local.test/recent'))).status).toBe(503)}finally{await db.sql.exec('alter table temporarily_unavailable rename to nic_nac_conversations')}
+  })
+
+  it.each(['blur_risk','subject_cut_off'])('rechecks %s after a persisted preview before saving',async(issue)=>{
+    await oldPhoto();await turn('no','no');await turn('replacement',"Here's the right photo",'data:image/png;base64,bmV3LXBob3Rv')
+    await db.sql.query("update trade_board_intake_photos set quality='usable',quality_score=95,quality_issues=$1 where conversation_message_id='replacement'",[[issue]])
+    const reply=await turn('yes-defect','yes')
+    expect(reply).not.toContain('is on your Dance Floor')
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+    expect(state.uploads).toHaveLength(0)
+  })
+  it.each(['refused as main photo','turned down for this piece'])('a confirmed ID cannot override %s',async(note)=>{
+    await oldPhoto();await turn('no','no');await turn('replacement',"Here's the right photo",'data:image/png;base64,bmV3LXBob3Rv')
+    await db.sql.query("update trade_board_intake_photos set notes=$1 where conversation_message_id='replacement'",[[note]])
+    const reply=await turn('insist','yes')
+    expect(reply).not.toContain('is on your Dance Floor')
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+  })
+
+  it.each([{blurRisk:0.95},{subjectTouchesFrameEdge:true}])('never previews a newly uploaded defective photo %j',async(analysis)=>{
+    await oldPhoto();await turn('no','no');state.analysis=analysis
+    const reply=await turn('bad-upload',"Here's the right photo",'data:image/png;base64,YmFkLXBob3Rv')
+    expect(reply).not.toContain('confirm_main_photo')
+    expect(reply).not.toContain('This is the main photo I will save')
+    expect(reply).toMatch(/blurry|cut off/)
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+    state.analysis={}
+    expect(await turn('good-upload',"Here's the correct photo",'data:image/png;base64,Z29vZC1waG90bw==')).toContain('confirm_main_photo')
+  })
+
+  it('a label cannot replace the jewelry upload after preview',async()=>{
+    await oldPhoto();await turn('no','no');await turn('replacement',"Here's the right photo",'data:image/png;base64,bmV3LXBob3Rv')
+    await db.sql.exec("update trade_board_intake_photos set declared_role='label_details',visual_role='label_or_packaging',notes=ARRAY['printed-item:NK11312'] where conversation_message_id='replacement'")
+    expect(await turn('yes-label','yes')).not.toContain('is on your Dance Floor')
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+  })
+  it('insisting on the refused duplicate never writes a listing',async()=>{
+    await oldPhoto()
+    expect(await turn('insist-duplicate','use that photo anyway')).toContain("won't use that photo")
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+  })
+  it('an unsubmitted yes cannot save or become a stored user message',async()=>{
+    await oldPhoto();await turn('no','no');await turn('replacement',"Here's the right photo",'data:image/png;base64,bmV3LXBob3Rv')
+    const messages=await loadCanonicalHistory(db.client,'piece-chat')
+    messages.push({id:'phantom',role:'user',parts:[{type:'text',text:'yes'}]})
+    const response=await POST(new Request('http://local.test/api/nic-nac',{method:'POST',body:JSON.stringify({conversationId:'piece-chat',mode:'workspace',messages})}))
+    expect(response.status).toBe(200)
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+    expect((await db.sql.query("select * from nic_nac_conversations where message_id='phantom'")).rows).toHaveLength(0)
   })
 
 })

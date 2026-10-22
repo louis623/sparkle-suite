@@ -921,14 +921,7 @@ export async function POST(request: Request) {
       (photo) => photo.conversationMessageId === latestUserMessage?.id,
     )
     const latestJewelryPhoto = [...latestTurnPhotos].reverse().find(isJewelryPhoto)
-    const newestSessionJewelry = [...(sessionAfter?.photos ?? [])]
-      .reverse()
-      .find(isJewelryPhoto)
-    const qualityPhoto =
-      [...latestTurnPhotos].reverse().find(photoHasVisibleDefect) ??
-      (latestUserHasImage && photoHasVisibleDefect(newestSessionJewelry)
-        ? newestSessionJewelry
-        : latestJewelryPhoto)
+    const qualityPhoto = latestJewelryPhoto
     const gateRefusal =
       latestUserHasImage && qualityPhoto
         ? mainPhotoPreviewRefusal({
@@ -1077,6 +1070,9 @@ export async function POST(request: Request) {
     if (directText) {
       directText = guardAssistantVisibleText(directText)
       const boundPhoto = selectBoundMainPhoto(sessionAfter?.photos, sessionAfter?.metadata)
+      if (/This is the main photo I will save for/i.test(directText) && !boundPhoto) {
+        directText = 'I need a clear photo of the jewelry before I can show you a save preview.'
+      }
       const previewLocator =
         !gateRefusal && /reply yes/i.test(directText) && boundPhoto
           ? mainPhotoPreviewLocator(boundPhoto)

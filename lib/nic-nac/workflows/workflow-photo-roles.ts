@@ -72,7 +72,7 @@ export function isBarredFromCustomerFacingMedia(photo: {
   ) {
     return true
   }
-  if (photo.quality === 'blocked') return true
+  if (mainPhotoPreviewRefusal({ photo })) return true
   return false
 }
 
@@ -461,6 +461,8 @@ function subjectJewelryType(photo: {
  */
 export function mainPhotoPreviewRefusal(args: {
   photo?: {
+    declaredRole?: string
+    visualRole?: string
     quality?: string | null
     qualityScore?: number | null
     qualityIssues?: string[]
@@ -471,6 +473,7 @@ export function mainPhotoPreviewRefusal(args: {
 }): string | null {
   const photo = args.photo
   if (!photo) return null
+  if (photoIsLabel(photo)) return 'That photo is the label. Send a photo of the jewelry.'
   const piece = pieceJewelryType(args.itemNumber, args.jewelryType)
   const subject = subjectJewelryType(photo)
   if (piece && subject && piece !== subject) {
@@ -488,9 +491,13 @@ export function mainPhotoPreviewRefusal(args: {
   const failedQuality =
     photo.quality === 'blocked' ||
     photo.quality === 'warning' ||
+    photo.quality === 'unknown' ||
     (typeof photo.qualityScore === 'number' && photo.qualityScore < 70)
   if (blurry) return 'That photo is too blurry. Send a clearer photo of the jewelry.'
   if (cutOff) return CUT_OFF_PHOTO_MESSAGE
+  if (photoRefusedAsMainPhoto(photo) || photoTurnedDownForThisPiece(photo)) {
+    return 'That photo was refused. Send a new photo of the jewelry.'
+  }
   if (failedQuality) {
     return "That photo isn't clear enough. Send a clearer photo of the jewelry."
   }
@@ -653,7 +660,7 @@ export function selectBoundMainPhoto<
     !photo ||
     photoRefusedAsMainPhoto(photo) ||
     photoIsLabel(photo) ||
-    photo.quality === 'blocked' ||
+    mainPhotoPreviewRefusal({ photo }) !== null ||
     !photo.imageUrl
   ) {
     return null
