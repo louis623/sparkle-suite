@@ -176,6 +176,9 @@ function sessionWithoutDesign(): TradeBoardIntakeSessionState {
 }
 
 function request(messages: UIMessage[], submittedMessageId?: string) {
+  if (messages.at(-1)?.role === 'user') {
+    loadCanonicalHistoryMock.mockResolvedValue(messages.slice(0, -1))
+  }
   return new Request('http://localhost/api/nic-nac', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

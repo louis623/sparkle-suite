@@ -1,3 +1,4 @@
+import { sortMessagesByCreatedAt } from '@/lib/nic-nac/message-order'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { UIMessage } from 'ai'
 import { REMOVAL_NEEDS_ITS_OWN_CONFIRMATION } from '@/lib/nic-nac/turn-replies'
@@ -174,6 +175,9 @@ function activeSession(
 }
 
 function request(messages: UIMessage[], submittedMessageId?: string) {
+  if (messages.at(-1)?.role === 'user') {
+    loadCanonicalHistoryMock.mockResolvedValue(sortMessagesByCreatedAt(messages.slice(0, -1)))
+  }
   return new Request('http://localhost/api/nic-nac', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -258,7 +262,7 @@ describe('round 9 real route and stored-detail path', () => {
       textMessage('phantom-yes', 'user', 'yes', '2026-10-22T03:02:00.000Z'),
     ]
 
-    await expect(POST(request(messages))).rejects.toThrow(/model-not-used/)
+    expect((await POST(request(messages))).status).toBe(200)
     expect(commitPreviewedAddListingMock).not.toHaveBeenCalled()
   })
 

@@ -743,6 +743,18 @@ export async function POST(request: Request) {
     }
   }
 
+  // For a normal user turn, stored history is authoritative. A stale client
+  // may omit the preview tool part, and a client must never invent a preview
+  // (or replace its photo ID) to authorize a save. Approval continuations have
+  // their own validated merge path above.
+  const submittedUser = messages.at(-1)
+  if (mode === 'workspace' && !supportScope && submittedUser?.role === 'user') {
+    messages = [
+      ...existingHistory.filter((message) => message.id !== submittedUser.id),
+      submittedUser,
+    ]
+  }
+
   // Idempotent persist of any new user-role messages from the client array.
   const existingIds = new Set(existingHistory.map((m) => m.id))
   for (const m of messages) {

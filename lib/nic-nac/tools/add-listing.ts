@@ -3337,7 +3337,7 @@ async function runSingle(
             'specialFeatures',
             'lengthInfo',
           ],
-          message: `${itemNumber} isn't in the Sparkle Suite jewelry database yet. Use vision on the rep's photos to extract designName and any optional metadata you can read, and accept clear rep-provided details such as collectionName or collectionYear. Birthday collection names must include the year; if a box clearly shows a Birthday Collection month/year, normalize it to collectionName like "March Birthday 2026" and collectionYear like 2026. Boxed display photos with clear jewelry are acceptable as the jewelry-front photo. Do not treat label/details photos as bad jewelry photos. A label/details photo is only a label/details photo. Visible jewelry in that label/details photo does not satisfy the jewelry photo requirement. Do not ask for unboxed, no-packaging, or plain-background retakes. Do not ask for retakes without the box/card or on a plain surface. When multiple photos are attached, pass piecePhotoIndex or listingPhotoIndex using recent add-flow photo order for the jewelry-front photo instead of asking for another upload. The handler uploads the photo from chat automatically.`,
+          message: `I still need the design name and collection for ${itemNumber} before I can save it.`,
         }
       }
       if (err.code === 'NEEDS_COLLECTION') {
@@ -3346,7 +3346,7 @@ async function runSingle(
           code: 'NEEDS_COLLECTION' as const,
           itemNumber,
           requiredFields: ['collectionName'],
-          message: `${itemNumber} is in our database but needs an exact collection name before I can list it. Ask the rep for the exact collection name, then retry with collectionName. Do not guess it from vision.`,
+          message: `What is the exact collection name for ${itemNumber}?`,
         }
       }
     }

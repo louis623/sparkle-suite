@@ -418,7 +418,7 @@ describe('add_listing — NEEDS_FULL_INFO recovery payload', () => {
     ])
   })
 
-  it('message instructs vision-first extraction, Birthday collection normalization, photo indexes, and automatic photo upload', async () => {
+  it('recovery messages ask for missing details without exposing handler instructions', async () => {
     addListingMock.mockRejectedValueOnce(errors.NEEDS_FULL_INFO('DR-999'))
 
     const tool = makeTool()
@@ -428,24 +428,8 @@ describe('add_listing — NEEDS_FULL_INFO recovery payload', () => {
       clickwrapAccepted: true,
     })
 
-    const message = result.message as string
-    expect(message).toContain("Use vision on the rep's photos")
-    expect(message).toContain('designName and any optional metadata')
-    expect(message).toContain('Sparkle Suite jewelry database')
-    expect(message).toContain('Birthday Collection month/year')
-    expect(message).toContain('collectionName like "March Birthday 2026"')
-    expect(message).toContain('piecePhotoIndex or listingPhotoIndex')
-    expect(message).toContain('recent add-flow photo order')
-    expect(message).toContain('Boxed display photos with clear jewelry are acceptable')
-    expect(message).toContain('Do not treat label/details photos as bad jewelry photos')
-    expect(message).toContain('A label/details photo is only a label/details photo')
-    expect(message).toContain(
-      'Visible jewelry in that label/details photo does not satisfy the jewelry photo requirement',
-    )
-    expect(message).toContain('Do not ask for unboxed, no-packaging, or plain-background retakes')
-    expect(message).toContain('Do not ask for retakes without the box/card or on a plain surface')
-    expect(message).toContain('handler uploads the photo from chat automatically')
-    expect(message).not.toMatch(/\b(?:photo URL|direct image link|direct link|cloud link)\b/i)
+    expect(result.message).toBe('I still need the design name and collection for DR-999 before I can save it.')
+    expect(result.message).not.toMatch(/use vision|handler|photoIndex|designName/i)
   })
 })
 
@@ -2339,7 +2323,7 @@ describe('add_listing — NEEDS_COLLECTION recovery payload', () => {
     expect(result.itemNumber).toBe('EX-1')
     expect(result.requiredFields).toEqual(['collectionName'])
     expect(result.message).toContain('exact collection name')
-    expect(result.message).toContain('retry')
+    expect(result.message).not.toMatch(/retry|handler|tool/i)
   })
 
   it('passes collectionName through on the retry path for existing designs', async () => {

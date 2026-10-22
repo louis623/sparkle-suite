@@ -670,43 +670,26 @@ export function photoBlameCorrection(args: {
   return null
 }
 
-/** Holds a short tail so a phrase split across stream deltas is still removed. */
+/** Check a complete text segment before releasing any provider delta to the rep. */
 export function createRepTextScrubber(options?: {
   correctPhotoBlame?: (text: string) => string | null
   allowSharedCatalogPhotoOffer?: boolean
 }) {
   const correct = options?.correctPhotoBlame
   const allowOffer = options?.allowSharedCatalogPhotoOffer === true
-  const tail = 'catalog records'.length - 1
-  let hold = ''
   let buffered = ''
-  const finish = (text: string): string => {
-    const scrubbed = guardAssistantVisibleText(text)
-    return allowOffer ? scrubbed : stripUnaskedCatalogPhotoOffer(scrubbed)
-  }
   return {
     push(delta: string): string {
-      if (correct) {
-        buffered += delta
-        return ''
-      }
-      hold += delta
-      if (containsHandlerInstruction(hold)) return ''
-      if (hold.length <= tail) return ''
-      const scrubbed = scrubInternalCatalogPhrases(hold)
-      const emit = scrubbed.slice(0, scrubbed.length - tail)
-      hold = scrubbed.slice(scrubbed.length - tail)
-      return emit
+      // An instruction can span arbitrary provider deltas. Do not publish a
+      // prefix before the complete text has passed the visible-output guard.
+      buffered += delta
+      return ''
     },
     flush(): string {
-      if (correct) {
-        const scrubbed = guardAssistantVisibleText(buffered)
-        buffered = ''
-        return finish(correct(scrubbed) ?? scrubbed)
-      }
-      const emit = finish(hold)
-      hold = ''
-      return emit
+      const scrubbed = guardAssistantVisibleText(buffered)
+      buffered = ''
+      const corrected = guardAssistantVisibleText(correct?.(scrubbed) ?? scrubbed)
+      return allowOffer ? corrected : stripUnaskedCatalogPhotoOffer(corrected)
     },
   }
 }

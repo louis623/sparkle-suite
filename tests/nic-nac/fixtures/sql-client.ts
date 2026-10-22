@@ -17,17 +17,27 @@ export async function createChatDatabase() {
 
 export function sqlClient(sql: PGlite): SupabaseClient {
   const ident = (key: string) => {
+    if (key.includes('.')) return key.split('.').map(ident).join('.')
     if (!/^[a-z_][a-z_0-9]*$/i.test(key)) throw new Error(`Unsupported SQL identifier: ${key}`)
     return `"${key}"`
   }
   class Query {
+    joins: string[] = []
     fields = '*'; conditions: string[] = []; params: unknown[] = []
     sorts: string[] = []; count = 10000; offset = 0; one = false
     operation = 'select'; values: Record<string, unknown>[] = []; conflict = ''; ignore = false
     constructor(readonly table: string) {}
-    bind(value: unknown) { this.params.push(value && typeof value === 'object' ? JSON.stringify(value) : value); return `$${this.params.length}` }
-    select(fields = '*') { this.fields = fields; return this }
-    eq(k: string, v: unknown) { this.conditions.push(`${ident(k)} = ${this.bind(v)}`); return this }
+    bind(value: unknown) { this.params.push(value && typeof value === 'object' && !Array.isArray(value) ? JSON.stringify(value) : value); return `$${this.params.length}` }
+    select(fields = '*') {
+      this.fields=fields.replace(/(\w+):?(\w+)?(!inner)?\(([^)]+)\)/g, (all, first, second) => {
+        const table=second||first, alias=second?first:table
+        const foreign=table==='collections'?'collection_id':table==='jewelry_designs'?'design_id':'session_id'
+        if(!['collections','jewelry_designs','trade_board_intake_sessions'].includes(table))throw new Error('Unsupported relation '+table)
+        this.joins.push(' left join '+ident(table)+' on '+ident(this.table)+'.'+ident(foreign)+'='+ident(table)+'.id')
+        return 'to_jsonb('+ident(table)+'.*) as '+ident(alias)
+      }); return this
+    }
+    eq(k: string, v: unknown) { this.conditions.push(`${k.includes('.')?ident(k):ident(this.table)+'.'+ident(k)} = ${this.bind(v)}`); return this }
     neq(k: string, v: unknown) { this.conditions.push(`${ident(k)} <> ${this.bind(v)}`); return this }
     is(k: string, v: unknown) { if (v !== null) throw new Error('unsupported is'); this.conditions.push(`${ident(k)} is null`); return this }
     in(k: string, v: unknown[]) { this.conditions.push(v.length ? `${ident(k)} in (${v.map(x => this.bind(x)).join(',')})` : 'false'); return this }
@@ -53,13 +63,13 @@ export function sqlClient(sql: PGlite): SupabaseClient {
         let query: string
         if (this.operation === 'insert') {
           const keys=Object.keys(this.values[0]);
-          query=`insert into ${ident(this.table)} (${keys.map(ident).join(',')}) values ${this.values.map(row=>`(${keys.map(k=>this.bind(row[k] ?? null)).join(',')})`).join(',')}`
+          query=`insert into ${ident(this.table)} (${keys.map(ident).join(',')}) values ${this.values.map(row=>`(${keys.map(k=>this.bind(k === 'parts' ? JSON.stringify(row[k]) : row[k] ?? null)).join(',')})`).join(',')}`
           if(this.conflict) query+=` on conflict (${this.conflict.split(',').map(ident).join(',')}) do `+(this.ignore?'nothing':`update set ${keys.map(k=>`${ident(k)}=excluded.${ident(k)}`).join(',')}`)
           query+=' returning *'
         } else if (this.operation === 'update') {
-          query=`update ${ident(this.table)} set ${Object.entries(this.values[0]).map(([k,v])=>`${ident(k)}=${this.bind(v)}`).join(',')}${where} returning *`
-        } else if (this.operation === 'delete') query=`delete from ${ident(this.table)}${where} returning *`
-        else query=`select ${this.fields === '*' ? '*' : this.fields.split(',').map(k=>ident(k.trim())).join(',')} from ${ident(this.table)}${where}${this.sorts.length ? ` order by ${this.sorts.join(',')}` : ''} limit ${this.count} offset ${this.offset}`
+          query=`update ${ident(this.table)} set ${Object.entries(this.values[0]).map(([k,v])=>`${ident(k)}=${this.bind(k === 'parts' ? JSON.stringify(v) : v)}`).join(',')}${where} returning *`
+        } else if (this.operation === 'delete') query=`delete from ${ident(this.table)}${this.joins.join('')}${where} returning *`
+        else query=`select ${this.fields === '*' ? '*' : this.fields.split(',').map(k=>k.trim().startsWith('to_jsonb(')?k:ident(this.table)+'.'+ident(k.trim())).join(',')} from ${ident(this.table)}${this.joins.join('')}${where}${this.sorts.length ? ` order by ${this.sorts.join(',')}` : ''} limit ${this.count} offset ${this.offset}`
         const result=await sql.query(query,this.params)
         if(this.one && result.rows.length>1) throw new Error('Expected single row')
         return {data:JSON.parse(JSON.stringify(this.one ? result.rows[0] ?? null : result.rows)),error:null}
@@ -67,5 +77,10 @@ export function sqlClient(sql: PGlite): SupabaseClient {
     }
     then(resolve: (r: unknown)=>unknown, reject?: (e: unknown)=>unknown) {return this.run().then(resolve,reject)}
   }
-  return {from:(table:string)=>new Query(table)} as unknown as SupabaseClient
+  return {from:(table:string)=>new Query(table), rpc:async(name:string,args:Record<string,unknown>)=>{
+    try {
+      const result=await sql.query('select '+ident(name)+'('+Object.keys(args).map((key,i)=>ident(key)+' => $'+(i+1)).join(',')+') as result',Object.values(args))
+      return {data:result.rows[0]?.result,error:null}
+    } catch(error){return {data:null,error}}
+  }} as unknown as SupabaseClient
 }
