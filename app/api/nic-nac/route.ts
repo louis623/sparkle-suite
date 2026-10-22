@@ -925,8 +925,34 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
     // getToolIntentsForMessages above.
     allowImplicitPassiveContinuation: false,
   })
+  const latestUserHasImage =
+    latestUserMessage?.parts?.some(
+      (part) =>
+        (part as { type?: string }).type === 'file' &&
+        (part as { mediaType?: string }).mediaType?.startsWith('image/'),
+    ) ?? false
+  const previousAssistantText = (() => {
+    const latestUserIndex = messages.findLastIndex((message) => message.role === 'user')
+    for (let index = latestUserIndex - 1; index >= 0; index -= 1) {
+      if (messages[index]?.role === 'assistant') {
+        return readTextFromMessage(messages[index])
+      }
+    }
+    return ''
+  })()
+  // A stored preview is authoritative continuation state. A fresh chat may
+  // have no trade-board keyword in its recent prose; still ingest this yes so
+  // the save tool receives the confirmation for the exact stored upload.
+  const confirmsStoredPhoto = yesCommitsPreviewedPhoto({
+    latestUserText,
+    latestUserHasImage,
+    previousAssistantText,
+    submittedMessageId,
+    latestUserMessageId: latestUserMessage?.id,
+    previewPhotoId: shownMainPhotoPreviewId(messages, workflowTaskContinuity.tradeBoardSession?.photos),
+  })
   const tradeBoardWorkflowContext =
-    workflowContinuityAccess.tradeBoard && workflowTurn.tradeBoard
+    workflowContinuityAccess.tradeBoard && (workflowTurn.tradeBoard || confirmsStoredPhoto)
     ? await getOrCreateTradeBoardIntakeContext({
         supabase,
         workflowSupabase,
@@ -946,21 +972,6 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
         workflowPromptState: '',
         modelPieceContext: EMPTY_PIECE_MODEL_CONTEXT,
       }
-  const latestUserHasImage =
-    latestUserMessage?.parts?.some(
-      (part) =>
-        (part as { type?: string }).type === 'file' &&
-        (part as { mediaType?: string }).mediaType?.startsWith('image/'),
-    ) ?? false
-  const previousAssistantText = (() => {
-    const latestUserIndex = messages.findLastIndex((message) => message.role === 'user')
-    for (let index = latestUserIndex - 1; index >= 0; index -= 1) {
-      if (messages[index]?.role === 'assistant') {
-        return readTextFromMessage(messages[index])
-      }
-    }
-    return ''
-  })()
   if (mode === 'workspace' && !supportScope) {
     const movedTo = await findForwardRolloverDestination(
       workflowSupabase,

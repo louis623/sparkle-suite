@@ -245,6 +245,52 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(state.uploads[0].data).toBe(jewelry)
   })
 
+  it.each(['RG18101','RG18111'])('first save in a genuinely fresh chat waits for slow analysis and saves %s on one yes',async(item)=>{
+    await db.sql.exec('delete from trade_board_intake_sessions; delete from jewelry_designs')
+    expect((await db.sql.query('select * from nic_nac_conversations')).rows).toHaveLength(0)
+    const jewelry='data:image/png;base64,ZnJlc2gtamV3ZWxyeQ=='
+    state.labelUrl='data:image/png;base64,ZnJlc2gtbGFiZWw='
+    state.labelItemNumber=item
+    state.model.mockImplementation(({toolContext}:any)=>({catalog:{allowedIntents:['trade_board'],requestedIntents:['trade_board'],toolNames:['add_listing'],source:'workspace_permissions',blockedIntents:[],blockedToolNames:[]},agent:{stream:async()=>({toUIMessageStream:async function*(){
+      const workflow=toolContext.activeTradeBoardWorkflow
+      const photo=workflow.photos.find((p:any)=>p.imageUrl===jewelry)
+      const input={mode:'single' as const,itemNumber:item,selectedPhotoId:photo.id}
+      const output=await makeAddListingTool(toolContext).execute!(input,{} as any)
+      yield {type:'tool-input-available',toolCallId:'fresh-preview',toolName:'add_listing',input}
+      yield {type:'tool-output-available',toolCallId:'fresh-preview',output}
+      yield {type:'text-start',id:'fresh-text'}
+      yield {type:'text-delta',id:'fresh-text',delta:'Is this the correct main photo to save for it?'}
+      yield {type:'text-end',id:'fresh-text'}
+    }})}}))
+    expect(await turn('fresh-jewelry','Add '+item+', design name Grok Run18 Piece, collection: July Birthday 2026, size 10, standard. Here is the jewelry photo.',jewelry)).toContain('label')
+    expect(await turn('fresh-label','Here is the label.',state.labelUrl)).toContain('confirm_main_photo')
+    expect(state.model).toHaveBeenCalledTimes(1)
+    // A structured preview remains pending even when split assistant prose no
+    // longer repeats an item number or Dance Floor keyword in the last six rows.
+    for(let n=0;n<6;n++) await stored({id:'fresh-preview-tail-'+n,role:'assistant',parts:[{type:'text',text:'Is this the correct main photo to save for it?'}]})
+    let release!:()=>void
+    let started!:()=>void
+    const waiting=new Promise<void>(resolve=>{started=resolve})
+    const gate=new Promise<void>(resolve=>{release=resolve})
+    state.analysisWait.mockImplementationOnce(()=>{started();return gate})
+    const saving=turn('fresh-yes','yes')
+    try {
+      await Promise.race([waiting,new Promise((_,reject)=>setTimeout(()=>reject(new Error('First yes never reached the photo check')),3000))])
+      expect(state.uploads).toHaveLength(0)
+      expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+    } finally {release()}
+    const reply=await saving
+    expect(reply).toContain(item+' is on your Dance Floor')
+    expect(reply).not.toMatch(/once more|reply yes|confirmation|prompting|looping/)
+    expect(state.model).toHaveBeenCalledTimes(1)
+    expect(state.uploads).toHaveLength(1)
+    expect(state.uploads[0].data).toBe(jewelry)
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
+    expect(await turn('fresh-yes','yes')).toContain(item+' is on your Dance Floor')
+    expect(state.uploads).toHaveLength(1)
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
+  })
+
   it.each(['single', 'last-preview', 'split-prose', 'url-preview'])('one yes waits for a pending photo check and saves RG17101 exactly once (%s)',async(shape)=>{
     await db.sql.exec("delete from jewelry_designs; update trade_board_intake_sessions set item_number='RG17101', jewelry_type='RG', ring_size='10'")
     state.labelItemNumber='RG17101'
