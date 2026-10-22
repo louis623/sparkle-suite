@@ -1,3 +1,10 @@
+## October 22, 2026 — PR 141 Run 18 fresh-chat routing and blur replies, PR only
+
+- A stored photo confirmation now routes the submitted yes through intake even when recent prose contains no trade-board keyword. The reproduced first-save failure skipped that ingestion and sent stale confirmation state to the model. New fresh-chat tests hold photo analysis pending, then verify one listing and one original upload from one yes, including replay.
+- Captionless requested piece photos retain admission/quality checks; mild or severe blur reaches the reply explicitly even when framing resembles packaging. Explicit/OCR-identified label handling remains unchanged.
+- Product tip cd1d4340: real Next build, standalone TypeScript and npm test PASS (48 files / 807 tests). Complete real-route photo suite: 65 passing cases. See [Run 18 evidence and limits](2026-10-22-pr141-run18-retest.md).
+- The exact Smoke requests and original image bytes were unavailable; no signed-in phone/desktop acceptance is claimed. Suite's PR retest is next. No merge, deploy, production branch, migration or Live changes.
+
 ## October 22, 2026 — PR 141 Run 17 first-yes save and blur fixes, PR only
 
 - Closed the race where a streamed preview is visible before its assistant reply becomes canonical: an early yes waits for that exact reply, then saves from authoritative state. Preview readers now agree on the last preview across split assistant rows. Quality analysis waits up to 20 seconds before any upload or save; a late result cannot perform a mutation.
