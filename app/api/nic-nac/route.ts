@@ -85,12 +85,16 @@ import {
   scrubInternalCatalogPhrases,
   recoverNicNacEmptyCalendarRead,
   photoBlameCorrection,
+  repAskedToUpdateSharedCatalogImage,
 } from '@/lib/nic-nac/core/stream-output-guard'
 import {
   directPieceReply,
   labelMismatchSentence,
   MOVED_ON_MESSAGE,
 } from '@/lib/nic-nac/turn-replies'
+import { decidePieceClose, statedItemNumber, assistantIsResumingUnfinishedPiece } from '@/lib/nic-nac/piece-task'
+import { repHasListingForItemNumber } from '@/lib/nic-nac/tools/add-listing'
+import { mainPhotoPreviewRefusal } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import { readMyShowsForNicNac } from '@/lib/nic-nac/tools/list-my-shows'
 import { buildPersonalizedRepGreeting } from '@/lib/nic-nac/core/rep-personalization'
 import { createConfiguredNicNacAgent } from '@/lib/nic-nac/agent'
@@ -752,6 +756,18 @@ export async function POST(request: Request) {
       conversationId,
     )
     const sessionAfter = tradeBoardWorkflowContext.sessionAfter
+    const skipItem = statedItemNumber(latestUserText)
+    const userIsSkipping =
+      decidePieceClose(latestUserText) !== null ||
+      /\b(?:don'?t|do not)\s+save\b/i.test(latestUserText)
+    let listingExists = false
+    if (userIsSkipping && skipItem) {
+      listingExists = await repHasListingForItemNumber({
+        admin: workflowSupabase,
+        repId,
+        itemNumber: skipItem,
+      })
+    }
     const pieceReply = movedTo
       ? MOVED_ON_MESSAGE
       : directPieceReply({
@@ -759,6 +775,11 @@ export async function POST(request: Request) {
           latestUserText,
           latestUserHasImage,
           known: sessionAfter?.known,
+          listingExists,
+          labelItemNumber:
+            typeof sessionAfter?.metadata.labelItemNumberMismatch === 'string'
+              ? sessionAfter.metadata.labelItemNumberMismatch
+              : null,
         })
     const mismatch = sessionAfter?.metadata.labelItemNumberMismatch
     const mismatchTurn = sessionAfter?.metadata.labelMismatchMessageId
@@ -990,21 +1011,53 @@ export async function POST(request: Request) {
           !blameBlurry,
       )
       const storedMismatch = blameSession?.metadata.labelItemNumberMismatch
-      const repTextScrubber = createRepTextScrubber(
-        latestUserHasImage || typeof storedMismatch === 'string'
+      const previousAssistant = (() => {
+        const latestUserIndex = messages.findLastIndex((message) => message.role === 'user')
+        for (let index = latestUserIndex - 1; index >= 0; index -= 1) {
+          if (messages[index]?.role === 'assistant') {
+            return readTextFromMessage(messages[index])
+          }
+        }
+        return ''
+      })()
+      const previewRefusal = mainPhotoPreviewRefusal({
+        photo: blamePhoto,
+        itemNumber: blameSession?.known.itemNumber,
+        jewelryType: blameSession?.known.jewelryType,
+      })
+      const repTextScrubber = createRepTextScrubber({
+        allowSharedCatalogPhotoOffer: repAskedToUpdateSharedCatalogImage(latestUserText),
+        ...(latestUserHasImage || typeof storedMismatch === 'string'
           ? {
-              correctPhotoBlame: (text) =>
-                photoBlameCorrection({
+              correctPhotoBlame: (text: string) => {
+                const corrected = photoBlameCorrection({
                   text,
                   itemNumber: blameSession?.known.itemNumber,
                   labelItemNumber:
                     typeof storedMismatch === 'string' ? storedMismatch : null,
                   blurry: blameBlurry,
                   acceptedProductPhoto: blameAccepted,
-                }),
+                })
+                if (corrected) return corrected
+                if (
+                  previewRefusal &&
+                  /reply yes|main photo I will save|still need the customer-facing/i.test(text)
+                ) {
+                  return previewRefusal
+                }
+                if (
+                  blameAccepted &&
+                  assistantIsResumingUnfinishedPiece(previousAssistant) &&
+                  /still need the customer-facing/i.test(text)
+                ) {
+                  const item = blameSession?.known.itemNumber?.trim()
+                  return item ? `I have that photo for ${item}.` : 'I have that photo.'
+                }
+                return null
+              },
             }
-          : undefined,
-      )
+          : {}),
+      })
 
       const emitHide = (reason: 'plain-text' | 'final-text' | 'finish' | 'error') => {
         if (!currentlyVisible) return

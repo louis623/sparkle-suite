@@ -1,5 +1,10 @@
 import type { UIMessage } from 'ai'
-import { freshChatNotice } from '@/lib/nic-nac/piece-task'
+import {
+  decidePieceClose,
+  freshChatNotice,
+  itemNumberFromResumeAsk,
+} from '@/lib/nic-nac/piece-task'
+import { extractKnownFieldsFromText } from '@/lib/nic-nac/workflows/trade-board-known-fields'
 
 export const LOST_PHOTO_NOTE = 'That earlier photo was not brought into this chat.'
 
@@ -108,6 +113,117 @@ function photoOnlyMessage(message: UIMessage): boolean {
 
 function isStandaloneLostPhotoNotice(message: UIMessage): boolean {
   return messageText(message).trim() === LOST_PHOTO_NOTE
+}
+
+export type RolloverCarryDetails = {
+  itemNumber: string
+  ringSize?: string | null
+  rarity?: string | null
+  material?: string | null
+  mainStone?: string | null
+  designName?: string | null
+  collectionName?: string | null
+  jewelryType?: string | null
+}
+
+export type RolloverKnownFields = {
+  itemNumber?: string | null
+  ringSize?: string | null
+  rarityClassification?: string | null
+  material?: string | null
+  mainStone?: string | null
+  designName?: string | null
+  collectionName?: string | null
+  jewelryType?: string | null
+}
+
+function itemNumbersIn(text: string): string[] {
+  return (text.match(/\b[A-Za-z]{1,4}\d{3,}\b/g) ?? []).map((value) => value.toUpperCase())
+}
+
+/**
+ * The newest piece that was started and not saved or skipped.
+ * A saved Dance Floor line closes only that item. Photos are irrelevant.
+ */
+export function unfinishedPieceFromMessages(messages: UIMessage[]): string | null {
+  let open: string | null = null
+  for (const message of messages) {
+    const text = messageText(message)
+    const items = itemNumbersIn(text)
+    if (!text.trim() || items.length === 0) continue
+    if (message.role === 'assistant' && /dance floor/i.test(text)) {
+      if (open && items.includes(open)) open = null
+      continue
+    }
+    if (message.role === 'user' && decidePieceClose(text)) {
+      const item = items[0]
+      if (!open || !item || item === open) open = null
+      continue
+    }
+    if (
+      message.role === 'assistant' &&
+      /main photo I will save|want to finish/i.test(text)
+    ) {
+      open = itemNumberFromResumeAsk(text) || items[0] || open
+      continue
+    }
+    if (message.role === 'user') open = items[0] ?? open
+  }
+  return open
+}
+
+/** Stored intake wins when it is the open piece. Otherwise the messages decide. */
+export function carryForNicNacRollover(args: {
+  messages: UIMessage[]
+  known?: RolloverKnownFields | null
+}): RolloverCarryDetails | null {
+  const fromMessages = unfinishedPieceFromMessages(args.messages)
+  const stored = args.known?.itemNumber?.trim().toUpperCase() || null
+  const item = fromMessages || stored
+  if (!item) return null
+  const text = args.messages
+    .filter((message) => message.role === 'user')
+    .map((message) => messageText(message))
+    .filter((line) => line.toUpperCase().includes(item))
+    .join('\n')
+  const extracted = text.trim() ? extractKnownFieldsFromText(text) : {}
+  const storedKnown = stored === item ? args.known : null
+  return {
+    itemNumber: item,
+    ringSize: storedKnown?.ringSize || extracted.ringSize || null,
+    rarity: storedKnown?.rarityClassification || extracted.rarityClassification || null,
+    material: storedKnown?.material || extracted.material || null,
+    mainStone: storedKnown?.mainStone || extracted.mainStone || null,
+    designName: storedKnown?.designName || extracted.designName || null,
+    collectionName: storedKnown?.collectionName || extracted.collectionName || null,
+    jewelryType: storedKnown?.jewelryType || extracted.jewelryType || null,
+  }
+}
+
+export function prepareNicNacRolloverMessages(
+  messages: UIMessage[],
+  known?: RolloverKnownFields | null,
+): { messages: UIMessage[]; carry: RolloverCarryDetails | null } {
+  const carry = carryForNicNacRollover({ messages, known })
+  return {
+    carry,
+    messages: buildNicNacRolloverMessages(messages, undefined, {
+      dropPendingPiece: true,
+      ...(carry
+        ? {
+            unfinishedItemNumber: carry.itemNumber,
+            carriedDetails: {
+              ringSize: carry.ringSize,
+              rarity: carry.rarity,
+              material: carry.material,
+              mainStone: carry.mainStone,
+              designName: carry.designName,
+              collectionName: carry.collectionName,
+            },
+          }
+        : {}),
+    }),
+  }
 }
 
 export function buildNicNacRolloverMessages(

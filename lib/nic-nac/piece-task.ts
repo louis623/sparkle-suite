@@ -69,6 +69,53 @@ function rarityWord(value?: string | null): string {
   return ''
 }
 
+const DESIGN_NAME_FILLER = new Set([
+  'ring',
+  'rings',
+  'earring',
+  'earrings',
+  'necklace',
+  'necklaces',
+  'bracelet',
+  'bracelets',
+  'pendant',
+  'pendants',
+  'stud',
+  'studs',
+  'hoop',
+  'hoops',
+  'stack',
+  'stacks',
+  'with',
+  'and',
+  'a',
+  'an',
+  'the',
+  'of',
+  'stone',
+  'stones',
+])
+
+/** A design name that only repeats the metal, stone, and jewelry word is not a second detail. */
+export function designNameRestatesPiece(
+  designName?: string | null,
+  material?: string | null,
+  mainStone?: string | null,
+): boolean {
+  const words = (designName ?? '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+  if (words.length === 0) return false
+  const covered = new Set<string>()
+  for (const source of [material, mainStone]) {
+    for (const word of (source ?? '').toLowerCase().split(/[^a-z0-9]+/)) {
+      if (word) covered.add(word)
+    }
+  }
+  return words.every((word) => DESIGN_NAME_FILLER.has(word) || covered.has(word))
+}
+
 /** One plain notice. Details already given stay; photos do not. */
 export function freshChatNotice(args: {
   itemNumber?: string | null
@@ -81,19 +128,27 @@ export function freshChatNotice(args: {
 }): string {
   const item = args.itemNumber?.trim()
   const collection = args.collectionName?.trim()
+  const designName = args.designName?.trim()
+  const showDesign =
+    designName && !designNameRestatesPiece(designName, args.material, args.mainStone)
+      ? designName
+      : ''
   const details = [
     item,
     args.ringSize?.trim() ? `size ${args.ringSize.trim()}` : '',
     rarityWord(args.rarity),
     args.material?.trim(),
     args.mainStone?.trim(),
-    args.designName?.trim(),
+    showDesign,
     collection ? `${collection} collection` : '',
   ].filter(Boolean)
   const kept = details.length ? ` I still have ${details.join(', ')}.` : ''
   const finish = item ? ` Want to finish ${item}?` : ' Want to finish this piece?'
   return `I started a fresh chat.${kept}${finish} Send the photo again.`
 }
+
+export const MOVED_ON_MESSAGE =
+  'This chat moved on. Continue in the current chat.'
 
 export function sendPhotoAgainMessage(itemNumber?: string | null): string {
   const item = itemNumber?.trim()

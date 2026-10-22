@@ -91,6 +91,7 @@ import {
 } from '@/lib/nic-nac/workflows/workflow-photo-selection'
 import {
   isAcceptedCustomerFacingWorkflowPhoto,
+  mainPhotoPreviewRefusal,
   stampSoleReadinessJewelryFrontCandidate,
 } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import type { ToolContext, ToolDefinition } from './types'
@@ -660,7 +661,7 @@ async function repAlreadyHasActiveListingForItem(input: {
 }
 
 /** Any saved design with this item number, not only the variant resolved on this call. */
-async function repHasListingForItemNumber(input: {
+export async function repHasListingForItemNumber(input: {
   admin: SupabaseClient
   repId: string
   itemNumber: string
@@ -1077,6 +1078,7 @@ async function previewResentPhoto(args: {
   itemNumber?: string | null
   supabase: SupabaseClient
   conversationId: string
+  workflow?: ToolContext['activeTradeBoardWorkflow']
 }) {
   let rows: ConversationRow[] = []
   try {
@@ -1110,6 +1112,20 @@ async function previewResentPhoto(args: {
   }
   const imageUrl = pickNonLabelImageUrl(urls, labelUrls)
   if (!imageUrl) return null
+  const storedPhoto = args.workflow?.photos?.find((photo) => photo.imageUrl === imageUrl)
+  if (storedPhoto) {
+    const refusal = mainPhotoPreviewRefusal({
+      photo: storedPhoto,
+      itemNumber: decision.itemNumber || args.itemNumber || args.workflow?.known.itemNumber,
+      jewelryType: args.workflow?.known.jewelryType,
+    })
+    if (refusal) {
+      throw new NicNacToolError({
+        code: 'MAIN_PHOTO_NOT_USABLE',
+        userMessage: refusal,
+      })
+    }
+  }
   const label = decision.itemNumber || args.itemNumber?.trim() || 'this piece'
   return {
     needsAction: 'confirm_main_photo' as const,
@@ -1327,6 +1343,17 @@ export function pendingMainPhotoConfirmation(args: {
   }
   const itemNumber = args.itemNumber?.trim() || workflow.known.itemNumber?.trim() || ''
   const label = itemNumber || 'this piece'
+  const refusal = mainPhotoPreviewRefusal({
+    photo,
+    itemNumber: label === 'this piece' ? workflow.known.itemNumber : itemNumber,
+    jewelryType: workflow.known.jewelryType,
+  })
+  if (refusal) {
+    throw new NicNacToolError({
+      code: 'MAIN_PHOTO_NOT_USABLE',
+      userMessage: refusal,
+    })
+  }
   return {
     itemNumber: itemNumber || null,
     message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
@@ -1975,6 +2002,7 @@ async function runNonItemNumberSingle(
     itemNumber: activeWorkflow?.known.itemNumber,
     supabase: ctx.supabase,
     conversationId: ctx.conversationId,
+    workflow: activeWorkflow,
   })
   if (resentNonItemPreview) return resentNonItemPreview
 
@@ -2291,6 +2319,7 @@ async function runSingle(
     itemNumber,
     supabase: ctx.supabase,
     conversationId: ctx.conversationId,
+    workflow: activeWorkflow,
   })
   if (resentPreview) return resentPreview
 

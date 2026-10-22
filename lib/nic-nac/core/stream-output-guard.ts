@@ -580,6 +580,33 @@ export function scrubInternalCatalogPhrases(text: string): string {
   return next
 }
 
+const SHARED_CATALOG_PHOTO_OFFER =
+  /replacement catalog photo|design list image|for all reps|shared catalog (?:photo|image)|catalog photo for every rep/i
+
+/** A rep chat may change the shared design-list photo only when this turn asks for that. */
+export function repAskedToUpdateSharedCatalogImage(text: string): boolean {
+  return (
+    /\b(?:update|replace|change|fix|correct)\b[\s\S]{0,120}\b(?:shared catalog|catalog (?:photo|image)|design list image|for all reps)\b/i.test(
+      text,
+    ) ||
+    /\b(?:shared catalog|catalog (?:photo|image)|design list image)\b[\s\S]{0,80}\b(?:update|replace|change|fix|correct)\b/i.test(
+      text,
+    )
+  )
+}
+
+export function stripUnaskedCatalogPhotoOffer(text: string): string {
+  const trimmed = text.trim()
+  if (!trimmed || !SHARED_CATALOG_PHOTO_OFFER.test(trimmed)) return text
+  const kept = trimmed
+    .split(/(?<=[.!?])\s+/)
+    .filter((sentence) => sentence.trim() && !SHARED_CATALOG_PHOTO_OFFER.test(sentence))
+    .join(' ')
+    .trim()
+  if (kept) return kept
+  return "I won't change the design list photo from this chat."
+}
+
 export const PHOTO_BLAME =
   /artwork|isn'?t a photo of|is not a photo of|doesn'?t show the (?:jewelry|earrings|ring|necklace|piece)|does not show the (?:jewelry|earrings|ring|necklace|piece)/i
 
@@ -619,11 +646,17 @@ export function photoBlameCorrection(args: {
 /** Holds a short tail so a phrase split across stream deltas is still removed. */
 export function createRepTextScrubber(options?: {
   correctPhotoBlame?: (text: string) => string | null
+  allowSharedCatalogPhotoOffer?: boolean
 }) {
   const correct = options?.correctPhotoBlame
+  const allowOffer = options?.allowSharedCatalogPhotoOffer === true
   const tail = 'catalog records'.length - 1
   let hold = ''
   let buffered = ''
+  const finish = (text: string): string => {
+    const scrubbed = scrubInternalCatalogPhrases(text)
+    return allowOffer ? scrubbed : stripUnaskedCatalogPhotoOffer(scrubbed)
+  }
   return {
     push(delta: string): string {
       if (correct) {
@@ -641,9 +674,9 @@ export function createRepTextScrubber(options?: {
       if (correct) {
         const scrubbed = scrubInternalCatalogPhrases(buffered)
         buffered = ''
-        return correct(scrubbed) ?? scrubbed
+        return finish(correct(scrubbed) ?? scrubbed)
       }
-      const emit = scrubInternalCatalogPhrases(hold)
+      const emit = finish(hold)
       hold = ''
       return emit
     },

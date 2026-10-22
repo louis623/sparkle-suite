@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server'
 import { getPaidNicNacContext, AuthError } from '@/lib/nic-nac/auth'
 import { ServiceError } from '@/lib/services/errors'
 import {
+  findForwardRolloverDestination,
   getConversationOwner,
   getLatestConversationId,
   loadConversationForClient,
 } from '@/lib/nic-nac/persistence'
+import { retireSupersededPreviews } from '@/lib/nic-nac/turn-replies'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getLatestNicNacRunHealth } from '@/lib/nic-nac/run-telemetry'
 import { getOperatorSupportRequestContext } from '@/lib/operator-support/request-context'
 import {
@@ -75,5 +78,16 @@ export async function GET(request: Request) {
     loadConversationForClient(supabase, conversationId),
     getLatestNicNacRunHealth(repId, conversationId),
   ])
-  return NextResponse.json({ conversationId, messages, runHealth })
+  let visible = messages
+  try {
+    const movedTo = await findForwardRolloverDestination(
+      createAdminClient(),
+      repId,
+      conversationId,
+    )
+    if (movedTo) visible = retireSupersededPreviews(messages)
+  } catch {
+    visible = messages
+  }
+  return NextResponse.json({ conversationId, messages: visible, runHealth })
 }

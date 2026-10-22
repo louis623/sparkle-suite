@@ -302,6 +302,53 @@ export async function copyConfirmedPieceDetailsToConversation(
   return created.id
 }
 
+/** Text details for a piece recovered at rollover when the old workflow cannot be copied. */
+export async function saveCarriedPieceDetails(
+  supabase: SupabaseClient,
+  args: {
+    repId: string
+    conversationId: string
+    known: {
+      itemNumber?: string | null
+      jewelryType?: string | null
+      designName?: string | null
+      collectionName?: string | null
+      collectionFamily?: string | null
+      material?: string | null
+      mainStone?: string | null
+      ringSize?: string | null
+      rarityClassification?: string | null
+    }
+  },
+): Promise<string> {
+  const known = args.known
+  const created = await createTradeBoardIntakeSession(supabase, {
+    repId: args.repId,
+    conversationId: args.conversationId,
+    metadata: {
+      carriedFromRollover: true,
+      mainPhotoConfirmationRequired: true,
+    },
+  })
+  await updateTradeBoardIntakeSession(supabase, {
+    sessionId: created.id,
+    patch: {
+      catalog_mode: 'item_number',
+      item_number: known.itemNumber ?? null,
+      jewelry_type: known.jewelryType ?? null,
+      design_name: known.designName ?? null,
+      collection_family: known.collectionFamily ?? null,
+      collection_name: known.collectionName ?? null,
+      material: known.material ?? null,
+      main_stone: known.mainStone ?? null,
+      ring_size: known.ringSize ?? null,
+      rarity_classification: known.rarityClassification ?? null,
+      current_phase: 'details_capture',
+    },
+  })
+  return created.id
+}
+
 export async function createTradeBoardIntakeSession(
   supabase: SupabaseClient,
   args: {

@@ -166,6 +166,7 @@ export function recentConversationsFromRows(
   }
 
   return [...byLineage.values()]
+    .filter((value) => Boolean(value.userTitle.trim()))
     .map((value) => {
       const rawTitle =
         value.userTitle || firstLine(value.earliest?.parts) || ''

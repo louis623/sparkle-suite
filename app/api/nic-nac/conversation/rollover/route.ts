@@ -8,12 +8,13 @@ import {
   loadConversationForClient,
 } from '@/lib/nic-nac/persistence'
 import { findActionableApproval } from '@/lib/nic-nac/hitl-state'
-import { buildNicNacRolloverMessages } from '@/lib/nic-nac/rollover'
+import { prepareNicNacRolloverMessages } from '@/lib/nic-nac/rollover'
 import { enrichKnownFromPieceMessages } from '@/lib/nic-nac/workflows/trade-board-known-fields'
 import { logNicNacRollover } from '@/lib/nic-nac/rollover-telemetry'
 import {
   copyConfirmedPieceDetailsToConversation,
   getActiveTradeBoardIntakeSession,
+  saveCarriedPieceDetails,
 } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -74,37 +75,40 @@ export async function POST(request: Request) {
   const known = unfinished
     ? enrichKnownFromPieceMessages(activeIntake.known, sourceMessages)
     : null
-  const messages = buildNicNacRolloverMessages(sourceMessages, undefined, {
-    dropPendingPiece: true,
-    ...(unfinished
-      ? {
-          unfinishedItemNumber: known?.itemNumber ?? null,
-          carriedDetails: {
-            ringSize: known?.ringSize,
-            rarity: known?.rarityClassification,
-            material: known?.material,
-            mainStone: known?.mainStone,
-            designName: known?.designName,
-            collectionName: known?.collectionName,
-          },
-        }
-      : {}),
-  })
+  const prepared = prepareNicNacRolloverMessages(sourceMessages, known)
+  const messages = prepared.messages
   await insertConversationMessages(supabase, {
     conversationId,
     repId,
     messages,
   })
-  if (unfinished && activeIntake) {
-    try {
+  const carryItem = prepared.carry?.itemNumber?.trim().toUpperCase() || ''
+  const storedItem = known?.itemNumber?.trim().toUpperCase() || ''
+  try {
+    if (unfinished && activeIntake && carryItem && carryItem === storedItem) {
       await copyConfirmedPieceDetailsToConversation(admin, {
         repId,
         conversationId,
         source: { ...activeIntake, known: known ?? activeIntake.known },
       })
-    } catch {
-      // The fresh chat still opens. Details are also in the one notice.
+    } else if (prepared.carry?.itemNumber) {
+      await saveCarriedPieceDetails(admin, {
+        repId,
+        conversationId,
+        known: {
+          itemNumber: prepared.carry.itemNumber,
+          jewelryType: prepared.carry.jewelryType,
+          designName: prepared.carry.designName,
+          collectionName: prepared.carry.collectionName,
+          material: prepared.carry.material,
+          mainStone: prepared.carry.mainStone,
+          ringSize: prepared.carry.ringSize,
+          rarityClassification: prepared.carry.rarity,
+        },
+      })
     }
+  } catch {
+    // The fresh chat still opens. Details are also in the one notice.
   }
   await logNicNacRollover({
     repId,

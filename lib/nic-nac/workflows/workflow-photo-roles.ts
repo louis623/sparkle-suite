@@ -374,3 +374,81 @@ export function assignDeclaredPhotoRolesForTurn(args: {
 
   return roles.map((role) => role ?? 'unknown')
 }
+
+const JEWELRY_TYPE_WORD: Record<string, string> = {
+  RG: 'ring',
+  ER: 'earrings',
+  NK: 'necklace',
+  BR: 'bracelet',
+  ST: 'set',
+}
+
+function pieceJewelryType(
+  itemNumber?: string | null,
+  jewelryType?: string | null,
+): string | null {
+  const explicit = jewelryType?.trim().toUpperCase() ?? ''
+  if (JEWELRY_TYPE_WORD[explicit]) return explicit
+  const prefix = itemNumber?.trim().toUpperCase().match(/^[A-Z]{2}/)?.[0] ?? ''
+  return JEWELRY_TYPE_WORD[prefix] ? prefix : null
+}
+
+function subjectJewelryType(photo: {
+  notes?: string[]
+  qualityIssues?: string[]
+}): string | null {
+  const notes = photo.notes ?? []
+  for (const note of notes) {
+    const tagged = note.match(/^subject-type:(RG|NK|ER|BR|ST)$/i)
+    if (tagged?.[1]) return tagged[1].toUpperCase()
+    const printed = note.match(/^printed-item:([A-Z]{2})\d{3,}/i)
+    if (printed?.[1] && JEWELRY_TYPE_WORD[printed[1].toUpperCase()]) {
+      return printed[1].toUpperCase()
+    }
+  }
+  const blob = [...notes, ...(photo.qualityIssues ?? [])].join(' ')
+  const hits = [
+    /\bring\b/i.test(blob) ? 'RG' : '',
+    /\bearrings?\b/i.test(blob) ? 'ER' : '',
+    /\bnecklace\b/i.test(blob) ? 'NK' : '',
+    /\bbracelet\b/i.test(blob) ? 'BR' : '',
+  ].filter(Boolean)
+  return hits.length === 1 ? hits[0] : null
+}
+
+/**
+ * No preview until the stored photo passes blur/quality and matches the piece.
+ * A missing check does not invent a failure.
+ */
+export function mainPhotoPreviewRefusal(args: {
+  photo?: {
+    quality?: string | null
+    qualityScore?: number | null
+    qualityIssues?: string[]
+    notes?: string[]
+  } | null
+  itemNumber?: string | null
+  jewelryType?: string | null
+}): string | null {
+  const photo = args.photo
+  if (!photo) return null
+  const piece = pieceJewelryType(args.itemNumber, args.jewelryType)
+  const subject = subjectJewelryType(photo)
+  if (piece && subject && piece !== subject) {
+    const shown = subject === 'ER' ? 'earrings' : `a ${JEWELRY_TYPE_WORD[subject] ?? 'different piece'}`
+    const wanted =
+      piece === 'ER' ? 'these earrings' : `this ${JEWELRY_TYPE_WORD[piece] ?? 'piece'}`
+    const send = JEWELRY_TYPE_WORD[piece] ?? 'jewelry'
+    return `That photo shows ${shown}, so I won't use it as the main photo for ${wanted}. Send a photo of the ${send}.`
+  }
+  const blurry = (photo.qualityIssues ?? []).includes('blur_risk')
+  const failedQuality =
+    photo.quality === 'blocked' ||
+    photo.quality === 'warning' ||
+    (typeof photo.qualityScore === 'number' && photo.qualityScore < 70)
+  if (blurry) return 'That photo is too blurry. Send a clearer photo of the jewelry.'
+  if (failedQuality) {
+    return "That photo isn't clear enough. Send a clearer photo of the jewelry."
+  }
+  return null
+}

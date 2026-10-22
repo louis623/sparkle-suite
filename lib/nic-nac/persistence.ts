@@ -242,8 +242,8 @@ export async function findForwardRolloverDestination(
       .from('nic_nac_rollovers')
       .select('source_conversation_id, destination_conversation_id')
       .eq('rep_id', repId)
-      .order('created_at', { ascending: true })
-      .limit(200)
+      .order('created_at', { ascending: false })
+      .limit(1000)
     if (error || !Array.isArray(data)) return null
     const forward = new Map<string, string>()
     for (const row of data) {

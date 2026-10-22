@@ -9,6 +9,7 @@ import {
   type UIMessage,
 } from 'ai'
 import { mainPhotoPreviewSrc } from '@/lib/nic-nac/workflows/main-photo-preview'
+import { MOVED_ON_MESSAGE } from '@/lib/nic-nac/piece-task'
 import { Bubble } from './Bubble'
 import { ChatHistory } from './ChatHistory'
 import { EmptyGreeting, type NicNacChatMode } from './EmptyGreeting'
@@ -151,6 +152,13 @@ export function buildAssistantMessageRenderables(
     textBuffer = ''
   }
 
+  const movedOn = parts.some((part) => {
+    if (!part || typeof part !== 'object') return false
+    const record = part as { type?: string; text?: string; output?: { message?: string } }
+    if (record.type === 'text' && record.text?.includes(MOVED_ON_MESSAGE)) return true
+    return record.output?.message?.includes(MOVED_ON_MESSAGE) ?? false
+  })
+
   parts.forEach((part, index) => {
     const pt = part as { type?: string; text?: string }
     if (pt.type === 'text') {
@@ -187,7 +195,7 @@ export function buildAssistantMessageRenderables(
       output?.needsAction === 'confirm_main_photo' ||
       (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM' &&
         Boolean(output.previewImageUrl?.trim() || output.previewPhotoId?.trim()))
-    if (isToolResult && showsMainPhoto) {
+    if (isToolResult && showsMainPhoto && !movedOn) {
       flushText(`text-${index}`)
       const imageUrl = mainPhotoPreviewSrc(output)
       renderables.push({

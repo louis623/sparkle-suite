@@ -6,6 +6,7 @@ import { ServiceError } from '@/lib/services/errors'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
 import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
+import { repAskedToUpdateSharedCatalogImage } from '@/lib/nic-nac/core/stream-output-guard'
 import {
   hashCustomerPhotoUrl,
   isApprovedCatalogPhotoUrl,
@@ -160,6 +161,18 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
       inputSchema,
       needsApproval: true,
       execute: async (input) => {
+        const userText = ctx.latestUserText?.trim() ?? ''
+        if (
+          input.issueType === 'bad_photo' &&
+          userText &&
+          !repAskedToUpdateSharedCatalogImage(userText) &&
+          !isPositiveConfirmation(userText)
+        ) {
+          throw new NicNacToolError({
+            code: 'CATALOG_PHOTO_NOT_REQUESTED',
+            userMessage: "I won't change the design list photo from this chat.",
+          })
+        }
         assertTradeWorkflowInputMatches({
           workflow: ctx.activeTradeWorkflow,
           workflowType: 'trade_catalog_correction',

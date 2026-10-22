@@ -549,6 +549,29 @@ export async function ingestLatestTradeBoardIntakeTurn(
           labelMismatchMessageId: args.latestUserMessageId ?? latestUser.id,
         }
       }
+      for (const [index, numbers] of reads.entries()) {
+        const photo = photos[photosBeforeThisTurn + index]
+        if (!photo || numbers.length === 0) continue
+        const printed = numbers.map((number) => `printed-item:${number}`)
+        photo.notes = [...photo.notes, ...printed]
+        await upsertTradeBoardIntakePhoto(supabase, {
+          sessionId: args.session.id,
+          repId: args.session.repId,
+          conversationId: args.session.conversationId,
+          conversationMessageId: photo.conversationMessageId,
+          attachmentIndex: photo.attachmentIndex,
+          declaredRole: photo.declaredRole,
+          visualRole: photo.visualRole,
+          roleConfirmed: photo.roleConfirmed,
+          imageUrl: photo.imageUrl,
+          quality: photo.quality,
+          qualityScore: photo.qualityScore,
+          qualityIssues: photo.qualityIssues,
+          notes: photo.notes,
+          contentSha256: photo.contentSha256,
+          visualRoleSource: photo.visualRoleSource,
+        })
+      }
     } catch {
       // A failed label read does not reject the jewelry photo.
     }

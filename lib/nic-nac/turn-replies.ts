@@ -2,16 +2,16 @@ import type { UIMessage } from 'ai'
 import {
   decidePieceClose,
   itemNumberFromResumeAsk,
+  MOVED_ON_MESSAGE,
   sendPhotoAgainMessage,
   statedItemNumber,
 } from '@/lib/nic-nac/piece-task'
+
+export { MOVED_ON_MESSAGE }
 import {
   isNegativePhotoConfirmation,
   isPositiveConfirmation,
 } from '@/lib/nic-nac/workflows/trade-board-intake-context'
-
-export const MOVED_ON_MESSAGE =
-  'This chat moved on. Continue in the current chat.'
 
 const LOST_PHOTO_YES =
   /want to finish\b|send the photo for\b|not brought into this chat|that earlier photo was not brought|I started a fresh chat/i
@@ -23,7 +23,7 @@ const REFUSED_PHOTO =
   /already on\b|belongs with that set|main photo I will save|won'?t use (?:it|that|this)|cannot reuse|can'?t use (?:it|that|this)/i
 
 const DUPLICATE_REFUSAL =
-  /already on\b|won'?t use (?:it|that|this)|cannot reuse|can'?t use (?:it|that|this)/i
+  /already on\b|won'?t use (?:it|that|this)|cannot reuse|can'?t reuse|can'?t use (?:it|that|this)|separate (?:clear[, ]+)?customer-facing photo|own (?:accurate )?jewelry photo/i
 
 const INSIST_ON_PHOTO =
   /\b(yes|yeah|yep|yup|use that photo|use this photo|use the photo)\b/i
@@ -74,8 +74,8 @@ export function refusedPhotoReply(previousAssistant: string): string {
   return `I won't use that photo. Send a different photo of this piece.`
 }
 
-export function keptDetailsReply(known?: KeptPieceDetails | null): string {
-  const details = [
+function keptDetailList(known?: KeptPieceDetails | null): string[] {
+  return [
     known?.itemNumber?.trim(),
     known?.designName?.trim(),
     known?.collectionName?.trim() ? `${known.collectionName.trim()} collection` : '',
@@ -83,9 +83,24 @@ export function keptDetailsReply(known?: KeptPieceDetails | null): string {
     known?.mainStone?.trim(),
     known?.ringSize?.trim() ? `size ${known.ringSize.trim()}` : '',
     known?.rarityClassification?.trim(),
-  ].filter(Boolean)
+  ].filter((value): value is string => Boolean(value))
+}
+
+export function keptDetailsReply(known?: KeptPieceDetails | null): string {
+  const details = keptDetailList(known)
   if (details.length === 0) return 'Send a different photo of this piece.'
   return `I'll keep ${details.join(', ')}. Send a different photo of this piece.`
+}
+
+/** The rep replaced a refused photo. Stored details stay; nothing is asked again. */
+export function acceptedReplacementPhotoReply(known?: KeptPieceDetails | null): string {
+  const details = keptDetailList(known)
+  const item = known?.itemNumber?.trim()
+  const kept = details.length
+    ? `I'll keep ${details.join(', ')}.`
+    : `I'll keep the details you already gave.`
+  const photo = item ? `I have this photo for ${item}.` : 'I have this photo for this piece.'
+  return `${kept} ${photo}`
 }
 
 export function labelMismatchSentence(labelItemNumber: string, itemNumber: string): string {
@@ -98,22 +113,72 @@ export function labelMismatchSentence(labelItemNumber: string, itemNumber: strin
  * Answers that must not depend on the model. A bare yes to a real photo
  * preview is left alone so that save can still happen.
  */
+function labelNamedInText(text: string): string | null {
+  const match = text.match(
+    /\blabel\s+(?:says|reads|shows|said|is)\s+([A-Za-z]{1,4}\d{3,})\b/i,
+  )
+  return match?.[1] ? match[1].toUpperCase() : null
+}
+
+function insistsSavedLabelIsFine(text: string): boolean {
+  return (
+    /\blabel is fine\b/i.test(text) ||
+    (/\bsave it\b/i.test(text) && Boolean(statedItemNumber(text)))
+  )
+}
+
+function sendingReplacementPhoto(text: string): boolean {
+  return (
+    /\bhere'?s the (?:right|correct) photo\b/i.test(text) ||
+    (/\b(?:no|nope)\b/i.test(text) &&
+      /\b(?:not right|wrong piece|wrong photo|right photo)\b/i.test(text))
+  )
+}
+
 export function directPieceReply(args: {
   messages: UIMessage[]
   latestUserText: string
   latestUserHasImage: boolean
   known?: KeptPieceDetails | null
+  /** True when this item number already has a Dance Floor listing. */
+  listingExists?: boolean
+  labelItemNumber?: string | null
 }): string | null {
   const previous = previousAssistantText(args.messages)
   const text = args.latestUserText.trim()
-  if (!text || !previous) return null
+  if (!text) return null
+  if (!previous && !args.listingExists && !args.labelItemNumber) return null
 
   const skipping =
     decidePieceClose(text) === 'skipped' ||
     decidePieceClose(text) === 'cancelled' ||
     SKIP_AFTER_SAVE.test(text)
-  if (skipping && SAVED_ON_DANCE_FLOOR.test(previous)) {
-    return alreadySavedReply(statedItemNumber(text) ?? statedItemNumber(previous))
+  if (skipping && (args.listingExists || SAVED_ON_DANCE_FLOOR.test(previous))) {
+    return alreadySavedReply(
+      statedItemNumber(text) ?? statedItemNumber(previous) ?? args.known?.itemNumber,
+    )
+  }
+
+  const storedLabel = args.labelItemNumber?.trim().toUpperCase() || ''
+  const namedLabel = labelNamedInText(previous)
+  const label = storedLabel || namedLabel || ''
+  const insistItem = statedItemNumber(text) ?? args.known?.itemNumber?.trim().toUpperCase()
+  if (
+    !args.latestUserHasImage &&
+    label &&
+    insistItem &&
+    label !== insistItem &&
+    insistsSavedLabelIsFine(text)
+  ) {
+    return labelMismatchSentence(label, insistItem)
+  }
+
+  if (
+    args.latestUserHasImage &&
+    sendingReplacementPhoto(text) &&
+    DUPLICATE_REFUSAL.test(previous)
+  ) {
+    return acceptedReplacementPhotoReply(args.known)
   }
 
   if (!args.latestUserHasImage && DUPLICATE_REFUSAL.test(previous) && INSIST_ON_PHOTO.test(text)) {
