@@ -473,6 +473,17 @@ function fieldsFromToolPart(
   return known
 }
 
+/** Tool item IDs establish which piece a rep's following answer describes.
+ * Tool names and assistant prose are never a source of the design name. */
+function toolPieceItem(part: unknown): string | undefined {
+  if (!part || typeof part !== 'object') return undefined
+  const record = part as { type?: string; input?: Record<string, unknown>; output?: Record<string, unknown> }
+  if (!/add_listing|prepare_trade_board|search_jewelry/i.test(record.type ?? '')) return undefined
+  const value = record.output?.itemNumber ?? record.input?.itemNumber
+  return typeof value === 'string' && /^[A-Z]{1,4}\d{3,}$/i.test(value.trim())
+    ? value.trim().toUpperCase() : undefined
+}
+
 /**
  * Recover rep-provided text and completed catalog results, never assistant
  * prose or a proposed tool name. Stored session values win over a later guess.
@@ -484,10 +495,17 @@ export function recoverStoredPieceDetails(
   const item = known.itemNumber?.trim().toUpperCase()
   if (!item) return known
   let filled = { ...known }
-  let currentItem: string | undefined
+  // Labels/catalog tools may identify the piece without the rep typing its ID.
+  // Before the first explicit ID, answers belong to that first identified piece;
+  // with no ID in history, the active session supplies the piece identity.
+  let currentItem = messages.map((message) => message.role === 'user'
+    ? extractKnownFieldsFromText(messageText(message.parts)).itemNumber
+    : (Array.isArray(message.parts) ? message.parts : []).map(toolPieceItem).find(Boolean))
+    .find(Boolean) ?? item
   for (const message of messages) {
     const parts = Array.isArray(message.parts) ? message.parts : []
     for (const part of parts) {
+      currentItem = toolPieceItem(part) ?? currentItem
       filled = mergeTradeBoardKnownFields(filled, fieldsFromToolPart(part, item))
     }
     if (message.role !== 'user') continue

@@ -83,6 +83,20 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
   })
 
+  it.each(['Grok Run15 Piece', '**Grok Run15 Bold**'])('recovers rep details without a typed item number after corrected duplicate: %s',async(name)=>{
+    await db.sql.exec("delete from jewelry_designs; update trade_board_intake_sessions set item_number='RG15105', jewelry_type='RG', ring_size='7', design_name=null, collection_name=null, collection_year=null, collection_family=null")
+    await stored({id:'different-piece',role:'user',parts:[{type:'text',text:'ER11111, design name Wrong Previous Piece, collection: Originals'}]})
+    await stored({id:'identified-piece',role:'assistant',parts:[{type:'tool-add_listing',state:'output-available',toolCallId:'identify',input:{itemNumber:'RG15105',designName:'Assistant Guess'},output:{needsAction:'create_design',itemNumber:'RG15105'}}] as any})
+    await stored({id:'rep-details',role:'user',parts:[{type:'text',text:'design name '+name+', collection: July Birthday 2026, standard'}]})
+    await oldPhoto();await turn('run15-no','no')
+    expect(await turn('run15-new-photo',"Here's the right photo",'data:image/png;base64,cnVuMTU=')).toContain('confirm_main_photo')
+    expect(await turn('run15-yes','yes')).toContain('is on your Dance Floor')
+    const design=(await db.sql.query('select * from jewelry_designs')).rows[0]
+    expect(design.design_name).toBe(name.replaceAll('*',''))
+    expect(design.collection_id).toBe('50000000-0000-4000-8000-000000000001')
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
+  })
+
   it('never creates a design from an assistant sentence when the rep supplied no name',async()=>{
     await db.sql.exec('delete from jewelry_designs; update trade_board_intake_sessions set design_name=null')
     await stored({id:'details-without-name',role:'user',parts:[{type:'text',text:'Add NK11312.'}]})
