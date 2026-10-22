@@ -403,6 +403,15 @@ describe('round 10 stored history, photos, replay, and skip', () => {
     expect(lastRender.some((item) => item.type === 'main-photo-preview')).toBe(false)
   })
 
+  it.each([false, true])('removes a pending question when the moved-on notice already exists (separate=%s)', (separate) => {
+    const parts = separate
+      ? [{ type: 'text', text: 'Is this the right piece to save?' }, { type: 'text', text: MOVED_ON_MESSAGE }]
+      : [{ type: 'text', text: 'Is this the right piece to save? ' + MOVED_ON_MESSAGE }]
+    const render = buildAssistantMessageRenderables(parts, { readOnly: true, overlayMovedOn: true })
+    expect(render.map((item) => item.type === 'text' ? item.text : '').join(' ').trim()).toBe(MOVED_ON_MESSAGE)
+    expect(JSON.stringify(parts)).toContain('Is this the right piece to save?')
+  })
+
   it('publishes the original upload when a listing save would otherwise crop', () => {
     expect(
       designSourcePublicFile({

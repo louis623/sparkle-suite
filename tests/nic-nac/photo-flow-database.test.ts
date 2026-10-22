@@ -19,6 +19,7 @@ vi.mock('@/lib/services/storage',async(original)=>({...await original<any>(),upl
 vi.mock('@/lib/services/jewelry-photo-crop',()=>({createGuardedJewelryPhotoCrop:(...args:any[])=>state.crop(...args)}))
 vi.mock('@/lib/services/photo-enhancement',()=>({executePhotoEnhancement:(...args:any[])=>state.enhance(...args)}))
 vi.mock('@/lib/photoroom/config',()=>({getPhotoroomConfig:()=>null}))
+import { MOVED_ON_MESSAGE } from '@/lib/nic-nac/piece-task'
 import { createRepTextScrubber } from '@/lib/nic-nac/core/stream-output-guard'
 import { POST } from '@/app/api/nic-nac/route'
 import { POST as rollover } from '@/app/api/nic-nac/conversation/rollover/route'
@@ -173,6 +174,27 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(await turn('stale-yes','yes')).toContain('This chat moved on')
     expect((await db.sql.query("select * from nic_nac_conversations where conversation_id='piece-chat' order by created_at,id")).rows).toEqual(before)
   })
+  it.each([false,true])('history replaces the pending question when a moved-on notice is already present (separate=%s)',async(separate)=>{
+    await stored({id:'earlier-confirm',role:'assistant',parts:[{type:'text',text:'Reply yes to save this earlier piece.'}]})
+    await stored({id:'pending-with-notice',role:'assistant',parts:separate
+      ? [{type:'text',text:'Is this the right piece to save?'},{type:'text',text:MOVED_ON_MESSAGE}]
+      : [{type:'text',text:'Is this the right piece to save? '+MOVED_ON_MESSAGE}]})
+    const before=(await db.sql.query("select * from nic_nac_conversations where conversation_id='piece-chat' order by created_at,id")).rows
+    expect((await rollover(new Request('http://local.test/rollover',{method:'POST',body:JSON.stringify({conversationId:'piece-chat'})}))).status).toBe(200)
+    const responses=[
+      await history(new Request('http://local.test/history?conversationId=piece-chat')),
+      await historyById(new Request('http://local.test/'),{params:Promise.resolve({conversationId:'piece-chat'})}),
+    ]
+    for (const response of responses) {
+      const result=await response.json()
+      const last=result.messages.find((m:any)=>m.id==='pending-with-notice')
+      const text=last.parts.filter((p:any)=>p.type==='text').map((p:any)=>p.text).join(' ').trim()
+      expect(text).toBe(MOVED_ON_MESSAGE)
+      expect(JSON.stringify(result.messages.find((m:any)=>m.id==='earlier-confirm'))).toContain('Reply yes')
+    }
+    expect((await db.sql.query("select * from nic_nac_conversations where conversation_id='piece-chat' order by created_at,id")).rows).toEqual(before)
+  })
+
   it('Recent includes cleared chats and counts conversations across a long history',async()=>{
     await db.sql.exec("insert into nic_nac_conversations(rep_id,conversation_id,message_id,role,parts,cleared_at,created_at) values ('"+REP+"','cleared-chat','old','user','[{\"type\":\"text\",\"text\":\"Old piece\"}]',now(),now()-interval '1 day');")
     await db.sql.query("insert into nic_nac_conversations(rep_id,conversation_id,message_id,role,parts) select $1,'piece-chat','row-'||i,'user','[{\"type\":\"text\",\"text\":\"Current piece\"}]'::jsonb from generate_series(1,1001) i",[REP])

@@ -148,11 +148,12 @@ export function buildAssistantMessageRenderables(
 ): AssistantMessageRenderable[] {
   if (options?.overlayMovedOn) {
     const visible = buildAssistantMessageRenderables(parts, { ...options, overlayMovedOn: false })
-    if (visible.some((item) => item.type === 'text' && item.text.includes(MOVED_ON_MESSAGE))) return visible
     const target = visible.findLastIndex((item) => item.type === 'main-photo-preview' ||
       (item.type === 'text' && asksToConfirmSave(item.text)))
+    const noticeElsewhere = visible.some((item, index) =>
+      index !== target && item.type === 'text' && item.text.includes(MOVED_ON_MESSAGE))
     return visible.map((item, index) => index === target && item.type !== 'data-trade-request-card'
-      ? { type: 'text', key: item.key, text: item.type === 'main-photo-preview' ? MOVED_ON_MESSAGE : retireLastConfirmationLine(item.text) }
+      ? { type: 'text', key: item.key, text: item.type === 'main-photo-preview' ? (noticeElsewhere ? '' : MOVED_ON_MESSAGE) : retireLastConfirmationLine(item.text, noticeElsewhere) }
       : item)
   }
   const renderables: AssistantMessageRenderable[] = []

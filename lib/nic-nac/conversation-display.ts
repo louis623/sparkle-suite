@@ -19,12 +19,14 @@ export function asksToConfirmSave(text: string): boolean {
   )
 }
 
-export function retireLastConfirmationLine(text: string): string {
-  if (text.includes(MOVED_ON_MESSAGE)) return text
-  const lines = text.split(/(\n+|(?<=[.!?])[ \t]+)/)
+export function retireLastConfirmationLine(text: string, noticeElsewhere = false): string {
+  // An existing notice is not evidence that the pending question was removed.
+  const hasNotice = text.includes(MOVED_ON_MESSAGE)
+  const lines = text.replaceAll(MOVED_ON_MESSAGE, '').trimEnd().split(/(\n+|(?<=[.!?])[ \t]+)/)
   const target = lines.findLastIndex(asksToConfirmSave)
-  if (target >= 0) lines[target] = MOVED_ON_MESSAGE
-  return lines.join('')
+  if (target < 0) return text
+  lines[target] = hasNotice || !noticeElsewhere ? MOVED_ON_MESSAGE : ''
+  return lines.join('').trimEnd()
 }
 
 function visibleAssistantText(parts: unknown): string {
@@ -73,6 +75,10 @@ export function retireSupersededPreviews<T extends { role?: string; parts?: unkn
     const record = part as PreviewPart | null
     return record?.type === 'text' && typeof record.text === 'string' && asksToConfirmSave(record.text)
   })
+  const noticeElsewhere = message.parts.some((part, index) => {
+    const record = part as PreviewPart | null
+    return index !== pendingIndex && record?.type === 'text' && record.text?.includes(MOVED_ON_MESSAGE)
+  })
   let changed = false
   const parts = message.parts.map((part, index) => {
     if (index !== pendingIndex) return part
@@ -81,7 +87,7 @@ export function retireSupersededPreviews<T extends { role?: string; parts?: unkn
     if (record.type !== 'text' || typeof record.text !== 'string') return part
     if (!asksToConfirmSave(record.text)) return part
     changed = true
-    return { ...record, text: retireLastConfirmationLine(record.text) }
+    return { ...record, text: retireLastConfirmationLine(record.text, noticeElsewhere) }
   })
   if (!changed) return messages
   const copy = messages.slice()
