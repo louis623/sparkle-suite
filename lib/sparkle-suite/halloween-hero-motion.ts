@@ -1,23 +1,21 @@
 /**
- * Real captured Halloween hero motion for Suite marketing peeks.
+ * Halloween art used by Suite marketing peeks.
  *
- * Both files are page-area captures of the full live hero: site header,
- * announcement / Dance Floor / Live Lineup bars, titles, body copy, every
- * CTA, complete art, and the on-hero pause control. They are not cropped.
+ * The witch peek uses the theme hero plate. The older full-page rep-site
+ * capture is no longer referenced. The Dance Floor hero sentence in
+ * public/amethyst/trade.jsx reads "Planning a Dance Floor swap?".
  *
- * Witch is the Mile High Fizz CSS/DOM hover, 968×720 (the still is 967 wide;
- * the video pads one edge pixel so the width is even). Cat is the product
- * hero motion, 966×710, including the left headlines.
+ * Cat remains the product hero motion, 966×710, including the left headlines.
  */
 export const halloweenHeroMotion = {
   witch: {
     label: 'Halloween · Witch',
-    poster: '/sparkle-suite/landing/hero-halloween-witch-live.webp',
-    posterWidth: 968,
-    posterHeight: 720,
-    mp4: '/sparkle-suite/landing/hero-halloween-witch-live.mp4',
-    width: 968,
-    height: 720,
+    poster: '/amethyst/skins/halloween-pumpkin-witch/hero-desktop.webp',
+    posterWidth: 1672,
+    posterHeight: 941,
+    mp4: '/amethyst/skins/halloween-pumpkin-witch/hero-plate.mp4',
+    width: 1672,
+    height: 940,
   },
   cat: {
     label: 'Halloween · Cat',

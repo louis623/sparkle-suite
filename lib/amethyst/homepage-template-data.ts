@@ -274,7 +274,7 @@ export const defaultAmethystHomepageTemplateData: AmethystHomepageTemplateData =
   footerTagline:
     'Live jewelry reveals every Tuesday at 8pm CST. Real pieces, real sparkle.',
   legalDisclaimer:
-    'Sparkle by Sasha is operated by an independent Bomb Party Representative. Bomb Party is a registered trademark of Bomb Party LLC. This site is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by Bomb Party LLC. All product names, trademarks, and registered trademarks are property of their respective owners. Live show schedules subject to change. Dance Floor listings are sold by the rep and not by Bomb Party LLC.',
+    'Sparkle by Sasha is operated by an independent Bomb Party Representative. Bomb Party is a registered trademark of Bomb Party LLC. This site is not endorsed by, directly affiliated with, maintained, authorized, or sponsored by Bomb Party LLC. All product names, trademarks, and registered trademarks are property of their respective owners. Live show schedules subject to change. Dance Floor listings are swaps only and are not offered by Bomb Party LLC.',
   showcaseVideoCaption: '@sparklebysasha - "When the box hits different..."',
   showcaseVideoUrl: '#',
   showcaseImageUrl: '',
