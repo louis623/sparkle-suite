@@ -334,11 +334,10 @@ describe('round 10 duplicate yes saves without leaking handler text', () => {
   })
 })
 
-it('overlays only the final confirmation sentence in a visible assistant turn',()=>{
+it('replaces the entire pending confirmation line in a visible assistant turn',()=>{
   const parts=[{type:'text',text:"Earlier: reply yes and I'll add it. The design is Moonlight. Is this the right piece to save?"}]
   const rendered=buildAssistantMessageRenderables(parts,{readOnly:true,overlayMovedOn:true})
-  expect(JSON.stringify(rendered)).toContain("Earlier: reply yes and I'll add it.")
-  expect(JSON.stringify(rendered)).toContain('The design is Moonlight.')
+  expect(rendered.map((item) => item.type === 'text' ? item.text : '').join('')).toBe(MOVED_ON_MESSAGE)
   expect(JSON.stringify(rendered)).toContain(MOVED_ON_MESSAGE)
   expect(JSON.stringify(rendered)).not.toContain('Is this the right piece to save?')
   expect(parts[0].text).toContain('Is this the right piece to save?')
@@ -405,8 +404,8 @@ describe('round 10 stored history, photos, replay, and skip', () => {
 
   it.each([false, true])('removes a pending question when the moved-on notice already exists (separate=%s)', (separate) => {
     const parts = separate
-      ? [{ type: 'text', text: 'Is this the right piece to save?' }, { type: 'text', text: MOVED_ON_MESSAGE }]
-      : [{ type: 'text', text: 'Is this the right piece to save? ' + MOVED_ON_MESSAGE }]
+      ? [{ type: 'text', text: 'Is this the right piece to save?' }, { type: 'text', text: MOVED_ON_MESSAGE }, { type: 'text', text: ' Reply yes to add it.' }]
+      : [{ type: 'text', text: 'Is this the right piece to save? I will use this photo as its Dance Floor image. ' + MOVED_ON_MESSAGE + ' Reply yes to add it.' }]
     const render = buildAssistantMessageRenderables(parts, { readOnly: true, overlayMovedOn: true })
     expect(render.map((item) => item.type === 'text' ? item.text : '').join(' ').trim()).toBe(MOVED_ON_MESSAGE)
     expect(JSON.stringify(parts)).toContain('Is this the right piece to save?')

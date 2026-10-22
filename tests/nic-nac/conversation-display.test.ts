@@ -33,7 +33,7 @@ describe('browser-safe conversation display', () => {
     const snapshot = structuredClone(stored)
     expect(asksToConfirmSave(text)).toBe(true)
     expect(lastVisibleAssistantId(stored)).toBe('preview')
-    expect(retireLastConfirmationLine(text)).toBe('NK11312 is already on your Dance Floor. ' + MOVED_ON_MESSAGE)
+    expect(retireLastConfirmationLine(text)).toBe(MOVED_ON_MESSAGE)
     const displayed = retireSupersededPreviews(stored)
     expect(displayed[0]).toBe(stored[0])
     expect(displayed[1].parts[0].text).toBe(retireLastConfirmationLine(text))

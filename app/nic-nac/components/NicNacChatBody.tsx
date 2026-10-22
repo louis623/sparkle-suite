@@ -148,12 +148,13 @@ export function buildAssistantMessageRenderables(
 ): AssistantMessageRenderable[] {
   if (options?.overlayMovedOn) {
     const visible = buildAssistantMessageRenderables(parts, { ...options, overlayMovedOn: false })
-    const target = visible.findLastIndex((item) => item.type === 'main-photo-preview' ||
-      (item.type === 'text' && asksToConfirmSave(item.text)))
-    const noticeElsewhere = visible.some((item, index) =>
-      index !== target && item.type === 'text' && item.text.includes(MOVED_ON_MESSAGE))
-    return visible.map((item, index) => index === target && item.type !== 'data-trade-request-card'
-      ? { type: 'text', key: item.key, text: item.type === 'main-photo-preview' ? (noticeElsewhere ? '' : MOVED_ON_MESSAGE) : retireLastConfirmationLine(item.text, noticeElsewhere) }
+    const pending = (item: AssistantMessageRenderable) => item.type === 'main-photo-preview' ||
+      (item.type === 'text' && (asksToConfirmSave(item.text) || item.text.includes(MOVED_ON_MESSAGE)))
+    const target = visible.findLastIndex(pending)
+    return visible.map((item, index) => pending(item) && item.type !== 'data-trade-request-card'
+      ? { type: 'text', key: item.key, text: item.type === 'main-photo-preview'
+        ? (index === target ? MOVED_ON_MESSAGE : '')
+        : retireLastConfirmationLine(item.text, index !== target) }
       : item)
   }
   const renderables: AssistantMessageRenderable[] = []

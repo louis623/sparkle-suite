@@ -20,13 +20,15 @@ export function asksToConfirmSave(text: string): boolean {
 }
 
 export function retireLastConfirmationLine(text: string, noticeElsewhere = false): string {
-  // An existing notice is not evidence that the pending question was removed.
-  const hasNotice = text.includes(MOVED_ON_MESSAGE)
-  const lines = text.replaceAll(MOVED_ON_MESSAGE, '').trimEnd().split(/(\n+|(?<=[.!?])[ \t]+)/)
-  const target = lines.findLastIndex(asksToConfirmSave)
-  if (target < 0) return text
-  lines[target] = hasNotice || !noticeElsewhere ? MOVED_ON_MESSAGE : ''
-  return lines.join('').trimEnd()
+  // Retire the entire pending line, including preview wording and any trailing
+  // "Reply yes". Sentence-by-sentence replacement left contradictory fragments.
+  let noticeWritten = noticeElsewhere
+  return text.trimEnd().split('\n').flatMap((line) => {
+    if (!asksToConfirmSave(line) && !line.includes(MOVED_ON_MESSAGE)) return [line]
+    if (noticeWritten) return []
+    noticeWritten = true
+    return [MOVED_ON_MESSAGE]
+  }).join('\n').trimEnd()
 }
 
 function visibleAssistantText(parts: unknown): string {
@@ -70,24 +72,18 @@ export function retireSupersededPreviews<T extends { role?: string; parts?: unkn
   const message = messages[target]
   if (!message || !asksToConfirmSave(visibleAssistantText(message.parts))) return messages
   if (!Array.isArray(message.parts)) return messages
-  // Earlier text parts in the same assistant turn are history too.
-  const pendingIndex = message.parts.findLastIndex((part) => {
+  const pending = (part: unknown) => {
     const record = part as PreviewPart | null
-    return record?.type === 'text' && typeof record.text === 'string' && asksToConfirmSave(record.text)
-  })
-  const noticeElsewhere = message.parts.some((part, index) => {
-    const record = part as PreviewPart | null
-    return index !== pendingIndex && record?.type === 'text' && record.text?.includes(MOVED_ON_MESSAGE)
-  })
+    return record?.type === 'text' && typeof record.text === 'string' &&
+      (asksToConfirmSave(record.text) || record.text.includes(MOVED_ON_MESSAGE))
+  }
+  const noticeIndex = message.parts.findLastIndex(pending)
   let changed = false
   const parts = message.parts.map((part, index) => {
-    if (index !== pendingIndex) return part
-    if (!part || typeof part !== 'object') return part
+    if (!pending(part)) return part
     const record = part as PreviewPart
-    if (record.type !== 'text' || typeof record.text !== 'string') return part
-    if (!asksToConfirmSave(record.text)) return part
     changed = true
-    return { ...record, text: retireLastConfirmationLine(record.text, noticeElsewhere) }
+    return { ...record, text: retireLastConfirmationLine(record.text!, index !== noticeIndex) }
   })
   if (!changed) return messages
   const copy = messages.slice()

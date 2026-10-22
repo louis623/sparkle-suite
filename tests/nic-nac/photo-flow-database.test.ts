@@ -249,8 +249,8 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
   it.each([false,true])('history replaces the pending question when a moved-on notice is already present (separate=%s)',async(separate)=>{
     await stored({id:'earlier-confirm',role:'assistant',parts:[{type:'text',text:'Reply yes to save this earlier piece.'}]})
     await stored({id:'pending-with-notice',role:'assistant',parts:separate
-      ? [{type:'text',text:'Is this the right piece to save?'},{type:'text',text:MOVED_ON_MESSAGE}]
-      : [{type:'text',text:'Is this the right piece to save? '+MOVED_ON_MESSAGE}]})
+      ? [{type:'text',text:'Is this the right piece to save?'},{type:'text',text:MOVED_ON_MESSAGE},{type:'text',text:'Reply yes to add it.'}]
+      : [{type:'text',text:'I will use this photo as its Dance Floor image. '+MOVED_ON_MESSAGE+' Reply yes to add it.'}]})
     const before=(await db.sql.query("select * from nic_nac_conversations where conversation_id='piece-chat' order by created_at,id")).rows
     expect((await rollover(new Request('http://local.test/rollover',{method:'POST',body:JSON.stringify({conversationId:'piece-chat'})}))).status).toBe(200)
     const responses=[
