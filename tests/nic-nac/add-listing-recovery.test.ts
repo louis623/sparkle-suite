@@ -22,6 +22,14 @@ import type { ToolContext } from '@/lib/nic-nac/tools'
 import type { TradeBoardIntakeSessionState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
 import type { TradeWorkflowSessionState } from '@/lib/nic-nac/workflows/trade-workflow-types'
 
+// These unit tests isolate recovery/photo processing after photo admission.
+// The real, non-mocked admission gate (single, batch and non-item-number) and
+// saves through POST + PostgreSQL are exercised in photo-flow-database.test.ts.
+vi.mock('@/lib/nic-nac/workflows/required-piece-photos', async (original) => ({
+  ...await original<any>(),
+  requiredPiecePhotoRequest: () => null,
+}))
+
 const addListingMock = vi.fn()
 const addListingBatchMock = vi.fn()
 const addNonItemNumberListingMock = vi.fn()
@@ -226,6 +234,14 @@ function activeWorkflow(
       },
     ],
     ...overrides,
+    // Satisfy the separately tested label prerequisite without changing the
+    // jewelry/photo-index fixtures under test here.
+    photos: [...(overrides.photos ?? []), {
+      id: 'admitted-label', attachmentIndex: 99, declaredRole: 'label_details',
+      visualRole: 'label_or_packaging', roleConfirmed: true,
+      imageUrl: 'https://example.com/admitted-label.jpg', quality: 'usable',
+      qualityIssues: [], notes: [],
+    }],
     known: {
       rarityClassification: 'standard',
       itemNumber: 'ER13229',
@@ -3779,7 +3795,7 @@ describe('add_listing - active workflow readiness guard', () => {
     )
   })
 
-  it('asks instead of counting photo 2 from older chat photos', async () => {
+  it('asks instead of counting photo 3 from older chat photos', async () => {
     const supabaseMock = makeConversationLookupMock([
       {
         parts: [
@@ -3841,11 +3857,11 @@ describe('add_listing - active workflow readiness guard', () => {
         mode: 'single',
         itemNumber: 'NK60295',
         collectionName: 'Original',
-        listingPhotoIndex: 2,
+        listingPhotoIndex: 3,
       }),
     ).rejects.toMatchObject({
       code: 'PHOTO_CHOICE_REQUIRED',
-      userMessage: expect.stringContaining('photo 2'),
+      userMessage: expect.stringContaining('photo 3'),
     })
     expect(processRepListingPhotoUrlMock).not.toHaveBeenCalled()
     expect(addListingMock).not.toHaveBeenCalled()

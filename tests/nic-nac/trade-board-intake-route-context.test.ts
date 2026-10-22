@@ -861,8 +861,8 @@ describe('Dance Floor intake route context', () => {
       material: 'Rhodium Plating',
       rarityClassification: 'standard',
     })
-    expect(context.sessionAfter?.phase).toBe('ready_to_add')
-    expect(context.sessionAfter?.missing).toEqual([])
+    expect(context.sessionAfter?.phase).toBe('photo_capture')
+    expect(context.sessionAfter?.missing).toEqual(['labelDetailsPhoto'])
     expect(context.sessionAfter?.metadata).toEqual({
       failureCount: 1,
       lastFailure: { code: 'object_exists', stage: 'storage_upload' },
@@ -876,8 +876,8 @@ describe('Dance Floor intake route context', () => {
         main_stone: 'Lab-Created Ruby',
         material: 'Rhodium Plating',
         rarity_classification: 'standard',
-        current_phase: 'ready_to_add',
-        missing_fields: [],
+        current_phase: 'photo_capture',
+        missing_fields: ['labelDetailsPhoto'],
         metadata: {
           failureCount: 1,
           lastFailure: { code: 'object_exists', stage: 'storage_upload' },
@@ -1494,8 +1494,8 @@ describe('Dance Floor intake route context', () => {
       roleConfirmed: true,
       imageUrl: 'data:image/jpeg;base64,RVIxODAxMl9GUk9OVA==',
     })
-    expect(context.sessionAfter?.missing).toEqual([])
-    expect(context.sessionAfter?.phase).toBe('ready_to_add')
+    expect(context.sessionAfter?.missing).toEqual(['labelDetailsPhoto'])
+    expect(context.sessionAfter?.phase).toBe('photo_capture')
     expect(upsertPhotoBuilder.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         conversation_message_id: 'earrings-msg-1',

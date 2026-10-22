@@ -1,3 +1,6 @@
+import { requiredPiecePhotoRequest } from '@/lib/nic-nac/workflows/required-piece-photos'
+import { extractKnownFieldsFromText } from '@/lib/nic-nac/workflows/trade-board-known-fields'
+import { isExplicitTradeBoardAddRequest } from '@/lib/nic-nac/workflows/trade-board-add-intent'
 // Production /api/nic-nac route. Ports app/api/nic-nac/spike/route.ts and
 // adds Guardian telemetry + Enforcer audit hooks at the route handler level.
 //
@@ -1021,7 +1024,12 @@ async function handlePost(request: Request, claimedTurn: { abort?: () => Promise
       itemNumber: savedPhoto?.itemNumber ?? disputeItem,
       designName: savedPhoto?.designName,
     })
-    let directText = skipLookupError || gateRefusal || pieceReply || labelReply || disputeReply
+    const photoRequest = sessionAfter?.status === 'active' && (
+      latestUserHasImage || isPositiveConfirmation(latestUserText) ||
+      isExplicitTradeBoardAddRequest(latestUserText) ||
+      Object.keys(extractKnownFieldsFromText(latestUserText)).length > 0
+    ) ? requiredPiecePhotoRequest(sessionAfter.photos) : null
+    let directText = skipLookupError || gateRefusal || photoRequest?.message || pieceReply || labelReply || disputeReply
     const previewPhotoId = shownMainPhotoPreviewId(messages)
     const confirmationUsed = confirmationAlreadyUsed({
       submittedMessageId,

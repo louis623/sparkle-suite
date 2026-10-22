@@ -22,6 +22,7 @@ vi.mock('@/lib/photoroom/config',()=>({getPhotoroomConfig:()=>null}))
 import { MOVED_ON_MESSAGE } from '@/lib/nic-nac/piece-task'
 import { createRepTextScrubber } from '@/lib/nic-nac/core/stream-output-guard'
 import { POST } from '@/app/api/nic-nac/route'
+import { getActiveTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { makeAddListingTool } from '@/lib/nic-nac/tools/add-listing'
 import { POST as rollover } from '@/app/api/nic-nac/conversation/rollover/route'
 import { POST as alternateRollover } from '@/app/api/nic-nac/conversation-rollover/route'
@@ -43,6 +44,8 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     return response.text()
   }
   async function oldPhoto(){
+    // Existing duplicate-photo cases already supplied the piece's label.
+    await db.sql.query("insert into trade_board_intake_photos(id,session_id,rep_id,conversation_id,conversation_message_id,attachment_index,declared_role,visual_role,role_confirmed,image_url,quality,quality_score) values (gen_random_uuid(),$1,$2,'piece-chat','piece-label',1,'label_details','label_or_packaging',true,'data:image/png;base64,b2xkLWxhYmVs','usable',95)",[SESSION,REP])
     await db.sql.query(`insert into trade_board_intake_photos(id,session_id,rep_id,conversation_id,conversation_message_id,attachment_index,declared_role,visual_role,role_confirmed,image_url,quality,quality_score) values ($1,$2,$3,'piece-chat','old-upload',1,'jewelry_front','jewelry',true,'data:image/png;base64,b2xk','usable',95)`,[PHOTO,SESSION,REP])
     await db.sql.query(`update trade_board_intake_sessions set metadata=metadata || $1::jsonb where id=$2`,[JSON.stringify({boundMainPhotoId:PHOTO}),SESSION])
     await stored({id:'duplicate',role:'assistant',parts:[{type:'text',text:"This photo is already on ER11111. I won't use it as the main photo for NK11312. Send a different photo of this piece."}]})
@@ -123,7 +126,50 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(await response.text()).toContain('NK11312 is on your Dance Floor')
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
   })
-  it.each([false,true])('uses the identified jewelry photo for the reply with label-first=%s',async(labelFirst)=>{
+  it.each(['single','batch','non_item_number'].flatMap(mode=>[false,true].map(active=>({mode,active}))))('tool cannot bypass photo admission with typed fields and URLs ($mode, active=$active)',async({mode,active})=>{
+    const workflow=active?await getActiveTradeBoardIntakeSession(db.client,{repId:REP,conversationId:'piece-chat',nowIso:new Date().toISOString()}):undefined
+    const tool=makeAddListingTool({repId:REP,supabase:db.client,conversationId:'piece-chat',runId:'no-photo-bypass',activeTradeBoardWorkflow:workflow})
+    const fields={itemNumber:'NK11312',designName:'Moonlight',collectionName:'July Birthday 2026',rarityClassification:'standard',piecePhotoUrl:'https://example.com/invented.jpg',listingPhotoUrl:'https://example.com/invented.jpg'}
+    const input=mode==='batch'?{mode:'batch',items:[fields]}:{mode:'single',...fields,...(mode==='non_item_number'?{itemNumber:undefined,catalogMode:'non_item_number',jewelryType:'NK',collectionFamily:'Birthday'}:{})}
+    const result=await tool.execute!(input as any,{} as any) as any
+    expect(result.code).toBe('LABEL_PHOTO_REQUIRED')
+    expect(result.message).toContain('label and a front photo')
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+    expect(state.uploads).toHaveLength(0)
+  })
+
+  it('a label alone cannot use the catalog photo to save',async()=>{
+    state.labelUrl='data:image/png;base64,bGFiZWw='
+    expect(await turn('label-only','Here is the label for NK11312.',state.labelUrl)).toContain('front photo of the jewelry')
+    expect(await turn('label-only-yes','yes')).not.toContain('is on your Dance Floor')
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+    expect(state.uploads).toHaveLength(0)
+  })
+
+  it('one piece photo pair cannot authorize another typed-only batch item',async()=>{
+    await oldPhoto()
+    const workflow=await getActiveTradeBoardIntakeSession(db.client,{repId:REP,conversationId:'piece-chat',nowIso:new Date().toISOString()})
+    const tool=makeAddListingTool({repId:REP,supabase:db.client,conversationId:'piece-chat',runId:'batch-other-piece',activeTradeBoardWorkflow:workflow})
+    const result=await tool.execute!({mode:'batch',items:[{itemNumber:'NK11312'},{itemNumber:'RG16117'}]} as any,{} as any) as any
+    expect(result.code).toBe('LABEL_PHOTO_REQUIRED')
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+  })
+
+  it.each([false,true])('typed details cannot save without a label (jewelry=%s)',async(withJewelry)=>{
+    const reply=await turn('typed-only','Add NK11312, design name Moonlight, collection: July Birthday 2026, standard.',withJewelry?'data:image/png;base64,amV3ZWxyeQ==':undefined)
+    expect(reply).toContain('photo of the Bomb Party label')
+    if(!withJewelry) expect(reply).toContain('front photo of the jewelry')
+    expect(await turn('typed-only-yes','yes')).not.toContain('is on your Dance Floor')
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+    expect(state.uploads).toHaveLength(0)
+    expect(state.model).not.toHaveBeenCalled()
+  })
+
+  it.each([false,true])('typed details then both photos save with label-first=%s',async(labelFirst)=>{
+    const typed=await turn('typed-first','Add NK11312, design name Moonlight, collection: July Birthday 2026, standard.')
+    expect(typed).toContain('photo of the Bomb Party label and a front photo of the jewelry')
+    expect(state.model).not.toHaveBeenCalled()
+    expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
     const jewelry='data:image/png;base64,amV3ZWxyeQ=='
     state.labelUrl='data:image/png;base64,bGFiZWw='
     state.model.mockImplementation(({toolContext}:any)=>{
@@ -159,7 +205,7 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(state.uploads[0].data).toBe(jewelry)
   })
 
-  it.each([false])('saves sequential uploads with label-first=%s',async(labelFirst)=>{
+  it.each([false,true])('saves sequential uploads with label-first=%s',async(labelFirst)=>{
     const jewelry='data:image/png;base64,amV3ZWxyeQ=='
     state.labelUrl='data:image/png;base64,bGFiZWw='
     state.model.mockImplementation(({toolContext}:any)=>{
@@ -186,11 +232,11 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     expect(reply).not.toContain('Send a photo of the jewelry')
     const storedReply=await loadCanonicalHistory(db.client,'piece-chat')
     expect(JSON.stringify(storedReply.at(-1))).not.toContain('That photo is the label')
-    expect(state.model).toHaveBeenCalledTimes(2)
+    expect(state.model).toHaveBeenCalledTimes(1)
     const saved=await turn('paired-yes','yes')
     expect(saved).toContain('is on your Dance Floor')
     expect(saved).not.toMatch(/looping|confirmation step|support report/i)
-    expect(state.model).toHaveBeenCalledTimes(2)
+    expect(state.model).toHaveBeenCalledTimes(1)
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(1)
     expect(state.uploads).toHaveLength(1)
     expect(state.uploads[0].data).toBe(jewelry)

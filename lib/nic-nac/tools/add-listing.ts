@@ -1,3 +1,4 @@
+import { requiredPiecePhotoRequest } from '@/lib/nic-nac/workflows/required-piece-photos'
 // Tool: add_listing — write. Adds one or more pieces to the rep's dance floor.
 // Two modes: single (one item number) and batch (an array of items). Handles
 // NEEDS_FULL_INFO (unknown design) by creating the design first when the rep
@@ -2471,6 +2472,8 @@ async function runSingle(
       source.photos = corrected
     }
   }
+  const photoRequest = requiredPiecePhotoRequest(activeWorkflow?.status === 'active' ? activeWorkflow.photos : [], itemNumber, activeWorkflow?.known.itemNumber)
+  if (photoRequest) return photoRequest
   const mutationIdentity = catalogMutationIdentity({
     toolInput: input,
     workflow: activeWorkflow,
@@ -3453,6 +3456,12 @@ async function runBatch(
     })
   }
 
+  const photoRequest = items.map((item) => requiredPiecePhotoRequest(
+    ctx.activeTradeBoardWorkflow?.status === 'active' ? ctx.activeTradeBoardWorkflow.photos : [],
+    item.itemNumber, ctx.activeTradeBoardWorkflow?.known.itemNumber,
+  )).find(Boolean)
+  if (photoRequest) return photoRequest
+
   const processedItems: Parameters<typeof addListingBatch>[2]['items'] = []
   const sameVariantBatch = batchRepeatsOneItem({ mode: 'batch', items })
   for (const [itemIndex, item] of items.entries()) {
@@ -3801,12 +3810,12 @@ export function makeAddListingTool(ctx: {
   return tool({
     description:
       "Put one or more dancers on the authenticated rep's Dance Floor. Supports one dancer or several at once. " +
-      "Three entry paths are supported: item number, label photo, or item number + label photo. When photos are attached to the conversation, extract the item number and supporting fields from the reveal box via vision before calling — don't ask the rep to type fields you can read off the photo. " +
+      "Every piece requires an uploaded Bomb Party label photo plus a separate jewelry-front photo, in either order. Typed details can fill or confirm fields but never replace either photo. When photos are attached to the conversation, extract the item number and supporting fields from the reveal box via vision before calling — don't ask the rep to type fields you can read off the photo. " +
       "For rings (RG item numbers), capture ringSize before saving. Ring size is usually printed on the box instead of the label; if you cannot read it from a box/details photo, ask the rep for the ring size. " +
       "If the resolved item exists in the jewelry database, pass mode:'single' and itemNumber for one piece, or mode:'batch' and items[] for several pieces at once. " +
       "Every dancer requires the rep's explicit answer to: 'Is this piece a diamond or unicorn?' Pass rarityClassification:'standard' for No, 'diamond' for Diamond, or 'unicorn' for Unicorn. Never infer rarity from a name, description, stone, tag, price, or the word diamond. " +
       "If rarity, size, collection, or the design name are already stored for this piece, pass those stored values and do not ask again. " +
-      "Order does not matter; use photos and facts in whatever order the rep provides them. Only block on unreadable item details or a genuinely unusable jewelry image. Accept clear rep-provided collection, name, stone, material, and ring size instead of requiring proof photos. " +
+      "Order does not matter; use photos and facts in whatever order the rep provides them. Only block on unreadable item details or a genuinely unusable jewelry image. Accept clear rep-provided collection, name, stone, material, and ring size to fill or confirm fields; the label and jewelry photos are still required. " +
       "Label, box, and back-of-card photos can provide details; the saved listing/canonical image must show the jewelry clearly. Boxed display photos for earrings, rings, necklaces, and similar pieces count as jewelry-front photos when the jewelry is centered, close, and clear, even with Bomb Party packaging visible. Do not treat label/details photos as bad jewelry photos; a label/details photo is only a label/details photo, and visible jewelry in that label/details photo does not satisfy the jewelry photo requirement. If the only uploaded image is a label/details or back-of-card photo, ask for the first customer-facing jewelry photo. Do not ask for unboxed, no-packaging, or plain-background retakes. Do not ask for retakes without the box/card or on a plain surface. Select the app-owned workflow photo with selectedPhotoId when available; otherwise use listingPhotoIndex or piecePhotoIndex. Never copy or reuse a raw photo URL from another piece. Ask for another photo only when you cannot tell which attached image is the jewelry-front photo. " +
       "If the item isn't in the Sparkle Suite jewelry database, the tool returns needsAction:'create_design'. Use vision to extract designName and readable metadata, and use clear rep-provided fields. Birthday collection names must include the year. For Birthday boxes like 'Birthday Collection March 2026', use collectionName:'March Birthday 2026' and collectionYear:2026 when clear. The handler uploads the photo from chat automatically. " +
       "If the item exists but has no collection assigned, the tool returns needsAction:'provide_collection' (NEEDS_COLLECTION). Ask the rep for the exact collection name, then retry with collectionName. Do not guess it from vision. " +

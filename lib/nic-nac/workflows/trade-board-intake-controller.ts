@@ -1,3 +1,4 @@
+import { requiredPiecePhotos } from './required-piece-photos'
 import type { NicNacToolIntent } from '@/lib/nic-nac/tools'
 import { pieceNoteList } from '@/lib/nic-nac/piece-task'
 import { mergeTradeBoardKnownFields } from './trade-board-known-fields'
@@ -22,8 +23,8 @@ const WORKFLOW_FIELD_LABELS: Record<string, string> = {
   collectionFamily: 'the collection type',
   ringSize: 'the ring size',
   rarityClassification: 'whether this is standard, diamond, or unicorn',
-  labelDetailsPhoto: 'a readable item-info label or the item number',
-  labelPhotoUnreadable: 'a readable item-info label or the item number',
+  labelDetailsPhoto: 'a readable Bomb Party label photo',
+  labelPhotoUnreadable: 'a readable Bomb Party label photo',
   jewelryPhotoUnusable: 'a clearer customer-facing jewelry photo',
 }
 
@@ -95,9 +96,6 @@ export function computeTradeBoardIntakeReadiness(
   const blockers: string[] = []
   const known = state.known
   const catalogMode = state.catalogMode ?? 'item_number'
-  const labelDetailsPhoto = state.photos.find(
-    (photo) => photo.declaredRole === 'label_details',
-  )
   const jewelryFrontPhoto = findPublishableJewelryFront(state.photos)
   const blockedLabel = state.photos.find(
     (photo) =>
@@ -117,8 +115,9 @@ export function computeTradeBoardIntakeReadiness(
     if (!known.itemNumber) missing.push('itemNumber')
     if (!known.designName) missing.push('designName')
     if (!known.collectionName) missing.push('collectionName')
-    if (!labelDetailsPhoto && !known.itemNumber) missing.push('labelDetailsPhoto')
+
   }
+  if (!requiredPiecePhotos(state.photos).label) missing.push('labelDetailsPhoto')
   if (!jewelryFrontPhoto) missing.push('jewelryFrontPhoto')
   if (!known.rarityClassification) missing.push('rarityClassification')
   if (
@@ -194,6 +193,7 @@ export function computeTradeBoardAddAttemptReadiness(
   } else if (!known.itemNumber) {
     missing.push('itemNumber')
   }
+  if (!requiredPiecePhotos(state.photos).label) missing.push('labelDetailsPhoto')
   if (!jewelryFrontPhoto) missing.push('jewelryFrontPhoto')
   if (!known.rarityClassification) missing.push('rarityClassification')
   if (
@@ -346,7 +346,7 @@ export function buildTradeBoardIntakePromptState(
       'non-item-number pieces must use controlled jewelry type, collection, and size when applicable',
       'do not create or invent an item number for a non-item-number piece',
       'dance-floor-only vs catalog is Nic-Nac discretion, not a forced path',
-      'catalog and Finder keep jewelry-facing quality; if the rep says the piece is Bomb Party, a good-quality-looking image is enough — do not invent extra proof hurdles',
+      'every dancer requires a Bomb Party label photo plus a separate jewelry-front photo, in either order; typed details may fill fields but never replace either uploaded photo',
       ...(state.metadata.declinedSharedPhoto === true
         ? [
             `The rep said no to the shared photo. Already confirmed: ${
@@ -412,7 +412,7 @@ function inferPhase(state: TradeBoardIntakeSessionState): TradeBoardIntakePhase 
   ) {
     return 'details_capture'
   }
-  if (state.missing.includes('jewelryFrontPhoto')) return 'photo_capture'
+  if (state.missing.includes('labelDetailsPhoto') || state.missing.includes('jewelryFrontPhoto')) return 'photo_capture'
   if (state.known.itemNumber || state.catalogMode === 'non_item_number') {
     return 'ready_to_add'
   }
@@ -450,6 +450,7 @@ function chooseNextAction(args: {
   if (args.blockers.includes('jewelryPhotoUnusable')) {
     return 'ask_for_jewelry_front_photo'
   }
+  if (args.missing.includes('labelDetailsPhoto')) return 'ask_for_label_details_photo'
   if (args.ready) return 'call_add_listing'
   if (args.missing.includes('rarityClassification')) {
     return 'ask_for_rarity_classification'

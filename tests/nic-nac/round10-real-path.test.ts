@@ -160,6 +160,7 @@ function sessionWithoutDesign(): TradeBoardIntakeSessionState {
     warnings: [],
     metadata: {},
     photos: [
+      { id: 'label-proof', attachmentIndex: 99, declaredRole: 'label_details', visualRole: 'label_or_packaging', roleConfirmed: true, quality: 'usable', imageUrl: 'https://example.com/label.jpg', qualityIssues: [], notes: [] },
       {
         id: 'photo-1',
         attachmentIndex: 1,
