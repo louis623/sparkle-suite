@@ -641,7 +641,7 @@ describe('nic-nac scenario regression, runs 2 through 9', () => {
     expect(dashboard).toContain('None yet')
     expect(dashboard).not.toContain('setRecentConversations([])')
     expect(route).toContain("error: 'recent_unavailable'")
-    expect(persistence).toContain('const RECENT_SCAN_CAP = 100')
+    expect(persistence).toContain('const RECENT_ROW_CAP = 800')
     expect(persistence).toContain('const RECENT_CONVERSATION_CAP = 8')
     expect(persistence).not.toContain('.limit(1000)')
   })

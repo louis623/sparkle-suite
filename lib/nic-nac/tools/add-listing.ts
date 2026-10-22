@@ -81,7 +81,10 @@ import {
   pieceNoteList,
   sendPhotoAgainMessage,
 } from '@/lib/nic-nac/piece-task'
-import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
+import {
+  fillBlankKnownFromPriorSession,
+  updateTradeBoardIntakeSession,
+} from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
 import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
 import {
@@ -735,6 +738,44 @@ export async function listingPhotoUrlForItemNumber(input: {
       : []
     const url = listingRows[0]?.listing_photo_url?.trim()
     return url || null
+  } catch {
+    return null
+  }
+}
+
+export async function savedListingPhotoFacts(input: {
+  admin: SupabaseClient
+  repId: string
+  itemNumber: string
+}): Promise<{ photoUrl: string; itemNumber: string; designName: string | null } | null> {
+  try {
+    const itemNumber = input.itemNumber.trim().toUpperCase()
+    if (!itemNumber) return null
+    const designs = await input.admin
+      .from('jewelry_designs')
+      .select('id, design_name')
+      .eq('item_number', itemNumber)
+    const designRows = Array.isArray((designs as { data?: unknown }).data)
+      ? ((designs as { data: Array<{ id?: string; design_name?: string | null }> }).data ?? [])
+      : []
+    const ids = designRows
+      .map((row) => (typeof row.id === 'string' ? row.id : ''))
+      .filter(Boolean)
+    if (ids.length === 0) return null
+    const listings = await input.admin
+      .from('trade_listings')
+      .select('listing_photo_url')
+      .eq('rep_id', input.repId)
+      .in('design_id', ids)
+      .neq('status', 'removed')
+      .limit(1)
+    const listingRows = Array.isArray((listings as { data?: unknown }).data)
+      ? ((listings as { data: Array<{ listing_photo_url?: string }> }).data ?? [])
+      : []
+    const photoUrl = listingRows[0]?.listing_photo_url?.trim()
+    if (!photoUrl) return null
+    const designName = designRows.find((row) => row.design_name?.trim())?.design_name?.trim() || null
+    return { photoUrl, itemNumber, designName }
   } catch {
     return null
   }
@@ -1631,6 +1672,16 @@ function workflowOwnedListingPhotoUrl(input: {
   return matchesAcceptedJewelry ? listingPhotoUrl : undefined
 }
 
+export function originalUploadUrl(processed: {
+  photoUrl?: string | null
+  originalPhotoUrl?: string | null
+} | null | undefined): string | undefined {
+  const original = processed?.originalPhotoUrl?.trim()
+  if (original) return original
+  const photo = processed?.photoUrl?.trim()
+  return photo || undefined
+}
+
 export async function processListingPhotoForAdd(input: {
   listingPhotoUrl?: string
   listingPhotoIndex?: number
@@ -1700,15 +1751,15 @@ export async function processListingPhotoForAdd(input: {
       ),
     })
     try {
-      return (
+      return originalUploadUrl(
         await processRepListingPhotoUrl(
           {
             ...listingPhotoProcessInput,
             sourceImageUrl: boundPhoto.imageUrl,
           },
           { confirmedJewelryFront: true },
-        )
-      ).photoUrl
+        ),
+      )
     } catch (err) {
       explainServiceError(err)
     }
@@ -1726,15 +1777,15 @@ export async function processListingPhotoForAdd(input: {
       ),
     })
     try {
-      return (
+      return originalUploadUrl(
         await processRepListingPhotoUrl(
           {
             ...listingPhotoProcessInput,
             sourceImageUrl: numberedPiecePhotoUrl,
           },
           { confirmedJewelryFront: true },
-        )
-      ).photoUrl
+        ),
+      )
     } catch (err) {
       explainServiceError(err)
     }
@@ -1760,15 +1811,15 @@ export async function processListingPhotoForAdd(input: {
       ),
     })
     try {
-      return (
+      return originalUploadUrl(
         await processRepListingPhotoUrl(
           {
             ...listingPhotoProcessInput,
             sourceImageUrl: workflowPhotoUrl,
           },
           { confirmedJewelryFront: true },
-        )
-      ).photoUrl
+        ),
+      )
     } catch (err) {
       explainServiceError(err)
     }
@@ -1800,7 +1851,7 @@ export async function processListingPhotoForAdd(input: {
               confirmedJewelryFront: true,
             })
           : await processRepListingPhotoUrl(processInput)
-      return processed.photoUrl
+      return originalUploadUrl(processed)
     } catch (err) {
       explainServiceError(err)
     }
@@ -1865,7 +1916,7 @@ export async function processListingPhotoForAdd(input: {
           confirmedJewelryFront: true,
         })
       : await processRepListingPhotoUrl(processInput)
-    return processed.photoUrl
+    return originalUploadUrl(processed)
   } catch (err) {
     explainServiceError(err)
   }
@@ -3658,7 +3709,11 @@ export async function commitPreviewedAddListing(args: {
   previewPhotoId: string
 }) {
   const admin = createAdminClient()
-  const known = args.workflow.status === 'active' ? args.workflow.known : {}
+  const workflow =
+    args.workflow.status === 'active'
+      ? await fillBlankKnownFromPriorSession(args.supabase, args.workflow)
+      : args.workflow
+  const known = workflow.status === 'active' ? workflow.known : {}
   return runSingle(
     {
       mode: 'single',
@@ -3679,7 +3734,7 @@ export async function commitPreviewedAddListing(args: {
       conversationId: args.conversationId,
       runId: `preview-yes-${args.previewPhotoId}`,
       supabase: args.supabase,
-      activeTradeBoardWorkflow: args.workflow,
+      activeTradeBoardWorkflow: workflow,
       latestUserText: args.latestUserText,
       latestUserHasImage: false,
     },

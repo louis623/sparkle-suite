@@ -7,6 +7,7 @@
 //      status='aborted'. Final flush preserves whatever was checkpointed.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { messageCreatedAt } from '@/lib/nic-nac/message-order'
 import type { UIMessage } from 'ai'
 import { isTradeRequestCardPart } from '@/lib/nic-nac/trade-request-card-parts'
 import {
@@ -83,7 +84,7 @@ export async function getLatestConversationId(
 }
 
 const RECENT_PAGE = 100
-const RECENT_SCAN_CAP = 100
+const RECENT_ROW_CAP = 800
 const RECENT_CONVERSATION_CAP = 8
 
 async function earliestUserLines(
@@ -118,7 +119,11 @@ export async function listRecentNicNacConversations(
 ): Promise<RecentConversationSummary[]> {
   const discovered: Array<{ id: string; latestAt: string }> = []
   const seen = new Set<string>()
-  for (let offset = 0; offset < RECENT_SCAN_CAP; offset += RECENT_PAGE) {
+  for (
+    let offset = 0;
+    offset < RECENT_ROW_CAP && discovered.length < RECENT_CONVERSATION_CAP;
+    offset += RECENT_PAGE
+  ) {
     const { data, error } = await supabase
       .from('nic_nac_conversations')
       .select('conversation_id, created_at')
@@ -298,14 +303,18 @@ export async function insertConversationMessages(
 ): Promise<void> {
   if (args.messages.length === 0) return
   const { error } = await supabase.from('nic_nac_conversations').insert(
-    args.messages.map((message) => ({
-      conversation_id: args.conversationId,
-      message_id: message.id,
-      rep_id: args.repId,
-      role: message.role,
-      parts: message.parts ?? [],
-      status: 'complete',
-    })),
+    args.messages.map((message, index) => {
+      const createdAt = messageCreatedAt(message)
+      return {
+        conversation_id: args.conversationId,
+        message_id: message.id,
+        rep_id: args.repId,
+        role: message.role,
+        parts: message.parts ?? [],
+        status: 'complete',
+        created_at: createdAt ?? new Date(Date.now() + index).toISOString(),
+      }
+    }),
   )
   if (error) throw error
 }

@@ -814,13 +814,22 @@ export default function NicNacClient({
     if (!conversationId) return null
     return new DefaultChatTransport({
       api: '/api/nic-nac',
-      prepareSendMessagesRequest: ({ messages }) => ({
-        body: {
-          conversationId,
-          messages: prepareNicNacSendMessages(messages),
-          mode: isRequiredSetupMode ? 'required_setup' : 'workspace',
-        },
-      }),
+      prepareSendMessagesRequest: ({ messages, trigger, messageId }) => {
+        const named = messages.find(
+          (message) => message.id === messageId && message.role === 'user',
+        )
+        const latestUser = [...messages].reverse().find((message) => message.role === 'user')
+        const submitted =
+          trigger === 'submit-message' ? named ?? (messageId ? null : latestUser) : null
+        return {
+          body: {
+            conversationId,
+            messages: prepareNicNacSendMessages(messages),
+            mode: isRequiredSetupMode ? 'required_setup' : 'workspace',
+            ...(submitted ? { submittedMessageId: submitted.id } : {}),
+          },
+        }
+      },
     })
   }, [conversationId, isRequiredSetupMode])
 

@@ -8,6 +8,7 @@ import {
   type FileUIPart,
   type UIMessage,
 } from 'ai'
+import { sortMessagesByCreatedAt } from '@/lib/nic-nac/message-order'
 import { mainPhotoPreviewSrc } from '@/lib/nic-nac/workflows/main-photo-preview'
 import { MOVED_ON_MESSAGE } from '@/lib/nic-nac/piece-task'
 import { Bubble } from './Bubble'
@@ -142,6 +143,7 @@ export type AssistantMessageRenderable =
 
 export function buildAssistantMessageRenderables(
   parts: readonly unknown[],
+  options?: { readOnly?: boolean },
 ): AssistantMessageRenderable[] {
   const renderables: AssistantMessageRenderable[] = []
   let textBuffer = ''
@@ -195,6 +197,15 @@ export function buildAssistantMessageRenderables(
       output?.needsAction === 'confirm_main_photo' ||
       (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM' &&
         Boolean(output.previewImageUrl?.trim() || output.previewPhotoId?.trim()))
+    if (options?.readOnly && showsMainPhoto) {
+      flushText(`text-${index}`)
+      renderables.push({
+        type: 'text',
+        key: `moved-on-${index}`,
+        text: MOVED_ON_MESSAGE,
+      })
+      return
+    }
     if (isToolResult && showsMainPhoto && !movedOn) {
       flushText(`text-${index}`)
       const imageUrl = mainPhotoPreviewSrc(output)
@@ -214,7 +225,15 @@ export function buildAssistantMessageRenderables(
   const lastPreview = renderables.findLastIndex(
     (item) => item.type === 'main-photo-preview',
   )
-  if (lastPreview === -1) return renderables
+  if (lastPreview === -1) {
+    if (!options?.readOnly) return renderables
+    return renderables.map((item) =>
+      item.type === 'text' &&
+      /reply\s+yes|right main photo|main photo I will save|i(?:'|’)ll add it/i.test(item.text)
+        ? { ...item, text: MOVED_ON_MESSAGE }
+        : item,
+    )
+  }
   const latestPreview = renderables[lastPreview]
   const duplicateWarning =
     latestPreview?.type === 'main-photo-preview' &&
@@ -225,12 +244,19 @@ export function buildAssistantMessageRenderables(
     }
     if (duplicateWarning && item.type === 'text') return []
     if (item.type !== 'text') return [item]
+    if (
+      options?.readOnly &&
+      /reply\s+yes|right main photo|main photo I will save|i(?:'|’)ll add it/i.test(item.text)
+    ) {
+      return [{ ...item, text: MOVED_ON_MESSAGE }]
+    }
     const text = item.text
       .split(/(?<=[.!?])\s+/)
       .filter(
         (sentence) =>
           !/main photo I(?:['’]ll| will) save/i.test(sentence) &&
-          !/\breply yes\b/i.test(sentence),
+          !/\breply yes\b/i.test(sentence) &&
+          !(options?.readOnly && /right main photo/i.test(sentence)),
       )
       .join(' ')
       .trim()
@@ -853,7 +879,7 @@ export function NicNacChatBody({
     <>
       <ChatHistory isStreaming={isStreaming}>
         {!hasMessages ? <EmptyGreeting mode={chatMode} /> : null}
-        {messages.map((m, idx) => {
+        {sortMessagesByCreatedAt(messages).map((m, idx, ordered) => {
           const ts = readCreatedAt(
             m,
             latestPendingUserId,
@@ -879,8 +905,8 @@ export function NicNacChatBody({
               key={m.id}
               message={m}
               timestamp={ts}
-              isFirstInRun={isFirstNicNacInRun(messages, idx)}
-              isStreamingTail={isStreaming && idx === messages.length - 1}
+              isFirstInRun={isFirstNicNacInRun(ordered, idx)}
+              isStreamingTail={isStreaming && idx === ordered.length - 1}
               isThinking={thinkingFor === m.id}
               onApprove={addToolApprovalResponse}
               onTradeRequestDecision={handleTradeRequestReview}
@@ -892,6 +918,7 @@ export function NicNacChatBody({
                   ? actionableApproval.approval
                   : null
               }
+              readOnly={readOnly}
             />
           )
         })}
@@ -1024,6 +1051,7 @@ function AssistantMessage({
   resolvedTradeDecisions,
   tradeDecisionErrors,
   actionableApproval,
+  readOnly = false,
 }: {
   message: UIMessage
   timestamp?: string | number
@@ -1045,9 +1073,10 @@ function AssistantMessage({
   // normalized terminal state from loadConversationForClient) already
   // conveys the outcome.
   actionableApproval: ActionableApproval | null
+  readOnly?: boolean
 }) {
   const parts = message.parts ?? []
-  const renderables = buildAssistantMessageRenderables(parts)
+  const renderables = buildAssistantMessageRenderables(parts, { readOnly })
 
   // Visibility is server-owned: the route emits transient `data-thinking`
   // signals (show / confirm / hide) and the parent threads `isThinking` here.

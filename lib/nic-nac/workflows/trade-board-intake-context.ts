@@ -12,6 +12,7 @@ import {
   extractKnownFieldsFromCatalogToolOutputs,
   extractKnownFieldsFromText,
   mergeTradeBoardKnownFields,
+  rarityFromConversation,
 } from './trade-board-known-fields'
 import { acceptResentProductPhoto } from './jewelry-main-photo'
 import {
@@ -43,6 +44,7 @@ import {
 } from '@/lib/nic-nac/piece-task'
 import {
   createTradeBoardIntakeSession,
+  fillBlankKnownFromPriorSession,
   getActiveTradeBoardIntakeSession,
   readLatestClosedPieceNotes,
   updateTradeBoardIntakeSession,
@@ -424,6 +426,15 @@ export async function ingestLatestTradeBoardIntakeTurn(
     ),
     extractKnownFieldsFromText(latestUserText),
   )
+  const rememberedRarity = rarityFromConversation(args.messages)
+  if (rememberedRarity && !known.rarityClassification) {
+    known = { ...known, rarityClassification: rememberedRarity }
+  }
+  const carried = await fillBlankKnownFromPriorSession(supabase, {
+    ...args.session,
+    known,
+  })
+  known = carried.known
   if (
     repConfirmedPrintedLabelNumber({
       latestUserText,

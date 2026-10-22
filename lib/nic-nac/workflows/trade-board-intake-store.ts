@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { pieceNoteList } from '@/lib/nic-nac/piece-task'
+import { mergeTradeBoardKnownFields } from './trade-board-known-fields'
 import type {
+  TradeBoardIntakeKnownFields,
   TradeBoardIntakePhotoState,
   TradeBoardIntakeSessionState,
 } from './trade-board-intake-types'
@@ -229,6 +231,99 @@ export async function recordTradeBoardIntakeFailure(
         : 'active',
     newlyEscalated: Boolean(row.newly_escalated),
     sameRunReplay: Boolean(row.same_run_replay),
+  }
+}
+
+/**
+ * A replacement photo can open a new pending row. Details the rep already
+ * stored on the earlier row for the same item fill whatever this row left blank.
+ */
+export async function fillBlankKnownFromPriorSession<
+  T extends {
+    id: string
+    repId: string
+    conversationId: string
+    known: TradeBoardIntakeKnownFields
+  },
+>(supabase: SupabaseClient, session: T): Promise<T> {
+  const known = session.known
+  const item = known.itemNumber?.trim().toUpperCase()
+  if (!item) return session
+  if (
+    known.rarityClassification &&
+    known.designName &&
+    known.collectionName &&
+    known.material &&
+    known.mainStone
+  ) {
+    return session
+  }
+  try {
+    const { data, error } = await supabase
+      .from('trade_board_intake_sessions')
+      .select(
+        'rarity_classification, design_name, collection_name, material, main_stone, ring_size, jewelry_type, collection_family',
+      )
+      .eq('rep_id', session.repId)
+      .eq('conversation_id', session.conversationId)
+      .eq('item_number', item)
+      .neq('id', session.id)
+      .order('updated_at', { ascending: false })
+      .limit(5)
+    if (error || !Array.isArray(data)) return session
+    const prior = (data as Array<Record<string, string | null>>).find(
+      (row) => row.rarity_classification || row.design_name || row.collection_name,
+    )
+    if (!prior) return session
+    const priorKnown: TradeBoardIntakeKnownFields = {
+      ...(prior.rarity_classification
+        ? {
+            rarityClassification:
+              prior.rarity_classification as TradeBoardIntakeKnownFields['rarityClassification'],
+          }
+        : {}),
+      ...(prior.design_name ? { designName: prior.design_name } : {}),
+      ...(prior.collection_name ? { collectionName: prior.collection_name } : {}),
+      ...(prior.material ? { material: prior.material } : {}),
+      ...(prior.main_stone ? { mainStone: prior.main_stone } : {}),
+      ...(prior.ring_size ? { ringSize: prior.ring_size } : {}),
+      ...(prior.jewelry_type
+        ? {
+            jewelryType:
+              prior.jewelry_type as TradeBoardIntakeKnownFields['jewelryType'],
+          }
+        : {}),
+      ...(prior.collection_family
+        ? { collectionFamily: prior.collection_family }
+        : {}),
+    }
+    const filled = mergeTradeBoardKnownFields(priorKnown, known)
+    if (
+      filled.rarityClassification === known.rarityClassification &&
+      filled.designName === known.designName &&
+      filled.collectionName === known.collectionName &&
+      filled.material === known.material &&
+      filled.mainStone === known.mainStone &&
+      filled.ringSize === known.ringSize
+    ) {
+      return session
+    }
+    await updateTradeBoardIntakeSession(supabase, {
+      sessionId: session.id,
+      patch: {
+        rarity_classification: filled.rarityClassification ?? null,
+        design_name: filled.designName ?? null,
+        collection_name: filled.collectionName ?? null,
+        material: filled.material ?? null,
+        main_stone: filled.mainStone ?? null,
+        ring_size: filled.ringSize ?? null,
+        jewelry_type: filled.jewelryType ?? null,
+        collection_family: filled.collectionFamily ?? null,
+      },
+    })
+    return { ...session, known: filled }
+  } catch {
+    return session
   }
 }
 

@@ -486,8 +486,8 @@ export function mainPhotoPreviewRefusal(args: {
     photo.quality === 'blocked' ||
     photo.quality === 'warning' ||
     (typeof photo.qualityScore === 'number' && photo.qualityScore < 70)
-  if (cutOff && !blurry && failedQuality) return CUT_OFF_PHOTO_MESSAGE
   if (blurry) return 'That photo is too blurry. Send a clearer photo of the jewelry.'
+  if (cutOff && failedQuality) return CUT_OFF_PHOTO_MESSAGE
   if (failedQuality) {
     return "That photo isn't clear enough. Send a clearer photo of the jewelry."
   }

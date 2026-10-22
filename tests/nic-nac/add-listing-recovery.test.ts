@@ -154,6 +154,7 @@ vi.mock('@/lib/nic-nac/guardian-telemetry', () => ({
 vi.mock('@/lib/nic-nac/workflows/trade-board-intake-store', () => ({
   updateTradeBoardIntakeSession: (...args: unknown[]) =>
     updateTradeBoardIntakeSessionMock(...args),
+  fillBlankKnownFromPriorSession: async <T,>(_supabase: unknown, session: T) => session,
 }))
 
 vi.mock('@/lib/nic-nac/workflows/trade-workflow-store', () => ({

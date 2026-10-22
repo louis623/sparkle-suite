@@ -123,6 +123,30 @@ function messageText(parts: unknown): string {
     .join('\n')
 }
 
+/**
+ * Rarity the rep already said in this chat. A bare "no" only counts when
+ * nothing more specific was said, so refusing a photo does not erase "standard".
+ */
+export function rarityFromConversation(
+  messages: Array<{ role?: string; parts?: unknown }>,
+): TradeBoardIntakeKnownFields['rarityClassification'] | undefined {
+  let bareNo = false
+  let found: TradeBoardIntakeKnownFields['rarityClassification'] | undefined
+  for (const message of messages) {
+    if (message.role !== 'user') continue
+    const text = messageText(message.parts).replace(/\s+/g, ' ').trim()
+    if (!text) continue
+    if (/^\s*no\s*[.!]?\s*$/i.test(text)) {
+      bareNo = true
+      continue
+    }
+    const rarity = extractRarityClassification(text)
+    if (rarity) found = rarity
+    else if (/\bstandard\b/i.test(text)) found = 'standard'
+  }
+  return found ?? (bareNo ? 'standard' : undefined)
+}
+
 function extractRarityClassification(
   text: string,
 ): TradeBoardIntakeKnownFields['rarityClassification'] | undefined {

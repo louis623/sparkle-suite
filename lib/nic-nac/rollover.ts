@@ -265,27 +265,41 @@ export function buildNicNacRolloverMessages(
     !keepClaims &&
     (Boolean(options && 'unfinishedItemNumber' in options) ||
       rolled.length !== tail.length)
-  if (!mentionFreshChat) return rolled
   const details = options?.carriedDetails
-  return [
-    ...rolled,
-    {
-      id: 'rollover-finish-ask',
-      role: 'assistant' as const,
-      parts: [
+  const ordered = mentionFreshChat
+    ? [
+        ...rolled,
         {
-          type: 'text' as const,
-          text: freshChatNotice({
-            itemNumber: options?.unfinishedItemNumber,
-            ringSize: details?.ringSize,
-            rarity: details?.rarity,
-            material: details?.material,
-            mainStone: details?.mainStone,
-            designName: details?.designName,
-            collectionName: details?.collectionName,
-          }),
+          id: 'rollover-finish-ask',
+          role: 'assistant' as const,
+          parts: [
+            {
+              type: 'text' as const,
+              text: freshChatNotice({
+                itemNumber: options?.unfinishedItemNumber,
+                ringSize: details?.ringSize,
+                rarity: details?.rarity,
+                material: details?.material,
+                mainStone: details?.mainStone,
+                designName: details?.designName,
+                collectionName: details?.collectionName,
+              }),
+            },
+          ],
         },
-      ],
+      ]
+    : rolled
+  return stampRolloverOrder(ordered)
+}
+
+/** The fresh-chat notice is strictly newest, so a later yes cannot land on an older reply. */
+function stampRolloverOrder(messages: UIMessage[]): UIMessage[] {
+  const base = Date.now()
+  return messages.map((message, index) => ({
+    ...message,
+    metadata: {
+      ...((message.metadata as Record<string, unknown> | undefined) ?? {}),
+      created_at: new Date(base + index).toISOString(),
     },
-  ]
+  }))
 }

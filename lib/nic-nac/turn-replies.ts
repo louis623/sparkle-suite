@@ -185,6 +185,26 @@ export function directPieceReply(args: {
   if (
     !args.latestUserHasImage &&
     isPositiveConfirmation(text) &&
+    /remove those|remove these|delete those|delete these|want me to remove|listed dance floor items/i.test(
+      previous,
+    )
+  ) {
+    return REMOVAL_NEEDS_ITS_OWN_CONFIRMATION
+  }
+
+  if (
+    args.known?.itemNumber &&
+    /use (?:the )?(?:other|that) piece'?s photo|use [A-Za-z]{0,4}\d{3,}(?:'s)? photo for/i.test(
+      text,
+    )
+  ) {
+    const item = args.known.itemNumber.trim().toUpperCase()
+    return `I'll keep ${item}. I won't use another piece's photo. Send a photo of ${item}.`
+  }
+
+  if (
+    !args.latestUserHasImage &&
+    isPositiveConfirmation(text) &&
     LOST_PHOTO_YES.test(previous)
   ) {
     return sendPhotoAgainMessage(
@@ -210,13 +230,19 @@ const SAVED_PHOTO_DISPUTE =
 export function savedPhotoDisputeReply(args: {
   latestUserText: string
   listingPhotoUrl?: string | null
+  itemNumber?: string | null
+  designName?: string | null
 }): string | null {
   if (!SAVED_PHOTO_DISPUTE.test(args.latestUserText)) return null
   const url = args.listingPhotoUrl?.trim()
   if (!url) {
     return "I checked, and there isn't a saved Dance Floor photo to compare. I didn't change anything."
   }
-  return "I checked the photo saved on your Dance Floor. It is still the photo on that listing, and I didn't change it."
+  const described = [args.itemNumber?.trim(), args.designName?.trim()]
+    .filter((value): value is string => Boolean(value))
+    .join(', ')
+  const which = described ? ` for ${described}` : ''
+  return `I checked the photo saved on your Dance Floor${which}. It is still the original upload on that listing, and I didn't change it.`
 }
 
 type PreviewPart = {
@@ -232,8 +258,13 @@ type PreviewPart = {
 }
 
 function asksToConfirmSave(text: string): boolean {
-  return /reply\s+["“']?yes\b|i(?:'|’)ll add it|i will add it/i.test(text)
+  return /reply\s+["“']?yes\b|i(?:'|’)ll add it|i will add it|right main photo|main photo I will save/i.test(
+    text,
+  )
 }
+
+export const REMOVAL_NEEDS_ITS_OWN_CONFIRMATION =
+  "I won't remove anything from that yes. Name the piece and I'll ask you to confirm that removal."
 
 /** An old chat's reply-yes card cannot save the piece after the chat moved on. */
 export function retireSupersededPreviews<T extends { role?: string; parts?: unknown }>(

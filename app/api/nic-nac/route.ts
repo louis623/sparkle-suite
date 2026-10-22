@@ -70,6 +70,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizeNicNacAssistantParts } from '@/lib/nic-nac/message-normalize'
 import {
   getOrCreateTradeBoardIntakeContext,
+  isPositiveConfirmation,
 } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import { getOrCreateTradeWorkflowContext } from '@/lib/nic-nac/workflows/trade-workflow-context'
 import { getOrCreateCalendarWorkflowContext } from '@/lib/nic-nac/workflows/calendar-workflow-context'
@@ -97,13 +98,17 @@ import { decidePieceClose, statedItemNumber, assistantIsResumingUnfinishedPiece 
 import { NicNacToolError } from '@/lib/nic-nac/errors'
 import {
   commitPreviewedAddListing,
-  listingPhotoUrlForItemNumber,
   repHasListingForItemNumber,
+  savedListingPhotoFacts,
 } from '@/lib/nic-nac/tools/add-listing'
+import { sortMessagesByCreatedAt } from '@/lib/nic-nac/message-order'
 import {
+  confirmationAlreadyUsed,
   shownMainPhotoPreviewId,
   yesCommitsPreviewedPhoto,
 } from '@/lib/nic-nac/workflows/main-photo-save-gate'
+import { rarityFromConversation } from '@/lib/nic-nac/workflows/trade-board-known-fields'
+import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import {
   CUT_OFF_PHOTO_MESSAGE,
   mainPhotoPreviewRefusal,
@@ -129,6 +134,49 @@ interface PostBody {
   conversationId: string
   messages: UIMessage[]
   mode?: 'workspace' | 'required_setup'
+  /** The user message id from the rep's submit. Automatic continuations omit it. */
+  submittedMessageId?: string | null
+}
+
+function messageHasImage(message: UIMessage | undefined): boolean {
+  return (
+    message?.parts?.some(
+      (part) =>
+        (part as { type?: string }).type === 'file' &&
+        (part as { mediaType?: string }).mediaType?.startsWith('image/'),
+    ) ?? false
+  )
+}
+
+/**
+ * A bare yes that the rep did not submit is a replay or a synthesized
+ * confirmation. Drop it before it can be stored or save a preview.
+ */
+function photoHasVisibleDefect(
+  photo: { qualityIssues?: string[]; notes?: string[] } | undefined,
+): boolean {
+  if (!photo) return false
+  if (
+    (photo.qualityIssues ?? []).some(
+      (issue) => issue === 'blur_risk' || issue === SUBJECT_CUT_OFF_ISSUE,
+    )
+  ) {
+    return true
+  }
+  return (photo.notes ?? []).some((note) => /\b(?:cut off|blurry|blur risk)\b/i.test(note))
+}
+
+function dropUnsubmittedConfirmation(
+  messages: UIMessage[],
+  submittedMessageId: string | null,
+): UIMessage[] {
+  const latestUserIndex = messages.findLastIndex((message) => message.role === 'user')
+  if (latestUserIndex < 0) return messages
+  const latest = messages[latestUserIndex]
+  if (!latest || latest.id === submittedMessageId) return messages
+  if (messageHasImage(latest)) return messages
+  if (!isPositiveConfirmation(readTextFromMessage(latest))) return messages
+  return messages.filter((_, index) => index !== latestUserIndex)
 }
 
 function readTextFromMessage(message: UIMessage | undefined): string {
@@ -390,7 +438,18 @@ export async function POST(request: Request) {
     )
   }
 
-  const { conversationId, messages } = body
+  const { conversationId } = body
+  const submittedMessageId = body.submittedMessageId?.trim() || null
+  const messages = dropUnsubmittedConfirmation(
+    sortMessagesByCreatedAt(body.messages),
+    submittedMessageId,
+  )
+  if (messages.length === 0) {
+    return NextResponse.json(
+      { error: 'missing_fields' },
+      { status: 400, headers: responseHeaders },
+    )
+  }
   if (supportScope) {
     try {
       assertOperatorSupportConversationId(conversationId, supportScope)
@@ -797,18 +856,28 @@ export async function POST(request: Request) {
         itemNumber: skipItem,
       })
     }
-    const latestJewelryPhoto = [...(sessionAfter?.photos ?? [])]
+    const isJewelryPhoto = (photo: {
+      declaredRole?: string
+      visualRole?: string
+    }) =>
+      photo.declaredRole !== 'label_details' &&
+      photo.visualRole !== 'label_or_packaging'
+    const latestTurnPhotos = (sessionAfter?.photos ?? []).filter(
+      (photo) => photo.conversationMessageId === latestUserMessage?.id,
+    )
+    const latestJewelryPhoto = [...latestTurnPhotos].reverse().find(isJewelryPhoto)
+    const newestSessionJewelry = [...(sessionAfter?.photos ?? [])]
       .reverse()
-      .find(
-        (photo) =>
-          photo.conversationMessageId === latestUserMessage?.id &&
-          photo.declaredRole !== 'label_details' &&
-          photo.visualRole !== 'label_or_packaging',
-      )
+      .find(isJewelryPhoto)
+    const qualityPhoto =
+      [...latestTurnPhotos].reverse().find(photoHasVisibleDefect) ??
+      (latestUserHasImage && photoHasVisibleDefect(newestSessionJewelry)
+        ? newestSessionJewelry
+        : latestJewelryPhoto)
     const gateRefusal =
-      latestUserHasImage && latestJewelryPhoto
+      latestUserHasImage && qualityPhoto
         ? mainPhotoPreviewRefusal({
-            photo: latestJewelryPhoto,
+            photo: qualityPhoto,
             itemNumber: sessionAfter?.known.itemNumber,
             jewelryType: sessionAfter?.known.jewelryType,
           })
@@ -842,11 +911,11 @@ export async function POST(request: Request) {
       statedItemNumber(latestUserText) ??
       statedItemNumber(sessionAfter?.known.itemNumber ?? '') ??
       statedItemNumber(previousAssistantText)
-    const listingPhotoUrl =
+    const savedPhoto =
       /saved the wrong|wrong image was saved|you saved the wrong|that saved photo|photo you saved/i.test(
         latestUserText,
       ) && disputeItem
-        ? await listingPhotoUrlForItemNumber({
+        ? await savedListingPhotoFacts({
             admin: workflowSupabase,
             repId,
             itemNumber: disputeItem,
@@ -854,10 +923,22 @@ export async function POST(request: Request) {
         : null
     const disputeReply = savedPhotoDisputeReply({
       latestUserText,
-      listingPhotoUrl,
+      listingPhotoUrl: savedPhoto?.photoUrl,
+      itemNumber: savedPhoto?.itemNumber ?? disputeItem,
+      designName: savedPhoto?.designName,
     })
     let directText = gateRefusal || pieceReply || labelReply || disputeReply
     const previewPhotoId = shownMainPhotoPreviewId(messages)
+    const confirmationUsed = confirmationAlreadyUsed({
+      submittedMessageId,
+      previewPhotoId,
+      usedMessageIds: sessionAfter?.metadata.photoConfirmationMessageIds,
+      committedPreviewPhotoId: sessionAfter?.metadata.committedPreviewPhotoId,
+    })
+    if (confirmationUsed && sessionAfter?.status === 'active') {
+      const item = sessionAfter.known.itemNumber || 'This piece'
+      directText = `${item} is on your Dance Floor and available for swaps.`
+    }
     if (
       !directText &&
       sessionAfter?.status === 'active' &&
@@ -866,14 +947,26 @@ export async function POST(request: Request) {
         latestUserHasImage,
         previewPhotoId,
         previousAssistantText,
+        submittedMessageId,
+        latestUserMessageId: latestUserMessage?.id,
       })
     ) {
       try {
+        const remembered = rarityFromConversation(messages)
+        const workflow = remembered && !sessionAfter.known.rarityClassification
+          ? {
+              ...sessionAfter,
+              known: {
+                ...sessionAfter.known,
+                rarityClassification: remembered,
+              },
+            }
+          : sessionAfter
         const committed = await commitPreviewedAddListing({
           repId,
           conversationId,
           supabase: workflowSupabase,
-          workflow: sessionAfter,
+          workflow,
           latestUserText,
           previewPhotoId: previewPhotoId ?? '',
         })
@@ -896,6 +989,27 @@ export async function POST(request: Request) {
             sessionAfter.known.itemNumber ||
             'This piece'
           directText = `${item} is on your Dance Floor and available for swaps.`
+          const used = Array.isArray(sessionAfter.metadata.photoConfirmationMessageIds)
+            ? sessionAfter.metadata.photoConfirmationMessageIds.filter(
+                (id): id is string => typeof id === 'string',
+              )
+            : []
+          if (submittedMessageId && sessionAfter.id) {
+            try {
+              await updateTradeBoardIntakeSession(workflowSupabase, {
+                sessionId: sessionAfter.id,
+                patch: {
+                  metadata: {
+                    ...sessionAfter.metadata,
+                    photoConfirmationMessageIds: [...used, submittedMessageId],
+                    committedPreviewPhotoId: previewPhotoId,
+                  },
+                },
+              })
+            } catch {
+              // The listing is already saved. A later replay still matches the preview id when this write lands.
+            }
+          }
         }
       } catch (err) {
         if (err instanceof NicNacToolError) {
@@ -1169,6 +1283,17 @@ export async function POST(request: Request) {
         ...(latestUserHasImage || typeof storedMismatch === 'string'
           ? {
               correctPhotoBlame: (text: string) => {
+                const genericPhotoLine =
+                  /customer-facing|send a (?:clear |clearer )?photo|isn'?t clear enough|not clear enough|isn'?t a customer-facing/i.test(
+                    text,
+                  )
+                const blameCutOff = photoHasVisibleDefect(blamePhoto) &&
+                  ((blamePhoto?.qualityIssues ?? []).includes(SUBJECT_CUT_OFF_ISSUE) ||
+                    (blamePhoto?.notes ?? []).some((note) => /\bcut off\b/i.test(note)))
+                if (blameCutOff && genericPhotoLine) return CUT_OFF_PHOTO_MESSAGE
+                if (blameBlurry && genericPhotoLine) {
+                  return 'That photo is too blurry. Send a clearer photo of the jewelry.'
+                }
                 const corrected = photoBlameCorrection({
                   text,
                   itemNumber: blameSession?.known.itemNumber,
@@ -1195,7 +1320,9 @@ export async function POST(request: Request) {
                 }
                 if (
                   previewRefusal &&
-                  /reply yes|main photo I will save|still need the customer-facing/i.test(text)
+                  /reply yes|main photo I will save|customer-facing|send a (?:clear |clearer )?photo|isn'?t clear enough|not clear enough/i.test(
+                    text,
+                  )
                 ) {
                   return previewRefusal
                 }
