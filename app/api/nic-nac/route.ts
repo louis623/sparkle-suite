@@ -512,6 +512,16 @@ export async function POST(request: Request) {
     )
   }
 
+  // A retired conversation is read-only before any user, assistant or intake
+  // write, even if a stale tab submits directly instead of using the disabled UI.
+  if (mode === 'workspace' && !supportScope && await findForwardRolloverDestination(
+    createAdminClient(), repId, conversationId,
+  )) {
+    return createNicNacStaticTextStreamResponse({
+      message: MOVED_ON_MESSAGE, messageId: randomUUID(), headers: responseHeaders,
+    })
+  }
+
   const replay = supportScope
     ? {
         dropIds: [] as string[],

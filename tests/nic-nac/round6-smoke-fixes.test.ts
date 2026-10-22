@@ -364,7 +364,7 @@ describe('round 6 old reply-yes card is inactive', () => {
     ])
     const renderables = buildAssistantMessageRenderables(retired[0]?.parts ?? [])
     expect(renderables.some((item) => item.type === 'main-photo-preview')).toBe(false)
-    expect(renderables.map((item) => (item.type === 'text' ? item.text : ''))).toContain(
+    expect(renderables.map((item) => (item.type === 'text' ? item.text : '')).join('\n')).toContain(
       MOVED_ON_MESSAGE,
     )
     expect(JSON.stringify(renderables)).not.toMatch(/reply yes/i)

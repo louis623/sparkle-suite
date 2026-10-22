@@ -334,6 +334,16 @@ describe('round 10 duplicate yes saves without leaking handler text', () => {
   })
 })
 
+it('overlays only the final confirmation sentence in a visible assistant turn',()=>{
+  const parts=[{type:'text',text:"Earlier: reply yes and I'll add it. The design is Moonlight. Is this the right piece to save?"}]
+  const rendered=buildAssistantMessageRenderables(parts,{readOnly:true,overlayMovedOn:true})
+  expect(JSON.stringify(rendered)).toContain("Earlier: reply yes and I'll add it.")
+  expect(JSON.stringify(rendered)).toContain('The design is Moonlight.')
+  expect(JSON.stringify(rendered)).toContain(MOVED_ON_MESSAGE)
+  expect(JSON.stringify(rendered)).not.toContain('Is this the right piece to save?')
+  expect(parts[0].text).toContain('Is this the right piece to save?')
+})
+
 describe('round 10 stored history, photos, replay, and skip', () => {
   it('keeps earlier replies and tool output, and overlays only the last visible line', () => {
     const history = [

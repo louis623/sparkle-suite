@@ -49,15 +49,19 @@ export async function GET(
     getLatestNicNacRunHealth(repId, conversationId),
   ])
   let visible = messages
+  let readOnly = false
   try {
     const movedTo = await findForwardRolloverDestination(
       createAdminClient(),
       repId,
       conversationId,
     )
-    if (movedTo) visible = retireSupersededPreviews(messages)
+    if (movedTo) {
+      visible = retireSupersededPreviews(messages)
+      readOnly = true
+    }
   } catch {
     visible = messages
   }
-  return NextResponse.json({ conversationId, messages: visible, runHealth })
+  return NextResponse.json({ conversationId, messages: visible, runHealth, readOnly })
 }

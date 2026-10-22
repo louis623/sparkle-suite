@@ -11,6 +11,7 @@ import { sendNicNacParts } from '@/lib/nic-nac/client-send'
 import { sortMessagesByCreatedAt } from '@/lib/nic-nac/message-order'
 import { mainPhotoPreviewSrc } from '@/lib/nic-nac/workflows/main-photo-preview'
 import { MOVED_ON_MESSAGE } from '@/lib/nic-nac/piece-task'
+import { asksToConfirmSave, lastVisibleAssistantId, retireLastConfirmationLine } from '@/lib/nic-nac/turn-replies'
 import { Bubble } from './Bubble'
 import { ChatHistory } from './ChatHistory'
 import { EmptyGreeting, type NicNacChatMode } from './EmptyGreeting'
@@ -145,6 +146,15 @@ export function buildAssistantMessageRenderables(
   parts: readonly unknown[],
   options?: { readOnly?: boolean; overlayMovedOn?: boolean },
 ): AssistantMessageRenderable[] {
+  if (options?.overlayMovedOn) {
+    const visible = buildAssistantMessageRenderables(parts, { ...options, overlayMovedOn: false })
+    if (visible.some((item) => item.type === 'text' && item.text.includes(MOVED_ON_MESSAGE))) return visible
+    const target = visible.findLastIndex((item) => item.type === 'main-photo-preview' ||
+      (item.type === 'text' && asksToConfirmSave(item.text)))
+    return visible.map((item, index) => index === target && item.type !== 'data-trade-request-card'
+      ? { type: 'text', key: item.key, text: item.type === 'main-photo-preview' ? MOVED_ON_MESSAGE : retireLastConfirmationLine(item.text) }
+      : item)
+  }
   const renderables: AssistantMessageRenderable[] = []
   let textBuffer = ''
 
@@ -197,15 +207,6 @@ export function buildAssistantMessageRenderables(
       output?.needsAction === 'confirm_main_photo' ||
       (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM' &&
         Boolean(output.previewImageUrl?.trim() || output.previewPhotoId?.trim()))
-    if (options?.overlayMovedOn && showsMainPhoto) {
-      flushText(`text-${index}`)
-      renderables.push({
-        type: 'text',
-        key: `moved-on-${index}`,
-        text: MOVED_ON_MESSAGE,
-      })
-      return
-    }
     if (isToolResult && showsMainPhoto && !movedOn) {
       flushText(`text-${index}`)
       const imageUrl = mainPhotoPreviewSrc(output)
@@ -225,17 +226,7 @@ export function buildAssistantMessageRenderables(
   const lastPreview = renderables.findLastIndex(
     (item) => item.type === 'main-photo-preview',
   )
-  if (lastPreview === -1) {
-    if (!options?.overlayMovedOn) return renderables
-    return renderables.map((item) =>
-      item.type === 'text' &&
-      /reply\s+yes|right main photo|main photo I will save|i(?:'|’)ll add it|right piece to save|is this the right piece/i.test(
-        item.text,
-      )
-        ? { ...item, text: MOVED_ON_MESSAGE }
-        : item,
-    )
-  }
+  if (lastPreview === -1) return renderables
   const latestPreview = renderables[lastPreview]
   const duplicateWarning =
     latestPreview?.type === 'main-photo-preview' &&
@@ -246,22 +237,9 @@ export function buildAssistantMessageRenderables(
     }
     if (duplicateWarning && item.type === 'text') return []
     if (item.type !== 'text') return [item]
-    if (
-      options?.overlayMovedOn &&
-      /reply\s+yes|right main photo|main photo I will save|i(?:'|’)ll add it|right piece to save|is this the right piece/i.test(
-        item.text,
-      )
-    ) {
-      return [{ ...item, text: MOVED_ON_MESSAGE }]
-    }
     const text = item.text
       .split(/(?<=[.!?])\s+/)
-      .filter(
-        (sentence) =>
-          !/main photo I(?:['’]ll| will) save/i.test(sentence) &&
-          !/\breply yes\b/i.test(sentence) &&
-          !(options?.overlayMovedOn && /right (?:main photo|piece)/i.test(sentence)),
-      )
+      .filter((sentence) => !asksToConfirmSave(sentence))
       .join(' ')
       .trim()
     if (!text) return []
@@ -846,9 +824,7 @@ export function NicNacChatBody({
       <ChatHistory isStreaming={isStreaming}>
         {!hasMessages ? <EmptyGreeting mode={chatMode} /> : null}
         {sortMessagesByCreatedAt(messages).map((m, idx, ordered) => {
-          const lastAssistantId = [...ordered]
-            .reverse()
-            .find((message) => message.role === 'assistant')?.id
+          const lastAssistantId = lastVisibleAssistantId(ordered)
           const ts = readCreatedAt(
             m,
             latestPendingUserId,

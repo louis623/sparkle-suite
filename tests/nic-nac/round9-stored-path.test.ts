@@ -96,14 +96,16 @@ describe('round 9 stored details, recent chats, and photo words', () => {
 
   it('counts conversations instead of stopping after 100 rows', async () => {
     let ranges = 0
+    const excluded = new Set<string>()
     const query = {
       select: () => query,
       eq: () => query,
       is: () => query,
+      neq: (_key: string, id: string) => { excluded.add(id); return query },
       order: () => query,
-      range: (start: number) => {
+      range: () => {
         ranges += 1
-        if (start === 0) {
+        if (!excluded.has('burst')) {
           return Promise.resolve({
             data: Array.from({ length: 100 }, () => ({
               conversation_id: 'burst',

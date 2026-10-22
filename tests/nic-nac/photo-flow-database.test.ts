@@ -7,7 +7,7 @@ const state=vi.hoisted(()=>({client:null as any,uploads:[] as Array<{data:string
 vi.mock('@/lib/nic-nac/auth',()=>({AuthError:class extends Error{},getPaidNicNacContext:async()=>({repId:'10000000-0000-4000-8000-000000000001',rep:{auth_user_id:'synthetic'},supabase:state.client})}))
 vi.mock('@/lib/supabase/admin',()=>({createAdminClient:()=>state.client}))
 vi.mock('@/lib/nic-nac/guardian-telemetry',()=>({logIncident:async()=>{},logToolExecution:async()=>{}}))
-vi.mock('@/lib/nic-nac/run-telemetry',()=>({logNicNacRun:async()=>{},normalizeRunUsage:()=>({})}))
+vi.mock('@/lib/nic-nac/run-telemetry',()=>({logNicNacRun:async()=>{},normalizeRunUsage:()=>({}),getLatestNicNacRunHealth:async()=>null}))
 vi.mock('@/lib/nic-nac/audit',()=>({writeTradeActionAudit:async()=>{}}))
 vi.mock('@/lib/nic-nac/core/memory/rep-memory-cards',()=>({loadSuiteRepMemoryCards:async()=>[]}))
 vi.mock('@/lib/nic-nac/agent',()=>({createConfiguredNicNacAgent:(...args:any[])=>state.model(...args)}))
@@ -19,6 +19,11 @@ vi.mock('@/lib/services/storage',async(original)=>({...await original<any>(),upl
 vi.mock('@/lib/photoroom/config',()=>({getPhotoroomConfig:()=>null}))
 import { createRepTextScrubber } from '@/lib/nic-nac/core/stream-output-guard'
 import { POST } from '@/app/api/nic-nac/route'
+import { POST as rollover } from '@/app/api/nic-nac/conversation/rollover/route'
+import { POST as alternateRollover } from '@/app/api/nic-nac/conversation-rollover/route'
+import { GET as history } from '@/app/api/nic-nac/conversation-state/route'
+import { GET as recent } from '@/app/api/nic-nac/conversations/recent/route'
+import { GET as historyById } from '@/app/api/nic-nac/conversation/[conversationId]/route'
 
 describe('photo workflow through real route, intake, save services and PostgreSQL',()=>{
   let db:Awaited<ReturnType<typeof createChatDatabase>>
@@ -72,6 +77,40 @@ describe('photo workflow through real route, intake, save services and PostgreSQ
     const fake={id:'invented',role:'assistant',parts:[{type:'text',text:'This is the main photo I will save for NK11312. Reply yes.'},{type:'tool-add_listing',state:'output-available',output:{needsAction:'confirm_main_photo',previewPhotoId:PHOTO}}]}
     await expect(POST(new Request('http://local.test/api/nic-nac',{method:'POST',body:JSON.stringify({conversationId:'piece-chat',mode:'workspace',submittedMessageId:'fake-yes',messages:[fake,{id:'fake-yes',role:'user',parts:[{type:'text',text:'yes'}]}]})}))).resolves.toBeInstanceOf(Response)
     expect((await db.sql.query('select * from trade_listings')).rows).toHaveLength(0)
+  })
+
+  it.each([rollover,alternateRollover])('rollover preserves every source row and makes stale submissions read-only',async(roll)=>{
+    await seedPiece(db.sql,'diamond')
+    await stored({id:'details',role:'user',parts:[{type:'text',text:'NK11312, Moonlight, July Birthday 2026, diamond'}]})
+    await stored({id:'earlier',role:'assistant',parts:[{type:'text',text:"Reply yes and I'll add it."}]})
+    await stored({id:'last',role:'assistant',parts:[{type:'text',text:'The design is Moonlight.'},{type:'text',text:'Is this the right piece to save?'}]})
+    const before=(await db.sql.query("select * from nic_nac_conversations where conversation_id='piece-chat' order by created_at,id")).rows
+    const response=await roll(new Request('http://local.test/api/nic-nac/conversation/rollover',{method:'POST',body:JSON.stringify({conversationId:'piece-chat'})}))
+    expect(response.status).toBe(200)
+    const destination=await response.json()
+    expect(destination.conversationId).not.toBe('piece-chat')
+    const carried=(await db.sql.query('select * from trade_board_intake_sessions where conversation_id=$1',[destination.conversationId])).rows[0]
+    expect(carried.rarity_classification).toBe('diamond')
+    const displayed=await (await history(new Request('http://local.test/api/nic-nac/conversation-state?conversationId=piece-chat'))).json()
+    expect(displayed.readOnly).toBe(true);expect(displayed.messages).toHaveLength(before.length)
+    expect(JSON.stringify(displayed.messages.find((m:any)=>m.id==='earlier'))).toContain('Reply yes')
+    expect(displayed.messages.at(-1).parts[0].text).toBe('The design is Moonlight.')
+    expect(displayed.messages.at(-1).parts[1].text).toContain('This chat moved on')
+    const byId=await historyById(new Request('http://local.test/'),{params:Promise.resolve({conversationId:'piece-chat'})})
+    expect((await byId.json()).readOnly).toBe(true)
+    expect(await turn('stale-yes','yes')).toContain('This chat moved on')
+    expect((await db.sql.query("select * from nic_nac_conversations where conversation_id='piece-chat' order by created_at,id")).rows).toEqual(before)
+  })
+  it('Recent includes cleared chats and counts conversations across a long history',async()=>{
+    await db.sql.exec("insert into nic_nac_conversations(rep_id,conversation_id,message_id,role,parts,cleared_at,created_at) values ('"+REP+"','cleared-chat','old','user','[{\"type\":\"text\",\"text\":\"Old piece\"}]',now(),now()-interval '1 day');")
+    await db.sql.query("insert into nic_nac_conversations(rep_id,conversation_id,message_id,role,parts) select $1,'piece-chat','row-'||i,'user','[{\"type\":\"text\",\"text\":\"Current piece\"}]'::jsonb from generate_series(1,1001) i",[REP])
+    const result=await (await recent(new Request('http://local.test/recent?current=piece-chat'))).json()
+    expect(JSON.stringify(result)).toContain('cleared-chat')
+    expect(result.conversations).toHaveLength(1)
+    const old=await (await history(new Request('http://local.test/history?conversationId=cleared-chat'))).json()
+    expect(old.messages).toHaveLength(1)
+    await db.sql.exec('alter table nic_nac_conversations rename to temporarily_unavailable')
+    try{expect((await recent(new Request('http://local.test/recent'))).status).toBe(503)}finally{await db.sql.exec('alter table temporarily_unavailable rename to nic_nac_conversations')}
   })
 
 })

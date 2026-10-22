@@ -17,7 +17,7 @@ export async function installIntakeSchema(sql: PGlite) {
     create unique index idx_trade_board_intake_photos_message_attachment on trade_board_intake_photos(session_id,conversation_message_id,attachment_index);
     alter table trade_board_intake_sessions add column catalog_mode text default 'item_number', add column jewelry_type text, add column collection_family text, add column rarity_classification text, add column rarity_confirmed_at timestamptz;
     alter table trade_board_intake_photos add column content_sha256 text, add column visual_role_source text, add column inspected_at timestamptz;
-    create table nic_nac_rollovers(id uuid default gen_random_uuid(),rep_id uuid,source_conversation_id text,destination_conversation_id text,carried_message_count integer,created_at timestamptz default now());
+    create table nic_nac_rollovers(id uuid default gen_random_uuid(),rep_id uuid,source_conversation_id text,destination_conversation_id text,carried_message_count integer,reason text,created_at timestamptz default now());
     create table collections(id uuid primary key default gen_random_uuid(),name text,collection_year integer,type text);
     create table jewelry_designs(id uuid primary key default gen_random_uuid(),item_number text,design_name text,type_prefix text,material text,main_stone text,bp_msrp numeric,canonical_photo_url text,collection_id uuid references collections(id),search_tags text[],rarity_classification text default 'standard',times_listed integer default 0,updated_at timestamptz default now());
     create type listing_status as enum ('available','pending_trade','removed','traded');

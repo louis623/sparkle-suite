@@ -264,9 +264,17 @@ type PreviewPart = {
 }
 
 export function asksToConfirmSave(text: string): boolean {
-  return /reply\s+["“']?yes\b|i(?:'|’)ll add it|i will add it|right main photo|main photo I will save|right piece to save|is this the right piece/i.test(
+  return /reply\s+["“']?yes\b|i(?:'|’)ll add it|i will add it|right main photo|main photo I(?:['’]ll| will) save|right piece to save|is this the right piece/i.test(
     text,
   )
+}
+
+export function retireLastConfirmationLine(text: string): string {
+  if (text.includes(MOVED_ON_MESSAGE)) return text
+  const lines = text.split(/(\n+|(?<=[.!?])[ \t]+)/)
+  const target = lines.findLastIndex(asksToConfirmSave)
+  if (target >= 0) lines[target] = MOVED_ON_MESSAGE
+  return lines.join('')
 }
 
 function visibleAssistantText(parts: unknown): string {
@@ -278,6 +286,16 @@ function visibleAssistantText(parts: unknown): string {
     .filter((part) => part.type === 'text' && typeof part.text === 'string')
     .map((part) => part.text ?? '')
     .join('\n')
+}
+
+export function lastVisibleAssistantId<T extends { id?: string; role?: string; parts?: unknown }>(messages: T[]): string | null {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index]
+    if (message.role !== 'assistant' || !Array.isArray(message.parts)) continue
+    if (visibleAssistantText(message.parts).trim() || message.parts.some((part: PreviewPart) =>
+      part?.output?.needsAction === 'confirm_main_photo')) return message.id ?? null
+  }
+  return null
 }
 
 export const REMOVAL_NEEDS_ITS_OWN_CONFIRMATION =
@@ -303,14 +321,20 @@ export function retireSupersededPreviews<T extends { role?: string; parts?: unkn
   const message = messages[target]
   if (!message || !asksToConfirmSave(visibleAssistantText(message.parts))) return messages
   if (!Array.isArray(message.parts)) return messages
+  // Earlier text parts in the same assistant turn are history too.
+  const pendingIndex = message.parts.findLastIndex((part) => {
+    const record = part as PreviewPart | null
+    return record?.type === 'text' && typeof record.text === 'string' && asksToConfirmSave(record.text)
+  })
   let changed = false
-  const parts = message.parts.map((part) => {
+  const parts = message.parts.map((part, index) => {
+    if (index !== pendingIndex) return part
     if (!part || typeof part !== 'object') return part
     const record = part as PreviewPart
     if (record.type !== 'text' || typeof record.text !== 'string') return part
     if (!asksToConfirmSave(record.text)) return part
     changed = true
-    return { ...record, text: MOVED_ON_MESSAGE }
+    return { ...record, text: retireLastConfirmationLine(record.text) }
   })
   if (!changed) return messages
   const copy = messages.slice()

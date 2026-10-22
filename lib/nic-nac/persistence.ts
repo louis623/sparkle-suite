@@ -18,7 +18,8 @@ import type { TradeRequestStatus } from '@/lib/services/types'
 
 export async function loadCanonicalHistory(
   supabase: SupabaseClient,
-  conversationId: string
+  conversationId: string,
+  options?: { includeCleared?: boolean },
 ): Promise<UIMessage[]> {
   const { data, error } = await supabase
     .from('nic_nac_conversations')
@@ -30,7 +31,7 @@ export async function loadCanonicalHistory(
   // canonical view fed to the model — they'd surface as empty assistant
   // turns. The GET /conversation/[id] route reports them separately for UI
   // visibility; only the model should skip them.
-  if ((data ?? []).some((row) => row.cleared_at)) return []
+  if (!options?.includeCleared && (data ?? []).some((row) => row.cleared_at)) return []
 
   return (data ?? [])
     .filter((row) => row.role === 'user' || row.status === 'complete')
@@ -84,7 +85,6 @@ export async function getLatestConversationId(
 }
 
 const RECENT_PAGE = 100
-const RECENT_ROW_CAP = 800
 const RECENT_CONVERSATION_CAP = 8
 
 async function earliestUserLines(
@@ -98,7 +98,6 @@ async function earliestUserLines(
     .eq('rep_id', repId)
     .eq('conversation_id', conversationId)
     .eq('role', 'user')
-    .is('cleared_at', null)
     .order('created_at', { ascending: true })
     .limit(8)
   if (error) throw error
@@ -120,17 +119,20 @@ export async function listRecentNicNacConversations(
   const discovered: Array<{ id: string; latestAt: string }> = []
   const seen = new Set<string>()
   for (
-    let offset = 0;
-    offset < RECENT_ROW_CAP && discovered.length < RECENT_CONVERSATION_CAP;
-    offset += RECENT_PAGE
+    let pageNumber = 0;
+    pageNumber < RECENT_CONVERSATION_CAP && discovered.length < RECENT_CONVERSATION_CAP;
+    pageNumber += 1
   ) {
-    const { data, error } = await supabase
+    let query = supabase
       .from('nic_nac_conversations')
       .select('conversation_id, created_at')
       .eq('rep_id', repId)
-      .is('cleared_at', null)
+    // Skip already discovered chats rather than exhausting a row cap on one
+    // long chat and incorrectly reporting that no other conversations exist.
+    for (const id of seen) query = query.neq('conversation_id', id)
+    const { data, error } = await query
       .order('created_at', { ascending: false })
-      .range(offset, offset + RECENT_PAGE - 1)
+      .range(0, RECENT_PAGE - 1)
     if (error) throw error
     const page = data ?? []
     for (const row of page) {
@@ -469,7 +471,7 @@ export async function loadConversationForClient(
   supabase: SupabaseClient,
   conversationId: string
 ): Promise<UIMessage[]> {
-  const messages = await loadCanonicalHistory(supabase, conversationId)
+  const messages = await loadCanonicalHistory(supabase, conversationId, { includeCleared: true })
 
   // Collect every approval id that appears in an approval-requested part.
   const pendingApprovalIds: string[] = []

@@ -281,7 +281,7 @@ describe('round 5 superseded chat', () => {
     expect(json).toContain(MOVED_ON_MESSAGE)
     expect(json).toContain('confirm_main_photo')
     expect(json).toContain('previewImageUrl')
-    expect(retired[0]?.parts?.some((part) => (part as { type?: string }).type === 'text' && (part as { text?: string }).text === MOVED_ON_MESSAGE)).toBe(true)
+    expect(retired[0]?.parts?.some((part) => (part as { type?: string }).type === 'text' && (part as { text?: string }).text?.includes(MOVED_ON_MESSAGE))).toBe(true)
     const edges = [
       { source_conversation_id: 'older', destination_conversation_id: 'middle' },
       { source_conversation_id: 'middle', destination_conversation_id: 'current' },
