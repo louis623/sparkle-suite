@@ -1,0 +1,9 @@
+# Carousel Smoke closeout — October 23, 2026
+
+- PR #150 remains open on `cursor/theme-carousel-site-peeks-db80`; GitHub `louis623/sparkle-suite` is code truth. Work used the verified disposable clone `.local/carousel-pr150-20261023`, not the stale parent checkout.
+- Final application `6a9c34c5e527ed656457a8d7a2b712927a0e0820` is READY as `dpl_BxqEvdS87d4Qs6CfpNwLJJwAybsn`; `https://sparkle-suite-smoke.vercel.app` was assigned and verified. Both Live aliases remain on `dpl_G4rJLcrAS5J9EQoZxu7mxmFV1WnE`. No merge or Live approval.
+- Real homepage recordings now show native motion for all ten community themes; home/portfolio share Louis-approved classic Lindsey mountain/aurora/lake media. Kim/Kelly use clean everyday recaptures; Brittany retains native Black Diamond. Pumpkin Pie deliberately preserves its original subtle sunlight, explicitly approved by Louis.
+- Carousels grant 15 seconds of centered visible playback; Pause coordinates motion and advancement. Full site framing, reduced motion, bounded failure/retry, and standalone phone controls are covered.
+- 66 focused tests, lint, type checks, guarded builds, desktop/390px all-slide Smoke playback and independent visual QA passed. Final caption-only revision has separate successful rechecks. Physical iPhone/Safari remains untested.
+- Written evidence: `docs/sparkle-suite/qa/2026-10-23-carousel-self-qa.md` and capture manifest. Louis requested future-skill records: `docs/sparkle-suite/operations/carousel-media-maintenance.md` preserves mappings, commands, source contracts, gates, and pitfalls. Skill packaging is a later step.
+- Next: Louis reviews Smoke `/` and `/portfolio`. Do not interpret that review or this closeout as Live authorization. Notes-only commits after the application SHA do not require another application deploy.

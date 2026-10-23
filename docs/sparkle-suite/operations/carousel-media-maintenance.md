@@ -71,4 +71,4 @@ The publication utility expects the full current set; for a later incremental ad
 
 ## Future skill packaging
 
-Use this runbook, the capture manifest, the final self-QA table, the scripts, and focused tests as the skill's evidence. Keep the skill concise: source/identity intake, safe capture, incremental media publication, playback checks, visual gate, and environment-specific release. Link detailed references instead of copying a long session diary. The skill should make adding an entry routine while refusing ambiguous rep identity, fake motion, missing assets, and unapproved Live deployment.
+Use this runbook, the capture manifest, the final self-QA table, the [rendered motion proofs](../qa/2026-10-23-carousel-motion-proofs/README.md), the scripts, and focused tests as the skill's evidence. Keep the skill concise: source/identity intake, safe capture, incremental media publication, playback checks, visual gate, and environment-specific release. Link detailed references instead of copying a long session diary. The skill should make adding an entry routine while refusing ambiguous rep identity, fake motion, missing assets, and unapproved Live deployment.
