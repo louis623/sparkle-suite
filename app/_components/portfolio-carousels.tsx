@@ -72,7 +72,7 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
       <div className={styles.browserBar}><span aria-hidden="true">● ● ●</span>{windowLabel}</div>
       <div className={styles.mediaWell}>
         {slide.kind === 'site' ? (
-          <CommunityThemeSitePeek theme={slide.theme} title={slide.title} active={active} />
+          <CommunityThemeSitePeek theme={slide.theme} title={slide.title} />
         ) : recording ? (
           <ProductPeekVideo
             poster={recording.poster}
@@ -82,7 +82,9 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
             alt={slide.alt}
             label={slide.title}
             active={active}
+            showControl={active}
             eagerPoster={prioritizePoster}
+            fit="cover"
           />
         ) : null}
       </div>
@@ -101,8 +103,12 @@ function PortfolioCarousel({
   const userMovedRef = useRef(false)
   const programmaticRef = useRef(false)
   const programmaticTimer = useRef(0)
-  const [active, setActive] = useState(0)
+  const visibleRef = useRef(0)
+  const autoplayTimer = useRef(0)
+  const [visible, setVisible] = useState(0)
   const count = carousel.slides.length
+  const countRef = useRef(count)
+  countRef.current = count
 
   function scrollToSlide(index: number, behavior?: ScrollBehavior) {
     const viewport = viewportRef.current
@@ -143,10 +149,15 @@ function PortfolioCarousel({
       })
       return closest
     }
+    const publishVisible = (index: number) => {
+      if (visibleRef.current === index) return
+      visibleRef.current = index
+      setVisible(index)
+    }
     const applyUserScroll = () => {
       const next = nextCarouselIndex(activeRef.current, nearestIndex(), userMovedRef.current)
       activeRef.current = next
-      setActive(next)
+      publishVisible(nearestIndex())
     }
     let frame = 0
     let settleTimer = 0
@@ -157,14 +168,16 @@ function PortfolioCarousel({
       restoreFrame = requestAnimationFrame(() => scrollToSlide(activeRef.current, 'auto'))
     }
     const onScroll = () => {
-      if (programmaticRef.current) return
-      if (!userMovedRef.current) {
-        restoreHeldSlide()
-        return
-      }
       cancelAnimationFrame(frame)
-      window.clearTimeout(settleTimer)
       frame = requestAnimationFrame(() => {
+        // Caption, dots, and the pause control follow the slide that is centered now.
+        publishVisible(nearestIndex())
+        if (programmaticRef.current) return
+        if (!userMovedRef.current) {
+          restoreHeldSlide()
+          return
+        }
+        window.clearTimeout(settleTimer)
         settleTimer = window.setTimeout(applyUserScroll, 80)
       })
     }
@@ -182,12 +195,17 @@ function PortfolioCarousel({
     viewport.addEventListener('touchstart', markUserMoved, { passive: true })
     viewport.addEventListener('scroll', onScroll, { passive: true })
     viewport.addEventListener('scrollend', onScrollEnd)
+    const onVisibility = () => armAutoplay()
+    document.addEventListener('visibilitychange', onVisibility)
+    armAutoplay()
     return () => {
       cancelAnimationFrame(frame)
       cancelAnimationFrame(restoreFrame)
       window.clearTimeout(settleTimer)
       window.clearTimeout(programmaticTimer.current)
+      window.clearInterval(autoplayTimer.current)
       window.removeEventListener('resize', restoreHeldSlide)
+      document.removeEventListener('visibilitychange', onVisibility)
       viewport.removeEventListener('pointerdown', markUserMoved)
       viewport.removeEventListener('wheel', markUserMoved)
       viewport.removeEventListener('touchstart', markUserMoved)
@@ -196,12 +214,24 @@ function PortfolioCarousel({
     }
   }, [])
 
+  function armAutoplay() {
+    window.clearInterval(autoplayTimer.current)
+    if (prefersReducedMotion() || document.hidden) return
+    // Advance on our own clock. A recording ending must not hold the carousel.
+    autoplayTimer.current = window.setInterval(() => {
+      const next = (activeRef.current + 1) % countRef.current
+      activeRef.current = next
+      userMovedRef.current = false
+      scrollToSlide(next)
+    }, 6500)
+  }
+
   function focusSlide(index: number) {
     const next = (index + count) % count
     activeRef.current = next
-    setActive(next)
     userMovedRef.current = false
     scrollToSlide(next)
+    armAutoplay()
     return next
   }
 
@@ -232,16 +262,16 @@ function PortfolioCarousel({
         onKeyDown={(event) => {
           if (event.key === 'ArrowLeft') {
             event.preventDefault()
-            focusSlide(active - 1)
+            focusSlide(visible - 1)
           }
           if (event.key === 'ArrowRight') {
             event.preventDefault()
-            focusSlide(active + 1)
+            focusSlide(visible + 1)
           }
         }}
       >
         <div className={styles.stage}>
-        <button type="button" className={`${styles.carouselButton} ${styles.previousSlide}`} aria-label={`Previous ${carousel.label}`} onClick={() => focusSlide(active - 1)}>
+        <button type="button" className={`${styles.carouselButton} ${styles.previousSlide}`} aria-label={`Previous ${carousel.label}`} onClick={() => focusSlide(visible - 1)}>
           <ChevronLeft size={26} aria-hidden="true" />
         </button>
         <div ref={viewportRef} className={styles.viewport}>
@@ -250,13 +280,13 @@ function PortfolioCarousel({
               key={item.id}
               className={styles.slide}
               data-slide-index={index}
-              data-active={index === active}
+              data-active={index === visible}
             >
-              <SlideFrame slide={item} active={index === active} prioritizePoster={index === 0} />
+              <SlideFrame slide={item} active={index === visible} prioritizePoster={index === 0} />
             </div>
           ))}
         </div>
-        <button type="button" className={`${styles.carouselButton} ${styles.nextSlide}`} aria-label={`Next ${carousel.label}`} onClick={() => focusSlide(active + 1)}>
+        <button type="button" className={`${styles.carouselButton} ${styles.nextSlide}`} aria-label={`Next ${carousel.label}`} onClick={() => focusSlide(visible + 1)}>
           <ChevronRight size={26} aria-hidden="true" />
         </button>
         </div>
@@ -267,7 +297,7 @@ function PortfolioCarousel({
             </div>
           ))}
           {carousel.slides.map((item, index) => (
-            <div key={item.id} className={styles.cardMeta} hidden={index !== active}>
+            <div key={item.id} className={styles.cardMeta} hidden={index !== visible}>
               <SlideCaption slide={item} interactive />
             </div>
           ))}
@@ -278,9 +308,9 @@ function PortfolioCarousel({
           <button
             key={item.id}
             type="button"
-            aria-current={index === active ? 'true' : undefined}
+            aria-current={index === visible ? 'true' : undefined}
             aria-label={`${item.title}, slide ${index + 1} of ${count}`}
-            tabIndex={index === active ? 0 : -1}
+            tabIndex={index === visible ? 0 : -1}
             onClick={() => focusSlide(index)}
             onKeyDown={(event) => {
               if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
@@ -291,8 +321,8 @@ function PortfolioCarousel({
         ))}
       </div>
       <p className={styles.counter} data-count={count}>
-        <span className={styles.srOnly} aria-live="polite">Slide {active + 1} of {count}</span>
-        <span aria-hidden="true">{active + 1} / {count}</span>
+        <span className={styles.srOnly} aria-live="polite">Slide {visible + 1} of {count}</span>
+        <span aria-hidden="true">{visible + 1} / {count}</span>
       </p>
       <Link className={styles.primaryButton} href={sparkleSuiteScheduleBuild.href}>
         {sparkleSuiteScheduleBuild.label} <ArrowRight size={18} aria-hidden="true" />

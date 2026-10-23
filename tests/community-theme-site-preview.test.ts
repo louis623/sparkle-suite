@@ -33,6 +33,9 @@ describe('community theme site previews', () => {
     expect(html).toContain("connect-src 'none'")
     expect(html).not.toContain("return window.SparkleLiveLineup.start({ url:")
     expect(html).not.toContain('Theme preview · Sample content')
+    expect(html).not.toContain('The Dudes Fizzfest')
+    expect(html).not.toContain('Smoke mirror')
+    expect(html).not.toContain("I'm Louis")
   })
 
   it('uses each theme profile inside the same customer homepage', async () => {

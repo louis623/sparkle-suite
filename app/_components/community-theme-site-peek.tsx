@@ -13,14 +13,17 @@ function motionPaused() {
   return reduce || connection?.saveData === true || document.hidden
 }
 
+/** Portfolio passes no motion flag and stays on the full-site still.
+ * The landing "in motion" spot opts in. A live theme document reflows when
+ * its own animation starts, so the carousel must not mount one. */
 export function CommunityThemeSitePeek({
   theme,
   title,
-  active,
+  active = false,
 }: {
   theme: CommunityCarouselThemeId
   title: string
-  active: boolean
+  active?: boolean
 }) {
   const frame = useRef<HTMLIFrameElement>(null)
   const [html, setHtml] = useState<string | null>(() => documents.get(theme) ?? null)
@@ -51,11 +54,11 @@ export function CommunityThemeSitePeek({
   }, [active, theme])
 
   useEffect(() => {
-    if (!html) return
+    if (!active || !html) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
     const sync = () => frame.current?.contentWindow?.postMessage({
       type: 'sparkle-marketing-motion',
-      paused: !active || motionPaused(),
+      paused: motionPaused(),
     }, '*')
     sync()
     document.addEventListener('visibilitychange', sync)
@@ -78,8 +81,7 @@ export function CommunityThemeSitePeek({
   }, [active, ready, theme])
 
   return (
-    <div className={styles.peek} data-community-theme={theme} data-ready={ready ? 'true' : 'false'}>
-      {/* The still is the full customer homepage. It is in the first HTML, before the live frame opens. */}
+    <div className={styles.peek} data-community-theme={theme} data-ready={active && ready ? 'true' : 'false'}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         className={styles.poster}
@@ -88,7 +90,7 @@ export function CommunityThemeSitePeek({
         width={1200}
         height={850}
       />
-      {html ? (
+      {active && html ? (
         <iframe
           ref={frame}
           className={`${styles.frame} ${ready ? styles.ready : styles.loading}`}

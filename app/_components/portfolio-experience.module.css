@@ -78,7 +78,7 @@
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
-  overflow-y: clip;
+  overflow-y: hidden;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
 }
@@ -115,10 +115,11 @@
   aspect-ratio: 1200 / 850;
   overflow: hidden;
   background: #fff;
+  scrollbar-width: none;
 }
 .mediaWell img, .mediaWell video {
-  object-fit: contain;
-  object-position: center;
+  object-fit: cover;
+  object-position: center top;
 }
 .mediaWell > div, .mediaWell > img, .mediaWell > span {
   position: absolute;

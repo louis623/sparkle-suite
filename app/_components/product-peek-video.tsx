@@ -7,9 +7,11 @@ type ProductPeekVideoProps = {
   /** Paint one on-screen still before playback. Other posters stay lazy. */
   eagerPoster?: boolean
   fit?: 'contain' | 'cover'
+  /** Inactive carousel slides keep their recording quiet and show no second control. */
+  showControl?: boolean
 }
 /** Real recordings, loaded only in view. The poster survives blocked playback. */
-export function ProductPeekVideo({ poster, mp4, width, height, alt, label, active = true, eagerPoster = false, fit = 'contain' }: ProductPeekVideoProps) {
+export function ProductPeekVideo({ poster, mp4, width, height, alt, label, active = true, eagerPoster = false, fit = 'contain', showControl = true }: ProductPeekVideoProps) {
   const container = useRef<HTMLDivElement>(null)
   const video = useRef<HTMLVideoElement>(null)
   const [visible, setVisible] = useState(false)
@@ -47,7 +49,7 @@ export function ProductPeekVideo({ poster, mp4, width, height, alt, label, activ
     aspectRatio: width + '/' + height,
     ...(eagerPoster ? {
       backgroundImage: `url("${poster}")`,
-      backgroundPosition: 'center',
+      backgroundPosition: fit === 'cover' ? 'center top' : 'center',
       backgroundRepeat: 'no-repeat',
       backgroundSize: fit,
     } : {}),
@@ -59,12 +61,12 @@ export function ProductPeekVideo({ poster, mp4, width, height, alt, label, activ
       onPlaying={() => { setPlaying(true); setLoaded(true); setFailed(false) }}
       onPause={() => setPlaying(false)} onError={() => { setPlaying(false); setFailed(true) }}
       disablePictureInPicture /> : null}
-    <button type="button" className={styles.pause} aria-label={(playing ? 'Pause ' : 'Play ') + label + ' animation'}
+    {showControl ? <button type="button" className={styles.pause} aria-label={(playing ? 'Pause ' : 'Play ') + label + ' animation'}
       onClick={() => {
         if (playing) { setPaused(true); return }
         setRequested(true); setPaused(false)
         if (failed && video.current) { video.current.load(); setFailed(false) }
         video.current?.play()?.catch(() => setPlaying(false))
-      }}>{playing ? 'Pause animation' : 'Play animation'}</button>
+      }}>{playing ? 'Pause animation' : 'Play animation'}</button> : null}
   </div>
 }
