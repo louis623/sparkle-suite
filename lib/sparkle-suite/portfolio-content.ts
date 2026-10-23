@@ -68,7 +68,7 @@ const communityThemeSlides = [
   communityThemeSlide({
     id: 'halloween_pumpkin_cat',
     title: 'Pumpkin and Cat',
-    detail: 'A glittering pumpkin night, with a black cat perched on the silver moon.',
+    detail: 'A glittering pumpkin night, with a black cat perched on a jack-o’-lantern.',
   }),
   communityThemeSlide({
     id: 'gilded_autumn',

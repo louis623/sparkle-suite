@@ -67,6 +67,7 @@ The publication utility expects the full current set; for a later incremental ad
 8. **Standalone and carousel control layouts differ.** A below-frame absolute button was clipped on home and overlapped Watch copy. Reserve an in-flow control row for standalone peeks.
 9. **Source subtlety is a decision, not a capture defect.** Pumpkin Pie's owner-approved v4 source has gentle sunlight/bokeh. Independent review found it subtle at phone size; Louis explicitly chose to keep the original sunlight on October 23. Preserve that exception; do not claim a steam/character beat or invent stronger movement.
 10. **Tests can enforce the wrong design.** Earlier assertions required still-only drift. Keep wiring/asset/framing regressions, but make browser playback and visual evidence part of acceptance.
+11. **Review surrounding captions against the actual scene.** The old Cat caption said silver moon even though the cat sits on a jack-o’-lantern. Media correctness does not guarantee that existing slide copy remains correct.
 
 ## Future skill packaging
 
