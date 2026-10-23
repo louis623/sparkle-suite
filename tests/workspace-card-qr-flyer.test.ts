@@ -287,7 +287,7 @@ describe('flyer theme designs', () => {
     }
   })
 
-  it('keeps the Fall Owl head above the QR and the lake once at the bottom', async () => {
+  it('places the approved Fall Owl above the QR with the lake once at the bottom', async () => {
     const record = flyerThemeRecord('fall_owl_harvest_moon')
     expect(record.status).toBe('art')
     expect(record.source).toBe('public/amethyst/skins/fall-owl/hero-poster.webp')
@@ -298,40 +298,38 @@ describe('flyer theme designs', () => {
     expect(meta.height).toBe(1920)
     expect(meta.format).toBe('webp')
 
-    // portrait.jpg scaled by scripts/card-qr/plate-sources/fall-owl/compose.py.
-    // The landscape hero cannot be cropped into this frame.
-    const plate = await sharp(platePath).removeAlpha().raw().toBuffer({ resolveWithObject: true })
-    const { data, info } = plate
-    const rowStats = (y: number) => {
-      let gold = 0
-      let sum = 0
-      let sumSq = 0
-      for (let x = 0; x < info.width; x += 1) {
-        const index = (y * info.width + x) * info.channels
-        const red = data[index] ?? 0
-        const green = data[index + 1] ?? 0
-        const blue = data[index + 2] ?? 0
-        const lum = (red + green + blue) / 3
-        sum += lum
-        sumSq += lum * lum
-        if (red > 170 && green > 110 && red > blue + 30) gold += 1
+    // scripts/card-qr/plate-sources/fall-owl/compose.py
+    const owlBox = { left: 400, top: 0, right: 1280, bottom: 480 }
+    const owlWidth = 530
+    const owlX = 534
+    const owlY = 8
+    const scale = owlWidth / (owlBox.right - owlBox.left)
+    const meanError = async (box: { left: number; top: number; width: number; height: number }, mapped: { left: number; top: number; width: number; height: number }) => {
+      const source = await sharp(record.source as string).extract(box).removeAlpha().raw().toBuffer()
+      const placed = await sharp(platePath)
+        .extract(mapped)
+        .resize(box.width, box.height)
+        .removeAlpha()
+        .raw()
+        .toBuffer()
+      let error = 0
+      for (let index = 0; index < source.length; index += 1) {
+        error += Math.abs((source[index] ?? 0) - (placed[index] ?? 0))
       }
-      const mean = sum / info.width
-      return { std: Math.sqrt(Math.max(0, sumSq / info.width - mean * mean)), gold: gold / info.width }
+      return error / source.length
     }
-    let upperGold = 0
-    let upperRows = 0
-    let lastSubject = 0
-    for (let y = 0; y < 900; y += 1) {
-      const row = rowStats(y)
-      if (row.std > 12) lastSubject = y
-      if (y >= 40 && y < 240 && y % 2 === 0) {
-        upperGold += row.gold
-        upperRows += 1
-      }
-    }
-    expect(upperGold / upperRows).toBeGreaterThan(0.15)
-    expect(lastSubject).toBeGreaterThan(200)
+    const mapOwl = (box: { left: number; top: number; width: number; height: number }) => ({
+      left: Math.round((box.left - owlBox.left) * scale) + owlX,
+      top: Math.round((box.top - owlBox.top) * scale) + owlY,
+      width: Math.round(box.width * scale),
+      height: Math.round(box.height * scale),
+    })
+    const face = { left: 820, top: 70, width: 260, height: 180 }
+    const body = { left: 760, top: 240, width: 280, height: 160 }
+    const faceOnPlate = mapOwl(face)
+    const bodyOnPlate = mapOwl(body)
+    expect(await meanError(face, faceOnPlate)).toBeLessThan(12)
+    expect(await meanError(body, bodyOnPlate)).toBeLessThan(12)
 
     const copy = dudeCopy({ showTitle: 'Bling with Krissi' })
     const parts = await renderCardQrFlyerParts({
@@ -344,21 +342,23 @@ describe('flyer theme designs', () => {
       destinationUrl: QR_URL,
       showQr: true,
     })
-    expect(parts.layout.qr.y).toBeGreaterThan(lastSubject)
+    const panelTop = parts.layout.panel?.y ?? 0
+    expect(faceOnPlate.top + faceOnPlate.height).toBeLessThan(parts.layout.qr.y)
+    expect(bodyOnPlate.top + bodyOnPlate.height).toBeLessThan(panelTop)
+    expect(bodyOnPlate.top).toBeGreaterThan(faceOnPlate.top)
 
-    const meanStd = (top: number, bottom: number) => {
-      let total = 0
-      let rows = 0
-      for (let y = top; y < bottom; y += 8) {
-        total += rowStats(y).std
-        rows += 1
-      }
-      return total / rows
+    const land = { left: 0, top: 430, right: 1100, bottom: 720 }
+    const landScale = 1080 / (land.right - land.left)
+    const landHeight = Math.round((land.bottom - land.top) * landScale)
+    const lake = { left: 200, top: 500, width: 320, height: 140 }
+    const lakeOnPlate = {
+      left: Math.round(lake.left * landScale),
+      top: 1920 - landHeight + Math.round((lake.top - land.top) * landScale),
+      width: Math.round(lake.width * landScale),
+      height: Math.round(lake.height * landScale),
     }
-    const skyStd = meanStd(parts.layout.qr.y, parts.layout.qr.y + parts.layout.qr.height)
-    const lakeStd = meanStd(1600, 1850)
-    expect(skyStd).toBeLessThan(12)
-    expect(lakeStd).toBeGreaterThan(skyStd + 8)
+    expect(lakeOnPlate.top).toBeGreaterThan(1500)
+    expect(await meanError(lake, lakeOnPlate)).toBeLessThan(12)
     await expect(assertFlyerQrDecodes(parts.flyer, QR_URL, parts.layout.qr)).resolves.toBeUndefined()
   })
 
