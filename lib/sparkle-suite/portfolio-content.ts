@@ -1,4 +1,5 @@
 import type { CommunityCarouselThemeId } from '@/lib/sparkle-suite/community-theme-site-preview'
+import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 import { sparkleSuitePublicLandingContent } from '@/lib/sparkle-suite/public-landing-content'
 
 export const sparkleSuiteScheduleBuild = {
@@ -19,24 +20,6 @@ export type PortfolioSlide =
       alt: string
       width: number
       height: number
-      video?: {
-        mp4: string
-        width: number
-        height: number
-      }
-      fixedShowcase?: boolean
-      hero?: {
-        eyebrow?: string
-        headline: string
-        sub: string
-        tone: 'light' | 'ink'
-        font?: 'display' | 'georgia' | 'script'
-        align?: 'start' | 'center'
-        accent?: 'copper'
-        lockup?: 'britt'
-        instruction?: string
-        actions?: readonly string[]
-      }
     }
   | {
       id: CommunityCarouselThemeId
@@ -145,91 +128,44 @@ export const sparkleSuitePortfolioContent = {
       heading: 'Live shows, with the name on the door.',
       body: 'Real Sparkle Suite sites, live right now. Each one is built around its rep’s own look.',
       label: 'Rep highlights',
-      slides: [
-        {
-          id: 'mile-high-fizz',
-          kind: 'capture',
-          title: 'Mile High Fizz',
-          detail: 'A custom look for Mile High Fizz.',
-          href: 'https://milehighfizz.com/',
-          linkLabel: 'milehighfizz.com',
-          src: '/sparkle-suite/portfolio/mile-high-fizz-custom-hero.webp',
-          alt: 'Mile High Fizz custom hero video, with the show name over the live-reveal footage.',
-          width: 1284,
-          height: 716,
-          fixedShowcase: true,
-          video: { mp4: '/mile-high-fizz/hero.mp4', width: 1284, height: 716 },
-          hero: {
-            eyebrow: 'With Lindsey',
-            headline: 'Mile High Fizz',
-            sub: 'Revealing something magical together.',
-            tone: 'light',
-            font: 'script',
-            align: 'center',
+      slides: (['mile-high-fizz', 'britt-with-bling', 'go-for-the-bling', 'sparkly-butterflies'] as const).map((id) => {
+        const recording = portfolioMotion[id]
+        const copy = {
+          'mile-high-fizz': {
+            title: 'Mile High Fizz',
+            detail: 'A custom look for Mile High Fizz.',
+            href: 'https://milehighfizz.com/',
+            linkLabel: 'milehighfizz.com',
           },
-        },
-        {
-          id: 'britt-with-bling',
-          kind: 'capture',
-          title: 'Britt with Bling',
-          detail: 'A custom look for Britt with Bling.',
-          href: 'https://brittwithbling.com/',
-          linkLabel: 'brittwithbling.com',
-          src: '/britt-with-bling/hero.jpeg',
-          alt: 'Britt with Bling custom hero, with the Virtuous Fizzers name and show title on her sparkle background.',
-          width: 1200,
-          height: 675,
-          fixedShowcase: true,
-          hero: {
-            eyebrow: 'The Virtuous Fizzers',
-            headline: 'Britt with Bling',
-            sub: 'Where Faith Meets Fizz & Every Reveal is a VIP Experience.',
-            instruction: 'Place your order and return to the live party to watch your reveal',
-            actions: ['Shop Now', 'Join the Team'],
-            tone: 'light',
-            align: 'center',
-            lockup: 'britt',
+          'britt-with-bling': {
+            title: 'Britt with Bling',
+            detail: 'A custom look for Britt with Bling.',
+            href: 'https://brittwithbling.com/',
+            linkLabel: 'brittwithbling.com',
           },
-        },
-        {
-          id: 'go-for-the-bling',
-          kind: 'capture',
-          title: 'Go for the Bling',
-          detail: 'A custom Gnome Forest look for Go for the Bling.',
-          href: 'https://goforthebling.com/',
-          linkLabel: 'goforthebling.com',
-          src: '/amethyst/skins/gnome-garden/forest.webp',
-          alt: 'Go for the Bling homepage hero on the Gnome Forest theme, with the show headline over the woodland art.',
-          width: 1536,
-          height: 1024,
-          fixedShowcase: true,
-          hero: {
-            headline: 'A little wonder, a lot of sparkle.',
-            sub: 'Settle in for live reveals, friendly faces, and the joy of discovering something you love.',
-            tone: 'light',
-            align: 'center',
+          'go-for-the-bling': {
+            title: 'Go for the Bling',
+            detail: 'A custom Gnome Forest look for Go for the Bling.',
+            href: 'https://goforthebling.com/',
+            linkLabel: 'goforthebling.com',
           },
-        },
-        {
-          id: 'sparkly-butterflies',
-          kind: 'capture',
-          title: 'Sparkly Butterflies',
-          detail: 'A custom Neon Butterfly look for Sparkly Butterflies.',
-          href: 'https://sparklybutterflies.com/',
-          linkLabel: 'sparklybutterflies.com',
-          src: '/amethyst/skins/neon-butterfly/kelly-studio-desktop.webp',
-          alt: 'Sparkly Butterflies homepage hero on the Neon Butterfly theme, with the show headline over the neon studio.',
-          width: 1920,
-          height: 1080,
-          fixedShowcase: true,
-          hero: {
-            headline: 'Your Sparkle Taking Flight',
-            sub: 'Live jewelry reveals, electric color, and a welcoming place to find your next favorite.',
-            tone: 'light',
-            align: 'center',
+          'sparkly-butterflies': {
+            title: 'Sparkly Butterflies',
+            detail: 'A custom Neon Butterfly look for Sparkly Butterflies.',
+            href: 'https://sparklybutterflies.com/',
+            linkLabel: 'sparklybutterflies.com',
           },
-        },
-      ],
+        }[id]
+        return {
+          id,
+          kind: 'capture' as const,
+          ...copy,
+          src: recording.poster,
+          alt: `Recorded website header and complete hero from ${copy.title}`,
+          width: recording.width,
+          height: recording.height,
+        }
+      }),
     },
     {
       id: 'community-themes',

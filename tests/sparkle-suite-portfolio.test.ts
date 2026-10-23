@@ -2,11 +2,8 @@ import { createElement } from 'react'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-vi.mock('next/font/google', () => ({
-  Pacifico: () => ({ variable: '--font-mhf-script', className: 'mile-high-script' }),
-}))
 import { metadata } from '@/app/portfolio/page'
 import { PortfolioExperience } from '@/app/_components/portfolio-experience'
 import { getAmethystAppearancePreset } from '@/lib/amethyst/appearance-presets'
@@ -52,6 +49,8 @@ describe('Sparkle Suite portfolio carousels', () => {
       previous = index
       expect(themeHtml).toContain(`href="/skin-preview/${theme.id}/homepage"`)
       expect(themeHtml).toContain(`data-community-theme="${theme.id}"`)
+      expect(themeHtml).toContain(`/marketing/demo-themes/${theme.id}.webp`)
+      expect(existsSync(publicFile(`/marketing/demo-themes/${theme.id}.webp`))).toBe(true)
       const slide = themes?.slides.find((item) => item.id === theme.id)
       expect(slide?.kind).toBe('site')
       expect(slide && slide.kind === 'site' ? slide.theme : undefined).toBe(theme.id)
@@ -60,8 +59,8 @@ describe('Sparkle Suite portfolio carousels', () => {
       expect(themeHtml).not.toContain('milehighfizz.com')
       expect(themeHtml).not.toContain(`/amethyst/skins/`)
     }
-    expect(themeHtml).not.toContain('Real jewelry. Live reveals. Pure sparkle.')
     expect(themeHtml).not.toContain('Real capture still to come')
+    expect(themeHtml).not.toContain('heroCopy')
     expect(themeHtml).not.toContain('<iframe')
     const previewProfiles = readFileSync(join(process.cwd(), 'lib/amethyst/skin-preview.ts'), 'utf8')
     expect(previewProfiles).toContain("headline: 'A frightfully fun night to sparkle.'")
@@ -81,47 +80,33 @@ describe('Sparkle Suite portfolio carousels', () => {
     expect(repHtml).toContain('Go for the Bling')
     expect(repHtml).toContain('Sparkly Butterflies')
     expect(repHtml).not.toMatch(/BlingKitchen|Bri’s Glowtique|theblingkitchen\.com|brisglowtique\.com/)
-    expect(repHtml).toContain('/sparkle-suite/portfolio/mile-high-fizz-custom-hero.webp')
-    const mileHigh = sparkleSuitePortfolioContent.carousels
-      .find((carousel) => carousel.id === 'rep-highlights')
-      ?.slides.find((slide) => slide.id === 'mile-high-fizz')
-    expect(mileHigh && mileHigh.kind === 'capture' ? mileHigh.video?.mp4 : undefined).toBe('/mile-high-fizz/hero.mp4')
-    expect(repHtml).toContain('With Lindsey')
-    expect(repHtml).toContain('Revealing something magical together.')
-    expect(repHtml.includes('/britt-with-bling/hero.jpeg')
-      || repHtml.includes(encodeURIComponent('/britt-with-bling/hero.jpeg'))).toBe(true)
-    expect(repHtml).not.toContain('halloween-pumpkin-cat')
-    expect(repHtml).not.toContain('britt-with-bling-custom-hero.webp')
-    expect(repHtml).toContain('The Virtuous Fizzers')
-    expect(repHtml).toContain('Where Faith Meets Fizz')
-    expect(repHtml).toContain('Shop Now')
-    expect(repHtml).toContain('Join the Team')
+    for (const id of repIds) {
+      const recording = portfolioMotion[id]
+      expect(recording).toBeTruthy()
+      expect(repHtml).toContain(recording.poster)
+      expect(existsSync(publicFile(recording.poster))).toBe(true)
+      expect(existsSync(publicFile(recording.mp4))).toBe(true)
+    }
+    expect(repHtml).toContain('milehighfizz.com')
+    expect(repHtml).toContain('brittwithbling.com')
+    expect(repHtml).toContain('goforthebling.com')
+    expect(repHtml).toContain('sparklybutterflies.com')
+    expect(repHtml).not.toContain('With Lindsey')
+    expect(repHtml).not.toContain('Revealing something magical together.')
+    expect(repHtml).not.toContain('The Virtuous Fizzers')
+    expect(repHtml).not.toContain('Where Faith Meets Fizz')
+    expect(repHtml).not.toContain('Shop Now')
+    expect(repHtml).not.toContain('Join the Team')
+    expect(repHtml).not.toContain('A little wonder, a lot of sparkle.')
+    expect(repHtml).not.toContain('Your Sparkle Taking Flight')
+    expect(repHtml).not.toContain('heroCopy')
+    expect(repHtml).not.toContain('/mile-high-fizz/hero.mp4')
+    expect(repHtml).not.toContain('mile-high-fizz-custom-hero.webp')
+    expect(repHtml).not.toContain('/britt-with-bling/hero.jpeg')
+    expect(repHtml).not.toContain('/amethyst/skins/gnome-garden/forest.webp')
+    expect(repHtml).not.toContain('/amethyst/skins/neon-butterfly/kelly-studio-desktop.webp')
     expect(repHtml).not.toContain('Dance Floor · Coming soon')
     expect(repHtml).not.toContain('Coming soon')
-    expect(repHtml).not.toContain('mile-high-fizz-site-preview')
-    expect(repHtml).not.toContain('britt-with-bling-site-preview')
-    expect(repHtml).not.toContain('go-for-the-bling-site-preview')
-    expect(repHtml).not.toContain('sparkly-butterflies-site-preview')
-    expect(repHtml).toContain('A little wonder, a lot of sparkle.')
-    expect(repHtml).toContain('Your Sparkle Taking Flight')
-    for (const plate of [
-      '/amethyst/skins/gnome-garden/forest.webp',
-      '/amethyst/skins/neon-butterfly/kelly-studio-desktop.webp',
-    ]) {
-      expect(repHtml.includes(plate) || repHtml.includes(encodeURIComponent(plate))).toBe(true)
-      expect(existsSync(publicFile(plate))).toBe(true)
-    }
-    for (const id of ['go-for-the-bling', 'sparkly-butterflies'] as const) {
-      const slide = sparkleSuitePortfolioContent.carousels
-        .find((carousel) => carousel.id === 'rep-highlights')
-        ?.slides.find((item) => item.id === id)
-      expect(slide && slide.kind === 'capture' ? slide.fixedShowcase : undefined).toBe(true)
-      expect(slide && slide.kind === 'capture' ? slide.video : undefined).toBeUndefined()
-      expect(portfolioMotion[id]).toBeTruthy()
-    }
-    expect(existsSync(publicFile('/sparkle-suite/portfolio/mile-high-fizz-custom-hero.webp'))).toBe(true)
-    expect(existsSync(publicFile('/mile-high-fizz/hero.mp4'))).toBe(true)
-    expect(existsSync(publicFile('/britt-with-bling/hero.jpeg'))).toBe(true)
     expect(portfolioMotion['mile-high-fizz']).toBeTruthy()
     expect(portfolioMotion['britt-with-bling']).toBeTruthy()
     expect(portfolioMotion['blingkitchen']).toBeUndefined()
@@ -136,7 +121,7 @@ describe('Sparkle Suite portfolio carousels', () => {
     }
     const repPosters = [...repHtml.matchAll(/<img\b[^>]*>/g)].map((match) => match[0])
     expect(repPosters).toHaveLength(4)
-    expect(repPosters[0]).toContain('mile-high-fizz-custom-hero.webp')
+    expect(repPosters[0]).toContain('mile-high-fizz-site-preview.webp')
     expect(repPosters[0]).toContain('loading="eager"')
     expect(repPosters[0]).toMatch(/fetchpriority="high"/i)
     for (const poster of repPosters.slice(1)) {
@@ -165,8 +150,8 @@ describe('Sparkle Suite portfolio carousels', () => {
     const videoCss = readFileSync(join(process.cwd(), 'app/_components/product-peek-video.module.css'), 'utf8')
     const phoneControls = css.slice(css.indexOf('@media (max-width: 800px)'))
     const phoneHero = css.slice(css.indexOf('@media (max-width: 700px)'), css.indexOf('@media (max-width: 800px)'))
-    expect(phoneHero).toContain('flex-shrink: 0')
-    expect(phoneHero).not.toMatch(/-webkit-line-clamp|padding:\s*50%|padding:\s*46%/)
+    expect(phoneHero).toContain('.browserBar')
+    expect(phoneHero).not.toMatch(/heroCopy|-webkit-line-clamp|padding:\s*50%|padding:\s*46%/)
     expect(phoneControls).toContain('bottom: 8px')
     expect(phoneControls).not.toMatch(/community-themes|bandBlush|bandPaper/)
     expect(videoCss).toContain('top: calc(100% + 8px)')
@@ -193,11 +178,12 @@ describe('Sparkle Suite portfolio carousels', () => {
   it('uses one shared media frame for every portfolio slide', () => {
     const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
     const carousel = readFileSync(join(process.cwd(), 'app/_components/portfolio-carousels.tsx'), 'utf8')
-    expect(css.match(/aspect-ratio:\s*16\s*\/\s*9/g)).toHaveLength(1)
-    expect(css).toContain('object-fit: cover')
+    expect(css.match(/aspect-ratio:\s*1200\s*\/\s*850/g)).toHaveLength(1)
+    expect(css).toContain('object-fit: contain')
     expect(css).toContain('object-position: center')
+    expect(css).not.toContain('object-fit: cover')
+    expect(css).not.toContain('heroCopy')
     expect(css).not.toMatch(/data-theme|aspect-ratio:\s*var/)
-    expect(carousel.match(/fit="cover"/g)).toHaveLength(1)
-    expect(carousel).not.toMatch(/fit="contain"/)
+    expect(carousel).not.toMatch(/fit="cover"|heroCopy|slide\.hero/)
   })
 })

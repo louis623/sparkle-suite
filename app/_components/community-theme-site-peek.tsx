@@ -25,7 +25,6 @@ export function CommunityThemeSitePeek({
   const frame = useRef<HTMLIFrameElement>(null)
   const [html, setHtml] = useState<string | null>(() => documents.get(theme) ?? null)
   const [ready, setReady] = useState(false)
-  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     if (!active) return
@@ -44,10 +43,9 @@ export function CommunityThemeSitePeek({
         documents.set(theme, result.html)
         result.dispose()
         setHtml(result.html)
-        setFailed(false)
       })
       .catch(() => {
-        if (!controller.signal.aborted) setFailed(true)
+        if (!controller.signal.aborted) setHtml(null)
       })
     return () => controller.abort()
   }, [active, theme])
@@ -70,29 +68,26 @@ export function CommunityThemeSitePeek({
 
   useEffect(() => {
     if (!active || ready) return
-    const timer = window.setTimeout(() => setFailed(true), 20000)
     function receive(event: MessageEvent) {
       const source = frame.current?.contentWindow
       if (!source || event.source !== source || event.data?.type !== 'sparkle-landing-ready' || event.data.theme !== theme) return
-      window.clearTimeout(timer)
       setReady(true)
-      setFailed(false)
     }
     window.addEventListener('message', receive)
-    return () => {
-      window.clearTimeout(timer)
-      window.removeEventListener('message', receive)
-    }
+    return () => window.removeEventListener('message', receive)
   }, [active, ready, theme])
 
   return (
     <div className={styles.peek} data-community-theme={theme} data-ready={ready ? 'true' : 'false'}>
-      <div className={styles.skeleton} aria-hidden="true">
-        <div className={styles.bar} />
-        <div className={styles.line} />
-        <div className={styles.line} />
-        <div className={styles.hero} />
-      </div>
+      {/* The still is the full customer homepage. It is in the first HTML, before the live frame opens. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        className={styles.poster}
+        src={`/marketing/demo-themes/${theme}.webp`}
+        alt={`${title} customer website, from the header through the hero`}
+        width={1200}
+        height={850}
+      />
       {html ? (
         <iframe
           ref={frame}
@@ -104,7 +99,6 @@ export function CommunityThemeSitePeek({
           tabIndex={-1}
         />
       ) : null}
-      {failed && !ready ? <p className={styles.status} role="status">{title} preview is still opening. Use Preview this look.</p> : null}
     </div>
   )
 }

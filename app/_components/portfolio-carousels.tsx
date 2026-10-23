@@ -1,7 +1,5 @@
 'use client'
 
-import { Pacifico } from 'next/font/google'
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -15,8 +13,6 @@ import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 import { CommunityThemeSitePeek } from './community-theme-site-peek'
 import { ProductPeekVideo } from './product-peek-video'
 import styles from './portfolio-experience.module.css'
-
-const mileHighScript = Pacifico({ weight: '400', subsets: ['latin'], variable: '--font-mhf-script' })
 
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -68,68 +64,26 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
     )
   }
 
-  if (slide.kind === 'site') {
-    return (
-      <div className={styles.frame}>
-        <div className={styles.mediaWell}>
-          <CommunityThemeSitePeek theme={slide.theme} title={slide.title} active={active} />
-        </div>
-      </div>
-    )
-  }
-
-  const recording = slide.kind === 'capture' && (slide.video || slide.fixedShowcase)
-    ? undefined
-    : portfolioMotion[slide.id]
-  const video = slide.video ?? (recording
-    ? { mp4: recording.mp4, width: recording.width, height: recording.height }
-    : undefined)
+  const windowLabel = slide.kind === 'capture' ? slide.linkLabel : slide.title
+  const recording = slide.kind === 'capture' ? portfolioMotion[slide.id] : undefined
 
   return (
-    <div className={`${slide.width < 700 ? styles.phoneFrame : styles.frame} ${mileHighScript.variable}`}>
+    <div className={styles.siteWindow}>
+      <div className={styles.browserBar}><span aria-hidden="true">● ● ●</span>{windowLabel}</div>
       <div className={styles.mediaWell}>
-        {video ? (
+        {slide.kind === 'site' ? (
+          <CommunityThemeSitePeek theme={slide.theme} title={slide.title} active={active} />
+        ) : recording ? (
           <ProductPeekVideo
-            poster={recording?.poster ?? slide.src}
-            mp4={video.mp4}
-            width={video.width}
-            height={video.height}
-            alt={recording ? `Recorded website header and complete hero from ${slide.title}` : slide.alt}
+            poster={recording.poster}
+            mp4={recording.mp4}
+            width={recording.width}
+            height={recording.height}
+            alt={slide.alt}
             label={slide.title}
             active={active}
             eagerPoster={prioritizePoster}
-            fit="cover"
           />
-        ) : (
-          <Image
-            src={slide.src}
-            alt={slide.alt}
-            width={slide.width}
-            height={slide.height}
-            sizes="(max-width: 700px) 86vw, 860px"
-          />
-        )}
-        {slide.hero ? (
-          <div
-            className={styles.heroCopy}
-            data-tone={slide.hero.tone}
-            data-font={slide.hero.font ?? 'display'}
-            data-align={slide.hero.align ?? 'start'}
-            data-accent={slide.hero.accent}
-            data-lockup={slide.hero.lockup}
-          >
-            {slide.hero.eyebrow ? <p>{slide.hero.eyebrow}</p> : null}
-            <strong>{slide.hero.headline}</strong>
-            <span>{slide.hero.sub}</span>
-            {slide.hero.instruction ? <em>{slide.hero.instruction}</em> : null}
-            {slide.hero.actions?.length ? (
-              <div className={styles.heroActions}>
-                {slide.hero.actions.map((action) => (
-                  <div key={action} className={styles.heroAction}>{action}</div>
-                ))}
-              </div>
-            ) : null}
-          </div>
         ) : null}
       </div>
     </div>

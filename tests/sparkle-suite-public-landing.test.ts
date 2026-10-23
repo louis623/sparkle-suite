@@ -103,6 +103,7 @@ describe('Sparkle Suite public landing page', () => {
     const html = renderLanding()
     const watch = html.slice(html.indexOf('id="watch"'), html.indexOf('id="pricing"'))
     expect(watch).toContain('data-community-theme="halloween_pumpkin_witch"')
+    expect(watch).toContain('/marketing/demo-themes/halloween_pumpkin_witch.webp')
     expect(watch).toContain('A real theme, in motion.')
     expect(watch).not.toContain('hero-desktop.webp')
     expect(watch).not.toContain('hero-plate.mp4')
