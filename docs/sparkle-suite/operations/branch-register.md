@@ -22,6 +22,10 @@ guard is `scripts/check-active-branch.mjs`. The primary workbench remains the
 general-purpose Windows workspace. The isolated Google verification worktree
 below is limited to its approved scope.
 
+## October 23 Fall Owl flyer plate Smoke preview
+
+Louis asked for the Fall Owl flyer plate fix on pull request #151, with a Smoke preview and no merge or Live deploy. `cursor/fall-owl-flyer-plate-9b56` is allowlisted for that preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Production deploys and other projects fail closed. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This is a review exception, not a production branch-status change.
+
 ## October 18 payment-first onboarding Smoke preview
 
 Louis approved a Smoke-only payment-first onboarding branch. `cursor/payment-first-onboarding` is allowlisted for that preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Smoke production, the shared Smoke alias, the Live project, and the Live domains fail closed. GitHub's default branch and Vercel's Live production branch stay unchanged. This branch does not stack on pull requests #129 or #130. The payment-link migration is in the branch and is not applied. This is a review exception, not a production branch-status change.
