@@ -1,21 +1,20 @@
 """Compose the Fall Owl flyer plate from the approved landscape hero.
 
-The approved poster is 1280×720 with the owl and harvest moon on the right.
-The QR flyer plate is 1080×1920. A centre cover-crop of that poster keeps the
-middle of the lake and cuts the owl off. This script restages the same pixels:
+The approved poster is 1280×720. The owl's left ear starts near x=640 and the
+harvest moon's bright edge ends near x=1176, so the subject is one span on
+the right, not two pictures. A 9:16 window of the full poster height is only
+405px wide and would cut the ear or the moon.
 
-- Top: the painting from x=300 through the right edge, scaled to the flyer
-  width. That window starts left of the owl, so the owl and moon stay whole.
-- Middle: the lake and hills, enlarged only as atmosphere under the portrait.
-- Bottom: the perch and foreground leaves, so the lower safe band is the branch.
-
-Nothing here is a new owl. Every layer is a crop of
-public/amethyst/skins/fall-owl/hero-poster.webp.
+This plate is that one span (x=620..1200, the full 720px height), scaled
+uniformly to the flyer width and placed at the top. Below it, only the
+poster's own bottom edge — the foreground leaves — is stretched so the
+ground continues. There is no second crop, no mirrored lake, and no seam
+between two copies of the poster.
 """
 
 from pathlib import Path
 
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[4]
 SOURCE = ROOT / 'public/amethyst/skins/fall-owl/hero-poster.webp'
@@ -23,109 +22,46 @@ OUTPUT = ROOT / 'public/amethyst/skins/fall-owl/flyer/plate.webp'
 
 WIDTH = 1080
 HEIGHT = 1920
-# Left of the owl. The bright face begins near x=760 and the pupils near
-# x=798 and x=997; starting at 120 keeps that whole head on the plate and
-# high enough that both eyes sit above the flyer title panel.
-HERO_LEFT = 120
-HERO_TOP = 0
-
-
-def scale_to_width(image, width):
-    height = max(1, round(image.height * width / image.width))
-    return image.resize((width, height), Image.Resampling.LANCZOS)
-
-
-def scale_to_height(image, height):
-    width = max(1, round(image.width * height / image.height))
-    return image.resize((width, height), Image.Resampling.LANCZOS)
-
-
-def cover(image, width, height, anchor='left'):
-    scale = max(width / image.width, height / image.height)
-    resized = image.resize(
-        (max(1, round(image.width * scale)), max(1, round(image.height * scale))),
-        Image.Resampling.LANCZOS,
-    )
-    if anchor == 'right':
-        left = resized.width - width
-    elif anchor == 'centre':
-        left = (resized.width - width) // 2
-    else:
-        left = 0
-    top = max(0, (resized.height - height) // 2)
-    return resized.crop((left, top, left + width, top + height))
-
-
-def fade_mask(size, top=0, bottom=0, left=0, right=0, blur=12):
-    width, height = size
-    mask = Image.new('L', size, 255)
-    pixels = mask.load()
-    for y in range(height):
-        fade_y = 1.0
-        if top and y < top:
-            fade_y = y / top
-        if bottom and y > height - 1 - bottom:
-            fade_y = min(fade_y, (height - 1 - y) / bottom)
-        for x in range(width):
-            fade = fade_y
-            if left and x < left:
-                fade *= x / left
-            if right and x > width - 1 - right:
-                fade *= (width - 1 - x) / right
-            pixels[x, y] = int(max(0, min(255, fade * 255)))
-    return mask.filter(ImageFilter.GaussianBlur(blur))
-
-
-def paste(base, image, xy, **fades):
-    blur = fades.pop('blur', 12)
-    mask = fade_mask(image.size, blur=blur, **fades) if fades else None
-    base.paste(image, xy, mask)
-
-
-def unsharp(image, percent=48, radius=1.1):
-    return image.filter(ImageFilter.UnsharpMask(radius=radius, percent=percent, threshold=2))
+# Right-hand span that holds the ear (x≈640) and the moon (bright edge ≈1176).
+CROP_LEFT = 620
+CROP_RIGHT = 1200
+# How much of the scaled painting's own foreground is used to fill the plate.
+FOREGROUND_ROWS = 140
+JOIN_FADE = 120
 
 
 def compose(source):
-    plum = source.getpixel((24, 28))
-    plate = Image.new('RGB', (WIDTH, HEIGHT), plum)
+    if source.size != (1280, 720):
+        raise SystemExit(f'Expected the approved 1280×720 poster, got {source.size}.')
+    painting = source.crop((CROP_LEFT, 0, CROP_RIGHT, source.height))
+    scaled_height = round(painting.height * WIDTH / painting.width)
+    if scaled_height >= HEIGHT:
+        raise SystemExit(
+            f'Crop {painting.size} already fills the plate; do not cover-crop the owl.'
+        )
+    painting = painting.resize((WIDTH, scaled_height), Image.Resampling.LANCZOS)
+    painting = painting.filter(ImageFilter.UnsharpMask(radius=1.0, percent=28, threshold=3))
 
-    # Atmosphere under the portrait: the lake and hills, not the owl.
-    valley = source.crop((0, 160, 980, 700))
-    valley = cover(valley, WIDTH, 1280, 'left')
-    valley = ImageEnhance.Brightness(valley).enhance(0.86)
-    valley = ImageEnhance.Color(valley).enhance(1.05)
-    valley = valley.filter(ImageFilter.GaussianBlur(1.6))
-    paste(plate, valley, (0, 640), top=180, bottom=40, blur=16)
+    plate = Image.new('RGB', (WIDTH, HEIGHT))
+    plate.paste(painting, (0, 0))
 
-    # Whole owl and moon. Scaled to the flyer width so neither side is cropped.
-    hero = source.crop((HERO_LEFT, 0, source.width, source.height))
-    hero = unsharp(scale_to_width(hero, WIDTH))
-    paste(plate, hero, (0, HERO_TOP), bottom=190, left=12, blur=14)
-
-    # Foreground perch. Same branch and leaves, brought to the bottom safe band.
-    perch = source.crop((160, 500, source.width, source.height))
-    perch = unsharp(scale_to_width(perch, 1460), percent=40, radius=1.0)
-    paste(
-        plate,
-        perch,
-        ((WIDTH - perch.width) // 2, HEIGHT - perch.height + 28),
-        top=170,
-        left=36,
-        right=24,
-        blur=14,
-    )
-
-    # Original corner leaves, since the hero window starts right of them.
-    sprig = unsharp(scale_to_width(source.crop((0, 0, 300, 180)), 480), percent=36, radius=1.0)
-    paste(plate, sprig, (-18, -12), bottom=64, right=110, blur=8)
+    # Same foreground, continued downward. Not another view of the lake.
+    take = min(FOREGROUND_ROWS, painting.height)
+    foreground = painting.crop((0, painting.height - take, WIDTH, painting.height))
+    band_height = HEIGHT - painting.height + JOIN_FADE
+    band = foreground.resize((WIDTH, band_height), Image.Resampling.LANCZOS)
+    mask = Image.new('L', band.size, 255)
+    pixels = mask.load()
+    for y in range(JOIN_FADE):
+        value = int(255 * y / JOIN_FADE)
+        for x in range(WIDTH):
+            pixels[x, y] = value
+    plate.paste(band, (0, painting.height - JOIN_FADE), mask)
     return plate
 
 
 def main():
     source = Image.open(SOURCE).convert('RGB')
-    if source.size != (1280, 720):
-        raise SystemExit(f'Expected the approved 1280×720 poster, got {source.size}.')
     plate = compose(source)
     if plate.size != (WIDTH, HEIGHT):
         raise SystemExit(f'Plate must be {WIDTH}×{HEIGHT}, got {plate.size}.')

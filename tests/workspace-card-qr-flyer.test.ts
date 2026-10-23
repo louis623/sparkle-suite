@@ -298,10 +298,12 @@ describe('flyer theme designs', () => {
     expect(meta.height).toBe(1920)
     expect(meta.format).toBe('webp')
 
-    // scripts/card-qr/plate-sources/fall-owl/compose.py maps poster x=120..1280
-    // across the flyer width. This crop is the approved owl face on that map.
-    const heroLeft = 120
-    const scale = 1080 / (1280 - heroLeft)
+    // scripts/card-qr/plate-sources/fall-owl/compose.py uses one poster span,
+    // x=620..1200, scaled uniformly onto the flyer width. The face and the
+    // moon both sit in that span, in the upper frame.
+    const cropLeft = 620
+    const cropRight = 1200
+    const scale = 1080 / (cropRight - cropLeft)
     const face = { left: 900, top: 140, width: 200, height: 160 }
     const sourceFace = await sharp(record.source as string)
       .extract(face)
@@ -310,7 +312,7 @@ describe('flyer theme designs', () => {
       .toBuffer()
     const plateFace = await sharp(platePath)
       .extract({
-        left: Math.round((face.left - heroLeft) * scale),
+        left: Math.round((face.left - cropLeft) * scale),
         top: Math.round(face.top * scale),
         width: Math.round(face.width * scale),
         height: Math.round(face.height * scale),
@@ -325,8 +327,42 @@ describe('flyer theme designs', () => {
     }
     expect(error / sourceFace.length).toBeLessThan(12)
 
+    // The landscape under the owl is that same span, once. A second pasted
+    // lake in this band would not match the poster.
+    const ground = { left: 780, top: 480, width: 200, height: 80 }
+    const sourceGround = await sharp(record.source as string)
+      .extract(ground)
+      .removeAlpha()
+      .raw()
+      .toBuffer()
+    const plateGround = await sharp(platePath)
+      .extract({
+        left: Math.round((ground.left - cropLeft) * scale),
+        top: Math.round(ground.top * scale),
+        width: Math.round(ground.width * scale),
+        height: Math.round(ground.height * scale),
+      })
+      .resize(ground.width, ground.height)
+      .removeAlpha()
+      .raw()
+      .toBuffer()
+    let groundError = 0
+    for (let index = 0; index < sourceGround.length; index += 1) {
+      groundError += Math.abs((sourceGround[index] ?? 0) - (plateGround[index] ?? 0))
+    }
+    expect(groundError / sourceGround.length).toBeLessThan(12)
+
+    const moonSource = { left: 1000, top: 30, width: 150, height: 110 }
+    const moonBox = {
+      left: Math.round((moonSource.left - cropLeft) * scale),
+      top: Math.round(moonSource.top * scale),
+      width: Math.round(moonSource.width * scale),
+      height: Math.round(moonSource.height * scale),
+    }
+    expect(moonBox.top).toBeLessThan(200)
+    expect(Math.round(face.top * scale)).toBeLessThan(400)
     const moon = await sharp(platePath)
-      .extract({ left: 820, top: 30, width: 180, height: 150 })
+      .extract(moonBox)
       .removeAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true })

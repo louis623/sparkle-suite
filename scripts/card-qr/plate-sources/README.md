@@ -4,6 +4,6 @@ Generated art pieces (top crest, side garland, floor band) for each shared theme
 
 - `compose.py <dir> <skin> [mode=light] base=R,G,B glow=R,G,B topw= topy= topcrop= gar= garw= gary= floorcrop= floordy= dust=R,G,B`
 - `compose_pc.py` builds Pumpkin & Cat.
-- `fall-owl/compose.py` builds the Fall Owl 1080×1920 plate from the approved `hero-poster.webp`.
+- `fall-owl/compose.py` builds the Fall Owl 1080×1920 plate from one right-side crop of the approved `hero-poster.webp` (owl and moon up top, the landscape once).
 
 Per-theme parameters used on 2026-10-08 are recorded in `docs/sparkle-suite/card-qr/flyer-art-tracker.md`.

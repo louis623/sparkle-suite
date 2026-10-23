@@ -32,7 +32,7 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
     source: skin('fall-owl', 'hero-poster.webp'),
     plate: skin('fall-owl', 'flyer/plate.webp'),
     panelStyle: 'solid',
-    note: 'Approved Fall Owl artwork restaged to a 1080×1920 plate so the owl and harvest moon stay whole. Solid readable panels use the autumn palette.',
+    note: 'Approved Fall Owl artwork as one continuous 1080×1920 crop of the poster, so the owl and harvest moon stay whole above a single landscape. Solid readable panels use the autumn palette.',
   },
   {
     theme: 'amethyst',
