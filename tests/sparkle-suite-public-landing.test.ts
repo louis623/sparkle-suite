@@ -99,6 +99,17 @@ describe('Sparkle Suite public landing page', () => {
     expect(html).toContain('Explore all tools')
   })
 
+  it('shows the Watch theme as a customer site peek instead of hero art', () => {
+    const html = renderLanding()
+    const watch = html.slice(html.indexOf('id="watch"'), html.indexOf('id="pricing"'))
+    expect(watch).toContain('data-community-theme="halloween_pumpkin_witch"')
+    expect(watch).toContain('A real theme, in motion.')
+    expect(watch).not.toContain('hero-desktop.webp')
+    expect(watch).not.toContain('hero-plate.mp4')
+    expect(watch).not.toContain('<iframe')
+    expect(html).not.toContain('<iframe')
+  })
+
   it('sends Watch traffic to the correct channels', () => {
     const html = renderLanding()
     expect(html).not.toContain('Watch the featured TikTok demo')

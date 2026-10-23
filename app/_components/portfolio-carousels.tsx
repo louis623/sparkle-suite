@@ -12,6 +12,7 @@ import {
 } from '@/lib/sparkle-suite/portfolio-content'
 import { nextCarouselIndex } from '@/lib/sparkle-suite/portfolio-carousel-index'
 import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
+import { CommunityThemeSitePeek } from './community-theme-site-peek'
 import { ProductPeekVideo } from './product-peek-video'
 import styles from './portfolio-experience.module.css'
 
@@ -28,8 +29,8 @@ function SlideCaption({
   slide: PortfolioSlide
   interactive: boolean
 }) {
-  const href = slide.kind === 'capture' ? slide.href : undefined
-  const linkLabel = slide.kind === 'capture' ? slide.linkLabel : undefined
+  const href = slide.kind === 'placeholder' ? undefined : slide.href
+  const linkLabel = slide.kind === 'placeholder' ? undefined : slide.linkLabel
   return (
     <>
       <h3>{slide.title}</h3>
@@ -63,6 +64,16 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
         <p>Placeholder</p>
         <strong>{slide.title}</strong>
         <span>Real capture still to come</span>
+      </div>
+    )
+  }
+
+  if (slide.kind === 'site') {
+    return (
+      <div className={styles.frame}>
+        <div className={styles.mediaWell}>
+          <CommunityThemeSitePeek theme={slide.theme} title={slide.title} active={active} />
+        </div>
       </div>
     )
   }

@@ -22,6 +22,10 @@ guard is `scripts/check-active-branch.mjs`. The primary workbench remains the
 general-purpose Windows workspace. The isolated Google verification worktree
 below is limited to its approved scope.
 
+## October 23 theme carousel site peeks
+
+`cursor/theme-carousel-site-peeks-db80` is allowlisted for review of the portfolio and home theme peeks. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. The production branch, GitHub default branch, and Live domains stay `codex/nic-nac-trade-hardening`. This change is not a Live release.
+
 ## October 18 payment-first onboarding Smoke preview
 
 Louis approved a Smoke-only payment-first onboarding branch. `cursor/payment-first-onboarding` is allowlisted for that preview. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. Smoke production, the shared Smoke alias, the Live project, and the Live domains fail closed. GitHub's default branch and Vercel's Live production branch stay unchanged. This branch does not stack on pull requests #129 or #130. The payment-link migration is in the branch and is not applied. This is a review exception, not a production branch-status change.

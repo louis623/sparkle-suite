@@ -2,8 +2,8 @@ import Image from 'next/image'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import { ToolsOverview } from './tools-overview'
 import { ProductPeekVideo } from './product-peek-video'
-import { halloweenHeroMotion } from '@/lib/sparkle-suite/halloween-hero-motion'
 import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
+import { CommunityThemeSitePeek } from './community-theme-site-peek'
 import { LandingHero } from './landing-hero'
 import { QueueLink } from './queue-link'
 import { SparkleSuitePublicAccountAction } from './SparkleSuitePublicAccountAction'
@@ -70,7 +70,7 @@ export function LandingExperience({ initialAvailability, demo = null }: { initia
       <h2 id="watch-title">See it in <em>action.</em></h2>
       <div className={styles.watchLayout}>
         <div className={styles.watchPoster}>
-          <ProductPeekVideo {...halloweenHeroMotion.witch} alt="Real recording of the animated Halloween Pumpkin and Witch customer-site hero" />
+          <CommunityThemeSitePeek theme="halloween_pumpkin_witch" title="Pumpkin and Witch" active />
           <span className={styles.watchCaption}>A real theme, in motion.</span>
         </div>
         <div className={styles.watchLinks}>

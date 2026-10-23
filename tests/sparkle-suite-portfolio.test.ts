@@ -17,76 +17,16 @@ const renderPortfolio = () => renderToStaticMarkup(createElement(PortfolioExperi
 const publicFile = (src: string) => join(process.cwd(), 'public', ...src.split('/').filter(Boolean))
 
 const communityThemes = [
-  {
-    id: 'amethyst',
-    title: 'Chasing Unicorns',
-    pickerLabel: 'Chasing Unicorns (Amethyst)',
-    poster: '/amethyst/skins/am01-unicorn/hero-poster.webp',
-    mp4: '/amethyst/skins/am01-unicorn/hero-motion.mp4',
-  },
-  {
-    id: 'halloween_pumpkin_witch',
-    title: 'Pumpkin and Witch',
-    pickerLabel: 'Halloween Pumpkin and Witch',
-    poster: '/amethyst/skins/halloween-pumpkin-witch/hero-desktop.webp',
-    mp4: '',
-  },
-  {
-    id: 'halloween_pumpkin_cat',
-    title: 'Pumpkin and Cat',
-    pickerLabel: 'Halloween Pumpkin and Cat',
-    poster: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop.webp',
-    mp4: '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-motion.mp4',
-  },
-  {
-    id: 'gilded_autumn',
-    title: 'The Golden Leaves of Autumn',
-    pickerLabel: 'The Golden Leaves of Autumn',
-    poster: '/amethyst/skins/gilded-autumn/hero-poster.webp',
-    mp4: '/amethyst/skins/gilded-autumn/hero-motion.mp4',
-  },
-  {
-    id: 'fall_owl_harvest_moon',
-    title: 'Fall Owl Harvest Moon',
-    pickerLabel: 'Fall Owl and Harvest Moon',
-    poster: '/amethyst/skins/fall-owl/hero-poster.webp',
-    mp4: '/amethyst/skins/fall-owl/hero-loop.mp4',
-  },
-  {
-    id: 'gobble_and_fizz',
-    title: 'Gobble & Fizz',
-    pickerLabel: 'Gobble & Fizz',
-    poster: '/amethyst/skins/gobble-and-fizz/hero-poster.webp',
-    mp4: '/amethyst/skins/gobble-and-fizz/hero-loop.mp4',
-  },
-  {
-    id: 'pie_please',
-    title: 'Pumpkin Pie',
-    pickerLabel: 'Pumpkin Pie',
-    poster: '/amethyst/skins/pie-please/hero-poster-v4.webp',
-    mp4: '/amethyst/skins/pie-please/hero-loop-v4.mp4',
-  },
-  {
-    id: 'midnight_rose',
-    title: 'Midnight Rose',
-    pickerLabel: 'Midnight Rose',
-    poster: '/amethyst/skins/midnight-rose/hero-poster.webp',
-    mp4: '/amethyst/skins/midnight-rose/hero-loop.mp4',
-  },
-  {
-    id: 'pearl_rose',
-    title: 'Pearl Rose',
-    pickerLabel: 'Pearl Rose',
-    poster: '/amethyst/skins/pearl-rose/hero-poster.webp',
-    mp4: '/amethyst/skins/pearl-rose/hero-loop.mp4',
-  },
-  {
-    id: 'rose_champagne',
-    title: 'Rose Champagne',
-    pickerLabel: 'Rose Champagne',
-    poster: '/amethyst/skins/rose-champagne/hero-poster.webp',
-    mp4: '/amethyst/skins/rose-champagne/hero-loop.mp4',
-  },
+  { id: 'amethyst', title: 'Chasing Unicorns', pickerLabel: 'Chasing Unicorns (Amethyst)' },
+  { id: 'halloween_pumpkin_witch', title: 'Pumpkin and Witch', pickerLabel: 'Halloween Pumpkin and Witch' },
+  { id: 'halloween_pumpkin_cat', title: 'Pumpkin and Cat', pickerLabel: 'Halloween Pumpkin and Cat' },
+  { id: 'gilded_autumn', title: 'The Golden Leaves of Autumn', pickerLabel: 'The Golden Leaves of Autumn' },
+  { id: 'fall_owl_harvest_moon', title: 'Fall Owl Harvest Moon', pickerLabel: 'Fall Owl and Harvest Moon' },
+  { id: 'gobble_and_fizz', title: 'Gobble & Fizz', pickerLabel: 'Gobble & Fizz' },
+  { id: 'pie_please', title: 'Pumpkin Pie', pickerLabel: 'Pumpkin Pie' },
+  { id: 'midnight_rose', title: 'Midnight Rose', pickerLabel: 'Midnight Rose' },
+  { id: 'pearl_rose', title: 'Pearl Rose', pickerLabel: 'Pearl Rose' },
+  { id: 'rose_champagne', title: 'Rose Champagne', pickerLabel: 'Rose Champagne' },
 ] as const
 
 const repIds = ['mile-high-fizz', 'britt-with-bling', 'go-for-the-bling', 'sparkly-butterflies'] as const
@@ -111,35 +51,18 @@ describe('Sparkle Suite portfolio carousels', () => {
       expect(index).toBeGreaterThan(previous)
       previous = index
       expect(themeHtml).toContain(`href="/skin-preview/${theme.id}/homepage"`)
+      expect(themeHtml).toContain(`data-community-theme="${theme.id}"`)
       const slide = themes?.slides.find((item) => item.id === theme.id)
-      if (theme.id === 'halloween_pumpkin_witch') {
-        expect(slide?.kind === 'capture' ? slide.hero?.headline : undefined).toBe('A frightfully fun night to sparkle.')
-        expect(slide?.kind === 'capture' ? slide.hero?.sub : undefined).toBe(
-          'Glowing jack-o-lanterns, silver moonlight, and a welcoming place to share the Halloween fun.',
-        )
-      } else if (theme.id === 'halloween_pumpkin_cat') {
-        expect(slide?.kind === 'capture' ? slide.hero?.headline : undefined).toBe('A little mystery. A lot of sparkle.')
-        expect(slide?.kind === 'capture' ? slide.hero?.sub : undefined).toBe(
-          'Join Sasha for live jewelry reveals and find your next favorite.',
-        )
-      } else {
-        expect(slide?.kind === 'capture' ? slide.hero : undefined).toBeUndefined()
-      }
-      expect(
-        themeHtml.includes(theme.poster) || themeHtml.includes(encodeURIComponent(theme.poster)),
-      ).toBe(true)
-      expect(existsSync(publicFile(theme.poster))).toBe(true)
+      expect(slide?.kind).toBe('site')
+      expect(slide && slide.kind === 'site' ? slide.theme : undefined).toBe(theme.id)
       expect(themeHtml).not.toContain('hero-halloween-witch-live')
       expect(themeHtml).not.toContain('hero-halloween-cat-live')
       expect(themeHtml).not.toContain('milehighfizz.com')
-      if (theme.mp4) {
-        expect(existsSync(publicFile(theme.mp4))).toBe(true)
-        expect(slide && slide.kind === 'capture' ? slide.video?.mp4 : undefined).toBe(theme.mp4)
-      } else {
-        expect(slide && slide.kind === 'capture' ? slide.video : undefined).toBeUndefined()
-      }
+      expect(themeHtml).not.toContain(`/amethyst/skins/`)
     }
     expect(themeHtml).not.toContain('Real jewelry. Live reveals. Pure sparkle.')
+    expect(themeHtml).not.toContain('Real capture still to come')
+    expect(themeHtml).not.toContain('<iframe')
     const previewProfiles = readFileSync(join(process.cwd(), 'lib/amethyst/skin-preview.ts'), 'utf8')
     expect(previewProfiles).toContain("headline: 'A frightfully fun night to sparkle.'")
     expect(previewProfiles).toContain(

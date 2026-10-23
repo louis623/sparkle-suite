@@ -1,0 +1,59 @@
+.peek {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #fff;
+  container-type: inline-size;
+}
+.skeleton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+.bar {
+  height: 12%;
+  background: #2b211e;
+}
+.line {
+  height: 8%;
+  background: #f6f1ee;
+  border-bottom: 1px solid #e7ddd6;
+}
+.hero {
+  flex: 1;
+  background:
+    linear-gradient(#fff, #fff) 0 0 / 100% 18% no-repeat,
+    linear-gradient(180deg, #f3ebe6, #e7ddd4);
+}
+.frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1280px;
+  height: 720px;
+  border: 0;
+  background: #fff;
+  transform: scale(calc(100cqw / 1280px));
+  transform-origin: top left;
+  pointer-events: none;
+}
+.loading { opacity: 0; }
+.ready { opacity: 1; }
+.peek[data-ready='true'] .skeleton { visibility: hidden; }
+.status {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  margin: 0;
+  color: #2b211e;
+  background: rgb(255 248 244 / 92%);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}

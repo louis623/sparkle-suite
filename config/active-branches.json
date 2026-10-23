@@ -37,7 +37,8 @@
     "cursor/suite-seo-metadata-images",
     "cursor/rep-host-seo-fixes",
     "cursor/join-server-html-26e8",
-    "cursor/suite-join-ssr-rep-routes"
+    "cursor/suite-join-ssr-rep-routes",
+    "cursor/theme-carousel-site-peeks-db80"
   ],
   "previewBranches": {
     "codex/faq-articles": {
@@ -133,6 +134,10 @@
       "environment": "preview"
     },
     "cursor/suite-join-ssr-rep-routes": {
+      "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
+      "environment": "preview"
+    },
+    "cursor/theme-carousel-site-peeks-db80": {
       "projectId": "prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ",
       "environment": "preview"
     }
