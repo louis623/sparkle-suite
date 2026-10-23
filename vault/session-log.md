@@ -8012,3 +8012,7 @@ Using the explicitly requested bundled Computer Use skill and @oai/sky, loaded D
 ## October 23, 2026 — Fall Owl QR flyer high-perch repair
 
 Louis selected high-perch option A for PR #151. The 1080×1920 plate uses the approved hero owl pixels, amber wing gems and pendant, with a right-edge branch, centered QR and lake once at the bottom. Seven focused identity/layout/PNG-JPEG QR tests pass; rebuild is byte-identical. No Live merge/deploy or Kristen saved-theme change. See `vault/2026-10-23-fall-owl-flyer-plate-closeout.md`.
+
+## October 23, 2026 — Gobble & Fizz and Pumpkin Pie flyer plates
+
+Louis approved Fall Owl and requested matching QR backgrounds for Gobble & Fizz and Pumpkin Pie. Both now use dedicated 1080×1920 original-art plates with unchanged hero sources and centered QR. Combined focused suite: 19 passing tests; PNG/JPEG QR decoding and deterministic rebuilds verified. No Live merge/deploy or saved-theme changes. See `vault/2026-10-23-thanksgiving-flyer-plates-closeout.md`.
