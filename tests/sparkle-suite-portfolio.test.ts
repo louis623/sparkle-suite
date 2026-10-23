@@ -9,6 +9,7 @@ import { PortfolioExperience } from '@/app/_components/portfolio-experience'
 import { getAmethystAppearancePreset } from '@/lib/amethyst/appearance-presets'
 import { sparkleSuitePortfolioContent } from '@/lib/sparkle-suite/portfolio-content'
 import { portfolioCarouselMotion, portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
+import { communityThemeMotion } from '@/lib/sparkle-suite/community-theme-motion'
 
 const renderPortfolio = () => renderToStaticMarkup(createElement(PortfolioExperience))
 const publicFile = (src: string) => join(process.cwd(), 'public', ...src.split('/').filter(Boolean))
@@ -49,8 +50,11 @@ describe('Sparkle Suite portfolio carousels', () => {
       previous = index
       expect(themeHtml).toContain(`href="/skin-preview/${theme.id}/homepage"`)
       expect(themeHtml).toContain(`data-community-theme="${theme.id}"`)
-      expect(themeHtml).toContain(`/marketing/demo-themes/${theme.id}.webp`)
-      expect(existsSync(publicFile(`/marketing/demo-themes/${theme.id}.webp`))).toBe(true)
+      const recording = communityThemeMotion[theme.id]
+      expect(themeHtml).toContain(recording.poster)
+      expect(existsSync(publicFile(recording.poster))).toBe(true)
+      expect(existsSync(publicFile(recording.mp4))).toBe(true)
+      expect(recording.signature.length).toBeGreaterThan(10)
       const slide = themes?.slides.find((item) => item.id === theme.id)
       expect(slide?.kind).toBe('site')
       expect(slide && slide.kind === 'site' ? slide.theme : undefined).toBe(theme.id)
@@ -88,10 +92,10 @@ describe('Sparkle Suite portfolio carousels', () => {
       expect(existsSync(publicFile(recording.mp4))).toBe(true)
       expect(existsSync(publicFile(portfolioMotion[id].poster))).toBe(true)
     }
-    for (const id of ['go-for-the-bling', 'sparkly-butterflies'] as const) {
+    for (const id of ['mile-high-fizz', 'go-for-the-bling', 'sparkly-butterflies'] as const) {
       const frame = portfolioCarouselMotion[id]
-      expect(frame.width / frame.height).toBeCloseTo(1200 / 850, 2)
-      expect(frame.poster).toContain('/marketing/portfolio-frame/')
+      expect(frame).toEqual(portfolioMotion[id])
+      expect(frame.poster).toContain('/marketing/rep-sites-v2/')
     }
     expect(repHtml).toContain('milehighfizz.com')
     expect(repHtml).toContain('brittwithbling.com')
@@ -127,7 +131,7 @@ describe('Sparkle Suite portfolio carousels', () => {
     }
     const repPosters = [...repHtml.matchAll(/<img\b[^>]*>/g)].map((match) => match[0])
     expect(repPosters).toHaveLength(4)
-    expect(repPosters[0]).toContain('mile-high-fizz-site-preview.webp')
+    expect(repPosters[0]).toContain(portfolioMotion['mile-high-fizz'].poster)
     expect(repPosters[0]).toContain('loading="eager"')
     expect(repPosters[0]).toMatch(/fetchpriority="high"/i)
     for (const poster of repPosters.slice(1)) {
@@ -136,6 +140,17 @@ describe('Sparkle Suite portfolio carousels', () => {
     }
     expect(repHtml.match(/target="_blank"/g)).toHaveLength(4)
     expect(repHtml).toContain('opens in a new tab')
+  })
+
+  it('matches published recording dimensions and paths to verified capture receipts', () => {
+    const manifest = JSON.parse(readFileSync(join(process.cwd(), 'docs/sparkle-suite/qa/2026-10-23-carousel-capture-manifest.json'), 'utf8'))
+    expect(manifest.entries).toHaveLength(13)
+    for (const capture of manifest.entries) {
+      const media = communityThemeMotion[capture.id as keyof typeof communityThemeMotion] ?? portfolioMotion[capture.id]
+      expect(media).toMatchObject({ width: capture.width, height: capture.height, poster: capture.poster, mp4: capture.mp4 })
+      expect(capture.durationSeconds).toBeGreaterThanOrEqual(15)
+      expect(capture.runtimeErrors).toEqual([])
+    }
   })
 
   it('keeps portfolio metadata and the build queue close', () => {
@@ -160,7 +175,8 @@ describe('Sparkle Suite portfolio carousels', () => {
     expect(phoneHero).not.toMatch(/heroCopy|-webkit-line-clamp|padding:\s*50%|padding:\s*46%/)
     expect(phoneControls).toContain('bottom: 8px')
     expect(phoneControls).not.toMatch(/community-themes|bandBlush|bandPaper/)
-    expect(videoCss).toContain('top: calc(100% + 8px)')
+    expect(videoCss).toContain('min-height:60px')
+    expect(videoCss).not.toContain('top: calc(100% + 8px)')
     const html = renderPortfolio()
     expect(html.match(/aria-label="Previous /g)).toHaveLength(2)
     expect(html.match(/aria-label="Next /g)).toHaveLength(2)
@@ -185,29 +201,26 @@ describe('Sparkle Suite portfolio carousels', () => {
     const css = readFileSync(join(process.cwd(), 'app/_components/portfolio-experience.module.css'), 'utf8')
     const carousel = readFileSync(join(process.cwd(), 'app/_components/portfolio-carousels.tsx'), 'utf8')
     const peek = readFileSync(join(process.cwd(), 'app/_components/community-theme-site-peek.tsx'), 'utf8')
+    const peekCss = readFileSync(join(process.cwd(), 'app/_components/community-theme-site-peek.module.css'), 'utf8')
     const html = renderPortfolio()
     expect(css.match(/aspect-ratio:\s*1200\s*\/\s*850/g)).toHaveLength(1)
-    expect(css).toContain('object-fit: cover')
-    expect(css).toContain('object-position: center top')
-    expect(css).not.toContain('object-fit: contain')
+    expect(css).toContain('object-fit: contain')
+    expect(css).toContain('object-position: center;')
     expect(css).toContain('scrollbar-width: none')
     expect(css).not.toContain('heroCopy')
     expect(css).not.toMatch(/data-theme|aspect-ratio:\s*var/)
-    expect(carousel).toContain('fit="cover"')
-    expect(carousel).toContain('showControl={active}')
-    expect(carousel).toContain('setInterval')
+    expect(carousel).toContain('fit="contain"')
+    expect(carousel).toContain('showControl={false}')
     expect(carousel).toContain('setVisible')
     expect(carousel).not.toMatch(/heroCopy|slide\.hero|Play again|addEventListener\('ended'/)
     const focus = carousel.slice(carousel.indexOf('function focusSlide'), carousel.indexOf('function moveDot'))
     expect(focus).not.toContain('setVisible')
-    expect(peek).toContain('active = false')
-    expect(peek).toContain('if (!active) return')
-    expect(peek).toContain('motion = false')
-    expect(peek).toContain('Play animation')
-    expect(carousel).toContain('motion={active}')
+    expect(peek).toContain('communityThemeMotion[theme]')
+    expect(peek).toContain('ProductPeekVideo')
+    expect(peek).not.toMatch(/<iframe|drift|setInterval/)
+    expect(peekCss).not.toMatch(/@keyframes|animation\s*:|scale\(/)
     expect(carousel).toContain('portfolioCarouselMotion')
-    expect(carousel).not.toContain('<CommunityThemeSitePeek theme={slide.theme} title={slide.title} active')
-    expect(html).toContain('Play Chasing Unicorns animation')
+    expect(html.match(/>Play animation<\/button>/g)).toHaveLength(2)
     expect(html).not.toContain('The Dudes Fizzfest')
     expect(html).not.toContain('Smoke mirror')
     expect(html).not.toContain("I'm Louis")

@@ -1,51 +1,70 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import type { PeekPlaybackState } from '@/lib/sparkle-suite/portfolio-carousel-playback'
 import styles from './product-peek-video.module.css'
-type ProductPeekVideoProps = {
+
+export type ProductPeekPlaybackProps = {
+  active?: boolean
+  paused?: boolean
+  requested?: boolean
+  showControl?: boolean
+  onPlaybackStateChange?: (state: PeekPlaybackState) => void
+}
+type ProductPeekVideoProps = ProductPeekPlaybackProps & {
   poster: string; mp4: string; width: number; height: number
-  alt: string; label: string; active?: boolean
-  /** Paint one on-screen still before playback. Other posters stay lazy. */
+  alt: string; label: string
   eagerPoster?: boolean
   fit?: 'contain' | 'cover'
-  /** Inactive carousel slides keep their recording quiet and show no second control. */
-  showControl?: boolean
 }
-/** Real recordings, loaded only in view. The poster survives blocked playback. */
-export function ProductPeekVideo({ poster, mp4, width, height, alt, label, active = true, eagerPoster = false, fit = 'contain', showControl = true }: ProductPeekVideoProps) {
+/** Real recordings, loaded only in view. Carousel owners control both media and advancement. */
+export function ProductPeekVideo({ poster, mp4, width, height, alt, label, active = true, paused: controlledPaused, requested: controlledRequested = false, eagerPoster = false, fit = 'contain', showControl = true, onPlaybackStateChange }: ProductPeekVideoProps) {
   const container = useRef<HTMLDivElement>(null)
   const video = useRef<HTMLVideoElement>(null)
+  const callback = useRef(onPlaybackStateChange)
   const [visible, setVisible] = useState(false)
   const [allowed, setAllowed] = useState(false)
   const [requested, setRequested] = useState(false)
   const [paused, setPaused] = useState(false)
-  const [playing, setPlaying] = useState(false)
+  const [playback, setPlayback] = useState<PeekPlaybackState>('idle')
   const [loaded, setLoaded] = useState(false)
   const [failed, setFailed] = useState(false)
-  const shouldLoad = active && visible && (allowed || requested)
+  const isPaused = controlledPaused ?? paused
+  const shouldLoad = active && visible && (allowed || requested || controlledRequested)
+  useEffect(() => { callback.current = onPlaybackStateChange }, [onPlaybackStateChange])
+  useEffect(() => { callback.current?.(playback) }, [playback])
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
     const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
-    const sync = () => setAllowed(!reduce.matches && !connection?.saveData)
+    const sync = () => {
+      setAllowed(!reduce.matches && !connection?.saveData)
+      setRequested(false)
+    }
     sync()
     reduce.addEventListener('change', sync)
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: .2 })
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting && entry.intersectionRatio >= .2), { threshold: [.2] })
     if (container.current) observer.observe(container.current)
     return () => { observer.disconnect(); reduce.removeEventListener('change', sync) }
   }, [])
   useEffect(() => {
     const player = video.current
     if (!player) return
+    let cancelled = false
     const sync = () => {
-      if (!shouldLoad || paused || document.hidden) { player.pause(); return }
+      if (!shouldLoad || isPaused || document.hidden) { player.pause(); return }
       if (!player.getAttribute('src')) player.src = mp4
       player.muted = true
-      player.play()?.catch(() => setPlaying(false))
+      setPlayback('loading')
+      player.play()?.catch((error: DOMException) => {
+        if (cancelled || error.name === 'AbortError') return
+        setPlayback('error'); setFailed(true)
+      })
     }
     sync()
     document.addEventListener('visibilitychange', sync)
-    return () => { player.pause(); document.removeEventListener('visibilitychange', sync) }
-  }, [mp4, shouldLoad, paused])
-  return <div ref={container} className={styles.media} data-fit={fit} style={{
+    return () => { cancelled = true; player.pause(); document.removeEventListener('visibilitychange', sync) }
+  }, [mp4, shouldLoad, isPaused])
+  return <div ref={container} className={styles.media} data-fit={fit} data-playback={playback} data-control={showControl}>
+    <div className={styles.frame} style={{
     aspectRatio: width + '/' + height,
     ...(eagerPoster ? {
       backgroundImage: `url("${poster}")`,
@@ -56,17 +75,21 @@ export function ProductPeekVideo({ poster, mp4, width, height, alt, label, activ
   }}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img className={styles.still} src={poster} alt={alt} width={width} height={height} loading={eagerPoster ? 'eager' : 'lazy'} fetchPriority={eagerPoster ? 'high' : 'auto'} decoding={eagerPoster ? 'sync' : 'async'} />
-    {shouldLoad || loaded ? <video ref={video} className={styles.motion} data-loaded={loaded && !failed}
+    {shouldLoad || loaded ? <video ref={video} className={styles.motion} data-loaded={loaded && !failed && active}
       width={width} height={height} muted loop playsInline preload="none" aria-label={alt}
-      onPlaying={() => { setPlaying(true); setLoaded(true); setFailed(false) }}
-      onPause={() => setPlaying(false)} onError={() => { setPlaying(false); setFailed(true) }}
+      onPlaying={() => { setPlayback('playing'); setLoaded(true); setFailed(false) }}
+      onWaiting={() => setPlayback('waiting')}
+      onStalled={() => { if ((video.current?.readyState ?? 0) < 3) setPlayback('waiting') }}
+      onPause={() => setPlayback((state) => state === 'error' ? state : 'paused')}
+      onError={() => { setPlayback('error'); setFailed(true) }}
       disablePictureInPicture /> : null}
-    {showControl ? <button type="button" className={styles.pause} aria-label={(playing ? 'Pause ' : 'Play ') + label + ' animation'}
+    </div>
+    {showControl ? <div className={styles.controls}><button type="button" className={styles.pause} aria-label={(playback === 'playing' ? 'Pause ' : 'Play ') + label + ' animation'}
       onClick={() => {
-        if (playing) { setPaused(true); return }
+        if (playback === 'playing') { setPaused(true); return }
         setRequested(true); setPaused(false)
         if (failed && video.current) { video.current.load(); setFailed(false) }
-        video.current?.play()?.catch(() => setPlaying(false))
-      }}>{playing ? 'Pause animation' : 'Play animation'}</button> : null}
+        video.current?.play()?.catch(() => { setPlayback('error'); setFailed(true) })
+      }}>{playback === 'playing' ? 'Pause animation' : 'Play animation'}</button></div> : null}
   </div>
 }

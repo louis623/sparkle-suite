@@ -10,6 +10,8 @@ import { getRedirectUrl } from 'next/experimental/testing/server'
 import { proxy } from '@/proxy'
 import { SparkleSuitePublicLanding } from '@/app/_components/sparkle-suite-public-landing'
 import { sparkleSuitePublicLandingSafety } from '@/lib/sparkle-suite/public-landing-content'
+import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
+import { communityThemeMotion } from '@/lib/sparkle-suite/community-theme-motion'
 
 const renderLanding = () => renderToStaticMarkup(createElement(SparkleSuitePublicLanding))
 const publicAssetPath = (src: string) => join(process.cwd(), 'public', ...src.split('/').filter(Boolean))
@@ -76,12 +78,12 @@ describe('Sparkle Suite public landing page', () => {
     const html = renderLanding()
     for (const domain of ['sparklybutterflies.com', 'goforthebling.com', 'milehighfizz.com']) expect(html).toContain(domain)
     const proof = html.slice(html.indexOf('id="customer-site-proof"'), html.indexOf('id="workspace-proof"'))
-    expect(proof).toContain('/marketing/mile-high-fizz-site-preview.webp')
-    expect(proof).toContain('/marketing/go-for-the-bling-site-preview.webp')
-    expect(proof).toContain('/marketing/sparkly-butterflies-site-preview.webp')
-    expect(proof).toContain('height="724"')
-    expect(proof).toContain('height="618"')
-    expect(proof).toContain('height="668"')
+    expect(proof).toContain(portfolioMotion['mile-high-fizz'].poster)
+    expect(proof).toContain(portfolioMotion['go-for-the-bling'].poster)
+    expect(proof).toContain(portfolioMotion['sparkly-butterflies'].poster)
+    expect(proof).toContain(`height="${portfolioMotion['mile-high-fizz'].height}"`)
+    expect(proof).toContain(`height="${portfolioMotion['go-for-the-bling'].height}"`)
+    expect(proof).toContain(`height="${portfolioMotion['sparkly-butterflies'].height}"`)
     expect(proof).not.toContain('theblingkitchen.com')
     expect(proof).not.toContain('brisglowtique.com')
     expect(proof).not.toContain('brittwithbling.com')
@@ -103,7 +105,7 @@ describe('Sparkle Suite public landing page', () => {
     const html = renderLanding()
     const watch = html.slice(html.indexOf('id="watch"'), html.indexOf('id="pricing"'))
     expect(watch).toContain('data-community-theme="halloween_pumpkin_witch"')
-    expect(watch).toContain('/marketing/demo-themes/halloween_pumpkin_witch.webp')
+    expect(watch).toContain(communityThemeMotion.halloween_pumpkin_witch.poster)
     expect(watch).toContain('A real theme, in motion.')
     expect(watch).not.toContain('hero-desktop.webp')
     expect(watch).not.toContain('hero-plate.mp4')
