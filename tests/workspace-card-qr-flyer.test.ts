@@ -287,7 +287,7 @@ describe('flyer theme designs', () => {
     }
   })
 
-  it('restages Fall Owl onto a 1080×1920 plate that still shows the approved owl and moon', async () => {
+  it('keeps the Fall Owl head above the QR and the lake once at the bottom', async () => {
     const record = flyerThemeRecord('fall_owl_harvest_moon')
     expect(record.status).toBe('art')
     expect(record.source).toBe('public/amethyst/skins/fall-owl/hero-poster.webp')
@@ -298,83 +298,40 @@ describe('flyer theme designs', () => {
     expect(meta.height).toBe(1920)
     expect(meta.format).toBe('webp')
 
-    // scripts/card-qr/plate-sources/fall-owl/compose.py uses one poster span,
-    // x=620..1200, scaled uniformly onto the flyer width. The face and the
-    // moon both sit in that span, in the upper frame.
-    const cropLeft = 620
-    const cropRight = 1200
-    const scale = 1080 / (cropRight - cropLeft)
-    const face = { left: 900, top: 140, width: 200, height: 160 }
-    const sourceFace = await sharp(record.source as string)
-      .extract(face)
-      .removeAlpha()
-      .raw()
-      .toBuffer()
-    const plateFace = await sharp(platePath)
-      .extract({
-        left: Math.round((face.left - cropLeft) * scale),
-        top: Math.round(face.top * scale),
-        width: Math.round(face.width * scale),
-        height: Math.round(face.height * scale),
-      })
-      .resize(face.width, face.height)
-      .removeAlpha()
-      .raw()
-      .toBuffer()
-    let error = 0
-    for (let index = 0; index < sourceFace.length; index += 1) {
-      error += Math.abs((sourceFace[index] ?? 0) - (plateFace[index] ?? 0))
+    // portrait.jpg scaled by scripts/card-qr/plate-sources/fall-owl/compose.py.
+    // The landscape hero cannot be cropped into this frame.
+    const plate = await sharp(platePath).removeAlpha().raw().toBuffer({ resolveWithObject: true })
+    const { data, info } = plate
+    const rowStats = (y: number) => {
+      let gold = 0
+      let sum = 0
+      let sumSq = 0
+      for (let x = 0; x < info.width; x += 1) {
+        const index = (y * info.width + x) * info.channels
+        const red = data[index] ?? 0
+        const green = data[index + 1] ?? 0
+        const blue = data[index + 2] ?? 0
+        const lum = (red + green + blue) / 3
+        sum += lum
+        sumSq += lum * lum
+        if (red > 170 && green > 110 && red > blue + 30) gold += 1
+      }
+      const mean = sum / info.width
+      return { std: Math.sqrt(Math.max(0, sumSq / info.width - mean * mean)), gold: gold / info.width }
     }
-    expect(error / sourceFace.length).toBeLessThan(12)
-
-    // The landscape under the owl is that same span, once. A second pasted
-    // lake in this band would not match the poster.
-    const ground = { left: 780, top: 480, width: 200, height: 80 }
-    const sourceGround = await sharp(record.source as string)
-      .extract(ground)
-      .removeAlpha()
-      .raw()
-      .toBuffer()
-    const plateGround = await sharp(platePath)
-      .extract({
-        left: Math.round((ground.left - cropLeft) * scale),
-        top: Math.round(ground.top * scale),
-        width: Math.round(ground.width * scale),
-        height: Math.round(ground.height * scale),
-      })
-      .resize(ground.width, ground.height)
-      .removeAlpha()
-      .raw()
-      .toBuffer()
-    let groundError = 0
-    for (let index = 0; index < sourceGround.length; index += 1) {
-      groundError += Math.abs((sourceGround[index] ?? 0) - (plateGround[index] ?? 0))
+    let upperGold = 0
+    let upperRows = 0
+    let lastSubject = 0
+    for (let y = 0; y < 900; y += 1) {
+      const row = rowStats(y)
+      if (row.std > 12) lastSubject = y
+      if (y >= 40 && y < 240 && y % 2 === 0) {
+        upperGold += row.gold
+        upperRows += 1
+      }
     }
-    expect(groundError / sourceGround.length).toBeLessThan(12)
-
-    const moonSource = { left: 1000, top: 30, width: 150, height: 110 }
-    const moonBox = {
-      left: Math.round((moonSource.left - cropLeft) * scale),
-      top: Math.round(moonSource.top * scale),
-      width: Math.round(moonSource.width * scale),
-      height: Math.round(moonSource.height * scale),
-    }
-    expect(moonBox.top).toBeLessThan(200)
-    expect(Math.round(face.top * scale)).toBeLessThan(400)
-    const moon = await sharp(platePath)
-      .extract(moonBox)
-      .removeAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true })
-    let gold = 0
-    const channels = moon.info.channels
-    for (let index = 0; index < moon.data.length; index += channels) {
-      const red = moon.data[index] ?? 0
-      const green = moon.data[index + 1] ?? 0
-      const blue = moon.data[index + 2] ?? 0
-      if (red > 190 && green > 140 && red > blue + 40) gold += 1
-    }
-    expect(gold / (moon.data.length / channels)).toBeGreaterThan(0.4)
+    expect(upperGold / upperRows).toBeGreaterThan(0.15)
+    expect(lastSubject).toBeGreaterThan(200)
 
     const copy = dudeCopy({ showTitle: 'Bling with Krissi' })
     const parts = await renderCardQrFlyerParts({
@@ -387,7 +344,21 @@ describe('flyer theme designs', () => {
       destinationUrl: QR_URL,
       showQr: true,
     })
-    expect(parts.layout.panel?.y).toBeGreaterThan(212)
+    expect(parts.layout.qr.y).toBeGreaterThan(lastSubject)
+
+    const meanStd = (top: number, bottom: number) => {
+      let total = 0
+      let rows = 0
+      for (let y = top; y < bottom; y += 8) {
+        total += rowStats(y).std
+        rows += 1
+      }
+      return total / rows
+    }
+    const skyStd = meanStd(parts.layout.qr.y, parts.layout.qr.y + parts.layout.qr.height)
+    const lakeStd = meanStd(1600, 1850)
+    expect(skyStd).toBeLessThan(12)
+    expect(lakeStd).toBeGreaterThan(skyStd + 8)
     await expect(assertFlyerQrDecodes(parts.flyer, QR_URL, parts.layout.qr)).resolves.toBeUndefined()
   })
 
