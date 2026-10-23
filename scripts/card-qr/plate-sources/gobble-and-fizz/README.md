@@ -14,5 +14,10 @@ before rebuilding. No new turkey, resized landscape cover, duplicated scene,
 blur filter, provider call or rep-setting change is involved.
 
 Source SHA-256: `a78c049be1137a38b40e0a4e131be568d602b2e7d03690abd6f31b322f2f9372`.
-Plate SHA-256: `9ec49e2cc07f2f750c63576f0e6613cb0271e3f067c65c398f6f50c9cb566861`.
+Plate SHA-256: `dcd08a5dab3318b2750b6b31e9c29f9377649182dbbf740ad909628ab31f98f3`.
 Identity and PNG/JPEG QR checks: `tests/thanksgiving-flyer-plates.test.ts`.
+
+Fuller-art revision: original maple leaves now frame the top and side margins;
+original bubbles rise beside the QR, with the original copper pumpkin/berry
+cluster and additional leaves filling the bottom corners. These decorative
+motifs may repeat; the turkey and pot remain a single unchanged subject.

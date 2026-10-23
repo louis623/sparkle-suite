@@ -8016,3 +8016,7 @@ Louis selected high-perch option A for PR #151. The 1080×1920 plate uses the ap
 ## October 23, 2026 — Gobble & Fizz and Pumpkin Pie flyer plates
 
 Louis approved Fall Owl and requested matching QR backgrounds for Gobble & Fizz and Pumpkin Pie. Both now use dedicated 1080×1920 original-art plates with unchanged hero sources and centered QR. Combined focused suite: 19 passing tests; PNG/JPEG QR decoding and deterministic rebuilds verified. No Live merge/deploy or saved-theme changes. See `vault/2026-10-23-thanksgiving-flyer-plates-closeout.md`.
+
+## October 23, 2026 — Fuller Thanksgiving flyer artwork
+
+Louis found the first two Thanksgiving plates too basic and requested more original art, including shared accents. Revised Gobble and Pumpkin Pie now have original maple borders, bubbles, pumpkin/berry corners and jewelry across top/side/floor margins. Main subjects, centered QR, source heroes and approved Fall Owl are unchanged. All 19 focused tests pass; no Live merge/deploy or saved-theme changes. See the fuller-art revision in vault/2026-10-23-thanksgiving-flyer-plates-closeout.md.

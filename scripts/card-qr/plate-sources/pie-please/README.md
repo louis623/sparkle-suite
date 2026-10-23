@@ -15,5 +15,11 @@ before rebuilding. No new pie/animal, landscape cover crop, duplicated scene,
 blur filter, provider call or rep-setting change is involved.
 
 Source SHA-256: `dd0fe24624eca6e540e8e33949cbb85e7a224ce5cfcaaba711b59196aa49e27c`.
-Plate SHA-256: `f44fffb5aec5af57207f0a2ee2297d2e5e2d4c21b7bf008635faa310d3e2ae43`.
+Plate SHA-256: `bd2011a720f6cdd5e531a9876f3ab6c2e5d3bfb07cefb160772670722b690db7`.
 Identity and PNG/JPEG QR checks: `tests/thanksgiving-flyer-plates.test.ts`.
+
+Fuller-art revision: Louis requested more original artwork and authorized sharing
+art between the themes. Sharp maple foliage is shared from the approved Gobble
+hero at the top, sides and bottom-left; isolated ruby/amber jewelry comes from
+the Pumpkin Pie hero. The pie/cream/tray subject remains unchanged and appears
+once. Both source hashes remain guarded by the shared builder.

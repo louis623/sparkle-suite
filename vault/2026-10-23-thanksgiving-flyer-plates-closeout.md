@@ -42,3 +42,24 @@ database, Vercel deployment/alias or Live state was changed.
 
 The shared checkout's unrelated dirty work remains preserved. Commit only
 this scoped patch on the existing PR head with an isolated Git index.
+
+## Fuller-art revision after Louis's feedback
+
+Louis said both initial plates were too basic with too much unused room and
+suggested sharing original art between them. Those first-pass hashes above
+are superseded. The revision fills top, side and bottom-corner space with
+original-pixel maple borders, copper pumpkins/berries, bubbles and jewelry.
+Sharp maple foliage from Gobble is shared with Pumpkin Pie; its out-of-focus
+background leaf crop was rejected because it also caught part of the pie rim.
+No new subject was generated. The main turkey/pot and pie/cream/tray remain
+unchanged single subjects; only decorative motifs repeat. QR/text positions
+and the approved Fall Owl plate are unchanged.
+
+Current plate hashes:
+- Gobble: `dcd08a5dab3318b2750b6b31e9c29f9377649182dbbf740ad909628ab31f98f3`
+- Pie: `bd2011a720f6cdd5e531a9876f3ab6c2e5d3bfb07cefb160772670722b690db7`
+
+All 19 focused tests pass again, actual sample flyers decode, repeated builds
+are byte-identical, and the updated comparison boards were visually inspected.
+These fuller revisions are for Louis's review; do not claim he has approved
+them yet. No merge, deploy, customer-theme or Live-state change.

@@ -37,6 +37,37 @@ async function main(){
  configs[0].layers.push(configs[0].layers.splice(2,1)[0]);
  configs[1].pieces.side=softCloth;
  configs[1].layers[0].buffer=softCloth;
+ // Original-art border accents fill the unused top, side and bottom margins.
+ // Only these decorative motifs repeat; each main subject appears once.
+ const maple=await cut(gobble,'<path d="M303 587L330 568L353 571L358 553L376 558L385 536L405 552L427 549L421 568L445 565L461 550L475 557L487 538L495 561L515 550L518 570L544 570L529 585L559 590L543 604L569 618L535 622L521 635L502 618L480 629L466 615L443 625L435 609L412 615L395 600L374 606L362 592L339 599Z" fill="white"/>',{left:300,top:530,width:280,height:110});
+ const pumpkins=await cut(gobble,'<path d="M1090 581L1109 566L1118 541L1136 513L1154 493L1180 482L1203 477L1226 480L1232 465L1242 449L1253 453L1251 478L1279 491V636L1248 644L1217 632L1196 642L1163 626L1137 632L1116 616L1093 606Z" fill="white"/>',{left:1085,top:445,width:195,height:205});
+ const bubbleAccent=await cut(gobble,'<circle cx="615" cy="257" r="27" fill="white"/><circle cx="667" cy="312" r="19" fill="white"/><circle cx="597" cy="166" r="13" fill="white"/>',{left:580,top:150,width:110,height:190});
+ const goldLeaves=maple; // Shared sharp autumn foliage from the approved Gobble hero.
+ const jewels=await cut(pie,'<ellipse cx="624" cy="489" rx="38" ry="29" fill="white"/><path d="M673 493L696 492L719 521L728 551L711 575L677 565L660 536Z" fill="white"/><ellipse cx="680" cy="582" rx="26" ry="20" fill="white"/><ellipse cx="741" cy="608" rx="27" ry="20" fill="white"/>',{left:580,top:455,width:195,height:180});
+ const leftGold=await sharp(goldLeaves).rotate(90).png().toBuffer();
+ const rightGold=await sharp(goldLeaves).rotate(270).png().toBuffer();
+ Object.assign(configs[0].pieces,{maple,pumpkins,bubbles:bubbleAccent,'left-leaves':leftGold,'right-leaves':rightGold});
+ configs[0].layers.push(
+  {buffer:maple,x:530,y:0,w:480},
+  {buffer:bubbleAccent,x:300,y:20,w:110},
+  {buffer:leftGold,x:0,y:720,w:130},
+  {buffer:bubbleAccent,x:80,y:920,w:105},
+  {buffer:rightGold,x:950,y:850,w:130},
+  {buffer:bubbleAccent,x:913,y:730,w:105},
+  {buffer:maple,x:10,y:1795,w:310},
+  {buffer:pumpkins,x:820,y:1658,w:250},
+  {buffer:maple,x:735,y:1830,w:230},
+ );
+ Object.assign(configs[1].pieces,{leaves:goldLeaves,'left-leaves':leftGold,'right-leaves':rightGold,jewels});
+ configs[1].layers.push(
+  {buffer:goldLeaves,x:0,y:0,w:450},
+  {buffer:jewels,x:405,y:20,w:190},
+  {buffer:leftGold,x:0,y:715,w:165},
+  {buffer:rightGold,x:920,y:850,w:160},
+  {buffer:jewels,x:40,y:1110,w:125},
+  {buffer:goldLeaves,x:0,y:1745,w:370},
+  {buffer:jewels,x:260,y:1780,w:150},
+ );
  for(const c of configs.filter(c=>!process.argv[2]||c.skin===process.argv[2])){
   const dir=path.join(__dirname,c.skin);await fs.mkdir(dir,{recursive:true});
   for(const [name,b] of Object.entries(c.pieces))await fs.writeFile(path.join(dir,name+'.png'),b);
