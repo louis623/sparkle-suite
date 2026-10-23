@@ -31,3 +31,22 @@ export const portfolioMotion: Record<string, {poster:string;mp4:string;width:num
     "height": 724
   }
 }
+
+/** Portfolio wells are 1200×850. Wider recordings are extended to that
+ * ratio so cover keeps the logo and Shop button edge to edge. Home cards
+ * keep the original recordings above. */
+export const portfolioCarouselMotion: typeof portfolioMotion = {
+  ...portfolioMotion,
+  "go-for-the-bling": {
+    poster: "/marketing/portfolio-frame/go-for-the-bling-site-preview.webp",
+    mp4: "/marketing/portfolio-frame/go-for-the-bling-site-preview.mp4",
+    width: 960,
+    height: 680,
+  },
+  "sparkly-butterflies": {
+    poster: "/marketing/portfolio-frame/sparkly-butterflies-site-preview.webp",
+    mp4: "/marketing/portfolio-frame/sparkly-butterflies-site-preview.mp4",
+    width: 960,
+    height: 680,
+  },
+}

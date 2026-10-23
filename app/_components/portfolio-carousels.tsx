@@ -9,7 +9,7 @@ import {
   type PortfolioSlide,
 } from '@/lib/sparkle-suite/portfolio-content'
 import { nextCarouselIndex } from '@/lib/sparkle-suite/portfolio-carousel-index'
-import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
+import { portfolioCarouselMotion } from '@/lib/sparkle-suite/portfolio-motion'
 import { CommunityThemeSitePeek } from './community-theme-site-peek'
 import { ProductPeekVideo } from './product-peek-video'
 import styles from './portfolio-experience.module.css'
@@ -65,14 +65,14 @@ function SlideFrame({ slide, active, prioritizePoster = false }: { slide: Portfo
   }
 
   const windowLabel = slide.kind === 'capture' ? slide.linkLabel : slide.title
-  const recording = slide.kind === 'capture' ? portfolioMotion[slide.id] : undefined
+  const recording = slide.kind === 'capture' ? portfolioCarouselMotion[slide.id] : undefined
 
   return (
     <div className={styles.siteWindow}>
       <div className={styles.browserBar}><span aria-hidden="true">● ● ●</span>{windowLabel}</div>
       <div className={styles.mediaWell}>
         {slide.kind === 'site' ? (
-          <CommunityThemeSitePeek theme={slide.theme} title={slide.title} />
+          <CommunityThemeSitePeek theme={slide.theme} title={slide.title} motion={active} />
         ) : recording ? (
           <ProductPeekVideo
             poster={recording.poster}

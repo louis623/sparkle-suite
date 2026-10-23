@@ -13,21 +13,37 @@ function motionPaused() {
   return reduce || connection?.saveData === true || document.hidden
 }
 
-/** Portfolio passes no motion flag and stays on the full-site still.
- * The landing "in motion" spot opts in. A live theme document reflows when
- * its own animation starts, so the carousel must not mount one. */
+/** `active` mounts the live theme document and is only for the landing spot.
+ * Portfolio passes `motion` instead: a still Ken Burns that never fetches
+ * that document, so the frame cannot wash blue or pick up sample-account copy. */
 export function CommunityThemeSitePeek({
   theme,
   title,
   active = false,
+  motion = false,
 }: {
   theme: CommunityCarouselThemeId
   title: string
   active?: boolean
+  motion?: boolean
 }) {
   const frame = useRef<HTMLIFrameElement>(null)
   const [html, setHtml] = useState<string | null>(() => documents.get(theme) ?? null)
   const [ready, setReady] = useState(false)
+  const [reduced, setReduced] = useState(false)
+  const [playing, setPlaying] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const sync = () => setReduced(media.matches)
+    sync()
+    media.addEventListener('change', sync)
+    return () => media.removeEventListener('change', sync)
+  }, [])
+
+  useEffect(() => {
+    setPlaying(motion && !reduced && !document.hidden)
+  }, [motion, reduced])
 
   useEffect(() => {
     if (!active) return
@@ -80,26 +96,39 @@ export function CommunityThemeSitePeek({
     return () => window.removeEventListener('message', receive)
   }, [active, ready, theme])
 
+  const drifting = playing && !active
   return (
-    <div className={styles.peek} data-community-theme={theme} data-ready={active && ready ? 'true' : 'false'}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        className={styles.poster}
-        src={`/marketing/demo-themes/${theme}.webp`}
-        alt={`${title} customer website, from the header through the hero`}
-        width={1200}
-        height={850}
-      />
-      {active && html ? (
-        <iframe
-          ref={frame}
-          className={`${styles.frame} ${ready ? styles.ready : styles.loading}`}
-          title={`${title} customer website preview`}
-          srcDoc={html}
-          sandbox="allow-scripts"
-          referrerPolicy="no-referrer"
-          tabIndex={-1}
+    <div className={styles.peek} data-community-theme={theme} data-ready={active && ready ? 'true' : 'false'} data-motion={drifting ? 'playing' : 'still'}>
+      <div className={styles.clip}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          className={styles.poster}
+          src={`/marketing/demo-themes/${theme}.webp`}
+          alt={`${title} customer website, from the header through the hero`}
+          width={1200}
+          height={850}
         />
+        {active && html ? (
+          <iframe
+            ref={frame}
+            className={`${styles.frame} ${ready ? styles.ready : styles.loading}`}
+            title={`${title} customer website preview`}
+            srcDoc={html}
+            sandbox="allow-scripts"
+            referrerPolicy="no-referrer"
+            tabIndex={-1}
+          />
+        ) : null}
+      </div>
+      {motion && !active ? (
+        <button
+          type="button"
+          className={styles.pause}
+          aria-label={(playing ? 'Pause ' : 'Play ') + title + ' animation'}
+          onClick={() => setPlaying((value) => !value)}
+        >
+          {playing ? 'Pause animation' : 'Play animation'}
+        </button>
       ) : null}
     </div>
   )

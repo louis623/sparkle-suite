@@ -8,7 +8,7 @@ import { metadata } from '@/app/portfolio/page'
 import { PortfolioExperience } from '@/app/_components/portfolio-experience'
 import { getAmethystAppearancePreset } from '@/lib/amethyst/appearance-presets'
 import { sparkleSuitePortfolioContent } from '@/lib/sparkle-suite/portfolio-content'
-import { portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
+import { portfolioCarouselMotion, portfolioMotion } from '@/lib/sparkle-suite/portfolio-motion'
 
 const renderPortfolio = () => renderToStaticMarkup(createElement(PortfolioExperience))
 const publicFile = (src: string) => join(process.cwd(), 'public', ...src.split('/').filter(Boolean))
@@ -81,11 +81,17 @@ describe('Sparkle Suite portfolio carousels', () => {
     expect(repHtml).toContain('Sparkly Butterflies')
     expect(repHtml).not.toMatch(/BlingKitchen|Bri’s Glowtique|theblingkitchen\.com|brisglowtique\.com/)
     for (const id of repIds) {
-      const recording = portfolioMotion[id]
+      const recording = portfolioCarouselMotion[id]
       expect(recording).toBeTruthy()
       expect(repHtml).toContain(recording.poster)
       expect(existsSync(publicFile(recording.poster))).toBe(true)
       expect(existsSync(publicFile(recording.mp4))).toBe(true)
+      expect(existsSync(publicFile(portfolioMotion[id].poster))).toBe(true)
+    }
+    for (const id of ['go-for-the-bling', 'sparkly-butterflies'] as const) {
+      const frame = portfolioCarouselMotion[id]
+      expect(frame.width / frame.height).toBeCloseTo(1200 / 850, 2)
+      expect(frame.poster).toContain('/marketing/portfolio-frame/')
     }
     expect(repHtml).toContain('milehighfizz.com')
     expect(repHtml).toContain('brittwithbling.com')
@@ -196,7 +202,12 @@ describe('Sparkle Suite portfolio carousels', () => {
     expect(focus).not.toContain('setVisible')
     expect(peek).toContain('active = false')
     expect(peek).toContain('if (!active) return')
+    expect(peek).toContain('motion = false')
+    expect(peek).toContain('Play animation')
+    expect(carousel).toContain('motion={active}')
+    expect(carousel).toContain('portfolioCarouselMotion')
     expect(carousel).not.toContain('<CommunityThemeSitePeek theme={slide.theme} title={slide.title} active')
+    expect(html).toContain('Play Chasing Unicorns animation')
     expect(html).not.toContain('The Dudes Fizzfest')
     expect(html).not.toContain('Smoke mirror')
     expect(html).not.toContain("I'm Louis")
