@@ -1,6 +1,6 @@
 # Carousel media maintenance — source material for a future skill
 
-Recorded at Louis's request on October 23, 2026. This runbook records the actual implementation and lessons from PR #150; it is not a new release authorization. Current work is Smoke only. Final candidate and deployed QA results belong in `docs/sparkle-suite/qa/2026-10-23-carousel-self-qa.md`.
+Recorded at Louis's request on October 23, 2026. This runbook records the actual implementation and lessons from PR #150; it is not a new release authorization. Current work is Smoke only. Motion QA is in `docs/sparkle-suite/qa/2026-10-23-carousel-self-qa.md`; the subsequent owner-requested spacing follow-up is in `docs/sparkle-suite/qa/2026-10-23-carousel-spacing-qa.md`.
 
 ## Product contract
 
@@ -46,6 +46,16 @@ node scripts/qa-carousel-peeks.cjs --base-url https://sparkle-suite-smoke.vercel
 The publication utility expects the full current set; for a later incremental addition, explicitly update its allowlist/validation and preserve already-approved entries. Do not overwrite a source recording that is itself being used as provenance. Local fixtures, raw JPEG frames, and browser evidence stay in ignored `.local/`; retain compact manifests, written QA, and scripts in Git.
 
 ## Playback contract and checks
+
+### Consistent carousel spacing
+
+Louis requested consistent padding and margins after reviewing the motion update. Portfolio recordings share a 1200/966 canvas, sized for the tallest approved source. Keep every complete recording at full available width and aligned to the top, with a matching matte below shorter sites. Never crop or stretch a customer homepage to eliminate that remaining space. When adding a taller source, explicitly review the shared canvas rather than reintroducing varying side/top bars.
+
+The shell uses a 40px browser bar and uniform gutters (16px desktop/tablet, 8px at 700px and below). Arrows and Pause occupy one reserved row beneath the frame at every width. Caption title, link, and description share grid tracks across all slides, including hidden sizing captions, so wrapped titles do not move the links or pagination. Keep the caption deck at the carousel's full width; do not subtract the page gutter twice. Apply the same inherited object-position to posters, playing videos, and the eager poster background; home player defaults remain separate. Scope paragraph margins strongly enough to survive global resets.
+
+For each new entry, compare the rendered frame, content top/width, controls, caption rows, and pagination coordinates across every slide at desktop, tablet, 390px, and a narrow phone width. Changing video time is not evidence of consistent spacing. Preserve native aspect ratios, complete header/Shop/hero bounds, focus visibility, and Pause behavior.
+
+### Motion and controls
 
 - Default dwell is 15,000 ms of centered, visible, actual playback. Loading, buffering, hidden tabs, and offscreen time do not consume it.
 - Pause stops animation and advancement. It remains in force across manual navigation; Play resumes. Navigation starts a fresh playback session and rejects stale callbacks.

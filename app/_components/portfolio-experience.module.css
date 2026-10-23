@@ -50,10 +50,9 @@
   display: block;
   margin-top: 28px;
 }
-.stage { position: relative; }
+.stage { display: grid; grid-template-columns: 48px 1fr 48px; gap: 12px; align-items: center; }
 .carouselButton {
-  position: absolute;
-  top: 43%;
+  grid-row: 2;
   z-index: 4;
   width: 48px;
   height: 48px;
@@ -65,13 +64,14 @@
   color: #fff6fb;
   box-shadow: 0 8px 18px rgba(54, 34, 29, .35);
   cursor: pointer;
-  transform: translateY(-50%);
 }
 .carouselButton:hover { filter: brightness(1.08); }
 .carouselButton:focus-visible { outline: 3px solid var(--suite-pink); outline-offset: 3px; }
-.previousSlide { left: 14px; }
-.nextSlide { right: 14px; }
+.previousSlide { grid-column: 1; }
+.nextSlide { grid-column: 3; }
 .viewport {
+  grid-column: 1 / -1;
+  grid-row: 1;
   position: relative;
   display: flex;
   width: 100%;
@@ -95,31 +95,36 @@
   overflow: hidden;
   border: 1px solid var(--suite-line);
   border-radius: 14px;
-  background: #fff;
+  background: var(--suite-espresso);
 }
 .browserBar {
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
+  height: 40px;
   padding: 10px 14px;
   background: var(--suite-plum);
   color: var(--suite-cream);
   font-size: 13px;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .browserBar span { flex-shrink: 0; font-size: 8px; letter-spacing: 2px; }
 .siteWindow > .mediaWell {
   position: relative;
-  width: 100%;
-  aspect-ratio: 1200 / 850;
+  --peek-object-position: center top;
+  width: calc(100% - 32px);
+  margin: 16px;
+  aspect-ratio: 1200 / 966;
   overflow: hidden;
-  background: #fff;
+  background: var(--suite-espresso);
   scrollbar-width: none;
 }
 .mediaWell img, .mediaWell video {
   object-fit: contain;
-  object-position: center;
+  object-position: var(--peek-object-position);
 }
 .mediaWell > div, .mediaWell > img, .mediaWell > span {
   position: absolute;
@@ -136,10 +141,12 @@
   border-radius: 8px;
   background: rgba(255, 255, 255, .72);
 }
-.cardDeck { display: grid; margin-top: 16px; }
+.cardDeck { display: grid; grid-template-rows: auto auto auto; row-gap: 8px; width: 100%; margin-top: 24px; }
 .cardDeck > .cardSizer,
 .cardDeck > .cardMeta {
-  grid-area: 1 / 1;
+  display: grid;
+  grid-area: 1 / 1 / span 3 / 2;
+  grid-template-rows: subgrid;
   width: 100%;
   min-width: 0;
   margin-top: 0;
@@ -152,18 +159,17 @@
   font-size: clamp(26px, 3vw, 36px);
   font-weight: 500;
   letter-spacing: -.03em;
+  line-height: 1.2;
+  margin: 0;
 }
-.cardDeck :is(a, .linkLine), .cardDeck p { margin-top: 8px; font-size: 15px; }
-.cardDeck :is(a, .linkLine) { color: var(--suite-pink); font-weight: 700; text-decoration: none; }
-.linkLine { display: inline; }
+.cardDeck :is(a, .linkLine), .cardDeck p { margin: 0; font-size: 15px; }
+.cardDeck :is(a, .linkLine) { display: block; color: var(--suite-pink); font-weight: 700; text-decoration: none; line-height: 1.5; }
 .cardDetail {
-  min-height: 4.8em;
-  margin-top: 8px;
   color: var(--suite-muted);
   font-size: 16px;
   line-height: 1.55;
 }
-.dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 10px; }
+.dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 12px; }
 .dots button {
   width: 44px;
   height: 44px;
@@ -184,10 +190,11 @@
 }
 .dots button[aria-current='true']::before { width: 28px; background: var(--suite-pink); }
 .dots button:focus-visible { outline: 3px solid var(--suite-pink); outline-offset: 2px; }
-.counter {
+.showcase .counter {
   display: none;
   width: min(1180px, calc(100% - 48px));
-  margin-top: 4px;
+  min-height: 44px;
+  margin-top: 12px;
   text-align: center;
   font-weight: 700;
   letter-spacing: .14em;
@@ -195,7 +202,7 @@
 }
 @media (max-width: 640px) {
   .dots[data-count='10'] { display: none; }
-  .counter[data-count='10'] { display: block; }
+  .counter[data-count='10'] { display: grid; place-items: center; }
 }
 @media (prefers-reduced-motion: reduce) {
   .viewport { scroll-behavior: auto; }
@@ -208,32 +215,18 @@
   .close { padding-block: 48px; }
   .close h2 { font-size: 38px; }
   .showcase { padding: 40px 0 28px; }
-  .cardDeck { margin-top: 10px; }
-  .cardDeck :is(a, .linkLine), .cardDeck p { margin-top: 4px; }
-  .cardDetail { min-height: 0; }
-  .dots, .counter { margin-top: 8px; }
+  .cardDeck { margin-top: 16px; }
   .showcaseCopy { width: calc(100% - 40px); }
   .showcase h2 { font-size: 34px; }
   .browserBar { flex-shrink: 0; font-size: 12px; }
   .cardDeck h3 { font-size: 28px; }
-}
-@media (max-width: 800px) {
-  .siteWindow, .siteWindow > .mediaWell { overflow: visible; }
-  .mediaWell :is(img, video) { border-radius: 12px; }
-  .slide { padding-bottom: 60px; }
-  .carouselButton {
-    top: auto;
-    bottom: 8px;
-    transform: none;
-  }
-  .previousSlide { left: 0; }
-  .nextSlide { right: 0; }
+  .siteWindow > .mediaWell { width: calc(100% - 16px); margin: 8px; }
 }
 .playbackControl {
-  position: absolute;
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: center;
   z-index: 5;
-  right: 20px;
-  bottom: 16px;
   min-height: 44px;
   padding: 10px 16px;
   border: 1px solid #f6e7da80;
@@ -242,8 +235,6 @@
   color: #fff6fa;
   font: 600 12px/1.3 var(--font-prelaunch-sans), sans-serif;
   cursor: pointer;
+  white-space: nowrap;
 }
 .playbackControl:focus-visible { outline: 3px solid var(--suite-pink); outline-offset: 3px; }
-@media (max-width: 800px) {
-  .playbackControl { right: auto; left: 50%; bottom: 8px; transform: translateX(-50%); max-width: calc(100% - 120px); white-space: nowrap; }
-}

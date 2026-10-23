@@ -68,7 +68,7 @@ export function ProductPeekVideo({ poster, mp4, width, height, alt, label, activ
     aspectRatio: width + '/' + height,
     ...(eagerPoster ? {
       backgroundImage: `url("${poster}")`,
-      backgroundPosition: fit === 'cover' ? 'center top' : 'center',
+      backgroundPosition: fit === 'cover' ? 'center top' : 'var(--peek-object-position, center)',
       backgroundRepeat: 'no-repeat',
       backgroundSize: fit,
     } : {}),
