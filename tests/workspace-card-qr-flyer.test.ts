@@ -287,6 +287,74 @@ describe('flyer theme designs', () => {
     }
   })
 
+  it('restages Fall Owl onto a 1080×1920 plate that still shows the approved owl and moon', async () => {
+    const record = flyerThemeRecord('fall_owl_harvest_moon')
+    expect(record.status).toBe('art')
+    expect(record.source).toBe('public/amethyst/skins/fall-owl/hero-poster.webp')
+    expect(record.plate).toBe('public/amethyst/skins/fall-owl/flyer/plate.webp')
+    const platePath = flyerPlateAbsolute('fall_owl_harvest_moon') as string
+    const meta = await sharp(platePath).metadata()
+    expect(meta.width).toBe(1080)
+    expect(meta.height).toBe(1920)
+    expect(meta.format).toBe('webp')
+
+    // scripts/card-qr/plate-sources/fall-owl/compose.py maps poster x=120..1280
+    // across the flyer width. This crop is the approved owl face on that map.
+    const heroLeft = 120
+    const scale = 1080 / (1280 - heroLeft)
+    const face = { left: 900, top: 140, width: 200, height: 160 }
+    const sourceFace = await sharp(record.source as string)
+      .extract(face)
+      .removeAlpha()
+      .raw()
+      .toBuffer()
+    const plateFace = await sharp(platePath)
+      .extract({
+        left: Math.round((face.left - heroLeft) * scale),
+        top: Math.round(face.top * scale),
+        width: Math.round(face.width * scale),
+        height: Math.round(face.height * scale),
+      })
+      .resize(face.width, face.height)
+      .removeAlpha()
+      .raw()
+      .toBuffer()
+    let error = 0
+    for (let index = 0; index < sourceFace.length; index += 1) {
+      error += Math.abs((sourceFace[index] ?? 0) - (plateFace[index] ?? 0))
+    }
+    expect(error / sourceFace.length).toBeLessThan(12)
+
+    const moon = await sharp(platePath)
+      .extract({ left: 820, top: 30, width: 180, height: 150 })
+      .removeAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true })
+    let gold = 0
+    const channels = moon.info.channels
+    for (let index = 0; index < moon.data.length; index += channels) {
+      const red = moon.data[index] ?? 0
+      const green = moon.data[index + 1] ?? 0
+      const blue = moon.data[index + 2] ?? 0
+      if (red > 190 && green > 140 && red > blue + 40) gold += 1
+    }
+    expect(gold / (moon.data.length / channels)).toBeGreaterThan(0.4)
+
+    const copy = dudeCopy({ showTitle: 'Bling with Krissi' })
+    const parts = await renderCardQrFlyerParts({
+      palette: resolveCardQrPalette({
+        templateId: 'match-site',
+        appearancePreset: 'fall_owl_harvest_moon',
+      }),
+      ...copy,
+      appearancePreset: 'fall_owl_harvest_moon',
+      destinationUrl: QR_URL,
+      showQr: true,
+    })
+    expect(parts.layout.panel?.y).toBeGreaterThan(212)
+    await expect(assertFlyerQrDecodes(parts.flyer, QR_URL, parts.layout.qr)).resolves.toBeUndefined()
+  })
+
   it('keeps shared-theme text at WCAG AA against the panel and the scan pill', () => {
     const frosted = new Set(['amethyst', 'gilded_autumn'])
     for (const theme of CARD_QR_SHARED_FLYER_THEMES) {

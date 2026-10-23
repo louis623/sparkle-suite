@@ -26,7 +26,14 @@ const skin = (folder: string, file: string) => `public/amethyst/skins/${folder}/
 export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
   { theme: 'gobble_and_fizz', status: 'art', source: skin('gobble-and-fizz', 'hero-poster.webp'), plate: skin('gobble-and-fizz', 'hero-poster.webp'), panelStyle: 'solid', note: 'Approved Thanksgiving artwork with solid readable panels in the matching site palette.' },
   { theme: 'pie_please', status: 'art', source: skin('pie-please', 'hero-poster-v4.webp'), plate: skin('pie-please', 'hero-poster-v4.webp'), panelStyle: 'solid', note: 'Approved mouse-free pie artwork with solid readable panels in the matching site palette.' },
-  { theme: 'fall_owl_harvest_moon', status: 'art', source: skin('fall-owl', 'hero-poster.webp'), plate: skin('fall-owl', 'hero-poster.webp'), panelStyle: 'solid', note: 'Approved Fall Owl artwork; solid readable panels use the autumn palette.' },
+  {
+    theme: 'fall_owl_harvest_moon',
+    status: 'art',
+    source: skin('fall-owl', 'hero-poster.webp'),
+    plate: skin('fall-owl', 'flyer/plate.webp'),
+    panelStyle: 'solid',
+    note: 'Approved Fall Owl artwork restaged to a 1080×1920 plate so the owl and harvest moon stay whole. Solid readable panels use the autumn palette.',
+  },
   {
     theme: 'amethyst',
     status: 'art',
