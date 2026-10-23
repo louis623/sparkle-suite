@@ -34,7 +34,9 @@ export const portfolioMotion: Record<string, {poster:string;mp4:string;width:num
 
 /** Portfolio wells are 1200×850. Wider recordings are extended to that
  * ratio so cover keeps the logo and Shop button edge to edge. Home cards
- * keep the original recordings above. */
+ * keep the original recordings above. The Gnome Forest and Neon Butterfly
+ * recordings have the theme's own Pause pill painted out, so the player
+ * control is the only Pause/Play on those slides. */
 export const portfolioCarouselMotion: typeof portfolioMotion = {
   ...portfolioMotion,
   "go-for-the-bling": {
