@@ -1,6 +1,6 @@
 # Carousel media maintenance — source material for a future skill
 
-Recorded at Louis's request on October 23, 2026. This runbook records the actual implementation and lessons from PR #150; it is not a new release authorization. Current work is Smoke only. Motion QA is in `docs/sparkle-suite/qa/2026-10-23-carousel-self-qa.md`; the subsequent owner-requested spacing follow-up is in `docs/sparkle-suite/qa/2026-10-23-carousel-spacing-qa.md`.
+Recorded at Louis's request on October 23, 2026. This runbook records the actual implementation and lessons from PR #150; it is not a new release authorization. Initial work was Smoke only. Louis subsequently approved publishing that version as-is; the production release is recorded in `vault/2026-10-23-carousel-live-closeout.md`. Motion QA is in `docs/sparkle-suite/qa/2026-10-23-carousel-self-qa.md`; the subsequent owner-requested spacing follow-up is in `docs/sparkle-suite/qa/2026-10-23-carousel-spacing-qa.md`.
 
 ## Product contract
 
@@ -51,6 +51,8 @@ The publication utility expects the full current set; for a later incremental ad
 
 Louis requested consistent padding and margins after reviewing the motion update. Portfolio recordings share a 1200/966 canvas, sized for the tallest approved source. Keep every complete recording at full available width and aligned to the top, with a matching matte below shorter sites. Never crop or stretch a customer homepage to eliminate that remaining space. When adding a taller source, explicitly review the shared canvas rather than reintroducing varying side/top bars.
 
+Owner follow-up: Louis preferred an eventual edge-to-edge presentation without brown matte, but then explicitly chose to leave the current version unchanged and authorized Live publication. Do not claim the present canvas eliminates all visible empty space. Smaller overall dimensions alone cannot reconcile different recording proportions; a future edge-to-edge change would require a separate source/framing decision, such as standardized captures. No such redesign is currently requested.
+
 The shell uses a 40px browser bar and uniform gutters (16px desktop/tablet, 8px at 700px and below). Arrows and Pause occupy one reserved row beneath the frame at every width. Caption title, link, and description share grid tracks across all slides, including hidden sizing captions, so wrapped titles do not move the links or pagination. Keep the caption deck at the carousel's full width; do not subtract the page gutter twice. Apply the same inherited object-position to posters, playing videos, and the eager poster background; home player defaults remain separate. Scope paragraph margins strongly enough to survive global resets.
 
 For each new entry, compare the rendered frame, content top/width, controls, caption rows, and pagination coordinates across every slide at desktop, tablet, 390px, and a narrow phone width. Changing video time is not evidence of consistent spacing. Preserve native aspect ratios, complete header/Shop/hero bounds, focus visibility, and Pause behavior.
@@ -78,6 +80,7 @@ For each new entry, compare the rendered frame, content top/width, controls, cap
 9. **Source subtlety is a decision, not a capture defect.** Pumpkin Pie's owner-approved v4 source has gentle sunlight/bokeh. Independent review found it subtle at phone size; Louis explicitly chose to keep the original sunlight on October 23. Preserve that exception; do not claim a steam/character beat or invent stronger movement.
 10. **Tests can enforce the wrong design.** Earlier assertions required still-only drift. Keep wiring/asset/framing regressions, but make browser playback and visual evidence part of acceptance.
 11. **Review surrounding captions against the actual scene.** The old Cat caption said silver moon even though the cat sits on a jack-o’-lantern. Media correctness does not guarantee that existing slide copy remains correct.
+12. **Audit the whole page separately from the carousel.** The Live release's eight home recording checks passed, but its mobile asset audit found the pre-existing missing `demo-themes/pie_please-mobile.webp` requested by the separate dynamic landing hero. That hero constructs both desktop and phone poster URLs. When adding its assets, verify both exist; do not confuse a successful carousel check with a clean whole-page asset audit.
 
 ## Future skill packaging
 

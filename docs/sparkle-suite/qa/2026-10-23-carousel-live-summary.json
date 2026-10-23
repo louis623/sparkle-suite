@@ -1,0 +1,85 @@
+{
+  "target": "https://www.yoursparklesuite.com",
+  "commit": "95ea4574ba0341214c3320c9e981a84f131f15a6",
+  "deployment": "dpl_FyDFBopRXJTf5itU52vGsRZHn5nJ",
+  "carousel": "PASS 28/28 actual playback, pixel/frame progress, captions, one active player, dwell and wrap",
+  "homePlayback": "PASS 8/8 real decoding, pixel motion, Pause/resume, full-frame controls",
+  "wholePageAssetAudit": "Desktop PASS; mobile FAIL due pre-existing missing /marketing/demo-themes/pie_please-mobile.webp top landing demo poster",
+  "preExistingFinding": {
+    "url": "https://www.yoursparklesuite.com/marketing/demo-themes/pie_please-mobile.webp",
+    "status": 404,
+    "parentVerified": "Base5fd172f also lacks this asset and landing-hero.tsx has zero diff from base; same mobile URL construction",
+    "disposition": "Preserved unchanged under explicit release-as-is instruction; failure receipt retained"
+  },
+  "visualReview": {
+    "desktop": "Inspected Unicorn, Witch, Cat, Pie, Midnight Rose, classic MHF, everyday Brittany; home desktop/mobile classic MHF and Watch complete headers/heroes and clean controls",
+    "mobile": "Independent reviewer inspected all14 composed8s frames plus Unicorn/Witch paired entrance, see mobile-portfolio-all/human-review-summary.json",
+    "knownSourceNotes": [
+      "Brittany everyday black/gold/teal skin retains seasonal announcement ticker in approved recording; not a Halloween skin.",
+      "Pie retains approved subtle sunlight motion."
+    ],
+    "scope": "No source edits or provider writes during QA"
+  },
+  "runs": [
+    {
+      "name": "desktop-portfolio-all",
+      "status": "pass",
+      "checks": 14,
+      "passedChecks": 14,
+      "dwellMs": {
+        "min": 15078,
+        "max": 15683
+      },
+      "pageErrors": [],
+      "assetErrors": [],
+      "blockedNonGet": [],
+      "blockedNavigation": [],
+      "evidence": "C:\\Users\\louis\\sparkle-suite-repo\\.local\\carousel-pr150-20261023\\.local\\final-live-carousel-qa\\desktop-portfolio-all\\evidence.json"
+    },
+    {
+      "name": "mobile-portfolio-all",
+      "status": "pass",
+      "checks": 14,
+      "passedChecks": 14,
+      "dwellMs": {
+        "min": 15025,
+        "max": 15564
+      },
+      "pageErrors": [],
+      "assetErrors": [],
+      "blockedNonGet": [],
+      "blockedNavigation": [],
+      "evidence": "C:\\Users\\louis\\sparkle-suite-repo\\.local\\carousel-pr150-20261023\\.local\\final-live-carousel-qa\\mobile-portfolio-all\\evidence.json"
+    },
+    {
+      "name": "desktop-home-all",
+      "status": "pass",
+      "checks": 4,
+      "passedChecks": 4,
+      "dwellMs": null,
+      "pageErrors": [],
+      "assetErrors": [],
+      "blockedNonGet": [],
+      "blockedNavigation": [],
+      "evidence": "C:\\Users\\louis\\sparkle-suite-repo\\.local\\carousel-pr150-20261023\\.local\\final-live-carousel-qa\\desktop-home-all\\evidence.json"
+    },
+    {
+      "name": "mobile-home-all",
+      "status": "fail",
+      "checks": 4,
+      "passedChecks": 4,
+      "dwellMs": null,
+      "pageErrors": [],
+      "assetErrors": [
+        {
+          "url": "https://www.yoursparklesuite.com/marketing/demo-themes/pie_please-mobile.webp",
+          "status": 404
+        }
+      ],
+      "blockedNonGet": [],
+      "blockedNavigation": [],
+      "evidence": "C:\\Users\\louis\\sparkle-suite-repo\\.local\\carousel-pr150-20261023\\.local\\final-live-carousel-qa\\mobile-home-all\\evidence.json"
+    }
+  ],
+  "finishedAt": "2026-10-23T19:59:40.194Z"
+}
