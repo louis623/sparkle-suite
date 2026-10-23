@@ -32,7 +32,7 @@ export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
     source: skin('fall-owl', 'hero-poster.webp'),
     plate: skin('fall-owl', 'flyer/plate.webp'),
     panelStyle: 'solid',
-    note: 'The approved Fall Owl poster restaged for the flyer: the same owl and moon, smaller, on the upper right, with the lake and hills once at the bottom. Solid readable panels use the autumn palette.',
+    note: 'Approved high-perch layout: original purple owl and amber jewelry above the title on a right-edge branch; original moon and foliage, centered QR space, and lake once at the bottom. Solid panels use the autumn palette.',
   },
   {
     theme: 'amethyst',

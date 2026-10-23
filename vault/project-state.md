@@ -4173,3 +4173,7 @@ Verification passed:
 
 - The Nic-Nac Home Trade Info button now says `Open Dance Floor` and retains its Dance Floor navigation. Application commit `b2677a08e9ebe86ba726ce343134ad9745f4138f` is live as READY deployment `dpl_D2Um9eCUBEX7WqAX5yf5gMqY6VY1` on both Suite domains; the previous deployment `dpl_59rXL3nvtiBBW9XQ2fvFwKP2STBs` remains available.
 - The focused Workspace suite passed 138 tests, TypeScript and the guarded local/Vercel production builds passed, and changed-file lint had zero errors. A broader operator-support suite had two unrelated stale Live Queue/Tools assertion failures. The live landing page and public Dance Floor rendered; signed-in reviewer controls still require an unavailable protected token, so the production button was not visually inspected through an authenticated synthetic session.
+
+## October 23, 2026 — Fall Owl QR flyer high-perch repair
+
+Louis selected high-perch option A for PR #151. The 1080×1920 plate uses the approved hero owl pixels, amber wing gems and pendant, with a right-edge branch, centered QR and lake once at the bottom. Seven focused identity/layout/PNG-JPEG QR tests pass; rebuild is byte-identical. No Live merge/deploy or Kristen saved-theme change. See `vault/2026-10-23-fall-owl-flyer-plate-closeout.md`.
