@@ -14,10 +14,11 @@ describe('portfolio carousel index', () => {
     expect(nextCarouselIndex(2, 1, true)).toBe(1)
   })
 
-  it('restores the held slide from resize instead of an intersection observer', () => {
+  it('restores the held slide from resize and uses visibility only to gate playback', () => {
     const source = readFileSync(join(process.cwd(), 'app/_components/portfolio-carousels.tsx'), 'utf8')
     expect(source).toContain('nextCarouselIndex')
     expect(source).toContain("addEventListener('resize', restoreHeldSlide)")
-    expect(source).not.toContain('IntersectionObserver')
+    expect(source).toContain('IntersectionObserver')
+    expect(source).toContain('setInView(entry.isIntersecting')
   })
 })

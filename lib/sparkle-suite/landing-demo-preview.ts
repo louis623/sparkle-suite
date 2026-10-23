@@ -22,34 +22,46 @@ export async function landingPreviewDocument(demo: LandingDemo, theme: AmethystA
   // All themes share Homepage.html. The supported sample key chooses only the
   // asset allowlist; the exact saved/requested theme is supplied by bootstrap.
   const assetKey = SKIN_PREVIEW_SKINS.includes(theme as SkinPreviewSkin) ? theme as SkinPreviewSkin : 'rose_gold'
-  let document = await buildSkinPreviewDocument(assetKey, 'homepage', origin, null, bootstrap)
+  const document = await buildSkinPreviewDocument(assetKey, 'homepage', origin, null, bootstrap)
+  const sampleCrop = sampleLineup
+    ? '.hp-hero{min-height:0!important;padding:36px 20px!important}.hp-hero h1{font-size:42px!important}.hp-hero .hp-hero-sub{display:none}.hp-lineup-status{display:none}'
+    : ''
+  return sealOpaqueMarketingDocument(document, theme, sampleCrop)
+}
+
+const mediaFolders: Partial<Record<AmethystAppearancePresetId, string>> = {
+  gobble_and_fizz:'gobble-and-fizz', pie_please:'pie-please',
+  amethyst:'am01-unicorn', gilded_autumn:'gilded-autumn', gnome_garden:'gnome-garden',
+  halloween_pumpkin_cat:'halloween-pumpkin-cat', halloween_pumpkin_witch:'halloween-pumpkin-witch',
+  midnight_rose:'midnight-rose', fall_owl_harvest_moon:'fall-owl', pearl_rose:'pearl-rose', rose_champagne:'rose-champagne', neon_butterfly:'neon-butterfly',
+}
+
+/** Bundle a customer homepage for an opaque marketing frame.
+ * Repository CSS and theme media stay inside the document. The frame does not
+ * receive the parent origin, cookies, forms, or lineup polling. */
+export async function sealOpaqueMarketingDocument(document: string, theme: AmethystAppearancePresetId, extraCss = '') {
+  let sealed = document
   // Opaque sandboxes cannot send the protected Smoke deployment's auth cookie.
   // Bundle repository CSS; never loosen the frame's origin or API restrictions.
   for (const match of document.matchAll(/<link rel="stylesheet" href="(?:\/amethyst\/)?([a-z0-9-]+\.css)(?:\?[^"]*)?"\s*\/>/g)) {
     const css = await readFile(join(process.cwd(), 'public', 'amethyst', match[1]), 'utf8')
-    document = document.replace(match[0], '<style>' + css.replace(/<\/style/gi, '<\\/style') + '</style>')
-  }
-  const mediaFolders: Partial<Record<AmethystAppearancePresetId, string>> = {
-    gobble_and_fizz:'gobble-and-fizz', pie_please:'pie-please',
-    amethyst:'am01-unicorn', gilded_autumn:'gilded-autumn', gnome_garden:'gnome-garden',
-    halloween_pumpkin_cat:'halloween-pumpkin-cat', halloween_pumpkin_witch:'halloween-pumpkin-witch',
-    midnight_rose:'midnight-rose', fall_owl_harvest_moon:'fall-owl', pearl_rose:'pearl-rose', rose_champagne:'rose-champagne', neon_butterfly:'neon-butterfly',
+    sealed = sealed.replace(match[0], '<style>' + css.replace(/<\/style/gi, '<\\/style') + '</style>')
   }
   const folder = mediaFolders[theme]
   const assets = folder ? (await readdir(join(process.cwd(), 'public', 'amethyst', 'skins', folder)))
     .filter(name => /^[a-z0-9-]+\.(?:mp4|webm|webp|png|svg)$/.test(name)).map(name => '/amethyst/skins/' + folder + '/' + name) : []
-  document = document.replace(/media-src [^;]+;/, 'media-src data:;')
-  document = document.replace('</head>', '<script id="marketing-preview-assets" type="application/json">' + JSON.stringify(assets) + '</script></head>')
-  // Use customer rendering (no invented sample lineup), without starting polling.
-  document = document.replace("return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });", 'return;')
-  document = document.replace(/<title>[^<]*<\/title>/, '<title>Website preview</title>')
-  document = document.replace('</head>', `<style>
+  sealed = sealed.replace(/media-src [^;]+;/, 'media-src data:;')
+  sealed = sealed.replace('</head>', '<script id="marketing-preview-assets" type="application/json">' + JSON.stringify(assets) + '</script></head>')
+  // Keep the bootstrapped lineup. Do not start live polling from the frame.
+  sealed = sealed.replace("return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });", 'return;')
+  sealed = sealed.replace(/<title>[^<]*<\/title>/, '<title>Website preview</title>')
+  sealed = sealed.replace('</head>', `<style>
     html{scrollbar-width:none}body{overflow-x:hidden}
     .hp-nicnac,.hp-signup,.tweaks-toggle,.tweaks-panel{display:none!important}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
     html[data-marketing-paused] *,html[data-marketing-paused] *::before,html[data-marketing-paused] *::after{animation-play-state:paused!important}
     .hp-queue-modal-mask{z-index:2147483000!important}
-    ${sampleLineup ? '.hp-hero{min-height:0!important;padding:36px 20px!important}.hp-hero h1{font-size:42px!important}.hp-hero .hp-hero-sub{display:none}.hp-lineup-status{display:none}' : ''}
+    ${extraCss}
     @media(max-width:600px){.hp-hero{min-height:0!important;padding-top:36px!important;padding-bottom:36px!important}.hp-hero h1{font-size:44px!important;line-height:1.08!important}}
   </style></head>`)
   // The sandbox has no same-origin, forms, popups, downloads or top navigation.
@@ -73,5 +85,5 @@ export async function landingPreviewDocument(demo: LandingDemo, theme: AmethystA
     });
     new MutationObserver(ready).observe(document.getElementById('root'),{childList:true,subtree:true});ready();
   })();</script>`
-  return document.replace('</body>', ready + '</body>')
+  return sealed.replace('</body>', ready + '</body>')
 }

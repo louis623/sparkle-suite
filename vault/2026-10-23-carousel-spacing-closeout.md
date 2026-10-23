@@ -1,0 +1,9 @@
+# Carousel spacing closeout — October 23, 2026
+
+- Louis approved the authentic motion update and asked for consistent portfolio padding/margins. PR #150 remains open on `cursor/theme-carousel-site-peeks-db80`; work used verified clone `.local/carousel-pr150-20261023`.
+- Application `34f492aa46b00de48ae5a9a85db91de51d7dc82d` is deployed to Preview `dpl_24bhA3yHhzFKSouroCyrdemiVa9W`. Only `https://sparkle-suite-smoke.vercel.app` moved, with exact alias readback verified. Both Live aliases remain on `dpl_G4rJLcrAS5J9EQoZxu7mxmFV1WnE`. No merge or Live authorization.
+- Shared 1200/966 media canvas, full-width top-aligned complete recordings, uniform 40px bar and 16px/8px gutters, below-frame controls, and shared caption tracks stabilize spacing. Shorter native sites keep matte below; no cropping, stretching, media recapture, or customer-theme change.
+- All 56 deployed geometry cases passed: 14 slides at 1440, 768, 390, and 320px. Actual dwell was 15.03–15.14 seconds. Pause/navigation/resume/visibility passed at all four widths; local desktop/phone and final deployed phone home regression passed. Independent visual review found no blockers.
+- Existing 29 focused tests, targeted lint, guarded production build, and TypeScript passed. Browser plugin unavailable; isolated Playwright Chromium used. Physical iPhone/Safari remains untested.
+- Written results, compact measurements, and representative screenshots: `docs/sparkle-suite/qa/2026-10-23-carousel-spacing-qa.md`. Future skill records updated in `docs/sparkle-suite/operations/carousel-media-maintenance.md`; preserve Lindsey's classic design and Pumpkin Pie's original subtle sunlight.
+- Next: Louis reviews Smoke `/portfolio` and `/`. Keep the PR open and Live unchanged until explicitly authorized. Notes-only closeout commits do not require another application deployment.
