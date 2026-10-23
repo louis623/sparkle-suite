@@ -1,0 +1,438 @@
+{
+  "origin": "https://sparkle-suite-smoke.vercel.app",
+  "commit": "34f492aa46b00de48ae5a9a85db91de51d7dc82d",
+  "deployment": "dpl_24bhA3yHhzFKSouroCyrdemiVa9W",
+  "desktopAndTablet": [
+    {
+      "viewport": "desktop",
+      "status": "pass",
+      "slides": 14,
+      "outer": {
+        "x": 0,
+        "y": 0,
+        "width": 1180,
+        "height": 996.515625
+      },
+      "bar": {
+        "x": 1,
+        "y": 1,
+        "width": 1178,
+        "height": 40
+      },
+      "well": {
+        "x": 17,
+        "y": 57,
+        "width": 1146,
+        "height": 922.515625
+      },
+      "contentTopRange": [
+        57,
+        57
+      ],
+      "contentWidthRange": [
+        1145.982142857143,
+        1146
+      ],
+      "overflowMax": 0,
+      "advance": {
+        "autoAdvanceMs": 15122
+      },
+      "errors": []
+    },
+    {
+      "viewport": "tablet",
+      "status": "pass",
+      "slides": 14,
+      "outer": {
+        "x": 0,
+        "y": 0,
+        "width": 720,
+        "height": 626.21875
+      },
+      "bar": {
+        "x": 1,
+        "y": 1,
+        "width": 718,
+        "height": 40
+      },
+      "well": {
+        "x": 17,
+        "y": 57,
+        "width": 686,
+        "height": 552.21875
+      },
+      "contentTopRange": [
+        57,
+        57
+      ],
+      "contentWidthRange": [
+        685.9860248447204,
+        686
+      ],
+      "overflowMax": 0,
+      "advance": {
+        "autoAdvanceMs": 15088
+      },
+      "errors": []
+    }
+  ],
+  "desktopAndTabletInteractions": [
+    {
+      "name": "desktop",
+      "status": "pass",
+      "checks": [
+        "normal playback",
+        "pause persists through next",
+        "explicit resume decodes next",
+        "offscreen pauses",
+        "re-entry resumes"
+      ]
+    },
+    {
+      "name": "tablet",
+      "status": "pass",
+      "checks": [
+        "normal playback",
+        "pause persists through next",
+        "explicit resume decodes next",
+        "offscreen pauses",
+        "re-entry resumes"
+      ]
+    }
+  ],
+  "phonesAndHome": {
+    "origin": "https://sparkle-suite-smoke.vercel.app",
+    "commit": "34f492aa46b00de48ae5a9a85db91de51d7dc82d",
+    "deployment": "dpl_24bhA3yHhzFKSouroCyrdemiVa9W",
+    "provenance": "Parent verified exact alias target before this run",
+    "completedAt": "2026-10-23T19:43:58.179Z",
+    "status": "pass",
+    "viewports": [
+      {
+        "source": "candidate-mobile/evidence.json",
+        "viewport": {
+          "name": "mobile",
+          "width": 390,
+          "height": 844
+        },
+        "status": "pass",
+        "slidesChecked": 14,
+        "checks": [
+          "community-themes: manual next/wrap and pause persisted across all slides",
+          "rep-highlights: manual next/wrap and pause persisted across all slides",
+          {
+            "autoAdvanceMs": 15029
+          }
+        ],
+        "pageErrors": [],
+        "firstFrame": {
+          "x": 0,
+          "y": 0,
+          "width": 342,
+          "height": 318.8125
+        },
+        "mediaWell": {
+          "x": 9,
+          "y": 49,
+          "width": 324,
+          "height": 260.8125
+        },
+        "headerHeight": 40,
+        "horizontalOverflow": {
+          "min": 0,
+          "max": 0
+        },
+        "maxFullWidthDifference": 0.009316770186330814,
+        "maxTopDifference": 0,
+        "controlsBelowFrame": true,
+        "groups": [
+          {
+            "group": "community-themes",
+            "slides": 10,
+            "headingTop": {
+              "min": 394.8125,
+              "max": 394.8125
+            },
+            "linkTop": {
+              "min": 470,
+              "max": 470
+            },
+            "detailTop": {
+              "min": 500.5,
+              "max": 500.5
+            },
+            "ctaTop": {
+              "min": 631,
+              "max": 631
+            }
+          },
+          {
+            "group": "rep-highlights",
+            "slides": 4,
+            "headingTop": {
+              "min": 394.8125,
+              "max": 394.8125
+            },
+            "linkTop": {
+              "min": 436.40625,
+              "max": 436.40625
+            },
+            "detailTop": {
+              "min": 466.90625,
+              "max": 466.90625
+            },
+            "ctaTop": {
+              "min": 597.40625,
+              "max": 597.40625
+            }
+          }
+        ],
+        "visualReview": {
+          "status": "pass",
+          "screenshots": [
+            "community-themes-0.png",
+            "community-themes-1.png",
+            "rep-highlights-0.png",
+            "rep-highlights-3.png"
+          ],
+          "findings": "Uniform outer frame and inner gutters; full header and hero preserved; no overlapping or clipped controls; correct Unicorn/Witch and classic Lindsey/Kelly identities."
+        }
+      },
+      {
+        "source": "candidate-small/evidence.json",
+        "viewport": {
+          "name": "small",
+          "width": 320,
+          "height": 800
+        },
+        "status": "pass",
+        "slidesChecked": 14,
+        "checks": [
+          "community-themes: manual next/wrap and pause persisted across all slides",
+          "rep-highlights: manual next/wrap and pause persisted across all slides",
+          {
+            "autoAdvanceMs": 15135
+          }
+        ],
+        "pageErrors": [],
+        "firstFrame": {
+          "x": 0,
+          "y": 0,
+          "width": 272,
+          "height": 262.46875
+        },
+        "mediaWell": {
+          "x": 9,
+          "y": 49,
+          "width": 254,
+          "height": 204.46875
+        },
+        "headerHeight": 40,
+        "horizontalOverflow": {
+          "min": 0,
+          "max": 0
+        },
+        "maxFullWidthDifference": 0.0015527950310456617,
+        "maxTopDifference": 0,
+        "controlsBelowFrame": true,
+        "groups": [
+          {
+            "group": "community-themes",
+            "slides": 10,
+            "headingTop": {
+              "min": 338.46875,
+              "max": 338.46875
+            },
+            "linkTop": {
+              "min": 413.65625,
+              "max": 413.65625
+            },
+            "detailTop": {
+              "min": 444.15625,
+              "max": 444.15625
+            },
+            "ctaTop": {
+              "min": 597.90625,
+              "max": 597.90625
+            }
+          },
+          {
+            "group": "rep-highlights",
+            "slides": 4,
+            "headingTop": {
+              "min": 338.46875,
+              "max": 338.46875
+            },
+            "linkTop": {
+              "min": 380.0625,
+              "max": 380.0625
+            },
+            "detailTop": {
+              "min": 410.5625,
+              "max": 410.5625
+            },
+            "ctaTop": {
+              "min": 541.0625,
+              "max": 541.0625
+            }
+          }
+        ],
+        "visualReview": {
+          "status": "pass",
+          "screenshots": [
+            "community-themes-0.png",
+            "community-themes-1.png",
+            "rep-highlights-0.png",
+            "rep-highlights-3.png"
+          ],
+          "findings": "Uniform outer frame and inner gutters; full header and hero preserved; no overlapping or clipped controls; correct Unicorn/Witch and classic Lindsey/Kelly identities."
+        }
+      }
+    ],
+    "normalInteractions": [
+      {
+        "name": "mobile",
+        "status": "pass",
+        "checks": [
+          "normal playback",
+          "pause persists through next",
+          "explicit resume decodes next",
+          "offscreen pauses",
+          "re-entry resumes"
+        ]
+      },
+      {
+        "name": "small",
+        "status": "pass",
+        "checks": [
+          "normal playback",
+          "pause persists through next",
+          "explicit resume decodes next",
+          "offscreen pauses",
+          "re-entry resumes"
+        ]
+      }
+    ],
+    "home": {
+      "source": "home-regression/mobile-home-all/evidence.json",
+      "status": "pass",
+      "checks": [
+        {
+          "id": "home-0",
+          "status": "pass",
+          "before": {
+            "currentTime": 0.201501,
+            "duration": 15.041667,
+            "paused": false,
+            "readyState": 4,
+            "width": 1200,
+            "height": 856,
+            "src": "https://sparkle-suite-smoke.vercel.app/marketing/rep-sites-v2/mile-high-fizz.mp4",
+            "frames": 9
+          },
+          "after": {
+            "currentTime": 3.697084,
+            "duration": 15.041667,
+            "paused": false,
+            "readyState": 4,
+            "width": 1200,
+            "height": 856,
+            "src": "https://sparkle-suite-smoke.vercel.app/marketing/rep-sites-v2/mile-high-fizz.mp4",
+            "frames": 93
+          },
+          "pixelChange": true,
+          "pauseResume": true,
+          "fullFrameControl": true,
+          "themeIdentity": "human review required"
+        },
+        {
+          "id": "home-1",
+          "status": "pass",
+          "before": {
+            "currentTime": 4.383933,
+            "duration": 15.125,
+            "paused": false,
+            "readyState": 4,
+            "width": 1200,
+            "height": 826,
+            "src": "https://sparkle-suite-smoke.vercel.app/marketing/rep-sites-v2/go-for-the-bling.mp4",
+            "frames": 110
+          },
+          "after": {
+            "currentTime": 7.649739,
+            "duration": 15.125,
+            "paused": false,
+            "readyState": 4,
+            "width": 1200,
+            "height": 826,
+            "src": "https://sparkle-suite-smoke.vercel.app/marketing/rep-sites-v2/go-for-the-bling.mp4",
+            "frames": 188
+          },
+          "pixelChange": true,
+          "pauseResume": true,
+          "fullFrameControl": true,
+          "themeIdentity": "human review required"
+        },
+        {
+          "id": "home-2",
+          "status": "pass",
+          "before": {
+            "currentTime": 5.500905,
+            "duration": 15.041667,
+            "paused": false,
+            "readyState": 4,
+            "width": 1200,
+            "height": 856,
+            "src": "https://sparkle-suite-smoke.vercel.app/marketing/rep-sites-v2/sparkly-butterflies.mp4",
+            "frames": 137
+          },
+          "after": {
+            "currentTime": 8.784536,
+            "duration": 15.041667,
+            "paused": false,
+            "readyState": 4,
+            "width": 1200,
+            "height": 856,
+            "src": "https://sparkle-suite-smoke.vercel.app/marketing/rep-sites-v2/sparkly-butterflies.mp4",
+            "frames": 215
+          },
+          "pixelChange": true,
+          "pauseResume": true,
+          "fullFrameControl": true,
+          "themeIdentity": "human review required"
+        },
+        {
+          "id": "home-watch",
+          "status": "pass",
+          "before": {
+            "currentTime": 0.128255,
+            "duration": 16.041667,
+            "paused": false,
+            "readyState": 4,
+            "width": 1200,
+            "height": 846,
+            "src": "https://sparkle-suite-smoke.vercel.app/marketing/community-sites-v2/halloween_pumpkin_witch.mp4",
+            "frames": 7
+          },
+          "after": {
+            "currentTime": 3.242643,
+            "duration": 16.041667,
+            "paused": false,
+            "readyState": 4,
+            "width": 1200,
+            "height": 846,
+            "src": "https://sparkle-suite-smoke.vercel.app/marketing/community-sites-v2/halloween_pumpkin_witch.mp4",
+            "frames": 82
+          },
+          "pixelChange": true,
+          "pauseResume": true,
+          "fullFrameControl": true,
+          "themeIdentity": "human review required"
+        }
+      ],
+      "pageErrors": [],
+      "assetErrors": [],
+      "visualReview": "Classic Lindsey mountain/aurora/lake homepage preserved; control visible below full recording."
+    }
+  }
+}
