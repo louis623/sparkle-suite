@@ -120,6 +120,18 @@ export function getCustomerSiteAppleMarkAssetPath(customDomain: string) {
   return KRISTIN_CUSTOM_DOMAINS.has(customDomain) ? KRISTIN_MARK_PATH : null
 }
 
+/**
+ * Keeps a clock time on one line. "11:30 AM ET" must not wrap between the
+ * number and AM/PM or the zone. Ordinary spaces outside the time still wrap.
+ */
+export function bindShareCardClockTimes(value: string) {
+  return value.replace(
+    /\b(\d{1,2}(?::\d{2})?)\s*(a\.?m\.?|p\.?m\.?)(?:\s*(et|ct|mt|pt|est|cst|mst|pst|edt|cdt|mdt|pdt))?\b/gi,
+    (_match, hour: string, meridiem: string, zone?: string) =>
+      zone ? `${hour}\u00a0${meridiem}\u00a0${zone}` : `${hour}\u00a0${meridiem}`,
+  )
+}
+
 export interface CustomerSiteExplicitShareLines {
   headline: string
   support: string
@@ -143,10 +155,16 @@ export function getCustomerSiteExplicitShareLines(input: {
       ? subtitle
       : ''
 
-  if (title && explicitSubtitle) return { headline: title, support: explicitSubtitle }
-  if (title) return { headline: title, support: tagline !== title ? tagline : '' }
-  if (explicitSubtitle) return { headline: explicitSubtitle, support: '' }
-  return { headline: tagline || 'Live jewelry reveals', support: '' }
+  const headline = bindShareCardClockTimes(title || explicitSubtitle || tagline || 'Live jewelry reveals')
+  const support = bindShareCardClockTimes(
+    title && explicitSubtitle
+      ? explicitSubtitle
+      : title && tagline !== title
+        ? tagline
+        : '',
+  )
+
+  return { headline, support }
 }
 
 export function getCustomerSiteMarkFontFamily(customDomain: string) {

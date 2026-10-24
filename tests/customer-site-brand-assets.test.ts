@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import {
+  bindShareCardClockTimes,
   getCustomerSiteAppleMarkAssetPath,
   getCustomerSiteExplicitShareLines,
   getCustomerSiteMark,
@@ -79,12 +80,13 @@ describe('customer-site brand assets', () => {
     const generatedSubtitle =
       "I'm Kristin - join me for live reveals, favorite finds, and customer-first sparkle."
     const tagline = 'Live jewelry reveals weekdays at 11:30 AM ET and Saturdays at 5 PM ET'
+    const wrappedTagline = 'Live jewelry reveals weekdays at 11:30\u00a0AM\u00a0ET and Saturdays at 5\u00a0PM\u00a0ET'
 
     expect(getCustomerSiteExplicitShareLines({
       explicitHeroTitle: '',
       heroSubtitle: generatedSubtitle,
       tagline,
-    })).toEqual({ headline: tagline, support: '' })
+    })).toEqual({ headline: wrappedTagline, support: '' })
 
     expect(getCustomerSiteExplicitShareLines({
       explicitHeroTitle: 'Harvest light, real sparkle.',
@@ -92,7 +94,7 @@ describe('customer-site brand assets', () => {
       tagline,
     })).toEqual({
       headline: 'Harvest light, real sparkle.',
-      support: tagline,
+      support: wrappedTagline,
     })
 
     expect(getCustomerSiteExplicitShareLines({
@@ -109,6 +111,17 @@ describe('customer-site brand assets', () => {
       heroSubtitle: '',
       tagline: '',
     })).toEqual({ headline: 'Live jewelry reveals', support: '' })
+  })
+
+  it('keeps clock times together in any share tagline', () => {
+    expect(bindShareCardClockTimes(
+      'Live jewelry reveals weekdays at 11:30 AM ET and Saturdays at 5 PM ET',
+    )).toBe('Live jewelry reveals weekdays at 11:30\u00a0AM\u00a0ET and Saturdays at 5\u00a0PM\u00a0ET')
+    expect(bindShareCardClockTimes('Doors at 7 PM CT')).toBe('Doors at 7\u00a0PM\u00a0CT')
+    expect(bindShareCardClockTimes('Starts at 8:00 p.m.')).toBe('Starts at 8:00\u00a0p.m.')
+    expect(bindShareCardClockTimes('Follow along for new reveals.')).toBe(
+      'Follow along for new reveals.',
+    )
   })
 
   it('keeps the share card tied to the selected customer-site skin', () => {
