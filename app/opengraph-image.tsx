@@ -1,9 +1,15 @@
 import { ImageResponse } from 'next/og'
 import { headers } from 'next/headers'
 
-import { getCustomerSiteBrandAssetContext } from '@/lib/amethyst/customer-site-brand-assets'
+import { getAmethystAppearancePreset } from '@/lib/amethyst/appearance-presets'
+import {
+  getCustomerSiteBrandAssetContext,
+  getCustomerSiteExplicitShareLines,
+} from '@/lib/amethyst/customer-site-brand-assets'
 import { getCustomerSiteBrandImageFonts } from '@/lib/amethyst/customer-site-brand-fonts'
 import { loadCustomerSiteBrandImageDataUri } from '@/lib/amethyst/customer-site-brand-image-assets'
+import { FallOwlShareCard } from '@/lib/amethyst/fall-owl-share-card'
+import { loadFallOwlShareSceneDataUri } from '@/lib/amethyst/fall-owl-share-art'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -137,6 +143,31 @@ export default async function Image() {
               width={277}
             />
           </div>
+        ),
+        { ...size, fonts },
+      )
+    }
+
+    if (brand.preset === 'fall_owl_harvest_moon') {
+      const sceneSrc = await loadFallOwlShareSceneDataUri()
+      const lines = getCustomerSiteExplicitShareLines({
+        explicitHeroTitle: brand.explicitHeroTitle,
+        heroSubtitle: brand.heroSubtitle,
+        tagline: brand.tagline,
+      })
+
+      return new ImageResponse(
+        (
+          <FallOwlShareCard
+            businessName={brand.businessName}
+            customDomain={brand.customDomain}
+            headline={lines.headline}
+            markSrc={markSrc}
+            palette={brand.palette}
+            sceneSrc={sceneSrc}
+            support={lines.support}
+            themeLabel={getAmethystAppearancePreset(brand.preset).label}
+          />
         ),
         { ...size, fonts },
       )
