@@ -753,6 +753,7 @@ describe('site settings service', () => {
     'pie_please',
     'pearl_rose',
     'rose_champagne',
+    'sunset_beach',
     'gilded_autumn',
     'garnet',
     'amber',

@@ -13,6 +13,7 @@ export const COMMUNITY_CAROUSEL_THEME_IDS = [
   'midnight_rose',
   'pearl_rose',
   'rose_champagne',
+  'sunset_beach',
 ] as const satisfies readonly SkinPreviewSkin[]
 
 export type CommunityCarouselThemeId = (typeof COMMUNITY_CAROUSEL_THEME_IDS)[number]

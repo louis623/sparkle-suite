@@ -70,6 +70,17 @@ function applyUnsubscribeAppearance() {
     return;
   }
 
+  if (preset === "sunset_beach") {
+    document.body.classList.add("bg-rose-gold-paper", "bg-sunset-beach", "surface-pearl-rose", "shape-soft");
+    const roseTokens = {
+      "--hp-primary": "#b82f59", "--hp-accent": "#ad472d", "--primary": "#b82f59", "--accent": "#ad472d",
+      "--hp-bg": "#fff7f5", "--hp-bg-elevated": "#fffdfb", "--bg-deep": "#f9ede7",
+      "--hp-display-font": '"Playfair Display", Georgia, serif',
+      "--hp-body-font": '"DM Sans", "Inter", system-ui, sans-serif', "--hp-heading-weight": "600",
+    };
+    Object.entries(roseTokens).forEach(([name, value]) => document.documentElement.style.setProperty(name, value));
+    return;
+  }
   if (preset === "rose_champagne") {
     document.body.classList.add("bg-rose-gold-paper", "bg-rose-champagne", "surface-pearl-rose", "shape-soft");
     const roseTokens = {

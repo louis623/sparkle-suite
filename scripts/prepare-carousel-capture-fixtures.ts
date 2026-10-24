@@ -14,7 +14,7 @@ import { buildAmethystHomepageBootstrapScript, defaultAmethystHomepageTemplateDa
 import { AMETHYST_APPEARANCE_PRESETS } from '../lib/amethyst/appearance-presets'
 import { applyMileHighFizzHomepage } from '../lib/mile-high-fizz/profile'
 
-export const CAPTURE_THEMES = ['mile-high-fizz', 'go-for-the-bling', 'sparkly-butterflies', 'amethyst', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn', 'fall_owl_harvest_moon', 'gobble_and_fizz', 'pie_please', 'midnight_rose', 'pearl_rose', 'rose_champagne', 'neon_butterfly'] as const
+export const CAPTURE_THEMES = ['mile-high-fizz', 'go-for-the-bling', 'sparkly-butterflies', 'amethyst', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn', 'fall_owl_harvest_moon', 'gobble_and_fizz', 'pie_please', 'midnight_rose', 'pearl_rose', 'rose_champagne', 'sunset_beach', 'neon_butterfly'] as const
 export type CaptureTheme = typeof CAPTURE_THEMES[number]
 const root = process.cwd()
 const safeHref = '#preview-action'
@@ -79,7 +79,7 @@ function payloadFromDocument(document: string) {
   return state.AMETHYST_HOMEPAGE_TEMPLATE_DATA as AmethystHomepageTemplateData
 }
 
-const captureControls = '.gg-motion-control,.nb-motion-control,.au-controls,.hpc-motion-control,.hpw-motion-control,.ga-motion-control,.rgc-toggle,.mdr-toggle,.fow-controls,.prl-toggle,.tg-toggle,.tweaks-toggle,.tweaks-panel,#skin-preview-notice'
+const captureControls = '.beach-motion-controls,.gg-motion-control,.nb-motion-control,.au-controls,.hpc-motion-control,.hpw-motion-control,.ga-motion-control,.rgc-toggle,.mdr-toggle,.fow-controls,.prl-toggle,.tg-toggle,.tweaks-toggle,.tweaks-panel,#skin-preview-notice'
 const localGuard = `
 if (!['localhost','127.0.0.1','[::1]'].includes(location.hostname)) {
   window.stop(); document.documentElement.replaceChildren(); throw new Error('Local capture only');
@@ -155,7 +155,7 @@ async function main() {
     halloween_pumpkin_cat: 'halloween-pumpkin-cat', gilded_autumn: 'gilded-autumn',
     fall_owl_harvest_moon: 'fall-owl', gobble_and_fizz: 'gobble-and-fizz',
     pie_please: 'pie-please', midnight_rose: 'midnight-rose', pearl_rose: 'pearl-rose',
-    rose_champagne: 'rose-champagne',
+    rose_champagne: 'rose-champagne', sunset_beach: 'sunset-beach',
   }
   const mediaFolder = mediaFolders[theme] ? 'public/amethyst/skins/' + mediaFolders[theme] : null
   const mediaSources = mediaFolder ? (await readdir(path.join(root, mediaFolder), { withFileTypes: true }))

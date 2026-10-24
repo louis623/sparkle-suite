@@ -338,6 +338,25 @@ export const AMETHYST_SKIN_CARDS: AmethystSkinCard[] = [
     ],
   },
   {
+    id: 'sunset_beach',
+    visibility: 'community',
+    code: 'SB-01',
+    label: 'Sunset Beach',
+    previewHref: '/skin-preview/sunset_beach/homepage',
+    description:
+      'Sunset palms, gentle waves, and rose-to-gold warmth with clear blush cards.',
+    headingFont: 'Playfair Display',
+    bodyFont: 'DM Sans',
+    surfaceNote: 'Blush cards, dark rose navigation, and pink-coral-gold buttons',
+    motionNote: 'A smooth nine-second beach loop; wave sound is optional',
+    swatches: [
+      { label: 'Warm pearl', value: '#fff1f5' },
+      { label: 'Rose', value: '#b82f59' },
+      { label: 'Sunshine', value: '#ffc32c' },
+      { label: 'Burgundy', value: '#642039' },
+    ],
+  },
+  {
     id: 'rose_champagne',
     visibility: 'community',
     code: 'RG-04',

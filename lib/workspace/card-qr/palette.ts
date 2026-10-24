@@ -15,6 +15,7 @@ export interface CardQrPalette {
   panel: string
   qrDark: string
   qrLight: string
+  qrGradient?: readonly [string, string, string]
 }
 
 const MATCH_SITE_SURFACES: Record<
@@ -38,6 +39,7 @@ const MATCH_SITE_SURFACES: Record<
   fall_owl_harvest_moon: { background: '#201321', ink: '#fff3e4', muted: '#ddc8b8', panel: '#302030' },
   midnight_rose: { background: '#2a1218', ink: '#fff1ea', muted: '#e7c2b6', panel: '#3b1c24' },
   pearl_rose: { background: '#fff8f6', ink: '#3a2430', muted: '#7a5d68', panel: '#ffffff' },
+  sunset_beach: { background: '#fff1f5', ink: '#572333', muted: '#745867', panel: '#fff6fa' },
   rose_champagne: { background: '#fff7f4', ink: '#3a2430', muted: '#7a5d68', panel: '#ffffff' },
   garnet: { background: '#fff5f5', ink: '#3a1014', muted: '#7a4548', panel: '#ffffff' },
   amber: { background: '#fff8f1', ink: '#3a220c', muted: '#7a5a32', panel: '#ffffff' },
@@ -67,6 +69,7 @@ const CARD_QR_THEME_DARK: Record<AmethystAppearancePresetId, string> = {
   gobble_and_fizz: '#291522',
   pie_please: '#502d24',
   pearl_rose: '#5a2434',
+  sunset_beach: '#70213e',
   rose_champagne: '#5a2430',
   garnet: '#6b1218',
   amber: '#7a3410',
@@ -97,5 +100,6 @@ export function resolveCardQrPalette(input: {
     accent: preset.values.primaryColor,
     qrDark: qrModuleColor(CARD_QR_THEME_DARK[id]),
     qrLight: '#FFFFFF',
+    ...(id === 'sunset_beach' ? { qrGradient: ['#70213e', '#8e2c4c', '#853d22'] as const } : {}),
   }
 }

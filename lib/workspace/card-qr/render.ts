@@ -123,7 +123,10 @@ export function cardQrSymbol(url: string, icon: CardQrIcon = 'none') {
   return { symbol, icon: 'none' as CardQrIcon, errorCorrectionLevel: 'M' as const }
 }
 
-export function cardQrSvg(input: { url: string; icon: CardQrIcon; dark: string; width: number }) {
+export function cardQrSvg(input: { url: string; icon: CardQrIcon; dark: string; width: number; gradient?: readonly [string, string, string] }) {
+  if (input.gradient && !input.gradient.every(color => /^#[0-9a-f]{6}$/i.test(color) && contrastRatio(color, CARD_QR_LIGHT) >= 7)) {
+    throw new Error('QR gradient stops must be hex colors with at least 7:1 contrast on white.')
+  }
   const { symbol, icon } = cardQrSymbol(input.url, input.icon)
   const modules = symbol.modules.size
   const cells = modules + CARD_QR_MARGIN * 2
@@ -152,7 +155,7 @@ export function cardQrSvg(input: { url: string; icon: CardQrIcon; dark: string; 
   const size = input.width
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${cells} ${cells}">
     <rect width="${cells}" height="${cells}" fill="${CARD_QR_LIGHT}"/>
-    <path fill="${input.dark}" shape-rendering="crispEdges" d="${path.join('')}"/>
+    ${input.gradient ? `<defs><linearGradient id="qr-ink-gradient" x1="0" y1="0" x2="1" y2=".25"><stop stop-color="${input.gradient[0]}"/><stop offset=".55" stop-color="${input.gradient[1]}"/><stop offset="1" stop-color="${input.gradient[2]}"/></linearGradient></defs>` : ''}<path fill="${input.gradient ? 'url(#qr-ink-gradient)' : input.dark}" shape-rendering="crispEdges" d="${path.join('')}"/>
     ${mark}
   </svg>`
   return { svg, size, icon, modules, version: symbol.version }
@@ -160,7 +163,7 @@ export function cardQrSvg(input: { url: string; icon: CardQrIcon; dark: string; 
 
 export async function renderCardQrPng(
   url: string,
-  palette?: Pick<CardQrPalette, 'qrDark' | 'qrLight'> | null,
+  palette?: Pick<CardQrPalette, 'qrDark' | 'qrLight' | 'qrGradient'> | null,
   width = 640,
   icon: CardQrIcon = 'none',
 ) {
@@ -170,6 +173,7 @@ export async function renderCardQrPng(
     icon,
     dark: qrModuleColor(palette?.qrDark, CARD_QR_DARK),
     width,
+    gradient: palette?.qrGradient,
   })
   return sharp(Buffer.from(drawn.svg), { density: 72 }).png().toBuffer()
 }
@@ -285,6 +289,9 @@ export interface FlyerPaint {
   glow: string
   shadow: string
   radius: number
+  panelGradient?: readonly [string, string, string]
+  pillGradient?: readonly [string, string, string]
+  titleOutline?: boolean
 }
 
 /** High enough that plate art does not tint the type on solid panels. */
@@ -307,6 +314,13 @@ export function resolveFlyerPaint(input: {
   palette: CardQrPalette
   appearancePreset: AmethystAppearancePresetId
 }): FlyerPaint {
+  if (input.appearancePreset === 'sunset_beach') return {
+    panelStyle: 'solid', panelFill: '#642039', panelOpacity: .98,
+    panelGradient: ['#642039','#7b3046','#80421f'], contrastPanel: '#80421f',
+    title: '#fff4ed', body: '#fff4ed', muted: '#ffe3d1', frame: '#da987b', glow: '#e99b72',
+    pillFill: '#ff7192', pillGradient: ['#ff7192','#ff9678','#ffc32c'], pillInk: '#572333',
+    titleOutline: false, shadow: '#000000', radius: 32,
+  }
   const preset = AMETHYST_APPEARANCE_PRESETS[input.appearancePreset]
   const kind = flyerPanelKind(input.appearancePreset)
   const panelStyle = flyerPanelStyle(input.appearancePreset)
@@ -496,7 +510,7 @@ function cornerFlourishes(box: FlyerBox, color: string) {
 function panelMarkup(box: FlyerLayout['panel'], paint: FlyerPaint) {
   if (!box) return ''
   const metal = mixHex(paint.frame, '#ffffff', 0.42)
-  return `<rect x="${box.x}" y="${box.y}" width="${box.width}" height="${box.height}" rx="${paint.radius}" fill="${paint.panelFill}" fill-opacity="${paint.panelOpacity}" stroke="${metal}" stroke-width="2.4"/>
+  return `<rect x="${box.x}" y="${box.y}" width="${box.width}" height="${box.height}" rx="${paint.radius}" fill="${paint.panelGradient ? 'url(#flyer-panel-gradient)' : paint.panelFill}" fill-opacity="${paint.panelOpacity}" stroke="${metal}" stroke-width="2.4"/>
     <rect x="${box.x + 6}" y="${box.y + 6}" width="${box.width - 12}" height="${box.height - 12}" rx="${Math.max(12, paint.radius - 6)}" fill="none" stroke="${paint.frame}" stroke-width="1.3" stroke-opacity="0.9"/>
     <rect x="${box.x + 12}" y="${box.y + 12}" width="${box.width - 24}" height="${box.height - 24}" rx="${Math.max(8, paint.radius - 10)}" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.38"/>
     ${cornerFlourishes(box, metal)}`
@@ -556,6 +570,9 @@ function foregroundSvg(input: {
 }) {
   const fonts = FLYER_THEME_FONTS[input.appearancePreset]
   const paint = input.paint ?? resolveFlyerPaint(input)
+  for (const gradient of [paint.panelGradient, paint.pillGradient]) {
+    if (gradient && !gradient.every(color => /^#[0-9a-f]{6}$/i.test(color))) throw new Error('Flyer gradient stops must be six-digit hex colors.')
+  }
   const { pill, qr, qrFrame, panel, lowerPanel } = input.layout
   const pillTextY = pill.y + (pill.height - input.layout.pillSize) / 2
   const titleGap = panel ? pill.y - (panel.y + panel.height) : 0
@@ -573,14 +590,14 @@ function foregroundSvg(input: {
   const pillDeep = mixHex(paint.pillFill, '#14080c', 0.28)
   const sparkleY = pill.y + pill.height / 2
   const pillMarkup = `<defs>
-      <linearGradient id="pillFill" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="${pillShine}"/>
-        <stop offset="0.42" stop-color="${paint.pillFill}"/>
-        <stop offset="1" stop-color="${pillDeep}"/>
+      <linearGradient id="pillFill" x1="0" y1="0" x2="${paint.pillGradient ? 1 : 0}" y2="1">
+        <stop offset="0" stop-color="${paint.pillGradient?.[0] ?? pillShine}"/>
+        <stop offset="${paint.pillGradient ? '.55' : '.42'}" stop-color="${paint.pillGradient?.[1] ?? paint.pillFill}"/>
+        <stop offset="1" stop-color="${paint.pillGradient?.[2] ?? pillDeep}"/>
       </linearGradient>
     </defs>
     <rect x="${pill.x}" y="${pill.y}" width="${pill.width}" height="${pill.height}" rx="39" fill="url(#pillFill)"/>
-    <ellipse cx="${pill.x + pill.width / 2}" cy="${pill.y + 16}" rx="${pill.width * 0.36}" ry="10" fill="#ffffff" fill-opacity="0.28"/>
+    ${paint.pillGradient ? '' : `<ellipse cx="${pill.x + pill.width / 2}" cy="${pill.y + 16}" rx="${pill.width * 0.36}" ry="10" fill="#ffffff" fill-opacity="0.28"/>`}
     ${starPoint(pill.x + 28, sparkleY, 7, paint.pillInk, 0.95)}
     ${starPoint(pill.x + pill.width - 28, sparkleY, 7, paint.pillInk, 0.95)}
     ${svgText({
@@ -615,10 +632,11 @@ function foregroundSvg(input: {
     : ''
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${CARD_QR_FLYER_WIDTH}" height="${CARD_QR_FLYER_HEIGHT}" viewBox="0 0 ${CARD_QR_FLYER_WIDTH} ${CARD_QR_FLYER_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+  ${paint.panelGradient ? `<defs><linearGradient id="flyer-panel-gradient" x1="0" y1="0" x2="1" y2=".3"><stop stop-color="${paint.panelGradient[0]}"/><stop offset=".55" stop-color="${paint.panelGradient[1]}"/><stop offset="1" stop-color="${paint.panelGradient[2]}"/></linearGradient></defs>` : ''}
   ${panelMarkup(panel, paint)}
   ${panelMarkup(lowerPanel, paint)}
   ${dividers}
-  ${titleMarkup(input.layout.showTitle, fonts.heading, paint)}
+  ${paint.titleOutline === false ? svgBlock(input.layout.showTitle, fonts.heading, paint.title, 700) : titleMarkup(input.layout.showTitle, fonts.heading, paint)}
   ${svgBlock(input.layout.tagline, fonts.body, paint.body, 500)}
   ${pillMarkup}
   ${qrMarkup}

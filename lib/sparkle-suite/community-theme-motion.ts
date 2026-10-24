@@ -14,5 +14,6 @@ export const communityThemeMotion: Record<CommunityCarouselThemeId, CommunityThe
   pie_please: recording('pie_please', 880, 'Original gentle sunlight and bokeh'),
   midnight_rose: recording('midnight_rose', 936, 'Copper-blush glitter motion'),
   pearl_rose: recording('pearl_rose', 936, 'Pearl and rose hero motion'),
+  sunset_beach: recording('sunset_beach', 966, 'Sunset palms and gentle beach waves'),
   rose_champagne: recording('rose_champagne', 936, 'Rose-copper shimmer and champagne bokeh'),
 }

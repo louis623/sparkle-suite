@@ -642,6 +642,7 @@ export type SiteAppearancePreset =
   | 'gobble_and_fizz'
   | 'pie_please'
   | 'pearl_rose'
+  | 'sunset_beach'
   | 'rose_champagne'
   | 'garnet'
   | 'amber'

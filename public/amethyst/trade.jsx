@@ -414,6 +414,13 @@ const PRESETS = {
     headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
     shapeRadius: "soft", density: "regular",
   },
+  sunset_beach: {
+    sparkleLevel: "subtle", bgTreatment: "sunset-beach", cardSurface: "pearl-rose",
+    textureOverlay: "none", buttonEnergy: "rose-gold-lift", ctaEmphasis: "standard",
+    tradeFlair: "champagne-rose", cursorEffect: "default", saturation: 108,
+    bgTone: "roseGold", primaryColor: "#b82f59", accentColor: "#ad472d",
+    headingFont: "playfair", bodyFont: "dmSans", headingWeight: 600,
+  },
   rose_champagne: {
     sparkleLevel: "subtle", bgTreatment: "rose-champagne", cardSurface: "pearl-rose",
     textureOverlay: "none", buttonEnergy: "rose-gold-lift", ctaEmphasis: "standard",
@@ -2253,6 +2260,7 @@ function App() {
     if (t.bgTreatment === "halloween-pumpkin-cat") body.classList.add("bg-halloween-pumpkin-cat");
     if (t.bgTreatment === "halloween-pumpkin-witch") body.classList.add("bg-halloween-pumpkin-witch");
     if (t.bgTreatment === "rose-gold-paper") body.classList.add("bg-rose-gold-paper");
+    if (t.bgTreatment === "sunset-beach") body.classList.add("bg-rose-gold-paper", "bg-sunset-beach");
     if (t.bgTreatment === "rose-champagne") body.classList.add("bg-rose-gold-paper", "bg-rose-champagne");
     if (t.bgTreatment === "midnight-rose") body.classList.add("bg-midnight-rose");
     if (t.bgTreatment === "fall-owl") body.classList.add("bg-fall-owl");
@@ -2639,6 +2647,7 @@ function App() {
               { value: "gobble_and_fizz", label: "Gobble & Fizz" },
               { value: "pie_please", label: "Pumpkin Pie" },
               { value: "pearl_rose", label: "Pearl Rose" },
+              { value: "sunset_beach", label: "Sunset Beach" },
               { value: "rose_champagne", label: "Rose Champagne" },
               { value: "garnet", label: "Garnet" },
               { value: "amber", label: "Amber" },

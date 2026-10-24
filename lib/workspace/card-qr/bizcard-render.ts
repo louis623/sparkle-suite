@@ -502,9 +502,15 @@ async function renderBackAttempt(input: BizcardBackInput, dropSocial: boolean) {
   const tx = SX0
   const ty = Math.floor((H - (tile + 18 + capH)) / 2)
   let out = `<rect width="${W}" height="${H}" fill="${c.back}"/>`
+  if (c.backGradient) {
+    const [from, middle, to] = c.backGradient
+    if (![from, middle, to].every((color) => /^#[0-9a-f]{6}$/i.test(color))) throw new Error('Card gradient stops must be six-digit hex colors.')
+    // Matches CSS linear-gradient(105deg, from, middle 55%, to) on this canvas.
+    out = `<defs><linearGradient id="card-back-gradient" gradientUnits="userSpaceOnUse" x1="-48" y1="174" x2="1173" y2="501"><stop stop-color="${from}"/><stop offset=".55" stop-color="${middle}"/><stop offset="1" stop-color="${to}"/></linearGradient></defs><rect width="${W}" height="${H}" fill="url(#card-back-gradient)"/>`
+  }
   out += `<rect x="${tx}" y="${ty}" width="${tile}" height="${tile}" rx="28" fill="#ffffff"/>`
   const qs = tile - 10
-  const qr = cardQrSvg({ url: input.qrUrl, icon: input.qrIcon, dark: bizcardQrDark(k), width: qs })
+  const qr = cardQrSvg({ url: input.qrUrl, icon: input.qrIcon, dark: bizcardQrDark(k), width: qs, gradient: c.qrGradient })
   out += qr.svg.replace('<svg ', `<svg x="${tx + 5}" y="${ty + 5}" `)
   let y = ty + tile + 18
   for (const l of BIZCARD_SCAN_LINES) {

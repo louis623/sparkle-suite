@@ -1,0 +1,36 @@
+{
+  "theme": "Sunset Beach",
+  "code": "SB-01",
+  "approved": "2026-10-24",
+  "baseline": "b26a663bfe3b45a0a125308e9992bde7003ae53e",
+  "files": [
+    {
+      "path": "public/amethyst/skins/sunset-beach/hero-approved.png",
+      "sha256": "28c7030955af97ef8b4ad9e1d85503d7d9a618b03cddacfffb04e76b2d53c79a"
+    },
+    {
+      "path": "public/amethyst/skins/sunset-beach/hero-loop.mp4",
+      "sha256": "0c3c542bf123f900acaa5bc1a95bafab304342825d562884092f89ad895962fc"
+    },
+    {
+      "path": "public/amethyst/skins/sunset-beach/hero-poster.webp",
+      "sha256": "3287dc831a4e091799a984fbda24a5c332d6b42176f2f30b1eced9968d5595ee"
+    },
+    {
+      "path": "public/amethyst/skins/sunset-beach/flyer/plate.webp",
+      "sha256": "02472ad034f6faae16cce5847365eab0a99c21cc509091e67f92cdfa7a0135c3"
+    },
+    {
+      "path": "lib/workspace/card-qr/card-plates/sunset-beach.jpg",
+      "sha256": "609aa832d0276a8c321392d1e6cb2f2fffd324f28161a92c7f961ece2368e05a"
+    },
+    {
+      "path": "scripts/card-qr/plate-sources/sunset-beach/flyer-source.png",
+      "sha256": "30b3c6385c36beb8bbc576d3d9ff39dd34a6390ec6d83319a80f4d972ad76e15"
+    },
+    {
+      "path": "scripts/card-qr/plate-sources/sunset-beach/card-source.png",
+      "sha256": "b67094e4462b52df0db568229f9bafb826d186f5ceb7c197e2dcbc9666c032c0"
+    }
+  ]
+}

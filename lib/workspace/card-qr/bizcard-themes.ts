@@ -12,6 +12,7 @@ export type BizcardKey =
   | 'gobble-and-fizz'
   | 'pie-please'
   | 'pearl-rose'
+  | 'sunset-beach'
   | 'rose-champagne'
   | 'morganite'
   | 'moonstone'
@@ -43,6 +44,9 @@ export interface BizcardTheme {
   /** Front text gets a soft dark shadow (art scrim themes). */
   shadow: boolean
   back: string
+  /** Optional 105-degree three-stop sunset background; existing solid backs stay unchanged. */
+  backGradient?: readonly [string, string, string]
+  qrGradient?: readonly [string, string, string]
   name: string
   ink: string
   sub: string
@@ -54,6 +58,9 @@ export interface BizcardTheme {
 const t = (theme: BizcardTheme) => theme
 
 export const BIZCARD_THEMES: Record<BizcardKey, BizcardTheme> = {
+  'sunset-beach': t({ key: 'sunset-beach', qrTheme: 'sunset_beach', align: 'center', maxw: 919, cmaxh: 351, shadow: true,
+    back: '#ff7192', backGradient: ['#ff7192','#ff9678','#ffc32c'], qrGradient: ['#70213e','#8e2c4c','#853d22'],
+    name: '#572333', ink: '#572333', sub: '#572333', rule: '#b85f68', title: '#fff4ed', script: '#ffd19a' }),
   'gobble-and-fizz': t({ key: 'gobble-and-fizz', qrTheme: 'gobble_and_fizz', align: 'left', tw: 0.47, shadow: true,
     back: '#291522', name: '#efb66b', ink: '#fff2df', sub: '#e5cbbb', rule: '#795439', title: '#fff2df', script: '#efb66b' }),
   'pie-please': t({ key: 'pie-please', qrTheme: 'pie_please', align: 'left', tw: 0.47, shadow: false,
@@ -109,6 +116,7 @@ export const BIZCARD_SHARED_THEMES: Partial<Record<string, BizcardKey>> = {
   midnight_rose: 'midnight-rose',
   fall_owl_harvest_moon: 'fall-owl',
   pearl_rose: 'pearl-rose',
+  sunset_beach: 'sunset-beach',
   rose_champagne: 'rose-champagne',
   sparkle_suite_morganite: 'morganite',
   moonstone: 'moonstone',

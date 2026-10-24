@@ -30,6 +30,7 @@ export async function landingPreviewDocument(demo: LandingDemo, theme: AmethystA
 }
 
 const mediaFolders: Partial<Record<AmethystAppearancePresetId, string>> = {
+  sunset_beach:'sunset-beach',
   gobble_and_fizz:'gobble-and-fizz', pie_please:'pie-please',
   amethyst:'am01-unicorn', gilded_autumn:'gilded-autumn', gnome_garden:'gnome-garden',
   halloween_pumpkin_cat:'halloween-pumpkin-cat', halloween_pumpkin_witch:'halloween-pumpkin-witch',

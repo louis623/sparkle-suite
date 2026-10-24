@@ -101,6 +101,11 @@ const communityThemeSlides = [
     detail: 'Airy ivory surfaces, copper details, and burgundy ink.',
   }),
   communityThemeSlide({
+    id: 'sunset_beach',
+    title: 'Sunset Beach',
+    detail: 'Gentle waves, sunset palms, and pink-coral-gold warmth.',
+  }),
+  communityThemeSlide({
     id: 'rose_champagne',
     title: 'Rose Champagne',
     detail: 'Warm rose-copper shimmer and champagne bokeh.',
