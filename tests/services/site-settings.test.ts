@@ -1,8 +1,28 @@
 import { describe, expect, it, vi } from 'vitest'
+import { TikTokShortLinkError } from '@/lib/public-site/tiktok-short-link'
+
+const { resolveTikTokShortVideoUrlMock } = vi.hoisted(() => ({
+  resolveTikTokShortVideoUrlMock: vi.fn(),
+}))
+
+vi.mock('@/lib/public-site/tiktok-short-link', () => {
+  class TikTokShortLinkError extends Error {
+    constructor(message?: string) {
+      super(message ?? 'TikTok short link did not resolve to a public video')
+      this.name = 'TikTokShortLinkError'
+    }
+  }
+
+  return {
+    TikTokShortLinkError,
+    resolveTikTokShortVideoUrl: resolveTikTokShortVideoUrlMock,
+  }
+})
 
 import {
   getSiteSettingsDashboard,
   normalizePublicSiteMediaSlots,
+  normalizePublicSiteMediaSlotsForSave,
   updateSiteSettingsDashboard,
 } from '@/lib/services/site-settings'
 
@@ -126,6 +146,79 @@ describe('site settings service', () => {
         { rejectInvalidUrls: true },
       ),
     ).toThrow('about_2 video URL or embed code is invalid')
+  })
+
+  it('resolves TikTok share links in every About short video slot', async () => {
+    resolveTikTokShortVideoUrlMock.mockReset()
+    resolveTikTokShortVideoUrlMock.mockImplementation(async (value: string) => {
+      if (value === 'https://www.tiktok.com/t/ZPLAqbfCY/') {
+        return 'https://www.tiktok.com/@sparklesuiteandfinder/video/7690739569876094239'
+      }
+      if (value === 'https://vm.tiktok.com/ZPLAqv7hL/') {
+        return 'https://www.tiktok.com/@sparklesuiteandfinder/video/7698055528752106782'
+      }
+      if (value === 'https://vt.tiktok.com/ZPLAqbfCY') {
+        return 'https://www.tiktok.com/@sparklesuiteandfinder/video/7690739569876094239'
+      }
+      throw new Error(`unexpected TikTok short link ${value}`)
+    })
+
+    const slots = await normalizePublicSiteMediaSlotsForSave([
+      { key: 'about_2', videoUrl: 'https://www.tiktok.com/t/ZPLAqbfCY/' },
+      { key: 'about_3', videoUrl: 'https://vm.tiktok.com/ZPLAqv7hL/' },
+      { key: 'about_4', videoUrl: 'https://vt.tiktok.com/ZPLAqbfCY' },
+      { key: 'showcase', videoUrl: 'https://www.instagram.com/reel/C7Example_9/' },
+    ])
+
+    expect(slots).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: 'about_2',
+          videoUrl: 'https://www.tiktok.com/@sparklesuiteandfinder/video/7690739569876094239',
+        }),
+        expect.objectContaining({
+          key: 'about_3',
+          videoUrl: 'https://www.tiktok.com/@sparklesuiteandfinder/video/7698055528752106782',
+        }),
+        expect.objectContaining({
+          key: 'about_4',
+          videoUrl: 'https://www.tiktok.com/@sparklesuiteandfinder/video/7690739569876094239',
+        }),
+        expect.objectContaining({
+          key: 'showcase',
+          videoUrl: 'https://www.instagram.com/reel/C7Example_9/',
+        }),
+      ]),
+    )
+    expect(resolveTikTokShortVideoUrlMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('stores a full TikTok video URL unchanged without resolving it', async () => {
+    resolveTikTokShortVideoUrlMock.mockClear()
+    const videoUrl =
+      'https://www.tiktok.com/@sparklesuiteandfinder/video/7690739569876094239?is_from_webapp=1&sender_device=pc'
+
+    const slots = await normalizePublicSiteMediaSlotsForSave([
+      { key: 'about_2', videoUrl },
+    ])
+
+    expect(slots.find((slot) => slot.key === 'about_2')?.videoUrl).toBe(videoUrl)
+    expect(resolveTikTokShortVideoUrlMock).not.toHaveBeenCalled()
+  })
+
+  it('tells the rep to copy the full video link when a TikTok share link is not a video', async () => {
+    resolveTikTokShortVideoUrlMock.mockRejectedValue(new TikTokShortLinkError())
+
+    await expect(
+      normalizePublicSiteMediaSlotsForSave([
+        {
+          key: 'about_3',
+          videoUrl: 'https://www.tiktok.com/t/ZPLAqv7hL/',
+        },
+      ]),
+    ).rejects.toMatchObject({
+      userMessage: 'About short video 2: Open the TikTok and copy the full video link.',
+    })
   })
 
   it('rejects TikTok photo posts because the customer-site player needs a video id', () => {
