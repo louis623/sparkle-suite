@@ -1,0 +1,20 @@
+{
+  "sources": [
+    {
+      "path": "scripts/card-qr/plate-sources/seasonal-cards/cauldron-source.png",
+      "sha256": "435abdb1633baa6eeb324a53dcf86594eae26120c1d74a7b50111fd7087e61f4"
+    },
+    {
+      "path": "public/amethyst/skins/pie-please/hero-poster-v4.webp",
+      "sha256": "dd0fe24624eca6e540e8e33949cbb85e7a224ce5cfcaaba711b59196aa49e27c"
+    },
+    {
+      "path": "public/amethyst/skins/fall-owl/hero-poster.webp",
+      "sha256": "8ccb49ca53ccc0e5da7e6e50fdc02ef6d20735f70f09cc994f156d2180af9693"
+    },
+    {
+      "path": "lib/workspace/card-qr/card-plates/fall-owl.jpg",
+      "sha256": "771f76e397aba50e7896a9340c8ada1bc7eea0d786df3b94d9327970f76def1c"
+    }
+  ]
+}

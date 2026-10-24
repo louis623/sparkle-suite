@@ -1,0 +1,14 @@
+{
+  "approved": "2026-10-24",
+  "design": "Oversized cauldron only; no turkey",
+  "sources": [
+    {
+      "file": "public/amethyst/skins/gobble-and-fizz/hero-poster.webp",
+      "sha256": "a78c049be1137a38b40e0a4e131be568d602b2e7d03690abd6f31b322f2f9372"
+    },
+    {
+      "file": "scripts/card-qr/plate-sources/gobble-and-fizz/scene.webp",
+      "sha256": "a26b1535136ea14f3e2c575320966c1338afd58393452fcdee28a6d012eceedd"
+    }
+  ]
+}

@@ -8020,3 +8020,7 @@ Louis approved Fall Owl and requested matching QR backgrounds for Gobble & Fizz 
 ## October 23, 2026 — Fuller Thanksgiving flyer artwork
 
 Louis found the first two Thanksgiving plates too basic and requested more original art, including shared accents. Revised Gobble and Pumpkin Pie now have original maple borders, bubbles, pumpkin/berry corners and jewelry across top/side/floor margins. Main subjects, centered QR, source heroes and approved Fall Owl are unchanged. All 19 focused tests pass; no Live merge/deploy or saved-theme changes. See the fuller-art revision in vault/2026-10-23-thanksgiving-flyer-plates-closeout.md.
+
+## October 24, 2026 — Approved seasonal flyers and matching business cards
+
+Louis approved the oversized cauldron-only and Pumpkin Pie flyers; they replace the rejected cutout-border versions. Matching card templates use the actual rep builder: original Owl unchanged, cauldron at right, original pie at right with an ivory left readability scrim and existing left-aligned type. Front/back proofs, print margins, long text, optional contact fields, PNG/JPEG QR scans and CMYK export verified. 25 focused tests pass and builds are byte-identical. Card designs await visual feedback. See vault/2026-10-24-seasonal-cards-and-flyers-closeout.md. No Live merge/deploy or customer saved-theme changes.

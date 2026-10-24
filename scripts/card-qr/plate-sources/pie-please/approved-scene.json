@@ -1,0 +1,14 @@
+{
+  "approved": "2026-10-24",
+  "design": "Oversized pie, crust, cream and tray",
+  "sources": [
+    {
+      "file": "public/amethyst/skins/pie-please/hero-poster-v4.webp",
+      "sha256": "dd0fe24624eca6e540e8e33949cbb85e7a224ce5cfcaaba711b59196aa49e27c"
+    },
+    {
+      "file": "scripts/card-qr/plate-sources/pie-please/scene.webp",
+      "sha256": "36e181fa05ca3b9102315dda86385b0b6066d0d2d1dd01ef6c01a037bc9f0d32"
+    }
+  ]
+}

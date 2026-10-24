@@ -24,8 +24,8 @@ export interface FlyerThemeRecord {
 const skin = (folder: string, file: string) => `public/amethyst/skins/${folder}/${file}`
 
 export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
-  { theme: 'gobble_and_fizz', status: 'art', source: skin('gobble-and-fizz', 'hero-poster.webp'), plate: skin('gobble-and-fizz', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Original turkey and copper fizz pot below the centered QR, with lantern and canopy above; dedicated 1080×1920 plate.' },
-  { theme: 'pie_please', status: 'art', source: skin('pie-please', 'hero-poster-v4.webp'), plate: skin('pie-please', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Original mouse-free pumpkin pie and jeweled tray below the centered QR, with autumn foliage above; dedicated 1080×1920 plate.' },
+  { theme: 'gobble_and_fizz', status: 'art', source: skin('gobble-and-fizz', 'hero-poster.webp'), plate: skin('gobble-and-fizz', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Approved cauldron-only 1080×1920 scene: oversized copper sides, ring handles and fizz remain visible around the unchanged flyer panels.' },
+  { theme: 'pie_please', status: 'art', source: skin('pie-please', 'hero-poster-v4.webp'), plate: skin('pie-please', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Approved oversized pumpkin pie: crust and filling left of the QR, whipped cream right, jeweled tray below the instructions; dedicated 1080×1920 plate.' },
   {
     theme: 'fall_owl_harvest_moon',
     status: 'art',

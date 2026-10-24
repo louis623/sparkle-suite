@@ -1,23 +1,13 @@
-# Gobble & Fizz — QR flyer plate
+# Gobble & Fizz — approved cauldron-only flyer
 
-Rebuild: `node scripts/card-qr/plate-sources/compose-thanksgiving.cjs gobble-and-fizz`
+Louis approved this direction on October 24, 2026 after reviewing the actual Cards & QR renderer. Earlier small-subject and cutout-border designs are rejected.
 
-The approved hero's turkey, copper pot, amber gem and bubbles remain original
-pixels in `subject.png`. They are uniformly reduced to 420×375 at (330,1545),
-below the flyer content. `top.png` is the original lantern, `side.png` is the
-original autumn canopy, and `floor.png` is one narrow original tabletop band.
-The middle is an open plum palette field for the unchanged centered QR.
+Rebuild: node scripts/card-qr/plate-sources/compose-thanksgiving.cjs gobble-and-fizz
 
-Output: `public/amethyst/skins/gobble-and-fizz/flyer/plate.webp`, 1080×1920.
-The registry retains `hero-poster.webp` as its source. The source hash is checked
-before rebuilding. No new turkey, resized landscape cover, duplicated scene,
-blur filter, provider call or rep-setting change is involved.
+scene.webp is the approved 1080×1920 source-referenced composition generated offline with the built-in image tool. generation.json records the exact prompt. This is a redesigned scene, not an unchanged-pixel hero cutout. The original site hero remains untouched and stays the registry source.
 
-Source SHA-256: `a78c049be1137a38b40e0a4e131be568d602b2e7d03690abd6f31b322f2f9372`.
-Plate SHA-256: `dcd08a5dab3318b2750b6b31e9c29f9377649182dbbf740ad909628ab31f98f3`.
-Identity and PNG/JPEG QR checks: `tests/thanksgiving-flyer-plates.test.ts`.
+The builder verifies hero and scene hashes from approved-scene.json, splits the approved scene into top.png (y0–599), side.png (y600–1499) and floor.png (y1500–1919), then composes public/amethyst/skins/gobble-and-fizz/flyer/plate.webp. This lossless build partition preserves one continuous scene without duplicated scenery or blur-fill. Tests compare every output pixel with the approved scene.
 
-Fuller-art revision: original maple leaves now frame the top and side margins;
-original bubbles rise beside the QR, with the original copper pumpkin/berry
-cluster and additional leaves filling the bottom corners. These decorative
-motifs may repeat; the turkey and pot remain a single unchanged subject.
+The turkey is deliberately removed. The oversized copper cauldron's ring handles, curved sides, rim and fizz remain readable around the real QR and panels.
+
+The actual title/QR/instructions format is unchanged. PNG/JPEG QR decoding is checked with short and long titles. No runtime generation, saved-theme changes or Live release.

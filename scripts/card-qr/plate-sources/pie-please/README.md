@@ -1,25 +1,13 @@
-# Pumpkin Pie — QR flyer plate
+# Pumpkin Pie — approved oversized pie flyer
 
-Rebuild: `node scripts/card-qr/plate-sources/compose-thanksgiving.cjs pie-please`
+Louis approved this direction on October 24, 2026 after reviewing the actual Cards & QR renderer. Earlier small-subject and cutout-border designs are rejected.
 
-Use the approved mouse-free v4 hero. Its pie, whipped cream and jeweled tray
-remain original pixels in `subject.png`, uniformly reduced to 650×372 at
-(430,1548). `top.png` is the original autumn floral arrangement; `side.png`
-is the original tablecloth with transparent top/right edges. The warm ivory
-middle leaves clear space for the unchanged centered QR and readable panels.
+Rebuild: node scripts/card-qr/plate-sources/compose-thanksgiving.cjs pie-please
 
-Output: `public/amethyst/skins/pie-please/flyer/plate.webp`, 1080×1920.
-The stable theme ID is `pie_please`; the user-facing name is Pumpkin Pie.
-The registry keeps `hero-poster-v4.webp` as source. Source hashes are checked
-before rebuilding. No new pie/animal, landscape cover crop, duplicated scene,
-blur filter, provider call or rep-setting change is involved.
+scene.webp is the approved 1080×1920 source-referenced composition generated offline with the built-in image tool. generation.json records the exact prompt. This is a redesigned scene, not an unchanged-pixel hero cutout. The original site hero remains untouched and stays the registry source.
 
-Source SHA-256: `dd0fe24624eca6e540e8e33949cbb85e7a224ce5cfcaaba711b59196aa49e27c`.
-Plate SHA-256: `bd2011a720f6cdd5e531a9876f3ab6c2e5d3bfb07cefb160772670722b690db7`.
-Identity and PNG/JPEG QR checks: `tests/thanksgiving-flyer-plates.test.ts`.
+The builder verifies hero and scene hashes from approved-scene.json, splits the approved scene into top.png (y0–599), side.png (y600–1499) and floor.png (y1500–1919), then composes public/amethyst/skins/pie-please/flyer/plate.webp. This lossless build partition preserves one continuous scene without duplicated scenery or blur-fill. Tests compare every output pixel with the approved scene.
 
-Fuller-art revision: Louis requested more original artwork and authorized sharing
-art between the themes. Sharp maple foliage is shared from the approved Gobble
-hero at the top, sides and bottom-left; isolated ruby/amber jewelry comes from
-the Pumpkin Pie hero. The pie/cream/tray subject remains unchanged and appears
-once. Both source hashes remain guarded by the shared builder.
+The oversized pie's crust and orange filling remain visible left of the QR, whipped cream right, and jeweled tray below instructions.
+
+The actual title/QR/instructions format is unchanged. PNG/JPEG QR decoding is checked with short and long titles. No runtime generation, saved-theme changes or Live release.
