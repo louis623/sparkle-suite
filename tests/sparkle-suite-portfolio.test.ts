@@ -24,13 +24,14 @@ const communityThemes = [
   { id: 'pie_please', title: 'Pumpkin Pie', pickerLabel: 'Pumpkin Pie' },
   { id: 'midnight_rose', title: 'Midnight Rose', pickerLabel: 'Midnight Rose' },
   { id: 'pearl_rose', title: 'Pearl Rose', pickerLabel: 'Pearl Rose' },
+  { id: 'sunset_beach', title: 'Sunset Beach', pickerLabel: 'Sunset Beach' },
   { id: 'rose_champagne', title: 'Rose Champagne', pickerLabel: 'Rose Champagne' },
 ] as const
 
 const repIds = ['mile-high-fizz', 'britt-with-bling', 'go-for-the-bling', 'sparkly-butterflies'] as const
 
 describe('Sparkle Suite portfolio carousels', () => {
-  it('shows the ten community themes above the rep carousel', () => {
+  it('shows the approved community themes above the rep carousel', () => {
     const html = renderPortfolio()
     const themes = sparkleSuitePortfolioContent.carousels.find((carousel) => carousel.id === 'community-themes')
     const reps = sparkleSuitePortfolioContent.carousels.find((carousel) => carousel.id === 'rep-highlights')
