@@ -4173,3 +4173,7 @@ Verification passed:
 
 - The Nic-Nac Home Trade Info button now says `Open Dance Floor` and retains its Dance Floor navigation. Application commit `b2677a08e9ebe86ba726ce343134ad9745f4138f` is live as READY deployment `dpl_D2Um9eCUBEX7WqAX5yf5gMqY6VY1` on both Suite domains; the previous deployment `dpl_59rXL3nvtiBBW9XQ2fvFwKP2STBs` remains available.
 - The focused Workspace suite passed 138 tests, TypeScript and the guarded local/Vercel production builds passed, and changed-file lint had zero errors. A broader operator-support suite had two unrelated stale Live Queue/Tools assertion failures. The live landing page and public Dance Floor rendered; signed-in reviewer controls still require an unavailable protected token, so the production button was not visually inspected through an authenticated synthetic session.
+
+## October 24, 2026 - Seasonal Cards & QR approved for Live
+
+Louis confirmed the three designs work well in the real Smoke tools and explicitly authorized their Live release. Apply only approved Owl, Pumpkin Pie and Gobble & Fizz cauldron flyer/card artwork from PR #151 over current Live branch dfcd3c89. Preserve the current tools, site themes, customer settings and newer carousel work. Release verification record: vault/2026-10-24-seasonal-live-release.md.

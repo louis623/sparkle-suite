@@ -24,9 +24,16 @@ export interface FlyerThemeRecord {
 const skin = (folder: string, file: string) => `public/amethyst/skins/${folder}/${file}`
 
 export const FLYER_THEME_RECORDS: readonly FlyerThemeRecord[] = [
-  { theme: 'gobble_and_fizz', status: 'art', source: skin('gobble-and-fizz', 'hero-poster.webp'), plate: skin('gobble-and-fizz', 'hero-poster.webp'), panelStyle: 'solid', note: 'Approved Thanksgiving artwork with solid readable panels in the matching site palette.' },
-  { theme: 'pie_please', status: 'art', source: skin('pie-please', 'hero-poster-v4.webp'), plate: skin('pie-please', 'hero-poster-v4.webp'), panelStyle: 'solid', note: 'Approved mouse-free pie artwork with solid readable panels in the matching site palette.' },
-  { theme: 'fall_owl_harvest_moon', status: 'art', source: skin('fall-owl', 'hero-poster.webp'), plate: skin('fall-owl', 'hero-poster.webp'), panelStyle: 'solid', note: 'Approved Fall Owl artwork; solid readable panels use the autumn palette.' },
+  { theme: 'gobble_and_fizz', status: 'art', source: skin('gobble-and-fizz', 'hero-poster.webp'), plate: skin('gobble-and-fizz', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Approved cauldron-only 1080×1920 scene: oversized copper sides, ring handles and fizz remain visible around the unchanged flyer panels.' },
+  { theme: 'pie_please', status: 'art', source: skin('pie-please', 'hero-poster-v4.webp'), plate: skin('pie-please', 'flyer/plate.webp'), panelStyle: 'solid', note: 'Approved oversized pumpkin pie: crust and filling left of the QR, whipped cream right, jeweled tray below the instructions; dedicated 1080×1920 plate.' },
+  {
+    theme: 'fall_owl_harvest_moon',
+    status: 'art',
+    source: skin('fall-owl', 'hero-poster.webp'),
+    plate: skin('fall-owl', 'flyer/plate.webp'),
+    panelStyle: 'solid',
+    note: 'Approved high-perch layout: original purple owl and amber jewelry above the title on a right-edge branch; original moon and foliage, centered QR space, and lake once at the bottom. Solid panels use the autumn palette.',
+  },
   {
     theme: 'amethyst',
     status: 'art',

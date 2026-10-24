@@ -1,0 +1,35 @@
+# Gobble & Fizz flyer concepts — October 24, 2026
+
+## Final flyer approval and business-card follow-up
+
+Louis approved the oversized Pumpkin Pie flyer with "Perfect" after previously approving the cauldron. Both approved scenes are now installed in the scoped application files for PR #151, replacing the rejected Thanksgiving plates; no Live release. He requested business-card templates for all three and required checking the actual rep builder first. See vault/2026-10-24-seasonal-cards-and-flyers-closeout.md for final implementation, print specs, 25 focused passing tests, proof files and release boundaries. New card designs await visual feedback; their test pass is not design approval.
+
+## Current approval: cauldron accepted; oversized Pumpkin Pie example
+
+Louis explicitly approved the cauldron-only Gobble & Fizz result: "Yeah, I'm good with that cauldron." Approved artifact: artifacts/creative/2026-10-24-gobble-fizz-real-format/cauldron-plate.webp, shown through unchanged renderer as cauldron-flyer.png. This supersedes previous unapproved status for THAT candidate only. It has not yet replaced the app plate or been pushed to PR #151; no Live release authorization.
+
+Louis requested the same oversized-subject approach for Pumpkin Pie: pie recognizable even behind QR panels. Produced artifacts/creative/2026-10-24-pumpkin-pie-real-format/plate.webp (1080x1920), pie-flyer.png (actual unchanged renderer), review.json (source/prompt/provenance). Source-referenced built-in imagegen edit of approved hero-poster-v4.webp: oversized original-style pumpkin pie with crimped crust, orange filling, cinnamon cream to right, fluted pan and jeweled tray. Actual render clearly exposes crust/filling down left of QR, whipped cream at right, tray below instructions. QR decode passed at x260 y676 560x560. Title and full instructions retain actual tool formatting. Pumpkin Pie candidate awaits Louis feedback; do not conflate cauldron approval with pie approval. No app renderer/source hero changes, no PR update, no deploy or saved-theme change. Fall Owl remains approved and unchanged.
+
+## Latest direction: remove turkey, oversized cauldron behind actual flyer
+
+Louis rejected the simple cropped-frame example because it invented a smaller/different overlay instead of using the existing Cards & QR tool. This was a workflow error: artwork must be evaluated through the actual renderer, never an easier custom format. Verified render.ts and flyer-layout.ts in the isolated PR harness match PR #151 sources after newline normalization. Real sample: title x84 y299 w912 h214; QR x260 y637 560x560; lower panel x84 y1231 w912 h256. Retain all existing panels, typography, QR size and instructions.
+
+During turkey repositioning Louis changed direction explicitly: REMOVE THE TURKEY and use one GIANT BUBBLING CAULDRON, recognizable behind the full overlay. Turkey recompose attempts are abandoned, not approved. Built a source-referenced cauldron-only plate preserving hammered copper, ring handles, fizz, warm plum background and wood tabletop. It is a built-in imagegen edit, not untouched original pixels. The actual rendered example shows foam, rim, broad copper sides and both ring handles around the fixed QR; instructions obscure the lower middle as expected. No extra alternate layout. QR decoding passed.
+
+Current review files: artifacts/creative/2026-10-24-gobble-fizz-real-format/cauldron-flyer.png (REAL renderer); cauldron-plate.webp (1080x1920 art); cauldron-review.json (exact prompt, provenance, geometry). Renderer driver render-gobble-recompose.ts temporarily swaps the harness plate and restores it in finally; no application renderer edits. No design approval yet. Do not implement, merge Live, deploy or change any customer saved theme. Fall Owl remains unchanged; Pumpkin Pie parked. Local review only; previous PR Thanksgiving art remains rejected.
+
+## Simple original-frame example requested after source correction
+
+Louis requested one clean, warm, inviting example, faithful to original background, without added art. Built artifacts/creative/2026-10-24-gobble-fizz-simple/flyer-example.png (1080x1920) using a single original-frame crop x545,y0,w405,h720 scaled uniformly. No image generation, extended/repeated background, added lanterns or redrawn subjects. Overlay contains sample shop text, subtle title readability shade, ivory centered QR card, and Scan to Shop label. QR center (540,960); sample link https://example.com/gobble-fizz-preview successfully decoded with jsQR. Source video resolution limits enlarged-art sharpness; no claim of new high-resolution detail. Turkey open eyes and pot visible, peripheral fan/body cropped; QR obscures central foam/jewel. Review example only, awaiting Louis feedback. Saved production assets, PR and customer theme unchanged. Rebuild script and source provenance README saved alongside example.
+
+## Correction after Louis rejected all three concepts
+
+All three generated A/B/C studies are REJECTED. Louis specifically objected to closed eyes, arbitrarily added lanterns and failure to preserve the original art. Do not implement these concepts or treat any as selected. Inspecting the approved hero-loop.mp4 from PR #151 revealed OPEN EYES throughout the sampled animation, unlike the closed-eye hero-poster.webp used as the failed generation input. Extracted original frame at 1 second to artifacts/creative/2026-10-24-gobble-fizz-flyer-concepts/original-frames/approved-open-eyes.png. This is an actual video frame, not generated art. Preserve the original scene and subjects; avoid regenerated turkey, invented scenery and duplicated lantern decoration. No replacement flyer has been completed or approved. No production or saved-theme changes.
+
+Louis rejected BOTH previous Thanksgiving flyer plates as AI slop. Their passing technical tests do not imply design approval. Pumpkin Pie is parked. Fall Owl high-perch A remains approved and unchanged.
+
+New direction: work on Gobble & Fizz alone, fill the entire flyer with one continuous artwork scene, avoid empty filler and cutout borders, keep a centered QR while retaining prominent turkey and cauldron. Louis requested three quick concepts before further implementation.
+
+Produced three built-in imagegen reference edits using the approved Gobble hero: A diagonal turkey-right/pot-left, B centered turkey/pot, C closer turkey-left/pot-right. These are generated composition studies, not pixel-identical source composites. Typography and QR PREVIEW cards are mockups; final QR geometry must be established in the actual renderer after selection. Outputs and exact prompts are in artifacts/creative/2026-10-24-gobble-fizz-flyer-concepts/. No concept is approved yet.
+
+No saved plate, code, PR, Live deployment, or customer saved theme changed during this concept round. PR #151 still contains the rejected Thanksgiving versions and must not be treated as design-approved. Next: Louis selects a direction, then refine that one against the original artwork and real QR layout.
