@@ -15,3 +15,13 @@ Prior Live deployment retained for provenance: dpl_FyDFBopRXJTf5itU52vGsRZHn5nJ,
 User verified the authenticated Smoke workflow. Automated art/layout/QR/export checks and the new full production build are required before declaring completion. Record final deployed commit, build result, exact alias mappings, served artwork checks and reviewer UI results in the session closeout/Open Brain. Never describe authenticated Live checks as complete unless they were exercised.
 
 Review path: https://www.yoursparklesuite.com/nic-nac > Tools > QR codes, QR flyers, business cards. Choose Fall Owl, Gobble & Fizz or Pumpkin Pie; step 4 previews/downloads the flyer and step 5 previews the business card front/back. Tool theme selection does not change the site's saved theme. No order or payment should be placed for artwork verification.
+
+## Deployed and verified
+
+Production application commit: e6a06786bb532af049d66644137cfbab40bc2cf0. Deployment dpl_AU1MyAgqkxgs68EkZPtH7BPNbBHy / sparkle-suite-4bd4ecyjn-louis-2849s-projects.vercel.app reached READY; full Next.js build passed. Both Suite www/apex aliases verified on that exact deployment. 25 focused tests passed against the candidate's exact renderer and assets.
+
+All three served 1080x1920 flyer plates match the approved release SHA-256 hashes. Original heroes also match unchanged release bytes. Live /, /login, /nic-nac and /dudesfizzfest returned 200. The three Cards & QR API endpoints return 401 without a session, confirming the existing authentication gate. Evidence: artifacts/creative/2026-10-24-seasonal-business-cards/live-verification.json.
+
+The in-app browser showed a stable Live landing page and an existing Louis Chapman / The Dudes Fizzfest workspace session. No protected tool actions were performed in that personal session. The synthetic reviewer credentials/token are stored as non-retrievable Vercel sensitive variables. Permission was requested for preview/download-only use of the existing session; signed-in Live design checks remain pending unless a later record confirms completion. Do not reset reviewer credentials or use customer records to bypass this limitation.
+
+PR #151 was closed as delivered by scoped integration e6a06786; its obsolete base and preview policy were not merged. No customer saved-theme, account, database, order, payment, extension or Finder changes. Shared local HEAD/index preserved.

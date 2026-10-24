@@ -8012,3 +8012,7 @@ Using the explicitly requested bundled Computer Use skill and @oai/sky, loaded D
 ## October 24, 2026 - Seasonal Cards & QR approved for Live
 
 Louis confirmed the three designs work well in the real Smoke tools and explicitly authorized their Live release. Apply only approved Owl, Pumpkin Pie and Gobble & Fizz cauldron flyer/card artwork from PR #151 over current Live branch dfcd3c89. Preserve the current tools, site themes, customer settings and newer carousel work. Release verification record: vault/2026-10-24-seasonal-live-release.md.
+
+## October 24, 2026 - Seasonal Cards & QR Live deployment confirmed
+
+Louis verified the designs in Smoke and approved Live. Application commit e6a06786 deployed as dpl_AU1MyAgqkxgs68EkZPtH7BPNbBHy; both Suite domains match. Full build and 25 focused checks passed. Served flyer/hero hashes verified. Signed-in design checks await permission to use the existing Louis session; synthetic reviewer credentials are non-retrievable. No saved-theme, account, order, database, extension or Finder changes. See vault/2026-10-24-seasonal-live-release.md.
