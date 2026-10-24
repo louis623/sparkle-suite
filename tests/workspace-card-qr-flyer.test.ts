@@ -274,7 +274,7 @@ describe('flyer theme designs', () => {
     expect(FLYER_THEME_RECORDS.map((record) => record.theme).sort()).toEqual(
       [...AMETHYST_APPEARANCE_PRESET_IDS].sort(),
     )
-    expect(CARD_QR_SHARED_FLYER_THEMES).toHaveLength(17)
+    expect(CARD_QR_SHARED_FLYER_THEMES).toHaveLength(18)
     for (const theme of CARD_QR_SHARED_FLYER_THEMES) {
       const plate = flyerPlateAbsolute(theme)
       expect(plate, theme).toBeTruthy()
@@ -299,6 +299,16 @@ describe('flyer theme designs', () => {
         expect(paint.panelOpacity, theme).toBe(FLYER_FROSTED_PANEL_OPACITY)
         expect(paint.panelOpacity, theme).toBeGreaterThanOrEqual(0.8)
         expect(paint.panelOpacity, theme).toBeLessThanOrEqual(0.84)
+      } else if (theme === 'sunset_beach') {
+        expect(paint.panelOpacity).toBe(0.98)
+        for (const stop of paint.panelGradient ?? []) {
+          for (const ink of [paint.title, paint.body, paint.muted]) {
+            expect(contrastRatio(ink, stop)).toBeGreaterThanOrEqual(4.5)
+          }
+        }
+        for (const stop of paint.pillGradient ?? []) {
+          expect(contrastRatio(paint.pillInk, stop)).toBeGreaterThanOrEqual(4.5)
+        }
       } else {
         expect(paint.panelOpacity, theme).toBe(FLYER_PANEL_OPACITY)
         expect(paint.panelOpacity, theme).toBeGreaterThanOrEqual(0.94)
@@ -526,7 +536,7 @@ describe('flyer render', () => {
         customDomain: 'sparkle-suite-smoke.vercel.app',
       }).website,
     ).toBeNull()
-    expect(CARD_QR_SHARED_FLYER_THEMES).toHaveLength(14)
+    expect(CARD_QR_SHARED_FLYER_THEMES).toHaveLength(18)
     expect(CARD_QR_SHARED_FLYER_THEMES).not.toContain('neon_butterfly')
     expect(CARD_QR_SHARED_FLYER_THEMES).not.toContain('rose_quartz')
   })
@@ -594,7 +604,7 @@ describe('flyer route', () => {
     const { data, info } = await sharp(jpg).raw().toBuffer({ resolveWithObject: true })
     const background = pixel(data, info, 8, 80)
     expect(background[0]).toBeLessThan(50)
-    await expect(assertFlyerQrDecodes(jpg, QR_URL)).resolves.toBeUndefined()
+    await expect(assertFlyerQrDecodes(jpg, withCardQrVisitSource(QR_URL))).resolves.toBeUndefined()
   })
 
   it.each(['neon_butterfly', 'gnome_garden', 'alpine_opal', 'black_diamond'] as const)(
@@ -657,7 +667,7 @@ describe('flyer route', () => {
       expect.objectContaining({
         theme: 'sparkle_suite_morganite',
         repId: REP_ID,
-        expected: QR_URL,
+        expected: withCardQrVisitSource(QR_URL),
         decoded: 'https://wrong.example',
       }),
     )
@@ -681,7 +691,7 @@ describe('flyer route', () => {
     expect(meta.format).toBe('jpeg')
     expect(meta.width).toBe(CARD_QR_FLYER_WIDTH)
     expect(meta.height).toBe(CARD_QR_FLYER_HEIGHT)
-    await expect(assertFlyerQrDecodes(jpg, QR_URL)).resolves.toBeUndefined()
+    await expect(assertFlyerQrDecodes(jpg, withCardQrVisitSource(QR_URL))).resolves.toBeUndefined()
   })
 
   it('rejects an unknown format', async () => {

@@ -14,3 +14,5 @@ Repeatable review:
 3. Open Workspace → Tools → QR codes, QR flyers, business cards. Change theme → Sunset Beach. Inspect QR, flyer and both card sides; download free images/PDF only. This per-visit theme choice does not change the site. Never proceed to an order or checkout for theme QA.
 
 The sample preview can be repeated without reseeding. Live release requires Louis's separate approval, Suite/Grokbot coordination, and a fresh Live-configured build. Deployed results and exact release SHA belong in the final session receipt.
+
+Completed: application SHA `4a13e8c0286c6fe2dc9fcf77e030924236c94101`, READY deployment `dpl_9kmohPnyYSBVJaaFHM4jCvKiyXcZ`, exact Smoke alias verified. The synthetic signed-in picker/save/reload/Still and all six print downloads passed; downloaded gradient QR images decode correctly. Reviewer settings were restored. See `vault/2026-10-24-sunset-beach-smoke-closeout.md` for the release receipt and verification limits.
