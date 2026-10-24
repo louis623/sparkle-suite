@@ -4181,3 +4181,7 @@ Louis confirmed the three designs work well in the real Smoke tools and explicit
 ## October 24, 2026 - Seasonal Cards & QR Live deployment confirmed
 
 Louis verified the designs in Smoke and approved Live. Application commit e6a06786 deployed as dpl_AU1MyAgqkxgs68EkZPtH7BPNbBHy; both Suite domains match. Full build and 25 focused checks passed. Served flyer/hero hashes verified. Signed-in design checks await permission to use the existing Louis session; synthetic reviewer credentials are non-retrievable. No saved-theme, account, order, database, extension or Finder changes. See vault/2026-10-24-seasonal-live-release.md.
+
+## October 24, 2026 - New themes include QR flyers and business cards
+
+Louis requested automatic matching print deliverables for every new theme. Added sparkle-suite-qr-flyer-builder and sparkle-suite-business-card-builder; skin-builder invokes both without a separate request. Preserve approved art, use actual tool geometry, build deterministically and verify real exports. Existing narrower scope/approval rules remain. Skills validated; no app or deployment changes. Louis will personally double-check the seasonal Live designs; no further personal-session permission is pending for that release. See vault/2026-10-24-theme-print-skills.md.

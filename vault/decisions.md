@@ -3106,3 +3106,7 @@ Decision (September 24, 2026): The rep Dance Floor uses the customer's browse pa
 
 ## September 28, 2026 — Live Lineup is independent of shows
 Louis explicitly requires Live Lineup to work whenever the enabled, connected extension can read Bomb Party Live Party Orders, including an empty table and no scheduled calendar show. Do not reintroduce a show-start prerequisite, order-date cutoff, or carry-forward requirement. Party choices and reveal state remain relevant; calendar/show timing does not determine order eligibility. Verify fixes on the explicitly authorized Smoke environment before considering a live release. Current Smoke verification and installation boundary: docs/sparkle-suite/live-lineup-always-on-2026-09-28.md.
+
+## October 24, 2026 - New themes include QR flyers and business cards
+
+Louis requested automatic matching print deliverables for every new theme. Added sparkle-suite-qr-flyer-builder and sparkle-suite-business-card-builder; skin-builder invokes both without a separate request. Preserve approved art, use actual tool geometry, build deterministically and verify real exports. Existing narrower scope/approval rules remain. Skills validated; no app or deployment changes. Louis will personally double-check the seasonal Live designs; no further personal-session permission is pending for that release. See vault/2026-10-24-theme-print-skills.md.

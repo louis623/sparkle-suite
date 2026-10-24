@@ -9,6 +9,18 @@ description: Use when creating, reviewing, or modifying Sparkle Suite customer-s
 
 Create visual-only skins for Sparkle Suite customer sites while preserving the Amethyst template, behavior, data mapping, SEO, and Nic-Nac surfaces. Every skin also needs a lightweight branding card so reps can browse available looks before asking Nic-Nac to apply one.
 
+## New-theme delivery package
+
+Louis's standing direction (October 24, 2026): every new theme includes its matching **QR flyer and business-card designs in the same build**, without a separate request. Plan the site hero, portrait flyer and landscape card together. Once the source artwork is selected, build the matching formats automatically; if it is still a concept, label dependent work as draft and carry accepted visual decisions forward.
+
+- Apply [sparkle-suite-qr-flyer-builder](../sparkle-suite-qr-flyer-builder/SKILL.md) for a dedicated 1080 x 1920 portrait plate, actual tool overlay proofs, registration, repeatable sources and JPG/PNG QR checks.
+- Apply [sparkle-suite-business-card-builder](../sparkle-suite-business-card-builder/SKILL.md) for the current 1125 x 675 / 300 DPI plate, existing front/back layouts, safe-area checks and real print export.
+- The lightweight skin browsing/branding card remains separate from the printed business card. All three must use the approved art identity, palette and ownership rules. Never substitute a newly generated character for a locked original.
+- A new theme is not fully packaged until the site, flyer and card are registered on their appropriate surfaces and reviewed in the real format. Include source-versus-finished comparisons where fidelity matters, finished flyer and front/back proofs, and the actual rep-tool review path. Report any incomplete deliverable explicitly.
+- An existing-theme art change requires an impact check on both formats; rebuild only the affected assets. Retain already-approved compatible output. A motion-only change does not automatically require new static card art. Respect an explicit narrower request or a deferred deliverable.
+- This default is an agent authoring workflow with deterministic offline rebuilds. It does not add runtime image generation, schedule a background job, authorize extra paid generation, change customer saved themes, or expand release permissions. Follow the user's current review/release instructions; do not ask again whether to create these two formats when they are already included here.
+
+
 ## Required References
 
 Before designing or implementing a skin, read:
