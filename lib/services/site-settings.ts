@@ -8,8 +8,13 @@ import {
 import { isAmethystSkinSelectionAvailableToRep } from '@/lib/amethyst/skin-access'
 import {
   isSupportedPublicVideoUrl,
+  isTikTokShortVideoUrl,
   normalizePublicMediaUrl,
 } from '@/lib/public-site/media-url'
+import {
+  resolveTikTokShortVideoUrl,
+  TikTokShortLinkError,
+} from '@/lib/public-site/tiktok-short-link'
 import type {
   HeroAnimationType,
   PublicSiteMediaSlot,
@@ -200,6 +205,66 @@ function normalizePortraitFramingValue(
   return Math.min(maximum, Math.max(minimum, Math.round(parsed * 100) / 100))
 }
 
+function publicSiteMediaSlotLabel(key: string) {
+  if (key === 'showcase') return 'Showcase video'
+  if (key === 'about_1') return 'About portrait photo'
+  if (key === 'about_2' || key === 'about_3' || key === 'about_4') {
+    return `About short video ${Number(key.slice(-1)) - 1}`
+  }
+  return 'Video'
+}
+
+function isPublicSiteMediaSlotKey(value: string): value is PublicSiteMediaSlotKey {
+  return (PUBLIC_SITE_MEDIA_SLOT_KEYS as readonly string[]).includes(value)
+}
+
+async function resolveTikTokShortLinksInMediaSlots(value: unknown) {
+  if (!Array.isArray(value)) return value
+  const resolved: unknown[] = []
+  const lastIndexByKey = new Map<PublicSiteMediaSlotKey, number>()
+
+  for (const row of value) {
+    if (!row || typeof row !== 'object') {
+      resolved.push(row)
+      continue
+    }
+    const record = { ...(row as Record<string, unknown>) }
+    resolved.push(record)
+    if (typeof record.key === 'string' && isPublicSiteMediaSlotKey(record.key)) {
+      lastIndexByKey.set(record.key, resolved.length - 1)
+    }
+  }
+
+  for (const key of PUBLIC_SITE_MEDIA_SLOT_KEYS) {
+    const index = lastIndexByKey.get(key)
+    if (index === undefined) continue
+    const record = resolved[index] as Record<string, unknown>
+    if (typeof record.videoUrl !== 'string' || !isTikTokShortVideoUrl(record.videoUrl)) {
+      continue
+    }
+    try {
+      record.videoUrl = await resolveTikTokShortVideoUrl(record.videoUrl)
+    } catch (error) {
+      if (error instanceof TikTokShortLinkError) {
+        const mediaLabel = publicSiteMediaSlotLabel(key)
+        throw errors.INVALID_INPUT(
+          `${key} TikTok short link did not resolve to a public video`,
+          `${mediaLabel}: Open the TikTok and copy the full video link.`,
+        )
+      }
+      throw error
+    }
+  }
+
+  return resolved
+}
+
+export async function normalizePublicSiteMediaSlotsForSave(value: unknown) {
+  return normalizePublicSiteMediaSlots(await resolveTikTokShortLinksInMediaSlots(value), {
+    rejectInvalidUrls: true,
+  })
+}
+
 export function normalizePublicSiteMediaSlots(
   value: unknown,
   options: { rejectInvalidUrls?: boolean } = {},
@@ -217,12 +282,7 @@ export function normalizePublicSiteMediaSlots(
     const row = byKey.get(key)
     const imageUrl = normalizePublicMediaUrl(row?.imageUrl)
     const videoUrl = normalizePublicMediaUrl(row?.videoUrl)
-    const mediaLabel =
-      key === 'showcase'
-        ? 'Showcase video'
-        : key === 'about_1'
-          ? 'About portrait photo'
-          : `About short video ${Number(key.slice(-1)) - 1}`
+    const mediaLabel = publicSiteMediaSlotLabel(key)
 
     if (
       options.rejectInvalidUrls &&
@@ -526,9 +586,8 @@ export async function updateSiteSettingsDashboard(
     siteSettingsPatch.about_narrative = normalizeAboutNarrative(input.aboutNarrative)
   }
   if (input.homepageMediaSlots !== undefined) {
-    siteSettingsPatch.homepage_media_slots = normalizePublicSiteMediaSlots(
+    siteSettingsPatch.homepage_media_slots = await normalizePublicSiteMediaSlotsForSave(
       input.homepageMediaSlots,
-      { rejectInvalidUrls: true },
     )
   }
 
