@@ -4,14 +4,18 @@ import { AuthError, getPaidNicNacContext } from '@/lib/nic-nac/auth'
 import { ServiceError } from '@/lib/services/errors'
 import {
   getConversationOwner,
-  deleteConversationMessages,
   insertConversationMessages,
   loadConversationForClient,
 } from '@/lib/nic-nac/persistence'
 import { findActionableApproval } from '@/lib/nic-nac/hitl-state'
-import { buildNicNacRolloverMessages } from '@/lib/nic-nac/rollover'
+import { prepareNicNacRolloverMessages } from '@/lib/nic-nac/rollover'
+import { enrichKnownFromPieceMessages } from '@/lib/nic-nac/workflows/trade-board-known-fields'
 import { logNicNacRollover } from '@/lib/nic-nac/rollover-telemetry'
-import { transferActiveTradeBoardIntakeConversation } from '@/lib/nic-nac/workflows/trade-board-intake-store'
+import {
+  copyConfirmedPieceDetailsToConversation,
+  getActiveTradeBoardIntakeSession,
+  saveCarriedPieceDetails,
+} from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const runtime = 'nodejs'
@@ -57,41 +61,54 @@ export async function POST(request: Request) {
   }
 
   const conversationId = randomUUID()
-  const messages = buildNicNacRolloverMessages(sourceMessages)
+  const nowIso = new Date().toISOString()
+  const admin = createAdminClient()
+  const activeIntake = await getActiveTradeBoardIntakeSession(admin, {
+    repId,
+    conversationId: sourceConversationId,
+    nowIso,
+  })
+  const unfinished =
+    activeIntake &&
+    (activeIntake.status === 'active' ||
+      activeIntake.status === 'needs_human_review')
+  const known = unfinished
+    ? enrichKnownFromPieceMessages(activeIntake.known, sourceMessages)
+    : null
+  const prepared = prepareNicNacRolloverMessages(sourceMessages, known)
+  const messages = prepared.messages
   await insertConversationMessages(supabase, {
     conversationId,
     repId,
     messages,
   })
-  let workflowTransfer: Awaited<
-    ReturnType<typeof transferActiveTradeBoardIntakeConversation>
-  >
+  const carryItem = prepared.carry?.itemNumber?.trim().toUpperCase() || ''
+  const storedItem = known?.itemNumber?.trim().toUpperCase() || ''
   try {
-    workflowTransfer = await transferActiveTradeBoardIntakeConversation(
-      createAdminClient(),
-      {
+    if (unfinished && activeIntake && carryItem && carryItem === storedItem) {
+      await copyConfirmedPieceDetailsToConversation(admin, {
         repId,
-        sourceConversationId,
-        destinationConversationId: conversationId,
-        nowIso: new Date().toISOString(),
-      },
-    )
-  } catch (error) {
-    await deleteConversationMessages(supabase, { conversationId, repId })
-    throw error
-  }
-  if (workflowTransfer?.replayed) {
-    await deleteConversationMessages(supabase, { conversationId, repId })
-    const replayMessages = await loadConversationForClient(
-      supabase,
-      workflowTransfer.destinationConversationId,
-    )
-    return NextResponse.json({
-      conversationId: workflowTransfer.destinationConversationId,
-      messages: replayMessages,
-      carriedMessageCount: replayMessages.length,
-      workflowId: workflowTransfer.workflowId,
-    })
+        conversationId,
+        source: { ...activeIntake, known: known ?? activeIntake.known },
+      })
+    } else if (prepared.carry?.itemNumber) {
+      await saveCarriedPieceDetails(admin, {
+        repId,
+        conversationId,
+        known: {
+          itemNumber: prepared.carry.itemNumber,
+          jewelryType: prepared.carry.jewelryType,
+          designName: prepared.carry.designName,
+          collectionName: prepared.carry.collectionName,
+          material: prepared.carry.material,
+          mainStone: prepared.carry.mainStone,
+          ringSize: prepared.carry.ringSize,
+          rarityClassification: prepared.carry.rarity,
+        },
+      })
+    }
+  } catch {
+    // The fresh chat still opens. Details are also in the one notice.
   }
   await logNicNacRollover({
     repId,
@@ -104,6 +121,6 @@ export async function POST(request: Request) {
     conversationId,
     messages,
     carriedMessageCount: messages.length,
-    workflowId: workflowTransfer?.workflowId ?? null,
+    workflowId: null,
   })
 }

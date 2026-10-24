@@ -22,6 +22,10 @@ describe('Nic-Nac routed system prompt', () => {
     expect(prompt).toContain('end_show')
     expect(prompt).toContain('record_show_session_event')
     expect(prompt).toContain('zero-provider database tools')
+    expect(prompt).toContain(
+      'or shares a Live Lineup code or calendar anchor.',
+    )
+    expect(prompt).not.toContain('or gives a Live Lineup.')
     expect(prompt).toContain('Do not pre-announce tool calls')
     expect(prompt).not.toContain('You have twenty-nine tools')
     expect(prompt).not.toContain('send_sms_notification')

@@ -5,9 +5,13 @@ import { useChat } from '@ai-sdk/react'
 import {
   DefaultChatTransport,
   lastAssistantMessageIsCompleteWithApprovalResponses,
-  type FileUIPart,
   type UIMessage,
 } from 'ai'
+import { sendNicNacParts } from '@/lib/nic-nac/client-send'
+import { sortMessagesByCreatedAt } from '@/lib/nic-nac/message-order'
+import { mainPhotoPreviewSrc } from '@/lib/nic-nac/workflows/main-photo-preview'
+import { MOVED_ON_MESSAGE } from '@/lib/nic-nac/piece-task'
+import { asksToConfirmSave, hasPendingSaveConfirmation, hasMovedOnNotice, retireSupersededPreviews, lastVisibleAssistantId, retireLastConfirmationLine } from '@/lib/nic-nac/conversation-display'
 import { Bubble } from './Bubble'
 import { ChatHistory } from './ChatHistory'
 import { EmptyGreeting, type NicNacChatMode } from './EmptyGreeting'
@@ -28,6 +32,7 @@ import { findActionableApproval, type ActionableApproval } from '@/lib/nic-nac/h
 import {
   hasCompletedAssistantAfterLatestUser,
   mergeServerMessages,
+  shouldClearSendErrorAfterServerReply,
 } from '@/lib/nic-nac/client-message-refresh'
 import {
   isTradeRequestCardPart,
@@ -130,10 +135,31 @@ export type AssistantMessageRenderable =
       key: string
       request: TradeRequestCardPart['data']
     }
+  | {
+      type: 'main-photo-preview'
+      key: string
+      text: string
+      imageUrl?: string
+    }
 
 export function buildAssistantMessageRenderables(
   parts: readonly unknown[],
+  options?: { readOnly?: boolean; overlayMovedOn?: boolean },
 ): AssistantMessageRenderable[] {
+  if (options?.overlayMovedOn && (hasPendingSaveConfirmation(parts) || hasMovedOnNotice(parts))) {
+    return [{ type: 'text', key: 'moved-on', text: MOVED_ON_MESSAGE }]
+  }
+  if (options?.overlayMovedOn) {
+    const visible = buildAssistantMessageRenderables(parts, { ...options, overlayMovedOn: false })
+    const pending = (item: AssistantMessageRenderable) => item.type === 'main-photo-preview' ||
+      (item.type === 'text' && (asksToConfirmSave(item.text) || item.text.includes(MOVED_ON_MESSAGE)))
+    const target = visible.findLastIndex(pending)
+    return visible.map((item, index) => pending(item) && item.type !== 'data-trade-request-card'
+      ? { type: 'text', key: item.key, text: item.type === 'main-photo-preview'
+        ? (index === target ? MOVED_ON_MESSAGE : '')
+        : retireLastConfirmationLine(item.text, index !== target) }
+      : item)
+  }
   const renderables: AssistantMessageRenderable[] = []
   let textBuffer = ''
 
@@ -142,6 +168,13 @@ export function buildAssistantMessageRenderables(
     renderables.push({ type: 'text', key, text: textBuffer })
     textBuffer = ''
   }
+
+  const movedOn = parts.some((part) => {
+    if (!part || typeof part !== 'object') return false
+    const record = part as { type?: string; text?: string; output?: { message?: string } }
+    if (record.type === 'text' && record.text?.includes(MOVED_ON_MESSAGE)) return true
+    return record.output?.message?.includes(MOVED_ON_MESSAGE) ?? false
+  })
 
   parts.forEach((part, index) => {
     const pt = part as { type?: string; text?: string }
@@ -156,11 +189,67 @@ export function buildAssistantMessageRenderables(
         key: `trade-request-${part.data.requestId}-${index}`,
         request: part.data,
       })
+      return
+    }
+    const toolPart = part as {
+      type?: string
+      state?: string
+      output?: {
+        needsAction?: string
+        code?: string
+        previewPhotoId?: string
+        previewImageUrl?: string
+        message?: string
+      }
+    }
+    const output = toolPart.output
+    const isToolResult =
+      typeof toolPart.type === 'string' &&
+      toolPart.type.startsWith('tool-') &&
+      toolPart.state === 'output-available' &&
+      output != null
+    const showsMainPhoto =
+      output?.needsAction === 'confirm_main_photo' ||
+      (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM' &&
+        Boolean(output.previewImageUrl?.trim() || output.previewPhotoId?.trim()))
+    if (isToolResult && showsMainPhoto && !movedOn) {
+      flushText(`text-${index}`)
+      const imageUrl = mainPhotoPreviewSrc(output)
+      renderables.push({
+        type: 'main-photo-preview',
+        key: `main-photo-${index}`,
+        text: imageUrl
+          ? (output.message ??
+            'This is the main photo I will save. If this is the right piece, reply yes.')
+          : "I can't show this photo here. Please send it again.",
+        ...(imageUrl ? { imageUrl } : {}),
+      })
     }
   })
   flushText('text-final')
 
-  return renderables
+  const lastPreview = renderables.findLastIndex(
+    (item) => item.type === 'main-photo-preview',
+  )
+  if (lastPreview === -1) return renderables
+  const latestPreview = renderables[lastPreview]
+  const duplicateWarning =
+    latestPreview?.type === 'main-photo-preview' &&
+    /already on/i.test(latestPreview.text)
+  return renderables.flatMap((item, index): AssistantMessageRenderable[] => {
+    if (item.type === 'main-photo-preview') {
+      return index === lastPreview ? [item] : []
+    }
+    if (duplicateWarning && item.type === 'text') return []
+    if (item.type !== 'text') return [item]
+    const text = item.text
+      .split(/(?<=[.!?])\s+/)
+      .filter((sentence) => !asksToConfirmSave(sentence))
+      .join(' ')
+      .trim()
+    if (!text) return []
+    return [{ ...item, text }]
+  })
 }
 
 type ConversationHydrateResponse = {
@@ -177,6 +266,7 @@ export function NicNacChatBody({
   requiredSetupPreviewHref = '/amethyst/Homepage.html',
   transport,
   initialMessages,
+  readOnly = false,
   onChatStateChange,
   onRolloverRecommended,
   launchPrompt,
@@ -190,6 +280,7 @@ export function NicNacChatBody({
   requiredSetupPreviewHref?: string
   transport: DefaultChatTransport<UIMessage>
   initialMessages: UIMessage[]
+  readOnly?: boolean
   onChatStateChange: (s: { isStreaming: boolean; hasPendingApproval: boolean }) => void
   onRolloverRecommended: (conversationId: string) => Promise<boolean>
   resetSignal: string
@@ -308,7 +399,6 @@ export function NicNacChatBody({
     error,
     regenerate,
     clearError,
-    stop,
     setMessages,
   } = useChat({
     transport,
@@ -463,7 +553,6 @@ export function NicNacChatBody({
 
       setMessages((current) => mergeServerMessages(current, body.messages ?? []))
       if (activeMessageIdRef.current) requestHide(activeMessageIdRef.current)
-      await stop()
       textareaRef.current?.focus()
     }, STREAM_COMPLETION_RECOVERY_MS)
 
@@ -479,8 +568,46 @@ export function NicNacChatBody({
     requestHide,
     setMessages,
     status,
-    stop,
   ])
+
+  // A phone send can finish on the server and still look failed in the chat.
+  // If the saved thread already has Nic-Nac's reply, show that instead.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!conversationId || status !== 'error') return
+
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch(buildConversationStateUrl(conversationId), {
+          credentials: 'include',
+        })
+        if (!res.ok || cancelled) return
+        const body = (await readJsonResponse<ConversationHydrateResponse>(
+          res,
+          'conversation send recovery',
+        ).catch(() => null)) as ConversationHydrateResponse | null
+        if (!body?.messages || cancelled) return
+        if (
+          !shouldClearSendErrorAfterServerReply({
+            status,
+            currentMessages: messages,
+            serverMessages: body.messages,
+          })
+        ) {
+          return
+        }
+        setMessages((current) => mergeServerMessages(current, body.messages ?? []))
+        clearError()
+      } catch {
+        return
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [clearError, conversationId, messages, setMessages, status])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -563,7 +690,7 @@ export function NicNacChatBody({
   const showPreviewPanel =
     chatMode === 'required_setup' &&
     requiredSetupStep === 'final_preview_approval'
-  const inputAriaDisabled = hasPendingApproval
+  const inputAriaDisabled = hasPendingApproval || readOnly
   const latestUserId = findLatestUserMessageId(messages)
   const latestPendingUserId =
     pendingOptimisticCreated &&
@@ -572,63 +699,23 @@ export function NicNacChatBody({
       ? latestUserId
       : null
 
+  const submissionInFlight = useRef(false)
   const sendWithParts = useCallback(
-    async (parts: UIMessage['parts'], replaceMessageId?: string) => {
-      // Split parts into text + file payload so we hit useChat's
-      // ({ text, files }) overload, which is the canonical send path.
-      const textChunks: string[] = []
-      const files: FileUIPart[] = []
-      for (const p of parts ?? []) {
-        const pt = p as {
-          type?: string
-          text?: string
-          mediaType?: string
-          url?: string
-          filename?: string
-        }
-        if (pt.type === 'text' && typeof pt.text === 'string') {
-          textChunks.push(pt.text)
-        } else if (
-          pt.type === 'file' &&
-          typeof pt.mediaType === 'string' &&
-          typeof pt.url === 'string'
-        ) {
-          files.push({
-            type: 'file',
-            mediaType: pt.mediaType,
-            url: pt.url,
-            ...(pt.filename ? { filename: pt.filename } : {}),
-          })
-        }
-      }
-      const text = textChunks.join('\n').trim()
-      const optimisticId = replaceMessageId
-      try {
-        if (text && files.length > 0) {
-          await sendMessage({
-            text,
-            files,
-            ...(optimisticId ? { messageId: optimisticId } : {}),
-          })
-        } else if (files.length > 0) {
-          await sendMessage({
-            files,
-            ...(optimisticId ? { messageId: optimisticId } : {}),
-          })
-        } else if (text) {
-          await sendMessage({
-            text,
-            ...(optimisticId ? { messageId: optimisticId } : {}),
-          })
-        }
-      } catch {
-        // useChat surfaces error state; no rethrow needed.
-      }
+    async (parts: UIMessage['parts'], id: string, replace = false) => {
+      await sendNicNacParts({
+        sendMessage, parts, id, replace,
+        onFailure: (message) => {
+          setMessages((current) => current.some((row) => row.id === id)
+            ? current : [...current, message])
+          setFailedMessages((current) => new Map(current).set(id, { parts }))
+        },
+      })
     },
-    [sendMessage]
+    [sendMessage, setMessages],
   )
 
   const handleSubmit = async () => {
+    if (readOnly || isStreaming || hasPendingApproval || submissionInFlight.current) return
     const text = draft.trim()
     if (!text && attachments.length === 0) return
     // Build canonical parts for failure-retry storage.
@@ -654,7 +741,12 @@ export function NicNacChatBody({
       stamp: Date.now(),
       previousLatestUserId: findLatestUserMessageId(messages),
     })
-    await sendWithParts(parts)
+    submissionInFlight.current = true
+    try {
+      await sendWithParts(parts, crypto.randomUUID())
+    } finally {
+      submissionInFlight.current = false
+    }
   }
 
   const handleLookChoice = (text: string) => {
@@ -662,7 +754,7 @@ export function NicNacChatBody({
     void sendMessage({ text })
   }
 
-  const handlePickFiles = async (files: FileList | null, _mode: 'gallery' | 'camera') => {
+  const handlePickFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return
     const remainingSlots = MAX_ATTACHMENTS - attachments.length
     if (remainingSlots <= 0) {
@@ -727,16 +819,17 @@ export function NicNacChatBody({
       })
       clearError()
       // Replace the failed message in place by passing its existing id.
-      await sendWithParts(entry.parts, messageId)
+      await sendWithParts(entry.parts, messageId, messages.some((row) => row.id === messageId))
     },
-    [displayedFailedMessages, clearError, sendWithParts]
+    [displayedFailedMessages, clearError, sendWithParts, messages]
   )
 
   return (
     <>
       <ChatHistory isStreaming={isStreaming}>
         {!hasMessages ? <EmptyGreeting mode={chatMode} /> : null}
-        {messages.map((m, idx) => {
+        {(readOnly ? retireSupersededPreviews(sortMessagesByCreatedAt(messages)) : sortMessagesByCreatedAt(messages)).map((m, idx, ordered) => {
+          const lastAssistantId = lastVisibleAssistantId(ordered)
           const ts = readCreatedAt(
             m,
             latestPendingUserId,
@@ -762,8 +855,8 @@ export function NicNacChatBody({
               key={m.id}
               message={m}
               timestamp={ts}
-              isFirstInRun={isFirstNicNacInRun(messages, idx)}
-              isStreamingTail={isStreaming && idx === messages.length - 1}
+              isFirstInRun={isFirstNicNacInRun(ordered, idx)}
+              isStreamingTail={isStreaming && idx === ordered.length - 1}
               isThinking={thinkingFor === m.id}
               onApprove={addToolApprovalResponse}
               onTradeRequestDecision={handleTradeRequestReview}
@@ -775,6 +868,8 @@ export function NicNacChatBody({
                   ? actionableApproval.approval
                   : null
               }
+              readOnly={readOnly}
+              overlayMovedOn={Boolean(readOnly && m.id === lastAssistantId)}
             />
           )
         })}
@@ -823,11 +918,13 @@ export function NicNacChatBody({
         onRemoveAttachment={handleRemoveAttachment}
         attachmentNotice={attachmentNotice}
         placeholder={
-          hasPendingApproval
-            ? 'Approve or cancel above…'
-            : chatMode === 'required_setup'
-              ? 'Reply to Nic-Nac…'
-              : 'Ask Nic-Nac…'
+          readOnly
+            ? MOVED_ON_MESSAGE
+            : hasPendingApproval
+              ? 'Approve or cancel above…'
+              : chatMode === 'required_setup'
+                ? 'Reply to Nic-Nac…'
+                : 'Ask Nic-Nac…'
         }
       />
     </>
@@ -905,6 +1002,8 @@ function AssistantMessage({
   resolvedTradeDecisions,
   tradeDecisionErrors,
   actionableApproval,
+  readOnly = false,
+  overlayMovedOn = false,
 }: {
   message: UIMessage
   timestamp?: string | number
@@ -926,9 +1025,14 @@ function AssistantMessage({
   // normalized terminal state from loadConversationForClient) already
   // conveys the outcome.
   actionableApproval: ActionableApproval | null
+  readOnly?: boolean
+  overlayMovedOn?: boolean
 }) {
   const parts = message.parts ?? []
-  const renderables = buildAssistantMessageRenderables(parts)
+  const renderables = buildAssistantMessageRenderables(parts, {
+    readOnly,
+    overlayMovedOn,
+  })
 
   // Visibility is server-owned: the route emits transient `data-thinking`
   // signals (show / confirm / hide) and the parent threads `isThinking` here.
@@ -946,6 +1050,20 @@ function AssistantMessage({
           const showGlyph = isFirstInRun && index === 0
           const itemTimestamp =
             index === lastRenderableIndex ? timestamp : undefined
+
+          if (item.type === 'main-photo-preview') {
+            return (
+              <Bubble
+                key={item.key}
+                variant="nicNac"
+                layout="main-photo"
+                showGlyph={showGlyph}
+                text={item.text}
+                images={item.imageUrl ? [{ url: item.imageUrl }] : undefined}
+                timestamp={itemTimestamp}
+              />
+            )
+          }
 
           if (item.type === 'text') {
             return isStreamingTail ? (

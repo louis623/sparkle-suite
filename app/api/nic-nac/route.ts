@@ -1,3 +1,6 @@
+import { requiredPiecePhotoRequest } from '@/lib/nic-nac/workflows/required-piece-photos'
+import { extractKnownFieldsFromText } from '@/lib/nic-nac/workflows/trade-board-known-fields'
+import { isExplicitTradeBoardAddRequest } from '@/lib/nic-nac/workflows/trade-board-add-intent'
 // Production /api/nic-nac route. Ports app/api/nic-nac/spike/route.ts and
 // adds Guardian telemetry + Enforcer audit hooks at the route handler level.
 //
@@ -5,7 +8,7 @@
 // AI SDK onStepFinish/onToolCall hook path). See lib/nic-nac/guardian-telemetry.ts.
 
 import { NextResponse } from 'next/server'
-import { randomUUID } from 'crypto'
+import { createHash, randomUUID } from 'crypto'
 import { isDeepStrictEqual } from 'node:util'
 import {
   convertToModelMessages,
@@ -24,6 +27,7 @@ import {
   abortAssistant,
   checkpointAssistant,
   recordApprovalEvent,
+  findForwardRolloverDestination,
 } from '@/lib/nic-nac/persistence'
 import {
   getToolIntentsForMessages,
@@ -39,6 +43,10 @@ import {
   shouldCheckpointContinuation,
 } from '@/lib/nic-nac/hitl-state'
 import { selectMessagesForModel } from '@/lib/nic-nac/model-context'
+import {
+  EMPTY_PIECE_MODEL_CONTEXT,
+  scopeMessagesToCurrentPiece,
+} from '@/lib/nic-nac/piece-task'
 import {
   logNicNacRun,
   normalizeRunUsage,
@@ -65,6 +73,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizeNicNacAssistantParts } from '@/lib/nic-nac/message-normalize'
 import {
   getOrCreateTradeBoardIntakeContext,
+  isPositiveConfirmation,
 } from '@/lib/nic-nac/workflows/trade-board-intake-context'
 import { getOrCreateTradeWorkflowContext } from '@/lib/nic-nac/workflows/trade-workflow-context'
 import { getOrCreateCalendarWorkflowContext } from '@/lib/nic-nac/workflows/calendar-workflow-context'
@@ -74,10 +83,50 @@ import {
   getNicNacMandatoryToolFollowUpText,
   getNicNacToolOnlyRecoveryText,
   getNicNacToolFailure,
+  createRepTextScrubber,
+  guardAssistantVisibleText,
   isRenderableNicNacStreamChunk,
   NIC_NAC_EMPTY_RESPONSE_FALLBACK,
+  scrubInternalCatalogPhrases,
   recoverNicNacEmptyCalendarRead,
+  photoBlameCorrection,
+  repAskedToUpdateSharedCatalogImage,
 } from '@/lib/nic-nac/core/stream-output-guard'
+import {
+  directPieceReply,
+  labelMismatchSentence,
+  MOVED_ON_MESSAGE,
+  savedPhotoDisputeReply,
+} from '@/lib/nic-nac/turn-replies'
+import { decidePieceClose, statedItemNumber, assistantIsResumingUnfinishedPiece } from '@/lib/nic-nac/piece-task'
+import { NicNacToolError } from '@/lib/nic-nac/errors'
+import {
+  commitPreviewedAddListing,
+  repHasListingForItemNumber,
+  savedListingPhotoFacts,
+} from '@/lib/nic-nac/tools/add-listing'
+import {
+  confirmationAlreadyUsed,
+  shownMainPhotoPreviewId,
+  yesCommitsPreviewedPhoto,
+} from '@/lib/nic-nac/workflows/main-photo-save-gate'
+import {
+  rarityFromConversation,
+  recoverStoredPieceDetails,
+} from '@/lib/nic-nac/workflows/trade-board-known-fields'
+import { classifySubmissionReplay } from '@/lib/nic-nac/submission-replay'
+import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
+import {
+  CUT_OFF_PHOTO_MESSAGE,
+  mainPhotoPreviewRefusal,
+  inferRoleFromText,
+  photoIsLabel,
+  selectBoundMainPhoto,
+  speculativeSecondItemClaim,
+  SUBJECT_CUT_OFF_ISSUE,
+} from '@/lib/nic-nac/workflows/workflow-photo-roles'
+import { waitForPendingPhotoReply } from '@/lib/nic-nac/workflows/pending-photo-confirmation'
+import { lastShownMainPhotoPreview, mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
 import { readMyShowsForNicNac } from '@/lib/nic-nac/tools/list-my-shows'
 import { buildPersonalizedRepGreeting } from '@/lib/nic-nac/core/rep-personalization'
 import { createConfiguredNicNacAgent } from '@/lib/nic-nac/agent'
@@ -95,6 +144,49 @@ interface PostBody {
   conversationId: string
   messages: UIMessage[]
   mode?: 'workspace' | 'required_setup'
+  /** The user message id from the rep's submit. Automatic continuations omit it. */
+  submittedMessageId?: string | null
+}
+
+function messageHasImage(message: UIMessage | undefined): boolean {
+  return (
+    message?.parts?.some(
+      (part) =>
+        (part as { type?: string }).type === 'file' &&
+        (part as { mediaType?: string }).mediaType?.startsWith('image/'),
+    ) ?? false
+  )
+}
+
+/**
+ * A bare yes that the rep did not submit is a replay or a synthesized
+ * confirmation. Drop it before it can be stored or save a preview.
+ */
+function photoHasVisibleDefect(
+  photo: { qualityIssues?: string[]; notes?: string[] } | undefined,
+): boolean {
+  if (!photo) return false
+  if (
+    (photo.qualityIssues ?? []).some(
+      (issue) => issue === 'blur_risk' || issue === SUBJECT_CUT_OFF_ISSUE,
+    )
+  ) {
+    return true
+  }
+  return (photo.notes ?? []).some((note) => /\b(?:cut off|blurry|blur risk)\b/i.test(note))
+}
+
+function dropUnsubmittedConfirmation(
+  messages: UIMessage[],
+  submittedMessageId: string | null,
+): UIMessage[] {
+  const latestUserIndex = messages.findLastIndex((message) => message.role === 'user')
+  if (latestUserIndex < 0) return messages
+  const latest = messages[latestUserIndex]
+  if (!latest || latest.id === submittedMessageId) return messages
+  if (messageHasImage(latest)) return messages
+  if (!isPositiveConfirmation(readTextFromMessage(latest))) return messages
+  return messages.filter((_, index) => index !== latestUserIndex)
 }
 
 function readTextFromMessage(message: UIMessage | undefined): string {
@@ -287,6 +379,16 @@ function validateApprovalResponseProvenance(args: {
 }
 
 export async function POST(request: Request) {
+  const claimedTurn: { abort?: () => Promise<void> } = {}
+  try {
+    return await handlePost(request, claimedTurn)
+  } catch (error) {
+    await claimedTurn.abort?.()
+    throw error
+  }
+}
+
+async function handlePost(request: Request, claimedTurn: { abort?: () => Promise<void> }) {
   const runId = randomUUID()
   const runStartedAt = Date.now()
   const responseHeaders: Record<string, string> = {
@@ -356,7 +458,18 @@ export async function POST(request: Request) {
     )
   }
 
-  const { conversationId, messages } = body
+  const { conversationId } = body
+  const submittedMessageId = body.submittedMessageId?.trim() || null
+  let messages = dropUnsubmittedConfirmation(
+    body.messages,
+    submittedMessageId,
+  )
+  if (messages.length === 0) {
+    return NextResponse.json(
+      { error: 'missing_fields' },
+      { status: 400, headers: responseHeaders },
+    )
+  }
   if (supportScope) {
     try {
       assertOperatorSupportConversationId(conversationId, supportScope)
@@ -414,6 +527,111 @@ export async function POST(request: Request) {
     )
   }
 
+  // A retired conversation is read-only before any user, assistant or intake
+  // write, even if a stale tab submits directly instead of using the disabled UI.
+  if (mode === 'workspace' && !supportScope && await findForwardRolloverDestination(
+    createAdminClient(), repId, conversationId,
+  )) {
+    return createNicNacStaticTextStreamResponse({
+      message: MOVED_ON_MESSAGE, messageId: randomUUID(), headers: responseHeaders,
+    })
+  }
+
+  // A fast yes may arrive after the preview is visible but before onFinish
+  // makes that reply canonical. Wait before ingesting or writing the next turn.
+  let pendingPhotoReplyFailed = false
+  const incomingConfirmation = messages.at(-1)
+  const precedingPhotoTurn = existingHistory.at(-1)
+  if (mode === 'workspace' && !supportScope && incomingConfirmation?.role === 'user' &&
+    submittedMessageId === incomingConfirmation.id &&
+    isPositiveConfirmation(incomingConfirmation.parts.map(part => part.type === 'text' ? part.text : '').join('\n')) &&
+    !incomingConfirmation.parts.some(part => part.type === 'file' && part.mediaType?.startsWith('image/')) &&
+    lastShownMainPhotoPreview(messages).shown && precedingPhotoTurn?.role === 'user' &&
+    precedingPhotoTurn.id !== incomingConfirmation.id &&
+    precedingPhotoTurn.parts.some(part => part.type === 'file' && part.mediaType?.startsWith('image/'))) {
+    const completed = await waitForPendingPhotoReply(supabase, {
+      repId, conversationId, photoMessageId: precedingPhotoTurn.id,
+    })
+    pendingPhotoReplyFailed = !completed
+    if (completed) existingHistory = await loadCanonicalHistory(supabase, conversationId)
+  }
+
+  const replay = supportScope
+    ? {
+        dropIds: [] as string[],
+        suppressNewTurn: false,
+        storedAssistantId: null as string | null,
+        storedAssistantText: null as string | null,
+      }
+    : classifySubmissionReplay({ incoming: messages, stored: existingHistory })
+  if (replay.dropIds.length > 0) {
+    const dropped = new Set(replay.dropIds)
+    messages = messages.filter(
+      (message) => message.role !== 'user' || !dropped.has(message.id),
+    )
+  }
+  if (replay.suppressNewTurn) {
+    if (replay.storedAssistantText && replay.storedAssistantId) {
+      const parts = existingHistory.find((message) => message.id === replay.storedAssistantId)?.parts ?? []
+      const previewOutput = parts.map((part) => (part as { output?: { needsAction?: string; previewPhotoId?: string; previewImageUrl?: string; message?: string } }).output)
+        .find((output) => output?.needsAction === 'confirm_main_photo')
+      return createNicNacStaticTextStreamResponse({
+        message: guardAssistantVisibleText(replay.storedAssistantText),
+        messageId: replay.storedAssistantId,
+        preview: previewOutput ? {
+          message: guardAssistantVisibleText(previewOutput.message ?? replay.storedAssistantText),
+          previewPhotoId: previewOutput.previewPhotoId, previewImageUrl: previewOutput.previewImageUrl,
+        } : undefined,
+        headers: responseHeaders,
+      })
+    }
+    return NextResponse.json(
+      { replayed: true },
+      { status: 200, headers: responseHeaders },
+    )
+  }
+
+  // For a normal user turn, stored history is authoritative. A stale client
+  // may omit the preview tool part, and a client must never invent a preview
+  // (or replace its photo ID) to authorize a save. Approval continuations have
+  // their own validated merge path below.
+  const incomingUser = messages.at(-1)
+  const submittedUser = incomingUser?.role === 'user'
+    ? existingHistory.find((message) => message.id === incomingUser.id && message.role === 'user') ?? incomingUser
+    : incomingUser
+  if (mode === 'workspace' && !supportScope && submittedUser?.role === 'user') {
+    messages = [
+      ...existingHistory.filter((message) => message.id !== submittedUser.id),
+      submittedUser,
+    ]
+  }
+
+  let claimedAssistantId: string | null = null
+  if (mode === 'workspace' && !supportScope && submittedUser?.role === 'user') {
+    await insertUserMessage(supabase, {
+      conversationId, repId, messageId: submittedUser.id, parts: submittedUser.parts,
+      receivedAt: new Date(runStartedAt).toISOString(),
+    })
+    const replyId = 'reply-' + createHash('sha256').update(conversationId + ':' + submittedUser.id).digest('hex')
+    const claimed = await reserveAssistantMessage(supabase, {
+      conversationId, repId, messageId: replyId, claimSubmission: true,
+    })
+    if (claimed === false) {
+      return NextResponse.json(
+        { error: 'This message has already been received. Reload the chat to see its reply.', code: 'SUBMISSION_ALREADY_RECEIVED' },
+        { status: 409, headers: responseHeaders },
+      )
+    }
+    claimedAssistantId = replyId
+    claimedTurn.abort = () => abortAssistant(supabase, { conversationId, messageId: replyId })
+  }
+
+  if (pendingPhotoReplyFailed && claimedAssistantId) {
+    const message = "I couldn't finish reading those photos, so I haven't saved this piece. Please send the label and jewelry photos again."
+    await completeAssistant(supabase, { conversationId, messageId: claimedAssistantId, parts: [{ type: 'text', text: message }] })
+    return createNicNacStaticTextStreamResponse({ message, messageId: claimedAssistantId, headers: responseHeaders })
+  }
+
   const missionScope = classifyNicNacMissionScopeForMessages(messages)
 
   if (missionScope.action === 'redirect') {
@@ -429,11 +647,12 @@ export async function POST(request: Request) {
           repId,
           messageId: m.id,
           parts: m.parts,
+          receivedAt: new Date(runStartedAt).toISOString(),
         })
       }
     }
 
-    const assistantMessageId = randomUUID()
+    const assistantMessageId = claimedAssistantId ?? randomUUID()
     if (supportScope) {
       await insertOperatorSupportConversationMessage(supabase, supportScope, {
         id: assistantMessageId,
@@ -508,11 +727,12 @@ export async function POST(request: Request) {
           repId,
           messageId: message.id,
           parts: message.parts,
+          receivedAt: new Date(runStartedAt).toISOString(),
         })
       }
     }
 
-    const assistantMessageId = randomUUID()
+    const assistantMessageId = claimedAssistantId ?? randomUUID()
     if (supportScope) {
       await insertOperatorSupportConversationMessage(supabase, supportScope, {
         id: assistantMessageId,
@@ -630,6 +850,7 @@ export async function POST(request: Request) {
         repId,
         messageId: m.id,
         parts: m.parts,
+        receivedAt: new Date(runStartedAt).toISOString(),
       })
     }
   }
@@ -644,7 +865,7 @@ export async function POST(request: Request) {
   // resume's output-available state on the original DB row, not a parallel
   // one that would resurrect a dead approval card on reload.
   const { messageId: assistantMessageId, isContinuation } =
-    decideAssistantMessageId(messages, () => randomUUID())
+    decideAssistantMessageId(messages, () => claimedAssistantId ?? randomUUID())
   if (!isContinuation) {
     if (supportScope) {
       await insertOperatorSupportConversationMessage(supabase, supportScope, {
@@ -705,8 +926,42 @@ export async function POST(request: Request) {
     // getToolIntentsForMessages above.
     allowImplicitPassiveContinuation: false,
   })
+  const latestUserHasImage =
+    latestUserMessage?.parts?.some(
+      (part) =>
+        (part as { type?: string }).type === 'file' &&
+        (part as { mediaType?: string }).mediaType?.startsWith('image/'),
+    ) ?? false
+  const previousAssistantText = (() => {
+    const latestUserIndex = messages.findLastIndex((message) => message.role === 'user')
+    for (let index = latestUserIndex - 1; index >= 0; index -= 1) {
+      if (messages[index]?.role === 'assistant') {
+        return readTextFromMessage(messages[index])
+      }
+    }
+    return ''
+  })()
+  // A stored preview is authoritative continuation state. A fresh chat may
+  // have no trade-board keyword in its recent prose; still ingest this yes so
+  // the save tool receives the confirmation for the exact stored upload.
+  const confirmsStoredPhoto = yesCommitsPreviewedPhoto({
+    latestUserText,
+    latestUserHasImage,
+    previousAssistantText,
+    submittedMessageId,
+    latestUserMessageId: latestUserMessage?.id,
+    previewPhotoId: shownMainPhotoPreviewId(messages, workflowTaskContinuity.tradeBoardSession?.photos),
+  })
+  // A requested label/jewelry upload still needs admission and quality checks
+  // when its caption is empty and recent prose contains no routing keyword.
+  const answersPiecePhotoRequest =
+    workflowTaskContinuity.tradeBoardSession?.status === 'active' &&
+    latestUserHasImage &&
+    latestToolIntents.every(intent => intent === 'memory' || intent === 'show_memory') &&
+    /\b(?:label|jewelry|main photo)\b/i.test(previousAssistantText) &&
+    /\b(?:photo|picture|image)\b/i.test(previousAssistantText)
   const tradeBoardWorkflowContext =
-    workflowContinuityAccess.tradeBoard && workflowTurn.tradeBoard
+    workflowContinuityAccess.tradeBoard && (workflowTurn.tradeBoard || confirmsStoredPhoto || answersPiecePhotoRequest)
     ? await getOrCreateTradeBoardIntakeContext({
         supabase,
         workflowSupabase,
@@ -724,7 +979,279 @@ export async function POST(request: Request) {
         workflowIntents: [] as NicNacToolIntent[],
         toolPolicySource: 'latest_turn_intent' as const,
         workflowPromptState: '',
+        modelPieceContext: EMPTY_PIECE_MODEL_CONTEXT,
       }
+  if (mode === 'workspace' && !supportScope) {
+    const movedTo = await findForwardRolloverDestination(
+      workflowSupabase,
+      repId,
+      conversationId,
+    )
+    const sessionAfter = tradeBoardWorkflowContext.sessionAfter
+    const skipItem =
+      statedItemNumber(latestUserText) ??
+      statedItemNumber(sessionAfter?.known.itemNumber ?? '') ??
+      statedItemNumber(tradeBoardWorkflowContext.sessionBefore?.known.itemNumber ?? '') ??
+      statedItemNumber(workflowTaskContinuity.tradeBoardSession?.known.itemNumber ?? '') ??
+      statedItemNumber(previousAssistantText)
+    const userIsSkipping =
+      decidePieceClose(latestUserText) !== null ||
+      /\b(?:don'?t|do not)\s+save\b/i.test(latestUserText)
+    let listingExists = false
+    let skipLookupError: string | null = null
+    if (userIsSkipping && skipItem) {
+      try {
+        listingExists = await repHasListingForItemNumber({ admin: workflowSupabase, repId, itemNumber: skipItem })
+      } catch (error) {
+        if (!(error instanceof NicNacToolError)) throw error
+        skipLookupError = error.userMessage
+      }
+    }
+    const isJewelryPhoto = (photo: {
+      declaredRole?: string
+      visualRole?: string
+    }) =>
+      !photoIsLabel(photo)
+    const latestTurnPhotos = (sessionAfter?.photos ?? []).filter(
+      (photo) => photo.conversationMessageId === latestUserMessage?.id,
+    )
+    const latestJewelryPhoto = [...latestTurnPhotos].reverse().find(isJewelryPhoto)
+    const qualityPhoto = latestJewelryPhoto
+    // Pixel framing can mistake a blurred jewelry photo for packaging. Preserve
+    // the blur reason before role-based missing-photo replies. An explicit or
+    // OCR-identified label keeps the existing label handling.
+    const blurredUpload = inferRoleFromText(latestUserText) !== 'label_details'
+      ? latestTurnPhotos.find(photo => photo.qualityIssues.includes('blur_risk') &&
+          !photo.notes.some(note => /^printed-item:/i.test(note)))
+      : undefined
+    const gateRefusal = blurredUpload
+      ? 'That photo is a little blurry. Please send a clearer front photo of the jewelry.'
+      : latestUserHasImage && qualityPhoto
+        ? mainPhotoPreviewRefusal({
+            photo: qualityPhoto,
+            itemNumber: sessionAfter?.known.itemNumber,
+            jewelryType: sessionAfter?.known.jewelryType,
+          })
+        : null
+    const pieceReply = movedTo
+      ? MOVED_ON_MESSAGE
+      : directPieceReply({
+          messages,
+          latestUserText,
+          latestUserHasImage,
+          known: sessionAfter?.known ?? tradeBoardWorkflowContext.sessionBefore?.known ?? workflowTaskContinuity.tradeBoardSession?.known,
+          listingExists,
+          labelItemNumber:
+            typeof sessionAfter?.metadata.labelItemNumberMismatch === 'string'
+              ? sessionAfter.metadata.labelItemNumberMismatch
+              : null,
+        })
+    const mismatch = sessionAfter?.metadata.labelItemNumberMismatch
+    const mismatchTurn = sessionAfter?.metadata.labelMismatchMessageId
+    const labelReply =
+      !pieceReply &&
+      !gateRefusal &&
+      latestUserHasImage &&
+      typeof mismatch === 'string' &&
+      mismatch.trim() &&
+      mismatchTurn === latestUserMessage?.id &&
+      sessionAfter?.known.itemNumber
+        ? labelMismatchSentence(mismatch, sessionAfter.known.itemNumber)
+        : null
+    const disputeItem =
+      statedItemNumber(latestUserText) ??
+      statedItemNumber(sessionAfter?.known.itemNumber ?? '') ??
+      statedItemNumber(previousAssistantText)
+    const savedPhoto =
+      /saved the wrong|wrong image was saved|you saved the wrong|that saved photo|photo you saved/i.test(
+        latestUserText,
+      ) && disputeItem
+        ? await savedListingPhotoFacts({
+            admin: workflowSupabase,
+            repId,
+            itemNumber: disputeItem,
+          })
+        : null
+    const disputeReply = savedPhotoDisputeReply({
+      latestUserText,
+      listingPhotoUrl: savedPhoto?.photoUrl,
+      itemNumber: savedPhoto?.itemNumber ?? disputeItem,
+      designName: savedPhoto?.designName,
+    })
+    const photoRequest = sessionAfter?.status === 'active' && (
+      latestUserHasImage || isPositiveConfirmation(latestUserText) ||
+      isExplicitTradeBoardAddRequest(latestUserText) ||
+      Object.keys(extractKnownFieldsFromText(latestUserText)).length > 0
+    ) ? requiredPiecePhotoRequest(sessionAfter.photos) : null
+    let directText = skipLookupError || gateRefusal || photoRequest?.message || pieceReply || labelReply || disputeReply
+    const previewPhotoId = shownMainPhotoPreviewId(messages, sessionAfter?.photos)
+    const confirmationUsed = confirmationAlreadyUsed({
+      submittedMessageId,
+      previewPhotoId,
+      usedMessageIds: sessionAfter?.metadata.photoConfirmationMessageIds,
+      committedPreviewPhotoId: sessionAfter?.metadata.committedPreviewPhotoId,
+    })
+    if (confirmationUsed && sessionAfter?.status === 'active') {
+      const item = sessionAfter.known.itemNumber || 'This piece'
+      directText = `${item} is on your Dance Floor and available for swaps.`
+    }
+    if (
+      !directText &&
+      sessionAfter?.status === 'active' &&
+      yesCommitsPreviewedPhoto({
+        latestUserText,
+        latestUserHasImage,
+        previewPhotoId,
+        previousAssistantText,
+        submittedMessageId,
+        latestUserMessageId: latestUserMessage?.id,
+      })
+    ) {
+      try {
+        const remembered = rarityFromConversation(messages)
+        const known = recoverStoredPieceDetails(
+          remembered && !sessionAfter.known.rarityClassification
+            ? { ...sessionAfter.known, rarityClassification: remembered }
+            : sessionAfter.known,
+          messages,
+        )
+        const workflow = { ...sessionAfter, known }
+        const committed = await commitPreviewedAddListing({
+          repId,
+          conversationId,
+          supabase: workflowSupabase,
+          workflow,
+          latestUserText,
+          previewPhotoId: previewPhotoId ?? '',
+          messages,
+        })
+        if (
+          committed &&
+          typeof committed === 'object' &&
+          'needsAction' in committed &&
+          committed.needsAction
+        ) {
+          directText = guardAssistantVisibleText(
+            typeof committed.message === 'string' ? committed.message : '',
+          )
+        } else if (
+          committed &&
+          typeof committed === 'object' &&
+          'listingId' in committed &&
+          committed.listingId
+        ) {
+          const item =
+            ('itemNumber' in committed && committed.itemNumber) ||
+            sessionAfter.known.itemNumber ||
+            'This piece'
+          directText = `${item} is on your Dance Floor and available for swaps.`
+          const used = Array.isArray(sessionAfter.metadata.photoConfirmationMessageIds)
+            ? sessionAfter.metadata.photoConfirmationMessageIds.filter(
+                (id): id is string => typeof id === 'string',
+              )
+            : []
+          if (submittedMessageId && sessionAfter.id) {
+            try {
+              await updateTradeBoardIntakeSession(workflowSupabase, {
+                sessionId: sessionAfter.id,
+                patch: {
+                  metadata: {
+                    ...sessionAfter.metadata,
+                    photoConfirmationMessageIds: [...used, submittedMessageId],
+                    committedPreviewPhotoId: previewPhotoId,
+                  },
+                },
+              })
+            } catch {
+              // The listing is already saved. A later replay still matches the preview id when this write lands.
+            }
+          }
+        }
+      } catch (err) {
+        if (err instanceof NicNacToolError) {
+          directText = err.userMessage
+        } else {
+          throw err
+        }
+      }
+    }
+    if (directText) {
+      directText = guardAssistantVisibleText(directText)
+      const boundPhoto = selectBoundMainPhoto(sessionAfter?.photos, sessionAfter?.metadata)
+      if (/This is the main photo I will save for/i.test(directText) && !boundPhoto) {
+        directText = 'I need a clear photo of the jewelry before I can show you a save preview.'
+      }
+      const previewLocator =
+        !gateRefusal && /reply yes/i.test(directText) && boundPhoto
+          ? mainPhotoPreviewLocator(boundPhoto)
+          : null
+      const previewMessage = directText.match(
+        /This is the main photo I will save for[\s\S]*reply yes\./,
+      )?.[0]
+      const assistantParts = [
+        { type: 'text' as const, text: directText },
+        ...(previewLocator
+          ? [
+              {
+                type: 'tool-add_listing' as const,
+                toolCallId: 'bound-main-photo',
+                state: 'output-available' as const,
+                input: {},
+                output: {
+                  needsAction: 'confirm_main_photo',
+                  code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED',
+                  message: previewMessage ?? directText,
+                  ...previewLocator,
+                },
+              },
+            ]
+          : []),
+      ]
+      await completeAssistant(supabase, {
+        conversationId,
+        messageId: assistantMessageId,
+        parts: assistantParts,
+      })
+      await logNicNacRun({
+        runId,
+        repId,
+        conversationId,
+        model: 'direct_reply',
+        status: 'complete',
+        latencyMs: Date.now() - runStartedAt,
+        intents: [],
+        toolNames: [],
+        productContext,
+        modelContext: {
+          originalMessageCount: messages.length,
+          modelMessageCount: 0,
+          droppedMessageCount: 0,
+          estimatedTokens: 0,
+          wasCompacted: false,
+        },
+        usage: {
+          inputTokens: 0,
+          outputTokens: 0,
+          totalTokens: 0,
+          estimatedCostCents: 0,
+        },
+        errorMessage: 'direct_reply',
+      })
+      return createNicNacStaticTextStreamResponse({
+        message: directText,
+        messageId: assistantMessageId,
+        headers: responseHeaders,
+        ...(previewLocator
+          ? {
+              preview: {
+                message: previewMessage ?? directText,
+                ...previewLocator,
+              },
+            }
+          : {}),
+      })
+    }
+  }
   const activeTradeBoardWorkflow =
     tradeBoardWorkflowContext.sessionAfter ??
     workflowTaskContinuity.tradeBoardSession
@@ -790,12 +1317,7 @@ export async function POST(request: Request) {
       defaultTimeZone: rep.time_zone,
       agentHarness: true,
       latestUserText,
-      latestUserHasImage:
-        latestUserMessage?.parts?.some(
-          (part) =>
-            (part as { type?: string }).type === 'file' &&
-            (part as { mediaType?: string }).mediaType?.startsWith('image/'),
-        ) ?? false,
+      latestUserHasImage,
       activeTradeBoardWorkflow,
       activeTradeWorkflow,
       activeCalendarWorkflow,
@@ -844,7 +1366,15 @@ export async function POST(request: Request) {
     recoverableTaskCount: runtimeTaskContext.pausedGoals.length,
   })
 
-  const modelContext = selectMessagesForModel(messages)
+  const modelContext = selectMessagesForModel(
+    scopeMessagesToCurrentPiece({
+      messages,
+      fromMessageId: tradeBoardWorkflowContext.modelPieceContext?.fromMessageId,
+      carryNotes: tradeBoardWorkflowContext.modelPieceContext?.carryNotes,
+      unfinishedQuestion:
+        tradeBoardWorkflowContext.modelPieceContext?.unfinishedQuestion,
+    }),
+  )
   if (modelContext.wasCompacted) {
     console.info('[nic-nac] model context compacted', {
       runId,
@@ -890,6 +1420,92 @@ export async function POST(request: Request) {
       let toolFailureRecoveryText: string | null = null
       let mandatoryToolFollowUpText: string | null = null
       let renderedText = ''
+      const blameSession = tradeBoardWorkflowContext.sessionAfter
+      const turnPhotos = (blameSession?.photos ?? []).filter(
+        (photo) => photo.conversationMessageId === latestUserMessage?.id,
+      )
+      // Judge the same jewelry upload used by the preview. The last attachment
+      // may be its label, even on a later turn. That must not invalidate the
+      // accepted jewelry photo already bound to this piece.
+      const blamePhoto = selectBoundMainPhoto(blameSession?.photos, blameSession?.metadata) ??
+        [...turnPhotos].reverse().find((photo) =>
+          !photoIsLabel(photo)) ??
+        turnPhotos.at(-1)
+      const blameBlurry = Boolean(blamePhoto?.qualityIssues?.includes('blur_risk'))
+      const blameAccepted = Boolean(
+        blamePhoto &&
+          blamePhoto.declaredRole === 'jewelry_front' &&
+          blamePhoto.quality !== 'blocked' &&
+          !blameBlurry,
+      )
+      const storedMismatch = blameSession?.metadata.labelItemNumberMismatch
+      const previousAssistant = previousAssistantText
+      const previewRefusal = mainPhotoPreviewRefusal({
+        photo: blamePhoto,
+        itemNumber: blameSession?.known.itemNumber,
+        jewelryType: blameSession?.known.jewelryType,
+      })
+      const repTextScrubber = createRepTextScrubber({
+        allowSharedCatalogPhotoOffer: repAskedToUpdateSharedCatalogImage(latestUserText),
+        ...(latestUserHasImage || typeof storedMismatch === 'string'
+          ? {
+              correctPhotoBlame: (text: string) => {
+                const genericPhotoLine =
+                  /customer-facing|send a (?:clear |clearer )?(?:front )?photo|isn'?t clear enough|not clear enough|isn'?t a customer-facing/i.test(
+                    text,
+                  )
+                const blameCutOff = photoHasVisibleDefect(blamePhoto) &&
+                  ((blamePhoto?.qualityIssues ?? []).includes(SUBJECT_CUT_OFF_ISSUE) ||
+                    (blamePhoto?.notes ?? []).some((note) => /\bcut off\b/i.test(note)))
+                if (blameCutOff && genericPhotoLine) return CUT_OFF_PHOTO_MESSAGE
+                if (blameBlurry && genericPhotoLine) {
+                  return 'That photo is too blurry. Send a clearer photo of the jewelry.'
+                }
+                const corrected = photoBlameCorrection({
+                  text,
+                  itemNumber: blameSession?.known.itemNumber,
+                  labelItemNumber:
+                    typeof storedMismatch === 'string' ? storedMismatch : null,
+                  blurry: blameBlurry,
+                  acceptedProductPhoto: blameAccepted,
+                })
+                if (corrected) return corrected
+                if (
+                  (blamePhoto?.qualityIssues ?? []).includes(SUBJECT_CUT_OFF_ISSUE) &&
+                  /isn'?t clear enough|not clear enough/i.test(text)
+                ) {
+                  return CUT_OFF_PHOTO_MESSAGE
+                }
+                if (
+                  speculativeSecondItemClaim(text) &&
+                  !(previewRefusal && previewRefusal.startsWith('That photo shows'))
+                ) {
+                  const item = blameSession?.known.itemNumber?.trim()
+                  return item
+                    ? `I can use that photo for ${item}.`
+                    : 'I can use that photo.'
+                }
+                if (
+                  previewRefusal &&
+                  /reply yes|main photo I will save|customer-facing|send a (?:clear |clearer )?photo|isn'?t clear enough|not clear enough/i.test(
+                    text,
+                  )
+                ) {
+                  return previewRefusal
+                }
+                if (
+                  blameAccepted &&
+                  assistantIsResumingUnfinishedPiece(previousAssistant) &&
+                  /still need the customer-facing/i.test(text)
+                ) {
+                  const item = blameSession?.known.itemNumber?.trim()
+                  return item ? `I have that photo for ${item}.` : 'I have that photo.'
+                }
+                return null
+              },
+            }
+          : {}),
+      })
 
       const emitHide = (reason: 'plain-text' | 'final-text' | 'finish' | 'error') => {
         if (!currentlyVisible) return
@@ -996,16 +1612,31 @@ export async function POST(request: Request) {
             if (isRenderableNicNacStreamChunk(chunk)) {
               sawRenderableOutput = true
             }
-            if (chunk.type === 'text-delta') renderedText += chunk.delta
+            let outbound: typeof chunk = chunk
+            if (chunk.type === 'text-delta') {
+              const delta = repTextScrubber.push(chunk.delta)
+              renderedText += delta
+              outbound = { ...chunk, delta }
+            }
+            if (chunk.type === 'text-end') {
+              const rest = repTextScrubber.flush()
+              if (rest) {
+                const textId = 'id' in chunk ? chunk.id : assistantMessageId
+                writer.write({ type: 'text-delta', id: textId, delta: rest })
+                renderedText += rest
+              }
+            }
             if (
-              chunk.type === 'text-delta' &&
-              /\S/.test(chunk.delta) &&
+              outbound.type === 'text-delta' &&
+              /\S/.test(outbound.delta) &&
               currentlyVisible &&
               activeToolCalls === 0
             ) {
               emitHide(toolEverFired ? 'final-text' : 'plain-text')
             }
-            writer.write(chunk)
+            if (!(outbound.type === 'text-delta' && outbound.delta === '')) {
+              writer.write(outbound)
+            }
           }
 
           const shouldRetryEmptyAgentTurn =
@@ -1079,7 +1710,7 @@ export async function POST(request: Request) {
           writer.write({
             type: 'text-delta',
             id: fallbackTextId,
-            delta: toolFailureRecoveryText,
+            delta: scrubInternalCatalogPhrases(toolFailureRecoveryText),
           })
           writer.write({ type: 'text-end', id: fallbackTextId })
         } else if (
@@ -1105,7 +1736,9 @@ export async function POST(request: Request) {
           writer.write({
             type: 'text-delta',
             id: fallbackTextId,
-            delta: toolOnlyRecoveryText ?? NIC_NAC_EMPTY_RESPONSE_FALLBACK,
+            delta: scrubInternalCatalogPhrases(
+              toolOnlyRecoveryText ?? NIC_NAC_EMPTY_RESPONSE_FALLBACK,
+            ),
           })
           writer.write({ type: 'text-end', id: fallbackTextId })
         }

@@ -1,3 +1,4 @@
+import { requiredPiecePhotoRequest } from '@/lib/nic-nac/workflows/required-piece-photos'
 // Tool: add_listing — write. Adds one or more pieces to the rep's dance floor.
 // Two modes: single (one item number) and batch (an array of items). Handles
 // NEEDS_FULL_INFO (unknown design) by creating the design first when the rep
@@ -43,22 +44,66 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { writeTradeActionAudit } from '@/lib/nic-nac/audit'
 import { logIncident } from '@/lib/nic-nac/guardian-telemetry'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
+import {
+  decidePhotoReuse,
+  hashCustomerPhotoUrl,
+  hashDataImageUrl,
+  loadItemNumbersForCustomerPhoto,
+  mainPhotoConfirmationIdentity,
+  normalizePhotoConfirmationKey,
+  photoConfirmationPieceKey,
+  resolvePhotoContentSha256,
+} from '@/lib/nic-nac/workflows/photo-reuse-guard'
+import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
+import { turnBlocksCustomerFacingSave } from '@/lib/nic-nac/workflows/main-photo-save-gate'
+import {
+  impliedCollectionType,
+  pieceTitleFromConfirmedDetails,
+  recoverStoredPieceDetails,
+} from '@/lib/nic-nac/workflows/trade-board-known-fields'
+import {
+  decideLabelItemNumber,
+  decideLabelSave,
+  readLabelPhoto,
+} from '@/lib/nic-nac/workflows/label-item-number'
+import {
+  correctJewelryVersusLabelPhotos,
+  pickNonLabelImageUrl,
+} from '@/lib/nic-nac/workflows/jewelry-main-photo'
 import { NicNacMutationFailure } from '@/lib/nic-nac/tool-failure-classification'
 import {
   computeTradeBoardAddAttemptReadiness,
   formatWorkflowNotReadyMessage,
   transitionTradeBoardIntake,
 } from '@/lib/nic-nac/workflows/trade-board-intake-controller'
-import { updateTradeBoardIntakeSession } from '@/lib/nic-nac/workflows/trade-board-intake-store'
+import {
+  assistantIsResumingUnfinishedPiece,
+  itemNumberFromResumeAsk,
+  pieceCarryNote,
+  pieceNoteList,
+  sendPhotoAgainMessage,
+} from '@/lib/nic-nac/piece-task'
+import {
+  fillBlankKnownFromPriorSession,
+  updateTradeBoardIntakeSession,
+} from '@/lib/nic-nac/workflows/trade-board-intake-store'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
+import { mainPhotoPreviewLocator } from '@/lib/nic-nac/workflows/main-photo-preview'
 import {
   catalogVariantPhotoAssetKey,
+  conversationImagesForIntake,
   hasUsableWorkflowJewelryPhoto,
+  resolvePiecePhotoNumber,
   resolveWorkflowCustomerFacingPhoto,
+  scopeWorkflowPhotosToIntake,
   shouldFallBackToCatalogCanonicalPhoto,
 } from '@/lib/nic-nac/workflows/workflow-photo-selection'
 import {
   isAcceptedCustomerFacingWorkflowPhoto,
+  mainPhotoPreviewRefusal,
+  photoIsLabel,
+  photoRefusedAsMainPhoto,
+  selectBoundMainPhoto,
   stampSoleReadinessJewelryFrontCandidate,
 } from '@/lib/nic-nac/workflows/workflow-photo-roles'
 import type { ToolContext, ToolDefinition } from './types'
@@ -181,17 +226,44 @@ async function writeAuditIsolated(args: {
 }
 
 // Look up a user-uploaded image part in this conversation and return its
-// client-compressed data URL. Explicit photo indexes are treated as 1-based
-// numbers across recent conversation photos in normal conversation order, which
-// matches how reps and Nic-Nac talk about "the second photo" across a guided
-// add flow. Without an explicit index, choose the most recent user turn that
-// contains exactly one image; still ask for a choice when a single turn includes
-// multiple images and the model did not identify which one is jewelry-front.
+// client-compressed data URL. Inside an open intake, explicit photo indexes are
+// 1-based numbers across that piece's photos. Outside an intake, an index only
+// counts photos inside one message; photos spread across messages are unclear,
+// so ask the rep. Without an explicit index, choose the most recent user turn
+// that contains exactly one image; still ask for a choice when a single turn
+// includes multiple images and the model did not identify which one is
+// jewelry-front.
+async function itemNumberFromRecentAssistant(ctx: {
+  supabase: SupabaseClient
+  conversationId: string
+}): Promise<string | null> {
+  try {
+    const { data, error } = await ctx.supabase
+      .from('nic_nac_conversations')
+      .select('role, parts')
+      .eq('conversation_id', ctx.conversationId)
+      .eq('role', 'assistant')
+      .order('created_at', { ascending: false })
+      .limit(8)
+    if (error || !Array.isArray(data)) return null
+    for (const row of data as ConversationRow[]) {
+      const item = itemNumberFromResumeAsk(conversationRowText(row))
+      if (item) return item
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
 async function resolvePhotoFromConversation(ctx: {
   supabase: SupabaseClient
   conversationId: string
   latestUserMessageOnly?: boolean
   photoIndex?: number
+  itemNumber?: string | null
+  intakeSessionId?: string
+  intakePhotos?: Array<{ imageUrl?: string; intakeSessionId?: string }>
 }): Promise<{
   imageDataUrl: string
 } | null> {
@@ -224,16 +296,32 @@ async function resolvePhotoFromConversation(ctx: {
     .filter((row) => row.imageParts.length > 0)
 
   if (ctx.photoIndex !== undefined) {
-    const conversationPhotos = [...rowsWithImages]
-      .reverse()
-      .flatMap((row) => row.imageParts)
-    const imagePart = conversationPhotos[ctx.photoIndex - 1]
-    if (!imagePart?.url) {
+    if (!ctx.intakeSessionId && rowsWithImages.length > 1) {
       throw new NicNacToolError({
         code: 'PHOTO_CHOICE_REQUIRED',
-        userMessage: `I found ${conversationPhotos.length} recent photo${
-          conversationPhotos.length === 1 ? '' : 's'
-        } in this add flow, so I couldn't use photo ${ctx.photoIndex}. Tell me which attached image is the jewelry-front photo.`,
+        userMessage: `I see photos from more than one message, so I can't tell which photo ${ctx.photoIndex} means. Tell me which attached image is the jewelry-front photo.`,
+      })
+    }
+    const conversationPhotos = conversationImagesForIntake(
+      [...rowsWithImages].reverse().flatMap((row) => row.imageParts),
+      ctx.intakePhotos,
+      ctx.intakeSessionId,
+    )
+    const imagePart = conversationPhotos[ctx.photoIndex - 1]
+    if (!imagePart?.url) {
+      const askedItem =
+        ctx.itemNumber?.trim() ||
+        (conversationPhotos.length === 0
+          ? await itemNumberFromRecentAssistant(ctx)
+          : null)
+      throw new NicNacToolError({
+        code: 'PHOTO_CHOICE_REQUIRED',
+        userMessage:
+          conversationPhotos.length === 0
+            ? sendPhotoAgainMessage(askedItem)
+            : `I found ${conversationPhotos.length} recent photo${
+                conversationPhotos.length === 1 ? '' : 's'
+              } in this add flow, so I couldn't use photo ${ctx.photoIndex}. Tell me which attached image is the jewelry-front photo.`,
       })
     }
     return {
@@ -242,7 +330,11 @@ async function resolvePhotoFromConversation(ctx: {
   }
 
   for (const row of rowsWithImages) {
-    const imageParts = row.imageParts
+    const imageParts = conversationImagesForIntake(
+      row.imageParts,
+      ctx.intakePhotos,
+      ctx.intakeSessionId,
+    )
     if (imageParts.length > 1) {
       throw new NicNacToolError({
         code: 'PHOTO_CHOICE_REQUIRED',
@@ -580,6 +672,119 @@ async function repAlreadyHasActiveListingForItem(input: {
   return (data ?? []).length > 0
 }
 
+/** Any saved design with this item number, not only the variant resolved on this call. */
+export async function repHasListingForItemNumber(input: {
+  admin: SupabaseClient
+  repId: string
+  itemNumber: string
+}): Promise<boolean> {
+  try {
+    const itemNumber = input.itemNumber.trim().toUpperCase()
+    if (!itemNumber) return false
+    const designs = await input.admin
+      .from('jewelry_designs')
+      .select('id')
+      .eq('item_number', itemNumber)
+    if (designs.error) throw designs.error
+    const designRows = Array.isArray((designs as { data?: unknown }).data)
+      ? ((designs as { data: Array<{ id?: string }> }).data ?? [])
+      : []
+    const ids = designRows
+      .map((row) => (typeof row.id === 'string' ? row.id : ''))
+      .filter(Boolean)
+    if (ids.length === 0) return false
+    const listings = await input.admin
+      .from('trade_listings')
+      .select('id')
+      .eq('rep_id', input.repId)
+      .in('design_id', ids)
+      .neq('status', 'removed')
+      .limit(1)
+    if (listings.error) throw listings.error
+    const listingRows = Array.isArray((listings as { data?: unknown }).data)
+      ? ((listings as { data: unknown[] }).data ?? [])
+      : []
+    return listingRows.length > 0
+  } catch {
+    throw new NicNacToolError({ code: 'LISTING_STATUS_UNAVAILABLE', userMessage: "I couldn't check whether this piece is on your Dance Floor. Try again before changing it." })
+  }
+}
+
+/** The photo actually stored on this rep's listing, if one exists. */
+export async function listingPhotoUrlForItemNumber(input: {
+  admin: SupabaseClient
+  repId: string
+  itemNumber: string
+}): Promise<string | null> {
+  try {
+    const itemNumber = input.itemNumber.trim().toUpperCase()
+    if (!itemNumber) return null
+    const designs = await input.admin
+      .from('jewelry_designs')
+      .select('id')
+      .eq('item_number', itemNumber)
+    const designRows = Array.isArray((designs as { data?: unknown }).data)
+      ? ((designs as { data: Array<{ id?: string }> }).data ?? [])
+      : []
+    const ids = designRows
+      .map((row) => (typeof row.id === 'string' ? row.id : ''))
+      .filter(Boolean)
+    if (ids.length === 0) return null
+    const listings = await input.admin
+      .from('trade_listings')
+      .select('listing_photo_url')
+      .eq('rep_id', input.repId)
+      .in('design_id', ids)
+      .neq('status', 'removed')
+      .limit(1)
+    const listingRows = Array.isArray((listings as { data?: unknown }).data)
+      ? ((listings as { data: Array<{ listing_photo_url?: string }> }).data ?? [])
+      : []
+    const url = listingRows[0]?.listing_photo_url?.trim()
+    return url || null
+  } catch {
+    return null
+  }
+}
+
+export async function savedListingPhotoFacts(input: {
+  admin: SupabaseClient
+  repId: string
+  itemNumber: string
+}): Promise<{ photoUrl: string; itemNumber: string; designName: string | null } | null> {
+  try {
+    const itemNumber = input.itemNumber.trim().toUpperCase()
+    if (!itemNumber) return null
+    const designs = await input.admin
+      .from('jewelry_designs')
+      .select('id, design_name')
+      .eq('item_number', itemNumber)
+    const designRows = Array.isArray((designs as { data?: unknown }).data)
+      ? ((designs as { data: Array<{ id?: string; design_name?: string | null }> }).data ?? [])
+      : []
+    const ids = designRows
+      .map((row) => (typeof row.id === 'string' ? row.id : ''))
+      .filter(Boolean)
+    if (ids.length === 0) return null
+    const listings = await input.admin
+      .from('trade_listings')
+      .select('listing_photo_url')
+      .eq('rep_id', input.repId)
+      .in('design_id', ids)
+      .neq('status', 'removed')
+      .limit(1)
+    const listingRows = Array.isArray((listings as { data?: unknown }).data)
+      ? ((listings as { data: Array<{ listing_photo_url?: string }> }).data ?? [])
+      : []
+    const photoUrl = listingRows[0]?.listing_photo_url?.trim()
+    if (!photoUrl) return null
+    const designName = designRows.find((row) => row.design_name?.trim())?.design_name?.trim() || null
+    return { photoUrl, itemNumber, designName }
+  } catch {
+    return null
+  }
+}
+
 async function requireDuplicatePhysicalPieceConfirmationIfNeeded(input: {
   admin: SupabaseClient
   supabase: SupabaseClient
@@ -591,15 +796,33 @@ async function requireDuplicatePhysicalPieceConfirmationIfNeeded(input: {
   designId?: string
   activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
 }) {
-  const alreadyListed = await repAlreadyHasActiveListingForItem({
-    admin: input.admin,
-    repId: input.repId,
-    itemNumber: input.itemNumber,
-    material: input.material,
-    mainStone: input.mainStone,
-    designId: input.designId,
-  })
-  if (!alreadyListed) return
+  if ((input.activeTradeBoardWorkflow?.createdListingIds?.length ?? 0) > 0) {
+    throw new NicNacToolError({
+      code: 'ALREADY_ON_DANCE_FLOOR',
+      userMessage: `${input.itemNumber.trim().toUpperCase()} is already on your Dance Floor.`,
+    })
+  }
+  // Without a design id this must not call resolveItemNumber. That lookup
+  // belongs to the save itself. The item-number check below is enough to
+  // stop a second Dance Floor entry.
+  const alreadyListed = input.designId
+    ? await repAlreadyHasActiveListingForItem({
+        admin: input.admin,
+        repId: input.repId,
+        itemNumber: input.itemNumber,
+        material: input.material,
+        mainStone: input.mainStone,
+        designId: input.designId,
+      })
+    : false
+  const listedOnAnyDesign =
+    alreadyListed ||
+    (await repHasListingForItemNumber({
+      admin: input.admin,
+      repId: input.repId,
+      itemNumber: input.itemNumber,
+    }))
+  if (!listedOnAnyDesign) return
   if (input.activeTradeBoardWorkflow?.known.duplicatePhysicalConfirmed) return
 
   const confirmed = await latestConversationConfirmsAdditionalPhysicalPiece({
@@ -630,12 +853,791 @@ function isConfirmedJewelryFrontPhoto(
   return isAcceptedCustomerFacingWorkflowPhoto(photo) && photo.roleConfirmed
 }
 
+function confirmedLabelNumber(
+  workflow?: { metadata?: Record<string, unknown> } | null,
+): string | undefined {
+  const value = workflow?.metadata?.labelItemNumberConfirmed
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
+async function rememberLabelMismatch(args: {
+  admin?: SupabaseClient
+  workflow?: { id?: string; status?: string; metadata?: Record<string, unknown> }
+  mirrorWorkflow?: { id?: string; status?: string; metadata?: Record<string, unknown> }
+  labelItemNumber: string
+}) {
+  const metadata = {
+    labelItemNumberMismatch: args.labelItemNumber,
+  }
+  let sessionId: string | undefined
+  let stored: Record<string, unknown> | undefined
+  for (const workflow of [args.workflow, args.mirrorWorkflow]) {
+    if (!workflow || workflow.status !== 'active') continue
+    const next = {
+      ...(workflow.metadata ?? {}),
+      ...metadata,
+    }
+    workflow.metadata = next
+    stored = next
+    if (workflow.id) sessionId = workflow.id
+  }
+  if (!args.admin || !sessionId || !stored) return
+  try {
+    await updateTradeBoardIntakeSession(args.admin, {
+      sessionId,
+      patch: { metadata: stored },
+    })
+  } catch {
+    // The refusal still stands for this call.
+  }
+}
+
+function storedLabelMismatch(
+  workflow: { metadata?: Record<string, unknown> } | null | undefined,
+  itemNumber: string,
+): string | null {
+  const stored = workflow?.metadata?.labelItemNumberMismatch
+  if (typeof stored !== 'string' || !stored.trim()) return null
+  const label = stored.trim().toUpperCase()
+  const item = itemNumber.trim().toUpperCase()
+  if (!label || !item || label === item) return null
+  return label
+}
+
+async function assertLabelAgreesWithItemNumber(args: {
+  itemNumber?: string
+  sourceImageUrl?: string
+  labelConfirmedItemNumber?: string | null
+  workflowPhotos?: Array<{
+    imageUrl?: string
+    declaredRole?: string
+    visualRole?: string
+    contentSha256?: string
+  }>
+  admin?: SupabaseClient
+  workflow?: { id?: string; status?: string; metadata?: Record<string, unknown> }
+  mirrorWorkflow?: { id?: string; status?: string; metadata?: Record<string, unknown> }
+}) {
+  const itemNumber = args.itemNumber?.trim()
+  if (!itemNumber) return
+  const remembered = storedLabelMismatch(args.workflow, itemNumber)
+  if (remembered) {
+    throw new NicNacToolError({
+      code: 'LABEL_ITEM_NUMBER_MISMATCH',
+      userMessage: `The label says ${remembered}. I won't save it on ${itemNumber.toUpperCase()}. Send the label for ${itemNumber.toUpperCase()}.`,
+    })
+  }
+  const urls = new Set<string>()
+  const labelUrls = new Set<string>()
+  const sourceImageUrl = args.sourceImageUrl?.trim()
+  if (sourceImageUrl) urls.add(sourceImageUrl)
+  for (const photo of args.workflowPhotos ?? []) {
+    if (!photo.imageUrl) continue
+    urls.add(photo.imageUrl)
+    const isLabel =
+      photo.declaredRole === 'label_details' ||
+      photo.visualRole === 'label_or_packaging'
+    if (isLabel) labelUrls.add(photo.imageUrl)
+  }
+  for (const url of urls) {
+    const photo = (args.workflowPhotos ?? []).find((item) => item.imageUrl === url)
+    const isLabel = labelUrls.has(url)
+    // A photo we already hashed is the piece photo. Do not download it again
+    // just to guess whether it is a label. Two-photo turns are corrected first.
+    if (
+      !isLabel &&
+      photo?.contentSha256?.trim() &&
+      photo.declaredRole !== 'label_details' &&
+      photo.visualRole !== 'label_or_packaging'
+    ) {
+      continue
+    }
+    const read = await readLabelPhoto(url)
+    if (!isLabel) {
+      if (read.outcome !== 'read') continue
+      const mismatch = decideLabelItemNumber({
+        itemNumber,
+        readItemNumbers: read.itemNumbers,
+      })
+      if (!mismatch.blocked) continue
+      await rememberLabelMismatch({
+        admin: args.admin,
+        workflow: args.workflow,
+        mirrorWorkflow: args.mirrorWorkflow,
+        labelItemNumber: mismatch.labelItemNumber,
+      })
+      throw new NicNacToolError({
+        code: 'LABEL_ITEM_NUMBER_MISMATCH',
+        userMessage: mismatch.message,
+      })
+    }
+    const decision = decideLabelSave({
+      itemNumber,
+      read,
+      confirmedItemNumber: args.labelConfirmedItemNumber || itemNumber,
+    })
+    if (!decision.blocked) continue
+    if (decision.code === 'LABEL_ITEM_NUMBER_MISMATCH') {
+      const mismatch = decideLabelItemNumber({
+        itemNumber,
+        readItemNumbers: read.itemNumbers,
+      })
+      if (mismatch.blocked) {
+        await rememberLabelMismatch({
+          admin: args.admin,
+          workflow: args.workflow,
+          mirrorWorkflow: args.mirrorWorkflow,
+          labelItemNumber: mismatch.labelItemNumber,
+        })
+      }
+    }
+    if (decision.code === 'LABEL_ITEM_NUMBER_UNREADABLE') {
+      await logIncident({
+        errorType: 'label_vision_unreadable',
+        severity: 'warn',
+        details: {
+          reason: read.reason ?? 'unreadable',
+          model: read.model ?? null,
+        },
+      })
+    }
+    throw new NicNacToolError({
+      code: decision.code,
+      userMessage: decision.message,
+    })
+  }
+}
+
+function savedItemNumber(value: unknown): string {
+  return typeof value === 'string' ? value.trim().toUpperCase() : ''
+}
+
+export function confirmedPhotoSetSha(
+  workflow:
+    | {
+        id?: string
+        catalogMode?: string
+        known?: { itemNumber?: string | null }
+        metadata?: Record<string, unknown>
+      }
+    | null
+    | undefined,
+  itemNumber?: string,
+): string | undefined {
+  const sha = workflow?.metadata?.photoSetReuseConfirmedSha
+  const storedItem = normalizePhotoConfirmationKey(
+    workflow?.metadata?.photoSetReuseConfirmedItemNumber,
+  )
+  const saveItem = photoConfirmationPieceKey({
+    itemNumber: itemNumber || workflow?.known?.itemNumber,
+    catalogMode: workflow?.catalogMode,
+    intakeId: workflow?.id,
+  })
+  if (!storedItem || !saveItem || storedItem !== saveItem) return undefined
+  return typeof sha === 'string' && sha.trim() ? sha.trim() : undefined
+}
+
+type ConversationPart = {
+  type?: string
+  text?: string
+  mediaType?: string
+  url?: string
+  output?: {
+    code?: string
+    message?: string
+    contentSha256?: string
+    pieceKey?: string
+  }
+}
+
+type ConversationRow = {
+  role?: string
+  parts?: ConversationPart[] | null
+}
+
+function conversationRowText(row: ConversationRow | undefined): string {
+  return (row?.parts ?? [])
+    .map((part) => (typeof part.text === 'string' ? part.text : ''))
+    .filter(Boolean)
+    .join('\n')
+}
+
+function conversationRowImageUrls(row: ConversationRow | undefined): string[] {
+  return (row?.parts ?? [])
+    .filter(
+      (part) =>
+        part.type === 'file' &&
+        typeof part.mediaType === 'string' &&
+        part.mediaType.startsWith('image/') &&
+        typeof part.url === 'string',
+    )
+    .map((part) => part.url as string)
+}
+
+function conversationRowAskedAboutPhotoSet(row: ConversationRow | undefined): boolean {
+  if (!row) return false
+  if (/belongs with that set/i.test(conversationRowText(row))) return true
+  return (row.parts ?? []).some((part) => {
+    if (part.output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM') return true
+    return (
+      typeof part.output?.message === 'string' &&
+      /belongs with that set/i.test(part.output.message)
+    )
+  })
+}
+
+async function loadRecentConversationRows(args: {
+  supabase: SupabaseClient
+  conversationId: string
+}): Promise<ConversationRow[]> {
+  const { data, error } = await args.supabase
+    .from('nic_nac_conversations')
+    .select('role, parts, created_at')
+    .eq('conversation_id', args.conversationId)
+    .eq('status', 'complete')
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error || !Array.isArray(data)) return []
+  return data as ConversationRow[]
+}
+
+const LOST_PHOTO_YES =
+  /want to finish\b|send the photo for\b|not brought into this chat|that earlier photo was not brought/i
+
+/** A photo sent after a rollover or fresh start still needs a preview and a yes. */
+export function freshPhotoPreviewDecision(rows: ConversationRow[]): {
+  required: boolean
+  imageUrl?: string
+  imageUrls?: string[]
+  itemNumber?: string | null
+} {
+  const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
+  if (latestUserIndex < 0) return { required: false }
+  const imageUrls = conversationRowImageUrls(rows[latestUserIndex])
+  const imageUrl = imageUrls[0]
+  if (!imageUrl) return { required: false }
+  const assistant = rows
+    .slice(latestUserIndex + 1)
+    .find((row) => row.role === 'assistant')
+  const text = conversationRowText(assistant)
+  if (!assistantIsResumingUnfinishedPiece(text)) return { required: false }
+  return {
+    required: true,
+    imageUrl,
+    imageUrls,
+    itemNumber: itemNumberFromResumeAsk(text),
+  }
+}
+
+/** Yes after a fresh start does not save. The photo has to be sent again. */
+export function freshStartYesDecision(rows: ConversationRow[]): {
+  askAgain: boolean
+  itemNumber?: string | null
+} {
+  const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
+  if (latestUserIndex < 0) return { askAgain: false }
+  const user = rows[latestUserIndex]
+  if (!user || conversationRowImageUrls(user).length > 0) return { askAgain: false }
+  if (!isPositiveConfirmation(conversationRowText(user))) return { askAgain: false }
+  const assistant = rows
+    .slice(latestUserIndex + 1)
+    .find((row) => row.role === 'assistant')
+  const text = conversationRowText(assistant)
+  if (!LOST_PHOTO_YES.test(text)) return { askAgain: false }
+  return { askAgain: true, itemNumber: itemNumberFromResumeAsk(text) }
+}
+
+async function previewResentPhoto(args: {
+  itemNumber?: string | null
+  supabase: SupabaseClient
+  conversationId: string
+  workflow?: ToolContext['activeTradeBoardWorkflow']
+}) {
+  let rows: ConversationRow[] = []
+  try {
+    rows = await loadRecentConversationRows(args)
+  } catch {
+    return null
+  }
+  const yes = freshStartYesDecision(rows)
+  if (yes.askAgain) {
+    throw new NicNacToolError({
+      code: 'PHOTO_CHOICE_REQUIRED',
+      userMessage: sendPhotoAgainMessage(yes.itemNumber || args.itemNumber),
+    })
+  }
+  const decision = freshPhotoPreviewDecision(rows)
+  const urls =
+    decision.imageUrls ?? (decision.imageUrl ? [decision.imageUrl] : [])
+  if (!decision.required || urls.length === 0) return null
+  const labelUrls = new Set<string>()
+  if (urls.length >= 2) {
+    await Promise.all(
+      urls.map(async (url) => {
+        try {
+          const read = await readLabelPhoto(url)
+          if (read.outcome === 'read' && read.itemNumbers.length > 0) labelUrls.add(url)
+        } catch {
+          // A photo we cannot read is not treated as the label.
+        }
+      }),
+    )
+  }
+  const imageUrl = pickNonLabelImageUrl(urls, labelUrls)
+  if (!imageUrl) return null
+  const storedPhoto = args.workflow?.photos?.find((photo) => photo.imageUrl === imageUrl)
+  if (storedPhoto) {
+    const refusal = mainPhotoPreviewRefusal({
+      photo: storedPhoto,
+      itemNumber: decision.itemNumber || args.itemNumber || args.workflow?.known.itemNumber,
+      jewelryType: args.workflow?.known.jewelryType,
+    })
+    if (refusal) {
+      throw new NicNacToolError({
+        code: 'MAIN_PHOTO_NOT_USABLE',
+        userMessage: refusal,
+      })
+    }
+  }
+  const label = decision.itemNumber || args.itemNumber?.trim() || 'this piece'
+  return {
+    needsAction: 'confirm_main_photo' as const,
+    code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
+    itemNumber: label === 'this piece' ? null : label,
+    ...mainPhotoPreviewLocator({ imageUrl }),
+    message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
+  }
+}
+
+function itemNumberFromSetAsk(row: ConversationRow | undefined): string {
+  if (!row) return ''
+  const blobs = [
+    conversationRowText(row),
+    ...(row.parts ?? []).map((part) =>
+      typeof part.output?.message === 'string' ? part.output.message : '',
+    ),
+  ]
+  for (const blob of blobs) {
+    const match = blob.match(
+      /\bif\s+([A-Za-z]{1,4}-?\d{3,})\s+belongs with that set\b/i,
+    )
+    if (match?.[1]) return match[1].trim().toUpperCase()
+  }
+  return ''
+}
+
+function pieceKeyFromSetAsk(row: ConversationRow | undefined): string {
+  if (!row) return ''
+  for (const part of row.parts ?? []) {
+    const key = part.output?.pieceKey
+    if (typeof key === 'string' && key.trim()) return normalizePhotoConfirmationKey(key)
+  }
+  return itemNumberFromSetAsk(row)
+}
+
+function setReuseYesInConversation(
+  rows: ConversationRow[],
+): { earlierPhotoUrl?: string; flaggedSha?: string; itemNumber: string } | null {
+  const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
+  if (latestUserIndex === -1) return null
+  if (conversationRowImageUrls(rows[latestUserIndex]).length > 0) return null
+  if (!isPositiveConfirmation(conversationRowText(rows[latestUserIndex]!))) return null
+  const assistant = rows
+    .slice(latestUserIndex + 1)
+    .find((row) => row.role === 'assistant')
+  if (!conversationRowAskedAboutPhotoSet(assistant)) return null
+  const itemNumber = pieceKeyFromSetAsk(assistant)
+  if (!itemNumber) return null
+  const flaggedSha = (assistant?.parts ?? [])
+    .map((part) => part.output?.contentSha256?.trim())
+    .find((sha) => Boolean(sha))
+  const earlierUser = rows
+    .slice(rows.indexOf(assistant!) + 1)
+    .find((row) => (row.role ?? 'user') === 'user')
+  return {
+    earlierPhotoUrl: conversationRowImageUrls(earlierUser)[0],
+    flaggedSha,
+    itemNumber,
+  }
+}
+
+async function conversationConfirmsPhotoSetHash(args: {
+  supabase: SupabaseClient
+  conversationId: string
+  contentSha256: string
+  itemNumber: string
+}): Promise<boolean> {
+  try {
+    const rows = await loadRecentConversationRows(args)
+    const confirmation = setReuseYesInConversation(rows)
+    if (!confirmation) return false
+    if (
+      normalizePhotoConfirmationKey(confirmation.itemNumber) !==
+      normalizePhotoConfirmationKey(args.itemNumber)
+    ) {
+      return false
+    }
+    if (confirmation.flaggedSha) return confirmation.flaggedSha === args.contentSha256
+    return hashDataImageUrl(confirmation.earlierPhotoUrl) === args.contentSha256
+  } catch {
+    return false
+  }
+}
+
+async function photoFromConversationSetReuseYes(args: {
+  supabase: SupabaseClient
+  conversationId: string
+}): Promise<{ imageDataUrl: string } | null> {
+  try {
+    const rows = await loadRecentConversationRows(args)
+    const confirmation = setReuseYesInConversation(rows)
+    if (!confirmation?.earlierPhotoUrl) return null
+    return { imageDataUrl: confirmation.earlierPhotoUrl }
+  } catch {
+    return null
+  }
+}
+
+export async function assertCustomerPhotoNotReused(args: {
+  repId: string
+  itemNumber?: string
+  sourceImageUrl?: string
+  contentSha256?: string
+  setReuseConfirmedSha?: string
+  workflowPhotos?: Array<{
+    id?: string
+    imageUrl?: string
+    contentSha256?: string
+    declaredRole?: string
+    visualRole?: string
+  }>
+  labelConfirmedItemNumber?: string | null
+  conversation?: {
+    supabase: SupabaseClient
+    conversationId: string
+  }
+  /** Fields copied onto the PHOTO_REUSED output so one yes can cover the set and the photo. */
+  reuseAsk?: {
+    listingId?: string
+    itemNumber?: string | null
+    pieceKey?: string
+    previewImageUrl?: string
+    previewPhotoId?: string
+  }
+}) {
+  await assertLabelAgreesWithItemNumber({
+    itemNumber: args.itemNumber,
+    sourceImageUrl: args.sourceImageUrl,
+    workflowPhotos: args.workflowPhotos,
+    labelConfirmedItemNumber: args.labelConfirmedItemNumber,
+  })
+  const itemNumber = args.itemNumber?.trim()
+  const sourceImageUrl = args.sourceImageUrl?.trim()
+  if (!itemNumber || !sourceImageUrl) return
+  const contentSha256 =
+    args.contentSha256?.trim() ||
+    resolvePhotoContentSha256({
+      sourceImageUrl,
+      workflowPhotos: args.workflowPhotos,
+    }) ||
+    (await hashCustomerPhotoUrl({ sourceImageUrl })) ||
+    ''
+
+  const existing = await loadItemNumbersForCustomerPhoto(createAdminClient(), {
+    repId: args.repId,
+    contentSha256,
+    imageUrl: sourceImageUrl,
+  })
+  if (!contentSha256 && existing.length === 0) return
+  const decision = decidePhotoReuse({
+    itemNumber,
+    contentSha256: contentSha256 || 'matched-by-url',
+    existing,
+  })
+  if (!decision.blocked) return
+  const flaggedPhoto = args.workflowPhotos?.find(
+    (photo) => photo.imageUrl?.trim() === sourceImageUrl,
+  )
+  const listingId = args.reuseAsk?.listingId?.trim()
+  const askedItem = args.reuseAsk?.itemNumber?.trim()
+  const pieceKey = args.reuseAsk?.pieceKey?.trim()
+  throw new NicNacToolError({
+    code: 'PHOTO_REUSED_ON_OTHER_ITEM',
+    userMessage: decision.message,
+    details: {
+      contentSha256,
+      ...(flaggedPhoto?.id ? { photoId: flaggedPhoto.id } : {}),
+      ...(listingId ? { listingId } : {}),
+      ...(askedItem ? { itemNumber: askedItem } : {}),
+      ...(pieceKey ? { pieceKey } : {}),
+    },
+  })
+}
+
+export function pendingMainPhotoConfirmation(args: {
+  itemNumber?: string | null
+  workflow: ToolContext['activeTradeBoardWorkflow'] | undefined
+  selectedPhotoId?: string
+  photoIndex?: number
+}): {
+  itemNumber: string | null
+  message: string
+  locator: { previewPhotoId?: string; previewImageUrl?: string }
+} | null {
+  const workflow = args.workflow
+  if (workflow?.status !== 'active') return null
+  if (workflow.metadata?.mainPhotoConfirmationRequired !== true) return null
+  const publishable = workflowWithPublishableJewelryFront(workflow)
+  const bound = selectBoundMainPhoto(publishable?.photos, publishable?.metadata)
+  const rawBound = publishable?.photos.find((photo) => photo.id === publishable.metadata?.boundMainPhotoId)
+    ?? (publishable?.photos.length === 1 ? publishable.photos[0] : undefined)
+  const boundRefusal = mainPhotoPreviewRefusal({ photo: rawBound, itemNumber: args.itemNumber || workflow.known.itemNumber, jewelryType: workflow.known.jewelryType })
+  if (boundRefusal) throw new NicNacToolError({ code: 'MAIN_PHOTO_NOT_USABLE', userMessage: boundRefusal })
+  if (args.selectedPhotoId && !bound) {
+    const selected = publishable?.photos.find((photo) => photo.id === args.selectedPhotoId)
+    if (selected && photoRefusedAsMainPhoto(selected)) {
+      throw new NicNacToolError({
+        code: 'MAIN_PHOTO_NOT_USABLE',
+        userMessage: 'That photo was refused. Send a new photo of the jewelry.',
+      })
+    }
+  }
+  const photo =
+    bound ??
+    resolveWorkflowCustomerFacingPhoto(publishable?.photos, {
+      selectedPhotoId: bound ? undefined : args.selectedPhotoId,
+      modelIndex: bound ? undefined : args.photoIndex,
+      intakeSessionId: publishable?.id,
+    })
+  if (!photo?.imageUrl?.trim()) return null
+  const photoKey = mainPhotoConfirmationIdentity(photo)
+  const confirmedId = workflow.metadata?.mainPhotoConfirmedPhotoId
+  const confirmedItem = normalizePhotoConfirmationKey(
+    workflow.metadata?.mainPhotoConfirmedItemNumber,
+  )
+  const saveItem = photoConfirmationPieceKey({
+    itemNumber: args.itemNumber || workflow.known.itemNumber,
+    catalogMode: workflow.catalogMode,
+    intakeId: workflow.id,
+  })
+  if (
+    typeof confirmedId === 'string' &&
+    photoKey &&
+    confirmedId === photoKey &&
+    confirmedItem &&
+    saveItem &&
+    confirmedItem === saveItem
+  ) {
+    return null
+  }
+  const itemNumber = args.itemNumber?.trim() || workflow.known.itemNumber?.trim() || ''
+  const label = itemNumber || 'this piece'
+  const refusal = mainPhotoPreviewRefusal({
+    photo,
+    itemNumber: label === 'this piece' ? workflow.known.itemNumber : itemNumber,
+    jewelryType: workflow.known.jewelryType,
+  })
+  if (refusal) {
+    throw new NicNacToolError({
+      code: 'MAIN_PHOTO_NOT_USABLE',
+      userMessage: refusal,
+    })
+  }
+  return {
+    itemNumber: itemNumber || null,
+    message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
+    locator: mainPhotoPreviewLocator(photo),
+  }
+}
+
+/**
+ * Refuse a customer-facing save unless this turn is a yes for the upload
+ * that was already previewed. A photo turn, a non-yes, or a different id
+ * cannot mutate. Callers that omit the turn keep the older behavior.
+ */
+export function decideCustomerFacingSave(args: {
+  latestUserText?: string | null
+  latestUserHasImage?: boolean
+  workflow?: ToolContext['activeTradeBoardWorkflow']
+  itemNumber?: string | null
+  selectedPhotoId?: string
+}): {
+  needsAction: 'confirm_main_photo'
+  code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED'
+  itemNumber: string | null
+  message: string
+  previewPhotoId?: string
+  previewImageUrl?: string
+} | null {
+  const workflow = workflowWithPublishableJewelryFront(args.workflow ?? undefined)
+  const bound = selectBoundMainPhoto(workflow?.photos, workflow?.metadata)
+  // Recheck the exact selected upload even when an earlier turn confirmed it.
+  const selectedId = workflow?.metadata?.boundMainPhotoId || args.selectedPhotoId
+  const selected = workflow?.metadata?.boundMainPhotoId
+    ? workflow.photos.find((photo) => photo.id === selectedId)
+    : resolveWorkflowCustomerFacingPhoto(workflow?.photos, { selectedPhotoId: args.selectedPhotoId, intakeSessionId: workflow?.id })
+      ?? workflow?.photos.find((photo) => photo.id === selectedId)
+  const refusal = mainPhotoPreviewRefusal({
+    photo: selected,
+    itemNumber: args.itemNumber || workflow?.known.itemNumber,
+    jewelryType: workflow?.known.jewelryType,
+  })
+  if (refusal) throw new NicNacToolError({ code: 'MAIN_PHOTO_NOT_USABLE', userMessage: refusal })
+  const confirmedRaw = workflow?.metadata?.mainPhotoConfirmedPhotoId
+  const blocked = turnBlocksCustomerFacingSave({
+    latestUserText: args.latestUserText,
+    latestUserHasImage: args.latestUserHasImage,
+    confirmedPhotoId: typeof confirmedRaw === 'string' ? confirmedRaw : null,
+    savingPhotoId: bound?.id ?? null,
+  })
+  if (!blocked) return null
+  const jewelry =
+    bound ??
+    (workflow?.status === 'active'
+      ? workflow.photos.find(
+          (photo) =>
+            Boolean(photo.imageUrl) &&
+            photo.quality !== 'blocked' &&
+            !photoRefusedAsMainPhoto(photo) &&
+            !photoIsLabel(photo),
+        )
+      : null)
+  if (args.selectedPhotoId && workflow?.status === 'active' && !jewelry) {
+    const selected = workflow.photos.find((photo) => photo.id === args.selectedPhotoId)
+    if (selected && (photoRefusedAsMainPhoto(selected) || photoIsLabel(selected))) {
+      throw new NicNacToolError({
+        code: 'MAIN_PHOTO_NOT_USABLE',
+        userMessage: photoIsLabel(selected)
+          ? 'That photo is the label. I need the jewelry photo before I save it.'
+          : 'That photo was refused. Send a new photo of the jewelry.',
+      })
+    }
+  }
+  if (jewelry?.id && jewelry.imageUrl) {
+    const itemNumber = args.itemNumber?.trim() || workflow?.known.itemNumber?.trim() || ''
+    const label = itemNumber || 'this piece'
+    const refusal = mainPhotoPreviewRefusal({
+      photo: jewelry,
+      itemNumber: label === 'this piece' ? workflow?.known.itemNumber : itemNumber,
+      jewelryType: workflow?.known.jewelryType,
+    })
+    if (refusal) {
+      throw new NicNacToolError({
+        code: 'MAIN_PHOTO_NOT_USABLE',
+        userMessage: refusal,
+      })
+    }
+    return {
+      needsAction: 'confirm_main_photo',
+      code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED',
+      itemNumber: itemNumber || null,
+      message: `This is the main photo I will save for ${label}. If this is the right piece, reply yes.`,
+      ...mainPhotoPreviewLocator(jewelry),
+    }
+  }
+  throw new NicNacToolError({
+    code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED',
+    userMessage: 'I need to show you that photo before I save it. Reply yes after the preview.',
+  })
+}
+
+async function mainPhotoPreviewOrReuse(args: {
+  itemNumber?: string | null
+  workflow: ToolContext['activeTradeBoardWorkflow'] | undefined
+  selectedPhotoId?: string
+  photoIndex?: number
+  conversation?: {
+    supabase: SupabaseClient
+    conversationId: string
+  }
+  preview: NonNullable<ReturnType<typeof pendingMainPhotoConfirmation>>
+}) {
+  const workflow = args.workflow
+  const preview = args.preview
+  const plainPreview = {
+    needsAction: 'confirm_main_photo' as const,
+    code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
+    itemNumber: preview.itemNumber,
+    ...preview.locator,
+    message: preview.message,
+  }
+  if (!workflow || workflow.status !== 'active') return plainPreview
+  const photo = resolveWorkflowCustomerFacingPhoto(workflow.photos, {
+    selectedPhotoId: args.selectedPhotoId,
+    modelIndex: args.photoIndex,
+    intakeSessionId: workflow.id,
+  })
+  if (!photo?.imageUrl?.trim()) return plainPreview
+  const itemNumber =
+    args.itemNumber?.trim() || workflow.known.itemNumber?.trim() || ''
+  const storedPhoto = workflow.photos.find(
+    (candidate) => candidate.imageUrl === photo.imageUrl,
+  )
+  try {
+    await assertCustomerPhotoNotReused({
+      repId: workflow.repId,
+      itemNumber,
+      sourceImageUrl: photo.imageUrl,
+      contentSha256: storedPhoto?.contentSha256,
+      setReuseConfirmedSha: confirmedPhotoSetSha(workflow, itemNumber),
+      workflowPhotos: workflow.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(workflow),
+      conversation: args.conversation,
+      reuseAsk: {
+        itemNumber: preview.itemNumber,
+        pieceKey: photoConfirmationPieceKey({
+          itemNumber,
+          catalogMode: workflow.catalogMode,
+          intakeId: workflow.id,
+        }),
+        previewImageUrl: preview.locator.previewImageUrl,
+        previewPhotoId: preview.locator.previewPhotoId,
+      },
+    })
+  } catch (error) {
+    if (!(error instanceof NicNacToolError)) return plainPreview
+    if (
+      error.code === 'LABEL_ITEM_NUMBER_MISMATCH' ||
+      error.code === 'LABEL_ITEM_NUMBER_UNREADABLE'
+    ) {
+      throw error
+    }
+    throw error
+  }
+  return plainPreview
+}
+
+function requirePiecePhotoNumberUrl(
+  workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
+  photoIndex: number | undefined,
+): string | undefined {
+  if (workflow?.status !== 'active' || photoIndex === undefined) return undefined
+  const decision = resolvePiecePhotoNumber(
+    workflow.photos,
+    photoIndex,
+    workflow.id,
+  )
+  if (decision.status === 'ask') {
+    throw new NicNacToolError({
+      code: 'PHOTO_CHOICE_REQUIRED',
+      userMessage:
+        decision.photoCount === 0
+          ? sendPhotoAgainMessage(workflow.known.itemNumber)
+          : decision.message,
+    })
+  }
+  if (decision.status === 'confirmed-front') return undefined
+  return decision.photo.imageUrl
+}
+
 function getWorkflowPhotoByModelIndex(
   workflow: ToolContext['activeTradeBoardWorkflow'] | undefined,
   photoIndex: number | undefined,
 ) {
   if (workflow?.status !== 'active' || photoIndex === undefined) return null
-  const photo = workflow.photos[photoIndex - 1]
+  const photo = scopeWorkflowPhotosToIntake(workflow.photos, workflow.id)[
+    photoIndex - 1
+  ]
   return isConfirmedJewelryFrontPhoto(photo) ? photo : null
 }
 
@@ -672,6 +1674,7 @@ export function getWorkflowConfirmedJewelryFrontImageUrl(
     resolveWorkflowCustomerFacingPhoto(publishable?.photos, {
       selectedPhotoId,
       modelIndex: photoIndex,
+      intakeSessionId: publishable?.id,
     })?.imageUrl ?? null
   )
 }
@@ -700,6 +1703,22 @@ function workflowOwnedListingPhotoUrl(input: {
   return matchesAcceptedJewelry ? listingPhotoUrl : undefined
 }
 
+export function originalUploadUrl(processed: {
+  photoUrl?: string | null
+  originalPhotoUrl?: string | null
+  selectedSource?: string
+} | null | undefined): string | undefined {
+  const original = processed?.originalPhotoUrl?.trim()
+  if (original) return original
+  const photo = processed?.photoUrl?.trim()
+  if (processed?.selectedSource === 'original' && photo) return photo
+  if (processed) throw new NicNacToolError({
+    code: 'ORIGINAL_PHOTO_MISSING',
+    userMessage: "I couldn't preserve the original upload. Please send the jewelry photo again.",
+  })
+  return undefined
+}
+
 export async function processListingPhotoForAdd(input: {
   listingPhotoUrl?: string
   listingPhotoIndex?: number
@@ -719,8 +1738,31 @@ export async function processListingPhotoForAdd(input: {
   const activeTradeBoardWorkflow = workflowWithPublishableJewelryFront(
     input.activeTradeBoardWorkflow,
   )
+  const boundPhoto =
+    activeTradeBoardWorkflow?.status === 'active'
+      ? selectBoundMainPhoto(activeTradeBoardWorkflow.photos, activeTradeBoardWorkflow.metadata)
+      : null
+  if (
+    input.selectedPhotoId &&
+    activeTradeBoardWorkflow?.status === 'active' &&
+    !boundPhoto
+  ) {
+    const selected = activeTradeBoardWorkflow.photos.find(
+      (photo) => photo.id === input.selectedPhotoId,
+    )
+    if (selected && photoRefusedAsMainPhoto(selected)) {
+      throw new NicNacToolError({
+        code: 'MAIN_PHOTO_NOT_USABLE',
+        userMessage: 'That photo was refused. Send a new photo of the jewelry.',
+      })
+    }
+  }
   const itemNumber = input.itemNumber ?? 'listing'
   const photoIndex = input.photoIndex ?? input.listingPhotoIndex
+  const numberedPiecePhotoUrl = requirePiecePhotoNumberUrl(
+    activeTradeBoardWorkflow,
+    photoIndex,
+  )
   const variantAssetKey = catalogVariantPhotoAssetKey({
     designId: input.designId,
     material: input.material,
@@ -732,6 +1774,59 @@ export async function processListingPhotoForAdd(input: {
     mutationAssetKey: input.mutationAssetKey,
     ...(variantAssetKey ? { variantAssetKey } : {}),
   }
+  if (boundPhoto?.imageUrl) {
+    await assertCustomerPhotoNotReused({
+      repId: input.repId,
+      itemNumber: input.itemNumber,
+      sourceImageUrl: boundPhoto.imageUrl,
+      contentSha256: boundPhoto.contentSha256,
+      workflowPhotos: activeTradeBoardWorkflow?.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(activeTradeBoardWorkflow),
+      setReuseConfirmedSha: confirmedPhotoSetSha(
+        activeTradeBoardWorkflow,
+        input.itemNumber,
+      ),
+    })
+    try {
+      return originalUploadUrl(
+        await processRepListingPhotoUrl(
+          {
+            ...listingPhotoProcessInput,
+            sourceImageUrl: boundPhoto.imageUrl,
+          },
+          { confirmedJewelryFront: true, publishOriginalUpload: true },
+        ),
+      )
+    } catch (err) {
+      explainServiceError(err)
+    }
+  }
+  if (numberedPiecePhotoUrl) {
+    await assertCustomerPhotoNotReused({
+      repId: input.repId,
+      itemNumber: input.itemNumber,
+      sourceImageUrl: numberedPiecePhotoUrl,
+      workflowPhotos: activeTradeBoardWorkflow?.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(activeTradeBoardWorkflow),
+      setReuseConfirmedSha: confirmedPhotoSetSha(
+        activeTradeBoardWorkflow,
+        input.itemNumber,
+      ),
+    })
+    try {
+      return originalUploadUrl(
+        await processRepListingPhotoUrl(
+          {
+            ...listingPhotoProcessInput,
+            sourceImageUrl: numberedPiecePhotoUrl,
+          },
+          { confirmedJewelryFront: true, publishOriginalUpload: true },
+        ),
+      )
+    } catch (err) {
+      explainServiceError(err)
+    }
+  }
   const workflowPhotoUrl = getWorkflowConfirmedJewelryFrontImageUrl(
     activeTradeBoardWorkflow,
     photoIndex,
@@ -741,16 +1836,27 @@ export async function processListingPhotoForAdd(input: {
   // emitted by the model may be stale copies from an earlier piece or another
   // finish/stone of the same item number.
   if (workflowPhotoUrl) {
+    await assertCustomerPhotoNotReused({
+      repId: input.repId,
+      itemNumber: input.itemNumber,
+      sourceImageUrl: workflowPhotoUrl,
+      workflowPhotos: activeTradeBoardWorkflow?.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(activeTradeBoardWorkflow),
+      setReuseConfirmedSha: confirmedPhotoSetSha(
+        activeTradeBoardWorkflow,
+        input.itemNumber,
+      ),
+    })
     try {
-      return (
+      return originalUploadUrl(
         await processRepListingPhotoUrl(
           {
             ...listingPhotoProcessInput,
             sourceImageUrl: workflowPhotoUrl,
           },
-          { confirmedJewelryFront: true },
-        )
-      ).photoUrl
+          { confirmedJewelryFront: true, publishOriginalUpload: true },
+        ),
+      )
     } catch (err) {
       explainServiceError(err)
     }
@@ -760,6 +1866,17 @@ export async function processListingPhotoForAdd(input: {
     activeTradeBoardWorkflow,
   })
   if (listingPhotoUrl) {
+    await assertCustomerPhotoNotReused({
+      repId: input.repId,
+      itemNumber: input.itemNumber,
+      sourceImageUrl: listingPhotoUrl,
+      workflowPhotos: activeTradeBoardWorkflow?.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(activeTradeBoardWorkflow),
+      setReuseConfirmedSha: confirmedPhotoSetSha(
+        activeTradeBoardWorkflow,
+        input.itemNumber,
+      ),
+    })
     try {
       const processInput = {
         ...listingPhotoProcessInput,
@@ -768,10 +1885,10 @@ export async function processListingPhotoForAdd(input: {
       const processed =
         workflowPhotoUrl === listingPhotoUrl
           ? await processRepListingPhotoUrl(processInput, {
-              confirmedJewelryFront: true,
+              confirmedJewelryFront: true, publishOriginalUpload: true,
             })
-          : await processRepListingPhotoUrl(processInput)
-      return processed.photoUrl
+          : await processRepListingPhotoUrl(processInput, { publishOriginalUpload: true })
+      return originalUploadUrl(processed)
     } catch (err) {
       explainServiceError(err)
     }
@@ -791,10 +1908,37 @@ export async function processListingPhotoForAdd(input: {
   const resolvedListingPhoto = await resolvePhotoFromConversation({
     supabase: input.supabase,
     conversationId: input.conversationId,
+    itemNumber: input.itemNumber,
     photoIndex,
+    intakeSessionId:
+      activeTradeBoardWorkflow?.status === 'active'
+        ? activeTradeBoardWorkflow.id
+        : undefined,
+    intakePhotos: activeTradeBoardWorkflow?.photos,
   })
   if (!resolvedListingPhoto) return undefined
+  if (
+    activeTradeBoardWorkflow?.status === 'active' &&
+    activeTradeBoardWorkflow.photos.some(
+      (photo) =>
+        photo.imageUrl === resolvedListingPhoto.imageDataUrl &&
+        (photoRefusedAsMainPhoto(photo) || photoIsLabel(photo)),
+    )
+  ) {
+    return undefined
+  }
 
+  await assertCustomerPhotoNotReused({
+    repId: input.repId,
+    itemNumber: input.itemNumber,
+    sourceImageUrl: resolvedListingPhoto.imageDataUrl,
+    workflowPhotos: activeTradeBoardWorkflow?.photos,
+    labelConfirmedItemNumber: confirmedLabelNumber(activeTradeBoardWorkflow),
+    setReuseConfirmedSha: confirmedPhotoSetSha(
+        activeTradeBoardWorkflow,
+        input.itemNumber,
+      ),
+  })
   try {
     const processInput = {
       ...listingPhotoProcessInput,
@@ -806,10 +1950,10 @@ export async function processListingPhotoForAdd(input: {
     )
     const processed = isWorkflowConfirmed
       ? await processRepListingPhotoUrl(processInput, {
-          confirmedJewelryFront: true,
+          confirmedJewelryFront: true, publishOriginalUpload: true,
         })
-      : await processRepListingPhotoUrl(processInput)
-    return processed.photoUrl
+      : await processRepListingPhotoUrl(processInput, { publishOriginalUpload: true })
+    return originalUploadUrl(processed)
   } catch (err) {
     explainServiceError(err)
   }
@@ -833,6 +1977,13 @@ async function markActiveTradeBoardWorkflowCompleted(input: {
     designId: input.designId ?? undefined,
   })
 
+  const savedNote = pieceCarryNote({
+    reason: 'saved',
+    itemNumber: workflow.known.itemNumber,
+    material: workflow.known.material,
+    jewelryType: workflow.known.jewelryType,
+    designName: workflow.known.designName,
+  })
   try {
     await updateTradeBoardIntakeSession(input.admin, {
       sessionId: workflow.id,
@@ -846,6 +1997,8 @@ async function markActiveTradeBoardWorkflowCompleted(input: {
         soft_warnings: [],
         metadata: {
           ...workflow.metadata,
+          carryNote: savedNote,
+          priorPieceNotes: [...pieceNoteList(workflow.metadata.priorPieceNotes), savedNote].slice(-8),
           addAttempt: {
             ...((workflow.metadata.addAttempt as Record<string, unknown> | undefined) ?? {}),
             toolName: 'add_listing',
@@ -1022,6 +2175,8 @@ async function runNonItemNumberSingle(
     activeTradeWorkflow?: ToolContext['activeTradeWorkflow']
     mutationSuffix?: string
     mutationAssetKey?: string
+    latestUserText?: string | null
+    latestUserHasImage?: boolean
   },
   admin: SupabaseClient,
 ) {
@@ -1076,6 +2231,43 @@ async function runNonItemNumberSingle(
         'I still need Collection Type and Size details before I can save this listing.',
     })
   }
+
+  const nonItemPreview = pendingMainPhotoConfirmation({
+    itemNumber: activeWorkflow?.known.itemNumber,
+    workflow: activeWorkflow,
+    selectedPhotoId: input.selectedPhotoId,
+    photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+  })
+  if (nonItemPreview) {
+    return mainPhotoPreviewOrReuse({
+      itemNumber: activeWorkflow?.known.itemNumber,
+      workflow: activeWorkflow,
+      selectedPhotoId: input.selectedPhotoId,
+      photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+      conversation: {
+        supabase: ctx.supabase,
+        conversationId: ctx.conversationId,
+      },
+      preview: nonItemPreview,
+    })
+  }
+
+  const nonItemTurnBlock = decideCustomerFacingSave({
+    latestUserText: ctx.latestUserText,
+    latestUserHasImage: ctx.latestUserHasImage,
+    workflow: activeWorkflow,
+    itemNumber: activeWorkflow?.known.itemNumber,
+    selectedPhotoId: input.selectedPhotoId,
+  })
+  if (nonItemTurnBlock) return nonItemTurnBlock
+
+  const resentNonItemPreview = await previewResentPhoto({
+    itemNumber: activeWorkflow?.known.itemNumber,
+    supabase: ctx.supabase,
+    conversationId: ctx.conversationId,
+    workflow: activeWorkflow,
+  })
+  if (resentNonItemPreview) return resentNonItemPreview
 
   // Listing-only row: jewelry-front still wins, but never resolve or
   // create jewelry_designs. Photo cache uses mutation identity, not a
@@ -1169,6 +2361,89 @@ async function runNonItemNumberSingle(
   }
 }
 
+function definedFields<T extends Record<string, unknown>>(value: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined),
+  ) as Partial<T>
+}
+
+/**
+ * An item number means this is that piece, even if the model called it a
+ * non-item listing. Details the rep already gave fill anything the call omitted.
+ */
+export function carryKnownListingFields(
+  input: ToolInput,
+  workflow:
+    | {
+        status?: string
+        catalogMode?: 'item_number' | 'non_item_number'
+        known?: {
+          itemNumber?: string
+          designName?: string
+          collectionName?: string
+          collectionFamily?: string
+          collectionYear?: number
+          material?: string
+          mainStone?: string
+          ringSize?: string
+          rarityClassification?: 'standard' | 'diamond' | 'unicorn'
+          jewelryType?: 'RG' | 'NK' | 'ER' | 'ST' | 'BR'
+        }
+      }
+    | null
+    | undefined,
+): Partial<ToolInput> {
+  const known = workflow?.status === 'active' ? workflow.known ?? {} : {}
+  const text = (value?: string | null) => {
+    const trimmed = value?.trim()
+    return trimmed ? trimmed : undefined
+  }
+  const explicitItem = text(input.itemNumber)
+  const knownDesignName = !explicitItem || !known.itemNumber ||
+    explicitItem.toUpperCase() === known.itemNumber.trim().toUpperCase()
+      ? text(known.designName)
+      : undefined
+  const workflowNonItem = workflow?.catalogMode === 'non_item_number'
+  const itemNumber = explicitItem ?? (workflowNonItem ? undefined : text(known.itemNumber))
+  const collectionName = text(input.collectionName) ?? text(known.collectionName)
+  const implied = impliedCollectionType(collectionName)
+  const collectionFamily =
+    text(input.collectionFamily) ?? text(known.collectionFamily) ?? implied
+  const modelCalledNonItem = input.catalogMode === 'non_item_number'
+  const promoteKnownDesign = Boolean(
+    itemNumber &&
+      modelCalledNonItem &&
+      !workflowNonItem &&
+      !text(input.designName),
+  )
+  const shared = {
+    collectionName,
+    material: text(input.material) ?? text(known.material),
+    mainStone: text(input.mainStone) ?? text(known.mainStone),
+    ringSize: text(input.ringSize) ?? text(known.ringSize),
+    rarityClassification: input.rarityClassification ?? known.rarityClassification,
+    jewelryType: input.jewelryType ?? known.jewelryType,
+    collectionYear: input.collectionYear ?? known.collectionYear,
+    designName:
+      pieceTitleFromConfirmedDetails({
+        proposed: text(input.designName),
+        confirmed: knownDesignName,
+      }) ?? (promoteKnownDesign ? knownDesignName : undefined),
+  }
+  if (!itemNumber) {
+    return definedFields({
+      ...shared,
+      collectionFamily: collectionFamily ?? collectionName,
+    })
+  }
+  return definedFields({
+    ...shared,
+    catalogMode: 'item_number' as const,
+    itemNumber,
+    collectionFamily,
+  })
+}
+
 async function runSingle(
   input: ToolInput,
   ctx: {
@@ -1179,13 +2454,26 @@ async function runSingle(
     activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
     activeTradeWorkflow?: ToolContext['activeTradeWorkflow']
     mutationSuffix?: string
+    latestUserText?: string | null
+    latestUserHasImage?: boolean
   },
   admin: SupabaseClient,
 ) {
-  const { itemNumber, designName, piecePhotoUrl, collectionName } = input
-  const activeWorkflow = workflowWithPublishableJewelryFront(
+  let activeWorkflow = workflowWithPublishableJewelryFront(
     ctx.activeTradeBoardWorkflow,
   )
+  Object.assign(input, carryKnownListingFields(input, activeWorkflow))
+  const { itemNumber, designName, piecePhotoUrl, collectionName } = input
+  if (activeWorkflow?.status === 'active' && activeWorkflow.photos.length >= 2) {
+    const corrected = await correctJewelryVersusLabelPhotos(activeWorkflow.photos)
+    activeWorkflow.photos = corrected
+    const source = ctx.activeTradeBoardWorkflow
+    if (source && source !== activeWorkflow && source.status === 'active') {
+      source.photos = corrected
+    }
+  }
+  const photoRequest = requiredPiecePhotoRequest(activeWorkflow?.status === 'active' ? activeWorkflow.photos : [], itemNumber, activeWorkflow?.known.itemNumber)
+  if (photoRequest) return photoRequest
   const mutationIdentity = catalogMutationIdentity({
     toolInput: input,
     workflow: activeWorkflow,
@@ -1194,8 +2482,9 @@ async function runSingle(
   })
 
   if (
-    input.catalogMode === 'non_item_number' ||
-    (!itemNumber && activeWorkflow?.catalogMode === 'non_item_number')
+    !itemNumber &&
+    (input.catalogMode === 'non_item_number' ||
+      activeWorkflow?.catalogMode === 'non_item_number')
   ) {
     return runNonItemNumberSingle(
       input,
@@ -1208,6 +2497,27 @@ async function runSingle(
     throw new NicNacToolError({
       code: 'MISSING_ITEM_INPUT',
       userMessage: 'I need an item number to add a piece to your board.',
+    })
+  }
+
+  await requireDuplicatePhysicalPieceConfirmationIfNeeded({
+    admin,
+    supabase: ctx.supabase,
+    repId: ctx.repId,
+    conversationId: ctx.conversationId,
+    itemNumber,
+    material: input.material,
+    mainStone: input.mainStone,
+    activeTradeBoardWorkflow: activeWorkflow,
+  })
+  if (activeWorkflow?.status === 'active') {
+    await assertLabelAgreesWithItemNumber({
+      itemNumber,
+      workflowPhotos: activeWorkflow.photos,
+      labelConfirmedItemNumber: confirmedLabelNumber(activeWorkflow),
+      admin,
+      workflow: activeWorkflow,
+      mirrorWorkflow: ctx.activeTradeBoardWorkflow ?? undefined,
     })
   }
 
@@ -1257,6 +2567,43 @@ async function runSingle(
       }
     }
   }
+
+  const mainPhotoPreview = pendingMainPhotoConfirmation({
+    itemNumber,
+    workflow: activeWorkflow,
+    selectedPhotoId: input.selectedPhotoId,
+    photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+  })
+  if (mainPhotoPreview) {
+    return mainPhotoPreviewOrReuse({
+      itemNumber,
+      workflow: activeWorkflow,
+      selectedPhotoId: input.selectedPhotoId,
+      photoIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+      conversation: {
+        supabase: ctx.supabase,
+        conversationId: ctx.conversationId,
+      },
+      preview: mainPhotoPreview,
+    })
+  }
+
+  const turnBlock = decideCustomerFacingSave({
+    latestUserText: ctx.latestUserText,
+    latestUserHasImage: ctx.latestUserHasImage,
+    workflow: activeWorkflow,
+    itemNumber,
+    selectedPhotoId: input.selectedPhotoId,
+  })
+  if (turnBlock) return turnBlock
+
+  const resentPreview = await previewResentPhoto({
+    itemNumber,
+    supabase: ctx.supabase,
+    conversationId: ctx.conversationId,
+    workflow: activeWorkflow,
+  })
+  if (resentPreview) return resentPreview
 
   let createdNewDesign = false
   let photoPreflight:
@@ -1324,6 +2671,7 @@ async function runSingle(
               {
                 selectedPhotoId: input.selectedPhotoId,
                 modelIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+                intakeSessionId: activeWorkflow?.id,
               },
             ),
             catalogHasCanonicalPhoto:
@@ -1424,6 +2772,10 @@ async function runSingle(
     const newDesignId = randomUUID()
     let publicPhotoObjectPath: string | null = null
     const designSourcePhotoIndex = input.piecePhotoIndex ?? input.listingPhotoIndex
+    const numberedDesignPhotoUrl = requirePiecePhotoNumberUrl(
+      activeWorkflow,
+      designSourcePhotoIndex,
+    )
     const workflowConfirmedDesignPhoto = workflowConfirmsJewelryFrontPhoto(
       activeWorkflow,
       designSourcePhotoIndex,
@@ -1440,6 +2792,7 @@ async function runSingle(
     // Workflow-owned selection wins. A model-provided URL is a legacy fallback
     // only when no durable workflow is active.
     let resolvedPhotoUrl: string | null =
+      numberedDesignPhotoUrl ??
       workflowConfirmedPhotoUrl ??
       (activeWorkflow?.status === 'active' ? ownedPiecePhotoUrl : null) ??
       (activeWorkflow?.status === 'active' ? null : piecePhotoUrl?.trim() ?? null)
@@ -1450,6 +2803,21 @@ async function runSingle(
         }
       | null = null
     if (resolvedPhotoUrl) {
+      await assertCustomerPhotoNotReused({
+        repId: ctx.repId,
+        itemNumber,
+        sourceImageUrl: resolvedPhotoUrl,
+        workflowPhotos: activeWorkflow?.photos,
+        labelConfirmedItemNumber: confirmedLabelNumber(activeWorkflow),
+        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow, itemNumber),
+        conversation:
+          activeWorkflow?.status === 'active'
+            ? undefined
+            : {
+                supabase: ctx.supabase,
+                conversationId: ctx.conversationId,
+              },
+      })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {
         preparedSource = await prepareDesignSourcePhoto(
@@ -1463,6 +2831,7 @@ async function runSingle(
             confirmedJewelryFront:
               workflowConfirmedDesignPhoto &&
               workflowConfirmedPhotoUrl === resolvedPhotoUrl,
+            publishOriginalUpload: true,
           },
         )
       } catch (err) {
@@ -1488,6 +2857,14 @@ async function runSingle(
         subjectCentered: preparedSource.analysis.subjectCentered,
       }
     } else if (workflowConfirmedPhotoUrl) {
+      await assertCustomerPhotoNotReused({
+        repId: ctx.repId,
+        itemNumber,
+        sourceImageUrl: workflowConfirmedPhotoUrl,
+        workflowPhotos: activeWorkflow?.photos,
+        labelConfirmedItemNumber: confirmedLabelNumber(activeWorkflow),
+        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow, itemNumber),
+      })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {
         preparedSource = await prepareDesignSourcePhoto(
@@ -1497,7 +2874,7 @@ async function runSingle(
             sourceImageUrl: workflowConfirmedPhotoUrl,
             filenameStem: itemNumber,
           },
-          { confirmedJewelryFront: true },
+          { confirmedJewelryFront: true, publishOriginalUpload: true },
         )
       } catch (err) {
         throwMutationFailure(err, {
@@ -1531,12 +2908,22 @@ async function runSingle(
           'I still need the customer-facing jewelry photo before I can save this listing. The label/details photo is only for reading the card.',
       })
     } else {
-      const resolvedPhoto = await resolvePhotoFromConversation({
+      let resolvedPhoto = await resolvePhotoFromConversation({
         supabase: ctx.supabase,
         conversationId: ctx.conversationId,
+        itemNumber,
         latestUserMessageOnly: true,
         photoIndex: designSourcePhotoIndex,
+        intakeSessionId:
+          activeWorkflow?.status === 'active' ? activeWorkflow.id : undefined,
+        intakePhotos: activeWorkflow?.photos,
       })
+      if (!resolvedPhoto && activeWorkflow?.status !== 'active') {
+        resolvedPhoto = await photoFromConversationSetReuseYes({
+          supabase: ctx.supabase,
+          conversationId: ctx.conversationId,
+        })
+      }
       if (!resolvedPhoto) {
         throw new NicNacToolError({
           code: 'MISSING_PIECE_PHOTO',
@@ -1544,6 +2931,21 @@ async function runSingle(
             "I don't see a photo of this piece in our conversation. Send me a photo and I'll add it.",
         })
       }
+      await assertCustomerPhotoNotReused({
+        repId: ctx.repId,
+        itemNumber,
+        sourceImageUrl: resolvedPhoto.imageDataUrl,
+        workflowPhotos: activeWorkflow?.photos,
+        labelConfirmedItemNumber: confirmedLabelNumber(activeWorkflow),
+        setReuseConfirmedSha: confirmedPhotoSetSha(activeWorkflow, itemNumber),
+        conversation:
+          activeWorkflow?.status === 'active'
+            ? undefined
+            : {
+                supabase: ctx.supabase,
+                conversationId: ctx.conversationId,
+              },
+      })
       let preparedSource: Awaited<ReturnType<typeof prepareDesignSourcePhoto>>
       try {
         preparedSource = await prepareDesignSourcePhoto(
@@ -1555,6 +2957,7 @@ async function runSingle(
           },
           {
             confirmedJewelryFront: workflowConfirmedDesignPhoto,
+            publishOriginalUpload: true,
           },
         )
       } catch (err) {
@@ -1892,6 +3295,7 @@ async function runSingle(
       {
         selectedPhotoId: input.selectedPhotoId,
         modelIndex: input.listingPhotoIndex ?? input.piecePhotoIndex,
+        intakeSessionId: activeWorkflow?.id,
       },
     ),
     catalogHasCanonicalPhoto: Boolean(
@@ -1964,7 +3368,7 @@ async function runSingle(
             'specialFeatures',
             'lengthInfo',
           ],
-          message: `${itemNumber} isn't in the Sparkle Suite jewelry database yet. Use vision on the rep's photos to extract designName and any optional metadata you can read, and accept clear rep-provided details such as collectionName or collectionYear. Birthday collection names must include the year; if a box clearly shows a Birthday Collection month/year, normalize it to collectionName like "March Birthday 2026" and collectionYear like 2026. Boxed display photos with clear jewelry are acceptable as the jewelry-front photo. Do not treat label/details photos as bad jewelry photos. A label/details photo is only a label/details photo. Visible jewelry in that label/details photo does not satisfy the jewelry photo requirement. Do not ask for unboxed, no-packaging, or plain-background retakes. Do not ask for retakes without the box/card or on a plain surface. When multiple photos are attached, pass piecePhotoIndex or listingPhotoIndex using recent add-flow photo order for the jewelry-front photo instead of asking for another upload. The handler uploads the photo from chat automatically.`,
+          message: `I still need the design name and collection for ${itemNumber} before I can save it.`,
         }
       }
       if (err.code === 'NEEDS_COLLECTION') {
@@ -1973,7 +3377,7 @@ async function runSingle(
           code: 'NEEDS_COLLECTION' as const,
           itemNumber,
           requiredFields: ['collectionName'],
-          message: `${itemNumber} is in our database but needs an exact collection name before I can list it. Ask the rep for the exact collection name, then retry with collectionName. Do not guess it from vision.`,
+          message: `What is the exact collection name for ${itemNumber}?`,
         }
       }
     }
@@ -2038,6 +3442,8 @@ async function runBatch(
     runId: string
     supabase: SupabaseClient
     activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
+    latestUserText?: string | null
+    latestUserHasImage?: boolean
   },
   admin: SupabaseClient,
 ) {
@@ -2049,6 +3455,12 @@ async function runBatch(
       userMessage: 'I need at least one item to add.',
     })
   }
+
+  const photoRequest = items.map((item) => requiredPiecePhotoRequest(
+    ctx.activeTradeBoardWorkflow?.status === 'active' ? ctx.activeTradeBoardWorkflow.photos : [],
+    item.itemNumber, ctx.activeTradeBoardWorkflow?.known.itemNumber,
+  )).find(Boolean)
+  if (photoRequest) return photoRequest
 
   const processedItems: Parameters<typeof addListingBatch>[2]['items'] = []
   const sameVariantBatch = batchRepeatsOneItem({ mode: 'batch', items })
@@ -2069,6 +3481,35 @@ async function runBatch(
       Boolean(item.selectedPhotoId) ||
       item.listingPhotoIndex !== undefined ||
       item.piecePhotoIndex !== undefined
+    if (shareWorkflowJewelry) {
+      const mainPhotoPreview = pendingMainPhotoConfirmation({
+        itemNumber: item.itemNumber,
+        workflow: ctx.activeTradeBoardWorkflow,
+        selectedPhotoId: item.selectedPhotoId,
+        photoIndex: item.listingPhotoIndex ?? item.piecePhotoIndex,
+      })
+      if (mainPhotoPreview) {
+        return mainPhotoPreviewOrReuse({
+          itemNumber: item.itemNumber,
+          workflow: ctx.activeTradeBoardWorkflow,
+          selectedPhotoId: item.selectedPhotoId,
+          photoIndex: item.listingPhotoIndex ?? item.piecePhotoIndex,
+          conversation: {
+            supabase: ctx.supabase,
+            conversationId: ctx.conversationId,
+          },
+          preview: mainPhotoPreview,
+        })
+      }
+    }
+    const batchTurnBlock = decideCustomerFacingSave({
+      latestUserText: ctx.latestUserText,
+      latestUserHasImage: ctx.latestUserHasImage,
+      workflow: ctx.activeTradeBoardWorkflow ?? undefined,
+      itemNumber: item.itemNumber,
+      selectedPhotoId: item.selectedPhotoId,
+    })
+    if (batchTurnBlock) return batchTurnBlock
     const listingPhotoUrl = await processListingPhotoForAdd({
       listingPhotoUrl: item.listingPhotoUrl,
       listingPhotoIndex: item.listingPhotoIndex,
@@ -2165,15 +3606,25 @@ async function runBatch(
         admin,
       )
 
-      if (typeof firstResult.listingId === 'string') {
+      if (
+        'listingId' in firstResult &&
+        typeof firstResult.listingId === 'string'
+      ) {
         recoveredNewDesignAdds.push({
           listingId: firstResult.listingId,
-          itemNumber: firstResult.itemNumber ?? recoveryItem.itemNumber,
+          itemNumber:
+            typeof firstResult.itemNumber === 'string'
+              ? firstResult.itemNumber
+              : recoveryItem.itemNumber,
           designName:
-            'designName' in firstResult
+            'designName' in firstResult &&
+            typeof firstResult.designName === 'string'
               ? firstResult.designName
               : (recoveryItem.designName ?? ''),
-          status: firstResult.status ?? 'available',
+          status:
+            'status' in firstResult && typeof firstResult.status === 'string'
+              ? firstResult.status
+              : 'available',
         })
         recoveredVariantKeys.add(variantKey)
         retryItems.push(
@@ -2299,6 +3750,53 @@ async function runBatch(
   }
 }
 
+/** Save the previewed upload with the details already stored for this piece. */
+export async function commitPreviewedAddListing(args: {
+  repId: string
+  conversationId: string
+  supabase: SupabaseClient
+  workflow: NonNullable<ToolContext['activeTradeBoardWorkflow']>
+  latestUserText: string
+  previewPhotoId: string
+  messages?: Array<{ role?: string; parts?: unknown }>
+}) {
+  const admin = createAdminClient()
+  const workflow =
+    args.workflow.status === 'active'
+      ? await fillBlankKnownFromPriorSession(args.supabase, args.workflow)
+      : args.workflow
+  const known =
+    workflow.status === 'active'
+      ? recoverStoredPieceDetails(workflow.known, args.messages ?? [])
+      : {}
+  return runSingle(
+    {
+      mode: 'single',
+      itemNumber: known.itemNumber,
+      designName: known.designName,
+      collectionName: known.collectionName,
+      collectionFamily: known.collectionFamily,
+      collectionYear: known.collectionYear,
+      jewelryType: known.jewelryType,
+      material: known.material,
+      mainStone: known.mainStone,
+      ringSize: known.ringSize,
+      rarityClassification: known.rarityClassification,
+      selectedPhotoId: args.previewPhotoId,
+    },
+    {
+      repId: args.repId,
+      conversationId: args.conversationId,
+      runId: `preview-yes-${args.previewPhotoId}`,
+      supabase: args.supabase,
+      activeTradeBoardWorkflow: workflow,
+      latestUserText: args.latestUserText,
+      latestUserHasImage: false,
+    },
+    admin,
+  )
+}
+
 export function makeAddListingTool(ctx: {
   repId: string
   supabase: SupabaseClient
@@ -2306,26 +3804,37 @@ export function makeAddListingTool(ctx: {
   runId: string
   activeTradeBoardWorkflow?: ToolContext['activeTradeBoardWorkflow']
   activeTradeWorkflow?: ToolContext['activeTradeWorkflow']
+  latestUserText?: string | null
+  latestUserHasImage?: boolean
 }) {
   return tool({
     description:
       "Put one or more dancers on the authenticated rep's Dance Floor. Supports one dancer or several at once. " +
-      "Three entry paths are supported: item number, label photo, or item number + label photo. When photos are attached to the conversation, extract the item number and supporting fields from the reveal box via vision before calling — don't ask the rep to type fields you can read off the photo. " +
+      "Every piece requires an uploaded Bomb Party label photo plus a separate jewelry-front photo, in either order. Typed details can fill or confirm fields but never replace either photo. When photos are attached to the conversation, extract the item number and supporting fields from the reveal box via vision before calling — don't ask the rep to type fields you can read off the photo. " +
       "For rings (RG item numbers), capture ringSize before saving. Ring size is usually printed on the box instead of the label; if you cannot read it from a box/details photo, ask the rep for the ring size. " +
       "If the resolved item exists in the jewelry database, pass mode:'single' and itemNumber for one piece, or mode:'batch' and items[] for several pieces at once. " +
       "Every dancer requires the rep's explicit answer to: 'Is this piece a diamond or unicorn?' Pass rarityClassification:'standard' for No, 'diamond' for Diamond, or 'unicorn' for Unicorn. Never infer rarity from a name, description, stone, tag, price, or the word diamond. " +
-      "Order does not matter; use photos and facts in whatever order the rep provides them. Only block on unreadable item details or a genuinely unusable jewelry image. Accept clear rep-provided collection, name, stone, material, and ring size instead of requiring proof photos. " +
+      "If rarity, size, collection, or the design name are already stored for this piece, pass those stored values and do not ask again. " +
+      "Order does not matter; use photos and facts in whatever order the rep provides them. Only block on unreadable item details or a genuinely unusable jewelry image. Accept clear rep-provided collection, name, stone, material, and ring size to fill or confirm fields; the label and jewelry photos are still required. " +
       "Label, box, and back-of-card photos can provide details; the saved listing/canonical image must show the jewelry clearly. Boxed display photos for earrings, rings, necklaces, and similar pieces count as jewelry-front photos when the jewelry is centered, close, and clear, even with Bomb Party packaging visible. Do not treat label/details photos as bad jewelry photos; a label/details photo is only a label/details photo, and visible jewelry in that label/details photo does not satisfy the jewelry photo requirement. If the only uploaded image is a label/details or back-of-card photo, ask for the first customer-facing jewelry photo. Do not ask for unboxed, no-packaging, or plain-background retakes. Do not ask for retakes without the box/card or on a plain surface. Select the app-owned workflow photo with selectedPhotoId when available; otherwise use listingPhotoIndex or piecePhotoIndex. Never copy or reuse a raw photo URL from another piece. Ask for another photo only when you cannot tell which attached image is the jewelry-front photo. " +
       "If the item isn't in the Sparkle Suite jewelry database, the tool returns needsAction:'create_design'. Use vision to extract designName and readable metadata, and use clear rep-provided fields. Birthday collection names must include the year. For Birthday boxes like 'Birthday Collection March 2026', use collectionName:'March Birthday 2026' and collectionYear:2026 when clear. The handler uploads the photo from chat automatically. " +
       "If the item exists but has no collection assigned, the tool returns needsAction:'provide_collection' (NEEDS_COLLECTION). Ask the rep for the exact collection name, then retry with collectionName. Do not guess it from vision. " +
-      "If an item number is already on the rep's board, treat that as physical inventory, not a catalog duplicate: confirm whether this is an identical additional physical piece. After confirmation, add it to the same dancer and report the updated quantity available; a different material, main stone/color, size, photo, note, or trade preference remains a separate dancer. The same item number can ship as different finish or stone — those are separate listings and must keep their own jewelry-front photo. Never reuse one listing's photo across another listing just because the item numbers match. " +
+      "If an item number is already on the rep's board, treat that as physical inventory, not a catalog duplicate: confirm whether this is an identical additional physical piece. After confirmation, add it to the same dancer and report the updated quantity available; a different material, main stone/color, size, photo, note, or swap preference remains a separate dancer. The same item number can ship as different finish or stone — those are separate listings and must keep their own jewelry-front photo. Never reuse one listing's photo across another listing just because the item numbers match. " +
       "Batch mode sorts results into ready adds plus pending needCollection and needFullInfo buckets.",
     inputSchema,
     execute: async (input) => {
       const admin = createAdminClient()
 
       if (input.mode === 'single') {
-        return await runSingle(input, ctx, admin)
+        return await runSingle(
+          input,
+          {
+            ...ctx,
+            latestUserText: ctx.latestUserText,
+            latestUserHasImage: ctx.latestUserHasImage,
+          },
+          admin,
+        )
       }
       if (await shouldCollapseRepeatedBatchToSingle(input, ctx)) {
         const firstItem = input.items?.[0]
@@ -2355,5 +3864,7 @@ export const addListingTool: ToolDefinition = {
       runId: ctx.runId,
       activeTradeBoardWorkflow: ctx.activeTradeBoardWorkflow,
       activeTradeWorkflow: ctx.activeTradeWorkflow,
+      latestUserText: ctx.latestUserText,
+      latestUserHasImage: ctx.latestUserHasImage,
     }),
 }

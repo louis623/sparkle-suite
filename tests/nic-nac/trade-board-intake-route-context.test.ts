@@ -6,8 +6,12 @@ import {
   mergeWorkflowToolIntents,
   reconcileDeclaredPhotoRoleWithWorkflow,
 } from '@/lib/nic-nac/workflows/trade-board-intake-context'
+import { analyzeServerImageQuality } from '@/lib/services/server-image-quality'
 import { renderTradeBoardIntakePromptState } from '@/lib/nic-nac/workflows/trade-board-intake-prompt'
 import type { TradeBoardIntakePromptState } from '@/lib/nic-nac/workflows/trade-board-intake-types'
+
+// Classification boundary: these routing fixtures represent inspected clear images.
+vi.mock('@/lib/services/server-image-quality',()=>({analyzeServerImageQuality:vi.fn(async()=>({contentType:'image/jpeg',width:1200,height:1200,blurRisk:0.1,lightingRisk:0.1,detailRisk:0.1,backgroundDistractionRisk:0.1,subjectCoverage:0.55,subjectCentered:true,subjectCenterX:0.5,subjectCenterY:0.5,detailConfidence:0.9,backgroundUniformity:0.9,backgroundCleanliness:0.9}))}))
 
 describe('Dance Floor intake route context', () => {
   it('inherits label_details role after Nic-Nac asks for a label/details photo', () => {
@@ -252,6 +256,7 @@ describe('Dance Floor intake route context', () => {
   })
 
   it('leaves both same-turn photos unknown after a jewelry ask when visuals are uncertain', async () => {
+    vi.mocked(analyzeServerImageQuality).mockRejectedValueOnce(new Error('uncertain')).mockRejectedValueOnce(new Error('uncertain'))
     const sessionRow = {
       id: 'workflow-1',
       rep_id: 'rep-1',
@@ -484,6 +489,14 @@ describe('Dance Floor intake route context', () => {
       limit: vi.fn(() => activeBuilder),
       maybeSingle: vi.fn(() => ({ data: null, error: null })),
     }
+    const notesBuilder = {
+      select: vi.fn(() => notesBuilder),
+      eq: vi.fn(() => notesBuilder),
+      in: vi.fn(() => notesBuilder),
+      order: vi.fn(() => notesBuilder),
+      limit: vi.fn(() => notesBuilder),
+      maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+    }
     const createBuilder = {
       insert: vi.fn(() => createBuilder),
       select: vi.fn(() => createBuilder),
@@ -505,7 +518,8 @@ describe('Dance Floor intake route context', () => {
           ([name]) => name === 'trade_board_intake_sessions',
         ).length
         if (sessionCallCount === 1) return activeBuilder
-        if (sessionCallCount === 2) return createBuilder
+        if (sessionCallCount === 2) return notesBuilder
+        if (sessionCallCount === 3) return createBuilder
         return updateBuilder
       }),
     }
@@ -535,6 +549,142 @@ describe('Dance Floor intake route context', () => {
       workflowIntents: ['trade_board', 'catalog'],
       toolPolicySource: 'active_workflow',
     })
+  })
+
+  it('does not start piece tracking when the first turn is only a label photo', async () => {
+    const activeBuilder = {
+      select: vi.fn(() => activeBuilder),
+      eq: vi.fn(() => activeBuilder),
+      in: vi.fn(() => activeBuilder),
+      gt: vi.fn(() => activeBuilder),
+      order: vi.fn(() => activeBuilder),
+      limit: vi.fn(() => activeBuilder),
+      maybeSingle: vi.fn(() => ({ data: null, error: null })),
+    }
+    const createBuilder = {
+      insert: vi.fn(() => {
+        throw new Error('should not create a new workflow')
+      }),
+    }
+    const workflowSupabase = {
+      from: vi.fn((table: string) => {
+        if (table !== 'trade_board_intake_sessions') {
+          throw new Error(`Unexpected table ${table}`)
+        }
+        const sessionCallCount = workflowSupabase.from.mock.calls.filter(
+          ([name]) => name === 'trade_board_intake_sessions',
+        ).length
+        return sessionCallCount === 1 ? activeBuilder : createBuilder
+      }),
+    }
+    const labelUrl = 'data:image/jpeg;base64,TEFCRUw='
+
+    const context = await getOrCreateTradeBoardIntakeContext({
+      supabase: workflowSupabase as never,
+      workflowSupabase: workflowSupabase as never,
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      messages: [
+        {
+          id: 'label-only',
+          role: 'user',
+          parts: [{ type: 'file', mediaType: 'image/jpeg', url: labelUrl }],
+        } as UIMessage,
+      ],
+      latestUserMessageId: 'label-only',
+      mode: 'workspace',
+      nowIso: '2026-09-18T00:00:00.000Z',
+    } as never)
+
+    expect(context).toMatchObject({
+      sessionAfter: null,
+      workflowIntents: [],
+      toolPolicySource: 'latest_turn_intent',
+    })
+    expect(createBuilder.insert).not.toHaveBeenCalled()
+  })
+
+  it('stores a label sent alone while a Dance Floor intake is already open', async () => {
+    const sessionRow = {
+      id: 'workflow-1',
+      rep_id: 'rep-1',
+      conversation_id: 'conv-1',
+      workflow_type: 'trade_board_add_listing',
+      status: 'active',
+      current_phase: 'photo_capture',
+      item_number: 'NK60295',
+      missing_fields: ['jewelryFrontPhoto'],
+      hard_blockers: [],
+      soft_warnings: [],
+    }
+    const activeBuilder = {
+      select: vi.fn(() => activeBuilder),
+      eq: vi.fn(() => activeBuilder),
+      in: vi.fn(() => activeBuilder),
+      gt: vi.fn(() => activeBuilder),
+      order: vi.fn(() => activeBuilder),
+      limit: vi.fn(() => activeBuilder),
+      maybeSingle: vi.fn(() => ({ data: sessionRow, error: null })),
+    }
+    const selectPhotosBuilder = {
+      select: vi.fn(() => selectPhotosBuilder),
+      eq: vi.fn(() => selectPhotosBuilder),
+      order: vi.fn(() => ({ data: [], error: null })),
+    }
+    const upsertPhotoBuilder = {
+      upsert: vi.fn(() => ({ error: null })),
+    }
+    const updateBuilder = {
+      update: vi.fn(() => updateBuilder),
+      eq: vi.fn(() => ({ error: null })),
+    }
+    const workflowSupabase = {
+      from: vi.fn((table: string) => {
+        const callsForTable = workflowSupabase.from.mock.calls.filter(
+          ([name]) => name === table,
+        ).length
+        if (table === 'trade_board_intake_sessions') {
+          return callsForTable === 1 ? activeBuilder : updateBuilder
+        }
+        if (table === 'trade_board_intake_photos') {
+          return callsForTable === 1 ? selectPhotosBuilder : upsertPhotoBuilder
+        }
+        throw new Error(`Unexpected table ${table}`)
+      }),
+    }
+    const labelUrl = 'data:image/jpeg;base64,TEFCRUw='
+
+    const context = await getOrCreateTradeBoardIntakeContext({
+      supabase: workflowSupabase as never,
+      workflowSupabase: workflowSupabase as never,
+      repId: 'rep-1',
+      conversationId: 'conv-1',
+      messages: [
+        {
+          id: 'label-during-intake',
+          role: 'user',
+          parts: [{ type: 'file', mediaType: 'image/jpeg', url: labelUrl }],
+        } as UIMessage,
+      ],
+      latestUserMessageId: 'label-during-intake',
+      mode: 'workspace',
+      nowIso: '2026-09-18T00:00:00.000Z',
+    } as never)
+
+    expect(context.sessionAfter?.id).toBe('workflow-1')
+    expect(context.sessionAfter?.photos).toEqual([
+      expect.objectContaining({
+        attachmentIndex: 1,
+        imageUrl: labelUrl,
+      }),
+    ])
+    expect(upsertPhotoBuilder.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        session_id: 'workflow-1',
+        image_url: labelUrl,
+      }),
+      { onConflict: 'session_id,conversation_message_id,attachment_index' },
+    )
   })
 
   it('does not start a blank add-listing workflow for a post-completion follow-up photo', async () => {
@@ -711,11 +861,12 @@ describe('Dance Floor intake route context', () => {
       material: 'Rhodium Plating',
       rarityClassification: 'standard',
     })
-    expect(context.sessionAfter?.phase).toBe('ready_to_add')
-    expect(context.sessionAfter?.missing).toEqual([])
+    expect(context.sessionAfter?.phase).toBe('photo_capture')
+    expect(context.sessionAfter?.missing).toEqual(['labelDetailsPhoto'])
     expect(context.sessionAfter?.metadata).toEqual({
       failureCount: 1,
       lastFailure: { code: 'object_exists', stage: 'storage_upload' },
+      openedOnMessageId: 'user-1',
     })
     expect(updateBuilder.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -725,12 +876,13 @@ describe('Dance Floor intake route context', () => {
         main_stone: 'Lab-Created Ruby',
         material: 'Rhodium Plating',
         rarity_classification: 'standard',
-        current_phase: 'ready_to_add',
-        missing_fields: [],
+        current_phase: 'photo_capture',
+        missing_fields: ['labelDetailsPhoto'],
         metadata: {
           failureCount: 1,
           lastFailure: { code: 'object_exists', stage: 'storage_upload' },
           duplicatePhysicalConfirmed: false,
+          openedOnMessageId: 'user-1',
         },
       }),
     )
@@ -885,7 +1037,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'label_or_packaging',
             role_confirmed: true,
             image_url: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: ['declared as label/details source'],
           },
@@ -1028,7 +1180,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'label_or_packaging',
             role_confirmed: true,
             image_url: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: ['declared as label/details source'],
           },
@@ -1039,7 +1191,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'uncertain',
             role_confirmed: false,
             image_url: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: [],
           },
@@ -1156,7 +1308,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'label_or_packaging',
             role_confirmed: true,
             image_url: 'data:image/jpeg;base64,TEFCRUw=',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: ['declared as label/details source'],
           },
@@ -1167,7 +1319,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'uncertain',
             role_confirmed: false,
             image_url: 'data:image/jpeg;base64,SkVXRUxSWQ==',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: [],
           },
@@ -1235,7 +1387,7 @@ describe('Dance Floor intake route context', () => {
     expect(context.sessionAfter?.phase).toBe('ready_to_add')
   })
 
-  it('promotes the latest unknown photo when the rep asks Nic-Nac to push through a visually accepted front photo', async () => {
+  it('promotes the latest unknown photo when the rep says yes to a visually accepted front photo', async () => {
     const sessionRow = {
       id: 'workflow-1',
       rep_id: 'rep-1',
@@ -1273,7 +1425,7 @@ describe('Dance Floor intake route context', () => {
             visual_role: 'uncertain',
             role_confirmed: false,
             image_url: 'data:image/jpeg;base64,RVIxODAxMl9GUk9OVA==',
-            quality: 'unknown',
+            quality: 'usable',
             quality_issues: [],
             notes: [],
           },
@@ -1326,7 +1478,7 @@ describe('Dance Floor intake route context', () => {
           parts: [
             {
               type: 'text',
-              text: "Push it through, please. It's a good photo.",
+              text: 'Yes',
             },
           ],
         } as UIMessage,
@@ -1342,8 +1494,8 @@ describe('Dance Floor intake route context', () => {
       roleConfirmed: true,
       imageUrl: 'data:image/jpeg;base64,RVIxODAxMl9GUk9OVA==',
     })
-    expect(context.sessionAfter?.missing).toEqual([])
-    expect(context.sessionAfter?.phase).toBe('ready_to_add')
+    expect(context.sessionAfter?.missing).toEqual(['labelDetailsPhoto'])
+    expect(context.sessionAfter?.phase).toBe('photo_capture')
     expect(upsertPhotoBuilder.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         conversation_message_id: 'earrings-msg-1',

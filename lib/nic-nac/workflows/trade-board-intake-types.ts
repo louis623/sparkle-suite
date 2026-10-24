@@ -84,6 +84,7 @@ export interface TradeBoardIntakeKnownFields {
 
 export interface TradeBoardIntakePhotoState {
   id?: string
+  intakeSessionId?: string
   conversationMessageId?: string
   attachmentIndex: number
   declaredRole: TradeBoardPhotoDeclaredRole
@@ -142,4 +143,6 @@ export interface TradeBoardIntakePromptState {
   blockers: string[]
   nextAction: TradeBoardIntakeNextAction
   hardRules: string[]
+  pieceNotes?: string[]
+  unfinishedQuestion?: string | null
 }

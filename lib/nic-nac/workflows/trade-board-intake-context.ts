@@ -1,3 +1,7 @@
+import 'server-only'
+
+import { lastShownMainPhotoPreview } from './main-photo-preview'
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createHash } from 'crypto'
 import type { UIMessage } from 'ai'
@@ -12,7 +16,13 @@ import {
   extractKnownFieldsFromCatalogToolOutputs,
   extractKnownFieldsFromText,
   mergeTradeBoardKnownFields,
+  rarityFromConversation,
 } from './trade-board-known-fields'
+import { acceptResentProductPhoto } from './jewelry-main-photo'
+import {
+  decideLabelItemNumber,
+  readStoredLabelItemNumbers,
+} from './label-item-number'
 import {
   buildTradeBoardIntakePromptState,
   computeTradeBoardIntakeReadiness,
@@ -26,16 +36,39 @@ import type {
   TradeBoardPhotoVisualRole,
 } from './trade-board-intake-types'
 import {
+  EMPTY_PIECE_MODEL_CONTEXT,
+  assistantIsResumingUnfinishedPiece,
+  decidePieceClose,
+  pieceCarryNote,
+  pieceNoteList,
+  pieceTurnBoundary,
+  repConfirmedPrintedLabelNumber,
+  unfinishedPieceQuestion,
+  type PieceModelContext,
+} from '@/lib/nic-nac/piece-task'
+import {
   createTradeBoardIntakeSession,
+  fillBlankKnownFromPriorSession,
   getActiveTradeBoardIntakeSession,
+  readLatestClosedPieceNotes,
   updateTradeBoardIntakeSession,
   upsertTradeBoardIntakePhoto,
 } from './trade-board-intake-store'
+import {
+  hashDataImageUrl,
+  mainPhotoConfirmationIdentity,
+  photoConfirmationPieceKey,
+} from './photo-reuse-guard'
 import { isExplicitTradeBoardAddRequest } from './trade-board-add-intent'
 import {
   assignDeclaredPhotoRolesForTurn,
+  bindMainPhotoForTurn,
   inferRoleFromText,
+  separateLabelFromJewelry,
+  REP_CONFIRMED_MAIN_PHOTO_NOTE,
   stampSoleReadinessJewelryFrontCandidate,
+  SUBJECT_CUT_OFF_ISSUE,
+  TURNED_DOWN_MAIN_PHOTO_NOTE,
 } from './workflow-photo-roles'
 
 export { reconcileDeclaredPhotoRoleWithWorkflow } from './workflow-photo-roles'
@@ -93,6 +126,7 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
   workflowIntents: NicNacToolIntent[]
   toolPolicySource: TradeBoardIntakeToolPolicySource
   workflowPromptState: string
+  modelPieceContext: PieceModelContext
 }> {
   if (args.mode !== 'workspace') {
     return emptyWorkflowContext('mode_required_setup')
@@ -108,17 +142,120 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
             conversationId: args.conversationId,
             nowIso: args.nowIso,
           })
-    const shouldStart = existing !== null || hasTradeBoardIntakeSignal(args.messages)
+    const latestUserIndex = findLatestUserMessageIndex(args.messages)
+    const latestUser =
+      latestUserIndex === -1 ? undefined : args.messages[latestUserIndex]
+    const latestText = getMessageText(latestUser)
+    const previousAssistantText = getMessageText(
+      args.messages
+        .slice(0, Math.max(latestUserIndex, 0))
+        .reverse()
+        .find((message) => message.role === 'assistant'),
+    )
+    let session = existing
+    let inheritedNotes: string[] | null = null
+    let unfinishedQuestion: string | null = null
+    if (session?.status === 'active') {
+      const boundary = pieceTurnBoundary({
+        latestUserText: latestText,
+        previousAssistantText,
+        activeItemNumber: session.known.itemNumber,
+        latestTurnIsPhotoConfirmation:
+          isPositiveConfirmation(latestText) ||
+          isNegativePhotoConfirmation(latestText),
+      })
+      if (boundary.action === 'close') {
+        const note = pieceCarryNote({
+          reason: boundary.reason,
+          itemNumber: session.known.itemNumber,
+          material: session.known.material,
+          jewelryType: session.known.jewelryType,
+          designName: session.known.designName,
+        })
+        const notes = [...pieceNoteList(session.metadata.priorPieceNotes), note].slice(-8)
+        unfinishedQuestion = boundary.askToFinish
+          ? unfinishedPieceQuestion(session.known.itemNumber)
+          : null
+        await updateTradeBoardIntakeSession(workflowSupabase, {
+          sessionId: session.id,
+          patch: {
+            status: 'cancelled',
+            current_phase: 'cancelled',
+            metadata: {
+              ...clearedPieceConfirmation(session.metadata),
+              carryNote: note,
+              priorPieceNotes: notes,
+              pieceClosedReason: boundary.reason,
+            },
+          },
+        })
+        inheritedNotes = notes
+        if (!boundary.startsReplacement) {
+          return {
+            sessionBefore: existing,
+            sessionAfter: null,
+            workflowIntents: [],
+            toolPolicySource: 'latest_turn_intent',
+            workflowPromptState: notes.join('. '),
+            modelPieceContext: {
+              fromMessageId: latestUser?.id ?? null,
+              carryNotes: notes,
+              unfinishedQuestion,
+            },
+          }
+        }
+        session = null
+      }
+    }
+
+    const shouldStart = session !== null || hasTradeBoardIntakeSignal(args.messages)
     if (!shouldStart) {
+      const closedNotes =
+        inheritedNotes ??
+        (await readLatestClosedPieceNotes(workflowSupabase, {
+          repId: args.repId,
+          conversationId: args.conversationId,
+        }))
+      const saved = [...closedNotes].reverse().find((note) => note.startsWith('Saved '))
+      const latestUser = args.messages
+        .slice()
+        .reverse()
+        .find((message) => message.role === 'user')
+      if (saved && decidePieceClose(getMessageText(latestUser)) === 'skipped') {
+        return {
+          ...emptyWorkflowContext('latest_turn_intent'),
+          workflowPromptState: `${saved}. This piece is already on the Dance Floor. Tell the rep that. Do not say it was skipped. If she wants it removed, call remove_listing and let the approval dialog confirm it.`,
+          modelPieceContext: {
+            fromMessageId: latestUser?.id ?? null,
+            carryNotes: closedNotes,
+            unfinishedQuestion: null,
+          },
+        }
+      }
       return emptyWorkflowContext('latest_turn_intent')
     }
 
+    const priorNotes =
+      inheritedNotes ??
+      (session
+        ? pieceNoteList(session.metadata.priorPieceNotes)
+        : await readLatestClosedPieceNotes(workflowSupabase, {
+            repId: args.repId,
+            conversationId: args.conversationId,
+          }))
     const baseSession =
-      existing ??
+      session ??
       (await createTradeBoardIntakeSession(workflowSupabase, {
         repId: args.repId,
         conversationId: args.conversationId,
         lastUserMessageId: args.latestUserMessageId,
+        metadata: {
+          priorPieceNotes: priorNotes,
+          ...(args.latestUserMessageId
+            ? { openedOnMessageId: args.latestUserMessageId }
+            : {}),
+          ...(unfinishedQuestion ? { unfinishedQuestion } : {}),
+        },
       }))
     if (baseSession.status === 'needs_human_review') {
       return {
@@ -129,6 +266,7 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
         workflowPromptState: renderTradeBoardIntakePromptState(
           buildTradeBoardIntakePromptState(baseSession),
         ),
+        modelPieceContext: pieceModelContext(baseSession),
       }
     }
     const ingested = await ingestLatestTradeBoardIntakeTurn(workflowSupabase, {
@@ -144,6 +282,7 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
       workflowIntents: getTradeBoardIntakeToolsRequired(ingested),
       toolPolicySource: 'active_workflow',
       workflowPromptState: renderTradeBoardIntakePromptState(promptState),
+      modelPieceContext: pieceModelContext(ingested),
     }
   } catch (err) {
     if (isMissingWorkflowSchemaError(err)) {
@@ -156,10 +295,15 @@ export async function getOrCreateTradeBoardIntakeContext(args: {
   }
 }
 
+const ADD_PIECE_PHOTO_ASK =
+  /\b(?:photo|image|shot|picture|label)s?\b[\s\S]{0,80}\bfor this piece\b|\bfor this piece\b[\s\S]{0,80}\b(?:photo|image|shot|picture|label)s?\b/i
+
 export function hasTradeBoardIntakeSignal(messages: UIMessage[]): boolean {
-  const latestUser = [...messages].reverse().find((message) => message.role === 'user')
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  const latestUser = latestUserIndex === -1 ? undefined : messages[latestUserIndex]
   const text = getMessageText(latestUser)
-  const previousAssistant = [...messages]
+  const previousAssistant = messages
+    .slice(0, Math.max(latestUserIndex, 0))
     .reverse()
     .find((message) => message.role === 'assistant')
   const assistantText = getMessageText(previousAssistant)
@@ -172,13 +316,16 @@ export function hasTradeBoardIntakeSignal(messages: UIMessage[]): boolean {
     return false
   }
 
+  if (hasExplicitTradeBoardAddSignal(text) || /\b[A-Z]{1,4}\d{3,}\b/.test(text)) {
+    return true
+  }
+
+  // A photo starts a piece only while one is being added. A photo in ordinary
+  // chat, or a label sent with no add in progress, does not open an intake.
   return (
-    hasExplicitTradeBoardAddSignal(text) ||
-    /\b[A-Z]{1,4}\d{3,}\b/.test(text) ||
-    (hasImage &&
-      /\b(label|details|tag|jewelry|customer-facing|dance floor|add a piece)\b/i.test(
-        assistantText,
-      ))
+    hasImage &&
+    (ADD_PIECE_PHOTO_ASK.test(assistantText) ||
+      assistantIsResumingUnfinishedPiece(assistantText))
   )
 }
 
@@ -262,13 +409,48 @@ export async function ingestLatestTradeBoardIntakeTurn(
       .reverse()
       .find((message) => message.role === 'assistant'),
   )
+  let metadata = { ...args.session.metadata }
+  if (typeof metadata.openedOnMessageId !== 'string' || !metadata.openedOnMessageId) {
+    metadata.openedOnMessageId =
+      args.session.photos.find((photo) => photo.conversationMessageId)
+        ?.conversationMessageId ??
+      args.latestUserMessageId ??
+      latestUser.id
+  }
+  const openedOnMessageId = metadata.openedOnMessageId as string
+  const openedIndex = args.messages.findIndex(
+    (message) => message.id === openedOnMessageId,
+  )
+  const pieceMessages =
+    openedIndex === -1 ? args.messages : args.messages.slice(openedIndex)
   let known = mergeTradeBoardKnownFields(
     mergeTradeBoardKnownFields(
       args.session.known,
-      extractKnownFieldsFromCatalogToolOutputs(args.messages),
+      extractKnownFieldsFromCatalogToolOutputs(pieceMessages),
     ),
     extractKnownFieldsFromText(latestUserText),
   )
+  const rememberedRarity = rarityFromConversation(args.messages)
+  if (rememberedRarity && !known.rarityClassification) {
+    known = { ...known, rarityClassification: rememberedRarity }
+  }
+  const carried = await fillBlankKnownFromPriorSession(supabase, {
+    ...args.session,
+    known,
+  })
+  known = carried.known
+  if (
+    repConfirmedPrintedLabelNumber({
+      latestUserText,
+      previousAssistantText,
+      itemNumber: known.itemNumber,
+    })
+  ) {
+    metadata = {
+      ...metadata,
+      labelItemNumberConfirmed: known.itemNumber?.toUpperCase(),
+    }
+  }
   if (
     latestTurnConfirmsAdditionalPhysicalPiece({
       latestUserText,
@@ -283,7 +465,8 @@ export async function ingestLatestTradeBoardIntakeTurn(
     previousAssistantText,
     hasItemNumber: Boolean(known.itemNumber),
   })
-  const photos = [...args.session.photos]
+  let photos = [...args.session.photos]
+  const photosBeforeThisTurn = photos.length
   const fileParts = (latestUser.parts ?? []).filter(
     (part) =>
       (part as { type?: string; mediaType?: string }).type === 'file' &&
@@ -314,12 +497,9 @@ export async function ingestLatestTradeBoardIntakeTurn(
           qualityIssues: [],
         } satisfies InspectedWorkflowPhoto),
     )
-    const visualRole =
-      declaredRole === 'jewelry_front' &&
-      inspected.visualRole === 'label_or_packaging'
-        ? 'uncertain'
-        : inspected.visualRole
-    const photo = {
+    const visualRole = inspected.visualRole
+    const drafted: TradeBoardIntakeSessionState['photos'][number] = {
+      intakeSessionId: args.session.id,
       conversationMessageId: args.latestUserMessageId ?? latestUser.id,
       attachmentIndex: index + 1,
       declaredRole,
@@ -338,7 +518,109 @@ export async function ingestLatestTradeBoardIntakeTurn(
             ? ['declared as customer-facing jewelry photo']
             : [],
     }
+    const photo = assistantIsResumingUnfinishedPiece(previousAssistantText)
+      ? acceptResentProductPhoto(drafted)
+      : drafted
     photos.push(photo)
+    const savedId = await upsertTradeBoardIntakePhoto(supabase, {
+      sessionId: args.session.id,
+      repId: args.session.repId,
+      conversationId: args.session.conversationId,
+      conversationMessageId: photo.conversationMessageId,
+      attachmentIndex: photo.attachmentIndex,
+      declaredRole: photo.declaredRole,
+      visualRole: photo.visualRole,
+      roleConfirmed: photo.roleConfirmed,
+      imageUrl: photo.imageUrl,
+      quality: photo.quality,
+      qualityScore: photo.qualityScore,
+      qualityIssues: photo.qualityIssues,
+      notes: photo.notes,
+      contentSha256: photo.contentSha256,
+      visualRoleSource: photo.visualRoleSource,
+    })
+    if (savedId) photo.id = savedId
+  }
+
+  if (fileParts.length > 0 && known.itemNumber) {
+    try {
+      const reads = await Promise.all(
+        fileParts.map(async (_filePart, index) => {
+          const photo = photos[photosBeforeThisTurn + index]
+          if (!photo?.imageUrl) return []
+          return readStoredLabelItemNumbers({
+            url: photo.imageUrl,
+            allowVision:
+              fileParts.length >= 2 ||
+              photo.visualRole === 'label_or_packaging' ||
+              photo.declaredRole === 'label_details',
+          })
+        }),
+      )
+      const decision = decideLabelItemNumber({
+        itemNumber: known.itemNumber,
+        readItemNumbers: reads.flat(),
+      })
+      if (decision.blocked) {
+        metadata = {
+          ...metadata,
+          labelItemNumberMismatch: decision.labelItemNumber,
+          labelMismatchMessageId: args.latestUserMessageId ?? latestUser.id,
+        }
+      }
+      for (const [index, numbers] of reads.entries()) {
+        const photo = photos[photosBeforeThisTurn + index]
+        if (!photo || numbers.length === 0) continue
+        const printed = numbers.map((number) => `printed-item:${number}`)
+        photo.notes = [...photo.notes, ...printed]
+        await upsertTradeBoardIntakePhoto(supabase, {
+          sessionId: args.session.id,
+          repId: args.session.repId,
+          conversationId: args.session.conversationId,
+          conversationMessageId: photo.conversationMessageId,
+          attachmentIndex: photo.attachmentIndex,
+          declaredRole: photo.declaredRole,
+          visualRole: photo.visualRole,
+          roleConfirmed: photo.roleConfirmed,
+          imageUrl: photo.imageUrl,
+          quality: photo.quality,
+          qualityScore: photo.qualityScore,
+          qualityIssues: photo.qualityIssues,
+          notes: photo.notes,
+          contentSha256: photo.contentSha256,
+          visualRoleSource: photo.visualRoleSource,
+        })
+      }
+    } catch {
+      // A failed label read does not reject the jewelry photo.
+    }
+  }
+
+  const gatedNotes = photos.map(
+    (photo) =>
+      `${photo.declaredRole}|${photo.visualRole}|${photo.quality}|${photo.notes.join('|')}`,
+  )
+  separateLabelFromJewelry(photos, photosBeforeThisTurn)
+
+  const gated = bindMainPhotoForTurn({
+    photos,
+    newPhotoStart: photosBeforeThisTurn,
+    itemNumber: known.itemNumber,
+    jewelryType: known.jewelryType,
+    metadata,
+    previousAssistantText,
+  })
+  photos = gated.photos
+  metadata = gated.metadata
+  for (let index = 0; index < photos.length; index += 1) {
+    const photo = photos[index]
+    if (!photo) continue
+    if (
+      gatedNotes[index] ===
+      `${photo.declaredRole}|${photo.visualRole}|${photo.quality}|${photo.notes.join('|')}`
+    ) {
+      continue
+    }
     await upsertTradeBoardIntakePhoto(supabase, {
       sessionId: args.session.id,
       repId: args.session.repId,
@@ -384,6 +666,8 @@ export async function ingestLatestTradeBoardIntakeTurn(
         qualityScore: confirmedPhoto.qualityScore,
         qualityIssues: confirmedPhoto.qualityIssues,
         notes: confirmedPhoto.notes,
+        contentSha256: confirmedPhoto.contentSha256,
+        visualRoleSource: confirmedPhoto.visualRoleSource,
       })
     }
   }
@@ -412,11 +696,130 @@ export async function ingestLatestTradeBoardIntakeTurn(
     })
   }
 
+  const ingestedNewImage = photos.length > photosBeforeThisTurn
+  const declinedSharedPhoto = isNegativePhotoConfirmation(latestUserText) &&
+    /already on|belongs with that set|main photo I will save/i.test(previousAssistantText)
+  // Confirmation belongs to this submitted turn, never an older yes.
+  delete metadata.mainPhotoConfirmedPhotoId
+  delete metadata.mainPhotoConfirmed
+  delete metadata.mainPhotoConfirmedItemNumber
+  if (ingestedNewImage) {
+    if (declinedSharedPhoto) {
+      metadata.declinedSharedPhoto = true
+      for (let index = 0; index < photosBeforeThisTurn; index += 1) {
+        const photo = photos[index]
+        if (!photo?.imageUrl || photo.declaredRole === 'label_details') continue
+        if (photo.notes.includes(TURNED_DOWN_MAIN_PHOTO_NOTE)) continue
+        const turnedDown = {
+          ...photo,
+          notes: [...photo.notes, TURNED_DOWN_MAIN_PHOTO_NOTE],
+        }
+        photos[index] = turnedDown
+        await upsertTradeBoardIntakePhoto(supabase, {
+          sessionId: args.session.id,
+          repId: args.session.repId,
+          conversationId: args.session.conversationId,
+          conversationMessageId: turnedDown.conversationMessageId,
+          attachmentIndex: turnedDown.attachmentIndex,
+          declaredRole: turnedDown.declaredRole,
+          visualRole: turnedDown.visualRole,
+          roleConfirmed: turnedDown.roleConfirmed,
+          imageUrl: turnedDown.imageUrl,
+          quality: turnedDown.quality,
+          qualityScore: turnedDown.qualityScore,
+          qualityIssues: turnedDown.qualityIssues,
+          notes: turnedDown.notes,
+          contentSha256: turnedDown.contentSha256,
+          visualRoleSource: turnedDown.visualRoleSource,
+        })
+      }
+    }
+  } else if (latestTurnConfirmsMainPhoto(args.messages)) {
+    const shownPreview = lastShownMainPhotoPreview(args.messages, photos)
+    const confirmedPhotoId = shownPreview.id
+    const confirmedItemNumber = photoConfirmationPieceKey({
+      itemNumber: mainPhotoConfirmedItemNumber(
+        args.messages,
+        args.session.known.itemNumber,
+      ),
+      catalogMode,
+      intakeId: args.session.id,
+    })
+    if (confirmedPhotoId && confirmedItemNumber) {
+      metadata = {
+        ...metadata,
+        mainPhotoConfirmedPhotoId: confirmedPhotoId,
+        mainPhotoConfirmedItemNumber: confirmedItemNumber,
+      }
+      delete metadata.mainPhotoConfirmed
+    }
+  } else if (latestTurnTurnsDownMainPhoto(args.messages)) {
+    if (declinedSharedPhoto) metadata.declinedSharedPhoto = true
+    const shownPreview = lastShownMainPhotoPreview(args.messages, photos)
+    const turnedDownId = shownPreview.shown
+      ? shownPreview.id
+      : currentMainPhotoIdentity(photos)
+    metadata = recordTurnedDownMainPhoto(metadata, turnedDownId)
+    if (
+      turnedDownId &&
+      metadata.mainPhotoConfirmedPhotoId === turnedDownId
+    ) {
+      delete metadata.mainPhotoConfirmedPhotoId
+      delete metadata.mainPhotoConfirmed
+      delete metadata.mainPhotoConfirmedItemNumber
+    }
+    if (turnedDownId) {
+      for (let index = 0; index < photos.length; index += 1) {
+        const photo = photos[index]
+        if (!photo || !photoMatchesPreviewId(photo, turnedDownId)) continue
+        if (photo.notes.includes(TURNED_DOWN_MAIN_PHOTO_NOTE)) continue
+        const turnedDown = {
+          ...photo,
+          notes: [...photo.notes, TURNED_DOWN_MAIN_PHOTO_NOTE],
+        }
+        photos[index] = turnedDown
+        await upsertTradeBoardIntakePhoto(supabase, {
+          sessionId: args.session.id,
+          repId: args.session.repId,
+          conversationId: args.session.conversationId,
+          conversationMessageId: turnedDown.conversationMessageId,
+          attachmentIndex: turnedDown.attachmentIndex,
+          declaredRole: turnedDown.declaredRole,
+          visualRole: turnedDown.visualRole,
+          roleConfirmed: turnedDown.roleConfirmed,
+          imageUrl: turnedDown.imageUrl,
+          quality: turnedDown.quality,
+          qualityScore: turnedDown.qualityScore,
+          qualityIssues: turnedDown.qualityIssues,
+          notes: turnedDown.notes,
+          contentSha256: turnedDown.contentSha256,
+          visualRoleSource: turnedDown.visualRoleSource,
+        })
+      }
+    }
+  }
+  if (latestTurnConfirmsPhotoSet(args.messages)) {
+    const confirmedSha = flaggedPhotoSetSha(args.messages, photos)
+    const confirmedItemNumber = photoConfirmationPieceKey({
+      itemNumber: setAskItemNumber(args.messages),
+      catalogMode,
+      intakeId: args.session.id,
+    })
+    if (confirmedSha && confirmedItemNumber) {
+      metadata = {
+        ...metadata,
+        photoSetReuseConfirmedSha: confirmedSha,
+        photoSetReuseConfirmedItemNumber: confirmedItemNumber,
+      }
+      delete metadata.photoSetReuseConfirmed
+    }
+  }
   const updated: TradeBoardIntakeSessionState = {
     ...args.session,
     catalogMode,
     known,
     photos,
+    metadata,
     lastUserMessageId: args.latestUserMessageId ?? latestUser.id,
   }
   const readiness = computeTradeBoardIntakeReadiness(updated)
@@ -475,6 +878,38 @@ function emptyWorkflowContext(
     workflowIntents: [],
     toolPolicySource,
     workflowPromptState: '',
+    modelPieceContext: EMPTY_PIECE_MODEL_CONTEXT,
+  }
+}
+
+function clearedPieceConfirmation(
+  metadata: Record<string, unknown>,
+): Record<string, unknown> {
+  const next = { ...metadata }
+  for (const key of [
+    'mainPhotoConfirmedPhotoId',
+    'mainPhotoConfirmed',
+    'mainPhotoConfirmedItemNumber',
+    'photoSetReuseConfirmedSha',
+    'photoSetReuseConfirmedItemNumber',
+    'photoSetReuseConfirmed',
+    'labelItemNumberConfirmed',
+    'unfinishedQuestion',
+  ]) {
+    delete next[key]
+  }
+  return next
+}
+
+function pieceModelContext(
+  session: TradeBoardIntakeSessionState,
+): PieceModelContext {
+  const fromMessageId = session.metadata.openedOnMessageId
+  const unfinished = session.metadata.unfinishedQuestion
+  return {
+    fromMessageId: typeof fromMessageId === 'string' ? fromMessageId : null,
+    carryNotes: pieceNoteList(session.metadata.priorPieceNotes),
+    unfinishedQuestion: typeof unfinished === 'string' ? unfinished : null,
   }
 }
 
@@ -533,6 +968,17 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
     if (photo.quality === 'blocked') continue
     if (!photo.imageUrl) continue
     if (photo.declaredRole === 'jewelry_front' && photo.roleConfirmed) {
+      if (
+        photo.visualRole === 'label_or_packaging' &&
+        !photo.notes.includes(REP_CONFIRMED_MAIN_PHOTO_NOTE)
+      ) {
+        const confirmed = {
+          ...photo,
+          notes: [...photo.notes, REP_CONFIRMED_MAIN_PHOTO_NOTE],
+        }
+        args.photos[index] = confirmed
+        return confirmed
+      }
       return photo
     }
     if (photo.declaredRole !== 'unknown' && photo.declaredRole !== 'other') {
@@ -545,7 +991,7 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
       roleConfirmed: true,
       notes: [
         ...photo.notes,
-        'confirmed by rep as customer-facing jewelry photo',
+        REP_CONFIRMED_MAIN_PHOTO_NOTE,
       ],
     }
     args.photos[index] = confirmed
@@ -555,21 +1001,233 @@ function maybeConfirmLatestJewelryFrontPhoto(args: {
   return null
 }
 
-function isPositiveConfirmation(text: string): boolean {
-  return (
-    /\b(?:confirmed|confirm|yes|yep|yeah|correct|that'?s right|that is right|that is correct|exactly|use it|use that|use this(?:\s+(?:photo|shot|image|one))?|good enough)\b/i.test(
-      text,
-    ) ||
-    /\bpush\s+(?:it|that|this|the\s+photo|the\s+shot|the\s+image)\s+through\b/i.test(
-      text,
-    ) ||
-    /\b(?:it'?s|it is|that'?s|that is|this is|photo is|shot is|image is)\s+a?\s*(?:good|great|perfect|usable|clear)\s+(?:photo|shot|image)\b/i.test(
-      text,
-    ) ||
-    /\b(?:good|great|perfect|usable|clear)\s+(?:photo|shot|image)\b/i.test(
-      text,
-    )
+function flaggedPhotoSetSha(
+  messages: UIMessage[],
+  photos: TradeBoardIntakeSessionState['photos'],
+): string | null {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  const previousAssistant =
+    latestUserIndex === -1
+      ? undefined
+      : messages
+          .slice(0, latestUserIndex)
+          .reverse()
+          .find((message) => message.role === 'assistant')
+  for (const part of previousAssistant?.parts ?? []) {
+    const output = (
+      part as {
+        output?: {
+          code?: unknown
+          contentSha256?: unknown
+          photoId?: unknown
+        }
+      }
+    ).output
+    if (output?.code !== 'PHOTO_REUSED_ON_OTHER_ITEM') continue
+    if (typeof output.contentSha256 === 'string' && output.contentSha256.trim()) {
+      return output.contentSha256.trim()
+    }
+    if (typeof output.photoId === 'string' && output.photoId.trim()) {
+      const flagged = photos.find((photo) => photo.id === output.photoId)
+      const sha =
+        flagged?.contentSha256?.trim() || hashDataImageUrl(flagged?.imageUrl)
+      return sha || null
+    }
+    return null
+  }
+  return null
+}
+
+function latestTurnConfirmsPhotoSet(messages: UIMessage[]): boolean {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return false
+  if (hasImagePart(messages[latestUserIndex])) return false
+  if (!isPositiveConfirmation(getMessageText(messages[latestUserIndex]))) return false
+  const previousAssistant = messages
+    .slice(0, latestUserIndex)
+    .reverse()
+    .find((message) => message.role === 'assistant')
+  if (/belongs with that set/i.test(getMessageText(previousAssistant))) return true
+  return (previousAssistant?.parts ?? []).some((part) => {
+    const output = (
+      part as { output?: { code?: string; message?: string } }
+    ).output
+    if (output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM') return true
+    return typeof output?.message === 'string' && /belongs with that set/i.test(output.message)
+  })
+}
+
+function normalizeSavedItemNumber(value: unknown): string {
+  return typeof value === 'string' ? value.trim().toUpperCase() : ''
+}
+
+function itemNumberInSetAsk(text: string): string {
+  const match = text.match(/\bif\s+([A-Za-z]{1,4}-?\d{3,})\s+belongs with that set\b/i)
+  return match?.[1] ? match[1].trim().toUpperCase() : ''
+}
+
+function itemNumberInMainPhotoAsk(text: string): string {
+  const match = text.match(
+    /\bmain photo I will save for\s+([A-Za-z]{1,4}-?\d{3,})\b/i,
   )
+  return match?.[1] ? match[1].trim().toUpperCase() : ''
+}
+
+function previousAssistantBlobs(messages: UIMessage[]): string[] {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return []
+  const previousAssistant = messages
+    .slice(0, latestUserIndex)
+    .reverse()
+    .find((message) => message.role === 'assistant')
+  const blobs = [getMessageText(previousAssistant)]
+  for (const part of previousAssistant?.parts ?? []) {
+    const message = (part as { output?: { message?: unknown } }).output?.message
+    if (typeof message === 'string' && message.trim()) blobs.push(message)
+  }
+  return blobs
+}
+
+function mainPhotoConfirmedItemNumber(
+  messages: UIMessage[],
+  knownItemNumber: unknown,
+): string {
+  for (const blob of previousAssistantBlobs(messages)) {
+    const named = itemNumberInMainPhotoAsk(blob)
+    if (named) return named
+  }
+  return normalizeSavedItemNumber(knownItemNumber)
+}
+
+function setAskItemNumber(messages: UIMessage[]): string {
+  for (const blob of previousAssistantBlobs(messages)) {
+    const named = itemNumberInSetAsk(blob)
+    if (named) return named
+  }
+  return ''
+}
+
+function previousAssistantMessage(
+  messages: UIMessage[],
+): UIMessage | undefined {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return undefined
+  const previous = messages[latestUserIndex - 1]
+  return previous?.role === 'assistant' ? previous : undefined
+}
+
+function photoMatchesPreviewId(
+  photo: TradeBoardIntakeSessionState['photos'][number],
+  previewId: string,
+): boolean {
+  if (photo.id === previewId) return true
+  return mainPhotoConfirmationIdentity(photo) === previewId
+}
+
+function recordTurnedDownMainPhoto(
+  metadata: Record<string, unknown>,
+  turnedDownId: string | null,
+): Record<string, unknown> {
+  if (!turnedDownId) return metadata
+  const existing = Array.isArray(metadata.turnedDownMainPhotoIds)
+    ? metadata.turnedDownMainPhotoIds.filter(
+        (value): value is string =>
+          typeof value === 'string' && value.trim().length > 0,
+      )
+    : []
+  if (existing.includes(turnedDownId)) return metadata
+  return {
+    ...metadata,
+    turnedDownMainPhotoIds: [...existing, turnedDownId],
+  }
+}
+
+function currentMainPhotoIdentity(
+  photos: TradeBoardIntakeSessionState['photos'],
+): string | null {
+  for (let index = photos.length - 1; index >= 0; index -= 1) {
+    const photo = photos[index]
+    if (!photo?.imageUrl?.trim()) continue
+    if (photo.declaredRole === 'label_details') continue
+    if (photo.declaredRole !== 'jewelry_front') continue
+    const identity = mainPhotoConfirmationIdentity(photo)
+    if (identity) return identity
+  }
+  return null
+}
+
+function previousAssistantAskedForMainPhoto(messages: UIMessage[]): boolean {
+  if (lastShownMainPhotoPreview(messages).shown) return true
+  const previousAssistant = previousAssistantMessage(messages)
+  if (/main photo I will save/i.test(getMessageText(previousAssistant))) return true
+  return (previousAssistant?.parts ?? []).some((part) => {
+    const output = (part as { output?: { needsAction?: string } }).output
+    return output?.needsAction === 'confirm_main_photo'
+  })
+}
+
+function latestTurnConfirmsMainPhoto(messages: UIMessage[]): boolean {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return false
+  if (!isPositiveConfirmation(getMessageText(messages[latestUserIndex]))) return false
+  return previousAssistantAskedForMainPhoto(messages)
+}
+
+function latestTurnTurnsDownMainPhoto(messages: UIMessage[]): boolean {
+  const latestUserIndex = findLatestUserMessageIndex(messages)
+  if (latestUserIndex === -1) return false
+  if (!isNegativePhotoConfirmation(getMessageText(messages[latestUserIndex]))) {
+    return false
+  }
+  return previousAssistantAskedForMainPhoto(messages)
+}
+
+const POSITIVE_CONFIRMATION_EMOJI =
+  /(?:\u{1F44D}|\u{1F44C}|\u{1F64C}|\u{1F60A}|\u{1F642}|\u{1F600}|\u{1F601}|\u{2705}|\u{2714})(?:\u{1F3FB}|\u{1F3FC}|\u{1F3FD}|\u{1F3FE}|\u{1F3FF})?\u{FE0F}?/gu
+
+const CONFIRMATION_FILLER = /\b(?:no\s+problem|not\s+bad|nothing\s+wrong)\b/gi
+
+const AFFIRMATIVE_PHRASE =
+  /yes please|yes thank you|yes that(?:'s| is) it|thats right|that(?:'s| is) the one|sounds good|go ahead|all good|yea|yes|yep|yeah|yup|correct|that(?:'s| is) right|that(?:'s| is) correct|looks? good|perfect|confirmed|ok|okay|sure|use (?:it|this|that)(?: (?:one|photo|shot|image))?|(?:this|that) one/i
+
+const ONLY_AFFIRMATIVES = new RegExp(
+  `^(?:${AFFIRMATIVE_PHRASE.source})(?:\\s+(?:${AFFIRMATIVE_PHRASE.source}))*$`,
+  'i',
+)
+
+function normalizeConfirmationText(text: string): string {
+  return text
+    .replace(/[\u2018\u2019\u2032\u02BC`]/g, "'")
+    .replace(/[\u201C\u201D\u2033]/g, '"')
+}
+
+export function isPositiveConfirmation(text: string): boolean {
+  const normalized = normalizeConfirmationText(text).trim()
+  if (!normalized || normalized.includes('?')) return false
+  const withoutEmoji = normalized.replace(POSITIVE_CONFIRMATION_EMOJI, ' ')
+  const hadPositiveEmoji = withoutEmoji !== normalized
+  const remainder = withoutEmoji
+    .replace(CONFIRMATION_FILLER, ' ')
+    .replace(/[!.,…"“”]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!remainder) return hadPositiveEmoji
+  return ONLY_AFFIRMATIVES.test(remainder)
+}
+
+const NEGATIVE_PHOTO_CONFIRMATION =
+  /^(?:no|nope|nah|not that(?: one)?|not this(?: one)?|wrong photo|wrong piece|that(?:'s| is) not it|don'?t use (?:that|this)|do not use (?:that|this))$/i
+
+export function isNegativePhotoConfirmation(text: string): boolean {
+  const normalized = normalizeConfirmationText(text).trim()
+  if (!normalized || normalized.includes('?')) return false
+  const remainder = normalized
+    .replace(CONFIRMATION_FILLER, ' ')
+    .replace(/[!.,…"“”]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!remainder) return false
+  return NEGATIVE_PHOTO_CONFIRMATION.test(remainder)
 }
 
 function assistantAskedToConfirmJewelryFront(text: string): boolean {
@@ -652,6 +1310,11 @@ async function inspectWorkflowPhoto(
       qualityIssues: [
         ...semantic.reasons,
         ...preflight.issues.map((issue) => issue.code),
+        ...((typeof analysis.subjectEdgeContact === 'number' &&
+          analysis.subjectEdgeContact >= 0.03) ||
+        analysis.subjectTouchesFrameEdge === true
+          ? [SUBJECT_CUT_OFF_ISSUE]
+          : []),
       ],
       contentSha256: createHash('sha256').update(bytes).digest('hex'),
       visualRoleSource: 'server_image_analysis_v1',

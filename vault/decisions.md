@@ -1,3 +1,10 @@
+## 2026-10-22 — Nic-Nac requires a label photo and a jewelry photo (PR 141 only)
+
+- Louis explicitly changed the intake rule: every new dancer needs a Bomb Party label photo plus a separate front photo of the jewelry, in either order. Typed item numbers, names, collection, size and other fields remain valid supporting details but cannot replace either photo. A catalog match/canonical image does not waive the uploads. This supersedes older typed-only/no-required-label guidance for Nic-Nac adds.
+- Enforce the requirement in app-owned route/readiness/save state, including single, batch and non-item-number paths. A label remains a details source and must never become the listing's main image. Existing photo classification, selection and quality behavior stays in place.
+- Retired chats must use pending-confirmation state to replace the final pending reply with only the moved-on notice, independent of how the model asks the question. Preserve stored history rows.
+- Authorized scope is edit, test, commit and push on cursor/nicnac-photo-hardening only. These decisions are not a release authorization; no merge, production branch change, deploy or Live operation. Suite will retest the PR.
+
 ## 2026-09-23 - Trade images, MSRP, and Dance Floor presentation
 
 - Customer reveal images are optional. Accept JPEG, PNG, WebP, HEIC, HEIF, and AVIF through 25 MiB by direct private upload; show preview/attachment/failure state, allow text-only submission, and expire normalized rep images after seven days. Preserve the one-item, same-family, same-type rule and rep final decision.

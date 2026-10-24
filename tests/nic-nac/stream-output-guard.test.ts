@@ -387,7 +387,7 @@ describe('Nic-Nac stream output guard', () => {
         ],
       }),
     ).toBe(
-      'I found 1 matching catalog record.\n' +
+      'I found 1 matching piece.\n' +
         '1. The Starlight Earrings (ER12345); not currently on your Dance Floor.',
     )
 

@@ -11,6 +11,42 @@ const logNicNacRolloverMock = vi.fn()
 const createAdminClientMock = vi.fn()
 const adminRpcMock = vi.fn()
 
+function confirmedIntakeRow() {
+  return {
+    id: 'workflow-1',
+    rep_id: 'rep-1',
+    conversation_id: 'conv-source',
+    status: 'active',
+    catalog_mode: 'item_number',
+    current_phase: 'ready_to_add',
+    item_number: 'NK91303',
+    metadata: { mainPhotoConfirmedPhotoId: 'photo-confirmed' },
+  }
+}
+
+function makeAdminClient(session: Record<string, unknown> | null) {
+  return {
+    rpc: adminRpcMock,
+    from(table: string) {
+      const builder: Record<string, unknown> = {}
+      const chain = () => builder
+      builder.select = chain
+      builder.eq = chain
+      builder.in = chain
+      builder.gt = chain
+      builder.limit = chain
+      builder.order = (column: string) => {
+        if (table === 'trade_board_intake_photos' && column === 'created_at') {
+          return Promise.resolve({ data: [], error: null })
+        }
+        return builder
+      }
+      builder.maybeSingle = async () => ({ data: session, error: null })
+      return builder
+    },
+  }
+}
+
 vi.mock('@/lib/nic-nac/auth', () => ({
   AuthError: class AuthError extends Error {},
   getPaidNicNacContext: (...args: unknown[]) =>
@@ -77,7 +113,7 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
     findActionableApprovalMock.mockReturnValue(null)
     insertConversationMessagesMock.mockResolvedValue(undefined)
     deleteConversationMessagesMock.mockResolvedValue(undefined)
-    createAdminClientMock.mockReturnValue({ rpc: adminRpcMock })
+    createAdminClientMock.mockReturnValue(makeAdminClient(confirmedIntakeRow()))
     adminRpcMock.mockImplementation(
       async (_name: string, args: { p_destination_conversation_id: string }) => ({
         data: {
@@ -91,7 +127,7 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
     logNicNacRolloverMock.mockResolvedValue(undefined)
   })
 
-  it('carries the same active workflow into the generated conversation', async () => {
+  it('asks to finish an unfinished piece and does not move its photos', async () => {
     const response = await post(
       new Request('https://www.yoursparklesuite.com/api/nic-nac/conversation/rollover', {
         method: 'POST',
@@ -106,8 +142,8 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
     }
 
     expect(response.status).toBe(200)
-    expect(body.workflowId).toBe('workflow-1')
-    expect(body.carriedMessageCount).toBe(1)
+    expect(body.workflowId).toBeNull()
+    expect(body.carriedMessageCount).toBe(2)
     expect(insertConversationMessagesMock).toHaveBeenCalledWith(
       { marker: 'service-client' },
       expect.objectContaining({
@@ -115,27 +151,68 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
         conversationId: body.conversationId,
       }),
     )
+    const inserted = insertConversationMessagesMock.mock.calls[0]?.[1] as {
+      messages: UIMessage[]
+    }
+    expect(JSON.stringify(inserted.messages)).toContain('I started a fresh chat.')
+    expect(JSON.stringify(inserted.messages)).toContain('Want to finish NK91303?')
+    expect(JSON.stringify(inserted.messages)).toContain('Send the photo again.')
+    expect(JSON.stringify(inserted.messages).match(/I started a fresh chat/g)?.length).toBe(1)
+    expect(JSON.stringify(inserted.messages)).not.toContain('data:image')
     expect(createAdminClientMock).toHaveBeenCalledTimes(1)
-    expect(adminRpcMock).toHaveBeenCalledWith(
-      'rpc_rollover_trade_board_intake_v2',
-      expect.objectContaining({
-        p_rep_id: 'rep-1',
-        p_source_conversation_id: 'conv-source',
-        p_destination_conversation_id: body.conversationId,
-      }),
-    )
+    expect(adminRpcMock).not.toHaveBeenCalled()
   })
 
-  it('replays the first destination instead of orphaning the workflow on a concurrent retry', async () => {
-    adminRpcMock.mockResolvedValueOnce({
-      data: {
-        workflow_id: 'workflow-1',
-        destination_conversation_id: 'conv-first-destination',
-        replayed: true,
-      },
-      error: null,
-    })
+  it('leaves an unconfirmed piece in the old chat', async () => {
+    createAdminClientMock.mockReturnValue(
+      makeAdminClient({
+        ...confirmedIntakeRow(),
+        metadata: {},
+      }),
+    )
+    loadConversationForClientMock.mockResolvedValue([
+      {
+        id: 'pending-preview',
+        role: 'assistant',
+        parts: [
+          {
+            type: 'tool-add_listing',
+            state: 'output-available',
+            output: {
+              needsAction: 'confirm_main_photo',
+              previewPhotoId: 'photo-ring',
+              message: 'This is the main photo I will save for NK90303.',
+            },
+          },
+        ],
+      } as UIMessage,
+    ])
 
+    const response = await post(
+      new Request('https://www.yoursparklesuite.com/api/nic-nac/conversation/rollover', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ conversationId: 'conv-source' }),
+      }),
+    )
+    const body = (await response.json()) as { workflowId: string | null }
+    expect(response.status).toBe(200)
+    expect(body.workflowId).toBeNull()
+    expect(adminRpcMock).not.toHaveBeenCalled()
+    const inserted = insertConversationMessagesMock.mock.calls[0]?.[1] as {
+      messages: UIMessage[]
+    }
+    expect(JSON.stringify(inserted.messages)).not.toContain('confirm_main_photo')
+    expect(JSON.stringify(inserted.messages)).not.toContain('photo-ring')
+    expect(JSON.stringify(inserted.messages)).not.toContain('main photo I will save')
+    expect(JSON.stringify(inserted.messages)).not.toContain(
+      'That earlier photo was not brought into this chat.',
+    )
+    expect(JSON.stringify(inserted.messages).match(/I started a fresh chat/g)?.length).toBe(1)
+    expect(inserted.messages.at(-1)?.id).toBe('rollover-finish-ask')
+  })
+
+  it('does not move the piece when rollover is retried', async () => {
     const response = await post(
       new Request('https://www.yoursparklesuite.com/api/nic-nac/conversation/rollover', {
         method: 'POST',
@@ -149,15 +226,11 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
     }
 
     expect(response.status).toBe(200)
-    expect(body).toMatchObject({
-      conversationId: 'conv-first-destination',
-      workflowId: 'workflow-1',
-    })
-    expect(deleteConversationMessagesMock).toHaveBeenCalledWith(
-      { marker: 'service-client' },
-      expect.objectContaining({ repId: 'rep-1' }),
-    )
-    expect(logNicNacRolloverMock).not.toHaveBeenCalled()
+    expect(body.workflowId).toBeNull()
+    expect(body.conversationId).not.toBe('conv-source')
+    expect(deleteConversationMessagesMock).not.toHaveBeenCalled()
+    expect(adminRpcMock).not.toHaveBeenCalled()
+    expect(logNicNacRolloverMock).toHaveBeenCalled()
   })
 
   it('does not copy messages or workflow state across reps', async () => {
@@ -177,10 +250,29 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
     expect(adminRpcMock).not.toHaveBeenCalled()
   })
 
-  it('removes copied destination messages when workflow transfer fails', async () => {
-    adminRpcMock.mockResolvedValueOnce({
-      data: null,
-      error: new Error('rollover failed'),
+  it('does not start a new chat when the unfinished piece cannot be read', async () => {
+    createAdminClientMock.mockReturnValue({
+      from() {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                in: () => ({
+                  gt: () => ({
+                    order: () => ({
+                      limit: () => ({
+                        maybeSingle: async () => {
+                          throw new Error('intake read failed')
+                        },
+                      }),
+                    }),
+                  }),
+                }),
+              }),
+            }),
+          }),
+        }
+      },
     })
 
     await expect(
@@ -191,11 +283,8 @@ describe.each(routes)('Nic-Nac conversation rollover %s', (_label, post) => {
           body: JSON.stringify({ conversationId: 'conv-source' }),
         }),
       ),
-    ).rejects.toThrow('rollover failed')
+    ).rejects.toThrow('intake read failed')
 
-    expect(deleteConversationMessagesMock).toHaveBeenCalledWith(
-      { marker: 'service-client' },
-      expect.objectContaining({ repId: 'rep-1' }),
-    )
+    expect(insertConversationMessagesMock).not.toHaveBeenCalled()
   })
 })

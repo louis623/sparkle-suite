@@ -1,12 +1,26 @@
 import { z } from 'zod'
 import { tool } from 'ai'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { reportJewelryCatalogIssue } from '@/lib/services/jewelry-catalog-corrections'
 import { ServiceError } from '@/lib/services/errors'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NicNacToolError } from '@/lib/nic-nac/errors'
+import { isPositiveConfirmation } from '@/lib/nic-nac/workflows/trade-board-intake-context'
+import { repAskedToUpdateSharedCatalogImage } from '@/lib/nic-nac/core/stream-output-guard'
+import {
+  hashCustomerPhotoUrl,
+  isApprovedCatalogPhotoUrl,
+  normalizePhotoConfirmationKey,
+  photoConfirmationPieceKey,
+} from '@/lib/nic-nac/workflows/photo-reuse-guard'
+import {
+  mainPhotoPreviewLocator,
+  photoPreviewIsVisible,
+} from '@/lib/nic-nac/workflows/main-photo-preview'
 import { sanitizeCatalogCorrectionFields } from '@/lib/nic-nac/workflows/trade-workflow-sanitizers'
 import { completeTradeWorkflowSession } from '@/lib/nic-nac/workflows/trade-workflow-store'
 import { assertTradeWorkflowInputMatches } from '@/lib/nic-nac/workflows/trade-workflow-tool-guards'
+import { assertCustomerPhotoNotReused } from './add-listing'
 import type { ToolContext, ToolDefinition } from './types'
 
 const inputSchema = z.object({
@@ -63,6 +77,80 @@ function explainServiceError(err: unknown): never {
   throw err
 }
 
+type ConversationPart = {
+  type?: string
+  text?: string
+  mediaType?: string
+  output?: {
+    needsAction?: string
+    code?: string
+    itemNumber?: string
+    previewImageUrl?: string
+    contentSha256?: string
+    pieceKey?: string
+  }
+}
+
+async function conversationConfirmsCatalogPhoto(args: {
+  supabase: SupabaseClient
+  conversationId: string
+  itemNumber: string
+  photoUrl: string
+  contentSha256: string
+  pieceKey: string
+}): Promise<boolean> {
+  try {
+    const { data, error } = await args.supabase
+      .from('nic_nac_conversations')
+      .select('role, parts, created_at')
+      .eq('conversation_id', args.conversationId)
+      .eq('status', 'complete')
+      .order('created_at', { ascending: false })
+      .limit(20)
+    if (error || !Array.isArray(data)) return false
+    const rows = data as Array<{ role?: string; parts?: ConversationPart[] | null }>
+    const latestUserIndex = rows.findIndex((row) => (row.role ?? 'user') === 'user')
+    if (latestUserIndex === -1) return false
+    const latestParts = rows[latestUserIndex]?.parts ?? []
+    if (
+      latestParts.some(
+        (part) =>
+          part.type === 'file' &&
+          typeof part.mediaType === 'string' &&
+          part.mediaType.startsWith('image/'),
+      )
+    ) {
+      return false
+    }
+    const text = latestParts
+      .map((part) => (typeof part.text === 'string' ? part.text : ''))
+      .join('\n')
+    if (!isPositiveConfirmation(text)) return false
+    const assistant = rows.slice(latestUserIndex + 1).find((row) => row.role === 'assistant')
+    const itemNumber = args.itemNumber.trim().toUpperCase()
+    const pieceKey = normalizePhotoConfirmationKey(args.pieceKey)
+    return (assistant?.parts ?? []).some((part) => {
+      const output = part.output
+      if (
+        output?.code === 'PHOTO_REUSED_ON_OTHER_ITEM' &&
+        output.contentSha256?.trim() === args.contentSha256 &&
+        normalizePhotoConfirmationKey(output.pieceKey) === pieceKey &&
+        output.itemNumber?.trim().toUpperCase() === itemNumber
+      ) {
+        return true
+      }
+      return (
+        output?.needsAction === 'confirm_main_photo' &&
+        output.contentSha256?.trim() === args.contentSha256 &&
+        normalizePhotoConfirmationKey(output.pieceKey) === pieceKey &&
+        output.itemNumber?.trim().toUpperCase() === itemNumber
+      )
+    })
+  } catch {
+    return false
+  }
+}
+
 export const reportJewelryCatalogIssueTool: ToolDefinition = {
   name: 'report_jewelry_catalog_issue',
   readOnly: false,
@@ -73,6 +161,18 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
       inputSchema,
       needsApproval: true,
       execute: async (input) => {
+        const userText = ctx.latestUserText?.trim() ?? ''
+        if (
+          input.issueType === 'bad_photo' &&
+          userText &&
+          !repAskedToUpdateSharedCatalogImage(userText) &&
+          !isPositiveConfirmation(userText)
+        ) {
+          throw new NicNacToolError({
+            code: 'CATALOG_PHOTO_NOT_REQUESTED',
+            userMessage: "I won't change the design list photo from this chat.",
+          })
+        }
         assertTradeWorkflowInputMatches({
           workflow: ctx.activeTradeWorkflow,
           workflowType: 'trade_catalog_correction',
@@ -86,8 +186,84 @@ export const reportJewelryCatalogIssueTool: ToolDefinition = {
             },
           ],
         })
-        const admin = createAdminClient()
         const correction = sanitizeCorrectionForIssueType(input.issueType, input.correction)
+        const canonicalPhotoUrl =
+          typeof correction?.canonicalPhotoUrl === 'string'
+            ? correction.canonicalPhotoUrl.trim()
+            : ''
+        if (input.issueType === 'bad_photo' && canonicalPhotoUrl) {
+          const preview = mainPhotoPreviewLocator({ imageUrl: canonicalPhotoUrl })
+          if (!photoPreviewIsVisible(preview)) {
+            throw new NicNacToolError({
+              code: 'PHOTO_PREVIEW_UNAVAILABLE',
+              userMessage:
+                "I can't show you that photo before saving it, so I didn't save it. Send a normal photo link I can show you, and I'll check it with you first.",
+            })
+          }
+          if (!isApprovedCatalogPhotoUrl(canonicalPhotoUrl)) {
+            throw new NicNacToolError({
+              code: 'PHOTO_NOT_APPROVED',
+              userMessage:
+                "I can only use an approved jewelry photo, so I didn't save that one. Send the approved front photo and I'll check it with you first.",
+            })
+          }
+          const storedSha = ctx.activeTradeBoardWorkflow?.photos?.find(
+            (photo) =>
+              photo.imageUrl?.trim() === canonicalPhotoUrl && photo.contentSha256?.trim(),
+          )?.contentSha256
+          const contentSha256 = await hashCustomerPhotoUrl({
+            sourceImageUrl: canonicalPhotoUrl,
+            storedSha256: storedSha,
+          })
+          if (!contentSha256) {
+            throw new NicNacToolError({
+              code: 'PHOTO_UNREADABLE',
+              userMessage:
+                'I could not read that photo, so I did not save it. Send it again and I will check it first.',
+            })
+          }
+          const pieceKey = photoConfirmationPieceKey({
+            itemNumber: input.itemNumber,
+            catalogMode: 'item_number',
+          })
+          await assertCustomerPhotoNotReused({
+            repId: ctx.repId,
+            itemNumber: input.itemNumber,
+            sourceImageUrl: canonicalPhotoUrl,
+            contentSha256,
+            workflowPhotos: ctx.activeTradeBoardWorkflow?.photos,
+            conversation: {
+              supabase: ctx.supabase,
+              conversationId: ctx.conversationId,
+            },
+            reuseAsk: {
+              itemNumber: pieceKey,
+              pieceKey,
+              previewImageUrl: preview.previewImageUrl,
+              previewPhotoId: preview.previewPhotoId,
+            },
+          })
+          const confirmed = await conversationConfirmsCatalogPhoto({
+            supabase: ctx.supabase,
+            conversationId: ctx.conversationId,
+            itemNumber: input.itemNumber,
+            photoUrl: canonicalPhotoUrl,
+            contentSha256,
+            pieceKey,
+          })
+          if (!confirmed) {
+            return {
+              needsAction: 'confirm_main_photo' as const,
+              code: 'MAIN_PHOTO_CONFIRMATION_REQUIRED' as const,
+              itemNumber: input.itemNumber.trim().toUpperCase(),
+              contentSha256,
+              pieceKey,
+              ...preview,
+              message: `This is the main photo I will save for ${input.itemNumber.trim().toUpperCase()}. If this is the right piece, reply yes.`,
+            }
+          }
+        }
+        const admin = createAdminClient()
         try {
           const result = await reportJewelryCatalogIssue(admin, {
             itemNumber: input.itemNumber,

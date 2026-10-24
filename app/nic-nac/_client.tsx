@@ -31,6 +31,7 @@ import {
   getLaunchPromptForWorkspaceAction,
   type WorkspaceLaunchAction,
 } from '@/lib/nic-nac/workspace-launch-actions'
+import { prepareNicNacRequest } from '@/lib/nic-nac/client-send'
 import { resolveNicNacWorkspaceMode } from '@/lib/nic-nac/required-setup-client-mode'
 import type { SiteSettingsDashboardResult } from '@/lib/services/types'
 import {
@@ -58,6 +59,7 @@ type ConversationHydrateResponse = {
   conversationId?: string
   messages?: UIMessage[]
   runHealth?: NicNacConversationRunHealth
+  readOnly?: boolean
 }
 
 type ConversationRolloverResponse = {
@@ -272,10 +274,12 @@ export default function NicNacClient({
     conversationId: string | null
     messages: UIMessage[] | null
     error: string | null
+    readOnly: boolean
   }>({
     conversationId: null,
     messages: null,
     error: null,
+    readOnly: false,
   })
   // Distinct from initLoadError: this fires when /latest itself fails (5xx /
   // network). We deliberately do NOT fall through to a fresh UUID here —
@@ -514,13 +518,14 @@ export default function NicNacClient({
   }, [chatState])
 
   const activateConversation = useCallback(
-    (next: string, messages?: UIMessage[]) => {
+    (next: string, messages?: UIMessage[], readOnly = false) => {
       setConversationId(next)
       if (messages) {
         setHistoryState({
           conversationId: next,
           messages,
           error: null,
+          readOnly,
         })
       }
       if (!isOperatorSupport && typeof window !== 'undefined') {
@@ -531,6 +536,22 @@ export default function NicNacClient({
       router.replace(nextSearch ? `${workspaceRoutePath}?${nextSearch}` : workspaceRoutePath)
     },
     [isOperatorSupport, router, workspaceRoutePath],
+  )
+
+  const openRecentConversation = useCallback(
+    async (nextConversationId: string) => {
+      const res = await fetch(buildConversationStateUrl(nextConversationId), {
+        credentials: 'include',
+      })
+      if (!res.ok) return
+      const body = (await readJsonResponse<{ messages?: UIMessage[]; readOnly?: boolean }>(
+        res,
+        'recent conversation',
+      ).catch(() => null)) as { messages?: UIMessage[]; readOnly?: boolean } | null
+      if (!body?.messages) return
+      activateConversation(nextConversationId, body.messages, body.readOnly === true)
+    },
+    [activateConversation],
   )
 
   const rolloverConversation = useCallback(
@@ -589,6 +610,7 @@ export default function NicNacClient({
           conversationId: operatorSupportSessionId,
           messages: null,
           error: null,
+          readOnly: false,
         })
         return
       }
@@ -602,6 +624,7 @@ export default function NicNacClient({
           conversationId: id,
           messages: [],
           error: null,
+          readOnly: false,
         })
         if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, id)
         return
@@ -690,6 +713,7 @@ export default function NicNacClient({
         conversationId,
         messages: [],
         error: null,
+        readOnly: false,
       })
       return
     }
@@ -706,6 +730,7 @@ export default function NicNacClient({
             conversationId,
             messages: null,
             error: 'Not signed in - visit /login and come back.',
+            readOnly: false,
           })
           return
         }
@@ -714,6 +739,7 @@ export default function NicNacClient({
             conversationId,
             messages: null,
             error: 'This conversation belongs to another rep.',
+            readOnly: false,
           })
           return
         }
@@ -722,6 +748,7 @@ export default function NicNacClient({
             conversationId,
             messages: null,
             error: `Couldn't load conversation history (${res.status}).`,
+            readOnly: false,
           })
           return
         }
@@ -730,7 +757,9 @@ export default function NicNacClient({
           'conversation history',
         )
         if (cancelled) return
+        const readOnly = body.readOnly === true
         if (
+          !readOnly &&
           !isOperatorSupport &&
           shouldStartNicNacRollover(body.runHealth) &&
           (await rolloverConversation(conversationId))
@@ -741,6 +770,7 @@ export default function NicNacClient({
           conversationId,
           messages: (body.messages ?? []) as UIMessage[],
           error: null,
+          readOnly,
         })
       } catch (err) {
         if (cancelled) return
@@ -748,6 +778,7 @@ export default function NicNacClient({
           conversationId,
           messages: null,
           error: `Failed to load conversation: ${(err as Error).message}`,
+          readOnly: false,
         })
       }
     })()
@@ -783,20 +814,21 @@ export default function NicNacClient({
     if (!conversationId) return null
     return new DefaultChatTransport({
       api: '/api/nic-nac',
-      prepareSendMessagesRequest: ({ messages }) => ({
-        body: {
-          conversationId,
-          messages,
-          mode: isRequiredSetupMode ? 'required_setup' : 'workspace',
-        },
-      }),
+      prepareSendMessagesRequest: ({ messages, trigger, messageId }) => {
+        return {
+          body: prepareNicNacRequest({
+            messages, trigger, messageId, conversationId,
+            mode: isRequiredSetupMode ? 'required_setup' : 'workspace',
+          }),
+        }
+      },
     })
   }, [conversationId, isRequiredSetupMode])
 
-  const initialMessages =
+  const historyReady =
     conversationId && historyState.conversationId === conversationId
-      ? historyState.messages
-      : null
+  const initialMessages = historyReady ? historyState.messages : null
+  const historyReadOnly = historyReady ? historyState.readOnly : false
   const initLoadError =
     conversationId && historyState.conversationId === conversationId
       ? historyState.error
@@ -816,16 +848,20 @@ export default function NicNacClient({
     }
     setClearInFlight(true)
     try {
+      const nextId = operatorSupportSessionId ?? newConversationId()
       if (!showWorkspaceReviewState) {
         const res = await fetch('/api/nic-nac/conversation/clear', {
           method: 'POST',
           credentials: 'include',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ conversationId }),
+          body: JSON.stringify({
+            conversationId,
+            nextConversationId: nextId,
+          }),
         })
         if (!res.ok) return
       }
-      activateConversation(operatorSupportSessionId ?? newConversationId(), [])
+      activateConversation(nextId, [])
     } finally {
       setClearInFlight(false)
     }
@@ -924,6 +960,7 @@ export default function NicNacClient({
       requiredSetupPreviewHref={requiredSetupPreviewHref}
       transport={transport!}
       initialMessages={initialMessages!}
+      readOnly={historyReadOnly}
       onChatStateChange={setChatState}
       onRolloverRecommended={rolloverConversation}
       resetSignal={conversationId!}
@@ -1011,6 +1048,10 @@ export default function NicNacClient({
         onLaunchNicNacAction={handleLaunchNicNacAction}
         onSendNicNacPrompt={handleSendNicNacPrompt}
         onNewConversation={handleNewConversation}
+        onOpenConversation={(nextConversationId) => {
+          void openRecentConversation(nextConversationId)
+        }}
+        currentConversationId={conversationId}
         conversationControlsDisabled={newDisabled}
         desktopChat={
           isDesktop && (desktopOpen || shouldKeepDesktopNicNacOpen)

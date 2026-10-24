@@ -7,13 +7,19 @@
 //      status='aborted'. Final flush preserves whatever was checkpointed.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { messageCreatedAt } from '@/lib/nic-nac/message-order'
 import type { UIMessage } from 'ai'
 import { isTradeRequestCardPart } from '@/lib/nic-nac/trade-request-card-parts'
+import {
+  recentConversationsFromRows,
+  type RecentConversationSummary,
+} from '@/lib/nic-nac/recent-conversations'
 import type { TradeRequestStatus } from '@/lib/services/types'
 
 export async function loadCanonicalHistory(
   supabase: SupabaseClient,
-  conversationId: string
+  conversationId: string,
+  options?: { includeCleared?: boolean },
 ): Promise<UIMessage[]> {
   const { data, error } = await supabase
     .from('nic_nac_conversations')
@@ -25,7 +31,7 @@ export async function loadCanonicalHistory(
   // canonical view fed to the model — they'd surface as empty assistant
   // turns. The GET /conversation/[id] route reports them separately for UI
   // visibility; only the model should skip them.
-  if ((data ?? []).some((row) => row.cleared_at)) return []
+  if (!options?.includeCleared && (data ?? []).some((row) => row.cleared_at)) return []
 
   return (data ?? [])
     .filter((row) => row.role === 'user' || row.status === 'complete')
@@ -78,20 +84,125 @@ export async function getLatestConversationId(
   return (data?.conversation_id as string | undefined) ?? null
 }
 
-// A workspace can accumulate more than one active conversation when a tab is
-// restored from an old URL or two devices are used at once. Clearing only the
-// ID held by the current client leaves the other thread eligible for the
-// "latest" lookup and lets old history reappear on the next sign-in. Retire
-// every currently active thread for this rep, while retaining every row for
-// audit continuity.
+const RECENT_PAGE = 100
+const RECENT_CONVERSATION_CAP = 8
+
+async function earliestUserLines(
+  supabase: SupabaseClient,
+  repId: string,
+  conversationId: string,
+): Promise<Array<{ parts?: unknown; created_at?: string | null }>> {
+  const { data, error } = await supabase
+    .from('nic_nac_conversations')
+    .select('parts, created_at')
+    .eq('rep_id', repId)
+    .eq('conversation_id', conversationId)
+    .eq('role', 'user')
+    .order('created_at', { ascending: true })
+    .limit(8)
+  if (error) throw error
+  return data ?? []
+}
+
+export async function listRecentNicNacConversations(
+  supabase: SupabaseClient,
+  repId: string,
+  limit = 5,
+  options?: {
+    excludeConversationId?: string | null
+    rolloverEdges?: Array<{
+      sourceConversationId: string
+      destinationConversationId: string
+    }>
+  },
+): Promise<RecentConversationSummary[]> {
+  const discovered: Array<{ id: string; latestAt: string }> = []
+  const seen = new Set<string>()
+  for (
+    let pageNumber = 0;
+    pageNumber < RECENT_CONVERSATION_CAP && discovered.length < RECENT_CONVERSATION_CAP;
+    pageNumber += 1
+  ) {
+    let query = supabase
+      .from('nic_nac_conversations')
+      .select('conversation_id, created_at')
+      .eq('rep_id', repId)
+    // Skip already discovered chats rather than exhausting a row cap on one
+    // long chat and incorrectly reporting that no other conversations exist.
+    for (const id of seen) query = query.neq('conversation_id', id)
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .range(0, RECENT_PAGE - 1)
+    if (error) throw error
+    const page = data ?? []
+    for (const row of page) {
+      const id = (row.conversation_id as string | null | undefined)?.trim()
+      const createdAt = (row.created_at as string | null | undefined)?.trim()
+      if (!id || !createdAt || seen.has(id)) continue
+      seen.add(id)
+      discovered.push({ id, latestAt: createdAt })
+    }
+    if (page.length < RECENT_PAGE) break
+  }
+
+  const titled = await Promise.all(
+    discovered.slice(0, RECENT_CONVERSATION_CAP).map(async (item) => {
+      const users = await earliestUserLines(supabase, repId, item.id)
+      return { item, users }
+    }),
+  )
+  const rows: Array<{
+    conversation_id: string
+    role: string
+    parts: unknown
+    created_at: string
+  }> = []
+  for (const { item, users } of titled) {
+    const startedAt =
+      (users[0]?.created_at as string | null | undefined)?.trim() || item.latestAt
+    for (const user of users) {
+      const createdAt = (user.created_at as string | null | undefined)?.trim()
+      if (!createdAt) continue
+      rows.push({
+        conversation_id: item.id,
+        role: 'user',
+        parts: user.parts,
+        created_at: createdAt,
+      })
+    }
+    if (!users.length) {
+      rows.push({
+        conversation_id: item.id,
+        role: 'user',
+        parts: [],
+        created_at: startedAt,
+      })
+    }
+    if (item.latestAt !== startedAt) {
+      rows.push({
+        conversation_id: item.id,
+        role: 'assistant',
+        parts: [],
+        created_at: item.latestAt,
+      })
+    }
+  }
+  return recentConversationsFromRows(rows, limit, options)
+}
+
+// Clear retires the open chat so the next visit does not resume it. Earlier
+// chats stay uncleared so Recent can reopen them. Rows are kept for audit.
 export async function clearActiveConversationsForRep(
   supabase: SupabaseClient,
   repId: string,
+  conversationId: string,
 ): Promise<string[]> {
+  // Retire only the open chat. Earlier chats stay in Recent and can be reopened.
   const { data, error } = await supabase
     .from('nic_nac_conversations')
     .update({ cleared_at: new Date().toISOString() })
     .eq('rep_id', repId)
+    .eq('conversation_id', conversationId)
     .is('cleared_at', null)
     .select('conversation_id')
   if (error) throw error
@@ -105,6 +216,59 @@ export async function clearActiveConversationsForRep(
   )
 }
 
+/**
+ * Clear starts a new empty chat. The chat that was open stays in Recent, so
+ * it is not marked cleared. A pending marker makes the new chat the latest.
+ */
+export async function clearNicNacConversationChain(
+  supabase: SupabaseClient,
+  _admin: SupabaseClient,
+  repId: string,
+  conversationId: string,
+  nextConversationId: string,
+): Promise<string[]> {
+  const nextId = nextConversationId.trim()
+  if (nextId && nextId !== conversationId) {
+    await reserveAssistantMessage(supabase, {
+      conversationId: nextId,
+      repId,
+      messageId: `fresh-start-${nextId}`,
+    })
+  }
+  return []
+}
+
+/** The newest chat this one rolled into, or null when this chat is current. */
+export async function findForwardRolloverDestination(
+  supabase: SupabaseClient,
+  repId: string,
+  conversationId: string,
+): Promise<string | null> {
+  try {
+    let current = conversationId
+    const seen = new Set<string>()
+    for (let hop = 0; hop < 8; hop += 1) {
+      if (seen.has(current)) break
+      seen.add(current)
+      const { data, error } = await supabase
+        .from('nic_nac_rollovers')
+        .select('destination_conversation_id')
+        .eq('rep_id', repId)
+        .eq('source_conversation_id', current)
+        .order('created_at', { ascending: false })
+        .limit(1)
+      if (error || !Array.isArray(data) || data.length === 0) break
+      const next = (data[0] as { destination_conversation_id?: string })
+        .destination_conversation_id?.trim()
+      if (!next || next === current) break
+      current = next
+    }
+    return current !== conversationId ? current : null
+  } catch {
+    return null
+  }
+}
+
 export async function insertUserMessage(
   supabase: SupabaseClient,
   args: {
@@ -112,6 +276,7 @@ export async function insertUserMessage(
     repId: string
     messageId: string
     parts: UIMessage['parts']
+    receivedAt?: string
   }
 ): Promise<void> {
   // ON CONFLICT DO NOTHING on (conversation_id, message_id) — idempotent.
@@ -125,6 +290,7 @@ export async function insertUserMessage(
       role: 'user',
       parts: args.parts,
       status: 'complete',
+      created_at: args.receivedAt ?? new Date().toISOString(),
     },
     { onConflict: 'conversation_id,message_id', ignoreDuplicates: true }
   )
@@ -141,14 +307,18 @@ export async function insertConversationMessages(
 ): Promise<void> {
   if (args.messages.length === 0) return
   const { error } = await supabase.from('nic_nac_conversations').insert(
-    args.messages.map((message) => ({
-      conversation_id: args.conversationId,
-      message_id: message.id,
-      rep_id: args.repId,
-      role: message.role,
-      parts: message.parts ?? [],
-      status: 'complete',
-    })),
+    args.messages.map((message, index) => {
+      const createdAt = messageCreatedAt(message)
+      return {
+        conversation_id: args.conversationId,
+        message_id: message.id,
+        rep_id: args.repId,
+        role: message.role,
+        parts: message.parts ?? [],
+        status: 'complete',
+        created_at: createdAt ?? new Date(Date.now() + index).toISOString(),
+      }
+    }),
   )
   if (error) throw error
 }
@@ -171,9 +341,10 @@ export async function reserveAssistantMessage(
     conversationId: string
     repId: string
     messageId: string
+    claimSubmission?: boolean
   }
-): Promise<void> {
-  const { error } = await supabase.from('nic_nac_conversations').upsert(
+): Promise<boolean> {
+  const query = supabase.from('nic_nac_conversations').upsert(
     {
       conversation_id: args.conversationId,
       message_id: args.messageId,
@@ -184,7 +355,17 @@ export async function reserveAssistantMessage(
     },
     { onConflict: 'conversation_id,message_id', ignoreDuplicates: true }
   )
+  const { data, error } = args.claimSubmission ? await query.select('message_id') : await query
   if (error) throw error
+  if (!args.claimSubmission || (data?.length ?? 0) > 0) return true
+  // Only an explicitly failed run may be retried. A slow/pending run is never
+  // stolen on a timer; a second request cannot execute its tools again.
+  const retry = await supabase.from('nic_nac_conversations')
+    .update({ status: 'pending', parts: [], updated_at: new Date().toISOString() })
+    .eq('conversation_id', args.conversationId).eq('message_id', args.messageId)
+    .eq('rep_id', args.repId).eq('status', 'aborted').select('message_id')
+  if (retry.error) throw retry.error
+  return (retry.data?.length ?? 0) > 0
 }
 
 export async function checkpointAssistant(
@@ -302,7 +483,7 @@ export async function loadConversationForClient(
   supabase: SupabaseClient,
   conversationId: string
 ): Promise<UIMessage[]> {
-  const messages = await loadCanonicalHistory(supabase, conversationId)
+  const messages = await loadCanonicalHistory(supabase, conversationId, { includeCleared: true })
 
   // Collect every approval id that appears in an approval-requested part.
   const pendingApprovalIds: string[] = []

@@ -3073,6 +3073,8 @@ export type DashboardPlaceholderProps = {
   onLaunchNicNacAction?: (action: WorkspaceLaunchAction) => void
   onSendNicNacPrompt?: (prompt: string) => void
   onNewConversation?: () => void
+  onOpenConversation?: (conversationId: string) => void
+  currentConversationId?: string | null
   conversationControlsDisabled?: boolean
   desktopChat?: ReactNode
   mobileTradeAlertTarget?: HTMLElement | null
@@ -3131,6 +3133,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
     onLaunchNicNacAction,
     onSendNicNacPrompt,
     onNewConversation,
+    onOpenConversation,
+    currentConversationId = null,
     conversationControlsDisabled = false,
     desktopChat,
     mobileTradeAlertTarget = null,
@@ -7557,6 +7561,8 @@ export function DashboardPlaceholder(props: DashboardPlaceholderProps = {}) {
               onOpenPublicSite={handleOpenCustomerSitePreview}
               onOpenHelp={() => setActiveSection('help-resources')}
               onNewConversation={onNewConversation}
+              onOpenConversation={onOpenConversation}
+              currentConversationId={currentConversationId}
               repName={repProfileState.displayName ?? siteSettingsState.settings?.displayName ?? null}
               conversationControlsDisabled={conversationControlsDisabled}
               liveLineupReadOnly={liveLineupReadOnly}
@@ -7872,6 +7878,8 @@ function ConceptHomeWorkspace({
   onOpenPublicSite,
   onOpenHelp,
   onNewConversation,
+  onOpenConversation,
+  currentConversationId = null,
   conversationControlsDisabled,
   repName,
   liveLineupReadOnly,
@@ -7891,6 +7899,8 @@ function ConceptHomeWorkspace({
   onOpenPublicSite: () => void
   onOpenHelp: () => void
   onNewConversation?: () => void
+  onOpenConversation?: (conversationId: string) => void
+  currentConversationId?: string | null
   conversationControlsDisabled: boolean
   repName: string | null
   liveLineupReadOnly: boolean
@@ -7902,6 +7912,11 @@ function ConceptHomeWorkspace({
         ? getLatestPublishedYouTubeResource(REVIEW_RESOURCE_FIXTURES)
         : null,
     )
+  const [recentConversations, setRecentConversations] = useState<
+    Array<{ conversationId: string; title: string; dateLabel: string }>
+  >([])
+  const [recentStatus, setRecentStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [recentAttempt, setRecentAttempt] = useState(0)
 
   useEffect(() => {
     if (reviewWorkspaceMode) return
@@ -7928,6 +7943,39 @@ function ConceptHomeWorkspace({
 
     return () => controller.abort()
   }, [reviewWorkspaceMode])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const current = currentConversationId?.trim()
+    const recentUrl = current
+      ? `/api/nic-nac/conversations/recent?current=${encodeURIComponent(current)}`
+      : '/api/nic-nac/conversations/recent'
+    setRecentStatus('loading')
+    void fetch(recentUrl, {
+      credentials: 'include',
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`recent conversations failed: ${response.status}`)
+        return response.json() as Promise<{
+          conversations?: Array<{
+            conversationId: string
+            title: string
+            dateLabel: string
+          }>
+        }>
+      })
+      .then((payload) => {
+        setRecentConversations(payload.conversations ?? [])
+        setRecentStatus('ready')
+      })
+      .catch((error: unknown) => {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          setRecentStatus('error')
+        }
+      })
+    return () => controller.abort()
+  }, [currentConversationId, recentAttempt])
 
   const latestYouTubeThumbnail = getYouTubeResourceThumbnail(
     latestYouTubeResource?.videoUrl ?? null,
@@ -8144,18 +8192,34 @@ function ConceptHomeWorkspace({
           </div>
         </ConceptPanel>
         <ConceptPanel title="Recent conversations" className={styles.recentConversationsPanel}>
-          <div className={styles.recentConversationList}>
-            <button type="button" onClick={() => onLaunchAction('check_board')}>
-              <span>N</span>
-              Added 2 new dancers to my Dance Floor
-              <small>9:30 AM</small>
-            </button>
-            <button type="button" onClick={onOpenCalendar}>
-              <span>N</span>
-              Next show setup
-              <small>Yesterday</small>
-            </button>
-          </div>
+          {recentStatus === 'error' ? (
+            <p className={styles.recentConversationEmpty}>
+              Couldn&apos;t load recent conversations.{' '}
+              <button type="button" onClick={() => setRecentAttempt((attempt) => attempt + 1)}>
+                Try again
+              </button>
+            </p>
+          ) : recentStatus === 'loading' ? (
+            <p className={styles.recentConversationEmpty}>Loading recent conversations</p>
+          ) : recentConversations.length === 0 ? (
+            <p className={styles.recentConversationEmpty}>None yet</p>
+          ) : (
+            <div className={styles.recentConversationList}>
+              {recentConversations.map((conversation) => (
+                <button
+                  key={conversation.conversationId}
+                  type="button"
+                  onClick={() => onOpenConversation?.(conversation.conversationId)}
+                >
+                  <span aria-hidden="true">
+                    {conversation.title.slice(0, 1).toUpperCase()}
+                  </span>
+                  {conversation.title}
+                  <small>{conversation.dateLabel}</small>
+                </button>
+              ))}
+            </div>
+          )}
         </ConceptPanel>
       </aside>
     </section>

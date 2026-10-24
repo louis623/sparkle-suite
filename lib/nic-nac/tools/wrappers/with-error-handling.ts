@@ -79,11 +79,25 @@ export function withErrorHandling({ name, ctx, readOnly }: Args, tool: Tool): To
         }
       }
       if (err instanceof NicNacToolError) {
+        const contentSha256 = err.details?.contentSha256?.trim()
+        const photoId = err.details?.photoId?.trim()
+        const listingId = err.details?.listingId?.trim()
+        const itemNumber = err.details?.itemNumber?.trim()
+        const previewImageUrl = err.details?.previewImageUrl?.trim()
+        const previewPhotoId = err.details?.previewPhotoId?.trim()
+        const pieceKey = err.details?.pieceKey?.trim()
         return {
           ok: false,
           errorTier: 'explain' as const,
           code: err.code,
           message: err.userMessage,
+          ...(contentSha256 ? { contentSha256 } : {}),
+          ...(photoId ? { photoId } : {}),
+          ...(listingId ? { listingId } : {}),
+          ...(itemNumber ? { itemNumber } : {}),
+          ...(previewImageUrl ? { previewImageUrl } : {}),
+          ...(previewPhotoId ? { previewPhotoId } : {}),
+          ...(pieceKey ? { pieceKey } : {}),
         }
       }
       return await escalate(err, name, ctx, args[0])
@@ -133,24 +147,10 @@ function redactFailureMessage(error: unknown): string {
 }
 
 function formatAddListingSaveFailureMessage(
-  error: unknown,
-  classification: { code: string; stage: string },
+  _error: unknown,
+  _classification: { code: string; stage: string },
 ): string {
-  const cause = redactFailureMessage(error)
-    .replace(/\s+/g, ' ')
-    .trim()
-  const stageLabel =
-    classification.stage === 'catalog_photo_storage'
-      ? 'photo upload'
-      : classification.stage === 'listing_write'
-        ? 'listing save'
-        : classification.stage === 'database_write'
-          ? 'database save'
-          : 'save'
-  const detail = cause
-    ? ` ${stageLabel} error (${classification.code}): ${cause}`
-    : ` ${stageLabel} error (${classification.code}).`
-  return `The save failed on the Sparkle Suite side.${detail} I kept your details and confirmed photo, so you can retry once without uploading it again.`
+  return "I couldn't save this piece just now. Nothing was lost. Reply yes if the photo I'm showing is the right one, and I'll try again."
 }
 
 async function escalate(

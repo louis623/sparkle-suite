@@ -12,7 +12,7 @@ export const ensureLiveQueueSyncCodeTool: ToolDefinition = {
   build: (ctx) =>
     tool({
       description:
-        'Create or return the authenticated rep Live Queue sync code during required setup.',
+        'Create or return the authenticated rep Live Lineup sync code during required setup.',
       inputSchema,
       execute: async () => {
         const admin = createAdminClient()

@@ -1,3 +1,5 @@
+import 'server-only'
+
 import sharp from 'sharp'
 
 import { assessJewelryPhotoPreflight } from '@/lib/services/jewelry-photo-preflight'

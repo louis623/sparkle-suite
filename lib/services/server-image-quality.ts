@@ -1,3 +1,5 @@
+import 'server-only'
+
 import sharp from 'sharp'
 
 import { measureImageQualitySignals } from '@/lib/nic-nac/image-quality'
@@ -17,6 +19,8 @@ export interface ServerImageQualityAnalysis {
   detailConfidence: number
   backgroundUniformity: number
   backgroundCleanliness: number
+  subjectEdgeContact?: number
+  subjectTouchesFrameEdge?: boolean
 }
 
 const MIME_BY_FORMAT: Record<string, string> = {

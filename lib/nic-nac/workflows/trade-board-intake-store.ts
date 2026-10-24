@@ -1,5 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { pieceNoteList } from '@/lib/nic-nac/piece-task'
+import { mergeTradeBoardKnownFields } from './trade-board-known-fields'
 import type {
+  TradeBoardIntakeKnownFields,
   TradeBoardIntakePhotoState,
   TradeBoardIntakeSessionState,
 } from './trade-board-intake-types'
@@ -119,6 +122,7 @@ export function mapTradeBoardIntakePhotoRow(
 ): TradeBoardIntakePhotoState {
   return {
     id: row.id as string,
+    ...(row.session_id ? { intakeSessionId: row.session_id as string } : {}),
     ...(row.conversation_message_id
       ? { conversationMessageId: row.conversation_message_id as string }
       : {}),
@@ -230,12 +234,223 @@ export async function recordTradeBoardIntakeFailure(
   }
 }
 
+/**
+ * A replacement photo can open a new pending row. Details the rep already
+ * stored on the earlier row for the same item fill whatever this row left blank.
+ */
+export async function fillBlankKnownFromPriorSession<
+  T extends {
+    id: string
+    repId: string
+    conversationId: string
+    known: TradeBoardIntakeKnownFields
+  },
+>(supabase: SupabaseClient, session: T): Promise<T> {
+  const known = session.known
+  const item = known.itemNumber?.trim().toUpperCase()
+  if (!item) return session
+  if (
+    known.rarityClassification &&
+    known.designName &&
+    known.collectionName &&
+    known.material &&
+    known.mainStone
+  ) {
+    return session
+  }
+  try {
+    const { data, error } = await supabase
+      .from('trade_board_intake_sessions')
+      .select(
+        'rarity_classification, design_name, collection_name, material, main_stone, ring_size, jewelry_type, collection_family',
+      )
+      .eq('rep_id', session.repId)
+      .eq('conversation_id', session.conversationId)
+      .eq('item_number', item)
+      .neq('id', session.id)
+      .order('updated_at', { ascending: false })
+      .limit(5)
+    if (error || !Array.isArray(data)) return session
+    const prior = (data as Array<Record<string, string | null>>).find(
+      (row) => row.rarity_classification || row.design_name || row.collection_name,
+    )
+    if (!prior) return session
+    const priorKnown: TradeBoardIntakeKnownFields = {
+      ...(prior.rarity_classification
+        ? {
+            rarityClassification:
+              prior.rarity_classification as TradeBoardIntakeKnownFields['rarityClassification'],
+          }
+        : {}),
+      ...(prior.design_name ? { designName: prior.design_name } : {}),
+      ...(prior.collection_name ? { collectionName: prior.collection_name } : {}),
+      ...(prior.material ? { material: prior.material } : {}),
+      ...(prior.main_stone ? { mainStone: prior.main_stone } : {}),
+      ...(prior.ring_size ? { ringSize: prior.ring_size } : {}),
+      ...(prior.jewelry_type
+        ? {
+            jewelryType:
+              prior.jewelry_type as TradeBoardIntakeKnownFields['jewelryType'],
+          }
+        : {}),
+      ...(prior.collection_family
+        ? { collectionFamily: prior.collection_family }
+        : {}),
+    }
+    const filled = mergeTradeBoardKnownFields(priorKnown, known)
+    if (
+      filled.rarityClassification === known.rarityClassification &&
+      filled.designName === known.designName &&
+      filled.collectionName === known.collectionName &&
+      filled.material === known.material &&
+      filled.mainStone === known.mainStone &&
+      filled.ringSize === known.ringSize
+    ) {
+      return session
+    }
+    await updateTradeBoardIntakeSession(supabase, {
+      sessionId: session.id,
+      patch: {
+        rarity_classification: filled.rarityClassification ?? null,
+        design_name: filled.designName ?? null,
+        collection_name: filled.collectionName ?? null,
+        material: filled.material ?? null,
+        main_stone: filled.mainStone ?? null,
+        ring_size: filled.ringSize ?? null,
+        jewelry_type: filled.jewelryType ?? null,
+        collection_family: filled.collectionFamily ?? null,
+      },
+    })
+    return { ...session, known: filled }
+  } catch {
+    return session
+  }
+}
+
+export async function readLatestClosedPieceNotes(
+  supabase: SupabaseClient,
+  args: { repId: string; conversationId: string },
+): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('trade_board_intake_sessions')
+      .select('metadata')
+      .eq('rep_id', args.repId)
+      .eq('conversation_id', args.conversationId)
+      .in('status', ['completed', 'cancelled'])
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (error || !data) return []
+    const metadata = (data as { metadata?: { priorPieceNotes?: unknown } }).metadata
+    return pieceNoteList(metadata?.priorPieceNotes)
+  } catch {
+    return []
+  }
+}
+
+/**
+ * A fresh chat keeps confirmed text details and does not copy photos,
+ * labels, or a previous yes. The old workflow stays where it was.
+ */
+export async function copyConfirmedPieceDetailsToConversation(
+  supabase: SupabaseClient,
+  args: {
+    repId: string
+    conversationId: string
+    source: TradeBoardIntakeSessionState
+  },
+): Promise<string> {
+  const known = args.source.known
+  const created = await createTradeBoardIntakeSession(supabase, {
+    repId: args.repId,
+    conversationId: args.conversationId,
+    metadata: {
+      carriedFromRollover: true,
+      mainPhotoConfirmationRequired: true,
+      priorPieceNotes: pieceNoteList(args.source.metadata.priorPieceNotes),
+      ...(typeof args.source.metadata.labelItemNumberMismatch === 'string'
+        ? { labelItemNumberMismatch: args.source.metadata.labelItemNumberMismatch }
+        : {}),
+    },
+  })
+  await updateTradeBoardIntakeSession(supabase, {
+    sessionId: created.id,
+    patch: {
+      catalog_mode: args.source.catalogMode,
+      item_number: known.itemNumber ?? null,
+      jewelry_type: known.jewelryType ?? null,
+      quantity: known.quantity ?? null,
+      design_name: known.designName ?? null,
+      collection_family: known.collectionFamily ?? null,
+      collection_name: known.collectionName ?? null,
+      collection_year: known.collectionYear ?? null,
+      material: known.material ?? null,
+      main_stone: known.mainStone ?? null,
+      ring_size: known.ringSize ?? null,
+      rep_notes: known.repNotes ?? null,
+      trade_preferences: known.tradePreferences ?? null,
+      rarity_classification: known.rarityClassification ?? null,
+      current_phase: 'details_capture',
+    },
+  })
+  return created.id
+}
+
+/** Text details for a piece recovered at rollover when the old workflow cannot be copied. */
+export async function saveCarriedPieceDetails(
+  supabase: SupabaseClient,
+  args: {
+    repId: string
+    conversationId: string
+    known: {
+      itemNumber?: string | null
+      jewelryType?: string | null
+      designName?: string | null
+      collectionName?: string | null
+      collectionFamily?: string | null
+      material?: string | null
+      mainStone?: string | null
+      ringSize?: string | null
+      rarityClassification?: string | null
+    }
+  },
+): Promise<string> {
+  const known = args.known
+  const created = await createTradeBoardIntakeSession(supabase, {
+    repId: args.repId,
+    conversationId: args.conversationId,
+    metadata: {
+      carriedFromRollover: true,
+      mainPhotoConfirmationRequired: true,
+    },
+  })
+  await updateTradeBoardIntakeSession(supabase, {
+    sessionId: created.id,
+    patch: {
+      catalog_mode: 'item_number',
+      item_number: known.itemNumber ?? null,
+      jewelry_type: known.jewelryType ?? null,
+      design_name: known.designName ?? null,
+      collection_family: known.collectionFamily ?? null,
+      collection_name: known.collectionName ?? null,
+      material: known.material ?? null,
+      main_stone: known.mainStone ?? null,
+      ring_size: known.ringSize ?? null,
+      rarity_classification: known.rarityClassification ?? null,
+      current_phase: 'details_capture',
+    },
+  })
+  return created.id
+}
+
 export async function createTradeBoardIntakeSession(
   supabase: SupabaseClient,
   args: {
     repId: string
     conversationId: string
     lastUserMessageId?: string
+    metadata?: Record<string, unknown>
   },
 ): Promise<TradeBoardIntakeSessionState> {
   const { data, error } = await supabase
@@ -248,6 +463,10 @@ export async function createTradeBoardIntakeSession(
       status: 'active',
       current_phase: 'started',
       last_user_message_id: args.lastUserMessageId ?? null,
+      metadata: {
+        mainPhotoConfirmationRequired: true,
+        ...(args.metadata ?? {}),
+      },
     })
     .select('*')
     .single()
@@ -337,8 +556,8 @@ export async function upsertTradeBoardIntakePhoto(
     contentSha256?: string
     visualRoleSource?: string
   },
-): Promise<void> {
-  const { error } = await supabase.from('trade_board_intake_photos').upsert(
+): Promise<string | null> {
+  const pending = supabase.from('trade_board_intake_photos').upsert(
     {
       session_id: args.sessionId,
       rep_id: args.repId,
@@ -360,6 +579,25 @@ export async function upsertTradeBoardIntakePhoto(
     },
     { onConflict: 'session_id,conversation_message_id,attachment_index' },
   )
+  const selectable = pending as unknown as {
+    select?: (columns: string) => {
+      maybeSingle?: () => Promise<{
+        data?: { id?: string | null } | null
+        error: { message?: string } | null
+      }>
+    }
+  }
+  if (typeof selectable.select === 'function') {
+    const selected = selectable.select('id')
+    if (typeof selected.maybeSingle === 'function') {
+      const row = await selected.maybeSingle()
+      if (row.error) throw row.error
+      const id = row.data?.id?.trim()
+      return id || null
+    }
+  }
 
+  const { error } = await pending
   if (error) throw error
+  return null
 }

@@ -21,19 +21,28 @@ export type NicNacRunThresholdResult = {
 const HIGH_INPUT_TOKENS = 80_000
 const HIGH_TOTAL_TOKENS = 90_000
 const HIGH_ESTIMATED_CONTEXT_TOKENS = 20_000
+const HIGH_PROVIDER_TOKENS_MIN_ESTIMATED_CONTEXT = 12_000
 
 export function evaluateNicNacRunThresholds(
   input: NicNacRunThresholdInput,
 ): NicNacRunThresholdResult {
   const reasons: NicNacRolloverReason[] = []
+  const chatIsLongEnough =
+    input.estimatedContextTokens >= HIGH_PROVIDER_TOKENS_MIN_ESTIMATED_CONTEXT
 
-  if ((input.inputTokens ?? 0) >= HIGH_INPUT_TOKENS) {
+  if ((input.inputTokens ?? 0) >= HIGH_INPUT_TOKENS && chatIsLongEnough) {
     reasons.push('high_input_tokens')
   }
-  if ((input.totalTokens ?? 0) >= HIGH_TOTAL_TOKENS) {
+  if ((input.totalTokens ?? 0) >= HIGH_TOTAL_TOKENS && chatIsLongEnough) {
     reasons.push('high_total_tokens')
   }
-  if (input.contextCompacted && input.droppedMessageCount > 0) {
+  // Per-piece chats trim older turns on purpose. That trim is not a rollover.
+  // Compacted context only counts once the piece itself is actually large.
+  if (
+    input.contextCompacted &&
+    input.droppedMessageCount > 0 &&
+    input.estimatedContextTokens >= HIGH_ESTIMATED_CONTEXT_TOKENS
+  ) {
     reasons.push('context_compacted')
   }
   if (input.estimatedContextTokens >= HIGH_ESTIMATED_CONTEXT_TOKENS) {

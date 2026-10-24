@@ -27,7 +27,7 @@ import type { ToolDefinition } from './types'
 const inputSchema = z.object({
   listingId: z.string().uuid().optional(),
   itemNumber: z.string().optional(),
-  reason: z.enum(['sold', 'keeping', 'mistake', 'other']),
+  reason: z.enum(['swapped', 'keeping', 'mistake', 'other']),
 }).refine((v) => !!(v.listingId || v.itemNumber), {
   message: 'listingId or itemNumber required',
 })
@@ -57,11 +57,12 @@ export function makeRemoveListingTool(ctx: {
   return tool({
     description:
       "Remove a listing from the authenticated rep's dance floor (soft delete — sets status='removed' and records the reason). " +
-      'Auto-cancels any pending trade request against the listing. ' +
-      "Requires explicit user approval — never remove without asking first. Identify the listing by listingId OR itemNumber and capture the reason (sold | keeping | mistake | other).",
+      'Auto-cancels any pending swap request against the listing. ' +
+      "Requires explicit user approval — never remove without asking first. Identify the listing by listingId OR itemNumber and capture the reason (swapped | keeping | mistake | other).",
     inputSchema,
     needsApproval: true,
     execute: async ({ listingId, itemNumber, reason }) => {
+      const storedReason = (reason === 'swapped' ? 'sold' : reason) as RemovalReason
       assertTradeWorkflowInputMatches({
         workflow: ctx.activeTradeWorkflow,
         workflowType: 'trade_board_remove_listing',
@@ -69,7 +70,7 @@ export function makeRemoveListingTool(ctx: {
         checks: [
           { field: 'listingId', value: listingId, label: 'listing' },
           { field: 'itemNumber', value: itemNumber, label: 'item number' },
-          { field: 'removalReason', value: reason, label: 'removal reason' },
+          { field: 'removalReason', value: storedReason, label: 'removal reason' },
         ],
       })
       const workflowListingId = workflowKnownString(
@@ -89,7 +90,7 @@ export function makeRemoveListingTool(ctx: {
         result = await removeListing(ctx.supabase, ctx.repId, {
           listingId: guardedListingId,
           itemNumber: guardedItemNumber,
-          reason: reason as RemovalReason,
+          reason: storedReason,
         })
       } catch (err) {
         explainTradeBoardError(err)
@@ -113,7 +114,7 @@ export function makeRemoveListingTool(ctx: {
           afterState: {
             listingId: result.listingId,
             status: 'removed',
-            removalReason: reason,
+            removalReason: storedReason,
             repId: ctx.repId,
           },
           details: { runId: ctx.runId, conversationId: ctx.conversationId },
@@ -147,7 +148,7 @@ export function makeRemoveListingTool(ctx: {
             knownFields: {
               listingId: result.listingId,
               itemNumber: guardedItemNumber,
-              removalReason: reason as RemovalReason,
+              removalReason: storedReason,
             },
             approvalState: 'approved',
             dbAssertions: {
@@ -155,7 +156,7 @@ export function makeRemoveListingTool(ctx: {
                 id: result.listingId,
                 previousStatus: result.previousStatus,
                 status: 'removed',
-                removalReason: reason,
+                removalReason: storedReason,
               },
               cancelledTradeRequest: result.cancelledRequestId
                 ? {

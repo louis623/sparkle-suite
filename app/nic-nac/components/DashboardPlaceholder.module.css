@@ -1350,6 +1350,13 @@
   line-height: 1.28;
 }
 
+.recentConversationEmpty {
+  margin: 0;
+  color: #5c4d78;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .recentConversationList {
   display: grid;
   gap: 8px;

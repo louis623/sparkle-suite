@@ -14,12 +14,23 @@ export function mergeTradeBoardKnownFields(
   current: TradeBoardIntakeKnownFields,
   next: TradeBoardIntakeKnownFields,
 ): TradeBoardIntakeKnownFields {
-  return {
+  const merged = {
     ...current,
     ...Object.fromEntries(
       Object.entries(next).filter(([, value]) => value !== undefined),
     ),
   }
+  if (merged.designName !== undefined) merged.designName = normalizeDesignName(merged.designName)
+  return merged
+}
+
+/** Persist a plain name, never Markdown presentation from the chat. */
+export function normalizeDesignName(value?: string | null): string | undefined {
+  return value
+    ?.replace(/!?\[([^\]]+)\]\([^)]*\)/g, (_match, label: string) => label)
+    .replace(/[*_~`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim() || undefined
 }
 
 export function extractKnownFieldsFromText(
@@ -35,10 +46,15 @@ export function extractKnownFieldsFromText(
   const jewelryType = extractJewelryType(normalizedText)
   if (jewelryType) known.jewelryType = jewelryType
 
-  const designName = itemNumber
-    ? extractDesignNameNearItemNumber(normalizedText, itemNumber)
-    : null
-  if (designName) known.designName = designName
+  const explicitDesignName = normalizedText.match(
+    /\bdesign name\s*(?:is|:)?\s*["“]?([^".\n]+)/i,
+  )?.[1]
+  const designName = explicitDesignName
+    ? explicitDesignName.split(',')[0]?.trim()
+    : itemNumber
+      ? extractDesignNameNearItemNumber(normalizedText, itemNumber)
+      : null
+  if (designName) known.designName = normalizeDesignName(designName)
 
   const collection = extractCollectionFields(normalizedText)
   if (collection.collectionFamily) known.collectionFamily = collection.collectionFamily
@@ -49,11 +65,25 @@ export function extractKnownFieldsFromText(
     /\b(Lab[-\s]?Created\s+[A-Z][A-Za-z]+)\b/i,
   )?.[1]
   if (mainStone) known.mainStone = normalizeCapitalizedPhrase(mainStone)
+  if (!known.mainStone) {
+    const coloredStone = normalizedText.match(
+      /\b(pink|blue|green|purple|red|orange|yellow|violet|teal|clear|black|white)\s+stones?\b/i,
+    )?.[1]
+    if (coloredStone) {
+      known.mainStone = normalizeCapitalizedPhrase(`${coloredStone} stone`)
+    }
+  }
 
   const material = normalizedText.match(
     /\b((?:Rhodium|Rose Gold|Gold|Silver|Sterling Silver)\s+Plating)\b/i,
   )?.[1]
   if (material) known.material = normalizeCapitalizedPhrase(material)
+  if (!known.material) {
+    const bareMetal = normalizedText.match(
+      /\b(rose gold|sterling silver|silver|gold)\b/i,
+    )?.[1]
+    if (bareMetal) known.material = normalizeCapitalizedPhrase(bareMetal)
+  }
 
   const quantity = normalizedText.match(
     /\b(?:qty|quantity|count)\s*(?:is|:|-)?\s*(\d+)\b/i,
@@ -61,11 +91,71 @@ export function extractKnownFieldsFromText(
   if (quantity?.[1]) known.quantity = Number(quantity[1])
 
   const ringSize = normalizedText.match(
-    /\b(?:ring\s*)?size\s*(?:is|:|-)?\s*([0-9](?:\.[0-9])?)\b/i,
+    /\b(?:ring\s*)?size\s*(?:is|:|-)?\s*([0-9]{1,2}(?:\.[0-9])?)\b/i,
   )
   if (ringSize?.[1]) known.ringSize = ringSize[1]
 
+  if (
+    !known.rarityClassification &&
+    known.itemNumber &&
+    /\bstandard\b/i.test(normalizedText)
+  ) {
+    known.rarityClassification = 'standard'
+  }
+
   return known
+}
+
+/** Known values win. User lines that name the piece fill anything still blank. */
+export function enrichKnownFromPieceMessages(
+  known: TradeBoardIntakeKnownFields,
+  messages: Array<{ role?: string; parts?: unknown }>,
+): TradeBoardIntakeKnownFields {
+  const item = known.itemNumber?.trim().toUpperCase()
+  if (!item) return known
+  const text = messages
+    .filter((message) => message.role === 'user')
+    .map((message) => messageText(message.parts))
+    .filter((line) => line.toUpperCase().includes(item))
+    .join('\n')
+  if (!text.trim()) return known
+  return mergeTradeBoardKnownFields(extractKnownFieldsFromText(text), known)
+}
+
+function messageText(parts: unknown): string {
+  if (!Array.isArray(parts)) return ''
+  return parts
+    .filter(
+      (part): part is { type?: string; text?: string } =>
+        Boolean(part) && typeof part === 'object',
+    )
+    .filter((part) => part.type === 'text' && typeof part.text === 'string')
+    .map((part) => part.text ?? '')
+    .join('\n')
+}
+
+/**
+ * Rarity the rep already said in this chat. A bare "no" only counts when
+ * nothing more specific was said, so refusing a photo does not erase "standard".
+ */
+export function rarityFromConversation(
+  messages: Array<{ role?: string; parts?: unknown }>,
+): TradeBoardIntakeKnownFields['rarityClassification'] | undefined {
+  let bareNo = false
+  let found: TradeBoardIntakeKnownFields['rarityClassification'] | undefined
+  for (const message of messages) {
+    if (message.role !== 'user') continue
+    const text = messageText(message.parts).replace(/\s+/g, ' ').trim()
+    if (!text) continue
+    if (/^\s*no\s*[.!]?\s*$/i.test(text)) {
+      bareNo = true
+      continue
+    }
+    const rarity = extractRarityClassification(text)
+    if (rarity) found = rarity
+    else if (/\bstandard\b/i.test(text)) found = 'standard'
+  }
+  return found ?? (bareNo ? 'standard' : undefined)
 }
 
 function extractRarityClassification(
@@ -122,7 +212,7 @@ export function knownFieldsFromCatalogResult(
     known.itemNumber = result.itemNumber.trim().toUpperCase()
   }
   if (typeof result.designName === 'string' && result.designName.trim()) {
-    known.designName = result.designName.trim()
+    known.designName = normalizeDesignName(result.designName)
   }
   if (typeof result.collectionName === 'string' && result.collectionName.trim()) {
     known.collectionName = normalizeCollectionName(result.collectionName)
@@ -157,7 +247,7 @@ function extractCollectionFields(text: string): {
     /\b(?:collection|coll)\b\s*(?:is|:|-)\s*([A-Za-z][A-Za-z\s]*?)(?:\s+Collection)?(?:[,\s]+(20\d{2}))?(?=\.|,|$)/i,
   )
   if (prefix?.[1]) {
-    const collectionName = normalizeCollectionName(prefix[1])
+    const collectionName = tidyCollectionName(prefix[1])
     return {
       collectionFamily: family ?? collectionFamilyFromName(collectionName),
       collectionName,
@@ -166,10 +256,10 @@ function extractCollectionFields(text: string): {
   }
 
   const suffix = text.match(
-    /\b([A-Za-z]+(?:\s+(?:Birthday|Originals|Luxe|Stacks?))?)\s+collection\b(?:,?\s*(20\d{2}))?/i,
+    /\b((?:[A-Za-z]+\s+){0,3}[A-Za-z]+)\s+collection\b(?:,?\s*(20\d{2}))?/i,
   )
   if (suffix?.[1]) {
-    const collectionName = normalizeCollectionName(suffix[1])
+    const collectionName = tidyCollectionName(suffix[1])
     return {
       collectionFamily: family ?? collectionFamilyFromName(collectionName),
       collectionName,
@@ -219,6 +309,59 @@ function collectionFamilyFromName(name: string): string | undefined {
   return extractCollectionFamily(name)
 }
 
+/** Birthday, OG, Luxe, Original, Sterling, and Stacks are named by the collection. */
+const RAW_LABEL_TITLE =
+  /smoke only|\bonly\s*-|item\s*#|style\s*#|not for sale|for smoke/i
+
+/** Small print on a label is not a design name. */
+export function looksLikeRawLabelTitle(value?: string | null): boolean {
+  const text = value?.trim() ?? ''
+  if (!text) return false
+  return RAW_LABEL_TITLE.test(text)
+}
+
+/**
+ * A title comes from the design the rep confirmed. Raw label text is dropped.
+ * An empty proposal stays empty so a later save does not invent a name.
+ */
+export function pieceTitleFromConfirmedDetails(args: {
+  proposed?: string | null
+  confirmed?: string | null
+}): string | undefined {
+  const proposed = normalizeDesignName(args.proposed)
+  const confirmed = normalizeDesignName(args.confirmed)
+  if (!proposed) return undefined
+  if (confirmed && !looksLikeRawLabelTitle(confirmed)) return confirmed
+  if (
+    confirmed &&
+    proposed.toLowerCase().includes(confirmed.toLowerCase()) &&
+    looksLikeRawLabelTitle(proposed)
+  ) {
+    return confirmed
+  }
+  if (looksLikeRawLabelTitle(proposed)) {
+    return confirmed && !looksLikeRawLabelTitle(confirmed) ? confirmed : undefined
+  }
+  return proposed
+}
+
+export function impliedCollectionType(name?: string | null): string | undefined {
+  const text = name?.trim()
+  if (!text) return undefined
+  return extractCollectionFamily(text)
+}
+
+const COLLECTION_LEAD =
+  /^(?:the|a|an|my|this|that|in|for|from|our|to|into|is|it|was|its|correct)\s+/i
+
+function tidyCollectionName(raw: string): string {
+  let name = normalizeCollectionName(raw)
+  for (let pass = 0; pass < 4 && COLLECTION_LEAD.test(name); pass += 1) {
+    name = name.replace(COLLECTION_LEAD, '').trim()
+  }
+  return name
+}
+
 function extractDesignNameNearItemNumber(
   text: string,
   itemNumber: string,
@@ -228,7 +371,9 @@ function extractDesignNameNearItemNumber(
     new RegExp(`\\b${escapedItemNumber}\\b\\s*(?:[,;:\\-=]|is)?\\s*([^.;\\n]+)`, 'i'),
   )
   const rawCandidate = match?.[1]?.split(/\s*,\s*/)[0]?.trim() ?? ''
-  const candidate = rawCandidate.replace(/^["']|["']$/g, '').trim()
+  const candidate = trimDesignCandidate(
+    rawCandidate.replace(/^["']|["']$/g, '').trim(),
+  )
   if (!candidate) return null
   if (
     !/\b(rings?|earrings?|necklaces?|bracelets?|pendants?|stacks?|hoops?|studs?)\b/i.test(
@@ -238,6 +383,13 @@ function extractDesignNameNearItemNumber(
     return null
   }
   return candidate
+}
+
+function trimDesignCandidate(candidate: string): string {
+  return candidate
+    .split(/\b(?:size|collection|standard|diamond|unicorn)\b/i)[0]
+    ?.replace(/[,:\-]\s*$/, '')
+    .trim() ?? ''
 }
 
 function normalizeCapitalizedPhrase(raw: string): string {
@@ -258,4 +410,114 @@ function normalizeCapitalizedPhrase(raw: string): string {
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+const NOT_A_DESIGN_TITLE =
+  /\b(label|photo|save|skip|yes|blur|crop|collection|standard|diamond|unicorn|size|here'?s|send|reply|remove|dance floor|piece to save)\b/i
+
+function stringField(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
+/** A title next to the item number, even when it is not the word ring or necklace. */
+function designTitleNearItem(text: string, itemNumber: string): string | null {
+  const match = text.match(
+    new RegExp(`\\b${escapeRegExp(itemNumber)}\\b\\s*(?:[,;:\\-=]|is)?\\s*([^.;\\n]+)`, 'i'),
+  )
+  const candidate = trimDesignCandidate(
+    (match?.[1]?.split(/\s*,\s*/)[0] ?? '').replace(/^["']|["']$/g, '').trim(),
+  )
+  if (!candidate || candidate.length < 3) return null
+  if (NOT_A_DESIGN_TITLE.test(candidate)) return null
+  const words = candidate.split(/\s+/)
+  if (words.length < 2 || words.length > 8) return null
+  if (!/^[A-Z0-9]/.test(candidate)) return null
+  return candidate
+}
+
+function fieldsFromToolPart(
+  part: unknown,
+  itemNumber: string,
+): TradeBoardIntakeKnownFields {
+  if (!part || typeof part !== 'object') return {}
+  const record = part as {
+    type?: string
+    input?: Record<string, unknown>
+    output?: Record<string, unknown>
+  }
+  const type = record.type ?? ''
+  if (!/add_listing|prepare_trade_board|search_jewelry/i.test(type)) return {}
+  const input = record.input ?? {}
+  const output = record.output ?? {}
+  const named = String(input.itemNumber ?? output.itemNumber ?? '')
+    .trim()
+    .toUpperCase()
+  if (named && named !== itemNumber) return {}
+  const known: TradeBoardIntakeKnownFields = {}
+  // A proposed tool input is model text, not an established design. Only a
+  // completed catalog/listing result can supply existing design details.
+  const designName = stringField(output.designId) ? normalizeDesignName(stringField(output.designName)) : undefined
+  if (designName && !looksLikeRawLabelTitle(designName)) known.designName = designName
+  const collectionName = stringField(input.collectionName) ?? stringField(output.collectionName)
+  if (collectionName) known.collectionName = normalizeCollectionName(collectionName)
+  const material = stringField(input.material) ?? stringField(output.material)
+  if (material) known.material = material
+  const mainStone = stringField(input.mainStone) ?? stringField(output.mainStone)
+  if (mainStone) known.mainStone = mainStone
+  const ringSize = stringField(input.ringSize) ?? stringField(output.ringSize)
+  if (ringSize) known.ringSize = ringSize
+  const rarity = stringField(input.rarityClassification) ?? stringField(output.rarityClassification)
+  if (rarity === 'standard' || rarity === 'diamond' || rarity === 'unicorn') {
+    known.rarityClassification = rarity
+  }
+  return known
+}
+
+/** Tool item IDs establish which piece a rep's following answer describes.
+ * Tool names and assistant prose are never a source of the design name. */
+function toolPieceItem(part: unknown): string | undefined {
+  if (!part || typeof part !== 'object') return undefined
+  const record = part as { type?: string; input?: Record<string, unknown>; output?: Record<string, unknown> }
+  if (!/add_listing|prepare_trade_board|search_jewelry/i.test(record.type ?? '')) return undefined
+  const value = record.output?.itemNumber ?? record.input?.itemNumber
+  return typeof value === 'string' && /^[A-Z]{1,4}\d{3,}$/i.test(value.trim())
+    ? value.trim().toUpperCase() : undefined
+}
+
+/**
+ * Recover rep-provided text and completed catalog results, never assistant
+ * prose or a proposed tool name. Stored session values win over a later guess.
+ */
+export function recoverStoredPieceDetails(
+  known: TradeBoardIntakeKnownFields,
+  messages: Array<{ role?: string; parts?: unknown }>,
+): TradeBoardIntakeKnownFields {
+  const item = known.itemNumber?.trim().toUpperCase()
+  if (!item) return known
+  let filled = { ...known }
+  // Labels/catalog tools may identify the piece without the rep typing its ID.
+  // Before the first explicit ID, answers belong to that first identified piece;
+  // with no ID in history, the active session supplies the piece identity.
+  let currentItem = messages.map((message) => message.role === 'user'
+    ? extractKnownFieldsFromText(messageText(message.parts)).itemNumber
+    : (Array.isArray(message.parts) ? message.parts : []).map(toolPieceItem).find(Boolean))
+    .find(Boolean) ?? item
+  for (const message of messages) {
+    const parts = Array.isArray(message.parts) ? message.parts : []
+    for (const part of parts) {
+      currentItem = toolPieceItem(part) ?? currentItem
+      filled = mergeTradeBoardKnownFields(filled, fieldsFromToolPart(part, item))
+    }
+    if (message.role !== 'user') continue
+    const text = messageText(message.parts)
+    const extracted = extractKnownFieldsFromText(text)
+    currentItem = extracted.itemNumber ?? currentItem
+    if (currentItem !== item) continue
+    filled = mergeTradeBoardKnownFields(filled, extracted)
+    if (!filled.designName) {
+      const title = designTitleNearItem(text, item)
+      if (title) filled = { ...filled, designName: title }
+    }
+  }
+  return mergeTradeBoardKnownFields(filled, known)
 }

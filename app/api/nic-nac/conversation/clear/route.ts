@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPaidNicNacContext, AuthError } from '@/lib/nic-nac/auth'
-import { clearActiveConversationsForRep } from '@/lib/nic-nac/persistence'
+import { clearNicNacConversationChain } from '@/lib/nic-nac/persistence'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { ServiceError } from '@/lib/services/errors'
 import { getOperatorSupportRequestContext } from '@/lib/operator-support/request-context'
 import {
@@ -30,9 +31,12 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => null)) as {
     conversationId?: unknown
+    nextConversationId?: unknown
   } | null
   const conversationId =
     typeof body?.conversationId === 'string' ? body.conversationId.trim() : ''
+  const nextConversationId =
+    typeof body?.nextConversationId === 'string' ? body.nextConversationId.trim() : ''
   if (!conversationId) {
     return NextResponse.json({ error: 'missing_conversation_id' }, { status: 400 })
   }
@@ -55,9 +59,12 @@ export async function POST(request: Request) {
       supportScope,
     )
   } else {
-    clearedConversationIds = await clearActiveConversationsForRep(
+    clearedConversationIds = await clearNicNacConversationChain(
       ctx.supabase,
+      createAdminClient(),
       ctx.repId,
+      conversationId,
+      nextConversationId,
     )
   }
   return NextResponse.json({

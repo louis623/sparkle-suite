@@ -26,7 +26,7 @@ export const APPROVAL_COPY: Record<
     cancel: 'Cancel',
   },
   report_jewelry_catalog_issue: {
-    title: 'Update shared catalog data?',
+    title: 'Update this design for every rep?',
     confirm: 'Update catalog',
     cancel: 'Cancel',
   },

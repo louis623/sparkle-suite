@@ -170,7 +170,7 @@ export async function ensureLiveQueueSyncCodeForRep(
     if (!isUniqueViolation(error)) throw error
   }
 
-  throw new Error('Could not create a unique Live Queue sync code.')
+  throw new Error('Could not create a unique Live Lineup sync code.')
 }
 
 async function getRepProfileForLiveQueueSyncCode(

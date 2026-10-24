@@ -44,8 +44,8 @@ export function makeGetFulfillmentQueueTool(ctx: {
 }) {
   return tool({
     description:
-      "List the authenticated rep's active fulfillment queue after trade approval. " +
-      'Use this when the rep asks what still needs to ship, what trades are waiting on follow-through, or what approved trades are still in progress. ' +
+      "List the authenticated rep's active fulfillment queue after a swap is approved. " +
+      'Use this when the rep asks what still needs to ship, what swaps are waiting on follow-through, or what approved swaps are still in progress. ' +
       'Returns active items only (approved + shipped, not completed), plus day-based follow-up nudges.',
     inputSchema,
     execute: async () => {

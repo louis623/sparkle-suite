@@ -152,10 +152,10 @@ function summarizeSwapCleanup(record: ToolOutputRecord) {
 function summarizeCatalogSearch(record: ToolOutputRecord) {
   const results = readRecords(record, 'results')
   const count = readNumber(record, 'count') ?? results.length
-  if (count === 0) return 'I couldn’t find a matching jewelry catalog record.'
+  if (count === 0) return 'I couldn’t find a matching piece.'
 
   return summarizeRows(
-    `I found ${count} matching catalog ${count === 1 ? 'record' : 'records'}.`,
+    `I found ${count} matching ${count === 1 ? 'piece' : 'pieces'}.`,
     results,
     (result, index) => {
       const name = compactLabel(result.designName, 'Unnamed design')
@@ -564,6 +564,137 @@ export function getNicNacMandatoryToolFollowUpText(
     return 'Fulfillment is complete. Want to add the dancer you received to your Dance Floor now?'
   }
   return null
+}
+
+const INTERNAL_CATALOG_PHRASES: Array<[RegExp, string]> = [
+  [/shared catalog/gi, 'design list'],
+  [/catalog records/gi, 'pieces'],
+  [/catalog record/gi, 'piece'],
+]
+
+/** Model and handler instructions. These must never be assistant-visible text. */
+export const HANDLER_INSTRUCTION_PATTERNS: RegExp[] = [
+  /use vision on the rep'?s photos/i,
+  /handler uploads the photo/i,
+  /pass piecePhotoIndex or listingPhotoIndex/i,
+  /needsAction\s*[:=]\s*['"]?create_design/i,
+  /NEEDS_FULL_INFO/i,
+  /ask the rep for the exact collection/i,
+  /do not guess it from vision/i,
+]
+
+export function containsHandlerInstruction(text: string): boolean {
+  return HANDLER_INSTRUCTION_PATTERNS.some((pattern) => pattern.test(text))
+}
+
+/**
+ * Rep-facing text only. A handler instruction is replaced as a whole so a
+ * split sentence cannot leave the instruction on screen.
+ */
+export function guardAssistantVisibleText(text: string): string {
+  if (/\blooping\b|\b(?:photo|save|upload)[- ]confirmation\s+(?:step|loop)\b/i.test(text)) {
+    return "I couldn't save this piece. Please try again."
+  }
+  if (!containsHandlerInstruction(text)) return scrubInternalCatalogPhrases(text)
+  const item = text.match(/\b[A-Z]{1,4}\d{3,}\b/i)?.[0]?.toUpperCase()
+  return item
+    ? `I still need the design name and collection for ${item} before I can save it.`
+    : 'I still need the design name and collection before I can save that.'
+}
+
+export function scrubInternalCatalogPhrases(text: string): string {
+  let next = text
+  for (const [pattern, replacement] of INTERNAL_CATALOG_PHRASES) {
+    next = next.replace(pattern, replacement)
+  }
+  return next
+}
+
+const SHARED_CATALOG_PHOTO_OFFER =
+  /replacement catalog photo|design list (?:image|photo)|for all reps|shared catalog (?:photo|image)|catalog photo for every rep|replace the design list/i
+
+/** A rep chat may change the shared design-list photo only when this turn asks for that. */
+export function repAskedToUpdateSharedCatalogImage(text: string): boolean {
+  return (
+    /\b(?:update|replace|change|fix|correct)\b[\s\S]{0,120}\b(?:shared catalog|catalog (?:photo|image)|design list image|for all reps)\b/i.test(
+      text,
+    ) ||
+    /\b(?:shared catalog|catalog (?:photo|image)|design list image)\b[\s\S]{0,80}\b(?:update|replace|change|fix|correct)\b/i.test(
+      text,
+    )
+  )
+}
+
+export function stripUnaskedCatalogPhotoOffer(text: string): string {
+  const trimmed = text.trim()
+  if (!trimmed || !SHARED_CATALOG_PHOTO_OFFER.test(trimmed)) return text
+  const kept = trimmed
+    .split(/(?<=[.!?])\s+/)
+    .filter((sentence) => sentence.trim() && !SHARED_CATALOG_PHOTO_OFFER.test(sentence))
+    .join(' ')
+    .trim()
+  if (kept) return kept
+  return "I won't change the design list photo from this chat."
+}
+
+export const PHOTO_BLAME =
+  /artwork|isn'?t a photo of|is not a photo of|doesn'?t show the (?:jewelry|earrings|ring|necklace|piece)|does not show the (?:jewelry|earrings|ring|necklace|piece)/i
+
+export function blameNamesAnotherItem(
+  text: string,
+  itemNumber?: string | null,
+): string | null {
+  const current = itemNumber?.trim().toUpperCase() || ''
+  const found = text.match(/\b[A-Z]{1,4}\d{3,}\b/gi) ?? []
+  return (
+    found.map((value) => value.toUpperCase()).find((value) => value !== current) ??
+    null
+  )
+}
+
+/** Say the real problem. A clear product photo is not artwork. */
+export function photoBlameCorrection(args: {
+  text: string
+  itemNumber?: string | null
+  labelItemNumber?: string | null
+  blurry?: boolean
+  acceptedProductPhoto?: boolean
+}): string | null {
+  if (!PHOTO_BLAME.test(args.text)) return null
+  const item = args.itemNumber?.trim().toUpperCase() || ''
+  const label =
+    args.labelItemNumber?.trim().toUpperCase() ||
+    blameNamesAnotherItem(args.text, item)
+  if (label && item && label !== item) {
+    return `The label says ${label}. I won't save it on ${item}. Send the label for ${item}.`
+  }
+  if (args.blurry) return 'That photo is too blurry. Send a clearer photo of the jewelry.'
+  if (args.acceptedProductPhoto) return 'I have that photo.'
+  return null
+}
+
+/** Check a complete text segment before releasing any provider delta to the rep. */
+export function createRepTextScrubber(options?: {
+  correctPhotoBlame?: (text: string) => string | null
+  allowSharedCatalogPhotoOffer?: boolean
+}) {
+  const correct = options?.correctPhotoBlame
+  const allowOffer = options?.allowSharedCatalogPhotoOffer === true
+  let buffered = ''
+  return {
+    push(delta: string): string {
+      // An instruction can span arbitrary provider deltas. Do not publish a
+      // prefix before the complete text has passed the visible-output guard.
+      buffered += delta
+      return ''
+    },
+    flush(): string {
+      const scrubbed = guardAssistantVisibleText(buffered)
+      buffered = ''
+      const corrected = guardAssistantVisibleText(correct?.(scrubbed) ?? scrubbed)
+      return allowOffer ? corrected : stripUnaskedCatalogPhotoOffer(corrected)
+    },
+  }
 }
 
 export function isRenderableNicNacStreamChunk(chunk: UIMessageChunk) {

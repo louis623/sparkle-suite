@@ -50,9 +50,9 @@ export const SELF_SERVE_ONBOARDING_CHECKLIST: SelfServeOnboardingChecklistItem[]
   },
   {
     id: 'chrome-extension-live-queue',
-    title: 'Understand the Chrome extension and Live Queue',
-    description: 'Learn why the extension exists, what it syncs, and how to check Live Queue status.',
-    nicNacPrompt: 'Ask Nic-Nac to explain the Chrome extension and Live Queue.',
+    title: 'Understand the Chrome extension and Live Lineup',
+    description: 'Learn why the extension exists, what it syncs, and how to check Live Lineup status.',
+    nicNacPrompt: 'Ask Nic-Nac to explain the Chrome extension and Live Lineup.',
   },
   {
     id: 'publish-readiness',

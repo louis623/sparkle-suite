@@ -53,20 +53,47 @@ describe('Nic-Nac run thresholds', () => {
     })
   })
 
-  it('recommends rollover when context compaction drops even one message', () => {
+  it('does not roll over when a small piece trims older turns', () => {
     expect(
       evaluateNicNacRunThresholds({
         latencyMs: 1_000,
-        inputTokens: 2_000,
-        totalTokens: 2_100,
-        estimatedContextTokens: 2_000,
+        inputTokens: 4_057,
+        totalTokens: 4_200,
+        estimatedContextTokens: 4_057,
         contextCompacted: true,
-        droppedMessageCount: 1,
+        droppedMessageCount: 4,
       }),
     ).toEqual({
-      rolloverRecommended: true,
-      reasons: ['context_compacted'],
+      rolloverRecommended: false,
+      reasons: [],
     })
+  })
+
+  it('does not roll a short chat over when the provider count includes the standing prompt', () => {
+    expect(
+      evaluateNicNacRunThresholds({
+        latencyMs: 4_000,
+        inputTokens: 2_500,
+        totalTokens: 2_700,
+        estimatedContextTokens: 2_500,
+        contextCompacted: false,
+        droppedMessageCount: 0,
+      }),
+    ).toEqual({
+      rolloverRecommended: false,
+      reasons: [],
+    })
+
+    expect(
+      evaluateNicNacRunThresholds({
+        latencyMs: 4_000,
+        inputTokens: 85_000,
+        totalTokens: 91_000,
+        estimatedContextTokens: 2_500,
+        contextCompacted: false,
+        droppedMessageCount: 0,
+      }).reasons,
+    ).not.toContain('high_input_tokens')
   })
 
   it('treats the estimated context token threshold as an exact boundary', () => {

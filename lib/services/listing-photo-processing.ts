@@ -1,3 +1,4 @@
+import { analyzeListingPhoto } from './listing-photo-analysis'
 import { getPhotoroomConfig } from '@/lib/photoroom/config'
 import { randomUUID } from 'crypto'
 import { errors, ServiceError } from '@/lib/services/errors'
@@ -24,6 +25,8 @@ export interface ProcessRepListingPhotoUrlInput {
 export interface ProcessRepListingPhotoUrlOptions {
   fetch?: typeof fetch
   confirmedJewelryFront?: boolean
+  /** Keep the exact upload as the public listing image. */
+  publishOriginalUpload?: boolean
 }
 
 export interface ProcessRepListingPhotoUrlResult {
@@ -123,7 +126,7 @@ export async function processRepListingPhotoUrl(
   const fetchImpl = options.fetch ?? fetch
   const confirmedJewelryFront = options.confirmedJewelryFront === true
   const fetched = await fetchImageBytes(input, fetchImpl)
-  const metadata = await analyzeServerImageQuality(fetched.bytes)
+  const metadata = await analyzeListingPhoto(fetched.bytes)
   const semantic = classifyJewelryPhotoSemantics(metadata)
   const preflight = assessJewelryPhotoPreflight({
     width: metadata.width,
@@ -135,7 +138,7 @@ export async function processRepListingPhotoUrl(
     subjectCoverage: metadata.subjectCoverage,
     subjectCentered: metadata.subjectCentered,
   })
-  const crop = semantic.canAttemptCrop
+  const crop = !options.publishOriginalUpload && semantic.canAttemptCrop
     ? await createGuardedJewelryPhotoCrop({
         bytes: fetched.bytes,
         analysis: metadata,
@@ -200,6 +203,8 @@ export async function processRepListingPhotoUrl(
       attempted: false,
     },
   }
+
+  if (options.publishOriginalUpload) return baseResult
 
   let photoroomConfig: ReturnType<typeof getPhotoroomConfig>
   try {

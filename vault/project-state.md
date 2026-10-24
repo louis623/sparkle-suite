@@ -1,3 +1,47 @@
+## October 22, 2026 — PR 141 Run 18 fresh-chat routing and blur replies, PR only
+
+- A stored photo confirmation now routes the submitted yes through intake even when recent prose contains no trade-board keyword. The reproduced first-save failure skipped that ingestion and sent stale confirmation state to the model. New fresh-chat tests hold photo analysis pending, then verify one listing and one original upload from one yes, including replay.
+- Captionless requested piece photos retain admission/quality checks; mild or severe blur reaches the reply explicitly even when framing resembles packaging. Explicit/OCR-identified label handling remains unchanged.
+- Product tip cd1d4340: real Next build, standalone TypeScript and npm test PASS (48 files / 807 tests). Complete real-route photo suite: 65 passing cases. See [Run 18 evidence and limits](2026-10-22-pr141-run18-retest.md).
+- The exact Smoke requests and original image bytes were unavailable; no signed-in phone/desktop acceptance is claimed. Suite's PR retest is next. No merge, deploy, production branch, migration or Live changes.
+
+## October 22, 2026 — PR 141 Run 17 first-yes save and blur fixes, PR only
+
+- Closed the race where a streamed preview is visible before its assistant reply becomes canonical: an early yes waits for that exact reply, then saves from authoritative state. Preview readers now agree on the last preview across split assistant rows. Quality analysis waits up to 20 seconds before any upload or save; a late result cannot perform a mutation.
+- Phone-like blurry jewelry now gets an explicit blurry refusal even when the visual classification resembles packaging. The required-label rule, either photo order, label exclusion, moved-on notice and replay protections remain intact.
+- Product tip c5357d5754a110103bad92e6bbf5192c11857a50: real Next build, standalone TypeScript and npm test pass (48 files / 801 tests). See [Run 17 closeout](2026-10-22-pr141-run17-retest.md) for evidence and limits. Suite's signed-in PR retest remains next.
+- PR-only authorization: no merge, deploy, production branch, migration or Live changes. The primary checkout and permanent branch policy were preserved.
+
+## October 22, 2026 — PR 141 Run 16 rule change and phone history fix, PR only
+
+- Pending confirmation state now retires the whole final reply, including the exact RG16117 phone wording and split assistant rows. Louis now requires a Bomb Party label photo plus a separate jewelry-front photo for every Nic-Nac add; typed details can supplement but cannot replace either upload.
+- Product tip f4b8bf6ebe8fd069dabbc607920ffa62f30e6f2e: real Next build, standalone TypeScript and npm test pass (48 files / 790 tests). Both photo orders, typed-only rejection, actual database saves and tool-bypass attempts are covered.
+- No merge, deploy, production branch, migration or Live changes. Suite's PR retest remains next. See [Run 16 closeout](2026-10-22-pr141-run16-retest.md) and the updated decisions.
+
+## October 22, 2026 — PR 141 Run 15 smoke regressions, PR only
+
+- Corrected-duplicate saves now recover rep names/collections when a label/tool identified the item; photo-first then label retains the selected jewelry through yes; retired confirmation lines become one moved-on notice.
+- Product tip 4fe762121409aaa1b7c4940ff51f011e9b4f0226: real Next build, standalone TypeScript and npm test pass (48 files / 774 tests). Real route/database tests now verify the saved design and image, not just preview text.
+- No merge, deploy, production branch, migration or Live changes. Suite's signed-in PR retest remains next. See [Run 15 closeout](2026-10-22-pr141-run15-retest.md).
+
+## October 22, 2026 — PR 141 Run 14 retest repairs, PR only
+
+- Fixed assistant prose leaking into saved design names; name recovery uses rep text or established details, strips Markdown, and keeps stored-name authority on the matching item. Fixed contradictory jewelry/label replies and pending questions left beside moved-on notices.
+- Product tip f4bc4857092481d623354df677d67469d7921aaf: real Next build, standalone tsc, and npm test all pass (48 files / 769 tests). Twelve new regression cases cover the real save/history routes and client rendering. The known production help/branding failures remain unchanged.
+- No new merge, deploy, production branch, migration or Live changes. Signed-in PR retest remains next. See [Run 14 closeout](2026-10-22-pr141-run14-retest.md).
+
+## October 22, 2026 — PR 141 build fixed; production integrated into PR only
+
+- Integrated production 5fd172f89c86705297f1bf7014c959d0309e8417 into cursor/nicnac-photo-hardening, preserving production wording/help. Product fix b47160bab10d88077c027c955c00eeeb417b264c separates browser display helpers and guards Sharp-dependent server modules.
+- Real npm run build, standalone tsc, and npm test (48 files / 757 tests) pass. Extra help/branding checks expose two unchanged production test expectations; see [full verification](2026-10-22-pr141-build-fix.md).
+- PR only: no PR merge into production, deploy, migration, Smoke or Live changes. This supersedes the earlier note that base integration remained unapproved. Signed-in PR retest remains outstanding.
+
+## October 22, 2026 — PR 141 repairs, not deployed
+
+- Louis authorized a PR-only branch exception for cursor/nicnac-photo-hardening. Seven isolated commits fix send, stored preview recovery, history, quality gates, original images, replay/time and skip status. Product tip 810bea061a8de73f8ab52a05bf3bae0e34e9b22b.
+- All 754 tests in 47 files and TypeScript pass. Real route/service/SQL tests use synthetic boundaries; no signed-in Smoke, merge, deploy, production branch or Live changes. GitHub reports base conflicts; integration needs a separate decision.
+- See [PR-only closeout](2026-10-22-pr141-nicnac-repair.md) and [analysis](../ANALYSIS.md). The primary dirty checkout and permanent branch policy remain untouched.
+
 ## October 17, 2026 - Fall Owl and Harvest Moon community theme live
 
 - FO-01 / `fall_owl_harvest_moon` is a Community theme available to every rep, preserving all existing saved selections. Product SHA `52fd92ac5e1b2ec846a792bad2d3fb93ca86c2f1` is READY on `dpl_5a8SKJU3hKPbmijmrXpDqWUEE3L8` on both Suite domains and all existing aliases. Migration `20261017000100` applied and recorded through existing authenticated Supabase CLI; no credentials exported.

@@ -139,7 +139,7 @@ export function buildSelfServePurchaseConfirmationEmailContent(input: {
         ? `Your public Sparkle Suite site: ${publicSiteUrl}`
         : 'Your public Sparkle Suite site link will appear in the workspace as soon as it is available.',
       `Use the help/how-to hub for walkthroughs: ${input.helpUrl}`,
-      'Start with the setup walkthrough, then use the videos for Nic-Nac, site editing, shows, dance floor, calculator, and the Chrome extension / Live Queue overview when you need them.',
+      'Start with the setup walkthrough, then use the videos for Nic-Nac, site editing, shows, dance floor, calculator, and the Chrome extension / Live Lineup overview when you need them.',
       'Louis only needs to step in if something gets escalated. Otherwise, Nic-Nac and the help/how-to hub are your first stop.',
       'Sparkle Suite',
     ]),

@@ -14,6 +14,7 @@ import {
   type NicNacToolSafetyLedgerEntry,
 } from '@/lib/nic-nac/tools/safety-ledger'
 import type { ToolContext } from '@/lib/nic-nac/tools/types'
+import { repAskedToUpdateSharedCatalogImage } from '@/lib/nic-nac/core/stream-output-guard'
 import type { NicNacAgentMode } from '@/lib/nic-nac/agent/instructions'
 
 export type NicNacCapabilityCatalogSource =
@@ -77,13 +78,18 @@ export function buildNicNacCapabilityCatalog({
     requestedIntents,
   )
   const allowedTools = buildToolsForIntents(toolContext, policy.allowedIntents)
+  const allowCatalogPhotoTool = repAskedToUpdateSharedCatalogImage(
+    toolContext.latestUserText ?? '',
+  )
   const harnessExcludedToolNames = Object.keys(allowedTools).filter((name) =>
     AGENT_EXCLUDED_TOOL_NAMES.has(name),
   )
   const tools = Object.fromEntries(
-    Object.entries(allowedTools).filter(
-      ([name]) => !AGENT_EXCLUDED_TOOL_NAMES.has(name),
-    ).map(([name, definition]) => [name, {
+    Object.entries(allowedTools).filter(([name]) => {
+      if (AGENT_EXCLUDED_TOOL_NAMES.has(name)) return false
+      if (name === 'report_jewelry_catalog_issue' && !allowCatalogPhotoTool) return false
+      return true
+    }).map(([name, definition]) => [name, {
       ...definition,
       // Responses otherwise normalizes omitted strictness and may require
       // optional fields (e.g. recurrence on a one-time show). Preserve the

@@ -185,6 +185,26 @@ describe('Dance Floor intake controller', () => {
     ])
   })
 
+  it('tells the model to keep details when the rep says no to a shared photo', () => {
+    const prompt = buildTradeBoardIntakePromptState(
+      baseState({
+        known: {
+          itemNumber: 'NK94304',
+          material: 'Silver',
+          designName: 'The Lumen Necklace',
+          mainStone: 'Opal',
+        },
+        metadata: { declinedSharedPhoto: true },
+      }),
+    )
+    const rule = prompt.hardRules.find((line) =>
+      line.includes('Do not offer that photo as the main photo'),
+    )
+    expect(rule).toContain('NK94304')
+    expect(rule).toContain('Silver')
+    expect(rule).toContain('Use the new photo for this piece')
+  })
+
   it('builds model prompt state with the correct next action', () => {
     const promptState = buildTradeBoardIntakePromptState(
       baseState({
@@ -334,12 +354,12 @@ describe('Dance Floor intake controller', () => {
         {
           attachmentIndex: 1,
           declaredRole: 'unknown',
-          visualRole: 'uncertain',
+          visualRole: 'jewelry',
           roleConfirmed: false,
           imageUrl: BOXED_HEX_CARD_URL,
           quality: 'usable',
           qualityIssues: [],
-          notes: ['boxed display jewelry appears clear enough'],
+          notes: ['boxed display jewelry is clear enough'],
         },
       ],
     })

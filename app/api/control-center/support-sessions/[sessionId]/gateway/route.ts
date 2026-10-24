@@ -14,6 +14,7 @@ import * as conversationRepRequests from '@/app/api/nic-nac/conversations/rep-re
 import * as conversationSupport from '@/app/api/nic-nac/conversations/support/route'
 import * as customerAudience from '@/app/api/nic-nac/customer-audience/route'
 import * as fulfillmentQueue from '@/app/api/nic-nac/fulfillment-queue/route'
+import * as intakePhoto from '@/app/api/nic-nac/intake-photos/[photoId]/route'
 import * as jewelryLibrary from '@/app/api/nic-nac/jewelry-library/route'
 import * as joinTeamRoster from '@/app/api/nic-nac/join-team-roster/route'
 import * as joinTeamRosterPhoto from '@/app/api/nic-nac/join-team-roster/photo/route'
@@ -202,6 +203,17 @@ function resolveRoute(path: string): {
       params: { participantId },
     }
   }
+  match = path.match(/^\/api\/nic-nac\/intake-photos\/([^/]+)$/)
+  if (match) {
+    const photoId = decodeRouteSegment(match[1]!)
+    if (!photoId) return null
+    return {
+      module: intakePhoto as unknown as RouteModule,
+      pattern: '/api/nic-nac/intake-photos/[photoId]',
+      params: { photoId },
+    }
+  }
+
   match = path.match(/^\/api\/nic-nac\/trade-requests\/([^/]+)\/reveal-screenshot$/)
   if (match) {
     const requestId = decodeRouteSegment(match[1]!)
