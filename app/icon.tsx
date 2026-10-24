@@ -1,7 +1,10 @@
 import { ImageResponse } from 'next/og'
 import { headers } from 'next/headers'
 
-import { getCustomerSiteBrandAssetContext } from '@/lib/amethyst/customer-site-brand-assets'
+import {
+  getCustomerSiteBrandAssetContext,
+  getCustomerSiteMarkIconBackground,
+} from '@/lib/amethyst/customer-site-brand-assets'
 import { getCustomerSiteBrandImageFonts } from '@/lib/amethyst/customer-site-brand-fonts'
 import { loadCustomerSiteBrandImageDataUri } from '@/lib/amethyst/customer-site-brand-image-assets'
 
@@ -25,7 +28,7 @@ export default async function Icon() {
       <div
         style={{
           alignItems: 'center',
-          background: '#1d1719',
+          background: getCustomerSiteMarkIconBackground(brand.markAssetPath),
           display: 'flex',
           height: '100%',
           justifyContent: 'center',

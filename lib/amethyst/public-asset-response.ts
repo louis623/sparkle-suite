@@ -306,6 +306,9 @@ function renderMetadataBlock(
   const faviconTag = `<link rel="icon" type="image/png" href="${escapeHtmlAttribute(
     new URL('/icon', origin).toString(),
   )}" />`
+  const appleTouchIconTag = `<link rel="apple-touch-icon" sizes="180x180" href="${escapeHtmlAttribute(
+    new URL('/apple-icon', origin).toString(),
+  )}" />`
   const metadata = buildRenderedPublicMetadata(
     page,
     origin,
@@ -317,6 +320,7 @@ function renderMetadataBlock(
     buildMetadataTagsFromPublicMetadata(metadata).map(renderMetaTag).join('\n'),
     verificationTag,
     faviconTag,
+    appleTouchIconTag,
   ]
     .filter(Boolean)
     .join('\n')

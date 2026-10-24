@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import {
   getCustomerSiteAppleMarkAssetPath,
   getCustomerSiteBrandAssetContext,
+  getCustomerSiteMarkIconBackground,
 } from '@/lib/amethyst/customer-site-brand-assets'
 import { loadCustomerSiteBrandImageDataUri } from '@/lib/amethyst/customer-site-brand-image-assets'
 
@@ -27,7 +28,7 @@ export default async function AppleIcon() {
       (
         <div
           style={{
-            background: '#201321',
+            background: getCustomerSiteMarkIconBackground(markPath),
             display: 'flex',
             height: '100%',
             width: '100%',

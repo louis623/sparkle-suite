@@ -55,17 +55,54 @@ describe('BlingwithKrissiG monogram', () => {
     const svg = readFileSync(monogramSvg, 'utf8')
     expect(svg).not.toMatch(/<text[\s>]/)
     expect(svg).not.toMatch(/<image[\s>]/)
-    expect(svg).toContain('#201321')
+    expect(svg).not.toContain('<rect')
+    expect(svg).toContain('#140b14')
     expect(svg).toContain('#efba73')
 
     const rendered = new Resvg(svg, { fitTo: { mode: 'width', value: 1024 } }).render().asPng()
-    const actual = await sharp(monogramPng).raw().toBuffer()
-    const expected = await sharp(rendered).raw().toBuffer()
-    expect(actual.equals(expected)).toBe(true)
-    expect(await sharp(monogramPng).metadata()).toMatchObject({
+    const actual = await sharp(monogramPng).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+    const expected = await sharp(rendered).ensureAlpha().raw().toBuffer()
+    expect(actual.data.equals(expected)).toBe(true)
+    expect(actual.info).toMatchObject({
       width: 1024,
       height: 1024,
-      format: 'png',
+      channels: 4,
     })
+
+    const { data, info } = actual
+    const pixel = (x: number, y: number) => {
+      const index = (y * info.width + x) * info.channels
+      return [data[index], data[index + 1], data[index + 2], data[index + 3]]
+    }
+    for (const [x, y] of [[0, 0], [1023, 0], [0, 1023], [1023, 1023], [6, 512]] as const) {
+      expect(pixel(x, y)[3]).toBe(0)
+    }
+    const interior = pixel(512, 140)
+    expect(interior[3]).toBe(255)
+    expect(interior[0]).toBeGreaterThan(interior[1])
+    expect(interior[0]).toBeLessThan(90)
+
+    let minX = info.width
+    let maxX = 0
+    let minY = info.height
+    let maxY = 0
+    let stemLeft = info.width
+    for (let y = 0; y < info.height; y += 1) {
+      for (let x = 0; x < info.width; x += 1) {
+        const [red, green, blue, alpha] = pixel(x, y)
+        if (alpha < 200 || Math.hypot(x - 512, y - 512) >= 410) continue
+        if (red <= 160 || green <= 90 || red <= blue + 40) continue
+        minX = Math.min(minX, x)
+        maxX = Math.max(maxX, x)
+        minY = Math.min(minY, y)
+        maxY = Math.max(maxY, y)
+        if (y > 470 && y < 550) stemLeft = Math.min(stemLeft, x)
+      }
+    }
+    const overhang = stemLeft - minX
+    expect(overhang).toBeGreaterThan(8)
+    expect(overhang).toBeLessThanOrEqual(24)
+    expect(Math.abs((minX + maxX) / 2 - 512)).toBeLessThanOrEqual(4)
+    expect(Math.abs((minY + maxY) / 2 - 512)).toBeLessThanOrEqual(4)
   })
 })

@@ -121,6 +121,14 @@ export function getCustomerSiteAppleMarkAssetPath(customDomain: string) {
 }
 
 /**
+ * Kristin's medallion is transparent outside the ring. Kim's and Bri's
+ * marks stay on the existing dark plate.
+ */
+export function getCustomerSiteMarkIconBackground(markAssetPath: string) {
+  return markAssetPath === KRISTIN_MARK_PATH ? 'transparent' : '#1d1719'
+}
+
+/**
  * Keeps a clock time on one line. "11:30 AM ET" must not wrap between the
  * number and AM/PM or the zone. Ordinary spaces outside the time still wrap.
  */

@@ -8,6 +8,7 @@ import sharp from 'sharp'
 import { getAmethystAppearancePreset } from '@/lib/amethyst/appearance-presets'
 import {
   getCustomerSiteExplicitShareLines,
+  getCustomerSiteMarkIconBackground,
   getCustomerSiteSharePalette,
 } from '@/lib/amethyst/customer-site-brand-assets'
 import { getCustomerSiteBrandImageFonts } from '@/lib/amethyst/customer-site-brand-fonts'
@@ -53,35 +54,77 @@ async function main() {
     ),
     { width: 1200, height: 630, fonts },
   ))
-  const icon = await png(new ImageResponse(
-    (
-      <div
-        style={{
-          alignItems: 'center',
-          background: '#1d1719',
-          display: 'flex',
-          height: '100%',
-          justifyContent: 'center',
-          width: '100%',
-        }}
-      >
-        <img alt="BlingwithKrissiG monogram" height={192} src={markSrc} width={192} />
-      </div>
-    ),
-    { width: 192, height: 192, fonts },
-  ))
+  const markPath = '/customer-site-assets/blingwithkrissig-monogram-b.png'
+  const plate = getCustomerSiteMarkIconBackground(markPath)
+  async function markPlate(width: number, height: number) {
+    return png(new ImageResponse(
+      (
+        <div
+          style={{
+            alignItems: 'center',
+            background: plate,
+            display: 'flex',
+            height: '100%',
+            justifyContent: 'center',
+            width: '100%',
+          }}
+        >
+          <img alt="BlingwithKrissiG monogram" height={height} src={markSrc} width={width} />
+        </div>
+      ),
+      { width, height, fonts },
+    ))
+  }
+  const icon = await markPlate(192, 192)
+  const appleIcon = await markPlate(180, 180)
+  const master = await sharp(resolve(process.cwd(), `public${markPath}`)).png().toBuffer()
 
   await mkdir(outDir, { recursive: true })
   await writeFile(resolve(outDir, 'opengraph-image.png'), card)
   await writeFile(resolve(outDir, 'icon-192.png'), icon)
   await sharp(icon).resize(32, 32).png().toFile(resolve(outDir, 'icon-32.png'))
   await sharp(icon).resize(16, 16).png().toFile(resolve(outDir, 'icon-16.png'))
+  await sharp(master).resize(512, 512).png().toFile(resolve(outDir, 'icon-512.png'))
+  await writeFile(resolve(outDir, 'apple-icon.png'), appleIcon)
+
+  const cardImage = sharp(card).ensureAlpha()
+  const { data, info } = await cardImage.raw().toBuffer({ resolveWithObject: true })
+  let minX = info.width
+  let maxX = 0
+  let minY = info.height
+  let maxY = 0
+  for (let y = 430; y < info.height; y += 1) {
+    for (let x = 0; x < 620; x += 1) {
+      const index = (y * info.width + x) * info.channels
+      const red = data[index]
+      const green = data[index + 1]
+      const blue = data[index + 2]
+      if (red > 236 && green > 200 && blue > 150 && red > blue + 40) {
+        minX = Math.min(minX, x)
+        maxX = Math.max(maxX, x)
+        minY = Math.min(minY, y)
+        maxY = Math.max(maxY, y)
+      }
+    }
+  }
+  const pad = 54
+  const crop = {
+    left: Math.max(0, minX - pad),
+    top: Math.max(0, minY - pad),
+    width: Math.min(info.width, maxX + pad) - Math.max(0, minX - pad),
+    height: Math.min(info.height, maxY + pad) - Math.max(0, minY - pad),
+  }
+  const cropped = await sharp(card).extract(crop).resize(crop.width * 3, crop.height * 3, { kernel: 'nearest' }).png().toBuffer()
+  await writeFile(resolve(outDir, 'opengraph-mark-crop.png'), cropped)
   console.log(JSON.stringify({
     outDir,
     headline: lines.headline,
     support: lines.support,
+    plate,
     cardBytes: card.length,
     iconBytes: icon.length,
+    appleBytes: appleIcon.length,
+    crop,
   }))
 }
 

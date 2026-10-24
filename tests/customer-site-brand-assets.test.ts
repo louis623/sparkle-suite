@@ -9,6 +9,7 @@ import {
   getCustomerSiteMark,
   getCustomerSiteMarkAssetPath,
   getCustomerSiteMarkFontFamily,
+  getCustomerSiteMarkIconBackground,
   getCustomerSiteSharePalette,
   getCustomerSiteShareTagline,
 } from '@/lib/amethyst/customer-site-brand-assets'
@@ -74,6 +75,18 @@ describe('customer-site brand assets', () => {
     )
     expect(getCustomerSiteAppleMarkAssetPath('goforthebling.com')).toBeNull()
     expect(getCustomerSiteAppleMarkAssetPath('brisglowtique.com')).toBeNull()
+    expect(getCustomerSiteMarkIconBackground(
+      getCustomerSiteMarkAssetPath('blingwithkrissig.com') ?? '',
+    )).toBe('transparent')
+    expect(getCustomerSiteMarkIconBackground(
+      getCustomerSiteMarkAssetPath('www.blingwithkrissig.com') ?? '',
+    )).toBe('transparent')
+    expect(getCustomerSiteMarkIconBackground(
+      getCustomerSiteMarkAssetPath('goforthebling.com') ?? '',
+    )).toBe('#1d1719')
+    expect(getCustomerSiteMarkIconBackground(
+      getCustomerSiteMarkAssetPath('brisglowtique.com') ?? '',
+    )).toBe('#1d1719')
   })
 
   it('uses a saved hero line, and the tagline when hero fields are empty', () => {
