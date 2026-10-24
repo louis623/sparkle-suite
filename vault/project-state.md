@@ -4189,3 +4189,7 @@ Louis found the first two Thanksgiving plates too basic and requested more origi
 ## October 24, 2026 — Approved seasonal flyers and matching business cards
 
 Louis approved the oversized cauldron-only and Pumpkin Pie flyers; they replace the rejected cutout-border versions. Matching card templates use the actual rep builder: original Owl unchanged, cauldron at right, original pie at right with an ivory left readability scrim and existing left-aligned type. Front/back proofs, print margins, long text, optional contact fields, PNG/JPEG QR scans and CMYK export verified. 25 focused tests pass and builds are byte-identical. Card designs await visual feedback. See vault/2026-10-24-seasonal-cards-and-flyers-closeout.md. No Live merge/deploy or customer saved-theme changes.
+
+## October 24, 2026 - Seasonal cards approved and deployed to Smoke
+
+Louis approved all three business cards and requested Smoke before Live. Approved cards and flyers deployed from PR #151 commit fc2beaa to Smoke preview dpl_BykCGfMcrtycoGUmv2stHAqzdf1J; sparkle-suite-smoke.vercel.app alias verified. Full build passed; all three served 1080x1920 plates match approved bytes. Signed-in tool checks remain unverified because Smoke has no reviewer token; login and API authentication guard confirmed. Live and customer settings unchanged. See vault/2026-10-24-seasonal-smoke-review.md.
