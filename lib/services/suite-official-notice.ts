@@ -234,7 +234,16 @@ export function suiteNoticePlainText(content: SuiteNoticeContent) {
       // Same as the HTML render: an unsafe thumbnail is omitted.
     }
   }
-  lines.push('', 'Unsubscribe: {{{RESEND_UNSUBSCRIBE_URL}}}')
+  lines.push(
+    '',
+    'Neon Rabbit Digital Services LLC',
+    "2126 St. Martin's Drive West, Jacksonville, FL 32246",
+    '',
+    "This is an automated notice, so please don't reply to this email. To reach Louis, use Workspace Support in your Sparkle Suite workspace:",
+    'https://www.yoursparklesuite.com/nic-nac?section=messages&view=support&src=email',
+    '',
+    'Unsubscribe: {{{RESEND_UNSUBSCRIBE_URL}}}',
+  )
   return lines.join('\n')
 }
 
