@@ -100,6 +100,9 @@ describe('Amethyst static asset route', () => {
     expect(html).toContain(
       '<link rel="icon" type="image/png" href="https://sparklebysasha.example/icon" />',
     )
+    expect(html).toContain(
+      '<link rel="apple-touch-icon" sizes="180x180" href="https://sparklebysasha.example/apple-icon" />',
+    )
   })
 
   it('keeps local and preview Amethyst HTML on the default Sparkle Suite canonical origin', async () => {

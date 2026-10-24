@@ -3,9 +3,13 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import {
+  bindShareCardClockTimes,
+  getCustomerSiteAppleMarkAssetPath,
+  getCustomerSiteExplicitShareLines,
   getCustomerSiteMark,
   getCustomerSiteMarkAssetPath,
   getCustomerSiteMarkFontFamily,
+  getCustomerSiteMarkIconBackground,
   getCustomerSiteSharePalette,
   getCustomerSiteShareTagline,
 } from '@/lib/amethyst/customer-site-brand-assets'
@@ -48,6 +52,91 @@ describe('customer-site brand assets', () => {
     expect(getCustomerSiteMarkAssetPath('example.com')).toBeNull()
   })
 
+  it('maps BlingwithKrissiG\'s stable B mark to her apex and www hosts only', () => {
+    expect(getCustomerSiteMarkAssetPath('blingwithkrissig.com')).toBe(
+      '/customer-site-assets/blingwithkrissig-monogram-b.png',
+    )
+    expect(getCustomerSiteMarkAssetPath('www.blingwithkrissig.com')).toBe(
+      '/customer-site-assets/blingwithkrissig-monogram-b.png',
+    )
+    expect(getCustomerSiteMarkAssetPath('goforthebling.com')).toBe(
+      '/customer-site-assets/goforthebling-gnome-forest-monogram-g.png',
+    )
+    expect(getCustomerSiteMarkAssetPath('brisglowtique.com')).toBe(
+      '/customer-site-assets/bris-glowtique-monogram-b.png',
+    )
+    expect(getCustomerSiteMarkAssetPath('theblingkitchen.com')).toBeNull()
+    expect(getCustomerSiteMarkAssetPath('brittwithbling.com')).toBeNull()
+    expect(getCustomerSiteAppleMarkAssetPath('blingwithkrissig.com')).toBe(
+      '/customer-site-assets/blingwithkrissig-monogram-b.png',
+    )
+    expect(getCustomerSiteAppleMarkAssetPath('www.blingwithkrissig.com')).toBe(
+      '/customer-site-assets/blingwithkrissig-monogram-b.png',
+    )
+    expect(getCustomerSiteAppleMarkAssetPath('goforthebling.com')).toBeNull()
+    expect(getCustomerSiteAppleMarkAssetPath('brisglowtique.com')).toBeNull()
+    expect(getCustomerSiteMarkIconBackground(
+      getCustomerSiteMarkAssetPath('blingwithkrissig.com') ?? '',
+    )).toBe('transparent')
+    expect(getCustomerSiteMarkIconBackground(
+      getCustomerSiteMarkAssetPath('www.blingwithkrissig.com') ?? '',
+    )).toBe('transparent')
+    expect(getCustomerSiteMarkIconBackground(
+      getCustomerSiteMarkAssetPath('goforthebling.com') ?? '',
+    )).toBe('#1d1719')
+    expect(getCustomerSiteMarkIconBackground(
+      getCustomerSiteMarkAssetPath('brisglowtique.com') ?? '',
+    )).toBe('#1d1719')
+  })
+
+  it('uses a saved hero line, and the tagline when hero fields are empty', () => {
+    const generatedSubtitle =
+      "I'm Kristin - join me for live reveals, favorite finds, and customer-first sparkle."
+    const tagline = 'Live jewelry reveals weekdays at 11:30 AM ET and Saturdays at 5 PM ET'
+    const wrappedTagline = 'Live jewelry reveals weekdays at 11:30\u00a0AM\u00a0ET and Saturdays at 5\u00a0PM\u00a0ET'
+
+    expect(getCustomerSiteExplicitShareLines({
+      explicitHeroTitle: '',
+      heroSubtitle: generatedSubtitle,
+      tagline,
+    })).toEqual({ headline: wrappedTagline, support: '' })
+
+    expect(getCustomerSiteExplicitShareLines({
+      explicitHeroTitle: 'Harvest light, real sparkle.',
+      heroSubtitle: generatedSubtitle,
+      tagline,
+    })).toEqual({
+      headline: 'Harvest light, real sparkle.',
+      support: wrappedTagline,
+    })
+
+    expect(getCustomerSiteExplicitShareLines({
+      explicitHeroTitle: 'Harvest light, real sparkle.',
+      heroSubtitle: 'Settle in for the evening reveal.',
+      tagline,
+    })).toEqual({
+      headline: 'Harvest light, real sparkle.',
+      support: 'Settle in for the evening reveal.',
+    })
+
+    expect(getCustomerSiteExplicitShareLines({
+      explicitHeroTitle: '',
+      heroSubtitle: '',
+      tagline: '',
+    })).toEqual({ headline: 'Live jewelry reveals', support: '' })
+  })
+
+  it('keeps clock times together in any share tagline', () => {
+    expect(bindShareCardClockTimes(
+      'Live jewelry reveals weekdays at 11:30 AM ET and Saturdays at 5 PM ET',
+    )).toBe('Live jewelry reveals weekdays at 11:30\u00a0AM\u00a0ET and Saturdays at 5\u00a0PM\u00a0ET')
+    expect(bindShareCardClockTimes('Doors at 7 PM CT')).toBe('Doors at 7\u00a0PM\u00a0CT')
+    expect(bindShareCardClockTimes('Starts at 8:00 p.m.')).toBe('Starts at 8:00\u00a0p.m.')
+    expect(bindShareCardClockTimes('Follow along for new reveals.')).toBe(
+      'Follow along for new reveals.',
+    )
+  })
+
   it('keeps the share card tied to the selected customer-site skin', () => {
     expect(getCustomerSiteSharePalette('sparkle_suite_morganite')).toMatchObject({
       background: '#5b1e3b',
@@ -66,6 +155,11 @@ describe('customer-site brand assets', () => {
     expect(getCustomerSiteSharePalette('rose_gold')).toMatchObject({
       background: '#54202f',
       accent: '#e04f73',
+    })
+    expect(getCustomerSiteSharePalette('fall_owl_harvest_moon')).toMatchObject({
+      background: '#201321',
+      foreground: '#fffdfb',
+      accent: '#efba73',
     })
   })
 
@@ -88,5 +182,8 @@ describe('customer-site brand assets', () => {
     expect(source).toContain('Gnome Forest')
     expect(source).toContain('brand.heroTitle')
     expect(source).toContain('brand.heroSubtitle')
+    expect(source).toContain("brand.preset === 'fall_owl_harvest_moon'")
+    expect(source).toContain('loadFallOwlShareSceneDataUri')
+    expect(source).toContain('getCustomerSiteExplicitShareLines')
   })
 })

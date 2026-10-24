@@ -17,6 +17,7 @@ export interface CustomerSiteBrandAssetContext {
   customDomain: string
   heroSubtitle: string
   heroTitle: string
+  explicitHeroTitle: string
   mark: string
   markAssetPath: string | null
   markFontFamily: string
@@ -27,6 +28,14 @@ export interface CustomerSiteBrandAssetContext {
 
 const BRI_CUSTOM_DOMAINS = new Set(['brisglowtique.com', 'www.brisglowtique.com'])
 const KIM_CUSTOM_DOMAINS = new Set(['goforthebling.com', 'www.goforthebling.com'])
+const KRISTIN_CUSTOM_DOMAINS = new Set([
+  'blingwithkrissig.com',
+  'www.blingwithkrissig.com',
+])
+const KRISTIN_MARK_PATH = '/customer-site-assets/blingwithkrissig-monogram-b.png'
+
+const GENERATED_HERO_SUBTITLE =
+  /^I'm .+ - join me for live reveals, favorite finds, and customer-first sparkle\.$/
 
 const SHARE_BACKGROUNDS: Partial<Record<AmethystAppearancePresetId, string>> = {
   amethyst: '#2b155c',
@@ -96,9 +105,74 @@ export function getCustomerSiteMarkAssetPath(customDomain: string) {
     return '/customer-site-assets/goforthebling-gnome-forest-monogram-g.png'
   }
 
+  if (KRISTIN_CUSTOM_DOMAINS.has(customDomain)) return KRISTIN_MARK_PATH
+
   return BRI_CUSTOM_DOMAINS.has(customDomain)
     ? '/customer-site-assets/bris-glowtique-monogram-b.png'
     : null
+}
+
+/**
+ * Kristin's saved-to-home icon uses her stable mark. Kim's and Bri's apple
+ * icons stay on the existing Suite seal.
+ */
+export function getCustomerSiteAppleMarkAssetPath(customDomain: string) {
+  return KRISTIN_CUSTOM_DOMAINS.has(customDomain) ? KRISTIN_MARK_PATH : null
+}
+
+/**
+ * Kristin's medallion is transparent outside the ring. Kim's and Bri's
+ * marks stay on the existing dark plate.
+ */
+export function getCustomerSiteMarkIconBackground(markAssetPath: string) {
+  return markAssetPath === KRISTIN_MARK_PATH ? 'transparent' : '#1d1719'
+}
+
+/**
+ * Keeps a clock time on one line. "11:30 AM ET" must not wrap between the
+ * number and AM/PM or the zone. Ordinary spaces outside the time still wrap.
+ */
+export function bindShareCardClockTimes(value: string) {
+  return value.replace(
+    /\b(\d{1,2}(?::\d{2})?)\s*(a\.?m\.?|p\.?m\.?)(?:\s*(et|ct|mt|pt|est|cst|mst|pst|edt|cdt|mdt|pdt))?\b/gi,
+    (_match, hour: string, meridiem: string, zone?: string) =>
+      zone ? `${hour}\u00a0${meridiem}\u00a0${zone}` : `${hour}\u00a0${meridiem}`,
+  )
+}
+
+export interface CustomerSiteExplicitShareLines {
+  headline: string
+  support: string
+}
+
+/**
+ * Art share cards prefer a rep's saved hero title and subtitle. Empty hero
+ * fields must not surface the template's generic headline. The tagline is the
+ * intentional line in that case.
+ */
+export function getCustomerSiteExplicitShareLines(input: {
+  explicitHeroTitle: string | null | undefined
+  heroSubtitle: string | null | undefined
+  tagline: string | null | undefined
+}): CustomerSiteExplicitShareLines {
+  const title = cleanText(input.explicitHeroTitle)
+  const subtitle = cleanText(input.heroSubtitle)
+  const tagline = cleanText(input.tagline)
+  const explicitSubtitle =
+    subtitle && subtitle !== tagline && !GENERATED_HERO_SUBTITLE.test(subtitle)
+      ? subtitle
+      : ''
+
+  const headline = bindShareCardClockTimes(title || explicitSubtitle || tagline || 'Live jewelry reveals')
+  const support = bindShareCardClockTimes(
+    title && explicitSubtitle
+      ? explicitSubtitle
+      : title && tagline !== title
+        ? tagline
+        : '',
+  )
+
+  return { headline, support }
 }
 
 export function getCustomerSiteMarkFontFamily(customDomain: string) {
@@ -134,6 +208,7 @@ export async function getCustomerSiteBrandAssetContext(
   return {
     businessName: businessName || 'Customer site',
     customDomain,
+    explicitHeroTitle: cleanText(templateData.homepage.heroHeadlineOverride),
     heroSubtitle,
     heroTitle,
     mark: getCustomerSiteMark(businessName, templateData.homepage.repName),

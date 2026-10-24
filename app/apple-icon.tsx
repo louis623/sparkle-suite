@@ -1,4 +1,15 @@
 import { ImageResponse } from 'next/og'
+import { headers } from 'next/headers'
+
+import {
+  getCustomerSiteAppleMarkAssetPath,
+  getCustomerSiteBrandAssetContext,
+  getCustomerSiteMarkIconBackground,
+} from '@/lib/amethyst/customer-site-brand-assets'
+import { loadCustomerSiteBrandImageDataUri } from '@/lib/amethyst/customer-site-brand-image-assets'
+
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export const size = {
   width: 180,
@@ -7,7 +18,34 @@ export const size = {
 
 export const contentType = 'image/png'
 
-export default function AppleIcon() {
+export default async function AppleIcon() {
+  const brand = await getCustomerSiteBrandAssetContext(await headers())
+  const markPath = brand ? getCustomerSiteAppleMarkAssetPath(brand.customDomain) : null
+  if (markPath) {
+    const markSrc = await loadCustomerSiteBrandImageDataUri(markPath)
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            background: getCustomerSiteMarkIconBackground(markPath),
+            display: 'flex',
+            height: '100%',
+            width: '100%',
+          }}
+        >
+          <img
+            alt={`${brand?.businessName ?? 'Customer site'} monogram`}
+            height={180}
+            src={markSrc}
+            width={180}
+          />
+        </div>
+      ),
+      { ...size },
+    )
+  }
+
   return new ImageResponse(
     (
       <div
