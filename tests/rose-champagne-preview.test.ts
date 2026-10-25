@@ -9,8 +9,8 @@ describe('Rose Champagne sample theme review', () => {
       expect(doc.includes(`id="rgc-preview-icon-${name}"`)).toBe(true)
     }
     expect(doc).toContain('stroke="currentColor"')
-    expect(doc.includes('<use data-preview-icon={name} />')).toBe(true)
-    expect(doc.includes('<use href={`/amethyst/media-icons.svg#${name}`} />')).toBe(false)
+    expect(doc).toContain('React.createElement("use",{"data-preview-icon":')
+    expect(doc).not.toContain('/amethyst/media-icons.svg#')
     expect(doc).toContain("connect-src 'none'")
     const outer = await renderSkinPreview('rose_champagne', 'homepage', 'https://sparkle-suite-smoke.vercel.app')
     expect(outer).not.toContain('allow-same-origin')

@@ -24,7 +24,11 @@ describe('read-only Gnome Forest skin preview', () => {
     expect(inner).toContain("form-action 'none'")
     expect(inner).not.toMatch(/<script[^>]+(?:src|data-template-src)="\/api\/amethyst/)
     expect(inner).not.toMatch(/<script[^>]+src="(?:homepage|trade|unsubscribe|tweaks-panel)\.jsx/)
+    expect(inner).not.toMatch(/<script[^>]+src="[^"]*compiled\/(?:homepage|trade|tweaks-panel)\.js/)
     expect(inner).not.toMatch(/<script[^>]+src="(?:\/amethyst\/)?live-lineup\.js/)
+    if (page === 'homepage' || page === 'trade') {
+      expect(inner).toContain('React.createElement')
+    }
     if (page !== 'unsubscribe') {
       expect(inner).toContain('root.SparkleLiveLineup =')
       expect(inner).toContain('Sample lineup for appearance preview. No live show is connected.')
@@ -108,8 +112,8 @@ describe('read-only Gnome Forest skin preview', () => {
       window: { addEventListener: vi.fn() },
       document: {
         addEventListener: (type: string, handler: typeof click) => { if (type === 'click') click = handler },
-        getElementById: () => notice,
-        querySelectorAll: () => [fileInput],
+        getElementById: (id: string) => id === 'skin-preview-notice' ? notice : null,
+        querySelectorAll: (selector: string) => selector === 'input[type="file"]' ? [fileInput] : [],
       },
       MutationObserver: class { constructor(handler: () => void) { observeChanges = handler } observe() {} },
       setTimeout: vi.fn(), clearTimeout: vi.fn(), Response,
