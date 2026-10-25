@@ -22,7 +22,7 @@ const inputSchema = z.object({
   tagline: z.string().optional(),
   heroTitle: z.string().max(180).optional(),
   heroSubtitle: z.string().max(240).optional(),
-  heroAnimationType: z.enum(['still', 'sparkle_rise', 'soft_glow']).optional(),
+  heroAnimationType: z.enum(['still', 'sparkle_rise', 'soft_glow']).optional().describe('Arrival motion style. The legacy still value now means theme default autoplay; visitors pause with the hero button.'),
   teamName: z.string().optional(),
   showJoinPage: z.boolean().optional(),
   customerSiteTemplate: z.string().optional(),

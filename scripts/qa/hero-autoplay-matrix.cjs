@@ -2,6 +2,7 @@
  * are submitted. PLAYWRIGHT_MODULE may point to the bundled desktop runtime. */
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const fs = require('node:fs'), path = require('node:path');
+const { startFilmstrip } = require('./hero-filmstrip.cjs');
 const [base, output, mode = 'desktop', selected] = process.argv.slice(2);
 if (!base || !output) throw Error('Usage: node scripts/qa/hero-autoplay-matrix.cjs BASE OUTPUT desktop|phone [comma-separated themes]');
 const themes = selected?.split(',') || ['amethyst','sparkle_suite_morganite','black_diamond','moonstone','alpine_opal','emerald_garden','gnome_garden','neon_butterfly','halloween_pumpkin_witch','halloween_pumpkin_cat','gilded_autumn','rose_gold','midnight_rose','fall_owl_harvest_moon','gobble_and_fizz','pie_please','pearl_rose','sunset_beach','rose_champagne','garnet','amber','velvet','rose_quartz'];
@@ -13,6 +14,23 @@ fs.mkdirSync(output, {recursive:true});
   for (const theme of themes) {
     const context = await browser.newContext({viewport:mode==='phone'?{width:390,height:844}:{width:1440,height:900},isMobile:mode==='phone',hasTouch:mode==='phone',deviceScaleFactor:1});
     const page = await context.newPage(), errors = [], resources = [];
+    const frameThrottles=[], throttled=new Set();
+    async function throttleFrame(frame) {
+      if(mode!=='phone'||!frame.parentFrame()||throttled.has(frame))return;
+      try {
+        const session=await context.newCDPSession(frame);
+        await session.send('Network.enable');
+        await session.send('Network.setCacheDisabled',{cacheDisabled:true});
+        await session.send('Emulation.setCPUThrottlingRate',{rate:4});
+        await session.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:200000,uploadThroughput:93750,connectionType:'cellular4g'});
+        throttled.add(frame);frameThrottles.push({url:frame.url(),applied:true});
+      } catch(error) {
+        const inherited=error.message.includes("part of the parent frame's session");
+        frameThrottles.push({url:frame.url(),inherited,...(inherited?{}:{error:error.message})});
+        if(inherited)throttled.add(frame);
+      }
+    }
+    page.on('frameattached',throttleFrame);page.on('framenavigated',throttleFrame);
     page.on('pageerror', e => errors.push(e.message));
     page.on('request', r => resources.push(r.url()));
     await context.addInitScript(() => {
@@ -30,7 +48,8 @@ fs.mkdirSync(output, {recursive:true});
       await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
       await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:200000,uploadThroughput:93750,connectionType:'cellular4g'});
     }
-    const result = {theme,mode,errors};
+    const result = {theme,mode,errors,frameThrottles};
+    let finishFilmstrip = await startFilmstrip(cdp,path.join(output,`${mode}-${theme}`));
     try {
       const response = await page.goto(`${base}/skin-preview/${theme}/homepage`,{waitUntil:'domcontentloaded',timeout:120000});
       result.status = response.status();
@@ -48,6 +67,7 @@ fs.mkdirSync(output, {recursive:true});
         controls:[...document.querySelectorAll('.hp-hero button')].map(b=>({text:b.textContent,label:b.getAttribute('aria-label')})),
       }));
       result.initial=await sample();
+      await finishFilmstrip(); finishFilmstrip=null;
       await page.screenshot({path:path.join(output,`${mode}-${theme}-playing.png`)});
       await page.waitForTimeout(650);result.progress=await sample();
       if(audioThemes.has(theme)) {
@@ -65,9 +85,13 @@ fs.mkdirSync(output, {recursive:true});
       }
       result.productionRuntime=!resources.some(u=>/babel(?:\.min)?\.js|babel-standalone|react(?:-dom)?\.development/.test(u));
       result.pass=result.status===200 && result.initial.motion==='on' && !result.initial.unstyled && result.productionRuntime && !errors.length;
+      if(mode==='phone')result.pass &&= frameThrottles.some(f=>f.applied||f.inherited);
+      result.progressed=result.progress.videos.some((v,i)=>v.ended||v.time!==result.initial.videos[i]?.time) || result.progress.animations.some((a,i)=>a.state==='running'&&a.time!==result.initial.animations[i]?.time);
+      result.pass &&= result.progressed;
       if(audioThemes.has(theme))result.pass &&= result.initial.plays.some(p=>p.muted===false) && result.soundEnabled.videos.some(v=>!v.muted&&!v.paused) && result.muted.videos.every(v=>v.muted);
       if(result.paused?.videos.length) result.pass &&= result.paused.videos.every(v=>v.paused) && result.resumed.videos.some(v=>!v.paused);
     } catch(error) {result.failure=error.message;result.pass=false;await page.screenshot({path:path.join(output,`${mode}-${theme}-failure.png`)}).catch(()=>{});}
+    if(finishFilmstrip)await finishFilmstrip().catch(()=>{});
     results.push(result);fs.writeFileSync(path.join(output,`${mode}-${theme}.json`),JSON.stringify(result,null,2));
     fs.writeFileSync(path.join(output,`${mode}-results.json`),JSON.stringify(results,null,2));
     console.log(JSON.stringify({theme,mode,pass:result.pass,failure:result.failure,controls:result.initial?.controls,errors}));

@@ -27,6 +27,7 @@ vi.mock('@/lib/live-lineup/service', () => ({
 }))
 
 import { GET } from '@/app/api/amethyst/homepage-template/route'
+import { buildHomepageBootstrapResponse } from '@/lib/amethyst/homepage-bootstrap-response'
 import {
   defaultAmethystHomepageTemplateData,
 } from '@/lib/amethyst/homepage-template-data'
@@ -51,6 +52,19 @@ describe('homepage Live Lineup bootstrap identity', () => {
   })
 
   afterEach(() => vi.unstubAllEnvs())
+
+  it('reuses public page data while still corroborating the tenant before loading lineup features', async () => {
+    mocks.resolveRep.mockResolvedValue(null)
+    await buildHomepageBootstrapResponse(new Request(
+      'https://www.yoursparklesuite.com/api/amethyst/homepage-template?c=rep-a&publicSiteSlug=slugtwo',
+    ), { templateData: {
+      appearancePreset: 'amethyst', homepage: defaultAmethystHomepageTemplateData,
+      join: defaultAmethystJoinTemplateData, trade: defaultAmethystTradeTemplateData,
+    } })
+    expect(mocks.preview).not.toHaveBeenCalled()
+    expect(mocks.resolveRep).toHaveBeenCalled()
+    expect(mocks.snapshot).not.toHaveBeenCalled()
+  })
 
   it.each([
     ['does not resolve', null],

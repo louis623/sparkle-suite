@@ -8,7 +8,7 @@ import {
   buildAmethystHomepageBootstrapScript,
   enrichAmethystHomepageFeatureData,
 } from '@/lib/amethyst/homepage-template-data'
-import { loadAmethystPreviewTemplateData } from '@/lib/amethyst/preview-template-data'
+import { loadAmethystPreviewTemplateData, type AmethystPreviewTemplateData } from '@/lib/amethyst/preview-template-data'
 import { resolveAmethystPreviewRep } from '@/lib/amethyst/preview-rep'
 import { resolveAmethystRequestCustomDomainHost } from '@/lib/amethyst/host-routing'
 import {
@@ -82,7 +82,9 @@ function isSmokeBlingKitchenPreview(request: Request) {
   return new URL(request.url).searchParams.get('skinPreview') === 'bling_kitchen_hybrid'
 }
 
-export async function buildHomepageBootstrapResponse(request: Request) {
+export async function buildHomepageBootstrapResponse(request: Request, prefetched?: {
+  templateData: AmethystPreviewTemplateData
+}) {
   const target = resolveAmethystRequestTarget(request)
   const requestCustomDomain = resolveAmethystRequestCustomDomainHost(request)
   const repId = target.repId ?? target.customDomain
@@ -92,13 +94,11 @@ export async function buildHomepageBootstrapResponse(request: Request) {
     ...(publicSiteSlug ? { publicSiteSlug } : {}),
     repId,
   }
-  const [events, templateData] = await Promise.all([
+  const [events, templateData, featureRepId] = await Promise.all([
     loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }),
-    loadAmethystPreviewTemplateData(lookupTarget),
+    prefetched?.templateData ?? loadAmethystPreviewTemplateData(lookupTarget),
+    targeted ? resolveHomepageFeatureRepId(lookupTarget) : null,
   ])
-  const featureRepId = targeted
-    ? await resolveHomepageFeatureRepId(lookupTarget)
-    : null
   const [tradeBoardListings, liveQueueSnapshot] = targeted
     ? await Promise.all([
         loadAmethystTradeBoardPreviewListings({

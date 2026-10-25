@@ -617,7 +617,10 @@ export async function renderAmethystPublicAssetResponse(
           if (endpoint) {
             const bootstrapUrl = new URL(endpoint.replaceAll('&amp;', '&'), requestUrl.origin)
             bootstrapUrl.searchParams.set('lineupPresentation', 'grouped-v1')
-            const bootstrap = await (await buildHomepageBootstrapResponse(new Request(bootstrapUrl, { headers: request.headers }))).text()
+            const bootstrap = await (await buildHomepageBootstrapResponse(
+              new Request(bootstrapUrl, { headers: request.headers }),
+              { templateData: loadedTemplate! },
+            )).text()
             responseBody = await renderHomepageFirstPaint(responseBody, templateData, requestUrl, bootstrap)
           }
         }
