@@ -10,7 +10,7 @@ describe('Sparkle Suite privacy policy page', () => {
 
     expect(html).toContain('Privacy Policy')
     expect(html).toContain('Last Updated:')
-    expect(html).toContain('September 13, 2026')
+    expect(html).toContain('October 25, 2026')
     expect(html).toContain('Neon Rabbit Digital Services')
     expect(html).toContain('Sparkle Suite Live Lineup Chrome Extension')
     expect(html).toContain('stable order and party identifiers')
@@ -36,6 +36,27 @@ describe('Sparkle Suite privacy policy page', () => {
     expect(html).toContain('Google may collect standard information like approximate location and device type.')
     expect(html).not.toContain('No personal information is sent to Google Analytics.')
     expect(html).toContain('href="https://tools.google.com/dlpage/gaoptout"')
+  })
+
+  it('pins the four favorites-sharing sentences in the rendered policy', async () => {
+    const page = await PrivacyPolicyPage({})
+    const html = renderToStaticMarkup(page)
+    const howWeUse = html.indexOf('How We Use Your Data')
+    const favorites = html.indexOf('Your Favorites And Sharing Between Representatives')
+    const nicNac = html.indexOf('Nic-Nac, Memory, And AI-Assisted Features')
+
+    expect(howWeUse).toBeGreaterThan(-1)
+    expect(favorites).toBeGreaterThan(howWeUse)
+    expect(nicNac).toBeGreaterThan(favorites)
+    expect(html).toContain('The representative you sign up with can see your favorites.')
+    expect(html).toContain(
+      'Another Sparkle Suite representative can see your favorites only if you buy from that representative&#x27;s Bomb Party shop and that representative has opted in to sharing favorites.',
+    )
+    expect(html).toContain(
+      'Only the representative you sign up with can email or text you. Sharing your favorites never lets another representative contact you through Sparkle Suite or Sparkle Finder, and our tools don&#x27;t let them export or download your favorites.',
+    )
+    expect(html).toContain('We do not sell personal information.')
+    expect(html).not.toContain('to help keep representative data isolated')
   })
 
   it('exports SEO metadata for the privacy policy route', () => {
