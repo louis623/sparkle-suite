@@ -41,7 +41,8 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   new Script('applyHomepageTheme(window.HOMEPAGE_TWEAK_DEFAULTS, document)').runInContext(context, { timeout: 1000 })
   const style = Array.from(properties, ([key, value]) => `${key}:${value}`).join(';')
   const preset = new Script('window.HOMEPAGE_TWEAK_DEFAULTS.preset').runInContext(context) as string
-  const themedHtml = selectHomepageThemeAssets(html, preset)
+  const variant = new Script('window.AMETHYST_HOMEPAGE_TEMPLATE_DATA.publicSiteVariant').runInContext(context) as string | undefined
+  const themedHtml = selectHomepageThemeAssets(html, preset, variant, [properties.get('--hp-display-font') ?? '', properties.get('--hp-body-font') ?? ''])
   const withBootstrap = bootstrap ? themedHtml.replace(/<script\b[^>]*data-template-src="[^"]+"[^>]*><\/script>/, () => `<script>${bootstrap.replace(/<\/script/gi, '<\\/script')}</script>`) : themedHtml
   return withBootstrap
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${attribute(style)}">`)

@@ -50,6 +50,7 @@ export async function sealOpaqueMarketingDocument(document: string, theme: Ameth
   }
   const folder = mediaFolders[theme]
   const assets = folder ? (await readdir(join(process.cwd(), 'public', 'amethyst', 'skins', folder)))
+    .filter(name => name !== 'hero-approved.png')
     .filter(name => /^[a-z0-9-]+\.(?:mp4|webm|webp|png|svg)$/.test(name)).map(name => '/amethyst/skins/' + folder + '/' + name) : []
   sealed = sealed.replace(/media-src [^;]+;/, 'media-src data:;')
   sealed = sealed.replace('</head>', '<script id="marketing-preview-assets" type="application/json">' + JSON.stringify(assets) + '</script></head>')

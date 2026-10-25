@@ -34,7 +34,8 @@ fs.mkdirSync(output, {recursive:true});
     page.on('pageerror', e => errors.push(e.message));
     page.on('request', r => resources.push(r.url()));
     await context.addInitScript(() => {
-      window.__heroQA = {plays:[],unstyled:false};
+      window.__heroQA = {plays:[],unstyled:false,interactions:[]};
+      new PerformanceObserver(list=>{for(const event of list.getEntries())if(event.interactionId)window.__heroQA.interactions.push({name:event.name,duration:event.duration})}).observe({type:'event',durationThreshold:16,buffered:true});
       const original = HTMLMediaElement.prototype.play;
       HTMLMediaElement.prototype.play = function() {
         const attempt = {muted:this.muted,at:performance.now()}; window.__heroQA.plays.push(attempt);
@@ -70,18 +71,19 @@ fs.mkdirSync(output, {recursive:true});
       await finishFilmstrip(); finishFilmstrip=null;
       await page.screenshot({path:path.join(output,`${mode}-${theme}-playing.png`)});
       await page.waitForTimeout(650);result.progress=await sample();
+      const interact=locator=>mode==='phone'?locator.tap():locator.click();
       if(audioThemes.has(theme)) {
         const sound=frame.locator('.hp-hero button').filter({hasText:/Enable.*sound|Enable autumn|Enable ocean|Mute.*sound|Sound off|Ocean sounds|Autumn sounds/i}).first();
-        if(result.initial.videos[0]?.muted) await sound.click();
+        if(result.initial.videos[0]?.muted) await interact(sound);
         await frame.waitForFunction(()=>[...document.querySelectorAll('.hp-hero video')].some(v=>!v.muted&&!v.paused),null,{timeout:10000});
-        result.soundEnabled=await sample();await sound.click();result.muted=await sample();
+        result.soundEnabled=await sample();await interact(sound);result.muted=await sample();
       }
       const pause=frame.getByRole('button',{name:'Pause animation',exact:true});
       if(await pause.count()) {
-        await pause.click(); await page.waitForTimeout(250);result.paused=await sample();
+        await interact(pause); await page.waitForTimeout(250);result.paused=await sample();
         await page.screenshot({path:path.join(output,`${mode}-${theme}-paused.png`)});
         const resume=frame.getByRole('button',{name:/^(Play animation|Resume animation)$/}).first();
-        await resume.click();await page.waitForTimeout(650);result.resumed=await sample();
+        await interact(resume);await page.waitForTimeout(650);result.resumed=await sample();
       }
       result.productionRuntime=!resources.some(u=>/babel(?:\.min)?\.js|babel-standalone|react(?:-dom)?\.development/.test(u));
       result.pass=result.status===200 && result.initial.motion==='on' && !result.initial.unstyled && result.productionRuntime && !errors.length;
@@ -90,6 +92,9 @@ fs.mkdirSync(output, {recursive:true});
       result.pass &&= result.progressed;
       if(audioThemes.has(theme))result.pass &&= result.initial.plays.some(p=>p.muted===false) && result.soundEnabled.videos.some(v=>!v.muted&&!v.paused) && result.muted.videos.every(v=>v.muted);
       if(result.paused?.videos.length) result.pass &&= result.paused.videos.every(v=>v.paused) && result.resumed.videos.some(v=>!v.paused);
+      const interactions=(result.resumed||result.muted||result.progress).interactions;
+      result.interactionMaxMs=interactions.length?Math.max(...interactions.map(e=>e.duration)):null;
+      result.pass &&= result.interactionMaxMs===null||result.interactionMaxMs<=200;
     } catch(error) {result.failure=error.message;result.pass=false;await page.screenshot({path:path.join(output,`${mode}-${theme}-failure.png`)}).catch(()=>{});}
     if(finishFilmstrip)await finishFilmstrip().catch(()=>{});
     results.push(result);fs.writeFileSync(path.join(output,`${mode}-${theme}.json`),JSON.stringify(result,null,2));

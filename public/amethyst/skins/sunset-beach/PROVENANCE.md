@@ -11,3 +11,5 @@ Louis approved the palm-lined sunset beach, the finished motion and all print ar
 - Flyer uses dark rose/copper panels and cream type. QR uses dark rose/copper gradient stops with a white quiet zone. Business-card front uses the existing centered layout; the back uses the site CTA gradient and dark readable copy. Real rep data/destination comes from the existing authenticated tools.
 
 Smoke only until Louis reviews and authorizes a coordinated Live release. Never promote the Smoke-configured artifact to Live.
+
+October 25 autoplay/performance repair (Smoke only): hero-approved.webp is a same-size 1672×941 WebP delivery copy of the original approved PNG, encoded with Sharp quality 85 / effort 6. No crop or composition change. 295,582 bytes; SHA-256 2e3ba8c79ac17927486448573fd7619ec79e1748060c8f0e90c124d5aeaf3fd1. The original PNG and print sources remain intact. Sound now requests audible autoplay first and falls back to muted when Chrome rejects it; legacy Still uses theme autoplay under Louis’s October 25 instruction.
