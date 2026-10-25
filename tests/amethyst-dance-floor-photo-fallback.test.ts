@@ -212,74 +212,23 @@ describe('Dance Floor photo fallback', () => {
     expect(failed.find(node => node.props?.id === 'trade-expanded-title')?.props?.children).toBe('Unicorn Rain Earrings')
   })
 
-  it('rewrites the Dance Floor script request to the photo-frame cache tag before Babel fetches it', () => {
+  it('keeps the photo-frame styles and loads the precompiled Dance Floor script', () => {
     const version = '20261021-photo-frame'
     const html = readFileSync('public/amethyst/Trade.html', 'utf8')
     const css = readFileSync('public/amethyst/trade.css', 'utf8')
     const marker = '/* A grid photo that fails keeps the loaded has-photo frame and the dark sparkle placeholder. */'
     const rules = css.slice(css.indexOf(marker)).trim()
-    const staticStyle = '<link rel="stylesheet" href="/amethyst/trade.css?v=20261021-photo-frame" />'
-    const staticScript = 'src="/amethyst/trade.jsx?v=20261021-photo-frame"'
-    const scriptTag = html.indexOf(staticScript)
-    const rewriteAt = html.indexOf('script[src*="trade.jsx"]')
-    const scriptMatch = html.match(/<script>\n([\s\S]*?)<\/script>\n<script src="\/amethyst\/gilded-autumn\.js/)
+    const tradeScript = html.indexOf('src="/amethyst/compiled/trade.js?v=')
 
     expect(rules.length).toBeGreaterThan(0)
     expect(html).toContain(`<style id="dance-floor-photo-frame">\n${rules}\n</style>`)
-    expect(html).toContain(staticStyle)
-    expect(html).toContain(`<script type="text/babel" data-presets="react" ${staticScript}></script>`)
-    expect(scriptTag).toBeGreaterThan(-1)
-    expect(rewriteAt).toBeGreaterThan(scriptTag)
-    expect(rewriteAt).toBeLessThan(html.indexOf('/amethyst/gilded-autumn.js'))
-    expect(scriptMatch?.[1]).toContain(version)
+    expect(html).toContain('<link rel="stylesheet" href="/amethyst/trade.css?v=20261021-photo-frame" />')
+    expect(tradeScript).toBeGreaterThan(html.indexOf('template-loader.js'))
+    expect(tradeScript).toBeLessThan(html.indexOf('/amethyst/gilded-autumn.js'))
+    expect(html).not.toContain('trade.jsx')
+    expect(html).not.toContain('text/babel')
+    expect(html).not.toContain('script[src*="trade')
     expect(readFileSync('public/amethyst/Pantry.html', 'utf8')).not.toContain(version)
     expect(readFileSync('public/amethyst/pantry.jsx', 'utf8')).not.toContain(version)
-
-    const apply = (initialSrc: string, cssHref: string) => {
-      const attrs: Record<string, string> = { src: initialSrc }
-      const links = [{ href: cssHref }]
-      let writes = 0
-      runInNewContext(`${scriptMatch?.[1]}\n`, {
-        document: {
-          querySelectorAll(selector: string) {
-            if (selector === 'script[src*="trade.jsx"]') {
-              return [{
-                getAttribute: (name: string) => attrs[name] || '',
-                setAttribute: (name: string, value: string) => { writes += 1; attrs[name] = value },
-              }]
-            }
-            if (selector === 'link[rel="stylesheet"][href*="trade.css"]') {
-              return links.map(link => ({
-                getAttribute: (name: string) => (name === 'href' ? link.href : ''),
-                setAttribute: (name: string, value: string) => { if (name === 'href') { writes += 1; link.href = value } },
-              }))
-            }
-            return []
-          },
-        },
-      })
-      return { src: attrs.src, hrefs: links.map(link => link.href), writes }
-    }
-
-    const absolute = {
-      src: '/amethyst/trade.jsx?v=20261021-photo-frame',
-      hrefs: ['/amethyst/trade.css?v=20261021-photo-frame'],
-    }
-    for (const rewritten of [
-      apply('trade.jsx?v=20261021-dance-floor-9', 'trade.css?v=20261021-ticker-edge'),
-      apply('/amethyst/trade.jsx?v=20261021-dance-floor-9', '/amethyst/trade.css?v=20261021-ticker-edge'),
-      apply('trade.jsx?v=20261019-thanksgiving-v3', 'trade.css?v=20261004-filter-contrast'),
-      apply('trade.jsx', 'trade.css'),
-    ]) {
-      expect(rewritten.src).toBe(absolute.src)
-      expect(rewritten.hrefs).toEqual(absolute.hrefs)
-      expect(rewritten.writes).toBe(2)
-      expect(rewritten.src.startsWith('/amethyst/')).toBe(true)
-      expect(rewritten.hrefs[0].startsWith('/amethyst/')).toBe(true)
-    }
-    const alreadyStatic = apply(absolute.src, absolute.hrefs[0])
-    expect(alreadyStatic.src).toBe('/amethyst/trade.jsx?v=20261021-photo-frame')
-    expect(alreadyStatic.hrefs).toEqual(['/amethyst/trade.css?v=20261021-photo-frame'])
-    expect(alreadyStatic.writes).toBe(0)
   })
 })

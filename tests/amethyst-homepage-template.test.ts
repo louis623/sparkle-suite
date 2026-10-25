@@ -110,32 +110,32 @@ describe('Amethyst homepage template data wiring', () => {
     expect(serialized).not.toContain("Jane's Sparkle Party")
   })
 
-  it('loads legacy public JSX exports with Babel and ships Join as a production bundle', () => {
-    const htmlFiles = [
+  it('precompiles the public customer pages and keeps Join and Unsubscribe on their own runtimes', () => {
+    for (const file of [
       'public/amethyst/Homepage.html',
       'public/amethyst/Trade.html',
       'public/amethyst/Pantry.html',
-      'public/amethyst/Unsubscribe.html',
-    ]
-
-    for (const file of htmlFiles) {
+    ]) {
       const html = readFileSync(resolve(process.cwd(), file), 'utf8')
-      const jsxScripts = html.match(
-        /<script type="text\/babel"[^>]+\.jsx(?:\?[^"]*)?"><\/script>/g,
-      ) ?? []
-
-      expect(jsxScripts.length, file).toBeGreaterThan(0)
-      for (const script of jsxScripts) {
-        expect(script, file).toContain('data-presets="react"')
-        expect(script, file).toMatch(/\?v=[^"\s]+/)
-      }
+      expect(html, file).not.toContain('type="text/babel"')
+      expect(html, file).not.toContain('react.development')
+      expect(html, file).not.toContain('@babel/standalone')
+      expect(html, file).toContain('react.production.min.js')
+      expect(html, file).toContain('react-dom.production.min.js')
     }
 
     const homepage = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Homepage.html'),
       'utf8',
     )
-    expect(homepage).toContain('homepage.jsx?v=20261022-signup-step-error')
+    expect(homepage).toContain('/amethyst/compiled/homepage.js?v=')
+
+    const unsubscribe = readFileSync(
+      resolve(process.cwd(), 'public/amethyst/Unsubscribe.html'),
+      'utf8',
+    )
+    expect(unsubscribe).toContain('type="text/babel"')
+    expect(unsubscribe).toContain('unsubscribe.jsx?v=')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -474,7 +474,7 @@ describe('Amethyst homepage template data wiring', () => {
       '<script src="template-loader.js?v=20260928-lineup-always-on" data-lineup-presentation="grouped-v1" data-template-src="/api/amethyst/homepage-template"></script>',
     )
     expect(html.indexOf('template-loader.js')).toBeLessThan(
-      html.indexOf('homepage.jsx'),
+      html.indexOf('/amethyst/compiled/homepage.js'),
     )
   })
 

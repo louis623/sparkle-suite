@@ -54,7 +54,10 @@ export async function sealOpaqueMarketingDocument(document: string, theme: Ameth
   sealed = sealed.replace(/media-src [^;]+;/, 'media-src data:;')
   sealed = sealed.replace('</head>', '<script id="marketing-preview-assets" type="application/json">' + JSON.stringify(assets) + '</script></head>')
   // Keep the bootstrapped lineup. Do not start live polling from the frame.
-  sealed = sealed.replace("return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });", 'return;')
+  sealed = sealed.replace(
+    /return window\.SparkleLiveLineup\.start\(\{url:withCurrentSearch\("\/api\/amethyst\/live-lineup"\),initial:CONTENT,onUpdate:[A-Za-z0-9_$]+\}\)/,
+    'return;',
+  )
   sealed = sealed.replace(/<title>[^<]*<\/title>/, '<title>Website preview</title>')
   sealed = sealed.replace('</head>', `<style>
     html{scrollbar-width:none}body{overflow-x:hidden}
