@@ -176,6 +176,83 @@ describe('Finder-parity preference lists', () => {
     expect(visiblePreferenceOptions().cut).toHaveLength(14)
     expect(fallbackPreferenceOptions.collection).toHaveLength(35)
     expect(visiblePreferenceOptions().collection).toHaveLength(34)
+    expect(fallbackPreferenceOptions.collection.find((option) => option.slug === 'farmhouse')?.label).toBe('Farmhouse')
+  })
+
+  it('matches the shared step ids, titles, subtitles, hint, errors, and privacy line', () => {
+    const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.jsx'), 'utf8')
+    const steps = [
+      { id: 'account', title: "Let's get you on the list" },
+      { id: 'stones', title: 'Stones you love', subtitle: "So we can point you toward pieces you'll love." },
+      { id: 'metals', title: 'Metals and finishes', subtitle: 'So the finish matches what you like to wear.' },
+      { id: 'cuts', title: 'Favorite cuts', subtitle: 'The shape changes the whole piece.' },
+      { id: 'collections', title: 'Bomb Party collections', subtitle: 'The Bomb Party lines you like most.' },
+      { id: 'contact', title: 'How should we reach you?' },
+      {
+        id: 'birthday',
+        title: 'Your birthday',
+        subtitle: 'Optional. Month and day only. We only use it for birthday offers and gift ideas.',
+      },
+      {
+        id: 'ring',
+        title: 'Ring size',
+        subtitle: 'Optional. It helps us point you toward rings that are more likely to fit.',
+      },
+      {
+        id: 'notes',
+        title: 'Anything else?',
+        subtitle: "Optional. Styles you love, pieces you're looking for, or anything that helps.",
+      },
+      { id: 'review', title: 'Review', subtitle: 'Check your answers, then finish below.' },
+    ]
+
+    let cursor = jsx.indexOf('const SIGNUP_STEPS')
+    expect(cursor).toBeGreaterThan(-1)
+    for (const step of steps) {
+      const idAt = jsx.indexOf(`id: "${step.id}"`, cursor)
+      const titleAt = jsx.indexOf(`title: "${step.title}"`, idAt)
+      expect(idAt).toBeGreaterThanOrEqual(cursor)
+      expect(titleAt).toBeGreaterThan(idAt)
+      cursor = titleAt
+      if (step.subtitle) expect(jsx).toContain(step.subtitle)
+    }
+
+    const stepWhy = jsx.slice(jsx.indexOf('const stepWhy'), jsx.indexOf('const stepTitle'))
+    expect(stepWhy).not.toContain('Pick at least 1, up to 3')
+    expect(stepWhy).not.toContain('Pick up to 3')
+    expect(jsx).toContain('>Pick at least 1, up to 3<')
+    expect(jsx).toContain('Pick at least one favorite in each list. Not sure yet counts.')
+    expect(jsx).toContain('Choose a month and a day, or leave both blank.')
+    expect(jsx).toContain('Keep notes to 500 characters.')
+    expect(jsx).toContain("You've picked 3. Unpick one to choose another.")
+    expect(jsx).toContain('Not added')
+    expect(jsx).toContain('Select a size')
+    expect(jsx).toContain('<option value="">Month</option>')
+    expect(jsx).toContain('<option value="">Day</option>')
+    const birthdayHelpers = jsx.slice(jsx.indexOf('function signupDaysInMonth'), jsx.indexOf('function applySignupPreferenceToggle'))
+    const signupDaysInMonth = new Function(`${birthdayHelpers}; return signupDaysInMonth;`)() as (month: string) => number
+    expect(signupDaysInMonth('2')).toBe(29)
+    expect(signupDaysInMonth('4')).toBe(30)
+    expect(signupDaysInMonth('')).toBe(31)
+    expect(jsx).toContain('birthday: form.birthday,')
+    expect(jsx).toContain('option.slug !== SIGNUP_NOT_SURE')
+    expect(jsx).toContain('>Older collections<')
+    expect(jsx).not.toContain('Show older')
+    expect(jsx).toContain(
+      "We use your answers to help you find pieces you'll love. The rep you sign up with sees your favorites. If you shop with another Sparkle Suite rep who shares favorites, they'll see them too, so your shows feel personal. Only the rep you sign up with can email or text you. We never sell your information.",
+    )
+    expect(readSignupPreferences({ ...validPicks, ringSize: '4' })).toMatchObject({
+      ok: false,
+      message: 'Choose a ring size from the list, or leave it blank.',
+    })
+    expect(readSignupPreferences({ ...validPicks, jewelryNotes: 'a'.repeat(501) })).toMatchObject({
+      ok: false,
+      message: 'Keep notes to 500 characters.',
+    })
+    expect(readSignupPreferences({ ...validPicks, favoriteCuts: ['round', 'oval', 'pear', 'heart'] })).toMatchObject({
+      ok: false,
+      message: 'Choose up to 3 favorites in each list. Not sure yet stands on its own.',
+    })
   })
 
   it('uses Finder ring sizes, whole sizes only', () => {
@@ -274,7 +351,7 @@ describe('signup preference validation', () => {
     expect(legacy.ok).toBe(false)
     if (!legacy.ok) {
       expect(legacy.message).toBe(
-        'Refresh the page and pick at least one favorite in each list, or choose Not sure yet.',
+        'Pick at least one favorite in each list. Not sure yet counts.',
       )
       expect(legacy.detail).toBe('missing_stone')
     }
@@ -512,7 +589,10 @@ describe('signup copy and migration parity', () => {
     expect(actions.indexOf('hp-signup-privacy')).toBeGreaterThan(-1)
     expect(actions.indexOf('hp-signup-privacy')).toBeLessThan(actions.indexOf('type="submit"'))
     expect(jsx).toContain('.hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }')
-    expect(signup).toContain("Pieces you're hunting for, sizes, or styles you love.")
+    expect(signup).toContain("Optional. Styles you love, pieces you're looking for, or anything that helps.")
+    expect(signup).toContain('Not added')
+    expect(jsx).toContain('id: "review"')
+    expect(signup).not.toContain('Pick up to 3')
     expect(signup).not.toContain('our system to know')
     expect(jsx).toContain("Let's get you on the list")
     expect(jsx).toContain('Stones you love')
@@ -542,7 +622,7 @@ describe('signup copy and migration parity', () => {
     expect(signup).toContain('function birthdayReviewLabel(value)')
     expect(signup).toContain('"March"')
     expect(signup).toContain('const birthdayReview = birthdayReviewLabel(form.birthday)')
-    expect(signup).toContain('{birthdayReview}')
+    expect(signup).toContain('{birthdayReview || "Not added"}')
     expect(signup).toContain('birthday: form.birthday,')
     expect(signup).toContain('function preferenceShortLabel(label)')
     expect(signup).toContain('indexOf(" (")')

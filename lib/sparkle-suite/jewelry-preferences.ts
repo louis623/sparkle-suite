@@ -57,7 +57,7 @@ export const invalidPreferencesMessage =
   'Choose up to 3 favorites in each list. Not sure yet stands on its own.'
 
 export const missingPreferencesMessage =
-  'Refresh the page and pick at least one favorite in each list, or choose Not sure yet.'
+  'Pick at least one favorite in each list. Not sure yet counts.'
 
 export type PreferenceOption = {
   slug: string
@@ -278,7 +278,7 @@ const collectionSeeds: PreferenceOptionSeed[] = [
   },
   {
     slug: 'farmhouse',
-    label: 'Farmhouse (incl. Bringback)',
+    label: 'Farmhouse',
     source: 'bomb_party',
     isRetired: true,
     groupLabel: 'Older collections',
@@ -503,8 +503,8 @@ export function parseJewelryNotes(
 /**
  * Validates a public sign-up body.
  * Stones, materials, cuts, and collections are always required
- * (min 1, max 3). A cached page that omits them gets the same refresh
- * message as an empty list. Ring size and notes stay optional.
+ * (min 1, max 3). A cached page that omits them gets the same
+ * empty-list message. Ring size and notes stay optional.
  */
 export function readSignupPreferences(
   input: SignupPreferenceBody,
@@ -524,7 +524,7 @@ export function readSignupPreferences(
     return {
       ok: false,
       detail: 'jewelry notes too long',
-      message: 'Keep jewelry notes to 500 characters.',
+      message: 'Keep notes to 500 characters.',
     }
   }
 

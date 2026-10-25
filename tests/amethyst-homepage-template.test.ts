@@ -1271,7 +1271,7 @@ describe('Amethyst homepage template data wiring', () => {
     expect(jsx).not.toContain('Show older collections')
     expect(jsx).not.toContain('hp-pref-more')
     expect(jsx).not.toContain('slice(0, 8)')
-    expect(jsx).toContain('Only for birthday promotions and gift ideas. It will not be used for anything else.')
+    expect(jsx).toContain('Optional. Month and day only. We only use it for birthday offers and gift ideas.')
     expect(jsx).toContain('Choose SMS, email, or both')
     expect(jsx).toContain('/amethyst/Unsubscribe.html')
     expect(jsx).toContain('hp-signup-status')
