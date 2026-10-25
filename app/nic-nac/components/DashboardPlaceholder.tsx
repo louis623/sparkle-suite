@@ -82,7 +82,7 @@ import {
   BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
   isBrittWithBlingPublicSiteSlug,
 } from '@/lib/britt-with-bling/constants'
-import { normalizeSupportedPublicVideoUrl } from '@/lib/public-site/media-url'
+import { publicVideoDraftUrl } from '@/lib/public-site/media-url'
 import {
   ABOUT_NARRATIVE_MAX_LENGTH,
   ABOUT_TITLE_MAX_LENGTH,
@@ -2125,7 +2125,7 @@ export function getSiteSettingsDraft(
           return {
             ...slot,
             videoUrl:
-              normalizeSupportedPublicVideoUrl(slot.videoUrl) ||
+              publicVideoDraftUrl(slot.videoUrl) ||
               BRITT_WITH_BLING_SHOWCASE_VIDEO_URL,
             isVisible: true,
           }
@@ -10163,7 +10163,7 @@ export function SiteSettingsCard({
               allowsPhoto && Boolean(slot.imageUrl) && slot.isVisible !== false
             const hasVisibleVideo =
               allowsVideo &&
-              Boolean(normalizeSupportedPublicVideoUrl(slot.videoUrl)) &&
+              Boolean(publicVideoDraftUrl(slot.videoUrl)) &&
               slot.isVisible !== false
 
             return (

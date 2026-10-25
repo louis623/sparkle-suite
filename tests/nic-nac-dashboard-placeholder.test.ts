@@ -3781,6 +3781,45 @@ describe('DashboardPlaceholder', () => {
     expect(html).not.toContain('7680907837425388814')
   })
 
+  it('keeps TikTok share links in the settings draft instead of blocking them before save', () => {
+    const shortLink = 'https://www.tiktok.com/t/ZPLAqbfCY/'
+    const settings = {
+      ...SITE_SETTINGS_READY_STATE.settings,
+      homepageMediaSlots: [
+        { key: 'showcase' as const, caption: '', imageUrl: '', videoUrl: shortLink },
+        { key: 'about_1' as const, caption: '', imageUrl: '', videoUrl: '' },
+        { key: 'about_2' as const, caption: '', imageUrl: '', videoUrl: '' },
+        {
+          key: 'about_3' as const,
+          caption: '',
+          imageUrl: '',
+          videoUrl: 'https://vm.tiktok.com/ZPLAqv7hL/',
+        },
+        { key: 'about_4' as const, caption: '', imageUrl: '', videoUrl: '' },
+      ],
+    }
+    const draft = getSiteSettingsDraft(settings, { isBrittWithBling: true })
+
+    expect(draft.homepageMediaSlots?.find((slot) => slot.key === 'showcase')?.videoUrl).toBe(
+      shortLink,
+    )
+    expect(draft.homepageMediaSlots?.find((slot) => slot.key === 'about_3')?.videoUrl).toBe(
+      'https://vm.tiktok.com/ZPLAqv7hL/',
+    )
+
+    const html = renderToStaticMarkup(
+      createElement(SiteSettingsCard, {
+        state: { status: 'ready', settings },
+        draft,
+        isBrittWithBling: true,
+      }),
+    )
+
+    expect(html).toContain(shortLink)
+    expect(html).toContain('https://vm.tiktok.com/ZPLAqv7hL/')
+    expect(html).not.toContain('This link is not a playable public video. Replace it before saving.')
+  })
+
   it('links only the selected ticker words and can recover old whole-message links', () => {
     const tickerText = '✨ I am live now — shop tonight!'
     const selectionStart = tickerText.indexOf('shop tonight')
