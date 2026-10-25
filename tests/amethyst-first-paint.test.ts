@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { renderHomepageFirstPaint } from '@/lib/amethyst/homepage-first-paint'
-import { defaultAmethystHomepageTemplateData, buildAmethystHomepageTweakDefaults } from '@/lib/amethyst/homepage-template-data'
+import { defaultAmethystHomepageTemplateData, buildAmethystHomepageTweakDefaults, buildAmethystHomepageBootstrapScript } from '@/lib/amethyst/homepage-template-data'
 import { defaultAmethystTradeTemplateData } from '@/lib/amethyst/trade-template-data'
 import { defaultAmethystJoinTemplateData } from '@/lib/amethyst/join-template-data'
 import { AMETHYST_APPEARANCE_PRESET_IDS } from '@/lib/amethyst/appearance-presets'
@@ -26,5 +26,15 @@ describe('real themed first paint and autoplay defaults', () => {
     const [a, b] = await Promise.all([render('Only Rep Alpha'), render('Only Rep Beta')])
     expect(a).toContain('Only Rep Alpha'); expect(a).not.toContain('Only Rep Beta')
     expect(b).toContain('Only Rep Beta'); expect(b).not.toContain('Only Rep Alpha')
+  })
+  it('keeps the complete bootstrap inline while fetching ordered classic dependencies without blocking parsing', async () => {
+    const bootstrap = buildAmethystHomepageBootstrapScript()
+    const result = await renderHomepageFirstPaint(html, { appearancePreset: 'amethyst', homepage: defaultAmethystHomepageTemplateData, trade: defaultAmethystTradeTemplateData, join: defaultAmethystJoinTemplateData }, new URL('https://example.com/'), bootstrap)
+    expect(result).toContain('<script>window.AMETHYST_RUNTIME_CONTEXT')
+    expect(result).not.toMatch(/<script\s+src=/)
+    const dependencies = [...result.matchAll(/<script defer src="([^"]+)"/g)].map(match => match[1])
+    expect(dependencies[0]).toContain('react@18.3.1/umd/react.production.min.js')
+    expect(dependencies[1]).toContain('react-dom@18.3.1/umd/react-dom.production.min.js')
+    expect(dependencies.findIndex(src => src.includes('compiled/tweaks-panel.js'))).toBeLessThan(dependencies.findIndex(src => src.includes('compiled/homepage.js')))
   })
 })

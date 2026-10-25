@@ -78,6 +78,7 @@ fs.mkdirSync(output, {recursive:true});
       await page.waitForTimeout(650);result.progress=await sample();
       const interact=locator=>mode==='phone'?locator.tap():locator.click();
       if(audioThemes.has(theme)) {
+        if(result.progress.videos.some(video=>video.ended)) await interact(frame.getByRole('button',{name:'Play again',exact:true}));
         const sound=frame.locator('.hp-hero button').filter({hasText:/Enable.*sound|Enable autumn|Enable ocean|Mute.*sound|Sound off|Ocean sounds|Autumn sounds/i}).first();
         if(result.initial.videos[0]?.muted) await interact(sound);
         await frame.waitForFunction(()=>[...document.querySelectorAll('.hp-hero video')].some(v=>!v.muted&&!v.paused),null,{timeout:10000});

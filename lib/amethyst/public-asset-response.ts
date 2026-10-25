@@ -595,11 +595,24 @@ export async function renderAmethystPublicAssetResponse(
     if (contentType.startsWith('text/html')) {
       const html = body.toString('utf8')
       if (page) {
-        const ga4Tag = await resolveRepGa4TagHtml({
-          request,
-          repId,
-          shopHref: templateData?.homepage.streamLinks.shop,
-        }).catch(() => '')
+        const endpoint = page === 'homepage' && templateData
+          ? rewriteTemplateScriptTarget(html, page, requestUrl, resolvedOptions).match(/data-template-src="([^"]+)"/)?.[1]
+          : undefined
+        const bootstrapUrl = endpoint ? new URL(endpoint.replaceAll('&amp;', '&'), requestUrl.origin) : null
+        bootstrapUrl?.searchParams.set('lineupPresentation', 'grouped-v1')
+        // Analytics configuration and public content are independent reads.
+        // Keep both identity guards while avoiding another serial round trip.
+        const [ga4Tag, bootstrap] = await Promise.all([
+          resolveRepGa4TagHtml({
+            request,
+            repId,
+            shopHref: templateData?.homepage.streamLinks.shop,
+          }).catch(() => ''),
+          bootstrapUrl ? buildHomepageBootstrapResponse(
+            new Request(bootstrapUrl, { headers: request.headers }),
+            { templateData: loadedTemplate! },
+          ).then(response => response.text()) : null,
+        ])
         responseBody = rewriteAmethystPublicHtml(
           html,
           page,
@@ -610,19 +623,10 @@ export async function renderAmethystPublicAssetResponse(
           { ...resolvedOptions, pantryRecipes, pantryEmpty, joinRuntimeContext },
           ga4Tag,
         )
-        if (page === 'homepage' && templateData) {
+        if (page === 'homepage' && templateData && bootstrap) {
           // Use the exact same public projection for the first paint and the
           // client. Inline it once instead of fetching/compiling a second page.
-          const endpoint = String(responseBody).match(/data-template-src="([^"]+)"/)?.[1]
-          if (endpoint) {
-            const bootstrapUrl = new URL(endpoint.replaceAll('&amp;', '&'), requestUrl.origin)
-            bootstrapUrl.searchParams.set('lineupPresentation', 'grouped-v1')
-            const bootstrap = await (await buildHomepageBootstrapResponse(
-              new Request(bootstrapUrl, { headers: request.headers }),
-              { templateData: loadedTemplate! },
-            )).text()
-            responseBody = await renderHomepageFirstPaint(responseBody, templateData, requestUrl, bootstrap)
-          }
+          responseBody = await renderHomepageFirstPaint(responseBody, templateData, requestUrl, bootstrap)
         }
       } else if (templateScriptPage) {
         responseBody = rewriteTemplateScriptTarget(

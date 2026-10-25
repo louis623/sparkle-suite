@@ -32,7 +32,7 @@ export function selectHomepageThemeAssets(html: string, preset: string, variant?
       return tag.replace(href, url.toString().replaceAll('&', '&amp;'))
     })
   }
-  if (preset === 'sunset_beach') result = result.replace('</head>', '<link rel="preload" as="image" fetchpriority="high" media="(min-width: 601px)" href="/amethyst/skins/sunset-beach/hero-approved.webp"><link rel="preload" as="image" fetchpriority="high" media="(max-width: 600px)" href="/amethyst/skins/sunset-beach/hero-approved-720.webp"></head>')
+  if (preset === 'sunset_beach') result = result.replace('<head>', '<head><link rel="preload" as="image" fetchpriority="high" media="(min-width: 601px)" href="/amethyst/skins/sunset-beach/hero-approved.webp"><link rel="preload" as="image" fetchpriority="high" media="(max-width: 600px)" href="/amethyst/skins/sunset-beach/hero-approved-720.webp">')
   // Pumpkin Cat's approved typography is entirely Georgia and Arial. Loading
   // every webfont here blocks its first paint without changing a single glyph.
   if (preset === 'halloween_pumpkin_cat') result = result.replace(/<link[^>]+href="https:\/\/(?:api\.fontshare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)[^"]*"[^>]*>/g, '')

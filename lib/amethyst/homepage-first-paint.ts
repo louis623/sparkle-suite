@@ -44,7 +44,10 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   const variant = new Script('window.AMETHYST_HOMEPAGE_TEMPLATE_DATA.publicSiteVariant').runInContext(context) as string | undefined
   const themedHtml = await inlineHomepageStyles(selectHomepageThemeAssets(html, preset, variant, [properties.get('--hp-display-font') ?? '', properties.get('--hp-body-font') ?? '']))
   const withBootstrap = bootstrap ? themedHtml.replace(/<script\b[^>]*data-template-src="[^"]+"[^>]*><\/script>/, () => `<script>${bootstrap.replace(/<\/script/gi, '<\\/script')}</script>`) : themedHtml
-  return withBootstrap
+  // The complete bootstrap is already inline and independent of React. Fetch
+  // classic dependencies in parallel; defer preserves their execution order.
+  const withOrderedScripts = bootstrap ? withBootstrap.replace(/<script\s+src=/g, '<script defer src=') : withBootstrap
+  return withOrderedScripts
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${attribute(style)}">`)
     .replace('<body class="homepage">', () => `<body class="${attribute(body.className)}">`)
     .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div>`)

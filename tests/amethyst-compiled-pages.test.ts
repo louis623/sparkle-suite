@@ -140,7 +140,7 @@ describe('precompiled customer pages', () => {
       const servedLoaderAt = served.indexOf('/amethyst/template-loader.js')
       for (const name of page.scripts) {
         const src = `/amethyst/compiled/${name}?v=${contentHash(name)}`
-        expect(served).toContain(`<script src="${src}"></script>`)
+        expect(served.includes(`<script${page.page === 'homepage' ? ' defer' : ''} src="${src}"></script>`)).toBe(true)
         if (name !== 'tweaks-panel.js') {
           expect(servedLoaderAt).toBeLessThan(served.indexOf(src))
         }
