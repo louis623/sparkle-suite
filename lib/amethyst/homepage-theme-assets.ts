@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
+
 const THEME_ASSETS: Record<string, string[]> = {
   amethyst: ['am01-unicorn'], gnome_garden: ['gnome-garden'],
   neon_butterfly: ['neon-butterfly'], halloween_pumpkin_witch: ['halloween-pumpkin-witch'],
@@ -29,9 +32,22 @@ export function selectHomepageThemeAssets(html: string, preset: string, variant?
       return tag.replace(href, url.toString().replaceAll('&', '&amp;'))
     })
   }
-  if (preset === 'sunset_beach') result = result.replace('</head>', '<link rel="preload" as="image" fetchpriority="high" href="/amethyst/skins/sunset-beach/hero-approved.webp"></head>')
+  if (preset === 'sunset_beach') result = result.replace('</head>', '<link rel="preload" as="image" fetchpriority="high" media="(min-width: 601px)" href="/amethyst/skins/sunset-beach/hero-approved.webp"><link rel="preload" as="image" fetchpriority="high" media="(max-width: 600px)" href="/amethyst/skins/sunset-beach/hero-approved-720.webp"></head>')
   // Pumpkin Cat's approved typography is entirely Georgia and Arial. Loading
   // every webfont here blocks its first paint without changing a single glyph.
   if (preset === 'halloween_pumpkin_cat') result = result.replace(/<link[^>]+href="https:\/\/(?:api\.fontshare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)[^"]*"[^>]*>/g, '')
   return result
+}
+// Repository styles only, cached without rep data. Delivering the selected
+// styles with the markup avoids another render-blocking network waterfall.
+const styles = new Map<string, Promise<string>>()
+export async function inlineHomepageStyles(html: string) {
+  const matches = [...html.matchAll(/<link rel="stylesheet" href="(?:\/amethyst\/)?((?:bling-kitchen\/)?[a-z0-9-]+\.css)(?:\?[^\"]*)?"\s*\/>/g)]
+  const replacements = await Promise.all(matches.map(async match => {
+    const name = match[1]
+    if (!styles.has(name)) styles.set(name, readFile(join(process.cwd(), 'public/amethyst', name), 'utf8'))
+    return [match[0], `<style data-stylesheet="${name}">${(await styles.get(name))!.replace(/<\/style/gi, '<\\/style')}</style>`] as const
+  }))
+  for (const [link, style] of replacements) html = html.replace(link, () => style)
+  return html
 }

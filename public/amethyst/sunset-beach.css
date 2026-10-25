@@ -260,7 +260,7 @@ body.bg-sunset-beach .jp-hero-media {background:radial-gradient(ellipse 52% 85% 
 body.bg-sunset-beach :is(.hp-step-num,.jp-benefit-icon,.hp-trade-preview-pill .pos,.hp-queue-modal-row .pos){background:#d4e8df;color:#235b55;border-color:#9dc7b8;box-shadow:none;}
 body.bg-sunset-beach .hp-event-tag {background:#e5f0e9;color:#235b55;border-color:#a4c8bc;}
 @media(max-width:600px){
- body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-media{background:linear-gradient(180deg,transparent 0%,transparent 13%,rgba(255,245,238,.85) 29%,#fff5ee 42%),url('/amethyst/skins/sunset-beach/hero-approved.webp') center top / 100% auto no-repeat;background-color:#fff5ee;}
+ body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-media{background:linear-gradient(180deg,transparent 0%,transparent 13%,rgba(255,245,238,.85) 29%,#fff5ee 42%),url('/amethyst/skins/sunset-beach/hero-approved-720.webp') center top / 100% auto no-repeat;background-color:#fff5ee;}
  body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-headline{color:#482d40;-webkit-text-fill-color:#482d40;text-shadow:0 1px 12px #fff5ee;}
  body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] .hp-hero-sub{color:#482d40;text-shadow:none;}
  body.bg-sunset-beach .hp-hero[data-appearance-preset="sunset_beach"] :is(.hp-btn-outline,.hp-btn-watch){color:#482d40;border-color:#cfa99f;background:#fffcf8;}

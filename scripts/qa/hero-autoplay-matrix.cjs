@@ -34,7 +34,9 @@ fs.mkdirSync(output, {recursive:true});
     page.on('pageerror', e => errors.push(e.message));
     page.on('request', r => resources.push(r.url()));
     await context.addInitScript(() => {
-      window.__heroQA = {plays:[],unstyled:false,interactions:[]};
+      window.__heroQA = {plays:[],unstyled:false,interactions:[],lcp:0,cls:0};
+      new PerformanceObserver(list=>{for(const entry of list.getEntries())window.__heroQA.lcp=entry.startTime}).observe({type:'largest-contentful-paint',buffered:true});
+      new PerformanceObserver(list=>{for(const entry of list.getEntries())if(!entry.hadRecentInput)window.__heroQA.cls+=entry.value}).observe({type:'layout-shift',buffered:true});
       new PerformanceObserver(list=>{for(const event of list.getEntries())if(event.interactionId)window.__heroQA.interactions.push({name:event.name,duration:event.duration})}).observe({type:'event',durationThreshold:16,buffered:true});
       const original = HTMLMediaElement.prototype.play;
       HTMLMediaElement.prototype.play = function() {
@@ -61,8 +63,11 @@ fs.mkdirSync(output, {recursive:true});
         const videos=[...document.querySelectorAll('.hp-hero video')];
         return videos.length ? videos.some(v=>v.currentTime>.4 || v.ended) : document.getAnimations().some(a=>a.playState==='running' && a.effect?.target?.closest?.('.hp-hero'));
       },null,{timeout:45000});
+      // Let first-paint artwork/fonts settle before interaction ends LCP collection.
+      await page.waitForTimeout(mode==='phone'?6000:1500);
       const sample = () => frame.evaluate(() => ({
         ...window.__heroQA, motion:document.querySelector('.hp-hero').dataset.heroMotion,
+        paint:performance.getEntriesByType('paint').map(entry=>({name:entry.name,ms:entry.startTime})),
         videos:[...document.querySelectorAll('.hp-hero video')].map(v=>({time:v.currentTime,paused:v.paused,muted:v.muted,ended:v.ended})),
         animations:document.getAnimations().filter(a=>a.effect?.target?.closest?.('.hp-hero')).map(a=>({state:a.playState,time:a.currentTime})),
         controls:[...document.querySelectorAll('.hp-hero button')].map(b=>({text:b.textContent,label:b.getAttribute('aria-label')})),

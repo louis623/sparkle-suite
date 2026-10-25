@@ -5,7 +5,7 @@ import { createRequire } from 'node:module'
 import type * as ReactTypes from 'react'
 import type { AmethystPreviewTemplateData } from './preview-template-data'
 import { buildAmethystHomepageBootstrapScript } from './homepage-template-data'
-import { selectHomepageThemeAssets } from './homepage-theme-assets'
+import { selectHomepageThemeAssets, inlineHomepageStyles } from './homepage-theme-assets'
 
 const { React, renderToString } = createRequire(join(process.cwd(), 'package.json'))('./lib/amethyst/generated/homepage-server.cjs') as {
   React: typeof ReactTypes
@@ -42,7 +42,7 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   const style = Array.from(properties, ([key, value]) => `${key}:${value}`).join(';')
   const preset = new Script('window.HOMEPAGE_TWEAK_DEFAULTS.preset').runInContext(context) as string
   const variant = new Script('window.AMETHYST_HOMEPAGE_TEMPLATE_DATA.publicSiteVariant').runInContext(context) as string | undefined
-  const themedHtml = selectHomepageThemeAssets(html, preset, variant, [properties.get('--hp-display-font') ?? '', properties.get('--hp-body-font') ?? ''])
+  const themedHtml = await inlineHomepageStyles(selectHomepageThemeAssets(html, preset, variant, [properties.get('--hp-display-font') ?? '', properties.get('--hp-body-font') ?? '']))
   const withBootstrap = bootstrap ? themedHtml.replace(/<script\b[^>]*data-template-src="[^"]+"[^>]*><\/script>/, () => `<script>${bootstrap.replace(/<\/script/gi, '<\\/script')}</script>`) : themedHtml
   return withBootstrap
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${attribute(style)}">`)

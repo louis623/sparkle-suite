@@ -13,3 +13,5 @@ Louis approved the palm-lined sunset beach, the finished motion and all print ar
 Smoke only until Louis reviews and authorizes a coordinated Live release. Never promote the Smoke-configured artifact to Live.
 
 October 25 autoplay/performance repair (Smoke only): hero-approved.webp is a same-size 1672×941 WebP delivery copy of the original approved PNG, encoded with Sharp quality 85 / effort 6. No crop or composition change. 295,582 bytes; SHA-256 2e3ba8c79ac17927486448573fd7619ec79e1748060c8f0e90c124d5aeaf3fd1. The original PNG and print sources remain intact. Sound now requests audible autoplay first and falls back to muted when Chrome rejects it; legacy Still uses theme autoplay under Louis’s October 25 instruction.
+
+Phone delivery: hero-approved-720.webp resizes that same original to 720 pixels wide without cropping, with the same WebP settings. 68,322 bytes; SHA-256 8fac8042ba1904df5d543602b26edcf56c7bbeae840026d949262e4448bb308a. Selected at viewport widths of 600 pixels or less; desktop keeps the full-size delivery copy.

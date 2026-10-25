@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { selectHomepageThemeAssets } from '@/lib/amethyst/homepage-theme-assets'
+import { inlineHomepageStyles, selectHomepageThemeAssets } from '@/lib/amethyst/homepage-theme-assets'
 
 const html = readFileSync('public/amethyst/Homepage.html', 'utf8')
 describe('customer homepage delivery budget', () => {
@@ -13,7 +13,7 @@ describe('customer homepage delivery budget', () => {
     expect(selected).toContain('family=Playfair+Display')
     expect(selected).toContain('family=DM+Sans')
     expect(selected).not.toContain('family=Archivo')
-    expect(selected).toContain('fetchpriority="high" href="/amethyst/skins/sunset-beach/hero-approved.webp"')
+    expect(selected).toContain('media="(max-width: 600px)" href="/amethyst/skins/sunset-beach/hero-approved-720.webp"')
   })
   it('retains custom-site styling and font delivery', () => {
     expect(selectHomepageThemeAssets(html, 'amethyst', 'bling_kitchen_hybrid')).toContain('framed-hero.css')
@@ -22,6 +22,16 @@ describe('customer homepage delivery budget', () => {
   })
   it('does not put the multi-megabyte art master on the visitor loading path', () => {
     expect(statSync('public/amethyst/skins/sunset-beach/hero-approved.webp').size).toBeLessThan(300_000)
+    expect(statSync('public/amethyst/skins/sunset-beach/hero-approved-720.webp').size).toBeLessThan(75_000)
     expect(readFileSync('public/amethyst/sunset-beach.css', 'utf8')).not.toContain('hero-approved.png')
+  })
+  it('delivers selected repository styles in the first response without fetching external CSS on the server', async () => {
+    const result = await inlineHomepageStyles(selectHomepageThemeAssets(html, 'sunset_beach'))
+    expect(result).toContain('<style data-stylesheet="homepage.css">')
+    expect(result).toContain('<style data-stylesheet="sunset-beach.css">')
+    expect(result).not.toMatch(/<link rel="stylesheet" href="(?:\/amethyst\/)?homepage\.css/)
+    expect(result).toContain('https://fonts.googleapis.com')
+    expect(result).toContain('/amethyst/skins/sunset-beach/hero-approved-720.webp')
+    expect(result).not.toContain('<style data-stylesheet="fall-owl.css">')
   })
 })
