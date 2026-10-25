@@ -133,6 +133,9 @@ const stoneSeeds: PreferenceOptionSeed[] = [
   { slug: 'amazonite', label: 'Amazonite', source: 'library' },
   { slug: 'obsidian', label: 'Obsidian', source: 'library' },
   { slug: 'aquamarine', label: 'Aquamarine', source: 'standard' },
+  { slug: 'tanzanite', label: 'Tanzanite', source: 'standard' },
+  { slug: 'peridot', label: 'Peridot', source: 'standard' },
+  { slug: 'alexandrite', label: 'Alexandrite', source: 'standard' },
 ]
 
 const materialSeeds: PreferenceOptionSeed[] = [

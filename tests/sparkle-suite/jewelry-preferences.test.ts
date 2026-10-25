@@ -31,7 +31,7 @@ const validPicks = {
 
 describe('Finder-parity preference lists', () => {
   it('keeps the bundled lists at Finder counts, with not_sure on every list', () => {
-    expect(fallbackPreferenceOptions.stone.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(24)
+    expect(fallbackPreferenceOptions.stone.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(27)
     expect(fallbackPreferenceOptions.material.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(9)
     expect(fallbackPreferenceOptions.material.filter((option) => option.isHidden)).toHaveLength(2)
     expect(visiblePreferenceOptions().material).toHaveLength(8)
@@ -168,8 +168,8 @@ describe('Finder-parity preference lists', () => {
       expect(sharedFields(fallbackPreferenceOptions[kind])).toEqual(sharedFields(spec.options[kind]))
     }
 
-    expect(fallbackPreferenceOptions.stone).toHaveLength(25)
-    expect(visiblePreferenceOptions().stone).toHaveLength(25)
+    expect(fallbackPreferenceOptions.stone).toHaveLength(28)
+    expect(visiblePreferenceOptions().stone).toHaveLength(28)
     expect(fallbackPreferenceOptions.material).toHaveLength(10)
     expect(visiblePreferenceOptions().material).toHaveLength(8)
     expect(fallbackPreferenceOptions.cut).toHaveLength(14)
@@ -374,7 +374,7 @@ describe('preference option fallback', () => {
       fetchImpl: (async () => new Response('nope', { status: 404 })) as typeof fetch,
     })
     expect(missing.source).toBe('fallback')
-    expect(missing.options.stone).toHaveLength(25)
+    expect(missing.options.stone).toHaveLength(28)
 
     resetPreferenceOptionsCache()
     const broken = await loadPreferenceOptions({
@@ -500,10 +500,11 @@ describe('signup copy and migration parity', () => {
     const signup = jsx.slice(jsx.indexOf('function Signup('), jsx.indexOf('function Footer('))
 
     expect(signup).toContain(
-      'We never sell your information. Your answers are only used by {businessName} to give you a better experience.',
+      "We use your answers to help you find pieces you'll love. The rep you sign up with sees your favorites. If you shop with another Sparkle Suite rep who shares favorites, they'll see them too, so your shows feel personal. Only the rep you sign up with can email or text you. We never sell your information.",
     )
     const privacy = signup.slice(signup.indexOf('hp-signup-privacy'), signup.indexOf('type="submit"'))
-    expect(privacy).not.toMatch(/Sparkle Finder|Sparkle Suite/)
+    expect(privacy).not.toMatch(/Sparkle Finder/)
+    expect(privacy).not.toContain('only used by')
     const actions = signup.slice(
       signup.indexOf('className="hp-signup-actions"'),
       signup.indexOf('className="hp-signup-consent slot"'),

@@ -203,6 +203,30 @@
     "groupLabel": null,
     "isHidden": false,
     "sortOrder": 24
+   },
+   {
+    "slug": "tanzanite",
+    "label": "Tanzanite",
+    "isRetired": false,
+    "groupLabel": null,
+    "isHidden": false,
+    "sortOrder": 25
+   },
+   {
+    "slug": "peridot",
+    "label": "Peridot",
+    "isRetired": false,
+    "groupLabel": null,
+    "isHidden": false,
+    "sortOrder": 26
+   },
+   {
+    "slug": "alexandrite",
+    "label": "Alexandrite",
+    "isRetired": false,
+    "groupLabel": null,
+    "isHidden": false,
+    "sortOrder": 27
    }
   ],
   "material": [

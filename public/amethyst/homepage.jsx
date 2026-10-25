@@ -2971,7 +2971,7 @@ function Signup({ repName, businessName }) {
             <div className="hp-signup-actions">
               {step === SIGNUP_LAST_STEP ? (
                 <p className="hp-signup-privacy">
-                  We never sell your information. Your answers are only used by {businessName} to give you a better experience.
+                  We use your answers to help you find pieces you'll love. The rep you sign up with sees your favorites. If you shop with another Sparkle Suite rep who shares favorites, they'll see them too, so your shows feel personal. Only the rep you sign up with can email or text you. We never sell your information.
                 </p>
               ) : null}
               <div className="hp-signup-nav">
