@@ -4185,3 +4185,7 @@ Louis verified the designs in Smoke and approved Live. Application commit e6a067
 ## October 24, 2026 - New themes include QR flyers and business cards
 
 Louis requested automatic matching print deliverables for every new theme. Added sparkle-suite-qr-flyer-builder and sparkle-suite-business-card-builder; skin-builder invokes both without a separate request. Preserve approved art, use actual tool geometry, build deterministically and verify real exports. Existing narrower scope/approval rules remain. Skills validated; no app or deployment changes. Louis will personally double-check the seasonal Live designs; no further personal-session permission is pending for that release. See vault/2026-10-24-theme-print-skills.md.
+
+## October 25 — autoplay Smoke checkpoint
+PR #156 / application 22ba7df6 is on Smoke only. Live remains pinned to dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P. All 46 theme functional checks and 436 code tests pass; Sunset slow-phone speed still fails. Not Live-ready. See vault/2026-10-25-hero-autoplay-smoke.md.
+

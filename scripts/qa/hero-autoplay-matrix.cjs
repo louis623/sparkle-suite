@@ -76,7 +76,7 @@ fs.mkdirSync(output, {recursive:true});
       await finishFilmstrip(); finishFilmstrip=null;
       await page.screenshot({path:path.join(output,`${mode}-${theme}-playing.png`)});
       await page.waitForTimeout(650);result.progress=await sample();
-      if(theme==='halloween_pumpkin_cat' && result.progress.videos.every(v=>v.paused&&!v.ended)) {
+      if(theme==='halloween_pumpkin_cat' && result.progress.videos.every(v=>v.paused)) {
         // Pumpkin Cat intentionally rests four seconds between five-second
         // bursts. Observe its next automatic burst without clicking Play.
         await frame.waitForFunction(()=>[...document.querySelectorAll('.hp-hero video')].some(v=>!v.paused&&v.currentTime>.2),null,{timeout:12000});
@@ -86,7 +86,7 @@ fs.mkdirSync(output, {recursive:true});
       if(audioThemes.has(theme)) {
         if(result.progress.videos.some(video=>video.ended)) await interact(frame.getByRole('button',{name:'Play again',exact:true}));
         const sound=frame.locator('.hp-hero button').filter({hasText:/Enable.*sound|Enable autumn|Enable ocean|Mute.*sound|Sound off|Ocean sounds|Autumn sounds/i}).first();
-        if(result.initial.videos[0]?.muted) await interact(sound);
+        if((await sample()).videos[0]?.muted) await interact(sound);
         await frame.waitForFunction(()=>[...document.querySelectorAll('.hp-hero video')].some(v=>!v.muted&&!v.paused),null,{timeout:10000});
         result.soundEnabled=await sample();await interact(sound);result.muted=await sample();
       }
@@ -103,7 +103,8 @@ fs.mkdirSync(output, {recursive:true});
       result.progressed=result.progress.videos.some((v,i)=>v.ended||v.time!==result.initial.videos[i]?.time) || result.progress.animations.some((a,i)=>a.state==='running'&&a.time!==result.initial.animations[i]?.time);
       result.pass &&= result.progressed;
       if(audioThemes.has(theme))result.pass &&= result.initial.plays.some(p=>p.muted===false) && result.soundEnabled.videos.some(v=>!v.muted&&!v.paused) && result.muted.videos.every(v=>v.muted);
-      if(result.paused?.videos.length) result.pass &&= result.paused.videos.every(v=>v.paused) && result.resumed.videos.some(v=>!v.paused);
+      if(result.paused?.videos.length) result.pass &&= result.paused.videos.every(v=>v.paused) && result.resumed.videos.some((v,i)=>!v.paused||(v.ended&&v.time>result.paused.videos[i].time));
+      if(result.paused && !result.paused.videos.length) result.pass &&= result.paused.animations.every(a=>a.state!=='running') && result.resumed.animations.some(a=>a.state==='running');
       const interactions=(result.resumed||result.muted||result.progress).interactions;
       result.interactionMaxMs=interactions.length?Math.max(...interactions.map(e=>e.duration)):null;
       result.pass &&= result.interactionMaxMs===null||result.interactionMaxMs<=200;

@@ -874,3 +874,7 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
 - [ ] Louis: do the promised FAQ accuracy and polish smoke when convenient on
   the live customer domain. The shared page is already deployed and was
   visually checked at desktop and narrow widths by Codex.
+
+## October 25 — session follow-up (not a Control Center Task List entry)
+- PR #156 remains draft: finish the customer-page speed/zero-layout-jump gate; final Sunset phone FCP 3.188s / LCP 7.256s. Preserve all-theme autoplay and browser audio fallback. No Live action without Rocky review and Louis's named approval. Evidence and rollback: vault/2026-10-25-hero-autoplay-smoke.md.
+
