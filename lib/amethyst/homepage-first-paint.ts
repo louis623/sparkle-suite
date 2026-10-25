@@ -25,7 +25,7 @@ function attribute(value: string) {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-export async function renderHomepageFirstPaint(html: string, data: AmethystPreviewTemplateData, requestUrl: URL, bootstrap?: string) {
+export async function renderHomepageFirstPaint(html: string, data: AmethystPreviewTemplateData, requestUrl: URL, bootstrap?: string, options: { deferExternalScripts?: boolean } = {}) {
   const properties = new Map<string, string>()
   const body = { className: 'homepage', classList: { add(...names: string[]) { body.className += ' ' + names.join(' ') } } }
   const document = { body, documentElement: { style: { setProperty(name: string, value: unknown) { properties.set(name, String(value)) } } }, getElementById: () => ({}) }
@@ -46,7 +46,7 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   const withBootstrap = bootstrap ? themedHtml.replace(/<script\b[^>]*data-template-src="[^"]+"[^>]*><\/script>/, () => `<script>${bootstrap.replace(/<\/script/gi, '<\\/script')}</script>`) : themedHtml
   // The complete bootstrap is already inline and independent of React. Fetch
   // classic dependencies in parallel; defer preserves their execution order.
-  const withOrderedScripts = bootstrap ? withBootstrap.replace(/<script\s+src=/g, '<script defer src=') : withBootstrap
+  const withOrderedScripts = bootstrap && options.deferExternalScripts !== false ? withBootstrap.replace(/<script\s+src=/g, '<script defer src=') : withBootstrap
   return withOrderedScripts
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${attribute(style)}">`)
     .replace('<body class="homepage">', () => `<body class="${attribute(body.className)}">`)

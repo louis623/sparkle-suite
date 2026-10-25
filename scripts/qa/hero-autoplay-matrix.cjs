@@ -76,6 +76,12 @@ fs.mkdirSync(output, {recursive:true});
       await finishFilmstrip(); finishFilmstrip=null;
       await page.screenshot({path:path.join(output,`${mode}-${theme}-playing.png`)});
       await page.waitForTimeout(650);result.progress=await sample();
+      if(theme==='halloween_pumpkin_cat' && result.progress.videos.every(v=>v.paused&&!v.ended)) {
+        // Pumpkin Cat intentionally rests four seconds between five-second
+        // bursts. Observe its next automatic burst without clicking Play.
+        await frame.waitForFunction(()=>[...document.querySelectorAll('.hp-hero video')].some(v=>!v.paused&&v.currentTime>.2),null,{timeout:12000});
+        result.progress=await sample();
+      }
       const interact=locator=>mode==='phone'?locator.tap():locator.click();
       if(audioThemes.has(theme)) {
         if(result.progress.videos.some(video=>video.ended)) await interact(frame.getByRole('button',{name:'Play again',exact:true}));

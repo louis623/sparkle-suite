@@ -523,7 +523,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   if (page === 'homepage') document = await renderHomepageFirstPaint(document, {
     homepage: defaultAmethystHomepageTemplateData, trade: defaultAmethystTradeTemplateData,
     join: defaultAmethystJoinTemplateData, appearancePreset: skin,
-  }, new URL(origin), bootstrap)
+  }, new URL(origin), bootstrap, { deferExternalScripts: false })
   return document.replaceAll('Sparkle by Sasha', profile.businessName)
 }
 

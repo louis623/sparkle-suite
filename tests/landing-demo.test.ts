@@ -92,6 +92,9 @@ describe('public landing theme boundary', () => {
     expect(html).not.toContain('data-template-src=')
     expect(html).not.toContain('SUPABASE_SERVICE_ROLE_KEY')
     expect(html).toContain('sparkle-landing-ready')
+    // Preview application scripts are inline, so their React dependency must
+    // execute immediately before them rather than wait until parsing finishes.
+    expect(html).not.toContain('<script defer src=')
   })
   it('retires both anonymous assistant paths without parsing user data', async () => {
     expect((await chat()).status).toBe(410)
