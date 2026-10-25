@@ -2155,19 +2155,17 @@ function AboutSection({ repName, hideEmptyMedia = false }) {
 const SIGNUP_PREFERENCE_MAX = 3;
 const SIGNUP_NOT_SURE = "not_sure";
 const SIGNUP_PREFERENCE_STYLES = `
-.hp-pref { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; }
+.hp-pref { border: 0; margin: 0; padding: 0; min-width: 0; max-width: 100%; display: grid; gap: 8px; box-sizing: border-box; }
 .hp-pref legend { padding: 0; }
 .hp-pref-hint, .hp-pref-group, .hp-pref-live { margin: 0; color: var(--hp-card-muted); font-size: 13px; line-height: 1.4; }
 .hp-pref-live { min-height: 1.4em; }
-.hp-pref-chips { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; max-width: 100%; }
-.hp-pref-chip { position: relative; display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; margin: 0; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--hp-field-bg); color: var(--hp-field-fg); font-size: 14px; line-height: 1.3; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.hp-pref-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; max-width: 100%; box-sizing: border-box; }
+.hp-pref-chip { position: relative; display: inline-flex; align-items: center; box-sizing: border-box; min-height: 44px; min-width: 44px; max-width: 100%; margin: 0; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--hp-field-bg); color: var(--hp-field-fg); font-size: 14px; line-height: 1.3; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
 .hp-pref-chip input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .hp-pref-chip.is-selected { background: var(--hp-card-accent); color: var(--hp-action-fg); border-color: var(--hp-card-accent); }
 .hp-pref-chip.is-disabled { opacity: 0.45; cursor: not-allowed; }
 .hp-pref-chip.is-disabled input { cursor: not-allowed; }
 .hp-pref-chip:focus-within { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
-.hp-pref-more { justify-self: start; min-height: 44px; padding: 8px 2px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
-.hp-pref-more:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
 .hp-signup-form, .hp-signup-preferences, .hp-pref { max-width: 100%; }
 .hp-signup-notes-label { display: block; color: var(--hp-card-fg); font-size: 15px; line-height: 1.45; font-weight: 600; letter-spacing: 0; text-transform: none; }
 .hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }
@@ -2324,14 +2322,11 @@ function SignupPreferenceChip({ option, fieldName, selected, onChange }) {
   );
 }
 
-function SignupPreferencePicker({ legend, fieldName, options, selected, onChange, showOlderControl }) {
-  const [showAll, setShowAll] = useState(false);
-  const [showOlder, setShowOlder] = useState(false);
+function SignupPreferencePicker({ legend, fieldName, options, selected, onChange }) {
   const list = Array.isArray(options) ? options : [];
-  const active = list.filter((option) => !option.isRetired);
-  const retired = list.filter((option) => option.isRetired);
-  const visibleActive = showAll ? active : active.slice(0, 8);
-  const visibleRetired = showOlder ? retired : retired.filter((option) => selected.includes(option.slug));
+  const visible = list.filter((option) => !option.isHidden);
+  const active = visible.filter((option) => !option.isRetired);
+  const retired = visible.filter((option) => option.isRetired);
   const atMax = selected.length >= SIGNUP_PREFERENCE_MAX;
 
   return (
@@ -2339,7 +2334,7 @@ function SignupPreferencePicker({ legend, fieldName, options, selected, onChange
       <legend className="hp-signup-label">{legend}</legend>
       <p className="hp-pref-hint" id={`${fieldName}-hint`}>Pick at least 1, up to 3</p>
       <div className="hp-pref-chips" role="group" aria-describedby={`${fieldName}-hint`}>
-        {visibleActive.map((option) => (
+        {active.map((option) => (
           <SignupPreferenceChip
             key={option.slug}
             option={option}
@@ -2349,20 +2344,10 @@ function SignupPreferencePicker({ legend, fieldName, options, selected, onChange
           />
         ))}
       </div>
-      {active.length > 8 ? (
-        <button type="button" className="hp-pref-more" onClick={() => setShowAll((current) => !current)}>
-          {showAll ? "Show fewer" : "Show all"}
-        </button>
-      ) : null}
-      {showOlderControl && retired.length > 0 ? (
-        <button type="button" className="hp-pref-more" onClick={() => setShowOlder((current) => !current)}>
-          {showOlder ? "Hide older collections" : "Show older collections"}
-        </button>
-      ) : null}
-      {visibleRetired.length > 0 ? (
+      {retired.length > 0 ? (
         <div className="hp-pref-chips">
-          {showOlder ? <p className="hp-pref-group">Older collections</p> : null}
-          {visibleRetired.map((option) => (
+          <p className="hp-pref-group">Older collections</p>
+          {retired.map((option) => (
             <SignupPreferenceChip
               key={option.slug}
               option={option}
@@ -2858,7 +2843,6 @@ function Signup({ repName, businessName }) {
                       options={preferenceOptions?.collection}
                       selected={form.favoriteCollections}
                       onChange={(value) => updateField("favoriteCollections", value)}
-                      showOlderControl
                     />
                   ) : null}
                 </div>
