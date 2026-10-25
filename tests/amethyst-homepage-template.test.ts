@@ -110,7 +110,7 @@ describe('Amethyst homepage template data wiring', () => {
     expect(serialized).not.toContain("Jane's Sparkle Party")
   })
 
-  it('precompiles the public customer pages and keeps Join and Unsubscribe on their own runtimes', () => {
+  it('precompiles the public customer pages and keeps Join on its bundled runtime', () => {
     for (const file of [
       'public/amethyst/Homepage.html',
       'public/amethyst/Trade.html',
@@ -134,8 +134,8 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Unsubscribe.html'),
       'utf8',
     )
-    expect(unsubscribe).toContain('type="text/babel"')
-    expect(unsubscribe).toContain('unsubscribe.jsx?v=')
+    expect(unsubscribe).not.toContain('type="text/babel"')
+    expect(unsubscribe).toContain('compiled/unsubscribe.js?v=')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -478,7 +478,7 @@ describe('Amethyst homepage template data wiring', () => {
     )
   })
 
-  it('keeps the saved hero motion when a skin supplies its other visual defaults', () => {
+  it('keeps active motion styles and upgrades legacy Still to theme autoplay', () => {
     expect(
       buildAmethystHomepageTweakDefaults(
         { ...defaultAmethystHomepageTemplateData, heroMotion: 'sparkle_rise' },
@@ -496,7 +496,7 @@ describe('Amethyst homepage template data wiring', () => {
         { ...defaultAmethystHomepageTemplateData, heroMotion: 'still' },
         'rose_quartz',
       ).heroMotion,
-    ).toBe('still')
+    ).toBe(AMETHYST_APPEARANCE_PRESETS.rose_quartz.values.heroMotion)
   })
 
   it('serializes the saved hero motion into the public bootstrap for every skin', () => {
@@ -1189,7 +1189,7 @@ describe('Amethyst homepage template data wiring', () => {
     const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.jsx'), 'utf8')
     const css = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.css'), 'utf8')
     const framedCss = readFileSync(resolve(process.cwd(), 'public/amethyst/bling-kitchen/framed-hero.css'), 'utf8')
-    const route = readFileSync(resolve(process.cwd(), 'app/api/amethyst/homepage-template/route.ts'), 'utf8')
+    const route = readFileSync(resolve(process.cwd(), 'lib/amethyst/homepage-bootstrap-response.ts'), 'utf8')
     const blingKitchen = jsx.slice(jsx.indexOf('function BlingKitchenHomepage('), jsx.indexOf('// ============================================================\n// Main App'))
     expect(blingKitchen).toContain('useFramedKitchenHero ? (')
     expect(blingKitchen).toMatch(/halloween\|gnome/)
@@ -1523,7 +1523,7 @@ describe('Amethyst homepage template data wiring', () => {
       'utf8',
     )
 
-    expect(html).toContain('unsubscribe.jsx')
+    expect(html).toContain('compiled/unsubscribe.js')
     expect(jsx).toContain('/api/amethyst/customer-audience/unsubscribe')
   })
 

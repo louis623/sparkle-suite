@@ -88,7 +88,8 @@ describe('public landing theme boundary', () => {
     expect(html).toContain('@media(prefers-reduced-motion:reduce)')
     expect(html).toContain('sparkle-marketing-motion')
     expect(html).toContain('event.source!==parent')
-    expect(html).toContain('v.muted=true')
+    expect(html).not.toContain('v.muted=true')
+    expect(html).toContain('pausedVideos.has(v)')
     expect(html).not.toContain('SparkleLiveLineup.start(')
   })
   it('shows an isolated sample lineup without a demo-account lookup', async () => {

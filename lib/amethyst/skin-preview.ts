@@ -1,3 +1,5 @@
+import { AMETHYST_APPEARANCE_PRESET_IDS, AMETHYST_APPEARANCE_PRESETS } from './appearance-presets'
+import { renderHomepageFirstPaint } from './homepage-first-paint'
 import { buildLineupCalendar } from './lineup-calendar'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -9,7 +11,7 @@ import type { AmethystHomepageEventCard } from './homepage-upcoming-shows'
 
 export const SKIN_PREVIEW_PAGES = ['homepage', 'trade', 'join', 'unsubscribe'] as const
 export type SkinPreviewPage = (typeof SKIN_PREVIEW_PAGES)[number]
-export const SKIN_PREVIEW_SKINS = ['amethyst', 'gnome_garden', 'neon_butterfly', 'halloween_pumpkin_witch', 'halloween_pumpkin_cat', 'gilded_autumn', 'rose_gold', 'midnight_rose', 'fall_owl_harvest_moon', 'gobble_and_fizz', 'pie_please', 'pearl_rose', 'rose_champagne', 'sunset_beach'] as const
+export const SKIN_PREVIEW_SKINS = AMETHYST_APPEARANCE_PRESET_IDS
 export type SkinPreviewSkin = (typeof SKIN_PREVIEW_SKINS)[number]
 const FILES: Record<SkinPreviewPage, string> = {
   homepage: 'Homepage.html', trade: 'Trade.html', join: 'Join.html', unsubscribe: 'Unsubscribe.html',
@@ -265,7 +267,7 @@ const PREVIEW_PROFILES = {
     signupSub: 'A friendly little warning before the next sparkling witching hour.',
     events: HALLOWEEN_PREVIEW_EVENTS,
   },
-} satisfies Record<SkinPreviewSkin, PreviewProfile>
+} satisfies Partial<Record<SkinPreviewSkin, PreviewProfile>>
 
 export type LineupReviewState = 'empty' | 'queued' | 'delayed' | 'no-calendar'
 export function resolveLineupReviewState(url: string, env: Record<string, string | undefined> = process.env): LineupReviewState | null {
@@ -312,7 +314,7 @@ function thanksgivingPreviewMedia(skin: SkinPreviewSkin) {
 }
 
 function fixtureBootstrap(page: SkinPreviewPage, skin: SkinPreviewSkin = 'gnome_garden', review: LineupReviewState | null = null) {
-  const profile = PREVIEW_PROFILES[skin]
+  const profile: PreviewProfile = { ...PREVIEW_PROFILES.rose_gold, ...(PREVIEW_PROFILES as Partial<Record<SkinPreviewSkin, PreviewProfile>>)[skin], label: AMETHYST_APPEARANCE_PRESETS[skin].label }
   const footerLinks = {
     ...defaultAmethystHomepageTemplateData.footerLinks,
     home: previewPath(skin, 'homepage'), tradeBoard: previewPath(skin, 'trade'), joinTeam: previewPath(skin, 'join'),
@@ -477,8 +479,8 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   let document = await readFile(join(root, FILES[page]), 'utf8')
   document = document.replace(/<script\b[^>]*(?:data-template-src|src)="\/api\/amethyst\/[^\"]+"[^>]*><\/script>/g, '')
   // Inline only allowlisted repository runtime files. The sandbox cannot fetch them.
-  // Unsubscribe still ships Babel source, so the preview CSP keeps unsafe-eval.
-  const runtimeNames = ['compiled/tweaks-panel.js', 'tweaks-panel.jsx', 'responsive-image.js', 'dance-floor-ticker-label.js', 'compiled/homepage.js', 'compiled/trade.js', 'unsubscribe.jsx', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'sunset-beach.js', 'rose-champagne.js', 'midnight-rose.js', 'fall-owl.js', 'thanksgiving-motion.js', 'pearl-rose.js', 'sparkle-suite-footer-credit.js']
+  // Every customer page uses production React and precompiled classic scripts.
+  const runtimeNames = ['compiled/tweaks-panel.js', 'tweaks-panel.jsx', 'responsive-image.js', 'dance-floor-ticker-label.js', 'compiled/homepage.js', 'compiled/trade.js', 'compiled/unsubscribe.js', 'join-runtime.js', 'live-lineup.js', 'neon-butterfly.js', 'halloween-pumpkin-witch.js', 'halloween-pumpkin-cat.js', 'gilded-autumn.js', 'am01-unicorn.js', 'sunset-beach.js', 'rose-champagne.js', 'midnight-rose.js', 'fall-owl.js', 'thanksgiving-motion.js', 'pearl-rose.js', 'sparkle-suite-footer-credit.js']
   for (const name of runtimeNames) {
     const escaped = name.replace(/\./g, '\\.')
     const pattern = new RegExp(`<script([^>]*?) src="(?:/amethyst/)?${escaped}(?:\\?[^\"]*)?"([^>]*)><\\/script>`, 'g')
@@ -499,7 +501,7 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
   const csp = `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline' ${origin} https://fonts.googleapis.com https://api.fontshare.com; font-src ${origin} https://fonts.gstatic.com https://cdn.fontshare.com https://api.fontshare.com data:; img-src ${origin} https: data: blob:; media-src ${skinPreviewMediaSource(skin, origin)}; connect-src 'none'; form-action 'none'; frame-src 'none'; base-uri ${origin}; object-src 'none'`
   document = document.replace('<head>', `<head><meta http-equiv="Content-Security-Policy" content="${escapeAttribute(csp)}"><base href="${escapeAttribute(origin)}/amethyst/"><meta name="robots" content="noindex,nofollow">`)
   document = document.replace(/<meta name="robots" content="index,follow" \/>/g, '')
-  const profile = PREVIEW_PROFILES[skin]
+  const profile: PreviewProfile = { ...PREVIEW_PROFILES.rose_gold, ...(PREVIEW_PROFILES as Partial<Record<SkinPreviewSkin, PreviewProfile>>)[skin], label: AMETHYST_APPEARANCE_PRESETS[skin].label }
   if (page === 'unsubscribe') {
     // The static template retains its generic defaults; only sample documents
     // receive the selected profile's customer-facing name and preferences copy.
@@ -518,6 +520,10 @@ export async function buildSkinPreviewDocument(skin: SkinPreviewSkin, page: Skin
       .replace(/\bid="([a-z][a-z0-9-]*)"/g, (_match, id: string) => id === 'rgc-preview-media-symbols' ? _match : `id="rgc-preview-icon-${id}"`)
   }
   document = document.replace('<div id="root"></div>', `<div id="root"></div>${mediaSymbols}<script>${inlineScript(reviewGuards)}\n${inlineScript(bootstrap)}</script>`)
+  if (page === 'homepage') document = await renderHomepageFirstPaint(document, {
+    homepage: defaultAmethystHomepageTemplateData, trade: defaultAmethystTradeTemplateData,
+    join: defaultAmethystJoinTemplateData, appearancePreset: skin,
+  }, new URL(origin), bootstrap)
   return document.replaceAll('Sparkle by Sasha', profile.businessName)
 }
 
@@ -526,7 +532,7 @@ export async function buildGnomeSkinPreviewDocument(page: SkinPreviewPage, origi
 }
 
 export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreviewPage, origin: string, review: LineupReviewState | null = null) {
-  const profile = PREVIEW_PROFILES[skin]
+  const profile: PreviewProfile = { ...PREVIEW_PROFILES.rose_gold, ...(PREVIEW_PROFILES as Partial<Record<SkinPreviewSkin, PreviewProfile>>)[skin], label: AMETHYST_APPEARANCE_PRESETS[skin].label }
   const document = await buildSkinPreviewDocument(skin, page, origin, review)
   const previewKind = (skin === 'rose_gold' || skin === 'midnight_rose' || skin === 'fall_owl_harvest_moon' || skin === 'gobble_and_fizz' || skin === 'pie_please' || skin === 'pearl_rose' || skin === 'rose_champagne' || skin === 'sunset_beach') ? 'Theme' : 'Skin'
   const reviewQuery = review ? '?lineupReview='+review : ''
@@ -558,7 +564,7 @@ export async function renderSkinPreview(skin: SkinPreviewSkin, page: SkinPreview
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${profile.label} · ${previewKind} preview</title><style>
   *{box-sizing:border-box}body{margin:0;background:${chrome.bg};color:${chrome.fg};font:14px/1.4 system-ui,sans-serif}header{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;border-bottom:1px solid ${chrome.border}}header strong{font-size:14px}header small{display:block;color:${chrome.muted};font-size:12px}nav{display:flex;gap:5px;flex-wrap:wrap}nav a{color:inherit;text-decoration:none;border-radius:20px;padding:8px 12px}nav a:hover,nav a[aria-current]{background:${chrome.active};color:${chrome.bg}}a:focus-visible{outline:3px solid ${chrome.focus};outline-offset:3px}iframe{display:block;width:100%;height:calc(100dvh - 65px);border:0;background:${chrome.bg}}@media(max-width:600px){header{padding:10px 12px;flex-direction:column;align-items:flex-start;gap:7px}header small{display:inline;margin-left:6px}nav{width:100%;justify-content:space-between}nav a{padding:7px 9px}iframe{height:calc(100dvh - 100px)}}
   html,body{height:100%;overflow:hidden}body{height:100dvh;display:flex;flex-direction:column}header{flex:0 0 auto}iframe{flex:1 1 0;min-height:0;height:auto}
-  </style></head><body><header><div><strong>${previewKind} preview · Sample content${review ? ' · Lineup review' : ''}</strong><small>${profile.label}</small></div><nav aria-label="Preview pages">${navigation}</nav>${reviewControls}</header><iframe id="skin-preview" title="${LABELS[page]} — sample ${profile.label} site" sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${escapeAttribute(document)}"></iframe><script>
+  </style></head><body><header><div><strong>${previewKind} preview · Sample content${review ? ' · Lineup review' : ''}</strong><small>${profile.label}</small></div><nav aria-label="Preview pages">${navigation}</nav>${reviewControls}</header><iframe id="skin-preview" title="${LABELS[page]} — sample ${profile.label} site" sandbox="allow-scripts" allow="autoplay" referrerpolicy="no-referrer" srcdoc="${escapeAttribute(document)}"></iframe><script>
   var previewFrame=document.getElementById('skin-preview');
   previewFrame.addEventListener('load',function(){if(window.location.hash==='#events')previewFrame.contentWindow.postMessage({type:'sparkle-skin-preview-scroll',fragment:'#events'},'*');});
   window.addEventListener('message',function(event){var frame=document.getElementById('skin-preview');if(event.source!==frame.contentWindow||event.data?.type!=='sparkle-skin-preview-page')return;var page=event.data.page;if(['homepage','trade','join','unsubscribe'].includes(page))window.location.assign('/skin-preview/${skin}/'+page+'${reviewQuery}'+(event.data.fragment === '#events' ? '#events' : ''));});

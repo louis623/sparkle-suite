@@ -12,7 +12,7 @@
     poster.className = 'fow-poster'; poster.src = assets + 'hero-poster.webp';
     poster.alt = ''; poster.width = 1280; poster.height = 720;
     const video = document.createElement('video');
-    video.className = 'fow-video'; video.muted = true; video.playsInline = true; video.loop = true;
+    video.className = 'fow-video'; video.muted = false; video.playsInline = true; video.loop = true;
     video.preload = 'none'; video.tabIndex = -1; video.setAttribute('aria-hidden', 'true');
     media.append(poster, video); host.prepend(media);
     const controls = document.createElement('div'); controls.className = 'fow-controls';
@@ -20,7 +20,7 @@
     const control = document.createElement('button'); control.type = 'button'; control.className = 'fow-toggle';
     const sound = document.createElement('button'); sound.type = 'button'; sound.className = 'fow-toggle';
     controls.append(control, sound); host.append(controls);
-    let wanted = true, muted = true, visible = false, disposed = false, failed = false;
+    let wanted = true, muted = false, visible = false, disposed = false, failed = false;
     let pending = false, interrupted = false;
     const allowed = () => !disposed && !failed && !reduced.matches && hero.dataset.heroMotion !== 'off';
     const shouldPlay = () => allowed() && wanted && visible && !document.hidden;

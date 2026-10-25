@@ -71,9 +71,9 @@ export async function sealOpaqueMarketingDocument(document: string, theme: Ameth
   // The sandbox has no same-origin, forms, popups, downloads or top navigation.
   // Signal readiness only after the actual customer component has rendered.
   const ready = `<script>(function(){
-    var sent=false;
+    var sent=false;var pausedVideos=new Set();
     function ready(){
-      document.querySelectorAll('video').forEach(function(v){v.muted=true;v.defaultMuted=true;v.preload='auto';});
+      document.querySelectorAll('video').forEach(function(v){v.preload='auto';});
       if(sent||!document.querySelector('.hp-hero'))return;
       sent=true;
       Promise.resolve(document.fonts&&document.fonts.ready).then(function(){
@@ -85,7 +85,7 @@ export async function sealOpaqueMarketingDocument(document: string, theme: Ameth
       if(event.source!==parent||event.data?.type!=='sparkle-marketing-motion')return;
       var paused=event.data.paused===true||matchMedia('(prefers-reduced-motion:reduce)').matches;
       document.documentElement.toggleAttribute('data-marketing-paused',paused);
-      document.querySelectorAll('video').forEach(function(v){v.muted=true;if(paused)v.pause();else if(v.getAttribute('src')){if(v.readyState===0){v.preload='auto';v.load();}v.play().catch(function(){});}});
+      document.querySelectorAll('video').forEach(function(v){if(paused){if(!v.paused)pausedVideos.add(v);v.pause();}else if(pausedVideos.has(v)){pausedVideos.delete(v);v.play().catch(function(){});}});
     });
     new MutationObserver(ready).observe(document.getElementById('root'),{childList:true,subtree:true});ready();
   })();</script>`

@@ -23,7 +23,7 @@
     const layer = document.createElement('div');
     layer.className = 'beach-motion-layer'; layer.setAttribute('aria-hidden', 'true');
     const video = document.createElement('video');
-    video.muted = true; video.defaultMuted = true; video.loop = true; video.playsInline = true;
+    video.muted = false; video.defaultMuted = false; video.loop = true; video.playsInline = true;
     video.preload = 'none'; video.volume = .35; video.tabIndex = -1; video.poster = assets + 'hero-poster.webp';
     layer.append(video); hero.querySelector('.hp-hero-media').append(layer);
     const controls = document.createElement('div'); controls.className = 'beach-motion-controls';

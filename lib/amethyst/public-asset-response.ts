@@ -1,4 +1,6 @@
 import { readFile } from 'node:fs/promises'
+import { renderHomepageFirstPaint } from './homepage-first-paint'
+import { buildHomepageBootstrapResponse } from './homepage-bootstrap-response'
 import { join } from 'node:path'
 
 import {
@@ -84,6 +86,7 @@ const AMETHYST_ASSETS = new Set([
   'compiled/pantry.js',
   'compiled/trade.js',
   'compiled/tweaks-panel.js',
+  'compiled/unsubscribe.js',
   'join.css',
   'Join.html',
   'join-runtime.js',
@@ -607,6 +610,17 @@ export async function renderAmethystPublicAssetResponse(
           { ...resolvedOptions, pantryRecipes, pantryEmpty, joinRuntimeContext },
           ga4Tag,
         )
+        if (page === 'homepage' && templateData) {
+          // Use the exact same public projection for the first paint and the
+          // client. Inline it once instead of fetching/compiling a second page.
+          const endpoint = String(responseBody).match(/data-template-src="([^"]+)"/)?.[1]
+          if (endpoint) {
+            const bootstrapUrl = new URL(endpoint.replaceAll('&amp;', '&'), requestUrl.origin)
+            bootstrapUrl.searchParams.set('lineupPresentation', 'grouped-v1')
+            const bootstrap = await (await buildHomepageBootstrapResponse(new Request(bootstrapUrl, { headers: request.headers }))).text()
+            responseBody = await renderHomepageFirstPaint(responseBody, templateData, requestUrl, bootstrap)
+          }
+        }
       } else if (templateScriptPage) {
         responseBody = rewriteTemplateScriptTarget(
           html,

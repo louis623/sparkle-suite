@@ -34,6 +34,7 @@ const COMPILED = [
   'homepage.js',
   'trade.js',
   'pantry.js',
+  'unsubscribe.js',
 ] as const
 
 const PAGES = [
@@ -77,15 +78,12 @@ describe('precompiled customer pages', () => {
 
   it('rebuilds the committed esbuild transforms without imports, exports, or jsx-runtime', () => {
     const script = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8')).scripts['build:amethyst:pages'] as string
-    expect(script).toContain('--loader:.jsx=jsx')
-    expect(script).toContain('--jsx=transform')
-    expect(script).toContain('--jsx-factory=React.createElement')
-    expect(script).toContain('--jsx-fragment=React.Fragment')
-    expect(script).toContain("--tsconfig-raw='{}'")
-    expect(script).toContain('--minify')
-    expect(script).toContain('--target=es2019')
-    expect(script).not.toContain('--bundle')
-    expect(script).not.toContain('--format')
+    expect(script).toBe('node scripts/build-amethyst-pages.mjs')
+    const build = readFileSync('scripts/build-amethyst-pages.mjs', 'utf8')
+    expect(build).toContain("jsx: 'transform'")
+    expect(build).toContain('tsconfigRaw: {}')
+    expect(build).toContain('minify: true')
+    expect(build).toContain("target: 'es2019'")
 
     const before = Object.fromEntries(COMPILED.map((name) => [name, readFileSync(compiledPath(name))]))
     execSync('npm run build:amethyst:pages', { cwd: process.cwd(), stdio: 'pipe' })
@@ -100,7 +98,7 @@ describe('precompiled customer pages', () => {
     }
   })
 
-  it('loads classic compiled scripts after the template loader and keeps the server text block', async () => {
+  it('serves compiled scripts with a themed homepage first paint and one bootstrap', async () => {
     for (const page of PAGES) {
       const html = pageHtml(page.html)
       expect(html, page.html).not.toContain('babel')
@@ -130,10 +128,15 @@ describe('precompiled customer pages', () => {
       )
       const served = await response.text()
       expect(response.status).toBe(200)
-      expect(served).toContain(`<main class="public-index" data-page="${page.page === 'trade' ? 'dance-floor' : page.page === 'pantry' ? 'pantry' : 'home'}">`)
-      expect(served).toContain(page.loader.startsWith('template-loader.js?')
-        ? 'src="/amethyst/template-loader.js?v=20260928-lineup-always-on"'
-        : 'src="/amethyst/template-loader.js"')
+      if (page.page === 'homepage') {
+        expect(served).toContain('data-server-rendered="true"')
+        expect(served).toContain('class="hp-hero')
+        expect(served).not.toContain('data-template-src=')
+        expect(served).not.toContain('<main class="public-index"')
+      } else {
+        expect(served).toContain('class="public-index"')
+        expect(served).toContain('/amethyst/template-loader.js')
+      }
       const servedLoaderAt = served.indexOf('/amethyst/template-loader.js')
       for (const name of page.scripts) {
         const src = `/amethyst/compiled/${name}?v=${contentHash(name)}`

@@ -112,7 +112,7 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
               key={selected + '-' + attempt} ref={frame}
               title={'Explore the ' + selectedLabel + ' website preview'}
               srcDoc={previewHtml}
-              sandbox="allow-scripts" referrerPolicy="no-referrer"
+              sandbox="allow-scripts" allow="autoplay" referrerPolicy="no-referrer"
               className={state === 'ready' ? styles.ready : styles.loading}
               aria-hidden={state !== 'ready'} tabIndex={state === 'ready' ? 0 : -1}
             /> : null}

@@ -856,6 +856,25 @@ function GnomeGardenScene() {
   );
 }
 
+function HeroFirstPaintArt({ preset }) {
+  const art = {
+    amethyst: ['au-art', 'am01-unicorn/opening-poster.webp', 1310, 704],
+    halloween_pumpkin_cat: ['hpc-art', 'halloween-pumpkin-cat/hero-desktop.webp', 1672, 941],
+    gilded_autumn: ['ga-art', 'gilded-autumn/hero-poster.webp', 1204, 764],
+  }[preset];
+  if (!art) return null;
+  return <>
+    <style>{`.hp-hero:has(.au-video,.hpc-video,.ga-video) [data-first-paint-art]{display:none}`}</style>
+    <div className={art[0]} data-first-paint-art="true" aria-hidden="true">
+      <img src={'/amethyst/skins/' + art[1]} alt="" width={art[2]} height={art[3]}
+        {...(preset === 'halloween_pumpkin_cat' ? {
+          srcSet: [720,1200,1672].map(w => '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-' + w + '.webp ' + w + 'w').join(', '),
+          sizes: '(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw',
+        } : {})} decoding="async" fetchpriority="high" />
+    </div>
+  </>;
+}
+
 function Hero({ t, isLive, liveShow }) {
   const joinTeamHref = CONTENT.footerLinks?.joinTeam || "";
   const mileHighFizzKicker = t.heroEyebrow || CONTENT.heroEyebrow || "With Lindsey";
@@ -864,6 +883,7 @@ function Hero({ t, isLive, liveShow }) {
   return (
     <>
     <section className="hp-hero" data-appearance-preset={t.preset} data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
+      <HeroFirstPaintArt preset={t.preset} />
       {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
       <div className="hp-hero-media" aria-hidden="true" />
       {t.preset !== "halloween_pumpkin_cat" && t.preset !== "amethyst" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
@@ -3419,26 +3439,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
 // ============================================================
 // Main App
 // ============================================================
-function App() {
-  const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
-  window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
-  useEffect(() => {
-    if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
-    return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });
-  }, []);
-  const [t, setTweak] = useTweaks(DEFAULTS);
-  const [queueOpen, setQueueOpen] = useState(false);
-  const repName = publicRepName(t.repName);
-  const [now, setNow] = useState(() => Date.now());
-  const activeLiveShow = useMemo(() => getActiveLiveShow(now), [now]);
-  const scheduleIsLive = Boolean(activeLiveShow);
-  const contentLiveQueueState = lineup?.liveQueueState || getContentLiveQueueState();
-  const effectiveLrqState = contentLiveQueueState || (scheduleIsLive ? t.lrqState : "offline");
-
-  // Targeted pages keep the server title and description.
-
-  // Apply tokens to root
-  useEffect(() => {
+function applyHomepageTheme(t, document) {
     const root = document.documentElement;
     const tone = TONES[t.bgTone] || TONES.lavender;
     root.style.setProperty("--hp-primary", t.primaryColor);
@@ -3453,10 +3454,8 @@ function App() {
     root.style.setProperty("--hp-heading-weight", t.headingWeight);
     root.style.setProperty("--hp-saturation", (t.saturation || 100) / 100);
     root.style.setProperty("--ticker-speed", t.tickerSpeed);
-  }, [t]);
 
-  // Apply body classes
-  useEffect(() => {
+    // Body classes use the same source on the server and browser.
     const body = document.body;
     body.className = "homepage";
     if (isMileHighFizzHybrid) body.classList.add("mile-high-fizz");
@@ -3551,7 +3550,27 @@ function App() {
     if (t.density === "spacious") body.classList.add("density-spacious");
     if (t.shapeRadius === "sharp") body.classList.add("shape-sharp");
     if (t.shapeRadius === "soft") body.classList.add("shape-soft");
-  }, [t]);
+}
+
+function App() {
+  const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
+  window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
+  useEffect(() => {
+    if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
+    return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });
+  }, []);
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  const [queueOpen, setQueueOpen] = useState(false);
+  const repName = publicRepName(t.repName);
+  const [now, setNow] = useState(() => Date.now());
+  const activeLiveShow = useMemo(() => getActiveLiveShow(now), [now]);
+  const scheduleIsLive = Boolean(activeLiveShow);
+  const contentLiveQueueState = lineup?.liveQueueState || getContentLiveQueueState();
+  const effectiveLrqState = contentLiveQueueState || (scheduleIsLive ? t.lrqState : "offline");
+
+  // Targeted pages keep the server title and description.
+
+  useEffect(() => { applyHomepageTheme(t, document); }, [t]);
 
   useEffect(() => {
     window.AMETHYST_APPLY_HOMEPAGE_TEMPLATE?.(t);

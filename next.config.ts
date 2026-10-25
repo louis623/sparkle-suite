@@ -22,6 +22,14 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ['@resvg/resvg-js'],
   outputFileTracingIncludes: {
+    '/*': [
+      './lib/amethyst/generated/homepage-server.cjs',
+      './public/amethyst/compiled/*.js',
+      './public/amethyst/live-lineup.js',
+      './public/amethyst/responsive-image.js',
+      './public/amethyst/sparkle-suite-footer-credit.js',
+      './public/amethyst/dance-floor-ticker-label.js',
+    ],
     // Server-rendered email shells read with readFileSync (official notice + Weekly Fizz).
     '/api/**/*': [
       './brand-assets/email/official-notices/*.html',
