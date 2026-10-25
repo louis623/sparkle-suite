@@ -2,7 +2,8 @@
  * Finder-parity jewelry favorites for Sparkle Suite rep-site sign-up.
  * Slugs and labels match Sparkle Finder's favorites form.
  * "Not sure yet" is the slug not_sure and cannot be combined with other picks.
- * Hidden options stay valid for stored values and are left out of the public form list.
+ * Hidden options stay valid for stored values. The public options payload includes them with isHidden true.
+ * Pickers leave them out unless the customer already saved one.
  */
 
 export type PreferenceKind = 'stone' | 'material' | 'cut' | 'collection'
@@ -62,7 +63,7 @@ export type PreferenceOption = {
   slug: string
   label: string
   isRetired?: boolean
-  /** Stored values still validate. Public preference-option responses omit these. */
+  /** Stored values still validate. Public preference-option responses include these with isHidden true. */
   isHidden?: boolean
   groupLabel?: string
   sortOrder?: number
@@ -77,7 +78,7 @@ export type CustomerSignupPreferencePicks = {
   favoriteCuts: string[]
   favoriteCollections: string[]
   ringSize: RingSizeValue | null
-  jewelryNotes: string | null
+  jewelryNotes: string
   labels: {
     favoriteGemOrStone: string | null
     favoriteMaterial: string | null
@@ -141,10 +142,10 @@ const materialSeeds: PreferenceOptionSeed[] = [
   { slug: 'gold', label: 'Gold plated', source: 'library' },
   { slug: 'matte-gold', label: 'Matte gold', source: 'library' },
   { slug: 'rose-gold', label: 'Rose gold plated', source: 'library' },
-  { slug: 'silver-plated', label: 'Silver plated', source: 'library', isHidden: true },
-  { slug: 'matte-rhodium', label: 'Matte rhodium', source: 'library', isHidden: true },
   { slug: 'sterling', label: 'Sterling silver (.925)', source: 'both' },
   { slug: 'vermeil', label: 'Gold vermeil (gold over sterling)', source: 'bomb_party' },
+  { slug: 'silver-plated', label: 'Silver plated', source: 'library', isHidden: true },
+  { slug: 'matte-rhodium', label: 'Matte rhodium', source: 'library', isHidden: true },
 ]
 
 const cutSeeds: PreferenceOptionSeed[] = [
@@ -191,7 +192,6 @@ const collectionSeeds: PreferenceOptionSeed[] = [
   { slug: 'lumina', label: 'Lumina', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'untamed', label: 'Untamed', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'sterling-club', label: 'Sterling Club', source: 'bomb_party', groupLabel: 'Active' },
-  { slug: 'gem-society', label: 'Gem Society', source: 'bomb_party', groupLabel: 'Active', isHidden: true },
   { slug: 'originals-kids', label: 'Originals Kids', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'sirens', label: 'Sirens', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'simply', label: 'Simply Hoops / Studs / Sets', source: 'bomb_party', groupLabel: 'Active' },
@@ -287,6 +287,7 @@ const collectionSeeds: PreferenceOptionSeed[] = [
     isRetired: true,
     groupLabel: 'Older collections',
   },
+  { slug: 'gem-society', label: 'Gem Society', source: 'bomb_party', groupLabel: 'Active', isHidden: true },
 ]
 
 function toOptions(seeds: PreferenceOptionSeed[]): PreferenceOption[] {
@@ -294,7 +295,7 @@ function toOptions(seeds: PreferenceOptionSeed[]): PreferenceOption[] {
     slug: seed.slug,
     label: seed.label,
     isRetired: seed.isRetired === true,
-    ...(seed.isHidden ? { isHidden: true } : {}),
+    isHidden: seed.isHidden === true,
     groupLabel: seed.groupLabel,
     sortOrder: index,
     source: seed.source,
@@ -312,6 +313,41 @@ const ringSizeValueSet = new Set<string>(RING_SIZE_VALUES)
 
 export function isRingSizeValue(value: string): value is RingSizeValue {
   return ringSizeValueSet.has(value)
+}
+
+/** Options the picker renders. Hidden rows stay out unless that slug is already saved. */
+export function optionsForPreferencePicker(
+  options: readonly PreferenceOption[],
+  selected: readonly string[],
+): PreferenceOption[] {
+  const list = Array.isArray(options) ? options : []
+  const selectedSlugs = new Set(selected)
+  const visible = list.filter((option) => option.isHidden !== true)
+  const savedHidden = list.filter((option) => option.isHidden === true && selectedSlugs.has(option.slug))
+  return [...visible, ...savedHidden]
+}
+
+/**
+ * Shared preference-options payload. Hidden ids stay in the list with isHidden: true.
+ * A Finder payload that omits the flag, or omits the row, still includes the bundled hidden ids.
+ */
+export function preferenceOptionsPayload(
+  options: PreferenceOptionsByKind = fallbackPreferenceOptions,
+): PreferenceOptionsByKind {
+  const payload = {} as PreferenceOptionsByKind
+  for (const kind of PREFERENCE_KINDS) {
+    const bundledHidden = fallbackPreferenceOptions[kind].filter((option) => option.isHidden)
+    const hiddenSlugs = new Set(bundledHidden.map((option) => option.slug))
+    const rows = options[kind].map((option) =>
+      hiddenSlugs.has(option.slug) ? { ...option, isHidden: true as const } : option,
+    )
+    const present = new Set(rows.map((option) => option.slug))
+    for (const hidden of bundledHidden) {
+      if (!present.has(hidden.slug)) rows.push(hidden)
+    }
+    payload[kind] = rows
+  }
+  return payload
 }
 
 export function visiblePreferenceOptions(
@@ -453,11 +489,10 @@ export function parseRingSizeAnswer(
 
 export function parseJewelryNotes(
   value: unknown,
-): { ok: true; value: string | null } | { ok: false } {
-  if (value === undefined || value === null) return { ok: true, value: null }
+): { ok: true; value: string } | { ok: false } {
+  if (value === undefined || value === null) return { ok: true, value: '' }
   if (typeof value !== 'string') return { ok: false }
   const trimmed = value.trim()
-  if (!trimmed) return { ok: true, value: null }
   if (trimmed.length > JEWELRY_NOTES_MAX_LENGTH) return { ok: false }
   return { ok: true, value: trimmed }
 }
@@ -477,7 +512,7 @@ export function readSignupPreferences(
     return {
       ok: false,
       detail: 'invalid ring size',
-      message: 'Choose a ring size from 5 to 11, or Not sure.',
+      message: 'Choose a ring size from the list, or leave it blank.',
     }
   }
 

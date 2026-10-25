@@ -2322,11 +2322,17 @@ function SignupPreferenceChip({ option, fieldName, selected, onChange }) {
   );
 }
 
-function SignupPreferencePicker({ legend, fieldName, options, selected, onChange }) {
+function preferencePickerOptions(options, selected) {
   const list = Array.isArray(options) ? options : [];
   const visible = list.filter((option) => !option.isHidden);
-  const active = visible.filter((option) => !option.isRetired);
-  const retired = visible.filter((option) => option.isRetired);
+  const savedHidden = list.filter((option) => option.isHidden && selected.includes(option.slug));
+  return visible.concat(savedHidden);
+}
+
+function SignupPreferencePicker({ legend, fieldName, options, selected, onChange }) {
+  const shown = preferencePickerOptions(options, selected);
+  const active = shown.filter((option) => !option.isRetired);
+  const retired = shown.filter((option) => option.isRetired);
   const atMax = selected.length >= SIGNUP_PREFERENCE_MAX;
 
   return (

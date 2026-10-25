@@ -602,7 +602,7 @@ describe('POST /api/amethyst/customer-audience', () => {
 
     expect(response.status).toBe(400)
     await expect(response.json()).resolves.toMatchObject({
-      error: 'Choose a ring size from 5 to 11, or Not sure.',
+      error: 'Choose a ring size from the list, or leave it blank.',
     })
     expect(spies.insert).not.toHaveBeenCalled()
   })
