@@ -1,9 +1,8 @@
 /**
  * Finder-parity jewelry favorites for Sparkle Suite rep-site sign-up.
- * Slugs and labels match Sparkle Finder's fallback list
- * (lib/sparkle-finder/jewelry-preferences.ts, PR #7) and
- * RING_SIZE_VALUES in lib/sparkle-finder/ring-sizes.ts.
+ * Slugs and labels match Sparkle Finder's favorites form.
  * "Not sure yet" is the slug not_sure and cannot be combined with other picks.
+ * Hidden options stay valid for stored values and are left out of the public form list.
  */
 
 export type PreferenceKind = 'stone' | 'material' | 'cut' | 'collection'
@@ -63,6 +62,8 @@ export type PreferenceOption = {
   slug: string
   label: string
   isRetired?: boolean
+  /** Stored values still validate. Public preference-option responses omit these. */
+  isHidden?: boolean
   groupLabel?: string
   sortOrder?: number
   source?: 'library' | 'bomb_party' | 'both' | 'standard'
@@ -90,6 +91,7 @@ type PreferenceOptionSeed = {
   label: string
   source: NonNullable<PreferenceOption['source']>
   isRetired?: boolean
+  isHidden?: boolean
   groupLabel?: string
 }
 
@@ -137,9 +139,10 @@ const materialSeeds: PreferenceOptionSeed[] = [
   { slug: 'rhodium', label: 'Silver-tone (rhodium plated)', source: 'both' },
   { slug: 'hematite', label: 'Hematite / gunmetal (dark)', source: 'library' },
   { slug: 'gold', label: 'Gold plated', source: 'library' },
+  { slug: 'matte-gold', label: 'Matte gold', source: 'library' },
   { slug: 'rose-gold', label: 'Rose gold plated', source: 'library' },
-  { slug: 'silver-plated', label: 'Silver plated', source: 'library' },
-  { slug: 'matte-rhodium', label: 'Matte rhodium', source: 'library' },
+  { slug: 'silver-plated', label: 'Silver plated', source: 'library', isHidden: true },
+  { slug: 'matte-rhodium', label: 'Matte rhodium', source: 'library', isHidden: true },
   { slug: 'sterling', label: 'Sterling silver (.925)', source: 'both' },
   { slug: 'vermeil', label: 'Gold vermeil (gold over sterling)', source: 'bomb_party' },
 ]
@@ -163,9 +166,9 @@ const cutSeeds: PreferenceOptionSeed[] = [
 
 const collectionSeeds: PreferenceOptionSeed[] = [
   notSure('Active'),
-  { slug: 'originals', label: 'Originals (monthly rings)', source: 'both', groupLabel: 'Active' },
+  { slug: 'originals', label: 'OGs', source: 'both', groupLabel: 'Active' },
   { slug: 'birthday', label: 'Birthday Collections (monthly)', source: 'both', groupLabel: 'Active' },
-  { slug: 'exclusives', label: 'Exclusives & Bringbacks', source: 'both', groupLabel: 'Active' },
+  { slug: 'exclusives', label: 'Exclusives', source: 'both', groupLabel: 'Active' },
   { slug: 'obsidia', label: 'Obsidia', source: 'both', groupLabel: 'Active' },
   { slug: 'halo', label: 'Halo', source: 'both', groupLabel: 'Active' },
   { slug: 'charmelier', label: 'Charmelier', source: 'both', groupLabel: 'Active' },
@@ -188,7 +191,7 @@ const collectionSeeds: PreferenceOptionSeed[] = [
   { slug: 'lumina', label: 'Lumina', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'untamed', label: 'Untamed', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'sterling-club', label: 'Sterling Club', source: 'bomb_party', groupLabel: 'Active' },
-  { slug: 'gem-society', label: 'Gem Society', source: 'bomb_party', groupLabel: 'Active' },
+  { slug: 'gem-society', label: 'Gem Society', source: 'bomb_party', groupLabel: 'Active', isHidden: true },
   { slug: 'originals-kids', label: 'Originals Kids', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'sirens', label: 'Sirens', source: 'bomb_party', groupLabel: 'Active' },
   { slug: 'simply', label: 'Simply Hoops / Studs / Sets', source: 'bomb_party', groupLabel: 'Active' },
@@ -291,6 +294,7 @@ function toOptions(seeds: PreferenceOptionSeed[]): PreferenceOption[] {
     slug: seed.slug,
     label: seed.label,
     isRetired: seed.isRetired === true,
+    ...(seed.isHidden ? { isHidden: true } : {}),
     groupLabel: seed.groupLabel,
     sortOrder: index,
     source: seed.source,
@@ -310,11 +314,30 @@ export function isRingSizeValue(value: string): value is RingSizeValue {
   return ringSizeValueSet.has(value)
 }
 
+export function visiblePreferenceOptions(
+  options: PreferenceOptionsByKind = fallbackPreferenceOptions,
+): PreferenceOptionsByKind {
+  const visible = {} as PreferenceOptionsByKind
+  for (const kind of PREFERENCE_KINDS) {
+    const bundledHidden = new Set(
+      fallbackPreferenceOptions[kind].filter((option) => option.isHidden).map((option) => option.slug),
+    )
+    visible[kind] = options[kind].filter(
+      (option) => option.isHidden !== true && !bundledHidden.has(option.slug),
+    )
+  }
+  return visible
+}
+
 export function knownPreferenceSlugs(
   kind: PreferenceKind,
   options: PreferenceOptionsByKind = fallbackPreferenceOptions,
 ): Set<string> {
-  return new Set(options[kind].map((option) => option.slug))
+  const slugs = new Set(options[kind].map((option) => option.slug))
+  for (const option of fallbackPreferenceOptions[kind]) {
+    if (option.isHidden) slugs.add(option.slug)
+  }
+  return slugs
 }
 
 export type PreferenceParseResult =
@@ -372,6 +395,9 @@ export function joinPreferenceLabels(
   const visible = slugs.filter((slug) => slug !== NOT_SURE_SLUG)
   if (visible.length === 0) return null
   const labels = new Map(options[kind].map((option) => [option.slug, option.label]))
+  for (const option of fallbackPreferenceOptions[kind]) {
+    if (option.isHidden && !labels.has(option.slug)) labels.set(option.slug, option.label)
+  }
   const text = visible.map((slug) => labels.get(slug) ?? slug).join(', ')
   return text.length > 0 ? text : null
 }

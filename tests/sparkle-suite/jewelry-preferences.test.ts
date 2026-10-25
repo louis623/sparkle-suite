@@ -13,6 +13,7 @@ import {
   joinPreferenceLabels,
   legacyFavoriteChipText,
   readSignupPreferences,
+  visiblePreferenceOptions,
 } from '@/lib/sparkle-suite/jewelry-preferences'
 import {
   loadPreferenceOptions,
@@ -30,17 +31,103 @@ const validPicks = {
 describe('Finder-parity preference lists', () => {
   it('keeps the bundled lists at Finder counts, with not_sure on every list', () => {
     expect(fallbackPreferenceOptions.stone.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(24)
-    expect(fallbackPreferenceOptions.material.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(8)
+    expect(fallbackPreferenceOptions.material.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(9)
+    expect(fallbackPreferenceOptions.material.filter((option) => option.isHidden)).toHaveLength(2)
+    expect(visiblePreferenceOptions().material).toHaveLength(8)
     expect(fallbackPreferenceOptions.cut.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(13)
     expect(
-      fallbackPreferenceOptions.collection.filter((option) => option.slug !== NOT_SURE_SLUG && !option.isRetired),
-    ).toHaveLength(22)
+      fallbackPreferenceOptions.collection.filter(
+        (option) => option.slug !== NOT_SURE_SLUG && !option.isRetired && !option.isHidden,
+      ),
+    ).toHaveLength(21)
     expect(fallbackPreferenceOptions.collection.filter((option) => option.isRetired)).toHaveLength(12)
+    expect(fallbackPreferenceOptions.collection.filter((option) => option.isHidden)).toHaveLength(1)
 
     for (const options of Object.values(fallbackPreferenceOptions)) {
       expect(options.some((option) => option.slug === NOT_SURE_SLUG && option.label === 'Not sure yet')).toBe(true)
       expect(new Set(options.map((option) => option.slug)).size).toBe(options.length)
     }
+  })
+
+  it('pins visible metal and collection ids to the Finder form order', () => {
+    expect(visiblePreferenceOptions().material.map((option) => option.slug)).toEqual([
+      'not_sure',
+      'rhodium',
+      'hematite',
+      'gold',
+      'matte-gold',
+      'rose-gold',
+      'sterling',
+      'vermeil',
+    ])
+    expect(visiblePreferenceOptions().material).toHaveLength(8)
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'matte-gold')?.label).toBe(
+      'Matte gold',
+    )
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'rhodium')?.label).toBe(
+      'Silver-tone (rhodium plated)',
+    )
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'gold')?.label).toBe('Gold plated')
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'sterling')?.label).toBe(
+      'Sterling silver (.925)',
+    )
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'silver-plated')).toMatchObject({
+      label: 'Silver plated',
+      isHidden: true,
+    })
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'matte-rhodium')).toMatchObject({
+      label: 'Matte rhodium',
+      isHidden: true,
+    })
+
+    expect(visiblePreferenceOptions().collection.map((option) => option.slug)).toEqual([
+      'not_sure',
+      'originals',
+      'birthday',
+      'exclusives',
+      'obsidia',
+      'halo',
+      'charmelier',
+      'outlaw',
+      'jewel-candy',
+      'stacks',
+      'delicate-stacked-rings',
+      'luxe-layers',
+      'luxe-bands',
+      'lumina',
+      'untamed',
+      'sterling-club',
+      'originals-kids',
+      'sirens',
+      'simply',
+      'awareness',
+      'resort-wear',
+      'mens-timeless',
+      'reign',
+      'greek-goddess',
+      'zen-gems',
+      'iceland-dreams',
+      'galaxia',
+      'versailles',
+      'desert-queen',
+      'bella-amore',
+      'mermaid-treasures',
+      'girl-boss',
+      'farmhouse',
+      'catch-a-unicorn',
+    ])
+    expect(visiblePreferenceOptions().collection.some((option) => option.slug === 'gem-society')).toBe(false)
+    expect(fallbackPreferenceOptions.collection.find((option) => option.slug === 'originals')?.label).toBe('OGs')
+    expect(fallbackPreferenceOptions.collection.find((option) => option.slug === 'exclusives')?.label).toBe(
+      'Exclusives',
+    )
+    expect(fallbackPreferenceOptions.collection.find((option) => option.slug === 'originals-kids')?.label).toBe(
+      'Originals Kids',
+    )
+    expect(fallbackPreferenceOptions.collection.find((option) => option.slug === 'gem-society')).toMatchObject({
+      label: 'Gem Society',
+      isHidden: true,
+    })
   })
 
   it('uses Finder ring sizes, whole sizes only', () => {
@@ -132,6 +219,33 @@ describe('signup preference validation', () => {
       )
       expect(legacy.detail).toBe('missing_stone')
     }
+  })
+
+  it('still accepts hidden gem-society, silver-plated, and matte-rhodium picks', () => {
+    const publicOptions = visiblePreferenceOptions()
+    const saved = readSignupPreferences(
+      {
+        ...validPicks,
+        favoriteMaterials: ['silver-plated', 'matte-rhodium'],
+        favoriteCollections: ['gem-society'],
+      },
+      publicOptions,
+    )
+    expect(saved.ok).toBe(true)
+    if (saved.ok) {
+      expect(saved.picks?.favoriteMaterials).toEqual(['silver-plated', 'matte-rhodium'])
+      expect(saved.picks?.favoriteCollections).toEqual(['gem-society'])
+      expect(saved.picks?.labels.favoriteMaterial).toBe('Silver plated, Matte rhodium')
+      expect(saved.picks?.labels.favoriteCollection).toBe('Gem Society')
+    }
+
+    expect(joinPreferenceLabels(['silver-plated', 'matte-rhodium'], 'material', publicOptions)).toBe(
+      'Silver plated, Matte rhodium',
+    )
+    expect(joinPreferenceLabels(['gem-society'], 'collection', publicOptions)).toBe('Gem Society')
+    expect(publicOptions.material.map((option) => option.slug)).not.toContain('silver-plated')
+    expect(publicOptions.material.map((option) => option.slug)).not.toContain('matte-rhodium')
+    expect(publicOptions.collection.map((option) => option.slug)).not.toContain('gem-society')
   })
 
   it('joins readable labels for the legacy text columns', () => {
