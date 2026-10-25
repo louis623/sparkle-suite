@@ -2,6 +2,10 @@
 
 Repo-level operating manual for Claude Code. Loaded automatically at session start.
 
+## Production Quality Standard
+
+All work must meet [PRODUCTION_STANDARD.md](PRODUCTION_STANDARD.md). Never call anything ready unless it does. Flag anything below it to Louis in plain English.
+
 ---
 
 ## Section 1 — Universal (NR-wide conventions)
