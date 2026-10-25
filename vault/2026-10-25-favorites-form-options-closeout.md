@@ -4,4 +4,5 @@
 - Draft only. Not merged and not deployed. Live domains and the Smoke alias were not moved.
 - Follow-up: the options payload keeps hidden ids with isHidden true; a saved hidden pick stays checked at the end of its picker; blank jewelry notes are stored as ''. The jewelry_notes empty-string migration file is in the branch and has not been applied. It must run on Smoke before Live.
 - Louis approved the signup privacy line and three stones after Aquamarine: Tanzanite, Peridot, and Alexandrite (28 valid, 28 visible). No new database migration. Not deployed.
-- Final spec wording is on the draft: shared step subtitles, Month/Day birthday dropdowns that still post MM-DD, empty optional review rows say Not added, Farmhouse is Farmhouse, and older collections stay visible. The privacy policy page was not edited.
+- Final spec wording is on the draft: shared step subtitles, Month/Day birthday dropdowns that still post MM-DD, empty optional review rows say Not added, Farmhouse is Farmhouse, and older collections stay visible.
+- Louis approved the privacy policy update on the same draft. Last updated is October 25, 2026. The new section is Your Favorites And Sharing Between Representatives. Sharing between representatives is described ahead of the feature; stop-sharing is a request to louis@neonrabbit.net. Not deployed. Rollback is revert that commit.
