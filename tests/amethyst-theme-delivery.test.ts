@@ -14,6 +14,8 @@ describe('customer homepage delivery budget', () => {
     expect(selected).toContain('family=DM+Sans')
     expect(selected).not.toContain('family=Archivo')
     expect(selected).toContain('media="(max-width: 600px)" href="/amethyst/skins/sunset-beach/hero-approved-720.webp"')
+    // Mobile media queries must see the real viewport before preloads start.
+    expect(selected.indexOf('name="viewport"')).toBeLessThan(selected.indexOf('rel="preload"'))
   })
   it('retains custom-site styling and font delivery', () => {
     expect(selectHomepageThemeAssets(html, 'amethyst', 'bling_kitchen_hybrid')).toContain('framed-hero.css')

@@ -49,8 +49,12 @@ export async function sealOpaqueMarketingDocument(document: string, theme: Ameth
     sealed = sealed.replace(match[0], '<style>' + css.replace(/<\/style/gi, '<\\/style') + '</style>')
   }
   const folder = mediaFolders[theme]
+  // The marketing frame displays a smaller scene. Keep the original rep-site
+  // movie intact, including its audio, and bundle its lighter delivery copy.
+  if (theme === 'sunset_beach') sealed = sealed.replaceAll('hero-loop.mp4', 'hero-preview.mp4')
   const assets = folder ? (await readdir(join(process.cwd(), 'public', 'amethyst', 'skins', folder)))
     .filter(name => name !== 'hero-approved.png')
+    .filter(name => theme !== 'sunset_beach' || name !== 'hero-loop.mp4')
     .filter(name => /^[a-z0-9-]+\.(?:mp4|webm|webp|png|svg)$/.test(name)).map(name => '/amethyst/skins/' + folder + '/' + name) : []
   sealed = sealed.replace(/media-src [^;]+;/, 'media-src data:;')
   sealed = sealed.replace('</head>', '<script id="marketing-preview-assets" type="application/json">' + JSON.stringify(assets) + '</script></head>')

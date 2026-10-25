@@ -1,4 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
+import { existsSync } from 'node:fs'
+import { AMETHYST_APPEARANCE_PRESET_IDS } from '@/lib/amethyst/appearance-presets'
 import { communityLandingThemes, exactLandingTheme, permittedLandingTheme, type LandingDemo } from '@/lib/sparkle-suite/landing-demo-model'
 import { landingDemoSlug, loadLandingDemo } from '@/lib/sparkle-suite/landing-demo'
 import { landingPreviewDocument } from '@/lib/sparkle-suite/landing-demo-preview'
@@ -9,6 +11,19 @@ vi.mock('next/cache', () => ({ unstable_cache: (fn: unknown) => fn }))
 
 const demo: LandingDemo = {slug:'dudesfizzfest',businessName:'Demo',theme:'neon_butterfly',themeLabel:'Neon Butterfly',headline:'Hello',subtitle:'Welcome',ticker:'',themes:[{id:'rose_gold',label:'Rose Gold',colors:[]}]}
 describe('public landing theme boundary', () => {
+  it('has a real desktop and phone poster for every possible saved demo theme', () => {
+    for (const theme of AMETHYST_APPEARANCE_PRESET_IDS) {
+      expect(existsSync(`public/marketing/demo-themes/${theme}.webp`), theme).toBe(true)
+      expect(existsSync(`public/marketing/demo-themes/${theme}-mobile.webp`), theme + ' phone').toBe(true)
+    }
+  })
+  it('bundles the smaller Sunset preview movie without downloading the full rep-site movie too', async () => {
+    const html = await landingPreviewDocument({...demo,theme:'sunset_beach'}, 'sunset_beach', 'https://smoke.example')
+    const manifest = JSON.parse(html.match(/id="marketing-preview-assets" type="application\/json">([^<]*)<\/script>/)![1])
+    expect(manifest).toContain('/amethyst/skins/sunset-beach/hero-preview.mp4')
+    expect(manifest).not.toContain('/amethyst/skins/sunset-beach/hero-loop.mp4')
+    expect(manifest).not.toContain('/amethyst/skins/sunset-beach/hero-approved.png')
+  })
   it.each([['gobble_and_fizz', 'gobble-and-fizz'], ['pie_please', 'pie-please']] as const)('bundles %s motion when it is the saved demo theme', async (theme, folder) => {
     expect(permittedLandingTheme({ ...demo, theme }, null)).toBe(theme)
     const html = await landingPreviewDocument({ ...demo, theme }, theme, 'https://smoke.example')
