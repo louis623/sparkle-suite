@@ -128,7 +128,7 @@ window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 // Keep analytics computation off the input/rendering thread on real pages.
 // Embedded/unsupported contexts retain the existing main-thread loader.
-var sparkleGaWorker = window.top === window && typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
+var sparkleGaWorker = Boolean(window.SPARKLE_FIRST_PAINT) && window.top === window && typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
 if (sparkleGaWorker) { ${workerBootstrap} }
 if (!sparkleGaWorker) {
 gtag('consent', 'default', {
