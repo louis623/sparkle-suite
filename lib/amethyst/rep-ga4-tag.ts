@@ -145,14 +145,30 @@ document.addEventListener('click', function (event) {
   if (!isShop) return;
   gtag('event', 'shop_click');
 }, true);
-// Begin asynchronously during parsing so short visits can send their queued
-// page view. Low fetch priority keeps page artwork and fonts ahead of analytics.
+// Fetch immediately for short visits, then execute after the hero can paint.
+// Never wait for a click, idle time, or a fixed multi-second delay.
 (function () {
-  var script = document.createElement('script');
-  script.async = true;
-  script.fetchPriority = 'low';
-  script.src = 'https://www.googletagmanager.com/gtag/js?id=${measurementId}';
-  document.head.appendChild(script);
+  var src = 'https://www.googletagmanager.com/gtag/js?id=${measurementId}';
+  var preload = document.createElement('link');
+  preload.rel = 'preload'; preload.as = 'script'; preload.href = src; preload.fetchPriority = 'low';
+  document.head.appendChild(preload);
+  var started = false;
+  function start() {
+    if (started) return;
+    started = true;
+    var script = document.createElement('script');
+    script.async = true; script.fetchPriority = 'low'; script.src = src;
+    document.head.appendChild(script);
+  }
+  function painted() { requestAnimationFrame(function () { requestAnimationFrame(start); }); }
+  // The selected responsive poster is already preloaded at high priority.
+  var poster = Array.from(document.querySelectorAll('link[rel="preload"][as="image"]')).find(function (link) { return !link.media || matchMedia(link.media).matches; });
+  if (document.hidden) start();
+  else if (poster) {
+    var image = new Image(); image.onload = painted; image.onerror = painted; image.src = poster.href;
+  } else painted();
+  document.addEventListener('visibilitychange', function () { if (document.hidden) start(); });
+  window.addEventListener('pagehide', start, { once: true });
 })();
 </script>`
 }

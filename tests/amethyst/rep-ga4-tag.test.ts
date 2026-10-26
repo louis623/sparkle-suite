@@ -42,13 +42,15 @@ function requestFor(host: string, path = '/customer-site/home', query = '') {
 }
 
 describe('rep GA4 tag', () => {
-  it('queues consent/config and begins low-priority analytics without waiting for paint or interaction', () => {
+  it('fetches analytics immediately and executes after paint without needing interaction', () => {
     const listeners: Record<string, (...args: any[]) => void> = {}
     const appendChild = vi.fn()
+    const frames: (() => void)[] = []
     const context: any = {
-      URL,
+      URL, requestAnimationFrame: (callback: () => void) => frames.push(callback),
+      addEventListener: (name: string, handler: (...args: any[]) => void) => { listeners[name] = handler },
       document: {
-        readyState: 'loading',
+        readyState: 'loading', hidden: false, querySelectorAll: () => [],
         addEventListener: (name: string, handler: (...args: any[]) => void) => { listeners[name] = handler },
         createElement: () => ({}), head: { appendChild },
       },
@@ -62,7 +64,12 @@ describe('rep GA4 tag', () => {
     expect(Array.from(context.dataLayer[3])).toEqual(['event', 'shop_click'])
     expect(listeners.DOMContentLoaded).toBeUndefined()
     expect(appendChild).toHaveBeenCalledTimes(1)
-    expect(appendChild).toHaveBeenCalledWith(expect.objectContaining({ async: true, fetchPriority: 'low', src: `https://www.googletagmanager.com/gtag/js?id=${REP_A_MEASUREMENT}` }))
+    expect(appendChild).toHaveBeenCalledWith(expect.objectContaining({ rel: 'preload', as: 'script', fetchPriority: 'low' }))
+    frames.shift()!(); frames.shift()!();
+    expect(appendChild).toHaveBeenCalledTimes(2)
+    listeners.pagehide()
+    expect(appendChild).toHaveBeenCalledTimes(2)
+    expect(appendChild).toHaveBeenLastCalledWith(expect.objectContaining({ async: true, fetchPriority: 'low', src: `https://www.googletagmanager.com/gtag/js?id=${REP_A_MEASUREMENT}` }))
   })
 
   it('puts rep A measurement id on rep A and never rep B', async () => {
