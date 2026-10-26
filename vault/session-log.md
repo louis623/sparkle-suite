@@ -1,3 +1,7 @@
+## October 25, 2026 - Hero autoplay second quality pass
+
+- Continued PR #156 on its existing branch; optimized responsive art/fonts, hydration, and real rep-route loading. Preview only, no alias changes. Five-run timing evidence covers all 23 themes; real Fizz Festival saved-Still fixtures pass. See [session evidence and limitations](2026-10-25-hero-preview-pass2.md).
+
 ## October 24, 2026 - Rose Beach animation preview
 
 - Louis approved option 4 and its local Amethyst still treatment, then one Higgsfield motion job within $8.70. Completed single $4.622-estimated job, preserved raw footage, and finished a 9.083-second forward loop with audio crossfade. Local preview includes motion/sound controls and still fallback; no deployment or theme registration. See [motion checkpoint](2026-10-24-rose-beach-motion.md). Open Brain capture confirmed.
@@ -8037,4 +8041,3 @@ All three sample cases still decode PNG/JPG; reduced half-size and quality70 gra
 
 ## October 25 — autoplay investigation and Smoke repair
 Recorded exact saved-Still history, browser audio limits, #154 completion, all-theme checks and filmstrips in vault/2026-10-25-hero-autoplay-smoke.md. Draft PR #156; no Live changes. Remaining performance gate is explicit; Louis flagged elapsed time, so report checkpoints without expanding scope.
-

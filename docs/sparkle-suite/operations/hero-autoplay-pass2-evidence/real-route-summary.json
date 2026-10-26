@@ -1,0 +1,104 @@
+[
+  {
+    "theme": "/dudesfizzfest",
+    "mode": "phone",
+    "runs": 5,
+    "lcp": 1984,
+    "cls": 0,
+    "valid": true,
+    "pass": true,
+    "samples": [
+      {
+        "run": 1,
+        "lcp": 2776,
+        "cls": 0,
+        "errors": [],
+        "sourceCommit": "fba6acda25a46e64747c01601d23066099f2eb84",
+        "deliveryUnchangedOnFinal": false
+      },
+      {
+        "run": 2,
+        "lcp": 1940,
+        "cls": 0,
+        "errors": [],
+        "sourceCommit": "fba6acda25a46e64747c01601d23066099f2eb84",
+        "deliveryUnchangedOnFinal": false
+      },
+      {
+        "run": 3,
+        "lcp": 2016,
+        "cls": 0,
+        "errors": [],
+        "sourceCommit": "fba6acda25a46e64747c01601d23066099f2eb84",
+        "deliveryUnchangedOnFinal": false
+      },
+      {
+        "run": 4,
+        "lcp": 1904,
+        "cls": 0,
+        "errors": [],
+        "sourceCommit": "fba6acda25a46e64747c01601d23066099f2eb84",
+        "deliveryUnchangedOnFinal": false
+      },
+      {
+        "run": 5,
+        "lcp": 1984,
+        "cls": 0,
+        "errors": [],
+        "sourceCommit": "fba6acda25a46e64747c01601d23066099f2eb84",
+        "deliveryUnchangedOnFinal": false
+      }
+    ]
+  },
+  {
+    "theme": "/dudesfizzfest",
+    "mode": "desktop",
+    "runs": 5,
+    "lcp": 1024,
+    "cls": 0.010400176005631645,
+    "valid": true,
+    "pass": true,
+    "samples": [
+      {
+        "run": 1,
+        "lcp": 1228,
+        "cls": 0.010400176005631645,
+        "errors": [],
+        "sourceCommit": "fba6acda25a46e64747c01601d23066099f2eb84",
+        "deliveryUnchangedOnFinal": false
+      },
+      {
+        "run": 2,
+        "lcp": 1024,
+        "cls": 0.010400176005631645,
+        "errors": [],
+        "sourceCommit": "fba6acda25a46e64747c01601d23066099f2eb84",
+        "deliveryUnchangedOnFinal": false
+      },
+      {
+        "run": 3,
+        "lcp": 996,
+        "cls": 0.010400176005631645,
+        "errors": [],
+        "sourceCommit": "fba6acda25a46e64747c01601d23066099f2eb84",
+        "deliveryUnchangedOnFinal": false
+      },
+      {
+        "run": 4,
+        "lcp": 948,
+        "cls": 0.010400176005631645,
+        "errors": [],
+        "sourceCommit": "fba6acda25a46e64747c01601d23066099f2eb84",
+        "deliveryUnchangedOnFinal": false
+      },
+      {
+        "run": 5,
+        "lcp": 1204,
+        "cls": 0.010400176005631645,
+        "errors": [],
+        "sourceCommit": "fba6acda25a46e64747c01601d23066099f2eb84",
+        "deliveryUnchangedOnFinal": false
+      }
+    ]
+  }
+]

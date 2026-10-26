@@ -1,0 +1,20 @@
+[
+  {
+    "timezoneId": "UTC",
+    "retained": true,
+    "localTimeActive": true,
+    "errors": []
+  },
+  {
+    "timezoneId": "America/New_York",
+    "retained": true,
+    "localTimeActive": true,
+    "errors": []
+  },
+  {
+    "timezoneId": "Asia/Tokyo",
+    "retained": true,
+    "localTimeActive": true,
+    "errors": []
+  }
+]

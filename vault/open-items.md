@@ -1,3 +1,8 @@
+## October 25, 2026 - PR #156 remains a preview review
+
+- [ ] Suite, Beacon and Rocky review the protected preview before any Smoke release. Live remains pinned; Louis must approve Live by name.
+- [ ] Resolve or explicitly account for existing full-suite failures, two import failures and unfinished QR/flyer verification before a production-quality claim. Separate Fontshare font-picker rights review remains open. See [evidence, limitations and rollback](2026-10-25-hero-preview-pass2.md). These vault notes are session history, not a substitute for the Control Center Task List.
+
 ## September 23, 2026 - Trade rep acceptance after upload release
 
 - [x] Customer upload, Halloween/form readability, per-card disclosure cleanup, and active MSRP retirement shipped as `1e4b8cee` / Ready `dpl_29qoZBeZ5WdfPMbH6LL9sKXW5YgK`; synthetic live JPG and HEIC request/receipt/cleanup checks passed. See [trade closeout](2026-09-23-trade-upload-closeout.md).
@@ -877,4 +882,3 @@ Everything deferred, undecided, or waiting — tasks, planning sessions, and ope
 
 ## October 25 — session follow-up (not a Control Center Task List entry)
 - PR #156 remains draft: finish the customer-page speed/zero-layout-jump gate; final Sunset phone FCP 3.188s / LCP 7.256s. Preserve all-theme autoplay and browser audio fallback. No Live action without Rocky review and Louis's named approval. Evidence and rollback: vault/2026-10-25-hero-autoplay-smoke.md.
-

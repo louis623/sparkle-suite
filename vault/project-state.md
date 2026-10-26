@@ -1,3 +1,7 @@
+## October 25, 2026 - PR #156 preview-only quality pass
+
+- Preview application fba6acda passes the 23-theme five-run performance gates and the real preview rep-route median gate. Full-suite baseline failures and QR verification remain open; do not call it production-ready. Live and Smoke aliases are unchanged. See [current evidence and release boundary](2026-10-25-hero-preview-pass2.md).
+
 ## October 17, 2026 - Fall Owl and Harvest Moon community theme live
 
 - FO-01 / `fall_owl_harvest_moon` is a Community theme available to every rep, preserving all existing saved selections. Product SHA `52fd92ac5e1b2ec846a792bad2d3fb93ca86c2f1` is READY on `dpl_5a8SKJU3hKPbmijmrXpDqWUEE3L8` on both Suite domains and all existing aliases. Migration `20261017000100` applied and recorded through existing authenticated Supabase CLI; no credentials exported.
@@ -4188,4 +4192,3 @@ Louis requested automatic matching print deliverables for every new theme. Added
 
 ## October 25 — autoplay Smoke checkpoint
 PR #156 / application 22ba7df6 is on Smoke only. Live remains pinned to dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P. All 46 theme functional checks and 436 code tests pass; Sunset slow-phone speed still fails. Not Live-ready. See vault/2026-10-25-hero-autoplay-smoke.md.
-
