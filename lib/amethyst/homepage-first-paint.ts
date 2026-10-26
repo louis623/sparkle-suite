@@ -6,6 +6,7 @@ import type * as ReactTypes from 'react'
 import type { AmethystPreviewTemplateData } from './preview-template-data'
 import { buildAmethystHomepageBootstrapScript } from './homepage-template-data'
 import { selectHomepageThemeAssets, inlineHomepageStyles, inlineHomepageFonts } from './homepage-theme-assets'
+import { bestEffortHomepage } from './homepage-render-safety'
 
 const { React, renderToString } = createRequire(join(process.cwd(), 'package.json'))('./lib/amethyst/generated/homepage-server.cjs') as {
   React: typeof ReactTypes
@@ -26,6 +27,10 @@ function attribute(value: string) {
 }
 
 export async function renderHomepageFirstPaint(html: string, data: AmethystPreviewTemplateData, requestUrl: URL, bootstrap?: string, options: { deferExternalScripts?: boolean } = {}) {
+  return await bestEffortHomepage(() => renderFirstPaint(html, data, requestUrl, bootstrap, options)) ?? html
+}
+
+async function renderFirstPaint(html: string, data: AmethystPreviewTemplateData, requestUrl: URL, bootstrap?: string, options: { deferExternalScripts?: boolean } = {}) {
   const properties = new Map<string, string>()
   const body = { className: 'homepage', classList: { add(...names: string[]) { body.className += ' ' + names.join(' ') } } }
   const document = { body, documentElement: { style: { setProperty(name: string, value: unknown) { properties.set(name, String(value)) } } }, getElementById: () => ({}) }
@@ -41,7 +46,9 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   for (const script of await runtimeScripts()) script.runInContext(context, { timeout: 1000 })
   // React's server renderer emits resource hints ahead of the tree. Keep them
   // in <head>, outside the node hydrated by the classic browser React runtime.
-  const rendered = renderToString(element)
+  // Keep component execution inside the VM's CPU deadline as well as bootstrap.
+  context.renderHomepageMarkup = () => renderToString(element)
+  const rendered = new Script('renderHomepageMarkup()').runInContext(context, { timeout: 1000 }) as string
   const preloads = [...rendered.matchAll(/<link\b[^>]*rel="preload"[^>]*\/>/g)].map(match => match[0]).join('')
   const markup = rendered.replace(/<link\b[^>]*rel="preload"[^>]*\/>/g, '')
   new Script('applyHomepageTheme(window.HOMEPAGE_TWEAK_DEFAULTS, document)').runInContext(context, { timeout: 1000 })

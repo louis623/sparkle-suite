@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { renderHomepageFirstPaint } from './homepage-first-paint'
 import { buildHomepageBootstrapResponse } from './homepage-bootstrap-response'
+import { bestEffortHomepage } from './homepage-render-safety'
 import { join } from 'node:path'
 
 import {
@@ -575,10 +576,10 @@ export async function renderAmethystPublicAssetResponse(
     // every identity guard and request-local result, without serial waterfalls.
     const [indexedTemplate, bootstrap, ga4Tag] = await Promise.all([
       loadedTemplatePromise.then(template => template ? indexPublicJoinTemplate(template, { repId }) : null),
-      bootstrapUrl ? buildHomepageBootstrapResponse(
+      bootstrapUrl ? bestEffortHomepage(() => buildHomepageBootstrapResponse(
         new Request(bootstrapUrl, { headers: request.headers }),
         { templateData: loadedTemplatePromise.then(template => template!) },
-      ).then(response => response.text()) : null,
+      ).then(response => response.text())) : null,
       page ? loadedTemplatePromise.then(template => resolveRepGa4TagHtml({
         request,
         repId,
@@ -627,7 +628,8 @@ export async function renderAmethystPublicAssetResponse(
         if (page === 'homepage' && templateData && bootstrap) {
           // Use the exact same public projection for the first paint and the
           // client. Inline it once instead of fetching/compiling a second page.
-          responseBody = await renderHomepageFirstPaint(responseBody, templateData, requestUrl, bootstrap)
+          const clientPage = responseBody
+          responseBody = await bestEffortHomepage(() => renderHomepageFirstPaint(clientPage, templateData, requestUrl, bootstrap)) ?? clientPage
         }
       } else if (templateScriptPage) {
         responseBody = rewriteTemplateScriptTarget(
