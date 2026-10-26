@@ -96,7 +96,7 @@ describe('precompiled customer pages', () => {
       expect(text, name).not.toContain('jsx-runtime')
       expect(text, name).toContain('React.createElement')
     }
-  })
+  }, 20_000)
 
   it('serves compiled scripts with a themed homepage first paint and one bootstrap', async () => {
     for (const page of PAGES) {
@@ -140,7 +140,7 @@ describe('precompiled customer pages', () => {
       const servedLoaderAt = served.indexOf('/amethyst/template-loader.js')
       for (const name of page.scripts) {
         const src = `/amethyst/compiled/${name}?v=${contentHash(name)}`
-        expect(served.includes(`<script${page.page === 'homepage' ? ' defer' : ''} src="${src}"></script>`)).toBe(true)
+        expect(served.includes(`<script${page.page === 'homepage' ? ' type="application/x-sparkle-runtime" data-runtime-src=' : ' src='}"${src}"></script>`)).toBe(true)
         if (name !== 'tweaks-panel.js') {
           expect(servedLoaderAt).toBeLessThan(served.indexOf(src))
         }

@@ -63,7 +63,13 @@ async function renderFirstPaint(html: string, data: AmethystPreviewTemplateData,
   const withBootstrap = bootstrap ? themedHtml.replace(/<script\b[^>]*data-template-src="[^"]+"[^>]*><\/script>/, () => `<script>${bootstrap.replace(/<\/script/gi, '<\\/script')}</script>`) : themedHtml
   // The complete bootstrap is already inline and independent of React. Fetch
   // classic dependencies in parallel; defer preserves their execution order.
-  const withOrderedScripts = bootstrap && options.deferExternalScripts !== false ? withBootstrap.replace(/<script\s+src=/g, '<script defer fetchpriority="low" src=') : withBootstrap
+  // Give the already complete server page a paint before React and the theme
+  // controllers execute. Async=false preserves classic dependency order while
+  // the browser fetches all dependencies concurrently. This needs no gesture.
+  const withOrderedScripts = bootstrap && options.deferExternalScripts !== false
+    ? withBootstrap.replace(/<script\s+src=/g, '<script type="application/x-sparkle-runtime" data-runtime-src=')
+      .replace('</body>', '<script>(function(){var started=false;function start(){if(started)return;started=true;document.querySelectorAll("script[data-runtime-src]").forEach(function(source){var script=document.createElement("script");script.async=false;Array.from(source.attributes).forEach(function(a){if(a.name!=="type"&&a.name!=="data-runtime-src")script.setAttribute(a.name,a.value)});script.src=source.getAttribute("data-runtime-src");script.fetchPriority="low";document.head.appendChild(script)})}if(document.hidden)start();else requestAnimationFrame(function(){setTimeout(start,0)})})();</script></body>')
+    : withBootstrap
   return withOrderedScripts
     .replace('</head>', preloads + `<script>window.AMETHYST_PUBLIC_IDENTITY=${JSON.stringify(publicIdentity).replace(/</g, '\\u003c')};window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${attribute(style)}">`)

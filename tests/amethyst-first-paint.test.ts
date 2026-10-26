@@ -31,12 +31,14 @@ describe('real themed first paint and autoplay defaults', () => {
     expect(a).toContain('Only Rep Alpha'); expect(a).not.toContain('Only Rep Beta')
     expect(b).toContain('Only Rep Beta'); expect(b).not.toContain('Only Rep Alpha')
   })
-  it('keeps the complete bootstrap inline while fetching ordered classic dependencies without blocking parsing', async () => {
+  it('keeps the complete bootstrap inline while starting ordered classic dependencies after the server page can paint', async () => {
     const bootstrap = buildAmethystHomepageBootstrapScript()
     const result = await renderHomepageFirstPaint(html, { appearancePreset: 'amethyst', homepage: defaultAmethystHomepageTemplateData, trade: defaultAmethystTradeTemplateData, join: defaultAmethystJoinTemplateData }, new URL('https://example.com/'), bootstrap)
     expect(result).toContain('<script>window.AMETHYST_RUNTIME_CONTEXT')
     expect(result).not.toMatch(/<script\s+src=/)
-    const dependencies = [...result.matchAll(/<script defer fetchpriority="low" src="([^"]+)"/g)].map(match => match[1])
+    const dependencies = [...result.matchAll(/<script type="application\/x-sparkle-runtime" data-runtime-src="([^"]+)"/g)].map(match => match[1])
+    expect(result).toContain('requestAnimationFrame(function(){setTimeout(start,0)})')
+    expect(result).toContain('script.async=false')
     expect(dependencies[0]).toContain('react@18.3.1/umd/react.production.min.js')
     expect(dependencies[1]).toContain('react-dom@18.3.1/umd/react-dom.production.min.js')
     expect(dependencies.findIndex(src => src.includes('compiled/tweaks-panel.js'))).toBeLessThan(dependencies.findIndex(src => src.includes('compiled/homepage.js')))
