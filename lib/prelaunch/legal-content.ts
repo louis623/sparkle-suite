@@ -37,7 +37,7 @@ export const privacyPolicyDocument: LegalDocument = {
   seoDescription:
     "Privacy Policy for Sparkle Suite, the Live Lineup Chrome Extension, Sparkle Suite websites, and Sparkle Suite SMS and email updates.",
   description: "Sparkle Suite Live Lineup Chrome Extension, Sparkle Suite Websites, and SMS Updates",
-  lastUpdated: "September 13, 2026",
+  lastUpdated: "October 25, 2026",
   developer: "Neon Rabbit Digital Services, Jacksonville, FL",
   contact: "louis@neonrabbit.net",
   sections: [
@@ -164,6 +164,17 @@ export const privacyPolicyDocument: LegalDocument = {
       ],
     },
     {
+      title: "Your Favorites And Sharing Between Representatives",
+      paragraphs: [
+        "When you sign up on a Sparkle Suite representative site, you can tell us your favorite stones, metals, cuts, collections, ring size, birthday month and day, and notes. We use these answers to help you find pieces you'll love.",
+        "The representative you sign up with can see your favorites. They help that representative pick pieces for you and make live shows feel personal.",
+        "Another Sparkle Suite representative can see your favorites only if you buy from that representative's Bomb Party shop and that representative has opted in to sharing favorites. When that happens, that representative sees your favorites on their own Live Lineup screen during a show you ordered in, so that show feels personal to you too. Your favorites are never shown on the public lineup.",
+        "Only the representative you sign up with can email or text you. Sharing your favorites never lets another representative contact you through Sparkle Suite or Sparkle Finder, and our tools don't let them export or download your favorites.",
+        "We do not sell personal information. Your favorites are never shared with Bomb Party or with any company for advertising or marketing.",
+        "To ask us to stop sharing your favorites with other representatives, or to delete them, contact louis@neonrabbit.net.",
+      ],
+    },
+    {
       title: "Nic-Nac, Memory, And AI-Assisted Features",
       paragraphs: [
         "Sparkle Suite includes Nic-Nac, an AI-assisted workflow, website, live show, Dance Floor, support, and business helper. When you use Nic-Nac or related AI-assisted features, Sparkle Suite may process conversation messages, uploaded images, workflow state, tool results, representative account details, website setup details, show details, Dance Floor details, customer-audience details, support context, and saved memory notes.",
@@ -198,6 +209,7 @@ export const privacyPolicyDocument: LegalDocument = {
       title: "Data Sharing",
       paragraphs: [
         "We do not sell personal information.",
+        "Customer favorites may be shared between Sparkle Suite representatives only as described in \"Your Favorites And Sharing Between Representatives.\"",
         "We do not sell or share data collected by the Sparkle Suite Live Lineup Chrome Extension with third parties for advertising, promotional, or marketing purposes.",
         "We may share limited information with service providers that help us operate Sparkle Suite and Neon Rabbit Digital Services, such as hosting providers, database providers, messaging providers, email providers, analytics providers, security providers, and compliance vendors. These providers are allowed to use the information only to provide services to us.",
         "We may also disclose information if required to comply with law, legal process, platform rules, carrier requirements, or to protect the rights, safety, and security of Neon Rabbit Digital Services, Sparkle Suite users, representatives, customers, or the public.",
@@ -234,6 +246,7 @@ export const privacyPolicyDocument: LegalDocument = {
         "You can request help for SMS messages by replying HELP.",
         "You can unsubscribe from email messages by using the unsubscribe method provided in the email, if available, or by contacting us.",
         "To request access to, correction of, or deletion of your data, contact louis@neonrabbit.net.",
+        "You can ask us to stop sharing your favorites with other representatives by contacting louis@neonrabbit.net.",
       ],
     },
     {
@@ -241,7 +254,7 @@ export const privacyPolicyDocument: LegalDocument = {
       paragraphs: [
         "Data is transmitted over HTTPS.",
         "The extension limits its Party Orders access to the Bomb Party source explicitly selected by the representative. The assigned Live Lineup code is restricted to trusted extension contexts and is never exposed to the customer-facing lineup.",
-        "Our database uses security controls, including row-level security where applicable, to help keep representative data isolated.",
+        "Our database uses security controls, including row-level security where applicable, so each representative can see only their own data, plus customer favorites shared with them under the rules in \"Your Favorites And Sharing Between Representatives.\"",
         "We take reasonable steps to protect information from unauthorized access, loss, misuse, or disclosure. However, no electronic transmission or storage system can be guaranteed to be completely secure.",
       ],
     },

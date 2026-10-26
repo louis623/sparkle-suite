@@ -1,0 +1,711 @@
+{
+  "version": "2026-10-25",
+  "maxPicks": 3,
+  "notSureSlug": "not_sure",
+  "options": {
+    "stone": [
+      {
+        "slug": "not_sure",
+        "label": "Not sure yet",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 0
+      },
+      {
+        "slug": "diamond-cz",
+        "label": "Diamond CZ (clear sparkle)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 1
+      },
+      {
+        "slug": "ruby",
+        "label": "Ruby",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 2
+      },
+      {
+        "slug": "magnesite",
+        "label": "Magnesite (lapis, malachite, carnelian, howlite, coral)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 3
+      },
+      {
+        "slug": "rose-quartz",
+        "label": "Rose Quartz",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 4
+      },
+      {
+        "slug": "tourmaline",
+        "label": "Tourmaline (incl. Paraiba)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 5
+      },
+      {
+        "slug": "emerald",
+        "label": "Emerald",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 6
+      },
+      {
+        "slug": "sapphire",
+        "label": "Sapphire (blue, pink, peach)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 7
+      },
+      {
+        "slug": "opal",
+        "label": "Opal (incl. fire opal)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 8
+      },
+      {
+        "slug": "quartz",
+        "label": "Quartz (clear, blue, rutilated)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 9
+      },
+      {
+        "slug": "spinel",
+        "label": "Spinel",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 10
+      },
+      {
+        "slug": "ice-crystal",
+        "label": "Ice Crystal",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 11
+      },
+      {
+        "slug": "black-onyx",
+        "label": "Black Onyx",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 12
+      },
+      {
+        "slug": "amethyst",
+        "label": "Amethyst / Purple",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 13
+      },
+      {
+        "slug": "lavender",
+        "label": "Lavender",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 14
+      },
+      {
+        "slug": "pearl",
+        "label": "Pearl",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 15
+      },
+      {
+        "slug": "smoky-topaz",
+        "label": "Smoky Topaz",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 16
+      },
+      {
+        "slug": "blue-topaz",
+        "label": "Blue Topaz",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 17
+      },
+      {
+        "slug": "citrine",
+        "label": "Citrine / Yellow",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 18
+      },
+      {
+        "slug": "garnet",
+        "label": "Garnet",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 19
+      },
+      {
+        "slug": "turquoise",
+        "label": "Turquoise",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 20
+      },
+      {
+        "slug": "moonstone",
+        "label": "Moonstone",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 21
+      },
+      {
+        "slug": "amazonite",
+        "label": "Amazonite",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 22
+      },
+      {
+        "slug": "obsidian",
+        "label": "Obsidian",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 23
+      },
+      {
+        "slug": "aquamarine",
+        "label": "Aquamarine",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 24
+      },
+      {
+        "slug": "tanzanite",
+        "label": "Tanzanite",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 25
+      },
+      {
+        "slug": "peridot",
+        "label": "Peridot",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 26
+      },
+      {
+        "slug": "alexandrite",
+        "label": "Alexandrite",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 27
+      }
+    ],
+    "material": [
+      {
+        "slug": "not_sure",
+        "label": "Not sure yet",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 0
+      },
+      {
+        "slug": "rhodium",
+        "label": "Silver-tone (rhodium plated)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 1
+      },
+      {
+        "slug": "hematite",
+        "label": "Hematite / gunmetal (dark)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 2
+      },
+      {
+        "slug": "gold",
+        "label": "Gold plated",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 3
+      },
+      {
+        "slug": "matte-gold",
+        "label": "Matte gold",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 4
+      },
+      {
+        "slug": "rose-gold",
+        "label": "Rose gold plated",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 5
+      },
+      {
+        "slug": "sterling",
+        "label": "Sterling silver (.925)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 6
+      },
+      {
+        "slug": "vermeil",
+        "label": "Gold vermeil (gold over sterling)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 7
+      },
+      {
+        "slug": "silver-plated",
+        "label": "Silver plated",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": true,
+        "sortOrder": 8
+      },
+      {
+        "slug": "matte-rhodium",
+        "label": "Matte rhodium",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": true,
+        "sortOrder": 9
+      }
+    ],
+    "cut": [
+      {
+        "slug": "not_sure",
+        "label": "Not sure yet",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 0
+      },
+      {
+        "slug": "round",
+        "label": "Round",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 1
+      },
+      {
+        "slug": "oval",
+        "label": "Oval",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 2
+      },
+      {
+        "slug": "emerald-cut",
+        "label": "Emerald cut (rectangle)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 3
+      },
+      {
+        "slug": "princess",
+        "label": "Princess (square)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 4
+      },
+      {
+        "slug": "cushion",
+        "label": "Cushion",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 5
+      },
+      {
+        "slug": "pear",
+        "label": "Pear / Teardrop",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 6
+      },
+      {
+        "slug": "marquise",
+        "label": "Marquise",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 7
+      },
+      {
+        "slug": "heart",
+        "label": "Heart",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 8
+      },
+      {
+        "slug": "radiant",
+        "label": "Radiant",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 9
+      },
+      {
+        "slug": "asscher",
+        "label": "Asscher",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 10
+      },
+      {
+        "slug": "baguette",
+        "label": "Baguette",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 11
+      },
+      {
+        "slug": "cabochon",
+        "label": "Cabochon (smooth, domed)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 12
+      },
+      {
+        "slug": "halo",
+        "label": "Halo (stone ringed with sparkle)",
+        "isRetired": false,
+        "groupLabel": null,
+        "isHidden": false,
+        "sortOrder": 13
+      }
+    ],
+    "collection": [
+      {
+        "slug": "not_sure",
+        "label": "Not sure yet",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 0
+      },
+      {
+        "slug": "originals",
+        "label": "OGs",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 1
+      },
+      {
+        "slug": "birthday",
+        "label": "Birthday Collections (monthly)",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 2
+      },
+      {
+        "slug": "exclusives",
+        "label": "Exclusives",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 3
+      },
+      {
+        "slug": "obsidia",
+        "label": "Obsidia",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 4
+      },
+      {
+        "slug": "halo",
+        "label": "Halo",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 5
+      },
+      {
+        "slug": "charmelier",
+        "label": "Charmelier",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 6
+      },
+      {
+        "slug": "outlaw",
+        "label": "Outlaw",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 7
+      },
+      {
+        "slug": "jewel-candy",
+        "label": "Jewel Candy (Summer / Holiday)",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 8
+      },
+      {
+        "slug": "stacks",
+        "label": "Stacks (Spring / Summer / Halloween / Holiday)",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 9
+      },
+      {
+        "slug": "delicate-stacked-rings",
+        "label": "Delicate Stacked Rings",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 10
+      },
+      {
+        "slug": "luxe-layers",
+        "label": "Luxe Layers",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 11
+      },
+      {
+        "slug": "luxe-bands",
+        "label": "Luxe Bands",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 12
+      },
+      {
+        "slug": "lumina",
+        "label": "Lumina",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 13
+      },
+      {
+        "slug": "untamed",
+        "label": "Untamed",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 14
+      },
+      {
+        "slug": "sterling-club",
+        "label": "Sterling Club",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 15
+      },
+      {
+        "slug": "originals-kids",
+        "label": "Originals Kids",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 16
+      },
+      {
+        "slug": "sirens",
+        "label": "Sirens",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 17
+      },
+      {
+        "slug": "simply",
+        "label": "Simply Hoops / Studs / Sets",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 18
+      },
+      {
+        "slug": "awareness",
+        "label": "Awareness Collections (Mental Health, Lymphoma)",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 19
+      },
+      {
+        "slug": "resort-wear",
+        "label": "Resort Wear",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 20
+      },
+      {
+        "slug": "mens-timeless",
+        "label": "Men's Timeless",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": false,
+        "sortOrder": 21
+      },
+      {
+        "slug": "reign",
+        "label": "Reign (Princess / Villain)",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 22
+      },
+      {
+        "slug": "greek-goddess",
+        "label": "Greek Goddess",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 23
+      },
+      {
+        "slug": "zen-gems",
+        "label": "Zen Gems",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 24
+      },
+      {
+        "slug": "iceland-dreams",
+        "label": "Iceland Dreams",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 25
+      },
+      {
+        "slug": "galaxia",
+        "label": "Galaxia",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 26
+      },
+      {
+        "slug": "versailles",
+        "label": "Versailles",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 27
+      },
+      {
+        "slug": "desert-queen",
+        "label": "Desert Queen / Desert Sunset",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 28
+      },
+      {
+        "slug": "bella-amore",
+        "label": "Bella Amore / Mila Bella",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 29
+      },
+      {
+        "slug": "mermaid-treasures",
+        "label": "Mermaid Treasures",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 30
+      },
+      {
+        "slug": "girl-boss",
+        "label": "Girl Boss",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 31
+      },
+      {
+        "slug": "farmhouse",
+        "label": "Farmhouse",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 32
+      },
+      {
+        "slug": "catch-a-unicorn",
+        "label": "Catch a Unicorn",
+        "isRetired": true,
+        "groupLabel": "Older collections",
+        "isHidden": false,
+        "sortOrder": 33
+      },
+      {
+        "slug": "gem-society",
+        "label": "Gem Society",
+        "isRetired": false,
+        "groupLabel": "Active",
+        "isHidden": true,
+        "sortOrder": 34
+      }
+    ]
+  }
+}

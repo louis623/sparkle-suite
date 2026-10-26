@@ -232,3 +232,7 @@ Louis authorized pushing `codex/faq-articles` and opening draft PR #81 for revie
 
 Louis explicitly authorized codex/hero-autoplay-smoke from production tip e78fa626, in .codex-worktrees/hero-autoplay-smoke. This review exception permits only project prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ / preview. Live stays pinned to dpl_3KRyLQ47YzNQQwEuaFyW4nRZxs9P. No production branch/default change or promotion is authorized.
 
+## October 26 combined Smoke stack
+
+Louis approved putting the favorites questionnaire and signup discount confirmation on Smoke on top of the speed fix. `cursor/smoke-stack-156-157-158` is allowlisted for that review. Its deployment rule accepts only Vercel project `prj_VTY0rpz2O3VBJqJv69iBz8tzLexQ` (`sparkle-suite-smoke`) and environment `preview`. GitHub's default branch, Vercel's Live production branch, Live domains, and the Smoke alias stay unchanged. This stack replaces merging pull requests #157 and #158 separately. No migration, alias, or merge is authorized from this change.
+
