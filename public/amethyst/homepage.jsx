@@ -2672,6 +2672,8 @@ function SignupDiscountConfirmation({ content }) {
 }
 
 function Signup({ repName, businessName }) {
+  const [signupReady, setSignupReady] = useState(false);
+  useEffect(() => { setSignupReady(true); }, []);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -2881,6 +2883,7 @@ function Signup({ repName, businessName }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (!signupReady) return;
     if (step < SIGNUP_LAST_STEP) {
       const error = validateCurrentStep();
       if (error) {
@@ -3064,7 +3067,7 @@ function Signup({ repName, businessName }) {
             ) : null}
           </div>
           {submitState.status === "success" ? null : (
-          <form className="hp-signup-form" onSubmit={handleSubmit}>
+          <form className="hp-signup-form" method="post" action="#signup" onSubmit={handleSubmit}>
             <div className="hp-signup-progress-wrap">
               <p className="hp-signup-progress" id="hp-signup-progress">Step {step + 1} of {SIGNUP_STEP_LABELS.length}</p>
               <div className="hp-signup-meter" role="group" aria-labelledby="hp-signup-progress">
@@ -3297,7 +3300,7 @@ function Signup({ repName, businessName }) {
                 {step > 0 ? (
                   <button type="button" className="hp-signup-back" onClick={goBack} disabled={submitState.status === "submitting"}>Back</button>
                 ) : null}
-                <button type="submit" className="hp-signup-submit" disabled={submitState.status === "submitting"}>
+                <button type="submit" className="hp-signup-submit" disabled={!signupReady || submitState.status === "submitting"}>
                   {submitState.status === "submitting" ? "Saving..." : step === SIGNUP_LAST_STEP ? "Sign me up" : "Continue"}
                   <span className="hp-signup-submit-arrow" aria-hidden="true">→</span>
                 </button>
