@@ -1,13 +1,13 @@
 /* global React, ReactDOM */
 const { useState, useEffect, useMemo, useRef } = React;
 
-// Match the server's first render, then show the visitor's local date/time
-// after hydration. A timezone mismatch otherwise discards the entire hero DOM.
+// Match initial timestamps across hydration. Show dates always use the
+// event timezone, never the rendering server timezone.
 function homepageDateLabel(value, options) {
   const seed = window.SPARKLE_FIRST_PAINT;
   return new Intl.DateTimeFormat(seed?.locale, {
     ...options,
-    ...(seed ? { timeZone: seed.timeZone } : {}),
+    ...(seed && !options.timeZone ? { timeZone: seed.timeZone } : {}),
   }).format(new Date(value));
 }
 
@@ -1697,24 +1697,26 @@ const EVENTS = Array.isArray(HOMEPAGE_EVENT_PAYLOAD) && (HOMEPAGE_EVENT_PAYLOAD.
   },
 ];
 
-function formatEventDateLabel(eventTime) {
+function formatEventDateLabel(eventTime, timeZone) {
   const parsed = new Date(eventTime);
   if (Number.isNaN(parsed.getTime())) return eventTime;
 
   return homepageDateLabel(parsed, {
+    timeZone,
     weekday: "short",
     month: "short",
     day: "numeric",
   });
 }
 
-function formatEventTimeLabel(eventTime) {
+function formatEventTimeLabel(eventTime, timeZone) {
   const parsed = new Date(eventTime);
   if (Number.isNaN(parsed.getTime())) return eventTime;
 
   return homepageDateLabel(parsed, {
     hour: "numeric",
     minute: "2-digit",
+    timeZone,
     timeZoneName: "short",
   });
 }
@@ -1888,8 +1890,11 @@ function CalendarChooser({ event, onClose }) {
 function normalizeHomepageEvent(event) {
   const title = event.title || event.name || "Upcoming live reveal";
   const eventTime = event.eventTime || null;
+  let timeZone = event.timeZone || "America/New_York";
+  try { new Intl.DateTimeFormat("en-US", { timeZone }); }
+  catch { timeZone = "America/New_York"; }
   const when = event.when || (eventTime
-    ? `${formatEventDateLabel(eventTime)} - ${formatEventTimeLabel(eventTime)}`
+    ? `${formatEventDateLabel(eventTime, timeZone)} - ${formatEventTimeLabel(eventTime, timeZone)}`
     : "Date TBD - Time TBD");
   const platforms = Array.isArray(event.platforms)
     ? event.platforms.map((platform) => {
