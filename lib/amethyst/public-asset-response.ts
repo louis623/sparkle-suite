@@ -1,3 +1,4 @@
+import { homepagePreloadHeader } from './homepage-preload-header'
 import { readFile } from 'node:fs/promises'
 import { renderHomepageFirstPaint } from './homepage-first-paint'
 import { buildHomepageBootstrapResponse } from './homepage-bootstrap-response'
