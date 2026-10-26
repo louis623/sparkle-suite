@@ -42,15 +42,20 @@ function requestFor(host: string, path = '/customer-site/home', query = '') {
 }
 
 describe('rep GA4 tag', () => {
-  it('loads analytics immediately after paint without needing interaction', () => {
+  it.each([false, true])('loads analytics after actual content paint, including an early poster preload (%s)', hasPoster => {
     const listeners: Record<string, (...args: any[]) => void> = {}
     const appendChild = vi.fn()
     const frames: (() => void)[] = []
+    let paint: (list: any) => void = () => {}
+    let posterImage: any
     const context: any = {
+      Image: class { constructor() { posterImage = this } },
+      performance: { getEntriesByName: () => [] },
+      PerformanceObserver: class { constructor(callback: any) { paint = callback } observe() {} disconnect() {} },
       URL, requestAnimationFrame: (callback: () => void) => frames.push(callback),
       addEventListener: (name: string, handler: (...args: any[]) => void) => { listeners[name] = handler },
       document: {
-        readyState: 'loading', hidden: false, querySelectorAll: () => [],
+        readyState: 'loading', hidden: false, querySelectorAll: () => hasPoster ? [{href:'/amethyst/poster.webp'}] : [],
         addEventListener: (name: string, handler: (...args: any[]) => void) => { listeners[name] = handler },
         createElement: () => ({}), head: { appendChild },
       },
@@ -64,6 +69,9 @@ describe('rep GA4 tag', () => {
     expect(Array.from(context.dataLayer[3])).toEqual(['event', 'shop_click'])
     expect(listeners.DOMContentLoaded).toBeUndefined()
     expect(appendChild).not.toHaveBeenCalled()
+    if (hasPoster) posterImage.onload()
+    expect(frames).toHaveLength(0)
+    paint({ getEntries: () => [{ name: 'first-contentful-paint' }] })
     frames.shift()!(); frames.shift()!();
     expect(appendChild).toHaveBeenCalledTimes(1)
     listeners.pagehide()

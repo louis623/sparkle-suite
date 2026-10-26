@@ -157,13 +157,27 @@ document.addEventListener('click', function (event) {
     script.async = true; script.fetchPriority = 'low'; script.src = src;
     document.head.appendChild(script);
   }
-  function painted() { requestAnimationFrame(function () { requestAnimationFrame(start); }); }
-  // The selected responsive poster is already preloaded at high priority.
+  var contentPainted = performance.getEntriesByName('first-contentful-paint').length > 0;
+  var posterReady = false;
+  function painted() { if (contentPainted && posterReady) requestAnimationFrame(function () { requestAnimationFrame(start); }); }
+  // A response-header preload may finish before HTML arrives. Its load event
+  // alone is not evidence that the visitor has seen the page.
+  if (!contentPainted && typeof PerformanceObserver === 'function') {
+    var observer = new PerformanceObserver(function (list) {
+      if (list.getEntries().some(function (entry) { return entry.name === 'first-contentful-paint'; })) {
+        contentPainted = true; observer.disconnect(); painted();
+      }
+    });
+    observer.observe({ type: 'paint', buffered: true });
+  } else if (!contentPainted) {
+    function documentReady() { contentPainted = true; painted(); }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', documentReady, { once: true }); else documentReady();
+  }
   var poster = Array.from(document.querySelectorAll('link[rel="preload"][as="image"]')).find(function (link) { return !link.media || matchMedia(link.media).matches; });
   if (document.hidden) start();
   else if (poster) {
-    var image = new Image(); image.onload = painted; image.onerror = painted; image.src = poster.href;
-  } else painted();
+    var image = new Image(); image.onload = image.onerror = function () { posterReady = true; painted(); }; image.src = poster.href;
+  } else { posterReady = true; painted(); }
   document.addEventListener('visibilitychange', function () { if (document.hidden) start(); });
   window.addEventListener('pagehide', start, { once: true });
 })();
