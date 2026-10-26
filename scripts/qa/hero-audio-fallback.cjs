@@ -1,0 +1,17 @@
+/* Deterministically exercises browser rejection even if headless Chrome grants
+ * audible autoplay. The injected rejection is a test condition, not app code. */
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const {authenticatePreview}=require('./preview-auth.cjs');
+const {shouldBlockAppWrite}=require('./browser-readonly.cjs');const [base,output]=process.argv.slice(2);if(!base?.includes('.vercel.app'))throw Error('Explicit preview required');fs.mkdirSync(output,{recursive:true});
+(async()=>{
+ const results=[];const browser=await chromium.launch({channel:'chrome',headless:true,args:process.env.QA_CONTAINER==='1'?['--no-sandbox']:[]});
+ try{for(const mode of ['phone','desktop'])for(const slug of ['qap3amethyst','qap3fallowlharvestmoon','dudesfizzfest']){
+  const context=await browser.newContext({viewport:mode==='phone'?{width:360,height:800}:{width:1440,height:900},isMobile:mode==='phone',hasTouch:mode==='phone'});await authenticatePreview(context,base);await context.route('**/*',r=>shouldBlockAppWrite(r.request(),base)?r.abort():r.fallback());
+  await context.addInitScript(()=>{window.__audioProof=[];const original=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){const entry={muted:this.muted,activated:navigator.userActivation.hasBeenActive};window.__audioProof.push(entry);if(!this.muted&&!navigator.userActivation.hasBeenActive){entry.injectedRejection=true;return Promise.reject(new DOMException('QA audible autoplay blocked','NotAllowedError'))}return original.call(this).then(()=>entry.ok=true,e=>{entry.error=e.name;throw e})}});
+  const page=await context.newPage(),result={slug,mode,errors:[]};page.on('pageerror',e=>result.errors.push(e.message));
+  try{
+   await page.goto(base+'/'+slug,{waitUntil:'domcontentloaded',timeout:90000});await page.waitForFunction(()=>[...document.querySelectorAll('.hp-hero video')].some(v=>v.muted&&!v.paused&&v.currentTime>.2),null,{timeout:45000});result.before=await page.evaluate(()=>({activated:navigator.userActivation.hasBeenActive,plays:window.__audioProof,videos:[...document.querySelectorAll('.hp-hero video')].map(v=>({paused:v.paused,muted:v.muted,time:v.currentTime}))}));assert.ok(result.before.plays.some(p=>p.injectedRejection));assert.equal(result.before.activated,false);
+   const heading=page.locator('.hp-hero-headline').first();if(mode==='phone')await heading.tap();else await heading.click();await page.waitForFunction(()=>[...document.querySelectorAll('.hp-hero video')].some(v=>!v.muted&&!v.paused),null,{timeout:5000});result.after=await page.evaluate(()=>({activated:navigator.userActivation.hasBeenActive,plays:window.__audioProof,videos:[...document.querySelectorAll('.hp-hero video')].map(v=>({paused:v.paused,muted:v.muted,time:v.currentTime}))}));assert.ok(result.after.plays.some(p=>!p.muted&&p.ok));assert.equal(result.errors.length,0);result.pass=true;await page.screenshot({path:path.join(output,mode+'-'+slug+'-first-tap-sound.png')});
+  }catch(error){result.error=error.message;result.pass=false}results.push(result);fs.writeFileSync(path.join(output,'results.json'),JSON.stringify({base,condition:'injected NotAllowedError before first gesture',results},null,2));console.log(JSON.stringify(result));await context.close();
+ }}finally{await browser.close()}process.exitCode=results.every(r=>r.pass)?0:1;
+})().catch(error=>{console.error(error);process.exitCode=1});

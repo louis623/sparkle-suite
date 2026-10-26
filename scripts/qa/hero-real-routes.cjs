@@ -4,6 +4,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const fs = require('node:fs'), path = require('node:path');
 const { startFilmstrip } = require('./hero-filmstrip.cjs');
 const { authenticatePreview } = require('./preview-auth.cjs');
+const { shouldBlockAppWrite } = require('./browser-readonly.cjs');
 const [base, output, mode = 'desktop', selected] = process.argv.slice(2);
 if (!base || !output) throw Error('Usage: node scripts/qa/hero-autoplay-matrix.cjs BASE OUTPUT desktop|phone [comma-separated themes]');
 const themes = selected?.split(',') || ['amethyst','sparkle_suite_morganite','black_diamond','moonstone','alpine_opal','emerald_garden','gnome_garden','neon_butterfly','halloween_pumpkin_witch','halloween_pumpkin_cat','gilded_autumn','rose_gold','midnight_rose','fall_owl_harvest_moon','gobble_and_fizz','pie_please','pearl_rose','sunset_beach','rose_champagne','garnet','amber','velvet','rose_quartz'];
@@ -18,7 +19,7 @@ fs.mkdirSync(output, {recursive:true});
     const context = await browser.newContext({viewport:mode==='phone'?{width:360,height:800}:{width:1440,height:900},isMobile:mode==='phone',hasTouch:mode==='phone',deviceScaleFactor:1});
     await authenticatePreview(context, base);
     if(process.env.QA_FORWARD_HOST)await context.route(new URL(base).origin+'/**',route=>route.continue({headers:{...route.request().headers(),'x-forwarded-host':process.env.QA_FORWARD_HOST,'x-forwarded-proto':'http'}}));
-    if(process.env.QA_READ_ONLY==='1')await context.route('**/*',route=>new URL(route.request().url()).origin===new URL(base).origin&&!['GET','HEAD','OPTIONS'].includes(route.request().method())?route.abort():route.fallback());
+    if(process.env.QA_READ_ONLY==='1')await context.route('**/*',route=>shouldBlockAppWrite(route.request(),base)?route.abort():route.fallback());
     const page = await context.newPage(), errors = [], resources = [], analytics = [];
     const frameThrottles=[], throttled=new Set();
     async function throttleFrame(frame) {
@@ -104,7 +105,12 @@ fs.mkdirSync(output, {recursive:true});
       result.initial=await sample();
       await finishFilmstrip(); finishFilmstrip=null;
       await page.screenshot({path:path.join(output,`${mode}-${slug}-playing.png`)});
-      await page.waitForTimeout(650);result.progress=await sample();
+      await page.waitForTimeout(650);
+      // CSS-only scenes can already animate in server HTML while the deferred
+      // runtime is still fetching. Assert retained nodes after hydration, not
+      // merely at an arbitrary 1.5-second screenshot deadline.
+      await frame.waitForFunction(()=>window.SPARKLE_FIRST_PAINT===null,null,{timeout:45000});
+      result.progress=await sample();
       if(theme==='halloween_pumpkin_cat' && result.progress.videos.every(v=>v.paused)) {
         // Pumpkin Cat intentionally rests four seconds between five-second
         // bursts. Observe its next automatic burst without clicking Play.
@@ -133,7 +139,7 @@ fs.mkdirSync(output, {recursive:true});
       result.analytics=analytics.map(event=>({event:event.event,afterNavigationMs:event.at-startedAt}));
       result.productionRuntime=!resources.some(u=>/babel(?:\.min)?\.js|babel-standalone|react(?:-dom)?\.development/.test(u));
       result.pass=result.status===200 && result.initial.motion==='on' && !result.initial.unstyled && result.productionRuntime && !errors.length;
-      result.pass &&= result.initial.retained && result.initial.hydrated;
+      result.pass &&= result.progress.retained && result.progress.hydrated;
       result.progressed=result.progress.videos.some((v,i)=>v.ended||v.time!==result.initial.videos[i]?.time) || result.progress.animations.some((a,i)=>a.state==='running'&&a.time!==result.initial.animations[i]?.time);
       result.pass &&= result.progressed;
       const controlledThemes=new Set(['amethyst','gnome_garden','neon_butterfly','halloween_pumpkin_witch','halloween_pumpkin_cat','gilded_autumn','midnight_rose','fall_owl_harvest_moon','gobble_and_fizz','pie_please','pearl_rose','sunset_beach','rose_champagne']);

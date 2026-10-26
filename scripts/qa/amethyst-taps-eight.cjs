@@ -1,6 +1,7 @@
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
 const fs=require('fs'),path=require('path');
 const {authenticatePreview}=require('./preview-auth.cjs');
+const {shouldBlockAppWrite}=require('./browser-readonly.cjs');
 const [base,output,slug='qap3amethyst']=process.argv.slice(2);
 fs.mkdirSync(output,{recursive:true});
 (async()=>{
@@ -11,7 +12,7 @@ fs.mkdirSync(output,{recursive:true});
   if(base.includes('.vercel.app'))await authenticatePreview(context,base);
   if(process.env.QA_FORWARD_HOST)await context.route(new URL(base).origin+'/**',route=>route.continue({headers:{...route.request().headers(),'x-forwarded-host':process.env.QA_FORWARD_HOST,'x-forwarded-proto':'http'}}));
   // No tracking or form POST may reach the application during read-only QA.
-  await context.route('**/*',r=>new URL(r.request().url()).origin===new URL(base).origin&&!['GET','HEAD','OPTIONS'].includes(r.request().method())?r.abort():r.fallback());
+  await context.route('**/*',r=>shouldBlockAppWrite(r.request(),base)?r.abort():r.fallback());
   const page=await context.newPage(),record={run,url:base+'/'+slug,actions:[],errors:[]};
   page.on('pageerror',error=>record.errors.push(error.message));
   await context.addInitScript(()=>{window.__tapEvents=[];new PerformanceObserver(list=>{for(const e of list.getEntries())if(e.interactionId)window.__tapEvents.push({name:e.name,start:e.startTime,duration:e.duration,inputDelay:e.processingStart-e.startTime,processing:e.processingEnd-e.processingStart,presentation:e.startTime+e.duration-e.processingEnd})}).observe({type:'event',durationThreshold:16,buffered:true})});
