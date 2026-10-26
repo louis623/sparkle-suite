@@ -157,6 +157,7 @@ document.addEventListener('click', function (event) {
     script.async = true; script.fetchPriority = 'low'; script.src = src;
     document.head.appendChild(script);
   }
+  if (window.sparkleAfterHeroPaint) { window.sparkleAfterHeroPaint(start); return; }
   var contentPainted = performance.getEntriesByName('first-contentful-paint').length > 0;
   var posterReady = false;
   function painted() { if (contentPainted && posterReady) requestAnimationFrame(function () { requestAnimationFrame(start); }); }

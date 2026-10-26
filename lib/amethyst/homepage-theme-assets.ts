@@ -3,6 +3,7 @@ import fontManifest from '../../public/amethyst/fonts/manifest.json'
 import fontFallbacks from '../../public/amethyst/fonts/fallbacks.json'
 import criticalManifest from '../../public/amethyst/delivery/critical.json'
 import stylesheetManifest from '../../public/amethyst/delivery/manifest.json'
+import { homepagePaintGate } from './homepage-paint-gate'
 
 const THEME_ASSETS: Record<string, string[]> = {
   amethyst: ['am01-unicorn'], gnome_garden: ['gnome-garden'],
@@ -76,7 +77,7 @@ export async function inlineHomepageStyles(html: string, preset?: string, headin
       const css = (critical[name] ?? []).filter(rule => rule.bodies.every(c=>bodyClasses.includes(c)) && (!rule.presets.length || rule.presets.includes(preset ?? '')) && (!rule.variants.length || rule.variants.includes(variant ?? ''))).map(rule=>rule.css).join('')
       return '<style data-critical-stylesheet="' + name + '">' + css + '</style><link rel="stylesheet" href="' + manifest[name] + '" media="print" data-homepage-styles onload="sparkleHomepageStylesLoaded()" onerror="sparkleHomepageStylesLoaded()"><noscript><link rel="stylesheet" href="' + manifest[name] + '"></noscript>'
     })
-  if (stylesheetCount) html = html.replace('<head>', '<head><script>(function(){var remaining=' + stylesheetCount + ';window.sparkleHomepageStylesLoaded=function(){if(--remaining)return;function apply(){document.querySelectorAll("link[data-homepage-styles]").forEach(function(link){link.media="all"})}if(document.hidden)apply();else requestAnimationFrame(function(){setTimeout(apply,0)})}})();</script>')
+  if (stylesheetCount) html = html.replace('<head>', '<head>' + homepagePaintGate + '<script>(function(){var remaining=' + stylesheetCount + ';window.sparkleHomepageStylesLoaded=function(){if(--remaining)return;function apply(){document.querySelectorAll("link[data-homepage-styles]").forEach(function(link){link.media="all"})}window.sparkleAfterHeroPaint(apply)}})();</script>')
   html = html.replace('</head>', '<style data-critical-homepage>html{background:var(--hp-bg,#100b1c)}body{margin:0;background:var(--hp-bg,#100b1c);color:var(--hp-text,#f7f4fc)}</style></head>')
   // These two phone heroes already have a 620px minimum scene. Reserve that
   // same space in the inner grid so late button-font wrapping cannot recenter
