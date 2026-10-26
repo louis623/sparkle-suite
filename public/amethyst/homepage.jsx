@@ -1,6 +1,16 @@
 /* global React, ReactDOM */
 const { useState, useEffect, useMemo, useRef } = React;
 
+// Match the server's first render, then show the visitor's local date/time
+// after hydration. A timezone mismatch otherwise discards the entire hero DOM.
+function homepageDateLabel(value, options) {
+  const seed = window.SPARKLE_FIRST_PAINT;
+  return new Intl.DateTimeFormat(seed?.locale, {
+    ...options,
+    ...(seed ? { timeZone: seed.timeZone } : {}),
+  }).format(new Date(value));
+}
+
 // Read tweaks panel components from the global scope (loaded from tweaks-panel.jsx)
 const {
   TweaksPanel, useTweaks,
@@ -461,7 +471,7 @@ function LiveLineupStatus() {
   const updated = Date.parse(lineup.liveQueueLastUpdated);
   if (!Number.isFinite(updated)) return null;
   return <p className="hp-lineup-status">
-    Updated {new Date(updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+    Updated {homepageDateLabel(updated, { hour: 'numeric', minute: '2-digit' })}
   </p>;
 }
 
@@ -472,9 +482,9 @@ function LiveLineupUpdatedAt({ lineup }) {
     <time
       className="hp-trade-preview-updated"
       dateTime={new Date(updatedAt).toISOString()}
-      title={new Date(updatedAt).toLocaleString()}
+      title={homepageDateLabel(updatedAt, { dateStyle: 'short', timeStyle: 'medium' })}
     >
-      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{homepageDateLabel(updatedAt, { hour: "numeric", minute: "2-digit" })}
     </time>
   );
 }
@@ -756,6 +766,10 @@ const FONTS = {
   bubbly: '"Quicksand", "Nunito", system-ui, sans-serif',
   chunky: '"Archivo Black", "Inter", sans-serif',
 };
+// Match fallback metrics while the embedded face is decoded on slower CPUs.
+for (const key of Object.keys(FONTS)) {
+  FONTS[key] = FONTS[key].replace(/^"([^"]+)"/, (match, family) => `${match}, "${family.toLowerCase()} fallback"`);
+}
 
 // ============================================================
 // LRQ rail
@@ -856,6 +870,27 @@ function GnomeGardenScene() {
   );
 }
 
+function HeroFirstPaintArt({ preset }) {
+  const art = {
+    amethyst: ['au-art', 'am01-unicorn/opening-poster.webp', 1310, 704],
+    halloween_pumpkin_cat: ['hpc-art', 'halloween-pumpkin-cat/hero-desktop.webp', 1672, 941],
+    gilded_autumn: ['ga-art', 'gilded-autumn/hero-poster.webp', 1204, 764],
+  }[preset];
+  if (!art) return null;
+  return <>
+    <style>{`.hp-hero:has(.au-video,.hpc-video,.ga-video) [data-first-paint-art]{display:none}`}</style>
+    <div className={art[0]} data-first-paint-art="true" aria-hidden="true">
+      <img src={'/amethyst/skins/' + art[1]} alt="" width={art[2]} height={art[3]}
+        {...(preset === 'halloween_pumpkin_cat' ? {
+          srcSet: [720,1200,1672].map(w => '/amethyst/skins/halloween-pumpkin-cat/hero-desktop-' + w + '.webp ' + w + 'w').join(', '),
+          sizes: '(max-width: 600px) 178vw, (max-width: 1100px) min(134vw, 965px), 100vw',
+        } : preset === 'gilded_autumn' ? {
+          srcSet: '/amethyst/skins/gilded-autumn/hero-poster-delivery-720.webp 720w, /amethyst/skins/gilded-autumn/hero-poster-delivery-1440.webp 1440w', sizes: '100vw',
+        } : {})} decoding="async" fetchpriority="high" />
+    </div>
+  </>;
+}
+
 function Hero({ t, isLive, liveShow }) {
   const joinTeamHref = CONTENT.footerLinks?.joinTeam || "";
   const mileHighFizzKicker = t.heroEyebrow || CONTENT.heroEyebrow || "With Lindsey";
@@ -864,8 +899,13 @@ function Hero({ t, isLive, liveShow }) {
   return (
     <>
     <section className="hp-hero" data-appearance-preset={t.preset} data-hero-motion={t.heroMotion === "still" || t.heroMotion === "none" ? "off" : "on"} data-cat-motion={t.heroMotion === "still" ? "off" : "on"}>
+      <HeroFirstPaintArt preset={t.preset} />
       {t.preset === "gnome_garden" && <GnomeGardenDecoration />}
-      <div className="hp-hero-media" aria-hidden="true" />
+      <div className="hp-hero-media" aria-hidden="true">
+        {t.preset === "sunset_beach" && <div className="beach-motion-layer" data-first-paint-video="true" style={{ opacity: 1 }}>
+          <video poster="/amethyst/skins/sunset-beach/hero-poster-720.webp" width="1280" height="720" preload="none" playsInline tabIndex={-1} />
+        </div>}
+      </div>
       {t.preset !== "halloween_pumpkin_cat" && t.preset !== "amethyst" && <SparkleFx level={t.sparkleLevel} motion={t.heroMotion} />}
       <div className="hp-hero-inner">
         <div>
@@ -1661,22 +1701,22 @@ function formatEventDateLabel(eventTime) {
   const parsed = new Date(eventTime);
   if (Number.isNaN(parsed.getTime())) return eventTime;
 
-  return new Intl.DateTimeFormat(undefined, {
+  return homepageDateLabel(parsed, {
     weekday: "short",
     month: "short",
     day: "numeric",
-  }).format(parsed);
+  });
 }
 
 function formatEventTimeLabel(eventTime) {
   const parsed = new Date(eventTime);
   if (Number.isNaN(parsed.getTime())) return eventTime;
 
-  return new Intl.DateTimeFormat(undefined, {
+  return homepageDateLabel(parsed, {
     hour: "numeric",
     minute: "2-digit",
     timeZoneName: "short",
-  }).format(parsed);
+  });
 }
 
 function sanitizeCalendarFilename(title) {
@@ -2155,19 +2195,18 @@ function AboutSection({ repName, hideEmptyMedia = false }) {
 const SIGNUP_PREFERENCE_MAX = 3;
 const SIGNUP_NOT_SURE = "not_sure";
 const SIGNUP_PREFERENCE_STYLES = `
-.hp-pref { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; }
+.hp-pref { border: 0; margin: 0; padding: 0; min-width: 0; max-width: 100%; display: grid; gap: 8px; box-sizing: border-box; }
 .hp-pref legend { padding: 0; }
 .hp-pref-hint, .hp-pref-group, .hp-pref-live { margin: 0; color: var(--hp-card-muted); font-size: 13px; line-height: 1.4; }
+.hp-pref-group { flex: 1 0 100%; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
 .hp-pref-live { min-height: 1.4em; }
-.hp-pref-chips { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; max-width: 100%; }
-.hp-pref-chip { position: relative; display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; margin: 0; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--hp-field-bg); color: var(--hp-field-fg); font-size: 14px; line-height: 1.3; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.hp-pref-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; max-width: 100%; box-sizing: border-box; }
+.hp-pref-chip { position: relative; display: inline-flex; align-items: center; box-sizing: border-box; min-height: 44px; min-width: 44px; max-width: 100%; margin: 0; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--hp-field-bg); color: var(--hp-field-fg); font-size: 14px; line-height: 1.3; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
 .hp-pref-chip input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .hp-pref-chip.is-selected { background: var(--hp-card-accent); color: var(--hp-action-fg); border-color: var(--hp-card-accent); }
 .hp-pref-chip.is-disabled { opacity: 0.45; cursor: not-allowed; }
 .hp-pref-chip.is-disabled input { cursor: not-allowed; }
 .hp-pref-chip:focus-within { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
-.hp-pref-more { justify-self: start; min-height: 44px; padding: 8px 2px; border: 0; background: transparent; color: var(--hp-primary); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
-.hp-pref-more:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 2px; }
 .hp-signup-form, .hp-signup-preferences, .hp-pref { max-width: 100%; }
 .hp-signup-notes-label { display: block; color: var(--hp-card-fg); font-size: 15px; line-height: 1.45; font-weight: 600; letter-spacing: 0; text-transform: none; }
 .hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }
@@ -2202,7 +2241,9 @@ const SIGNUP_PREFERENCE_STYLES = `
 @keyframes hp-signup-step-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .hp-signup-step-panel { animation: none; opacity: 1; transform: none; } }
 .hp-signup-single { width: 100%; max-width: none; margin-inline: 0; }
-.hp-signup-input { font-size: 16px; }
+.hp-signup-input { font-size: 16px; min-height: 44px; box-sizing: border-box; }
+.hp-signup-input.hp-signup-notes { min-height: 120px; }
+.hp-signup-birthday { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr); gap: 8px; width: 100%; }
 .hp-signup-submit { min-height: 48px; }
 .hp-signup-submit:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 3px; }
 .hp-signup-check { min-height: 44px; align-items: center; }
@@ -2263,6 +2304,12 @@ const SIGNUP_PREFERENCE_STYLES = `
   text-align: center;
   box-sizing: border-box;
 }
+.hp-signup-discount { display: grid; gap: 10px; width: 100%; max-width: 100%; margin: 20px auto 0; justify-items: center; box-sizing: border-box; }
+.hp-signup-discount-label { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.4; color: var(--hp-card-fg); }
+.hp-signup-discount-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+.hp-signup-discount-code { display: inline-block; box-sizing: border-box; max-width: 100%; margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--hp-field-bg); color: var(--hp-field-fg); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 16px; font-weight: 700; letter-spacing: 0.04em; line-height: 1.3; user-select: text; -webkit-user-select: text; overflow-wrap: anywhere; }
+.hp-signup-discount-copy { box-sizing: border-box; min-height: 44px; min-width: 44px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--hp-card-accent); background: var(--hp-card-accent); color: var(--hp-action-fg); font: inherit; font-size: 16px; font-weight: 700; line-height: 1.2; cursor: pointer; touch-action: manipulation; }
+.hp-signup-discount-copy:focus-visible { outline: 2px solid var(--hp-primary); outline-offset: 3px; }
 @media (max-width: 600px) {
   #signup .hp-signup-card.is-success { padding: 36px 24px 32px; }
   #signup .hp-signup-card:not(.is-success) {
@@ -2281,22 +2328,37 @@ const SIGNUP_PREFERENCE_STYLES = `
     margin: 0;
     box-sizing: border-box;
   }
+  .hp-signup-discount-row { align-items: stretch; }
+  .hp-signup-discount-copy { flex: 1 1 100%; }
 }
 `;
 
-const SIGNUP_STEP_LABELS = [
-  "Let's get you on the list",
-  "Stones you love",
-  "Metals and finishes",
-  "Favorite cuts",
-  "Bomb Party collections",
-  "How should we reach you?",
-  "Your birthday",
-  "Ring size",
-  "Anything else?",
-  "Sign me up",
+const SIGNUP_STEPS = [
+  { id: "account", title: "Let's get you on the list" },
+  { id: "stones", title: "Stones you love" },
+  { id: "metals", title: "Metals and finishes" },
+  { id: "cuts", title: "Favorite cuts" },
+  { id: "collections", title: "Bomb Party collections" },
+  { id: "contact", title: "How should we reach you?" },
+  { id: "birthday", title: "Your birthday" },
+  { id: "ring", title: "Ring size" },
+  { id: "notes", title: "Anything else?" },
+  { id: "review", title: "Review" },
 ];
+const SIGNUP_STEP_LABELS = SIGNUP_STEPS.map((item) => item.title);
+const SIGNUP_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const SIGNUP_LAST_STEP = SIGNUP_STEP_LABELS.length - 1;
+
+function signupDaysInMonth(month) {
+  const value = Number(month);
+  if (!value) return 31;
+  return new Date(Date.UTC(2024, value, 0)).getUTCDate();
+}
+
+function signupBirthdayValue(month, day) {
+  if (!month || !day) return "";
+  return `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
 
 function applySignupPreferenceToggle(selected, slug, checked) {
   if (!checked) return selected.filter((item) => item !== slug);
@@ -2308,7 +2370,7 @@ function applySignupPreferenceToggle(selected, slug, checked) {
 
 function SignupPreferenceChip({ option, fieldName, selected, onChange }) {
   const checked = selected.includes(option.slug);
-  const disabled = !checked && selected.length >= SIGNUP_PREFERENCE_MAX;
+  const disabled = option.slug !== SIGNUP_NOT_SURE && !checked && selected.length >= SIGNUP_PREFERENCE_MAX;
   return (
     <label className={`hp-pref-chip${checked ? " is-selected" : ""}${disabled ? " is-disabled" : ""}`}>
       <input
@@ -2324,14 +2386,17 @@ function SignupPreferenceChip({ option, fieldName, selected, onChange }) {
   );
 }
 
-function SignupPreferencePicker({ legend, fieldName, options, selected, onChange, showOlderControl }) {
-  const [showAll, setShowAll] = useState(false);
-  const [showOlder, setShowOlder] = useState(false);
+function preferencePickerOptions(options, selected) {
   const list = Array.isArray(options) ? options : [];
-  const active = list.filter((option) => !option.isRetired);
-  const retired = list.filter((option) => option.isRetired);
-  const visibleActive = showAll ? active : active.slice(0, 8);
-  const visibleRetired = showOlder ? retired : retired.filter((option) => selected.includes(option.slug));
+  const visible = list.filter((option) => !option.isHidden);
+  const savedHidden = list.filter((option) => option.isHidden && selected.includes(option.slug));
+  return visible.concat(savedHidden);
+}
+
+function SignupPreferencePicker({ legend, fieldName, options, selected, onChange }) {
+  const shown = preferencePickerOptions(options, selected);
+  const active = shown.filter((option) => !option.isRetired);
+  const retired = shown.filter((option) => option.isRetired);
   const atMax = selected.length >= SIGNUP_PREFERENCE_MAX;
 
   return (
@@ -2339,7 +2404,7 @@ function SignupPreferencePicker({ legend, fieldName, options, selected, onChange
       <legend className="hp-signup-label">{legend}</legend>
       <p className="hp-pref-hint" id={`${fieldName}-hint`}>Pick at least 1, up to 3</p>
       <div className="hp-pref-chips" role="group" aria-describedby={`${fieldName}-hint`}>
-        {visibleActive.map((option) => (
+        {active.map((option) => (
           <SignupPreferenceChip
             key={option.slug}
             option={option}
@@ -2349,20 +2414,10 @@ function SignupPreferencePicker({ legend, fieldName, options, selected, onChange
           />
         ))}
       </div>
-      {active.length > 8 ? (
-        <button type="button" className="hp-pref-more" onClick={() => setShowAll((current) => !current)}>
-          {showAll ? "Show fewer" : "Show all"}
-        </button>
-      ) : null}
-      {showOlderControl && retired.length > 0 ? (
-        <button type="button" className="hp-pref-more" onClick={() => setShowOlder((current) => !current)}>
-          {showOlder ? "Hide older collections" : "Show older collections"}
-        </button>
-      ) : null}
-      {visibleRetired.length > 0 ? (
+      {retired.length > 0 ? (
         <div className="hp-pref-chips">
-          {showOlder ? <p className="hp-pref-group">Older collections</p> : null}
-          {visibleRetired.map((option) => (
+          <p className="hp-pref-group">Older collections</p>
+          {retired.map((option) => (
             <SignupPreferenceChip
               key={option.slug}
               option={option}
@@ -2377,6 +2432,160 @@ function SignupPreferencePicker({ legend, fieldName, options, selected, onChange
         {atMax ? "You've picked 3. Unpick one to choose another." : ""}
       </p>
     </fieldset>
+  );
+}
+
+const SIGNUP_DISCOUNT_COPIED_MS = 2000;
+const SIGNUP_DISCOUNT_CLIPBOARD_TIMEOUT_MS = 2500;
+const SIGNUP_DISCOUNT_CODE_PATTERN = /^[A-Za-z0-9-]{1,40}$/;
+const SIGNUP_DISCOUNT_OFFER_MAX = 40;
+
+function normalizeSignupDiscountCode(value) {
+  if (typeof value !== "string") return null;
+  const code = value.trim();
+  if (!SIGNUP_DISCOUNT_CODE_PATTERN.test(code)) return null;
+  return code;
+}
+
+function normalizeSignupDiscountOffer(value) {
+  if (typeof value !== "string") return null;
+  const offer = value.replace(/[\u0000-\u001F\u007F]/g, " ").replace(/\s+/g, " ").trim();
+  if (!offer || offer.length > SIGNUP_DISCOUNT_OFFER_MAX) return null;
+  if (/[<>]/.test(offer)) return null;
+  return offer;
+}
+
+function presentSignupDiscount(content) {
+  const code = normalizeSignupDiscountCode(content && content.signupDiscountCode);
+  if (!code) return null;
+  const offer = normalizeSignupDiscountOffer(content && content.signupDiscountOffer);
+  return { code, label: offer ? `Your ${offer} code` : "Your discount code" };
+}
+
+function signupDiscountCopyName(code, copied) {
+  return copied ? `Copied ${code}` : `Copy ${code}`;
+}
+
+function signupDiscountCopyFeedback(outcome) {
+  if (outcome === "failed") return null;
+  return { text: "Copied!", clearAfterMs: SIGNUP_DISCOUNT_COPIED_MS };
+}
+
+function selectSignupDiscountCode(codeElement, doc, view) {
+  const documentRef = doc === undefined ? (typeof document !== "undefined" ? document : null) : doc;
+  const viewRef = view === undefined ? (typeof window !== "undefined" ? window : null) : view;
+  if (!documentRef || codeElement == null || typeof documentRef.createRange !== "function") return false;
+  const selection = viewRef && typeof viewRef.getSelection === "function" ? viewRef.getSelection() : null;
+  if (!selection || typeof selection.removeAllRanges !== "function" || typeof selection.addRange !== "function") return false;
+  const range = documentRef.createRange();
+  range.selectNodeContents(codeElement);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  if (typeof codeElement.focus === "function") {
+    try { codeElement.focus({ preventScroll: true }); }
+    catch { codeElement.focus(); }
+  }
+  return true;
+}
+
+function defaultSignupDiscountWriteText() {
+  if (typeof navigator === "undefined" || !navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+    return null;
+  }
+  return function writeSignupDiscount(value) {
+    return navigator.clipboard.writeText(value);
+  };
+}
+
+function copySignupDiscountCode(code, codeElement, deps) {
+  const options = deps || {};
+  const writeText = Object.prototype.hasOwnProperty.call(options, "writeText")
+    ? options.writeText
+    : defaultSignupDiscountWriteText();
+  const selectContents = options.selectContents || function selectContents(element) {
+    return selectSignupDiscountCode(element);
+  };
+  const timeoutMs = options.timeoutMs == null ? SIGNUP_DISCOUNT_CLIPBOARD_TIMEOUT_MS : options.timeoutMs;
+  let timer;
+  const finish = function finish(outcome) {
+    if (timer) clearTimeout(timer);
+    return outcome;
+  };
+
+  if (!writeText) {
+    return Promise.resolve(selectContents(codeElement) ? "selected" : "failed");
+  }
+
+  return new Promise(function (resolve) {
+    let settled = false;
+    const settle = function settle(outcome) {
+      if (settled) return;
+      settled = true;
+      resolve(finish(outcome));
+    };
+    timer = setTimeout(function () { settle("timeout"); }, timeoutMs);
+    Promise.resolve()
+      .then(function () { return writeText(code); })
+      .then(function () { settle("clipboard"); })
+      .catch(function () { settle("blocked"); });
+  }).then(function (outcome) {
+    if (outcome === "clipboard") return "clipboard";
+    return selectContents(codeElement) ? "selected" : "failed";
+  });
+}
+
+function SignupDiscountConfirmation({ content }) {
+  const discount = presentSignupDiscount(content);
+  const [copied, setCopied] = React.useState(false);
+  const codeRef = React.useRef(null);
+  const timerRef = React.useRef(0);
+  const copyingRef = React.useRef(false);
+  React.useEffect(function () {
+    return function () {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+  }, []);
+  if (!discount) return null;
+
+  async function onCopy() {
+    if (copyingRef.current) return;
+    copyingRef.current = true;
+    try {
+      const outcome = await copySignupDiscountCode(discount.code, codeRef.current);
+      const feedback = signupDiscountCopyFeedback(outcome);
+      if (!feedback) return;
+      setCopied(true);
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(function () { setCopied(false); }, feedback.clearAfterMs);
+    } finally {
+      copyingRef.current = false;
+    }
+  }
+
+  return (
+    <div className="hp-signup-discount" role="group" aria-label={discount.label}>
+      <p className="hp-signup-discount-label">{discount.label}</p>
+      <div className="hp-signup-discount-row">
+        <code
+          ref={codeRef}
+          className="hp-signup-discount-code"
+          tabIndex={0}
+          style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" }}
+        >
+          {discount.code}
+        </code>
+        <button
+          type="button"
+          className="hp-signup-discount-copy"
+          style={{ minHeight: 44, minWidth: 44 }}
+          onClick={onCopy}
+          aria-label={signupDiscountCopyName(discount.code, copied)}
+        >
+          {copied ? "Copied!" : "Copy"}
+        </button>
+      </div>
+      <p className="hp-signup-live" aria-live="polite">{copied ? "Copied!" : ""}</p>
+    </div>
   );
 }
 
@@ -2397,6 +2606,8 @@ function Signup({ repName, businessName }) {
     ringSize: "",
     jewelryNotes: "",
   });
+  const [birthdayMonth, setBirthdayMonth] = useState("");
+  const [birthdayDay, setBirthdayDay] = useState("");
   const [preferenceOptions, setPreferenceOptions] = useState(null);
   const [preferenceOptionsError, setPreferenceOptionsError] = useState(false);
   const [submitState, setSubmitState] = useState({ status: "idle", message: "" });
@@ -2418,7 +2629,7 @@ function Signup({ repName, businessName }) {
     if (top < 0) card.scrollIntoView({ block: "start", inline: "nearest" });
   }, [submitState.status]);
   useEffect(() => {
-    const announcedTitle = step === SIGNUP_LAST_STEP ? `Join ${repName}` : SIGNUP_STEP_LABELS[step];
+    const announcedTitle = SIGNUP_STEP_LABELS[step];
     setStepAnnouncement(`Step ${step + 1} of ${SIGNUP_STEP_LABELS.length}. ${announcedTitle}.`);
     if (!stepWasShown.current) {
       stepWasShown.current = true;
@@ -2468,17 +2679,17 @@ function Signup({ repName, businessName }) {
   const signupSub = CONTENT.signupSub || `Get a heads-up when ${repName} goes live, plus first dibs on new drops.`;
   const stepWhy = [
     `${repName} saves your spot with your name and email.`,
-    `${repName} uses this to pull pieces you'll want. Pick up to 3.`,
-    "So the finish matches what you like to wear. Pick up to 3.",
-    "The shape changes the whole piece. Pick up to 3.",
-    `${repName} can watch for the Bomb Party lines you want. Pick up to 3.`,
+    "So we can point you toward pieces you'll love.",
+    "So the finish matches what you like to wear.",
+    "The shape changes the whole piece.",
+    "The Bomb Party lines you like most.",
     `Choose email, texts, or both. ${repName} only uses what you pick.`,
-    "Only for birthday promotions and gift ideas. It will not be used for anything else.",
-    `Optional. It helps ${repName} point you toward rings that are more likely to fit.`,
-    `Anything else ${repName} should know? Pieces you're hunting for, sizes, or styles you love.`,
-    `Here's what ${businessName} will have when you sign up.`,
+    "Optional. Month and day only. We only use it for birthday offers and gift ideas.",
+    "Optional. It helps us point you toward rings that are more likely to fit.",
+    "Optional. Styles you love, pieces you're looking for, or anything that helps.",
+    "Check your answers, then finish below.",
   ];
-  const stepTitle = step === SIGNUP_LAST_STEP ? `Join ${repName}` : SIGNUP_STEP_LABELS[step];
+  const stepTitle = SIGNUP_STEP_LABELS[step];
 
   function updateField(key, value) {
     setStepError("");
@@ -2496,18 +2707,20 @@ function Signup({ repName, businessName }) {
     return 1;
   }
 
+  function applyBirthday(month, day) {
+    const max = signupDaysInMonth(month);
+    const nextDay = day && Number(day) >= 1 && Number(day) <= max ? String(Number(day)) : "";
+    setBirthdayMonth(month);
+    setBirthdayDay(nextDay);
+    setForm((current) => ({
+      ...current,
+      birthday: signupBirthdayValue(month, nextDay),
+    }));
+  }
+
   function birthdayError() {
-    const value = form.birthday.trim();
-    if (!value) return "";
-    if (!/^\d{2}-\d{2}$/.test(value)) {
-      return "Birthday must use month and day in MM-DD format. Do not include a year.";
-    }
-    const month = Number(value.slice(0, 2));
-    const day = Number(value.slice(3, 5));
-    const candidate = new Date(Date.UTC(2024, month - 1, day));
-    if (candidate.getUTCMonth() !== month - 1 || candidate.getUTCDate() !== day) {
-      return "Birthday must be a real month and day.";
-    }
+    if (!birthdayMonth && !birthdayDay) return "";
+    if (!birthdayMonth || !birthdayDay) return "Choose a month and a day, or leave both blank.";
     return "";
   }
 
@@ -2545,7 +2758,7 @@ function Signup({ repName, businessName }) {
       return "Add your phone number to get text updates.";
     }
     if (step === 6) return birthdayError();
-    if (step === 8 && form.jewelryNotes.length > 500) return "Keep jewelry notes to 500 characters.";
+    if (step === 8 && form.jewelryNotes.length > 500) return "Keep notes to 500 characters.";
     return "";
   }
 
@@ -2554,9 +2767,9 @@ function Signup({ repName, businessName }) {
     if (/phone number is required|add your phone number to get text updates/i.test(message)) return 5;
     if (/Choose SMS, email, or both/i.test(message)) return 5;
     if (/email address is required|First name is required|Last name is required/i.test(message)) return 0;
-    if (/Birthday must/i.test(message)) return 6;
+    if (/Birthday must|month and a day/i.test(message)) return 6;
     if (/ring size/i.test(message)) return 7;
-    if (/jewelry notes/i.test(message)) return 8;
+    if (/notes to 500/i.test(message)) return 8;
     return null;
   }
 
@@ -2694,6 +2907,8 @@ function Signup({ repName, businessName }) {
         ringSize: "",
         jewelryNotes: "",
       });
+      setBirthdayMonth("");
+      setBirthdayDay("");
       setStep(0);
       setResumeStep(null);
       setReturnToReview(false);
@@ -2761,6 +2976,9 @@ function Signup({ repName, businessName }) {
               >
                 {submitState.message}
               </p>
+            ) : null}
+            {submitState.status === "success" ? (
+              <SignupDiscountConfirmation content={CONTENT} />
             ) : null}
           </div>
           {submitState.status === "success" ? null : (
@@ -2858,7 +3076,6 @@ function Signup({ repName, businessName }) {
                       options={preferenceOptions?.collection}
                       selected={form.favoriteCollections}
                       onChange={(value) => updateField("favoriteCollections", value)}
-                      showOlderControl
                     />
                   ) : null}
                 </div>
@@ -2887,16 +3104,32 @@ function Signup({ repName, businessName }) {
               ) : null}
               {step === 6 ? (
                 <div className="hp-signup-question">
-                  <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-birthday">Birthday <span className="hp-signup-label-aux">(month and day, optional)</span></label>
-                  <input id="hp-birthday" className="hp-signup-input" type="text" name="birthday" inputMode="text" autoComplete="off" enterKeyHint="next" placeholder="MM-DD" aria-describedby="hp-signup-step-why" value={form.birthday} onChange={(e) => updateField("birthday", e.target.value)} />
+                  <div className="hp-signup-birthday">
+                    <div className="hp-signup-field">
+                      <label className="hp-signup-label" htmlFor="hp-birthday-month">Month</label>
+                      <select id="hp-birthday-month" className="hp-signup-input" name="birthdayMonth" autoComplete="bday-month" aria-describedby="hp-signup-step-why" value={birthdayMonth} onChange={(event) => { setStepError(""); applyBirthday(event.target.value, birthdayDay); }}>
+                        <option value="">Month</option>
+                        {SIGNUP_MONTHS.map((label, index) => (
+                          <option key={label} value={String(index + 1)}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="hp-signup-field">
+                      <label className="hp-signup-label" htmlFor="hp-birthday-day">Day</label>
+                      <select id="hp-birthday-day" className="hp-signup-input" name="birthdayDay" autoComplete="bday-day" aria-describedby="hp-signup-step-why" value={birthdayDay} onChange={(event) => { setStepError(""); applyBirthday(birthdayMonth, event.target.value); }}>
+                        <option value="">Day</option>
+                        {Array.from({ length: signupDaysInMonth(birthdayMonth) }, (_, index) => String(index + 1)).map((day) => (
+                          <option key={day} value={day}>{day}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
               ) : null}
               {step === 7 ? (
                 <div className="hp-signup-question">
                   <div className="hp-signup-field">
-                  <label className="hp-signup-label" htmlFor="hp-ring-size">Ring size <span className="hp-signup-label-aux">(optional)</span></label>
+                  <label className="hp-signup-label" htmlFor="hp-ring-size">Ring size</label>
                   <select id="hp-ring-size" className="hp-signup-input" name="ringSize" autoComplete="off" value={form.ringSize} onChange={(e) => updateField("ringSize", e.target.value)}>
                     <option value="">Select a size</option>
                     <option value="5">5</option>
@@ -2946,33 +3179,27 @@ function Signup({ repName, businessName }) {
                         <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[stepIndex]}`} onClick={() => goToStep(stepIndex)} disabled={submitState.status === "submitting"}>Edit</button>
                       </li>
                     ))}
-                    {birthdayReview ? (
-                      <li className="hp-signup-review-row">
-                        <div className="hp-signup-review-copy">
-                          <p className="hp-signup-review-label">Birthday</p>
-                          <p className="hp-signup-review-value">{birthdayReview}</p>
-                        </div>
-                        <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[6]}`} onClick={() => goToStep(6)} disabled={submitState.status === "submitting"}>Edit</button>
-                      </li>
-                    ) : null}
-                    {form.ringSize ? (
-                      <li className="hp-signup-review-row">
-                        <div className="hp-signup-review-copy">
-                          <p className="hp-signup-review-label">Ring size</p>
-                          <p className="hp-signup-review-value">{form.ringSize === "not_sure" ? "Not sure" : form.ringSize}</p>
-                        </div>
-                        <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[7]}`} onClick={() => goToStep(7)} disabled={submitState.status === "submitting"}>Edit</button>
-                      </li>
-                    ) : null}
-                    {form.jewelryNotes.trim() ? (
-                      <li className="hp-signup-review-row">
-                        <div className="hp-signup-review-copy">
-                          <p className="hp-signup-review-label">Notes</p>
-                          <p className="hp-signup-review-value hp-signup-review-notes">{form.jewelryNotes.trim()}</p>
-                        </div>
-                        <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[8]}`} onClick={() => goToStep(8)} disabled={submitState.status === "submitting"}>Edit</button>
-                      </li>
-                    ) : null}
+                    <li className="hp-signup-review-row">
+                      <div className="hp-signup-review-copy">
+                        <p className="hp-signup-review-label">Birthday</p>
+                        <p className="hp-signup-review-value">{birthdayReview || "Not added"}</p>
+                      </div>
+                      <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[6]}`} onClick={() => goToStep(6)} disabled={submitState.status === "submitting"}>Edit</button>
+                    </li>
+                    <li className="hp-signup-review-row">
+                      <div className="hp-signup-review-copy">
+                        <p className="hp-signup-review-label">Ring size</p>
+                        <p className="hp-signup-review-value">{form.ringSize === "not_sure" ? "Not sure" : form.ringSize || "Not added"}</p>
+                      </div>
+                      <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[7]}`} onClick={() => goToStep(7)} disabled={submitState.status === "submitting"}>Edit</button>
+                    </li>
+                    <li className="hp-signup-review-row">
+                      <div className="hp-signup-review-copy">
+                        <p className="hp-signup-review-label">Notes</p>
+                        <p className="hp-signup-review-value hp-signup-review-notes">{form.jewelryNotes.trim() || "Not added"}</p>
+                      </div>
+                      <button type="button" className="hp-signup-review-edit" aria-label={`Edit ${SIGNUP_STEP_LABELS[8]}`} onClick={() => goToStep(8)} disabled={submitState.status === "submitting"}>Edit</button>
+                    </li>
                   </ul>
                 </div>
               ) : null}
@@ -2981,7 +3208,7 @@ function Signup({ repName, businessName }) {
             <div className="hp-signup-actions">
               {step === SIGNUP_LAST_STEP ? (
                 <p className="hp-signup-privacy">
-                  We never sell your information. Your answers are only used by {businessName} to give you a better experience.
+                  We use your answers to help you find pieces you'll love. The rep you sign up with sees your favorites. If you shop with another Sparkle Suite rep who shares favorites, they'll see them too, so your shows feel personal. Only the rep you sign up with can email or text you. We never sell your information.
                 </p>
               ) : null}
               <div className="hp-signup-nav">
@@ -3085,10 +3312,10 @@ function SparkleFx({ level, motion }) {
   const n = counts[level] || 0;
   const sparkles = useMemo(() => {
     return Array.from({ length: n }, (_, i) => ({
-      left: Math.random() * 100,
-      delay: Math.random() * 4,
-      duration: 3 + Math.random() * 3,
-      size: 0.5 + Math.random() * 1.2,
+      left: ((i * 61 + 17) % 100),
+      delay: ((i * 37 + 11) % 40) / 10,
+      duration: 3 + ((i * 13 + 7) % 30) / 10,
+      size: 0.5 + ((i * 19 + 3) % 12) / 10,
     }));
   }, [n]);
 
@@ -3419,26 +3646,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
 // ============================================================
 // Main App
 // ============================================================
-function App() {
-  const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
-  window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
-  useEffect(() => {
-    if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
-    return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });
-  }, []);
-  const [t, setTweak] = useTweaks(DEFAULTS);
-  const [queueOpen, setQueueOpen] = useState(false);
-  const repName = publicRepName(t.repName);
-  const [now, setNow] = useState(() => Date.now());
-  const activeLiveShow = useMemo(() => getActiveLiveShow(now), [now]);
-  const scheduleIsLive = Boolean(activeLiveShow);
-  const contentLiveQueueState = lineup?.liveQueueState || getContentLiveQueueState();
-  const effectiveLrqState = contentLiveQueueState || (scheduleIsLive ? t.lrqState : "offline");
-
-  // Targeted pages keep the server title and description.
-
-  // Apply tokens to root
-  useEffect(() => {
+function applyHomepageTheme(t, document) {
     const root = document.documentElement;
     const tone = TONES[t.bgTone] || TONES.lavender;
     root.style.setProperty("--hp-primary", t.primaryColor);
@@ -3453,10 +3661,8 @@ function App() {
     root.style.setProperty("--hp-heading-weight", t.headingWeight);
     root.style.setProperty("--hp-saturation", (t.saturation || 100) / 100);
     root.style.setProperty("--ticker-speed", t.tickerSpeed);
-  }, [t]);
 
-  // Apply body classes
-  useEffect(() => {
+    // Body classes use the same source on the server and browser.
     const body = document.body;
     body.className = "homepage";
     if (isMileHighFizzHybrid) body.classList.add("mile-high-fizz");
@@ -3551,13 +3757,35 @@ function App() {
     if (t.density === "spacious") body.classList.add("density-spacious");
     if (t.shapeRadius === "sharp") body.classList.add("shape-sharp");
     if (t.shapeRadius === "soft") body.classList.add("shape-soft");
-  }, [t]);
+}
+
+function App() {
+  const [lineup, setLineup] = useState(() => RUNTIME_CONTEXT.targeted ? (window.SparkleLiveLineup?.initialState?.(CONTENT) || CONTENT) : null);
+  window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
+  useEffect(() => {
+    if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
+    return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });
+  }, []);
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  const [queueOpen, setQueueOpen] = useState(false);
+  const repName = publicRepName(t.repName);
+  const [now, setNow] = useState(() => window.SPARKLE_FIRST_PAINT?.now ?? Date.now());
+  const activeLiveShow = useMemo(() => getActiveLiveShow(now), [now]);
+  const scheduleIsLive = Boolean(activeLiveShow);
+  const contentLiveQueueState = lineup?.liveQueueState || getContentLiveQueueState();
+  const effectiveLrqState = contentLiveQueueState || (scheduleIsLive ? t.lrqState : "offline");
+
+  // Targeted pages keep the server title and description.
+
+  useEffect(() => { applyHomepageTheme(t, document); }, [t]);
 
   useEffect(() => {
     window.AMETHYST_APPLY_HOMEPAGE_TEMPLATE?.(t);
   }, [t]);
 
   useEffect(() => {
+    window.SPARKLE_FIRST_PAINT = null;
+    setNow(Date.now());
     const timer = window.setInterval(() => setNow(Date.now()), 60_000);
     return () => window.clearInterval(timer);
   }, []);
@@ -3888,4 +4116,11 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+const homepageRoot = document.getElementById("root");
+if (homepageRoot.dataset?.serverRendered === "true" && ReactDOM.hydrateRoot) {
+  // Commit hydration before the independent theme controllers attach media.
+  // Replacing the server tree would discard loaded posters and move content.
+  ReactDOM.flushSync(() => ReactDOM.hydrateRoot(homepageRoot, <App />));
+} else {
+  ReactDOM.createRoot(homepageRoot).render(<App />);
+}

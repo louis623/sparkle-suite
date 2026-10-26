@@ -1,0 +1,42 @@
+import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { renderHomepageFirstPaint } from '@/lib/amethyst/homepage-first-paint'
+import { defaultAmethystHomepageTemplateData, buildAmethystHomepageTweakDefaults, buildAmethystHomepageBootstrapScript } from '@/lib/amethyst/homepage-template-data'
+import { defaultAmethystTradeTemplateData } from '@/lib/amethyst/trade-template-data'
+import { defaultAmethystJoinTemplateData } from '@/lib/amethyst/join-template-data'
+import { AMETHYST_APPEARANCE_PRESET_IDS } from '@/lib/amethyst/appearance-presets'
+
+const html = readFileSync('public/amethyst/Homepage.html', 'utf8').replace('<div id="root"></div>', '<div id="root"><main class="public-index">old unstyled copy</main></div>')
+describe('real themed first paint and autoplay defaults', () => {
+  for (const preset of AMETHYST_APPEARANCE_PRESET_IDS) {
+    it(`${preset} renders actual customer content before JavaScript and starts legacy Still as theme motion`, async () => {
+      const homepage = { ...defaultAmethystHomepageTemplateData, businessName: 'First-paint shop <safe>', heroMotion: 'still' }
+      const result = await renderHomepageFirstPaint(html, { appearancePreset: preset, homepage, trade: defaultAmethystTradeTemplateData, join: defaultAmethystJoinTemplateData }, new URL('https://example.com/review-shop'))
+      expect(result).toContain('data-server-rendered="true"')
+      const seed = JSON.parse(result.match(/window\.SPARKLE_FIRST_PAINT=(\{[^<]+\})<\/script>/)![1])
+      expect(seed).toMatchObject({ locale: expect.any(String), timeZone: expect.any(String), now: expect.any(Number) })
+      expect(result).toContain(`data-appearance-preset="${preset}"`)
+      expect(result).toContain('First-paint shop &lt;safe&gt;')
+      expect(result).toContain('--hp-primary:')
+      expect(result).not.toContain('old unstyled copy')
+      expect(result).not.toContain('data-hero-motion="off"')
+      expect(buildAmethystHomepageTweakDefaults(homepage, preset).heroMotion).not.toBe('still')
+    })
+  }
+  it('isolates rep content across concurrent renders', async () => {
+    const render = (name: string) => renderHomepageFirstPaint(html, { appearancePreset: 'amethyst', homepage: { ...defaultAmethystHomepageTemplateData, businessName: name }, trade: defaultAmethystTradeTemplateData, join: defaultAmethystJoinTemplateData }, new URL('https://example.com/'))
+    const [a, b] = await Promise.all([render('Only Rep Alpha'), render('Only Rep Beta')])
+    expect(a).toContain('Only Rep Alpha'); expect(a).not.toContain('Only Rep Beta')
+    expect(b).toContain('Only Rep Beta'); expect(b).not.toContain('Only Rep Alpha')
+  })
+  it('keeps the complete bootstrap inline while fetching ordered classic dependencies without blocking parsing', async () => {
+    const bootstrap = buildAmethystHomepageBootstrapScript()
+    const result = await renderHomepageFirstPaint(html, { appearancePreset: 'amethyst', homepage: defaultAmethystHomepageTemplateData, trade: defaultAmethystTradeTemplateData, join: defaultAmethystJoinTemplateData }, new URL('https://example.com/'), bootstrap)
+    expect(result).toContain('<script>window.AMETHYST_RUNTIME_CONTEXT')
+    expect(result).not.toMatch(/<script\s+src=/)
+    const dependencies = [...result.matchAll(/<script defer src="([^"]+)"/g)].map(match => match[1])
+    expect(dependencies[0]).toContain('react@18.3.1/umd/react.production.min.js')
+    expect(dependencies[1]).toContain('react-dom@18.3.1/umd/react-dom.production.min.js')
+    expect(dependencies.findIndex(src => src.includes('compiled/tweaks-panel.js'))).toBeLessThan(dependencies.findIndex(src => src.includes('compiled/homepage.js')))
+  })
+})

@@ -31,7 +31,7 @@ describe('Amethyst homepage template data wiring', () => {
       expect(source).not.toContain('Update delayed')
       expect(source).toContain('className="hp-trade-preview-updated"')
       expect(source).toContain('Updating · Last update ')
-      expect(source).toContain('new Date(updatedAt).toLocaleTimeString')
+      expect(source).toMatch(/homepageDateLabel\(updatedAt, \{ hour:|new Date\(updatedAt\)\.toLocaleTimeString/)
       expect(source).toMatch(
         /className="hp-trade-preview-items"[\s\S]*?className="hp-trade-preview-link"[\s\S]*?<LiveLineupUpdatedAt lineup=\{lineup\} \/>/,
       )
@@ -110,7 +110,7 @@ describe('Amethyst homepage template data wiring', () => {
     expect(serialized).not.toContain("Jane's Sparkle Party")
   })
 
-  it('precompiles the public customer pages and keeps Join and Unsubscribe on their own runtimes', () => {
+  it('precompiles the public customer pages and keeps Join on its bundled runtime', () => {
     for (const file of [
       'public/amethyst/Homepage.html',
       'public/amethyst/Trade.html',
@@ -134,8 +134,8 @@ describe('Amethyst homepage template data wiring', () => {
       resolve(process.cwd(), 'public/amethyst/Unsubscribe.html'),
       'utf8',
     )
-    expect(unsubscribe).toContain('type="text/babel"')
-    expect(unsubscribe).toContain('unsubscribe.jsx?v=')
+    expect(unsubscribe).not.toContain('type="text/babel"')
+    expect(unsubscribe).toContain('compiled/unsubscribe.js?v=')
 
     const join = readFileSync(
       resolve(process.cwd(), 'public/amethyst/Join.html'),
@@ -478,7 +478,7 @@ describe('Amethyst homepage template data wiring', () => {
     )
   })
 
-  it('keeps the saved hero motion when a skin supplies its other visual defaults', () => {
+  it('keeps active motion styles and upgrades legacy Still to theme autoplay', () => {
     expect(
       buildAmethystHomepageTweakDefaults(
         { ...defaultAmethystHomepageTemplateData, heroMotion: 'sparkle_rise' },
@@ -496,7 +496,7 @@ describe('Amethyst homepage template data wiring', () => {
         { ...defaultAmethystHomepageTemplateData, heroMotion: 'still' },
         'rose_quartz',
       ).heroMotion,
-    ).toBe('still')
+    ).toBe(AMETHYST_APPEARANCE_PRESETS.rose_quartz.values.heroMotion)
   })
 
   it('serializes the saved hero motion into the public bootstrap for every skin', () => {
@@ -1006,7 +1006,8 @@ describe('Amethyst homepage template data wiring', () => {
     )
 
     expect(jsx).toContain('function SparkleFx({ level, motion })')
-    expect(jsx).toContain('<div className="hp-hero-media" aria-hidden="true" />')
+    expect(jsx).toContain('<div className="hp-hero-media" aria-hidden="true">')
+    expect(jsx).toContain('data-first-paint-video="true" style={{ opacity: 1 }}')
     expect(jsx).not.toContain('className="hp-hero-eyebrow"')
     expect(jsx).not.toContain('Live schedule coming soon')
     expect(jsx).not.toContain('data-slot="hero photo"')
@@ -1189,7 +1190,7 @@ describe('Amethyst homepage template data wiring', () => {
     const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.jsx'), 'utf8')
     const css = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.css'), 'utf8')
     const framedCss = readFileSync(resolve(process.cwd(), 'public/amethyst/bling-kitchen/framed-hero.css'), 'utf8')
-    const route = readFileSync(resolve(process.cwd(), 'app/api/amethyst/homepage-template/route.ts'), 'utf8')
+    const route = readFileSync(resolve(process.cwd(), 'lib/amethyst/homepage-bootstrap-response.ts'), 'utf8')
     const blingKitchen = jsx.slice(jsx.indexOf('function BlingKitchenHomepage('), jsx.indexOf('// ============================================================\n// Main App'))
     expect(blingKitchen).toContain('useFramedKitchenHero ? (')
     expect(blingKitchen).toMatch(/halloween\|gnome/)
@@ -1225,7 +1226,7 @@ describe('Amethyst homepage template data wiring', () => {
 
     expect(jsx).toContain('window.AMETHYST_HOMEPAGE_EVENTS')
     expect(jsx).toContain('Intl.DateTimeFormat')
-    expect(jsx).toContain('Intl.DateTimeFormat(undefined')
+    expect(jsx).toContain('Intl.DateTimeFormat(seed?.locale')
     expect(jsx).toContain('timeZoneName: "short"')
     expect(jsx).not.toContain('timeZone: "UTC"')
     expect(jsx).toContain('downloadCalendarEvent')
@@ -1265,8 +1266,13 @@ describe('Amethyst homepage template data wiring', () => {
     expect(jsx).toContain('favoriteCuts')
     expect(jsx).toContain('favoriteCollections')
     expect(jsx).toContain('Pick at least 1, up to 3')
-    expect(jsx).toContain('Show older collections')
-    expect(jsx).toContain('Only for birthday promotions and gift ideas. It will not be used for anything else.')
+    expect(jsx).toContain('!option.isHidden')
+    expect(jsx).not.toContain('Show all')
+    expect(jsx).not.toContain('Show fewer')
+    expect(jsx).not.toContain('Show older collections')
+    expect(jsx).not.toContain('hp-pref-more')
+    expect(jsx).not.toContain('slice(0, 8)')
+    expect(jsx).toContain('Optional. Month and day only. We only use it for birthday offers and gift ideas.')
     expect(jsx).toContain('Choose SMS, email, or both')
     expect(jsx).toContain('/amethyst/Unsubscribe.html')
     expect(jsx).toContain('hp-signup-status')
@@ -1523,7 +1529,7 @@ describe('Amethyst homepage template data wiring', () => {
       'utf8',
     )
 
-    expect(html).toContain('unsubscribe.jsx')
+    expect(html).toContain('compiled/unsubscribe.js')
     expect(jsx).toContain('/api/amethyst/customer-audience/unsubscribe')
   })
 

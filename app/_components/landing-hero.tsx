@@ -69,7 +69,9 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
 
   useEffect(() => {
     if (state !== 'loading') return
-    const timer = window.setTimeout(() => setState('error'), 12000)
+    // The opaque frame receives complete local media. Slow connections need
+    // time to download it before the separate frame-readiness deadline starts.
+    const timer = window.setTimeout(() => setState('error'), previewHtml ? 12000 : 90000)
     function receive(event: MessageEvent) {
       if (event.source !== frame.current?.contentWindow || event.data?.type !== 'sparkle-landing-ready' || event.data.theme !== selected) return
       window.clearTimeout(timer)
@@ -77,7 +79,7 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
     }
     window.addEventListener('message', receive)
     return () => { window.clearTimeout(timer); window.removeEventListener('message', receive) }
-  }, [state, selected, attempt])
+  }, [state, selected, attempt, previewHtml])
 
   function explore(theme = selected) {
     autoStarted.current = true
@@ -112,7 +114,7 @@ export function LandingHero({ demo }: { demo: LandingDemo | null }) {
               key={selected + '-' + attempt} ref={frame}
               title={'Explore the ' + selectedLabel + ' website preview'}
               srcDoc={previewHtml}
-              sandbox="allow-scripts" referrerPolicy="no-referrer"
+              sandbox="allow-scripts" allow="autoplay" referrerPolicy="no-referrer"
               className={state === 'ready' ? styles.ready : styles.loading}
               aria-hidden={state !== 'ready'} tabIndex={state === 'ready' ? 0 : -1}
             /> : null}

@@ -12,7 +12,9 @@ import {
   fallbackPreferenceOptions,
   joinPreferenceLabels,
   legacyFavoriteChipText,
+  optionsForPreferencePicker,
   readSignupPreferences,
+  visiblePreferenceOptions,
 } from '@/lib/sparkle-suite/jewelry-preferences'
 import {
   loadPreferenceOptions,
@@ -29,18 +31,228 @@ const validPicks = {
 
 describe('Finder-parity preference lists', () => {
   it('keeps the bundled lists at Finder counts, with not_sure on every list', () => {
-    expect(fallbackPreferenceOptions.stone.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(24)
-    expect(fallbackPreferenceOptions.material.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(8)
+    expect(fallbackPreferenceOptions.stone.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(27)
+    expect(fallbackPreferenceOptions.material.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(9)
+    expect(fallbackPreferenceOptions.material.filter((option) => option.isHidden)).toHaveLength(2)
+    expect(visiblePreferenceOptions().material).toHaveLength(8)
     expect(fallbackPreferenceOptions.cut.filter((option) => option.slug !== NOT_SURE_SLUG)).toHaveLength(13)
     expect(
-      fallbackPreferenceOptions.collection.filter((option) => option.slug !== NOT_SURE_SLUG && !option.isRetired),
-    ).toHaveLength(22)
+      fallbackPreferenceOptions.collection.filter(
+        (option) => option.slug !== NOT_SURE_SLUG && !option.isRetired && !option.isHidden,
+      ),
+    ).toHaveLength(21)
     expect(fallbackPreferenceOptions.collection.filter((option) => option.isRetired)).toHaveLength(12)
+    expect(fallbackPreferenceOptions.collection.filter((option) => option.isHidden)).toHaveLength(1)
 
     for (const options of Object.values(fallbackPreferenceOptions)) {
       expect(options.some((option) => option.slug === NOT_SURE_SLUG && option.label === 'Not sure yet')).toBe(true)
       expect(new Set(options.map((option) => option.slug)).size).toBe(options.length)
     }
+  })
+
+  it('pins visible metal and collection ids to the Finder form order', () => {
+    expect(visiblePreferenceOptions().material.map((option) => option.slug)).toEqual([
+      'not_sure',
+      'rhodium',
+      'hematite',
+      'gold',
+      'matte-gold',
+      'rose-gold',
+      'sterling',
+      'vermeil',
+    ])
+    expect(visiblePreferenceOptions().material).toHaveLength(8)
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'matte-gold')?.label).toBe(
+      'Matte gold',
+    )
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'rhodium')?.label).toBe(
+      'Silver-tone (rhodium plated)',
+    )
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'gold')?.label).toBe('Gold plated')
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'sterling')?.label).toBe(
+      'Sterling silver (.925)',
+    )
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'silver-plated')).toMatchObject({
+      label: 'Silver plated',
+      isHidden: true,
+    })
+    expect(fallbackPreferenceOptions.material.find((option) => option.slug === 'matte-rhodium')).toMatchObject({
+      label: 'Matte rhodium',
+      isHidden: true,
+    })
+
+    expect(visiblePreferenceOptions().collection.map((option) => option.slug)).toEqual([
+      'not_sure',
+      'originals',
+      'birthday',
+      'exclusives',
+      'obsidia',
+      'halo',
+      'charmelier',
+      'outlaw',
+      'jewel-candy',
+      'stacks',
+      'delicate-stacked-rings',
+      'luxe-layers',
+      'luxe-bands',
+      'lumina',
+      'untamed',
+      'sterling-club',
+      'originals-kids',
+      'sirens',
+      'simply',
+      'awareness',
+      'resort-wear',
+      'mens-timeless',
+      'reign',
+      'greek-goddess',
+      'zen-gems',
+      'iceland-dreams',
+      'galaxia',
+      'versailles',
+      'desert-queen',
+      'bella-amore',
+      'mermaid-treasures',
+      'girl-boss',
+      'farmhouse',
+      'catch-a-unicorn',
+    ])
+    expect(visiblePreferenceOptions().collection.some((option) => option.slug === 'gem-society')).toBe(false)
+    expect(fallbackPreferenceOptions.collection.find((option) => option.slug === 'originals')?.label).toBe('OGs')
+    expect(fallbackPreferenceOptions.collection.find((option) => option.slug === 'exclusives')?.label).toBe(
+      'Exclusives',
+    )
+    expect(fallbackPreferenceOptions.collection.find((option) => option.slug === 'originals-kids')?.label).toBe(
+      'Originals Kids',
+    )
+    expect(fallbackPreferenceOptions.collection.find((option) => option.slug === 'gem-society')).toMatchObject({
+      label: 'Gem Society',
+      isHidden: true,
+    })
+  })
+
+  it('matches the shared spec on slug, label, retired, hidden, group, and order', () => {
+    const spec = JSON.parse(
+      readFileSync(resolve(process.cwd(), 'tests/fixtures/favorites-spec-options.json'), 'utf8'),
+    ) as {
+      options: Record<
+        'stone' | 'material' | 'cut' | 'collection',
+        Array<{
+          slug: string
+          label: string
+          isRetired?: boolean
+          isHidden?: boolean
+          groupLabel?: string | null
+        }>
+      >
+    }
+
+    const sharedFields = (
+      options: Array<{
+        slug: string
+        label: string
+        isRetired?: boolean
+        isHidden?: boolean
+        groupLabel?: string | null
+      }>,
+    ) =>
+      options.map((option) => ({
+        slug: option.slug,
+        label: option.label,
+        isRetired: option.isRetired === true,
+        isHidden: option.isHidden === true,
+        groupLabel: option.groupLabel ?? null,
+      }))
+
+    for (const kind of ['stone', 'material', 'cut', 'collection'] as const) {
+      expect(sharedFields(fallbackPreferenceOptions[kind])).toEqual(sharedFields(spec.options[kind]))
+    }
+
+    expect(fallbackPreferenceOptions.stone).toHaveLength(28)
+    expect(visiblePreferenceOptions().stone).toHaveLength(28)
+    expect(fallbackPreferenceOptions.material).toHaveLength(10)
+    expect(visiblePreferenceOptions().material).toHaveLength(8)
+    expect(fallbackPreferenceOptions.cut).toHaveLength(14)
+    expect(visiblePreferenceOptions().cut).toHaveLength(14)
+    expect(fallbackPreferenceOptions.collection).toHaveLength(35)
+    expect(visiblePreferenceOptions().collection).toHaveLength(34)
+    expect(fallbackPreferenceOptions.collection.find((option) => option.slug === 'farmhouse')?.label).toBe('Farmhouse')
+  })
+
+  it('matches the shared step ids, titles, subtitles, hint, errors, and privacy line', () => {
+    const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.jsx'), 'utf8')
+    const steps = [
+      { id: 'account', title: "Let's get you on the list" },
+      { id: 'stones', title: 'Stones you love', subtitle: "So we can point you toward pieces you'll love." },
+      { id: 'metals', title: 'Metals and finishes', subtitle: 'So the finish matches what you like to wear.' },
+      { id: 'cuts', title: 'Favorite cuts', subtitle: 'The shape changes the whole piece.' },
+      { id: 'collections', title: 'Bomb Party collections', subtitle: 'The Bomb Party lines you like most.' },
+      { id: 'contact', title: 'How should we reach you?' },
+      {
+        id: 'birthday',
+        title: 'Your birthday',
+        subtitle: 'Optional. Month and day only. We only use it for birthday offers and gift ideas.',
+      },
+      {
+        id: 'ring',
+        title: 'Ring size',
+        subtitle: 'Optional. It helps us point you toward rings that are more likely to fit.',
+      },
+      {
+        id: 'notes',
+        title: 'Anything else?',
+        subtitle: "Optional. Styles you love, pieces you're looking for, or anything that helps.",
+      },
+      { id: 'review', title: 'Review', subtitle: 'Check your answers, then finish below.' },
+    ]
+
+    let cursor = jsx.indexOf('const SIGNUP_STEPS')
+    expect(cursor).toBeGreaterThan(-1)
+    for (const step of steps) {
+      const idAt = jsx.indexOf(`id: "${step.id}"`, cursor)
+      const titleAt = jsx.indexOf(`title: "${step.title}"`, idAt)
+      expect(idAt).toBeGreaterThanOrEqual(cursor)
+      expect(titleAt).toBeGreaterThan(idAt)
+      cursor = titleAt
+      if (step.subtitle) expect(jsx).toContain(step.subtitle)
+    }
+
+    const stepWhy = jsx.slice(jsx.indexOf('const stepWhy'), jsx.indexOf('const stepTitle'))
+    expect(stepWhy).not.toContain('Pick at least 1, up to 3')
+    expect(stepWhy).not.toContain('Pick up to 3')
+    expect(jsx).toContain('>Pick at least 1, up to 3<')
+    expect(jsx).toContain('Pick at least one favorite in each list. Not sure yet counts.')
+    expect(jsx).toContain('Choose a month and a day, or leave both blank.')
+    expect(jsx).toContain('Keep notes to 500 characters.')
+    expect(jsx).toContain("You've picked 3. Unpick one to choose another.")
+    expect(jsx).toContain('Not added')
+    expect(jsx).toContain('Select a size')
+    expect(jsx).toContain('<option value="">Month</option>')
+    expect(jsx).toContain('<option value="">Day</option>')
+    const birthdayHelpers = jsx.slice(jsx.indexOf('function signupDaysInMonth'), jsx.indexOf('function applySignupPreferenceToggle'))
+    const signupDaysInMonth = new Function(`${birthdayHelpers}; return signupDaysInMonth;`)() as (month: string) => number
+    expect(signupDaysInMonth('2')).toBe(29)
+    expect(signupDaysInMonth('4')).toBe(30)
+    expect(signupDaysInMonth('')).toBe(31)
+    expect(jsx).toContain('birthday: form.birthday,')
+    expect(jsx).toContain('option.slug !== SIGNUP_NOT_SURE')
+    expect(jsx).toContain('>Older collections<')
+    expect(jsx).not.toContain('Show older')
+    expect(jsx).toContain(
+      "We use your answers to help you find pieces you'll love. The rep you sign up with sees your favorites. If you shop with another Sparkle Suite rep who shares favorites, they'll see them too, so your shows feel personal. Only the rep you sign up with can email or text you. We never sell your information.",
+    )
+    expect(readSignupPreferences({ ...validPicks, ringSize: '4' })).toMatchObject({
+      ok: false,
+      message: 'Choose a ring size from the list, or leave it blank.',
+    })
+    expect(readSignupPreferences({ ...validPicks, jewelryNotes: 'a'.repeat(501) })).toMatchObject({
+      ok: false,
+      message: 'Keep notes to 500 characters.',
+    })
+    expect(readSignupPreferences({ ...validPicks, favoriteCuts: ['round', 'oval', 'pear', 'heart'] })).toMatchObject({
+      ok: false,
+      message: 'Choose up to 3 favorites in each list. Not sure yet stands on its own.',
+    })
   })
 
   it('uses Finder ring sizes, whole sizes only', () => {
@@ -118,6 +330,17 @@ describe('signup preference validation', () => {
     expect(readSignupPreferences({ ...validPicks, ringSize: '12' }).ok).toBe(false)
     expect(readSignupPreferences({ ...validPicks, ringSize: 'not_sure' }).ok).toBe(true)
     expect(readSignupPreferences({ ...validPicks, jewelryNotes: 'a'.repeat(501) }).ok).toBe(false)
+
+    const blank = readSignupPreferences({ ...validPicks, jewelryNotes: '   ', ringSize: '4' })
+    expect(blank.ok).toBe(false)
+    if (!blank.ok) expect(blank.message).toBe('Choose a ring size from the list, or leave it blank.')
+
+    const emptyNotes = readSignupPreferences({ ...validPicks, jewelryNotes: '   ' })
+    expect(emptyNotes.ok).toBe(true)
+    if (emptyNotes.ok) expect(emptyNotes.picks?.jewelryNotes).toBe('')
+    const omittedNotes = readSignupPreferences(validPicks)
+    expect(omittedNotes.ok).toBe(true)
+    if (omittedNotes.ok) expect(omittedNotes.picks?.jewelryNotes).toBe('')
   })
 
   it('requires the four lists even when an old form omits them', () => {
@@ -128,10 +351,71 @@ describe('signup preference validation', () => {
     expect(legacy.ok).toBe(false)
     if (!legacy.ok) {
       expect(legacy.message).toBe(
-        'Refresh the page and pick at least one favorite in each list, or choose Not sure yet.',
+        'Pick at least one favorite in each list. Not sure yet counts.',
       )
       expect(legacy.detail).toBe('missing_stone')
     }
+  })
+
+  it('still accepts hidden gem-society, silver-plated, and matte-rhodium picks', () => {
+    const publicOptions = visiblePreferenceOptions()
+    const saved = readSignupPreferences(
+      {
+        ...validPicks,
+        favoriteMaterials: ['silver-plated', 'matte-rhodium'],
+        favoriteCollections: ['gem-society'],
+      },
+      publicOptions,
+    )
+    expect(saved.ok).toBe(true)
+    if (saved.ok) {
+      expect(saved.picks?.favoriteMaterials).toEqual(['silver-plated', 'matte-rhodium'])
+      expect(saved.picks?.favoriteCollections).toEqual(['gem-society'])
+      expect(saved.picks?.labels.favoriteMaterial).toBe('Silver plated, Matte rhodium')
+      expect(saved.picks?.labels.favoriteCollection).toBe('Gem Society')
+    }
+
+    expect(joinPreferenceLabels(['silver-plated', 'matte-rhodium'], 'material', publicOptions)).toBe(
+      'Silver plated, Matte rhodium',
+    )
+    expect(joinPreferenceLabels(['gem-society'], 'collection', publicOptions)).toBe('Gem Society')
+  })
+
+  it('renders a saved hidden option checked at the end and never offers one that is not saved', () => {
+    const jsx = readFileSync(resolve(process.cwd(), 'public/amethyst/homepage.jsx'), 'utf8')
+    const source = jsx.slice(
+      jsx.indexOf('function preferencePickerOptions'),
+      jsx.indexOf('function SignupPreferencePicker'),
+    )
+    const preferencePickerOptions = new Function(`${source}; return preferencePickerOptions;`)() as (
+      options: Array<{ slug: string; isHidden?: boolean; isRetired?: boolean }>,
+      selected: string[],
+    ) => Array<{ slug: string }>
+
+    const materials = fallbackPreferenceOptions.material
+    const collections = fallbackPreferenceOptions.collection
+    const offeredMaterials = preferencePickerOptions(materials, [])
+    const offeredCollections = preferencePickerOptions(collections, [])
+    expect(offeredMaterials.map((option) => option.slug)).not.toContain('silver-plated')
+    expect(offeredMaterials.map((option) => option.slug)).not.toContain('matte-rhodium')
+    expect(offeredCollections.map((option) => option.slug)).not.toContain('gem-society')
+
+    const savedMaterials = preferencePickerOptions(materials, ['matte-rhodium', 'gold'])
+    expect(savedMaterials.map((option) => option.slug).slice(-1)).toEqual(['matte-rhodium'])
+    expect(savedMaterials.filter((option) => option.slug !== 'matte-rhodium').map((option) => option.slug)).toEqual(
+      offeredMaterials.map((option) => option.slug),
+    )
+    expect(optionsForPreferencePicker(materials, ['silver-plated']).map((option) => option.slug).slice(-1)).toEqual([
+      'silver-plated',
+    ])
+
+    const savedCollections = preferencePickerOptions(collections, ['gem-society'])
+    expect(savedCollections.map((option) => option.slug).slice(-1)).toEqual(['gem-society'])
+    expect(savedCollections.filter((option) => option.slug === 'gem-society')).toHaveLength(1)
+    const picker = jsx.slice(jsx.indexOf('function SignupPreferencePicker'), jsx.indexOf('function Signup('))
+    expect(picker).toContain('preferencePickerOptions(options, selected)')
+    expect(source).toContain('selected.includes(option.slug)')
+    expect(jsx).toContain('const checked = selected.includes(option.slug)')
   })
 
   it('joins readable labels for the legacy text columns', () => {
@@ -167,7 +451,7 @@ describe('preference option fallback', () => {
       fetchImpl: (async () => new Response('nope', { status: 404 })) as typeof fetch,
     })
     expect(missing.source).toBe('fallback')
-    expect(missing.options.stone).toHaveLength(25)
+    expect(missing.options.stone).toHaveLength(28)
 
     resetPreferenceOptionsCache()
     const broken = await loadPreferenceOptions({
@@ -243,6 +527,25 @@ describe('customer signup preference save', () => {
     })
   })
 
+  it('stores omitted or blank jewelry notes as an empty string', async () => {
+    const { client, inserts } = mockAudienceClient()
+    const parsed = readSignupPreferences({ ...validPicks, jewelryNotes: null })
+    if (!parsed.ok || !parsed.picks) throw new Error('expected picks')
+    expect(parsed.picks.jewelryNotes).toBe('')
+
+    await createCustomerAudienceSignup(client, 'rep-1', {
+      firstName: 'Jamie',
+      lastName: 'Lane',
+      email: 'jamie@example.com',
+      smsConsent: false,
+      emailConsent: true,
+      marketingConsent: false,
+      preferencePicks: parsed.picks,
+    })
+
+    expect(inserts[0].jewelry_notes).toBe('')
+  })
+
   it('still stores the old single-text favorites when no pick arrays are sent', async () => {
     const { client, inserts } = mockAudienceClient()
 
@@ -274,10 +577,11 @@ describe('signup copy and migration parity', () => {
     const signup = jsx.slice(jsx.indexOf('function Signup('), jsx.indexOf('function Footer('))
 
     expect(signup).toContain(
-      'We never sell your information. Your answers are only used by {businessName} to give you a better experience.',
+      "We use your answers to help you find pieces you'll love. The rep you sign up with sees your favorites. If you shop with another Sparkle Suite rep who shares favorites, they'll see them too, so your shows feel personal. Only the rep you sign up with can email or text you. We never sell your information.",
     )
     const privacy = signup.slice(signup.indexOf('hp-signup-privacy'), signup.indexOf('type="submit"'))
-    expect(privacy).not.toMatch(/Sparkle Finder|Sparkle Suite/)
+    expect(privacy).not.toMatch(/Sparkle Finder/)
+    expect(privacy).not.toContain('only used by')
     const actions = signup.slice(
       signup.indexOf('className="hp-signup-actions"'),
       signup.indexOf('className="hp-signup-consent slot"'),
@@ -285,11 +589,20 @@ describe('signup copy and migration parity', () => {
     expect(actions.indexOf('hp-signup-privacy')).toBeGreaterThan(-1)
     expect(actions.indexOf('hp-signup-privacy')).toBeLessThan(actions.indexOf('type="submit"'))
     expect(jsx).toContain('.hp-signup-privacy { margin: 0; max-width: 38rem; color: var(--hp-card-fg); font-size: 15px; font-weight: 600; line-height: 1.5; text-align: center; }')
-    expect(signup).toContain("Pieces you're hunting for, sizes, or styles you love.")
+    expect(signup).toContain("Optional. Styles you love, pieces you're looking for, or anything that helps.")
+    expect(signup).toContain('Not added')
+    expect(jsx).toContain('id: "review"')
+    expect(signup).not.toContain('Pick up to 3')
     expect(signup).not.toContain('our system to know')
     expect(jsx).toContain("Let's get you on the list")
     expect(jsx).toContain('Stones you love')
     expect(jsx).toContain('Metals and finishes')
+    expect(jsx).toContain('!option.isHidden')
+    expect(jsx).not.toContain('Show all')
+    expect(jsx).not.toContain('Show fewer')
+    expect(jsx).not.toContain('Show older collections')
+    expect(jsx).not.toContain('hp-pref-more')
+    expect(jsx).not.toContain('slice(0, 8)')
     expect(jsx).toContain('Favorite cuts')
     expect(jsx).toContain('Bomb Party collections')
     expect(jsx).toContain('How should we reach you?')
@@ -309,7 +622,7 @@ describe('signup copy and migration parity', () => {
     expect(signup).toContain('function birthdayReviewLabel(value)')
     expect(signup).toContain('"March"')
     expect(signup).toContain('const birthdayReview = birthdayReviewLabel(form.birthday)')
-    expect(signup).toContain('{birthdayReview}')
+    expect(signup).toContain('{birthdayReview || "Not added"}')
     expect(signup).toContain('birthday: form.birthday,')
     expect(signup).toContain('function preferenceShortLabel(label)')
     expect(signup).toContain('indexOf(" (")')
@@ -337,6 +650,24 @@ describe('signup copy and migration parity', () => {
     expect(ring).toContain("ring_size IN ('5', '6', '7', '8', '9', '10', '11', 'not_sure')")
     expect(notes).toContain('length(jewelry_notes) <= 500')
     expect(notes).toContain('rep-private notes')
+
+    const emptyNotes = readFileSync(
+      resolve(root, '20261025190000_ss_customer_audience_jewelry_notes_empty_string.sql'),
+      'utf8',
+    )
+    const undo = readFileSync(
+      resolve(process.cwd(), 'supabase/manual/20261025190000_ss_customer_audience_jewelry_notes_empty_string_undo.sql'),
+      'utf8',
+    )
+    expect(emptyNotes).toContain("SET jewelry_notes = ''")
+    expect(emptyNotes).toContain('WHERE jewelry_notes IS NULL')
+    expect(emptyNotes).toContain("SET DEFAULT ''")
+    expect(emptyNotes).toContain('SET NOT NULL')
+    expect(emptyNotes).toContain('CHECK (length(jewelry_notes) <= 500)')
+    expect(emptyNotes).not.toContain('supabase db push')
+    expect(undo).toContain('DROP NOT NULL')
+    expect(undo).toContain('DROP DEFAULT')
+    expect(undo).toContain('jewelry_notes IS NULL OR length(jewelry_notes) <= 500')
   })
 
   it('rejects comma-joined favorite values and duplicates in a forward migration', () => {

@@ -26,6 +26,7 @@
     let wanted = !reduced.matches && hero.dataset.heroMotion !== 'off';
     let visible = false, disposed = false, failed = false, pending = false, finished = false;
     let soundEnabled = true, audioBlocked = false, playAttempt = 0;
+    let cancelAudioRetry = () => {};
     let showFinalPoster = !wanted;
     const canPlay = () => !disposed && wanted && visible && !document.hidden && !failed && !finished;
     function update(forcePlay = false) {
@@ -57,6 +58,8 @@
           // a truthful gesture control without changing the visitor's intent.
           audioBlocked = soundEnabled;
           video.muted = true;
+          cancelAudioRetry();
+          cancelAudioRetry = globalThis.sparkleHeroAudioFallback?.(video, controls, canPlay, () => { audioBlocked = false; update(); }) || (() => {});
         } else if (error.name !== 'AbortError') { wanted = false; showFinalPoster = true; }
         update();
       });
@@ -66,6 +69,7 @@
     const error = () => { if (!disposed && video.hasAttribute('src')) { failed = true; update(); } };
     video.addEventListener('playing', playing); video.addEventListener('ended', ended); video.addEventListener('error', error);
     motion.addEventListener('click', () => {
+      cancelAudioRetry();
       if (finished) { video.currentTime = 0; finished = false; wanted = true; }
       else wanted = !wanted;
       if (wanted) showFinalPoster = false;
@@ -73,6 +77,7 @@
       update(true);
     });
     sound.addEventListener('click', () => {
+      cancelAudioRetry();
       soundEnabled = audioBlocked ? true : !soundEnabled;
       audioBlocked = false; video.muted = !soundEnabled;
       if (soundEnabled) {
@@ -91,7 +96,7 @@
     const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); }, {threshold:0.01});
     intersection.observe(hero); update();
     return {hero, preferenceChanged, dispose() {
-      disposed = true; video.pause(); intersection.disconnect();
+      disposed = true; cancelAudioRetry(); video.pause(); intersection.disconnect();
       reduced.removeEventListener('change', preferenceChanged); document.removeEventListener('visibilitychange', update);
       video.removeEventListener('playing', playing); video.removeEventListener('ended', ended); video.removeEventListener('error', error);
       video.removeAttribute('src'); video.load(); media.removeAttribute('data-video'); media.remove(); magic.remove(); controls.remove();

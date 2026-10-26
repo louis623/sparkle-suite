@@ -162,7 +162,10 @@ describe('Amethyst static asset route', () => {
       )
       const html = await response.text()
 
-      expect(html).toContain('src="/amethyst/template-loader.js?v=20260928-lineup-always-on"')
+      if (assetName === 'Homepage.html') {
+        expect(html).toContain('data-server-rendered="true"')
+        expect(html).toContain('window.AMETHYST_HOMEPAGE_TEMPLATE_DATA =')
+      } else expect(html).toContain('src="/amethyst/template-loader.js?v=20260928-lineup-always-on"')
       if (assetName === 'Join.html') {
         expect(html).toContain('src="/amethyst/join-runtime.js?v=20261019-thanksgiving-v3"')
         expect(html).toContain('href="/amethyst/join.css?v=20261021-ticker-edge"')
@@ -173,7 +176,7 @@ describe('Amethyst static asset route', () => {
         expect(html).not.toContain('text/babel')
         expect(html).not.toContain('react.development')
       }
-      expect(html).toContain(
+      if (assetName !== 'Homepage.html') expect(html).toContain(
         `data-template-src="/api/amethyst/${endpoint}?c=rep-clean"`,
       )
       expect(html).not.toContain(`src="/api/amethyst/${endpoint}"></script>`)

@@ -700,6 +700,13 @@ export interface SiteSettingsDashboardResult {
   aboutSubheading?: string
   aboutNarrative?: string
   homepageMediaSlots?: PublicSiteMediaSlot[]
+  /**
+   * Public code shown after signup. Omitted when that column was not loaded.
+   * An empty string means the column exists and no code is saved.
+   */
+  signupDiscountCode?: string
+  /** Short offer phrase, such as "15% off". Omitted when that column was not loaded. */
+  signupDiscountOffer?: string
 }
 
 export interface UpdateSiteSettingsDashboardInput {
@@ -739,6 +746,8 @@ export interface UpdateSiteSettingsDashboardInput {
   aboutSubheading?: string
   aboutNarrative?: string
   homepageMediaSlots?: PublicSiteMediaSlot[]
+  signupDiscountCode?: string
+  signupDiscountOffer?: string
 }
 
 export type AccountBillingSubscriptionStatus =

@@ -49,7 +49,12 @@ export async function sealOpaqueMarketingDocument(document: string, theme: Ameth
     sealed = sealed.replace(match[0], '<style>' + css.replace(/<\/style/gi, '<\\/style') + '</style>')
   }
   const folder = mediaFolders[theme]
+  // The marketing frame displays a smaller scene. Keep the original rep-site
+  // movie intact, including its audio, and bundle its lighter delivery copy.
+  if (theme === 'sunset_beach') sealed = sealed.replaceAll('hero-loop.mp4', 'hero-preview.mp4')
   const assets = folder ? (await readdir(join(process.cwd(), 'public', 'amethyst', 'skins', folder)))
+    .filter(name => name !== 'hero-approved.png')
+    .filter(name => theme !== 'sunset_beach' || name !== 'hero-loop.mp4')
     .filter(name => /^[a-z0-9-]+\.(?:mp4|webm|webp|png|svg)$/.test(name)).map(name => '/amethyst/skins/' + folder + '/' + name) : []
   sealed = sealed.replace(/media-src [^;]+;/, 'media-src data:;')
   sealed = sealed.replace('</head>', '<script id="marketing-preview-assets" type="application/json">' + JSON.stringify(assets) + '</script></head>')
@@ -71,9 +76,9 @@ export async function sealOpaqueMarketingDocument(document: string, theme: Ameth
   // The sandbox has no same-origin, forms, popups, downloads or top navigation.
   // Signal readiness only after the actual customer component has rendered.
   const ready = `<script>(function(){
-    var sent=false;
+    var sent=false;var pausedVideos=new Set();
     function ready(){
-      document.querySelectorAll('video').forEach(function(v){v.muted=true;v.defaultMuted=true;v.preload='auto';});
+      document.querySelectorAll('video').forEach(function(v){v.preload='auto';});
       if(sent||!document.querySelector('.hp-hero'))return;
       sent=true;
       Promise.resolve(document.fonts&&document.fonts.ready).then(function(){
@@ -85,7 +90,7 @@ export async function sealOpaqueMarketingDocument(document: string, theme: Ameth
       if(event.source!==parent||event.data?.type!=='sparkle-marketing-motion')return;
       var paused=event.data.paused===true||matchMedia('(prefers-reduced-motion:reduce)').matches;
       document.documentElement.toggleAttribute('data-marketing-paused',paused);
-      document.querySelectorAll('video').forEach(function(v){v.muted=true;if(paused)v.pause();else if(v.getAttribute('src')){if(v.readyState===0){v.preload='auto';v.load();}v.play().catch(function(){});}});
+      document.querySelectorAll('video').forEach(function(v){if(paused){if(!v.paused)pausedVideos.add(v);v.pause();}else if(pausedVideos.has(v)){pausedVideos.delete(v);v.play().catch(function(){});}});
     });
     new MutationObserver(ready).observe(document.getElementById('root'),{childList:true,subtree:true});ready();
   })();</script>`
