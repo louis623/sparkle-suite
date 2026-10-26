@@ -10,7 +10,7 @@ export function homepagePreloadHeader(html: string) {
   }))
   const images = links.filter(link => link.as === 'image')
   const uniqueImages = new Set(images.map(link => link.href))
-  return [...new Set(links.filter(link => link.href && /^\/amethyst\/[a-z0-9/_.-]+$/i.test(link.href)
+  return [...new Set(links.filter(link => link.href && (/^\/amethyst\/[a-z0-9/_.-]+$/i.test(link.href) || (link.as === 'font' && /^https:\/\/cdn\.fontshare\.com\/wf\/[a-z0-9/_.-]+$/i.test(link.href)))
     && (link.as === 'font' || (link.as === 'image' && !link.responsive && (!link.media || uniqueImages.size === 1))))
     .map(link => '<' + link.href + '>; rel=preload; as=' + link.as + (link.as === 'font' ? '; type="font/woff2"; crossorigin=anonymous' : '; fetchpriority=high')))].join(', ')
 }

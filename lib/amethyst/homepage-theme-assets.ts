@@ -93,15 +93,21 @@ export async function inlineHomepageStyles(html: string, preset?: string, headin
 }
 
 /** Font binaries stay in hashed cacheable files; preload only selected Latin faces. */
-export async function inlineHomepageFonts(html: string, stacks: string[]) {
+export async function inlineHomepageFonts(html: string, stacks: string[], headingWeight = 600) {
   const families = [...new Set(stacks.map(stack => stack.split(',')[0].trim().replaceAll('"', '').toLowerCase()))]
   const manifest = fontManifest as Record<string, {css: string; file: string; inline: boolean}[]>
   type Fallback = {fallbackFont:string;ascentOverride:string;descentOverride:string;lineGapOverride:string;sizeAdjust:string;weight?:number}
   const fallbacks = fontFallbacks as Record<string, Fallback | Fallback[]>
   const selected = families.flatMap(family => manifest[family] ?? [])
   const faces = selected.map(face => face.css).join('\n')
-  const preloads = [...new Set(selected.filter(face => face.inline).map(face => face.file))]
-    .map(file => '<link rel="preload" as="font" type="font/woff2" crossorigin href="/amethyst/fonts/' + file + '">').join('')
+  const hostedFaces = families.flatMap((family, index) => {
+    const weight = index === 0 ? headingWeight : 400
+    const candidates = (manifest[family] ?? []).filter(face => !face.file).map(face => ({face, weight: Number(face.css.match(/font-weight:\s*(\d+)/)?.[1])}))
+    const selected = candidates.sort((a,b) => Math.abs(a.weight-weight)-Math.abs(b.weight-weight))[0]?.face
+    return selected?.css.match(/https:\/\/cdn\.fontshare\.com\/[^'" )]+/)?.[0] ?? []
+  })
+  const preloadUrls = [...new Set([...selected.filter(face => face.inline).map(face => '/amethyst/fonts/' + face.file), ...hostedFaces])]
+  const preloads = preloadUrls.map(url => '<link rel="preload" as="font" type="font/woff2" crossorigin href="' + url + '">').join('')
   // A custom site's fonts are not replaced unless every requested external
   // family is in the checked-in manifest. System fonts need no download.
   if (families.some(f => !manifest[f]?.length && !['georgia','arial','inter','system-ui'].includes(f))) return html
