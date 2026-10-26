@@ -51,7 +51,7 @@
       if (disposed) return;
       if (!allowed()) { release(); labels(); return; }
       if (!shouldPlay()) { video.pause(); labels(); return; }
-      if (!video.hasAttribute('src')) video.src = assets + 'hero-loop.mp4';
+      if (!video.hasAttribute('src')) video.src = assets + (matchMedia('(max-width:600px)').matches ? 'hero-loop-phone.mp4' : 'hero-loop.mp4');
       if (pending || !video.paused) { labels(); return; }
       pending = true;
       try { await video.play(); }
