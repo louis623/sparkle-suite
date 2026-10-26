@@ -5,16 +5,17 @@ const { useState, useEffect, useMemo, useRef } = React;
 // event timezone, never the rendering server timezone.
 const homepageDateFormatters = new Map();
 const homepageEventTimeZones = new Map();
+const homepageRenderLocale = window.SPARKLE_FIRST_PAINT?.locale;
+const homepageRenderTimeZone = window.SPARKLE_FIRST_PAINT?.timeZone;
 function homepageDateLabel(value, options) {
-  const seed = window.SPARKLE_FIRST_PAINT;
   const resolvedOptions = {
     ...options,
-    ...(seed && !options.timeZone ? { timeZone: seed.timeZone } : {}),
+    ...(homepageRenderTimeZone && !options.timeZone ? { timeZone: homepageRenderTimeZone } : {}),
   };
-  const key = JSON.stringify([seed?.locale, resolvedOptions]);
+  const key = JSON.stringify([homepageRenderLocale, resolvedOptions]);
   let formatter = homepageDateFormatters.get(key);
   if (!formatter) {
-    formatter = new Intl.DateTimeFormat(seed?.locale, resolvedOptions);
+    formatter = new Intl.DateTimeFormat(homepageRenderLocale, resolvedOptions);
     homepageDateFormatters.set(key, formatter);
   }
   return formatter.format(new Date(value));
@@ -3528,6 +3529,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
       </section>
       )}
 
+      <React.Suspense fallback={null}>
       <div className="mhf-below-hero-shell">
         <div className="mhf-automation-panel">
           {t.showEvents && <Events count={t.eventCount} />}
@@ -3537,6 +3539,7 @@ function MileHighFizzHomepage({ t, repName, businessName, isLive, liveShow, queu
           {t.showFooter && <Footer businessName={businessName} />}
         </div>
       </div>
+      </React.Suspense>
     </div>
   );
 }
@@ -3653,6 +3656,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
       </section>
       )}
 
+      <React.Suspense fallback={null}>
       <div className="bwb-below-hero-shell">
         <BrittWithBlingFeaturedReveal />
         <div className="bwb-automation-panel">
@@ -3665,6 +3669,7 @@ function BrittWithBlingHomepage({ t, repName, businessName, isLive, liveShow, qu
           {t.showFooter && <Footer businessName={businessName} />}
         </div>
       </div>
+      </React.Suspense>
     </div>
   );
 }
@@ -3733,6 +3738,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
       </section>
       )}
 
+      <React.Suspense fallback={null}>
       <div className="bk-home-below-shell">
         <section className="bk-home-pantry-callout">
           <div>
@@ -3750,6 +3756,7 @@ function BlingKitchenHomepage({ t, repName, businessName, isLive, liveShow, queu
           {t.showFooter && <Footer businessName={businessName} />}
         </div>
       </div>
+      </React.Suspense>
     </div>
   );
 }
@@ -3875,7 +3882,7 @@ function App() {
   window.SparkleLiveLineup?.useRevealFlare?.(React, lineup);
   useEffect(() => {
     if (!RUNTIME_CONTEXT.targeted || !window.SparkleLiveLineup) return;
-    return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: setLineup });
+    return window.SparkleLiveLineup.start({ url: withCurrentSearch('/api/amethyst/live-lineup'), initial: CONTENT, onUpdate: value => React.startTransition(() => setLineup(value)) });
   }, []);
   const [t, setTweak] = useTweaks(DEFAULTS);
   const [queueOpen, setQueueOpen] = useState(false);
@@ -3901,8 +3908,8 @@ function App() {
   useEffect(() => {
     window.SPARKLE_FIRST_PAINT = null;
     window.dispatchEvent(new Event("sparkle:homepage-hydrated"));
-    setNow(Date.now());
-    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    React.startTransition(() => setNow(Date.now()));
+    const timer = window.setInterval(() => React.startTransition(() => setNow(Date.now())), 60_000);
     return () => window.clearInterval(timer);
   }, []);
 
@@ -3958,6 +3965,7 @@ function App() {
       {t.showHero && <Hero t={{ ...t, heroSub: redactPublicRepText(t.heroSub, t.repName) }} isLive={scheduleIsLive} liveShow={activeLiveShow} />}
 
       {/* Events */}
+      <React.Suspense fallback={null}>
       {t.showEvents && <Events count={t.eventCount} />}
 
       {/* What is a Bomb Party */}
@@ -3971,6 +3979,7 @@ function App() {
 
       {/* Footer */}
       {t.showFooter && <Footer businessName={t.businessName} />}
+      </React.Suspense>
       </div>
         </>
       )}
