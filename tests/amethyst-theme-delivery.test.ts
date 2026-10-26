@@ -4,6 +4,17 @@ import { inlineHomepageStyles, inlineHomepageFonts, selectHomepageThemeAssets } 
 
 const html = readFileSync('public/amethyst/Homepage.html', 'utf8')
 describe('customer homepage delivery budget', () => {
+  it('reserves the approved phone headline width and hero space for late Fontshare faces', async () => {
+    const result = await inlineHomepageStyles(html, 'garnet', {family:'boska',weight:600})
+    expect(result).toContain('data-hero-space')
+    expect(result).toContain('min-height:inherit')
+    expect(result).toContain('data-hero-heading-space')
+    const fonts = await inlineHomepageFonts(html, ['"Boska", serif', '"Switzer", sans-serif'])
+    expect(fonts).toContain('src:local("Arial Bold");font-weight:600;')
+    expect(fonts).toContain('https://cdn.fontshare.com/')
+    expect(fonts).not.toContain('data:font/woff2;base64,')
+    expect(await inlineHomepageStyles(html, 'sunset_beach')).not.toContain('data-hero-space')
+  })
   it('delivers approved Latin fonts and matching fallback metrics without external blocking CSS', async () => {
     const result = await inlineHomepageFonts(html, ['"Playfair Display", Georgia, serif', '"DM Sans", Arial, sans-serif'])
     expect(result).not.toMatch(/<link[^>]+href="https:\/\/(?:fonts\.googleapis|api\.fontshare)/)

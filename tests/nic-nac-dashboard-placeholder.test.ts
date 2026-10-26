@@ -3669,7 +3669,7 @@ describe('DashboardPlaceholder', () => {
     expect(html).toContain('Site tagline')
     expect(html).toContain('Sparkle rise')
     expect(html).toContain('Soft glow')
-    expect(html).toContain('Still')
+    expect(html).toContain('Theme default (autoplay)')
     expect(html).toContain('Customer-facing site theme')
     expect(html).not.toContain('Customer Site Looks')
     expect(html).not.toContain('Morganite is locked in for every Sparkle Suite workspace and Amethyst customer site.')

@@ -1,5 +1,5 @@
 // Rebuild the self-hosted copies of the fonts already used by customer themes.
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
@@ -9,7 +9,7 @@ await mkdir(directory, { recursive: true });
 await mkdir(`${directory}/licenses`, { recursive: true });
 const families = ['Archivo','Archivo Black','Bitter','DM Sans','Fraunces','Great Vibes','Italiana','Lato','Nunito','Playfair Display','Quicksand'];
 const manifest = {};
-const fallbacks = {};
+const fallbacks = JSON.parse(await readFile(`${directory}/fontshare-fallbacks.json`, 'utf8'));
 for (const family of families) {
   fallbacks[family.toLowerCase()] = getFallbackFontOverrideMetrics(family);
   const variable = !['Archivo Black','Great Vibes','Italiana','Lato'].includes(family);

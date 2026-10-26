@@ -49,7 +49,8 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   const preset = new Script('window.HOMEPAGE_TWEAK_DEFAULTS.preset').runInContext(context) as string
   const variant = new Script('window.AMETHYST_HOMEPAGE_TEMPLATE_DATA.publicSiteVariant').runInContext(context) as string | undefined
   const fonts = [properties.get('--hp-display-font') ?? '', properties.get('--hp-body-font') ?? '']
-  const themedHtml = await inlineHomepageFonts(await inlineHomepageStyles(selectHomepageThemeAssets(html, preset, variant, fonts)), fonts)
+  const heading = { family: fonts[0].split(',')[0].replaceAll('"', '').trim().toLowerCase(), weight: Number(properties.get('--hp-heading-weight')) }
+  const themedHtml = await inlineHomepageFonts(await inlineHomepageStyles(selectHomepageThemeAssets(html, preset, variant, fonts), preset, heading), fonts)
   const withBootstrap = bootstrap ? themedHtml.replace(/<script\b[^>]*data-template-src="[^"]+"[^>]*><\/script>/, () => `<script>${bootstrap.replace(/<\/script/gi, '<\\/script')}</script>`) : themedHtml
   // The complete bootstrap is already inline and independent of React. Fetch
   // classic dependencies in parallel; defer preserves their execution order.

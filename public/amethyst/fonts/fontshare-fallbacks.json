@@ -1,0 +1,192 @@
+{
+  "boska": [
+    {
+      "fallbackFont": "Times New Roman",
+      "weight": 400,
+      "zeroEm": 0.5119999694824219,
+      "sizeAdjust": "93.41%",
+      "ascentOverride": "102.77%",
+      "descentOverride": "26.76%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Times New Roman",
+      "weight": 500,
+      "zeroEm": 0.5239999389648438,
+      "sizeAdjust": "95.80%",
+      "ascentOverride": "100.21%",
+      "descentOverride": "26.10%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Times New Roman Bold",
+      "weight": 600,
+      "zeroEm": 0.5359999084472656,
+      "sizeAdjust": "93.13%",
+      "ascentOverride": "103.08%",
+      "descentOverride": "26.84%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Times New Roman Bold",
+      "weight": 700,
+      "zeroEm": 0.5359999084472656,
+      "sizeAdjust": "93.13%",
+      "ascentOverride": "103.08%",
+      "descentOverride": "26.84%",
+      "lineGapOverride": "0.00%"
+    }
+  ],
+  "switzer": [
+    {
+      "fallbackFont": "Arial",
+      "weight": 400,
+      "zeroEm": 0.5759999084472657,
+      "sizeAdjust": "99.88%",
+      "ascentOverride": "98.11%",
+      "descentOverride": "25.03%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Arial",
+      "weight": 500,
+      "zeroEm": 0.5759999084472657,
+      "sizeAdjust": "100.97%",
+      "ascentOverride": "97.06%",
+      "descentOverride": "24.76%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Arial Bold",
+      "weight": 600,
+      "zeroEm": 0.5759999084472657,
+      "sizeAdjust": "96.64%",
+      "ascentOverride": "101.40%",
+      "descentOverride": "25.87%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Arial Bold",
+      "weight": 700,
+      "zeroEm": 0.5759999084472657,
+      "sizeAdjust": "98.04%",
+      "ascentOverride": "99.96%",
+      "descentOverride": "25.50%",
+      "lineGapOverride": "0.00%"
+    }
+  ],
+  "melodrama": [
+    {
+      "fallbackFont": "Times New Roman",
+      "weight": 400,
+      "zeroEm": 0.7930000305175782,
+      "sizeAdjust": "94.64%",
+      "ascentOverride": "103.55%",
+      "descentOverride": "29.59%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Times New Roman",
+      "weight": 500,
+      "zeroEm": 0.795,
+      "sizeAdjust": "97.45%",
+      "ascentOverride": "100.57%",
+      "descentOverride": "28.73%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Times New Roman Bold",
+      "weight": 600,
+      "zeroEm": 0.7969999694824219,
+      "sizeAdjust": "95.08%",
+      "ascentOverride": "103.07%",
+      "descentOverride": "29.45%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Times New Roman Bold",
+      "weight": 700,
+      "zeroEm": 0.7989999389648438,
+      "sizeAdjust": "98.51%",
+      "ascentOverride": "99.48%",
+      "descentOverride": "28.42%",
+      "lineGapOverride": "0.00%"
+    }
+  ],
+  "sharpie": [
+    {
+      "fallbackFont": "Arial",
+      "weight": 400,
+      "zeroEm": 0.49399993896484373,
+      "sizeAdjust": "84.07%",
+      "ascentOverride": "109.43%",
+      "descentOverride": "36.87%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Arial",
+      "weight": 500,
+      "zeroEm": 0.49399993896484373,
+      "sizeAdjust": "84.07%",
+      "ascentOverride": "109.43%",
+      "descentOverride": "36.87%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Arial Bold",
+      "weight": 600,
+      "zeroEm": 0.5089999389648437,
+      "sizeAdjust": "83.59%",
+      "ascentOverride": "110.07%",
+      "descentOverride": "37.09%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Arial Bold",
+      "weight": 700,
+      "zeroEm": 0.5089999389648437,
+      "sizeAdjust": "83.59%",
+      "ascentOverride": "110.07%",
+      "descentOverride": "37.09%",
+      "lineGapOverride": "0.00%"
+    }
+  ],
+  "ranade": [
+    {
+      "fallbackFont": "Arial",
+      "weight": 400,
+      "zeroEm": 0.6659999084472656,
+      "sizeAdjust": "115.21%",
+      "ascentOverride": "86.80%",
+      "descentOverride": "24.30%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Arial",
+      "weight": 500,
+      "zeroEm": 0.6639999389648438,
+      "sizeAdjust": "115.81%",
+      "ascentOverride": "86.35%",
+      "descentOverride": "24.18%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Arial Bold",
+      "weight": 600,
+      "zeroEm": 0.6619999694824219,
+      "sizeAdjust": "110.12%",
+      "ascentOverride": "90.81%",
+      "descentOverride": "25.43%",
+      "lineGapOverride": "0.00%"
+    },
+    {
+      "fallbackFont": "Arial Bold",
+      "weight": 700,
+      "zeroEm": 0.6619999694824219,
+      "sizeAdjust": "110.12%",
+      "ascentOverride": "90.81%",
+      "descentOverride": "25.43%",
+      "lineGapOverride": "0.00%"
+    }
+  ]
+}

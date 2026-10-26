@@ -44,7 +44,7 @@ export function selectHomepageThemeAssets(html: string, preset: string, variant?
 // Repository styles only, cached without rep data. Delivering the selected
 // styles with the markup avoids another render-blocking network waterfall.
 const styles = new Map<string, Promise<string>>()
-export async function inlineHomepageStyles(html: string) {
+export async function inlineHomepageStyles(html: string, preset?: string, heading?: {family:string;weight:number}) {
   const matches = [...html.matchAll(/<link rel="stylesheet" href="(?:\/amethyst\/)?((?:bling-kitchen\/)?[a-z0-9-]+\.css)(?:\?[^\"]*)?"\s*\/>/g)]
   const replacements = await Promise.all(matches.map(async match => {
     const name = match[1]
@@ -64,6 +64,17 @@ export async function inlineHomepageStyles(html: string) {
     return [match[0], `<style data-stylesheet="${name}">${css.replace(/<\/style/gi, '<\\/style')}</style>`] as const
   }))
   for (const [link, style] of replacements) html = html.replace(link, () => style)
+  // These two phone heroes already have a 620px minimum scene. Reserve that
+  // same space in the inner grid so late button-font wrapping cannot recenter
+  // the entire headline. Their settled layout keeps its existing dimensions.
+  if (preset === 'garnet' || preset === 'amber') html = html.replace('</head>', `<style data-hero-space>@media(max-width:640px){.hp-hero[data-appearance-preset="${preset}"]>.hp-hero-inner{min-height:inherit}}</style></head>`)
+  if (['garnet', 'amber', 'rose_quartz'].includes(preset ?? '') && heading) {
+    const metrics = (fontFallbacks as Record<string, unknown>)[heading.family]
+    const face = Array.isArray(metrics) ? metrics.find(m => m.weight === heading.weight) : null
+    // Preserve the approved final 11ch width without letting fallback glyph 0
+    // change that width while the display face loads.
+    if (face?.zeroEm) html = html.replace('</head>', `<style data-hero-heading-space>@media(max-width:640px){.hp-hero[data-appearance-preset="${preset}"] .hp-hero-headline{max-width:${(face.zeroEm * 11).toFixed(5)}em}}</style></head>`)
+  }
   return html
 }
 
@@ -74,7 +85,8 @@ const fontFiles = new Map<string, Promise<string>>()
 export async function inlineHomepageFonts(html: string, stacks: string[]) {
   const families = [...new Set(stacks.map(stack => stack.split(',')[0].trim().replaceAll('"', '').toLowerCase()))]
   const manifest = fontManifest as Record<string, {css: string; file: string; inline: boolean}[]>
-  const fallbacks = fontFallbacks as Record<string, {fallbackFont:string;ascentOverride:string;descentOverride:string;lineGapOverride:string;sizeAdjust:string}>
+  type Fallback = {fallbackFont:string;ascentOverride:string;descentOverride:string;lineGapOverride:string;sizeAdjust:string;weight?:number}
+  const fallbacks = fontFallbacks as Record<string, Fallback | Fallback[]>
   const faces = (await Promise.all(families.flatMap(family => (manifest[family] ?? []).map(async face => {
     if (!face.inline) return face.css
     if (!fontFiles.has(face.file)) fontFiles.set(face.file, readFile(join(process.cwd(), 'public/amethyst/fonts', face.file)).then(bytes => bytes.toString('base64')))
@@ -85,7 +97,7 @@ export async function inlineHomepageFonts(html: string, stacks: string[]) {
   if (families.some(f => !manifest[f]?.length && !['georgia','arial','inter','system-ui'].includes(f))) return html
   const metrics = families.map(family => {
     const m = fallbacks[family]
-    return m ? `@font-face{font-family:"${family} fallback";src:local("${m.fallbackFont}");size-adjust:${m.sizeAdjust};ascent-override:${m.ascentOverride};descent-override:${m.descentOverride};line-gap-override:${m.lineGapOverride}}` : ''
+    return m ? (Array.isArray(m) ? m : [m]).map(face => `@font-face{font-family:"${family} fallback";src:local("${face.fallbackFont}");${face.weight ? `font-weight:${face.weight};` : ''}size-adjust:${face.sizeAdjust};ascent-override:${face.ascentOverride};descent-override:${face.descentOverride};line-gap-override:${face.lineGapOverride}}`).join('') : ''
   }).join('')
   return html.replace(/<link[^>]+href="https:\/\/(?:api\.fontshare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)[^"]*"[^>]*>/g, '')
     .replace('</head>', `<style data-homepage-fonts>${faces}${metrics}</style></head>`)
