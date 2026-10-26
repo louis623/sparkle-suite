@@ -8,15 +8,19 @@ it('does not fetch full styles until hero paint, then applies them together', as
  expect(script).toBeTruthy()
  const links=[{media:'print',href:undefined as string|undefined,getAttribute:()=>'/one.css'},{media:'print',href:undefined as string|undefined,getAttribute:()=>'/two.css'}]
  let afterPaint:()=>void=()=>{}
- const window={sparkleAfterHeroPaint:(fn:()=>void)=>{afterPaint=fn},sparkleHomepageStylesLoaded:()=>{}}
- runInNewContext(script!,{window,document:{querySelectorAll:()=>links}})
+ const window={sparkleAfterHeroPaint:(fn:()=>void)=>{afterPaint=fn},sparkleHomepageStylesLoaded:()=>{},sparkleAfterHomepageStyles:(_fn:()=>void)=>{}}
+ runInNewContext(script!,{window,document:{querySelectorAll:()=>links},setTimeout:(fn:()=>void)=>fn()})
+ let started=false
+ window.sparkleAfterHomepageStyles(()=>{started=true})
  expect(links.every(link=>link.href===undefined)).toBe(true)
  afterPaint()
  expect(links.map(link=>link.href)).toEqual(['/one.css','/two.css'])
  window.sparkleHomepageStylesLoaded()
  expect(links.map(link=>link.media)).toEqual(['print','print'])
+ expect(started).toBe(false)
  window.sparkleHomepageStylesLoaded()
  expect(links.map(link=>link.media)).toEqual(['all','all'])
+ expect(started).toBe(true)
  const active=html.replace(/<noscript>[\s\S]*?<\/noscript>/g,'')
  expect(active).not.toMatch(/<link rel="stylesheet" href=/)
  expect(html).toContain('<noscript><link rel="stylesheet" href=')
