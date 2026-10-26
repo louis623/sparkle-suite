@@ -145,34 +145,14 @@ document.addEventListener('click', function (event) {
   if (!isShop) return;
   gtag('event', 'shop_click');
 }, true);
-// Queue consent/config/clicks immediately, but let the customer page paint
-// before analytics competes for its first HTML and artwork bytes.
+// Begin asynchronously during parsing so short visits can send their queued
+// page view. Low fetch priority keeps page artwork and fonts ahead of analytics.
 (function () {
-  var started = false;
-  function load() {
-    if (started) return;
-    started = true;
-    var script = document.createElement('script');
-    script.async = true;
-    script.fetchPriority = 'low';
-    script.src = 'https://www.googletagmanager.com/gtag/js?id=${measurementId}';
-    document.head.appendChild(script);
-  }
-  if (window.PerformanceObserver) {
-    try {
-      var observer = new PerformanceObserver(function (list) {
-        if (list.getEntries().some(function (entry) { return entry.name === 'first-contentful-paint'; })) {
-          observer.disconnect();
-          load();
-        }
-      });
-      observer.observe({ type: 'paint', buffered: true });
-      return;
-    } catch (error) {}
-  }
-  function afterPaint() { requestAnimationFrame(function () { requestAnimationFrame(load); }); }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', afterPaint, { once: true });
-  else afterPaint();
+  var script = document.createElement('script');
+  script.async = true;
+  script.fetchPriority = 'low';
+  script.src = 'https://www.googletagmanager.com/gtag/js?id=${measurementId}';
+  document.head.appendChild(script);
 })();
 </script>`
 }

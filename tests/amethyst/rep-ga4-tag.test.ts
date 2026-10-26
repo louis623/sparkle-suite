@@ -42,10 +42,8 @@ function requestFor(host: string, path = '/customer-site/home', query = '') {
 }
 
 describe('rep GA4 tag', () => {
-  it.each([true, false])('queues consent and clicks before downloading analytics after paint (observer: %s)', (hasObserver) => {
+  it('queues consent/config and begins low-priority analytics without waiting for paint or interaction', () => {
     const listeners: Record<string, (...args: any[]) => void> = {}
-    const frames: (() => void)[] = []
-    let paint: ((list: { getEntries: () => { name: string }[] }) => void) | undefined
     const appendChild = vi.fn()
     const context: any = {
       URL,
@@ -54,31 +52,15 @@ describe('rep GA4 tag', () => {
         addEventListener: (name: string, handler: (...args: any[]) => void) => { listeners[name] = handler },
         createElement: () => ({}), head: { appendChild },
       },
-      requestAnimationFrame: (callback: () => void) => frames.push(callback),
-    }
-    if (hasObserver) context.PerformanceObserver = class {
-      constructor(callback: typeof paint) { paint = callback }
-      observe() {} disconnect() {}
     }
     context.window = context
     runInNewContext(buildRepGa4Snippet({ measurementId: REP_A_MEASUREMENT, shopHref: 'https://shop.bombparty.com/bling' })
       .replace(/^<script[^>]*>/, '').replace(/<\/script>$/, ''), context)
-    expect(appendChild).not.toHaveBeenCalled()
     expect(Array.from(context.dataLayer[0]).slice(0, 2)).toEqual(['consent', 'default'])
     expect(Array.from(context.dataLayer[2])).toEqual(['config', REP_A_MEASUREMENT])
     listeners.click({ target: { closest: () => ({ href: 'https://shop.bombparty.com/bling' }) } })
     expect(Array.from(context.dataLayer[3])).toEqual(['event', 'shop_click'])
-    if (hasObserver) {
-      paint!({ getEntries: () => [{ name: 'first-paint' }] })
-      expect(appendChild).not.toHaveBeenCalled()
-      paint!({ getEntries: () => [{ name: 'first-contentful-paint' }] })
-      paint!({ getEntries: () => [{ name: 'first-contentful-paint' }] })
-    } else {
-      listeners.DOMContentLoaded()
-      frames.shift()!()
-      expect(appendChild).not.toHaveBeenCalled()
-      frames.shift()!()
-    }
+    expect(listeners.DOMContentLoaded).toBeUndefined()
     expect(appendChild).toHaveBeenCalledTimes(1)
     expect(appendChild).toHaveBeenCalledWith(expect.objectContaining({ async: true, fetchPriority: 'low', src: `https://www.googletagmanager.com/gtag/js?id=${REP_A_MEASUREMENT}` }))
   })
