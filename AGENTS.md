@@ -144,5 +144,5 @@ If a reviewer smoke path cannot be provided, state the exact blocker before call
 
 ## Neon Rabbit Production Quality Standard — October 25, 2026
 
-Louis's newer standing rule applies to ALL work. Read docs/neon-rabbit-production-quality-standard.md. It supersedes automatic all-rep release defaults: Smoke -> Louis's demo on Live -> all reps, with Rocky review and explicit Louis Live approval. Never call work ready before its quality gates pass.
+Louis's newer standing rule applies to ALL work. Read PRODUCTION_STANDARD.md. It supersedes automatic all-rep release defaults: Smoke -> Louis's demo on Live -> all reps, with Rocky review and explicit Louis Live approval. Never call work ready before its quality gates pass.
 
