@@ -575,18 +575,24 @@ export async function renderAmethystPublicAssetResponse(
     bootstrapUrl?.searchParams.set('lineupPresentation', 'grouped-v1')
     // Once the target is resolved, these public reads are independent. Keep
     // every identity guard and request-local result, without serial waterfalls.
-    const [indexedTemplate, bootstrap, ga4Tag] = await Promise.all([
+    // Start feature reads in parallel, but start their availability deadline
+    // only once the mandatory page reads finish. Otherwise a slow settings read
+    // can exhaust the bootstrap timer while this response still has to wait for
+    // those same settings, needlessly downgrading a successful read to the
+    // slower client-only page. Handle rejection immediately while we await it.
+    const bootstrapWork = bootstrapUrl ? Promise.resolve().then(() => buildHomepageBootstrapResponse(
+      new Request(bootstrapUrl, { headers: request.headers }),
+      { templateData: loadedTemplatePromise.then(template => template!) },
+    )).then(response => response.text()).catch(() => null) : Promise.resolve(null)
+    const [indexedTemplate, ga4Tag] = await Promise.all([
       loadedTemplatePromise.then(template => template ? indexPublicJoinTemplate(template, { repId }) : null),
-      bootstrapUrl ? bestEffortHomepage(() => buildHomepageBootstrapResponse(
-        new Request(bootstrapUrl, { headers: request.headers }),
-        { templateData: loadedTemplatePromise.then(template => template!) },
-      ).then(response => response.text())) : null,
       page ? loadedTemplatePromise.then(template => resolveRepGa4TagHtml({
         request,
         repId,
         shopHref: template?.homepage.streamLinks.shop,
       })).catch(() => '') : '',
     ])
+    const bootstrap = bootstrapUrl ? await bestEffortHomepage(() => bootstrapWork) : null
     const templateData = indexedTemplate
       ? restrictPantryTemplateData(
           indexedTemplate,

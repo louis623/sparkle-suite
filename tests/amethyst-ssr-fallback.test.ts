@@ -3,12 +3,12 @@ import { readFileSync } from 'node:fs'
 import { defaultAmethystHomepageTemplateData as homepage } from '@/lib/amethyst/homepage-template-data'
 import { defaultAmethystJoinTemplateData as join } from '@/lib/amethyst/join-template-data'
 import { defaultAmethystTradeTemplateData as trade } from '@/lib/amethyst/trade-template-data'
-const mocks = vi.hoisted(() => ({ bootstrap: vi.fn(), render: vi.fn() }))
+const mocks = vi.hoisted(() => ({ bootstrap: vi.fn(), render: vi.fn(), template: vi.fn() }))
 vi.mock('@/lib/amethyst/homepage-bootstrap-response', () => ({ buildHomepageBootstrapResponse: mocks.bootstrap }))
 vi.mock('@/lib/amethyst/homepage-first-paint', () => ({ renderHomepageFirstPaint: mocks.render }))
-vi.mock('@/lib/amethyst/preview-template-data', () => ({ loadAmethystPreviewTemplateData: async () => ({ appearancePreset: 'amethyst', homepage, join, trade }) }))
+vi.mock('@/lib/amethyst/preview-template-data', () => ({ loadAmethystPreviewTemplateData: (...args: unknown[]) => mocks.template(...args) }))
 import { renderAmethystPublicAssetResponse } from '@/lib/amethyst/public-asset-response'
-beforeEach(() => { mocks.bootstrap.mockReset().mockResolvedValue(new Response('window.QA=true;')); mocks.render.mockReset().mockImplementation(async html => html) })
+beforeEach(() => { mocks.template.mockReset().mockResolvedValue({ appearancePreset: 'amethyst', homepage, join, trade }); mocks.bootstrap.mockReset().mockResolvedValue(new Response('window.QA=true;')); mocks.render.mockReset().mockImplementation(async html => html) })
 it.each(['throw', 'timeout'])('returns the client page with 200 when bootstrap fails: %s', async mode => {
   mocks.bootstrap.mockImplementation(() => mode === 'throw' ? Promise.reject(Error('forced')) : new Promise(() => {}))
   const response = await renderAmethystPublicAssetResponse(new Request('https://example.test/shop'), ['Homepage.html'], { repIdOverride: 'test-rep' })
@@ -29,4 +29,19 @@ it('a real VM CPU timeout returns the exact untouched client page', async () => 
   const html = readFileSync('public/amethyst/Homepage.html', 'utf8')
   const result = await renderHomepageFirstPaint(html, { appearancePreset: 'amethyst', homepage, join, trade }, new URL('https://example.test/shop'), 'while (true) {}')
   expect(result).toBe(html)
+})
+
+it('keeps SSR when mandatory settings complete after the bootstrap deadline would have expired', async () => {
+ let settingsReady=false,featuresStartedEarly=false
+ mocks.template.mockImplementation(()=>new Promise(resolve=>setTimeout(()=>{settingsReady=true;resolve({ appearancePreset:'amethyst',homepage,join,trade })},1700)))
+ mocks.bootstrap.mockImplementation(async (_request, prefetched)=>{
+  featuresStartedEarly=!settingsReady
+  await prefetched.templateData
+  return new Response('window.QA=true;')
+ })
+ const response=await renderAmethystPublicAssetResponse(new Request('https://example.test/shop'),['Homepage.html'],{repIdOverride:'test-rep'})
+ expect(response.status).toBe(200)
+ expect(featuresStartedEarly).toBe(true)
+ expect(mocks.render).toHaveBeenCalledOnce()
+ expect(mocks.render.mock.calls[0][3]).toBe('window.QA=true;')
 })
