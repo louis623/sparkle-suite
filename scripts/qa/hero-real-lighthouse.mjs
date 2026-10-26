@@ -13,16 +13,23 @@ if(!base?.includes('.vercel.app'))throw Error('Preview URL required');
 fs.mkdirSync(output,{recursive:true});
 const routes=JSON.parse(fs.readFileSync(process.env.REAL_ROUTE_MANIFEST || 'scripts/qa/hero-real-routes.json','utf8')).filter(r=>!selected||selected.split(',').some(s=>s===r.theme||s===r.slug));
 const token=process.env.VERCEL_OIDC_TOKEN,origin=new URL(base).origin;
-const results=[];
+const summaryPath=path.join(output,`${mode}-lighthouse-summary.json`);
+const results=process.env.QA_RESUME==='1'&&fs.existsSync(summaryPath)?JSON.parse(fs.readFileSync(summaryPath,'utf8')):[];
+const seen=new Set();for(const result of results){const key=result.slug+':'+result.run;if(result.mode!==mode||result.requestedUrl!==base+'/'+result.slug||result.diagnosticOnly||seen.has(key))throw Error('Incompatible existing measurement');seen.add(key)}
 for(const route of routes)for(let run=1;run<=Number(repetitions);run++){
- const browser=await puppeteer.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,defaultViewport:null,ignoreDefaultArgs:['--enable-automation'],args:['--autoplay-policy=document-user-activation-required']});
+ if(seen.has(route.slug+':'+run))continue;
+ const browser=await puppeteer.launch({executablePath:process.env.CHROME_EXECUTABLE || 'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,defaultViewport:null,ignoreDefaultArgs:['--enable-automation'],args:['--autoplay-policy=document-user-activation-required']});
  try{
   const page=await browser.newPage();
   await page.setRequestInterception(true);
   page.on('request',request=>{if(process.env.QA_DIAG_BLOCK_CSS==='1' && request.url().includes('/amethyst/delivery/') && request.resourceType()==='stylesheet')return request.abort();if(process.env.QA_DIAG_BLOCK_GA==='1' && /googletagmanager|google-analytics/.test(request.url()))return request.abort();const headers={...request.headers()};if(token&&new URL(request.url()).origin===origin)headers['x-vercel-trusted-oidc-idp-token']=token;request.continue({headers}).catch(()=>{});});
   const config={extends:'lighthouse:default',...(mode==='desktop'?desktopConfig:{}),settings:{...(mode==='desktop'?desktopConfig.settings:{}),onlyCategories:['performance'],formFactor:mode==='phone'?'mobile':'desktop',screenEmulation:{mobile:mode==='phone',width:mode==='phone'?360:1440,height:mode==='phone'?800:900,deviceScaleFactor:1,disabled:false},disableFullPageScreenshot:true,...(process.env.QA_LH_METHOD?{throttlingMethod:process.env.QA_LH_METHOD}:{})}};
   const {lhr}=await lighthouse(base+'/'+route.slug,{logLevel:'error',output:'json'},config,page);
-  const a=lhr.audits;const result={...route,mode,run,lighthouseVersion:lhr.lighthouseVersion,fetchTime:lhr.fetchTime,requestedUrl:lhr.requestedUrl,finalUrl:lhr.finalDisplayedUrl,lcp:a['largest-contentful-paint'].numericValue,cls:a['cumulative-layout-shift'].numericValue,fcp:a['first-contentful-paint'].numericValue,tbt:a['total-blocking-time'].numericValue,speedIndex:a['speed-index'].numericValue,score:lhr.categories.performance.score,settings:lhr.configSettings,diagnosticOnly:process.env.QA_DIAG_BLOCK_CSS==='1'||process.env.QA_DIAG_BLOCK_GA==='1',runtimeError:lhr.runtimeError,warnings:lhr.runWarnings};
+  // This DOM marker is only a post-audit diagnostic: Lighthouse's bf-cache
+  // gatherer navigates away and back after timing collection. A missing marker
+  // here is not evidence that the measured HTTP response used the SSR fallback.
+  // Use hero-real-html and retained-node browser checks for that assertion.
+  const a=lhr.audits;const documentRequest=a['network-requests']?.details?.items?.find(item=>item.resourceType==='Document'&&item.url===base+'/'+route.slug);const serverRendered=await page.evaluate(()=>document.querySelector('#root')?.getAttribute('data-server-rendered')==='true');const result={...route,mode,run,serverRendered,documentTransferBytes:documentRequest?.transferSize,documentResourceBytes:documentRequest?.resourceSize,lighthouseVersion:lhr.lighthouseVersion,fetchTime:lhr.fetchTime,requestedUrl:lhr.requestedUrl,finalUrl:lhr.finalDisplayedUrl,lcp:a['largest-contentful-paint'].numericValue,cls:a['cumulative-layout-shift'].numericValue,fcp:a['first-contentful-paint'].numericValue,tbt:a['total-blocking-time'].numericValue,speedIndex:a['speed-index'].numericValue,score:lhr.categories.performance.score,settings:lhr.configSettings,diagnosticOnly:process.env.QA_DIAG_BLOCK_CSS==='1'||process.env.QA_DIAG_BLOCK_GA==='1',runtimeError:lhr.runtimeError,warnings:lhr.runWarnings};
   const prefix=path.join(output,`${mode}-${route.slug}-${run}`);
   let json=JSON.stringify(lhr,null,2);if(token)json=json.replaceAll(token,'[redacted]');fs.writeFileSync(prefix+'-lighthouse.json',json);
   if(run===1){

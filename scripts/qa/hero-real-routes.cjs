@@ -10,14 +10,14 @@ const themes = selected?.split(',') || ['amethyst','sparkle_suite_morganite','bl
 const audioThemes = new Set(['amethyst','fall_owl_harvest_moon','sunset_beach']);
 fs.mkdirSync(output, {recursive:true});
 (async () => {
-  const browser = await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=document-user-activation-required']});
+  const browser = await chromium.launch({channel:'chrome',headless:true,ignoreDefaultArgs:['--enable-automation'],args:['--autoplay-policy=document-user-activation-required']});
   const results = [];
   const routes=JSON.parse(fs.readFileSync(process.env.REAL_ROUTE_MANIFEST || 'scripts/qa/hero-real-routes.json','utf8'));
   for (const route of routes.filter(r=>!selected || themes.includes(r.theme) || themes.includes(r.slug))) {
     const {theme,slug}=route;
     const context = await browser.newContext({viewport:mode==='phone'?{width:360,height:800}:{width:1440,height:900},isMobile:mode==='phone',hasTouch:mode==='phone',deviceScaleFactor:1});
     await authenticatePreview(context, base);
-    const page = await context.newPage(), errors = [], resources = [];
+    const page = await context.newPage(), errors = [], resources = [], analytics = [];
     const frameThrottles=[], throttled=new Set();
     async function throttleFrame(frame) {
       if(mode!=='phone'||!frame.parentFrame()||throttled.has(frame))return;
@@ -37,7 +37,7 @@ fs.mkdirSync(output, {recursive:true});
     page.on('frameattached',throttleFrame);page.on('framenavigated',throttleFrame);
     page.on('pageerror', e => errors.push(e.message));
     page.on('console', msg => { if (msg.type()==='error' && /React error|hydration|hydrating|Unsafe attempt to load/i.test(msg.text())) errors.push(msg.text()); });
-    page.on('request', r => resources.push(r.url()));
+    page.on('request', r => { resources.push(r.url()); if (/google-analytics\.com\/g\/collect/.test(r.url())) { const u=new URL(r.url()); analytics.push({event:u.searchParams.get('en'),at:Date.now()}); } });
     await context.addInitScript(() => {
       window.__heroQA = {plays:[],unstyled:false,interactions:[],lcp:0,cls:0};
       new MutationObserver(()=>{
@@ -48,7 +48,7 @@ fs.mkdirSync(output, {recursive:true});
       new PerformanceObserver(list=>{for(const entry of list.getEntries())window.__heroQA.lcp=entry.startTime}).observe({type:'largest-contentful-paint',buffered:true});
       let session=0, start=0, last=0;
       new PerformanceObserver(list=>{for(const entry of list.getEntries())if(!entry.hadRecentInput){session=entry.startTime-last<1000&&entry.startTime-start<5000?session+entry.value:(start=entry.startTime,entry.value);last=entry.startTime;window.__heroQA.cls=Math.max(window.__heroQA.cls,session)}}).observe({type:'layout-shift',buffered:true});
-      new PerformanceObserver(list=>{for(const event of list.getEntries())if(event.interactionId)window.__heroQA.interactions.push({name:event.name,duration:event.duration})}).observe({type:'event',durationThreshold:16,buffered:true});
+      new PerformanceObserver(list=>{for(const event of list.getEntries())if(event.interactionId)window.__heroQA.interactions.push({name:event.name,duration:event.duration,start:event.startTime,inputDelay:event.processingStart-event.startTime,processing:event.processingEnd-event.processingStart,presentation:event.startTime+event.duration-event.processingEnd})}).observe({type:'event',durationThreshold:16,buffered:true});
       const original = HTMLMediaElement.prototype.play;
       HTMLMediaElement.prototype.play = function() {
         const attempt = {muted:this.muted,at:performance.now()}; window.__heroQA.plays.push(attempt);
@@ -62,7 +62,8 @@ fs.mkdirSync(output, {recursive:true});
       await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
       await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:200000,uploadThroughput:93750,connectionType:'cellular4g'});
     }
-    const result = {theme,slug,mode,errors,frameThrottles};
+    const result = {theme,slug,mode,errors,frameThrottles,analytics};
+    const startedAt=Date.now();
     let finishFilmstrip = await startFilmstrip(cdp,path.join(output,`${mode}-${slug}`));
     try {
       const response = await page.goto(`${base}/${slug}`,{waitUntil:'domcontentloaded',timeout:120000});
@@ -95,6 +96,7 @@ fs.mkdirSync(output, {recursive:true});
         videos:[...document.querySelectorAll('.hp-hero video')].map(v=>({time:v.currentTime,paused:v.paused,muted:v.muted,ended:v.ended})),
         animations:document.getAnimations().filter(a=>a.effect?.target?.closest?.('.hp-hero')).map(a=>({state:a.playState,time:a.currentTime})),
         controls:[...document.querySelectorAll('.hp-hero button')].map(b=>({text:b.textContent,label:b.getAttribute('aria-label')})),
+        socialFrames:[...document.querySelectorAll('iframe.ss-tiktok-embed-frame,iframe.ss-customer-video-frame')].map(f=>({loaded:!!f.getAttribute('src'),top:f.getBoundingClientRect().top})),
       }));
       result.initial=await sample();
       await finishFilmstrip(); finishFilmstrip=null;
@@ -125,6 +127,7 @@ fs.mkdirSync(output, {recursive:true});
           result.resumed=await sample();
         }
       }
+      result.analytics=analytics.map(event=>({event:event.event,afterNavigationMs:event.at-startedAt}));
       result.productionRuntime=!resources.some(u=>/babel(?:\.min)?\.js|babel-standalone|react(?:-dom)?\.development/.test(u));
       result.pass=result.status===200 && result.initial.motion==='on' && !result.initial.unstyled && result.productionRuntime && !errors.length;
       result.pass &&= result.initial.retained && result.initial.hydrated;
@@ -137,6 +140,16 @@ fs.mkdirSync(output, {recursive:true});
       const interactions=(result.resumed||result.muted||result.progress).interactions;
       result.interactionMaxMs=interactions.length?Math.max(...interactions.map(e=>e.duration)):null;
       result.pass &&= result.interactionMaxMs===null||result.interactionMaxMs<=200;
+      const social = frame.locator('iframe.ss-tiktok-embed-frame,iframe.ss-customer-video-frame').first();
+      if(await social.count()) {
+        result.socialDeferred=result.initial.socialFrames.filter(f=>f.top>(mode==='phone'?800:900)+200).every(f=>!f.loaded);
+        await social.scrollIntoViewIfNeeded();
+        await frame.waitForFunction(()=>[...document.querySelectorAll('iframe.ss-tiktok-embed-frame,iframe.ss-customer-video-frame')].some(f=>!!f.getAttribute('src')),null,{timeout:10000});
+        result.socialLoadsOnScroll=true;
+        await page.waitForTimeout(1500);
+        await page.screenshot({path:path.join(output,`${mode}-${slug}-social-after-scroll.png`)});
+        result.pass &&= result.socialDeferred;
+      }
     } catch(error) {result.failure=error.message;result.pass=false;await page.screenshot({path:path.join(output,`${mode}-${slug}-failure.png`)}).catch(()=>{});}
     if(finishFilmstrip)await finishFilmstrip().catch(()=>{});
     results.push(result);fs.writeFileSync(path.join(output,`${mode}-${slug}.json`),JSON.stringify(result,null,2));
