@@ -12,9 +12,9 @@
   ].join(',');
   var ASSET_ROOT = '/amethyst/skins/neon-butterfly/';
   var butterflies = [
-    { tone: 'pink', place: 'crown', duration: 17, delay: -3.4, angle: -4, asset: 'kelly-sign-pink.png' },
-    { tone: 'gold', place: 'left', duration: 21, delay: -12.1, angle: -7, asset: 'kelly-sign-gold.png' },
-    { tone: 'violet', place: 'right', duration: 19, delay: -7.6, angle: 12, asset: 'kelly-sign-violet.png' },
+    { tone: 'pink', place: 'crown', duration: 17, delay: -3.4, angle: -4, asset: 'kelly-sign-pink.webp' },
+    { tone: 'gold', place: 'left', duration: 21, delay: -12.1, angle: -7, asset: 'kelly-sign-gold.webp' },
+    { tone: 'violet', place: 'right', duration: 19, delay: -7.6, angle: 12, asset: 'kelly-sign-violet.webp' },
   ];
   var sparkles = [
     [12, 21, -2], [19, 70, -7], [28, 14, -11], [38, 79, -5],
