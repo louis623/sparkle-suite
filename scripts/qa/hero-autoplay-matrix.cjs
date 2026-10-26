@@ -3,6 +3,7 @@
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const fs = require('node:fs'), path = require('node:path');
 const { startFilmstrip } = require('./hero-filmstrip.cjs');
+const { authenticatePreview } = require('./preview-auth.cjs');
 const [base, output, mode = 'desktop', selected] = process.argv.slice(2);
 if (!base || !output) throw Error('Usage: node scripts/qa/hero-autoplay-matrix.cjs BASE OUTPUT desktop|phone [comma-separated themes]');
 const themes = selected?.split(',') || ['amethyst','sparkle_suite_morganite','black_diamond','moonstone','alpine_opal','emerald_garden','gnome_garden','neon_butterfly','halloween_pumpkin_witch','halloween_pumpkin_cat','gilded_autumn','rose_gold','midnight_rose','fall_owl_harvest_moon','gobble_and_fizz','pie_please','pearl_rose','sunset_beach','rose_champagne','garnet','amber','velvet','rose_quartz'];
@@ -12,7 +13,8 @@ fs.mkdirSync(output, {recursive:true});
   const browser = await chromium.launch({channel:'chrome',headless:true,args:['--autoplay-policy=document-user-activation-required']});
   const results = [];
   for (const theme of themes) {
-    const context = await browser.newContext({viewport:mode==='phone'?{width:390,height:844}:{width:1440,height:900},isMobile:mode==='phone',hasTouch:mode==='phone',deviceScaleFactor:1});
+    const context = await browser.newContext({viewport:mode==='phone'?{width:360,height:800}:{width:1440,height:900},isMobile:mode==='phone',hasTouch:mode==='phone',deviceScaleFactor:1});
+    await authenticatePreview(context, base);
     const page = await context.newPage(), errors = [], resources = [];
     const frameThrottles=[], throttled=new Set();
     async function throttleFrame(frame) {

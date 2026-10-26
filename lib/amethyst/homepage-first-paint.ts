@@ -30,7 +30,9 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   const body = { className: 'homepage', classList: { add(...names: string[]) { body.className += ' ' + names.join(' ') } } }
   const document = { body, documentElement: { style: { setProperty(name: string, value: unknown) { properties.set(name, String(value)) } } }, getElementById: () => ({}) }
   let element: ReactTypes.ReactNode
-  const window = { React, location: { search: requestUrl.search, origin: requestUrl.origin, hostname: requestUrl.hostname } }
+  const { locale, timeZone } = new Intl.DateTimeFormat().resolvedOptions()
+  const firstPaint = { locale, timeZone, now: Date.now() }
+  const window = { React, SPARKLE_FIRST_PAINT: firstPaint, location: { search: requestUrl.search, origin: requestUrl.origin, hostname: requestUrl.hostname } }
   const context = createContext({
     window, document, React, URL, URLSearchParams, Intl, console,
     ReactDOM: { createRoot: () => ({ render(node: ReactTypes.ReactNode) { element = node } }) },
@@ -53,7 +55,7 @@ export async function renderHomepageFirstPaint(html: string, data: AmethystPrevi
   // classic dependencies in parallel; defer preserves their execution order.
   const withOrderedScripts = bootstrap && options.deferExternalScripts !== false ? withBootstrap.replace(/<script\s+src=/g, '<script defer src=') : withBootstrap
   return withOrderedScripts
-    .replace('</head>', preloads + '</head>')
+    .replace('</head>', preloads + `<script>window.SPARKLE_FIRST_PAINT=${JSON.stringify(firstPaint)}</script></head>`)
     .replace(/<html\b([^>]*)>/, (_match, attrs) => `<html${attrs} style="${attribute(style)}">`)
     .replace('<body class="homepage">', () => `<body class="${attribute(body.className)}">`)
     .replace(/<div id="root">(?:[\s\S]*?<\/main>)?<\/div>/, () => `<div id="root" data-server-rendered="true">${markup}</div>`)

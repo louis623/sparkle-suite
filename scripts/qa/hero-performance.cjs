@@ -2,6 +2,7 @@
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const fs = require('node:fs'), path = require('node:path');
 const { startFilmstrip } = require('./hero-filmstrip.cjs');
+const { authenticatePreview } = require('./preview-auth.cjs');
 const [base, output, mode='phone', selected='sunset_beach', repetitions='5'] = process.argv.slice(2);
 fs.mkdirSync(output,{recursive:true});
 (async()=>{
@@ -9,6 +10,7 @@ fs.mkdirSync(output,{recursive:true});
   const results=[];
   for(const theme of selected.split(',')) for(let run=1;run<=Number(repetitions);run++) {
     const context=await browser.newContext({viewport:mode==='phone'?{width:360,height:800}:{width:1440,height:900},isMobile:mode==='phone',hasTouch:mode==='phone',deviceScaleFactor:1});
+    await authenticatePreview(context, base);
     const page=await context.newPage(),errors=[],resources=[];
     page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>resources.push(r.url()));
     await context.addInitScript(()=>{

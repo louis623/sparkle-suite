@@ -13,6 +13,8 @@ describe('real themed first paint and autoplay defaults', () => {
       const homepage = { ...defaultAmethystHomepageTemplateData, businessName: 'First-paint shop <safe>', heroMotion: 'still' }
       const result = await renderHomepageFirstPaint(html, { appearancePreset: preset, homepage, trade: defaultAmethystTradeTemplateData, join: defaultAmethystJoinTemplateData }, new URL('https://example.com/review-shop'))
       expect(result).toContain('data-server-rendered="true"')
+      const seed = JSON.parse(result.match(/window\.SPARKLE_FIRST_PAINT=(\{[^<]+\})<\/script>/)![1])
+      expect(seed).toMatchObject({ locale: expect.any(String), timeZone: expect.any(String), now: expect.any(Number) })
       expect(result).toContain(`data-appearance-preset="${preset}"`)
       expect(result).toContain('First-paint shop &lt;safe&gt;')
       expect(result).toContain('--hp-primary:')

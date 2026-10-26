@@ -1,6 +1,16 @@
 /* global React, ReactDOM */
 const { useState, useEffect, useMemo, useRef } = React;
 
+// Match the server's first render, then show the visitor's local date/time
+// after hydration. A timezone mismatch otherwise discards the entire hero DOM.
+function homepageDateLabel(value, options) {
+  const seed = window.SPARKLE_FIRST_PAINT;
+  return new Intl.DateTimeFormat(seed?.locale, {
+    ...options,
+    ...(seed ? { timeZone: seed.timeZone } : {}),
+  }).format(new Date(value));
+}
+
 // Read tweaks panel components from the global scope (loaded from tweaks-panel.jsx)
 const {
   TweaksPanel, useTweaks,
@@ -461,7 +471,7 @@ function LiveLineupStatus() {
   const updated = Date.parse(lineup.liveQueueLastUpdated);
   if (!Number.isFinite(updated)) return null;
   return <p className="hp-lineup-status">
-    Updated {new Date(updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+    Updated {homepageDateLabel(updated, { hour: 'numeric', minute: '2-digit' })}
   </p>;
 }
 
@@ -472,9 +482,9 @@ function LiveLineupUpdatedAt({ lineup }) {
     <time
       className="hp-trade-preview-updated"
       dateTime={new Date(updatedAt).toISOString()}
-      title={new Date(updatedAt).toLocaleString()}
+      title={homepageDateLabel(updatedAt, { dateStyle: 'short', timeStyle: 'medium' })}
     >
-      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{new Date(updatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+      {lineup?.liveQueueState === "delayed" ? "Updating · Last update " : "Updated "}{homepageDateLabel(updatedAt, { hour: "numeric", minute: "2-digit" })}
     </time>
   );
 }
@@ -1691,22 +1701,22 @@ function formatEventDateLabel(eventTime) {
   const parsed = new Date(eventTime);
   if (Number.isNaN(parsed.getTime())) return eventTime;
 
-  return new Intl.DateTimeFormat(undefined, {
+  return homepageDateLabel(parsed, {
     weekday: "short",
     month: "short",
     day: "numeric",
-  }).format(parsed);
+  });
 }
 
 function formatEventTimeLabel(eventTime) {
   const parsed = new Date(eventTime);
   if (Number.isNaN(parsed.getTime())) return eventTime;
 
-  return new Intl.DateTimeFormat(undefined, {
+  return homepageDateLabel(parsed, {
     hour: "numeric",
     minute: "2-digit",
     timeZoneName: "short",
-  }).format(parsed);
+  });
 }
 
 function sanitizeCalendarFilename(title) {
@@ -3572,7 +3582,7 @@ function App() {
   const [t, setTweak] = useTweaks(DEFAULTS);
   const [queueOpen, setQueueOpen] = useState(false);
   const repName = publicRepName(t.repName);
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => window.SPARKLE_FIRST_PAINT?.now ?? Date.now());
   const activeLiveShow = useMemo(() => getActiveLiveShow(now), [now]);
   const scheduleIsLive = Boolean(activeLiveShow);
   const contentLiveQueueState = lineup?.liveQueueState || getContentLiveQueueState();
@@ -3587,6 +3597,8 @@ function App() {
   }, [t]);
 
   useEffect(() => {
+    window.SPARKLE_FIRST_PAINT = null;
+    setNow(Date.now());
     const timer = window.setInterval(() => setNow(Date.now()), 60_000);
     return () => window.clearInterval(timer);
   }, []);
