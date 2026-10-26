@@ -71,7 +71,8 @@
       var paused = decoration.dataset.paused === 'true';
       decoration.dataset.paused = paused ? 'false' : 'true';
       control.setAttribute('aria-pressed', paused ? 'false' : 'true');
-      control.textContent = paused ? 'Pause animation' : 'Resume animation';
+      // Keep the text node so the scene's child-list observer need not rescan.
+      control.firstChild.nodeValue = paused ? 'Pause animation' : 'Resume animation';
     });
 
     hero.appendChild(decoration);

@@ -305,7 +305,7 @@ body.bg-neon-butterfly .hp-footer a:hover { color: #ff75df; }
 .nb-scene { position: absolute; inset: 0; z-index: 2; pointer-events: none; user-select: none; overflow: hidden; }
 .nb-led-wash,
 .nb-curtain-light,
-.nb-lamp-shimmer { position: absolute; pointer-events: none; mix-blend-mode: screen; }
+.nb-lamp-shimmer { position: absolute; pointer-events: none; mix-blend-mode: screen; will-change: filter, opacity; }
 .nb-led-wash { top: 7%; bottom: 4%; width: 31%; opacity: .18; filter: blur(24px); animation: nb-led-color-cycle 24s ease-in-out infinite; }
 .nb-led-wash--left { left: -6%; background: radial-gradient(ellipse at 52% 48%, rgba(16, 92, 255, .72), transparent 69%); }
 .nb-led-wash--right { right: -5%; background: radial-gradient(ellipse at 45% 48%, rgba(255, 22, 191, .72), transparent 70%); animation-delay: -12s; animation-direction: reverse; }
