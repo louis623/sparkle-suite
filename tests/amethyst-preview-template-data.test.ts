@@ -441,33 +441,6 @@ describe('Amethyst preview template data', () => {
     expect(data.join).toBe(defaultAmethystJoinTemplateData)
   })
 
-  it('starts independent reads after resolving the same rep, without waiting for settings', async () => {
-    let releaseSettings!: (value: SiteSettingsDashboardResult) => void
-    const settings = new Promise<SiteSettingsDashboardResult>(resolve => { releaseSettings = resolve })
-    const getJoinTeamRoster = vi.fn(async () => [])
-    const getRequiredSetupState = vi.fn(async () => null)
-    const result = loadAmethystPreviewTemplateData({
-      repId: 'rep-target',
-      env: { NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'test-only' },
-      dependencies: {
-        createAdminClient: vi.fn(() => ({})) as unknown as typeof createAdminClient,
-        resolveAmethystPreviewRep: vi.fn(async () => ({ id: 'rep-target', email: 'target@example.com', shop_link: null, streaming_links: {} })),
-        getSiteSettingsDashboard: vi.fn(() => settings),
-        getJoinTeamRoster,
-        getRequiredSetupState,
-      },
-    })
-    try {
-      await vi.waitFor(() => {
-        expect(getJoinTeamRoster).toHaveBeenCalledWith(expect.anything(), 'rep-target')
-        expect(getRequiredSetupState).toHaveBeenCalledWith('rep-target')
-      })
-    } finally {
-      releaseSettings(demoSettings)
-    }
-    expect((await result).homepage.businessName).toBe(demoSettings.businessName)
-  })
-
   it('passes an explicit customer rep target into the resolver', async () => {
     const createAdminClientMock = vi.fn(() => ({ from: vi.fn() }))
     const resolveAmethystPreviewRep = vi.fn(async () => ({

@@ -559,14 +559,14 @@ export async function renderAmethystPublicAssetResponse(
     }
     const repId = options.repIdOverride?.trim() || resolveAmethystRequestRepId(request)
     const resolvedOptions = repId ? { ...options, repIdOverride: repId } : options
-    const loadedTemplate =
+    const loadedTemplatePromise =
       page && contentType.startsWith('text/html') && repId
-        ? await loadAmethystPreviewTemplateData({
+        ? loadAmethystPreviewTemplateData({
             repId,
             publicSiteSlug: options.publicSiteSlugOverride,
           })
-        : null
-    const endpoint = page === 'homepage' && loadedTemplate
+        : Promise.resolve(null)
+    const endpoint = page === 'homepage' && repId
       ? rewriteTemplateScriptTarget(body.toString('utf8'), page, requestUrl, resolvedOptions).match(/data-template-src="([^"]+)"/)?.[1]
       : undefined
     const bootstrapUrl = endpoint ? new URL(endpoint.replaceAll('&amp;', '&'), requestUrl.origin) : null
@@ -574,16 +574,16 @@ export async function renderAmethystPublicAssetResponse(
     // Once the target is resolved, these public reads are independent. Keep
     // every identity guard and request-local result, without serial waterfalls.
     const [indexedTemplate, bootstrap, ga4Tag] = await Promise.all([
-      loadedTemplate ? indexPublicJoinTemplate(loadedTemplate, { repId }) : null,
+      loadedTemplatePromise.then(template => template ? indexPublicJoinTemplate(template, { repId }) : null),
       bootstrapUrl ? buildHomepageBootstrapResponse(
         new Request(bootstrapUrl, { headers: request.headers }),
-        { templateData: loadedTemplate! },
+        { templateData: loadedTemplatePromise.then(template => template!) },
       ).then(response => response.text()) : null,
-      page ? resolveRepGa4TagHtml({
+      page ? loadedTemplatePromise.then(template => resolveRepGa4TagHtml({
         request,
         repId,
-        shopHref: loadedTemplate?.homepage.streamLinks.shop,
-      }).catch(() => '') : '',
+        shopHref: template?.homepage.streamLinks.shop,
+      })).catch(() => '') : '',
     ])
     const templateData = indexedTemplate
       ? restrictPantryTemplateData(

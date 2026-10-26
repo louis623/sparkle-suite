@@ -83,7 +83,7 @@ function isSmokeBlingKitchenPreview(request: Request) {
 }
 
 export async function buildHomepageBootstrapResponse(request: Request, prefetched?: {
-  templateData: AmethystPreviewTemplateData
+  templateData: AmethystPreviewTemplateData | Promise<AmethystPreviewTemplateData>
 }) {
   const target = resolveAmethystRequestTarget(request)
   const requestCustomDomain = resolveAmethystRequestCustomDomainHost(request)
@@ -94,13 +94,10 @@ export async function buildHomepageBootstrapResponse(request: Request, prefetche
     ...(publicSiteSlug ? { publicSiteSlug } : {}),
     repId,
   }
-  const [events, templateData, featureRepId] = await Promise.all([
-    loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }),
-    prefetched?.templateData ?? loadAmethystPreviewTemplateData(lookupTarget),
-    targeted ? resolveHomepageFeatureRepId(lookupTarget) : null,
-  ])
-  const [tradeBoardListings, liveQueueSnapshot] = targeted
-    ? await Promise.all([
+  // Feature identity has its own guarded resolver. Its reads can finish while
+  // settings/roster/setup and calendar data are loading for this same request.
+  const features = targeted
+    ? resolveHomepageFeatureRepId(lookupTarget).then(featureRepId => Promise.all([
         loadAmethystTradeBoardPreviewListings({
           ...lookupTarget,
           repId: featureRepId,
@@ -108,8 +105,13 @@ export async function buildHomepageBootstrapResponse(request: Request, prefetche
           limit: 8,
         }),
         loadHomepageLiveQueueSnapshot(featureRepId),
-      ])
-    : [[], null]
+      ]))
+    : Promise.resolve<[Awaited<ReturnType<typeof loadAmethystTradeBoardPreviewListings>>, LiveQueueSnapshot | null]>([[], null])
+  const [events, templateData, [tradeBoardListings, liveQueueSnapshot]] = await Promise.all([
+    loadAmethystHomepageUpcomingShows({ ...lookupTarget, targeted }),
+    prefetched?.templateData ?? loadAmethystPreviewTemplateData(lookupTarget),
+    features,
+  ])
   const linkedTemplateData = applyPublicSiteSlugToTemplateData(
     templateData,
     publicSiteSlug,

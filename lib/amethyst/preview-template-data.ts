@@ -863,28 +863,23 @@ export async function loadAmethystPreviewTemplateData(
 
     if (!rep) return defaultPreviewTemplateData
 
-    // These reads share only the already-resolved rep identity. Waiting for
-    // each in turn delays the entire first HTML response on real rep routes.
-    // Keep the existing independent roster/setup failure fallbacks.
-    const [settings, joinTeamMembers, requiredSetupState] = await Promise.all([
-      (dependencies.getSiteSettingsDashboard ?? getSiteSettingsDashboard)(admin, rep.id),
-      (async () => {
-        try {
-          return mapJoinTeamRosterToTemplateMembers(
-            await (dependencies.getJoinTeamRoster ?? getJoinTeamRoster)(admin, rep.id),
-          )
-        } catch {
-          return []
-        }
-      })(),
-      (async (): Promise<RequiredSetupState | null> => {
-        try {
-          return await (dependencies.getRequiredSetupState ?? getRequiredSetupState)(rep.id)
-        } catch {
-          return null
-        }
-      })(),
-    ])
+    const settings = await (dependencies.getSiteSettingsDashboard ??
+      getSiteSettingsDashboard)(admin, rep.id)
+    let joinTeamMembers: AmethystJoinTeamMember[] | undefined
+    try {
+      joinTeamMembers = mapJoinTeamRosterToTemplateMembers(
+        await (dependencies.getJoinTeamRoster ?? getJoinTeamRoster)(admin, rep.id),
+      )
+    } catch {
+      joinTeamMembers = []
+    }
+    let requiredSetupState: RequiredSetupState | null = null
+    try {
+      requiredSetupState = await (dependencies.getRequiredSetupState ??
+        getRequiredSetupState)(rep.id)
+    } catch {
+      requiredSetupState = null
+    }
     const activeSetupDraftState =
       requiredSetupState?.status === 'required_setup' ||
       requiredSetupState?.status === 'setup_blocked'
